@@ -547,6 +547,12 @@ create a repo runtime descriptor, backend port or measured resource effect.
 | --- | --- | --- |
 | pytorch/pytorch @ `9a90a4fefcaafa63ac984621963a6fcc66aee68c`, source version `2.16.0a0` | Bounded implementation, documentation and test-definition spans across installation/build, tensor/dispatch/autograd, training/data, compiler/export, memory/streams/graphs, distributed/checkpoint, profiling and custom operators. [Exact readset](../src/inferrsi/data/skill_library/frameworks/pytorch/pytorch/references/source-readset.json) retains Git blob and inspected checkout identities separately; [directory coverage](../src/inferrsi/data/skill_library/frameworks/pytorch/pytorch/references/source-directory-coverage.md) distinguishes tree discovery from substantive inspection and unpopulated dependencies | [pytorch candidate graph](../src/inferrsi/data/skill_library/frameworks/pytorch/pytorch/SKILL.md), eight child procedures, bounded public-API helpers and exact LICENSE/NOTICE bytes. Resolver `NOASSERTION` is retained separately from source terms. Preparation and CPU observations use the distinct `2.15.0+cpu` wheel, not this source build. Required accelerator, native extension, distributed-device and deployment checks remain blocked/not_run; no quality/service/performance or efficacy claim, candidate promotion, managed DisCo import or implicit TorchNPU compatibility pairing. |
 
+## vLLM Ascend v0.27.1rc1 serving scope
+
+| Source / revision | Inspected scope | Extraction and qualification boundary |
+| --- | --- | --- |
+| vllm-project/vllm-ascend at `3b31886237ed65c435e0965b10e8002ff5769766` | Release table, plugin hooks, DeepSeek-V4/DSpark evolution, Kimi K3/MiniMax-M3/GLM5+ optimization, DSA-CP/FlashComm1/Fused-MC2 and fusion dispatch, reversals and numerical oracles. [History screening and semantic scope](../src/inferrsi/data/skill_library/repositories/vllm-ascend/references/history-scope.md). [Source locators](../src/inferrsi/data/skill_library/repositories/vllm-ascend/references/sources.md) | [Release-specific diagnosis](../src/inferrsi/data/skill_library/repositories/vllm-ascend/SKILL.md). Candidate; device execution and downstream efficacy unverified. Older ACLGraph and checkpoint-adaptation owners retain their own source revisions. |
+
 ## Issue #49: conditioning transport diagnostic
 
 [Owner-local case](../src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/minicpm-conditioning-transport.md) preserves the pinned ordinary-turn bridge,

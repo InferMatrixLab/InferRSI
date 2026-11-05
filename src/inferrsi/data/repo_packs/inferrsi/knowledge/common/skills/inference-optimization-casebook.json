@@ -21,18 +21,14 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/5d43495275b26a2a43c397977de74ccf790b4ee4/src/inferrsi/data/skill_library/methods/inference-optimization-casebook/SKILL.md",
-      "commit": "5d43495275b26a2a43c397977de74ccf790b4ee4",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/2c766dbc95605e61b907ce71418ab941287b427a/src/inferrsi/data/skill_library/methods/inference-optimization-casebook/SKILL.md",
+      "commit": "2c766dbc95605e61b907ce71418ab941287b427a",
       "paths": [
         "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/SKILL.md",
         "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/admission-drain-occupancy.json",
         "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/admission-drain-occupancy.md",
         "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/drama3-rejected-directions.json",
         "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/drama3-rejected-directions.md",
-        "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/minicpm-conditioning-transport.json",
-        "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/minicpm-conditioning-transport.md",
-        "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/minicpm-speaker-cpu-reference.json",
-        "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/minicpm-speaker-cpu-reference.md",
         "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.json",
         "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md",
         "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen-b300-rejected-directions.json",
@@ -40,7 +36,7 @@
         "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/metadata.json",
         "src/inferrsi/data/skill_library/skill-index.json"
       ],
-      "content_sha256": "525b4140c34b5834fd054cb35dadadaae098a19881f82d70bf6c5628311c76a3"
+      "content_sha256": "89a6a82c692f7f5192f4d7f4c3a5ff08a4df3b1c4bdaa0aafb7e04292d8aa5b4"
     }
   ],
   "index_type": "packaged-skill",
@@ -49,21 +45,17 @@
   },
   "checkout_ref": "checkout:inference-optimization-casebook",
   "source_files": {
-    "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/SKILL.md": "525b4140c34b5834fd054cb35dadadaae098a19881f82d70bf6c5628311c76a3",
+    "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/SKILL.md": "89a6a82c692f7f5192f4d7f4c3a5ff08a4df3b1c4bdaa0aafb7e04292d8aa5b4",
     "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/admission-drain-occupancy.json": "3319e23bbe2bd40e2d45fb89dc87bdc92d4df2b5ddd8086fcf84813b43885b7c",
     "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/admission-drain-occupancy.md": "e88bbac5d253a8e7e3a3d5e21047f23f2970c11ac23887d4303ab94fca52dd27",
     "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/drama3-rejected-directions.json": "2cc0a526fe0509551607a03e7626dd3d7844e643c4afb194837f75cddead8b12",
     "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/drama3-rejected-directions.md": "6f143bc363a3290fc008c08e57cb075f1776d1c8cca8a6a59297d5b1fbbf61bf",
-    "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/minicpm-conditioning-transport.json": "a23594c8e176bde8b560136dfaa9deac14a8d54918b656b451665d4d17ab6152",
-    "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/minicpm-conditioning-transport.md": "987d971fb35588a51267e9217da8d5a2b98b47b1a12dab3b400ae8d8827720f3",
-    "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/minicpm-speaker-cpu-reference.json": "6723d03430f4e6d7caecefe9f0ff2ef443b2558b80dceee1c20919f828970687",
-    "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/minicpm-speaker-cpu-reference.md": "1b8d60b425147c4a43aef379424c8aba773d3d3718467d4aa9ae928fe8b26ce4",
     "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.json": "b3d538f79c56724ccb2895cbf50cf2e6b0fec3979be62a684a8230cd932dff55",
     "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md": "be396983812262515899a3e2ba4f01b23ff92e1b836881882c7580372b8ae552",
     "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen-b300-rejected-directions.json": "146ea1564a46ed03092c7dc5796b318fc05b04b1821105ee00eb7fa7fa1333e2",
     "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen-b300-rejected-directions.md": "cce2930f544a0f78f21797fba4d8ded298e4a81f76c34d7977b0e31d361bc738",
     "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/metadata.json": "963488658f327d2379183d70357eabf832d70a6a70db2aa67f548493f4088d97",
-    "src/inferrsi/data/skill_library/skill-index.json": "9ea8b2ef190777e683a3905f0614612a37782be4d655d230c000188b0c7073db"
+    "src/inferrsi/data/skill_library/skill-index.json": "7904275c3383380db179287171e1430617aaa9ac4f439291eff8a71426987fbb"
   },
   "skill_metadata": {
     "name": "inference-optimization-casebook",
