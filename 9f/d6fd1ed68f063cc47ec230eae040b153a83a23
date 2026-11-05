@@ -1,0 +1,19 @@
+docs/reviews/vllm-ascend-0271rc1/history-inventory.json
+  s_33b92c38f948ae::t_d1d7307bc05ea8 1-30368
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "9fd6fd1ed68f063cc47ec230eae040b153a83a23",
+  "prompts": {},
+  "sessions": {
+    "s_33b92c38f948ae": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1a999-4b43-7fb3-8dab-9aeba113b3d9",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "jiangkuaixue123 <jiangxiaozhou111@163.com>"
+    }
+  }
+}
