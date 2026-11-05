@@ -1,0 +1,957 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="generator" content="InferRSI dashboard">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:;">
+<title>InferRSI · Optimization dashboard</title>
+<style>
+:root { color-scheme: dark; --bg:#111217; --panel:#181b1f; --panel2:#1f2229;
+  --line:#30363e; --ink:#e2e6eb; --muted:#a0aab7; --dim:#8c97a6;
+  --blue:#5794f2; --green:#73bf69; --orange:#ff9830; --red:#f2495c; }
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); color:var(--ink); font:13px/1.5 "Segoe UI",sans-serif; }
+button, select, textarea, input { font:inherit; color:inherit; }
+button, select { cursor:pointer; }
+button:focus-visible, select:focus-visible, textarea:focus-visible { outline:2px solid #8bbcff; outline-offset:2px; }
+.top { min-height:45px; display:flex; gap:12px; align-items:center; padding:0 18px;
+  border-bottom:1px solid var(--line); }
+.logo { width:19px; height:19px; border-radius:5px; background:linear-gradient(135deg,#f9d949,#f05a28); }
+.crumb, .hint { color:var(--muted); } .crumb strong { color:var(--ink); font-weight:600; }
+.spacer { flex:1; } .badge { border:1px solid var(--line); padding:3px 8px; border-radius:2px; }
+.live-status { color:var(--green); font-size:11px; } .live-status.disconnected { color:var(--orange); }
+.language-switch { display:flex; border:1px solid var(--line); border-radius:2px; overflow:hidden; }
+.language-switch button { border:0; background:transparent; color:var(--muted); padding:4px 9px; }
+.language-switch button[aria-pressed="true"] { background:#315eac; color:#fff; }
+.translation-note { color:var(--muted); margin:8px 12px; font-size:11px; }
+.sample { color:#241d00; background:#fade2a; font-weight:700; border:0; }
+.vars { display:flex; gap:10px; flex-wrap:wrap; padding:13px 18px 5px; }
+.var { display:flex; align-items:stretch; min-height:29px; }
+.var label, .var span { background:var(--panel2); padding:5px 9px; border:1px solid var(--line); color:var(--muted); }
+.var select, .var output { min-width:120px; border:1px solid var(--line); border-left:0;
+  background:var(--bg); color:var(--ink); padding:4px 9px; }
+main { max-width:1600px; margin:auto; padding:0 18px 28px; }
+.section-title { font-size:15px; font-weight:600; margin:18px 0 8px; }
+.section-title small { font-size:11px; font-weight:400; color:var(--muted); margin-left:7px; }
+.panel { border:1px solid var(--line); background:var(--panel); border-radius:2px; min-width:0; }
+.panel-head { display:flex; align-items:baseline; gap:8px; padding:10px 12px 3px; }
+.panel-head h2 { font-size:13px; font-weight:600; margin:0; }
+.panel-head small { color:var(--muted); font-size:11px; }
+.panel-body { padding:8px 12px 12px; }
+.stats { display:grid; grid-template-columns:repeat(6,minmax(130px,1fr)); gap:8px; overflow-x:auto; }
+.stat { min-height:105px; padding:10px 12px; }
+.stat-label { color:var(--muted); } .stat-value { display:block; font-size:29px; font-weight:600; line-height:1.25; margin:4px 0; }
+.green { color:var(--green); } .orange { color:var(--orange); } .red { color:var(--red); }
+.flow { display:flex; gap:9px; overflow-x:auto; padding:10px 12px 12px; }
+.stage { flex:1 0 150px; text-align:left; background:var(--panel2); border:0; border-top:3px solid #566071; padding:8px 10px; }
+.stage.recorded { border-top-color:var(--green); } .stage.selected { box-shadow:inset 0 0 0 1px var(--blue); }
+.stage span { display:block; color:var(--muted); font-size:11px; margin-top:3px; }
+.columns { display:grid; grid-template-columns:minmax(0,2fr) minmax(320px,1fr); gap:8px; align-items:start; }
+.stack { display:grid; gap:8px; min-width:0; }
+.chart { padding:2px 8px 8px; overflow:auto; } .chart svg { width:100%; min-width:600px; height:auto; display:block; }
+.empty { color:var(--muted); padding:18px 12px; border:1px dashed #566071; margin:8px 12px 12px; }
+.scroll { overflow:auto; } table { border-collapse:collapse; width:100%; text-align:left; }
+th, td { border-bottom:1px solid #292e36; padding:7px 10px; white-space:nowrap; }
+th { color:var(--muted); font-size:11px; font-weight:500; background:#1d2026; }
+tbody tr.selected { background:#233047; } td button { background:none; border:0; padding:0; color:#a9caff; text-align:left; }
+.diagnostic-button { background:none; border:0; padding:0; color:#a9caff; font-weight:600; text-align:left; }
+.pill { display:inline-block; border:1px solid #596170; border-radius:2px; padding:1px 6px; font-size:11px; }
+.pill.good { color:var(--green); border-color:var(--green); } .pill.bad { color:var(--red); border-color:var(--red); }
+.pill.warn { color:var(--orange); border-color:var(--orange); } .pill.missing { border-style:dashed; color:#ff9ba7; }
+.item { padding:8px 12px; border-bottom:1px solid #292e36; overflow-wrap:anywhere; }
+.item:last-child { border-bottom:0; } .item small, .item code { display:block; color:var(--muted); margin-top:3px; }
+.item.missing-item { border-left:2px dashed var(--red); }
+code, .mono { font:11px/1.55 Consolas,monospace; overflow-wrap:anywhere; }
+textarea { display:block; width:100%; min-height:85px; resize:vertical; background:var(--bg);
+  border:1px solid var(--line); border-radius:2px; padding:8px; }
+.preview { white-space:pre-wrap; overflow-wrap:anywhere; max-height:260px; overflow:auto;
+  border:1px solid var(--line); background:var(--bg); padding:8px; }
+.candidate-inspection { padding:12px; }
+.candidate-heading { display:flex; align-items:center; flex-wrap:wrap; gap:8px; padding-bottom:12px; }
+.candidate-heading h3 { font-size:15px; margin:0; }
+.candidate-heading small { color:var(--muted); }
+.insight-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+.insight { background:#14171b; border:1px solid var(--line); min-width:0; }
+.insight.wide { grid-column:1 / -1; }
+.trace-heading { grid-column:1 / -1; padding:6px 0 0; }
+.trace-heading h4 { display:inline; margin:0; font-size:14px; }
+.trace-heading small { color:var(--muted); margin-left:8px; }
+.insight-head { display:flex; gap:8px; align-items:baseline; padding:10px 12px 4px; }
+.insight-head h4 { margin:0; font-size:13px; }
+.insight-head small { color:var(--muted); }
+.context-text { max-height:360px; overflow:auto; white-space:pre-wrap; overflow-wrap:anywhere;
+  color:var(--ink); background:#101217; padding:10px; margin:8px 12px 12px; border:1px solid var(--line); }
+.context-detail { margin:8px 12px 12px; }
+.context-detail summary { cursor:pointer; color:#bdd5ff; }
+.context-detail .context-text { margin:8px 0 0; }
+.step { margin:8px 12px; padding:8px 10px; border-left:2px solid #477bd2; background:var(--panel2); }
+.step strong, .step small { display:block; } .step small { color:var(--muted); }
+.detail-line { padding:7px 12px; border-bottom:1px solid #292e36; }
+.detail-line strong { display:block; color:var(--muted); font-size:11px; margin-bottom:3px; }
+.detail-line p { margin:0; white-space:pre-wrap; overflow-wrap:anywhere; }
+.detail-line code { display:block; white-space:pre-wrap; color:var(--ink); }
+.trace-tools { display:flex; gap:8px; flex-wrap:wrap; padding:8px 12px; }
+.trace-tools input, .trace-tools select { background:var(--bg); border:1px solid var(--line); padding:5px 7px; }
+.trace-tools input { flex:1 1 180px; min-width:0; }
+.trace-event summary { cursor:pointer; color:#bdd5ff; font-weight:600; overflow-wrap:anywhere; }
+.trace-event pre { white-space:pre-wrap; overflow-wrap:anywhere; color:var(--muted); margin:6px 0; }
+.button { border:1px solid #477bd2; border-radius:2px; background:#315eac; padding:5px 12px; margin-top:8px; }
+.footnote { color:var(--muted); font-size:11px; margin:12px 0 0; }
+.story { padding:4px 0 10px; }
+.story-tabs { display:flex; gap:2px; flex-wrap:wrap; padding:8px 12px 0; border-bottom:1px solid var(--line); }
+.story-tabs button { background:none; border:0; border-bottom:2px solid transparent; color:var(--muted); padding:6px 12px; }
+.story-tabs button[aria-selected="true"] { color:#a9caff; border-bottom-color:var(--blue); font-weight:600; }
+.story-tabs .count { margin-left:6px; font-size:11px; color:var(--dim); }
+.story-body { padding:10px 12px 0; }
+.goal { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:8px; margin-bottom:10px; }
+.goal div { background:var(--panel2); padding:8px 10px; }
+.goal strong { display:block; color:var(--muted); font-size:11px; font-weight:500; }
+.checks { margin:0 0 10px; border:1px solid #6b3a21; background:#22170f; }
+.checks.ok { border-color:#2f4b2b; background:#141d13; }
+.checks h3 { margin:0; padding:7px 10px; font-size:12px; }
+.checks li { padding:2px 0; }
+.checks ul { margin:0; padding:0 10px 8px 28px; }
+.sev-error { color:var(--red); } .sev-warning { color:var(--orange); }
+.round { border-left:3px solid #477bd2; background:#14171b; margin:0 0 10px; }
+.round.adopted { border-left-color:var(--green); } .round.rejected, .round.rolled_back { border-left-color:var(--red); }
+.round.no_gain, .round.noise { border-left-color:var(--orange); }
+.round-head { display:flex; gap:10px; align-items:baseline; flex-wrap:wrap; padding:8px 12px 2px; }
+.round-head h3 { margin:0; font-size:14px; }
+.round-grid { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:0 16px; padding:0 12px 6px; }
+.round-grid .detail-line { padding-left:0; padding-right:0; }
+.cand { display:grid; grid-template-columns:150px 1fr auto; gap:4px 12px; padding:6px 12px; border-top:1px solid #292e36; align-items:start; }
+.cand button.link { background:none; border:0; padding:0; color:#a9caff; text-align:left; font-weight:600; }
+.cand .why { color:var(--ink); white-space:pre-wrap; }
+.cand .exp { color:var(--muted); font-size:11px; }
+.chip { display:inline-block; border:1px solid var(--line); border-radius:2px; padding:0 6px; margin:2px 4px 2px 0; font:11px Consolas,monospace; color:#b9c2ce; background:#1a1d23; }
+.chip.missing { border-style:dashed; border-color:var(--red); color:#ff9ba7; }
+.space-table td { white-space:normal; vertical-align:top; }
+.space-table td.reason { color:var(--muted); min-width:260px; }
+.retrieval { background:#14171b; border:1px solid var(--line); margin:0 0 10px; }
+.retrieval .round-grid { padding-top:4px; }
+.summary-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+.summary-grid section { background:#14171b; border:1px solid var(--line); }
+.summary-grid h3 { margin:0; padding:8px 12px; font-size:13px; }
+.summary-grid .good-head { color:var(--green); } .summary-grid .bad-head { color:var(--red); }
+.claim { padding:7px 12px; border-top:1px solid #292e36; }
+.claim p { margin:0 0 3px; white-space:pre-wrap; }
+@media (max-width:900px) { .round-grid, .summary-grid { grid-template-columns:1fr; } .cand { grid-template-columns:1fr; } }
+@media (max-width:900px) { .columns, .insight-grid { grid-template-columns:1fr; } .insight.wide { grid-column:auto; } .top { flex-wrap:wrap; padding:10px 18px; } .stat-value { font-size:24px; white-space:nowrap; } }
+</style>
+</head>
+<body>
+<header class="top">
+  <span class="logo" aria-hidden="true"></span>
+  <span class="crumb">Dashboards › InferRSI › <strong id="campaign-title" data-no-translate></strong></span>
+  <span class="spacer"></span><span id="sample" class="badge sample" hidden>SYNTHETIC DATA</span>
+  <span id="mode-badge" class="badge">READ ONLY · OFFLINE</span>
+  <span id="live-status" class="live-status" aria-live="off" data-no-translate hidden></span>
+  <div class="language-switch" role="group" aria-label="Language">
+    <button id="language-en" type="button" lang="en" aria-pressed="true">English</button>
+    <button id="language-zh" type="button" lang="zh-CN" aria-pressed="false">中文</button>
+  </div>
+</header>
+<div class="vars" aria-label="Dashboard filters">
+  <div class="var"><span>campaign</span><output id="campaign-value" data-no-translate></output></div>
+  <div class="var"><label for="run-filter">run</label><select id="run-filter"><option value="">All runs</option></select></div>
+  <div class="var"><label for="candidate-filter">candidate</label><select id="candidate-filter"><option value="">All candidates</option></select></div>
+  <div class="var"><label for="stage-filter">stage</label><select id="stage-filter"><option value="">All stages</option></select></div>
+  <div class="var"><span>metric</span><output id="metric-value"></output></div>
+</div>
+<main>
+  <div class="section-title">Overview · all candidates <small id="overview-note"></small></div>
+  <div id="stats" class="stats" aria-label="Overview statistics"></div>
+  <div class="section-title">Workflow <small>Technical events only; select a stage to filter candidates and events</small></div>
+  <div class="panel"><div id="workflow" class="flow"></div></div>
+  <div class="section-title">Performance and evidence <small>Recorded values, including unsuccessful attempts</small></div>
+  <div class="columns">
+    <div class="stack">
+      <section class="panel"><div class="panel-head"><h2>Performance trend · all candidates</h2><small id="chart-note"></small></div>
+        <div class="chart" id="chart">__DASHBOARD_CHART__</div></section>
+      <section class="panel"><div class="panel-head"><h2>Results and stages over time · all candidates</h2></div>
+        <div class="chart" id="temporal-chart">__DASHBOARD_TEMPORAL__</div>
+        <p class="footnote panel-body" id="temporal-note"></p></section>
+      <div class="section-title">Optimization story <small id="story-note"></small></div>
+      <section class="panel story" id="story" aria-label="Optimization story"></section>
+      <section class="panel"><div class="panel-head"><h2>Candidate details</h2><small>Select a row to inspect its trace</small></div>
+        <div class="scroll"><table><thead><tr><th>Round</th><th>Candidate</th><th>Run</th><th>State</th><th>Verdict</th><th>Gain</th><th>Quality</th><th>Outcome</th><th>Decision</th><th>Evidence</th></tr></thead><tbody id="candidate-rows"></tbody></table></div>
+        <p id="no-rows" class="empty" hidden>No matching recorded candidates.</p>
+        <div id="candidate-inspection" class="candidate-inspection" aria-live="polite"></div></section>
+    </div>
+    <div class="stack">
+      <section class="panel"><div class="panel-head"><h2>Diagnosis · all candidates</h2><small>Only rules backed by referenced evidence</small></div><div id="diagnostics"></div></section>
+      <section class="panel"><div class="panel-head"><h2>Technical events</h2><small id="trace-title" data-no-translate></small></div>
+        <div class="trace-tools"><input id="trace-search" type="search" aria-label="Search trace" placeholder="Search event, tool, field or reference">
+          <select id="trace-source" aria-label="Trace source"><option value="">All sources</option><option value="events">Runner</option><option value="agent_trace">Agent</option></select></div>
+        <p id="trace-count" class="footnote panel-body" aria-live="polite"></p><div id="trace"></div></section>
+      <section class="panel"><div class="panel-head"><h2>Evidence completeness</h2><small>Missing records are explicit</small></div><div id="evidence"></div></section>
+      <section class="panel"><div class="panel-head"><h2>Human review</h2><small>Local Markdown export</small></div>
+        <div class="panel-body"><label for="feedback" class="hint">Findings and suggested framework improvement</label>
+          <textarea id="feedback" placeholder="Record your observation and recommendation."></textarea>
+          <button id="export" class="button" type="button">Export feedback · Markdown</button>
+          <pre id="feedback-preview" class="preview" hidden></pre>
+          <p class="footnote">Review the exported text before sharing. Common private values are redacted; free text can still contain sensitive information.</p></div></section>
+    </div>
+  </div>
+  <p class="footnote">Recorded text without a supplied translation remains in its original language. Commands, identifiers and raw event fields stay unchanged.</p>
+  <p class="footnote">A successful quality command covers only that command. This view does not establish statistical significance. Raw logs and environment values are withheld; references and SHA-256 identify recorded artifacts.</p>
+</main>
+<script id="dashboard-data" type="application/json">__DASHBOARD_DATA__</script>
+<script>
+(() => {
+  'use strict';
+  function restoreContexts(view){
+    const pool=view._context_pool;
+    if(pool===undefined)return view;
+    if(!Array.isArray(pool) || pool.some(text=>typeof text!=='string'))throw new Error('invalid context pool');
+    for(const row of view.candidates){
+      const context=row.optimization_trace?.context, value=context?.text;
+      if(value && typeof value==='object' && !Array.isArray(value) && Object.keys(value).length===1 && '$context' in value){
+        const index=value.$context;
+        if(!Number.isInteger(index) || index<0 || index>=pool.length)throw new Error('invalid context reference');
+        context.text=pool[index];
+      }
+    }
+    delete view._context_pool;
+    return view;
+  }
+  let data = restoreContexts(JSON.parse(document.getElementById('dashboard-data').textContent));
+  const liveMode = data.live === true;
+  const byId = id => document.getElementById(id);
+  const chinese = {
+    'Language':'语言', 'InferRSI · Optimization dashboard':'InferRSI · 优化看板',
+    'Dashboards › InferRSI ›':'看板 › InferRSI ›', 'SYNTHETIC DATA':'合成数据',
+    'READ ONLY · OFFLINE':'只读 · 离线', 'READ ONLY · LIVE':'只读 · 实时', 'Dashboard filters':'看板筛选',
+    'campaign':'任务', 'run':'运行', 'candidate':'候选方案', 'stage':'阶段', 'metric':'指标',
+    'All runs':'全部运行', 'All candidates':'全部候选方案', 'All stages':'全部阶段',
+    'Overview · all candidates':'概览 · 全部候选方案', 'Overview statistics':'概览统计',
+    'Workflow':'工作流程', 'Technical events only; select a stage to filter candidates and events':'仅显示技术事件；选择阶段可筛选候选方案和事件',
+    'Performance and evidence':'性能与证据', 'Recorded values, including unsuccessful attempts':'已记录的数据，包括未成功的尝试',
+    'Performance trend · all candidates':'性能趋势 · 全部候选方案',
+    'Results and stages over time · all candidates':'结果与阶段的时间分布 · 全部候选方案',
+    'Candidate details':'候选方案详情', 'Select a row to inspect its trace':'选择一行查看优化轨迹',
+    'Round':'轮次', 'Candidate':'候选方案', 'Run':'运行', 'State':'状态', 'Verdict':'判定',
+    'Gain':'提升', 'Quality':'质量', 'Outcome':'结果', 'Decision':'决策', 'Evidence':'证据',
+    'No matching recorded candidates.':'没有符合条件的候选方案记录。',
+    'Diagnosis · all candidates':'诊断 · 全部候选方案', 'Only rules backed by referenced evidence':'仅显示有引用证据支持的规则',
+    'Technical events':'技术事件', 'Search trace':'搜索轨迹', 'Search event, tool, field or reference':'搜索事件、工具、字段或引用',
+    'Trace source':'轨迹来源', 'All sources':'全部来源', 'Runner':'运行器', 'Agent':'智能体',
+    'Evidence completeness':'证据完整性', 'Missing records are explicit':'明确标出缺失的记录',
+    'Human review':'人工审阅', 'Local Markdown export':'本地导出 Markdown',
+    'Findings and suggested framework improvement':'发现的问题与框架改进建议',
+    'Record your observation and recommendation.':'记录你的观察和建议。',
+    'Export feedback · Markdown':'导出反馈 · Markdown',
+    'Review the exported text before sharing. Common private values are redacted; free text can still contain sensitive information.':'分享前请检查导出内容。常见隐私值已脱敏，但自由文本仍可能包含敏感信息。',
+    'Recorded text without a supplied translation remains in its original language. Commands, identifiers and raw event fields stay unchanged.':'未提供译文的记录保留原语言；命令、标识符和原始事件字段保持不变。',
+    'A successful quality command covers only that command. This view does not establish statistical significance. Raw logs and environment values are withheld; references and SHA-256 identify recorded artifacts.':'质量命令成功只代表该命令覆盖的范围。本页面不证明统计显著性。原始日志和环境变量未展示；引用和 SHA-256 用于标识已记录的工件。',
+    'Diagnosis':'诊断', 'Knowledge':'知识检索', 'Candidate search':'候选方案搜索', 'Execution':'执行', 'Validation':'验证', 'Review':'审阅',
+    'recorded':'已记录', 'stage not recorded':'未记录阶段', 'not applicable':'不适用', 'not recorded':'未记录',
+    'Not recorded':'未记录', 'NOT RECORDED':'未记录', 'Ambiguous':'存在歧义', 'ambiguous':'存在歧义',
+    'present':'已记录', 'missing':'缺失', 'PRESENT':'已记录', 'MISSING':'缺失',
+    'complete':'完整', 'partial':'部分记录', 'redacted':'已脱敏', 'unknown':'未知',
+    'completed':'已完成', 'running':'运行中', 'failed':'失败', 'cancelled':'已中止', 'passed':'通过', 'skipped':'已跳过',
+    'improved':'提升', 'regressed':'下降', 'noise':'噪声范围内', 'quality failed':'质量未通过',
+    'rolled back':'已回滚', 'inconclusive':'结论不明确', 'succeeded':'成功',
+    'PASS':'PASS（通过）', 'FAIL':'FAIL（失败）', 'INCONCLUSIVE':'INCONCLUSIVE（结论不明确）',
+    'observation':'观察', 'attempt':'尝试', 'decision':'决策',
+    'code':'代码', 'configuration':'配置', 'mixed':'混合', 'other':'其他',
+    'execution failed':'执行失败', 'quality failed with gain':'性能提升但质量未通过',
+    'within noise':'噪声范围内', 'measured regression':'测量结果下降',
+    'Best gain':'最佳提升', 'Incompatible records':'记录不可比较',
+    'Comparison evidence missing or unsupported':'比较证据缺失或不受支持', 'Quality and source checks required':'需要检查质量和来源',
+    'Target gap':'距目标差距', 'Target not recorded':'未记录目标',
+    'Candidate / run views':'候选方案 / 运行视图', 'Recorded candidate or run views':'已记录的候选方案或运行视图',
+    'Within noise':'噪声范围内', 'Uses recorded noise band':'使用已记录的噪声区间',
+    'Failed / regressed':'失败 / 下降', 'Includes failures and rollbacks':'包含失败和回滚',
+    'Missing evidence':'缺失证据', 'See completeness panel':'查看证据完整性面板',
+    'Rounds not recorded':'未记录轮次', 'No matching candidate.':'没有符合条件的候选方案。',
+    'Narrative is caller recorded; verdicts and measurements are separate evidence.':'叙述由调用方记录；判定和测量值属于独立证据。',
+    'Change and rationale':'改动与原因', 'Caller recorded':'调用方记录', 'Change type':'改动类型',
+    'What was changed':'具体改动', 'Why / hypothesis':'原因 / 假设',
+    'Code / configuration locations':'代码 / 配置位置', 'Code / configuration location':'代码 / 配置位置',
+    'Optimization trace':'优化轨迹', 'Trace not recorded':'未记录优化轨迹',
+    'Candidate-level narrative; no run binding recorded':'候选方案级叙述；未记录绑定的运行',
+    'Knowledge context':'知识上下文', 'Caller-reviewed snapshot; not proof of model consumption':'调用方审核的快照；不能证明模型实际使用过',
+    'Capture status':'采集状态', 'Caller declared':'调用方声明', 'Search queries':'搜索查询',
+    'Selected source':'选定来源', 'Selected sources':'选定来源', 'Context text':'上下文原文', 'Trace evidence':'轨迹证据',
+    'Translated context · caller-supplied':'上下文译文 · 调用方提供', 'View original recorded context':'查看记录的上下文原文',
+    'Declared search space':'声明的搜索空间', 'Options are not necessarily attempts':'列出的选项不一定已经尝试',
+    'No linked attempt recorded':'未记录关联的尝试', 'Options':'选项',
+    'Optimization process':'优化过程', 'Recorded order and rationale':'记录的顺序与原因',
+    'Action':'操作', 'Why':'原因', 'Recorded result':'记录的结果', 'Technical event':'技术事件',
+    'Unavailable, unlinked, or source hash mismatch':'不可用、未关联或来源哈希不匹配', 'Steps':'步骤',
+    'Successes and failures':'成功与失败', 'Caller conclusions; see evidence for verdicts':'调用方的总结；判定请查看证据',
+    'Success summary':'成功总结', 'Failure summary':'失败总结', 'Limitations':'局限性',
+    'Benchmark and accuracy':'性能与精度测试', 'Measurements and redacted commands':'测量结果和脱敏命令',
+    'Performance methodology · caller recorded':'性能测试方法 · 调用方记录', 'Workload':'工作负载',
+    'Recorded medians':'记录的中位数', 'Recorded samples':'记录的样本',
+    'Baseline command · redacted argv':'基线命令 · 已脱敏参数', 'Candidate command · redacted argv':'候选方案命令 · 已脱敏参数',
+    'Accuracy methodology / result · caller recorded':'精度测试方法 / 结果 · 调用方记录',
+    'Validation command · redacted argv':'验证命令 · 已脱敏参数', 'caller recorded, redacted argv':'调用方记录，已脱敏参数',
+    'Recorded validation state':'记录的验证状态', 'only the recorded validation command is covered':'仅覆盖已记录的验证命令',
+    'validation command not recorded or unavailable for display':'验证命令未记录或无法展示',
+    'Not recorded or unavailable for display':'未记录或无法展示', 'Command evidence':'命令证据', 'Caller detail evidence':'调用方详情证据',
+    'No selection':'未选择', 'TRACE LOCATION':'轨迹位置', 'No events match the current filters.':'没有符合当前筛选条件的事件。',
+    'unclassified event':'未分类事件', 'Time not recorded':'未记录时间', 'UNLINKED':'未关联',
+    'No additional structured fields recorded.':'未记录其他结构化字段。', 'MISSING · tool calls':'缺失 · 工具调用',
+    'UNLINKED AGENT EVENTS':'未关联的智能体事件', 'MISMATCHED AGENT EVENTS':'不匹配的智能体事件',
+    'No evidence-backed diagnostic rule matched.':'没有匹配到有证据支持的诊断规则。', 'Single run':'单次运行',
+    'No corresponding trace event was recorded; inspect the referenced evidence.':'未记录对应的轨迹事件；请检查引用的证据。',
+    'Recorded cumulative campaign steps.':'记录的累计优化步骤。',
+    'Independent candidate results relative to their paired baselines.':'各候选方案相对于其配对基线的独立结果。',
+    'Independent candidate measurements by round; the line is not cumulative. Check status and quality; missing results are omitted.':'各轮为独立候选的测量值，折线不代表累计收益。请检查状态和质量；缺失结果不会绘制。',
+    'Comparison evidence is missing, unsupported, or incompatible.':'比较证据缺失、不受支持或互不兼容。',
+    'No measured candidate results recorded.':'未记录候选方案的测量结果。',
+    'Recorded values exceed the supported chart scale.':'记录的值超出图表支持的范围。',
+    'The recorded chart specification is invalid or incomplete.':'记录的图表配置无效或不完整。',
+    'No timestamped events recorded; a time axis cannot be drawn.':'未记录带时间戳的事件，无法绘制时间轴。',
+    'Recorded values exceed the supported time-chart scale.':'记录的值超出时间图表支持的范围。',
+    'Recorded timestamps exceed the supported time-chart range.':'记录的时间戳超出时间图表支持的范围。',
+    'Terminal events place results; stage dots are events, not durations.':'结果按终止事件定位；阶段圆点表示事件，不表示持续时间。',
+    'Unverified or incompatible candidate measurements are not plotted together.':'未验证或不兼容的候选方案测量值不会绘制在一起。',
+    'No common noise band recorded.':'未记录共同的噪声区间。',
+    'Candidate results and stage events over time':'候选方案结果和阶段事件的时间分布',
+    'Results use terminal event timestamps. Stage dots are events, not durations. Crosses in the no-value row have no numeric measurement.':'结果使用终止事件时间戳。阶段圆点表示事件，不表示持续时间；无数值行中的叉号表示没有数值测量结果。',
+    'Candidate gain versus paired baseline':'候选方案相对于配对基线的提升', 'paired baseline':'配对基线', 'baseline':'基线',
+    'Performance by recorded round':'按轮次记录的性能', 'Recorded rounds':'已记录轮次',
+    'Performance index':'性能指数', 'Recorded round':'已记录轮次', 'Performance index vs baseline':'相对基线的性能指数',
+    'Candidates':'候选方案', 'gain':'提升', 'Target':'目标', 'target':'目标',
+    'Gain vs baseline':'相对基线的提升', 'No numeric result':'无数值结果', 'no numeric result':'无数值结果', 'Stage events':'阶段事件',
+    'Recorded optimization step':'已记录的优化步骤', 'Throughput vs baseline':'相对基线的吞吐量',
+    'Throughput':'吞吐量', 'throughput':'吞吐量', 'Baseline':'基线', 'revision':'修订版本',
+    'Recorded optimization':'记录的优化', 'Findings and recommendation':'发现与建议', 'Evidence references':'证据引用',
+    'Visible trace':'可见轨迹', 'Stage':'阶段', 'Campaign':'任务', 'InferRSI review':'InferRSI 审阅',
+    'file_absent':'文件缺失', 'not_collected':'未采集', 'hash_mismatch':'哈希不匹配',
+    'hash_not_recorded':'未记录哈希', 'unreadable':'无法读取', 'unsafe_path':'不安全的路径',
+    'invalid_format':'格式无效', 'identity_mismatch':'身份不匹配', 'identity_ambiguous':'身份不明确',
+    'too_large':'文件过大', 'not_applicable':'不适用', 'redacted or invalid path':'路径已脱敏或无效',
+    'capture verified':'采集已校验', 'hash mismatch':'哈希不匹配', 'file absent':'文件缺失',
+    'identity mismatch':'身份不匹配', 'unsafe path':'不安全的路径', 'invalid format':'格式无效',
+    'assembly mismatch':'拼接内容不匹配', 'resource hash mismatch':'资源哈希不匹配', 'too large':'文件过大',
+    'latest hash mismatch':'最新版本哈希不匹配', 'corrupt index':'日志索引损坏',
+    'Optimization story':'优化过程复盘', 'Goal':'目标', 'Metric':'指标', 'Target':'目标值', 'Constraints':'约束',
+    'Optimization process':'优化过程', 'Knowledge context':'知识上下文', 'Search space':'搜索空间', 'Successes and failures':'成功与失败',
+    'Hypothesis':'假设', 'Why this optimization':'为什么这样优化', 'Knowledge cited':'引用的知识', 'Observations':'观察',
+    'Decision reason':'决策原因', 'Next step':'下一步', 'Measured':'实测', 'No recorded run':'没有记录的运行', 'no gain value':'未记录提升数值',
+    'Run evidence unavailable':'运行证据不可用', 'No recorded outcome':'未记录结果',
+    'Why it was retrieved':'为什么检索', 'What was taken from it':'从中得到了什么', 'Search request':'检索请求', 'Captured':'采集信息',
+    'Selected by search':'检索选中', 'Left out of the context':'未放进上下文', 'Nothing omitted':'没有遗漏', 'Used':'实际使用',
+    'Retrieved but not used':'检索到但未使用', 'Successes':'成功', 'Failures':'失败', 'Lessons for the framework':'对框架的改进建议',
+    'None recorded':'未记录', 'Option':'选项', 'Status':'状态', 'Reason':'原因', 'Tried in':'尝试于', 'Source':'知识来源',
+    'tried':'已尝试', 'pruned':'已排除', 'untried':'未尝试', 'adopted':'采纳', 'rejected':'拒绝', 'no gain':'无提升', 'pending':'待定',
+    'No iterations recorded.':'未记录迭代。', 'No knowledge retrieval recorded.':'未记录知识检索。',
+    'Narrative vs evidence · every reference resolved':'叙述与证据核对 · 所有引用都能对上',
+    'states a conclusion without evidence':'叙述中有结论，但没有关联证据',
+    'was selected by search but its text was omitted from the context':'被搜索选中，但文本未包含在上下文中',
+    'was not retrieved by any capture':'未被任何知识采集检索到',
+    'was not retrieved by the captures this round names':'未被本轮指定的知识采集检索到',
+    'marked tried, but no iteration lists a candidate for it':'标记为已尝试，但没有任何轮次列出对应候选方案',
+    'Single runs have no campaign log':'单次运行没有任务日志',
+    'A single run has no optimization log. Record a campaign to explain why each optimization was chosen.':'单次运行没有优化日志。请记录一个任务来说明每个优化的原因。'
+  };
+  let language = 'en';
+  try { if (localStorage.getItem('inferrsi.dashboard.language') === 'zh') language = 'zh'; } catch (_) { /* file storage may be disabled */ }
+  const originalText = new WeakMap(), originalAttributes = new WeakMap();
+  function translated(text) {
+    if (typeof text !== 'string') return text;
+    if (language !== 'zh') return text;
+    if (Object.prototype.hasOwnProperty.call(chinese, text)) return chinese[text];
+    const temporalPrefix='Terminal events place results; stage dots are events, not durations.';
+    if(text.startsWith(`${temporalPrefix} `)) {
+      return chinese[temporalPrefix] + ' ' + text.slice(temporalPrefix.length+1)
+        .replace(/(\d+) result\(s\) have no recorded terminal timestamp\./g, (_, count)=>`${count} 个结果未记录终止时间戳。`)
+        .replace('Unverified or incompatible candidate measurements are not plotted together.',chinese['Unverified or incompatible candidate measurements are not plotted together.'])
+        .replace('No common noise band recorded.',chinese['No common noise band recorded.']);
+    }
+    const patterns = [
+      [/^(\d+) recorded rounds$/, m => `已记录 ${m[1]} 轮`],
+      [/^corrupt lines (.+)$/, m => `损坏的行 ${m[1]}`],
+      [/^Target (.+)$/, m => `目标 ${m[1]}`],
+      [/^Noise (.+)$/, m => `噪声 ${m[1]}`],
+      [/^(\d+) present \/ (\d+) missing$/, m => `已记录 ${m[1]} / 缺失 ${m[2]}`],
+      [/^Inspect (.+)$/, m => `查看 ${m[1]}`],
+      [/^Caller bound this narrative to run (.+)$/, m => `调用方将此叙述绑定到运行 ${m[1]}`],
+      [/^View recorded context · (.+)$/, m => `查看记录的上下文 · ${translated(m[1])}`],
+      [/^(\d+) linked recorded attempt\(s\)$/, m => `关联了 ${m[1]} 次已记录的尝试`],
+      [/^Search option: (.+)$/, m => `搜索选项：${m[1]}`],
+      [/^Open (.+)$/, m => `打开 ${m[1]}`],
+      [/^(\d+) repetitions$/, m => `重复 ${m[1]} 次`],
+      [/^repetitions not recorded$/, () => '未记录重复次数'],
+      [/^Baseline ([^·]+)$/, m => `基线 ${m[1]}`], [/^Candidate ([^·]+)$/, m => `候选方案 ${m[1]}`],
+      [/^Baseline: (.+)$/, m => `基线：${m[1]}`], [/^Candidate: (.+)$/, m => `候选方案：${m[1]}`],
+      [/^(\d+) of (\d+) events · time order, unknown time last$/, m => `${m[2]} 个事件中显示 ${m[1]} 个 · 按时间排序，时间未知的排在最后`],
+      [/^Lines (.+)$/, m => `行 ${m[1]}`], [/^CORRUPT (.+) LINES$/, m => `${m[1]} 损坏的行`],
+      [/^trial (.+)$/, m => `试验 ${m[1]}`],
+      [/^baseline: (.+)$/, m => `基线：${translated(m[1])}`],
+      [/^(\d+)\. (.+)$/, m => `${m[1]}. ${translated(m[2])}`],
+      [/^(\d+) (Diagnosis|Knowledge|Candidate search|Execution|Validation|Review)$/, m => `${m[1]} ${translated(m[2])}`],
+      [/^revision (.+)$/, m => `修订版本 ${m[1]}`],
+      [/^(.+?): (Diagnosis|Knowledge|Candidate search|Execution|Validation|Review) · (.+)$/, m => `${translated(m[1])}：${translated(m[2])} · ${m[3]}`],
+      [/^(.+?): (improved|regressed|failed|cancelled|quality failed|noise)(.*)$/, m => `${translated(m[1])}：${translated(m[2])}${m[3]}`],
+      [/^(\d+) result\(s\) have no recorded terminal timestamp\.$/, m => `${m[1]} 个结果未记录终止时间戳。`],
+      [/^Round (\d+)$/, m => `第 ${m[1]} 轮`],
+      [/^Decision: (.+)$/, m => `决策：${translated(m[1].split(' · ')[0])}${m[1].includes(' · ')?' · '+m[1].split(' · ').slice(1).join(' · '):''}`],
+      [/^Narrative vs evidence · (\d+) conflicts, (\d+) warnings$/, m => `叙述与证据核对 · ${m[1]} 处冲突，${m[2]} 处警告`],
+      [/^Caller-authored narrative, cross-checked against captures and runs · log v(\d+) of (\d+)$/, m => `调用方撰写的叙述，已与知识采集和运行记录核对 · 日志第 ${m[1]} 版，共 ${m[2]} 版`],
+      [/^Full assembled context · (\d+) resources · sha256 (.+)$/, m => `完整拼接上下文 · ${m[1]} 个资源 · sha256 ${m[2]}`],
+      [/^(Successes|Failures) · (\d+)$/, m => `${translated(m[1])} · ${m[2]}`],
+      [/^Cause: (.+)$/, m => `原因阶段：${translated(m[1])}`],
+      [/^Expected: (.+)$/s, m => `预期：${m[1]}`],
+      [/^(.+) · (capture verified)$/, m => `${translated(m[1])} · 采集已校验`],
+      [/^No usable optimization log \((.+)\)\. Record one with: (.+)$/, m => `没有可用的优化日志（${translated(m[1])}）。记录命令：${m[2]}`],
+      [/^quality (passed|failed|not recorded|missing|unknown)$/, m => `质量 ${translated(m[1])}`],
+      [/^(\d+) (tried|pruned|untried)$/, m => `${m[1]} ${translated(m[2])}`],
+      [/^(success|failure) (\d+):$/, m => `${m[1]==='success'?'成功':'失败'} ${m[2]}：`],
+      [/^round (\d+):$/, m => `第 ${m[1]} 轮：`],
+      [/^knowledge (.+):$/, m => `知识 ${m[1]}：`],
+      [/^search space (.+):$/, m => `搜索空间 ${m[1]}：`],
+      [/^capture (.+) is (.+); its text is not shown$/, m => `采集 ${m[1]} ${translated(m[2])}；其文本不会展示`],
+      [/^the log says (.+) was used, but it (.+)$/, m => `日志称使用了 ${m[1]}，但它${translated(m[2])}`],
+      [/^(.+) is cited, but it (.+)$/, m => `引用了 ${m[1]}，但它${translated(m[2])}`],
+      [/^cites (.+), which (.+)$/, m => `引用了 ${m[1]}，但它${translated(m[2])}`],
+      [/^evidence (.+) (was not retrieved by any capture|was selected by search but its text was omitted from the context)$/, m => `证据 ${m[1]} ${translated(m[2])}`],
+      [/^candidate (.+) has no (unique )?recorded run$/, m => `候选方案 ${m[1]} 没有${m[2]?'唯一的':''}运行记录`],
+      [/^candidate (.+) has unavailable run evidence$/, m => `候选方案 ${m[1]} 的运行证据不可用`],
+      [/^candidate (.+) is recorded in round (\d+)$/, m => `候选方案 ${m[1]} 记录在第 ${m[2]} 轮`],
+      [/^the decision names (.+), which is not a candidate of this round$/, m => `决策指定了 ${m[1]}，但它不是本轮候选方案`],
+      [/^the log says (.+), rounds\.jsonl records (.+)$/, m => `日志记为${translated(m[1])}，rounds.jsonl 记为${translated(m[2])}`],
+      [/^(.+) is adopted but its recorded outcome is (.+)$/, m => `已采纳 ${m[1]}，但其记录结果为${translated(m[2])}`],
+      [/^marked (.+), but round (\d+) tried it$/, m => `标记为${translated(m[1])}，但第 ${m[2]} 轮已尝试`],
+      [/^evidence (.+) has no (unique )?recorded run$/, m => `证据 ${m[1]} 没有${m[2]?'唯一的':''}运行记录`],
+      [/^evidence (.+) has unavailable run evidence$/, m => `证据 ${m[1]} 的运行证据不可用`],
+      [/^evidence (.+) has no recorded outcome$/, m => `证据 ${m[1]} 未记录结果`],
+      [/^evidence (.+) recorded (.+), not an improvement$/, m => `证据 ${m[1]} 的记录结果为${translated(m[2])}，并非提升`],
+      [/^(.+) recorded (.+), but no failure cites it$/, m => `${m[1]} 的记录结果为${translated(m[2])}，但失败总结未引用它`]
+    ];
+    for (const [pattern, format] of patterns) { const match=text.match(pattern); if(match)return format(match); }
+    if (text.includes('\n')) return text.split('\n').map(translated).join('\n');
+    if (text.includes(' · ')) return text.split(' · ').map(translated).join(' · ');
+    return text;
+  }
+  // Only caller-authored narrative fields opt in to the translation overlay.
+  // Fixed UI text and evidence-derived statuses always use code-owned labels.
+  function translatedNarrative(text) {
+    if (typeof text !== 'string') return text;
+    const supplied = (data.translations || {})[language] || {};
+    if (Object.prototype.hasOwnProperty.call(supplied, text)) return supplied[text];
+    if (text.includes('\n')) return text.split('\n').map(translatedNarrative).join('\n');
+    return translated(text);
+  }
+  function localizePage() {
+    document.documentElement.lang=language==='zh'?'zh-CN':'en';
+    document.title=translated('InferRSI · Optimization dashboard');
+    byId('language-en').setAttribute('aria-pressed',String(language==='en'));
+    byId('language-zh').setAttribute('aria-pressed',String(language==='zh'));
+    const walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);
+    while(walker.nextNode()) {
+      const text=walker.currentNode, parent=text.parentElement;
+      if(!parent || parent.closest('script,style,pre,code,textarea,[data-no-translate]'))continue;
+      if(!originalText.has(text))originalText.set(text,text.nodeValue);
+      const original=originalText.get(text), trimmed=original.trim();
+      const translate=parent.closest('[data-narrative]') ? translatedNarrative : translated;
+      if(trimmed){const direct=translate(original);text.nodeValue=direct===original?original.replace(trimmed,translate(trimmed)):direct;}
+    }
+    for(const element of document.querySelectorAll('[aria-label],[placeholder]')) {
+      if(!originalAttributes.has(element))originalAttributes.set(element,{});
+      const original=originalAttributes.get(element);
+      for(const attr of ['aria-label','placeholder'])if(element.hasAttribute(attr)) {
+        if(!(attr in original))original[attr]=element.getAttribute(attr);
+        element.setAttribute(attr,translated(original[attr]));
+      }
+    }
+  }
+  const stageNames = {diagnosis:'Diagnosis', knowledge:'Knowledge', search:'Candidate search', execution:'Execution', validation:'Validation', review:'Review'};
+  const stageSelect = byId('stage-filter'), runSelect = byId('run-filter'), candidateSelect = byId('candidate-filter');
+  let selected = null, jumpNotice = '';
+  const node = (tag, text, cls) => { const el = document.createElement(tag); if (text !== undefined) el.textContent = text; if (cls) el.className = cls; return el; };
+  const narrativeNode = (tag, text, cls) => {const el=node(tag,text,cls);el.setAttribute('data-narrative','');return el;};
+  const clear = el => { while (el.firstChild) el.removeChild(el.firstChild); };
+  const option = (parent, value, text) => { const el = node('option', text); el.value = value; parent.appendChild(el); };
+  const value = (n, suffix='') => typeof n === 'number' && Number.isFinite(n) ? `${n.toFixed(1)}${suffix}` : 'Not recorded';
+  const measurement = n => typeof n === 'number' && Number.isFinite(n) ? String(Number(n.toPrecision(7))) : 'Not recorded';
+  const tone = status => ['passed','improved','adopted','PASS'].includes(status) ? 'good' : ['failed','quality_failed','regressed','rejected','rolled_back','FAIL'].includes(status) ? 'bad' : ['noise','no_gain','pending'].includes(status) ? 'warn' : 'missing';
+  const pill = text => node('span', text.replaceAll('_',' '), `pill ${tone(text)}`);
+  const item = (parent, title, detail, reference) => { const box=node('div',undefined,'item'); box.appendChild(node('strong',title)); if(detail) box.appendChild(node('small',detail)); if(reference) box.appendChild(node('code',reference)); parent.appendChild(box); return box; };
+  const detailLine = (parent, label, text, mono=false, narrative=false) => {const box=node('div',undefined,'detail-line');box.appendChild(node('strong',label));box.appendChild(narrative && text && text!=='Not recorded'?narrativeNode('p',text):node(mono?'code':'p',text || 'Not recorded'));parent.appendChild(box);};
+  const refText = ref => ref.state === 'present' ? `${ref.kind}: ${ref.path} · sha256 ${ref.sha256}` : `${ref.kind}: MISSING · ${ref.missing_reason}`;
+  const identity = (row, index) => row.candidate_id || row.run_id || `run ${index + 1}`;
+  const missingRefs = row => {const seen=new Set();return [...Object.values(row.artifacts),...row.events.flatMap(event=>event.refs)].filter(ref=>{if(ref.state!=='missing')return false;const key=`${ref.kind}|${ref.path || ''}|${ref.missing_reason}`;if(seen.has(key))return false;seen.add(key);return true;});};
+  if(liveMode)byId('mode-badge').textContent='READ ONLY · LIVE';
+  byId('campaign-title').textContent = data.campaign_id;
+  byId('campaign-value').textContent = data.campaign_id;
+  byId('sample').hidden = !data.synthetic;
+  byId('chart-note').textContent = data.chart_note;
+  if (!byId('chart').querySelector('svg')) byId('chart').appendChild(node('p',data.chart_note,'empty'));
+  byId('temporal-note').textContent = data.temporal_note;
+    byId('metric-value').textContent = data.candidates.length ? `${data.candidates[0].metric_key} · ${data.candidates[0].metric_unit}` : 'Not recorded';
+    if(data.candidates.length)byId('metric-value').setAttribute('data-no-translate','');
+  for (const stage of data.stages) option(stageSelect, stage.name, stageNames[stage.name]);
+  const runs = [...new Set(data.candidates.map(row => row.run_id).filter(Boolean))];
+  for (const run of runs) option(runSelect, run, run);
+  data.candidates.forEach((row,index) => option(candidateSelect, String(index), identity(row,index)));
+  function filtered() {
+    return data.candidates.map((row,index) => ({row,index})).filter(({row,index}) =>
+      (!runSelect.value || row.run_id === runSelect.value) &&
+      (candidateSelect.value === '' || index === Number(candidateSelect.value)) &&
+      (!stageSelect.value || row.events.some(event => event.stage === stageSelect.value)));
+  }
+  function renderStats() {
+    const root=byId('stats'); clear(root); const rows=data.candidates, o=data.overview;
+    const missing=rows.flatMap(missingRefs).length;
+    const figures=[
+      ['Best gain',value(o.best_improvement_pct,'%'),o.comparison_state === 'incompatible' ? 'Incompatible records' : o.comparison_state === 'unverified' ? 'Comparison evidence missing or unsupported' : 'Quality and source checks required','green'],
+      ['Target gap',value(o.target_gap_pct,' pp'),o.target_improvement_pct === null ? 'Target not recorded' : `Target ${value(o.target_improvement_pct,'%')}`,'orange'],
+      ['Candidate / run views',rows.length ? String(rows.length) : 'Not recorded','Recorded candidate or run views',''],
+      ['Within noise',rows.some(r=>['noise','improved','regressed'].includes(r.outcome)) ? String(rows.filter(r => r.outcome === 'noise').length) : 'Not recorded','Uses recorded noise band','orange'],
+      ['Failed / regressed',rows.some(r=>r.state !== 'not_recorded' || r.quality !== 'not_recorded') ? String(rows.filter(r => ['failed','quality_failed','regressed'].includes(r.outcome) || r.decision==='rolled_back').length) : 'Not recorded','Includes failures and rollbacks','red'],
+      ['Missing evidence',rows.length ? String(missing) : 'Not recorded','See completeness panel','red']
+    ];
+    for(const [label,number,note,colour] of figures){const box=node('div',undefined,'panel stat');box.appendChild(node('div',label,'stat-label'));box.appendChild(node('strong',number,`stat-value ${colour}`));box.appendChild(node('small',note,'hint'));root.appendChild(box);}
+    byId('overview-note').textContent = data.rounds === null ? 'Rounds not recorded' : `${data.rounds.length} recorded rounds${data.corrupt_round_lines.length ? ` · corrupt lines ${data.corrupt_round_lines.join(', ')}` : ''}`;
+  }
+  function renderWorkflow() {
+    const root=byId('workflow'); clear(root);
+    for(const [index,stage] of data.stages.entries()){
+      const button=node('button',undefined,`stage ${stage.state === 'recorded' ? 'recorded' : ''} ${stageSelect.value === stage.name ? 'selected' : ''}`);
+      button.type='button'; button.setAttribute('aria-pressed',String(stageSelect.value === stage.name));
+      button.appendChild(node('strong',`${index+1} ${stageNames[stage.name]}`));
+      button.appendChild(node('span',stage.state.replaceAll('_',' ')));
+      button.addEventListener('click',()=>{jumpNotice='';stageSelect.value=stageSelect.value === stage.name ? '' : stage.name;render();}); root.appendChild(button);
+    }
+  }
+  function renderRows(visible) {
+    const root=byId('candidate-rows');clear(root);byId('no-rows').hidden=visible.length>0;
+    if(!visible.some(x=>x.index===selected)) selected=visible.length ? visible[0].index : null;
+    for(const {row,index} of visible){const tr=node('tr');if(index===selected)tr.className='selected';
+      const cell=(text)=>{const td=node('td',text);tr.appendChild(td);return td;};
+      cell(row.round === null ? row.round_state==='ambiguous'?'Ambiguous':'Not recorded' : String(row.round));const title=cell();const btn=narrativeNode('button',row.title);btn.type='button';btn.setAttribute('aria-label',`Inspect ${identity(row,index)}`);btn.setAttribute('aria-pressed',String(index===selected));btn.setAttribute('aria-controls','candidate-inspection');btn.addEventListener('click',()=>{jumpNotice='';selected=index;render();});title.appendChild(btn);if(!['present','not_applicable'].includes(row.candidate_metadata_state))title.appendChild(pill(`metadata_${row.candidate_metadata_state}`));
+      const runCell=cell(row.run_id || 'Not recorded');if(row.run_id)runCell.setAttribute('data-no-translate','');cell(row.state.replaceAll('_',' '));cell().appendChild(pill(row.verdict));cell(value(row.improvement_pct,'%'));cell().appendChild(pill(row.quality));cell().appendChild(pill(row.outcome));cell(row.decision.replaceAll('_',' '));
+      const refs=Object.values(row.artifacts);cell(`${refs.filter(r=>r.state==='present').length} present / ${refs.filter(r=>r.state==='missing').length} missing`);root.appendChild(tr);}
+  }
+  function insight(parent, title, note, wide=false) {
+    const section=node('section',undefined,`insight${wide?' wide':''}`);
+    const heading=node('div',undefined,'insight-head');heading.appendChild(node('h4',title));
+    if(note)heading.appendChild(node('small',note));section.appendChild(heading);parent.appendChild(section);
+    return section;
+  }
+  function recordedState(section) {
+    if(!section)return 'Not recorded';
+    const state=`Caller declared · ${section.state.replaceAll('_',' ')}`;
+    return section.missing_reason ? `${state} · ${translatedNarrative(section.missing_reason)}` : state;
+  }
+  function renderCandidate(row) {
+    const root=byId('candidate-inspection');clear(root);
+    if(!row){root.appendChild(node('p','No matching candidate.','empty'));return;}
+    const heading=node('div',undefined,'candidate-heading');
+    heading.appendChild(narrativeNode('h3',row.title));
+    heading.appendChild(node('small',`Candidate ${identity(row,selected)}`));
+    if(data.synthetic)heading.appendChild(node('span','SYNTHETIC DATA','badge sample'));
+    heading.appendChild(pill(row.verdict));
+    heading.appendChild(node('small','Narrative is caller recorded; verdicts and measurements are separate evidence.'));
+    root.appendChild(heading);
+    const grid=node('div',undefined,'insight-grid');root.appendChild(grid);
+    const info=row.optimization, context=row.benchmark_context;
+    const optimization=insight(grid,'Change and rationale','Caller recorded',true);
+    detailLine(optimization,'Change type',info.kind || 'Not recorded');
+    detailLine(optimization,'What was changed',info.summary,false,true);
+    detailLine(optimization,'Why / hypothesis',info.hypothesis,false,true);
+    if(!info.code_locations.length)detailLine(optimization,'Code / configuration locations','Not recorded');
+    for(const location of info.code_locations){const lines=location.line_start===null?'':`:${location.line_start}${location.line_end===null?'':`-${location.line_end}`}`;const revision=location.revision?` · revision ${location.revision}`:'';detailLine(optimization,'Code / configuration location',`${translatedNarrative(location.scope)} · ${location.path || '[redacted or invalid path]'}${lines}${revision}\n${translatedNarrative(location.note)}`);}
+    const trace=row.optimization_trace;
+    const traceHeading=node('div',undefined,'trace-heading');
+    traceHeading.appendChild(node('h4','Optimization trace'));
+    traceHeading.appendChild(node('small',!trace ? 'Trace not recorded' : trace.run_id
+      ? `Caller bound this narrative to run ${trace.run_id}`
+      : 'Candidate-level narrative; no run binding recorded'));
+    grid.appendChild(traceHeading);
+    const knowledge=insight(grid,'Knowledge context','Caller-reviewed snapshot; not proof of model consumption',true);
+    const knowledgeContext=trace && trace.context;
+    detailLine(knowledge,'Capture status',recordedState(knowledgeContext));
+    detailLine(knowledge,'Search queries',knowledgeContext && knowledgeContext.queries.length ? knowledgeContext.queries.join('\n') : 'Not recorded');
+    if(knowledgeContext && knowledgeContext.sources.length){
+      for(const source of knowledgeContext.sources)detailLine(knowledge,'Selected source',`${source.ref} · ${translated('revision')} ${source.revision || translated('Not recorded')}${source.locator ? ` · ${translatedNarrative(source.locator)}` : ''}`,true);
+    }else detailLine(knowledge,'Selected sources','Not recorded');
+    if(knowledgeContext && knowledgeContext.text){
+      const fold=node('details',undefined,'context-detail');fold.open=true;
+      fold.id='knowledge-context';
+      const contextText=translatedNarrative(knowledgeContext.text);
+      fold.appendChild(node('summary',contextText===knowledgeContext.text ? `View recorded context · ${knowledgeContext.state}` : 'Translated context · caller-supplied'));
+      fold.appendChild(node('pre',contextText,'context-text'));knowledge.appendChild(fold);
+      if(contextText!==knowledgeContext.text){
+        const original=node('details',undefined,'context-detail');original.id='original-context';
+        original.appendChild(node('summary','View original recorded context'));
+        original.appendChild(node('pre',knowledgeContext.text,'context-text'));knowledge.appendChild(original);
+      }
+    }else detailLine(knowledge,'Context text','Not recorded');
+    if(row.artifacts.optimization_trace)detailLine(knowledge,'Trace evidence',refText(row.artifacts.optimization_trace),true);
+
+    const space=trace && trace.search_space;
+    const spacePanel=insight(grid,'Declared search space','Options are not necessarily attempts',true);
+    detailLine(spacePanel,'Capture status',recordedState(space));
+    if(space && space.items.length){
+      const attemptsByOption=new Map();
+      for(const step of trace.steps.items){
+        if(step.kind==='attempt' && step.search_id)attemptsByOption.set(step.search_id,(attemptsByOption.get(step.search_id) || 0)+1);
+      }
+      for(const option of space.items){
+        const attempts=attemptsByOption.get(option.id) || 0;
+        detailLine(spacePanel,option.id,`${translatedNarrative(option.description)}\n${attempts ? `${attempts} linked recorded attempt(s)` : 'No linked attempt recorded'}`);
+      }
+    }else detailLine(spacePanel,'Options','Not recorded');
+
+    const narrative=trace && trace.steps;
+    const process=insight(grid,'Optimization process','Recorded order and rationale',true);
+    detailLine(process,'Capture status',recordedState(narrative));
+    if(narrative && narrative.items.length){
+      const linkedEvents=new Set(row.events.map(event=>`${event.source}:${event.line}`));
+      for(const step of narrative.items){
+        const entry=node('div',undefined,'step');
+        entry.appendChild(node('strong',`${step.sequence} · ${step.kind.replaceAll('_',' ')} · ${step.outcome.replaceAll('_',' ')}`));
+        if(step.search_id)entry.appendChild(node('small',`Search option: ${step.search_id}`));
+        detailLine(entry,'Action',step.action,false,true);
+        detailLine(entry,'Why',step.motivation,false,true);
+        detailLine(entry,'Recorded result',step.result,false,true);
+        const eventRef=step.event_ref;
+        if(!eventRef)detailLine(entry,'Technical event','Not recorded');
+        else {
+          const artifact=row.artifacts[eventRef.source];
+          const linked=linkedEvents.has(`${eventRef.source}:${eventRef.line}`);
+          const valid=linked && artifact && artifact.state==='present'
+            && artifact.sha256===eventRef.sha256.toLowerCase();
+          if(!valid)detailLine(entry,'Technical event','Unavailable, unlinked, or source hash mismatch');
+          else {
+            const action=node('div',undefined,'detail-line');
+            action.appendChild(node('strong','Technical event'));
+            const jump=node('button',`Open ${eventRef.source}:${eventRef.line}`,'button');
+            jump.type='button';
+            jump.addEventListener('click',()=>{
+              stageSelect.value='';byId('trace-search').value='';byId('trace-source').value='';
+              render();
+              const target=byId(`trace-${eventRef.source}-${eventRef.line}`);
+              if(target){target.open=true;target.setAttribute('tabindex','-1');target.focus({preventScroll:true});target.scrollIntoView({block:'center'});}
+            });
+            action.appendChild(jump);entry.appendChild(action);
+          }
+        }
+        process.appendChild(entry);
+      }
+    }else detailLine(process,'Steps','Not recorded');
+
+    const conclusion=trace && trace.summary;
+    const conclusions=insight(grid,'Successes and failures','Caller conclusions; see evidence for verdicts',true);
+    detailLine(conclusions,'Capture status',recordedState(conclusion));
+    detailLine(conclusions,'Success summary',conclusion && conclusion.successes.length ? conclusion.successes.map(translatedNarrative).join('\n\n') : 'Not recorded');
+    detailLine(conclusions,'Failure summary',conclusion && conclusion.failures.length ? conclusion.failures.map(translatedNarrative).join('\n\n') : 'Not recorded');
+    detailLine(conclusions,'Limitations',conclusion && conclusion.limitations.length ? conclusion.limitations.map(translatedNarrative).join('\n\n') : 'Not recorded');
+
+    const benchmark=insight(grid,'Benchmark and accuracy','Measurements and redacted commands',true);
+    detailLine(benchmark,'Performance methodology · caller recorded',info.benchmark,false,true);
+    detailLine(benchmark,'Workload',`${context.scenario} · ${context.workload} · ${context.repetitions===null?'repetitions not recorded':`${context.repetitions} repetitions`}`);
+    detailLine(benchmark,'Recorded medians',`Baseline ${measurement(row.baseline_median)} · Candidate ${measurement(row.candidate_median)} ${row.metric_unit}`);
+    const samples=values=>values.length?values.map(measurement).join(', '):'Not recorded';
+    detailLine(benchmark,'Recorded samples',`Baseline: ${samples(context.baseline_samples)}\nCandidate: ${samples(context.candidate_samples)} ${row.metric_unit}`);
+    detailLine(benchmark,'Baseline command · redacted argv',row.commands.baseline || 'Not recorded or unavailable for display',true);
+    detailLine(benchmark,'Candidate command · redacted argv',row.commands.candidate || 'Not recorded or unavailable for display',true);
+    detailLine(benchmark,'Accuracy methodology / result · caller recorded',info.accuracy,false,true);
+    detailLine(benchmark,'Validation command · redacted argv',row.commands.accuracy || 'Not recorded or unavailable for display',true);
+    for(const command of info.commands)detailLine(benchmark,`${translatedNarrative(command.label)} · caller recorded, redacted argv`,command.argv,true);
+    const validationNote=row.commands.accuracy?'only the recorded validation command is covered':'validation command not recorded or unavailable for display';
+    detailLine(benchmark,'Recorded validation state',`${row.quality.replaceAll('_',' ')} · ${validationNote}`);
+    detailLine(benchmark,'Command evidence',refText(row.artifacts.run_lock),true);
+    if(row.artifacts.candidate_metadata)detailLine(benchmark,'Caller detail evidence',refText(row.artifacts.candidate_metadata),true);
+  }
+  function traceEvents(row) {
+    const all=[...row.events.map(event=>({...event,unlinked:false})),...row.unlinked_agent_events.map(event=>({...event,unlinked:true}))];
+    const term=byId('trace-search').value.trim().toLowerCase(), source=byId('trace-source').value;
+    const visible=all.filter(event=>(!stageSelect.value || event.stage===stageSelect.value) && (!source || event.source===source) && (!term || JSON.stringify(event).toLowerCase().includes(term)));
+    const timestamp=event=>{if(!event.time || !/(?:[zZ]|[+-]\d{2}:\d{2})$/.test(event.time))return null;const t=Date.parse(event.time);return Number.isFinite(t)?t:null;};
+    visible.sort((a,b)=>{const left=timestamp(a),right=timestamp(b);return left===null ? (right===null?0:1) : right===null?-1:left-right;});
+    return {visible,total:all.length};
+  }
+  function renderDetail() {
+    const trace=byId('trace'), evidence=byId('evidence');clear(trace);clear(evidence);
+    const row=selected===null?null:data.candidates[selected];
+    if(!row){byId('trace-title').textContent='No selection';byId('trace-count').textContent='';item(trace,'NOT RECORDED','No matching candidate.');item(evidence,'NOT RECORDED');return;}
+    byId('trace-title').textContent=identity(row,selected);
+    const {visible,total}=traceEvents(row);byId('trace-count').textContent=`${visible.length} of ${total} events · time order, unknown time last`;
+    if(jumpNotice)item(trace,'TRACE LOCATION',jumpNotice);
+    if(!visible.length)item(trace,'NOT RECORDED','No events match the current filters.');
+    for(const event of visible){
+      const name=event.type || event.phase || translated('unclassified event');
+      const metadata=[event.time || 'Time not recorded',event.stage,event.side,event.trial===null?null:`trial ${event.trial}`,event.tool].filter(Boolean).join(' · ');
+      const entry=node('details',undefined,`item trace-event${event.unlinked?' missing-item':''}`);
+      entry.id=`trace-${event.source}-${event.line}`;
+      const summary=node('summary');
+      if(event.unlinked){summary.appendChild(node('span','UNLINKED'));summary.appendChild(node('span',' · '));}
+      const rawName=node('span',`${event.source}:${event.line} · ${name}`);
+      rawName.setAttribute('data-no-translate','');summary.appendChild(rawName);entry.appendChild(summary);
+      entry.appendChild(node('small',metadata));
+      entry.appendChild(node('pre',Object.keys(event.details).length ? JSON.stringify(event.details,null,2) : translated('No additional structured fields recorded.')));
+      entry.appendChild(node('code',event.refs.map(refText).join(' | ')));trace.appendChild(entry);
+    }
+    if(row.artifacts.tool_calls.state==='missing')item(trace,'MISSING · tool calls',row.artifacts.tool_calls.missing_reason).classList.add('missing-item');
+    if(row.agent_trace_links.unlinked.length)item(trace,'UNLINKED AGENT EVENTS',`Lines ${row.agent_trace_links.unlinked.join(', ')}`).classList.add('missing-item');
+    if(row.agent_trace_links.mismatched.length)item(trace,'MISMATCHED AGENT EVENTS',`Lines ${row.agent_trace_links.mismatched.join(', ')}`).classList.add('missing-item');
+    for(const [source,lines] of Object.entries(row.corrupt_event_sources)){if(lines.length)item(trace,`CORRUPT ${source} LINES`,lines.join(', ')).classList.add('missing-item');}
+    for(const ref of Object.values(row.artifacts)){const entry=item(evidence,ref.state === 'present' ? `${ref.kind} · PRESENT` : `${ref.kind} · MISSING`,ref.state === 'present' ? ref.path : ref.missing_reason,ref.sha256 ? `sha256 ${ref.sha256}` : '');if(ref.state==='missing')entry.classList.add('missing-item');}
+  }
+  function renderDiagnostics(){const root=byId('diagnostics');clear(root);if(!data.diagnostics.length)item(root,'NOT RECORDED','No evidence-backed diagnostic rule matched.');for(const d of data.diagnostics){const entry=item(root,'',d.candidate_id || 'Single run',d.refs.map(refText).join(' | '));const button=node('button',d.kind.replaceAll('_',' '),'diagnostic-button');button.type='button';const matches=data.candidates.map((row,index)=>({row,index})).filter(({row})=>row.candidate_id===d.candidate_id && row.run_id===d.run_id && row.round===d.round);button.disabled=matches.length!==1;button.addEventListener('click',()=>{const {row,index}=matches[0];const phases=d.kind==='execution_failed'?['crashed','measurement']:d.kind==='quality_failed_with_gain'?['quality_validation']:d.kind==='rolled_back'?[]:['measurement'];let event=null;for(const phase of phases){event=[...row.events].reverse().find(e=>e.phase===phase);if(event)break;}runSelect.value='';candidateSelect.value=String(index);stageSelect.value=event && event.stage || '';byId('trace-search').value='';byId('trace-source').value='';selected=index;jumpNotice=event?'': 'No corresponding trace event was recorded; inspect the referenced evidence.';render();const target=event?byId(`trace-${event.source}-${event.line}`):byId('trace');if(target){if(target.tagName==='DETAILS')target.open=true;target.setAttribute('tabindex','-1');target.focus({preventScroll:true});target.scrollIntoView({block:'center'});}});entry.querySelector('strong').replaceWith(button);}}
+  let storyTab='iterations';
+  const chips=(parent,refs,missing=new Set())=>{const box=node('div');for(const ref of refs){const chip=node('span',ref,`chip${missing.has(ref)?' missing':''}`);chip.setAttribute('data-no-translate','');box.appendChild(chip);}if(!refs.length)box.appendChild(node('span','None recorded','hint'));parent.appendChild(box);return box;};
+  function selectCandidate(candidateId){
+    const index=data.candidates.findIndex(row=>row.candidate_id===candidateId);
+    if(index<0)return;
+    runSelect.value='';stageSelect.value='';candidateSelect.value='';selected=index;jumpNotice='';render();
+    const target=byId('candidate-inspection');target.setAttribute('tabindex','-1');target.focus({preventScroll:true});target.scrollIntoView({block:'start'});
+  }
+  function measuredText(result){
+    if(!result || result.state!=='recorded')return ({ambiguous:'Ambiguous',unavailable:'Run evidence unavailable',outcome_not_recorded:'No recorded outcome'})[result && result.state] || 'No recorded run';
+    const gain=typeof result.improvement_pct==='number'?`${result.improvement_pct>=0?'+':''}${result.improvement_pct.toFixed(1)}%`:'no gain value';
+    return `${gain} · ${String(result.outcome).replaceAll('_',' ')} · quality ${String(result.quality).replaceAll('_',' ')}`;
+  }
+  function renderIterations(body,story){
+    if(!story.iterations.length){body.appendChild(node('p','No iterations recorded.','empty'));return;}
+    for(const iteration of story.iterations){
+      const outcome=iteration.decision.outcome;
+      const box=node('section',undefined,`round ${outcome}`);
+      const head=node('div',undefined,'round-head');
+      head.appendChild(node('h3',`Round ${iteration.round}`));
+      head.appendChild(pill(outcome));
+      head.appendChild(node('small',`Decision: ${outcome.replaceAll('_',' ')}${iteration.decision.candidate_id?` · ${iteration.decision.candidate_id}`:''}`,'hint'));
+      box.appendChild(head);
+      const grid=node('div',undefined,'round-grid');
+      detailLine(grid,'Hypothesis',iteration.hypothesis,false,true);
+      detailLine(grid,'Why this optimization',iteration.rationale,false,true);
+      const refs=node('div',undefined,'detail-line');refs.appendChild(node('strong','Knowledge cited'));chips(refs,iteration.knowledge_refs);grid.appendChild(refs);
+      detailLine(grid,'Observations',(iteration.observations||[]).map(translatedNarrative).join('\n') || 'Not recorded');
+      detailLine(grid,'Decision reason',iteration.decision.reason,false,true);
+      detailLine(grid,'Next step',iteration.next_step || 'Not recorded',false,true);
+      box.appendChild(grid);
+      for(const candidate of iteration.candidates){
+        const line=node('div',undefined,'cand');
+        const left=node('div');const link=node('button',candidate.candidate_id,'link');link.type='button';link.setAttribute('data-no-translate','');
+        link.disabled=candidate.measured.state!=='recorded';link.addEventListener('click',()=>selectCandidate(candidate.candidate_id));
+        left.appendChild(link);chips(left,candidate.option_ids);line.appendChild(left);
+        const middle=node('div');middle.appendChild(narrativeNode('div',candidate.why,'why'));
+        if(candidate.expected)middle.appendChild(node('div',`Expected: ${translatedNarrative(candidate.expected)}`,'exp'));line.appendChild(middle);
+        const right=node('div');right.appendChild(node('small','Measured','hint'));right.appendChild(node('div',measuredText(candidate.measured)));line.appendChild(right);
+        box.appendChild(line);
+      }
+      body.appendChild(box);
+    }
+  }
+  function renderKnowledge(body,story){
+    if(!story.retrievals.length){body.appendChild(node('p','No knowledge retrieval recorded.','empty'));return;}
+    for(const retrieval of story.retrievals){
+      const box=node('section',undefined,'retrieval');
+      const head=node('div',undefined,'round-head');
+      const title=node('h3',retrieval.context_id);title.setAttribute('data-no-translate','');head.appendChild(title);
+      const status=pill(retrieval.state==='verified'?'passed':'failed');
+      status.textContent=retrieval.state==='verified'?'capture verified':retrieval.state.replaceAll('_',' ');
+      head.appendChild(status);
+      head.appendChild(node('small',`${stageNames[retrieval.stage]} · ${retrieval.state==='verified'?'capture verified':retrieval.state.replaceAll('_',' ')}`,'hint'));
+      box.appendChild(head);
+      const grid=node('div',undefined,'round-grid');
+      detailLine(grid,'Why it was retrieved',retrieval.purpose,false,true);
+      detailLine(grid,'What was taken from it',retrieval.takeaways.map(translatedNarrative).join('\n') || 'Not recorded');
+      if(retrieval.state==='verified'){
+        const request=retrieval.request||{};
+        detailLine(grid,'Search request',[request.query?`query: ${request.query}`:'',request.relevance?`relevance: ${request.relevance}`:'',request.ids&&request.ids.length?`ids: ${request.ids.join(', ')}`:'',request.backend?`backend: ${request.backend}`:'',`limit ${request.limit} · context budget ${request.context_bytes} bytes`].filter(Boolean).join('\n'),true);
+        detailLine(grid,'Captured',`${retrieval.captured_at || 'Time not recorded'} · ${retrieval.captured_by || ''} · ${retrieval.context_bytes_used ?? 0} bytes of context`,true);
+        const selectedBox=node('div',undefined,'detail-line');selectedBox.appendChild(node('strong','Selected by search'));
+        const included=new Set(retrieval.contexts.map(context=>context.ref));
+        chips(selectedBox,retrieval.items.map(item=>item.ref),new Set(retrieval.items.map(item=>item.ref).filter(ref=>!included.has(ref))));grid.appendChild(selectedBox);
+        const omitted=[...retrieval.context_omissions.map(o=>`${o.ref} · ${o.reason}`),...retrieval.omissions.map(o=>`${o.id} · ${o.reason}`)];
+        detailLine(grid,'Left out of the context',omitted.join('\n') || 'Nothing omitted',Boolean(omitted.length));
+      }
+      const used=node('div',undefined,'detail-line');used.appendChild(node('strong','Used'));chips(used,retrieval.used_refs);grid.appendChild(used);
+      if(retrieval.rejected_refs.length)detailLine(grid,'Retrieved but not used',retrieval.rejected_refs.map(r=>`${r.ref} — ${translatedNarrative(r.reason)}`).join('\n'));
+      box.appendChild(grid);
+      if(retrieval.state==='verified'){
+        const fold=node('details',undefined,'context-detail');
+        fold.dataset.liveKey=`story-context:${retrieval.context_id}`;
+        fold.appendChild(node('summary',`Full assembled context · ${retrieval.contexts.reduce((n,c)=>n+c.resources.length,0)} resources · sha256 ${retrieval.assembled_sha256.slice(0,12)}`));
+        for(const context of retrieval.contexts){
+          const list=node('div',undefined,'hint');list.style.margin='6px 0';
+          list.textContent=`${context.ref} @ ${context.revision.slice(0,19)} — ${context.resources.map(r=>`${r.path.split('/').slice(-2).join('/')} (${r.role}, ${r.bytes} B)`).join(', ')}`;
+          list.setAttribute('data-no-translate','');fold.appendChild(list);
+        }
+        const contextText=translatedNarrative(retrieval.assembled_text);
+        if(contextText!==retrieval.assembled_text)fold.appendChild(node('p','Translated context · caller-supplied','translation-note'));
+        fold.appendChild(node('pre',contextText,'context-text'));
+        if(contextText!==retrieval.assembled_text){const original=node('details',undefined,'context-detail');original.dataset.liveKey=`story-original:${retrieval.context_id}`;original.appendChild(node('summary','View original recorded context'));original.appendChild(node('pre',retrieval.assembled_text,'context-text'));fold.appendChild(original);}
+        box.appendChild(fold);
+      }else box.appendChild(node('p',`Context text withheld: ${retrieval.state.replaceAll('_',' ')} (${retrieval.path}).`,'empty'));
+      body.appendChild(box);
+    }
+  }
+  function renderSpace(body,story){
+    const space=story.search_space;
+    body.appendChild(node('p',`${space.state.replaceAll('_',' ')}${space.missing_reason?` · ${translatedNarrative(space.missing_reason)}`:''}`,'hint'));
+    for(const dimension of space.dimensions){
+      const box=node('section',undefined,'retrieval');
+      const head=node('div',undefined,'round-head');head.appendChild(narrativeNode('h3',dimension.name));
+      const counts=['tried','pruned','untried'].map(s=>`${dimension.options.filter(o=>o.status===s).length} ${s}`).join(' · ');
+      head.appendChild(node('small',counts,'hint'));box.appendChild(head);
+      if(dimension.rationale)box.appendChild(narrativeNode('p',dimension.rationale,'panel-body'));
+      const table=node('table',undefined,'space-table');const header=node('tr');
+      for(const label of ['Option','Status','Reason','Tried in','Source'])header.appendChild(node('th',label));
+      table.appendChild(header);
+      for(const option of dimension.options){
+        const tr=node('tr');
+        const name=node('td');name.appendChild(node('strong',option.id));name.appendChild(narrativeNode('div',option.description,'hint'));tr.appendChild(name);
+        const status=node('td');status.appendChild(pill(option.status==='tried'?'passed':option.status==='pruned'?'failed':'not_recorded'));status.lastChild.textContent=option.status;tr.appendChild(status);
+        tr.appendChild(narrativeNode('td',option.reason,'reason'));
+        const used=node('td');for(const use of option.uses){const b=node('button',`R${use.round} ${use.candidate_id}`,'link');b.type='button';b.addEventListener('click',()=>selectCandidate(use.candidate_id));used.appendChild(b);used.appendChild(node('div',String(use.outcome||'not recorded').replaceAll('_',' '),'hint'));}
+        if(!option.uses.length)used.appendChild(node('span','—','hint'));tr.appendChild(used);
+        const src=node('td');chips(src,option.source_refs||[]);tr.appendChild(src);table.appendChild(tr);
+      }
+      const wrap=node('div',undefined,'scroll');wrap.appendChild(table);box.appendChild(wrap);body.appendChild(box);
+    }
+  }
+  function renderSummary(body,story){
+    const summary=story.summary;
+    body.appendChild(node('p',`${summary.state.replaceAll('_',' ')}${summary.missing_reason?` · ${translatedNarrative(summary.missing_reason)}`:''}`,'hint'));
+    const grid=node('div',undefined,'summary-grid');
+    for(const [key,label,cls] of [['successes','Successes','good-head'],['failures','Failures','bad-head']]){
+      const box=node('section');box.appendChild(node('h3',`${label} · ${summary[key].length}`,cls));
+      if(!summary[key].length)box.appendChild(node('p','None recorded','empty'));
+      for(const entry of summary[key]){
+        const claim=node('div',undefined,'claim');claim.appendChild(narrativeNode('p',entry.text));
+        if(entry.cause_stage)claim.appendChild(node('small',`Cause: ${stageNames[entry.cause_stage]}`,'hint'));
+        const links=node('div');
+        for(const link of entry.links){
+          if(link.ref.startsWith('candidate:')){const b=node('button',`${link.ref.slice(10)} · ${measuredText(link)}`,'chip');b.type='button';b.disabled=!['recorded','outcome_not_recorded'].includes(link.state);b.addEventListener('click',()=>selectCandidate(link.ref.slice(10)));links.appendChild(b);}
+          else{const c=node('span',link.ref,`chip${link.state==='recorded'?'':' missing'}`);c.setAttribute('data-no-translate','');links.appendChild(c);}
+        }
+        claim.appendChild(links);box.appendChild(claim);
+      }
+      grid.appendChild(box);
+    }
+    body.appendChild(grid);
+    const more=node('div',undefined,'round-grid');more.style.padding='10px 0 0';
+    detailLine(more,'Lessons for the framework',summary.lessons.map(translatedNarrative).join('\n') || 'Not recorded');
+    detailLine(more,'Limitations',summary.limitations.map(translatedNarrative).join('\n') || 'Not recorded');
+    body.appendChild(more);
+  }
+  function renderStory(){
+    const root=byId('story');clear(root);const story=data.story||{state:'not_recorded',versions:[]};
+    const note=byId('story-note');
+    if(story.state!=='present'){
+      note.textContent=story.state==='not_applicable'?'Single runs have no campaign log':'Not recorded';
+      root.appendChild(node('p',story.state==='not_applicable'?'A single run has no optimization log. Record a campaign to explain why each optimization was chosen.':`No usable optimization log (${story.state.replaceAll('_',' ')}). Record one with: inferrsi campaign log --directory <CAMPAIGN> --file <LOG.json>`,'empty'));
+      return;
+    }
+    const latest=story.versions[story.versions.length-1];
+    note.textContent=`Caller-authored narrative, cross-checked against captures and runs · log v${latest.version} of ${story.versions.length}`;
+    const goal=node('div',undefined,'goal');goal.style.padding='10px 12px 0';
+    for(const [label,text] of [['Goal',story.goal.statement],['Metric',story.goal.metric],['Baseline',story.goal.baseline],['Target',story.goal.target],['Constraints',(story.goal.constraints||[]).map(translatedNarrative).join('; ')]]){if(!text)continue;const cell=node('div');cell.appendChild(node('strong',label));cell.appendChild(narrativeNode('span',text));goal.appendChild(cell);}
+    root.appendChild(goal);
+    const checksBox=node('div',undefined,`checks${story.checks.length?'':' ok'}`);checksBox.style.margin='10px 12px 0';
+    const errors=story.checks.filter(c=>c.severity==='error').length;
+    checksBox.appendChild(node('h3',story.checks.length?`Narrative vs evidence · ${errors} conflicts, ${story.checks.length-errors} warnings`:'Narrative vs evidence · every reference resolved'));
+    if(story.checks.length){const list=node('ul');for(const c of story.checks){const li=node('li',undefined,`sev-${c.severity}`);li.appendChild(node('strong',`${c.where}: `));li.appendChild(node('span',c.message));list.appendChild(li);}checksBox.appendChild(list);}
+    root.appendChild(checksBox);
+    const tabs=node('div',undefined,'story-tabs');tabs.setAttribute('role','tablist');
+    const options=[['iterations','Optimization process',story.iterations.length],['knowledge','Knowledge context',story.retrievals.length],['space','Search space',story.search_space.dimensions.reduce((n,d)=>n+d.options.length,0)],['summary','Successes and failures',story.summary.successes.length+story.summary.failures.length]];
+    for(const [id,label,count] of options){const b=node('button',label);b.type='button';b.setAttribute('role','tab');b.setAttribute('aria-selected',String(storyTab===id));b.appendChild(node('span',String(count),'count'));b.addEventListener('click',()=>{storyTab=id;renderStory();localizePage();});tabs.appendChild(b);}
+    root.appendChild(tabs);
+    const body=node('div',undefined,'story-body');body.setAttribute('role','tabpanel');root.appendChild(body);
+    ({iterations:renderIterations,knowledge:renderKnowledge,space:renderSpace,summary:renderSummary})[storyTab](body,story);
+  }
+  function render(){const visible=filtered();renderStory();renderWorkflow();renderRows(visible);renderCandidate(selected===null?null:data.candidates[selected]);renderDetail();localizePage();}
+  for(const select of [stageSelect,runSelect,candidateSelect])select.addEventListener('change',()=>{jumpNotice='';render();});
+  byId('trace-search').addEventListener('input',()=>{renderDetail();localizePage();});
+  byId('trace-source').addEventListener('change',()=>{renderDetail();localizePage();});
+  for(const choice of ['en','zh'])byId(`language-${choice}`).addEventListener('click',()=>{
+    if(language===choice)return;
+    const openEvents=[...document.querySelectorAll('#trace details[open]')].map(el=>el.id);
+    const contextOpen=byId('knowledge-context')?.open, originalOpen=byId('original-context')?.open;
+    language=choice;
+    try { localStorage.setItem('inferrsi.dashboard.language',language); } catch (_) { /* file storage may be disabled */ }
+    renderStats();renderDiagnostics();render();
+    for(const id of openEvents){const event=byId(id);if(event)event.open=true;}
+    if(byId('knowledge-context') && contextOpen!==undefined)byId('knowledge-context').open=contextOpen;
+    if(byId('original-context') && originalOpen!==undefined)byId('original-context').open=originalOpen;
+    if(!byId('feedback-preview').hidden)byId('feedback-preview').textContent=buildFeedback();
+    if(liveMode)showLiveStatus();
+  });
+  const redact = text => text.replace(/https?:\/\/\S+/gi,'[redacted-url]').replace(/\b[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}\b/g,'[redacted-email]').replace(/\b(?:\d{1,3}\.){3}\d{1,3}\b/g,'[redacted-address]').replace(/\b[A-Za-z]:[\\/][^\s]+/g,'[redacted-path]').replace(/(^|\s)\/(?:[^\s/]+\/)*[^\s]+/g,'$1[redacted-path]').replace(/\b(api[_-]?key|token|password|secret)\s*[:=]\s*\S+/gi,'$1=[redacted]');
+  function buildFeedback(){
+    const row=selected===null?null:data.candidates[selected], visible=row?traceEvents(row).visible:[];
+    const refs=row?[...new Set([...Object.values(row.artifacts),...visible.flatMap(event=>event.refs)].map(refText))].join('\n- '):translated('Not recorded');
+    const events=visible.map(e=>`${e.unlinked?`${translated('UNLINKED')} `:''}${e.source}:${e.line}`).join(', ');
+    return redact(`# ${translated('InferRSI review')}\n\n${translated('Campaign')}: ${data.campaign_id}\n${translated('Round')}: ${row && row.round!==null?row.round:translated('Not recorded')}\n${translated('Candidate')}: ${row?identity(row,selected):translated('Not recorded')}\n${translated('Stage')}: ${stageSelect.value?translated(stageNames[stageSelect.value]):translated('All stages')}\n${translated('Visible trace')}: ${events || translated('Not recorded')}\n\n## ${translated('Recorded optimization')}\n\n${row && row.optimization.summary!=='Not recorded'?translatedNarrative(row.optimization.summary):translated('Not recorded')}\n\n## ${translated('Findings and recommendation')}\n\n${byId('feedback').value || translated('Not recorded')}\n\n## ${translated('Evidence references')}\n\n- ${refs}\n`);
+  }
+  byId('export').addEventListener('click',()=>{
+    const feedback=buildFeedback();
+    const preview=byId('feedback-preview');preview.textContent=feedback;preview.hidden=false;const url=URL.createObjectURL(new Blob([feedback],{type:'text/markdown'}));const link=node('a');link.href=url;link.download='inferrsi-review.md';document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+  });
+  renderStats();renderDiagnostics();render();
+  let liveConnected=false, liveAttempted=false, lastChecked=null, liveEtag=null, missingFilter=null;
+  function showLiveStatus(){
+    const status=byId('live-status');status.hidden=false;
+    status.classList.toggle('disconnected',!liveConnected);
+    const checked=lastChecked ? new Date(lastChecked).toLocaleTimeString(language==='zh'?'zh-CN':'en-US',{hour12:false}) : '';
+    status.textContent=!liveAttempted ? (language==='zh'?'正在连接':'Connecting') : liveConnected
+      ? `${language==='zh'?'已连接 · 最近检查':'Connected · checked'} ${checked}`
+      : `${language==='zh'?'连接或读取失败，正在重试':'Connection or refresh failed, retrying'}${checked?` · ${language==='zh'?'上次检查':'last checked'} ${checked}`:''}`;
+  }
+  function matchingIndex(previous){
+    if(!previous)return -1;
+    const candidates=data.candidates;
+    const unique=predicate=>{const indexes=[];candidates.forEach((row,index)=>{if(predicate(row))indexes.push(index);});return indexes.length===1?indexes[0]:-1;};
+    const exact=unique(row=>row.candidate_id===previous.candidate_id && row.run_id===previous.run_id && row.round===previous.round);
+    if(exact>=0)return exact;
+    if(previous.candidate_id)return unique(row=>row.candidate_id===previous.candidate_id);
+    return previous.run_id?unique(row=>row.run_id===previous.run_id):-1;
+  }
+  function applySnapshot(snapshot){
+    const filterRow=candidateSelect.value==='__missing__'?missingFilter
+      :candidateSelect.value===''?null:data.candidates[Number(candidateSelect.value)];
+    const previousSelected=selected===null?null:data.candidates[selected];
+    const previousRun=runSelect.value;
+    const details=new Map([...document.querySelectorAll('details[id],details[data-live-key]')].map(el=>[el.id || el.dataset.liveKey,el.open]));
+    const scrollX=window.scrollX, scrollY=window.scrollY;
+    data=restoreContexts(snapshot.data);
+    clear(runSelect);option(runSelect,'','All runs');
+    const runs=[...new Set(data.candidates.map(row=>row.run_id).filter(Boolean))];
+    if(previousRun && !runs.includes(previousRun))runs.push(previousRun);
+    for(const run of runs)option(runSelect,run,run);
+    runSelect.value=previousRun;
+    clear(candidateSelect);option(candidateSelect,'','All candidates');
+    data.candidates.forEach((row,index)=>option(candidateSelect,String(index),identity(row,index)));
+    const filterIndex=matchingIndex(filterRow);
+    missingFilter=filterRow && filterIndex<0?filterRow:null;
+    if(missingFilter)option(candidateSelect,'__missing__',identity(missingFilter,0));
+    candidateSelect.value=missingFilter?'__missing__':filterIndex<0?'':String(filterIndex);
+    const selectedIndex=matchingIndex(previousSelected);selected=selectedIndex<0?null:selectedIndex;
+    byId('campaign-title').textContent=data.campaign_id;byId('campaign-value').textContent=data.campaign_id;
+    byId('sample').hidden=!data.synthetic;
+    byId('metric-value').textContent=data.candidates.length?`${data.candidates[0].metric_key} · ${data.candidates[0].metric_unit}`:'Not recorded';
+    if(data.candidates.length)byId('metric-value').setAttribute('data-no-translate','');else byId('metric-value').removeAttribute('data-no-translate');
+    byId('chart').innerHTML=snapshot.chart;
+    byId('chart-note').textContent=data.chart_note;
+    if(!snapshot.chart)byId('chart').appendChild(node('p',data.chart_note,'empty'));
+    byId('temporal-chart').innerHTML=snapshot.temporal;byId('temporal-note').textContent=data.temporal_note;
+    renderStats();renderDiagnostics();render();
+    for(const el of document.querySelectorAll('details[id],details[data-live-key]')){const key=el.id || el.dataset.liveKey;if(details.has(key))el.open=details.get(key);}
+    window.scrollTo(scrollX,scrollY);
+    if(!byId('feedback-preview').hidden)byId('feedback-preview').textContent=buildFeedback();
+  }
+  async function pollLive(){
+    const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),30000);
+    try{
+      const headers={'X-InferRSI-Compact':'1'};if(liveEtag)headers['If-None-Match']=liveEtag;
+      const response=await fetch('/api/state',{headers,cache:'no-store',signal:controller.signal});
+      if(response.status!==304){if(!response.ok)throw new Error('snapshot unavailable');const snapshot=await response.json();applySnapshot(snapshot);liveEtag=response.headers.get('ETag');}
+      liveConnected=true;lastChecked=Date.now();
+    }catch(_){liveConnected=false;}
+    finally{clearTimeout(timeout);liveAttempted=true;showLiveStatus();setTimeout(pollLive,3000);}
+  }
+  if(liveMode){showLiveStatus();pollLive();}
+})();
+</script>
+</body>
+</html>

@@ -111,6 +111,82 @@ def parser() -> argparse.ArgumentParser:
         child.add_argument("--run-id", required=True)
         child.add_argument("--output-dir", default="runs")
 
+    dashboard = commands.add_parser(
+        "dashboard", help="Export an offline dashboard for one run or recorded campaign"
+    )
+    dashboard.add_argument("--input", type=Path, required=True, help="Run or campaign directory")
+    dashboard.add_argument(
+        "--output", type=Path, help="HTML output (default: input/dashboard.html)"
+    )
+    dashboard.add_argument(
+        "--translations", type=Path, help="Reviewed bilingual text overlay in JSON"
+    )
+    dashboard.add_argument(
+        "--live", action="store_true", help="Serve a live read-only view on loopback"
+    )
+    dashboard.add_argument("--port", type=int, help="Live loopback port (default: 8765)")
+
+    campaign = commands.add_parser("campaign", help="Create local campaign correlation records")
+    campaign_actions = campaign.add_subparsers(dest="campaign_action", required=True)
+    create = campaign_actions.add_parser("init", help="Create a new campaign manifest")
+    create.add_argument("--directory", type=Path, required=True)
+    create.add_argument("--id", required=True)
+    create.add_argument("--target-pct", type=float)
+    create.add_argument("--noise-pct", type=float)
+    create.add_argument("--synthetic", action="store_true")
+    assemble = campaign_actions.add_parser(
+        "assemble-trace",
+        help="Insert an explicitly reviewed context file into a trace template",
+    )
+    assemble.add_argument("--directory", type=Path, required=True)
+    assemble.add_argument("--template", type=Path, required=True)
+    assemble.add_argument("--context-file", type=Path, required=True)
+    assemble.add_argument("--output", required=True, help="New JSON filename in the campaign root")
+    record = campaign_actions.add_parser("record", help="Associate a candidate with one run")
+    record.add_argument("--directory", type=Path, required=True)
+    record.add_argument("--candidate", required=True)
+    record.add_argument("--run-id", required=True)
+    record.add_argument("--round", type=int, required=True)
+    record.add_argument("--title", required=True)
+    record.add_argument("--details-json", type=Path,
+                        help="JSON file describing the optimization and code locations")
+    record.add_argument("--agent-trace", help="Existing campaign-relative JSONL trace")
+    record.add_argument("--profile", help="Existing campaign-relative profile artifact")
+    record.add_argument("--optimization-trace",
+                        help="Caller-reviewed campaign-relative optimization trace JSON")
+    capture = campaign_actions.add_parser(
+        "capture-context",
+        help="Run collect and keep the exact knowledge context it assembled",
+    )
+    capture.add_argument("--directory", type=Path, required=True)
+    capture.add_argument("--id", required=True, help="New context id, e.g. r1-diagnosis")
+    capture.add_argument("query", nargs="?", default="")
+    capture.add_argument("--relevance", help="Lexical cue for packaged skill selection")
+    capture.add_argument("--relevance-method", choices=RELEVANCE_METHODS,
+                         default="weighted-lexical-v1")
+    capture.add_argument("--id-ref", action="append", dest="ids", metavar="ID",
+                         help="Exact knowledge identity to include (repeatable)")
+    capture.add_argument("--kind", choices=("skill", "knowledge", "case"))
+    capture.add_argument("--repo-type", dest="knowledge_repo", choices=KNOWLEDGE_REPOS)
+    capture.add_argument("--tier", choices=KNOWLEDGE_SCOPES)
+    capture.add_argument("--backend", choices=BACKENDS)
+    capture.add_argument("--scenario")
+    capture.add_argument("--limit", type=int, default=5)
+    capture.add_argument("--context-bytes", type=int, default=65536)
+    capture.add_argument("--skill-root", type=Path)
+    capture.add_argument("--store", type=Path)
+    log = campaign_actions.add_parser(
+        "log", help="Record a new version of the campaign optimization log"
+    )
+    log.add_argument("--directory", type=Path, required=True)
+    log.add_argument("--file", type=Path, required=True, help="Optimization log JSON")
+    decision = campaign_actions.add_parser("decide", help="Record one round decision")
+    decision.add_argument("--directory", type=Path, required=True)
+    decision.add_argument("--candidate", required=True)
+    decision.add_argument("--round", type=int, required=True)
+    decision.add_argument("--outcome", required=True,
+                          choices=("adopted", "rejected", "rolled_back", "no_gain", "noise"))
+
     skills = commands.add_parser(
         "skills", help="Read explicitly selected skills; never install or execute them"
     )

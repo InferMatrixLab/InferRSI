@@ -194,12 +194,14 @@ def check_plugin(path: Path, tag: str, host: str = "codex") -> None:
         identity = "\n".join(f"{name}\0{digest}" for name, digest in sorted(hashes.items()))
         if hashlib.sha256(identity.encode("utf-8")).hexdigest() != manifest["content_sha256"]:
             raise ValueError("Plugin content identity mismatch")
-        with tempfile.TemporaryDirectory(prefix="irsi-") as staging:
+        # Cleanup must use the same extended path as the deep runtime cache.
+        temp_root = Path(tempfile.gettempdir()).resolve()
+        value = str(temp_root)
+        if os.name == "nt" and not value.startswith("\\\\?\\"):
+            temp_root = Path("\\\\?\\UNC\\" + value[2:] if value.startswith("\\\\")
+                             else "\\\\?\\" + value)
+        with tempfile.TemporaryDirectory(prefix="irsi-", dir=temp_root) as staging:
             destination = Path(staging).resolve()
-            if os.name == "nt":
-                value = str(destination)
-                destination = Path("\\\\?\\UNC\\" + value[2:] if value.startswith("\\\\")
-                                   else "\\\\?\\" + value)
             archive.extractall(destination)
             launcher = destination / plugin / "skills/inferrsi/scripts/inferrsi.py"
             command = [sys.executable, "-I", "-S", "-X", "utf8", str(launcher)]
