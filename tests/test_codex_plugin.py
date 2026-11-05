@@ -2,11 +2,14 @@
 
 import hashlib
 import json
+import posixpath
+import re
 import shutil
 import subprocess
 import sys
 import zipfile
 from pathlib import Path
+from urllib.parse import unquote, urlsplit
 
 import pytest
 
@@ -147,7 +150,13 @@ def test_archive_contains_only_one_standalone_plugin(tmp_path):
         names = archive.namelist()
         assert {Path(name).parts[0] for name in names} == {"inferrsi"}
         assert "inferrsi/plugin.json" in names
-        assert "inferrsi/README.md" in names
+        readme = archive.read("inferrsi/README.md")
+        assert readme == (PROJECT / "docs/codex-plugin.md").read_bytes()
+        for target in re.findall(r"\[[^\]]*\]\(([^\s)]+)\)", readme.decode("utf-8")):
+            link = urlsplit(target)
+            if not link.scheme and not link.netloc and link.path:
+                path = posixpath.normpath(posixpath.join("inferrsi", unquote(link.path)))
+                assert path in names, f"Broken link in plugin README: {target}"
         assert not any("marketplace" in name or ".agents" in name for name in names)
         metadata = json.loads(archive.read("inferrsi/plugin.json"))
         assert metadata["$schema"] == "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json"
@@ -181,9 +190,18 @@ def test_release_archive_is_installable_and_all_versions_match(release_distribut
     project, template, result = release_distribution
     check_plugin(Path(result["archive"]), "v0.2.0")
     assert (project / "plugins/inferrsi/plugin.json").read_bytes() == template
+    source_readme = (project / "docs/codex-plugin.md").read_bytes()
+    assert source_readme == (PROJECT / "docs/codex-plugin.md").read_bytes()
+    video_base = b"https://raw.githubusercontent.com/InferMatrixLab/InferRSI/"
+    video_path = b"/docs/assets/inferrsi-codex-install-en.mp4"
+    main_video = video_base + b"main" + video_path
+    assert main_video in source_readme
     with zipfile.ZipFile(result["archive"]) as archive:
         name = "inferrsi/plugin.json"
         assert json.loads(archive.read(name))["version"] == "0.2.0"
+        assert archive.read("inferrsi/README.md") == source_readme.replace(
+            main_video, video_base + b"refs/tags/v0.2.0" + video_path,
+        )
     with pytest.raises(ValueError, match="agree exactly"):
         check_plugin(Path(result["archive"]), "v0.2.1")
 

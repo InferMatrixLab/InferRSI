@@ -72,7 +72,18 @@ def build_plugin(
         plugin = Path(staging) / "inferrsi"
         shutil.copytree(template, plugin, ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
         shutil.copyfile(project / "LICENSE", plugin / "LICENSE")
-        shutil.copyfile(project / "docs" / "codex-plugin.md", plugin / "README.md")
+        readme = (project / "docs" / "codex-plugin.md").read_bytes()
+        if release_version is not None:
+            video_url = (
+                "https://raw.githubusercontent.com/InferMatrixLab/InferRSI/{ref}/"
+                "docs/assets/inferrsi-codex-install-en.mp4"
+            )
+            readme = readme.replace(
+                video_url.format(ref="main").encode("ascii"),
+                video_url.format(ref=f"refs/tags/v{release_version}").encode("ascii"),
+                1,
+            )
+        (plugin / "README.md").write_bytes(readme)
         runtime = plugin / "runtime"
         hashes = {}
         for path in sorted(source.rglob("*")):
