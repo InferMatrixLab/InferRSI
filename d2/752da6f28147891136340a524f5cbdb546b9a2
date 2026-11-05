@@ -1,0 +1,19 @@
+tests/test_dashboard_translation_ui.py
+  s_1d875e3096cc02::t_dc707a3d391457 42-43
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "d2752da6f28147891136340a524f5cbdb546b9a2",
+  "prompts": {},
+  "sessions": {
+    "s_1d875e3096cc02": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1ab65-32e9-7762-b181-f88e6660bf45",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "jiangkuaixue123 <jiangxiaozhou111@163.com>"
+    }
+  }
+}
