@@ -138,20 +138,27 @@ def _round_trend(view: dict) -> dict | None:
 
 
 def _chart(source: Path, view: dict) -> tuple[str, str]:
-    external = [row for row in view["candidates"] if row.get("external", {}).get("metrics")]
+    external = [row for row in view["candidates"] if row.get("external")]
     if external:
         from .dashboard_external import metric_chart
-        chart = metric_chart(external)
+        measured = [row for row in external if row["external"]["metrics"]]
+        chart = metric_chart(measured) if measured else ""
         native = [row for row in view["candidates"] if not row.get("external")]
         if native:
             native_chart, _ = _chart(source, {**view, "candidates": native})
             chart += native_chart
-        return (chart,
-                "Protocol-specific absolute measurements; recorded verdicts are not recomputed.")
+        note = "Protocol-specific absolute measurements; recorded verdicts are not recomputed."
+        missing = len(external) - len(measured)
+        if missing:
+            note += (f" {missing} external record(s) have no recorded metrics; "
+                     "see candidate details and events.")
+        return chart, note
     chart_file = source / "summary-chart.json"
     spec = None
     recorded_title = False
     message = "Independent candidate results relative to their paired baselines."
+    if view["overview"]["comparison_state"] == "no_data":
+        return "", "No measured candidate results recorded."
     if view["overview"]["comparison_state"] != "comparable":
         return "", "Comparison evidence is missing, unsupported, or incompatible."
     if _inside(source, chart_file) and chart_file.is_file():

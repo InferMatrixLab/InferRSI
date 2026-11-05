@@ -44,7 +44,12 @@ the UI reports missing evidence rather than an invented success.
 This version represents lower-is-better latency metrics; absolute target gaps
 are aggregate minus target. Each metric supports a positive parent, up to two positive samples, a positive
 aggregate and target; omitted values remain unrecorded. `two_round_median`
-requires two samples and their arithmetic midpoint. Keep concurrency tiers and
+requires two samples and their arithmetic midpoint, accepting floating-point
+serialization differences with relative tolerance `1e-9` and absolute tolerance
+`1e-12` in the metric unit. This is not a measurement/noise tolerance; coarser
+rounding must not be used to change a recorded aggregate. The caller value is
+preserved. Records without metrics stay in candidate/event views and are counted
+in the chart note; no measurement is fabricated. Keep concurrency tiers and
 protocols separate. Absolute plots do not establish cross-run comparability.
 Performance and quality verdicts remain separate; quality may include `correct`
 and `total`. Neither an external PASS nor a source hash promotes a record into

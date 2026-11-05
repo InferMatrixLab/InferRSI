@@ -213,3 +213,66 @@ def test_collector_freshness_is_independent_of_dashboard_connection(tmp_path):
     view = load_dashboard(tmp_path)
     assert view["integration"]["state"] == "connected"
     assert view["integration"]["collection"]["state"] == "stale"
+
+
+@pytest.mark.parametrize('aggregate,accepted', [(0.15, True), (0.15000000001, True),
+                                               (0.150001, False)])
+def test_two_round_aggregate_allows_serialization_roundoff(tmp_path, aggregate, accepted):
+    data = record()
+    data['metrics'][0].update(samples=[0.1, 0.2], aggregate=aggregate)
+    assemble(tmp_path, data)
+    external = load_dashboard(tmp_path)['candidates'][0]['external']
+    assert bool(external) is accepted
+    if accepted:
+        assert external['metrics'][0]['aggregate'] == aggregate
+
+
+@pytest.mark.parametrize('count', [0, 1, 2])
+def test_chart_colours_follow_roles_with_missing_rounds(tmp_path, count):
+    import xml.etree.ElementTree as ET
+
+    data = record()
+    data['metrics'][0].update(samples=[40, 38][:count], aggregation='caller_recorded')
+    assemble(tmp_path, data)
+    svg = ET.fromstring(dashboard_snapshot(tmp_path)['chart'])
+    labels = {e.text.split(':')[0]: e.attrib['fill'] for e in svg
+              if e.tag.endswith('text') and ':' in (e.text or '')}
+    assert labels['Parent'] == '#a0aab7'
+    assert labels['Aggregate'] == '#73bf69'
+    assert ('R1' in labels) == (count >= 1)
+    assert ('R2' in labels) == (count == 2)
+    if count:
+        assert labels['R1'] == '#5794f2'
+    if count == 2:
+        assert labels['R2'] == '#ff9830'
+
+
+def test_empty_external_metrics_remain_visible_and_are_explained(tmp_path):
+    from inferrsi.harness.dashboard import _chart
+
+    data = record()
+    data['metrics'] = []
+    assemble(tmp_path, data)
+    snapshot = dashboard_snapshot(tmp_path)
+    assert len(snapshot['data']['candidates']) == 1
+    assert snapshot['data']['candidates'][0]['events']
+    assert snapshot['chart'] == ''
+    assert '1 external record(s) have no recorded metrics' in snapshot['data']['chart_note']
+    empty = snapshot['data']['candidates'][0]
+    assemble(tmp_path, record())
+    measured = dashboard_snapshot(tmp_path)
+    measured['data']['candidates'].append(empty)
+    chart, note = _chart(tmp_path, measured['data'])
+    assert 'C4' in chart
+    assert '1 external record(s) have no recorded metrics' in note
+
+
+def test_empty_campaign_snapshot_has_no_gain_or_plot(tmp_path):
+    (tmp_path / 'campaign.json').write_text('{}')
+    snapshot = dashboard_snapshot(tmp_path)
+    assert snapshot['data']['overview']['comparison_state'] == 'no_data'
+    assert snapshot['data']['overview']['best_improvement_pct'] is None
+    assert snapshot['data']['overview']['target_gap_pct'] is None
+    assert snapshot['chart'] == ''
+    assert snapshot['data']['chart_note'] == 'No measured candidate results recorded.'
+    assert snapshot['temporal'] == ''

@@ -160,7 +160,7 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
   <div class="var"><span>metric</span><output id="metric-value"></output></div>
 </div>
 <main>
-<p id="integration-note" class="panel panel-body"></p>
+<div id="integration-note" class="panel panel-body"></div>
   <div class="section-title">Overview · all candidates <small id="overview-note"></small></div>
   <div id="stats" class="stats" aria-label="Overview statistics"></div>
   <div class="section-title">Workflow <small>Technical events only; select a stage to filter candidates and events</small></div>
@@ -221,6 +221,7 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
   const liveMode = data.live === true;
   const byId = id => document.getElementById(id);
   const chinese = {
+    'stages_declared is explicitly empty: undeclared stages mean not applicable, not backend unsupported.':'stages_declared 显式声明为空：未声明的阶段表示不适用，不表示后端不受支持。',
     'Source collection':'数据采集',
     'live':'已连接',
     'stale':'数据陈旧',
@@ -382,6 +383,8 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
     if (typeof text !== 'string') return text;
     if (language !== 'zh') return text;
     if (Object.prototype.hasOwnProperty.call(chinese, text)) return chinese[text];
+    const protocolPrefix='Protocol-specific absolute measurements; recorded verdicts are not recomputed.';
+    if(text.startsWith(protocolPrefix+' '))return chinese[protocolPrefix]+' '+text.slice(protocolPrefix.length+1).replace(/(\d+) external record\(s\) have no recorded metrics; see candidate details and events\./,(_,count)=>`${count} 条外部记录未记录指标；请查看候选详情和事件。`);
     const temporalPrefix='Terminal events place results; stage dots are events, not durations.';
     if(text.startsWith(`${temporalPrefix} `)) {
       return chinese[temporalPrefix] + ' ' + text.slice(temporalPrefix.length+1)
@@ -522,14 +525,25 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
       (candidateSelect.value === '' || index === Number(candidateSelect.value)) &&
       (!stageSelect.value || row.events.some(event => event.stage === stageSelect.value)));
   }
-  function renderStats() {
-    const integration=data.integration || {};
-    byId('integration-note').textContent = integration.state === 'not_connected'
+  function renderIntegration(integration) {
+    const root=byId('integration-note');clear(root);
+    const message=integration.state==='not_connected'
       ? 'Data source not connected: add candidate/run records or external_record_ref. Existing files elsewhere are not imported automatically.'
       : integration.external_records ? 'External records connected. Protocol-specific measurements and recorded verdicts are shown separately; generic gain ranking does not validate them.' : '';
-    if(integration.collection?.observed_at)byId('integration-note').textContent += '\n'+translated('Source collection')+': '+translated(integration.collection.state)+' · '+integration.collection.observed_at;
-    if(integration.stage_declaration === 'explicit_empty') byId('integration-note').textContent += ' stages_declared is explicitly empty: undeclared stages mean not applicable, not backend unsupported.';
-
+    if(message)root.appendChild(node('p',message));
+    if(integration.collection?.observed_at){
+      const line=node('p');
+      line.appendChild(node('span','Source collection'));
+      line.appendChild(node('span',': '));
+      line.appendChild(node('span',integration.collection.state));
+      line.appendChild(node('span',' · '+integration.collection.observed_at));
+      root.appendChild(line);
+    }
+    if(integration.stage_declaration==='explicit_empty')root.appendChild(node('p','stages_declared is explicitly empty: undeclared stages mean not applicable, not backend unsupported.'));
+    root.hidden=!root.firstChild;
+  }
+  function renderStats() {
+    renderIntegration(data.integration || {});
     const root=byId('stats'); clear(root); const rows=data.candidates, o=data.overview;
     const missing=rows.flatMap(missingRefs).length;
     const external=rows.filter(r=>r.external?.metrics), metrics=external.flatMap(r=>r.external.metrics);

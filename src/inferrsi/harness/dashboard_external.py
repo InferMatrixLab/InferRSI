@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 import re
 from pathlib import Path
 
@@ -51,7 +52,10 @@ def external_record(root: Path, reference: object, candidate_id: str) -> tuple[d
                 if m.get(key) is not None and (_number(m[key]) is None or _number(m[key]) <= 0):
                     raise ValueError("positive metric required")
             if m.get("aggregation") == "two_round_median":
-                if len(samples) != 2 or aggregate != sum(samples) / 2:
+                if (len(samples) != 2 or aggregate is None or not math.isclose(
+                    aggregate, samples[0] / 2 + samples[1] / 2,
+                    rel_tol=1e-9, abs_tol=1e-12
+                )):
                     raise ValueError("two round aggregate")
             metrics.append(
                 {
@@ -139,19 +143,22 @@ def metric_chart(rows: list[dict]) -> str:
     ]
     for i, (row, metric) in enumerate(items):
         y = i * 100 + 25
-        values = [metric["baseline"], *metric["samples"], metric["aggregate"]]
+        samples = metric["samples"]
+        roles = [("Parent", "#a0aab7", metric["baseline"]),
+                 ("R1", "#5794f2", samples[0] if samples else None),
+                 ("R2", "#ff9830", samples[1] if len(samples) > 1 else None),
+                 ("Aggregate", "#73bf69", metric["aggregate"])]
+        values = [value for _, _, value in roles]
         numbers = [v for v in values + [metric["target"]] if v is not None and v > 0]
         if not numbers:
             continue
         maximum = max(numbers)
         label = escape(f"{row['title']} · {metric['name']} ({metric['unit']})")
         parts.append(f'<text x="10" y="{y}" fill="#e2e6eb">{label}</text>')
-        for j, v in enumerate(values):
+        for j, (label, colour, v) in enumerate(roles):
             if v is None or v <= 0:
                 continue
             x = 280 + 650 * v / maximum
-            colour = ["#a0aab7", "#5794f2", "#ff9830", "#73bf69"][min(j, 3)]
-            label = "Parent" if j == 0 else "Aggregate" if j == len(values) - 1 else f"R{j}"
             parts.append(
                 f'<text x="10" y="{y + 16 + j * 16}" fill="{colour}">{label}: {v:.4f}</text>'
                 f'<line x1="280" y1="{y + 12 + j * 16}" x2="{x}" '

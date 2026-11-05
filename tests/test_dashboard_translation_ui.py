@@ -15,7 +15,10 @@ const fs = require('node:fs');
 const assert = require('node:assert/strict');
 const html = fs.readFileSync(process.argv[1], 'utf8');
 const source = html.slice(html.indexOf('  const chinese = {'),
-                          html.indexOf('  const stageNames = {'));
+                          html.indexOf('  const stageNames = {'))
+  + html.slice(html.indexOf('  function renderIntegration('),
+               html.indexOf('  function renderStats()'))
+  + html.split('\n').find(line=>line.includes('const measurement ='));
 assert(source.includes('function localizePage()'));
 
 const nodes = [];
@@ -36,6 +39,8 @@ const missingOutcome = text('evidence candidate:b has no recorded outcome');
 const unavailableLabel = text('Run evidence unavailable');
 const missingOutcomeLabel = text('No recorded outcome');
 const narrative = text('Explain the experiment', true);
+const noMetrics=text('Protocol-specific absolute measurements; recorded verdicts are not recomputed. '+
+  '2 external record(s) have no recorded metrics; see candidate details and events.');
 const attr = {value: 'FAIL', hasAttribute: key => key === 'aria-label',
   getAttribute() { return this.value; }, setAttribute(_, value) { this.value = value; }};
 const document = {body: {}, documentElement: {}, title: '',
@@ -44,17 +49,34 @@ const document = {body: {}, documentElement: {}, title: '',
     this.currentNode = nodes[i++]; return Boolean(this.currentNode);
   }}}};
 const button = {setAttribute() {}};
-const api = new Function('data', 'document', 'localStorage', 'byId', 'NodeFilter',
-  source + '\nreturn {localizePage, setLanguage: value => language = value};')(
+const element=(tag, value)=>({tag, children:[], hidden:false,
+  appendChild(child){this.children.push(child);},
+  get firstChild(){return this.children[0];},
+  text:value===undefined?null:text(value)});
+const integrationRoot=element('div');
+const api = new Function('data', 'document', 'localStorage', 'byId', 'NodeFilter', 'node', 'clear',
+  source + '\nreturn {localizePage, renderIntegration, measurement, '+
+  'setLanguage: value => language = value};')(
   {translations: {
     zh: {'FAIL':'PASS', 'INCONCLUSIVE':'PASS', 'failed':'passed', 'MISSING':'PRESENT',
          '1 present / 1 missing':'2 present / 0 missing', 'rejected':'adopted',
          'Explain the experiment':'解释实验'},
     en: {'FAIL':'PASS', 'INCONCLUSIVE':'PASS', 'failed':'passed', 'MISSING':'PRESENT',
          'Explain the experiment':'English explanation'}
-  }}, document, {getItem: () => null}, () => button, {SHOW_TEXT: 4});
+  }}, document, {getItem: () => null}, id=>id==='integration-note'?integrationRoot:button,
+  {SHOW_TEXT: 4}, element, root=>{root.children=[];});
+api.renderIntegration({state:'connected',external_records:1,stage_declaration:'explicit_empty',
+  collection:{state:'stale',observed_at:'2026-01-01T00:00:00Z'}});
+assert.equal(integrationRoot.children.length,3);
+assert(integrationRoot.children.every(el=>el.tag==='p'));
+assert.equal(api.measurement(undefined),'Not recorded');
 
 api.setLanguage('zh'); api.localizePage();
+assert(integrationRoot.children[0].text.nodeValue.startsWith('外部记录已接入'));
+assert.equal(integrationRoot.children[1].children[0].text.nodeValue,'数据采集');
+assert.equal(integrationRoot.children[1].children[2].text.nodeValue,'数据陈旧');
+assert(integrationRoot.children[2].text.nodeValue.includes('显式声明为空'));
+assert(noMetrics.nodeValue.includes('2 条外部记录未记录指标'));
 assert.equal(verdict.nodeValue, 'FAIL（失败）');
 assert.equal(inconclusive.nodeValue, 'INCONCLUSIVE（结论不明确）');
 assert.equal(quality.nodeValue, '失败');
@@ -71,6 +93,12 @@ assert.equal(attr.value, 'FAIL（失败）');
 assert.equal(narrative.nodeValue, '解释实验');
 
 api.setLanguage('en'); api.localizePage();
+assert(integrationRoot.children[0].text.nodeValue.startsWith('External records connected.'));
+assert.equal(integrationRoot.children[1].children[0].text.nodeValue,'Source collection');
+assert.equal(integrationRoot.children[1].children[2].text.nodeValue,'stale');
+assert(integrationRoot.children[2].text.nodeValue.startsWith(
+  'stages_declared is explicitly empty'));
+assert(noMetrics.nodeValue.includes('2 external record(s) have no recorded metrics'));
 assert.equal(verdict.nodeValue, 'FAIL');
 assert.equal(inconclusive.nodeValue, 'INCONCLUSIVE');
 assert.equal(quality.nodeValue, 'failed');
