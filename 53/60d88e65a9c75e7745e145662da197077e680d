@@ -1,0 +1,21 @@
+tests/test_skill_index.py
+  s_33b92c38f948ae::t_c81d22be37ed09 229,234
+tests/test_skill_library.py
+  s_33b92c38f948ae::t_ab71257296ed90 155
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "5360d88e65a9c75e7745e145662da197077e680d",
+  "prompts": {},
+  "sessions": {
+    "s_33b92c38f948ae": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1a999-4b43-7fb3-8dab-9aeba113b3d9",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "jiangkuaixue123 <jiangxiaozhou111@163.com>"
+    }
+  }
+}
