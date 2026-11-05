@@ -61,7 +61,21 @@ conversation. The optional prompt preview shows the complete instructions and
 structured task parameters before submission. Submission is disabled while the
 Agent is running or the request is being sent. A successful submission appears
 in the conversation; subsequent execution follows the selected Agent, its model
-connection and existing permissions. The form retains its values on failure.
+connection and existing permissions. After confirmed remote delivery, the
+connection belongs to that task; the form blocks resubmission and connection
+changes even before the Agent's running indicator refreshes. Explicitly
+disconnect before reconfiguring, which can stop the accepted remote task.
+A local rejection before sending keeps the
+form available for correction; abandoning that rejected submission closes its
+unused remote connection.
+
+If delivery has started but its result is uncertain, inspect the conversation
+before doing anything else. The form keeps the remote connection and blocks a
+second submission or connection-changing edits. Keep the connection if the task
+may have been accepted, or explicitly disconnect it when choosing to abandon
+the remote work. Disconnecting can stop active remote execution. There is no
+automatic resend or disconnection after an ambiguous send; a retained connection
+is released by session/plugin disposal if no explicit close is requested.
 
 The request directs the Agent to use InferRSI, freeze the required gates before
 candidate experiments, stop at the submitted round/time budgets, record campaign

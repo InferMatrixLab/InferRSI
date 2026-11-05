@@ -51,6 +51,7 @@ function IterationForm({ sessionId, useSession, useSessions, useAccess, submitPr
   const [connection, setConnection] = React.useState(null);
   const [connectionState, setConnectionState] = React.useState(null);
   const [testing, setTesting] = React.useState(false);
+  const [uncertain, setUncertain] = React.useState(false);
   const dialog = React.useRef(null);
   const inFlight = React.useRef(false);
   const sentOnce = React.useRef(false);
@@ -58,17 +59,20 @@ function IterationForm({ sessionId, useSession, useSessions, useAccess, submitPr
   const testAbort = React.useRef(null);
   const keyInput = React.useRef(null);
   const connectionRef = React.useRef(null);
-  const submittedConnection = React.useRef(false);
+  const connectionHandoff = React.useRef('owned');
+
+  function abandonConnection(receipt) {
+    if (!receipt || connectionRef.current !== receipt) return;
+    connectionRef.current = null;
+    remoteRequest({ action: 'close', sessionId, connectionId: receipt.connectionId }).catch(() => {});
+  }
 
   React.useEffect(() => {
     mounted.current = true;
     return () => {
       mounted.current = false;
       testAbort.current?.abort();
-      if (connectionRef.current && !submittedConnection.current) {
-        remoteRequest({ action: 'close', sessionId,
-          connectionId: connectionRef.current.connectionId }).catch(() => {});
-      }
+      if (connectionHandoff.current === 'owned') abandonConnection(connectionRef.current);
     };
   }, []);
   React.useEffect(() => {
@@ -79,11 +83,13 @@ function IterationForm({ sessionId, useSession, useSessions, useAccess, submitPr
     if (!open && dialog.current.open) dialog.current.close();
   }, [open]);
 
-  const blocked = sending || sent || testing || !canSend || session.running || session.removed
+  const blocked = sending || sent || testing || uncertain || !canSend || session.running || session.removed
     || session.openState !== 'open' || session.pendingSubmissions.length > 0
     || (form.execution === 'remote' && !connection);
+  const protectedConnection = uncertain || (form.execution === 'remote' && sent);
 
   function update(name, value) {
+    if (inFlight.current || ['ambiguous', 'handedOff'].includes(connectionHandoff.current)) return;
     setForm(current => ({ ...current, [name]: value,
       ...(name === 'execution' ? { repository: value === 'local' ? cwd : '' } : {}),
     }));
@@ -93,7 +99,7 @@ function IterationForm({ sessionId, useSession, useSessions, useAccess, submitPr
       if (connection) remoteRequest({ action: 'close', sessionId, connectionId: connection.connectionId }).catch(() => {});
       setConnection(null);
       connectionRef.current = null;
-      submittedConnection.current = false;
+      connectionHandoff.current = 'owned';
       setConnectionState(null);
     }
     setError('');
@@ -103,7 +109,8 @@ function IterationForm({ sessionId, useSession, useSessions, useAccess, submitPr
 
   async function start(event) {
     event.preventDefault();
-    if (blocked || inFlight.current || sentOnce.current) return;
+    if (blocked || inFlight.current || sentOnce.current
+      || ['ambiguous', 'handedOff'].includes(connectionHandoff.current)) return;
     let prompt;
     try {
       prompt = buildPrompt(form, connection);
@@ -114,13 +121,24 @@ function IterationForm({ sessionId, useSession, useSessions, useAccess, submitPr
     inFlight.current = true;
     setSending(true);
     setError('');
-    submittedConnection.current = form.execution === 'remote';
+    const receipt = form.execution === 'remote' ? connectionRef.current : null;
+    if (receipt) connectionHandoff.current = 'pending';
     try {
       await submitPrompt(sessionId, prompt);
+      if (receipt && connectionRef.current === receipt) connectionHandoff.current = 'handedOff';
       sentOnce.current = true;
       if (mounted.current) setSent(true);
     } catch (failure) {
-      if (mounted.current) setError(`提交未完成。请先查看当前会话是否已收到任务，再决定重试。${failure.message || ''}`);
+      const rejected = failure?.submissionState === 'rejected';
+      if (receipt && connectionRef.current === receipt) {
+        connectionHandoff.current = rejected ? 'owned' : 'ambiguous';
+        if (rejected && !mounted.current) abandonConnection(receipt);
+      }
+      if (mounted.current) {
+        setUncertain(Boolean(receipt) && !rejected);
+        setError(rejected ? `任务尚未发送。${failure?.message || ''}`
+          : '提交结果尚未确认。请先查看当前会话是否已收到任务，避免重复发送。');
+      }
     } finally {
       inFlight.current = false;
       if (mounted.current) setSending(false);
@@ -128,7 +146,8 @@ function IterationForm({ sessionId, useSession, useSessions, useAccess, submitPr
   }
 
   async function testConnection(fingerprint) {
-    if (testing || sending || session.running) return;
+    if (testing || sending || inFlight.current || session.running
+      || ['ambiguous', 'handedOff'].includes(connectionHandoff.current)) return;
     testAbort.current?.abort();
     const abort = new AbortController();
     testAbort.current = abort;
@@ -162,9 +181,34 @@ function IterationForm({ sessionId, useSession, useSessions, useAccess, submitPr
     }
   }
 
+  async function disconnectHandoff() {
+    const receipt = connectionRef.current;
+    if (testing || !receipt || !['ambiguous', 'handedOff'].includes(connectionHandoff.current)) return;
+    setTesting(true);
+    try {
+      await remoteRequest({ action: 'close', sessionId, connectionId: receipt.connectionId });
+      if (connectionRef.current === receipt) {
+        connectionRef.current = null;
+        connectionHandoff.current = 'owned';
+        sentOnce.current = false;
+        if (mounted.current) {
+          setConnection(null);
+          setConnectionState(null);
+          setUncertain(false);
+          setSent(false);
+          setError('远程连接已断开。再次提交前请重新测试连接。');
+        }
+      }
+    } catch {
+      if (mounted.current) setError('尚未确认远程连接已断开。请检查连接后重试，或保留连接并查看当前会话。');
+    } finally {
+      if (mounted.current) setTesting(false);
+    }
+  }
+
   function field(name, label, { options, multiline = false, wide = false, ...attributes } = {}) {
     const props = {
-      name, value: form[name], disabled: sending || testing || (form.execution === 'remote' && session.running),
+      name, value: form[name], disabled: sending || testing || protectedConnection || (form.execution === 'remote' && session.running),
       onChange: event => update(name, event.target.value), ...attributes,
     };
     let input;
@@ -212,7 +256,7 @@ function IterationForm({ sessionId, useSession, useSessions, useAccess, submitPr
             field('authType', '认证方式', { options: [['key', 'SSH 私钥'], ['password', '用户密码']] }),
             form.authType === 'key' && h('label', { className: 'irsi-field irsi-wide' },
               h('span', null, form.privateKey ? 'SSH 私钥已载入' : '选择 SSH 私钥文件'),
-              h('input', { ref: keyInput, type: 'file', disabled: testing || sending || session.running,
+              h('input', { ref: keyInput, type: 'file', disabled: testing || sending || protectedConnection || session.running,
                 onChange: async event => {
                   const file = event.target.files?.[0];
                   if (!file) return;
@@ -224,7 +268,7 @@ function IterationForm({ sessionId, useSession, useSessions, useAccess, submitPr
               : field('password', 'SSH 用户密码', { type: 'password', autoComplete: 'new-password', maxLength: 4096 }),
             field('sshFingerprint', '服务器指纹（首次连接可留空）', { wide: true, placeholder: 'SHA256:…', maxLength: 128 })),
           h('p', null, '连接到远程 Linux 主机。目标仓库需填写远程机器上的绝对路径。'),
-          h('button', { type: 'button', disabled: testing || sending || session.running || Boolean(connection),
+          h('button', { type: 'button', disabled: testing || sending || protectedConnection || session.running || Boolean(connection),
             onClick: () => testConnection() }, testing ? '正在测试…' : connection ? '连接已验证' : '测试连接'),
           connectionState?.status === 'verify_host' && h('div', { className: 'irsi-message' },
             h('p', null, '请核对服务器指纹'), h('code', { className: 'irsi-fingerprint' }, connectionState.fingerprint),
@@ -244,6 +288,11 @@ function IterationForm({ sessionId, useSession, useSessions, useAccess, submitPr
           field('constraints', '质量门槛与其他约束', { multiline: true, wide: true, maxLength: 4096, placeholder: '填写已有数值门槛、保持的能力和限制' }))),
       h('details', null, h('summary', null, '查看生成的 prompt'), h('pre', { className: 'irsi-preview' }, preview)),
       error && h('div', { className: 'irsi-message irsi-error', role: 'alert' }, error),
+      protectedConnection && h('div', { className: 'irsi-message', role: 'status' },
+        h('p', null, uncertain ? '远程连接已保留，任务可能已开始。离开表单不会断开连接；连接保留到会话结束。请查看会话后决定，断开连接可能中止正在执行的任务。'
+          : '远程连接已交给当前会话使用。离开表单不会断开连接；连接保留到会话结束。如需重新填写任务，请先明确断开连接；这可能中止已发送的任务。'),
+        h('button', { type: 'button', disabled: testing, onClick: () => setOpen(false) }, '保留连接，查看会话'),
+        h('button', { type: 'button', disabled: testing, onClick: disconnectHandoff }, testing ? '正在断开…' : '断开远程连接（可能中止任务）')),
       sent && h('div', { className: 'irsi-message', role: 'status' }, '任务已发送到当前 Agent。关闭表单后可在会话中查看执行进展。'),
       h('div', { className: 'irsi-actions' },
         h('span', null, session.running ? '当前 Agent 正在工作，请待本次任务结束后启动。' : '提交到当前会话 · 受填写的轮数与时间预算约束'),
@@ -273,13 +322,21 @@ function apply(ctx) {
         return result;
       },
       submitPrompt: async (sessionId, text) => {
-        const scope = ctx.sessions.scope(sessionId);
-        if (!scope) throw new Error('当前会话已关闭，请重新打开后提交。');
-        const session = ctx.sessions.sessionOf(scope);
-        if (!session || session.getSnapshot().running) throw new Error('当前 Agent 正忙，请稍后再试。');
-        const conversation = scope.get('conversation');
-        if (!conversation) throw new Error('当前会话的消息服务不可用。');
-        await conversation.send(text);
+        let attempted = false;
+        try {
+          const scope = ctx.sessions.scope(sessionId);
+          if (!scope) throw new Error('当前会话已关闭，请重新打开后提交。');
+          const session = ctx.sessions.sessionOf(scope);
+          if (!session || session.getSnapshot().running) throw new Error('当前 Agent 正忙，请稍后再试。');
+          const conversation = scope.get('conversation');
+          if (!conversation) throw new Error('当前会话的消息服务不可用。');
+          attempted = true;
+          await conversation.send(text);
+        } catch (failure) {
+          const error = new Error(failure?.message || '提交未完成。');
+          error.submissionState = attempted ? 'ambiguous' : 'rejected';
+          throw error;
+        }
       },
     }),
   }, FormAction));
