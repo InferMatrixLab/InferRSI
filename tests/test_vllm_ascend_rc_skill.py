@@ -8,6 +8,7 @@ from types import SimpleNamespace
 import pytest
 
 from inferrsi.catalog import search_knowledge
+from inferrsi.knowledge_operations import KnowledgeReader
 from inferrsi.skill_catalog import skill_instructions, skill_metadata, skill_resource
 
 LIBRARY = Path(__file__).resolve().parents[1] / "src/inferrsi/data/skill_library"
@@ -28,7 +29,8 @@ def test_release_skill_is_discoverable_and_its_routes_ship(query, route):
     assert any(item["id"] == "inferrsi.ascend.skills.vllm_ascend" for item in results)
     relative = f"references/{route}"
     assert f"]({relative})" in skill_instructions(LIBRARY, NAME)
-    assert skill_resource(LIBRARY, NAME, relative).read_text().strip()
+    body = skill_resource(LIBRARY, NAME, relative).read_text()
+    assert re.search(r"\]\((sources|history-scope)\.md\)", body)
 
 
 def test_release_skill_distinguishes_source_coverage_from_native_validation():
@@ -78,10 +80,11 @@ def test_history_screen_reads_git_objects_without_changing_checkout(tmp_path):
     assert git("status", "--porcelain") == before
 
 
-def test_packaged_history_preserves_separate_screening_and_semantic_levels():
-    inventory = json.loads(skill_resource(
-        LIBRARY, NAME, "references/history-inventory.json"
-    ).read_text())
+def test_archived_history_preserves_separate_screening_and_semantic_levels():
+    archive = Path(__file__).resolve().parents[1] / (
+        "docs/reviews/vllm-ascend-0271rc1/history-inventory.json"
+    )
+    inventory = json.loads(archive.read_text())
     commits = inventory["commits"]
     assert len({row["commit"] for row in commits}) == inventory["candidate_commits"]
     assert inventory["candidate_commits"] <= inventory["reachable_commits"]
@@ -100,3 +103,22 @@ def test_history_screen_rejects_incomplete_history(monkeypatch, tmp_path):
     )
     with pytest.raises(ValueError, match="non-shallow"):
         module.inventory(tmp_path, "HEAD")
+
+
+def test_runtime_reader_keeps_full_history_outside_the_bundle():
+    bundle = KnowledgeReader().read("inferrsi.ascend.skills.vllm_ascend")
+    assert all("history-inventory.json" not in key for key in bundle.content)
+    prefix = "data/skill_library/repositories/vllm-ascend/"
+    for relative in ("references/history-reviewed.json", "scripts/screen_history.py"):
+        assert bundle.content[prefix + relative] == skill_resource(
+            LIBRARY, NAME, relative
+        ).read_bytes()
+    record = json.loads(bundle.content["record.json"])
+    assert all("history-inventory.json" not in path for path in record["sources"][0]["paths"])
+
+
+def test_every_instruction_route_retains_a_readset_link():
+    routes = re.findall(r"\]\((references/[^)]+\.md)\)", skill_instructions(LIBRARY, NAME))
+    for route in set(routes) - {"references/sources.md"}:
+        body = skill_resource(LIBRARY, NAME, route).read_text()
+        assert re.search(r"\]\((sources|history-scope)\.md\)", body), route

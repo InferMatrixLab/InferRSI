@@ -68,3 +68,5 @@ The tagged four-card DSpark helper measures acceptance length from counters; the
 ## Readset and verification boundary
 
 This reference distills the selected implementation and regression changes above from history reachable at the RC tag and reconciles their surviving contracts with the tag. Commit-title screening includes documentation, translation, CI baseline changes and other models' DSpark integration; those alone establish no V4 optimization mechanism. The retained procedures cover the inspected diff hunks and named consumers. Native NPU execution, comparative quality, service performance and downstream skill efficacy were not run for this extraction. Keep that evidence status when reusing any historical performance report.
+
+See the [pinned source readset](sources.md) for source identity and verification limits.

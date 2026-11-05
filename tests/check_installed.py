@@ -48,6 +48,13 @@ for resource in ("plugin-registration", "minimax-cache", "dspark-pd", "sources",
                  "fused-operators", "history-scope"):
     key = f"data/skill_library/repositories/vllm-ascend/references/{resource}.md"
     assert ascend_rc.content[key] == files("inferrsi").joinpath(*key.split("/")).read_bytes()
+for resource in ("references/history-reviewed.json", "scripts/screen_history.py"):
+    key = f"data/skill_library/repositories/vllm-ascend/{resource}"
+    assert ascend_rc.content[key] == files("inferrsi").joinpath(*key.split("/")).read_bytes()
+assert all("history-inventory.json" not in key for key in ascend_rc.content)
+assert not files("inferrsi").joinpath(
+    "data/skill_library/repositories/vllm-ascend/references/history-inventory.json"
+).is_file()
 indexed = KnowledgeReader().read("inferrsi.ascend.skills.ascend_operator_profiling")
 assert "data/skill_library/hardware/ascend/ascend-operator-profiling/SKILL.md" in indexed.content
 video_diffusion = KnowledgeReader().read(

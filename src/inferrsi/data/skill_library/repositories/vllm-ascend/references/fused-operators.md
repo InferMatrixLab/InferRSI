@@ -1,6 +1,6 @@
 # Select a fusion by its effective dispatch and oracle
 
-Use the full-history [inventory](history-inventory.json) to find candidate changes, then reconcile their implementation with this tag. A historical speedup and an eligible present-day graph are separate evidence. The decision records below preserve removals, shape gates and counterexamples.
+Use the full-history [inventory and scope](history-scope.md) to find candidate changes, then reconcile their implementation with this tag. A historical speedup and an eligible present-day graph are separate evidence. The decision records below preserve removals, shape gates and counterexamples.
 
 ## Graph norm/quant, QK normalization and residual fusion
 

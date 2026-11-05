@@ -125,7 +125,6 @@
   "provenance_readsets": [
     "references/sources.md",
     "references/history-scope.md",
-    "references/history-inventory.json",
     "references/history-reviewed.json"
   ],
   "consumption_mode": "packaged",
