@@ -161,6 +161,28 @@ def test_overflowing_ratios_are_rejected_not_crashed():
         summary_chart.build_svg(spec)
 
 
+@pytest.mark.parametrize("value", [1.7976931348623157e306, -1.7976931348623157e306])
+def test_branch_rejects_overflowing_axis_bounds(value):
+    spec = flat_branch_spec()
+    spec["baseline"]["metrics"]["m"] = 1
+    spec["trials"][0]["values"]["m"] = value
+    spec["axis"] = {"tick": 1e307}
+
+    with pytest.raises(summary_chart.SpecError, match="axis"):
+        summary_chart.build_svg(spec)
+
+
+@pytest.mark.parametrize("start,stop,step", [
+    (float("-inf"), 0.0, 1.0),
+    (0.0, float("inf"), 1.0),
+    (-1e200, 0.0, 1.0),
+    (0.0, 1.0, 1e-20),
+])
+def test_axis_ticks_reject_nonfinite_or_unbounded_ranges(start, stop, step):
+    with pytest.raises(summary_chart.SpecError, match="axis"):
+        summary_chart._axis_ticks(start, stop, step)
+
+
 def test_overflow_in_a_report_still_produces_an_artifact(tmp_path):
     (tmp_path / "evaluation.json").write_text(
         json.dumps(

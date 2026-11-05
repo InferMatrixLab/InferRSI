@@ -70,6 +70,19 @@ def test_bundle_contains_all_declared_package_data(distribution):
     assert {f"inferrsi/{name}" for name in expected} <= manifest["files"].keys()
 
 
+def test_isolated_runtime_can_export_dashboard(distribution, tmp_path):
+    run = tmp_path / "run"
+    run.mkdir()
+    (run / "run.lock.json").write_text("{}", encoding="utf-8")
+
+    result = invoke(distribution, tmp_path, "dashboard", "--input", str(run))
+
+    assert result.returncode == 0, result.stderr
+    assert "InferRSI · Optimization dashboard" in (run / "dashboard.html").read_text(
+        encoding="utf-8"
+    )
+
+
 def test_isolated_runtime_and_exact_knowledge_reads(distribution, tmp_path):
     # Neither editable installs, PYTHONPATH nor the target's Python module may
     # supply the core. This also exercises resource reads from an extracted ZIP.

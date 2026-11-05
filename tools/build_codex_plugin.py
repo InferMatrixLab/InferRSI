@@ -85,6 +85,7 @@ def build_plugin(
                     path.suffix == ".txt"
                     and relative.parts[-3:-1] == ("references", "licenses")
                 )
+                or (path.suffix == ".html" and relative.parent.parts == ("data", "dashboard"))
                 or (path.name == "upstream-NOTICE" and relative.parent.name == "references")
             )
             if path.suffix != ".py" and not package_data:
