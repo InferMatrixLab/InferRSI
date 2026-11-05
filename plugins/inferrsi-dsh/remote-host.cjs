@@ -52,8 +52,8 @@ function installRemote(ctx, runtimeDir) {
         }
         const signal = AbortSignal.any([request.signal, lifetime.signal]);
         if (body.action === 'close') {
-          await manager.close(body.sessionId, body.connectionId);
-          return Response.json({ status: 'closed' }, { headers: { 'Cache-Control': 'no-store' } });
+          const result = await manager.close(body.sessionId, body.connectionId);
+          return Response.json(result, { headers: { 'Cache-Control': 'no-store' } });
         }
         if (body.action !== 'test') throw new Error('invalid_action');
         const result = await manager.test(body.options, { sessionId: body.sessionId, signal });
@@ -96,8 +96,7 @@ function installRemote(ctx, runtimeDir) {
         throw new Error('Invalid remote operation.');
       }
       if (args.operation === 'close') {
-        await manager.close(exec.agent.id, args.connectionId);
-        return { status: 'closed' };
+        return manager.close(exec.agent.id, args.connectionId);
       }
       const signal = AbortSignal.any([exec.signal, lifetime.signal]);
       return manager.run(exec.agent.id, args.connectionId, args, signal);

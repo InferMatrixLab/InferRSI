@@ -1,6 +1,12 @@
 const React = require('react');
 const { buildPrompt } = require('./form.cjs');
 const h = React.createElement;
+// Only receipts already authorized for closure survive a form remount. No credentials.
+const pendingClosures = new Map();
+
+function queuedClosures(sessionId) {
+  return pendingClosures.get(sessionId) || new Set();
+}
 
 const styles = `
 .irsi-open { font: inherit; padding: 5px 10px; border: 1px solid color-mix(in srgb, currentColor 20%, transparent); border-radius: 7px; background: transparent; color: inherit; cursor: pointer; }
@@ -52,6 +58,7 @@ function IterationForm({ sessionId, useSession, useSessions, useAccess, submitPr
   const [connectionState, setConnectionState] = React.useState(null);
   const [testing, setTesting] = React.useState(false);
   const [uncertain, setUncertain] = React.useState(false);
+  const [closeState, setCloseState] = React.useState(queuedClosures(sessionId).size ? 'failed' : 'idle');
   const dialog = React.useRef(null);
   const inFlight = React.useRef(false);
   const sentOnce = React.useRef(false);
@@ -60,11 +67,64 @@ function IterationForm({ sessionId, useSession, useSessions, useAccess, submitPr
   const keyInput = React.useRef(null);
   const connectionRef = React.useRef(null);
   const connectionHandoff = React.useRef('owned');
+  const closeAttempt = React.useRef(null);
 
   function abandonConnection(receipt) {
     if (!receipt || connectionRef.current !== receipt) return;
-    connectionRef.current = null;
-    remoteRequest({ action: 'close', sessionId, connectionId: receipt.connectionId }).catch(() => {});
+    const pending = closeAttempt.current?.pending;
+    closeReceipt(receipt).then(closed => {
+      // Cleanup may join an edit's in-flight close. Retry once if that attempt fails.
+      if (pending && !closed) closeReceipt(receipt);
+    });
+  }
+
+  async function closeReceipt(receipt) {
+    if (!receipt) return true;
+    if (!pendingClosures.has(sessionId)) pendingClosures.set(sessionId, new Set());
+    pendingClosures.get(sessionId).add(receipt.connectionId);
+    if (closeAttempt.current?.pending) {
+      const pending = closeAttempt.current;
+      const closed = await pending.promise;
+      return pending.connectionId === receipt.connectionId ? closed : closeReceipt(receipt);
+    }
+    const attempt = { connectionId: receipt.connectionId, pending: true, promise: null };
+    closeAttempt.current = attempt;
+    if (mounted.current) setCloseState('closing');
+    attempt.promise = (async () => {
+      try {
+        const result = await remoteRequest({ action: 'close', sessionId, connectionId: receipt.connectionId });
+        if (!['closed', 'already_closed'].includes(result?.status)) throw new Error('close_unconfirmed');
+        pendingClosures.get(sessionId)?.delete(receipt.connectionId);
+        if (!queuedClosures(sessionId).size) pendingClosures.delete(sessionId);
+        if (connectionRef.current === receipt) {
+          connectionRef.current = null;
+          connectionHandoff.current = 'owned';
+          sentOnce.current = false;
+          if (mounted.current) {
+            setConnection(null);
+            setConnectionState(null);
+            setUncertain(false);
+            setSent(false);
+          }
+        }
+        if (mounted.current) {
+          setCloseState(queuedClosures(sessionId).size ? 'failed' : 'idle');
+          setError(queuedClosures(sessionId).size ? '仍有旧远程连接待确认断开，请继续重试。'
+            : '远程连接已断开。再次提交前请重新测试连接。');
+        }
+        if (closeAttempt.current === attempt) closeAttempt.current = null;
+        return true;
+      } catch {
+        if (mounted.current) {
+          setCloseState('failed');
+          setError('尚未确认远程连接已断开。连接标识已保留，请重试断开；确认前不能修改连接或提交任务。');
+        }
+        return false;
+      } finally {
+        attempt.pending = false;
+      }
+    })();
+    return attempt.promise;
   }
 
   React.useEffect(() => {
@@ -72,7 +132,7 @@ function IterationForm({ sessionId, useSession, useSessions, useAccess, submitPr
     return () => {
       mounted.current = false;
       testAbort.current?.abort();
-      if (connectionHandoff.current === 'owned') abandonConnection(connectionRef.current);
+      if (connectionHandoff.current === 'owned' || closeAttempt.current) abandonConnection(connectionRef.current);
     };
   }, []);
   React.useEffect(() => {
@@ -83,25 +143,25 @@ function IterationForm({ sessionId, useSession, useSessions, useAccess, submitPr
     if (!open && dialog.current.open) dialog.current.close();
   }, [open]);
 
-  const blocked = sending || sent || testing || uncertain || !canSend || session.running || session.removed
+  const blocked = sending || sent || testing || uncertain || closeState !== 'idle' || !canSend || session.running || session.removed
     || session.openState !== 'open' || session.pendingSubmissions.length > 0
     || (form.execution === 'remote' && !connection);
   const protectedConnection = uncertain || (form.execution === 'remote' && sent);
+  const lockedConnection = protectedConnection || closeState !== 'idle';
 
-  function update(name, value) {
-    if (inFlight.current || ['ambiguous', 'handedOff'].includes(connectionHandoff.current)) return;
-    setForm(current => ({ ...current, [name]: value,
-      ...(name === 'execution' ? { repository: value === 'local' ? cwd : '' } : {}),
-    }));
+  async function update(name, value) {
+    if (inFlight.current || closeAttempt.current || queuedClosures(sessionId).size
+      || ['ambiguous', 'handedOff'].includes(connectionHandoff.current)) return;
     if (['execution', 'repository', 'host', 'sshPort', 'sshUser', 'authType', 'privateKey',
       'password', 'passphrase', 'sshFingerprint', 'benchmark', 'quality'].includes(name)) {
       testAbort.current?.abort();
-      if (connection) remoteRequest({ action: 'close', sessionId, connectionId: connection.connectionId }).catch(() => {});
-      setConnection(null);
-      connectionRef.current = null;
-      connectionHandoff.current = 'owned';
+      if (connectionRef.current && !await closeReceipt(connectionRef.current)) return;
+      if (!mounted.current) return;
       setConnectionState(null);
     }
+    setForm(current => ({ ...current, [name]: value,
+      ...(name === 'execution' ? { repository: value === 'local' ? cwd : '' } : {}),
+    }));
     setError('');
     setSent(false);
     sentOnce.current = false;
@@ -109,7 +169,7 @@ function IterationForm({ sessionId, useSession, useSessions, useAccess, submitPr
 
   async function start(event) {
     event.preventDefault();
-    if (blocked || inFlight.current || sentOnce.current
+    if (blocked || inFlight.current || sentOnce.current || closeAttempt.current || queuedClosures(sessionId).size
       || ['ambiguous', 'handedOff'].includes(connectionHandoff.current)) return;
     let prompt;
     try {
@@ -146,7 +206,8 @@ function IterationForm({ sessionId, useSession, useSessions, useAccess, submitPr
   }
 
   async function testConnection(fingerprint) {
-    if (testing || sending || inFlight.current || session.running
+    if (testing || sending || inFlight.current || closeAttempt.current || queuedClosures(sessionId).size
+      || connectionRef.current || session.running
       || ['ambiguous', 'handedOff'].includes(connectionHandoff.current)) return;
     testAbort.current?.abort();
     const abort = new AbortController();
@@ -162,8 +223,7 @@ function IterationForm({ sessionId, useSession, useSessions, useAccess, submitPr
         repository: form.repository, benchmark: form.benchmark, quality: form.quality,
       } }, abort.signal);
       if (!mounted.current || abort.signal.aborted) {
-        if (result.connectionId) remoteRequest({ action: 'close', sessionId,
-          connectionId: result.connectionId }).catch(() => {});
+        if (result.connectionId) await closeReceipt(result);
         return;
       }
       setConnectionState(result);
@@ -182,33 +242,25 @@ function IterationForm({ sessionId, useSession, useSessions, useAccess, submitPr
   }
 
   async function disconnectHandoff() {
-    const receipt = connectionRef.current;
-    if (testing || !receipt || !['ambiguous', 'handedOff'].includes(connectionHandoff.current)) return;
-    setTesting(true);
-    try {
-      await remoteRequest({ action: 'close', sessionId, connectionId: receipt.connectionId });
-      if (connectionRef.current === receipt) {
-        connectionRef.current = null;
-        connectionHandoff.current = 'owned';
-        sentOnce.current = false;
-        if (mounted.current) {
-          setConnection(null);
-          setConnectionState(null);
-          setUncertain(false);
-          setSent(false);
-          setError('远程连接已断开。再次提交前请重新测试连接。');
-        }
+    if (testing || closeAttempt.current?.pending) return;
+    const queued = [...queuedClosures(sessionId)];
+    if (queued.length) {
+      for (const connectionId of queued) {
+        const receipt = connectionRef.current?.connectionId === connectionId
+          ? connectionRef.current : { connectionId };
+        if (!await closeReceipt(receipt)) return;
       }
-    } catch {
-      if (mounted.current) setError('尚未确认远程连接已断开。请检查连接后重试，或保留连接并查看当前会话。');
-    } finally {
-      if (mounted.current) setTesting(false);
+    } else if (connectionRef.current && ['ambiguous', 'handedOff'].includes(connectionHandoff.current)) {
+      await closeReceipt(connectionRef.current);
+    } else if (!connectionRef.current) {
+      // A prior instance may have confirmed a pending close after this one mounted.
+      setCloseState('idle');
     }
   }
 
   function field(name, label, { options, multiline = false, wide = false, ...attributes } = {}) {
     const props = {
-      name, value: form[name], disabled: sending || testing || protectedConnection || (form.execution === 'remote' && session.running),
+      name, value: form[name], disabled: sending || testing || lockedConnection || (form.execution === 'remote' && session.running),
       onChange: event => update(name, event.target.value), ...attributes,
     };
     let input;
@@ -256,7 +308,7 @@ function IterationForm({ sessionId, useSession, useSessions, useAccess, submitPr
             field('authType', '认证方式', { options: [['key', 'SSH 私钥'], ['password', '用户密码']] }),
             form.authType === 'key' && h('label', { className: 'irsi-field irsi-wide' },
               h('span', null, form.privateKey ? 'SSH 私钥已载入' : '选择 SSH 私钥文件'),
-              h('input', { ref: keyInput, type: 'file', disabled: testing || sending || protectedConnection || session.running,
+              h('input', { ref: keyInput, type: 'file', disabled: testing || sending || lockedConnection || session.running,
                 onChange: async event => {
                   const file = event.target.files?.[0];
                   if (!file) return;
@@ -268,7 +320,7 @@ function IterationForm({ sessionId, useSession, useSessions, useAccess, submitPr
               : field('password', 'SSH 用户密码', { type: 'password', autoComplete: 'new-password', maxLength: 4096 }),
             field('sshFingerprint', '服务器指纹（首次连接可留空）', { wide: true, placeholder: 'SHA256:…', maxLength: 128 })),
           h('p', null, '连接到远程 Linux 主机。目标仓库需填写远程机器上的绝对路径。'),
-          h('button', { type: 'button', disabled: testing || sending || protectedConnection || session.running || Boolean(connection),
+          h('button', { type: 'button', disabled: testing || sending || lockedConnection || session.running || Boolean(connection),
             onClick: () => testConnection() }, testing ? '正在测试…' : connection ? '连接已验证' : '测试连接'),
           connectionState?.status === 'verify_host' && h('div', { className: 'irsi-message' },
             h('p', null, '请核对服务器指纹'), h('code', { className: 'irsi-fingerprint' }, connectionState.fingerprint),
@@ -288,11 +340,13 @@ function IterationForm({ sessionId, useSession, useSessions, useAccess, submitPr
           field('constraints', '质量门槛与其他约束', { multiline: true, wide: true, maxLength: 4096, placeholder: '填写已有数值门槛、保持的能力和限制' }))),
       h('details', null, h('summary', null, '查看生成的 prompt'), h('pre', { className: 'irsi-preview' }, preview)),
       error && h('div', { className: 'irsi-message irsi-error', role: 'alert' }, error),
-      protectedConnection && h('div', { className: 'irsi-message', role: 'status' },
-        h('p', null, uncertain ? '远程连接已保留，任务可能已开始。离开表单不会断开连接；连接保留到会话结束。请查看会话后决定，断开连接可能中止正在执行的任务。'
-          : '远程连接已交给当前会话使用。离开表单不会断开连接；连接保留到会话结束。如需重新填写任务，请先明确断开连接；这可能中止已发送的任务。'),
+      lockedConnection && h('div', { className: 'irsi-message', role: 'status' },
+        h('p', null, !protectedConnection ? '仍有待确认断开的旧远程连接。请重试断开，确认后再填写任务、测试连接或切换到本机。'
+          : uncertain ? '远程连接已保留，任务可能已开始。离开表单不会断开连接；连接保留到会话结束。请查看会话后决定，断开连接可能中止正在执行的任务。'
+            : '远程连接已交给当前会话使用。离开表单不会断开连接；连接保留到会话结束。如需重新填写任务，请先明确断开连接；这可能中止已发送的任务。'),
         h('button', { type: 'button', disabled: testing, onClick: () => setOpen(false) }, '保留连接，查看会话'),
-        h('button', { type: 'button', disabled: testing, onClick: disconnectHandoff }, testing ? '正在断开…' : '断开远程连接（可能中止任务）')),
+        h('button', { type: 'button', disabled: testing || closeState === 'closing', onClick: disconnectHandoff }, closeState === 'closing' ? '正在断开…'
+          : protectedConnection ? '断开远程连接（可能中止任务）' : '重试断开远程连接')),
       sent && h('div', { className: 'irsi-message', role: 'status' }, '任务已发送到当前 Agent。关闭表单后可在会话中查看执行进展。'),
       h('div', { className: 'irsi-actions' },
         h('span', null, session.running ? '当前 Agent 正在工作，请待本次任务结束后启动。' : '提交到当前会话 · 受填写的轮数与时间预算约束'),

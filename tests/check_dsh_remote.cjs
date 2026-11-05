@@ -218,9 +218,24 @@ async function main() {
   let holdNextClose = false;
   let controlledChannel;
   let deferredClose;
+  let lastOpenedChannel;
+  let failNextDestroy = false;
+  let reenterDestroy = false;
   class ControlledClient extends Client {
+    destroy() {
+      if (failNextDestroy) {
+        failNextDestroy = false;
+        throw new Error('synthetic client teardown failure');
+      }
+      if (reenterDestroy) {
+        reenterDestroy = false;
+        this.emit('close');
+      }
+      return super.destroy();
+    }
     exec(command, callback) {
       return super.exec(command, (error, channel) => {
+        if (channel) lastOpenedChannel = channel;
         if (channel && holdNextClose && command !== 'uname -s') {
           holdNextClose = false;
           controlledChannel = channel;
@@ -324,6 +339,7 @@ async function main() {
     assert.equal((await waiting).exitCode, 0, 'cancelling dashboard interrupted the benchmark');
     delayDashboard = false;
     const finalView = await manager.run(sessionId, id, { operation: 'dashboard' });
+    const finalDashboardChannel = lastOpenedChannel;
     async function pendingCommand(request, signal) {
       waitingChannel = null;
       const result = manager.run(sessionId, id, request, signal);
@@ -387,13 +403,45 @@ async function main() {
       await closed;
       assert.equal((await manager.run(sessionId, id, { operation: 'cli', args: ['--version'] })).exitCode, 0);
     }
-    manager.closeSession(sessionId);
+    // Close confirmations distinguish owner retry from unknown or cross-session receipts.
+    assert.throws(() => manager.close('another-session', id),
+      error => error.code === 'connection_unavailable');
+    assert.throws(() => manager.close(sessionId, 'unknown-receipt'),
+      error => error.code === 'connection_unavailable');
+    const closeDashboardChannel = finalDashboardChannel.close.bind(finalDashboardChannel);
+    let failDashboardClose = true;
+    finalDashboardChannel.close = () => {
+      if (failDashboardClose) {
+        failDashboardClose = false;
+        throw new Error('synthetic dashboard teardown failure');
+      }
+      return closeDashboardChannel();
+    };
+    assert.throws(() => manager.close(sessionId, id), /synthetic dashboard teardown failure/);
+    await assert.rejects(manager.run(sessionId, id, { operation: 'list' }),
+      error => error.code === 'connection_unavailable');
+    failNextDestroy = true;
+    assert.throws(() => manager.close(sessionId, id), /synthetic client teardown failure/);
+    assert.throws(() => manager.close('another-session', id),
+      error => error.code === 'connection_unavailable');
+    reenterDestroy = true;
+    assert.deepEqual(manager.close(sessionId, id), { status: 'closed' });
+    assert.deepEqual(manager.close(sessionId, id), { status: 'already_closed' });
+    assert.throws(() => manager.close('another-session', id),
+      error => error.code === 'connection_unavailable');
     await assert.rejects(manager.run(sessionId, id, { operation: 'list' }), error => error.code === 'connection_unavailable');
     await assert.rejects(fetch(finalView.url), 'disposed tunnel remained available');
+    manager.closeSession(sessionId);
+    assert.throws(() => manager.close(sessionId, id),
+      error => error.code === 'connection_unavailable', 'session disposal retained old receipts');
     const keyed = await manager.test({ ...options, authType: 'key', privateKey: userKey, password: undefined,
       fingerprint }, { sessionId });
     assert.equal(keyed.status, 'connected');
-    manager.close(sessionId, keyed.connectionId);
+    assert.deepEqual(manager.close(sessionId, keyed.connectionId), { status: 'closed' });
+    assert.deepEqual(manager.close(sessionId, keyed.connectionId), { status: 'already_closed' });
+    manager.dispose();
+    assert.throws(() => manager.close(sessionId, keyed.connectionId),
+      error => error.code === 'connection_unavailable', 'plugin disposal retained old receipts');
     delayPlatform = true;
     const aborter = new AbortController();
     const cancelled = manager.test({ ...options, fingerprint }, { sessionId, signal: aborter.signal });

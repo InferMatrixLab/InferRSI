@@ -6,6 +6,7 @@ async function main() {
   const events = new Map();
   const effects = [];
   const connections = new Map();
+  const closedReceipts = new Map();
   const closed = [];
   const disposedSessions = [];
   let nextId = 0;
@@ -14,6 +15,7 @@ async function main() {
   let abortAtReady;
   let pendingStarted;
   let disposed = false;
+  let closeFails = false;
   function owned(sessionId, id) {
     if (connections.get(id) !== sessionId) throw Object.assign(
       new Error('connection_unavailable'), { code: 'connection_unavailable' });
@@ -35,15 +37,22 @@ async function main() {
       return { status: 'connected', connectionId };
     },
     close: (sessionId, id) => {
+      if (closedReceipts.has(id) && closedReceipts.get(id) === sessionId) {
+        return { status: 'already_closed' };
+      }
       owned(sessionId, id);
+      if (closeFails) throw new Error('synthetic teardown failure');
       connections.delete(id);
+      closedReceipts.set(id, sessionId);
       closed.push({ sessionId, id });
+      return { status: 'closed' };
     },
     closeSession: sessionId => {
       disposedSessions.push(sessionId);
       for (const [id, owner] of connections) if (owner === sessionId) connections.delete(id);
+      for (const [id, owner] of closedReceipts) if (owner === sessionId) closedReceipts.delete(id);
     },
-    dispose: () => { disposed = true; connections.clear(); },
+    dispose: () => { disposed = true; connections.clear(); closedReceipts.clear(); },
     run: async (sessionId, id, args) => {
       owned(sessionId, id);
       return { status: 'ok', owner: sessionId, maxMinutes: args.maxMinutes };
@@ -100,8 +109,23 @@ async function main() {
   assert.equal(wrongClose.status, 400);
   assert.equal((await wrongClose.json()).code, 'connection_unavailable');
   assert.equal(connections.get(result.connectionId), 'session-test');
-  await tool.execute({ operation: 'close', connectionId: result.connectionId }, context('session-test'));
+  assert.equal((await tool.execute({ operation: 'close', connectionId: result.connectionId },
+    context('session-test'))).status, 'closed');
   assert.equal(closed.length, 1);
+  const repeatedClose = await request({ action: 'close', sessionId: 'session-test',
+    connectionId: result.connectionId });
+  assert.equal(repeatedClose.status, 200);
+  assert.equal((await repeatedClose.json()).status, 'already_closed');
+  assert.equal((await tool.execute({ operation: 'close', connectionId: result.connectionId },
+    context('session-test'))).status, 'already_closed');
+  for (const [sessionId, connectionId] of [['another-session', result.connectionId],
+    ['session-test', 'unknown-receipt']]) {
+    const rejected = await request({ action: 'close', sessionId, connectionId });
+    assert.equal(rejected.status, 400);
+    assert.equal((await rejected.json()).code, 'connection_unavailable');
+    await assert.rejects(tool.execute({ operation: 'close', connectionId }, context(sessionId)),
+      error => error.code === 'connection_unavailable');
+  }
 
   const pendingController = new AbortController();
   const started = new Promise(resolve => { pendingStarted = resolve; });
@@ -122,6 +146,23 @@ async function main() {
   assert.equal(connections.size, 0);
   assert.equal(closed.length, 2);
 
+  // A real teardown failure stays an error; the same receipt can be retried.
+  const retry = await (await test('session-retry')).json();
+  closeFails = true;
+  const failedClose = await request({ action: 'close', sessionId: 'session-retry',
+    connectionId: retry.connectionId });
+  assert.equal(failedClose.status, 400);
+  assert.equal((await failedClose.json()).code, 'connection_failed');
+  assert.equal(connections.get(retry.connectionId), 'session-retry');
+  assert.ok(!closedReceipts.has(retry.connectionId));
+  await assert.rejects(tool.execute({ operation: 'close', connectionId: retry.connectionId },
+    context('session-retry')), /synthetic teardown failure/);
+  closeFails = false;
+  const retried = await request({ action: 'close', sessionId: 'session-retry',
+    connectionId: retry.connectionId });
+  assert.equal(retried.status, 200);
+  assert.equal((await retried.json()).status, 'closed');
+
   // Agent/session disposal and plugin unload still own established connections.
   const agentConnection = await (await test('session-agent')).json();
   const sessionConnection = await (await test('session-log')).json();
@@ -132,11 +173,14 @@ async function main() {
   assert.ok(disposedSessions.includes('session-log'));
   assert.ok(!connections.has(agentConnection.connectionId));
   assert.ok(!connections.has(sessionConnection.connectionId));
+  await assert.rejects(tool.execute({ operation: 'close', connectionId: agentConnection.connectionId },
+    context('session-agent')), error => error.code === 'connection_unavailable');
   await test('session-unload');
   await Promise.all(effects.map(dispose => dispose()));
   assert.equal(disposed, true);
   assert.equal(connections.size, 0);
-  console.log('HTTP test lifetime, session-scoped tool ownership and disposal verified.');
+  assert.equal(closedReceipts.size, 0);
+  console.log('HTTP test lifetime, owner-scoped close confirmation, retry and disposal verified.');
 }
 
 main().catch(error => { console.error(error); process.exitCode = 1; });

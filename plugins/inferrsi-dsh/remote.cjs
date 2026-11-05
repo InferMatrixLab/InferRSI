@@ -200,30 +200,44 @@ function createRemoteManager({
 } = {}) {
   const ClientClass = Client || require('./vendor/ssh2.cjs').Client;
   const connections = new Map();
+  const closedReceipts = new Map();
   const pending = new Set();
 
   function closeDashboard(entry) {
     const dashboard = entry.dashboard;
-    if (!dashboard) return;
-    entry.dashboard = null;
-    dashboard.server?.close();
-    for (const socket of dashboard.sockets) socket.destroy();
-    try { dashboard.channel?.signal('TERM'); } catch { /* The channel may already be closed. */ }
-    dashboard.channel?.close();
+    if (!dashboard || dashboard.closing) return;
+    dashboard.closing = true;
+    try {
+      dashboard.server?.close();
+      for (const socket of dashboard.sockets) socket.destroy();
+      try { dashboard.channel?.signal('TERM'); } catch { /* The channel may already be closed. */ }
+      dashboard.channel?.close();
+      if (entry.dashboard === dashboard) entry.dashboard = null;
+    } finally {
+      dashboard.closing = false;
+    }
   }
 
   function destroy(entry) {
-    if (entry.closed) return;
+    if (entry.destroyed || entry.destroying) return;
     entry.closed = true;
-    pending.delete(entry);
-    connections.delete(entry.id);
-    closeDashboard(entry);
-    for (const channel of entry.channels) {
-      try { channel.signal('TERM'); } catch { /* The SSH peer may already be gone. */ }
-      channel.close();
+    entry.destroying = true;
+    try {
+      closeDashboard(entry);
+      for (const channel of entry.channels) {
+        try { channel.signal('TERM'); } catch { /* The SSH peer may already be gone. */ }
+        channel.close();
+      }
+      entry.sftp?.end();
+      entry.client.destroy();
+      entry.destroyed = true;
+      pending.delete(entry);
+      // Keep only opaque, owner-scoped receipts after complete local teardown.
+      // A failed teardown retains its entry so its owner can retry close.
+      if (connections.delete(entry.id)) closedReceipts.set(entry.id, entry.sessionId);
+    } finally {
+      entry.destroying = false;
     }
-    entry.sftp?.end();
-    entry.client.destroy();
   }
 
   async function bounded(entry, operation, signal, timeout = CHECK_TIMEOUT, cleanup = () => destroy(entry)) {
@@ -607,14 +621,34 @@ function createRemoteManager({
   return {
     test,
     run,
-    close(sessionId, id) { destroy(connection(sessionId, id)); },
+    close(sessionId, id) {
+      const entry = connections.get(id);
+      if (entry) {
+        if (entry.sessionId !== sessionId) fail('connection_unavailable');
+        if (entry.destroying) fail('connection_closing');
+        destroy(entry);
+        return { status: 'closed' };
+      }
+      if (closedReceipts.has(id) && closedReceipts.get(id) === sessionId) {
+        return { status: 'already_closed' };
+      }
+      fail('connection_unavailable');
+    },
     closeSession(sessionId) {
-      for (const entry of connections.values()) if (entry.sessionId === sessionId) destroy(entry);
-      for (const entry of pending) if (entry.sessionId === sessionId) destroy(entry);
+      try {
+        for (const entry of connections.values()) if (entry.sessionId === sessionId) destroy(entry);
+        for (const entry of pending) if (entry.sessionId === sessionId) destroy(entry);
+      } finally {
+        for (const [id, owner] of closedReceipts) if (owner === sessionId) closedReceipts.delete(id);
+      }
     },
     dispose() {
-      for (const entry of connections.values()) destroy(entry);
-      for (const entry of pending) destroy(entry);
+      try {
+        for (const entry of connections.values()) destroy(entry);
+        for (const entry of pending) destroy(entry);
+      } finally {
+        closedReceipts.clear();
+      }
     },
   };
 }

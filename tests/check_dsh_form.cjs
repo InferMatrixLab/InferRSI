@@ -160,37 +160,48 @@ async function main() {
   send = async () => { throw Object.assign(new Error('unconfirmed admission'), { submissionState: 'rejected' }); };
   await assert.rejects(submit('target-session', prompt), error => error.submissionState === 'ambiguous');
 
-  async function remoteForm() {
+  async function remoteForm({ connect = true, sessionId = 'target-session' } = {}) {
+    // Let confirmed cleanup from a previous unmount settle before a new fixture.
+    if (connect) await new Promise(resolve => setImmediate(resolve));
     const requests = [];
     let closeFails = false;
+    let close = async () => {
+      if (closeFails) throw new Error('synthetic close failure');
+      return { status: 'closed' };
+    };
+    let test = async () => ({ status: 'connected', connectionId: 'synthetic-connection', fingerprint: 'SHA256:synthetic' });
     const instance = mount(Action, {
-      sessionId: 'target-session', submitPrompt: submit,
+      sessionId, submitPrompt: submit,
       useSession: selector => selector({ running: false, removed: false, openState: 'open', pendingSubmissions: [] }),
-      useSessions: selector => selector({ byId: { 'target-session': { cwd: '/workspace/example' } } }),
+      useSessions: selector => selector({ byId: { [sessionId]: { cwd: '/workspace/example' } } }),
       useAccess: () => true,
       remoteRequest: async request => {
         requests.push(request);
         if (request.action === 'close') {
-          if (closeFails) throw new Error('synthetic close failure');
-          return { status: 'closed' };
+          return close();
         }
-        return { status: 'connected', connectionId: 'synthetic-connection', fingerprint: 'SHA256:synthetic' };
+        return test();
       },
     });
     function field(name, value) {
       instance.find(node => node.props.name === name).props.onChange({ target: { value } });
       instance.render();
     }
-    field('execution', 'remote');
-    for (const [name, value] of Object.entries({ ...form, execution: 'remote', repository: '/workspace/example' })) {
-      if (!['constraints', 'execution'].includes(name)) field(name, value);
+    if (connect) {
+      field('execution', 'remote');
+      for (const [name, value] of Object.entries({ ...form, execution: 'remote', repository: '/workspace/example' })) {
+        if (!['constraints', 'execution'].includes(name)) field(name, value);
+      }
+      await instance.find(node => node.type === 'button' && node.children.includes('测试连接')).props.onClick();
+      instance.render();
     }
-    await instance.find(node => node.type === 'button' && node.children.includes('测试连接')).props.onClick();
-    instance.render();
     instance.submit = () => instance.find(node => node.type === 'form').props.onSubmit({ preventDefault() {} });
     instance.closes = () => requests.filter(request => request.action === 'close');
     instance.tests = () => requests.filter(request => request.action === 'test');
     instance.failClose = value => { closeFails = value; };
+    instance.closeWith = handler => { close = handler; };
+    instance.testWith = handler => { test = handler; };
+    instance.field = field;
     return instance;
   }
 
@@ -287,8 +298,167 @@ async function main() {
   assert.equal(instance.closes().length, 2, 'explicit disconnect supports retry after a failure');
   instance.unmount();
   assert.equal(instance.closes().length, 2, 'successful disconnect is not repeated on unmount');
+
+  // Editing a tested connection closes it before applying any new inputs.
+  for (const [name, value] of [['repository', '/other'], ['host', '192.0.2.2'], ['execution', 'local']]) {
+    instance = await remoteForm();
+    const oldValue = instance.find(node => node.props.name === name).props.value;
+    const earlySubmit = instance.find(node => node.type === 'form').props.onSubmit;
+    const earlyTest = instance.find(node => node.type === 'button' && node.children.includes('连接已验证')).props.onClick;
+    const earlyEdit = instance.find(node => node.props.name === 'objective').props.onChange;
+    const pending = deferred();
+    instance.closeWith(() => pending.promise);
+    const edit = instance.find(node => node.props.name === name).props.onChange({ target: { value } });
+    instance.render();
+    assert.equal(instance.find(node => node.props.name === name).props.value, oldValue);
+    assert.equal(instance.find(node => node.props.name === name).props.disabled, true);
+    const before = deliveries.length;
+    await earlySubmit({ preventDefault() {} });
+    await earlyTest();
+    await earlyEdit({ target: { value: 'must remain unchanged' } });
+    assert.equal(deliveries.length, before);
+    assert.equal(instance.tests().length, 1);
+    assert.equal(instance.closes().length, 1);
+    pending.reject(Object.assign(new Error('synthetic close refusal'), {
+      code: name === 'host' ? 'permission_denied' : 'connection_unavailable',
+    }));
+    await edit;
+    instance.render();
+    assert.equal(instance.find(node => node.props.name === name).props.value, oldValue,
+      'an unconfirmed close keeps the old inputs and connection receipt');
+    assert.equal(instance.find(node => node.props.name === 'repository').props.disabled, true);
+    await earlySubmit({ preventDefault() {} });
+    await earlyTest();
+    assert.equal(deliveries.length, before);
+    assert.equal(instance.tests().length, 1);
+    instance.closeWith(async () => ({ status: 'closed' }));
+    await instance.find(node => node.type === 'button' && node.children.includes('重试断开远程连接')).props.onClick();
+    instance.render();
+    assert.equal(instance.closes().length, 2);
+    assert.ok(instance.closes().every(request => request.connectionId === 'synthetic-connection'));
+    assert.equal(instance.find(node => node.props.name === name).props.disabled, false);
+    await instance.find(node => node.props.name === name).props.onChange({ target: { value } });
+    instance.render();
+    assert.equal(instance.find(node => node.props.name === name).props.value, value);
+    instance.unmount();
+    assert.equal(instance.closes().length, 2);
+  }
+
+  for (const status of ['closed', 'already_closed']) {
+    instance = await remoteForm();
+    instance.closeWith(async () => ({ status }));
+    await instance.find(node => node.props.name === 'repository').props.onChange({ target: { value: '/new' } });
+    instance.render();
+    assert.equal(instance.find(node => node.props.name === 'repository').props.value, '/new');
+    assert.equal(instance.find(node => node.props.name === 'repository').props.disabled, false);
+    instance.unmount();
+    assert.equal(instance.closes().length, 1, 'confirmed closure releases the old receipt exactly once');
+  }
+
+  instance = await remoteForm();
+  instance.closeWith(async () => ({ status: 'error', code: 'connection_unavailable' }));
+  await instance.find(node => node.props.name === 'execution').props.onChange({ target: { value: 'local' } });
+  instance.render();
+  assert.equal(instance.find(node => node.props.name === 'execution').props.value, 'remote',
+    'generic unavailable or permission errors do not establish already-closed ownership');
+  instance.closeWith(async () => ({ status: 'already_closed' }));
+  instance.unmount();
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(instance.closes().length, 2, 'unmount retries an unconfirmed owned receipt');
+  instance.unmount();
+  assert.equal(instance.closes().length, 2);
+
+  instance = await remoteForm();
+  const pendingClose = deferred();
+  instance.closeWith(() => pendingClose.promise);
+  const abandonedEdit = instance.find(node => node.props.name === 'repository').props.onChange({ target: { value: '/abandoned' } });
+  instance.unmount();
+  assert.equal(instance.closes().length, 1, 'unmount joins the pending close');
+  instance.closeWith(async () => ({ status: 'closed' }));
+  pendingClose.reject(new Error('synthetic transport failure'));
+  await abandonedEdit;
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(instance.closes().length, 2, 'a pending close that fails after unmount gets one cleanup retry');
+  instance.unmount();
+  assert.equal(instance.closes().length, 2);
+
+  // A failed edit close and failed unmount retry retain only the opaque receipt.
+  instance = await remoteForm();
+  instance.failClose(true);
+  await instance.find(node => node.props.name === 'execution').props.onChange({ target: { value: 'local' } });
+  instance.unmount();
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(instance.closes().length, 2);
+  const unrelated = await remoteForm({ connect: false, sessionId: 'unrelated-session' });
+  assert.equal(unrelated.find(node => node.props.name === 'repository').props.disabled, false,
+    'pending cleanup belongs only to its owning session');
+  unrelated.unmount();
+  instance = await remoteForm({ connect: false });
+  assert.equal(instance.find(node => node.props.name === 'repository').props.disabled, true);
+  assert.equal(instance.find(node => node.props.type === 'submit').props.disabled, true);
+  instance.field('execution', 'remote');
+  assert.equal(instance.find(node => node.props.name === 'execution').props.value, 'local');
+  instance.closeWith(async () => ({ status: 'already_closed' }));
+  await instance.find(node => node.type === 'button' && node.children.includes('重试断开远程连接')).props.onClick();
+  instance.render();
+  assert.equal(instance.closes().length, 1);
+  assert.equal(instance.closes()[0].connectionId, 'synthetic-connection');
+  assert.deepEqual(Object.keys(instance.closes()[0]).sort(), ['action', 'connectionId', 'sessionId']);
+  assert.equal(instance.find(node => node.props.name === 'repository').props.disabled, false);
+  instance.unmount();
+
+  function prepareRemote(instance) {
+    instance.field('execution', 'remote');
+    for (const [name, value] of Object.entries({ ...form, execution: 'remote', repository: '/workspace/example' })) {
+      if (!['constraints', 'execution'].includes(name)) instance.field(name, value);
+    }
+  }
+
+  // A test result returned after abandonment also retains a failed cleanup receipt.
+  instance = await remoteForm({ connect: false });
+  prepareRemote(instance);
+  const lateTest = deferred();
+  instance.testWith(() => lateTest.promise);
+  instance.failClose(true);
+  const abandonedTest = instance.find(node => node.type === 'button' && node.children.includes('测试连接')).props.onClick();
+  instance.unmount();
+  lateTest.resolve({ status: 'connected', connectionId: 'late-test-connection' });
+  await abandonedTest;
+  assert.equal(instance.closes()[0].connectionId, 'late-test-connection');
+  instance = await remoteForm({ connect: false });
+  assert.equal(instance.find(node => node.props.name === 'repository').props.disabled, true);
+  await instance.find(node => node.type === 'button' && node.children.includes('重试断开远程连接')).props.onClick();
+  instance.render();
+  assert.equal(instance.closes()[0].connectionId, 'late-test-connection');
+  assert.equal(instance.find(node => node.props.name === 'repository').props.disabled, false);
+  instance.unmount();
+
+  // Distinct late receipts must each be queued even while the first close is pending.
+  instance = await remoteForm({ connect: false });
+  prepareRemote(instance);
+  const tests = [deferred(), deferred()];
+  let nextTest = 0;
+  instance.testWith(() => tests[nextTest++].promise);
+  const firstClose = deferred();
+  let nextClose = 0;
+  instance.closeWith(() => nextClose++ === 0 ? firstClose.promise : Promise.resolve({ status: 'closed' }));
+  const testHandler = instance.find(node => node.type === 'button' && node.children.includes('测试连接')).props.onClick;
+  const attempts = [testHandler(), testHandler()];
+  instance.unmount();
+  tests[0].resolve({ status: 'connected', connectionId: 'late-connection-a' });
+  tests[1].resolve({ status: 'connected', connectionId: 'late-connection-b' });
+  await new Promise(resolve => setImmediate(resolve));
+  assert.deepEqual(instance.closes().map(request => request.connectionId), ['late-connection-a']);
+  firstClose.resolve({ status: 'closed' });
+  await Promise.all(attempts);
+  assert.deepEqual(instance.closes().map(request => request.connectionId), ['late-connection-a', 'late-connection-b']);
+  instance = await remoteForm({ connect: false });
+  assert.equal(instance.find(node => node.props.name === 'repository').props.disabled, false);
+  instance.unmount();
   console.log('Form validation, prompt payload, native module and scoped Agent delivery verified.');
   console.log('Confirmed, rejected and ambiguous remote handoff, abandonment races and explicit disconnect verified.');
+  console.log('Connection edits preserve receipts until confirmed close; retry, already-closed and unmount cleanup verified.');
+  console.log('Session-scoped opaque cleanup receipts survive remounts and serialize distinct abandoned test connections.');
 }
 
 main().catch(error => {

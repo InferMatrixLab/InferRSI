@@ -65,9 +65,9 @@ connection and existing permissions. After confirmed remote delivery, the
 connection belongs to that task; the form blocks resubmission and connection
 changes even before the Agent's running indicator refreshes. Explicitly
 disconnect before reconfiguring, which can stop the accepted remote task.
-A local rejection before sending keeps the
-form available for correction; abandoning that rejected submission closes its
-unused remote connection.
+A local rejection before sending keeps the form available for correction;
+abandoning that rejected submission requests closure of its unused remote
+connection. An unconfirmed close retains its receipt for cleanup or retry.
 
 If delivery has started but its result is uncertain, inspect the conversation
 before doing anything else. The form keeps the remote connection and blocks a
@@ -98,8 +98,20 @@ SSH authentication, Linux command execution and access to the selected repositor
 GPU/NPU availability and benchmark readiness are checked by the Agent afterward.
 
 After a successful test, **Start iteration** becomes available. Changing the
-host, authentication, repository or designated scripts clears the tested
-connection. Passwords, uploaded keys and key passphrases are cleared from the
+host, authentication, repository, designated scripts or execution location
+first closes the tested connection. The original fields and connection receipt
+remain until the Host confirms closure. While closing, submission, retesting
+and further edits are blocked. If closure fails or its result is uncertain,
+use **Retry disconnect**; the original connection is retained, and the requested
+field change is not applied. After successful retry, edit the fields again and
+test the new connection. A same-session receipt already confirmed closed by the
+Host is acknowledged separately; unknown or other-session IDs remain errors.
+
+Unconfirmed close requests retain only opaque connection IDs in session-scoped
+client memory. Leaving and reopening the form can resume this cleanup, including
+after an unmount retry fails. Pending or accepted task connections are not
+included unless the user has explicitly requested disconnection. Passwords,
+uploaded keys and key passphrases are cleared from the
 form after authentication. An authenticated SSH client remains in Host memory
 for that Agent session. DSH shutdown, plugin removal, session disposal or an
 explicit connection close releases it. A lost connection needs a new test.
