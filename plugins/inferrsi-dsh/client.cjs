@@ -1,10 +1,12 @@
 const React = require('react');
-const { buildPrompt } = require('./form.cjs');
+const { buildPrompt, taskDefaults, taskYamlTemplate, readTaskYaml, yamlSizeLimit } = require('./form.cjs');
 const h = React.createElement;
 // Only receipts already authorized for closure survive a form remount. No credentials.
 const pendingClosures = new Map();
 const unknownClosures = new Map();
 const closingReceipts = new Map();
+const connectionFields = ['execution', 'repository', 'host', 'sshPort', 'sshUser', 'authType', 'privateKey',
+  'password', 'passphrase', 'sshFingerprint', 'benchmark', 'quality'];
 
 function queuedClosures(sessionId) {
   return pendingClosures.get(sessionId) || new Set();
@@ -36,6 +38,9 @@ const styles = `
 .irsi-field textarea { resize: vertical; min-height: 72px; }
 .irsi-dialog details { margin-top: 16px; }
 .irsi-dialog summary { cursor: pointer; padding: 5px 0; }
+.irsi-yaml { margin-bottom: 16px; }
+.irsi-yaml details { margin-top: 6px; }
+.irsi-yaml pre { margin: 8px 0; }
 .irsi-dialog details .irsi-fields { margin-top: 9px; }
 .irsi-preview { white-space: pre-wrap; overflow-wrap: anywhere; font: 12px/1.6 ui-monospace, monospace; padding: 12px; background: color-mix(in srgb, CanvasText 5%, Canvas); border-radius: 8px; }
 .irsi-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-top: 18px; }
@@ -55,9 +60,7 @@ function IterationForm({ sessionId, useSession, useSessions, useAccess, submitPr
   const canSend = useAccess('session/prompt');
   const [open, setOpen] = React.useState(false);
   const [form, setForm] = React.useState({
-    repository: cwd, model: '', objective: '', framework: 'auto', backend: '', execution: 'local',
-    plane: '', maxRounds: '', maxMinutes: '', device: '', acceptance: '', baseline: '',
-    benchmark: '', quality: '', campaign: '', constraints: '',
+    ...taskDefaults(cwd),
     host: '', sshPort: '22', sshUser: '', authType: 'key', privateKey: '', password: '',
     passphrase: '', sshFingerprint: '',
   });
@@ -70,6 +73,8 @@ function IterationForm({ sessionId, useSession, useSessions, useAccess, submitPr
   const [uncertain, setUncertain] = React.useState(false);
   const [closeState, setCloseState] = React.useState(queuedClosures(sessionId).size ? 'failed' : 'idle');
   const [forgetId, setForgetId] = React.useState(null);
+  const [importing, setImporting] = React.useState(false);
+  const [yamlMessage, setYamlMessage] = React.useState(null);
   const dialog = React.useRef(null);
   const inFlight = React.useRef(false);
   const sentOnce = React.useRef(false);
@@ -80,6 +85,7 @@ function IterationForm({ sessionId, useSession, useSessions, useAccess, submitPr
   const connectionHandoff = React.useRef('owned');
   const closeAttempt = React.useRef(null);
   const forgetSelection = React.useRef(null);
+  const yamlImport = React.useRef(false);
 
   function abandonConnection(receipt) {
     if (!receipt || connectionRef.current !== receipt) return;
@@ -180,33 +186,73 @@ function IterationForm({ sessionId, useSession, useSessions, useAccess, submitPr
     if (!open && dialog.current.open) dialog.current.close();
   }, [open]);
 
-  const blocked = sending || sent || testing || uncertain || closeState !== 'idle' || !canSend || session.running || session.removed
+  const blocked = sending || sent || testing || importing || uncertain || closeState !== 'idle' || !canSend || session.running || session.removed
     || session.openState !== 'open' || session.pendingSubmissions.length > 0
     || (form.execution === 'remote' && !connection);
   const protectedConnection = uncertain || (form.execution === 'remote' && sent);
   const lockedConnection = protectedConnection || closeState !== 'idle';
 
-  async function update(name, value) {
+  async function applyChanges(changes) {
     if (inFlight.current || closeAttempt.current || queuedClosures(sessionId).size
-      || ['ambiguous', 'handedOff'].includes(connectionHandoff.current)) return;
-    if (['execution', 'repository', 'host', 'sshPort', 'sshUser', 'authType', 'privateKey',
-      'password', 'passphrase', 'sshFingerprint', 'benchmark', 'quality'].includes(name)) {
+      || ['ambiguous', 'handedOff'].includes(connectionHandoff.current)) return false;
+    if (connectionFields.some(name => Object.hasOwn(changes, name))) {
       testAbort.current?.abort();
-      if (connectionRef.current && !await closeReceipt(connectionRef.current)) return;
-      if (!mounted.current) return;
+      if (connectionRef.current && !await closeReceipt(connectionRef.current)) return false;
+      if (!mounted.current) return false;
       setConnectionState(null);
     }
-    setForm(current => ({ ...current, [name]: value,
-      ...(name === 'execution' ? { repository: value === 'local' ? cwd : '' } : {}),
-    }));
+    setForm(current => ({ ...current, ...changes }));
     setError('');
     setSent(false);
     sentOnce.current = false;
+    return true;
+  }
+
+  function update(name, value) {
+    if (yamlImport.current) return;
+    return applyChanges(name === 'execution' ? { execution: value, repository: value === 'local' ? cwd : '' }
+      : { [name]: value });
+  }
+
+  async function importYaml(file) {
+    if (!file || yamlImport.current || testing || inFlight.current || lockedConnection || session.running
+      || closeAttempt.current || queuedClosures(sessionId).size
+      || ['pending', 'ambiguous', 'handedOff'].includes(connectionHandoff.current)) return;
+    setYamlMessage(null);
+    if (file.size > yamlSizeLimit) {
+      setYamlMessage({ error: true, text: 'YAML 文件不能超过 64 KiB。' });
+      return;
+    }
+    yamlImport.current = true;
+    setImporting(true);
+    try {
+      const source = await file.text().catch(() => { throw new Error('无法读取 YAML 文件。'); });
+      if (!mounted.current) return;
+      const task = readTaskYaml(source, cwd);
+      const changes = Object.fromEntries(Object.entries(task).filter(([name, value]) => form[name] !== value));
+      if (await applyChanges(changes) && mounted.current) {
+        setYamlMessage({ text: '已导入 YAML。请核对三个栏目，再启动迭代。' });
+      }
+    } catch (failure) {
+      if (mounted.current) setYamlMessage({ error: true, text: failure.message });
+    } finally {
+      yamlImport.current = false;
+      if (mounted.current) setImporting(false);
+    }
+  }
+
+  async function copyYamlTemplate() {
+    try {
+      await navigator.clipboard.writeText(taskYamlTemplate);
+      if (mounted.current) setYamlMessage({ text: 'YAML 模板已复制，可交给 Agent 填写。' });
+    } catch {
+      if (mounted.current) setYamlMessage({ text: '请选中下方模板并手动复制。' });
+    }
   }
 
   async function start(event) {
     event.preventDefault();
-    if (blocked || inFlight.current || sentOnce.current || closeAttempt.current || queuedClosures(sessionId).size
+    if (blocked || yamlImport.current || inFlight.current || sentOnce.current || closeAttempt.current || queuedClosures(sessionId).size
       || ['ambiguous', 'handedOff'].includes(connectionHandoff.current)) return;
     let prompt;
     try {
@@ -243,7 +289,7 @@ function IterationForm({ sessionId, useSession, useSessions, useAccess, submitPr
   }
 
   async function testConnection(fingerprint) {
-    if (testing || sending || inFlight.current || closeAttempt.current || queuedClosures(sessionId).size
+    if (testing || sending || yamlImport.current || inFlight.current || closeAttempt.current || queuedClosures(sessionId).size
       || connectionRef.current || session.running
       || ['ambiguous', 'handedOff'].includes(connectionHandoff.current)) return;
     testAbort.current?.abort();
@@ -334,7 +380,7 @@ function IterationForm({ sessionId, useSession, useSessions, useAccess, submitPr
 
   function field(name, label, { options, multiline = false, wide = false, ...attributes } = {}) {
     const props = {
-      name, value: form[name], disabled: sending || testing || lockedConnection || (form.execution === 'remote' && session.running),
+      name, value: form[name], disabled: sending || testing || importing || lockedConnection || (form.execution === 'remote' && session.running),
       onChange: event => update(name, event.target.value), ...attributes,
     };
     let input;
@@ -366,6 +412,22 @@ function IterationForm({ sessionId, useSession, useSessions, useAccess, submitPr
         h('p', null, '填写任务参数，交给当前 Agent 执行。进度与历史在 dashboard 查看。')),
       h('button', { type: 'button', 'aria-label': '关闭 InferRSI 表单', onClick: () => setOpen(false) }, '关闭')),
     h('form', { onSubmit: start },
+      h('div', { className: 'irsi-yaml' },
+        h('label', { className: 'irsi-field' },
+          h('span', null, importing ? '正在导入 YAML…' : '导入 YAML'),
+          h('input', { name: 'taskYaml', type: 'file', accept: '.yaml,.yml',
+            disabled: importing || sending || testing || lockedConnection || session.running,
+            onChange: event => {
+              const file = event.target.files?.[0];
+              event.target.value = '';
+              return importYaml(file);
+            } })),
+        h('p', null, '导入会替换三个栏目的任务字段。SSH 连接信息在表单中单独填写。'),
+        h('details', null, h('summary', null, '给 Agent 的 YAML 模板'),
+          h('pre', { className: 'irsi-preview' }, taskYamlTemplate),
+          h('button', { type: 'button', onClick: copyYamlTemplate }, '复制 YAML 模板')),
+        yamlMessage && h('div', { className: `irsi-message${yamlMessage.error ? ' irsi-error' : ''}`,
+          role: yamlMessage.error ? 'alert' : 'status' }, yamlMessage.text)),
       h('fieldset', { className: 'irsi-section' },
         h('legend', null, '优化对象'),
         h('div', { className: 'irsi-fields' },
@@ -395,7 +457,7 @@ function IterationForm({ sessionId, useSession, useSessions, useAccess, submitPr
               field('authType', '认证方式', { options: [['key', 'SSH 私钥'], ['password', '用户密码']] }),
               form.authType === 'key' && h('label', { className: 'irsi-field irsi-wide' },
                 h('span', null, form.privateKey ? 'SSH 私钥已载入' : '选择 SSH 私钥文件'),
-                h('input', { ref: keyInput, type: 'file', disabled: testing || sending || lockedConnection || session.running,
+                h('input', { ref: keyInput, type: 'file', disabled: testing || sending || importing || lockedConnection || session.running,
                   onChange: async event => {
                     const file = event.target.files?.[0];
                     if (!file) return;
@@ -407,11 +469,11 @@ function IterationForm({ sessionId, useSession, useSessions, useAccess, submitPr
                 : field('password', 'SSH 用户密码', { type: 'password', autoComplete: 'new-password', maxLength: 4096 }),
               field('sshFingerprint', '服务器指纹（首次连接可留空）', { wide: true, placeholder: 'SHA256:…', maxLength: 128 })),
             h('p', null, '连接到远程 Linux 主机。请在「优化对象」填写远程仓库的绝对路径。'),
-            h('button', { type: 'button', disabled: testing || sending || lockedConnection || session.running || Boolean(connection),
+            h('button', { type: 'button', disabled: testing || sending || importing || lockedConnection || session.running || Boolean(connection),
               onClick: () => testConnection() }, testing ? '正在测试…' : connection ? '连接已验证' : '测试连接'),
             connectionState?.status === 'verify_host' && h('div', { className: 'irsi-message' },
               h('p', null, '请核对服务器指纹'), h('code', { className: 'irsi-fingerprint' }, connectionState.fingerprint),
-              h('button', { type: 'button', disabled: testing, onClick: () => testConnection(connectionState.fingerprint) }, '信任此指纹并测试')),
+              h('button', { type: 'button', disabled: testing || importing, onClick: () => testConnection(connectionState.fingerprint) }, '信任此指纹并测试')),
             connection && h('div', { className: 'irsi-message', role: 'status' }, 'SSH 认证与仓库访问成功。本会话可使用该远程连接。')))),
       h('fieldset', { className: 'irsi-section' },
         h('legend', null, '验收标准'),

@@ -1,6 +1,105 @@
 const frameworks = ['auto', 'vllm', 'vllm-omni', 'sglang', 'pytorch', 'other'];
 const backends = ['gpu', 'npu'];
 const planes = ['harness', 'model', 'infra'];
+const executions = ['local', 'remote'];
+const { isMap, isScalar, parseDocument } = require('./vendor/yaml.cjs');
+const yamlSizeLimit = 64 * 1024;
+
+const taskYamlTemplate = `# Fill the task fields. Omit unknown optional inputs or leave them null.
+# Do not include SSH connection settings or credentials.
+schema_version: 1
+optimization:
+  repository: null  # Local workspace by default; absolute path for remote.
+  model: null
+  framework: auto   # auto | vllm | vllm-omni | sglang | pytorch | other
+  plane: null       # harness | model | infra
+  objective: null   # Use | for a multiline goal.
+environment:
+  backend: null     # gpu | npu
+  execution: local  # local | remote
+  device: null
+  benchmark: null
+  quality: null
+  campaign: null
+  maxRounds: null   # Positive integer.
+  maxMinutes: null  # Positive integer.
+acceptance:
+  reference: null   # Acceptance issue URL or plan path.
+  baseline: null    # Quote a revision if it looks like a number.
+  constraints: null # Use | for multiline metrics and thresholds.
+`;
+
+function taskDefaults(repository) {
+  return {
+    repository, model: '', objective: '', framework: 'auto', backend: '', execution: 'local',
+    plane: '', maxRounds: '', maxMinutes: '', device: '', acceptance: '', baseline: '',
+    benchmark: '', quality: '', campaign: '', constraints: '',
+  };
+}
+
+const yamlSections = {
+  optimization: { repository: 1024, model: 256, objective: 4096, framework: frameworks, plane: planes },
+  environment: {
+    backend: backends, execution: executions, device: 1024, benchmark: 1024, quality: 1024,
+    campaign: 1024, maxRounds: 'budget', maxMinutes: 'budget',
+  },
+  acceptance: { reference: 2048, baseline: 256, constraints: 4096 },
+};
+
+function plainNode(node) {
+  return !node?.tag && !node?.anchor;
+}
+
+function yamlMapping(node, allowed, label) {
+  if (!isMap(node) || !plainNode(node)) throw new Error(`${label} 必须是普通键值表。`);
+  const entries = {};
+  for (const { key, value } of node.items) {
+    if (!isScalar(key) || !plainNode(key) || typeof key.value !== 'string' || !Object.hasOwn(allowed, key.value)) {
+      throw new Error(`${label} 含有不支持的字段，请对照 YAML 模板。`);
+    }
+    entries[key.value] = value;
+  }
+  return entries;
+}
+
+function readTaskYaml(source, cwd) {
+  if (source.length > yamlSizeLimit) throw new Error('YAML 文件不能超过 64 KiB。');
+  let doc;
+  try {
+    doc = parseDocument(source, { version: '1.2', schema: 'core', merge: false, prettyErrors: false });
+  } catch {
+    throw new Error('无法解析 YAML，请检查文件格式。');
+  }
+  if (doc.errors.length || doc.warnings.length || doc.directives.yaml.version !== '1.2') {
+    throw new Error('请提供一份有效的 YAML 1.2 文档，字段不能重复。');
+  }
+  const sections = yamlMapping(doc.contents, { schema_version: true, ...yamlSections }, 'YAML');
+  const version = sections.schema_version;
+  if (!isScalar(version) || !plainNode(version) || version.value !== 1) {
+    throw new Error('YAML 必须包含 schema_version: 1。');
+  }
+
+  const task = {};
+  let fieldCount = 0;
+  for (const [section, fields] of Object.entries(yamlSections)) {
+    if (!Object.hasOwn(sections, section)) continue;
+    for (const [key, node] of Object.entries(yamlMapping(sections[section], fields, section))) {
+      fieldCount += 1;
+      if (node === null) continue;
+      if (!isScalar(node) || !plainNode(node)) throw new Error(`${section}.${key} 必须是普通值。`);
+      const value = node.value;
+      if (value === null) continue;
+      const rule = fields[key];
+      const valid = rule === 'budget' ? Number.isSafeInteger(value) && value > 0
+        : Array.isArray(rule) ? rule.includes(value)
+          : typeof value === 'string' && value.length <= rule;
+      if (!valid) throw new Error(`${section}.${key} 的值无效，请对照 YAML 模板。`);
+      task[key === 'reference' ? 'acceptance' : key] = rule === 'budget' ? String(value) : value;
+    }
+  }
+  if (!fieldCount) throw new Error('YAML 中至少需要一个任务字段。');
+  return { ...taskDefaults(task.execution === 'remote' ? '' : cwd), ...task };
+}
 
 function taskFromForm(form, connection) {
   const task = {};
@@ -25,7 +124,7 @@ function taskFromForm(form, connection) {
   for (const [name, options] of Object.entries({ framework: frameworks, backend: backends, plane: planes })) {
     if (!options.includes(task[name])) throw new Error(`请选择${labels[name]}。`);
   }
-  if (!['local', 'remote'].includes(task.execution)) throw new Error('请选择本机或远程机器。');
+  if (!executions.includes(task.execution)) throw new Error('请选择本机或远程机器。');
   if (task.execution === 'remote') {
     if (!connection?.connectionId) throw new Error('请先测试并验证远程连接。');
     task.remote = { connectionId: connection.connectionId };
@@ -68,4 +167,4 @@ function buildPrompt(form, connection) {
   ].join('\n');
 }
 
-module.exports = { taskFromForm, buildPrompt };
+module.exports = { taskFromForm, buildPrompt, taskDefaults, taskYamlTemplate, readTaskYaml, yamlSizeLimit };

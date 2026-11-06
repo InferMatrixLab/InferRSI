@@ -24,3 +24,21 @@ shipping a regenerated bundle.
 
 The checked-in output removes trailing spaces from one empty line in an
 upstream RFC comment to satisfy the repository whitespace check.
+
+## YAML parser bundle
+
+`yaml.cjs` is generated from `yaml` 2.9.1 with esbuild 0.25.12. It exposes the
+document parser and map/scalar checks through the packaged browser client.
+The importer checks the document structure before using any values.
+
+In a disposable build directory, install the exact dependencies, then create
+`parser.mjs` with this single line:
+
+```js
+export { isMap, isScalar, parseDocument } from 'yaml';
+```
+
+```text
+npm install --ignore-scripts yaml@2.9.1 esbuild@0.25.12
+node node_modules/esbuild/bin/esbuild parser.mjs --bundle --platform=browser --format=cjs --target=es2022 --legal-comments=inline --outfile=<SOURCE_ROOT>/plugins/inferrsi-dsh/vendor/yaml.cjs
+```

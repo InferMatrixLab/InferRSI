@@ -87,6 +87,27 @@ until submitted through the normal DSH message path. Reloading or switching
 sessions closes the unsent form. The form is a Web client contribution; the
 native entry skill remains available in other profiles.
 
+## Import a task from YAML
+
+Open **给 Agent 的 YAML 模板** in the form and click **复制 YAML 模板**. Give the
+template to the Agent and ask it to return a `.yaml` file with the task values.
+Choose the file under **导入 YAML**, review the three sections and prompt preview,
+then click **Start iteration**.
+
+The file uses `schema_version: 1` and sections named `optimization`,
+`environment` and `acceptance`. Use `acceptance.reference` for an acceptance
+issue or plan and `acceptance.constraints` for metrics and thresholds. YAML block
+strings (`|`) support multiline objectives and criteria. Set `maxRounds` and
+`maxMinutes` as positive integers. Fields can be left null or omitted while
+drafting. Import replaces task fields, and ordinary form validation applies when
+starting. An omitted local repository defaults to the current workspace.
+
+Use one YAML 1.2 document up to 64 KiB. The import accepts the template fields
+and rejects unknown keys, duplicate keys, aliases and tags. Invalid files leave
+the form intact. Enter SSH connection settings and credentials in the form.
+Changing the execution location, repository or scripts through import follows
+the same connection-close and retest flow as editing those fields directly.
+
 ## Run on a remote machine
 
 Select **Remote machine**, then provide the remote repository's absolute Linux

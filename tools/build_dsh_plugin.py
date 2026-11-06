@@ -17,16 +17,23 @@ from tools.plugin_bundle import PROJECT, _io_path, _version, bundle_runtime
 
 
 def client_bundle() -> str:
-    """Wrap the dependency-free browser sources in DSH's shared React loader."""
+    """Wrap browser sources and their vendored parser in DSH's shared React loader."""
     template = PROJECT / "plugins" / "inferrsi-dsh"
-    form = textwrap.indent((template / "form.cjs").read_text(encoding="utf-8"), "      ")
+    yaml = (template / "vendor" / "yaml.cjs").read_text(encoding="utf-8")
+    form = (template / "form.cjs").read_text(encoding="utf-8")
     client = textwrap.indent((template / "client.cjs").read_text(encoding="utf-8"), "      ")
     return (
         "window.__ModuleLoader__.load({\n"
         "  id: 'inferrsi-dsh',\n"
         "  factory: (hostRequire) => {\n"
+        "    const yaml = (() => {\n"
+        "      const module = { exports: {} };\n"
+        f"{yaml}\n"
+        "      return module.exports;\n"
+        "    })();\n"
         "    const form = (() => {\n"
         "      const module = { exports: {} };\n"
+        "      const require = name => name === './vendor/yaml.cjs' ? yaml : hostRequire(name);\n"
         f"{form}\n"
         "      return module.exports;\n"
         "    })();\n"

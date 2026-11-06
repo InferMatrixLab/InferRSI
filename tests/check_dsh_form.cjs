@@ -1,7 +1,7 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
-const { buildPrompt, taskFromForm } = require(process.argv[2]);
+const { buildPrompt, readTaskYaml, taskFromForm, taskYamlTemplate, yamlSizeLimit } = require(process.argv[2]);
 
 // Render the bundled component's actual hooks and handlers without a browser.
 let rendering;
@@ -106,6 +106,44 @@ async function main() {
     { maxMinutes: 0 }, { maxMinutes: false }, { model: {} },
   ]) {
     assert.throws(() => taskFromForm({ ...form, ...values }));
+  }
+
+  const yaml = `# Generated task fixture
+schema_version: 1
+optimization:
+  model: "Example: model"
+  objective: |-
+    降低推理延迟
+    保留输出质量
+  plane: harness
+environment:
+  backend: gpu
+  maxRounds: 3
+  maxMinutes: 20
+acceptance:
+  reference: docs/acceptance.md
+  constraints: "Keep output quality"
+`;
+  const imported = readTaskYaml(yaml, '/workspace/example');
+  assert.equal(imported.repository, '/workspace/example');
+  assert.equal(imported.objective, '降低推理延迟\n保留输出质量');
+  assert.equal(imported.acceptance, 'docs/acceptance.md');
+  assert.equal(taskFromForm(imported).maxRounds, 3);
+  assert.equal(readTaskYaml(taskYamlTemplate, '/workspace/example').framework, 'auto');
+  for (const invalid of [
+    'schema_version: 2\noptimization: {model: test}',
+    'schema_version: 1\noptimization: [test]',
+    'schema_version: 1\noptimization: {model: test, model: other}',
+    'schema_version: 1\noptimization: {model: &m test, objective: *m}',
+    'schema_version: 1\noptimization: {model: !!str test}',
+    'schema_version: 1\nenvironment: {maxRounds: 1.5}',
+    'schema_version: 1\nenvironment: {backend: cpu}',
+    'schema_version: 1\nenvironment: {password: fake-secret}',
+    'schema_version: 1\nenvironment: {__proto__: value}',
+    'schema_version: 1\n---\noptimization: {model: test}',
+    ' '.repeat(yamlSizeLimit + 1),
+  ]) {
+    assert.throws(() => readTaskYaml(invalid, '/workspace/example'), error => !error.message.includes('fake-secret'));
   }
 
   let plugin;
@@ -229,8 +267,41 @@ async function main() {
     instance.closeWith = handler => { close = handler; };
     instance.testWith = handler => { test = handler; };
     instance.field = field;
+    instance.importYaml = async source => {
+      await instance.find(node => node.props.name === 'taskYaml').props.onChange({
+        target: { files: [{ size: Buffer.byteLength(source), text: async () => source }] },
+      });
+      instance.render();
+    };
     return instance;
   }
+
+  const local = await remoteForm({ connect: false });
+  const previousDeliveries = deliveries.length;
+  await local.importYaml(yaml);
+  assert.equal(local.find(node => node.props.name === 'model').props.value, 'Example: model');
+  await local.importYaml(yaml + '\nenvironment: {backend: npu}\n');
+  assert.equal(local.find(node => node.props.name === 'backend').props.value, 'gpu');
+  assert.equal(deliveries.length, previousDeliveries, 'import does not send the prompt');
+  send = async () => {};
+  await local.submit();
+  assert.equal(deliveries.at(-1), buildPrompt(imported));
+  local.unmount();
+
+  const connected = await remoteForm();
+  const remoteYaml = yaml.replace('optimization:', 'optimization:\n  repository: /workspace/other')
+    .replace('environment:', 'environment:\n  execution: remote');
+  connected.failClose(true);
+  await connected.importYaml(remoteYaml);
+  assert.equal(connected.find(node => node.props.name === 'repository').props.value, '/workspace/example');
+  assert.equal(connected.closes().length, 1);
+  connected.failClose(false);
+  await connected.find(node => node.type === 'button' && node.children.includes('重试断开远程连接')).props.onClick();
+  connected.render();
+  await connected.importYaml(remoteYaml);
+  assert.equal(connected.find(node => node.props.name === 'repository').props.value, '/workspace/other');
+  assert.equal(connected.find(node => node.type === 'button' && node.props.type === 'submit').props.disabled, true);
+  connected.unmount();
 
   // A definite wrapper preflight refusal leaves the form responsible for cleanup.
   let instance = await remoteForm();
