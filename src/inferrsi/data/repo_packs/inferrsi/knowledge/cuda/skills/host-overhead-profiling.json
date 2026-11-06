@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "id": "inferrsi.cuda.skills.host_overhead_profiling",
   "title": "host-overhead-profiling",
   "repo": "inferrsi",
@@ -22,12 +22,11 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/1e87be46b8d080d439bb516ed9fa9092f8306f62/src/inferrsi/data/skill_library/hardware/cuda/host-overhead-profiling/SKILL.md",
-      "commit": "1e87be46b8d080d439bb516ed9fa9092f8306f62",
+      "snapshot": "_provenance.json",
+      "path": "src/inferrsi/data/skill_library/hardware/cuda/host-overhead-profiling/SKILL.md",
       "paths": [
         "src/inferrsi/data/skill_library/hardware/cuda/host-overhead-profiling/SKILL.md",
-        "src/inferrsi/data/skill_library/hardware/cuda/host-overhead-profiling/metadata.json",
-        "src/inferrsi/data/skill_library/skill-index.json"
+        "src/inferrsi/data/skill_library/hardware/cuda/host-overhead-profiling/metadata.json"
       ],
       "content_sha256": "326e566fbe30d3ba04e4b50c3e87aad9df037f0ac4ad6fe129165ae97dc5f91d"
     }
@@ -39,8 +38,7 @@
   "checkout_ref": "checkout:host-overhead-profiling",
   "source_files": {
     "src/inferrsi/data/skill_library/hardware/cuda/host-overhead-profiling/SKILL.md": "326e566fbe30d3ba04e4b50c3e87aad9df037f0ac4ad6fe129165ae97dc5f91d",
-    "src/inferrsi/data/skill_library/hardware/cuda/host-overhead-profiling/metadata.json": "bc4236c65e37378f4a74e0b88c47776055c186aca44c000b1f68e8c63cc4b277",
-    "src/inferrsi/data/skill_library/skill-index.json": "7904275c3383380db179287171e1430617aaa9ac4f439291eff8a71426987fbb"
+    "src/inferrsi/data/skill_library/hardware/cuda/host-overhead-profiling/metadata.json": "bc4236c65e37378f4a74e0b88c47776055c186aca44c000b1f68e8c63cc4b277"
   },
   "skill_metadata": {
     "name": "host-overhead-profiling",

@@ -205,6 +205,19 @@ assert len(qwen_tts) == 3, "Missing installed Qwen3-TTS peer techniques"
 assert all(not record["verification"]["locally_verified"] for record in qwen_tts)
 package = files("inferrsi")
 library = package.joinpath("data", "skill_library")
+projection = package.joinpath("data", "repo_packs", "inferrsi", "knowledge")
+snapshot = json.loads(projection.joinpath("_provenance.json").read_text(encoding="utf-8"))
+assert snapshot["schema_version"] == 1
+assert {record["sources"][0]["commit"] for record in skill_index} == {
+    snapshot["source_revision"]
+}
+assert all(record["schema_version"] == 1 for record in skill_index)
+raw_record = json.loads(
+    projection.joinpath("common", "skills", "claim-contract.json").read_text(encoding="utf-8")
+)
+assert raw_record["schema_version"] == 2
+assert raw_record["sources"][0]["snapshot"] == "_provenance.json"
+assert "commit" not in raw_record["sources"][0]
 for record in skill_index:
     for relative, expected_hash in record["source_files"].items():
         resource = package.joinpath(*relative.removeprefix("src/inferrsi/").split("/"))

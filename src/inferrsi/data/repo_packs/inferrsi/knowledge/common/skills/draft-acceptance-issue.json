@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "id": "inferrsi.common.skills.draft_acceptance_issue",
   "title": "draft-acceptance-issue",
   "repo": "inferrsi",
@@ -22,10 +22,9 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/1e87be46b8d080d439bb516ed9fa9092f8306f62/src/inferrsi/data/skill_library/workflows/draft-acceptance-issue/SKILL.md",
-      "commit": "1e87be46b8d080d439bb516ed9fa9092f8306f62",
+      "snapshot": "_provenance.json",
+      "path": "src/inferrsi/data/skill_library/workflows/draft-acceptance-issue/SKILL.md",
       "paths": [
-        "src/inferrsi/data/skill_library/skill-index.json",
         "src/inferrsi/data/skill_library/workflows/draft-acceptance-issue/SKILL.md",
         "src/inferrsi/data/skill_library/workflows/draft-acceptance-issue/metadata.json"
       ],
@@ -38,7 +37,6 @@
   },
   "checkout_ref": "checkout:draft-acceptance-issue",
   "source_files": {
-    "src/inferrsi/data/skill_library/skill-index.json": "7904275c3383380db179287171e1430617aaa9ac4f439291eff8a71426987fbb",
     "src/inferrsi/data/skill_library/workflows/draft-acceptance-issue/SKILL.md": "ce983acfb7d7d3272775e7cf00c92e4ddadd97511b602575a76e5ab7ade01b56",
     "src/inferrsi/data/skill_library/workflows/draft-acceptance-issue/metadata.json": "ff1c463a13d0c869baaf90505a7fe981d684ee7b79f2fa8d2358340b6b4139a7"
   },
