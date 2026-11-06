@@ -26,6 +26,9 @@ const styles = `
 .irsi-dialog button { font: inherit; cursor: pointer; border: 1px solid color-mix(in srgb, currentColor 24%, transparent); border-radius: 7px; background: transparent; color: inherit; padding: 7px 12px; }
 .irsi-dialog button:disabled { cursor: default; opacity: .55; }
 .irsi-dialog form { padding: 0 22px 20px; }
+.irsi-section { margin: 0 0 16px; padding: 12px; min-width: 0; border: 1px solid color-mix(in srgb, currentColor 20%, transparent); border-radius: 8px; }
+.irsi-section > legend { padding: 0 6px; font-weight: 650; }
+.irsi-section > p { margin: 0 0 10px; }
 .irsi-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 16px; }
 .irsi-field { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
 .irsi-wide { grid-column: 1 / -1; }
@@ -363,52 +366,60 @@ function IterationForm({ sessionId, useSession, useSessions, useAccess, submitPr
         h('p', null, '填写任务参数，交给当前 Agent 执行。进度与历史在 dashboard 查看。')),
       h('button', { type: 'button', 'aria-label': '关闭 InferRSI 表单', onClick: () => setOpen(false) }, '关闭')),
     h('form', { onSubmit: start },
-      h('div', { className: 'irsi-fields' },
-        field('repository', '目标仓库 *', { required: true, wide: true, maxLength: 1024, placeholder: '运行环境中的仓库路径' }),
-        field('model', '模型 *', { required: true, maxLength: 256, placeholder: '模型名称或已有权重路径' }),
-        field('framework', '推理框架', { options: [['auto', '从仓库识别'], ['vllm', 'vLLM'], ['vllm-omni', 'vLLM-Omni'], ['sglang', 'SGLang'], ['pytorch', 'PyTorch'], ['other', '其他']] }),
-        field('backend', '硬件后端 *', { required: true, options: [['', '请选择'], ['gpu', 'GPU'], ['npu', 'NPU']] }),
-        field('execution', '运行位置', { options: [['local', '本机运行'], ['remote', '远程机器']] }),
-        field('plane', '本轮改动范围 *', { required: true, options: [['', '请选择'], ['harness', 'Harness / 执行与评测'], ['model', 'Model / 模型与算子'], ['infra', 'Infra / 基础设施']] }),
-        form.execution === 'remote' && h('fieldset', { className: 'irsi-wide irsi-remote' },
-          h('legend', null, 'SSH 远程连接'),
-          h('div', { className: 'irsi-fields' },
-            field('host', '机器 IP *', { required: true, placeholder: '目标机器的 IPv4 或 IPv6', maxLength: 64 }),
-            field('sshPort', 'SSH 端口 *', { required: true, type: 'number', min: 1, max: 65535, step: 1 }),
-            field('sshUser', 'SSH 用户名 *', { required: true, maxLength: 128 }),
-            field('authType', '认证方式', { options: [['key', 'SSH 私钥'], ['password', '用户密码']] }),
-            form.authType === 'key' && h('label', { className: 'irsi-field irsi-wide' },
-              h('span', null, form.privateKey ? 'SSH 私钥已载入' : '选择 SSH 私钥文件'),
-              h('input', { ref: keyInput, type: 'file', disabled: testing || sending || lockedConnection || session.running,
-                onChange: async event => {
-                  const file = event.target.files?.[0];
-                  if (!file) return;
-                  if (file.size > 64 * 1024) { setError('私钥文件超过大小限制。'); return; }
-                  update('privateKey', await file.text());
-                } })),
-            form.authType === 'key'
-              ? field('passphrase', '私钥口令（如有）', { type: 'password', autoComplete: 'new-password', maxLength: 4096 })
-              : field('password', 'SSH 用户密码', { type: 'password', autoComplete: 'new-password', maxLength: 4096 }),
-            field('sshFingerprint', '服务器指纹（首次连接可留空）', { wide: true, placeholder: 'SHA256:…', maxLength: 128 })),
-          h('p', null, '连接到远程 Linux 主机。目标仓库需填写远程机器上的绝对路径。'),
-          h('button', { type: 'button', disabled: testing || sending || lockedConnection || session.running || Boolean(connection),
-            onClick: () => testConnection() }, testing ? '正在测试…' : connection ? '连接已验证' : '测试连接'),
-          connectionState?.status === 'verify_host' && h('div', { className: 'irsi-message' },
-            h('p', null, '请核对服务器指纹'), h('code', { className: 'irsi-fingerprint' }, connectionState.fingerprint),
-            h('button', { type: 'button', disabled: testing, onClick: () => testConnection(connectionState.fingerprint) }, '信任此指纹并测试')),
-          connection && h('div', { className: 'irsi-message', role: 'status' }, 'SSH 认证与仓库访问成功。本会话可使用该远程连接。')),
-        field('objective', '优化目标 *', { required: true, multiline: true, wide: true, maxLength: 4096, placeholder: '希望改善什么，面向什么模型和工作负载' }),
-        field('maxRounds', '最多优化轮数 *', { type: 'number', required: true, min: 1, step: 1, placeholder: '填写轮数上限' }),
-        field('maxMinutes', '总时间预算（分钟）*', { type: 'number', required: true, min: 1, step: 1, placeholder: '填写总时间上限' })),
-      h('details', null, h('summary', null, '验收与执行条件（可选，Agent 会检查缺失项）'),
+      h('fieldset', { className: 'irsi-section' },
+        h('legend', null, '优化对象'),
         h('div', { className: 'irsi-fields' },
-          field('acceptance', '验收 Issue 或已有计划', { wide: true, maxLength: 2048, placeholder: '已有验收记录的链接或路径' }),
-          field('baseline', '基线修订', { maxLength: 256, placeholder: '已接受的 baseline revision' }),
-          field('device', '设备与运行环境', { maxLength: 1024, placeholder: '使用哪些已准备好的设备' }),
+          field('repository', '目标仓库 *', { required: true, wide: true, maxLength: 1024,
+            placeholder: form.execution === 'remote' ? '远程机器上的绝对仓库路径' : '本机仓库路径' }),
+          field('model', '模型 *', { required: true, maxLength: 256, placeholder: '模型名称或已有权重路径' }),
+          field('framework', '推理框架', { options: [['auto', '从仓库识别'], ['vllm', 'vLLM'], ['vllm-omni', 'vLLM-Omni'], ['sglang', 'SGLang'], ['pytorch', 'PyTorch'], ['other', '其他']] }),
+          field('plane', '本轮改动范围 *', { required: true, wide: true, options: [['', '请选择'], ['harness', 'Harness / 执行与评测'], ['model', 'Model / 模型与算子'], ['infra', 'Infra / 基础设施']] }),
+          field('objective', '优化目标 *', { required: true, multiline: true, wide: true, maxLength: 4096, placeholder: '希望改善什么，面向什么模型和工作负载' }))),
+      h('fieldset', { className: 'irsi-section' },
+        h('legend', null, '测试环境'),
+        h('div', { className: 'irsi-fields' },
+          field('backend', '硬件后端 *', { required: true, options: [['', '请选择'], ['gpu', 'GPU'], ['npu', 'NPU']] }),
+          field('execution', '运行位置', { options: [['local', '本机运行'], ['remote', '远程机器']] }),
+          field('device', '设备与运行环境', { wide: true, maxLength: 1024, placeholder: '设备型号、卡数或已准备好的环境' }),
           field('benchmark', '已有基准脚本', { maxLength: 1024, placeholder: '仓库中的脚本路径' }),
           field('quality', '已有质量验证脚本', { maxLength: 1024, placeholder: '仓库中的验证脚本路径' }),
           field('campaign', 'Campaign 目录', { wide: true, maxLength: 1024, placeholder: '现有 campaign 路径，留空由 Agent 准备' }),
-          field('constraints', '质量门槛与其他约束', { multiline: true, wide: true, maxLength: 4096, placeholder: '填写已有数值门槛、保持的能力和限制' }))),
+          field('maxRounds', '最多优化轮数 *', { type: 'number', required: true, min: 1, step: 1, placeholder: '填写轮数上限' }),
+          field('maxMinutes', '总时间预算（分钟）*', { type: 'number', required: true, min: 1, step: 1, placeholder: '填写总时间上限' }),
+          form.execution === 'remote' && h('fieldset', { className: 'irsi-wide irsi-remote' },
+            h('legend', null, 'SSH 远程连接'),
+            h('div', { className: 'irsi-fields' },
+              field('host', '机器 IP *', { required: true, placeholder: '目标机器的 IPv4 或 IPv6', maxLength: 64 }),
+              field('sshPort', 'SSH 端口 *', { required: true, type: 'number', min: 1, max: 65535, step: 1 }),
+              field('sshUser', 'SSH 用户名 *', { required: true, maxLength: 128 }),
+              field('authType', '认证方式', { options: [['key', 'SSH 私钥'], ['password', '用户密码']] }),
+              form.authType === 'key' && h('label', { className: 'irsi-field irsi-wide' },
+                h('span', null, form.privateKey ? 'SSH 私钥已载入' : '选择 SSH 私钥文件'),
+                h('input', { ref: keyInput, type: 'file', disabled: testing || sending || lockedConnection || session.running,
+                  onChange: async event => {
+                    const file = event.target.files?.[0];
+                    if (!file) return;
+                    if (file.size > 64 * 1024) { setError('私钥文件超过大小限制。'); return; }
+                    update('privateKey', await file.text());
+                  } })),
+              form.authType === 'key'
+                ? field('passphrase', '私钥口令（如有）', { type: 'password', autoComplete: 'new-password', maxLength: 4096 })
+                : field('password', 'SSH 用户密码', { type: 'password', autoComplete: 'new-password', maxLength: 4096 }),
+              field('sshFingerprint', '服务器指纹（首次连接可留空）', { wide: true, placeholder: 'SHA256:…', maxLength: 128 })),
+            h('p', null, '连接到远程 Linux 主机。请在「优化对象」填写远程仓库的绝对路径。'),
+            h('button', { type: 'button', disabled: testing || sending || lockedConnection || session.running || Boolean(connection),
+              onClick: () => testConnection() }, testing ? '正在测试…' : connection ? '连接已验证' : '测试连接'),
+            connectionState?.status === 'verify_host' && h('div', { className: 'irsi-message' },
+              h('p', null, '请核对服务器指纹'), h('code', { className: 'irsi-fingerprint' }, connectionState.fingerprint),
+              h('button', { type: 'button', disabled: testing, onClick: () => testConnection(connectionState.fingerprint) }, '信任此指纹并测试')),
+            connection && h('div', { className: 'irsi-message', role: 'status' }, 'SSH 认证与仓库访问成功。本会话可使用该远程连接。')))),
+      h('fieldset', { className: 'irsi-section' },
+        h('legend', null, '验收标准'),
+        h('p', null, '填写已确定的标准。缺失项由 Agent 在实验前核对。'),
+        h('div', { className: 'irsi-fields' },
+          field('constraints', '验收指标、门槛与约束', { multiline: true, wide: true, maxLength: 4096, placeholder: '填写性能指标、目标值、质量门槛和其他限制' }),
+          field('acceptance', '验收 Issue 或已有计划', { maxLength: 2048, placeholder: '已有验收记录的链接或路径' }),
+          field('baseline', '基线修订', { maxLength: 256, placeholder: '已接受的 baseline revision' }))),
       h('details', null, h('summary', null, '查看生成的 prompt'), h('pre', { className: 'irsi-preview' }, preview)),
       error && h('div', { className: 'irsi-message irsi-error', role: 'alert' }, error),
       lockedConnection && h('div', { className: 'irsi-message', role: 'status' },

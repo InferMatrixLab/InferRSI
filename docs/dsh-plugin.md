@@ -44,17 +44,20 @@ prepared target environment are needed for comparisons.
 ## Start an iteration from the form
 
 In DSH Web, open a target repository and its conversation, then click
-**InferRSI** beside the message composer. The form fills the repository path from the
-current session when available. Choose the framework, GPU or NPU hardware,
-local or remote execution, and SIAS plane,
-enter the model and optimization objective, and supply the maximum optimization
-rounds and total time budget in minutes.
+**InferRSI** beside the message composer. The form has three sections.
 
-Expand the execution conditions to provide an existing acceptance issue or
-plan, baseline revision, prepared device, benchmark/quality scripts, campaign
-directory and constraints. Unknown fields can stay empty while the Agent
-checks the repository and prepares the missing prerequisites. Numerical gates
-come from the selected acceptance record and user inputs.
+1. **Optimization target (优化对象).** Enter the repository, model, framework,
+   SIAS plane and objective. The form fills the local repository path from the
+   current session when available.
+2. **Test environment (测试环境).** Choose GPU or NPU and local or remote
+   execution. After selecting remote execution, enter the remote repository path
+   in the first section, then return here to test the SSH connection. Set the
+   maximum optimization rounds and total time budget in minutes. The prepared
+   device, benchmark and quality scripts, and campaign directory are optional.
+3. **Acceptance criteria (验收标准).** Enter the agreed metrics, thresholds and
+   constraints, and provide an acceptance issue or plan and baseline revision
+   when available. The Agent checks missing inputs and freezes the gates before
+   candidate experiments.
 
 **Start iteration** sends one formatted prompt to the Agent in the current
 conversation. The optional prompt preview shows the complete instructions and
