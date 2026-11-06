@@ -3,7 +3,7 @@ name: inferrsi
 description: Use InferRSI to research inference-engine bottlenecks, prepare controlled baseline/candidate comparisons, and inspect experiment evidence. Use when the user asks to use InferRSI or needs its inference-optimization knowledge and comparison workbench.
 ---
 
-# InferRSI in Codex
+# InferRSI
 
 Use the bundled InferRSI CLI for knowledge and experiment operations. The host
 agent owns investigation and code changes; the existing runtime owns execution,
@@ -11,21 +11,31 @@ evaluation and reports. Load selected knowledge progressively.
 
 ## Start in the user's target workspace
 
-Resolve `scripts/inferrsi.py` relative to this skill directory. Invoke it with a
-local Python 3.10+ interpreter and UTF-8 enabled. Below, `<launcher>` means that
-resolved script path, quoted when it contains spaces; it is not a CLI command.
+Choose the task's execution location first. In DSH remote mode, use
+`inferrsi_remote` with the form's tested `remote.connectionId` and operation
+`cli`; pass CLI arguments such as `["--version"]` or `["--help"]` in `args`.
+The bridge runs the bundled runtime with Python on the prepared remote machine.
+Do not pass a local launcher path to the remote machine.
+
+For local execution, resolve `scripts/inferrsi.py` relative to this skill
+directory. Invoke it with Python 3.10+ and UTF-8 enabled. Below, `<launcher>`
+means that resolved local script path, quoted when it contains spaces; it is not
+a CLI command. The command examples below describe this local invocation;
+remote mode passes canonical CLI arguments through the tool instead. The
+launcher's `--plugin-info` is local-only; remote startup checks use `--version`
+and `--help`.
 
 ```text
 python -X utf8 "<launcher>" --plugin-info
 python -X utf8 "<launcher>" --help
 ```
 
-For setup/onboarding, check the bundle first, identify the user's intended
-workspace and goal from available context, and report readiness and the next
+For setup/onboarding, check the runtime through the selected path, identify the
+user's intended workspace and goal from available context, and report readiness and the next
 relevant operation. Do not run benchmarks merely because setup was invoked.
 The bundle needs no pip installation for its core operations. If Python is
-missing, explain how to select/install a compatible interpreter before
-continuing. Use the same selected interpreter for subsequent calls.
+missing on the execution machine, explain how to select/install a compatible
+interpreter before continuing. Use that interpreter for subsequent calls.
 
 Keep the current directory in the target workspace. Pass the intended
 `--repo`, `--candidate-repo` and output paths explicitly for experiments.
@@ -108,14 +118,60 @@ do not add a second approval step when that authority is already sufficient.
 
 Benchmark commands are parsed as argv, without a shell. Put environment setup,
 pipelines and service lifecycle in reviewed target-owned scripts. Use forward
-slashes in Windows paths inside command strings. The runner is local: execute
-on the prepared target machine. This plugin does not dispatch SSH jobs.
+slashes in Windows paths inside command strings. The runner executes on the
+prepared target machine. For local execution, use the host's terminal/process
+tools. In DSH remote mode, use `inferrsi_remote` with the form's tested
+`remote.connectionId`: `cli` invokes the bundled runtime in the selected remote
+repository, and `run_script` invokes the user-designated benchmark or quality
+script. Supply `maxMinutes` from the task's remaining time budget for
+`run_script` and long CLI operations; it does not grant additional execution
+authority. Other hosts without this tool require their existing authorized
+target-execution mechanism.
 
-Run in the foreground through Codex's terminal/process tools, retain the returned
+Run in the foreground through the selected host tool, retain the returned
 process/session identity, and inspect recorded status during long work. Cancel
-through that process so the existing executor can clean up. After a timeout,
+through that tool so the existing executor can clean up. After a timeout,
 interruption or reconnect, inspect evidence before proposing another invocation;
 never silently retry a measurement.
+
+## Open the optimization dashboard
+
+When the user asks to monitor optimization progress, rounds or history, use the
+bundled dashboard. Select the campaign directory already associated with the
+task to show its recorded rounds and candidates. For a single-run view, select
+that existing run directory. Resolve the input from the user's task and known
+artifacts; ask for the directory when its identity is ambiguous.
+
+In DSH remote mode, call `inferrsi_remote` with operation `dashboard`, the tested
+connection ID and `path` set to the campaign/run directory. Use its returned
+Host loopback URL. For local execution, start the command below through the
+host's terminal/process tools.
+
+```text
+python -X utf8 "<launcher>" dashboard --input "<campaign-or-run-directory>" --live --port 0
+```
+
+Retain the connection or process/session identity for the chosen path. In
+remote mode, open or link the tool's returned `url`; locally, wait for startup
+JSON and use its exact `dashboard` URL. The dashboard refreshes recorded progress
+about every three seconds. If an owned server for the same input is already
+running, reuse its URL. Stop a local server through the retained process. In
+DSH remote mode, `close` releases the connection and its dashboard together,
+including other active operations on that connection. Keep it open while an
+authorized measurement is running, and close it when the task is finished or
+the user requests that full connection close.
+
+The server listens on the machine where the launcher runs. In DSH remote mode,
+use `inferrsi_remote` with operation `dashboard`, the tested connection ID and
+the campaign/run path; it returns the Host loopback URL through its SSH tunnel.
+If the browser is on another machine, forward that Host loopback port to the
+browser machine. Other remote hosts require their existing authorized
+port-forwarding setup. The dashboard's headers require a separate browser page. To export an
+offline snapshot, omit `--live --port 0` and supply `--output "<output.html>"`.
+
+Preserve explicit campaign round/candidate associations through `campaign record`
+and the recorded optimization log. Missing history or context needs its source
+record; an open dashboard alone creates no experiment or campaign evidence.
 
 ## Inspect and explain
 

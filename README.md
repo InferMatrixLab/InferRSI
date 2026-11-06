@@ -136,7 +136,9 @@ python -m pip install "<download-directory>/inferrsi-<version>-py3-none-any.whl"
 ```
 
 For Codex, use the [standalone plugin ZIP](docs/codex-plugin.md#install-from-the-release-zip).
+For DeepSeek Harness, build and install the [native DSH bundle](docs/dsh-plugin.md).
 For openJiuwen WorkSwarm v0.2.7, use the [native plugin ZIP](docs/workswarm-plugin.md#download-and-install).
+
 For CLI development from this checkout:
 
 ```bash
