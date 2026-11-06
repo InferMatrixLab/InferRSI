@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "sections": {
+    "optimization": {
+      "repository": {"type": "path", "cli_argument": "--repo", "required_for_plan_run": true},
+      "candidate_repository": {"type": "path", "cli_argument": "--candidate-repo"},
+      "model": {"type": "text", "cli_argument": "--model", "required_for_plan_run": true},
+      "model_revision": {"type": "text", "cli_argument": "--model-revision"},
+      "framework": {"type": "framework", "cli_argument": "--repo-type", "required_for_plan_run": true},
+      "workload": {"type": "text", "cli_argument": "--workload-id", "required_for_plan_run": true},
+      "objective": {"type": "text", "required_for_plan_run": true},
+      "plane": {"type": "choice", "choices": ["harness", "model", "infra"], "required_for_plan_run": true},
+      "scenario": {"type": "text", "cli_argument": "--scenario"},
+      "mode": {"type": "choice", "choices": ["config", "code", "semantic"], "cli_argument": "--mode"},
+      "agent": {"type": "choice", "choices": ["manual", "codex", "external"], "cli_argument": "--agent"}
+    },
+    "environment": {
+      "backend": {"type": "backend", "cli_argument": "--backend", "required_for_plan_run": true},
+      "device_ids": {"type": "ids", "cli_argument": "--device-ids"},
+      "device_model": {"type": "text", "cli_argument": "--device-model"},
+      "python": {"type": "interpreter", "cli_argument": "--python"},
+      "executor": {"type": "choice", "choices": ["local"], "cli_argument": "--executor"},
+      "baseline_command": {"type": "argv", "cli_argument": "--baseline-command", "required_for_plan_run": true},
+      "candidate_command": {"type": "argv", "cli_argument": "--candidate-command", "required_for_plan_run": true},
+      "quality_command": {"type": "argv", "cli_argument": "--validation-command"},
+      "repetitions": {"type": "positive_integer", "cli_argument": "--repetitions", "required_for_plan_run": true},
+      "max_minutes": {"type": "minutes", "cli_argument": "--max-minutes", "required_for_plan_run": true},
+      "output_directory": {"type": "path", "cli_argument": "--output-dir"}
+    },
+    "acceptance": {
+      "reference": {"type": "reference", "required_for_plan_run": true},
+      "baseline": {"type": "revision", "required_for_plan_run": true},
+      "metric_key": {"type": "metric", "cli_argument": "--metric-key", "required_for_plan_run": true},
+      "metric_unit": {"type": "text", "cli_argument": "--metric-unit", "required_for_plan_run": true},
+      "direction": {"type": "choice", "choices": ["minimize", "maximize"], "cli_argument": "--direction", "required_for_plan_run": true},
+      "min_improvement_pct": {"type": "threshold", "cli_argument": "--min-improvement-pct", "required_for_plan_run": true},
+      "comparison_scope": {"type": "text", "cli_argument": "--comparison-scope"},
+      "required_trial_checks": {"type": "checks", "cli_argument": "--require-trial-check"},
+      "require_quality": {"type": "boolean"},
+      "constraints": {"type": "text"}
+    }
+  }
+}

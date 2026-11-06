@@ -37,8 +37,7 @@ def _run(args: list[str], env: dict, *, cwd: Path = REPO) -> subprocess.Complete
 
 @pytest.fixture
 def without_yaml(tmp_path):
-    # Shadow PyYAML with a failing module: exactly the base install without
-    # the skills extra, without touching the test environment itself.
+    # Emulate a direct-source or bundled plugin runtime without PyYAML.
     blocked = tmp_path / "blocked"
     blocked.mkdir()
     (blocked / "yaml.py").write_text(

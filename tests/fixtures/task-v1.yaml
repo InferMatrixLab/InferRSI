@@ -1,0 +1,26 @@
+# Synthetic input for read-only tests. Commands and revision are test placeholders.
+schema_version: 1
+optimization:
+  repository: ./checkout
+  model: test-model
+  framework: vllm
+  workload: fixed-synthetic-input
+  objective: Verify task normalization
+  plane: harness
+environment:
+  backend: cuda
+  device_ids: ["2"]
+  baseline_command: [fixture-benchmark, baseline, "{result}"]
+  candidate_command: [fixture-benchmark, candidate, "{result}"]
+  quality_command: [fixture-quality]
+  repetitions: 2
+  max_minutes: 1.5
+  output_directory: ./results
+acceptance:
+  reference: ./frozen-plan.md
+  baseline: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  metric_key: metrics.latency_ms
+  metric_unit: ms
+  direction: minimize
+  min_improvement_pct: 7.5
+  require_quality: true

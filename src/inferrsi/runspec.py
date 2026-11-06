@@ -4,6 +4,8 @@ import math
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
+MAX_EXPERIMENT_MINUTES = 7 * 24 * 60
+
 
 @dataclass(frozen=True)
 class RunSpec:
@@ -109,7 +111,7 @@ class RunSpec:
                 raise ValueError(f"{label} must be finite")
         if self.max_minutes <= 0 or self.min_improvement_pct < 0:
             raise ValueError("max_minutes must be positive and min_improvement_pct nonnegative")
-        if self.max_minutes > 7 * 24 * 60:
+        if self.max_minutes > MAX_EXPERIMENT_MINUTES:
             raise ValueError("max_minutes cannot exceed seven days in this release")
         if not self.metric_key or any(not part for part in self.metric_key.split(".")):
             raise ValueError("metric_key must be a nonempty dotted JSON key")

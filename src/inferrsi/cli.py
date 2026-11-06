@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import sqlite3
 import sys
+from dataclasses import replace
 from importlib.resources import files
 from pathlib import Path
 
@@ -18,8 +19,8 @@ from .reporting import write_report
 from .research import research_knowledge
 
 
-def _print(value: object) -> None:
-    print(json.dumps(value, ensure_ascii=False, indent=2, allow_nan=False))
+def _print(value: object, *, ensure_ascii: bool = False) -> None:
+    print(json.dumps(value, ensure_ascii=ensure_ascii, indent=2, allow_nan=False))
 
 
 def _knowledge_reader(args) -> KnowledgeReader:
@@ -116,9 +117,33 @@ def main(argv: list[str] | None = None) -> int:
     argument_parser = parser()
     args = argument_parser.parse_args(argv)
     try:
+        if args.command == "task":
+            if args.task_action in ("schema", "template"):
+                name = "schema-v1.json" if args.task_action == "schema" else "template-v1.yaml"
+                resource = files("inferrsi").joinpath("data", "task_input", name)
+                print(resource.read_text(encoding="utf-8"), end="")
+                return 0
+            from .task_input import normalize_task
+
+            task = normalize_task(args.task, vars(args))
+            if args.task_action == "validate":
+                if args.json:
+                    _print({"valid": True})
+                else:
+                    print("Valid task YAML")
+            elif args.json:
+                _print(task.preview(), ensure_ascii=True)
+            else:
+                for section, fields in task.task.items():
+                    if isinstance(fields, dict):
+                        for key, value in fields.items():
+                            print(f"{section}.{key} = {json.dumps(value)}")
+                    else:
+                        print(f"{section} = {fields}")
+                for field in task.missing:
+                    print(f"Required for plan/run: {field}")
+            return 0
         if args.command == "skills":
-            # Optional dependencies load only for the skills command; the core
-            # CLI stays independent of them.
             from .skill_catalog import (
                 get_skill,
                 skill_instructions,
@@ -357,6 +382,21 @@ def main(argv: list[str] | None = None) -> int:
             _print({"record": str(path)})
             return 0
 
+        task = None
+        if args.command in ("plan", "run") and hasattr(args, "task"):
+            from .task_input import normalize_task
+
+            task = normalize_task(args.task, vars(args))
+            args = task.execution_args(args)
+            if args.command == "run" and not args.dry_run and not getattr(
+                args, "confirm_acceptance", False
+            ):
+                raise ValueError(
+                    "acceptance.reference: review the effective task against the frozen gates "
+                    "and pass --confirm-acceptance to run"
+                )
+            spec = replace(task.make_spec(args), revision=task.task["acceptance"]["baseline"])
+
         environment = inspect_environment(
             args.repo,
             args.repo_type,
@@ -364,6 +404,7 @@ def main(argv: list[str] | None = None) -> int:
             device_ids=device_ids(args),
             device_model=args.device_model,
             python=args.python,
+            baseline_revision=spec.revision if task else "",
         )
         environment["invocation"] = argv if argv is not None else sys.argv[1:]
         if args.command == "doctor":
@@ -375,7 +416,10 @@ def main(argv: list[str] | None = None) -> int:
             ].get("environment")
             return 0 if available and known else 1
 
-        spec = make_spec(args)
+        if task is None:
+            spec = make_spec(args)
+        else:
+            environment["task"] = task.task
         if args.command == "plan" or args.dry_run:
             _print(
                 {
@@ -383,7 +427,8 @@ def main(argv: list[str] | None = None) -> int:
                     "environment": environment,
                     "execution": "not started",
                     "validation": "unverified",
-                }
+                },
+                ensure_ascii=task is not None,
             )
             return 0
         if not environment["repository"].get("available"):
@@ -407,7 +452,8 @@ def main(argv: list[str] | None = None) -> int:
                 "run_dir": str(directory),
                 "report": str(directory / "report.html"),
                 "status": status,
-            }
+            },
+            ensure_ascii=task is not None,
         )
         return (
             0 if status.get("verdict") == "PASS" else (1 if status.get("verdict") == "FAIL" else 2)

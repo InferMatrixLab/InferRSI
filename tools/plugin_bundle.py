@@ -56,6 +56,7 @@ def bundle_runtime(source: Path, runtime: Path, *, plugin_version: str,
                 and relative.parts[-3:-1] == ("references", "licenses")
             )
             or (path.suffix == ".html" and relative.parent.parts == ("data", "dashboard"))
+            or (path.suffix == ".yaml" and relative.parent.parts == ("data", "task_input"))
             or (path.name == "upstream-NOTICE" and relative.parent.name == "references")
         )
         if path.suffix != ".py" and not package_data:
