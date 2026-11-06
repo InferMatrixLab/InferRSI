@@ -41,6 +41,43 @@ def _version(path: Path) -> str:
     raise ValueError("Runtime __version__ is missing")
 
 
+def bundle_runtime(source: Path, runtime: Path, *, plugin_version: str,
+                   runtime_version: str) -> int:
+    """Stage the canonical runtime and resource manifest for a host package."""
+    hashes = {}
+    for path in sorted(source.rglob("*")):
+        if not path.is_file():
+            continue
+        relative = path.relative_to(source)
+        package_data = relative.parts[0] == "data" and (
+            path.suffix in (".md", ".json") or path.name in ("LICENSE", "THIRD_PARTY_NOTICES")
+            or (
+                path.suffix == ".txt"
+                and relative.parts[-3:-1] == ("references", "licenses")
+            )
+            or (path.suffix == ".html" and relative.parent.parts == ("data", "dashboard"))
+            or (path.name == "upstream-NOTICE" and relative.parent.name == "references")
+        )
+        if path.suffix != ".py" and not package_data:
+            continue
+        if path.is_symlink():
+            raise ValueError(f"Package input must not be a symlink: {relative}")
+        destination = runtime / "inferrsi" / relative
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        data = path.read_bytes()
+        destination.write_bytes(data)
+        hashes[(Path("inferrsi") / relative).as_posix()] = hashlib.sha256(data).hexdigest()
+    identity = "\n".join(f"{name}\0{digest}" for name, digest in sorted(hashes.items()))
+    _json(runtime / "manifest.json", {
+        "schema_version": 1,
+        "plugin_version": plugin_version,
+        "runtime_version": runtime_version,
+        "content_sha256": hashlib.sha256(identity.encode("utf-8")).hexdigest(),
+        "files": hashes,
+    })
+    return len(hashes)
+
+
 def _zip_tree(root: Path, destination: Path, prefix: str = "") -> None:
     with zipfile.ZipFile(destination, "x", compression=zipfile.ZIP_DEFLATED) as bundle:
         for path in sorted(root.rglob("*")):
@@ -94,46 +131,17 @@ def build_bundle(
         if not compact_runtime:
             shutil.copyfile(shared_launcher, launcher)
         runtime = plugin / "runtime"
-        hashes = {}
-        for path in sorted(source.rglob("*")):
-            if not path.is_file():
-                continue
-            relative = path.relative_to(source)
-            package_data = relative.parts[0] == "data" and (
-                path.suffix in (".md", ".json") or path.name in ("LICENSE", "THIRD_PARTY_NOTICES")
-                or (
-                    path.suffix == ".txt"
-                    and relative.parts[-3:-1] == ("references", "licenses")
-                )
-                or (path.suffix == ".html" and relative.parent.parts == ("data", "dashboard"))
-                or (path.name == "upstream-NOTICE" and relative.parent.name == "references")
-            )
-            if path.suffix != ".py" and not package_data:
-                continue
-            if path.is_symlink():
-                raise ValueError(f"Package input must not be a symlink: {relative}")
-            destination = runtime / "inferrsi" / relative
-            destination.parent.mkdir(parents=True, exist_ok=True)
-            data = path.read_bytes()
-            destination.write_bytes(data)
-            hashes[(Path("inferrsi") / relative).as_posix()] = (
-                hashlib.sha256(data).hexdigest()
-            )
-        identity = "\n".join(f"{name}\0{digest}" for name, digest in sorted(hashes.items()))
         metadata = json.loads((plugin / metadata_file).read_text(encoding="utf-8"))
         if metadata.get("id", metadata.get("name")) != "inferrsi":
             raise ValueError("Plugin identity must match its inferrsi package directory")
         if release_version is not None:
             metadata["version"] = release_version
             _json(plugin / metadata_file, metadata)
-        manifest = {
-            "schema_version": 1,
-            "plugin_version": metadata["version"],
-            "runtime_version": runtime_version,
-            "content_sha256": hashlib.sha256(identity.encode("utf-8")).hexdigest(),
-            "files": hashes,
-        }
+        runtime_files = bundle_runtime(
+            source, runtime, plugin_version=metadata["version"], runtime_version=runtime_version,
+        )
         if compact_runtime:
+            manifest = json.loads((runtime / "manifest.json").read_text(encoding="utf-8"))
             # The host must never copy the deep canonical tree during import/install.
             # Only the bootstrap expands it, using extended paths on Windows.
             payload = runtime / "payload.zip"
@@ -143,12 +151,12 @@ def build_bundle(
             shutil.copyfile(shared_launcher, runtime / "launcher.py")
             assert (runtime / "inferrsi").resolve().is_relative_to(Path(staging).resolve())
             shutil.rmtree(runtime / "inferrsi")
-        _json(runtime / "manifest.json", manifest)
+            _json(runtime / "manifest.json", manifest)
         # Stable ZIP metadata makes repeated builds of identical bytes comparable.
         _zip_tree(plugin, archive, "inferrsi/")
         shutil.copytree(plugin, _io_path(package))
     return {
         "plugin": str(package),
         "archive": str(archive),
-        "runtime_files": len(hashes),
+        "runtime_files": runtime_files,
     }
