@@ -12,6 +12,7 @@ def inspect_environment(
     device_ids: tuple[str, ...] = (),
     device_model: str | None = None,
     python: str | None = None,
+    baseline_revision: str = "",
 ) -> dict:
     from .execution import repository_identity
 
@@ -22,6 +23,7 @@ def inspect_environment(
         device_ids=device_ids,
         device_model=device_model,
         python=python,
+        baseline_revision=baseline_revision,
         command=_command,
         snapshot=repository_identity,
     )

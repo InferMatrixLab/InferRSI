@@ -21,10 +21,13 @@ def inspect_environment(
     device_ids: tuple[str, ...] = (),
     device_model: str | None = None,
     python: str | None = None,
+    baseline_revision: str = "",
     command: Callable[[list[str]], dict] = probe_command,
     snapshot: Callable[[Path], dict] = repository_identity,
 ) -> dict:
     repository = snapshot(Path(repo).resolve())
+    if baseline_revision and repository.get("head") != baseline_revision:
+        raise ValueError("acceptance.baseline: Git checkout HEAD differs from the pinned revision")
     python = python or sys.executable
     package_code = (
         "import json,sys,importlib.metadata as m\n"

@@ -1,0 +1,25 @@
+# Fill the required fields before plan/run. Null is a draft placeholder.
+# Keep credentials in the existing runtime channels.
+schema_version: 1
+optimization:
+  repository: .
+  model: null
+  framework: null
+  workload: null
+  objective: null
+  plane: null  # harness, model, or infra
+environment:
+  backend: null  # cpu, cuda, rocm, ascend, or mlx
+  baseline_command: null  # YAML argv list, including "{result}" where needed
+  candidate_command: null
+  quality_command: null
+  repetitions: null
+  max_minutes: null
+acceptance:
+  reference: null  # HTTP(S) acceptance issue URL or a local plan path
+  baseline: null  # Full pinned Git revision as a quoted string
+  metric_key: null
+  metric_unit: null
+  direction: null  # minimize or maximize
+  min_improvement_pct: null
+  constraints: null

@@ -221,11 +221,11 @@ Keep the existing four lanes:
 | [Merge](../.github/workflows/ci-merge.yml) | Manifest check and lightweight CPU smoke on main |
 | [Nightly](../.github/workflows/ci-nightly.yml) | Scheduled lint/tests, evidence layout and label drift |
 
-Ready CI also builds the source distribution and wheel, installs the wheel with
-the optional `skills` parser in a fresh virtual environment, and runs
-`tests/check_installed.py` outside the checkout with `PYTHONPATH` unset and Python
-isolated mode enabled. This checks packaged knowledge, skill bodies, licenses,
-helpers and CLI reads without installing any inference engine.
+Ready CI builds the source distribution and wheel and installs the wheel with
+its core dependencies in a fresh virtual environment. It runs
+`tests/check_installed.py` and `tests/check_task_installed.py` outside the checkout
+with `PYTHONPATH` unset and Python isolated mode enabled. The checks cover packaged
+knowledge, skills, task schema and template, and read-only CLI operations.
 The ready test and installed-package jobs cover the declared minimum Python
 3.10 alongside Python 3.11. This matrix does not certify later Python releases
 or accelerator runtime compatibility.

@@ -7,11 +7,11 @@ from typing import BinaryIO
 
 try:
     import yaml
-except ImportError as exc:  # The base install stays PyYAML-free by contract.
+except ImportError as exc:  # Plugin and direct-source runtimes may omit PyYAML.
     raise ValueError(
-        "Reading checkout skills requires the 'skills' extra (PyYAML); install it "
-        "from your InferRSI checkout, replacing the placeholder path: "
-        "python -m pip install '<inferrsi-checkout>[skills]'"
+        "Reading checkout skills requires PyYAML. Install the standard InferRSI "
+        "package from your checkout, replacing the placeholder path: "
+        "python -m pip install '<inferrsi-checkout>'"
     ) from exc
 
 from .catalog import BACKENDS

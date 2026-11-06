@@ -30,10 +30,11 @@ jobs:
         run: |
           python -m venv "$RUNNER_TEMP/wheel-env"
           wheels=("$RUNNER_TEMP"/dist/*.whl)
-          "$RUNNER_TEMP/wheel-env/bin/python" -m pip install "${wheels[0]}[skills]"
-          cp tests/check_installed.py "$RUNNER_TEMP/check_installed.py"
+          "$RUNNER_TEMP/wheel-env/bin/python" -m pip install "${wheels[0]}"
+          cp tests/check_installed.py tests/check_task_installed.py tests/fixtures/task-v1.yaml "$RUNNER_TEMP/"
           cd "$RUNNER_TEMP"
           env -u PYTHONPATH "$RUNNER_TEMP/wheel-env/bin/python" -I check_installed.py
+          env -u PYTHONPATH "$RUNNER_TEMP/wheel-env/bin/python" -I check_task_installed.py
 
   full-check:
     strategy:

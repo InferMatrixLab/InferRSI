@@ -1,4 +1,4 @@
-"""The user configuration surface is argparse, not task files."""
+"""CLI argument declarations and RunSpec construction."""
 
 from __future__ import annotations
 
@@ -12,13 +12,55 @@ from ._skill_selection import RELEVANCE_METHODS
 from .catalog import BACKENDS, KNOWLEDGE_REPOS, KNOWLEDGE_SCOPES, REPO_TYPES
 from .runspec import RunSpec
 
+TARGET_DEFAULTS = {
+    "repo": ".", "repo_type": "vllm_omni", "backend": "cpu", "device_ids": "",
+    "device_model": None, "python": sys.executable,
+}
+EXPERIMENT_DEFAULTS = {
+    **TARGET_DEFAULTS,
+    "candidate_repo": None,
+    "scenario": "external_benchmark",
+    "mode": "config",
+    "agent": "manual",
+    "executor": "local",
+    "validation_command": None,
+    "metric_key": "metrics.latency_ms",
+    "require_trial_check": (),
+    "metric_unit": "ms",
+    "comparison_scope": "external_command",
+    "direction": "minimize",
+    "repetitions": 3,
+    "min_improvement_pct": 0.0,
+    "max_minutes": 120.0,
+    "workload_id": None,
+    "model": None,
+    "model_revision": None,
+    "output_dir": "runs",
+}
+
+
+class _ArgumentParser(argparse.ArgumentParser):
+    def parse_args(self, args=None, namespace=None):
+        parsed = super().parse_args(args, namespace)
+        if parsed.command in ("plan", "run") and not hasattr(parsed, "task"):
+            if getattr(parsed, "confirm_acceptance", False):
+                self.error("--confirm-acceptance requires --task")
+            required = ("baseline_command", "candidate_command")
+            missing = [
+                f"--{name.replace('_', '-')}" for name in required if not hasattr(parsed, name)
+            ]
+            if missing:
+                self.error("the following arguments are required: " + ", ".join(missing))
+            return argparse.Namespace(**(EXPERIMENT_DEFAULTS | vars(parsed)))
+        return parsed
+
 
 def _common(parser: argparse.ArgumentParser) -> None:
-    parser.add_argument("--repo", default=".", help="Prepared target Git checkout")
-    parser.add_argument("--repo-type", choices=REPO_TYPES, default="vllm_omni")
-    parser.add_argument("--backend", choices=BACKENDS, default="cpu")
+    parser.add_argument("--repo", help="Prepared target Git checkout")
+    parser.add_argument("--repo-type", choices=REPO_TYPES)
+    parser.add_argument("--backend", choices=BACKENDS)
     parser.add_argument(
-        "--device-ids", default="",
+        "--device-ids",
         help=(
             "Comma-separated caller-assigned device IDs; "
             "unsupported by MLX unified-memory discovery"
@@ -29,83 +71,101 @@ def _common(parser: argparse.ArgumentParser) -> None:
         help="Expected CUDA device model or Apple Silicon chip (case-insensitive match)",
     )
     parser.add_argument(
-        "--python", default=sys.executable, help="Python used for target package inspection"
+        "--python", help="Python used for target package inspection"
     )
+
+
+def _experiment_options(child: argparse.ArgumentParser) -> None:
+    _common(child)
+    child.add_argument(
+        "--candidate-repo", help="Candidate checkout; defaults to the baseline checkout"
+    )
+    child.add_argument(
+        "--scenario", help="Caller-declared scenario label"
+    )
+    child.add_argument("--mode", choices=("config", "code", "semantic"))
+    child.add_argument(
+        "--agent",
+        choices=("manual", "codex", "external"),
+        help="Handoff label only; no Agent is launched",
+    )
+    child.add_argument(
+        "--executor",
+        choices=("local",),
+        help="Install this CLI on the remote machine for this first release",
+    )
+    child.add_argument(
+        "--baseline-command",
+        help="Quoted argv command; {result} is replaced with a fresh output path",
+    )
+    child.add_argument("--candidate-command")
+    child.add_argument(
+        "--validation-command",
+        help="Explicit quality/correctness command; missing evidence is INCONCLUSIVE",
+    )
+    child.add_argument(
+        "--metric-key",
+        help="Flat or dotted key in benchmark JSON",
+    )
+    child.add_argument(
+        "--require-trial-check", action="append", metavar="DOTTED_KEY",
+        help="Require a literal true qualification field in every benchmark JSON; repeatable",
+    )
+    child.add_argument("--metric-unit")
+    child.add_argument("--comparison-scope")
+    child.add_argument("--direction", choices=("minimize", "maximize"))
+    child.add_argument("--repetitions", type=int)
+    child.add_argument("--min-improvement-pct", type=float)
+    child.add_argument(
+        "--max-minutes",
+        type=float,
+        help="Experiment deadline, at most seven days",
+    )
+    child.add_argument("--workload-id", help="Caller-declared fixed workload identity")
+    child.add_argument("--model", help="Model identity/path recorded in the experiment")
+    child.add_argument("--model-revision")
+    child.add_argument("--output-dir")
 
 
 def parser() -> argparse.ArgumentParser:
-    root = argparse.ArgumentParser(
+    root = _ArgumentParser(
         description="CLI-first reproducible experiments and tuning knowledge"
     )
-    root.add_argument("--version", action="version", version=__version__)
     commands = root.add_subparsers(dest="command", required=True)
+    root.add_argument("--version", action="version", version=__version__)
     doctor = commands.add_parser(
         "doctor", help="Inspect a prepared local target without installing dependencies"
     )
     _common(doctor)
+    doctor.set_defaults(**TARGET_DEFAULTS)
 
     for name in ("plan", "run"):
         child = commands.add_parser(
             name,
-            help="Freeze an external-command experiment"
+            help="Preview an external-command experiment"
             if name == "plan"
             else "Measure baseline and candidate commands",
+            argument_default=argparse.SUPPRESS,
         )
-        _common(child)
-        child.add_argument(
-            "--candidate-repo", help="Candidate checkout; defaults to the baseline checkout"
-        )
-        child.add_argument(
-            "--scenario", default="external_benchmark", help="Caller-declared scenario label"
-        )
-        child.add_argument("--mode", choices=("config", "code", "semantic"), default="config")
-        child.add_argument(
-            "--agent",
-            choices=("manual", "codex", "external"),
-            default="manual",
-            help="Handoff label only; no Agent is launched",
-        )
-        child.add_argument(
-            "--executor",
-            choices=("local",),
-            default="local",
-            help="Install this CLI on the remote machine for this first release",
-        )
-        child.add_argument(
-            "--baseline-command",
-            required=True,
-            help="Quoted argv command; {result} is replaced with a fresh output path",
-        )
-        child.add_argument("--candidate-command", required=True)
-        child.add_argument(
-            "--validation-command",
-            help="Explicit quality/correctness command; missing evidence is INCONCLUSIVE",
-        )
-        child.add_argument(
-            "--metric-key",
-            default="metrics.latency_ms",
-            help="Flat or dotted key in benchmark JSON",
-        )
-        child.add_argument(
-            "--require-trial-check", action="append", default=[], metavar="DOTTED_KEY",
-            help="Require a literal true qualification field in every benchmark JSON; repeatable",
-        )
-        child.add_argument("--metric-unit", default="ms")
-        child.add_argument("--comparison-scope", default="external_command")
-        child.add_argument("--direction", choices=("minimize", "maximize"), default="minimize")
-        child.add_argument("--repetitions", type=int, default=3)
-        child.add_argument("--min-improvement-pct", type=float, default=0.0)
-        child.add_argument(
-            "--max-minutes",
-            type=float,
-            default=120.0,
-            help="Experiment deadline, at most seven days",
-        )
-        child.add_argument("--workload-id", help="Caller-declared fixed workload identity")
-        child.add_argument("--model", help="Model identity/path recorded in the experiment")
-        child.add_argument("--model-revision")
-        child.add_argument("--output-dir", default="runs")
-        child.add_argument("--dry-run", action="store_true")
+        _experiment_options(child)
+        child.add_argument("--task", help="Read a versioned YAML task")
+        child.add_argument("--dry-run", action="store_true", default=False)
+        if name == "run":
+            child.add_argument(
+                "--confirm-acceptance", action="store_true",
+                help="Confirm the effective YAML task was checked against the frozen gates",
+            )
+
+    task = commands.add_parser("task", help="Read or inspect shared YAML tasks")
+    actions = task.add_subparsers(dest="task_action", required=True)
+    for name in ("validate", "preview"):
+        child = actions.add_parser(name, argument_default=argparse.SUPPRESS)
+        child.add_argument("task", help="Path to the YAML task")
+        child.add_argument("--json", action="store_true", default=False)
+        if name == "preview":
+            _experiment_options(child)
+    actions.add_parser("schema", help="Print the packaged v1 schema")
+    actions.add_parser("template", help="Print the packaged v1 YAML template")
 
     for name in ("status", "report"):
         child = commands.add_parser(
@@ -283,7 +343,7 @@ def parser() -> argparse.ArgumentParser:
     collect.add_argument(
         "--skill-root",
         type=Path,
-        help="Select an explicit skills root (requires the 'skills' extra)",
+        help="Select an explicit skills root",
     )
     collect.add_argument(
         "--store",
@@ -302,7 +362,7 @@ def parser() -> argparse.ArgumentParser:
     read.add_argument(
         "--skill-root",
         type=Path,
-        help="Select an explicit skills root (requires the 'skills' extra)",
+        help="Select an explicit skills root",
     )
     read.add_argument(
         "--store",
@@ -322,7 +382,7 @@ def parser() -> argparse.ArgumentParser:
     resource.add_argument(
         "--skill-root",
         type=Path,
-        help="Select an explicit skills root (requires the 'skills' extra)",
+        help="Select an explicit skills root",
     )
     resource.add_argument(
         "--store",
@@ -351,14 +411,16 @@ def device_ids(args: argparse.Namespace) -> tuple[str, ...]:
     return values
 
 
+def command_argv(value: str | list[str] | None) -> tuple[str, ...] | None:
+    if value is None:
+        return None
+    parsed = tuple(shlex.split(value, posix=True)) if isinstance(value, str) else tuple(value)
+    if not parsed:
+        raise ValueError("Commands cannot be empty")
+    return parsed
+
+
 def make_spec(args: argparse.Namespace) -> RunSpec:
-    def command(value: str | None) -> tuple[str, ...] | None:
-        if value is None:
-            return None
-        parsed = tuple(shlex.split(value, posix=True))
-        if not parsed:
-            raise ValueError("Commands cannot be empty")
-        return parsed
 
     spec = RunSpec(
         repo=str(Path(args.repo).resolve()),
@@ -367,9 +429,9 @@ def make_spec(args: argparse.Namespace) -> RunSpec:
         backend=args.backend,
         scenario=args.scenario,
         mode=args.mode,
-        baseline_command=command(args.baseline_command),
-        candidate_command=command(args.candidate_command),
-        validation_command=command(args.validation_command),
+        baseline_command=command_argv(args.baseline_command),
+        candidate_command=command_argv(args.candidate_command),
+        validation_command=command_argv(args.validation_command),
         metric_key=args.metric_key,
         required_trial_checks=tuple(args.require_trial_check),
         metric_unit=args.metric_unit,

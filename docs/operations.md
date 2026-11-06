@@ -121,7 +121,7 @@ those resources retain their repository owner and source attribution.
 
 ### Discover/read packaged or custom skills — `skills list` / `show` / `resource` / `reference`
 
-- **Inputs:** `list` reads frontmatter and sidecar metadata; `show <skill>` selects one instruction body; `resource <skill> <relative-path>` and `reference <skill> <relative-path>` resolve one path. The default is the installed library's registered skills; an explicit `--root` selects a custom flat tree or a categorized library with `skill-index.json`. The optional `skills` extra supplies the YAML parser.
+- **Inputs:** `list` reads frontmatter and sidecar metadata; `show <skill>` selects one instruction body; `resource <skill> <relative-path>` and `reference <skill> <relative-path>` resolve one path. The default is the installed library's registered skills; an explicit `--root` selects a custom flat tree or a categorized library with `skill-index.json`.
 - **Scope:** complete packaged skills under `data/skill_library/`, or the explicitly selected custom root. The 21 English engine and research-router skills remain accessible through catalog records and library navigation, separately from the registry.
 - **Output:** metadata listing, one instruction body, or a resolved path.
 - **Side effects:** none. `resource`/`reference` do not load or execute the target.
@@ -190,9 +190,18 @@ normal scoped PR path.
 
 ## Experiments
 
+### Read shared YAML input — `task schema`, `task template`, `task validate`, `task preview`
+
+- **Inputs** The packaged schema/template, or a v1 YAML task path and optional preview overrides.
+- **Output** Schema or template, validation result, or normalized values and required-field blockers for plan/run. Use `--json` for Agent handoff.
+- **Side effects** Read-only. These commands run no probes or subprocesses and write nothing to the workspace or experiment directory.
+- **Failure behavior** Exit 2 with a field or location for invalid input. A valid draft can have missing execution inputs.
+
+See the [shared YAML task guide](task-input.md) for paths, merging and the CLI/Agent workflow.
+
 ### Inspect/prepare — `doctor`, `plan`, `--dry-run`
 
-- **Inputs:** repository/backend/device flags; `plan` takes the full experiment specification.
+- **Inputs:** repository/backend/device flags; `plan` takes the full experiment specification as flags or `--task` YAML.
 - **Scope:** environment inspection and specification preview.
 - **Output:** environment facts, or a preview of the RunSpec.
 - **Side effects:** `doctor` may invoke bounded read-only probes; `plan`/`--dry-run` persist nothing.
@@ -205,7 +214,7 @@ compatibility.
 
 ### Execute/inspect — `run`, `status`, `report`
 
-- **Inputs:** the full experiment specification (`run`); a run ID and output directory (`status`/`report`).
+- **Inputs:** the full experiment specification as flags or `--task` YAML with `--confirm-acceptance` (`run`); a run ID and output directory (`status`/`report`).
 - **Scope:** caller-supplied benchmark, candidate and validation commands under the experiment contract.
 - **Output:** a run ID and evidence directory; recorded progress; an HTML report.
 - **Side effects:** `run` executes the supplied commands and owns child-process cleanup; `report` writes HTML into the run directory.

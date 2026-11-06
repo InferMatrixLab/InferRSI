@@ -1,6 +1,7 @@
 # Quickstart
 
-This release uses CLI args and a **local executor on a prepared machine**. Install it directly on the remote machine where the target engine already works. It does not set up models, CUDA/ROCm/CANN, services, SSH workers or autonomous Agents.
+Use CLI flags or a [shared YAML task](task-input.md) with the **local executor
+on a prepared machine**. Install InferRSI where the target engine already works.
 
 ## Install and smoke
 
@@ -14,11 +15,7 @@ inferrsi --help
 inferrsi doctor --repo . --repo-type vllm_omni --backend cpu
 ```
 
-Package-only knowledge commands (`knowledge`, `context`, package `collect`/`read`)
-work with this base install. Reading skill libraries — the `skills` command and
-any `--skill-root` selection — additionally requires
-`python -m pip install '.[skills]'` (PyYAML); without it those operations fail
-with that install hint instead of a traceback.
+The base install supports packaged knowledge, skill-library reads and YAML tasks.
 
 For the maintained model examples, see [Qwen B300](qwen-image-2.1-turbo-b300.md)
 and [Qwen Ascend](qwen-image-2.1-turbo-ascend.md). Continue below for the generic
@@ -53,7 +50,7 @@ entry point, effect class and boundary:
 ```bash
 inferrsi knowledge search 'Qwen-Image-2.1' --repo-type vllm_omni --backend ascend
 inferrsi context --repo-type vllm_omni --backend cuda --output context.md
-inferrsi skills list --json   # requires python -m pip install '.[skills]'
+inferrsi skills list --json
 inferrsi read inferrsi.ascend.skills.ascend_graph_mode --material
 ```
 
@@ -61,7 +58,7 @@ Normalized Collect, exact-revision reads and resource access are available as
 CLI commands and as the Python `KnowledgeReader`
 ([contract](knowledge-operations.md)); authorized local candidate Create/Update
 remains a Python `KnowledgeStore` operation ([contract](knowledge-store.md)).
-The `--skill-root` examples below require the `skills` extra from above:
+To read from a checkout's skill root:
 
 ```bash
 inferrsi collect 'Ascend OOM' --kind case --limit 3 --material --skill-root src/inferrsi/data/skill_library
@@ -88,8 +85,10 @@ examples above explicitly adds that root's skill and case IDs.
 ## The actual configuration interface
 
 ```text
+task: schema | template | validate TASK.yaml | preview TASK.yaml --json
 doctor: --repo --repo-type --backend --device-ids --device-model --python
-plan/run: all doctor flags, plus
+plan/run: --task TASK.yaml (--confirm-acceptance to execute) or the existing flags
+  all doctor flags, plus
   --candidate-repo --scenario --mode --agent --executor local
   --baseline-command --candidate-command --validation-command
   --metric-key --metric-unit --comparison-scope --direction

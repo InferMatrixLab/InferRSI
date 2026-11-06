@@ -9,7 +9,7 @@ description = "CLI-first reproducible inference experiments and source-grounded 
 readme = "README.md"
 license = "Apache-2.0"
 requires-python = ">=3.10"
-dependencies = []
+dependencies = ["PyYAML>=6.0"]
 
 [project.scripts]
 inferrsi = "inferrsi.cli:main"
@@ -23,7 +23,7 @@ where = ["src"]
 namespaces = false
 
 [tool.setuptools.package-data]
-inferrsi = ["data/**/*.json", "data/**/*.md", "data/**/LICENSE", "data/**/THIRD_PARTY_NOTICES", "data/**/scripts/*.py", "data/**/references/licenses/*.txt", "data/**/references/upstream-NOTICE", "data/dashboard/*.html"]
+inferrsi = ["data/**/*.json", "data/**/*.md", "data/**/LICENSE", "data/**/THIRD_PARTY_NOTICES", "data/**/scripts/*.py", "data/**/references/licenses/*.txt", "data/**/references/upstream-NOTICE", "data/dashboard/*.html", "data/task_input/*.yaml"]
 
 [tool.setuptools_scm]
 version_file = "src/inferrsi/_version.py"
@@ -34,8 +34,9 @@ initial_version = "0.1.0"
 prerelease = true
 
 [project.optional-dependencies]
-skills = ["PyYAML>=6.0"]
-dev = ["pytest>=7.4", "ruff>=0.6", "PyYAML>=6.0"]
+# Keep the former extra as an alias for existing installs.
+skills = []
+dev = ["pytest>=7.4", "ruff>=0.6"]
 image = ["numpy>=1.24", "Pillow>=10", "scikit-image>=0.21"]
 
 [tool.pytest.ini_options]

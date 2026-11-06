@@ -32,8 +32,7 @@ inferrsi collect 'Ascend OOM' --kind case --limit 3 --material --skill-root src/
 inferrsi read calibrate-serving-simulation --skill-root src/inferrsi/data/skill_library
 ```
 
-The `--skill-root` selections require the `skills` extra (`python -m pip install
-'.[skills]'`); package-only collect/read work with the base install.
+Both packaged and checkout skill reads work with the base install.
 
 Every item has an owning `authority` (`package`, `checkout` or `store`) and a qualified
 `ref` of the form `<authority>:<id>`. Public IDs are unchanged and may be used
@@ -225,8 +224,8 @@ to narrow results. An explicit ID such as
 Package repo/backend/scenario filters still exclude checkout cases; inspect the
 returned applicability rather than assuming those filters qualify a case.
 
-For explicit CLI resource-path resolution from the installed library (optional
-`skills` extra required), or a custom library selected with `--root`:
+The CLI resolves resource paths from the installed library or a custom library
+selected with `--root`.
 
 ```bash
 inferrsi skills resource inference-optimization-casebook cases/qwen-ascend-rejected-directions.md
