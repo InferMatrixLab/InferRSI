@@ -27,8 +27,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/1e87be46b8d080d439bb516ed9fa9092f8306f62/src/inferrsi/data/skill_library/repositories/mlc-llm/SKILL.md",
-      "commit": "1e87be46b8d080d439bb516ed9fa9092f8306f62",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/8d40de5673666430573a5d1c1aa3f17e906a1be3/src/inferrsi/data/skill_library/repositories/mlc-llm/SKILL.md",
+      "commit": "8d40de5673666430573a5d1c1aa3f17e906a1be3",
       "paths": [
         "src/inferrsi/data/skill_library/repositories/mlc-llm/LICENSE",
         "src/inferrsi/data/skill_library/repositories/mlc-llm/SKILL.md",
