@@ -21,8 +21,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/7aa3344bf84c42467f43b3a927e1c7d13642bd55/src/inferrsi/data/skill_library/repositories/vllm/audit-vllm-kv-lifetimes/SKILL.md",
-      "commit": "7aa3344bf84c42467f43b3a927e1c7d13642bd55",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/5898e717015272257fdd14e06d8ae6b542d2c3ce/src/inferrsi/data/skill_library/repositories/vllm/audit-vllm-kv-lifetimes/SKILL.md",
+      "commit": "5898e717015272257fdd14e06d8ae6b542d2c3ce",
       "paths": [
         "src/inferrsi/data/skill_library/repositories/vllm/audit-vllm-kv-lifetimes/SKILL.md",
         "src/inferrsi/data/skill_library/repositories/vllm/audit-vllm-kv-lifetimes/metadata.json",
@@ -41,7 +41,7 @@
     "src/inferrsi/data/skill_library/repositories/vllm/audit-vllm-kv-lifetimes/SKILL.md": "4c3f27459df239f9f4fc971c559d4c9ddfbfebd70507a8a93be8eae59a30b69d",
     "src/inferrsi/data/skill_library/repositories/vllm/audit-vllm-kv-lifetimes/metadata.json": "8ded6e60c562131616dc8cdcf0d7efc04aef1884885da0b30fb16f42d7433b7c",
     "src/inferrsi/data/skill_library/repositories/vllm/audit-vllm-kv-lifetimes/references/source-notes.md": "3665b034594fc8cc767c408002f4e16f8803369242405027c7f37ce6c9ecebe9",
-    "src/inferrsi/data/skill_library/skill-index.json": "9ea8b2ef190777e683a3905f0614612a37782be4d655d230c000188b0c7073db"
+    "src/inferrsi/data/skill_library/skill-index.json": "7904275c3383380db179287171e1430617aaa9ac4f439291eff8a71426987fbb"
   },
   "skill_metadata": {
     "name": "audit-vllm-kv-lifetimes",

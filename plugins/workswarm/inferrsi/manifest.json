@@ -1,0 +1,47 @@
+{
+  "version": "0.1.0",
+  "package_type": "plugin",
+  "id": "inferrsi",
+  "name": "InferRSI",
+  "description": "Research inference optimizations and prepare, run and inspect evidence-based comparisons.",
+  "display_name": {"en": "InferRSI", "zh": "InferRSI"},
+  "display_description": {
+    "en": "Find cited inference knowledge, prepare controlled comparisons and inspect experiment evidence.",
+    "zh": "检索有来源的推理优化知识，准备受控基线与候选对比，并解读实验进度、证据和验证结论。"
+  },
+  "category": "Engineering",
+  "source": "local",
+  "default_init_input": {
+    "en": "Use InferRSI to research an inference bottleneck in this project and cite the relevant knowledge.",
+    "zh": "使用 InferRSI 分析当前项目的推理瓶颈，检索相关知识并列出依据。"
+  },
+  "tags": [
+    {"en": "Inference knowledge", "zh": "推理知识"},
+    {"en": "Controlled comparisons", "zh": "受控对比"},
+    {"en": "Experiment evidence", "zh": "实验证据"}
+  ],
+  "quick_inputs": [
+    {
+      "en": "Use InferRSI to research an inference bottleneck in this project and cite the relevant knowledge.",
+      "zh": "使用 InferRSI 分析当前项目的推理瓶颈，检索相关知识并列出依据。"
+    },
+    {
+      "en": "Use InferRSI to prepare a controlled baseline/candidate comparison without starting an experiment.",
+      "zh": "使用 InferRSI 准备受控的基线与候选对比方案，先不启动实验。"
+    },
+    {
+      "en": "Use InferRSI to inspect the experiment directory I provide and explain its verdict and missing evidence.",
+      "zh": "使用 InferRSI 读取我提供的实验目录，解释验证结论和缺失证据。"
+    }
+  ],
+  "skills": [{"dir": "./skills/inferrsi", "mode": "all"}],
+  "tools": [{
+    "file": "tools/runtime_info_tool.py",
+    "class": "InferRSIRuntimeInfoTool",
+    "display_name": {"en": "Locate InferRSI runtime", "zh": "定位 InferRSI 运行时"},
+    "display_description": {
+      "en": "Read the installed launcher's absolute path without executing it.",
+      "zh": "只读获取已安装启动器的绝对路径，不执行命令。"
+    }
+  }]
+}

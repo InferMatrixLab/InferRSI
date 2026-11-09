@@ -11,6 +11,8 @@ Use when simulation or a cost model is proposed to reduce deployment experiments
 
 Require model/shape/dtype, actual kernel/runtime revision, graph mode, GPU/host/topology, request length and arrival distribution, total resources/cost basis, memory limits, latency definitions and percentile SLOs. Read [Vidur evidence](references/source-notes.md) and [evidence types](references/source-notes.md). If any essential identity is missing, mark that dimension unknown rather than borrowing a paper default.
 
+For Infera serving-tuner output, read the [provenance reference](references/infera-serving-search/README.md) before using a shortlist. It distinguishes actual fidelity, the seed-only comparator, evaluated-trial retention and scalar versus DES metrics; independent trace-ranking calibration remains proposed and `not_run`.
+
 ## Procedure (P)
 
 1. Classify each estimate: physical feasibility bound, measured attainable envelope, Amdahl-style conditional impact, or empirical prediction. Never label learned runtime output a bound.
@@ -31,4 +33,4 @@ Stop predictive certification if profiles are missing, topology is substituted, 
 
 ## Resource contract
 
-This folder and its local `references/source-notes.md` are sufficient for selective consumption. Optional comparison notes and cases are linked through the owning ceiling skill; the local source notes retain the calibration procedure's evidence and limits. Existing InferRSI skill names above are reconciliation targets, not runtime dependencies.
+The local `references/source-notes.md` retains the Vidur evidence. The [Infera reference](references/infera-serving-search/README.md) and its [source record](references/infera-serving-search/source-record.json) retain the separate implementation example and its limits. These owner-local resources support selective consumption. Optional comparison notes and cases are linked through the owning ceiling skill. Existing InferRSI skill names above are reconciliation targets, not runtime dependencies.

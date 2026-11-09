@@ -165,6 +165,11 @@ the prepared target machine using your accepted gates and budget. See the
 [plugin guide](docs/codex-plugin.md#install-from-the-release-zip) for installation,
 updates and troubleshooting.
 
+### Use InferRSI in other clients
+
+For DeepSeek Harness, build and install the [native DSH bundle](docs/dsh-plugin.md).
+For openJiuwen WorkSwarm v0.2.7, use the [native plugin ZIP](docs/workswarm-plugin.md#download-and-install).
+
 ### Use the CLI
 
 This preview is not on PyPI. Download the wheel and `SHA256SUMS` from the selected

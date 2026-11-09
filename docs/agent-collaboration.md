@@ -1,9 +1,8 @@
 # Agent collaboration (issue-led)
 
-Conventions for coordinating humans and agents through Issues and PRs, delivered
-per the collaboration RFC
-([#21](https://github.com/InferMatrixLab/InferRSI/issues/21)). They add no merge
-gates or CI lanes; the checks they mention are reports in the existing lanes.
+Conventions for coordinating humans and agents through Issues and PRs, grounded
+in the collaboration RFC ([#21](https://github.com/InferMatrixLab/InferRSI/issues/21)).
+GitHub enforces merge requirements through the repository ruleset.
 Campaign acceptance, DCO, CI lanes and evidence rules stay in
 [contributing](contributing.md); the agent entry contract stays in
 [AGENTS](../AGENTS.md).
@@ -22,7 +21,7 @@ Campaign acceptance, DCO, CI lanes and evidence rules stay in
 | --- | --- |
 | Accountable agent (parent) | Own the Issue outcome, plan and remaining criteria; implement or delegate bounded slices and independent review; report completion for acceptance. |
 | Implementer | Own a bounded slice; plan, research, coordinate, change, check and report actual results. |
-| Reviewer | Independently inspect accepted requirements, actual diff, affected consumers and evidence; return revision-scoped findings and a recommendation. |
+| Reviewer | Independently inspect accepted requirements, actual diff, affected consumers and evidence. Use the [PR review skill](../.agents/skills/review-pr/SKILL.md) to give a revision-scoped verdict. |
 | Integrator | Verify authorization, current head/base, dependencies and applicable review/check results; integrate or report a blocker. |
 
 Assign the accountable agent to the Issue, not only its first PR. One Issue may
@@ -35,7 +34,8 @@ relabel self-review.
 Roles are responsibilities, not mandatory separate agents or services. Separate
 agents may act under one account; an author's role switch is still self-review.
 A substantive reviewer edit makes that reviewer a contributor requiring
-appropriate independent review. Review recommendation is not merge permission.
+appropriate independent review. The integrator considers the review verdict
+alongside merge authority and required checks.
 
 ## Interaction patterns
 
@@ -62,7 +62,7 @@ flowchart TB
     A -->|"Implement or delegate"| W["Bounded PR slice"]
     A -->|"Delegate review with criteria and revisions"| R["Independent reviewer"]
     W -->|"Diff and evidence"| R
-    R -->|"Findings and recommendation"| A
+    R -->|"PASS or DO NOT PASS with findings"| A
     A -->|"Resolve findings; refresh affected evidence"| W
     A --> G["Integrator checks authority and evidence"]
     G -->|"Conditions satisfied"| P["Merged PR"]
@@ -71,7 +71,40 @@ flowchart TB
     O -->|"Goal accepted; closure authorized"| C["Close Issue"]
 ```
 
-Review reports remain attributable and available to the integrator; the parent cannot substitute its own approval for independent findings. No human-per-PR gate. Blocked integration or incomplete goals remain open; material scope exceptions return to the authorized owner.
+The integrator uses attributable, independent review records. Blocked
+integration or incomplete goals remain open, and material scope exceptions
+return to the authorized owner.
+
+### PR review and merge
+
+For a PR targeting `main`, each completed review gives an explicit **PASS** or
+**DO NOT PASS** verdict. For PASS, submit **Approve** with `LGTM` alone on the
+first non-empty line of the same review body. Only the exact, case-sensitive
+spelling `LGTM` qualifies. For DO NOT PASS, submit **Request changes** with
+the blockers and the expected corrections or evidence.
+
+An eligible approval comes from an independent reviewer using a GitHub account
+with repository write access or higher. The PR author, material contributors,
+and the accountable parent for the delivery slice cannot supply an independent
+approval, including through another agent acting under their account. Each
+eligible account counts once.
+For an agent submitting a review, record the direct delegation or link the
+maintainer's standing delegation in the governing Issue or PR. Identify the
+acting reviewer, account, scope and permitted review actions.
+
+The [main ruleset](https://github.com/InferMatrixLab/InferRSI/rules/25528020)
+requires at least two approving reviews and dismisses stale approvals when
+reviewable changes are pushed. Before merging, the integrator verifies two
+current approvals that meet the eligibility and body rules above, resolution
+of all blocking reviews, and passing required checks.
+
+To clear a blocking **Request changes** review, ask its reviewer to re-review
+the current revision and submit **Approve** once the blockers are resolved.
+If that reviewer is unavailable, an independent maintainer with authority and
+permission to dismiss reviews may dismiss it after verifying that each blocker
+is resolved. Record the reason and supporting evidence on the PR. The two
+valid approvals are still required after dismissal.
+[GitHub review dismissal](https://docs.github.com/en/pull-requests/how-tos/review-pull-requests/dismissing-a-pull-request-review)
 
 ### Agent–Agent: isolated work and conditional handoff
 
@@ -222,6 +255,23 @@ Change labels by editing `labels.json` in a PR first, then applying that change 
 repository. The nightly `safety-net` job reports drift between the repository labels and
 `labels.json`, and any label that an Issue template or `tools/skill_eval_*_config.json`
 references but `labels.json` lacks. No workflow writes labels.
+
+[`external-labels.json`](../.github/external-labels.json) names the labels that an outside
+GitHub App owns and applies, with the app that owns each one. Those names are exempt from the
+`group:value` rule and from the drift report, because this repository neither creates them nor
+decides their wording: renaming or deleting one only makes the app recreate it. Label
+maintenance leaves them alone, and they carry no coordination meaning here, so the rules above
+do not apply to them. A name cannot be in both files. An Issue template or
+`tools/skill_eval_*_config.json` still may not reference one, since this repository must not
+depend on a label it does not own.
+
+Each `owner` is a required, informational attribution: the reviewer's record of which app
+applies that label, so a later reader can tell why the name is exempt rather than missing. No
+check verifies it, and none can — GitHub does not report which app created a label, and an
+app's configuration is outside this repository. Treat an entry as evidence of a past decision,
+not as a verified fact: before relying on one, confirm from the label's own event history that
+the named app still applies it. Adding an entry is a scope decision, so it goes through review
+like any other change to this file.
 
 ## Evidence refresh — hypothetical example
 
