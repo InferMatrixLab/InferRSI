@@ -591,7 +591,26 @@ def trace_metrics(path):
                                   and re.fullmatch(r"[0-9a-f]{64}", f["sha256"])
                                   for f in manifest))
         paths = [f["path"] for f in manifest] if valid_manifest else []
-        valid = (protocols == [{"type": "agent.protocol", "client_kind": FULL_CONTEXT_KIND}]
+        protocol = protocols[0] if len(protocols) == 1 else {}
+        original_fields = {"type", "client_kind"}
+        envelope_fields = {"schema_version", "time", "stage", "campaign_id", "candidate_id",
+                           "run_id", "round"}
+        run_id, round_number = protocol.get("run_id"), protocol.get("round")
+        valid_envelope = (original_fields | envelope_fields <= set(protocol)
+                          and set(protocol) <= original_fields | envelope_fields | {"refs"}
+                          and type(protocol.get("schema_version")) is int
+                          and protocol["schema_version"] == 1
+                          and all(isinstance(protocol.get(key), str) and protocol[key]
+                                  for key in ("time", "campaign_id", "candidate_id"))
+                          and protocol.get("stage") in ("diagnosis", "knowledge", "search",
+                                                        "execution", "validation", "review")
+                          and (run_id is None or isinstance(run_id, str) and bool(run_id))
+                          and (round_number is None or (
+                              type(round_number) is int and round_number > 0))
+                          and ("refs" not in protocol or isinstance(protocol["refs"], list)))
+        valid_protocol = (len(protocols) == 1 and protocol.get("client_kind") == FULL_CONTEXT_KIND
+                          and (set(protocol) == original_fields or valid_envelope))
+        valid = (valid_protocol
                  and len(contexts) == 1 and context.get("client_kind") == FULL_CONTEXT_KIND
                  and valid_manifest and paths == sorted(set(paths)) and "task.json" in paths
                  and context.get("manifest_sha256") == hashlib.sha256(

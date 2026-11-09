@@ -1,0 +1,21 @@
+{
+  "name": "inferrsi-dsh",
+  "version": "0.0.0",
+  "description": "InferRSI inference-engine research and evidence workflows for DeepSeek Harness",
+  "license": "Apache-2.0",
+  "type": "module",
+  "main": "index.js",
+  "exports": { ".": "./index.js", "./client": "./client.js" },
+  "files": ["index.js", "client.js", "remote.cjs", "remote-host.cjs", "remote-runtime.zip", "vendor", "cordis.patch.yml", "assets", "runtime"],
+  "engines": { "dsh": ">=0.2.1-rc.2 <0.2.2" },
+  "dsh": {
+    "bundle": { "patch": "./cordis.patch.yml" },
+    "client": {
+      "platform": "web",
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-conversation",
+        "@deepseek-ai/dsh-client-ui-session"
+      ]
+    }
+  }
+}

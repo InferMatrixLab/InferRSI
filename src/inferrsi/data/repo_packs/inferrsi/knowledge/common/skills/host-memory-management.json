@@ -30,8 +30,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/da3356920acac5bbf6f3ac6a4fd6de636a6d1c1c/src/inferrsi/data/skill_library/hardware/host/host-memory-management/SKILL.md",
-      "commit": "da3356920acac5bbf6f3ac6a4fd6de636a6d1c1c",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/5898e717015272257fdd14e06d8ae6b542d2c3ce/src/inferrsi/data/skill_library/hardware/host/host-memory-management/SKILL.md",
+      "commit": "5898e717015272257fdd14e06d8ae6b542d2c3ce",
       "paths": [
         "src/inferrsi/data/skill_library/hardware/host/host-memory-management/SKILL.md",
         "src/inferrsi/data/skill_library/hardware/host/host-memory-management/metadata.json",
@@ -66,7 +66,7 @@
     "src/inferrsi/data/skill_library/hardware/host/host-memory-management/references/vllm-ascend-LICENSE.md": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
     "src/inferrsi/data/skill_library/hardware/host/host-memory-management/references/vllm-ascend-native-offload-readset.json": "cc6c2011be746002ba3ff96ccefab1809863748ddd17eb102b75e7b0e134fe55",
     "src/inferrsi/data/skill_library/hardware/host/host-memory-management/references/vllm-ascend-native-offload.md": "6c2a72b5ba3708a01d229e0576570837a617e6a42dbb0b5312a26a65a6c31542",
-    "src/inferrsi/data/skill_library/skill-index.json": "9ea8b2ef190777e683a3905f0614612a37782be4d655d230c000188b0c7073db"
+    "src/inferrsi/data/skill_library/skill-index.json": "7904275c3383380db179287171e1430617aaa9ac4f439291eff8a71426987fbb"
   },
   "skill_metadata": {
     "name": "host-memory-management",
