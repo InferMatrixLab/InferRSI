@@ -17,10 +17,20 @@ else:
 def build_plugin(
     output: Path, *, project: Path = PROJECT, release_version: str | None = None,
 ) -> dict:
+    readme_replacement = None
+    if release_version is not None:
+        video_url = (
+            "https://raw.githubusercontent.com/InferMatrixLab/InferRSI/{ref}/"
+            "docs/assets/inferrsi-codex-install-en.mp4"
+        )
+        readme_replacement = (
+            video_url.format(ref="main").encode("utf-8"),
+            video_url.format(ref=f"refs/tags/v{release_version}").encode("utf-8"),
+        )
     return build_bundle(
         output, project=project, release_version=release_version,
         template_path="plugins/inferrsi", metadata_file="plugin.json",
-        readme="docs/codex-plugin.md",
+        readme="docs/codex-plugin.md", readme_replacement=readme_replacement,
     )
 
 

@@ -94,7 +94,7 @@ def _zip_tree(root: Path, destination: Path, prefix: str = "") -> None:
 def build_bundle(
     output: Path, *, template_path: str, metadata_file: str, readme: str,
     project: Path = PROJECT, release_version: str | None = None, nested: bool = False,
-    compact_runtime: bool = False,
+    compact_runtime: bool = False, readme_replacement: tuple[bytes, bytes] | None = None,
 ) -> dict:
     """Create a fresh distribution; never replace user configuration or earlier builds."""
     output = output.resolve()
@@ -124,7 +124,11 @@ def build_bundle(
         plugin = Path(staging) / "inferrsi"
         shutil.copytree(template, plugin, ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
         shutil.copyfile(project / "LICENSE", plugin / "LICENSE")
-        shutil.copyfile(project / readme, plugin / "README.md")
+        readme_bytes = (project / readme).read_bytes()
+        if readme_replacement is not None:
+            old, new = readme_replacement
+            readme_bytes = readme_bytes.replace(old, new, 1)
+        (plugin / "README.md").write_bytes(readme_bytes)
         launcher = plugin / "skills/inferrsi/scripts/inferrsi.py"
         launcher.parent.mkdir(parents=True, exist_ok=True)
         shared_launcher = project / "plugins/inferrsi/skills/inferrsi/scripts/inferrsi.py"
