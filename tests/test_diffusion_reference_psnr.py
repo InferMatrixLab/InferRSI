@@ -122,6 +122,8 @@ class ReferencePsnrRankingTest(unittest.TestCase):
                 + np.roll(blurred, -1, 1)
             ) / 5.0
         blurred = blurred.astype(np.uint8)
+        # NumPy 1.26.4 measured the issue seed-0 sample at 7.612 dB and
+        # 11.008 dB. Those values stay unasserted.
         _assert_blur_outranks_shift(
             sharp.tolist(),
             shifted.tolist(),
