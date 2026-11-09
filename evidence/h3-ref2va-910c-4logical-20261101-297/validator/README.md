@@ -16,5 +16,10 @@ The [snapshot manifest](frozen-snapshots.json) identifies exact original bytes.
 Archived scorer paths assume the original execution-tree layout and pinned
 dependencies; this evidence folder alone is not a self-contained runtime. No
 weights or raw media are bundled. Keep numerical qualification, automatic model
-quality and clean timing separate. Missing samples remain INCONCLUSIVE; an observed
-gate violation remains FAIL even when other samples are missing.
+quality and clean timing separate. Missing samples remain INCONCLUSIVE. An observed
+gate violation was intended to remain FAIL even when other samples are missing. The
+frozen `strict_compare.py` (line 109) does not do that: it returns INCONCLUSIVE
+whenever any evidence is missing, even if failures were also recorded. A
+qualified successor should report both. These validator bytes stay frozen, so
+the limitation is documented here instead of corrected; no recorded verdict in
+this bundle combines failures with missing evidence.
