@@ -7,22 +7,17 @@ present, and the existing ``inferrsi.harness`` tree still mixes other layers.
 from __future__ import annotations
 
 import ast
+import tempfile
 import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1] / "src" / "inferrsi"
 NEW_CORES = ("knowledge", "benchmark", "apps")
-FORBIDDEN_FROM_LEGACY = tuple(f"inferrsi.{name}" for name in NEW_CORES)
-
-
-def _imported_modules(path: Path) -> list[str]:
-    return _modules_in_source(
-        path.read_text(encoding="utf-8"),
-        ["inferrsi", *path.relative_to(ROOT).parts[:-1]],
-    )
+CORE_NAMES = ("knowledge", "harness", "benchmark", "apps")
 
 
 def _modules_in_source(source: str, package_parts: list[str]) -> list[str]:
+    """Resolve import targets, including ``from package import name`` forms."""
     package = ".".join(package_parts)
     names: list[str] = []
     for node in ast.walk(ast.parse(source)):
@@ -30,11 +25,19 @@ def _modules_in_source(source: str, package_parts: list[str]) -> list[str]:
             names.extend(alias.name for alias in node.names)
         elif isinstance(node, ast.ImportFrom):
             if node.level:
-                keep = package.split(".")[: len(package.split(".")) - node.level + 1]
+                keep = package.split(".")[
+                    : len(package.split(".")) - node.level + 1
+                ]
                 base = ".".join(keep + ([node.module] if node.module else []))
             else:
                 base = node.module or ""
-            names.append(base)
+            if base:
+                names.append(base)
+            for alias in node.names:
+                if alias.name == "*":
+                    continue
+                candidate = f"{base}.{alias.name}" if base else alias.name
+                names.append(candidate)
     return names
 
 
@@ -42,38 +45,52 @@ def _matches(module: str, prefix: str) -> bool:
     return module == prefix or module.startswith(prefix + ".")
 
 
+def _core_of(module: str) -> str | None:
+    for name in CORE_NAMES:
+        if _matches(module, f"inferrsi.{name}"):
+            return name
+    return None
+
+
+def _imported_modules(path: Path, root: Path) -> list[str]:
+    relative = path.relative_to(root)
+    return _modules_in_source(
+        path.read_text(encoding="utf-8"),
+        ["inferrsi", *relative.parts[:-1]],
+    )
+
+
 def cross_core_violations(root: Path = ROOT) -> list[str]:
-    """Imports that would connect the target cores outside Apps."""
-    violations = []
+    """One message per forbidden importer and target core.
+
+    Same-core imports, including relative imports rewritten to absolute
+    names, are allowed. Apps may import the other cores. Every other import
+    of ``inferrsi.knowledge``, ``inferrsi.benchmark``, or ``inferrsi.apps``
+    is forbidden, as is Knowledge or Benchmark importing Harness.
+    """
+    found: set[tuple[str, str]] = set()
     for path in sorted(root.rglob("*.py")):
-        importer = path.relative_to(root).parts[0] if path.parent != root else ""
-        for module in _imported_modules(path):
-            if importer == "apps":
+        relative = path.relative_to(root)
+        importer = relative.parts[0] if len(relative.parts) > 1 else ""
+        for module in _imported_modules(path, root):
+            target = _core_of(module)
+            if target is None or importer == "apps" or importer == target:
                 continue
-            for prefix in FORBIDDEN_FROM_LEGACY:
-                if _matches(module, prefix):
-                    violations.append(f"{path.relative_to(root)} imports {module}")
-            if importer in ("knowledge", "benchmark"):
-                for other in ("inferrsi.harness", "inferrsi.apps", "inferrsi.knowledge", "inferrsi.benchmark"):
-                    own = f"inferrsi.{importer}"
-                    if other != own and _matches(module, other):
-                        violations.append(f"{path.relative_to(root)} imports {module}")
-    return violations
+            if target == "harness" and importer not in ("knowledge", "benchmark"):
+                continue
+            found.add((relative.as_posix(), target))
+    return [f"{path} imports inferrsi.{target}" for path, target in sorted(found)]
 
 
 def isolation_complete(root: Path = ROOT) -> bool:
-    """True only when the target packages exist and the legacy mix is gone.
-
-    This slice never sets that condition. Callers must not treat an empty
-    violation list as isolation.
-    """
+    """True only after the target packages exist and the legacy mix is gone."""
     if any(not (root / name).is_dir() for name in NEW_CORES):
         return False
     harness = root / "harness"
     if not harness.is_dir():
         return False
     for path in harness.rglob("*.py"):
-        for module in _imported_modules(path):
+        for module in _imported_modules(path, root):
             if _matches(module, "inferrsi.model") or _matches(module, "inferrsi.infra"):
                 return False
     return not cross_core_violations(root)
@@ -91,24 +108,36 @@ class TargetModuleImportGateTest(unittest.TestCase):
         self.assertFalse((ROOT / "contracts").is_dir())
         self.assertFalse(isolation_complete())
 
-    def test_detector_flags_a_new_core_import_outside_apps(self) -> None:
-        def forbidden(importer: str, source: str) -> bool:
-            if importer == "apps":
-                return False
-            return any(
-                _matches(module, prefix)
-                for module in _modules_in_source(source, ["inferrsi", importer])
-                for prefix in FORBIDDEN_FROM_LEGACY
-            )
-
-        self.assertTrue(forbidden("harness", "import inferrsi.knowledge\n"))
-        self.assertFalse(forbidden("apps", "import inferrsi.knowledge\n"))
+    def test_real_tree_allows_apps_and_same_core_only(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            samples = {
+                "harness/probe.py": "from inferrsi import knowledge\n",
+                "apps/probe.py": "import inferrsi.knowledge\n",
+                "knowledge/bar.py": "VALUE = 1\n",
+                "knowledge/foo.py": "from .bar import VALUE\n",
+                "knowledge/out.py": "import inferrsi.harness\n",
+                "benchmark/edge.py": "from inferrsi.benchmark import edge\n",
+            }
+            for relative, source in samples.items():
+                path = root / relative
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text(source, encoding="utf-8")
+            violations = cross_core_violations(root)
+        self.assertEqual(
+            violations,
+            [
+                "harness/probe.py imports inferrsi.knowledge",
+                "knowledge/out.py imports inferrsi.harness",
+            ],
+        )
 
     def test_layout_doc_states_the_same_limit(self) -> None:
-        text = Path(__file__).resolve().parents[1].joinpath("docs/module-layout.md").read_text(
-            encoding="utf-8"
-        )
+        text = (
+            Path(__file__).resolve().parents[1] / "docs" / "module-layout.md"
+        ).read_text(encoding="utf-8")
         self.assertIn("Isolation stays false", text)
+        self.assertIn("Same-core imports are allowed", text)
 
 
 if __name__ == "__main__":

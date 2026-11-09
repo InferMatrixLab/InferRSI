@@ -44,17 +44,21 @@ Several flat modules remain shared seams until their slice starts.
 | `evaluation.py`, `model/validators/` | Benchmark-leaning checks | Not moved |
 | `infra/`, `execution.py`, `runspec.py`, `inspection.py` | Seams used by the current tree | Not a fourth core |
 | `reporting.py`, `summary_chart.py`, `evidence_paths.py` | Current report helpers | Not moved |
+| `claim.py` | Verdict vocabulary used by current checks | Not moved and not a fourth core |
 | `contracts.py` | `RunSpec` compatibility re-export | Must remain one module file |
 | `data/` | Packaged resources, mixed kinds | Not relocated here |
 
 ## Import gate
 
-`tests/test_target_module_import_gate.py` fails if any module outside a future
-`inferrsi.apps` package imports `inferrsi.knowledge`, `inferrsi.benchmark`, or
-`inferrsi.apps`, and if code under `knowledge/` or `benchmark/` imports
-Harness, Apps, or the other core. The allowed direction is Apps importing the
-cores. There is no exception list of current edges: those three package names
-are unused on this tree, so the violation list is empty.
+`tests/test_target_module_import_gate.py` fails on a new import of
+`inferrsi.knowledge`, `inferrsi.benchmark`, or `inferrsi.apps` from anywhere
+except `inferrsi.apps`, and on Knowledge or Benchmark importing Harness.
+`from inferrsi import knowledge` counts as an import of that core.
+Same-core imports are allowed, including a relative import rewritten to an
+absolute name such as `from .bar import VALUE` inside `knowledge/`. Each forbidden
+importer and target pair is reported once. There is no exception list of
+current edges: those three package names are unused on this tree, so the
+violation list is empty.
 
 A clean result means no new cross-core import of those names. It does not mean
 the modules are isolated. Isolation stays false while `knowledge/`,
@@ -63,8 +67,10 @@ or Infra.
 
 ## Old `run` exit codes
 
-Frozen from `src/inferrsi/cli.py` as the compatibility text for a later
-integration check. This page does not change that code.
+Frozen from
+[`src/inferrsi/cli.py`](https://github.com/InferMatrixLab/InferRSI/blob/9f61a83f030bfa2ffe3b54eac1781593309d6380/src/inferrsi/cli.py#L412-L417)
+as the compatibility text for a later integration check. This page does not
+change that code.
 
 | Condition | Exit |
 | --- | --- |
