@@ -37,7 +37,8 @@
     "Link evidence paths in the report; a metric quoted only in a comment cannot be re-checked later.",
     "Fingerprint tracked source even when the output directory overlaps it, and exclude only the current run's generated files.",
     "Treat a missing upstream-cache release proof as INCONCLUSIVE rather than a PASS with a caveat.",
-    "Read baseline and candidate SHAs from the acceptance issue for that campaign, never from a skill default."
+    "Read baseline and candidate SHAs from the acceptance issue for that campaign, never from a skill default.",
+    "Freeze optional required_trial_checks for complete requests, effective graph controls and clean worker exits; require literal true per trial and retain supporting receipts."
   ],
   "limitations": [
     "Documents evidence discipline; it performs no measurement and certifies no campaign.",

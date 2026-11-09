@@ -1,6 +1,6 @@
 # InferRSI skill discovery index
 
-Generated abstracts for all 79 registered skills in `data/skill_library/`.
+Generated abstracts for all 80 registered skills in `data/skill_library/`.
 Their complete procedures, references and cases ship in the same package.
 `skill-index.json` maps stable skill IDs to categorized directories. The
 reference and searchspace matrices
@@ -15,7 +15,7 @@ These are knowledge abstracts (`--kind knowledge`), with namespaced package
 IDs distinct from explicitly selected `checkout_ref` skills. Ascend/CUDA
 procedures use their corresponding backend; shared methods use `common`.
 
-Source snapshot: [bb4720992ac2a515adc09b645e1e3cfda47e9d69](https://github.com/InferMatrixLab/InferRSI/tree/bb4720992ac2a515adc09b645e1e3cfda47e9d69/src/inferrsi/data/skill_library).
+Source snapshot: [8d40de5673666430573a5d1c1aa3f17e906a1be3](https://github.com/InferMatrixLab/InferRSI/tree/8d40de5673666430573a5d1c1aa3f17e906a1be3/src/inferrsi/data/skill_library).
 
 ```bash
 inferrsi knowledge search 'profiling' --repo-type inferrsi --limit 50
@@ -29,7 +29,7 @@ contain the current input paths and bytes (Git checkout filters are respected).
 
 ```bash
 python tools/build_skill_index.py --source-revision <committed-source-revision>
-python tools/build_skill_index.py --source-revision bb4720992ac2a515adc09b645e1e3cfda47e9d69 --check
+python tools/build_skill_index.py --source-revision 8d40de5673666430573a5d1c1aa3f17e906a1be3 --check
 ```
 
 `--check` detects missing, stale and unexpected generated records without writing.
@@ -114,5 +114,6 @@ References and cases ship with their owning skill, not as duplicate knowledge ab
 | [training-input-pipeline](common/skills/training-input-pipeline.json) | common | candidate |
 | [training-resource-budget](common/skills/training-resource-budget.json) | common | candidate |
 | [video-diffusion-optimization](common/skills/video-diffusion-optimization.json) | common | candidate |
+| [vllm-ascend](ascend/skills/vllm-ascend.json) | ascend | candidate |
 | [vllm-metal](common/skills/vllm-metal.json) | common | candidate |
 | [weight-loading-optimization](common/skills/weight-loading-optimization.json) | common | candidate |

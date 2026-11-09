@@ -64,7 +64,9 @@
     "../assess-serving-preemption/SKILL.md",
     "../calibrate-serving-simulation/SKILL.md",
     "../performance-ceiling-analysis/SKILL.md",
-    "../../repositories/vllm/audit-vllm-kv-lifetimes/SKILL.md"
+    "../../repositories/vllm/audit-vllm-kv-lifetimes/SKILL.md",
+    "../calibrate-serving-simulation/references/infera-serving-search/README.md",
+    "../calibrate-serving-simulation/references/infera-serving-search/source-record.json"
   ],
   "consumption_mode": "packaged",
   "sources": [

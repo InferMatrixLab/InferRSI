@@ -5,7 +5,12 @@ from html import escape
 from pathlib import Path
 from urllib.parse import quote
 
-from ..summary_chart import SpecError, build_svg, spec_from_evaluation
+from ..summary_chart import (
+    SpecError,
+    build_svg,
+    check_trial_chart_eligibility,
+    spec_from_evaluation,
+)
 
 
 def write_report(run_dir: Path) -> Path:
@@ -20,13 +25,13 @@ def write_report(run_dir: Path) -> Path:
     def dump(value: object) -> str:
         return escape(json.dumps(value, ensure_ascii=False, indent=2))
 
+    figure = _summary_figure(run_dir, evaluation)
     links = []
     for path in sorted(run_dir.rglob("*")):
         if path.is_file() and path.name != "report.html":
             relative = path.relative_to(run_dir).as_posix()
             links.append(f'<li><a href="./{quote(relative, safe="/")}">{escape(relative)}</a></li>')
     verdict = escape(str(evaluation.get("verdict", "INCONCLUSIVE")))
-    figure = _summary_figure(run_dir, evaluation)
     report = f"""<!doctype html>
 <html lang="en"><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -60,10 +65,12 @@ def _summary_figure(run_dir: Path, evaluation: dict) -> str:
 
     A campaign that has accumulated several steps can commit a chain
     specification as ``summary-chart.json`` beside the run; that spec wins,
-    because it records the whole campaign rather than one pairing.
+    because it records the whole campaign rather than one pairing. Both inputs
+    require the current run's selected trial checks to permit a comparison.
     """
     campaign = run_dir / "summary-chart.json"
     try:
+        check_trial_chart_eligibility(evaluation)
         if campaign.is_file():
             spec = json.loads(campaign.read_text(encoding="utf-8"))
             if not isinstance(spec, dict):
@@ -72,6 +79,7 @@ def _summary_figure(run_dir: Path, evaluation: dict) -> str:
             spec = spec_from_evaluation(evaluation)
         svg = build_svg(spec)
     except (SpecError, json.JSONDecodeError) as error:
+        (run_dir / "summary-chart.svg").unlink(missing_ok=True)
         return f"<p>No gain figure: {escape(str(error))}.</p>"
     (run_dir / "summary-chart.svg").write_text(svg, encoding="utf-8")
     # Inline the figure so the report stays one self-contained file.

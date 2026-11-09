@@ -56,14 +56,29 @@ elif args[:3] == ["release", "create", tag]:
     if not state.get("tag_created") or "--draft" not in args or "--verify-tag" not in args:
         raise SystemExit("Release must be prepared as a draft on the existing tag")
     record("create_release")
-    installer = "dist/inferrsi-codex-plugin-v1.2.3.zip"
-    if installer not in args:
-        raise SystemExit("Release upload must include the versioned Codex installer")
-    record("upload_plugin", name=Path(installer).name)
+    installers = [f"dist/inferrsi-{host}-plugin-v1.2.3.zip" for host in ("codex", "workswarm")]
+    for installer in installers:
+        if installer not in args:
+            raise SystemExit("Release upload must include both versioned host installers")
+    if "--generate-notes" not in args or "--notes-file" not in args:
+        raise SystemExit("Keep the GitHub changelog and read summary as a file")
+    notes = Path(args[args.index("--notes-file") + 1]).read_text(encoding="utf-8")
+    if "Source: https://github.com/example/release/tree/" + commit not in notes:
+        raise SystemExit("Release notes must retain exact source provenance")
+    state["release_notes"] = notes
+    save()
+    if (state.get("ai_summary") and not state.get("failed_notes_download")
+            and len(state["ai_summary"].encode("utf-8")) <= 20000):
+        if "## AI-generated summary" not in notes or state["ai_summary"] not in notes:
+            raise SystemExit("Missing AI summary")
+    elif "## AI-generated summary" in notes:
+        raise SystemExit("Missing AI output must fall back to ordinary release notes")
+    for installer in installers:
+        record("upload_plugin", name=Path(installer).name)
     state["assets"] = ["inferrsi-1.2.3.whl", "inferrsi-1.2.3.tar.gz", "SHA256SUMS",
-                       Path(installer).name]
+                       *[Path(installer).name for installer in installers]]
     if state.get("missing_asset"):
-        state["assets"].pop()
+        state["assets"].remove(f"inferrsi-{state['missing_asset']}-plugin-v1.2.3.zip")
     save()
 elif args == ["release", "view", tag, "--json", "assets", "--jq", ".assets[].name"]:
     print("\n".join(state["assets"]))
@@ -84,12 +99,29 @@ def test_write_token_is_confined_to_a_no_checkout_publisher():
     config = workflow()
     assert config["permissions"] == {"contents": "read", "pull-requests": "none"}
     for name, job in config["jobs"].items():
+        if name == "notes":
+            assert job["permissions"] == {"contents": "read", "pull-requests": "none"}
+            assert job["continue-on-error"] is True
+            continue
         if name != "publish":
             assert not job.get("permissions")
             continue
         assert job["permissions"] == {"contents": "write", "pull-requests": "none"}
         actions = [step["uses"] for step in job["steps"] if "uses" in step]
-        assert actions == ["actions/download-artifact@v4"]
+        assert actions == ["actions/download-artifact@v4", "actions/download-artifact@v4"]
+        assert "OPENAI_API_KEY" not in json.dumps(job)
+
+
+def test_optional_notes_failure_cannot_skip_an_otherwise_valid_publication():
+    job = workflow()["jobs"]["publish"]
+    assert job["needs"] == ["plan", "build", "notes"]
+    assert "always() && !cancelled()" in job["if"]
+    assert "needs.build.result == 'success'" in job["if"]
+    assert "needs.notes.result" not in job["if"]
+    optional = [step for step in job["steps"]
+                if step.get("with", {}).get("name") == "release-notes"]
+    assert len(optional) == 1
+    assert optional[0]["continue-on-error"] is True
 
 
 @pytest.fixture
@@ -108,7 +140,8 @@ def publisher(tmp_path):
     dist = tmp_path / "dist"
     dist.mkdir()
     checksums = []
-    for name in ("inferrsi-1.2.3.whl", "inferrsi-1.2.3.tar.gz", "inferrsi-codex-plugin-v1.2.3.zip"):
+    for name in ("inferrsi-1.2.3.whl", "inferrsi-1.2.3.tar.gz",
+                 "inferrsi-codex-plugin-v1.2.3.zip", "inferrsi-workswarm-plugin-v1.2.3.zip"):
         (dist / name).write_bytes(b"synthetic package")
         checksums.append(hashlib.sha256(b"synthetic package").hexdigest() + "  " + name)
     (dist / "SHA256SUMS").write_text("\n".join(checksums) + "\n", encoding="utf-8", newline="\n")
@@ -124,19 +157,28 @@ def publisher(tmp_path):
                       encoding="utf-8", newline="\n")
 
     def run(state=None, **inputs):
+        if state and state.get("ai_summary"):
+            (tmp_path / "notes").mkdir()
+            (tmp_path / "notes/ai-notes.md").write_text(state["ai_summary"], encoding="utf-8")
         if state and state.get("corrupt_zip"):
-            (dist / "inferrsi-codex-plugin-v1.2.3.zip").write_bytes(b"changed installer")
+            (dist / f"inferrsi-{state['corrupt_zip']}-plugin-v1.2.3.zip").write_bytes(
+                b"changed installer")
         if state and state.get("absent_zip"):
-            (dist / "inferrsi-codex-plugin-v1.2.3.zip").unlink()
+            (dist / f"inferrsi-{state['absent_zip']}-plugin-v1.2.3.zip").unlink()
         state_path, log_path = tmp_path / "state.json", tmp_path / "calls.jsonl"
         state_path.write_text(json.dumps(state or {}), encoding="utf-8")
         env = dict(os.environ)
         env.update(PATH=str(mock_bin) + os.pathsep + env["PATH"],
                    FAKE_GH_STATE=str(state_path), FAKE_GH_LOG=str(log_path),
+                   RUNNER_TEMP=str(tmp_path),
                    GH_TOKEN="fake-no-access", GH_REPO="example/release", DEFAULT_BRANCH="main",
                    RELEASE_TAG="v1.2.3", RELEASE_COMMIT=COMMIT, PREVIOUS_TAG="v1.2.2",
                    PRERELEASE="true")
         env.update(inputs)
+        env["AI_NOTES_DOWNLOADED"] = (
+            "failure" if state and state.get("failed_notes_download") else
+            "success" if state and state.get("ai_summary") else "skipped"
+        )
         result = subprocess.run([bash, str(script)], cwd=tmp_path, env=env,
                                 capture_output=True, text=True, timeout=30)
         entries = [json.loads(line) for line in log_path.read_text().splitlines()] if (
@@ -154,8 +196,30 @@ def test_publisher_only_creates_a_tag_and_publishes_its_release(publisher):
         {"operation": "create_tag", "ref": "refs/tags/v1.2.3", "sha": COMMIT},
         {"operation": "create_release"},
         {"operation": "upload_plugin", "name": "inferrsi-codex-plugin-v1.2.3.zip"},
+        {"operation": "upload_plugin", "name": "inferrsi-workswarm-plugin-v1.2.3.zip"},
         {"operation": "publish_release"},
     ]
+
+
+def test_ai_notes_are_text_and_keep_the_publication_mutation_boundary(publisher, tmp_path):
+    # Treat model output as data even if it contains shell syntax.
+    summary = "Features: a new command. `touch should-not-exist` $(touch should-not-exist)"
+    result, mutations = publisher({"ai_summary": summary})
+    assert result.returncode == 0, result.stderr
+    assert [entry["operation"] for entry in mutations] == [
+        "create_tag", "create_release", "upload_plugin", "upload_plugin", "publish_release",
+    ]
+    assert not (tmp_path / "should-not-exist").exists()
+
+
+@pytest.mark.parametrize("state", [
+    {"ai_summary": "A partial download", "failed_notes_download": True},
+    {"ai_summary": "x" * 20001},
+])
+def test_unusable_notes_artifact_does_not_block_ordinary_publication(publisher, state):
+    result, mutations = publisher(state)
+    assert result.returncode == 0, result.stderr
+    assert mutations[-1] == {"operation": "publish_release"}
 
 
 @pytest.mark.parametrize("inputs", [
@@ -172,7 +236,8 @@ def test_invalid_publication_inputs_cannot_write(publisher, inputs):
 
 @pytest.mark.parametrize("state", [
     {"existing": True}, {"ancestry": "diverged"}, {"resolved": "2" * 40},
-    {"corrupt_zip": True}, {"absent_zip": True},
+    *[{problem: host} for problem in ("corrupt_zip", "absent_zip")
+      for host in ("codex", "workswarm")],
 ])
 def test_conflicting_or_unverified_source_cannot_write(publisher, state):
     result, mutations = publisher(state)
@@ -180,10 +245,12 @@ def test_conflicting_or_unverified_source_cannot_write(publisher, state):
     assert mutations == []
 
 
-@pytest.mark.parametrize("state", [{"moved": True}, {"missing_asset": True}])
+@pytest.mark.parametrize("state", [
+    {"moved": True}, {"missing_asset": "codex"}, {"missing_asset": "workswarm"},
+])
 def test_incomplete_or_retargeted_release_cannot_be_published(publisher, state):
     result, mutations = publisher(state)
     assert result.returncode != 0
     assert [entry["operation"] for entry in mutations] == [
-        "create_tag", "create_release", "upload_plugin",
+        "create_tag", "create_release", "upload_plugin", "upload_plugin",
     ]

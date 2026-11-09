@@ -1,118 +1,80 @@
-# Synthetic CPU KV-block reclamation qualification
+# Synthetic CPU KV-block reclamation qualification (retired)
 
-This is a bounded **model-free mechanism-transfer task**, not vLLM conformance,
-a natural historical-repository holdout, an accelerator result or agent efficacy.
-The accepted slice is recorded in [the scoped execution record][scope]. It does
-not replace the broader task-efficacy proposal, the serving-parser task or the
-Indexer acceptance boundaries.
+The tooling this page documented has been removed. It described a bounded,
+model-free mechanism-transfer task built for the task-efficacy pilot in
+[issue 248](https://github.com/InferMatrixLab/InferRSI/issues/248): a synthetic
+CPU reclamation contract with an independently authored frozen oracle, an
+isolated input-only replay and trusted event-by-event comparison through the
+existing AB/BA runner.
 
-This synthetic task was deliberately constructed around the nominated knowledge's
-dual-readiness mechanism. Independent oracle authorship is **not independent task
-selection**. Both arms' visible contract and correct starter already state the
-readiness rules; a later comparison tests utility while preserving those rules,
-not discovery of a hidden requirement. It is a selected synthetic near-transfer
-probe, not an independently sampled case.
+This page is kept because the retained evidence links to it, and that evidence
+is hash-pinned and must not be edited.
 
-The visible starter is a correct but deliberately repeated linear scan. Its
-contract includes request finish, asynchronous save completion, a processed-step
-write fence, deterministic reclamation order, generation identity, idempotent
-callbacks and atomic invalid-input handling. Only `candidate.py` may change.
-Shared blocks, refcounts, prefix matching, transport and real concurrency are
-outside this task.
+## What was removed
 
-## Trust and evidence boundaries
+`tools/qualify_kv_reclamation.py`, `tools/qualify_kv_edit_actor.py`,
+`tools/qualify_kv_actor_cleanup.py`, the `tools/kv_*` live-launcher and
+admission modules, `src/inferrsi/harness/kv_reclamation.py`,
+`src/inferrsi/harness/kv_edit_workbench.py`, their tests and task fixtures,
+the `kv-edit-pilot` workflow and the `kv-task-qualification` job in the ready
+lane. None of the commands named on this page can be run from the repository
+any more.
 
-```mermaid
-flowchart LR
-    Contract[Visible neutral contract] --> Starter[Editable candidate.py]
-    Contract --> Oracle[Independent frozen oracle]
-    Starter --> Sandbox[Isolated input-only replay]
-    Sandbox --> Compare[Trusted event-by-event comparison]
-    Oracle --> Compare
-    Compare --> Runner[Existing AB/BA runner and evaluator]
+Every path named above still exists at
+[`e843b9d3`](https://github.com/InferMatrixLab/InferRSI/commit/e843b9d31cb86e1fd12d00890c89798b0bedd1fe),
+the last revision this branch shared with `main` before the removal, which
+remains an ancestor of `main`. Read any of them from history:
+
+```
+git show e843b9d3:tools/qualify_kv_reclamation.py
+git show e843b9d3:tests/fixtures/kv_reclamation/candidate.py
 ```
 
-- The independent verifier author freezes the semantic oracle and disjoint
-  development/grader traces without reading the nominated knowledge or target
-  implementation. Static trace observations are checked against that oracle.
-- The candidate process receives its source, a trusted driver and input events,
-  never oracle code, expected answers, other trials, knowledge or reference code.
-  Return types, event counts, every reclamation list and pending state are checked.
-  Raw inputs necessarily reach the candidate during replay; expected results and
-  the grader fixture store do not. Every output byte remains untrusted, even if
-  the candidate tampers with its Python driver or output serializer.
-  In-process tuple/list assertions are ordinary compatibility checks, **not**
-  anti-tamper acceptance: malicious same-interpreter code can bypass them. The
-  externally enforced acceptance is frozen observable trace-envelope equality
-  and host whole-command timing, not immutable per-call driver/type behavior.
-- `kv_reclamation.invoke` reuses the existing bubblewrap command and host
-  `execute_command` deadline. Network/PID namespaces, clear environment,
-  read-only mounts and hard process/memory/CPU/output limits are probed. There is
-  **no unisolated fallback**. This boundary confines artifacts, not a future actor.
-  Group-cleanup probes cover the tested host process group; the hard no-fork
-  boundary is checked separately. This is not arbitrary detached-tree or future
-  actor cleanup certification.
-- Missing output, changed protected paths and incorrect artifacts are rejected.
-  Infrastructure failure, unavailable isolation and timeout remain unverified
-  (`INCONCLUSIVE`), distinct from a completed comparison refuting a claim.
-- Workbench timing reuses `run_experiment` and `evaluate`. It measures host elapsed
-  time of the whole CPU task command, including sandbox/interpreter startup. The
-  candidate cannot supply a claimed timing metric. Inputs, repetition count and
-  numeric headroom gates live only in the frozen qualification plan.
-- Correctness precedes timing. An optimized software control must pass the full
-  verifier and the headroom gate; premature save/fence release, generation errors,
-  cached answers/event skipping, missing output and protected edits are negative
-  controls. A/A and no-op comparisons must not meet the improvement gate.
-- All runs, including failures, are retained. There is no retry-until-pass rule.
-  The CI receipt retains hashes, statuses, raw timing samples and control coverage.
-  Its `raw-evidence.zip` retains actual control outputs and AB/BA evidence with
-  labelled path redactions, without hostnames, credentials or full environment dumps.
+## What was kept
 
-## Meaning of a successful qualification
+The retained evidence stays in place and unmodified:
 
-Qualification can establish only that this exact host/task/verifier combination
-has discriminating controls and measurable software headroom. CI success is not
-an engine campaign `PASS`, a knowledge benefit, an actor isolation certificate or
-permission to infer broad transfer. The original tests and historical outcomes
-remain unchanged.
+- [`evidence/kv-reclamation-20261030/`](../evidence/kv-reclamation-20261030/README.md)
+- `evidence/kv-actor-qualification-20261030/`
+- `evidence/kv-actor-qualification-20261031/`
+- `evidence/kv-live-pilot-20261031/`
 
-The prospective A2/A3 comparison holds W constant and changes only a complete,
-pinned `audit-vllm-kv-lifetimes` owner bundle. Before any paid step it still needs a
-frozen executable actor/tool protocol, demonstrated read isolation (including W
-package data and host files), full K-to-target contamination audit, known charges,
-conservative reservations, authorized plan identity and a final-artifact grader.
-A provider `read_file`/`submit_answer` path is not an iterative editing agent.
-No model calls or paid adapter are part of this delivery.
+Their entries in `tools/evidence_inventory.json` are unchanged, so
+`python -m tools.validate_evidence` still verifies them.
 
-## Reproduce
+Because that evidence is hash-pinned, it still names paths and modules that the
+removal deleted. Eleven files do so:
 
-From a checkout with Linux system Python, Git and distribution bubblewrap:
+| Bundle | Files | Reference |
+| --- | --- | --- |
+| `kv-live-pilot-20261031` | `patch/README.md` | `tests/fixtures/kv_reclamation/candidate.py` |
+| `kv-live-pilot-20261031` | `plan/plan.json`, `plan/A2.json`, `plan/A3.json`, `plan/second-attempt/{plan,A2,A3}.json`, `plan/second-attempt-1200/plan.json` | `tools.qualify_kv_reclamation`, `tools.kv_live_job` |
+| `kv-actor-qualification-20261030` | `results/hosted-41154288295/qualification.json`, `results/hosted-41182807900/qualification.json` | `kv_edit_workbench` |
+| `kv-reclamation-20261030` | `patch/README.md` | `tests/fixtures/kv_reclamation/candidate.py` |
 
-```sh
-PYTHONPATH=src /usr/bin/python3 -m tools.qualify_kv_reclamation \
-  --plan evidence/kv-reclamation-20261030/plan/qualification-plan.json \
-  --revision "$(git rev-parse HEAD)" --output <new-output-directory-outside-checkout>
-```
+Each of those references resolves at `e843b9d3` through the command above. None
+resolves in the working tree, which is the expected result of the removal rather
+than a broken bundle.
 
-The command never accepts arbitrary source or grader paths. The existing Ready
-workflow runs a non-required Ubuntu job with no secrets and retains the sanitized
-receipt. Its exit code gates software controls, **not** numerical performance:
-always read `qualification_verdict` in the receipt. A green job with insufficient
-headroom does not qualify the task. The original manual parser qualification,
-test matrix, branch protection and default serving-parser adapter are unchanged.
+## What the evidence does and does not show
 
-The initial local run is retained as `INCONCLUSIVE`: the cloud host refused the
-required network namespace setup. It did not run any candidate without isolation.
-Trusted direct-import controls are labelled separately and do not upgrade that
-result. See the [frozen plan and retained evidence](../evidence/kv-reclamation-20261030/README.md).
+The qualification receipts record **software and scripted-control execution**
+only.
 
-The independently frozen benchmark tests retain their original standalone layout.
-In this integrated checkout, use the checked wrapper test or set the documented
-oracle location without modifying frozen files:
+| Claim | Where to check it |
+| --- | --- |
+| No completed arm, per-arm outcome or A/A variance exists | [`evidence/kv-live-pilot-20261031/results/README.md`](../evidence/kv-live-pilot-20261031/results/README.md): "Prospective pair: not executed … No paid model output, timing result or efficacy verdict exists in this bundle" |
+| The dollar figures are reserved upper bounds, not observed spend | `evidence/kv-live-pilot-20261031/plan/second-attempt-budget.json`: `worst_case` 162,720,000 microUSD against the PR and pilot lifetime caps |
+| Both authorized attempts on 2026-10-31 ended `INCONCLUSIVE`, the second stopping at its first transport call on HTTP 403 with A3 never started | Runs [41159550621](https://github.com/InferMatrixLab/InferRSI/actions/runs/41159550621) and [41194057284](https://github.com/InferMatrixLab/InferRSI/actions/runs/41194057284), assessed in [issue 248](https://github.com/InferMatrixLab/InferRSI/issues/248#issuecomment-6648189616) |
 
-```sh
-KV_FROZEN_ORACLE="$PWD/evidence/kv-reclamation-20261030/validator/independent/oracle.py" \
-  pytest evidence/kv-reclamation-20261030/validator/test_benchmark.py
-```
+The third row is not recorded inside the retained bundles: they hold the frozen
+inputs and the not-executed marker, while the attempt outcomes live in the run
+records. A workflow conclusion of `success` on those runs means orchestration
+and evidence retention finished, not that a request was delivered or charged.
 
-[scope]: https://github.com/InferMatrixLab/InferRSI/issues/248#issuecomment-6526000390
+Nothing here is a model-effect, knowledge-effect or hardware result.
+
+The general SkillEval capability is unaffected: nothing in
+`src/inferrsi/harness/skill_eval*.py`, the runner, the evaluator or
+`tools/skill_eval_*.py` referenced the removed modules. The dependency ran one
+way only, from this slice onto those shared parts.

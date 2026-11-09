@@ -26,8 +26,8 @@ def main() -> int:
     except (OSError, ValueError) as exc:
         print(
             f"InferRSI plugin bundle is incomplete: {exc}. "
-            "Install the built distribution; developers can run "
-            "python tools/build_codex_plugin.py from the source checkout.",
+            "Install the built distribution for your host; developers can run the "
+            "matching tools/build_<host>_plugin.py from the source checkout.",
             file=sys.stderr,
         )
         return 2

@@ -30,3 +30,26 @@ def execute_trial(
             record["metric_error"] = str(exc)
     _write_json(trial_dir / "execution.json", record)
     return record
+
+
+def collect_trial_checks(record: dict, keys: tuple[str, ...]) -> dict[str, bool | None]:
+    """Snapshot only selected boolean attestations, never arbitrary result data.
+
+    Missing/unreadable/non-boolean fields stay unknown. Adapters own the receipts
+    proving these attestations; subprocess success cannot synthesize them.
+    """
+    checks: dict[str, bool | None] = dict.fromkeys(keys)
+    try:
+        payload = json.loads(Path(record["result_path"]).read_text(encoding="utf-8"))
+    except (KeyError, OSError, ValueError, TypeError):
+        return checks
+    for key in keys:
+        value = payload
+        for part in key.split("."):
+            if not isinstance(value, dict) or part not in value:
+                value = None
+                break
+            value = value[part]
+        if isinstance(value, bool):
+            checks[key] = value
+    return checks

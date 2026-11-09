@@ -26,7 +26,7 @@ Release. It must not create code commits, edit repository files, create/update/
 delete code branches, create/approve/merge PRs or enable auto-merge. Configuration
 development and review are contributor work; they are not bot capabilities.
 
-Plan/build jobs have Contents read access. Only the publisher receives Contents
+Plan/build/notes jobs have Contents read access. Only the publisher receives Contents
 write; Pull requests permission is explicitly none. The publisher validates its
 tag/SHA inputs and never checks out or executes repository code. Regression
 tests execute its actual shell commands against a recording GitHub mock that
@@ -59,14 +59,21 @@ configuration does not silently change their access or existing branch rules.
    environment outside the checkout. Check tag/distribution/runtime parity and
    generate `SHA256SUMS`. `MANIFEST.in` limits sdist contents to package sources
    and build metadata; repository evidence/workflows are not release payload.
-   Reuse `tools/build_codex_plugin.py` to build the self-contained
-   `inferrsi-codex-plugin-vX.Y.Z.zip` installer from the same source revision.
-   Its generated plugin metadata, bundled runtime and tag must have the same
-   version. Verify every bundled runtime hash and exercise the extracted
-   launcher/knowledge reads outside the checkout with isolated Python.
-4. A separate write job verifies the artifacts, source ancestry and release
+   Reuse `tools/build_codex_plugin.py` and `tools/build_workswarm_plugin.py` to
+   build `inferrsi-codex-plugin-vX.Y.Z.zip` and
+   `inferrsi-workswarm-plugin-vX.Y.Z.zip` from the same source revision.
+   Each archive's generated host metadata, bundled runtime and tag must have
+   the same version. Check its native entrypoints, verify every bundled runtime
+   hash and exercise the extracted launcher/knowledge reads outside the checkout
+   with isolated Python. These CPU checks do not run WorkSwarm's SDK or UI.
+4. After a successful build, an optional read-only notes job calls the AI API
+   with bounded change metadata for exactly the planned revision range. Its
+   Markdown summary is transferred as a separate artifact. Missing credentials,
+   API/validation errors and unavailable notes artifacts fall back to the
+   existing GitHub-generated notes.
+5. A separate write job verifies the artifacts, source ancestry and release
    state again. It creates the remote tag only after validation, creates an
-   internal draft, uploads wheel/sdist/plugin ZIP/checksums and automatically publishes
+   internal draft, uploads wheel/sdist/both plugin ZIPs/checksums and automatically publishes
    after confirming the attachments and tag identity. It does not execute
    repository code. These operations stay in the same workflow: tag events
    created with `GITHUB_TOKEN` do not trigger another workflow.
@@ -79,26 +86,96 @@ software changes; CPU/package checks do not establish campaign `PASS`, model
 quality or service performance. Such claims retain the acceptance and evidence
 requirements in [contributing](contributing.md#evidence-and-claims).
 
+## AI release summaries
+
+To enable AI summaries, add the Actions repository secret `DS_API_KEY` under
+**Settings → Secrets and variables → Actions**. The key is injected only into
+the notes step as the helper's internal `OPENAI_API_KEY` environment variable.
+The workflow does not read or fall back to the old `OPENAI_API_KEY` repository
+secret. Do not put the key in workflow source, command arguments, PR text or
+logs. API access and usage are billed by the selected provider for that key;
+GitHub Copilot access is not required.
+
+The default API model is `deepseek-flash`, documented by DeepSeek as
+[DeepSeek-V4.1-Flash-1017](https://api-docs.deepseek.com/quick_start/pricing/)
+when this configuration was added. This is a provider-managed alias, not a
+version pin; DeepSeek may upgrade its target. Set the optional Actions repository variable
+`OPENAI_RELEASE_NOTES_MODEL` to another model available to your API account and
+compatible with the Responses API. Set `OPENAI_BASE_URL` to select the approved
+HTTPS provider: `https://api.deepseek.com` (the fallback),
+`https://api.openai.com/v1` or `https://yibuapi.com/v1`. This repository uses
+DeepSeek's official API and sends the configured key only to its `/responses`
+endpoint. The existing `OPENAI_*` setting names also apply to DeepSeek; use a key
+issued by the selected provider. The configured API model ID is sent unchanged;
+the helper does not substitute a model when it is unavailable. Trailing slashes
+are normalized; other hosts,
+HTTP, userinfo, query strings and fragments are rejected before sending a key.
+Redirects remain disabled. Additional providers require a reviewed allowlist
+change. Without the secret, the workflow skips AI generation and continues ordinary
+publication.
+
+The [notes helper](../tools/generate_release_notes.py) sends bounded commit
+subjects, source links and file-change statistics from the previous successful
+tag through the planned commit. It omits author metadata, commit bodies and raw
+patches. Recognizable email/IP literals, URLs, personal paths and common
+credential forms in selected metadata are replaced with labeled placeholders
+before transmission; generated canonical commit links remain available. This
+targeted redaction supplements the repository's privacy rules for source
+metadata. Inputs are treated as source data, not executable instructions.
+The prompt asks for a concise English overview of software features, fixes and
+compatibility changes, with at most six bullets, 250 words of prose and one
+supplied commit link per bullet. It must not invent performance/quality or campaign PASS
+claims. The response is labeled **AI-generated summary** and prepended to the
+original GitHub changelog, preserving its PR links and source/evidence notice.
+When source metadata is truncated, the helper appends a fixed coverage notice
+from the source flags. The model is asked to leave coverage statements to the helper.
+Model output is read as a file and never executed as shell code.
+Explicit URLs and Markdown links in model output must be simple inline links to
+canonical commit URLs present in the supplied source. Images, reference links,
+bare URL/email autolinks and unsupported or unverified link forms cause fallback.
+This gate validates generated link syntax; GitHub's own reference and custom
+autolink rendering remains repository policy.
+
+The helper makes one request using the
+[Responses API](https://api-docs.deepseek.com/guides/responses_api/), with
+bounded input/output (at most 3,200 output tokens), a timeout, no tools and
+`store: false`. DeepSeek requests
+set reasoning effort to `none` for the short summary. DeepSeek ignores `store`
+and documents stateless Responses compatibility; this setting does
+not establish zero data retention. Missing credentials, failed/incomplete/refused
+or unusable responses leave no summary. The optional notes job or artifact may
+fail without skipping an otherwise valid publication; failed package checks and
+workflow cancellation still prevent publication. The AI job has no repository
+write permission, and the publisher receives no API key. There is no AI code
+commit, merge, account installation or update to an existing public Release.
+
 Each Release contains a Python wheel, source distribution, the versioned Codex
-plugin ZIP and `SHA256SUMS` covering all three packages. Extract the ZIP and
-follow the [Codex plugin installation guide](codex-plugin.md#install-from-the-release-zip).
-The ZIP contains one standalone plugin, complete bundled runtime
-and knowledge, licenses and installation README. Plugin build failure or a
-missing/corrupt installer blocks publication. It does not update a plugin branch,
-account installation or marketplace listing. No marketplace catalog or installation
-wrapper is packaged; the downloaded ZIP is the only Codex plugin release asset.
+and WorkSwarm plugin ZIPs and `SHA256SUMS` covering all four packages. Choose
+the archive for your host and follow the
+[Codex guide](codex-plugin.md#install-from-the-release-zip) or
+[WorkSwarm guide](workswarm-plugin.md#download-and-install).
+Each ZIP contains one standalone plugin, complete bundled runtime and knowledge,
+licenses and an installation README. The hosts use different manifests; their
+ZIPs are not interchangeable. Either plugin's build failure or a missing/corrupt
+installer blocks publication. Publication does not update a plugin branch,
+account installation or marketplace listing. No marketplace catalog or
+installation wrapper is packaged.
 
 ## Setup and manual checks
 
 Merge the configuration into the default branch. GitHub Actions and the listed
 actions must be allowed by organization policy, and the publisher needs
-`contents: write`. No extra secret, PAT, GitHub App or repository-wide write
-default is needed. The workflow guards the canonical repository and default
-branch; copies must deliberately update that repository guard.
+`contents: write`. Ordinary releases need no extra secret, PAT, GitHub App or
+repository-wide write default. AI summaries additionally use the optional
+`DS_API_KEY` secret described above. The workflow guards the canonical
+repository and default branch; copies must deliberately update that repository
+guard.
 
 Under **Actions → Release bot → Run workflow**, select the default branch and
 leave **dry_run** checked. It plans and builds the next release without creating
-a remote tag or Release; unchanged trees skip here too. Clearing **dry_run**
+a remote tag or Release; unchanged trees skip here too. With `DS_API_KEY`
+configured, a changed-source dry run also makes the AI request and uploads the
+summary artifact for inspection, consuming API usage. Clearing **dry_run**
 runs the same automatic publication immediately. It takes no version/tag input.
 
 ```bash
