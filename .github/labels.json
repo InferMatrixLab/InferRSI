@@ -15,9 +15,9 @@
     "description": "Usability and collaboration: issue navigation, templates, readable reports"
   },
   {
-    "name": "area:workbench",
+    "name": "area:harness",
     "group": "area",
-    "description": "CLI workbench: profile, A/B loop, quality gates, evidence reports"
+    "description": "Harness module: profile, A/B loop, quality gates, evidence reports"
   },
   {
     "name": "help:wanted",
