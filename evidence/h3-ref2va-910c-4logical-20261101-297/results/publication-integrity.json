@@ -92,6 +92,6 @@
   "validator/frozen-snapshots.json": "f52b54bc0a6eb872991611af1368793d25631797389d09380857b2ef228ca283",
   "validator/quality-tools/compare_quality.py": "99e8e23463f8ce83b52a22de9cdc697ef4bbf14d910a0c67e76bfd01e94c4b3d",
   "validator/quality-tools/score_media.py": "99f5a76436a3c8d37462fab83f63d24eae74b4458c30e5a00b60c19fde139f3e",
-  "validator/README.md": "9136399b9c79c2842b1326aa181f19b5ea24f688b92a07127747df3ea85d57b6",
+  "validator/README.md": "7588ed18fc68276f0f4f3d7603ea45779fbc3f61b87595d3d35719b084efe135",
   "validator/strict_compare.py": "b83f2bff553ff6ca2970a16e25525cac5d9523612e9c05ea563852c814019028"
 }
