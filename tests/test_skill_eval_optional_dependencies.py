@@ -71,7 +71,7 @@ class OptionalSkillsDependencyTests(unittest.TestCase):
                     try:
                         selected_snapshot(root, 'a' * 40, 'library', 'selected', destination)
                     except ValueError as error:
-                        assert 'requires PyYAML' in str(error), str(error)
+                        assert "'skills' extra (PyYAML)" in str(error), str(error)
                     else:
                         raise AssertionError('Selected snapshot silently skipped the skills parser')
                     git.assert_not_called()
