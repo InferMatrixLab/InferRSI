@@ -21,13 +21,13 @@ lane. None of the commands named on this page can be run from the repository
 any more.
 
 Every path named above still exists at
-[`e843b9d3`](https://github.com/InferMatrixLab/InferRSI/commit/e843b9d31cb86e1fd12d00890c89798b0bedd1fe),
-the last revision this branch shared with `main` before the removal, which
-remains an ancestor of `main`. Read any of them from history:
+[`v0.1.4`](https://github.com/InferMatrixLab/InferRSI/releases/tag/v0.1.4), the
+tagged revision immediately before the removal commit and an ancestor of `main`.
+Read any of them from history:
 
 ```
-git show e843b9d3:tools/qualify_kv_reclamation.py
-git show e843b9d3:tests/fixtures/kv_reclamation/candidate.py
+git show v0.1.4:tools/qualify_kv_reclamation.py
+git show v0.1.4:tests/fixtures/kv_reclamation/candidate.py
 ```
 
 ## What was kept
@@ -52,7 +52,7 @@ removal deleted. Eleven files do so:
 | `kv-actor-qualification-20261030` | `results/hosted-41154288295/qualification.json`, `results/hosted-41182807900/qualification.json` | `kv_edit_workbench` |
 | `kv-reclamation-20261030` | `patch/README.md` | `tests/fixtures/kv_reclamation/candidate.py` |
 
-Each of those references resolves at `e843b9d3` through the command above. None
+Each of those references resolves at `v0.1.4` through the command above. None
 resolves in the working tree, which is the expected result of the removal rather
 than a broken bundle.
 
