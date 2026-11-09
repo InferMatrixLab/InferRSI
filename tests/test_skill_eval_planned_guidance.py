@@ -294,19 +294,32 @@ def test_unrelated_source_ref_presence_cannot_change_full_history_plan(tmp_path)
 
 
 
+def committed_blob(repo, revision, path):
+    # Raw stored bytes: checkout conversion such as core.autocrlf changes only the working tree.
+    return subprocess.check_output(["git", "cat-file", "blob", f"{revision}:{path}"], cwd=repo)
+
+
+def tree_mode(repo, revision, path):
+    return git(repo, "ls-tree", revision, "--", path).split()[0]
+
+
 def manifest_fixture(tmp_path):
     repo, readme, canonical, pin, identity, changes = index_fixture(tmp_path)
     manifest = readme.with_name("_provenance.json")
+    registry = pr.LIBRARY_PATH + "/skill-index.json"
     data = {"schema_version": 1, "repository": "https://github.com/example/fixture",
             "source_revision": pin,
-            "registry": {"path": pr.LIBRARY_PATH + "/skill-index.json",
-                         "sha256": hashlib.sha256(canonical.read_bytes()).hexdigest()}}
+            "registry": {"path": registry,
+                         "sha256": hashlib.sha256(committed_blob(repo, pin, registry)).hexdigest()}}
     manifest.write_text(json.dumps(data))
     return repo, readme, canonical, pin, identity, changes, manifest, data
 
 
-def commit_projection_fixture(repo, identity):
+def commit_projection_fixture(repo, identity, executable=()):
     git(repo, "add", "-A")
+    # Stage the mode explicitly: chmod alone is ignored where core.fileMode is false.
+    for path in executable:
+        git(repo, "update-index", "--chmod=+x", "--", path)
     git(repo, "commit", "--quiet", "-m", "Synthetic manifest projection")
     identity["head"] = git(repo, "rev-parse", "HEAD")
 
@@ -386,7 +399,10 @@ def test_invalid_manifest_never_falls_back_to_valid_legacy_readme(tmp_path, muta
         (manifest / "child").write_text("Not a manifest")
     elif mutation == "non_utf8":
         manifest.write_bytes(json.dumps(data).encode("utf-16"))
-    commit_projection_fixture(repo, identity)
+    executable = [pr.PROJECTION_PATH + "/_provenance.json"] if mutation == "mode" else []
+    commit_projection_fixture(repo, identity, executable)
+    for path in executable:
+        assert tree_mode(repo, "HEAD", path) == "100755"
     check = pr.projection_check(repo, identity, changes)
     assert check["status"] == "unavailable" and "source_revision" not in check
 
@@ -394,17 +410,21 @@ def test_invalid_manifest_never_falls_back_to_valid_legacy_readme(tmp_path, muta
 @pytest.mark.parametrize("mode", ["symlink", "executable"])
 def test_manifest_rejects_unsafe_registry_at_both_unchanged_revisions(tmp_path, mode):
     repo, _, canonical, _, identity, changes, manifest, data = manifest_fixture(tmp_path)
+    registry = pr.LIBRARY_PATH + "/skill-index.json"
     if mode == "symlink":
         canonical.unlink()
         canonical.symlink_to("README.md")
         canonical.with_name("README.md").write_text("Synthetic registry target\n")
-        raw = b"README.md"
+        commit_projection_fixture(repo, identity)
+        assert tree_mode(repo, "HEAD", registry) == "120000"
     else:
         canonical.chmod(0o755)
-        raw = canonical.read_bytes()
-    commit_projection_fixture(repo, identity)
+        commit_projection_fixture(repo, identity, [registry])
+        assert tree_mode(repo, "HEAD", registry) == "100755"
+    # A matching checksum isolates the unsafe mode as the only reason to reject.
     data["source_revision"] = identity["head"]
-    data["registry"]["sha256"] = hashlib.sha256(raw).hexdigest()
+    data["registry"]["sha256"] = hashlib.sha256(
+        committed_blob(repo, identity["head"], registry)).hexdigest()
     manifest.write_text(json.dumps(data))
     commit_projection_fixture(repo, identity)
     assert pr.projection_check(repo, identity, changes)["status"] == "unavailable"
