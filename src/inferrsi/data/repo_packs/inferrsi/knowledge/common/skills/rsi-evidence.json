@@ -22,8 +22,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/bad68ff5c1426b050df78ffbd106ac2e370ce186/src/inferrsi/data/skill_library/workflows/rsi-evidence/SKILL.md",
-      "commit": "bad68ff5c1426b050df78ffbd106ac2e370ce186",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/630bb57a54b4ddda8338e0e529664436f982d94e/src/inferrsi/data/skill_library/workflows/rsi-evidence/SKILL.md",
+      "commit": "630bb57a54b4ddda8338e0e529664436f982d94e",
       "paths": [
         "src/inferrsi/data/skill_library/skill-index.json",
         "src/inferrsi/data/skill_library/workflows/rsi-evidence/SKILL.md",
@@ -34,9 +34,10 @@
         "src/inferrsi/data/skill_library/workflows/rsi-evidence/references/loopx-goal-governance/README.md",
         "src/inferrsi/data/skill_library/workflows/rsi-evidence/references/loopx-goal-governance/decision-cases.md",
         "src/inferrsi/data/skill_library/workflows/rsi-evidence/references/loopx-goal-governance/mechanisms.md",
-        "src/inferrsi/data/skill_library/workflows/rsi-evidence/references/loopx-goal-governance/source-ledger.json"
+        "src/inferrsi/data/skill_library/workflows/rsi-evidence/references/loopx-goal-governance/source-ledger.json",
+        "src/inferrsi/data/skill_library/workflows/rsi-evidence/references/omni-experiments.md"
       ],
-      "content_sha256": "08f76e12f6f8e8893f03bcdc8152a96c0c99442e7faecbc2a67a18c632fcb243"
+      "content_sha256": "5ce5b4903a3d7a4c3d20957be004c49c204d331ce76cc57274378f1ab97b4361"
     }
   ],
   "index_type": "packaged-skill",
@@ -45,16 +46,17 @@
   },
   "checkout_ref": "checkout:rsi-evidence",
   "source_files": {
-    "src/inferrsi/data/skill_library/skill-index.json": "9ea8b2ef190777e683a3905f0614612a37782be4d655d230c000188b0c7073db",
-    "src/inferrsi/data/skill_library/workflows/rsi-evidence/SKILL.md": "08f76e12f6f8e8893f03bcdc8152a96c0c99442e7faecbc2a67a18c632fcb243",
-    "src/inferrsi/data/skill_library/workflows/rsi-evidence/metadata.json": "caf3ef265df71b3cbec31b6c4affb6ebe9278fba0626b23bc124825d2761e49a",
+    "src/inferrsi/data/skill_library/skill-index.json": "7904275c3383380db179287171e1430617aaa9ac4f439291eff8a71426987fbb",
+    "src/inferrsi/data/skill_library/workflows/rsi-evidence/SKILL.md": "5ce5b4903a3d7a4c3d20957be004c49c204d331ce76cc57274378f1ab97b4361",
+    "src/inferrsi/data/skill_library/workflows/rsi-evidence/metadata.json": "7adfbf39def6ac64987d537c11ad3a3d2e6c06649178b77d82285add8971a115",
     "src/inferrsi/data/skill_library/workflows/rsi-evidence/references/loopx-goal-governance/LICENSE": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
     "src/inferrsi/data/skill_library/workflows/rsi-evidence/references/loopx-goal-governance/LICENSE-MIT.md": "1df1cf519b9e5d8acbbc72820299d7aa95afa1acbfc1f43a15109ad1d59975f3",
     "src/inferrsi/data/skill_library/workflows/rsi-evidence/references/loopx-goal-governance/NOTICE.md": "3c3c36a40e1d65f3a6b20ec3a97319cb753e857f1d120f302cd828e107120f6d",
     "src/inferrsi/data/skill_library/workflows/rsi-evidence/references/loopx-goal-governance/README.md": "c5802bb4d71fbf95e40a6a5282c0afcba594ab5b34d40bec97874928d8376a00",
     "src/inferrsi/data/skill_library/workflows/rsi-evidence/references/loopx-goal-governance/decision-cases.md": "c2c1d3d75c4fcb515dd36ff84d8dc940c25d54c5757a29a80d1af88eb8b66115",
     "src/inferrsi/data/skill_library/workflows/rsi-evidence/references/loopx-goal-governance/mechanisms.md": "4fa09099d362a8088fdb0e6a767f72aae6218b92fe5fd75b6fb78c2bb2a318fb",
-    "src/inferrsi/data/skill_library/workflows/rsi-evidence/references/loopx-goal-governance/source-ledger.json": "60294951d702db924119300d89f4ed01d970a7036e214aa0d04c78f6842f92d9"
+    "src/inferrsi/data/skill_library/workflows/rsi-evidence/references/loopx-goal-governance/source-ledger.json": "60294951d702db924119300d89f4ed01d970a7036e214aa0d04c78f6842f92d9",
+    "src/inferrsi/data/skill_library/workflows/rsi-evidence/references/omni-experiments.md": "8fafc1e05ef21ab60158fc626c73ca1b8c615ada59f90fd23199496daa46ac48"
   },
   "skill_metadata": {
     "name": "rsi-evidence",
@@ -97,7 +99,8 @@
       "Link evidence paths in the report; a metric quoted only in a comment cannot be re-checked later.",
       "Fingerprint tracked source even when the output directory overlaps it, and exclude only the current run's generated files.",
       "Treat a missing upstream-cache release proof as INCONCLUSIVE rather than a PASS with a caveat.",
-      "Read baseline and candidate SHAs from the acceptance issue for that campaign, never from a skill default."
+      "Read baseline and candidate SHAs from the acceptance issue for that campaign, never from a skill default.",
+      "Freeze optional required_trial_checks for complete requests, effective graph controls and clean worker exits; require literal true per trial and retain supporting receipts."
     ],
     "limitations": [
       "Documents evidence discipline; it performs no measurement and certifies no campaign.",
@@ -123,7 +126,8 @@
     "Link evidence paths in the report; a metric quoted only in a comment cannot be re-checked later.",
     "Fingerprint tracked source even when the output directory overlaps it, and exclude only the current run's generated files.",
     "Treat a missing upstream-cache release proof as INCONCLUSIVE rather than a PASS with a caveat.",
-    "Read baseline and candidate SHAs from the acceptance issue for that campaign, never from a skill default."
+    "Read baseline and candidate SHAs from the acceptance issue for that campaign, never from a skill default.",
+    "Freeze optional required_trial_checks for complete requests, effective graph controls and clean worker exits; require literal true per trial and retain supporting receipts."
   ],
   "limitations": [
     "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",

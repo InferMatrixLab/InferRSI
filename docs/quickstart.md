@@ -93,6 +93,7 @@ plan/run: all doctor flags, plus
   --candidate-repo --scenario --mode --agent --executor local
   --baseline-command --candidate-command --validation-command
   --metric-key --metric-unit --comparison-scope --direction
+  --require-trial-check (repeatable dotted boolean qualification key)
   --repetitions --min-improvement-pct --max-minutes
   --workload-id --model --model-revision --output-dir --dry-run
 status/report: --run-id --output-dir
@@ -176,3 +177,7 @@ or `--tier peer`. Export one source explicitly, for example
 `--repo-type` names the source owner; vllm_omni queries do not automatically
 include its dependencies or peers. See the
 [three-tier guide](../src/inferrsi/data/knowledge_packs/README.md) for all sources.
+
+For per-trial completeness, lifecycle and graph qualification, see the
+[Omni experiment contract](../src/inferrsi/data/skill_library/workflows/rsi-evidence/references/omni-experiments.md). These optional checks
+are frozen in RunSpec and do not replace the quality command.

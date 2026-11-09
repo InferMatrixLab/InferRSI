@@ -56,9 +56,10 @@ elif args[:3] == ["release", "create", tag]:
     if not state.get("tag_created") or "--draft" not in args or "--verify-tag" not in args:
         raise SystemExit("Release must be prepared as a draft on the existing tag")
     record("create_release")
-    installer = "dist/inferrsi-codex-plugin-v1.2.3.zip"
-    if installer not in args:
-        raise SystemExit("Release upload must include the versioned Codex installer")
+    installers = [f"dist/inferrsi-{host}-plugin-v1.2.3.zip" for host in ("codex", "workswarm")]
+    for installer in installers:
+        if installer not in args:
+            raise SystemExit("Release upload must include both versioned host installers")
     if "--generate-notes" not in args or "--notes-file" not in args:
         raise SystemExit("Keep the GitHub changelog and read summary as a file")
     notes = Path(args[args.index("--notes-file") + 1]).read_text(encoding="utf-8")
@@ -72,11 +73,12 @@ elif args[:3] == ["release", "create", tag]:
             raise SystemExit("Missing AI summary")
     elif "## AI-generated summary" in notes:
         raise SystemExit("Missing AI output must fall back to ordinary release notes")
-    record("upload_plugin", name=Path(installer).name)
+    for installer in installers:
+        record("upload_plugin", name=Path(installer).name)
     state["assets"] = ["inferrsi-1.2.3.whl", "inferrsi-1.2.3.tar.gz", "SHA256SUMS",
-                       Path(installer).name]
+                       *[Path(installer).name for installer in installers]]
     if state.get("missing_asset"):
-        state["assets"].pop()
+        state["assets"].remove(f"inferrsi-{state['missing_asset']}-plugin-v1.2.3.zip")
     save()
 elif args == ["release", "view", tag, "--json", "assets", "--jq", ".assets[].name"]:
     print("\n".join(state["assets"]))
@@ -138,7 +140,8 @@ def publisher(tmp_path):
     dist = tmp_path / "dist"
     dist.mkdir()
     checksums = []
-    for name in ("inferrsi-1.2.3.whl", "inferrsi-1.2.3.tar.gz", "inferrsi-codex-plugin-v1.2.3.zip"):
+    for name in ("inferrsi-1.2.3.whl", "inferrsi-1.2.3.tar.gz",
+                 "inferrsi-codex-plugin-v1.2.3.zip", "inferrsi-workswarm-plugin-v1.2.3.zip"):
         (dist / name).write_bytes(b"synthetic package")
         checksums.append(hashlib.sha256(b"synthetic package").hexdigest() + "  " + name)
     (dist / "SHA256SUMS").write_text("\n".join(checksums) + "\n", encoding="utf-8", newline="\n")
@@ -158,9 +161,10 @@ def publisher(tmp_path):
             (tmp_path / "notes").mkdir()
             (tmp_path / "notes/ai-notes.md").write_text(state["ai_summary"], encoding="utf-8")
         if state and state.get("corrupt_zip"):
-            (dist / "inferrsi-codex-plugin-v1.2.3.zip").write_bytes(b"changed installer")
+            (dist / f"inferrsi-{state['corrupt_zip']}-plugin-v1.2.3.zip").write_bytes(
+                b"changed installer")
         if state and state.get("absent_zip"):
-            (dist / "inferrsi-codex-plugin-v1.2.3.zip").unlink()
+            (dist / f"inferrsi-{state['absent_zip']}-plugin-v1.2.3.zip").unlink()
         state_path, log_path = tmp_path / "state.json", tmp_path / "calls.jsonl"
         state_path.write_text(json.dumps(state or {}), encoding="utf-8")
         env = dict(os.environ)
@@ -192,6 +196,7 @@ def test_publisher_only_creates_a_tag_and_publishes_its_release(publisher):
         {"operation": "create_tag", "ref": "refs/tags/v1.2.3", "sha": COMMIT},
         {"operation": "create_release"},
         {"operation": "upload_plugin", "name": "inferrsi-codex-plugin-v1.2.3.zip"},
+        {"operation": "upload_plugin", "name": "inferrsi-workswarm-plugin-v1.2.3.zip"},
         {"operation": "publish_release"},
     ]
 
@@ -202,7 +207,7 @@ def test_ai_notes_are_text_and_keep_the_publication_mutation_boundary(publisher,
     result, mutations = publisher({"ai_summary": summary})
     assert result.returncode == 0, result.stderr
     assert [entry["operation"] for entry in mutations] == [
-        "create_tag", "create_release", "upload_plugin", "publish_release",
+        "create_tag", "create_release", "upload_plugin", "upload_plugin", "publish_release",
     ]
     assert not (tmp_path / "should-not-exist").exists()
 
@@ -231,7 +236,8 @@ def test_invalid_publication_inputs_cannot_write(publisher, inputs):
 
 @pytest.mark.parametrize("state", [
     {"existing": True}, {"ancestry": "diverged"}, {"resolved": "2" * 40},
-    {"corrupt_zip": True}, {"absent_zip": True},
+    *[{problem: host} for problem in ("corrupt_zip", "absent_zip")
+      for host in ("codex", "workswarm")],
 ])
 def test_conflicting_or_unverified_source_cannot_write(publisher, state):
     result, mutations = publisher(state)
@@ -239,10 +245,12 @@ def test_conflicting_or_unverified_source_cannot_write(publisher, state):
     assert mutations == []
 
 
-@pytest.mark.parametrize("state", [{"moved": True}, {"missing_asset": True}])
+@pytest.mark.parametrize("state", [
+    {"moved": True}, {"missing_asset": "codex"}, {"missing_asset": "workswarm"},
+])
 def test_incomplete_or_retargeted_release_cannot_be_published(publisher, state):
     result, mutations = publisher(state)
     assert result.returncode != 0
     assert [entry["operation"] for entry in mutations] == [
-        "create_tag", "create_release", "upload_plugin",
+        "create_tag", "create_release", "upload_plugin", "upload_plugin",
     ]

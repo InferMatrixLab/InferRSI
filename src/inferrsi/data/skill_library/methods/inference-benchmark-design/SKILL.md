@@ -192,6 +192,11 @@ Keep model/budget/task scope, independent acceptance, released versus repaired
 artifacts and workspace/stream/cache contracts explicit. Its results remain
 author-reported; it adds no runner or device/performance qualification.
 
+For source-bound kernel trial records, read
+[trial identity, evaluator evidence and candidate selection](references/xeforge-trial-evidence.md).
+Keep tool origin, actual oracle, unresolved performance, selection and delivered
+eligibility distinct; a retained parity candidate is not a measured gain.
+
 ## Evidence trail requirements (InferRSI compatibility)
 
 A benchmark campaign that claims PASS under InferRSI's evidence framework
