@@ -21,8 +21,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/1e87be46b8d080d439bb516ed9fa9092f8306f62/src/inferrsi/data/skill_library/methods/optimization-search-policy/SKILL.md",
-      "commit": "1e87be46b8d080d439bb516ed9fa9092f8306f62",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/d648f25732dee1c974da62a94c46a642ad52cef8/src/inferrsi/data/skill_library/methods/optimization-search-policy/SKILL.md",
+      "commit": "d648f25732dee1c974da62a94c46a642ad52cef8",
       "paths": [
         "src/inferrsi/data/skill_library/methods/optimization-search-policy/SKILL.md",
         "src/inferrsi/data/skill_library/methods/optimization-search-policy/cases/sarathi-chunk-budget.json",
@@ -38,7 +38,7 @@
         "src/inferrsi/data/skill_library/methods/optimization-search-policy/references/papers-20261015/updates/optimization-search-policy.md",
         "src/inferrsi/data/skill_library/skill-index.json"
       ],
-      "content_sha256": "0ba4ade1648764a7422f564abe2d4fc9f9a25b5943a6c70c81ce17b8e7fb48d9"
+      "content_sha256": "d03957ba8f5ff3892947a5c3a45f46de21145bdad3bfb1cbed26faeb172de7a9"
     }
   ],
   "index_type": "packaged-skill",
@@ -47,10 +47,10 @@
   },
   "checkout_ref": "checkout:optimization-search-policy",
   "source_files": {
-    "src/inferrsi/data/skill_library/methods/optimization-search-policy/SKILL.md": "0ba4ade1648764a7422f564abe2d4fc9f9a25b5943a6c70c81ce17b8e7fb48d9",
+    "src/inferrsi/data/skill_library/methods/optimization-search-policy/SKILL.md": "d03957ba8f5ff3892947a5c3a45f46de21145bdad3bfb1cbed26faeb172de7a9",
     "src/inferrsi/data/skill_library/methods/optimization-search-policy/cases/sarathi-chunk-budget.json": "f8448973cf1c9e506179c02c5e55bd804ea039b7276cf08071952f6c0be656ad",
     "src/inferrsi/data/skill_library/methods/optimization-search-policy/cases/sarathi-chunk-budget.md": "2c2a8147001d24d1abc8672f15cf0ca759ae461b734413c8dcb7497634bb6821",
-    "src/inferrsi/data/skill_library/methods/optimization-search-policy/metadata.json": "6dc0c3b8ce13cff285ad99da4441f2fb6a5931247e7634e657275dd915854e02",
+    "src/inferrsi/data/skill_library/methods/optimization-search-policy/metadata.json": "c12db77c3536dc3b08635507efcf97c577dffc343186a953d32e5314380896df",
     "src/inferrsi/data/skill_library/methods/optimization-search-policy/references/distserve-phase-placement/README.md": "56e16efce447dfd4990a024ff1d6f7cb428f8e3e1f7b32a7e4d05f57139b836a",
     "src/inferrsi/data/skill_library/methods/optimization-search-policy/references/distserve-phase-placement/source-record.json": "21cc9562f1c19d6b57957c01b53e0adf8700d05ffaaa7764afe07c4da1284de1",
     "src/inferrsi/data/skill_library/methods/optimization-search-policy/references/papers-20261015/INTEGRATION_NOTES.md": "157e74ba180426b279b548a729769f152bf18f9a78ffca4ebfcaf26b7d0c5292",
@@ -129,7 +129,9 @@
       "../assess-serving-preemption/SKILL.md",
       "../calibrate-serving-simulation/SKILL.md",
       "../performance-ceiling-analysis/SKILL.md",
-      "../../repositories/vllm/audit-vllm-kv-lifetimes/SKILL.md"
+      "../../repositories/vllm/audit-vllm-kv-lifetimes/SKILL.md",
+      "../calibrate-serving-simulation/references/infera-serving-search/README.md",
+      "../calibrate-serving-simulation/references/infera-serving-search/source-record.json"
     ],
     "consumption_mode": "packaged",
     "sources": [

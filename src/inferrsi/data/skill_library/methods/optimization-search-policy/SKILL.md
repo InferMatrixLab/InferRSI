@@ -129,6 +129,8 @@ constraint from it. Example: "KV cache compression at this sequence length did
 not reduce memory traffic (measured: mte2_ratio unchanged at concurrency=4)."
 That constraint narrows the remaining search space.
 
+For a serving-tuner shortlist, follow the calibration owner's [Infera provenance reference](../calibrate-serving-simulation/references/infera-serving-search/README.md). Keep the deterministic seed-only comparator, complete evaluated-trial ledger and actual fidelity visible. That reference qualifies the scalar/DES metric boundary and the proposed, unrun trace-ranking check.
+
 ## Cost-aware candidate selection
 
 For observed prefill interference with ongoing decodes, consult the

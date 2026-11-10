@@ -489,7 +489,7 @@ def _events(path: Path, root: Path, expected: dict | None = None, unique_candida
 
 def _environment_signature(environment: dict, devices: object, backend: object) -> tuple | None:
     """Compare verified device/runtime identity privately; never expose it in the view."""
-    if backend != "cuda" or not isinstance(devices, list) or not devices:
+    if backend not in ("cuda", "ascend") or not isinstance(devices, list) or not devices:
         return None
     device = environment.get("device")
     host = environment.get("host")
@@ -509,6 +509,16 @@ def _environment_signature(environment: dict, devices: object, backend: object) 
         return None
     if not all(isinstance(packages.get(key), str) and packages[key] for key in ("torch", "vllm")):
         return None
+    runtime_identity = ()
+    if backend == "ascend":
+        ascend = environment.get("ascend")
+        if not isinstance(ascend, dict) or not all(
+            isinstance(ascend.get(k), str) and ascend[k]
+            for k in ("cann_version", "firmware_version")
+        ) or not all(isinstance(packages.get(k), str) and packages[k]
+                     for k in ("torch_npu", "vllm_ascend")):
+            return None
+        runtime_identity = (ascend["cann_version"], ascend["firmware_version"])
     selected = []
     for identity in devices:
         matches = [row for row in device["devices"] if isinstance(row, dict)
@@ -520,7 +530,8 @@ def _environment_signature(environment: dict, devices: object, backend: object) 
         if not all(isinstance(value, str) and value for value in fields):
             return None
         selected.append(fields)
-    return (host["platform"], target["python"], tuple(sorted(packages.items())), tuple(selected))
+    return (backend, host["platform"], target["python"], tuple(sorted(packages.items())),
+            tuple(selected), runtime_identity)
 
 
 def _run(root: Path, path: Path, candidate: dict, run_id: str | None, noise: float | None,
@@ -839,6 +850,33 @@ def load_dashboard(source: Path) -> dict:
             for directory in sorted((root / "runs").iterdir()):
                 if directory.is_dir() and not directory.is_symlink():
                     rows.append(_run(root, directory, {}, directory.name, noise))
+    from .dashboard_external import external_record
+
+    for row, entry in zip(rows, entries if not single else []):
+        reference = entry[1].get("external_record_ref")
+        if reference is not None:
+            external, ref = external_record(root, reference, row["candidate_id"])
+            row["artifacts"]["external_record"] = ref
+            row["external"] = external
+            if row["run_id"] is not None:
+                external = {}
+                row["external"] = {}
+                row["artifacts"]["external_record"] = {**ref, "state": "missing",
+                                                        "missing_reason": "conflicting_run"}
+            if external:
+                # External-only candidates do not promise a native harness run tree.
+                row["artifacts"] = {key: value for key, value in row["artifacts"].items()
+                                    if key in ("candidate_metadata", "external_record")}
+                for index, source in enumerate(external["source_refs"]):
+                    row["artifacts"][f"external_source_{index}"] = source
+                row["metric_key"] = external["protocol"]
+                row["metric_unit"] = "protocol_specific"
+                row["state"] = external["state"]
+                row["verdict"] = external["performance_verdict"]
+                row["events"].extend(external["events"])
+                row["quality"] = {"PASS": "passed", "FAIL": "failed"}.get(
+                    external["quality_verdict"], "not_recorded")
+                row["outcome"] = "unverified"
     decisions = {(item["round"], item["decision"]["candidate_id"]): item["decision"]["outcome"]
                  for item in (rounds or []) if "decision" in item}
     for row in rows:
@@ -848,7 +886,7 @@ def load_dashboard(source: Path) -> dict:
         signature = row.pop("_comparison_signature")
         if row["improvement_pct"] is not None:
             signatures.append(signature)
-    comparison_state = "comparable"
+    comparison_state = "comparable" if signatures else "no_data"
     if len(signatures) >= 2:
         if any(signature is None for signature in signatures):
             comparison_state = "unverified"
@@ -892,6 +930,8 @@ def load_dashboard(source: Path) -> dict:
         from .optimization_story import build_story
 
         story = build_story(root, rows, decisions, campaign.get("campaign_id"))
+    collection = campaign.get("collection")
+    collection = collection if isinstance(collection, dict) else {}
     declared = campaign.get("stages_declared")
     if not isinstance(declared, list):
         declared = None
@@ -901,6 +941,12 @@ def load_dashboard(source: Path) -> dict:
         "rounds": rounds, "rounds_state": rounds_state,
         "corrupt_round_lines": corrupt_round_lines,
         "candidates": rows,
+        "integration": {"state": "not_connected" if not rows else "connected",
+                        "stage_declaration": "explicit_empty" if declared == [] else
+                        "missing" if declared is None else "declared",
+                        "external_records": sum(bool(row.get("external")) for row in rows),
+                        "collection": {"state": _text(collection.get("state"), ""),
+                                       "observed_at": _text(collection.get("observed_at"), "")}},
         "overview": {"comparison_state": comparison_state,
                      "best_improvement_pct": best, "target_improvement_pct": target,
                      "target_gap_pct": (_number(target - best)
