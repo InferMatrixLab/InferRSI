@@ -599,3 +599,21 @@ def test_malformed_capture_envelope_is_withheld(tmp_path):
     retrieval = load_dashboard(tmp_path)["story"]["retrievals"][0]
     assert retrieval["state"] == "invalid_format"
     assert "assembled_text" not in retrieval
+
+
+def test_search_import_joins_capture_use_with_failed_run(tmp_path):
+    from inferrsi.harness.search_attribution import import_search
+
+    digest = campaign(tmp_path)
+    write_log(tmp_path, log_document(digest))
+    evaluation = tmp_path / "runs/run-a/evaluation.json"
+    evaluation.write_text(json.dumps({"verdict": "FAIL"}), encoding="utf-8")
+    p = import_search(tmp_path, number=1, context_ids=["r1", "r1"], complete=True)
+    doc = json.loads(p.read_bytes())
+    assert doc["counts"] == {"searches": 1, "hits": 2, "unique_hits": 2, "used": 1}
+    assert doc["materials"]["package:graphs"]["use"] == "used"
+    assert doc["materials"]["package:kv"]["use"] == "rejected"
+    assert doc["events"][0]["materials"][0]["resources"]
+    assert doc["candidates"][0]["verdict"] == "FAIL"
+    with pytest.raises(ValueError, match="another round"):
+        import_search(tmp_path, number=2, context_ids=["r1"])

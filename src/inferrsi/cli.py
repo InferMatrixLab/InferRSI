@@ -321,6 +321,16 @@ def main(argv: list[str] | None = None) -> int:
                 _print({"context": path.relative_to(Path(args.directory).resolve()).as_posix(),
                         "sha256": digest})
                 return 0
+            if args.campaign_action == "import-search":
+                from .harness.search_attribution import import_search
+
+                path = import_search(args.directory, number=args.round, trace=args.trace,
+                                     lines=args.lines, knowledge_root=args.knowledge_root,
+                                     context_ids=args.context_id, used=args.used,
+                                     rejected=args.rejected, stage=args.stage,
+                                     complete=args.complete)
+                _print({"record": path.relative_to(args.directory.resolve()).as_posix()})
+                return 0
             if args.campaign_action == "log":
                 from .harness.optimization_log import record_log
 

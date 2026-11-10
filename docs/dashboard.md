@@ -112,6 +112,77 @@ campaign-relative files; the recorder hashes them and does not copy them. The
 caller assigns IDs and must serialize campaign record updates. Neither command
 starts an agent or validates the experiment.
 
+### Import one round's searches
+
+A search import writes `search/round-<n>.json` inside an existing campaign.
+The record can exist before a candidate or run. Read it directly with a JSON
+viewer. The agent or host selects the trace for its own session and keeps the
+original private. When the Desktop host exposes `CODEX_THREAD_ID`, the agent
+can locate its own rollout by matching that exact thread ID in the filenames
+under the local Codex sessions directory. A host can also supply the trace
+path directly. The import command only opens the supplied file.
+
+For example, set `campaign` to the campaign directory, `trace` to the local
+Codex Desktop rollout JSONL and `corpus` to the absolute skill-library path
+**as it appeared in that session**. In the agent's first shell call of the
+round, save the next line number. In separate shell calls, use the knowledge
+directory normally. Once the completed tool events are visible in the rollout,
+run the import from the agent's closing shell call:
+
+```sh
+# Start of round 1. Save the printed value as FIRST for the closing call.
+awk 'END { print NR + 1 }' "$trace"
+
+# Separate agent shell calls with the skill library as the tool working directory.
+rg -Hn 'Operator tests passed' methods/inference-optimization-casebook/cases
+cat methods/inference-optimization-casebook/cases/qwen-b300-rejected-directions.md
+
+# End of round 1. FIRST is the value retained at the start of this round.
+LAST=$(wc -l < "$trace")
+inferrsi campaign import-search --directory "$campaign" --round 1 \
+  --trace "$trace" --lines "$FIRST" "$LAST" --knowledge-root "$corpus" --complete
+```
+
+For round 2 take a new first/last pair, even in the same session. Windows are
+one-based and inclusive. If the host buffers events, import after they have
+flushed. After an interruption the host can do the same handoff. Use
+`--context-id <id>` once per `campaign capture-context` performed in this round.
+These inputs can be combined with the rollout or used alone for an Indexer-only
+round. Each capture is verified and its returned refs, revisions, request and
+resource paths are recorded. Opening a resource and receiving a prepared context
+are distinct observations. A bare `collect` leaves no such capture.
+
+The importer reads Desktop `CommandExecution` events. It supports direct text
+or filename-match searches with `rg`, literal `cat`, `nl -ba` and `sed -n N,Mp`
+reads. Use `rg -Hn` for unambiguous filenames and matching lines. File results
+are corpus-relative; no source text, shell output, private rollout path or
+assistant reply is copied. Unsupported search pipelines and unparseable
+output leave unresolved event line numbers. Other tools and scripted/remote
+retrievals require separate evidence. Review query text and paths before sharing.
+
+- `observed` counts recognized searches, distinct materials per search (hits),
+  distinct hit refs across searches, and distinct refs with supported use.
+  A later file read is a separate event. File paths and versioned Indexer
+  entries keep their original identities, with no inferred cross-tool alias.
+- Supply `--complete` only when the selected inputs cover every in-scope
+  retrieval for the round. Otherwise only observed counts are known and
+  `counts` is null. A complete round without a search has zero searches.
+  With no inputs the command records missing coverage. A failed query or
+  unresolved supported command also makes totals unknown.
+- Use and rejection can come from the existing optimization log when its
+  iteration references the exact verified capture. For a decision recorded
+  in an assistant message, a reviewer can pass `--used REF LINE` or
+  `--rejected REF LINE` with the actual material ref and the JSONL line of
+  the relevant message. This explicitly attributes use; the importer validates
+  the locator and never infers a decision from a read. Unattributed use stays
+  unknown. Distinct use and rejection decisions for the same ref are both retained
+  and it counts once as used. Candidate links carry the recorded evaluation verdict when present.
+- Serialize imports along with other campaign updates. Repeating an import
+  rebuilds the snapshot without adding events. To attach a later decision or
+  run, retain the same trace, start line, capture IDs and scope, and extend the
+  end line if necessary before the next round starts. Separate rounds cannot
+  claim overlapping windows or the same retrieval.
+
 ### Record the optimization story (campaign trace)
 
 The **Optimization story** section is the campaign-level trace a reviewer reads
