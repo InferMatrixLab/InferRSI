@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "id": "inferrsi.common.skills.optimization_search_policy",
   "title": "optimization-search-policy",
   "repo": "inferrsi",
@@ -18,29 +18,6 @@
   "origin": [
     "external"
   ],
-  "sources": [
-    {
-      "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/d648f25732dee1c974da62a94c46a642ad52cef8/src/inferrsi/data/skill_library/methods/optimization-search-policy/SKILL.md",
-      "commit": "d648f25732dee1c974da62a94c46a642ad52cef8",
-      "paths": [
-        "src/inferrsi/data/skill_library/methods/optimization-search-policy/SKILL.md",
-        "src/inferrsi/data/skill_library/methods/optimization-search-policy/cases/sarathi-chunk-budget.json",
-        "src/inferrsi/data/skill_library/methods/optimization-search-policy/cases/sarathi-chunk-budget.md",
-        "src/inferrsi/data/skill_library/methods/optimization-search-policy/metadata.json",
-        "src/inferrsi/data/skill_library/methods/optimization-search-policy/references/distserve-phase-placement/README.md",
-        "src/inferrsi/data/skill_library/methods/optimization-search-policy/references/distserve-phase-placement/source-record.json",
-        "src/inferrsi/data/skill_library/methods/optimization-search-policy/references/papers-20261015/INTEGRATION_NOTES.md",
-        "src/inferrsi/data/skill_library/methods/optimization-search-policy/references/papers-20261015/MECHANISMS.md",
-        "src/inferrsi/data/skill_library/methods/optimization-search-policy/references/papers-20261015/NEXT_GATE_LEADS.md",
-        "src/inferrsi/data/skill_library/methods/optimization-search-policy/references/papers-20261015/knowledge/adaptation-interfaces.md",
-        "src/inferrsi/data/skill_library/methods/optimization-search-policy/references/papers-20261015/references/source-notes.md",
-        "src/inferrsi/data/skill_library/methods/optimization-search-policy/references/papers-20261015/updates/optimization-search-policy.md",
-        "src/inferrsi/data/skill_library/skill-index.json"
-      ],
-      "content_sha256": "d03957ba8f5ff3892947a5c3a45f46de21145bdad3bfb1cbed26faeb172de7a9"
-    }
-  ],
   "index_type": "packaged-skill",
   "skill_documents": {
     "original": "data/skill_library/methods/optimization-search-policy/SKILL.md"
@@ -58,8 +35,7 @@
     "src/inferrsi/data/skill_library/methods/optimization-search-policy/references/papers-20261015/NEXT_GATE_LEADS.md": "16a264c7159f9c2c700ce8ba46e63f3e636b277c987da4970f6d2fa085fcb053",
     "src/inferrsi/data/skill_library/methods/optimization-search-policy/references/papers-20261015/knowledge/adaptation-interfaces.md": "5e761957cb5ecd93926e6ffc13deee7c830c6e8f0ee3c3846e9dd3b50dc74446",
     "src/inferrsi/data/skill_library/methods/optimization-search-policy/references/papers-20261015/references/source-notes.md": "54d83c3713045d59a48821bcf93598374ba4a630e3891ad39498f919317c4fb8",
-    "src/inferrsi/data/skill_library/methods/optimization-search-policy/references/papers-20261015/updates/optimization-search-policy.md": "d3db44fa9a6831b86a02c638b323ed943e69fe256866213f10d68c72d762879e",
-    "src/inferrsi/data/skill_library/skill-index.json": "7904275c3383380db179287171e1430617aaa9ac4f439291eff8a71426987fbb"
+    "src/inferrsi/data/skill_library/methods/optimization-search-policy/references/papers-20261015/updates/optimization-search-policy.md": "d3db44fa9a6831b86a02c638b323ed943e69fe256866213f10d68c72d762879e"
   },
   "skill_metadata": {
     "name": "optimization-search-policy",
