@@ -79,7 +79,11 @@
     }
   ],
   "applicability": {
-    "scope": "Selected artifact/Apple target/pinned TVM Metal consumer and KV configuration source contracts. Common catalog categorization is not CPU inference or Apple qualification."
+    "scope": "Selected artifact/Apple target/pinned TVM Metal consumer and KV configuration source contracts. Common catalog categorization is not CPU inference or Apple qualification.",
+    "prerequisites": "Access to the pinned MLC and exact TVM fork/gitlink contracts; native checks require separately prepared matching MLC/TVM/FFI and the applicable Apple SDK/device stack.",
+    "input_contract": "MLC revision, TVM gitlink/build, model/tokenizer/quantized-parameter identity, target/host/SDK, compiled artifact/format, runtime device and the actual compiled/runtime configuration sources.",
+    "produced_artifact": "An identity and actual-versus-declared boundary report for artifact, Metal runtime or KV-limit ownership, with a negative signal and smallest missing native discriminator.",
+    "failure_modes": "Treating a schema hash as payload authentication, an opt-in WebLLM artifact contract as a native-engine ABI, serializable Metal fallback as runnable, or automatic capacity estimates as free memory can create unsupported qualification claims."
   },
   "limitations": [
     "Source-derived candidate; original compiled CPU/native tests, compiler/live API/CLI/model/Metal/fit/quality/service/performance execution not_run; required native BLOCKED_REQUIRED_BACKEND.",
@@ -93,5 +97,10 @@
     "references/repo-provenance.md",
     "references/source-identity.json"
   ],
-  "consumption_mode": "packaged"
+  "consumption_mode": "packaged",
+  "recommendations": [
+    "Identify the interface's actual consumer before using a valid artifact manifest as evidence of native model/task support.",
+    "Separate codegen/export from runtime factory/load, pipeline creation, dispatch and stream completion; a serializable kind=metal fallback can still be non-runnable.",
+    "Trace runtime preference, compile-time bounds, nested workspace inputs and explicit overrides separately before interpreting a KV or working-set estimate."
+  ]
 }

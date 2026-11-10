@@ -41,12 +41,22 @@ def evaluate(
     integrity: dict | None = None,
 ) -> dict:
     failed, incomplete = [], []
+    trials_qualified = True
     for label, trials in (("baseline", baseline), ("candidate", candidate)):
         if len(trials) != spec.repetitions:
             incomplete.append(
                 f"{label}: expected {spec.repetitions} trials, recorded {len(trials)}"
             )
         for index, trial in enumerate(trials, 1):
+            checks = trial.get("trial_checks")
+            for key in spec.required_trial_checks:
+                value = checks.get(key) if isinstance(checks, dict) else None
+                if value is not True:
+                    trials_qualified = False
+                    incomplete.append(
+                        f"{label} trial {index}: required check {key} "
+                        + ("was false" if value is False else "missing or not boolean")
+                    )
             if trial.get("status") != "completed":
                 incomplete.append(
                     f"{label} trial {index}: {trial.get('status')} trial excluded from "
@@ -70,7 +80,7 @@ def evaluate(
     all_metrics = len(baseline) == len(candidate) == spec.repetitions and all(
         t.get("status") == "completed" and t.get("metric") is not None for t in baseline + candidate
     )
-    if all_metrics:
+    if all_metrics and trials_qualified:
         improvement = (after["median"] - before["median"]) / before["median"] * 100
         if spec.direction == "minimize":
             improvement *= -1
@@ -89,6 +99,7 @@ def evaluate(
     return {
         "verdict": verdict.value,
         "reasons": failed + incomplete,
+        "required_trial_checks": list(spec.required_trial_checks),
         "metric_key": spec.metric_key,
         "metric_unit": spec.metric_unit,
         "comparison_scope": spec.comparison_scope,

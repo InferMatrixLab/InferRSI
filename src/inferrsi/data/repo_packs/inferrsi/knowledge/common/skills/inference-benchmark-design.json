@@ -27,7 +27,14 @@
     "stream-boundaries",
     "treatment-delivery",
     "trial-validity",
-    "protocol-audit"
+    "protocol-audit",
+    "trial-evidence",
+    "result-origin",
+    "oracle-boundary",
+    "candidate-selection",
+    "accepted-prefix",
+    "state-restoration",
+    "completion-accounting"
   ],
   "origin": [
     "external"
@@ -35,8 +42,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/fb4171e87b4c78d4d62c927f297374ed917949f5/src/inferrsi/data/skill_library/methods/inference-benchmark-design/SKILL.md",
-      "commit": "fb4171e87b4c78d4d62c927f297374ed917949f5",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/d648f25732dee1c974da62a94c46a642ad52cef8/src/inferrsi/data/skill_library/methods/inference-benchmark-design/SKILL.md",
+      "commit": "d648f25732dee1c974da62a94c46a642ad52cef8",
       "paths": [
         "src/inferrsi/data/skill_library/methods/inference-benchmark-design/SKILL.md",
         "src/inferrsi/data/skill_library/methods/inference-benchmark-design/metadata.json",
@@ -46,10 +53,14 @@
         "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/cache-aware-asr-stream-boundaries.md",
         "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/justgoal-evaluation-contracts.md",
         "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/justgoal-source.json",
+        "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/ninfer-source.json",
+        "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/ninfer-state-and-completion-contracts.md",
         "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/task-benchmark-selection.md",
+        "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/xeforge-source.json",
+        "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/xeforge-trial-evidence.md",
         "src/inferrsi/data/skill_library/skill-index.json"
       ],
-      "content_sha256": "7fd7f557f5c99ca4ec4c46f2d97e67ecf280f5f0fdf071871a14cc08a7cb1c84"
+      "content_sha256": "9deb10a23233949f8edc7673c77932f7a4871c9c8b3e978147eef100418792a5"
     }
   ],
   "index_type": "packaged-skill",
@@ -58,16 +69,20 @@
   },
   "checkout_ref": "checkout:inference-benchmark-design",
   "source_files": {
-    "src/inferrsi/data/skill_library/methods/inference-benchmark-design/SKILL.md": "7fd7f557f5c99ca4ec4c46f2d97e67ecf280f5f0fdf071871a14cc08a7cb1c84",
-    "src/inferrsi/data/skill_library/methods/inference-benchmark-design/metadata.json": "0880a9915d931a1b232d2250ff32790407803adf65f08020573d6d2cc6a18ff8",
+    "src/inferrsi/data/skill_library/methods/inference-benchmark-design/SKILL.md": "9deb10a23233949f8edc7673c77932f7a4871c9c8b3e978147eef100418792a5",
+    "src/inferrsi/data/skill_library/methods/inference-benchmark-design/metadata.json": "b9f8de0cdc8676f1fa9cb119125b2238fb7c377687222d2bfab1b37f8794dbe1",
     "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/autotunebench-source.json": "bc343ece2bf40c4e8aa4bd8d84f32465d00633255557feda5fe7799ce24e8688",
     "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/autotunebench-trial-validity.md": "cb3a7a5d94d056f868af07f92a16a6fef31eafd3199ed07ae79e93798e320b1d",
     "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/benchmark-commands.md": "0898424e0bff3a6246e1eeeda6abd6c5bd974c047fe32f3bbd5ab9d31ce17cd3",
     "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/cache-aware-asr-stream-boundaries.md": "4e0ea9c1bf6b096a49a91ad5266e90b8a456f4f5aca15eba8ac270a53c2309b5",
     "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/justgoal-evaluation-contracts.md": "d25df795fd301e8a1bb436e5f8122d0bac2441c43104e59a3b310fd5a64f2f3e",
     "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/justgoal-source.json": "60f2784384ea1a3b08a2ecafb60207d8e3707247dc7bc177b95b463d81f1cc16",
+    "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/ninfer-source.json": "ccda0fc6781e3c4dceb41521ab952445840b4afcc9f5a7d968857f76e8db6272",
+    "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/ninfer-state-and-completion-contracts.md": "2b3de210d1790eec92319addadf0e38fcd1529fa2f23b5cddf96a789b783f4ac",
     "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/task-benchmark-selection.md": "0d4bb080a754e26846e81680023db0dff5e6a4c96be4327c411c3b72ac4ef8e2",
-    "src/inferrsi/data/skill_library/skill-index.json": "9ea8b2ef190777e683a3905f0614612a37782be4d655d230c000188b0c7073db"
+    "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/xeforge-source.json": "6c21791b9c8ecbc9645c6deb659bd897e17f70525536ea25e884a62fc5fb6b25",
+    "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/xeforge-trial-evidence.md": "802c4dfe83983cbd6740231d5d0e2b459792b685de8dfbefb6dc51a912e23604",
+    "src/inferrsi/data/skill_library/skill-index.json": "7904275c3383380db179287171e1430617aaa9ac4f439291eff8a71426987fbb"
   },
   "skill_metadata": {
     "name": "inference-benchmark-design",
@@ -90,7 +105,14 @@
       "stream-boundaries",
       "treatment-delivery",
       "trial-validity",
-      "protocol-audit"
+      "protocol-audit",
+      "trial-evidence",
+      "result-origin",
+      "oracle-boundary",
+      "candidate-selection",
+      "accepted-prefix",
+      "state-restoration",
+      "completion-accounting"
     ],
     "status": "candidate",
     "profile": "local-skill-v1",
@@ -310,14 +332,98 @@
           "Tables 1-7"
         ],
         "readset": "references/autotunebench-trial-validity.md"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/IntelLabs/Xe-Forge",
+        "commit": "6cd3ee98dfe32746b345a6abe521fa4cb9bdc187",
+        "paths": [
+          "CONTRIBUTING.md",
+          "LICENSE",
+          "README.md",
+          "docs/CORRECTNESS.md",
+          "docs/KERNEL_REPO.md",
+          "pyproject.toml",
+          "src/xe_forge/claude/generator.py",
+          "src/xe_forge/claude/templates/CLAUDE.md.j2",
+          "src/xe_forge/cli.py",
+          "src/xe_forge/core/trial_manager.py",
+          "src/xe_forge/engines/claude_engine.py",
+          "src/xe_forge/external.py",
+          "src/xe_forge/skills/__init__.py",
+          "src/xe_forge/skills/benchmark.py",
+          "src/xe_forge/skills/trial.py",
+          "src/xe_forge/skills/upstream.py",
+          "tests/test_benchmark_gate.py",
+          "tests/test_trial_manager_ranking.py"
+        ],
+        "readset": "references/xeforge-source.json",
+        "license": "Apache-2.0 repository default; DCO and curated-example exclusions retained",
+        "scope": "Selected source-bound trial origin/comparison identity, host outcomes, measured-only selection and baseline-oracle contracts; source-only, no execution"
+      },
+      {
+        "type": "paper",
+        "id": "arxiv:2605.26118",
+        "version": "v1",
+        "url": "https://arxiv.org/html/2605.26118v1",
+        "sections": [
+          "Abstract",
+          "I-VIII",
+          "References",
+          "Appendix A",
+          "Tables 1-3",
+          "Algorithm 1",
+          "Listing 1",
+          "Figure captions 1-15"
+        ],
+        "readset": "references/xeforge-source.json",
+        "license": "CC-BY-4.0",
+        "scope": "Complete HTML text/appendix and captions; historical author-reported context, unused graphic values remain unverified"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/Neroued/ninfer",
+        "commit": "1882c6adbc98043fcf89f3589aa5addb3742777a",
+        "paths": [
+          "LICENSE",
+          "README.md",
+          "docs/maintainer/engine-architecture.md",
+          "docs/maintainer/speculative-decoding.md",
+          "docs/maintainer/context-management.md",
+          "docs/performance/methodology.md",
+          "docs/performance/qwen3.8-27b.md",
+          "include/ninfer/ops/gdn_replay.h",
+          "src/core/gdn_replay_records.h",
+          "src/core/gdn_replay_records.cpp",
+          "src/core/linear_attention_state.h",
+          "src/core/linear_attention_state.cpp",
+          "src/models/qwen3_5/state/state_image.h",
+          "src/models/qwen3_5/state/state_image.cpp",
+          "src/models/qwen3_5/execution/gdn.cpp",
+          "src/models/qwen3_5/execution/text.cpp",
+          "src/models/qwen3_5/program/decode.cpp",
+          "src/models/qwen3_5/program/commit.cpp",
+          "src/models/qwen3_5/program/mtp.cpp",
+          "src/models/qwen3_5/session/commit.cpp",
+          "src/models/qwen3_5/session/binding.cpp",
+          "src/models/qwen3_5/session/checkpoints.cpp",
+          "src/runtime/engine/engine_execution.inl",
+          "src/runtime/executor/contract.h",
+          "src/runtime/executor/local_executor.h",
+          "src/ops/linear_attention/gated_delta_net/replay/fold.cpp",
+          "tests/ops/linear_attention/gated_delta_net/test_fold.cpp"
+        ],
+        "readset": "references/ninfer-source.json",
+        "license": "Apache-2.0",
+        "scope": "Selected Qwen3.5 GDN/MTP state-restoration, accepted-prefix and completion evidence contracts; historical results retain their separate reported revision. Source-only, no native execution."
       }
     ],
     "empirical_validation": "not_run",
     "applicability": {
-      "scope": "Selecting task quality gates, reference parity checks and performance workloads for text, agentic coding, work agents, cache-aware ASR, TTS, full-duplex audio/video, image and video inference, and designing goodput-based multi-regime comparisons that fit InferRSI's evidence trail; interpreting treatment delivery, arm validity and stated-versus-observed protocol enforcement in supplied tuning reports",
+      "scope": "Selecting task quality gates, reference parity checks and performance workloads for text, agentic coding, work agents, cache-aware ASR, TTS, full-duplex audio/video, image and video inference, and designing goodput-based multi-regime comparisons that fit InferRSI's evidence trail; interpreting treatment delivery, arm validity and stated-versus-observed protocol enforcement in supplied tuning reports; interpreting source-bound kernel trial origin, host evaluator outcomes, unresolved performance and measured-only versus manual candidate selection; designing and interpreting the selected NInfer hybrid speculative state-restoration and completion validation contract",
       "prerequisites": "The primary objective, timing boundary, quality gates, sample/failure accounting, required regimes, repetitions, seeds and decision rule are frozen before optimization; baseline and candidate share hardware, software stack, input distribution, benchmark configuration, warmup and measurement protocol, and on a shared machine also one time window and dedicated devices; cache-aware ASR also requires the selected model/config and first/steady geometry, decoded clock and reset/EOU/EOF boundaries to be established",
-      "input_contract": "The task family and deployment use case; candidate quality evaluators and reference parity; the declared SLO and the caller's policy on which regimes must improve or must not regress; for an audit, a supplied fixed-workload report with request-to-trial grouping, exclusion and failure counts and the declared aggregation rule; for a treatment audit, the frozen delivery/arm-validity rules, run/candidate identities, feedback and consumer-input evidence, and per-arm raw records",
-      "produced_artifact": "A frozen benchmark design with evaluators, reference parity, primary objective, timing boundary, quality gates, required regimes, repetition and seed rules and an explicit decision config, plus the evidence-tree layout a PASS claim must produce; for a supplied report, the computed threshold result and missing evidence. Candidate knowledge, not qualification of any model or backend; for a treatment audit, a contract-bound eligibility and interpretation report separating treatment exposure, observed checks, comparator identity, anomaly disposition and source conflicts",
+      "input_contract": "The task family and deployment use case; candidate quality evaluators and reference parity; the declared SLO and the caller's policy on which regimes must improve or must not regress; for an audit, a supplied fixed-workload report with request-to-trial grouping, exclusion and failure counts and the declared aggregation rule; for a treatment audit, the frozen delivery/arm-validity rules, run/candidate identities, feedback and consumer-input evidence, and per-arm raw records; for a kernel trial audit, complete saved candidate bytes and IDs, baseline/spec/reference/variant identities, result-origin fields, raw host outcome and return code, named gate and persisted ratio, actual oracle and the selecting/delivering caller; for the NInfer slice, a complete checkpoint/frontier identity, physical verify-block/state oracle, final adopted extents and correlated execution/termination records",
+      "produced_artifact": "A frozen benchmark design with evaluators, reference parity, primary objective, timing boundary, quality gates, required regimes, repetition and seed rules and an explicit decision config, plus the evidence-tree layout a PASS claim must produce; for a supplied report, the computed threshold result and missing evidence. Candidate knowledge, not qualification of any model or backend; for a treatment audit, a contract-bound eligibility and interpretation report separating treatment exposure, observed checks, comparator identity, anomaly disposition and source conflicts; for a kernel trial audit, a source-bound interpretation separating artifact/cohort identity, origin, oracle, performance resolution and selected-versus-delivered eligibility, without promoting kernel parity into a gain or whole-model acceptance; for the NInfer slice, a source-bound validation plan or report interpretation that separates state-oracle evidence, final adoption, retirement and workload denominators",
       "failure_modes": [
         "Raw throughput is optimized in place of goodput, so requests served outside the SLO count toward a win",
         "One concurrency level or one undisclosed aggregate score stands in for all required regimes",
@@ -329,16 +435,23 @@
         "A cache-aware ASR EOU is treated as EOF or full reset, nominal chunk duration as the decoded mel frontier, or shape-only geometry PASS as a native model-state test",
         "An enabled treatment or stored feedback summary is taken as proof of delivery to the next eligible consumer",
         "A failed arm-validity condition is overridden by a favorable best timing or a saturation/null interpretation",
-        "Complete gate keys or zero recorded failures are read as proof that every declared protocol check ran"
+        "Complete gate keys or zero recorded failures are read as proof that every declared protocol check ran",
+        "A tool-origin measured marker or completed status is treated as a resolved performance gain",
+        "A displayed/manual best, baseline copy or edited candidate is reported as the eligible measured delivery",
+        "Ratio omission alone is assumed to clear an earlier ratio, or baseline agreement is treated as independent semantic correctness",
+        "Zero accepted drafts is treated as zero adopted input, or a matching token prefix is used to splice unrelated State and KV checkpoints",
+        "ResultReady or a commit receipt is treated as DeviceRetired, or selected full-batch intervals are compared with complete-cohort rates under one unlabeled denominator"
       ],
-      "refusal_point": "Records missing coverage and high-variance results as INCONCLUSIVE rather than a win; a run without a frozen RunSpec, or whose validator changed after the plan was frozen, is INCONCLUSIVE regardless of metric values; sets no universal numeric gate or noise threshold; withholds causal treatment benefit/null conclusions when required delivery or arm eligibility is unverified, and preserves conflicts between stated protocol, exported code and source reports"
+      "refusal_point": "Records missing coverage and high-variance results as INCONCLUSIVE rather than a win; a run without a frozen RunSpec, or whose validator changed after the plan was frozen, is INCONCLUSIVE regardless of metric values; sets no universal numeric gate or noise threshold; withholds causal treatment benefit/null conclusions when required delivery or arm eligibility is unverified, and preserves conflicts between stated protocol, exported code and source reports; withholds a kernel gain for unresolved performance or an unbound comparison and identifies missing independent semantic evidence when only baseline agreement is available; withholds native state-correctness and cancellation/reuse conclusions when the required same-block oracle, checkpoint identity or matching receipt is missing"
     },
     "recommendations": [
       "Freeze one primary objective, timing boundary, quality gates and sample/failure accounting before optimization.",
       "Choose the required regimes from the deployment use case, report each separately, and record which must improve or must not regress in a versioned decision config.",
       "Use the replay trace that matches the actual deployment pattern.",
       "State the concurrency, trace, model, SKU and microbenchmark scope boundaries in any report that cites benchmark results.",
-      "Trace treatment to its eligible consumer and apply the frozen arm-validity precedence before attributing benefit, saturation or a null."
+      "Trace treatment to its eligible consumer and apply the frozen arm-validity precedence before attributing benefit, saturation or a null.",
+      "Bind the complete saved candidate and comparator cohort; keep result origin, actual oracle, named gate/ratio and delivered eligibility separate.",
+      "For hybrid speculative comparisons, freeze the coupled restore point, same-physical-block oracle, zero-draft/zero-adoption controls and complete-cohort versus steady-phase denominators before interpreting a result."
     ],
     "limitations": [
       "Source-derived candidate; no local efficacy validation.",
@@ -347,7 +460,9 @@
       "Benchmark feasibility and package-consumption checks do not promote this candidate or replace task quality, repeated A/B and service qualification.",
       "The pinned NeMo-Speech.cpp ASR reference covers selected source/test definitions and author-reported benchmark boundaries; native model/device, decoder internals, quality, long-audio/load and service behavior remain not_run.",
       "JustGoal contributes source-only controlled-evaluation and kernel-acceptance guidance; its repaired/retested timings, released-pass counts and protocol differences are author-reported, not locally reproduced or a complete campaign runner.",
-      "The AutoTuneBench reference is source-only: original operational checkpoint/prompt receipts remain unavailable, source contradictions remain explicit, and no tuning, device/performance or agent-efficacy validation was run."
+      "The AutoTuneBench reference is source-only: original operational checkpoint/prompt receipts remain unavailable, source contradictions remain explicit, and no tuning, device/performance or agent-efficacy validation was run.",
+      "The Xe-Forge reference is source-only and limited to inspected host/manual/Claude trial paths; named-verdict update predicates and caller defaults remain explicit. Native tests, backend/model/quality/performance/service behavior and agent efficacy were not evaluated, and source/package checks do not promote whole-model support.",
+      "The NInfer reference inspects selected Qwen3.5 GDN/MTP source contracts and unexecuted test definitions; its historical author measurements use a different engine revision. Native state/model/device/quality/performance and efficacy remain unvalidated."
     ],
     "provenance_readsets": [
       "references/task-benchmark-selection.md",
@@ -356,19 +471,26 @@
       "references/justgoal-evaluation-contracts.md",
       "references/justgoal-source.json",
       "references/autotunebench-trial-validity.md",
-      "references/autotunebench-source.json"
+      "references/autotunebench-source.json",
+      "references/xeforge-trial-evidence.md",
+      "references/xeforge-source.json",
+      "references/ninfer-state-and-completion-contracts.md",
+      "references/ninfer-source.json"
     ],
     "references": [
       "../inference-optimization-casebook/cases/admission-drain-occupancy.md",
-      "../inference-optimization-casebook/cases/admission-drain-occupancy.json"
+      "../inference-optimization-casebook/cases/admission-drain-occupancy.json",
+      "../../repositories/deepinfer/budget-speculative-verification/SKILL.md",
+      "../../repositories/vllm-rlt/audit-recurrent-kv-finalization/SKILL.md"
     ],
-    "consumption_mode": "packaged"
+    "consumption_mode": "packaged",
+    "searchspace_not_applicable": "SKILL.md §§ Select the task and its evaluation contract, Statistical requirements, Shared-machine measurement discipline, and Search integrity and final-state verification design comparable evaluation; hardware identity and allocation isolation are comparison controls, not a hardware-resource mechanism."
   },
   "applicability": {
-    "scope": "Selecting task quality gates, reference parity checks and performance workloads for text, agentic coding, work agents, cache-aware ASR, TTS, full-duplex audio/video, image and video inference, and designing goodput-based multi-regime comparisons that fit InferRSI's evidence trail; interpreting treatment delivery, arm validity and stated-versus-observed protocol enforcement in supplied tuning reports",
+    "scope": "Selecting task quality gates, reference parity checks and performance workloads for text, agentic coding, work agents, cache-aware ASR, TTS, full-duplex audio/video, image and video inference, and designing goodput-based multi-regime comparisons that fit InferRSI's evidence trail; interpreting treatment delivery, arm validity and stated-versus-observed protocol enforcement in supplied tuning reports; interpreting source-bound kernel trial origin, host evaluator outcomes, unresolved performance and measured-only versus manual candidate selection; designing and interpreting the selected NInfer hybrid speculative state-restoration and completion validation contract",
     "prerequisites": "The primary objective, timing boundary, quality gates, sample/failure accounting, required regimes, repetitions, seeds and decision rule are frozen before optimization; baseline and candidate share hardware, software stack, input distribution, benchmark configuration, warmup and measurement protocol, and on a shared machine also one time window and dedicated devices; cache-aware ASR also requires the selected model/config and first/steady geometry, decoded clock and reset/EOU/EOF boundaries to be established",
-    "input_contract": "The task family and deployment use case; candidate quality evaluators and reference parity; the declared SLO and the caller's policy on which regimes must improve or must not regress; for an audit, a supplied fixed-workload report with request-to-trial grouping, exclusion and failure counts and the declared aggregation rule; for a treatment audit, the frozen delivery/arm-validity rules, run/candidate identities, feedback and consumer-input evidence, and per-arm raw records",
-    "produced_artifact": "A frozen benchmark design with evaluators, reference parity, primary objective, timing boundary, quality gates, required regimes, repetition and seed rules and an explicit decision config, plus the evidence-tree layout a PASS claim must produce; for a supplied report, the computed threshold result and missing evidence. Candidate knowledge, not qualification of any model or backend; for a treatment audit, a contract-bound eligibility and interpretation report separating treatment exposure, observed checks, comparator identity, anomaly disposition and source conflicts",
+    "input_contract": "The task family and deployment use case; candidate quality evaluators and reference parity; the declared SLO and the caller's policy on which regimes must improve or must not regress; for an audit, a supplied fixed-workload report with request-to-trial grouping, exclusion and failure counts and the declared aggregation rule; for a treatment audit, the frozen delivery/arm-validity rules, run/candidate identities, feedback and consumer-input evidence, and per-arm raw records; for a kernel trial audit, complete saved candidate bytes and IDs, baseline/spec/reference/variant identities, result-origin fields, raw host outcome and return code, named gate and persisted ratio, actual oracle and the selecting/delivering caller; for the NInfer slice, a complete checkpoint/frontier identity, physical verify-block/state oracle, final adopted extents and correlated execution/termination records",
+    "produced_artifact": "A frozen benchmark design with evaluators, reference parity, primary objective, timing boundary, quality gates, required regimes, repetition and seed rules and an explicit decision config, plus the evidence-tree layout a PASS claim must produce; for a supplied report, the computed threshold result and missing evidence. Candidate knowledge, not qualification of any model or backend; for a treatment audit, a contract-bound eligibility and interpretation report separating treatment exposure, observed checks, comparator identity, anomaly disposition and source conflicts; for a kernel trial audit, a source-bound interpretation separating artifact/cohort identity, origin, oracle, performance resolution and selected-versus-delivered eligibility, without promoting kernel parity into a gain or whole-model acceptance; for the NInfer slice, a source-bound validation plan or report interpretation that separates state-oracle evidence, final adoption, retirement and workload denominators",
     "failure_modes": [
       "Raw throughput is optimized in place of goodput, so requests served outside the SLO count toward a win",
       "One concurrency level or one undisclosed aggregate score stands in for all required regimes",
@@ -380,16 +502,23 @@
       "A cache-aware ASR EOU is treated as EOF or full reset, nominal chunk duration as the decoded mel frontier, or shape-only geometry PASS as a native model-state test",
       "An enabled treatment or stored feedback summary is taken as proof of delivery to the next eligible consumer",
       "A failed arm-validity condition is overridden by a favorable best timing or a saturation/null interpretation",
-      "Complete gate keys or zero recorded failures are read as proof that every declared protocol check ran"
+      "Complete gate keys or zero recorded failures are read as proof that every declared protocol check ran",
+      "A tool-origin measured marker or completed status is treated as a resolved performance gain",
+      "A displayed/manual best, baseline copy or edited candidate is reported as the eligible measured delivery",
+      "Ratio omission alone is assumed to clear an earlier ratio, or baseline agreement is treated as independent semantic correctness",
+      "Zero accepted drafts is treated as zero adopted input, or a matching token prefix is used to splice unrelated State and KV checkpoints",
+      "ResultReady or a commit receipt is treated as DeviceRetired, or selected full-batch intervals are compared with complete-cohort rates under one unlabeled denominator"
     ],
-    "refusal_point": "Records missing coverage and high-variance results as INCONCLUSIVE rather than a win; a run without a frozen RunSpec, or whose validator changed after the plan was frozen, is INCONCLUSIVE regardless of metric values; sets no universal numeric gate or noise threshold; withholds causal treatment benefit/null conclusions when required delivery or arm eligibility is unverified, and preserves conflicts between stated protocol, exported code and source reports"
+    "refusal_point": "Records missing coverage and high-variance results as INCONCLUSIVE rather than a win; a run without a frozen RunSpec, or whose validator changed after the plan was frozen, is INCONCLUSIVE regardless of metric values; sets no universal numeric gate or noise threshold; withholds causal treatment benefit/null conclusions when required delivery or arm eligibility is unverified, and preserves conflicts between stated protocol, exported code and source reports; withholds a kernel gain for unresolved performance or an unbound comparison and identifies missing independent semantic evidence when only baseline agreement is available; withholds native state-correctness and cancellation/reuse conclusions when the required same-block oracle, checkpoint identity or matching receipt is missing"
   },
   "recommendations": [
     "Freeze one primary objective, timing boundary, quality gates and sample/failure accounting before optimization.",
     "Choose the required regimes from the deployment use case, report each separately, and record which must improve or must not regress in a versioned decision config.",
     "Use the replay trace that matches the actual deployment pattern.",
     "State the concurrency, trace, model, SKU and microbenchmark scope boundaries in any report that cites benchmark results.",
-    "Trace treatment to its eligible consumer and apply the frozen arm-validity precedence before attributing benefit, saturation or a null."
+    "Trace treatment to its eligible consumer and apply the frozen arm-validity precedence before attributing benefit, saturation or a null.",
+    "Bind the complete saved candidate and comparator cohort; keep result origin, actual oracle, named gate/ratio and delivered eligibility separate.",
+    "For hybrid speculative comparisons, freeze the coupled restore point, same-physical-block oracle, zero-draft/zero-adoption controls and complete-cohort versus steady-phase denominators before interpreting a result."
   ],
   "limitations": [
     "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",
@@ -402,7 +531,9 @@
     "Benchmark feasibility and package-consumption checks do not promote this candidate or replace task quality, repeated A/B and service qualification.",
     "The pinned NeMo-Speech.cpp ASR reference covers selected source/test definitions and author-reported benchmark boundaries; native model/device, decoder internals, quality, long-audio/load and service behavior remain not_run.",
     "JustGoal contributes source-only controlled-evaluation and kernel-acceptance guidance; its repaired/retested timings, released-pass counts and protocol differences are author-reported, not locally reproduced or a complete campaign runner.",
-    "The AutoTuneBench reference is source-only: original operational checkpoint/prompt receipts remain unavailable, source contradictions remain explicit, and no tuning, device/performance or agent-efficacy validation was run."
+    "The AutoTuneBench reference is source-only: original operational checkpoint/prompt receipts remain unavailable, source contradictions remain explicit, and no tuning, device/performance or agent-efficacy validation was run.",
+    "The Xe-Forge reference is source-only and limited to inspected host/manual/Claude trial paths; named-verdict update predicates and caller defaults remain explicit. Native tests, backend/model/quality/performance/service behavior and agent efficacy were not evaluated, and source/package checks do not promote whole-model support.",
+    "The NInfer reference inspects selected Qwen3.5 GDN/MTP source contracts and unexecuted test definitions; its historical author measurements use a different engine revision. Native state/model/device/quality/performance and efficacy remain unvalidated."
   ],
   "verification": {
     "locally_verified": false,

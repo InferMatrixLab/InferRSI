@@ -35,5 +35,6 @@
     "Produces positioning material only; it establishes no performance or quality result.",
     "Third-party claim contracts are read from public material and may be incomplete."
   ],
-  "provenance_readsets": []
+  "provenance_readsets": [],
+  "searchspace_not_applicable": "SKILL.md §§ Frame, Rules and Deliverable produce a qualitative competitive comparison with evidence limits, not a hardware-resource decision or implementation mechanism."
 }

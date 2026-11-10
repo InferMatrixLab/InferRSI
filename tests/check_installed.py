@@ -15,7 +15,7 @@ assert Path(inferrsi.__file__).resolve().parent.parent.name != "src", (
     "This check requires an installed package"
 )
 records = knowledge_records()
-assert len(records) == 127, "Knowledge is missing from the installation"
+assert len(records) == 128, "Knowledge is missing from the installation"
 assert (
     files("inferrsi")
     .joinpath("data", "repo_packs", "vllm_omni", "knowledge", "README.md")
@@ -40,8 +40,21 @@ for record in mlx_records:
         "package:" + record["id"], mlx_document, revision=bundle.revision
     ) == files("inferrsi").joinpath(*mlx_document.split("/")).read_bytes()
 skill_index = search_knowledge(repo="inferrsi", limit=100)
-assert len(skill_index) == 79, "Missing installed skill abstracts"
+assert len(skill_index) == 80, "Missing installed skill abstracts"
 assert all(record["index_type"] == "packaged-skill" for record in skill_index)
+ascend_rc = KnowledgeReader().read("inferrsi.ascend.skills.vllm_ascend")
+for resource in ("plugin-registration", "minimax-cache", "dspark-pd", "sources",
+                 "deepseek-v4-evolution", "communication-config", "model-performance",
+                 "fused-operators", "history-scope"):
+    key = f"data/skill_library/repositories/vllm-ascend/references/{resource}.md"
+    assert ascend_rc.content[key] == files("inferrsi").joinpath(*key.split("/")).read_bytes()
+for resource in ("references/history-reviewed.json", "scripts/screen_history.py"):
+    key = f"data/skill_library/repositories/vllm-ascend/{resource}"
+    assert ascend_rc.content[key] == files("inferrsi").joinpath(*key.split("/")).read_bytes()
+assert all("history-inventory.json" not in key for key in ascend_rc.content)
+assert not files("inferrsi").joinpath(
+    "data/skill_library/repositories/vllm-ascend/references/history-inventory.json"
+).is_file()
 indexed = KnowledgeReader().read("inferrsi.ascend.skills.ascend_operator_profiling")
 assert "data/skill_library/hardware/ascend/ascend-operator-profiling/SKILL.md" in indexed.content
 video_diffusion = KnowledgeReader().read(
@@ -204,7 +217,7 @@ for record in skill_index:
             digest = hashlib.sha256(data.replace(b"\r\n", b"\n")).hexdigest()
         assert digest == expected_hash, relative
 registry = json.loads(library.joinpath("skill-index.json").read_text(encoding="utf-8"))["skills"]
-assert len(registry) == 79
+assert len(registry) == 80
 for entry in registry.values():
     assert library.joinpath(*entry["path"].split("/"), "SKILL.md").is_file()
 for framework, backend in (("pytorch", "common"), ("torch-npu", "ascend")):
@@ -319,8 +332,10 @@ research = json.loads(output.getvalue())
 assert research["profile"]["model"] == "MiniMax-H3"
 assert research["target_validation"] == "unverified"
 assert research["target"]["device"] == "M5 Mac Studio"
+framework_first = search_knowledge("mlx", limit=1)[0]["id"]
 assert any(
-    item["record"]["id"] == "inferrsi.common.skills.lazy_evaluation_stream_lifetimes"
+    item["record"]["id"] == framework_first
+    and {"group": "framework", "query": "mlx"} in item["matched_queries"]
     for item in research["items"]
 )
 assert {item["group"] for item in research["queries"]} == {
@@ -333,6 +348,21 @@ for key in ("skill_resource", "inventory_resource"):
 assert set(research["profile"]["knowledge_ids"]) <= {
     item["record"]["id"] for item in research["items"]
 }
+output = io.StringIO()
+with contextlib.redirect_stdout(output):
+    assert main([
+        "knowledge", "research", "MiniMax-H3", "--framework", "mlx",
+        "--mechanism", "lazy evaluation", "--repo-type", "inferrsi",
+        "--scenario", "skills.discovery", "--limit", "12",
+    ]) == 0
+mlx_research = json.loads(output.getvalue())
+mlx_lifecycle = next(
+    item for item in mlx_research["items"]
+    if item["record"]["id"] == "inferrsi.common.skills.lazy_evaluation_stream_lifetimes"
+)
+assert mlx_lifecycle["record"]["skill_documents"]["original"] == mlx_document
+assert {"group": "framework", "query": "mlx"} in mlx_lifecycle["matched_queries"]
+assert {"group": "mechanism", "query": "lazy evaluation"} in mlx_lifecycle["matched_queries"]
 assert not inference_modules & sys.modules.keys()
 print(f"Installed package: {inferrsi.__file__}; {len(records)} source-grounded records available.")
 

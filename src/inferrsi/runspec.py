@@ -33,6 +33,7 @@ class RunSpec:
     executor: str = "default"
     snapshot_id: str = ""
     output_dir: str = "runs"
+    required_trial_checks: tuple[str, ...] = ()
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -40,7 +41,13 @@ class RunSpec:
     @classmethod
     def from_dict(cls, data: dict) -> "RunSpec":
         values = dict(data)
-        for name in ("baseline_command", "candidate_command", "validation_command", "device_ids"):
+        for name in (
+            "baseline_command",
+            "candidate_command",
+            "validation_command",
+            "device_ids",
+            "required_trial_checks",
+        ):
             if name in values and values[name] is not None:
                 if not isinstance(values[name], (list, tuple)):
                     raise ValueError(f"{name} must be an argv/ID sequence, not a string or mapping")
@@ -69,6 +76,17 @@ class RunSpec:
                 raise ValueError(f"{label} must be a nonempty argv sequence of strings")
             if not command[0]:
                 raise ValueError(f"{label} executable cannot be empty")
+        if (
+            not isinstance(self.required_trial_checks, tuple)
+            or any(
+                not isinstance(key, str)
+                or not key
+                or any(not part or part.strip() != part for part in key.split("."))
+                for key in self.required_trial_checks
+            )
+            or len(set(self.required_trial_checks)) != len(self.required_trial_checks)
+        ):
+            raise ValueError("required_trial_checks must be a tuple of unique dotted JSON keys")
         if self.direction not in {"minimize", "maximize"}:
             raise ValueError("direction must be minimize or maximize")
         if self.mode not in {"config", "code", "semantic"}:

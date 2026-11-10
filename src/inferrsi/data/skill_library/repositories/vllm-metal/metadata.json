@@ -89,7 +89,11 @@
     "method": "Stable-ID manual author sequencing plus bounded cache author lane; integrated graph followed by assertion/helper/static and selected pure Python source tests; Apple native blocks retained."
   },
   "applicability": {
-    "scope": "Selected plugin preparation, KV/offload ownership and speculative/deferred/dispatch evidence investigation. Common catalog scope does not certify CPU inference or cross-backend qualification."
+    "scope": "Selected plugin preparation, KV/offload ownership and speculative/deferred/dispatch evidence investigation. Common catalog scope does not certify CPU inference or cross-backend qualification.",
+    "prerequisites": "Access to the plugin-specific platform/ABI, cache-lifecycle and qualification contracts; actual engine changes require separate authority, resource ownership, frozen gates and cleanup, with a supported artifact pairing.",
+    "input_contract": "Source/package/runtime/native artifact identities, Python/OS/chip/device, backend/executor, checkpoint/tokenizer/draft identities, format/dtype, effective feature flags and workload.",
+    "produced_artifact": "An identity/route/invariant report with actual safe-check result, counter-signal and next authorized native check; partial CPU evidence stays separate from unverified transfers, sleep/wake, model and HTTP outcomes.",
+    "failure_modes": "Using lazy import success as native registration or ABI evidence, treating a feature switch as dispatch, or conflating cache capacity with physical residency and kernel time with HTTP time can overstate plugin behavior."
   },
   "limitations": [
     "BLOCKED_REQUIRED_BACKEND: actual Apple MLX/Metal and MPS kernels/model loading, cache transfers/sleep/wake and real worker dispatch are not verified.",
@@ -102,5 +106,10 @@
     "references/repo-provenance.md",
     "references/source-identity.json"
   ],
-  "consumption_mode": "packaged"
+  "consumption_mode": "packaged",
+  "recommendations": [
+    "Resolve platform registration, backend/runner and native ABI pairing before capacity tuning; a package visibility check establishes only its reported software facts.",
+    "Keep MLX and MPS, full-attention and recurrent state, logical cache capacity and physical residency as separate contracts.",
+    "Preserve failed paths and distinguish parser/API checks from real transfers, sleep/wake, model output and HTTP performance evidence."
+  ]
 }

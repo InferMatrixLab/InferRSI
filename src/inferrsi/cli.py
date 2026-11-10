@@ -280,6 +280,83 @@ def main(argv: list[str] | None = None) -> int:
                 _print({"report": str(write_report(directory))})
             return 0
 
+        if args.command == "dashboard":
+            if args.live:
+                if args.output is not None:
+                    raise ValueError("--output cannot be used with --live")
+                from .harness.dashboard_live import serve_dashboard
+
+                serve_dashboard(args.input, args.translations,
+                                port=args.port if args.port is not None else 8765)
+            else:
+                if args.port is not None:
+                    raise ValueError("--port requires --live")
+                from .harness.dashboard import write_dashboard
+
+                _print({"dashboard": str(write_dashboard(args.input, args.output,
+                                                          args.translations))})
+            return 0
+
+        if args.command == "campaign":
+            from .harness.campaign_records import (
+                assemble_trace,
+                create_campaign,
+                record_candidate,
+                record_decision,
+            )
+
+            if args.campaign_action == "capture-context":
+                from .harness.knowledge_capture import capture_context
+
+                sources = ("package",) + (("checkout",) if args.skill_root else ()) + (
+                    ("store",) if args.store else ())
+                path, digest = capture_context(
+                    args.directory, context_id=args.id, reader=_knowledge_reader(args),
+                    query=args.query, relevance=args.relevance,
+                    relevance_method=args.relevance_method, ids=args.ids, kind=args.kind,
+                    repo=args.knowledge_repo, tier=args.tier, backend=args.backend,
+                    scenario=args.scenario, limit=args.limit,
+                    context_bytes=args.context_bytes, sources=sources,
+                )
+                _print({"context": path.relative_to(Path(args.directory).resolve()).as_posix(),
+                        "sha256": digest})
+                return 0
+            if args.campaign_action == "log":
+                from .harness.optimization_log import record_log
+
+                path, digest = record_log(args.directory, args.file)
+                _print({"log": path.name, "sha256": digest})
+                return 0
+            if args.campaign_action == "init":
+                path = create_campaign(args.directory, args.id, target=args.target_pct,
+                                       noise=args.noise_pct, synthetic=args.synthetic)
+            elif args.campaign_action == "assemble-trace":
+                path = assemble_trace(args.directory, template=args.template,
+                                      context_file=args.context_file, output=args.output)
+            elif args.campaign_action == "record":
+                details = None
+                if args.details_json is not None:
+                    with args.details_json.open("rb") as stream:
+                        raw = stream.read(64 * 1024 + 1)
+                    if len(raw) > 64 * 1024:
+                        raise ValueError("candidate details exceed 64 KiB")
+                    try:
+                        details = json.loads(raw.decode("utf-8"))
+                    except (UnicodeDecodeError, RecursionError) as exc:
+                        raise ValueError(
+                            "candidate details are invalid or too deeply nested"
+                        ) from exc
+                path = record_candidate(args.directory, candidate_id=args.candidate,
+                                        run_id=args.run_id, round_number=args.round,
+                                        title=args.title, agent_trace=args.agent_trace,
+                                        profile=args.profile, details=details,
+                                        optimization_trace=args.optimization_trace)
+            else:
+                path = record_decision(args.directory, candidate_id=args.candidate,
+                                       round_number=args.round, outcome=args.outcome)
+            _print({"record": str(path)})
+            return 0
+
         environment = inspect_environment(
             args.repo,
             args.repo_type,

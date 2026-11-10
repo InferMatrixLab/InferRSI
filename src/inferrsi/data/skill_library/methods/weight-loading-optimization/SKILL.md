@@ -1,6 +1,6 @@
 ---
 name: weight-loading-optimization
-description: 'Optimize the serving-level weight load path from storage to device: judge the load path on four dimensions (source, format, placement, duplication), account startup fixed overhead separately from per-request cost with bytes-and-counts lines and hit-criteria warmup validation, verify sharded weight downloads against the safetensors index, apply device-side weight prefetch only on profiled memory-bound hot spots, and order CPU-tier offload candidates by change surface. Includes source-scoped disk-loading modes, pinned staging, synchronous checkpoint save semantics and fastsafetensors broadcast/scatter/coalesced delivery. Use when startup/loading latency dominates; route DCP asynchronous save performance and distributed recovery validity to their separate skills.
+description: 'Optimize the serving-level weight load path from storage to device: judge the load path on four dimensions (source, format, placement, duplication), account startup fixed overhead separately from per-request cost with bytes-and-counts lines and hit-criteria warmup validation, verify sharded weight downloads against the safetensors index, apply device-side weight prefetch only on profiled memory-bound hot spots, and order CPU-tier offload candidates by change surface. Includes source-scoped disk-loading modes, pinned staging, synchronous checkpoint save semantics and fastsafetensors broadcast/scatter/coalesced delivery; also audit streamed expert-cache byte correctness and begin/end overlap contracts. Use when startup/loading latency dominates or a streamed expert-cache change needs correctness verification; route DCP asynchronous save performance and distributed recovery validity to their separate skills.
 
   '
 ---
@@ -436,6 +436,16 @@ separate; changing language at the boundary does not by itself establish a gain.
 For complete runtime KV/recurrent/convolution/tail state, follow that reference
 to the Flare session owner. The addition remains candidate and empirical not_run.
 
+## 11. Verify streamed expert-cache bytes and overlap
+
+For aligned reads, cache-slot placement or overlapping routed-expert loads, use
+the [DeepSeek expert-cache reference](references/deepseek-expert-cache-oracles.md).
+Compare bytes through an independent read path, preserve resident/pending slot
+lifetimes and ordered caller accumulation, and confirm that the numerical oracle
+reaches the actual callbacks. Keep its synthetic-fixture and SKIP boundaries;
+request-time expert reads remain separate from startup loading. These are
+source-derived verification targets, not executed model or performance results.
+
 ## Verification checklist (before claiming a load-path win)
 
 - [ ] Fixed overhead accounted separately from per-request cost
@@ -448,3 +458,4 @@ to the Flare session owner. The addition remains candidate and empirical not_run
       protocol stated (fadvise or page-cache drop)
 - [ ] Prefetch changes verified single-op first, switch defaults recorded
 - [ ] Offload tier wins re-estimated against un-overlapped transfer share
+- [ ] Streamed expert-cache changes checked for independent bytes, resident/pending lifetime and actual oracle-path coverage

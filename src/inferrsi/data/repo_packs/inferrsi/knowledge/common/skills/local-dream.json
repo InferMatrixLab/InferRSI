@@ -29,8 +29,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/fb4171e87b4c78d4d62c927f297374ed917949f5/src/inferrsi/data/skill_library/repositories/local-dream/SKILL.md",
-      "commit": "fb4171e87b4c78d4d62c927f297374ed917949f5",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/d648f25732dee1c974da62a94c46a642ad52cef8/src/inferrsi/data/skill_library/repositories/local-dream/SKILL.md",
+      "commit": "d648f25732dee1c974da62a94c46a642ad52cef8",
       "paths": [
         "src/inferrsi/data/skill_library/repositories/local-dream/SKILL.md",
         "src/inferrsi/data/skill_library/repositories/local-dream/metadata.json",
@@ -53,7 +53,7 @@
   "checkout_ref": "checkout:local-dream",
   "source_files": {
     "src/inferrsi/data/skill_library/repositories/local-dream/SKILL.md": "e51fd3c71d693070abeba57ca67dcca82c7347cb94eb98f43e7c455bcacbaa46",
-    "src/inferrsi/data/skill_library/repositories/local-dream/metadata.json": "ab33602252d0f5bb0797c3e1f12466b55a82aeaff10cd24e42a99a5224c8e593",
+    "src/inferrsi/data/skill_library/repositories/local-dream/metadata.json": "63b71cc6a237d8c4e00db875d15594df09d6e3cf87a1cb25183a311b4d480804",
     "src/inferrsi/data/skill_library/repositories/local-dream/references/android-lifecycle.md": "f85e5fce39f5de5f88548fd8c21978240c810f899e03ff05ed72eb3508ee5e36",
     "src/inferrsi/data/skill_library/repositories/local-dream/references/native-contracts.md": "40206892f5e421f9d8edf303870f5c4aefa3e87123537178d45f438f3d04b7ce",
     "src/inferrsi/data/skill_library/repositories/local-dream/references/packaging-and-abi.md": "9a19bca59e19c3bfbfc1a15f5fc756c13d954ace367812aeb000551f4484ad06",
@@ -61,7 +61,7 @@
     "src/inferrsi/data/skill_library/repositories/local-dream/references/source-identity.json": "b85f028bb96a37852e9d9780b5d5052fdd9c8f3a704ad391b6381adb58291347",
     "src/inferrsi/data/skill_library/repositories/local-dream/references/upstream-license.md": "41003d4a74749c0220e33dd415042164b5a1093ed401f36277234f772d22d3d0",
     "src/inferrsi/data/skill_library/repositories/local-dream/scripts/screen_declarations.py": "ccd7d0d55be9a47484ec3a74498d8edef8aba55287f92287775c8d82050c8932",
-    "src/inferrsi/data/skill_library/skill-index.json": "9ea8b2ef190777e683a3905f0614612a37782be4d655d230c000188b0c7073db"
+    "src/inferrsi/data/skill_library/skill-index.json": "7904275c3383380db179287171e1430617aaa9ac4f439291eff8a71426987fbb"
   },
   "skill_metadata": {
     "name": "local-dream",
@@ -154,7 +154,11 @@
       }
     ],
     "applicability": {
-      "scope": "Selected Android app/process and native diffusion boundary contracts; common is a discovery category, not CPU/device compatibility or native qualification."
+      "scope": "Selected Android app/process and native diffusion boundary contracts; common is a discovery category, not CPU/device compatibility or native qualification.",
+      "prerequisites": "Access to the pinned Android lifecycle/native/packaging contracts and identified installed artifacts; stronger conclusions require an authorized, frozen workload on the actual selected Android/ARM64 backend.",
+      "input_contract": "Source revision, installed APK/version/flavor/ABI, native executable and loaded DiT library, QNN/Hexagon/MNN builds, model/export/weights/tokenizer identities, requested and serving configuration, and lifecycle/readiness/generation/cache observations.",
+      "produced_artifact": "A bounded failed-boundary report with counter-signals, identities observed versus declared, the smallest missing discriminator and retained INCONCLUSIVE native scope.",
+      "failure_modes": "Reading UI flags or equal declared configurations as actual dispatch/readiness, treating cancellation/SSE progress as native completion, or interpreting model-directory caches as authenticated model-revision namespaces can misidentify stale state."
     },
     "limitations": [
       "Source-derived candidate; required Android ARM64/MNN/QNN/Hexagon/model execution BLOCKED_REQUIRED_BACKEND / not_run; qualification INCONCLUSIVE.",
@@ -169,14 +173,24 @@
       "references/repo-provenance.md",
       "references/source-identity.json"
     ],
-    "consumption_mode": "packaged"
+    "consumption_mode": "packaged",
+    "recommendations": [
+      "Compare requested and serving model/backend/dimensions/bind address through stop/reopen and health observations; never enable host mode as a diagnostic default.",
+      "Trace the actual MNN/QNN/Anima/DiT path and separate native library/ABI identity from UI runOnCpu flags and declared SDK labels.",
+      "Keep progress, cancellation, native completion, release and saved final output separate; check prompt-cache mode/version/dimensions and textual-inversion caller guards before proposing cache changes."
+    ]
   },
   "applicability": {
-    "scope": "Selected Android app/process and native diffusion boundary contracts; common is a discovery category, not CPU/device compatibility or native qualification."
+    "scope": "Selected Android app/process and native diffusion boundary contracts; common is a discovery category, not CPU/device compatibility or native qualification.",
+    "prerequisites": "Access to the pinned Android lifecycle/native/packaging contracts and identified installed artifacts; stronger conclusions require an authorized, frozen workload on the actual selected Android/ARM64 backend.",
+    "input_contract": "Source revision, installed APK/version/flavor/ABI, native executable and loaded DiT library, QNN/Hexagon/MNN builds, model/export/weights/tokenizer identities, requested and serving configuration, and lifecycle/readiness/generation/cache observations.",
+    "produced_artifact": "A bounded failed-boundary report with counter-signals, identities observed versus declared, the smallest missing discriminator and retained INCONCLUSIVE native scope.",
+    "failure_modes": "Reading UI flags or equal declared configurations as actual dispatch/readiness, treating cancellation/SSE progress as native completion, or interpreting model-directory caches as authenticated model-revision namespaces can misidentify stale state."
   },
   "recommendations": [
-    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
-    "Read the packaged references and owner-local cases alongside the procedure."
+    "Compare requested and serving model/backend/dimensions/bind address through stop/reopen and health observations; never enable host mode as a diagnostic default.",
+    "Trace the actual MNN/QNN/Anima/DiT path and separate native library/ABI identity from UI runOnCpu flags and declared SDK labels.",
+    "Keep progress, cancellation, native completion, release and saved final output separate; check prompt-cache mode/version/dimensions and textual-inversion caller guards before proposing cache changes."
   ],
   "limitations": [
     "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",

@@ -22,8 +22,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/fb4171e87b4c78d4d62c927f297374ed917949f5/src/inferrsi/data/skill_library/workflows/cite-check-downstream-pr/SKILL.md",
-      "commit": "fb4171e87b4c78d4d62c927f297374ed917949f5",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/d648f25732dee1c974da62a94c46a642ad52cef8/src/inferrsi/data/skill_library/workflows/cite-check-downstream-pr/SKILL.md",
+      "commit": "d648f25732dee1c974da62a94c46a642ad52cef8",
       "paths": [
         "src/inferrsi/data/skill_library/skill-index.json",
         "src/inferrsi/data/skill_library/workflows/cite-check-downstream-pr/SKILL.md",
@@ -38,9 +38,9 @@
   },
   "checkout_ref": "checkout:cite-check-downstream-pr",
   "source_files": {
-    "src/inferrsi/data/skill_library/skill-index.json": "9ea8b2ef190777e683a3905f0614612a37782be4d655d230c000188b0c7073db",
+    "src/inferrsi/data/skill_library/skill-index.json": "7904275c3383380db179287171e1430617aaa9ac4f439291eff8a71426987fbb",
     "src/inferrsi/data/skill_library/workflows/cite-check-downstream-pr/SKILL.md": "485932cdf3b1fba5dc69be73e75d38f86a7b79442d26e82a296c963a7598d226",
-    "src/inferrsi/data/skill_library/workflows/cite-check-downstream-pr/metadata.json": "7a18f9dbb4894216802a44929b913990fc4bd8521cb60976d9435ee8f37e4265"
+    "src/inferrsi/data/skill_library/workflows/cite-check-downstream-pr/metadata.json": "ade23e3def5c7b875fba4084d32fa63b1af90bebeade72506265c974405eb55d"
   },
   "skill_metadata": {
     "name": "cite-check-downstream-pr",
@@ -84,7 +84,8 @@
       "Checklist-only procedure; it validates citation discipline, not the measurement behind an artifact.",
       "A passing review does not establish that the campaign evidence itself is correct."
     ],
-    "provenance_readsets": []
+    "provenance_readsets": [],
+    "searchspace_not_applicable": "SKILL.md §§ Checklist and Red flags check acceptance links, revision/artifact citations and claim wording; they provide no hardware-resource mechanism."
   },
   "applicability": {
     "scope": "Review of a downstream PR description that cites RSI acceptance work for a performance or quality improvement",

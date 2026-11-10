@@ -16,15 +16,17 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/fb4171e87b4c78d4d62c927f297374ed917949f5/src/inferrsi/data/skill_library/methods/calibrate-serving-simulation/SKILL.md",
-      "commit": "fb4171e87b4c78d4d62c927f297374ed917949f5",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/d648f25732dee1c974da62a94c46a642ad52cef8/src/inferrsi/data/skill_library/methods/calibrate-serving-simulation/SKILL.md",
+      "commit": "d648f25732dee1c974da62a94c46a642ad52cef8",
       "paths": [
         "src/inferrsi/data/skill_library/methods/calibrate-serving-simulation/SKILL.md",
         "src/inferrsi/data/skill_library/methods/calibrate-serving-simulation/metadata.json",
+        "src/inferrsi/data/skill_library/methods/calibrate-serving-simulation/references/infera-serving-search/README.md",
+        "src/inferrsi/data/skill_library/methods/calibrate-serving-simulation/references/infera-serving-search/source-record.json",
         "src/inferrsi/data/skill_library/methods/calibrate-serving-simulation/references/source-notes.md",
         "src/inferrsi/data/skill_library/skill-index.json"
       ],
-      "content_sha256": "ac773c6f1c110a664dfca28a3ae9129b10c07614e60ca3640dea776220e7b352"
+      "content_sha256": "500231dd32f470dc90831ff1cdf5a8f0c791660958db92fcfbaa333162c28e5a"
     }
   ],
   "index_type": "packaged-skill",
@@ -33,10 +35,12 @@
   },
   "checkout_ref": "checkout:calibrate-serving-simulation",
   "source_files": {
-    "src/inferrsi/data/skill_library/methods/calibrate-serving-simulation/SKILL.md": "ac773c6f1c110a664dfca28a3ae9129b10c07614e60ca3640dea776220e7b352",
-    "src/inferrsi/data/skill_library/methods/calibrate-serving-simulation/metadata.json": "96771fb6fecf5fc7773bb7cf84038d8eaf436add1a0362dc26110c82037f8320",
+    "src/inferrsi/data/skill_library/methods/calibrate-serving-simulation/SKILL.md": "500231dd32f470dc90831ff1cdf5a8f0c791660958db92fcfbaa333162c28e5a",
+    "src/inferrsi/data/skill_library/methods/calibrate-serving-simulation/metadata.json": "69fbc43e3b354670600dc8e8423957f28c90e30b5270f2659020cc4473f25509",
+    "src/inferrsi/data/skill_library/methods/calibrate-serving-simulation/references/infera-serving-search/README.md": "fe614b1c62f1d4a9db797a85d9b11931ae32169c40109c7b69ecd648fb6e9d1e",
+    "src/inferrsi/data/skill_library/methods/calibrate-serving-simulation/references/infera-serving-search/source-record.json": "61fafa5e92ae6312f8792e4630a35c78da4c1810fac4bf9cde385824c3894f36",
     "src/inferrsi/data/skill_library/methods/calibrate-serving-simulation/references/source-notes.md": "9696d3c0ef96b6611787446bd6f96d4d6255ca8d107105de8c1d9af83edb9fa5",
-    "src/inferrsi/data/skill_library/skill-index.json": "9ea8b2ef190777e683a3905f0614612a37782be4d655d230c000188b0c7073db"
+    "src/inferrsi/data/skill_library/skill-index.json": "7904275c3383380db179287171e1430617aaa9ac4f439291eff8a71426987fbb"
   },
   "skill_metadata": {
     "name": "calibrate-serving-simulation",
@@ -61,6 +65,30 @@
           "A.1-A.2"
         ],
         "readset": "references/source-notes.md"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/AMD-AGI/Infera",
+        "commit": "ff1136e4a51998eba2933ed63cfb9c10120f86ea",
+        "paths": [
+          "LICENSE",
+          "manual/simulation/tuning_agent.md",
+          "manual/simulation/boundaries.md",
+          "manual/simulation/anchors.md",
+          "manual/simulation/workloads.md",
+          "infera/projection/agents/tuning_agent/history.py",
+          "infera/projection/agents/tuning_agent/cli.py",
+          "infera/projection/agents/tuning_agent/evaluator.py",
+          "infera/projection/agents/tuning_agent/inference_tuning.py",
+          "infera/projection/agents/tuning_agent/inference_agent.py",
+          "infera/projection/core/projection/inference_projection/launcher.py",
+          "infera/projection/core/projection/inference_projection/des.py",
+          "tests/unit/projection/test_tuning_slo.py",
+          "tests/unit/projection/test_tuning_objectives.py",
+          "tests/unit/projection/test_tuning_variable_lengths.py",
+          "tests/unit/projection/test_des_disaggregated.py"
+        ],
+        "readset": "references/infera-serving-search/source-record.json"
       }
     ],
     "applicability": {
@@ -87,7 +115,9 @@
       "Source-derived candidate; no local efficacy validation."
     ],
     "provenance_readsets": [
-      "references/source-notes.md"
+      "references/source-notes.md",
+      "references/infera-serving-search/README.md",
+      "references/infera-serving-search/source-record.json"
     ],
     "consumption_mode": "packaged"
   },
