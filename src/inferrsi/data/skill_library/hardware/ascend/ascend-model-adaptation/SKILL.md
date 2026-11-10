@@ -1,7 +1,8 @@
 ---
 name: ascend-model-adaptation
 description: 'Patterns for porting LLM/VLM model adapters to Ascend NPU: FP8 checkpoint handling, KV replication with TP, multimodal feature validation order, graph mode startup, and feature-status reporting. Source-grounded from vllm-ascend production experience. Use when adapting a new model checkpoint to run on Ascend via vllm-ascend or a similar framework.
-'
+
+  '
 ---
 
 # Ascend Model Adaptation
