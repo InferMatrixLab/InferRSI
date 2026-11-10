@@ -55,13 +55,22 @@ the registry hash:
 }
 ```
 
-`inferrsi.catalog` resolves each stored record into the same public schema-1 record
-as before: the `sources` entry with the full commit URL, and `source_files` including
-the registry hash. Search, `knowledge show`, Collect and installed wheels see no
-change. The generator refuses to write a record that does not resolve back to the
-record it rendered. The one-time migration regenerated all 80 records from the
-already-pinned source revision; every resolved record is byte-identical to the
-previous stored record.
+`inferrsi.catalog` resolves each stored record into a public schema-1 record with
+the same fields and field order as before: the `sources` entry with the full commit
+URL, and `source_files` including the registry hash. Search, `knowledge show`,
+Collect and installed wheels keep reading schema 1. The generator refuses to write a
+record that does not resolve back to the record it rendered.
+
+The one-time migration regenerated all 80 records at the previous pin
+`d648f25732dee1c974da62a94c46a642ad52cef8`; each resolved record was byte-identical
+to the previous stored record. It then moved the pin to
+`56c500367d5495fdd9f0e35030c9cd957f70eac5`, the squash commit on `main` with the
+same skill-library bytes, because the previous pin is a pre-squash branch commit
+and not an ancestor of `main`. Resolved records therefore differ from the previous
+records only in `sources[0].commit` and `sources[0].url`; every content hash and
+the registry hash are unchanged. To check the stored hashes, run
+`python tools/build_skill_index.py --source-revision <source_revision> --check` with
+the `source_revision` from `_provenance.json`.
 
 ## What changes per contribution
 
