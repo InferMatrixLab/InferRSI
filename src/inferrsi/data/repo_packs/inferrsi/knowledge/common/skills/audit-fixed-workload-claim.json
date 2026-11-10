@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "id": "inferrsi.common.skills.audit_fixed_workload_claim",
   "title": "audit-fixed-workload-claim",
   "repo": "inferrsi",
@@ -17,19 +17,6 @@
   "origin": [
     "internal"
   ],
-  "sources": [
-    {
-      "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/d5fc2121d6d1628111403ba70ec3b70638ab8674/src/inferrsi/data/skill_library/methods/audit-fixed-workload-claim/SKILL.md",
-      "commit": "d5fc2121d6d1628111403ba70ec3b70638ab8674",
-      "paths": [
-        "src/inferrsi/data/skill_library/methods/audit-fixed-workload-claim/SKILL.md",
-        "src/inferrsi/data/skill_library/methods/audit-fixed-workload-claim/metadata.json",
-        "src/inferrsi/data/skill_library/skill-index.json"
-      ],
-      "content_sha256": "2be89b1340a3deb978c8e1792d18aeecbe8f5de81d4daf542389f53826b8ebee"
-    }
-  ],
   "index_type": "packaged-skill",
   "skill_documents": {
     "original": "data/skill_library/methods/audit-fixed-workload-claim/SKILL.md"
@@ -37,8 +24,7 @@
   "checkout_ref": "checkout:audit-fixed-workload-claim",
   "source_files": {
     "src/inferrsi/data/skill_library/methods/audit-fixed-workload-claim/SKILL.md": "2be89b1340a3deb978c8e1792d18aeecbe8f5de81d4daf542389f53826b8ebee",
-    "src/inferrsi/data/skill_library/methods/audit-fixed-workload-claim/metadata.json": "c3c6ee33ce318c6ec052b848f9be9797b2b1febd8ea563face20db018613a110",
-    "src/inferrsi/data/skill_library/skill-index.json": "9ea8b2ef190777e683a3905f0614612a37782be4d655d230c000188b0c7073db"
+    "src/inferrsi/data/skill_library/methods/audit-fixed-workload-claim/metadata.json": "c3c6ee33ce318c6ec052b848f9be9797b2b1febd8ea563face20db018613a110"
   },
   "skill_metadata": {
     "name": "audit-fixed-workload-claim",

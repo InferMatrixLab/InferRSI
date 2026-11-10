@@ -1,5 +1,7 @@
 # [RFC] Iteration Campaign Plan: one table for model, hardware, goal, search plan and test plan
 
+> Historical archive. Kept for provenance. Not current implementation or validation status.
+
 > Status: Proposed. Base revision `f55b4bc`, 2026-10-19.
 > Creates no threshold, revision pin, campaign or execution authority.
 > Filed as [issue #30](https://github.com/InferMatrixLab/InferRSI/issues/30).

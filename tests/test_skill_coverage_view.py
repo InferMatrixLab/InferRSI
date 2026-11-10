@@ -328,7 +328,7 @@ def test_resource_layer_decisions_preserve_unknown_na_and_conflicts(tmp_path):
         hashlib.sha256(path.read_bytes()).hexdigest()
         for path in library.rglob("*") if path.is_file()
     }
-    outputs = index_builder.render_index(library, "test-source", hashes)
+    outputs = index_builder.render_index(library, "0" * 40, hashes)
     record = json.loads(outputs["common/skills/process.json"])
     assert record["skill_metadata"]["searchspace_not_applicable"] == reason
     assert record["skill_metadata"]["status"] == "candidate"

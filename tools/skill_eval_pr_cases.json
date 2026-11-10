@@ -18,7 +18,7 @@
       "paths": [
         "src/inferrsi/data/skill_library/methods/inference-benchmark-design"
       ],
-      "cases": "../docs/examples/skill-comparison/cases.json"
+      "cases": "../tests/fixtures/skill-comparison/cases.json"
     },
     {
       "skill": "audit-fixed-workload-claim",
@@ -26,7 +26,7 @@
       "paths": [
         "src/inferrsi/data/skill_library/methods/audit-fixed-workload-claim"
       ],
-      "cases": "../docs/examples/skill-comparison/cases.json"
+      "cases": "../tests/fixtures/skill-comparison/cases.json"
     },
     {
       "skill": "optimization-search-policy",
@@ -34,7 +34,7 @@
       "paths": [
         "src/inferrsi/data/skill_library/methods/optimization-search-policy"
       ],
-      "cases": "../docs/examples/skill-comparison/pr133-diagnostic-case05.json",
+      "cases": "../tests/fixtures/skill-comparison/pr133-diagnostic-case05.json",
       "adapter": "kv-admission-diagnostic-v1"
     }
   ]

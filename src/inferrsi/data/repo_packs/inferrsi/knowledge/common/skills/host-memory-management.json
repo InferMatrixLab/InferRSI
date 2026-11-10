@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "id": "inferrsi.common.skills.host_memory_management",
   "title": "host-memory-management",
   "repo": "inferrsi",
@@ -27,28 +27,6 @@
   "origin": [
     "external"
   ],
-  "sources": [
-    {
-      "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/d5fc2121d6d1628111403ba70ec3b70638ab8674/src/inferrsi/data/skill_library/hardware/host/host-memory-management/SKILL.md",
-      "commit": "d5fc2121d6d1628111403ba70ec3b70638ab8674",
-      "paths": [
-        "src/inferrsi/data/skill_library/hardware/host/host-memory-management/SKILL.md",
-        "src/inferrsi/data/skill_library/hardware/host/host-memory-management/metadata.json",
-        "src/inferrsi/data/skill_library/hardware/host/host-memory-management/references/cpython-PSF-LICENSE.md",
-        "src/inferrsi/data/skill_library/hardware/host/host-memory-management/references/cpython-free-threading-readset.json",
-        "src/inferrsi/data/skill_library/hardware/host/host-memory-management/references/legacy-source-notes.md",
-        "src/inferrsi/data/skill_library/hardware/host/host-memory-management/references/pytorch-LICENSE.md",
-        "src/inferrsi/data/skill_library/hardware/host/host-memory-management/references/pytorch-host-copy-readset.json",
-        "src/inferrsi/data/skill_library/hardware/host/host-memory-management/references/pytorch-host-copy.md",
-        "src/inferrsi/data/skill_library/hardware/host/host-memory-management/references/vllm-ascend-LICENSE.md",
-        "src/inferrsi/data/skill_library/hardware/host/host-memory-management/references/vllm-ascend-native-offload-readset.json",
-        "src/inferrsi/data/skill_library/hardware/host/host-memory-management/references/vllm-ascend-native-offload.md",
-        "src/inferrsi/data/skill_library/skill-index.json"
-      ],
-      "content_sha256": "4c8db9f603cd581d002e8f41da65af9cbd03699be05c4965a55de47e044e4dd8"
-    }
-  ],
   "index_type": "packaged-skill",
   "skill_documents": {
     "original": "data/skill_library/hardware/host/host-memory-management/SKILL.md"
@@ -65,8 +43,7 @@
     "src/inferrsi/data/skill_library/hardware/host/host-memory-management/references/pytorch-host-copy.md": "fa9da5c39d37ebe44e5a336a7b88d7aece6a0f118ec47cb38271e29925e11117",
     "src/inferrsi/data/skill_library/hardware/host/host-memory-management/references/vllm-ascend-LICENSE.md": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
     "src/inferrsi/data/skill_library/hardware/host/host-memory-management/references/vllm-ascend-native-offload-readset.json": "cc6c2011be746002ba3ff96ccefab1809863748ddd17eb102b75e7b0e134fe55",
-    "src/inferrsi/data/skill_library/hardware/host/host-memory-management/references/vllm-ascend-native-offload.md": "6c2a72b5ba3708a01d229e0576570837a617e6a42dbb0b5312a26a65a6c31542",
-    "src/inferrsi/data/skill_library/skill-index.json": "9ea8b2ef190777e683a3905f0614612a37782be4d655d230c000188b0c7073db"
+    "src/inferrsi/data/skill_library/hardware/host/host-memory-management/references/vllm-ascend-native-offload.md": "6c2a72b5ba3708a01d229e0576570837a617e6a42dbb0b5312a26a65a6c31542"
   },
   "skill_metadata": {
     "name": "host-memory-management",

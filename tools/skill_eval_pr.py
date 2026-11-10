@@ -74,46 +74,87 @@ def task_context(tasks):
              if isinstance(task.get(key), str)} for task in tasks if isinstance(task, dict)]
 
 
+def projection_blob(repo, revision, path, *, max_bytes=65536):
+    """Read one exact regular blob, never a candidate checkout or symlink."""
+    entry = git(repo, "ls-tree", revision, "--", path).decode().split()
+    if len(entry) != 4 or entry[:2] != ["100644", "blob"] or entry[3] != path:
+        raise ValueError("Invalid projection input mode or path")
+    if int(git(repo, "cat-file", "-s", entry[2])) > max_bytes:
+        raise ValueError("Oversized projection input")
+    return git(repo, "cat-file", "blob", entry[2])
+
+
+def projection_object(pairs):
+    value = {}
+    for key, item in pairs:
+        if key in value:
+            raise ValueError("Duplicate projection field")
+        value[key] = item
+    return value
+
+
 def projection_check(repo, identity, changes):
     """Identify an applicable existing check from raw Git data, without running it."""
     if not any(matches_path(c["path"], (LIBRARY_PATH, PROJECTION_PATH)) for c in changes):
         return None
     unavailable = {"status": "unavailable", "reason":
                    "No verified ancestor source pin for automatic command selection"}
+    manifest = PROJECTION_PATH + "/_provenance.json"
     readme = PROJECTION_PATH + "/README.md"
     try:
-        # Do not follow a symlink or read executable/oversized PR metadata.
-        entry = git(repo, "ls-tree", identity["head"], "--", readme).decode().split()
-        if len(entry) != 4 or entry[:2] != ["100644", "blob"]:
-            return unavailable
-        if int(git(repo, "cat-file", "-s", entry[2])) > 65536:
-            return unavailable
-        text = git(repo, "cat-file", "blob", entry[2]).decode("utf-8")
-        pattern = (r"^Source snapshot: \[(" + SHA + r")\]\(https://github\.com/"
-                   + re.escape(identity["repository"]) + r"/tree/\1/"
-                   + re.escape(LIBRARY_PATH) + r"\)\.$")
-        pins = re.findall(pattern, text, flags=re.M)
-        if len(pins) != 1:
-            return unavailable
+        # Presence is authoritative: invalid manifests must not fall back to README.
+        if blob_exists(repo, identity["head"], manifest):
+            metadata = json.loads(projection_blob(repo, identity["head"], manifest).decode("utf-8"),
+                                  object_pairs_hook=projection_object)
+            if (not isinstance(metadata, dict)
+                    or set(metadata) != {"schema_version", "repository", "source_revision",
+                                         "registry"}
+                    or type(metadata["schema_version"]) is not int
+                    or metadata["schema_version"] != 1
+                    or metadata["repository"] != "https://github.com/" + identity["repository"]
+                    or not isinstance(metadata["source_revision"], str)
+                    or not re.fullmatch(SHA, metadata["source_revision"])):
+                return unavailable
+            registry = metadata["registry"]
+            if (not isinstance(registry, dict) or set(registry) != {"path", "sha256"}
+                    or registry["path"] != LIBRARY_PATH + "/skill-index.json"
+                    or not isinstance(registry["sha256"], str)
+                    or not re.fullmatch(r"[0-9a-f]{64}", registry["sha256"])):
+                return unavailable
+            pin, declared_in = metadata["source_revision"], manifest
+        else:
+            text = projection_blob(repo, identity["head"], readme).decode("utf-8")
+            pattern = (r"^Source snapshot: \[(" + SHA + r")\]\(https://github\.com/"
+                       + re.escape(identity["repository"]) + r"/tree/\1/"
+                       + re.escape(LIBRARY_PATH) + r"\)\.$")
+            pins = re.findall(pattern, text, flags=re.M)
+            if len(pins) != 1:
+                return unavailable
+            pin, declared_in = pins[0], readme
         # Only the frozen head's full ancestor closure is stable across jobs.
         # An unrelated locally cached object must not change the plan fingerprint.
         ancestor = subprocess.run(
-            [*compare.GIT_READ, "merge-base", "--is-ancestor", pins[0], identity["head"]],
+            [*compare.GIT_READ, "merge-base", "--is-ancestor", pin, identity["head"]],
             cwd=repo, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False)
         if ancestor.returncode != 0:
             return unavailable
-        if git(repo, "cat-file", "-t", pins[0]).strip() != b"commit":
+        if git(repo, "cat-file", "-t", pin).strip() != b"commit":
             return unavailable
         library = git(repo, "ls-tree", identity["head"], "--", LIBRARY_PATH).decode().split()
         if len(library) != 4 or library[:2] != ["040000", "tree"]:
             return unavailable
         changed = git(repo, "diff", "--no-ext-diff", "--no-textconv", "--no-renames",
-                      "--name-only", pins[0], identity["head"], "--", LIBRARY_PATH)
+                      "--name-only", pin, identity["head"], "--", LIBRARY_PATH)
         if changed.strip():
             return {"status": "unavailable", "reason":
                     "Declared projection source differs from current canonical library bytes"}
-        return {"status": "ready", "source_revision": pins[0], "declared_in": readme}
-    except (subprocess.CalledProcessError, UnicodeError, ValueError):
+        if declared_in == manifest:
+            for revision in (pin, identity["head"]):
+                raw = projection_blob(repo, revision, registry["path"], max_bytes=16 * 1024 * 1024)
+                if hashlib.sha256(raw).hexdigest() != registry["sha256"]:
+                    return unavailable
+        return {"status": "ready", "source_revision": pin, "declared_in": declared_in}
+    except (subprocess.CalledProcessError, UnicodeError, ValueError, RecursionError):
         return unavailable
 
 

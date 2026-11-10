@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "id": "inferrsi.common.skills.splash",
   "title": "splash",
   "repo": "inferrsi",
@@ -21,36 +21,6 @@
   ],
   "origin": [
     "external"
-  ],
-  "sources": [
-    {
-      "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/d5fc2121d6d1628111403ba70ec3b70638ab8674/src/inferrsi/data/skill_library/repositories/splash/SKILL.md",
-      "commit": "d5fc2121d6d1628111403ba70ec3b70638ab8674",
-      "paths": [
-        "src/inferrsi/data/skill_library/repositories/splash/LICENSE",
-        "src/inferrsi/data/skill_library/repositories/splash/SKILL.md",
-        "src/inferrsi/data/skill_library/repositories/splash/THIRD_PARTY_NOTICES",
-        "src/inferrsi/data/skill_library/repositories/splash/metadata.json",
-        "src/inferrsi/data/skill_library/repositories/splash/references/repo-provenance.md",
-        "src/inferrsi/data/skill_library/repositories/splash/references/repo-routing-metadata.json",
-        "src/inferrsi/data/skill_library/repositories/splash/references/source-identity.json",
-        "src/inferrsi/data/skill_library/repositories/splash/scripts/request_template.py",
-        "src/inferrsi/data/skill_library/repositories/splash/sub-skills/qualification/SKILL.md",
-        "src/inferrsi/data/skill_library/repositories/splash/sub-skills/qualification/references/troubleshooting.md",
-        "src/inferrsi/data/skill_library/repositories/splash/sub-skills/qualification/references/verification-contract.md",
-        "src/inferrsi/data/skill_library/repositories/splash/sub-skills/qualification/scripts/summarize_rounds.py",
-        "src/inferrsi/data/skill_library/repositories/splash/sub-skills/runtime-planning/SKILL.md",
-        "src/inferrsi/data/skill_library/repositories/splash/sub-skills/runtime-planning/references/memory-and-formats.md",
-        "src/inferrsi/data/skill_library/repositories/splash/sub-skills/runtime-planning/references/troubleshooting.md",
-        "src/inferrsi/data/skill_library/repositories/splash/sub-skills/runtime-planning/scripts/parse_budget.py",
-        "src/inferrsi/data/skill_library/repositories/splash/sub-skills/serving-cache/SKILL.md",
-        "src/inferrsi/data/skill_library/repositories/splash/sub-skills/serving-cache/references/state-and-api.md",
-        "src/inferrsi/data/skill_library/repositories/splash/sub-skills/serving-cache/references/troubleshooting.md",
-        "src/inferrsi/data/skill_library/skill-index.json"
-      ],
-      "content_sha256": "619b87c282dcec4befa319085764fb53fa506a05c6a7112500bcca662f059ece"
-    }
   ],
   "index_type": "packaged-skill",
   "skill_documents": {
@@ -76,8 +46,7 @@
     "src/inferrsi/data/skill_library/repositories/splash/sub-skills/runtime-planning/scripts/parse_budget.py": "b3a3b0847280333c2bfbe5d03350dc866307d5290160ec64c7e3d462a34f6301",
     "src/inferrsi/data/skill_library/repositories/splash/sub-skills/serving-cache/SKILL.md": "c16f911498e116ff9b31b5a6f0ddd3ae6517b51c0e9d079c337f36a5bcac1df8",
     "src/inferrsi/data/skill_library/repositories/splash/sub-skills/serving-cache/references/state-and-api.md": "592603177473ac8e024b7dc19a3d3faedd7c1e0312137eab8bf9a62d2f567be6",
-    "src/inferrsi/data/skill_library/repositories/splash/sub-skills/serving-cache/references/troubleshooting.md": "4fda461042a3de43c109d7a3cec67542c7d61fe68412bf91606220f2e13e576e",
-    "src/inferrsi/data/skill_library/skill-index.json": "9ea8b2ef190777e683a3905f0614612a37782be4d655d230c000188b0c7073db"
+    "src/inferrsi/data/skill_library/repositories/splash/sub-skills/serving-cache/references/troubleshooting.md": "4fda461042a3de43c109d7a3cec67542c7d61fe68412bf91606220f2e13e576e"
   },
   "skill_metadata": {
     "name": "splash",

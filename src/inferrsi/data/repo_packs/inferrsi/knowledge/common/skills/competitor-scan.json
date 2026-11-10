@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "id": "inferrsi.common.skills.competitor_scan",
   "title": "competitor-scan",
   "repo": "inferrsi",
@@ -18,26 +18,12 @@
   "origin": [
     "first-party"
   ],
-  "sources": [
-    {
-      "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/d5fc2121d6d1628111403ba70ec3b70638ab8674/src/inferrsi/data/skill_library/workflows/competitor-scan/SKILL.md",
-      "commit": "d5fc2121d6d1628111403ba70ec3b70638ab8674",
-      "paths": [
-        "src/inferrsi/data/skill_library/skill-index.json",
-        "src/inferrsi/data/skill_library/workflows/competitor-scan/SKILL.md",
-        "src/inferrsi/data/skill_library/workflows/competitor-scan/metadata.json"
-      ],
-      "content_sha256": "0ede58ace65a9324a538b4816add1684f230ba536d4364fe5a5dd2c0bbed3776"
-    }
-  ],
   "index_type": "packaged-skill",
   "skill_documents": {
     "original": "data/skill_library/workflows/competitor-scan/SKILL.md"
   },
   "checkout_ref": "checkout:competitor-scan",
   "source_files": {
-    "src/inferrsi/data/skill_library/skill-index.json": "9ea8b2ef190777e683a3905f0614612a37782be4d655d230c000188b0c7073db",
     "src/inferrsi/data/skill_library/workflows/competitor-scan/SKILL.md": "0ede58ace65a9324a538b4816add1684f230ba536d4364fe5a5dd2c0bbed3776",
     "src/inferrsi/data/skill_library/workflows/competitor-scan/metadata.json": "e1a279c0b730c80fa34ca985c004d4084dae5ee77685f7f2b642cf469bfffffc"
   },

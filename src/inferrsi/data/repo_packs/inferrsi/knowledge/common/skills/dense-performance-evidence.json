@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "id": "inferrsi.common.skills.dense_performance_evidence",
   "title": "dense-performance-evidence",
   "repo": "inferrsi",
@@ -18,19 +18,6 @@
   "origin": [
     "external"
   ],
-  "sources": [
-    {
-      "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/d5fc2121d6d1628111403ba70ec3b70638ab8674/src/inferrsi/data/skill_library/methods/dense-performance-evidence/SKILL.md",
-      "commit": "d5fc2121d6d1628111403ba70ec3b70638ab8674",
-      "paths": [
-        "src/inferrsi/data/skill_library/methods/dense-performance-evidence/SKILL.md",
-        "src/inferrsi/data/skill_library/methods/dense-performance-evidence/metadata.json",
-        "src/inferrsi/data/skill_library/skill-index.json"
-      ],
-      "content_sha256": "53cc1867a13f54d1006d50517dea8848869ca50df3f0cd610b2424cc8d18c933"
-    }
-  ],
   "index_type": "packaged-skill",
   "skill_documents": {
     "original": "data/skill_library/methods/dense-performance-evidence/SKILL.md"
@@ -38,8 +25,7 @@
   "checkout_ref": "checkout:dense-performance-evidence",
   "source_files": {
     "src/inferrsi/data/skill_library/methods/dense-performance-evidence/SKILL.md": "53cc1867a13f54d1006d50517dea8848869ca50df3f0cd610b2424cc8d18c933",
-    "src/inferrsi/data/skill_library/methods/dense-performance-evidence/metadata.json": "041780985dcaf76809d29dc0d4e242359b17b6bcfaadab2d05674fa4699a5427",
-    "src/inferrsi/data/skill_library/skill-index.json": "9ea8b2ef190777e683a3905f0614612a37782be4d655d230c000188b0c7073db"
+    "src/inferrsi/data/skill_library/methods/dense-performance-evidence/metadata.json": "041780985dcaf76809d29dc0d4e242359b17b6bcfaadab2d05674fa4699a5427"
   },
   "skill_metadata": {
     "name": "dense-performance-evidence",

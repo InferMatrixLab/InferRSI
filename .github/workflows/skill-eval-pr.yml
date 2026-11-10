@@ -13,7 +13,7 @@ on:
       - src/inferrsi/data/knowledge_packs/**
       - src/inferrsi/data/repo_packs/**/knowledge/**
       - tools/skill_eval_*
-      - docs/examples/skill-comparison/**
+      - tests/fixtures/skill-comparison/**
       - .github/workflows/skill-eval-pr.yml
   workflow_dispatch:
     inputs:

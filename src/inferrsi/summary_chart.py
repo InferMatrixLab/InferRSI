@@ -134,6 +134,34 @@ def _spacing(axis: dict, name: str, default: float, where: str) -> float:
     return float(value)
 
 
+def _axis_ticks(start: float, stop: float, step: float) -> list[float]:
+    """Reject unrenderable axes rather than loop forever or exhaust memory."""
+    if (not all(math.isfinite(value) for value in (start, stop, step, stop - start))
+            or step <= 0 or stop <= start):
+        raise SpecError("axis bounds must be finite and increasing")
+    limit = stop + 1e-9
+    if not math.isfinite(limit):
+        raise SpecError("axis tick limit must be finite")
+    count = (stop - start + 1e-9) / step
+    if not math.isfinite(count) or count + 1 > 1000:
+        raise SpecError("axis has too many ticks")
+    if start + step <= start:
+        raise SpecError("axis tick cannot advance")
+    result = []
+    current = start
+    while current <= limit:
+        if len(result) >= 1000:
+            raise SpecError("axis has too many ticks")
+        result.append(current)
+        next_tick = current + step
+        if not math.isfinite(next_tick) or next_tick <= current:
+            if current >= stop:
+                break
+            raise SpecError("axis tick cannot advance")
+        current = next_tick
+    return result
+
+
 def _header_lines(spec: dict, default_title: str) -> list[str]:
     """Title, then the baseline label, then each subtitle line, in draw order."""
     lines = [str(spec.get("title", default_title))]
@@ -417,13 +445,17 @@ def _build_chain(spec: dict) -> str:
     lowest = min([1.0, *[min(values) for values in multiples.values()], *reference_multiples])
     highest = max([1.0, *[max(values) for values in multiples.values()], *reference_multiples])
     step = _spacing(axis, "step", 0.5, "axis")
-    floor = max(0.0, math.floor(lowest / step) * step)
-    ceiling = math.ceil(highest / step) * step
+    try:
+        floor = max(0.0, math.floor(lowest / step) * step)
+        ceiling = math.ceil(highest / step) * step
+    except (OverflowError, ValueError) as exc:
+        raise SpecError("chain axis bounds must be finite") from exc
     # A flat campaign still draws: centre the window on the flat value so the
     # line sits in the middle of the plot instead of hugging an edge.
     if ceiling - floor <= step * 1e-9:
         floor = max(0.0, lowest - step / 2)
         ceiling = floor + step
+    axis_ticks = _axis_ticks(floor, ceiling, step)
 
     spans = _phase_spans(points, phases)
     span = CHAIN_WIDTH - CHAIN_LEFT - CHAIN_RIGHT
@@ -496,8 +528,7 @@ def _build_chain(spec: dict) -> str:
     parts.append(_svg_text(swatch_x + 12.0 * len(keys), 37.0, legend, 9.4, fill=INK_2))
 
     # horizontal gridlines with a multiple label on the left
-    tick = floor
-    while tick <= ceiling + 1e-9:
+    for tick in axis_ticks:
         y = y_of(tick)
         parts.append(
             f'<line x1="{CHAIN_LEFT - 12.0:.1f}" y1="{y:.1f}" '
@@ -515,8 +546,6 @@ def _build_chain(spec: dict) -> str:
                 dominant_baseline="middle",
             )
         )
-        tick += step
-
     # one polyline per metric, with a marker and its running gain above each point
     for slot_index, key in enumerate(keys):
         path = " ".join(
@@ -674,16 +703,22 @@ def _build_branch(spec: dict) -> str:
         (reference["value"] / baseline[reference["metric"]] - 1.0) * 100.0
         for reference in references
     ]
+    if any(not math.isfinite(value) for value in reference_gains):
+        raise SpecError("a reference gain is not finite against its baseline")
 
     low = min([0.0, *[min(values) for values in gains.values()], *reference_gains])
     high = max([0.0, *[max(values) for values in gains.values()], *reference_gains])
-    x_min = math.floor(low / tick) * tick
-    x_max = math.ceil(high / tick) * tick
+    try:
+        x_min = math.floor(low / tick) * tick
+        x_max = math.ceil(high / tick) * tick
+    except (OverflowError, ValueError) as exc:
+        raise SpecError("branch axis bounds must be finite") from exc
     # Every trial at zero gain is a valid flat result; centre the axis on it
     # instead of failing, with zero in the middle of the plot.
     if x_max - x_min <= tick * 1e-9:
         x_min = low - tick / 2
         x_max = high + tick / 2
+    gain_ticks = _axis_ticks(x_min, x_max, tick)
 
     legend = "   ".join(metric_label(spec, key) for key in keys)
     header_lines = _header_lines(spec, "Campaign gain summary")
@@ -766,11 +801,6 @@ def _build_branch(spec: dict) -> str:
             )
         )
 
-    gain_ticks = []
-    current = x_min
-    while current <= x_max + 1e-9:
-        gain_ticks.append(current)
-        current += tick
     for gain in gain_ticks:
         x = x_of(gain)
         parts.append(
@@ -899,6 +929,23 @@ def _build_branch(spec: dict) -> str:
     return "\n".join(parts) + "\n"
 
 
+def check_trial_chart_eligibility(evaluation: dict) -> None:
+    """Keep the evaluator's selected-check decision authoritative for charts.
+
+    With required checks, the evaluator publishes an improvement only for a
+    complete, qualified pairing. Its raw medians cannot substitute for that
+    decision. Older evaluations without selected checks retain their behavior.
+    """
+    if not isinstance(evaluation, dict):
+        raise SpecError("evaluation must be an object")
+    if evaluation.get("required_trial_checks") and evaluation.get("improvement_pct") is None:
+        raise SpecError(
+            "required trial checks have not established a complete comparison; "
+            "retained medians are raw measurements only. Campaign specifications "
+            "are retained as separate evidence and are not plotted for this run"
+        )
+
+
 def spec_from_evaluation(evaluation: dict, *, title: str | None = None) -> dict:
     """Build a one-step chain specification from one recorded evaluation.
 
@@ -906,8 +953,7 @@ def spec_from_evaluation(evaluation: dict, *, title: str | None = None) -> dict:
     recorded pair as a two-point chain: the baseline at 1.00x and the measured
     candidate. Nothing is inferred beyond the evaluation's own numbers.
     """
-    if not isinstance(evaluation, dict):
-        raise SpecError("evaluation must be an object")
+    check_trial_chart_eligibility(evaluation)
     before = evaluation.get("baseline") or {}
     after = evaluation.get("candidate") or {}
     baseline_value = before.get("median")

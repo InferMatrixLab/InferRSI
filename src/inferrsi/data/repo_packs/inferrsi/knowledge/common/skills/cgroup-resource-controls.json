@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "id": "inferrsi.common.skills.cgroup_resource_controls",
   "title": "cgroup-resource-controls",
   "repo": "inferrsi",
@@ -22,19 +22,6 @@
   "origin": [
     "external"
   ],
-  "sources": [
-    {
-      "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/d5fc2121d6d1628111403ba70ec3b70638ab8674/src/inferrsi/data/skill_library/hardware/host/cgroup-resource-controls/SKILL.md",
-      "commit": "d5fc2121d6d1628111403ba70ec3b70638ab8674",
-      "paths": [
-        "src/inferrsi/data/skill_library/hardware/host/cgroup-resource-controls/SKILL.md",
-        "src/inferrsi/data/skill_library/hardware/host/cgroup-resource-controls/metadata.json",
-        "src/inferrsi/data/skill_library/skill-index.json"
-      ],
-      "content_sha256": "fd1f5a7e6a55714730044155f5b38c1d700383d4e16c3e91963bbfbe1c773af5"
-    }
-  ],
   "index_type": "packaged-skill",
   "skill_documents": {
     "original": "data/skill_library/hardware/host/cgroup-resource-controls/SKILL.md"
@@ -42,8 +29,7 @@
   "checkout_ref": "checkout:cgroup-resource-controls",
   "source_files": {
     "src/inferrsi/data/skill_library/hardware/host/cgroup-resource-controls/SKILL.md": "fd1f5a7e6a55714730044155f5b38c1d700383d4e16c3e91963bbfbe1c773af5",
-    "src/inferrsi/data/skill_library/hardware/host/cgroup-resource-controls/metadata.json": "155aa391e573fa5bd90a089f4e3d06f357795f5d89c8cf9260e3e8ec3636b243",
-    "src/inferrsi/data/skill_library/skill-index.json": "9ea8b2ef190777e683a3905f0614612a37782be4d655d230c000188b0c7073db"
+    "src/inferrsi/data/skill_library/hardware/host/cgroup-resource-controls/metadata.json": "155aa391e573fa5bd90a089f4e3d06f357795f5d89c8cf9260e3e8ec3636b243"
   },
   "skill_metadata": {
     "name": "cgroup-resource-controls",

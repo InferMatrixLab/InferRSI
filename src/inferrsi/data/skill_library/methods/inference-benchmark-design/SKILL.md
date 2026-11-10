@@ -24,6 +24,12 @@ before selecting tests or comparing chunk latency. It separates startup/steady g
 progress, stream-slot reuse, reset, EOU and EOF; its source tests and
 author benchmark reports are not local model or serving qualification.
 
+For streaming TTS measurements tied to playback deadlines or dependent chunks,
+read [dependency-aware TTS playout](references/dependency-aware-tts-playout.md).
+It traces server PCM credit, client playback events, independent batching work
+and partial pipeline costs at one pinned source; it adds no hardware coverage,
+runtime or locally reproduced quality/performance result.
+
 For VLA and robot deployment comparisons, read
 [observation-to-action timing and closed-loop quality](references/embodied-cpp-boundary-and-quality.md).
 Define the complete CPU-action boundary, distinguish generated and replayed
@@ -35,6 +41,13 @@ For treatment-enabled tuning comparisons or claimed protocol integrity, read
 [treatment delivery and trial validity](references/autotunebench-trial-validity.md).
 Trace feedback to the eligible consumer input and apply the frozen arm-validity
 precedence before interpreting benefit, saturation or a null.
+
+For hybrid speculative state-restoration or completion evidence, read the
+[NInfer validation contract](references/ninfer-state-and-completion-contracts.md).
+Freeze a coupled checkpoint and same-physical-block state oracle; distinguish
+zero accepted drafts from zero adopted inputs, logical commit from device
+retirement, and selected steady intervals from complete-cohort denominators.
+Its source contracts and historical author reports are not native parity results.
 
 Freeze one primary objective, timing boundary, quality gates and sample/failure
 accounting before optimization. Recorded agent task scores and replay completion
@@ -191,6 +204,11 @@ For controlled kernel-agent comparisons, use the
 Keep model/budget/task scope, independent acceptance, released versus repaired
 artifacts and workspace/stream/cache contracts explicit. Its results remain
 author-reported; it adds no runner or device/performance qualification.
+
+For source-bound kernel trial records, read
+[trial identity, evaluator evidence and candidate selection](references/xeforge-trial-evidence.md).
+Keep tool origin, actual oracle, unresolved performance, selection and delivered
+eligibility distinct; a retained parity candidate is not a measured gain.
 
 ## Evidence trail requirements (InferRSI compatibility)
 

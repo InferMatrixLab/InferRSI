@@ -21,14 +21,14 @@ flowchart LR
 
 ## Configuration and planning
 
-Start with [addition.json](examples/skill-comparison/addition.json) or
-[update.json](examples/skill-comparison/update.json). Replace the revision and
+Start with [addition.json](../tests/fixtures/skill-comparison/addition.json) or
+[update.json](../tests/fixtures/skill-comparison/update.json). Replace the revision and
 model placeholders. Run from the repository root with the development
 dependencies installed (`python -m pip install -e ".[dev]"`).
 
 ```bash
 python -m tools.skill_eval_compare prepare --repo . \
-  --config docs/examples/skill-comparison/update.json --output <new-output-dir>
+  --config tests/fixtures/skill-comparison/update.json --output <new-output-dir>
 python -m tools.skill_eval_compare report --output <new-output-dir>
 ```
 
@@ -181,8 +181,8 @@ real-client run.
 
 ## Reports and offline controls
 
-See the generated [Markdown example excerpt](examples/skill-comparison/report-example.md)
-and [JSON example excerpt](examples/skill-comparison/report-example.json).
+See the generated [Markdown example excerpt](../tests/fixtures/skill-comparison/report-example.md)
+and [JSON example excerpt](../tests/fixtures/skill-comparison/report-example.json).
 
 `report` reads the frozen plan and retained results without invoking a client,
 grader or trial. It verifies the frozen comparison, pilot, harness, local

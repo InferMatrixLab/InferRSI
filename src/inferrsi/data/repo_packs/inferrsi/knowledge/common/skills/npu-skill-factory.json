@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "id": "inferrsi.common.skills.npu_skill_factory",
   "title": "npu-skill-factory",
   "repo": "inferrsi",
@@ -19,42 +19,12 @@
   "origin": [
     "external"
   ],
-  "sources": [
-    {
-      "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/d5fc2121d6d1628111403ba70ec3b70638ab8674/src/inferrsi/data/skill_library/workflows/npu-skill-factory/SKILL.md",
-      "commit": "d5fc2121d6d1628111403ba70ec3b70638ab8674",
-      "paths": [
-        "src/inferrsi/data/skill_library/skill-index.json",
-        "src/inferrsi/data/skill_library/workflows/npu-skill-factory/SKILL.md",
-        "src/inferrsi/data/skill_library/workflows/npu-skill-factory/metadata.json",
-        "src/inferrsi/data/skill_library/workflows/npu-skill-factory/references/papers-20261015/COMPARISON.md",
-        "src/inferrsi/data/skill_library/workflows/npu-skill-factory/references/papers-20261015/INTEGRATION_NOTES.md",
-        "src/inferrsi/data/skill_library/workflows/npu-skill-factory/references/papers-20261015/QA.md",
-        "src/inferrsi/data/skill_library/workflows/npu-skill-factory/references/papers-20261015/README.md",
-        "src/inferrsi/data/skill_library/workflows/npu-skill-factory/references/papers-20261015/UNREAD_LEADS.md",
-        "src/inferrsi/data/skill_library/workflows/npu-skill-factory/references/papers-20261015/cases/methodology-counterexamples.md",
-        "src/inferrsi/data/skill_library/workflows/npu-skill-factory/references/papers-20261015/knowledge/evidence-routing.md",
-        "src/inferrsi/data/skill_library/workflows/npu-skill-factory/references/papers-20261015/references/learning-to-commit.md",
-        "src/inferrsi/data/skill_library/workflows/npu-skill-factory/references/papers-20261015/references/protocol-details.md",
-        "src/inferrsi/data/skill_library/workflows/npu-skill-factory/references/papers-20261015/references/readset.md",
-        "src/inferrsi/data/skill_library/workflows/npu-skill-factory/references/papers-20261015/references/repo-to-skill.md",
-        "src/inferrsi/data/skill_library/workflows/npu-skill-factory/references/papers-20261015/references/skillopt.md",
-        "src/inferrsi/data/skill_library/workflows/npu-skill-factory/references/papers-20261015/references/source-manifest.json",
-        "src/inferrsi/data/skill_library/workflows/npu-skill-factory/references/papers-20261015/references/trace2skill.md",
-        "src/inferrsi/data/skill_library/workflows/npu-skill-factory/references/papers-20261015/updates/bounded-updates.md",
-        "src/inferrsi/data/skill_library/workflows/npu-skill-factory/references/skill-factory-design-20261014.md"
-      ],
-      "content_sha256": "74cd863df2e80dc2bda1713d24207809173a3116f30325e3487e1e3517cfec1e"
-    }
-  ],
   "index_type": "packaged-skill",
   "skill_documents": {
     "original": "data/skill_library/workflows/npu-skill-factory/SKILL.md"
   },
   "checkout_ref": "checkout:npu-skill-factory",
   "source_files": {
-    "src/inferrsi/data/skill_library/skill-index.json": "9ea8b2ef190777e683a3905f0614612a37782be4d655d230c000188b0c7073db",
     "src/inferrsi/data/skill_library/workflows/npu-skill-factory/SKILL.md": "74cd863df2e80dc2bda1713d24207809173a3116f30325e3487e1e3517cfec1e",
     "src/inferrsi/data/skill_library/workflows/npu-skill-factory/metadata.json": "c862565b814e98e0ebc4923e32eef2aa67a8df2357c255903d744f40aaea32c8",
     "src/inferrsi/data/skill_library/workflows/npu-skill-factory/references/papers-20261015/COMPARISON.md": "38587678a96581f5c2dc697d982127343565504bffa191352811dffcc165aa23",

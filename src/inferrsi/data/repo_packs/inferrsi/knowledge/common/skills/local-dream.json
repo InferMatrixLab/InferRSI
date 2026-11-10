@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "id": "inferrsi.common.skills.local_dream",
   "title": "local-dream",
   "repo": "inferrsi",
@@ -26,26 +26,6 @@
   "origin": [
     "external"
   ],
-  "sources": [
-    {
-      "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/d5fc2121d6d1628111403ba70ec3b70638ab8674/src/inferrsi/data/skill_library/repositories/local-dream/SKILL.md",
-      "commit": "d5fc2121d6d1628111403ba70ec3b70638ab8674",
-      "paths": [
-        "src/inferrsi/data/skill_library/repositories/local-dream/SKILL.md",
-        "src/inferrsi/data/skill_library/repositories/local-dream/metadata.json",
-        "src/inferrsi/data/skill_library/repositories/local-dream/references/android-lifecycle.md",
-        "src/inferrsi/data/skill_library/repositories/local-dream/references/native-contracts.md",
-        "src/inferrsi/data/skill_library/repositories/local-dream/references/packaging-and-abi.md",
-        "src/inferrsi/data/skill_library/repositories/local-dream/references/repo-provenance.md",
-        "src/inferrsi/data/skill_library/repositories/local-dream/references/source-identity.json",
-        "src/inferrsi/data/skill_library/repositories/local-dream/references/upstream-license.md",
-        "src/inferrsi/data/skill_library/repositories/local-dream/scripts/screen_declarations.py",
-        "src/inferrsi/data/skill_library/skill-index.json"
-      ],
-      "content_sha256": "e51fd3c71d693070abeba57ca67dcca82c7347cb94eb98f43e7c455bcacbaa46"
-    }
-  ],
   "index_type": "packaged-skill",
   "skill_documents": {
     "original": "data/skill_library/repositories/local-dream/SKILL.md"
@@ -60,8 +40,7 @@
     "src/inferrsi/data/skill_library/repositories/local-dream/references/repo-provenance.md": "0b848082c0ce893d8ae26d779c5b663d914d1a208cb2293c4a84668cdde86293",
     "src/inferrsi/data/skill_library/repositories/local-dream/references/source-identity.json": "b85f028bb96a37852e9d9780b5d5052fdd9c8f3a704ad391b6381adb58291347",
     "src/inferrsi/data/skill_library/repositories/local-dream/references/upstream-license.md": "41003d4a74749c0220e33dd415042164b5a1093ed401f36277234f772d22d3d0",
-    "src/inferrsi/data/skill_library/repositories/local-dream/scripts/screen_declarations.py": "ccd7d0d55be9a47484ec3a74498d8edef8aba55287f92287775c8d82050c8932",
-    "src/inferrsi/data/skill_library/skill-index.json": "9ea8b2ef190777e683a3905f0614612a37782be4d655d230c000188b0c7073db"
+    "src/inferrsi/data/skill_library/repositories/local-dream/scripts/screen_declarations.py": "ccd7d0d55be9a47484ec3a74498d8edef8aba55287f92287775c8d82050c8932"
   },
   "skill_metadata": {
     "name": "local-dream",
