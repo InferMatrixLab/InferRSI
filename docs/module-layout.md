@@ -31,6 +31,14 @@ Do not create empty `knowledge/`, `benchmark/`, or `apps/` directories in the
 contract slice. Do not treat draft #338 as a reason to add a top-level
 `benchmarks/` tree.
 
+## Test-double loop
+
+`tests/architecture_closed_loop.py` is the handoff exercised by
+`tests/test_architecture_closed_loop.py`. The tests inject fakes. That module
+is not the Apps package, and #371 remains the proposal for that path. It does
+not import Knowledge, Harness, or Benchmark, and it does not change Bundle
+revision.
+
 ## Tentative current ownership
 
 This table is a reading aid for the import gate. It does not authorize moves.
