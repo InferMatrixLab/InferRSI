@@ -29,6 +29,13 @@ For treatment-enabled tuning comparisons or claimed protocol integrity, read
 Trace feedback to the eligible consumer input and apply the frozen arm-validity
 precedence before interpreting benefit, saturation or a null.
 
+For hybrid speculative state-restoration or completion evidence, read the
+[NInfer validation contract](references/ninfer-state-and-completion-contracts.md).
+Freeze a coupled checkpoint and same-physical-block state oracle; distinguish
+zero accepted drafts from zero adopted inputs, logical commit from device
+retirement, and selected steady intervals from complete-cohort denominators.
+Its source contracts and historical author reports are not native parity results.
+
 Freeze one primary objective, timing boundary, quality gates and sample/failure
 accounting before optimization. Recorded agent task scores and replay completion
 do not establish current task success; a VBench prompt workload does not compute

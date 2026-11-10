@@ -606,6 +606,12 @@ NOASSERTION and InferRSI's repository license.
 | --- | --- | --- | --- |
 | Accelerator (methodology only) | Verify: bind saved candidate and comparator identities, distinguish tool origin from resolved performance, inspect host gate/ratio persistence, and follow manual versus measured-only delivery and baseline-oracle boundaries | [inference-benchmark-design reference](../src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/xeforge-trial-evidence.md) and [source record](../src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/xeforge-source.json); Xe-Forge repo + paired paper | Source-derived candidate / empirical not_run; paper/README results remain author-reported, efficacy not_evaluated. No new implementation, measured hardware/resource coverage, backend compatibility, whole-model/service promotion or RAM/Storage/Network/OS coverage; draft extensions remain proposals. |
 
+## NInfer state and completion validation (source-derived)
+
+| Resource context | Stage / scoped question | Canonical owner | Evidence boundary |
+| --- | --- | --- | --- |
+| Accelerator / Host / service boundary (methodology only) | Observe / Verify: freeze coupled checkpoint and same-block state oracle; distinguish zero accepted drafts from zero adopted inputs, logical commit from device retirement, and selected steady intervals from complete-cohort/termination accounting | [inference-benchmark-design reference](../src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/ninfer-state-and-completion-contracts.md) and [source record](../src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/ninfer-source.json); NInfer `1882c6adbc98043fcf89f3589aa5addb3742777a` | Source-derived candidate / empirical not_run; unexecuted test definitions and historical author results with a separate execution revision. No new implementation, measured hardware/resource coverage, backend compatibility, native state/model/quality/performance result or service acceptance; efficacy not_evaluated. |
+
 ## TorchNPU framework source procedures
 
 | Resource | Stage / mechanism | Canonical owner | Evidence boundary |
