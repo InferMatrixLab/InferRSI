@@ -159,6 +159,23 @@ def test_unshare_starts_python_and_hides_a_private_canary(tmp_path, monkeypatch)
     assert "True" not in record["stdout"]
 
 
+def test_blocked_unshare_reports_namespaces_unavailable(monkeypatch):
+    real = Path.read_text
+
+    def fake_read(self, *args, **kwargs):
+        if self.name == "max_user_namespaces":
+            return "1"
+        return real(self, *args, **kwargs)
+
+    def blocked(argv, **kwargs):
+        del kwargs
+        return subprocess.CompletedProcess(argv, 1, stderr=b"Operation not permitted")
+
+    monkeypatch.setattr(Path, "read_text", fake_read)
+    monkeypatch.setattr("inferrsi.infra.confinement.subprocess.run", blocked)
+    assert namespaces_available() is False
+
+
 def test_namespace_plan_keeps_host_root_and_secrets_out(tmp_path, monkeypatch):
     monkeypatch.setenv("SECRET_CANARY", "CANARY-ENV")
     plan = namespace_plan((tmp_path / "writable",), (tmp_path / "readable",))

@@ -1,6 +1,7 @@
 """Synthetic parallel round. Latency figures here are fixture inputs, not measurements."""
 
 import json
+import os
 import subprocess
 import sys
 import threading
@@ -379,3 +380,60 @@ def test_failure_after_claim_stays_unsettled_across_restart(tmp_path):
     reloaded = json.loads(ledger_path.read_text(encoding="utf-8"))
     assert [entry["phase"] for entry in reloaded["entries"]] == ["claimed"]
     assert reloaded["entries"][0]["worst_case"] == ledger["entries"][0]["worst_case"]
+
+
+def test_completed_trial_without_a_latency_file_is_unsettled(tmp_path):
+    incumbent = tmp_path / "incumbent"
+    _tree(incumbent, "10")
+    round_dir = tmp_path / "round"
+    prepare(_spec(), incumbent, round_dir)
+    work = tmp_path / "work"
+    _tree(work, "8")
+    ticket = submit(round_dir, "L1", incumbent, work, now=WHEN)["ticket"]
+
+    class CompletesWithoutResult:
+        name = "empty"
+
+        def run(self, *args, **kwargs):
+            del args, kwargs
+            return {"status": "completed", "stdout": "", "stderr": ""}
+
+    result = serve_ticket(
+        round_dir, ticket, incumbent, backend=CompletesWithoutResult(), now=WHEN
+    )
+    assert result["status"] == "unsettled"
+    assert "readable latency result" in result["reason"]
+    assert ticket_status(round_dir, ticket)["status"] == "unsettled"
+
+
+def test_serve_cli_runs_without_a_caller_supplied_clock(tmp_path):
+    incumbent = tmp_path / "incumbent"
+    _tree(incumbent, "10")
+    round_dir = tmp_path / "round"
+    prepare(_spec(), incumbent, round_dir)
+    work = tmp_path / "work"
+    _tree(work, "8")
+    ticket = submit(round_dir, "L1", incumbent, work, now=WHEN)["ticket"]
+    tool = Path(__file__).parents[1] / "tools" / "parallel_round.py"
+    completed = subprocess.run(
+        [
+            sys.executable,
+            str(tool),
+            "serve",
+            "--round-dir",
+            str(round_dir),
+            "--ticket",
+            ticket,
+            "--incumbent",
+            str(incumbent),
+        ],
+        cwd=Path(__file__).parents[1],
+        env={**os.environ, "PYTHONPATH": str(Path(__file__).parents[1] / "src")},
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert completed.returncode == 0, completed.stderr
+    body = json.loads(completed.stdout)
+    assert body["ticket"] == ticket
+    assert body["status"] in {"measured", "unsettled", "rejected", "queued"}
