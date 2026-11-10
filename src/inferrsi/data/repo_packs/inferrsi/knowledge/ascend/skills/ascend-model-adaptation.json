@@ -14,7 +14,8 @@
     "npu",
     "model-adaptation",
     "fp8",
-    "multimodal"
+    "multimodal",
+    "vllm-ascend"
   ],
   "origin": [
     "external"
@@ -22,14 +23,15 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/d648f25732dee1c974da62a94c46a642ad52cef8/src/inferrsi/data/skill_library/hardware/ascend/ascend-model-adaptation/SKILL.md",
-      "commit": "d648f25732dee1c974da62a94c46a642ad52cef8",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/b887480e6c393a2e0a1efb0ee5d2b7ddf57bb10a/src/inferrsi/data/skill_library/hardware/ascend/ascend-model-adaptation/SKILL.md",
+      "commit": "b887480e6c393a2e0a1efb0ee5d2b7ddf57bb10a",
       "paths": [
         "src/inferrsi/data/skill_library/hardware/ascend/ascend-model-adaptation/SKILL.md",
         "src/inferrsi/data/skill_library/hardware/ascend/ascend-model-adaptation/metadata.json",
+        "src/inferrsi/data/skill_library/hardware/ascend/ascend-model-adaptation/references/source-notes.md",
         "src/inferrsi/data/skill_library/skill-index.json"
       ],
-      "content_sha256": "8fdf46fb2743b67a66bc069d22a45305a222debfb606777bc451b4b8f31d9cc6"
+      "content_sha256": "24ca19fc5e14fd94e3219965ff650068e79c92a6056c0da683f8e58e474fd522"
     }
   ],
   "index_type": "packaged-skill",
@@ -38,8 +40,9 @@
   },
   "checkout_ref": "checkout:ascend-model-adaptation",
   "source_files": {
-    "src/inferrsi/data/skill_library/hardware/ascend/ascend-model-adaptation/SKILL.md": "8fdf46fb2743b67a66bc069d22a45305a222debfb606777bc451b4b8f31d9cc6",
-    "src/inferrsi/data/skill_library/hardware/ascend/ascend-model-adaptation/metadata.json": "989b91821b36c0b80caf1323ec527e7ac847219b8f4fe8ca4ea22d292365cc3c",
+    "src/inferrsi/data/skill_library/hardware/ascend/ascend-model-adaptation/SKILL.md": "24ca19fc5e14fd94e3219965ff650068e79c92a6056c0da683f8e58e474fd522",
+    "src/inferrsi/data/skill_library/hardware/ascend/ascend-model-adaptation/metadata.json": "e5191f402b0ccf069a0aafc9873b990704426f652c0048ad027082f5e47537dc",
+    "src/inferrsi/data/skill_library/hardware/ascend/ascend-model-adaptation/references/source-notes.md": "5ad6954477de1ba1aaa294a329f4f1d9b16f77dc8da4f1abcc530ab0670a4d59",
     "src/inferrsi/data/skill_library/skill-index.json": "7904275c3383380db179287171e1430617aaa9ac4f439291eff8a71426987fbb"
   },
   "skill_metadata": {
@@ -50,7 +53,8 @@
       "npu",
       "model-adaptation",
       "fp8",
-      "multimodal"
+      "multimodal",
+      "vllm-ascend"
     ],
     "status": "candidate",
     "profile": "local-skill-v1",
@@ -64,14 +68,17 @@
       "Source-derived candidate; no local efficacy validation.",
       "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
     ],
-    "provenance_readsets": [],
+    "provenance_readsets": [
+      "references/source-notes.md"
+    ],
     "consumption_mode": "packaged",
     "applicability": {
       "scope": "Checkpoint onboarding for LLM/VLM adapters on Ascend: weight/scale loading, KV-head replication under tensor parallelism and staged multimodal feature checks.",
       "prerequisites": "Check the installed CANN and checkpoint format against the versioned guidance; final sign-off requires real weights and at least one full-layer validation.",
       "input_contract": "Checkpoint weights/configuration and scale keys, attention-head/TP configuration, model modalities and expected graph/capacity features.",
       "produced_artifact": "A checkpoint/feature report separating dummy and real-weight evidence, applicable feature outcomes, and theoretical versus demonstrated serving capacity.",
-      "failure_modes": "Dummy-only success misses scale/remapping/sharding defects; blindly sharding replicated KV heads or accepting reduced-layer results can conceal loading or full-model failures."
+      "failure_modes": "Dummy-only success misses scale/remapping/sharding defects; blindly sharding replicated KV heads or accepting reduced-layer results can conceal loading or full-model failures.",
+      "refusal_point": "Stop on missing FP8 paired scale keys, unsupported tensor parallel KV-head split without replication, unverified multimodal visual encoder output, or failed base endpoint validation."
     },
     "recommendations": [
       "Gate onboarding in order: dummy architecture check, real-weight loading, model endpoint, text request and then multimodal request when the model supports VL; retain the evidence each stage actually supplies.",
@@ -84,7 +91,8 @@
     "prerequisites": "Check the installed CANN and checkpoint format against the versioned guidance; final sign-off requires real weights and at least one full-layer validation.",
     "input_contract": "Checkpoint weights/configuration and scale keys, attention-head/TP configuration, model modalities and expected graph/capacity features.",
     "produced_artifact": "A checkpoint/feature report separating dummy and real-weight evidence, applicable feature outcomes, and theoretical versus demonstrated serving capacity.",
-    "failure_modes": "Dummy-only success misses scale/remapping/sharding defects; blindly sharding replicated KV heads or accepting reduced-layer results can conceal loading or full-model failures."
+    "failure_modes": "Dummy-only success misses scale/remapping/sharding defects; blindly sharding replicated KV heads or accepting reduced-layer results can conceal loading or full-model failures.",
+    "refusal_point": "Stop on missing FP8 paired scale keys, unsupported tensor parallel KV-head split without replication, unverified multimodal visual encoder output, or failed base endpoint validation."
   },
   "recommendations": [
     "Gate onboarding in order: dummy architecture check, real-weight loading, model endpoint, text request and then multimodal request when the model supports VL; retain the evidence each stage actually supplies.",

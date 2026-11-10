@@ -13,7 +13,8 @@
     "ascend",
     "vllm-ascend",
     "aclgraph",
-    "runtime"
+    "runtime",
+    "stream-synchronization"
   ],
   "origin": [
     "external"
@@ -21,15 +22,15 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/d648f25732dee1c974da62a94c46a642ad52cef8/src/inferrsi/data/skill_library/hardware/ascend/ascend-aclgraph-capture-replay/SKILL.md",
-      "commit": "d648f25732dee1c974da62a94c46a642ad52cef8",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/b887480e6c393a2e0a1efb0ee5d2b7ddf57bb10a/src/inferrsi/data/skill_library/hardware/ascend/ascend-aclgraph-capture-replay/SKILL.md",
+      "commit": "b887480e6c393a2e0a1efb0ee5d2b7ddf57bb10a",
       "paths": [
         "src/inferrsi/data/skill_library/hardware/ascend/ascend-aclgraph-capture-replay/SKILL.md",
         "src/inferrsi/data/skill_library/hardware/ascend/ascend-aclgraph-capture-replay/metadata.json",
         "src/inferrsi/data/skill_library/hardware/ascend/ascend-aclgraph-capture-replay/references/source-notes.md",
         "src/inferrsi/data/skill_library/skill-index.json"
       ],
-      "content_sha256": "d494fc7e539cbb7388189bd7b3f04bb5c4983fdd7a82484348aad1cee7f741f2"
+      "content_sha256": "60dcf15b8d5678521d5650160b3404091a03fdc843ffe31a6e13a249b1f6a8be"
     }
   ],
   "index_type": "packaged-skill",
@@ -38,8 +39,8 @@
   },
   "checkout_ref": "checkout:ascend-aclgraph-capture-replay",
   "source_files": {
-    "src/inferrsi/data/skill_library/hardware/ascend/ascend-aclgraph-capture-replay/SKILL.md": "d494fc7e539cbb7388189bd7b3f04bb5c4983fdd7a82484348aad1cee7f741f2",
-    "src/inferrsi/data/skill_library/hardware/ascend/ascend-aclgraph-capture-replay/metadata.json": "3ac69dd82ae798450092c830b62f4958dc2f5b1c7000f9c3f822f2b0693f8af4",
+    "src/inferrsi/data/skill_library/hardware/ascend/ascend-aclgraph-capture-replay/SKILL.md": "60dcf15b8d5678521d5650160b3404091a03fdc843ffe31a6e13a249b1f6a8be",
+    "src/inferrsi/data/skill_library/hardware/ascend/ascend-aclgraph-capture-replay/metadata.json": "255ffa4b9e7469d4b0e5c34cf9effff75b78413e9a1df87232d07d5d28212db6",
     "src/inferrsi/data/skill_library/hardware/ascend/ascend-aclgraph-capture-replay/references/source-notes.md": "6ffbfb68cc7e04923b4fbca2a73a7555b7c3b45a6f40819bb5f3213ef05cf88d",
     "src/inferrsi/data/skill_library/skill-index.json": "7904275c3383380db179287171e1430617aaa9ac4f439291eff8a71426987fbb"
   },
@@ -50,7 +51,8 @@
       "ascend",
       "vllm-ascend",
       "aclgraph",
-      "runtime"
+      "runtime",
+      "stream-synchronization"
     ],
     "status": "candidate",
     "empirical_validation": "not_run",
@@ -69,27 +71,31 @@
     ],
     "consumption_mode": "packaged",
     "applicability": {
-      "scope": "Diagnose vLLM-Ascend ACLGraph eligibility, capture/replay dispatch, caller-buffer ownership and capture-resource failures.",
+      "scope": "Diagnose vLLM-Ascend ACLGraph eligibility, batch descriptor matching, capture/replay dispatch, caller-buffer ownership, multi-stream ordering, and capture-resource failures.",
       "prerequisites": "An existing eager correctness baseline; authorization before any new run or live configuration change.",
       "input_contract": "Installed stack and device, requested/effective graph mode, runner/backend settings, capture sizes and batch descriptors, error phase, replay observations and HBM/stream evidence.",
       "produced_artifact": "A bounded diagnosis, smallest reversible proposal, expected tradeoff and correctness/resource verification plan with unresolved compatibility or authorization questions.",
-      "refusal_point": "Stop on output mismatch, unstable replay addresses, capture exhaustion, unknown ordering or version drift; missing evidence permits only a conditional proposal."
+      "refusal_point": "Stop on output mismatch, unstable replay addresses, capture exhaustion, stream resource errors without capture-size reduction, unknown ordering or version drift; missing evidence permits only a conditional proposal."
     },
     "recommendations": [
       "Diagnose the effective runtime mode and batch descriptor before changing capture sizes; intended warmup/profile bypass is not a cache defect.",
+      "Verify caller BatchDescriptor stability and dispatch mode before investigating graph replay issues.",
+      "For stream-resource exhaustion, reduce cudagraph_capture_sizes or max_cudagraph_capture_size.",
       "Trace stable replay buffers to the owning caller and preserve synchronization/update ordering; the wrapper does not stage new inputs into persistent buffers.",
       "Compare eager and graph execution on the same workload, separating initial capture, repeated replay, compiler changes and memory/stream costs; a replay log alone proves neither coverage nor speedup."
     ]
   },
   "applicability": {
-    "scope": "Diagnose vLLM-Ascend ACLGraph eligibility, capture/replay dispatch, caller-buffer ownership and capture-resource failures.",
+    "scope": "Diagnose vLLM-Ascend ACLGraph eligibility, batch descriptor matching, capture/replay dispatch, caller-buffer ownership, multi-stream ordering, and capture-resource failures.",
     "prerequisites": "An existing eager correctness baseline; authorization before any new run or live configuration change.",
     "input_contract": "Installed stack and device, requested/effective graph mode, runner/backend settings, capture sizes and batch descriptors, error phase, replay observations and HBM/stream evidence.",
     "produced_artifact": "A bounded diagnosis, smallest reversible proposal, expected tradeoff and correctness/resource verification plan with unresolved compatibility or authorization questions.",
-    "refusal_point": "Stop on output mismatch, unstable replay addresses, capture exhaustion, unknown ordering or version drift; missing evidence permits only a conditional proposal."
+    "refusal_point": "Stop on output mismatch, unstable replay addresses, capture exhaustion, stream resource errors without capture-size reduction, unknown ordering or version drift; missing evidence permits only a conditional proposal."
   },
   "recommendations": [
     "Diagnose the effective runtime mode and batch descriptor before changing capture sizes; intended warmup/profile bypass is not a cache defect.",
+    "Verify caller BatchDescriptor stability and dispatch mode before investigating graph replay issues.",
+    "For stream-resource exhaustion, reduce cudagraph_capture_sizes or max_cudagraph_capture_size.",
     "Trace stable replay buffers to the owning caller and preserve synchronization/update ordering; the wrapper does not stage new inputs into persistent buffers.",
     "Compare eager and graph execution on the same workload, separating initial capture, repeated replay, compiler changes and memory/stream costs; a replay log alone proves neither coverage nor speedup."
   ],
