@@ -155,8 +155,9 @@ are distinct observations. A bare `collect` leaves no such capture.
 The importer reads Desktop `CommandExecution` events. It supports direct text
 or filename-match searches with `rg`, literal `cat`, `nl -ba` and `sed -n N,Mp`
 reads. Use `rg -Hn` for unambiguous filenames and matching lines. File results
-are corpus-relative; no source text, shell output, private rollout path or
-assistant reply is copied. Unsupported search pipelines and unparseable
+are corpus-relative. A shell event establishes the command's recorded output;
+the outer agent tool may have displayed a shorter excerpt. No source text,
+shell output, private rollout path or assistant reply is copied. Unsupported search pipelines and unparseable
 output leave unresolved event line numbers. Other tools and scripted/remote
 retrievals require separate evidence. Review query text and paths before sharing.
 

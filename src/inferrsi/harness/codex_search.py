@@ -7,7 +7,8 @@ import os
 import re
 import shlex
 from pathlib import Path
-from urllib.parse import unquote, urlsplit
+from urllib.parse import urlsplit
+from urllib.request import url2pathname
 
 from .campaign_records import _identifier
 from .dashboard_data import _relative_location, _text
@@ -116,7 +117,7 @@ def _command(item, corpus):
     cwd = item.get("cwd")
     if isinstance(cwd, str) and cwd.startswith("file://"):
         uri = urlsplit(cwd)
-        cwd = unquote(uri.path) if uri.netloc in ("", "localhost") else None
+        cwd = url2pathname(uri.path) if uri.netloc in ("", "localhost") else None
     if not isinstance(cwd, str) or not Path(cwd).is_absolute():
         return None, False
     cwd = Path(cwd)
