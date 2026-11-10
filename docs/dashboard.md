@@ -124,8 +124,11 @@ path directly. The import command only opens the supplied file.
 
 For example, set `campaign` to the campaign directory, `trace` to the local
 Codex Desktop rollout JSONL and `corpus` to the absolute skill-library path
-**as it appeared in that session**. In the agent's first shell call of the
-round, save the next line number. In separate shell calls, use the knowledge
+**as it appeared in that session**. The importer normalizes path components
+such as `.` and `..` lexically. Use the root spelling recorded in the trace,
+including any symlink names, so replay also works after the checkout is gone.
+In the agent's first shell call of the round, save the next line number.
+In separate shell calls, use the knowledge
 directory normally. Once the completed tool events are visible in the rollout,
 run the import from the agent's closing shell call:
 
@@ -169,7 +172,10 @@ retrievals require separate evidence. Review query text and paths before sharing
   retrieval for the round. Otherwise only observed counts are known and
   `counts` is null. A complete round without a search has zero searches.
   With no inputs the command records missing coverage. A failed query or
-  unresolved supported command also makes totals unknown.
+  unresolved supported command also makes totals unknown. For example,
+  `rg -C 2` without line numbers cannot reliably separate context text from
+  matching filenames. A failed multi-file `cat` may have read only some
+  operands. These commands retain an unresolved trace locator.
 - Use and rejection can come from the existing optimization log when its
   iteration references the exact verified capture. For a decision recorded
   in an assistant message, a reviewer can pass `--used REF LINE` or
@@ -177,7 +183,9 @@ retrievals require separate evidence. Review query text and paths before sharing
   the relevant message. This explicitly attributes use; the importer validates
   the locator and never infers a decision from a read. Unattributed use stays
   unknown. Distinct use and rejection decisions for the same ref are both retained
-  and it counts once as used. Candidate links carry the recorded evaluation verdict when present.
+  and it counts once as used. Candidate links carry the recorded evaluation verdict
+  when present. `evaluation_state` reports the source file's status, including
+  `missing` for an absent file and `corrupt` for invalid JSON.
 - Serialize imports along with other campaign updates. Repeating an import
   rebuilds the snapshot without adding events. To attach a later decision or
   run, retain the same trace, start line, capture IDs and scope, and extend the

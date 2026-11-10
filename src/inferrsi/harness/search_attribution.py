@@ -149,6 +149,7 @@ def _round_candidates(root, number):
         verdict = evaluation.get("verdict")
         runs.append({"candidate": candidate, "run_id": run_id,
                      "source": path.relative_to(root).as_posix(),
+                     "evaluation_state": result_state,
                      "evaluation": evaluation_path.relative_to(root).as_posix()
                      if result_state == "present" else None,
                      "verdict": verdict if verdict in ("PASS", "FAIL", "INCONCLUSIVE") else None})

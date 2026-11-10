@@ -615,5 +615,22 @@ def test_search_import_joins_capture_use_with_failed_run(tmp_path):
     assert doc["materials"]["package:kv"]["use"] == "rejected"
     assert doc["events"][0]["materials"][0]["resources"]
     assert doc["candidates"][0]["verdict"] == "FAIL"
+    assert doc["candidates"][0]["evaluation_state"] == "present"
     with pytest.raises(ValueError, match="another round"):
         import_search(tmp_path, number=2, context_ids=["r1"])
+
+
+@pytest.mark.parametrize("expected", ["corrupt", "missing"])
+def test_search_import_reports_unavailable_evaluation(tmp_path, expected):
+    from inferrsi.harness.search_attribution import import_search
+
+    campaign(tmp_path)
+    evaluation = tmp_path / "runs/run-a/evaluation.json"
+    if expected == "missing":
+        evaluation.unlink()
+    else:
+        evaluation.write_text("{", encoding="utf-8")
+    path = import_search(tmp_path, number=1)
+    candidate = json.loads(path.read_bytes())["candidates"][0]
+    assert candidate["evaluation_state"] == expected
+    assert candidate["evaluation"] is None and candidate["verdict"] is None

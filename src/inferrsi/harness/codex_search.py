@@ -26,6 +26,7 @@ def _rg_args(args: list[str]) -> tuple[str, list[str], str, list[str]] | None:
     """Decode common text/filename rg output; decline options that change its meaning."""
     patterns, operands, options = [], [], []
     mode = "text"
+    context = numbered = False
     it = iter(args)
     for arg in it:
         if arg == "--":
@@ -41,27 +42,38 @@ def _rg_args(args: list[str]) -> tuple[str, list[str], str, list[str]] | None:
             if value is None:
                 return None
             options.extend([arg, _text(value)])
+            if arg in ("-A", "-B", "-C", "--context"):
+                context = True
         elif arg in ("--files-with-matches", "-l"):
             mode = "files"
             options.append(arg)
         elif arg in ("--no-heading", "--with-filename", "--line-number", "--ignore-case",
                      "--fixed-strings", "--word-regexp", "--smart-case", "--hidden"):
             options.append(arg)
+            if arg == "--line-number":
+                numbered = True
         elif arg.startswith("-"):
             if not re.fullmatch(r"-[inSFwHs]+", arg):
                 return None
             options.append(arg)
+            if "n" in arg:
+                numbered = True
         else:
             operands.append(arg)
     if not patterns and operands:
         patterns.append(operands.pop(0))
+    if mode == "text" and context:
+        mode = "numbered_context" if numbered else "unnumbered_context"
     return (" | ".join(patterns), operands or ["."], mode, options) if patterns else None
 
 
-def _rg_hits(output, cwd, corpus, scopes, mode, options):
+def _rg_hits(output, cwd, corpus, scopes, mode):
+    # Without numbers, "file-context: text" also looks like a match in
+    # "file-context". Retain the search event but withhold hit attribution.
+    if mode == "unnumbered_context":
+        return [], False
     hits = {}
     scopes = [Path(os.path.normpath(cwd / s)) for s in scopes]
-    has_context = any(opt in options for opt in ("-A", "-B", "-C", "--context"))
     complete = True
     for line in output.splitlines():
         if "tokens truncated" in line and ("…" in line or "..." in line):
@@ -70,9 +82,19 @@ def _rg_hits(output, cwd, corpus, scopes, mode, options):
         if mode == "files":
             path, number = line, None
         else:
-            if has_context and (line == "--" or re.match(r"^(?:[^:]*-)?\d+-", line.split(":")[0])
-                                and not re.match(r"^[^:]+:\d+:", line)):
-                continue  # context rather than a matching line
+            if mode == "numbered_context":
+                numbered_match = re.match(r"^(?:[^:]+:)?\d+:", line)
+                if line == "--":
+                    continue
+                if re.match(r"^(?:[^:]*-)?\d+-", line):
+                    # Context text may itself contain ":42:", and filenames
+                    # may contain "-2-". Neither interpretation is certain.
+                    if numbered_match:
+                        complete = False
+                    continue
+                if not numbered_match:
+                    complete = False
+                    continue
             # For a single explicit file, rg -n omits the filename. Do not stat
             # the live corpus: the retained rollout may outlive that checkout.
             bare = re.match(r"^(\d+):", line)
@@ -120,7 +142,7 @@ def _command(item, corpus):
         cwd = url2pathname(uri.path) if uri.netloc in ("", "localhost") else None
     if not isinstance(cwd, str) or not Path(cwd).is_absolute():
         return None, False
-    cwd = Path(cwd)
+    cwd = Path(os.path.normpath(cwd))
     if any(word in {"|", "||", "&&", ";", ">", ">>", "<"} for word in argv):
         return None, False
     code, output = item.get("exit_code"), item.get("aggregated_output")
@@ -142,7 +164,7 @@ def _command(item, corpus):
             return None, True
         materials, complete = [], code == 1
         if code == 0:
-            materials, complete = _rg_hits(output, cwd, corpus, scopes, mode, options)
+            materials, complete = _rg_hits(output, cwd, corpus, scopes, mode)
         event = {"action": "search", "tool": tool, "query": _text(query),
                  "scope": [s for s in scope_refs if s], "options": options,
                  "exit_code": code, "materials": materials}
@@ -161,8 +183,10 @@ def _command(item, corpus):
     if any(re.search(r"[$`*?~{}\[]", n) for n in names):
         return None, False
     refs = [ref for n in names if (ref := _material(cwd, n, corpus))]
-    if not refs or code != 0:
+    if not refs:
         return None, True
+    if code != 0:
+        return None, False
     # Successful cat opened every literal operand. Its shared stdout cannot
     # establish which file supplied a particular passage.
     return {"action": "read", "tool": tool,
@@ -174,6 +198,7 @@ def read_window(trace: Path, lines: tuple[int, int], corpus: Path):
     first, last = lines
     if first < 1 or last < first or not corpus.is_absolute():
         raise ValueError("expected a positive inclusive line range and absolute knowledge root")
+    corpus = Path(os.path.normpath(corpus))
     events, decisions, seen, uncertain = [], set(), set(), []
     with trace.open("rb") as stream:
         meta = json.loads(stream.readline())

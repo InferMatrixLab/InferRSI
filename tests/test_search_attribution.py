@@ -93,3 +93,45 @@ def test_nonmatching_rg_and_incomplete_search_are_distinct(tmp_path):
         "searches": 1, "hits": 0, "unique_hits": 0, "used": 0}
     p = import_search(tmp_path, number=2, lines=[3, 3], **inputs)
     assert json.loads(p.read_bytes())["counts"] is None
+
+
+@pytest.mark.parametrize(("cmd", "output", "exit_code", "searches"), [
+    ("rg -C 2 key .", "./case.md-context: foo\n./case.md:key", 0, 1),
+    ("cat case.md missing.md", "body\ncat: missing.md: not found", 1, 0),
+], ids=["unnumbered-context", "partial-cat"])
+def test_ambiguous_output_stays_unresolved(tmp_path, cmd, output, exit_code, searches):
+    create_campaign(tmp_path, "example")
+    trace, corpus = tmp_path / "rollout.jsonl", tmp_path / "knowledge"
+    rollout(trace, command(corpus, cmd, output, "example", exit_code=exit_code))
+    path = import_search(tmp_path, number=1, trace=trace, lines=[2, 2],
+                         knowledge_root=corpus, complete=True)
+    doc = json.loads(path.read_bytes())
+    assert doc["coverage"] == "partial" and doc["counts"] is None
+    assert doc["unresolved_command_lines"] == [2]
+    assert doc["observed"]["searches"] == searches
+    assert doc["materials"] == {}
+
+
+def test_numbered_context_preserves_confirmed_hits_under_normalized_root(tmp_path):
+    create_campaign(tmp_path, "example")
+    trace, corpus = tmp_path / "rollout.jsonl", tmp_path / "knowledge"
+    rollout(trace, command(corpus, "rg -Hn -C 1 key .",
+                           "./case.md-1-context: foo\n./case.md:2:key", "search"))
+    # The historical knowledge directory need not exist on the importing machine.
+    path = import_search(tmp_path, number=1, trace=trace, lines=[2, 2],
+                         knowledge_root=corpus / "old" / "..", complete=True)
+    doc = json.loads(path.read_bytes())
+    assert doc["coverage"] == "complete"
+    assert doc["events"][0]["materials"] == [{"ref": "case.md", "match_line": 2}]
+
+
+def test_ambiguous_numbered_context_cannot_invent_another_file(tmp_path):
+    create_campaign(tmp_path, "example")
+    trace, corpus = tmp_path / "rollout.jsonl", tmp_path / "knowledge"
+    rollout(trace, command(corpus, "rg -n -C 1 key .",
+                           "./case.md:1:key\n./case.md-2-context:42: more", "search"))
+    path = import_search(tmp_path, number=1, trace=trace, lines=[2, 2],
+                         knowledge_root=corpus, complete=True)
+    doc = json.loads(path.read_bytes())
+    assert doc["counts"] is None and doc["unresolved_command_lines"] == [2]
+    assert set(doc["materials"]) == {"case.md"}
