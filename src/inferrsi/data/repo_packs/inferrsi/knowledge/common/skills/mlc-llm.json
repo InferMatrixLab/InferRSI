@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "id": "inferrsi.common.skills.mlc_llm",
   "title": "mlc-llm",
   "repo": "inferrsi",
@@ -23,45 +23,6 @@
   ],
   "origin": [
     "external"
-  ],
-  "sources": [
-    {
-      "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/d648f25732dee1c974da62a94c46a642ad52cef8/src/inferrsi/data/skill_library/repositories/mlc-llm/SKILL.md",
-      "commit": "d648f25732dee1c974da62a94c46a642ad52cef8",
-      "paths": [
-        "src/inferrsi/data/skill_library/repositories/mlc-llm/LICENSE",
-        "src/inferrsi/data/skill_library/repositories/mlc-llm/SKILL.md",
-        "src/inferrsi/data/skill_library/repositories/mlc-llm/metadata.json",
-        "src/inferrsi/data/skill_library/repositories/mlc-llm/references/mlc-notice.md",
-        "src/inferrsi/data/skill_library/repositories/mlc-llm/references/repo-provenance.md",
-        "src/inferrsi/data/skill_library/repositories/mlc-llm/references/repo-routing-metadata.json",
-        "src/inferrsi/data/skill_library/repositories/mlc-llm/references/scope-and-notices.md",
-        "src/inferrsi/data/skill_library/repositories/mlc-llm/references/source-identity.json",
-        "src/inferrsi/data/skill_library/repositories/mlc-llm/references/tvm-license.md",
-        "src/inferrsi/data/skill_library/repositories/mlc-llm/references/tvm-notice.md",
-        "src/inferrsi/data/skill_library/repositories/mlc-llm/sub-skills/artifact-contract/SKILL.md",
-        "src/inferrsi/data/skill_library/repositories/mlc-llm/sub-skills/artifact-contract/references/contract-mechanisms.md",
-        "src/inferrsi/data/skill_library/repositories/mlc-llm/sub-skills/artifact-contract/references/helper-contract.md",
-        "src/inferrsi/data/skill_library/repositories/mlc-llm/sub-skills/artifact-contract/references/troubleshooting.md",
-        "src/inferrsi/data/skill_library/repositories/mlc-llm/sub-skills/artifact-contract/scripts/audit_artifact_declarations.py",
-        "src/inferrsi/data/skill_library/repositories/mlc-llm/sub-skills/metal-build-runtime/SKILL.md",
-        "src/inferrsi/data/skill_library/repositories/mlc-llm/sub-skills/metal-build-runtime/references/helper-contract.md",
-        "src/inferrsi/data/skill_library/repositories/mlc-llm/sub-skills/metal-build-runtime/references/modules-and-streams.md",
-        "src/inferrsi/data/skill_library/repositories/mlc-llm/sub-skills/metal-build-runtime/references/native-evidence.md",
-        "src/inferrsi/data/skill_library/repositories/mlc-llm/sub-skills/metal-build-runtime/references/targets-and-export.md",
-        "src/inferrsi/data/skill_library/repositories/mlc-llm/sub-skills/metal-build-runtime/references/troubleshooting.md",
-        "src/inferrsi/data/skill_library/repositories/mlc-llm/sub-skills/metal-build-runtime/scripts/audit_apple_target_declarations.py",
-        "src/inferrsi/data/skill_library/repositories/mlc-llm/sub-skills/runtime-kv-limits/SKILL.md",
-        "src/inferrsi/data/skill_library/repositories/mlc-llm/sub-skills/runtime-kv-limits/references/cache-lowering-and-evidence.md",
-        "src/inferrsi/data/skill_library/repositories/mlc-llm/sub-skills/runtime-kv-limits/references/helper-contract.md",
-        "src/inferrsi/data/skill_library/repositories/mlc-llm/sub-skills/runtime-kv-limits/references/limits-and-workspace.md",
-        "src/inferrsi/data/skill_library/repositories/mlc-llm/sub-skills/runtime-kv-limits/references/troubleshooting.md",
-        "src/inferrsi/data/skill_library/repositories/mlc-llm/sub-skills/runtime-kv-limits/scripts/audit_kv_limit_declarations.py",
-        "src/inferrsi/data/skill_library/skill-index.json"
-      ],
-      "content_sha256": "e0fd1accb4216191c56e7e4a8074633f36d9063727c2546e0d2eed14220d8cf4"
-    }
   ],
   "index_type": "packaged-skill",
   "skill_documents": {
@@ -96,8 +57,7 @@
     "src/inferrsi/data/skill_library/repositories/mlc-llm/sub-skills/runtime-kv-limits/references/helper-contract.md": "da33306472cbda5a33605b80fe52d6cb1fa886b3b7eea13adbdf0ce8a6024c66",
     "src/inferrsi/data/skill_library/repositories/mlc-llm/sub-skills/runtime-kv-limits/references/limits-and-workspace.md": "77105db95de2b8ea27ed6953b5441c8af061fb745ddb13d3904f8773fc21e879",
     "src/inferrsi/data/skill_library/repositories/mlc-llm/sub-skills/runtime-kv-limits/references/troubleshooting.md": "b89255fc04507185bc8bcf74de779730b009b12d13bb38ad0193205dfed8e921",
-    "src/inferrsi/data/skill_library/repositories/mlc-llm/sub-skills/runtime-kv-limits/scripts/audit_kv_limit_declarations.py": "d82a6dda5f5931eb369003a5e1f419bfbdd82304766a18be8ea1e1849e26b77d",
-    "src/inferrsi/data/skill_library/skill-index.json": "7904275c3383380db179287171e1430617aaa9ac4f439291eff8a71426987fbb"
+    "src/inferrsi/data/skill_library/repositories/mlc-llm/sub-skills/runtime-kv-limits/scripts/audit_kv_limit_declarations.py": "d82a6dda5f5931eb369003a5e1f419bfbdd82304766a18be8ea1e1849e26b77d"
   },
   "skill_metadata": {
     "name": "mlc-llm",

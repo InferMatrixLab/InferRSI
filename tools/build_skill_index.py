@@ -13,12 +13,13 @@ import json
 import subprocess
 from pathlib import Path
 
+from inferrsi import _source_snapshot
 from inferrsi.skill_catalog import skill_metadata, skill_records
 
 PROJECT = Path(__file__).resolve().parents[1]
 LIBRARY = Path("src/inferrsi/data/skill_library")
 DESTINATION = Path("src/inferrsi/data/repo_packs/inferrsi/knowledge")
-REPOSITORY = "https://github.com/InferMatrixLab/InferRSI"
+REPOSITORY = _source_snapshot.REPOSITORY
 # Match the comparison tool: replacement refs and lazy promisor fetches must not
 # change the bytes hashed for a pinned revision.
 GIT_READ = ("git", "--no-replace-objects", "--no-lazy-fetch")
@@ -112,6 +113,7 @@ def render_index(root: Path, revision: str, source_files: dict[str, str]) -> dic
     outputs = {}
     links = []
     entries = _registry(root)
+    snapshot = _source_snapshot.manifest(revision, source_files[_source_snapshot.REGISTRY])
     for selected in skill_records(root):
         name = selected["name"]
         metadata = skill_metadata(root, name)
@@ -168,8 +170,13 @@ def render_index(root: Path, revision: str, source_files: dict[str, str]) -> dic
             "verification": {"locally_verified": False, "evidence_level": "guidance"},
         }
         relative = f"{backend}/skills/{name}.json"
-        outputs[relative] = json.dumps(record, ensure_ascii=False, indent=2) + "\n"
+        stored = _source_snapshot.compact(record)
+        # The catalog must read back exactly the public record rendered here.
+        if _source_snapshot.resolve(stored, snapshot) != record:
+            raise ValueError(f"Stored skill record does not round-trip: {name}")
+        outputs[relative] = json.dumps(stored, ensure_ascii=False, indent=2) + "\n"
         links.append(f"| [{name}]({relative}) | {backend} | {state} |")
+    outputs[_source_snapshot.MANIFEST] = json.dumps(snapshot, indent=2) + "\n"
     outputs["README.md"] = "\n".join([
         "# InferRSI skill discovery index", "",
         f"Generated abstracts for all {len(entries)} registered skills in `data/skill_library/`.",
@@ -184,7 +191,11 @@ def render_index(root: Path, revision: str, source_files: dict[str, str]) -> dic
         "These are knowledge abstracts (`--kind knowledge`), with namespaced package",
         "IDs distinct from explicitly selected `checkout_ref` skills. Ascend/CUDA",
         "procedures use their corresponding backend; shared methods use `common`.", "",
-        f"Source snapshot: [{revision}]({REPOSITORY}/tree/{revision}/{LIBRARY.as_posix()}).", "",
+        f"`{_source_snapshot.MANIFEST}` holds the shared source snapshot: the full source",
+        "revision and the registry hash. Stored records (schema 2) keep only their own",
+        "fields and resource hashes; the catalog restores the schema-1 `sources` entry and",
+        "registry hash from the snapshot, so editing one skill regenerates only its record",
+        "and the snapshot.", "",
         "```bash",
         "inferrsi knowledge search 'profiling' --repo-type inferrsi --limit 50",
         "inferrsi collect --repo-type inferrsi --kind knowledge --limit 50 --material",
@@ -195,9 +206,10 @@ def render_index(root: Path, revision: str, source_files: dict[str, str]) -> dic
         "`source_files` hashes identify the canonical Git bytes, not a validation result.", "",
         "```bash",
         "python tools/build_skill_index.py --source-revision <committed-source-revision>",
-        f"python tools/build_skill_index.py --source-revision {revision} --check",
+        "python tools/build_skill_index.py --source-revision <committed-source-revision> --check",
         "```", "",
-        "`--check` detects missing, stale and unexpected generated records without writing.",
+        "`--check` detects missing, stale and unexpected generated records without writing;",
+        f"use the `source_revision` recorded in `{_source_snapshot.MANIFEST}`.",
         "References and cases ship with their owning skill, not as duplicate knowledge abstracts.",
         "",
         "| Skill | Backend | Original declared status |", "| --- | --- | --- |", *links, "",
@@ -226,7 +238,7 @@ def main(argv: list[str] | None = None) -> int:
         if stale or changed:
             print("Skill index drift: " + ", ".join(sorted(stale | set(changed))))
             return 1
-        print(f"Skill index is current: {len(outputs) - 1} metadata records")
+        print(f"Skill index is current: {len(outputs) - 2} metadata records")
         return 0
     if stale:
         raise ValueError("Remove obsolete generated files explicitly: " + ", ".join(sorted(stale)))
@@ -234,7 +246,8 @@ def main(argv: list[str] | None = None) -> int:
         path = destination / relative
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(outputs[relative], encoding="utf-8", newline="\n")
-    print(f"Generated {len(outputs) - 1} skill metadata records")
+    # Outputs are the records plus README.md and the shared snapshot.
+    print(f"Generated {len(outputs) - 2} skill metadata records")
     return 0
 
 

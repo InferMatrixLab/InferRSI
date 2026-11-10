@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "id": "inferrsi.common.skills.mlx_swift_lm",
   "title": "mlx-swift-lm",
   "repo": "inferrsi",
@@ -23,36 +23,6 @@
   ],
   "origin": [
     "external"
-  ],
-  "sources": [
-    {
-      "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/d648f25732dee1c974da62a94c46a642ad52cef8/src/inferrsi/data/skill_library/repositories/mlx-swift-lm/SKILL.md",
-      "commit": "d648f25732dee1c974da62a94c46a642ad52cef8",
-      "paths": [
-        "src/inferrsi/data/skill_library/repositories/mlx-swift-lm/LICENSE",
-        "src/inferrsi/data/skill_library/repositories/mlx-swift-lm/SKILL.md",
-        "src/inferrsi/data/skill_library/repositories/mlx-swift-lm/metadata.json",
-        "src/inferrsi/data/skill_library/repositories/mlx-swift-lm/references/repo-provenance.md",
-        "src/inferrsi/data/skill_library/repositories/mlx-swift-lm/references/repo-routing-metadata.json",
-        "src/inferrsi/data/skill_library/repositories/mlx-swift-lm/references/scope-and-notices.md",
-        "src/inferrsi/data/skill_library/repositories/mlx-swift-lm/references/source-identity.json",
-        "src/inferrsi/data/skill_library/repositories/mlx-swift-lm/sub-skills/gated-delta-contract/SKILL.md",
-        "src/inferrsi/data/skill_library/repositories/mlx-swift-lm/sub-skills/gated-delta-contract/references/helper-contract.md",
-        "src/inferrsi/data/skill_library/repositories/mlx-swift-lm/sub-skills/gated-delta-contract/references/recurrence-and-state.md",
-        "src/inferrsi/data/skill_library/repositories/mlx-swift-lm/sub-skills/gated-delta-contract/references/troubleshooting.md",
-        "src/inferrsi/data/skill_library/repositories/mlx-swift-lm/sub-skills/gated-delta-contract/references/verification-boundaries.md",
-        "src/inferrsi/data/skill_library/repositories/mlx-swift-lm/sub-skills/gated-delta-contract/scripts/audit_gated_delta_declarations.py",
-        "src/inferrsi/data/skill_library/repositories/mlx-swift-lm/sub-skills/generation-lifecycle/SKILL.md",
-        "src/inferrsi/data/skill_library/repositories/mlx-swift-lm/sub-skills/generation-lifecycle/references/evidence-schema.md",
-        "src/inferrsi/data/skill_library/repositories/mlx-swift-lm/sub-skills/generation-lifecycle/references/native-evidence.md",
-        "src/inferrsi/data/skill_library/repositories/mlx-swift-lm/sub-skills/generation-lifecycle/references/ownership-and-termination.md",
-        "src/inferrsi/data/skill_library/repositories/mlx-swift-lm/sub-skills/generation-lifecycle/references/troubleshooting.md",
-        "src/inferrsi/data/skill_library/repositories/mlx-swift-lm/sub-skills/generation-lifecycle/scripts/audit_generation_evidence.py",
-        "src/inferrsi/data/skill_library/skill-index.json"
-      ],
-      "content_sha256": "501f73e7b327b04b6b80501b42b20dab1ac15c875817e6f4c4b66fe3e69b4fc4"
-    }
   ],
   "index_type": "packaged-skill",
   "skill_documents": {
@@ -78,8 +48,7 @@
     "src/inferrsi/data/skill_library/repositories/mlx-swift-lm/sub-skills/generation-lifecycle/references/native-evidence.md": "3e9a630a30932989faea5f52b347318cb94c73c7d4d6c81c0465ccaee2818671",
     "src/inferrsi/data/skill_library/repositories/mlx-swift-lm/sub-skills/generation-lifecycle/references/ownership-and-termination.md": "56fdec7ebc89b5c217c7e5c203886bef1d3c2eb5794852897bdb5941ab1db2a0",
     "src/inferrsi/data/skill_library/repositories/mlx-swift-lm/sub-skills/generation-lifecycle/references/troubleshooting.md": "de28b8ca9cf95be2a4e5762f938acfadb6d4b53459dbf86df4b2b2ec64ec347f",
-    "src/inferrsi/data/skill_library/repositories/mlx-swift-lm/sub-skills/generation-lifecycle/scripts/audit_generation_evidence.py": "2aba6caf42ca1b3fc55299fd96419af8681c37750c21a7ba75205a43baa9c7b1",
-    "src/inferrsi/data/skill_library/skill-index.json": "7904275c3383380db179287171e1430617aaa9ac4f439291eff8a71426987fbb"
+    "src/inferrsi/data/skill_library/repositories/mlx-swift-lm/sub-skills/generation-lifecycle/scripts/audit_generation_evidence.py": "2aba6caf42ca1b3fc55299fd96419af8681c37750c21a7ba75205a43baa9c7b1"
   },
   "skill_metadata": {
     "name": "mlx-swift-lm",
