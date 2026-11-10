@@ -68,12 +68,34 @@
       ],
       "readset": "references/flexgen-offload-feasibility.md",
       "license": "CC-BY-4.0"
+    },
+    {
+      "url": "https://github.com/shenh10/HuggingArch",
+      "commit": "facbbbc96856e558b9084a94a5070b2e2c86cf0b",
+      "paths": [
+        "docs/validation.md",
+        "docs/measured_calibration.md",
+        "docs/evaluation_model.md",
+        "docs/known_limitations.md",
+        "docs/parallelism.md",
+        "backend/arch/validate/_matching.py",
+        "backend/arch/validate/_weight_ledger.py",
+        "backend/arch/validate/_ablation.py",
+        "backend/measure/scope.py",
+        "kernel_bench/emit.py"
+      ],
+      "type": "git",
+      "revision_precision": "full",
+      "license": "MIT",
+      "observed_at": "2026-11-04",
+      "identity": "references/huggingarch-source-identity.json",
+      "note": "The repository was created on 2026-11-03 and has a single commit, dated 2026-11-04 and pinned here; no earlier revision exists to inspect. A companion blog post is recorded in the identity file as a partially read live URL with no snapshot, and two figures attributed to it are explicitly unverified."
     }
   ],
   "verification": {
     "locally_verified": false,
     "evidence_level": "source_grounded",
-    "note": "Historical repository methods plus reviewed paper extensions: references/papers-20261015/READSET.md records exact paper versions and inspection scope. Physical/conditional bounds, observed envelopes, simulator predictions and application measurements remain distinct. The bundled pure helper computes supplied L1 counts only; no automatic workload estimation, local accelerator measurements or E2E qualification."
+    "note": "Historical repository methods plus reviewed paper extensions: references/papers-20261015/READSET.md records exact paper versions and inspection scope. Physical/conditional bounds, observed envelopes, simulator predictions and application measurements remain distinct. The bundled pure helper computes supplied L1 counts only; no automatic workload estimation, local accelerator measurements or E2E qualification. The checkpoint-anchor prerequisite is derived from a reviewed external implementation at a pinned commit (references/huggingarch-checkpoint-anchor.md, identity in references/huggingarch-source-identity.json); claims read from executable code and claims stated only in the project's prose, docstrings included, are marked separately there. It anchors the weight demand term only and establishes nothing about KV counts, per-rank bytes without its second gate, or end-to-end serving performance."
   },
   "applicability": {
     "scope": "inference serving systems (LLM, diffusion, audio)",
@@ -96,10 +118,13 @@
   "limitations": [
     "Source-derived candidate; no local efficacy validation.",
     "Mooncake's prefix-reuse condition is an analytical approximation; current cache validity, placement, effective rates, overlap and SLO outcomes remain unverified.",
-    "FlexGen's cross-tier feasibility comparison assumes fitted rates and perfect overlap; relaxed placements may OOM, the printed bls wording remains unresolved, and current compatibility, latency and efficacy are unverified."
+    "FlexGen's cross-tier feasibility comparison assumes fitted rates and perfect overlap; relaxed placements may OOM, the printed bls wording remains unresolved, and current compatibility, latency and efficacy are unverified.",
+    "The checkpoint anchor covers analytical weight demand only; KV traffic, per-rank placement and end-to-end serving performance remain unanchored by it."
   ],
   "provenance_readsets": [
     "references/flexgen-offload-feasibility.md",
+    "references/huggingarch-checkpoint-anchor.md",
+    "references/huggingarch-source-identity.json",
     "references/mooncake-prefix-reuse-feasibility.md",
     "references/papers-20261015/cases/decision-cases.md",
     "references/papers-20261015/govern-optimization-experiments/procedure.md",

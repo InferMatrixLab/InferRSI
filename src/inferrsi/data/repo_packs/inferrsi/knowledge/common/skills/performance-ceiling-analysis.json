@@ -22,12 +22,14 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/d648f25732dee1c974da62a94c46a642ad52cef8/src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/SKILL.md",
-      "commit": "d648f25732dee1c974da62a94c46a642ad52cef8",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/64adb54a2f96307d647791d1204a5123ebffe3e0/src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/SKILL.md",
+      "commit": "64adb54a2f96307d647791d1204a5123ebffe3e0",
       "paths": [
         "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/SKILL.md",
         "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/metadata.json",
         "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/flexgen-offload-feasibility.md",
+        "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/huggingarch-checkpoint-anchor.md",
+        "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/huggingarch-source-identity.json",
         "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/mooncake-prefix-reuse-feasibility.md",
         "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/INTEGRATION_NOTES.md",
         "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/MECHANISMS.md",
@@ -50,7 +52,7 @@
         "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/scripts/roofline.py",
         "src/inferrsi/data/skill_library/skill-index.json"
       ],
-      "content_sha256": "0203dfabd2a02d2ab8f8696b922dcc3df86b3a811352a5bc6cea57aee68e869c"
+      "content_sha256": "c3ab6ac394153118f0e0f770e2ab2876d215910387b3a2bbc2dc382c3db5daaa"
     }
   ],
   "index_type": "packaged-skill",
@@ -59,9 +61,11 @@
   },
   "checkout_ref": "checkout:performance-ceiling-analysis",
   "source_files": {
-    "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/SKILL.md": "0203dfabd2a02d2ab8f8696b922dcc3df86b3a811352a5bc6cea57aee68e869c",
-    "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/metadata.json": "70cd45ab665d4a83544a55fb48f2c83f195715a39af1e8e238ab574403150212",
+    "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/SKILL.md": "c3ab6ac394153118f0e0f770e2ab2876d215910387b3a2bbc2dc382c3db5daaa",
+    "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/metadata.json": "82973cf4a33a29b194a3fef9a4591da27c7830eb3f48a8e214ccda180a82cfb8",
     "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/flexgen-offload-feasibility.md": "984cc41c4412eafa6d20e109dea8927ad321a668776bc86bbffda0a94dfa9cc7",
+    "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/huggingarch-checkpoint-anchor.md": "f7f22a994791121e0a4b88c195b0976cc40463a43289de0731f5f2e229ab95fe",
+    "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/huggingarch-source-identity.json": "3192f11f99b2791a0bee3139d237b17afdd8e8a61660c399c6663a6052b7bc16",
     "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/mooncake-prefix-reuse-feasibility.md": "e64b62fded4490708414a898f540b0319c54d2b205fd5d060acaab419734d100",
     "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/INTEGRATION_NOTES.md": "083e462e0a204dce599362d46712fcfb392d053c5cda56216e22e28d4b8fa0fa",
     "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/MECHANISMS.md": "742c249082ceca230326f4407a40130fe624553b796ae5a157a8a4c15a7e1398",
@@ -82,7 +86,7 @@
     "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/roofline-contract.md": "419ec4bcaec45ac579a133bce083d4f48779f26e664d7a86f720fa65f343b1d1",
     "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/roofline-example.json": "597cd3205df043cff3ae9d15924c77934e8d8eb300c00c4840f6bb2921f90faf",
     "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/scripts/roofline.py": "524de48a6764401695fe1444f1fa3d38f363069b0cd2fba4715a86ca4b28a5d4",
-    "src/inferrsi/data/skill_library/skill-index.json": "7904275c3383380db179287171e1430617aaa9ac4f439291eff8a71426987fbb"
+    "src/inferrsi/data/skill_library/skill-index.json": "0a93648233d6ddf428402991d01e5465e24966c99cce0e9c8e0f1297423873d7"
   },
   "skill_metadata": {
     "name": "performance-ceiling-analysis",
@@ -156,12 +160,34 @@
         ],
         "readset": "references/flexgen-offload-feasibility.md",
         "license": "CC-BY-4.0"
+      },
+      {
+        "url": "https://github.com/shenh10/HuggingArch",
+        "commit": "facbbbc96856e558b9084a94a5070b2e2c86cf0b",
+        "paths": [
+          "docs/validation.md",
+          "docs/measured_calibration.md",
+          "docs/evaluation_model.md",
+          "docs/known_limitations.md",
+          "docs/parallelism.md",
+          "backend/arch/validate/_matching.py",
+          "backend/arch/validate/_weight_ledger.py",
+          "backend/arch/validate/_ablation.py",
+          "backend/measure/scope.py",
+          "kernel_bench/emit.py"
+        ],
+        "type": "git",
+        "revision_precision": "full",
+        "license": "MIT",
+        "observed_at": "2026-11-04",
+        "identity": "references/huggingarch-source-identity.json",
+        "note": "The repository was created on 2026-11-03 and has a single commit, dated 2026-11-04 and pinned here; no earlier revision exists to inspect. A companion blog post is recorded in the identity file as a partially read live URL with no snapshot, and two figures attributed to it are explicitly unverified."
       }
     ],
     "verification": {
       "locally_verified": false,
       "evidence_level": "source_grounded",
-      "note": "Historical repository methods plus reviewed paper extensions: references/papers-20261015/READSET.md records exact paper versions and inspection scope. Physical/conditional bounds, observed envelopes, simulator predictions and application measurements remain distinct. The bundled pure helper computes supplied L1 counts only; no automatic workload estimation, local accelerator measurements or E2E qualification."
+      "note": "Historical repository methods plus reviewed paper extensions: references/papers-20261015/READSET.md records exact paper versions and inspection scope. Physical/conditional bounds, observed envelopes, simulator predictions and application measurements remain distinct. The bundled pure helper computes supplied L1 counts only; no automatic workload estimation, local accelerator measurements or E2E qualification. The checkpoint-anchor prerequisite is derived from a reviewed external implementation at a pinned commit (references/huggingarch-checkpoint-anchor.md, identity in references/huggingarch-source-identity.json); claims read from executable code and claims stated only in the project's prose, docstrings included, are marked separately there. It anchors the weight demand term only and establishes nothing about KV counts, per-rank bytes without its second gate, or end-to-end serving performance."
     },
     "applicability": {
       "scope": "inference serving systems (LLM, diffusion, audio)",
@@ -184,10 +210,13 @@
     "limitations": [
       "Source-derived candidate; no local efficacy validation.",
       "Mooncake's prefix-reuse condition is an analytical approximation; current cache validity, placement, effective rates, overlap and SLO outcomes remain unverified.",
-      "FlexGen's cross-tier feasibility comparison assumes fitted rates and perfect overlap; relaxed placements may OOM, the printed bls wording remains unresolved, and current compatibility, latency and efficacy are unverified."
+      "FlexGen's cross-tier feasibility comparison assumes fitted rates and perfect overlap; relaxed placements may OOM, the printed bls wording remains unresolved, and current compatibility, latency and efficacy are unverified.",
+      "The checkpoint anchor covers analytical weight demand only; KV traffic, per-rank placement and end-to-end serving performance remain unanchored by it."
     ],
     "provenance_readsets": [
       "references/flexgen-offload-feasibility.md",
+      "references/huggingarch-checkpoint-anchor.md",
+      "references/huggingarch-source-identity.json",
       "references/mooncake-prefix-reuse-feasibility.md",
       "references/papers-20261015/cases/decision-cases.md",
       "references/papers-20261015/govern-optimization-experiments/procedure.md",
@@ -224,7 +253,8 @@
     "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
     "Source-derived candidate; no local efficacy validation.",
     "Mooncake's prefix-reuse condition is an analytical approximation; current cache validity, placement, effective rates, overlap and SLO outcomes remain unverified.",
-    "FlexGen's cross-tier feasibility comparison assumes fitted rates and perfect overlap; relaxed placements may OOM, the printed bls wording remains unresolved, and current compatibility, latency and efficacy are unverified."
+    "FlexGen's cross-tier feasibility comparison assumes fitted rates and perfect overlap; relaxed placements may OOM, the printed bls wording remains unresolved, and current compatibility, latency and efficacy are unverified.",
+    "The checkpoint anchor covers analytical weight demand only; KV traffic, per-rank placement and end-to-end serving performance remain unanchored by it."
   ],
   "verification": {
     "locally_verified": false,

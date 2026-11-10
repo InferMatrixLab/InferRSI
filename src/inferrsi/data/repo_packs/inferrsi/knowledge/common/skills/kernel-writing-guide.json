@@ -39,8 +39,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/d648f25732dee1c974da62a94c46a642ad52cef8/src/inferrsi/data/skill_library/methods/kernel-writing-guide/SKILL.md",
-      "commit": "d648f25732dee1c974da62a94c46a642ad52cef8",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/64adb54a2f96307d647791d1204a5123ebffe3e0/src/inferrsi/data/skill_library/methods/kernel-writing-guide/SKILL.md",
+      "commit": "64adb54a2f96307d647791d1204a5123ebffe3e0",
       "paths": [
         "src/inferrsi/data/skill_library/methods/kernel-writing-guide/SKILL.md",
         "src/inferrsi/data/skill_library/methods/kernel-writing-guide/cases/causal-conv1d-dispatch-state.md",
@@ -89,7 +89,7 @@
     "src/inferrsi/data/skill_library/methods/kernel-writing-guide/references/sglang-gdn-causal-conv-contract.md": "c9f27b0231ddec3d14d6fa0831d1494ffd8e11bd8ad704e04be3bc4a4ffc0e58",
     "src/inferrsi/data/skill_library/methods/kernel-writing-guide/references/sglang-gdn-source-files.json": "4c7ec2cfd2c29297e185ce09b4d9b2040fbe3635943c112f9ebb71dca8ab381b",
     "src/inferrsi/data/skill_library/methods/kernel-writing-guide/references/vllm-gdn-causal-conv-contract.md": "eec09a6e95983c46b67d5f066d34419c17819899f5d8e3c65f2f163f2ada0fde",
-    "src/inferrsi/data/skill_library/skill-index.json": "7904275c3383380db179287171e1430617aaa9ac4f439291eff8a71426987fbb"
+    "src/inferrsi/data/skill_library/skill-index.json": "0a93648233d6ddf428402991d01e5465e24966c99cce0e9c8e0f1297423873d7"
   },
   "skill_metadata": {
     "name": "kernel-writing-guide",

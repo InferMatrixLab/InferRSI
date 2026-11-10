@@ -26,8 +26,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/d648f25732dee1c974da62a94c46a642ad52cef8/src/inferrsi/data/skill_library/hardware/ascend/ascend-graph-mode/SKILL.md",
-      "commit": "d648f25732dee1c974da62a94c46a642ad52cef8",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/64adb54a2f96307d647791d1204a5123ebffe3e0/src/inferrsi/data/skill_library/hardware/ascend/ascend-graph-mode/SKILL.md",
+      "commit": "64adb54a2f96307d647791d1204a5123ebffe3e0",
       "paths": [
         "src/inferrsi/data/skill_library/hardware/ascend/ascend-graph-mode/SKILL.md",
         "src/inferrsi/data/skill_library/hardware/ascend/ascend-graph-mode/metadata.json",
@@ -52,7 +52,7 @@
     "src/inferrsi/data/skill_library/hardware/ascend/ascend-graph-mode/references/torchair-LICENSE.md": "bc07d81fa332b6543463588a120518c57b5ce8582d3747de75d2f6b09b068c01",
     "src/inferrsi/data/skill_library/hardware/ascend/ascend-graph-mode/references/torchair-graph-path.md": "272424571ff439278c8f2675406eae7da9a6482c581973e24319739fa0e58348",
     "src/inferrsi/data/skill_library/hardware/ascend/ascend-graph-mode/references/torchair-graph-readset.json": "eb84cbd5c355a88ee013dc7e428b274162e0e13e85845b58526113b0d6a2b46b",
-    "src/inferrsi/data/skill_library/skill-index.json": "7904275c3383380db179287171e1430617aaa9ac4f439291eff8a71426987fbb"
+    "src/inferrsi/data/skill_library/skill-index.json": "0a93648233d6ddf428402991d01e5465e24966c99cce0e9c8e0f1297423873d7"
   },
   "skill_metadata": {
     "name": "ascend-graph-mode",
