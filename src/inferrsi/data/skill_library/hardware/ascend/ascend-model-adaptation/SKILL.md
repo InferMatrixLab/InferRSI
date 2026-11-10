@@ -7,15 +7,18 @@ description: 'Patterns for porting LLM/VLM model adapters to Ascend NPU: FP8 che
 
 # Ascend Model Adaptation
 
-Status: candidate. Source-grounded from vllm-ascend @ bc8115ed,
-`.agents/skills/vllm-ascend-model-adapter/references/`. Unverified locally
-(no NPU). Verify against your CANN version and checkpoint format.
+Status: candidate. Source-grounded from vllm-ascend @ `bc8115ed7fdc7e500320b5de70742ef049b4c1a2`. Read [source-notes](references/source-notes.md) for immutable references and attribution boundaries. Unverified locally (no NPU). Verify against your CANN version and checkpoint format.
 
-## Choose the versioned owner
+## Choose the versioned owner & three-tier responsibility
 
-This entry retains the historical model-adapter documentation pin `bc8115ed`. Use it for checkpoint onboarding, FP8 loading, KV-head replication and multimodal validation order. For the separately pinned runtime capture/replay contract, follow [ascend-aclgraph-capture-replay](../ascend-aclgraph-capture-replay/SKILL.md). Its wrapper evidence does not revalidate this entry or establish a compatible installed stack.
+This entry retains the historical model-adapter documentation pin `bc8115ed`. Use it for checkpoint onboarding, FP8 loading, KV-head replication and multimodal validation order.
 
-The [version and responsibility table](../../../README.md#vllm-ascend-version-and-responsibility-routing) preserves each source scope, existing evidence inventory and original inspection-date boundary.
+To prevent duplicate definitions and maintain strict attribution boundaries across repository owners, InferRSI adopts the following routing convention:
+1. **Tier 1 — vLLM Generic Mechanism (`repositories/vllm/`)**: PagedAttention block allocation, KV cache indexing, preemption scheduling, worker RPC protocols. Does not assume NPU or CANN specifics.
+2. **Tier 2 — vLLM Ascend Plugin Features (`hardware/ascend/` & `hardware/host/`)**: Model checkpoint weight mapping, FP8 load-time dequantization into BF16, TP-aware KV-head replication, runtime ACLGraph model runner, and native host KV offload descriptor pooling.
+3. **Tier 3 — Ascend / CANN / TorchNPU Bottom Constraints (`hardware/ascend/`)**: Lower-level driver and device constraints such as `aclmdlExecute`, geExecutor, HCCL mesh scratch, TorchNPU caching allocator, H2D/D2H copy streams.
+
+For the runtime capture/replay execution contract, follow [ascend-aclgraph-capture-replay](../ascend-aclgraph-capture-replay/SKILL.md). Its wrapper evidence does not revalidate this entry or establish a compatible installed stack. For compiler pass options, follow [ascend-graph-mode](../ascend-graph-mode/SKILL.md). For host offload descriptor pooling, follow [host-memory-management](../../host/host-memory-management/SKILL.md). See the [version and responsibility table](../../../README.md#vllm-ascend-version-and-responsibility-routing) for their separate evidence boundaries.
 
 ## Debug order for a new checkpoint
 
@@ -37,12 +40,12 @@ Source: `fp8-on-npu-lessons.md` § reporting-discipline.
 ## FP8 checkpoints on Ascend
 
 FP8 execution kernels are typically not supported on Ascend NPU at the operator
-level. The recommended path is to dequantize FP8 weights to BF16 during loading.
+level in baseline stacks. The recommended path is to dequantize FP8 weights to BF16 during loading.
 
-Pattern:
-- For each quantized weight, look for paired tensors: `<name>.weight` and
-  `<name>.weight_scale_inv`.
-- Dequantize at load time: `weight = weight_fp8 * weight_scale_inv`.
+Pattern (Source facts vs. implementation interpretation):
+- **Source Fact**: For each quantized weight, look for paired tensors: `<name>.weight` and
+  `<name>.weight_scale_inv`. Upstream notes establish that load-time dequantization into BF16 is required when native FP8 execution kernels are unavailable on NPU, and enforce strict unpaired scale/weight checks where a missing scale key triggers loader failure.
+- **Implementation Interpretation**: The arithmetic expression `weight = weight_fp8.to(torch.bfloat16) * weight_scale_inv` represents an implementation interpretation for checkpoints using reciprocal scale factors. Upstream notes do not define a single universal scale granularity: for block-quantized or per-channel checkpoints, shape handling, broadcasting, and expansion are checkpoint-specific.
 - Keep strict unpaired scale/weight checks — a missing scale key causes silent
   corruption if not caught.
 
@@ -78,7 +81,7 @@ Startup behavior with graph mode enabled:
 
 For stability: prefer `HCCL_OP_EXPANSION_MODE=AIV` with graph mode enabled.
 Use `--enforce-eager` only as a temporary isolation fallback during debugging,
-not as a default serving configuration.
+not as a default serving configuration. For the complete runtime wrapper dispatch contract, refer to [ascend-aclgraph-capture-replay](../ascend-aclgraph-capture-replay/SKILL.md).
 Source: `fp8-on-npu-lessons.md` § 5, `multimodal-ep-aclgraph-lessons.md` § 3.
 
 ## Multimodal feature validation order
