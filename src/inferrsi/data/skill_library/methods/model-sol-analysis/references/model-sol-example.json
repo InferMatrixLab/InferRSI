@@ -1,0 +1,62 @@
+{
+  "_comment": "Synthetic fixture for the helper's arithmetic and evidence boundaries. Not a model, device or measurement.",
+  "header": {
+    "source": {"kind": "synthetic", "locator": "hand-written fixture"},
+    "tensors": {
+      "__metadata__": {"format": "pt"},
+      "model.embed_tokens.weight": {"dtype": "BF16", "shape": [8, 4]},
+      "model.layers.0.self_attn.qkv_proj.weight": {"dtype": "BF16", "shape": [12, 4]},
+      "model.layers.1.self_attn.qkv_proj.weight": {"dtype": "BF16", "shape": [12, 4]},
+      "model.layers.0.mlp.down_proj.weight": {"dtype": "F8_E4M3", "shape": [4, 16]},
+      "model.layers.1.mlp.down_proj.weight": {"dtype": "F8_E4M3", "shape": [4, 16]},
+      "model.layers.0.mlp.down_proj.weight_scale": {"dtype": "F32", "shape": [4]},
+      "model.layers.1.mlp.down_proj.weight_scale": {"dtype": "F32", "shape": [4]},
+      "lm_head.weight": {"dtype": "BF16", "shape": [8, 4]}
+    }
+  },
+  "inventory": {
+    "source": {"kind": "synthetic", "locator": "hand-written fixture"},
+    "tensors": [
+      {"name": "model.embed_tokens.weight", "dtype": "BF16", "shape": [8, 4]},
+      {"name": "model.layers.X.self_attn.qkv_proj.weight", "dtype": "BF16", "shape": [12, 4], "copies": 2},
+      {"name": "model.layers.X.mlp.down_proj.weight", "dtype": "F8_E4M3", "shape": [4, 16], "copies": 2},
+      {"name": "model.layers.X.mlp.down_proj.weight_scale", "dtype": "F32", "shape": [4], "copies": 2},
+      {"name": "lm_head.weight", "dtype": "BF16", "shape": [8, 4]},
+      {"name": "model.rotary_emb.inv_freq", "dtype": "F32", "shape": [2], "buffer": true}
+    ]
+  },
+  "kv_layers": [
+    {"name": "global attention", "layers": 1, "law": "global", "bytes_per_position": 16,
+     "source": {"kind": "synthetic", "locator": "hand-written fixture"}},
+    {"name": "sliding-window attention", "layers": 1, "law": "window", "window": 4, "bytes_per_position": 16,
+     "source": {"kind": "synthetic", "locator": "hand-written fixture"}}
+  ],
+  "hardware": {
+    "hardware_id": "synthetic-device",
+    "assumptions": ["Synthetic rates chosen for hand calculation"],
+    "rates": {
+      "compute.bf16": {"resource": "compute", "unit": "FLOP/s", "value": 100,
+                       "source": {"kind": "synthetic", "locator": "hand-written fixture"}},
+      "memory.hbm": {"resource": "memory", "unit": "byte/s", "value": 10,
+                     "source": {"kind": "synthetic", "locator": "hand-written fixture"}},
+      "link.tp": {"resource": "link", "unit": "byte/s", "value": 5,
+                  "source": {"kind": "synthetic", "locator": "hand-written fixture"}}
+    }
+  },
+  "decode": {
+    "phase": "decode",
+    "model_id": "synthetic-model",
+    "layout": "tp2",
+    "hardware_id": "synthetic-device",
+    "tokens_per_step": 1,
+    "assumptions": ["Per rank, batch 1, counts taken from the fused graph"],
+    "ops": [
+      {"name": "attention block", "repeat": 2, "demand": {"compute.bf16": 40, "memory.hbm": 10},
+       "source": {"kind": "synthetic", "locator": "hand-written fixture"}},
+      {"name": "mlp block", "repeat": 2, "demand": {"compute.bf16": 20, "memory.hbm": 20},
+       "source": {"kind": "synthetic", "locator": "hand-written fixture"}},
+      {"name": "tensor-parallel all-reduce", "repeat": 2, "demand": {"link.tp": 5},
+       "source": {"kind": "synthetic", "locator": "hand-written fixture"}}
+    ]
+  }
+}

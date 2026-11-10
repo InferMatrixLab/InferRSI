@@ -229,6 +229,10 @@
       "path": "repositories/mlx-swift-lm",
       "backend": "common"
     },
+    "model-sol-analysis": {
+      "path": "methods/model-sol-analysis",
+      "backend": "common"
+    },
     "npu-skill-factory": {
       "path": "workflows/npu-skill-factory",
       "backend": "common"

@@ -18,6 +18,10 @@ speedup such as 2× plausible?*
 Do not use it to benchmark or compare two already-built candidates — that is
 the job of InferRSI's AB/BA harness and `rsi-evidence` skill.
 
+For a whole model across prefill and decode under a parallel layout, use
+[model-sol-analysis](../model-sol-analysis/SKILL.md), which walks the model and
+reuses this owner's evidence rules and checkpoint anchor.
+
 ## Evidence to inspect first
 
 Before profiling, gather what you can analytically:

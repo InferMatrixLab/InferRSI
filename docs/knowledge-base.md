@@ -14,7 +14,7 @@ separate work, not an implemented capability of this knowledge base.
 ```text
 src/inferrsi/data/skill_library/
   README.md                         Library navigation
-  skill-index.json                   Stable IDs → categorized paths/backend (79 skills)
+  skill-index.json                   Stable IDs → categorized paths/backend (81 skills)
   hardware/{ascend,cuda,host}/<id>/   Hardware/platform-specific complete skills
   frameworks/<framework>/<id>/      Framework-owned complete skills
   repositories/<repo>/              Engine entry, sub-skills and focused complete skills
@@ -223,7 +223,7 @@ Complete procedures, sidecars, references and cases are packaged, with 14 Ascend
 repositories, methods or workflows. The 21 engine and research-router skills
 use the same ownership layout under `repositories/<engine>/` and
 `workflows/inference-engine-research/`, including their sub-skills and references.
-The library contains 142 `SKILL.md` files, all in English. The registered
+The library contains 144 `SKILL.md` files, all in English. The registered
 [Lithos Metal candidate](../src/inferrsi/data/skill_library/repositories/lithos-metal/SKILL.md)
 adds three owner-local subskills for compiler/fusion, generation state and
 serving/cache contracts; it adds no executable repository target.
@@ -232,12 +232,12 @@ workflow's references; Strata design-space analysis belongs to Strata. The libra
 root contains only navigation and the registry.
 
 The [generated catalog](../src/inferrsi/data/repo_packs/inferrsi/knowledge/README.md)
-projects the 79 registered skills into the contribution catalog. Its records
+projects the 81 registered skills into the contribution catalog. Its records
 use `inferrsi.<backend>.skills.<name_with_underscores>` IDs, with `ascend` and
 `cuda` for scopes that depend on those backends and `common` for the remaining skills.
 Each `skill_documents.original` points to the full packaged procedure. The
 `skills` CLI retains the original hyphenated skill IDs and defaults to this
-79-ID registry; engine procedures remain available through library navigation
+81-ID registry; engine procedures remain available through library navigation
 and catalog document pointers.
 
 The registered [PyTorch](../src/inferrsi/data/skill_library/frameworks/pytorch/pytorch/SKILL.md)
