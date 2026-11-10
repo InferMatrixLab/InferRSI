@@ -35,10 +35,19 @@ be unavailable publicly; the diff is supplied for source inspection.
 
 For C1, use an isolated vLLM-Omni checkout at
 `922f1e9f1cb85b9f2b66d86e1eb500e6872b2dcb`, then apply
-`patch/c1-h3-bf16-prefix.patch`. C12/C13/C15–C23 patches are cumulative over
-C1 `be319692b96413918973b5bd399cdda3f320c574`; apply C1 first, then exactly one
-selected cumulative candidate patch. They are alternative experiments, not a
-sequence to stack. C10/C11 patch bases are stated separately in their identities.
+`patch/c1-h3-bf16-prefix.patch`. Each C12/C13/C15–C23 patch is cumulative over
+the `patch_base` recorded in its identity:
+
+- C12, C13, C15, C16, C21, C22 and C23 use C1
+  `be319692b96413918973b5bd399cdda3f320c574`. Chain: `922f1e9f` → C1 → one
+  selected patch.
+- C17, C18, C19 and C20 use C13 `e89b1d40d37f7f72767892a56fa7980ea572ba8e`.
+  Chain: `922f1e9f` → C1 → C13 → one selected patch. Applying one of these
+  directly over C1 omits C13's ten DLO/collective paths, although the patch
+  still applies.
+
+Candidates that share a base are alternative experiments, not a sequence to
+stack. C10/C11 patch bases are stated separately in their identities.
 Use `git apply --check` before applying a patch. Do not overwrite a shared checkout.
 
 The identity's raw file hashes describe the tested Windows/Linux working bytes;

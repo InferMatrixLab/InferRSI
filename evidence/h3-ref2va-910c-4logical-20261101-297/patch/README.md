@@ -31,9 +31,17 @@ quality-gate change is included.
 ## C12–C23 source artifacts
 
 Each C12/C13/C15–C23 `*-source-identity.json` records its tested engine head,
-parent, tree, raw file hashes and `patch_base`. The matching `*-candidate.patch`
-is cumulative over C1 `be319692b96413918973b5bd399cdda3f320c574`; apply C1
-first, then one selected cumulative patch. These branches are alternatives.
+parent, tree, raw file hashes and `patch_base`. Each matching
+`*-candidate.patch` is cumulative over that recorded `patch_base`:
+
+- C12, C13, C15, C16, C21, C22 and C23 use C1
+  `be319692b96413918973b5bd399cdda3f320c574`. Apply C1, then exactly one of
+  these patches.
+- C17, C18, C19 and C20 use C13 `e89b1d40d37f7f72767892a56fa7980ea572ba8e`.
+  Each of these patches changes only two H3 paths and omits C13's ten
+  DLO/collective paths. Apply C1, then C13, then exactly one of C17–C20.
+
+Patches that share a base are alternatives, not a sequence to stack.
 `published: false` in an archived identity describes the engine commit's status
 at capture, not this evidence PR's publication state.
 
