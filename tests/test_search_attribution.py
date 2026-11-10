@@ -135,3 +135,31 @@ def test_ambiguous_numbered_context_cannot_invent_another_file(tmp_path):
     doc = json.loads(path.read_bytes())
     assert doc["counts"] is None and doc["unresolved_command_lines"] == [2]
     assert set(doc["materials"]) == {"case.md"}
+
+
+@pytest.mark.parametrize(("script", "output"), [
+    ("rg -Hn key a.md\nrg -Hn key b.md", "a.md:1:key\nb.md:1:key"),
+    ("cat a.md\ncat b.md", "first\nsecond"),
+])
+def test_multiline_shell_does_not_merge_separate_retrievals(tmp_path, script, output):
+    create_campaign(tmp_path, "example")
+    trace, corpus = tmp_path / "rollout.jsonl", tmp_path / "knowledge"
+    rollout(trace, command(corpus, script, output, "compound"))
+    path = import_search(tmp_path, number=1, trace=trace, lines=[2, 2],
+                         knowledge_root=corpus, complete=True)
+    doc = json.loads(path.read_bytes())
+    assert doc["counts"] is None and doc["unresolved_command_lines"] == [2]
+    assert doc["materials"] == {}
+
+
+@pytest.mark.parametrize("script", ["rg -n -- --files .", "rg -n -e --files ."])
+def test_literal_files_option_is_a_search(tmp_path, script):
+    create_campaign(tmp_path, "example")
+    trace, corpus = tmp_path / "rollout.jsonl", tmp_path / "knowledge"
+    rollout(trace, command(corpus, "rg --files .", "case.md", "inventory"),
+            command(corpus, script, "case.md:1:rg --files", "search"))
+    path = import_search(tmp_path, number=1, trace=trace, lines=[2, 3],
+                         knowledge_root=corpus, complete=True)
+    doc = json.loads(path.read_bytes())
+    assert doc["counts"] == {"searches": 1, "hits": 1, "unique_hits": 1, "used": 0}
+    assert doc["events"][0]["query"] == "--files"

@@ -160,8 +160,9 @@ or filename-match searches with `rg`, literal `cat`, `nl -ba` and `sed -n N,Mp`
 reads. Use `rg -Hn` for unambiguous filenames and matching lines. File results
 are corpus-relative. A shell event establishes the command's recorded output;
 the outer agent tool may have displayed a shorter excerpt. No source text,
-shell output, private rollout path or assistant reply is copied. Unsupported search pipelines and unparseable
-output leave unresolved event line numbers. Other tools and scripted/remote
+shell output, private rollout path or assistant reply is copied. Multiline
+retrieval scripts, unsupported pipelines and unparseable output leave
+unresolved event line numbers. Other tools and scripted/remote
 retrievals require separate evidence. Review query text and paths before sharing.
 
 - `observed` counts recognized searches, distinct materials per search (hits),
@@ -176,8 +177,13 @@ retrievals require separate evidence. Review query text and paths before sharing
   `rg -C 2` without line numbers cannot reliably separate context text from
   matching filenames. A failed multi-file `cat` may have read only some
   operands. These commands retain an unresolved trace locator.
-- Use and rejection can come from the existing optimization log when its
-  iteration references the exact verified capture. For a decision recorded
+- Use and rejection apply to materials observed in the imported round.
+  A decision based only on a previous round's material is outside this
+  record's scope. The existing optimization log can supply evidence when
+  its iteration references the exact verified capture. If that log claims
+  use of a selected item whose text was omitted, the record retains the
+  claim under `conflicts`. Counting it as used requires separate evidence.
+  For a decision recorded
   in an assistant message, a reviewer can pass `--used REF LINE` or
   `--rejected REF LINE` with the actual material ref and the JSONL line of
   the relevant message. This explicitly attributes use; the importer validates

@@ -634,3 +634,24 @@ def test_search_import_reports_unavailable_evaluation(tmp_path, expected):
     candidate = json.loads(path.read_bytes())["candidates"][0]
     assert candidate["evaluation_state"] == expected
     assert candidate["evaluation"] is None and candidate["verdict"] is None
+
+
+def test_search_import_keeps_omitted_use_claim_without_counting_it(tmp_path):
+    from inferrsi.harness.search_attribution import import_search
+
+    create_campaign(tmp_path, "camp")
+    capture, digest = capture_context(tmp_path, context_id="r1", reader=KnowledgeReader(),
+                                      relevance="casebook Qwen B300 RoPE", limit=1, context_bytes=1)
+    context = json.loads(capture.read_bytes())
+    ref = context["items"][0]["ref"]
+    assert context["contexts"] == []
+    document = log_document(digest)
+    document["knowledge"][0].update(used_refs=[ref], rejected_refs=[])
+    document["iterations"][0]["knowledge_refs"] = [ref]
+    write_log(tmp_path, document)
+    path = import_search(tmp_path, number=1, context_ids=["r1"], complete=True)
+    record = json.loads(path.read_bytes())
+    assert record["counts"] == {"searches": 1, "hits": 1, "unique_hits": 1, "used": 0}
+    assert record["materials"][ref]["use"] == "unknown"
+    conflict, = record["materials"][ref]["conflicts"]
+    assert conflict["context_id"] == "r1" and conflict["reason"] == "context_omitted"

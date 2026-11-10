@@ -32,6 +32,8 @@ def _rg_args(args: list[str]) -> tuple[str, list[str], str, list[str]] | None:
         if arg == "--":
             operands.extend(it)
             break
+        if arg == "--files":
+            return "", [], "inventory", []
         if arg in ("-e", "--regexp"):
             pattern = next(it, None)
             if pattern is None:
@@ -122,8 +124,10 @@ def _command(item, corpus):
     argv = item.get("command")
     if not isinstance(argv, list) or not argv or not all(isinstance(a, str) for a in argv):
         return None, False
+    multiline = False
     if (Path(argv[0]).name in ("sh", "bash", "zsh", "dash") and len(argv) == 3
             and argv[1] in ("-c", "-lc", "-ic", "-ilc")):
+        multiline = "\n" in argv[2].strip()
         try:
             lexer = shlex.shlex(argv[2], posix=True, punctuation_chars=";&|<>")
             lexer.whitespace_split = True
@@ -133,8 +137,8 @@ def _command(item, corpus):
     if not argv:
         return None, True
     tool = Path(argv[0]).name
-    if tool not in ("rg", "cat", "sed", "nl"):
-        # A pipeline or chained directory change may hide an in-scope action.
+    if multiline or tool not in ("rg", "cat", "sed", "nl"):
+        # A compound script can run several tools against one shared stdout.
         return None, not any(Path(word).name in ("rg", "cat", "sed", "nl") for word in argv)
     cwd = item.get("cwd")
     if isinstance(cwd, str) and cwd.startswith("file://"):
@@ -149,12 +153,12 @@ def _command(item, corpus):
     if not isinstance(output, str) or type(code) is not int:
         return None, False
     if tool == "rg":
-        if "--files" in argv:
-            return None, True  # inventory, not a content search
         parsed = _rg_args(argv[1:])
         if parsed is None:
             return None, False
         query, scopes, mode, options = parsed
+        if mode == "inventory":
+            return None, True
         if any(re.search(r"[$`*?~{}\[]", value) for value in scopes):
             return None, False  # literal command text cannot resolve expanded operands
         paths = [Path(os.path.normpath(cwd / value)) for value in scopes]

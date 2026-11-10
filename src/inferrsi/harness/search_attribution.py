@@ -65,15 +65,21 @@ def _log_uses(root, campaign_id, number, captures, materials):
         capture = captures[key]
         if capture["sha256"] != entry["sha256"].lower():
             raise ValueError("optimization log and selected capture revisions differ")
-        valid = {m["ref"] for m in capture["materials"]}
+        resources = {m["ref"]: m["resources"] for m in capture["materials"]}
         source = f"{versions[-1]['path']}#/knowledge/{index}"
         for status, refs in (("used", entry["used_refs"]),
                              ("rejected", [r["ref"] for r in entry.get("rejected_refs", [])])):
             for ref in refs:
-                if ref not in valid:
+                if ref not in resources:
                     raise ValueError("optimization log cites a material absent from its capture")
-                _use(materials, ref, status, {"source": source, "context_id": key,
-                                              "stage": entry["stage"]})
+                evidence = {"source": source, "context_id": key, "stage": entry["stage"]}
+                if status == "used" and not resources[ref]:
+                    conflict = {**evidence, "claimed_use": status, "reason": "context_omitted"}
+                    conflicts = materials[ref].setdefault("conflicts", [])
+                    if conflict not in conflicts:
+                        conflicts.append(conflict)
+                else:
+                    _use(materials, ref, status, evidence)
 
 
 def _write(root, record):
