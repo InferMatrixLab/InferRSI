@@ -1,0 +1,22 @@
+{
+  "base": "922f1e9f1cb85b9f2b66d86e1eb500e6872b2dcb",
+  "head": "61b8efa06e88372bc5ab87b9e2668a133eaac282",
+  "tree": "b5f29f2e136e17b23744f07fe65664237fdae627",
+  "files": {
+    "vllm_omni/diffusion/models/minimax_h3/cache_sigma_prediction.py": "ac29ef338d569529e40f59210c89a57dd2e07c510b5e2952c0da451f183da52a",
+    "vllm_omni/diffusion/models/minimax_h3/reference_kv_cache_dit.py": "d3381079ff012f32176a917bb0825d12288c058d3a058f5169ecc97d1e2c675c",
+    "vllm_omni/diffusion/models/minimax_h3/minimax_h3_transformer.py": "a649a09e5b59256b5887c12fe508d8e14e3dedd9019bdb82c65db2d59f11de91",
+    "vllm_omni/diffusion/models/minimax_h3/denoise_loop.py": "a9524734a4f3410a0c6f766fa64fa9e5bd5a4d41bd7481738e9024cac54ce7f9",
+    "tests/diffusion/models/minimax_h3/test_minimax_h3_sigma_cache.py": "9ba094c0bc0686e8d044ebe064beaa2606a6cad496449e63ec282411bb2e727a"
+  },
+  "native_tests_passed": 20,
+  "native_test_names": [
+    "test_native_two_clock_forecast_and_input_immutability",
+    "test_native_real_cache_manager_computes_then_forecasts"
+  ],
+  "source_unchanged": true,
+  "cleanup_passed": true,
+  "published": false,
+  "full_model_quality": "original Fn1Bn0 failed5s-00 adherence; Fn1Bn1 failed5s-00 audiolevel",
+  "performance_acceptance": "PENDING"
+}
