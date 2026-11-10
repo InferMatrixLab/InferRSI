@@ -10,6 +10,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
+import pytest
+
 from tests._gate_policy_support import (
     NEW_CORES,
     ROOT,
@@ -21,6 +23,36 @@ from tests._gate_policy_support import (
 )
 
 
+@pytest.mark.parametrize("extra", [
+    "\nimport importlib\nimportlib.import_module('inferrsi.knowledge')\n",
+    "\nimportlib.util.module_from_spec(spec)\n",
+    "\ndef another():\n    return importlib.util.module_from_spec(spec)\n",
+])
+def test_declared_resource_loader_does_not_allow_an_extra_dynamic_edge(tmp_path, extra):
+    task = tmp_path / "harness/task_protocol.py"
+    task.parent.mkdir()
+    source = ("import importlib.util\ndef protocol():\n"
+              "    return importlib.util.module_from_spec(spec)\n")
+    task.write_text(source, encoding="utf-8")
+    report = first_wave_report(tmp_path)
+    assert not report.violations
+    assert "runtime resource loaders" in blocker_kinds(report)
+    assert not report.isolation_complete
+    task.write_text(source + extra, encoding="utf-8")
+    assert any("dynamic import" in item for item in first_wave_report(tmp_path).violations)
+
+
+def test_resource_loader_declaration_does_not_cover_an_adjacent_module(tmp_path):
+    task = tmp_path / "harness/other_protocol.py"
+    task.parent.mkdir()
+    task.write_text(
+        "import importlib.util\ndef protocol():\n"
+        "    return importlib.util.module_from_spec(spec)\n",
+        encoding="utf-8",
+    )
+    assert any("dynamic import" in item for item in first_wave_report(tmp_path).violations)
+
+
 class TargetModuleImportGateTest(unittest.TestCase):
     def test_no_new_cross_core_imports(self) -> None:
         self.assertEqual(cross_core_violations(allowed=exact_pairs(load_manifest())), [])
@@ -30,6 +62,7 @@ class TargetModuleImportGateTest(unittest.TestCase):
 
     def test_clean_scan_is_not_isolation(self) -> None:
         # Facts that hold at every stage.
+        self.assertTrue((ROOT / "benchmark" / "registry.py").is_file())
         self.assertTrue((ROOT / "harness").is_dir())
         self.assertTrue((ROOT / "contracts.py").is_file())
         self.assertFalse((ROOT / "contracts").is_dir())
@@ -60,6 +93,10 @@ class TargetModuleImportGateTest(unittest.TestCase):
                 "knowledge/foo.py": "from .bar import VALUE\n",
                 "knowledge/out.py": "import inferrsi.harness\n",
                 "benchmark/edge.py": "from inferrsi.benchmark import edge\n",
+                "benchmark/forbidden.py": "import inferrsi.harness\n",
+                "cli.py": "from inferrsi.benchmark.registry import builtin_tasks\n",
+                "benchmark_operations.py": "import inferrsi.benchmark\n",
+                "unowned.py": "import inferrsi.benchmark\n",
             }
             for relative, source in samples.items():
                 path = root / relative
@@ -69,8 +106,10 @@ class TargetModuleImportGateTest(unittest.TestCase):
         self.assertEqual(
             violations,
             [
+                "benchmark/forbidden.py imports inferrsi.harness",
                 "harness/probe.py imports inferrsi.knowledge",
                 "knowledge/out.py imports inferrsi.harness",
+                "unowned.py imports inferrsi.benchmark",
             ],
         )
 

@@ -151,6 +151,13 @@ def _round_trend(view: dict) -> dict | None:
 
 
 def _chart(source: Path, view: dict) -> tuple[str, str]:
+    if "optimization_session" in view:
+        from .optimization_chart import render_curve, render_result
+
+        return (render_result(view["optimization_session"]) + render_curve(
+                    view["optimization_session"]),
+                "Recorded task objectives and observed tokens; missing usage stays unknown. "
+                "These curves do not establish cross-environment comparability.")
     external = [row for row in view["candidates"] if row.get("external")]
     if external:
         from .dashboard_external import metric_chart

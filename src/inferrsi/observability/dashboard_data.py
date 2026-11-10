@@ -830,6 +830,98 @@ def _rounds(path: Path, root: Path) -> tuple[list[dict] | None, str, list[int], 
     return result, "corrupt" if corrupt else "present", corrupt, ref
 
 
+def _managed_summary(summary: dict) -> dict:
+    """Keep chart data and sanitized labels; raw session exports stay private."""
+    final = summary["final_assessment"]
+    return {
+        "state": _text(summary["state"]), "task": _text(summary["task"]),
+        "condition": _text(summary["condition"]),
+        "completed_rounds": summary["completed_rounds"],
+        "planned_rounds": summary["planned_rounds"],
+        "wall_elapsed_seconds": _number(summary["wall_elapsed_seconds"]),
+        "optimization_speedup": _number(summary["optimization_speedup"]),
+        "stop_reason": _text(summary["stop_reason"]),
+        "final_assessment": {"verdict": _text(final.get("verdict")),
+                             "reason": _text(final.get("reason")),
+                             "score": _number(final.get("score"))} if final else None,
+        "selection": {"metric": _text(summary["selection"]["metric"]),
+                      "direction": summary["selection"]["direction"]},
+        "curve": [{"round": item["round"], "hypothesis": _text(item["hypothesis"]),
+                   "assessment": {"score": _number(item["assessment"].get("score"))},
+                   "best_score": _number(item["best_score"]),
+                   "cumulative_usage": {"total_tokens": _number(
+                       item["cumulative_usage"]["total_tokens"])}}
+                  for item in summary["curve"]],
+    }
+
+
+def _managed_dashboard(root: Path, campaign: dict) -> dict:
+    """Project the shared control record; do not manufacture legacy AB/BA runs."""
+    from ..harness.optimization import read_records
+    from .optimization_story import build_story
+
+    plan, state, summary = read_records(root)
+    rows, rounds, decisions = [], [], {}
+    for index, record in enumerate(state["rounds"], 1):
+        candidate_id = record["candidate_id"]
+        metadata = {"candidate_id": candidate_id, "round": index, "_round_state": "recorded",
+                    "title": record["hypothesis"], "details": {"hypothesis": record["hypothesis"]}}
+        row = _run(root, root / record["path"], metadata, None, None)
+        assessment = record["assessment"]
+        metrics = assessment.get("metrics", {})
+        speedup = assessment.get("speedup")
+        if speedup is None and plan["selection"]["metric"] == "speedup":
+            speedup = assessment.get("score")
+        gain = assessment.get("improvement_pct")
+        if gain is None and speedup is not None:
+            gain = (speedup - 1) * 100
+        decision = ("adopted" if record["best_after"].get("candidate_id") == candidate_id
+                    and record["best_after"]["kind"] == "candidate" else "rejected")
+        facts = _file_ref(root, root / record["path"] / "execution/execution.json", "execution")
+        judged = _file_ref(root, root / record["path"] / "observation.json", "assessment")
+        row.update(
+            run_id=Path(record["path"]).name, state=record["execution"]["status"],
+            status_state="present", evaluation_state="present", verdict=assessment["verdict"],
+            quality="failed" if assessment.get("quality_passed") is False else
+                    "passed" if assessment.get("quality_passed") is True else "not_recorded",
+            source_verified=True, improvement_pct=_number(gain),
+            baseline_median=_number(metrics.get("baseline")),
+            candidate_median=_number(metrics.get("candidate")),
+            metric_key=_text(plan["selection"]["metric"]),
+            metric_unit=_text(metrics.get("unit", "ratio")),
+            direction=plan["selection"]["direction"], decision=decision,
+            outcome="quality_failed" if assessment.get("quality_passed") is False else
+                    "unverified",  # No synthetic environment qualification or noise estimate.
+            artifacts={**row["artifacts"], "execution": facts, "assessment": judged,
+                       "status": facts, "evaluation": judged},
+            usage=record["observations"]["usage"],
+        )
+        row.pop("_comparison_signature")
+        rows.append(row)
+        rounds.append({"round": index, "candidates": [candidate_id],
+                       "decision": {"candidate_id": candidate_id, "outcome": decision}})
+        decisions[(index, candidate_id)] = decision
+    displayed_summary = _managed_summary(summary)
+    displayed_summary["final_reference"] = (
+        _file_ref(root, root / state["final"]["path"] / "observation.json", "final_assessment")
+        if state["final"] else None)
+    return {
+        "campaign_id": _text(campaign["campaign_id"]), "synthetic": False,
+        "rounds": rounds, "rounds_state": "present", "corrupt_round_lines": [],
+        "candidates": rows, "optimization_session": displayed_summary,
+        "integration": {"state": "connected" if rows else "not_connected",
+                        "stage_declaration": "missing", "external_records": 0,
+                        "collection": {"state": "", "observed_at": ""}},
+        "overview": {"comparison_state": "unverified" if rows else "no_data",
+                     "best_improvement_pct": None,
+                     "target_improvement_pct": plan["evaluation_settings"].get(
+                         "min_improvement_pct"),
+                     "target_gap_pct": None},
+        "stages": [{"name": stage, "state": "stage_not_recorded"} for stage in STAGES],
+        "diagnostics": [], "story": build_story(root, rows, decisions, campaign["campaign_id"]),
+    }
+
+
 def load_dashboard(source: Path) -> dict:
     """Aggregate a single legacy run or a campaign without inventing records."""
     root = Path(source).resolve()
@@ -839,6 +931,8 @@ def load_dashboard(source: Path) -> dict:
     campaign, campaign_state = _object(root / "campaign.json", root)
     if not single and campaign_state != "present":
         raise ValueError("dashboard input must contain run.lock.json or campaign.json")
+    if campaign.get("managed_optimization") is True:
+        return _managed_dashboard(root, campaign)
     noise_data = campaign.get("noise") if isinstance(campaign.get("noise"), dict) else {}
     noise = _number(noise_data.get("band_pct"))
     if noise is not None and noise < 0:
