@@ -4,7 +4,8 @@
     "npu",
     "model-adaptation",
     "fp8",
-    "multimodal"
+    "multimodal",
+    "vllm-ascend"
   ],
   "status": "candidate",
   "profile": "local-skill-v1",
@@ -18,14 +19,17 @@
     "Source-derived candidate; no local efficacy validation.",
     "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
   ],
-  "provenance_readsets": [],
+  "provenance_readsets": [
+    "references/source-notes.md"
+  ],
   "consumption_mode": "packaged",
   "applicability": {
     "scope": "Checkpoint onboarding for LLM/VLM adapters on Ascend: weight/scale loading, KV-head replication under tensor parallelism and staged multimodal feature checks.",
     "prerequisites": "Check the installed CANN and checkpoint format against the versioned guidance; final sign-off requires real weights and at least one full-layer validation.",
     "input_contract": "Checkpoint weights/configuration and scale keys, attention-head/TP configuration, model modalities and expected graph/capacity features.",
     "produced_artifact": "A checkpoint/feature report separating dummy and real-weight evidence, applicable feature outcomes, and theoretical versus demonstrated serving capacity.",
-    "failure_modes": "Dummy-only success misses scale/remapping/sharding defects; blindly sharding replicated KV heads or accepting reduced-layer results can conceal loading or full-model failures."
+    "failure_modes": "Dummy-only success misses scale/remapping/sharding defects; blindly sharding replicated KV heads or accepting reduced-layer results can conceal loading or full-model failures.",
+    "refusal_point": "Stop on missing FP8 paired scale keys, unsupported tensor parallel KV-head split without replication, unverified multimodal visual encoder output, or failed base endpoint validation."
   },
   "recommendations": [
     "Gate onboarding in order: dummy architecture check, real-weight loading, model endpoint, text request and then multimodal request when the model supports VL; retain the evidence each stage actually supplies.",

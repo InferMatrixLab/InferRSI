@@ -13,11 +13,14 @@ This candidate derives from `vllm-project/vllm-ascend@8a8e1e05ecb64a30804c99c8f3
 
 Status: candidate; empirical validation: **not_run**.
 
-## Related capabilities
+## Related capabilities & responsibility routing
 
-For checkpoint onboarding, FP8 loading, KV-head replication and multimodal validation order, use the older documentation-based [ascend-model-adaptation](../ascend-model-adaptation/SKILL.md). Its startup guidance is adjacent to this wrapper contract, not evidence that the two source revisions form a validated stack. See the [version and responsibility table](../../../README.md#vllm-ascend-version-and-responsibility-routing) for their separate evidence and date boundaries.
+For checkpoint onboarding, FP8 loading, KV-head replication and multimodal validation order, use [ascend-model-adaptation](../ascend-model-adaptation/SKILL.md). Its startup guidance is adjacent to this wrapper contract, not evidence that the two source revisions form a validated stack. See the [version and responsibility table](../../../README.md#vllm-ascend-version-and-responsibility-routing) for their separate evidence and date boundaries.
 
-[ascend-graph-mode](../ascend-graph-mode/SKILL.md) covers TorchAir configuration guidance; this skill adds the independently pinned vLLM-Ascend runtime wrapper. [cann-attribution-overlap](../cann-attribution-overlap/SKILL.md) supplies attribution methodology, not evidence that this wrapper improved performance. [torchnpu-device-memory-lifecycle](../torchnpu-device-memory-lifecycle/SKILL.md) addresses allocator ownership at another pin, not graph-pool caller correctness.
+- **Runtime Wrapper (`ascend-aclgraph-capture-replay`)**: Handles graph pool capture, batch descriptor matching, input pointer assertions, and replay dispatch.
+- **Compiler Passes (`ascend-graph-mode`)**: Covers TorchAir configuration guidance; this skill adds the independently pinned vLLM-Ascend runtime wrapper.
+- **Attribution Discipline (`cann-attribution-overlap`)**: Supplies attribution methodology, not evidence that this wrapper improved performance.
+- **Device Allocator (`torchnpu-device-memory-lifecycle`)**: Addresses allocator ownership at another pin, not graph-pool caller correctness or stream lifetimes.
 
 ## Required evidence (P)
 
@@ -29,9 +32,18 @@ If evidence is unavailable, identify the missing item and give a conditional pro
 
 1. **Confirm the execution path.** Compare the installed implementation with the pin. Separate compile-time Npugraph_ex optimization from runtime ACLGraph. The guide supports V1/V2, but warns that context-parallel `FULL` is insufficiently supported. Backend compatibility may narrow the requested mode. Diagnose the effective mode; do not force a requested mode through compatibility checks. [F1]
 2. **Classify dispatch before tuning.** Read the forward context's runtime mode and batch descriptor. `NONE` or a wrapper-mode mismatch calls the runnable directly. A matching mode captures an uncaptured entry and replays a captured entry. Treat intended warmup/profile bypass as expected; investigate changing descriptors or failed captures before calling repeated work a cache defect. [F2]
-3. **Check replay correctness first.** Require caller-managed stable replay buffers. The wrapper neither owns persistent input buffers nor copies new inputs into them. Propose `VLLM_LOGGING_LEVEL=DEBUG` before wrapper creation for a diagnostic reproduction: its address assertion covers only top-level positional tensor arguments, not keyword/nested inputs or semantic correctness. Escalate an address mismatch to the buffer-owning caller; never suppress it to obtain a timing. [F3]
-4. **Preserve lifetime and ordering.** Review offloader synchronization/join, graph-pool ownership, output/workspace weak references, and the FULL replay/update branch before proposing code changes. Do not remove synchronization, reorder update/replay, or generalize weak-output handling as a performance shortcut. Follow the branch-specific invariants in source-notes. [F4–F5]
-5. **Choose one evidence-matched proposal.** For confirmed stream-resource capture failures, propose fewer capture sizes or a smaller maximum. Consider `FULL`/`FULL_DECODE_ONLY` only for mostly uniform decode with verified backend/platform support; this can also change compilation behavior. Use temporary eager execution as a diagnostic control. For the specific old-HDK signature, report the source's HDK 25.5.1+ and matching-CANN guidance as signature-specific, not a universal minimum. Preserve unrelated exceptions for diagnosis. [F1, F6]
+3. **Classify batch descriptor matching and capture sizing.** The wrapper indexes captured graphs by `BatchDescriptor`. A matching runtime mode with a missing entry triggers initial capture (after `validate_cudagraph_capturing_enabled()`), while `NONE` or a mode mismatch bypasses capture/replay and calls the runnable directly [F2]. Capture sets are bounded by `cudagraph_capture_sizes` and `max_cudagraph_capture_size` to prevent stream-resource exhaustion; the guide notes larger capture sets increase resource pressure [F6]. Any request bucketing or padding to stabilize batch descriptors operates upstream in the caller/runner, not inside this wrapper.
+4. **Check replay correctness first.** Require caller-managed stable replay buffers. The wrapper neither owns persistent input buffers nor copies new inputs into them. Propose `VLLM_LOGGING_LEVEL=DEBUG` before wrapper creation for a diagnostic reproduction: its address assertion covers only top-level positional tensor arguments (`args`), not keyword arguments (`kwargs`), nested tensor containers, or semantic correctness [F3]. Equal addresses alone establish neither updated contents nor semantic validity. Escalate an address mismatch to the buffer-owning caller; never suppress it to obtain a timing.
+5. **Preserve multi-stream synchronization and ordering.** Note that the relative ordering of parameter updates and replay does not apply unconditionally across all dispatch paths; it is specific to the `FULL` graph mode on update-aware paths where `use_updatable_graph(attn_backend)` holds [F5]:
+   - On this update-aware `FULL` path when ENPU is enabled: parameter update runs before graph replay (`update` then `replay`). The pinned source notes this ENPU ordering is assigned to the model runner caller, which was not inspected.
+   - On this update-aware `FULL` path when ENPU is disabled: graph replay executes first, followed by parameter update (`replay` then `update`).
+   - `FULL` synchronizes the current stream when ENPU is disabled, except in the draft-model-plus-EAGLE case.
+   - For piecewise or non-updatable graph paths, verify stream ownership and event dependencies directly against `vllm_ascend/compilation/acl_graph.py` before inferring synchronization order.
+   - `weak_ref_output` is safe only for the last piecewise graph whose output is not consumed downstream. Capture returns local `output`, whereas replay returns `entry.output`. Follow the branch-specific invariants in source-notes. [F4–F5]
+6. **Choose one evidence-matched proposal.** 
+   - For confirmed stream-resource capture failures (`_is_stream_resource_capture_error`: `insufficient_stream_resources`, `stream resources are insufficient`, or code `207008` paired with `stream resource`), propose fewer capture sizes or a smaller maximum (`max_cudagraph_capture_size`). Consider `FULL`/`FULL_DECODE_ONLY` for mostly uniform decode with verified backend support.
+   - For old HDK failures (`_is_old_hdk_capture_error`: `alloc sq cq fail`), report the source's HDK 25.5.1+ and matching-CANN guidance as signature-specific, not a universal minimum.
+   - Use temporary eager execution (`--enforce-eager`) as a diagnostic control. Preserve unrelated exceptions for diagnosis. [F1, F6]
 
 ## Benefit, cost, and counter-signals (P)
 
