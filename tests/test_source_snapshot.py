@@ -91,11 +91,14 @@ def test_invalid_stored_record_never_resolves(mutation):
         snapshot.resolve(stored, manifest)
 
 
+# Fixture identity and settings; hosted runners have no global Git identity.
+GIT = ["git", "-c", "user.name=Snapshot fixture", "-c", "user.email=fixture@example.invalid",
+       "-c", "commit.gpgsign=false", "-c", "core.autocrlf=false"]
+
+
 def _git(root, *args):
     return subprocess.run(
-        ["git", "-c", "user.name=Snapshot fixture", "-c", "user.email=fixture@example.invalid",
-         "-c", "commit.gpgsign=false", "-c", "core.autocrlf=false", *args],
-        cwd=root, check=True, capture_output=True, text=True,
+        [*GIT, *args], cwd=root, check=True, capture_output=True, text=True,
     ).stdout.strip()
 
 
@@ -172,10 +175,8 @@ def test_parallel_owner_edits_integrate_in_either_order(tmp_path, monkeypatch, o
         _contribute(root, monkeypatch, f"edit-{owner}", owner, f"{owner} contribution")
     generated = DESTINATION.as_posix()
     for owner in order:
-        merge = subprocess.run(
-            ["git", "-c", "user.name=f", "-c", "user.email=f@example.invalid",
-             "-c", "commit.gpgsign=false", "merge", "--no-ff", "-q", "--no-edit", f"edit-{owner}"],
-            cwd=root, capture_output=True, text=True)
+        merge = subprocess.run([*GIT, "merge", "--no-ff", "-q", "--no-edit", f"edit-{owner}"],
+                               cwd=root, capture_output=True, text=True)
         if merge.returncode:
             # Only the shared snapshot may collide (the fixture has no coverage view);
             # take either side, then regenerate it from the merged source.
@@ -203,9 +204,9 @@ def test_same_owner_divergent_edits_remain_an_explicit_conflict(tmp_path, monkey
     _contribute(root, monkeypatch, "first", "alpha", "First version")
     _contribute(root, monkeypatch, "second", "alpha", "Second version")
     _git(root, "merge", "-q", "--no-edit", "first")
-    merge = subprocess.run(["git", "merge", "--no-edit", "second"], cwd=root,
+    merge = subprocess.run([*GIT, "merge", "--no-edit", "second"], cwd=root,
                            capture_output=True, text=True)
-    assert merge.returncode != 0
+    assert merge.returncode != 0 and "CONFLICT" in merge.stdout
     conflicted = set(_git(root, "diff", "--name-only", "--diff-filter=U").splitlines())
     assert f"{LIBRARY.as_posix()}/methods/alpha/SKILL.md" in conflicted
 

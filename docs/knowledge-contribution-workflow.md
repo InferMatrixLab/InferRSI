@@ -34,6 +34,9 @@ decision.
    python tools/knowledge_declaration_paths.py --base origin/main --head HEAD
    ```
 
+   The path lists overlap: under the current policy every generated path is also a
+   protected path. Do not add their counts.
+
 4. Write the declaration in the PR body with the reported `head_sha`. Update it after
    every new commit.
 
