@@ -1,16 +1,29 @@
-"""Observable test-double loop. Fakes are injected; the loop under test is real."""
+"""Handoff loop. Refusal cases inject outcomes. The CPU path uses real ports."""
 
 from __future__ import annotations
 
 import ast
+import json
 import subprocess
+import sys
+import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from tests.architecture_closed_loop import MemoryArchive, run_loop
+from inferrsi.knowledge_operations import KnowledgeReader
+from tests.architecture_closed_loop import MemoryArchive, _canonical, _digest, run_loop
+from tests.architecture_real_ports import (
+    PACKAGE_READ,
+    CpuOfflineHarnessRecord,
+    OfflineBenchmarkAssessment,
+    PackageKnowledgeRead,
+)
 
 LOOP = Path(__file__).with_name("architecture_closed_loop.py")
+PORTS = Path(__file__).with_name("architecture_real_ports.py")
+LAYOUT = Path(__file__).resolve().parents[1] / "docs" / "module-layout.md"
+ROOT = Path(__file__).resolve().parents[1]
 
 
 class FakeKnowledge:
@@ -276,15 +289,125 @@ class ClosedLoopTest(unittest.TestCase):
 
     def test_coordinator_does_not_import_production_cores(self) -> None:
         # Static import names only. importlib.import_module is not detected.
-        tree = ast.parse(LOOP.read_text(encoding="utf-8"))
-        imported: list[str] = []
-        for node in ast.walk(tree):
-            if isinstance(node, ast.Import):
-                imported.extend(alias.name for alias in node.names)
-            elif isinstance(node, ast.ImportFrom) and node.module:
-                imported.append(node.module)
-        for name in imported:
+        for name in _import_modules(LOOP):
             self.assertFalse(name.startswith("inferrsi"))
+
+    def test_real_cpu_offline_ports_connect_three_refs(self) -> None:
+        knowledge = PackageKnowledgeRead()
+        benchmark = OfflineBenchmarkAssessment()
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            harness = CpuOfflineHarnessRecord(root)
+            archive = MemoryArchive()
+            result = run_loop(
+                knowledge=knowledge,
+                harness=harness,
+                benchmark=benchmark,
+                archive=archive,
+            )
+            self.assertEqual(result.reason, "completed")
+            self.assertIsNotNone(result.prepared_ref)
+            self.assertIsNotNone(result.record_ref)
+            self.assertIsNotNone(result.assessment_ref)
+            execution = json.loads((root / "trial" / "execution.json").read_text(encoding="utf-8"))
+            probe = json.loads((root / "trial" / "result.json").read_text(encoding="utf-8"))
+            prepared = json.loads(archive.read_prepared(result.prepared_ref))
+            assessment = json.loads(archive.assessments[result.assessment_ref.digest])
+
+        again = KnowledgeReader().read(PACKAGE_READ)
+        self.assertEqual(result.verdict, "INCONCLUSIVE")
+        self.assertEqual(knowledge.calls, 1)
+        self.assertEqual(harness.executes, 1)
+        self.assertEqual(benchmark.prepares, 1)
+        self.assertEqual(benchmark.assesses, 1)
+        self.assertEqual(again.revision, knowledge.revision)
+        self.assertEqual(set(again.content), {"record.json"})
+        self.assertEqual(again.metadata["id"], PACKAGE_READ)
+        self.assertEqual(again.metadata["kind"], "knowledge")
+        self.assertRegex(knowledge.revision, r"^sha256:[0-9a-f]{64}$")
+        self.assertEqual(prepared["knowledge_revision"], knowledge.revision)
+        self.assertEqual(prepared["knowledge_id"], PACKAGE_READ)
+        self.assertEqual(prepared["candidate"], "unbound")
+        self.assertEqual(harness.fact["prepared_digest"], result.prepared_ref.digest)
+        self.assertEqual(result.record_ref.digest, _digest(_canonical(harness.fact)))
+        self.assertEqual(result.record_ref.attempt_id, harness.attempt_id)
+        self.assertEqual(execution["status"], "completed")
+        self.assertEqual(execution["returncode"], 0)
+        self.assertEqual(execution["argv"][0], sys.executable)
+        self.assertIsInstance(execution["pid"], int)
+        self.assertGreater(execution["elapsed_seconds"], 0)
+        self.assertEqual(probe, {"probe": "cpu-offline", "device": None})
+        self.assertEqual(assessment["verdict"], "INCONCLUSIVE")
+        self.assertEqual(assessment["knowledge_revision"], knowledge.revision)
+        self.assertEqual(assessment["record_status"], "completed")
+        self.assertEqual(assessment["record_returncode"], 0)
+        self.assertIn("quality validation command was not supplied", assessment["reasons"])
+        self.assertIn(
+            "cpu offline record has no source snapshot",
+            assessment["reasons"],
+        )
+        self.assertEqual(benchmark.last["verdict"], "INCONCLUSIVE")
+        self.assertIsNone(benchmark.last["improvement_pct"])
+        self.assertIn("Alternating AB/BA", benchmark.last["measurement_method"])
+        self.assertEqual(benchmark.last["statistical_significance"], "not established")
+        self.assertIn(result.prepared_ref.digest, archive.prepared)
+        self.assertIn(result.assessment_ref.digest, archive.assessments)
+        self.assertNotIn(result.record_ref.digest, archive.prepared)
+        self.assertNotEqual(result.record_ref.digest, "sha256:" + ("ab" * 32))
+
+    def test_real_ports_stay_on_three_existing_seams(self) -> None:
+        imported = _import_modules(PORTS)
+        self.assertIn("inferrsi.knowledge_operations", imported)
+        self.assertIn("inferrsi.harness.scenarios.external", imported)
+        self.assertIn("inferrsi.evaluation", imported)
+        banned = (
+            "inferrsi.cli",
+            "inferrsi.arguments",
+            "inferrsi.harness.runner",
+            "inferrsi.apps",
+            "inferrsi.knowledge",
+            "inferrsi.benchmark",
+        )
+        for name in imported:
+            for prefix in banned:
+                self.assertFalse(name == prefix or name.startswith(prefix + "."))
+        calls = _call_names(PORTS)
+        self.assertIn("read", calls)
+        self.assertIn("execute_trial", calls)
+        self.assertIn("evaluate", calls)
+        self.assertNotIn("search_knowledge", calls)
+        self.assertNotIn("collect", calls)
+        knowledge = _import_modules(ROOT / "src/inferrsi/knowledge_operations.py")
+        harness = _import_modules(ROOT / "src/inferrsi/harness/scenarios/external.py")
+        self.assertFalse(any("harness" in name or "evaluation" in name for name in knowledge))
+        self.assertFalse(any("knowledge" in name or "evaluation" in name for name in harness))
+        text = LAYOUT.read_text(encoding="utf-8")
+        self.assertIn("does not call `collect` or `search_knowledge`", text)
+        self.assertIn("campaign `PASS`", text)
+
+
+def _import_modules(path: Path) -> list[str]:
+    tree = ast.parse(path.read_text(encoding="utf-8"))
+    imported: list[str] = []
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            imported.extend(alias.name for alias in node.names)
+        elif isinstance(node, ast.ImportFrom) and node.module:
+            imported.append(node.module)
+    return imported
+
+
+def _call_names(path: Path) -> set[str]:
+    names: set[str] = set()
+    for node in ast.walk(ast.parse(path.read_text(encoding="utf-8"))):
+        if not isinstance(node, ast.Call):
+            continue
+        func = node.func
+        if isinstance(func, ast.Name):
+            names.add(func.id)
+        elif isinstance(func, ast.Attribute):
+            names.add(func.attr)
+    return names
 
 
 if __name__ == "__main__":
