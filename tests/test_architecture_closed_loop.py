@@ -6,6 +6,7 @@ import ast
 import subprocess
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from tests.architecture_closed_loop import MemoryArchive, run_loop
 
@@ -72,18 +73,16 @@ class ClosedLoopTest(unittest.TestCase):
         def refuse_process(*_args, **_kwargs):
             raise AssertionError("closed loop started a process")
 
-        original_run, original_popen = subprocess.run, subprocess.Popen
-        subprocess.run = refuse_process
-        subprocess.Popen = refuse_process
-        try:
+        # os.system is not patched; this loop does not call it.
+        with patch.object(subprocess, "run", refuse_process), patch.object(
+            subprocess, "Popen", refuse_process
+        ):
             result = run_loop(
                 knowledge=knowledge,
                 harness=harness,
                 benchmark=benchmark,
                 archive=archive,
             )
-        finally:
-            subprocess.run, subprocess.Popen = original_run, original_popen
 
         self.assertEqual(result.reason, "completed")
         self.assertEqual(result.verdict, "PASS")
@@ -191,9 +190,65 @@ class ClosedLoopTest(unittest.TestCase):
             benchmark=FakeBenchmark(),
             archive=MemoryArchive(),
         )
+        self.assertEqual(result.reason, "completed")
         self.assertEqual(result.verdict, "INCONCLUSIVE")
+        self.assertIsNotNone(result.assessment_ref)
+
+    def test_foreign_attempt_is_not_assessed(self) -> None:
+        class Foreign(FakeHarness):
+            def execute(self, spec):
+                outcome = super().execute(spec)
+                outcome["record_ref"]["attempt_id"] = "attempt-other"
+                return outcome
+
+        benchmark = FakeBenchmark()
+        archive = MemoryArchive()
+        result = run_loop(
+            knowledge=FakeKnowledge(),
+            harness=Foreign(),
+            benchmark=benchmark,
+            archive=archive,
+        )
+        self.assertEqual(result.reason, "record_mismatch")
+        self.assertEqual(benchmark.assesses, 0)
+        self.assertIsNone(result.assessment_ref)
+        self.assertEqual(archive.assessments, {})
+
+    def test_unknown_kind_is_not_assessed(self) -> None:
+        benchmark = FakeBenchmark()
+        archive = MemoryArchive()
+        result = run_loop(
+            knowledge=FakeKnowledge(),
+            harness=FakeHarness("finished"),
+            benchmark=benchmark,
+            archive=archive,
+        )
+        self.assertEqual(result.reason, "outcome_rejected")
+        self.assertEqual(benchmark.assesses, 0)
+        self.assertIsNone(result.assessment_ref)
+        self.assertEqual(archive.assessments, {})
+
+    def test_missing_evidence_does_not_call_assess(self) -> None:
+        class NoEvidence(FakeHarness):
+            def execute(self, spec):
+                outcome = super().execute(spec)
+                outcome.pop("evidence", None)
+                return outcome
+
+        benchmark = FakeBenchmark()
+        result = run_loop(
+            knowledge=FakeKnowledge(),
+            harness=NoEvidence(),
+            benchmark=benchmark,
+            archive=MemoryArchive(),
+        )
+        self.assertEqual(result.reason, "evidence_missing")
+        self.assertEqual(result.verdict, "INCONCLUSIVE")
+        self.assertEqual(benchmark.assesses, 0)
+        self.assertIsNone(result.assessment_ref)
 
     def test_coordinator_does_not_import_production_cores(self) -> None:
+        # Static import names only. importlib.import_module is not detected.
         tree = ast.parse(LOOP.read_text(encoding="utf-8"))
         imported: list[str] = []
         for node in ast.walk(tree):

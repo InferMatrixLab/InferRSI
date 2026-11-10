@@ -144,7 +144,28 @@ def run_loop(*, knowledge, harness, benchmark, archive: MemoryArchive) -> LoopRe
             prepared_ref=prepared_ref,
             record_ref=record_ref,
         )
-    verdict = benchmark.assess(archive.read_prepared(prepared_ref), outcome.get("evidence"))
+    if record_ref.attempt_id != spec["attempt_id"]:
+        return LoopResult(
+            "record_mismatch",
+            prepared_ref=prepared_ref,
+            record_ref=record_ref,
+        )
+    # Only a completed record for this attempt may be assessed.
+    if kind != "completed":
+        return LoopResult(
+            "outcome_rejected",
+            prepared_ref=prepared_ref,
+            record_ref=record_ref,
+        )
+    evidence = outcome.get("evidence")
+    if not isinstance(evidence, dict):
+        return LoopResult(
+            "evidence_missing",
+            prepared_ref=prepared_ref,
+            record_ref=record_ref,
+            verdict="INCONCLUSIVE",
+        )
+    verdict = benchmark.assess(archive.read_prepared(prepared_ref), evidence)
     assessment_payload = _canonical(verdict)
     assessment_ref = archive.save_assessment(assessment_payload)
     if assessment_ref is None:
