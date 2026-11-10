@@ -7,8 +7,6 @@ import re
 from importlib.resources import files
 from typing import Any
 
-from ._skill_provenance import MANIFEST, parse_json, resolve_record, validate_snapshot
-
 REPO_TYPES = ("vllm", "vllm_omni", "afd_plugin", "vllm_rlt", "strata", "sglang", "sglang_omni")
 # Learning scope does not imply that a repository has a runnable target adapter.
 # Legacy repository-pack records retain their contribution tier; an independent
@@ -100,23 +98,10 @@ def knowledge_records() -> list[dict[str, Any]]:
             )
             if not knowledge.is_dir():
                 continue
-            snapshot = None
-            if repo == "inferrsi" and tier == "contribution":
-                manifest = knowledge.joinpath(MANIFEST)
-                if manifest.is_file():
-                    snapshot = validate_snapshot(parse_json(manifest.read_text(encoding="utf-8")))
             for parts, item in _walk(knowledge):
                 if not item.name.endswith(".json"):
                     continue
-                if repo == "inferrsi" and tier == "contribution" and parts == (MANIFEST,):
-                    continue
-                parse = parse_json if repo == "inferrsi" and tier == "contribution" else json.loads
-                record = parse(item.read_text(encoding="utf-8"))
-                if (repo == "inferrsi" and tier == "contribution"
-                        and isinstance(record, dict) and record.get("schema_version") == 2):
-                    if snapshot is None:
-                        raise ValueError("Missing packaged skill provenance manifest")
-                    record = resolve_record(record, snapshot)
+                record = json.loads(item.read_text(encoding="utf-8"))
                 _validate_record(record, repo, parts, tier)
                 if record["id"] in seen:
                     raise ValueError(f"Duplicate knowledge ID: {record['id']}")

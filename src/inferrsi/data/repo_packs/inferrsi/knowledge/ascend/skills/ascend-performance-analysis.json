@@ -1,5 +1,5 @@
 {
-  "schema_version": 2,
+  "schema_version": 1,
   "id": "inferrsi.ascend.skills.ascend_performance_analysis",
   "title": "ascend-performance-analysis",
   "repo": "inferrsi",
@@ -22,13 +22,14 @@
   "sources": [
     {
       "type": "git",
-      "snapshot": "_provenance.json",
-      "path": "src/inferrsi/data/skill_library/hardware/ascend/ascend-performance-analysis/SKILL.md",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/1e87be46b8d080d439bb516ed9fa9092f8306f62/src/inferrsi/data/skill_library/hardware/ascend/ascend-performance-analysis/SKILL.md",
+      "commit": "1e87be46b8d080d439bb516ed9fa9092f8306f62",
       "paths": [
         "src/inferrsi/data/skill_library/hardware/ascend/ascend-performance-analysis/SKILL.md",
         "src/inferrsi/data/skill_library/hardware/ascend/ascend-performance-analysis/metadata.json",
         "src/inferrsi/data/skill_library/hardware/ascend/ascend-performance-analysis/references/cannbot-CANN-2.0-LICENSE.md",
-        "src/inferrsi/data/skill_library/hardware/ascend/ascend-performance-analysis/references/cannbot-stage-evidence.md"
+        "src/inferrsi/data/skill_library/hardware/ascend/ascend-performance-analysis/references/cannbot-stage-evidence.md",
+        "src/inferrsi/data/skill_library/skill-index.json"
       ],
       "content_sha256": "a057b7f86a24f34a8f84abbbb4910d58d4e50ff47060e1c404600017e3febe89"
     }
@@ -42,7 +43,8 @@
     "src/inferrsi/data/skill_library/hardware/ascend/ascend-performance-analysis/SKILL.md": "a057b7f86a24f34a8f84abbbb4910d58d4e50ff47060e1c404600017e3febe89",
     "src/inferrsi/data/skill_library/hardware/ascend/ascend-performance-analysis/metadata.json": "f3fb35b14b5b1054a9192459862451149395368f4a75f430caef2f41ad050296",
     "src/inferrsi/data/skill_library/hardware/ascend/ascend-performance-analysis/references/cannbot-CANN-2.0-LICENSE.md": "89b1c114df62cfd183004f38d18d07f186436c3b37203dd69c3e84becf9d2282",
-    "src/inferrsi/data/skill_library/hardware/ascend/ascend-performance-analysis/references/cannbot-stage-evidence.md": "f56e4125325c9c1b9235a1d64fd732861c7686444492422daff44ba8dd648be4"
+    "src/inferrsi/data/skill_library/hardware/ascend/ascend-performance-analysis/references/cannbot-stage-evidence.md": "f56e4125325c9c1b9235a1d64fd732861c7686444492422daff44ba8dd648be4",
+    "src/inferrsi/data/skill_library/skill-index.json": "7904275c3383380db179287171e1430617aaa9ac4f439291eff8a71426987fbb"
   },
   "skill_metadata": {
     "name": "ascend-performance-analysis",

@@ -1,5 +1,5 @@
 {
-  "schema_version": 2,
+  "schema_version": 1,
   "id": "inferrsi.common.skills.inference_benchmark_design",
   "title": "inference-benchmark-design",
   "repo": "inferrsi",
@@ -35,8 +35,8 @@
   "sources": [
     {
       "type": "git",
-      "snapshot": "_provenance.json",
-      "path": "src/inferrsi/data/skill_library/methods/inference-benchmark-design/SKILL.md",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/1e87be46b8d080d439bb516ed9fa9092f8306f62/src/inferrsi/data/skill_library/methods/inference-benchmark-design/SKILL.md",
+      "commit": "1e87be46b8d080d439bb516ed9fa9092f8306f62",
       "paths": [
         "src/inferrsi/data/skill_library/methods/inference-benchmark-design/SKILL.md",
         "src/inferrsi/data/skill_library/methods/inference-benchmark-design/metadata.json",
@@ -46,7 +46,8 @@
         "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/cache-aware-asr-stream-boundaries.md",
         "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/justgoal-evaluation-contracts.md",
         "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/justgoal-source.json",
-        "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/task-benchmark-selection.md"
+        "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/task-benchmark-selection.md",
+        "src/inferrsi/data/skill_library/skill-index.json"
       ],
       "content_sha256": "7fd7f557f5c99ca4ec4c46f2d97e67ecf280f5f0fdf071871a14cc08a7cb1c84"
     }
@@ -65,7 +66,8 @@
     "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/cache-aware-asr-stream-boundaries.md": "4e0ea9c1bf6b096a49a91ad5266e90b8a456f4f5aca15eba8ac270a53c2309b5",
     "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/justgoal-evaluation-contracts.md": "d25df795fd301e8a1bb436e5f8122d0bac2441c43104e59a3b310fd5a64f2f3e",
     "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/justgoal-source.json": "60f2784384ea1a3b08a2ecafb60207d8e3707247dc7bc177b95b463d81f1cc16",
-    "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/task-benchmark-selection.md": "0d4bb080a754e26846e81680023db0dff5e6a4c96be4327c411c3b72ac4ef8e2"
+    "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/task-benchmark-selection.md": "0d4bb080a754e26846e81680023db0dff5e6a4c96be4327c411c3b72ac4ef8e2",
+    "src/inferrsi/data/skill_library/skill-index.json": "7904275c3383380db179287171e1430617aaa9ac4f439291eff8a71426987fbb"
   },
   "skill_metadata": {
     "name": "inference-benchmark-design",

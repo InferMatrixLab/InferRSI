@@ -1,5 +1,5 @@
 {
-  "schema_version": 2,
+  "schema_version": 1,
   "id": "inferrsi.common.skills.mistral_rs",
   "title": "mistral-rs",
   "repo": "inferrsi",
@@ -26,8 +26,8 @@
   "sources": [
     {
       "type": "git",
-      "snapshot": "_provenance.json",
-      "path": "src/inferrsi/data/skill_library/repositories/mistral-rs/SKILL.md",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/1e87be46b8d080d439bb516ed9fa9092f8306f62/src/inferrsi/data/skill_library/repositories/mistral-rs/SKILL.md",
+      "commit": "1e87be46b8d080d439bb516ed9fa9092f8306f62",
       "paths": [
         "src/inferrsi/data/skill_library/repositories/mistral-rs/LICENSE",
         "src/inferrsi/data/skill_library/repositories/mistral-rs/SKILL.md",
@@ -53,7 +53,8 @@
         "src/inferrsi/data/skill_library/repositories/mistral-rs/sub-skills/qualification/references/prewarm-and-evidence.md",
         "src/inferrsi/data/skill_library/repositories/mistral-rs/sub-skills/qualification/references/troubleshooting.md",
         "src/inferrsi/data/skill_library/repositories/mistral-rs/sub-skills/qualification/references/warmup-inventory.md",
-        "src/inferrsi/data/skill_library/repositories/mistral-rs/sub-skills/qualification/scripts/warmup_shape_inventory.py"
+        "src/inferrsi/data/skill_library/repositories/mistral-rs/sub-skills/qualification/scripts/warmup_shape_inventory.py",
+        "src/inferrsi/data/skill_library/skill-index.json"
       ],
       "content_sha256": "8917b30fb86437dea7508275ccce1992194d6e0c4858d537a410bf1f900953d0"
     }
@@ -88,7 +89,8 @@
     "src/inferrsi/data/skill_library/repositories/mistral-rs/sub-skills/qualification/references/prewarm-and-evidence.md": "6b72ae4b4599018ce2da5c54d0c28fadcafb7ce75b81ce4c18c06a440aab6056",
     "src/inferrsi/data/skill_library/repositories/mistral-rs/sub-skills/qualification/references/troubleshooting.md": "d933bea6e9e493faa8cd0f4103ea33197ace7f7f901359f8cf0d6bab2edcdb4d",
     "src/inferrsi/data/skill_library/repositories/mistral-rs/sub-skills/qualification/references/warmup-inventory.md": "1e7af7d63c6853ede4232b5a12cf68aba6597c4a305015366f1c2c917e3caf01",
-    "src/inferrsi/data/skill_library/repositories/mistral-rs/sub-skills/qualification/scripts/warmup_shape_inventory.py": "6aa920ca1cb534dec41f5dd2d833c3e760b234ab2c6439b6c4250b8a30b74055"
+    "src/inferrsi/data/skill_library/repositories/mistral-rs/sub-skills/qualification/scripts/warmup_shape_inventory.py": "6aa920ca1cb534dec41f5dd2d833c3e760b234ab2c6439b6c4250b8a30b74055",
+    "src/inferrsi/data/skill_library/skill-index.json": "7904275c3383380db179287171e1430617aaa9ac4f439291eff8a71426987fbb"
   },
   "skill_metadata": {
     "name": "mistral-rs",

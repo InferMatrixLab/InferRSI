@@ -1,5 +1,5 @@
 {
-  "schema_version": 2,
+  "schema_version": 1,
   "id": "inferrsi.common.skills.splash",
   "title": "splash",
   "repo": "inferrsi",
@@ -25,8 +25,8 @@
   "sources": [
     {
       "type": "git",
-      "snapshot": "_provenance.json",
-      "path": "src/inferrsi/data/skill_library/repositories/splash/SKILL.md",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/1e87be46b8d080d439bb516ed9fa9092f8306f62/src/inferrsi/data/skill_library/repositories/splash/SKILL.md",
+      "commit": "1e87be46b8d080d439bb516ed9fa9092f8306f62",
       "paths": [
         "src/inferrsi/data/skill_library/repositories/splash/LICENSE",
         "src/inferrsi/data/skill_library/repositories/splash/SKILL.md",
@@ -46,7 +46,8 @@
         "src/inferrsi/data/skill_library/repositories/splash/sub-skills/runtime-planning/scripts/parse_budget.py",
         "src/inferrsi/data/skill_library/repositories/splash/sub-skills/serving-cache/SKILL.md",
         "src/inferrsi/data/skill_library/repositories/splash/sub-skills/serving-cache/references/state-and-api.md",
-        "src/inferrsi/data/skill_library/repositories/splash/sub-skills/serving-cache/references/troubleshooting.md"
+        "src/inferrsi/data/skill_library/repositories/splash/sub-skills/serving-cache/references/troubleshooting.md",
+        "src/inferrsi/data/skill_library/skill-index.json"
       ],
       "content_sha256": "619b87c282dcec4befa319085764fb53fa506a05c6a7112500bcca662f059ece"
     }
@@ -75,7 +76,8 @@
     "src/inferrsi/data/skill_library/repositories/splash/sub-skills/runtime-planning/scripts/parse_budget.py": "b3a3b0847280333c2bfbe5d03350dc866307d5290160ec64c7e3d462a34f6301",
     "src/inferrsi/data/skill_library/repositories/splash/sub-skills/serving-cache/SKILL.md": "c16f911498e116ff9b31b5a6f0ddd3ae6517b51c0e9d079c337f36a5bcac1df8",
     "src/inferrsi/data/skill_library/repositories/splash/sub-skills/serving-cache/references/state-and-api.md": "592603177473ac8e024b7dc19a3d3faedd7c1e0312137eab8bf9a62d2f567be6",
-    "src/inferrsi/data/skill_library/repositories/splash/sub-skills/serving-cache/references/troubleshooting.md": "4fda461042a3de43c109d7a3cec67542c7d61fe68412bf91606220f2e13e576e"
+    "src/inferrsi/data/skill_library/repositories/splash/sub-skills/serving-cache/references/troubleshooting.md": "4fda461042a3de43c109d7a3cec67542c7d61fe68412bf91606220f2e13e576e",
+    "src/inferrsi/data/skill_library/skill-index.json": "7904275c3383380db179287171e1430617aaa9ac4f439291eff8a71426987fbb"
   },
   "skill_metadata": {
     "name": "splash",

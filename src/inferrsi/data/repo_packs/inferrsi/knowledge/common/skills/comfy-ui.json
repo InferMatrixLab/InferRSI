@@ -1,5 +1,5 @@
 {
-  "schema_version": 2,
+  "schema_version": 1,
   "id": "inferrsi.common.skills.comfy_ui",
   "title": "comfy-ui",
   "repo": "inferrsi",
@@ -22,8 +22,8 @@
   "sources": [
     {
       "type": "git",
-      "snapshot": "_provenance.json",
-      "path": "src/inferrsi/data/skill_library/repositories/comfy-ui/SKILL.md",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/1e87be46b8d080d439bb516ed9fa9092f8306f62/src/inferrsi/data/skill_library/repositories/comfy-ui/SKILL.md",
+      "commit": "1e87be46b8d080d439bb516ed9fa9092f8306f62",
       "paths": [
         "src/inferrsi/data/skill_library/repositories/comfy-ui/LICENSE",
         "src/inferrsi/data/skill_library/repositories/comfy-ui/SKILL.md",
@@ -31,7 +31,8 @@
         "src/inferrsi/data/skill_library/repositories/comfy-ui/references/graph-cache-invalidation.md",
         "src/inferrsi/data/skill_library/repositories/comfy-ui/references/model-residency.md",
         "src/inferrsi/data/skill_library/repositories/comfy-ui/references/repo-provenance.md",
-        "src/inferrsi/data/skill_library/repositories/comfy-ui/references/validation-boundaries.md"
+        "src/inferrsi/data/skill_library/repositories/comfy-ui/references/validation-boundaries.md",
+        "src/inferrsi/data/skill_library/skill-index.json"
       ],
       "content_sha256": "c993bd6ff8e9b5f82f39f175ec8242341136e4ee0808af414e1d94ad3e196c5e"
     }
@@ -48,7 +49,8 @@
     "src/inferrsi/data/skill_library/repositories/comfy-ui/references/graph-cache-invalidation.md": "614c9a4e6943d24d7d7be7d632682ce8b1dcc239124a37d9dc1d487113772eac",
     "src/inferrsi/data/skill_library/repositories/comfy-ui/references/model-residency.md": "014c68386e7cdfdb7b4f566836e8b2ff61bd5a5a506e7b4723f83fe80c5d4de7",
     "src/inferrsi/data/skill_library/repositories/comfy-ui/references/repo-provenance.md": "ca996ef515af42a3ce304747fa3f12a31c00533deaace5ba2ce21aefa0a62e2e",
-    "src/inferrsi/data/skill_library/repositories/comfy-ui/references/validation-boundaries.md": "1913dedbeb558d872d6a0e015cc11d822910c3cb259a236db29fb60ad8a64263"
+    "src/inferrsi/data/skill_library/repositories/comfy-ui/references/validation-boundaries.md": "1913dedbeb558d872d6a0e015cc11d822910c3cb259a236db29fb60ad8a64263",
+    "src/inferrsi/data/skill_library/skill-index.json": "7904275c3383380db179287171e1430617aaa9ac4f439291eff8a71426987fbb"
   },
   "skill_metadata": {
     "name": "comfy-ui",

@@ -1,5 +1,5 @@
 {
-  "schema_version": 2,
+  "schema_version": 1,
   "id": "inferrsi.ascend.skills.ascend_model_adaptation",
   "title": "ascend-model-adaptation",
   "repo": "inferrsi",
@@ -22,11 +22,12 @@
   "sources": [
     {
       "type": "git",
-      "snapshot": "_provenance.json",
-      "path": "src/inferrsi/data/skill_library/hardware/ascend/ascend-model-adaptation/SKILL.md",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/1e87be46b8d080d439bb516ed9fa9092f8306f62/src/inferrsi/data/skill_library/hardware/ascend/ascend-model-adaptation/SKILL.md",
+      "commit": "1e87be46b8d080d439bb516ed9fa9092f8306f62",
       "paths": [
         "src/inferrsi/data/skill_library/hardware/ascend/ascend-model-adaptation/SKILL.md",
-        "src/inferrsi/data/skill_library/hardware/ascend/ascend-model-adaptation/metadata.json"
+        "src/inferrsi/data/skill_library/hardware/ascend/ascend-model-adaptation/metadata.json",
+        "src/inferrsi/data/skill_library/skill-index.json"
       ],
       "content_sha256": "8fdf46fb2743b67a66bc069d22a45305a222debfb606777bc451b4b8f31d9cc6"
     }
@@ -38,7 +39,8 @@
   "checkout_ref": "checkout:ascend-model-adaptation",
   "source_files": {
     "src/inferrsi/data/skill_library/hardware/ascend/ascend-model-adaptation/SKILL.md": "8fdf46fb2743b67a66bc069d22a45305a222debfb606777bc451b4b8f31d9cc6",
-    "src/inferrsi/data/skill_library/hardware/ascend/ascend-model-adaptation/metadata.json": "989b91821b36c0b80caf1323ec527e7ac847219b8f4fe8ca4ea22d292365cc3c"
+    "src/inferrsi/data/skill_library/hardware/ascend/ascend-model-adaptation/metadata.json": "989b91821b36c0b80caf1323ec527e7ac847219b8f4fe8ca4ea22d292365cc3c",
+    "src/inferrsi/data/skill_library/skill-index.json": "7904275c3383380db179287171e1430617aaa9ac4f439291eff8a71426987fbb"
   },
   "skill_metadata": {
     "name": "ascend-model-adaptation",

@@ -1,5 +1,5 @@
 {
-  "schema_version": 2,
+  "schema_version": 1,
   "id": "inferrsi.common.skills.weight_loading_optimization",
   "title": "weight-loading-optimization",
   "repo": "inferrsi",
@@ -29,14 +29,15 @@
   "sources": [
     {
       "type": "git",
-      "snapshot": "_provenance.json",
-      "path": "src/inferrsi/data/skill_library/methods/weight-loading-optimization/SKILL.md",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/1e87be46b8d080d439bb516ed9fa9092f8306f62/src/inferrsi/data/skill_library/methods/weight-loading-optimization/SKILL.md",
+      "commit": "1e87be46b8d080d439bb516ed9fa9092f8306f62",
       "paths": [
         "src/inferrsi/data/skill_library/methods/weight-loading-optimization/SKILL.md",
         "src/inferrsi/data/skill_library/methods/weight-loading-optimization/metadata.json",
         "src/inferrsi/data/skill_library/methods/weight-loading-optimization/references/fastsafetensors-transfer-readset.md",
         "src/inferrsi/data/skill_library/methods/weight-loading-optimization/references/flare-preparation-boundary.md",
-        "src/inferrsi/data/skill_library/methods/weight-loading-optimization/references/llama-loading-readset.md"
+        "src/inferrsi/data/skill_library/methods/weight-loading-optimization/references/llama-loading-readset.md",
+        "src/inferrsi/data/skill_library/skill-index.json"
       ],
       "content_sha256": "a1bf0e2ec066d5f30225c6cc5fb603f830f48eb5e2aee3fc3d084ed9d8aebe2f"
     }
@@ -51,7 +52,8 @@
     "src/inferrsi/data/skill_library/methods/weight-loading-optimization/metadata.json": "ebcc5425d7b6409e5c509122e9dc76bed1caab09d73daf013d96086d7faaba2b",
     "src/inferrsi/data/skill_library/methods/weight-loading-optimization/references/fastsafetensors-transfer-readset.md": "5a39f14b102b0cee304541e011aa31e44e6b13527d1bee9987c3f3b66c064d3d",
     "src/inferrsi/data/skill_library/methods/weight-loading-optimization/references/flare-preparation-boundary.md": "1d7922785a196bdbafdc9791fe79428465a5acc0292ca8f99446f8c764b35454",
-    "src/inferrsi/data/skill_library/methods/weight-loading-optimization/references/llama-loading-readset.md": "6c640f28ee3f0253a17b81461c865cb9f947367002cb75bf72550c4572d02e97"
+    "src/inferrsi/data/skill_library/methods/weight-loading-optimization/references/llama-loading-readset.md": "6c640f28ee3f0253a17b81461c865cb9f947367002cb75bf72550c4572d02e97",
+    "src/inferrsi/data/skill_library/skill-index.json": "7904275c3383380db179287171e1430617aaa9ac4f439291eff8a71426987fbb"
   },
   "skill_metadata": {
     "name": "weight-loading-optimization",

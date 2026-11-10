@@ -1,5 +1,5 @@
 {
-  "schema_version": 2,
+  "schema_version": 1,
   "id": "inferrsi.common.skills.video_diffusion_optimization",
   "title": "video-diffusion-optimization",
   "repo": "inferrsi",
@@ -26,13 +26,14 @@
   "sources": [
     {
       "type": "git",
-      "snapshot": "_provenance.json",
-      "path": "src/inferrsi/data/skill_library/methods/video-diffusion-optimization/SKILL.md",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/1e87be46b8d080d439bb516ed9fa9092f8306f62/src/inferrsi/data/skill_library/methods/video-diffusion-optimization/SKILL.md",
+      "commit": "1e87be46b8d080d439bb516ed9fa9092f8306f62",
       "paths": [
         "src/inferrsi/data/skill_library/methods/video-diffusion-optimization/SKILL.md",
         "src/inferrsi/data/skill_library/methods/video-diffusion-optimization/assets/campaign.template.json",
         "src/inferrsi/data/skill_library/methods/video-diffusion-optimization/metadata.json",
-        "src/inferrsi/data/skill_library/methods/video-diffusion-optimization/scripts/evaluate_target.py"
+        "src/inferrsi/data/skill_library/methods/video-diffusion-optimization/scripts/evaluate_target.py",
+        "src/inferrsi/data/skill_library/skill-index.json"
       ],
       "content_sha256": "fc0e7baf9913ce7448247772a1e224a9cbd827492cf9459b1f17f492b9f67b70"
     }
@@ -46,7 +47,8 @@
     "src/inferrsi/data/skill_library/methods/video-diffusion-optimization/SKILL.md": "fc0e7baf9913ce7448247772a1e224a9cbd827492cf9459b1f17f492b9f67b70",
     "src/inferrsi/data/skill_library/methods/video-diffusion-optimization/assets/campaign.template.json": "1a37f1d136612143ddab8f0cbbf424c80433b4da5312edb18d07c0b9d87ef657",
     "src/inferrsi/data/skill_library/methods/video-diffusion-optimization/metadata.json": "b27d69142dfea5dd2820170475c2bf6cced2d5eefd1c43b3413c41849af0fd02",
-    "src/inferrsi/data/skill_library/methods/video-diffusion-optimization/scripts/evaluate_target.py": "9e84df051e03d567746fd73ae7243efb2f3c5ec806fef824d3c4d42a8eb9704c"
+    "src/inferrsi/data/skill_library/methods/video-diffusion-optimization/scripts/evaluate_target.py": "9e84df051e03d567746fd73ae7243efb2f3c5ec806fef824d3c4d42a8eb9704c",
+    "src/inferrsi/data/skill_library/skill-index.json": "7904275c3383380db179287171e1430617aaa9ac4f439291eff8a71426987fbb"
   },
   "skill_metadata": {
     "name": "video-diffusion-optimization",

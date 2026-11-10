@@ -1,5 +1,5 @@
 {
-  "schema_version": 2,
+  "schema_version": 1,
   "id": "inferrsi.common.skills.dwarfstar",
   "title": "dwarfstar",
   "repo": "inferrsi",
@@ -25,8 +25,8 @@
   "sources": [
     {
       "type": "git",
-      "snapshot": "_provenance.json",
-      "path": "src/inferrsi/data/skill_library/repositories/dwarfstar/SKILL.md",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/1e87be46b8d080d439bb516ed9fa9092f8306f62/src/inferrsi/data/skill_library/repositories/dwarfstar/SKILL.md",
+      "commit": "1e87be46b8d080d439bb516ed9fa9092f8306f62",
       "paths": [
         "src/inferrsi/data/skill_library/repositories/dwarfstar/LICENSE",
         "src/inferrsi/data/skill_library/repositories/dwarfstar/SKILL.md",
@@ -43,7 +43,8 @@
         "src/inferrsi/data/skill_library/repositories/dwarfstar/sub-skills/runtime-memory/references/troubleshooting.md",
         "src/inferrsi/data/skill_library/repositories/dwarfstar/sub-skills/serving-state/SKILL.md",
         "src/inferrsi/data/skill_library/repositories/dwarfstar/sub-skills/serving-state/references/state-contracts.md",
-        "src/inferrsi/data/skill_library/repositories/dwarfstar/sub-skills/serving-state/references/troubleshooting.md"
+        "src/inferrsi/data/skill_library/repositories/dwarfstar/sub-skills/serving-state/references/troubleshooting.md",
+        "src/inferrsi/data/skill_library/skill-index.json"
       ],
       "content_sha256": "a04a252ecdcd4710a3273595f4bd1f3eb8e24d5bb1bfe005f058a78388254dc9"
     }
@@ -69,7 +70,8 @@
     "src/inferrsi/data/skill_library/repositories/dwarfstar/sub-skills/runtime-memory/references/troubleshooting.md": "42e4785b7d3c1375efa324583897327f28ef76c0b7788092da92095bddeb1440",
     "src/inferrsi/data/skill_library/repositories/dwarfstar/sub-skills/serving-state/SKILL.md": "71c27212847146376d72e6cc6d22abe2f7eed56402c5917cd7dfcda0b2aa5982",
     "src/inferrsi/data/skill_library/repositories/dwarfstar/sub-skills/serving-state/references/state-contracts.md": "8f74a07c947021e3069468268f6b5aa2548a17db518c5c0505b84dde73a1f31c",
-    "src/inferrsi/data/skill_library/repositories/dwarfstar/sub-skills/serving-state/references/troubleshooting.md": "c9eebe4109d418c4dfb9bb2425c145ebc1a52da9b665e0556149bc31a442e2fc"
+    "src/inferrsi/data/skill_library/repositories/dwarfstar/sub-skills/serving-state/references/troubleshooting.md": "c9eebe4109d418c4dfb9bb2425c145ebc1a52da9b665e0556149bc31a442e2fc",
+    "src/inferrsi/data/skill_library/skill-index.json": "7904275c3383380db179287171e1430617aaa9ac4f439291eff8a71426987fbb"
   },
   "skill_metadata": {
     "name": "dwarfstar",

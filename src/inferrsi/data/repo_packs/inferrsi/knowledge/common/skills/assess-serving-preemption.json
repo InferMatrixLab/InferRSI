@@ -1,5 +1,5 @@
 {
-  "schema_version": 2,
+  "schema_version": 1,
   "id": "inferrsi.common.skills.assess_serving_preemption",
   "title": "assess-serving-preemption",
   "repo": "inferrsi",
@@ -16,12 +16,13 @@
   "sources": [
     {
       "type": "git",
-      "snapshot": "_provenance.json",
-      "path": "src/inferrsi/data/skill_library/methods/assess-serving-preemption/SKILL.md",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/1e87be46b8d080d439bb516ed9fa9092f8306f62/src/inferrsi/data/skill_library/methods/assess-serving-preemption/SKILL.md",
+      "commit": "1e87be46b8d080d439bb516ed9fa9092f8306f62",
       "paths": [
         "src/inferrsi/data/skill_library/methods/assess-serving-preemption/SKILL.md",
         "src/inferrsi/data/skill_library/methods/assess-serving-preemption/metadata.json",
-        "src/inferrsi/data/skill_library/methods/assess-serving-preemption/references/source-notes.md"
+        "src/inferrsi/data/skill_library/methods/assess-serving-preemption/references/source-notes.md",
+        "src/inferrsi/data/skill_library/skill-index.json"
       ],
       "content_sha256": "0a5f48d9352c5bf460775ef47f9136829978811f4a16e84983e299782cae305d"
     }
@@ -34,7 +35,8 @@
   "source_files": {
     "src/inferrsi/data/skill_library/methods/assess-serving-preemption/SKILL.md": "0a5f48d9352c5bf460775ef47f9136829978811f4a16e84983e299782cae305d",
     "src/inferrsi/data/skill_library/methods/assess-serving-preemption/metadata.json": "3e2cea37f5669e7c60f7c01c390a48ea960b15cbd6de8f5340cf8fe2afb9e1a1",
-    "src/inferrsi/data/skill_library/methods/assess-serving-preemption/references/source-notes.md": "f29fcecfba0490008a354c11b42403983fe165e56ff907ad61cc6040d2b6407f"
+    "src/inferrsi/data/skill_library/methods/assess-serving-preemption/references/source-notes.md": "f29fcecfba0490008a354c11b42403983fe165e56ff907ad61cc6040d2b6407f",
+    "src/inferrsi/data/skill_library/skill-index.json": "7904275c3383380db179287171e1430617aaa9ac4f439291eff8a71426987fbb"
   },
   "skill_metadata": {
     "name": "assess-serving-preemption",
