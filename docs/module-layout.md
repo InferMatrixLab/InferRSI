@@ -31,13 +31,22 @@ Do not create empty `knowledge/`, `benchmark/`, or `apps/` directories in the
 contract slice. Do not treat draft #338 as a reason to add a top-level
 `benchmarks/` tree.
 
-## Test-double loop
+## CPU/offline connection
 
 `tests/architecture_closed_loop.py` is the handoff exercised by
-`tests/test_architecture_closed_loop.py`. The tests inject fakes. That module
-is not the Apps package, and #371 remains the proposal for that path. It does
-not import Knowledge, Harness, or Benchmark, and it does not change Bundle
-revision.
+`tests/test_architecture_closed_loop.py`. The coordinator does not import
+Knowledge, Harness, or Benchmark. Refusal cases still inject outcomes. That
+file is not the Apps package, and #371 remains the proposal for that path.
+It does not change Bundle revision.
+
+`tests/architecture_real_ports.py` is the CPU/offline connection injected for
+the success path. It calls `KnowledgeReader.read` on one installed package
+card, `execute_trial` for one local process record, and `evaluate` for one
+offline assessment. It does not call `collect` or `search_knowledge`. It does
+not choose an archive owner or a run store. `MemoryArchive` still stores only
+prepared and assessment bytes. The module stays under `tests/`. A process
+exit of 0 in that record remains an execution fact; this assessment does not
+turn it into a campaign `PASS`.
 
 ## Tentative current ownership
 

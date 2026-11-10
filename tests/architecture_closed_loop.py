@@ -1,9 +1,9 @@
-"""Test-double handoff for prepare, archive, bind, execute, and offline assess.
+"""Test-local handoff for prepare, archive, bind, execute, and offline assess.
 
-This is not the Apps package from #371 and it does not import the Knowledge,
-Harness, or Benchmark implementations. Digests are SHA-256 of a test-local
-JSON encoding. That encoding is not ``inferrsi-json-v1`` and it does not
-change Bundle revision rules.
+Callers inject the Knowledge, Harness, and Benchmark ports. This module does
+not import those implementations, and it is not the Apps package from #371.
+Digests are SHA-256 of a test-local JSON encoding. That encoding is not
+``inferrsi-json-v1`` and it does not change Bundle revision rules.
 """
 
 from __future__ import annotations
@@ -111,7 +111,7 @@ def _record_ref(outcome: dict) -> RecordRef | None:
 
 
 def run_loop(*, knowledge, harness, benchmark, archive: MemoryArchive) -> LoopResult:
-    """One fake closed loop. Failing a step stops the handoff."""
+    """One handoff. Failing a step stops the loop."""
     delivered = knowledge.deliver()
     prepared = benchmark.prepare(delivered)
     payload = _canonical(prepared)
