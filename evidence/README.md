@@ -21,3 +21,9 @@ evidence/
 ```
 
 Populate per acceptance issue. This scaffold keeps only `.gitkeep` placeholders—no campaign artifacts or pinned SHAs in the template.
+
+When the experiment studies knowledge retrieval or adoption, archive its
+reviewed `search/round-<n>.json` and the campaign-relative artifacts needed
+to audit its claims. The [round import guide](../docs/dashboard.md#archive-evidence-for-readers-outside-the-session)
+describes how to retain visible passages and decision evidence while keeping
+the original session private.

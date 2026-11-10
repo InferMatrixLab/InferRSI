@@ -328,7 +328,7 @@ def main(argv: list[str] | None = None) -> int:
                                      lines=args.lines, knowledge_root=args.knowledge_root,
                                      context_ids=args.context_id, used=args.used,
                                      rejected=args.rejected, stage=args.stage,
-                                     complete=args.complete)
+                                     complete=args.complete, archive_review=args.archive_review)
                 _print({"record": path.relative_to(args.directory.resolve()).as_posix()})
                 return 0
             if args.campaign_action == "log":

@@ -159,8 +159,8 @@ The importer reads Desktop `CommandExecution` events. It supports direct text
 or filename-match searches with `rg`, literal `cat`, `nl -ba` and `sed -n N,Mp`
 reads. Use `rg -Hn` for unambiguous filenames and matching lines. File results
 are corpus-relative. A shell event establishes the command's recorded output;
-the outer agent tool may have displayed a shorter excerpt. No source text,
-shell output, private rollout path or assistant reply is copied. Multiline
+the outer agent tool may have displayed a shorter excerpt. The default local
+record keeps locators and omits source text, output and assistant replies. Multiline
 retrieval scripts, unsupported pipelines and unparseable output leave
 unresolved event line numbers. Other tools and scripted/remote
 retrievals require separate evidence. Review query text and paths before sharing.
@@ -197,6 +197,98 @@ retrievals require separate evidence. Review query text and paths before sharing
   run, retain the same trace, start line, capture IDs and scope, and extend the
   end line if necessary before the next round starts. Separate rounds cannot
   claim overlapping windows or the same retrieval.
+
+#### Archive evidence for readers outside the session
+
+Use `--archive-review review.json` on the same import when a campaign calls
+for independently readable evidence. Use the historical knowledge directory
+as `--knowledge-root`. In the review file, identify the repository, revision
+and repository-relative directory from the experiment's frozen inputs. These
+are caller-declared source coordinates. The importer obtains the passages
+from the recorded tool return, so it can also handle a corpus that the host
+copied into a temporary directory.
+
+For example, this reviewer input links a visible match to a passage of the
+agent's actual decision. The line numbers for the event and decision locate
+records in the private input. The `passage_line` field locates a line in the material.
+Use a verbatim, contiguous decision excerpt. The importer checks the cited
+event, passage and message before recording the reviewed relation.
+
+```json
+{
+  "task": "Decide what to check before combining three Qwen Ascend optimizations.",
+  "corpus": {
+    "repository": "InferMatrixLab/InferRSI",
+    "revision": "f6d200775d554d08fb73673833611dd6ac02d14b",
+    "root": "src/inferrsi/data/skill_library"
+  },
+  "decisions": [{
+    "use": "used",
+    "ref": "methods/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md",
+    "event_line": 73,
+    "passage_line": 18,
+    "decision_line": 108,
+    "decision_quote": "报告称 **RoPE + VAE fastpath + 融合 attention 在初始化时 OOM**，并建议先盘点初始化驻留。因此这是这次组合的首要风险，应先做资源检查，再决定是否进入组合试验。"
+  }]
+}
+```
+
+```sh
+inferrsi campaign import-search --directory "$campaign" --round 1 \
+  --trace "$trace" --lines "$FIRST" "$LAST" --knowledge-root "$corpus" \
+  --archive-review review.json --complete
+```
+
+The command keeps `search/round-1.json` as the local window record and
+returns the portable file `search/archive/round-1.json`. The latter embeds
+the evidence selected by this review. Supply all intended decisions on each
+archive import. Existing `--used`, `--rejected` and optimization-log claims
+retain their local meaning. In the portable record they appear under
+`declarations`. Reviewed passage-to-decision links appear under
+`materials[ref].evidence` and contribute to its adopted-material count.
+
+In the portable file, inspect the model-visible tool return and its
+passages before the adoption entry. A search can match three lines of one
+file and still count as one material hit. A reviewed decision can use one
+of those lines. Hit counts include references the command matched or the Indexer
+selected. Use each event's `delivery` to see which of those references can
+be placed in the agent's return. A material marked `ref_visible` has a
+confirmed reference but no archived content excerpt for that material. A zero `observed.used` means there were no
+reviewed positive uses. Each unattributed material retains `use: unknown`.
+Runtime truncation describes what the agent received. Archival omissions
+describe what the reader can inspect. An ambiguous host
+return leaves delivery unknown. A verified Indexer capture establishes what
+the Indexer prepared. Its campaign-relative source is the evidence for that
+preparation. When a tool actually returned its rendered context, the review
+file can also supply `"capture_returns": {"r1-diagnosis": 52}`, where 52 is
+the line of the model-facing tool response in the round. Pass the corresponding
+`--context-id r1-diagnosis`. Only complete resource blocks with matching
+owner, revision, path and body count as visibly delivered. A return that just
+names the capture file or prints its digest leaves delivery unknown.
+To review the use of a delivered Indexer passage, use its return line as
+`event_line`, the entry ID as `ref`, and its capture resource path as
+`passage_path`. The one-based `passage_line` selects a line within that
+resource. Cite the later assistant decision in the same way as for a file.
+
+To include a round in repository evidence, copy the portable file to
+`evidence/<campaign-id>/search/round-1.json`. Retain the campaign-relative
+paths to cited `knowledge/`, candidate and run artifacts, or document which
+are unavailable in the published bundle. Review the generated text,
+commands and referenced artifacts under the [privacy rules](privacy-security.md).
+The raw Codex rollout stays local. A missing candidate is expected for a
+decision-only exercise. See the [Qwen round archive](../evidence/search-attribution-qwen-s2-b1-20261110/README.md)
+for the generated evidence and its interpretation. To follow one material across
+events and then see its reviewed uses, set `record` to the portable JSON:
+
+```sh
+ref=methods/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md
+jq --arg ref "$ref" '{
+  returns: [.events[] | {event: .id, action, query,
+    passages: [.delivery.passages[]? | select(.ref == $ref)]}
+    | select(.passages | length > 0)],
+  decisions: .materials[$ref].evidence
+}' "$record"
+```
 
 ### Record the optimization story (campaign trace)
 

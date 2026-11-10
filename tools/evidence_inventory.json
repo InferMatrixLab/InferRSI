@@ -150,6 +150,10 @@
       "kind": "review", "manifests": [],
       "external": ["Review summary only; no local freeze manifest or raw output bundle is recorded."]
     },
+    "search-attribution-qwen-s2-b1-20261110": {
+      "kind": "review", "manifests": [],
+      "external": ["The raw Codex rollout and temporary local campaign ledger are not committed; bounded reviewed excerpts and relative source references are preserved in search/round-1.json."]
+    },
     "skill-eval-v1-20261021": {
       "kind": "campaign",
       "manifests": [{"path": "plan/integrity.json", "schema": "bundle-sha256"}],

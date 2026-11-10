@@ -189,6 +189,8 @@ def parser() -> argparse.ArgumentParser:
                         help="Inclusive, one-based round boundaries in that rollout")
     search.add_argument("--knowledge-root", type=Path, help="Absolute corpus path in the rollout")
     search.add_argument("--context-id", action="append", default=[], help="Capture in this round")
+    search.add_argument("--archive-review", type=Path, metavar="FILE",
+                        help="Build a round archive from reviewed passage and decision references")
     search.add_argument("--stage", help="Retrieval stage if known, e.g. diagnosis")
     search.add_argument("--used", action="append", nargs=2, metavar=("REF", "DECISION_LINE"),
                         default=[], help="Reviewed material use in a cited assistant message")

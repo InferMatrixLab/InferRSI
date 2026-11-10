@@ -2,39 +2,17 @@
 
 from __future__ import annotations
 
-import hashlib
 import json
 import os
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 
 from .campaign_records import _identifier, _round_records
+from .capture_delivery import capture_event, capture_return_texts, load_campaign_capture
 from .codex_search import read_window
 from .dashboard_data import _inside, _object
-from .knowledge_capture import MAX_CONTEXT_CAPTURE_BYTES, verify_capture
 from .optimization_log import STAGES, read_latest_log
-
-
-def _capture(root, campaign_id, context_id):
-    _identifier(context_id, "context ID")
-    path = root / "knowledge" / f"{context_id}.json"
-    if not _inside(root, path):
-        raise ValueError("capture escapes the campaign")
-    with path.open("rb") as stream:
-        raw = stream.read(MAX_CONTEXT_CAPTURE_BYTES + 1)
-    doc, state = verify_capture(raw)
-    if not doc or doc["campaign_id"] != campaign_id or doc["context_id"] != context_id:
-        raise ValueError(f"invalid or mismatched campaign capture ({state})")
-    resources = {c["ref"]: [r["path"] for r in c["resources"]] for c in doc["contexts"]}
-    if any(not isinstance(item.get("ref"), str) or not isinstance(item.get("revision"), str)
-           for item in doc["items"]):
-        raise ValueError("capture item is missing its ref or revision")
-    materials = [{"ref": item["ref"], "revision": item["revision"],
-                  "resources": resources.get(item["ref"], [])} for item in doc["items"]]
-    return {"action": "search", "tool": "collect", "context_id": context_id,
-            "source": path.relative_to(root).as_posix(), "request": doc["request"],
-            "selection": doc.get("selection"), "materials": materials,
-            "sha256": hashlib.sha256(raw).hexdigest()}
+from .search_archive import read_archive_review, reviewed_uses
 
 
 def _use(materials, ref, status, evidence):
@@ -49,15 +27,28 @@ def _use(materials, ref, status, evidence):
     item["use"] = status if len(states) == 1 else "used_and_rejected"
 
 
-def _log_uses(root, campaign_id, number, captures, materials):
+def _atomic_json(target, record):
+    with NamedTemporaryFile(mode="w", encoding="utf-8", dir=target.parent, delete=False) as stream:
+        temporary = Path(stream.name)
+        try:
+            json.dump(record, stream, ensure_ascii=False, indent=2, allow_nan=False)
+            stream.write("\n")
+            stream.close()
+            os.replace(temporary, target)
+        finally:
+            temporary.unlink(missing_ok=True)
+
+
+def _log_uses(root, campaign_id, number, captures, materials, *, archive=False):
     if not captures:
-        return
+        return []
     log, versions, state = read_latest_log(root)
     if state == "not_recorded":
-        return
+        return []
     if not log or log["campaign_id"] != campaign_id:
         raise ValueError(f"cannot correlate campaign optimization log ({state})")
     iteration = next((i for i in log["iterations"] if i["round"] == number), {})
+    declarations = []
     for index, entry in enumerate(log["knowledge"]):
         key = entry["context_id"]
         if key not in iteration.get("context_ids", []) or key not in captures:
@@ -65,13 +56,30 @@ def _log_uses(root, campaign_id, number, captures, materials):
         capture = captures[key]
         if capture["sha256"] != entry["sha256"].lower():
             raise ValueError("optimization log and selected capture revisions differ")
-        resources = {m["ref"]: m["resources"] for m in capture["materials"]}
+        material_rows = {m["ref"]: m for m in capture["materials"]}
+        resources = {ref: material.get("resources", [])
+                     for ref, material in material_rows.items()}
         source = f"{versions[-1]['path']}#/knowledge/{index}"
         for status, refs in (("used", entry["used_refs"]),
                              ("rejected", [r["ref"] for r in entry.get("rejected_refs", [])])):
             for ref in refs:
-                if ref not in resources:
+                if ref not in resources and not archive:
                     raise ValueError("optimization log cites a material absent from its capture")
+                material = material_rows.get(ref)
+                if archive:
+                    delivery = capture.get("delivery", {})
+                    visible = any(isinstance(row, dict) and row.get("ref") == ref
+                                  for row in delivery.get("visible_resources", []))
+                    declarations.append({
+                        "ref": ref, "use": status, "basis": "optimization_log_declaration",
+                        "source": source, "log_sha256": versions[-1].get("sha256"),
+                        "context_id": key, "capture_source": capture["source"],
+                        "capture_sha256": capture["sha256"], "stage": entry["stage"],
+                        "preparation_state": (material.get("preparation_state", "prepared")
+                                               if material else "not_in_capture"),
+                        "delivery_state": "visible" if visible else "unknown",
+                    })
+                    continue
                 evidence = {"source": source, "context_id": key, "stage": entry["stage"]}
                 if status == "used" and not resources[ref]:
                     conflict = {**evidence, "claimed_use": status, "reason": "context_omitted"}
@@ -80,6 +88,7 @@ def _log_uses(root, campaign_id, number, captures, materials):
                         conflicts.append(conflict)
                 else:
                     _use(materials, ref, status, evidence)
+    return declarations
 
 
 def _write(root, record):
@@ -111,9 +120,7 @@ def _write(root, record):
                     current = record["materials"].get(ref, {})
                     if evidence not in current.get("evidence", []):
                         _use(record["materials"], ref, evidence["use"], evidence)
-            record["observed"]["used"] = sum(
-                m["use"] in ("used", "used_and_rejected") for m in record["materials"].values()
-            )
+            record["observed"]["used"] = _used_count(record["materials"])
             if old == record:
                 return target
             continue
@@ -123,15 +130,24 @@ def _write(root, record):
             lo, hi = previous["lines"]
             if max(lo, window["lines"][0]) <= min(hi, window["lines"][1]):
                 raise ValueError("trace window overlaps another round")
-    with NamedTemporaryFile(mode="w", encoding="utf-8", dir=directory, delete=False) as stream:
-        temporary = Path(stream.name)
-        try:
-            json.dump(record, stream, ensure_ascii=False, indent=2, allow_nan=False)
-            stream.write("\n")
-            stream.close()
-            os.replace(temporary, target)
-        finally:
-            temporary.unlink(missing_ok=True)
+    _atomic_json(target, record)
+    return target
+
+
+def _write_archive(root, record):
+    """Atomically write a portable v2 projection beside the local v1 ledger."""
+    directory = root / "search" / "archive"
+    if not _inside(root, directory):
+        raise ValueError("search archive directory escapes the campaign")
+    directory.mkdir(parents=True, exist_ok=True)
+    target = directory / f"round-{record['round']}.json"
+    if target.exists():
+        old, state = _object(target, root)
+        if state != "present" or old.get("schema_version") != 2:
+            raise ValueError("existing archive record has invalid content or version")
+        if old == record:
+            return target
+    _atomic_json(target, record)
     return target
 
 
@@ -162,8 +178,41 @@ def _round_candidates(root, number):
     return runs
 
 
+def _observations(events, *, archive=False):
+    """Count tool hits separately from what appeared in a model-facing return."""
+    materials, hits = {}, set()
+    counts = {"searches": 0, "hits": 0, "unique_hits": 0, "used": 0}
+    for event in events:
+        refs = {row["ref"] for row in event["materials"]}
+        if event["action"] == "search":
+            counts["searches"] += 1
+            counts["hits"] += len(refs)
+            hits.update(refs)
+        for ref in sorted(refs):
+            materials.setdefault(ref, {"use": "unknown"})
+        if archive:
+            delivery = event["delivery"]
+            passages = {row["ref"] for row in delivery.get("passages", [])}
+            visible_refs = set(delivery.get("visible_refs", []))
+            resources = {row["ref"] for row in delivery.get("visible_resources", [])}
+            for ref in refs:
+                material = materials[ref]
+                state = material.setdefault("delivery_state", "unknown")
+                if ref in passages or ref in resources:
+                    material["delivery_state"] = "visible"
+                elif ref in visible_refs and state == "unknown":
+                    material["delivery_state"] = "ref_visible"
+    counts["unique_hits"] = len(hits)
+    return materials, counts
+
+
+def _used_count(materials):
+    return sum(m["use"] in ("used", "used_and_rejected") for m in materials.values())
+
+
 def import_search(root: Path, *, number: int, trace=None, lines=None, knowledge_root=None,
-                  context_ids=(), used=(), rejected=(), complete=False, stage=None):
+                  context_ids=(), used=(), rejected=(), complete=False, stage=None,
+                  archive_review=None):
     root = root.resolve()
     campaign, state = _object(root / "campaign.json", root)
     if state != "present" or number < 1:
@@ -172,34 +221,51 @@ def import_search(root: Path, *, number: int, trace=None, lines=None, knowledge_
     trace_inputs = (trace is not None, lines is not None, knowledge_root is not None)
     if any(trace_inputs) and not all(trace_inputs):
         raise ValueError("--trace, --lines and --knowledge-root must be supplied together")
+    review = read_archive_review(archive_review) if archive_review is not None else None
     if stage is not None and stage not in STAGES:
         raise ValueError(f"stage must be one of {', '.join(STAGES)}")
     if complete and not trace and not context_ids:
         raise ValueError("complete coverage needs a trace window or a capture")
-    window, events, decisions, uncertain = None, [], set(), []
+    capture_ids = list(dict.fromkeys(context_ids))
+    if review is not None and not trace and (review["decisions"] or review["capture_returns"]):
+        raise ValueError("archive decisions and capture_returns need a trace window")
+    if review is not None and not trace and not capture_ids:
+        raise ValueError("archive review needs a trace window or a verified capture")
+    if review is not None and set(review["capture_returns"]) - set(capture_ids):
+        raise ValueError("archive review capture_returns must name selected context IDs")
+    capture_return_lines = list(review["capture_returns"].values()) if review else []
+    if len(set(capture_return_lines)) != len(capture_return_lines):
+        raise ValueError("capture return line is ambiguous across selected contexts")
+    indexer_decisions = {key: [] for key in capture_ids}
+    command_decisions = []
+    if review:
+        context_by_return = {line: key for key, line in review["capture_returns"].items()}
+        for item in review["decisions"]:
+            context_id = context_by_return.get(item["event_line"])
+            if context_id is not None:
+                if "passage_path" not in item:
+                    raise ValueError("Indexer review must name the exact captured resource path")
+                indexer_decisions[context_id].append(item)
+            else:
+                command_decisions.append(item)
+                if "passage_path" in item:
+                    raise ValueError("passage_path is only valid for a verified Indexer return")
+
+    window, events, decisions, uncertain = None, [], {}, []
     if trace:
-        window, events, decisions, uncertain = read_window(trace, lines, knowledge_root)
-    captures = {key: _capture(root, campaign_id, key) for key in dict.fromkeys(context_ids)}
+        window, events, decisions, uncertain, _ = read_window(
+            trace, lines, knowledge_root, archive=False)
+    capture_inputs = {key: load_campaign_capture(root, campaign_id, key) for key in capture_ids}
+    captures = {key: capture_event(key, capture_inputs[key]) for key in capture_ids}
     events.extend(captures.values())
-    materials = {}
-    hits = set()
-    searches = hit_count = 0
-    for event in events:
-        refs = {m["ref"] for m in event["materials"]}
-        if event["action"] == "search":
-            searches += 1
-            hit_count += len(refs)
-            hits.update(refs)
-        for ref in sorted(refs):
-            materials.setdefault(ref, {"use": "unknown"})
+    materials, observed = _observations(events)
     _log_uses(root, campaign_id, number, captures, materials)
     for status, entries in (("used", used), ("rejected", rejected)):
         for ref, line in entries:
             if int(line) not in decisions:
                 raise ValueError("decision line must reference an assistant message in this round")
             _use(materials, ref, status, {"decision_line": int(line), "basis": "caller_reviewed"})
-    observed = {"searches": searches, "hits": hit_count, "unique_hits": len(hits),
-                "used": sum(m["use"] in ("used", "used_and_rejected") for m in materials.values())}
+    observed["used"] = _used_count(materials)
     coverage = "complete" if complete and not uncertain else "partial"
     if not window and not captures:
         coverage = "missing"
@@ -208,4 +274,62 @@ def import_search(root: Path, *, number: int, trace=None, lines=None, knowledge_
               "unresolved_command_lines": uncertain, "events": events, "materials": materials,
               "observed": observed, "counts": observed if coverage == "complete" else None,
               "candidates": _round_candidates(root, number)}
-    return _write(root, record)
+    if review is None:
+        return _write(root, record)
+
+    selections = {}
+    for item in command_decisions:
+        selections.setdefault(item["event_line"], []).append((item["ref"], item["passage_line"]))
+    archive_events, archive_decisions, archive_uncertain, unresolved_details = [], {}, [], []
+    if trace:
+        _, archive_events, archive_decisions, archive_uncertain, unresolved_details = read_window(
+            trace, lines, knowledge_root, archive=True, selections=selections)
+    return_texts = {}
+    if review["capture_returns"]:
+        return_texts = capture_return_texts(trace, lines, review["capture_returns"], capture_ids)
+    archive_captures = {}
+    for key in capture_ids:
+        return_line = review["capture_returns"].get(key)
+        archive_captures[key] = capture_event(
+            key, capture_inputs[key], archive=True,
+            return_chunks=return_texts.get(key),
+            return_line=return_line,
+            selected_passages=indexer_decisions[key])
+    archive_events.extend(archive_captures.values())
+    archive_materials, archive_observed = _observations(archive_events, archive=True)
+    declarations = _log_uses(root, campaign_id, number, archive_captures, archive_materials,
+                             archive=True)
+    for status, entries in (("used", used), ("rejected", rejected)):
+        for ref, line in entries:
+            line = int(line)
+            if line not in archive_decisions:
+                raise ValueError("decision line must reference an assistant message in this round")
+            if ref not in archive_materials:
+                raise ValueError("use declaration must name a material observed in this round")
+            declarations.append({
+                "ref": ref, "use": status, "basis": "caller_flag_declaration",
+                "decision_line": line,
+                "delivery_state": archive_materials[ref].get("delivery_state", "unknown"),
+            })
+    for ref, status, evidence in reviewed_uses(review, archive_events, archive_decisions):
+        _use(archive_materials, ref, status, evidence)
+    archive_observed["used"] = _used_count(archive_materials)
+    archive_coverage = ("complete" if complete and not archive_uncertain and not unresolved_details
+                        else "partial")
+    archive_record = {
+        "schema_version": 2, "campaign_id": campaign_id, "round": number,
+        "stage": stage, "task": review["task"], "corpus": review["corpus"],
+        "trace": ({"lines": window["lines"], "archive": True} if window else None),
+        "context_ids": list(archive_captures), "coverage": archive_coverage,
+        "unresolved_command_lines": archive_uncertain,
+        "unresolved_details": unresolved_details,
+        "events": archive_events, "materials": archive_materials,
+        "declarations": declarations, "observed": archive_observed,
+        "counts": archive_observed if archive_coverage == "complete" else None,
+        "candidates": record["candidates"],
+    }
+    if review["result_note"] is not None:
+        archive_record["result_note"] = review["result_note"]
+        archive_record["result_note_basis"] = "caller_reviewed"
+    _write(root, record)
+    return _write_archive(root, archive_record)

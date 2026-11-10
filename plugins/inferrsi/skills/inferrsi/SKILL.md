@@ -103,6 +103,10 @@ root and any capture IDs. If the rollout is available only after interruption,
 the host can import the same range later. Keep private raw traces outside the
 campaign. The round-import section of `docs/dashboard.md` describes how to
 distinguish observed reads, explicit use and missing capture.
+For a round intended for repository evidence, supply the reviewed corpus
+version and decision references with `--archive-review`. Check that the
+published passages, decision excerpts and linked campaign artifacts let a
+reader verify the claim without the private rollout.
 
 For a bilingual dashboard, prepare and review a translation overlay for the
 recorded narrative, including the knowledge context, search space, decisions,
