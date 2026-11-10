@@ -210,9 +210,36 @@ class ClosedLoopTest(unittest.TestCase):
             archive=archive,
         )
         self.assertEqual(result.reason, "record_mismatch")
+        self.assertIsNone(result.record_ref)
         self.assertEqual(benchmark.assesses, 0)
         self.assertIsNone(result.assessment_ref)
         self.assertEqual(archive.assessments, {})
+
+    def test_foreign_attempt_is_rejected_for_recovery_and_not_started(self) -> None:
+        def foreign(kind: str) -> FakeHarness:
+            class Foreign(FakeHarness):
+                def execute(self, spec):
+                    outcome = super().execute(spec)
+                    outcome["record_ref"]["attempt_id"] = "attempt-other"
+                    return outcome
+
+            return Foreign(kind)
+
+        for kind in ("recovery_required", "not_started"):
+            with self.subTest(kind=kind):
+                benchmark = FakeBenchmark()
+                archive = MemoryArchive()
+                result = run_loop(
+                    knowledge=FakeKnowledge(),
+                    harness=foreign(kind),
+                    benchmark=benchmark,
+                    archive=archive,
+                )
+                self.assertEqual(result.reason, "record_mismatch")
+                self.assertIsNone(result.record_ref)
+                self.assertIsNone(result.assessment_ref)
+                self.assertEqual(benchmark.assesses, 0)
+                self.assertEqual(archive.assessments, {})
 
     def test_unknown_kind_is_not_assessed(self) -> None:
         benchmark = FakeBenchmark()

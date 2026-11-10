@@ -131,6 +131,9 @@ def run_loop(*, knowledge, harness, benchmark, archive: MemoryArchive) -> LoopRe
     kind = outcome.get("kind")
     if kind == "no_record" or record_ref is None:
         return LoopResult("no_record", prepared_ref=prepared_ref)
+    # Bind the attempt before any path treats this record as current.
+    if record_ref.attempt_id != spec["attempt_id"]:
+        return LoopResult("record_mismatch", prepared_ref=prepared_ref)
     if kind == "recovery_required":
         return LoopResult(
             "recovery_required",
@@ -141,12 +144,6 @@ def run_loop(*, knowledge, harness, benchmark, archive: MemoryArchive) -> LoopRe
     if kind == "not_started":
         return LoopResult(
             "not_started",
-            prepared_ref=prepared_ref,
-            record_ref=record_ref,
-        )
-    if record_ref.attempt_id != spec["attempt_id"]:
-        return LoopResult(
-            "record_mismatch",
             prepared_ref=prepared_ref,
             record_ref=record_ref,
         )
