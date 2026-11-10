@@ -96,12 +96,10 @@ change that code.
 | Any other verdict, including missing | 2 |
 | `OSError`, `ValueError`, `JSONDecodeError`, or `sqlite3.Error` via `parser.error` | 2 |
 
-## Later fixture move
+## Fixture locations
 
-Not this slice. `tests/fixtures/` already contains helpers such as
-`skill_eval_pr_support.py` and `skill_eval_compare_support.py`. A later
-cleanup that moves `docs/examples/skill-comparison/` or
-`docs/examples/skill-eval-pr/` should use new directories
-`tests/fixtures/skill-comparison/` and `tests/fixtures/skill-eval-pr/`, and
-must update the tests and workflow that cite the docs paths in the same
-change. Do not overwrite the existing helper modules.
+`tests/fixtures/skill-comparison/` and `tests/fixtures/skill-eval-pr/` hold
+the skill-eval fixtures. `tests/fixtures/` also contains helpers such as
+`skill_eval_pr_support.py` and `skill_eval_compare_support.py`. Do not
+overwrite those helper modules. A later path change must update the tests,
+docs, and workflow that cite these directories in the same change.
