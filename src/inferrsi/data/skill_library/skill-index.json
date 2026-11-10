@@ -305,6 +305,10 @@
       "path": "methods/video-diffusion-optimization",
       "backend": "common"
     },
+    "vllm-ascend": {
+      "path": "repositories/vllm-ascend",
+      "backend": "ascend"
+    },
     "vllm-metal": {
       "path": "repositories/vllm-metal",
       "backend": "common"

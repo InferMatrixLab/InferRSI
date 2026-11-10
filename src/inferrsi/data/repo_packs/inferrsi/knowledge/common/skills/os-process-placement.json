@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "id": "inferrsi.common.skills.os_process_placement",
   "title": "os-process-placement",
   "repo": "inferrsi",
@@ -21,20 +21,6 @@
   "origin": [
     "external"
   ],
-  "sources": [
-    {
-      "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/8daa93343cb7a33069b6c6b53a82eb4ec14941a0/src/inferrsi/data/skill_library/hardware/host/os-process-placement/SKILL.md",
-      "commit": "8daa93343cb7a33069b6c6b53a82eb4ec14941a0",
-      "paths": [
-        "src/inferrsi/data/skill_library/hardware/host/os-process-placement/SKILL.md",
-        "src/inferrsi/data/skill_library/hardware/host/os-process-placement/metadata.json",
-        "src/inferrsi/data/skill_library/hardware/host/os-process-placement/references/llama-numa-thread-readset.md",
-        "src/inferrsi/data/skill_library/skill-index.json"
-      ],
-      "content_sha256": "2003492e4d89fde0443b180d74933e764bd1979435e109c8d26e20eb8f6e5053"
-    }
-  ],
   "index_type": "packaged-skill",
   "skill_documents": {
     "original": "data/skill_library/hardware/host/os-process-placement/SKILL.md"
@@ -43,8 +29,7 @@
   "source_files": {
     "src/inferrsi/data/skill_library/hardware/host/os-process-placement/SKILL.md": "2003492e4d89fde0443b180d74933e764bd1979435e109c8d26e20eb8f6e5053",
     "src/inferrsi/data/skill_library/hardware/host/os-process-placement/metadata.json": "d53e53f724c7b6f261cf6c9b579afd20b2279cb1ffd0af89f8ce9f475046fa76",
-    "src/inferrsi/data/skill_library/hardware/host/os-process-placement/references/llama-numa-thread-readset.md": "748b254b3b043a5ddb0f480eb4a566854d27eedd7b111499863e9bf0a5a6951e",
-    "src/inferrsi/data/skill_library/skill-index.json": "9ea8b2ef190777e683a3905f0614612a37782be4d655d230c000188b0c7073db"
+    "src/inferrsi/data/skill_library/hardware/host/os-process-placement/references/llama-numa-thread-readset.md": "748b254b3b043a5ddb0f480eb4a566854d27eedd7b111499863e9bf0a5a6951e"
   },
   "skill_metadata": {
     "name": "os-process-placement",

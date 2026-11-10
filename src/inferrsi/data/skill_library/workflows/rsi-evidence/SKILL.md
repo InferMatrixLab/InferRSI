@@ -80,3 +80,16 @@ external execution guarantees. Read its counterexamples before interpreting
 `should_run`, missing state or a replay lookup. This source-derived candidate
 adds no execution permission or empirical validation; the evidence, RunSpec and
 verdict rules above still apply.
+
+## Omni and streaming experiments
+
+Use the [Omni experiment contract](references/omni-experiments.md)
+for reference/RNG parity, feedback-aware stage boundaries,
+matching streaming decode schedules, internal graph controls and protocol preflight.
+Freeze selected `--require-trial-check` dotted boolean fields
+in RunSpec and require literal true evidence from every baseline/candidate trial.
+Missing, malformed or false fields make qualification INCONCLUSIVE; a successful
+process and metric alone do not prove complete requests or normal worker exits.
+Retain underlying receipts and all failed attempts. After repairing the harness,
+rerun the complete comparison rather than combining arms from different attempts.
+These checks do not replace the accuracy dataset or mixed-request concurrency.

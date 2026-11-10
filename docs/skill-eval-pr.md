@@ -68,8 +68,9 @@ The author and independent reviewer must disposition that relevance explicitly.
 
 For canonical library or generated-index changes, the planner may show the existing
 `python tools/build_skill_index.py --source-revision <declared-commit> --check`
-with an **actual** immutable pin. It reads the known generated README as bounded
-Git data, requires one declared source commit in the frozen head's ancestor closure,
+with an **actual** immutable pin. It reads the declared pin as bounded Git data from
+the generated `_provenance.json` snapshot, or from the generated README when no
+snapshot exists, requires that source commit in the frozen head's ancestor closure,
 and checks that the entire canonical library has identical Git bytes/modes at that
 pin and the PR head. It does not
 execute the generator or establish that generated records are correct. Plan and
@@ -252,7 +253,7 @@ pytest
 
 Generate a complete offline example for either mode:
 
-See the [offline summary excerpt](examples/skill-eval-pr/summary-example.md).
+See the [offline summary excerpt](../tests/fixtures/skill-eval-pr/summary-example.md).
 
 ```bash
 python -m tests.fixtures.skill_eval_pr_demo --mode addition --output <new-addition-output>

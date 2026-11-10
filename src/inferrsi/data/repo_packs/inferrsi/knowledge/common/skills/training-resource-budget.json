@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "id": "inferrsi.common.skills.training_resource_budget",
   "title": "training-resource-budget",
   "repo": "inferrsi",
@@ -20,28 +20,6 @@
   "origin": [
     "external"
   ],
-  "sources": [
-    {
-      "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/8daa93343cb7a33069b6c6b53a82eb4ec14941a0/src/inferrsi/data/skill_library/methods/training-resource-budget/SKILL.md",
-      "commit": "8daa93343cb7a33069b6c6b53a82eb4ec14941a0",
-      "paths": [
-        "src/inferrsi/data/skill_library/methods/training-resource-budget/SKILL.md",
-        "src/inferrsi/data/skill_library/methods/training-resource-budget/metadata.json",
-        "src/inferrsi/data/skill_library/methods/training-resource-budget/references/mindspeed-historical.md",
-        "src/inferrsi/data/skill_library/methods/training-resource-budget/references/mindspeed-source-readset.md",
-        "src/inferrsi/data/skill_library/methods/training-resource-budget/references/papers-20261015/INTEGRATION_NOTES.md",
-        "src/inferrsi/data/skill_library/methods/training-resource-budget/references/papers-20261015/cases/paper-grounded-cases.md",
-        "src/inferrsi/data/skill_library/methods/training-resource-budget/references/papers-20261015/knowledge/offload-delta.md",
-        "src/inferrsi/data/skill_library/methods/training-resource-budget/references/papers-20261015/notes/training-memory-scheduling.md",
-        "src/inferrsi/data/skill_library/methods/training-resource-budget/references/papers-20261015/references/source-readset.md",
-        "src/inferrsi/data/skill_library/methods/training-resource-budget/references/sources.md",
-        "src/inferrsi/data/skill_library/methods/training-resource-budget/references/stas-decision-notes.md",
-        "src/inferrsi/data/skill_library/skill-index.json"
-      ],
-      "content_sha256": "d3805c5f605faae663ad5a674a56c1e1e5fdd211cd58833c008e557cfd7e4c37"
-    }
-  ],
   "index_type": "packaged-skill",
   "skill_documents": {
     "original": "data/skill_library/methods/training-resource-budget/SKILL.md"
@@ -58,8 +36,7 @@
     "src/inferrsi/data/skill_library/methods/training-resource-budget/references/papers-20261015/notes/training-memory-scheduling.md": "9aa6d3e01452dff95c8a8940ff62ead8c146ce215c9175b78c9f2ef508a7b2de",
     "src/inferrsi/data/skill_library/methods/training-resource-budget/references/papers-20261015/references/source-readset.md": "2a5c166767f56fa47e7eba7386f1f36da8cb73702e5b5bbe14d6a456ca9ebfae",
     "src/inferrsi/data/skill_library/methods/training-resource-budget/references/sources.md": "53d70671a183de4aaa3369f9caf2383a23b6f8a0a7b04464a8d8a639150afc6a",
-    "src/inferrsi/data/skill_library/methods/training-resource-budget/references/stas-decision-notes.md": "f1a993e6c4ca9a035a2effcaf5500081f227b0cc56cc885a6b22fda0041fc744",
-    "src/inferrsi/data/skill_library/skill-index.json": "9ea8b2ef190777e683a3905f0614612a37782be4d655d230c000188b0c7073db"
+    "src/inferrsi/data/skill_library/methods/training-resource-budget/references/stas-decision-notes.md": "f1a993e6c4ca9a035a2effcaf5500081f227b0cc56cc885a6b22fda0041fc744"
   },
   "skill_metadata": {
     "name": "training-resource-budget",

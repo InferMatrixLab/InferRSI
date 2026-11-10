@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "id": "inferrsi.cuda.skills.reason_hopper_kernels",
   "title": "reason-hopper-kernels",
   "repo": "inferrsi",
@@ -33,28 +33,6 @@
   "origin": [
     "external"
   ],
-  "sources": [
-    {
-      "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/8daa93343cb7a33069b6c6b53a82eb4ec14941a0/src/inferrsi/data/skill_library/hardware/cuda/reason-hopper-kernels/SKILL.md",
-      "commit": "8daa93343cb7a33069b6c6b53a82eb4ec14941a0",
-      "paths": [
-        "src/inferrsi/data/skill_library/hardware/cuda/reason-hopper-kernels/SKILL.md",
-        "src/inferrsi/data/skill_library/hardware/cuda/reason-hopper-kernels/metadata.json",
-        "src/inferrsi/data/skill_library/hardware/cuda/reason-hopper-kernels/references/fp8.md",
-        "src/inferrsi/data/skill_library/hardware/cuda/reason-hopper-kernels/references/licenses/cutlass-bsd.md",
-        "src/inferrsi/data/skill_library/hardware/cuda/reason-hopper-kernels/references/licenses/deepgemm-mit.md",
-        "src/inferrsi/data/skill_library/hardware/cuda/reason-hopper-kernels/references/licenses/kernelwiki-kda-mit.md",
-        "src/inferrsi/data/skill_library/hardware/cuda/reason-hopper-kernels/references/notices.md",
-        "src/inferrsi/data/skill_library/hardware/cuda/reason-hopper-kernels/references/resources-and-scheduling.md",
-        "src/inferrsi/data/skill_library/hardware/cuda/reason-hopper-kernels/references/source-inventory.json",
-        "src/inferrsi/data/skill_library/hardware/cuda/reason-hopper-kernels/references/sources.md",
-        "src/inferrsi/data/skill_library/hardware/cuda/reason-hopper-kernels/references/synchronization.md",
-        "src/inferrsi/data/skill_library/skill-index.json"
-      ],
-      "content_sha256": "cec4e3aa1eb64c31c54b5f5ca40af2b61b7919d94be4174968581d5f752c0538"
-    }
-  ],
   "index_type": "packaged-skill",
   "skill_documents": {
     "original": "data/skill_library/hardware/cuda/reason-hopper-kernels/SKILL.md"
@@ -71,8 +49,7 @@
     "src/inferrsi/data/skill_library/hardware/cuda/reason-hopper-kernels/references/resources-and-scheduling.md": "1ce25b426736072435a1ead9a2a8e1f56df5d0abb8198e8c4fdcb34321db4964",
     "src/inferrsi/data/skill_library/hardware/cuda/reason-hopper-kernels/references/source-inventory.json": "1dc09c895c970a0c9708158bcc6dd65cdb736274fd2c35d44542c70407d3849d",
     "src/inferrsi/data/skill_library/hardware/cuda/reason-hopper-kernels/references/sources.md": "6b74b9e774f2a80db0860510d9e6940d36284430f29c1e124f115a9eaf25833d",
-    "src/inferrsi/data/skill_library/hardware/cuda/reason-hopper-kernels/references/synchronization.md": "4322f6b3c0e4368bf8c192b4ec752529767f50d19c0c38dad8fdf9cd781e41d9",
-    "src/inferrsi/data/skill_library/skill-index.json": "9ea8b2ef190777e683a3905f0614612a37782be4d655d230c000188b0c7073db"
+    "src/inferrsi/data/skill_library/hardware/cuda/reason-hopper-kernels/references/synchronization.md": "4322f6b3c0e4368bf8c192b4ec752529767f50d19c0c38dad8fdf9cd781e41d9"
   },
   "skill_metadata": {
     "name": "reason-hopper-kernels",

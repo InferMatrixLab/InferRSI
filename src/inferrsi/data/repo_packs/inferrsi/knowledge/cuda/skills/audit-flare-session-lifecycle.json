@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "id": "inferrsi.cuda.skills.audit_flare_session_lifecycle",
   "title": "audit-flare-session-lifecycle",
   "repo": "inferrsi",
@@ -26,24 +26,6 @@
   "origin": [
     "external"
   ],
-  "sources": [
-    {
-      "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/8daa93343cb7a33069b6c6b53a82eb4ec14941a0/src/inferrsi/data/skill_library/repositories/flare-local-inference/audit-flare-session-lifecycle/SKILL.md",
-      "commit": "8daa93343cb7a33069b6c6b53a82eb4ec14941a0",
-      "paths": [
-        "src/inferrsi/data/skill_library/repositories/flare-local-inference/audit-flare-session-lifecycle/LICENSE",
-        "src/inferrsi/data/skill_library/repositories/flare-local-inference/audit-flare-session-lifecycle/SKILL.md",
-        "src/inferrsi/data/skill_library/repositories/flare-local-inference/audit-flare-session-lifecycle/metadata.json",
-        "src/inferrsi/data/skill_library/repositories/flare-local-inference/audit-flare-session-lifecycle/references/diagnostics.md",
-        "src/inferrsi/data/skill_library/repositories/flare-local-inference/audit-flare-session-lifecycle/references/lifecycle.md",
-        "src/inferrsi/data/skill_library/repositories/flare-local-inference/audit-flare-session-lifecycle/references/source-ledger.json",
-        "src/inferrsi/data/skill_library/repositories/flare-local-inference/audit-flare-session-lifecycle/references/source-notes.md",
-        "src/inferrsi/data/skill_library/skill-index.json"
-      ],
-      "content_sha256": "02a5f7c18e44201215ecec17c6ac96b27be9148bcc189df287f39d1b372b7721"
-    }
-  ],
   "index_type": "packaged-skill",
   "skill_documents": {
     "original": "data/skill_library/repositories/flare-local-inference/audit-flare-session-lifecycle/SKILL.md"
@@ -56,8 +38,7 @@
     "src/inferrsi/data/skill_library/repositories/flare-local-inference/audit-flare-session-lifecycle/references/diagnostics.md": "0908a0eae53a2e10775a8b6ee3e3944b2fa410174402b5a1a8c98eb674dd4b4d",
     "src/inferrsi/data/skill_library/repositories/flare-local-inference/audit-flare-session-lifecycle/references/lifecycle.md": "107ebe3c22e5dba8007c3b8ea61149f10bc55c51b557a4230f3e5de859bb0f7c",
     "src/inferrsi/data/skill_library/repositories/flare-local-inference/audit-flare-session-lifecycle/references/source-ledger.json": "61e51a97ffd7c1fa7866bdd440b024d0c5e0065635ac8d0ba53d2c69c7f9e470",
-    "src/inferrsi/data/skill_library/repositories/flare-local-inference/audit-flare-session-lifecycle/references/source-notes.md": "fc7ceb819b91ef1731d8b7783f543c92ef6bb5c97ef5f897c055824f8a560168",
-    "src/inferrsi/data/skill_library/skill-index.json": "9ea8b2ef190777e683a3905f0614612a37782be4d655d230c000188b0c7073db"
+    "src/inferrsi/data/skill_library/repositories/flare-local-inference/audit-flare-session-lifecycle/references/source-notes.md": "fc7ceb819b91ef1731d8b7783f543c92ef6bb5c97ef5f897c055824f8a560168"
   },
   "skill_metadata": {
     "name": "audit-flare-session-lifecycle",

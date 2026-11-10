@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "id": "inferrsi.common.skills.budget_speculative_verification",
   "title": "budget-speculative-verification",
   "repo": "inferrsi",
@@ -20,21 +20,6 @@
   "origin": [
     "external"
   ],
-  "sources": [
-    {
-      "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/8daa93343cb7a33069b6c6b53a82eb4ec14941a0/src/inferrsi/data/skill_library/repositories/deepinfer/budget-speculative-verification/SKILL.md",
-      "commit": "8daa93343cb7a33069b6c6b53a82eb4ec14941a0",
-      "paths": [
-        "src/inferrsi/data/skill_library/repositories/deepinfer/budget-speculative-verification/SKILL.md",
-        "src/inferrsi/data/skill_library/repositories/deepinfer/budget-speculative-verification/metadata.json",
-        "src/inferrsi/data/skill_library/repositories/deepinfer/budget-speculative-verification/references/source-notes.md",
-        "src/inferrsi/data/skill_library/repositories/deepinfer/budget-speculative-verification/references/validation.md",
-        "src/inferrsi/data/skill_library/skill-index.json"
-      ],
-      "content_sha256": "f157562d1edc905cb4fc07246567e3c5b844efb9fbf5fe39f0d40553a1b1a307"
-    }
-  ],
   "index_type": "packaged-skill",
   "skill_documents": {
     "original": "data/skill_library/repositories/deepinfer/budget-speculative-verification/SKILL.md"
@@ -44,8 +29,7 @@
     "src/inferrsi/data/skill_library/repositories/deepinfer/budget-speculative-verification/SKILL.md": "f157562d1edc905cb4fc07246567e3c5b844efb9fbf5fe39f0d40553a1b1a307",
     "src/inferrsi/data/skill_library/repositories/deepinfer/budget-speculative-verification/metadata.json": "1aa80a3109072c1ec211f38dbeb9e9cb9edb56aeac187946b43e65dd7502e46f",
     "src/inferrsi/data/skill_library/repositories/deepinfer/budget-speculative-verification/references/source-notes.md": "6fa955022f16cd598f44fd6521901d1cb868b06cec545cabe2b82769a641b5d6",
-    "src/inferrsi/data/skill_library/repositories/deepinfer/budget-speculative-verification/references/validation.md": "673d93f6700052974b340fab25b3438e0e6344960569ac9abec7d7720f662288",
-    "src/inferrsi/data/skill_library/skill-index.json": "9ea8b2ef190777e683a3905f0614612a37782be4d655d230c000188b0c7073db"
+    "src/inferrsi/data/skill_library/repositories/deepinfer/budget-speculative-verification/references/validation.md": "673d93f6700052974b340fab25b3438e0e6344960569ac9abec7d7720f662288"
   },
   "skill_metadata": {
     "name": "budget-speculative-verification",
