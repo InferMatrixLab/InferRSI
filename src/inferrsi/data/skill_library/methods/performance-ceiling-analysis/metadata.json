@@ -77,6 +77,7 @@
         "docs/measured_calibration.md",
         "docs/evaluation_model.md",
         "docs/known_limitations.md",
+        "docs/parallelism.md",
         "backend/arch/validate/_matching.py",
         "backend/arch/validate/_weight_ledger.py",
         "backend/arch/validate/_ablation.py",
@@ -88,13 +89,13 @@
       "license": "MIT",
       "observed_at": "2026-11-04",
       "identity": "references/huggingarch-source-identity.json",
-      "note": "Single-commit repository created 2026-11-03; no earlier revision exists to inspect. A companion blog post is recorded in the identity file as a partially read live URL with no snapshot, and two figures attributed to it are explicitly unverified."
+      "note": "The repository was created on 2026-11-03 and has a single commit, dated 2026-11-04 and pinned here; no earlier revision exists to inspect. A companion blog post is recorded in the identity file as a partially read live URL with no snapshot, and two figures attributed to it are explicitly unverified."
     }
   ],
   "verification": {
     "locally_verified": false,
     "evidence_level": "source_grounded",
-    "note": "Historical repository methods plus reviewed paper extensions: references/papers-20261015/READSET.md records exact paper versions and inspection scope. Physical/conditional bounds, observed envelopes, simulator predictions and application measurements remain distinct. The bundled pure helper computes supplied L1 counts only; no automatic workload estimation, local accelerator measurements or E2E qualification. The checkpoint-anchor prerequisite is derived from a reviewed external implementation at a pinned commit (references/huggingarch-checkpoint-anchor.md, identity in references/huggingarch-source-identity.json); documentation claims and source-verified claims are marked separately there. It anchors the weight demand term only and establishes nothing about KV counts, per-rank bytes without its second gate, or end-to-end serving performance."
+    "note": "Historical repository methods plus reviewed paper extensions: references/papers-20261015/READSET.md records exact paper versions and inspection scope. Physical/conditional bounds, observed envelopes, simulator predictions and application measurements remain distinct. The bundled pure helper computes supplied L1 counts only; no automatic workload estimation, local accelerator measurements or E2E qualification. The checkpoint-anchor prerequisite is derived from a reviewed external implementation at a pinned commit (references/huggingarch-checkpoint-anchor.md, identity in references/huggingarch-source-identity.json); claims read from executable code and claims stated only in the project's prose, docstrings included, are marked separately there. It anchors the weight demand term only and establishes nothing about KV counts, per-rank bytes without its second gate, or end-to-end serving performance."
   },
   "applicability": {
     "scope": "inference serving systems (LLM, diffusion, audio)",
@@ -125,22 +126,22 @@
     "references/huggingarch-checkpoint-anchor.md",
     "references/huggingarch-source-identity.json",
     "references/mooncake-prefix-reuse-feasibility.md",
-    "references/papers-20261015/INTEGRATION_NOTES.md",
-    "references/papers-20261015/MECHANISMS.md",
-    "references/papers-20261015/README.md",
-    "references/papers-20261015/READSET.md",
-    "references/papers-20261015/STATIC_CHECKS.md",
     "references/papers-20261015/cases/decision-cases.md",
     "references/papers-20261015/govern-optimization-experiments/procedure.md",
     "references/papers-20261015/govern-optimization-experiments/references/source-notes.md",
+    "references/papers-20261015/INTEGRATION_NOTES.md",
     "references/papers-20261015/knowledge/bounds-predictions-and-decisions.md",
+    "references/papers-20261015/MECHANISMS.md",
+    "references/papers-20261015/README.md",
+    "references/papers-20261015/READSET.md",
     "references/papers-20261015/redirect-cross-layer-optimization/procedure.md",
     "references/papers-20261015/redirect-cross-layer-optimization/references/source-notes.md",
     "references/papers-20261015/references/agentic-kernel.md",
     "references/papers-20261015/references/flashvector.md",
     "references/papers-20261015/references/inferencebench.md",
     "references/papers-20261015/references/prior-coverage.md",
-    "references/papers-20261015/references/vidur.md"
+    "references/papers-20261015/references/vidur.md",
+    "references/papers-20261015/STATIC_CHECKS.md"
   ],
   "consumption_mode": "packaged"
 }

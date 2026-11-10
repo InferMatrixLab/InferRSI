@@ -37,13 +37,14 @@ Before profiling, gather what you can analytically:
 L1 divides a count by a rated peak and never revisits the model, so an error in
 the count propagates into the floor unchallenged: the formula is right, the
 division is right, and the number is wrong. Where a checkpoint exists, the weight
-half of that count has an external ground truth that needs a few header range
-reads and no accelerator. Run **two** gates, in order:
+half of that count has an external ground truth that needs only the shard
+headers and no accelerator. Run **two** gates, in order:
 
-1. **Bidirectional per-tensor join.** Every header tensor must be claimed by
-   exactly one analytical leaf and agree with it in physical element count, and
-   every name the analysis stores must exist in the header. Report both
-   residuals: header tensors nothing claims, and stored names selecting nothing.
+1. **Bidirectional per-tensor join.** Every header tensor must be claimed by an
+   analytical leaf and agree with it in physical element count, and every name
+   the analysis stores must exist in the header. Where several stored tensors
+   share one name, sum them before comparing. Report both residuals: header
+   tensors nothing claims, and stored names selecting nothing.
    Treat a byte total as a checksum on this join, never as the primary gate — a
    sum catches a wrong width but not two submodules swapped with the same total.
    Compare bytes rather than elements wherever precision is mixed, because bytes
@@ -52,7 +53,8 @@ reads and no accelerator. Run **two** gates, in order:
    it certifies nothing about per-device bytes. Before quoting any per-device or
    per-degree figure, confirm every stored weight has a declared layout for each
    stored axis and a format that gives it a width. Resolve a degree that does not
-   divide its dimension as declared; never substitute a divisor that divides.
+   divide a weight's part count by the declared policy (refuse, let ranks co-own
+   the shard, or pad to whole parts); never substitute a divisor that divides.
 
 The anchor covers the **weight traffic term only**. A sliding-window and a global
 attention with identical head dimensions have byte-identical weights, so KV
@@ -396,16 +398,19 @@ L1 inputs under the contract above.
 ### Reviewed external gate implementation
 
 [Checkpoint anchoring and the two-threshold rule](references/huggingarch-checkpoint-anchor.md)
-records one external project's implemented separation between a bound that may
-reject a result and an estimate that may not. A rated-peak capacity bound,
-compared against the same measured row's own recorded peaks, refuses that row
-outright; a per-operation roofline conditional on that operation's counts only
-flags it, because a different legitimate implementation can change those counts.
-Rejection authority tracks how invariant the bound is. The same document carries
-that project's archived guard-ablation study, with its own stated limitations, as
-external corroboration that an agent's self-assessment is not a verdict, and
-states what the source does not establish — notably no end-to-end validation of
-predicted against measured serving performance. Source identity and per-file
-inspection scope:
+records one external project's separation between a bound that may reject a
+result and an estimate that may not. A rated-peak capacity bound, checked
+against a measured row's own claimed work and recorded peaks, is documented to
+refuse that row at upload; a roofline the estimate computes separately only
+flags a row that beats it. The source does not say why. The document reads the
+difference as self-consistency: the first check needs nothing but the row, so a
+failure means the record contradicts itself, while the second compares the row
+with a separately computed floor, where either side may be wrong. Rejection
+authority is reserved for a result that contradicts its own record. The same
+document carries that project's archived guard-ablation study, with its own
+stated limitations, as external evidence, not reproducible here, that an agent's
+self-assessment is not a verdict. It also states what the source does not
+establish — notably no end-to-end validation of predicted against measured
+serving performance. Source identity and per-file inspection scope:
 [`huggingarch-source-identity.json`](references/huggingarch-source-identity.json).
 Candidate guidance; no local measurement.

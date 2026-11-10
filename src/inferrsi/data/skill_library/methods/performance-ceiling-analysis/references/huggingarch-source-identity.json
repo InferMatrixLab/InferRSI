@@ -15,12 +15,12 @@
       "commit_date": "2026-11-04T02:24:14Z",
       "license": "MIT",
       "observed_at": "2026-11-04",
-      "method": "GitHub API tree listing at the pinned commit for blob identity and size; raw file retrieval at the same commit, hashed locally. A complete file hash does not imply complete semantic inspection; per-file scope is stated below.",
+      "method": "GitHub API tree listing at the pinned commit for blob identity and size; raw file retrieval at the same commit, hashed locally. The count of kernel_bench/envs/*.txt files cited in the consuming document is read from that tree listing, not from code or documentation. A complete file hash does not imply complete semantic inspection; per-file scope is stated below. Review follow-up on 2026-11-10 re-retrieved the cited files at the same commit; every blob and sha256 matched.",
       "repository_history": {
         "commits_on_default_branch": 1,
         "first_commit_message": "init repo",
         "repository_created_at": "2026-11-03T16:33:09Z",
-        "note": "A single squashed commit with no prior history. Figures published before this commit cannot be attributed to it, and no earlier revision is available for inspection."
+        "note": "A single commit with no prior history; whether it squashes earlier work is not established. Figures published before this commit cannot be attributed to it, and no earlier revision is available for inspection."
       },
       "files": [
         {
@@ -52,39 +52,46 @@
           "inspection": "Section headings read in full; bodies not inspected. Cited only for the heading-level fact that collective communication is not measured."
         },
         {
+          "path": "docs/parallelism.md",
+          "git_blob": "2bac0e945842707a432b923f2ba3580428854491",
+          "bytes": 23100,
+          "sha256": "d33f829de04a27e42b3d44b98eaab94af409827434a2b2df18f4073c37b71714",
+          "inspection": "Section 'One axis table, and each stored weight's declared placement' read on 2026-11-10; the per-axis weight_axes declaration and the fit policy for a degree that does not divide a weight's part count (exact, replica_cells, pad). Remaining sections not inspected."
+        },
+        {
           "path": "backend/arch/validate/_matching.py",
           "git_blob": "60b81c06768180b389e3aa820669f4e29807d228",
           "bytes": 18640,
           "sha256": "09adc8e4d1052e328c990526f90bafeca1c83eeaabac33d7167f4e71cf6a1a0b",
-          "inspection": "Module docstring and the join result structure read; both unmatched residuals are carried as data. Matching internals not traced."
+          "inspection": "Read in full (re-inspected 2026-11-10, same blob). Executable code shows both residuals built in one call (CheckpointJoin.of) and carried as data, and rows sharing a name summed (match_checkpoint_to_hf, bind_leaves_to_hf). Name lookup (SafetensorsHeader.select) and name composition (spec_tree) live in files not inspected; the consuming document cites them from docstrings and docs/validation.md as [doc]."
         },
         {
           "path": "backend/arch/validate/_weight_ledger.py",
           "git_blob": "22527d76c1325ab21e668a11c66afce469a3b1bd",
           "bytes": 2161,
           "sha256": "7fa7ded5928507bae4facaf64afda040e0f8d07530a225df894b6ecf3d49a8f9",
-          "inspection": "Read in full; the second gate and its stated independence from the layout-free checkpoint join."
+          "inspection": "Read in full; run_weight_ledger_check builds the rank's weight ledger and maps UnpricedTensor to weight_ledger_unpriced and any other ValueError to weight_ledger_unbuilt. Which conditions raise those errors (no format, no declared weight_axes) is stated in the module docstring and remedy messages and raised in the capacity module, which was not inspected; the statement that the checkpoint join needs no layout is also the docstring's. Both are cited as [doc]."
         },
         {
           "path": "backend/measure/scope.py",
           "git_blob": "34cd25765af8eba4d699d47a252c3a06b5bf1b00",
           "bytes": 15337,
           "sha256": "e409d0dd611ec412b8bd502f4a6dfcd7f68a1ffb8faeecd3695621f21ef31c84",
-          "inspection": "Result identity class read; the cache key omits the measurement scope when the result reads no measurements. Call sites not traced."
+          "inspection": "Result identity class read; ResultIdentity.key includes the measurement scope only when its reads flag is set. The flag comes from the request (reads_measurements(), not inspected); call sites not traced."
         },
         {
           "path": "kernel_bench/emit.py",
           "git_blob": "55f30fc4edcbe8c38b992c78cb20812380258a7a",
           "bytes": 39131,
           "sha256": "dfaf576cb5f16680d51f4703d3f8b538fa934d15e6ea626871e2285710ef3d7a",
-          "inspection": "The utilization ceiling constant and the speed-of-light gate function read; the ceiling is 1.0 and a row recording no peak passes. Row construction not traced."
+          "inspection": "The module docstring, achieved_from_latency(), the utilization ceiling constant with its comment, utilization() and the speed-of-light gate above_sol() with its docstring read; achieved values are plan numerators divided by measured latency; the ceiling is 1.0, utilization is computed against the row's own recorded peaks, and a side with no recorded peak counts as 0 and passes. Row construction not traced. The upload path that returns HTTP 422 is not in this file; the 422 is cited from docs/measured_calibration.md section 4.3 as [doc]."
         },
         {
           "path": "backend/arch/validate/_ablation.py",
           "git_blob": "be26c9952602ecdea9b8380f7a739420b036b69a",
           "bytes": 3656,
           "sha256": "865351ba04c9377aeed4a1ac3ccd998335e77aa3cefc69db08831b7cf3555edb",
-          "inspection": "Read in full; the lever vocabulary and the statement that a disabled lever is dropped from both the blocking error list and the per-gate warning fields."
+          "inspection": "Read in full; the lever vocabulary (_KNOWN), parent-to-sub-lever expansion (_IMPLIES, including axiom to swa_window) and parse_disabled are code. What each lever gates, the 128TB gloss, and dropping a disabled lever's findings from both the blocking error list and the per-gate warning fields are stated in the module docstring and implemented in validate(), which was not inspected; cited as [doc]."
         },
         {
           "path": "backend/arch/eval/checkpoint.py",
@@ -112,7 +119,8 @@
         "backend/ beyond the five files above",
         "kernel_bench/ beyond emit.py",
         "tests/, web/, supabase/, tools/, scripts/",
-        "docs/design.md, docs/parallelism.md, docs/kv_cache_storage.md, docs/attention_families.md, docs/auto_sweep.md, docs/deployment.md, docs/moe_expert_axis.md, docs/quantization.md, docs/symbolic_evaluation.md, docs/custom_models.md"
+        "docs/design.md, docs/kv_cache_storage.md, docs/attention_families.md, docs/auto_sweep.md, docs/deployment.md, docs/moe_expert_axis.md, docs/quantization.md, docs/symbolic_evaluation.md, docs/custom_models.md",
+        "docs/parallelism.md beyond the section above"
       ]
     },
     {
@@ -124,7 +132,7 @@
       "content_hash": "unknown",
       "inspection": "Partial: approximately 81 percent of the page retrieved verbatim; the remainder reached only through a generated summary. Sections from 3.7 onward are therefore second-hand.",
       "note": "No immutable snapshot was taken, so this is a live URL and not a frozen version. The post predates the repository commit above by roughly four weeks. Two figures attributed to this post in discussion - a measured-corpus row count with model and library counts, and a self-reported rate of agent self-approval under ablation - are not present in the inspected repository documents and are recorded as unverified. They must not be cited as source facts.",
-      "cited_for": "One self-reported quantitative error, labelled blog-sourced and unverified in the consuming document."
+      "cited_for": "One quantitative example from section 2.6, which lies in the verbatim-retrieved part: an agent-written deployment analysis whose long-context prefill baseline missed a factor of 2. The section was located again at the live URL on 2026-11-10. Labelled blog-sourced and unverified in the consuming document."
     }
   ],
   "verification": {
@@ -132,6 +140,6 @@
     "empirical_validation": "not_run",
     "native_execution": "not_run",
     "evidence_level": "source_grounded",
-    "note": "Documentation claims are separated from source-verified claims in the consuming document. No accelerator was used, no InferRSI campaign consumed this source, and the source's own reported study is an archived measurement against an earlier revision of its validator, with its harness absent from the repository."
+    "note": "The consuming document separates claims read from executable code ([code]) from claims stated only in the project's prose, docstrings included ([doc]). No accelerator was used, no InferRSI campaign consumed this source, and the source's own reported study is an archived measurement against an earlier revision of its validator, with its harness absent from the repository."
   }
 }
