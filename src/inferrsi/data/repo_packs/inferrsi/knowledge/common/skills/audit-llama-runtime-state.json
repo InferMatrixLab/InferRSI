@@ -23,8 +23,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/1536aeb6cf6b6d3345388bac7f4f9537273efa40/src/inferrsi/data/skill_library/repositories/llama-cpp/audit-llama-runtime-state/SKILL.md",
-      "commit": "1536aeb6cf6b6d3345388bac7f4f9537273efa40",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/64adb54a2f96307d647791d1204a5123ebffe3e0/src/inferrsi/data/skill_library/repositories/llama-cpp/audit-llama-runtime-state/SKILL.md",
+      "commit": "64adb54a2f96307d647791d1204a5123ebffe3e0",
       "paths": [
         "src/inferrsi/data/skill_library/repositories/llama-cpp/audit-llama-runtime-state/SKILL.md",
         "src/inferrsi/data/skill_library/repositories/llama-cpp/audit-llama-runtime-state/metadata.json",
@@ -43,7 +43,7 @@
     "src/inferrsi/data/skill_library/repositories/llama-cpp/audit-llama-runtime-state/SKILL.md": "95e81b6bc096a954fa73139ea5bc001d1efa6c99747161da62f012b494e5c013",
     "src/inferrsi/data/skill_library/repositories/llama-cpp/audit-llama-runtime-state/metadata.json": "22f1d01b48ea6e2b2ef2deeb20c1404ce8b586eb18442b5adb1390310b4b7503",
     "src/inferrsi/data/skill_library/repositories/llama-cpp/audit-llama-runtime-state/references/source-notes.md": "3d12a401e9decb55a2f4f3b2bfa0d360ef5110f63a0469dfe285654e78054190",
-    "src/inferrsi/data/skill_library/skill-index.json": "7904275c3383380db179287171e1430617aaa9ac4f439291eff8a71426987fbb"
+    "src/inferrsi/data/skill_library/skill-index.json": "0a93648233d6ddf428402991d01e5465e24966c99cce0e9c8e0f1297423873d7"
   },
   "skill_metadata": {
     "name": "audit-llama-runtime-state",

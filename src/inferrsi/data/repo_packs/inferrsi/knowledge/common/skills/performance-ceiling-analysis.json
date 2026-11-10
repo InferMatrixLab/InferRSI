@@ -22,8 +22,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/1536aeb6cf6b6d3345388bac7f4f9537273efa40/src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/SKILL.md",
-      "commit": "1536aeb6cf6b6d3345388bac7f4f9537273efa40",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/64adb54a2f96307d647791d1204a5123ebffe3e0/src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/SKILL.md",
+      "commit": "64adb54a2f96307d647791d1204a5123ebffe3e0",
       "paths": [
         "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/SKILL.md",
         "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/metadata.json",
@@ -52,7 +52,7 @@
         "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/scripts/roofline.py",
         "src/inferrsi/data/skill_library/skill-index.json"
       ],
-      "content_sha256": "e0caaa8890e25aab7ffc766152062580df3e36146c671fa90931396618fb2dac"
+      "content_sha256": "c3ab6ac394153118f0e0f770e2ab2876d215910387b3a2bbc2dc382c3db5daaa"
     }
   ],
   "index_type": "packaged-skill",
@@ -61,7 +61,7 @@
   },
   "checkout_ref": "checkout:performance-ceiling-analysis",
   "source_files": {
-    "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/SKILL.md": "e0caaa8890e25aab7ffc766152062580df3e36146c671fa90931396618fb2dac",
+    "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/SKILL.md": "c3ab6ac394153118f0e0f770e2ab2876d215910387b3a2bbc2dc382c3db5daaa",
     "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/metadata.json": "82973cf4a33a29b194a3fef9a4591da27c7830eb3f48a8e214ccda180a82cfb8",
     "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/flexgen-offload-feasibility.md": "984cc41c4412eafa6d20e109dea8927ad321a668776bc86bbffda0a94dfa9cc7",
     "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/huggingarch-checkpoint-anchor.md": "f7f22a994791121e0a4b88c195b0976cc40463a43289de0731f5f2e229ab95fe",
@@ -86,7 +86,7 @@
     "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/roofline-contract.md": "419ec4bcaec45ac579a133bce083d4f48779f26e664d7a86f720fa65f343b1d1",
     "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/roofline-example.json": "597cd3205df043cff3ae9d15924c77934e8d8eb300c00c4840f6bb2921f90faf",
     "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/scripts/roofline.py": "524de48a6764401695fe1444f1fa3d38f363069b0cd2fba4715a86ca4b28a5d4",
-    "src/inferrsi/data/skill_library/skill-index.json": "7904275c3383380db179287171e1430617aaa9ac4f439291eff8a71426987fbb"
+    "src/inferrsi/data/skill_library/skill-index.json": "0a93648233d6ddf428402991d01e5465e24966c99cce0e9c8e0f1297423873d7"
   },
   "skill_metadata": {
     "name": "performance-ceiling-analysis",

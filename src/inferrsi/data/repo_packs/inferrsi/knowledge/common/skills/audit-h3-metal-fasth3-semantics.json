@@ -29,8 +29,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/1536aeb6cf6b6d3345388bac7f4f9537273efa40/src/inferrsi/data/skill_library/repositories/h3-metal/audit-h3-metal-fasth3-semantics/SKILL.md",
-      "commit": "1536aeb6cf6b6d3345388bac7f4f9537273efa40",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/64adb54a2f96307d647791d1204a5123ebffe3e0/src/inferrsi/data/skill_library/repositories/h3-metal/audit-h3-metal-fasth3-semantics/SKILL.md",
+      "commit": "64adb54a2f96307d647791d1204a5123ebffe3e0",
       "paths": [
         "src/inferrsi/data/skill_library/repositories/h3-metal/audit-h3-metal-fasth3-semantics/LICENSE",
         "src/inferrsi/data/skill_library/repositories/h3-metal/audit-h3-metal-fasth3-semantics/SKILL.md",
@@ -65,7 +65,7 @@
     "src/inferrsi/data/skill_library/repositories/h3-metal/audit-h3-metal-fasth3-semantics/references/source-notes.md": "f9430103644eacd9c55ace6f84d8587fc0bc063bfcd9cb60e6045b139a9fee05",
     "src/inferrsi/data/skill_library/repositories/h3-metal/audit-h3-metal-fasth3-semantics/references/troubleshooting.md": "ed552d87f9fb9fb2c56de64df61f3fc6e2333cb049116cd0736f784c8a327612",
     "src/inferrsi/data/skill_library/repositories/h3-metal/audit-h3-metal-fasth3-semantics/scripts/audit_fasth3.py": "05bfb9348cf88a76f4fba8bc8a600fe54246d83a98c1685bc4847ace28e2fbac",
-    "src/inferrsi/data/skill_library/skill-index.json": "7904275c3383380db179287171e1430617aaa9ac4f439291eff8a71426987fbb"
+    "src/inferrsi/data/skill_library/skill-index.json": "0a93648233d6ddf428402991d01e5465e24966c99cce0e9c8e0f1297423873d7"
   },
   "skill_metadata": {
     "name": "audit-h3-metal-fasth3-semantics",

@@ -23,8 +23,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/1536aeb6cf6b6d3345388bac7f4f9537273efa40/src/inferrsi/data/skill_library/frameworks/pytorch/dcp-async-save-performance/SKILL.md",
-      "commit": "1536aeb6cf6b6d3345388bac7f4f9537273efa40",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/64adb54a2f96307d647791d1204a5123ebffe3e0/src/inferrsi/data/skill_library/frameworks/pytorch/dcp-async-save-performance/SKILL.md",
+      "commit": "64adb54a2f96307d647791d1204a5123ebffe3e0",
       "paths": [
         "src/inferrsi/data/skill_library/frameworks/pytorch/dcp-async-save-performance/SKILL.md",
         "src/inferrsi/data/skill_library/frameworks/pytorch/dcp-async-save-performance/metadata.json",
@@ -43,7 +43,7 @@
     "src/inferrsi/data/skill_library/frameworks/pytorch/dcp-async-save-performance/SKILL.md": "645139ee0c88ec865cad952e24cda35f4648d4b777b732c9b7d274b6c7830845",
     "src/inferrsi/data/skill_library/frameworks/pytorch/dcp-async-save-performance/metadata.json": "49764fa454403fb38891d82ee63de1e07a90d3ff6a3cd28550aee7ea34cbdcb0",
     "src/inferrsi/data/skill_library/frameworks/pytorch/dcp-async-save-performance/references/sources.md": "22afe4f4d77f441096cc657d55d763473bfcbea8fb531c8e493fe49ab84955f7",
-    "src/inferrsi/data/skill_library/skill-index.json": "7904275c3383380db179287171e1430617aaa9ac4f439291eff8a71426987fbb"
+    "src/inferrsi/data/skill_library/skill-index.json": "0a93648233d6ddf428402991d01e5465e24966c99cce0e9c8e0f1297423873d7"
   },
   "skill_metadata": {
     "name": "dcp-async-save-performance",

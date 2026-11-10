@@ -25,8 +25,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/1536aeb6cf6b6d3345388bac7f4f9537273efa40/src/inferrsi/data/skill_library/repositories/splash/SKILL.md",
-      "commit": "1536aeb6cf6b6d3345388bac7f4f9537273efa40",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/64adb54a2f96307d647791d1204a5123ebffe3e0/src/inferrsi/data/skill_library/repositories/splash/SKILL.md",
+      "commit": "64adb54a2f96307d647791d1204a5123ebffe3e0",
       "paths": [
         "src/inferrsi/data/skill_library/repositories/splash/LICENSE",
         "src/inferrsi/data/skill_library/repositories/splash/SKILL.md",
@@ -77,7 +77,7 @@
     "src/inferrsi/data/skill_library/repositories/splash/sub-skills/serving-cache/SKILL.md": "c16f911498e116ff9b31b5a6f0ddd3ae6517b51c0e9d079c337f36a5bcac1df8",
     "src/inferrsi/data/skill_library/repositories/splash/sub-skills/serving-cache/references/state-and-api.md": "592603177473ac8e024b7dc19a3d3faedd7c1e0312137eab8bf9a62d2f567be6",
     "src/inferrsi/data/skill_library/repositories/splash/sub-skills/serving-cache/references/troubleshooting.md": "4fda461042a3de43c109d7a3cec67542c7d61fe68412bf91606220f2e13e576e",
-    "src/inferrsi/data/skill_library/skill-index.json": "7904275c3383380db179287171e1430617aaa9ac4f439291eff8a71426987fbb"
+    "src/inferrsi/data/skill_library/skill-index.json": "0a93648233d6ddf428402991d01e5465e24966c99cce0e9c8e0f1297423873d7"
   },
   "skill_metadata": {
     "name": "splash",
