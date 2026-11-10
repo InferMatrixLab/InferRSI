@@ -8,7 +8,7 @@
   "component": "skills",
   "scenario": "skills.discovery",
   "status": "imported",
-  "summary": "Patterns for porting LLM/VLM model adapters to Ascend NPU: FP8 checkpoint handling, KV replication with TP, multimodal feature validation order, graph mode startup, and feature-status reporting. Source-grounded from vllm-ascend production experience. Use when adapting a new model checkpoint to run on Ascend via vllm-ascend or a similar framework. ",
+  "summary": "Patterns for porting LLM/VLM model adapters to Ascend NPU: FP8 checkpoint handling, KV replication with TP, multimodal feature validation order, graph mode startup, and feature-status reporting. Source-grounded from vllm-ascend production experience. Use when adapting a new model checkpoint to run on Ascend via vllm-ascend or a similar framework.\n",
   "tags": [
     "ascend",
     "npu",
@@ -23,15 +23,15 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/d15379faa0ddfca90e5256c860e0f1bc14b93bb8/src/inferrsi/data/skill_library/hardware/ascend/ascend-model-adaptation/SKILL.md",
-      "commit": "d15379faa0ddfca90e5256c860e0f1bc14b93bb8",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/b205b12ce7ca286c0be11f8bc21639c56c4e09cf/src/inferrsi/data/skill_library/hardware/ascend/ascend-model-adaptation/SKILL.md",
+      "commit": "b205b12ce7ca286c0be11f8bc21639c56c4e09cf",
       "paths": [
         "src/inferrsi/data/skill_library/hardware/ascend/ascend-model-adaptation/SKILL.md",
         "src/inferrsi/data/skill_library/hardware/ascend/ascend-model-adaptation/metadata.json",
         "src/inferrsi/data/skill_library/hardware/ascend/ascend-model-adaptation/references/source-notes.md",
         "src/inferrsi/data/skill_library/skill-index.json"
       ],
-      "content_sha256": "227824cd9b35a7771a9af7b44aba3d26d0e1ebce8d65af8fe14aa6e649a6108a"
+      "content_sha256": "24ca19fc5e14fd94e3219965ff650068e79c92a6056c0da683f8e58e474fd522"
     }
   ],
   "index_type": "packaged-skill",
@@ -40,14 +40,14 @@
   },
   "checkout_ref": "checkout:ascend-model-adaptation",
   "source_files": {
-    "src/inferrsi/data/skill_library/hardware/ascend/ascend-model-adaptation/SKILL.md": "227824cd9b35a7771a9af7b44aba3d26d0e1ebce8d65af8fe14aa6e649a6108a",
+    "src/inferrsi/data/skill_library/hardware/ascend/ascend-model-adaptation/SKILL.md": "24ca19fc5e14fd94e3219965ff650068e79c92a6056c0da683f8e58e474fd522",
     "src/inferrsi/data/skill_library/hardware/ascend/ascend-model-adaptation/metadata.json": "e5191f402b0ccf069a0aafc9873b990704426f652c0048ad027082f5e47537dc",
     "src/inferrsi/data/skill_library/hardware/ascend/ascend-model-adaptation/references/source-notes.md": "5ad6954477de1ba1aaa294a329f4f1d9b16f77dc8da4f1abcc530ab0670a4d59",
     "src/inferrsi/data/skill_library/skill-index.json": "7904275c3383380db179287171e1430617aaa9ac4f439291eff8a71426987fbb"
   },
   "skill_metadata": {
     "name": "ascend-model-adaptation",
-    "description": "Patterns for porting LLM/VLM model adapters to Ascend NPU: FP8 checkpoint handling, KV replication with TP, multimodal feature validation order, graph mode startup, and feature-status reporting. Source-grounded from vllm-ascend production experience. Use when adapting a new model checkpoint to run on Ascend via vllm-ascend or a similar framework. ",
+    "description": "Patterns for porting LLM/VLM model adapters to Ascend NPU: FP8 checkpoint handling, KV replication with TP, multimodal feature validation order, graph mode startup, and feature-status reporting. Source-grounded from vllm-ascend production experience. Use when adapting a new model checkpoint to run on Ascend via vllm-ascend or a similar framework.\n",
     "tags": [
       "ascend",
       "npu",
