@@ -391,10 +391,15 @@ def serve_ticket(
     incumbent: Path,
     *,
     backend,
-    now: datetime,
+    now: datetime | None = None,
     clock=None,
 ) -> dict:
-    """Measure one ticket. A busy device leaves it queued and does not reserve an attempt."""
+    """Measure one ticket. A busy device leaves it queued and does not reserve an attempt.
+
+    ``now`` is accepted for older callers and is not a frozen deadline. Every
+    admission and command reads ``clock`` or the current time again.
+    """
+    del now
     def current() -> datetime:
         if clock is not None:
             return clock()
@@ -443,10 +448,18 @@ def serve_ticket(
             )
         except (ConfinementUnavailable, BudgetError) as exc:
             return _record(round_dir, ticket, status="unsettled", reason=str(exc))
-        candidate_body = json.loads(candidate_result.read_text(encoding="utf-8"))
-        incumbent_body = json.loads(incumbent_result.read_text(encoding="utf-8"))
-        candidate_metric = candidate_body["metrics"]["latency_ms"]
-        incumbent_metric = incumbent_body["metrics"]["latency_ms"]
+        try:
+            candidate_body = json.loads(candidate_result.read_text(encoding="utf-8"))
+            incumbent_body = json.loads(incumbent_result.read_text(encoding="utf-8"))
+            candidate_metric = candidate_body["metrics"]["latency_ms"]
+            incumbent_metric = incumbent_body["metrics"]["latency_ms"]
+        except (OSError, json.JSONDecodeError, KeyError, TypeError, ValueError) as exc:
+            return _record(
+                round_dir,
+                ticket,
+                status="unsettled",
+                reason=f"trial finished without a readable latency result: {exc}",
+            )
         finished = advance(ledger, binding, "finished", actual_cost=0)
         _save_ledger(round_dir, finished)
         return _record(

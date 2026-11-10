@@ -62,11 +62,28 @@ class ConfinementUnavailable(RuntimeError):
 
 
 def namespaces_available() -> bool:
+    """True only when a user namespace can actually be created.
+
+    A positive ``max_user_namespaces`` is not enough: unprivileged ``unshare``
+    can still return EPERM. Callers that skip live tests must see that as
+    unavailable instead of starting a command that errors.
+    """
     try:
         limit = int(Path("/proc/sys/user/max_user_namespaces").read_text(encoding="utf-8"))
     except (OSError, ValueError):
         return False
-    return limit > 0
+    if limit <= 0:
+        return False
+    try:
+        probe = subprocess.run(
+            ["unshare", "--user", "--map-root-user", "--mount", "--", "true"],
+            capture_output=True,
+            timeout=5,
+            check=False,
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        return False
+    return probe.returncode == 0
 
 
 def minimal_environment(extra: dict | None = None) -> dict:
