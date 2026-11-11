@@ -104,8 +104,9 @@ visible. If no applicable card is found or a read fails, state the outcome and
 continue with the evidence available to you.
 
 Explain which conclusion or decision each delivered versioned ref supports,
-preserving its applicability limits. Keep query and explain receipt directories
-outside the source checkout. A knowledge-only answer does not require creating
+preserving its applicability limits. The CLI stores query and explain receipts
+under `~/.config/inferrsi/mindie-projects/reads/<project-hash>/`; do not copy
+them into the source checkout. A knowledge-only answer does not require creating
 a candidate or campaign. A knowledge read authorizes only the approved local
 knowledge operation.
 
