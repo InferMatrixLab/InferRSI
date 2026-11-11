@@ -298,7 +298,7 @@ def main(argv: list[str] | None = None) -> int:
             return 0
 
         if args.command == "campaign":
-            from .harness.campaign_records import (
+            from .observability.campaign_records import (
                 assemble_trace,
                 create_campaign,
                 record_candidate,
@@ -306,7 +306,7 @@ def main(argv: list[str] | None = None) -> int:
             )
 
             if args.campaign_action == "capture-context":
-                from .harness.knowledge_capture import capture_context
+                from .observability.knowledge_capture import capture_context
 
                 sources = ("package",) + (("checkout",) if args.skill_root else ()) + (
                     ("store",) if args.store else ())
@@ -322,7 +322,7 @@ def main(argv: list[str] | None = None) -> int:
                         "sha256": digest})
                 return 0
             if args.campaign_action == "log":
-                from .harness.optimization_log import record_log
+                from .observability.optimization_log import record_log
 
                 path, digest = record_log(args.directory, args.file)
                 _print({"log": path.name, "sha256": digest})

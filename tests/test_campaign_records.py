@@ -5,7 +5,11 @@ import json
 import pytest
 
 from inferrsi.cli import main
-from inferrsi.harness.campaign_records import create_campaign, record_candidate, record_decision
+from inferrsi.observability.campaign_records import (
+    create_campaign,
+    record_candidate,
+    record_decision,
+)
 from inferrsi.observability.dashboard_data import load_dashboard
 
 

@@ -10,12 +10,16 @@ from pathlib import Path
 import pytest
 
 from inferrsi.cli import main
-from inferrsi.harness.campaign_records import create_campaign, record_candidate, record_decision
-from inferrsi.harness.knowledge_capture import capture_context, verify_capture
-from inferrsi.harness.optimization_log import LogError, parse_optimization_log, record_log
 from inferrsi.knowledge_operations import KnowledgeReader
+from inferrsi.observability.campaign_records import (
+    create_campaign,
+    record_candidate,
+    record_decision,
+)
 from inferrsi.observability.dashboard import write_dashboard
 from inferrsi.observability.dashboard_data import load_dashboard
+from inferrsi.observability.knowledge_capture import capture_context, verify_capture
+from inferrsi.observability.optimization_log import LogError, parse_optimization_log, record_log
 
 
 class FakeReader:
