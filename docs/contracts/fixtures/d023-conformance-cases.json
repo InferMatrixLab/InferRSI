@@ -2,7 +2,7 @@
   "document": "D023 conformance vectors for acceptance T36-T40, plus V32 and SCHEMA spec-time cases that are not T36-T40 acceptance",
   "status": "Proposed",
   "nature": "Documentation vectors only. Every case states explicit input facts and the single expected outcome required by the contract. No case asserts that a runtime test ran, passed, or produced these values. Nothing here is produced by executing prepare, execute, assess, or any test runner.",
-  "scope": "D023-1 through D023-5 mapped onto T36-T40 of ACCEPTANCE-T01-T40.md; V32-N1/V32-N2/V32-N3 and SCHEMA-N1 are spec-time or schema-layer negatives and are not T36-T40 acceptance",
+  "scope": "D023-1 through D023-5 mapped onto T36-T40 of acceptance-criteria.md; V32-N1/V32-N2/V32-N3 and SCHEMA-N1 are spec-time or schema-layer negatives and are not T36-T40 acceptance",
   "digest_examples": {
     "notice": "All 64-hex values below are syntactically valid FIXED EXAMPLE strings used to make the vectors concrete. They are not computed digests of any bytes. The coordinator will hash-verify real artifacts later; no vector here claims a computed relationship between two digests unless it is stated as an equality of field values.",
     "values": {
