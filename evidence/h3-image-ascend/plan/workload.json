@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "issue": "https://github.com/InferMatrixLab/InferRSI/issues/390",
+  "baseline_revision": "9bbff156dc51651fbdfe44a6fa7a79eb1f6db693",
+  "model_revision": "492fd8c4eca666f1085f57e30738c1e0d86b3439",
+  "workloads": [
+    {
+      "id": "W1",
+      "task": "t2i",
+      "size": "4736x3552",
+      "h200_s": 3.67,
+      "target_s": 7.34
+    },
+    {
+      "id": "W2",
+      "task": "t2i",
+      "size": "1024x1024",
+      "h200_s": 0.76,
+      "target_s": 1.52
+    },
+    {
+      "id": "W3",
+      "task": "edit",
+      "size": "1024x1024",
+      "h200_s": 1.3,
+      "target_s": 2.6
+    }
+  ],
+  "seed": 42,
+  "generator_device": "cpu",
+  "steps": 6,
+  "guidance_scale": 1.0,
+  "concurrency": 1,
+  "warmups_per_workload": 1,
+  "repeats_per_workload": 3,
+  "response_format": "b64_json",
+  "output_format": "png",
+  "output_compression": 100,
+  "quality_gate": "exact decoded RGB pixels vs runnable same-device control",
+  "additional_quality_seeds": [
+    43,
+    44
+  ],
+  "assets": {
+    "request.t2i.json": {
+      "sha256": "8666560c55a0c8b0340eb1b654820c5dbfbab2c4f5b0cf1d6f3953d10e745993",
+      "bytes": 1689
+    },
+    "prompt.edit.txt": {
+      "sha256": "0ee16b68bbf40172416da46ecd45582e0178a2edfbfe16e2d3e55937c8a4c2a4",
+      "bytes": 1822
+    },
+    "reference1.png": {
+      "sha256": "e3ef31ce2bf5f9a6f45c13f65b4728a87cc767cbcc8f0313aa1a4c8014dae85d",
+      "bytes": 1715003
+    }
+  },
+  "author_comparison": "external report; released example inputs per H200 recipe",
+  "device_count": 4,
+  "device_model": "Ascend 910B1"
+}

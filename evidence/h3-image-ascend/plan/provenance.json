@@ -1,0 +1,12 @@
+{
+  "scope": "Byte-identical frozen workload and validator exports; request-measurements omit prompts, images, local paths and transport metrics. Original image files and raw host logs remain local.",
+  "acceptance_issue": "https://github.com/InferMatrixLab/InferRSI/issues/390",
+  "historical_engine_base": "9bbff156dc51651fbdfe44a6fa7a79eb1f6db693",
+  "submission_base": "bb5982587ed2830a26fdb7273598ba148e4083cc",
+  "model_revision": "492fd8c4eca666f1085f57e30738c1e0d86b3439",
+  "qualification": "INCONCLUSIVE",
+  "target_result": "FAIL: all three latency targets remain unmet",
+  "formal_abba": "not run",
+  "cross_hardware_image_quality": "not independently verified",
+  "source_images": "not published; pixel hashes retained, numerical scores are local observations, not independently replayable from this export alone"
+}

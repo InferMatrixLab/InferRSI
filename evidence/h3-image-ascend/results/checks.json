@@ -1,0 +1,45 @@
+{
+  "cpu_regressions": {
+    "passed": 27,
+    "deselected": 74
+  },
+  "inferrsi_smoke": {
+    "passed": 8
+  },
+  "ruff": "PASS",
+  "applicable_precommit": "PASS except mypy; unrelated Actions YAML hook skipped after local Go installation failure",
+  "mypy": {
+    "verdict": "FAIL",
+    "candidate_errors": 4,
+    "unmodified_upstream_errors": 4,
+    "new_adapter_errors": 0
+  },
+  "shutdown": {
+    "submission-control-sp4": {
+      "worker_exit_codes": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "forced_termination": false
+    },
+    "submission-vae-batched": {
+      "worker_exit_codes": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "forced_termination": false
+    }
+  },
+  "performance_scope": "Single-launch exploratory smoke; CPU validation overlapped preparation/measurement. Not final isolated ABBA.",
+  "quality": {
+    "submission_candidate": "12 images numerical screen PASS",
+    "historical_batched_candidate": "12 seed42 plus6 heldout numerical screen PASS; overview reviewed; further prompts/full visual review incomplete"
+  },
+  "independent_review": "pending",
+  "campaign_verdict": "INCONCLUSIVE",
+  "performance_targets": "not met"
+}
