@@ -1,0 +1,11 @@
+{
+  "verdict": "INCONCLUSIVE",
+  "scope": "NZ candidate full-model startup; no candidate HTTP measurements",
+  "baseline_revision": "ad37f7f79e10b946a87d60a0fab01416bd0f7837",
+  "observed": "AttributeError: _npuConfig object has no attribute allow_internal_format",
+  "cause": "Installed torch-npu configuration exposes a setter without a getter; experimental conversion attempted to read the property.",
+  "control": "Completed successfully; candidate exited during initialization.",
+  "correction": "Avoid reading the property. Require the tested VAE graph configuration and explicitly restore internal format to False after conversion, including on exceptions.",
+  "validation": "14 CPU adapter tests passed, including two setter-only configuration cases for successful and failing conversions.",
+  "hardware_revalidation": "Queued; no adoption or full-model parity claimed."
+}
