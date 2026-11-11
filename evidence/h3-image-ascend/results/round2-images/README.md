@@ -32,3 +32,18 @@ Full resolution: [control](W2-control.png) · [candidate](W2-candidate.png)
 ![W3 control and candidate](W3-comparison.png)
 
 Full resolution: [control](W3-control.png) · [candidate](W3-candidate.png)
+
+## Same-revision HTTP observations
+
+Each workload used one warmup and three measured requests. CPU image-quality
+validation ran after both servers stopped. This is one control/candidate pair,
+not final ABBA qualification.
+
+| Workload | Control median | Candidate median | Target |
+| --- | ---: | ---: | ---: |
+| W1 | 16.9333 s | 10.9864 s | ≤7.34 s |
+| W2 | 3.9222 s | 2.5728 s | ≤1.52 s |
+| W3 | 5.6903 s | 4.2661 s | ≤2.60 s |
+
+Raw latency samples: [control](control-summary.json), [candidate](candidate-summary.json).
+All targets remain unmet.
