@@ -25,7 +25,7 @@ P0b still requires a formal architecture review before K01. H01 creates a new lo
 - [FIGURES-ALL.md](FIGURES-ALL.md) and [diagrams/](diagrams/) — eight mermaid figures
 - [schemas/contract-v1.schema.json](schemas/contract-v1.schema.json) and [schemas/INDEX.json](schemas/INDEX.json)
 - [fixtures/README.md](fixtures/README.md) — historic t108-v4 golden bytes versus current D023 vectors
-- [fixtures/d023-conformance-cases.json](fixtures/d023-conformance-cases.json) — T36–T40 specification vectors, not executed tests
+- [fixtures/d023-conformance-cases.json](fixtures/d023-conformance-cases.json) — T36–T40 specification vectors plus V32/SCHEMA spec-time cases, not executed tests
 - [fixtures/execution-spec-d023.json](fixtures/execution-spec-d023.json) — current `CommandStep.expected_code_sha256` example
 - [fixtures/MANIFEST-d023.json](fixtures/MANIFEST-d023.json) — current D023 example byte/`request_digest` documentation anchor
 

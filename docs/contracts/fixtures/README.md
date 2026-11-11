@@ -8,7 +8,7 @@ This directory holds two different things and they must not be conflated:
 | --- | --- | --- |
 | `fixtures/t108-v4/` | **Historic BASELINE / HISTORICAL golden byte vectors**, copied unchanged from the reviewed t108-v4 handoff | Validated against the **baseline** 106-definition library. **Not** D023-current examples; several of them no longer validate as-is. |
 | `fixtures/execution-spec-d023.json` | Current D023 `ExecutionSpec` example | Written for the D023 library (`CommandStep.expected_code_sha256` required). |
-| `fixtures/d023-conformance-cases.json` | Document vectors for T36–T40 | Current; fixed example digests, not computed values. |
+| `fixtures/d023-conformance-cases.json` | Document vectors for T36–T40 plus V32/SCHEMA spec-time cases | Current; fixed example digests, not computed values. |
 
 ## Why the baseline bytes are preserved, not rewritten
 
@@ -55,7 +55,7 @@ The file itself still carries no `request_digest` field (the spec has none). The
 
 ## T36–T40 are specifications, not executed integration tests
 
-`fixtures/d023-conformance-cases.json` and section 3 of `ACCEPTANCE-T01-T40.md` describe T36–T40. They are **runtime specifications**: each states explicit input facts and the single required outcome. None of them has been executed. Schema acceptance is not test acceptance, and no claim here is made that any implementation already satisfies them.
+`fixtures/d023-conformance-cases.json` and section 3 of `ACCEPTANCE-T01-T40.md` describe T36–T40. The same file also holds V32-N1–N3 (spec-time `InvalidExecutionSpec`, no start and no record) and SCHEMA-N1 (schema-layer missing key; a schema validator is not a runtime PublicError). Those cases are not T36–T40 acceptance; T37 coverage is only T37-P1, T37-N1, and T37-N2. They are **runtime specifications**: each states explicit input facts and the single required outcome. None of them has been executed. Schema acceptance is not test acceptance, and no claim here is made that any implementation already satisfies them.
 
 ## Normative and source references
 
@@ -73,7 +73,7 @@ Local specification files:
 - [`../schemas/contract-v1.schema.json`](../schemas/contract-v1.schema.json) — Draft 2020-12 library, 106 named definitions
 - [`../schemas/INDEX.json`](../schemas/INDEX.json) — machine-derived definition index
 - [`../DTO-FIELD-INDEX.md`](../DTO-FIELD-INDEX.md) — machine-derived field index
-- [`d023-conformance-cases.json`](d023-conformance-cases.json) — T36–T40 document vectors
+- [`d023-conformance-cases.json`](d023-conformance-cases.json) — T36–T40 document vectors plus V32/SCHEMA spec-time vectors (not T37 acceptance)
 - [`execution-spec-d023.json`](execution-spec-d023.json) — current D023 spec example
 - [`MANIFEST-d023.json`](MANIFEST-d023.json) — current-example byte and `request_digest` documentation anchor
 - [`t108-v4/MANIFEST.json`](t108-v4/MANIFEST.json) — historic baseline byte manifest (paths `fixtures/<name>` map to `fixtures/t108-v4/<name>`)

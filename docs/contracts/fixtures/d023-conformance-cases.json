@@ -1,14 +1,15 @@
 {
-  "document": "D023 conformance vectors for acceptance T36-T40",
+  "document": "D023 conformance vectors for acceptance T36-T40, plus V32 and SCHEMA spec-time cases that are not T36-T40 acceptance",
   "status": "Proposed",
   "nature": "Documentation vectors only. Every case states explicit input facts and the single expected outcome required by the contract. No case asserts that a runtime test ran, passed, or produced these values. Nothing here is produced by executing prepare, execute, assess, or any test runner.",
-  "scope": "D023-1 through D023-5 mapped onto T36-T40 of ACCEPTANCE-T01-T40.md",
+  "scope": "D023-1 through D023-5 mapped onto T36-T40 of ACCEPTANCE-T01-T40.md; V32-N1/V32-N2/V32-N3 and SCHEMA-N1 are spec-time or schema-layer negatives and are not T36-T40 acceptance",
   "digest_examples": {
     "notice": "All 64-hex values below are syntactically valid FIXED EXAMPLE strings used to make the vectors concrete. They are not computed digests of any bytes. The coordinator will hash-verify real artifacts later; no vector here claims a computed relationship between two digests unless it is stated as an equality of field values.",
     "values": {
       "sha_recipe_code": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
       "sha_actual_code_same": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
       "sha_actual_code_different": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
+      "sha_expected_unequal_recipe": "13579bdf02468ace13579bdf02468ace13579bdf02468ace13579bdf02468ace",
       "sha_protocol_bytes": "0011223344556677001122334455667700112233445566770011223344556677",
       "sha_prepared_bytes": "8899aabbccddeeff8899aabbccddeeff8899aabbccddeeff8899aabbccddeeff",
       "sha_resource_required": "0f1e2d3c4b5a69780f1e2d3c4b5a69780f1e2d3c4b5a69780f1e2d3c4b5a6978",
@@ -205,8 +206,8 @@
       "runtime_status": "specification_not_executed"
     },
     {
-      "case_id": "T37-N3",
-      "acceptance": "T37",
+      "case_id": "V32-N1",
+      "acceptance": "V32",
       "d023_item": "D023-2",
       "polarity": "negative",
       "input_facts": {
@@ -219,21 +220,27 @@
         "command_step_expected_code_sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
       },
       "expected_outcome": {
+        "schema_valid": true,
         "valid": false,
-        "failure": "semantic check V05/V32 rejects non-null expected_code_sha256 in ordinary command mode",
-        "candidate_processes_started": 0
+        "error_layer": "spec_semantic",
+        "error_class": "InvalidExecutionSpec",
+        "record_created": false,
+        "candidate_processes_started": 0,
+        "failure": "semantic check V05/V32 rejects non-null expected_code_sha256 in ordinary command mode; this is a spec-time InvalidExecutionSpec, with no start and no record"
       },
       "invariants": [
-        "ordinary command mode requires expected_code_sha256 to be null"
+        "ordinary command mode requires expected_code_sha256 to be null",
+        "this is a spec-time InvalidExecutionSpec: no start and no record"
       ],
       "prohibited_inferences": [
-        "a schema-valid digest string is acceptable in ordinary command mode"
+        "a schema-valid digest string is acceptable in ordinary command mode",
+        "this ordinary-command violation is a T37 actual-entrypoint mismatch"
       ],
       "runtime_status": "specification_not_executed"
     },
     {
-      "case_id": "T37-N4",
-      "acceptance": "T37",
+      "case_id": "V32-N2",
+      "acceptance": "V32",
       "d023_item": "D023-2",
       "polarity": "negative",
       "input_facts": {
@@ -242,21 +249,60 @@
         "command_step_expected_code_sha256": null
       },
       "expected_outcome": {
+        "schema_valid": true,
         "valid": false,
-        "failure": "semantic check V32 rejects null expected_code_sha256 in evaluation mode; recipe.code_sha256 is a required non-null Sha256",
-        "candidate_processes_started": 0
+        "error_layer": "spec_semantic",
+        "error_class": "InvalidExecutionSpec",
+        "record_created": false,
+        "candidate_processes_started": 0,
+        "failure": "semantic check V32 rejects null expected_code_sha256 in evaluation mode; recipe.code_sha256 is a required non-null Sha256; this is a spec-time InvalidExecutionSpec, with no start and no record"
       },
       "invariants": [
-        "evaluation mode requires a non-null expected value equal to the frozen required recipe.code_sha256"
+        "evaluation mode requires a non-null expected value equal to the frozen required recipe.code_sha256",
+        "this is a spec-time InvalidExecutionSpec: no start and no record"
       ],
       "prohibited_inferences": [
-        "null opts out of the pre-start comparison"
+        "null opts out of the pre-start comparison",
+        "a null expected in evaluation mode is a T37 actual-entrypoint mismatch"
       ],
       "runtime_status": "specification_not_executed"
     },
     {
-      "case_id": "T37-N5",
-      "acceptance": "T37",
+      "case_id": "V32-N3",
+      "acceptance": "V32",
+      "d023_item": "D023-2",
+      "polarity": "negative",
+      "input_facts": {
+        "mode": "evaluation",
+        "prepared_ref_non_null": true,
+        "recipe_code_sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "command_step_expected_code_sha256": "13579bdf02468ace13579bdf02468ace13579bdf02468ace13579bdf02468ace"
+      },
+      "expected_outcome": {
+        "schema_valid": true,
+        "valid": false,
+        "expected_equals_frozen_recipe_value": false,
+        "error_layer": "spec_semantic",
+        "error_class": "InvalidExecutionSpec",
+        "record_created": false,
+        "candidate_processes_started": 0,
+        "t37_pre_start_actual_entrypoint_check_reached": false,
+        "failure": "semantic check V32 rejects evaluation-mode expected_code_sha256 that is non-null but not equal to the frozen required recipe.code_sha256; this is a spec-time InvalidExecutionSpec, with no start and no record"
+      },
+      "invariants": [
+        "evaluation mode requires a non-null expected value equal to the frozen required recipe.code_sha256",
+        "this is a spec-time InvalidExecutionSpec: no start and no record",
+        "T37 applies only after expected already equals the frozen recipe, then the actual entrypoint digest is checked"
+      ],
+      "prohibited_inferences": [
+        "a non-null expected that differs from recipe.code_sha256 is a T37 actual-entrypoint mismatch",
+        "a valid Sha256 string opts out of equality with the frozen recipe"
+      ],
+      "runtime_status": "specification_not_executed"
+    },
+    {
+      "case_id": "SCHEMA-N1",
+      "acceptance": "SCHEMA",
       "d023_item": "D023-2",
       "polarity": "negative",
       "input_facts": {
@@ -266,13 +312,19 @@
       },
       "expected_outcome": {
         "schema_valid": false,
-        "failure": "schema rejects the object because expected_code_sha256 is required even when its value is null"
+        "error_layer": "schema",
+        "error_class": "schema_validation_failure",
+        "invalid_execution_spec": false,
+        "record_created": false,
+        "failure": "schema rejects the object because expected_code_sha256 is required even when its value is null; a schema validator failure is not a runtime PublicError and must not be classified as InvalidExecutionSpec"
       },
       "invariants": [
-        "the field is required; nullability is expressed by an explicit null value, not by omission"
+        "the field is required; nullability is expressed by an explicit null value, not by omission",
+        "a schema-layer rejection is not a runtime PublicError and is not InvalidExecutionSpec"
       ],
       "prohibited_inferences": [
-        "omitting the field is equivalent to a null value"
+        "omitting the field is equivalent to a null value",
+        "a schema validator failure is a runtime InvalidExecutionSpec or other PublicError"
       ],
       "runtime_status": "specification_not_executed"
     },
@@ -636,7 +688,9 @@
   ],
   "coverage": {
     "T36": ["T36-N1", "T36-P1", "T36-N2"],
-    "T37": ["T37-P1", "T37-N1", "T37-N2", "T37-N3", "T37-N4", "T37-N5"],
+    "T37": ["T37-P1", "T37-N1", "T37-N2"],
+    "V32": ["V32-N1", "V32-N2", "V32-N3"],
+    "SCHEMA": ["SCHEMA-N1"],
     "T38": ["T38-N1", "T38-P1", "T38-N2"],
     "T39": ["T39-N1", "T39-N2", "T39-N3", "T39-P1", "T39-P2"],
     "T40": ["T40-P1", "T40-P2", "T40-N1", "T40-N2", "T40-N3"]
@@ -645,6 +699,7 @@
     "Each acceptance row has at least one negative and one positive vector.",
     "Expected outcomes are contract requirements, not observations. No vector records a runtime pass.",
     "Digest strings are fixed syntactic examples; the coordinator will hash-verify real artifacts separately.",
-    "These vectors do not amend the historical archived outputs and do not create a permanent gate exemption."
+    "These vectors do not amend the historical archived outputs and do not create a permanent gate exemption.",
+    "T37 coverage is only T37-P1, T37-N1, and T37-N2. V32-N1, V32-N2, and V32-N3 are spec-time InvalidExecutionSpec cases (no start, no record) and are not T37 acceptance. SCHEMA-N1 is a schema-layer missing-key rejection; a schema validator must not be equated with a runtime PublicError or InvalidExecutionSpec."
   ]
 }
