@@ -83,10 +83,13 @@ Image validators and target engines retain their own optional dependencies.
 
 ## MindIE knowledge
 
-The agent consults MindIE when an Ascend-specific question lacks sufficient
-evidence during research, diagnosis, planning, implementation or review,
-including knowledge-only conversations. Existing knowledge routes remain
-available, and sufficient evidence does not require an extra MindIE query.
+The agent assesses each question independently and consults MindIE only when
+the answer needs evidence about Ascend hardware or software, such as CANN,
+torch_npu, vllm-ascend, Ascend Triton or SoC behavior. This includes research,
+diagnosis, planning, implementation, review and knowledge-only conversations.
+Generic framework questions use the usual sources; a search miss or an earlier
+Ascend topic does not make them eligible for MindIE. Mixed questions use MindIE
+only for their Ascend-dependent part, when existing evidence is insufficient.
 Answers cite the delivered versioned material and its applicability limits;
 candidate and campaign association applies when the task includes that work.
 
@@ -138,6 +141,7 @@ The reader automatically stores receipts under
 `receipt_directory` on success. Stored receipts contain `input.json` and
 `receipt.json`, plus `result.json` when a response was received. Keep these
 receipts outside the source checkout; the caller does not select their location.
+Recorded read failures report their receipt path in the error message.
 
 ### Associate reads with a candidate
 

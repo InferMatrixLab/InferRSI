@@ -71,12 +71,18 @@ PyYAML; packaged `knowledge`, `collect` and `read` work without it.
 
 ### Consult MindIE for unresolved Ascend questions
 
-During research, diagnosis, planning, implementation or review, consult MindIE
-when an unresolved Ascend-specific question needs evidence. This includes
-knowledge-only tasks. Continue using the existing knowledge routes where they
-are relevant; when available evidence already answers the question, no
-additional MindIE lookup is needed. A miss in packaged search alone does not
-establish that MindIE lacks relevant knowledge.
+Assess each question independently. Consult MindIE only when the question
+needs evidence and its answer depends on Ascend hardware or software, such as
+CANN, torch_npu, vllm-ascend, Ascend Triton or SoC behavior. This applies during
+research, diagnosis, planning, implementation and review, including
+knowledge-only tasks.
+
+Use the usual framework sources first for generic framework questions.
+A miss in those sources, or an Ascend topic elsewhere in the conversation or
+workspace, does not establish an Ascend dependency. Without that dependency,
+continue with the usual sources rather than querying MindIE. For a mixed
+question, query MindIE only for its Ascend-dependent part. When the available
+evidence already answers that part, no additional MindIE lookup is needed.
 
 Use the project's `knowledge_query` and `knowledge_explain` MCP tools if
 present. Otherwise, run `mindie describe` through the bundled local launcher
