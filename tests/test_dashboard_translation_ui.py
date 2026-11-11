@@ -7,6 +7,42 @@ from pathlib import Path
 import pytest
 
 
+@pytest.mark.skipif(shutil.which("node") is None, reason="Node.js is needed for trace decoding")
+def test_full_profile_reader_checks_original_bytes_and_tracks_overlapping_events():
+    template = Path(__file__).parents[1] / "src/inferrsi/observability/review_template.html"
+    script = r"""
+const fs=require('node:fs'),assert=require('node:assert/strict');
+const {gzipSync}=require('node:zlib'),{createHash,webcrypto}=require('node:crypto');
+const html=fs.readFileSync(process.argv[1],'utf8');
+const code=html.slice(html.indexOf('function traceCategory('),html.indexOf('function timeline('));
+const read=new Function('tr','crypto',code+'\nreturn readTraceFile;')((zh,en)=>en,webcrypto);
+const bytes=gzipSync(JSON.stringify({traceEvents:[
+  {ph:'M',name:'metadata',ts:1},
+  {ph:'X',ts:10,dur:256,pid:2,tid:3,cat:'kernel',name:'long'},
+  {ph:'X',ts:12,dur:1,pid:2,tid:3,cat:'gpu_memcpy',name:'copy'},
+  {ph:'X',ts:14,dur:4,pid:1,tid:3,cat:'cpu_op',name:'cpu'},
+  {ph:'X',ts:15,dur:2,pid:1,tid:3,cat:'gpu_user_annotation',name:'stage'}]}));
+const blob=new Blob([bytes]);
+(async()=>{
+  await assert.rejects(()=>read(blob,'a'.repeat(64)),/SHA-256/);
+  const timeline=await read(blob,createHash('sha256').update(bytes).digest('hex'));
+  assert.equal(timeline.start_us,10);assert.equal(timeline.duration_us,256);
+  assert.equal(timeline.event_count,4);
+  assert.deepEqual(timeline.tracks.map(t=>t.kind),['gpu','cpu','stage']);
+  assert.equal(timeline.tracks[0].bins[2],2);assert.equal(timeline.tracks[0].bins[3],1);
+  assert.equal(timeline.tracks[0].events[1].name,'copy');
+  const compact=gzipSync(JSON.stringify({names:['kernel','copy'],
+    lanes:[{name:'stream 4',kind:'gpu'}],events:[[0,0,10,256],[0,1,12,1]]}));
+  const imported=await read(new Blob([compact]),'b'.repeat(64),
+    createHash('sha256').update(compact).digest('hex'));
+  assert.equal(imported.event_count,2);assert.equal(imported.tracks[0].bins[2],2);
+  assert.equal(imported.tracks[0].events[1].name,'copy');
+})().catch(e=>{console.error(e);process.exitCode=1;});
+"""
+    subprocess.run([shutil.which("node"), "-e", script, str(template)], check=True,
+                   capture_output=True, text=True)
+
+
 @pytest.mark.skipif(shutil.which("node") is None, reason="Node.js is needed for the UI regression")
 def test_round_review_shows_only_linked_retrievals_in_declared_order():
     template = Path(__file__).parents[1] / "src/inferrsi/observability/template.html"

@@ -2,6 +2,8 @@
 
 import json
 
+import pytest
+
 from inferrsi.observability.dashboard_data import load_dashboard
 
 
@@ -78,14 +80,20 @@ def test_live_workflow_replay(tmp_path):
     assert read()["run_workflow"]["groups"][0]["state"] == "unknown"
 
 
-def test_validator_counts_and_legacy_trace(tmp_path):
+@pytest.mark.parametrize(("validation_edge", "expected_node_state"), [
+    ({"phase": "quality_validation"}, "unknown"),
+    ({"phase": "quality_validation_end", "state": "failed"}, "failed"),
+])
+def test_validator_counts_for_native_and_paired_traces(tmp_path, validation_edge,
+                                                      expected_node_state):
     (tmp_path / "run.lock.json").write_text('{"repetitions": 2, "validation_command": ["check"]}')
     (tmp_path / "status.json").write_text('{"state":"failed"}')
     (tmp_path / "events.jsonl").write_text(
         '{"phase":"measurement","side":"baseline","trial":1}\n'
-        '{"phase":"quality_validation_end","state":"failed"}\n'
+        + json.dumps(validation_edge) + "\n"
     )
     (tmp_path / "validation").mkdir()
+    (tmp_path / "validation/execution.json").write_text('{"status":"failed","returncode":1}')
     for count, total in [(1, None), (2, 2), (0, 0)]:
         (tmp_path / "validation/progress.json").write_text(
             json.dumps(
@@ -100,7 +108,8 @@ def test_validator_counts_and_legacy_trace(tmp_path):
         row = load_dashboard(tmp_path)["candidates"][0]
         perf, quality = row["run_workflow"]["groups"]
         assert perf["state"] == "unknown" and perf["wall_seconds"] is None
-        assert quality["state"] == "failed"
+        assert quality["state"] == expected_node_state
+        assert row["quality"] == "failed"
         assert (quality["completed"], quality["total"], quality["unit"]) == (count, total, "cases")
         assert "never export this" not in json.dumps(row)
     (tmp_path / "validation/progress.json").write_text('{"completed":3,"total":2,"unit":"cases"}')

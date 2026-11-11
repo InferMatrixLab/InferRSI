@@ -307,6 +307,12 @@ def main(argv: list[str] | None = None) -> int:
                 record_decision,
             )
 
+            if args.campaign_action == "attach-profile":
+                from .observability.profile_timeline import attach_profile
+
+                _print(attach_profile(args.directory, capture_id=args.id, source=args.source,
+                                      review=args.review))
+                return 0
             if args.campaign_action == "capture-context":
                 from .observability.knowledge_capture import capture_context
 

@@ -296,6 +296,10 @@ def dashboard_snapshot(source: Path, translations: Path | None = None) -> dict:
     """Read one view and its charts from the currently recorded evidence."""
     source = Path(source).resolve()
     view = load_dashboard(source)
+    if view.get("review_layout") == "profile_first":
+        from .profile_timeline import read_profiles
+
+        view["profile_captures"], view["unavailable_profiles"] = read_profiles(source)
     chart, chart_note = _chart(source, view)
     temporal, temporal_note = (("", "") if view.get("review_layout") == "profile_first"
                                else temporal_chart(view))

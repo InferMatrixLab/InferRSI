@@ -69,11 +69,11 @@ The optional `search_space.selection_rules` array holds the criteria in order.
 For example, a lossless image campaign might require identical decoded RGB
 pixels before ranking latency. Missing historical fields display as unrecorded.
 
-The native runner appends a start and an `_end` event for each step. Node times
-include source checks and command startup. The measured service latency appears
-separately. The span of recorded tests runs from the earliest start to the last
-finish, including gaps. Running times use the live server's clock at its last
-successful check. An offline view shows only recorded durations.
+The native runner records phase starts for source snapshots, measurements and
+validation. A start alone leaves the step duration and completion unknown.
+For logs that also contain matching `_end` events, the dashboard shows the
+recorded command duration and the span from the earliest start to the last
+finish, including gaps. Service latency comes from the measured request metric.
 
 Performance progress counts completed baseline and candidate trial commands.
 Accuracy progress counts the validator command by default. A validator that
@@ -153,14 +153,51 @@ starts an agent or validates the experiment.
 
 Use `campaign init --profile-first` for a new profiled campaign, or set
 `"review_layout": "profile_first"` in an existing `campaign.json`.
-The live view and HTML export show acceptance criteria, the
-baseline request breakdown, the bottleneck and target gap, each round's
-measurements, and adoption decisions. The performance trend uses each
+The live view and HTML export open with the performance trend. Below it are
+acceptance criteria, recorded request profiles, the baseline breakdown and
+target gap, each round's measurements, and adoption decisions. The trend uses each
 candidate's paired medians. For example, a target latency reduction of 50%
 is a 2× speedup. When there is one verified baseline profile, only runs
 with its measurement signature share the trend line and compete for its best
 result. Pairs from different conditions appear separately beside the chart.
 Cancelled runs retain their records in the round list.
+
+Attach a complete, reviewed worker trace before the first trial. Store a
+Chrome Trace Event JSON (plain or gzip) directly in the campaign's `profiles/`
+directory. Write a small UTF-8 review, for example:
+
+```json
+{"title":"Warm worker request","phase":"baseline","round":null,"workload_id":"fixed-image",
+ "comparison_key":"same-card-input-and-capture-boundary","takeaway":"Denoising dominates.",
+ "next_action":"Measure the chosen kernels separately, then repeat the same request."}
+```
+
+```sh
+inferrsi campaign attach-profile --directory <campaign> --id baseline \
+  --source profiles/baseline.chrome.json.gz --review baseline-review.json
+```
+
+Repeat after a measured change, with a new ID, `"phase":"candidate"` and the
+actual round number. Use the same comparison key only for the same hardware,
+input, execution boundary and profiler configuration. Run ordinary validation
+without the profiler. On attachment, the importer reads the complete duration
+events, records the source digest and writes a compact event table. Its fields
+are lane, event name, start and duration; raw event arguments are not served.
+Trace labels themselves can identify a workload: review them before sharing.
+
+When Chrome trace captures are present, the timeline covers the capture's full
+time range on its recorded stage, CPU and GPU tracks. The initial view shows
+one representative track per type, selected by summed event counts across
+the full time range. The track toggle reveals the remaining lanes. Each track shows the
+density of overlapping timed events and a selection of long events. Drag over
+a range to zoom, pan with the slider, or select an event to inspect its timing.
+Captures with the same comparison key report their individual spans.
+In a live dashboard, **Expand full timeline** loads the capture's complete
+event table on demand. Under **Capture scope and source files**, the offline
+view accepts either the saved event table or the original Chrome trace.
+The browser verifies the file's SHA-256 and renders every timed `X` event.
+The file stays local. Use the compact event table or open the source in
+Perfetto if the source exceeds the browser's 384 MiB decompression limit.
 
 In the round trace, `applied_skills` records the name and takeaway of each
 skill actually used. Verified retrievals, original inputs, hashes and events

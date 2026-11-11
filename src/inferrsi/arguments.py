@@ -142,6 +142,11 @@ def parser() -> argparse.ArgumentParser:
                         help="Target backend for campaign knowledge discovery")
     create.add_argument("--noise-pct", type=float)
     create.add_argument("--synthetic", action="store_true")
+    profiler = campaign_actions.add_parser("attach-profile", help="Attach a reviewed Chrome trace")
+    profiler.add_argument("--directory", type=Path, required=True)
+    profiler.add_argument("--id", required=True)
+    profiler.add_argument("--source", required=True, help="Campaign-relative profiles/*.json[.gz]")
+    profiler.add_argument("--review", type=Path, required=True, help="Timing scope and conclusions")
     assemble = campaign_actions.add_parser(
         "assemble-trace",
         help="Insert an explicitly reviewed context file into a trace template",
