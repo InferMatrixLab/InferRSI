@@ -1,0 +1,251 @@
+{
+  "$schema": "urn:inferrsi:docs:legacy-knowledge-manifest:v1",
+  "description": "First-wave compatibility exceptions for seven root Knowledge leaves plus the neutral technical data leaf. This manifest is frozen at P0b formal review and is not a wildcard approval. K01 verifies each hash against its base and re-reviews if any differ. D018/D020 chose these exact edges.",
+  "base_commit": "0da7e2f960cd4ec994ae8eddea5b71023c5379ca",
+  "compatibility_pairs": [
+    {
+      "importer": "catalog",
+      "target": "inferrsi.knowledge.catalog",
+      "file": "src/inferrsi/catalog.py",
+      "file_sha256": "e3241a3203595f116925ebb3fa6b4e2c0cb588b4c3a3575369bf50f253a3a947",
+      "exports": {
+        "public": [
+          "REPO_TYPES",
+          "KNOWLEDGE_SCOPES",
+          "KNOWLEDGE_REPOS",
+          "BACKENDS",
+          "SCENARIO_ALIASES",
+          "knowledge_records",
+          "search_knowledge",
+          "get_knowledge"
+        ],
+        "private_used": [
+          "_walk",
+          "_validate_record",
+          "files"
+        ]
+      },
+      "audited_definitions": [
+        "REPO_TYPES is the same tuple object through root catalog, the neutral leaf, and K.catalog",
+        "Derived KNOWLEDGE_SCOPES and KNOWLEDGE_REPOS stay unchanged"
+      ],
+      "consumer_evidence": "tests/test_cli_catalog.py (L189) and tests/test_knowledge_tiers.py (L89) patch catalog.files; tests/test_research.py (L91, L120) patch catalog.knowledge_records; infra.inspection (L10, L56) imports and calls repository_pack",
+      "retirement_evidence": "catalog sheds repository_pack to the neutral leaf; K.catalog does not export repository_pack"
+    },
+    {
+      "importer": "catalog",
+      "target": "inferrsi._repo_pack_data",
+      "note": "Root catalog statically re-exports REPO_TYPES and repository_pack from the business-free neutral technical leaf"
+    },
+    {
+      "importer": "_source_snapshot",
+      "target": "inferrsi.knowledge._source_snapshot",
+      "file": "src/inferrsi/_source_snapshot.py",
+      "file_sha256": "ba6b799731a73cca55f211813d512fcaf46a123ce3997ad3ff918ce65ea7f39b",
+      "exports": {
+        "public": [
+          "MANIFEST",
+          "REPOSITORY",
+          "LIBRARY",
+          "REGISTRY",
+          "STORED_SCHEMA",
+          "manifest",
+          "compact",
+          "resolve"
+        ],
+        "private_used": [
+          "_snapshot"
+        ]
+      },
+      "audited_definitions": [
+        "manifest/compact/resolve and existing source/hash identity unchanged"
+      ],
+      "consumer_evidence": "catalog (L10, L103, L108, L113, L117) imports and uses MANIFEST, STORED_SCHEMA, resolve; tests cover Bundle/source_snapshot contract"
+    },
+    {
+      "importer": "skill_catalog",
+      "target": "inferrsi.knowledge.skill_catalog",
+      "file": "src/inferrsi/skill_catalog.py",
+      "file_sha256": "86d465e245b4cd6b72ca175d05124dbb88d510a78568b6bc4c44b332870c08a3",
+      "exports": {
+        "public": [
+          "skill_directories",
+          "skill_directory",
+          "skill_metadata",
+          "skill_records",
+          "get_skill",
+          "skill_instructions",
+          "skill_resource",
+          "skill_reference"
+        ],
+        "private_used": [
+          "_frontmatter",
+          "_skill_name",
+          "_directory",
+          "_unique_fields",
+          "_indexed_directories",
+          "_entry",
+          "_sidecar",
+          "_references",
+          "_strings",
+          "_applicability",
+          "_effective",
+          "_metadata"
+        ]
+      },
+      "audited_definitions": [
+        "root:Path and checkout physical resource semantics unchanged"
+      ],
+      "consumer_evidence": "knowledge_operations (L270, L308, L426 lazy imports; calls at L272, L310, L430, L433, L436) imports skill_directories, skill_directory, skill_metadata, skill_reference; KnowledgeReader._skill uses all skill_* APIs; tests/test_skill_catalog.py covers skill enumeration and loading"
+    },
+    {
+      "importer": "_skill_selection",
+      "target": "inferrsi.knowledge._skill_selection",
+      "file": "src/inferrsi/_skill_selection.py",
+      "file_sha256": "acbec7c91bfa05bc2008b939e009fe600a40518051229fb7618c56b092ad36b9",
+      "exports": {
+        "public": [
+          "RELEVANCE_METHODS",
+          "SkillIndexError",
+          "words",
+          "lexical_score",
+          "raw_string_lexical_score",
+          "indexed_skill",
+          "skill_score",
+          "context_view"
+        ],
+        "private_used": []
+      },
+      "audited_definitions": [
+        "RELEVANCE_METHODS and scoring functions are the same objects; selection algorithm not rewritten"
+      ],
+      "consumer_evidence": "knowledge_operations (L12) imports RELEVANCE_METHODS, context_view, indexed_skill, skill_score, words; collect uses these for relevance selection; tests/test_raw_string_selection.py covers scoring; tests/test_collect_selection.py covers context_view"
+    },
+    {
+      "importer": "research",
+      "target": "inferrsi.knowledge.research",
+      "file": "src/inferrsi/research.py",
+      "file_sha256": "9bfe59dd17b5476c18ce50d671711053c62800521c50d6b710e8140a2b4dca04",
+      "exports": {
+        "public": [
+          "research_knowledge"
+        ],
+        "private_used": [
+          "_profile",
+          "PROCEDURE"
+        ]
+      },
+      "audited_definitions": [
+        "research_knowledge and the existing public surface preserved"
+      ],
+      "consumer_evidence": "tests/test_research.py covers research_knowledge; tests/test_husky_document_research.py exercises profile-based selection"
+    },
+    {
+      "importer": "knowledge_store",
+      "target": "inferrsi.knowledge.knowledge_store",
+      "file": "src/inferrsi/knowledge_store.py",
+      "file_sha256": "70dfca059b0a682579206d4376d191667934b3ca869ae847098c4c6964d86abe",
+      "exports": {
+        "public": [
+          "KnowledgeStore"
+        ],
+        "private_used": [
+          "_protected"
+        ]
+      },
+      "audited_definitions": [
+        "KnowledgeStore type identity, CAS, and exceptions unchanged"
+      ],
+      "consumer_evidence": "cli (L16, L29) imports and instantiates KnowledgeStore; tests/test_knowledge_store.py covers create/update/read/history; tests/test_knowledge_contract.py covers reader integration"
+    },
+    {
+      "importer": "knowledge_operations",
+      "target": "inferrsi.knowledge.knowledge_operations",
+      "file": "src/inferrsi/knowledge_operations.py",
+      "file_sha256": "3725781bcedb308af6ad9edc0b970c63f82accf6b04ebee4008c1081b63bed9c",
+      "exports": {
+        "public": [
+          "AUTHORITIES",
+          "IDENTITY",
+          "RevisionConflict",
+          "IdentityError",
+          "safe_path",
+          "Bundle",
+          "KnowledgeReader",
+          "INCIDENTAL"
+        ],
+        "private_used": [
+          "_json",
+          "_hash",
+          "_normalized",
+          "_sources",
+          "_tree"
+        ]
+      },
+      "audited_definitions": [
+        "Bundle/KnowledgeReader/RevisionConflict/IdentityError/safe_path/AUTHORITIES/IDENTITY are the same objects; signatures/defaults/Path/exceptions and used symbols preserved",
+        "_json and _hash are explicitly re-exported for test injection (D1, D2)"
+      ],
+      "consumer_evidence": "harness/skill_evaluation (L9) imports KnowledgeReader; cli (L15, L25, L33) imports and uses KnowledgeReader; knowledge_store (L10-18) imports KO symbols; tests/test_bundle_manifest.py (L73) patches _hash; tests/test_collect_limit_serialization.py (L39-47) patches _json; tests/test_knowledge_operations.py covers Bundle/KnowledgeReader contract"
+    },
+    {
+      "importer": "infra.inspection",
+      "target": "inferrsi._repo_pack_data",
+      "note": "infra.inspection imports the neutral leaf directly, never via catalog or H. D020 requires the import rewrite; K01 implementation must change only the import line (currently L10: from ..catalog import repository_pack → from .._repo_pack_data import repository_pack) and keep original functions, injected parameters, and returns unchanged"
+    }
+  ],
+  "catalog_two_routes": {
+    "knowledge_export": {
+      "target": "inferrsi.knowledge.catalog",
+      "named_symbols": [
+        "REPO_TYPES",
+        "KNOWLEDGE_SCOPES",
+        "KNOWLEDGE_REPOS",
+        "BACKENDS",
+        "SCENARIO_ALIASES",
+        "knowledge_records",
+        "search_knowledge",
+        "get_knowledge"
+      ],
+      "not_exported": [
+        "repository_pack"
+      ],
+      "note": "K.catalog does not export repository_pack; the named-symbol-only K export excludes repository_pack"
+    },
+    "neutral_leaf_export": {
+      "target": "inferrsi._repo_pack_data",
+      "symbols": [
+        "REPO_TYPES",
+        "repository_pack"
+      ],
+      "note": "Root catalog also re-exports REPO_TYPES and repository_pack from the neutral data leaf"
+    }
+  },
+  "technical_leaf": {
+    "module": "inferrsi._repo_pack_data",
+    "note": "The new _repo_pack_data.py file does not exist yet; do not create it in P0b; do not lock a fabricated full-file hash. K01 will create it and lock the full-file hash.",
+    "allowed_imports": [
+      "json",
+      "importlib.resources",
+      "typing.Any",
+      "from __future__ import annotations"
+    ],
+    "two_symbols": [
+      "REPO_TYPES",
+      "repository_pack"
+    ],
+    "top_level_shape": "module docstring, a future import, the two symbols only, and no other business definitions or core imports",
+    "original_fragment": {
+      "description": "REPO_TYPES and repository_pack body from current catalog.py (lines 12, 171-175)",
+      "fragment_sha256": "d425a85de7a49f4b3748f9b496d13722b82a8de2d2a9b0b50fa38b16cc32babb",
+      "source": "REPO_TYPES = (\"vllm\", \"vllm_omni\", \"afd_plugin\", \"vllm_rlt\", \"strata\", \"sglang\", \"sglang_omni\")\n\n\ndef repository_pack(repo_type: str) -> dict[str, Any]:\n    if repo_type not in REPO_TYPES:\n        raise ValueError(f\"Unknown repository type: {repo_type}\")\n    path = files(\"inferrsi\").joinpath(\"data\", \"repo_packs\", repo_type, \"pack.json\")\n    return json.loads(path.read_text(encoding=\"utf-8\"))"
+    }
+  },
+  "infra_inspection_rewrite": {
+    "module": "src/inferrsi/infra/inspection.py",
+    "current_import": "from ..catalog import repository_pack",
+    "required_new_import": "from .._repo_pack_data import repository_pack",
+    "note": "K01 must change only this import line. Original functions, injected parameters, and returns stay the same. Do not edit inspection.py in P0b."
+  },
+  "intra_closure_note": "An import of inferrsi._repo_pack_data from inside inferrsi.knowledge (for example inferrsi/knowledge/catalog.py) is intra-closure, not a tenth compatibility exception; it is governed by the leaf's no-inferrsi.*-import rule and by REPO_TYPES object identity, not by this allowlist."
+}

@@ -61,7 +61,9 @@ of these shared packages imports a campaign from `examples/`.
 
 The implemented table above is not the target four-module layout. The
 suggested rule, including what the import gate does not prove, is
-[module-layout.md](module-layout.md). That page does not move code.
+[module-layout.md](module-layout.md). That page does not move code. It also
+lists the Proposed first-wave compatibility exceptions recorded in
+[legacy-knowledge-manifest.json](legacy-knowledge-manifest.json).
 
 The caller still prepares the benchmark runtime and baseline/candidate source
 checkouts. Separate working directories alone do not isolate Python imports,
