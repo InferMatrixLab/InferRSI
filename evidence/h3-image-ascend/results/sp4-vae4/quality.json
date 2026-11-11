@@ -1,0 +1,103 @@
+{
+  "verdict": "PASS",
+  "scope": "same-device exact decoded RGB parity",
+  "cross_hardware_reference_quality": "not verified",
+  "checks": [
+    {
+      "workload": "W1",
+      "seed": 42,
+      "index": 0,
+      "pixel_equal": true,
+      "max_abs_difference": 0,
+      "different_channels": 0
+    },
+    {
+      "workload": "W1",
+      "seed": 42,
+      "index": 1,
+      "pixel_equal": true,
+      "max_abs_difference": 0,
+      "different_channels": 0
+    },
+    {
+      "workload": "W1",
+      "seed": 42,
+      "index": 2,
+      "pixel_equal": true,
+      "max_abs_difference": 0,
+      "different_channels": 0
+    },
+    {
+      "workload": "W1",
+      "seed": 42,
+      "index": 3,
+      "pixel_equal": true,
+      "max_abs_difference": 0,
+      "different_channels": 0
+    },
+    {
+      "workload": "W2",
+      "seed": 42,
+      "index": 0,
+      "pixel_equal": true,
+      "max_abs_difference": 0,
+      "different_channels": 0
+    },
+    {
+      "workload": "W2",
+      "seed": 42,
+      "index": 1,
+      "pixel_equal": true,
+      "max_abs_difference": 0,
+      "different_channels": 0
+    },
+    {
+      "workload": "W2",
+      "seed": 42,
+      "index": 2,
+      "pixel_equal": true,
+      "max_abs_difference": 0,
+      "different_channels": 0
+    },
+    {
+      "workload": "W2",
+      "seed": 42,
+      "index": 3,
+      "pixel_equal": true,
+      "max_abs_difference": 0,
+      "different_channels": 0
+    },
+    {
+      "workload": "W3",
+      "seed": 42,
+      "index": 0,
+      "pixel_equal": true,
+      "max_abs_difference": 0,
+      "different_channels": 0
+    },
+    {
+      "workload": "W3",
+      "seed": 42,
+      "index": 1,
+      "pixel_equal": true,
+      "max_abs_difference": 0,
+      "different_channels": 0
+    },
+    {
+      "workload": "W3",
+      "seed": 42,
+      "index": 2,
+      "pixel_equal": true,
+      "max_abs_difference": 0,
+      "different_channels": 0
+    },
+    {
+      "workload": "W3",
+      "seed": 42,
+      "index": 3,
+      "pixel_equal": true,
+      "max_abs_difference": 0,
+      "different_channels": 0
+    }
+  ]
+}

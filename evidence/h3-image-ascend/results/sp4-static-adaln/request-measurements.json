@@ -1,0 +1,206 @@
+[
+  {
+    "workload": "W1",
+    "seed": 42,
+    "index": 0,
+    "warmup": true,
+    "complete": true,
+    "latency_s": 24.244130601000506,
+    "http_status": 200,
+    "response_bytes": 67299412,
+    "png_sha256": "c6b91981b3f234feaf1c57be53c809e450fa17e57115db33b792a48938731dcc",
+    "rgb_sha256": "0538672ab7473578546bf6cf7b7224af6e9b0437d1921da95e8772ad760363ad",
+    "image_shape": [
+      3552,
+      4736,
+      3
+    ]
+  },
+  {
+    "workload": "W1",
+    "seed": 42,
+    "index": 1,
+    "warmup": false,
+    "complete": true,
+    "latency_s": 12.973196535982424,
+    "http_status": 200,
+    "response_bytes": 67299412,
+    "png_sha256": "c6b91981b3f234feaf1c57be53c809e450fa17e57115db33b792a48938731dcc",
+    "rgb_sha256": "0538672ab7473578546bf6cf7b7224af6e9b0437d1921da95e8772ad760363ad",
+    "image_shape": [
+      3552,
+      4736,
+      3
+    ]
+  },
+  {
+    "workload": "W1",
+    "seed": 42,
+    "index": 2,
+    "warmup": false,
+    "complete": true,
+    "latency_s": 11.083132853003917,
+    "http_status": 200,
+    "response_bytes": 67299411,
+    "png_sha256": "c6b91981b3f234feaf1c57be53c809e450fa17e57115db33b792a48938731dcc",
+    "rgb_sha256": "0538672ab7473578546bf6cf7b7224af6e9b0437d1921da95e8772ad760363ad",
+    "image_shape": [
+      3552,
+      4736,
+      3
+    ]
+  },
+  {
+    "workload": "W1",
+    "seed": 42,
+    "index": 3,
+    "warmup": false,
+    "complete": true,
+    "latency_s": 11.138379019015701,
+    "http_status": 200,
+    "response_bytes": 67299411,
+    "png_sha256": "c6b91981b3f234feaf1c57be53c809e450fa17e57115db33b792a48938731dcc",
+    "rgb_sha256": "0538672ab7473578546bf6cf7b7224af6e9b0437d1921da95e8772ad760363ad",
+    "image_shape": [
+      3552,
+      4736,
+      3
+    ]
+  },
+  {
+    "workload": "W2",
+    "seed": 42,
+    "index": 0,
+    "warmup": true,
+    "complete": true,
+    "latency_s": 4.8448582680139225,
+    "http_status": 200,
+    "response_bytes": 4196346,
+    "png_sha256": "bed8caf653e424774f684623587d8fc68d8c6435b73bdc1fbb16d43be33b1a2a",
+    "rgb_sha256": "3f7a21c5711180e7e6719803c25d246d7b6fd443c77e5ff661ce60a17908f41d",
+    "image_shape": [
+      1024,
+      1024,
+      3
+    ]
+  },
+  {
+    "workload": "W2",
+    "seed": 42,
+    "index": 1,
+    "warmup": false,
+    "complete": true,
+    "latency_s": 3.028036144998623,
+    "http_status": 200,
+    "response_bytes": 4196346,
+    "png_sha256": "bed8caf653e424774f684623587d8fc68d8c6435b73bdc1fbb16d43be33b1a2a",
+    "rgb_sha256": "3f7a21c5711180e7e6719803c25d246d7b6fd443c77e5ff661ce60a17908f41d",
+    "image_shape": [
+      1024,
+      1024,
+      3
+    ]
+  },
+  {
+    "workload": "W2",
+    "seed": 42,
+    "index": 2,
+    "warmup": false,
+    "complete": true,
+    "latency_s": 2.7185219590028282,
+    "http_status": 200,
+    "response_bytes": 4196346,
+    "png_sha256": "bed8caf653e424774f684623587d8fc68d8c6435b73bdc1fbb16d43be33b1a2a",
+    "rgb_sha256": "3f7a21c5711180e7e6719803c25d246d7b6fd443c77e5ff661ce60a17908f41d",
+    "image_shape": [
+      1024,
+      1024,
+      3
+    ]
+  },
+  {
+    "workload": "W2",
+    "seed": 42,
+    "index": 3,
+    "warmup": false,
+    "complete": true,
+    "latency_s": 2.805177828995511,
+    "http_status": 200,
+    "response_bytes": 4196346,
+    "png_sha256": "bed8caf653e424774f684623587d8fc68d8c6435b73bdc1fbb16d43be33b1a2a",
+    "rgb_sha256": "3f7a21c5711180e7e6719803c25d246d7b6fd443c77e5ff661ce60a17908f41d",
+    "image_shape": [
+      1024,
+      1024,
+      3
+    ]
+  },
+  {
+    "workload": "W3",
+    "seed": 42,
+    "index": 0,
+    "warmup": true,
+    "complete": true,
+    "latency_s": 15.742651864013169,
+    "http_status": 200,
+    "response_bytes": 4196346,
+    "png_sha256": "f980847f824b09e7c3e8b838da37cde4880c6645e6c4c9b18df167ad3b38b21e",
+    "rgb_sha256": "bf3633a3ed4b6b79db0dffe9d4d10d9f5d895b5979e72797adb49acd047e506c",
+    "image_shape": [
+      1024,
+      1024,
+      3
+    ]
+  },
+  {
+    "workload": "W3",
+    "seed": 42,
+    "index": 1,
+    "warmup": false,
+    "complete": true,
+    "latency_s": 6.151418627006933,
+    "http_status": 200,
+    "response_bytes": 4196344,
+    "png_sha256": "f980847f824b09e7c3e8b838da37cde4880c6645e6c4c9b18df167ad3b38b21e",
+    "rgb_sha256": "bf3633a3ed4b6b79db0dffe9d4d10d9f5d895b5979e72797adb49acd047e506c",
+    "image_shape": [
+      1024,
+      1024,
+      3
+    ]
+  },
+  {
+    "workload": "W3",
+    "seed": 42,
+    "index": 2,
+    "warmup": false,
+    "complete": true,
+    "latency_s": 4.459023833012907,
+    "http_status": 200,
+    "response_bytes": 4196345,
+    "png_sha256": "f980847f824b09e7c3e8b838da37cde4880c6645e6c4c9b18df167ad3b38b21e",
+    "rgb_sha256": "bf3633a3ed4b6b79db0dffe9d4d10d9f5d895b5979e72797adb49acd047e506c",
+    "image_shape": [
+      1024,
+      1024,
+      3
+    ]
+  },
+  {
+    "workload": "W3",
+    "seed": 42,
+    "index": 3,
+    "warmup": false,
+    "complete": true,
+    "latency_s": 4.817303585994523,
+    "http_status": 200,
+    "response_bytes": 4196346,
+    "png_sha256": "f980847f824b09e7c3e8b838da37cde4880c6645e6c4c9b18df167ad3b38b21e",
+    "rgb_sha256": "bf3633a3ed4b6b79db0dffe9d4d10d9f5d895b5979e72797adb49acd047e506c",
+    "image_shape": [
+      1024,
+      1024,
+      3
+    ]
+  }
+]
