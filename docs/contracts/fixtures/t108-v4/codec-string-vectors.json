@@ -1,0 +1,32 @@
+{
+  "warning": "Documentation codec construction assertions only, not production encoder or cross-language tests",
+  "canonical_utf8_file": "fixtures/codec-strings.json",
+  "sha256": "84155c27491b0d28382f4edf8aee374a7b6a668895a7b2b5d6691929657cb0f4",
+  "bytes": 136,
+  "value": {
+    "backslash": "\\",
+    "controls": "\b\t\n\f\r\u0000\u0001\u001f",
+    "decomposed": "é",
+    "quote": "\"",
+    "solidus": "/",
+    "unicode": "中文  🙂"
+  },
+  "negative_fixed_payload_bytes": [
+    {
+      "raw_utf8": "{\"x\":\"\\u000a\"}",
+      "why": "valid JSON but noncanonical newline: expected {\"x\":\"\\n\"}"
+    },
+    {
+      "raw_utf8": "{\"x\":\"\\/\"}",
+      "why": "solidus must be raw /"
+    },
+    {
+      "raw_utf8": "{\"x\":\"\\u4e2d\"}",
+      "why": "legal Chinese scalar must be raw UTF8"
+    },
+    {
+      "raw_utf8": "{\"x\":-0}",
+      "why": "integer negative zero not canonical"
+    }
+  ]
+}

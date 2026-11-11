@@ -1,0 +1,10 @@
+flowchart TD
+  START["legacy run wrap-up"] --> ERR{"OSError / ValueError / JSONDecodeError / sqlite3.Error?"}
+  ERR -->|"yes, via parser.error"| C2A["exit code 2"]
+  ERR -->|no| VER{"status.verdict"}
+  VER -->|PASS| C0["exit code 0"]
+  VER -->|FAIL| C1["exit code 1"]
+  VER -->|INCONCLUSIVE| C2B["exit code 2"]
+  VER -->|"missing, not yet assessed, or any other value"| C2C["exit code 2"]
+  PROC["process exit_code is 0<br/>only an execution fact in ExecutionRecord"] -.->|"alone cannot produce exit code 0"| C0
+  MISS["missing required evidence, assess returns INCONCLUSIVE"] --> C2B

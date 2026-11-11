@@ -1,0 +1,17 @@
+flowchart TB
+  subgraph Storage["storage layer: not the public read / collect delivery"]
+    S2["generated record schema 2<br/>own fields + source_files resource hashes<br/>no shared sources / registry hash"]
+    PROV["_provenance.json<br/>schema_version, repository<br/>source_revision, registry.path / sha256<br/>path: repo_packs/inferrsi/knowledge/_provenance.json"]
+  end
+  S2 -->|"stored record"| CAT["_source_snapshot.resolve<br/>called by inferrsi.catalog when reading the directory"]
+  PROV -->|"snapshot"| CAT
+  CAT -->|"public schema 1: schema_version=1<br/>sources[0].type / commit / blob URL<br/>source_files with registry hash"| S1["parsed logical catalog record"]
+  S1 -->|"KnowledgeReader.read / collect"| PUB["public delivery: KnowledgeBundle / Collection<br/>entry record.json; revision is the Bundle content revision"]
+  subgraph Outside["outside the ports"]
+    PR["repository change in package / checkout"]
+    DECL["knowledge authorship declaration in the PR body<br/>knowledge-model-policy protects the path<br/>declaration_paths lists paths only, does not infer authors"]
+    MERGE["merge admission"]
+  end
+  PR --> DECL
+  DECL -->|"merge allowed only after a compliant declaration"| MERGE
+  UPD["Knowledge.update<br/>Bundle + expected + reason + evidence"] -.->|"does not receive or replace that declaration"| DECL

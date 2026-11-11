@@ -1,0 +1,23 @@
+{
+  "document": "MANIFEST-d023.json",
+  "status": "Proposed",
+  "nature": "P0a documentation fixture anchor for the current D023 ExecutionSpec example only. This is not a runtime implementation test, not a production codec result, and not a claim that execute, assess, or a host has been run.",
+  "scope": "current-d023-example-only; does not modify or replace fixtures/t108-v4/MANIFEST.json",
+  "path_base": "paths in files[].file are relative to docs/contracts/",
+  "request_digest_landing": {
+    "definition": "request_digest is the literal prefix sha256: followed by the lowercase hex SHA-256 of the complete ExecutionSpec canonical inferrsi-json-v1 bytes (ASCII key order, UTF-8, no BOM, no spaces, no trailing LF). ExecutionSpec itself has no request_digest field.",
+    "apps_step": "When Apps builds an evaluation-mode ExecutionSpec, it copies prepared.recipe.code_sha256 unchanged into every CommandStep.expected_code_sha256. Apps does not invent a digest and does not write request_digest onto the spec.",
+    "h_step": "H, at execute registration/claim time, after the final ExecutionSpec is complete (including V24 seal_generation when a generation_plan InputSpec is added), computes request_digest from those canonical spec bytes and stores it on the attempt row and on ExecutionRecordPayload.request_digest. This P0a PR only records the documentation golden; it does not implement that H path."
+  },
+  "files": [
+    {
+      "file": "fixtures/execution-spec-d023.json",
+      "bytes": 2069,
+      "sha256": "be0fb47b3b9b8b064a42758ec5b83a20cab92359b2fd50f9ad68305cf7517980",
+      "request_digest": "sha256:be0fb47b3b9b8b064a42758ec5b83a20cab92359b2fd50f9ad68305cf7517980",
+      "expected_code_sha256": "ba351e8f96c162ed9c32309f24b1d2d75d11a7369168571ebbb0a79d13315332",
+      "mode": "evaluation",
+      "note": "The checked-in file is already canonical, so the file sha256 and the digest body are identical. Independent verification must recompute both from the file bytes."
+    }
+  ]
+}

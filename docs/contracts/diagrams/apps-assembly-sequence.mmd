@@ -1,0 +1,62 @@
+sequenceDiagram
+    participant A as Apps
+    participant B as Benchmark
+    participant S as Apps ByteArchive
+    participant H as Harness
+    A->>B: prepare(fixed task, inputs, operation/scope)
+    break prepare fails
+        B-->>A: no PreparedEvaluation/valid PreparedRef; stop
+    end
+    B-->>A: PreparedEvaluation + fixed worker recipe/required resource closure + in-process protocol bytes and per-role resource entry
+    A->>S: verify and save prepared bytes/protocol/recipe/required resources
+    break prepared archive fails
+        S-->>A: no valid PreparedRef; stop, no execute
+    end
+    S-->>A: PreparedRef(prepared_id, schema_version, artifact)
+    A->>H: allocate_attempt(owner, target, deadline, budget)
+    H-->>A: AttemptContext
+    A->>A: bind_execution -> H.ExecutionSpec; verbatim role/version/deadline mapping, expected_code_sha256 mapped from prepared.recipe
+    break binding mismatch
+        A-->>A: stop; nothing written to H RunStore, no start
+    end
+    A->>H: execute(spec, cancellation)
+    Note over A,H: H internally handles schema/conflict/re-entry, admission/actual binding, code digest check and execution per figure 6; this figure shows only the external handoff
+    break pre-start persistence fails
+        H-->>A: ExecutionPersistenceError(started=false); no start, no valid RecordRef
+    end
+    break admission refused
+        Note over A,H: H must submit a not_started revision (write failure yields no valid new ref); only on success does it deliver its own fixed RecordRef
+        H-->>A: not_started + RecordRef (if submitted), otherwise no valid new ref
+    end
+    break re-entry short-circuit (before any new start)
+        H-->>A: AttemptInProgress or RecoveryRequired, with known fixed refs if any
+        Note over A,H: no wait, no controller replacement, no takeover, no new execution
+    end
+    break commit failure after this start
+        H-->>A: ExecutionPersistenceError(started=true, partial_record, retained_refs)
+        Note over A,H: no automatic rerun; partial facts do not impersonate a fixed payload; an old Ref proves only its own revision
+    end
+    H-->>A: committed flat ExecutionRecord (record_ref and fixed payload fields)
+    break synchronous record not_started or recovery_required
+        A-->>A: stop automatic assessment; later independent explicit assess still allowed
+    end
+    Note over A,H: may change process, read by fixed revision; the path below may also be an independent explicit assess
+    Note over A,H: D003 accepts a legal fixed non-terminal snapshot, not a completed measurement; uncommitted partial facts are not used
+    A->>H: read(attempt_id, record_version)
+    A->>S: read frozen bytes and resources by the record's prepared_ref
+    A->>A: verify original bytes/top-level identity; project EvidenceInput retaining facts and original refs
+    break top-level mismatch / unsupported version
+        A-->>A: refuse; no EvaluationResult/AssessmentRef for this call, non-judgment diagnostics allowed
+    end
+    A->>B: assess(prepared, EvidenceInput, ArtifactReader)
+    B->>B: re-check the top level; interpret evidence per each claim/scope frozen rule
+    break B detects a missed top-level mismatch / unsupported version
+        B-->>A: refuse; no EvaluationResult/AssessmentRef for this call
+    end
+    B-->>A: EvaluationResult.claims (scopes independent, with metric validity/missing items)
+    A->>S: save judgment and its fixed prepared/record associations
+    break judgment archive fails
+        S-->>A: no valid new AssessmentRef; original RecordRef retained, explicit re-assessment allowed
+    end
+    S-->>A: AssessmentRef(assessment_id, schema_version, artifact)
+    A->>A: show execution facts and each scope side by side; CLI summarizes only the declared primary scope
