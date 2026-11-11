@@ -517,3 +517,84 @@ def test_request_digest_matches_the_d023_anchor() -> None:
     spec = (FIXTURES.parent / "execution-spec-d023.json").read_bytes()
     manifest = json.loads((FIXTURES.parent / "MANIFEST-d023.json").read_text(encoding="utf-8"))
     assert run_store.request_digest(_json_v1.decode(spec)) == manifest["files"][0]["request_digest"]
+
+
+def test_reentry_of_unknown_side_effect_is_recovery_required_even_with_owner_lock(
+    tmp_path: Path,
+) -> None:
+    # D021 section 3: a committed side_effect_unknown flag is RecoveryRequired
+    # before the live-lock row.
+    store = _store(tmp_path)
+    attempt = make_attempt()
+    digest = make_digest(attempt)
+    claim = store.claim(attempt, digest)
+    try:
+        payload = make_payload(attempt, digest, 1, "running")
+        payload["side_effect_unknown"] = True
+        committed = claim.commit(payload)
+        error = _error(store.claim, attempt, digest)
+        assert error.code == "RecoveryRequired"
+        assert error.started is True
+        assert error.latest_record_ref == committed.record_ref
+        assert _rows(store, "SELECT COUNT(*) FROM attempts") == [(1,)]
+        assert _rows(store, "SELECT COUNT(*) FROM records") == [(1,)]
+        # The owner lock is still held; a second re-entry must not become AttemptInProgress.
+        again = _error(store.claim, attempt, digest)
+        assert again.code == "RecoveryRequired"
+        assert again.latest_record_ref == committed.record_ref
+    finally:
+        claim.release()
+
+
+def test_commit_rejects_a_non_mapping_payload_as_illegal_record_commit(tmp_path: Path) -> None:
+    store = _store(tmp_path)
+    attempt = make_attempt()
+    digest = make_digest(attempt)
+    with store.claim(attempt, digest) as claim:
+        for payload in ([], "x", None, 3):
+            with pytest.raises(ValueError, match="illegal record commit"):
+                claim.commit(payload)
+        assert claim.latest_record_ref is None
+        assert _rows(store, "SELECT COUNT(*) FROM records") == [(0,)]
+
+
+def test_fixed_version_read_checks_registration_identity(tmp_path: Path) -> None:
+    store = _store(tmp_path)
+    attempt = make_attempt()
+    digest = make_digest(attempt)
+    with store.claim(attempt, digest) as claim:
+        claim.commit(make_payload(attempt, digest, 1, "finished"))
+    with closing(sqlite3.connect(store.root / run_store.INDEX_NAME)) as conn:
+        conn.execute("DROP TRIGGER attempts_identity_fixed")
+        conn.execute(
+            "UPDATE attempts SET request_digest = ?",
+            ("sha256:" + "ab" * 32,),
+        )
+        conn.commit()
+    assert _error(store.committed, attempt["attempt_id"], 1).code == "RecordIntegrityError"
+    assert _error(store.committed, attempt["attempt_id"]).code == "RecordIntegrityError"
+
+
+def _strict_json_cases() -> list[dict]:
+    path = FIXTURES / "strict-json-byte-vectors.json"
+    return json.loads(path.read_text(encoding="utf-8"))["cases"]
+
+
+@pytest.mark.parametrize("case", _strict_json_cases(), ids=lambda case: case["id"])
+def test_json_v1_rejects_p0a_strict_byte_vectors(case: dict) -> None:
+    with pytest.raises(_json_v1.CanonicalError) as caught:
+        _json_v1.decode(bytes.fromhex(case["raw_hex"]))
+    assert caught.value.stage == case["expected_rejection_stage"]
+
+
+def test_json_v1_matches_p0a_codec_string_vectors() -> None:
+    vectors = json.loads((FIXTURES / "codec-string-vectors.json").read_text(encoding="utf-8"))
+    golden = (FIXTURES / "codec-strings.json").read_bytes()
+    assert len(golden) == vectors["bytes"]
+    assert hashlib.sha256(golden).hexdigest() == vectors["sha256"]
+    assert _json_v1.encode(vectors["value"]) == golden
+    assert _json_v1.decode(golden) == vectors["value"]
+    assert _json_v1.encode(_json_v1.decode(golden)) == golden
+    for case in vectors["negative_fixed_payload_bytes"]:
+        with pytest.raises(_json_v1.CanonicalError):
+            _json_v1.decode(case["raw_utf8"].encode("utf-8"))

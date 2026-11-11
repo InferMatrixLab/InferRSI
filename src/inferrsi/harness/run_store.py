@@ -460,9 +460,11 @@ def _payload_errors(
 
 
 def _payload_artifact_errors(
-    payload: Mapping, artifacts: list[tuple[dict, bytes | Path]], namespace: str
+    payload: object, artifacts: list[tuple[dict, bytes | Path]], namespace: str
 ) -> list[str]:
     """Payload ArtifactRefs must belong to this store; available ones must have been retained."""
+    if not isinstance(payload, Mapping):
+        return ["payload: not an object"]
     items = payload.get("artifacts")
     if not isinstance(items, list):
         return ["artifacts: must be a list"]
@@ -556,6 +558,7 @@ def _latest_record(
     if (
         committed.payload["phase"] != row["state"]
         or committed.payload["request_digest"] != row["request_digest"]
+        or committed.payload["run_id"] != row["run_id"]
     ):
         raise _IntegrityFault("latest record does not match its registration")
     return committed
@@ -652,7 +655,21 @@ class RunStoreReader:
                             message="the attempt has no committed record",
                         )
                     return committed
+                row = conn.execute(
+                    "SELECT * FROM attempts WHERE attempt_id = ?", (attempt_id,)
+                ).fetchone()
                 committed = _load_record(conn, self.namespace, attempt_id, record_version)
+                if (
+                    committed is not None
+                    and row is not None
+                    and (
+                        committed.payload["request_digest"] != row["request_digest"]
+                        or committed.payload["run_id"] != row["run_id"]
+                    )
+                ):
+                    raise _IntegrityFault(
+                        f"record version {record_version} does not match its registration"
+                    )
         except _IntegrityFault as exc:
             raise PublicError(
                 "RecordIntegrityError", stage="read", attempt_id=attempt_id, message=str(exc)
@@ -829,7 +846,12 @@ class RunStore(RunStoreReader):
             return latest
         ref = None if latest is None else latest.record_ref
         started = None if latest is None else latest.payload["started"]
-        if row["state"] == "recovery_required":
+        # D021 section 3: recovery_required / side_effect_unknown is decided
+        # before the live-lock branch.
+        unknown_side_effect = (
+            latest is not None and latest.payload.get("side_effect_unknown") is True
+        )
+        if row["state"] == "recovery_required" or unknown_side_effect:
             raise PublicError(
                 "RecoveryRequired", stage="claim", attempt_id=attempt_id, started=started,
                 latest_record_ref=ref, message="the attempt requires recovery and is never rerun",
