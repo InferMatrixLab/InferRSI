@@ -92,12 +92,20 @@ def _load_grant(root: Path) -> dict:
 
 
 def _worker(grant: dict, action: str, arguments: bytes) -> bytes:
+    environment = os.environ.copy()
+    environment.pop("MINDIE_BENCH_WORKSPACE", None)
     try:
-        result = subprocess.run(
-            [grant["python"], "-I", "-B", str(_WORKER), grant["engine"], grant["domain"], action],
-            input=arguments, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
-            timeout=20, check=False,
-        )
+        with tempfile.TemporaryDirectory(prefix="inferrsi-mindie-read-") as temporary:
+            # Upstream also probes cwd.parent/workspace and cwd.parent/work.
+            # Keep that parent private and empty, not the shared temp directory.
+            cwd = Path(temporary) / "reader"
+            cwd.mkdir(mode=0o700)
+            result = subprocess.run(
+                [grant["python"], "-I", "-B", str(_WORKER),
+                 grant["engine"], grant["domain"], action],
+                input=arguments, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
+                cwd=cwd, env=environment, timeout=20, check=False,
+            )
     except (OSError, subprocess.TimeoutExpired):
         raise ReadFailure("The approved MindIE reader could not be reached") from None
     if len(result.stdout) > MAX_BYTES:

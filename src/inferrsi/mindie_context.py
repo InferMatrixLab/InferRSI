@@ -87,7 +87,7 @@ def export_context(root: Path, *, context_id: str, query_input: Path, query_resu
     if not isinstance(found["results"], list):
         raise ValueError("MindIE query results must be a list")
     hits = set()
-    for key in ("results", "cards", "foundation_cards"):
+    for key in ("results", "cards", "foundation_cards", "unverified_cards"):
         rows = found.get(key, [])
         if not isinstance(rows, list):
             raise ValueError("MindIE navigation must contain lists")

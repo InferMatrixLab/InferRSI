@@ -103,6 +103,54 @@ def test_documented_payload_forms(evidence, form):
     assert (export(evidence) / "reviewed-context.txt").is_file()
 
 
+@pytest.fixture
+def unverified_evidence(evidence):
+    _, _, docs = evidence
+    docs["query_input"]["conditions"] = {}
+    docs["query_result"]["structuredContent"] = {
+        "results": [], "cards": [], "foundation_cards": [],
+        "unverified_cards": [{"ref": REF, "match_status": "condition_unknown",
+                              "ready_to_apply": False, "missing_conditions": ["dtype"],
+                              "content": "NAVIGATION_ONLY"}],
+    }
+    docs["explain_input"]["conditions"] = {"dtype": "float32"}
+    for key in ("query_input", "query_result", "explain_input"):
+        rewrite(evidence, key)
+    return evidence
+
+
+def test_unverified_navigation_can_lead_to_a_delivered_body(unverified_evidence):
+    _, paths, _ = unverified_evidence
+    target = export(unverified_evidence)
+    assert (target / "query-result.json").read_bytes() == paths["query_result"].read_bytes()
+    card = json.loads((target / "query-result.json").read_text())["structuredContent"][
+        "unverified_cards"][0]
+    assert card["match_status"] == "condition_unknown" and card["ready_to_apply"] is False
+    context = json.loads((target / "context.json").read_text())
+    assert [source["ref"] for source in context["sources"]] == [PREMISE, REF]
+    body = (target / "reviewed-context.txt").read_text()
+    assert "NAVIGATION_ONLY" not in body
+    assert "Fixture: preserve reduction precision." in body
+
+
+@pytest.mark.parametrize("failure", ["no_body", "wrong_request", "wrong_body"])
+def test_unverified_navigation_still_requires_exact_delivered_body(unverified_evidence, failure):
+    campaign, _, docs = unverified_evidence
+    if failure == "wrong_request":
+        docs["explain_input"]["refs"] = [REF.replace("@2", "@3")]
+        rewrite(unverified_evidence, "explain_input")
+    else:
+        payload = docs["explain_result"]["structuredContent"]
+        if failure == "no_body":
+            payload.update(units=[], requires=[], unresolved=[{"ref": REF}])
+        else:
+            payload["units"][0]["revision"] = 3
+        rewrite(unverified_evidence, "explain_result")
+    with pytest.raises(ValueError):
+        export(unverified_evidence)
+    assert not (campaign / "mindie/read-r1").exists()
+
+
 @pytest.mark.parametrize("failure", ["inactive", "query_error", "read_error", "exit", "missing",
                                      "no_body", "wrong_revision", "wrong_request"])
 def test_failed_or_unavailable_reads_do_not_become_context(evidence, failure):

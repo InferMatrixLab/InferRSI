@@ -104,6 +104,9 @@ rebuilds a missing derived index only in memory. Read-only does not mean zero
 filesystem writes: InferRSI saves local receipts, and SQLite may create WAL
 sidecars or update shared-memory (`-shm`) bookkeeping while reading a
 [WAL-mode database](https://sqlite.org/wal.html#read_only_databases).
+Each read runs in an empty child directory of a private temporary root, without
+the inherited `MINDIE_BENCH_WORKSPACE` selection. Caller and neighboring workspace
+ledgers are not implicit retrieval inputs or query-audit destinations.
 
 ### Enable and revoke
 
@@ -154,6 +157,11 @@ Recorded read failures report their receipt path in the error message.
 Use the `receipt_directory` from each call. Import the `input.json` and
 `result.json` files with the exit codes in `receipt.json` into an existing
 campaign or one created with `campaign init`.
+
+Exact refs from `unverified_cards` are also valid navigation hits. Check their
+missing conditions before using the guidance. Import retains the original
+unknown-applicability flags and only exports bodies actually delivered by explain;
+a navigation card alone does not become context or establish applicability.
 
 ```sh
 inferrsi campaign import-mindie --directory "$CAMPAIGN_DIR" --id "$READ_ID" \

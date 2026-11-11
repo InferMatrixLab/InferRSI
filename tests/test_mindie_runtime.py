@@ -43,7 +43,9 @@ def reader(tmp_path):
                     self.generation = "fixture-generation"
         ''',
         "graded/repository.py": '''
+            import os
             import sqlite3
+            from pathlib import Path
 
             class GradedRepository:
                 def __init__(self, store):
@@ -67,6 +69,18 @@ def reader(tmp_path):
                     raise AssertionError("A read must not update delivery counters")
 
                 def query(self, query, *, navigation_only=False, **kwargs):
+                    if query == "workspace-probe":
+                        cwd = Path.cwd()
+                        bench = os.environ.get("MINDIE_BENCH_WORKSPACE")
+                        roots = ([Path(bench)] if bench else
+                                 [cwd, cwd.parent / "workspace", cwd.parent / "work"])
+                        ledger = next((root / "logs/experiment-ledger.jsonl" for root in roots
+                                       if (root / "logs/experiment-ledger.jsonl").is_file()), None)
+                        root = ledger.parent.parent if ledger else roots[0]
+                        if (root / "logs").is_dir():
+                            (root / "logs/knowledge_query_audit.jsonl").write_text(query)
+                        return {"cwd": str(cwd), "bench_workspace": bench,
+                                "ledger": ledger.read_text() if ledger else None}
                     if query == "value-error":
                         raise ValueError("FIXTURE_PRIVATE_PATH/catalog")
                     if query == "runtime-error":
@@ -121,6 +135,33 @@ def test_worker_query_and_explain_are_read_only(reader):
     ))
     assert explained["units"][0]["content"] == "fixture body"
     assert explained["requires"] == explained["unresolved"] == []
+
+
+@pytest.mark.parametrize("ambient, sibling", [(False, "workspace"), (True, "work")])
+def test_worker_ignores_ambient_workspaces(reader, tmp_path, monkeypatch, ambient, sibling):
+    grant, _ = reader
+    checkout, unrelated = tmp_path / "checkout", tmp_path / "unrelated"
+    temp_root = tmp_path / "temporary"
+    # A one-level temporary cwd would still discover this sibling ledger.
+    protected = [checkout, unrelated, temp_root / sibling]
+    for root in protected:
+        (root / "logs").mkdir(parents=True)
+        (root / "logs/experiment-ledger.jsonl").write_text('{"run_id":"fixture-private"}\n')
+    monkeypatch.chdir(checkout)
+    monkeypatch.setattr(mindie_project.tempfile, "tempdir", str(temp_root))
+    if ambient:
+        monkeypatch.setenv("MINDIE_BENCH_WORKSPACE", str(unrelated))
+    else:
+        monkeypatch.delenv("MINDIE_BENCH_WORKSPACE", raising=False)
+    before = {path: path.read_bytes() for root in protected
+              for path in root.rglob("*") if path.is_file()}
+    result = json.loads(mindie_project._worker(grant, "query", b'{"query":"workspace-probe"}'))
+    after = {path: path.read_bytes() for root in protected
+             for path in root.rglob("*") if path.is_file()}
+    assert after == before
+    assert result["ledger"] is None and result["bench_workspace"] is None
+    assert not Path(result["cwd"]).exists()  # The private working directory was cleaned up.
+    assert {path.name for path in temp_root.iterdir()} == {sibling}
 
 
 @pytest.mark.parametrize("mismatch, message", [
