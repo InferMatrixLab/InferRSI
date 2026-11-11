@@ -203,6 +203,11 @@ retrievals require separate evidence. Review query text and paths before sharing
   run, retain the same trace, start line, capture IDs and scope, and extend the
   end line if necessary before the next round starts. Separate rounds cannot
   claim overlapping windows or the same retrieval.
+  An accepted unknown declaration stays unknown if an extended window only
+  adds observations after its decision; it does not block the closing import.
+  If correcting the corpus root reveals an observation before that decision,
+  reimport can establish adoption and drops the old unknown-order reason.
+  A newly supplied decision that precedes every observation is still rejected.
 
 #### Archive evidence for readers outside the session
 

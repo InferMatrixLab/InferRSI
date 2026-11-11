@@ -334,6 +334,70 @@ def test_local_capture_flag_without_ordering_stays_a_declaration(tmp_path):
     assert json.loads(path.read_text()) == record
 
 
+def _command_row(corpus, script, output, identity):
+    return {"type": "event_msg", "payload": {"type": "item_completed", "item": {
+        "type": "CommandExecution", "id": identity, "cwd": corpus.as_uri(),
+        "command": ["/bin/sh", "-lc", script], "exit_code": 0,
+        "aggregated_output": output,
+    }}}
+
+
+def test_extended_window_preserves_old_unknown_declaration_with_later_observation(tmp_path):
+    campaign, output = _make_capture(tmp_path)
+    trace, corpus = tmp_path / "rollout.jsonl", tmp_path / "corpus"
+    _capture_trace(trace, output, "I will use Manual line for validation.")
+    inputs = {"number": 1, "trace": trace, "knowledge_root": corpus,
+              "context_ids": ["r1"], "complete": True}
+    path = import_search(campaign, lines=[2, 3], used=[("package:manual", 3)], **inputs)
+    original = json.loads(path.read_text())
+    declaration = original["materials"]["package:manual"]["declarations"]
+
+    rows = [_command_row(corpus, "pwd", str(corpus), "pwd-1"),
+            _command_row(corpus, "pwd", str(corpus), "pwd-2"),
+            _command_row(corpus, "cat package:manual", "Manual line.\n", "later-read")]
+    with trace.open("a", encoding="utf-8") as stream:
+        stream.writelines(json.dumps(row) + "\n" for row in rows)
+    import_search(campaign, lines=[2, 6], **inputs)
+    expanded = json.loads(path.read_text())
+    assert expanded["trace"]["lines"] == [2, 6]
+    assert expanded["materials"]["package:manual"]["use"] == "unknown"
+    assert expanded["materials"]["package:manual"]["declarations"] == declaration
+    assert expanded["counts"]["used"] == 0
+    saved = path.read_bytes()
+    import_search(campaign, lines=[2, 6], **inputs)
+    assert path.read_bytes() == saved
+    # Keeping an earlier accepted unknown does not accept a new reversed claim.
+    with pytest.raises(ValueError, match="decision must follow.*observation"):
+        import_search(campaign, lines=[2, 6], used=[("package:manual", 3)], **inputs)
+    assert path.read_bytes() == saved
+
+
+def test_corrected_corpus_promotes_declaration_without_stale_reason(tmp_path):
+    campaign, output = _make_capture(tmp_path)
+    trace, corpus = tmp_path / "rollout.jsonl", tmp_path / "corpus"
+    _capture_trace(trace, output, "I will use Manual line for validation.")
+    rows = [json.loads(line) for line in trace.read_text().splitlines()]
+    rows.insert(2, _command_row(corpus, "cat package:manual", "Manual line.\n", "earlier-read"))
+    trace.write_text("".join(json.dumps(row) + "\n" for row in rows), encoding="utf-8")
+    inputs = {"number": 1, "trace": trace, "lines": [2, 4],
+              "context_ids": ["r1"], "complete": True}
+    path = import_search(campaign, knowledge_root=tmp_path / "wrong-corpus",
+                         used=[("package:manual", 4)], **inputs)
+    original = json.loads(path.read_text())
+    assert original["materials"]["package:manual"]["use"] == "unknown"
+
+    import_search(campaign, knowledge_root=corpus, **inputs)
+    corrected = json.loads(path.read_text())
+    material = corrected["materials"]["package:manual"]
+    assert material["use"] == "used" and corrected["counts"]["used"] == 1
+    evidence, = material["evidence"]
+    assert evidence["decision_line"] == 4 and "reason" not in evidence
+    assert not material.get("declarations")
+    saved = path.read_bytes()
+    import_search(campaign, knowledge_root=corpus, **inputs)
+    assert path.read_bytes() == saved
+
+
 def test_indexer_archive_review_matches_exact_visible_resource_and_return(tmp_path):
     campaign, output = _make_capture(tmp_path)
     trace = tmp_path / "rollout.jsonl"

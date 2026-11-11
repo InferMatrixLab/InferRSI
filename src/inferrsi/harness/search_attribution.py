@@ -37,11 +37,13 @@ def _caller_use(materials, events, ref, status, evidence):
         and any(material["ref"] == ref for material in event["materials"])
     ]
     if any(line < evidence["decision_line"] for line in observed_lines):
-        _use(materials, ref, status, evidence)
-    elif observed_lines:
+        _use(materials, ref, status, {key: value for key, value in evidence.items()
+                                     if key != "reason"})
+    elif observed_lines and evidence.get("reason") != "observation_order_unknown":
         raise ValueError("decision must follow an observation of the cited material")
     else:
-        # A capture proves preparation, but has no position in the chosen trace.
+        # A capture has no trace position. A later observation also cannot
+        # settle an already accepted declaration about an earlier decision.
         declaration = {"use": status, **evidence, "reason": "observation_order_unknown"}
         declarations = materials[ref].setdefault("declarations", [])
         if declaration not in declarations:
