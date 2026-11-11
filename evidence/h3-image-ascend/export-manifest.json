@@ -17,6 +17,7 @@
   "results/deterministic-control-tp4/summary.json": "75e90a097cca215711c4778a6593f12fe3be26527fddf4569181f75920500046",
   "results/mlp-layout-probe.json": "fd98b1b7a02a77047edf02f088e3aed62435ed63faf443781d90e0f495333b55",
   "results/mlp-nz-real-probe.json": "d00b90a5fc231beaa192df65e0e6d5e2843c4f97762467d4cb01acb02583f3ea",
+  "results/mlp-nz-startup-failure.json": "f7a9d65cdf616e44354c79ec2b6205349df8767fe135f0a393e14430effce5dd",
   "results/mm-alltoall-real-rank0.json": "8a0eb090272def70c860477d9867a51cf7dbb34e4638952719b2ae05c2177ccb",
   "results/native-sp4-offload/request-measurements.json": "586eddd05b217320d86ff8a3d98b0067e1904f3a706e24cf3a2051d8a9da11e2",
   "results/native-sp4-offload/summary.json": "5eb77f9bada84dba34b2d097dda158f0e37f5bb9aa92fa776072491b828aa08c",
