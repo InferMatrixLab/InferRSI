@@ -315,19 +315,20 @@ def test_indexer_capture_is_prepared_and_unknown_without_return(tmp_path):
     assert str(tmp_path) not in path.read_text(encoding="utf-8")
 
 
-def test_local_capture_flag_without_ordering_stays_a_declaration(tmp_path):
+@pytest.mark.parametrize("status", ["used", "rejected"])
+def test_local_capture_flag_without_ordering_stays_a_declaration(tmp_path, status):
     campaign, output = _make_capture(tmp_path)
     trace = tmp_path / "rollout.jsonl"
     _capture_trace(trace, output, "I will use Manual line for validation.")
     inputs = {"number": 1, "trace": trace, "lines": [2, 3],
               "knowledge_root": tmp_path / "corpus", "context_ids": ["r1"],
               "complete": True}
-    path = import_search(campaign, used=[("package:manual", 3)], **inputs)
+    path = import_search(campaign, **{status: [("package:manual", 3)]}, **inputs)
     record = json.loads(path.read_text())
     material = record["materials"]["package:manual"]
     assert material["use"] == "unknown" and record["counts"]["used"] == 0
     assert material["declarations"] == [{
-        "use": "used", "basis": "caller_reviewed", "decision_line": 3,
+        "use": status, "basis": "caller_reviewed", "decision_line": 3,
         "reason": "observation_order_unknown",
     }]
     import_search(campaign, **inputs)
@@ -342,15 +343,17 @@ def _command_row(corpus, script, output, identity):
     }}}
 
 
-def test_extended_window_preserves_old_unknown_declaration_with_later_observation(tmp_path):
+@pytest.mark.parametrize("status", ["used", "rejected"])
+def test_extended_window_preserves_old_unknown_declaration_with_later_observation(tmp_path, status):
     campaign, output = _make_capture(tmp_path)
     trace, corpus = tmp_path / "rollout.jsonl", tmp_path / "corpus"
     _capture_trace(trace, output, "I will use Manual line for validation.")
     inputs = {"number": 1, "trace": trace, "knowledge_root": corpus,
               "context_ids": ["r1"], "complete": True}
-    path = import_search(campaign, lines=[2, 3], used=[("package:manual", 3)], **inputs)
+    path = import_search(campaign, lines=[2, 3], **{status: [("package:manual", 3)]}, **inputs)
     original = json.loads(path.read_text())
-    declaration = original["materials"]["package:manual"]["declarations"]
+    declaration, = original["materials"]["package:manual"]["declarations"]
+    assert declaration["reason"] == "observation_order_unknown"
 
     rows = [_command_row(corpus, "pwd", str(corpus), "pwd-1"),
             _command_row(corpus, "pwd", str(corpus), "pwd-2"),
@@ -360,36 +363,54 @@ def test_extended_window_preserves_old_unknown_declaration_with_later_observatio
     import_search(campaign, lines=[2, 6], **inputs)
     expanded = json.loads(path.read_text())
     assert expanded["trace"]["lines"] == [2, 6]
+    read, = [event for event in expanded["events"] if event.get("trace_line") is not None]
+    assert (read["tool"], read["trace_line"], read["materials"]) == (
+        "cat", 6, [{"ref": "package:manual"}],
+    )
+    capture, = [event for event in expanded["events"] if event["tool"] == "collect"]
+    assert capture.get("trace_line") is None
     assert expanded["materials"]["package:manual"]["use"] == "unknown"
-    assert expanded["materials"]["package:manual"]["declarations"] == declaration
+    assert expanded["materials"]["package:manual"]["declarations"] == [
+        {**declaration, "reason": "no_prior_ordered_observation"},
+    ]
     assert expanded["counts"]["used"] == 0
     saved = path.read_bytes()
     import_search(campaign, lines=[2, 6], **inputs)
     assert path.read_bytes() == saved
     # Keeping an earlier accepted unknown does not accept a new reversed claim.
     with pytest.raises(ValueError, match="decision must follow.*observation"):
-        import_search(campaign, lines=[2, 6], used=[("package:manual", 3)], **inputs)
+        import_search(campaign, lines=[2, 6], **{status: [("package:manual", 3)]}, **inputs)
     assert path.read_bytes() == saved
 
 
-def test_corrected_corpus_promotes_declaration_without_stale_reason(tmp_path):
+@pytest.mark.parametrize("status", ["used", "rejected"])
+def test_corrected_corpus_promotes_declaration_without_stale_reason(tmp_path, status):
     campaign, output = _make_capture(tmp_path)
     trace, corpus = tmp_path / "rollout.jsonl", tmp_path / "corpus"
     _capture_trace(trace, output, "I will use Manual line for validation.")
     rows = [json.loads(line) for line in trace.read_text().splitlines()]
     rows.insert(2, _command_row(corpus, "cat package:manual", "Manual line.\n", "earlier-read"))
+    later_corpus = tmp_path / "later-corpus"
+    rows.append(_command_row(later_corpus, "cat package:manual", "Manual line.\n", "later-read"))
     trace.write_text("".join(json.dumps(row) + "\n" for row in rows), encoding="utf-8")
-    inputs = {"number": 1, "trace": trace, "lines": [2, 4],
+    inputs = {"number": 1, "trace": trace, "lines": [2, 5],
               "context_ids": ["r1"], "complete": True}
     path = import_search(campaign, knowledge_root=tmp_path / "wrong-corpus",
-                         used=[("package:manual", 4)], **inputs)
+                         **{status: [("package:manual", 4)]}, **inputs)
     original = json.loads(path.read_text())
     assert original["materials"]["package:manual"]["use"] == "unknown"
+
+    import_search(campaign, knowledge_root=later_corpus, **inputs)
+    later_only = json.loads(path.read_text())
+    assert later_only["materials"]["package:manual"]["use"] == "unknown"
+    declaration, = later_only["materials"]["package:manual"]["declarations"]
+    assert declaration["reason"] == "no_prior_ordered_observation"
+    assert later_only["counts"]["used"] == 0
 
     import_search(campaign, knowledge_root=corpus, **inputs)
     corrected = json.loads(path.read_text())
     material = corrected["materials"]["package:manual"]
-    assert material["use"] == "used" and corrected["counts"]["used"] == 1
+    assert material["use"] == status and corrected["counts"]["used"] == int(status == "used")
     evidence, = material["evidence"]
     assert evidence["decision_line"] == 4 and "reason" not in evidence
     assert not material.get("declarations")
