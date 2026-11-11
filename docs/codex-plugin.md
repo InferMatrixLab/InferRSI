@@ -99,6 +99,12 @@ The project reader supports Python 3.10+ and a synced local catalog from
 `mindie-knowledge 0.13.13`. The query and explain results follow the graded
 [MindIE Codex v0.1.21 contract](https://github.com/mindie-agent/mindie-agent-codex/blob/v0.1.21/plugins/mindie-agent/skills/mindie-agent/references/domain-skills.md).
 
+The reader leaves catalog content and delivery/feedback counters unchanged and
+rebuilds a missing derived index only in memory. Read-only does not mean zero
+filesystem writes: InferRSI saves local receipts, and SQLite may create WAL
+sidecars or update shared-memory (`-shm`) bookkeeping while reading a
+[WAL-mode database](https://sqlite.org/wal.html#read_only_databases).
+
 ### Enable and revoke
 
 With InferRSI installed, approve a synced domain once from the target checkout.

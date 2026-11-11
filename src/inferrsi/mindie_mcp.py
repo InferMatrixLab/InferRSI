@@ -5,7 +5,7 @@ import re
 import sys
 
 from . import __version__
-from .mindie_context import MAX_BYTES, _parse
+from .mindie_context import MAX_BYTES, _invalid_constant, _object
 from .mindie_project import call, describe
 
 _PROTOCOL = "2025-11-25"
@@ -96,14 +96,23 @@ def serve():
         try:
             if len(line) > MAX_BYTES:
                 raise ValueError("MCP message exceeds 2 MiB")
-            message = _parse(line)
-            if "id" not in message:
+            try:
+                message = json.loads(line, object_pairs_hook=_object,
+                                     parse_constant=_invalid_constant)
+            except (ValueError, UnicodeError, RecursionError):
+                print(json.dumps({"jsonrpc": "2.0", "id": None, "error": {
+                    "code": -32700, "message": "Parse error",
+                }}), flush=True)
                 continue
-            identifier = message["id"]
+            if not isinstance(message, dict):
+                raise ValueError("Invalid MCP request")
+            identifier = message.get("id")
             method, params = message.get("method"), message.get("params", {})
             if (message.get("jsonrpc") != "2.0" or not isinstance(method, str)
                     or not isinstance(params, dict)):
                 raise ValueError("Invalid MCP request")
+            if "id" not in message:
+                continue
             payload = {"result": _reply(method, params)}
         except LookupError:
             payload = {"error": {"code": -32601, "message": "Unknown MCP method"}}

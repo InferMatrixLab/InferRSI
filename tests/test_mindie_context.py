@@ -193,9 +193,20 @@ def test_v1_snapshot_is_evaluated_after_workspace_becomes_v2(evidence, tmp_path,
                  "--backend", "cpu", "--agent", "codex", "--mode", "code",
                  "--baseline-command", command, "--candidate-command", command,
                  "--validation-command", check, "--repetitions", "1", "--max-minutes", "1",
-                 "--output-dir", str(campaign / "runs")]) in {0, 1}
-    run_id = json.loads(capsys.readouterr().out)["run_id"]
+                 "--output-dir", str(campaign / "runs")]) == 1
+    result = json.loads(capsys.readouterr().out)
+    # Both fixture measurements are 1 ms: execution succeeds, but zero gain
+    # deliberately fails the performance gate. A crashed run is not acceptable.
+    assert result["status"]["state"] == "completed"
+    assert result["status"]["verdict"] == "FAIL"
+    assert result["status"]["error"] is None
+    run_id = result["run_id"]
     run = campaign / "runs" / run_id
+    evaluation = json.loads((run / "evaluation.json").read_text())
+    assert evaluation["improvement_pct"] == 0
+    assert evaluation["reasons"] == [
+        "measured gain -0% must be positive and meet 0% threshold",
+    ]
     assert json.loads((run / "candidate/trial-001/result.json").read_text())["observed"] == 6
     document = trace_template(json.loads((read / "context.json").read_text()), run_id=run_id)
     template = campaign / "template.json"
