@@ -24,8 +24,9 @@ not the historical TP4 run. Single-launch medians are observations, not a
 reproducible service speedup claim or proof of the H200 target.
 
 Historical candidate source manifests are included where available; their full
-experimental source snapshots remain local. Raw images, profiler traces and host
-logs also remain local. Published request
+experimental source snapshots remain local. Most raw images, profiler traces and host
+logs remain local. Six representative round-two full-resolution images are now
+included in the [image gallery](results/round2-images/README.md). Published request
 records omit prompts, local file names and process identifiers. Pixel hashes
 identify retained outputs, but this export alone cannot independently recompute
 image-quality scores. Reproduction requires the public checkpoint and example
@@ -112,3 +113,11 @@ The evidence inventory validates the public export hashes. Historical source
 hashes are classified as external dependencies, with original revision/context
 metadata retained alongside each flat source manifest. These checks do not
 qualify missing raw images or change the campaign verdict.
+
+## Round-two generated images
+
+[Control/candidate gallery and full-resolution PNGs](results/round2-images/README.md)
+cover W1, W2 and W3 at seed 42, first measured request. The gallery includes the
+30-image numerical-screen report and pixel-hash provenance. Panels were inspected
+for presentation and obvious structural differences; this does not complete
+full-resolution visual acceptance. The remaining 24 images are not bundled.

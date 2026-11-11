@@ -451,7 +451,7 @@
         }
       ],
       "external": [
-        "Full-resolution output images, private host logs, profiler traces and historical experimental source snapshots remain outside this public export. Numerical image-quality scores cannot be independently recomputed from these artifacts alone."
+        "Six representative full-resolution output images are bundled; remaining output images, private host logs, profiler traces and historical experimental source snapshots remain outside this public export. The complete 30-image quality screen cannot be independently recomputed from these artifacts alone."
       ]
     },
     "h3-ref2va-910c-4logical-20261101-297": {
