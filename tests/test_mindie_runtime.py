@@ -12,6 +12,7 @@ from pathlib import Path
 import pytest
 
 from inferrsi import mindie_project
+from inferrsi.mindie_context import MAX_BYTES
 
 
 @pytest.fixture
@@ -151,7 +152,8 @@ def test_worker_masks_private_library_errors(reader, query, message):
     assert b"FIXTURE_PRIVATE_PATH" not in error.value.response
 
 
-def test_mcp_stdio_round_trip(reader, tmp_path, monkeypatch):
+@pytest.mark.parametrize("oversized_line", ["newline", "eof", "boundary-newline"])
+def test_mcp_stdio_round_trip(reader, tmp_path, monkeypatch, oversized_line):
     grant, _ = reader
     home = tmp_path / "home"
     home.mkdir()
@@ -179,6 +181,20 @@ def test_mcp_stdio_round_trip(reader, tmp_path, monkeypatch):
     wire = "".join(json.dumps(message) + "\n" for message in requests)
     wire += '{bad json\n{"jsonrpc":"2.0","id":5,"method":42}\n[]\n'
     wire += '{"jsonrpc":"2.0","id":6,"method":"ping"}\n'
+    discarded = json.dumps({"jsonrpc": "2.0", "id": "discarded", "method": "tools/call",
+                            "params": {"name": "knowledge_query",
+                                       "arguments": {"query": "fixture"}}})
+    if oversized_line == "boundary-newline":
+        # The rejected first chunk already includes its terminating newline.
+        wire += discarded.ljust(MAX_BYTES) + "\n"
+    else:
+        # The valid JSON tail belongs to one oversized physical line, even
+        # when it takes multiple bounded reads to reach the tail or EOF.
+        wire += " " * (2 * (MAX_BYTES + 1)) + discarded
+        if oversized_line == "newline":
+            wire += "\n"
+    if oversized_line != "eof":
+        wire += '{"jsonrpc":"2.0","id":7,"method":"ping"}\n'
     source = str(Path(mindie_project.__file__).resolve().parents[1])
     process = subprocess.run(
         [sys.executable, "-I", "-B", "-c", f"import sys; sys.path.insert(0, {source!r}); "
@@ -189,7 +205,10 @@ def test_mcp_stdio_round_trip(reader, tmp_path, monkeypatch):
     replies = [json.loads(line) for line in process.stdout.splitlines()]
     # The initialized notification produces no response, and the server can
     # still answer a ping after both JSON syntax and request-shape errors.
-    assert [reply["id"] for reply in replies] == [1, 2, 3, 4, None, 5, None, 6]
+    expected_ids = [1, 2, 3, 4, None, 5, None, 6, None]
+    if oversized_line != "eof":
+        expected_ids.append(7)
+    assert [reply["id"] for reply in replies] == expected_ids
     assert all(reply["jsonrpc"] == "2.0" for reply in replies)
     assert replies[0]["result"]["protocolVersion"] == "2025-11-25"
     assert {tool["name"] for tool in replies[1]["result"]["tools"]} == {
@@ -207,3 +226,9 @@ def test_mcp_stdio_round_trip(reader, tmp_path, monkeypatch):
     )
     assert [reply["error"]["code"] for reply in replies[4:7]] == [-32700, -32600, -32600]
     assert replies[7]["result"] == {}
+    assert replies[8]["error"]["code"] == -32600
+    if oversized_line != "eof":
+        assert replies[9]["result"] == {}
+    # Only the two intended reads may create receipts: the discarded tail
+    # must not dispatch another knowledge call.
+    assert len(list(receipt.parent.iterdir())) == 2

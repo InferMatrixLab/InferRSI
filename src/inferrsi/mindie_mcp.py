@@ -95,6 +95,10 @@ def serve():
         identifier = None
         try:
             if len(line) > MAX_BYTES:
+                # A rejected physical line is one message. Discard its tail
+                # in bounded chunks so it cannot become a second request.
+                while line and not line.endswith(b"\n"):
+                    line = sys.stdin.buffer.readline(MAX_BYTES + 1)
                 raise ValueError("MCP message exceeds 2 MiB")
             try:
                 message = json.loads(line, object_pairs_hook=_object,
