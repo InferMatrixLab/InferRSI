@@ -97,3 +97,8 @@ The [downsampled overview](results/quality-overview.png) is a visual aid only.
 The [check summary](results/checks.json) records the current validation limits.
 
 Engine delivery: [vLLM-Omni PR 10184](https://github.com/vllm-project/vllm-omni/pull/10184).
+
+The attention component probes used real block weights and captured activations,
+but synthetic RoPE and epsilon `1e-6` rather than the model's `1e-5`. They are
+not complete model-correctness evidence. The K/V projection discrepancy was
+measured before normalization; actual engine trials used the model epsilon.
