@@ -1,0 +1,652 @@
+{
+  "document": "D023 conformance vectors for acceptance T36-T40",
+  "status": "Proposed",
+  "nature": "Documentation vectors only. Every case states explicit input facts and the single expected outcome required by the contract. No case asserts that a runtime test ran, passed, or produced these values. Nothing here is produced by executing prepare, execute, assess, or any test runner.",
+  "scope": "D023-1 through D023-5 mapped onto T36-T40 of ACCEPTANCE-T01-T40.md",
+  "digest_examples": {
+    "notice": "All 64-hex values below are syntactically valid FIXED EXAMPLE strings used to make the vectors concrete. They are not computed digests of any bytes. The coordinator will hash-verify real artifacts later; no vector here claims a computed relationship between two digests unless it is stated as an equality of field values.",
+    "values": {
+      "sha_recipe_code": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "sha_actual_code_same": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "sha_actual_code_different": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
+      "sha_protocol_bytes": "0011223344556677001122334455667700112233445566770011223344556677",
+      "sha_prepared_bytes": "8899aabbccddeeff8899aabbccddeeff8899aabbccddeeff8899aabbccddeeff",
+      "sha_resource_required": "0f1e2d3c4b5a69780f1e2d3c4b5a69780f1e2d3c4b5a69780f1e2d3c4b5a6978",
+      "sha_delivered_draft": "aabbccddeeff0011aabbccddeeff0011aabbccddeeff0011aabbccddeeff0011",
+      "sha_record_bytes": "5f4e3d2c1b0a99885f4e3d2c1b0a99885f4e3d2c1b0a99885f4e3d2c1b0a9988",
+      "sha_assessment_bytes": "8899aabbccddeeff8899aabbccddeeff8899aabbccddeeff8899aabbccddeeff"
+    },
+    "semantic_ids": {
+      "prepared_id_example": "sha256:8899aabbccddeeff8899aabbccddeeff8899aabbccddeeff8899aabbccddeeff",
+      "protocol_digest_example": "sha256:0011223344556677001122334455667700112233445566770011223344556677",
+      "assessment_id_example": "sha256:8899aabbccddeeff8899aabbccddeeff8899aabbccddeeff8899aabbccddeeff",
+      "notice": "Semantic ids reuse the fixed example digests above purely for shape. They are not claimed to be the result of applying projection P to any payload."
+    }
+  },
+  "cases": [
+    {
+      "case_id": "T36-N1",
+      "acceptance": "T36",
+      "d023_item": "D023-1",
+      "polarity": "negative",
+      "input_facts": {
+        "archive_root_state": "empty",
+        "authorized_prefix": "archives/p0a-demo (explicitly configured non-fixture prefix, distinct from any registered fixture prefix)",
+        "contracts_declared_resources": ["baseline", "reference", "samples"],
+        "resources_present_at_prepare": ["baseline", "reference"],
+        "missing_required_resource": "samples",
+        "storage_config_injected_by": "trusted host, explicit",
+        "prepare_started_process": false,
+        "prepare_wrote_bytes": false
+      },
+      "expected_outcome": {
+        "valid_prepared_ref": false,
+        "prepared_ref_value": null,
+        "execute_allowed": false,
+        "reported_fact": "semantic required closure incomplete: role samples has no readable resource entry",
+        "archive_written": false
+      },
+      "invariants": [
+        "B lists the semantic required closure and reports the missing role",
+        "Apps does not substitute an in-memory id for a missing resource",
+        "no PreparedRef is published before final prepared canonical bytes are verified and archived"
+      ],
+      "prohibited_inferences": [
+        "an in-memory prepared_id may stand in for a committed PreparedRef",
+        "a partial archive with some roles present counts as success"
+      ],
+      "runtime_status": "specification_not_executed"
+    },
+    {
+      "case_id": "T36-P1",
+      "acceptance": "T36",
+      "d023_item": "D023-1",
+      "polarity": "positive",
+      "input_facts": {
+        "archive_root_state": "empty",
+        "authorized_prefix": "archives/p0a-demo",
+        "contracts_declared_resources": ["baseline", "reference", "samples"],
+        "resources_present_at_prepare": ["baseline", "reference", "samples"],
+        "protocol_bytes_source": "frozen protocol canonical bytes delivered in process by B",
+        "resource_reader": "read-only per-role reader opened over the resource closure",
+        "final_location_allocated_by": "Apps under the injected StorageConfig",
+        "final_bytes_verified_by": "B pure encode/validate_prepared accepting the allocated location",
+        "example_prepared_digest": "8899aabbccddeeff8899aabbccddeeff8899aabbccddeeff8899aabbccddeeff",
+        "example_prepared_id": "sha256:8899aabbccddeeff8899aabbccddeeff8899aabbccddeeff8899aabbccddeeff"
+      },
+      "expected_outcome": {
+        "valid_prepared_ref": true,
+        "archive_full": true,
+        "new_process_read_with_same_ref_and_config": true,
+        "new_process_reads_identical_prepared_bytes": true,
+        "new_process_observes_identical_prepared_id": true,
+        "execute_allowed": true
+      },
+      "invariants": [
+        "the prepared bytes read back in a fresh process are byte-identical to the archived canonical bytes",
+        "the identity recomputed in the fresh process equals the published prepared_id",
+        "B did not write to disk and did not depend on Apps storage routing"
+      ],
+      "prohibited_inferences": [
+        "a successful archive in this vector proves that any internal field or location change keeps prepared_id",
+        "a different digest value in this file is proof of a computed hash relationship"
+      ],
+      "runtime_status": "specification_not_executed"
+    },
+    {
+      "case_id": "T36-N2",
+      "acceptance": "T36",
+      "d023_item": "D023-1",
+      "polarity": "negative",
+      "input_facts": {
+        "prepared_internal_field_change": "a resource description object inside PreparedEvaluation.resources changes one internal field value",
+        "outer_location_change": "only ArtifactRef.location of an externally declared Ref changes"
+      },
+      "expected_outcome": {
+        "internal_field_change": "the affected sha256 and prepared_id are recomputed under the existing identity rules",
+        "outer_location_change": "stripped by projection P only where the field is declared ArtifactRef, so prepared_id is unchanged for that case",
+        "generic_relocation_claim": "rejected"
+      },
+      "invariants": [
+        "committed bytes are never rewritten in place",
+        "a distinct canonical byte change yields a distinct identity"
+      ],
+      "prohibited_inferences": [
+        "any relocation of any internal location preserves prepared_id"
+      ],
+      "runtime_status": "specification_not_executed"
+    },
+    {
+      "case_id": "T37-P1",
+      "acceptance": "T37",
+      "d023_item": "D023-2",
+      "polarity": "positive",
+      "input_facts": {
+        "mode": "evaluation",
+        "prepared_ref_non_null": true,
+        "recipe_declares_code_sha256": true,
+        "recipe_code_sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "command_step_expected_code_sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "actual_entrypoint_bytes_digest_before_start": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "entrypoint_name_and_revision": "unchanged"
+      },
+      "expected_outcome": {
+        "expected_equals_frozen_recipe_value": true,
+        "actual_equals_expected": true,
+        "candidate_process_may_start": true,
+        "process_outcome": "not constrained by this vector"
+      },
+      "invariants": [
+        "the expected value is copied unchanged from the frozen prepared.recipe",
+        "H computes the actual entrypoint digest before the candidate process starts and does not import B"
+      ],
+      "prohibited_inferences": [
+        "a matching code digest implies the candidate is correct or that any claim PASSes"
+      ],
+      "runtime_status": "specification_not_executed"
+    },
+    {
+      "case_id": "T37-N1",
+      "acceptance": "T37",
+      "d023_item": "D023-2",
+      "polarity": "negative",
+      "input_facts": {
+        "mode": "evaluation",
+        "prepared_ref_non_null": true,
+        "entrypoint_name": "worker.entry (unchanged)",
+        "entrypoint_revision": "1 (unchanged)",
+        "recipe_code_sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "command_step_expected_code_sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "actual_entrypoint_bytes_digest_before_start": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210"
+      },
+      "expected_outcome": {
+        "candidate_processes_started": 0,
+        "committed_record_required": true,
+        "record_process_outcome": "not_started",
+        "record_records_mismatch_facts": true,
+        "record_records_actual_and_expected_digests": true,
+        "commit_failure_case": "a failure to commit this record raises the existing ExecutionPersistenceError and yields no valid new RecordRef"
+      },
+      "invariants": [
+        "matching entrypoint name and revision do not substitute for a matching code digest",
+        "zero candidate processes start before the comparison succeeds"
+      ],
+      "prohibited_inferences": [
+        "a not_started record is a claim FAIL",
+        "an unresolvable entrypoint may be reported as a mismatch"
+      ],
+      "runtime_status": "specification_not_executed"
+    },
+    {
+      "case_id": "T37-N2",
+      "acceptance": "T37",
+      "d023_item": "D023-2",
+      "polarity": "negative",
+      "input_facts": {
+        "mode": "evaluation",
+        "prepared_ref_non_null": true,
+        "recipe_code_sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "command_step_expected_code_sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "actual_entrypoint_bytes": "unresolvable under the supported entrypoint/package scope"
+      },
+      "expected_outcome": {
+        "code_identity_check_status": "not_performed",
+        "identity_outcome": "unknown",
+        "mismatch_invented": false,
+        "runtime_binding_code_sha256": null,
+        "candidate_processes_started": 0
+      },
+      "invariants": [
+        "RuntimeBinding.code_sha256 stays null when actual bytes could not be resolved",
+        "the expected value is never copied into the observed field"
+      ],
+      "prohibited_inferences": [
+        "unknown actual identity is equivalent to a proven mismatch"
+      ],
+      "runtime_status": "specification_not_executed"
+    },
+    {
+      "case_id": "T37-N3",
+      "acceptance": "T37",
+      "d023_item": "D023-2",
+      "polarity": "negative",
+      "input_facts": {
+        "mode": "ordinary_command",
+        "prepared_ref_null": true,
+        "protocol_digest_null": true,
+        "operation_null": true,
+        "validation_scope_null": true,
+        "candidate_null": true,
+        "command_step_expected_code_sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+      },
+      "expected_outcome": {
+        "valid": false,
+        "failure": "semantic check V05/V32 rejects non-null expected_code_sha256 in ordinary command mode",
+        "candidate_processes_started": 0
+      },
+      "invariants": [
+        "ordinary command mode requires expected_code_sha256 to be null"
+      ],
+      "prohibited_inferences": [
+        "a schema-valid digest string is acceptable in ordinary command mode"
+      ],
+      "runtime_status": "specification_not_executed"
+    },
+    {
+      "case_id": "T37-N4",
+      "acceptance": "T37",
+      "d023_item": "D023-2",
+      "polarity": "negative",
+      "input_facts": {
+        "mode": "evaluation",
+        "prepared_ref_non_null": true,
+        "recipe_declares_code_sha256": true,
+        "command_step_expected_code_sha256": null
+      },
+      "expected_outcome": {
+        "valid": false,
+        "failure": "semantic check V32 rejects null expected_code_sha256 when the frozen recipe declares a code digest",
+        "candidate_processes_started": 0
+      },
+      "invariants": [
+        "evaluation mode with a declared recipe digest requires a non-null expected value equal to the frozen value"
+      ],
+      "prohibited_inferences": [
+        "null opts out of the pre-start comparison"
+      ],
+      "runtime_status": "specification_not_executed"
+    },
+    {
+      "case_id": "T37-N5",
+      "acceptance": "T37",
+      "d023_item": "D023-2",
+      "polarity": "negative",
+      "input_facts": {
+        "command_step_object": "valid in every other required field",
+        "expected_code_sha256_present": false,
+        "expected_code_sha256_value": "not applicable: the key is omitted entirely"
+      },
+      "expected_outcome": {
+        "schema_valid": false,
+        "failure": "schema rejects the object because expected_code_sha256 is required even when its value is null"
+      },
+      "invariants": [
+        "the field is required; nullability is expressed by an explicit null value, not by omission"
+      ],
+      "prohibited_inferences": [
+        "omitting the field is equivalent to a null value"
+      ],
+      "runtime_status": "specification_not_executed"
+    },
+    {
+      "case_id": "T38-N1",
+      "acceptance": "T38",
+      "d023_item": "D023-3",
+      "polarity": "negative",
+      "input_facts": {
+        "collect_returns": "DeliveredContextDraft (process-local value)",
+        "draft_carries_committed_artifact_ref": false,
+        "draft_proposed_logical_location": "context/round-1/delivered.bin",
+        "draft_digest": "aabbccddeeff0011aabbccddeeff0011aabbccddeeff0011aabbccddeeff0011",
+        "retention_by_H": "failed"
+      },
+      "expected_outcome": {
+        "valid_delivery_ref_published": false,
+        "delivered_context_sealed": false,
+        "generation_manifest_written": false,
+        "reported_fact": "retention failed before commit"
+      },
+      "invariants": [
+        "ContextProvider.collect never returns a valid ArtifactRef for bytes that were not committed",
+        "the draft's proposed location and digest are not a delivery record"
+      ],
+      "prohibited_inferences": [
+        "a draft's proposed digest may be published as a delivered ArtifactRef"
+      ],
+      "runtime_status": "specification_not_executed"
+    },
+    {
+      "case_id": "T38-P1",
+      "acceptance": "T38",
+      "d023_item": "D023-3",
+      "polarity": "positive",
+      "input_facts": {
+        "collect_returns": "DeliveredContextDraft (process-local value)",
+        "draft_items_selection_omissions_limitations": "present",
+        "draft_bytes_digest": "aabbccddeeff0011aabbccddeeff0011aabbccddeeff0011aabbccddeeff0011",
+        "retention_by_H": "succeeded through H's own capture/commit route",
+        "final_delivered_context_artifact_sha256": "aabbccddeeff0011aabbccddeeff0011aabbccddeeff0011aabbccddeeff0011",
+        "writer_of_record": "H"
+      },
+      "expected_outcome": {
+        "delivered_context_sealed": true,
+        "generation_manifest_written_after_seal": true,
+        "new_process_read_with_same_config": true,
+        "new_process_reads_bytes_equal_to_draft_bytes": true,
+        "artifact_unavailable": false
+      },
+      "invariants": [
+        "the sealed DeliveredContext.artifact points only at retained bytes",
+        "the bytes read in a fresh process equal the draft's actual delivered bytes",
+        "Apps did not write to the H RunStore"
+      ],
+      "prohibited_inferences": [
+        "the draft is a serialized JSON DTO or a JSON stream with a schema shape",
+        "a ref-only success without readable bytes is acceptable"
+      ],
+      "runtime_status": "specification_not_executed"
+    },
+    {
+      "case_id": "T38-N2",
+      "acceptance": "T38",
+      "d023_item": "D023-3",
+      "polarity": "negative",
+      "input_facts": {
+        "delivery_committed": true,
+        "reader_attempt_in_fresh_process_with_same_config": "bytes not present or unreadable"
+      },
+      "expected_outcome": {
+        "acceptable": false,
+        "failure": "the committed-delivery contract is violated; a reference alone that resolves to ArtifactUnavailable is not a valid delivery",
+        "reported_fact": "ArtifactUnavailable for a sealed delivery"
+      },
+      "invariants": [
+        "a sealed delivery must remain readable from a new process under the same configuration"
+      ],
+      "prohibited_inferences": [
+        "publication of an ArtifactRef alone satisfies D023-3"
+      ],
+      "runtime_status": "specification_not_executed"
+    },
+    {
+      "case_id": "T39-N1",
+      "acceptance": "T39",
+      "d023_item": "D023-4",
+      "polarity": "negative",
+      "input_facts": {
+        "fixed_protocol_claim_keys": [["F", "p1"], ["C", "p1"], ["M", "p1"]],
+        "assess_request_primary_claim_id": "X",
+        "assess_request_primary_scope": "p1"
+      },
+      "expected_outcome": {
+        "outcome": "error",
+        "exit_code": 2,
+        "reason_code": "InvalidRequest",
+        "assessor_invoked": false,
+        "assessment_written": false
+      },
+      "invariants": [
+        "the claim key is checked against the frozen protocol before the assessor is called"
+      ],
+      "prohibited_inferences": [
+        "an unknown key may be treated as a missing-evidence INCONCLUSIVE claim"
+      ],
+      "runtime_status": "specification_not_executed"
+    },
+    {
+      "case_id": "T39-N2",
+      "acceptance": "T39",
+      "d023_item": "D023-4",
+      "polarity": "negative",
+      "input_facts": {
+        "fixed_protocol_claim_keys": [["F", "p1"], ["C", "p1"], ["M", "p1"]],
+        "assess_request_primary_claim_id": null,
+        "assess_request_primary_scope": "p1"
+      },
+      "expected_outcome": {
+        "outcome": "error",
+        "exit_code": 2,
+        "reason_code": "InvalidRequest",
+        "default_first_claim_selected": false,
+        "assessor_invoked": false
+      },
+      "invariants": [
+        "Apps does not choose a first claim on the caller's behalf"
+      ],
+      "prohibited_inferences": [
+        "a single-claim protocol permits omitting the primary key"
+      ],
+      "runtime_status": "specification_not_executed"
+    },
+    {
+      "case_id": "T39-N3",
+      "acceptance": "T39",
+      "d023_item": "D023-4",
+      "polarity": "negative",
+      "input_facts": {
+        "fixed_protocol_claim_keys": [["F", "p1"], ["C", "p1"], ["M", "p1"]],
+        "assess_request_primary_claim_id": "C",
+        "assess_request_primary_scope": "p1",
+        "b_result_claims": [["F", "p1"], ["M", "p1"]],
+        "b_result_omits_key": ["C", "p1"]
+      },
+      "expected_outcome": {
+        "outcome": "error",
+        "error_class": "AssessorError class result-contract error",
+        "apps_fills_missing_claim": false,
+        "reported_as_user_argument_error": false,
+        "assessment_ref": null
+      },
+      "invariants": [
+        "a key present in the protocol but absent from the B result is a result-contract error, not a caller mistake",
+        "Apps does not synthesize the missing claim verdict"
+      ],
+      "prohibited_inferences": [
+        "a missing result key becomes InvalidRequest",
+        "an omitted key becomes INCONCLUSIVE produced by Apps"
+      ],
+      "runtime_status": "specification_not_executed"
+    },
+    {
+      "case_id": "T39-P1",
+      "acceptance": "T39",
+      "d023_item": "D023-4",
+      "polarity": "positive",
+      "input_facts": {
+        "assess_request_primary_claim_id": "C",
+        "assess_request_primary_scope": "p1",
+        "b_result_complete": true,
+        "archive_of_assessment": "failed"
+      },
+      "expected_outcome": {
+        "outcome": "persistence_error",
+        "exit_code": 6,
+        "assessment_retained_in_memory": true,
+        "assessment_ref": null,
+        "reason_code": "ArchivePersistenceError"
+      },
+      "invariants": [
+        "archive failure takes priority over the selected claim verdict",
+        "no AssessmentRef is invented from an unsaved in-memory result"
+      ],
+      "prohibited_inferences": [
+        "an in-memory assessment justifies a published AssessmentRef"
+      ],
+      "runtime_status": "specification_not_executed"
+    },
+    {
+      "case_id": "T39-P2",
+      "acceptance": "T39",
+      "d023_item": "D023-4",
+      "polarity": "positive",
+      "input_facts": {
+        "assess_request_primary_claim_id": "C",
+        "assess_request_primary_scope": "p1",
+        "b_result_claims": [["F", "p1", "PASS"], ["C", "p1", "FAIL"], ["M", "p1", "INCONCLUSIVE"]],
+        "archive_of_assessment": "succeeded"
+      },
+      "expected_outcome": {
+        "outcome": "fail",
+        "exit_code": 8,
+        "assessment_ref_published": true,
+        "other_claims_preserved": [["F", "p1", "PASS"], ["M", "p1", "INCONCLUSIVE"]],
+        "aggregate_verdict_invented": false
+      },
+      "invariants": [
+        "exit 8 reports only the selected claim",
+        "other claim and scope results are preserved unchanged",
+        "Apps produces no overall verdict"
+      ],
+      "prohibited_inferences": [
+        "exit 8 means the whole evaluation failed"
+      ],
+      "runtime_status": "specification_not_executed"
+    },
+    {
+      "case_id": "T40-P1",
+      "acceptance": "T40",
+      "d023_item": "D023-5",
+      "polarity": "positive",
+      "input_facts": {
+        "run_store": "same persistent RunStore (a new process may open it; same backing store)",
+        "saved_apps_execute_request": "previously saved complete file, attempt already allocated",
+        "attempt_id": "att-replay-1",
+        "first_submission": "committed, record finished, recorded exit_code 0",
+        "client_received_response": false,
+        "replay_request_bytes": "identical to the saved request"
+      },
+      "expected_outcome": {
+        "outcome": "success",
+        "exit_code": 0,
+        "returned_record_ref": "the original committed RecordRef",
+        "new_attempt_allocated": false,
+        "deadline_extended": false,
+        "budget_extended": false,
+        "new_execution_started": false
+      },
+      "invariants": [
+        "replay reuses the original attempt and original request bytes",
+        "a completed state returns the original RecordRef without rerunning"
+      ],
+      "prohibited_inferences": [
+        "a lost response implies a new attempt"
+      ],
+      "runtime_status": "specification_not_executed"
+    },
+    {
+      "case_id": "T40-P2",
+      "acceptance": "T40",
+      "d023_item": "D023-5",
+      "polarity": "positive",
+      "input_facts": {
+        "run_store": "same RunStore instance",
+        "saved_apps_execute_request": "previously saved complete file, attempt already allocated",
+        "attempt_id": "att-replay-2",
+        "first_submission_committed": false,
+        "side_effect_state": "unknown",
+        "client_received_response": false,
+        "replay_request_bytes": "identical to the saved request"
+      },
+      "expected_outcome": {
+        "outcome": "recovery_required",
+        "exit_code": 5,
+        "reason_code": "RecoveryRequired",
+        "new_attempt_allocated": false,
+        "new_execution_started": false,
+        "latest_record_ref_possible": true
+      },
+      "invariants": [
+        "an unknown state is never re-executed automatically",
+        "the original attempt identity is preserved"
+      ],
+      "prohibited_inferences": [
+        "recovery_required permits a fresh attempt to finish the work"
+      ],
+      "runtime_status": "specification_not_executed"
+    },
+    {
+      "case_id": "T40-N1",
+      "acceptance": "T40",
+      "d023_item": "D023-5",
+      "polarity": "negative",
+      "input_facts": {
+        "run_store": "same RunStore instance",
+        "original_saved_request_digest": "sha256:0011223344556677001122334455667700112233445566770011223344556677",
+        "replay_request_change": "output_root differs from the saved request",
+        "replay_attempt": "same attempt_id as the saved request"
+      },
+      "expected_outcome": {
+        "accepted_as_replay": false,
+        "outcome": "error",
+        "reason_code": "RequestConflict",
+        "exit_code": 2,
+        "original_request_unchanged": true,
+        "new_execution_started": false
+      },
+      "invariants": [
+        "disconnect replay requires the original request bytes",
+        "a different request is not the same replay"
+      ],
+      "prohibited_inferences": [
+        "a matching attempt_id makes any later request a replay"
+      ],
+      "runtime_status": "specification_not_executed"
+    },
+    {
+      "case_id": "T40-N2",
+      "acceptance": "T40",
+      "d023_item": "D023-5",
+      "polarity": "negative",
+      "input_facts": {
+        "run_store": "same RunStore instance",
+        "original_attempt": "att-replay-3, deadline already passed",
+        "proposed_action": "call allocate_attempt again and run with a fresh deadline",
+        "proposed_label": "described by the caller as a resend"
+      },
+      "expected_outcome": {
+        "accepted": false,
+        "new_attempt_allowed_under_replay_label": false,
+        "deadline_extended": false,
+        "budget_extended": false,
+        "reported_fact": "an expired rerun is not a disconnect replay"
+      },
+      "invariants": [
+        "replay must reuse the original attempt and original request",
+        "deadlines and budgets are not extended by a replay"
+      ],
+      "prohibited_inferences": [
+        "an expired rerun under a new attempt counts as the same replay"
+      ],
+      "runtime_status": "specification_not_executed"
+    },
+    {
+      "case_id": "T40-N3",
+      "acceptance": "T40",
+      "d023_item": "D023-5",
+      "polarity": "negative",
+      "input_facts": {
+        "apps_execute_request": "valid in every other required field",
+        "attempt_present": false,
+        "storage_config_location_in_request": "absent by design, host injected"
+      },
+      "expected_outcome": {
+        "schema_valid": false,
+        "failure": "schema rejects the request because attempt is required",
+        "execute_calls_allocate_attempt": false
+      },
+      "invariants": [
+        "attempt is mandatory",
+        "execute never allocates an attempt itself",
+        "StorageConfig is not a member of any Apps*Request"
+      ],
+      "prohibited_inferences": [
+        "execute may allocate an attempt when the field is missing",
+        "StorageConfig may be embedded in a request to avoid host injection"
+      ],
+      "runtime_status": "specification_not_executed"
+    }
+  ],
+  "coverage": {
+    "T36": ["T36-N1", "T36-P1", "T36-N2"],
+    "T37": ["T37-P1", "T37-N1", "T37-N2", "T37-N3", "T37-N4", "T37-N5"],
+    "T38": ["T38-N1", "T38-P1", "T38-N2"],
+    "T39": ["T39-N1", "T39-N2", "T39-N3", "T39-P1", "T39-P2"],
+    "T40": ["T40-P1", "T40-P2", "T40-N1", "T40-N2", "T40-N3"]
+  },
+  "notes": [
+    "Each acceptance row has at least one negative and one positive vector.",
+    "Expected outcomes are contract requirements, not observations. No vector records a runtime pass.",
+    "Digest strings are fixed syntactic examples; the coordinator will hash-verify real artifacts separately.",
+    "These vectors do not amend the historical archived outputs and do not create a permanent gate exemption."
+  ]
+}

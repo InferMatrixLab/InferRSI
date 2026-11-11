@@ -1,0 +1,4643 @@
+{
+  "$comment": "Definition library: validate against the explicit named $defs entry, not the empty library root. Parameters and legacy leaves have the documented open grammars.",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:inferrsi:design:contract-v1",
+  "$defs": {
+    "Text": {
+      "type": "string"
+    },
+    "Id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@+-]*$"
+    },
+    "Sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "SemanticId": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "UInt": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "Version": {
+      "type": "integer",
+      "const": 1
+    },
+    "Timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d(?:\\.\\d{1,9})?Z$"
+    },
+    "Decimal": {
+      "type": "string",
+      "pattern": "^(?:0|-?[1-9][0-9]*|-?(?:0|[1-9][0-9]*)\\.[0-9]*[1-9])$"
+    },
+    "Path": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?!/)(?!.*(?:^|/)\\.{1,2}(?:/|$))(?!.*[\\\\:\\x00-\\x1f\\x7f])[^/]+(?:/[^/]+)*$"
+    },
+    "WorkPath": {
+      "anyOf": [
+        {
+          "const": "."
+        },
+        {
+          "$ref": "#/$defs/Path"
+        }
+      ]
+    },
+    "Strings": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Text"
+      }
+    },
+    "Ids": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Id"
+      },
+      "uniqueItems": true
+    },
+    "JsonValue": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Text"
+        },
+        {
+          "$ref": "#/$defs/UInt"
+        },
+        {
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": -1
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        },
+        {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/JsonValue"
+          }
+        },
+        {
+          "type": "object",
+          "propertyNames": {
+            "pattern": "^[ -~]+$"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          }
+        }
+      ]
+    },
+    "Parameters": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[ -~]+$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/JsonValue"
+      }
+    },
+    "DefinitionRef": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "$ref": "#/$defs/Id"
+        },
+        "revision": {
+          "$ref": "#/$defs/Id"
+        }
+      },
+      "required": [
+        "name",
+        "revision"
+      ],
+      "additionalProperties": false
+    },
+    "ArtifactRef": {
+      "type": "object",
+      "properties": {
+        "location": {
+          "$ref": "#/$defs/Path"
+        },
+        "sha256": {
+          "$ref": "#/$defs/Sha256"
+        },
+        "size_bytes": {
+          "$ref": "#/$defs/UInt"
+        },
+        "media_type": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "location",
+        "sha256",
+        "size_bytes",
+        "media_type"
+      ],
+      "additionalProperties": false
+    },
+    "PreparedRef": {
+      "type": "object",
+      "properties": {
+        "prepared_id": {
+          "$ref": "#/$defs/SemanticId"
+        },
+        "schema_version": {
+          "$ref": "#/$defs/Version"
+        },
+        "artifact": {
+          "$ref": "#/$defs/ArtifactRef"
+        }
+      },
+      "required": [
+        "prepared_id",
+        "schema_version",
+        "artifact"
+      ],
+      "additionalProperties": false
+    },
+    "RecordRef": {
+      "type": "object",
+      "properties": {
+        "attempt_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "record_version": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "artifact": {
+          "$ref": "#/$defs/ArtifactRef"
+        }
+      },
+      "required": [
+        "attempt_id",
+        "record_version",
+        "artifact"
+      ],
+      "additionalProperties": false
+    },
+    "AssessmentRef": {
+      "type": "object",
+      "properties": {
+        "assessment_id": {
+          "$ref": "#/$defs/SemanticId"
+        },
+        "schema_version": {
+          "$ref": "#/$defs/Version"
+        },
+        "artifact": {
+          "$ref": "#/$defs/ArtifactRef"
+        }
+      },
+      "required": [
+        "assessment_id",
+        "schema_version",
+        "artifact"
+      ],
+      "additionalProperties": false
+    },
+    "Resource": {
+      "type": "object",
+      "properties": {
+        "role": {
+          "$ref": "#/$defs/Id"
+        },
+        "artifact": {
+          "$ref": "#/$defs/ArtifactRef"
+        },
+        "format_schema": {
+          "$ref": "#/$defs/DefinitionRef"
+        },
+        "required_for": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "prepare",
+              "execute",
+              "assess"
+            ]
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "role",
+        "artifact",
+        "format_schema",
+        "required_for"
+      ],
+      "additionalProperties": false
+    },
+    "DirectoryEntry": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "$ref": "#/$defs/Path"
+        },
+        "sha256": {
+          "$ref": "#/$defs/Sha256"
+        },
+        "size_bytes": {
+          "$ref": "#/$defs/UInt"
+        },
+        "executable": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "path",
+        "sha256",
+        "size_bytes",
+        "executable"
+      ],
+      "additionalProperties": false
+    },
+    "DirectoryManifest": {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "$ref": "#/$defs/Version"
+        },
+        "entries": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/DirectoryEntry"
+          }
+        }
+      },
+      "required": [
+        "schema_version",
+        "entries"
+      ],
+      "additionalProperties": false
+    },
+    "TargetRequest": {
+      "type": "object",
+      "properties": {
+        "target_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "executor_kind": {
+          "enum": [
+            "local_cpu"
+          ]
+        },
+        "config_revision": {
+          "$ref": "#/$defs/Id"
+        }
+      },
+      "required": [
+        "target_id",
+        "executor_kind",
+        "config_revision"
+      ],
+      "additionalProperties": false
+    },
+    "ResourceRequest": {
+      "type": "object",
+      "properties": {
+        "cpu_count": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/UInt"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "memory_bytes": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/UInt"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "required_capabilities": {
+          "$ref": "#/$defs/Ids"
+        }
+      },
+      "required": [
+        "cpu_count",
+        "memory_bytes",
+        "required_capabilities"
+      ],
+      "additionalProperties": false
+    },
+    "BudgetDimension": {
+      "type": "object",
+      "properties": {
+        "dimension": {
+          "$ref": "#/$defs/Id"
+        },
+        "unit": {
+          "$ref": "#/$defs/Id"
+        },
+        "limit": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Decimal"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "reserve_estimate": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Decimal"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "dimension",
+        "unit",
+        "limit",
+        "reserve_estimate"
+      ],
+      "additionalProperties": false
+    },
+    "BudgetRequest": {
+      "type": "object",
+      "properties": {
+        "policy_ref": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DefinitionRef"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "scope_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "declared_by": {
+          "$ref": "#/$defs/Id"
+        },
+        "dimensions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/BudgetDimension"
+          }
+        },
+        "required_enforcement": {
+          "$ref": "#/$defs/Ids"
+        }
+      },
+      "required": [
+        "policy_ref",
+        "scope_id",
+        "declared_by",
+        "dimensions",
+        "required_enforcement"
+      ],
+      "additionalProperties": false
+    },
+    "AttemptContext": {
+      "type": "object",
+      "properties": {
+        "request_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "run_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "attempt_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "owner": {
+          "$ref": "#/$defs/Id"
+        },
+        "target_request": {
+          "$ref": "#/$defs/TargetRequest"
+        },
+        "deadline_utc": {
+          "$ref": "#/$defs/Timestamp"
+        },
+        "resources": {
+          "$ref": "#/$defs/ResourceRequest"
+        },
+        "budget": {
+          "$ref": "#/$defs/BudgetRequest"
+        },
+        "retry_of": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Id"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "retry_reason": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Text"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "request_id",
+        "run_id",
+        "attempt_id",
+        "owner",
+        "target_request",
+        "deadline_utc",
+        "resources",
+        "budget",
+        "retry_of",
+        "retry_reason"
+      ],
+      "additionalProperties": false
+    },
+    "InputSpec": {
+      "type": "object",
+      "properties": {
+        "role": {
+          "$ref": "#/$defs/Id"
+        },
+        "source": {
+          "$ref": "#/$defs/Text"
+        },
+        "source_namespace": {
+          "enum": [
+            "controller",
+            "target",
+            "artifact"
+          ]
+        },
+        "source_ref": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ArtifactRef"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "snapshot_format": {
+          "$ref": "#/$defs/Id"
+        },
+        "expected_sha256": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Sha256"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "materialized_path": {
+          "$ref": "#/$defs/Path"
+        }
+      },
+      "required": [
+        "role",
+        "source",
+        "source_namespace",
+        "source_ref",
+        "snapshot_format",
+        "expected_sha256",
+        "materialized_path"
+      ],
+      "additionalProperties": false
+    },
+    "OutputSpec": {
+      "type": "object",
+      "properties": {
+        "role": {
+          "$ref": "#/$defs/Id"
+        },
+        "path": {
+          "$ref": "#/$defs/Path"
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "media_type": {
+          "$ref": "#/$defs/Text"
+        },
+        "format_schema": {
+          "$ref": "#/$defs/DefinitionRef"
+        }
+      },
+      "required": [
+        "role",
+        "path",
+        "required",
+        "media_type",
+        "format_schema"
+      ],
+      "additionalProperties": false
+    },
+    "CommandStep": {
+      "$comment": "D023-2: expected_code_sha256 is always present and nullable. In evaluation mode (ExecutionSpec.prepared_ref non-null and the frozen recipe declares OperationRecipe.code_sha256) it MUST equal prepared.recipe.code_sha256. In ordinary command mode (V05 null set) it MUST be null. The schema enforces presence and form only; the equality and mode rules are V32.",
+      "type": "object",
+      "properties": {
+        "step_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "runtime_role": {
+          "$ref": "#/$defs/Id"
+        },
+        "entrypoint_kind": {
+          "enum": [
+            "python_module",
+            "executable"
+          ]
+        },
+        "entrypoint": {
+          "$ref": "#/$defs/Text"
+        },
+        "entrypoint_revision": {
+          "$ref": "#/$defs/Id"
+        },
+        "expected_code_sha256": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Sha256"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "args": {
+          "$ref": "#/$defs/Strings"
+        },
+        "cwd": {
+          "$ref": "#/$defs/WorkPath"
+        },
+        "outputs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/OutputSpec"
+          }
+        },
+        "timeout_seconds": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Decimal"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "step_id",
+        "runtime_role",
+        "entrypoint_kind",
+        "entrypoint",
+        "entrypoint_revision",
+        "expected_code_sha256",
+        "args",
+        "cwd",
+        "outputs",
+        "timeout_seconds"
+      ],
+      "additionalProperties": false
+    },
+    "CandidateSubmission": {
+      "type": "object",
+      "properties": {
+        "candidate_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "kind": {
+          "$ref": "#/$defs/Id"
+        },
+        "input_role": {
+          "$ref": "#/$defs/Id"
+        },
+        "parent_id": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Id"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "parent_digest": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Sha256"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "context_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ArtifactRef"
+          }
+        }
+      },
+      "required": [
+        "candidate_id",
+        "kind",
+        "input_role",
+        "parent_id",
+        "parent_digest",
+        "context_refs"
+      ],
+      "additionalProperties": false
+    },
+    "CandidateProposal": {
+      "type": "object",
+      "properties": {
+        "candidate": {
+          "$ref": "#/$defs/CandidateSubmission"
+        },
+        "inputs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/InputSpec"
+          }
+        },
+        "generation_record_ref": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RecordRef"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "candidate",
+        "inputs",
+        "generation_record_ref"
+      ],
+      "additionalProperties": false
+    },
+    "CandidateContract": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "$ref": "#/$defs/Id"
+        },
+        "input_role": {
+          "$ref": "#/$defs/Id"
+        },
+        "format_schema": {
+          "$ref": "#/$defs/DefinitionRef"
+        },
+        "entrypoint": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Path"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "required_paths": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Path"
+          },
+          "uniqueItems": true
+        },
+        "allowed_content": {
+          "$ref": "#/$defs/Parameters"
+        },
+        "identity_rule": {
+          "$ref": "#/$defs/DefinitionRef"
+        },
+        "modification_receipt_required": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "kind",
+        "input_role",
+        "format_schema",
+        "entrypoint",
+        "required_paths",
+        "allowed_content",
+        "identity_rule",
+        "modification_receipt_required"
+      ],
+      "additionalProperties": false
+    },
+    "CandidateExpectation": {
+      "type": "object",
+      "properties": {
+        "candidate_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "sha256": {
+          "$ref": "#/$defs/Sha256"
+        },
+        "format_schema": {
+          "$ref": "#/$defs/DefinitionRef"
+        }
+      },
+      "required": [
+        "candidate_id",
+        "sha256",
+        "format_schema"
+      ],
+      "additionalProperties": false
+    },
+    "EvidenceRequirement": {
+      "type": "object",
+      "properties": {
+        "allowed_producer_kinds": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "harness_capture",
+              "task_worker",
+              "caller_assertion",
+              "unknown"
+            ]
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "allowed_control_domains": {
+          "$ref": "#/$defs/Ids"
+        },
+        "matching_rule_revision": {
+          "$ref": "#/$defs/Id"
+        },
+        "check_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "checker_revision": {
+          "$ref": "#/$defs/Id"
+        },
+        "subject": {
+          "$ref": "#/$defs/Id"
+        },
+        "phase": {
+          "$ref": "#/$defs/Id"
+        },
+        "for_claims": {
+          "$ref": "#/$defs/Ids"
+        },
+        "artifact_schema": {
+          "$ref": "#/$defs/DefinitionRef"
+        }
+      },
+      "required": [
+        "allowed_producer_kinds",
+        "allowed_control_domains",
+        "matching_rule_revision",
+        "check_id",
+        "checker_revision",
+        "subject",
+        "phase",
+        "for_claims",
+        "artifact_schema"
+      ],
+      "additionalProperties": false
+    },
+    "ClaimDefinition": {
+      "type": "object",
+      "properties": {
+        "claim_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "validation_scope": {
+          "$ref": "#/$defs/Id"
+        },
+        "required_checks": {
+          "$ref": "#/$defs/Ids"
+        },
+        "decision_rule": {
+          "$ref": "#/$defs/DefinitionRef"
+        },
+        "requires_completed_measurement": {
+          "type": "boolean"
+        },
+        "requires_cleanup_confirmed": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "claim_id",
+        "validation_scope",
+        "required_checks",
+        "decision_rule",
+        "requires_completed_measurement",
+        "requires_cleanup_confirmed"
+      ],
+      "additionalProperties": false
+    },
+    "MetricDefinition": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "$ref": "#/$defs/Id"
+        },
+        "validation_scope": {
+          "$ref": "#/$defs/Id"
+        },
+        "unit": {
+          "$ref": "#/$defs/Id"
+        },
+        "direction": {
+          "enum": [
+            "minimize",
+            "maximize",
+            "none"
+          ]
+        },
+        "aggregation": {
+          "$ref": "#/$defs/DefinitionRef"
+        },
+        "timing": {
+          "$ref": "#/$defs/DefinitionRef"
+        },
+        "threshold": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Decimal"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "role": {
+          "enum": [
+            "gate",
+            "diagnostic"
+          ]
+        }
+      },
+      "required": [
+        "name",
+        "validation_scope",
+        "unit",
+        "direction",
+        "aggregation",
+        "timing",
+        "threshold",
+        "role"
+      ],
+      "additionalProperties": false
+    },
+    "OperationRecipe": {
+      "$comment": "D023-2: code_sha256 is the frozen expected code identity for the supported entrypoint/package scope. It is not the digest of an archived interpreter. Apps copies it unchanged into every CommandStep.expected_code_sha256 under evaluation mode.",
+      "type": "object",
+      "properties": {
+        "recipe_revision": {
+          "$ref": "#/$defs/Id"
+        },
+        "runtime_role": {
+          "$ref": "#/$defs/Id"
+        },
+        "entrypoint_kind": {
+          "enum": [
+            "python_module",
+            "executable"
+          ]
+        },
+        "entrypoint": {
+          "$ref": "#/$defs/Text"
+        },
+        "entrypoint_revision": {
+          "$ref": "#/$defs/Id"
+        },
+        "code_sha256": {
+          "$ref": "#/$defs/Sha256"
+        },
+        "args": {
+          "$ref": "#/$defs/Strings"
+        },
+        "input_roles": {
+          "$ref": "#/$defs/Ids"
+        },
+        "outputs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/OutputSpec"
+          }
+        },
+        "required_capabilities": {
+          "$ref": "#/$defs/Ids"
+        }
+      },
+      "required": [
+        "recipe_revision",
+        "runtime_role",
+        "entrypoint_kind",
+        "entrypoint",
+        "entrypoint_revision",
+        "code_sha256",
+        "args",
+        "input_roles",
+        "outputs",
+        "required_capabilities"
+      ],
+      "additionalProperties": false
+    },
+    "ProtocolV1": {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "$ref": "#/$defs/Version"
+        },
+        "task": {
+          "$ref": "#/$defs/DefinitionRef"
+        },
+        "grader": {
+          "$ref": "#/$defs/DefinitionRef"
+        },
+        "operation": {
+          "$ref": "#/$defs/Id"
+        },
+        "validation_scope": {
+          "$ref": "#/$defs/Id"
+        },
+        "candidate_contract": {
+          "$ref": "#/$defs/CandidateContract"
+        },
+        "worker_recipe": {
+          "$ref": "#/$defs/OperationRecipe"
+        },
+        "input_requirements": {
+          "$ref": "#/$defs/Parameters"
+        },
+        "claim_definitions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ClaimDefinition"
+          },
+          "minItems": 1
+        },
+        "metric_definitions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/MetricDefinition"
+          }
+        },
+        "required_evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/EvidenceRequirement"
+          }
+        },
+        "task_parameters": {
+          "$ref": "#/$defs/Parameters"
+        },
+        "baseline": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Resource"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "reference": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Resource"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "quality_reference": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Resource"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "sampling": {
+          "$ref": "#/$defs/Parameters"
+        },
+        "feedback_visibility": {
+          "$ref": "#/$defs/Ids"
+        },
+        "budget_policy_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/DefinitionRef"
+          }
+        },
+        "resources": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Resource"
+          }
+        },
+        "display_notes": {
+          "$ref": "#/$defs/Text"
+        }
+      },
+      "required": [
+        "schema_version",
+        "task",
+        "grader",
+        "operation",
+        "validation_scope",
+        "candidate_contract",
+        "worker_recipe",
+        "input_requirements",
+        "claim_definitions",
+        "metric_definitions",
+        "required_evidence",
+        "task_parameters",
+        "baseline",
+        "reference",
+        "quality_reference",
+        "sampling",
+        "feedback_visibility",
+        "budget_policy_refs",
+        "resources",
+        "display_notes"
+      ],
+      "additionalProperties": false
+    },
+    "PrepareRequest": {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "$ref": "#/$defs/Version"
+        },
+        "task": {
+          "$ref": "#/$defs/DefinitionRef"
+        },
+        "operation": {
+          "$ref": "#/$defs/Id"
+        },
+        "validation_scope": {
+          "$ref": "#/$defs/Id"
+        },
+        "input_pins": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Resource"
+          }
+        },
+        "task_parameters": {
+          "$ref": "#/$defs/Parameters"
+        },
+        "comparison_conditions": {
+          "$ref": "#/$defs/Parameters"
+        },
+        "expected_candidate": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CandidateExpectation"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "budget_policy_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/DefinitionRef"
+          }
+        }
+      },
+      "required": [
+        "schema_version",
+        "task",
+        "operation",
+        "validation_scope",
+        "input_pins",
+        "task_parameters",
+        "comparison_conditions",
+        "expected_candidate",
+        "budget_policy_refs"
+      ],
+      "additionalProperties": false
+    },
+    "PreparedEvaluation": {
+      "$comment": "D023-1: the archived prepared bytes plus, in process, the frozen protocol bytes and a read-only per-role resource closure reader are delivered outside this object. This object remains the exact frozen record; no storage location or archive handle is added here.",
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "$ref": "#/$defs/Version"
+        },
+        "prepared_id": {
+          "$ref": "#/$defs/SemanticId"
+        },
+        "task": {
+          "$ref": "#/$defs/DefinitionRef"
+        },
+        "grader": {
+          "$ref": "#/$defs/DefinitionRef"
+        },
+        "operation": {
+          "$ref": "#/$defs/Id"
+        },
+        "validation_scope": {
+          "$ref": "#/$defs/Id"
+        },
+        "protocol": {
+          "$ref": "#/$defs/ArtifactRef"
+        },
+        "protocol_digest": {
+          "$ref": "#/$defs/SemanticId"
+        },
+        "candidate_contract": {
+          "$ref": "#/$defs/CandidateContract"
+        },
+        "expected_candidate": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CandidateExpectation"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "required_evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/EvidenceRequirement"
+          }
+        },
+        "recipe": {
+          "$ref": "#/$defs/OperationRecipe"
+        },
+        "resources": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Resource"
+          }
+        },
+        "created_at": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Timestamp"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "display_notes": {
+          "$ref": "#/$defs/Text"
+        }
+      },
+      "required": [
+        "schema_version",
+        "prepared_id",
+        "task",
+        "grader",
+        "operation",
+        "validation_scope",
+        "protocol",
+        "protocol_digest",
+        "candidate_contract",
+        "expected_candidate",
+        "required_evidence",
+        "recipe",
+        "resources",
+        "created_at",
+        "display_notes"
+      ],
+      "additionalProperties": false
+    },
+    "ExecutionSpec": {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "$ref": "#/$defs/Version"
+        },
+        "request_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "run_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "attempt_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "owner": {
+          "$ref": "#/$defs/Id"
+        },
+        "target_request": {
+          "$ref": "#/$defs/TargetRequest"
+        },
+        "retry_of": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Id"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "retry_reason": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Text"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "generation_record_ref": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RecordRef"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "prepared_ref": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PreparedRef"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "protocol_digest": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SemanticId"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "operation": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Id"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "validation_scope": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Id"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "inputs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/InputSpec"
+          }
+        },
+        "candidate": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CandidateSubmission"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "steps": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/CommandStep"
+          },
+          "minItems": 1
+        },
+        "output_root": {
+          "$ref": "#/$defs/Path"
+        },
+        "deadline_utc": {
+          "$ref": "#/$defs/Timestamp"
+        },
+        "resources": {
+          "$ref": "#/$defs/ResourceRequest"
+        },
+        "budget": {
+          "$ref": "#/$defs/BudgetRequest"
+        },
+        "required_capabilities": {
+          "$ref": "#/$defs/Ids"
+        }
+      },
+      "required": [
+        "schema_version",
+        "request_id",
+        "run_id",
+        "attempt_id",
+        "owner",
+        "target_request",
+        "retry_of",
+        "retry_reason",
+        "generation_record_ref",
+        "prepared_ref",
+        "protocol_digest",
+        "operation",
+        "validation_scope",
+        "inputs",
+        "candidate",
+        "steps",
+        "output_root",
+        "deadline_utc",
+        "resources",
+        "budget",
+        "required_capabilities"
+      ],
+      "additionalProperties": false
+    },
+    "Producer": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "enum": [
+            "harness_capture",
+            "task_worker",
+            "caller_assertion",
+            "unknown"
+          ]
+        },
+        "identity": {
+          "$ref": "#/$defs/Id"
+        },
+        "revision": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Id"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "control_domain": {
+          "$ref": "#/$defs/Id"
+        },
+        "capture_route": {
+          "$ref": "#/$defs/Id"
+        }
+      },
+      "required": [
+        "kind",
+        "identity",
+        "revision",
+        "control_domain",
+        "capture_route"
+      ],
+      "additionalProperties": false
+    },
+    "CheckObservation": {
+      "type": "object",
+      "properties": {
+        "check_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "checker_revision": {
+          "$ref": "#/$defs/Id"
+        },
+        "subject": {
+          "$ref": "#/$defs/Id"
+        },
+        "phase": {
+          "$ref": "#/$defs/Id"
+        },
+        "operation": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Id"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "validation_scope": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Id"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "attempt_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "status": {
+          "enum": [
+            "passed",
+            "failed",
+            "not_performed",
+            "not_applicable",
+            "execution_error"
+          ]
+        },
+        "producer": {
+          "$ref": "#/$defs/Producer"
+        },
+        "evidence_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ArtifactRef"
+          }
+        },
+        "artifact_schema": {
+          "$ref": "#/$defs/DefinitionRef"
+        },
+        "reasons": {
+          "$ref": "#/$defs/Ids"
+        }
+      },
+      "required": [
+        "check_id",
+        "checker_revision",
+        "subject",
+        "phase",
+        "operation",
+        "validation_scope",
+        "attempt_id",
+        "status",
+        "producer",
+        "evidence_refs",
+        "artifact_schema",
+        "reasons"
+      ],
+      "additionalProperties": false
+    },
+    "BoundInput": {
+      "type": "object",
+      "properties": {
+        "role": {
+          "$ref": "#/$defs/Id"
+        },
+        "retained_ref": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ArtifactRef"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "actual_sha256": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Sha256"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "snapshot_format": {
+          "$ref": "#/$defs/Id"
+        },
+        "captured_at": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Timestamp"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "attempt_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "step_ids": {
+          "$ref": "#/$defs/Ids"
+        },
+        "materialized_path": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Path"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "expected_sha256": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Sha256"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "identity_status": {
+          "enum": [
+            "matched",
+            "mismatched",
+            "not_performed",
+            "error"
+          ]
+        },
+        "reasons": {
+          "$ref": "#/$defs/Ids"
+        }
+      },
+      "required": [
+        "role",
+        "retained_ref",
+        "actual_sha256",
+        "snapshot_format",
+        "captured_at",
+        "attempt_id",
+        "step_ids",
+        "materialized_path",
+        "expected_sha256",
+        "identity_status",
+        "reasons"
+      ],
+      "additionalProperties": false
+    },
+    "ArtifactObservation": {
+      "type": "object",
+      "properties": {
+        "role": {
+          "$ref": "#/$defs/Id"
+        },
+        "artifact": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ArtifactRef"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "format_schema": {
+          "$ref": "#/$defs/DefinitionRef"
+        },
+        "attempt_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "step_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "status": {
+          "enum": [
+            "available",
+            "missing",
+            "invalid",
+            "unavailable"
+          ]
+        },
+        "reasons": {
+          "$ref": "#/$defs/Ids"
+        }
+      },
+      "required": [
+        "role",
+        "artifact",
+        "format_schema",
+        "attempt_id",
+        "step_id",
+        "status",
+        "reasons"
+      ],
+      "additionalProperties": false
+    },
+    "RuntimeBinding": {
+      "$comment": "D023-2: code_sha256 is the observed actual entrypoint/package digest. It is compared against CommandStep.expected_code_sha256 and the frozen recipe before any candidate process starts; it must never be filled with the expected value when the actual bytes could not be resolved.",
+      "type": "object",
+      "properties": {
+        "step_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "runtime_role": {
+          "$ref": "#/$defs/Id"
+        },
+        "executable": {
+          "$ref": "#/$defs/Text"
+        },
+        "entrypoint": {
+          "$ref": "#/$defs/Text"
+        },
+        "entrypoint_revision": {
+          "$ref": "#/$defs/Id"
+        },
+        "code_sha256": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Sha256"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "argv": {
+          "$ref": "#/$defs/Strings"
+        },
+        "environment_identity": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ArtifactRef"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "step_id",
+        "runtime_role",
+        "executable",
+        "entrypoint",
+        "entrypoint_revision",
+        "code_sha256",
+        "argv",
+        "environment_identity"
+      ],
+      "additionalProperties": false
+    },
+    "CapabilityCheck": {
+      "type": "object",
+      "properties": {
+        "capability": {
+          "$ref": "#/$defs/Id"
+        },
+        "status": {
+          "enum": [
+            "supported",
+            "unsupported",
+            "unknown"
+          ]
+        },
+        "source": {
+          "$ref": "#/$defs/Id"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Id"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "capability",
+        "status",
+        "source",
+        "reason"
+      ],
+      "additionalProperties": false
+    },
+    "TargetBinding": {
+      "type": "object",
+      "properties": {
+        "target_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "config_revision": {
+          "$ref": "#/$defs/Id"
+        },
+        "executor_version": {
+          "$ref": "#/$defs/Id"
+        },
+        "runtime_bindings_by_step": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/RuntimeBinding"
+          }
+        },
+        "control_domain": {
+          "$ref": "#/$defs/Id"
+        },
+        "capability_checks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/CapabilityCheck"
+          }
+        }
+      },
+      "required": [
+        "target_id",
+        "config_revision",
+        "executor_version",
+        "runtime_bindings_by_step",
+        "control_domain",
+        "capability_checks"
+      ],
+      "additionalProperties": false
+    },
+    "StepRecord": {
+      "type": "object",
+      "properties": {
+        "step_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "status": {
+          "enum": [
+            "not_started",
+            "running",
+            "exited",
+            "timed_out",
+            "cancelled",
+            "execution_error",
+            "unknown"
+          ]
+        },
+        "started_at": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Timestamp"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "ended_at": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Timestamp"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "elapsed_seconds": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Decimal"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "exit_code": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": -2147483648,
+              "maximum": 2147483647
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "artifacts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ArtifactObservation"
+          }
+        },
+        "reasons": {
+          "$ref": "#/$defs/Ids"
+        }
+      },
+      "required": [
+        "step_id",
+        "status",
+        "started_at",
+        "ended_at",
+        "elapsed_seconds",
+        "exit_code",
+        "artifacts",
+        "reasons"
+      ],
+      "additionalProperties": false
+    },
+    "ReservationDimension": {
+      "type": "object",
+      "properties": {
+        "dimension": {
+          "$ref": "#/$defs/Id"
+        },
+        "unit": {
+          "$ref": "#/$defs/Id"
+        },
+        "limit": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Decimal"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "reserved_capacity": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Decimal"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "charged_capacity": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Decimal"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "dimension",
+        "unit",
+        "limit",
+        "reserved_capacity",
+        "charged_capacity"
+      ],
+      "additionalProperties": false
+    },
+    "BudgetAdmission": {
+      "type": "object",
+      "properties": {
+        "scope_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "policy_ref": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DefinitionRef"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "declared_by": {
+          "$ref": "#/$defs/Id"
+        },
+        "decision": {
+          "enum": [
+            "admitted",
+            "rejected",
+            "not_applicable",
+            "unknown"
+          ]
+        },
+        "dimensions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ReservationDimension"
+          }
+        },
+        "enforcement": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/CapabilityCheck"
+          }
+        },
+        "reasons": {
+          "$ref": "#/$defs/Ids"
+        }
+      },
+      "required": [
+        "scope_id",
+        "policy_ref",
+        "declared_by",
+        "decision",
+        "dimensions",
+        "enforcement",
+        "reasons"
+      ],
+      "additionalProperties": false
+    },
+    "UsageObservation": {
+      "type": "object",
+      "properties": {
+        "dimension": {
+          "$ref": "#/$defs/Id"
+        },
+        "unit": {
+          "$ref": "#/$defs/Id"
+        },
+        "amount": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Decimal"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "currency": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[A-Z]{3}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "source": {
+          "$ref": "#/$defs/Id"
+        },
+        "completeness": {
+          "enum": [
+            "complete",
+            "partial",
+            "unknown",
+            "not_applicable"
+          ]
+        },
+        "observed_at": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Timestamp"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "reasons": {
+          "$ref": "#/$defs/Ids"
+        }
+      },
+      "required": [
+        "dimension",
+        "unit",
+        "amount",
+        "currency",
+        "source",
+        "completeness",
+        "observed_at",
+        "reasons"
+      ],
+      "additionalProperties": false
+    },
+    "ResourceLease": {
+      "type": "object",
+      "properties": {
+        "lease_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "resource_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "control_domain": {
+          "$ref": "#/$defs/Id"
+        },
+        "owner": {
+          "$ref": "#/$defs/Id"
+        },
+        "acquired_at": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Timestamp"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "release_requested_at": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Timestamp"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "release_confirmed": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "release_confirmed_at": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Timestamp"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "reasons": {
+          "$ref": "#/$defs/Ids"
+        }
+      },
+      "required": [
+        "lease_id",
+        "resource_id",
+        "control_domain",
+        "owner",
+        "acquired_at",
+        "release_requested_at",
+        "release_confirmed",
+        "release_confirmed_at",
+        "reasons"
+      ],
+      "additionalProperties": false
+    },
+    "LeaseFacts": {
+      "type": "object",
+      "properties": {
+        "applicability": {
+          "enum": [
+            "applicable",
+            "not_applicable",
+            "unknown"
+          ]
+        },
+        "leases": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ResourceLease"
+          }
+        },
+        "reasons": {
+          "$ref": "#/$defs/Ids"
+        }
+      },
+      "required": [
+        "applicability",
+        "leases",
+        "reasons"
+      ],
+      "additionalProperties": false
+    },
+    "CancellationFacts": {
+      "type": "object",
+      "properties": {
+        "requested": {
+          "type": "boolean"
+        },
+        "requested_at": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Timestamp"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "source": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Id"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "requested",
+        "requested_at",
+        "source"
+      ],
+      "additionalProperties": false
+    },
+    "CleanupFacts": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "enum": [
+            "not_needed",
+            "confirmed",
+            "failed",
+            "unknown"
+          ]
+        },
+        "termination_requested": {
+          "type": "boolean"
+        },
+        "process_exit_confirmed": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "reasons": {
+          "$ref": "#/$defs/Ids"
+        }
+      },
+      "required": [
+        "status",
+        "termination_requested",
+        "process_exit_confirmed",
+        "reasons"
+      ],
+      "additionalProperties": false
+    },
+    "ErrorFact": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "$ref": "#/$defs/Id"
+        },
+        "stage": {
+          "$ref": "#/$defs/Id"
+        },
+        "message": {
+          "$ref": "#/$defs/Text"
+        },
+        "retryable": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "code",
+        "stage",
+        "message",
+        "retryable"
+      ],
+      "additionalProperties": false
+    },
+    "ExecutionRecordPayload": {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "$ref": "#/$defs/Version"
+        },
+        "request_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "run_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "attempt_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "request_digest": {
+          "$ref": "#/$defs/SemanticId"
+        },
+        "owner": {
+          "$ref": "#/$defs/Id"
+        },
+        "target_request": {
+          "$ref": "#/$defs/TargetRequest"
+        },
+        "target_binding": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TargetBinding"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "retry_of": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Id"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "retry_reason": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Text"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "generation_record_ref": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RecordRef"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "prepared_ref": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PreparedRef"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "protocol_digest": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SemanticId"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "operation": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Id"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "validation_scope": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Id"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "candidate": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CandidateSubmission"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "record_version": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "recorded_at": {
+          "$ref": "#/$defs/Timestamp"
+        },
+        "bound_inputs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/BoundInput"
+          }
+        },
+        "phase": {
+          "enum": [
+            "registered",
+            "preparing",
+            "running",
+            "stopping",
+            "finalizing",
+            "finished",
+            "recovery_required"
+          ]
+        },
+        "started": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "side_effect_unknown": {
+          "type": "boolean"
+        },
+        "process_outcome": {
+          "anyOf": [
+            {
+              "enum": [
+                "not_started",
+                "exited",
+                "timed_out",
+                "cancelled",
+                "execution_error"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "exit_code": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": -2147483648,
+              "maximum": 2147483647
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "elapsed_seconds": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Decimal"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "steps": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/StepRecord"
+          }
+        },
+        "cancellation": {
+          "$ref": "#/$defs/CancellationFacts"
+        },
+        "cleanup": {
+          "$ref": "#/$defs/CleanupFacts"
+        },
+        "artifacts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ArtifactObservation"
+          }
+        },
+        "checks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/CheckObservation"
+          }
+        },
+        "budget_admission": {
+          "$ref": "#/$defs/BudgetAdmission"
+        },
+        "usage": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/UsageObservation"
+          }
+        },
+        "resource_leases": {
+          "$ref": "#/$defs/LeaseFacts"
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ErrorFact"
+          }
+        }
+      },
+      "required": [
+        "schema_version",
+        "request_id",
+        "run_id",
+        "attempt_id",
+        "request_digest",
+        "owner",
+        "target_request",
+        "target_binding",
+        "retry_of",
+        "retry_reason",
+        "generation_record_ref",
+        "prepared_ref",
+        "protocol_digest",
+        "operation",
+        "validation_scope",
+        "candidate",
+        "record_version",
+        "recorded_at",
+        "bound_inputs",
+        "phase",
+        "started",
+        "side_effect_unknown",
+        "process_outcome",
+        "exit_code",
+        "elapsed_seconds",
+        "steps",
+        "cancellation",
+        "cleanup",
+        "artifacts",
+        "checks",
+        "budget_admission",
+        "usage",
+        "resource_leases",
+        "errors"
+      ],
+      "additionalProperties": false
+    },
+    "ControllerObservation": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "enum": [
+            "observed",
+            "unavailable"
+          ]
+        },
+        "source": {
+          "$ref": "#/$defs/Id"
+        },
+        "observed_at": {
+          "$ref": "#/$defs/Timestamp"
+        },
+        "facts": {
+          "$ref": "#/$defs/Parameters"
+        }
+      },
+      "required": [
+        "status",
+        "source",
+        "observed_at",
+        "facts"
+      ],
+      "additionalProperties": false
+    },
+    "ExecutionRecord": {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "$ref": "#/$defs/Version"
+        },
+        "request_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "run_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "attempt_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "request_digest": {
+          "$ref": "#/$defs/SemanticId"
+        },
+        "owner": {
+          "$ref": "#/$defs/Id"
+        },
+        "target_request": {
+          "$ref": "#/$defs/TargetRequest"
+        },
+        "target_binding": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TargetBinding"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "retry_of": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Id"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "retry_reason": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Text"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "generation_record_ref": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RecordRef"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "prepared_ref": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PreparedRef"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "protocol_digest": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SemanticId"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "operation": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Id"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "validation_scope": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Id"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "candidate": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CandidateSubmission"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "record_version": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "recorded_at": {
+          "$ref": "#/$defs/Timestamp"
+        },
+        "bound_inputs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/BoundInput"
+          }
+        },
+        "phase": {
+          "enum": [
+            "registered",
+            "preparing",
+            "running",
+            "stopping",
+            "finalizing",
+            "finished",
+            "recovery_required"
+          ]
+        },
+        "started": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "side_effect_unknown": {
+          "type": "boolean"
+        },
+        "process_outcome": {
+          "anyOf": [
+            {
+              "enum": [
+                "not_started",
+                "exited",
+                "timed_out",
+                "cancelled",
+                "execution_error"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "exit_code": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": -2147483648,
+              "maximum": 2147483647
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "elapsed_seconds": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Decimal"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "steps": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/StepRecord"
+          }
+        },
+        "cancellation": {
+          "$ref": "#/$defs/CancellationFacts"
+        },
+        "cleanup": {
+          "$ref": "#/$defs/CleanupFacts"
+        },
+        "artifacts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ArtifactObservation"
+          }
+        },
+        "checks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/CheckObservation"
+          }
+        },
+        "budget_admission": {
+          "$ref": "#/$defs/BudgetAdmission"
+        },
+        "usage": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/UsageObservation"
+          }
+        },
+        "resource_leases": {
+          "$ref": "#/$defs/LeaseFacts"
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ErrorFact"
+          }
+        },
+        "record_ref": {
+          "$ref": "#/$defs/RecordRef"
+        },
+        "observed_at": {
+          "$ref": "#/$defs/Timestamp"
+        },
+        "controller_observation": {
+          "$ref": "#/$defs/ControllerObservation"
+        }
+      },
+      "required": [
+        "schema_version",
+        "request_id",
+        "run_id",
+        "attempt_id",
+        "request_digest",
+        "owner",
+        "target_request",
+        "target_binding",
+        "retry_of",
+        "retry_reason",
+        "generation_record_ref",
+        "prepared_ref",
+        "protocol_digest",
+        "operation",
+        "validation_scope",
+        "candidate",
+        "record_version",
+        "recorded_at",
+        "bound_inputs",
+        "phase",
+        "started",
+        "side_effect_unknown",
+        "process_outcome",
+        "exit_code",
+        "elapsed_seconds",
+        "steps",
+        "cancellation",
+        "cleanup",
+        "artifacts",
+        "checks",
+        "budget_admission",
+        "usage",
+        "resource_leases",
+        "errors",
+        "record_ref",
+        "observed_at",
+        "controller_observation"
+      ],
+      "additionalProperties": false
+    },
+    "ArtifactCheck": {
+      "type": "object",
+      "properties": {
+        "artifact": {
+          "$ref": "#/$defs/ArtifactRef"
+        },
+        "status": {
+          "enum": [
+            "verified",
+            "missing",
+            "digest_mismatch",
+            "size_mismatch",
+            "unsafe_path",
+            "unavailable"
+          ]
+        },
+        "reasons": {
+          "$ref": "#/$defs/Ids"
+        }
+      },
+      "required": [
+        "artifact",
+        "status",
+        "reasons"
+      ],
+      "additionalProperties": false
+    },
+    "EvidenceInput": {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "$ref": "#/$defs/Version"
+        },
+        "record_ref": {
+          "$ref": "#/$defs/RecordRef"
+        },
+        "record_digest": {
+          "$ref": "#/$defs/Sha256"
+        },
+        "task": {
+          "$ref": "#/$defs/DefinitionRef"
+        },
+        "task_source": {
+          "const": "prepared_ref"
+        },
+        "record": {
+          "$ref": "#/$defs/ExecutionRecordPayload"
+        },
+        "artifact_checks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ArtifactCheck"
+          }
+        }
+      },
+      "required": [
+        "schema_version",
+        "record_ref",
+        "record_digest",
+        "task",
+        "task_source",
+        "record",
+        "artifact_checks"
+      ],
+      "additionalProperties": false
+    },
+    "ClaimResult": {
+      "type": "object",
+      "properties": {
+        "claim_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "validation_scope": {
+          "$ref": "#/$defs/Id"
+        },
+        "verdict": {
+          "enum": [
+            "PASS",
+            "FAIL",
+            "INCONCLUSIVE"
+          ]
+        },
+        "reasons": {
+          "$ref": "#/$defs/Ids"
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ArtifactRef"
+          }
+        },
+        "missing_evidence": {
+          "$ref": "#/$defs/Ids"
+        },
+        "limitations": {
+          "$ref": "#/$defs/Strings"
+        }
+      },
+      "required": [
+        "claim_id",
+        "validation_scope",
+        "verdict",
+        "reasons",
+        "evidence",
+        "missing_evidence",
+        "limitations"
+      ],
+      "additionalProperties": false
+    },
+    "MetricResult": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "$ref": "#/$defs/Id"
+        },
+        "validation_scope": {
+          "$ref": "#/$defs/Id"
+        },
+        "unit": {
+          "$ref": "#/$defs/Id"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Decimal"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "validity": {
+          "enum": [
+            "valid",
+            "invalid",
+            "unavailable"
+          ]
+        },
+        "reasons": {
+          "$ref": "#/$defs/Ids"
+        },
+        "raw_samples": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ArtifactRef"
+          }
+        },
+        "aggregation": {
+          "$ref": "#/$defs/DefinitionRef"
+        }
+      },
+      "required": [
+        "name",
+        "validation_scope",
+        "unit",
+        "value",
+        "validity",
+        "reasons",
+        "raw_samples",
+        "aggregation"
+      ],
+      "additionalProperties": false
+    },
+    "Eligibility": {
+      "type": "object",
+      "properties": {
+        "validation_scope": {
+          "$ref": "#/$defs/Id"
+        },
+        "status": {
+          "enum": [
+            "eligible",
+            "ineligible",
+            "unknown"
+          ]
+        },
+        "reasons": {
+          "$ref": "#/$defs/Ids"
+        }
+      },
+      "required": [
+        "validation_scope",
+        "status",
+        "reasons"
+      ],
+      "additionalProperties": false
+    },
+    "Comparison": {
+      "type": "object",
+      "properties": {
+        "validation_scope": {
+          "$ref": "#/$defs/Id"
+        },
+        "against": {
+          "$ref": "#/$defs/AssessmentRef"
+        },
+        "outcome": {
+          "enum": [
+            "better",
+            "equivalent",
+            "worse",
+            "incomparable"
+          ]
+        },
+        "reasons": {
+          "$ref": "#/$defs/Ids"
+        }
+      },
+      "required": [
+        "validation_scope",
+        "against",
+        "outcome",
+        "reasons"
+      ],
+      "additionalProperties": false
+    },
+    "EvaluationResult": {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "$ref": "#/$defs/Version"
+        },
+        "assessment_id": {
+          "$ref": "#/$defs/SemanticId"
+        },
+        "task": {
+          "$ref": "#/$defs/DefinitionRef"
+        },
+        "grader": {
+          "$ref": "#/$defs/DefinitionRef"
+        },
+        "assessor": {
+          "$ref": "#/$defs/DefinitionRef"
+        },
+        "prepared_ref": {
+          "$ref": "#/$defs/PreparedRef"
+        },
+        "record_ref": {
+          "$ref": "#/$defs/RecordRef"
+        },
+        "protocol_digest": {
+          "$ref": "#/$defs/SemanticId"
+        },
+        "candidate": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CandidateSubmission"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "attempt_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "claims": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ClaimResult"
+          }
+        },
+        "metrics": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/MetricResult"
+          }
+        },
+        "eligibility": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Eligibility"
+          }
+        },
+        "comparison": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Comparison"
+          }
+        },
+        "evidence_artifacts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ArtifactRef"
+          }
+        },
+        "assessed_at": {
+          "$ref": "#/$defs/Timestamp"
+        },
+        "supersedes": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AssessmentRef"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "derived_from": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/AssessmentRef"
+          }
+        },
+        "limitations": {
+          "$ref": "#/$defs/Strings"
+        }
+      },
+      "required": [
+        "schema_version",
+        "assessment_id",
+        "task",
+        "grader",
+        "assessor",
+        "prepared_ref",
+        "record_ref",
+        "protocol_digest",
+        "candidate",
+        "attempt_id",
+        "claims",
+        "metrics",
+        "eligibility",
+        "comparison",
+        "evidence_artifacts",
+        "assessed_at",
+        "supersedes",
+        "derived_from",
+        "limitations"
+      ],
+      "additionalProperties": false
+    },
+    "AssessmentSummary": {
+      "type": "object",
+      "properties": {
+        "assessment_ref": {
+          "$ref": "#/$defs/AssessmentRef"
+        },
+        "candidate": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CandidateSubmission"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "attempt_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "protocol_digest": {
+          "$ref": "#/$defs/SemanticId"
+        },
+        "claims": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ClaimResult"
+          }
+        },
+        "metrics": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/MetricResult"
+          }
+        },
+        "eligibility": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Eligibility"
+          }
+        },
+        "comparison": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Comparison"
+          }
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ArtifactRef"
+          }
+        }
+      },
+      "required": [
+        "assessment_ref",
+        "candidate",
+        "attempt_id",
+        "protocol_digest",
+        "claims",
+        "metrics",
+        "eligibility",
+        "comparison",
+        "evidence"
+      ],
+      "additionalProperties": false
+    },
+    "ContextRequest": {
+      "type": "object",
+      "properties": {
+        "query": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Text"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "ids": {
+          "$ref": "#/$defs/Ids"
+        },
+        "pins": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/DefinitionRef"
+          }
+        },
+        "selection_limits": {
+          "$ref": "#/$defs/Parameters"
+        },
+        "max_bytes": {
+          "$ref": "#/$defs/UInt"
+        },
+        "round_id": {
+          "$ref": "#/$defs/Id"
+        }
+      },
+      "required": [
+        "query",
+        "ids",
+        "pins",
+        "selection_limits",
+        "max_bytes",
+        "round_id"
+      ],
+      "additionalProperties": false
+    },
+    "KnowledgePin": {
+      "type": "object",
+      "properties": {
+        "reference": {
+          "$ref": "#/$defs/Id"
+        },
+        "revision": {
+          "$ref": "#/$defs/Id"
+        }
+      },
+      "required": [
+        "reference",
+        "revision"
+      ],
+      "additionalProperties": false
+    },
+    "DeliveredItem": {
+      "type": "object",
+      "properties": {
+        "pin": {
+          "$ref": "#/$defs/KnowledgePin"
+        },
+        "delivered_roles": {
+          "$ref": "#/$defs/Ids"
+        },
+        "delivered_bytes": {
+          "$ref": "#/$defs/UInt"
+        }
+      },
+      "required": [
+        "pin",
+        "delivered_roles",
+        "delivered_bytes"
+      ],
+      "additionalProperties": false
+    },
+    "DeliveredContext": {
+      "$comment": "D023-3: this is the sealed, committed delivery record. It is published only after H has retained the actual delivered bytes through its own capture/commit route, so its artifact is a Ref to retained bytes and never a Ref to not-yet-committed bytes. The pre-commit value handed back by ContextProvider.collect is a PROCESS-LOCAL DeliveredContextDraft (items/selection/omissions/limitations, bytes or stream, proposed logical location and digest); it is deliberately not a JSON DTO definition and must not be given a fake serialized stream shape.",
+      "type": "object",
+      "properties": {
+        "artifact": {
+          "$ref": "#/$defs/ArtifactRef"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/DeliveredItem"
+          }
+        },
+        "selection": {
+          "$ref": "#/$defs/Parameters"
+        },
+        "omissions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ErrorFact"
+          }
+        },
+        "limitations": {
+          "$ref": "#/$defs/Strings"
+        }
+      },
+      "required": [
+        "artifact",
+        "items",
+        "selection",
+        "omissions",
+        "limitations"
+      ],
+      "additionalProperties": false
+    },
+    "CandidateContext": {
+      "type": "object",
+      "properties": {
+        "campaign_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "generation_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "candidate": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CandidateSubmission"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "parent": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CandidateSubmission"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "task_materials": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ArtifactRef"
+          }
+        },
+        "delivered_context": {
+          "$ref": "#/$defs/DeliveredContext"
+        },
+        "allowed_feedback": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ArtifactRef"
+          }
+        },
+        "output_contract": {
+          "$ref": "#/$defs/CandidateContract"
+        }
+      },
+      "required": [
+        "campaign_id",
+        "generation_id",
+        "candidate",
+        "parent",
+        "task_materials",
+        "delivered_context",
+        "allowed_feedback",
+        "output_contract"
+      ],
+      "additionalProperties": false
+    },
+    "GenerationOutputContract": {
+      "type": "object",
+      "properties": {
+        "manifest_role": {
+          "$ref": "#/$defs/Id"
+        },
+        "candidate_role": {
+          "$ref": "#/$defs/Id"
+        },
+        "format_schema": {
+          "$ref": "#/$defs/DefinitionRef"
+        },
+        "required_input_roles": {
+          "$ref": "#/$defs/Ids"
+        },
+        "parser_revision": {
+          "$ref": "#/$defs/Id"
+        }
+      },
+      "required": [
+        "manifest_role",
+        "candidate_role",
+        "format_schema",
+        "required_input_roles",
+        "parser_revision"
+      ],
+      "additionalProperties": false
+    },
+    "GenerationManifest": {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "$ref": "#/$defs/Version"
+        },
+        "provider": {
+          "$ref": "#/$defs/DefinitionRef"
+        },
+        "output_contract": {
+          "$ref": "#/$defs/GenerationOutputContract"
+        },
+        "context_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ArtifactRef"
+          }
+        },
+        "attempt_id": {
+          "$ref": "#/$defs/Id"
+        }
+      },
+      "required": [
+        "schema_version",
+        "provider",
+        "output_contract",
+        "context_refs",
+        "attempt_id"
+      ],
+      "additionalProperties": false
+    },
+    "GenerationPlan": {
+      "type": "object",
+      "properties": {
+        "spec": {
+          "$ref": "#/$defs/ExecutionSpec"
+        },
+        "manifest": {
+          "$ref": "#/$defs/GenerationManifest"
+        }
+      },
+      "required": [
+        "spec",
+        "manifest"
+      ],
+      "additionalProperties": false
+    },
+    "ScopedPrepared": {
+      "type": "object",
+      "properties": {
+        "validation_scope": {
+          "$ref": "#/$defs/Id"
+        },
+        "prepared_ref": {
+          "$ref": "#/$defs/PreparedRef"
+        },
+        "protocol_digest": {
+          "$ref": "#/$defs/SemanticId"
+        }
+      },
+      "required": [
+        "validation_scope",
+        "prepared_ref",
+        "protocol_digest"
+      ],
+      "additionalProperties": false
+    },
+    "CampaignPlan": {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "$ref": "#/$defs/Version"
+        },
+        "campaign_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "goal": {
+          "$ref": "#/$defs/Text"
+        },
+        "starting_point": {
+          "$ref": "#/$defs/CandidateProposal"
+        },
+        "prepared": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ScopedPrepared"
+          },
+          "minItems": 1
+        },
+        "budget_scope": {
+          "$ref": "#/$defs/Id"
+        },
+        "deadline_utc": {
+          "$ref": "#/$defs/Timestamp"
+        },
+        "advance_rule": {
+          "$ref": "#/$defs/DefinitionRef"
+        },
+        "stop_rule": {
+          "$ref": "#/$defs/DefinitionRef"
+        },
+        "allowed_feedback": {
+          "$ref": "#/$defs/Ids"
+        }
+      },
+      "required": [
+        "schema_version",
+        "campaign_id",
+        "goal",
+        "starting_point",
+        "prepared",
+        "budget_scope",
+        "deadline_utc",
+        "advance_rule",
+        "stop_rule",
+        "allowed_feedback"
+      ],
+      "additionalProperties": false
+    },
+    "ExecutionEventV1": {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "$ref": "#/$defs/Version"
+        },
+        "event_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "attempt_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "record_version": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/UInt"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "sequence": {
+          "$ref": "#/$defs/UInt"
+        },
+        "occurred_at": {
+          "$ref": "#/$defs/Timestamp"
+        },
+        "kind": {
+          "enum": [
+            "execution_fact",
+            "assertion",
+            "diagnostic"
+          ]
+        },
+        "source": {
+          "$ref": "#/$defs/Producer"
+        },
+        "payload": {
+          "$ref": "#/$defs/Parameters"
+        }
+      },
+      "required": [
+        "schema_version",
+        "event_id",
+        "attempt_id",
+        "record_version",
+        "sequence",
+        "occurred_at",
+        "kind",
+        "source",
+        "payload"
+      ],
+      "additionalProperties": false
+    },
+    "PartialExecutionFacts": {
+      "type": "object",
+      "properties": {
+        "request_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "run_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "attempt_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "request_digest": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SemanticId"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "proposed_record_version": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/UInt"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "phase": {
+          "anyOf": [
+            {
+              "enum": [
+                "registered",
+                "preparing",
+                "running",
+                "stopping",
+                "finalizing",
+                "finished",
+                "recovery_required"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "started": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "side_effect_unknown": {
+          "type": "boolean"
+        },
+        "steps": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/StepRecord"
+          }
+        },
+        "checks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/CheckObservation"
+          }
+        },
+        "artifacts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ArtifactObservation"
+          }
+        },
+        "budget_admission": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BudgetAdmission"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "usage": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/UsageObservation"
+          }
+        },
+        "resource_leases": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/LeaseFacts"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ErrorFact"
+          }
+        }
+      },
+      "required": [
+        "request_id",
+        "run_id",
+        "attempt_id",
+        "request_digest",
+        "proposed_record_version",
+        "phase",
+        "started",
+        "side_effect_unknown",
+        "steps",
+        "checks",
+        "artifacts",
+        "budget_admission",
+        "usage",
+        "resource_leases",
+        "errors"
+      ],
+      "additionalProperties": false
+    },
+    "PublicErrorCode": {
+      "enum": [
+        "InvalidRequest",
+        "InvalidExecutionSpec",
+        "UnsupportedOperation",
+        "UnsupportedSchema",
+        "UnsupportedRuleVersion",
+        "IdentityMismatch",
+        "RevisionConflict",
+        "RequestConflict",
+        "AttemptInProgress",
+        "RecoveryRequired",
+        "ExecutionPersistenceError",
+        "ArchivePersistenceError",
+        "NoCommittedRecord",
+        "RecordNotFound",
+        "RecordIntegrityError",
+        "ArtifactUnavailable",
+        "ArtifactIntegrityError",
+        "UnsafeArtifactPath",
+        "AssessorError"
+      ]
+    },
+    "PublicError": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "$ref": "#/$defs/PublicErrorCode"
+        },
+        "stage": {
+          "$ref": "#/$defs/Id"
+        },
+        "attempt_id": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Id"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "started": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "latest_record_ref": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RecordRef"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "partial_record": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PartialExecutionFacts"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "retained_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ArtifactRef"
+          }
+        },
+        "field_errors": {
+          "$ref": "#/$defs/Strings"
+        },
+        "message": {
+          "$ref": "#/$defs/Text"
+        }
+      },
+      "required": [
+        "code",
+        "stage",
+        "attempt_id",
+        "started",
+        "latest_record_ref",
+        "partial_record",
+        "retained_refs",
+        "field_errors",
+        "message"
+      ],
+      "additionalProperties": false
+    },
+    "StorageMount": {
+      "type": "object",
+      "properties": {
+        "prefix": {
+          "$ref": "#/$defs/Path"
+        },
+        "kind": {
+          "enum": [
+            "directory",
+            "harness_sqlite"
+          ]
+        },
+        "root": {
+          "type": "string",
+          "minLength": 1
+        },
+        "namespace": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+        }
+      },
+      "required": [
+        "prefix",
+        "kind",
+        "root",
+        "namespace"
+      ],
+      "additionalProperties": false
+    },
+    "StorageConfig": {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "$ref": "#/$defs/Version"
+        },
+        "mounts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/StorageMount"
+          },
+          "minItems": 1
+        },
+        "archive_namespace": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+        },
+        "harness_namespace": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+        }
+      },
+      "required": [
+        "schema_version",
+        "mounts",
+        "archive_namespace",
+        "harness_namespace"
+      ],
+      "additionalProperties": false
+    },
+    "AppsPrepareRequest": {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "$ref": "#/$defs/Version"
+        },
+        "request": {
+          "$ref": "#/$defs/PrepareRequest"
+        }
+      },
+      "required": [
+        "schema_version",
+        "request"
+      ],
+      "additionalProperties": false
+    },
+    "AppsExecuteRequest": {
+      "$comment": "D023-5: attempt is mandatory and is the pre-allocated AttemptContext. execute never calls allocate_attempt itself. StorageConfig is injected by a trusted host or an explicit --storage-config file and is deliberately absent from every Apps*Request.",
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "$ref": "#/$defs/Version"
+        },
+        "prepared_ref": {
+          "$ref": "#/$defs/PreparedRef"
+        },
+        "proposal": {
+          "$ref": "#/$defs/CandidateProposal"
+        },
+        "attempt": {
+          "$ref": "#/$defs/AttemptContext"
+        },
+        "output_root": {
+          "$ref": "#/$defs/Path"
+        }
+      },
+      "required": [
+        "schema_version",
+        "prepared_ref",
+        "proposal",
+        "attempt",
+        "output_root"
+      ],
+      "additionalProperties": false
+    },
+    "AppsAssessRequest": {
+      "$comment": "D023-4: primary_scope and primary_claim_id are mandatory and identify one exact claim key frozen in the protocol. An unknown key or a missing legal primary key is InvalidRequest before the assessor is called; a key present in the protocol but absent from the B result is an AssessorError-class result-contract error, never an Apps user-argument error. Key resolution order is V34.",
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "$ref": "#/$defs/Version"
+        },
+        "record_ref": {
+          "$ref": "#/$defs/RecordRef"
+        },
+        "primary_scope": {
+          "$ref": "#/$defs/Id"
+        },
+        "primary_claim_id": {
+          "$ref": "#/$defs/Id"
+        }
+      },
+      "required": [
+        "schema_version",
+        "record_ref",
+        "primary_scope",
+        "primary_claim_id"
+      ],
+      "additionalProperties": false
+    },
+    "AppsResultV1": {
+      "$comment": "D023-4: primary_claim_id, primary_scope, exit_code and error are mandatory fields and may not be dropped. Inner/outer Ref and admission consistency are governed by D022 with V30 and V34: a failed archive keeps any in-memory assessment but forces assessment_ref null, and no result field may be invented from request declarations.",
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "$ref": "#/$defs/Version"
+        },
+        "operation": {
+          "enum": [
+            "prepare",
+            "execute",
+            "assess"
+          ]
+        },
+        "outcome": {
+          "enum": [
+            "success",
+            "not_started",
+            "in_progress",
+            "recovery_required",
+            "persistence_error",
+            "execution_failed",
+            "fail",
+            "inconclusive",
+            "error"
+          ]
+        },
+        "reason_code": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PublicErrorCode"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "exit_code": {
+          "enum": [
+            0,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ]
+        },
+        "primary_scope": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Id"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "primary_claim_id": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Id"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "attempt_id": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Id"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "admission": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BudgetAdmission"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "execution": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ExecutionRecord"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "prepared_ref": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PreparedRef"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "record_ref": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RecordRef"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "assessment_ref": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AssessmentRef"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "assessment": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/EvaluationResult"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "error": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PublicError"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "schema_version",
+        "operation",
+        "outcome",
+        "reason_code",
+        "exit_code",
+        "primary_scope",
+        "primary_claim_id",
+        "attempt_id",
+        "admission",
+        "execution",
+        "prepared_ref",
+        "record_ref",
+        "assessment_ref",
+        "assessment",
+        "error"
+      ],
+      "additionalProperties": false
+    },
+    "LegacyJSON": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        },
+        {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/LegacyJSON"
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/LegacyJSON"
+          }
+        }
+      ]
+    },
+    "KnowledgeReadRequest": {
+      "type": "object",
+      "properties": {
+        "reference": {
+          "$ref": "#/$defs/Id"
+        },
+        "revision": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Id"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "reference",
+        "revision"
+      ],
+      "additionalProperties": false
+    },
+    "KnowledgeReadResult": {
+      "type": "object",
+      "properties": {
+        "reference": {
+          "$ref": "#/$defs/Id"
+        },
+        "revision": {
+          "$ref": "#/$defs/Id"
+        },
+        "logical_record": {
+          "$ref": "#/$defs/LegacyJSON"
+        }
+      },
+      "required": [
+        "reference",
+        "revision",
+        "logical_record"
+      ],
+      "additionalProperties": false
+    },
+    "KnowledgeResourceRequest": {
+      "type": "object",
+      "properties": {
+        "reference": {
+          "$ref": "#/$defs/Id"
+        },
+        "revision": {
+          "$ref": "#/$defs/Id"
+        },
+        "path": {
+          "$ref": "#/$defs/Path"
+        }
+      },
+      "required": [
+        "reference",
+        "revision",
+        "path"
+      ],
+      "additionalProperties": false
+    },
+    "KnowledgeResourceResult": {
+      "type": "object",
+      "properties": {
+        "reference": {
+          "$ref": "#/$defs/Id"
+        },
+        "revision": {
+          "$ref": "#/$defs/Id"
+        },
+        "path": {
+          "$ref": "#/$defs/Path"
+        },
+        "artifact": {
+          "$ref": "#/$defs/ArtifactRef"
+        }
+      },
+      "required": [
+        "reference",
+        "revision",
+        "path",
+        "artifact"
+      ],
+      "additionalProperties": false
+    },
+    "KnowledgeCollectRequest": {
+      "type": "object",
+      "properties": {
+        "query": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Text"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "ids": {
+          "$ref": "#/$defs/Ids"
+        },
+        "pins": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/KnowledgePin"
+          }
+        },
+        "filters": {
+          "$ref": "#/$defs/Parameters"
+        },
+        "selection": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Parameters"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "query",
+        "ids",
+        "pins",
+        "filters",
+        "selection"
+      ],
+      "additionalProperties": false
+    },
+    "KnowledgeCollection": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/KnowledgeReadResult"
+          }
+        },
+        "omissions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ErrorFact"
+          }
+        },
+        "collisions": {
+          "$ref": "#/$defs/Ids"
+        },
+        "no_match": {
+          "type": "boolean"
+        },
+        "limitations": {
+          "$ref": "#/$defs/Strings"
+        },
+        "selection": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Parameters"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "items",
+        "omissions",
+        "collisions",
+        "no_match",
+        "limitations",
+        "selection"
+      ],
+      "additionalProperties": false
+    },
+    "KnowledgeCreateRequest": {
+      "type": "object",
+      "properties": {
+        "bundle": {
+          "$ref": "#/$defs/LegacyJSON"
+        },
+        "reason": {
+          "$ref": "#/$defs/Text"
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ArtifactRef"
+          }
+        }
+      },
+      "required": [
+        "bundle",
+        "reason",
+        "evidence"
+      ],
+      "additionalProperties": false
+    },
+    "KnowledgeUpdateRequest": {
+      "type": "object",
+      "properties": {
+        "reference": {
+          "$ref": "#/$defs/Id"
+        },
+        "bundle": {
+          "$ref": "#/$defs/LegacyJSON"
+        },
+        "expected_revision": {
+          "$ref": "#/$defs/Id"
+        },
+        "reason": {
+          "$ref": "#/$defs/Text"
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ArtifactRef"
+          }
+        }
+      },
+      "required": [
+        "reference",
+        "bundle",
+        "expected_revision",
+        "reason",
+        "evidence"
+      ],
+      "additionalProperties": false
+    },
+    "KnowledgeHistoryRequest": {
+      "type": "object",
+      "properties": {
+        "reference": {
+          "$ref": "#/$defs/Id"
+        }
+      },
+      "required": [
+        "reference"
+      ],
+      "additionalProperties": false
+    },
+    "KnowledgeHistoryResult": {
+      "type": "object",
+      "properties": {
+        "reference": {
+          "$ref": "#/$defs/Id"
+        },
+        "revisions": {
+          "$ref": "#/$defs/Ids"
+        }
+      },
+      "required": [
+        "reference",
+        "revisions"
+      ],
+      "additionalProperties": false
+    },
+    "P1Parameters": {
+      "type": "object",
+      "properties": {
+        "decimal_fixture": {
+          "$ref": "#/$defs/Decimal"
+        },
+        "label": {
+          "$ref": "#/$defs/Text"
+        }
+      },
+      "required": [
+        "decimal_fixture",
+        "label"
+      ],
+      "additionalProperties": false
+    },
+    "P1FormatProof": {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "$ref": "#/$defs/Version"
+        },
+        "claim_id": {
+          "const": "F"
+        },
+        "candidate_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "actual_sha256": {
+          "$ref": "#/$defs/Sha256"
+        },
+        "attempt_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "operation": {
+          "const": "evaluate"
+        },
+        "validation_scope": {
+          "const": "p1"
+        },
+        "checker_revision": {
+          "const": "1"
+        },
+        "status": {
+          "enum": [
+            "passed",
+            "failed"
+          ]
+        },
+        "reasons": {
+          "$ref": "#/$defs/Ids"
+        }
+      },
+      "required": [
+        "schema_version",
+        "claim_id",
+        "candidate_id",
+        "actual_sha256",
+        "attempt_id",
+        "operation",
+        "validation_scope",
+        "checker_revision",
+        "status",
+        "reasons"
+      ],
+      "additionalProperties": false
+    },
+    "P1GraderProof": {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "$ref": "#/$defs/Version"
+        },
+        "claim_id": {
+          "const": "C"
+        },
+        "candidate_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "actual_sha256": {
+          "$ref": "#/$defs/Sha256"
+        },
+        "attempt_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "operation": {
+          "const": "evaluate"
+        },
+        "validation_scope": {
+          "const": "p1"
+        },
+        "checker_revision": {
+          "const": "1"
+        },
+        "status": {
+          "enum": [
+            "passed",
+            "failed"
+          ]
+        },
+        "reasons": {
+          "$ref": "#/$defs/Ids"
+        }
+      },
+      "required": [
+        "schema_version",
+        "claim_id",
+        "candidate_id",
+        "actual_sha256",
+        "attempt_id",
+        "operation",
+        "validation_scope",
+        "checker_revision",
+        "status",
+        "reasons"
+      ],
+      "additionalProperties": false
+    },
+    "P1RawSample": {
+      "type": "object",
+      "properties": {
+        "sample_id": {
+          "enum": [
+            "A1",
+            "B1",
+            "B2",
+            "A2"
+          ]
+        },
+        "role": {
+          "enum": [
+            "baseline",
+            "candidate"
+          ]
+        },
+        "round": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2
+        },
+        "value": {
+          "$ref": "#/$defs/Decimal"
+        },
+        "unit": {
+          "const": "ms"
+        }
+      },
+      "required": [
+        "sample_id",
+        "role",
+        "round",
+        "value",
+        "unit"
+      ],
+      "additionalProperties": false
+    },
+    "P1SamplesProof": {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "$ref": "#/$defs/Version"
+        },
+        "candidate_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "actual_sha256": {
+          "$ref": "#/$defs/Sha256"
+        },
+        "attempt_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "operation": {
+          "const": "evaluate"
+        },
+        "validation_scope": {
+          "const": "p1"
+        },
+        "samples": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/P1RawSample"
+          },
+          "minItems": 4,
+          "maxItems": 4
+        }
+      },
+      "required": [
+        "schema_version",
+        "candidate_id",
+        "actual_sha256",
+        "attempt_id",
+        "operation",
+        "validation_scope",
+        "samples"
+      ],
+      "additionalProperties": false
+    },
+    "P1CleanupProof": {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "$ref": "#/$defs/Version"
+        },
+        "attempt_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "operation": {
+          "const": "evaluate"
+        },
+        "validation_scope": {
+          "const": "p1"
+        },
+        "confirmed": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "schema_version",
+        "attempt_id",
+        "operation",
+        "validation_scope",
+        "confirmed"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

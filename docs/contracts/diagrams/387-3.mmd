@@ -1,0 +1,17 @@
+flowchart TB
+  subgraph Storage["存储层：不是公开 read / collect 的交付"]
+    S2["生成记录 schema 2<br/>自身字段 + source_files 资源哈希<br/>不含共享 sources / registry 哈希"]
+    PROV["_provenance.json<br/>schema_version, repository<br/>source_revision, registry.path / sha256<br/>路径：repo_packs/inferrsi/knowledge/_provenance.json"]
+  end
+  S2 -->|"stored record"| CAT["_source_snapshot.resolve<br/>由 inferrsi.catalog 在读目录时调用"]
+  PROV -->|"snapshot"| CAT
+  CAT -->|"公共 schema 1：schema_version=1<br/>sources[0].type / commit / blob URL<br/>source_files 含 registry 哈希"| S1["解析后的逻辑目录记录"]
+  S1 -->|"KnowledgeReader.read / collect"| PUB["公开交付：KnowledgeBundle / Collection<br/>入口 record.json；revision 为 Bundle 内容修订"]
+  subgraph Outside["端口之外"]
+    PR["package / checkout 的仓库改动"]
+    DECL["PR 正文 knowledge authorship declaration<br/>knowledge-model-policy 检查保护路径<br/>declaration_paths 只列路径，不推断作者"]
+    MERGE["合并准入"]
+  end
+  PR --> DECL
+  DECL -->|"声明合规后才允许合入"| MERGE
+  UPD["Knowledge.update<br/>Bundle + expected + reason + evidence"] -.->|"不接收、不代替该声明"| DECL

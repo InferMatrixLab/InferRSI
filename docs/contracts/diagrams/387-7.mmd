@@ -1,0 +1,24 @@
+flowchart LR
+  subgraph NOW["当前混合树"]
+    Know["知识相关扁平模块 + 语料"]
+    Mix["现有 harness/ 混合树"]
+    Ev["evaluation / validators"]
+    AppNow["cli / arguments / dashboard 资源"]
+    Seam["infra / model / runspec 等接缝"]
+  end
+  subgraph TGT["3+1 目标"]
+    K["Knowledge"]
+    H["Harness"]
+    B["Benchmark"]
+    A["Apps"]
+  end
+  Know -->|"P0正式review后K01七K主体/测试联动；旧根精确静态导出"| K
+  Mix -->|"抽出执行与记录"| H
+  Mix -->|"展示投影；trace 按职责拆"| A
+  Mix -->|"后续抽判分/任务冻结；先解耦runner再审精确旧入口边"| B
+  Ev -->|"合并"| B
+  AppNow -->|"按 #371 迁入，根上留兼容转发"| A
+  Seam -.->|"旧接缝不整棵搬；H01新建持久记录内核"| TGT
+  Raw["中立原始pack数据技术叶子（非第四核心）"]
+  Know -->|"repository_pack + 原REPO_TYPES，不属K公开API"| Raw
+  Seam -->|"infra.inspection只改同叶子import，不经K/H"| Raw

@@ -1,0 +1,1 @@
+{"archive_namespace":"fixtures","harness_namespace":"demo","mounts":[{"kind":"directory","namespace":"fixtures","prefix":"fixtures","root":"/illustrative-only/fixtures"},{"kind":"harness_sqlite","namespace":"demo","prefix":"stores/demo","root":"/illustrative-only/run-store"}],"schema_version":1}

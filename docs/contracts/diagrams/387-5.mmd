@@ -1,0 +1,32 @@
+flowchart TB
+  USER["人 / Coding Agent"] --> APP["Apps：CLI / Python / Plugin<br/>只装配，不承载业务判断"]
+
+  subgraph K["Knowledge"]
+    KREAD["read / collect / resource"]
+    KUPD["create / update / history"]
+  end
+  subgraph B["Benchmark"]
+    BPREP["prepare"]
+    BASS["assess"]
+  end
+  subgraph H["Harness"]
+    HALLOC["allocate_attempt"]
+    HEXEC["execute"]
+    HREAD["read(attempt_id, record_version?)"]
+  end
+
+  APP -->|"reference, revision pin / 选择条件；resource 还需 path"| KREAD
+  KREAD -->|"KnowledgeBundle / Collection"| APP
+  APP -->|"Bundle, expected, reason, evidence"| KUPD
+  KUPD -->|"新 revision 或 history"| APP
+  APP -->|"任务与 grader 版本, operation, 输入 pins"| BPREP
+  BPREP -->|"PreparedEvaluation；Apps 归档成功才形成 PreparedRef"| APP
+  APP -->|"run_id, owner, 时限与资源"| HALLOC
+  HALLOC -->|"AttemptContext（不占预算、不启动）"| APP
+  APP -->|"ExecutionSpec：命令, 候选与预期身份, prepared 引用"| HEXEC
+  HEXEC -->|"H 提交成功：固定 RecordRef + 对应载荷；含 prepared/协议/范围/身份"| APP
+  HEXEC <-->|"命令 / 产物与测量"| TGT["外部运行环境"]
+  APP -->|"prepared + 记录事实与定位符的只读投影（不判分）"| BASS
+  BASS -->|"EvaluationResult；Apps 归档成功才形成 AssessmentRef"| APP
+  APP -->|"指定修订或latest已提交；不执行恢复"| HREAD
+  HREAD -->|"平铺记录；临时观测不参加固定payload"| APP

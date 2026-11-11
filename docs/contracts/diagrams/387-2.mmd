@@ -1,0 +1,29 @@
+sequenceDiagram
+  participant H as Harness.execute
+  participant Rec as ExecutionRecord
+  participant A as Apps 映射
+  participant Dash as dashboard / trace
+  participant B as Benchmark.assess
+
+  H->>Rec: 观测事实, 产物定位符, 已完成检查, 身份绑定结果
+  Note over Rec: 无任务 verdict；exit_code 只是执行事实
+  Dash--x B: 主张式记录不是判定输入
+  Rec->>A: H 已提交的固定 RecordRef 与对应载荷、prepared_ref、协议、范围与身份
+  A->>A: 核对顶层 prepared / record 修订、attempt、operation、scope
+  alt 顶层交接错配
+    A-->>A: 拒绝交接；不调用 assess，不生成正常 assessment
+  else 顶层交接正确
+    A->>A: 投影为 Benchmark 只读证据信封（保留字段，不判分）
+    A->>B: 固定 PreparedEvaluation + 证据信封 + 实际候选绑定
+    Note over B: 不启动进程；不读 current/latest；顶层错配即使漏检仍拒绝
+    B->>B: 核对顶层对象；保留 phase/process/cleanup，按 claim/scope 检查冻结证据
+    Note over B: D003已选择：接收合法固定非终态快照；不等于成功测量
+    alt 证据充足且协议通过
+      B-->>A: EvaluationResult.claims[claim_id,scope].verdict = PASS
+    else 候选在声明范围内被证明错误
+      B-->>A: EvaluationResult.claims[claim_id,scope].verdict = FAIL
+    else 正确组合中缺证据、损坏或产物不能作为本次证据
+      B-->>A: EvaluationResult.claims[claim_id,scope].verdict = INCONCLUSIVE（或指标无效）
+    end
+    Note over A,B: 各 claim/scope 独立；实际候选异常不等于拿错记录；清理未知不覆盖独立候选错误
+  end
