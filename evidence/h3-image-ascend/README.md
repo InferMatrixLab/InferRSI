@@ -102,3 +102,13 @@ The attention component probes used real block weights and captured activations,
 but synthetic RoPE and epsilon `1e-6` rather than the model's `1e-5`. They are
 not complete model-correctness evidence. The K/V projection discrepancy was
 measured before normalization; actual engine trials used the model epsilon.
+
+The MLP layout probe used real weights from three blocks and captured activations
+repeated to two token counts. Padding was slower and sometimes changed outputs;
+transposed storage showed only small component differences. Neither variant is
+adopted or evidence of an HTTP speedup. See `results/mlp-layout-probe.json`.
+
+The evidence inventory validates the public export hashes. Historical source
+hashes are classified as external dependencies, with original revision/context
+metadata retained alongside each flat source manifest. These checks do not
+qualify missing raw images or change the campaign verdict.

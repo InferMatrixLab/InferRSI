@@ -1,0 +1,6 @@
+{
+  "scope": "DiT mainblock qkv/out/fc1/fc2 W8A8",
+  "base_layout": "SP4 AdaLNCPU VAE4",
+  "status": "rejected: initial image PSNR16.22 SSIM.731; full numeric report pending",
+  "hashed_source": "minimax_h3_quant.py"
+}
