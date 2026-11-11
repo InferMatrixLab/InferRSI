@@ -5,5 +5,6 @@
   "scope": "VAE NPU graphs/batching, NPU eligibility for existing AdaLN staging, bounded NPU shutdown grace",
   "excluded": "INT8, communication fusion, SHMEM alterations, DiT graphs, AllGather-KV",
   "runtime_content_note": "Submission runtime trials precede only the added non-None assertion used to narrow encoder runner typing; no numerical or scheduling change followed those trials.",
-  "qualification": "INCONCLUSIVE: final ABBA and complete quality coverage pending"
+  "qualification": "INCONCLUSIVE: final ABBA and complete quality coverage pending",
+  "pull_request": "https://github.com/vllm-project/vllm-omni/pull/10184"
 }

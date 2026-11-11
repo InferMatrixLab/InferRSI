@@ -1,0 +1,5 @@
+{
+  "vllm_omni/platforms/npu/models/minimax_h3_image.py": "f9a84f61bb44b797a54d8c927c39c0a59ce4e9b8c50d59e94b4e678a0fc136a7",
+  "vllm_omni/diffusion/models/minimax_h3/minimax_h3_blocks.py": "caa7acc5acb8be1ee71b8caa8be642527b3ce3f9347bbf020e1a2befe417e6cb",
+  "vllm_omni/diffusion/models/minimax_h3/minimax_h3_transformer.py": "2c08cfd42cc6878f27591078740f5620f04a866037cc96dc8b349b53ef8163ec"
+}

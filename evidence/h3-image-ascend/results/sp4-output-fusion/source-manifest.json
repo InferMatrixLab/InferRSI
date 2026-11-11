@@ -1,0 +1,23 @@
+{
+  "base_sha": "9bbff156dc51651fbdfe44a6fa7a79eb1f6db693",
+  "files": {
+    "tests/diffusion/attention/test_attention_sp.py": "bb1248da8fc67f79ab7bef3a4479b3ccb5d7e31c83d549b26e35780978d2b297",
+    "tests/diffusion/attention/test_flash_attn.py": "6cc09e95317fca1dcb03d1d0e207e9640d2edcbeaa441baf3747b4631ce65b87",
+    "tests/diffusion/attention/test_ulysses_a2a_permute.py": "c0aff1fc8655a4660a5577938bcc0a2e7850b367741f67279f47002be2e2d9c1",
+    "tests/diffusion/test_multiproc_engine_concurrency.py": "d9fa2898c562f07e98b2a0692921ed08866337ebc25f99fac9277d9831a075be",
+    "tests/diffusion/test_npu_shutdown_grace.py": "ae6250426369e9d734707ede7bb4c87d8812b88fab0633cf044eaf296b7b7d3c",
+    "tests/platforms/npu/test_minimax_h3_image_graphs.py": "d1b3550ad98ac8ad1e71fd369acac4d3195d008ef10a805c06aca7fcd62087c1",
+    "vllm_omni/diffusion/attention/backends/flash_attn.py": "76ede93e0da0326f7b94bdb363ccabed908ffe51e2b42aa5d380d1871ac793e8",
+    "vllm_omni/diffusion/attention/parallel/allgather_kv.py": "3b8b7201ce4f0fa590f55198e2c00c14b400ede14f93fc7764a8a1ddc27400c6",
+    "vllm_omni/diffusion/attention/parallel/factory.py": "4028df21d316317596245ffdb87a74ed298e67b13f1c4fcdf04492c0536720ae",
+    "vllm_omni/diffusion/distributed/a2a_permute.py": "371fe8e6ddb6989aeb59cfe949a649e720dc765ba7aa4e99bb8cd5fe48374ccb",
+    "vllm_omni/diffusion/distributed/ulysses_symmetric_memory_npu.py": "fc6122899f25ff7edfc83618eb6a4238764368f9a99095763a16b2fdfa98be9b",
+    "vllm_omni/diffusion/executor/multiproc_executor.py": "22757c82bbf97c2072a5f6f3f91a47be3233e0acbeb90c1c471593b05c63a645",
+    "vllm_omni/diffusion/models/minimax_h3/minimax_h3_blocks.py": "caa7acc5acb8be1ee71b8caa8be642527b3ce3f9347bbf020e1a2befe417e6cb",
+    "vllm_omni/diffusion/models/minimax_h3/minimax_h3_transformer.py": "2c08cfd42cc6878f27591078740f5620f04a866037cc96dc8b349b53ef8163ec",
+    "vllm_omni/platforms/npu/models/minimax_h3_comm_fusion.py": "f64bfef4335b7f82f3b54f893782930506d8898a969e28d8bfe766d108d26253",
+    "vllm_omni/platforms/npu/models/minimax_h3_image.py": "e7f0443cb5a60bf8a0be05cf10e1757ef1e53f6fa488e2299fd71f34bc2c5ad7",
+    "vllm_omni/platforms/npu/platform.py": "0778b2fade3637fbd93b4ed47100efe88f2eda28ee83f514fcf075b179ec3837",
+    "vllm_omni/platforms/npu/quant/minimax_h3_image.py": "622845cc0633437e67f9e791d53629c4ea24ed28782e2d06637ebc0a97790752"
+  }
+}
