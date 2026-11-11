@@ -121,3 +121,11 @@ cover W1, W2 and W3 at seed 42, first measured request. The gallery includes the
 30-image numerical-screen report and pixel-hash provenance. Panels were inspected
 for presentation and obvious structural differences; this does not complete
 full-resolution visual acceptance. The remaining 24 images are not bundled.
+
+The subsequent real-weight NZ MLP probe covered three blocks, both MLP
+projections and two token counts under two format settings (24 cases). All
+outputs matched exactly. With internal formats disabled during linear execution,
+observed component latency reductions ranged from 2.4% to 10.3%. Activations
+were captured samples repeated to the tested lengths; these results do not
+establish complete model parity or HTTP improvement. A same-VAE-configuration
+four-device control/candidate experiment is pending; NZ is not yet adopted.
