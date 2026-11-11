@@ -9,7 +9,16 @@ from datetime import date, datetime
 from importlib.resources import files
 from pathlib import Path, PurePosixPath
 
-from ._skill_selection import RELEVANCE_METHODS, context_view, indexed_skill, skill_score, words
+from ._skill_selection import (
+    RELEVANCE_METHODS,
+    TASK_RELEVANCE,
+    context_view,
+    indexed_skill,
+    record_context,
+    skill_score,
+    task_score,
+    words,
+)
 from .catalog import KNOWLEDGE_SCOPES, SCENARIO_ALIASES, knowledge_records
 
 AUTHORITIES = ("package", "checkout", "store")
@@ -546,10 +555,19 @@ class KnowledgeReader:
             raise ValueError(f"Unknown knowledge tier: {tier}")
         scenario = SCENARIO_ALIASES.get(scenario, scenario)
         package_filters = any(value is not None for value in (repo, tier, backend, scenario))
+        task_ranking = relevance_method == TASK_RELEVANCE
 
         def matches(metadata: dict, authority: str) -> bool:
             declared = metadata.get("scenario")
             declared = declared if isinstance(declared, str) else ""
+            # The catalog records skills.discovery as the discovery operation,
+            # not the workload served by a procedure. Let the task cue rank
+            # these procedures alongside records declaring the requested workload.
+            discovery_skill = (
+                task_ranking and ids is None and authority == "package"
+                and declared == "skills.discovery"
+                and self.records()[metadata["id"]].get("index_type") == "packaged-skill"
+            )
             return not (
                 (kind and metadata.get("kind") != kind)
                 or (package_filters and authority != "package")
@@ -560,6 +578,7 @@ class KnowledgeReader:
                     scenario is None
                     or declared == scenario
                     or (declared.endswith(".*") and scenario.startswith(declared[:-1]))
+                    or discovery_skill
                 )
             )
 
@@ -585,13 +604,18 @@ class KnowledgeReader:
             if context_bytes is None:
                 return
             record = self.records().get(view["id"], {})
-            if view["authority"] != "package" or record.get("index_type") != "packaged-skill":
+            is_skill = record.get("index_type") == "packaged-skill"
+            if view["authority"] != "package" or (not is_skill and not task_ranking):
                 context_omissions.append({"ref": view["ref"], "reason": "unsupported_context"})
                 return
             try:
-                context, omission = context_view(
-                    record, view, bundle.content, relevance or query, context_bytes - context_used
-                )
+                available = context_bytes - context_used
+                if is_skill:
+                    context, omission = context_view(
+                        record, view, bundle.content, relevance or query, available
+                    )
+                else:
+                    context, omission = record_context(record, view, bundle.content, available)
             except (ValueError, KeyError, TypeError) as exc:
                 context_omissions.append({
                     "ref": view["ref"], "reason": "index_unavailable", "detail": str(exc),
@@ -619,7 +643,7 @@ class KnowledgeReader:
                     early = None
                 if relevance is not None and ids is None and (
                     authority != "package"
-                    or self.records()[identity].get("index_type") != "packaged-skill"
+                    or (not task_ranking and early.get("index_type") != "packaged-skill")
                 ):
                     continue
                 if early is not None and not matches(early, authority):
@@ -651,13 +675,17 @@ class KnowledgeReader:
                 continue
             if relevance is not None and ids is None:
                 record = self.records().get(identity, {})
-                if authority != "package" or record.get("index_type") != "packaged-skill":
-                    continue
                 try:
-                    core, _, _ = indexed_skill(record, view, bundle.content)
-                    score = skill_score(
-                        relevance, record, bundle.content[core], method=relevance_method
-                    )
+                    is_skill = record.get("index_type") == "packaged-skill"
+                    if is_skill:
+                        core, _, _ = indexed_skill(record, view, bundle.content)
+                        body = bundle.content[core]
+                    else:
+                        body = entry
+                    if task_ranking:
+                        score = task_score(relevance, record, body, backend)
+                    else:
+                        score = skill_score(relevance, record, body, method=relevance_method)
                 except (ValueError, KeyError, TypeError) as exc:
                     omitted.append({
                         "id": reference, "reason": "index_unavailable", "detail": str(exc),
@@ -686,8 +714,12 @@ class KnowledgeReader:
         if relevance is not None:
             result["selection"] = {
                 "method": relevance_method, "cue": relevance,
-                "scope": "generated-packaged-skills", "ranking_applied": ids is None,
+                "scope": ("package-skills-and-records" if task_ranking
+                          else "generated-packaged-skills"),
+                "ranking_applied": ids is None,
             }
+            if task_ranking and ids is None:
+                result["selection"].update(matched_count=len(ranked), returned_count=len(selected))
             result["limitations"][0] = (
                 "Deterministic lexical selection; explicit IDs retain caller order and membership."
             )

@@ -8,6 +8,35 @@ import pytest
 
 
 @pytest.mark.skipif(shutil.which("node") is None, reason="Node.js is needed for the UI regression")
+def test_round_review_shows_only_linked_retrievals_in_declared_order():
+    template = Path(__file__).parents[1] / "src/inferrsi/observability/template.html"
+    script = r"""
+const fs=require('node:fs'), assert=require('node:assert/strict');
+const html=fs.readFileSync(process.argv[1],'utf8');
+const source=html.slice(
+  html.indexOf('  function renderRoundInputs('),html.indexOf('  function renderRunReview('));
+const story={iterations:[
+  {round:1,candidates:[{candidate_id:'a'}],context_ids:['broad','specific']},
+  {round:2,candidates:[{candidate_id:'b'}],context_ids:['later']}],
+  retrievals:['specific','later','broad'].map(context_id=>({context_id}))};
+function captures(round,candidate_id,storyData){
+  const ids=[];
+  const node=()=>({append(){}});
+  const renderKnowledge=(_,selection)=>ids.push(...selection.retrievals.map(r=>r.context_id));
+  const render=new Function('data','node','renderKnowledge',source+'\nreturn renderRoundInputs;');
+  render({story:storyData},node,renderKnowledge)(node(),{round,candidate_id});
+  return ids;
+}
+assert.deepEqual(captures(1,'a',story),['broad','specific']);
+assert.deepEqual(captures(2,'b',story),['later']);
+assert.deepEqual(captures(1,'b',story),[]);
+assert.deepEqual(captures(1,'a',{state:'not_recorded'}),[]);
+"""
+    subprocess.run([shutil.which("node"), "-e", script, str(template)], check=True,
+                   capture_output=True, text=True)
+
+
+@pytest.mark.skipif(shutil.which("node") is None, reason="Node.js is needed for the UI regression")
 def test_translation_overlay_cannot_relabel_verdicts_or_evidence():
     template = Path(__file__).parents[1] / "src/inferrsi/observability/template.html"
     script = r"""

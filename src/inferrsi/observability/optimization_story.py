@@ -51,6 +51,7 @@ def _capture(root: Path, entry: dict, campaign_id: str) -> dict:
                                for resource in context["resources"]],
                  "omissions": context["omissions"]} for context in document["contexts"]]
     return {**view, "state": "verified", "request": document.get("request", {}),
+            "selection": document.get("selection"),
             "captured_at": document.get("captured_at"),
             "captured_by": document.get("captured_by"),
             "items": document.get("items", []), "omissions": document.get("omissions", []),

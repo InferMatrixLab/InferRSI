@@ -924,9 +924,21 @@ def load_dashboard(source: Path) -> dict:
                  for item in (rounds or []) if "decision" in item}
     for row in rows:
         row["decision"] = decisions.get((row["round"], row["candidate_id"]), "not_recorded")
+    profiled = campaign.get("review_layout") == "profile_first"
+    anchors = []
+    if profiled:
+        for row in rows:
+            diagnosis = (row.get("optimization_trace") or {}).get("diagnosis", {})
+            ref = row["artifacts"].get("profile", {})
+            if (diagnosis.get("scope") == "baseline_request" and ref.get("state") == "present"
+                    and diagnosis.get("source_sha256", "").lower() == ref.get("sha256")):
+                anchors.append(row["_comparison_signature"])
+    anchor = anchors[0] if len(anchors) == 1 else None
     signatures = []
     for row in rows:
         signature = row.pop("_comparison_signature")
+        if anchor is not None:
+            row["matches_profile_baseline"] = signature == anchor
         if row["improvement_pct"] is not None:
             signatures.append(signature)
     comparison_state = "comparable" if signatures else "no_data"
@@ -935,12 +947,14 @@ def load_dashboard(source: Path) -> dict:
             comparison_state = "unverified"
         elif len(set(signatures)) != 1:
             comparison_state = "incompatible"
-    valid_gains = [row["improvement_pct"] for row in rows if row["improvement_pct"] is not None
+    qualified = [row for row in rows if row["improvement_pct"] is not None
                    and row["quality"] == "passed" and row["source_verified"] is True
                    and row["state"] == "completed" and row["verdict"] in ("PASS", "FAIL")
                    and row["decision"] != "rolled_back"]
-    if comparison_state != "comparable":
-        valid_gains = []
+    valid_gains = ([r["improvement_pct"] for r in qualified]
+                   if comparison_state == "comparable" else [])
+    profile_best = max((r["improvement_pct"] for r in qualified
+                        if r.get("matches_profile_baseline")), default=None)
     best = max(valid_gains) if valid_gains else None
     goal = campaign.get("goal") if isinstance(campaign.get("goal"), dict) else {}
     target = _number(goal.get("target_improvement_pct"))
@@ -980,6 +994,8 @@ def load_dashboard(source: Path) -> dict:
         declared = None
     return {
         "campaign_id": _text(campaign.get("campaign_id"), "Single run" if single else "Campaign"),
+        **({"review_layout": "profile_first"}
+           if campaign.get("review_layout") == "profile_first" else {}),
         "synthetic": campaign.get("synthetic") is True,
         "rounds": rounds, "rounds_state": rounds_state,
         "corrupt_round_lines": corrupt_round_lines,
@@ -991,6 +1007,8 @@ def load_dashboard(source: Path) -> dict:
                         "collection": {"state": _text(collection.get("state"), ""),
                                        "observed_at": _text(collection.get("observed_at"), "")}},
         "overview": {"comparison_state": comparison_state,
+                     **({"profile_best_improvement_pct": profile_best}
+                        if anchor is not None else {}),
                      "best_improvement_pct": best, "target_improvement_pct": target,
                      "target_gap_pct": (_number(target - best)
                                         if target is not None and best is not None else None)},

@@ -9,6 +9,7 @@ import re
 import uuid
 from pathlib import Path
 
+from ..catalog import BACKENDS
 from .dashboard_data import (
     _file_ref,
     _inside,
@@ -33,15 +34,22 @@ def _identifier(value: str, name: str) -> str:
 
 
 def create_campaign(root: Path, campaign_id: str, *, target: float | None = None,
-                    noise: float | None = None, synthetic: bool = False) -> Path:
+                    noise: float | None = None, synthetic: bool = False,
+                    backend: str | None = None, profile_first: bool = False) -> Path:
     _identifier(campaign_id, "campaign_id")
     for name, value in (("target", target), ("noise", noise)):
         if value is not None and (isinstance(value, bool) or not isinstance(value, (int, float))
                                   or not math.isfinite(value) or value < 0):
             raise ValueError(f"{name} must be finite and nonnegative")
+    if backend is not None and backend not in BACKENDS:
+        raise ValueError("Unknown campaign backend")
     root = Path(root).resolve()
     root.mkdir(parents=True, exist_ok=True)
     manifest = {"campaign_id": campaign_id, "synthetic": synthetic}
+    if profile_first:
+        manifest["review_layout"] = "profile_first"
+    if backend is not None:
+        manifest["backend"] = backend
     if target is not None:
         manifest["goal"] = {"target_improvement_pct": target}
     if noise is not None:

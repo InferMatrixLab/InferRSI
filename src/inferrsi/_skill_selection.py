@@ -4,7 +4,8 @@ import json
 import posixpath
 import re
 
-RELEVANCE_METHODS = ("weighted-lexical-v1", "weighted-raw-string-v1")
+TASK_RELEVANCE = "task-lexical-v1"
+RELEVANCE_METHODS = ("weighted-lexical-v1", "weighted-raw-string-v1", TASK_RELEVANCE)
 
 
 class SkillIndexError(ValueError):
@@ -97,6 +98,8 @@ def indexed_skill(record: dict, view: dict, content: dict[str, bytes]) -> tuple:
 def skill_score(
     cue: str, record: dict, core: bytes, *, method: str = "weighted-lexical-v1"
 ) -> int:
+    if method == TASK_RELEVANCE:
+        return task_score(cue, record, core, None)
     if method not in RELEVANCE_METHODS:
         raise ValueError("Unknown relevance method")
     scorer = raw_string_lexical_score if method == "weighted-raw-string-v1" else lexical_score
@@ -106,6 +109,49 @@ def skill_score(
         (2, [record.get("tags", []), record.get("applicability", {})]),
         (1, core.decode("utf-8")),
     ])
+
+
+def task_score(cue: str, record: dict, core: bytes, backend: str | None) -> int:
+    """Rank whole task terms across both skill and repository knowledge owners."""
+    def terms(text: str) -> set[str]:
+        return set(re.findall(r"[^\W_]+", text.casefold()))
+
+    tokens = terms(cue) - {"a", "an", "and", "for", "in", "of", "on", "the", "to", "with"}
+    fields = (
+        (4, record["title"]),
+        (3, record["summary"]),
+        (2, " ".join(record.get("tags", []))),
+        (2, record["repo"] + " " + record["scenario"]),
+        (1, json.dumps(record.get("applicability", {}), ensure_ascii=False)),
+        (1, core.decode("utf-8")),
+    )
+    score = sum(weight * len(tokens & terms(text)) for weight, text in fields)
+    # With no platform in scope prefer portable procedures to a specialization
+    # that happens to repeat the same task words in its description.
+    platforms = {
+        "cuda": {"cuda", "nvidia"}, "rocm": {"rocm", "amd"},
+        "ascend": {"ascend", "cann"}, "mlx": {"mlx"}, "cpu": {"cpu"},
+    }
+    in_scope = {backend} if backend else {key for key, names in platforms.items() if names & tokens}
+    return score * (2 if record["backend"] == "common" or record["backend"] in in_scope else 1)
+
+
+def record_context(record: dict, view: dict, content: dict[str, bytes], available: int) -> tuple:
+    """Keep the canonical package record including its sources and limits."""
+    path = view["entrypoint"]
+    body = content[path]
+    if len(body) > available:
+        return None, {"ref": view["ref"], "reason": "context_limit",
+                      "required_bytes": len(body), "available_bytes": available}
+    return {
+        "ref": view["ref"], "revision": view["revision"], "content_bytes": len(body),
+        "resources": [{"path": path, "sha256": view["resources"][path], "role": "record",
+                       "locator": "whole-resource", "content": body.decode("utf-8")}],
+        "omissions": [{"path": p, "reason": "linked_document"} for p in
+                      dict.fromkeys(record.get("skill_documents", {}).values())],
+        "sources": view["sources"], "attribution": view["attribution"],
+        "limitations": view["limitations"],
+    }, None
 
 
 def context_view(

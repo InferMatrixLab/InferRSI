@@ -272,10 +272,10 @@ const target = {setAttribute(name, value) { this[name] = value; },
 const runSelect = {value: 'old'}, stageSelect = {value: 'old'}, candidateSelect = {value: 'old'};
 const api = new Function('data', 'node', 'narrativeNode', 'translatedNarrative',
   'stageNames', 'runSelect', 'stageSelect', 'candidateSelect', 'byId', 'render', 'detailLine',
-  'let selected = -1, jumpNotice = "old";\n' + source +
-  '\nreturn {renderSummary, selected: () => selected, jumpNotice: () => jumpNotice};')(
+  'let selected = -1;\n' + source +
+  '\nreturn {renderSummary, selected: () => selected};')(
   data, node, node, value => value, {search: 'Search'}, runSelect, stageSelect,
-  candidateSelect, id => { assert.equal(id, 'candidate-inspection'); return target; },
+  candidateSelect, id => { assert.equal(id, 'run-review'); return target; },
   () => {}, () => {});
 const root = node('div'); api.renderSummary(root, data.story);
 const buttons = [];
@@ -290,7 +290,6 @@ assert.equal(button('b').text, 'b · No recorded outcome');
 assert.equal(button('b').disabled, false);
 button('b').click();
 assert.equal(data.candidates[api.selected()].candidate_id, 'b');
-assert.equal(api.jumpNotice(), '');
 assert.equal(runSelect.value, ''); assert.equal(stageSelect.value, '');
 assert.equal(candidateSelect.value, '');
 assert.equal(target.tabindex, '-1'); assert(target.focused && target.scrolled);

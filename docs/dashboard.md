@@ -55,11 +55,19 @@ the experiment.
 
 ### Follow one round
 
-Select a candidate to see its recorded change and the order of its source,
-benchmark and validation steps in **Run review**. Each **Trace** button opens
-the corresponding runner event. Expand **Source records** for file references
-and hashes. Export feedback to keep the selected round's steps, timings and
-event lines alongside your review.
+Select a candidate to open its **Run review**. The first four sections show
+the initial assembled context, the options considered, the recorded selection
+rules and the path taken. Each round has its own hash-bound trace. In the
+search path, an event link opens the matching source record in a dialog.
+The Markdown feedback export includes the selected round's inputs and path.
+
+Before starting a candidate, save the final assembled context verbatim. Freeze
+its options and rationale in the trace template, then use
+`campaign assemble-trace --context-file <FILE>` as shown below. Record a new
+snapshot for each round and retain the initial one when appending results.
+The optional `search_space.selection_rules` array holds the criteria in order.
+For example, a lossless image campaign might require identical decoded RGB
+pixels before ranking latency. Missing historical fields display as unrecorded.
 
 The native runner appends a start and an `_end` event for each step. Node times
 include source checks and command startup. The measured service latency appears
@@ -143,6 +151,23 @@ starts an agent or validates the experiment.
 
 ### Record the optimization story (campaign trace)
 
+Use `campaign init --profile-first` for a new profiled campaign, or set
+`"review_layout": "profile_first"` in an existing `campaign.json`.
+The live view and HTML export show acceptance criteria, the
+baseline request breakdown, the bottleneck and target gap, each round's
+measurements, and adoption decisions. The performance trend uses each
+candidate's paired medians. For example, a target latency reduction of 50%
+is a 2× speedup. When there is one verified baseline profile, only runs
+with its measurement signature share the trend line and compete for its best
+result. Pairs from different conditions appear separately beside the chart.
+Cancelled runs retain their records in the round list.
+
+In the round trace, `applied_skills` records the name and takeaway of each
+skill actually used. Verified retrievals, original inputs, hashes and events
+open under round details. A `diagnosis` with scope `baseline_request` or
+`denoiser_step` supplies the profile table when its `source_sha256` matches
+the attached profile artifact. The gap uses the acceptance baseline measurement.
+
 The **Optimization story** section is the campaign-level trace a reviewer reads
 to understand the whole optimization: what knowledge was retrieved and why, the
 declared search space and how it was narrowed, each round's hypothesis and
@@ -177,6 +202,13 @@ otherwise the dashboard reports the problem instead of silently falling back.
 ```sh
 inferrsi campaign log --directory <CAMPAIGN_DIRECTORY> --file <LOG_JSON>
 ```
+
+To show a retrieval in **Run review**, list its ID in the matching iteration's
+`context_ids` and its capture hash in `knowledge`. Record this log as soon as
+the candidate is registered. The round then shows the search request, hits,
+files included, omissions and declared uses above the assembled round input.
+If the round input quotes a skill directly from a checkout, include its
+`SKILL.md` path, line locator and revision in the trace's context sources.
 
 | Field | Content |
 | --- | --- |
@@ -248,6 +280,7 @@ attempts and conclusions, including failures and omissions. Set
   },
   "search_space": {
     "state": "partial",
+    "selection_rules": ["<CRITERION_USED_TO_CHOOSE_AN_OPTION>"],
     "items": [{"id": "option-a", "description": "<CONSIDERED_OPTION>"}],
     "missing_reason": "<WHAT_WAS_NOT_RECORDED>"
   },
@@ -402,9 +435,7 @@ reads allowlisted event metadata, including recorded request counters, token
 usage, tool names, file manifests, hashes and selected check/benchmark receipt
 fields; it does not independently verify a receipt or include raw agent
 requests, arbitrary event messages, environment data, or raw logs. Runner and
-agent events are displayed together in timestamp order; timestamps without an
-explicit timezone are placed after timed events. Search and source filters apply
-to the trace, and corrupt lines identify their source file.
+agent events retain their source and line number. The review export orders event references by timestamp, with untimed records last.
 For recorded execution events it identifies expected logs and their hashes,
 without embedding their contents. Trace line numbers and artifact references
 can be included in a local review export, including references attached to
@@ -465,8 +496,7 @@ markers. Unrelated candidate measurements are not joined into a cumulative line.
   commands. Caller-supplied benchmark and accuracy descriptions state what was
   measured; they are not independently verified. A validation exit code does not
   establish an accuracy result when no result was recorded.
-- Overview, diagnostics and charts show all candidates; candidate/run/stage
-  filters affect the candidate table and technical events.
+- Overview and charts show all candidates. The candidate, run and stage filters select the run review and candidate rows.
 - Existing non-dashboard files and symbolic-link outputs are never overwritten.
 
 ## Privacy

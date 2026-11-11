@@ -189,6 +189,8 @@ def main(argv: list[str] | None = None) -> int:
                 ids=args.ids,
                 revisions=_revisions(args.revisions or []),
                 kind=args.kind,
+                backend=args.backend,
+                scenario=args.scenario,
                 limit=args.limit,
                 max_bytes=args.max_bytes,
                 material=args.material,
@@ -329,7 +331,8 @@ def main(argv: list[str] | None = None) -> int:
                 return 0
             if args.campaign_action == "init":
                 path = create_campaign(args.directory, args.id, target=args.target_pct,
-                                       noise=args.noise_pct, synthetic=args.synthetic)
+                                       noise=args.noise_pct, synthetic=args.synthetic,
+                                       backend=args.backend, profile_first=args.profile_first)
             elif args.campaign_action == "assemble-trace":
                 path = assemble_trace(args.directory, template=args.template,
                                       context_file=args.context_file, output=args.output)

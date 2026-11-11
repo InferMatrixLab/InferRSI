@@ -52,8 +52,21 @@ main { max-width:1600px; margin:auto; padding:0 18px 28px; }
 .stage .stage-time { font-variant-numeric:tabular-nums; }
 .stage .stage-now { color:var(--blue); font-weight:600; }
 .stage .stage-log { color:#c9a227; }
-.columns { display:grid; grid-template-columns:minmax(0,2fr) minmax(320px,1fr); gap:8px; align-items:start; }
-.stack { display:grid; gap:8px; min-width:0; }
+.report-sections { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:12px; }
+.report-sections > :nth-child(n+3) { grid-column:1 / -1; }
+.round-inputs { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:14px 0; }
+.round-inputs section { min-width:0; border-top:1px solid var(--line); padding:8px 0; }
+.round-inputs h3 { margin:0 0 6px; font-size:14px; }
+.round-inputs pre { max-height:13em; overflow:auto; white-space:pre-wrap; margin:5px 0; padding:10px; background:var(--bg); }
+.round-inputs .wide { grid-column:1 / -1; }
+.round-inputs ol, .round-inputs ul { margin:4px 0; padding-left:1.6em; }
+.round-inputs li { padding:3px 0; overflow-wrap:anywhere; }
+.round-inputs small { display:block; color:var(--muted); }
+#event-record { max-width:min(700px,90vw); max-height:85vh; color:var(--ink); background:var(--panel); border:1px solid var(--line); }
+#event-record::backdrop { background:#0009; }
+#event-record form { float:right; }
+#event-record pre, #event-record code { display:block; white-space:pre-wrap; overflow-wrap:anywhere; }
+@media(max-width:760px) { .round-inputs,.report-sections {grid-template-columns:minmax(0,1fr)} }
 .chart { padding:2px 8px 8px; overflow:auto; } .chart svg { width:100%; min-width:600px; height:auto; display:block; }
 .empty { color:var(--muted); padding:18px 12px; border:1px dashed #566071; margin:8px 12px 12px; }
 .scroll { overflow:auto; } table { border-collapse:collapse; width:100%; text-align:left; }
@@ -79,9 +92,6 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
 .insight-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
 .insight { background:#14171b; border:1px solid var(--line); min-width:0; }
 .insight.wide { grid-column:1 / -1; }
-.trace-heading { grid-column:1 / -1; padding:6px 0 0; }
-.trace-heading h4 { display:inline; margin:0; font-size:14px; }
-.trace-heading small { color:var(--muted); margin-left:8px; }
 .insight-head { display:flex; gap:8px; align-items:baseline; padding:10px 12px 4px; }
 .insight-head h4 { margin:0; font-size:13px; }
 .insight-head small { color:var(--muted); }
@@ -96,11 +106,6 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
 .detail-line strong { display:block; color:var(--muted); font-size:11px; margin-bottom:3px; }
 .detail-line p { margin:0; white-space:pre-wrap; overflow-wrap:anywhere; }
 .detail-line code { display:block; white-space:pre-wrap; color:var(--ink); }
-.trace-tools { display:flex; gap:8px; flex-wrap:wrap; padding:8px 12px; }
-.trace-tools input, .trace-tools select { background:var(--bg); border:1px solid var(--line); padding:5px 7px; }
-.trace-tools input { flex:1 1 180px; min-width:0; }
-.trace-event summary { cursor:pointer; color:#bdd5ff; font-weight:600; overflow-wrap:anywhere; }
-.trace-event pre { white-space:pre-wrap; overflow-wrap:anywhere; color:var(--muted); margin:6px 0; }
 .button { border:1px solid #477bd2; border-radius:2px; background:#315eac; padding:5px 12px; margin-top:8px; }
 .footnote { color:var(--muted); font-size:11px; margin:12px 0 0; }
 .story { padding:4px 0 10px; }
@@ -142,7 +147,7 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
 .claim { padding:7px 12px; border-top:1px solid #292e36; }
 .claim p { margin:0 0 3px; white-space:pre-wrap; }
 @media (max-width:900px) { .round-grid, .summary-grid { grid-template-columns:1fr; } .cand { grid-template-columns:1fr; } }
-@media (max-width:900px) { .columns, .insight-grid { grid-template-columns:1fr; } .insight.wide { grid-column:auto; } .top { flex-wrap:wrap; padding:10px 18px; } .stat-value { font-size:24px; white-space:nowrap; } }
+@media (max-width:900px) { .insight-grid { grid-template-columns:1fr; } .insight.wide { grid-column:auto; } .top { flex-wrap:wrap; padding:10px 18px; } .stat-value { font-size:24px; white-space:nowrap; } }
 #run-review { padding:14px 16px; margin:14px 0; }
 .review-heading, .change-note { display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; }
 .review-heading h2 { font-size:17px; margin:0; }
@@ -198,8 +203,7 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
   <div class="section-title">Workflow <small>Technical events only; select a stage to filter candidates and events</small></div>
   <div class="panel"><div id="workflow" class="flow"></div></div>
   <div class="section-title">Performance and evidence <small>Recorded values, including unsuccessful attempts</small></div>
-  <div class="columns">
-    <div class="stack">
+  <div class="report-sections">
       <section class="panel"><div class="panel-head"><h2>Performance trend · all candidates</h2><small id="chart-note"></small></div>
         <div class="chart" id="chart">__DASHBOARD_CHART__</div></section>
       <section class="panel"><div class="panel-head"><h2>Results and stages over time · all candidates</h2></div>
@@ -211,25 +215,20 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
         <div class="scroll"><table><thead><tr><th>Round</th><th>Candidate</th><th>Run</th><th>State</th><th>Verdict</th><th>Gain</th><th>Quality</th><th>Outcome</th><th>Decision</th><th>Evidence</th></tr></thead><tbody id="candidate-rows"></tbody></table></div>
         <p id="no-rows" class="empty" hidden>No matching recorded candidates.</p>
         <div id="candidate-inspection" class="candidate-inspection" aria-live="polite"></div></section>
-    </div>
-    <div class="stack">
-      <section class="panel"><div class="panel-head"><h2>Diagnosis · all candidates</h2><small>Only rules backed by referenced evidence</small></div><div id="diagnostics"></div></section>
-      <section class="panel"><div class="panel-head"><h2>Technical events</h2><small id="trace-title" data-no-translate></small></div>
-        <div class="trace-tools"><input id="trace-search" type="search" aria-label="Search trace" placeholder="Search event, tool, field or reference">
-          <select id="trace-source" aria-label="Trace source"><option value="">All sources</option><option value="events">Runner</option><option value="agent_trace">Agent</option></select></div>
-        <p id="trace-count" class="footnote panel-body" aria-live="polite"></p><div id="trace"></div></section>
-      <section class="panel"><div class="panel-head"><h2>Evidence completeness</h2><small>Missing records are explicit</small></div><div id="evidence"></div></section>
       <section class="panel"><div class="panel-head"><h2>Human review</h2><small>Local Markdown export</small></div>
         <div class="panel-body"><label for="feedback" class="hint">Findings and suggested framework improvement</label>
           <textarea id="feedback" placeholder="Record your observation and recommendation."></textarea>
           <button id="export" class="button" type="button">Export feedback · Markdown</button>
           <pre id="feedback-preview" class="preview" hidden></pre>
           <p class="footnote">Review the exported text before sharing. Common private values are redacted; free text can still contain sensitive information.</p></div></section>
-    </div>
   </div>
   <p class="footnote">Recorded text without a supplied translation remains in its original language. Commands, identifiers and raw event fields stay unchanged.</p>
   <p class="footnote">A successful quality command covers only that command. This view does not establish statistical significance. Raw logs and environment values are withheld; references and SHA-256 identify recorded artifacts.</p>
 </main>
+<dialog id="event-record" aria-labelledby="event-heading">
+  <form method="dialog"><button class="button">Close</button></form>
+  <h2 id="event-heading"></h2><div id="event-body"></div>
+</dialog>
 <script id="dashboard-data" type="application/json">__DASHBOARD_DATA__</script>
 <script>
 (() => {
@@ -254,6 +253,7 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
   const byId = id => document.getElementById(id);
   const chinese = {
     'samples':'个样本','cases':'个用例','manifests':'份清单','trials':'次试验','checks':'项检查','Total unknown':'总数未知','Source records':'原始记录','Review the failed check':'查看失败的检查','Below target':'未达目标',
+    'Assembled knowledge context':'拼接后的知识上下文','Selection rules':'搜索逻辑','Search path':'搜索路径','Sources and search queries':'检索词与来源','Close':'关闭',
     'Run review':'本轮记录','What changed':'本轮改动','Performance tests':'性能测试','Accuracy check':'精度检查',
     'Outcome':'结论','Open event':'打开事件','events':'事件','Span':'跨度','Current':'当前',
     'Latency fell':'延迟下降','Latency rose':'延迟上升','short of the':'未达到','target':'目标',
@@ -341,7 +341,7 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
     'Candidate / run views':'候选方案 / 运行视图', 'Recorded candidate or run views':'已记录的候选方案或运行视图',
     'Within noise':'噪声范围内', 'Uses recorded noise band':'使用已记录的噪声区间',
     'Failed / regressed':'失败 / 下降', 'Includes failures and rollbacks':'包含失败和回滚',
-    'Missing evidence':'缺失证据', 'See completeness panel':'查看证据完整性面板',
+    'Missing evidence':'缺失证据', 'Referenced files unavailable':'缺少的引用文件',
     'Rounds not recorded':'未记录轮次', 'No matching candidate.':'没有符合条件的候选方案。',
     'Narrative is caller recorded; verdicts and measurements are separate evidence.':'叙述由调用方记录；判定和测量值属于独立证据。',
     'Change and rationale':'改动与原因', 'Caller recorded':'调用方记录', 'Change type':'改动类型',
@@ -413,7 +413,10 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
     'Decision reason':'决策原因', 'Next step':'下一步', 'Measured':'实测', 'No recorded run':'没有记录的运行', 'no gain value':'未记录提升数值',
     'Run evidence unavailable':'运行证据不可用', 'No recorded outcome':'未记录结果',
     'Why it was retrieved':'为什么检索', 'What was taken from it':'从中得到了什么', 'Search request':'检索请求', 'Captured':'采集信息',
-    'Selected by search':'检索选中', 'Left out of the context':'未放进上下文', 'Nothing omitted':'没有遗漏', 'Used':'实际使用',
+    'Selected by search':'检索命中', 'Left out of the context':'未放进上下文', 'Nothing omitted':'没有遗漏', 'Used':'本次检索中采用的条目',
+    'Knowledge retrieval for this round':'本轮知识库检索', 'Files included in the context':'检索实际装入的文件',
+    'No retrieval capture is linked to this round.':'本轮没有关联检索快照。',
+    'Excluded from search results':'未进入返回列表', 'Skill excerpts cited in the round input':'本轮输入实际引用的技能原文',
     'Retrieved but not used':'检索到但未使用', 'Successes':'成功', 'Failures':'失败', 'Lessons for the framework':'对框架的改进建议',
     'None recorded':'未记录', 'Option':'选项', 'Status':'状态', 'Reason':'原因', 'Tried in':'尝试于', 'Source':'知识来源',
     'tried':'已尝试', 'pruned':'已排除', 'untried':'未尝试', 'adopted':'采纳', 'rejected':'拒绝', 'no gain':'无提升', 'pending':'待定',
@@ -543,7 +546,7 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
   const stageNames = {diagnosis:'Diagnosis', knowledge:'Knowledge', search:'Candidate search', execution:'Execution', validation:'Validation', review:'Review'};
   const stageSelect = byId('stage-filter'), runSelect = byId('run-filter'), candidateSelect = byId('candidate-filter');
   let serverTime=null;
-  let selected = data.candidates.findIndex(r=>r.external?.metrics?.length), jumpNotice = '';
+  let selected = data.candidates.findIndex(r=>r.external?.metrics?.length);
   if(selected<0)selected=data.candidates.findIndex(row=>row.state==='running');
   if(selected<0)selected=null;
   const node = (tag, text, cls) => { const el = document.createElement(tag); if (text !== undefined) el.textContent = text; if (cls) el.className = cls; return el; };
@@ -607,7 +610,7 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
       ['Candidate / run views',rows.length ? String(rows.length) : 'Not recorded','Recorded candidate or run views',''],
       ['Within noise',rows.some(r=>['noise','improved','regressed'].includes(r.outcome)) ? String(rows.filter(r => r.outcome === 'noise').length) : 'Not recorded','Uses recorded noise band','orange'],
       [external.length ? 'Native failed / regressed' : 'Failed / regressed',native.some(r=>r.state !== 'not_recorded' || r.quality !== 'not_recorded') ? String(native.filter(r => ['failed','quality_failed','regressed'].includes(r.outcome) || r.decision==='rolled_back').length) : 'Not recorded',external.length ? 'Native runs only; includes failures and rollbacks' : 'Includes failures and rollbacks','red'],
-      ['Missing evidence',rows.length ? String(missing) : 'Not recorded','See completeness panel','red']
+      ['Missing evidence',rows.length ? String(missing) : 'Not recorded','Referenced files unavailable','red']
     ];
     if(external.length===rows.length && external.length){
       figures[0]=['Protocol measurements',String(metrics.length),'Independent axes; select a candidate for parent and two rounds','green'];
@@ -677,20 +680,102 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
     return 'warn';
   }
   function jumpToEvent(source,line) {
-    stageSelect.value=''; byId('trace-search').value=''; byId('trace-source').value='';
-    jumpNotice=''; render();
-    const entry=byId('trace-'+source+'-'+line);
-    if(entry){entry.open=true; entry.querySelector('summary').focus(); entry.scrollIntoView({block:'center'});}
+    const row=data.candidates[selected];
+    const event=row?.events.find(e=>e.source===source && e.line===line);
+    if(!event)return;
+    const body=byId('event-body');clear(body);
+    byId('event-heading').textContent=eventLabel(event);
+    body.append(node('p',identity(row,selected)+' · '+source+':'+line+' · '+(event.time || translated('Time not recorded'))));
+    if(Object.keys(event.details).length)body.append(node('pre',JSON.stringify(event.details,null,2)));
+    for(const ref of event.refs)body.append(node('code',refText(ref)));
+    byId('event-record').showModal();
+  }
+  function renderRoundInputs(root,row) {
+    const trace=row.optimization_trace;
+    const grid=node('div',undefined,'round-inputs');
+    function section(title,wide=false){
+      const box=node('section',undefined,wide?'wide':'');
+      box.append(node('h3',title));grid.append(box);return box;
+    }
+    function list(box,items,ordered=false){
+      if(!items.length){box.append(node('small','Not recorded'));return;}
+      const itemsEl=node(ordered?'ol':'ul');
+      for(const item of items)itemsEl.append(narrativeNode('li',item));
+      box.append(itemsEl);
+    }
+    const iteration=data.story?.iterations?.find(i=>i.round===row.round &&
+      i.candidates.some(c=>c.candidate_id===row.candidate_id));
+    const captures=(iteration?.context_ids || []).map(id=>
+      data.story.retrievals.find(r=>r.context_id===id)).filter(Boolean);
+    if(captures.length || trace || iteration){
+      const searches=section('Knowledge retrieval for this round',true);
+      if(captures.length)renderKnowledge(searches,{retrievals:captures},'round-'+row.round);
+      else searches.append(node('small','No retrieval capture is linked to this round.'));
+    }
+    const knowledge=section('Assembled knowledge context',true), ctx=trace?.context;
+    if(ctx?.text){
+      const cited=ctx.sources.filter(s=>/(^|\/)SKILL\.md(?:$|[ #:\d])/i.test(s.locator));
+      if(cited.length)detailLine(knowledge,'Skill excerpts cited in the round input',
+        cited.map(s=>[s.locator,s.revision].filter(Boolean).join(' @ ')).join('\n'),true);
+      knowledge.append(node('pre',ctx.text));
+      const overlay=(data.translations || {})[language];
+      if(overlay && Object.hasOwn(overlay,ctx.text) && overlay[ctx.text]!==ctx.text){
+        const translation=node('details');translation.id='context-translation';
+        translation.append(node('summary','Translated context · caller-supplied'),node('pre',overlay[ctx.text]));
+        knowledge.append(translation);
+      }
+      const refs=node('details');refs.id='context-sources';
+      refs.append(node('summary','Sources and search queries'));
+      list(refs,[...ctx.queries,...ctx.sources.map(s=>[s.ref,s.revision,s.locator].filter(Boolean).join(' · '))]);
+      if(row.artifacts.optimization_trace)refs.append(node('code',refText(row.artifacts.optimization_trace)));
+      knowledge.append(refs);
+    } else knowledge.append(node('small','Not recorded'));
+    if(ctx && ctx.state!=='complete')knowledge.append(narrativeNode('small',ctx.missing_reason));
+    const space=section('Search space'), options=trace?.search_space;
+    if(options?.items.length){
+      const choices=node('ul');
+      for(const option of options.items){
+        const li=node('li');
+        li.append(node('code',option.id),' ',narrativeNode('span',option.description));choices.append(li);
+      }
+      space.append(choices);
+    } else space.append(node('small','Not recorded'));
+    if(options && options.state!=='complete')space.append(narrativeNode('small',options.missing_reason));
+    list(section('Selection rules'),options?.selection_rules || [],true);
+    const route=section('Search path',true), steps=trace?.steps;
+    if(!steps?.items.length)route.append(node('small','Not recorded'));
+    else {
+      const history=node('ol');
+      for(const step of steps.items){
+        const entry=node('li');
+        entry.append(narrativeNode('strong',step.action));
+        if(step.search_id)entry.append(' ',node('code',step.search_id));
+        entry.append(narrativeNode('small',step.motivation));
+        if(step.result)entry.append(narrativeNode('span',step.result));
+        const ref=step.event_ref;
+        if(ref && row.artifacts[ref.source]?.sha256===ref.sha256.toLowerCase() &&
+            row.events.some(e=>e.source===ref.source && e.line===ref.line)){
+          const jump=node('button','Open event','diagnostic-button');
+          jump.type='button';jump.addEventListener('click',()=>jumpToEvent(ref.source,ref.line));entry.append(' ',jump);
+        }
+        history.append(entry);
+      }
+      route.append(history);
+    }
+    if(steps && steps.state!=='complete')route.append(narrativeNode('small',steps.missing_reason));
+    root.append(grid);
   }
   function renderRunReview(row) {
     const root=byId('run-review');
     clear(root);
-    root.hidden=!row?.run_id;
+    root.hidden=!row;
     if(root.hidden)return;
     const heading=node('div',undefined,'review-heading');
-    heading.append(node('h2','Run review'),narrativeNode('strong',row.title),pill(row.decision || row.state));
+    heading.append(node('h2','Run review'),narrativeNode('strong',row.title),pill(row.decision==='not_recorded' ? row.state : row.decision || row.state));
     if(row.round!==null)heading.append(node('small',translated('Round')+' '+row.round));
     root.appendChild(heading);
+    renderRoundInputs(root,row);
+    if(!row.run_id)return;
     const summary=node('div',undefined,'change-note');
     summary.append(node('strong','What changed'),narrativeNode('span',row.optimization.summary));
     root.appendChild(summary);
@@ -842,7 +927,7 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
       // written down but not executed as a tracked runner command".
       if(!fact.events&&note)button.appendChild(node('span',translated('Log')+' · '+note,'stage-log'));
       if(here===stage.name)button.appendChild(node('span',translated('Current'),'stage-now'));
-      button.addEventListener('click',()=>{jumpNotice='';stageSelect.value=stageSelect.value === stage.name ? '' : stage.name;render();}); root.appendChild(button);
+      button.addEventListener('click',()=>{stageSelect.value=stageSelect.value === stage.name ? '' : stage.name;render();}); root.appendChild(button);
     }
   }
   function renderRows(visible) {
@@ -850,7 +935,7 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
     if(!visible.some(x=>x.index===selected)) selected=visible.length ? visible[0].index : null;
     for(const {row,index} of visible){const tr=node('tr');if(index===selected)tr.className='selected';
       const cell=(text)=>{const td=node('td',text);tr.appendChild(td);return td;};
-      cell(row.round === null ? row.round_state==='ambiguous'?'Ambiguous':'Not recorded' : String(row.round));const title=cell();const btn=narrativeNode('button',row.title);btn.type='button';btn.setAttribute('aria-label',`Inspect ${identity(row,index)}`);btn.setAttribute('aria-pressed',String(index===selected));btn.setAttribute('aria-controls','candidate-inspection');btn.addEventListener('click',()=>{jumpNotice='';selected=index;render();});title.appendChild(btn);if(!['present','not_applicable'].includes(row.candidate_metadata_state))title.appendChild(pill(`metadata_${row.candidate_metadata_state}`));
+      cell(row.round === null ? row.round_state==='ambiguous'?'Ambiguous':'Not recorded' : String(row.round));const title=cell();const btn=narrativeNode('button',row.title);btn.type='button';btn.setAttribute('aria-label',`Inspect ${identity(row,index)}`);btn.setAttribute('aria-pressed',String(index===selected));btn.setAttribute('aria-controls','run-review');btn.addEventListener('click',()=>{selected=index;render();byId('run-review').scrollIntoView({block:'start'});});title.appendChild(btn);if(!['present','not_applicable'].includes(row.candidate_metadata_state))title.appendChild(pill(`metadata_${row.candidate_metadata_state}`));
       const runCell=cell(row.run_id || 'Not recorded');if(row.run_id)runCell.setAttribute('data-no-translate','');cell(row.state.replaceAll('_',' '));cell().appendChild(pill(row.verdict));cell(value(row.improvement_pct,'%'));cell().appendChild(pill(row.quality));cell().appendChild(pill(row.outcome));cell(row.decision.replaceAll('_',' '));
       const refs=Object.values(row.artifacts);cell(`${refs.filter(r=>r.state==='present').length} present / ${refs.filter(r=>r.state==='missing').length} missing`);root.appendChild(tr);}
   }
@@ -896,85 +981,6 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
       return;
     }
     const trace=row.optimization_trace;
-    const traceHeading=node('div',undefined,'trace-heading');
-    traceHeading.appendChild(node('h4','Optimization trace'));
-    traceHeading.appendChild(node('small',!trace ? 'Trace not recorded' : trace.run_id
-      ? `Caller bound this narrative to run ${trace.run_id}`
-      : 'Candidate-level narrative; no run binding recorded'));
-    grid.appendChild(traceHeading);
-    const knowledge=insight(grid,'Knowledge context','Caller-reviewed snapshot; not proof of model consumption',true);
-    const knowledgeContext=trace && trace.context;
-    detailLine(knowledge,'Capture status',recordedState(knowledgeContext));
-    detailLine(knowledge,'Search queries',knowledgeContext && knowledgeContext.queries.length ? knowledgeContext.queries.join('\n') : 'Not recorded');
-    if(knowledgeContext && knowledgeContext.sources.length){
-      for(const source of knowledgeContext.sources)detailLine(knowledge,'Selected source',`${source.ref} · ${translated('revision')} ${source.revision || translated('Not recorded')}${source.locator ? ` · ${translatedNarrative(source.locator)}` : ''}`,true);
-    }else detailLine(knowledge,'Selected sources','Not recorded');
-    if(knowledgeContext && knowledgeContext.text){
-      const fold=node('details',undefined,'context-detail');fold.open=true;
-      fold.id='knowledge-context';
-      const contextText=translatedNarrative(knowledgeContext.text);
-      fold.appendChild(node('summary',contextText===knowledgeContext.text ? `View recorded context · ${knowledgeContext.state}` : 'Translated context · caller-supplied'));
-      fold.appendChild(node('pre',contextText,'context-text'));knowledge.appendChild(fold);
-      if(contextText!==knowledgeContext.text){
-        const original=node('details',undefined,'context-detail');original.id='original-context';
-        original.appendChild(node('summary','View original recorded context'));
-        original.appendChild(node('pre',knowledgeContext.text,'context-text'));knowledge.appendChild(original);
-      }
-    }else detailLine(knowledge,'Context text','Not recorded');
-    if(row.artifacts.optimization_trace)detailLine(knowledge,'Trace evidence',refText(row.artifacts.optimization_trace),true);
-
-    const space=trace && trace.search_space;
-    const spacePanel=insight(grid,'Declared search space','Options are not necessarily attempts',true);
-    detailLine(spacePanel,'Capture status',recordedState(space));
-    if(space && space.items.length){
-      const attemptsByOption=new Map();
-      for(const step of trace.steps.items){
-        if(step.kind==='attempt' && step.search_id)attemptsByOption.set(step.search_id,(attemptsByOption.get(step.search_id) || 0)+1);
-      }
-      for(const option of space.items){
-        const attempts=attemptsByOption.get(option.id) || 0;
-        detailLine(spacePanel,option.id,`${translatedNarrative(option.description)}\n${attempts ? `${attempts} linked recorded attempt(s)` : 'No linked attempt recorded'}`);
-      }
-    }else detailLine(spacePanel,'Options','Not recorded');
-
-    const narrative=trace && trace.steps;
-    const process=insight(grid,'Optimization process','Recorded order and rationale',true);
-    detailLine(process,'Capture status',recordedState(narrative));
-    if(narrative && narrative.items.length){
-      const linkedEvents=new Set(row.events.map(event=>`${event.source}:${event.line}`));
-      for(const step of narrative.items){
-        const entry=node('div',undefined,'step');
-        entry.appendChild(node('strong',`${step.sequence} · ${step.kind.replaceAll('_',' ')} · ${step.outcome.replaceAll('_',' ')}`));
-        if(step.search_id)entry.appendChild(node('small',`Search option: ${step.search_id}`));
-        detailLine(entry,'Action',step.action,false,true);
-        detailLine(entry,'Why',step.motivation,false,true);
-        detailLine(entry,'Recorded result',step.result,false,true);
-        const eventRef=step.event_ref;
-        if(!eventRef)detailLine(entry,'Technical event','Not recorded');
-        else {
-          const artifact=row.artifacts[eventRef.source];
-          const linked=linkedEvents.has(`${eventRef.source}:${eventRef.line}`);
-          const valid=linked && artifact && artifact.state==='present'
-            && artifact.sha256===eventRef.sha256.toLowerCase();
-          if(!valid)detailLine(entry,'Technical event','Unavailable, unlinked, or source hash mismatch');
-          else {
-            const action=node('div',undefined,'detail-line');
-            action.appendChild(node('strong','Technical event'));
-            const jump=node('button',`Open ${eventRef.source}:${eventRef.line}`,'button');
-            jump.type='button';
-            jump.addEventListener('click',()=>{
-              stageSelect.value='';byId('trace-search').value='';byId('trace-source').value='';
-              render();
-              const target=byId(`trace-${eventRef.source}-${eventRef.line}`);
-              if(target){target.open=true;target.setAttribute('tabindex','-1');target.focus({preventScroll:true});target.scrollIntoView({block:'center'});}
-            });
-            action.appendChild(jump);entry.appendChild(action);
-          }
-        }
-        process.appendChild(entry);
-      }
-    }else detailLine(process,'Steps','Not recorded');
-
     const conclusion=trace && trace.summary;
     const conclusions=insight(grid,'Successes and failures','Caller conclusions; see evidence for verdicts',true);
     detailLine(conclusions,'Capture status',recordedState(conclusion));
@@ -1000,51 +1006,18 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
   }
   function traceEvents(row) {
     const all=[...row.events.map(event=>({...event,unlinked:false})),...row.unlinked_agent_events.map(event=>({...event,unlinked:true}))];
-    const term=byId('trace-search').value.trim().toLowerCase(), source=byId('trace-source').value;
-    const visible=all.filter(event=>(!stageSelect.value || event.stage===stageSelect.value) && (!source || event.source===source) && (!term || JSON.stringify(event).toLowerCase().includes(term)));
+    const visible=all.filter(event=>!stageSelect.value || event.stage===stageSelect.value);
     const timestamp=event=>{if(!event.time || !/(?:[zZ]|[+-]\d{2}:\d{2})$/.test(event.time))return null;const t=Date.parse(event.time);return Number.isFinite(t)?t:null;};
     visible.sort((a,b)=>{const left=timestamp(a),right=timestamp(b);return left===null ? (right===null?0:1) : right===null?-1:left-right;});
     return {visible,total:all.length};
   }
-  function renderDetail() {
-    const trace=byId('trace'), evidence=byId('evidence');clear(trace);clear(evidence);
-    const row=selected===null?null:data.candidates[selected];
-    if(!row){byId('trace-title').textContent='No selection';byId('trace-count').textContent='';item(trace,'NOT RECORDED','No matching candidate.');item(evidence,'NOT RECORDED');return;}
-    byId('trace-title').textContent=identity(row,selected);
-    const {visible,total}=traceEvents(row);byId('trace-count').textContent=`${visible.length} of ${total} events · time order, unknown time last`;
-    if(jumpNotice)item(trace,'TRACE LOCATION',jumpNotice);
-    if(!visible.length)item(trace,'NOT RECORDED','No events match the current filters.');
-    for(const event of visible){
-      const name=event.type || event.phase || translated('unclassified event');
-      const metadata=[event.time || 'Time not recorded',event.stage,event.activity,event.side,event.trial===null?null:`trial ${event.trial}`,event.tool].filter(Boolean).join(' · ');
-      const entry=node('details',undefined,`item trace-event${event.unlinked?' missing-item':''}`);
-      entry.id=`trace-${event.source}-${event.line}`;
-      const summary=node('summary');
-      if(event.unlinked){summary.appendChild(node('span','UNLINKED'));summary.appendChild(node('span',' · '));}
-      summary.append(node('strong',eventLabel(event)),node('span',' · '));
-      const rawName=node('small',`${event.source}:${event.line} · ${name}`);
-      rawName.setAttribute('data-no-translate','');summary.appendChild(rawName);entry.appendChild(summary);
-      entry.appendChild(node('small',metadata));
-      entry.appendChild(node('pre',Object.keys(event.details).length ? JSON.stringify(event.details,null,2) : translated('No additional structured fields recorded.')));
-      const records=node('details',undefined,'trace-refs');
-      records.appendChild(node('summary','Source records'));
-      for(const ref of event.refs)records.appendChild(node('code',refText(ref)));
-      entry.appendChild(records);trace.appendChild(entry);
-    }
-    if(row.artifacts.tool_calls?.state==='missing')item(trace,'MISSING · tool calls',row.artifacts.tool_calls.missing_reason).classList.add('missing-item');
-    if(row.agent_trace_links.unlinked.length)item(trace,'UNLINKED AGENT EVENTS',`Lines ${row.agent_trace_links.unlinked.join(', ')}`).classList.add('missing-item');
-    if(row.agent_trace_links.mismatched.length)item(trace,'MISMATCHED AGENT EVENTS',`Lines ${row.agent_trace_links.mismatched.join(', ')}`).classList.add('missing-item');
-    for(const [source,lines] of Object.entries(row.corrupt_event_sources)){if(lines.length)item(trace,`CORRUPT ${source} LINES`,lines.join(', ')).classList.add('missing-item');}
-    for(const ref of Object.values(row.artifacts)){const entry=item(evidence,ref.state === 'present' ? `${ref.kind} · PRESENT` : `${ref.kind} · MISSING`,ref.state === 'present' ? ref.path : ref.missing_reason,ref.sha256 ? `sha256 ${ref.sha256}` : '');if(ref.state==='missing')entry.classList.add('missing-item');}
-  }
-  function renderDiagnostics(){const root=byId('diagnostics');clear(root);if(!data.diagnostics.length)item(root,'NOT RECORDED','No evidence-backed diagnostic rule matched.');for(const d of data.diagnostics){const entry=item(root,'',d.candidate_id || 'Single run',d.refs.map(refText).join(' | '));const button=node('button',d.kind.replaceAll('_',' '),'diagnostic-button');button.type='button';const matches=data.candidates.map((row,index)=>({row,index})).filter(({row})=>row.candidate_id===d.candidate_id && row.run_id===d.run_id && row.round===d.round);button.disabled=matches.length!==1;button.addEventListener('click',()=>{const {row,index}=matches[0];const phases=d.kind==='execution_failed'?['crashed','measurement']:d.kind==='quality_failed_with_gain'?['quality_validation']:d.kind==='rolled_back'?[]:['measurement'];let event=null;for(const phase of phases){event=[...row.events].reverse().find(e=>e.phase===phase);if(event)break;}runSelect.value='';candidateSelect.value=String(index);stageSelect.value=event && event.stage || '';byId('trace-search').value='';byId('trace-source').value='';selected=index;jumpNotice=event?'': 'No corresponding trace event was recorded; inspect the referenced evidence.';render();const target=event?byId(`trace-${event.source}-${event.line}`):byId('trace');if(target){if(target.tagName==='DETAILS')target.open=true;target.setAttribute('tabindex','-1');target.focus({preventScroll:true});target.scrollIntoView({block:'center'});}});entry.querySelector('strong').replaceWith(button);}}
   let storyTab='iterations';
   const chips=(parent,refs,missing=new Set())=>{const box=node('div');for(const ref of refs){const chip=node('span',ref,`chip${missing.has(ref)?' missing':''}`);chip.setAttribute('data-no-translate','');box.appendChild(chip);}if(!refs.length)box.appendChild(node('span','None recorded','hint'));parent.appendChild(box);return box;};
   function selectCandidate(candidateId){
     const index=data.candidates.findIndex(row=>row.candidate_id===candidateId);
     if(index<0)return;
-    runSelect.value='';stageSelect.value='';candidateSelect.value='';selected=index;jumpNotice='';render();
-    const target=byId('candidate-inspection');target.setAttribute('tabindex','-1');target.focus({preventScroll:true});target.scrollIntoView({block:'start'});
+    runSelect.value='';stageSelect.value='';candidateSelect.value='';selected=index;render();
+    const target=byId('run-review');target.setAttribute('tabindex','-1');target.focus({preventScroll:true});target.scrollIntoView({block:'start'});
   }
   function measuredText(result){
     if(!result || result.state!=='recorded')return ({ambiguous:'Ambiguous',unavailable:'Run evidence unavailable',outcome_not_recorded:'No recorded outcome'})[result && result.state] || 'No recorded run';
@@ -1082,7 +1055,7 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
       body.appendChild(box);
     }
   }
-  function renderKnowledge(body,story){
+  function renderKnowledge(body,story,scope='story'){
     if(!story.retrievals.length){body.appendChild(node('p','No knowledge retrieval recorded.','empty'));return;}
     for(const retrieval of story.retrievals){
       const box=node('section',undefined,'retrieval');
@@ -1103,15 +1076,25 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
         const selectedBox=node('div',undefined,'detail-line');selectedBox.appendChild(node('strong','Selected by search'));
         const included=new Set(retrieval.contexts.map(context=>context.ref));
         chips(selectedBox,retrieval.items.map(item=>item.ref),new Set(retrieval.items.map(item=>item.ref).filter(ref=>!included.has(ref))));grid.appendChild(selectedBox);
-        const omitted=[...retrieval.context_omissions.map(o=>`${o.ref} · ${o.reason}`),...retrieval.omissions.map(o=>`${o.id} · ${o.reason}`)];
+        const includedFiles=retrieval.contexts.flatMap(c=>c.resources.map(r=>r.path));
+        detailLine(grid,'Files included in the context',includedFiles.join('\n') || 'None recorded',Boolean(includedFiles.length));
+        const omitted=retrieval.context_omissions.map(o=>[o.ref,o.reason,
+          Number.isInteger(o.required_bytes) && Number.isInteger(o.available_bytes)
+            ? `${o.required_bytes} B / ${o.available_bytes} B` : ''].filter(Boolean).join(' · '));
         detailLine(grid,'Left out of the context',omitted.join('\n') || 'Nothing omitted',Boolean(omitted.length));
+        if(retrieval.omissions.length){
+          const fold=node('details');
+          fold.append(node('summary',translated('Excluded from search results')+' ('+retrieval.omissions.length+')'),
+            node('pre',retrieval.omissions.map(o=>o.id+' · '+o.reason).join('\n')));
+          grid.append(fold);
+        }
       }
       const used=node('div',undefined,'detail-line');used.appendChild(node('strong','Used'));chips(used,retrieval.used_refs);grid.appendChild(used);
       if(retrieval.rejected_refs.length)detailLine(grid,'Retrieved but not used',retrieval.rejected_refs.map(r=>`${r.ref} — ${translatedNarrative(r.reason)}`).join('\n'));
       box.appendChild(grid);
       if(retrieval.state==='verified'){
         const fold=node('details',undefined,'context-detail');
-        fold.dataset.liveKey=`story-context:${retrieval.context_id}`;
+        fold.dataset.liveKey=`${scope}-context:${retrieval.context_id}`;
         fold.appendChild(node('summary',`Full assembled context · ${retrieval.contexts.reduce((n,c)=>n+c.resources.length,0)} resources · sha256 ${retrieval.assembled_sha256.slice(0,12)}`));
         for(const context of retrieval.contexts){
           const list=node('div',undefined,'hint');list.style.margin='6px 0';
@@ -1121,7 +1104,7 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
         const contextText=translatedNarrative(retrieval.assembled_text);
         if(contextText!==retrieval.assembled_text)fold.appendChild(node('p','Translated context · caller-supplied','translation-note'));
         fold.appendChild(node('pre',contextText,'context-text'));
-        if(contextText!==retrieval.assembled_text){const original=node('details',undefined,'context-detail');original.dataset.liveKey=`story-original:${retrieval.context_id}`;original.appendChild(node('summary','View original recorded context'));original.appendChild(node('pre',retrieval.assembled_text,'context-text'));fold.appendChild(original);}
+        if(contextText!==retrieval.assembled_text){const original=node('details',undefined,'context-detail');original.dataset.liveKey=`${scope}-original:${retrieval.context_id}`;original.appendChild(node('summary','View original recorded context'));original.appendChild(node('pre',retrieval.assembled_text,'context-text'));fold.appendChild(original);}
         box.appendChild(fold);
       }else box.appendChild(node('p',`Context text withheld: ${retrieval.state.replaceAll('_',' ')} (${retrieval.path}).`,'empty'));
       body.appendChild(box);
@@ -1210,20 +1193,13 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
     const body=node('div',undefined,'story-body');body.setAttribute('role','tabpanel');root.appendChild(body);
     ({iterations:renderIterations,knowledge:renderKnowledge,space:renderSpace,summary:renderSummary})[storyTab](body,story);
   }
-  function render(){const visible=filtered();renderStory();renderWorkflow();renderRows(visible);renderRunReview(data.candidates[selected]);renderCandidate(selected===null?null:data.candidates[selected]);renderDetail();localizePage();}
-  for(const select of [stageSelect,runSelect,candidateSelect])select.addEventListener('change',()=>{jumpNotice='';render();});
-  byId('trace-search').addEventListener('input',()=>{renderDetail();localizePage();});
-  byId('trace-source').addEventListener('change',()=>{renderDetail();localizePage();});
+  function render(){const visible=filtered();renderStory();renderWorkflow();renderRows(visible);renderRunReview(data.candidates[selected]);renderCandidate(selected===null?null:data.candidates[selected]);localizePage();}
+  for(const select of [stageSelect,runSelect,candidateSelect])select.addEventListener('change',()=>{render();});
   for(const choice of ['en','zh'])byId(`language-${choice}`).addEventListener('click',()=>{
     if(language===choice)return;
-    const openEvents=[...document.querySelectorAll('#trace details[open]')].map(el=>el.id);
-    const contextOpen=byId('knowledge-context')?.open, originalOpen=byId('original-context')?.open;
     language=choice;
     try { localStorage.setItem('inferrsi.dashboard.language',language); } catch (_) { /* file storage may be disabled */ }
-    renderStats();renderDiagnostics();render();
-    for(const id of openEvents){const event=byId(id);if(event)event.open=true;}
-    if(byId('knowledge-context') && contextOpen!==undefined)byId('knowledge-context').open=contextOpen;
-    if(byId('original-context') && originalOpen!==undefined)byId('original-context').open=originalOpen;
+    renderStats();render();
     if(!byId('feedback-preview').hidden)byId('feedback-preview').textContent=buildFeedback();
     if(liveMode)showLiveStatus();
   });
@@ -1231,16 +1207,24 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
   function buildFeedback(){
     const row=selected===null?null:data.candidates[selected], visible=row?traceEvents(row).visible:[];
     const refs=row?[...new Set([...Object.values(row.artifacts),...visible.flatMap(event=>event.refs)].map(refText))].join('\n- '):translated('Not recorded');
+    const trace=row?.optimization_trace;
+    const reviewInputs=trace ? [
+      [translated('Assembled knowledge context'),trace.context.text],
+      [translated('Search space'),trace.search_space.items.map(o=>o.id+' · '+o.description).join('\n')],
+      [translated('Selection rules'),(trace.search_space.selection_rules || []).join('\n')],
+      [translated('Search path'),trace.steps.items.map(s=>s.sequence+'. '+s.action+' — '+s.motivation+
+        (s.result?' · '+s.result:'')).join('\n')]
+    ].map(([title,text])=>'## '+title+'\n\n'+(text || translated('Not recorded'))).join('\n\n') : '';
     const work=row?.run_workflow?.nodes || [];
     const steps=work.map(n=>'- '+workName(n)+' · '+translated(stateName(n.state))+' · '+duration(n.seconds)+' · events:'+n.line).join('\n');
     const events=visible.map(e=>`${e.unlinked?`${translated('UNLINKED')} `:''}${e.source}:${e.line}`).join(', ');
-    return redact(`# ${translated('InferRSI review')}\n\n${translated('Campaign')}: ${data.campaign_id}\n${translated('Round')}: ${row && row.round!==null?row.round:translated('Not recorded')}\n${translated('Candidate')}: ${row?identity(row,selected):translated('Not recorded')}\n${translated('Stage')}: ${stageSelect.value?translated(stageNames[stageSelect.value]):translated('All stages')}\n${translated('Visible trace')}: ${events || translated('Not recorded')}\n\n## ${translated('Recorded optimization')}\n\n${row && row.optimization.summary!=='Not recorded'?translatedNarrative(row.optimization.summary):translated('Not recorded')}\n\n## ${translated('Run review')}\n\n${steps || translated('Not recorded')}\n\n## ${translated('Findings and recommendation')}\n\n${byId('feedback').value || translated('Not recorded')}\n\n## ${translated('Evidence references')}\n\n- ${refs}\n`);
+    return redact(`# ${translated('InferRSI review')}\n\n${translated('Campaign')}: ${data.campaign_id}\n${translated('Round')}: ${row && row.round!==null?row.round:translated('Not recorded')}\n${translated('Candidate')}: ${row?identity(row,selected):translated('Not recorded')}\n${translated('Stage')}: ${stageSelect.value?translated(stageNames[stageSelect.value]):translated('All stages')}\n${translated('Visible trace')}: ${events || translated('Not recorded')}\n\n${reviewInputs}\n\n## ${translated('Recorded optimization')}\n\n${row && row.optimization.summary!=='Not recorded'?translatedNarrative(row.optimization.summary):translated('Not recorded')}\n\n## ${translated('Run review')}\n\n${steps || translated('Not recorded')}\n\n## ${translated('Findings and recommendation')}\n\n${byId('feedback').value || translated('Not recorded')}\n\n## ${translated('Evidence references')}\n\n- ${refs}\n`);
   }
   byId('export').addEventListener('click',()=>{
     const feedback=buildFeedback();
     const preview=byId('feedback-preview');preview.textContent=feedback;preview.hidden=false;const url=URL.createObjectURL(new Blob([feedback],{type:'text/markdown'}));const link=node('a');link.href=url;link.download='inferrsi-review.md';document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
   });
-  renderStats();renderDiagnostics();render();
+  renderStats();render();
   let liveConnected=false, liveAttempted=false, lastChecked=null, liveEtag=null, missingFilter=null;
   function showLiveStatus(){
     const status=byId('live-status');status.hidden=false;
@@ -1287,7 +1271,7 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
     byId('chart-note').textContent=data.chart_note;
     if(!snapshot.chart)byId('chart').appendChild(node('p',data.chart_note,'empty'));
     byId('temporal-chart').innerHTML=snapshot.temporal;byId('temporal-note').textContent=data.temporal_note;
-    renderStats();renderDiagnostics();render();
+    renderStats();render();
     for(const el of document.querySelectorAll('details[id],details[data-live-key]')){const key=el.id || el.dataset.liveKey;if(details.has(key))el.open=details.get(key);}
     window.scrollTo(scrollX,scrollY);
     if(!byId('feedback-preview').hidden)byId('feedback-preview').textContent=buildFeedback();

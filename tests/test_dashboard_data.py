@@ -637,6 +637,28 @@ def test_branch_chart_preserves_large_latency_regression(tmp_path):
     assert "-200" in svg
 
 
+def test_profile_first_round_chart_uses_paired_speedup(tmp_path):
+    write_json(tmp_path / "campaign.json", {
+        "campaign_id": "profiled", "review_layout": "profile_first",
+        "goal": {"target_improvement_pct": 50},
+    })
+    run(tmp_path, "candidate", 20, quality="completed", verified=True)
+    candidate(tmp_path, "a", "candidate", round=1)
+    path = tmp_path / "runs/candidate/evaluation.json"
+    evidence = json.loads(path.read_bytes())
+    evidence.update(metric_key="latency", metric_unit="s", direction="minimize",
+                    baseline={"median": 5.0}, candidate={"median": 4.0})
+    write_json(path, evidence)
+
+    view = load_dashboard(tmp_path)
+    chart = _round_trend(view)
+    assert chart["points"][1]["values"]["score"] == 125
+    assert chart["references"][0]["value"] == 200
+    page = write_dashboard(tmp_path).read_text(encoding="utf-8")
+    assert 'id="baseline-title"' in page and 'id="temporal-chart"' not in page
+    assert page.count("<svg") == 1
+
+
 @pytest.mark.parametrize("gain,target", [
     (1.7976931348623157e308, 20),
     (-1.7976931348623157e308, 20),
@@ -988,3 +1010,45 @@ def test_trace_preserves_safe_event_fields_and_corrupt_source(tmp_path):
     assert receipt["receipt_sha256"] == "c" * 64
     assert row["events"][3]["details"]["reason"] == "provider_transport_error"
     assert row["corrupt_event_sources"] == {"events": [1], "agent_trace": [5]}
+
+
+def test_profile_reference_trend_is_preserved_after_incompatible_round(tmp_path):
+    write_json(tmp_path / "campaign.json", {"campaign_id": "profiled",
+                                           "review_layout": "profile_first"})
+    for n, gain in enumerate([0.1, 0.8, 5.2], 1):
+        run(tmp_path, str(n), gain, quality="completed", verified=True)
+        candidate(tmp_path, str(n), str(n), round=n)
+    base = tmp_path / "candidates/1/candidate.json"
+    meta = json.loads(base.read_bytes())
+    (tmp_path / "stage.log").write_bytes(b"measured timing")
+    digest = hashlib.sha256(b"measured timing").hexdigest()
+    trace = {
+        "schema_version": 1, "reviewed_by_caller": True, "campaign_id": "profiled",
+        "candidate_id": "1", "round": 1, "run_id": "1",
+        "diagnosis": {"scope": "baseline_request", "total": 1, "metric_unit": "s",
+                      "components": [{"name": "encode", "samples": [0.1]}],
+                      "source_sha256": digest, "conclusion": "Measured."},
+        "context": {"state": "complete", "missing_reason": "", "text": "Reviewed.",
+                    "queries": [], "sources": []},
+        "search_space": {"state": "complete", "missing_reason": "", "items": []},
+        "steps": {"state": "complete", "missing_reason": "", "items": []},
+        "summary": {"state": "complete", "missing_reason": "", "successes": [],
+                    "failures": [], "limitations": []},
+    }
+    write_json(tmp_path / "trace.json", trace)
+    meta.update(profile_ref={"path": "stage.log", "sha256": digest},
+                optimization_trace_ref={"path": "trace.json", "sha256": hashlib.sha256(
+                    (tmp_path / "trace.json").read_bytes()).hexdigest()})
+    write_json(base, meta)
+    lock = tmp_path / "runs/3/run.lock.json"
+    write_json(lock, {**json.loads(lock.read_bytes()), "workload_id": "other-workload"})
+    view = load_dashboard(tmp_path)
+    assert view["overview"]["best_improvement_pct"] is None
+    assert view["overview"]["profile_best_improvement_pct"] == 0.8
+    assert [r["matches_profile_baseline"] for r in view["candidates"]] == [True, True, False]
+    svg, _ = _chart(tmp_path, view)
+    assert ">R2<" in svg and ">R3<" not in svg
+    (tmp_path / "stage.log").write_bytes(b"changed")
+    changed = load_dashboard(tmp_path)
+    assert "profile_best_improvement_pct" not in changed["overview"]
+    assert not _chart(tmp_path, changed)[0]
