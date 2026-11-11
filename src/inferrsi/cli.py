@@ -116,6 +116,13 @@ def main(argv: list[str] | None = None) -> int:
     argument_parser = parser()
     args = argument_parser.parse_args(argv)
     try:
+        if args.command == "mindie":
+            from .mindie_project import dispatch
+
+            result = dispatch(args)
+            if result is not None:
+                _print(result)
+            return 0
         if args.command == "skills":
             # Optional dependencies load only for the skills command; the core
             # CLI stays independent of them.
@@ -298,6 +305,17 @@ def main(argv: list[str] | None = None) -> int:
             return 0
 
         if args.command == "campaign":
+            if args.campaign_action == "import-mindie":
+                from .mindie_context import export_context
+
+                path = export_context(
+                    args.directory, context_id=args.id, query_input=args.query_input,
+                    query_result=args.query_result, explain_input=args.explain_input,
+                    explain_result=args.explain_result, query_exit_code=args.query_exit_code,
+                    explain_exit_code=args.explain_exit_code,
+                )
+                _print({"context_directory": str(path), "reviewed_by_caller": False})
+                return 0
             from .harness.campaign_records import (
                 assemble_trace,
                 create_campaign,

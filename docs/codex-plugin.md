@@ -81,6 +81,71 @@ Core `knowledge`, packaged `collect/read`, `doctor`, `plan/run` and
 and checkout-skill sources need PyYAML in the selected Python interpreter.
 Image validators and target engines retain their own optional dependencies.
 
+## MindIE knowledge
+
+### Supported versions
+
+The project reader supports Python 3.10+ and a synced local catalog from
+`mindie-knowledge 0.13.13`. The query and explain results follow the graded
+[MindIE Codex v0.1.21 contract](https://github.com/mindie-agent/mindie-agent-codex/blob/v0.1.21/plugins/mindie-agent/skills/mindie-agent/references/domain-skills.md).
+
+### Enable and revoke
+
+With InferRSI installed, approve a synced domain once from the target checkout.
+
+```sh
+inferrsi mindie enable --domain operators
+inferrsi mindie describe
+```
+
+New sessions in that checkout reuse the grant. Use `--adapter-config <path>`
+when the MindIE adapter is installed outside its default location. Run
+`inferrsi mindie disable` from the same checkout to revoke the grant.
+
+### MCP configuration and queries
+
+Add the following entry to the trusted checkout's `.codex/config.toml`.
+
+```toml
+[mcp_servers.inferrsi_mindie]
+command = "<absolute-inferrsi-executable>"
+args = ["mindie", "serve"]
+cwd = "<absolute-project-checkout>"
+enabled_tools = ["knowledge_query", "knowledge_explain"]
+```
+
+For the plugin ZIP, set `command` to the Python executable and prepend the
+absolute bundled launcher path to `args`.
+
+Call `knowledge_query` with a `query` and observed `conditions`. Pass relevant
+versioned `ref` values as `refs` to `knowledge_explain` and read the returned
+`units` and `requires`. The same reads are available through the CLI.
+
+```sh
+inferrsi mindie query --input query.json
+inferrsi mindie explain --input explain.json
+```
+
+### Associate reads with a candidate
+
+Use the `receipt_directory` from each call. Import the `input.json` and
+`result.json` files with the exit codes in `receipt.json` into an existing
+campaign or one created with `campaign init`.
+
+```sh
+inferrsi campaign import-mindie --directory "$CAMPAIGN_DIR" --id "$READ_ID" \
+  --query-input "$QUERY_READ/input.json" --query-result "$QUERY_READ/result.json" \
+  --explain-input "$EXPLAIN_READ/input.json" --explain-result "$EXPLAIN_READ/result.json" \
+  --query-exit-code "$QUERY_EXIT" --explain-exit-code "$EXPLAIN_EXIT"
+```
+
+Use the exported `context.json` and `reviewed-context.txt` with the
+[candidate trace template](https://github.com/InferMatrixLab/InferRSI/blob/main/docs/dashboard.md#per-candidate-narrative-schema-version-1).
+Record which versioned source informed the code change. Set
+`reviewed_by_caller: true` after reviewing the trace and the retained reads.
+Use `campaign assemble-trace` and `campaign record` to bind it to the frozen
+candidate, round, and independent evaluation `run_id`.
+
 ## Build from the InferRSI source checkout
 
 ```text

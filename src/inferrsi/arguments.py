@@ -39,6 +39,20 @@ def parser() -> argparse.ArgumentParser:
     )
     root.add_argument("--version", action="version", version=__version__)
     commands = root.add_subparsers(dest="command", required=True)
+    mindie = commands.add_parser("mindie", help="Use project-approved, local MindIE knowledge")
+    mindie_actions = mindie.add_subparsers(dest="mindie_action", required=True)
+    enable = mindie_actions.add_parser("enable", help="Approve a MindIE domain for this checkout")
+    enable.add_argument("--domain", default="operators")
+    enable.add_argument(
+        "--adapter-config", type=Path, default=Path.home() / ".config/mindie-agent/codex.json",
+        help="Installed MindIE Codex adapter configuration",
+    )
+    mindie_actions.add_parser("disable", help="Revoke the project grant")
+    mindie_actions.add_parser("describe", help="Discover read tools for the current project")
+    mindie_actions.add_parser("serve", help="Expose the approved read tools over stdio MCP")
+    for action in ("query", "explain"):
+        read = mindie_actions.add_parser(action, help=f"Run a MindIE {action} and keep a receipt")
+        read.add_argument("--input", type=Path, required=True, help="JSON tool arguments")
     doctor = commands.add_parser(
         "doctor", help="Inspect a prepared local target without installing dependencies"
     )
@@ -146,6 +160,15 @@ def parser() -> argparse.ArgumentParser:
     assemble.add_argument("--template", type=Path, required=True)
     assemble.add_argument("--context-file", type=Path, required=True)
     assemble.add_argument("--output", required=True, help="New JSON filename in the campaign root")
+    mindie = campaign_actions.add_parser(
+        "import-mindie", help="Keep supplied MindIE query/explain evidence for a reviewed trace",
+    )
+    mindie.add_argument("--directory", type=Path, required=True)
+    mindie.add_argument("--id", required=True, help="New local read id; never overwritten")
+    for name in ("query-input", "query-result", "explain-input", "explain-result"):
+        mindie.add_argument("--" + name, type=Path, required=True)
+    mindie.add_argument("--query-exit-code", type=int, required=True)
+    mindie.add_argument("--explain-exit-code", type=int, required=True)
     record = campaign_actions.add_parser("record", help="Associate a candidate with one run")
     record.add_argument("--directory", type=Path, required=True)
     record.add_argument("--candidate", required=True)
