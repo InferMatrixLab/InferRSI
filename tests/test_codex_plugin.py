@@ -92,13 +92,19 @@ def test_isolated_runtime_can_export_dashboard(distribution, tmp_path):
     run = tmp_path / "run"
     run.mkdir()
     (run / "run.lock.json").write_text("{}", encoding="utf-8")
+    (run / "events.jsonl").write_text('{"phase":"measurement","side":"baseline"}\n',
+                                      encoding="utf-8")
 
     result = invoke(distribution, tmp_path, "dashboard", "--input", str(run))
 
     assert result.returncode == 0, result.stderr
-    assert "InferRSI · Optimization dashboard" in (run / "dashboard.html").read_text(
-        encoding="utf-8"
-    )
+    html = run / "dashboard.html"
+    assert json.loads(result.stdout) == {"dashboard": str(html)}
+    page = html.read_text(encoding="utf-8")
+    assert "InferRSI · Optimization dashboard" in page
+    payload = page.split('<script id="dashboard-data" type="application/json">', 1)[1]
+    view = json.loads(payload.split("</script>", 1)[0])
+    assert view["candidates"][0]["events"][0]["phase"] == "measurement"
 
 
 def test_isolated_runtime_and_exact_knowledge_reads(distribution, tmp_path):

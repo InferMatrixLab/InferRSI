@@ -9,13 +9,13 @@ import re
 import uuid
 from pathlib import Path
 
-from .dashboard_data import _file_ref, _inside, _object, _relative_location, _safe_argv, _text
 from .optimization_trace import (
     MAX_OPTIMIZATION_TRACE_BYTES,
     assemble_optimization_trace,
     parse_optimization_trace,
     read_optimization_trace,
 )
+from .records.fields import _file_ref, _inside, _object, _relative_location, _safe_argv, _text
 
 
 def _identifier(value: str, name: str) -> str:

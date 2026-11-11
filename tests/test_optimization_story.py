@@ -9,10 +9,10 @@ from pathlib import Path
 
 import pytest
 
+from inferrsi.apps.views.dashboard import write_dashboard
+from inferrsi.apps.views.dashboard_data import load_dashboard
 from inferrsi.cli import main
 from inferrsi.harness.campaign_records import create_campaign, record_candidate, record_decision
-from inferrsi.harness.dashboard import write_dashboard
-from inferrsi.harness.dashboard_data import load_dashboard
 from inferrsi.harness.knowledge_capture import capture_context, verify_capture
 from inferrsi.harness.optimization_log import LogError, parse_optimization_log, record_log
 from inferrsi.knowledge_operations import KnowledgeReader

@@ -3,14 +3,31 @@
 import hashlib
 import json
 import re
+from importlib import import_module
 from pathlib import Path
 
 import pytest
 
-from inferrsi.harness import dashboard_data
-from inferrsi.harness.dashboard import _bounded_chain, _chart, _round_trend, write_dashboard
-from inferrsi.harness.dashboard_data import load_dashboard
-from inferrsi.harness.dashboard_timeline import temporal_chart
+from inferrsi.apps.views import dashboard_data
+from inferrsi.apps.views.dashboard import _bounded_chain, _chart, _round_trend, write_dashboard
+from inferrsi.apps.views.dashboard_data import load_dashboard
+from inferrsi.apps.views.dashboard_timeline import temporal_chart
+from inferrsi.harness.records import fields
+
+
+def test_legacy_dashboard_imports_forward_to_apps():
+    forwards = {
+        "dashboard": ("dashboard", ("dashboard_snapshot", "render_dashboard", "write_dashboard")),
+        "dashboard_data": ("dashboard_data", ("load_dashboard",)),
+        "dashboard_external": ("dashboard_external", ("external_record", "metric_chart")),
+        "dashboard_live": ("live", ("DashboardServer", "serve_dashboard")),
+        "dashboard_timeline": ("dashboard_timeline", ("temporal_chart",)),
+    }
+    for old_name, (new_name, exports) in forwards.items():
+        old_module = import_module(f"inferrsi.harness.{old_name}")
+        new_module = import_module(f"inferrsi.apps.views.{new_name}")
+        for name in exports:
+            assert getattr(old_module, name) is getattr(new_module, name)
 
 
 def write_json(path: Path, value: dict) -> None:
@@ -480,7 +497,7 @@ def test_record_hash_matches_bytes_used_for_rendering_even_if_file_changes(tmp_p
     status = tmp_path / "status.json"
     old = b'{"state":"completed"}'
     status.write_bytes(old)
-    original = dashboard_data._snapshot
+    original = fields._snapshot
 
     def changing_snapshot(root, path, kind):
         data, ref = original(root, path, kind)
@@ -488,7 +505,7 @@ def test_record_hash_matches_bytes_used_for_rendering_even_if_file_changes(tmp_p
             status.write_text('{"state":"failed"}', encoding="utf-8")
         return data, ref
 
-    monkeypatch.setattr(dashboard_data, "_snapshot", changing_snapshot)
+    monkeypatch.setattr(fields, "_snapshot", changing_snapshot)
     row = load_dashboard(tmp_path)["candidates"][0]
 
     assert row["state"] == "completed"
@@ -508,7 +525,7 @@ def test_trace_changed_after_reference_check_is_not_linked(tmp_path, monkeypatch
         "path": "candidates/a/agent_trace.jsonl",
         "sha256": hashlib.sha256(trace.read_bytes()).hexdigest(),
     })
-    original = dashboard_data._snapshot
+    original = fields._snapshot
 
     def changing_snapshot(root, path, kind):
         if path == trace:
@@ -516,7 +533,7 @@ def test_trace_changed_after_reference_check_is_not_linked(tmp_path, monkeypatch
                              encoding="utf-8")
         return original(root, path, kind)
 
-    monkeypatch.setattr(dashboard_data, "_snapshot", changing_snapshot)
+    monkeypatch.setattr(fields, "_snapshot", changing_snapshot)
     row = load_dashboard(tmp_path)["candidates"][0]
 
     assert row["artifacts"]["agent_trace"]["missing_reason"] == "hash_mismatch"
@@ -653,7 +670,7 @@ def test_extreme_branch_chart_scale_is_withheld_before_rendering(tmp_path, monke
     def fail_render(_spec):
         pytest.fail("unbounded values reached the shared renderer")
 
-    monkeypatch.setattr("inferrsi.harness.dashboard.build_svg", fail_render)
+    monkeypatch.setattr("inferrsi.apps.views.dashboard.build_svg", fail_render)
     svg, note = _chart(tmp_path, load_dashboard(tmp_path))
 
     assert svg == ""

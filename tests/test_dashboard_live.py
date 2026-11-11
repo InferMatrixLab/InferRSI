@@ -14,10 +14,10 @@ from pathlib import Path
 
 import pytest
 
+from inferrsi.apps.views import live as dashboard_live
+from inferrsi.apps.views.dashboard import write_dashboard
+from inferrsi.apps.views.live import DashboardServer
 from inferrsi.cli import main
-from inferrsi.harness import dashboard_live
-from inferrsi.harness.dashboard import write_dashboard
-from inferrsi.harness.dashboard_live import DashboardServer
 
 
 @pytest.fixture
@@ -88,7 +88,7 @@ def test_live_poll_withholds_extreme_branch_chart(dashboard_server, tmp_path, mo
     def fail_render(_spec):
         raise AssertionError("unbounded values reached the shared renderer")
 
-    monkeypatch.setattr("inferrsi.harness.dashboard.build_svg", fail_render)
+    monkeypatch.setattr("inferrsi.apps.views.dashboard.build_svg", fail_render)
     status, _, body = request(dashboard_server, "/api/state")
     snapshot = json.loads(body)
 

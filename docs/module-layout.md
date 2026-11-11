@@ -1,8 +1,7 @@
 # Target module layout
 
-This page records the directory rule for the integration slice. It is not an
-implemented migration. No package has been created or moved to satisfy it.
-#371 remains the proposal for the Apps package path and is not accepted here.
+This page records the target directory rule and the first monitoring migration.
+#371 tracks the Apps design and its remaining production assembly.
 
 ## Target modules
 
@@ -55,32 +54,36 @@ Several flat modules remain shared seams until their slice starts.
 
 | Current path | Tentative reading | This slice |
 | --- | --- | --- |
-| `cli.py`, `arguments.py`, `__main__.py` | Future Apps entry, after #371 | Not moved |
+| `cli.py`, `arguments.py`, `__main__.py` | Legacy application entry points | Dashboard routes to Apps; the CLI and parser keep their public paths |
+| `apps/views/` | Dashboard and trace queries, offline rendering and live views | Reads retained Harness records and trace projections |
 | `knowledge_operations.py`, `knowledge_store.py`, `catalog.py`, `research.py`, `skill_catalog.py`, `_skill_selection.py` | Knowledge behavior and corpus readers | Interfaces unchanged |
-| `harness/` | Mixed legacy tree, not target isolation | Not redefined |
+| `harness/` | Mixed legacy tree, not target isolation | Monitoring import shims forward to Apps; record capture and reconciliation stay here |
 | `evaluation.py`, `model/validators/` | Benchmark-leaning checks | Not moved |
 | `infra/`, `execution.py`, `runspec.py`, `inspection.py` | Seams used by the current tree | Not a fourth core |
 | `reporting.py`, `summary_chart.py`, `evidence_paths.py` | Current report helpers | Not moved |
 | `claim.py` | Verdict vocabulary used by current checks | Not moved and not a fourth core |
 | `contracts.py` | `RunSpec` compatibility re-export | Must remain one module file |
-| `data/` | Packaged resources, mixed kinds | Not relocated here |
+| `data/` | Packaged resources, mixed kinds | Includes the existing Dashboard template path for installed consumers |
 
 ## Import gate
 
 `tests/test_target_module_import_gate.py` fails on a new import of
 `inferrsi.knowledge`, `inferrsi.benchmark`, or `inferrsi.apps` from anywhere
-except `inferrsi.apps`, and on Knowledge or Benchmark importing Harness.
+except `inferrsi.apps` and the exact legacy monitoring forwards listed in the
+test. Knowledge and Benchmark cannot import Harness. The forwards consist of
+the existing CLI's Dashboard dispatch and the legacy `harness.dashboard*`
+Python imports. Core modules and Apps cannot use those compatibility modules
+as dependencies.
 `from inferrsi import knowledge` counts as an import of that core.
 Same-core imports are allowed, including a relative import rewritten to an
-absolute name such as `from .bar import VALUE` inside `knowledge/`. Each forbidden
-importer and target pair is reported once. There is no exception list of
-current edges: those three package names are unused on this tree, so the
-violation list is empty.
+absolute name such as `from .bar import VALUE` inside `knowledge/`. The
+monitoring shim rule also applies to same-package imports. Each forbidden
+importer and target pair is reported once.
 
 A clean result means no new cross-core import of those names. It does not mean
 the modules are isolated. Isolation stays false while `knowledge/`,
-`benchmark/`, or `apps/` is absent, and while `harness/` still imports Model
-or Infra.
+`benchmark/`, or `apps/` is absent, while the monitoring shims remain in the
+legacy Harness namespace, or while `harness/` still imports Model or Infra.
 
 ## Old `run` exit codes
 

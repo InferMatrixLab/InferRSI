@@ -3,8 +3,8 @@ import json
 
 import pytest
 
-from inferrsi.harness.dashboard import dashboard_snapshot
-from inferrsi.harness.dashboard_data import _environment_signature, load_dashboard
+from inferrsi.apps.views.dashboard import dashboard_snapshot
+from inferrsi.apps.views.dashboard_data import _environment_signature, load_dashboard
 
 
 def assemble(root, record):
@@ -248,7 +248,7 @@ def test_chart_colours_follow_roles_with_missing_rounds(tmp_path, count):
 
 
 def test_empty_external_metrics_remain_visible_and_are_explained(tmp_path):
-    from inferrsi.harness.dashboard import _chart
+    from inferrsi.apps.views.dashboard import _chart
 
     data = record()
     data['metrics'] = []

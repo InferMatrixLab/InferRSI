@@ -284,14 +284,14 @@ def main(argv: list[str] | None = None) -> int:
             if args.live:
                 if args.output is not None:
                     raise ValueError("--output cannot be used with --live")
-                from .harness.dashboard_live import serve_dashboard
+                from .apps.views.live import serve_dashboard
 
                 serve_dashboard(args.input, args.translations,
                                 port=args.port if args.port is not None else 8765)
             else:
                 if args.port is not None:
                     raise ValueError("--port requires --live")
-                from .harness.dashboard import write_dashboard
+                from .apps.views.dashboard import write_dashboard
 
                 _print({"dashboard": str(write_dashboard(args.input, args.output,
                                                           args.translations))})

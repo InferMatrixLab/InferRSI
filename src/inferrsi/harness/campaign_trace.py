@@ -6,7 +6,7 @@ import json
 from datetime import datetime, timezone
 from pathlib import Path
 
-from .dashboard_data import STAGES
+from .records import STAGES
 
 
 class CampaignTrace:
