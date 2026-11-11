@@ -1,6 +1,6 @@
 # Fixtures: historic baseline bytes and current D023 vectors
 
-Status: **Proposed**. Documentation fixtures only. Nothing here is produced by a runtime test, and no case asserts that `prepare`, `execute`, `assess`, or any test runner was executed.
+Status: **Proposed**. Documentation fixtures only; nothing here is produced by a runtime test. See [../README.md](../README.md) for repository-wide status.
 
 This directory holds two different things and they must not be conflated:
 
@@ -20,7 +20,7 @@ Silently regenerating those bytes would:
 - make the baseline `MANIFEST.json` describe bytes that no longer exist;
 - erase the evidence that D023-2 is a deliberate, reviewed contract change rather than a drift.
 
-So the historic bytes stay exactly as generated, and the new D023 form is emitted as a **separate** file. The baseline `MANIFEST.json` is kept beside the bytes it describes, and is labelled historic here and in the manifest's own `scope` field.
+So the historic bytes stay exactly as generated, and the new D023 form is emitted as a **separate** file. Chinese text, U+007F, U+2028, U+2029, decomposed characters, and non-BMP emoji in `fixtures/t108-v4/` are frozen test-vector bytes, not documentation to translate or clean. The baseline `MANIFEST.json` is kept beside the bytes it describes, and is labelled historic here and in the manifest's own `scope` field.
 
 ## Historic baseline verification contract
 
@@ -55,24 +55,24 @@ The file itself still carries no `request_digest` field (the spec has none). The
 
 ## T36–T40 are specifications, not executed integration tests
 
-`fixtures/d023-conformance-cases.json` and section 3 of `ACCEPTANCE-T01-T40.md` describe T36–T40. The same file also holds V32-N1–N3 (spec-time `InvalidExecutionSpec`, no start and no record) and SCHEMA-N1 (schema-layer missing key; a schema validator is not a runtime PublicError). Those cases are not T36–T40 acceptance; T37 coverage is only T37-P1, T37-N1, and T37-N2. They are **runtime specifications**: each states explicit input facts and the single required outcome. None of them has been executed. Schema acceptance is not test acceptance, and no claim here is made that any implementation already satisfies them.
+`fixtures/d023-conformance-cases.json` and section 3 of `acceptance-criteria.md` describe T36–T40. The same file also holds V32-N1–N3 (spec-time `InvalidExecutionSpec`, no start and no record) and SCHEMA-N1 (schema-layer missing key; a schema validator is not a runtime PublicError). Those cases are not T36–T40 acceptance; T37 coverage is only T37-P1, T37-N1, and T37-N2. They are **runtime specifications**: each states explicit input facts and the single required outcome. None of them has been executed. Schema acceptance is not test acceptance, and no claim here is made that any implementation already satisfies them.
 
 ## Normative and source references
 
 Local specification files:
 
 - [`../README.md`](../README.md) — contract set index and status
-- [`../CURRENT-DESIGN.md`](../CURRENT-DESIGN.md) — D001–D019 and boundaries/ports
-- [`../SCHEMA-AND-SEMANTICS.md`](../SCHEMA-AND-SEMANTICS.md) — D002/D017, canonical encoding, V01–V35
-- [`../D023.md`](../D023.md) — P0a errata: T36–T40 inputs and schema deltas
-- [`../D020-D022.md`](../D020-D022.md) — D020–D022 decisions
-- [`../D008-FUNCTION-OWNERS.md`](../D008-FUNCTION-OWNERS.md) — function ownership
-- [`../GATE-STORE-AND-FIRST-PRS.md`](../GATE-STORE-AND-FIRST-PRS.md) — D009/D018, D012-r2 RunStore, D019 first PRs
-- [`../ACCEPTANCE-T01-T40.md`](../ACCEPTANCE-T01-T40.md) — T01–T40 unique outcomes
-- [`../FIGURES-ALL.md`](../FIGURES-ALL.md) — figures
+- [`../current-design.md`](../current-design.md) — D001–D019 and boundaries/ports
+- [`../schema-and-semantics.md`](../schema-and-semantics.md) — D002/D017, canonical encoding, V01–V35
+- [`../p0a-contract-errata.md`](../p0a-contract-errata.md) — P0a errata: T36–T40 inputs and schema deltas
+- [`../isolation-errors-and-cli.md`](../isolation-errors-and-cli.md) — D020–D022 decisions
+- [`../function-owners.md`](../function-owners.md) — function ownership
+- [`../gate-policy-runstore-and-first-prs.md`](../gate-policy-runstore-and-first-prs.md) — D009/D018, D012-r2 RunStore, D019 first PRs
+- [`../acceptance-criteria.md`](../acceptance-criteria.md) — T01–T40 unique outcomes
+- [`../figures.md`](../figures.md) — figures
 - [`../schemas/contract-v1.schema.json`](../schemas/contract-v1.schema.json) — Draft 2020-12 library, 106 named definitions
 - [`../schemas/INDEX.json`](../schemas/INDEX.json) — machine-derived definition index
-- [`../DTO-FIELD-INDEX.md`](../DTO-FIELD-INDEX.md) — machine-derived field index
+- [`../dto-field-index.md`](../dto-field-index.md) — machine-derived field index
 - [`d023-conformance-cases.json`](d023-conformance-cases.json) — T36–T40 document vectors plus V32/SCHEMA spec-time vectors (not T37 acceptance)
 - [`execution-spec-d023.json`](execution-spec-d023.json) — current D023 spec example
 - [`MANIFEST-d023.json`](MANIFEST-d023.json) — current-example byte and `request_digest` documentation anchor

@@ -1,0 +1,120 @@
+sequenceDiagram
+  actor U as person / Coding Agent
+  participant A as Apps
+  participant K as Knowledge
+  participant B as Benchmark
+  participant H as Harness
+  participant T as external runtime
+  participant Arc as Apps ByteArchive
+  participant R as H RunStore
+
+  U->>A: goal, task and candidate source
+  A->>B: prepare(PrepareRequest)
+  break prepare fails
+    B-->>A: stop; no valid PreparedRef
+  end
+  B-->>A: PreparedEvaluation (fixed worker recipe/resource closure, candidate may be unbound) + in-process protocol bytes and per-role resource entry
+  A->>Arc: verify and save prepared immutable bytes and the fixed recipe/protocol/required resource closure
+  break prepared archive fails
+    Arc-->>A: stop; no valid PreparedRef
+  end
+  Arc-->>A: fixed PreparedRef
+  opt knowledge needed
+    A->>K: read / collect(reference, pins, filters)
+    K-->>A: KnowledgeBundle / Collection (logical records; no schema 2)
+    A-->>U: knowledge package
+  end
+  Note over U: propose hypotheses, choose method, edit candidate
+  U->>A: candidate reference and expected identity
+  A->>H: allocate_attempt(run_id, owner, deadline and resources)
+  H-->>A: AttemptContext (attempt_id; no budget, no start)
+  A->>A: check the prepared / candidate / identity to run, build ExecutionSpec
+  break binding fails
+    A-->>A: stop; no execute, nothing written to RunStore
+  end
+  A->>H: execute(ExecutionSpec: verbatim fixed worker recipe/roles/deadline, expected_code_sha256 from prepared.recipe)
+  break unregistered illegal spec
+    H-->>A: InvalidExecutionSpec; no start, no started record fabricated
+  end
+  break same request_id different request_digest
+    H-->>A: RequestConflict; original request preserved
+  end
+  break re-entry: still executing or existing controller state unknown
+    H-->>A: AttemptInProgress or RecoveryRequired, with known attempt/latest_record_ref if any
+    Note over A,H: short-circuit before any new execution; no wait, no controller replacement, no takeover, no rerun
+  end
+  alt same request already has a finished record
+    H-->>A: original fixed flat ExecutionRecord; no new start
+  else first legal new request
+  H->>R: atomically register request/attempt/digest and owner (no uncommitted RecordRef issued)
+  break pre-start persistence fails
+    H-->>A: not started; no valid new RecordRef
+  end
+  break pre-bind budget/resource/capability admission refused
+    H->>R: submit not_started revision
+    alt submission succeeds
+      H-->>A: not_started + fixed RecordRef; not a successful measurement, stop automatic progression
+    else submission fails
+      H-->>A: no valid new RecordRef; known identity and facts retained
+    end
+  end
+  H->>H: bind actual candidate bytes, record identity check
+  H->>R: retain input bytes/directory manifest and verify fixed digest
+  break input retention write fails (before start)
+    H-->>A: ExecutionPersistenceError(started=false); no valid new RecordRef
+  end
+  break actual input identity check fails (before start)
+    H->>R: must submit not_started revision with this actual binding/check failure
+    alt submission succeeds
+      H-->>A: fixed RecordRef + not_started/identity refusal reason; stop automatic progression
+    else submission fails
+      H-->>A: ExecutionPersistenceError(started=false); no valid new ref
+    end
+  end
+  H->>H: verify actual entry code digest against expected_code_sha256 before starting the candidate
+  break code digest mismatch or entry unresolvable
+    H->>R: mismatch -> not_started with check-failure fact; unresolvable -> not_performed/unknown, never a fabricated mismatch
+    H-->>A: fixed RecordRef if submitted, else ExecutionPersistenceError per start state; candidate process never started on mismatch
+  end
+  H->>T: commands and input binding
+  T-->>H: known artifacts and measurement observations (may be incomplete; unknown listed separately)
+  H->>H: collect known facts, attempt cleanup, record three budget facts separately, integrity checklist
+  Note over H,R: a record submittable after this run may still be phase=recovery_required / cleanup=unknown
+  Note over H,R: do not reclassify as a re-entry anomaly; on success deliver fixed facts, on failure retain partial facts per started=true, never auto-rerun
+  H->>R: commit immutable record revision and retained evidence
+  break commit fails
+    H-->>A: no valid new RecordRef; retain still-valid old refs and known facts; no automatic rerun
+  end
+  R-->>H: fixed RecordRef and payload
+  H-->>A: flat ExecutionRecord (record_ref and fixed payload fields)
+  end
+  break synchronous return of not_started or recovery_required
+    A-->>U: committed fixed record; stop this automatic assessment
+  end
+  Note over A,R: the path below may also be entered by an independent offline call reading an existing fixed revision; includes legal non-terminal snapshots (D003 selected)
+  Note over A,R: the break above stops only this synchronous flow; it does not forbid this independent call; uncommitted partial facts must not be substituted
+  A->>A: read the same fixed revision and its prepared, check original byte digests and top-level handoff identity
+  break prepared / record revision, attempt, operation or scope mismatch
+    A-->>A: refuse handoff; no normal assessment
+  end
+  A->>A: project to Benchmark read-only evidence envelope (no scoring)
+  A->>B: assess(fixed PreparedEvaluation, evidence envelope, artifact locators)
+  Note over B: starts no process; dashboard / trace is not assessment input
+  break B detects a missed top-level mismatch, unknown protocol, or illegal envelope
+    B-->>A: refuse; no normal assessment, not archived as a judgment result
+  end
+  B->>B: judge by each claim/scope frozen protocol inside the correct fixed combination; phase does not replace evidence sufficiency
+  B-->>A: EvaluationResult.claims (PASS / FAIL / INCONCLUSIVE per claim/scope)
+  A->>Arc: save judgment immutable bytes with prepared/record association
+  break assessment archive fails
+    Arc-->>A: no valid AssessmentRef; original RecordRef retained, explicit re-assessment allowed
+  end
+  Arc-->>A: fixed AssessmentRef
+  A-->>U: execution facts, per claim/scope judgments and fixed refs side by side; no write-back overwrite
+  opt repository knowledge change
+    U->>K: or through a PR: author declaration in PR/CI, not in the port
+  end
+  opt controlled store update
+    U->>K: update(Bundle, expected, reason, evidence)
+    K-->>U: new revision
+  end

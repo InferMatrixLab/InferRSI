@@ -2,7 +2,7 @@
 
 Status: **Proposed**. Author decisions under the t103/t108 delegation, offered for independent counterexample review. This document does not change the repository's current gate, owners, or review process, and it is not a claim that other maintainers accepted any part of it. Design review only; no implementation.
 
-Covers D018/D009-r2 (first-wave gate policy), D012-r2 (RunStore), and D019 (first PRs). D023 is a bounded errata over these; where they differ, [`D023.md`](D023.md) wins and adds T36–T40.
+Covers D018/D009-r2 (first-wave gate policy), D012-r2 (RunStore), and D019 (first PRs). D023 is a bounded errata over these; where they differ, [`p0a-contract-errata.md`](p0a-contract-errata.md) wins and adds T36–T40.
 
 The baseline the design is pinned to is `4b3afa55f278ca314e07d5f8acbd0a18f3fa72bf`: one evidence commit beyond the older `bd61d20`, with unchanged `src` paths. The 993-path inventory is path evidence only. The phase-one report came from worker static AST/source reading, **not** an Opus model conclusion: the original Opus call exited 1 with empty stdout/stderr, so it is neither a pass nor a safety refusal. Phase 2/3 Fable source audits were recovered as text. `pytest` was not run; the audit does not prove all 993 functions were covered, and the empty Opus failure cause was not established.
 

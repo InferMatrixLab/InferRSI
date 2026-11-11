@@ -1,6 +1,6 @@
 # All eight figures
 
-Status: **Proposed**. Figures are explanatory, not a state machine or implementation status. Full fields are authoritative in the machine schema and V01–V35; a figure omitting a field does not make it optional. Target ports do not mean `src` already has a production implementation; first-wave scope is per D019. Where a figure touches D023, the labels match [`D023.md`](D023.md).
+Status: **Proposed**. Figures are explanatory, not a state machine or implementation status. Full fields are authoritative in the machine schema and V01–V35; a figure omitting a field does not make it optional. Target ports do not mean `src` already has a production implementation; first-wave scope is per D019. Where a figure touches D023, the labels match [`p0a-contract-errata.md`](p0a-contract-errata.md).
 
 ## 1. Public ports and primitives
 

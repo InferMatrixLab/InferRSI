@@ -1,23 +1,23 @@
 # Current design: K / H / B + Apps contracts v1
 
-Status: **Proposed**. Author decisions taken under the t103/t108 delegation; they are not maintainer acceptance, not an accepted gate change, and not a claim that any runtime test passed. P0a is documentation, schema, and fixtures only.
+Status: **Proposed**. See [README.md](README.md) for repository-wide status and dependencies.
 
-This file is the design overview: D001–D019, the boundary and port model, and where each normative decision lives. Where D023 and this file differ, `D023.md` wins. Machine fields are authoritative in `schemas/contract-v1.schema.json`; this prose cannot widen or narrow them.
+This file is the design overview: D001–D019, the boundary and port model, and where each normative decision lives. Where D023 and this file differ, `p0a-contract-errata.md` wins. Machine fields are authoritative in `schemas/contract-v1.schema.json`; this prose cannot widen or narrow them.
 
 ## Normative set and reading order
 
 | File | Covers |
 | --- | --- |
-| [`CURRENT-DESIGN.md`](CURRENT-DESIGN.md) | this overview; D001, D003–D006, D010, D011; pointers to D002, D007–D009, D012–D019 |
-| [`SCHEMA-AND-SEMANTICS.md`](SCHEMA-AND-SEMANTICS.md) | D002/D017: canonical `inferrsi-json-v1` encoding, identity projections, V01–V35 |
-| [`D020-D022.md`](D020-D022.md) | D020 Knowledge split, D021 storage routing/errors, D022 Apps request/result matrix |
-| [`D023.md`](D023.md) | P0a errata: prepare closure bytes, frozen code digest, deliver-then-seal context, claim-key order, CLI attempt save/replay; T36–T40 |
-| [`GATE-STORE-AND-FIRST-PRS.md`](GATE-STORE-AND-FIRST-PRS.md) | D009/D018 first-wave gate policy, D012-r2 RunStore, D019 first PRs |
-| [`D008-FUNCTION-OWNERS.md`](D008-FUNCTION-OWNERS.md) | D008 function ownership for the audited mixed modules |
-| [`ACCEPTANCE-T01-T40.md`](ACCEPTANCE-T01-T40.md) | T01–T40 unique outcomes |
-| [`FIGURES-ALL.md`](FIGURES-ALL.md) | the eight figures |
+| [`current-design.md`](current-design.md) | this overview; D001, D003–D006, D010, D011; pointers to D002, D007–D009, D012–D019 |
+| [`schema-and-semantics.md`](schema-and-semantics.md) | D002/D017: canonical `inferrsi-json-v1` encoding, identity projections, V01–V35 |
+| [`isolation-errors-and-cli.md`](isolation-errors-and-cli.md) | D020 Knowledge split, D021 storage routing/errors, D022 Apps request/result matrix |
+| [`p0a-contract-errata.md`](p0a-contract-errata.md) | P0a errata: prepare closure bytes, frozen code digest, deliver-then-seal context, claim-key order, CLI attempt save/replay; T36–T40 |
+| [`gate-policy-runstore-and-first-prs.md`](gate-policy-runstore-and-first-prs.md) | D009/D018 first-wave gate policy, D012-r2 RunStore, D019 first PRs |
+| [`function-owners.md`](function-owners.md) | D008 function ownership for the audited mixed modules |
+| [`acceptance-criteria.md`](acceptance-criteria.md) | T01–T40 unique outcomes |
+| [`figures.md`](figures.md) | the eight figures |
 | [`schemas/contract-v1.schema.json`](schemas/contract-v1.schema.json) | Draft 2020-12 definition library, 106 named `$defs` |
-| [`schemas/INDEX.json`](schemas/INDEX.json), [`DTO-FIELD-INDEX.md`](DTO-FIELD-INDEX.md) | machine-derived indexes; the schema wins on conflict |
+| [`schemas/INDEX.json`](schemas/INDEX.json), [`dto-field-index.md`](dto-field-index.md) | machine-derived indexes; the schema wins on conflict |
 | [`fixtures/README.md`](fixtures/README.md) | historic baseline bytes vs current D023 vectors |
 | [`README.md`](README.md) | index and status |
 
@@ -100,7 +100,7 @@ Decision: `knowledge/data/{repo_packs/<pack>/knowledge,skill_library,knowledge_p
 
 ## D008 — function ownership
 
-Decision: see [`D008-FUNCTION-OWNERS.md`](D008-FUNCTION-OWNERS.md). Target new core layout:
+Decision: see [`function-owners.md`](function-owners.md). Target new core layout:
 
 - K keeps the seven original file names.
 - H: `api.py`, `execution_service.py`, `input_binding.py`, `run_store.py`, `budget.py`, `resources.py`, `records/*`.
@@ -111,7 +111,7 @@ These are target names; `src` does not yet contain a production RunStore or work
 
 ## D009 — first-wave gate policy
 
-Decision: see [`GATE-STORE-AND-FIRST-PRS.md`](GATE-STORE-AND-FIRST-PRS.md) §B. Seven precise Knowledge root compatibility re-exports are the entire first wave; the current gate is unchanged until a formal architecture review accepts the exact policy first. No dynamic import escapes, no star imports, no `sys.modules` substitution, no blanket `harness/*` exception. `overall isolation_complete` stays false while any allowlist entry or registered residual legacy edge exists.
+Decision: see [`gate-policy-runstore-and-first-prs.md`](gate-policy-runstore-and-first-prs.md) §B. Seven precise Knowledge root compatibility re-exports are the entire first wave; the current gate is unchanged until a formal architecture review accepts the exact policy first. No dynamic import escapes, no star imports, no `sys.modules` substitution, no blanket `harness/*` exception. `overall isolation_complete` stays false while any allowlist entry or registered residual legacy edge exists.
 
 ## D010 — three budget facts and no scope reset
 
@@ -133,7 +133,7 @@ Acceptance: a pure-id Bundle read and an authority-qualified read ref are listed
 
 ## D012 — RunStore
 
-Decision: see [`GATE-STORE-AND-FIRST-PRS.md`](GATE-STORE-AND-FIRST-PRS.md) §C. There is no production RunStore in `src`; the design selects a new H-owned local SQLite v1. It does not wrap a nonexistent system and does not treat an in-memory dict as a cross-process implementation. First phase is local filesystem only: no network disk, distributed transaction, daemon, or automatic takeover.
+Decision: see [`gate-policy-runstore-and-first-prs.md`](gate-policy-runstore-and-first-prs.md) §C. There is no production RunStore in `src`; the design selects a new H-owned local SQLite v1. It does not wrap a nonexistent system and does not treat an in-memory dict as a cross-process implementation. First phase is local filesystem only: no network disk, distributed transaction, daemon, or automatic takeover.
 
 ## D013 — legacy entry-point compatibility
 
@@ -145,19 +145,19 @@ Decision: #333 and #371 are both **Proposed**, not accepted event schemas. `Exec
 
 ## D015 / D016 — acceptance numbering and rollout discipline
 
-Decision: D019 fixes the first-wave PRs and their acceptance IDs (A00/A01/K01/K02/H01/H02/B01 rows) and the rollback rules; see [`GATE-STORE-AND-FIRST-PRS.md`](GATE-STORE-AND-FIRST-PRS.md) §D. T01–T40 in [`ACCEPTANCE-T01-T40.md`](ACCEPTANCE-T01-T40.md) are the single numbered acceptance set; T36–T40 come from D023. Acceptance IDs are expectations, not executed tests.
+Decision: D019 fixes the first-wave PRs and their acceptance IDs (A00/A01/K01/K02/H01/H02/B01 rows) and the rollback rules; see [`gate-policy-runstore-and-first-prs.md`](gate-policy-runstore-and-first-prs.md) §D. T01–T40 in [`acceptance-criteria.md`](acceptance-criteria.md) are the single numbered acceptance set; T36–T40 come from D023. Acceptance IDs are expectations, not executed tests.
 
 ## D017 — schema, canonical encoding, semantics
 
-Decision: see [`SCHEMA-AND-SEMANTICS.md`](SCHEMA-AND-SEMANTICS.md). Draft 2020-12 library `urn:inferrsi:design:contract-v1`, 106 named definitions, all new fixed-object fields required, unknown fields rejected, null only where the schema permits it. The library root must not be used as a validation target; validate against a named `$defs` entry.
+Decision: see [`schema-and-semantics.md`](schema-and-semantics.md). Draft 2020-12 library `urn:inferrsi:design:contract-v1`, 106 named definitions, all new fixed-object fields required, unknown fields rejected, null only where the schema permits it. The library root must not be used as a validation target; validate against a named `$defs` entry.
 
 ## D018 — first-wave gate policy detail
 
-Decision: [`GATE-STORE-AND-FIRST-PRS.md`](GATE-STORE-AND-FIRST-PRS.md) §B: exact seven leaf→module allowances, shape checks, transitive-closure checks, the registered residual `harness/skill_evaluation.py → knowledge_operations → knowledge.*` edge, the staged isolation test, and the rule that a non-empty allowlist keeps `overall isolation_complete=false`.
+Decision: [`gate-policy-runstore-and-first-prs.md`](gate-policy-runstore-and-first-prs.md) §B: exact seven leaf→module allowances, shape checks, transitive-closure checks, the registered residual `harness/skill_evaluation.py → knowledge_operations → knowledge.*` edge, the staged isolation test, and the rule that a non-empty allowlist keeps `overall isolation_complete=false`.
 
 ## D019 — first PRs and numbering
 
-Decision: [`GATE-STORE-AND-FIRST-PRS.md`](GATE-STORE-AND-FIRST-PRS.md) §D. PR-00a (this contract set), PR-00b (gate policy), K01 (seven K modules), H01 (persistent record core), H02 (single-CPU execute), K02 (physical resource migration), then B01/Apps. H01 does not depend on K01 or H02; B/Apps do not block K01/H01.
+Decision: [`gate-policy-runstore-and-first-prs.md`](gate-policy-runstore-and-first-prs.md) §D. PR-00a (this contract set), PR-00b (gate policy), K01 (seven K modules), H01 (persistent record core), H02 (single-CPU execute), K02 (physical resource migration), then B01/Apps. H01 does not depend on K01 or H02; B/Apps do not block K01/H01.
 
 ## Boundaries and ports
 
@@ -187,7 +187,7 @@ JSON Schema reference reuse is document structure only. It does not authorize K/
 
 ## Canonical encoding summary
 
-`inferrsi-json-v1`: ASCII keys in lexicographic order; UTF-8 with no BOM, no trailing newline, and no insignificant spaces; arrays not reordered; Chinese not escaped and Unicode not normalized; duplicate keys, lone surrogates, float tokens, NaN/Infinity, and integers outside `[-9007199254740991, 9007199254740991]` rejected. Strings use language-independent escaping: `\"`, `\\`, `\b\t\n\f\r`, and lowercase four-digit `\u00xx` for the remaining U+0000–U+001F; every other legal scalar is raw UTF-8, including `/`, U+007F, U+2028/U+2029, and non-BMP characters. Full rules and the identity projection P are in [`SCHEMA-AND-SEMANTICS.md`](SCHEMA-AND-SEMANTICS.md) §3.
+`inferrsi-json-v1`: ASCII keys in lexicographic order; UTF-8 with no BOM, no trailing newline, and no insignificant spaces; arrays not reordered; Chinese not escaped and Unicode not normalized; duplicate keys, lone surrogates, float tokens, NaN/Infinity, and integers outside `[-9007199254740991, 9007199254740991]` rejected. Strings use language-independent escaping: `\"`, `\\`, `\b\t\n\f\r`, and lowercase four-digit `\u00xx` for the remaining U+0000–U+001F; every other legal scalar is raw UTF-8, including `/`, U+007F, U+2028/U+2029, and non-BMP characters. Full rules and the identity projection P are in [`schema-and-semantics.md`](schema-and-semantics.md) §3.
 
 ## Evidence status and stop boundary
 

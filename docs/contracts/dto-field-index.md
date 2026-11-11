@@ -1,10 +1,10 @@
-# DTO字段派生索引（106个定义，含 D023 对齐）
+# DTO field index (106 definitions, aligned with D023)
 
-从contract-v1.schema.json派生；不单独覆盖机器schema。全部新对象字段required，null只在schema显式许可时合法；LegacyJSON/Parameters的例外见D017。状态 **Proposed**。
+Derived from `contract-v1.schema.json`; it does not override the machine schema. Every field on a new fixed object is required; `null` is legal only where the schema explicitly allows it. Exceptions for `LegacyJSON` and `Parameters` are in D017 / `schema-and-semantics.md`. Status: **Proposed**.
 
-D023 只改动一个字段集合：`CommandStep` 增加 required 可空 `expected_code_sha256`。其余 D023 条目是已存在字段的语义收紧（`PreparedEvaluation`、`DeliveredContext`、`AppsAssessRequest`、`AppsResultV1`、`AppsExecuteRequest`、`OperationRecipe`、`RuntimeBinding`），定义数量仍为 106。
+D023 changes one field set: `CommandStep` gains a required, nullable `expected_code_sha256`. The other D023 items tighten the meaning of existing fields (`PreparedEvaluation`, `DeliveredContext`, `AppsAssessRequest`, `AppsResultV1`, `AppsExecuteRequest`, `OperationRecipe`, `RuntimeBinding`). The definition count remains 106.
 
-| 定义 | 字段或语法 |
+| Definition | Fields or syntax |
 |---|---|
 | Text | {"type":"string"} |
 | Id | {"type":"string","minLength":1,"maxLength":256,"pattern":"^[A-Za-z0-9][A-Za-z0-9._:/@+-]*$"} |
@@ -113,14 +113,14 @@ D023 只改动一个字段集合：`CommandStep` 增加 required 可空 `expecte
 | P1SamplesProof | schema_version, candidate_id, actual_sha256, attempt_id, operation, validation_scope, samples |
 | P1CleanupProof | schema_version, attempt_id, operation, validation_scope, confirmed |
 
-## D023 字段语义注记
+## D023 field-semantics notes
 
-| 字段 | 语义 |
-|---|---|
-| `CommandStep.expected_code_sha256` | `Sha256` 或 `null`，required。评测模式（`prepared_ref` 非空）必须等于 prepared.recipe.code_sha256；`OperationRecipe.code_sha256` 已是 required 非空 `Sha256`，没有「recipe 未声明摘要」分支。普通命令模式必须为 null。规格期模式/等值违规为 `InvalidExecutionSpec`；T37 只覆盖评测模式 expected 已合法之后的启动前实际入口核对。模式等值由 V32 校验，schema 只保证存在与形式。 |
-| `OperationRecipe.code_sha256` | 冻结预期代码身份，作用域为受支持入口/包，不是整个解释器归档摘要。 |
-| `RuntimeBinding.code_sha256` | 实际观测摘要，用于启动前比对；无法解析实际入口时保持 null 并记 not_performed/unknown，不用预期值填充。 |
-| `DeliveredContext.artifact` | 只能指向 H 已留存字节；草稿 `DeliveredContextDraft` 不是 JSON 定义，不提供伪造流形状。 |
-| `AppsExecuteRequest.attempt` | 必填的预分配 `AttemptContext`；`execute` 不自行分配。`StorageConfig` 不进入任何 `Apps*Request`。 |
-| `AppsAssessRequest.primary_scope` / `primary_claim_id` | 必填精确 claim key；键不在协议→InvalidRequest；键在协议但结果遗漏→AssessorError 类结果契约错误。 |
-| `AppsResultV1.exit_code` / `error` / `primary_*` | 必填字段（可空但不得缺席），归档失败优先且 `assessment_ref` 必须 null。 |
+| Field | Meaning |
+| --- | --- |
+| `CommandStep.expected_code_sha256` | `Sha256` or `null`, required. In evaluation mode (`prepared_ref` non-null) it must equal `prepared.recipe.code_sha256`. `OperationRecipe.code_sha256` is already a required non-null `Sha256`, so there is no “recipe omitted a digest” branch. In ordinary command mode it must be `null`. Spec-time mode or equality violations are `InvalidExecutionSpec`. T37 covers only the pre-start actual-entry check after evaluation-mode `expected` is already legal. Mode and equality are checked by V32; the schema only guarantees presence and form. |
+| `OperationRecipe.code_sha256` | Frozen expected code identity. Scope is a supported entry or package, not a digest of the whole interpreter archive. |
+| `RuntimeBinding.code_sha256` | Observed actual digest, used for the pre-start comparison. If the actual entry cannot be resolved, keep `null` and record `not_performed`/unknown; do not fill it with the expected value. |
+| `DeliveredContext.artifact` | May point only at bytes H has already retained. Draft `DeliveredContextDraft` is not a JSON definition and is not given a fabricated stream shape. |
+| `AppsExecuteRequest.attempt` | Required pre-allocated `AttemptContext`; `execute` does not allocate one itself. `StorageConfig` is not a field of any `Apps*Request`. |
+| `AppsAssessRequest.primary_scope` / `primary_claim_id` | Required exact claim key. Key not in the protocol → `InvalidRequest` / exit 2. Key in the protocol but omitted from the B result → `AssessorError`-class result-contract error / exit 2. |
+| `AppsResultV1.exit_code` / `error` / `primary_*` | Required fields (nullable, but must be present). Archive failure takes priority and `assessment_ref` must be `null`. |
