@@ -20,7 +20,7 @@ Silently regenerating those bytes would:
 - make the baseline `MANIFEST.json` describe bytes that no longer exist;
 - erase the evidence that D023-2 is a deliberate, reviewed contract change rather than a drift.
 
-So the historic bytes stay exactly as generated, and the new D023 form is emitted as a **separate** file. Chinese text, U+007F, U+2028, U+2029, decomposed characters, and non-BMP emoji in `fixtures/t108-v4/` are frozen test-vector bytes, not documentation to translate or clean. The baseline `MANIFEST.json` is kept beside the bytes it describes, and is labelled historic here and in the manifest's own `scope` field.
+So the historic bytes stay exactly as generated, and the new D023 form is emitted as a **separate** file. Chinese text, U+007F, U+2028, U+2029, decomposed characters, and non-BMP emoji in `fixtures/t108-v4/` are frozen test-vector bytes, not documentation to translate or clean. The baseline `MANIFEST.json` is kept beside the bytes it describes and is labelled historic in this README. The manifest's own frozen `scope` field does not itself say historic, and must not be rewritten to add that label.
 
 ## Historic baseline verification contract
 

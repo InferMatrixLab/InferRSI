@@ -105,12 +105,13 @@
       },
       "expected_outcome": {
         "internal_field_change": "the affected sha256 and prepared_id are recomputed under the existing identity rules",
-        "outer_location_change": "stripped by projection P only where the field is declared ArtifactRef, so prepared_id is unchanged for that case",
+        "outer_location_change": "stripped by projection P only where the field is declared ArtifactRef, so prepared_id is unchanged; the complete canonical payload bytes change, so the payload/artifact byte digest changes",
         "generic_relocation_claim": "rejected"
       },
       "invariants": [
         "committed bytes are never rewritten in place",
-        "a distinct canonical byte change yields a distinct identity"
+        "a change to the complete canonical payload bytes requires a new payload or artifact byte digest, which is not the same domain as prepared_id",
+        "prepared_id is recomputed from its specified P-projected input and is unchanged for a location-only move of a schema-declared ArtifactRef"
       ],
       "prohibited_inferences": [
         "any relocation of any internal location preserves prepared_id"

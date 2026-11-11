@@ -123,4 +123,4 @@ D023 changes one field set: `CommandStep` gains a required, nullable `expected_c
 | `DeliveredContext.artifact` | May point only at bytes H has already retained. Draft `DeliveredContextDraft` is not a JSON definition and is not given a fabricated stream shape. |
 | `AppsExecuteRequest.attempt` | Required pre-allocated `AttemptContext`; `execute` does not allocate one itself. `StorageConfig` is not a field of any `Apps*Request`. |
 | `AppsAssessRequest.primary_scope` / `primary_claim_id` | Required exact claim key. Key not in the protocol → `InvalidRequest` / exit 2. Key in the protocol but omitted from the B result → `AssessorError`-class result-contract error / exit 2. |
-| `AppsResultV1.exit_code` / `error` / `primary_*` | Required fields (nullable, but must be present). Archive failure takes priority and `assessment_ref` must be `null`. |
+| `AppsResultV1.exit_code` / `error` / `primary_*` | All required and must be present. `exit_code` is required and non-null; `error`, `primary_scope`, and `primary_claim_id` may be null. Archive failure takes priority and `assessment_ref` must be `null`. |

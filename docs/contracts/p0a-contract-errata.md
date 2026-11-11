@@ -63,7 +63,7 @@ After a legal fixed protocol has been read, **first** check the requested key wi
 - The key is in the protocol, but the B result omits it → `AssessorError`-class **result-contract error** / exit 2 (D022 maps other `PublicError` values, including `AssessorError`, to `error` / 2). Apps does not fill in the claim or mis-report it as a caller argument error.
 - Legal complete result: archive failure takes priority (exit 6; an in-memory result may be kept, but `assessment_ref` must be `null`). On success, return 0 / 8 / 9 for the selected claim and leave other claims and scopes unchanged.
 
-Machine schema: the four `AppsResultV1` fields are all required (nullable, but must be present). `AppsAssessRequest.primary_scope` / `primary_claim_id` are required `Id` values.
+Machine schema: the four `AppsResultV1` fields (`primary_claim_id`, `primary_scope`, `exit_code`, and `error`) are all required and must be present. `primary_claim_id`, `primary_scope`, and `error` may be null; `exit_code` is required and non-null. `AppsAssessRequest.primary_scope` / `primary_claim_id` are required `Id` values.
 
 **Acceptance T39:** on top of T35, add the two rows “key not in the protocol” and “key in the protocol but omitted from the result,” each with a unique outcome.
 
