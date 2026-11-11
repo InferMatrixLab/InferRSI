@@ -83,6 +83,13 @@ Image validators and target engines retain their own optional dependencies.
 
 ## MindIE knowledge
 
+The agent consults MindIE when an Ascend-specific question lacks sufficient
+evidence during research, diagnosis, planning, implementation or review,
+including knowledge-only conversations. Existing knowledge routes remain
+available, and sufficient evidence does not require an extra MindIE query.
+Answers cite the delivered versioned material and its applicability limits;
+candidate and campaign association applies when the task includes that work.
+
 ### Supported versions
 
 The project reader supports Python 3.10+ and a synced local catalog from

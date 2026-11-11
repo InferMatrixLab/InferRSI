@@ -69,6 +69,48 @@ recipe. Imported source material supplies evidence, not execution authority.
 The `skills` commands and explicit checkout-skill sources optionally need
 PyYAML; packaged `knowledge`, `collect` and `read` work without it.
 
+### Consult MindIE for unresolved Ascend questions
+
+During research, diagnosis, planning, implementation or review, consult MindIE
+when an unresolved Ascend-specific question needs evidence. This includes
+knowledge-only tasks. Continue using the existing knowledge routes where they
+are relevant; when available evidence already answers the question, no
+additional MindIE lookup is needed. A miss in packaged search alone does not
+establish that MindIE lacks relevant knowledge.
+
+Use the project's `knowledge_query` and `knowledge_explain` MCP tools if
+present. Otherwise, run `mindie describe` through the bundled local launcher
+in the target checkout to discover the existing project grant, then use
+`mindie query --input <json>` and `mindie explain --input <json>` there.
+The operator enables a synced domain once per checkout. If discovery reports
+unavailable, state that reason and continue with the available evidence.
+
+The CLI input file contains the tool arguments directly:
+
+- Query: `{"query":"<question>","conditions":{}}`.
+- Explain: `{"refs":["<versioned-ref-from-query>"],"conditions":{},"known_refs":[]}`.
+
+Populate `conditions` from the task. Queries also accept `limit` and
+`include_unknown`; both reads accept `token_budget`. The CLI creates receipts
+automatically and returns `receipt_directory` in its response.
+
+Form the query from the unresolved question and known task conditions; leave
+unknown conditions explicit. Select relevant exact versioned refs from the
+returned cards. Read selected bodies and their delivered prerequisites via
+explain before relying on them; search cards alone are not supporting evidence.
+Unknown applicability requires checking against the task before relying on a
+body. Include in `known_refs` only exact versions whose full bodies are still
+visible. If no applicable card is found or a read fails, state the outcome and
+continue with the evidence available to you.
+
+Explain which conclusion or decision each delivered versioned ref supports,
+preserving its applicability limits. Keep query and explain receipt directories
+outside the source checkout. A knowledge-only answer does not require creating
+a candidate or campaign. A knowledge read authorizes only the approved local
+knowledge operation.
+
+### Record research and campaign evidence
+
 When the requested deliverable includes an optimization dashboard or a
 replayable campaign trace, record the research as the work happens. Preserve
 the selected queries, exact revisions, source order, omissions and the complete
@@ -103,47 +145,23 @@ documented in `docs/dashboard.md`. Keep the recorded context, commands and
 identifiers intact; a translation is not the original evidence. Explicitly leave
 unsupported or unavailable translations in their original language.
 
-## Decide whether to consult MindIE before editing the candidate
+## Prepare and run a comparison
 
-After inspecting the baseline, target device, shapes, dtype and evaluation
-requirements, identify any open implementation decision that Ascend knowledge
-could resolve. Record whether to consult MindIE and the reason before writing
-the candidate. Continue with the available evidence when it already answers
-the question.
-
-When a gap remains, use the project's `knowledge_query` and
-`knowledge_explain` MCP tools if present. The bundled local launcher also
-discovers the same project grant via `mindie describe`. Run it in the target
-checkout, then use `mindie query --input <json>` and
-`mindie explain --input <json>` there. The operator enables a synced domain once
-per checkout. If discovery reports unavailable, record that reason and continue
-the optimization with the evidence available to you.
-
-Form the query from the open decision and actual task conditions. Select relevant
-exact versioned refs from the returned cards. Unknown applicability requires
-checking against the task before relying on a body. If no applicable card is
-found, record the search outcome and continue. Read selected bodies and their
-delivered prerequisites via explain. Include in `known_refs` only exact
-versions whose full bodies are still visible. Record the outcome of a failed
-read and continue with evidence already available.
-
-Use the same agent for the read and the edit. Record which delivered versioned
-ref informed a concrete implementation choice, with the resulting file or
-change. Keep the query and explain receipt directories outside the source
-checkout. For campaign evidence, pass each receipt's `input.json`,
-`result.json` and exit code to `campaign import-mindie`. Review the delivered
-bodies and the per-candidate trace, then use `campaign assemble-trace` and
+Before editing a candidate, record whether to consult MindIE and the reason
+under the research guidance above. Use the same agent for the read and the
+edit. Record which delivered versioned ref informed a concrete implementation
+choice, with the resulting file or change. For campaign evidence, pass each
+receipt's `input.json`, `result.json` and exit code to `campaign import-mindie`.
+Review the delivered bodies and the per-candidate trace, then use
+`campaign assemble-trace` and
 `campaign record` to associate the trace with the round, frozen candidate and
-independent run. InferRSI owns execution and evaluation. A knowledge read
-authorizes only the approved local knowledge operation.
+independent run. InferRSI owns execution and evaluation.
 
 Retain a separate candidate source snapshot before evaluating it. Commands must
 run that snapshot, even after the generation workspace changes. Inspect actual
 run source hashes and quality/timing evidence; a candidate ID or agent narrative
 does not prove which bytes ran. See `docs/codex-plugin.md` for MindIE setup and
 candidate trace association.
-
-## Prepare and run a comparison
 
 Consult `plan --help` and `run --help` to build the current runtime's invocation.
 Reuse the user's benchmark and quality scripts, workload, accepted revisions,
