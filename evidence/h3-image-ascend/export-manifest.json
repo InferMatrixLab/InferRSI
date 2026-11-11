@@ -1,5 +1,5 @@
 {
-  "README.md": "f3b8cabc68439fdb0bcba179385b019b6d958f0c8fb105d8585e0cf302eeb0e0",
+  "README.md": "96ea30a1c58ae6bf6f551e1e8bb8d00af58a5e95f227705275f73fa57a35d14f",
   "patch/revision.json": "d8396389afd8c9c5565f9834e1a4ab092813e74c78285c921f7453b27a84235b",
   "plan/environment.json": "9b404a74007446fbbd6343383ebf8d18be446068d2018eb330c964473f54c45e",
   "plan/provenance.json": "a58206b9cb0f2dc1f0a51c71ce929630a3552a13bd7fdd5ced290a71945c28d6",
@@ -16,6 +16,7 @@
   "results/deterministic-control-tp4/request-measurements.json": "c535b6fbeaa44dd2f02fe7c1b114ccf1fd4fc4b19abb4882afe001d1c4c98d7a",
   "results/deterministic-control-tp4/summary.json": "75e90a097cca215711c4778a6593f12fe3be26527fddf4569181f75920500046",
   "results/mlp-layout-probe.json": "fd98b1b7a02a77047edf02f088e3aed62435ed63faf443781d90e0f495333b55",
+  "results/mlp-nz-real-probe.json": "d00b90a5fc231beaa192df65e0e6d5e2843c4f97762467d4cb01acb02583f3ea",
   "results/mm-alltoall-real-rank0.json": "8a0eb090272def70c860477d9867a51cf7dbb34e4638952719b2ae05c2177ccb",
   "results/native-sp4-offload/request-measurements.json": "586eddd05b217320d86ff8a3d98b0067e1904f3a706e24cf3a2051d8a9da11e2",
   "results/native-sp4-offload/summary.json": "5eb77f9bada84dba34b2d097dda158f0e37f5bb9aa92fa776072491b828aa08c",
