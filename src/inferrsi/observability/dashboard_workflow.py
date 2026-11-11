@@ -28,7 +28,7 @@ def command_state(record: dict) -> tuple[str, float | None]:
 
 
 def run_workflow(events: list[dict], lock: dict, run_state: str,
-                 active_phase: str | None, native: dict) -> dict:
+                 active_phase: str | None = None, native: dict | None = None) -> dict:
     # Runner node identity is local to one run. A new run is a new attempt.
     pairs = {}
     for event in events:
@@ -54,7 +54,7 @@ def run_workflow(events: list[dict], lock: dict, run_state: str,
         state = end.get("details", {}).get("state", "unknown")
         seconds = end.get("details", {}).get("elapsed_seconds")
         duration_source = "phase"
-        command = native.get((kind, side, trial))
+        command = native.get((kind, side, trial)) if native is not None else None
         if pair.get("conflict") or (end and command and command[0] not in ("unknown", state)):
             state, seconds = "unknown", None
         elif not end and command:
