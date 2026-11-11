@@ -416,6 +416,77 @@ class HarnessEntryTest(unittest.TestCase):
             direct.violations,
         )
 
+    def test_submodule_import_traverses_parent_package_init(self) -> None:
+        parent = {
+            "bridge/__init__.py": "from inferrsi.knowledge_operations import KnowledgeReader\n",
+            "bridge/safe.py": "VALUE = 1\n",
+        }
+        cases = (
+            ("import inferrsi.bridge.safe\n", "import package.submodule"),
+            ("from inferrsi.bridge import safe\n", "from package import submodule"),
+        )
+        for source, form in cases:
+            with self.subTest(form=form):
+                report = _report({**parent, "harness/api.py": source})
+                self.assertTrue(
+                    _violated(
+                        report,
+                        "inferrsi.harness.api reaches inferrsi.knowledge_operations",
+                    ),
+                    report.violations,
+                )
+                self.assertFalse(report.new_core_closure_isolated)
+
+    def test_allowed_residual_path_does_not_hide_another_bypass(self) -> None:
+        report = _report(
+            {
+                "harness/skill_evaluation.py": (
+                    "from ..knowledge_operations import KnowledgeReader\n"
+                ),
+                "harness/runner.py": (
+                    "from . import skill_evaluation\nfrom inferrsi import helper_a\n"
+                ),
+                "helper_a.py": "from inferrsi import helper_b\n",
+                "helper_b.py": (
+                    "from inferrsi.knowledge_operations import KnowledgeReader\n"
+                ),
+            }
+        )
+        self.assertTrue(
+            _violated(
+                report,
+                "inferrsi.harness.runner reaches inferrsi.knowledge_operations",
+            ),
+            report.violations,
+        )
+        self.assertEqual(report.residuals, (RESIDUAL,))
+
+    def test_residual_exemption_is_not_sort_dependent(self) -> None:
+        residual = {
+            "harness/skill_evaluation.py": (
+                "from ..knowledge_operations import KnowledgeReader\n"
+            )
+        }
+        for name in ("aa_bridge", "zz_bridge"):
+            with self.subTest(name=name):
+                report = _report(
+                    {
+                        **residual,
+                        f"{name}.py": "from . import knowledge_operations\n",
+                        "harness/runner.py": (
+                            f"from . import skill_evaluation\nfrom .. import {name}\n"
+                        ),
+                    }
+                )
+                self.assertTrue(
+                    _violated(
+                        report,
+                        "inferrsi.harness.runner reaches inferrsi.knowledge_operations",
+                    ),
+                    report.violations,
+                )
+                self.assertEqual(report.residuals, (RESIDUAL,))
+
     def test_registered_residual_stays_listed_and_is_not_granted(self) -> None:
         residual = {
             "harness/skill_evaluation.py": "from ..knowledge_operations import KnowledgeReader\n"
@@ -466,7 +537,7 @@ class StagedIsolationTest(unittest.TestCase):
                 EMPTY_ALLOWLIST,
             ),
             (
-                "harness reaches model/infra: inferrsi.harness.runner -> inferrsi.infra.local",
+                "harness reaches model/infra: inferrsi.harness.runner -> inferrsi.infra",
                 {
                     "infra/__init__.py": "",
                     "infra/local.py": "",
@@ -476,7 +547,7 @@ class StagedIsolationTest(unittest.TestCase):
             ),
             (
                 "harness reaches model/infra: inferrsi.harness.runner -> inferrsi.execution"
-                " -> inferrsi.model.metrics",
+                " -> inferrsi.model",
                 {
                     "execution.py": "from inferrsi.model import metrics\n",
                     "model/__init__.py": "",

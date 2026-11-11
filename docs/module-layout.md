@@ -81,11 +81,15 @@ three package names are unused, so no current edge needs an exception and the
 violation list is empty. It is not a permanent ban on reviewed exceptions.
 
 The gate scans `src/inferrsi/**` as the transfer graph. It resolves absolute,
-relative, and `from package import name` imports, adds the manifest-declared
-export edges, and computes the transitive closure. A dynamic import
-(`__import__`, `importlib.import_module`, or `module_from_spec`) inside a
-checked closure is an undeclared edge and fails closed. `tools/` and `tests/`
-are separate registered consumers; this gate does not scan them.
+relative, and `from package import name` imports, includes the parent-package
+`__init__` that Python executes when a submodule is imported (except the root
+`inferrsi` package init, which runs for every import and is not a business
+edge), adds the manifest-declared export edges, and computes the transitive
+closure. A dynamic import (`__import__`, `importlib.import_module`, or
+`module_from_spec`) inside a checked closure is an undeclared edge and fails
+closed. Other dynamic forms (`getattr`, `exec`, `eval`, `runpy`, `pkgutil`)
+are out of scope for this package. `tools/` and `tests/` are separate
+registered consumers; this gate does not scan them.
 
 A clean result means no new cross-core import of those names. It does not mean
 the modules are isolated. Isolation stays false while any one of these holds:
@@ -164,7 +168,9 @@ The leaf's own import rule and `REPO_TYPES` object identity govern it.
   A second direct harness importer of that target fails, and a new H entry
   may not use the residual even through `skill_evaluation`. A mixed non-entry
   harness module may still reach that target only through the residual
-  importer; that existing leak is not a new exception.
+  importer; that existing leak is not a new exception. The exemption is
+  reachability after removing only that exact residual edge: another path
+  to the same target is still a violation, regardless of traversal order.
 
 The manifest records the base commit, each old leaf's file hash at that
 commit, export names, audited definitions, consumer evidence, catalog's two

@@ -22,12 +22,15 @@ CORE_NAMES = ("knowledge", "harness", "benchmark", "apps")
 REGISTERED_RESIDUALS = (
     ("inferrsi.harness.skill_evaluation", "inferrsi.knowledge_operations"),
 )
-# New H entries. ``execution_service`` and ``run_store`` are labels; their
-# module paths join this tuple only when the accepted H design fixes them.
+# New H entries. ``execution_service`` and ``run_store`` are labels only.
+# A later H-design PR is expected to add their accepted module paths to this
+# tuple once that design fixes them; this package does not invent the paths.
 NEW_H_ENTRIES = ("inferrsi.harness.api",)
 # The P0a canonical encoder; the new K closure may use it and the data leaf.
 CANONICAL_ENCODER = "inferrsi._json_v1"
 # Names that load or build modules at run time. Any use fails closed.
+# P0b scans only these three spellings; getattr, exec, eval, runpy, and
+# pkgutil are intentionally out of scope here.
 DYNAMIC_IMPORT_NAMES = frozenset({"__import__", "import_module", "module_from_spec"})
 
 
@@ -162,6 +165,21 @@ class _Graph:
     edges: dict[str, set[str]]
 
 
+def _package_ancestors(name: str, modules: dict[str, Path]) -> set[str]:
+    """Parent packages whose ``__init__`` Python executes on this import.
+
+    The root ``inferrsi`` package init is excluded; it runs for every import
+    and is not a business edge.
+    """
+    parts = name.split(".")
+    found: set[str] = set()
+    for end in range(2, len(parts)):
+        parent = ".".join(parts[:end])
+        if parent in modules:
+            found.add(parent)
+    return found
+
+
 def _edges(tree: ast.Module, package: str, modules: dict[str, Path]) -> set[str]:
     """Resolved ``inferrsi.*`` targets of every import in one module."""
     found: set[str] = set()
@@ -173,8 +191,11 @@ def _edges(tree: ast.Module, package: str, modules: dict[str, Path]) -> set[str]
             for alias in node.names:
                 candidate = f"{base}.{alias.name}"
                 found.add(candidate if candidate in modules else base)
-    # The root package init runs for every import; it is not a business edge.
-    return {name for name in found if name.startswith("inferrsi.")}
+    resolved = {name for name in found if name.startswith("inferrsi.")}
+    ancestors: set[str] = set()
+    for name in resolved:
+        ancestors.update(_package_ancestors(name, modules))
+    return resolved | ancestors
 
 
 def _scan(root: Path, pairs: frozenset[tuple[str, str]]) -> _Graph:
@@ -450,35 +471,25 @@ def first_wave_report(
         for v in _closure_violations(name, graph, lambda node: _core_of(node) is not None)
     ]
 
-    def _is_residual_hit(start: str, message: str) -> bool:
-        """The registered residual, including mixed-harness reach through it.
-
-        A non-entry module may already import ``skill_evaluation`` (the current
-        tree does: ``harness.improvement``). That transitive leak is the
-        existing residual, not a new bypass. A path to the residual target
-        that does not go through the residual importer is a violation.
-        New H entries are not exempted here; they are walked separately.
-        """
+    def _without_residual(edges: dict[str, set[str]]) -> dict[str, set[str]]:
+        """Copy the graph with only the exact registered residual edges removed."""
+        trimmed = {name: set(targets) for name, targets in edges.items()}
         for importer, target in REGISTERED_RESIDUALS:
-            if not message.startswith(f"{start} reaches {target}:"):
-                continue
-            if start == importer:
-                return True
-            path = message.split(":", 1)[1]
-            parts = [part.strip() for part in path.split("->")]
-            if importer in parts:
-                return True
-        return False
+            if importer in trimmed:
+                trimmed[importer].discard(target)
+        return trimmed
 
-    # Non-entry harness modules are gated the same way as entries. The exact
-    # registered residual pair is listed separately and is not a violation.
+    # Non-entry harness modules are gated the same way as entries, but the
+    # exemption is reachability after removing only the exact residual edge.
+    # A second path to the residual target is still a violation. New H entries
+    # are walked on the full graph above and are not exempted.
+    residual_free = _Graph(graph.trees, graph.packages, _without_residual(graph.edges))
     declared = set(h_entries)
     harness_extra = [
         message
         for name in modules
         if _core_of(name) == "harness" and name not in declared
-        for message in _closure_violations(name, graph, h_entry_forbidden)
-        if not _is_residual_hit(name, message)
+        for message in _closure_violations(name, residual_free, h_entry_forbidden)
     ]
     violations += new_core + infra + harness_extra
 

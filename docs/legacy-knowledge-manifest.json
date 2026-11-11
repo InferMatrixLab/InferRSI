@@ -237,6 +237,7 @@
     "top_level_shape": "module docstring, a future import, the two symbols only, and no other business definitions or core imports",
     "original_fragment": {
       "description": "REPO_TYPES and repository_pack body from current catalog.py (lines 12, 171-175)",
+      "hash_convention": "fragment_sha256 is the SHA-256 of source plus one trailing newline",
       "fragment_sha256": "d425a85de7a49f4b3748f9b496d13722b82a8de2d2a9b0b50fa38b16cc32babb",
       "source": "REPO_TYPES = (\"vllm\", \"vllm_omni\", \"afd_plugin\", \"vllm_rlt\", \"strata\", \"sglang\", \"sglang_omni\")\n\n\ndef repository_pack(repo_type: str) -> dict[str, Any]:\n    if repo_type not in REPO_TYPES:\n        raise ValueError(f\"Unknown repository type: {repo_type}\")\n    path = files(\"inferrsi\").joinpath(\"data\", \"repo_packs\", repo_type, \"pack.json\")\n    return json.loads(path.read_text(encoding=\"utf-8\"))"
     }
