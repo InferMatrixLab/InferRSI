@@ -458,6 +458,34 @@ def _payload_errors(
     return errors
 
 
+
+def _payload_artifact_errors(
+    payload: Mapping, artifacts: list[tuple[dict, bytes | Path]], namespace: str
+) -> list[str]:
+    """Payload ArtifactRefs must belong to this store; available ones must have been retained."""
+    items = payload.get("artifacts")
+    if not isinstance(items, list):
+        return ["artifacts: must be a list"]
+    retained = [ref for ref, _ in artifacts]
+    errors: list[str] = []
+    for item in items:
+        if not isinstance(item, Mapping):
+            errors.append("artifacts: each observation must be an object")
+            continue
+        ref = item.get("artifact")
+        if ref is None:
+            if item.get("status") == "available":
+                errors.append("artifacts: available observation has no ArtifactRef")
+            continue
+        ref_errors = _object_ref_errors(ref, namespace)
+        errors.extend(ref_errors)
+        if ref_errors:
+            continue
+        if item.get("status") == "available" and ref not in retained:
+            errors.append("artifacts: available ArtifactRef was not retained")
+    return errors
+
+
 def _object_ref_errors(ref: object, namespace: str) -> list[str]:
     """Problems in an ArtifactRef that a commit is asked to retain as a store object."""
     if not _has_fields(ref, _ARTIFACT_REF_FIELDS) or not (
@@ -903,6 +931,7 @@ class Claim:
         errors = _payload_errors(payload, self.attempt, self.request_digest, version)
         for ref, _ in artifacts:
             errors.extend(_object_ref_errors(ref, self._store.namespace))
+        errors.extend(_payload_artifact_errors(payload, artifacts, self._store.namespace))
         if errors:
             raise ValueError(f"illegal record commit: {errors}")
         data = _json_v1.encode(payload)

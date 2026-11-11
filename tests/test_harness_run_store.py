@@ -331,7 +331,40 @@ def test_h01_6_new_h_closure_reaches_no_legacy_k_b_or_apps_module() -> None:
     assert result.returncode == 0, result.stderr
     loaded = set(json.loads(result.stdout))
     assert not [m for m in loaded if m.startswith(FORBIDDEN_PREFIXES)]
-    assert loaded == NEW_H_CLOSURE | PACKAGE_INIT_RESIDUE
+    # Keep the static graph exact. The runtime set may also include inferrsi._version
+    # when setuptools_scm has written the gitignored file after `pip install -e`.
+    allowed = NEW_H_CLOSURE | PACKAGE_INIT_RESIDUE | {"inferrsi._version"}
+    assert loaded <= allowed
+    assert NEW_H_CLOSURE | PACKAGE_INIT_RESIDUE <= loaded
+
+
+def test_commit_rejects_unbacked_or_foreign_artifact_refs(tmp_path: Path) -> None:
+    # A committed record must not claim status=available for bytes this store did not retain.
+    store = _store(tmp_path)
+    attempt = make_attempt()
+    digest = make_digest(attempt)
+    missing = run_store.artifact_ref(NAMESPACE, b"missing-bytes\n", ARTIFACT_MEDIA_TYPE)
+    retained = run_store.artifact_ref(NAMESPACE, ARTIFACT, ARTIFACT_MEDIA_TYPE)
+    foreign = run_store.artifact_ref("other-store", ARTIFACT, ARTIFACT_MEDIA_TYPE)
+
+    with store.claim(attempt, digest) as claim:
+        payload_a = make_payload(attempt, digest, 1, "finished", artifact_ref=missing)
+        with pytest.raises(ValueError, match="illegal record commit"):
+            claim.commit(payload_a)
+        payload_b = make_payload(attempt, digest, 1, "finished", artifact_ref=foreign)
+        with pytest.raises(ValueError, match="illegal record commit"):
+            claim.commit(payload_b)
+        payload_c = make_payload(attempt, digest, 1, "finished", artifact_ref=missing)
+        with pytest.raises(ValueError, match="illegal record commit"):
+            claim.commit(payload_c, [(retained, ARTIFACT)])
+        assert claim.latest_record_ref is None
+        assert _rows(store, "SELECT COUNT(*) FROM records") == [(0,)]
+        committed = claim.commit(
+            make_payload(attempt, digest, 1, "finished", artifact_ref=retained),
+            [(retained, ARTIFACT)],
+        )
+    assert committed.record_ref is not None
+    assert store.open(retained).read() == ARTIFACT
 
 
 def test_finished_replay_returns_the_original_record_and_starts_nothing(tmp_path: Path) -> None:
