@@ -133,10 +133,11 @@ inferrsi mindie query --input query.json
 inferrsi mindie explain --input explain.json
 ```
 
-The reader stores each call's `input.json`, `result.json` and `receipt.json`
-under `~/.config/inferrsi/mindie-projects/reads/<project-hash>/` and returns
-`receipt_directory`. Keep these receipts outside the source checkout; the
-caller does not select their location.
+The reader automatically stores receipts under
+`~/.config/inferrsi/mindie-projects/reads/<project-hash>/` and returns
+`receipt_directory` on success. Stored receipts contain `input.json` and
+`receipt.json`, plus `result.json` when a response was received. Keep these
+receipts outside the source checkout; the caller does not select their location.
 
 ### Associate reads with a candidate
 
