@@ -82,10 +82,10 @@ violation list is empty. It is not a permanent ban on reviewed exceptions.
 
 The gate scans `src/inferrsi/**` as the transfer graph. It resolves absolute,
 relative, and `from package import name` imports, includes the parent-package
-`__init__` that Python executes when a submodule is imported (except the root
-`inferrsi` package init, which runs for every import and is not a business
-edge), adds the manifest-declared export edges, and computes the transitive
-closure. A dynamic import (`__import__`, `importlib.import_module`, or
+`__init__` that Python executes when a submodule is imported, both for import
+targets and for the imported module itself (except the root `inferrsi`
+package init, which runs for every import and is not a business edge), adds
+the manifest-declared export edges, and computes the transitive closure. A dynamic import (`__import__`, `importlib.import_module`, or
 `module_from_spec`) inside a checked closure is an undeclared edge and fails
 closed. Other dynamic forms (`getattr`, `exec`, `eval`, `runpy`, `pkgutil`)
 are out of scope for this package. `tools/` and `tests/` are separate

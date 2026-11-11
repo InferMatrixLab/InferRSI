@@ -487,6 +487,99 @@ class HarnessEntryTest(unittest.TestCase):
                 )
                 self.assertEqual(report.residuals, (RESIDUAL,))
 
+    def test_h_entry_own_parent_init_is_walked(self) -> None:
+        # Importing a new H entry executes its package init even when the
+        # entry body has no imports. The entry still may not use the residual.
+        residual = {
+            "harness/skill_evaluation.py": (
+                "from ..knowledge_operations import KnowledgeReader\n"
+            ),
+            "harness/__init__.py": "from . import skill_evaluation\n",
+        }
+        expected = (
+            "inferrsi.harness.api reaches inferrsi.knowledge_operations: "
+            "inferrsi.harness.api -> inferrsi.harness -> "
+            "inferrsi.harness.skill_evaluation -> inferrsi.knowledge_operations"
+        )
+        isolated = _report({**residual, "harness/api.py": "VALUE = 1\n"})
+        self.assertIn(expected, isolated.violations)
+        self.assertFalse(isolated.new_core_closure_isolated)
+        self.assertEqual(isolated.residuals, (RESIDUAL,))
+        sibling = _report(
+            {
+                **residual,
+                "harness/util.py": "X = 1\n",
+                "harness/api.py": "from . import util\n",
+            }
+        )
+        self.assertIn(expected, sibling.violations)
+        self.assertFalse(sibling.new_core_closure_isolated)
+
+    def test_non_entry_may_use_residual_through_own_parent_init(self) -> None:
+        # A non-entry with no imports of its own may still reach the residual
+        # target through the package init and skill_evaluation only.
+        report = _report(
+            {
+                "harness/skill_evaluation.py": (
+                    "from ..knowledge_operations import KnowledgeReader\n"
+                ),
+                "harness/__init__.py": "from . import skill_evaluation\n",
+                "harness/runner.py": "VALUE = 1\n",
+                "harness/api.py": "VALUE = 1\n",
+            }
+        )
+        self.assertFalse(
+            _violated(
+                report,
+                "inferrsi.harness.runner reaches inferrsi.knowledge_operations",
+            ),
+            report.violations,
+        )
+        self.assertTrue(
+            _violated(
+                report,
+                "inferrsi.harness.api reaches inferrsi.knowledge_operations",
+            ),
+            report.violations,
+        )
+        self.assertEqual(report.residuals, (RESIDUAL,))
+
+    def test_core_submodule_walk_includes_own_package_init(self) -> None:
+        # Knowledge, benchmark, and apps package inits are already starts
+        # under the same core rule, so a leak in those inits was already
+        # detected from the package. Own-parent edges also attribute the
+        # path from a submodule that Python actually loaded.
+        cases = (
+            (
+                {
+                    "knowledge/__init__.py": "from inferrsi import catalog\n",
+                    "knowledge/catalog.py": "VALUE = 1\n",
+                },
+                "inferrsi.knowledge.catalog reaches inferrsi.catalog: "
+                "inferrsi.knowledge.catalog -> inferrsi.knowledge -> inferrsi.catalog",
+            ),
+            (
+                {
+                    "benchmark/__init__.py": "from inferrsi import catalog\n",
+                    "benchmark/probe.py": "VALUE = 1\n",
+                },
+                "inferrsi.benchmark.probe reaches inferrsi.catalog: "
+                "inferrsi.benchmark.probe -> inferrsi.benchmark -> inferrsi.catalog",
+            ),
+            (
+                {
+                    "apps/__init__.py": "from inferrsi import catalog\n",
+                    "apps/main.py": "VALUE = 1\n",
+                },
+                "inferrsi.apps.main reaches inferrsi.catalog: "
+                "inferrsi.apps.main -> inferrsi.apps -> inferrsi.catalog",
+            ),
+        )
+        for changes, expected in cases:
+            with self.subTest(expected=expected):
+                report = _report(changes)
+                self.assertIn(expected, report.violations, report.violations)
+
     def test_registered_residual_stays_listed_and_is_not_granted(self) -> None:
         residual = {
             "harness/skill_evaluation.py": "from ..knowledge_operations import KnowledgeReader\n"

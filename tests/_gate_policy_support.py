@@ -168,7 +168,8 @@ class _Graph:
 def _package_ancestors(name: str, modules: dict[str, Path]) -> set[str]:
     """Parent packages whose ``__init__`` Python executes on this import.
 
-    The root ``inferrsi`` package init is excluded; it runs for every import
+    Used both for import targets and for the imported module itself. The
+    root ``inferrsi`` package init is excluded; it runs for every import
     and is not a business edge.
     """
     parts = name.split(".")
@@ -207,6 +208,10 @@ def _scan(root: Path, pairs: frozenset[tuple[str, str]]) -> _Graph:
         for name, path in modules.items()
     }
     edges = {name: _edges(trees[name], packages[name], modules) for name in modules}
+    # Importing a module also executes its own parent package inits, even
+    # when the module body has no imports of its own.
+    for name in modules:
+        edges[name].update(_package_ancestors(name, modules))
     # A declared export edge counts once both ends exist, even if unwritten.
     for importer, target in pairs:
         if importer in modules and target in modules:
