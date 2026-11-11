@@ -1,6 +1,459 @@
 {
   "version": 1,
   "bundles": {
+    "h3-image-ascend": {
+      "kind": "campaign",
+      "manifests": [
+        {
+          "path": "export-manifest.json",
+          "schema": "bundle-sha256"
+        },
+        {
+          "path": "results/allgather4-local-bounds/source-manifest.json",
+          "schema": "historical-sha256",
+          "files": {
+            "tests/diffusion/attention/test_attention_sp.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "tests/diffusion/attention/test_flash_attn.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "tests/diffusion/attention/test_ulysses_a2a_permute.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "tests/platforms/npu/test_minimax_h3_image_graphs.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/diffusion/attention/backends/flash_attn.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/diffusion/attention/parallel/allgather_kv.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/diffusion/attention/parallel/factory.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/diffusion/distributed/a2a_permute.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/diffusion/distributed/ulysses_symmetric_memory_npu.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/diffusion/executor/multiproc_executor.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/diffusion/models/minimax_h3/minimax_h3_blocks.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/diffusion/models/minimax_h3/minimax_h3_transformer.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/platforms/npu/models/minimax_h3_image.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/platforms/npu/platform.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/platforms/npu/quant/minimax_h3_image.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            }
+          }
+        },
+        {
+          "path": "results/sp4-comm-fusion-init/source-manifest.json",
+          "schema": "historical-sha256",
+          "files": {
+            "tests/diffusion/attention/test_attention_sp.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "tests/diffusion/attention/test_flash_attn.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "tests/diffusion/attention/test_ulysses_a2a_permute.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "tests/diffusion/test_multiproc_engine_concurrency.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "tests/diffusion/test_npu_shutdown_grace.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "tests/platforms/npu/test_minimax_h3_image_graphs.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/diffusion/attention/backends/flash_attn.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/diffusion/attention/parallel/allgather_kv.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/diffusion/attention/parallel/factory.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/diffusion/distributed/a2a_permute.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/diffusion/distributed/ulysses_symmetric_memory_npu.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/diffusion/executor/multiproc_executor.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/diffusion/models/minimax_h3/minimax_h3_blocks.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/diffusion/models/minimax_h3/minimax_h3_transformer.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/platforms/npu/models/minimax_h3_comm_fusion.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/platforms/npu/models/minimax_h3_image.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/platforms/npu/platform.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/platforms/npu/quant/minimax_h3_image.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            }
+          }
+        },
+        {
+          "path": "results/sp4-output-fusion/source-manifest.json",
+          "schema": "historical-sha256",
+          "files": {
+            "tests/diffusion/attention/test_attention_sp.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "tests/diffusion/attention/test_flash_attn.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "tests/diffusion/attention/test_ulysses_a2a_permute.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "tests/diffusion/test_multiproc_engine_concurrency.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "tests/diffusion/test_npu_shutdown_grace.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "tests/platforms/npu/test_minimax_h3_image_graphs.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/diffusion/attention/backends/flash_attn.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/diffusion/attention/parallel/allgather_kv.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/diffusion/attention/parallel/factory.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/diffusion/distributed/a2a_permute.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/diffusion/distributed/ulysses_symmetric_memory_npu.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/diffusion/executor/multiproc_executor.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/diffusion/models/minimax_h3/minimax_h3_blocks.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/diffusion/models/minimax_h3/minimax_h3_transformer.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/platforms/npu/models/minimax_h3_comm_fusion.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/platforms/npu/models/minimax_h3_image.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/platforms/npu/platform.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/platforms/npu/quant/minimax_h3_image.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            }
+          }
+        },
+        {
+          "path": "results/sp4-shmem-batch8-fp16enc/source-manifest.json",
+          "schema": "historical-sha256",
+          "files": {
+            "tests/diffusion/attention/test_flash_attn.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "tests/diffusion/attention/test_ulysses_a2a_permute.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "tests/platforms/npu/test_minimax_h3_image_graphs.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/diffusion/attention/backends/flash_attn.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/diffusion/attention/parallel/factory.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/diffusion/distributed/a2a_permute.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/diffusion/distributed/ulysses_symmetric_memory_npu.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/diffusion/models/minimax_h3/minimax_h3_blocks.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/diffusion/models/minimax_h3/minimax_h3_transformer.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/platforms/npu/models/minimax_h3_image.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/platforms/npu/platform.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/platforms/npu/quant/minimax_h3_image.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            }
+          }
+        },
+        {
+          "path": "results/sp4-smoothquant/source-manifest.json",
+          "schema": "historical-sha256",
+          "files": {
+            "tests/diffusion/attention/test_flash_attn.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "tests/diffusion/attention/test_ulysses_a2a_permute.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "tests/platforms/npu/test_minimax_h3_image_graphs.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/diffusion/attention/backends/flash_attn.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/diffusion/attention/parallel/factory.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/diffusion/distributed/a2a_permute.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/diffusion/distributed/ulysses_symmetric_memory_npu.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/diffusion/models/minimax_h3/minimax_h3_blocks.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/diffusion/models/minimax_h3/minimax_h3_transformer.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/platforms/npu/models/minimax_h3_image.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/platforms/npu/platform.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/platforms/npu/quant/minimax_h3_image.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            }
+          }
+        },
+        {
+          "path": "results/sp4-static-adaln/source-manifest.json",
+          "schema": "historical-sha256",
+          "files": {
+            "tests/diffusion/attention/test_flash_attn.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "tests/diffusion/attention/test_ulysses_a2a_permute.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "tests/platforms/npu/test_minimax_h3_image_graphs.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/diffusion/attention/backends/flash_attn.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/diffusion/attention/parallel/factory.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/diffusion/distributed/a2a_permute.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/diffusion/distributed/ulysses_symmetric_memory_npu.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/diffusion/models/minimax_h3/minimax_h3_blocks.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/diffusion/models/minimax_h3/minimax_h3_transformer.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/platforms/npu/models/minimax_h3_image.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/platforms/npu/platform.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/platforms/npu/quant/minimax_h3_image.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            }
+          }
+        },
+        {
+          "path": "results/sp4-vae-batched-both/source-manifest.json",
+          "schema": "historical-sha256",
+          "files": {
+            "tests/diffusion/attention/test_attention_sp.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "tests/diffusion/attention/test_flash_attn.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "tests/diffusion/attention/test_ulysses_a2a_permute.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "tests/diffusion/test_multiproc_engine_concurrency.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "tests/diffusion/test_npu_shutdown_grace.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "tests/platforms/npu/test_minimax_h3_encoder_batch.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "tests/platforms/npu/test_minimax_h3_image_graphs.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/diffusion/attention/backends/flash_attn.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/diffusion/attention/parallel/allgather_kv.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/diffusion/attention/parallel/factory.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/diffusion/distributed/a2a_permute.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/diffusion/distributed/ulysses_symmetric_memory_npu.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/diffusion/executor/multiproc_executor.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/diffusion/models/minimax_h3/minimax_h3_blocks.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/diffusion/models/minimax_h3/minimax_h3_transformer.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/platforms/npu/models/minimax_h3_image.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/platforms/npu/platform.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/platforms/npu/quant/minimax_h3_image.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            }
+          }
+        },
+        {
+          "path": "results/sp4-vae-batched-both-quality/source-manifest.json",
+          "schema": "historical-sha256",
+          "files": {
+            "tests/diffusion/attention/test_attention_sp.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "tests/diffusion/attention/test_flash_attn.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "tests/diffusion/attention/test_ulysses_a2a_permute.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "tests/diffusion/test_multiproc_engine_concurrency.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "tests/diffusion/test_npu_shutdown_grace.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "tests/platforms/npu/test_minimax_h3_encoder_batch.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "tests/platforms/npu/test_minimax_h3_image_graphs.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/diffusion/attention/backends/flash_attn.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/diffusion/attention/parallel/allgather_kv.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/diffusion/attention/parallel/factory.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/diffusion/distributed/a2a_permute.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/diffusion/distributed/ulysses_symmetric_memory_npu.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/diffusion/executor/multiproc_executor.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/diffusion/models/minimax_h3/minimax_h3_blocks.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/diffusion/models/minimax_h3/minimax_h3_transformer.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/platforms/npu/models/minimax_h3_image.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/platforms/npu/platform.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/platforms/npu/quant/minimax_h3_image.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            }
+          }
+        },
+        {
+          "path": "results/sp4-vaebatch8/source-manifest.json",
+          "schema": "historical-sha256",
+          "files": {
+            "vllm_omni/platforms/npu/models/minimax_h3_image.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/diffusion/models/minimax_h3/minimax_h3_blocks.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            },
+            "vllm_omni/diffusion/models/minimax_h3/minimax_h3_transformer.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            }
+          }
+        },
+        {
+          "path": "results/sp4-w8a8/source-manifest.json",
+          "schema": "historical-sha256",
+          "files": {
+            "minimax_h3_quant.py": {
+              "external": "Historical experimental source snapshot retained locally; not included in this public export."
+            }
+          }
+        }
+      ],
+      "external": [
+        "Full-resolution output images, private host logs, profiler traces and historical experimental source snapshots remain outside this public export. Numerical image-quality scores cannot be independently recomputed from these artifacts alone."
+      ]
+    },
     "h3-ref2va-910c-4logical-20261101-297": {
       "kind": "campaign",
       "manifests": [
