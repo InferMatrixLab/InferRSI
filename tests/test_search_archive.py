@@ -105,6 +105,52 @@ def test_rg_numeric_body_prefix_is_not_an_invented_source_line(
     assert record["counts"]["used"] == 1
 
 
+@pytest.mark.parametrize(("command", "output", "ref", "line", "text"), [
+    ("rg -Hn needle 42", "42:1:needle\n", "42", 1, "needle"),
+    ("rg --with-filename --line-number needle 42", "42:1:needle\n", "42", 1, "needle"),
+    ("rg -H needle guide.md", "guide.md:guide.md:needle\n", "guide.md", None, "guide.md:needle"),
+    ("rg --with-filename needle guide.md", "guide.md:guide.md:needle\n",
+     "guide.md", None, "guide.md:needle"),
+])
+def test_rg_explicit_filename_preserves_numeric_names_and_body_prefixes(
+    tmp_path, command, output, ref, line, text,
+):
+    campaign = tmp_path / "campaign"
+    create_campaign(campaign, "example")
+    trace, corpus = tmp_path / "rollout.jsonl", tmp_path / "corpus"
+    _real_read_trace(trace, corpus, command=command, output=output)
+    inputs = {"number": 1, "trace": trace, "lines": [2, 5],
+              "knowledge_root": corpus, "complete": True}
+    use = _decision(ref=ref, event_line=3, decision_line=5, passage_line=42)
+    review = _review(tmp_path / "review.json", decisions=[use])
+    with pytest.raises(ValueError, match="exact delivered source passage"):
+        import_search(campaign, archive_review=review, **inputs)
+    review = _review(tmp_path / "review.json", decisions=[{**use, "passage_line": line}])
+    record = json.loads(import_search(campaign, archive_review=review, **inputs).read_text())
+    evidence, = record["materials"][ref]["evidence"]
+    assert (evidence["passage_line"], evidence["passage_text"]) == (line, text)
+    assert record["coverage"] == "complete" and record["counts"]["used"] == 1
+
+
+@pytest.mark.parametrize(("command", "output"), [
+    ("rg needle guide.md", "guide.md:needle\n"),
+    ("rg -n needle guide.md", "1:guide.md:needle\n"),
+    ("rg -n needle cases", "cases/a.md:1:needle\n"),
+])
+def test_rg_unknown_single_operand_type_cannot_attribute_a_body(tmp_path, command, output):
+    campaign = tmp_path / "campaign"
+    create_campaign(campaign, "example")
+    trace, corpus = tmp_path / "rollout.jsonl", tmp_path / "corpus"
+    _real_read_trace(trace, corpus, command=command, output=output)
+    review = _review(tmp_path / "review.json", decisions=[])
+    inputs = {"number": 1, "trace": trace, "lines": [2, 5],
+              "knowledge_root": corpus, "complete": True}
+    record = json.loads(import_search(campaign, archive_review=review, **inputs).read_text())
+    assert record["coverage"] == "partial" and record["counts"] is None
+    assert record["observed"]["used"] == 0 and not record["materials"]
+    assert record["events"][0]["delivery"]["passages"] == []
+
+
 @pytest.mark.parametrize("transformation", ["redacted", "root_normalized", "truncated"])
 def test_adoption_preserves_source_excerpt_transformations(tmp_path, transformation):
     campaign = tmp_path / "campaign"

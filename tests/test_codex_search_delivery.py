@@ -2,6 +2,8 @@
 
 import json
 
+import pytest
+
 from inferrsi.harness.codex_search import read_window
 
 
@@ -99,6 +101,23 @@ def test_archive_keeps_multiple_exact_matches_and_legacy_materials(tmp_path):
     assert "delivery" not in legacy_events[0] and legacy_events[0]["event_id"] == "exec-private-id"
     assert legacy_decisions == decisions
     assert legacy_uncertain == [] and legacy_details == []
+
+
+@pytest.mark.parametrize(("command", "output", "ref"), [
+    ("rg -n needle .", "./42:1:needle\n", "42"),
+    ("rg -n needle", "42:1:needle\n", "42"),
+    ("rg -n needle cases/", "cases/42:1:needle\n", "cases/42"),
+    ("rg -n needle 42 other.md", "42:1:needle\n", "42"),
+])
+def test_rg_known_directory_or_multiple_operands_have_filename_prefixes(
+    tmp_path, command, output, ref,
+):
+    corpus, trace = tmp_path / "knowledge", tmp_path / "rollout.jsonl"
+    _rollout(trace, _meta(corpus), _call(corpus, command, "call-search"),
+             _command(corpus, command, output, "search"), _result("call-search", output))
+    _, events, _, uncertain, _ = read_window(trace, (2, 4), corpus, archive=True)
+    assert not uncertain
+    assert events[0]["delivery"]["passages"] == [{"ref": ref, "line": 1, "text": "needle"}]
 
 
 def test_sed_late_selected_line_survives_bounded_default_excerpt(tmp_path):

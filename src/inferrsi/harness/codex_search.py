@@ -28,18 +28,18 @@ def _material(cwd: Path, name: str, corpus: Path) -> str | None:
     return None
 
 
-def _rg_args(args: list[str]) -> tuple[str, list[str], str, list[str]] | None:
+def _rg_args(args: list[str]) -> tuple[str, list[str], str, list[str], bool] | None:
     """Decode common text/filename rg output; decline options that change its meaning."""
     patterns, operands, options = [], [], []
     mode = "text"
-    context = numbered = False
+    context = numbered = force_filename = False
     it = iter(args)
     for arg in it:
         if arg == "--":
             operands.extend(it)
             break
         if arg == "--files":
-            return "", [], "inventory", []
+            return "", [], "inventory", [], False
         if arg in ("-e", "--regexp"):
             pattern = next(it, None)
             if pattern is None:
@@ -60,12 +60,16 @@ def _rg_args(args: list[str]) -> tuple[str, list[str], str, list[str]] | None:
             options.append(arg)
             if arg == "--line-number":
                 numbered = True
+            if arg == "--with-filename":
+                force_filename = True
         elif arg.startswith("-"):
             if not re.fullmatch(r"-[inSFwHs]+", arg):
                 return None
             options.append(arg)
             if "n" in arg:
                 numbered = True
+            if "H" in arg:
+                force_filename = True
         else:
             operands.append(arg)
     if not patterns and operands:
@@ -74,12 +78,13 @@ def _rg_args(args: list[str]) -> tuple[str, list[str], str, list[str]] | None:
         mode = "numbered_context" if numbered else "unnumbered_context"
     elif mode == "text" and numbered:
         mode = "numbered_text"
-    return (" | ".join(patterns), operands or ["."], mode, options) if patterns else None
+    return ((" | ".join(patterns), operands or ["."], mode, options, force_filename)
+            if patterns else None)
 
 
-def _rg_observations(output, cwd, corpus, scopes, mode):
+def _rg_observations(output, cwd, corpus, scopes, mode, with_filename):
     """Return parsed rg rows with their aggregate-output line indexes."""
-    if mode == "unnumbered_context":
+    if mode == "unnumbered_context" or (mode != "files" and not with_filename):
         return [], False
     observations = []
     scope_paths = [Path(os.path.normpath(cwd / scope)) for scope in scopes]
@@ -106,18 +111,14 @@ def _rg_observations(output, cwd, corpus, scopes, mode):
                     complete = False
                     continue
             numbered = mode in ("numbered_text", "numbered_context")
-            bare = re.match(r"^(\d+):(.*)$", line) if numbered else None
-            if bare and len(scope_paths) == 1 and scope_paths[0] != cwd:
-                path, number, text = str(scope_paths[0]), int(bare[1]), bare[2]
-            else:
-                pattern = r"^([^:]+):(\d+):(.*)$" if numbered else r"^([^:]+):(.*)$"
-                match = re.match(pattern, line)
-                if not match:
-                    complete = False
-                    continue
-                path = match[1]
-                number = int(match[2]) if numbered else None
-                text = match[3] if numbered else match[2]
+            pattern = r"^([^:]+):(\d+):(.*)$" if numbered else r"^([^:]+):(.*)$"
+            match = re.match(pattern, line)
+            if not match:
+                complete = False
+                continue
+            path = match[1]
+            number = int(match[2]) if numbered else None
+            text = match[3] if numbered else match[2]
         candidate = Path(os.path.normpath(cwd / path))
         if not any(candidate.is_relative_to(scope) for scope in scope_paths):
             complete = False
@@ -131,8 +132,8 @@ def _rg_observations(output, cwd, corpus, scopes, mode):
     return observations, complete
 
 
-def _rg_hits(output, cwd, corpus, scopes, mode):
-    observations, complete = _rg_observations(output, cwd, corpus, scopes, mode)
+def _rg_hits(output, cwd, corpus, scopes, mode, with_filename):
+    observations, complete = _rg_observations(output, cwd, corpus, scopes, mode, with_filename)
     hits = {}
     for observation in observations:
         hits.setdefault(observation["ref"], observation["line"])
@@ -174,24 +175,30 @@ def _command(item, corpus):
         parsed = _rg_args(argv[1:])
         if parsed is None:
             return None, False, None
-        query, scopes, mode, options = parsed
+        query, scopes, mode, options, force_filename = parsed
         if mode == "inventory":
             return None, True, None
         if any(re.search(r"[$\x60*?~{}\[]", value) for value in scopes):
             return None, False, None
         paths = [Path(os.path.normpath(cwd / value)) for value in scopes]
+        # Infer directory operands only from recorded coordinates or syntax,
+        # never the current filesystem or the apparent shape of matched text.
+        with_filename = force_filename or len(paths) > 1 or any(
+            scope.endswith("/") or cwd.is_relative_to(path) or corpus.is_relative_to(path)
+            for scope, path in zip(scopes, paths)
+        )
         scope_refs = ["." if path == corpus or corpus.is_relative_to(path)
                       else _material(cwd, str(path), corpus) for path in paths]
         if not any(scope_refs):
             return None, True, None
         materials, complete = [], code == 1
         if code == 0:
-            materials, complete = _rg_hits(output, cwd, corpus, scopes, mode)
+            materials, complete = _rg_hits(output, cwd, corpus, scopes, mode, with_filename)
         event = {"action": "search", "tool": tool, "query": _text(query),
                  "scope": [scope for scope in scope_refs if scope], "options": options,
                  "exit_code": code, "materials": materials}
         spec = {"kind": "search", "tool": tool, "cwd": cwd, "scopes": scopes,
-                "mode": mode}
+                "mode": mode, "with_filename": with_filename}
         return event, complete and (code != 0 or bool(materials)), spec
     if tool == "cat":
         names = argv[2:] if argv[1:2] == ["--"] else argv[1:]
@@ -295,7 +302,8 @@ def _delivery(event, spec, join, corpus, event_line, selections):
     candidates, refs = [], []
     if spec["kind"] == "search":
         observations, _ = _rg_observations(
-            "".join(aggregate_lines), spec["cwd"], corpus, spec["scopes"], spec["mode"]
+            "".join(aggregate_lines), spec["cwd"], corpus, spec["scopes"], spec["mode"],
+            spec["with_filename"],
         )
         for observation in observations:
             if observation["output_line"] not in visible_indexes:

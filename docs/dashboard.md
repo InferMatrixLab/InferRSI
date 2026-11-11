@@ -158,7 +158,12 @@ are distinct observations. A bare `collect` leaves no such capture.
 The importer reads Desktop `CommandExecution` events. It supports direct text
 or filename-match searches with `rg`, literal `cat`, `nl -ba` and `sed -n N,Mp`
 reads. Use `rg -Hn` for unambiguous filenames and matching lines. File results
-are corpus-relative. Without a line-number option, a numeric prefix such as
+are corpus-relative. `-H` / `--with-filename` establishes the filename prefix,
+including for numeric filenames. Without it, nonempty text output is attributed
+only when the recorded scopes establish directory search or multiple operands.
+If a single operand's file/directory type is unknown, the event stays incomplete;
+the importer does not infer its format from text that resembles a path or number.
+Without a line-number option, a numeric prefix such as
 `42:` remains part of the matched text, with no source line number inferred.
 A shell event establishes the command's recorded output;
 the outer agent tool may have displayed a shorter excerpt. The default local
