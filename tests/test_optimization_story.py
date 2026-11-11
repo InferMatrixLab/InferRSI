@@ -11,11 +11,11 @@ import pytest
 
 from inferrsi.cli import main
 from inferrsi.harness.campaign_records import create_campaign, record_candidate, record_decision
-from inferrsi.harness.dashboard import write_dashboard
-from inferrsi.harness.dashboard_data import load_dashboard
 from inferrsi.harness.knowledge_capture import capture_context, verify_capture
 from inferrsi.harness.optimization_log import LogError, parse_optimization_log, record_log
 from inferrsi.knowledge_operations import KnowledgeReader
+from inferrsi.observability.dashboard import write_dashboard
+from inferrsi.observability.dashboard_data import load_dashboard
 
 
 class FakeReader:
@@ -245,7 +245,7 @@ def test_summary_navigates_to_run_without_outcome_but_not_missing_runs(tmp_path)
         {"ref": "candidate:duplicate", "state": "ambiguous"},
     ])
 
-    template = Path(__file__).parents[1] / "src/inferrsi/data/dashboard/template.html"
+    template = Path(__file__).parents[1] / "src/inferrsi/observability/template.html"
     script = r"""
 const fs = require('node:fs'), assert = require('node:assert/strict');
 const data = JSON.parse(fs.readFileSync(0, 'utf8'));

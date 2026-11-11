@@ -970,7 +970,7 @@ def load_dashboard(source: Path) -> dict:
     if single:
         story = {"state": "not_applicable", "versions": []}
     else:
-        from .optimization_story import build_story
+        from ..harness.optimization_story import build_story
 
         story = build_story(root, rows, decisions, campaign.get("campaign_id"))
     collection = campaign.get("collection")

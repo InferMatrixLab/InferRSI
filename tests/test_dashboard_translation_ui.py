@@ -9,7 +9,7 @@ import pytest
 
 @pytest.mark.skipif(shutil.which("node") is None, reason="Node.js is needed for the UI regression")
 def test_translation_overlay_cannot_relabel_verdicts_or_evidence():
-    template = Path(__file__).parents[1] / "src/inferrsi/data/dashboard/template.html"
+    template = Path(__file__).parents[1] / "src/inferrsi/observability/template.html"
     script = r"""
 const fs = require('node:fs');
 const assert = require('node:assert/strict');
@@ -121,7 +121,7 @@ assert.equal(narrative.nodeValue, 'English explanation');
 
 @pytest.mark.skipif(shutil.which("node") is None, reason="Node.js is needed for the UI regression")
 def test_mixed_campaign_counts_native_and_external_failures_separately():
-    template = Path(__file__).parents[1] / "src/inferrsi/data/dashboard/template.html"
+    template = Path(__file__).parents[1] / "src/inferrsi/observability/template.html"
     script = r"""
 const fs=require('node:fs'), assert=require('node:assert/strict');
 const html=fs.readFileSync(process.argv[1],'utf8');

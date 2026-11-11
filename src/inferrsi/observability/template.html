@@ -47,6 +47,11 @@ main { max-width:1600px; margin:auto; padding:0 18px 28px; }
 .stage { flex:1 0 150px; text-align:left; background:var(--panel2); border:0; border-top:3px solid #566071; padding:8px 10px; }
 .stage.recorded { border-top-color:var(--green); } .stage.selected { box-shadow:inset 0 0 0 1px var(--blue); }
 .stage span { display:block; color:var(--muted); font-size:11px; margin-top:3px; }
+.stage.current { box-shadow:inset 0 0 0 1px var(--blue); border-top-color:var(--blue); }
+.stage.stage-failed { border-top-color:#ff9ba7; }
+.stage .stage-time { font-variant-numeric:tabular-nums; }
+.stage .stage-now { color:var(--blue); font-weight:600; }
+.stage .stage-log { color:#c9a227; }
 .columns { display:grid; grid-template-columns:minmax(0,2fr) minmax(320px,1fr); gap:8px; align-items:start; }
 .stack { display:grid; gap:8px; min-width:0; }
 .chart { padding:2px 8px 8px; overflow:auto; } .chart svg { width:100%; min-width:600px; height:auto; display:block; }
@@ -142,20 +147,28 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
 .review-heading, .change-note { display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; }
 .review-heading h2 { font-size:17px; margin:0; }
 .review-heading small, .change-note strong, .progress-card small { color:var(--muted); }
-.review-result { display:flex; flex-wrap:wrap; gap:12px 32px; margin:12px 0; }
+.review-verdict { display:flex; gap:10px; align-items:baseline; margin:10px 0 4px; padding:9px 12px; border-radius:3px; background:var(--panel2); border-inline-start:3px solid var(--muted); }
+.review-verdict.good { border-inline-start-color:var(--green); }
+.review-verdict.bad { border-inline-start-color:#ff9ba7; }
+.review-verdict.warn { border-inline-start-color:#e0b062; }
+.review-verdict p { margin:0; overflow-wrap:anywhere; }
+.review-result { display:flex; flex-wrap:wrap; gap:12px 32px; margin:10px 0 4px; }
 .review-result small { display:block; color:var(--muted); }
-.review-result strong { font-size:16px; }
+.review-result strong { font-size:16px; font-variant-numeric:tabular-nums; }
+.review-result strong small { display:inline; font-size:12px; margin-inline-start:6px; }
 .change-note { margin:8px 0 14px; overflow-wrap:anywhere; }
-.test-progress { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr)); gap:12px; }
+.test-progress { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr)); gap:12px; margin-top:12px; }
 .progress-card { padding:10px 14px; background:var(--panel2); border-radius:3px; }
-.progress-card div { display:flex; justify-content:space-between; align-items:baseline; }
+.progress-card div { display:flex; justify-content:space-between; align-items:baseline; gap:10px; }
 .progress-state, .progress-card small { font-size:12px; }
-.progress-card small { margin-inline-start:12px; }
+.progress-card small { display:block; margin-top:4px; }
 .progress-card progress { display:block; width:100%; height:7px; margin:8px 0; accent-color:#75b6ae; }
 .node-list { overflow:auto; max-height:25em; margin-top:12px; font-variant-numeric:tabular-nums; }
 .node-list th { position:sticky; top:0; }
 .node-list .work-running td:first-child { border-inline-start:3px solid var(--blue); }
 .node-list .work-failed td:nth-child(2), .node-list .work-timeout td:nth-child(2) { color:#ff9ba7; }
+.node-list td:last-child { text-align:end; white-space:nowrap; }
+@media (max-width:900px) { .review-verdict { flex-direction:column; gap:2px; } .review-result { gap:10px 20px; } }
 </style>
 </head>
 <body>
@@ -242,6 +255,13 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
   const chinese = {
     'samples':'个样本','cases':'个用例','manifests':'份清单','trials':'次试验','checks':'项检查','Total unknown':'总数未知','Source records':'原始记录','Review the failed check':'查看失败的检查','Below target':'未达目标',
     'Run review':'本轮记录','What changed':'本轮改动','Performance tests':'性能测试','Accuracy check':'精度检查',
+    'Outcome':'结论','Open event':'打开事件','events':'事件','Span':'跨度','Current':'当前',
+    'Latency fell':'延迟下降','Latency rose':'延迟上升','short of the':'未达到','target':'目标',
+    'Log':'日志','hypotheses':'条假设','retrievals':'次检索','verified':'已校验','dimensions':'个维度','options':'个选项',
+    'No capture recorded':'未记录知识采集',
+    'the accuracy check passed':'精度检查通过','the accuracy check failed':'精度检查未通过',
+    'accuracy was not recorded':'精度检查未记录','the round adopted this candidate':'本轮采纳了该方案',
+    'the round rejected this candidate':'本轮拒绝该方案','the change was rolled back':'改动已回滚',
     'Record source revisions':'记录代码版本','Trial':'试验','Step':'步骤','Elapsed':'耗时','Trace':'追溯',
     'Started (UTC)':'开始 (UTC)','Finished (UTC)':'结束 (UTC)','Record incomplete':'记录不完整',
     'Count unavailable':'完成数未知','not configured':'未配置','No checks configured':'未配置检查',
@@ -607,7 +627,54 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
   }
   function duration(seconds) {
     if(seconds == null || seconds < 0) return translated('Not recorded');
+    if(language === 'zh'){
+      if(seconds < 60) return seconds.toFixed(1)+' 秒';
+      const minutes=Math.floor(seconds/60), rest=Math.floor(seconds%60);
+      return rest ? `${minutes} 分 ${rest} 秒` : `${minutes} 分`;
+    }
     return seconds < 60 ? seconds.toFixed(1)+' s' : Math.floor(seconds/60)+' min '+Math.floor(seconds%60)+' s';
+  }
+  // A reviewer reads a measurement, not a float. Keep three decimals under ten
+  // seconds, fewer above, so a 5.408599 s baseline reads as 5.409 s.
+  function reading(number, unit) {
+    if(typeof number !== 'number' || !Number.isFinite(number)) return translated('Not recorded');
+    const size = Math.abs(number), digits = size >= 100 ? 0 : size >= 10 ? 1 : size >= 1 ? 3 : 4;
+    return number.toFixed(digits) + (unit ? ' '+unit : '');
+  }
+  // The recorded outcome of the attempt, taken from the caller's trace. It is the
+  // sentence a reviewer wants: why this round stopped, not which flag was set.
+  function attemptResult(row) {
+    const steps = row?.optimization_trace?.steps;
+    if(!steps || steps.state !== 'present' || !Array.isArray(steps.items)) return null;
+    const attempt = steps.items.find(step => step.kind === 'attempt');
+    const text = attempt && typeof attempt.result === 'string' ? attempt.result.trim() : '';
+    return text && text !== 'Not recorded' ? text : null;
+  }
+  // One sentence that states what happened, joining the measured gain, the
+  // quality result and the round decision. The separate verdict and quality
+  // fields stay visible below; this line exists so nobody reads a bare "FAIL"
+  // next to a green "passed" and concludes the numbers contradict each other.
+  function outcomeSentence(row) {
+    const parts = [];
+    if(row.improvement_pct !== null && row.improvement_pct !== undefined){
+      const target = row.minimum_improvement_pct;
+      const gain = `${translated(row.improvement_pct >= 0 ? 'Latency fell' : 'Latency rose')} ${Math.abs(row.improvement_pct).toFixed(1)}%`;
+      parts.push(target !== null && target !== undefined && row.improvement_pct < target
+        ? `${gain}，${translated('short of the')} ${target.toFixed(1)}% ${translated('target')}`
+        : gain);
+    }
+    if(row.quality === 'passed') parts.push(translated('the accuracy check passed'));
+    else if(row.quality === 'failed') parts.push(translated('the accuracy check failed'));
+    else parts.push(translated('accuracy was not recorded'));
+    if(row.decision === 'adopted') parts.push(translated('the round adopted this candidate'));
+    else if(row.decision === 'rejected') parts.push(translated('the round rejected this candidate'));
+    else if(row.decision === 'rolled_back') parts.push(translated('the change was rolled back'));
+    return parts.join(language === 'zh' ? '，' : ', ') + (language === 'zh' ? '。' : '.');
+  }
+  function outcomeTone(row) {
+    if(row.quality === 'failed' || row.state === 'failed' || row.state === 'crashed') return 'bad';
+    if(row.decision === 'adopted' && (row.minimum_improvement_pct === null || row.improvement_pct >= row.minimum_improvement_pct)) return 'good';
+    return 'warn';
   }
   function jumpToEvent(source,line) {
     stageSelect.value=''; byId('trace-search').value=''; byId('trace-source').value='';
@@ -621,21 +688,30 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
     root.hidden=!row?.run_id;
     if(root.hidden)return;
     const heading=node('div',undefined,'review-heading');
-    heading.append(node('h2','Run review'),narrativeNode('strong',row.title),node('span',stateName(row.state)));
+    heading.append(node('h2','Run review'),narrativeNode('strong',row.title),pill(row.decision || row.state));
     if(row.round!==null)heading.append(node('small',translated('Round')+' '+row.round));
     root.appendChild(heading);
     const summary=node('div',undefined,'change-note');
     summary.append(node('strong','What changed'),narrativeNode('span',row.optimization.summary));
     root.appendChild(summary);
+    // Lead with the recorded outcome in words. A "FAIL" badge beside "Quality
+    // passed" is true but reads as a contradiction unless the gain-versus-target
+    // relationship is stated once, plainly.
+    const verdict=node('div',undefined,`review-verdict ${outcomeTone(row)}`);
+    const changed=attemptResult(row);
+    verdict.append(node('strong',translated('Outcome')),narrativeNode('p',changed || outcomeSentence(row)));
+    root.appendChild(verdict);
     if(row.baseline_median!==null && row.candidate_median!==null){
       const result=node('div',undefined,'review-result');
-      const values=[[translated('Baseline'),measurement(row.baseline_median)+' '+row.metric_unit],
-        [translated('Candidate'),measurement(row.candidate_median)+' '+row.metric_unit],
-        [translated('Gain'),value(row.improvement_pct,'%')],[translated('Quality'),translated(row.quality)],
-        [translated('Verdict'),translated(row.verdict)]];
-      for(const [label,text] of values){const field=node('span');field.append(node('small',label),node('strong',text));result.appendChild(field);}
-      if(row.minimum_improvement_pct!==null && row.improvement_pct!==null && row.improvement_pct<row.minimum_improvement_pct){
-        result.appendChild(node('span',translated('Below target')+' · '+value(row.minimum_improvement_pct,'%'),'hint'));
+      const unit=row.metric_unit || '';
+      const values=[[translated('Baseline'),reading(row.baseline_median),unit],
+        [translated('Candidate'),reading(row.candidate_median),unit],
+        [translated('Gain'),value(row.improvement_pct,'%'),row.minimum_improvement_pct!==null?translated('Target')+' '+value(row.minimum_improvement_pct,'%'):''],
+        [translated('Quality'),translated(row.quality),''],[translated('Verdict'),translated(row.verdict),'']];
+      for(const [label,text,note] of values){
+        const field=node('span');field.append(node('small',label),node('strong',text));
+        if(note)field.lastChild.append(node('small',note));
+        result.appendChild(field);
       }
       const failed=row.run_workflow.nodes.find(n=>n.kind==='quality_validation' && n.state==='failed');
       if(failed){
@@ -676,8 +752,12 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
       for(const time of [n.start,n.end]){const cell=node('td',clock(time));if(time)cell.title=time;tr.appendChild(cell);}
       const elapsed=node('td',duration(n.seconds));
       if(n.state==='running' && clock(n.start)!=='—')elapsed.dataset.started=n.start;
-      const action=node('td'),btn=node('button','events:'+n.line);
-      btn.type='button';btn.addEventListener('click',()=>jumpToEvent('events',n.line));
+      // Name the destination. "events:12" is the file line a maintainer greps;
+      // it is not the label a reviewer is looking for.
+      const action=node('td'),btn=node('button',translated('Open event'));
+      btn.type='button';btn.title=`events:${n.line}`;
+      btn.setAttribute('aria-label',`${translated('Open event')} · events:${n.line}`);
+      btn.addEventListener('click',()=>jumpToEvent('events',n.line));
       action.appendChild(btn);tr.append(elapsed,action);table.appendChild(tr);
     }
     list.appendChild(table);root.appendChild(list);refreshElapsed();
@@ -701,13 +781,67 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
     return translated(labels[event.type || phase] || event.type || phase || 'unclassified event');
   }
 
+  // Per-stage facts a reader can act on: how many recorded events landed in
+  // the stage, which rounds touched it, and the span from its earliest start to
+  // its latest recorded time. Spans are elapsed wall-clock, never a sum of
+  // concurrent nodes, and are withheld when any timestamp is missing.
+  function stageFacts() {
+    const facts={};
+    for(const stage of data.stages) facts[stage.name]={events:0,rounds:new Set(),first:null,last:null,failed:false,open:false};
+    for(const row of data.candidates){
+      for(const event of row.events||[]){
+        const fact=facts[event.stage]; if(!fact)continue;
+        fact.events++;
+        if(row.round!==null)fact.rounds.add(row.round);
+        const t=event.time && Number.isFinite(Date.parse(event.time)) ? Date.parse(event.time) : null;
+        if(t!==null){ if(fact.first===null||t<fact.first)fact.first=t; if(fact.last===null||t>fact.last)fact.last=t; }
+        const state=event.details && event.details.state;
+        if(state==='failed'||state==='error'||state==='timeout')fact.failed=true;
+        if(state==='running'&&row.state==='running')fact.open=true;
+      }
+    }
+    return facts;
+  }
+  // What the campaign log says about a stage, kept separate from runner events.
+  // A log is caller narrative: it can show the search rationale and the round a
+  // node belongs to, but it never upgrades a stage to "recorded".
+  function logFacts() {
+    const story=data.story||{}, facts={};
+    const dims=(story.search_space||{}).dimensions||[], iterations=story.iterations||[];
+    const retrievals=story.retrievals||[];
+    if(iterations.length) facts.diagnosis=`${iterations.length} ${translated('hypotheses')} · ${translated('Rounds')} ${iterations.map(i=>i.round).join(', ')}`;
+    facts.knowledge=retrievals.length
+      ? `${retrievals.length} ${translated('retrievals')} · ${retrievals.filter(r=>r.state==='verified').length} ${translated('verified')}`
+      : translated('No capture recorded');
+    if(dims.length){
+      const options=dims.reduce((n,d)=>n+d.options.length,0);
+      facts.search=`${dims.length} ${translated('dimensions')} · ${options} ${translated('options')}`;
+    }
+    return facts;
+  }
   function renderWorkflow() {
     const root=byId('workflow'); clear(root);
+    const facts=stageFacts(), logged=logFacts();
+    const here=stageSelect.value || (data.candidates[selected]?.state==='running'
+      ? (data.candidates[selected].events.find(e=>e.details?.state==='running')||{}).stage : null);
     for(const [index,stage] of data.stages.entries()){
-      const button=node('button',undefined,`stage ${stage.state === 'recorded' ? 'recorded' : ''} ${stageSelect.value === stage.name ? 'selected' : ''}`);
+      const fact=facts[stage.name], note=logged[stage.name];
+      const button=node('button',undefined,`stage ${stage.state === 'recorded' ? 'recorded' : ''} ${stageSelect.value === stage.name ? 'selected' : ''}${here===stage.name?' current':''}${fact.failed?' stage-failed':''}`);
       button.type='button'; button.setAttribute('aria-pressed',String(stageSelect.value === stage.name));
       button.appendChild(node('strong',`${index+1} ${stageNames[stage.name]}`));
-      button.appendChild(node('span',stage.state.replaceAll('_',' ')));
+      let line;
+      if(stage.state!=='recorded') line=translated(stage.state.replaceAll('_',' '));
+      else if(fact.events) line=`${fact.events} ${translated('events')}${fact.rounds.size?` · ${translated('Rounds')} ${[...fact.rounds].sort((a,b)=>a-b).join(', ')}`:''}`;
+      else line=translated('recorded');
+      button.appendChild(node('span',line));
+      if(fact.events&&fact.first!==null&&fact.last!==null){
+        button.appendChild(node('span',translated('Span')+' '+duration((fact.last-fact.first)/1000),'stage-time'));
+      }
+      // Say where the log speaks even when no runner event did, so a reader
+      // knows the difference between "no search happened" and "the search was
+      // written down but not executed as a tracked runner command".
+      if(!fact.events&&note)button.appendChild(node('span',translated('Log')+' · '+note,'stage-log'));
+      if(here===stage.name)button.appendChild(node('span',translated('Current'),'stage-now'));
       button.addEventListener('click',()=>{jumpNotice='';stageSelect.value=stageSelect.value === stage.name ? '' : stage.name;render();}); root.appendChild(button);
     }
   }

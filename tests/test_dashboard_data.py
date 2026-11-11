@@ -7,10 +7,10 @@ from pathlib import Path
 
 import pytest
 
-from inferrsi.harness import dashboard_data
-from inferrsi.harness.dashboard import _bounded_chain, _chart, _round_trend, write_dashboard
-from inferrsi.harness.dashboard_data import load_dashboard
-from inferrsi.harness.dashboard_timeline import temporal_chart
+from inferrsi.observability import dashboard_data
+from inferrsi.observability.dashboard import _bounded_chain, _chart, _round_trend, write_dashboard
+from inferrsi.observability.dashboard_data import load_dashboard
+from inferrsi.observability.dashboard_timeline import temporal_chart
 
 
 def write_json(path: Path, value: dict) -> None:
@@ -653,7 +653,7 @@ def test_extreme_branch_chart_scale_is_withheld_before_rendering(tmp_path, monke
     def fail_render(_spec):
         pytest.fail("unbounded values reached the shared renderer")
 
-    monkeypatch.setattr("inferrsi.harness.dashboard.build_svg", fail_render)
+    monkeypatch.setattr("inferrsi.observability.dashboard.build_svg", fail_render)
     svg, note = _chart(tmp_path, load_dashboard(tmp_path))
 
     assert svg == ""

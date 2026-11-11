@@ -291,7 +291,7 @@ def render_dashboard(snapshot: dict, *, live: bool = False) -> str:
     payload = (payload.replace("&", "\\u0026").replace("<", "\\u003c")
                .replace(">", "\\u003e").replace("\u2028", "\\u2028")
                .replace("\u2029", "\\u2029"))
-    template = files("inferrsi").joinpath("data", "dashboard", "template.html").read_text(
+    template = files("inferrsi").joinpath("observability", "template.html").read_text(
         encoding="utf-8"
     )
     if live:

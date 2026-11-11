@@ -2,7 +2,7 @@
 
 import json
 
-from inferrsi.harness.dashboard_data import load_dashboard
+from inferrsi.observability.dashboard_data import load_dashboard
 
 
 def test_live_workflow_replay(tmp_path):
@@ -110,7 +110,7 @@ def test_validator_counts_and_legacy_trace(tmp_path):
 
 
 def test_provider_events_share_activity_without_exporting_payload(tmp_path):
-    from inferrsi.harness.dashboard_data import _events
+    from inferrsi.observability.dashboard_data import _events
 
     path = tmp_path / "events.jsonl"
     path.write_text(

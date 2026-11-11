@@ -7,11 +7,12 @@ from pathlib import Path
 import pytest
 
 from inferrsi.cli import main
-from inferrsi.harness import campaign_records, optimization_trace
+from inferrsi.harness import campaign_records
 from inferrsi.harness.campaign_records import create_campaign, record_candidate
-from inferrsi.harness.dashboard import write_dashboard
-from inferrsi.harness.dashboard_data import load_dashboard
-from inferrsi.harness.optimization_trace import (
+from inferrsi.observability import optimization_trace
+from inferrsi.observability.dashboard import write_dashboard
+from inferrsi.observability.dashboard_data import load_dashboard
+from inferrsi.observability.optimization_trace import (
     MAX_OPTIMIZATION_TRACE_BYTES,
     TraceError,
     parse_optimization_trace,
