@@ -1,5 +1,6 @@
-"""Project a single run's paired command events into reviewable work units."""
+"""Project one run's phase starts, optional ends and command evidence into work units."""
 
+import sys
 from datetime import datetime
 
 
@@ -14,7 +15,20 @@ def _timestamp(value):
     return None
 
 
-def run_workflow(events: list[dict], lock: dict, run_state: str) -> dict:
+def command_state(record: dict) -> tuple[str, float | None]:
+    state, code = record.get("status"), record.get("returncode")
+    if (state not in ("completed", "failed", "timeout", "cancelled", "crashed", "error")
+            or (state == "completed" and (type(code) is not int or code != 0))
+            or (state == "failed" and (type(code) is not int or code == 0))):
+        return "unknown", None
+    seconds = record.get("elapsed_seconds")
+    if type(seconds) not in (int, float) or not 0 <= seconds <= sys.float_info.max:
+        seconds = None
+    return state, seconds
+
+
+def run_workflow(events: list[dict], lock: dict, run_state: str,
+                 active_phase: str | None, native: dict) -> dict:
     # Runner node identity is local to one run. A new run is a new attempt.
     pairs = {}
     for event in events:
@@ -34,15 +48,21 @@ def run_workflow(events: list[dict], lock: dict, run_state: str) -> dict:
             pair["conflict"] = True
 
     nodes = []
+    latest_line = max((event["line"] for event in events), default=None)
     for (kind, side, trial), pair in pairs.items():
         start, end = pair.get("start", {}), pair.get("end", {})
         state = end.get("details", {}).get("state", "unknown")
-        if pair.get("conflict"):
-            state = "unknown"
-        elif (
-            not end
-            and run_state == "running"
-            and start.get("details", {}).get("state") == "running"
+        seconds = end.get("details", {}).get("elapsed_seconds")
+        duration_source = "phase"
+        command = native.get((kind, side, trial))
+        if pair.get("conflict") or (end and command and command[0] not in ("unknown", state)):
+            state, seconds = "unknown", None
+        elif not end and command:
+            state, seconds = command
+            duration_source = "command"
+        elif not end and run_state == "running" and (
+            start.get("details", {}).get("state") == "running"
+            or (active_phase == kind and start["line"] == latest_line)
         ):
             state = "running"
         nodes.append(
@@ -53,9 +73,8 @@ def run_workflow(events: list[dict], lock: dict, run_state: str) -> dict:
                 "state": state,
                 "start": start.get("time"),
                 "end": end.get("time"),
-                "seconds": None
-                if pair.get("conflict")
-                else end.get("details", {}).get("elapsed_seconds"),
+                "seconds": seconds,
+                "duration_source": duration_source if seconds is not None else None,
                 "line": (end or start)["line"],
             }
         )
@@ -73,11 +92,11 @@ def run_workflow(events: list[dict], lock: dict, run_state: str) -> dict:
             state = "unknown"
         elif not work and total == 0:
             state = "not_configured"
-        elif states.intersection({"failed", "error", "timeout", "cancelled"}):
+        elif states.intersection({"failed", "error", "timeout", "cancelled", "crashed"}):
             state = next(
                 n["state"]
                 for n in work
-                if n["state"] in {"failed", "error", "timeout", "cancelled"}
+                if n["state"] in {"failed", "error", "timeout", "cancelled", "crashed"}
             )
         elif "running" in states:
             state = "running"
@@ -112,8 +131,10 @@ def run_workflow(events: list[dict], lock: dict, run_state: str) -> dict:
     return {"nodes": nodes, "groups": groups}
 
 
-def validation_progress(record: dict) -> dict | None:
+def validation_progress(record: object) -> dict | None:
     """Read only aggregate counters from a validator-owned snapshot."""
+    if not isinstance(record, dict):
+        return None
     unit = record.get("unit")
     done, total = record.get("completed"), record.get("total")
     if (unit not in ("samples", "cases", "manifests")

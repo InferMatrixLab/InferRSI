@@ -7,6 +7,100 @@ from pathlib import Path
 import pytest
 
 
+@pytest.mark.skipif(shutil.which("node") is None, reason="Node.js is needed for the UI regression")
+def test_round_outcome_and_stage_strip_follow_recorded_evidence():
+    template = Path(__file__).parents[1] / "src/inferrsi/observability/template.html"
+    script = r"""
+const fs=require('node:fs'),assert=require('node:assert/strict');
+const html=fs.readFileSync(process.argv[1],'utf8');
+const source=html.slice(html.indexOf('  function duration('),
+                        html.indexOf('  function outcomeTone('))+
+             html.slice(html.indexOf('  function stageFacts('),
+                        html.indexOf('  function logFacts('));
+const events=[
+  {line:1,source:'events',stage:'execution',time:'2026-01-01T00:00:01Z',details:{state:'running'}},
+  {line:2,source:'events',stage:'execution',time:'2026-01-01T00:00:02Z'},
+  {line:3,source:'events',stage:'validation',time:'2026-01-01T00:00:03Z'},
+  {line:3,source:'agent_trace',stage:'diagnosis',time:'2026-01-01T00:00:03Z'},
+  {line:4,source:'events',stage:'review',time:null,phase:'crashed'},
+  {line:5,source:'events',stage:'review',time:'2026-01-01T00:00:04Z'}];
+const row={state:'running',round:1,events,run_workflow:{nodes:[
+  {line:1,state:'completed'},{line:3,state:'running'}]}};
+const data={stages:['execution','validation','diagnosis','review'].map(name=>({name})),
+            candidates:[row]};
+const api=new Function('data','language','translated',source+
+  '\nreturn {attemptResult,outcomeSentence,stageFacts,workDuration};')(data,'en',s=>s);
+assert.equal(api.workDuration({seconds:2,duration_source:'command'}),'Command duration · 2.0 s');
+assert.equal(api.workDuration({seconds:3,duration_source:'phase'}),'Phase duration · 3.0 s');
+for(const state of ['complete','partial']){
+  const items=[{kind:'observation',result:'not an attempt'},
+    {kind:'attempt',result:'first'},{kind:'attempt',result:'final result'},
+    {kind:'attempt',result:''}];
+  assert.equal(api.attemptResult({optimization_trace:{steps:{state,items}}}),'final result');
+}
+const result={direction:'maximize',metric_key:'throughput',improvement_pct:5,
+  minimum_improvement_pct:10,quality:'passed',decision:'rejected'};
+assert.equal(api.outcomeSentence(result),
+  'Throughput rose 5.0%, short of the 10.0% target, the accuracy check passed, '+
+  'the round rejected this candidate.');
+assert(api.outcomeSentence({...result,metric_key:'joules',direction:'minimize'}).
+  startsWith('joules fell 5.0%,'));
+assert(api.outcomeSentence({...result,improvement_pct:-1}).startsWith('Throughput fell 1.0%,'));
+assert(api.outcomeSentence({...result,improvement_pct:0}).startsWith('Throughput was unchanged,'));
+const facts=api.stageFacts();
+assert.equal(facts.execution.open,false);assert.equal(facts.execution.untimed,false);
+assert.equal(facts.validation.open,true);assert.equal(facts.diagnosis.open,false);
+assert.equal(facts.review.failed,true);assert.equal(facts.review.untimed,true);
+const strip=html.slice(html.indexOf('  function renderWorkflow('),
+                      html.indexOf('  function renderRows('));
+const node=(tag,text,cls)=>({text,cls,children:[],setAttribute(){},addEventListener(){},
+  appendChild(n){this.children.push(n);}});
+const root=node('div');
+const deps={byId:()=>root,clear:()=>{},stageFacts:api.stageFacts,logFacts:()=>({}),data,
+  stageSelect:{value:'diagnosis'},node,stageNames:{},translated:s=>s,duration:s=>s};
+data.stages.forEach(s=>s.state='recorded');
+new Function(...Object.keys(deps),strip+'\nrenderWorkflow();')(...Object.values(deps));
+const [execution,validation,diagnosis,review]=root.children;
+assert(!execution.cls.includes('current'));assert(validation.cls.includes('current'));
+assert(diagnosis.cls.includes('selected') && !diagnosis.cls.includes('current'));
+assert(review.cls.includes('stage-failed'));assert(!review.children.some(n=>n.cls==='stage-time'));
+row.state='crashed';row.run_workflow.nodes[1].state='failed';
+const ended=api.stageFacts();assert.equal(ended.validation.open,false);
+assert.equal(ended.validation.failed,true);assert.equal(ended.diagnosis.failed,false);
+"""
+    subprocess.run([shutil.which("node"), "-e", script, str(template)], check=True,
+                   capture_output=True, text=True)
+
+
+@pytest.mark.skipif(shutil.which("node") is None, reason="Node.js is needed for the UI regression")
+def test_profile_reader_matches_baseline_and_keeps_unavailable_capture_ids():
+    template = Path(__file__).parents[1] / "src/inferrsi/observability/review_template.html"
+    script = r"""
+const fs=require('node:fs'),assert=require('node:assert/strict');
+const html=fs.readFileSync(process.argv[1],'utf8');
+const source=html.slice(html.indexOf('function renderCaptures('),
+                        html.indexOf('function render(){'));
+const box={replaceChildren(){}},section={},log=[],calls=[];
+const data={profile_captures:[],unavailable_profiles:['missing','changed']};
+const run=new Function('data','timelineDraws','byId','timeline','p','tr',
+  source+'\nreturn renderCaptures;')(data,new Map(),id=>id==='captures'?box:section,
+  (_,c,b)=>calls.push([c.id,b?.id]),(_,text)=>log.push(text),(zh,en)=>en);
+run(new Set());assert.equal(section.hidden,false);assert.equal(log.length,2);
+assert(log[0].startsWith('missing ·'));assert(log[1].startsWith('changed ·'));
+data.unavailable_profiles=[];run(new Set());assert.equal(section.hidden,true);
+function cap(id,phase,comparison_key){
+  return {id,phase,comparison_key,duration_us:1,source:{sha256:'a'.repeat(64)},tracks:[{}]};
+}
+data.profile_captures=[cap('base-a','baseline','a'),cap('base-b','baseline','b'),
+  cap('test','candidate','b')];
+run(new Set());assert.deepEqual(calls.at(-1),['test','base-b']);
+data.profile_captures.unshift(cap('ambiguous','baseline','b'));
+run(new Set());assert.deepEqual(calls.at(-1),['test',undefined]);
+"""
+    subprocess.run([shutil.which("node"), "-e", script, str(template)], check=True,
+                   capture_output=True, text=True)
+
+
 @pytest.mark.skipif(shutil.which("node") is None, reason="Node.js is needed for trace decoding")
 def test_full_profile_reader_checks_original_bytes_and_tracks_overlapping_events():
     template = Path(__file__).parents[1] / "src/inferrsi/observability/review_template.html"

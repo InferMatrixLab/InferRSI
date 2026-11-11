@@ -98,10 +98,8 @@ def indexed_skill(record: dict, view: dict, content: dict[str, bytes]) -> tuple:
 def skill_score(
     cue: str, record: dict, core: bytes, *, method: str = "weighted-lexical-v1"
 ) -> int:
-    if method == TASK_RELEVANCE:
-        return task_score(cue, record, core, None)
-    if method not in RELEVANCE_METHODS:
-        raise ValueError("Unknown relevance method")
+    if method not in ("weighted-lexical-v1", "weighted-raw-string-v1"):
+        raise ValueError("Unknown relevance method for skill-only ranking")
     scorer = raw_string_lexical_score if method == "weighted-raw-string-v1" else lexical_score
     return scorer(cue, [
         (4, record["title"]),

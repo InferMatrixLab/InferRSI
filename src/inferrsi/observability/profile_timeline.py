@@ -13,8 +13,10 @@ import json
 import math
 import os
 import re
+import stat
 import uuid
 from collections import Counter
+from functools import lru_cache
 from pathlib import Path
 
 from .optimization_log import _append_index, _read_regular
@@ -22,6 +24,7 @@ from .optimization_log import _append_index, _read_regular
 _ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,119}")
 _INDEX = "profile-captures.jsonl"
 _MAX_FILE = 64 << 20
+_MAX_LANES = 512
 _BINS = 256
 
 
@@ -46,7 +49,7 @@ def _review(value: object) -> dict:
     return value
 
 
-def _raw(root: Path, name: str) -> bytes:
+def _profile_path(root: Path, name: str) -> Path:
     # Only accept an explicitly named file directly under the campaign's profiles/ directory.
     if not isinstance(name, str) or not re.fullmatch(
         r"profiles/[A-Za-z0-9][A-Za-z0-9_.-]{0,119}\.json(?:\.gz)?", name
@@ -55,10 +58,30 @@ def _raw(root: Path, name: str) -> bytes:
     path = root / name
     if path.parent.resolve() != root / "profiles":
         raise ValueError("invalid profile directory")
+    return path
+
+
+def _raw(path: Path) -> bytes:
     raw = _read_regular(path, _MAX_FILE)
     if len(raw) > _MAX_FILE:
         raise ValueError("profile exceeds the stored size limit")
     return raw
+
+
+def _file_version(path: Path) -> tuple[int, ...]:
+    info = path.lstat()
+    if not stat.S_ISREG(info.st_mode) or not info.st_ino or info.st_size > _MAX_FILE:
+        raise ValueError("unsafe or oversized profile")
+    return (info.st_dev, info.st_ino, info.st_mode, info.st_size,
+            info.st_mtime_ns, info.st_ctime_ns)
+
+
+@lru_cache(maxsize=32)
+def _overview_digest(path: Path, version: tuple[int, ...]) -> str:
+    digest = hashlib.sha256(_raw(path)).hexdigest()
+    if _file_version(path) != version:
+        raise ValueError("profile changed during verification")
+    return digest
 
 
 def _entries(root: Path) -> list:
@@ -188,6 +211,8 @@ def _compile(raw: bytes, compressed: bool) -> tuple[dict, bytes]:
             if not _duration(e):
                 continue
             identity = _lane(e)
+            if identity not in lanes and len(lanes) >= _MAX_LANES:
+                raise ValueError("profile exceeds 512 lanes")
             name = str(e.get("name", "unnamed")).replace("\n", " ")[:220]
             rows.append((lanes.setdefault(identity, len(lanes)), names.setdefault(name, len(names)),
                          e["ts"], e["dur"]))
@@ -269,7 +294,7 @@ def attach_profile(root: Path, *, capture_id: str, source: str, review: Path) ->
     if len(raw_review) > 16384:
         raise ValueError("profile review exceeds its limit")
     meta = _review(json.loads(raw_review))
-    raw = _raw(root, source)
+    raw = _raw(_profile_path(root, source))
     digest = hashlib.sha256(raw).hexdigest()
     try:
         summary, full = _compile(raw, source.endswith(".gz"))
@@ -306,14 +331,12 @@ def _verified_summary(root, entry):
             or not re.fullmatch("[0-9a-f]{64}", ref["events_sha256"])
             or ref["events_path"] != f"profiles/{ref['events_sha256']}.events.json.gz"):
         raise ValueError("invalid compact trace")
-    if hashlib.sha256(_raw(root, ref["path"])).hexdigest() != ref["sha256"]:
-        raise ValueError("raw profile hash mismatch")
     ref["events_url"] = "/api/profile-events/" + ref["events_sha256"]
     return summary
 
 
-def read_profiles(root: Path) -> tuple[list[dict], list[str]]:
-    """Verify each explicit source; never look for traces elsewhere in the run."""
+def read_profiles(root: Path, *, events_digest: str | None = None) -> tuple[list[dict], list[str]]:
+    """Verify registered captures. Rehash the selected source when opening its event table."""
     captures, missing = [], []
     root = root.resolve()
     try:
@@ -322,7 +345,20 @@ def read_profiles(root: Path) -> tuple[list[dict], list[str]]:
         return [], ["profile index unavailable"]
     for entry in entries:
         try:
-            captures.append(_verified_summary(root, entry))
+            summary = _verified_summary(root, entry)
+            ref = summary["source"]
+            if events_digest is not None and ref["events_sha256"] != events_digest:
+                continue
+            path = _profile_path(root, ref["path"])
+            if events_digest is None:
+                actual = _overview_digest(path, _file_version(path))
+            else:
+                actual = hashlib.sha256(_raw(path)).hexdigest()
+            if actual != ref["sha256"]:
+                raise ValueError("raw profile hash mismatch")
+            captures.append(summary)
+            if events_digest is not None:
+                break
         except (OSError, ValueError, KeyError, TypeError, EOFError, RecursionError):
             label = entry.get("id") if isinstance(entry, dict) else None
             missing.append(label[:120] if isinstance(label, str) else "invalid profile")
@@ -331,10 +367,10 @@ def read_profiles(root: Path) -> tuple[list[dict], list[str]]:
 
 def profile_event_table(root: Path, digest: str) -> bytes | None:
     """Only serve the registered, hash-verified projection, never raw trace arguments."""
-    profiles, _ = read_profiles(root)
-    if any(c["source"]["events_sha256"] == digest for c in profiles):
+    profiles, _ = read_profiles(root, events_digest=digest)
+    if profiles:
         try:
-            raw = _raw(root.resolve(), f"profiles/{digest}.events.json.gz")
+            raw = _raw(_profile_path(root.resolve(), f"profiles/{digest}.events.json.gz"))
             if hashlib.sha256(raw).hexdigest() == digest:
                 return raw
         except (OSError, ValueError):

@@ -285,7 +285,7 @@ function timeline(box,c,baseline,opened){
   article.append(heading);
   p(article,[clockLabel(t.duration_us),c.workload_id].filter(Boolean).join('  ·  '),'meta');
   if(c.phase!=='baseline'&&baseline && c.comparison_key && c.comparison_key===baseline.comparison_key){
-    p(article,tr('同输入、同采集口径的基线跨度 ','Matched baseline capture span ')+clockLabel(baseline.duration_us)+tr('，本次 ','; this capture ')+clockLabel(t.duration_us)+'。','note');
+    p(article,tr('同输入、同采集口径的基线跨度 ','Matched baseline capture span ')+clockLabel(baseline.duration_us)+tr('，本次 ','. This capture spans ')+clockLabel(t.duration_us)+tr('。','.'),'note');
   }
   p(article,st.full?tr('已载入完整时间线。上条显示事件密度，下条显示全部事件区间。','Full timeline loaded. Upper bands show event density, lower bands all event intervals.'):
     tr('上条显示全时域事件密度，下条显示长事件区间。','Upper bands show full-window event density, lower bands retained long events.'),'note');
@@ -435,7 +435,8 @@ function timeline(box,c,baseline,opened){
     if(c.source.events_path)p(b,tr('完整事件表 · ','Complete event table · ')+c.source.events_path,'value');
     if(c.source.events_sha256)p(b,'SHA-256 · '+c.source.events_sha256,'meta');
     const note=el('p'),link=el('a','Perfetto');link.href='https://ui.perfetto.dev/';link.target='_blank';link.rel='noopener noreferrer';
-    note.append(tr('选择已保存的原件在本页读取，或用 ','Choose the saved source to inspect it here, or open it in '),link,' · Open trace file。');b.append(note);
+    note.append(tr('选择已保存的原件在本页读取，或前往 ','Choose the saved source to inspect it here, or go to '),link,
+      tr(' 并选择“打开跟踪文件”。',' and choose “Open trace file”.'));b.append(note);
     const tools=el('div',null,'file-tools'),file=el('input'),msg=el('span',null,'trace-status');file.type='file';file.accept='.json,.json.gz,.gz';file.ariaLabel=tr('载入完整时间线','Load full trace');msg.setAttribute('role','status');tools.append(file,msg);b.append(tools);
     if(st.full){const clear=el('button',tr('收起完整时间线','Unload full timeline'));clear.onclick=()=>{st.full=null;st.selection=null;st.zoom=1;st.offset=0;render();};tools.append(clear);}
     file.onchange=async()=>{
@@ -447,9 +448,14 @@ function timeline(box,c,baseline,opened){
 }
 function renderCaptures(opened){
   const box=byId('captures'),captures=(data.profile_captures||[]).filter(c=>c.duration_us>0 && c.tracks?.length && c.source?.sha256);
-  timelineDraws.clear();box.replaceChildren();byId('capture-section').hidden=!captures.length;
-  const baseline=captures.find(c=>c.phase==='baseline');
-  for(const c of captures)timeline(box,c,baseline,opened);
+  const missing=data.unavailable_profiles||[];
+  timelineDraws.clear();box.replaceChildren();byId('capture-section').hidden=!captures.length&&!missing.length;
+  for(const c of captures){
+    const matches=c.phase==='candidate' && c.comparison_key
+      ? captures.filter(b=>b.phase==='baseline' && b.comparison_key===c.comparison_key):[];
+    timeline(box,c,matches.length===1?matches[0]:null,opened);
+  }
+  for(const id of missing)p(box,id+tr(' · 采集文件不可用或未通过校验。',' · Capture files are unavailable or failed verification.'),'note');
 }
 function render(){
   const opened=new Set([...document.querySelectorAll('details[open]')].map(f=>f.dataset.key));
@@ -493,10 +499,13 @@ function render(){
     r.quality==='passed' && r.source_verified===true && r.decision!=='rolled_back' && ['PASS','FAIL'].includes(r.verdict)):null;
   const dl=el('dl',null,'metrics');gap.append(dl);
   if(Number.isFinite(ref))metric(dl,tr('配对验收基线','Paired acceptance baseline'),fmt(ref)+' '+unit);
-  if(Number.isFinite(ref) && Number.isFinite(target) && baseline.direction==='minimize'){
-    metric(dl,tr('目标延迟','Target latency'),fmt(ref*(1-target/100))+' '+unit);
+  if(Number.isFinite(ref) && Number.isFinite(target) && ['minimize','maximize'].includes(baseline.direction)){
+    const lower=baseline.direction==='minimize';
+    metric(dl,tr('目标值','Target value'),fmt(ref*(1+(lower?-target:target)/100))+' '+unit);
   }
-  if(best){metric(dl,tr('最佳实测降幅','Best measured reduction')+' · '+rowLabel(best),fmt(best.improvement_pct,2)+'%');
+  if(best){
+    const label=scoped?tr('同基线测量条件的最佳改善','Best improvement under baseline conditions'):tr('最佳实测改善','Best measured improvement');
+    metric(dl,label+' · '+rowLabel(best),fmt(best.improvement_pct,2)+'%');
     if(Number.isFinite(target))metric(dl,tr('距目标','Gap to target'),fmt(Math.max(0,target-best.improvement_pct),2)+tr(' 个百分点',' pp'));}
   for(const r of rows){
     const it=iteration(r),trace=r.optimization_trace;

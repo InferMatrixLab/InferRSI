@@ -1,12 +1,14 @@
 import gzip
 import hashlib
 import json
+import os
 import threading
 from urllib.error import HTTPError
 from urllib.request import urlopen
 
 import pytest
 
+from inferrsi.observability import profile_timeline
 from inferrsi.observability.dashboard import dashboard_snapshot
 from inferrsi.observability.dashboard_live import DashboardServer
 from inferrsi.observability.profile_timeline import attach_profile, read_profiles
@@ -92,3 +94,68 @@ def test_unsupported_capture_is_not_attached(tmp_path):
     with pytest.raises(ValueError, match="no complete"):
         attach_profile(tmp_path, capture_id="b", source="profiles/baseline.json.gz", review=review)
     assert not (tmp_path / "profile-captures.jsonl").exists()
+
+
+def test_polls_reuse_digests_but_opening_rechecks_only_the_selected_source(tmp_path, monkeypatch):
+    source, review = fixture(tmp_path)
+    other = source.with_name("other.json")
+    other.write_text(json.dumps([event("kernel", "other", 0, 1)]))
+    for path in (source, other):
+        attach_profile(tmp_path, capture_id=path.name, source=f"profiles/{path.name}",
+                       review=review)
+
+    reads = []
+    raw = profile_timeline._raw
+
+    def counted(path):
+        reads.append(path)
+        return raw(path)
+
+    monkeypatch.setattr(profile_timeline, "_raw", counted)
+    first, missing = read_profiles(tmp_path)
+    assert not missing and reads == [source, other]
+    assert read_profiles(tmp_path) == (first, []) and reads == [source, other]
+
+    # Opening the later capture must not stream the earlier raw file, even on a cold cache.
+    profile_timeline._overview_digest.cache_clear()
+    reads.clear()
+    digest = first[1]["source"]["events_sha256"]
+    assert profile_timeline.profile_event_table(tmp_path, digest)
+    assert reads == [other, tmp_path / first[1]["source"]["events_path"]]
+
+    # Same-size edits with restored mtime must still fail before full events are served.
+    read_profiles(tmp_path)
+    info = other.stat()
+    other.write_bytes(other.read_bytes().replace(b'"other"', b'"wrong"'))
+    os.utime(other, ns=(info.st_atime_ns, info.st_mtime_ns))
+    assert profile_timeline.profile_event_table(tmp_path, digest) is None
+
+
+def test_poll_revalidates_an_atomically_replaced_profile(tmp_path):
+    source, review = fixture(tmp_path)
+    attach_profile(tmp_path, capture_id="baseline", source="profiles/baseline.json.gz",
+                   review=review)
+    assert len(read_profiles(tmp_path)[0]) == 1
+    replacement = source.with_name("new.json.gz")
+    info = source.stat()
+    replacement.write_bytes(b"x" * info.st_size)
+    os.utime(replacement, ns=(info.st_atime_ns, info.st_mtime_ns))
+    replacement.replace(source)
+    assert read_profiles(tmp_path) == ([], ["baseline"])
+
+
+def test_lane_limit_counts_only_lanes_with_positive_duration(tmp_path):
+    _, review = fixture(tmp_path)
+    source = tmp_path / "profiles/lanes.json"
+    events = [dict(event("cpu_op", "launch", 0, 1), tid=n) for n in range(512)]
+    events.append(dict(event("cpu_op", "empty", 1, 0), tid=512))
+    source.write_text(json.dumps(events))
+    attach_profile(tmp_path, capture_id="fits", source="profiles/lanes.json", review=review)
+    capture, = read_profiles(tmp_path)[0]
+    assert capture["event_count"] == 512
+    too_many = source.with_name("too-many.json")
+    events[-1]["dur"] = 1
+    too_many.write_text(json.dumps(events))
+    with pytest.raises(ValueError, match="512 lanes"):
+        attach_profile(tmp_path, capture_id="over", source="profiles/too-many.json", review=review)
+    assert [c["id"] for c in read_profiles(tmp_path)[0]] == ["fits"]

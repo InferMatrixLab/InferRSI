@@ -70,18 +70,23 @@ For example, a lossless image campaign might require identical decoded RGB
 pixels before ranking latency. Missing historical fields display as unrecorded.
 
 The native runner records phase starts for source snapshots, measurements and
-validation. A start alone leaves the step duration and completion unknown.
-For logs that also contain matching `_end` events, the dashboard shows the
-recorded command duration and the span from the earliest start to the last
-finish, including gaps. Service latency comes from the measured request metric.
+validation. The dashboard checks the source snapshot and each command's
+`execution.json` for completion. The latest start matching the running phase
+in `status.json` identifies the open step. A recorded command duration excludes
+the runner's surrounding source probes. The phase finish time stays unknown
+unless the log contains a matching `_end` event. Paired events can also show
+the full phase duration and wall-clock span. Service latency comes from the
+measured request metric.
 
 Performance progress counts completed baseline and candidate trial commands.
 Accuracy progress counts the validator command by default. A validator that
 knows its own workload can atomically replace `validation/progress.json` in
 its run with `{"unit":"cases","completed":4,"total":10}`. A single writer owns
 the absolute count. Units are `cases`, `samples` or `manifests`; use null for
-an unknown total. The Qwen image validator reports each checked manifest.
-A checked item can fail. Progress never sets the run verdict.
+an unknown total. The Qwen image validator writes each checked manifest count
+beside the executor's `RUN/validation/result.json`, including failed checks.
+A missing or malformed counter leaves the command-level progress and verdict
+intact.
 
 Run directories separate repeated attempts. Duplicate edges within one run
 count once; conflicting observations or older starts with no finish leave the
@@ -180,10 +185,17 @@ inferrsi campaign attach-profile --directory <campaign> --id baseline \
 Repeat after a measured change, with a new ID, `"phase":"candidate"` and the
 actual round number. Use the same comparison key only for the same hardware,
 input, execution boundary and profiler configuration. Run ordinary validation
-without the profiler. On attachment, the importer reads the complete duration
-events, records the source digest and writes a compact event table. Its fields
+without the profiler. On attachment, the importer reads complete Chrome `X`
+events with positive durations. Zero-duration events and other phases are
+skipped. It records the source digest and writes a compact event table. Its fields
 are lane, event name, start and duration; raw event arguments are not served.
 Trace labels themselves can identify a workload: review them before sharing.
+
+A campaign accepts up to 16 captures. Each source file may occupy at most
+64 MiB on disk (compressed size for `.json.gz`). The importer limits the
+decoded stream to 2³⁰ characters and accepts up to 2,000,000 input events
+and 512 distinct duration-event lanes. The uncompressed compact event table
+is limited to 128 MiB.
 
 When Chrome trace captures are present, the timeline covers the capture's full
 time range on its recorded stage, CPU and GPU tracks. The initial view shows
@@ -193,7 +205,10 @@ density of overlapping timed events and a selection of long events. Drag over
 a range to zoom, pan with the slider, or select an event to inspect its timing.
 Captures with the same comparison key report their individual spans.
 In a live dashboard, **Expand full timeline** loads the capture's complete
-event table on demand. Under **Capture scope and source files**, the offline
+event table on demand. Live overview refreshes reuse verified source hashes
+while file identity, size, mode and timestamps match. Opening the full event
+table rechecks the selected source and the compact table against their recorded
+SHA-256 digests. Under **Capture scope and source files**, the offline
 view accepts either the saved event table or the original Chrome trace.
 The browser verifies the file's SHA-256 and renders every timed `X` event.
 The file stays local. Use the compact event table or open the source in

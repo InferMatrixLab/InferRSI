@@ -14,7 +14,7 @@ import re
 import shlex
 from pathlib import Path, PurePosixPath, PureWindowsPath
 
-from .dashboard_workflow import run_workflow, validation_progress
+from .dashboard_workflow import command_state, run_workflow, validation_progress
 from .optimization_trace import read_optimization_trace
 
 STAGES = ("diagnosis", "knowledge", "search", "execution", "validation", "review")
@@ -608,6 +608,14 @@ def _run(root: Path, path: Path, candidate: dict, run_id: str | None, noise: flo
             event["refs"].append(_explicit_ref(root, item, kind))
 
     trial_refs = {}
+    native = {}
+    if all(isinstance(repositories.get(side), dict)
+           and repositories[side].get("available") is True
+           and isinstance(repositories[side].get("snapshot_hash"), str)
+           and repositories[side]["snapshot_hash"] for side in ("baseline", "candidate")):
+        native["source_snapshot", None, None] = ("completed", None)
+    if run_id is not None and quality_ref.get("missing_reason") != "file_absent":
+        native["quality_validation", None, None] = command_state(validation)
     for event in events:
         event.pop("_link_state", None)
         event["source"] = "events"
@@ -616,10 +624,14 @@ def _run(root: Path, path: Path, candidate: dict, run_id: str | None, noise: flo
                 and event["side"] and event["trial"]):
             trial = path / event["side"] / f'trial-{event["trial"]:03d}'
             if trial not in trial_refs:
-                trial_refs[trial] = [
+                execution, _, exec_ref = _object_snapshot(
+                    trial / "execution.json", root, "execution"
+                )
+                if exec_ref.get("missing_reason") != "file_absent":
+                    native["measurement", event["side"], event["trial"]] = command_state(execution)
+                trial_refs[trial] = [exec_ref] + [
                     _file_ref(root, trial / name, kind) for name, kind in (
-                        ("execution.json", "execution"), ("stdout.log", "stdout"),
-                        ("stderr.log", "stderr"),
+                        ("stdout.log", "stdout"), ("stderr.log", "stderr"),
                     )
                 ]
             event["refs"].extend(trial_refs[trial])
@@ -722,19 +734,21 @@ def _run(root: Path, path: Path, candidate: dict, run_id: str | None, noise: flo
         and isinstance(snapshot, str) and snapshot and valid_sequences
         and environment_signature is not None
     ) else None
-    workflow = run_workflow(runner_events, lock, state)
+    workflow = run_workflow(runner_events, lock, state, status.get("phase"), native)
     if run_id is not None:
         progress, progress_state, progress_ref = _object_snapshot(
             path / "validation" / "progress.json", root, "validation_progress"
         )
-        if progress_state != "missing":
+        if progress_ref.get("missing_reason") != "file_absent":
             refs["validation_progress"] = progress_ref
             counts = validation_progress(progress)
-            quality_group = workflow["groups"][1]
             if counts is None:
-                quality_group.update(state="unknown", total=None, completed=0)
+                if progress_state == "present":
+                    refs["validation_progress"] = {
+                        **progress_ref, "state": "missing", "missing_reason": "invalid_counts"
+                    }
             else:
-                quality_group.update(counts)
+                workflow["groups"][1].update(counts)
     return {
         "candidate_id": _text(candidate_id) if isinstance(candidate_id, str) else None,
         "title": _text(candidate.get("title"), "Recorded candidate"),
@@ -748,8 +762,8 @@ def _run(root: Path, path: Path, candidate: dict, run_id: str | None, noise: flo
         "minimum_improvement_pct": _number(evaluation.get("min_improvement_pct")),
         "baseline_median": _number(baseline.get("median")),
         "candidate_median": _number(measured.get("median")), "noise_band_pct": noise,
-        "metric_key": _text(evaluation.get("metric_key", lock.get("metric_key"))),
-        "metric_unit": _text(evaluation.get("metric_unit", lock.get("metric_unit"))),
+        "metric_key": _text(evaluation.get("metric_key") or lock.get("metric_key")),
+        "metric_unit": _text(evaluation.get("metric_unit") or lock.get("metric_unit")),
         "direction": evaluation.get("direction")
         if evaluation.get("direction") in ("minimize", "maximize") else None,
         "verdict": verdict,

@@ -257,6 +257,9 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
     'Run review':'本轮记录','What changed':'本轮改动','Performance tests':'性能测试','Accuracy check':'精度检查',
     'Outcome':'结论','Open event':'打开事件','events':'事件','Span':'跨度','Current':'当前',
     'Latency fell':'延迟下降','Latency rose':'延迟上升','short of the':'未达到','target':'目标',
+    'Latency':'延迟','Throughput':'吞吐量','fell':'下降','rose':'上升','was unchanged':'持平',
+    'Measured change':'实测变化',
+    'Command duration':'命令耗时','Phase duration':'阶段耗时',
     'Log':'日志','hypotheses':'条假设','retrievals':'次检索','verified':'已校验','dimensions':'个维度','options':'个选项',
     'No capture recorded':'未记录知识采集',
     'the accuracy check passed':'精度检查通过','the accuracy check failed':'精度检查未通过',
@@ -637,6 +640,13 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
     }
     return seconds < 60 ? seconds.toFixed(1)+' s' : Math.floor(seconds/60)+' min '+Math.floor(seconds%60)+' s';
   }
+  function workDuration(work){
+    const value=duration(work.seconds);
+    if(!Number.isFinite(work.seconds))return value;
+    if(work.duration_source==='command')return translated('Command duration')+' · '+value;
+    if(work.duration_source==='phase' || (work.start && work.end))return translated('Phase duration')+' · '+value;
+    return value;
+  }
   // A reviewer reads a measurement, not a float. Keep three decimals under ten
   // seconds, fewer above, so a 5.408599 s baseline reads as 5.409 s.
   function reading(number, unit) {
@@ -648,10 +658,12 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
   // sentence a reviewer wants: why this round stopped, not which flag was set.
   function attemptResult(row) {
     const steps = row?.optimization_trace?.steps;
-    if(!steps || steps.state !== 'present' || !Array.isArray(steps.items)) return null;
-    const attempt = steps.items.find(step => step.kind === 'attempt');
-    const text = attempt && typeof attempt.result === 'string' ? attempt.result.trim() : '';
-    return text && text !== 'Not recorded' ? text : null;
+    if(!['complete','partial'].includes(steps?.state) || !Array.isArray(steps.items)) return null;
+    for(let i=steps.items.length-1;i>=0;i--){
+      const step=steps.items[i],text=typeof step.result==='string'?step.result.trim():'';
+      if(step.kind==='attempt' && text && text!=='Not recorded')return text;
+    }
+    return null;
   }
   // One sentence that states what happened, joining the measured gain, the
   // quality result and the round decision. The separate verdict and quality
@@ -661,9 +673,15 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
     const parts = [];
     if(row.improvement_pct !== null && row.improvement_pct !== undefined){
       const target = row.minimum_improvement_pct;
-      const gain = `${translated(row.improvement_pct >= 0 ? 'Latency fell' : 'Latency rose')} ${Math.abs(row.improvement_pct).toFixed(1)}%`;
+      const key=row.metric_key||'',metric=/^latency(?:_|$)/i.test(key)?translated('Latency'):
+        /^throughput(?:_|$)/i.test(key)?translated('Throughput'):key;
+      const pct=row.improvement_pct,join=language==='zh'?'':' ';
+      const verb=pct===0?'was unchanged':((pct>0)===(row.direction==='maximize')?'rose':'fell');
+      const gain=metric && ['minimize','maximize'].includes(row.direction)
+        ? metric+join+translated(verb)+(pct===0?'':' '+Math.abs(pct).toFixed(1)+'%')
+        : translated('Measured change')+' '+(pct>0?'+':'')+pct.toFixed(1)+'%';
       parts.push(target !== null && target !== undefined && row.improvement_pct < target
-        ? `${gain}，${translated('short of the')} ${target.toFixed(1)}% ${translated('target')}`
+        ? gain+(language==='zh'?'，':', ')+translated('short of the')+' '+target.toFixed(1)+'% '+translated('target')
         : gain);
     }
     if(row.quality === 'passed') parts.push(translated('the accuracy check passed'));
@@ -784,7 +802,7 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
     // relationship is stated once, plainly.
     const verdict=node('div',undefined,`review-verdict ${outcomeTone(row)}`);
     const changed=attemptResult(row);
-    verdict.append(node('strong',translated('Outcome')),narrativeNode('p',changed || outcomeSentence(row)));
+    verdict.append(node('strong',translated('Outcome')),changed?narrativeNode('p',changed):node('p',outcomeSentence(row)));
     root.appendChild(verdict);
     if(row.baseline_median!==null && row.candidate_median!==null){
       const result=node('div',undefined,'review-result');
@@ -835,7 +853,7 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
       const tr=node('tr');tr.className='work-'+n.state;
       tr.append(node('td',workName(n)),node('td',stateName(n.state)));
       for(const time of [n.start,n.end]){const cell=node('td',clock(time));if(time)cell.title=time;tr.appendChild(cell);}
-      const elapsed=node('td',duration(n.seconds));
+      const elapsed=node('td',workDuration(n));
       if(n.state==='running' && clock(n.start)!=='—')elapsed.dataset.started=n.start;
       // Name the destination. "events:12" is the file line a maintainer greps;
       // it is not the label a reviewer is looking for.
@@ -850,7 +868,7 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
   function refreshElapsed(){
     if(!liveMode || serverTime===null)return;
     for(const cell of document.querySelectorAll('#run-review [data-started]')){
-      cell.textContent=duration((serverTime-Date.parse(cell.dataset.started))/1000);
+      cell.textContent=translated('Phase duration')+' · '+duration((serverTime-Date.parse(cell.dataset.started))/1000);
     }
   }
   function eventLabel(event){
@@ -872,17 +890,27 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
   // concurrent nodes, and are withheld when any timestamp is missing.
   function stageFacts() {
     const facts={};
-    for(const stage of data.stages) facts[stage.name]={events:0,rounds:new Set(),first:null,last:null,failed:false,open:false};
+    const failedStates=new Set(['failed','error','timeout','crashed','termination_failed']);
+    for(const stage of data.stages) facts[stage.name]={events:0,rounds:new Set(),first:null,last:null,untimed:false,failed:false,open:false};
     for(const row of data.candidates){
       for(const event of row.events||[]){
         const fact=facts[event.stage]; if(!fact)continue;
         fact.events++;
         if(row.round!==null)fact.rounds.add(row.round);
-        const t=event.time && Number.isFinite(Date.parse(event.time)) ? Date.parse(event.time) : null;
+        const t=typeof event.time==='string' && /(?:[zZ]|[+-]\d{2}:\d{2})$/.test(event.time) &&
+          Number.isFinite(Date.parse(event.time)) ? Date.parse(event.time) : null;
         if(t!==null){ if(fact.first===null||t<fact.first)fact.first=t; if(fact.last===null||t>fact.last)fact.last=t; }
+        else fact.untimed=true;
         const state=event.details && event.details.state;
-        if(state==='failed'||state==='error'||state==='timeout')fact.failed=true;
-        if(state==='running'&&row.state==='running')fact.open=true;
+        if(event.phase==='crashed' || ['error','turn.failed','agent.failed'].includes(event.type) ||
+            failedStates.has(state))fact.failed=true;
+      }
+      const stages=new Map((row.events||[]).filter(e=>e.source==='events').map(e=>[e.line,e.stage]));
+      for(const work of row.run_workflow?.nodes || []){
+        const fact=facts[stages.get(work.line)];
+        if(!fact)continue;
+        if(row.state==='running' && work.state==='running')fact.open=true;
+        if(failedStates.has(work.state))fact.failed=true;
       }
     }
     return facts;
@@ -907,11 +935,9 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
   function renderWorkflow() {
     const root=byId('workflow'); clear(root);
     const facts=stageFacts(), logged=logFacts();
-    const here=stageSelect.value || (data.candidates[selected]?.state==='running'
-      ? (data.candidates[selected].events.find(e=>e.details?.state==='running')||{}).stage : null);
     for(const [index,stage] of data.stages.entries()){
       const fact=facts[stage.name], note=logged[stage.name];
-      const button=node('button',undefined,`stage ${stage.state === 'recorded' ? 'recorded' : ''} ${stageSelect.value === stage.name ? 'selected' : ''}${here===stage.name?' current':''}${fact.failed?' stage-failed':''}`);
+      const button=node('button',undefined,`stage ${stage.state === 'recorded' ? 'recorded' : ''} ${stageSelect.value === stage.name ? 'selected' : ''}${fact.open?' current':''}${fact.failed?' stage-failed':''}`);
       button.type='button'; button.setAttribute('aria-pressed',String(stageSelect.value === stage.name));
       button.appendChild(node('strong',`${index+1} ${stageNames[stage.name]}`));
       let line;
@@ -919,14 +945,14 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
       else if(fact.events) line=`${fact.events} ${translated('events')}${fact.rounds.size?` · ${translated('Rounds')} ${[...fact.rounds].sort((a,b)=>a-b).join(', ')}`:''}`;
       else line=translated('recorded');
       button.appendChild(node('span',line));
-      if(fact.events&&fact.first!==null&&fact.last!==null){
+      if(fact.events&&!fact.untimed&&fact.first!==null&&fact.last!==null){
         button.appendChild(node('span',translated('Span')+' '+duration((fact.last-fact.first)/1000),'stage-time'));
       }
       // Say where the log speaks even when no runner event did, so a reader
       // knows the difference between "no search happened" and "the search was
       // written down but not executed as a tracked runner command".
       if(!fact.events&&note)button.appendChild(node('span',translated('Log')+' · '+note,'stage-log'));
-      if(here===stage.name)button.appendChild(node('span',translated('Current'),'stage-now'));
+      if(fact.open)button.appendChild(node('span',translated('Current'),'stage-now'));
       button.addEventListener('click',()=>{stageSelect.value=stageSelect.value === stage.name ? '' : stage.name;render();}); root.appendChild(button);
     }
   }
@@ -1216,7 +1242,7 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
         (s.result?' · '+s.result:'')).join('\n')]
     ].map(([title,text])=>'## '+title+'\n\n'+(text || translated('Not recorded'))).join('\n\n') : '';
     const work=row?.run_workflow?.nodes || [];
-    const steps=work.map(n=>'- '+workName(n)+' · '+translated(stateName(n.state))+' · '+duration(n.seconds)+' · events:'+n.line).join('\n');
+    const steps=work.map(n=>'- '+workName(n)+' · '+translated(stateName(n.state))+' · '+workDuration(n)+' · events:'+n.line).join('\n');
     const events=visible.map(e=>`${e.unlinked?`${translated('UNLINKED')} `:''}${e.source}:${e.line}`).join(', ');
     return redact(`# ${translated('InferRSI review')}\n\n${translated('Campaign')}: ${data.campaign_id}\n${translated('Round')}: ${row && row.round!==null?row.round:translated('Not recorded')}\n${translated('Candidate')}: ${row?identity(row,selected):translated('Not recorded')}\n${translated('Stage')}: ${stageSelect.value?translated(stageNames[stageSelect.value]):translated('All stages')}\n${translated('Visible trace')}: ${events || translated('Not recorded')}\n\n${reviewInputs}\n\n## ${translated('Recorded optimization')}\n\n${row && row.optimization.summary!=='Not recorded'?translatedNarrative(row.optimization.summary):translated('Not recorded')}\n\n## ${translated('Run review')}\n\n${steps || translated('Not recorded')}\n\n## ${translated('Findings and recommendation')}\n\n${byId('feedback').value || translated('Not recorded')}\n\n## ${translated('Evidence references')}\n\n- ${refs}\n`);
   }

@@ -18,6 +18,13 @@ def write_json(path: Path, value: dict) -> None:
     path.write_text(json.dumps(value), encoding="utf-8")
 
 
+def test_null_evaluation_labels_fall_back_to_frozen_metric_for_display(tmp_path):
+    write_json(tmp_path / "run.lock.json", {"metric_key": "latency", "metric_unit": "ms"})
+    write_json(tmp_path / "evaluation.json", {"metric_key": None, "metric_unit": None})
+    candidate, = load_dashboard(tmp_path)["candidates"]
+    assert (candidate["metric_key"], candidate["metric_unit"]) == ("latency", "ms")
+
+
 def run(root: Path, name: str, gain: float, *, quality: str, verified: bool) -> None:
     directory = root / "runs" / name
     write_json(directory / "run.lock.json", {

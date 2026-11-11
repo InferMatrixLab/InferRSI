@@ -1,10 +1,48 @@
 """A reviewer can replay the same run without changing its counts or verdict."""
 
 import json
+import sys
 
 import pytest
 
+from inferrsi.harness.runner import run_experiment
+from inferrsi.harness.scenarios.external import execute_trial
 from inferrsi.observability.dashboard_data import load_dashboard
+from inferrsi.runspec import RunSpec
+
+
+def test_dashboard_tracks_real_native_abba_and_validation(tmp_path):
+    command = (sys.executable, "-c", "from pathlib import Path; import sys; "
+               "Path(sys.argv[1]).write_text(sys.argv[2])", "{result}")
+    spec = RunSpec(repo=str(tmp_path), output_dir=str(tmp_path / "runs"), repetitions=2,
+                   baseline_command=(*command, '{"metrics":{"latency_ms":10}}'),
+                   candidate_command=(*command, '{"metrics":{"latency_ms":8}}'),
+                   validation_command=(sys.executable, "-c", "pass"))
+    opened = []
+
+    def observe_then_execute(command, cwd, trial_dir, deadline, metric_key):
+        run_dir = trial_dir.parent.parent if metric_key else trial_dir.parent
+        row = load_dashboard(run_dir)["candidates"][0]
+        nodes = row["run_workflow"]["nodes"]
+        current, = [n for n in nodes if n["state"] == "running"]
+        opened.append((current["kind"], current["side"], current["trial"]))
+        assert all(n["state"] == "completed" for n in nodes if n is not current)
+        return execute_trial(command, cwd, trial_dir, deadline, metric_key)
+
+    path = run_experiment(spec, {"backend": "cpu"}, execute=observe_then_execute,
+                          snapshot=lambda repo, exclude: {"available": True, "snapshot_hash": "s"})
+    assert opened == [("measurement", "baseline", 1), ("measurement", "candidate", 1),
+                      ("measurement", "candidate", 2), ("measurement", "baseline", 2),
+                      ("quality_validation", None, None)]
+    row = load_dashboard(path)["candidates"][0]
+    assert row["quality"] == "passed" and row["verdict"] == "PASS"
+    nodes = row["run_workflow"]["nodes"]
+    assert len(nodes) == 6 and all(n["end"] is None and n["state"] == "completed" for n in nodes)
+    for n in nodes:
+        if n["kind"] != "source_snapshot":
+            assert n["seconds"] >= 0 and n["duration_source"] == "command"
+    assert [(g["state"], g["completed"], g["wall_seconds"]) for g in
+            row["run_workflow"]["groups"]] == [("completed", 4, None), ("completed", 1, None)]
 
 
 def test_live_workflow_replay(tmp_path):
@@ -80,12 +118,11 @@ def test_live_workflow_replay(tmp_path):
     assert read()["run_workflow"]["groups"][0]["state"] == "unknown"
 
 
-@pytest.mark.parametrize(("validation_edge", "expected_node_state"), [
-    ({"phase": "quality_validation"}, "unknown"),
-    ({"phase": "quality_validation_end", "state": "failed"}, "failed"),
+@pytest.mark.parametrize("validation_edge", [
+    {"phase": "quality_validation"},
+    {"phase": "quality_validation_end", "state": "failed"},
 ])
-def test_validator_counts_for_native_and_paired_traces(tmp_path, validation_edge,
-                                                      expected_node_state):
+def test_validator_counts_for_native_and_paired_traces(tmp_path, validation_edge):
     (tmp_path / "run.lock.json").write_text('{"repetitions": 2, "validation_command": ["check"]}')
     (tmp_path / "status.json").write_text('{"state":"failed"}')
     (tmp_path / "events.jsonl").write_text(
@@ -108,14 +145,26 @@ def test_validator_counts_for_native_and_paired_traces(tmp_path, validation_edge
         row = load_dashboard(tmp_path)["candidates"][0]
         perf, quality = row["run_workflow"]["groups"]
         assert perf["state"] == "unknown" and perf["wall_seconds"] is None
-        assert quality["state"] == expected_node_state
+        assert quality["state"] == "failed"
         assert row["quality"] == "failed"
         assert (quality["completed"], quality["total"], quality["unit"]) == (count, total, "cases")
         assert "never export this" not in json.dumps(row)
-    (tmp_path / "validation/progress.json").write_text('{"completed":3,"total":2,"unit":"cases"}')
-    assert (
-        load_dashboard(tmp_path)["candidates"][0]["run_workflow"]["groups"][1]["state"] == "unknown"
+    for bad in ('{"completed":3,"total":2,"unit":"cases"}', '[]', '{'):
+        (tmp_path / "validation/progress.json").write_text(bad)
+        row = load_dashboard(tmp_path)["candidates"][0]
+        quality = row["run_workflow"]["groups"][1]
+        assert (quality["state"], quality["completed"], quality["total"]) == ("failed", 0, 1)
+        assert row["artifacts"]["validation_progress"]["state"] == "missing"
+
+
+def test_crashed_end_remains_terminal_without_command_record(tmp_path):
+    (tmp_path / "events.jsonl").write_text(
+        '{"phase":"measurement_end","side":"baseline","trial":1,"state":"crashed"}\n'
     )
+    (tmp_path / "run.lock.json").write_text('{"repetitions":2}')
+    (tmp_path / "status.json").write_text('{"state":"crashed"}')
+    group = load_dashboard(tmp_path)["candidates"][0]["run_workflow"]["groups"][0]
+    assert group["state"] == "crashed" and group["completed"] == 0
 
 
 def test_provider_events_share_activity_without_exporting_payload(tmp_path):
