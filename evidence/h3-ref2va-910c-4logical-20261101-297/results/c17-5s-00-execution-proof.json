@@ -1,0 +1,75 @@
+{
+  "run": "c17-video-window-quality-5s-00-a8c689e4",
+  "source_commit": "c1589a2b5e4ada617e7cca38ef7c300fe9495c58",
+  "latency_diagnostic_ms": 210397.12271699682,
+  "clean_timing": false,
+  "cleanup_passed": true,
+  "helpers_unchanged": true,
+  "input_checks": {
+    "verdict": "PASS",
+    "checks": 134,
+    "failures": [],
+    "scope": "input/schedule/geometry/finite-state checks only; perceptual quality and latency acceptance are separate"
+  },
+  "counters_by_rank": {
+    "0": {
+      "dlo._issue_chunked_allgather.ungated": 100,
+      "dlo._allgather_after_attn_a2a": 2600,
+      "dlo._issue_chunked_allgather.gated": 2600,
+      "dlo._flush_deferred_allgather": 2600,
+      "_prefix_bnsd": 4900,
+      "_video_temporal_window_bnsd": 2400
+    },
+    "1": {
+      "dlo._issue_chunked_allgather.ungated": 100,
+      "dlo._allgather_after_attn_a2a": 2600,
+      "dlo._issue_chunked_allgather.gated": 2600,
+      "dlo._flush_deferred_allgather": 2600,
+      "_prefix_bnsd": 4900,
+      "_video_temporal_window_bnsd": 2400
+    },
+    "2": {
+      "dlo._issue_chunked_allgather.ungated": 100,
+      "dlo._allgather_after_attn_a2a": 2600,
+      "dlo._issue_chunked_allgather.gated": 2600,
+      "dlo._flush_deferred_allgather": 2600,
+      "_prefix_bnsd": 4900,
+      "_video_temporal_window_bnsd": 2400
+    },
+    "3": {
+      "dlo._issue_chunked_allgather.ungated": 100,
+      "dlo._allgather_after_attn_a2a": 2600,
+      "dlo._issue_chunked_allgather.gated": 2600,
+      "dlo._flush_deferred_allgather": 2600,
+      "_prefix_bnsd": 4900,
+      "_video_temporal_window_bnsd": 2400
+    }
+  },
+  "quality_verdict": "FAIL",
+  "observed_checks": 39,
+  "failures": [
+    "5s-00:dino: similarity",
+    "5s-00:clip: similarity",
+    "5s-00:clap: similarity",
+    "5s-00: dino lower tail",
+    "5s-00: clap segment",
+    "5s-00:reference_clip_cosine: adherence",
+    "5s-00:reference_dino_cosine: adherence",
+    "5s-00:prompt_clip_cosine: adherence",
+    "5s-00: audio level",
+    "5s-00: audio temporal envelope",
+    "5s-00: motion energy"
+  ],
+  "missing_samples": [
+    "5s-01",
+    "5s-02",
+    "5s-03",
+    "5s-04",
+    "15s-00",
+    "15s-01",
+    "15s-02",
+    "15s-03",
+    "15s-04"
+  ],
+  "decision": "Reject fixed C17 window profile; no15s or clean performance expansion."
+}

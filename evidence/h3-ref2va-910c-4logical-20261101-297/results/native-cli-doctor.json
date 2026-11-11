@@ -1,0 +1,15 @@
+{
+  "doctor_passed": true,
+  "native_cli_returncode": 0,
+  "parsed_record_count": 16,
+  "unique_physical_npu_count": 8,
+  "requested_physical_npu_ids": [
+    "1",
+    "2"
+  ],
+  "execution_visible_logical_ids": "2,3,4,5",
+  "native_inventory_unchanged": true,
+  "compatibility": "unverified",
+  "first_wrapper_failure": "Own check incorrectly expected8rawrecords; nativeCLIitselfreturned0. DuplicatedphysicalIDsare retained in the raw16chiprows.",
+  "scope": "CLI discovery/targetPythonmetadata only; no pairedbenchmark or backendcompatibility acceptance"
+}

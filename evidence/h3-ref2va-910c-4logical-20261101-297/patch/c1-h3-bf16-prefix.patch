@@ -1,0 +1,200 @@
+diff --git a/tests/diffusion/models/minimax_h3/test_minimax_h3_flash_attention.py b/tests/diffusion/models/minimax_h3/test_minimax_h3_flash_attention.py
+new file mode 100644
+index 0000000..b805402
+--- /dev/null
++++ b/tests/diffusion/models/minimax_h3/test_minimax_h3_flash_attention.py
+@@ -0,0 +1,91 @@
++# SPDX-License-Identifier: Apache-2.0
++# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
++
++import pytest
++import torch
++
++from tests.helpers.mark import hardware_marks
++from vllm_omni.diffusion.attention.backends.abstract import AttentionMetadata
++from vllm_omni.diffusion.attention.backends.flash_attn import FlashAttentionImpl
++from vllm_omni.diffusion.models.minimax_h3.attention import flash_h3
++from vllm_omni.platforms import current_omni_platform
++
++pytestmark = [pytest.mark.core_model, pytest.mark.diffusion, *hardware_marks(res={"npu": "A3"}, num_cards=1)]
++
++
++@pytest.mark.parametrize(
++    "mode", ["fused", "default", "laser", "causal", "masked", "compact", "gqa", "unresolved", "short"]
++)
++def test_h3_prefix_dispatch_preserves_unselected_paths(monkeypatch, mode):
++    query = torch.arange(16384, dtype=torch.float32).to(torch.bfloat16).reshape(1, 4096, 2, 2)
++    key, value = query + 10, query + 20
++    calls = []
++
++    def parent(self, q, k, v, attn_metadata=None):
++        calls.append("parent")
++        return torch.zeros_like(q)
++
++    def prefix(q, k, v, scale):
++        calls.append("prefix")
++        assert torch.equal(q, query)
++        assert torch.equal(k, key[:, :4093]) and torch.equal(v, value[:, :4093])
++        assert scale == 0.17
++        return torch.ones_like(q)
++
++    monkeypatch.setattr(FlashAttentionImpl, "forward_fa_npu", parent)
++    monkeypatch.setattr(flash_h3, "_prefix_bnsd", prefix)
++    impl = object.__new__(flash_h3.MiniMaxH3FlashAttentionImpl)
++    impl.causal, impl.softmax_scale = mode == "causal", 0.17
++    result = None if mode == "unresolved" else ([4093, 4096], [4093, 4096])
++    monkeypatch.setattr(impl, "_resolve_packed_seq_npu", lambda q, k, extra: result)
++    extra = {"npu_attn_varlen": True}
++    if mode == "compact":
++        extra["minimax_h3_compact_reference_rows"] = 2
++    mask = torch.ones(1, 4096, dtype=torch.bool) if mode == "masked" else None
++    metadata = AttentionMetadata(attn_mask=mask, extra=extra)
++    if mode == "default":
++        monkeypatch.delenv("MINDIE_SD_FA_TYPE", raising=False)
++    else:
++        monkeypatch.setenv("MINDIE_SD_FA_TYPE", "ascend_laser_attention" if mode == "laser" else "fused_attn_score")
++    actual_query, actual_key, actual_value = query, key[:, :, :1] if mode == "gqa" else key, value
++    if mode == "short":
++        actual_query, actual_key, actual_value = (tensor[:, :128] for tensor in (query, key, value))
++    output = impl.forward_fa_npu(actual_query, actual_key, actual_value, metadata)
++    assert calls == ["prefix" if mode == "fused" else "parent"]
++    assert torch.equal(output, torch.ones_like(actual_query) if mode == "fused" else torch.zeros_like(actual_query))
++
++
++@pytest.mark.skipif(not current_omni_platform.is_npu(), reason="Requires native Ascend fused attention")
++def test_native_prefix_bnsd_excludes_padding_and_preserves_inputs(monkeypatch):
++    monkeypatch.setenv("MINDIE_SD_FA_TYPE", "fused_attn_score")
++    torch.manual_seed(19)
++    device = torch.device(current_omni_platform.device_type)
++    query, key, value = [torch.randn(1, 4096, 2, 64, dtype=torch.bfloat16).to(device) for _ in range(3)]
++    original = [tensor.clone() for tensor in (query, key, value)]
++    used, scale = 4093, 0.17
++    cu = torch.tensor([0, used, 4096], dtype=torch.int32, device=device)
++    metadata = AttentionMetadata(
++        extra={
++            "npu_attn_varlen": True,
++            "cu_seqlens_q": cu,
++            "cu_seqlens_k": cu,
++            "max_seqlen_q": used,
++            "max_seqlen_k": used,
++            "laser_input_scale": 256.0,
++        }
++    )
++    impl = flash_h3.MiniMaxH3FlashAttentionImpl(num_heads=2, head_size=64, softmax_scale=scale, qkv_layout="BSND")
++    with torch.inference_mode():
++        output = impl.forward_fa_npu(query, key, value, metadata)
++        dirty_key, dirty_value = key.clone(), value.clone()
++        dirty_key[:, used:] = 1000
++        dirty_value[:, used:] = -1000
++        repeated = impl.forward_fa_npu(query, dirty_key, dirty_value, metadata)
++    q, k, v = query[:, :used].float().cpu(), key[:, :used].float().cpu(), value[:, :used].float().cpu()
++    scores = torch.einsum("bqhd,bkhd->bhqk", q, k) * scale
++    expected = torch.einsum("bhqk,bkhd->bqhd", scores.softmax(dim=-1), v)
++    assert output.is_contiguous() and output.dtype == torch.bfloat16
++    assert output.shape == query.shape and torch.isfinite(output).all()
++    torch.testing.assert_close(output[:, :used].float().cpu(), expected, rtol=1e-2, atol=2e-3)
++    assert torch.equal(output[:, :used], repeated[:, :used])
++    assert all(torch.equal(before, after) for before, after in zip(original, (query, key, value)))
+diff --git a/vllm_omni/diffusion/models/minimax_h3/attention/flash_h3.py b/vllm_omni/diffusion/models/minimax_h3/attention/flash_h3.py
+new file mode 100644
+index 0000000..6ebfb10
+--- /dev/null
++++ b/vllm_omni/diffusion/models/minimax_h3/attention/flash_h3.py
+@@ -0,0 +1,76 @@
++# SPDX-License-Identifier: Apache-2.0
++# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
++"""Model-owned BF16 prefix attention for H3's explicit NPU fused selection."""
++
++from __future__ import annotations
++
++import os
++
++import torch
++
++from vllm_omni.diffusion.attention.backends.abstract import AttentionMetadata
++from vllm_omni.diffusion.attention.backends.flash_attn import FlashAttentionImpl
++
++
++def _prefix_bnsd(query: torch.Tensor, key: torch.Tensor, value: torch.Tensor, scale: float) -> torch.Tensor:
++    from mindiesd import attention_forward
++
++    batch, rows, heads, dim = query.shape
++
++    def fold(tensor: torch.Tensor) -> torch.Tensor:
++        return tensor.transpose(1, 2).contiguous().reshape(batch * heads, 1, tensor.shape[1], dim)
++
++    output = attention_forward(
++        fold(query),
++        fold(key),
++        fold(value),
++        attn_mask=None,
++        scale=scale,
++        head_first=True,
++        opt_mode="manual",
++        op_type="fused_attn_score",
++        layout="BNSD",
++    )
++    # Match the original packed varlen output layout before shared SP restores
++    # local sequence shards. Padding query rows are not consumed by H3.
++    return output.reshape(batch, heads, rows, dim).transpose(1, 2).contiguous()
++
++
++class MiniMaxH3FlashAttentionImpl(FlashAttentionImpl):
++    """Use independent head batches for explicit long BF16 prefix attention.
++
++    Default and other operator selections preserve their parent behavior.
++    Mathematical equivalence alone does not promise bit-exact model outputs;
++    each numerical qualification must cover the actual workload.
++    """
++
++    def forward_fa_npu(
++        self,
++        query: torch.Tensor,
++        key: torch.Tensor,
++        value: torch.Tensor,
++        attn_metadata: AttentionMetadata | None = None,
++    ) -> torch.Tensor:
++        if os.environ.get("MINDIE_SD_FA_TYPE") != "fused_attn_score" or attn_metadata is None:
++            return super().forward_fa_npu(query, key, value, attn_metadata)
++        extra = attn_metadata.extra
++        if (
++            self.causal
++            # Keep the short text refiners on their original varlen kernels.
++            or query.shape[1] < 4096
++            or attn_metadata.attn_mask is not None
++            or not extra.get("npu_attn_varlen", False)
++            or extra.get("minimax_h3_compact_reference_rows", 0)
++            or query.dtype != torch.bfloat16
++            or query.dtype != key.dtype
++            or query.dtype != value.dtype
++            or query.shape[2:] != key.shape[2:]
++            or query.shape[2:] != value.shape[2:]
++            or key.shape[1] != value.shape[1]
++        ):
++            return super().forward_fa_npu(query, key, value, attn_metadata)
++        resolved = self._resolve_packed_seq_npu(query, key, extra)
++        if resolved is None:
++            return super().forward_fa_npu(query, key, value, attn_metadata)
++        used_k = resolved[1][0]
++        return _prefix_bnsd(query, key[:, :used_k], value[:, :used_k], self.softmax_scale)
+diff --git a/vllm_omni/diffusion/models/minimax_h3/minimax_h3_blocks.py b/vllm_omni/diffusion/models/minimax_h3/minimax_h3_blocks.py
+index 28931c9..09f2e7d 100644
+--- a/vllm_omni/diffusion/models/minimax_h3/minimax_h3_blocks.py
++++ b/vllm_omni/diffusion/models/minimax_h3/minimax_h3_blocks.py
+@@ -208,6 +208,7 @@ class MiniMaxH3Attention(nn.Module):
+         self.vdn: VDNH3HybridAttention | None = None
+         self._prefix = prefix
+         from .attention.fastvideo_h3 import MiniMaxH3VSAImpl
++        from .attention.flash_h3 import MiniMaxH3FlashAttentionImpl
+ 
+         self.attention = Attention(
+             num_heads=self.num_heads,
+@@ -221,7 +222,7 @@ class MiniMaxH3Attention(nn.Module):
+             role_category=role_category,
+             skip_sequence_parallel=skip_sequence_parallel,
+             prefix=prefix,
+-            impl_overrides={"FASTVIDEO_VSA": MiniMaxH3VSAImpl},
++            impl_overrides={"FASTVIDEO_VSA": MiniMaxH3VSAImpl, "FLASH_ATTN": MiniMaxH3FlashAttentionImpl},
+         )
+ 
+     def enable_vsa_gate(self) -> None:

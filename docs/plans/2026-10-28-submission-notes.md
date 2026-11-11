@@ -1,5 +1,7 @@
 # Submission notes: `ascend-video-diffusion-optimization`
 
+> Historical archive. Kept for provenance. Not current implementation or validation status.
+
 InferRSI submission record for the packaged Ascend skill.
 
 ## Packaged location

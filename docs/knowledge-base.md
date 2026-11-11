@@ -292,7 +292,10 @@ recipes; native execution and efficacy remain not_run.
 The complete library is the single content owner. Maintain stable paths and
 backend classifications in `skill-index.json`, then refresh generated records
 and navigation with `tools/build_skill_index.py`; do not hand-edit generated
-cards. Its source-revision and consistency checks prevent attributing edited
+cards. Stored cards keep only their own fields and resource hashes, and the shared
+`_provenance.json` snapshot holds the source revision and registry hash; the
+catalog resolves them into the public records
+([contribution workflow](knowledge-contribution-workflow.md)). Its source-revision and consistency checks prevent attributing edited
 metadata to an older snapshot. Preserve existing states, provenance, notices,
 `UNKNOWN` licenses and the two matrices' authority. Migration and installed-package
 checks do not establish licensing, empirical verification or automatic execution.

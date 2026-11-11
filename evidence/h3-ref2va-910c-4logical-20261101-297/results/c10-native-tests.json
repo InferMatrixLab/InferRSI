@@ -1,0 +1,18 @@
+{
+  "scope": "focused tests only; no full-model quality or performance acceptance",
+  "returncode": 0,
+  "status": "completed",
+  "cleanup_passed": true,
+  "source_unchanged": true,
+  "native_test_executed": true,
+  "tested_source_files": {
+    "vllm_omni/diffusion/models/minimax_h3/cache_audio_guard.py": "2844e749c9c876e52bffeef565f2c69904693e2d62c359da6abe66844930daed",
+    "vllm_omni/diffusion/models/minimax_h3/reference_kv_cache_dit.py": "d3381079ff012f32176a917bb0825d12288c058d3a058f5169ecc97d1e2c675c",
+    "vllm_omni/diffusion/models/minimax_h3/minimax_h3_transformer.py": "1d5e806489de94cec2f9224f7d31ff96d9ace0a3fb80c23d8f8ba25f262d275d",
+    "tests/diffusion/models/minimax_h3/test_minimax_h3_audio_cache_guard.py": "c13e1ec677531457e92853d3a97e1e3fdcccb9547883ef0088f75852473d523d"
+  },
+  "source_base_head": "922f1e9f1cb85b9f2b66d86e1eb500e6872b2dcb",
+  "source_commit": "0af99184bc860cffa8d1e5343c2bff4664f667c5",
+  "full_model_quality": "configuration-specific; original Fn1Bn1 failed5s; see quality records",
+  "performance_acceptance": "PENDING"
+}

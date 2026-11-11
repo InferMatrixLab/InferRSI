@@ -52,6 +52,9 @@ external sources, and add its navigation link to the owning README. See the
 sidecar or registry, commit, then run
 `python tools/build_skill_index.py --source-revision <committed-revision>`; a
 hand edit there is reverted by the next run and only `--check` reports it.
+A one-skill edit regenerates only that skill's record, the shared
+`_provenance.json` snapshot and the coverage view; see the
+[knowledge contribution workflow](knowledge-contribution-workflow.md).
 Do not maintain a second per-entry Markdown summary.
 Keep IDs stable, omit PR links, retain source attribution and negative results,
 and qualify new backends independently. See the

@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "id": "inferrsi.common.skills.inference_benchmark_design",
   "title": "inference-benchmark-design",
   "repo": "inferrsi",
@@ -39,50 +39,27 @@
   "origin": [
     "external"
   ],
-  "sources": [
-    {
-      "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/d648f25732dee1c974da62a94c46a642ad52cef8/src/inferrsi/data/skill_library/methods/inference-benchmark-design/SKILL.md",
-      "commit": "d648f25732dee1c974da62a94c46a642ad52cef8",
-      "paths": [
-        "src/inferrsi/data/skill_library/methods/inference-benchmark-design/SKILL.md",
-        "src/inferrsi/data/skill_library/methods/inference-benchmark-design/metadata.json",
-        "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/autotunebench-source.json",
-        "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/autotunebench-trial-validity.md",
-        "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/benchmark-commands.md",
-        "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/cache-aware-asr-stream-boundaries.md",
-        "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/justgoal-evaluation-contracts.md",
-        "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/justgoal-source.json",
-        "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/ninfer-source.json",
-        "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/ninfer-state-and-completion-contracts.md",
-        "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/task-benchmark-selection.md",
-        "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/xeforge-source.json",
-        "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/xeforge-trial-evidence.md",
-        "src/inferrsi/data/skill_library/skill-index.json"
-      ],
-      "content_sha256": "9deb10a23233949f8edc7673c77932f7a4871c9c8b3e978147eef100418792a5"
-    }
-  ],
   "index_type": "packaged-skill",
   "skill_documents": {
     "original": "data/skill_library/methods/inference-benchmark-design/SKILL.md"
   },
   "checkout_ref": "checkout:inference-benchmark-design",
   "source_files": {
-    "src/inferrsi/data/skill_library/methods/inference-benchmark-design/SKILL.md": "9deb10a23233949f8edc7673c77932f7a4871c9c8b3e978147eef100418792a5",
-    "src/inferrsi/data/skill_library/methods/inference-benchmark-design/metadata.json": "b9f8de0cdc8676f1fa9cb119125b2238fb7c377687222d2bfab1b37f8794dbe1",
+    "src/inferrsi/data/skill_library/methods/inference-benchmark-design/SKILL.md": "fa7d91bf2b1c38299a7b3743cc362cb0399c4874d0cc42618161b77238e83a7a",
+    "src/inferrsi/data/skill_library/methods/inference-benchmark-design/metadata.json": "061e07be83be10623b0500ef067709d05dd15fdd2c9d9aeb1e4404ef09fd6ca2",
     "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/autotunebench-source.json": "bc343ece2bf40c4e8aa4bd8d84f32465d00633255557feda5fe7799ce24e8688",
     "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/autotunebench-trial-validity.md": "cb3a7a5d94d056f868af07f92a16a6fef31eafd3199ed07ae79e93798e320b1d",
     "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/benchmark-commands.md": "0898424e0bff3a6246e1eeeda6abd6c5bd974c047fe32f3bbd5ab9d31ce17cd3",
     "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/cache-aware-asr-stream-boundaries.md": "4e0ea9c1bf6b096a49a91ad5266e90b8a456f4f5aca15eba8ac270a53c2309b5",
+    "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/dependency-aware-tts-playout.md": "e94866e718adc3bd7e272a4856e9a90b6f27cbc0ff3a44101e68e6995ed79e2c",
+    "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/faster-cosyvoice-source.json": "9efe8918208adddfb9a31d2abed080923a5ae0dfb6332438179af0de66f54e13",
     "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/justgoal-evaluation-contracts.md": "d25df795fd301e8a1bb436e5f8122d0bac2441c43104e59a3b310fd5a64f2f3e",
     "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/justgoal-source.json": "60f2784384ea1a3b08a2ecafb60207d8e3707247dc7bc177b95b463d81f1cc16",
     "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/ninfer-source.json": "ccda0fc6781e3c4dceb41521ab952445840b4afcc9f5a7d968857f76e8db6272",
     "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/ninfer-state-and-completion-contracts.md": "2b3de210d1790eec92319addadf0e38fcd1529fa2f23b5cddf96a789b783f4ac",
     "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/task-benchmark-selection.md": "0d4bb080a754e26846e81680023db0dff5e6a4c96be4327c411c3b72ac4ef8e2",
     "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/xeforge-source.json": "6c21791b9c8ecbc9645c6deb659bd897e17f70525536ea25e884a62fc5fb6b25",
-    "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/xeforge-trial-evidence.md": "802c4dfe83983cbd6740231d5d0e2b459792b685de8dfbefb6dc51a912e23604",
-    "src/inferrsi/data/skill_library/skill-index.json": "7904275c3383380db179287171e1430617aaa9ac4f439291eff8a71426987fbb"
+    "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/xeforge-trial-evidence.md": "802c4dfe83983cbd6740231d5d0e2b459792b685de8dfbefb6dc51a912e23604"
   },
   "skill_metadata": {
     "name": "inference-benchmark-design",
@@ -416,6 +393,49 @@
         "readset": "references/ninfer-source.json",
         "license": "Apache-2.0",
         "scope": "Selected Qwen3.5 GDN/MTP state-restoration, accepted-prefix and completion evidence contracts; historical results retain their separate reported revision. Source-only, no native execution."
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/yuekaizhang/faster-cosyvoice",
+        "commit": "f1049c59196c2c1a890079abc56056b43f27cd1d",
+        "paths": [
+          "README.md",
+          "README_zh.md",
+          "docs/benchmark.md",
+          "docs/benchmark_zh.md",
+          "docs/usage.md",
+          "docs/usage_zh.md",
+          "examples/offline_inference.py",
+          "examples/stream_client.py",
+          "faster_cosyvoice/config/settings.py",
+          "faster_cosyvoice/llm/engine.py",
+          "faster_cosyvoice/server/app.py",
+          "faster_cosyvoice/server/arguments.py",
+          "faster_cosyvoice/server/audio_encode.py",
+          "faster_cosyvoice/server/leading_silence.py",
+          "faster_cosyvoice/server/openai_speech.py",
+          "faster_cosyvoice/server/protocol.py",
+          "faster_cosyvoice/streaming/chunker.py",
+          "faster_cosyvoice/streaming/session.py",
+          "faster_cosyvoice/streaming/token2wav_batcher.py",
+          "faster_cosyvoice/streaming/token2wav_scheduler.py",
+          "faster_cosyvoice/token2wav/builders.py",
+          "faster_cosyvoice/token2wav/cosyvoice/flow/DiT/modules.py",
+          "faster_cosyvoice/token2wav/cosyvoice/flow/flow.py",
+          "faster_cosyvoice/token2wav/cosyvoice/hifigan/generator.py",
+          "faster_cosyvoice/token2wav/flashinfer_dit.py",
+          "faster_cosyvoice/token2wav/flashinfer_flow.py",
+          "faster_cosyvoice/token2wav/frontend.py",
+          "faster_cosyvoice/token2wav/matcha_audio.py",
+          "faster_cosyvoice/token2wav/token2wav.py",
+          "pyproject.toml",
+          "tests/test_session.py",
+          "tests/test_stream_client.py",
+          "tests/test_token2wav_batcher.py"
+        ],
+        "readset": "references/faster-cosyvoice-source.json",
+        "license": "UNKNOWN overall; selected file-level Apache-2.0 headers and unresolved inherited attribution retained",
+        "scope": "Selected PCM/playout, routed-credit, chunk-dependency and timing-denominator source audit; original analysis and immutable links only, no code/media copying or native/model/quality/service execution"
       }
     ],
     "empirical_validation": "not_run",
@@ -462,7 +482,8 @@
       "JustGoal contributes source-only controlled-evaluation and kernel-acceptance guidance; its repaired/retested timings, released-pass counts and protocol differences are author-reported, not locally reproduced or a complete campaign runner.",
       "The AutoTuneBench reference is source-only: original operational checkpoint/prompt receipts remain unavailable, source contradictions remain explicit, and no tuning, device/performance or agent-efficacy validation was run.",
       "The Xe-Forge reference is source-only and limited to inspected host/manual/Claude trial paths; named-verdict update predicates and caller defaults remain explicit. Native tests, backend/model/quality/performance/service behavior and agent efficacy were not evaluated, and source/package checks do not promote whole-model support.",
-      "The NInfer reference inspects selected Qwen3.5 GDN/MTP source contracts and unexecuted test definitions; its historical author measurements use a different engine revision. Native state/model/device/quality/performance and efficacy remain unvalidated."
+      "The NInfer reference inspects selected Qwen3.5 GDN/MTP source contracts and unexecuted test definitions; its historical author measurements use a different engine revision. Native state/model/device/quality/performance and efficacy remain unvalidated.",
+      "The Faster CosyVoice reference is source-only: server route credit and client simulated playback remain distinct, reported costs/quality retain their boundaries, overall source rights are UNKNOWN, and native/model/device/audio quality/service/performance are not_run with efficacy not_evaluated."
     ],
     "provenance_readsets": [
       "references/task-benchmark-selection.md",
@@ -475,7 +496,9 @@
       "references/xeforge-trial-evidence.md",
       "references/xeforge-source.json",
       "references/ninfer-state-and-completion-contracts.md",
-      "references/ninfer-source.json"
+      "references/ninfer-source.json",
+      "references/dependency-aware-tts-playout.md",
+      "references/faster-cosyvoice-source.json"
     ],
     "references": [
       "../inference-optimization-casebook/cases/admission-drain-occupancy.md",
@@ -533,7 +556,8 @@
     "JustGoal contributes source-only controlled-evaluation and kernel-acceptance guidance; its repaired/retested timings, released-pass counts and protocol differences are author-reported, not locally reproduced or a complete campaign runner.",
     "The AutoTuneBench reference is source-only: original operational checkpoint/prompt receipts remain unavailable, source contradictions remain explicit, and no tuning, device/performance or agent-efficacy validation was run.",
     "The Xe-Forge reference is source-only and limited to inspected host/manual/Claude trial paths; named-verdict update predicates and caller defaults remain explicit. Native tests, backend/model/quality/performance/service behavior and agent efficacy were not evaluated, and source/package checks do not promote whole-model support.",
-    "The NInfer reference inspects selected Qwen3.5 GDN/MTP source contracts and unexecuted test definitions; its historical author measurements use a different engine revision. Native state/model/device/quality/performance and efficacy remain unvalidated."
+    "The NInfer reference inspects selected Qwen3.5 GDN/MTP source contracts and unexecuted test definitions; its historical author measurements use a different engine revision. Native state/model/device/quality/performance and efficacy remain unvalidated.",
+    "The Faster CosyVoice reference is source-only: server route credit and client simulated playback remain distinct, reported costs/quality retain their boundaries, overall source rights are UNKNOWN, and native/model/device/audio quality/service/performance are not_run with efficacy not_evaluated."
   ],
   "verification": {
     "locally_verified": false,

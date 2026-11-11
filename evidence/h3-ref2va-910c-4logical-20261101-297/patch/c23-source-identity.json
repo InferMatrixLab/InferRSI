@@ -1,0 +1,30 @@
+{
+  "head": "6eb7bb094effb40853431208d1631effaf452a3f",
+  "tree": "685c971a476b9df16cb5f79b3db41e12930306ab",
+  "base": "d48fa51d03dd748568cbcf57ed40f533c691c9bd",
+  "branch": "rsi/h3-297-video-context-lse",
+  "files": {
+    "tests/diffusion/distributed/test_collective_gate.py": "6a02f32882d85eca1e3bb9a023ce3adb3d5b59c213845e11e85c96a89432f477",
+    "tests/diffusion/models/minimax_h3/test_minimax_h3_pre_gate_cache.py": "a4924d0b3dd58ae413259edba6cf2487b3e41d391f943fb74358934be72eb53b",
+    "tests/diffusion/models/minimax_h3/test_minimax_h3_video_context.py": "1e76074b71f0ea4e070c435db623add702d1414a351427fd86ebb40e8dfd67fd",
+    "tests/diffusion/models/minimax_h3/test_minimax_h3_video_row_cache.py": "e09b872f6900e821d42632a0ca09595f2affe6f9794049dbc74d69ba6a52b2b0",
+    "vllm_omni/config/omni_config.py": "6894120a330474f718d43bf2bf7928892eb996152839ce6469c34d18a7df09d1",
+    "vllm_omni/config/stage_config.py": "0752e8cc1c6f1021f737830d08663cfc118923a83fd909c607f9ec3ab2a3d2fb",
+    "vllm_omni/diffusion/attention/layer.py": "76c5fce3dabd23e39a8890316e1691c03bc203066cb60af5611ec4790eefc632",
+    "vllm_omni/diffusion/data.py": "5db83d5c71cb27cc7810d35fcfc891da80f0b003adbb16bdecc3816a63305e11",
+    "vllm_omni/diffusion/distributed/collective_gate.py": "01c6317cfa615840681b8bb8b8513fa3736d26e845a24ad9e1ab7f87489b962f",
+    "vllm_omni/diffusion/models/minimax_h3/attention/flash_h3.py": "48533c941a50719995206d18fa9198330824b940ecba9399b46ba7615b969ccb",
+    "vllm_omni/diffusion/models/minimax_h3/attention/video_context.py": "f4cfd2225514b6f99d36567879f06fb4a42f9d235ac0114fc643001b345cb22e",
+    "vllm_omni/diffusion/models/minimax_h3/denoise_loop.py": "c5fab405ee82bc553e9a902fa27e6dfbc5213ec18311e17b6415396a69b50f43",
+    "vllm_omni/diffusion/models/minimax_h3/minimax_h3_blocks.py": "73c96090e6fb0e13ce734bc96b23472fd5adb83bceb71f3eba2815d6343a33e4",
+    "vllm_omni/diffusion/models/minimax_h3/minimax_h3_transformer.py": "577e290c2d92fc02822cd516cc499c3c4d1f465145ad2a837edfdfeaa09ed9fb",
+    "vllm_omni/diffusion/models/minimax_h3/pipeline_minimax_h3.py": "e8e2e74fb8edb05e02d3e2328ea1f3ad5ddcfd7a10ed09c5cf3911b1d063e849",
+    "vllm_omni/diffusion/models/minimax_h3/video_row_cache.py": "cff17568fbd856c28394d104d393a806931613b7b057f288006ad8c6fb9aa05a",
+    "vllm_omni/diffusion/offloader/base.py": "23922136deaf54e2d98e827b007b34c7e3ad36171b71bfe9060d390efc0b679f",
+    "vllm_omni/diffusion/offloader/distributed_layerwise_backend.py": "19fbce0f1036e4784d68cab798c499526a9099101909e41ce96dd0caa033b6a4",
+    "vllm_omni/engine/arg_utils.py": "52569e3688cc708729a48ca0a2c875c28193733c2f934f6ff89f6c815e4009c7",
+    "vllm_omni/entrypoints/cli/serve.py": "f8284ad6b751ba4a9e4f7254d78132cc2cfd49871a0f9af7fde49c6789d79cb0"
+  },
+  "published": false,
+  "patch_base": "be319692b96413918973b5bd399cdda3f320c574"
+}

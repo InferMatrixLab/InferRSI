@@ -7,6 +7,8 @@ import re
 from importlib.resources import files
 from typing import Any
 
+from inferrsi import _source_snapshot
+
 REPO_TYPES = ("vllm", "vllm_omni", "afd_plugin", "vllm_rlt", "strata", "sglang", "sglang_omni")
 # Learning scope does not imply that a repository has a runnable target adapter.
 # Legacy repository-pack records retain their contribution tier; an independent
@@ -98,10 +100,21 @@ def knowledge_records() -> list[dict[str, Any]]:
             )
             if not knowledge.is_dir():
                 continue
+            snapshot = knowledge.joinpath(_source_snapshot.MANIFEST)
+            snapshot = (
+                json.loads(snapshot.read_text(encoding="utf-8")) if snapshot.is_file() else None
+            )
             for parts, item in _walk(knowledge):
-                if not item.name.endswith(".json"):
+                if not item.name.endswith(".json") or parts == (_source_snapshot.MANIFEST,):
                     continue
                 record = json.loads(item.read_text(encoding="utf-8"))
+                # Generated skill records store schema v2; readers always receive schema v1.
+                if isinstance(record, dict) and record.get("schema_version") == (
+                    _source_snapshot.STORED_SCHEMA
+                ):
+                    if snapshot is None:
+                        raise ValueError(f"Knowledge record lacks its source snapshot: {repo}")
+                    record = _source_snapshot.resolve(record, snapshot)
                 _validate_record(record, repo, parts, tier)
                 if record["id"] in seen:
                     raise ValueError(f"Duplicate knowledge ID: {record['id']}")

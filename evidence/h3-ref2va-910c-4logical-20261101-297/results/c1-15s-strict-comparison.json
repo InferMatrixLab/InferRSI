@@ -1,0 +1,9 @@
+{
+  "verdict": "PASS",
+  "scope": "specified latent points, schedule, decoded RGB24/PCM; no performance acceptance",
+  "comparison": "candidate versus baseline",
+  "checks": 439,
+  "failures": [],
+  "missing_evidence": [],
+  "quality_contract": "strict bit-exact; no tolerance or human check"
+}

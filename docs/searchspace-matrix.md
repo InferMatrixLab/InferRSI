@@ -640,3 +640,16 @@ NOASSERTION and InferRSI's repository license.
 | Resource | Stage / scoped question | Canonical owner | Evidence boundary |
 | --- | --- | --- | --- |
 | SSD / Storage + RAM / Host | Diagnose / Verify: independent tensor-byte identity after aligned/coalesced reads, resident versus pending slot lifetime, ordered consumer accumulation and actual oracle callback coverage | [weight-loading-optimization](../src/inferrsi/data/skill_library/methods/weight-loading-optimization/SKILL.md) ([expert-cache oracle reference](../src/inferrsi/data/skill_library/methods/weight-loading-optimization/references/deepseek-expert-cache-oracles.md)) and [source record](../src/inferrsi/data/skill_library/methods/weight-loading-optimization/references/deepseek-expert-cache-source.json); DeepSeek source at `d0402056d0da4bf7edfd2d4977de479a0db9d201` | Source-derived candidate / empirical not_run; byte oracle shares tensor metadata, resident snapshot covers w1, and tiny PyTorch/batched checks are source definitions. No measured resource gain, full-model quality, native/device execution or agent efficacy is established. |
+
+## Faster CosyVoice evaluation source context
+
+The existing [inference-benchmark-design](../src/inferrsi/data/skill_library/methods/inference-benchmark-design/SKILL.md)
+uses [dependency-aware TTS playout](../src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/dependency-aware-tts-playout.md)
+and its [source record](../src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/faster-cosyvoice-source.json)
+as methodology/source context for server PCM credit, client playback
+observations, chunk dependencies and partial cost denominators. This adds no
+numbered resource-layer mapping, lifecycle-stage mapping, supplementary
+hardware coverage or hardware prerequisite. The owner's existing N/A reason
+remains unchanged; source use of GPU, TensorRT, Flow or HiFT does not alter
+that boundary. Source-derived candidate / empirical not_run / efficacy
+not_evaluated; author reports are not local quality or service results.

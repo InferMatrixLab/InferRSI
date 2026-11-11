@@ -51,6 +51,8 @@ def test_generated_index_matches_current_sources_without_historical_git_objects(
     records = search_knowledge(repo="inferrsi", limit=100)
     revisions = {record["sources"][0]["commit"] for record in records}
     assert len(revisions) == 1
+    snapshot = json.loads((PROJECT / DESTINATION / "_provenance.json").read_text(encoding="utf-8"))
+    assert snapshot["source_revision"] in revisions
     # CI uses shallow checkouts. Compare the whole generated projection and its
     # text hashes without requiring the old source commit in the local object DB.
     recorded_hashes = {
