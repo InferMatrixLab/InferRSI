@@ -1,0 +1,138 @@
+{
+  "schema_version": 1,
+  "repository": "https://github.com/shenh10/HuggingArch",
+  "commit": "facbbbc96856e558b9084a94a5070b2e2c86cf0b",
+  "commit_metadata": {
+    "message": "init repo",
+    "authored": "2026-11-04T02:24:14Z",
+    "parents": [],
+    "repository_created": "2026-11-03T16:33:09Z"
+  },
+  "license": "MIT",
+  "observed_at": "2026-11-11",
+  "method": "Each file was retrieved through the GitHub contents API at the full commit. Its git blob was recomputed and matched against the commit's tree listing, then hashed. A complete file hash does not imply complete reading: the scope of each file is recorded below and in huggingarch-checkpoint-anchor.md.",
+  "readset": "huggingarch-checkpoint-anchor.md",
+  "native_execution": "not_run",
+  "tree": {
+    "sha": "facbbbc96856e558b9084a94a5070b2e2c86cf0b",
+    "truncated": false,
+    "blob_count": 1950,
+    "used_for": "Absence facts only: no measured-row data files (the only CSV is backend/inference/gpu_specs.csv, and there are no Parquet or DuckDB files), and no docs/guard_ablation/report.md."
+  },
+  "files": [
+    {
+      "path": "docs/validation.md",
+      "git_blob": "27ad32471db8c39937e04196a46fd3826a68def3",
+      "bytes": 37659,
+      "sha256": "917131e52bca569c9742efeba77606e2f102678acd9dccba06c593a833c9b800",
+      "inspection": "full",
+      "cited": true
+    },
+    {
+      "path": "backend/arch/validate/_matching.py",
+      "git_blob": "60b81c06768180b389e3aa820669f4e29807d228",
+      "bytes": 18640,
+      "sha256": "09adc8e4d1052e328c990526f90bafeca1c83eeaabac33d7167f4e71cf6a1a0b",
+      "inspection": "full",
+      "cited": true
+    },
+    {
+      "path": "backend/arch/validate/_weight_ledger.py",
+      "git_blob": "22527d76c1325ab21e668a11c66afce469a3b1bd",
+      "bytes": 2161,
+      "sha256": "7fa7ded5928507bae4facaf64afda040e0f8d07530a225df894b6ecf3d49a8f9",
+      "inspection": "full",
+      "cited": true
+    },
+    {
+      "path": "backend/arch/validate/_ablation.py",
+      "git_blob": "be26c9952602ecdea9b8380f7a739420b036b69a",
+      "bytes": 3656,
+      "sha256": "865351ba04c9377aeed4a1ac3ccd998335e77aa3cefc69db08831b7cf3555edb",
+      "inspection": "full",
+      "cited": true
+    },
+    {
+      "path": "docs/parallelism.md",
+      "git_blob": "2bac0e945842707a432b923f2ba3580428854491",
+      "bytes": 23100,
+      "sha256": "d33f829de04a27e42b3d44b98eaab94af409827434a2b2df18f4073c37b71714",
+      "inspection": "selected",
+      "inspected": "L1-120: the knob surface, and the axis table with each stored weight's declared placement",
+      "cited": true
+    },
+    {
+      "path": "docs/evaluation_model.md",
+      "git_blob": "304eb9c8cd8ff7c27587bbe7042246f373d5f5e7",
+      "bytes": 13653,
+      "sha256": "a62578fbf17302e0bf6a85a7692d881ea6cd1ee19beed59202a80be1d330b53a",
+      "inspection": "selected",
+      "inspected": "Heading list; L170-204: 'Parallelism: global extents, layout for per-rank geometry' and 'Two trees'",
+      "cited": true
+    },
+    {
+      "path": "docs/measured_calibration.md",
+      "git_blob": "c48b065e2a7b765cb9bba5cdd5b6dd2e41a31f97",
+      "bytes": 54364,
+      "sha256": "7971fda4719590f64fc43e8207ad968ef130d714979200493a3479b2403ab60a",
+      "inspection": "selected",
+      "inspected": "Heading list; L1-183 (sections 1-2); L384-403 (section 4.3); L684-828 (section 7)",
+      "cited": true
+    },
+    {
+      "path": "docs/known_limitations.md",
+      "git_blob": "4480f090cf338c4868832e6e25c34583e9085558",
+      "bytes": 29268,
+      "sha256": "0317f9edf17755bb58006130ed9fbfbabf4375d68d79fa744f811c7e9159172d",
+      "inspection": "selected",
+      "inspected": "Heading list; L1-24 (introduction); L73-92 (section 1.3); L452-466 (section 4.8)",
+      "cited": true
+    },
+    {
+      "path": "kernel_bench/emit.py",
+      "git_blob": "55f30fc4edcbe8c38b992c78cb20812380258a7a",
+      "bytes": 39131,
+      "sha256": "dfaf576cb5f16680d51f4703d3f8b538fa934d15e6ea626871e2285710ef3d7a",
+      "inspection": "selected",
+      "inspected": "L23-78: UTILIZATION_CEILING, utilization, achieved_from_latency and the start of restamp_row; L270-340: above_sol and _stamp_driver",
+      "cited": true
+    },
+    {
+      "path": "backend/inference/op_calibration.py",
+      "git_blob": "a4074fd5d7a2b00fddb7335e5dcf2657e3ee1df5",
+      "bytes": 52791,
+      "sha256": "f5a65e17c4b9de077acf4e3d003794af7823a4d0030aeae8fb73c120c4a9ca46",
+      "inspection": "selected",
+      "inspected": "Symbol list; L1-62: module docstring and ANOMALY_THRESHOLD; L340-347: _Row.utilization; L355-395: measured_utilization; L745-948: _classify_bound, _peak_drift_scaled_latency_us, _compute_drift, _roofline_at_test_us, measured_time_for and _build_measured_timing",
+      "cited": true
+    },
+    {
+      "path": "backend/measure/scope.py",
+      "git_blob": "34cd25765af8eba4d699d47a252c3a06b5bf1b00",
+      "bytes": 15337,
+      "sha256": "e409d0dd611ec412b8bd502f4a6dfcd7f68a1ffb8faeecd3695621f21ef31c84",
+      "inspection": "selected",
+      "inspected": "Symbol list; L1-60: module docstring and make_key",
+      "cited": false
+    },
+    {
+      "path": "LICENSE",
+      "git_blob": "0ffc8d1b94bfa47aa8eecb016f5f132b3f952abb",
+      "bytes": 1064,
+      "sha256": "673e62a48886033c0ef389f2bbdc5051269d4726d5bf516452b0b4d2354caa80",
+      "inspection": "selected",
+      "inspected": "L1-5: MIT License header",
+      "cited": true
+    }
+  ],
+  "companion_document": {
+    "url": "https://shenhan.cc/blog/huggingarch",
+    "displayed_publication_date": "2026-10-08",
+    "accessed": "2026-11-10",
+    "sha256": "31d0e0a9bbf9e32723fb6ab09179fbefb2fbba1043863f1475ecc7ea7ce24ed4",
+    "sha256_scope": "The HTML bytes of the single retrieval read here. The page is live and unversioned, so a later retrieval may differ.",
+    "inspected": "Sections 2.5, 2.6, 3.6 and 3.7 in full; section headings elsewhere",
+    "attributable_to_commit": false,
+    "license": "UNKNOWN"
+  }
+}
