@@ -14,6 +14,7 @@ import re
 import shlex
 from pathlib import Path, PurePosixPath, PureWindowsPath
 
+from .dashboard_workflow import run_workflow, validation_progress
 from .optimization_trace import read_optimization_trace
 
 STAGES = ("diagnosis", "knowledge", "search", "execution", "validation", "review")
@@ -22,7 +23,9 @@ PHASE_STAGES = {
     "measurement": "execution",
     "quality_validation": "validation",
 }
+PHASE_STAGES.update({phase + "_end": stage for phase, stage in PHASE_STAGES.items()})
 EVENT_TYPES = {
+    "turn.started", "turn.completed", "turn.failed", "item.completed", "error",
     "agent.context", "agent.request", "agent.response", "agent.tool",
     "agent.completed", "agent.failed", "agent.protocol", "agent.reservation",
     "edit.artifact", "edit.protocol", "edit.slot",
@@ -221,6 +224,14 @@ def _display_command(value: object, *, candidate_ids: set[str] | None = None) ->
 def _event_details(record: dict) -> dict:
     """Retain structured trace metadata, never arbitrary payloads or messages."""
     details = {}
+    seconds = _number(record.get("elapsed_seconds"))
+    if seconds is not None and seconds >= 0:
+        details["elapsed_seconds"] = seconds
+    item = record.get("item")
+    if isinstance(item, dict) and item.get("type") in (
+        "agent_message", "command_execution", "file_change", "mcp_tool_call", "web_search",
+    ):
+        details["item_kind"] = item["type"]
     for key in ("request", "requests", "request_bytes", "bytes", "revision"):
         value = record.get(key)
         if type(value) is int and 0 <= value <= 1_000_000_000_000:
@@ -275,7 +286,7 @@ def _event_details(record: dict) -> dict:
     for key, allowed in (("stop_reason", {"tool_use", "end_turn", "max_tokens", "stop_sequence",
                                           "pause_turn", "refusal"}),
                          ("state", {"running", "completed", "failed", "crashed", "timeout",
-                                    "cancelled"}),
+                                    "cancelled", "error"}),
                          ("verdict", {"PASS", "FAIL", "INCONCLUSIVE"})):
         value = record.get(key)
         if isinstance(value, str) and value in allowed:
@@ -470,8 +481,20 @@ def _events(path: Path, root: Path, expected: dict | None = None, unique_candida
         if not isinstance(time, str) or not re.fullmatch(r"[0-9TtZz:+.\-]{10,40}", time):
             time = None
         trial = record.get("trial")
+        details = _event_details(record)
+        activity = {
+            "agent.request": "request", "turn.started": "request",
+            "agent.response": "response", "agent.tool": "tool",
+            "agent.completed": "completion", "turn.completed": "completion",
+            "agent.failed": "error", "turn.failed": "error", "error": "error",
+        }.get(event_type)
+        if event_type == "item.completed":
+            activity = {"agent_message": "response", "command_execution": "tool",
+                        "file_change": "edit", "mcp_tool_call": "tool",
+                        "web_search": "tool"}.get(details.get("item_kind"))
         events.append({
-            "line": line_number, "time": time, "phase": phase, "type": event_type,
+            "activity": activity, "line": line_number, "time": time,
+            "phase": phase, "type": event_type,
             "stage": stage, "side": record.get("side")
             if record.get("side") in ("baseline", "candidate") else None,
             "trial": trial if isinstance(trial, int) and not isinstance(trial, bool)
@@ -480,7 +503,7 @@ def _events(path: Path, root: Path, expected: dict | None = None, unique_candida
                 "read_file", "submit_answer", "submit_candidate", "write_candidate",
                 "run_visible_checks", "run_visible_benchmark",
             ) else None,
-            "details": _event_details(record),
+            "details": details,
             "_declared_refs": record.get("refs") if isinstance(record.get("refs"), list) else [],
             "_link_state": link_state,
         })
@@ -584,20 +607,26 @@ def _run(root: Path, path: Path, candidate: dict, run_id: str | None, noise: flo
                 kind = "artifact"
             event["refs"].append(_explicit_ref(root, item, kind))
 
+    trial_refs = {}
     for event in events:
         event.pop("_link_state", None)
         event["source"] = "events"
         event["refs"] = [refs["events"]]
-        if event["phase"] == "measurement" and event["side"] and event["trial"]:
+        if (event["phase"] in ("measurement", "measurement_end")
+                and event["side"] and event["trial"]):
             trial = path / event["side"] / f'trial-{event["trial"]:03d}'
-            event["refs"].extend(
-                _file_ref(root, trial / name, kind)
-                for name, kind in (("execution.json", "execution"), ("stdout.log", "stdout"),
-                                   ("stderr.log", "stderr"))
-            )
-        elif event["phase"] == "quality_validation":
+            if trial not in trial_refs:
+                trial_refs[trial] = [
+                    _file_ref(root, trial / name, kind) for name, kind in (
+                        ("execution.json", "execution"), ("stdout.log", "stdout"),
+                        ("stderr.log", "stderr"),
+                    )
+                ]
+            event["refs"].extend(trial_refs[trial])
+        elif event["phase"] in ("quality_validation", "quality_validation_end"):
             event["refs"].append(refs["quality"])
         attach_declared(event)
+    runner_events = list(events)
     agent_links = {"unlinked": [], "mismatched": []}
     unlinked_events = []
     if refs["agent_trace"]["state"] == "present":
@@ -628,7 +657,7 @@ def _run(root: Path, path: Path, candidate: dict, run_id: str | None, noise: flo
         corrupt.extend(agent_corrupt)
         corrupt_sources["agent_trace"] = agent_corrupt
     tool_events = [event for event in events if event["source"] == "agent_trace"
-                   and event["type"] == "agent.tool"]
+                   and event["activity"] == "tool"]
     refs["tool_calls"] = ({**refs["agent_trace"], "kind": "tool_calls"} if tool_events else {
         "kind": "tool_calls", "state": "missing", "missing_reason": "not_collected"
     })
@@ -693,6 +722,19 @@ def _run(root: Path, path: Path, candidate: dict, run_id: str | None, noise: flo
         and isinstance(snapshot, str) and snapshot and valid_sequences
         and environment_signature is not None
     ) else None
+    workflow = run_workflow(runner_events, lock, state)
+    if run_id is not None:
+        progress, progress_state, progress_ref = _object_snapshot(
+            path / "validation" / "progress.json", root, "validation_progress"
+        )
+        if progress_state != "missing":
+            refs["validation_progress"] = progress_ref
+            counts = validation_progress(progress)
+            quality_group = workflow["groups"][1]
+            if counts is None:
+                quality_group.update(state="unknown", total=None, completed=0)
+            else:
+                quality_group.update(counts)
     return {
         "candidate_id": _text(candidate_id) if isinstance(candidate_id, str) else None,
         "title": _text(candidate.get("title"), "Recorded candidate"),
@@ -706,14 +748,15 @@ def _run(root: Path, path: Path, candidate: dict, run_id: str | None, noise: flo
         "minimum_improvement_pct": _number(evaluation.get("min_improvement_pct")),
         "baseline_median": _number(baseline.get("median")),
         "candidate_median": _number(measured.get("median")), "noise_band_pct": noise,
-        "metric_key": _text(evaluation.get("metric_key")),
-        "metric_unit": _text(evaluation.get("metric_unit")),
+        "metric_key": _text(evaluation.get("metric_key", lock.get("metric_key"))),
+        "metric_unit": _text(evaluation.get("metric_unit", lock.get("metric_unit"))),
         "direction": evaluation.get("direction")
         if evaluation.get("direction") in ("minimize", "maximize") else None,
         "verdict": verdict,
         "outcome": outcome, "events": events, "corrupt_event_lines": corrupt,
         "corrupt_event_sources": corrupt_sources,
         "agent_trace_links": agent_links, "unlinked_agent_events": unlinked_events,
+        "run_workflow": workflow,
         "optimization": _optimization(candidate),
         "optimization_trace": optimization_trace,
         "benchmark_context": {"scenario": _text(lock.get("scenario"), "Not recorded"),

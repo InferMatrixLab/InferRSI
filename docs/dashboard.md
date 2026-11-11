@@ -53,6 +53,35 @@ snapshot. Benchmark verdicts and metrics appear only once recorded. Context,
 search space and narrative must be captured and updated by the caller during
 the experiment.
 
+### Follow one round
+
+Select a candidate to see its recorded change and the order of its source,
+benchmark and validation steps in **Run review**. Each **Trace** button opens
+the corresponding runner event. Expand **Source records** for file references
+and hashes. Export feedback to keep the selected round's steps, timings and
+event lines alongside your review.
+
+The native runner appends a start and an `_end` event for each step. Node times
+include source checks and command startup. The measured service latency appears
+separately. The span of recorded tests runs from the earliest start to the last
+finish, including gaps. Running times use the live server's clock at its last
+successful check. An offline view shows only recorded durations.
+
+Performance progress counts completed baseline and candidate trial commands.
+Accuracy progress counts the validator command by default. A validator that
+knows its own workload can atomically replace `validation/progress.json` in
+its run with `{"unit":"cases","completed":4,"total":10}`. A single writer owns
+the absolute count. Units are `cases`, `samples` or `manifests`; use null for
+an unknown total. The Qwen image validator reports each checked manifest.
+A checked item can fail. Progress never sets the run verdict.
+
+Run directories separate repeated attempts. Duplicate edges within one run
+count once; conflicting observations or older starts with no finish leave the
+count unknown. Agent events still need the campaign correlation fields. Codex
+turns, command completions and errors and Anthropic request, tool and completion
+events have readable labels. The raw event type and source line remain available;
+command output and message content stay in the original trace.
+
 ### Language
 
 The header switches the offline interface, chart labels and review export between

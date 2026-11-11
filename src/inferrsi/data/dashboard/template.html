@@ -138,6 +138,24 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
 .claim p { margin:0 0 3px; white-space:pre-wrap; }
 @media (max-width:900px) { .round-grid, .summary-grid { grid-template-columns:1fr; } .cand { grid-template-columns:1fr; } }
 @media (max-width:900px) { .columns, .insight-grid { grid-template-columns:1fr; } .insight.wide { grid-column:auto; } .top { flex-wrap:wrap; padding:10px 18px; } .stat-value { font-size:24px; white-space:nowrap; } }
+#run-review { padding:14px 16px; margin:14px 0; }
+.review-heading, .change-note { display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; }
+.review-heading h2 { font-size:17px; margin:0; }
+.review-heading small, .change-note strong, .progress-card small { color:var(--muted); }
+.review-result { display:flex; flex-wrap:wrap; gap:12px 32px; margin:12px 0; }
+.review-result small { display:block; color:var(--muted); }
+.review-result strong { font-size:16px; }
+.change-note { margin:8px 0 14px; overflow-wrap:anywhere; }
+.test-progress { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr)); gap:12px; }
+.progress-card { padding:10px 14px; background:var(--panel2); border-radius:3px; }
+.progress-card div { display:flex; justify-content:space-between; align-items:baseline; }
+.progress-state, .progress-card small { font-size:12px; }
+.progress-card small { margin-inline-start:12px; }
+.progress-card progress { display:block; width:100%; height:7px; margin:8px 0; accent-color:#75b6ae; }
+.node-list { overflow:auto; max-height:25em; margin-top:12px; font-variant-numeric:tabular-nums; }
+.node-list th { position:sticky; top:0; }
+.node-list .work-running td:first-child { border-inline-start:3px solid var(--blue); }
+.node-list .work-failed td:nth-child(2), .node-list .work-timeout td:nth-child(2) { color:#ff9ba7; }
 </style>
 </head>
 <body>
@@ -161,6 +179,7 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
 </div>
 <main>
 <div id="integration-note" class="panel panel-body"></div>
+  <section class="panel" id="run-review" hidden aria-label="Run review"></section>
   <div class="section-title">Overview · all candidates <small id="overview-note"></small></div>
   <div id="stats" class="stats" aria-label="Overview statistics"></div>
   <div class="section-title">Workflow <small>Technical events only; select a stage to filter candidates and events</small></div>
@@ -221,6 +240,15 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
   const liveMode = data.live === true;
   const byId = id => document.getElementById(id);
   const chinese = {
+    'samples':'个样本','cases':'个用例','manifests':'份清单','trials':'次试验','checks':'项检查','Total unknown':'总数未知','Source records':'原始记录','Review the failed check':'查看失败的检查','Below target':'未达目标',
+    'Run review':'本轮记录','What changed':'本轮改动','Performance tests':'性能测试','Accuracy check':'精度检查',
+    'Record source revisions':'记录代码版本','Trial':'试验','Step':'步骤','Elapsed':'耗时','Trace':'追溯',
+    'Started (UTC)':'开始 (UTC)','Finished (UTC)':'结束 (UTC)','Record incomplete':'记录不完整',
+    'Count unavailable':'完成数未知','not configured':'未配置','No checks configured':'未配置检查',
+    'Recorded span':'起止跨度','No test events recorded.':'没有测试事件记录。','skipped':'已跳过',
+    'Turn finished':'交互结束','Agent finished':'代理结束','Turn started':'交互开始','Agent error':'代理报错',
+    'Tool call':'调用工具','Command finished':'命令结束','Item finished':'操作结束','Request sent':'发出请求',
+    'Response received':'收到响应','Run finished':'运行结束','Run crashed':'运行异常退出','started':'已开始',
     'stages_declared is explicitly empty: undeclared stages mean not applicable, not backend unsupported.':'stages_declared 显式声明为空：未声明的阶段表示不适用，不表示后端不受支持。',
     'Source collection':'数据采集',
     'live':'已连接',
@@ -494,7 +522,9 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
   }
   const stageNames = {diagnosis:'Diagnosis', knowledge:'Knowledge', search:'Candidate search', execution:'Execution', validation:'Validation', review:'Review'};
   const stageSelect = byId('stage-filter'), runSelect = byId('run-filter'), candidateSelect = byId('candidate-filter');
+  let serverTime=null;
   let selected = data.candidates.findIndex(r=>r.external?.metrics?.length), jumpNotice = '';
+  if(selected<0)selected=data.candidates.findIndex(row=>row.state==='running');
   if(selected<0)selected=null;
   const node = (tag, text, cls) => { const el = document.createElement(tag); if (text !== undefined) el.textContent = text; if (cls) el.className = cls; return el; };
   const narrativeNode = (tag, text, cls) => {const el=node(tag,text,cls);el.setAttribute('data-narrative','');return el;};
@@ -569,6 +599,108 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
     for(const [label,number,note,colour] of figures){const box=node('div',undefined,'panel stat');box.appendChild(node('div',label,'stat-label'));box.appendChild(node('strong',number,`stat-value ${colour}`));box.appendChild(node('small',note,'hint'));root.appendChild(box);}
     byId('overview-note').textContent = data.rounds === null ? 'Rounds not recorded' : `${data.rounds.length} recorded rounds${data.corrupt_round_lines.length ? ` · corrupt lines ${data.corrupt_round_lines.join(', ')}` : ''}`;
   }
+  const workNames = {measurement:'Performance tests', quality_validation:'Accuracy check', source_snapshot:'Record source revisions'};
+  const stateName = state => state === 'unknown' ? 'Record incomplete' : state.replaceAll('_',' ');
+  function workName(work) {
+    if(work.kind !== 'measurement') return translated(workNames[work.kind]);
+    return translated(work.side === 'baseline' ? 'Baseline' : 'Candidate') + ' · ' + translated('Trial') + ' ' + work.trial;
+  }
+  function duration(seconds) {
+    if(seconds == null || seconds < 0) return translated('Not recorded');
+    return seconds < 60 ? seconds.toFixed(1)+' s' : Math.floor(seconds/60)+' min '+Math.floor(seconds%60)+' s';
+  }
+  function jumpToEvent(source,line) {
+    stageSelect.value=''; byId('trace-search').value=''; byId('trace-source').value='';
+    jumpNotice=''; render();
+    const entry=byId('trace-'+source+'-'+line);
+    if(entry){entry.open=true; entry.querySelector('summary').focus(); entry.scrollIntoView({block:'center'});}
+  }
+  function renderRunReview(row) {
+    const root=byId('run-review');
+    clear(root);
+    root.hidden=!row?.run_id;
+    if(root.hidden)return;
+    const heading=node('div',undefined,'review-heading');
+    heading.append(node('h2','Run review'),narrativeNode('strong',row.title),node('span',stateName(row.state)));
+    if(row.round!==null)heading.append(node('small',translated('Round')+' '+row.round));
+    root.appendChild(heading);
+    const summary=node('div',undefined,'change-note');
+    summary.append(node('strong','What changed'),narrativeNode('span',row.optimization.summary));
+    root.appendChild(summary);
+    if(row.baseline_median!==null && row.candidate_median!==null){
+      const result=node('div',undefined,'review-result');
+      const values=[[translated('Baseline'),measurement(row.baseline_median)+' '+row.metric_unit],
+        [translated('Candidate'),measurement(row.candidate_median)+' '+row.metric_unit],
+        [translated('Gain'),value(row.improvement_pct,'%')],[translated('Quality'),translated(row.quality)],
+        [translated('Verdict'),translated(row.verdict)]];
+      for(const [label,text] of values){const field=node('span');field.append(node('small',label),node('strong',text));result.appendChild(field);}
+      if(row.minimum_improvement_pct!==null && row.improvement_pct!==null && row.improvement_pct<row.minimum_improvement_pct){
+        result.appendChild(node('span',translated('Below target')+' · '+value(row.minimum_improvement_pct,'%'),'hint'));
+      }
+      const failed=row.run_workflow.nodes.find(n=>n.kind==='quality_validation' && n.state==='failed');
+      if(failed){
+        const inspect=node('button','Review the failed check','diagnostic-button');
+        inspect.type='button';inspect.addEventListener('click',()=>jumpToEvent('events',failed.line));
+        result.appendChild(inspect);
+      }
+      root.appendChild(result);
+    }
+    const flow=row.run_workflow, cards=node('div',undefined,'test-progress');
+    for(const g of flow.groups){
+      const card=node('div',undefined,'progress-card'), head=node('div');
+      head.append(node('strong',workNames[g.kind]),node('span',stateName(g.state),'progress-state'));
+      card.appendChild(head);
+      const known=g.state!=='unknown' && g.total!==null && g.total>0;
+      const bar=node('progress');bar.setAttribute('aria-label',workNames[g.kind]);
+      if(known){bar.max=g.total;bar.value=g.completed;}
+      if(g.state!=='not_configured' && g.total!==0)card.appendChild(bar);
+      const unit=translated(g.unit || (g.kind==='measurement'?'trials':'checks'));
+      let count=translated('Count unavailable');
+      if(known)count=g.completed+' / '+g.total+' '+unit+' · '+Math.floor(100*g.completed/g.total)+'%';
+      else if(g.state==='not_configured')count=translated('No checks configured');
+      else if(g.unit && g.total===0)count='0 '+unit;
+      else if(g.total===null && (g.completed>0 || g.unit))count=g.completed+' '+unit+' · '+translated('Total unknown');
+      card.appendChild(node('span',count));
+      if(g.wall_seconds!==null)card.appendChild(node('small',translated('Recorded span')+' '+duration(g.wall_seconds)));
+      cards.appendChild(card);
+    }
+    root.appendChild(cards);
+    if(!flow.nodes.length){root.appendChild(node('p','No test events recorded.','hint'));return;}
+    const list=node('div',undefined,'node-list'),table=node('table'),head=node('tr');
+    for(const h of ['Step','State','Started (UTC)','Finished (UTC)','Elapsed','Trace'])head.appendChild(node('th',h));
+    table.appendChild(head);
+    const clock=t=>t && /(?:Z|[+-]\d{2}:\d{2})$/i.test(t) && Number.isFinite(Date.parse(t)) ? new Date(t).toISOString().slice(11,23) : '—';
+    for(const n of flow.nodes){
+      const tr=node('tr');tr.className='work-'+n.state;
+      tr.append(node('td',workName(n)),node('td',stateName(n.state)));
+      for(const time of [n.start,n.end]){const cell=node('td',clock(time));if(time)cell.title=time;tr.appendChild(cell);}
+      const elapsed=node('td',duration(n.seconds));
+      if(n.state==='running' && clock(n.start)!=='—')elapsed.dataset.started=n.start;
+      const action=node('td'),btn=node('button','events:'+n.line);
+      btn.type='button';btn.addEventListener('click',()=>jumpToEvent('events',n.line));
+      action.appendChild(btn);tr.append(elapsed,action);table.appendChild(tr);
+    }
+    list.appendChild(table);root.appendChild(list);refreshElapsed();
+  }
+  function refreshElapsed(){
+    if(!liveMode || serverTime===null)return;
+    for(const cell of document.querySelectorAll('#run-review [data-started]')){
+      cell.textContent=duration((serverTime-Date.parse(cell.dataset.started))/1000);
+    }
+  }
+  function eventLabel(event){
+    const phase=event.phase || '', kind=phase.replace(/_end$/,'');
+    if(workNames[kind]) {
+      const label=kind==='measurement' && (!event.side || !event.trial) ? translated(workNames[kind]) : workName({...event,kind});
+      return label+' · '+translated(stateName(event.details.state || (phase.endsWith('_end')?'unknown':'started')));
+    }
+    const labels={'turn.completed':'Turn finished','agent.completed':'Agent finished','turn.started':'Turn started',
+      'turn.failed':'Agent error','agent.failed':'Agent error','error':'Agent error','agent.tool':'Tool call',
+      'item.completed':event.details.item_kind==='command_execution'?'Command finished':'Item finished',
+      'agent.request':'Request sent','agent.response':'Response received','complete':'Run finished','crashed':'Run crashed'};
+    return translated(labels[event.type || phase] || event.type || phase || 'unclassified event');
+  }
+
   function renderWorkflow() {
     const root=byId('workflow'); clear(root);
     for(const [index,stage] of data.stages.entries()){
@@ -610,6 +742,13 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
     heading.appendChild(node('small','Narrative is caller recorded; verdicts and measurements are separate evidence.'));
     root.appendChild(heading);
     const grid=node('div',undefined,'insight-grid');root.appendChild(grid);
+    const info=row.optimization, context=row.benchmark_context;
+    const optimization=insight(grid,'Change and rationale','Caller recorded',true);
+    detailLine(optimization,'Change type',info.kind || 'Not recorded');
+    detailLine(optimization,'What was changed',info.summary,false,true);
+    detailLine(optimization,'Why / hypothesis',info.hypothesis,false,true);
+    if(!info.code_locations.length)detailLine(optimization,'Code / configuration locations','Not recorded');
+    for(const location of info.code_locations){const lines=location.line_start===null?'':`:${location.line_start}${location.line_end===null?'':`-${location.line_end}`}`;const revision=location.revision?` · revision ${location.revision}`:'';detailLine(optimization,'Code / configuration location',`${translatedNarrative(location.scope)} · ${location.path || '[redacted or invalid path]'}${lines}${revision}\n${translatedNarrative(location.note)}`);}
     if(row.external && row.external.protocol){
       const e=row.external, box=insight(grid,'Protocol measurements',`${e.backend} · ${e.protocol}`,true);
       detailLine(box,'Performance',e.performance_verdict);
@@ -622,13 +761,6 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
       for(const ref of e.source_refs)box.appendChild(node('code',refText(ref)));
       return;
     }
-    const info=row.optimization, context=row.benchmark_context;
-    const optimization=insight(grid,'Change and rationale','Caller recorded',true);
-    detailLine(optimization,'Change type',info.kind || 'Not recorded');
-    detailLine(optimization,'What was changed',info.summary,false,true);
-    detailLine(optimization,'Why / hypothesis',info.hypothesis,false,true);
-    if(!info.code_locations.length)detailLine(optimization,'Code / configuration locations','Not recorded');
-    for(const location of info.code_locations){const lines=location.line_start===null?'':`:${location.line_start}${location.line_end===null?'':`-${location.line_end}`}`;const revision=location.revision?` · revision ${location.revision}`:'';detailLine(optimization,'Code / configuration location',`${translatedNarrative(location.scope)} · ${location.path || '[redacted or invalid path]'}${lines}${revision}\n${translatedNarrative(location.note)}`);}
     const trace=row.optimization_trace;
     const traceHeading=node('div',undefined,'trace-heading');
     traceHeading.appendChild(node('h4','Optimization trace'));
@@ -750,16 +882,20 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
     if(!visible.length)item(trace,'NOT RECORDED','No events match the current filters.');
     for(const event of visible){
       const name=event.type || event.phase || translated('unclassified event');
-      const metadata=[event.time || 'Time not recorded',event.stage,event.side,event.trial===null?null:`trial ${event.trial}`,event.tool].filter(Boolean).join(' · ');
+      const metadata=[event.time || 'Time not recorded',event.stage,event.activity,event.side,event.trial===null?null:`trial ${event.trial}`,event.tool].filter(Boolean).join(' · ');
       const entry=node('details',undefined,`item trace-event${event.unlinked?' missing-item':''}`);
       entry.id=`trace-${event.source}-${event.line}`;
       const summary=node('summary');
       if(event.unlinked){summary.appendChild(node('span','UNLINKED'));summary.appendChild(node('span',' · '));}
-      const rawName=node('span',`${event.source}:${event.line} · ${name}`);
+      summary.append(node('strong',eventLabel(event)),node('span',' · '));
+      const rawName=node('small',`${event.source}:${event.line} · ${name}`);
       rawName.setAttribute('data-no-translate','');summary.appendChild(rawName);entry.appendChild(summary);
       entry.appendChild(node('small',metadata));
       entry.appendChild(node('pre',Object.keys(event.details).length ? JSON.stringify(event.details,null,2) : translated('No additional structured fields recorded.')));
-      entry.appendChild(node('code',event.refs.map(refText).join(' | ')));trace.appendChild(entry);
+      const records=node('details',undefined,'trace-refs');
+      records.appendChild(node('summary','Source records'));
+      for(const ref of event.refs)records.appendChild(node('code',refText(ref)));
+      entry.appendChild(records);trace.appendChild(entry);
     }
     if(row.artifacts.tool_calls?.state==='missing')item(trace,'MISSING · tool calls',row.artifacts.tool_calls.missing_reason).classList.add('missing-item');
     if(row.agent_trace_links.unlinked.length)item(trace,'UNLINKED AGENT EVENTS',`Lines ${row.agent_trace_links.unlinked.join(', ')}`).classList.add('missing-item');
@@ -940,7 +1076,7 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
     const body=node('div',undefined,'story-body');body.setAttribute('role','tabpanel');root.appendChild(body);
     ({iterations:renderIterations,knowledge:renderKnowledge,space:renderSpace,summary:renderSummary})[storyTab](body,story);
   }
-  function render(){const visible=filtered();renderStory();renderWorkflow();renderRows(visible);renderCandidate(selected===null?null:data.candidates[selected]);renderDetail();localizePage();}
+  function render(){const visible=filtered();renderStory();renderWorkflow();renderRows(visible);renderRunReview(data.candidates[selected]);renderCandidate(selected===null?null:data.candidates[selected]);renderDetail();localizePage();}
   for(const select of [stageSelect,runSelect,candidateSelect])select.addEventListener('change',()=>{jumpNotice='';render();});
   byId('trace-search').addEventListener('input',()=>{renderDetail();localizePage();});
   byId('trace-source').addEventListener('change',()=>{renderDetail();localizePage();});
@@ -961,8 +1097,10 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
   function buildFeedback(){
     const row=selected===null?null:data.candidates[selected], visible=row?traceEvents(row).visible:[];
     const refs=row?[...new Set([...Object.values(row.artifacts),...visible.flatMap(event=>event.refs)].map(refText))].join('\n- '):translated('Not recorded');
+    const work=row?.run_workflow?.nodes || [];
+    const steps=work.map(n=>'- '+workName(n)+' · '+translated(stateName(n.state))+' · '+duration(n.seconds)+' · events:'+n.line).join('\n');
     const events=visible.map(e=>`${e.unlinked?`${translated('UNLINKED')} `:''}${e.source}:${e.line}`).join(', ');
-    return redact(`# ${translated('InferRSI review')}\n\n${translated('Campaign')}: ${data.campaign_id}\n${translated('Round')}: ${row && row.round!==null?row.round:translated('Not recorded')}\n${translated('Candidate')}: ${row?identity(row,selected):translated('Not recorded')}\n${translated('Stage')}: ${stageSelect.value?translated(stageNames[stageSelect.value]):translated('All stages')}\n${translated('Visible trace')}: ${events || translated('Not recorded')}\n\n## ${translated('Recorded optimization')}\n\n${row && row.optimization.summary!=='Not recorded'?translatedNarrative(row.optimization.summary):translated('Not recorded')}\n\n## ${translated('Findings and recommendation')}\n\n${byId('feedback').value || translated('Not recorded')}\n\n## ${translated('Evidence references')}\n\n- ${refs}\n`);
+    return redact(`# ${translated('InferRSI review')}\n\n${translated('Campaign')}: ${data.campaign_id}\n${translated('Round')}: ${row && row.round!==null?row.round:translated('Not recorded')}\n${translated('Candidate')}: ${row?identity(row,selected):translated('Not recorded')}\n${translated('Stage')}: ${stageSelect.value?translated(stageNames[stageSelect.value]):translated('All stages')}\n${translated('Visible trace')}: ${events || translated('Not recorded')}\n\n## ${translated('Recorded optimization')}\n\n${row && row.optimization.summary!=='Not recorded'?translatedNarrative(row.optimization.summary):translated('Not recorded')}\n\n## ${translated('Run review')}\n\n${steps || translated('Not recorded')}\n\n## ${translated('Findings and recommendation')}\n\n${byId('feedback').value || translated('Not recorded')}\n\n## ${translated('Evidence references')}\n\n- ${refs}\n`);
   }
   byId('export').addEventListener('click',()=>{
     const feedback=buildFeedback();
@@ -1027,6 +1165,8 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
       const response=await fetch('/api/state',{headers,cache:'no-store',signal:controller.signal});
       if(response.status!==304){if(!response.ok)throw new Error('snapshot unavailable');const snapshot=await response.json();applySnapshot(snapshot);liveEtag=response.headers.get('ETag');}
       liveConnected=true;lastChecked=Date.now();
+      const checked=Date.parse(response.headers.get('Date'));
+      if(Number.isFinite(checked)){serverTime=checked;refreshElapsed();}
     }catch(_){liveConnected=false;}
     finally{clearTimeout(timeout);liveAttempted=true;showLiveStatus();setTimeout(pollLive,3000);}
   }

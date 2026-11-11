@@ -5,6 +5,7 @@ import subprocess
 import time
 import uuid
 from collections.abc import Callable
+from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -45,6 +46,23 @@ def run_experiment(
         _write_json(
             run_dir / "status.json", {"state": "running", "phase": phase, "run_dir": str(run_dir)}
         )
+
+    @contextmanager
+    def node(phase: str, **identity: object):
+        event(phase, state="running", **identity)
+        start = time.monotonic()
+        result = {}
+        try:
+            yield result
+        except KeyboardInterrupt:
+            result["status"] = "cancelled"
+            raise
+        except BaseException:
+            result["status"] = "failed"
+            raise
+        finally:
+            event(phase + "_end", state=result.get("status", "completed"),
+                  elapsed_seconds=time.monotonic() - start, **identity)
 
     def record_status(phase: str, **fields: object) -> None:
         _write_json(
@@ -158,19 +176,20 @@ def run_experiment(
 
     stopped = None
     try:
-        event("source_snapshot")
-        before = {label: snapshot(repo, run_dir) for label, repo in repos.items()}
-        _write_json(run_dir / "repositories.lock.json", before)
+        with node("source_snapshot"):
+            before = {label: snapshot(repo, run_dir) for label, repo in repos.items()}
+            _write_json(run_dir / "repositories.lock.json", before)
         commands = {"baseline": spec.baseline_command, "candidate": spec.candidate_command}
         for index in range(spec.repetitions):
             for label in ("baseline", "candidate") if index % 2 == 0 else ("candidate", "baseline"):
-                event("measurement", side=label, trial=index + 1)
-                record = execute_checked(
-                    commands[label],
-                    label,
-                    run_dir / label / f"trial-{index + 1:03d}",
-                    spec.metric_key,
-                )
+                with node("measurement", side=label, trial=index + 1) as progress:
+                    record = execute_checked(
+                        commands[label],
+                        label,
+                        run_dir / label / f"trial-{index + 1:03d}",
+                        spec.metric_key,
+                    )
+                    progress["status"] = record["status"]
                 (baseline if label == "baseline" else candidate).append(record)
                 if record["status"] == "cancelled":
                     raise KeyboardInterrupt
@@ -180,10 +199,11 @@ def run_experiment(
             if stopped is not None:
                 break
         if spec.validation_command is not None and stopped is None:
-            event("quality_validation")
-            validation = execute_checked(
-                spec.validation_command, "candidate", run_dir / "validation", None
-            )
+            with node("quality_validation") as progress:
+                validation = execute_checked(
+                    spec.validation_command, "candidate", run_dir / "validation", None
+                )
+                progress["status"] = validation["status"]
             if validation["status"] != "completed":
                 stopped = validation["status"]
         elif spec.validation_command is not None:
