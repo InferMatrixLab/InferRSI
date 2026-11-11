@@ -52,17 +52,16 @@ def _decision(**changes):
             "decision_quote": "use the stable RoPE case", **changes}
 
 
-def _real_read_trace(path, corpus):
-    output = "Use the stable RoPE case."
+def _real_read_trace(path, corpus, *, command="cat case.md", output="Use the stable RoPE case."):
     rows = [
         {"type": "session_meta", "payload": {"id": "private-session"}},
         {"type": "response_item", "payload": {
             "type": "function_call", "name": "exec_command", "call_id": "call-1",
-            "arguments": {"cmd": "cat case.md", "workdir": str(corpus)},
+            "arguments": {"cmd": command, "workdir": str(corpus)},
         }},
         {"type": "event_msg", "payload": {"type": "item_completed", "item": {
             "type": "CommandExecution", "id": "tool-event-7", "cwd": corpus.as_uri(),
-            "command": ["/bin/sh", "-lc", "cat case.md"], "exit_code": 0,
+            "command": ["/bin/sh", "-lc", command], "exit_code": 0,
             "aggregated_output": output,
         }}},
         {"type": "response_item", "payload": {
@@ -75,6 +74,60 @@ def _real_read_trace(path, corpus):
         }},
     ]
     path.write_text("".join(json.dumps(row) + "\n" for row in rows), encoding="utf-8")
+
+
+@pytest.mark.parametrize(("command", "output", "source_line"), [
+    ("rg needle .", "./case.md:42:needle\n", None),
+    ("rg -Hn needle .", "./case.md:1:42:needle\n", 1),
+])
+def test_rg_numeric_body_prefix_is_not_an_invented_source_line(
+    tmp_path, command, output, source_line,
+):
+    campaign = tmp_path / "campaign"
+    create_campaign(campaign, "example")
+    trace, corpus = tmp_path / "rollout.jsonl", tmp_path / "corpus"
+    _real_read_trace(trace, corpus, command=command, output=output)
+    inputs = {"number": 1, "trace": trace, "lines": [2, 5],
+              "knowledge_root": corpus, "complete": True}
+    use = _decision(ref="case.md", event_line=3, decision_line=5, passage_line=42)
+    review = _review(tmp_path / "review.json", decisions=[use])
+    with pytest.raises(ValueError, match="exact delivered source passage"):
+        import_search(campaign, archive_review=review, **inputs)
+    assert not (campaign / "search/round-1.json").exists()
+
+    review = _review(tmp_path / "review.json", decisions=[{**use, "passage_line": source_line}])
+    path = import_search(campaign, archive_review=review, **inputs)
+    record = json.loads(path.read_text())
+    evidence, = record["materials"]["case.md"]["evidence"]
+    assert evidence["passage_line"] == source_line
+    assert evidence["passage_text"] == "42:needle"
+    assert record["events"][0]["materials"][0]["match_line"] == source_line
+    assert record["counts"]["used"] == 1
+
+
+@pytest.mark.parametrize("transformation", ["redacted", "root_normalized", "truncated"])
+def test_adoption_preserves_source_excerpt_transformations(tmp_path, transformation):
+    campaign = tmp_path / "campaign"
+    create_campaign(campaign, "example")
+    trace, corpus = tmp_path / "rollout.jsonl", tmp_path / "corpus"
+    outputs = {
+        "redacted": "Use the stable RoPE case. See https://example.org/source.",
+        "root_normalized": f"Use the stable RoPE case in {corpus}.",
+        "truncated": "Use the stable RoPE case. " + "x" * 450,
+    }
+    _real_read_trace(trace, corpus, output=outputs[transformation])
+    review = _review(tmp_path / "review.json", decisions=[_decision(
+        ref="case.md", event_line=3, decision_line=5)])
+    path = import_search(campaign, number=1, trace=trace, lines=[2, 5],
+                         knowledge_root=corpus, archive_review=review)
+    record = json.loads(path.read_text())
+    passage, = record["events"][0]["delivery"]["passages"]
+    evidence, = record["materials"]["case.md"]["evidence"]
+    assert passage[transformation] is True
+    assert evidence[f"passage_{transformation}"] is True
+    assert evidence["passage_text"] == passage["text"]
+    assert evidence["passage_text"] != outputs[transformation]
+    assert record["observed"]["used"] == 1
 
 
 def test_archive_rejects_unavailable_or_mismatched_passage_before_writing(tmp_path, monkeypatch):
@@ -260,6 +313,25 @@ def test_indexer_capture_is_prepared_and_unknown_without_return(tmp_path):
     assert material["delivery_state"] == "unknown"
     assert record["materials"]["package:manual"]["use"] == "unknown"
     assert str(tmp_path) not in path.read_text(encoding="utf-8")
+
+
+def test_local_capture_flag_without_ordering_stays_a_declaration(tmp_path):
+    campaign, output = _make_capture(tmp_path)
+    trace = tmp_path / "rollout.jsonl"
+    _capture_trace(trace, output, "I will use Manual line for validation.")
+    inputs = {"number": 1, "trace": trace, "lines": [2, 3],
+              "knowledge_root": tmp_path / "corpus", "context_ids": ["r1"],
+              "complete": True}
+    path = import_search(campaign, used=[("package:manual", 3)], **inputs)
+    record = json.loads(path.read_text())
+    material = record["materials"]["package:manual"]
+    assert material["use"] == "unknown" and record["counts"]["used"] == 0
+    assert material["declarations"] == [{
+        "use": "used", "basis": "caller_reviewed", "decision_line": 3,
+        "reason": "observation_order_unknown",
+    }]
+    import_search(campaign, **inputs)
+    assert json.loads(path.read_text()) == record
 
 
 def test_indexer_archive_review_matches_exact_visible_resource_and_return(tmp_path):

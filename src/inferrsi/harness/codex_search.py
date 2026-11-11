@@ -72,6 +72,8 @@ def _rg_args(args: list[str]) -> tuple[str, list[str], str, list[str]] | None:
         patterns.append(operands.pop(0))
     if mode == "text" and context:
         mode = "numbered_context" if numbered else "unnumbered_context"
+    elif mode == "text" and numbered:
+        mode = "numbered_text"
     return (" | ".join(patterns), operands or ["."], mode, options) if patterns else None
 
 
@@ -103,17 +105,19 @@ def _rg_observations(output, cwd, corpus, scopes, mode):
                 if not numbered_match:
                     complete = False
                     continue
-            bare = re.match(r"^(\d+):(.*)$", line)
+            numbered = mode in ("numbered_text", "numbered_context")
+            bare = re.match(r"^(\d+):(.*)$", line) if numbered else None
             if bare and len(scope_paths) == 1 and scope_paths[0] != cwd:
                 path, number, text = str(scope_paths[0]), int(bare[1]), bare[2]
             else:
-                match = re.match(r"^([^:]+):(?:(\d+):)?(.*)$", line)
+                pattern = r"^([^:]+):(\d+):(.*)$" if numbered else r"^([^:]+):(.*)$"
+                match = re.match(pattern, line)
                 if not match:
                     complete = False
                     continue
                 path = match[1]
-                number = int(match[2]) if match[2] else None
-                text = match[3]
+                number = int(match[2]) if numbered else None
+                text = match[3] if numbered else match[2]
         candidate = Path(os.path.normpath(cwd / path))
         if not any(candidate.is_relative_to(scope) for scope in scope_paths):
             complete = False

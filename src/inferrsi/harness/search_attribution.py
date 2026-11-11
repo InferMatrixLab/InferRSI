@@ -27,6 +27,27 @@ def _use(materials, ref, status, evidence):
     item["use"] = status if len(states) == 1 else "used_and_rejected"
 
 
+def _caller_use(materials, events, ref, status, evidence):
+    """Count a caller's decision only after an observed material in this window."""
+    if ref not in materials:
+        raise ValueError("use evidence must name a material observed in this round")
+    observed_lines = [
+        event["trace_line"] for event in events
+        if type(event.get("trace_line")) is int
+        and any(material["ref"] == ref for material in event["materials"])
+    ]
+    if any(line < evidence["decision_line"] for line in observed_lines):
+        _use(materials, ref, status, evidence)
+    elif observed_lines:
+        raise ValueError("decision must follow an observation of the cited material")
+    else:
+        # A capture proves preparation, but has no position in the chosen trace.
+        declaration = {"use": status, **evidence, "reason": "observation_order_unknown"}
+        declarations = materials[ref].setdefault("declarations", [])
+        if declaration not in declarations:
+            declarations.append(declaration)
+
+
 def _atomic_json(target, record):
     with NamedTemporaryFile(mode="w", encoding="utf-8", dir=target.parent, delete=False) as stream:
         temporary = Path(stream.name)
@@ -114,12 +135,13 @@ def _write(root, record):
             # A closing import may add the final reply or a run to an earlier
             # snapshot. Keep previously reviewed decisions for this same window.
             for ref, material in old["materials"].items():
-                for evidence in material.get("evidence", []):
+                for evidence in [*material.get("evidence", []), *material.get("declarations", [])]:
                     if evidence.get("basis") != "caller_reviewed":
                         continue
                     current = record["materials"].get(ref, {})
                     if evidence not in current.get("evidence", []):
-                        _use(record["materials"], ref, evidence["use"], evidence)
+                        _caller_use(record["materials"], record["events"], ref,
+                                    evidence["use"], evidence)
             record["observed"]["used"] = _used_count(record["materials"])
             if old == record:
                 return target
@@ -264,7 +286,8 @@ def import_search(root: Path, *, number: int, trace=None, lines=None, knowledge_
         for ref, line in entries:
             if int(line) not in decisions:
                 raise ValueError("decision line must reference an assistant message in this round")
-            _use(materials, ref, status, {"decision_line": int(line), "basis": "caller_reviewed"})
+            _caller_use(materials, events, ref, status,
+                        {"decision_line": int(line), "basis": "caller_reviewed"})
     observed["used"] = _used_count(materials)
     coverage = "complete" if complete and not uncertain else "partial"
     if not window and not captures:

@@ -158,7 +158,9 @@ are distinct observations. A bare `collect` leaves no such capture.
 The importer reads Desktop `CommandExecution` events. It supports direct text
 or filename-match searches with `rg`, literal `cat`, `nl -ba` and `sed -n N,Mp`
 reads. Use `rg -Hn` for unambiguous filenames and matching lines. File results
-are corpus-relative. A shell event establishes the command's recorded output;
+are corpus-relative. Without a line-number option, a numeric prefix such as
+`42:` remains part of the matched text, with no source line number inferred.
+A shell event establishes the command's recorded output;
 the outer agent tool may have displayed a shorter excerpt. The default local
 record keeps locators and omits source text, output and assistant replies. Multiline
 retrieval scripts, unsupported pipelines and unparseable output leave
@@ -187,8 +189,12 @@ retrievals require separate evidence. Review query text and paths before sharing
   in an assistant message, a reviewer can pass `--used REF LINE` or
   `--rejected REF LINE` with the actual material ref and the JSONL line of
   the relevant message. This explicitly attributes use; the importer validates
-  the locator and never infers a decision from a read. Unattributed use stays
-  unknown. Distinct use and rejection decisions for the same ref are both retained
+  the locator and requires a material observation before the decision. A flag
+  referring only to an unordered capture stays under the material's
+  `declarations`, with `reason: observation_order_unknown`; it does not count
+  as adopted. Use archive review with a verified capture return to establish
+  that ordered passage-to-decision link. Unattributed use stays unknown.
+  Distinct use and rejection decisions for the same ref are both retained
   and it counts once as used. Candidate links carry the recorded evaluation verdict
   when present. `evaluation_state` reports the source file's status, including
   `missing` for an absent file and `corrupt` for invalid JSON.
@@ -246,6 +252,11 @@ archive import. Existing `--used`, `--rejected` and optimization-log claims
 retain their local meaning. In the portable record they appear under
 `declarations`. Reviewed passage-to-decision links appear under
 `materials[ref].evidence` and contribute to its adopted-material count.
+If a source excerpt was redacted, its root normalized, or its text shortened,
+the adoption entry also carries `passage_redacted`, `passage_root_normalized`,
+or `passage_truncated`, respectively. Its `passage_text` is then a transformed
+display excerpt, not an unchanged quotation of the source line. The decision
+quotation must still match the assistant message exactly.
 
 In the portable file, inspect the model-visible tool return and its
 passages before the adoption entry. A search can match three lines of one

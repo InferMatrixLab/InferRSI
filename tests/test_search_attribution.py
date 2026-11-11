@@ -82,6 +82,33 @@ def test_extend_live_window_and_keep_decision_on_retry(tmp_path):
     assert path.read_bytes() == original
 
 
+@pytest.mark.parametrize("status", ["used", "rejected"])
+def test_local_decision_cannot_precede_its_first_observation(tmp_path, status):
+    create_campaign(tmp_path, "example")
+    trace, corpus = tmp_path / "rollout.jsonl", tmp_path / "knowledge"
+    rollout(trace,
+            {"type": "response_item", "payload": {"type": "message", "role": "assistant",
+             "phase": "final_answer", "content": [{"text": "Decide about case.md."}]}},
+            command(corpus, "pwd", str(corpus), "other"),
+            command(corpus, "rg -nH key .", "case.md:1:key", "search"))
+    with pytest.raises(ValueError, match="decision must follow.*observation"):
+        import_search(tmp_path, number=1, trace=trace, lines=[2, 4],
+                      knowledge_root=corpus, complete=True, **{status: [("case.md", 2)]})
+    assert not (tmp_path / "search/round-1.json").exists()
+
+
+def test_local_decision_can_precede_a_later_repeat_observation(tmp_path):
+    create_campaign(tmp_path, "example")
+    trace, corpus = tmp_path / "rollout.jsonl", tmp_path / "knowledge"
+    rollout(trace, command(corpus, "rg -nH key .", "case.md:1:key", "first"),
+            {"type": "response_item", "payload": {"type": "message", "role": "assistant",
+             "phase": "final_answer", "content": [{"text": "Use case.md."}]}},
+            command(corpus, "rg -nH key .", "case.md:1:key", "repeat"))
+    path = import_search(tmp_path, number=1, trace=trace, lines=[2, 4],
+                         knowledge_root=corpus, complete=True, used=[("case.md", 3)])
+    assert json.loads(path.read_text())["counts"]["used"] == 1
+
+
 def test_nonmatching_rg_and_incomplete_search_are_distinct(tmp_path):
     create_campaign(tmp_path, "example")
     trace, corpus = tmp_path / "rollout.jsonl", tmp_path / "knowledge"

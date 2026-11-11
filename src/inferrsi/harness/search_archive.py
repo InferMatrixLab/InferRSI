@@ -137,7 +137,7 @@ def reviewed_uses(review, events, decisions):
             raise ValueError("archive review must cite an exact delivered source passage")
         passage_text = passage["text"]
         if _text(passage_text, "", limit=len(passage_text)) != passage_text:
-            raise ValueError("archive review source passage is not safe to publish verbatim")
+            raise ValueError("archive review source passage is not safe to publish")
         decision_text = decisions.get(item["decision_line"])
         if not isinstance(decision_text, str) or item["decision_quote"] not in decision_text:
             raise ValueError("decision_quote must match the assistant message exactly")
@@ -149,6 +149,11 @@ def reviewed_uses(review, events, decisions):
             "passage_line": item["passage_line"], "passage_text": passage_text,
             "decision_line": item["decision_line"], "decision_quote": item["decision_quote"],
         }
+        # The safety check above does not restore text altered during export.
+        # Keep these flags with the adoption evidence, not only with delivery.
+        for transformation in ("redacted", "root_normalized", "truncated"):
+            if passage.get(transformation):
+                evidence[f"passage_{transformation}"] = True
         if "passage_path" in item:
             evidence["passage_path"] = item["passage_path"]
         yield item["ref"], item["use"], evidence
