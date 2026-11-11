@@ -23,7 +23,9 @@ comparison is the same-layout native SP4 integration control with AdaLN offload,
 not the historical TP4 run. Single-launch medians are observations, not a
 reproducible service speedup claim or proof of the H200 target.
 
-Raw images, profiler traces and host logs remain local. Published request
+Historical candidate source manifests are included where available; their full
+experimental source snapshots remain local. Raw images, profiler traces and host
+logs also remain local. Published request
 records omit prompts, local file names and process identifiers. Pixel hashes
 identify retained outputs, but this export alone cannot independently recompute
 image-quality scores. Reproduction requires the public checkpoint and example
@@ -93,3 +95,5 @@ preserved rather than presented as a successful campaign.
 
 The [downsampled overview](results/quality-overview.png) is a visual aid only.
 The [check summary](results/checks.json) records the current validation limits.
+
+Engine delivery: [vLLM-Omni PR 10184](https://github.com/vllm-project/vllm-omni/pull/10184).
