@@ -83,16 +83,26 @@ def export_context(root: Path, *, context_id: str, query_input: Path, query_resu
     query = documents["query-input"].get("query")
     if not isinstance(query, str) or not query.strip():
         raise ValueError("MindIE query input has no query")
-    found, _ = _payload(documents["query-result"], {"results"})
+    found, query_pointer = _payload(documents["query-result"], {"results"})
     if not isinstance(found["results"], list):
         raise ValueError("MindIE query results must be a list")
-    hits = set()
+    relative = f"mindie/{context_id}"
+    hits = {}
     for key in ("results", "cards", "foundation_cards", "unverified_cards"):
         rows = found.get(key, [])
         if not isinstance(rows, list):
             raise ValueError("MindIE navigation must contain lists")
-        hits.update(row["ref"] for row in rows if isinstance(row, dict)
-                    and isinstance(row.get("ref"), str) and _REF.fullmatch(row["ref"]))
+        for index, row in enumerate(rows):
+            if (not isinstance(row, dict) or not isinstance(row.get("ref"), str)
+                    or not _REF.fullmatch(row["ref"])):
+                continue
+            navigation = {
+                "list": key,
+                "locator": f"{relative}/query-result.json#{query_pointer}/{key}/{index}",
+                **{field: row[field] for field in
+                   ("match_status", "missing_conditions", "ready_to_apply") if field in row},
+            }
+            hits.setdefault(row["ref"], []).append(navigation)
     requested = documents["explain-input"].get("refs")
     if requested is None:
         requested = [documents["explain-input"].get("ref")]
@@ -107,7 +117,6 @@ def export_context(root: Path, *, context_id: str, query_input: Path, query_resu
     if any(not isinstance(delivered[key], list) for key in ("units", "requires", "unresolved")):
         raise ValueError("MindIE delivery must contain units, requires and unresolved lists")
     sources, sections, seen = [], [], set()
-    relative = f"mindie/{context_id}"
     response_hash = hashlib.sha256(originals["explain-result.json"]).hexdigest()
     for key in ("requires", "units"):
         for index, row in enumerate(delivered[key]):
@@ -126,8 +135,17 @@ def export_context(root: Path, *, context_id: str, query_input: Path, query_resu
             seen.add(ref)
             locator = (f"{relative}/explain-result.json (sha256:{response_hash})"
                        f"#{pointer}/{key}/{index}/content")
+            # Keep query-time provenance visible through the existing strict
+            # source schema and text-only consumers, without judging applicability.
+            note = (
+                "Query-time navigation (not a final applicability assessment): "
+                + json.dumps(hits.get(ref, []))
+                + "\nExplain request conditions (caller supplied): "
+                + json.dumps(documents["explain-input"].get("conditions", {}))
+            )
+            locator = f"{note}\nBody: {locator}"
             sources.append({"ref": ref, "revision": str(revision), "locator": locator})
-            sections.append(f"## {ref} ({key})\n\n{content}\n")
+            sections.append(f"## {ref} ({key})\n\n{note}\n\n{content}\n")
     if not sources:
         raise ValueError("MindIE explain delivered no full bodies")
     omitted = bool(delivered["unresolved"]) or not set(requested) <= seen

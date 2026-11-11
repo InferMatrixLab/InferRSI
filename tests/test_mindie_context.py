@@ -79,6 +79,7 @@ def test_cli_retains_only_delivered_bodies_and_exact_raw_bytes(evidence, capsys)
     assert [source["ref"] for source in context["sources"]] == [PREMISE, REF]
     assert [source["revision"] for source in context["sources"]] == ["1", "2"]
     assert context["sources"][1]["locator"].endswith("#/structuredContent/units/0/content")
+    assert '"list": "results"' in context["sources"][1]["locator"]
     body = (target / "reviewed-context.txt").read_text()
     assert body.index(PREMISE) < body.index(REF)
     assert "Fixture: preserve reduction precision.\nSecond line.\n" in body
@@ -119,8 +120,17 @@ def unverified_evidence(evidence):
     return evidence
 
 
-def test_unverified_navigation_can_lead_to_a_delivered_body(unverified_evidence):
-    _, paths, _ = unverified_evidence
+@pytest.mark.parametrize("explain_conditions", [{}, {"dtype": "float32"}])
+def test_unverified_navigation_can_lead_to_a_delivered_body(
+        unverified_evidence, explain_conditions):
+    campaign, paths, docs = unverified_evidence
+    docs["explain_input"]["conditions"] = explain_conditions
+    docs["query_result"]["structuredContent"]["unverified_cards"].append({
+        "ref": REF.replace("unit-precision", "unit-unread"),
+        "match_status": "condition_unknown", "missing_conditions": ["UNREAD_ONLY"],
+    })
+    rewrite(unverified_evidence, "query_result")
+    rewrite(unverified_evidence, "explain_input")
     target = export(unverified_evidence)
     assert (target / "query-result.json").read_bytes() == paths["query_result"].read_bytes()
     card = json.loads((target / "query-result.json").read_text())["structuredContent"][
@@ -128,9 +138,35 @@ def test_unverified_navigation_can_lead_to_a_delivered_body(unverified_evidence)
     assert card["match_status"] == "condition_unknown" and card["ready_to_apply"] is False
     context = json.loads((target / "context.json").read_text())
     assert [source["ref"] for source in context["sources"]] == [PREMISE, REF]
+    source = context["sources"][1]
+    for text in (source["locator"], (target / "reviewed-context.txt").read_text()):
+        assert '"list": "unverified_cards"' in text
+        assert '"match_status": "condition_unknown"' in text
+        assert '"missing_conditions": ["dtype"]' in text
+        assert "not a final applicability assessment" in text
+        assert "Explain request conditions (caller supplied): " + json.dumps(
+            explain_conditions) in text
+        assert "UNREAD_ONLY" not in text
+    assert "condition_unknown" not in context["sources"][0]["locator"]
     body = (target / "reviewed-context.txt").read_text()
     assert "NAVIGATION_ONLY" not in body
     assert "Fixture: preserve reduction precision." in body
+    # Exercise the real trace assembler and dashboard consumer, whose strict
+    # source schema still contains only ref/revision/locator.
+    run = campaign / "runs/run-a"
+    run.mkdir(parents=True)
+    (run / "run.lock.json").write_text("{}")
+    template = campaign / "template.json"
+    template.write_text(json.dumps(trace_template(context)))
+    assert main(["campaign", "assemble-trace", "--directory", str(campaign), "--template",
+                 str(template), "--context-file", str(target / "reviewed-context.txt"),
+                 "--output", "optimization.json"]) == 0
+    assert main(["campaign", "record", "--directory", str(campaign), "--candidate", "candidate-v1",
+                 "--run-id", "run-a", "--round", "1", "--title", "Navigation fixture",
+                 "--optimization-trace", "optimization.json"]) == 0
+    visible = load_dashboard(campaign)["candidates"][0]["optimization_trace"]["context"]
+    assert visible["sources"] == context["sources"]
+    assert visible["text"] == body
 
 
 @pytest.mark.parametrize("failure", ["no_body", "wrong_request", "wrong_body"])

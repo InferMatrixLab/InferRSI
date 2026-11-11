@@ -160,8 +160,12 @@ campaign or one created with `campaign init`.
 
 Exact refs from `unverified_cards` are also valid navigation hits. Check their
 missing conditions before using the guidance. Import retains the original
-unknown-applicability flags and only exports bodies actually delivered by explain;
-a navigation card alone does not become context or establish applicability.
+unknown-applicability flags and only exports bodies actually delivered by explain.
+Each source's existing `locator` and its exported text include the matching
+query navigation lists, recorded match status/missing conditions, and the separate
+caller-supplied explain conditions. These describe query-time provenance, not a
+final applicability assessment; explain may have been called with additional
+conditions. A navigation card alone does not become context or establish applicability.
 
 ```sh
 inferrsi campaign import-mindie --directory "$CAMPAIGN_DIR" --id "$READ_ID" \
