@@ -24,9 +24,9 @@ So the historic bytes stay exactly as generated, and the new D023 form is emitte
 
 ## Historic baseline verification contract
 
-`fixtures/t108-v4/MANIFEST.json` records, for each of its 22 entries, the exact `bytes` and `sha256` of the file and the semantic ids derived from it. The coordinator validates the copy by:
+`fixtures/t108-v4/MANIFEST.json` is an immutable historic byte manifest and **must be kept with its original bytes**. Each of its 22 `file` values is written as `fixtures/<name>` (the t108-v4 pack-root layout). In this repository those same files live at `fixtures/t108-v4/<name>` (that is, `docs/contracts/fixtures/t108-v4/<name>`). Validators must map `fixtures/<name>` → `fixtures/t108-v4/<name>` and must not rewrite the historic manifest to match the new directory. The coordinator validates the copy by:
 
-1. comparing each file in `fixtures/t108-v4/` **byte-for-byte** against `MANIFEST.json` (size and sha256, with no canonicalization, no re-encoding, and no trailing-newline normalization);
+1. comparing each file in `fixtures/t108-v4/` **byte-for-byte** against `MANIFEST.json` after applying that path mapping (size and sha256, with no canonicalization, no re-encoding, and no trailing-newline normalization);
 2. confirming the manifest's own `protocol_digest`, `prepared_1_id`, `prepared_2_id`, `request_digest`, and `assessment_id` against the referenced documents;
 3. validating the *baseline* schema from already-reviewed input — **not** by pretending these fixtures pass the D023 schema unchanged.
 
@@ -51,7 +51,7 @@ ba351e8f96c162ed9c32309f24b1d2d75d11a7369168571ebbb0a79d13315332
 
 It is canonical `inferrsi-json-v1`: ASCII key ordering, UTF-8, no BOM, no spaces, no trailing LF. All other fields are byte-identical to the pre-D023 spec, including `request_digest`'s other inputs; the file deliberately does **not** carry a `request_digest` value, since the new digest must be recomputed over the new canonical bytes.
 
-**The coordinator computes the canonical byte hash for this file and supplies it for the manifest.** No digest in this document or in the file is a claimed computed value for the D023 spec.
+The file itself still carries no `request_digest` field (the spec has none). The documentation digest is landed in [`MANIFEST-d023.json`](MANIFEST-d023.json): `request_digest` is `sha256:` plus the SHA-256 of these canonical bytes. **Who and when:** Apps, when building the evaluation-mode spec, only copies `prepared.recipe.code_sha256` into `CommandStep.expected_code_sha256`. H, at execute registration/claim time and after the final spec is complete (including V24 `seal_generation` when applicable), computes `request_digest` from those canonical bytes and stores it on the attempt and on `ExecutionRecordPayload.request_digest`. This PR records that documentation golden as a reviewable in-repo anchor; it does **not** implement the H path, run execute/assess, or claim a production codec.
 
 ## T36–T40 are specifications, not executed integration tests
 
@@ -75,7 +75,8 @@ Local specification files:
 - [`../DTO-FIELD-INDEX.md`](../DTO-FIELD-INDEX.md) — machine-derived field index
 - [`d023-conformance-cases.json`](d023-conformance-cases.json) — T36–T40 document vectors
 - [`execution-spec-d023.json`](execution-spec-d023.json) — current D023 spec example
-- [`t108-v4/MANIFEST.json`](t108-v4/MANIFEST.json) — historic baseline byte manifest
+- [`MANIFEST-d023.json`](MANIFEST-d023.json) — current-example byte and `request_digest` documentation anchor
+- [`t108-v4/MANIFEST.json`](t108-v4/MANIFEST.json) — historic baseline byte manifest (paths `fixtures/<name>` map to `fixtures/t108-v4/<name>`)
 
 Public sources:
 

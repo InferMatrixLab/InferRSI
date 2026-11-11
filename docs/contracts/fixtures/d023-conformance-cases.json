@@ -124,7 +124,6 @@
       "input_facts": {
         "mode": "evaluation",
         "prepared_ref_non_null": true,
-        "recipe_declares_code_sha256": true,
         "recipe_code_sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
         "command_step_expected_code_sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
         "actual_entrypoint_bytes_digest_before_start": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
@@ -240,16 +239,15 @@
       "input_facts": {
         "mode": "evaluation",
         "prepared_ref_non_null": true,
-        "recipe_declares_code_sha256": true,
         "command_step_expected_code_sha256": null
       },
       "expected_outcome": {
         "valid": false,
-        "failure": "semantic check V32 rejects null expected_code_sha256 when the frozen recipe declares a code digest",
+        "failure": "semantic check V32 rejects null expected_code_sha256 in evaluation mode; recipe.code_sha256 is a required non-null Sha256",
         "candidate_processes_started": 0
       },
       "invariants": [
-        "evaluation mode with a declared recipe digest requires a non-null expected value equal to the frozen value"
+        "evaluation mode requires a non-null expected value equal to the frozen required recipe.code_sha256"
       ],
       "prohibited_inferences": [
         "null opts out of the pre-start comparison"

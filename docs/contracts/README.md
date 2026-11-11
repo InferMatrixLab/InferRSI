@@ -27,5 +27,12 @@ P0b still requires a formal architecture review before K01. H01 creates a new lo
 - [fixtures/README.md](fixtures/README.md) — historic t108-v4 golden bytes versus current D023 vectors
 - [fixtures/d023-conformance-cases.json](fixtures/d023-conformance-cases.json) — T36–T40 specification vectors, not executed tests
 - [fixtures/execution-spec-d023.json](fixtures/execution-spec-d023.json) — current `CommandStep.expected_code_sha256` example
+- [fixtures/MANIFEST-d023.json](fixtures/MANIFEST-d023.json) — current D023 example byte/`request_digest` documentation anchor
+
+## Consistency checks and later CI
+
+This P0a PR does **not** add automated consistency guards under `tests/` or `.github/`. Schema self-check, the 106-definition count, DTO field index, historic MANIFEST hashes (with the `fixtures/` → `fixtures/t108-v4/` mapping), and the current `execution-spec-d023.json` digest are independent, review-time file checks. They are not CI in this PR, and they are not a runtime implementation.
+
+Whether a later gate-policy PR includes such guards is a formal architecture-review item for that PR. It is **not** accepted here, and this paragraph is not a promise that P0b already covers them.
 
 This PR does not move source, change hard-gate implementation, or implement CLI, Apps assembly, or worker startup.

@@ -567,7 +567,7 @@
       "additionalProperties": false
     },
     "CommandStep": {
-      "$comment": "D023-2: expected_code_sha256 is always present and nullable. In evaluation mode (ExecutionSpec.prepared_ref non-null and the frozen recipe declares OperationRecipe.code_sha256) it MUST equal prepared.recipe.code_sha256. In ordinary command mode (V05 null set) it MUST be null. The schema enforces presence and form only; the equality and mode rules are V32.",
+      "$comment": "D023-2: expected_code_sha256 is always present and nullable. In evaluation mode (ExecutionSpec.prepared_ref non-null) it MUST equal prepared.recipe.code_sha256. OperationRecipe.code_sha256 is already a required non-null Sha256, so there is no recipe-omitted-digest branch. In ordinary command mode (V05 null set) it MUST be null. Spec-time mode or equality violations are InvalidExecutionSpec. T37 covers only the evaluation-mode pre-start actual-vs-expected entry digest after the expected value already equals the frozen recipe. The schema enforces presence and form only; the equality and mode rules are V32.",
       "type": "object",
       "properties": {
         "step_id": {

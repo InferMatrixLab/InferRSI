@@ -117,7 +117,7 @@ D023 只改动一个字段集合：`CommandStep` 增加 required 可空 `expecte
 
 | 字段 | 语义 |
 |---|---|
-| `CommandStep.expected_code_sha256` | `Sha256` 或 `null`，required。评测模式（`prepared_ref` 非空且 recipe 声明代码摘要）必须等于 prepared.recipe.code_sha256；普通命令模式必须为 null。模式等值由 V32 校验，schema 只保证存在与形式。 |
+| `CommandStep.expected_code_sha256` | `Sha256` 或 `null`，required。评测模式（`prepared_ref` 非空）必须等于 prepared.recipe.code_sha256；`OperationRecipe.code_sha256` 已是 required 非空 `Sha256`，没有「recipe 未声明摘要」分支。普通命令模式必须为 null。规格期模式/等值违规为 `InvalidExecutionSpec`；T37 只覆盖评测模式 expected 已合法之后的启动前实际入口核对。模式等值由 V32 校验，schema 只保证存在与形式。 |
 | `OperationRecipe.code_sha256` | 冻结预期代码身份，作用域为受支持入口/包，不是整个解释器归档摘要。 |
 | `RuntimeBinding.code_sha256` | 实际观测摘要，用于启动前比对；无法解析实际入口时保持 null 并记 not_performed/unknown，不用预期值填充。 |
 | `DeliveredContext.artifact` | 只能指向 H 已留存字节；草稿 `DeliveredContextDraft` 不是 JSON 定义，不提供伪造流形状。 |
