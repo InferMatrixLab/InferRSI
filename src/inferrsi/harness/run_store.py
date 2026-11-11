@@ -7,7 +7,9 @@ import io
 import os
 import re
 import sqlite3
+import stat
 import uuid
+import weakref
 from collections.abc import Iterable, Iterator, Mapping
 from contextlib import AbstractContextManager, contextmanager, suppress
 from dataclasses import dataclass
@@ -265,20 +267,61 @@ def _fsync_directory(path: Path) -> None:
         os.close(fd)
 
 
+def _is_regular_file(path: Path) -> bool:
+    """True only for a non-link regular file; does not follow a destination symlink."""
+    try:
+        st = os.lstat(path)
+    except FileNotFoundError:
+        return False
+    return stat.S_ISREG(st.st_mode)
+
+
 def _publish(temp: Path, final: Path) -> None:
-    """Atomically move a temporary file to its content address; never overwrite."""
-    final.parent.mkdir(exist_ok=True)
-    if not final.exists():
-        try:
-            os.replace(temp, final)
-        except OSError:
-            # A concurrent writer may have published the same content first.
-            if not final.exists():
-                raise
-        else:
-            _fsync_directory(final.parent)
-            return
-    temp.unlink()
+    """Atomically place bytes at a content address without following links or overwriting.
+
+    A non-regular occupant is rejected so commit cannot return a ref that open
+    would refuse. Directory entries are fsync'd before the caller appends a
+    SQLite record: the prefix after a rename or reuse, and objects/ when the
+    prefix directory was created in this call.
+    """
+    prefix = final.parent
+    objects = prefix.parent
+    created_prefix = False
+    try:
+        mode = os.lstat(prefix).st_mode
+        if not stat.S_ISDIR(mode):
+            temp.unlink(missing_ok=True)
+            raise _StorageFault("object prefix is not a regular directory")
+    except FileNotFoundError:
+        prefix.mkdir(exist_ok=True)
+        created_prefix = True
+    if _is_regular_file(final):
+        temp.unlink()
+        _fsync_directory(prefix)
+        return
+    try:
+        os.lstat(final)
+    except FileNotFoundError:
+        pass
+    else:
+        temp.unlink(missing_ok=True)
+        raise _StorageFault("object path is not a regular file")
+    try:
+        os.replace(temp, final)
+    except OSError:
+        # A concurrent writer may have published the same content first.
+        if not _is_regular_file(final):
+            temp.unlink(missing_ok=True)
+            raise _StorageFault("object path is not a regular file")
+        temp.unlink(missing_ok=True)
+    else:
+        _fsync_directory(prefix)
+        if created_prefix:
+            _fsync_directory(objects)
+        return
+    _fsync_directory(prefix)
+    if created_prefix:
+        _fsync_directory(objects)
 
 
 def _file_digest(path: Path) -> tuple[str, int]:
@@ -875,7 +918,7 @@ class RunStore(RunStoreReader):
             raise _IntegrityFault("artifact bytes differ from their declared ArtifactRef")
         final = self.root / "objects" / digest[:2] / digest
         _publish(temp, final)
-        if _file_digest(final) != (digest, size):
+        if not _is_regular_file(final) or _file_digest(final) != (digest, size):
             raise _IntegrityFault("a published object does not verify")
 
     def _append(self, attempt_id: str, session: str, version: int, phase: str, data: bytes) -> None:
@@ -913,6 +956,7 @@ class Claim:
         self.request_digest = request_digest
         self._session = session
         self._fd: int | None = fd
+        self._finalizer = weakref.finalize(self, _release, fd)
         self._version = 0
         self._phase = "registered"
         self.latest_record_ref: dict | None = None
@@ -932,10 +976,15 @@ class Claim:
         self.release()
 
     def release(self) -> None:
-        """Drop the owner lock; an unfinished attempt then re-enters only as RecoveryRequired."""
-        if self._fd is not None:
-            fd, self._fd = self._fd, None
-            _release(fd)
+        """Drop the owner lock; an unfinished attempt then re-enters only as RecoveryRequired.
+
+        Explicit release is idempotent. A discarded Claim also drops the lock
+        through a finalizer so the fd does not stay held until process exit.
+        """
+        if self._fd is None:
+            return
+        self._fd = None
+        self._finalizer()
 
     def commit(
         self, payload: Mapping, artifacts: Iterable[tuple[Mapping, bytes | Path]] = ()

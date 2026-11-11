@@ -1,12 +1,18 @@
 from __future__ import annotations
 
 import ast
+import errno
+import gc
 import hashlib
 import json
+import os
 import sqlite3
+import stat
 import subprocess
 import sys
 import time
+import weakref
+from collections.abc import Mapping
 from contextlib import closing
 from pathlib import Path
 
@@ -598,3 +604,172 @@ def test_json_v1_matches_p0a_codec_string_vectors() -> None:
     for case in vectors["negative_fixed_payload_bytes"]:
         with pytest.raises(_json_v1.CanonicalError):
             _json_v1.decode(case["raw_utf8"].encode("utf-8"))
+
+
+def _object_path(store: RunStore, ref: Mapping) -> Path:
+    digest = ref["sha256"]
+    return store.root / "objects" / digest[:2] / digest
+
+
+def _try_symlink(target: Path, link: Path) -> bool:
+    try:
+        link.symlink_to(target)
+    except OSError:
+        return False
+    return link.is_symlink()
+
+
+def test_publish_rejects_a_symlink_mode_destination(tmp_path: Path, monkeypatch) -> None:
+    # Exercises the no-follow reject path even when the host cannot create symlinks.
+    temp = tmp_path / "incoming.tmp"
+    temp.write_bytes(ARTIFACT)
+    final = tmp_path / "aa" / ("ab" * 32)
+    final.parent.mkdir()
+    real_lstat = os.lstat
+
+    def fake_lstat(path, *args, **kwargs):
+        if Path(path) == final:
+            return os.stat_result((stat.S_IFLNK | 0o777,) + (0,) * 9)
+        return real_lstat(path, *args, **kwargs)
+
+    monkeypatch.setattr(os, "lstat", fake_lstat)
+    with pytest.raises(run_store._StorageFault, match="not a regular file"):
+        run_store._publish(temp, final)
+    assert not temp.exists()
+
+
+def test_commit_rejects_a_symlink_object_path_before_append(tmp_path: Path) -> None:
+    # Publish and open must agree: a pre-placed symlink with the right bytes cannot
+    # become a committed available artifact that open later rejects.
+    store = _store(tmp_path)
+    attempt = make_attempt()
+    digest = make_digest(attempt)
+    ref = run_store.artifact_ref(NAMESPACE, ARTIFACT, ARTIFACT_MEDIA_TYPE)
+    outside = tmp_path / "outside-bytes"
+    outside.write_bytes(ARTIFACT)
+    destination = _object_path(store, ref)
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    if not _try_symlink(outside, destination):
+        pytest.skip("this host cannot create symlinks")
+    with store.claim(attempt, digest) as claim:
+        with pytest.raises(PublicError, match="record commit failed"):
+            claim.commit(
+                make_payload(attempt, digest, 1, "finished", artifact_ref=ref),
+                [(ref, ARTIFACT)],
+            )
+        assert claim.latest_record_ref is None
+        assert _rows(store, "SELECT COUNT(*) FROM records") == [(0,)]
+    assert destination.is_symlink()
+    error = _error(store.open, ref)
+    assert error.code == "UnsafeArtifactPath"
+
+
+def test_commit_rejects_a_non_regular_object_path_before_append(tmp_path: Path) -> None:
+    store = _store(tmp_path)
+    attempt = make_attempt()
+    digest = make_digest(attempt)
+    ref = run_store.artifact_ref(NAMESPACE, ARTIFACT, ARTIFACT_MEDIA_TYPE)
+    destination = _object_path(store, ref)
+    destination.mkdir(parents=True)
+    with store.claim(attempt, digest) as claim:
+        with pytest.raises(PublicError, match="record commit failed") as caught:
+            claim.commit(
+                make_payload(attempt, digest, 1, "finished", artifact_ref=ref),
+                [(ref, ARTIFACT)],
+            )
+        assert caught.value.code == "ExecutionPersistenceError"
+        assert claim.latest_record_ref is None
+        assert _rows(store, "SELECT COUNT(*) FROM records") == [(0,)]
+    assert destination.is_dir()
+
+
+def test_publish_fsyncs_prefix_and_objects_including_reuse(tmp_path: Path, monkeypatch) -> None:
+    calls: list[Path] = []
+
+    def record(path: Path) -> None:
+        calls.append(Path(path))
+
+    monkeypatch.setattr(run_store, "_fsync_directory", record)
+    store = _store(tmp_path)
+    attempt = make_attempt()
+    digest = make_digest(attempt)
+    ref = run_store.artifact_ref(NAMESPACE, ARTIFACT, ARTIFACT_MEDIA_TYPE)
+    prefix = store.root / "objects" / ref["sha256"][:2]
+    objects = store.root / "objects"
+    with store.claim(attempt, digest) as claim:
+        claim.commit(
+            make_payload(attempt, digest, 1, "running", artifact_ref=ref),
+            [(ref, ARTIFACT)],
+        )
+        first = list(calls)
+        assert first == [prefix, objects]
+        calls.clear()
+        # The same content address is reused; the prefix entry must still be fsync'd.
+        other = make_attempt()
+        other_digest = make_digest(other)
+    with store.claim(other, other_digest) as claim:
+        claim.commit(
+            make_payload(other, other_digest, 1, "finished", artifact_ref=ref),
+            [(ref, ARTIFACT)],
+        )
+    assert calls == [prefix]
+
+
+def test_commit_does_not_append_when_directory_fsync_fails(
+    tmp_path: Path, monkeypatch
+) -> None:
+    store = _store(tmp_path)
+    objects = store.root / "objects"
+    real = run_store._fsync_directory
+
+    def boom(path: Path) -> None:
+        if Path(path) == objects:
+            raise OSError(errno.EIO, "injected directory fsync failure")
+        real(path)
+
+    monkeypatch.setattr(run_store, "_fsync_directory", boom)
+    attempt = make_attempt()
+    digest = make_digest(attempt)
+    ref = run_store.artifact_ref(NAMESPACE, ARTIFACT, ARTIFACT_MEDIA_TYPE)
+    with store.claim(attempt, digest) as claim:
+        with pytest.raises(PublicError, match="record commit failed"):
+            claim.commit(
+                make_payload(attempt, digest, 1, "finished", artifact_ref=ref),
+                [(ref, ARTIFACT)],
+            )
+        assert claim.latest_record_ref is None
+        assert _rows(store, "SELECT COUNT(*) FROM records") == [(0,)]
+
+
+def test_abandoned_claim_releases_the_lock_on_collection(tmp_path: Path) -> None:
+    store = _store(tmp_path)
+    attempt = make_attempt()
+    digest = make_digest(attempt)
+    claim = store.claim(attempt, digest)
+    held = weakref.ref(claim)
+    assert _error(store.claim, attempt, digest).code == "AttemptInProgress"
+    del claim
+    gc.collect()
+    assert held() is None
+    error = _error(store.claim, attempt, digest)
+    assert error.code == "RecoveryRequired"
+    assert error.latest_record_ref is None
+    assert _rows(store, "SELECT COUNT(*) FROM attempts") == [(1,)]
+    assert _rows(store, "SELECT COUNT(*) FROM records") == [(0,)]
+
+
+def test_explicit_claim_release_is_idempotent(tmp_path: Path) -> None:
+    store = _store(tmp_path)
+    attempt = make_attempt()
+    digest = make_digest(attempt)
+    claim = store.claim(attempt, digest)
+    claim.release()
+    claim.release()
+    assert _error(store.claim, attempt, digest).code == "RecoveryRequired"
+    with pytest.raises(ValueError, match="released"):
+        claim.commit(make_payload(attempt, digest, 1, "finished"))
+    # A later collection must not close the already-released fd.
+    held = weakref.ref(claim)
+    del claim
+    gc.collect()
+    assert held() is None
