@@ -1,0 +1,352 @@
+[
+  {
+    "block": 0,
+    "psnr_db": 22.233811754335356,
+    "ssim": 0.9056287160005452,
+    "mean_abs_error": 8.660414695739746,
+    "scope": "one quantized block on one W2 image; no full-quality or performance qualification"
+  },
+  {
+    "block": 1,
+    "psnr_db": 22.32082303317896,
+    "ssim": 0.9012644934770094,
+    "mean_abs_error": 8.63756275177002,
+    "scope": "one quantized block on one W2 image; no full-quality or performance qualification"
+  },
+  {
+    "block": 2,
+    "psnr_db": 24.066419230557166,
+    "ssim": 0.9332750881833721,
+    "mean_abs_error": 6.327884674072266,
+    "scope": "one quantized block on one W2 image; no full-quality or performance qualification"
+  },
+  {
+    "block": 3,
+    "psnr_db": 23.56648216749567,
+    "ssim": 0.9287315400664428,
+    "mean_abs_error": 6.942758083343506,
+    "scope": "one quantized block on one W2 image; no full-quality or performance qualification"
+  },
+  {
+    "block": 4,
+    "psnr_db": 22.316483648467496,
+    "ssim": 0.9105572734693422,
+    "mean_abs_error": 7.718713283538818,
+    "scope": "one quantized block on one W2 image; no full-quality or performance qualification"
+  },
+  {
+    "block": 5,
+    "psnr_db": 23.115726645182384,
+    "ssim": 0.9312566190278534,
+    "mean_abs_error": 6.903188705444336,
+    "scope": "one quantized block on one W2 image; no full-quality or performance qualification"
+  },
+  {
+    "block": 6,
+    "psnr_db": 23.83660693609473,
+    "ssim": 0.9360735626577067,
+    "mean_abs_error": 6.387397766113281,
+    "scope": "one quantized block on one W2 image; no full-quality or performance qualification"
+  },
+  {
+    "block": 7,
+    "psnr_db": 22.623352450831902,
+    "ssim": 0.9126199737701932,
+    "mean_abs_error": 7.717765808105469,
+    "scope": "one quantized block on one W2 image; no full-quality or performance qualification"
+  },
+  {
+    "block": 8,
+    "psnr_db": 22.997166775553474,
+    "ssim": 0.9299239316480717,
+    "mean_abs_error": 7.013692378997803,
+    "scope": "one quantized block on one W2 image; no full-quality or performance qualification"
+  },
+  {
+    "block": 9,
+    "psnr_db": 23.39507250380059,
+    "ssim": 0.9292447424247215,
+    "mean_abs_error": 6.4604811668396,
+    "scope": "one quantized block on one W2 image; no full-quality or performance qualification"
+  },
+  {
+    "block": 10,
+    "psnr_db": 22.73923821322411,
+    "ssim": 0.9307484785982361,
+    "mean_abs_error": 6.9838738441467285,
+    "scope": "one quantized block on one W2 image; no full-quality or performance qualification"
+  },
+  {
+    "block": 11,
+    "psnr_db": 23.555124220754436,
+    "ssim": 0.9211165268072103,
+    "mean_abs_error": 6.847447872161865,
+    "scope": "one quantized block on one W2 image; no full-quality or performance qualification"
+  },
+  {
+    "block": 12,
+    "psnr_db": 23.80296235208469,
+    "ssim": 0.9399842951340202,
+    "mean_abs_error": 6.212157726287842,
+    "scope": "one quantized block on one W2 image; no full-quality or performance qualification"
+  },
+  {
+    "block": 13,
+    "psnr_db": 22.58376477678088,
+    "ssim": 0.9258712099236944,
+    "mean_abs_error": 7.310418605804443,
+    "scope": "one quantized block on one W2 image; no full-quality or performance qualification"
+  },
+  {
+    "block": 14,
+    "psnr_db": 23.513858153205916,
+    "ssim": 0.9370394079951074,
+    "mean_abs_error": 5.875235080718994,
+    "scope": "one quantized block on one W2 image; no full-quality or performance qualification"
+  },
+  {
+    "block": 15,
+    "psnr_db": 24.055646046217078,
+    "ssim": 0.9436137108153818,
+    "mean_abs_error": 6.071676731109619,
+    "scope": "one quantized block on one W2 image; no full-quality or performance qualification"
+  },
+  {
+    "block": 16,
+    "psnr_db": 23.543187099852695,
+    "ssim": 0.9396318479857344,
+    "mean_abs_error": 6.439176082611084,
+    "scope": "one quantized block on one W2 image; no full-quality or performance qualification"
+  },
+  {
+    "block": 17,
+    "psnr_db": 22.58008696769582,
+    "ssim": 0.9251051367953916,
+    "mean_abs_error": 7.0894036293029785,
+    "scope": "one quantized block on one W2 image; no full-quality or performance qualification"
+  },
+  {
+    "block": 18,
+    "psnr_db": 22.156829182040415,
+    "ssim": 0.9153841405625228,
+    "mean_abs_error": 7.8063178062438965,
+    "scope": "one quantized block on one W2 image; no full-quality or performance qualification"
+  },
+  {
+    "block": 19,
+    "psnr_db": 22.272197359851535,
+    "ssim": 0.9207549205488273,
+    "mean_abs_error": 7.751354217529297,
+    "scope": "one quantized block on one W2 image; no full-quality or performance qualification"
+  },
+  {
+    "block": 20,
+    "psnr_db": 21.86592997495813,
+    "ssim": 0.9090896266013909,
+    "mean_abs_error": 8.42244815826416,
+    "scope": "one quantized block on one W2 image; no full-quality or performance qualification"
+  },
+  {
+    "block": 21,
+    "psnr_db": 22.887912107462753,
+    "ssim": 0.9318260097550874,
+    "mean_abs_error": 6.972635746002197,
+    "scope": "one quantized block on one W2 image; no full-quality or performance qualification"
+  },
+  {
+    "block": 22,
+    "psnr_db": 22.602247945445512,
+    "ssim": 0.9213831957670203,
+    "mean_abs_error": 7.544855117797852,
+    "scope": "one quantized block on one W2 image; no full-quality or performance qualification"
+  },
+  {
+    "block": 23,
+    "psnr_db": 24.543238287595052,
+    "ssim": 0.9357797370296962,
+    "mean_abs_error": 6.003341197967529,
+    "scope": "one quantized block on one W2 image; no full-quality or performance qualification"
+  },
+  {
+    "block": 24,
+    "psnr_db": 23.797098469920716,
+    "ssim": 0.9358214799802242,
+    "mean_abs_error": 6.331319332122803,
+    "scope": "one quantized block on one W2 image; no full-quality or performance qualification"
+  },
+  {
+    "block": 25,
+    "psnr_db": 22.72841756774216,
+    "ssim": 0.9272862945443725,
+    "mean_abs_error": 6.651808261871338,
+    "scope": "one quantized block on one W2 image; no full-quality or performance qualification"
+  },
+  {
+    "block": 26,
+    "psnr_db": 22.31567985693576,
+    "ssim": 0.9143988898928056,
+    "mean_abs_error": 8.029094696044922,
+    "scope": "one quantized block on one W2 image; no full-quality or performance qualification"
+  },
+  {
+    "block": 27,
+    "psnr_db": 23.210406079414657,
+    "ssim": 0.9295109652193947,
+    "mean_abs_error": 6.773024082183838,
+    "scope": "one quantized block on one W2 image; no full-quality or performance qualification"
+  },
+  {
+    "block": 28,
+    "psnr_db": 23.054772981135873,
+    "ssim": 0.9290211742282031,
+    "mean_abs_error": 6.670266628265381,
+    "scope": "one quantized block on one W2 image; no full-quality or performance qualification"
+  },
+  {
+    "block": 29,
+    "psnr_db": 24.233938160575555,
+    "ssim": 0.9398515127897463,
+    "mean_abs_error": 5.928373336791992,
+    "scope": "one quantized block on one W2 image; no full-quality or performance qualification"
+  },
+  {
+    "block": 30,
+    "psnr_db": 22.1211768716647,
+    "ssim": 0.9085637359391158,
+    "mean_abs_error": 8.35681438446045,
+    "scope": "one quantized block on one W2 image; no full-quality or performance qualification"
+  },
+  {
+    "block": 31,
+    "psnr_db": 22.181018413269094,
+    "ssim": 0.913727820488396,
+    "mean_abs_error": 7.603246212005615,
+    "scope": "one quantized block on one W2 image; no full-quality or performance qualification"
+  },
+  {
+    "block": 32,
+    "psnr_db": 22.616537175139687,
+    "ssim": 0.924322055702414,
+    "mean_abs_error": 7.005079746246338,
+    "scope": "one quantized block on one W2 image; no full-quality or performance qualification"
+  },
+  {
+    "block": 33,
+    "psnr_db": 24.557352040120072,
+    "ssim": 0.9414427270232392,
+    "mean_abs_error": 5.787561893463135,
+    "scope": "one quantized block on one W2 image; no full-quality or performance qualification"
+  },
+  {
+    "block": 34,
+    "psnr_db": 23.204397241320976,
+    "ssim": 0.9365143808008235,
+    "mean_abs_error": 6.381565093994141,
+    "scope": "one quantized block on one W2 image; no full-quality or performance qualification"
+  },
+  {
+    "block": 35,
+    "psnr_db": 24.23137138261131,
+    "ssim": 0.941421054411966,
+    "mean_abs_error": 6.209168910980225,
+    "scope": "one quantized block on one W2 image; no full-quality or performance qualification"
+  },
+  {
+    "block": 36,
+    "psnr_db": 23.13727204516659,
+    "ssim": 0.9306542100262581,
+    "mean_abs_error": 6.873879909515381,
+    "scope": "one quantized block on one W2 image; no full-quality or performance qualification"
+  },
+  {
+    "block": 37,
+    "psnr_db": 22.935597452579746,
+    "ssim": 0.925557325111679,
+    "mean_abs_error": 7.085903167724609,
+    "scope": "one quantized block on one W2 image; no full-quality or performance qualification"
+  },
+  {
+    "block": 38,
+    "psnr_db": 23.261619921283522,
+    "ssim": 0.9265514512211886,
+    "mean_abs_error": 7.042137622833252,
+    "scope": "one quantized block on one W2 image; no full-quality or performance qualification"
+  },
+  {
+    "block": 39,
+    "psnr_db": 23.431009773571276,
+    "ssim": 0.930749266280479,
+    "mean_abs_error": 6.4085469245910645,
+    "scope": "one quantized block on one W2 image; no full-quality or performance qualification"
+  },
+  {
+    "block": 40,
+    "psnr_db": 23.539899945573787,
+    "ssim": 0.9318134582814702,
+    "mean_abs_error": 6.615201950073242,
+    "scope": "one quantized block on one W2 image; no full-quality or performance qualification"
+  },
+  {
+    "block": 41,
+    "psnr_db": 24.22956777425425,
+    "ssim": 0.9358526388439365,
+    "mean_abs_error": 5.942604064941406,
+    "scope": "one quantized block on one W2 image; no full-quality or performance qualification"
+  },
+  {
+    "block": 42,
+    "psnr_db": 23.609231014942115,
+    "ssim": 0.93469949225605,
+    "mean_abs_error": 6.796468734741211,
+    "scope": "one quantized block on one W2 image; no full-quality or performance qualification"
+  },
+  {
+    "block": 43,
+    "psnr_db": 23.793444118374193,
+    "ssim": 0.9367488945530561,
+    "mean_abs_error": 6.47163200378418,
+    "scope": "one quantized block on one W2 image; no full-quality or performance qualification"
+  },
+  {
+    "block": 44,
+    "psnr_db": 24.595252386514804,
+    "ssim": 0.9445536697460324,
+    "mean_abs_error": 5.419882297515869,
+    "scope": "one quantized block on one W2 image; no full-quality or performance qualification"
+  },
+  {
+    "block": 45,
+    "psnr_db": 23.371377914034376,
+    "ssim": 0.9343140995235757,
+    "mean_abs_error": 6.529608249664307,
+    "scope": "one quantized block on one W2 image; no full-quality or performance qualification"
+  },
+  {
+    "block": 46,
+    "psnr_db": 24.154058231666564,
+    "ssim": 0.9416782188831435,
+    "mean_abs_error": 6.016603946685791,
+    "scope": "one quantized block on one W2 image; no full-quality or performance qualification"
+  },
+  {
+    "block": 47,
+    "psnr_db": 22.825231564859045,
+    "ssim": 0.9227556437823193,
+    "mean_abs_error": 7.404783725738525,
+    "scope": "one quantized block on one W2 image; no full-quality or performance qualification"
+  },
+  {
+    "block": 48,
+    "psnr_db": 24.523560474944304,
+    "ssim": 0.9435354530106913,
+    "mean_abs_error": 5.907787322998047,
+    "scope": "one quantized block on one W2 image; no full-quality or performance qualification"
+  },
+  {
+    "block": 49,
+    "psnr_db": 23.243769749204827,
+    "ssim": 0.925178011193145,
+    "mean_abs_error": 7.028834819793701,
+    "scope": "one quantized block on one W2 image; no full-quality or performance qualification"
+  }
+]

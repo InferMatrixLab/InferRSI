@@ -1,0 +1,8 @@
+{
+  "verdict": "FAIL",
+  "adopted": false,
+  "scope": "100 projections in 50 main DiT blocks; token refiner unchanged",
+  "quality_passed": 0,
+  "quality_total": 30,
+  "interpretation": "Excluding the token refiner did not resolve full-model quality failure. No consistent E2E improvement. Root cause unresolved."
+}

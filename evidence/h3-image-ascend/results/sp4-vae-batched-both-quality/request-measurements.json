@@ -1,0 +1,104 @@
+[
+  {
+    "workload": "W1",
+    "seed": 43,
+    "index": 0,
+    "warmup": false,
+    "complete": true,
+    "latency_s": 10.755501456995262,
+    "http_status": 200,
+    "response_bytes": 67299411,
+    "png_sha256": "27ade1a3cca3eeb9eddb39ff47f910826f9d3293ca1a48558601412367cc2d0a",
+    "rgb_sha256": "c8a91980f7f2747d3131f72c90c1905a2e604ae897955e1b0a60d6d0b0b4d230",
+    "image_shape": [
+      3552,
+      4736,
+      3
+    ]
+  },
+  {
+    "workload": "W1",
+    "seed": 44,
+    "index": 0,
+    "warmup": false,
+    "complete": true,
+    "latency_s": 10.69990856500226,
+    "http_status": 200,
+    "response_bytes": 67299411,
+    "png_sha256": "671a5348ec868e1e7ecb1c8c709ed1ef8db49326a37aaa1017b1a246f0d52ea1",
+    "rgb_sha256": "253678899079cee65679f6f3d2c493f7d81e5293adb3158f0ac6d76eb98ae0f8",
+    "image_shape": [
+      3552,
+      4736,
+      3
+    ]
+  },
+  {
+    "workload": "W2",
+    "seed": 43,
+    "index": 0,
+    "warmup": false,
+    "complete": true,
+    "latency_s": 2.540482059994247,
+    "http_status": 200,
+    "response_bytes": 4196347,
+    "png_sha256": "59235f9fe9f2550a32b6aefda8cbf7076134751023f461675034635416ba3135",
+    "rgb_sha256": "04164f7c57dbbedbd6c3d376373ac3e2ed2e78f9e2f7fb95f880cb226f320b8b",
+    "image_shape": [
+      1024,
+      1024,
+      3
+    ]
+  },
+  {
+    "workload": "W2",
+    "seed": 44,
+    "index": 0,
+    "warmup": false,
+    "complete": true,
+    "latency_s": 2.7233710220025387,
+    "http_status": 200,
+    "response_bytes": 4196346,
+    "png_sha256": "958262c0bc9ac8ea3835670b7b57ee8bcd22f6ae0ea5bab9d0900b2724d6ac5e",
+    "rgb_sha256": "4ccefd88347cef9c673290928cbd2ad8400d51efa3e6303490a91b01d0bd44c5",
+    "image_shape": [
+      1024,
+      1024,
+      3
+    ]
+  },
+  {
+    "workload": "W3",
+    "seed": 43,
+    "index": 0,
+    "warmup": false,
+    "complete": true,
+    "latency_s": 4.094605523016071,
+    "http_status": 200,
+    "response_bytes": 4196347,
+    "png_sha256": "8a7ca5d996d9b130f31be16838be3f942eb2edfec023daa8d9010205754c57ea",
+    "rgb_sha256": "51005ad95d35f1e47e95779362910425b9b8c4580f4d5d04302f4692b881268a",
+    "image_shape": [
+      1024,
+      1024,
+      3
+    ]
+  },
+  {
+    "workload": "W3",
+    "seed": 44,
+    "index": 0,
+    "warmup": false,
+    "complete": true,
+    "latency_s": 4.024137972010067,
+    "http_status": 200,
+    "response_bytes": 4196344,
+    "png_sha256": "9112126ab4a59bdbf4278070dab084f326c7d8ed48caa0528e99ee70c89e455e",
+    "rgb_sha256": "d3bcb764e78a322c6afd6812c69d11a75e29846b6cdad9a65a1f300e6841b168",
+    "image_shape": [
+      1024,
+      1024,
+      3
+    ]
+  }
+]

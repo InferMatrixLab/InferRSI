@@ -1,0 +1,27 @@
+{
+  "hardware": {
+    "backend": "Ascend",
+    "devices": 4,
+    "model": "910B1",
+    "memory_gib_per_device": 64
+  },
+  "runtime": {
+    "cann": "9.2.1",
+    "torch": "2.10.0+cpu",
+    "torch_npu": "2.10.0.post7",
+    "vllm": "0.33.0+empty",
+    "vllm_ascend": "0.19.1rc2.dev3349+g221fb096c.d20261104",
+    "transformers": "5.19.0",
+    "diffusers": "0.40.0"
+  },
+  "settings": {
+    "HCCL_DETERMINISTIC": "true",
+    "OMP_NUM_THREADS": 4,
+    "MKL_NUM_THREADS": 4,
+    "dit_tp": 1,
+    "ulysses": 4,
+    "text_encoder_tp": 4,
+    "concurrency": 1
+  },
+  "redaction": "Hostnames, physical device identifiers, local paths, reservation identifiers and process IDs omitted."
+}

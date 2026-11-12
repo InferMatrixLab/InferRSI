@@ -1,0 +1,58 @@
+[
+  {
+    "case": "mlp-fc1-all",
+    "psnr_db": 23.29151968962663,
+    "ssim": 0.9183692031496916,
+    "mean_abs_error": 7.111021518707275,
+    "scope": "projection precision diagnostic on one W2 image; no full qualification"
+  },
+  {
+    "case": "mlp-fc2-all",
+    "psnr_db": 19.234235728132273,
+    "ssim": 0.8384465860112078,
+    "mean_abs_error": 13.524405479431152,
+    "scope": "projection precision diagnostic on one W2 image; no full qualification"
+  },
+  {
+    "case": "attn-qkv_proj-all",
+    "psnr_db": 19.30073777654666,
+    "ssim": 0.8397430231254761,
+    "mean_abs_error": 12.549561500549316,
+    "scope": "projection precision diagnostic on one W2 image; no full qualification"
+  },
+  {
+    "case": "attn-out_proj-all",
+    "psnr_db": 22.538716354614365,
+    "ssim": 0.9164391583025012,
+    "mean_abs_error": 7.629678249359131,
+    "scope": "projection precision diagnostic on one W2 image; no full qualification"
+  },
+  {
+    "case": "mlp-fc1-block0",
+    "psnr_db": 22.31206955581723,
+    "ssim": 0.9139870954271768,
+    "mean_abs_error": 8.047122955322266,
+    "scope": "projection precision diagnostic on one W2 image; no full qualification"
+  },
+  {
+    "case": "mlp-fc2-block0",
+    "psnr_db": 21.364901830340635,
+    "ssim": 0.8901865529617407,
+    "mean_abs_error": 9.761390686035156,
+    "scope": "projection precision diagnostic on one W2 image; no full qualification"
+  },
+  {
+    "case": "attn-qkv_proj-block0",
+    "psnr_db": 22.78256480652388,
+    "ssim": 0.9167380395542284,
+    "mean_abs_error": 7.604072570800781,
+    "scope": "projection precision diagnostic on one W2 image; no full qualification"
+  },
+  {
+    "case": "attn-out_proj-block0",
+    "psnr_db": 23.925682194384912,
+    "ssim": 0.9322440184159335,
+    "mean_abs_error": 6.182608127593994,
+    "scope": "projection precision diagnostic on one W2 image; no full qualification"
+  }
+]

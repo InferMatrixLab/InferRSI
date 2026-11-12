@@ -1,0 +1,96 @@
+{
+  "engine_revision": "ad37f7f79e10b946a87d60a0fab01416bd0f7837",
+  "encoding": "Full-resolution PNGs losslessly recompressed; decoded RGB hashes verified unchanged. Comparison panels are downsampled visualization only.",
+  "images": [
+    {
+      "file": "W1-control.png",
+      "workload": "W1",
+      "configuration": "control",
+      "seed": 42,
+      "index": 1,
+      "warmup": false,
+      "size": [
+        4736,
+        3552
+      ],
+      "rgb_sha256": "f25852d35a81fd1f7b2c1ee7ec44fef0805500aacf1142cb6fada604ff00f486",
+      "source_png_sha256": "d486a2fc92b0fe0e3bd7b2289cf4200452790c0b50895a18f0ca7dc6a631d3a5",
+      "export_png_sha256": "b0e8191480ad4fa394a4ded7f5d4055bc39dd223035f80f50ede514f0c5a526c"
+    },
+    {
+      "file": "W1-candidate.png",
+      "workload": "W1",
+      "configuration": "candidate",
+      "seed": 42,
+      "index": 1,
+      "warmup": false,
+      "size": [
+        4736,
+        3552
+      ],
+      "rgb_sha256": "7b22c75b04d0f69b56ce9dd67de14acaad0531959245c9c7304757dfa8105cc4",
+      "source_png_sha256": "4b22824c0c185d229d04124bacc022919b73d712e93ce1c30fe7d7cfdf19aecc",
+      "export_png_sha256": "ad00c761a7a900c4b2c57e171a9322e2ef7e398b241e04a7532a044fd8ae2aef"
+    },
+    {
+      "file": "W2-control.png",
+      "workload": "W2",
+      "configuration": "control",
+      "seed": 42,
+      "index": 1,
+      "warmup": false,
+      "size": [
+        1024,
+        1024
+      ],
+      "rgb_sha256": "46d3b31744ff1d26a92a62114d892a7140037fe8c890aaa06a6f415c068f66e0",
+      "source_png_sha256": "9b425e9eaf9c540925a088739e61092bb6d4d34d0b0c00dad0063cbe1029fc76",
+      "export_png_sha256": "23ae44c23c1169511434f1fbd415351abcbcb3268cc2d6dc7cd024da066d650e"
+    },
+    {
+      "file": "W2-candidate.png",
+      "workload": "W2",
+      "configuration": "candidate",
+      "seed": 42,
+      "index": 1,
+      "warmup": false,
+      "size": [
+        1024,
+        1024
+      ],
+      "rgb_sha256": "a5eed4f1dc64f8e450ea8d4d8d1d21eaf586e1eb48c17b539605e8ab61d0ea15",
+      "source_png_sha256": "f6bf433d7755a9a3c9aa95e6e8e71c528744be93811280f46d87521ebef522da",
+      "export_png_sha256": "897546da866ef38df3c460c7031702b11850d50bce8a6791dbc4f62aafdd3103"
+    },
+    {
+      "file": "W3-control.png",
+      "workload": "W3",
+      "configuration": "control",
+      "seed": 42,
+      "index": 1,
+      "warmup": false,
+      "size": [
+        1024,
+        1024
+      ],
+      "rgb_sha256": "c60c6e5018b454e9ff2d30e014b44f456bcb5ba389f8d77c76dc0186550e216f",
+      "source_png_sha256": "eeb8ea2772307262eafd3728e8d2c30f11464aaa62d41a2df68d46e9a8cf0662",
+      "export_png_sha256": "42ac61dda9cf6305e9954277165ddb9921bf797d9a3432349c9a4af710aaf203"
+    },
+    {
+      "file": "W3-candidate.png",
+      "workload": "W3",
+      "configuration": "candidate",
+      "seed": 42,
+      "index": 1,
+      "warmup": false,
+      "size": [
+        1024,
+        1024
+      ],
+      "rgb_sha256": "e2ac34b7c8b8afad6c40671a18bb7448cbe07781e566fe1668aabf365e17dea7",
+      "source_png_sha256": "b11ad3b95c269d1cea547f6b3e7d3b97fae2d9b4ac0df016697658332d70a6bf",
+      "export_png_sha256": "5fa59d33c577e6ec516b4a2423636c62488eadc3e6fb79ecb45a96f2ee539c4b"
+    }
+  ]
+}

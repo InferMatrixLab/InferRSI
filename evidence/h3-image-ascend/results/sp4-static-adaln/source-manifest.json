@@ -1,0 +1,14 @@
+{
+  "tests/diffusion/attention/test_flash_attn.py": "6cc09e95317fca1dcb03d1d0e207e9640d2edcbeaa441baf3747b4631ce65b87",
+  "tests/diffusion/attention/test_ulysses_a2a_permute.py": "c0aff1fc8655a4660a5577938bcc0a2e7850b367741f67279f47002be2e2d9c1",
+  "tests/platforms/npu/test_minimax_h3_image_graphs.py": "d1b3550ad98ac8ad1e71fd369acac4d3195d008ef10a805c06aca7fcd62087c1",
+  "vllm_omni/diffusion/attention/backends/flash_attn.py": "76ede93e0da0326f7b94bdb363ccabed908ffe51e2b42aa5d380d1871ac793e8",
+  "vllm_omni/diffusion/attention/parallel/factory.py": "4028df21d316317596245ffdb87a74ed298e67b13f1c4fcdf04492c0536720ae",
+  "vllm_omni/diffusion/distributed/a2a_permute.py": "371fe8e6ddb6989aeb59cfe949a649e720dc765ba7aa4e99bb8cd5fe48374ccb",
+  "vllm_omni/diffusion/distributed/ulysses_symmetric_memory_npu.py": "fc6122899f25ff7edfc83618eb6a4238764368f9a99095763a16b2fdfa98be9b",
+  "vllm_omni/diffusion/models/minimax_h3/minimax_h3_blocks.py": "ea6d3fc842e02de2ce5aacd4b921eb10d8b5d25aa1ca1b6d104e131800622405",
+  "vllm_omni/diffusion/models/minimax_h3/minimax_h3_transformer.py": "85ec8b22a7bba4f83691e6bbd0af56d5dd50e6c5b3495949befb0a644e0dc8de",
+  "vllm_omni/platforms/npu/models/minimax_h3_image.py": "325daff817df94651b6b5aa2b760772b59145539136f26064f530ca66b1a044e",
+  "vllm_omni/platforms/npu/platform.py": "3afb7345955afb3392ac51fdc22aeeb240b16f0903f8014ce0f3332be8e2d375",
+  "vllm_omni/platforms/npu/quant/minimax_h3_image.py": "622845cc0633437e67f9e791d53629c4ea24ed28782e2d06637ebc0a97790752"
+}

@@ -1,0 +1,128 @@
+{
+  "verdict": "FAIL",
+  "scope": "numerical image-quality screen only",
+  "visual_review": "pending",
+  "additional_prompt_coverage": "pending",
+  "checks": [
+    {
+      "workload": "W1",
+      "seed": 42,
+      "index": 0,
+      "exact": false,
+      "psnr_db": 18.993440043893752,
+      "ssim": 0.8418112292243388,
+      "mean_abs_error": 12.50503921508789,
+      "numerical_screen_pass": false
+    },
+    {
+      "workload": "W1",
+      "seed": 42,
+      "index": 1,
+      "exact": false,
+      "psnr_db": 18.993440043893752,
+      "ssim": 0.8418112292243388,
+      "mean_abs_error": 12.50503921508789,
+      "numerical_screen_pass": false
+    },
+    {
+      "workload": "W1",
+      "seed": 42,
+      "index": 2,
+      "exact": false,
+      "psnr_db": 18.993440043893752,
+      "ssim": 0.8418112292243388,
+      "mean_abs_error": 12.50503921508789,
+      "numerical_screen_pass": false
+    },
+    {
+      "workload": "W1",
+      "seed": 42,
+      "index": 3,
+      "exact": false,
+      "psnr_db": 18.993440043893752,
+      "ssim": 0.8418112292243388,
+      "mean_abs_error": 12.50503921508789,
+      "numerical_screen_pass": false
+    },
+    {
+      "workload": "W2",
+      "seed": 42,
+      "index": 0,
+      "exact": false,
+      "psnr_db": 23.965373438207287,
+      "ssim": 0.9320420124228056,
+      "mean_abs_error": 6.6189422607421875,
+      "numerical_screen_pass": false
+    },
+    {
+      "workload": "W2",
+      "seed": 42,
+      "index": 1,
+      "exact": false,
+      "psnr_db": 23.965373438207287,
+      "ssim": 0.9320420124228056,
+      "mean_abs_error": 6.6189422607421875,
+      "numerical_screen_pass": false
+    },
+    {
+      "workload": "W2",
+      "seed": 42,
+      "index": 2,
+      "exact": false,
+      "psnr_db": 23.965373438207287,
+      "ssim": 0.9320420124228056,
+      "mean_abs_error": 6.6189422607421875,
+      "numerical_screen_pass": false
+    },
+    {
+      "workload": "W2",
+      "seed": 42,
+      "index": 3,
+      "exact": false,
+      "psnr_db": 23.965373438207287,
+      "ssim": 0.9320420124228056,
+      "mean_abs_error": 6.6189422607421875,
+      "numerical_screen_pass": false
+    },
+    {
+      "workload": "W3",
+      "seed": 42,
+      "index": 0,
+      "exact": false,
+      "psnr_db": 35.81457791622836,
+      "ssim": 0.9861634787351039,
+      "mean_abs_error": 0.9894911646842957,
+      "numerical_screen_pass": true
+    },
+    {
+      "workload": "W3",
+      "seed": 42,
+      "index": 1,
+      "exact": false,
+      "psnr_db": 35.81457791622836,
+      "ssim": 0.9861634787351039,
+      "mean_abs_error": 0.9894911646842957,
+      "numerical_screen_pass": true
+    },
+    {
+      "workload": "W3",
+      "seed": 42,
+      "index": 2,
+      "exact": false,
+      "psnr_db": 35.81457791622836,
+      "ssim": 0.9861634787351039,
+      "mean_abs_error": 0.9894911646842957,
+      "numerical_screen_pass": true
+    },
+    {
+      "workload": "W3",
+      "seed": 42,
+      "index": 3,
+      "exact": false,
+      "psnr_db": 35.81457791622836,
+      "ssim": 0.9861634787351039,
+      "mean_abs_error": 0.9894911646842957,
+      "numerical_screen_pass": true
+    }
+  ]
+}
