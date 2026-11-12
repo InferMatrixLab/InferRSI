@@ -15,8 +15,46 @@ sys.path.insert(0, str(EXAMPLES))
 import qwen21_turbo_b300 as campaign  # noqa: E402 - standalone campaign helpers require the examples path
 import qwen21_turbo_quality as quality  # noqa: E402 - standalone campaign helpers require the examples path
 
+from inferrsi.observability.dashboard_workflow import validation_progress  # noqa: E402
+
 
 class QwenTurboTests(unittest.TestCase):
+    def test_run_progress_is_readable_and_optional_for_the_quality_verdict(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "run.lock.json").write_text('{"repetitions":1}')
+            for side in ("baseline", "candidate"):
+                trial = root / side / "trial-001"
+                trial.mkdir(parents=True)
+                (trial / "execution.json").write_text('{"status":"completed","returncode":0}')
+            out = root / "validation/result.json"
+            out.parent.mkdir()
+            args = ["quality", "--reference-manifest", "reference.json", "--inferrsi-run",
+                    "--output", str(out)]
+            atomic_write = quality.lifecycle.atomic_write_json
+            for verdict, broken in [("PASS", False), ("FAIL", False), ("PASS", True),
+                                    ("FAIL", True)]:
+                with self.subTest(verdict=verdict, broken=broken):
+                    counts = []
+
+                    def write(path, value):
+                        self.assertEqual(path, root / "validation/progress.json")
+                        if broken:
+                            raise OSError("progress file unavailable")
+                        atomic_write(path, value)
+                        counts.append(validation_progress(json.loads(path.read_text())))
+
+                    with (patch.object(sys, "argv", args),
+                          patch.dict(os.environ, {"INFERRSI_RESULT_PATH": str(out)}),
+                          patch.object(quality.lifecycle, "atomic_write_json", side_effect=write),
+                          patch.object(quality, "validate", side_effect=[
+                              {"verdict": "PASS"}, {"verdict": verdict}])):
+                        self.assertEqual(quality.main(), int(verdict != "PASS"))
+                    self.assertEqual(json.loads(out.read_text())["verdict"], verdict)
+                    self.assertEqual(counts, [] if broken else [
+                        {"unit": "manifests", "completed": count, "total": 2} for count in (1, 2)
+                    ])
+
     def test_final_source_probe_failure_still_writes_failed_manifest(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

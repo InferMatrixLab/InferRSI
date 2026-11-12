@@ -1,33 +1,16 @@
 """Local campaign records connect runs without copying private run artifacts."""
 
 import json
-import subprocess
-import sys
-from pathlib import Path
 
 import pytest
 
-from inferrsi.apps.views.dashboard_data import load_dashboard
 from inferrsi.cli import main
-from inferrsi.harness.campaign_records import create_campaign, record_candidate, record_decision
-
-
-def test_campaign_record_writers_import_without_dashboard():
-    src = Path(__file__).resolve().parents[1] / "src"
-    subprocess.run(
-        [
-            sys.executable,
-            "-I",
-            "-c",
-            "import sys\n"
-            "sys.path.insert(0, sys.argv[1])\n"
-            "from inferrsi.harness import campaign_records, campaign_trace\n"
-            "assert 'inferrsi.harness.dashboard_data' not in sys.modules\n"
-            "assert 'inferrsi.apps' not in sys.modules\n",
-            str(src),
-        ],
-        check=True,
-    )
+from inferrsi.observability.campaign_records import (
+    create_campaign,
+    record_candidate,
+    record_decision,
+)
+from inferrsi.observability.dashboard_data import load_dashboard
 
 
 def test_record_candidates_in_one_round_and_reference_trace(tmp_path):

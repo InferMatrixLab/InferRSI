@@ -6,12 +6,12 @@ from pathlib import Path
 
 import pytest
 
-from inferrsi.apps.views.dashboard import write_dashboard
-from inferrsi.apps.views.dashboard_data import load_dashboard
 from inferrsi.cli import main
-from inferrsi.harness import campaign_records, optimization_trace
-from inferrsi.harness.campaign_records import create_campaign, record_candidate
-from inferrsi.harness.optimization_trace import (
+from inferrsi.observability import campaign_records, optimization_trace
+from inferrsi.observability.campaign_records import create_campaign, record_candidate
+from inferrsi.observability.dashboard import write_dashboard
+from inferrsi.observability.dashboard_data import load_dashboard
+from inferrsi.observability.optimization_trace import (
     MAX_OPTIMIZATION_TRACE_BYTES,
     TraceError,
     parse_optimization_trace,
@@ -178,6 +178,35 @@ def test_assemble_cleans_temporary_file_if_publish_fails(tmp_path, monkeypatch):
                                         output="optimization.json")
     assert not (tmp_path / "optimization.json").exists()
     assert not list(tmp_path.glob(".optimization-*.tmp"))
+
+
+def test_selection_rules_are_optional_and_remain_bound_to_the_trace():
+    document = trace_document()
+    legacy = parse_optimization_trace(json.dumps(document).encode())
+    assert "selection_rules" not in legacy["search_space"]
+    document["search_space"]["selection_rules"] = ["Check pixel equality before comparing latency"]
+    parsed = parse_optimization_trace(json.dumps(document).encode())
+    assert parsed["search_space"]["selection_rules"] == document["search_space"]["selection_rules"]
+    document["search_space"]["selection_rules"] = "invalid"
+    with pytest.raises(TraceError):
+        parse_optimization_trace(json.dumps(document).encode())
+
+
+def test_profile_summary_and_skill_takeaway_are_bound_to_reviewed_bytes(tmp_path):
+    root = tmp_path / "profile"
+    assert main(["campaign", "init", "--id", "campaign", "--directory", str(root),
+                 "--profile-first"]) == 0
+    assert load_dashboard(root)["review_layout"] == "profile_first"
+    doc = trace_document()
+    doc["applied_skills"] = [{"name": "measurement", "takeaway": "Compare the same requests."}]
+    doc["diagnosis"] = {"scope": "baseline_request", "metric_unit": "s", "total": 5,
+                        "source_sha256": "a" * 64, "conclusion": "Most time is in denoising.",
+                        "components": [{"name": "denoising", "samples": [4, 4.1]}]}
+    assert parse_optimization_trace(json.dumps(doc).encode())["diagnosis"] == doc["diagnosis"]
+    for samples in ([-1], [True], []):
+        doc["diagnosis"]["components"][0]["samples"] = samples
+        with pytest.raises(TraceError):
+            parse_optimization_trace(json.dumps(doc).encode())
 
 
 def test_run_binding_and_event_references_are_validated(tmp_path):

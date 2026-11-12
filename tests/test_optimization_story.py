@@ -9,13 +9,17 @@ from pathlib import Path
 
 import pytest
 
-from inferrsi.apps.views.dashboard import write_dashboard
-from inferrsi.apps.views.dashboard_data import load_dashboard
 from inferrsi.cli import main
-from inferrsi.harness.campaign_records import create_campaign, record_candidate, record_decision
-from inferrsi.harness.knowledge_capture import capture_context, verify_capture
-from inferrsi.harness.optimization_log import LogError, parse_optimization_log, record_log
 from inferrsi.knowledge_operations import KnowledgeReader
+from inferrsi.observability.campaign_records import (
+    create_campaign,
+    record_candidate,
+    record_decision,
+)
+from inferrsi.observability.dashboard import write_dashboard
+from inferrsi.observability.dashboard_data import load_dashboard
+from inferrsi.observability.knowledge_capture import capture_context, verify_capture
+from inferrsi.observability.optimization_log import LogError, parse_optimization_log, record_log
 
 
 class FakeReader:
@@ -245,7 +249,7 @@ def test_summary_navigates_to_run_without_outcome_but_not_missing_runs(tmp_path)
         {"ref": "candidate:duplicate", "state": "ambiguous"},
     ])
 
-    template = Path(__file__).parents[1] / "src/inferrsi/data/dashboard/template.html"
+    template = Path(__file__).parents[1] / "src/inferrsi/observability/template.html"
     script = r"""
 const fs = require('node:fs'), assert = require('node:assert/strict');
 const data = JSON.parse(fs.readFileSync(0, 'utf8'));
@@ -268,10 +272,10 @@ const target = {setAttribute(name, value) { this[name] = value; },
 const runSelect = {value: 'old'}, stageSelect = {value: 'old'}, candidateSelect = {value: 'old'};
 const api = new Function('data', 'node', 'narrativeNode', 'translatedNarrative',
   'stageNames', 'runSelect', 'stageSelect', 'candidateSelect', 'byId', 'render', 'detailLine',
-  'let selected = -1, jumpNotice = "old";\n' + source +
-  '\nreturn {renderSummary, selected: () => selected, jumpNotice: () => jumpNotice};')(
+  'let selected = -1;\n' + source +
+  '\nreturn {renderSummary, selected: () => selected};')(
   data, node, node, value => value, {search: 'Search'}, runSelect, stageSelect,
-  candidateSelect, id => { assert.equal(id, 'candidate-inspection'); return target; },
+  candidateSelect, id => { assert.equal(id, 'run-review'); return target; },
   () => {}, () => {});
 const root = node('div'); api.renderSummary(root, data.story);
 const buttons = [];
@@ -286,7 +290,6 @@ assert.equal(button('b').text, 'b · No recorded outcome');
 assert.equal(button('b').disabled, false);
 button('b').click();
 assert.equal(data.candidates[api.selected()].candidate_id, 'b');
-assert.equal(api.jumpNotice(), '');
 assert.equal(runSelect.value, ''); assert.equal(stageSelect.value, '');
 assert.equal(candidateSelect.value, '');
 assert.equal(target.tabindex, '-1'); assert(target.focused && target.scrolled);

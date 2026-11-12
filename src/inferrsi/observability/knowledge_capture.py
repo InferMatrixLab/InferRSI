@@ -17,6 +17,8 @@ import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 
+from .._skill_selection import TASK_RELEVANCE
+
 MAX_CONTEXT_CAPTURE_BYTES = 4 * 1024 * 1024
 CAPTURE_KIND = "inferrsi.knowledge_context"
 _IDENTIFIER = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,127}")
@@ -41,12 +43,13 @@ def assemble_context_text(contexts: list[dict]) -> str:
 
 
 def _item(view: dict) -> dict:
-    return {key: view.get(key) for key in ("ref", "revision", "title", "kind", "backend")}
+    fields = ("ref", "revision", "title", "kind", "backend", "scenario")
+    return {key: view.get(key) for key in fields}
 
 
 def capture_context(root: Path, *, context_id: str, reader, query: str = "",
                     relevance: str | None = None,
-                    relevance_method: str = "weighted-lexical-v1",
+                    relevance_method: str | None = None,
                     ids: list[str] | None = None, kind: str | None = None,
                     repo: str | None = None, tier: str | None = None,
                     backend: str | None = None, scenario: str | None = None,
@@ -67,6 +70,10 @@ def capture_context(root: Path, *, context_id: str, reader, query: str = "",
         raise ValueError("campaign.json is missing or invalid") from exc
     if not isinstance(campaign, dict) or not isinstance(campaign.get("campaign_id"), str):
         raise ValueError("campaign.json is missing or invalid")
+    if relevance_method is None:
+        relevance_method = TASK_RELEVANCE if relevance and ids is None else "weighted-lexical-v1"
+    if relevance_method == TASK_RELEVANCE and ids is None and backend is None:
+        backend = campaign.get("backend")
     result = reader.collect(
         query, ids=ids, kind=kind, repo=repo, tier=tier, backend=backend,
         scenario=scenario, limit=limit, relevance=relevance,

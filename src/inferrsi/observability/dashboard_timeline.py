@@ -6,7 +6,7 @@ import math
 from datetime import datetime, timezone
 from html import escape
 
-from ...harness.records import STAGES
+from .dashboard_data import STAGES
 
 _NAMES = {
     "diagnosis": "Diagnosis", "knowledge": "Knowledge", "search": "Candidate search",

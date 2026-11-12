@@ -47,6 +47,8 @@ The symbol inventory is AST-derived and does not claim to have found every third
 
 Synthetic negative controls run item by item per D020; an empty graph pass is not allowed on the grounds that target H files do not exist yet. Repository policy review is a process prerequisite, not another user choice. Without formal acceptance, these shells cannot be written and the gate cannot be changed.
 
+P0b review package (Proposed): the exact pairs, shape rules, and staged isolation model are in [`../module-layout.md`](../module-layout.md#first-wave-compatibility-exceptions-proposed), [`../legacy-knowledge-manifest.json`](../legacy-knowledge-manifest.json), and `tests/test_target_module_import_gate.py`.
+
 ### B3. Later legacy evaluation entry (not mixed into the first wave)
 
 The fixed later route: B `legacy_run_v0.py` keeps the only old `evaluate` rules; Apps `legacy/evaluation.py` adapts old RunSpec/args to B-local DTOs and returns the original dict; old root `evaluation`/`harness.evaluation` compatibility entries need per-leaf transitional policy review. The old protocol stays "INCONCLUSIVE if incomplete else FAIL if failed else PASS"; the reasons order `failed+incomplete` is not a verdict priority. Old run 0/1/2 are unchanged.

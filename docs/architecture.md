@@ -61,7 +61,9 @@ of these shared packages imports a campaign from `examples/`.
 
 The implemented table above is not the target four-module layout. The
 suggested rule, including what the import gate does not prove, is
-[module-layout.md](module-layout.md). That page does not move code.
+[module-layout.md](module-layout.md). That page does not move code. It also
+lists the Proposed first-wave compatibility exceptions recorded in
+[legacy-knowledge-manifest.json](legacy-knowledge-manifest.json).
 
 The caller still prepares the benchmark runtime and baseline/candidate source
 checkouts. Separate working directories alone do not isolate Python imports,
@@ -116,6 +118,20 @@ src/inferrsi/
   claim.py                  Campaign verdict labels PASS/FAIL/INCONCLUSIVE; rules only
   evidence_paths.py         Per-campaign evidence tree: plan/results/patch/validator
   summary_chart.py          Stdlib SVG gain chart (chain/branch) and report figure spec
+  observability/
+    dashboard.py            Offline snapshot and HTML rendering
+    dashboard_data.py       Recorded run/campaign evidence into a view model
+    dashboard_live.py       Read-only loopback server for live observation
+    dashboard_timeline.py   Stage/result timeline SVG
+    dashboard_workflow.py   Paired command events into reviewable work units
+    dashboard_external.py   Protocol-specific external measurements
+    template.html           Dashboard view template
+    optimization_log.py     Campaign log write/read and reference checks
+    optimization_story.py   Caller narrative resolved against captures and runs
+    optimization_trace.py   Optimization trace parse, assemble and read
+    knowledge_capture.py    Bounded knowledge context capture and verification
+    campaign_records.py     Campaign manifest, candidate and decision records
+    campaign_trace.py       Correlation envelope for existing agent events
   harness/
     improvement.py          Offline quality-first selection and usage accounting
     skill_evaluation.py     Skill trial/client interface and independent grading

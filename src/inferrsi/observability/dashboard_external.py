@@ -8,12 +8,9 @@ import math
 import re
 from pathlib import Path
 
-from ...harness.records import STAGES
-from ...harness.records.fields import _number, _text
-
 
 def external_record(root: Path, reference: object, candidate_id: str) -> tuple[dict, dict]:
-    from .dashboard_data import _explicit_ref
+    from .dashboard_data import STAGES, _explicit_ref, _number, _text
 
     ref = _explicit_ref(root, reference, "external_record")
     if ref["state"] != "present":

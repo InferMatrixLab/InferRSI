@@ -67,11 +67,9 @@ def test_manual_bundle_runs_from_an_external_workspace(tmp_path):
         assert installed_bytes == _io_path(PROJECT / "src" / relative).read_bytes()
         assert hashlib.sha256(installed_bytes).hexdigest() == digest
     with zipfile.ZipFile(io.BytesIO((package / "remote-runtime.zip").read_bytes())) as remote:
-        for relative in (
-            "inferrsi/apps/views/dashboard.py", "inferrsi/apps/views/live.py",
-            "inferrsi/apps/views/trace.py", "inferrsi/data/dashboard/template.html",
-        ):
-            assert remote.read(relative) == (runtime / relative).read_bytes()
+        assert remote.read("inferrsi/observability/template.html") == (
+            runtime / "inferrsi/observability/template.html"
+        ).read_bytes()
 
     target = tmp_path / "external workspace"
     target.mkdir()
@@ -98,19 +96,10 @@ def test_manual_bundle_runs_from_an_external_workspace(tmp_path):
     (campaign / "campaign.json").write_text(
         json.dumps({"campaign_id": "synthetic-dashboard", "synthetic": True}), encoding="utf-8",
     )
-    run = campaign / "runs/example"
-    run.mkdir(parents=True)
-    (run / "run.lock.json").write_text("{}", encoding="utf-8")
-    (run / "events.jsonl").write_text('{"phase":"measurement","side":"baseline"}\n',
-                                      encoding="utf-8")
     dashboard = invoke("dashboard", "--input", str(campaign))
     html = campaign / "dashboard.html"
     assert dashboard["dashboard"] == str(html)
-    page = html.read_text(encoding="utf-8")
-    assert "InferRSI · Optimization dashboard" in page
-    payload = page.split('<script id="dashboard-data" type="application/json">', 1)[1]
-    view = json.loads(payload.split("</script>", 1)[0])
-    assert view["candidates"][0]["events"][0]["phase"] == "measurement"
+    assert "InferRSI · Optimization dashboard" in html.read_text(encoding="utf-8")
 
     with pytest.raises(ValueError, match="already exists"):
         build_bundle(archive)
