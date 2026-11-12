@@ -258,3 +258,15 @@ A separate transposed-storage linear probe tested 18 cases using actual weights
 and repeated captured activation samples. Twelve were exact; all six 1108-row
 cases differed, and most cases were slower. [Component measurements](results/linear-transposed-storage-probe.json)
 therefore did not lead to integration or an HTTP trial.
+
+## Outlier-channel FC1 quantization rejected
+
+Keeping 1024 input channels in BF16 reduced component-level error, but did not
+qualify whole images. Round 17 failed during dummy VAE reference encoding
+before the transformer preparation hook ran. Moving preparation to the first
+pipeline entry allowed round 18 to finish, with both services exiting normally.
+W1 scored PSNR 20.1129 / SSIM 0.855984 and W2 23.1108 / 0.915849, failing the
+unchanged gates; W3 passed at 38.8175 / 0.990182.
+[Component cases, startup failure and image checks](results/outlier-fc1-rejection.json)
+retain the source and calibration hashes. The candidate was rejected, no full
+performance trial ran, and no mixed-precision code was adopted.
