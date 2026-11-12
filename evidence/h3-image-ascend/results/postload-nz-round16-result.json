@@ -1,0 +1,425 @@
+{
+  "round": 16,
+  "base_revision": "7f8395fede3cb79991a256d1752c887b40faca30",
+  "patch_sha256": "3b1bd19bcbfd96706d1c4ae9eedfab9d948644e0df1937603452da51ec33ff90",
+  "change": "Convert 100 main MLP weights to NZ on the first forward after checkpoint loading, then remove the hook",
+  "scope": "Sequential matched four-device HTTP experiment; not final ABBA qualification",
+  "runtime_receipt": "Four ranks each converted 100 populated weights after loading",
+  "workload_protocol": "Unchanged prompts, seeds, six denoising steps, canvas and PNG transport; one warmup and three measured samples per workload",
+  "latency": {
+    "control": {
+      "W1": {
+        "samples_s": [
+          10.846111858962104,
+          10.768387861025985,
+          10.842028710001614
+        ],
+        "median_s": 10.842028710001614,
+        "target_s": 7.34,
+        "target_met": false,
+        "h200_inverse_latency_fraction": 0.33849753567009816
+      },
+      "W2": {
+        "samples_s": [
+          2.5291971170227043,
+          2.480429027986247,
+          2.4569082320085727
+        ],
+        "median_s": 2.480429027986247,
+        "target_s": 1.52,
+        "target_met": false,
+        "h200_inverse_latency_fraction": 0.30639860742841374
+      },
+      "W3": {
+        "samples_s": [
+          4.234387699980289,
+          4.135045217000879,
+          4.190977571008261
+        ],
+        "median_s": 4.190977571008261,
+        "target_s": 2.6,
+        "target_met": false,
+        "h200_inverse_latency_fraction": 0.3101901592108133
+      }
+    },
+    "candidate": {
+      "W1": {
+        "samples_s": [
+          10.726764983031899,
+          10.946343896968756,
+          10.651246193039697
+        ],
+        "median_s": 10.726764983031899,
+        "target_s": 7.34,
+        "target_met": false,
+        "h200_inverse_latency_fraction": 0.3421348380248265
+      },
+      "W2": {
+        "samples_s": [
+          2.6394489009981044,
+          2.555793688981794,
+          2.4591618969570845
+        ],
+        "median_s": 2.555793688981794,
+        "target_s": 1.52,
+        "target_met": false,
+        "h200_inverse_latency_fraction": 0.29736359522148187
+      },
+      "W3": {
+        "samples_s": [
+          4.140093671972863,
+          4.024679867958184,
+          4.065325953008141
+        ],
+        "median_s": 4.065325953008141,
+        "target_s": 2.6,
+        "target_met": false,
+        "h200_inverse_latency_fraction": 0.3197775565912652
+      }
+    }
+  },
+  "quality": {
+    "matched_images": 30,
+    "exact_rgb": 30,
+    "checks": [
+      {
+        "group": "author-workloads",
+        "workload": "W1",
+        "seed": 42,
+        "index": 0,
+        "exact": true,
+        "psnr_db": null,
+        "ssim": 1.0,
+        "mean_abs_error": 0.0,
+        "numerical_screen_pass": true
+      },
+      {
+        "group": "author-workloads",
+        "workload": "W1",
+        "seed": 42,
+        "index": 1,
+        "exact": true,
+        "psnr_db": null,
+        "ssim": 1.0,
+        "mean_abs_error": 0.0,
+        "numerical_screen_pass": true
+      },
+      {
+        "group": "author-workloads",
+        "workload": "W1",
+        "seed": 42,
+        "index": 2,
+        "exact": true,
+        "psnr_db": null,
+        "ssim": 1.0,
+        "mean_abs_error": 0.0,
+        "numerical_screen_pass": true
+      },
+      {
+        "group": "author-workloads",
+        "workload": "W1",
+        "seed": 42,
+        "index": 3,
+        "exact": true,
+        "psnr_db": null,
+        "ssim": 1.0,
+        "mean_abs_error": 0.0,
+        "numerical_screen_pass": true
+      },
+      {
+        "group": "author-workloads",
+        "workload": "W2",
+        "seed": 42,
+        "index": 0,
+        "exact": true,
+        "psnr_db": null,
+        "ssim": 1.0,
+        "mean_abs_error": 0.0,
+        "numerical_screen_pass": true
+      },
+      {
+        "group": "author-workloads",
+        "workload": "W2",
+        "seed": 42,
+        "index": 1,
+        "exact": true,
+        "psnr_db": null,
+        "ssim": 1.0,
+        "mean_abs_error": 0.0,
+        "numerical_screen_pass": true
+      },
+      {
+        "group": "author-workloads",
+        "workload": "W2",
+        "seed": 42,
+        "index": 2,
+        "exact": true,
+        "psnr_db": null,
+        "ssim": 1.0,
+        "mean_abs_error": 0.0,
+        "numerical_screen_pass": true
+      },
+      {
+        "group": "author-workloads",
+        "workload": "W2",
+        "seed": 42,
+        "index": 3,
+        "exact": true,
+        "psnr_db": null,
+        "ssim": 1.0,
+        "mean_abs_error": 0.0,
+        "numerical_screen_pass": true
+      },
+      {
+        "group": "author-workloads",
+        "workload": "W3",
+        "seed": 42,
+        "index": 0,
+        "exact": true,
+        "psnr_db": null,
+        "ssim": 1.0,
+        "mean_abs_error": 0.0,
+        "numerical_screen_pass": true
+      },
+      {
+        "group": "author-workloads",
+        "workload": "W3",
+        "seed": 42,
+        "index": 1,
+        "exact": true,
+        "psnr_db": null,
+        "ssim": 1.0,
+        "mean_abs_error": 0.0,
+        "numerical_screen_pass": true
+      },
+      {
+        "group": "author-workloads",
+        "workload": "W3",
+        "seed": 42,
+        "index": 2,
+        "exact": true,
+        "psnr_db": null,
+        "ssim": 1.0,
+        "mean_abs_error": 0.0,
+        "numerical_screen_pass": true
+      },
+      {
+        "group": "author-workloads",
+        "workload": "W3",
+        "seed": 42,
+        "index": 3,
+        "exact": true,
+        "psnr_db": null,
+        "ssim": 1.0,
+        "mean_abs_error": 0.0,
+        "numerical_screen_pass": true
+      },
+      {
+        "group": "-quality",
+        "workload": "W1",
+        "seed": 43,
+        "index": 0,
+        "exact": true,
+        "psnr_db": null,
+        "ssim": 1.0,
+        "mean_abs_error": 0.0,
+        "numerical_screen_pass": true
+      },
+      {
+        "group": "-quality",
+        "workload": "W1",
+        "seed": 44,
+        "index": 0,
+        "exact": true,
+        "psnr_db": null,
+        "ssim": 1.0,
+        "mean_abs_error": 0.0,
+        "numerical_screen_pass": true
+      },
+      {
+        "group": "-quality",
+        "workload": "W2",
+        "seed": 43,
+        "index": 0,
+        "exact": true,
+        "psnr_db": null,
+        "ssim": 1.0,
+        "mean_abs_error": 0.0,
+        "numerical_screen_pass": true
+      },
+      {
+        "group": "-quality",
+        "workload": "W2",
+        "seed": 44,
+        "index": 0,
+        "exact": true,
+        "psnr_db": null,
+        "ssim": 1.0,
+        "mean_abs_error": 0.0,
+        "numerical_screen_pass": true
+      },
+      {
+        "group": "-quality",
+        "workload": "W3",
+        "seed": 43,
+        "index": 0,
+        "exact": true,
+        "psnr_db": null,
+        "ssim": 1.0,
+        "mean_abs_error": 0.0,
+        "numerical_screen_pass": true
+      },
+      {
+        "group": "-quality",
+        "workload": "W3",
+        "seed": 44,
+        "index": 0,
+        "exact": true,
+        "psnr_db": null,
+        "ssim": 1.0,
+        "mean_abs_error": 0.0,
+        "numerical_screen_pass": true
+      },
+      {
+        "group": "-architecture",
+        "workload": "W1",
+        "seed": 43,
+        "index": 0,
+        "exact": true,
+        "psnr_db": null,
+        "ssim": 1.0,
+        "mean_abs_error": 0.0,
+        "numerical_screen_pass": true
+      },
+      {
+        "group": "-architecture",
+        "workload": "W1",
+        "seed": 44,
+        "index": 0,
+        "exact": true,
+        "psnr_db": null,
+        "ssim": 1.0,
+        "mean_abs_error": 0.0,
+        "numerical_screen_pass": true
+      },
+      {
+        "group": "-architecture",
+        "workload": "W2",
+        "seed": 43,
+        "index": 0,
+        "exact": true,
+        "psnr_db": null,
+        "ssim": 1.0,
+        "mean_abs_error": 0.0,
+        "numerical_screen_pass": true
+      },
+      {
+        "group": "-architecture",
+        "workload": "W2",
+        "seed": 44,
+        "index": 0,
+        "exact": true,
+        "psnr_db": null,
+        "ssim": 1.0,
+        "mean_abs_error": 0.0,
+        "numerical_screen_pass": true
+      },
+      {
+        "group": "-portrait",
+        "workload": "W1",
+        "seed": 43,
+        "index": 0,
+        "exact": true,
+        "psnr_db": null,
+        "ssim": 1.0,
+        "mean_abs_error": 0.0,
+        "numerical_screen_pass": true
+      },
+      {
+        "group": "-portrait",
+        "workload": "W1",
+        "seed": 44,
+        "index": 0,
+        "exact": true,
+        "psnr_db": null,
+        "ssim": 1.0,
+        "mean_abs_error": 0.0,
+        "numerical_screen_pass": true
+      },
+      {
+        "group": "-portrait",
+        "workload": "W2",
+        "seed": 43,
+        "index": 0,
+        "exact": true,
+        "psnr_db": null,
+        "ssim": 1.0,
+        "mean_abs_error": 0.0,
+        "numerical_screen_pass": true
+      },
+      {
+        "group": "-portrait",
+        "workload": "W2",
+        "seed": 44,
+        "index": 0,
+        "exact": true,
+        "psnr_db": null,
+        "ssim": 1.0,
+        "mean_abs_error": 0.0,
+        "numerical_screen_pass": true
+      },
+      {
+        "group": "-edit-wall",
+        "workload": "W3",
+        "seed": 43,
+        "index": 0,
+        "exact": true,
+        "psnr_db": null,
+        "ssim": 1.0,
+        "mean_abs_error": 0.0,
+        "numerical_screen_pass": true
+      },
+      {
+        "group": "-edit-wall",
+        "workload": "W3",
+        "seed": 44,
+        "index": 0,
+        "exact": true,
+        "psnr_db": null,
+        "ssim": 1.0,
+        "mean_abs_error": 0.0,
+        "numerical_screen_pass": true
+      },
+      {
+        "group": "-edit-sign",
+        "workload": "W3",
+        "seed": 43,
+        "index": 0,
+        "exact": true,
+        "psnr_db": null,
+        "ssim": 1.0,
+        "mean_abs_error": 0.0,
+        "numerical_screen_pass": true
+      },
+      {
+        "group": "-edit-sign",
+        "workload": "W3",
+        "seed": 44,
+        "index": 0,
+        "exact": true,
+        "psnr_db": null,
+        "ssim": 1.0,
+        "mean_abs_error": 0.0,
+        "numerical_screen_pass": true
+      }
+    ],
+    "visual_review": "not performed; candidate not adopted"
+  },
+  "decision": "Not adopted: small W1/W3 decreases and slower W2 do not establish consistent overall benefit; targets remain unmet",
+  "service_exit_codes": {
+    "control": 0,
+    "candidate": 0
+  },
+  "campaign_verdict": "INCONCLUSIVE",
+  "final_abba": "not run"
+}
