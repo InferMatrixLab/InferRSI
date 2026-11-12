@@ -14,6 +14,7 @@ from .execution import run_experiment
 from .inspection import inspect_environment
 from .knowledge_operations import KnowledgeReader
 from .knowledge_store import KnowledgeStore
+from .observability.knowledge_capture import capture_context
 from .reporting import write_report
 from .research import research_knowledge
 
@@ -116,6 +117,63 @@ def main(argv: list[str] | None = None) -> int:
     argument_parser = parser()
     args = argument_parser.parse_args(argv)
     try:
+        if args.command == "mindie":
+            from .mindie_project import dispatch
+
+            result = dispatch(args)
+            if result is not None:
+                _print(result)
+            return 0
+        if args.command == "agents":
+            from .harness import agent_sessions
+
+            if args.agent_action == "prepare":
+                result = agent_sessions.prepare(
+                    args.job, prompt=args.prompt_file.read_text(encoding="utf-8"),
+                    workspace=args.workspace, title=args.title, max_seconds=args.max_minutes * 60,
+                    model=args.model, effort=args.effort, plugin_ref=args.plugin_ref,
+                )
+            elif args.agent_action == "bind":
+                result = agent_sessions.bind(
+                    args.job, host=args.host, session_id=args.session_id,
+                    host_id=args.host_id, receipt=args.receipt,
+                )
+            elif args.agent_action == "record":
+                result = agent_sessions.record(
+                    args.job, observation=args.observation, artifacts=args.artifact,
+                )
+            else:
+                result = getattr(agent_sessions, args.agent_action)(args.job)
+            _print(result)
+            return 0
+        if args.command == "benchmarks":
+            if args.benchmark_action == "session":
+                from .harness.optimization_session import session_command
+
+                task_source = None
+                if args.session_action == "start":
+                    from .benchmark.registry import task_resources
+
+                    task_source = Path(str(task_resources(args.task)))
+                result = session_command(
+                    args, task_source=task_source,
+                    retain_context=capture_context,
+                    knowledge_reader=(KnowledgeReader()
+                                      if args.session_action == "knowledge" else None),
+                )
+                _print(result)
+                return 2 if result.get("state") == "blocked" else 0
+            if args.benchmark_action == "run":
+                from .benchmark_operations import run_task
+
+                return run_task(args.task, args.arguments)
+            from .benchmark.registry import builtin_tasks, describe_task
+
+            if args.benchmark_action == "list":
+                _print(builtin_tasks())
+            else:
+                _print(describe_task(args.task))
+            return 0
         if args.command == "skills":
             # Optional dependencies load only for the skills command; the core
             # CLI stays independent of them.
@@ -189,6 +247,8 @@ def main(argv: list[str] | None = None) -> int:
                 ids=args.ids,
                 revisions=_revisions(args.revisions or []),
                 kind=args.kind,
+                backend=args.backend,
+                scenario=args.scenario,
                 limit=args.limit,
                 max_bytes=args.max_bytes,
                 material=args.material,
@@ -284,30 +344,58 @@ def main(argv: list[str] | None = None) -> int:
             if args.live:
                 if args.output is not None:
                     raise ValueError("--output cannot be used with --live")
-                from .harness.dashboard_live import serve_dashboard
+                from .observability.dashboard_live import serve_dashboard
 
                 serve_dashboard(args.input, args.translations,
                                 port=args.port if args.port is not None else 8765)
             else:
                 if args.port is not None:
                     raise ValueError("--port requires --live")
-                from .harness.dashboard import write_dashboard
+                from .observability.dashboard import write_dashboard
 
                 _print({"dashboard": str(write_dashboard(args.input, args.output,
                                                           args.translations))})
             return 0
 
         if args.command == "campaign":
-            from .harness.campaign_records import (
+            if args.campaign_action == "import-mindie":
+                from .mindie_context import export_context
+
+                path = export_context(
+                    args.directory, context_id=args.id, query_input=args.query_input,
+                    query_result=args.query_result, explain_input=args.explain_input,
+                    explain_result=args.explain_result, query_exit_code=args.query_exit_code,
+                    explain_exit_code=args.explain_exit_code,
+                )
+                _print({"context_directory": str(path), "reviewed_by_caller": False})
+                return 0
+            if getattr(args, "session_action", None) is not None:
+                from .harness.optimization_session import session_command
+
+                result = session_command(
+                    args,
+                    retain_context=capture_context,
+                    knowledge_reader=(KnowledgeReader()
+                                      if args.session_action == "knowledge" else None),
+                )
+                _print(result)
+                return 2 if result.get("state") == "blocked" else 0
+            from .observability.campaign_records import (
                 assemble_trace,
                 create_campaign,
                 record_candidate,
                 record_decision,
+                require_manual_campaign,
             )
 
-            if args.campaign_action == "capture-context":
-                from .harness.knowledge_capture import capture_context
+            if args.campaign_action == "attach-profile":
+                from .observability.profile_timeline import attach_profile
 
+                _print(attach_profile(args.directory, capture_id=args.id, source=args.source,
+                                      review=args.review))
+                return 0
+            if args.campaign_action == "capture-context":
+                require_manual_campaign(Path(args.directory).resolve())
                 sources = ("package",) + (("checkout",) if args.skill_root else ()) + (
                     ("store",) if args.store else ())
                 path, digest = capture_context(
@@ -322,7 +410,7 @@ def main(argv: list[str] | None = None) -> int:
                         "sha256": digest})
                 return 0
             if args.campaign_action == "import-search":
-                from .harness.search_attribution import import_search
+                from .observability.search_attribution import import_search
 
                 path = import_search(args.directory, number=args.round, trace=args.trace,
                                      lines=args.lines, knowledge_root=args.knowledge_root,
@@ -332,14 +420,15 @@ def main(argv: list[str] | None = None) -> int:
                 _print({"record": path.relative_to(args.directory.resolve()).as_posix()})
                 return 0
             if args.campaign_action == "log":
-                from .harness.optimization_log import record_log
+                from .observability.optimization_log import record_log
 
                 path, digest = record_log(args.directory, args.file)
                 _print({"log": path.name, "sha256": digest})
                 return 0
             if args.campaign_action == "init":
                 path = create_campaign(args.directory, args.id, target=args.target_pct,
-                                       noise=args.noise_pct, synthetic=args.synthetic)
+                                       noise=args.noise_pct, synthetic=args.synthetic,
+                                       backend=args.backend, profile_first=args.profile_first)
             elif args.campaign_action == "assemble-trace":
                 path = assemble_trace(args.directory, template=args.template,
                                       context_file=args.context_file, output=args.output)

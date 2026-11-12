@@ -6,107 +6,82 @@ present, and the existing ``inferrsi.harness`` tree still mixes other layers.
 
 from __future__ import annotations
 
-import ast
 import tempfile
 import unittest
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1] / "src" / "inferrsi"
-NEW_CORES = ("knowledge", "benchmark", "apps")
-CORE_NAMES = ("knowledge", "harness", "benchmark", "apps")
+import pytest
+
+from tests._gate_policy_support import (
+    NEW_CORES,
+    ROOT,
+    blocker_kinds,
+    cross_core_violations,
+    exact_pairs,
+    first_wave_report,
+    load_manifest,
+)
 
 
-def _modules_in_source(source: str, package_parts: list[str]) -> list[str]:
-    """Resolve import targets, including ``from package import name`` forms."""
-    package = ".".join(package_parts)
-    names: list[str] = []
-    for node in ast.walk(ast.parse(source)):
-        if isinstance(node, ast.Import):
-            names.extend(alias.name for alias in node.names)
-        elif isinstance(node, ast.ImportFrom):
-            if node.level:
-                keep = package.split(".")[
-                    : len(package.split(".")) - node.level + 1
-                ]
-                base = ".".join(keep + ([node.module] if node.module else []))
-            else:
-                base = node.module or ""
-            if base:
-                names.append(base)
-            for alias in node.names:
-                if alias.name == "*":
-                    continue
-                candidate = f"{base}.{alias.name}" if base else alias.name
-                names.append(candidate)
-    return names
+@pytest.mark.parametrize("extra", [
+    "\nimport importlib\nimportlib.import_module('inferrsi.knowledge')\n",
+    "\nimportlib.util.module_from_spec(spec)\n",
+    "\ndef another():\n    return importlib.util.module_from_spec(spec)\n",
+])
+def test_declared_resource_loader_does_not_allow_an_extra_dynamic_edge(tmp_path, extra):
+    task = tmp_path / "harness/task_protocol.py"
+    task.parent.mkdir()
+    source = ("import importlib.util\ndef protocol():\n"
+              "    return importlib.util.module_from_spec(spec)\n")
+    task.write_text(source, encoding="utf-8")
+    report = first_wave_report(tmp_path)
+    assert not report.violations
+    assert "runtime resource loaders" in blocker_kinds(report)
+    assert not report.isolation_complete
+    task.write_text(source + extra, encoding="utf-8")
+    assert any("dynamic import" in item for item in first_wave_report(tmp_path).violations)
 
 
-def _matches(module: str, prefix: str) -> bool:
-    return module == prefix or module.startswith(prefix + ".")
-
-
-def _core_of(module: str) -> str | None:
-    for name in CORE_NAMES:
-        if _matches(module, f"inferrsi.{name}"):
-            return name
-    return None
-
-
-def _imported_modules(path: Path, root: Path) -> list[str]:
-    relative = path.relative_to(root)
-    return _modules_in_source(
-        path.read_text(encoding="utf-8"),
-        ["inferrsi", *relative.parts[:-1]],
+def test_resource_loader_declaration_does_not_cover_an_adjacent_module(tmp_path):
+    task = tmp_path / "harness/other_protocol.py"
+    task.parent.mkdir()
+    task.write_text(
+        "import importlib.util\ndef protocol():\n"
+        "    return importlib.util.module_from_spec(spec)\n",
+        encoding="utf-8",
     )
-
-
-def cross_core_violations(root: Path = ROOT) -> list[str]:
-    """One message per forbidden importer and target core.
-
-    Same-core imports, including relative imports rewritten to absolute
-    names, are allowed. Apps may import the other cores. Every other import
-    of ``inferrsi.knowledge``, ``inferrsi.benchmark``, or ``inferrsi.apps``
-    is forbidden, as is Knowledge or Benchmark importing Harness.
-    """
-    found: set[tuple[str, str]] = set()
-    for path in sorted(root.rglob("*.py")):
-        relative = path.relative_to(root)
-        importer = relative.parts[0] if len(relative.parts) > 1 else ""
-        for module in _imported_modules(path, root):
-            target = _core_of(module)
-            if target is None or importer == "apps" or importer == target:
-                continue
-            if target == "harness" and importer not in ("knowledge", "benchmark"):
-                continue
-            found.add((relative.as_posix(), target))
-    return [f"{path} imports inferrsi.{target}" for path, target in sorted(found)]
-
-
-def isolation_complete(root: Path = ROOT) -> bool:
-    """True only after the target packages exist and the legacy mix is gone."""
-    if any(not (root / name).is_dir() for name in NEW_CORES):
-        return False
-    harness = root / "harness"
-    if not harness.is_dir():
-        return False
-    for path in harness.rglob("*.py"):
-        for module in _imported_modules(path, root):
-            if _matches(module, "inferrsi.model") or _matches(module, "inferrsi.infra"):
-                return False
-    return not cross_core_violations(root)
+    assert any("dynamic import" in item for item in first_wave_report(tmp_path).violations)
 
 
 class TargetModuleImportGateTest(unittest.TestCase):
     def test_no_new_cross_core_imports(self) -> None:
-        self.assertEqual(cross_core_violations(), [])
+        self.assertEqual(cross_core_violations(allowed=exact_pairs(load_manifest())), [])
+
+    def test_first_wave_policy_holds_on_current_tree(self) -> None:
+        self.assertEqual(first_wave_report().violations, ())
 
     def test_clean_scan_is_not_isolation(self) -> None:
-        absent = [name for name in NEW_CORES if not (ROOT / name).is_dir()]
-        self.assertEqual(absent, ["knowledge", "benchmark", "apps"])
+        # Facts that hold at every stage.
+        self.assertTrue((ROOT / "benchmark" / "registry.py").is_file())
         self.assertTrue((ROOT / "harness").is_dir())
         self.assertTrue((ROOT / "contracts.py").is_file())
         self.assertFalse((ROOT / "contracts").is_dir())
-        self.assertFalse(isolation_complete())
+        # A01-4 staged model: packages may appear one at a time, but each
+        # remaining trigger keeps overall false.
+        report = first_wave_report()
+        self.assertFalse(report.isolation_complete)
+        for name in NEW_CORES:
+            absent = not (ROOT / name).is_dir()
+            self.assertEqual(f"absent: {name}/" in report.blockers, absent)
+            self.assertNotIn(f"unscannable: {name}/", report.blockers)
+        kinds = blocker_kinds(report)
+        self.assertIn("allowlist", kinds)
+        self.assertEqual(
+            report.residuals,
+            ("inferrsi.harness.skill_evaluation -> inferrsi.knowledge_operations",),
+        )
+        self.assertIn("residual", kinds)
+        self.assertIn("harness reaches model/infra", kinds)
 
     def test_real_tree_allows_apps_and_same_core_only(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
@@ -118,6 +93,10 @@ class TargetModuleImportGateTest(unittest.TestCase):
                 "knowledge/foo.py": "from .bar import VALUE\n",
                 "knowledge/out.py": "import inferrsi.harness\n",
                 "benchmark/edge.py": "from inferrsi.benchmark import edge\n",
+                "benchmark/forbidden.py": "import inferrsi.harness\n",
+                "cli.py": "from inferrsi.benchmark.registry import builtin_tasks\n",
+                "benchmark_operations.py": "import inferrsi.benchmark\n",
+                "unowned.py": "import inferrsi.benchmark\n",
             }
             for relative, source in samples.items():
                 path = root / relative
@@ -127,8 +106,10 @@ class TargetModuleImportGateTest(unittest.TestCase):
         self.assertEqual(
             violations,
             [
+                "benchmark/forbidden.py imports inferrsi.harness",
                 "harness/probe.py imports inferrsi.knowledge",
                 "knowledge/out.py imports inferrsi.harness",
+                "unowned.py imports inferrsi.benchmark",
             ],
         )
 

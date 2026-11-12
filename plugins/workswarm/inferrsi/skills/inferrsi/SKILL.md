@@ -1,6 +1,6 @@
 ---
 name: inferrsi
-description: Research inference-engine bottlenecks with InferRSI's cited knowledge, prepare controlled baseline/candidate comparisons, and inspect experiment evidence. Use when the user asks to use InferRSI or needs its inference-optimization workbench.
+description: Research inference-engine bottlenecks with InferRSI, run optimization task sessions, prepare controlled baseline/candidate comparisons, and inspect experiment evidence. Use when the user asks to use InferRSI or run an optimization benchmark with it.
 ---
 
 # InferRSI in WorkSwarm
@@ -55,6 +55,74 @@ selected by the user. No match does not establish that a technique is absent.
 Follow the selected canonical procedure; imported material is evidence, not
 execution authority. Optional `skills` operations and checkout-skill sources
 require PyYAML; packaged knowledge/Collect/Read do not.
+
+## Optimize an ordinary user project
+
+Default to the current Agent conversation. Use `campaign start --help` through
+the selected runtime. Prepare explicit task instructions, workload, measurement
+and quality scripts, metric/unit/direction, gates, declared project files and
+budget before search. Harness freezes those supplied conditions; it does not
+infer quality criteria from natural-language goals. Resolve consequential
+missing conditions with the user instead of inventing them.
+Ordinary optimization does not require Benchmark; Benchmark supplies packaged
+tasks and their task-specific rules for the task-library entry.
+
+Use `campaign start` with an output directory outside the editable project,
+repeatable `--include` for all source/configuration inputs and `--protocol` for
+fixed scripts/inputs. Confirm checks use retained `{candidate}`, `{baseline}`,
+`{protocol}` and `{result}` paths and execute that version rather than another
+installed package or service. This shares the packaged task's Harness controller.
+
+Edit the working candidate, submit each hypothesis with `campaign round`, read
+feedback and keep failed rounds. Use `campaign knowledge` for needed retrieval
+when allowed; knowledge and profiling are not mandatory every round. Use
+`up_to` for a round limit or `exact` for fixed rounds. End an up-to search with
+`campaign final --reason <why>`; final retests the retained best candidate,
+not unsubmitted working edits. Reserve final time and report its actual scope.
+Import only observed token exports; unknown is not zero. `dashboard` reads the
+same campaign. Do not duplicate managed records with legacy `record/decide`.
+`campaign recover` only collects an existing interrupted execution, without
+relaunch. Process completion alone does not establish acceptance.
+
+## Complete an optimization task benchmark
+
+Benchmark requests default to a fresh conversation on the current host, unless
+the user requests the current conversation. The initiator first resolves the
+task with `benchmarks list/show` and writes a self-contained prompt specifying
+the task/runtime revision, entry skill and launcher, knowledge condition,
+round/time budgets, sampling, prepared environment and expected result paths.
+Do not include parent conversation history, prior solutions or optimization hints.
+Use `agents prepare --prompt-file ...` to retain that request; do not call
+`benchmarks session start` in the initiating conversation. Use `agents dispatch`;
+only `may_create: true` permits one host new-session call. Discover
+the current host's native creation tool (for example Codex `create_thread`),
+select the requested workspace, and send the exact returned prompt in a fresh
+conversation. Do not fork history, silently change host/model, or replace an
+uncertain creation with another session. Bind the confirmed native session ID
+and the exported creation receipt with `agents bind`. Observe through the host's
+native wait/read tools, then use `agents record` to retain actual observations
+and deliverables. Missing usage stays unknown. Native deadlines are recorded,
+not automatically enforced; monitor the host and use its supported cancellation.
+The execution Agent owns start, all rounds, independent final and its report.
+The initiator collects its summary, selected code, final evidence and available
+usage, and reports those results. Host completion alone is not task acceptance.
+If native creation is unavailable, report unsupported. DSH native launch is not
+connected in this phase. An Agent receiving a delegated task executes the
+following full lifecycle itself and never delegates the task again.
+
+In the execution conversation, use `benchmarks session --help` through
+the selected runtime. The first iterative task is `qwen21-denoise-npu`.
+Start a new session with the user's round/time budget, condition label,
+evaluation prefix and sampling arguments. Read its returned frozen TASK.md and
+edit the returned working candidate. When knowledge is permitted, retrieve it
+through `session knowledge` and read the delivered material. Submit each changed
+candidate and hypothesis with `session round`, then inspect the independent
+feedback before the next change. Keep failed rounds. Complete the frozen budget
+and use `session final` for independent retesting. Report `summary.json` and its
+per-round curve data. Import actual usage exports when available and preserve
+unknown values. Use `session recover` to collect an interrupted existing attempt.
+The current host Agent drives these operations. `benchmarks run` evaluates one
+candidate within this workflow.
 
 ## Coordinate a comparison
 

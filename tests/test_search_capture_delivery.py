@@ -2,8 +2,8 @@ import json
 
 import pytest
 
-from inferrsi.harness.capture_delivery import capture_return_texts, visible_capture_resources
-from inferrsi.harness.knowledge_capture import assemble_context_text
+from inferrsi.observability.capture_delivery import capture_return_texts, visible_capture_resources
+from inferrsi.observability.knowledge_capture import assemble_context_text
 
 
 def test_delivery_requires_a_versioned_resource_block_in_a_model_tool_return(tmp_path):

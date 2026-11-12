@@ -15,9 +15,9 @@ from pathlib import Path
 import pytest
 
 from inferrsi.cli import main
-from inferrsi.harness import dashboard_live
-from inferrsi.harness.dashboard import write_dashboard
-from inferrsi.harness.dashboard_live import DashboardServer
+from inferrsi.observability import dashboard_live
+from inferrsi.observability.dashboard import write_dashboard
+from inferrsi.observability.dashboard_live import DashboardServer
 
 
 @pytest.fixture
@@ -88,7 +88,7 @@ def test_live_poll_withholds_extreme_branch_chart(dashboard_server, tmp_path, mo
     def fail_render(_spec):
         raise AssertionError("unbounded values reached the shared renderer")
 
-    monkeypatch.setattr("inferrsi.harness.dashboard.build_svg", fail_render)
+    monkeypatch.setattr("inferrsi.observability.dashboard.build_svg", fail_render)
     status, _, body = request(dashboard_server, "/api/state")
     snapshot = json.loads(body)
 
@@ -147,7 +147,7 @@ def test_compact_live_transport_interns_repeated_context_without_changing_legacy
 
 @pytest.mark.skipif(shutil.which("node") is None, reason="Node.js is needed for the UI regression")
 def test_compact_contexts_are_restored_exactly_in_the_browser():
-    template = Path(__file__).parents[1] / "src/inferrsi/data/dashboard/template.html"
+    template = Path(__file__).parents[1] / "src/inferrsi/observability/template.html"
     script = r"""
 const fs = require('node:fs'), assert = require('node:assert/strict');
 const html = fs.readFileSync(process.argv[1], 'utf8');
@@ -226,7 +226,7 @@ def test_live_cli_rejects_incompatible_flags(tmp_path):
 
 @pytest.mark.skipif(shutil.which("node") is None, reason="Node.js is needed for the UI regression")
 def test_live_selection_matches_identity_after_rows_change():
-    template = Path(__file__).parents[1] / "src/inferrsi/data/dashboard/template.html"
+    template = Path(__file__).parents[1] / "src/inferrsi/observability/template.html"
     script = r"""
 const fs = require('node:fs'), assert = require('node:assert/strict');
 const html = fs.readFileSync(process.argv[1], 'utf8');

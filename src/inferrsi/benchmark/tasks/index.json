@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "packages": [
+    "moe-forward-npu",
+    "qwen21-denoise-npu",
+    "qwen3-tts-npu"
+  ]
+}

@@ -55,10 +55,14 @@ def bundle_runtime(source: Path, runtime: Path, *, plugin_version: str,
                 path.suffix == ".txt"
                 and relative.parts[-3:-1] == ("references", "licenses")
             )
-            or (path.suffix == ".html" and relative.parent.parts == ("data", "dashboard"))
             or (path.name == "upstream-NOTICE" and relative.parent.name == "references")
         )
-        if path.suffix != ".py" and not package_data:
+        package_data = package_data or (
+            relative.parts[:2] == ("benchmark", "tasks")
+            and (path.suffix in (".json", ".md", ".jsonl") or path.name == "LICENSE")
+        )
+        template = relative.parent.parts == ("observability",) and path.suffix == ".html"
+        if path.suffix != ".py" and not (package_data or template):
             continue
         if path.is_symlink():
             raise ValueError(f"Package input must not be a symlink: {relative}")

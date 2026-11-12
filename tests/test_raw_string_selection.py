@@ -81,8 +81,9 @@ def test_skill_adapter_keeps_field_weights_and_combined_nonstring_metadata():
     record = {"title": "n", "summary": "n", "tags": ["\n"], "applicability": {}}
     assert skill_score("n N", record, b"n", method=RAW) == 10
     assert skill_score("n N", record, b"n") == 10
-    with pytest.raises(ValueError, match="Unknown relevance method"):
-        skill_score("n", record, b"n", method="unknown")
+    for method in ("unknown", "task-lexical-v1"):
+        with pytest.raises(ValueError, match="Unknown relevance method"):
+            skill_score("n", record, b"n", method=method)
 
 
 def test_opt_in_changes_only_raw_string_owner_ranking_and_positive_admission():

@@ -1,5 +1,45 @@
 # Modular architecture
 
+The [engineering task library](engineering-benchmarks.md) packages MoE forward,
+Qwen-Image denoising and real-model Qwen3-TTS under
+`benchmark/tasks`. `inferrsi benchmarks list|show` discovers the
+packages. `inferrsi benchmarks run <package> ...` launches the package's
+`benchmark.py`. Task-specific orchestration, sampling and assessment live inside
+each package. The task library owns its `index.json` registration. The existing
+`benchmark/registry.py` discovers the resources. The existing `arguments.py`,
+`cli.py` and `benchmark_operations.py` provide application assembly and launch.
+Each task retains its own protocol and task-specific code.
+
+The [current-Agent optimization session](optimization-benchmarks.md) assembles
+the first complete handoff for the Qwen task. `harness/optimization.py` controls
+budget, attempts, feedback records, selection and independent final execution.
+`harness/task_protocol.py` freezes a supplied resource directory and loads its
+task-owned assessment protocol. `harness/optimization_session.py` assembles
+execution and assessment; the CLI resolves task resources and injects knowledge
+access and the existing Observability capture callback.
+The external Agent chooses and edits candidates between round submissions.
+The same controller serves ordinary projects through `campaign start/round/final`
+and packaged tasks through `benchmarks session`. The
+[shared workflow and sequence diagram](optimization-workflow-unification.md)
+describe multi-file candidates, explicit acceptance inputs, stop rules and
+dashboard projections from one control record. `harness/project.py` freezes
+caller-provided checks and assesses their retained outputs. Ordinary optimization
+does not import Benchmark. Benchmark supplies task definitions and specialized
+rules, while Harness manages their execution and the complete optimization lifecycle.
+Neither infers quality criteria from a natural-language goal.
+Ordinary projects default to the current Agent conversation.
+The [native host handoff](native-agent-sessions.md) lets the initiating Agent
+resolve the task request before any campaign exists, use its host's new-session
+tool and retain the native identity and returned artifacts. The child owns the
+complete start/knowledge/round/final lifecycle; the parent observes and collects. This path records the handoff; it
+does not implement a background Agent CLI driver or a native-host deadline.
+
+The application injects `harness.scenarios.external.execute_trial` into the
+[two-rank MoE entry](moe-forward-benchmark.md). The standalone image benchmark
+and [TTS service protocol](tts-benchmark.md) expose their documented execution
+boundaries. Apps and Harness callers assemble these operations into optimization
+rounds under the #362 target architecture. Each task records its qualification.
+
 The local experiment path now has concrete Harness, Model and Infra modules. The
 CLI, RunSpec, knowledge retrieval and existing command contracts remain stable.
 The diagrams below describe implemented code, with the historical compatibility
@@ -61,7 +101,9 @@ of these shared packages imports a campaign from `examples/`.
 
 The implemented table above is not the target four-module layout. The
 suggested rule, including what the import gate does not prove, is
-[module-layout.md](module-layout.md). That page does not move code.
+[module-layout.md](module-layout.md). That page does not move code. It also
+lists the Proposed first-wave compatibility exceptions recorded in
+[legacy-knowledge-manifest.json](legacy-knowledge-manifest.json).
 
 The caller still prepares the benchmark runtime and baseline/candidate source
 checkouts. Separate working directories alone do not isolate Python imports,
@@ -106,6 +148,10 @@ the comparator; the engine AB/BA path retains its independent acceptance contrac
 ```text
 src/inferrsi/
   cli.py, arguments.py       Existing CLI
+  benchmark_operations.py   Resolve a task entry and launch it through Harness
+  benchmark/
+    registry.py             Generic task resource discovery
+    tasks/                  Task-specific definitions, workloads and assessment
   runspec.py, contracts.py   Immutable experiment contract and compatibility export
   catalog.py                Knowledge search and cited context
   skill_catalog.py          Packaged/default or custom skill metadata/body/resource resolution
@@ -116,7 +162,27 @@ src/inferrsi/
   claim.py                  Campaign verdict labels PASS/FAIL/INCONCLUSIVE; rules only
   evidence_paths.py         Per-campaign evidence tree: plan/results/patch/validator
   summary_chart.py          Stdlib SVG gain chart (chain/branch) and report figure spec
+  observability/
+    optimization_chart.py   Managed optimization objective/token curves and final result
+    dashboard.py            Offline snapshot and HTML rendering
+    dashboard_data.py       Recorded run/campaign evidence into a view model
+    dashboard_live.py       Read-only loopback server for live observation
+    dashboard_timeline.py   Stage/result timeline SVG
+    dashboard_workflow.py   Paired command events into reviewable work units
+    dashboard_external.py   Protocol-specific external measurements
+    template.html           Dashboard view template
+    optimization_log.py     Campaign log write/read and reference checks
+    optimization_story.py   Caller narrative resolved against captures and runs
+    optimization_trace.py   Optimization trace parse, assemble and read
+    knowledge_capture.py    Bounded knowledge context capture and verification
+    campaign_records.py     Campaign manifest, candidate and decision records
+    campaign_trace.py       Correlation envelope for existing agent events
   harness/
+    optimization_session.py Shared start/knowledge/round/final operation assembly
+    project.py              Freeze supplied project checks and assess retained results
+    task_protocol.py        Freeze supplied task resources and load their protocol
+    optimization.py         Current-Agent round budget, records and recovery
+    usage.py                Shared observed-token normalization and totals
     improvement.py          Offline quality-first selection and usage accounting
     skill_evaluation.py     Skill trial/client interface and independent grading
     runner.py               One AB/BA loop; execute/snapshot adapter hooks

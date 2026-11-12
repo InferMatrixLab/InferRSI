@@ -7,9 +7,9 @@ import subprocess
 
 import pytest
 
-from inferrsi.harness.campaign_records import create_campaign
-from inferrsi.harness.knowledge_capture import assemble_context_text, capture_context
-from inferrsi.harness.search_attribution import import_search
+from inferrsi.observability.campaign_records import create_campaign
+from inferrsi.observability.knowledge_capture import assemble_context_text, capture_context
+from inferrsi.observability.search_attribution import import_search
 
 REVISION = "f6d200" + "a" * 34
 CORPUS = {"repository": "InferMatrixLab/InferRSI", "revision": REVISION,
@@ -45,7 +45,7 @@ def _reader(monkeypatch, event):
                 4: "I will use the stable RoPE case for validation."}, [], []
         return window, [], {4: "I will use the stable RoPE case for validation."}, [], []
 
-    monkeypatch.setattr("inferrsi.harness.search_attribution.read_window", read_window)
+    monkeypatch.setattr("inferrsi.observability.search_attribution.read_window", read_window)
 
 
 def _decision(**changes):
@@ -429,8 +429,10 @@ def _capture_trace(path, output, assistant_text="No adoption decision."):
 def _make_capture(tmp_path):
     campaign = tmp_path / "campaign"
     create_campaign(campaign, "example")
+    # Keep this recorder fixture independent of the default retrieval policy.
     capture, _ = capture_context(campaign, context_id="r1", reader=_Reader("Manual line.\n"),
-                                 relevance="manual", context_bytes=4096)
+                                 relevance="manual", relevance_method="weighted-lexical-v1",
+                                 context_bytes=4096)
     document = json.loads(capture.read_text(encoding="utf-8"))
     output = assemble_context_text(document["contexts"])
     return campaign, output

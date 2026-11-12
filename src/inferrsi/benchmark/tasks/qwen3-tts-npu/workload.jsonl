@@ -1,0 +1,12 @@
+{"input": "The morning train arrives at platform four. Please keep your ticket ready.", "voice": "Ryan", "language": "English", "task_type": "CustomVoice", "seed": 42, "max_new_tokens": 2048}
+{"input": "前往杭州的列车即将进站，请乘客准备好车票，有序排队。", "voice": "Vivian", "language": "Chinese", "task_type": "CustomVoice", "seed": 48, "max_new_tokens": 2048}
+{"input": "Your appointment is on Tuesday at ten thirty. Bring the documents you received yesterday.", "voice": "Ryan", "language": "English", "task_type": "CustomVoice", "seed": 43, "max_new_tokens": 2048}
+{"input": "您的预约时间是星期三上午九点半，请提前十分钟到达服务中心。", "voice": "Vivian", "language": "Chinese", "task_type": "CustomVoice", "seed": 49, "max_new_tokens": 2048}
+{"input": "Could you turn down the music? I am trying to hear the weather report.", "voice": "Ryan", "language": "English", "task_type": "CustomVoice", "seed": 44, "max_new_tokens": 2048}
+{"input": "这份报告需要修改吗？请先检查图表，再核对每一项实验数据。", "voice": "Vivian", "language": "Chinese", "task_type": "CustomVoice", "seed": 50, "max_new_tokens": 2048}
+{"input": "First, save the file. Then close the application and restart the computer.", "voice": "Ryan", "language": "English", "task_type": "CustomVoice", "seed": 45, "max_new_tokens": 2048}
+{"input": "今天下午可能会有阵雨，出门时请带上雨伞，并注意道路湿滑。", "voice": "Vivian", "language": "Chinese", "task_type": "CustomVoice", "seed": 51, "max_new_tokens": 2048}
+{"input": "On the way home, we stopped by a small bakery. The bread was still warm, and the owner offered us a cup of tea while the rain passed.", "voice": "Ryan", "language": "English", "task_type": "CustomVoice", "seed": 46, "max_new_tokens": 2048}
+{"input": "周末，我们沿着河边的小路散步。远处的桥上亮起了灯，附近的书店还开着门，几个孩子正认真地挑选自己喜欢的故事书。", "voice": "Vivian", "language": "Chinese", "task_type": "CustomVoice", "seed": 52, "max_new_tokens": 2048}
+{"input": "A reliable experiment records the conditions, checks every result, and keeps the unsuccessful attempts. This makes it easier for another person to understand what happened.", "voice": "Ryan", "language": "English", "task_type": "CustomVoice", "seed": 47, "max_new_tokens": 2048}
+{"input": "为了比较两种实现，我们需要使用相同的模型和输入，记录完整的生成时间，同时检查语音内容与音色。每次修改后都要保存结果，方便后续复核。", "voice": "Vivian", "language": "Chinese", "task_type": "CustomVoice", "seed": 53, "max_new_tokens": 2048}

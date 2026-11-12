@@ -53,6 +53,48 @@ snapshot. Benchmark verdicts and metrics appear only once recorded. Context,
 search space and narrative must be captured and updated by the caller during
 the experiment.
 
+### Follow one round
+
+Select a candidate to open its **Run review**. The first four sections show
+the initial assembled context, the options considered, the recorded selection
+rules and the path taken. Each round has its own hash-bound trace. In the
+search path, an event link opens the matching source record in a dialog.
+The Markdown feedback export includes the selected round's inputs and path.
+
+Before starting a candidate, save the final assembled context verbatim. Freeze
+its options and rationale in the trace template, then use
+`campaign assemble-trace --context-file <FILE>` as shown below. Record a new
+snapshot for each round and retain the initial one when appending results.
+The optional `search_space.selection_rules` array holds the criteria in order.
+For example, a lossless image campaign might require identical decoded RGB
+pixels before ranking latency. Missing historical fields display as unrecorded.
+
+The native runner records phase starts for source snapshots, measurements and
+validation. The dashboard checks the source snapshot and each command's
+`execution.json` for completion. The latest start matching the running phase
+in `status.json` identifies the open step. A recorded command duration excludes
+the runner's surrounding source probes. The phase finish time stays unknown
+unless the log contains a matching `_end` event. Paired events can also show
+the full phase duration and wall-clock span. Service latency comes from the
+measured request metric.
+
+Performance progress counts completed baseline and candidate trial commands.
+Accuracy progress counts the validator command by default. A validator that
+knows its own workload can atomically replace `validation/progress.json` in
+its run with `{"unit":"cases","completed":4,"total":10}`. A single writer owns
+the absolute count. Units are `cases`, `samples` or `manifests`; use null for
+an unknown total. The Qwen image validator writes each checked manifest count
+beside the executor's `RUN/validation/result.json`, including failed checks.
+A missing or malformed counter leaves the command-level progress and verdict
+intact.
+
+Run directories separate repeated attempts. Duplicate edges within one run
+count once; conflicting observations or older starts with no finish leave the
+count unknown. Agent events still need the campaign correlation fields. Codex
+turns, command completions and errors and Anthropic request, tool and completion
+events have readable labels. The raw event type and source line remain available;
+command output and message content stay in the original trace.
+
 ### Language
 
 The header switches the offline interface, chart labels and review export between
@@ -329,6 +371,136 @@ jq --arg ref "$ref" '{
 
 ### Record the optimization story (campaign trace)
 
+Use `campaign init --profile-first` for a new profiled campaign, or set
+`"review_layout": "profile_first"` in an existing `campaign.json`.
+The live view and HTML export keep the performance trend visible. Other sections
+start collapsed. Each capture has separate disclosures for its prior searches
+and timeline. Below the trend are
+acceptance criteria, recorded request profiles, the baseline breakdown and
+target gap, each round's measurements, and adoption decisions. The trend uses each
+candidate's paired medians. For example, a target latency reduction of 50%
+is a 2× speedup. When there is one verified baseline profile, only runs
+with its measurement signature share the trend line and compete for its best
+result. Pairs from different conditions appear separately beside the chart.
+Cancelled runs retain their records in the round list.
+
+Attach a complete, reviewed worker trace before the first trial. Store a
+Chrome Trace Event JSON (plain or gzip) directly in the campaign's `profiles/`
+directory. Write a small UTF-8 review, for example:
+
+```json
+{"title":"Warm worker request","phase":"baseline","round":null,"workload_id":"fixed-image",
+ "comparison_key":"same-card-input-and-capture-boundary","takeaway":"Denoising dominates.",
+ "next_action":"Measure the chosen kernels separately, then repeat the same request."}
+```
+
+```sh
+inferrsi campaign attach-profile --directory <campaign> --id baseline \
+  --source profiles/baseline.chrome.json.gz --review baseline-review.json
+```
+
+A reviewed profile can also include these optional fields:
+
+```json
+{"started_at":"2026-01-20T10:00:00Z","context_ids":["choose-scope"],
+ "timing":{"basis":"CUDA events on the pipeline stream",
+           "stages_ms":{"worker":51.4,"encode":7.1,"denoise":42.8}}}
+```
+
+Use `YYYY-MM-DDTHH:MM:SS[.fraction]` followed by `Z` or a numeric UTC offset
+such as `+08:00` for profile and ledger timestamps. Fractions have one to six
+digits. The reader also accepts the compact legacy form `YYYYMMDDTHHMMSS`
+with the same fraction and timezone rules.
+
+Use the caller-recorded profile start and only the IDs of knowledge
+captures relevant to this profile. The reader shows a search as prior evidence
+only if its capture verifies and its timestamp precedes the start time supplied
+by the caller. The search view shows the
+query, selection method, ordered results, what was loaded or used, omissions
+and the original assembled context. A missing link stays explicit.
+
+The stage history reads the reviewer’s `timing.stages_ms` values and clock
+description (`basis`). The importer checks that each duration is finite and
+nonnegative. The verified baseline breakdown stays visible alongside this
+history. The table compares columns only within the same
+workload, comparison key and timing basis. It leaves absent measurements blank,
+preserves nested stages, and does not sum them or substitute HTTP medians.
+Command durations for the experiment itself appear separately in round details.
+Older captures without these optional fields retain their timelines.
+
+The timing panel also orders experiment steps on a UTC clock. It reads InferRSI
+run boundaries, per-trial measurement commands, validation, profile starts,
+saved knowledge searches and review log versions. In a linked agent trace,
+an `agent.request` and `agent.response` with a unique matching request number
+in the same run and source produce a client-side call duration.
+The headline span uses the earliest and latest bounds from execution tasks,
+runs, runner steps, model calls, operations and profile requests. The full
+timeline also includes search and review saves. Set
+`provider_model` on the response to label the model. Concurrent calls may
+overlap each other and the benchmark. Missing boundaries stay unmeasured.
+
+For an external controller, save a reviewed UTF-8 `experiment-timing.json`
+in the campaign root and place its SHA-256 in `campaign.json` as
+`experiment_timing_sha256`. The document has this shape:
+
+```json
+{"schema_version":1,"campaign_id":"example","steps":[
+  {"kind":"model_call","actor":"experiment agent","model":"example-model","label":"#1",
+   "start":"2026-01-20T10:00:00Z","end":"2026-01-20T10:00:03Z",
+   "basis":"Client send to completed response","round":1}
+]}
+```
+
+Supported kinds are `experiment`, `operation`, `profile_request` and `model_call`.
+Supply either or both timestamp bounds with timezone. The actor and timing
+basis identify the observer and clock boundary. Include only additional
+observations that are absent from native events. The file accepts up to
+5,000 steps and 2 MiB. Keep raw prompts and transport logs local.
+
+
+Repeat after a measured change, with a new ID, `"phase":"candidate"` and the
+actual round number. Use the same comparison key only for the same hardware,
+input, execution boundary and profiler configuration. Run ordinary validation
+without the profiler. On attachment, the importer reads complete Chrome `X`
+events with positive durations. Zero-duration events and other phases are
+skipped. It records the source digest and writes a compact event table. Its fields
+are lane, event name, start and duration; raw event arguments are not served.
+Trace labels themselves can identify a workload: review them before sharing.
+
+A campaign accepts up to 16 captures. Each source file may occupy at most
+64 MiB on disk (compressed size for `.json.gz`). The importer limits the
+decoded stream to 2³⁰ characters and accepts up to 2,000,000 input events
+and 512 distinct duration-event lanes. The uncompressed compact event table
+is limited to 128 MiB.
+
+The compact table preserves each complete event name. Overview labels longer
+than 220 characters are shortened, and GPU statistics use the original name
+for aggregation and matching across captures. To recover names truncated by
+an older importer, reattach the original trace under a new capture ID.
+
+When Chrome trace captures are present, the timeline covers the capture's full
+time range on its recorded stage, CPU and GPU tracks. The initial view shows
+one representative track per type, selected by summed event counts across
+the full time range. The track toggle reveals the remaining lanes. Each track shows the
+density of overlapping timed events and a selection of long events. Drag over
+a range to zoom, pan with the slider, or select an event to inspect its timing.
+Captures with the same comparison key report their individual spans.
+In a live dashboard, **Expand full timeline** loads the capture's complete
+event table on demand. Live overview refreshes reuse verified source hashes
+while file identity, size, mode and timestamps match. Opening the full event
+table rechecks the selected source and the compact table against their recorded
+SHA-256 digests. Under **Capture scope and source files**, the offline
+view accepts either the saved event table or the original Chrome trace.
+The browser verifies the file's SHA-256 and renders every timed `X` event.
+The file stays local. Use the compact event table or open the source in
+Perfetto if the source exceeds the browser's 384 MiB decompression limit.
+
+In the round trace, `applied_skills` records the name and takeaway of each
+skill actually used. Verified retrievals, original inputs, hashes and events
+open under round details. A `diagnosis` with scope `baseline_request` or
+`denoiser_step` supplies the profile table when its `source_sha256` matches
+the attached profile artifact. The gap uses the acceptance baseline measurement.
+
 The **Optimization story** section is the campaign-level trace a reviewer reads
 to understand the whole optimization: what knowledge was retrieved and why, the
 declared search space and how it was narrowed, each round's hypothesis and
@@ -363,6 +535,13 @@ otherwise the dashboard reports the problem instead of silently falling back.
 ```sh
 inferrsi campaign log --directory <CAMPAIGN_DIRECTORY> --file <LOG_JSON>
 ```
+
+To show a retrieval in **Run review**, list its ID in the matching iteration's
+`context_ids` and its capture hash in `knowledge`. Record this log as soon as
+the candidate is registered. The round then shows the search request, hits,
+files included, omissions and declared uses above the assembled round input.
+If the round input quotes a skill directly from a checkout, include its
+`SKILL.md` path, line locator and revision in the trace's context sources.
 
 | Field | Content |
 | --- | --- |
@@ -434,6 +613,7 @@ attempts and conclusions, including failures and omissions. Set
   },
   "search_space": {
     "state": "partial",
+    "selection_rules": ["<CRITERION_USED_TO_CHOOSE_AN_OPTION>"],
     "items": [{"id": "option-a", "description": "<CONSIDERED_OPTION>"}],
     "missing_reason": "<WHAT_WAS_NOT_RECORDED>"
   },
@@ -573,7 +753,7 @@ may include a `decision` object with `candidate_id` and `outcome` (including
 Agent trace JSONL can contain the existing `agent.*` event types and the
 optional `stage` field (`diagnosis`, `knowledge`, `search`, `execution`,
 `validation`, or `review`). An agent integration can pass an opt-in
-`inferrsi.harness.campaign_trace.CampaignTrace` instance as its existing event
+`inferrsi.observability.campaign_trace.CampaignTrace` instance as its existing event
 callback; it appends the original event with time and caller-supplied IDs. The
 caller associates the completed trace with `agent_trace_ref` using its SHA-256.
 The dashboard links a pre-run event when its campaign and uniquely identified
@@ -588,9 +768,7 @@ reads allowlisted event metadata, including recorded request counters, token
 usage, tool names, file manifests, hashes and selected check/benchmark receipt
 fields; it does not independently verify a receipt or include raw agent
 requests, arbitrary event messages, environment data, or raw logs. Runner and
-agent events are displayed together in timestamp order; timestamps without an
-explicit timezone are placed after timed events. Search and source filters apply
-to the trace, and corrupt lines identify their source file.
+agent events retain their source and line number. The review export orders event references by timestamp, with untimed records last.
 For recorded execution events it identifies expected logs and their hashes,
 without embedding their contents. Trace line numbers and artifact references
 can be included in a local review export, including references attached to
@@ -651,8 +829,7 @@ markers. Unrelated candidate measurements are not joined into a cumulative line.
   commands. Caller-supplied benchmark and accuracy descriptions state what was
   measured; they are not independently verified. A validation exit code does not
   establish an accuracy result when no result was recorded.
-- Overview, diagnostics and charts show all candidates; candidate/run/stage
-  filters affect the candidate table and technical events.
+- Overview and charts show all candidates. The candidate, run and stage filters select the run review and candidate rows.
 - Existing non-dashboard files and symbolic-link outputs are never overwritten.
 
 ## Privacy
