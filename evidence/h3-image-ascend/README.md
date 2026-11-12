@@ -151,3 +151,15 @@ showed mixed latency: W1 improved while W2/W3 regressed. It is not adopted.
 Complete visual acceptance and isolated repeated performance qualification
 remain missing. Profiling the published configuration is queued to guide
 the next distinct mechanism; all campaign targets remain unmet.
+
+The refreshed rank-zero three-request profile was successfully exported in the
+collection container after the initial offline export failed despite exit code
+zero. Nonempty kernel/operator/step tables were verified. MatMulV3 and
+FlashAttentionScore each account for about 39% of aggregate operator time;
+these sums are not an E2E speedup claim. See `results/current-profile-round8.json`.
+
+A controlled two-document layout probe preserved outputs but did not establish
+consistent benefit. The FIA BSND probe showed roughly 4–5% reductions at medium
+and large sequence sizes, with nonzero error. Its padding boundaries and input
+tensors were synthetic, not captured model metadata. A three-image full-model
+screen is running before any formal qualification; no attention change is adopted.

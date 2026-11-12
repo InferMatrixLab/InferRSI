@@ -1,5 +1,5 @@
 {
-  "README.md": "ed6018d0a4d4eee0dd310565334e327950ae2d3fefdffe2ddd39c089e6c180ac",
+  "README.md": "5502b6a3bc6a789023344500be772084cd73d16098f020f43b6f6c117ba9864c",
   "patch/revision.json": "d8396389afd8c9c5565f9834e1a4ab092813e74c78285c921f7453b27a84235b",
   "plan/environment.json": "9b404a74007446fbbd6343383ebf8d18be446068d2018eb330c964473f54c45e",
   "plan/provenance.json": "a58206b9cb0f2dc1f0a51c71ce929630a3552a13bd7fdd5ced290a71945c28d6",
@@ -12,7 +12,10 @@
   "results/allgather4-local-bounds/summary.json": "ed7a0cee9fb8bf667dc7ce0e6be215f30214e9d50f34daed2ab3b75d45374d21",
   "results/alltoall-mm-real-rank0.json": "4c52042c7682438447b23c421c9104f4629ca3cbc16f04e45d454b969ae6af13",
   "results/attention-comm-fusion-rank0.json": "5d4fdd1f468f8b37175ed40a35cabbd2bfaa9beaaab5ac4da90d4f385b80b650",
+  "results/attention-fia-packed-probe.json": "a53b16948cccf6e14ebaaece6c899a29c9346f9f21574806852bb0ff8c0c2c12",
+  "results/attention-layout-probe.json": "9c742a84593dc41e5099fc9df1d7240459d65ad2c267b8e6bf5ac0da17cb3755",
   "results/checks.json": "78bbab4317da5719de8bd4d663c2c8cd16d88e02483753c13d1ec1a9144912d4",
+  "results/current-profile-round8.json": "dd6a40167275762f3b80d6d5fd11afecd1ab6d1967e1287fb6168782ccce145b",
   "results/deterministic-control-tp4/request-measurements.json": "c535b6fbeaa44dd2f02fe7c1b114ccf1fd4fc4b19abb4882afe001d1c4c98d7a",
   "results/deterministic-control-tp4/summary.json": "75e90a097cca215711c4778a6593f12fe3be26527fddf4569181f75920500046",
   "results/mlp-layout-probe.json": "fd98b1b7a02a77047edf02f088e3aed62435ed63faf443781d90e0f495333b55",
