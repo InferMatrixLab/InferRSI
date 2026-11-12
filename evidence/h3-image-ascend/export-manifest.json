@@ -1,5 +1,5 @@
 {
-  "README.md": "a2a1afbe5a4842095ca48c0b9067b2082ce18d0838ab7d29d72c88839903e077",
+  "README.md": "bdbc532e5d7497285c85695c84f43c059f02827adc52ad2446f64a88c4503c1d",
   "patch/revision.json": "d8396389afd8c9c5565f9834e1a4ab092813e74c78285c921f7453b27a84235b",
   "plan/environment.json": "9b404a74007446fbbd6343383ebf8d18be446068d2018eb330c964473f54c45e",
   "plan/provenance.json": "a58206b9cb0f2dc1f0a51c71ce929630a3552a13bd7fdd5ced290a71945c28d6",
@@ -14,6 +14,7 @@
   "results/attention-comm-fusion-rank0.json": "5d4fdd1f468f8b37175ed40a35cabbd2bfaa9beaaab5ac4da90d4f385b80b650",
   "results/attention-execution-probes.json": "fa9ff9671c81149075193ed2d72ac628e1ded01a4862d7a9511e50a4e19cacc4",
   "results/attention-fia-packed-probe.json": "a53b16948cccf6e14ebaaece6c899a29c9346f9f21574806852bb0ff8c0c2c12",
+  "results/attention-head-batch-and-fp16.json": "df065b42f5805ff530cba6325adb7b6a752cbbc85a11051fa775b21ebc01dc0c",
   "results/attention-layout-probe.json": "9c742a84593dc41e5099fc9df1d7240459d65ad2c267b8e6bf5ac0da17cb3755",
   "results/attention-query-tiling-probe.json": "b1ae1bcb07c39a3d0f4596342d960839601467de05a635f7429f69f0c883dfc5",
   "results/checks.json": "78bbab4317da5719de8bd4d663c2c8cd16d88e02483753c13d1ec1a9144912d4",
