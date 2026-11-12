@@ -6,6 +6,12 @@ remount the host root, and it does not pass the coordinator environment
 through. If that view cannot be built, execution is refused. ``FixtureBackend``
 is a test double: it enforces the same view with an import hook and a minimal
 environment, which is not mount-namespace confinement.
+
+Callers may add device nodes (bound read-write, e.g. one GPU's ``/dev/nvidiaN``),
+extra read-only runtime paths (e.g. the driver's user-space libraries) and extra
+environment variables. With device nodes, the command also gets a new PID
+namespace and a fresh ``/proc``; the host ``/proc`` is never bound. Every jail has
+an empty ``/tmp`` and ``/dev/shm``.
 """
 
 import json
@@ -175,7 +181,11 @@ def _covered(path: Path, covered: list[Path]) -> bool:
 
 
 def namespace_plan(
-    writable: tuple[Path, ...], readable: tuple[Path, ...]
+    writable: tuple[Path, ...],
+    readable: tuple[Path, ...],
+    devices: tuple[Path, ...] = (),
+    runtime: tuple[Path, ...] = (),
+    env: dict | None = None,
 ) -> dict:
     """Mount list for a fresh root. The host root itself is not an entry."""
     mounts: list[dict] = []
@@ -193,13 +203,17 @@ def namespace_plan(
 
     for path in writable:
         add(path, "rw", directory=True)
+    for path in devices:
+        add(path, "dev", directory=False)
     for path in readable:
         add(path, "ro", directory=True)
+    for path in runtime:
+        add(path, "ro", directory=path.is_dir())
     for root in runtime_roots():
         add(root, "ro", directory=True)
     for extra in runtime_files():
         add(extra, "ro", directory=False)
-    return {"mounts": mounts, "env": minimal_environment()}
+    return {"mounts": mounts, "env": minimal_environment(env), "proc": bool(devices)}
 
 
 def _within(path: Path, roots: tuple[Path, ...]) -> bool:
@@ -260,8 +274,9 @@ class UnavailableBackend:
         writable: tuple[Path, ...],
         readable: tuple[Path, ...],
         deadline: float,
+        **extras,
     ) -> dict:
-        del argv, cwd, writable, readable, deadline
+        del argv, cwd, writable, readable, deadline, extras
         raise ConfinementUnavailable("confinement backend unavailable")
 
 
@@ -277,11 +292,15 @@ class FixtureBackend:
         writable: tuple[Path, ...],
         readable: tuple[Path, ...],
         deadline: float,
+        *,
+        devices: tuple[Path, ...] = (),
+        runtime: tuple[Path, ...] = (),
+        env: dict | None = None,
     ) -> dict:
         outside = _outside_writable(argv, writable)
         if outside is not None:
             raise ConfinementUnavailable(f"path outside writable set: {outside}")
-        visible = tuple(dict.fromkeys(writable + readable + runtime_roots()))
+        visible = tuple(dict.fromkeys(writable + devices + readable + runtime + runtime_roots()))
         try:
             guard_dir = tempfile.mkdtemp(prefix="inferrsi-guard-")
             Path(guard_dir, "sitecustomize.py").write_text(_GUARD, encoding="utf-8")
@@ -289,6 +308,7 @@ class FixtureBackend:
             raise ConfinementUnavailable("confinement guard could not be installed") from exc
         environment = minimal_environment(
             {
+                **(env or {}),
                 "PYTHONPATH": guard_dir,
                 "INFERRSI_VISIBLE_ROOTS": os.pathsep.join(str(path) for path in visible),
             }
@@ -308,10 +328,14 @@ class UnshareBackend:
         writable: tuple[Path, ...],
         readable: tuple[Path, ...],
         deadline: float,
+        *,
+        devices: tuple[Path, ...] = (),
+        runtime: tuple[Path, ...] = (),
+        env: dict | None = None,
     ) -> dict:
         if not writable:
             raise ConfinementUnavailable("refusing to run with an empty writable set")
-        plan = namespace_plan(writable, readable)
+        plan = namespace_plan(writable, readable, devices, runtime, env)
         remaining = deadline - time.monotonic()
         if remaining <= 0:
             raise ConfinementUnavailable("execution deadline exhausted before start")
@@ -335,6 +359,7 @@ class UnshareBackend:
                     "--mount",
                     "--propagation",
                     "private",
+                    *(["--pid", "--fork"] if plan["proc"] else []),
                     "--",
                     sys.executable,
                     "-c",
@@ -393,6 +418,16 @@ def enter_namespace(config_path: str) -> None:
         mount(["--bind", source, str(target)])
         if item["mode"] == "ro":
             mount(["-o", "remount,bind,ro", str(target)])
+    bound = {item["source"] for item in config["mounts"]}
+    for scratch in ("/tmp", "/dev/shm"):
+        if scratch in bound:
+            continue
+        target = jail.joinpath(*Path(scratch).parts[1:])
+        target.mkdir(parents=True, exist_ok=True)
+        target.chmod(0o1777)
+    if config.get("proc"):
+        (jail / "proc").mkdir(exist_ok=True)
+        mount(["-t", "proc", "proc", str(jail / "proc")])
     os.chroot(jail)
     os.chdir(config["cwd"])
     argv = config["argv"]
@@ -413,9 +448,21 @@ def confined_execute(
     deadline: float,
     *,
     backend=None,
+    device_paths: tuple[Path, ...] = (),
+    runtime_paths: tuple[Path, ...] = (),
+    env: dict | None = None,
 ) -> dict:
     """Execute argv only inside the selected boundary. Never falls back to a plain subprocess."""
     chosen = select_backend() if backend is None else backend
     writable = tuple(Path(path).resolve() for path in writable_paths)
     readable = tuple(Path(path).resolve() for path in readable_paths)
-    return chosen.run(tuple(argv), Path(cwd), writable, readable, deadline)
+    return chosen.run(
+        tuple(argv),
+        Path(cwd),
+        writable,
+        readable,
+        deadline,
+        devices=tuple(Path(path) for path in device_paths),
+        runtime=tuple(Path(path).resolve() for path in runtime_paths),
+        env=env,
+    )

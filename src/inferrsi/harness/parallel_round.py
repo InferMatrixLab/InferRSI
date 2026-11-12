@@ -1,16 +1,22 @@
 """Prepare, submit and measure one offline parallel round.
 
-Directory diffs stand in for git clones. ``close`` and incumbent advancement are
-not implemented. A synthetic metric value is not a campaign verdict.
+Directory diffs stand in for git clones. ``parallel_close`` picks the next
+incumbent and ``parallel_drive`` runs a whole round. A synthetic metric value is
+not a campaign verdict.
 
 Each lane declares ``device_count`` (default 1). The counts of all lanes must fit
 in ``device_ids``. A ticket runs only after it holds that many devices at once.
 
 Command placeholders: ``build`` gets ``{device}`` only. ``trial`` gets ``{device}``
-and ``{result}``; it runs once for the candidate and once for the incumbent and
-must write ``{"metrics": {<metric.name>: <finite number>}}`` to ``{result}``.
-``{device}`` is the held device identities joined with commas. Other text,
-including ``{result}`` inside ``build``, is passed through unchanged.
+and ``{result}``; it must write ``{"metrics": {<metric.name>: <finite number>}}``
+to ``{result}``. The candidate is built once, then candidate and incumbent trials
+run ``metric.repeats`` times each in ABBA order; the receipt keeps every sample
+and the medians. ``{device}`` is the held device identities joined with commas.
+Other text, including ``{result}`` inside ``build``, is passed through unchanged.
+
+``device_paths`` (per device id), ``shared_device_paths``, ``runtime_paths`` and
+``env`` (values may use ``{device}``) extend the confined view for GPU trials.
+Each command is capped by ``command_timeout_seconds`` and the lane deadline.
 """
 
 import hashlib
@@ -19,6 +25,7 @@ import math
 import os
 import shutil
 import stat
+import statistics
 import subprocess
 import time
 from datetime import datetime, timezone
@@ -55,6 +62,16 @@ def _segment(value) -> bool:
         isinstance(value, str)
         and value not in {"", ".", ".."}
         and not any(char in value for char in "/\\")
+    )
+
+
+def _host_paths(value) -> bool:
+    return isinstance(value, list) and all(
+        isinstance(item, str)
+        and Path(item).is_absolute()
+        and item != "/"
+        and ".." not in Path(item).parts
+        for item in value
     )
 
 
@@ -188,13 +205,38 @@ def prepare(spec: dict, incumbent: Path, round_dir: Path) -> dict:
     metric = spec.get("metric")
     if (
         not isinstance(metric, dict)
-        or set(metric) != {"name", "better"}
+        or not {"name", "better"} <= set(metric) <= {"name", "better", "repeats", "margin"}
         or not isinstance(metric["name"], str)
         or not metric["name"]
         or not isinstance(metric["better"], str)
         or metric["better"] not in DIRECTIONS
     ):
         raise RoundPlanError("metric needs a name and better: lower or higher")
+    repeats = metric.get("repeats", 1)
+    if type(repeats) is not int or repeats < 1:
+        raise RoundPlanError("metric repeats must be a positive integer")
+    margin = metric.get("margin", 0)
+    if type(margin) not in (int, float) or not math.isfinite(margin) or margin < 0:
+        raise RoundPlanError("metric margin must be a finite non-negative number")
+    timeout = spec.get("command_timeout_seconds", 30)
+    if type(timeout) not in (int, float) or not math.isfinite(timeout) or timeout <= 0:
+        raise RoundPlanError("command_timeout_seconds must be a positive number")
+    device_paths = spec.get("device_paths", {})
+    if not isinstance(device_paths, dict) or not all(
+        _host_paths(paths) for paths in device_paths.values()
+    ):
+        raise RoundPlanError("device_paths must map device ids to absolute host paths")
+    if device_paths and set(device_paths) != set(devices):
+        raise RoundPlanError("device_paths must list every device id and nothing else")
+    shared_paths = spec.get("shared_device_paths", [])
+    runtime_paths = spec.get("runtime_paths", [])
+    if not _host_paths(shared_paths) or not _host_paths(runtime_paths):
+        raise RoundPlanError("shared_device_paths and runtime_paths must be absolute host paths")
+    env = spec.get("env", {})
+    if not isinstance(env, dict) or not all(
+        isinstance(key, str) and key and isinstance(value, str) for key, value in env.items()
+    ):
+        raise RoundPlanError("env must map names to strings")
     seen_entries: set[str] = set()
     seen_ids: set[str] = set()
     files = _files(incumbent)
@@ -221,6 +263,9 @@ def prepare(spec: dict, incumbent: Path, round_dir: Path) -> dict:
         count = lane.get("device_count", 1)
         if type(count) is not int or count < 1:
             raise RoundPlanError(f"{lane_id} device_count must be a positive integer")
+        agent = lane.get("agent", [])
+        if not isinstance(agent, list) or any(type(item) is not str for item in agent):
+            raise RoundPlanError(f"{lane_id} agent must be a list of strings")
         if any(_match(path, globs) and _match(path, protected) for path in files):
             raise RoundPlanError(f"{lane_id} reaches a protected path")
         seen_ids.add(lane_id)
@@ -244,7 +289,17 @@ def prepare(spec: dict, incumbent: Path, round_dir: Path) -> dict:
     body = {
         "round_id": spec["round_id"],
         "device_ids": list(devices),
-        "metric": dict(metric),
+        "metric": {
+            "name": metric["name"],
+            "better": metric["better"],
+            "repeats": repeats,
+            "margin": margin,
+        },
+        "command_timeout_seconds": timeout,
+        "device_paths": {device: list(device_paths[device]) for device in device_paths},
+        "shared_device_paths": list(shared_paths),
+        "runtime_paths": list(runtime_paths),
+        "env": dict(env),
         "incumbent_id": spec["incumbent_id"],
         "protected": protected,
         "build": list(spec.get("build", [])),
@@ -362,15 +417,17 @@ def _save_ledger(round_dir: Path, ledger) -> None:
     )
 
 
-def _materialize(incumbent: Path, overlay: Path, destination: Path) -> None:
+def materialize(incumbent: Path, overlays: list[Path], destination: Path) -> None:
+    """Copy the incumbent, then apply each outbox overlay in order."""
     if destination.exists():
         shutil.rmtree(destination)
     shutil.copytree(incumbent, destination, ignore=shutil.ignore_patterns("manifest.json"))
-    manifest = json.loads((overlay / "manifest.json").read_text(encoding="utf-8"))
-    for relative in manifest["files"]:
-        target = destination / relative
-        target.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(overlay / relative, target)
+    for overlay in overlays:
+        manifest = json.loads((overlay / "manifest.json").read_text(encoding="utf-8"))
+        for relative in manifest["files"]:
+            target = destination / relative
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(overlay / relative, target)
 
 
 def _command(template: list[str], result: Path | None, device: str) -> tuple[str, ...]:
@@ -401,52 +458,143 @@ def _claimed_entry(ledger, ticket: str):
     return None
 
 
-def _launch(
+class MeasurementError(ValueError):
+    """A trial finished without a readable metric value."""
+
+
+def _run_confined(
     plan: dict,
-    lane: dict,
-    candidate: Path,
-    incumbent: Path,
-    trial_dir: Path,
-    device: str,
+    stage: str,
+    argv: tuple[str, ...],
+    cwd: Path,
+    writable: tuple[Path, ...],
+    readable: tuple[Path, ...],
+    devices: list[str],
+    deadline_utc: str | None,
     *,
     backend,
     current,
-):
-    """Run build and both trials on the held devices. Each start uses the same deadline."""
+) -> None:
+    remaining = plan["command_timeout_seconds"]
+    if deadline_utc is not None:
+        remaining = min(seconds_remaining(deadline_utc, current()), remaining)
+    device = ",".join(devices)
+    nodes = list(plan["shared_device_paths"])
+    for held in devices:
+        nodes.extend(plan["device_paths"].get(held, []))
+    try:
+        record = confined_execute(
+            argv,
+            cwd,
+            writable,
+            readable,
+            time.monotonic() + remaining,
+            backend=backend,
+            device_paths=tuple(Path(path) for path in nodes),
+            runtime_paths=tuple(Path(path) for path in plan["runtime_paths"]),
+            env={key: value.replace("{device}", device) for key, value in plan["env"].items()},
+        )
+    except subprocess.TimeoutExpired as exc:
+        raise ConfinementUnavailable(f"{stage} timed out") from exc
+    if record.get("status") != "completed":
+        raise ConfinementUnavailable(f"{stage} {record.get('status')}")
+
+
+def compare(
+    plan: dict,
+    candidate: Path,
+    incumbent: Path,
+    trial_dir: Path,
+    devices: list[str],
+    deadline_utc: str | None,
+    *,
+    backend,
+    current,
+) -> tuple[list[float], list[float]]:
+    """Build the candidate once, then run ``repeats`` trial pairs in ABBA order.
+
+    Raises ``ConfinementUnavailable`` or ``BudgetError`` when a command cannot run, and
+    ``MeasurementError`` when a finished trial left no readable metric.
+    """
+    device = ",".join(devices)
     build_dir = candidate / "build-output"
     build_dir.mkdir(parents=True, exist_ok=True)
     trial_dir.mkdir(parents=True, exist_ok=True)
-
-    def run(stage: str, argv, cwd, writable, readable) -> None:
-        remaining = min(seconds_remaining(lane["deadline_utc"], current()), 30)
-        try:
-            record = confined_execute(
-                argv, cwd, writable, readable, time.monotonic() + remaining, backend=backend
-            )
-        except subprocess.TimeoutExpired as exc:
-            raise ConfinementUnavailable(f"{stage} timed out") from exc
-        if record.get("status") != "completed":
-            raise ConfinementUnavailable(f"{stage} {record.get('status')}")
-
+    common = {"backend": backend, "current": current}
     if plan["build"]:
-        run("build", _command(plan["build"], None, device), candidate, (candidate, build_dir), ())
-    candidate_result = trial_dir / "candidate.json"
-    run(
-        "candidate",
-        _command(plan["trial"], candidate_result, device),
-        candidate,
-        (trial_dir,),
-        (candidate,),
-    )
-    incumbent_result = trial_dir / "incumbent.json"
-    run(
-        "incumbent",
-        _command(plan["trial"], incumbent_result, device),
-        incumbent,
-        (trial_dir,),
-        (incumbent,),
-    )
-    return candidate_result, incumbent_result
+        _run_confined(
+            plan,
+            "build",
+            _command(plan["build"], None, device),
+            candidate,
+            (candidate, build_dir),
+            (),
+            devices,
+            deadline_utc,
+            **common,
+        )
+    sides = {"candidate": candidate, "incumbent": incumbent}
+    samples: dict[str, list[float]] = {"candidate": [], "incumbent": []}
+    name = plan["metric"]["name"]
+    for index in range(plan["metric"]["repeats"]):
+        order = ("candidate", "incumbent") if index % 2 == 0 else ("incumbent", "candidate")
+        for side in order:
+            result = trial_dir / f"{side}-{index}.json"
+            _run_confined(
+                plan,
+                side,
+                _command(plan["trial"], result, device),
+                sides[side],
+                (trial_dir,),
+                (sides[side],),
+                devices,
+                deadline_utc,
+                **common,
+            )
+            try:
+                samples[side].append(_metric_value(result, name))
+            except (OSError, json.JSONDecodeError, KeyError, TypeError, ValueError) as exc:
+                raise MeasurementError(
+                    f"trial finished without a readable {name} result: {exc}"
+                ) from exc
+    return samples["candidate"], samples["incumbent"]
+
+
+def summarize(plan: dict, candidate_samples: list[float], incumbent_samples: list[float]) -> dict:
+    """Medians and a gain where positive always means the candidate is better."""
+    candidate_value = statistics.median(candidate_samples)
+    incumbent_value = statistics.median(incumbent_samples)
+    gain = incumbent_value - candidate_value
+    if plan["metric"]["better"] == "higher":
+        gain = -gain
+    return {
+        "metric": plan["metric"]["name"],
+        "better": plan["metric"]["better"],
+        "candidate_samples": candidate_samples,
+        "incumbent_samples": incumbent_samples,
+        "candidate": candidate_value,
+        "incumbent": incumbent_value,
+        "gain": gain,
+        "relative_gain": gain / abs(incumbent_value) if incumbent_value else None,
+    }
+
+
+def hold_devices(round_dir: Path, plan: dict, count: int) -> list[tuple[str, object]] | None:
+    """Hold ``count`` free devices at once, or none. The caller releases what it gets."""
+    leases = DeviceLease(round_dir / "leases")
+    held: list[tuple[str, object]] = []
+    for device in plan["device_ids"]:
+        if len(held) == count:
+            break
+        try:
+            held.append((device, leases.acquire(device)))
+        except LeaseError:
+            continue
+    if len(held) < count:
+        for _device, lease in held:
+            lease.release()
+        return None
+    return held
 
 
 def serve_ticket(
@@ -465,6 +613,7 @@ def serve_ticket(
     admission and command reads ``clock`` or the current time again.
     """
     del now
+
     def current() -> datetime:
         if clock is not None:
             return clock()
@@ -493,18 +642,10 @@ def serve_ticket(
                 status="unsettled",
                 reason="claimed execution was not settled",
             )
-        leases = DeviceLease(round_dir / "leases")
-        held: list[tuple[str, object]] = []
+        held = hold_devices(round_dir, plan, lane["device_count"])
+        if held is None:
+            return {"ticket": ticket, "status": "queued"}
         try:
-            for device in plan["device_ids"]:
-                if len(held) == lane["device_count"]:
-                    break
-                try:
-                    held.append((device, leases.acquire(device)))
-                except LeaseError:
-                    continue
-            if len(held) < lane["device_count"]:
-                return {"ticket": ticket, "status": "queued"}
             return _measure(
                 round_dir,
                 plan,
@@ -543,7 +684,7 @@ def _measure(
     _save_ledger(round_dir, ledger)
     candidate = round_dir / "candidates" / ticket
     trial_dir = round_dir / "trials" / ticket
-    _materialize(incumbent, overlay, candidate)
+    materialize(incumbent, [overlay], candidate)
     try:
         seconds_remaining(lane["deadline_utc"], current())
     except BudgetError as exc:
@@ -552,44 +693,26 @@ def _measure(
     ledger = advance(ledger, binding, "claimed")
     _save_ledger(round_dir, ledger)
     try:
-        candidate_result, incumbent_result = _launch(
+        candidate_samples, incumbent_samples = compare(
             plan,
-            lane,
             candidate,
             incumbent,
             trial_dir,
-            ",".join(devices),
+            devices,
+            lane["deadline_utc"],
             backend=backend,
             current=current,
         )
-    except (ConfinementUnavailable, BudgetError) as exc:
+    except (ConfinementUnavailable, BudgetError, MeasurementError) as exc:
         return _record(round_dir, ticket, status="unsettled", reason=str(exc), devices=devices)
-    metric = plan["metric"]
-    try:
-        candidate_value = _metric_value(candidate_result, metric["name"])
-        incumbent_value = _metric_value(incumbent_result, metric["name"])
-    except (OSError, json.JSONDecodeError, KeyError, TypeError, ValueError) as exc:
-        return _record(
-            round_dir,
-            ticket,
-            status="unsettled",
-            reason=f"trial finished without a readable {metric['name']} result: {exc}",
-            devices=devices,
-        )
     finished = advance(ledger, binding, "finished", actual_cost=0)
     _save_ledger(round_dir, finished)
-    gain = incumbent_value - candidate_value
-    if metric["better"] == "higher":
-        gain = -gain
     return _record(
         round_dir,
         ticket,
         status="measured",
-        metric=metric["name"],
-        better=metric["better"],
-        candidate=candidate_value,
-        incumbent=incumbent_value,
-        gain=gain,
+        lane_id=lane["id"],
+        **summarize(plan, candidate_samples, incumbent_samples),
         devices=devices,
         confinement=getattr(backend, "name", "unknown"),
     )

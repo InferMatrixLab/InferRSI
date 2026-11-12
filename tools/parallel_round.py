@@ -6,6 +6,8 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
+from inferrsi.harness.parallel_close import close_round
+from inferrsi.harness.parallel_drive import drive_round
 from inferrsi.harness.parallel_round import prepare, serve_ticket, submit, ticket_status
 from inferrsi.infra.confinement import select_backend
 
@@ -38,6 +40,18 @@ def main(argv: list[str] | None = None) -> int:
     status_command.add_argument("--round-dir", required=True, type=Path)
     status_command.add_argument("--ticket", required=True)
 
+    drive_command = commands.add_parser("drive")
+    drive_command.add_argument("--spec", required=True)
+    drive_command.add_argument("--incumbent", required=True, type=Path)
+    drive_command.add_argument("--round-dir", required=True, type=Path)
+    drive_command.add_argument("--output", required=True, type=Path)
+    drive_command.add_argument("--poll-seconds", type=float, default=5.0)
+
+    close_command = commands.add_parser("close")
+    close_command.add_argument("--round-dir", required=True, type=Path)
+    close_command.add_argument("--incumbent", required=True, type=Path)
+    close_command.add_argument("--output", required=True, type=Path)
+
     args = parser.parse_args(argv)
     if args.command == "prepare":
         result = prepare(_load(args.spec), args.incumbent, args.round_dir)
@@ -56,6 +70,17 @@ def main(argv: list[str] | None = None) -> int:
             args.incumbent,
             backend=select_backend(),
         )
+    elif args.command == "drive":
+        result = drive_round(
+            _load(args.spec),
+            args.incumbent,
+            args.round_dir,
+            args.output,
+            backend=select_backend(),
+            poll_seconds=args.poll_seconds,
+        )
+    elif args.command == "close":
+        result = close_round(args.round_dir, args.incumbent, args.output, backend=select_backend())
     else:
         result = ticket_status(args.round_dir, args.ticket)
     json.dump(result, sys.stdout, indent=2)
