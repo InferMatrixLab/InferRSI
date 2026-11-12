@@ -1,0 +1,29 @@
+{
+  "engine_revision": "7f8395fede3cb79991a256d1752c887b40faca30",
+  "changes": [
+    "Restore deterministic enabled/warn-only state after each H3 forward, including exceptions; setup no longer changes the caller mode.",
+    "Out-of-process NPU mp client waits80s for requested shutdown before bounded signal fallback, covering the executor worker deadline.",
+    "Expose npu_disable_internal_format for matched graph-off controls; document historical coupled runtime setting.",
+    "Add device test: two graph streams, three distinct tiles, reuse both replicas before comparing saved outputs against eager."
+  ],
+  "checks": {
+    "cpu_regressions": {
+      "passed": 26
+    },
+    "final_deterministic_regressions": {
+      "passed": 6,
+      "deselected": 8
+    },
+    "npu_tile_lifetime": {
+      "passed": 1,
+      "device_count": 1
+    },
+    "applicable_lint": "passed",
+    "mypy": "Two existing StageDiffusionClient optional-manager errors reproduced on byte-identical pre-change file; adapter and three test files have no reported errors. Original executor type limitations remain separately recorded.",
+    "actionlint": "Not run; no workflows changed. Local Go toolchain cannot install the hook.",
+    "independent_review": "pending",
+    "current_revision_full_model_qualification": "not_run"
+  },
+  "scope": "Lifecycle and regression validation only; does not establish new latency gain, matched graph-off quality, final ABBA or campaign acceptance",
+  "campaign_verdict": "INCONCLUSIVE"
+}

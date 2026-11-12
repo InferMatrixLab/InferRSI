@@ -1,0 +1,25 @@
+{
+  "scope": "Component and startup rejection records, not performance qualification",
+  "campaign_verdict": "INCONCLUSIVE",
+  "experiments": [
+    {
+      "round": 10,
+      "change": "TASK_QUEUE_ENABLE=2 with published NPU VAE graphs",
+      "execution_status": "error",
+      "observation": "RuntimeError: Do not support TASK_QUEUE_ENABLE = 2 during NPU graph capture, please export TASK_QUEUE_ENABLE=1/0.",
+      "decision": "Rejected as incompatible with the current graph path. Full-model screen was not started.",
+      "software": "torch-npu 2.10.0.post7; CANN 9.2.1",
+      "base_revision": "ad37f7f79e10b946a87d60a0fab01416bd0f7837"
+    },
+    {
+      "round": 11,
+      "change": "Prepare immutable packed-row selection once per request",
+      "execution_status": "error",
+      "observation": "Candidate dummy run rejected embedding_row_indices as an unexpected forward kwarg; no candidate HTTP requests ran.",
+      "decision": "Preserved failure; added strict-forward-contract registration and regression before retrying under a new round identifier.",
+      "initial_patch_sha256": "85734a8b674622ac0215c072896d6333c35d3dbae1761858762b8054362dab20",
+      "retry_patch_sha256": "5dee913345f90295578a1128ba2913c1711a47f71df9dad89af87a664be1368b",
+      "retry_cpu_checks": "14 passed, 9 deselected; no hardware quality or latency result at this checkpoint"
+    }
+  ]
+}

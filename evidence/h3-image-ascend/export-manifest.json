@@ -1,5 +1,5 @@
 {
-  "README.md": "b0c3c6b0193c98e7a3d578f9444c913f26292ac8d2725c60a9d172d37d8ff3ce",
+  "README.md": "fc12834138c87c16ddf9f7204166db579d444fc6735daa953873247cbc3664ee",
   "patch/revision.json": "d8396389afd8c9c5565f9834e1a4ab092813e74c78285c921f7453b27a84235b",
   "plan/environment.json": "9b404a74007446fbbd6343383ebf8d18be446068d2018eb330c964473f54c45e",
   "plan/provenance.json": "a58206b9cb0f2dc1f0a51c71ce929630a3552a13bd7fdd5ced290a71945c28d6",
@@ -39,6 +39,7 @@
   "results/quality-overview.png": "163b7d403cb01ec40a56469f859c7f90c0e9621abddf22f8c740c4baa47ea8d9",
   "results/quant-projection-sensitivity.json": "b3ae5166c955bda3a0e6d9b075376e2a31b02c2db315cadaef6bc166ce42c5be",
   "results/quant-sensitivity.json": "45de8c82872edd70e0d551741402a676529cc0fc28948cb856c809a2fc9f825a",
+  "results/review-followup-checks.json": "49107eda746c08c72e3ca364584c87eca36932928aa4bda7ff41b4e05392e370",
   "results/round2-images/README.md": "7a4e6473f5d57bcad9a9cba3b04c6615ec864904a668ed55be408cc6f521db01",
   "results/round2-images/W1-candidate.png": "ad00c761a7a900c4b2c57e171a9322e2ef7e398b241e04a7532a044fd8ae2aef",
   "results/round2-images/W1-comparison.png": "c927ac827d869a6c75b2cfd7171f458f523b6d90020d68e53014c73e133f713e",
@@ -53,6 +54,7 @@
   "results/round2-images/control-summary.json": "5993ec817869bb30f618c97f1ea86a73a2a4b9d4bf3c5c4fc7427d978dce6f17",
   "results/round2-images/images.json": "563480be43a46d2cd378df4c3677eed1597302e2f1f7c4505dfa02b39ab6c424",
   "results/round2-images/quality-summary.json": "5181c3e635a3505535b56a90d69e2e2420e99df4c21c29c989f786287c3aed60",
+  "results/runtime-and-prepared-row-startup.json": "769a149c3420ef6833606b03c1ea95089090e7c1d17d6c0da474f7f0aacd67d0",
   "results/sp4-cached-rows/exact-quality.json": "d01148776dc19baf0de6abcaf3bf511b4438e1361bf1c4ed3d0b306b9cd82002",
   "results/sp4-cached-rows/request-measurements.json": "02d88d534f2343a55be8a18ca0c2d7d6c94fa732060c24e3fc3b00bb096e40c5",
   "results/sp4-cached-rows/summary.json": "bc6c2715e0763f997c8ff01de85a3b5463415145b0f89b5a03199cfeb27123db",
