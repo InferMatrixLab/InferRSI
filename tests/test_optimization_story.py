@@ -262,7 +262,7 @@ assert(selectStart >= 0 && selectEnd > selectStart);
 assert(summaryStart >= 0 && summaryEnd > summaryStart);
 const source = html.slice(selectStart, selectEnd) + html.slice(summaryStart, summaryEnd);
 function node(tag, text, cls) {
-  return {tag, text, cls, children: [], style: {}, disabled: false, listeners: {},
+  return {tag, text, cls, children: [], style: {}, dataset: {}, disabled: false, listeners: {},
     appendChild(child) { this.children.push(child); },
     setAttribute() {}, addEventListener(type, fn) { this.listeners[type] = fn; },
     click() { if (!this.disabled) this.listeners.click(); }};
@@ -293,7 +293,8 @@ assert.equal(data.candidates[api.selected()].candidate_id, 'b');
 assert.equal(runSelect.value, ''); assert.equal(stageSelect.value, '');
 assert.equal(candidateSelect.value, '');
 assert.equal(target.tabindex, '-1'); assert(target.focused && target.scrolled);
-for (const id of ['missing', 'corrupt', 'duplicate']) {
+assert.equal(button('duplicate').disabled, false); // Ambiguous references offer a run chooser.
+for (const id of ['missing', 'corrupt']) {
   assert.equal(button(id).disabled, true); button(id).click();
   assert.equal(data.candidates[api.selected()].candidate_id, 'b');
 }

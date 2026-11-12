@@ -41,8 +41,11 @@ source and record files first, then atomically replace candidate metadata. A
 partial file, hash mismatch, mismatched candidate or malformed record is withheld;
 the UI reports missing evidence rather than an invented success.
 
-This version represents lower-is-better latency metrics; absolute target gaps
-are aggregate minus target. Each metric supports a positive parent, up to two positive samples, a positive
+The legacy record fields describe latency-style measurements. Optional explicit
+[experiment dimensions and references](dashboard-experiments.md#adapter-and-projection-contract)
+add workload, scope, statistic, minimize/maximize direction, configuration and
+reference roles for the shared experiment curves. Old records stay readable;
+missing dimensions are not guessed. Each metric supports a positive parent, up to two positive samples, a positive
 aggregate and target; omitted values remain unrecorded. `two_round_median`
 requires two samples and their arithmetic midpoint, accepting floating-point
 serialization differences with relative tolerance `1e-9` and absolute tolerance

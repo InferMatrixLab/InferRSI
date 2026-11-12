@@ -325,9 +325,12 @@ def render_dashboard(snapshot: dict, *, live: bool = False) -> str:
     if live:
         template = template.replace("img-src data:;", "img-src data:; connect-src 'self';")
     replacements = {"__DASHBOARD_DATA__": payload, "__DASHBOARD_CHART__": snapshot["chart"],
-                    "__DASHBOARD_TEMPORAL__": snapshot["temporal"]}
+                    "__DASHBOARD_TEMPORAL__": snapshot["temporal"],
+                    "__DASHBOARD_EXPERIMENTS__": files("inferrsi").joinpath(
+                        "observability", "experiment_view.html").read_text(encoding="utf-8")}
     return re.sub(
-        r"__DASHBOARD_(?:DATA|CHART|TEMPORAL)__", lambda match: replacements[match.group()],
+        r"__DASHBOARD_(?:DATA|CHART|TEMPORAL|EXPERIMENTS)__",
+        lambda match: replacements[match.group()],
         template,
     )
 

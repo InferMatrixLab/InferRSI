@@ -71,7 +71,10 @@ pre{max-height:22rem;overflow:auto;white-space:pre-wrap;padding:9px 12px;backgro
 <section aria-labelledby="gap-title"><h2 id="gap-title"></h2><div id="gap"></div></section>
 <section aria-labelledby="rounds-title"><h2 id="rounds-title"></h2><div id="rounds"></div></section>
 <section aria-labelledby="decision-title"><h2 id="decision-title"></h2><div class="decisions" id="decisions"></div></section>
+<section><h2 id="summary-title"></h2><div id="summary-experiments"></div>
+<details id="original-summary"><summary id="original-summary-title"></summary><div id="original-summary-body"></div></details></section>
 </main>
+__DASHBOARD_EXPERIMENTS__
 <script id="dashboard-data" type="application/json">__DASHBOARD_DATA__</script>
 <script>
 (() => {
@@ -509,6 +512,10 @@ function timeline(box,c,baseline,opened){
     };
   },opened);
 }
+const experimentView=window.InferRSIExperiments.create({
+  getData:()=>data,getLanguage:()=>language,narrative:recorded,
+  openExperiment:id=>{const target=[...document.querySelectorAll('[data-experiment-id]')].find(n=>n.dataset.experimentId===id);if(target){target.scrollIntoView({block:'start'});target.focus();}}
+});
 function renderCaptures(opened){
   const box=byId('captures'),captures=(data.profile_captures||[]).filter(c=>c.duration_us>0 && c.tracks?.length && c.source?.sha256);
   const missing=data.unavailable_profiles||[];
@@ -573,7 +580,7 @@ function render(){
     if(Number.isFinite(target))metric(dl,tr('距目标','Gap to target'),fmt(Math.max(0,target-best.improvement_pct),2)+tr(' 个百分点',' pp'));}
   for(const r of rows){
     const it=iteration(r),trace=r.optimization_trace;
-    const a=el('article',null,'round'),name=el('h3');
+    const a=el('article',null,'round'),name=el('h3');a.dataset.experimentId=r.experiment_id;a.tabIndex=-1;
     name.append(el('span',rowLabel(r),'tag'),document.createTextNode(recorded(r.title||r.candidate_id)));a.append(name);rounds.append(a);
     if(r.optimization?.summary && r.optimization.summary!==r.title)p(a,recorded(r.optimization.summary));
     const skills=trace?.applied_skills||[];
@@ -615,6 +622,16 @@ function render(){
       const parts=n.textContent.split(' · ');n.textContent=parts.map(s=>labels[s]||s).join(' · ');
     }
   }
+  byId('summary-title').textContent=tr('成功与失败','Successes and failures');
+  byId('original-summary-title').textContent=tr('全部原始成功与失败记录','All original successes and failures');
+  const summary=data.story?.summary,summaryBox=byId('original-summary-body');summaryBox.replaceChildren();
+  if(summary){p(summaryBox,status(summary.state)+' · '+recorded(summary.missing_reason||''));
+    for(const [key,zh,en] of [['successes','成功叙述','Successes'],['failures','失败叙述','Failures']]){
+      summaryBox.append(el('h3',tr(zh,en)));for(const item of summary[key]){p(summaryBox,recorded(item.text));for(const link of item.links)p(summaryBox,link.ref+' · '+status(link.state),'note');}
+    }
+    for(const [key,zh,en] of [['lessons','经验','Lessons'],['limitations','限制','Limitations']]){summaryBox.append(el('h3',tr(zh,en)));for(const item of summary[key])p(summaryBox,recorded(item));}
+  }
+  experimentView.render([byId('chart'),byId('summary-experiments')]);byId('chart-note').textContent='';
   if(previousFocus){for(const node of document.querySelectorAll('details'))if(node.dataset.key===previousFocus)node.querySelector('summary').focus({preventScroll:true});}
 }
 byId('language').addEventListener('click',()=>{

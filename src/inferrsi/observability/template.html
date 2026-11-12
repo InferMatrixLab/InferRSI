@@ -229,6 +229,7 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
   <form method="dialog"><button class="button">Close</button></form>
   <h2 id="event-heading"></h2><div id="event-body"></div>
 </dialog>
+__DASHBOARD_EXPERIMENTS__
 <script id="dashboard-data" type="application/json">__DASHBOARD_DATA__</script>
 <script>
 (() => {
@@ -363,6 +364,7 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
     'Optimization process':'优化过程', 'Recorded order and rationale':'记录的顺序与原因',
     'Action':'操作', 'Why':'原因', 'Recorded result':'记录的结果', 'Technical event':'技术事件',
     'Unavailable, unlinked, or source hash mismatch':'不可用、未关联或来源哈希不匹配', 'Steps':'步骤',
+    'All original successes and failures':'全部原始成功与失败记录', 'Choose a run':'选择运行',
     'Successes and failures':'成功与失败', 'Caller conclusions; see evidence for verdicts':'调用方的总结；判定请查看证据',
     'Success summary':'成功总结', 'Failure summary':'失败总结', 'Limitations':'局限性',
     'Benchmark and accuracy':'性能与精度测试', 'Measurements and redacted commands':'测量结果和脱敏命令',
@@ -565,7 +567,7 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
   const item = (parent, title, detail, reference) => { const box=node('div',undefined,'item'); box.appendChild(node('strong',title)); if(detail) box.appendChild(node('small',detail)); if(reference) box.appendChild(node('code',reference)); parent.appendChild(box); return box; };
   const detailLine = (parent, label, text, mono=false, narrative=false) => {const box=node('div',undefined,'detail-line');box.appendChild(node('strong',label));box.appendChild(narrative && text && text!=='Not recorded'?narrativeNode('p',text):node(mono?'code':'p',text || 'Not recorded'));parent.appendChild(box);};
   const refText = ref => ref.state === 'present' ? `${ref.kind}: ${ref.path} · sha256 ${ref.sha256}` : `${ref.kind}: MISSING · ${ref.missing_reason}`;
-  const identity = (row, index) => row.candidate_id || row.run_id || `run ${index + 1}`;
+  const identity = (row, index) => [row.candidate_id,row.run_id||row.artifacts?.external_record?.path].filter(Boolean).join(' · ') || `run ${index + 1}`;
   const missingRefs = row => {const seen=new Set();return [...Object.values(row.artifacts),...row.events.flatMap(event=>event.refs)].filter(ref=>{if(ref.state!=='missing')return false;const key=`${ref.kind}|${ref.path || ''}|${ref.missing_reason}`;if(seen.has(key))return false;seen.add(key);return true;});};
   if(liveMode)byId('mode-badge').textContent='READ ONLY · LIVE';
   byId('campaign-title').textContent = data.campaign_id;
@@ -1076,10 +1078,16 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
     visible.sort((a,b)=>{const left=timestamp(a),right=timestamp(b);return left===null ? (right===null?0:1) : right===null?-1:left-right;});
     return {visible,total:all.length};
   }
-  let storyTab='iterations';
+  let storyTab='summary';
   const chips=(parent,refs,missing=new Set())=>{const box=node('div');for(const ref of refs){const chip=node('span',ref,`chip${missing.has(ref)?' missing':''}`);chip.setAttribute('data-no-translate','');box.appendChild(chip);}if(!refs.length)box.appendChild(node('span','None recorded','hint'));parent.appendChild(box);return box;};
   function selectCandidate(candidateId){
-    const index=data.candidates.findIndex(row=>row.candidate_id===candidateId);
+    const matches=data.candidates.map((row,index)=>({row,index})).filter(x=>x.row.candidate_id===candidateId);
+    if(matches.length>1){
+      const box=byId('run-review');clear(box);box.appendChild(node('h3','Choose a run'));
+      for(const {row,index} of matches){const button=node('button',identity(row,index));button.type='button';button.addEventListener('click',()=>{runSelect.value='';stageSelect.value='';candidateSelect.value='';selected=index;render();byId('run-review').scrollIntoView({block:'start'});});box.appendChild(button);}
+      box.scrollIntoView({block:'start'});return;
+    }
+    const index=matches.length?matches[0].index:-1;
     if(index<0)return;
     runSelect.value='';stageSelect.value='';candidateSelect.value='';selected=index;render();
     const target=byId('run-review');target.setAttribute('tabindex','-1');target.focus({preventScroll:true});target.scrollIntoView({block:'start'});
@@ -1110,7 +1118,7 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
       for(const candidate of iteration.candidates){
         const line=node('div',undefined,'cand');
         const left=node('div');const link=node('button',candidate.candidate_id,'link');link.type='button';link.setAttribute('data-no-translate','');
-        link.disabled=candidate.measured.state!=='recorded';link.addEventListener('click',()=>selectCandidate(candidate.candidate_id));
+        link.disabled=!['recorded','ambiguous'].includes(candidate.measured.state);link.addEventListener('click',()=>selectCandidate(candidate.candidate_id));
         left.appendChild(link);chips(left,candidate.option_ids);line.appendChild(left);
         const middle=node('div');middle.appendChild(narrativeNode('div',candidate.why,'why'));
         if(candidate.expected)middle.appendChild(node('div',`Expected: ${translatedNarrative(candidate.expected)}`,'exp'));line.appendChild(middle);
@@ -1199,7 +1207,26 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
       const wrap=node('div',undefined,'scroll');wrap.appendChild(table);box.appendChild(wrap);body.appendChild(box);
     }
   }
+  const experimentView=window.InferRSIExperiments.create({
+    getData:()=>data,getLanguage:()=>language,narrative:translatedNarrative,
+    openExperiment:id=>{
+      const index=data.candidates.findIndex(row=>row.experiment_id===id);
+      if(index<0)return;
+      runSelect.value='';stageSelect.value='';candidateSelect.value='';selected=index;render();
+      byId('run-review').scrollIntoView({block:'start'});
+    }
+  });
+  function renderExperiments(){
+    experimentView.render([byId('chart'),byId('summary-experiments')]);
+    byId('chart-note').textContent='';
+  }
   function renderSummary(body,story){
+    const plot=node('div');plot.id='summary-experiments';body.appendChild(plot);
+    const records=node('details');records.dataset.liveKey='summary-records';
+    records.appendChild(node('summary','All original successes and failures'));
+    body.appendChild(records);renderSummaryRecords(records,story);
+  }
+  function renderSummaryRecords(body,story){
     const summary=story.summary;
     body.appendChild(node('p',`${summary.state.replaceAll('_',' ')}${summary.missing_reason?` · ${translatedNarrative(summary.missing_reason)}`:''}`,'hint'));
     const grid=node('div',undefined,'summary-grid');
@@ -1211,7 +1238,7 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
         if(entry.cause_stage)claim.appendChild(node('small',`Cause: ${stageNames[entry.cause_stage]}`,'hint'));
         const links=node('div');
         for(const link of entry.links){
-          if(link.ref.startsWith('candidate:')){const b=node('button',`${link.ref.slice(10)} · ${measuredText(link)}`,'chip');b.type='button';b.disabled=!['recorded','outcome_not_recorded'].includes(link.state);b.addEventListener('click',()=>selectCandidate(link.ref.slice(10)));links.appendChild(b);}
+          if(link.ref.startsWith('candidate:')){const b=node('button',`${link.ref.slice(10)} · ${measuredText(link)}`,'chip');b.type='button';b.disabled=!['recorded','outcome_not_recorded','ambiguous'].includes(link.state);b.addEventListener('click',()=>selectCandidate(link.ref.slice(10)));links.appendChild(b);}
           else{const c=node('span',link.ref,`chip${link.state==='recorded'?'':' missing'}`);c.setAttribute('data-no-translate','');links.appendChild(c);}
         }
         claim.appendChild(links);box.appendChild(claim);
@@ -1229,6 +1256,7 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
     const note=byId('story-note');
     if(story.state!=='present' && data.candidates.some(r=>r.external?.metrics)){
       note.textContent='External record summaries; full optimization log not recorded';
+      const plot=node('div');plot.id='summary-experiments';root.appendChild(plot);
       for(const row of data.candidates.filter(r=>r.external?.metrics)){
         const box=node('section',undefined,'item');box.appendChild(node('h3',row.title));
         box.appendChild(narrativeNode('p',row.external.note || 'Not recorded'));
@@ -1253,12 +1281,12 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
     root.appendChild(checksBox);
     const tabs=node('div',undefined,'story-tabs');tabs.setAttribute('role','tablist');
     const options=[['iterations','Optimization process',story.iterations.length],['knowledge','Knowledge context',story.retrievals.length],['space','Search space',story.search_space.dimensions.reduce((n,d)=>n+d.options.length,0)],['summary','Successes and failures',story.summary.successes.length+story.summary.failures.length]];
-    for(const [id,label,count] of options){const b=node('button',label);b.type='button';b.setAttribute('role','tab');b.setAttribute('aria-selected',String(storyTab===id));b.appendChild(node('span',String(count),'count'));b.addEventListener('click',()=>{storyTab=id;renderStory();localizePage();});tabs.appendChild(b);}
+    for(const [id,label,count] of options){const b=node('button',label);b.type='button';b.setAttribute('role','tab');b.setAttribute('aria-selected',String(storyTab===id));b.appendChild(node('span',String(count),'count'));b.addEventListener('click',()=>{storyTab=id;renderStory();renderExperiments();localizePage();});tabs.appendChild(b);}
     root.appendChild(tabs);
     const body=node('div',undefined,'story-body');body.setAttribute('role','tabpanel');root.appendChild(body);
     ({iterations:renderIterations,knowledge:renderKnowledge,space:renderSpace,summary:renderSummary})[storyTab](body,story);
   }
-  function render(){const visible=filtered();renderStory();renderWorkflow();renderRows(visible);renderRunReview(data.candidates[selected]);renderCandidate(selected===null?null:data.candidates[selected]);localizePage();}
+  function render(){const visible=filtered();renderStory();renderWorkflow();renderRows(visible);renderRunReview(data.candidates[selected]);renderCandidate(selected===null?null:data.candidates[selected]);renderExperiments();localizePage();}
   for(const select of [stageSelect,runSelect,candidateSelect])select.addEventListener('change',()=>{render();});
   for(const choice of ['en','zh'])byId(`language-${choice}`).addEventListener('click',()=>{
     if(language===choice)return;
@@ -1303,6 +1331,7 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
     if(!previous)return -1;
     const candidates=data.candidates;
     const unique=predicate=>{const indexes=[];candidates.forEach((row,index)=>{if(predicate(row))indexes.push(index);});return indexes.length===1?indexes[0]:-1;};
+    if(previous.experiment_id)return unique(row=>row.experiment_id===previous.experiment_id);
     const exact=unique(row=>row.candidate_id===previous.candidate_id && row.run_id===previous.run_id && row.round===previous.round);
     if(exact>=0)return exact;
     if(previous.candidate_id)return unique(row=>row.candidate_id===previous.candidate_id);

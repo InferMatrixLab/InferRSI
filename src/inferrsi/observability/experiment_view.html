@@ -1,0 +1,219 @@
+<style>
+.experiments{--xp-blue:#76b7ff;--xp-muted:#a8b3c5;color:#e7edf7;padding:14px;min-width:0;font:14px/1.5 system-ui,sans-serif}
+.experiments *{box-sizing:border-box}.xp-controls{display:flex;gap:16px;flex-wrap:wrap;margin:8px 0 16px}.xp-controls label{display:grid;gap:5px;color:var(--xp-muted);font-size:12px}
+.experiments select,.experiments button{background:#202a3b;border:1px solid #40516b;color:#e7edf7;border-radius:5px;padding:6px 10px;font:inherit}.experiments button{cursor:pointer}.experiments :focus-visible{outline:3px solid #ffc76a;outline-offset:3px}
+.xp-note{color:var(--xp-muted);font-size:12px}.xp-card{border:1px solid #334159;background:#141c29;border-radius:8px;padding:12px;margin:12px 0}.xp-card h3{font-size:14px;margin:0 0 4px}.xp-scroll{overflow:auto;max-width:100%}
+.experiments .xp-chart{display:block;min-width:600px;width:100%;height:auto;max-height:none}.xp-chart text{font:12px system-ui;fill:#b5c1d3}.xp-chart .xp-point{cursor:pointer;stroke:#141c29;stroke-width:2}.xp-chart .xp-point[aria-pressed="true"]{stroke:#fff;stroke-width:4}.xp-chart .xp-point:focus{outline:none;stroke:#ffc76a;stroke-width:4}
+.xp-events{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}.xp-events button{font-size:12px;text-align:left;max-width:100%}.xp-events .failure,.xp-events .failures{border-color:#ea7c84}.xp-events .successes{border-color:#62c9a4}
+.xp-detail{border-left:3px solid var(--xp-blue);padding:12px 16px;background:#1b2638;margin-top:12px;overflow-wrap:anywhere}.xp-detail dl{display:grid;grid-template-columns:minmax(100px,150px) 1fr;gap:5px 14px;margin:10px 0}.xp-detail dt{color:var(--xp-muted)}.xp-detail dd{margin:0;white-space:pre-wrap}
+.experiments details{margin-top:12px}.experiments summary{cursor:pointer;color:var(--xp-blue);padding:8px 0}.experiments table{width:100%;border-collapse:collapse;white-space:normal;min-width:700px;font-size:12px}.experiments th,.experiments td{padding:9px;text-align:left;border-bottom:1px solid #334159;vertical-align:top}.experiments th{color:#a8b3c5}.xp-badge{color:#ffca7c;font-size:11px;letter-spacing:.08em}.xp-legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--xp-muted)}.xp-detail p{margin:6px 0}.xp-unplaced{border-left:2px solid #ffbd69;padding-left:10px}
+@media(max-width:650px){.experiments{padding:8px}.xp-detail dl{grid-template-columns:1fr}.xp-detail dd{padding-bottom:6px}.xp-controls{gap:10px}.xp-controls select{max-width:210px}}
+</style>
+<script>
+/* One renderer and selection store for the overview and summary, also offline. */
+window.InferRSIExperiments = (() => {
+  'use strict';
+  const colors=['#76b7ff','#c49bff','#ffbe73','#7bd6bc','#ef8bac'];
+  const words={
+    'Description':'描述','Run':'运行','Source record':'来源记录',
+    'Experiment performance':'实验性能','Absolute measurements':'绝对测量值','Workload':'工作负载',
+    'Metric':'指标','Axis':'横轴','All workloads':'全部工作负载','All metrics':'全部指标',
+    'Recorded round':'已记录轮次','Recorded order':'已记录顺序','Recorded time':'已记录时间',
+    'Event track':'事件轨道','Unpositioned records':'未定位记录','All records':'完整记录',
+    'No plottable measurement':'无可绘制测量值','No records for this filter':'当前筛选下无记录',
+    'Select a measurement or event to inspect its evidence.':'选择测量点或事件查看证据。',
+    'Related measurements':'关联测量','Recorded events':'已记录事件','Measurements':'测量记录','Events':'事件记录','Unit':'单位','Scope':'测量范围',
+    'Statistic':'统计口径','Samples':'样本数','Quality':'质量状态','Evidence verdict':'证据结论',
+    'Narrative category':'叙述分类','Experiment':'实验','Measurement':'测量身份',
+    'Configuration':'运行配置','Evidence':'证据','Reason':'原因','Value':'数值',
+    'Not recorded':'未记录','Unavailable':'不可用','Open experiment':'打开实验详情',
+    'Choose a run':'选择运行','Selection no longer available':'原选中记录已不可用',
+    'Selected record is outside this filter':'选中记录不在当前筛选范围内',
+    'legacy_baseline':'旧参考（角色未记录）','legacy_target':'旧目标（冻结未记录）',
+    'Local baseline':'本地基线','External reference':'外部参考','Frozen target':'冻结目标',
+    'Gap to target':'距目标差距','Conversion':'转换依据','Provenance':'来源',
+    'Lower is better':'越低越好','Higher is better':'越高越好',
+    'Unknown direction':'优化方向未知','Independent point':'独立测量点',
+    'Missing measurements are never zero-filled. Lines join only compatible recorded configurations.':'缺测不补零；仅连接配置可比较的实测点。',
+    'No local optimization gain is inferred from external references.':'外部参考不用于推断本地优化收益。',
+    'Reference lines apply only to their experiment and configuration.':'参考线仅适用于对应实验及运行配置。',
+    'A numeric target comparison does not establish a campaign PASS.':'数值达到目标不等于 campaign PASS。',
+    'SYNTHETIC DATA':'合成数据', 'successes':'成功叙述','failures':'失败叙述',
+    'run_state':'运行状态','quality':'质量检查','failure':'失败','incomplete':'未完成',
+    'completed':'已完成','failed':'失败','crashed':'崩溃','running':'运行中','cancelled':'已取消',
+    'passed':'通过','not_recorded':'未记录','position not recorded':'未记录位置',
+    'no plottable measurement':'无可绘制测量值',
+    'native comparison evidence incomplete':'原生运行的可比性证据不完整',
+    'different recorded configuration; separate series':'运行配置不同；使用独立曲线',
+    'unsupported configuration fields':'存在不支持的配置字段',
+    'unknown reference role':'参考角色未知','missing provenance or incompatible unit':'缺少来源或单位不兼容',
+    'unknown optimization direction':'优化方向未知','target freeze not recorded':'未记录目标冻结',
+    'invalid reference value':'参考值无效','only frozen targets support conversion':'仅冻结目标允许换算',
+    'missing or ambiguous conversion reference':'转换参考缺失或不唯一',
+    'invalid improvement percentage':'改善百分比无效','invalid inverse latency ratio':'逆延迟比例无效',
+    'unsupported target definition or direction':'目标定义或方向不支持转换','non-finite conversion':'转换结果非有限值'
+  };
+  const el=(tag,text,cls)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(cls)n.className=cls;return n;};
+  const svg=(tag,attrs,text)=>{const n=document.createElementNS('http://www.w3.org/2000/svg',tag);for(const [k,v] of Object.entries(attrs))n.setAttribute(k,v);if(text!==undefined)n.textContent=text;return n;};
+  const number=v=>Number.isFinite(v)?Number(v.toPrecision(6)).toString():'—';
+  const position=(p,axis)=>axis==='timestamp'?(p.timestamp?Date.parse(p.timestamp):null):p[axis];
+  const roleLabel={local_baseline:'Local baseline',external_reference:'External reference',frozen_target:'Frozen target'};
+  function create({getData,getLanguage,openExperiment,narrative=s=>s}) {
+    const state={workload:'',metric:'',axis:'round',selected:null};
+    let roots=[];
+    const t=s=>{
+      if(getLanguage()!=='zh')return s;
+      if(words[s])return words[s];
+      for(const [prefix,label] of [['missing configuration: ','缺少配置：'],['unknown configuration: ','未知配置：'],['missing dimension: ','缺少维度：'],['missing axis: ','缺少坐标信息：']])if(s?.startsWith(prefix))return label+s.slice(prefix.length);
+      return s;
+    };
+    const description=item=>item.description_kind==='recorded'?t(item.description):narrative(item.description||'');
+    const projection=()=>getData().experiments||{points:[],events:[]};
+    const shown=p=>(!state.workload||p.workload===state.workload)&&(!state.metric||p.metric===state.metric);
+    const eventShown=e=>(!state.workload||!e.workloads.length||e.workloads.includes(state.workload))&&(!state.metric||!e.metrics.length||e.metrics.includes(state.metric));
+    const xText=p=>{const x=position(p,state.axis);return Number.isFinite(x)?state.axis==='timestamp'?new Date(x).toISOString():String(x):t('Unpositioned records');};
+    const bind=(n,id)=>{n.dataset.xpId=id;n.setAttribute('aria-pressed',String(state.selected===id));n.addEventListener('click',()=>select(id));n.addEventListener('focus',()=>select(id));n.addEventListener('mouseenter',()=>select(id));};
+    function select(id){state.selected=id;for(const root of roots.filter(r=>r.isConnected)){
+      for(const n of root.querySelectorAll('[data-xp-id]'))n.setAttribute('aria-pressed',String(n.dataset.xpId===id));
+      detail(root.querySelector('.xp-detail'));
+    }}
+    function refs(root,items){
+      for(const ref of items||[]){const n=el('p',`${ref.path||ref.ref||ref.kind||t('Evidence')} · ${ref.state==='present'||ref.state==='recorded'?ref.sha256||ref.state:t('Unavailable')+' · '+(ref.missing_reason||ref.state||t('Not recorded'))}`,'xp-note');root.append(n);}
+    }
+    function detail(box){
+      box.replaceChildren();const {points,events}=projection();
+      const p=points.find(p=>p.id===state.selected),e=events.find(e=>e.id===state.selected),item=p||e;
+      if(!item){box.append(el('p',t(state.selected?'Selection no longer available':'Select a measurement or event to inspect its evidence.')));return;}
+      box.append(el('strong',item.title?narrative(item.title):description(item)));
+      if(!(p?shown(p):eventShown(e)))box.append(el('p',t('Selected record is outside this filter'),'xp-note'));
+      const dl=el('dl');box.append(dl);
+      const field=(label,value)=>{dl.append(el('dt',t(label)),el('dd',value??t('Not recorded')));};
+      field('Experiment',item.candidate_id||item.experiment_ids?.join(', '));
+      if(item.run_id)field('Run',item.run_id);else if(item.source_record)field('Source record',item.source_record);
+      field('Axis',xText(item));
+      if(p){field('Measurement',p.measurement_id);field('Value',number(p.value)+' '+(p.unit||''));field('Workload',p.workload);field('Metric',p.metric);field('Scope',p.scope);field('Statistic',p.statistic);field('Samples',p.sample_count);
+        field('Configuration',JSON.stringify(p.configuration));field('Reason',[...p.plot_reasons,...p.comparison_reasons,p.group_note].filter(Boolean).map(t).join('; ')||p.series_id);
+      }
+      field('Quality',t(item.quality)||t('Not recorded'));field('Evidence verdict',item.verdict);
+      field('Narrative category',item.narrative_category?t(item.narrative_category):t('Not recorded'));
+      field('Description',description(item));
+      if(item.cause_stage)field('Reason',item.cause_stage);
+      if(p){for(const ref of p.references){
+        const line=el('p');line.append(el('strong',t(roleLabel[ref.role]||ref.role)+': '),document.createTextNode(number(ref.value)+' '+p.unit));box.append(line);
+        box.append(el('p',t('Provenance')+': '+ref.provenance,'xp-note'));
+        box.append(el('p',t('Conversion')+': '+ref.formula+' · '+number(ref.original_value)+' · '+ref.definition,'xp-note'));
+        if(ref.reason)box.append(el('p',t('Unavailable')+': '+t(ref.reason),'xp-note'));
+        const gap=p.target_gaps.find(g=>g.reference_id===ref.id);if(gap)box.append(el('p',t('Gap to target')+': '+number(gap.gap)+' '+p.unit+' · '+t('A numeric target comparison does not establish a campaign PASS.'),'xp-note'));
+      }}
+      if(e){
+        const linked=points.filter(point=>e.experiment_ids.includes(point.experiment_id));
+        if(linked.length){box.append(el('h3',t('Related measurements')));for(const point of linked){const b=el('button',`${point.workload||'—'} · ${point.run_id||point.source_record} · ${number(point.value)} ${point.unit||''}`);b.type='button';b.onclick=()=>select(point.id);box.append(b);}}
+      }else{
+        const linked=events.filter(event=>event.experiment_ids.includes(p.experiment_id));
+        if(linked.length){box.append(el('h3',t('Recorded events')));for(const event of linked){const b=el('button',t(event.category)+' · '+description(event));b.type='button';b.onclick=()=>select(event.id);box.append(b);}}
+      }
+      refs(box,item.refs);
+      const ids=p?[p.experiment_id]:e.experiment_ids;
+      if(ids.length>1)box.append(el('p',t('Choose a run')));
+      for(const id of ids){const row=getData().candidates.find(r=>r.experiment_id===id);if(!row)continue;const button=el('button',t('Open experiment')+' · '+(row.run_id||row.title));button.type='button';button.onclick=()=>openExperiment(id);box.append(button);}
+    }
+    function controls(root){
+      const {points,events}=projection(),bar=el('div',undefined,'xp-controls');root.append(bar);
+      const selector=(key,label,choices)=>{const wrap=el('label',t(label)),select=el('select');select.dataset.xpControl=key;select.setAttribute('aria-label',t(label));
+        for(const [value,name] of choices){const o=el('option',name);o.value=value;select.append(o);}
+        if(!choices.some(([v])=>v===state[key])){const o=el('option',state[key]+' · '+t('Unavailable'));o.value=state[key];select.append(o);}
+        select.value=state[key];select.onchange=()=>{state[key]=select.value;render(roots);};wrap.append(select);bar.append(wrap);};
+      selector('workload','Workload',[['',t('All workloads')],...[...new Set([...points.map(p=>p.workload),...events.flatMap(e=>e.workloads)])].filter(Boolean).sort().map(s=>[s,s])]);
+      selector('metric','Metric',[['',t('All metrics')],...[...new Set([...points.map(p=>p.metric),...events.flatMap(e=>e.metrics)])].filter(Boolean).sort().map(s=>[s,s])]);
+      const axes=[['round',t('Recorded round')]];
+      if([...points,...events].some(p=>p.order!==null&&p.order!==undefined))axes.push(['order',t('Recorded order')]);
+      if([...points,...events].some(p=>p.timestamp))axes.push(['timestamp',t('Recorded time')]);
+      selector('axis','Axis',axes);
+    }
+    function chart(root,points,events){
+      const first=points[0],card=el('section',undefined,'xp-card');root.append(card);
+      const title=[first.workload,first.metric,first.scope,first.statistic].filter(Boolean).join(' · ');
+      card.append(el('h3',title),el('p',`${first.unit||'—'} · ${t(first.direction==='minimize'?'Lower is better':first.direction==='maximize'?'Higher is better':'Unknown direction')}`,'xp-note'));
+      const plotted=points.filter(p=>p.value!==null&&!p.plot_reasons.some(r=>r.startsWith('missing axis:'))&&Number.isFinite(position(p,state.axis)));
+      if(!plotted.length){card.append(el('p',t('No plottable measurement')));return;}
+      const locatedEvents=events.filter(e=>Number.isFinite(position(e,state.axis)));
+      const xs=[...plotted.map(p=>position(p,state.axis)),...locatedEvents.map(e=>position(e,state.axis))],ys=plotted.map(p=>p.value);
+      // Reference roles stay point-specific, even if multiple local controls differ.
+      for(const p of plotted)for(const ref of p.references)if(ref.value!==null)ys.push(ref.value);
+      let low=Math.min(...ys),high=Math.max(...ys),minX=Math.min(...xs),maxX=Math.max(...xs);
+      const pad=(high-low)*.15||Math.abs(high)*.1||1;low-=pad;high+=pad;
+      if(!Number.isFinite(high-low)||!Number.isFinite(maxX-minX)){card.append(el('p',t('No plottable measurement')));return;}
+      if(minX===maxX){minX-=1;maxX+=1;}
+      const x=v=>70+(v-minX)/(maxX-minX)*730,y=v=>240-(v-low)/(high-low)*190;
+      const picture=svg('svg',{viewBox:'0 0 850 350',class:'xp-chart',role:'group','aria-label':title});
+      picture.append(svg('title',{},title+' · '+t('Absolute measurements')));
+      for(let i=0;i<=4;i++){const v=low+(high-low)*i/4;picture.append(svg('line',{x1:70,x2:800,y1:y(v),y2:y(v),stroke:'#2c3b51'}),svg('text',{x:60,y:y(v)+4,'text-anchor':'end'},number(v)));}
+      for(const v of [...new Set(xs)].sort((a,b)=>a-b)){picture.append(svg('text',{x:x(v),y:263,'text-anchor':'middle'},state.axis==='timestamp'?new Date(v).toISOString().slice(11,19):String(v)));}
+      picture.append(svg('text',{x:430,y:342,'text-anchor':'middle'},t(state.axis==='round'?'Recorded round':state.axis==='order'?'Recorded order':'Recorded time')));
+      const groups=new Map();for(const p of points){if(p.series_id){if(!groups.has(p.series_id))groups.set(p.series_id,[]);groups.get(p.series_id).push(p);}}
+      const color=p=>p.series_id?colors[[...groups.keys()].indexOf(p.series_id)%colors.length]:'#bac4d5';
+      for(const group of groups.values()){
+        const sorted=[...group].filter(p=>Number.isFinite(position(p,state.axis))).sort((a,b)=>position(a,state.axis)-position(b,state.axis));
+        // Repeated runs are separate points at the same x. Do not imply their order.
+        for(let i=1;i<sorted.length;i++){const a=sorted[i-1],b=sorted[i],ax=position(a,state.axis),bx=position(b,state.axis);
+          const repeated=sorted.filter(p=>position(p,state.axis)===ax).length>1||sorted.filter(p=>position(p,state.axis)===bx).length>1;
+          const gap=events.some(e=>e.experiment_ids.length && e.experiment_ids.every(id=>!plotted.some(p=>p.experiment_id===id)) && position(e,state.axis)>ax && position(e,state.axis)<bx);
+          if(!repeated&&!gap&&plotted.includes(a)&&plotted.includes(b)&&ax!==bx)picture.append(svg('line',{class:'xp-segment',x1:x(ax),x2:x(bx),y1:y(a.value),y2:y(b.value),stroke:color(a),'stroke-width':2}));
+        }
+      }
+      for(const p of plotted){
+        for(const ref of p.references){if(ref.value===null)continue;const c=ref.role==='frozen_target'?'#70d5b2':ref.role==='external_reference'?'#e1b980':'#abb7ca';
+          const n=svg('line',{class:'xp-reference',x1:Math.max(70,x(position(p,state.axis))-35),x2:Math.min(800,x(position(p,state.axis))+35),y1:y(ref.value),y2:y(ref.value),stroke:c,'stroke-dasharray':ref.role==='external_reference'?'2 4':'6 4'});n.append(svg('title',{},t(roleLabel[ref.role])+': '+number(ref.value)+' '+p.unit+' · '+ref.provenance));picture.append(n);
+        }
+        const label=`${p.title} · ${p.run_id||p.source_record} · ${number(p.value)} ${p.unit} · ${p.statistic} · ${p.verdict} · ${t('Quality')}: ${p.quality}`;
+        const circle=svg('circle',{cx:x(position(p,state.axis)),cy:y(p.value),r:6,fill:p.quality==='FAIL'||p.quality==='failed'||p.verdict==='FAIL'?'#ef8bac':color(p),class:'xp-point',tabindex:0,role:'button','aria-label':label});circle.append(svg('title',{},label));bind(circle,p.id);
+        circle.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();select(p.id);}});
+        circle.addEventListener('focus',()=>select(p.id));circle.addEventListener('mouseenter',()=>{circle.querySelector('title').textContent=label+' · '+[...p.comparison_reasons,...p.plot_reasons].map(t).join('; ');});picture.append(circle);
+      }
+      picture.append(svg('line',{x1:70,x2:800,y1:296,y2:296,stroke:'#40516b'}),svg('text',{x:60,y:300,'text-anchor':'end'},t('Events')));
+      for(const e of locatedEvents){
+        const at=position(e,state.axis),same=locatedEvents.filter(other=>position(other,state.axis)===at),offset=same.indexOf(e)*8;
+        const label=xText(e)+' · '+t(e.category)+' · '+description(e);
+        const mark=svg('rect',{x:x(at)-4,y:280+offset,width:8,height:8,rx:2,fill:['failure','failures'].includes(e.category)||['FAIL','failed'].includes(e.quality)||e.state==='failed'?'#ef8bac':'#76b7ff',tabindex:0,role:'button',class:'xp-event-mark','aria-label':label});
+        mark.append(svg('title',{},label));bind(mark,e.id);mark.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();select(e.id);}});picture.append(mark);
+      }
+      const scroll=el('div',undefined,'xp-scroll');scroll.append(picture);card.append(scroll);
+      const legend=el('div',undefined,'xp-legend');for(const [i,key] of [...groups.keys()].entries()){const cfg=groups.get(key)[0].configuration;const label=el('span',[key,cfg.precision,cfg.shape,cfg.hardware].filter(Boolean).join(' · '));label.title=JSON.stringify(cfg);label.style.color=colors[i%colors.length];legend.append(label);}if(points.some(p=>!p.series_id))legend.append(el('span',t('Independent point')));card.append(legend);
+      const roles=[...new Set(plotted.flatMap(p=>p.references.filter(r=>r.value!==null).map(r=>r.role)))];
+      if(roles.length)card.append(el('p',roles.map(r=>t(roleLabel[r])).join(' · ')+' — '+t('Reference lines apply only to their experiment and configuration.'),'xp-note'));
+    }
+    function eventList(root,events,title){
+      if(!events.length)return;root.append(el('h3',t(title)));const track=el('div',undefined,'xp-events');root.append(track);
+      for(const e of events){const button=el('button',`${xText(e)} · ${e.title||''} · ${t(e.category)} · ${description(e)}`,e.category+(['failed','crashed'].includes(e.state)||['FAIL','failed'].includes(e.quality)?' failure':''));button.type='button';bind(button,e.id);track.append(button);}
+    }
+    function table(root,points,events){
+      const more=el('details');more.dataset.xpTable='records';more.append(el('summary',`${t('All records')} · ${points.length} ${t('Measurements')} · ${events.length} ${t('Events')}`));root.append(more);
+      const scroll=el('div',undefined,'xp-scroll'),table=el('table'),head=el('thead'),row=el('tr');
+      for(const label of ['Experiment','Axis','Value','Scope','Statistic','Quality','Evidence verdict','Reason'])row.append(el('th',t(label)));head.append(row);table.append(head);const body=el('tbody');table.append(body);scroll.append(table);more.append(scroll);
+      for(const p of points){const tr=el('tr'),cell=el('td'),button=el('button',p.title);button.type='button';bind(button,p.id);cell.append(button);tr.append(cell);
+        for(const text of [xText(p),number(p.value)+' '+(p.unit||''),p.scope,p.statistic,t(p.quality),p.verdict,[...p.plot_reasons,...p.comparison_reasons,p.group_note].filter(Boolean).map(t).join('; ')])tr.append(el('td',text||'—'));body.append(tr);}
+      for(const e of events){const tr=el('tr'),cell=el('td'),button=el('button',[e.title,t(e.category)].filter(Boolean).join(' · '));button.type='button';bind(button,e.id);cell.append(button);tr.append(cell);
+        for(const text of [xText(e),t('No plottable measurement'),'—','—',t(e.quality)||'—',e.verdict||'—',description(e)])tr.append(el('td',text));body.append(tr);}
+    }
+    function render(targets){
+      roots=targets.filter(Boolean);const {points,events}=projection();const visible=points.filter(shown),ev=events.filter(eventShown).sort((a,b)=>(position(a,state.axis)??Infinity)-(position(b,state.axis)??Infinity));
+      for(const root of roots){const focus=root.contains(document.activeElement)?document.activeElement.dataset.xpControl:null;const opened=root.querySelector('[data-xp-table]')?.open;
+        root.replaceChildren();root.classList.add('experiments');root.setAttribute('data-no-translate','');
+        if(getData().synthetic)root.append(el('span',t('SYNTHETIC DATA'),'xp-badge'));
+        root.append(el('h2',t('Experiment performance')),el('p',t('Absolute measurements')+' · '+t('Missing measurements are never zero-filled. Lines join only compatible recorded configurations.'),'xp-note'));controls(root);
+        const axes=new Map();for(const p of visible){if(!axes.has(p.axis_key))axes.set(p.axis_key,[]);axes.get(p.axis_key).push(p);}
+        for(const values of axes.values()){const first=values[0];chart(root,values,ev.filter(e=>(!e.workloads.length||e.workloads.includes(first.workload))&&(!e.metrics.length||e.metrics.includes(first.metric))&&e.scopes.includes(first.scope)));}
+        if(!visible.length)root.append(el('p',t('No plottable measurement')));
+        eventList(root,ev.filter(e=>Number.isFinite(position(e,state.axis))),'Event track');
+        const unplaced=visible.filter(p=>!Number.isFinite(position(p,state.axis))),unplacedEvents=ev.filter(e=>!Number.isFinite(position(e,state.axis)));
+        if(unplaced.length||unplacedEvents.length){const box=el('div',undefined,'xp-unplaced');root.append(box);eventList(box,unplacedEvents,'Unpositioned records');for(const p of unplaced){const b=el('button',t('Unpositioned records')+' · '+p.title);b.type='button';bind(b,p.id);box.append(b);}}
+        const detailBox=el('div',undefined,'xp-detail');detailBox.setAttribute('aria-live','polite');root.append(detailBox);detail(detailBox);table(root,visible,ev);
+        if(opened)root.querySelector('[data-xp-table]').open=true;
+        if(focus)root.querySelector(`[data-xp-control="${focus}"]`)?.focus();
+      }
+    }
+    return {render,state,select};
+  }
+  return {create};
+})();
+</script>

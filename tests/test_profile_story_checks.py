@@ -40,8 +40,9 @@ const payload=html.match(/<script id="dashboard-data"[^>]*>([\s\S]*?)<\/script>/
 id('dashboard-data').textContent=payload[1];
 const document={documentElement:make(),createElement:make,createTextNode:String,
                 getElementById:id,querySelectorAll:()=>[]};
-const source=html.match(/<script>\s*([\s\S]*?)<\/script>/)[1];
-vm.runInNewContext(source,{document,window:{addEventListener(){}},
+const source=[...html.matchAll(/<script>\s*([\s\S]*?)<\/script>/g)].at(-1)[1];
+vm.runInNewContext(source,{document,window:{addEventListener(){},
+  InferRSIExperiments:{create:()=>({render(){}})}},
                           localStorage:{getItem(){return 'en';},setItem(){}}});
 const items=()=>id('checks-list').children.map(node=>node.textContent);
 assert.equal(id('story-checks').hidden,!conflicts);
