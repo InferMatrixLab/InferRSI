@@ -17,7 +17,11 @@ from inferrsi.harness.parallel_round import (
     submit,
     ticket_status,
 )
-from inferrsi.infra.confinement import ConfinementUnavailable, FixtureBackend
+from inferrsi.infra.confinement import (
+    ConfinementUnavailable,
+    FixtureBackend,
+    namespaces_available,
+)
 from inferrsi.infra.device_lease import DeviceLease, LeaseError
 
 WHEN = datetime(2026, 10, 30, tzinfo=timezone.utc)
@@ -130,9 +134,14 @@ def test_prepare_rejects_overlapping_globs_protected_paths_and_shared_entries(tm
 def test_prepare_rejects_bad_devices_and_metric(tmp_path):
     incumbent = tmp_path / "incumbent"
     _tree(incumbent, "10")
-    for devices in ([], ["cpu-0", "cpu-0"], ["a/b"], "cpu-0"):
+    for devices in ([], ["cpu-0", "cpu-0"], ["a/b"], "cpu-0", ["."], [".."]):
         with pytest.raises(RoundPlanError, match="device_ids"):
             prepare(_spec(device_ids=devices), incumbent, tmp_path / "round-devices")
+    for lane_id in (".", ".."):
+        dotted = _spec()
+        dotted["lanes"][0]["id"] = lane_id
+        with pytest.raises(RoundPlanError, match="own id"):
+            prepare(dotted, incumbent, tmp_path / "round-lane-id")
     for metric in (
         None,
         {"name": "latency_ms"},
@@ -538,4 +547,8 @@ def test_serve_cli_runs_without_a_caller_supplied_clock(tmp_path):
     assert completed.returncode == 0, completed.stderr
     body = json.loads(completed.stdout)
     assert body["ticket"] == ticket
-    assert body["status"] in {"measured", "unsettled", "rejected", "queued"}
+    if namespaces_available():
+        assert body["status"] == "measured"
+    else:
+        assert body["status"] == "unsettled"
+        assert body["reason"] == "confinement backend unavailable"
