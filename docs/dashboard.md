@@ -205,6 +205,33 @@ preserves nested stages, and does not sum them or substitute HTTP medians.
 Command durations for the experiment itself appear separately in round details.
 Older captures without these optional fields retain their timelines.
 
+The timing panel also orders experiment steps on a UTC clock. It reads InferRSI
+run boundaries, per-trial measurement commands, validation, profile starts,
+saved knowledge searches and review log versions. In a linked agent trace,
+an `agent.request` and `agent.response` with a unique matching request number
+in the same run and source produce a client-side call duration. Set
+`provider_model` on the response to label the model. Concurrent calls may
+overlap each other and the benchmark. Missing boundaries stay unmeasured.
+
+For an external controller, save a reviewed UTF-8 `experiment-timing.json`
+in the campaign root and place its SHA-256 in `campaign.json` as
+`experiment_timing_sha256`. The document has this shape:
+
+```json
+{"schema_version":1,"campaign_id":"example","steps":[
+  {"kind":"model_call","actor":"experiment agent","model":"example-model","label":"#1",
+   "start":"2026-01-20T10:00:00Z","end":"2026-01-20T10:00:03Z",
+   "basis":"Client send to completed response","round":1}
+]}
+```
+
+Supported kinds are `experiment`, `operation`, `profile_request` and `model_call`.
+Supply either or both timestamp bounds with timezone. The actor and timing
+basis identify the observer and clock boundary. Include only additional
+observations that are absent from native events. The file accepts up to
+5,000 steps and 2 MiB. Keep raw prompts and transport logs local.
+
+
 Repeat after a measured change, with a new ID, `"phase":"candidate"` and the
 actual round number. Use the same comparison key only for the same hardware,
 input, execution boundary and profiler configuration. Run ordinary validation

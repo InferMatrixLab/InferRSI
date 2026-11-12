@@ -39,7 +39,15 @@ details{margin-top:8px;font-size:13px}details details{margin-left:10px}
 .panel{margin:0;font-size:inherit}.panel>summary{font-weight:650;color:var(--text)}
 .panel>summary h2{display:inline;font-size:17px}.panel[open]>summary{margin-bottom:14px}
 .panel>summary::marker{color:var(--accent)}.panel .capture, .panel td{overflow-wrap:anywhere}
-.timing-scroll{overflow-x:auto}.timing-scroll table{width:auto;min-width:min(100%,600px)}
+.timing-scroll{overflow-x:auto}.experiment-lane{display:grid;grid-template-columns:minmax(90px,17%) 1fr;align-items:center;gap:8px;margin:6px 0;color:var(--sub)}
+.experiment-track{height:19px;position:relative;background:var(--bg);border-radius:3px}
+.experiment-track button{position:absolute;background:var(--accent);border:0;padding:0;min-width:2px}
+.experiment-track .interval{height:7px;top:6px}.experiment-track .instant{height:13px;top:3px;width:2px;background:#dcb272}
+.experiment-lane:nth-of-type(2) .interval{background:#c3a6fa}.experiment-lane:nth-of-type(3) .interval{background:#6bc1ad}
+.experiment-steps{max-height:32rem;overflow:auto}.experiment-steps thead{position:sticky;top:0;background:var(--panel)}
+.experiment-steps.timing-scroll td:last-child{white-space:normal;text-align:left}.experiment-steps td:first-child{min-width:12em}
+#baseline>h3:not(:first-child){margin-top:20px}
+.timing-scroll table{width:auto;min-width:min(100%,600px)}
 .timing-scroll td:not(:first-child),.timing-scroll th:not(:first-child){text-align:right;white-space:nowrap}
 .capture-fold{border-top:1px solid var(--line);padding:10px 0;font-size:15px}
 .capture-fold>summary{font-weight:600}.capture-fold details{margin-block:8px}
@@ -575,6 +583,100 @@ function captureCard(box,c,baseline,opened){
   },opened);
   card.className='capture-fold';
 }
+function experimentHistory(box,opened){
+  const history=data.experiment_timing;
+  if(!history)return;
+  const steps=history.steps, calls=steps.filter(s=>s.kind==='model_call');
+  const names={
+    runner:tr('InferRSI 执行','InferRSI execution'),run:tr('InferRSI 整轮','InferRSI run'),
+    source_snapshot:tr('记录源码版本','Snapshot source'),measurement:tr('性能测量','Measurement'),
+    quality_validation:tr('质量验证','Quality validation'),model_call:tr('模型调用','Model call'),
+    operation:tr('实验操作','Experiment operation'),experiment:tr('实验任务','Experiment task'),
+    profile_request:tr('采样工作负载','Profile workload'),profile:tr('Profile 开始','Profile start'),
+    knowledge:tr('知识检索','Knowledge search'),review:tr('保存复盘记录','Save review log'),
+    agent_event:tr('Agent 事件','Agent event'),baseline:tr('基线','Baseline'),candidate:tr('候选','Candidate'),
+    run_events:tr('源码快照开始至运行结束','Snapshot start to terminal event'),
+    command:tr('命令实测','Measured command duration'),phase:tr('阶段实测','Measured phase duration'),
+    event:tr('阶段事件','Phase event'),capture_saved:tr('检索快照写入','Retrieval saved'),
+    log_saved:tr('复盘版本写入','Review saved'),profile_start:tr('采集开始时间','Recorded profile start'),
+    request_response:tr('请求事件至响应事件','Request to response event'),incomplete:tr('调用边界不完整','Incomplete call bounds')
+  };
+  const name=s=>Object.hasOwn(names,s)?names[s]:recorded(s);
+  const seconds=s=>Number.isFinite(s)?fmt(s,3)+' s':tr('未记录','Unmeasured');
+  const clock=t=>t?t.replace('T',' ').replace(/(\.\d{3})\d*/, '$1').replace('+00:00',''):dash;
+  box.append(el('h3',tr('整个实验的耗时','Experiment wall time')));
+  if(history.ledger==='unavailable')p(box,tr('补充计时文件未通过校验。','Supplemental timing evidence is unavailable.'),'note');
+  if(!steps.length){p(box,tr('尚无实验步骤计时记录。','No experiment timing recorded.'),'note');return;}
+  const totals=el('dl',null,'metrics');box.append(totals);
+  if(history.first && history.last){
+    metric(totals,tr('首末记录跨度','First to last record'),seconds((Date.parse(history.last)-Date.parse(history.first))/1000));
+    p(box,clock(history.first)+' → '+clock(history.last)+' UTC','meta');
+  }
+  for(const step of steps.filter(s=>s.kind==='run')){
+    metric(totals,[rowLabel(step),'InferRSI',step.actor].filter(Boolean).join(' · '),seconds(step.seconds));
+  }
+  const groups=new Map();
+  for(const call of calls){
+    const key=call.model||tr('模型未记录','Unspecified model');
+    if(!groups.has(key))groups.set(key,[]);
+    groups.get(key).push(call);
+  }
+  for(const [model,items] of groups){
+    const timed=items.filter(s=>Number.isFinite(s.seconds));
+    metric(totals,model+' · '+tr('有耗时记录的调用','Calls with timing')+' '+timed.length+'/'+items.length,
+      seconds(timed.length?timed.reduce((total,s)=>total+s.seconds,0):null));
+  }
+  if(!calls.length)p(box,tr('没有可关联的模型请求记录。','No correlated model requests recorded.'),'note');
+  p(box,tr('首末跨度按实际时间计算。模型调用、实验命令和 GPU 测量可能同时进行，各项时长不能直接相加。',
+    'Elapsed time spans the first and last record. Model calls, commands and GPU measurements can overlap.'),'note');
+  function stepTable(parent,items){
+    const wrap=el('div',null,'timing-scroll experiment-steps');parent.append(wrap);
+    const headers=[tr('步骤','Step'),tr('开始 UTC','Start UTC'),tr('结束 UTC','End UTC'),tr('耗时','Duration'),tr('计时依据','Timing evidence')];
+    table(wrap,headers,items.map(s=>{
+      const label=[s.round?'R'+s.round:null,s.actor,s.model,name(s.kind),
+        s.label!==s.kind?name(s.label):null,s.side?name(s.side):null,s.trial?'#'+s.trial:null,
+        s.state?status(s.state):null].filter(Boolean).join(' · ');
+      return [label,clock(s.start),clock(s.end),seconds(s.seconds),[name(s.basis),s.evidence].filter(Boolean).join(' · ')];
+    }));
+  }
+  fold(box,tr('按时间查看全部步骤','All steps in time order')+' ('+steps.length+')','experiment-all',b=>{
+    const lanes=[
+      [tr('InferRSI 执行','InferRSI execution'),['runner','run','knowledge','review']],
+      [tr('模型调用','Model calls'),['model_call','agent_event']],
+      [tr('采集与实验命令','Profiling and experiment commands'),['profile','profile_request','operation']]
+    ];
+    const first=Date.parse(history.first),span=Date.parse(history.last)-first;
+    const detail=el('p',null,'meta');detail.setAttribute('aria-live','polite');
+    if(span>0){
+      for(const [label,kinds] of lanes){
+        const lane=el('div',null,'experiment-lane'),track=el('div',null,'experiment-track');
+        lane.append(el('span',label),track);b.append(lane);
+        for(const s of steps.filter(s=>kinds.includes(s.kind))){
+          const anchor=Date.parse(s.start||s.end);
+          if(!Number.isFinite(anchor))continue;
+          const end=Date.parse(s.end),start=Date.parse(s.start);
+          const duration=Number.isFinite(start)&&end>start?end-start:0;
+          const mark=el('button');mark.type='button';mark.className=duration?'interval':'instant';
+          mark.style.left=Math.min(99.8,100*(anchor-first)/span)+'%';
+          if(duration)mark.style.width=(100*duration/span)+'%';
+          mark.ariaLabel=mark.title=[s.round?'R'+s.round:null,s.actor,s.model,name(s.label),
+            clock(s.start)+' → '+clock(s.end),seconds(s.seconds)].filter(Boolean).join(' · ');
+          mark.onclick=()=>{detail.textContent=mark.title;};track.append(mark);
+        }
+      }
+      p(b,tr('横条表示有起止记录的区间，点表示只记录了一个时刻。点击可查看对应步骤。','Bars show measured intervals. Dots mark single timestamps. Select one to inspect the step.'),'note');b.append(detail);
+    }
+    const select=el('select');select.ariaLabel=tr('筛选实验步骤','Filter experiment steps');
+    const all=el('option',tr('全部步骤','All steps'));select.append(all);
+    for(const [label] of lanes)select.append(el('option',label));
+    const results=el('div');b.append(select,results);
+    function show(){results.replaceChildren();const group=lanes[select.selectedIndex-1];
+      stepTable(results,group?steps.filter(s=>group[1].includes(s.kind)):steps);}
+    select.onchange=show;show();
+  },opened);
+  if(calls.length)fold(box,tr('逐次模型调用','Individual model calls')+' ('+calls.length+')','experiment-calls',b=>stepTable(b,calls),opened);
+  box.append(el('h3',tr('单次推理的阶段耗时','Stages within one inference request')));
+}
 function stageHistory(box,rows){
   const captures=[...(data.profile_captures||[])].sort((a,b)=>(a.round??0)-(b.round??0));
   const groups=new Map();
@@ -636,6 +738,7 @@ function render(){
   if(spec.constraints?.length){const list=el('ul');for(const c of spec.constraints)list.append(el('li',recorded(c)));goal.append(list);}
   const baseline=rows.find(r=>verifiedProfile(r)?.scope==='baseline_request');
   const profile=baseline&&verifiedProfile(baseline);
+  experimentHistory(base,opened);
   const hasStageHistory=stageHistory(base,rows);
   if(profile && !(data.profile_captures||[]).some(c=>c.phase==='baseline' && c.timing)){
     p(base,tr('首轮前基线 · 采样范围用时','Pre-round baseline · sampled scope duration')+'  '+fmt(profile.total)+' '+profile.metric_unit,'value');
