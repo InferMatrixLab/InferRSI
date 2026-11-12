@@ -1,11 +1,12 @@
 """Prepare, submit and measure one offline parallel round.
 
 Directory diffs stand in for git clones. ``close`` and incumbent advancement are
-not implemented. A synthetic latency number is not a campaign verdict.
+not implemented. A synthetic metric value is not a campaign verdict.
 """
 
 import hashlib
 import json
+import math
 import os
 import shutil
 import stat
@@ -33,10 +34,15 @@ from inferrsi.infra.confinement import ConfinementUnavailable, confined_execute
 from inferrsi.infra.device_lease import DeviceLease, LeaseError
 
 PLANES = {"harness", "model", "infra"}
+DIRECTIONS = {"lower", "higher"}
 
 
 class RoundPlanError(ValueError):
     """The frozen round plan is internally inconsistent."""
+
+
+def _segment(value) -> bool:
+    return isinstance(value, str) and bool(value) and not any(char in value for char in "/\\")
 
 
 def _match(path: str, patterns: list[str]) -> bool:
@@ -158,6 +164,24 @@ def prepare(spec: dict, incumbent: Path, round_dir: Path) -> dict:
     protected = spec.get("protected", [])
     if not isinstance(protected, list):
         raise RoundPlanError("protected paths must be a list of globs")
+    devices = spec.get("device_ids")
+    if (
+        not isinstance(devices, list)
+        or not devices
+        or not all(_segment(item) for item in devices)
+        or len(set(devices)) != len(devices)
+    ):
+        raise RoundPlanError("device_ids must list distinct device identities")
+    metric = spec.get("metric")
+    if (
+        not isinstance(metric, dict)
+        or set(metric) != {"name", "better"}
+        or not isinstance(metric["name"], str)
+        or not metric["name"]
+        or not isinstance(metric["better"], str)
+        or metric["better"] not in DIRECTIONS
+    ):
+        raise RoundPlanError("metric needs a name and better: lower or higher")
     seen_entries: set[str] = set()
     seen_ids: set[str] = set()
     files = _files(incumbent)
@@ -167,7 +191,7 @@ def prepare(spec: dict, incumbent: Path, round_dir: Path) -> dict:
         entry = lane.get("entry")
         plane = lane.get("plane")
         globs = lane.get("globs")
-        if not isinstance(lane_id, str) or not lane_id or lane_id in seen_ids:
+        if not _segment(lane_id) or lane_id in seen_ids:
             raise RoundPlanError("each lane needs its own id")
         if not isinstance(entry, str) or not entry:
             raise RoundPlanError("each lane needs one search-plan entry")
@@ -198,7 +222,8 @@ def prepare(spec: dict, incumbent: Path, round_dir: Path) -> dict:
                 raise RoundPlanError(f"{lane['id']} overlaps {other['id']}")
     body = {
         "round_id": spec["round_id"],
-        "device_id": spec["device_id"],
+        "device_ids": list(devices),
+        "metric": dict(metric),
         "incumbent_id": spec["incumbent_id"],
         "protected": protected,
         "build": list(spec.get("build", [])),
@@ -327,8 +352,18 @@ def _materialize(incumbent: Path, overlay: Path, destination: Path) -> None:
         shutil.copy2(overlay / relative, target)
 
 
-def _command(template: list[str], result: Path) -> tuple[str, ...]:
-    return tuple(part.replace("{result}", str(result)) for part in template)
+def _command(template: list[str], result: Path | None, device: str) -> tuple[str, ...]:
+    parts = (part.replace("{device}", device) for part in template)
+    if result is None:
+        return tuple(parts)
+    return tuple(part.replace("{result}", str(result)) for part in parts)
+
+
+def _metric_value(path: Path, name: str) -> float:
+    value = json.loads(path.read_text(encoding="utf-8"))["metrics"][name]
+    if type(value) not in (int, float) or not math.isfinite(value):
+        raise ValueError(f"{name} is not a finite number")
+    return value
 
 
 def _record(round_dir: Path, ticket: str, **fields) -> dict:
@@ -346,9 +381,17 @@ def _claimed_entry(ledger, ticket: str):
 
 
 def _launch(
-    plan: dict, lane: dict, candidate: Path, incumbent: Path, trial_dir: Path, *, backend, current
+    plan: dict,
+    lane: dict,
+    candidate: Path,
+    incumbent: Path,
+    trial_dir: Path,
+    device: str,
+    *,
+    backend,
+    current,
 ):
-    """Run build and both trials. Each start is bounded by the same absolute deadline."""
+    """Run build and both trials on one device. Each start uses the same absolute deadline."""
     build_dir = candidate / "build-output"
     build_dir.mkdir(parents=True, exist_ok=True)
     trial_dir.mkdir(parents=True, exist_ok=True)
@@ -365,11 +408,11 @@ def _launch(
             raise ConfinementUnavailable(f"{stage} {record.get('status')}")
 
     if plan["build"]:
-        run("build", tuple(plan["build"]), candidate, (candidate, build_dir), ())
+        run("build", _command(plan["build"], None, device), candidate, (candidate, build_dir), ())
     candidate_result = trial_dir / "candidate.json"
     run(
         "candidate",
-        _command(plan["trial"], candidate_result),
+        _command(plan["trial"], candidate_result, device),
         candidate,
         (trial_dir,),
         (candidate,),
@@ -377,7 +420,7 @@ def _launch(
     incumbent_result = trial_dir / "incumbent.json"
     run(
         "incumbent",
-        _command(plan["trial"], incumbent_result),
+        _command(plan["trial"], incumbent_result, device),
         incumbent,
         (trial_dir,),
         (incumbent,),
@@ -394,7 +437,8 @@ def serve_ticket(
     now: datetime | None = None,
     clock=None,
 ) -> dict:
-    """Measure one ticket. A busy device leaves it queued and does not reserve an attempt.
+    """Measure one ticket on any free device. A busy lane or no free device leaves it
+    queued and does not reserve an attempt.
 
     ``now`` is accepted for older callers and is not a frozen deadline. Every
     admission and command reads ``clock`` or the current time again.
@@ -414,65 +458,115 @@ def serve_ticket(
     if manifest.get("deleted"):
         return _record(round_dir, ticket, status="rejected", reason="deletion")
     lane = _lane(plan, manifest["lane_id"])
-    if _claimed_entry(_load_ledger(round_dir, plan, lane), ticket) is not None:
-        return _record(
-            round_dir,
-            ticket,
-            status="unsettled",
-            reason="claimed execution was not settled",
-        )
     try:
-        held = DeviceLease(round_dir / "leases").acquire(plan["device_id"])
+        lane_lock = DeviceLease(round_dir / "lane-locks").acquire(lane["id"])
     except LeaseError:
         return {"ticket": ticket, "status": "queued"}
     try:
-        try:
-            loaded = _load_ledger(round_dir, plan, lane)
-            ledger, binding = admit_attempt(plan, loaded, lane["id"], current(), token=ticket)
-        except BudgetError as exc:
-            return _record(round_dir, ticket, status="rejected", reason=str(exc))
-        _save_ledger(round_dir, ledger)
-        candidate = round_dir / "candidates" / ticket
-        trial_dir = round_dir / "trials" / ticket
-        _materialize(incumbent, overlay, candidate)
-        try:
-            seconds_remaining(lane["deadline_utc"], current())
-        except BudgetError as exc:
-            _save_ledger(round_dir, advance(ledger, binding, "cancelled"))
-            return _record(round_dir, ticket, status="rejected", reason=str(exc))
-        ledger = advance(ledger, binding, "claimed")
-        _save_ledger(round_dir, ledger)
-        try:
-            candidate_result, incumbent_result = _launch(
-                plan, lane, candidate, incumbent, trial_dir, backend=backend, current=current
-            )
-        except (ConfinementUnavailable, BudgetError) as exc:
-            return _record(round_dir, ticket, status="unsettled", reason=str(exc))
-        try:
-            candidate_body = json.loads(candidate_result.read_text(encoding="utf-8"))
-            incumbent_body = json.loads(incumbent_result.read_text(encoding="utf-8"))
-            candidate_metric = candidate_body["metrics"]["latency_ms"]
-            incumbent_metric = incumbent_body["metrics"]["latency_ms"]
-        except (OSError, json.JSONDecodeError, KeyError, TypeError, ValueError) as exc:
+        if result_path.exists():
+            return json.loads(result_path.read_text(encoding="utf-8"))
+        if _claimed_entry(_load_ledger(round_dir, plan, lane), ticket) is not None:
             return _record(
                 round_dir,
                 ticket,
                 status="unsettled",
-                reason=f"trial finished without a readable latency result: {exc}",
+                reason="claimed execution was not settled",
             )
-        finished = advance(ledger, binding, "finished", actual_cost=0)
-        _save_ledger(round_dir, finished)
+        leases = DeviceLease(round_dir / "leases")
+        for device in plan["device_ids"]:
+            try:
+                held = leases.acquire(device)
+            except LeaseError:
+                continue
+            try:
+                return _measure(
+                    round_dir,
+                    plan,
+                    lane,
+                    ticket,
+                    overlay,
+                    incumbent,
+                    device,
+                    backend=backend,
+                    current=current,
+                )
+            finally:
+                held.release()
+        return {"ticket": ticket, "status": "queued"}
+    finally:
+        lane_lock.release()
+
+
+def _measure(
+    round_dir: Path,
+    plan: dict,
+    lane: dict,
+    ticket: str,
+    overlay: Path,
+    incumbent: Path,
+    device: str,
+    *,
+    backend,
+    current,
+) -> dict:
+    try:
+        loaded = _load_ledger(round_dir, plan, lane)
+        ledger, binding = admit_attempt(plan, loaded, lane["id"], current(), token=ticket)
+    except BudgetError as exc:
+        return _record(round_dir, ticket, status="rejected", reason=str(exc))
+    _save_ledger(round_dir, ledger)
+    candidate = round_dir / "candidates" / ticket
+    trial_dir = round_dir / "trials" / ticket
+    _materialize(incumbent, overlay, candidate)
+    try:
+        seconds_remaining(lane["deadline_utc"], current())
+    except BudgetError as exc:
+        _save_ledger(round_dir, advance(ledger, binding, "cancelled"))
+        return _record(round_dir, ticket, status="rejected", reason=str(exc))
+    ledger = advance(ledger, binding, "claimed")
+    _save_ledger(round_dir, ledger)
+    try:
+        candidate_result, incumbent_result = _launch(
+            plan,
+            lane,
+            candidate,
+            incumbent,
+            trial_dir,
+            device,
+            backend=backend,
+            current=current,
+        )
+    except (ConfinementUnavailable, BudgetError) as exc:
+        return _record(round_dir, ticket, status="unsettled", reason=str(exc), device=device)
+    metric = plan["metric"]
+    try:
+        candidate_value = _metric_value(candidate_result, metric["name"])
+        incumbent_value = _metric_value(incumbent_result, metric["name"])
+    except (OSError, json.JSONDecodeError, KeyError, TypeError, ValueError) as exc:
         return _record(
             round_dir,
             ticket,
-            status="measured",
-            candidate_latency_ms=candidate_metric,
-            incumbent_latency_ms=incumbent_metric,
-            gain_ms=incumbent_metric - candidate_metric,
-            confinement=getattr(backend, "name", "unknown"),
+            status="unsettled",
+            reason=f"trial finished without a readable {metric['name']} result: {exc}",
+            device=device,
         )
-    finally:
-        held.release()
+    finished = advance(ledger, binding, "finished", actual_cost=0)
+    _save_ledger(round_dir, finished)
+    gain = incumbent_value - candidate_value
+    if metric["better"] == "higher":
+        gain = -gain
+    return _record(
+        round_dir,
+        ticket,
+        status="measured",
+        metric=metric["name"],
+        better=metric["better"],
+        candidate=candidate_value,
+        incumbent=incumbent_value,
+        gain=gain,
+        device=device,
+        confinement=getattr(backend, "name", "unknown"),
+    )
 
 
 def ticket_status(round_dir: Path, ticket: str) -> dict:

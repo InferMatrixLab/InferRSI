@@ -63,7 +63,8 @@ def _spec(**overrides):
     )
     spec = {
         "round_id": "r1",
-        "device_id": "cpu-0",
+        "device_ids": ["cpu-0"],
+        "metric": {"name": "latency_ms", "better": "lower"},
         "incumbent_id": "fixture-incumbent",
         "protected": ["bench.py"],
         "build": [sys.executable, "-c", "open('build-stamp','w').write('ok')"],
@@ -126,6 +127,23 @@ def test_prepare_rejects_overlapping_globs_protected_paths_and_shared_entries(tm
         prepare(many, incumbent, tmp_path / "round-plane")
 
 
+def test_prepare_rejects_bad_devices_and_metric(tmp_path):
+    incumbent = tmp_path / "incumbent"
+    _tree(incumbent, "10")
+    for devices in ([], ["cpu-0", "cpu-0"], ["a/b"], "cpu-0"):
+        with pytest.raises(RoundPlanError, match="device_ids"):
+            prepare(_spec(device_ids=devices), incumbent, tmp_path / "round-devices")
+    for metric in (
+        None,
+        {"name": "latency_ms"},
+        {"name": "", "better": "lower"},
+        {"name": "latency_ms", "better": "faster"},
+        {"name": "latency_ms", "better": ["lower"]},
+    ):
+        with pytest.raises(RoundPlanError, match="metric"):
+            prepare(_spec(metric=metric), incumbent, tmp_path / "round-metric")
+
+
 def test_prepare_records_plan_cap_and_deadline(tmp_path):
     incumbent = tmp_path / "incumbent"
     _tree(incumbent, "10")
@@ -172,11 +190,95 @@ def test_serve_records_a_synthetic_gain_and_a_held_device_stays_queued(tmp_path)
     held.release()
     measured = serve_ticket(round_dir, ticket, incumbent, backend=FixtureBackend(), now=WHEN)
     assert measured["synthetic"] is True
-    assert measured["candidate_latency_ms"] == 8
-    assert measured["incumbent_latency_ms"] == 10
-    assert measured["gain_ms"] == 2
+    assert measured["metric"] == "latency_ms"
+    assert measured["candidate"] == 8
+    assert measured["incumbent"] == 10
+    assert measured["gain"] == 2
+    assert measured["device"] == "cpu-0"
     assert measured["confinement"] == "fixture"
     assert (round_dir / "candidates" / ticket / "build-stamp").read_text(encoding="utf-8") == "ok"
+
+
+def test_higher_is_better_metric_reports_gain_in_the_better_direction(tmp_path):
+    incumbent = tmp_path / "incumbent"
+    _tree(incumbent, "10")
+    round_dir = tmp_path / "round"
+    prepare(_spec(metric={"name": "latency_ms", "better": "higher"}), incumbent, round_dir)
+    work = tmp_path / "work"
+    _tree(work, "8")
+    ticket = submit(round_dir, "L1", incumbent, work, now=WHEN)["ticket"]
+    measured = serve_ticket(round_dir, ticket, incumbent, backend=FixtureBackend(), now=WHEN)
+    assert measured["status"] == "measured"
+    assert measured["better"] == "higher"
+    assert measured["gain"] == -2
+
+
+def test_serve_uses_a_free_device_and_passes_its_identity_to_the_commands(tmp_path):
+    incumbent = tmp_path / "incumbent"
+    _tree(incumbent, "10")
+    round_dir = tmp_path / "round"
+    stamp_device = "import sys; open('build-stamp', 'w').write(sys.argv[1])"
+    spec = _spec(
+        device_ids=["gpu-0", "gpu-1"],
+        build=[sys.executable, "-c", stamp_device, "{device}"],
+    )
+    prepare(spec, incumbent, round_dir)
+    work = tmp_path / "work"
+    _tree(work, "8")
+    ticket = submit(round_dir, "L1", incumbent, work, now=WHEN)["ticket"]
+    held = DeviceLease(round_dir / "leases").acquire("gpu-0")
+    try:
+        measured = serve_ticket(round_dir, ticket, incumbent, backend=FixtureBackend(), now=WHEN)
+    finally:
+        held.release()
+    assert measured["status"] == "measured"
+    assert measured["device"] == "gpu-1"
+    stamp = round_dir / "candidates" / ticket / "build-stamp"
+    assert stamp.read_text(encoding="utf-8") == "gpu-1"
+
+
+def test_a_busy_lane_stays_queued_without_touching_its_ledger(tmp_path):
+    incumbent = tmp_path / "incumbent"
+    _tree(incumbent, "10")
+    round_dir = tmp_path / "round"
+    prepare(_spec(device_ids=["gpu-0", "gpu-1"]), incumbent, round_dir)
+    work = tmp_path / "work"
+    _tree(work, "8")
+    ticket = submit(round_dir, "L1", incumbent, work, now=WHEN)["ticket"]
+    held = DeviceLease(round_dir / "lane-locks").acquire("L1")
+    try:
+        queued = serve_ticket(round_dir, ticket, incumbent, backend=FixtureBackend(), now=WHEN)
+    finally:
+        held.release()
+    assert queued["status"] == "queued"
+    assert not (round_dir / "ledgers").exists()
+    assert not (round_dir / "results").exists()
+
+
+def test_a_non_numeric_metric_is_an_unsettled_receipt(tmp_path):
+    incumbent = tmp_path / "incumbent"
+    _tree(incumbent, "10")
+    round_dir = tmp_path / "round"
+    prepare(_spec(), incumbent, round_dir)
+    work = tmp_path / "work"
+    _tree(work, "8")
+    ticket = submit(round_dir, "L1", incumbent, work, now=WHEN)["ticket"]
+
+    class WritesText:
+        name = "text"
+
+        def run(self, argv, *args, **kwargs):
+            del args, kwargs
+            if argv[-1].endswith(".json"):
+                body = {"metrics": {"latency_ms": "fast"}}
+                Path(argv[-1]).write_text(json.dumps(body), encoding="utf-8")
+            return {"status": "completed", "stdout": "", "stderr": ""}
+
+    result = serve_ticket(round_dir, ticket, incumbent, backend=WritesText(), now=WHEN)
+    assert result["status"] == "unsettled"
+    assert "not a finite number" in result["reason"]
+    ledger = json.loads((round_dir / "ledgers" / "L1.json").read_text(encoding="utf-8"))
+    assert [entry["phase"] for entry in ledger["entries"]] == ["claimed"]
 
 
 def test_two_acquires_do_not_share_one_device(tmp_path):
@@ -402,7 +504,7 @@ def test_completed_trial_without_a_latency_file_is_unsettled(tmp_path):
         round_dir, ticket, incumbent, backend=CompletesWithoutResult(), now=WHEN
     )
     assert result["status"] == "unsettled"
-    assert "readable latency result" in result["reason"]
+    assert "readable latency_ms result" in result["reason"]
     assert ticket_status(round_dir, ticket)["status"] == "unsettled"
 
 
