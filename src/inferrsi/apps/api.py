@@ -74,7 +74,12 @@ def _preserves_request(spec: dict, fields: dict, inputs: list) -> bool:
     return all(encode(item) in bound_bytes for item in inputs)
 
 
-def _execute_saved(request: dict, fields: dict, bind_execution, execute_harness) -> dict:
+def _execute_saved(
+    request: dict,
+    fields: dict,
+    bind_execution: Callable[[dict], dict],
+    execute_harness: Callable[[dict], dict],
+) -> dict:
     spec = bind_execution(deepcopy(request))
     if is_public_error(spec):
         return execution_result(error=spec)

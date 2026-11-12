@@ -166,15 +166,20 @@ def test_failed_publication_preserves_commit_and_replay_reuses_attempt(tmp_path,
     assert (tmp_path / "execute-request.json").read_bytes() == saved
 
 
-def test_typed_harness_error_is_published(tmp_path):
-    error = PublicError("RecoveryRequired", stage="claim", message="owner state unknown")
+def test_run_store_replay_with_unknown_owner_publishes_recovery_required(tmp_path):
+    request = _request()
+    (tmp_path / "execute-request.json").write_bytes(encode(request))
+    store = RunStore(tmp_path / "run-store", "apps-test")
+    attempt = request["attempt"]
+    with store.claim(attempt, request_digest(_bind(request))):
+        pass
 
-    def submit(spec):
-        raise error
-
-    output = execute(_request(), workspace=tmp_path, bind_execution=_bind, execute_harness=submit)
-    assert output.result["error"] == error.to_json()
+    output = _run_saved_request(tmp_path, "replay")
+    assert output.result["reason_code"] == "RecoveryRequired"
+    assert output.result["error"]["attempt_id"] == attempt["attempt_id"]
     assert output.result["exit_code"] == 5
+    assert output.result["record_ref"] is None
+    assert read_result(tmp_path, "replay") == output
 
 
 def test_a_code_key_on_a_bound_spec_does_not_discriminate_a_public_error(tmp_path):
@@ -192,6 +197,16 @@ def test_a_code_key_on_a_bound_spec_does_not_discriminate_a_public_error(tmp_pat
     )
     assert submitted == ["extra-metadata"]
     assert output.result["error"] == error.to_json()
+
+
+def test_public_error_with_invalid_prior_record_ref_is_not_published(tmp_path):
+    error = {**_fixture("public-error"), "latest_record_ref": {}}
+    with pytest.raises(ValueError, match="reference"):
+        execute(
+            _request(), workspace=tmp_path,
+            bind_execution=_bind, execute_harness=lambda spec: error,
+        )
+    assert not (tmp_path / "output").exists()
 
 
 @pytest.mark.parametrize(

@@ -1,10 +1,11 @@
 """Assemble and check the AppsResultV1 output envelope."""
 
 import re
+from dataclasses import fields
 from hashlib import sha256
 
 from inferrsi._json_v1 import encode
-from inferrsi.harness.errors import PUBLIC_ERROR_CODES
+from inferrsi.harness.errors import PUBLIC_ERROR_CODES, PartialExecutionFacts
 
 _EXIT_CODES = {
     "success": 0,
@@ -32,6 +33,7 @@ _ERROR_FIELDS = {
     "code", "stage", "attempt_id", "started", "latest_record_ref",
     "partial_record", "retained_refs", "field_errors", "message",
 }
+_PARTIAL_FIELDS = {field.name for field in fields(PartialExecutionFacts)}
 _REF_FIELDS = {
     "prepared_ref": ("prepared_id", "schema_version"),
     "record_ref": ("attempt_id", "record_version"),
@@ -118,15 +120,9 @@ def publication_error(result: dict) -> dict:
     }
 
 
-def _check_ref(ref: object, id_field: str, version_field: str) -> None:
-    if not isinstance(ref, dict) or ref.keys() != {id_field, version_field, "artifact"}:
-        raise ValueError("invalid Apps reference fields")
-    identity, version, artifact = ref[id_field], ref[version_field], ref["artifact"]
+def _check_artifact(artifact: object) -> None:
     if (
-        not isinstance(identity, str) or not identity
-        or type(version) is not int or version < 1
-        or (version_field == "schema_version" and version != 1)
-        or not isinstance(artifact, dict)
+        not isinstance(artifact, dict)
         or artifact.keys() != {"location", "sha256", "size_bytes", "media_type"}
         or not isinstance(artifact["location"], str) or not artifact["location"]
         or not isinstance(artifact["sha256"], str) or not _SHA256.fullmatch(artifact["sha256"])
@@ -134,6 +130,41 @@ def _check_ref(ref: object, id_field: str, version_field: str) -> None:
         or not isinstance(artifact["media_type"], str) or not artifact["media_type"]
     ):
         raise ValueError("invalid Apps reference metadata")
+
+
+def _check_ref(ref: object, id_field: str, version_field: str) -> None:
+    if not isinstance(ref, dict) or ref.keys() != {id_field, version_field, "artifact"}:
+        raise ValueError("invalid Apps reference fields")
+    identity, version = ref[id_field], ref[version_field]
+    if (
+        not isinstance(identity, str) or not identity
+        or type(version) is not int or version < 1
+        or (version_field == "schema_version" and version != 1)
+    ):
+        raise ValueError("invalid Apps reference metadata")
+    _check_artifact(ref["artifact"])
+
+
+def _check_error(error: dict, outcome: str) -> None:
+    if (
+        not is_public_error(error)
+        or outcome != _ERROR_OUTCOMES.get(error["code"], "error")
+        or not isinstance(error["stage"], str) or not error["stage"]
+        or (error["attempt_id"] is not None and not isinstance(error["attempt_id"], str))
+        or (error["started"] is not None and not isinstance(error["started"], bool))
+        or not isinstance(error["message"], str)
+        or not isinstance(error["field_errors"], list)
+        or any(not isinstance(item, str) for item in error["field_errors"])
+        or not isinstance(error["retained_refs"], list)
+    ):
+        raise ValueError("invalid Apps PublicError")
+    partial = error["partial_record"]
+    if partial is not None and (not isinstance(partial, dict) or partial.keys() != _PARTIAL_FIELDS):
+        raise ValueError("invalid partial execution facts in Apps PublicError")
+    if error["latest_record_ref"] is not None:
+        _check_ref(error["latest_record_ref"], *_REF_FIELDS["record_ref"])
+    for ref in error["retained_refs"]:
+        _check_artifact(ref)
 
 
 def _check_artifact_ref(ref: dict, payload: dict) -> None:
@@ -231,11 +262,8 @@ def validate_result(result: object) -> None:
     ):
         raise ValueError("inconsistent Apps outcome and exit code")
     error = result["error"]
-    if error is not None and (
-        not is_public_error(error)
-        or outcome != _ERROR_OUTCOMES.get(error["code"], "error")
-    ):
-        raise ValueError("invalid Apps PublicError")
+    if error is not None:
+        _check_error(error, outcome)
     if result["reason_code"] != (error["code"] if error is not None else None):
         raise ValueError("inconsistent Apps reason and error")
     if error is None and outcome in ("error", "in_progress", "persistence_error"):
