@@ -364,6 +364,7 @@ __DASHBOARD_EXPERIMENTS__
     'Optimization process':'优化过程', 'Recorded order and rationale':'记录的顺序与原因',
     'Action':'操作', 'Why':'原因', 'Recorded result':'记录的结果', 'Technical event':'技术事件',
     'Unavailable, unlinked, or source hash mismatch':'不可用、未关联或来源哈希不匹配', 'Steps':'步骤',
+    'Sample 1':'样本 1','Sample 2':'样本 2','Recorded reference':'已记录参考','Recorded target':'已记录目标',
     'All original successes and failures':'全部原始成功与失败记录', 'Choose a run':'选择运行',
     'Successes and failures':'成功与失败', 'Caller conclusions; see evidence for verdicts':'调用方的总结；判定请查看证据',
     'Success summary':'成功总结', 'Failure summary':'失败总结', 'Limitations':'局限性',
@@ -1040,8 +1041,8 @@ __DASHBOARD_EXPERIMENTS__
       detailLine(box,'Performance',e.performance_verdict);
       detailLine(box,'Quality',e.quality_verdict+(e.quality_total!==null?' · '+measurement(e.quality_correct)+' / '+measurement(e.quality_total):''));
       const table=node('table'), header=node('tr');
-      for(const h of ['Metric','Parent','Round 1','Round 2','Aggregate','Target','Target gap'])header.appendChild(node('th',h));table.appendChild(header);
-      for(const m of e.metrics){const tr=node('tr');for(const v of [m.name+' ('+m.unit+')',measurement(m.baseline),measurement(m.samples[0]),measurement(m.samples[1]),measurement(m.aggregate),measurement(m.target),m.aggregate!==null&&m.target!==null?measurement(m.aggregate-m.target):'Not recorded'])tr.appendChild(node('td',v));table.appendChild(tr);}box.appendChild(table);
+      for(const h of ['Metric','Recorded reference','Sample 1','Sample 2','Aggregate','Recorded target','Target gap'])header.appendChild(node('th',h));table.appendChild(header);
+      for(const m of e.metrics){const tr=node('tr');for(const v of [m.name+' ('+m.unit+')',measurement(m.baseline),measurement(m.samples[0]),measurement(m.samples[1]),measurement(m.aggregate),measurement(m.target),m.aggregate!==null&&m.target!==null&&['minimize','maximize'].includes(m.plot?.direction)?measurement(m.plot.direction==='minimize'?m.aggregate-m.target:m.target-m.aggregate):'Not recorded'])tr.appendChild(node('td',v));table.appendChild(tr);}box.appendChild(table);
       box.appendChild(node('p',e.note));box.appendChild(node('small',e.provenance));
       detailLine(box,'Environment identity',e.identity_state);
       for(const ref of e.source_refs)box.appendChild(node('code',refText(ref)));

@@ -93,7 +93,8 @@ def build(root: Path):
     external(root, "missing-artifact", 10, [metric(value=9)])
     (root / "missing-artifact-source.json").unlink()
     external(root, "legacy-metric", None, [{"name": "old latency", "unit": "s",
-                                          "aggregate": 11, "aggregation": "median"}])
+                                          "aggregate": 11, "aggregation": "median",
+                                          "baseline": 12, "target": 8}])
     # Two native runs with the same candidate and round exercise precise native drilldown.
     for name, value in [("native-run-a", 105), ("native-run-b", 106)]:
         run = root / "runs" / name

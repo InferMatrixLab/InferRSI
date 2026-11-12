@@ -70,6 +70,11 @@ def test_offline_axes_keyboard_exact_run_and_shared_selection(browser, campaign)
     assert chooser.get_by_role("button").count() == 2
     chooser.get_by_role("button").filter(has_text="native-run-a").click()
     assert "native-run-a" in page.locator("#run-review").inner_text()
+    page.locator('#candidate-filter').select_option(
+        label='legacy-metric · legacy-metric.json')
+    legacy = page.locator('#candidate-inspection table')
+    assert 'Sample 1' in legacy.inner_text() and 'Round 1' not in legacy.inner_text()
+    assert legacy.locator('td').last.inner_text() == 'Not recorded'
     assert not errors
     assert all(url.startswith("file:") for url in requests)
     page.close()
