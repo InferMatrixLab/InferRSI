@@ -41,7 +41,7 @@
         "REPO_TYPES is the same tuple object through root catalog, the neutral leaf, and K.catalog",
         "Derived KNOWLEDGE_SCOPES and KNOWLEDGE_REPOS stay unchanged"
       ],
-      "consumer_evidence": "tests/test_cli_catalog.py (L189) and tests/test_knowledge_tiers.py (L89) patch catalog.files; tests/test_research.py (L91, L120) patch catalog.knowledge_records; infra.inspection (L10, L56) imports and calls repository_pack; arguments (L12) imports BACKENDS, KNOWLEDGE_REPOS, KNOWLEDGE_SCOPES, REPO_TYPES; cli (L12) imports get_knowledge, search_knowledge; observability/campaign_records (L12) imports BACKENDS",
+      "consumer_evidence": "tests/test_cli_catalog.py (L189) and tests/test_knowledge_tiers.py (L89) patch catalog.files; tests/test_research.py (L91, L120) patch catalog.knowledge_records; infra.inspection (L10, L56) imports and calls repository_pack; arguments (L12) imports BACKENDS, KNOWLEDGE_REPOS, KNOWLEDGE_SCOPES, REPO_TYPES; cli (L12) imports get_knowledge, search_knowledge; observability/campaign_records (L12) imports BACKENDS. On this K01 head, tests/test_cli_catalog.py (L191), tests/test_knowledge_tiers.py (L91), and tests/test_research.py (L92, L121) patch inferrsi.knowledge.catalog; a root-shell patch is no longer effective.",
       "retirement_evidence": "catalog sheds repository_pack to the neutral leaf; K.catalog does not export repository_pack"
     },
     {
@@ -135,7 +135,7 @@
         "RELEVANCE_METHODS, TASK_RELEVANCE, and the scoring and context functions are the same objects; selection algorithm not rewritten",
         "#389 audit: TASK_RELEVANCE is \"task-lexical-v1\" and is the third RELEVANCE_METHODS element; skill_score accepts only the two skill-only methods and rejects task-lexical-v1 with \"Unknown relevance method for skill-only ranking\"; task_score ranks skill and package records by whole task terms with a portable-or-in-scope backend factor; record_context returns the whole package record entrypoint as a context view or a context_limit omission"
       ],
-      "consumer_evidence": "knowledge_operations (L12-L21) imports RELEVANCE_METHODS, TASK_RELEVANCE, context_view, indexed_skill, record_context, skill_score, task_score, words; collect uses them for relevance selection and context views; observability/knowledge_capture (L20) imports TASK_RELEVANCE through the root leaf and uses it at L74-L75, and cli (L335) and observability/optimization_story (L14) load that module; arguments (L11) imports RELEVANCE_METHODS; tools/evaluate_indexer.py (L138) imports SkillIndexError, indexed_skill; tests/test_raw_string_selection.py covers scoring and the skill_score rejection (L84-L86); tests/test_collect_selection.py covers context_view; tests/test_campaign_task_selection.py covers task-lexical-v1 through root KnowledgeReader"
+      "consumer_evidence": "knowledge_operations (L12-L21) imports RELEVANCE_METHODS, TASK_RELEVANCE, context_view, indexed_skill, record_context, skill_score, task_score, words; collect uses them for relevance selection and context views; observability/knowledge_capture (L20) imports TASK_RELEVANCE through the root leaf and uses it at L74-L75, and cli (L335) and observability/optimization_story (L14) load that module; arguments (L11) imports RELEVANCE_METHODS; tools/evaluate_indexer.py (L138) imports SkillIndexError, indexed_skill; tests/test_raw_string_selection.py covers scoring and the skill_score rejection (L84-L86); tests/test_collect_selection.py covers context_view; tests/test_campaign_task_selection.py covers task-lexical-v1 through root KnowledgeReader. The observability/knowledge_capture import of TASK_RELEVANCE is removed by OBS (#413); K01 only keeps the root-shell pass-through of that name."
     },
     {
       "importer": "research",
@@ -200,10 +200,10 @@
       },
       "audited_definitions": [
         "Bundle/KnowledgeReader/RevisionConflict/IdentityError/safe_path/AUTHORITIES/IDENTITY are the same objects; signatures/defaults/Path/exceptions and used symbols preserved",
-        "_json and _hash are explicitly re-exported for test injection (D1, D2)",
+        "The test-injection points for _json and _hash (D1, D2) are on the implementation module inferrsi.knowledge.knowledge_operations; the root shell only re-exports the same names as pass-throughs. Patching the root shell does not affect Bundle.manifest or KnowledgeReader.collect.",
         "#389 audit of KnowledgeReader.collect: signature, defaults, and validation order are unchanged; relevance_method=\"task-lexical-v1\" ranks every package authority record with task_score, lets a packaged skills.discovery skill pass a scenario filter only for ranked selection without ids, builds non-skill contexts with record_context, and adds selection.scope \"package-skills-and-records\" with matched_count and returned_count; the two earlier methods keep the packaged-skill-only path and selection.scope \"generated-packaged-skills\". No top-level name was added or removed."
       ],
-      "consumer_evidence": "harness/skill_evaluation (L9) imports KnowledgeReader; cli (L15, L25, L33) imports and uses KnowledgeReader; knowledge_store (L10-L19) imports KO symbols; tests/test_bundle_manifest.py (L73) patches _hash; tests/test_collect_limit_serialization.py (L39-47) patches _json; tests/test_knowledge_operations.py covers Bundle/KnowledgeReader contract; tests/test_campaign_task_selection.py covers the #389 task-lexical-v1 collect path"
+      "consumer_evidence": "harness/skill_evaluation (L9) imports KnowledgeReader; cli (L15, L25, L33) imports and uses KnowledgeReader; knowledge_store (L10-L19) imports KO symbols; tests/test_bundle_manifest.py (L73) patches _hash; tests/test_collect_limit_serialization.py (L39-47) patches _json; tests/test_knowledge_operations.py covers Bundle/KnowledgeReader contract; tests/test_campaign_task_selection.py covers the #389 task-lexical-v1 collect path. On this K01 head, tests/test_bundle_manifest.py (L74-L75) and tests/test_collect_limit_serialization.py (L48-L49) patch inferrsi.knowledge.knowledge_operations; a root-shell patch is no longer effective."
     },
     {
       "importer": "infra.inspection",
