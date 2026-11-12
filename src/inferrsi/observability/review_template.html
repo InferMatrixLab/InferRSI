@@ -37,7 +37,8 @@ th{font-size:13px;color:var(--sub);font-weight:500}.value{font-weight:650}
 .tag{display:inline-block;margin-right:8px;color:var(--accent);font-size:13px}
 details{margin-top:8px;font-size:13px}details details{margin-left:10px}
 .panel{margin:0;font-size:inherit}.panel>summary{font-weight:650;color:var(--text)}
-.panel>summary h2{display:inline;font-size:17px}.panel[open]>summary{margin-bottom:14px}
+.panel-heading{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%)}
+.panel>summary{font-size:17px}.panel[open]>summary{margin-bottom:14px}
 .panel>summary::marker{color:var(--accent)}.panel .capture, .panel td{overflow-wrap:anywhere}
 .timing-scroll{overflow-x:auto}.experiment-lane{display:grid;grid-template-columns:minmax(90px,17%) 1fr;align-items:center;gap:8px;margin:6px 0;color:var(--sub)}
 .experiment-track{height:19px;position:relative;background:var(--bg);border-radius:3px}
@@ -79,13 +80,13 @@ pre{max-height:22rem;overflow:auto;white-space:pre-wrap;padding:9px 12px;backgro
 <header><div><strong>InferRSI</strong><code id="campaign"></code><small id="mode"></small><small id="connection" role="status"></small><button id="language" type="button"></button></div></header>
 <main>
 <section class="trend" aria-labelledby="chart-title"><figure><h1 id="chart-title"></h1><div class="note" id="chart-note"></div><div id="chart">__DASHBOARD_CHART__</div></figure></section>
-<section aria-labelledby="goal-title"><details class="panel" data-key="goal"><summary><h2 id="goal-title"></h2></summary><div id="goal"></div></details></section>
-<section id="story-checks" hidden aria-labelledby="checks-title"><details class="panel" data-key="checks"><summary><h2 id="checks-title"></h2> <span id="checks-count"></span></summary><ul id="checks-list"></ul></details></section>
-<section aria-labelledby="baseline-title"><details class="panel" data-key="timings"><summary><h2 id="baseline-title"></h2></summary><div id="baseline"></div></details></section>
-<section id="capture-section" hidden aria-labelledby="captures-title"><details class="panel" data-key="profiles"><summary><h2 id="captures-title"></h2></summary><div id="captures"></div></details></section>
-<section aria-labelledby="gap-title"><details class="panel" data-key="gap"><summary><h2 id="gap-title"></h2></summary><div id="gap"></div></details></section>
-<section aria-labelledby="rounds-title"><details class="panel" data-key="rounds"><summary><h2 id="rounds-title"></h2></summary><div id="rounds"></div></details></section>
-<section aria-labelledby="decision-title"><details class="panel" data-key="decisions"><summary><h2 id="decision-title"></h2></summary><div class="decisions" id="decisions"></div></details></section>
+<section aria-labelledby="goal-title"><h2 class="panel-heading" aria-labelledby="goal-title"></h2><details class="panel" data-key="goal"><summary><span id="goal-title"></span></summary><div id="goal"></div></details></section>
+<section id="story-checks" hidden aria-labelledby="checks-title"><h2 class="panel-heading" aria-labelledby="checks-title"></h2><details class="panel" data-key="checks"><summary><span id="checks-title"></span> <span id="checks-count"></span></summary><ul id="checks-list"></ul></details></section>
+<section aria-labelledby="baseline-title"><h2 class="panel-heading" aria-labelledby="baseline-title"></h2><details class="panel" data-key="timings"><summary><span id="baseline-title"></span></summary><div id="baseline"></div></details></section>
+<section id="capture-section" hidden aria-labelledby="captures-title"><h2 class="panel-heading" aria-labelledby="captures-title"></h2><details class="panel" data-key="profiles"><summary><span id="captures-title"></span></summary><div id="captures"></div></details></section>
+<section aria-labelledby="gap-title"><h2 class="panel-heading" aria-labelledby="gap-title"></h2><details class="panel" data-key="gap"><summary><span id="gap-title"></span></summary><div id="gap"></div></details></section>
+<section aria-labelledby="rounds-title"><h2 class="panel-heading" aria-labelledby="rounds-title"></h2><details class="panel" data-key="rounds"><summary><span id="rounds-title"></span></summary><div id="rounds"></div></details></section>
+<section aria-labelledby="decision-title"><h2 class="panel-heading" aria-labelledby="decision-title"></h2><details class="panel" data-key="decisions"><summary><span id="decision-title"></span></summary><div class="decisions" id="decisions"></div></details></section>
 </main>
 <script id="dashboard-data" type="application/json">__DASHBOARD_DATA__</script>
 <script>
@@ -564,14 +565,14 @@ const captureLabel=c=>c.phase==='baseline'?tr('首轮前基线','Pre-round basel
 function captureCard(box,c,baseline,opened){
   const key='profile:'+c.id;
   const card=fold(box,captureLabel(c)+' · '+recorded(c.title||c.id),key,body=>{
-    if(c.started_at)p(body,tr('采集开始','Capture started')+' · '+c.started_at,'meta');
+    if(c.started_at)p(body,tr('调用方记录的采集开始时间','Caller-recorded capture start')+' · '+c.started_at,'meta');
     const links=c.pre_profile_searches||[];
     fold(body,tr('采集前的知识库检索','Knowledge search before capture')+' ('+links.length+')',key+'-kb',b=>{
       if(!links.length)p(b,tr('没有关联到本次采集之前的检索记录。','No pre-capture search is documented.'),'note');
       for(const link of links){
         const hit=data.story?.retrievals?.find(r=>r.context_id===link.context_id);
         if(link.state==='verified' && hit?.state==='verified'){
-          p(b,link.context_id,'value');retrievalDetails(b,hit,key+'-kb-'+link.context_id,opened);
+          p(b,link.context_id+' · '+tr('检索时间早于调用方记录的采集开始时间','Search predates the caller-recorded capture start'),'value');retrievalDetails(b,hit,key+'-kb-'+link.context_id,opened);
         }else{
           const reason=link.state==='not_before'?tr('检索时间不早于采集','Search did not precede capture'):
             link.state==='unknown_time'?tr('无法确认先后顺序','Order unknown'):tr('检索记录不可用或校验失败','Search unavailable or unverified');
@@ -608,10 +609,11 @@ function experimentHistory(box,opened){
   if(history.ledger==='unavailable')p(box,tr('补充计时文件未通过校验。','Supplemental timing evidence is unavailable.'),'note');
   if(!steps.length){p(box,tr('尚无实验步骤计时记录。','No experiment timing recorded.'),'note');return;}
   const totals=el('dl',null,'metrics');box.append(totals);
-  if(history.first && history.last){
-    metric(totals,tr('首末记录跨度','First to last record'),seconds((Date.parse(history.last)-Date.parse(history.first))/1000));
-    p(box,clock(history.first)+' → '+clock(history.last)+' UTC','meta');
-  }
+  const execution=history.execution_span;
+  if(execution){
+    metric(totals,tr('已记录的执行跨度','Recorded execution span'),seconds(execution.seconds));
+    p(box,clock(execution.first)+' → '+clock(execution.last)+' UTC','meta');
+  }else p(box,tr('缺少执行时间边界。','No execution bounds recorded.'),'note');
   for(const step of steps.filter(s=>s.kind==='run')){
     metric(totals,[rowLabel(step),'InferRSI',step.actor].filter(Boolean).join(' · '),seconds(step.seconds));
   }
@@ -627,8 +629,8 @@ function experimentHistory(box,opened){
       seconds(timed.length?timed.reduce((total,s)=>total+s.seconds,0):null));
   }
   if(!calls.length)p(box,tr('没有可关联的模型请求记录。','No correlated model requests recorded.'),'note');
-  p(box,tr('首末跨度按实际时间计算。模型调用、实验命令和 GPU 测量可能同时进行，各项时长不能直接相加。',
-    'Elapsed time spans the first and last record. Model calls, commands and GPU measurements can overlap.'),'note');
+  p(box,tr('跨度从最早到最晚的执行记录计算。模型调用、实验命令和 GPU 测量可能同时进行，各项时长不能直接相加。',
+    'The span uses the earliest and latest execution timestamps. Model calls, commands and GPU measurements can overlap.'),'note');
   function stepTable(parent,items){
     const wrap=el('div',null,'timing-scroll experiment-steps');parent.append(wrap);
     const headers=[tr('步骤','Step'),tr('开始 UTC','Start UTC'),tr('结束 UTC','End UTC'),tr('耗时','Duration'),tr('计时依据','Timing evidence')];
@@ -689,6 +691,7 @@ function stageHistory(box,rows){
   }
   for(const group of groups.values()){
     const first=group[0],wrap=el('div',null,'timing-scroll');box.append(wrap);
+    p(wrap,tr('调用方提供的阶段测量','Caller-recorded stage measurements'),'value');
     p(wrap,[first.workload_id,first.comparison_key,first.timing.basis].join(' · '),'meta');
     const stages=new Set(group.flatMap(c=>Object.keys(c.timing.stages_ms)));
     table(wrap,[tr('阶段（毫秒）','Stage (ms)'),...group.map(c=>captureLabel(c)+' · '+c.id)],
@@ -740,10 +743,10 @@ function render(){
   const profile=baseline&&verifiedProfile(baseline);
   experimentHistory(base,opened);
   const hasStageHistory=stageHistory(base,rows);
-  if(profile && !(data.profile_captures||[]).some(c=>c.phase==='baseline' && c.timing)){
-    p(base,tr('首轮前基线 · 采样范围用时','Pre-round baseline · sampled scope duration')+'  '+fmt(profile.total)+' '+profile.metric_unit,'value');
+  if(profile){
+    p(base,tr('已校验的基线 · 采样范围用时','Verified baseline · sampled scope duration')+'  '+fmt(profile.total)+' '+profile.metric_unit,'value');
     profileTable(base,profile);
-  }else if(!profile && !hasStageHistory)p(base,tr('缺少与本轮证据哈希匹配的请求 profile。','No verified request profile is attached.'),'note');
+  }else if(!hasStageHistory)p(base,tr('缺少与本轮证据哈希匹配的请求 profile。','No verified request profile is attached.'),'note');
   if(profile?.conclusion && !(data.profile_captures||[]).some(c=>c.takeaway===profile.conclusion))
     p(gap,recorded(profile.conclusion));
   const step=rows.find(r=>verifiedProfile(r)?.scope==='denoiser_step');

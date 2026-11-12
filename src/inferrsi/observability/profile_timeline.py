@@ -16,11 +16,11 @@ import re
 import stat
 import uuid
 from collections import Counter
-from datetime import datetime
 from functools import lru_cache
 from pathlib import Path
 
 from .optimization_log import _append_index, _read_regular
+from .timing_clock import recorded_time
 
 _ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,119}")
 _INDEX = "profile-captures.jsonl"
@@ -37,15 +37,6 @@ def _label(value: object, limit: int) -> str:
     return value
 
 
-def _timestamp(value: object) -> datetime:
-    if not isinstance(value, str):
-        raise ValueError("expected a timestamp with timezone")
-    parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
-    if parsed.tzinfo is None:
-        raise ValueError("expected a timestamp with timezone")
-    return parsed
-
-
 def pre_profile_searches(capture: dict, retrievals: dict) -> list[dict]:
     """Link only explicitly named, verified searches completed before this capture."""
     links = []
@@ -55,8 +46,8 @@ def pre_profile_searches(capture: dict, retrievals: dict) -> list[dict]:
             state = "unverified"
         else:
             try:
-                searched_at = _timestamp(search.get("captured_at"))
-                before = searched_at < _timestamp(capture.get("started_at"))
+                searched_at = recorded_time(search.get("captured_at"))
+                before = searched_at < recorded_time(capture.get("started_at"))
             except ValueError:
                 state = "unknown_time"
             else:
@@ -82,7 +73,7 @@ def _review(value: object) -> dict:
 
 def _review_history(value: dict) -> None:
     if "started_at" in value:
-        _timestamp(value["started_at"])
+        recorded_time(value["started_at"])
     if "context_ids" in value:
         ids = value["context_ids"]
         if ("started_at" not in value or not isinstance(ids, list) or len(ids) > 64

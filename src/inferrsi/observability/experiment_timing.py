@@ -6,31 +6,31 @@ import hashlib
 import json
 import re
 from collections import defaultdict
-from datetime import timezone
+from datetime import datetime
 from pathlib import Path
 
 from .dashboard_data import _text
-from .dashboard_workflow import _timestamp
 from .optimization_log import _read_regular
+from .timing_clock import recorded_time
 
 
 def _utc(value):
-    stamp = _timestamp(value)
     try:
-        return stamp.astimezone(timezone.utc).isoformat() if stamp else None
-    except (ValueError, OverflowError):
+        return recorded_time(value).isoformat(timespec="microseconds")
+    except ValueError:
         return None
 
 
 def _step(kind, label, start=None, end=None, *, seconds=None, basis, **fields):
     start, end = _utc(start), _utc(end)
     if start and end and seconds is None and end >= start and basis != "event":
-        seconds = (_timestamp(end) - _timestamp(start)).total_seconds()
+        seconds = (datetime.fromisoformat(end) - datetime.fromisoformat(start)).total_seconds()
     return dict(kind=kind, label=label, start=start, end=end, seconds=seconds,
                 basis=basis, **fields)
 
 
 def _reviewed_steps(root: Path, campaign_id: str, digest: str) -> list[dict]:
+    # The bounded read returns one extra byte so oversize files can be rejected.
     raw = _read_regular(root / "experiment-timing.json", 2 << 20)
     if len(raw) > 2 << 20 or hashlib.sha256(raw).hexdigest() != digest:
         raise ValueError("timing ledger failed verification")
@@ -46,8 +46,9 @@ def _reviewed_steps(root: Path, campaign_id: str, digest: str) -> list[dict]:
         ):
             raise ValueError("invalid step kind")
         start, end = item.get("start"), item.get("end")
-        if ((start is not None and not _utc(start)) or (end is not None and not _utc(end))
-                or not (start or end) or (start and end and _timestamp(start) > _timestamp(end))):
+        a, b = _utc(start), _utc(end)
+        if ((start is not None and not a) or (end is not None and not b)
+                or not (a or b) or (a and b and a > b)):
             raise ValueError("invalid step bounds")
         keys = ["label", "basis", "actor"] + (["model"] if item["kind"] == "model_call" else [])
         if not all(isinstance(item.get(k), str) and 0 < len(item[k]) <= 240 for k in keys):
@@ -139,5 +140,14 @@ def experiment_timing(view, root):
 
     steps.sort(key=lambda s: s["start"] or s["end"] or "~")
     stamps = [t for step in steps for t in (step["start"], step["end"]) if t]
-    return {"steps": steps, "ledger": ledger,
+    execution_stamps = [t for step in steps
+                        if step["kind"] in {"experiment", "run", "runner", "model_call",
+                                            "operation", "profile_request"}
+                        for t in (step["start"], step["end"]) if t]
+    execution = None
+    if execution_stamps:
+        first, last = min(execution_stamps), max(execution_stamps)
+        delta = datetime.fromisoformat(last) - datetime.fromisoformat(first)
+        execution = {"first": first, "last": last, "seconds": delta.total_seconds()}
+    return {"steps": steps, "ledger": ledger, "execution_span": execution,
             "first": min(stamps, default=None), "last": max(stamps, default=None)}

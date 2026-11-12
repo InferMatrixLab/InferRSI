@@ -159,7 +159,8 @@ starts an agent or validates the experiment.
 Use `campaign init --profile-first` for a new profiled campaign, or set
 `"review_layout": "profile_first"` in an existing `campaign.json`.
 The live view and HTML export keep the performance trend visible. Other sections
-start collapsed; opening a capture reveals its prior searches and timeline. Below the trend are
+start collapsed. Each capture has separate disclosures for its prior searches
+and timeline. Below the trend are
 acceptance criteria, recorded request profiles, the baseline breakdown and
 target gap, each round's measurements, and adoption decisions. The trend uses each
 candidate's paired medians. For example, a target latency reduction of 50%
@@ -191,15 +192,22 @@ A reviewed profile can also include these optional fields:
            "stages_ms":{"worker":51.4,"encode":7.1,"denoise":42.8}}}
 ```
 
-Use the recorded profile start (with timezone) and only the IDs of knowledge
+Use `YYYY-MM-DDTHH:MM:SS[.fraction]` followed by `Z` or a numeric UTC offset
+such as `+08:00` for profile and ledger timestamps. Fractions have one to six
+digits. The reader also accepts the compact legacy form `YYYYMMDDTHHMMSS`
+with the same fraction and timezone rules.
+
+Use the caller-recorded profile start and only the IDs of knowledge
 captures relevant to this profile. The reader shows a search as prior evidence
-only if its capture verifies and its timestamp precedes the recorded start.
-It does not infer a baseline search from round 1. The search view shows the
+only if its capture verifies and its timestamp precedes the start time supplied
+by the caller. The search view shows the
 query, selection method, ordered results, what was loaded or used, omissions
 and the original assembled context. A missing link stays explicit.
 
-Supply named stage measurements from the same capture and label their clock
-and scope in `basis`. The history table compares columns only within the same
+The stage history reads the reviewer’s `timing.stages_ms` values and clock
+description (`basis`). The importer checks that each duration is finite and
+nonnegative. The verified baseline breakdown stays visible alongside this
+history. The table compares columns only within the same
 workload, comparison key and timing basis. It leaves absent measurements blank,
 preserves nested stages, and does not sum them or substitute HTTP medians.
 Command durations for the experiment itself appear separately in round details.
@@ -209,7 +217,10 @@ The timing panel also orders experiment steps on a UTC clock. It reads InferRSI
 run boundaries, per-trial measurement commands, validation, profile starts,
 saved knowledge searches and review log versions. In a linked agent trace,
 an `agent.request` and `agent.response` with a unique matching request number
-in the same run and source produce a client-side call duration. Set
+in the same run and source produce a client-side call duration.
+The headline span uses the earliest and latest bounds from execution tasks,
+runs, runner steps, model calls, operations and profile requests. The full
+timeline also includes search and review saves. Set
 `provider_model` on the response to label the model. Concurrent calls may
 overlap each other and the benchmark. Missing boundaries stay unmeasured.
 
