@@ -270,3 +270,11 @@ unchanged gates; W3 passed at 38.8175 / 0.990182.
 [Component cases, startup failure and image checks](results/outlier-fc1-rejection.json)
 retain the source and calibration hashes. The candidate was rejected, no full
 performance trial ran, and no mixed-precision code was adopted.
+
+## Attention execution probes
+
+Nine native attention execution-option cases were exact but slower. Six
+full-mask block-attention cases retained all tokens, but were slower and
+non-exact. These synthetic single-device measurements did not justify an HTTP
+trial or engine integration. [Component samples](results/attention-execution-probes.json)
+include source hashes; they do not establish image quality or final performance.
