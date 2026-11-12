@@ -213,7 +213,7 @@ def _compile(raw: bytes, compressed: bool) -> tuple[dict, bytes]:
             identity = _lane(e)
             if identity not in lanes and len(lanes) >= _MAX_LANES:
                 raise ValueError("profile exceeds 512 lanes")
-            name = str(e.get("name", "unnamed")).replace("\n", " ")[:220]
+            name = str(e.get("name", "unnamed"))
             rows.append((lanes.setdefault(identity, len(lanes)), names.setdefault(name, len(names)),
                          e["ts"], e["dur"]))
     if not rows:
@@ -222,6 +222,16 @@ def _compile(raw: bytes, compressed: bool) -> tuple[dict, bytes]:
     end = max(t + d for _, _, t, d in rows)
     span = end - start
     lane_names, event_names = list(lanes), list(names)
+
+    # Only sampled events and the top GPU statistics need overview labels.
+    @lru_cache(maxsize=None)
+    def overview_name(index: int) -> dict:
+        name = event_names[index]
+        if len(name) <= 220:
+            return {"name": name}
+        digest = hashlib.sha256(name.encode("utf-8", errors="surrogatepass")).hexdigest()
+        return {"name": name[:145] + "…" + name[-60:] + " · " + digest[:10], "name_sha256": digest}
+
     counts = Counter(row[0] for row in rows)
     keep = {i for kind in ("stage", "gpu", "cpu")
             for i in sorted((j for j in counts if lane_names[j][0] == kind),
@@ -254,11 +264,11 @@ def _compile(raw: bytes, compressed: bool) -> tuple[dict, bytes]:
             bins[j] = running
         overview.append({"name": f"{kind} {pid}:{tid}" if pid != "*" else f"{kind} (other lanes)",
                          "kind": kind, "bins": bins[:-1],
-                         "events": [{"name": event_names[k], "ts_us": t, "dur_us": d}
+                         "events": [{**overview_name(k), "ts_us": t, "dur_us": d}
                                     for d, _, t, k in sorted(longest, key=lambda x: x[2])]})
     summary = {"start_us": start, "duration_us": span, "event_count": len(rows),
                "displayed_event_count": sum(len(t["events"]) for t in overview), "tracks": overview,
-               "stats": [{"name": event_names[k], "total_us": us, "count": gpu_calls[k]}
+               "stats": [{**overview_name(k), "total_us": us, "count": gpu_calls[k]}
                          for k, us in gpu_time.most_common(10)]}
     full = {"names": event_names, "lanes": [{"name": f"{k} {p}:{t}", "kind": k}
                                             for k, p, t in lane_names], "events": rows}

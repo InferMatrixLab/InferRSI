@@ -15,12 +15,15 @@ def _timestamp(value):
     return None
 
 
-def command_state(record: dict) -> tuple[str, float | None]:
+def command_state(record: object) -> tuple[str, float | None] | None:
+    """Only a terminal command record can supersede evidence from the phase log."""
+    if not isinstance(record, dict):
+        return None
     state, code = record.get("status"), record.get("returncode")
     if (state not in ("completed", "failed", "timeout", "cancelled", "crashed", "error")
             or (state == "completed" and (type(code) is not int or code != 0))
             or (state == "failed" and (type(code) is not int or code == 0))):
-        return "unknown", None
+        return None
     seconds = record.get("elapsed_seconds")
     if type(seconds) not in (int, float) or not 0 <= seconds <= sys.float_info.max:
         seconds = None
@@ -55,7 +58,7 @@ def run_workflow(events: list[dict], lock: dict, run_state: str,
         seconds = end.get("details", {}).get("elapsed_seconds")
         duration_source = "phase"
         command = native.get((kind, side, trial)) if native is not None else None
-        if pair.get("conflict") or (end and command and command[0] not in ("unknown", state)):
+        if pair.get("conflict") or (end and command and command[0] != state):
             state, seconds = "unknown", None
         elif not end and command:
             state, seconds = command

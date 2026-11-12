@@ -200,7 +200,7 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
   <section class="panel" id="run-review" hidden aria-label="Run review"></section>
   <div class="section-title">Overview · all candidates <small id="overview-note"></small></div>
   <div id="stats" class="stats" aria-label="Overview statistics"></div>
-  <div class="section-title">Workflow <small>Technical events only; select a stage to filter candidates and events</small></div>
+  <div class="section-title">Workflow <small>Select a stage to filter candidates</small></div>
   <div class="panel"><div id="workflow" class="flow"></div></div>
   <div class="section-title">Performance and evidence <small>Recorded values, including unsuccessful attempts</small></div>
   <div class="report-sections">
@@ -260,6 +260,8 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
     'Latency':'延迟','Throughput':'吞吐量','fell':'下降','rose':'上升','was unchanged':'持平',
     'Measured change':'实测变化',
     'Command duration':'命令耗时','Phase duration':'阶段耗时',
+    'Elapsed since start':'自开始已过','Candidate events':'候选方案事件','Bound events':'已关联事件',
+    'Corrupt event lines':'已损坏的事件行','No bound events recorded.':'未记录已关联事件。',
     'Log':'日志','hypotheses':'条假设','retrievals':'次检索','verified':'已校验','dimensions':'个维度','options':'个选项',
     'No capture recorded':'未记录知识采集',
     'the accuracy check passed':'精度检查通过','the accuracy check failed':'精度检查未通过',
@@ -306,7 +308,7 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
     'campaign':'任务', 'run':'运行', 'candidate':'候选方案', 'stage':'阶段', 'metric':'指标',
     'All runs':'全部运行', 'All candidates':'全部候选方案', 'All stages':'全部阶段',
     'Overview · all candidates':'概览 · 全部候选方案', 'Overview statistics':'概览统计',
-    'Workflow':'工作流程', 'Technical events only; select a stage to filter candidates and events':'仅显示技术事件；选择阶段可筛选候选方案和事件',
+    'Workflow':'工作流程', 'Select a stage to filter candidates':'选择阶段可筛选候选方案',
     'Performance and evidence':'性能与证据', 'Recorded values, including unsuccessful attempts':'已记录的数据，包括未成功的尝试',
     'Performance trend · all candidates':'性能趋势 · 全部候选方案',
     'Results and stages over time · all candidates':'结果与阶段的时间分布 · 全部候选方案',
@@ -704,6 +706,8 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
     const body=byId('event-body');clear(body);
     byId('event-heading').textContent=eventLabel(event);
     body.append(node('p',identity(row,selected)+' · '+source+':'+line+' · '+(event.time || translated('Time not recorded'))));
+    const context=[event.stage && translated(stageNames[event.stage]),event.type||event.phase,event.tool].filter(Boolean);
+    if(context.length)body.append(node('code',context.join(' · ')));
     if(Object.keys(event.details).length)body.append(node('pre',JSON.stringify(event.details,null,2)));
     for(const ref of event.refs)body.append(node('code',refText(ref)));
     byId('event-record').showModal();
@@ -868,7 +872,7 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
   function refreshElapsed(){
     if(!liveMode || serverTime===null)return;
     for(const cell of document.querySelectorAll('#run-review [data-started]')){
-      cell.textContent=translated('Phase duration')+' · '+duration((serverTime-Date.parse(cell.dataset.started))/1000);
+      cell.textContent=translated('Elapsed since start')+' · '+duration((serverTime-Date.parse(cell.dataset.started))/1000);
     }
   }
   function eventLabel(event){
@@ -976,6 +980,40 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
     const state=`Caller declared · ${section.state.replaceAll('_',' ')}`;
     return section.missing_reason ? `${state} · ${translatedNarrative(section.missing_reason)}` : state;
   }
+  function renderCandidateEvents(root,row){
+    const fold=node('details'),events=row.events || [];
+    fold.dataset.liveKey='candidate-events:'+JSON.stringify([row.candidate_id,row.run_id,row.round]);
+    fold.append(node('summary',translated('Candidate events')+' · '+translated('Bound events')+' '+events.length));
+    const indicators=[
+      ['UNLINKED AGENT EVENTS','agent_trace',row.agent_trace_links?.unlinked],
+      ['MISMATCHED AGENT EVENTS','agent_trace',row.agent_trace_links?.mismatched],
+      ...Object.entries(row.corrupt_event_sources||{}).map(([src,lines])=>['Corrupt event lines',src,lines])
+    ];
+    for(const [label,source,lines] of indicators){
+      if(lines?.length)fold.append(node('p',translated(label)+' · '+source+':'+lines.join(', '),'hint'));
+    }
+    for(const source of ['events','agent_trace']){
+      const ref=row.artifacts?.[source];
+      if(ref?.state==='missing' && ref.missing_reason!=='not_collected')fold.append(node('code',refText(ref)));
+    }
+    if(!events.length)fold.append(node('p','No bound events recorded.','hint'));
+    else{
+      const list=node('ol');
+      fold.append(list);
+      fold.addEventListener('toggle',()=>{
+        if(!fold.open || list.childElementCount)return;
+        for(const event of events){
+          const ref=event.source+':'+event.line;
+          const label=[eventLabel(event),event.tool,ref].filter(Boolean).join(' · ');
+          const item=node('li'),button=node('button',label,'diagnostic-button');
+          button.type='button';button.setAttribute('aria-label',translated('Open event')+' · '+label);
+          button.addEventListener('click',()=>jumpToEvent(event.source,event.line));
+          item.append(button);list.append(item);
+        }
+      });
+    }
+    root.append(fold);
+  }
   function renderCandidate(row) {
     const root=byId('candidate-inspection');clear(root);
     if(!row){root.appendChild(node('p','No matching candidate.','empty'));return;}
@@ -986,6 +1024,7 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
     heading.appendChild(pill(row.verdict));
     heading.appendChild(node('small','Narrative is caller recorded; verdicts and measurements are separate evidence.'));
     root.appendChild(heading);
+    renderCandidateEvents(root,row);
     const grid=node('div',undefined,'insight-grid');root.appendChild(grid);
     const info=row.optimization, context=row.benchmark_context;
     const optimization=insight(grid,'Change and rationale','Caller recorded',true);

@@ -614,8 +614,7 @@ def _run(root: Path, path: Path, candidate: dict, run_id: str | None, noise: flo
            and isinstance(repositories[side].get("snapshot_hash"), str)
            and repositories[side]["snapshot_hash"] for side in ("baseline", "candidate")):
         native["source_snapshot", None, None] = ("completed", None)
-    if run_id is not None and quality_ref.get("missing_reason") != "file_absent":
-        native["quality_validation", None, None] = command_state(validation)
+    native["quality_validation", None, None] = command_state(validation)
     for event in events:
         event.pop("_link_state", None)
         event["source"] = "events"
@@ -627,8 +626,7 @@ def _run(root: Path, path: Path, candidate: dict, run_id: str | None, noise: flo
                 execution, _, exec_ref = _object_snapshot(
                     trial / "execution.json", root, "execution"
                 )
-                if exec_ref.get("missing_reason") != "file_absent":
-                    native["measurement", event["side"], event["trial"]] = command_state(execution)
+                native["measurement", event["side"], event["trial"]] = command_state(execution)
                 trial_refs[trial] = [exec_ref] + [
                     _file_ref(root, trial / name, kind) for name, kind in (
                         ("stdout.log", "stdout"), ("stderr.log", "stderr"),

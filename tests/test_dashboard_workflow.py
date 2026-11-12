@@ -157,6 +157,26 @@ def test_validator_counts_for_native_and_paired_traces(tmp_path, validation_edge
         assert row["artifacts"]["validation_progress"]["state"] == "missing"
 
 
+@pytest.mark.parametrize(("start", "directory"), [
+    ({"phase": "measurement", "side": "baseline", "trial": 1}, "baseline/trial-001"),
+    ({"phase": "quality_validation"}, "validation"),
+])
+def test_incomplete_execution_snapshot_preserves_live_step(tmp_path, start, directory):
+    (tmp_path / "run.lock.json").write_text('{"repetitions":1,"validation_command":["check"]}')
+    (tmp_path / "events.jsonl").write_text(json.dumps(start) + "\n")
+    (tmp_path / "status.json").write_text(json.dumps({"state": "running", "phase": start["phase"]}))
+    execution = tmp_path / directory / "execution.json"
+    execution.parent.mkdir(parents=True)
+    for partial in ('null', '[]', '{', '{}', '{"status":"running"}', '{"status":"completed"}'):
+        execution.write_text(partial)
+        node, = load_dashboard(tmp_path)["candidates"][0]["run_workflow"]["nodes"]
+        assert (node["state"], node["seconds"], node["end"]) == ("running", None, None)
+
+    execution.write_text('{"status":"failed","returncode":1,"elapsed_seconds":2}')
+    node, = load_dashboard(tmp_path)["candidates"][0]["run_workflow"]["nodes"]
+    assert (node["state"], node["seconds"], node["end"]) == ("failed", 2, None)
+
+
 def test_crashed_end_remains_terminal_without_command_record(tmp_path):
     (tmp_path / "events.jsonl").write_text(
         '{"phase":"measurement_end","side":"baseline","trial":1,"state":"crashed"}\n'

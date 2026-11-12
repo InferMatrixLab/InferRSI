@@ -197,6 +197,11 @@ decoded stream to 2³⁰ characters and accepts up to 2,000,000 input events
 and 512 distinct duration-event lanes. The uncompressed compact event table
 is limited to 128 MiB.
 
+The compact table preserves each complete event name. Overview labels longer
+than 220 characters are shortened, and GPU statistics use the original name
+for aggregation and matching across captures. To recover names truncated by
+an older importer, reattach the original trace under a new capture ID.
+
 When Chrome trace captures are present, the timeline covers the capture's full
 time range on its recorded stage, CPU and GPU tracks. The initial view shows
 one representative track per type, selected by summed event counts across

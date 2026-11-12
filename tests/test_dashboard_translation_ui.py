@@ -108,12 +108,19 @@ def test_full_profile_reader_checks_original_bytes_and_tracks_overlapping_events
 const fs=require('node:fs'),assert=require('node:assert/strict');
 const {gzipSync}=require('node:zlib'),{createHash,webcrypto}=require('node:crypto');
 const html=fs.readFileSync(process.argv[1],'utf8');
-const code=html.slice(html.indexOf('function traceCategory('),html.indexOf('function timeline('));
-const read=new Function('tr','crypto',code+'\nreturn readTraceFile;')((zh,en)=>en,webcrypto);
+const code=html.slice(html.indexOf('function profileLabel('),html.indexOf('function timeline('));
+const {read,profileStatKey}=new Function('tr','crypto',code+
+  '\nreturn {read:readTraceFile,profileStatKey};')((zh,en)=>en,webcrypto);
+const names=['kernel<'+ 'x'.repeat(220)+'A>', 'kernel<'+ 'x'.repeat(220)+'B>'];
+const label=names[0].slice(0,220);
+const keys=names.map(name=>profileStatKey({
+  name:label,name_sha256:createHash('sha256').update(name).digest('hex')}));
+assert.notEqual(keys[0],keys[1]);
+assert.notEqual(keys[0],profileStatKey({name:label}));
 const bytes=gzipSync(JSON.stringify({traceEvents:[
   {ph:'M',name:'metadata',ts:1},
-  {ph:'X',ts:10,dur:256,pid:2,tid:3,cat:'kernel',name:'long'},
-  {ph:'X',ts:12,dur:1,pid:2,tid:3,cat:'gpu_memcpy',name:'copy'},
+  {ph:'X',ts:10,dur:256,pid:2,tid:3,cat:'kernel',name:names[0]},
+  {ph:'X',ts:12,dur:1,pid:2,tid:3,cat:'kernel',name:names[1]},
   {ph:'X',ts:14,dur:4,pid:1,tid:3,cat:'cpu_op',name:'cpu'},
   {ph:'X',ts:15,dur:2,pid:1,tid:3,cat:'gpu_user_annotation',name:'stage'}]}));
 const blob=new Blob([bytes]);
@@ -124,13 +131,13 @@ const blob=new Blob([bytes]);
   assert.equal(timeline.event_count,4);
   assert.deepEqual(timeline.tracks.map(t=>t.kind),['gpu','cpu','stage']);
   assert.equal(timeline.tracks[0].bins[2],2);assert.equal(timeline.tracks[0].bins[3],1);
-  assert.equal(timeline.tracks[0].events[1].name,'copy');
-  const compact=gzipSync(JSON.stringify({names:['kernel','copy'],
+  assert.deepEqual(timeline.tracks[0].events.map(e=>e.name),names);
+  const compact=gzipSync(JSON.stringify({names,
     lanes:[{name:'stream 4',kind:'gpu'}],events:[[0,0,10,256],[0,1,12,1]]}));
   const imported=await read(new Blob([compact]),'b'.repeat(64),
     createHash('sha256').update(compact).digest('hex'));
   assert.equal(imported.event_count,2);assert.equal(imported.tracks[0].bins[2],2);
-  assert.equal(imported.tracks[0].events[1].name,'copy');
+  assert.deepEqual(imported.tracks[0].events.map(e=>e.name),names);
 })().catch(e=>{console.error(e);process.exitCode=1;});
 """
     subprocess.run([shutil.which("node"), "-e", script, str(template)], check=True,

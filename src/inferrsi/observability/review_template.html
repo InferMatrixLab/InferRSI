@@ -21,6 +21,7 @@ button:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outli
 main{padding:28px 0 58px}
 header #campaign{overflow-wrap:anywhere;min-width:0}
 section{margin-bottom:24px;padding:20px 24px;border:1px solid var(--line);border-radius:7px;background:var(--panel)}
+#story-checks{border-left:3px solid #edb769;overflow-wrap:anywhere}
 h1,h2,h3,p,figure,dl{margin:0}h1,h2{font-size:20px;line-height:1.35;margin-bottom:12px}h3{font-size:16px}
 p+p{margin-top:6px}.goal{font-size:19px;font-weight:550}.note,small,dt{color:var(--sub)}
 ul{margin:.45em 0 0;padding-left:1.35em}code,pre,.value,td{font-variant-numeric:tabular-nums}
@@ -64,6 +65,7 @@ pre{max-height:22rem;overflow:auto;white-space:pre-wrap;padding:9px 12px;backgro
 <main>
 <section class="trend" aria-labelledby="chart-title"><figure><h1 id="chart-title"></h1><div class="note" id="chart-note"></div><div id="chart">__DASHBOARD_CHART__</div></figure></section>
 <section aria-labelledby="goal-title"><h2 id="goal-title"></h2><div id="goal"></div></section>
+<section id="story-checks" hidden aria-labelledby="checks-title"><h2 id="checks-title"></h2><ul id="checks-list"></ul></section>
 <section id="capture-section" hidden aria-labelledby="captures-title"><h2 id="captures-title"></h2><div id="captures"></div></section>
 <section aria-labelledby="baseline-title"><h2 id="baseline-title"></h2><div id="baseline"></div></section>
 <section aria-labelledby="gap-title"><h2 id="gap-title"></h2><div id="gap"></div></section>
@@ -144,6 +146,59 @@ function status(state){
     no_gain:'未见收益',noise:'噪声范围内',regressed:'回退',improved:'改善',quality_failed:'质量检查失败'};
   return language==='zh'?(zh[state]||state||dash):(state||dash).replaceAll('_',' ');
 }
+// Diagnostics come from the evidence reader, so use fixed translations here.
+// A caller's narrative translations must not relabel a conflict.
+function checkText(text){
+  if(language!=='zh')return text;
+  const phrases={
+    'was not retrieved by this capture':'本次检索没有返回该条目',
+    'was not retrieved by any capture':'所有检索记录中均无该条目',
+    'was not retrieved by the captures this round names':'本轮关联的检索没有返回该条目',
+    'was selected but its text was omitted from the context':'命中该条目，但正文未载入上下文',
+    'was selected by search but its text was omitted from the context':'命中该条目，但正文未载入上下文',
+    'no recorded run':'没有运行记录','no unique recorded run':'运行记录不唯一',
+    'unavailable run evidence':'运行证据不可用','no recorded outcome':'未记录结果',
+    'file absent':'文件缺失',unreadable:'文件不可读','unsafe path':'路径不安全',
+    'too large':'文件超过大小限制','invalid format':'格式无效','hash mismatch':'文件哈希不匹配',
+    'resource hash mismatch':'资源哈希不匹配','assembly mismatch':'拼接内容不匹配',
+    'identity mismatch':'采集标识不匹配',pruned:'已排除',untried:'未尝试',
+    'failure summary':'失败总结','states a conclusion without evidence':'结论缺少证据引用',
+    'marked tried, but no iteration lists a candidate for it':'标记为已尝试，但没有轮次列出对应候选方案'
+  };
+  if(Object.hasOwn(phrases,text))return phrases[text];
+  const label=s=>status(s.replaceAll(' ','_'));
+  const rules=[
+    [/^knowledge (.+)$/,(_,id)=>'检索 '+id],
+    [/^round (\d+)$/,(_,id)=>'第 '+id+' 轮'],
+    [/^search space (.+)$/,(_,id)=>'搜索选项 '+id],
+    [/^(success|failure) (\d+)$/,(_,kind,id)=>(kind==='success'?'成功记录 ':'失败记录 ')+id],
+    [/^the log says (.+) was used, but it (.+)$/,(_,ref,why)=>'日志称采用了 '+ref+'，'+checkText(why)],
+    [/^the log says (.+), rounds\.jsonl records (.+)$/,(_,log,file)=>'日志记为'+label(log)+'，rounds.jsonl 记为'+label(file)],
+    [/^(.+) is cited, but it (.+)$/,(_,ref,why)=>'引用了 '+ref+'，'+checkText(why)],
+    [/^cites (.+), which (.+)$/,(_,ref,why)=>'引用了 '+ref+'，'+checkText(why)],
+    [/^capture (.+) is (.+); its text is not shown$/,(_,path,reason)=>'采集 '+path+' 不可用（'+checkText(reason)+'），正文已隐藏'],
+    [/^(candidate|evidence) (.+) has (.+)$/,(_,kind,id,why)=>(kind==='candidate'?'候选方案 ':'证据 ')+id+'：'+checkText(why)],
+    [/^candidate (.+) is recorded in round (\d+)$/,(_,id,num)=>'候选方案 '+id+' 记录在第 '+num+' 轮'],
+    [/^the decision names (.+), which is not a candidate of this round$/,(_,id)=>'决定中指定的 '+id+' 不在本轮候选方案中'],
+    [/^(.+) is adopted but its recorded outcome is (.+)$/,(_,id,outcome)=>'已采纳 '+id+'，其运行结果为'+label(outcome)],
+    [/^marked (.+), but round (\d+) tried it$/,(_,state,num)=>'标记为'+checkText(state)+'，第 '+num+' 轮已尝试'],
+    [/^evidence (.+) recorded (.+), not an improvement$/,(_,id,outcome)=>'证据 '+id+' 的结果为'+label(outcome)+'，未确认提升'],
+    [/^evidence (\S+) (was .+)$/,(_,id,why)=>'证据 '+id+'：'+checkText(why)],
+    [/^(.+) recorded (.+), but no failure cites it$/,(_,id,outcome)=>id+' 的结果为'+label(outcome)+'，失败总结未引用此项']
+  ];
+  for(const [pattern,format] of rules){const match=text.match(pattern);if(match)return format(...match);}
+  return text;
+}
+function renderStoryChecks(){
+  const checks=data.story?.checks||[];
+  byId('story-checks').hidden=checks.length===0;
+  byId('checks-title').textContent=tr('叙述与证据核对','Narrative vs evidence');
+  const list=byId('checks-list');list.replaceChildren();
+  for(const check of checks){
+    const severity=check.severity==='error'?tr('冲突','Conflict'):tr('警告','Warning');
+    list.append(el('li',severity+' · '+checkText(check.where)+' · '+checkText(check.message)));
+  }
+}
 function raw(parent,value){parent.append(el('pre',typeof value==='string'?value:JSON.stringify(value,null,2)));}
 function details(box,r,it,opened){
   const key=JSON.stringify([r.round,r.candidate_id,r.run_id]);
@@ -190,6 +245,13 @@ function clockLabel(us){
   return Math.abs(us)>=1000?fmt(us/1000,2)+' ms':fmt(us,1)+' µs';
 }
 function kindName(kind){return kind==='stage'?tr('阶段','Stage'):kind.toUpperCase();}
+function profileLabel(name){
+  const label=name.length<=220?name:name.slice(0,149)+'…'+name.slice(-70);
+  return label.replace(/[\r\n]/g,' ');
+}
+function profileStatKey(stat){
+  return stat.name_sha256?'sha256:'+stat.name_sha256:'name:'+stat.name;
+}
 function traceCategory(cat){
   if(cat.includes('user_annotation'))return 'stage';
   if(cat==='kernel'||cat.startsWith('gpu_'))return 'gpu';
@@ -388,7 +450,7 @@ function timeline(box,c,baseline,opened){
         lastDot=w<1?Math.floor(x):-1;
         ctx.fillRect(x,14,Math.max(.75,w),15);
         if(w>65){const left=Math.max(0,x),right=Math.min(width,x+w);
-          if(right-left>65){ctx.save();ctx.beginPath();ctx.rect(left,14,right-left,15);ctx.clip();ctx.font='11px system-ui';ctx.fillStyle='#101820';ctx.fillText(e.name,left+4,25);ctx.restore();}}
+          if(right-left>65){ctx.save();ctx.beginPath();ctx.rect(left,14,right-left,15);ctx.clip();ctx.font='11px system-ui';ctx.fillStyle='#101820';ctx.fillText(profileLabel(e.name),left+4,25);ctx.restore();}}
       }
     }
   }
@@ -399,12 +461,13 @@ function timeline(box,c,baseline,opened){
   if(c.next_action)p(article,recorded(c.next_action),'note');
   if(c.stats?.length)fold(article,tr('按名称汇总的 GPU 事件耗时','GPU event time by name'),key+'-stats',b=>{
     const comparable=c.phase!=='baseline' && c.comparison_key && c.comparison_key===baseline?.comparison_key;
-    const earlier=new Map((comparable?baseline.stats||[]:[]).map(s=>[s.name,s]));
+    const earlier=new Map((comparable?baseline.stats||[]:[]).map(s=>[profileStatKey(s),s]));
     const headers=[tr('名称','Name'),tr('累计 GPU 时长','Total GPU duration'),tr('调用数','Calls')];
     if(comparable)headers.push(tr('基线累计时长','Baseline GPU duration'));
     table(b,headers,c.stats.map(s=>{
-      const cells=[s.name,clockLabel(s.total_us),s.count];
-      if(comparable)cells.push(earlier.has(s.name)?clockLabel(earlier.get(s.name).total_us):dash);
+      const cells=[profileLabel(s.name),clockLabel(s.total_us),s.count];
+      const previous=earlier.get(profileStatKey(s));
+      if(comparable)cells.push(previous?clockLabel(previous.total_us):dash);
       return cells;
     }));
   },opened);
@@ -416,7 +479,7 @@ function timeline(box,c,baseline,opened){
         if(e.name.toLowerCase().includes(needle)){matches.push([track,e]);if(matches.length===100)break outer;}
       }
       for(const [track,e] of matches){
-        const item=el('button',track.name+' · '+e.name+' · Δ '+clockLabel(e.dur_us));item.type='button';
+        const item=el('button',track.name+' · '+profileLabel(e.name)+' · Δ '+clockLabel(e.dur_us));item.type='button';
         item.onclick=()=>{select(e,track);if(!representative.has(track))st.showAll=true;
           zoom(t.duration_us/Math.max(1,e.dur_us*2),e.ts_us-t.start_us+e.dur_us/2);
           canvases.find(entry=>entry.track===track).line.scrollIntoView({block:'nearest'});};
@@ -472,6 +535,7 @@ function render(){
   byId('connection').textContent=live?(connected?'Connected':attempted?'Disconnected':'Connecting…'):'';
   const goal=byId('goal'),base=byId('baseline'),gap=byId('gap'),rounds=byId('rounds'),decisions=byId('decisions');
   for(const box of [goal,base,gap,rounds,decisions])box.replaceChildren();
+  renderStoryChecks();
   renderCaptures(opened);
   const rows=[...data.candidates].sort((a,b)=>(a.round??Infinity)-(b.round??Infinity));
   const spec=data.story?.goal||{};

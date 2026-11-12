@@ -96,6 +96,27 @@ def test_unsupported_capture_is_not_attached(tmp_path):
     assert not (tmp_path / "profile-captures.jsonl").exists()
 
 
+def test_distinct_long_kernel_names_survive_aggregation_and_compact_export(tmp_path):
+    source, review = fixture(tmp_path)
+    # Both ends of the display labels coincide. Even newlines remain significant.
+    prefix, suffix = "kernel_template<" + "A" * 300, "B" * 100 + ">"
+    names = [prefix + separator + suffix for separator in ("\n", " ")]
+    events = [event("kernel", names[0], 0, 10), event("kernel", names[1], 10, 20)]
+    source.write_bytes(gzip.compress(json.dumps(events).encode()))
+    attach_profile(tmp_path, capture_id="long", source="profiles/baseline.json.gz", review=review)
+
+    capture, = read_profiles(tmp_path)[0]
+    ids = [hashlib.sha256(name.encode()).hexdigest() for name in names]
+    stats = capture["stats"]
+    assert [(s["name_sha256"], s["count"], s["total_us"]) for s in stats] == [
+        (ids[1], 1, 20), (ids[0], 1, 10)]
+    assert len({s["name"] for s in stats}) == 2 and all(len(s["name"]) <= 220 for s in stats)
+    track, = capture["tracks"]
+    assert [e["name_sha256"] for e in track["events"]] == ids
+    full = json.loads(gzip.decompress((tmp_path / capture["source"]["events_path"]).read_bytes()))
+    assert [full["names"][record[1]] for record in full["events"]] == names
+
+
 def test_polls_reuse_digests_but_opening_rechecks_only_the_selected_source(tmp_path, monkeypatch):
     source, review = fixture(tmp_path)
     other = source.with_name("other.json")
