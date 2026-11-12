@@ -158,7 +158,9 @@ starts an agent or validates the experiment.
 
 Use `campaign init --profile-first` for a new profiled campaign, or set
 `"review_layout": "profile_first"` in an existing `campaign.json`.
-The live view and HTML export open with the performance trend. Below it are
+The live view and HTML export keep the performance trend visible. Other sections
+start collapsed. Each capture has separate disclosures for its prior searches
+and timeline. Below the trend are
 acceptance criteria, recorded request profiles, the baseline breakdown and
 target gap, each round's measurements, and adoption decisions. The trend uses each
 candidate's paired medians. For example, a target latency reduction of 50%
@@ -181,6 +183,65 @@ directory. Write a small UTF-8 review, for example:
 inferrsi campaign attach-profile --directory <campaign> --id baseline \
   --source profiles/baseline.chrome.json.gz --review baseline-review.json
 ```
+
+A reviewed profile can also include these optional fields:
+
+```json
+{"started_at":"2026-01-20T10:00:00Z","context_ids":["choose-scope"],
+ "timing":{"basis":"CUDA events on the pipeline stream",
+           "stages_ms":{"worker":51.4,"encode":7.1,"denoise":42.8}}}
+```
+
+Use `YYYY-MM-DDTHH:MM:SS[.fraction]` followed by `Z` or a numeric UTC offset
+such as `+08:00` for profile and ledger timestamps. Fractions have one to six
+digits. The reader also accepts the compact legacy form `YYYYMMDDTHHMMSS`
+with the same fraction and timezone rules.
+
+Use the caller-recorded profile start and only the IDs of knowledge
+captures relevant to this profile. The reader shows a search as prior evidence
+only if its capture verifies and its timestamp precedes the start time supplied
+by the caller. The search view shows the
+query, selection method, ordered results, what was loaded or used, omissions
+and the original assembled context. A missing link stays explicit.
+
+The stage history reads the reviewer’s `timing.stages_ms` values and clock
+description (`basis`). The importer checks that each duration is finite and
+nonnegative. The verified baseline breakdown stays visible alongside this
+history. The table compares columns only within the same
+workload, comparison key and timing basis. It leaves absent measurements blank,
+preserves nested stages, and does not sum them or substitute HTTP medians.
+Command durations for the experiment itself appear separately in round details.
+Older captures without these optional fields retain their timelines.
+
+The timing panel also orders experiment steps on a UTC clock. It reads InferRSI
+run boundaries, per-trial measurement commands, validation, profile starts,
+saved knowledge searches and review log versions. In a linked agent trace,
+an `agent.request` and `agent.response` with a unique matching request number
+in the same run and source produce a client-side call duration.
+The headline span uses the earliest and latest bounds from execution tasks,
+runs, runner steps, model calls, operations and profile requests. The full
+timeline also includes search and review saves. Set
+`provider_model` on the response to label the model. Concurrent calls may
+overlap each other and the benchmark. Missing boundaries stay unmeasured.
+
+For an external controller, save a reviewed UTF-8 `experiment-timing.json`
+in the campaign root and place its SHA-256 in `campaign.json` as
+`experiment_timing_sha256`. The document has this shape:
+
+```json
+{"schema_version":1,"campaign_id":"example","steps":[
+  {"kind":"model_call","actor":"experiment agent","model":"example-model","label":"#1",
+   "start":"2026-01-20T10:00:00Z","end":"2026-01-20T10:00:03Z",
+   "basis":"Client send to completed response","round":1}
+]}
+```
+
+Supported kinds are `experiment`, `operation`, `profile_request` and `model_call`.
+Supply either or both timestamp bounds with timezone. The actor and timing
+basis identify the observer and clock boundary. Include only additional
+observations that are absent from native events. The file accepts up to
+5,000 steps and 2 MiB. Keep raw prompts and transport logs local.
+
 
 Repeat after a measured change, with a new ID, `"phase":"candidate"` and the
 actual round number. Use the same comparison key only for the same hardware,

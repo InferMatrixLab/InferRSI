@@ -227,6 +227,10 @@ def _event_details(record: dict) -> dict:
     seconds = _number(record.get("elapsed_seconds"))
     if seconds is not None and seconds >= 0:
         details["elapsed_seconds"] = seconds
+    model = record.get("provider_model")
+    if (record.get("type") in ("agent.request", "agent.response") and isinstance(model, str)
+            and re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]{0,95}", model)):
+        details["provider_model"] = model
     item = record.get("item")
     if isinstance(item, dict) and item.get("type") in (
         "agent_message", "command_execution", "file_change", "mcp_tool_call", "web_search",
@@ -937,6 +941,9 @@ def load_dashboard(source: Path) -> dict:
     for row in rows:
         row["decision"] = decisions.get((row["round"], row["candidate_id"]), "not_recorded")
     profiled = campaign.get("review_layout") == "profile_first"
+    timing_digest = campaign.get("experiment_timing_sha256")
+    if not isinstance(timing_digest, str) or not re.fullmatch("[a-f0-9]{64}", timing_digest):
+        timing_digest = ""
     anchors = []
     if profiled:
         for row in rows:
@@ -1006,6 +1013,8 @@ def load_dashboard(source: Path) -> dict:
         declared = None
     return {
         "campaign_id": _text(campaign.get("campaign_id"), "Single run" if single else "Campaign"),
+        **({"experiment_timing_sha256": timing_digest}
+           if profiled and "experiment_timing_sha256" in campaign else {}),
         **({"review_layout": "profile_first"}
            if campaign.get("review_layout") == "profile_first" else {}),
         "synthetic": campaign.get("synthetic") is True,

@@ -36,6 +36,22 @@ th{font-size:13px;color:var(--sub);font-weight:500}.value{font-weight:650}
 .round .basis{color:var(--sub);font-size:14px}.round .basis code{color:var(--text)}
 .tag{display:inline-block;margin-right:8px;color:var(--accent);font-size:13px}
 details{margin-top:8px;font-size:13px}details details{margin-left:10px}
+.panel{margin:0;font-size:inherit}.panel>summary{font-weight:650;color:var(--text)}
+.panel-heading{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%)}
+.panel>summary{font-size:17px}.panel[open]>summary{margin-bottom:14px}
+.panel>summary::marker{color:var(--accent)}.panel .capture, .panel td{overflow-wrap:anywhere}
+.timing-scroll{overflow-x:auto}.experiment-lane{display:grid;grid-template-columns:minmax(90px,17%) 1fr;align-items:center;gap:8px;margin:6px 0;color:var(--sub)}
+.experiment-track{height:19px;position:relative;background:var(--bg);border-radius:3px}
+.experiment-track button{position:absolute;background:var(--accent);border:0;padding:0;min-width:2px}
+.experiment-track .interval{height:7px;top:6px}.experiment-track .instant{height:13px;top:3px;width:2px;background:#dcb272}
+.experiment-lane:nth-of-type(2) .interval{background:#c3a6fa}.experiment-lane:nth-of-type(3) .interval{background:#6bc1ad}
+.experiment-steps{max-height:32rem;overflow:auto}.experiment-steps thead{position:sticky;top:0;background:var(--panel)}
+.experiment-steps.timing-scroll td:last-child{white-space:normal;text-align:left}.experiment-steps td:first-child{min-width:12em}
+#baseline>h3:not(:first-child){margin-top:20px}
+.timing-scroll table{width:auto;min-width:min(100%,600px)}
+.timing-scroll td:not(:first-child),.timing-scroll th:not(:first-child){text-align:right;white-space:nowrap}
+.capture-fold{border-top:1px solid var(--line);padding:10px 0;font-size:15px}
+.capture-fold>summary{font-weight:600}.capture-fold details{margin-block:8px}
 details p,details pre{margin:5px 0 4px 12px;overflow-wrap:anywhere}
 pre{max-height:22rem;overflow:auto;white-space:pre-wrap;padding:9px 12px;background:var(--bg);color:var(--sub)}
 .trend figure{margin:0}.trend h1{margin-bottom:4px}#chart{overflow-x:auto}#chart svg{display:block;width:100%;min-width:540px;max-height:390px;height:auto}
@@ -64,13 +80,13 @@ pre{max-height:22rem;overflow:auto;white-space:pre-wrap;padding:9px 12px;backgro
 <header><div><strong>InferRSI</strong><code id="campaign"></code><small id="mode"></small><small id="connection" role="status"></small><button id="language" type="button"></button></div></header>
 <main>
 <section class="trend" aria-labelledby="chart-title"><figure><h1 id="chart-title"></h1><div class="note" id="chart-note"></div><div id="chart">__DASHBOARD_CHART__</div></figure></section>
-<section aria-labelledby="goal-title"><h2 id="goal-title"></h2><div id="goal"></div></section>
-<section id="story-checks" hidden aria-labelledby="checks-title"><h2 id="checks-title"></h2><ul id="checks-list"></ul></section>
-<section id="capture-section" hidden aria-labelledby="captures-title"><h2 id="captures-title"></h2><div id="captures"></div></section>
-<section aria-labelledby="baseline-title"><h2 id="baseline-title"></h2><div id="baseline"></div></section>
-<section aria-labelledby="gap-title"><h2 id="gap-title"></h2><div id="gap"></div></section>
-<section aria-labelledby="rounds-title"><h2 id="rounds-title"></h2><div id="rounds"></div></section>
-<section aria-labelledby="decision-title"><h2 id="decision-title"></h2><div class="decisions" id="decisions"></div></section>
+<section aria-labelledby="goal-title"><h2 class="panel-heading" aria-labelledby="goal-title"></h2><details class="panel" data-key="goal"><summary><span id="goal-title"></span></summary><div id="goal"></div></details></section>
+<section id="story-checks" hidden aria-labelledby="checks-title"><h2 class="panel-heading" aria-labelledby="checks-title"></h2><details class="panel" data-key="checks"><summary><span id="checks-title"></span> <span id="checks-count"></span></summary><ul id="checks-list"></ul></details></section>
+<section aria-labelledby="baseline-title"><h2 class="panel-heading" aria-labelledby="baseline-title"></h2><details class="panel" data-key="timings"><summary><span id="baseline-title"></span></summary><div id="baseline"></div></details></section>
+<section id="capture-section" hidden aria-labelledby="captures-title"><h2 class="panel-heading" aria-labelledby="captures-title"></h2><details class="panel" data-key="profiles"><summary><span id="captures-title"></span></summary><div id="captures"></div></details></section>
+<section aria-labelledby="gap-title"><h2 class="panel-heading" aria-labelledby="gap-title"></h2><details class="panel" data-key="gap"><summary><span id="gap-title"></span></summary><div id="gap"></div></details></section>
+<section aria-labelledby="rounds-title"><h2 class="panel-heading" aria-labelledby="rounds-title"></h2><details class="panel" data-key="rounds"><summary><span id="rounds-title"></span></summary><div id="rounds"></div></details></section>
+<section aria-labelledby="decision-title"><h2 class="panel-heading" aria-labelledby="decision-title"></h2><details class="panel" data-key="decisions"><summary><span id="decision-title"></span></summary><div class="decisions" id="decisions"></div></details></section>
 </main>
 <script id="dashboard-data" type="application/json">__DASHBOARD_DATA__</script>
 <script>
@@ -113,6 +129,7 @@ function fold(parent,label,key,draw,opened){
   function fill(){if(f.open&&!built){built=true;draw(content);}}
   f.addEventListener('toggle',fill);
   if(opened.has(key)){f.open=true;fill();}
+  return f;
 }
 function verifiedProfile(r){
   const d=r.optimization_trace?.diagnosis, ref=r.artifacts?.profile;
@@ -193,6 +210,7 @@ function renderStoryChecks(){
   const checks=data.story?.checks||[];
   byId('story-checks').hidden=checks.length===0;
   byId('checks-title').textContent=tr('叙述与证据核对','Narrative vs evidence');
+  byId('checks-count').textContent=checks.length?'('+checks.length+')':'';
   const list=byId('checks-list');list.replaceChildren();
   for(const check of checks){
     const severity=check.severity==='error'?tr('冲突','Conflict'):tr('警告','Warning');
@@ -200,26 +218,55 @@ function renderStoryChecks(){
   }
 }
 function raw(parent,value){parent.append(el('pre',typeof value==='string'?value:JSON.stringify(value,null,2)));}
+function retrievalDetails(box,c,key,opened){
+  if(c.state!=='verified'){p(box,c.state||tr('未校验','Unverified'),'note');return;}
+  if(c.purpose)p(box,recorded(c.purpose),'value');
+  const request=c.request||{},selection=c.selection||{};
+  p(box,tr('检索时间','Retrieved at')+' · '+(c.captured_at||dash),'meta');
+  p(box,tr('查询','Query')+' · '+([request.query,request.relevance].filter(Boolean).join(' · ')||selection.cue||dash));
+  p(box,tr('搜索逻辑','Search logic')+' · '+[selection.method,selection.scope,request.backend,
+    Number.isInteger(request.limit)?'limit='+request.limit:null].filter(Boolean).join(' · '));
+  if(selection.method==='task-lexical-v1' && selection.ranking_applied)
+    p(box,tr('按查询词匹配条目：标题和摘要权重最高，通用或目标平台条目加权，再按返回上限截取。','Task terms are matched across fields. Title and summary weigh most; portable and target-platform entries get a boost. The result limit is applied after ranking.'),'note');
+  if(selection.ranking_applied===false && request.ids?.length)
+    p(box,tr('按指定 ID 和顺序返回','Returned in the requested ID order')+' · '+request.ids.join(', '),'note');
+  if(Number.isInteger(selection.matched_count) && Number.isInteger(selection.returned_count))
+    p(box,tr('匹配 '+selection.matched_count+' 条，返回 '+selection.returned_count+' 条。',
+      selection.matched_count+' matched; '+selection.returned_count+' returned.'));
+  const used=new Set(c.used_refs||[]),loaded=new Set((c.contexts||[]).filter(x=>x.resources?.length).map(x=>x.ref));
+  const rejected=new Map((c.rejected_refs||[]).map(x=>[x.ref,recorded(x.reason)]));
+  if(c.items?.length)table(box,[tr('返回顺序','Rank'),tr('知识条目','Result'),tr('上下文 / 采用情况','Context / use')],c.items.map((x,i)=>[
+    i+1,x.title||x.ref,[loaded.has(x.ref)?tr('已载入','Included'):tr('未载入','Omitted'),
+      used.has(x.ref)?tr('记录为采用','Reported used'):rejected.get(x.ref)].filter(Boolean).join(' · ')]));
+  for(const note of c.takeaways||[])p(box,recorded(note));
+  fold(box,tr('完整拼接上下文','Full assembled context')+' · '+(c.context_bytes_used??0)+' B',key+'-text',b=>{
+    p(b,'SHA-256 · '+c.assembled_sha256,'meta');raw(b,c.assembled_text);
+  },opened);
+  fold(box,tr('检索参数、来源与排除原因','Search parameters, sources and omissions'),key+'-source',b=>
+    raw(b,{request,selection,items:c.items,files:c.contexts,used_refs:c.used_refs,rejected_refs:c.rejected_refs,
+      omissions:c.omissions,context_omissions:c.context_omissions,sha256:c.expected_sha256}),opened);
+}
 function details(box,r,it,opened){
   const key=JSON.stringify([r.round,r.candidate_id,r.run_id]);
   fold(box,tr('轮次详情','Round details'),key,body=>{
     for(const id of it?.context_ids||[]){
       const capture=data.story?.retrievals?.find(c=>c.context_id===id);
-      if(!capture)continue;
-      fold(body,tr('检索记录','Retrieval')+' · '+id,key+'-capture-'+id,b=>{
-        if(capture.purpose)p(b,recorded(capture.purpose),'value');
-        for(const note of capture.takeaways||[])p(b,recorded(note));
-        const found=capture.selection?.matched_count,shown=capture.selection?.returned_count;
-        if(Number.isInteger(found) && Number.isInteger(shown))
-          p(b,tr('匹配 '+found+' 条，返回 '+shown+' 条。',found+' matched; '+shown+' returned.'));
-        raw(b,{request:capture.request,selection:capture.selection,items:capture.items,files:capture.contexts,
-          used_refs:capture.used_refs,rejected_refs:capture.rejected_refs,omissions:capture.omissions,
-          context_omissions:capture.context_omissions,state:capture.state,sha256:capture.expected_sha256});
-        if(capture.state==='verified')raw(b,capture.assembled_text);
-      },opened);
+      if(capture)fold(body,tr('检索记录','Retrieval')+' · '+id,key+'-capture-'+id,
+        b=>retrievalDetails(b,capture,key+'-round-'+id,opened),opened);
     }
+    const nodes=r.run_workflow?.nodes||[];
+    if(nodes.length)fold(body,tr('实验执行耗时（与单次请求分开计时）','Trial execution times (separate from request latency)'),key+'-execution',b=>{
+      table(b,[tr('环节','Operation'),tr('开始时间','Started'),tr('记录用时','Recorded time')],nodes.map(n=>[
+        [n.kind,n.side,n.trial].filter(x=>x!=null).join(' · '),n.start||dash,Number.isFinite(n.seconds)?fmt(n.seconds)+' s':dash]));
+    },opened);
     const trace=r.optimization_trace;
     if(trace){
+      const space=trace.search_space;
+      if(space?.items?.length || space?.selection_rules?.length){
+        p(body,tr('候选方向与选择依据','Options and selection rules'),'value');
+        for(const o of space.items||[])p(body,o.id+' · '+recorded(o.description));
+        for(const rule of space.selection_rules||[])p(body,recorded(rule),'note');
+      }
       for(const s of trace.steps?.items||[]){
         p(body,s.sequence+'. '+recorded(s.action),'value');
         if(s.motivation)p(body,recorded(s.motivation),'note');
@@ -239,6 +286,10 @@ function details(box,r,it,opened){
 const trackColors={stage:'#c3a6fa',cpu:'#6bc1ad',gpu:'#71aff3'};
 const timelineState=new Map();
 const timelineDraws=new Map();
+window.addEventListener('toggle',e=>{
+  if(e.target.open && e.target.closest?.('#capture-section'))
+    requestAnimationFrame(()=>{for(const draw of timelineDraws.values())draw();});
+},true);
 window.addEventListener('resize',()=>{for(const draw of timelineDraws.values())draw();});
 function clockLabel(us){
   if(Math.abs(us)>=1e6)return fmt(us/1e6,3)+' s';
@@ -419,6 +470,7 @@ function timeline(box,c,baseline,opened){
     });
   }
   function draw(){
+    if(!plot.getClientRects().length)return;
     const span=windowSpan(),move=t.duration_us-span;
     slider.disabled=move<=0;slider.value=move?10000*st.offset/move:0;
     minus.disabled=st.zoom===1;plus.disabled=st.zoom===4096;
@@ -509,14 +561,157 @@ function timeline(box,c,baseline,opened){
     };
   },opened);
 }
+const captureLabel=c=>c.phase==='baseline'?tr('首轮前基线','Pre-round baseline'):rowLabel(c);
+function captureCard(box,c,baseline,opened){
+  const key='profile:'+c.id;
+  const card=fold(box,captureLabel(c)+' · '+recorded(c.title||c.id),key,body=>{
+    if(c.started_at)p(body,tr('调用方记录的采集开始时间','Caller-recorded capture start')+' · '+c.started_at,'meta');
+    const links=c.pre_profile_searches||[];
+    fold(body,tr('采集前的知识库检索','Knowledge search before capture')+' ('+links.length+')',key+'-kb',b=>{
+      if(!links.length)p(b,tr('没有关联到本次采集之前的检索记录。','No pre-capture search is documented.'),'note');
+      for(const link of links){
+        const hit=data.story?.retrievals?.find(r=>r.context_id===link.context_id);
+        if(link.state==='verified' && hit?.state==='verified'){
+          p(b,link.context_id+' · '+tr('检索时间早于调用方记录的采集开始时间','Search predates the caller-recorded capture start'),'value');retrievalDetails(b,hit,key+'-kb-'+link.context_id,opened);
+        }else{
+          const reason=link.state==='not_before'?tr('检索时间不早于采集','Search did not precede capture'):
+            link.state==='unknown_time'?tr('无法确认先后顺序','Order unknown'):tr('检索记录不可用或校验失败','Search unavailable or unverified');
+          p(b,link.context_id+' · '+reason,'note');
+        }
+      }
+    },opened);
+    fold(body,tr('请求时间线与 GPU 事件','Request timeline and GPU events'),key+'-timeline',b=>timeline(b,c,baseline,opened),opened);
+  },opened);
+  card.className='capture-fold';
+}
+function experimentHistory(box,opened){
+  const history=data.experiment_timing;
+  if(!history)return;
+  const steps=history.steps, calls=steps.filter(s=>s.kind==='model_call');
+  const names={
+    runner:tr('InferRSI 执行','InferRSI execution'),run:tr('InferRSI 整轮','InferRSI run'),
+    source_snapshot:tr('记录源码版本','Snapshot source'),measurement:tr('性能测量','Measurement'),
+    quality_validation:tr('质量验证','Quality validation'),model_call:tr('模型调用','Model call'),
+    operation:tr('实验操作','Experiment operation'),experiment:tr('实验任务','Experiment task'),
+    profile_request:tr('采样工作负载','Profile workload'),profile:tr('Profile 开始','Profile start'),
+    knowledge:tr('知识检索','Knowledge search'),review:tr('保存复盘记录','Save review log'),
+    agent_event:tr('Agent 事件','Agent event'),baseline:tr('基线','Baseline'),candidate:tr('候选','Candidate'),
+    run_events:tr('源码快照开始至运行结束','Snapshot start to terminal event'),
+    command:tr('命令实测','Measured command duration'),phase:tr('阶段实测','Measured phase duration'),
+    event:tr('阶段事件','Phase event'),capture_saved:tr('检索快照写入','Retrieval saved'),
+    log_saved:tr('复盘版本写入','Review saved'),profile_start:tr('采集开始时间','Recorded profile start'),
+    request_response:tr('请求事件至响应事件','Request to response event'),incomplete:tr('调用边界不完整','Incomplete call bounds')
+  };
+  const name=s=>Object.hasOwn(names,s)?names[s]:recorded(s);
+  const seconds=s=>Number.isFinite(s)?fmt(s,3)+' s':tr('未记录','Unmeasured');
+  const clock=t=>t?t.replace('T',' ').replace(/(\.\d{3})\d*/, '$1').replace('+00:00',''):dash;
+  box.append(el('h3',tr('整个实验的耗时','Experiment wall time')));
+  if(history.ledger==='unavailable')p(box,tr('补充计时文件未通过校验。','Supplemental timing evidence is unavailable.'),'note');
+  if(!steps.length){p(box,tr('尚无实验步骤计时记录。','No experiment timing recorded.'),'note');return;}
+  const totals=el('dl',null,'metrics');box.append(totals);
+  const execution=history.execution_span;
+  if(execution){
+    metric(totals,tr('已记录的执行跨度','Recorded execution span'),seconds(execution.seconds));
+    p(box,clock(execution.first)+' → '+clock(execution.last)+' UTC','meta');
+  }else p(box,tr('缺少执行时间边界。','No execution bounds recorded.'),'note');
+  for(const step of steps.filter(s=>s.kind==='run')){
+    metric(totals,[rowLabel(step),'InferRSI',step.actor].filter(Boolean).join(' · '),seconds(step.seconds));
+  }
+  const groups=new Map();
+  for(const call of calls){
+    const key=call.model||tr('模型未记录','Unspecified model');
+    if(!groups.has(key))groups.set(key,[]);
+    groups.get(key).push(call);
+  }
+  for(const [model,items] of groups){
+    const timed=items.filter(s=>Number.isFinite(s.seconds));
+    metric(totals,model+' · '+tr('有耗时记录的调用','Calls with timing')+' '+timed.length+'/'+items.length,
+      seconds(timed.length?timed.reduce((total,s)=>total+s.seconds,0):null));
+  }
+  if(!calls.length)p(box,tr('没有可关联的模型请求记录。','No correlated model requests recorded.'),'note');
+  p(box,tr('跨度从最早到最晚的执行记录计算。模型调用、实验命令和 GPU 测量可能同时进行，各项时长不能直接相加。',
+    'The span uses the earliest and latest execution timestamps. Model calls, commands and GPU measurements can overlap.'),'note');
+  function stepTable(parent,items){
+    const wrap=el('div',null,'timing-scroll experiment-steps');parent.append(wrap);
+    const headers=[tr('步骤','Step'),tr('开始 UTC','Start UTC'),tr('结束 UTC','End UTC'),tr('耗时','Duration'),tr('计时依据','Timing evidence')];
+    table(wrap,headers,items.map(s=>{
+      const label=[s.round?'R'+s.round:null,s.actor,s.model,name(s.kind),
+        s.label!==s.kind?name(s.label):null,s.side?name(s.side):null,s.trial?'#'+s.trial:null,
+        s.state?status(s.state):null].filter(Boolean).join(' · ');
+      return [label,clock(s.start),clock(s.end),seconds(s.seconds),[name(s.basis),s.evidence].filter(Boolean).join(' · ')];
+    }));
+  }
+  fold(box,tr('按时间查看全部步骤','All steps in time order')+' ('+steps.length+')','experiment-all',b=>{
+    const lanes=[
+      [tr('InferRSI 执行','InferRSI execution'),['runner','run','knowledge','review']],
+      [tr('模型调用','Model calls'),['model_call','agent_event']],
+      [tr('采集与实验命令','Profiling and experiment commands'),['profile','profile_request','operation']]
+    ];
+    const first=Date.parse(history.first),span=Date.parse(history.last)-first;
+    const detail=el('p',null,'meta');detail.setAttribute('aria-live','polite');
+    if(span>0){
+      for(const [label,kinds] of lanes){
+        const lane=el('div',null,'experiment-lane'),track=el('div',null,'experiment-track');
+        lane.append(el('span',label),track);b.append(lane);
+        for(const s of steps.filter(s=>kinds.includes(s.kind))){
+          const anchor=Date.parse(s.start||s.end);
+          if(!Number.isFinite(anchor))continue;
+          const end=Date.parse(s.end),start=Date.parse(s.start);
+          const duration=Number.isFinite(start)&&end>start?end-start:0;
+          const mark=el('button');mark.type='button';mark.className=duration?'interval':'instant';
+          mark.style.left=Math.min(99.8,100*(anchor-first)/span)+'%';
+          if(duration)mark.style.width=(100*duration/span)+'%';
+          mark.ariaLabel=mark.title=[s.round?'R'+s.round:null,s.actor,s.model,name(s.label),
+            clock(s.start)+' → '+clock(s.end),seconds(s.seconds)].filter(Boolean).join(' · ');
+          mark.onclick=()=>{detail.textContent=mark.title;};track.append(mark);
+        }
+      }
+      p(b,tr('横条表示有起止记录的区间，点表示只记录了一个时刻。点击可查看对应步骤。','Bars show measured intervals. Dots mark single timestamps. Select one to inspect the step.'),'note');b.append(detail);
+    }
+    const select=el('select');select.ariaLabel=tr('筛选实验步骤','Filter experiment steps');
+    const all=el('option',tr('全部步骤','All steps'));select.append(all);
+    for(const [label] of lanes)select.append(el('option',label));
+    const results=el('div');b.append(select,results);
+    function show(){results.replaceChildren();const group=lanes[select.selectedIndex-1];
+      stepTable(results,group?steps.filter(s=>group[1].includes(s.kind)):steps);}
+    select.onchange=show;show();
+  },opened);
+  if(calls.length)fold(box,tr('逐次模型调用','Individual model calls')+' ('+calls.length+')','experiment-calls',b=>stepTable(b,calls),opened);
+  box.append(el('h3',tr('单次推理的阶段耗时','Stages within one inference request')));
+}
+function stageHistory(box,rows){
+  const captures=[...(data.profile_captures||[])].sort((a,b)=>(a.round??0)-(b.round??0));
+  const groups=new Map();
+  for(const c of captures){
+    const t=c.timing;
+    if(!t){p(box,captureLabel(c)+' · '+c.id+' · '+tr('未记录阶段计时','Stage times not recorded'),'note');continue;}
+    const key=JSON.stringify([c.workload_id,c.comparison_key||c.id,t.basis]);
+    if(!groups.has(key))groups.set(key,[]);
+    groups.get(key).push(c);
+  }
+  for(const group of groups.values()){
+    const first=group[0],wrap=el('div',null,'timing-scroll');box.append(wrap);
+    p(wrap,tr('调用方提供的阶段测量','Caller-recorded stage measurements'),'value');
+    p(wrap,[first.workload_id,first.comparison_key,first.timing.basis].join(' · '),'meta');
+    const stages=new Set(group.flatMap(c=>Object.keys(c.timing.stages_ms)));
+    table(wrap,[tr('阶段（毫秒）','Stage (ms)'),...group.map(c=>captureLabel(c)+' · '+c.id)],
+      [...stages].map(name=>[name,...group.map(c=>fmt(c.timing.stages_ms[name]))]));
+  }
+  if(groups.size)p(box,tr('同列是一次采集。子阶段可能嵌套或重叠，不能相加；HTTP 验收延迟独立测量。','Each column is one capture. Nested or overlapping stages are not additive; HTTP acceptance latency is measured separately.'),'note');
+  for(const round of new Set(rows.map(r=>r.round).filter(Number.isInteger))){
+    if(!captures.some(c=>c.phase==='candidate' && c.round===round))
+      p(box,'R'+round+' · '+tr('未关联候选 profile','No candidate profile attached'),'note');
+  }
+  return groups.size>0;
+}
 function renderCaptures(opened){
   const box=byId('captures'),captures=(data.profile_captures||[]).filter(c=>c.duration_us>0 && c.tracks?.length && c.source?.sha256);
   const missing=data.unavailable_profiles||[];
   timelineDraws.clear();box.replaceChildren();byId('capture-section').hidden=!captures.length&&!missing.length;
-  for(const c of captures){
+  for(const c of captures.sort((a,b)=>(a.round??0)-(b.round??0))){
     const matches=c.phase==='candidate' && c.comparison_key
-      ? captures.filter(b=>b.phase==='baseline' && b.comparison_key===c.comparison_key):[];
-    timeline(box,c,matches.length===1?matches[0]:null,opened);
+      ? captures.filter(b=>b.phase==='baseline' && b.comparison_key===c.comparison_key && b.workload_id===c.workload_id):[];
+    captureCard(box,c,matches.length===1?matches[0]:null,opened);
   }
   for(const id of missing)p(box,id+tr(' · 采集文件不可用或未通过校验。',' · Capture files are unavailable or failed verification.'),'note');
 }
@@ -525,8 +720,8 @@ function render(){
   const previousFocus=document.activeElement?.closest('details')?.dataset.key;
   document.documentElement.lang=language==='zh'?'zh-CN':'en';
   for(const [id,zh,en] of [
-    ['goal-title','目标与验收条件','Goal and acceptance criteria'],['baseline-title','基线耗时分解','Baseline timing'],
-    ['captures-title','请求级 Profile 时间线','Request profile timelines'],
+    ['goal-title','目标与验收条件','Goal and acceptance criteria'],['baseline-title','Profile 耗时分解 · 基线到每轮','Stage timings · baseline through each round'],
+    ['captures-title','逐次 Profile · 采集前检索与请求时间线','Profile captures · prior searches and timelines'],
     ['gap-title','瓶颈及目标差距','Bottleneck and target gap'],['rounds-title','每轮依据、改动和实测','Evidence, changes and results by round'],
     ['decision-title','采纳决定','Adoption decisions'],['chart-title','性能趋势 · 全部候选方案','Performance trend · all candidates']
   ])byId(id).textContent=tr(zh,en);
@@ -546,10 +741,12 @@ function render(){
   if(spec.constraints?.length){const list=el('ul');for(const c of spec.constraints)list.append(el('li',recorded(c)));goal.append(list);}
   const baseline=rows.find(r=>verifiedProfile(r)?.scope==='baseline_request');
   const profile=baseline&&verifiedProfile(baseline);
+  experimentHistory(base,opened);
+  const hasStageHistory=stageHistory(base,rows);
   if(profile){
-    p(base,tr('首轮前基线 · 采样范围用时','Pre-round baseline · sampled scope duration')+'  '+fmt(profile.total)+' '+profile.metric_unit,'value');
+    p(base,tr('已校验的基线 · 采样范围用时','Verified baseline · sampled scope duration')+'  '+fmt(profile.total)+' '+profile.metric_unit,'value');
     profileTable(base,profile);
-  }else p(base,tr('缺少与本轮证据哈希匹配的请求 profile。','No verified request profile is attached.'),'note');
+  }else if(!hasStageHistory)p(base,tr('缺少与本轮证据哈希匹配的请求 profile。','No verified request profile is attached.'),'note');
   if(profile?.conclusion && !(data.profile_captures||[]).some(c=>c.takeaway===profile.conclusion))
     p(gap,recorded(profile.conclusion));
   const step=rows.find(r=>verifiedProfile(r)?.scope==='denoiser_step');
@@ -573,8 +770,10 @@ function render(){
     if(Number.isFinite(target))metric(dl,tr('距目标','Gap to target'),fmt(Math.max(0,target-best.improvement_pct),2)+tr(' 个百分点',' pp'));}
   for(const r of rows){
     const it=iteration(r),trace=r.optimization_trace;
-    const a=el('article',null,'round'),name=el('h3');
-    name.append(el('span',rowLabel(r),'tag'),document.createTextNode(recorded(r.title||r.candidate_id)));a.append(name);rounds.append(a);
+    const outer=el('details',null,'capture-fold'),name=el('summary'),a=el('article',null,'round');
+    outer.dataset.key='round:'+JSON.stringify([r.round,r.candidate_id,r.run_id]);outer.open=opened.has(outer.dataset.key);
+    name.append(el('span',rowLabel(r),'tag'),document.createTextNode(recorded(r.title||r.candidate_id)));
+    outer.append(name,a);rounds.append(outer);
     if(r.optimization?.summary && r.optimization.summary!==r.title)p(a,recorded(r.optimization.summary));
     const skills=trace?.applied_skills||[];
     for(const skill of skills){

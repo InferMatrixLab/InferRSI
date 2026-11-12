@@ -20,6 +20,7 @@ from functools import lru_cache
 from pathlib import Path
 
 from .optimization_log import _append_index, _read_regular
+from .timing_clock import recorded_time
 
 _ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,119}")
 _INDEX = "profile-captures.jsonl"
@@ -36,9 +37,29 @@ def _label(value: object, limit: int) -> str:
     return value
 
 
+def pre_profile_searches(capture: dict, retrievals: dict) -> list[dict]:
+    """Link only explicitly named, verified searches completed before this capture."""
+    links = []
+    for key in capture.get("context_ids", []):
+        search = retrievals.get(key)
+        if not search or search["state"] != "verified":
+            state = "unverified"
+        else:
+            try:
+                searched_at = recorded_time(search.get("captured_at"))
+                before = searched_at < recorded_time(capture.get("started_at"))
+            except ValueError:
+                state = "unknown_time"
+            else:
+                state = "verified" if before else "not_before"
+        links.append({"context_id": key, "state": state})
+    return links
+
+
 def _review(value: object) -> dict:
     fields = {"title", "phase", "round", "workload_id", "comparison_key", "takeaway", "next_action"}
-    if not isinstance(value, dict) or set(value) != fields:
+    optional = {"started_at", "context_ids", "timing"}
+    if not isinstance(value, dict) or not fields <= value.keys() <= fields | optional:
         raise ValueError("profile review fields do not match the contract")
     n = value["round"]
     if not ((value["phase"] == "baseline" and n is None) or
@@ -46,7 +67,31 @@ def _review(value: object) -> dict:
         raise ValueError("baseline precedes round 1; a candidate needs its round number")
     for k in fields - {"round", "phase"}:
         _label(value[k], 1400 if k in {"takeaway", "next_action"} else 180)
+    _review_history(value)
     return value
+
+
+def _review_history(value: dict) -> None:
+    if "started_at" in value:
+        recorded_time(value["started_at"])
+    if "context_ids" in value:
+        ids = value["context_ids"]
+        if ("started_at" not in value or not isinstance(ids, list) or len(ids) > 64
+                or not all(isinstance(i, str) and _ID.fullmatch(i) for i in ids)
+                or len(set(ids)) != len(ids)):
+            raise ValueError("expected unique capture context IDs and a profile start time")
+    if "timing" in value:
+        timing = value["timing"]
+        if not isinstance(timing, dict) or set(timing) != {"basis", "stages_ms"}:
+            raise ValueError("expected a timing basis and named stages in milliseconds")
+        _label(timing["basis"], 240)
+        stages = timing["stages_ms"]
+        if not isinstance(stages, dict) or not 1 <= len(stages) <= 128:
+            raise ValueError("expected 1 to 128 named stages")
+        for name, ms in stages.items():
+            _label(name, 180)
+            if type(ms) not in (int, float) or not 0 <= ms < 1e18:
+                raise ValueError("expected a finite non-negative stage duration")
 
 
 def _profile_path(root: Path, name: str) -> Path:
@@ -336,6 +381,7 @@ def _verified_summary(root, entry):
     summary = json.loads(raw)
     if summary["id"] != entry["id"]:
         raise ValueError("profile identity mismatch")
+    _review_history(summary)
     ref = summary["source"]
     if (not isinstance(ref["events_sha256"], str)
             or not re.fullmatch("[0-9a-f]{64}", ref["events_sha256"])
