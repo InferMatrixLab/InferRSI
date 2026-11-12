@@ -288,3 +288,9 @@ Zero-padding linear input rows to multiples of 128 or 512, then cropping back
 to the original rows, was also slower in all 36 cases. Twenty-four were exact;
 all twelve 1108-row cases differed. [Component samples](results/linear-row-padding-probe.json)
 include padding cost. This candidate was also rejected before model integration.
+
+Mapping independent attention heads to batches produced nine exact but slower
+component cases. Native FP16 attention with conversion and power-of-two scaling
+also failed to improve the large sequence and was non-exact.
+[Samples and source hashes](results/attention-head-batch-and-fp16.json) retain
+these synthetic checks; neither variant entered an HTTP trial.
