@@ -2,6 +2,11 @@
 
 Directory diffs stand in for git clones. ``close`` and incumbent advancement are
 not implemented. A synthetic metric value is not a campaign verdict.
+
+Command placeholders: ``build`` gets ``{device}`` only. ``trial`` gets ``{device}``
+and ``{result}``; it runs once for the candidate and once for the incumbent and
+must write ``{"metrics": {<metric.name>: <finite number>}}`` to ``{result}``.
+Other text, including ``{result}`` inside ``build``, is passed through unchanged.
 """
 
 import hashlib
@@ -42,7 +47,11 @@ class RoundPlanError(ValueError):
 
 
 def _segment(value) -> bool:
-    return isinstance(value, str) and bool(value) and not any(char in value for char in "/\\")
+    return (
+        isinstance(value, str)
+        and value not in {"", ".", ".."}
+        and not any(char in value for char in "/\\")
+    )
 
 
 def _match(path: str, patterns: list[str]) -> bool:
