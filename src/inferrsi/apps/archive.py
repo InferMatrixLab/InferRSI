@@ -1,7 +1,10 @@
 """Publish and read the standardized Apps output in an authorized workspace."""
 
+import ctypes
+import errno
 import os
 import re
+import sys
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from hashlib import sha256
@@ -114,6 +117,37 @@ def _write_file(path: Path, data: bytes) -> None:
         os.fsync(handle.fileno())
 
 
+def _publish_directory(staging: Path, destination: Path) -> None:
+    """Atomically publish a complete directory without replacing any entry."""
+    if os.name == "nt":
+        staging.rename(destination)
+        return
+
+    libc = ctypes.CDLL(None, use_errno=True)
+    source = os.fsencode(staging)
+    target = os.fsencode(destination)
+    try:
+        if sys.platform == "linux":
+            at_fdcwd, rename_noreplace = -100, 1
+            rename = libc.renameat2
+            rename.argtypes = (
+                ctypes.c_int, ctypes.c_char_p, ctypes.c_int, ctypes.c_char_p, ctypes.c_uint,
+            )
+            status = rename(at_fdcwd, source, at_fdcwd, target, rename_noreplace)
+        elif sys.platform == "darwin":
+            rename_excl = 0x00000004
+            rename = libc.renamex_np
+            rename.argtypes = (ctypes.c_char_p, ctypes.c_char_p, ctypes.c_uint)
+            status = rename(source, target, rename_excl)
+        else:
+            raise OSError(errno.ENOTSUP, "atomic no-replace directory rename is unavailable")
+    except AttributeError as exc:
+        raise OSError(errno.ENOTSUP, "atomic no-replace directory rename is unavailable") from exc
+    if status != 0:
+        error = ctypes.get_errno()
+        raise OSError(error, os.strerror(error))
+
+
 def publish_result(workspace: Path, result: dict, *, output_id: str | None = None) -> RunOutput:
     """Publish an AppsResultV1 after the underlying operation has returned."""
     if output_id is None:
@@ -132,9 +166,7 @@ def publish_result(workspace: Path, result: dict, *, output_id: str | None = Non
             _write_file(staging / "result.json", data)
             _write_file(staging / "manifest.json", manifest)
             verified_result = _read_output(staging, output_id)
-            if destination.exists() or destination.is_symlink():
-                raise FileExistsError("Apps output_id already exists")
-            staging.rename(destination)
+            _publish_directory(staging, destination)
     except (OSError, ValueError):
         return RunOutput(output_id, None, publication_error(result))
     return RunOutput(output_id, destination, verified_result)

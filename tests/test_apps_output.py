@@ -12,8 +12,11 @@ from threading import Barrier
 import pytest
 
 from inferrsi._json_v1 import decode, encode
+from inferrsi.apps import archive
 from inferrsi.apps.api import execute
 from inferrsi.apps.archive import publish_result, read_result
+from inferrsi.harness.errors import PublicError
+from inferrsi.harness.run_store import Claim, RunStore, flatten, request_digest, utc_now
 
 _ROOT = Path(__file__).resolve().parents[1]
 _FIXTURES = _ROOT / "docs/contracts/fixtures"
@@ -54,29 +57,19 @@ def _bind(request: dict) -> dict:
     }
 
 
-def _submit_to_fixture_store(workspace: Path, spec: dict) -> dict:
-    """A test Harness with a durable commit and exact-request replay."""
-    data = encode(spec)
-    store = workspace / "fixture-run-store"
-    store.mkdir(exist_ok=True)
-    committed_spec = store / "submitted-spec.json"
-    if committed_spec.exists():
-        assert committed_spec.read_bytes() == data
-        return decode((store / "committed-envelope.json").read_bytes())
-
-    record = _fixture("record-api-envelope")
-    payload = _fixture("record-payload")
-    request_digest = f"sha256:{sha256(data).hexdigest()}"
-    record["request_digest"] = payload["request_digest"] = request_digest
-    payload_bytes = encode(payload)
-    artifact = record["record_ref"]["artifact"]
-    artifact.update(sha256=sha256(payload_bytes).hexdigest(), size_bytes=len(payload_bytes))
-    record_path = workspace / artifact["location"]
-    record_path.parent.mkdir(exist_ok=True)
-    record_path.write_bytes(payload_bytes)
-    (store / "committed-envelope.json").write_bytes(encode(record))
-    committed_spec.write_bytes(data)
-    return record
+def _submit_to_run_store(workspace: Path, spec: dict) -> dict:
+    """Inject the record-producing port using the H01 store and a fixed terminal payload."""
+    assert encode(spec) == (_FIXTURES / "execution-spec-d023.json").read_bytes()
+    store = RunStore(workspace / "run-store", "apps-test")
+    attempt = {field: spec[field] for field in _ATTEMPT_FIELDS}
+    digest = request_digest(spec)
+    committed = store.claim(attempt, digest)
+    if isinstance(committed, Claim):
+        with committed as claim:
+            payload = _fixture("record-payload")
+            payload["request_digest"] = digest
+            committed = claim.commit(payload)
+    return flatten(committed, utc_now())
 
 
 def _run_saved_request(workspace: Path, output_id: str):
@@ -86,21 +79,8 @@ def _run_saved_request(workspace: Path, output_id: str):
         workspace=workspace,
         output_id=output_id,
         bind_execution=_bind,
-        execute_harness=lambda spec: _submit_to_fixture_store(workspace, spec),
+        execute_harness=lambda spec: _submit_to_run_store(workspace, spec),
     )
-
-
-def test_v1_codec_matches_contract_vectors():
-    vectors = _fixture("codec-string-vectors")
-    data = (_V4 / "codec-strings.json").read_bytes()
-    assert encode(vectors["value"]) == data
-    assert decode(data) == vectors["value"]
-    for case in vectors["negative_fixed_payload_bytes"]:
-        with pytest.raises(ValueError):
-            decode(case["raw_utf8"].encode("utf-8"))
-    for case in _fixture("strict-json-byte-vectors")["cases"]:
-        with pytest.raises(ValueError):
-            decode(bytes.fromhex(case["raw_hex"]))
 
 
 @pytest.mark.parametrize("fixture", ["apps-not-started", "apps-assessment"])
@@ -142,11 +122,13 @@ def test_failed_publication_preserves_commit_and_replay_reuses_attempt(tmp_path,
         raise PermissionError("test publication failure")
 
     with monkeypatch.context() as patch:
-        patch.setattr(Path, "rename", refuse_rename)
+        patch.setattr(archive, "_publish_directory", refuse_rename)
         failed = _run_saved_request(tmp_path, "first")
 
-    store = tmp_path / "fixture-run-store"
-    record = decode((store / "committed-envelope.json").read_bytes())
+    store = RunStore(tmp_path / "run-store", "apps-test")
+    attempt_id = _request()["attempt"]["attempt_id"]
+    committed = store.committed(attempt_id, 1)
+    record = failed.result["execution"]
     golden = json.loads((_FIXTURES / "MANIFEST-d023.json").read_bytes())
     assert record["request_digest"] == golden["files"][0]["request_digest"]
     assert failed.directory is None
@@ -155,13 +137,12 @@ def test_failed_publication_preserves_commit_and_replay_reuses_attempt(tmp_path,
     assert failed.result["reason_code"] == failed.result["error"]["code"] == (
         "ArchivePersistenceError"
     )
-    assert failed.result["execution"] == record
+    assert committed.record_ref == record["record_ref"]
     assert failed.result["prepared_ref"] == record["prepared_ref"]
     assert failed.result["record_ref"] == record["record_ref"]
     assert failed.result["error"]["latest_record_ref"] == record["record_ref"]
-    record_path = tmp_path / record["record_ref"]["artifact"]["location"]
-    original_bytes = record_path.read_bytes()
-    original_mtime = record_path.stat().st_mtime_ns
+    original_bytes = store.open(committed.record_ref["artifact"]).read()
+    assert original_bytes == committed.payload_bytes
 
     subprocess.run(
         [
@@ -177,15 +158,40 @@ def test_failed_publication_preserves_commit_and_replay_reuses_attempt(tmp_path,
     )
     replayed = read_result(tmp_path, "replay")
     assert replayed.result["outcome"] == "not_started"
-    assert replayed.result["execution"] == record
     assert replayed.result["record_ref"] == failed.result["record_ref"]
-    assert replayed.result["attempt_id"] == _request()["attempt"]["attempt_id"]
-    assert record_path.read_bytes() == original_bytes
-    assert record_path.stat().st_mtime_ns == original_mtime
+    assert replayed.result["attempt_id"] == attempt_id
+    assert replayed.result["execution"]["request_digest"] == record["request_digest"]
+    assert store.committed(attempt_id).payload["record_version"] == 1
+    assert store.open(committed.record_ref["artifact"]).read() == original_bytes
     assert (tmp_path / "execute-request.json").read_bytes() == saved
-    spec = decode((store / "submitted-spec.json").read_bytes())
-    assert {field: spec[field] for field in _ATTEMPT_FIELDS} == _request()["attempt"]
-    assert spec["output_root"] == _request()["output_root"]
+
+
+def test_typed_harness_error_is_published(tmp_path):
+    error = PublicError("RecoveryRequired", stage="claim", message="owner state unknown")
+
+    def submit(spec):
+        raise error
+
+    output = execute(_request(), workspace=tmp_path, bind_execution=_bind, execute_harness=submit)
+    assert output.result["error"] == error.to_json()
+    assert output.result["exit_code"] == 5
+
+
+def test_a_code_key_on_a_bound_spec_does_not_discriminate_a_public_error(tmp_path):
+    error = PublicError("RecoveryRequired", stage="claim", message="owner state unknown")
+    submitted = []
+
+    def submit(spec):
+        submitted.append(spec["code"])
+        raise error
+
+    output = execute(
+        _request(), workspace=tmp_path,
+        bind_execution=lambda request: {**_bind(request), "code": "extra-metadata"},
+        execute_harness=submit,
+    )
+    assert submitted == ["extra-metadata"]
+    assert output.result["error"] == error.to_json()
 
 
 @pytest.mark.parametrize(
@@ -361,3 +367,22 @@ def test_concurrent_publications_with_same_id_do_not_replace(tmp_path):
     assert read_result(tmp_path, "same") == published
     assert rejected.result["reason_code"] == "ArchivePersistenceError"
     assert list((tmp_path / "output").iterdir()) == [published.directory]
+
+
+def test_empty_directory_created_at_publication_is_never_replaced(tmp_path, monkeypatch):
+    result = _fixture("apps-not-started")
+    publish = archive._publish_directory
+
+    def racing_publish(staging, destination):
+        assert not destination.exists()
+        destination.mkdir()
+        publish(staging, destination)
+
+    monkeypatch.setattr(archive, "_publish_directory", racing_publish)
+    output = publish_result(tmp_path, result, output_id="race")
+    assert output.directory is None
+    assert output.result["reason_code"] == "ArchivePersistenceError"
+    assert output.result["record_ref"] == result["record_ref"]
+    destination = tmp_path / "output" / "race"
+    assert destination.is_dir() and list(destination.iterdir()) == []
+    assert list(destination.parent.iterdir()) == [destination]

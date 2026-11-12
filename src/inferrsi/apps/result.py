@@ -4,6 +4,7 @@ import re
 from hashlib import sha256
 
 from inferrsi._json_v1 import encode
+from inferrsi.harness.errors import PUBLIC_ERROR_CODES
 
 _EXIT_CODES = {
     "success": 0,
@@ -39,6 +40,15 @@ _REF_FIELDS = {
 _SHA256 = re.compile(r"[0-9a-f]{64}")
 _RECORD_OBSERVATIONS = {"record_ref", "observed_at", "controller_observation"}
 _VERDICT_OUTCOMES = {"PASS": "success", "FAIL": "fail", "INCONCLUSIVE": "inconclusive"}
+
+
+def is_public_error(value: object) -> bool:
+    return (
+        isinstance(value, dict)
+        and value.keys() == _ERROR_FIELDS
+        and isinstance(value["code"], str)
+        and value["code"] in PUBLIC_ERROR_CODES
+    )
 
 
 def _execute_outcome(record: dict) -> str:
@@ -222,8 +232,7 @@ def validate_result(result: object) -> None:
         raise ValueError("inconsistent Apps outcome and exit code")
     error = result["error"]
     if error is not None and (
-        not isinstance(error, dict) or error.keys() != _ERROR_FIELDS
-        or not isinstance(error["code"], str)
+        not is_public_error(error)
         or outcome != _ERROR_OUTCOMES.get(error["code"], "error")
     ):
         raise ValueError("invalid Apps PublicError")
