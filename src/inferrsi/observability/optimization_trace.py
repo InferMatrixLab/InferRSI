@@ -11,6 +11,7 @@ import json
 import os
 import re
 import stat
+import sys
 from pathlib import Path
 
 MAX_OPTIMIZATION_TRACE_BYTES = 2 * 1024 * 1024
@@ -48,6 +49,10 @@ def _strings(value: object) -> list[str]:
     if not isinstance(value, list):
         raise TraceError("invalid_format")
     return [_string(item) for item in value]
+
+
+def _duration(value: object) -> bool:
+    return type(value) in (int, float) and 0 <= value <= sys.float_info.max
 
 
 def _section(value: object, fields: set[str]) -> dict:
@@ -93,7 +98,8 @@ def parse_optimization_trace(raw: bytes) -> dict:
         raise TraceError("invalid_format")
     required = {"schema_version", "reviewed_by_caller", "campaign_id", "candidate_id",
                 "context", "search_space", "steps", "summary"}
-    if not required <= set(value) or set(value) - (required | {"round", "run_id"}):
+    optional = {"round", "run_id", "diagnosis", "applied_skills"}
+    if not required <= set(value) or set(value) - (required | optional):
         raise TraceError("invalid_format")
     if type(value["schema_version"]) is not int or value["schema_version"] != 1:
         raise TraceError("invalid_format")
@@ -120,7 +126,42 @@ def parse_optimization_trace(raw: bytes) -> dict:
         _string(source["revision"])
         _string(source["locator"])
 
-    space = _section(value["search_space"], {"items"})
+    if "applied_skills" in value:
+        if not isinstance(value["applied_skills"], list):
+            raise TraceError("invalid_format")
+        for item in value["applied_skills"]:
+            skill = _object(item, {"name", "takeaway"})
+            _string(skill["name"], required=True)
+            _string(skill["takeaway"], required=True)
+    if "diagnosis" in value:
+        diagnosis = _object(value["diagnosis"], {
+            "scope", "metric_unit", "total", "components", "conclusion", "source_sha256",
+        })
+        if ((diagnosis["scope"], diagnosis["metric_unit"]) not in
+                (("baseline_request", "s"), ("denoiser_step", "ms"))):
+            raise TraceError("invalid_format")
+        _string(diagnosis["conclusion"], required=True)
+        if not _SHA256.fullmatch(_string(diagnosis["source_sha256"])):
+            raise TraceError("invalid_format")
+        components = diagnosis["components"]
+        if not isinstance(components, list) or not 1 <= len(components) <= 256:
+            raise TraceError("invalid_format")
+        if not _duration(diagnosis["total"]) or diagnosis["total"] == 0:
+            raise TraceError("invalid_format")
+        for item in components:
+            component = _object(item, {"name", "samples"})
+            _string(component["name"], required=True)
+            samples = component["samples"]
+            if (not isinstance(samples, list) or not 1 <= len(samples) <= 4096
+                    or not all(_duration(n) for n in samples)):
+                raise TraceError("invalid_format")
+
+    fields = {"items"}
+    if isinstance(value["search_space"], dict) and "selection_rules" in value["search_space"]:
+        fields.add("selection_rules")
+    space = _section(value["search_space"], fields)
+    if "selection_rules" in space:
+        _strings(space["selection_rules"])
     if not isinstance(space["items"], list):
         raise TraceError("invalid_format")
     space_ids = set()

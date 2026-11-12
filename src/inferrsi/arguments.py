@@ -136,8 +136,17 @@ def parser() -> argparse.ArgumentParser:
     create.add_argument("--directory", type=Path, required=True)
     create.add_argument("--id", required=True)
     create.add_argument("--target-pct", type=float)
+    create.add_argument("--profile-first", action="store_true",
+                        help="Lead the review with acceptance criteria and profile evidence")
+    create.add_argument("--backend", choices=BACKENDS,
+                        help="Target backend for campaign knowledge discovery")
     create.add_argument("--noise-pct", type=float)
     create.add_argument("--synthetic", action="store_true")
+    profiler = campaign_actions.add_parser("attach-profile", help="Attach a reviewed Chrome trace")
+    profiler.add_argument("--directory", type=Path, required=True)
+    profiler.add_argument("--id", required=True)
+    profiler.add_argument("--source", required=True, help="Campaign-relative profiles/*.json[.gz]")
+    profiler.add_argument("--review", type=Path, required=True, help="Timing scope and conclusions")
     assemble = campaign_actions.add_parser(
         "assemble-trace",
         help="Insert an explicitly reviewed context file into a trace template",
@@ -165,9 +174,9 @@ def parser() -> argparse.ArgumentParser:
     capture.add_argument("--directory", type=Path, required=True)
     capture.add_argument("--id", required=True, help="New context id, e.g. r1-diagnosis")
     capture.add_argument("query", nargs="?", default="")
-    capture.add_argument("--relevance", help="Lexical cue for packaged skill selection")
+    capture.add_argument("--relevance", help="Task cue for package knowledge and skill discovery")
     capture.add_argument("--relevance-method", choices=RELEVANCE_METHODS,
-                         default="weighted-lexical-v1")
+                         help="Campaign discovery defaults to task-lexical-v1")
     capture.add_argument("--id-ref", action="append", dest="ids", metavar="ID",
                          help="Exact knowledge identity to include (repeatable)")
     capture.add_argument("--kind", choices=("skill", "knowledge", "case"))
@@ -258,6 +267,8 @@ def parser() -> argparse.ArgumentParser:
     )
     collect.add_argument("query", nargs="?", default="")
     collect.add_argument("--kind", choices=("skill", "knowledge", "case"))
+    collect.add_argument("--backend", choices=BACKENDS, help="Include this backend and common")
+    collect.add_argument("--scenario", help="Workload scenario; task ranking also considers skills")
     collect.add_argument(
         "--id", action="append", dest="ids", metavar="ID", help="Exact requested identity"
     )
@@ -271,10 +282,10 @@ def parser() -> argparse.ArgumentParser:
     collect.add_argument("--limit", type=int, default=10)
     collect.add_argument("--max-bytes", type=int)
     collect.add_argument("--material", action="store_true")
-    collect.add_argument("--relevance", help="Opt-in lexical cue for packaged skill selection")
+    collect.add_argument("--relevance", help="Lexical cue for package knowledge discovery")
     collect.add_argument(
         "--relevance-method", choices=RELEVANCE_METHODS, default="weighted-lexical-v1",
-        help="Packaged skill ranking method; nondefault method requires --relevance",
+        help="Package ranking method; nondefault methods require --relevance",
     )
     collect.add_argument(
         "--context-bytes", type=int,

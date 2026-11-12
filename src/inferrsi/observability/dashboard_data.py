@@ -14,6 +14,7 @@ import re
 import shlex
 from pathlib import Path, PurePosixPath, PureWindowsPath
 
+from .dashboard_workflow import command_state, run_workflow, validation_progress
 from .optimization_trace import read_optimization_trace
 
 STAGES = ("diagnosis", "knowledge", "search", "execution", "validation", "review")
@@ -22,7 +23,9 @@ PHASE_STAGES = {
     "measurement": "execution",
     "quality_validation": "validation",
 }
+PHASE_STAGES.update({phase + "_end": stage for phase, stage in PHASE_STAGES.items()})
 EVENT_TYPES = {
+    "turn.started", "turn.completed", "turn.failed", "item.completed", "error",
     "agent.context", "agent.request", "agent.response", "agent.tool",
     "agent.completed", "agent.failed", "agent.protocol", "agent.reservation",
     "edit.artifact", "edit.protocol", "edit.slot",
@@ -221,6 +224,14 @@ def _display_command(value: object, *, candidate_ids: set[str] | None = None) ->
 def _event_details(record: dict) -> dict:
     """Retain structured trace metadata, never arbitrary payloads or messages."""
     details = {}
+    seconds = _number(record.get("elapsed_seconds"))
+    if seconds is not None and seconds >= 0:
+        details["elapsed_seconds"] = seconds
+    item = record.get("item")
+    if isinstance(item, dict) and item.get("type") in (
+        "agent_message", "command_execution", "file_change", "mcp_tool_call", "web_search",
+    ):
+        details["item_kind"] = item["type"]
     for key in ("request", "requests", "request_bytes", "bytes", "revision"):
         value = record.get(key)
         if type(value) is int and 0 <= value <= 1_000_000_000_000:
@@ -275,7 +286,7 @@ def _event_details(record: dict) -> dict:
     for key, allowed in (("stop_reason", {"tool_use", "end_turn", "max_tokens", "stop_sequence",
                                           "pause_turn", "refusal"}),
                          ("state", {"running", "completed", "failed", "crashed", "timeout",
-                                    "cancelled"}),
+                                    "cancelled", "error"}),
                          ("verdict", {"PASS", "FAIL", "INCONCLUSIVE"})):
         value = record.get(key)
         if isinstance(value, str) and value in allowed:
@@ -470,8 +481,20 @@ def _events(path: Path, root: Path, expected: dict | None = None, unique_candida
         if not isinstance(time, str) or not re.fullmatch(r"[0-9TtZz:+.\-]{10,40}", time):
             time = None
         trial = record.get("trial")
+        details = _event_details(record)
+        activity = {
+            "agent.request": "request", "turn.started": "request",
+            "agent.response": "response", "agent.tool": "tool",
+            "agent.completed": "completion", "turn.completed": "completion",
+            "agent.failed": "error", "turn.failed": "error", "error": "error",
+        }.get(event_type)
+        if event_type == "item.completed":
+            activity = {"agent_message": "response", "command_execution": "tool",
+                        "file_change": "edit", "mcp_tool_call": "tool",
+                        "web_search": "tool"}.get(details.get("item_kind"))
         events.append({
-            "line": line_number, "time": time, "phase": phase, "type": event_type,
+            "activity": activity, "line": line_number, "time": time,
+            "phase": phase, "type": event_type,
             "stage": stage, "side": record.get("side")
             if record.get("side") in ("baseline", "candidate") else None,
             "trial": trial if isinstance(trial, int) and not isinstance(trial, bool)
@@ -480,7 +503,7 @@ def _events(path: Path, root: Path, expected: dict | None = None, unique_candida
                 "read_file", "submit_answer", "submit_candidate", "write_candidate",
                 "run_visible_checks", "run_visible_benchmark",
             ) else None,
-            "details": _event_details(record),
+            "details": details,
             "_declared_refs": record.get("refs") if isinstance(record.get("refs"), list) else [],
             "_link_state": link_state,
         })
@@ -584,20 +607,36 @@ def _run(root: Path, path: Path, candidate: dict, run_id: str | None, noise: flo
                 kind = "artifact"
             event["refs"].append(_explicit_ref(root, item, kind))
 
+    trial_refs = {}
+    native = {}
+    if all(isinstance(repositories.get(side), dict)
+           and repositories[side].get("available") is True
+           and isinstance(repositories[side].get("snapshot_hash"), str)
+           and repositories[side]["snapshot_hash"] for side in ("baseline", "candidate")):
+        native["source_snapshot", None, None] = ("completed", None)
+    native["quality_validation", None, None] = command_state(validation)
     for event in events:
         event.pop("_link_state", None)
         event["source"] = "events"
         event["refs"] = [refs["events"]]
-        if event["phase"] == "measurement" and event["side"] and event["trial"]:
+        if (event["phase"] in ("measurement", "measurement_end")
+                and event["side"] and event["trial"]):
             trial = path / event["side"] / f'trial-{event["trial"]:03d}'
-            event["refs"].extend(
-                _file_ref(root, trial / name, kind)
-                for name, kind in (("execution.json", "execution"), ("stdout.log", "stdout"),
-                                   ("stderr.log", "stderr"))
-            )
-        elif event["phase"] == "quality_validation":
+            if trial not in trial_refs:
+                execution, _, exec_ref = _object_snapshot(
+                    trial / "execution.json", root, "execution"
+                )
+                native["measurement", event["side"], event["trial"]] = command_state(execution)
+                trial_refs[trial] = [exec_ref] + [
+                    _file_ref(root, trial / name, kind) for name, kind in (
+                        ("stdout.log", "stdout"), ("stderr.log", "stderr"),
+                    )
+                ]
+            event["refs"].extend(trial_refs[trial])
+        elif event["phase"] in ("quality_validation", "quality_validation_end"):
             event["refs"].append(refs["quality"])
         attach_declared(event)
+    runner_events = list(events)
     agent_links = {"unlinked": [], "mismatched": []}
     unlinked_events = []
     if refs["agent_trace"]["state"] == "present":
@@ -628,7 +667,7 @@ def _run(root: Path, path: Path, candidate: dict, run_id: str | None, noise: flo
         corrupt.extend(agent_corrupt)
         corrupt_sources["agent_trace"] = agent_corrupt
     tool_events = [event for event in events if event["source"] == "agent_trace"
-                   and event["type"] == "agent.tool"]
+                   and event["activity"] == "tool"]
     refs["tool_calls"] = ({**refs["agent_trace"], "kind": "tool_calls"} if tool_events else {
         "kind": "tool_calls", "state": "missing", "missing_reason": "not_collected"
     })
@@ -693,6 +732,21 @@ def _run(root: Path, path: Path, candidate: dict, run_id: str | None, noise: flo
         and isinstance(snapshot, str) and snapshot and valid_sequences
         and environment_signature is not None
     ) else None
+    workflow = run_workflow(runner_events, lock, state, status.get("phase"), native)
+    if run_id is not None:
+        progress, progress_state, progress_ref = _object_snapshot(
+            path / "validation" / "progress.json", root, "validation_progress"
+        )
+        if progress_ref.get("missing_reason") != "file_absent":
+            refs["validation_progress"] = progress_ref
+            counts = validation_progress(progress)
+            if counts is None:
+                if progress_state == "present":
+                    refs["validation_progress"] = {
+                        **progress_ref, "state": "missing", "missing_reason": "invalid_counts"
+                    }
+            else:
+                workflow["groups"][1].update(counts)
     return {
         "candidate_id": _text(candidate_id) if isinstance(candidate_id, str) else None,
         "title": _text(candidate.get("title"), "Recorded candidate"),
@@ -706,14 +760,15 @@ def _run(root: Path, path: Path, candidate: dict, run_id: str | None, noise: flo
         "minimum_improvement_pct": _number(evaluation.get("min_improvement_pct")),
         "baseline_median": _number(baseline.get("median")),
         "candidate_median": _number(measured.get("median")), "noise_band_pct": noise,
-        "metric_key": _text(evaluation.get("metric_key")),
-        "metric_unit": _text(evaluation.get("metric_unit")),
+        "metric_key": _text(evaluation.get("metric_key") or lock.get("metric_key")),
+        "metric_unit": _text(evaluation.get("metric_unit") or lock.get("metric_unit")),
         "direction": evaluation.get("direction")
         if evaluation.get("direction") in ("minimize", "maximize") else None,
         "verdict": verdict,
         "outcome": outcome, "events": events, "corrupt_event_lines": corrupt,
         "corrupt_event_sources": corrupt_sources,
         "agent_trace_links": agent_links, "unlinked_agent_events": unlinked_events,
+        "run_workflow": workflow,
         "optimization": _optimization(candidate),
         "optimization_trace": optimization_trace,
         "benchmark_context": {"scenario": _text(lock.get("scenario"), "Not recorded"),
@@ -881,9 +936,21 @@ def load_dashboard(source: Path) -> dict:
                  for item in (rounds or []) if "decision" in item}
     for row in rows:
         row["decision"] = decisions.get((row["round"], row["candidate_id"]), "not_recorded")
+    profiled = campaign.get("review_layout") == "profile_first"
+    anchors = []
+    if profiled:
+        for row in rows:
+            diagnosis = (row.get("optimization_trace") or {}).get("diagnosis", {})
+            ref = row["artifacts"].get("profile", {})
+            if (diagnosis.get("scope") == "baseline_request" and ref.get("state") == "present"
+                    and diagnosis.get("source_sha256", "").lower() == ref.get("sha256")):
+                anchors.append(row["_comparison_signature"])
+    anchor = anchors[0] if len(anchors) == 1 else None
     signatures = []
     for row in rows:
         signature = row.pop("_comparison_signature")
+        if anchor is not None:
+            row["matches_profile_baseline"] = signature == anchor
         if row["improvement_pct"] is not None:
             signatures.append(signature)
     comparison_state = "comparable" if signatures else "no_data"
@@ -892,12 +959,14 @@ def load_dashboard(source: Path) -> dict:
             comparison_state = "unverified"
         elif len(set(signatures)) != 1:
             comparison_state = "incompatible"
-    valid_gains = [row["improvement_pct"] for row in rows if row["improvement_pct"] is not None
+    qualified = [row for row in rows if row["improvement_pct"] is not None
                    and row["quality"] == "passed" and row["source_verified"] is True
                    and row["state"] == "completed" and row["verdict"] in ("PASS", "FAIL")
                    and row["decision"] != "rolled_back"]
-    if comparison_state != "comparable":
-        valid_gains = []
+    valid_gains = ([r["improvement_pct"] for r in qualified]
+                   if comparison_state == "comparable" else [])
+    profile_best = max((r["improvement_pct"] for r in qualified
+                        if r.get("matches_profile_baseline")), default=None)
     best = max(valid_gains) if valid_gains else None
     goal = campaign.get("goal") if isinstance(campaign.get("goal"), dict) else {}
     target = _number(goal.get("target_improvement_pct"))
@@ -937,6 +1006,8 @@ def load_dashboard(source: Path) -> dict:
         declared = None
     return {
         "campaign_id": _text(campaign.get("campaign_id"), "Single run" if single else "Campaign"),
+        **({"review_layout": "profile_first"}
+           if campaign.get("review_layout") == "profile_first" else {}),
         "synthetic": campaign.get("synthetic") is True,
         "rounds": rounds, "rounds_state": rounds_state,
         "corrupt_round_lines": corrupt_round_lines,
@@ -948,6 +1019,8 @@ def load_dashboard(source: Path) -> dict:
                         "collection": {"state": _text(collection.get("state"), ""),
                                        "observed_at": _text(collection.get("observed_at"), "")}},
         "overview": {"comparison_state": comparison_state,
+                     **({"profile_best_improvement_pct": profile_best}
+                        if anchor is not None else {}),
                      "best_improvement_pct": best, "target_improvement_pct": target,
                      "target_gap_pct": (_number(target - best)
                                         if target is not None and best is not None else None)},

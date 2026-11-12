@@ -106,6 +106,16 @@ class DashboardHandler(BaseHTTPRequestHandler):
         ):
             self._reply(403, b"Invalid host")
             return
+        events = re.fullmatch(r"/api/profile-events/([0-9a-f]{64})", self.path)
+        if events:
+            from .profile_timeline import profile_event_table
+
+            payload = profile_event_table(self.server.source, events.group(1))
+            if payload is None:
+                self._reply(404, b"No verified profile events")
+            else:
+                self._reply(200, payload, content_type="application/json", encoding="gzip")
+            return
         if self.path not in ("/", "/api/state"):
             self._reply(404, b"Not found")
             return

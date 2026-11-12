@@ -97,18 +97,31 @@ def _round_trend(view: dict) -> dict | None:
             or any(type(number) is not int or number <= 0 for number in rounds)
             or len(set(rounds)) != len(rounds)):
         return None
-    scores = [100.0 + row["improvement_pct"] for row in measured]
-    if any(not math.isfinite(score) or score <= 0 for score in scores):
-        return None
+    measured.sort(key=lambda row: row["round"])
     target = view["overview"]["target_improvement_pct"]
     target_score = 100.0 + target if target is not None else None
+    speedup = view.get("review_layout") == "profile_first"
+    if speedup:
+        if any(row["direction"] not in {"minimize", "maximize"}
+               or not all(isinstance(row[key], (float, int)) and row[key] > 0
+                          for key in ("baseline_median", "candidate_median")) for row in measured):
+            return None
+        scores = [100 * (row["baseline_median"] / row["candidate_median"]
+                         if row["direction"] == "minimize"
+                         else row["candidate_median"] / row["baseline_median"]) for row in measured]
+        if target is not None and measured[0]["direction"] == "minimize":
+            target_score = 100 / (1 - target / 100) if target < 100 else None
+    else:
+        scores = [100.0 + row["improvement_pct"] for row in measured]
+    if any(not math.isfinite(score) or score <= 0 for score in scores):
+        return None
     points = [{"phase": "Baseline", "label": "baseline", "values": {"score": 100},
                "baseline": True}]
     points.extend({"phase": "Recorded rounds", "label": f'R{row["round"]}',
-                   "values": {"score": 100 + row["improvement_pct"]},
+                   "values": {"score": score},
                    "note": ("rolled back" if row["decision"] == "rolled_back"
                             else row["outcome"].replace("_", " "))}
-                  for row in sorted(measured, key=lambda item: item["round"]))
+                  for row, score in zip(measured, scores))
     ratios = [1.0, *(score / 100 for score in scores)]
     if target_score is not None and target_score > 0:
         ratios.append(target_score / 100)
@@ -127,10 +140,10 @@ def _round_trend(view: dict) -> dict | None:
         "title": "Performance by recorded round", "layout": "chain",
         "phases": ["Baseline", "Recorded rounds"],
         "baseline": {"label": "paired baseline", "metrics": {"score": 100}},
-        "metrics": [{"key": "score", "label": "Performance index"}],
+        "metrics": [{"key": "score", "label": "Speedup index" if speedup else "Performance index"}],
         "label_metric": "score", "points": points,
-        "axis": {"step": step, "label": "Recorded round",
-                 "y_label": "Performance index vs baseline"},
+        "axis": {"step": step, "label": "Recorded round", "y_label": (
+            "Speedup vs paired baseline" if speedup else "Performance index vs baseline")},
         "references": [{"label": "Target", "metric": "score", "value": target_score}]
         if target_score is not None and target_score > 0 else [],
     }
@@ -159,9 +172,15 @@ def _chart(source: Path, view: dict) -> tuple[str, str]:
     message = "Independent candidate results relative to their paired baselines."
     if view["overview"]["comparison_state"] == "no_data":
         return "", "No measured candidate results recorded."
-    if view["overview"]["comparison_state"] != "comparable":
+    profile_first = view.get("review_layout") == "profile_first"
+    # A different device or benchmark command must not invalidate earlier,
+    # compatible points or silently join their trend. Other pairs stay in the key.
+    if profile_first and "profile_best_improvement_pct" in view["overview"]:
+        view = {**view, "candidates": [r for r in view["candidates"]
+                                         if r.get("matches_profile_baseline")]}
+    elif view["overview"]["comparison_state"] != "comparable":
         return "", "Comparison evidence is missing, unsupported, or incompatible."
-    if _inside(source, chart_file) and chart_file.is_file():
+    if not profile_first and _inside(source, chart_file) and chart_file.is_file():
         try:
             if chart_file.stat().st_size <= 256 * 1024:
                 recorded = json.loads(chart_file.read_text(encoding="utf-8"))
@@ -178,6 +197,8 @@ def _chart(source: Path, view: dict) -> tuple[str, str]:
             message = ("Independent candidate measurements by round; the line is not cumulative. "
                        "Check status and quality; missing results are omitted.")
     if spec is None:
+        if profile_first:
+            return "", "No comparable round trend available."
         trials = []
         for index, row in enumerate(view["candidates"], 1):
             gain = row["improvement_pct"]
@@ -275,8 +296,13 @@ def dashboard_snapshot(source: Path, translations: Path | None = None) -> dict:
     """Read one view and its charts from the currently recorded evidence."""
     source = Path(source).resolve()
     view = load_dashboard(source)
+    if view.get("review_layout") == "profile_first":
+        from .profile_timeline import read_profiles
+
+        view["profile_captures"], view["unavailable_profiles"] = read_profiles(source)
     chart, chart_note = _chart(source, view)
-    temporal, temporal_note = temporal_chart(view)
+    temporal, temporal_note = (("", "") if view.get("review_layout") == "profile_first"
+                               else temporal_chart(view))
     view["chart_note"] = chart_note
     view["temporal_note"] = temporal_note
     view["translations"] = _translations(translations)
@@ -291,7 +317,9 @@ def render_dashboard(snapshot: dict, *, live: bool = False) -> str:
     payload = (payload.replace("&", "\\u0026").replace("<", "\\u003c")
                .replace(">", "\\u003e").replace("\u2028", "\\u2028")
                .replace("\u2029", "\\u2029"))
-    template = files("inferrsi").joinpath("data", "dashboard", "template.html").read_text(
+    filename = ("review_template.html" if view.get("review_layout") == "profile_first"
+                else "template.html")
+    template = files("inferrsi").joinpath("observability", filename).read_text(
         encoding="utf-8"
     )
     if live:

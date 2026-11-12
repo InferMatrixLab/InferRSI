@@ -18,7 +18,7 @@ modules are isolated.
 Do not keep a sibling `data/` resource tier. Knowledge corpus later moves
 under the Knowledge module. The internal corpus split is left to a future
 Knowledge issue. `repo_packs/*/pack.json` is a target description and follows
-the Harness slice. `data/dashboard/template.html` is a view template and
+the Harness slice. `observability/template.html` is a view template and
 follows the Apps slice. Neither belongs in the corpus only because it sits
 under `data/` today.
 

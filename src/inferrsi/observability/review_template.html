@@ -1,0 +1,643 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="generator" content="InferRSI dashboard">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'">
+<title>InferRSI · 实验复盘</title>
+<style>
+:root{color-scheme:dark;--bg:#121519;--panel:#181b1f;--line:#343b43;--sub:#aeb8c4;--text:#ecf0f3;--accent:#86c8ef}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.6 "Segoe UI","Microsoft YaHei",sans-serif}
+main,header>div{width:min(1080px,calc(100% - 48px));margin:auto}
+header{border-bottom:1px solid var(--line);background:var(--panel)}
+header>div{display:flex;align-items:center;gap:14px;min-height:52px;flex-wrap:wrap;padding:8px 0}
+header strong{font-weight:650;letter-spacing:.02em}header small{color:var(--sub)}
+#connection{color:var(--accent)}#language{margin-left:auto}
+button,summary{cursor:pointer;color:var(--accent)}
+button{background:transparent;border:1px solid var(--line);border-radius:4px;padding:.35em .8em}
+button:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+main{padding:28px 0 58px}
+header #campaign{overflow-wrap:anywhere;min-width:0}
+section{margin-bottom:24px;padding:20px 24px;border:1px solid var(--line);border-radius:7px;background:var(--panel)}
+#story-checks{border-left:3px solid #edb769;overflow-wrap:anywhere}
+h1,h2,h3,p,figure,dl{margin:0}h1,h2{font-size:20px;line-height:1.35;margin-bottom:12px}h3{font-size:16px}
+p+p{margin-top:6px}.goal{font-size:19px;font-weight:550}.note,small,dt{color:var(--sub)}
+ul{margin:.45em 0 0;padding-left:1.35em}code,pre,.value,td{font-variant-numeric:tabular-nums}
+code,pre{font-family:Consolas,"Microsoft YaHei",monospace}code{overflow-wrap:anywhere}
+table{border-collapse:collapse;width:100%;font-size:14px;margin:12px 0 0}
+th,td{text-align:left;border-bottom:1px solid var(--line);padding:7px 9px 7px 0;vertical-align:top}
+th{font-size:13px;color:var(--sub);font-weight:500}.value{font-weight:650}
+.metrics{display:flex;gap:18px 40px;flex-wrap:wrap;margin:14px 0}
+.metrics dd{margin:2px 0 0;font-weight:650;font-size:22px;line-height:1.4}.metrics dt{font-size:13px}
+.round{border-top:1px solid var(--line);padding:16px 0}.round h3,.round p{overflow-wrap:anywhere}
+.round .facts{display:flex;gap:6px 22px;flex-wrap:wrap;padding:4px 0;color:var(--accent);font-size:14px}
+.round .basis{color:var(--sub);font-size:14px}.round .basis code{color:var(--text)}
+.tag{display:inline-block;margin-right:8px;color:var(--accent);font-size:13px}
+details{margin-top:8px;font-size:13px}details details{margin-left:10px}
+details p,details pre{margin:5px 0 4px 12px;overflow-wrap:anywhere}
+pre{max-height:22rem;overflow:auto;white-space:pre-wrap;padding:9px 12px;background:var(--bg);color:var(--sub)}
+.trend figure{margin:0}.trend h1{margin-bottom:4px}#chart{overflow-x:auto}#chart svg{display:block;width:100%;min-width:540px;max-height:390px;height:auto}
+.capture+.capture{margin-top:22px;border-top:1px solid var(--line);padding-top:18px}
+.capture h3{margin:0 0 4px}.capture .meta{font:13px/1.65 Consolas,"Microsoft YaHei",monospace;color:var(--sub);overflow-wrap:anywhere}
+.capture h4{font-size:14px;margin:12px 0 5px}.capture>p{margin:5px 0}
+.trace-controls,.legend{display:flex;align-items:center;gap:8px 14px;flex-wrap:wrap;margin:10px 0}
+.trace-controls button{font:inherit;font-size:14px;padding:3px 10px}.trace-controls button:disabled{color:var(--sub);opacity:.55;cursor:default}
+.trace-controls input{flex:1 1 110px;max-width:300px;accent-color:var(--accent)}
+.trace-controls output{font:13px Consolas,monospace;color:var(--sub)}
+.legend{font-size:12px;color:var(--sub)}.legend span:before{display:inline-block;content:"";width:9px;height:9px;border-radius:2px;background:var(--swatch);margin-right:5px}
+.trace-scroll{max-height:390px;overflow-y:auto;overscroll-behavior:contain;border:1px solid var(--line);border-radius:5px}
+.track{display:grid;grid-template-columns:minmax(92px,17%) minmax(0,1fr);align-items:center;min-height:35px;border-bottom:1px solid #30353c;background:#16191d}
+.track:last-child{border-bottom:0}.track-label{padding:4px 8px;font:12px/1.3 Consolas,"Microsoft YaHei",monospace;color:#c1ccd4;overflow-wrap:anywhere}
+.track canvas{display:block;width:100%;height:34px;touch-action:pan-y;cursor:crosshair}
+.scale{position:sticky;top:0;background:#20262d;z-index:1;min-height:25px}.ticks{display:flex;justify-content:space-between;font:11px Consolas,monospace;color:var(--sub);padding:2px 4px}
+.selection{font:13px/1.5 Consolas,"Microsoft YaHei",monospace;overflow-wrap:anywhere;color:var(--accent);min-height:1.6em}
+.file-tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:8px 0}.file-tools input{max-width:100%;font-size:12px}
+.trace-table{overflow:auto;max-height:280px}.trace-table th{position:sticky;top:0;background:var(--panel)}.trace-table td{overflow-wrap:anywhere}
+.trace-table button{font:inherit;text-align:left;border:0;padding:0}.trace-status{color:var(--accent)}a{color:var(--accent)}
+.decisions{display:grid;gap:8px}.decision{display:grid;grid-template-columns:4em 9em 1fr;gap:12px;border-top:1px solid var(--line);padding-top:8px}
+@media(max-width:640px){main,header>div{width:calc(100% - 24px)}section{padding:15px;margin-bottom:14px}main{padding:18px 0}.metrics{gap:10px 20px}.decision{grid-template-columns:3em 1fr;gap:4px}.decision .note{grid-column:2}header>div{gap:8px}.goal{font-size:17px}}
+</style>
+</head>
+<body>
+<header><div><strong>InferRSI</strong><code id="campaign"></code><small id="mode"></small><small id="connection" role="status"></small><button id="language" type="button"></button></div></header>
+<main>
+<section class="trend" aria-labelledby="chart-title"><figure><h1 id="chart-title"></h1><div class="note" id="chart-note"></div><div id="chart">__DASHBOARD_CHART__</div></figure></section>
+<section aria-labelledby="goal-title"><h2 id="goal-title"></h2><div id="goal"></div></section>
+<section id="story-checks" hidden aria-labelledby="checks-title"><h2 id="checks-title"></h2><ul id="checks-list"></ul></section>
+<section id="capture-section" hidden aria-labelledby="captures-title"><h2 id="captures-title"></h2><div id="captures"></div></section>
+<section aria-labelledby="baseline-title"><h2 id="baseline-title"></h2><div id="baseline"></div></section>
+<section aria-labelledby="gap-title"><h2 id="gap-title"></h2><div id="gap"></div></section>
+<section aria-labelledby="rounds-title"><h2 id="rounds-title"></h2><div id="rounds"></div></section>
+<section aria-labelledby="decision-title"><h2 id="decision-title"></h2><div class="decisions" id="decisions"></div></section>
+</main>
+<script id="dashboard-data" type="application/json">__DASHBOARD_DATA__</script>
+<script>
+(() => {
+'use strict';
+const byId=id=>document.getElementById(id);
+let data=JSON.parse(byId('dashboard-data').textContent);
+const live=data.live===true;
+let language='zh';
+try { language=localStorage.getItem('inferrsi.dashboard.language')==='en'?'en':'zh'; } catch {}
+let chart=byId('chart').innerHTML, connected=false, attempted=false, etag=null;
+const tr=(zh,en)=>language==='zh'?zh:en;
+const recorded=text=>{
+  const overlay=data.translations?.[language];
+  return typeof text==='string' && overlay && Object.hasOwn(overlay,text)?overlay[text]:text;
+};
+const dash='—', fmt=(v,n=3)=>Number.isFinite(v)?v.toFixed(n):dash;
+const rowLabel=r=>Number.isInteger(r.round)?'R'+r.round:r.candidate_id;
+function el(tag,text,cls){
+  const item=document.createElement(tag);
+  if(text!=null)item.textContent=String(text);
+  if(cls)item.className=cls;
+  return item;
+}
+const p=(parent,text,cls)=>parent.append(el('p',text,cls));
+function metric(dl,label,value){
+  const pair=el('div');pair.append(el('dt',label),el('dd',value));dl.append(pair);
+}
+function table(parent,headers,rows){
+  const t=el('table'), head=t.createTHead().insertRow();
+  for(const label of headers){const th=el('th',label);th.scope='col';head.append(th);}
+  const body=t.createTBody();
+  for(const values of rows){const row=body.insertRow();for(const value of values)row.insertCell().textContent=value;}
+  parent.append(t);
+}
+function fold(parent,label,key,draw,opened){
+  const f=el('details');f.dataset.key=key;f.append(el('summary',label));
+  const content=el('div');f.append(content);parent.append(f);
+  let built=false;
+  function fill(){if(f.open&&!built){built=true;draw(content);}}
+  f.addEventListener('toggle',fill);
+  if(opened.has(key)){f.open=true;fill();}
+}
+function verifiedProfile(r){
+  const d=r.optimization_trace?.diagnosis, ref=r.artifacts?.profile;
+  return d && ref?.state==='present' && /^[a-f0-9]{64}$/i.test(ref.sha256) &&
+    ref.sha256.toLowerCase()===d.source_sha256?.toLowerCase()?d:null;
+}
+function median(values){
+  const a=[...values].sort((x,y)=>x-y),i=Math.floor(a.length/2);
+  return a.length%2?a[i]:(a[i-1]+a[i])/2;
+}
+function range(values){
+  const lo=Math.min(...values),hi=Math.max(...values);
+  return lo===hi?fmt(lo,3):fmt(lo,3)+'–'+fmt(hi,3);
+}
+function iteration(r){
+  return data.story?.iterations?.find(i=>i.round===r.round && i.candidates.some(c=>c.candidate_id===r.candidate_id));
+}
+function profileTable(box,d){
+  if(d.components.every(c=>c.samples.length===1)){
+    table(box,[tr('阶段或算子','Stage or operator'),tr('采样用时','Sampled duration')+' ('+d.metric_unit+')'],
+      d.components.map(c=>[recorded(c.name),fmt(c.samples[0])]));
+    return;
+  }
+  table(box,[tr('阶段或算子','Stage or operator'),tr('耗时范围','Measured range')+' ('+d.metric_unit+')',
+    tr('中位数','Median')+' ('+d.metric_unit+')'],
+    d.components.map(c=>[recorded(c.name),range(c.samples),fmt(median(c.samples))]));
+}
+function status(state){
+  const zh={completed:'已完成',running:'运行中',cancelled:'已中止',failed:'失败',crashed:'异常退出',queued:'已排队',
+    passed:'通过',not_recorded:'未记录',pending:'待决策',adopted:'已采纳',rejected:'未采纳',rolled_back:'已回滚',
+    no_gain:'未见收益',noise:'噪声范围内',regressed:'回退',improved:'改善',quality_failed:'质量检查失败'};
+  return language==='zh'?(zh[state]||state||dash):(state||dash).replaceAll('_',' ');
+}
+// Diagnostics come from the evidence reader, so use fixed translations here.
+// A caller's narrative translations must not relabel a conflict.
+function checkText(text){
+  if(language!=='zh')return text;
+  const phrases={
+    'was not retrieved by this capture':'本次检索没有返回该条目',
+    'was not retrieved by any capture':'所有检索记录中均无该条目',
+    'was not retrieved by the captures this round names':'本轮关联的检索没有返回该条目',
+    'was selected but its text was omitted from the context':'命中该条目，但正文未载入上下文',
+    'was selected by search but its text was omitted from the context':'命中该条目，但正文未载入上下文',
+    'no recorded run':'没有运行记录','no unique recorded run':'运行记录不唯一',
+    'unavailable run evidence':'运行证据不可用','no recorded outcome':'未记录结果',
+    'file absent':'文件缺失',unreadable:'文件不可读','unsafe path':'路径不安全',
+    'too large':'文件超过大小限制','invalid format':'格式无效','hash mismatch':'文件哈希不匹配',
+    'resource hash mismatch':'资源哈希不匹配','assembly mismatch':'拼接内容不匹配',
+    'identity mismatch':'采集标识不匹配',pruned:'已排除',untried:'未尝试',
+    'failure summary':'失败总结','states a conclusion without evidence':'结论缺少证据引用',
+    'marked tried, but no iteration lists a candidate for it':'标记为已尝试，但没有轮次列出对应候选方案'
+  };
+  if(Object.hasOwn(phrases,text))return phrases[text];
+  const label=s=>status(s.replaceAll(' ','_'));
+  const rules=[
+    [/^knowledge (.+)$/,(_,id)=>'检索 '+id],
+    [/^round (\d+)$/,(_,id)=>'第 '+id+' 轮'],
+    [/^search space (.+)$/,(_,id)=>'搜索选项 '+id],
+    [/^(success|failure) (\d+)$/,(_,kind,id)=>(kind==='success'?'成功记录 ':'失败记录 ')+id],
+    [/^the log says (.+) was used, but it (.+)$/,(_,ref,why)=>'日志称采用了 '+ref+'，'+checkText(why)],
+    [/^the log says (.+), rounds\.jsonl records (.+)$/,(_,log,file)=>'日志记为'+label(log)+'，rounds.jsonl 记为'+label(file)],
+    [/^(.+) is cited, but it (.+)$/,(_,ref,why)=>'引用了 '+ref+'，'+checkText(why)],
+    [/^cites (.+), which (.+)$/,(_,ref,why)=>'引用了 '+ref+'，'+checkText(why)],
+    [/^capture (.+) is (.+); its text is not shown$/,(_,path,reason)=>'采集 '+path+' 不可用（'+checkText(reason)+'），正文已隐藏'],
+    [/^(candidate|evidence) (.+) has (.+)$/,(_,kind,id,why)=>(kind==='candidate'?'候选方案 ':'证据 ')+id+'：'+checkText(why)],
+    [/^candidate (.+) is recorded in round (\d+)$/,(_,id,num)=>'候选方案 '+id+' 记录在第 '+num+' 轮'],
+    [/^the decision names (.+), which is not a candidate of this round$/,(_,id)=>'决定中指定的 '+id+' 不在本轮候选方案中'],
+    [/^(.+) is adopted but its recorded outcome is (.+)$/,(_,id,outcome)=>'已采纳 '+id+'，其运行结果为'+label(outcome)],
+    [/^marked (.+), but round (\d+) tried it$/,(_,state,num)=>'标记为'+checkText(state)+'，第 '+num+' 轮已尝试'],
+    [/^evidence (.+) recorded (.+), not an improvement$/,(_,id,outcome)=>'证据 '+id+' 的结果为'+label(outcome)+'，未确认提升'],
+    [/^evidence (\S+) (was .+)$/,(_,id,why)=>'证据 '+id+'：'+checkText(why)],
+    [/^(.+) recorded (.+), but no failure cites it$/,(_,id,outcome)=>id+' 的结果为'+label(outcome)+'，失败总结未引用此项']
+  ];
+  for(const [pattern,format] of rules){const match=text.match(pattern);if(match)return format(...match);}
+  return text;
+}
+function renderStoryChecks(){
+  const checks=data.story?.checks||[];
+  byId('story-checks').hidden=checks.length===0;
+  byId('checks-title').textContent=tr('叙述与证据核对','Narrative vs evidence');
+  const list=byId('checks-list');list.replaceChildren();
+  for(const check of checks){
+    const severity=check.severity==='error'?tr('冲突','Conflict'):tr('警告','Warning');
+    list.append(el('li',severity+' · '+checkText(check.where)+' · '+checkText(check.message)));
+  }
+}
+function raw(parent,value){parent.append(el('pre',typeof value==='string'?value:JSON.stringify(value,null,2)));}
+function details(box,r,it,opened){
+  const key=JSON.stringify([r.round,r.candidate_id,r.run_id]);
+  fold(box,tr('轮次详情','Round details'),key,body=>{
+    for(const id of it?.context_ids||[]){
+      const capture=data.story?.retrievals?.find(c=>c.context_id===id);
+      if(!capture)continue;
+      fold(body,tr('检索记录','Retrieval')+' · '+id,key+'-capture-'+id,b=>{
+        if(capture.purpose)p(b,recorded(capture.purpose),'value');
+        for(const note of capture.takeaways||[])p(b,recorded(note));
+        const found=capture.selection?.matched_count,shown=capture.selection?.returned_count;
+        if(Number.isInteger(found) && Number.isInteger(shown))
+          p(b,tr('匹配 '+found+' 条，返回 '+shown+' 条。',found+' matched; '+shown+' returned.'));
+        raw(b,{request:capture.request,selection:capture.selection,items:capture.items,files:capture.contexts,
+          used_refs:capture.used_refs,rejected_refs:capture.rejected_refs,omissions:capture.omissions,
+          context_omissions:capture.context_omissions,state:capture.state,sha256:capture.expected_sha256});
+        if(capture.state==='verified')raw(b,capture.assembled_text);
+      },opened);
+    }
+    const trace=r.optimization_trace;
+    if(trace){
+      for(const s of trace.steps?.items||[]){
+        p(body,s.sequence+'. '+recorded(s.action),'value');
+        if(s.motivation)p(body,recorded(s.motivation),'note');
+        if(s.result)p(body,recorded(s.result));
+      }
+    }
+    if(trace)fold(body,tr('轮次原始 trace','Recorded round trace'),key+'-trace',b=>{
+      const text=trace.context?.text;
+      const context=text && typeof text==='object'?{...trace.context,text:data._context_pool?.[text.$context]}:trace.context;
+      raw(b,{...trace,context});
+    },opened);
+    fold(body,tr('证据文件与哈希','Evidence files and hashes'),key+'-artifacts',b=>raw(b,r.artifacts),opened);
+    fold(body,tr('运行事件','Run events'),key+'-events',b=>raw(b,[...(r.events||[]),...(r.unlinked_agent_events||[])]),opened);
+    fold(body,tr('配对样本与计时口径','Paired samples and timing'),key+'-samples',b=>raw(b,r.benchmark_context),opened);
+  },opened);
+}
+const trackColors={stage:'#c3a6fa',cpu:'#6bc1ad',gpu:'#71aff3'};
+const timelineState=new Map();
+const timelineDraws=new Map();
+window.addEventListener('resize',()=>{for(const draw of timelineDraws.values())draw();});
+function clockLabel(us){
+  if(Math.abs(us)>=1e6)return fmt(us/1e6,3)+' s';
+  return Math.abs(us)>=1000?fmt(us/1000,2)+' ms':fmt(us,1)+' µs';
+}
+function kindName(kind){return kind==='stage'?tr('阶段','Stage'):kind.toUpperCase();}
+function profileLabel(name){
+  const label=name.length<=220?name:name.slice(0,149)+'…'+name.slice(-70);
+  return label.replace(/[\r\n]/g,' ');
+}
+function profileStatKey(stat){
+  return stat.name_sha256?'sha256:'+stat.name_sha256:'name:'+stat.name;
+}
+function traceCategory(cat){
+  if(cat.includes('user_annotation'))return 'stage';
+  if(cat==='kernel'||cat.startsWith('gpu_'))return 'gpu';
+  return 'cpu';
+}
+function fullTimeline(raw){
+  const records=Array.isArray(raw)?raw:raw?.traceEvents;
+  if(!Array.isArray(records)||records.length>2000000)throw Error(tr('格式不符或超过 200 万条记录。','Unsupported format or more than two million records.'));
+  let start=Infinity,end=-Infinity,count=0;
+  const lanes=new Map();
+  for(const e of records){
+    if(e?.ph!=='X'||!Number.isFinite(e.ts)||!Number.isFinite(e.dur)||e.dur<=0||!Number.isFinite(e.ts+e.dur))continue;
+    const kind=traceCategory(String(e.cat||'')),name=kind.toUpperCase()+' '+e.pid+':'+e.tid;
+    if(!lanes.has(name)){
+      if(lanes.size>=512)throw Error(tr('轨道超过 512 条，请在 Perfetto 中打开。','More than 512 tracks. Open with Perfetto.'));
+      lanes.set(name,{name,kind,events:[],bins:new Array(256).fill(0)});
+    }
+    lanes.get(name).events.push({name:String(e.name??''),ts_us:e.ts,dur_us:e.dur});
+    start=Math.min(start,e.ts);end=Math.max(end,e.ts+e.dur);count++;
+  }
+  return finalizeTimeline([...lanes.values()],count,start,end);
+}
+function compactTimeline(raw){
+  if(!Array.isArray(raw.names)||!Array.isArray(raw.lanes)||raw.lanes.length>512||
+     !Array.isArray(raw.events)||raw.events.length>2000000)throw Error(tr('事件表格式或大小不受支持。','Unsupported event table format or size.'));
+  const tracks=raw.lanes.map(lane=>{
+    if(!['cpu','gpu','stage'].includes(lane?.kind)||typeof lane.name!=='string')throw Error(tr('轨道无效。','Invalid track.'));
+    return {...lane,events:[],bins:new Array(256).fill(0)};
+  });
+  let start=Infinity,end=-Infinity;
+  for(const record of raw.events){
+    if(!Array.isArray(record)||record.length!==4)throw Error(tr('事件记录无效。','Invalid event record.'));
+    const [lane,name,ts,dur]=record;
+    if(!Number.isInteger(lane)||!tracks[lane]||!Number.isInteger(name)||typeof raw.names[name]!=='string'||
+       !Number.isFinite(ts)||!Number.isFinite(dur)||dur<=0||!Number.isFinite(ts+dur))throw Error(tr('事件记录无效。','Invalid event record.'));
+    tracks[lane].events.push({name:raw.names[name],ts_us:ts,dur_us:dur});start=Math.min(start,ts);end=Math.max(end,ts+dur);
+  }
+  return finalizeTimeline(tracks,raw.events.length,start,end);
+}
+function finalizeTimeline(tracks,count,start,end){
+  if(!count || !Number.isFinite(end-start) || end<=start)throw Error(tr('文件中没有有效时间范围。','No valid time range found.'));
+  const duration=end-start;
+  for(const track of tracks){
+    const diff=new Int32Array(257);
+    for(const e of track.events){
+      const first=Math.max(0,Math.min(255,Math.floor(256*(e.ts_us-start)/duration)));
+      const last=Math.max(first+1,Math.min(256,Math.ceil(256*(e.ts_us+e.dur_us-start)/duration)));
+      diff[first]++;diff[last]--;
+    }
+    let active=0;
+    for(let i=0;i<256;i++){active+=diff[i];track.bins[i]=active;}
+    track.events.sort((a,b)=>a.ts_us-b.ts_us);
+  }
+  return {start_us:start,duration_us:duration,tracks,event_count:count};
+}
+async function readTraceStream(stream,compact){
+  const limit=384*1024*1024;
+  const reader=stream.getReader(),chunks=[];let size=0;
+  try {
+    while(true){const {value,done}=await reader.read();if(done)break;
+      size+=value.length;
+      if(size>limit){await reader.cancel();throw Error(tr('超过 384 MiB。请载入完整事件表或用 Perfetto 打开原件。','Over 384 MiB. Load the complete event table or open the source in Perfetto.'));}
+      chunks.push(value);
+    }
+  }finally{reader.releaseLock();}
+  const raw=JSON.parse(await new Blob(chunks).text());
+  return compact?compactTimeline(raw):fullTimeline(raw);
+}
+async function readTraceFile(file,sha,eventsSha){
+  if(!file || file.size>256*1024*1024)throw Error(tr('原件上限为 256 MiB。','Source file limit is 256 MiB.'));
+  const bytes=await file.arrayBuffer();
+  const hash=[...new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))].map(x=>x.toString(16).padStart(2,'0')).join('');
+  const isTable=typeof eventsSha==='string' && hash===eventsSha.toLowerCase();
+  if(!isTable && hash!==sha.toLowerCase())throw Error(tr('SHA-256 与本次采集不符。','SHA-256 differs from the recorded source.'));
+  const signature=new Uint8Array(bytes,0,Math.min(2,bytes.byteLength));
+  let stream=new Blob([bytes]).stream();
+  if(signature[0]===31&&signature[1]===139)stream=stream.pipeThrough(new DecompressionStream('gzip'));
+  return readTraceStream(stream,isTable);
+}
+function timeline(box,c,baseline,opened){
+  const key=c.source.sha256+':'+c.id;
+  let st=timelineState.get(key);
+  if(!st){st={zoom:1,offset:0,selection:null,full:null};timelineState.set(key,st);}
+  const current=()=>st.full||c;
+  const t=current(),order={stage:0,cpu:1,gpu:2};
+  const tracks=[...t.tracks].sort((a,b)=>order[a.kind]-order[b.kind]);
+  const article=el('article',null,'capture');box.append(article);
+  const heading=el('h3');
+  const title=recorded(c.title)||c.id;
+  if(c.phase==='baseline'){
+    heading.append(el('span',tr('首轮前基线','Pre-round baseline'),'tag'),document.createTextNode(title.replace(/^(基线|baseline)\s*[·:：—−-]\s*/i,'')));
+  }else heading.append(el('span',rowLabel(c),'tag'),document.createTextNode(title));
+  article.append(heading);
+  p(article,[clockLabel(t.duration_us),c.workload_id].filter(Boolean).join('  ·  '),'meta');
+  if(c.phase!=='baseline'&&baseline && c.comparison_key && c.comparison_key===baseline.comparison_key){
+    p(article,tr('同输入、同采集口径的基线跨度 ','Matched baseline capture span ')+clockLabel(baseline.duration_us)+tr('，本次 ','. This capture spans ')+clockLabel(t.duration_us)+tr('。','.'),'note');
+  }
+  p(article,st.full?tr('已载入完整时间线。上条显示事件密度，下条显示全部事件区间。','Full timeline loaded. Upper bands show event density, lower bands all event intervals.'):
+    tr('上条显示全时域事件密度，下条显示长事件区间。','Upper bands show full-window event density, lower bands retained long events.'),'note');
+  const controls=el('div',null,'trace-controls');
+  const minus=el('button','−'),plus=el('button','+'),reset=el('button',tr('全图','Fit trace')),slider=el('input'),win=el('output');
+  minus.title=minus.ariaLabel=tr('缩小时间轴','Zoom out');plus.title=plus.ariaLabel=tr('放大时间轴','Zoom in');
+  slider.type='range';slider.min='0';slider.max='10000';slider.step='1';slider.ariaLabel=tr('移动时间窗口','Pan time window');
+  controls.append(minus,plus,reset,slider,win);article.append(controls);
+  const fullUrl=c.source.events_url;
+  if(live && !st.full && /^\/api\/profile-events\/[\da-f]{64}$/.test(fullUrl) &&
+     fullUrl.split('/').pop()===c.source.events_sha256){
+    const expand=el('button',st.loading?tr('读取中…','Loading…'):tr('展开完整时间线','Expand full timeline'));
+    expand.disabled=Boolean(st.loading);controls.append(expand);
+    expand.onclick=async()=>{
+      st.loading=true;st.error=null;expand.disabled=true;expand.textContent=tr('读取中…','Loading…');
+      try{
+        const response=await fetch(fullUrl,{credentials:'same-origin',redirect:'error'});
+        if(!response.ok)throw Error('HTTP '+response.status);
+        st.full=await readTraceStream(response.body,true);st.zoom=1;st.offset=0;st.selection=null;
+      }catch(error){st.error=tr('读取失败：','Load failed: ')+error.message;}
+      finally{st.loading=false;render();}
+    };
+    if(st.error)p(article,st.error,'trace-status');
+  }
+  const legend=el('div',null,'legend');
+  for(const kind of new Set(tracks.map(tr=>tr.kind))){const sw=el('span',kindName(kind));sw.style.setProperty('--swatch',trackColors[kind]);legend.append(sw);}
+  article.append(legend);
+  const plot=el('div',null,'trace-scroll'),axis=el('div',null,'track scale'),ticks=el('div',null,'ticks');
+  axis.append(el('span',tr('相对起点','Elapsed'),'track-label'),ticks);plot.append(axis);article.append(plot);
+  const selected=el('p',null,'selection');selected.setAttribute('aria-live','polite');article.append(selected);
+  const canvases=[];
+  const representatives=new Map();
+  for(const track of tracks){
+    const density=(track.bins||[]).reduce((sum,n)=>sum+n,0);
+    if(!representatives.has(track.kind) || density>representatives.get(track.kind).density)
+      representatives.set(track.kind,{track,density});
+  }
+  const representative=new Set([...representatives.values()].map(entry=>entry.track));
+  const hiddenCount=tracks.length-representative.size,toggle=el('button');
+  if(hiddenCount){
+    toggle.type='button';controls.append(toggle);
+    toggle.onclick=()=>{st.showAll=!st.showAll;draw();};
+    p(article,tr('默认每类展示一条代表轨道，按全时域分箱的事件计数之和选择。','One representative per type is shown initially, selected by summed event counts across the full-window bins.'),'note');
+  }
+  function windowSpan(){return t.duration_us/st.zoom;}
+  function zoom(factor,center=st.offset+windowSpan()/2){
+    st.zoom=Math.min(4096,Math.max(1,factor));st.offset=Math.max(0,Math.min(t.duration_us-windowSpan(),center-windowSpan()/2));draw();
+  }
+  function select(e,track){st.selection=e?track.name+' · '+e.name+' · '+clockLabel(e.ts_us-t.start_us)+' → '+clockLabel(e.ts_us+e.dur_us-t.start_us)+' · Δ '+clockLabel(e.dur_us):null;}
+  for(const track of tracks){
+    const line=el('div',null,'track'),label=el('span',track.name,'track-label'),canvas=el('canvas');
+    label.title=track.name;canvas.setAttribute('aria-label',track.name);line.append(label,canvas);plot.append(line);
+    canvases.push({track,canvas,line});
+    let anchor=null;
+    const timeAt=e=>{const r=canvas.getBoundingClientRect();return st.offset+Math.max(0,Math.min(1,(e.clientX-r.left)/r.width))*windowSpan();};
+    canvas.addEventListener('pointerdown',e=>{anchor=timeAt(e);canvas.setPointerCapture(e.pointerId);});
+    canvas.addEventListener('pointercancel',()=>{anchor=null;});
+    canvas.addEventListener('pointerup',e=>{
+      if(anchor===null)return;const from=anchor,to=timeAt(e);anchor=null;
+      if(Math.abs(to-from)>windowSpan()*.015){zoom(t.duration_us/Math.abs(to-from),(from+to)/2);return;}
+      const absolute=t.start_us+to;let match=null;
+      for(const event of track.events){
+        if(event.ts_us<=absolute && event.ts_us+event.dur_us>=absolute && (!match || event.dur_us<match.dur_us))match=event;
+      }
+      select(match,track);
+      if(!match && track.bins?.length){const idx=Math.min(track.bins.length-1,Math.floor(to/t.duration_us*track.bins.length));
+        st.selection=track.name+' · '+clockLabel(to)+' · '+track.bins[idx]+tr(' 个事件与该采样区间重叠',' events overlap this bin');}
+      draw();
+    });
+  }
+  function draw(){
+    const span=windowSpan(),move=t.duration_us-span;
+    slider.disabled=move<=0;slider.value=move?10000*st.offset/move:0;
+    minus.disabled=st.zoom===1;plus.disabled=st.zoom===4096;
+    win.textContent=fmt(st.zoom,st.zoom<10?1:0)+'×  ·  '+clockLabel(span);
+    toggle.textContent=st.showAll?tr('仅看代表轨道','Show representatives'):tr('展开其余 ','Show remaining ')+hiddenCount+tr(' 条轨道',' tracks');
+    toggle.setAttribute('aria-expanded',String(Boolean(st.showAll)));
+    ticks.replaceChildren();for(let i=0;i<=4;i++)ticks.append(el('span',clockLabel(st.offset+span*i/4)));
+    selected.textContent=st.selection||tr('点击事件查看名称与时长，横向拖选放大区间。','Click an event to inspect it, or drag to zoom to a time range.');
+    for(const {track,canvas,line} of canvases){
+      line.style.display=st.showAll||representative.has(track)?'':'none';
+      if(line.style.display==='none')continue;
+      const width=Math.max(1,Math.round(canvas.getBoundingClientRect().width)),height=34,scale=window.devicePixelRatio||1;
+      canvas.width=Math.max(1,Math.round(width*scale));canvas.height=Math.round(height*scale);
+      const ctx=canvas.getContext('2d');ctx.scale(scale,scale);
+      ctx.strokeStyle='#30363f';for(let i=1;i<4;i++){ctx.beginPath();ctx.moveTo(width*i/4,0);ctx.lineTo(width*i/4,height);ctx.stroke();}
+      ctx.fillStyle=trackColors[track.kind]||'#8c9aaa';
+      const bins=track.bins||[],interval=t.duration_us/bins.length,peak=bins.reduce((m,x)=>Math.max(m,x),0);
+      for(let i=0;i<bins.length;i++){
+        if(!bins[i])continue;const x=(i*interval-st.offset)*width/span,w=interval*width/span;
+        if(x>=width || x+w<=0)continue;
+        ctx.globalAlpha=.15+.7*Math.log1p(bins[i])/Math.log1p(peak);ctx.fillRect(x,3,Math.max(1,w),8);
+      }
+      ctx.globalAlpha=.85;
+      let lastDot=-1;
+      for(const e of track.events){
+        const x=(e.ts_us-t.start_us-st.offset)*width/span,w=e.dur_us*width/span;
+        if(x>=width||x+w<=0)continue;
+        if(w<1 && Math.floor(x)===lastDot)continue;
+        lastDot=w<1?Math.floor(x):-1;
+        ctx.fillRect(x,14,Math.max(.75,w),15);
+        if(w>65){const left=Math.max(0,x),right=Math.min(width,x+w);
+          if(right-left>65){ctx.save();ctx.beginPath();ctx.rect(left,14,right-left,15);ctx.clip();ctx.font='11px system-ui';ctx.fillStyle='#101820';ctx.fillText(profileLabel(e.name),left+4,25);ctx.restore();}}
+      }
+    }
+  }
+  minus.onclick=()=>zoom(st.zoom/2);plus.onclick=()=>zoom(st.zoom*2);reset.onclick=()=>zoom(1);
+  slider.oninput=()=>{st.offset=(t.duration_us-windowSpan())*Number(slider.value)/10000;draw();};
+  timelineDraws.set(key,draw);draw();
+  if(c.takeaway)p(article,recorded(c.takeaway),'value');
+  if(c.next_action)p(article,recorded(c.next_action),'note');
+  if(c.stats?.length)fold(article,tr('按名称汇总的 GPU 事件耗时','GPU event time by name'),key+'-stats',b=>{
+    const comparable=c.phase!=='baseline' && c.comparison_key && c.comparison_key===baseline?.comparison_key;
+    const earlier=new Map((comparable?baseline.stats||[]:[]).map(s=>[profileStatKey(s),s]));
+    const headers=[tr('名称','Name'),tr('累计 GPU 时长','Total GPU duration'),tr('调用数','Calls')];
+    if(comparable)headers.push(tr('基线累计时长','Baseline GPU duration'));
+    table(b,headers,c.stats.map(s=>{
+      const cells=[profileLabel(s.name),clockLabel(s.total_us),s.count];
+      const previous=earlier.get(profileStatKey(s));
+      if(comparable)cells.push(previous?clockLabel(previous.total_us):dash);
+      return cells;
+    }));
+  },opened);
+  fold(article,tr('按名称查找事件','Find an event by name'),key+'-events',b=>{
+    const input=el('input'),results=el('div',null,'trace-table');input.type='search';input.ariaLabel=input.placeholder=tr('筛选事件名','Filter event name');b.append(input,results);
+    function search(){
+      results.replaceChildren();const needle=input.value.trim().toLowerCase(),matches=[];
+      outer:for(const track of tracks)for(const e of track.events){
+        if(e.name.toLowerCase().includes(needle)){matches.push([track,e]);if(matches.length===100)break outer;}
+      }
+      for(const [track,e] of matches){
+        const item=el('button',track.name+' · '+profileLabel(e.name)+' · Δ '+clockLabel(e.dur_us));item.type='button';
+        item.onclick=()=>{select(e,track);if(!representative.has(track))st.showAll=true;
+          zoom(t.duration_us/Math.max(1,e.dur_us*2),e.ts_us-t.start_us+e.dur_us/2);
+          canvases.find(entry=>entry.track===track).line.scrollIntoView({block:'nearest'});};
+        const row=el('p');row.append(item);results.append(row);
+      }
+      p(results,matches.length===100?tr('显示前 100 条，请缩小搜索范围。','First 100 matches. Refine the search for more.'):matches.length+tr(' 条匹配',' matches'),'note');
+    }
+    input.oninput=search;search();
+  },opened);
+  fold(article,tr('采集范围与原始文件','Capture scope and source files'),key+'-file',b=>{
+    p(b,tr('时钟起点 ','Clock origin ')+t.start_us+' µs · '+clockLabel(t.duration_us)+' · '+
+      Intl.NumberFormat(language).format(t.event_count)+tr(' 个时长事件',' timed events'));
+    if(!st.full && Number.isFinite(c.displayed_event_count))
+      p(b,tr('预览保留 ','Preview retains ')+Intl.NumberFormat(language).format(c.displayed_event_count)+tr(' 个长事件。密度带包含全部时长事件。',' long events. Density includes every timed event.'));
+    p(b,c.source.path,'value');p(b,'SHA-256 · '+c.source.sha256,'meta');
+    if(c.source.events_path)p(b,tr('完整事件表 · ','Complete event table · ')+c.source.events_path,'value');
+    if(c.source.events_sha256)p(b,'SHA-256 · '+c.source.events_sha256,'meta');
+    const note=el('p'),link=el('a','Perfetto');link.href='https://ui.perfetto.dev/';link.target='_blank';link.rel='noopener noreferrer';
+    note.append(tr('选择已保存的原件在本页读取，或前往 ','Choose the saved source to inspect it here, or go to '),link,
+      tr(' 并选择“打开跟踪文件”。',' and choose “Open trace file”.'));b.append(note);
+    const tools=el('div',null,'file-tools'),file=el('input'),msg=el('span',null,'trace-status');file.type='file';file.accept='.json,.json.gz,.gz';file.ariaLabel=tr('载入完整时间线','Load full trace');msg.setAttribute('role','status');tools.append(file,msg);b.append(tools);
+    if(st.full){const clear=el('button',tr('收起完整时间线','Unload full timeline'));clear.onclick=()=>{st.full=null;st.selection=null;st.zoom=1;st.offset=0;render();};tools.append(clear);}
+    file.onchange=async()=>{
+      if(!file.files.length)return;file.disabled=true;msg.textContent=tr('正在校验并读取本机文件…','Verifying and reading local source…');
+      try{const full=await readTraceFile(file.files[0],c.source.sha256,c.source.events_sha256);st.full=full;st.zoom=1;st.offset=0;st.selection=null;render();}
+      catch(error){msg.textContent=String(error.message||error);file.disabled=false;}
+    };
+  },opened);
+}
+function renderCaptures(opened){
+  const box=byId('captures'),captures=(data.profile_captures||[]).filter(c=>c.duration_us>0 && c.tracks?.length && c.source?.sha256);
+  const missing=data.unavailable_profiles||[];
+  timelineDraws.clear();box.replaceChildren();byId('capture-section').hidden=!captures.length&&!missing.length;
+  for(const c of captures){
+    const matches=c.phase==='candidate' && c.comparison_key
+      ? captures.filter(b=>b.phase==='baseline' && b.comparison_key===c.comparison_key):[];
+    timeline(box,c,matches.length===1?matches[0]:null,opened);
+  }
+  for(const id of missing)p(box,id+tr(' · 采集文件不可用或未通过校验。',' · Capture files are unavailable or failed verification.'),'note');
+}
+function render(){
+  const opened=new Set([...document.querySelectorAll('details[open]')].map(f=>f.dataset.key));
+  const previousFocus=document.activeElement?.closest('details')?.dataset.key;
+  document.documentElement.lang=language==='zh'?'zh-CN':'en';
+  for(const [id,zh,en] of [
+    ['goal-title','目标与验收条件','Goal and acceptance criteria'],['baseline-title','基线耗时分解','Baseline timing'],
+    ['captures-title','请求级 Profile 时间线','Request profile timelines'],
+    ['gap-title','瓶颈及目标差距','Bottleneck and target gap'],['rounds-title','每轮依据、改动和实测','Evidence, changes and results by round'],
+    ['decision-title','采纳决定','Adoption decisions'],['chart-title','性能趋势 · 全部候选方案','Performance trend · all candidates']
+  ])byId(id).textContent=tr(zh,en);
+  byId('language').textContent=tr('English','中文');byId('campaign').textContent=data.campaign_id;
+  byId('mode').textContent=live?'READ ONLY · LIVE':'READ ONLY · OFFLINE';
+  byId('connection').textContent=live?(connected?'Connected':attempted?'Disconnected':'Connecting…'):'';
+  const goal=byId('goal'),base=byId('baseline'),gap=byId('gap'),rounds=byId('rounds'),decisions=byId('decisions');
+  for(const box of [goal,base,gap,rounds,decisions])box.replaceChildren();
+  renderStoryChecks();
+  renderCaptures(opened);
+  const rows=[...data.candidates].sort((a,b)=>(a.round??Infinity)-(b.round??Infinity));
+  const spec=data.story?.goal||{};
+  p(goal,recorded(spec.statement)||data.campaign_id,'goal');
+  if(spec.metric)p(goal,recorded(spec.metric),'note');
+  if(spec.baseline)p(goal,recorded(spec.baseline));
+  if(spec.target)p(goal,recorded(spec.target));
+  if(spec.constraints?.length){const list=el('ul');for(const c of spec.constraints)list.append(el('li',recorded(c)));goal.append(list);}
+  const baseline=rows.find(r=>verifiedProfile(r)?.scope==='baseline_request');
+  const profile=baseline&&verifiedProfile(baseline);
+  if(profile){
+    p(base,tr('首轮前基线 · 采样范围用时','Pre-round baseline · sampled scope duration')+'  '+fmt(profile.total)+' '+profile.metric_unit,'value');
+    profileTable(base,profile);
+  }else p(base,tr('缺少与本轮证据哈希匹配的请求 profile。','No verified request profile is attached.'),'note');
+  if(profile?.conclusion && !(data.profile_captures||[]).some(c=>c.takeaway===profile.conclusion))
+    p(gap,recorded(profile.conclusion));
+  const step=rows.find(r=>verifiedProfile(r)?.scope==='denoiser_step');
+  if(step){const d=verifiedProfile(step);p(gap,rowLabel(step)+' · '+tr('去噪单步 GPU profile','Single denoising step GPU profile'),'value');
+    profileTable(gap,d);if(d.conclusion)p(gap,recorded(d.conclusion));}
+  const ref=baseline?.baseline_median,unit=baseline?.metric_unit||'',target=data.overview.target_improvement_pct;
+  const scoped=Object.hasOwn(data.overview,'profile_best_improvement_pct');
+  const gain=scoped?data.overview.profile_best_improvement_pct:data.overview.best_improvement_pct;
+  const best=Number.isFinite(gain)?rows.find(r=>r.improvement_pct===gain && r.state==='completed' &&
+    (!scoped || r.matches_profile_baseline) &&
+    r.quality==='passed' && r.source_verified===true && r.decision!=='rolled_back' && ['PASS','FAIL'].includes(r.verdict)):null;
+  const dl=el('dl',null,'metrics');gap.append(dl);
+  if(Number.isFinite(ref))metric(dl,tr('配对验收基线','Paired acceptance baseline'),fmt(ref)+' '+unit);
+  if(Number.isFinite(ref) && Number.isFinite(target) && ['minimize','maximize'].includes(baseline.direction)){
+    const lower=baseline.direction==='minimize';
+    metric(dl,tr('目标值','Target value'),fmt(ref*(1+(lower?-target:target)/100))+' '+unit);
+  }
+  if(best){
+    const label=scoped?tr('同基线测量条件的最佳改善','Best improvement under baseline conditions'):tr('最佳实测改善','Best measured improvement');
+    metric(dl,label+' · '+rowLabel(best),fmt(best.improvement_pct,2)+'%');
+    if(Number.isFinite(target))metric(dl,tr('距目标','Gap to target'),fmt(Math.max(0,target-best.improvement_pct),2)+tr(' 个百分点',' pp'));}
+  for(const r of rows){
+    const it=iteration(r),trace=r.optimization_trace;
+    const a=el('article',null,'round'),name=el('h3');
+    name.append(el('span',rowLabel(r),'tag'),document.createTextNode(recorded(r.title||r.candidate_id)));a.append(name);rounds.append(a);
+    if(r.optimization?.summary && r.optimization.summary!==r.title)p(a,recorded(r.optimization.summary));
+    const skills=trace?.applied_skills||[];
+    for(const skill of skills){
+      const line=el('p',null,'basis');line.append(el('code',skill.name),' · ',document.createTextNode(recorded(skill.takeaway)));a.append(line);
+    }
+    if(!skills.length){
+      const observation=trace?.steps?.items?.find(s=>s.kind==='observation' && s.result);
+      const basis=observation?.result || it?.hypothesis || r.optimization?.hypothesis;
+      if(basis && basis!==r.title && basis!=='Not recorded')p(a,recorded(basis),'basis');
+    }
+    const facts=el('div',null,'facts');a.append(facts);
+    const pair=Number.isFinite(r.baseline_median) && Number.isFinite(r.candidate_median);
+    if(pair){facts.append(el('span',tr('基线 → 候选','Baseline → candidate')+'  '+fmt(r.baseline_median)+' → '+fmt(r.candidate_median)+' '+(r.metric_unit||'')));}
+    if(Number.isFinite(r.improvement_pct))facts.append(el('strong',fmt(r.improvement_pct,2)+'% · '+status(r.outcome)));
+    facts.append(el('span',status(r.state)),el('span',tr('质量校验','Quality')+' · '+status(r.quality)));
+    details(a,r,it,opened);
+    const item=el('div',null,'decision'),decision=it?.decision;
+    const confirmed=r.decision && r.decision!=='not_recorded';
+    const outcome=confirmed?r.decision:'not_recorded';
+    item.append(el('code',rowLabel(r)),el('strong',status(outcome)));
+    if(confirmed && decision?.outcome===outcome && (!decision.candidate_id || decision.candidate_id===r.candidate_id))
+      item.append(el('span',recorded(decision.reason),'note'));
+    decisions.append(item);
+  }
+  if(!rows.length){p(rounds,tr('尚无轮次记录。','No rounds recorded.'));p(decisions,dash);}
+  byId('chart-note').textContent=tr('各点为同轮基线与候选的实测比值。候选独立比较，缺少测量的轮次留空。','Each point compares a candidate with its paired baseline. Missing measurements are omitted.');
+  const separate=rows.filter(r=>r.matches_profile_baseline===false && r.baseline_median>0 && r.candidate_median>0);
+  for(const r of separate){
+    const ratio=r.direction==='minimize'?r.baseline_median/r.candidate_median:r.candidate_median/r.baseline_median;
+    p(byId('chart-note'),rowLabel(r)+' · '+fmt(ratio,3)+'× · '+status(r.outcome)+
+      tr('。设备或测量条件与基线轮不同，仅列本轮比值，不连线。','. Different device or measurement conditions; paired ratio shown separately.'));
+  }
+  const chartBox=byId('chart');chartBox.innerHTML=chart;
+  if(!chart)chartBox.textContent=tr('暂无可比测量。','No comparable measurements.');
+  else if(language==='zh'){
+    const labels={'Performance by recorded round':'按轮次记录的性能','Speedup index':'加速指数','Speedup vs paired baseline':'相对配对基线的加速比','Recorded round':'已记录轮次','baseline: paired baseline':'基线：配对基线','Baseline':'基线','baseline':'基线','Recorded rounds':'已记录轮次','Target':'目标','noise':'噪声范围内','improved':'改善','regressed':'回退','failed':'失败','rolled back':'已回滚'};
+    for(const n of chartBox.querySelectorAll('svg text,svg title')){
+      const parts=n.textContent.split(' · ');n.textContent=parts.map(s=>labels[s]||s).join(' · ');
+    }
+  }
+  if(previousFocus){for(const node of document.querySelectorAll('details'))if(node.dataset.key===previousFocus)node.querySelector('summary').focus({preventScroll:true});}
+}
+byId('language').addEventListener('click',()=>{
+  language=language==='zh'?'en':'zh';try{localStorage.setItem('inferrsi.dashboard.language',language);}catch{}
+  render();
+});
+async function poll(){
+  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),30000);
+  try{
+    const headers={'X-InferRSI-Compact':'1'};if(etag)headers['If-None-Match']=etag;
+    const response=await fetch('/api/state',{headers,signal:controller.signal,cache:'no-store'});
+    if(response.status!==304){
+      if(!response.ok)throw Error('snapshot unavailable');
+      const next=await response.json();
+      if(next.data.review_layout!=='profile_first'){location.reload();return;}
+      data=next.data;chart=next.chart;render();etag=response.headers.get('ETag');
+    }
+    connected=true;
+  }catch{connected=false;}
+  finally{clearTimeout(timer);attempted=true;byId('connection').textContent=connected?'Connected':'Disconnected';setTimeout(poll,3000);}
+}
+render();if(live)poll();
+})();
+</script>
+</body>
+</html>

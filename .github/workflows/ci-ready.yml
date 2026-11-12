@@ -51,7 +51,7 @@ jobs:
       - name: Ruff
         run: ruff check src tests tools
       - name: Tests (smoke + unit)
-        run: pytest
+        run: pytest -rs
 
   pr-references:
     # Reports closing syntax in PR body text at each ready-lane event; not a branch-protection gate.
