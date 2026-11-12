@@ -180,3 +180,27 @@ inputs with real/padding document boundaries. All 12 cases were bitwise exact,
 but all were slower than the unchunked operation; no engine integration or
 HTTP trial followed. [Raw component samples](results/attention-query-tiling-probe.json)
 do not establish a service result.
+
+## Runtime compatibility and control-setting correction
+
+`TASK_QUEUE_ENABLE=2` was rejected by the installed torch-npu graph capture
+runtime before an HTTP experiment. A subsequent per-request row-index
+preparation trial failed its dummy run because the new keyword was missing
+from the model's strict forward contract. The corrected retry passed 14 CPU
+checks; hardware qualification was pending at this checkpoint.
+[Execution failures and retry identity](results/runtime-and-prepared-row-startup.json)
+preserve these gaps without treating them as quality or performance results.
+
+Review also identified a confound in historical graph-on/off comparisons:
+the graph adapter disabled `allow_internal_format`, while a graph-off control
+left the platform default enabled. Those samples compare coupled runtime
+changes and cannot isolate the VAE contribution. The engine follow-up exposes
+`npu_disable_internal_format` for matching future controls. Rounds 5, 6, 9 and
+the prepared-row experiment use the same graph-on VAE setup in both arms;
+their within-round comparisons do not have this specific confound.
+
+Engine follow-up `7f8395fede3cb79991a256d1752c887b40faca30` restores deterministic caller state, propagates
+the NPU worker grace through the outer stage client, and adds the explicit
+internal-format control. [Checks and limitations](results/review-followup-checks.json)
+record 26 CPU regressions and the single-device graph-output lifetime test.
+These checks do not requalify historical HTTP measurements on the new revision.
