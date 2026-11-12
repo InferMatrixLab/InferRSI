@@ -1,9 +1,11 @@
 # Target module layout
 
-This page records the directory rule for the integration slice. Only the
-first-wave Knowledge move (K01) is implemented: `src/inferrsi/knowledge/` holds
-the seven moved Knowledge bodies, and the old root modules are static
-compatibility shells. No other package has been created or moved to satisfy it.
+This page records the directory rule for the integration slice. The first-wave
+Knowledge move (K01) is implemented: `src/inferrsi/knowledge/` holds the seven
+moved Knowledge bodies, and the old root modules are static compatibility
+shells. The engineering task contribution now implements `benchmark/registry.py`
+and `benchmark/tasks/`. The current flat `cli.py` and `benchmark_operations.py`
+assemble this slice.
 #371 remains the proposal for the Apps package path and is not accepted here.
 
 ## Target modules
@@ -30,7 +32,7 @@ root. Also keep these root files where they are: `AGENTS.md` (entry contract),
 move must update packaging in that same slice), and `.agents/` (review skill).
 
 Do not create empty `knowledge/`, `benchmark/`, or `apps/` directories in the
-contract slice. Do not treat draft #338 as a reason to add a top-level
+contract slice. Do not treat PR #338 as a reason to add a top-level
 `benchmarks/` tree.
 
 ## CPU/offline connection
@@ -58,6 +60,11 @@ Several flat modules remain shared seams until their slice starts.
 | Current path | Tentative reading | This slice |
 | --- | --- | --- |
 | `cli.py`, `arguments.py`, `__main__.py` | Future Apps entry, after #371 | Not moved |
+| `benchmark_operations.py` | Single-task application launcher | Resolves a task entry and invokes the Harness runner; ordinary projects do not use it |
+| `benchmark/registry.py`, `benchmark/tasks/` | Task discovery, definitions and specialized rules | Task-specific quality and measurement code stays with each task |
+| `harness/optimization_session.py`, `harness/project.py`, `harness/task_protocol.py` | Shared preparation, execution and retained-result assessment | CLI supplies task resources and knowledge access; ordinary project lifecycle does not import Benchmark |
+| `harness/optimization.py`, `harness/candidates.py`, `harness/usage.py` | Shared project and packaged-task lifecycle | Injected execution/assessment; declared file/directory candidates, selection direction and exact/up-to rounds |
+| `harness/agent_sessions.py` | Native host handoff records | Freezes requests and retains native IDs and exported observations; the initiating Agent calls host tools |
 | `knowledge_operations.py`, `knowledge_store.py`, `catalog.py`, `research.py`, `skill_catalog.py`, `_skill_selection.py`, `_source_snapshot.py` | Static compatibility shells since K01; bodies in `knowledge/` | Interfaces unchanged |
 | `harness/` | Mixed legacy tree, not target isolation | Not redefined |
 | `evaluation.py`, `model/validators/` | Benchmark-leaning checks | Not moved |
@@ -71,17 +78,24 @@ Several flat modules remain shared seams until their slice starts.
 
 `tests/test_target_module_import_gate.py` fails on a new import of
 `inferrsi.knowledge`, `inferrsi.benchmark`, or `inferrsi.apps` from anywhere
-except `inferrsi.apps`, and on Knowledge or Benchmark importing Harness.
+except application assembly, and on Knowledge or Benchmark importing Harness.
+Application assembly includes `inferrsi.apps` and the two current flat entries
+`cli.py` and `benchmark_operations.py`. Other flat modules retain the same
+restrictions. The gate checks Benchmark task scripts as well as module code.
 `from inferrsi import knowledge` counts as an import of that core.
 Same-core imports are allowed, including a relative import rewritten to an
 absolute name such as `from .bar import VALUE` inside `knowledge/`. Each forbidden
 importer and target pair is reported once. The only exceptions are the exact
 first-wave pairs below, read from `docs/legacy-knowledge-manifest.json`.
 
+The Benchmark package now provides resource discovery and task scripts. The
+CLI and single-task application launcher assemble them with Harness; task
+scripts receive execution support without importing another core.
 "There is no exception list of current edges" described the tree before K01,
 when the three package names were unused and no current edge needed an
 exception. It was never a permanent ban on reviewed exceptions; since K01 the
-exact first-wave pairs below are the only exceptions.
+exact first-wave Knowledge pairs below are the only Knowledge compatibility
+exceptions, and they remain scoped to that move.
 
 The gate scans `src/inferrsi/**` as the transfer graph. It resolves absolute,
 relative, and `from package import name` imports, includes the parent-package
@@ -90,9 +104,29 @@ targets and for the imported module itself (except the root `inferrsi`
 package init, which runs for every import and is not a business edge), adds
 the manifest-declared export edges, and computes the transitive closure. A dynamic import (`__import__`, `importlib.import_module`, or
 `module_from_spec`) inside a checked closure is an undeclared edge and fails
-closed. Other dynamic forms (`getattr`, `exec`, `eval`, `runpy`, `pkgutil`)
+closed, except for the exact resource execution declarations below.
+Other dynamic forms (`getattr`, `exec`, `eval`, `runpy`, `pkgutil`)
 are out of scope for this package. `tools/` and `tests/` are separate
 registered consumers; this gate does not scan them.
+
+The task integration declares these existing resource execution boundaries in
+`tests/_gate_policy_support.py`, independently of the Knowledge compatibility
+pairs. Each permits exactly one `importlib.util.module_from_spec` call, with the
+listed local spec variable, in the named function or module scope. Other dynamic
+calls, additional calls, adjacent modules and static cross-core imports remain
+checked. These declarations do not make arbitrary candidate code isolated.
+
+| Relative module | Scope | Local spec |
+| --- | --- | --- |
+| `harness.task_protocol` | `protocol` | `spec` |
+| `benchmark.tasks.moe-forward-npu.benchmark` | module | `_process_spec` |
+| `benchmark.tasks.moe-forward-npu.grader` | `load` | `spec` |
+| `benchmark.tasks.qwen21-denoise-npu.benchmark` | `load` | `spec` |
+| `benchmark.tasks.qwen3-tts-npu.benchmark` | module | `_evaluation_spec` |
+
+The report adds a `runtime resource loaders` blocker when these loaders are
+present and does not claim either complete isolation or new-core closure
+isolation. The seven Knowledge shells and their nine exact pairs are unchanged.
 
 A clean result means no new cross-core import of those names. It does not mean
 the modules are isolated. Isolation stays false while any one of these holds:

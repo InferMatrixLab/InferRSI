@@ -5,12 +5,39 @@ import json
 import os
 import time
 import uuid
+from contextlib import contextmanager
 from pathlib import Path
 
 # Windows refuses os.replace while another handle holds the destination open.
 # A bounded retry covers the observed contention without hiding a real failure.
 REPLACE_ATTEMPTS = 8
 REPLACE_DELAY_SECONDS = 0.05
+
+
+@contextmanager
+def file_lock(path: Path):
+    """Hold a nonblocking OS file lock, released even if the process crashes."""
+    with path.open("a+b") as stream:
+        if os.fstat(stream.fileno()).st_size == 0:
+            stream.write(b"0")
+            stream.flush()
+        stream.seek(0)
+        if os.name == "nt":
+            import msvcrt
+
+            msvcrt.locking(stream.fileno(), msvcrt.LK_NBLCK, 1)
+        else:
+            import fcntl
+
+            fcntl.flock(stream.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+        try:
+            yield
+        finally:
+            stream.seek(0)
+            if os.name == "nt":
+                msvcrt.locking(stream.fileno(), msvcrt.LK_UNLCK, 1)
+            else:
+                fcntl.flock(stream.fileno(), fcntl.LOCK_UN)
 
 
 def digest(value):

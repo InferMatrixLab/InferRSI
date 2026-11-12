@@ -151,6 +151,13 @@ def _round_trend(view: dict) -> dict | None:
 
 
 def _chart(source: Path, view: dict) -> tuple[str, str]:
+    if "optimization_session" in view:
+        from .optimization_chart import render_curve, render_result
+
+        return (render_result(view["optimization_session"]) + render_curve(
+                    view["optimization_session"]),
+                "Recorded task objectives and observed tokens; missing usage stays unknown. "
+                "These curves do not establish cross-environment comparability.")
     external = [row for row in view["candidates"] if row.get("external")]
     if external:
         from .dashboard_external import metric_chart
@@ -297,9 +304,14 @@ def dashboard_snapshot(source: Path, translations: Path | None = None) -> dict:
     source = Path(source).resolve()
     view = load_dashboard(source)
     if view.get("review_layout") == "profile_first":
-        from .profile_timeline import read_profiles
+        from .experiment_timing import experiment_timing
+        from .profile_timeline import pre_profile_searches, read_profiles
 
         view["profile_captures"], view["unavailable_profiles"] = read_profiles(source)
+        retrievals = {r["context_id"]: r for r in (view.get("story") or {}).get("retrievals", [])}
+        for capture in view["profile_captures"]:
+            capture["pre_profile_searches"] = pre_profile_searches(capture, retrievals)
+        view["experiment_timing"] = experiment_timing(view, source)
     chart, chart_note = _chart(source, view)
     temporal, temporal_note = (("", "") if view.get("review_layout") == "profile_first"
                                else temporal_chart(view))

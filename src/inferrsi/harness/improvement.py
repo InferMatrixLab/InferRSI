@@ -3,7 +3,7 @@
 import math
 from dataclasses import dataclass
 
-from .skill_evaluation import normalize_usage
+from .usage import usage_totals as usage_totals
 
 
 @dataclass(frozen=True)
@@ -18,26 +18,6 @@ class SelectionPolicy:
             raise ValueError("min_success_rate must be finite and within [0, 1]")
         if type(self.max_regressions) is not int or self.max_regressions < 0:
             raise ValueError("max_regressions must be a nonnegative integer")
-
-
-def usage_totals(trials: list[dict]) -> dict:
-    """Unknown and invalid metrics stay unknown; cached input is not added twice."""
-    result = {"calls": len(trials), "cost": None}
-    usage = [normalize_usage(t["observations"].get("usage")) for t in trials]
-    for field in ("input_tokens", "output_tokens", "cached_input_tokens"):
-        values = [(u or {}).get(field) for u in usage]
-        result[field] = sum(values) if values and all(
-            type(value) is int and value >= 0 for value in values) else None
-    for field, values in (
-        ("tool_calls", [t["observations"].get("tool_calls") for t in trials]),
-        ("elapsed_seconds", [t.get("elapsed_seconds") for t in trials]),
-    ):
-        result[field] = sum(values) if values and all(
-            type(value) in (int, float) and math.isfinite(value) and value >= 0
-            for value in values) else None
-    tokens = [result["input_tokens"], result["output_tokens"]]
-    result["total_tokens"] = sum(tokens) if None not in tokens else None
-    return result
 
 
 def assessment(report: dict, policy: SelectionPolicy) -> dict:

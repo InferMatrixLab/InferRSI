@@ -82,7 +82,7 @@ const source=html.slice(html.indexOf('function renderCaptures('),
                         html.indexOf('function render(){'));
 const box={replaceChildren(){}},section={},log=[],calls=[];
 const data={profile_captures:[],unavailable_profiles:['missing','changed']};
-const run=new Function('data','timelineDraws','byId','timeline','p','tr',
+const run=new Function('data','timelineDraws','byId','captureCard','p','tr',
   source+'\nreturn renderCaptures;')(data,new Map(),id=>id==='captures'?box:section,
   (_,c,b)=>calls.push([c.id,b?.id]),(_,text)=>log.push(text),(zh,en)=>en);
 run(new Set());assert.equal(section.hidden,false);assert.equal(log.length,2);
@@ -336,3 +336,30 @@ assert.equal(cards['Failed / regressed'].value,'Not recorded');
 """
     subprocess.run([shutil.which("node"), "-e", script, str(template)], check=True,
                    capture_output=True, text=True)
+
+
+@pytest.mark.skipif(shutil.which("node") is None, reason="Node.js runs the exported dashboard")
+def test_profile_history_partitions_clocks_and_preserves_missing_measurements():
+    template = Path(__file__).parents[1] / "src/inferrsi/observability/review_template.html"
+    script = r"""
+const fs=require('node:fs'), assert=require('node:assert/strict');
+const html=fs.readFileSync(process.argv[1],'utf8');
+const source=html.slice(html.indexOf('function stageHistory('),
+                        html.indexOf('function renderCaptures('));
+const cap=(id,round,basis,stages_ms)=>({id,phase:round?'candidate':'baseline',round,
+  workload_id:'image',comparison_key:'same',timing:{basis,stages_ms}});
+const data={profile_captures:[cap('after',1,'CUDA',{worker:9}),
+  cap('base',null,'CUDA',{worker:10,text:2}),
+  cap('cpu',2,'wall',{worker:12})]};
+const tables=[],notes=[],box={append(){}};
+const run=new Function('data','tr','el','p','table','captureLabel','fmt',
+  source+';return stageHistory;')(
+  data,(zh,en)=>en,()=>box,(_,s)=>notes.push(s),(_,h,r)=>tables.push([h,r]),
+  c=>c.round?'R'+c.round:'Base',v=>Number.isFinite(v)?String(v):'—');
+run(box,[{round:1},{round:2},{round:3}]);
+assert.deepEqual(tables,[
+  [['Stage (ms)','Base · base','R1 · after'],[['worker','10','9'],['text','2','—']]],
+  [['Stage (ms)','R2 · cpu'],[['worker','12']]]]);
+assert.ok(notes.includes('R3 · No candidate profile attached'));
+"""
+    subprocess.run([shutil.which("node"), "-e", script, str(template)], check=True)

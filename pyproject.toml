@@ -24,6 +24,7 @@ namespaces = false
 
 [tool.setuptools.package-data]
 inferrsi = ["data/**/*.json", "data/**/*.md", "data/**/LICENSE", "data/**/THIRD_PARTY_NOTICES", "data/**/scripts/*.py", "data/**/references/licenses/*.txt", "data/**/references/upstream-NOTICE", "observability/*.html"]
+"inferrsi.benchmark" = ["tasks/**/*.py", "tasks/**/*.json", "tasks/**/*.md", "tasks/**/*.jsonl", "tasks/**/LICENSE"]
 
 [tool.setuptools_scm]
 version_file = "src/inferrsi/_version.py"

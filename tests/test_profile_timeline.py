@@ -180,3 +180,72 @@ def test_lane_limit_counts_only_lanes_with_positive_duration(tmp_path):
     with pytest.raises(ValueError, match="512 lanes"):
         attach_profile(tmp_path, capture_id="over", source="profiles/too-many.json", review=review)
     assert [c["id"] for c in read_profiles(tmp_path)[0]] == ["fits"]
+
+
+def test_profile_history_uses_verified_preceding_search_not_round_number(tmp_path):
+    source, review = fixture(tmp_path)
+    meta = json.loads(review.read_bytes())
+    meta.update(started_at="2026-11-11T08:41:43.000001Z",
+                context_ids=["before", "same", "later", "untimed", "bad", "missing"],
+                timing={"basis": "CUDA events", "stages_ms": {"worker": 50.5, "denoise": 40.0}})
+    review.write_text(json.dumps(meta))
+    attach_profile(tmp_path, capture_id="baseline", source=f"profiles/{source.name}", review=review)
+    cap, = read_profiles(tmp_path)[0]
+    assert cap["timing"] == meta["timing"]
+    searches = {key: {"state": "verified", "captured_at": time} for key, time in [
+        ("before", "2026-11-11T16:41:43+08:00"), ("same", meta["started_at"]),
+        ("later", "2026-11-11T08:41:44Z"), ("untimed", "2026-11-11T08:41:40")]}
+    searches["bad"] = {"state": "hash_mismatch"}
+    links = profile_timeline.pre_profile_searches(cap, searches)
+    assert [(x["context_id"], x["state"]) for x in links] == [
+        ("before", "verified"), ("same", "not_before"), ("later", "not_before"),
+        ("untimed", "unknown_time"), ("bad", "unverified"), ("missing", "unverified")]
+    assert profile_timeline.pre_profile_searches({}, searches) == []
+
+
+@pytest.mark.parametrize("extra", [
+    {"context_ids": ["kb"]}, {"started_at": "2026-01-01T00:00:00"},
+    {"timing": {"basis": "unknown", "stages_ms": {"CUDA": -1}}},
+    {"timing": {"basis": "unknown", "stages_ms": {"CUDA": float("inf")}}},
+])
+def test_invalid_optional_history_is_not_attached(tmp_path, extra):
+    source, review = fixture(tmp_path)
+    review.write_text(json.dumps({**json.loads(review.read_bytes()), **extra}))
+    with pytest.raises(ValueError):
+        attach_profile(tmp_path, capture_id="baseline", source=f"profiles/{source.name}",
+                       review=review)
+    assert not (tmp_path / "profile-captures.jsonl").exists()
+
+
+@pytest.mark.parametrize("time", ["2026-01-20T10:00:00.5Z", "20260120T100000.5Z",
+                                 "2026-01-20T18:00:00.500000+08:00"])
+def test_profile_and_search_parse_equivalent_stamps_at_attach_and_read(tmp_path, time):
+    source, review = fixture(tmp_path)
+    review.write_text(json.dumps({**json.loads(review.read_bytes()), "started_at": time,
+                                  "context_ids": ["same"]}))
+    attach_profile(tmp_path, capture_id="test", source=f"profiles/{source.name}", review=review)
+    cap, = read_profiles(tmp_path)[0]
+    searches = {"same": {"state": "verified", "captured_at": "2026-01-20T10:00:00.500Z"}}
+    assert profile_timeline.pre_profile_searches(cap, searches)[0]["state"] == "not_before"
+
+
+def test_snapshot_joins_verified_search_to_registered_profile(tmp_path):
+    from test_optimization_story import campaign, log_document, write_log
+
+    write_log(tmp_path, log_document(campaign(tmp_path)))
+    manifest = tmp_path / "campaign.json"
+    manifest.write_text(json.dumps({**json.loads(manifest.read_bytes()),
+                                    "review_layout": "profile_first"}))
+    profiles = tmp_path / "profiles"
+    profiles.mkdir()
+    (profiles / "trace.json").write_text(json.dumps([event("user_annotation", "worker", 10, 20)]))
+    review = tmp_path / "review.json"
+    review.write_text(json.dumps({"title": "Warm worker", "phase": "baseline", "round": None,
+                                  "workload_id": "image", "comparison_key": "same-card",
+                                  "takeaway": "Captured", "next_action": "Measure",
+                                  "started_at": "2100-01-01T00:00:00Z",
+                                  "context_ids": ["r1", "absent"]}))
+    attach_profile(tmp_path, capture_id="base", source="profiles/trace.json", review=review)
+    cap, = dashboard_snapshot(tmp_path)["data"]["profile_captures"]
+    assert cap["pre_profile_searches"] == [
+        {"context_id": "r1", "state": "verified"}, {"context_id": "absent", "state": "unverified"}]

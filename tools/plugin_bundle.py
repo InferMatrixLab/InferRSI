@@ -57,6 +57,10 @@ def bundle_runtime(source: Path, runtime: Path, *, plugin_version: str,
             )
             or (path.name == "upstream-NOTICE" and relative.parent.name == "references")
         )
+        package_data = package_data or (
+            relative.parts[:2] == ("benchmark", "tasks")
+            and (path.suffix in (".json", ".md", ".jsonl") or path.name == "LICENSE")
+        )
         template = relative.parent.parts == ("observability",) and path.suffix == ".html"
         if path.suffix != ".py" and not (package_data or template):
             continue
