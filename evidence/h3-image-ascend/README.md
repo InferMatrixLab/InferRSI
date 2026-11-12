@@ -129,3 +129,10 @@ observed component latency reductions ranged from 2.4% to 10.3%. Activations
 were captured samples repeated to the tested lengths; these results do not
 establish complete model parity or HTTP improvement. A same-VAE-configuration
 four-device control/candidate experiment is pending; NZ is not yet adopted.
+
+The [NZ round-four full-model trial](results/mlp-nz-round4/decision.json)
+was rejected: all 30 image screens failed, and W2/W3 latency regressed.
+The conversion affected 104 projections, including token-refiner MLPs outside
+the original component probe. That scope mismatch is a diagnostic lead, not
+an established cause. Both controls and candidates were repeatable. No NZ
+change has been adopted in the downstream PR.
