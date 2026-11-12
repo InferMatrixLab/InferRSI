@@ -3,10 +3,14 @@
 Directory diffs stand in for git clones. ``close`` and incumbent advancement are
 not implemented. A synthetic metric value is not a campaign verdict.
 
+Each lane declares ``device_count`` (default 1). The counts of all lanes must fit
+in ``device_ids``. A ticket runs only after it holds that many devices at once.
+
 Command placeholders: ``build`` gets ``{device}`` only. ``trial`` gets ``{device}``
 and ``{result}``; it runs once for the candidate and once for the incumbent and
 must write ``{"metrics": {<metric.name>: <finite number>}}`` to ``{result}``.
-Other text, including ``{result}`` inside ``build``, is passed through unchanged.
+``{device}`` is the held device identities joined with commas. Other text,
+including ``{result}`` inside ``build``, is passed through unchanged.
 """
 
 import hashlib
@@ -177,7 +181,7 @@ def prepare(spec: dict, incumbent: Path, round_dir: Path) -> dict:
     if (
         not isinstance(devices, list)
         or not devices
-        or not all(_segment(item) for item in devices)
+        or not all(_segment(item) and "," not in item for item in devices)
         or len(set(devices)) != len(devices)
     ):
         raise RoundPlanError("device_ids must list distinct device identities")
@@ -214,11 +218,19 @@ def prepare(spec: dict, incumbent: Path, round_dir: Path) -> dict:
             raise RoundPlanError("cap and per-attempt cost must come from the plan")
         if not isinstance(lane.get("deadline_utc"), str):
             raise RoundPlanError("each lane needs a deadline")
+        count = lane.get("device_count", 1)
+        if type(count) is not int or count < 1:
+            raise RoundPlanError(f"{lane_id} device_count must be a positive integer")
         if any(_match(path, globs) and _match(path, protected) for path in files):
             raise RoundPlanError(f"{lane_id} reaches a protected path")
         seen_ids.add(lane_id)
         seen_entries.add(entry)
-        normalized.append(dict(lane))
+        normalized.append({**lane, "device_count": count})
+    demand = sum(lane["device_count"] for lane in normalized)
+    if demand > len(devices):
+        raise RoundPlanError(
+            f"lanes ask for {demand} devices in total but device_ids lists {len(devices)}"
+        )
     for index, lane in enumerate(normalized):
         for other in normalized[index + 1 :]:
             shared = set(lane["globs"]) & set(other["globs"])
@@ -400,7 +412,7 @@ def _launch(
     backend,
     current,
 ):
-    """Run build and both trials on one device. Each start uses the same absolute deadline."""
+    """Run build and both trials on the held devices. Each start uses the same deadline."""
     build_dir = candidate / "build-output"
     build_dir.mkdir(parents=True, exist_ok=True)
     trial_dir.mkdir(parents=True, exist_ok=True)
@@ -446,8 +458,8 @@ def serve_ticket(
     now: datetime | None = None,
     clock=None,
 ) -> dict:
-    """Measure one ticket on any free device. A busy lane or no free device leaves it
-    queued and does not reserve an attempt.
+    """Measure one ticket on the lane's ``device_count`` free devices. A busy lane or too
+    few free devices leaves it queued and does not reserve an attempt.
 
     ``now`` is accepted for older callers and is not a frozen deadline. Every
     admission and command reads ``clock`` or the current time again.
@@ -482,26 +494,31 @@ def serve_ticket(
                 reason="claimed execution was not settled",
             )
         leases = DeviceLease(round_dir / "leases")
-        for device in plan["device_ids"]:
-            try:
-                held = leases.acquire(device)
-            except LeaseError:
-                continue
-            try:
-                return _measure(
-                    round_dir,
-                    plan,
-                    lane,
-                    ticket,
-                    overlay,
-                    incumbent,
-                    device,
-                    backend=backend,
-                    current=current,
-                )
-            finally:
-                held.release()
-        return {"ticket": ticket, "status": "queued"}
+        held: list[tuple[str, object]] = []
+        try:
+            for device in plan["device_ids"]:
+                if len(held) == lane["device_count"]:
+                    break
+                try:
+                    held.append((device, leases.acquire(device)))
+                except LeaseError:
+                    continue
+            if len(held) < lane["device_count"]:
+                return {"ticket": ticket, "status": "queued"}
+            return _measure(
+                round_dir,
+                plan,
+                lane,
+                ticket,
+                overlay,
+                incumbent,
+                [device for device, _lease in held],
+                backend=backend,
+                current=current,
+            )
+        finally:
+            for _device, lease in held:
+                lease.release()
     finally:
         lane_lock.release()
 
@@ -513,7 +530,7 @@ def _measure(
     ticket: str,
     overlay: Path,
     incumbent: Path,
-    device: str,
+    devices: list[str],
     *,
     backend,
     current,
@@ -541,12 +558,12 @@ def _measure(
             candidate,
             incumbent,
             trial_dir,
-            device,
+            ",".join(devices),
             backend=backend,
             current=current,
         )
     except (ConfinementUnavailable, BudgetError) as exc:
-        return _record(round_dir, ticket, status="unsettled", reason=str(exc), device=device)
+        return _record(round_dir, ticket, status="unsettled", reason=str(exc), devices=devices)
     metric = plan["metric"]
     try:
         candidate_value = _metric_value(candidate_result, metric["name"])
@@ -557,7 +574,7 @@ def _measure(
             ticket,
             status="unsettled",
             reason=f"trial finished without a readable {metric['name']} result: {exc}",
-            device=device,
+            devices=devices,
         )
     finished = advance(ledger, binding, "finished", actual_cost=0)
     _save_ledger(round_dir, finished)
@@ -573,7 +590,7 @@ def _measure(
         candidate=candidate_value,
         incumbent=incumbent_value,
         gain=gain,
-        device=device,
+        devices=devices,
         confinement=getattr(backend, "name", "unknown"),
     )
 
