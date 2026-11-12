@@ -1,0 +1,601 @@
+{
+  "scope": "rank0 aggregate over three diagnostic requests W1/W2/W3; operator times are not E2E speedups",
+  "revision": "ad37f7f79e10b946a87d60a0fab01416bd0f7837",
+  "analysis_validation": "Initial exporter failed despite exit code0. Reanalysis in the collection container produced nonempty operator, kernel and step CSVs.",
+  "operators": [
+    {
+      "type": "MatMulV3",
+      "core": "AI_CORE",
+      "count": 3404,
+      "total_us": 5033952.24,
+      "ratio_percent": 39.083
+    },
+    {
+      "type": "FlashAttentionScore",
+      "core": "MIX_AIC",
+      "count": 1257,
+      "total_us": 4925081.64,
+      "ratio_percent": 38.238
+    },
+    {
+      "type": "MatMulV2",
+      "core": "AI_CORE",
+      "count": 2007,
+      "total_us": 1026488.76,
+      "ratio_percent": 7.97
+    },
+    {
+      "type": "Transpose",
+      "core": "AI_VECTOR_CORE",
+      "count": 4770,
+      "total_us": 307474.72,
+      "ratio_percent": 2.387
+    },
+    {
+      "type": "Slice",
+      "core": "AI_VECTOR_CORE",
+      "count": 15869,
+      "total_us": 305887.92,
+      "ratio_percent": 2.375
+    },
+    {
+      "type": "_indexed_gate_rms_norm_scale_shift_kernel",
+      "core": "AI_VECTOR_CORE",
+      "count": 900,
+      "total_us": 169082.6,
+      "ratio_percent": 1.313
+    },
+    {
+      "type": "RmsNorm",
+      "core": "AI_VECTOR_CORE",
+      "count": 2430,
+      "total_us": 136921.16,
+      "ratio_percent": 1.063
+    },
+    {
+      "type": "SwiGlu",
+      "core": "AI_VECTOR_CORE",
+      "count": 1086,
+      "total_us": 135679.34,
+      "ratio_percent": 1.053
+    },
+    {
+      "type": "_rms_norm_indexed_scale_shift_kernel",
+      "core": "AI_VECTOR_CORE",
+      "count": 900,
+      "total_us": 110978.32,
+      "ratio_percent": 0.862
+    },
+    {
+      "type": "RotaryPositionEmbedding",
+      "core": "MIX_AIV",
+      "count": 2100,
+      "total_us": 104792.3,
+      "ratio_percent": 0.814
+    },
+    {
+      "type": "_indexed_gate_kernel",
+      "core": "AI_VECTOR_CORE",
+      "count": 900,
+      "total_us": 96176.16,
+      "ratio_percent": 0.747
+    },
+    {
+      "type": "Mul",
+      "core": "AI_VECTOR_CORE",
+      "count": 4852,
+      "total_us": 87470.7,
+      "ratio_percent": 0.679
+    },
+    {
+      "type": "ConcatD",
+      "core": "AI_VECTOR_CORE",
+      "count": 3869,
+      "total_us": 56662.36,
+      "ratio_percent": 0.44
+    },
+    {
+      "type": "AsStrided",
+      "core": "AI_VECTOR_CORE",
+      "count": 1050,
+      "total_us": 48433.2,
+      "ratio_percent": 0.376
+    },
+    {
+      "type": "Cast",
+      "core": "AI_VECTOR_CORE",
+      "count": 2983,
+      "total_us": 39457.36,
+      "ratio_percent": 0.306
+    },
+    {
+      "type": "IndexPutV2",
+      "core": "AI_VECTOR_CORE",
+      "count": 24,
+      "total_us": 35091.18,
+      "ratio_percent": 0.272
+    },
+    {
+      "type": "Add",
+      "core": "AI_VECTOR_CORE",
+      "count": 2944,
+      "total_us": 32535.34,
+      "ratio_percent": 0.253
+    },
+    {
+      "type": "Conv3DV2",
+      "core": "MIX_AIC",
+      "count": 34,
+      "total_us": 27798.84,
+      "ratio_percent": 0.216
+    },
+    {
+      "type": "Tile",
+      "core": "AI_VECTOR_CORE",
+      "count": 3609,
+      "total_us": 27359.0,
+      "ratio_percent": 0.212
+    },
+    {
+      "type": "Pows",
+      "core": "AI_VECTOR_CORE",
+      "count": 576,
+      "total_us": 16743.74,
+      "ratio_percent": 0.13
+    },
+    {
+      "type": "ReduceMean",
+      "core": "MIX_AIV",
+      "count": 576,
+      "total_us": 16700.72,
+      "ratio_percent": 0.13
+    },
+    {
+      "type": "Swish",
+      "core": "AI_VECTOR_CORE",
+      "count": 187,
+      "total_us": 12521.96,
+      "ratio_percent": 0.097
+    },
+    {
+      "type": "MirrorPad",
+      "core": "AI_VECTOR_CORE",
+      "count": 37,
+      "total_us": 10845.98,
+      "ratio_percent": 0.084
+    },
+    {
+      "type": "UniqueWithCountsAndSorting",
+      "core": "AI_CPU",
+      "count": 18,
+      "total_us": 10053.24,
+      "ratio_percent": 0.078
+    },
+    {
+      "type": "TransData",
+      "core": "AI_VECTOR_CORE",
+      "count": 120,
+      "total_us": 8610.2,
+      "ratio_percent": 0.067
+    },
+    {
+      "type": "Range",
+      "core": "AI_VECTOR_CORE",
+      "count": 1428,
+      "total_us": 7837.04,
+      "ratio_percent": 0.061
+    },
+    {
+      "type": "PadV3",
+      "core": "MIX_AIV",
+      "count": 31,
+      "total_us": 7828.3,
+      "ratio_percent": 0.061
+    },
+    {
+      "type": "ViewCopy",
+      "core": "AI_VECTOR_CORE",
+      "count": 717,
+      "total_us": 7459.12,
+      "ratio_percent": 0.058
+    },
+    {
+      "type": "MatMulV3",
+      "core": "MIX_AIC",
+      "count": 27,
+      "total_us": 6450.22,
+      "ratio_percent": 0.05
+    },
+    {
+      "type": "AddRmsNorm",
+      "core": "AI_VECTOR_CORE",
+      "count": 150,
+      "total_us": 6120.26,
+      "ratio_percent": 0.048
+    },
+    {
+      "type": "RealDiv",
+      "core": "AI_VECTOR_CORE",
+      "count": 2804,
+      "total_us": 4051.7,
+      "ratio_percent": 0.031
+    },
+    {
+      "type": "Triu",
+      "core": "AI_VECTOR_CORE",
+      "count": 150,
+      "total_us": 3915.38,
+      "ratio_percent": 0.03
+    },
+    {
+      "type": "LayerNormV3",
+      "core": "AI_VECTOR_CORE",
+      "count": 64,
+      "total_us": 3821.06,
+      "ratio_percent": 0.03
+    },
+    {
+      "type": "SliceV2",
+      "core": "AI_VECTOR_CORE",
+      "count": 288,
+      "total_us": 3698.74,
+      "ratio_percent": 0.029
+    },
+    {
+      "type": "ViewCopy",
+      "core": "AI_CPU",
+      "count": 31,
+      "total_us": 3420.98,
+      "ratio_percent": 0.027
+    },
+    {
+      "type": "ScatterUpdate",
+      "core": "AI_VECTOR_CORE",
+      "count": 18,
+      "total_us": 3073.48,
+      "ratio_percent": 0.024
+    },
+    {
+      "type": "Neg",
+      "core": "AI_VECTOR_CORE",
+      "count": 342,
+      "total_us": 3062.84,
+      "ratio_percent": 0.024
+    },
+    {
+      "type": "MaskedScatter",
+      "core": "AI_VECTOR_CORE",
+      "count": 1,
+      "total_us": 2957.12,
+      "ratio_percent": 0.023
+    },
+    {
+      "type": "Rsqrt",
+      "core": "AI_VECTOR_CORE",
+      "count": 576,
+      "total_us": 2897.1,
+      "ratio_percent": 0.022
+    },
+    {
+      "type": "MemSet",
+      "core": "AI_VECTOR_CORE",
+      "count": 254,
+      "total_us": 2741.9,
+      "ratio_percent": 0.021
+    },
+    {
+      "type": "GroupNormSilu",
+      "core": "AI_VECTOR_CORE",
+      "count": 25,
+      "total_us": 2587.26,
+      "ratio_percent": 0.02
+    },
+    {
+      "type": "NonZero",
+      "core": "MIX_AIV",
+      "count": 105,
+      "total_us": 2397.24,
+      "ratio_percent": 0.019
+    },
+    {
+      "type": "ClipByValueV2",
+      "core": "AI_VECTOR_CORE",
+      "count": 25,
+      "total_us": 2345.68,
+      "ratio_percent": 0.018
+    },
+    {
+      "type": "Sub",
+      "core": "AI_VECTOR_CORE",
+      "count": 1471,
+      "total_us": 2204.4,
+      "ratio_percent": 0.017
+    },
+    {
+      "type": "OnesLike",
+      "core": "AI_VECTOR_CORE",
+      "count": 150,
+      "total_us": 2071.5,
+      "ratio_percent": 0.016
+    },
+    {
+      "type": "Pad",
+      "core": "AI_VECTOR_CORE",
+      "count": 81,
+      "total_us": 2062.72,
+      "ratio_percent": 0.016
+    },
+    {
+      "type": "_indexed_scale_shift_kernel",
+      "core": "AI_VECTOR_CORE",
+      "count": 18,
+      "total_us": 1976.9,
+      "ratio_percent": 0.015
+    },
+    {
+      "type": "Gelu",
+      "core": "AI_VECTOR_CORE",
+      "count": 31,
+      "total_us": 1925.74,
+      "ratio_percent": 0.015
+    },
+    {
+      "type": "IndexCheck",
+      "core": "AI_VECTOR_CORE",
+      "count": 100,
+      "total_us": 1493.68,
+      "ratio_percent": 0.012
+    },
+    {
+      "type": "TensorMove",
+      "core": "AI_VECTOR_CORE",
+      "count": 122,
+      "total_us": 1345.92,
+      "ratio_percent": 0.01
+    },
+    {
+      "type": "Index",
+      "core": "AI_VECTOR_CORE",
+      "count": 70,
+      "total_us": 1155.54,
+      "ratio_percent": 0.009
+    },
+    {
+      "type": "GatherV3",
+      "core": "AI_VECTOR_CORE",
+      "count": 54,
+      "total_us": 894.32,
+      "ratio_percent": 0.007
+    },
+    {
+      "type": "InplaceIndexAddWithSorted",
+      "core": "AI_VECTOR_CORE",
+      "count": 36,
+      "total_us": 880.92,
+      "ratio_percent": 0.007
+    },
+    {
+      "type": "Cast",
+      "core": "AI_CPU",
+      "count": 3,
+      "total_us": 640.7,
+      "ratio_percent": 0.005
+    },
+    {
+      "type": "IndexPutV3",
+      "core": "AI_CPU",
+      "count": 3,
+      "total_us": 621.92,
+      "ratio_percent": 0.005
+    },
+    {
+      "type": "Pack",
+      "core": "AI_VECTOR_CORE",
+      "count": 15,
+      "total_us": 503.78,
+      "ratio_percent": 0.004
+    },
+    {
+      "type": "ZerosLike",
+      "core": "AI_VECTOR_CORE",
+      "count": 52,
+      "total_us": 496.7,
+      "ratio_percent": 0.004
+    },
+    {
+      "type": "RepeatInterleave",
+      "core": "AI_VECTOR_CORE",
+      "count": 2,
+      "total_us": 234.86,
+      "ratio_percent": 0.002
+    },
+    {
+      "type": "BroadcastTo",
+      "core": "AI_VECTOR_CORE",
+      "count": 55,
+      "total_us": 198.84,
+      "ratio_percent": 0.002
+    },
+    {
+      "type": "Less",
+      "core": "AI_VECTOR_CORE",
+      "count": 39,
+      "total_us": 179.9,
+      "ratio_percent": 0.001
+    },
+    {
+      "type": "Sort",
+      "core": "MIX_AIV",
+      "count": 39,
+      "total_us": 170.52,
+      "ratio_percent": 0.001
+    },
+    {
+      "type": "GreaterEqual",
+      "core": "AI_VECTOR_CORE",
+      "count": 39,
+      "total_us": 168.3,
+      "ratio_percent": 0.001
+    },
+    {
+      "type": "Fill",
+      "core": "AI_VECTOR_CORE",
+      "count": 102,
+      "total_us": 163.26,
+      "ratio_percent": 0.001
+    },
+    {
+      "type": "Cos",
+      "core": "AI_VECTOR_CORE",
+      "count": 31,
+      "total_us": 142.0,
+      "ratio_percent": 0.001
+    },
+    {
+      "type": "Sin",
+      "core": "AI_VECTOR_CORE",
+      "count": 31,
+      "total_us": 139.9,
+      "ratio_percent": 0.001
+    },
+    {
+      "type": "MaskedFill",
+      "core": "AI_VECTOR_CORE",
+      "count": 9,
+      "total_us": 133.02,
+      "ratio_percent": 0.001
+    },
+    {
+      "type": "IndexPutWithSort",
+      "core": "MIX_AIV",
+      "count": 3,
+      "total_us": 131.54,
+      "ratio_percent": 0.001
+    },
+    {
+      "type": "GatherV2",
+      "core": "AI_VECTOR_CORE",
+      "count": 4,
+      "total_us": 131.3,
+      "ratio_percent": 0.001
+    },
+    {
+      "type": "LogicalAnd",
+      "core": "AI_VECTOR_CORE",
+      "count": 36,
+      "total_us": 68.54,
+      "ratio_percent": 0.001
+    },
+    {
+      "type": "Conv2D",
+      "core": "AI_CORE",
+      "count": 6,
+      "total_us": 67.56,
+      "ratio_percent": 0.001
+    },
+    {
+      "type": "LinearIndexV2",
+      "core": "MIX_AIV",
+      "count": 3,
+      "total_us": 66.54,
+      "ratio_percent": 0.001
+    },
+    {
+      "type": "ReduceMax",
+      "core": "MIX_AIV",
+      "count": 3,
+      "total_us": 61.9,
+      "ratio_percent": 0.0
+    },
+    {
+      "type": "BatchMatMulV2",
+      "core": "AI_CORE",
+      "count": 1,
+      "total_us": 61.28,
+      "ratio_percent": 0.0
+    },
+    {
+      "type": "LogicalNot",
+      "core": "AI_VECTOR_CORE",
+      "count": 18,
+      "total_us": 37.96,
+      "ratio_percent": 0.0
+    },
+    {
+      "type": "ReduceSum",
+      "core": "MIX_AIV",
+      "count": 2,
+      "total_us": 34.4,
+      "ratio_percent": 0.0
+    },
+    {
+      "type": "Exp",
+      "core": "AI_VECTOR_CORE",
+      "count": 19,
+      "total_us": 32.24,
+      "ratio_percent": 0.0
+    },
+    {
+      "type": "Muls",
+      "core": "AI_VECTOR_CORE",
+      "count": 18,
+      "total_us": 22.28,
+      "ratio_percent": 0.0
+    },
+    {
+      "type": "Equal",
+      "core": "AI_VECTOR_CORE",
+      "count": 8,
+      "total_us": 22.08,
+      "ratio_percent": 0.0
+    },
+    {
+      "type": "SelectV2",
+      "core": "AI_VECTOR_CORE",
+      "count": 3,
+      "total_us": 8.0,
+      "ratio_percent": 0.0
+    },
+    {
+      "type": "LogicalOr",
+      "core": "AI_VECTOR_CORE",
+      "count": 3,
+      "total_us": 6.08,
+      "ratio_percent": 0.0
+    },
+    {
+      "type": "Greater",
+      "core": "AI_VECTOR_CORE",
+      "count": 1,
+      "total_us": 3.04,
+      "ratio_percent": 0.0
+    },
+    {
+      "type": "FloorDiv",
+      "core": "AI_VECTOR_CORE",
+      "count": 1,
+      "total_us": 2.38,
+      "ratio_percent": 0.0
+    },
+    {
+      "type": "Cumsum",
+      "core": "AI_VECTOR_CORE",
+      "count": 1,
+      "total_us": 2.36,
+      "ratio_percent": 0.0
+    }
+  ],
+  "step_summary": [
+    {
+      "Computing": 12880029.220000112,
+      "Communication(Not Overlapped)": 2243713.3200000077,
+      "Overlapped": 0.0,
+      "Communication": 2243713.3200000077,
+      "Free": 3470156.060000511,
+      "Stage": 18593898.75,
+      "Bubble": 0.0,
+      "Communication(Not Overlapped and Exclude Receive)": 2243713.3200000077,
+      "Preparing": 556579.0
+    }
+  ]
+}
