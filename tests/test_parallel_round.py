@@ -67,7 +67,7 @@ def _spec(**overrides):
     )
     spec = {
         "round_id": "r1",
-        "device_ids": ["cpu-0"],
+        "device_ids": ["cpu-0", "cpu-1"],
         "metric": {"name": "latency_ms", "better": "lower"},
         "incumbent_id": "fixture-incumbent",
         "protected": ["bench.py"],
@@ -134,7 +134,7 @@ def test_prepare_rejects_overlapping_globs_protected_paths_and_shared_entries(tm
 def test_prepare_rejects_bad_devices_and_metric(tmp_path):
     incumbent = tmp_path / "incumbent"
     _tree(incumbent, "10")
-    for devices in ([], ["cpu-0", "cpu-0"], ["a/b"], "cpu-0", ["."], [".."]):
+    for devices in ([], ["cpu-0", "cpu-0"], ["a/b"], "cpu-0", ["."], [".."], ["0,1", "2"]):
         with pytest.raises(RoundPlanError, match="device_ids"):
             prepare(_spec(device_ids=devices), incumbent, tmp_path / "round-devices")
     for lane_id in (".", ".."):
@@ -191,21 +191,69 @@ def test_serve_records_a_synthetic_gain_and_a_held_device_stays_queued(tmp_path)
     work = tmp_path / "work"
     _tree(work, "8")
     ticket = submit(round_dir, "L1", incumbent, work)["ticket"]
-    held = DeviceLease(round_dir / "leases").acquire("cpu-0")
+    leases = DeviceLease(round_dir / "leases")
+    held = [leases.acquire("cpu-0"), leases.acquire("cpu-1")]
     queued = serve_ticket(round_dir, ticket, incumbent, backend=FixtureBackend(), now=WHEN)
     assert queued["status"] == "queued"
     assert ticket_status(round_dir, ticket)["status"] == "queued"
     assert not (round_dir / "ledgers").exists()
-    held.release()
+    for lease in held:
+        lease.release()
     measured = serve_ticket(round_dir, ticket, incumbent, backend=FixtureBackend(), now=WHEN)
     assert measured["synthetic"] is True
     assert measured["metric"] == "latency_ms"
     assert measured["candidate"] == 8
     assert measured["incumbent"] == 10
     assert measured["gain"] == 2
-    assert measured["device"] == "cpu-0"
+    assert measured["devices"] == ["cpu-0"]
     assert measured["confinement"] == "fixture"
     assert (round_dir / "candidates" / ticket / "build-stamp").read_text(encoding="utf-8") == "ok"
+
+
+def test_prepare_rejects_bad_device_counts_and_lanes_that_need_more_devices(tmp_path):
+    incumbent = tmp_path / "incumbent"
+    _tree(incumbent, "10")
+    for count in (0, -1, True, "2"):
+        spec = _spec()
+        spec["lanes"][0]["device_count"] = count
+        with pytest.raises(RoundPlanError, match="device_count"):
+            prepare(spec, incumbent, tmp_path / "round-count")
+    spec = _spec(device_ids=["0", "1", "2"])
+    spec["lanes"][1]["device_count"] = 3
+    with pytest.raises(RoundPlanError, match="4 devices in total"):
+        prepare(spec, incumbent, tmp_path / "round-demand")
+    spec["lanes"][1]["device_count"] = 2
+    plan = prepare(spec, incumbent, tmp_path / "round-fits")
+    assert [lane["device_count"] for lane in plan["lanes"]] == [1, 2]
+
+
+def test_a_lane_needing_two_devices_waits_until_it_can_hold_both(tmp_path):
+    incumbent = tmp_path / "incumbent"
+    _tree(incumbent, "10")
+    round_dir = tmp_path / "round"
+    stamp_device = "import sys; open('build-stamp', 'w').write(sys.argv[1])"
+    spec = _spec(
+        device_ids=["0", "1", "2"],
+        build=[sys.executable, "-c", stamp_device, "{device}"],
+    )
+    spec["lanes"][0]["device_count"] = 2
+    prepare(spec, incumbent, round_dir)
+    work = tmp_path / "work"
+    _tree(work, "8")
+    ticket = submit(round_dir, "L1", incumbent, work, now=WHEN)["ticket"]
+    leases = DeviceLease(round_dir / "leases")
+    held = [leases.acquire("0"), leases.acquire("1")]
+    queued = serve_ticket(round_dir, ticket, incumbent, backend=FixtureBackend(), now=WHEN)
+    assert queued["status"] == "queued"
+    assert not (round_dir / "ledgers").exists()
+    leases.acquire("2").release()
+    held.pop().release()
+    measured = serve_ticket(round_dir, ticket, incumbent, backend=FixtureBackend(), now=WHEN)
+    held[0].release()
+    assert measured["status"] == "measured"
+    assert measured["devices"] == ["1", "2"]
+    stamp = round_dir / "candidates" / ticket / "build-stamp"
+    assert stamp.read_text(encoding="utf-8") == "1,2"
 
 
 def test_higher_is_better_metric_reports_gain_in_the_better_direction(tmp_path):
@@ -241,7 +289,7 @@ def test_serve_uses_a_free_device_and_passes_its_identity_to_the_commands(tmp_pa
     finally:
         held.release()
     assert measured["status"] == "measured"
-    assert measured["device"] == "gpu-1"
+    assert measured["devices"] == ["gpu-1"]
     stamp = round_dir / "candidates" / ticket / "build-stamp"
     assert stamp.read_text(encoding="utf-8") == "gpu-1"
 
