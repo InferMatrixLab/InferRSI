@@ -1,0 +1,31 @@
+{
+  "source_commit": "0af99184bc860cffa8d1e5343c2bff4664f667c5",
+  "sample_id": "5s-01",
+  "scope": "http_complete_mp4",
+  "diagnostic": "audit",
+  "clean_timing": false,
+  "warmups": 0,
+  "repetitions": 1,
+  "samples_ms": [
+    236856.30676796427
+  ],
+  "cleanup_passed": true,
+  "quality_contract_sha256": "b8fd9e634e6db5ebfbce3842f3360f1b2241a08119953ee71bfc26553dbbafed",
+  "observed_quality_checks": 39,
+  "observed_failures": [],
+  "quality_verdict": "INCONCLUSIVE",
+  "missing_samples": [
+    "5s-00",
+    "5s-02",
+    "5s-03",
+    "5s-04",
+    "15s-00",
+    "15s-01",
+    "15s-02",
+    "15s-03",
+    "15s-04"
+  ],
+  "execution_proof_limit": "The actual log selects the H3 wrapper and reports16cachehits. Post-denoise model-tree traversal missed its closure-held wrapper; direct guard check/veto counters remain unobserved for this run.",
+  "campaign_verdict": "INCONCLUSIVE",
+  "performance_acceptance": "NOT_EVALUATED"
+}

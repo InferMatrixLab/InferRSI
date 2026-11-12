@@ -23,7 +23,7 @@ where = ["src"]
 namespaces = false
 
 [tool.setuptools.package-data]
-inferrsi = ["data/**/*.json", "data/**/*.md", "data/**/LICENSE", "data/**/THIRD_PARTY_NOTICES", "data/**/scripts/*.py", "data/**/references/licenses/*.txt", "data/**/references/upstream-NOTICE", "data/dashboard/*.html"]
+inferrsi = ["data/**/*.json", "data/**/*.md", "data/**/LICENSE", "data/**/THIRD_PARTY_NOTICES", "data/**/scripts/*.py", "data/**/references/licenses/*.txt", "data/**/references/upstream-NOTICE", "observability/*.html"]
 
 [tool.setuptools_scm]
 version_file = "src/inferrsi/_version.py"

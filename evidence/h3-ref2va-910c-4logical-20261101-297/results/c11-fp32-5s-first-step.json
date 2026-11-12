@@ -1,0 +1,102 @@
+{
+  "checks": [
+    {
+      "rank": 0,
+      "point": "initial_noise",
+      "stream": "video",
+      "equal": true
+    },
+    {
+      "rank": 0,
+      "point": "initial_noise",
+      "stream": "audio",
+      "equal": true
+    },
+    {
+      "rank": 0,
+      "point": "post_step_000",
+      "stream": "video",
+      "equal": true
+    },
+    {
+      "rank": 0,
+      "point": "post_step_000",
+      "stream": "audio",
+      "equal": true
+    },
+    {
+      "rank": 1,
+      "point": "initial_noise",
+      "stream": "video",
+      "equal": true
+    },
+    {
+      "rank": 1,
+      "point": "initial_noise",
+      "stream": "audio",
+      "equal": true
+    },
+    {
+      "rank": 1,
+      "point": "post_step_000",
+      "stream": "video",
+      "equal": true
+    },
+    {
+      "rank": 1,
+      "point": "post_step_000",
+      "stream": "audio",
+      "equal": true
+    },
+    {
+      "rank": 2,
+      "point": "initial_noise",
+      "stream": "video",
+      "equal": true
+    },
+    {
+      "rank": 2,
+      "point": "initial_noise",
+      "stream": "audio",
+      "equal": true
+    },
+    {
+      "rank": 2,
+      "point": "post_step_000",
+      "stream": "video",
+      "equal": true
+    },
+    {
+      "rank": 2,
+      "point": "post_step_000",
+      "stream": "audio",
+      "equal": true
+    },
+    {
+      "rank": 3,
+      "point": "initial_noise",
+      "stream": "video",
+      "equal": true
+    },
+    {
+      "rank": 3,
+      "point": "initial_noise",
+      "stream": "audio",
+      "equal": true
+    },
+    {
+      "rank": 3,
+      "point": "post_step_000",
+      "stream": "video",
+      "equal": true
+    },
+    {
+      "rank": 3,
+      "point": "post_step_000",
+      "stream": "audio",
+      "equal": true
+    }
+  ],
+  "all_equal": true,
+  "scope": "initialnoise and fullcompute poststep0 only; not later cached states, fullquality or timing acceptance"
+}

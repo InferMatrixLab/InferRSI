@@ -196,6 +196,8 @@ def main(argv: list[str] | None = None) -> int:
                 ids=args.ids,
                 revisions=_revisions(args.revisions or []),
                 kind=args.kind,
+                backend=args.backend,
+                scenario=args.scenario,
                 limit=args.limit,
                 max_bytes=args.max_bytes,
                 material=args.material,
@@ -291,14 +293,14 @@ def main(argv: list[str] | None = None) -> int:
             if args.live:
                 if args.output is not None:
                     raise ValueError("--output cannot be used with --live")
-                from .harness.dashboard_live import serve_dashboard
+                from .observability.dashboard_live import serve_dashboard
 
                 serve_dashboard(args.input, args.translations,
                                 port=args.port if args.port is not None else 8765)
             else:
                 if args.port is not None:
                     raise ValueError("--port requires --live")
-                from .harness.dashboard import write_dashboard
+                from .observability.dashboard import write_dashboard
 
                 _print({"dashboard": str(write_dashboard(args.input, args.output,
                                                           args.translations))})
@@ -316,15 +318,21 @@ def main(argv: list[str] | None = None) -> int:
                 )
                 _print({"context_directory": str(path), "reviewed_by_caller": False})
                 return 0
-            from .harness.campaign_records import (
+            from .observability.campaign_records import (
                 assemble_trace,
                 create_campaign,
                 record_candidate,
                 record_decision,
             )
 
+            if args.campaign_action == "attach-profile":
+                from .observability.profile_timeline import attach_profile
+
+                _print(attach_profile(args.directory, capture_id=args.id, source=args.source,
+                                      review=args.review))
+                return 0
             if args.campaign_action == "capture-context":
-                from .harness.knowledge_capture import capture_context
+                from .observability.knowledge_capture import capture_context
 
                 sources = ("package",) + (("checkout",) if args.skill_root else ()) + (
                     ("store",) if args.store else ())
@@ -340,14 +348,15 @@ def main(argv: list[str] | None = None) -> int:
                         "sha256": digest})
                 return 0
             if args.campaign_action == "log":
-                from .harness.optimization_log import record_log
+                from .observability.optimization_log import record_log
 
                 path, digest = record_log(args.directory, args.file)
                 _print({"log": path.name, "sha256": digest})
                 return 0
             if args.campaign_action == "init":
                 path = create_campaign(args.directory, args.id, target=args.target_pct,
-                                       noise=args.noise_pct, synthetic=args.synthetic)
+                                       noise=args.noise_pct, synthetic=args.synthetic,
+                                       backend=args.backend, profile_first=args.profile_first)
             elif args.campaign_action == "assemble-trace":
                 path = assemble_trace(args.directory, template=args.template,
                                       context_file=args.context_file, output=args.output)

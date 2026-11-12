@@ -1,0 +1,22 @@
+{
+  "verified_utc": "2026-11-01T18:28:58Z",
+  "module": "cache_dit/caching/cache_contexts/calibrators/foca.py",
+  "sha256": "258119cffacf83da942d278a29e9a40a1b1f3ffbbf30359bda41bc4af0b0a804",
+  "bytes": 792,
+  "distribution_metadata": [
+    {
+      "distribution_directory": "cache_dit-1.5.0.dist-info",
+      "fields": [
+        "Name: cache_dit",
+        "Version: 1.5.0"
+      ]
+    }
+  ],
+  "not_implemented_methods": [
+    "reset_cache",
+    "approximate",
+    "mark_step_begin",
+    "update"
+  ],
+  "scope": "static source check only; not an available H3 configuration or a device experiment"
+}

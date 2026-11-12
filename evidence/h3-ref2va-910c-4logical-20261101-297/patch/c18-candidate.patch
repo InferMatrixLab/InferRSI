@@ -1,0 +1,328 @@
+diff --git a/tests/diffusion/models/minimax_h3/test_minimax_h3_pooled_context.py b/tests/diffusion/models/minimax_h3/test_minimax_h3_pooled_context.py
+new file mode 100644
+index 0000000..5cffb88
+--- /dev/null
++++ b/tests/diffusion/models/minimax_h3/test_minimax_h3_pooled_context.py
+@@ -0,0 +1,183 @@
++# SPDX-License-Identifier: Apache-2.0
++# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
++
++import math
++from types import SimpleNamespace
++
++import pytest
++import torch
++
++from tests.helpers.mark import hardware_marks
++from vllm_omni.diffusion.models.minimax_h3.attention import flash_h3 as flash
++from vllm_omni.platforms import current_omni_platform
++
++pytestmark = [pytest.mark.core_model, pytest.mark.diffusion, *hardware_marks(res={"npu": "A3"}, num_cards=1)]
++
++
++def dense(query, key, value, scale):
++    q, k, v = [x.transpose(1, 2).float() for x in (query, key, value)]
++    return (torch.softmax(q @ k.transpose(-2, -1) * scale, dim=-1) @ v).transpose(1, 2).to(query.dtype)
++
++
++def expected_video(q, k, v, scale, frames, height, width, prefix):
++    rows = height * width
++    result = torch.zeros_like(q)
++    result[:, :prefix] = dense(q[:, :prefix], k, v, scale)
++    for t in range(frames):
++        key_parts, value_parts = (
++            [k[:, :prefix], k[:, prefix + t * rows : prefix + (t + 1) * rows]],
++            [v[:, :prefix], v[:, prefix + t * rows : prefix + (t + 1) * rows]],
++        )
++        for f in range(frames):
++            if f == t:
++                continue
++            for y in range(0, height, 3):
++                for x in range(0, width, 3):
++                    indices = [prefix + f * rows + (y + dy) * width + x + dx for dy in range(3) for dx in range(3)]
++                    key_parts.append(k[:, indices].float().mean(1, keepdim=True).to(k.dtype))
++                    value_parts.append(v[:, indices].float().mean(1, keepdim=True).to(v.dtype))
++        keys, values = torch.cat(key_parts, 1), torch.cat(value_parts, 1)
++        queries = q[:, prefix + t * rows : prefix + (t + 1) * rows]
++        logits = queries.transpose(1, 2).float() @ keys.transpose(1, 2).float().transpose(-2, -1) * scale
++        logits[..., prefix + rows :] += math.log(9)
++        output = torch.softmax(logits, -1) @ values.transpose(1, 2).float()
++        result[:, prefix + t * rows : prefix + (t + 1) * rows] = output.transpose(1, 2).to(q.dtype)
++    return result
++
++
++def fixture(frames=3, height=3, width=6, prefix=4, heads=2, dim=8, device="cpu"):
++    torch.manual_seed(217)
++    used = prefix + frames * height * width
++    q = torch.randn(1, used + 2, heads, dim, dtype=torch.bfloat16).to(device)
++    k, v = [torch.randn(1, used, heads, dim, dtype=torch.bfloat16).to(device) for _ in range(2)]
++    return q, k, v
++
++
++@pytest.mark.parametrize("frames,height,width,prefix", [(2, 3, 3, 0), (3, 3, 6, 4), (5, 6, 3, 2)])
++def test_pooling_matches_independent_weighted_key_reference(monkeypatch, frames, height, width, prefix):
++    q, k, v = fixture(frames, height, width, prefix)
++    saved = [x.clone() for x in (q, k, v)]
++    monkeypatch.setattr(flash, "_prefix_bnsd", dense)
++    actual = flash._video_pooled_context_bnsd(
++        q, k, v, 0.25, target_start=prefix, frames=frames, height=height, width=width
++    )
++    expected = expected_video(q, k, v, 0.25, frames, height, width, prefix)
++    torch.testing.assert_close(actual.float(), expected.float(), atol=0.0078125, rtol=0.02)
++    assert torch.count_nonzero(actual[:, k.shape[1] :]) == 0
++    assert all(torch.equal(a, b) for a, b in zip(saved, (q, k, v)))
++
++
++def test_nine_identical_keys_retain_original_softmax_mass(monkeypatch):
++    q, k, v = fixture(height=3, width=3)
++    for tensor in (k, v):
++        for f in range(3):
++            tensor[:, 4 + f * 9 : 4 + (f + 1) * 9] = tensor[:, 4 + f * 9 : 5 + f * 9].clone()
++    monkeypatch.setattr(flash, "_prefix_bnsd", dense)
++    actual = flash._video_pooled_context_bnsd(q, k, v, 0.25, target_start=4, frames=3, height=3, width=3)
++    expected = dense(q[:, : k.shape[1]], k, v, 0.25)
++    torch.testing.assert_close(actual[:, : k.shape[1]].float(), expected.float(), atol=0.0078125, rtol=0.02)
++
++
++@pytest.mark.parametrize("kind", ["height", "width", "tail", "frames", "batch", "query", "scale"])
++def test_invalid_requested_geometry_raises(kind):
++    q, k, v = fixture()
++    kwargs = dict(target_start=4, frames=3, height=3, width=6, scale=0.25)
++    if kind in ("height", "width"):
++        kwargs[kind] += 1
++    elif kind == "tail":
++        kwargs["target_start"] += 1
++    elif kind == "frames":
++        kwargs["frames"] = 1
++    elif kind == "batch":
++        q, k, v = [tensor.expand(2, -1, -1, -1) for tensor in (q, k, v)]
++    elif kind == "query":
++        q = q[:, :2]
++    else:
++        kwargs["scale"] = 0
++    with pytest.raises(ValueError, match="pooled context"):
++        flash._video_pooled_context_bnsd(q, k, v, **kwargs)
++
++
++def test_fixed_progress_and_default_off(monkeypatch):
++    monkeypatch.setenv("H3_VIDEO_POOLED_CONTEXT", "3x3-local1")
++    for step in range(50):
++        monkeypatch.setattr(
++            flash, "get_forward_context", lambda: SimpleNamespace(denoise_step_idx=step, total_denoise_steps=50)
++        )
++        assert flash._use_video_pooled_context() == (step not in (0, 49))
++    monkeypatch.setattr(
++        flash, "get_forward_context", lambda: SimpleNamespace(denoise_step_idx=None, total_denoise_steps=50)
++    )
++    with pytest.raises(ValueError, match="published"):
++        flash._use_video_pooled_context()
++    monkeypatch.setenv("H3_VIDEO_POOLED_CONTEXT", "other")
++    with pytest.raises(ValueError, match="3x3-local1"):
++        flash._use_video_pooled_context()
++    monkeypatch.delenv("H3_VIDEO_POOLED_CONTEXT")
++    monkeypatch.setenv("MINDIE_SD_FA_TYPE", "fused_attn_score")
++    impl = object.__new__(flash.MiniMaxH3FlashAttentionImpl)
++    impl.causal, impl.softmax_scale = False, 0.25
++    impl._resolve_packed_seq_npu = lambda *args: ([4096], [4093])
++    monkeypatch.setattr(flash, "get_forward_context", lambda: pytest.fail("default path read experimental progress"))
++    monkeypatch.setattr(flash, "_prefix_bnsd", lambda q, k, v, scale: q)
++    q = torch.ones(1, 4096, 1, 8, dtype=torch.bfloat16)
++    from vllm_omni.diffusion.attention.backends.abstract import AttentionMetadata
++
++    assert impl.forward_fa_npu(q, q, q, AttentionMetadata(extra={"npu_attn_varlen": True})) is q
++
++
++@pytest.mark.parametrize("step", [0, 1, 49])
++def test_requested_dispatch_uses_published_grid(monkeypatch, step):
++    from vllm_omni.diffusion.attention.backends.abstract import AttentionMetadata, VideoTokenLayout, VideoTokenSpan
++
++    monkeypatch.setenv("MINDIE_SD_FA_TYPE", "fused_attn_score")
++    monkeypatch.setenv("H3_VIDEO_POOLED_CONTEXT", "3x3-local1")
++    monkeypatch.setattr(
++        flash, "get_forward_context", lambda: SimpleNamespace(denoise_step_idx=step, total_denoise_steps=50)
++    )
++    impl = object.__new__(flash.MiniMaxH3FlashAttentionImpl)
++    impl.causal, impl.softmax_scale = False, 0.25
++    impl._resolve_packed_seq_npu = lambda *args: ([4096], [4096])
++    q = torch.ones(1, 4192, 1, 8, dtype=torch.bfloat16)
++    metadata = AttentionMetadata(
++        extra={"npu_attn_varlen": True},
++        video_layout=VideoTokenLayout(
++            used_len=4096, video_spans=(VideoTokenSpan(start=64, latent_grid=(4, 24, 42), role="target"),)
++        ),
++    )
++    calls = []
++    monkeypatch.setattr(flash, "_prefix_bnsd", lambda *args: calls.append("dense") or q)
++
++    def pooled(query, key, value, scale, **kwargs):
++        assert key.shape[1] == value.shape[1] == 4096
++        assert kwargs == {"target_start": 64, "frames": 4, "height": 24, "width": 42}
++        calls.append("pooled")
++        return q
++
++    monkeypatch.setattr(flash, "_video_pooled_context_bnsd", pooled)
++    assert impl.forward_fa_npu(q, q, q, metadata) is q
++    assert calls == (["dense"] if step in (0, 49) else ["pooled"])
++
++
++def test_requested_unsupported_main_geometry_does_not_fallback(monkeypatch):
++    from vllm_omni.diffusion.attention.backends.abstract import AttentionMetadata
++
++    monkeypatch.setenv("MINDIE_SD_FA_TYPE", "fused_attn_score")
++    monkeypatch.setenv("H3_VIDEO_POOLED_CONTEXT", "3x3-local1")
++    impl = object.__new__(flash.MiniMaxH3FlashAttentionImpl)
++    impl.causal = True
++    q = torch.ones(1, 4096, 1, 8, dtype=torch.bfloat16)
++    with pytest.raises(ValueError, match="unsupported"):
++        impl.forward_fa_npu(q, q, q, AttentionMetadata(extra={"npu_attn_varlen": True}))
++
++
++@pytest.mark.skipif(not current_omni_platform.is_npu(), reason="Requires native Ascend FAS")
++def test_native_pooled_fas_executes_padded_head_with_mass_compensation():
++    import torch_npu  # noqa: F401
++
++    q, k, v = fixture(height=6, width=6, heads=14, dim=128, device="npu")
++    actual = flash._video_pooled_context_bnsd(q, k, v, 128**-0.5, target_start=4, frames=3, height=6, width=6)
++    torch.npu.synchronize()
++    assert actual.dtype == torch.bfloat16 and torch.isfinite(actual).all()
++    expected = expected_video(q.cpu(), k.cpu(), v.cpu(), 128**-0.5, 3, 6, 6, 4)
++    torch.testing.assert_close(actual.cpu().float(), expected.float(), atol=0.03125, rtol=0.025)
+diff --git a/vllm_omni/diffusion/models/minimax_h3/attention/flash_h3.py b/vllm_omni/diffusion/models/minimax_h3/attention/flash_h3.py
+index 6ebfb10..e2b46bc 100644
+--- a/vllm_omni/diffusion/models/minimax_h3/attention/flash_h3.py
++++ b/vllm_omni/diffusion/models/minimax_h3/attention/flash_h3.py
+@@ -4,12 +4,14 @@
+ 
+ from __future__ import annotations
+ 
++import math
+ import os
+ 
+ import torch
+ 
+ from vllm_omni.diffusion.attention.backends.abstract import AttentionMetadata
+ from vllm_omni.diffusion.attention.backends.flash_attn import FlashAttentionImpl
++from vllm_omni.diffusion.forward_context import get_forward_context
+ 
+ 
+ def _prefix_bnsd(query: torch.Tensor, key: torch.Tensor, value: torch.Tensor, scale: float) -> torch.Tensor:
+@@ -36,6 +38,77 @@ def _prefix_bnsd(query: torch.Tensor, key: torch.Tensor, value: torch.Tensor, sc
+     return output.reshape(batch, heads, rows, dim).transpose(1, 2).contiguous()
+ 
+ 
++def _video_pooled_context_bnsd(
++    query: torch.Tensor,
++    key: torch.Tensor,
++    value: torch.Tensor,
++    scale: float,
++    *,
++    target_start: int,
++    frames: int,
++    height: int,
++    width: int,
++) -> torch.Tensor:
++    """Keep current-frame detail and mass-compensated global spatial summaries."""
++    rows = height * width
++    if (
++        query.shape[0] != 1
++        or key.shape[0] != 1
++        or value.shape != key.shape
++        or query.shape[2:] != key.shape[2:]
++        or target_start < 0
++        or frames < 2
++        or height < 3
++        or width < 3
++        or height % 3
++        or width % 3
++        or target_start + frames * rows != key.shape[1]
++        or query.shape[1] < key.shape[1]
++        or scale <= 0
++    ):
++        raise ValueError("H3 pooled context requires a final video grid divisible by three")
++    heads, dim = query.shape[2:]
++    indices = torch.arange(frames, device=key.device).expand(frames, -1)
++    others = indices[~torch.eye(frames, dtype=torch.bool, device=key.device)].reshape(frames, frames - 1)
++
++    def pack(tensor: torch.Tensor) -> torch.Tensor:
++        video = tensor[:, target_start:].reshape(frames, rows, heads, dim)
++        pooled = (
++            video.reshape(frames, height // 3, 3, width // 3, 3, heads, dim)
++            .float()
++            .mean(dim=(2, 4))
++            .to(tensor.dtype)
++            .reshape(frames, rows // 9, heads, dim)
++        )
++        global_context = pooled.index_select(0, others.flatten()).reshape(frames, -1, heads, dim)
++        return torch.cat((tensor[:, :target_start].expand(frames, -1, -1, -1), video, global_context), dim=1)
++
++    output = torch.zeros_like(query)
++    if target_start:
++        output[:, :target_start] = _prefix_bnsd(query[:, :target_start], key, value, scale)
++    video_query = query[:, target_start : key.shape[1]].reshape(frames, rows, heads, dim)
++    # An extra dot-product coordinate adds log(9) to each nine-token summary.
++    # Keep the original scale; changing the padded head size must not rescale QK.
++    padded_q = torch.nn.functional.pad(video_query, (0, 16))
++    padded_k = torch.nn.functional.pad(pack(key), (0, 16))
++    padded_v = torch.nn.functional.pad(pack(value), (0, 16))
++    padded_q[..., dim] = 1
++    padded_k[:, target_start + rows :, :, dim] = math.log(9) / scale
++    attended = _prefix_bnsd(padded_q, padded_k, padded_v, scale)[..., :dim]
++    output[:, target_start : key.shape[1]] = attended.reshape(1, frames * rows, heads, dim)
++    return output
++
++
++def _use_video_pooled_context() -> bool:
++    if os.environ.get("H3_VIDEO_POOLED_CONTEXT") != "3x3-local1":
++        raise ValueError("The experimental H3 pooled-context profile requires 3x3-local1")
++    context = get_forward_context()
++    step, total = context.denoise_step_idx, context.total_denoise_steps
++    if total != 50 or step is None or not 0 <= step < 50:
++        raise ValueError("The experimental H3 pooled-context profile requires published 50-step progress")
++    return step not in (0, 49)
++
++
+ class MiniMaxH3FlashAttentionImpl(FlashAttentionImpl):
+     """Use independent head batches for explicit long BF16 prefix attention.
+ 
+@@ -51,7 +124,10 @@ class MiniMaxH3FlashAttentionImpl(FlashAttentionImpl):
+         value: torch.Tensor,
+         attn_metadata: AttentionMetadata | None = None,
+     ) -> torch.Tensor:
++        requested = os.environ.get("H3_VIDEO_POOLED_CONTEXT") is not None and query.shape[1] >= 4096
+         if os.environ.get("MINDIE_SD_FA_TYPE") != "fused_attn_score" or attn_metadata is None:
++            if requested:
++                raise ValueError("H3 pooled context requires explicit fused attention and packed metadata")
+             return super().forward_fa_npu(query, key, value, attn_metadata)
+         extra = attn_metadata.extra
+         if (
+@@ -68,9 +144,30 @@ class MiniMaxH3FlashAttentionImpl(FlashAttentionImpl):
+             or query.shape[2:] != value.shape[2:]
+             or key.shape[1] != value.shape[1]
+         ):
++            if requested:
++                raise ValueError("H3 pooled context received unsupported packed fused-attention inputs")
+             return super().forward_fa_npu(query, key, value, attn_metadata)
+         resolved = self._resolve_packed_seq_npu(query, key, extra)
+         if resolved is None:
++            if requested:
++                raise ValueError("H3 pooled context requires a resolved packed prefix")
+             return super().forward_fa_npu(query, key, value, attn_metadata)
+         used_k = resolved[1][0]
++        if os.environ.get("H3_VIDEO_POOLED_CONTEXT") is not None and _use_video_pooled_context():
++            layout = attn_metadata.video_layout
++            targets = [] if layout is None else [span for span in layout.video_spans if span.role == "target"]
++            if len(targets) != 1:
++                raise ValueError("H3 pooled context requires exactly one target-video span")
++            target = targets[0]
++            frames, height, width = target.latent_grid
++            return _video_pooled_context_bnsd(
++                query,
++                key[:, :used_k],
++                value[:, :used_k],
++                self.softmax_scale,
++                target_start=target.start,
++                frames=frames,
++                height=height,
++                width=width,
++            )
+         return _prefix_bnsd(query, key[:, :used_k], value[:, :used_k], self.softmax_scale)

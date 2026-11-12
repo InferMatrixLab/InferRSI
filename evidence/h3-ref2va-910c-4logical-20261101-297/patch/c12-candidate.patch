@@ -1,0 +1,633 @@
+diff --git a/tests/diffusion/models/minimax_h3/test_minimax_h3_state_cache.py b/tests/diffusion/models/minimax_h3/test_minimax_h3_state_cache.py
+new file mode 100644
+index 0000000..6896e2c
+--- /dev/null
++++ b/tests/diffusion/models/minimax_h3/test_minimax_h3_state_cache.py
+@@ -0,0 +1,252 @@
++# SPDX-License-Identifier: Apache-2.0
++# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
++
++from datetime import timedelta
++from types import SimpleNamespace
++
++import pytest
++import torch
++import torch.distributed as dist
++import torch.nn as nn
++
++from tests.helpers.mark import hardware_marks
++from vllm_omni.diffusion.models.minimax_h3 import cache_state_alignment as aligned
++from vllm_omni.diffusion.models.minimax_h3.reference_kv_cache_dit import MiniMaxH3CachedBlocks
++from vllm_omni.platforms import current_omni_platform
++
++pytestmark = [pytest.mark.core_model, pytest.mark.diffusion, *hardware_marks(res={"npu": "A3"}, num_cards=4)]
++
++
++def feature(t, device="cpu", dtype=torch.float32):
++    return torch.tensor([[t, t * t, 5.0]], device=device, dtype=dtype)
++
++
++def history(device="cpu", group=2):
++    state = aligned.MiniMaxH3AlignedCacheState()
++    state.set_groups(torch.tensor([group], device=device))
++    for step in range(3):
++        state.begin_step(step)
++        f = feature(step, device)
++        state.record(f, 2 * f + 3)
++    state.begin_step(3)
++    return state
++
++
++def test_feature_forecast_uses_current_state_and_owns_anchors():
++    state = history()
++    current = feature(2.5)
++    assert state.can_predict(current, parallelized=False)
++    torch.testing.assert_close(state.predict(current), 3 * current + 3, atol=0.01, rtol=0)
++    saved = [f.clone() for f, _ in state.history]
++    current.fill_(99)
++    assert all(torch.equal(a, b) for a, (b, _) in zip(saved, state.history))
++    state.close()
++    assert state.closed and not state.history and state.groups is None and state.coefficients is None
++
++
++@pytest.mark.parametrize("kind", ["missing", "out_of_span", "unstable", "nonfinite"])
++def test_invalid_prediction_is_vetoed(kind):
++    state = history()
++    current = feature(2.5)
++    if kind == "missing":
++        state.history.pop()
++    elif kind == "out_of_span":
++        current[0, 2] = 100
++    elif kind == "unstable":
++        current = feature(30)
++    else:
++        current[0, 0] = float("nan")
++    assert not state.can_predict(current, parallelized=False)
++    assert state.vetoes == 1
++
++
++def test_structural_groups_preserve_reference_and_exclude_padding():
++    state = aligned.MiniMaxH3AlignedCacheState()
++    branch = SimpleNamespace(
++        seq_len=7,
++        device="cpu",
++        text_pos_dev=torch.tensor([0]),
++        img_pos_dev=torch.tensor([1, 2]),
++        update_mask_dev=torch.tensor([False, True]),
++        audio_pos_dev=torch.tensor([3, 4]),
++        audio_update_mask_dev=torch.tensor([False, True]),
++    )
++    state.configure(branch)
++    assert state.groups.tolist() == [0, 1, 2, 3, 4, -1, -1]
++    for step in range(3):
++        state.begin_step(step)
++        f = feature(step).expand(7, -1).clone()
++        state.record(f, 2 * f + 3)
++    state.begin_step(3)
++    current = feature(2.5).expand(7, -1).clone()
++    current[5:] = 1000
++    assert state.can_predict(current, parallelized=False)
++    torch.testing.assert_close(state.predict(current)[:5], (3 * current + 3)[:5], atol=0.01, rtol=0)
++
++
++@pytest.mark.parametrize("failure", [False, True])
++def test_wrapper_releases_request_and_does_not_forward_private_state(monkeypatch, failure):
++    wrapper = object.__new__(aligned.MiniMaxH3AlignedCachedBlocks)
++    nn.Module.__init__(wrapper)
++    wrapper._alignment_state = wrapper._alignment_prefix = None
++    state = history()
++
++    def parent(self, hidden, **kwargs):
++        assert "alignment_cache_state" not in kwargs and self._alignment_state is state
++        if failure:
++            raise RuntimeError("test failure")
++        return hidden
++
++    monkeypatch.setattr(MiniMaxH3CachedBlocks, "forward", parent)
++    if failure:
++        with pytest.raises(RuntimeError, match="test failure"):
++            wrapper.forward(feature(2.5), alignment_cache_state=state)
++    else:
++        wrapper.forward(feature(2.5), alignment_cache_state=state)
++    assert wrapper._alignment_state is None and wrapper._alignment_prefix is None
++
++
++def test_default_and_unsupported_configuration():
++    config = SimpleNamespace(cache_config={})
++    assert not aligned.alignment_cache_enabled(config)
++    config.cache_config = {"minimax_h3_alignment_cache": True}
++    with pytest.raises(ValueError):
++        aligned.alignment_cache_enabled(config)
++
++
++@pytest.mark.skipif(not current_omni_platform.is_npu(), reason="Requires native Ascend execution")
++def test_native_bf16_and_actual_cache_wrapper():
++    from cache_dit import DBCacheConfig, ForwardPattern
++    from cache_dit.caching.cache_contexts.cache_manager import CachedContextManager
++
++    class Block(nn.Module):
++        def __init__(self, prefix=False):
++            super().__init__()
++            self.prefix = prefix
++            self.calls = 0
++
++        def forward(self, hidden, **kwargs):
++            self.calls += 1
++            return hidden + (0.125 if self.prefix else 1.0)
++
++    manager = CachedContextManager()
++    context = manager.new_context(
++        name="h3-alignment-native",
++        cache_config=DBCacheConfig(
++            Fn_compute_blocks=1,
++            Bn_compute_blocks=0,
++            max_warmup_steps=4,
++            num_inference_steps=5,
++            residual_diff_threshold=0.15,
++            max_continuous_cached_steps=4,
++        ),
++    )
++    blocks = nn.ModuleList([Block(True), Block(), Block()])
++    wrapper = aligned.MiniMaxH3AlignedCachedBlocks(
++        blocks,
++        forward_pattern=ForwardPattern.Pattern_3,
++        check_forward_pattern=False,
++        cache_prefix="blocks",
++        cache_context=context,
++        context_manager=manager,
++    )
++    state = aligned.MiniMaxH3AlignedCacheState()
++    state.set_groups(torch.tensor([2], device="npu"))
++    for step in range(5):
++        state.begin_step(step)
++        f = torch.ones(1, 3, dtype=torch.bfloat16, device="npu")
++        output = wrapper(f, alignment_cache_state=state)
++        assert torch.equal(output, f + 2.125) and output.dtype == f.dtype
++        assert wrapper._alignment_state is None and wrapper._alignment_prefix is None
++    assert state.computed == 4 and state.predicted == 1
++    assert blocks[1].calls == 4 and blocks[0].calls == 5
++    state.close()
++
++
++def _distributed_worker(rank):
++    import torch_npu  # noqa: F401
++
++    torch.npu.set_device(rank)
++    dist.init_process_group(
++        "hccl", init_method="tcp://127.0.0.1:29597", rank=rank, world_size=4, timeout=timedelta(seconds=120)
++    )
++    try:
++        # Only rank3 has audio; all ranks have empty reference-audio groups.
++        state = history(device=f"npu:{rank}", group=[0, 1, 2, 4][rank])
++        current = feature(2.5, device=f"npu:{rank}", dtype=torch.bfloat16)
++        assert state.can_predict(current, parallelized=True)
++        torch.testing.assert_close(state.predict(current).float(), 3 * current.float() + 3, atol=0.0625, rtol=0)
++        state.close()
++        assert state.groups is None and not state.history
++        dist.barrier()
++    finally:
++        dist.destroy_process_group()
++
++
++@pytest.mark.skipif(not current_omni_platform.is_npu(), reason="Requires four native Ascend devices")
++def test_native_four_rank_empty_group_collectives():
++    torch.multiprocessing.spawn(_distributed_worker, nprocs=4, join=True)
++
++
++@pytest.mark.parametrize("failure", ["success", "model", "cancel"])
++def test_denoise_request_closes_history_on_all_exit_paths(monkeypatch, failure):
++    from vllm_omni.diffusion.models.minimax_h3 import denoise_loop as loop
++
++    monkeypatch.setattr(loop.current_omni_platform, "is_npu", lambda: False)
++    monkeypatch.setattr(loop, "minimax_h3_publish_denoise_progress", lambda *args: None)
++    state = aligned.MiniMaxH3AlignedCacheState()
++
++    class Model:
++        def create_alignment_cache_state(self):
++            return state
++
++        def __call__(self, **kwargs):
++            assert kwargs["alignment_cache_state"] is state
++            state.record(torch.ones(2, 1), torch.ones(2, 1))
++            if failure == "model":
++                raise RuntimeError("model failed")
++            return torch.zeros(1, 96), torch.zeros(1, 32)
++
++    class Branch:
++        seq_len = 2
++        device = torch.device("cpu")
++        text_pos_dev = torch.tensor([], dtype=torch.long)
++        img_pos_dev = torch.tensor([0])
++        audio_pos_dev = torch.tensor([1])
++        update_mask = torch.ones(1, dtype=torch.bool)
++        update_mask_dev = update_mask
++        audio_update_mask_dev = update_mask
++        locked_audio_rows = None
++
++        def forward_kwargs(self, **kwargs):
++            return {}
++
++    monkeypatch.setattr(
++        loop,
++        "minimax_h3_prepare_denoise_rows",
++        lambda **kwargs: (kwargs["initial_video_rows"], kwargs["initial_audio_rows"], None, None),
++    )
++
++    def cancellation(**kwargs):
++        if failure == "cancel":
++            raise RuntimeError("request cancelled")
++
++    monkeypatch.setattr(loop, "check_request_cancellation", cancellation)
++    model = Model()
++    kwargs = dict(
++        model=model,
++        positive=Branch(),
++        initial_video_rows=torch.zeros(1, 96),
++        initial_audio_rows=torch.zeros(1, 32),
++        keyframe_cond_rows=None,
++        sigmas_video=[1.0, 0.0],
++        sigmas_audio=[1.0, 0.0],
++        device=torch.device("cpu"),
++    )
++    if failure == "success":
++        loop.minimax_h3_denoise_loop(**kwargs)
++    else:
++        with pytest.raises(RuntimeError):
++            loop.minimax_h3_denoise_loop(**kwargs)
++    assert state.closed and not state.history
++    assert model._alignment_cache_stats["computed"] == (0 if failure == "cancel" else 1)
+diff --git a/vllm_omni/diffusion/models/minimax_h3/cache_state_alignment.py b/vllm_omni/diffusion/models/minimax_h3/cache_state_alignment.py
+new file mode 100644
+index 0000000..af1c360
+--- /dev/null
++++ b/vllm_omni/diffusion/models/minimax_h3/cache_state_alignment.py
+@@ -0,0 +1,226 @@
++# SPDX-License-Identifier: Apache-2.0
++# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
++"""Experimental request-owned residual prediction from current H3 features."""
++
++from __future__ import annotations
++
++import math
++from collections.abc import Mapping
++from typing import Any
++from weakref import ref
++
++import torch
++import torch.distributed as dist
++
++from .reference_kv_cache_dit import MiniMaxH3CachedAdapter, MiniMaxH3CachedBlocks
++
++
++def alignment_cache_enabled(config: Any) -> bool:
++    cache = getattr(config, "cache_config", {})
++    enabled = (
++        cache.get("minimax_h3_alignment_cache", False)
++        if isinstance(cache, Mapping)
++        else getattr(cache, "minimax_h3_alignment_cache", False)
++    )
++    if type(enabled) is not bool:
++        raise ValueError("minimax_h3_alignment_cache must be boolean")
++    if not enabled:
++        return False
++    parallel = getattr(config, "parallel_config", None)
++    taylor = cache.get("enable_taylorseer", False) if isinstance(cache, Mapping) else cache.enable_taylorseer
++    if (
++        getattr(config, "task_type", None) != "ref2va"
++        or getattr(config, "cache_backend", None) != "cache_dit"
++        or getattr(config, "kv_offload_config", None) is not None
++        or taylor
++        or (getattr(parallel, "data_parallel_size", 1) or 1) != 1
++        or (getattr(parallel, "cfg_parallel_size", 1) or 1) != 1
++    ):
++        raise ValueError("H3 alignment cache requires Ref2VA Cache-DiT, DP1/CFG1, no Taylor/RefKV")
++    return True
++
++
++class MiniMaxH3AlignedCacheState:
++    """Own three real prefix/residual pairs and structural row identities."""
++
++    def __init__(self) -> None:
++        self.history: list[tuple[torch.Tensor, torch.Tensor]] = []
++        self.groups: torch.Tensor | None = None
++        self.coefficients: torch.Tensor | None = None
++        self.step = -1
++        self.closed = False
++        self.computed = self.predicted = self.vetoes = 0
++
++    def configure(self, branch) -> None:
++        groups = torch.full((branch.seq_len,), -1, dtype=torch.long, device=branch.device)
++        groups[branch.text_pos_dev] = 0
++        groups[branch.img_pos_dev] = torch.where(branch.update_mask_dev, 2, 1)
++        groups[branch.audio_pos_dev] = torch.where(branch.audio_update_mask_dev, 4, 3)
++        self.set_groups(groups)
++
++    def set_groups(self, groups: torch.Tensor) -> None:
++        if self.groups is not None or self.closed or groups.ndim != 1:
++            raise ValueError("H3 alignment groups must be initialized once per request")
++        self.groups = groups.detach().clone()
++
++    def begin_step(self, step: int, *_clocks) -> None:
++        if self.closed or step != self.step + 1:
++            raise RuntimeError("H3 alignment cache requires consecutive request steps")
++        self.step = step
++        self.coefficients = None
++
++    def _local_groups(self, rows: int) -> torch.Tensor:
++        if self.groups is None:
++            raise RuntimeError("H3 alignment cache has no structural groups")
++        if self.groups.numel() == rows:
++            return self.groups
++        from vllm_omni.diffusion.distributed.parallel_state import (
++            get_sequence_parallel_rank,
++            get_sequence_parallel_world_size,
++        )
++
++        size, rank = get_sequence_parallel_world_size(), get_sequence_parallel_rank()
++        if self.groups.numel() != rows * size:
++            raise ValueError("H3 alignment cache requires equal pure-Ulysses shards")
++        return self.groups.narrow(0, rows * rank, rows)
++
++    def record(self, prefix: torch.Tensor, residual: torch.Tensor) -> None:
++        if self.closed or self.step < 0 or prefix.ndim != 2 or prefix.shape != residual.shape:
++            raise RuntimeError("H3 alignment cache requires an open step and matching matrices")
++        self.history.append((prefix.detach().float().clone(), residual.detach().float().clone()))
++        del self.history[:-3]
++        self.computed += 1
++
++    def can_predict(self, current: torch.Tensor, *, parallelized: bool) -> bool:
++        if len(self.history) != 3 or self.closed:
++            self.vetoes += 1
++            return False
++        if any(f.shape != current.shape or f.device != current.device for f, _ in self.history):
++            self.history.clear()
++            self.vetoes += 1
++            return False
++        groups = self._local_groups(current.shape[0])
++        f0, f1, f2 = [item[0] for item in self.history]
++        d0, d1, u = f2 - f1, f1 - f0, current.float() - f2
++        # Reduce feature products per row once; grouping never materializes
++        # a [groups, rows, hidden] tensor and padding contributes no products.
++        products = torch.stack(
++            [
++                (d0 * d0).sum(-1),
++                (d0 * d1).sum(-1),
++                (d1 * d1).sum(-1),
++                (d0 * u).sum(-1),
++                (d1 * u).sum(-1),
++                (u * u).sum(-1),
++            ],
++            dim=-1,
++        )
++        totals = torch.stack([torch.where((groups == group)[:, None], products, 0.0).sum(0) for group in range(5)])
++        if parallelized:
++            if not dist.is_initialized():
++                raise RuntimeError("H3 alignment requires initialized collectives")
++            # DP1/CFG1, pure USP: WORLD is the four-rank model group. Empty
++            # local audio/reference groups must still enter this collective.
++            dist.all_reduce(totals, op=dist.ReduceOp.SUM)
++        coefficients = []
++        valid = True
++        for g00, g01, g11, h0, h1, uu in totals.cpu().double().tolist():
++            if not all(math.isfinite(x) for x in [g00, g01, g11, h0, h1, uu]):
++                valid = False
++                coefficients.append((0.0, 0.0))
++                continue
++            if uu == 0:
++                coefficients.append((0.0, 0.0))
++                continue
++            ridge = 1e-4 * (g00 + g11)
++            determinant = (g00 + ridge) * (g11 + ridge) - g01 * g01
++            if determinant <= 0:
++                valid = False
++                coefficients.append((0.0, 0.0))
++                continue
++            a0 = ((g11 + ridge) * h0 - g01 * h1) / determinant
++            a1 = ((g00 + ridge) * h1 - g01 * h0) / determinant
++            error = max(0.0, uu - 2 * (a0 * h0 + a1 * h1) + a0 * a0 * g00 + 2 * a0 * a1 * g01 + a1 * a1 * g11)
++            valid &= abs(a0) + abs(a1) <= 8.0 and error <= 0.25**2 * uu
++            coefficients.append((a0, a1))
++        if not valid:
++            self.vetoes += 1
++            return False
++        self.coefficients = torch.tensor(coefficients, dtype=torch.float32, device=current.device)
++        return True
++
++    def predict(self, current: torch.Tensor) -> torch.Tensor:
++        if self.coefficients is None or self.closed:
++            raise RuntimeError("H3 alignment prediction has not been admitted")
++        groups = self._local_groups(current.shape[0])
++        coefficients = self.coefficients[groups.clamp(min=0)]
++        coefficients = torch.where((groups >= 0)[:, None], coefficients, 0.0)
++        b0, b1, b2 = [item[1] for item in self.history]
++        predicted = b2 + coefficients[:, :1] * (b2 - b1) + coefficients[:, 1:] * (b1 - b0)
++        self.predicted += 1
++        return (current.float() + predicted).to(current.dtype).contiguous()
++
++    def stats(self) -> dict[str, int]:
++        return {"computed": self.computed, "predicted": self.predicted, "vetoes": self.vetoes}
++
++    def close(self) -> None:
++        self.history.clear()
++        self.groups = self.coefficients = None
++        self.closed = True
++
++
++class _AlignmentManager:
++    def __init__(self, manager: Any, owner) -> None:
++        self._manager, self._owner = manager, ref(owner)
++
++    def __getattr__(self, name):
++        return getattr(self._manager, name)
++
++    def can_cache(self, states, *args, **kwargs):
++        allowed = self._manager.can_cache(states, *args, **kwargs)
++        owner = self._owner()
++        return allowed and owner._alignment_state.can_predict(
++            owner._alignment_prefix, parallelized=kwargs.get("parallelized", False)
++        )
++
++    def set_Bn_buffer(self, buffer, prefix="Bn"):
++        owner = self._owner()
++        owner._alignment_state.record(owner._alignment_prefix, buffer)
++        self._manager.set_Bn_buffer(buffer, prefix=prefix)
++
++    def apply_cache(self, hidden_states, encoder_hidden_states=None, **kwargs):
++        if encoder_hidden_states is not None or not self._manager.is_cache_residual():
++            raise ValueError("H3 alignment supports only residual-cached packed hidden states")
++        return self._owner()._alignment_state.predict(hidden_states), None
++
++
++class MiniMaxH3AlignedCachedBlocks(MiniMaxH3CachedBlocks):
++    def __init__(self, *args, **kwargs) -> None:
++        super().__init__(*args, **kwargs)
++        self._alignment_state = self._alignment_prefix = None
++        self.context_manager = _AlignmentManager(self.context_manager, self)
++
++    def call_Fn_blocks(self, hidden_states, *args, **kwargs):
++        output = super().call_Fn_blocks(hidden_states, *args, **kwargs)
++        self._alignment_prefix = output[0]
++        return output
++
++    def call_Mn_blocks(self, hidden_states, *args, **kwargs):
++        computed, encoder, _ = super().call_Mn_blocks(hidden_states, *args, **kwargs)
++        return computed, encoder, computed.float() - hidden_states.float()
++
++    def forward(self, hidden_states, *args, alignment_cache_state=None, **kwargs):
++        if not isinstance(alignment_cache_state, MiniMaxH3AlignedCacheState) or alignment_cache_state.closed:
++            raise RuntimeError("H3 alignment requires an active request state")
++        if kwargs.get("num_requests", 1) != 1 or kwargs.get("reference_kv_state") is not None:
++            raise ValueError("H3 alignment requires one request without reference-KV reuse")
++        old_state, old_prefix = self._alignment_state, self._alignment_prefix
++        try:
++            self._alignment_state = alignment_cache_state
++            return super().forward(hidden_states, *args, **kwargs)
++        finally:
++            self._alignment_state, self._alignment_prefix = old_state, old_prefix
++
++
++class MiniMaxH3AlignedCachedAdapter(MiniMaxH3CachedAdapter):
++    block_class = MiniMaxH3AlignedCachedBlocks
+diff --git a/vllm_omni/diffusion/models/minimax_h3/denoise_loop.py b/vllm_omni/diffusion/models/minimax_h3/denoise_loop.py
+index 8cca219..716b931 100644
+--- a/vllm_omni/diffusion/models/minimax_h3/denoise_loop.py
++++ b/vllm_omni/diffusion/models/minimax_h3/denoise_loop.py
+@@ -379,13 +379,23 @@ def minimax_h3_denoise_loop(
+     if reference_kv_state is not None:
+         positive.static_kwargs["reference_kv_state"] = reference_kv_state
+ 
++    alignment_cache_state = None
+     try:
++        create_alignment_cache_state = getattr(model, "create_alignment_cache_state", None)
++        if callable(create_alignment_cache_state):
++            alignment_cache_state = create_alignment_cache_state()
++            if alignment_cache_state is not None:
++                alignment_cache_state.configure(positive)
++        if alignment_cache_state is not None and (video_edit is not None or audio_edit is not None):
++            raise ValueError("H3 alignment cache does not support latent edits")
+         for step in range(num_steps):
+             check_request_cancellation()
+             step_cm = step_profiler(step) if step_profiler is not None else nullcontext()
+             with step_cm:
+                 s_v = sigmas_video[step]
+                 s_a = sigmas_audio[step]
++                if alignment_cache_state is not None:
++                    alignment_cache_state.begin_step(step, s_v, s_a)
+                 if reference_kv_state is not None:
+                     reference_kv_state.begin_step(step, sigma=float(s_v))
+                 # Publish where we are so step-gated attention features (the dense
+@@ -426,6 +436,8 @@ def minimax_h3_denoise_loop(
+                 )
+                 if getattr(getattr(model, "arch", None), "pdd_steps", None) is not None:
+                     fk["pdd_step"] = step
++                if alignment_cache_state is not None:
++                    fk["alignment_cache_state"] = alignment_cache_state
+                 with torch.inference_mode():
+                     v_video, v_audio = model(**fk)
+                 if reference_kv_state is not None:
+@@ -475,6 +487,9 @@ def minimax_h3_denoise_loop(
+                 check_request_cancellation(synchronize=True)
+ 
+     finally:
++        if alignment_cache_state is not None:
++            model._alignment_cache_stats = alignment_cache_state.stats()
++            alignment_cache_state.close()
+         minimax_h3_publish_denoise_progress(None, None, None)
+         if reference_kv_state is not None:
+             positive.static_kwargs.pop("reference_kv_state", None)
+diff --git a/vllm_omni/diffusion/models/minimax_h3/minimax_h3_transformer.py b/vllm_omni/diffusion/models/minimax_h3/minimax_h3_transformer.py
+index 9518828..63f1530 100644
+--- a/vllm_omni/diffusion/models/minimax_h3/minimax_h3_transformer.py
++++ b/vllm_omni/diffusion/models/minimax_h3/minimax_h3_transformer.py
+@@ -245,6 +245,7 @@ _FORWARD_SUPPORTED_KWARGS = frozenset(
+         "control_rows",
+         "control_context_scale",
+         "reference_kv_state",
++        "alignment_cache_state",
+     }
+ )
+ 
+@@ -777,6 +778,23 @@ class MiniMaxH3DiTModel(nn.Module):
+             max_bytes=256 * 1024**2 if enabled else 0, offload_weights=offload_adaln
+         )
+         self.od_config = od_config
++        alignment_enabled = (
++            cache_config.get("minimax_h3_alignment_cache", False)
++            if isinstance(cache_config, Mapping)
++            else getattr(cache_config, "minimax_h3_alignment_cache", False)
++        )
++        if type(alignment_enabled) is not bool:
++            raise ValueError("minimax_h3_alignment_cache must be a boolean")
++        self._alignment_cache_enabled = False
++        if alignment_enabled:
++            from .cache_state_alignment import MiniMaxH3AlignedCachedAdapter, alignment_cache_enabled
++
++            self._alignment_cache_enabled = alignment_cache_enabled(od_config)
++            if not current_omni_platform.is_npu():
++                raise ValueError("H3 alignment cache is currently restricted to the Ascend Ref2VA experiment")
++            self._cache_dit_adapter_config = replace(
++                self._cache_dit_adapter_config, cached_adapter_cls=MiniMaxH3AlignedCachedAdapter
++            )
+         if getattr(od_config, "kv_offload_config", None) is not None:
+             from vllm_omni.diffusion.models.minimax_h3.reference_kv_cache_dit import MiniMaxH3CachedAdapter
+ 
+@@ -1257,6 +1275,14 @@ class MiniMaxH3DiTModel(nn.Module):
+             device=device,
+         )
+ 
++    def create_alignment_cache_state(self):
++        if not getattr(self, "_alignment_cache_enabled", False):
++            return None
++        from .cache_state_alignment import MiniMaxH3AlignedCacheState
++
++        self._alignment_cache_stats = None
++        return MiniMaxH3AlignedCacheState()
++
+     def forward(self, *, pdd_step: int | None = None, **kwargs: Any) -> tuple[torch.Tensor, torch.Tensor]:
+         """Packed inference forward.
+ 
+@@ -1490,6 +1516,14 @@ class MiniMaxH3DiTModel(nn.Module):
+         if getattr(self, "adaln_cache", None) is not None:
+             self.adaln_cache.prepare(t_emb)
+ 
++        alignment_state = kwargs.get("alignment_cache_state")
++        alignment_options = {}
++        if alignment_state is not None:
++            if not getattr(self, "_alignment_cache_enabled", False):
++                raise ValueError("H3 alignment cache state was supplied while the feature is disabled")
++            if num_requests != 1 or reference_kv_state is not None or control_rows is not None:
++                raise ValueError("H3 alignment cache does not support packed batches, control or reference-KV reuse")
++            alignment_options["alignment_cache_state"] = alignment_state
+         for block_index, block in enumerate(self.blocks):
+             hidden = block(
+                 hidden,
+@@ -1505,6 +1539,7 @@ class MiniMaxH3DiTModel(nn.Module):
+                 reference_kv_state=reference_kv_state,
+                 reference_kv_compact=compact_reference,
+                 vdn_window=vdn_window,
++                **alignment_options,
+             )
+             if block_index in hints:
+                 hidden = hidden + hints.pop(block_index) * control_scale
+diff --git a/vllm_omni/diffusion/models/minimax_h3/reference_kv_cache_dit.py b/vllm_omni/diffusion/models/minimax_h3/reference_kv_cache_dit.py
+index f14dcc9..f78598b 100644
+--- a/vllm_omni/diffusion/models/minimax_h3/reference_kv_cache_dit.py
++++ b/vllm_omni/diffusion/models/minimax_h3/reference_kv_cache_dit.py
+@@ -125,6 +125,8 @@ class MiniMaxH3CachedBlocks(CachedBlocks_Pattern_3_4_5):
+ 
+ 
+ class MiniMaxH3CachedAdapter(CachedAdapter):
++    block_class = MiniMaxH3CachedBlocks
++
+     @classmethod
+     def collect_unified_blocks(
+         cls, block_adapter: BlockAdapter, contexts_kwargs: list[dict]
+@@ -139,7 +141,7 @@ class MiniMaxH3CachedAdapter(CachedAdapter):
+                 context_index += 1
+                 contexts[block_adapter.unique_blocks_name[i][j]] = nn.ModuleList(
+                     [
+-                        MiniMaxH3CachedBlocks(
++                        cls.block_class(
+                             blocks,
+                             transformer=transformer,
+                             forward_pattern=block_adapter.forward_pattern[i][j],

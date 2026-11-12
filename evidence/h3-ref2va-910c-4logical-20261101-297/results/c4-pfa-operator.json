@@ -1,0 +1,71 @@
+{
+  "scope": "Single real5s first-long-attention fixture,one logical device; not model performance",
+  "cases": [
+    {
+      "name": "pfa_bnsd_prefix",
+      "bit_exact": false,
+      "unequal_elements": 1577651,
+      "compared_elements": 71269632,
+      "finite": true,
+      "reference_sha256": "7cabc1030b41d2e42c77aac352c20a2b676e194d1f9883b54d5c9b8f72b38c21",
+      "candidate_sha256": "8487659367fd0776592f548aa9142d5a9631ab4b8c2877df692de76f1166c23c",
+      "relative_l2": 0.0005370235303416848,
+      "maximum_absolute_error": 0.03125,
+      "baseline_ms": [
+        72.55231699673459,
+        71.770221053157,
+        71.50708901463076,
+        71.71859999652952,
+        71.54928898671642,
+        72.0424129976891,
+        71.68136001564562
+      ],
+      "candidate_ms": [
+        85.81408398458734,
+        85.6127529987134,
+        85.21084999665618,
+        85.61692299554124,
+        85.85116500034928,
+        84.94565699947998,
+        85.60653298627585
+      ],
+      "baseline_median_ms": 71.71859999652952,
+      "candidate_median_ms": 85.6127529987134,
+      "reduction_pct": -19.37315145981129
+    },
+    {
+      "name": "pfa_bnsd_head_batches",
+      "bit_exact": false,
+      "unequal_elements": 1577651,
+      "compared_elements": 71269632,
+      "finite": true,
+      "reference_sha256": "7cabc1030b41d2e42c77aac352c20a2b676e194d1f9883b54d5c9b8f72b38c21",
+      "candidate_sha256": "8487659367fd0776592f548aa9142d5a9631ab4b8c2877df692de76f1166c23c",
+      "relative_l2": 0.0005370235303416848,
+      "maximum_absolute_error": 0.03125,
+      "baseline_ms": [
+        72.57743796799332,
+        71.2658169795759,
+        71.57570996787399,
+        71.21048599947244,
+        70.94532495830208,
+        71.41773804323748,
+        71.54709001770243
+      ],
+      "candidate_ms": [
+        86.40253898920491,
+        85.96450602635741,
+        86.10950701404363,
+        86.288328981027,
+        85.96854598727077,
+        85.93391597969458,
+        86.74239204265177
+      ],
+      "baseline_median_ms": 71.41773804323748,
+      "candidate_median_ms": 86.10950701404363,
+      "reduction_pct": -20.57159659958918
+    }
+  ],
+  "campaign_verdict": "INCONCLUSIVE",
+  "decision": "Both nativePFA layouts are non-bit-exact and slower by19.4/20.6%; reject,do not integrate."
+}

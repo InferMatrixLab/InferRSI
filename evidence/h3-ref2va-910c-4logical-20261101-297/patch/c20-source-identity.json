@@ -1,0 +1,12 @@
+{
+  "head": "bba4f7e8802497772f46628b6f408391add84679",
+  "tree": "5a7ed678aa86cf2555a80f64a5f21ee9bda540fe",
+  "base": "e89b1d40d37f7f72767892a56fa7980ea572ba8e",
+  "branch": "rsi/h3-297-video-variance-pool",
+  "files": {
+    "vllm_omni/diffusion/models/minimax_h3/attention/flash_h3.py": "4390450bc5324f7028125101cd4bb32e9de237b04bc12fa879b48110d7122e3c",
+    "tests/diffusion/models/minimax_h3/test_minimax_h3_variance_pool.py": "e871fb4b222d61d10b6c442a333a52c976cceaa0d406233502ecbcaddfeba8c9"
+  },
+  "published": false,
+  "patch_base": "e89b1d40d37f7f72767892a56fa7980ea572ba8e"
+}

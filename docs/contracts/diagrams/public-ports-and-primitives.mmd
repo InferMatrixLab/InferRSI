@@ -1,0 +1,41 @@
+flowchart TB
+  subgraph KPorts["Knowledge ports"]
+    READ["read(reference, revision?)"]
+    COLL["collect(query / ids / pins / filters)"]
+    RES["resource(reference, path, revision)"]
+    UPD["create / update / history"]
+  end
+  subgraph BPorts["Benchmark ports"]
+    PREP["prepare(PrepareRequest)"]
+    ASS["assess(prepared, evidence envelope, locators)"]
+  end
+  subgraph HPorts["Harness ports"]
+    ALLOC["allocate_attempt"]
+    EXEC["execute(ExecutionSpec)"]
+    HREAD["read(attempt_id, record_version?)"]
+  end
+  KB["KnowledgeBundle<br/>id, kind, revision<br/>sources, applicability, state<br/>limitations, attribution, entrypoint<br/>resources, dependencies"]
+  COL["Collection<br/>items: ref, revision, logical record<br/>omissions, collisions, no_match<br/>limitations; optional selection"]
+  PE["PreparedEvaluation<br/>schema_version, prepared_id, protocol_digest<br/>task/grader versions, protocol ref<br/>operation, validation scope<br/>frozen inputs and criteria, required evidence<br/>candidate contract, fixed recipe/resource closure<br/>unbound must be marked"]
+  ES["ExecutionSpec<br/>schema_version, run_id, attempt_id, owner<br/>steps/commands, input and output refs<br/>resources and deadlines; in evaluation mode<br/>prepared_ref, protocol_digest<br/>operation, validation_scope, candidate and expected identity<br/>each CommandStep.expected_code_sha256 (required, null in plain mode)"]
+  ER["ExecutionRecord<br/>schema_version, run_id, attempt_id, record_version<br/>actual binding and identity check, phase/state<br/>process_outcome, exit_code, cleanup<br/>artifact locators, capacity/reservation, actual usage<br/>resource leases and confirmed release (three independent facts)<br/>completed integrity checks (required, no verdict)<br/>evaluation: prepared_ref, protocol_digest<br/>operation, validation_scope, candidate/attempt"]
+  EV["EvaluationResult<br/>schema_version, assessment_id, assessor version<br/>prepared/record summaries, candidate and attempt identity<br/>claims: claim_id + scope + verdict<br/>metric validity, evidence refs and missing evidence"]
+  AC["AttemptContext<br/>run_id, attempt_id<br/>allocates identity only: no budget, no start"]
+
+  READ -->|"delivers logical view, never schema 2"| KB
+  COLL -->|"delivers collection envelope"| COL
+  RES -->|"fixed ref/revision and safe logical path, verifies resource bytes"| RB["resource bytes<br/>private storage schema/source snapshot not exposed"]
+  UPD -->|"update: Bundle + expected + reason + evidence → new revision"| KB
+  PREP -->|"freezes criteria; not execution authorization"| PE
+  PE -->|"Apps immutable byte archive succeeds"| PR["fixed PreparedRef + artifact locator/digest; no valid ref on failure"]
+  ALLOC -->|"identity context"| AC
+  AC -->|"written into ExecutionSpec run_id / attempt_id"| ES
+  PE -->|"Apps maps worker recipe; must bind archived PreparedRef"| ES
+  PR -->|"fixed reference enters ExecutionSpec"| ES
+  EXEC -->|"H commit succeeds: corresponding record payload; no task verdict"| ER
+  HREAD -->|"committed fixed revision; NoCommittedRecord if none"| ER
+  EXEC -->|"same successful commit"| RR["fixed RecordRef + artifact: revision and byte digest; no valid new ref on failure"]
+  ER -->|"Apps verifies by fixed RecordRef and projects; mismatch refused, no scoring"| ASS
+  PE -->|"same frozen criteria"| ASS
+  ASS -->|"the only task judgment"| EV
+  EV -->|"Apps immutable byte archive succeeds"| AR["fixed AssessmentRef + artifact; no valid ref on failure"]

@@ -24,6 +24,12 @@ before selecting tests or comparing chunk latency. It separates startup/steady g
 progress, stream-slot reuse, reset, EOU and EOF; its source tests and
 author benchmark reports are not local model or serving qualification.
 
+For streaming TTS measurements tied to playback deadlines or dependent chunks,
+read [dependency-aware TTS playout](references/dependency-aware-tts-playout.md).
+It traces server PCM credit, client playback events, independent batching work
+and partial pipeline costs at one pinned source; it adds no hardware coverage,
+runtime or locally reproduced quality/performance result.
+
 For treatment-enabled tuning comparisons or claimed protocol integrity, read
 [treatment delivery and trial validity](references/autotunebench-trial-validity.md).
 Trace feedback to the eligible consumer input and apply the frozen arm-validity

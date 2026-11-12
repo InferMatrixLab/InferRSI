@@ -106,6 +106,30 @@ Explicit IDs still bypass ranking. This option changes only owner discovery
 ranking, not query matching or optional context-resource scoring. It is a
 lexical-presence contract option, not evidence of general retrieval quality.
 
+Campaign discovery (`campaign capture-context --relevance ...`) defaults to
+`task-lexical-v1`. This method searches registered skills and package knowledge
+records, including GPU procedures under the engine's repository pack.
+`collect --relevance-method task-lexical-v1 --relevance ...` runs the same
+search. Whole words in titles, summaries, tags, repository/scenario labels,
+applicability and body text contribute to rank. A portable owner or one
+matching the backend receives twice the lexical score of an unscoped
+specialization. Without an explicit backend, platform words in the cue
+can supply this preference. Qualification by identity breaks ties.
+
+Use `campaign init --backend <backend>` to retain the runtime backend for
+later searches. An explicit capture backend takes precedence. Existing
+campaigns can pass `--backend` directly on the capture. The search returns
+the best matches up to the requested limit and records the matched and
+returned counts. For engine records it captures the complete `record.json`,
+including the source, applicable geometry and limitations. Linked skill
+documents can be read at the returned revision. Registered skills keep the
+resource rules below. In task discovery, `--scenario` admits records matching
+the workload and registered skills tagged `skills.discovery`. That tag describes
+the discovery operation. The task cue ranks these procedures, whose suitability
+must be checked against their own conditions. Captured hits retain their
+declared scenario. Explicit IDs and the older ranking methods still filter on
+the owner's declared catalog scenario.
+
 `context_bytes` requests a separate context view for returned generated packaged
 skills. It requires an explicit positive integer budget, with no token estimate
 or default. It can be used without `relevance`; optional resources then match the

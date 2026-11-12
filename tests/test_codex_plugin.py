@@ -81,7 +81,10 @@ def test_bundle_contains_all_declared_package_data(distribution):
     assert "data/skill_library/repositories/splash/THIRD_PARTY_NOTICES" in expected
     installed = {
         name.removeprefix("inferrsi/")
-        for name in runtime_bytes(distribution) if name.startswith("inferrsi/data/")
+        for name in runtime_bytes(distribution)
+        if name.startswith("inferrsi/data/") or (
+            name.startswith("inferrsi/observability/") and name.endswith(".html")
+        )
     }
     assert expected == installed
     manifest = json.loads((distribution / "runtime/manifest.json").read_text(encoding="utf-8"))

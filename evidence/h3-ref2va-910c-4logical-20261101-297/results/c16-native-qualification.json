@@ -1,0 +1,18 @@
+{
+  "trial": "c16-video-row-fp32-native-d3fe320c",
+  "tests_passed": 18,
+  "source_base_head": "81c1beb6e47ecfa7602e4309a7342a38108aabc8",
+  "files_before": {
+    "vllm_omni/diffusion/models/minimax_h3/video_row_cache.py": "c555d76f7bd6457a81238fca56100d11cb7ab043a4a649d55e23b6203d09bde2",
+    "vllm_omni/diffusion/models/minimax_h3/attention/flash_h3.py": "ca87df1936fd2694fcc768079e9e8f926b6d45969ddc61ebf353f5e726d70b8b",
+    "vllm_omni/diffusion/models/minimax_h3/minimax_h3_blocks.py": "1258655fcdca4692c2306100846761a2b0b149bbcaa5cde48a9abaa559913bc3",
+    "vllm_omni/diffusion/models/minimax_h3/minimax_h3_transformer.py": "a8257f98c2e30c7bc7978bf645966d2eaa98cd49a42a8a923c062b5808dcdcdf",
+    "vllm_omni/diffusion/models/minimax_h3/denoise_loop.py": "c5fab405ee82bc553e9a902fa27e6dfbc5213ec18311e17b6415396a69b50f43",
+    "tests/diffusion/models/minimax_h3/test_minimax_h3_video_row_cache.py": "e09b872f6900e821d42632a0ca09595f2affe6f9794049dbc74d69ba6a52b2b0",
+    "vllm_omni/diffusion/models/minimax_h3/pipeline_minimax_h3.py": "e8e2e74fb8edb05e02d3e2328ea1f3ad5ddcfd7a10ed09c5cf3911b1d063e849"
+  },
+  "cleanup_passed": true,
+  "source_unchanged": true,
+  "required_native_test_executed": true,
+  "scope": "Focused state/block tests and native four-rank subset attention; no full-model quality/performance acceptance"
+}

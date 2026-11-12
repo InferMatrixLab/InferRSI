@@ -1,0 +1,15 @@
+{
+  "head": "a29648e5acd3077b7b22739bc9522017782fe1ac",
+  "tree": "3490989d041cc8fca66a4fc3a234d71a3366a352",
+  "base": "be319692b96413918973b5bd399cdda3f320c574",
+  "branch": "rsi/h3-297-state-aligned-residual",
+  "files": {
+    "vllm_omni/diffusion/models/minimax_h3/cache_state_alignment.py": "3340ec21a77aef78531c601be241bcfb1e44107c795e8c8649907d1a18ed377f",
+    "vllm_omni/diffusion/models/minimax_h3/reference_kv_cache_dit.py": "f4cd0e9aa9e824c92ec1acd02c57a8f7d8684c35d4edf92ffdfae3345ff44e99",
+    "vllm_omni/diffusion/models/minimax_h3/minimax_h3_transformer.py": "436ec52cd6329cbc64e91d94b450bfa6f773a9a953b8f974db73a5eb986a98bb",
+    "vllm_omni/diffusion/models/minimax_h3/denoise_loop.py": "4dec8f02a04bfe7e8d2ada24fc6d5ae40a0058671d8515c8a266ecf88824b7b0",
+    "tests/diffusion/models/minimax_h3/test_minimax_h3_state_cache.py": "89cf57482b35d8d8ad8d4978aec87e9ee3ef45330e5b911161adef4379950a65"
+  },
+  "published": false,
+  "patch_base": "be319692b96413918973b5bd399cdda3f320c574"
+}
