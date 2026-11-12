@@ -226,3 +226,19 @@ these sequential samples do not establish a consistent benefit.
 [Samples, source identity and quality checks](results/prepared-text-round13-result.json)
 use the current 7f8395fed base. The candidate was not adopted, and no final
 ABBA qualification was run. All latency targets remain unmet.
+
+## NZ load-order diagnosis
+
+A full-model diagnostic compared ND repeats and NZ linear operations while
+returning the original outputs. All 1,200 HTTP-stage comparisons were exact
+(100 projections across four ranks and three input lengths), as were 400
+startup comparisons. Only the first occurrence of each layer/input shape was
+checked. All three output images remained exact; diagnostic timings are excluded.
+
+The platform adapter runs before checkpoint loading. A separate real-weight
+single-device probe found that copying chunks into a pre-converted NZ tensor
+changed its contents, whereas converting populated weights was exact. H3's
+merged fc1 loader performs chunked writes, making load order a plausible
+explanation for prior NZ failures. [Probe results and limitations](results/nz-load-order-diagnosis.json)
+also preserve the failed diagnostic attempt. Conversion after loading is being
+qualified separately; these findings do not establish an end-to-end speedup.
