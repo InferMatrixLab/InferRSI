@@ -30,6 +30,7 @@
     "refusal_point": "Discards a correctness-breaking, worse or inconclusive change instead of integrating it, preserves no-change when candidates cannot be separated, does not count a shortcut outside the authorized semantics as an optimization, and does not let a successful probe qualify a broken final state"
   },
   "recommendations": [
+    "Resolve acceptance criteria before search: retain supplied criteria, otherwise use performance-ceiling-analysis to derive targets, record provenance and freeze supported gates.",
     "Before generating a candidate, consult the casebook, the negative record and the target stage's Amdahl contribution.",
     "Record every worse or inconclusive result with hypothesis, metric, context, evidence level and failure type, and derive a search constraint from it.",
     "When about three experiments on one hypothesis return inconclusive from measurement variance, fix the protocol or move to a different hypothesis.",

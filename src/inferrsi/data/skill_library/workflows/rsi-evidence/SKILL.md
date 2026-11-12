@@ -1,11 +1,20 @@
 ---
 name: rsi-evidence
-description: Guide agents to publish and cite RSI evidence using plan/results/patch/validator paths and PASS/FAIL/INCONCLUSIVE verdicts.
+description: Guide agents to establish acceptance criteria, freeze and cite RSI evidence using plan/results/patch/validator paths and PASS/FAIL/INCONCLUSIVE verdicts.
 ---
 
 # RSI evidence discipline
 
 Use when documenting or reviewing optimization campaigns in ThinkFlowLab-style repos.
+
+## Establish acceptance criteria
+
+Use the user's supplied criteria, including a referenced accepted plan. If none
+were supplied, use `performance-ceiling-analysis` to formulate evidence-backed
+targets under its [acceptance-criteria procedure](../../methods/performance-ceiling-analysis/references/acceptance-criteria.md).
+Preserve partial requirements and derive only missing fields. Record the source
+of each criterion, derivation evidence and freeze authority before search.
+Unknown inputs remain explicit; estimates cannot relax supplied or frozen gates.
 
 ## Evidence paths
 

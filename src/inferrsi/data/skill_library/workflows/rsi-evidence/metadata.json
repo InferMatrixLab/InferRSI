@@ -19,8 +19,8 @@
     "references/loopx-goal-governance/README.md"
   ],
   "applicability": {
-    "scope": "Documenting or reviewing an optimization campaign whose verdict will be cited downstream",
-    "prerequisites": "A campaign with pinned baseline and candidate SHAs and an evidence tree under evidence/<campaign-id>/; conclusions about goal authority additionally need the LoopX governance reference",
+    "scope": "Preparing acceptance criteria, documenting or reviewing an optimization campaign whose verdict will be cited downstream",
+    "prerequisites": "For preparation, the user requirements and available model/hardware/workload evidence; for verdicts, pinned baseline and candidate SHAs and an evidence tree under evidence/<campaign-id>/; conclusions about LoopX goal authority additionally need its governance reference",
     "input_contract": "Campaign artifacts in plan/, results/, patch/ and validator/, plus the RunSpec that fixes repo x revision x backend x device x model x scenario",
     "produced_artifact": "An evidence record that links paths instead of pasting metrics, and states exactly one of PASS, FAIL or INCONCLUSIVE with its rationale",
     "failure_modes": [
@@ -34,6 +34,7 @@
     "refusal_point": "Refuses PASS when the validator freeze, the results rationale or the pinned SHAs are missing, and reports INCONCLUSIVE for that campaign instead"
   },
   "recommendations": [
+    "Use user-supplied acceptance criteria; otherwise follow performance-ceiling-analysis to formulate targets. Preserve partial requirements and record each derived field's evidence before freezing gates.",
     "Link evidence paths in the report; a metric quoted only in a comment cannot be re-checked later.",
     "Fingerprint tracked source even when the output directory overlaps it, and exclude only the current run's generated files.",
     "Treat a missing upstream-cache release proof as INCONCLUSIVE rather than a PASS with a caveat.",

@@ -58,6 +58,15 @@ require PyYAML; packaged knowledge/Collect/Read do not.
 
 ## Coordinate a comparison
 
+Use supplied acceptance criteria unchanged, including a referenced accepted
+plan. When none are supplied, use the launcher to
+`read inferrsi.common.skills.performance_ceiling_analysis --material`, then load
+its `references/acceptance-criteria.md` resource and follow that procedure to
+formulate targets. Preserve partial requirements and derive only missing fields.
+Record user versus derived criteria, calibration, uncertainty and existing freeze
+authority; missing evidence stays unresolved. The CLI does not invoke the skill
+automatically or infer gates from omitted flags.
+
 Use `plan --help` and `run --help`. Reuse the user's scripts, source revisions,
 workload, quality checks, accepted gates and budget. `plan` only previews a
 specification: it writes no frozen campaign and grants no execution authority.
