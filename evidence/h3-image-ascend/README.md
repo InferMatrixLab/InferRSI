@@ -144,3 +144,10 @@ override the failed full-model result. An independent decoder-dtype probe
 observed 68.15 ms BF16 versus 65.65 ms FP16 for a batch of 32 tiles, with
 nonzero output error. A separate FP16 decoder model trial is queued; neither
 component timing nor finite outputs establish image-quality acceptance.
+
+The [FP16 decoder model trial](results/vae-fp16-round6/decision.json) passed
+all 30 numerical image screens (minimum PSNR 46.90 dB, SSIM 0.99754), but
+showed mixed latency: W1 improved while W2/W3 regressed. It is not adopted.
+Complete visual acceptance and isolated repeated performance qualification
+remain missing. Profiling the published configuration is queued to guide
+the next distinct mechanism; all campaign targets remain unmet.

@@ -1,5 +1,5 @@
 {
-  "README.md": "c99940a64d39c6adccc5068d90504fd475a544fcafa0eab6f5439b50145a38a6",
+  "README.md": "ed6018d0a4d4eee0dd310565334e327950ae2d3fefdffe2ddd39c089e6c180ac",
   "patch/revision.json": "d8396389afd8c9c5565f9834e1a4ab092813e74c78285c921f7453b27a84235b",
   "plan/environment.json": "9b404a74007446fbbd6343383ebf8d18be446068d2018eb330c964473f54c45e",
   "plan/provenance.json": "a58206b9cb0f2dc1f0a51c71ce929630a3552a13bd7fdd5ced290a71945c28d6",
@@ -117,6 +117,10 @@
   "results/submission-vae-batched/summary.json": "045cf567215433afe1e396ce455fb8cc267fac9959dacd80ae791b25cd6388e9",
   "results/vae-decoder-dtype-probe.json": "447994ed70bc50050fb7f11b88a34b59a05a27dbef23796cd5662e90cb5e33be",
   "results/vae-encoder-batch-probe.json": "144656628c27d829eacbf07c17832b6dead17de6026ba89610d6ad2c46d8840f",
+  "results/vae-fp16-round6/candidate-summary.json": "8c2936dd4bde804c8e9ce969b1cd89fa8e69602654251a40bc295b4028d170c1",
+  "results/vae-fp16-round6/control-summary.json": "d8dedc3bed6f893a212b5b3b0e55eeeff3b6e66629d54473655569835b172167",
+  "results/vae-fp16-round6/decision.json": "983b9d1e7ed15b7c68906968fbaa5d7056e1b629bcf54535a20900878e875752",
+  "results/vae-fp16-round6/quality-summary.json": "0a6d02ed07f78098077dcb0457df259eef0b6d00cfdfd084ecfb7f54380d27b2",
   "results/vae-large-batch-probe.json": "b2960f54c2e78d576badfeb79a57d1cda895b204d52806308cedae40cd8fd443",
   "validator/benchmark.py": "c889b1a3749f9fac69f557f398a870fd8091dee3f86eb36bba55dddf90e738aa",
   "validator/plan/quality-exploration.json": "332c095aa72606623be2a853bc4801f14703d4738ef1d9108a46649b587646e5",
