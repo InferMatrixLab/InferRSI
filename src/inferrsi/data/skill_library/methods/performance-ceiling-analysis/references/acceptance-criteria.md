@@ -57,9 +57,12 @@ agent-derived targets as such, never as user-supplied or user-confirmed numbers.
    distinguished from noise, retain the incumbent and identify the next useful
    calibration or report insufficient headroom. Do not turn that into PASS.
 
-Missing model counts, matching hardware facts, baseline, calibration or quality
-coverage remain `INSUFFICIENT_EVIDENCE` in the analysis and `INCONCLUSIVE` for
-campaign acceptance. List the missing measurements and their bounded cost.
+Missing inputs required by the selected analysis or acceptance contract remain
+`INSUFFICIENT_EVIDENCE` in the analysis and `INCONCLUSIVE` for campaign acceptance.
+For example, analytical work/traffic bounds need model counts; a supported
+empirical stage estimate need not. Comparable baseline, calibration, uncertainty
+and quality coverage are still needed for a derived acceptance target. List the
+missing measurements and their bounded cost.
 Continue authorized preparation/calibration, but do not freeze a made-up number
 or start candidate search under unresolved gates. Never use a similar SKU, the
 CLI's default threshold, a theoretical maximum or a later candidate result to
