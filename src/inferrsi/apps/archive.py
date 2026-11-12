@@ -148,6 +148,35 @@ def _publish_directory(staging: Path, destination: Path) -> None:
         raise OSError(error, os.strerror(error))
 
 
+def _sync_directory(path: Path) -> None:
+    """Persist directory entries on POSIX; Windows has no portable equivalent."""
+    if os.name == "nt":
+        return
+    fd = os.open(path, os.O_RDONLY | getattr(os, "O_DIRECTORY", 0))
+    try:
+        os.fsync(fd)
+    finally:
+        os.close(fd)
+
+
+def _publication_message(error: Exception, *, published: bool) -> str:
+    # Never expose local paths or arbitrary exception messages in shared output.
+    if published:
+        return (
+            "Output directory was published, but durability confirmation failed. "
+            "Publication state is uncertain; inspect the existing output ID before retrying."
+        )
+    code = getattr(error, "errno", None)
+    if code in (errno.EEXIST, errno.ENOTEMPTY) or getattr(error, "winerror", None) in (80, 183):
+        return "Output publication conflict: destination already exists and was not replaced."
+    if code in (errno.ENOTSUP, errno.EOPNOTSUPP, errno.ENOSYS, errno.EINVAL):
+        return ("Output publication unsupported: "
+                "atomic no-replace rename or directory sync unavailable.")
+    if isinstance(error, ValueError):
+        return "Output publication validation failed; no output was published."
+    return "Output publication I/O failed; no output was published."
+
+
 def publish_result(workspace: Path, result: dict, *, output_id: str | None = None) -> RunOutput:
     """Publish an AppsResultV1 after the underlying operation has returned."""
     if output_id is None:
@@ -158,15 +187,23 @@ def publish_result(workspace: Path, result: dict, *, output_id: str | None = Non
     created_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
     manifest = encode(_manifest(output_id, created_at, result, _result_entry(data)))
 
+    published = False
     try:
         root = _output_root(workspace, create=True)
+        _sync_directory(root.parent)
         destination = root / output_id
         with TemporaryDirectory(prefix=".pending-", dir=root) as temporary:
             staging = Path(temporary)
             _write_file(staging / "result.json", data)
             _write_file(staging / "manifest.json", manifest)
             verified_result = _read_output(staging, output_id)
+            _sync_directory(staging)
+            _sync_directory(root)
             _publish_directory(staging, destination)
-    except (OSError, ValueError):
-        return RunOutput(output_id, None, publication_error(result))
+            published = True
+            _sync_directory(root)
+    except (OSError, ValueError) as error:
+        failed = publication_error(result)
+        failed["error"]["message"] = _publication_message(error, published=published)
+        return RunOutput(output_id, None, failed)
     return RunOutput(output_id, destination, verified_result)

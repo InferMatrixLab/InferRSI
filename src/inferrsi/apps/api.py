@@ -6,10 +6,10 @@ from pathlib import Path
 
 from inferrsi._json_v1 import encode
 from inferrsi.harness.errors import PublicError
-from inferrsi.harness.run_store import request_digest
+from inferrsi.harness.execution_spec import request_digest
 
 from .archive import RunOutput, publish_result, validate_output_id
-from .result import execution_result, is_public_error
+from .result import execution_result, is_public_error, validate_result
 
 _EXECUTE_FIELDS = {"schema_version", "prepared_ref", "proposal", "attempt", "output_root"}
 _ATTEMPT_FIELDS = {
@@ -74,32 +74,74 @@ def _preserves_request(spec: dict, fields: dict, inputs: list) -> bool:
     return all(encode(item) in bound_bytes for item in inputs)
 
 
+def _port_call(port: Callable[[dict], dict], value: dict) -> object:
+    # Programming/host exceptions are not port replies: do not silently swallow them.
+    try:
+        return port(value)
+    except PublicError as error:
+        return error.to_json()
+
+
+def _port_error(error: dict, fields: dict, digest: str | None = None) -> dict:
+    result = execution_result(error=error)
+    validate_result(result)
+    partial = error["partial_record"]
+    refs = [error["latest_record_ref"]] if error["latest_record_ref"] is not None else []
+    if (error["attempt_id"] is not None and error["attempt_id"] != fields["attempt_id"]) or any(
+        ref["attempt_id"] != fields["attempt_id"] for ref in refs
+    ) or (partial is not None and (
+        any(partial[key] != fields[key] for key in ("request_id", "run_id", "attempt_id"))
+        or (digest is not None and partial["request_digest"] is not None
+            and partial["request_digest"] != digest)
+    )):
+        return execution_result(error=_validation_error(
+            "IdentityMismatch", "Port error facts belong to a different execution request."
+        ))
+    return result
+
+
+def _invalid_port_result() -> dict:
+    return execution_result(error=_validation_error(
+        "InvalidExecutionSpec", "The execution port returned a malformed response."
+    ))
+
+
 def _execute_saved(
     request: dict,
     fields: dict,
     bind_execution: Callable[[dict], dict],
     execute_harness: Callable[[dict], dict],
 ) -> dict:
-    spec = bind_execution(deepcopy(request))
-    if is_public_error(spec):
-        return execution_result(error=spec)
-    if not _preserves_request(spec, fields, request["proposal"]["inputs"]):
-        return execution_result(error=_validation_error(
-            "InvalidExecutionSpec", "Execution binding changed fields of the saved request."
-        ))
+    spec = _port_call(bind_execution, deepcopy(request))
+    try:
+        if is_public_error(spec):
+            return _port_error(spec, fields)
+        if not isinstance(spec, dict) or not _preserves_request(
+            spec, fields, request["proposal"]["inputs"]
+        ):
+            return _invalid_port_result()
+        submitted_digest = request_digest(spec)
+    except (ValueError, TypeError, KeyError):
+        return _invalid_port_result()
 
-    submitted_digest = request_digest(spec)
-    response = execute_harness(spec)
-    if is_public_error(response):
-        return execution_result(error=response)
-    if response.get("request_digest") != submitted_digest or any(
-        response.get(field) != fields[field]
-        for field in ("request_id", "run_id", "attempt_id", "prepared_ref")
-    ):
-        return execution_result(error=_validation_error(
-            "IdentityMismatch", "Harness returned a record for a different request."
-        ))
-    return execution_result(record=response)
+    response = _port_call(execute_harness, spec)
+    try:
+        if is_public_error(response):
+            return _port_error(response, fields, submitted_digest)
+        if not isinstance(response, dict) or "request_digest" not in response:
+            return _invalid_port_result()
+        if response["request_digest"] != submitted_digest or any(
+            response.get(field) != fields[field]
+            for field in ("request_id", "run_id", "attempt_id", "prepared_ref")
+        ):
+            return execution_result(error=_validation_error(
+                "IdentityMismatch", "Harness returned a record for a different request."
+            ))
+        result = execution_result(record=response)
+        validate_result(result)
+        return result
+    except (ValueError, TypeError, KeyError):
+        return _invalid_port_result()
 
 
 def execute(
@@ -127,8 +169,5 @@ def execute(
         ))
         return publish_result(workspace, result, output_id=output_id)
 
-    try:
-        result = _execute_saved(request, fields, bind_execution, execute_harness)
-    except PublicError as error:
-        result = execution_result(error=error.to_json())
+    result = _execute_saved(request, fields, bind_execution, execute_harness)
     return publish_result(workspace, result, output_id=output_id)

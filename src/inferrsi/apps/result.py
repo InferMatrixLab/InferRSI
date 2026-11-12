@@ -145,6 +145,35 @@ def _check_ref(ref: object, id_field: str, version_field: str) -> None:
     _check_artifact(ref["artifact"])
 
 
+def _check_partial(partial: dict) -> None:
+    if not isinstance(partial, dict) or partial.keys() != _PARTIAL_FIELDS:
+        raise ValueError("invalid partial execution fields")
+    if any(not isinstance(partial[key], str) or not partial[key]
+           for key in ("request_id", "run_id", "attempt_id")):
+        raise ValueError("invalid partial execution identity")
+    digest, version = partial["request_digest"], partial["proposed_record_version"]
+    if (digest is not None and (not isinstance(digest, str)
+                               or not re.fullmatch(r"sha256:[0-9a-f]{64}", digest))) or (
+        version is not None and (type(version) is not int or version < 0)
+    ):
+        raise ValueError("invalid partial execution revision")
+    if partial["phase"] not in (
+        None, "registered", "preparing", "running", "stopping", "finalizing",
+        "finished", "recovery_required",
+    ) or (partial["started"] is not None and type(partial["started"]) is not bool) or (
+        type(partial["side_effect_unknown"]) is not bool
+    ):
+        raise ValueError("invalid partial execution state")
+    for key in ("steps", "checks", "artifacts", "usage", "errors"):
+        if not isinstance(partial[key], list) or any(
+            not isinstance(item, dict) for item in partial[key]
+        ):
+            raise ValueError("invalid partial execution observations")
+    for key in ("budget_admission", "resource_leases"):
+        if partial[key] is not None and not isinstance(partial[key], dict):
+            raise ValueError("invalid partial execution accounting")
+
+
 def _check_error(error: dict, outcome: str) -> None:
     if (
         not is_public_error(error)
@@ -159,8 +188,8 @@ def _check_error(error: dict, outcome: str) -> None:
     ):
         raise ValueError("invalid Apps PublicError")
     partial = error["partial_record"]
-    if partial is not None and (not isinstance(partial, dict) or partial.keys() != _PARTIAL_FIELDS):
-        raise ValueError("invalid partial execution facts in Apps PublicError")
+    if partial is not None:
+        _check_partial(partial)
     if error["latest_record_ref"] is not None:
         _check_ref(error["latest_record_ref"], *_REF_FIELDS["record_ref"])
     for ref in error["retained_refs"]:

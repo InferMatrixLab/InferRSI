@@ -18,6 +18,7 @@ from pathlib import Path
 
 from inferrsi import _json_v1
 from inferrsi.harness.errors import PartialExecutionFacts, PublicError
+from inferrsi.harness.execution_spec import request_digest as request_digest
 
 if os.name == "nt":
     import msvcrt
@@ -125,10 +126,6 @@ def record_location(namespace: str, attempt_id: str, record_version: int) -> str
 def object_location(namespace: str, sha256: str) -> str:
     return f"stores/{namespace}/objects/{sha256[:2]}/{sha256}"
 
-
-def request_digest(spec: Mapping) -> str:
-    # D017: sha256 of the complete canonical ExecutionSpec bytes, with prefix.
-    return "sha256:" + hashlib.sha256(_json_v1.encode(spec)).hexdigest()
 
 
 def artifact_ref(namespace: str, data: bytes, media_type: str) -> dict:

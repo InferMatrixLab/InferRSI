@@ -166,7 +166,7 @@ def test_failed_publication_preserves_commit_and_replay_reuses_attempt(tmp_path,
     assert (tmp_path / "execute-request.json").read_bytes() == saved
 
 
-def test_run_store_replay_with_unknown_owner_publishes_recovery_required(tmp_path):
+def test_run_store_replay_with_owner_gone_publishes_recovery_required(tmp_path):
     request = _request()
     (tmp_path / "execute-request.json").write_bytes(encode(request))
     store = RunStore(tmp_path / "run-store", "apps-test")
@@ -199,14 +199,15 @@ def test_a_code_key_on_a_bound_spec_does_not_discriminate_a_public_error(tmp_pat
     assert output.result["error"] == error.to_json()
 
 
-def test_public_error_with_invalid_prior_record_ref_is_not_published(tmp_path):
+def test_public_error_with_invalid_prior_record_ref_publishes_validation_error(tmp_path):
     error = {**_fixture("public-error"), "latest_record_ref": {}}
-    with pytest.raises(ValueError, match="reference"):
-        execute(
-            _request(), workspace=tmp_path,
-            bind_execution=_bind, execute_harness=lambda spec: error,
-        )
-    assert not (tmp_path / "output").exists()
+    output = execute(
+        _request(), workspace=tmp_path,
+        bind_execution=_bind, execute_harness=lambda spec: error,
+    )
+    assert output.result["reason_code"] == "InvalidExecutionSpec"
+    assert output.result["exit_code"] == 2
+    assert read_result(tmp_path, output.output_id) == output
 
 
 @pytest.mark.parametrize(
@@ -230,6 +231,7 @@ def test_harness_error_keeps_only_prior_record_ref(tmp_path, code, outcome, exit
         error["partial_record"] = {
             **{field: record[field] for field in fields},
             "proposed_record_version": 2,
+            "request_digest": request_digest(_bind(_request())),
         }
         error["retained_refs"] = [refs["record_ref"]["artifact"]]
     output = execute(
