@@ -1,0 +1,9 @@
+{
+  "verdict": "INCONCLUSIVE",
+  "adopted": false,
+  "numerical_checks_passed": 30,
+  "numerical_checks_total": 30,
+  "visual_review": "pending",
+  "performance": "W1 improved, W2/W3 regressed in one matched launch pair. No consistent three-workload improvement or target attainment.",
+  "next_step": "Reprofile published configuration; no further equivalent precision sweep without bottleneck evidence."
+}
