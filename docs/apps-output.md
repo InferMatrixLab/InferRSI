@@ -46,7 +46,13 @@ means the call did not confirm success, not proof that no directory exists.
 ## Port response validation and references
 
 Malformed binder or Harness return values become a validation-stage
-InvalidExecutionSpec result with exit code 2. Raised typed PublicError is handled
+InvalidExecutionSpec result with exit code 2. Apps-generated errors distinguish
+binder_validation from harness_response_validation in error.stage. The latter
+means the reply contract was violated, not that the submitted spec was invalid
+or that execution did not start: started remains null and automatic retry is
+not implied. Existing v1 codes are retained rather than adding a core enum
+unilaterally; this Apps stage mapping remains a proposal for owner acceptance.
+Valid core PublicError stages are preserved. Raised typed PublicError is handled
 as a port error. Other host exceptions remain exceptions: these are programming
 or host failures, not automatically trustworthy core responses. The future CLI
 must define its own exception presentation; no CLI behavior is implied here.

@@ -127,7 +127,6 @@ def object_location(namespace: str, sha256: str) -> str:
     return f"stores/{namespace}/objects/{sha256[:2]}/{sha256}"
 
 
-
 def artifact_ref(namespace: str, data: bytes, media_type: str) -> dict:
     """The ArtifactRef a store object will have; valid only once a record commits it."""
     sha = hashlib.sha256(data).hexdigest()

@@ -19,10 +19,10 @@ _ATTEMPT_FIELDS = {
 _PROPOSAL_FIELDS = {"candidate", "inputs", "generation_record_ref"}
 
 
-def _validation_error(code: str, message: str) -> dict:
+def _validation_error(code: str, message: str, *, stage: str = "validation") -> dict:
     return {
         "code": code,
-        "stage": "validation",
+        "stage": stage,
         "attempt_id": None,
         "started": None,
         "latest_record_ref": None,
@@ -82,7 +82,9 @@ def _port_call(port: Callable[[dict], dict], value: dict) -> object:
         return error.to_json()
 
 
-def _port_error(error: dict, fields: dict, digest: str | None = None) -> dict:
+def _port_error(
+    error: dict, fields: dict, digest: str | None = None, *, stage: str
+) -> dict:
     result = execution_result(error=error)
     validate_result(result)
     partial = error["partial_record"]
@@ -95,14 +97,15 @@ def _port_error(error: dict, fields: dict, digest: str | None = None) -> dict:
             and partial["request_digest"] != digest)
     )):
         return execution_result(error=_validation_error(
-            "IdentityMismatch", "Port error facts belong to a different execution request."
+            "IdentityMismatch", "Port error facts belong to a different execution request.",
+            stage=stage,
         ))
     return result
 
 
-def _invalid_port_result() -> dict:
+def _invalid_port_result(stage: str) -> dict:
     return execution_result(error=_validation_error(
-        "InvalidExecutionSpec", "The execution port returned a malformed response."
+        "InvalidExecutionSpec", "The execution port returned a malformed response.", stage=stage
     ))
 
 
@@ -115,33 +118,36 @@ def _execute_saved(
     spec = _port_call(bind_execution, deepcopy(request))
     try:
         if is_public_error(spec):
-            return _port_error(spec, fields)
+            return _port_error(spec, fields, stage="binder_validation")
         if not isinstance(spec, dict) or not _preserves_request(
             spec, fields, request["proposal"]["inputs"]
         ):
-            return _invalid_port_result()
+            return _invalid_port_result("binder_validation")
         submitted_digest = request_digest(spec)
     except (ValueError, TypeError, KeyError):
-        return _invalid_port_result()
+        return _invalid_port_result("binder_validation")
 
     response = _port_call(execute_harness, spec)
     try:
         if is_public_error(response):
-            return _port_error(response, fields, submitted_digest)
+            return _port_error(
+                response, fields, submitted_digest, stage="harness_response_validation"
+            )
         if not isinstance(response, dict) or "request_digest" not in response:
-            return _invalid_port_result()
+            return _invalid_port_result("harness_response_validation")
         if response["request_digest"] != submitted_digest or any(
             response.get(field) != fields[field]
             for field in ("request_id", "run_id", "attempt_id", "prepared_ref")
         ):
             return execution_result(error=_validation_error(
-                "IdentityMismatch", "Harness returned a record for a different request."
+                "IdentityMismatch", "Harness returned a record for a different request.",
+                stage="harness_response_validation",
             ))
         result = execution_result(record=response)
         validate_result(result)
         return result
     except (ValueError, TypeError, KeyError):
-        return _invalid_port_result()
+        return _invalid_port_result("harness_response_validation")
 
 
 def execute(

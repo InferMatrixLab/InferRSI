@@ -88,3 +88,45 @@ def test_partial_identity_is_bound_to_request(tmp_path):
     error = PublicError("ExecutionPersistenceError", stage="commit", message="failed").to_json()
     error["partial_record"] = partial
     assert _run(tmp_path, error).result["reason_code"] == "IdentityMismatch"
+
+
+@pytest.mark.parametrize("boundary", ["binder", "harness"])
+def test_malformed_stage_identifies_boundary_without_inventing_execution_facts(tmp_path, boundary):
+    calls = []
+
+    def binder(request):
+        calls.append("binder")
+        return None if boundary == "binder" else _bind(request)
+
+    def harness(spec):
+        calls.append("harness")
+        return None
+
+    output = execute(_request(), workspace=tmp_path, bind_execution=binder,
+                     execute_harness=harness)
+    assert output.result["reason_code"] == "InvalidExecutionSpec"
+    assert output.result["error"]["stage"] == (
+        "binder_validation" if boundary == "binder" else "harness_response_validation"
+    )
+    assert output.result["error"]["started"] is None
+    assert calls == (["binder"] if boundary == "binder" else ["binder", "harness"])
+    assert read_result(tmp_path, output.output_id) == output
+
+
+@pytest.mark.parametrize("boundary", ["binder", "harness"])
+def test_foreign_error_identity_stage_identifies_boundary(tmp_path, boundary):
+    reply = PublicError("AttemptInProgress", stage="claim", message="busy",
+                        attempt_id="other").to_json()
+    output = execute(_request(), workspace=tmp_path,
+                     bind_execution=(lambda request: reply) if boundary == "binder" else _bind,
+                     execute_harness=lambda spec: reply)
+    assert output.result["reason_code"] == "IdentityMismatch"
+    assert output.result["error"]["stage"] == (
+        "binder_validation" if boundary == "binder" else "harness_response_validation"
+    )
+
+
+def test_valid_core_error_keeps_its_stage(tmp_path):
+    reply = PublicError("AttemptInProgress", stage="claim", message="busy",
+                        attempt_id=_request()["attempt"]["attempt_id"]).to_json()
+    assert _run(tmp_path, reply).result["error"]["stage"] == "claim"
