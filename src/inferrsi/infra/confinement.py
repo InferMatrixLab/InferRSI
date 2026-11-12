@@ -463,6 +463,6 @@ def confined_execute(
         readable,
         deadline,
         devices=tuple(Path(path) for path in device_paths),
-        runtime=tuple(Path(path).resolve() for path in runtime_paths),
+        runtime=tuple(Path(path) for path in runtime_paths),
         env=env,
     )
