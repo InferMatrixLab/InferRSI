@@ -18,14 +18,14 @@ BENCH = (
     "Path(sys.argv[1]).write_text(json.dumps({'metrics': {'latency_ms': a + b}}))\n"
 )
 AGENT = (
-    "import json, sys\n"
+    "import sys\n"
     "from pathlib import Path\n"
-    "history = json.loads(Path(sys.argv[1]).read_text())\n"
-    "values = sys.argv[3].split(',')\n"
-    "if values == ['fail']:\n"
+    "if sys.argv[2] == 'fail':\n"
     "    sys.exit(3)\n"
-    "if len(history) < len(values):\n"
-    "    Path(sys.argv[2]).write_text(values[len(history)])\n"
+    "if sys.argv[2] != 'same':\n"
+    "    Path(sys.argv[1]).write_text(sys.argv[2])\n"
+    "Path(sys.argv[3]).mkdir(parents=True, exist_ok=True)\n"
+    "Path(sys.argv[3], 'ran').open('a').write('x')\n"
 )
 
 
@@ -36,7 +36,7 @@ def _tree(root: Path) -> None:
     (root / "bench.py").write_text(BENCH, encoding="utf-8")
 
 
-def _lane(lane_id: str, knob: str, values: str, tmp_path: Path) -> dict:
+def _lane(lane_id: str, knob: str, value: str, tmp_path: Path) -> dict:
     agent = tmp_path / "agent.py"
     agent.write_text(AGENT, encoding="utf-8")
     return {
@@ -47,7 +47,13 @@ def _lane(lane_id: str, knob: str, values: str, tmp_path: Path) -> dict:
         "cap": 4,
         "per_attempt_worst_case": 1,
         "deadline_utc": "2099-01-01T00:00:00+00:00",
-        "agent": [sys.executable, str(agent), "{results}", f"knobs/{knob}", values],
+        "agent": [
+            sys.executable,
+            str(agent),
+            f"knobs/{knob}",
+            value,
+            str(tmp_path / "calls" / "{lane}"),
+        ],
     }
 
 
@@ -71,11 +77,11 @@ def _knobs(root: Path) -> tuple[str, str]:
     )
 
 
-def test_drive_runs_both_lanes_and_closes_on_the_stacked_change(tmp_path):
+def test_drive_runs_each_lane_once_and_closes_on_the_stacked_change(tmp_path):
     incumbent = tmp_path / "incumbent"
     _tree(incumbent)
     round_dir = tmp_path / "round"
-    lanes = [_lane("L1", "a.txt", "9,8", tmp_path), _lane("L2", "b.txt", "7", tmp_path)]
+    lanes = [_lane("L1", "a.txt", "8", tmp_path), _lane("L2", "b.txt", "7", tmp_path)]
     driven = drive_round(
         _spec(lanes),
         incumbent,
@@ -84,16 +90,17 @@ def test_drive_runs_both_lanes_and_closes_on_the_stacked_change(tmp_path):
         backend=FixtureBackend(),
         poll_seconds=0.01,
     )
-    assert driven["lanes"]["L1"]["stop"] == "done"
-    assert len(driven["lanes"]["L1"]["tickets"]) == 2
-    assert driven["lanes"]["L2"]["stop"] == "done"
-    assert len(driven["lanes"]["L2"]["tickets"]) == 1
+    assert {lane: item["status"] for lane, item in driven["lanes"].items()} == {
+        "L1": "measured",
+        "L2": "measured",
+    }
+    for lane in ("L1", "L2"):
+        assert (tmp_path / "calls" / lane / "ran").read_text(encoding="utf-8") == "x"
+    assert len(list((round_dir / "results").glob("*.json"))) == 2
     assert driven["close"]["choice"] == "composite"
     assert driven["close"]["composite"]["candidate"] == 15
     assert _knobs(tmp_path / "next") == ("8", "7")
     assert _knobs(incumbent) == ("10", "10")
-    history = json.loads((round_dir / "history" / "L1.json").read_text(encoding="utf-8"))
-    assert [item["candidate"] for item in history] == [19, 18]
     assert json.loads((round_dir / "drive.json").read_text(encoding="utf-8")) == driven
 
 
@@ -110,12 +117,28 @@ def test_a_failing_agent_stops_only_its_lane(tmp_path):
         poll_seconds=0.01,
     )
     assert driven["lanes"]["L2"] == {
-        "stop": "agent_failed",
+        "status": "agent_failed",
         "reason": "agent exited 3",
-        "tickets": [],
+        "ticket": None,
     }
     assert driven["close"]["choice"] == "lane"
     assert _knobs(tmp_path / "next") == ("8", "10")
+
+
+def test_an_agent_without_changes_leaves_the_incumbent(tmp_path):
+    incumbent = tmp_path / "incumbent"
+    _tree(incumbent)
+    driven = drive_round(
+        _spec([_lane("L1", "a.txt", "same", tmp_path)]),
+        incumbent,
+        tmp_path / "round",
+        tmp_path / "next",
+        backend=FixtureBackend(),
+        poll_seconds=0.01,
+    )
+    assert driven["lanes"]["L1"]["status"] == "unchanged"
+    assert driven["close"]["choice"] == "kept_incumbent"
+    assert _knobs(tmp_path / "next") == ("10", "10")
 
 
 def test_drive_needs_an_agent_command_on_every_lane(tmp_path):
