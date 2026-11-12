@@ -1,5 +1,5 @@
 {
-  "README.md": "96ea30a1c58ae6bf6f551e1e8bb8d00af58a5e95f227705275f73fa57a35d14f",
+  "README.md": "0fa689f37ba0b63c35e65d2bc2e7f82c0f42c0b2b5660a0cd6c9d9150e3da0b3",
   "patch/revision.json": "d8396389afd8c9c5565f9834e1a4ab092813e74c78285c921f7453b27a84235b",
   "plan/environment.json": "9b404a74007446fbbd6343383ebf8d18be446068d2018eb330c964473f54c45e",
   "plan/provenance.json": "a58206b9cb0f2dc1f0a51c71ce929630a3552a13bd7fdd5ced290a71945c28d6",
@@ -17,6 +17,10 @@
   "results/deterministic-control-tp4/summary.json": "75e90a097cca215711c4778a6593f12fe3be26527fddf4569181f75920500046",
   "results/mlp-layout-probe.json": "fd98b1b7a02a77047edf02f088e3aed62435ed63faf443781d90e0f495333b55",
   "results/mlp-nz-real-probe.json": "d00b90a5fc231beaa192df65e0e6d5e2843c4f97762467d4cb01acb02583f3ea",
+  "results/mlp-nz-round4/candidate-summary.json": "f960b36cec04d0b8137ca94de076a0947311ece786bef67171583664403d9f88",
+  "results/mlp-nz-round4/control-summary.json": "af3240c56db371ca781ba48154ff4e10e39574f4e4fa3acf3e9602cb174c7893",
+  "results/mlp-nz-round4/decision.json": "5fea8963b44f4864be5d92cbd72087cdd16d816f86928e81a6cc90f73d433a1a",
+  "results/mlp-nz-round4/quality-summary.json": "04e1a70863068779c099d3f0ae0ed2551be6722a3426c86181c97bec07269e9c",
   "results/mlp-nz-startup-failure.json": "f7a9d65cdf616e44354c79ec2b6205349df8767fe135f0a393e14430effce5dd",
   "results/mm-alltoall-real-rank0.json": "8a0eb090272def70c860477d9867a51cf7dbb34e4638952719b2ae05c2177ccb",
   "results/native-sp4-offload/request-measurements.json": "586eddd05b217320d86ff8a3d98b0067e1904f3a706e24cf3a2051d8a9da11e2",

@@ -1,0 +1,11 @@
+{
+  "verdict": "FAIL",
+  "adopted": false,
+  "scope": "NZ conversion across all transformer MiniMaxH3MLP modules",
+  "converted_projections_per_rank": 104,
+  "quality_checks": 30,
+  "quality_passed": 0,
+  "repeatability": "Both configurations produced one distinct RGB hash per author workload across seed42 repetitions.",
+  "performance": "No consistent benefit; W2 and W3 slower than same-VAE control.",
+  "next_diagnosis": "Check Parameter storage assignment and 3D inputs versus isolated 2D F.linear probes; separately check unprobed token-refiner scope. No root cause established."
+}
