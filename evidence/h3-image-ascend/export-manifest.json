@@ -1,5 +1,5 @@
 {
-  "README.md": "5136a0b2d05e9f1f44700f20cfd8fa884912428719afd015274fdd622c165b3b",
+  "README.md": "a2a1afbe5a4842095ca48c0b9067b2082ce18d0838ab7d29d72c88839903e077",
   "patch/revision.json": "d8396389afd8c9c5565f9834e1a4ab092813e74c78285c921f7453b27a84235b",
   "plan/environment.json": "9b404a74007446fbbd6343383ebf8d18be446068d2018eb330c964473f54c45e",
   "plan/provenance.json": "a58206b9cb0f2dc1f0a51c71ce929630a3552a13bd7fdd5ced290a71945c28d6",
@@ -21,6 +21,8 @@
   "results/deterministic-control-tp4/request-measurements.json": "c535b6fbeaa44dd2f02fe7c1b114ccf1fd4fc4b19abb4882afe001d1c4c98d7a",
   "results/deterministic-control-tp4/summary.json": "75e90a097cca215711c4778a6593f12fe3be26527fddf4569181f75920500046",
   "results/fia-round9-rejection.json": "416a80bf1d508009b7e280aab2a03f0966f257a397c9093b89ea545e90243636",
+  "results/linear-output-split-probe.json": "b5dd2e0c57646c4536c4cc91b7efb81f70db48d6967d73c9ea695d6d2fbe8b2f",
+  "results/linear-row-padding-probe.json": "d7be6d2734a4c1d5f4bd1275855fc06e8f578feeddb54e27f7442c4c2d71d82f",
   "results/linear-transposed-storage-probe.json": "b2b6416faff932418b7034c98b5043bb0bd45ad81563435e8243ecfd77337397",
   "results/mlp-layout-probe.json": "fd98b1b7a02a77047edf02f088e3aed62435ed63faf443781d90e0f495333b55",
   "results/mlp-nz-chain-probe.json": "7b6df0704c50beb8195f66550c8ed5f9839951dab2748e938b719fffd2a6d55b",

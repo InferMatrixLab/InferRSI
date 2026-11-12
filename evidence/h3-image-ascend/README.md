@@ -278,3 +278,13 @@ full-mask block-attention cases retained all tokens, but were slower and
 non-exact. These synthetic single-device measurements did not justify an HTTP
 trial or engine integration. [Component samples](results/attention-execution-probes.json)
 include source hashes; they do not establish image quality or final performance.
+
+Splitting BF16 linear projections into two or four output-channel partitions
+also failed the component screen: all 36 cases were slower, and only 15 were
+exact. [ABBA component samples](results/linear-output-split-probe.json) include
+concatenation cost. No model integration or HTTP trial followed.
+
+Zero-padding linear input rows to multiples of 128 or 512, then cropping back
+to the original rows, was also slower in all 36 cases. Twenty-four were exact;
+all twelve 1108-row cases differed. [Component samples](results/linear-row-padding-probe.json)
+include padding cost. This candidate was also rejected before model integration.
