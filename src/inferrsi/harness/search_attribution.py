@@ -117,13 +117,20 @@ def _log_uses(root, campaign_id, number, captures, materials, *, archive=False):
     return declarations
 
 
-def _write(root, record):
+def _prepare_record(root, record):
+    """Validate round ownership and restore saved claims before either projection is written."""
     directory = root / "search"
     if not _inside(root, directory):
         raise ValueError("search directory escapes the campaign")
     directory.mkdir(exist_ok=True)
     target = directory / f"round-{record['round']}.json"
     window, contexts = record["trace"], set(record["context_ids"])
+    supplied_decisions = {
+        (ref, evidence["decision_line"])
+        for ref, material in record["materials"].items()
+        for evidence in [*material.get("evidence", []), *material.get("declarations", [])]
+        if evidence.get("basis") == "caller_reviewed"
+    }
     # As with campaign record, callers serialize writes to a campaign.
     for path in directory.glob("round-*.json"):
         old, state = _object(path, root)
@@ -143,6 +150,9 @@ def _write(root, record):
                 for evidence in [*material.get("evidence", []), *material.get("declarations", [])]:
                     if evidence.get("basis") != "caller_reviewed":
                         continue
+                    if (ref, evidence["decision_line"]) in supplied_decisions:
+                        # Explicit flags correct this decision; other decisions remain.
+                        continue
                     current = record["materials"].get(ref, {})
                     if evidence not in current.get("evidence", []):
                         _caller_use(record["materials"], record["events"], ref,
@@ -157,7 +167,9 @@ def _write(root, record):
             lo, hi = previous["lines"]
             if max(lo, window["lines"][0]) <= min(hi, window["lines"][1]):
                 raise ValueError("trace window overlaps another round")
-    _atomic_json(target, record)
+            event_ids = {event["event_id"] for event in record["events"] if "event_id" in event}
+            if any(event.get("event_id") in event_ids for event in old["events"]):
+                raise ValueError("command event is already associated with another round")
     return target
 
 
@@ -302,8 +314,10 @@ def import_search(root: Path, *, number: int, trace=None, lines=None, knowledge_
               "unresolved_command_lines": uncertain, "events": events, "materials": materials,
               "observed": observed, "counts": observed if coverage == "complete" else None,
               "candidates": _round_candidates(root, number)}
+    target = _prepare_record(root, record)
     if review is None:
-        return _write(root, record)
+        _atomic_json(target, record)
+        return target
 
     selections = {}
     for item in command_decisions:
@@ -327,15 +341,17 @@ def import_search(root: Path, *, number: int, trace=None, lines=None, knowledge_
     archive_materials, archive_observed = _observations(archive_events, archive=True)
     declarations = _log_uses(root, campaign_id, number, archive_captures, archive_materials,
                              archive=True)
-    for status, entries in (("used", used), ("rejected", rejected)):
-        for ref, line in entries:
-            line = int(line)
+    for ref, material in record["materials"].items():
+        for claim in [*material.get("evidence", []), *material.get("declarations", [])]:
+            if claim.get("basis") != "caller_reviewed":
+                continue
+            line = claim["decision_line"]
             if line not in archive_decisions:
                 raise ValueError("decision line must reference an assistant message in this round")
             if ref not in archive_materials:
                 raise ValueError("use declaration must name a material observed in this round")
             declarations.append({
-                "ref": ref, "use": status, "basis": "caller_flag_declaration",
+                "ref": ref, "use": claim["use"], "basis": "caller_flag_declaration",
                 "decision_line": line,
                 "delivery_state": archive_materials[ref].get("delivery_state", "unknown"),
             })
@@ -359,5 +375,5 @@ def import_search(root: Path, *, number: int, trace=None, lines=None, knowledge_
     if review["result_note"] is not None:
         archive_record["result_note"] = review["result_note"]
         archive_record["result_note_basis"] = "caller_reviewed"
-    _write(root, record)
+    _atomic_json(target, record)
     return _write_archive(root, archive_record)

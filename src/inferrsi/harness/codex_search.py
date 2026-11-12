@@ -9,7 +9,7 @@ import shlex
 from pathlib import Path
 
 from .campaign_records import _identifier
-from .codex_tool_returns import _path, correlate_window
+from .codex_tool_returns import _output_lines, _path, correlate_window
 from .dashboard_data import _relative_location, _text
 
 _SHELLS = ("sh", "bash", "zsh", "dash")
@@ -18,6 +18,41 @@ _MAX_PASSAGES = 12
 _MAX_PASSAGE_CHARS = 400
 _MAX_VISIBLE_REFS = 64
 _MAX_UNRESOLVED_PATH_EXCERPTS = 4
+_WINDOWS_RG_PATH = r"(?:[A-Za-z]:[/\\])?[^:]+"
+
+
+def _shell_argv(source):
+    """Strip shell comments only at unquoted word boundaries before tokenizing."""
+    chars = []
+    quote = None
+    escaped = comment = False
+    word_start = True
+    for char in source:
+        if comment:
+            if char != "\n":
+                continue
+            comment, word_start = False, True
+        elif escaped:
+            escaped = False
+            if char != "\n":
+                word_start = False
+        elif char == "\\" and quote != "'":
+            escaped = True
+        elif quote:
+            if char == quote:
+                quote = None
+        elif char in "'\"":
+            quote, word_start = char, False
+        elif char == "#" and word_start:
+            comment = True
+            continue
+        else:
+            word_start = char in " \t\r\n;&|<>()"
+        chars.append(char)
+    lexer = shlex.shlex("".join(chars), posix=True, punctuation_chars=";&|<>")
+    lexer.whitespace_split = True
+    lexer.commenters = ""
+    return list(lexer)
 
 
 def _material(cwd: Path, name: str, corpus: Path) -> str | None:
@@ -88,20 +123,20 @@ def _rg_observations(output, cwd, corpus, scopes, mode, with_filename):
         return [], False
     observations = []
     scope_paths = [Path(os.path.normpath(cwd / scope)) for scope in scopes]
+    path_pattern = _WINDOWS_RG_PATH if cwd.drive else r"[^:]+"
     complete = True
-    for index, raw_line in enumerate(output.splitlines()):
-        line = raw_line.rstrip("\r")
+    for index, line in enumerate(_output_lines(output)):
         if "tokens truncated" in line and ("…" in line or "..." in line):
             complete = False
             continue
         if mode == "files":
-            path, number, text = line, None, None
+            parsed = [(line, None, None)]
         else:
             if mode == "numbered_context":
-                numbered_match = re.match(r"^(?:[^:]+:)?\d+:", line)
+                numbered_match = re.match(rf"^{path_pattern}:\d+:", line)
                 if line == "--":
                     continue
-                if re.match(r"^(?:[^:]*-)?\d+-", line):
+                if re.match(r"^(?:(?:[A-Za-z]:[/\\])?[^:]*-)?\d+-", line):
                     # Context text may itself contain ":42:", and filenames
                     # may contain "-2-". Neither interpretation is certain.
                     if numbered_match:
@@ -111,18 +146,26 @@ def _rg_observations(output, cwd, corpus, scopes, mode, with_filename):
                     complete = False
                     continue
             numbered = mode in ("numbered_text", "numbered_context")
-            pattern = r"^([^:]+):(\d+):(.*)$" if numbered else r"^([^:]+):(.*)$"
-            match = re.match(pattern, line)
-            if not match:
-                complete = False
-                continue
-            path = match[1]
-            number = int(match[2]) if numbered else None
-            text = match[3] if numbered else match[2]
-        candidate = Path(os.path.normpath(cwd / path))
-        if not any(candidate.is_relative_to(scope) for scope in scope_paths):
+            pattern = (rf"^({path_pattern}):(\d+):(.*)$" if numbered
+                       else rf"^({path_pattern}):(.*)$")
+            patterns = [pattern]
+            if cwd.drive and not numbered:
+                # F:/... can also be file F followed by text starting with /.
+                # Retain a source only if the recorded scopes select one parse.
+                patterns.append(r"^([^:]+):(.*)$")
+            parsed = [(match[1], int(match[2]) if numbered else None,
+                       match[3] if numbered else match[2])
+                      for pattern in patterns if (match := re.match(pattern, line))]
+        scoped = []
+        for path, number, text in parsed:
+            candidate = Path(os.path.normpath(cwd / path))
+            row = candidate, number, text
+            if any(candidate.is_relative_to(scope) for scope in scope_paths) and row not in scoped:
+                scoped.append(row)
+        if len(scoped) != 1:
             complete = False
             continue
+        candidate, number, text = scoped[0]
         ref = _material(cwd, str(candidate), corpus)
         if ref:
             observations.append({"ref": ref, "line": number, "text": text,
@@ -152,9 +195,7 @@ def _command(item, corpus):
             and argv[1] in ("-c", "-lc", "-ic", "-ilc")):
         multiline = "\n" in argv[2].strip()
         try:
-            lexer = shlex.shlex(argv[2], posix=True, punctuation_chars=";&|<>")
-            lexer.whitespace_split = True
-            argv = list(lexer)
+            argv = _shell_argv(argv[2])
         except ValueError:
             return None, False, None
     if not argv:
@@ -330,7 +371,7 @@ def _delivery(event, spec, join, corpus, event_line, selections):
             # establish source line numbers.
             if truncation_index is not None and index >= truncation_index:
                 continue
-            text = aggregate_lines[index].rstrip("\r\n")
+            text = re.sub(r"\r?\n$", "", aggregate_lines[index])
             if spec.get("line_mode") == "numbered":
                 match = re.match(r"^\s*(\d+)\t(.*)$", text)
                 if not match:
@@ -376,9 +417,7 @@ def _rough_action(item):
     if (isinstance(argv[0], str) and Path(argv[0]).name in _SHELLS
             and len(argv) == 3 and argv[1] in ("-c", "-lc", "-ic", "-ilc")):
         try:
-            lexer = shlex.shlex(argv[2], posix=True, punctuation_chars=";&|<>")
-            lexer.whitespace_split = True
-            tokens = list(lexer)
+            tokens = _shell_argv(argv[2])
         except ValueError:
             return "unknown", False
     found = [Path(word).name for word in tokens if isinstance(word, str)
@@ -402,9 +441,7 @@ def _safe_file_list_pipeline(item, corpus, join):
             or "\n" in argv[2]):
         return None
     try:
-        lexer = shlex.shlex(argv[2], posix=True, punctuation_chars=";&|<>")
-        lexer.whitespace_split = True
-        tokens = list(lexer)
+        tokens = _shell_argv(argv[2])
     except ValueError:
         return None
     if (len(tokens) == 6 and tokens[:2] == ["rg", "--files"]
@@ -445,7 +482,7 @@ def _safe_file_list_pipeline(item, corpus, join):
     for index in sorted(visible_indexes):
         if index >= len(lines):
             continue
-        text = lines[index].rstrip("\r\n")
+        text = re.sub(r"\r?\n$", "", lines[index])
         if not text or ("tokens truncated" in text and ("…" in text or "..." in text)):
             continue
         candidate_path = _path(text) or Path(os.path.normpath(cwd / text))
@@ -481,9 +518,7 @@ def _operation_skeleton(item, action, event=None):
     if (isinstance(argv[0], str) and Path(argv[0]).name in _SHELLS
             and len(argv) == 3 and argv[1] in ("-c", "-lc", "-ic", "-ilc")):
         try:
-            lexer = shlex.shlex(argv[2], posix=True, punctuation_chars=";&|<>")
-            lexer.whitespace_split = True
-            tokens = list(lexer)
+            tokens = _shell_argv(argv[2])
         except ValueError:
             return {"action": action}
     tools = list(dict.fromkeys(

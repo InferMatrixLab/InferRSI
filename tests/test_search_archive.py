@@ -2,6 +2,8 @@
 
 import hashlib
 import json
+import shutil
+import subprocess
 
 import pytest
 
@@ -76,6 +78,60 @@ def _real_read_trace(path, corpus, *, command="cat case.md", output="Use the sta
     path.write_text("".join(json.dumps(row) + "\n" for row in rows), encoding="utf-8")
 
 
+@pytest.mark.parametrize(("command", "ref"), [
+    ("cat guide#v2.md", "guide#v2.md"),
+    ("cat guide#v2.md # ignored 'quote", "guide#v2.md"),
+    ("cat 'guide'#v2.md", "guide#v2.md"),
+    (r"cat guide\#v2.md", "guide#v2.md"),
+    ("cat '#notes.md'", "#notes.md"),
+    (r"cat guide\ #v2.md", "guide #v2.md"),
+    ("cat guide #v2.md", "guide"),
+])
+def test_shell_hash_filenames_and_comments_match_real_bash(tmp_path, command, ref):
+    bash = shutil.which("bash")
+    if not bash:
+        pytest.skip("bash is needed to check shell comment boundaries")
+    campaign, corpus = tmp_path / "campaign", tmp_path / "corpus"
+    create_campaign(campaign, "example")
+    corpus.mkdir()
+    (corpus / "guide").write_text("Unversioned guide.\n", encoding="utf-8")
+    (corpus / ref).write_text("Use the stable RoPE case.\n", encoding="utf-8")
+    result = subprocess.run([bash, "-c", command], cwd=corpus, capture_output=True, check=True)
+    trace = tmp_path / "rollout.jsonl"
+    _real_read_trace(trace, corpus, command=command, output=result.stdout.decode())
+    review = _review(tmp_path / "review.json", decisions=[_decision(
+        ref=ref, event_line=3, decision_line=5)])
+    record = json.loads(import_search(
+        campaign, number=1, trace=trace, lines=[2, 5], knowledge_root=corpus,
+        complete=True, archive_review=review,
+    ).read_text())
+    assert set(record["materials"]) == {ref}
+    evidence, = record["materials"][ref]["evidence"]
+    assert evidence["passage_text"] == "Use the stable RoPE case."
+    assert record["coverage"] == "complete" and record["counts"]["used"] == 1
+
+
+@pytest.mark.parametrize("command", ["cat case.md", "sed -n '1,3p' case.md"])
+@pytest.mark.parametrize("newline", ["\n", "\r\n"])
+def test_read_source_lines_do_not_split_form_feeds(tmp_path, command, newline):
+    campaign, corpus = tmp_path / "campaign", tmp_path / "corpus"
+    create_campaign(campaign, "example")
+    trace = tmp_path / "rollout.jsonl"
+    _real_read_trace(trace, corpus, command=command, output=f"a\fb{newline}c{newline}")
+    inputs = {"number": 1, "trace": trace, "lines": [2, 5],
+              "knowledge_root": corpus, "complete": True}
+    use = _decision(ref="case.md", event_line=3, decision_line=5, passage_line=3)
+    review = _review(tmp_path / "review.json", decisions=[use])
+    with pytest.raises(ValueError, match="exact delivered source passage"):
+        import_search(campaign, archive_review=review, **inputs)
+    assert not (campaign / "search/round-1.json").exists()
+    review = _review(tmp_path / "review.json", decisions=[{**use, "passage_line": 2}])
+    record = json.loads(import_search(campaign, archive_review=review, **inputs).read_text())
+    evidence, = record["materials"]["case.md"]["evidence"]
+    assert (evidence["passage_line"], evidence["passage_text"]) == (2, "c")
+    assert record["coverage"] == "complete" and record["counts"]["used"] == 1
+
+
 @pytest.mark.parametrize(("command", "output", "source_line"), [
     ("rg needle .", "./case.md:42:needle\n", None),
     ("rg -Hn needle .", "./case.md:1:42:needle\n", 1),
@@ -111,6 +167,7 @@ def test_rg_numeric_body_prefix_is_not_an_invented_source_line(
     ("rg -H needle guide.md", "guide.md:guide.md:needle\n", "guide.md", None, "guide.md:needle"),
     ("rg --with-filename needle guide.md", "guide.md:guide.md:needle\n",
      "guide.md", None, "guide.md:needle"),
+    ("rg -H needle F", "F:/manual:needle\n", "F", None, "[redacted-path]"),
 ])
 def test_rg_explicit_filename_preserves_numeric_names_and_body_prefixes(
     tmp_path, command, output, ref, line, text,
@@ -228,24 +285,67 @@ def test_archive_requires_decision_after_visible_return_and_unique_locator(tmp_p
         import_search(campaign, archive_review=review, **inputs)
 
 
-def test_legacy_flag_remains_a_noncounting_declaration_in_archive(tmp_path):
+@pytest.mark.parametrize("status", ["used", "rejected"])
+def test_legacy_flag_remains_a_noncounting_declaration_in_archive(tmp_path, status):
     campaign = tmp_path / "campaign"
     create_campaign(campaign, "example")
     trace, corpus = tmp_path / "rollout.jsonl", tmp_path / "corpus"
     _real_read_trace(trace, corpus)
     review = _review(tmp_path / "review.json", decisions=[])
     path = import_search(campaign, number=1, trace=trace, lines=[2, 5],
-                         knowledge_root=corpus, used=[("case.md", 5)],
+                         knowledge_root=corpus, **{status: [("case.md", 5)]},
                          archive_review=review)
     record = json.loads(path.read_text(encoding="utf-8"))
     assert record["materials"]["case.md"]["use"] == "unknown"
     assert record["observed"]["used"] == 0
     assert record["declarations"] == [{
-        "ref": "case.md", "use": "used", "basis": "caller_flag_declaration",
+        "ref": "case.md", "use": status, "basis": "caller_flag_declaration",
         "decision_line": 5, "delivery_state": "visible",
     }]
     local = json.loads((campaign / "search/round-1.json").read_text(encoding="utf-8"))
-    assert local["materials"]["case.md"]["use"] == "used"
+    assert local["materials"]["case.md"]["use"] == status
+    original = path.read_bytes()
+    import_search(campaign, number=1, trace=trace, lines=[2, 5],
+                  knowledge_root=corpus, archive_review=review)
+    assert path.read_bytes() == original
+    assert json.loads((campaign / "search/round-1.json").read_text()) == local
+
+
+def test_explicit_flag_corrects_same_decision_but_retains_distinct_decisions(tmp_path):
+    campaign, corpus = tmp_path / "campaign", tmp_path / "corpus"
+    create_campaign(campaign, "example")
+    trace = tmp_path / "rollout.jsonl"
+    _real_read_trace(trace, corpus)
+    rows = [json.loads(line) for line in trace.read_text().splitlines()]
+    with trace.open("a", encoding="utf-8") as stream:
+        stream.write(json.dumps(rows[-1]) + "\n")
+    review = _review(tmp_path / "review.json", decisions=[])
+    inputs = {"number": 1, "trace": trace, "lines": [2, 6],
+              "knowledge_root": corpus, "archive_review": review, "complete": True}
+    path = import_search(campaign, used=[("case.md", 5)], **inputs)
+    local_path = campaign / "search/round-1.json"
+    import_search(campaign, rejected=[("case.md", 5)], **inputs)
+    local = json.loads(local_path.read_text())
+    archive = json.loads(path.read_text())
+    assert local["materials"]["case.md"]["use"] == "rejected"
+    assert local["counts"]["used"] == 0
+    assert [(d["use"], d["decision_line"]) for d in archive["declarations"]] == [("rejected", 5)]
+    import_search(campaign, used=[("case.md", 6)], **inputs)
+    local = json.loads(local_path.read_text())
+    archive = json.loads(path.read_text())
+    assert local["materials"]["case.md"]["use"] == "used_and_rejected"
+    assert local["counts"]["used"] == 1 and archive["counts"]["used"] == 0
+    assert {(d["use"], d["decision_line"]) for d in archive["declarations"]} == {
+        ("rejected", 5), ("used", 6),
+    }
+    original, local_original = path.read_bytes(), local_path.read_bytes()
+    import_search(campaign, **inputs)
+    assert path.read_bytes() == original and local_path.read_bytes() == local_original
+    _review(review, decisions=[_decision(ref="case.md", event_line=3,
+                                         decision_line=5, passage_line=99)])
+    with pytest.raises(ValueError, match="exact delivered source passage"):
+        import_search(campaign, used=[("case.md", 5)], **inputs)
+    assert path.read_bytes() == original and local_path.read_bytes() == local_original
 
 
 def test_archive_embeds_verified_quote_and_reimport_is_stable_and_correctable(tmp_path):
@@ -334,6 +434,27 @@ def _make_capture(tmp_path):
     document = json.loads(capture.read_text(encoding="utf-8"))
     output = assemble_context_text(document["contexts"])
     return campaign, output
+
+
+def test_indexer_passage_lines_do_not_split_form_feeds(tmp_path):
+    campaign = tmp_path / "campaign"
+    create_campaign(campaign, "example")
+    capture, _ = capture_context(campaign, context_id="r1", reader=_Reader("a\fb\nc\n"),
+                                 relevance="manual", context_bytes=4096)
+    document = json.loads(capture.read_text())
+    trace = tmp_path / "rollout.jsonl"
+    _capture_trace(trace, assemble_context_text(document["contexts"]), "I will use c.")
+    review = _review(tmp_path / "review.json", capture_returns={"r1": 2}, decisions=[
+        _decision(ref="package:manual", event_line=2, decision_line=3,
+                  passage_path="skills/manual/SKILL.md", passage_line=2,
+                  decision_quote="I will use c"),
+    ])
+    record = json.loads(import_search(
+        campaign, number=1, trace=trace, lines=[2, 3], knowledge_root=tmp_path / "corpus",
+        context_ids=["r1"], archive_review=review,
+    ).read_text())
+    evidence, = record["materials"]["package:manual"]["evidence"]
+    assert (evidence["passage_line"], evidence["passage_text"]) == (2, "c")
 
 
 def test_indexer_capture_is_prepared_and_unknown_without_return(tmp_path):

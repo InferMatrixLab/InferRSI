@@ -165,6 +165,13 @@ If a single operand's file/directory type is unknown, the event stays incomplete
 the importer does not infer its format from text that resembles a path or number.
 Without a line-number option, a numeric prefix such as
 `42:` remains part of the matched text, with no source line number inferred.
+Drive-qualified `rg` paths retain their drive prefix when parsed. Unnumbered
+Windows output that could also be a single-letter filename plus text is attributed
+only when the recorded scopes establish one interpretation; otherwise it stays partial.
+Source lines are counted at LF or CRLF boundaries; form feeds remain within
+their source line.
+In shell commands, an unquoted `#` starts a comment only at a word boundary;
+`guide#v2.md` remains one filename.
 A shell event establishes the command's recorded output;
 the outer agent tool may have displayed a shorter excerpt. The default local
 record keeps locators and omits source text, output and assistant replies. Multiline
@@ -207,7 +214,11 @@ retrievals require separate evidence. Review query text and paths before sharing
   rebuilds the snapshot without adding events. To attach a later decision or
   run, retain the same trace, start line, capture IDs and scope, and extend the
   end line if necessary before the next round starts. Separate rounds cannot
-  claim overlapping windows or the same retrieval.
+  claim overlapping windows or the same command event ID from one session,
+  even when duplicate events appear in disjoint windows.
+  Saved `--used` / `--rejected` claims survive reimport without repeated flags.
+  An explicit flag for the same material and decision line replaces the saved
+  status; claims at different decision lines remain distinct.
   An accepted declaration stays uncounted if an extended window only adds
   ordered observations after its decision; it does not block the closing import.
   Its reason becomes `no_prior_ordered_observation`: none of the currently
@@ -264,8 +275,9 @@ returns the portable file `search/archive/round-1.json`. The latter embeds
 the evidence selected by this review. Supply all intended decisions on each
 archive import. Existing `--used`, `--rejected` and optimization-log claims
 retain their local meaning. In the portable record they appear under
-`declarations`. Reviewed passage-to-decision links appear under
-`materials[ref].evidence` and contribute to its adopted-material count.
+`declarations`, including saved flags restored from the local round record.
+They do not count as reviewed adoption in the archive. Reviewed passage-to-decision
+links appear under `materials[ref].evidence` and contribute to its adopted-material count.
 If a source excerpt was redacted, its root normalized, or its text shortened,
 the adoption entry also carries `passage_redacted`, `passage_root_normalized`,
 or `passage_truncated`, respectively. Its `passage_text` is then a transformed

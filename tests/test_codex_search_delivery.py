@@ -1,6 +1,7 @@
 """Model-visible file delivery must be traceable to exact tool output."""
 
 import json
+from pathlib import PureWindowsPath
 
 import pytest
 
@@ -118,6 +119,41 @@ def test_rg_known_directory_or_multiple_operands_have_filename_prefixes(
     _, events, _, uncertain, _ = read_window(trace, (2, 4), corpus, archive=True)
     assert not uncertain
     assert events[0]["delivery"]["passages"] == [{"ref": ref, "line": 1, "text": "needle"}]
+
+
+@pytest.mark.parametrize("separator", ["/", "\\"])
+@pytest.mark.parametrize("mode", ["numbered_text", "numbered_context", "text"])
+def test_rg_drive_qualified_output(monkeypatch, separator, mode):
+    from inferrsi.harness import codex_search
+
+    # Exercise Windows path semantics on every host, without requiring a Windows drive.
+    monkeypatch.setattr(codex_search, "Path", PureWindowsPath)
+    corpus = PureWindowsPath("F:/corpus")
+    name = separator.join(["F:", "corpus", "case.md"])
+    output = f"{name}:2:needle\n" if mode != "text" else f"{name}:needle\n"
+    if mode == "numbered_context":
+        output = f"{name}-1-before\n" + output
+    rows, complete = codex_search._rg_observations(output, corpus, corpus, [name], mode, True)
+    assert complete
+    assert rows == [{"ref": "case.md", "line": None if mode == "text" else 2,
+                     "text": "needle", "output_line": 1 if mode == "numbered_context" else 0}]
+
+
+@pytest.mark.parametrize(("root", "output", "expected"), [
+    ("C:/tmp/corpus", "F:/manual:needle\n",
+     [{"ref": "F", "line": None, "text": "/manual:needle", "output_line": 0}]),
+    ("F:/corpus", "F:/manual:needle\n",
+     [{"ref": "F", "line": None, "text": "/manual:needle", "output_line": 0}]),
+    ("F:/corpus", "F:/corpus/F/manual:needle\n", []),
+])
+def test_windows_unnumbered_drive_or_single_letter_filename(monkeypatch, root, output, expected):
+    from inferrsi.harness import codex_search
+
+    monkeypatch.setattr(codex_search, "Path", PureWindowsPath)
+    corpus = PureWindowsPath(root)
+    rows, complete = codex_search._rg_observations(output, corpus, corpus, ["F"], "text", True)
+    assert rows == expected
+    assert complete is bool(expected)
 
 
 def test_sed_late_selected_line_survives_bounded_default_excerpt(tmp_path):

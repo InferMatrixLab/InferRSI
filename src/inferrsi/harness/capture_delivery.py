@@ -4,6 +4,7 @@ import hashlib
 import json
 
 from .campaign_records import _identifier
+from .codex_tool_returns import _output_lines
 from .dashboard_data import _inside, _relative_location, _text
 from .knowledge_capture import MAX_CONTEXT_CAPTURE_BYTES, assemble_context_text, verify_capture
 
@@ -124,7 +125,7 @@ def _capture_passages(doc, selections, visible):
                      for resource in context["resources"] if resource["path"] == path]
         if len(resources) != 1:
             raise ValueError("Indexer review must name one exact captured resource")
-        lines = resources[0]["content"].splitlines()
+        lines = _output_lines(resources[0]["content"])
         if line > len(lines) or not lines[line - 1]:
             raise ValueError("Indexer review source line is missing or empty")
         text = lines[line - 1]

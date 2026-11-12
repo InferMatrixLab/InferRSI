@@ -16,6 +16,16 @@ _MAX_JOIN_CHARS = 1_000_000
 _MAX_JOIN_LINES = 8_000
 
 
+def _output_lines(text, *, keepends=False):
+    """Split source/tool output on LF, preserving other control characters."""
+    lines = text.split("\n")
+    tail = lines.pop()
+    result = [line + "\n" if keepends else line.removesuffix("\r") for line in lines]
+    if tail:
+        result.append(tail)
+    return result
+
+
 def _path(value: object) -> Path | None:
     if not isinstance(value, str) or not value:
         return None
@@ -128,11 +138,11 @@ def _response_text(row):
 
 
 def _truncation_marker(aggregate, response):
-    for line in aggregate.splitlines():
+    for line in _output_lines(aggregate):
         if "tokens truncated" in line and ("…" in line or "..." in line):
             return True
-    aggregate_lines = set(aggregate.splitlines())
-    for line in response.splitlines():
+    aggregate_lines = set(_output_lines(aggregate))
+    for line in _output_lines(response):
         if (re.match(r"^\s*(?:Warning:\s*)?truncated output\b", line, re.I)
                 and line not in aggregate_lines):
             return True
@@ -151,8 +161,8 @@ def _match_output_lines(aggregate, response):
             response = response[header.end():]
     if max(len(aggregate), len(response)) > _MAX_JOIN_CHARS:
         return {}, None, "output_missing_or_too_large"
-    source = aggregate.splitlines(keepends=True)
-    returned = response.splitlines(keepends=True)
+    source = _output_lines(aggregate, keepends=True)
+    returned = _output_lines(response, keepends=True)
     if max(len(source), len(returned)) > _MAX_JOIN_LINES:
         return {}, None, "output_has_too_many_lines"
     truncated = _truncation_marker(aggregate, response)
@@ -255,7 +265,7 @@ def correlate_window(trace, commands, meta_cwd, window_lines):
             continue
         joins[event_id] = {
             "state": "visible", "runtime_truncated": truncated,
-            "line_indexes": indexes, "aggregate_lines": signature[3].splitlines(keepends=True),
+            "line_indexes": indexes, "aggregate_lines": _output_lines(signature[3], keepends=True),
             "return_line": return_line,
         }
     return joins

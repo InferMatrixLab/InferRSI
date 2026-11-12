@@ -67,6 +67,35 @@ def test_partial_or_missing_capture_does_not_report_zero(tmp_path):
         import_search(tmp_path, number=1, trace=trace, lines=[1, 3], knowledge_root=corpus)
 
 
+@pytest.mark.parametrize(("same_session", "same_event"), [
+    (True, True), (True, False), (False, True),
+])
+def test_disjoint_rounds_cannot_reuse_one_session_command(tmp_path, same_session, same_event):
+    create_campaign(tmp_path, "example")
+    trace, corpus = tmp_path / "rollout.jsonl", tmp_path / "knowledge"
+    rollout(trace, command(corpus, "rg -Hn key .", "guide.md:1:key\n", "search"),
+            command(corpus, "rg -Hn key .", "guide.md:1:key\n",
+                    "search" if same_event else "another-search"))
+    inputs = {"trace": trace, "knowledge_root": corpus, "complete": True}
+    first = import_search(tmp_path, number=1, lines=[2, 2], **inputs)
+    original = first.read_bytes()
+    assert json.loads(original)["counts"]["searches"] == 1
+    if not same_session:
+        rows = [json.loads(line) for line in trace.read_text().splitlines()]
+        rows[0]["payload"]["id"] = "another-session"
+        other_trace = tmp_path / "another-rollout.jsonl"
+        other_trace.write_text("".join(json.dumps(row) + "\n" for row in rows))
+        inputs["trace"] = other_trace
+    if same_session and same_event:
+        with pytest.raises(ValueError, match="command event.*another round"):
+            import_search(tmp_path, number=2, lines=[3, 3], **inputs)
+        assert not (tmp_path / "search/round-2.json").exists()
+    else:
+        second = import_search(tmp_path, number=2, lines=[3, 3], **inputs)
+        assert json.loads(second.read_text())["counts"]["searches"] == 1
+    assert first.read_bytes() == original
+
+
 def test_extend_live_window_and_keep_decision_on_retry(tmp_path):
     create_campaign(tmp_path, "example")
     trace, corpus = tmp_path / "rollout.jsonl", tmp_path / "knowledge"
