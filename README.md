@@ -51,7 +51,9 @@ The **offline harness-improvement MVP** adds a separate Skill Eval path for supp
 declarative candidates. Its fixed-output experiments validate the controller;
 real-model gains remain unmeasured. [Flow, limits and reproduction →](docs/harness-improvement.md)
 
-## Choose your starting path
+<a id="choose-your-starting-path"></a>
+
+## 🧭 Choose your starting path
 
 | You want to… | Start at |
 | --- | --- |
@@ -63,7 +65,7 @@ For every CLI/Python operation — discovery, normalized reads, store candidates
 
 <a id="results"></a>
 
-## InferRSI × vLLM-Omni: Performance Highlights and Trade-offs
+## 📊 InferRSI × vLLM-Omni: Performance Highlights
 
 InferRSI campaigns and upstream experiments cover image, video and speech models.
 Each result applies to its linked workload and measured revisions. Some results
@@ -91,7 +93,9 @@ Upstream PR statuses checked on 2026-11-12.
 
 </details>
 
-## Standalone engine benchmarks
+<a id="standalone-engine-benchmarks"></a>
+
+## 🧪 Standalone engine benchmarks
 
 ### Standalone video/audio engines
 
