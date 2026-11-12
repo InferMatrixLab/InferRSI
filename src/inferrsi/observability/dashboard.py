@@ -297,9 +297,12 @@ def dashboard_snapshot(source: Path, translations: Path | None = None) -> dict:
     source = Path(source).resolve()
     view = load_dashboard(source)
     if view.get("review_layout") == "profile_first":
-        from .profile_timeline import read_profiles
+        from .profile_timeline import pre_profile_searches, read_profiles
 
         view["profile_captures"], view["unavailable_profiles"] = read_profiles(source)
+        retrievals = {r["context_id"]: r for r in (view.get("story") or {}).get("retrievals", [])}
+        for capture in view["profile_captures"]:
+            capture["pre_profile_searches"] = pre_profile_searches(capture, retrievals)
     chart, chart_note = _chart(source, view)
     temporal, temporal_note = (("", "") if view.get("review_layout") == "profile_first"
                                else temporal_chart(view))

@@ -158,7 +158,8 @@ starts an agent or validates the experiment.
 
 Use `campaign init --profile-first` for a new profiled campaign, or set
 `"review_layout": "profile_first"` in an existing `campaign.json`.
-The live view and HTML export open with the performance trend. Below it are
+The live view and HTML export keep the performance trend visible. Other sections
+start collapsed; opening a capture reveals its prior searches and timeline. Below the trend are
 acceptance criteria, recorded request profiles, the baseline breakdown and
 target gap, each round's measurements, and adoption decisions. The trend uses each
 candidate's paired medians. For example, a target latency reduction of 50%
@@ -181,6 +182,28 @@ directory. Write a small UTF-8 review, for example:
 inferrsi campaign attach-profile --directory <campaign> --id baseline \
   --source profiles/baseline.chrome.json.gz --review baseline-review.json
 ```
+
+A reviewed profile can also include these optional fields:
+
+```json
+{"started_at":"2026-01-20T10:00:00Z","context_ids":["choose-scope"],
+ "timing":{"basis":"CUDA events on the pipeline stream",
+           "stages_ms":{"worker":51.4,"encode":7.1,"denoise":42.8}}}
+```
+
+Use the recorded profile start (with timezone) and only the IDs of knowledge
+captures relevant to this profile. The reader shows a search as prior evidence
+only if its capture verifies and its timestamp precedes the recorded start.
+It does not infer a baseline search from round 1. The search view shows the
+query, selection method, ordered results, what was loaded or used, omissions
+and the original assembled context. A missing link stays explicit.
+
+Supply named stage measurements from the same capture and label their clock
+and scope in `basis`. The history table compares columns only within the same
+workload, comparison key and timing basis. It leaves absent measurements blank,
+preserves nested stages, and does not sum them or substitute HTTP medians.
+Command durations for the experiment itself appear separately in round details.
+Older captures without these optional fields retain their timelines.
 
 Repeat after a measured change, with a new ID, `"phase":"candidate"` and the
 actual round number. Use the same comparison key only for the same hardware,
