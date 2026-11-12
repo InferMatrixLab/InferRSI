@@ -69,6 +69,9 @@ InferRSI campaigns and upstream experiments cover image, video and speech models
 Each result applies to its linked workload and measured revisions. Some results
 are reported directly by upstream contributors, with validation scoped to their benchmarks.
 
+<details>
+<summary>View model benchmarks and upstream PRs</summary>
+
 | Model | Hardware | Optimization approach | Measured gains | Validation and limits | Evidence | vLLM-Omni PR |
 | --- | --- | --- | --- | --- | --- | --- |
 | **Qwen-Image-2.1-Turbo** | 4× B300 | <ul><li>Text-conditioning reuse</li><li>BF16 operator fusion</li><li>Symmetric-memory Ulysses with batched QKV exchange</li></ul> | **384.16 → 266.60 ms (−30.60%)**<br>Warm HTTP end-to-end latency, repeated prompts | Historical InferRSI campaign. All 44 RGBA images were pixel-identical. | [Campaign #3](https://github.com/InferMatrixLab/InferRSI/issues/3) · [Pinned results](docs/qwen-image-2.1-turbo-b300.md) | [#8739](https://github.com/vllm-project/vllm-omni/pull/8739) (merged) |
@@ -85,6 +88,8 @@ are reported directly by upstream contributors, with validation scoped to their 
 TTFA is time to first audio. RTF is real-time factor.
 
 Upstream PR statuses checked on 2026-11-12.
+
+</details>
 
 ## Standalone engine benchmarks
 
