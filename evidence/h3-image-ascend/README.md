@@ -215,3 +215,14 @@ record the unchanged workload and source identity. The candidate was not
 adopted, and no final ABBA qualification was run. This experiment uses the
 older ad37f7f engine base; it does not requalify the 7f8395fed follow-up.
 Campaign acceptance remains **INCONCLUSIVE**, with all latency targets unmet.
+
+## Round thirteen: request-local text preparation
+
+Hoisting timestep-independent text projection and refinement preserved exact
+RGB output in all 30 matched images. The candidate path was confirmed active.
+Control W1/W2/W3 medians were 11.084/2.689/4.743 seconds, versus candidate
+11.035/2.786/4.733 seconds. W1/W3 differ by less than 0.5%, while W2 is slower;
+these sequential samples do not establish a consistent benefit.
+[Samples, source identity and quality checks](results/prepared-text-round13-result.json)
+use the current 7f8395fed base. The candidate was not adopted, and no final
+ABBA qualification was run. All latency targets remain unmet.
