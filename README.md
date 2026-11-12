@@ -6,7 +6,7 @@
 
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=flat-square)](pyproject.toml)
 [![CLI](https://img.shields.io/badge/Interface-CLI-14B8A6?style=flat-square)](docs/quickstart.md)
-[![vLLM-Omni PR](https://img.shields.io/badge/vLLM--Omni-Upstream_PR-8B5CF6?style=flat-square)](https://github.com/vllm-project/vllm-omni/pull/8739)
+[![vLLM-Omni contributions](https://img.shields.io/badge/vLLM--Omni-Contributions-8B5CF6?style=flat-square)](#results)
 
 [Why InferRSI](#why-inferrsi) · [How It Works](#how-it-works) · [Results](#results) · [Quickstart](#quickstart) · [Architecture](#architecture) · [Docs](#docs)
 
@@ -63,30 +63,26 @@ For every CLI/Python operation — discovery, normalized reads, store candidates
 
 <a id="results"></a>
 
-## 📊 From profiling to a 30.60% latency reduction
+## InferRSI x vLLM-Omni联合优化
 
-**Qwen-Image-2.1-Turbo · 4× NVIDIA B300 · 1280×704 · BF16 · Native 8 steps**
+InferRSI campaigns and upstream experiments cover image, video and speech models.
+Each result applies to its linked workload and measured revisions. Some results
+are reported directly by upstream contributors, with validation scoped to their benchmarks.
 
-| Baseline E2E | Optimized E2E | Image validation |
-| :---: | :---: | :---: |
-| **384.16 ms** | **266.60 ms** | **44/44 pixel-identical** |
+| Model and hardware | Measured result and validation | Evidence | vLLM-Omni PR |
+| --- | --- | --- | --- |
+| **Qwen-Image-2.1-Turbo** · 4× B300 | Warm repeated-prompt HTTP end-to-end latency **384.16 → 266.60 ms (−30.60%)** in the historical InferRSI campaign. All 44 RGBA images were pixel-identical. | [Campaign #3](https://github.com/InferMatrixLab/InferRSI/issues/3) · [Pinned results](docs/qwen-image-2.1-turbo-b300.md) | [#8739](https://github.com/vllm-project/vllm-omni/pull/8739) (merged) |
+| **Qwen-Image-2.1-Turbo** · 1× Ascend 910B1 | Upstream parent-to-merge comparison reported **22.20% lower warm repeated-prompt offline generation latency** and 18/18 pixel-identical RGBA images. Both arms aborted during teardown, leaving lifecycle `INCONCLUSIVE`. | [Earlier Ascend cohorts](docs/qwen-image-2.1-turbo-ascend.md) | [#8729](https://github.com/vllm-project/vllm-omni/pull/8729) (merged) |
+| **MiniMax-H3 Ref2VA** · 8× Ascend 910B1 | For 5 s video, the tuned lossy Cache-DiT profile cut HTTP end-to-end latency **407.27 → 108.12 s (−73.45%)** versus dense inference. All 14 frozen quality comparisons passed. | [Campaign #293](https://github.com/InferMatrixLab/InferRSI/issues/293) · [Pinned results](evidence/h3-ref2va-ascend-293/results/final-5s/README.md) | [#9698](https://github.com/vllm-project/vllm-omni/pull/9698) (draft) |
+| **MiniMax-H3 Ref2VA** · 4 logical Ascend 910C devices | One 5 s lossless screening pair with the migration and prefix-attention changes reported **291.25 → 286.67 s (−1.57%)** HTTP end-to-end. Strict quality checks passed for the screened candidate. Overall campaign `INCONCLUSIVE`. | [Campaign #297](https://github.com/InferMatrixLab/InferRSI/issues/297) · [Evidence PR #317](https://github.com/InferMatrixLab/InferRSI/pull/317) | [#9745](https://github.com/vllm-project/vllm-omni/pull/9745) (draft) |
+| **MiniMax-H3-Image** · 4× Ascend 910B1 | With VAE graphs enabled versus the same-layout SP4 control, single-launch HTTP medians went **16.89 → 10.82 s** for 4736×3552 generation, **4.18 → 2.67 s** for 1024×1024 generation, and **5.68 → 4.57 s** for 1024×1024 editing. All 30 numerical image screens passed. Latency targets were unmet and final qualification remains `INCONCLUSIVE`. | [Campaign #390](https://github.com/InferMatrixLab/InferRSI/issues/390) · [Evidence PR #394](https://github.com/InferMatrixLab/InferRSI/pull/394) | [#10184](https://github.com/vllm-project/vllm-omni/pull/10184) (open) |
+| **MiniMax-H3-Image** · 2× RTX 3090 | One upstream A/B of complete deployment profiles reported warm mean HTTP delivery **36.62 → 14.59 s (−60.16%)**. All nine paired images, including warmups, had identical decoded RGB pixels. Repeated qualification remains incomplete. | Benchmark and source pins in upstream PR | [#10243](https://github.com/vllm-project/vllm-omni/pull/10243) (open) |
+| **MiniCPM-o 4.5** · 1× L20X | Packed conditioning added to a tuned configuration raised C32 throughput **15.55%** and reduced median time to first audio **27.69%** at the same 50-frame window in a historical screen. In a separate comparison, the optional TensorRT speaker + MPS profile raised throughput **20.5% at C16** and **25.4% at C32**, with speech quality verdict `FAIL`. | [Campaign #49](https://github.com/InferMatrixLab/InferRSI/issues/49) | [#9218](https://github.com/vllm-project/vllm-omni/pull/9218), [#9188](https://github.com/vllm-project/vllm-omni/pull/9188) (both merged) |
+| **Qwen3-Omni** · 2× L20X | One MRv2 codec-autotuning pilot at C64 reported **7.79% higher throughput**, **6.06% lower mean real-time factor**, and **7.12% higher median time to first audio**. Campaign `INCONCLUSIVE`. | [Campaign #112](https://github.com/InferMatrixLab/InferRSI/issues/112) · [Pinned pilot](https://github.com/InferMatrixLab/InferRSI/tree/e1ae256fc075ea9ab64aec68da749cf4a8c22ac7/evidence/qwen3-omni-2gpu-20261023/results/pr9283-cudnn-performance) | [#9283](https://github.com/vllm-project/vllm-omni/pull/9283) (draft) |
+| **LFM3-Omni-2B** · 1× Ascend 910B1 | Upstream offline Omni API A/B with depth graphs and grouped sampling reported **0.285 → 0.593 requests/s** at C4 and temperature 0. Retained audio waveforms matched bit-for-bit within each tested temperature. | Benchmark and source pins in upstream PR | [#9827](https://github.com/vllm-project/vllm-omni/pull/9827) (merged) |
+| **LingBot-World** · 4× Ascend 910C1 | Upstream AB/BA benchmark reported full-request latency **108.29 → 103.89 s (−4.06%)** with whole-block KV gather. Pre-codec tensors and decoded RGB frames matched exactly. | Benchmark and source pins in upstream PR | [#8112](https://github.com/vllm-project/vllm-omni/pull/8112) (merged) |
 
-Recorded local campaign: five alternating AB/BA groups, warmed repeated prompts with new seeds, and complete RGBA PNG responses. Accuracy checks cover 40 formal images and 4 held-out images. Latencies are medians of trial means for this workload.
-
-[Results, source pins & every iteration →](docs/qwen-image-2.1-turbo-b300.md) · [Acceptance issue](https://github.com/InferMatrixLab/InferRSI/issues/3) · [Upstream PR](https://github.com/vllm-project/vllm-omni/pull/8739)
-
-### Ascend NPU: up to 22.0% reported latency reduction
-
-**Qwen-Image-2.1-Turbo · 1× Ascend 910B1 · 1280×704 · BF16 · Native 8 steps · eager**
-
-| Optimization | Mean vs 3111.5 ms baseline | Reported image validation |
-| --- | :---: | --- |
-| Conditioning reuse + interleaved RoPE | **2459.6 ms (−21.0%)** | Pixel-identical RGBA |
-| + opt-in VAE fastpath | **2425.5 ms (−22.0%)** | Quality gate passed; not pixel-identical |
-
-Author-reported means from three requests after two warmups; not independently verified by this import. **The 30% target is not met.** The B300 and NPU cohorts use separate hardware and measurement protocols.
-
-[Ascend measurements and rejected rounds →](docs/qwen-image-2.1-turbo-ascend.md) · [Upstream NPU patch](https://github.com/vllm-project/vllm-omni/pull/8729)
+## Standalone engine benchmarks
 
 ### Standalone video/audio engines
 
