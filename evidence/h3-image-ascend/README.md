@@ -242,3 +242,19 @@ merged fc1 loader performs chunked writes, making load order a plausible
 explanation for prior NZ failures. [Probe results and limitations](results/nz-load-order-diagnosis.json)
 also preserve the failed diagnostic attempt. Conversion after loading is being
 qualified separately; these findings do not establish an end-to-end speedup.
+
+## Round sixteen: NZ conversion after loading
+
+Deferring MLP weight conversion until after checkpoint loading restored exact
+RGB output in all 30 matched images. Four ranks each confirmed conversion of
+100 populated projection weights. Control W1/W2/W3 medians were
+10.842/2.480/4.191 seconds, versus candidate 10.727/2.556/4.065 seconds.
+These mixed results do not establish a consistent overall benefit, and the
+candidate was not adopted. [Samples and all quality checks](results/postload-nz-round16-result.json)
+retain the source identity and protocol. Final ABBA qualification was not run;
+all latency targets remain unmet.
+
+A separate transposed-storage linear probe tested 18 cases using actual weights
+and repeated captured activation samples. Twelve were exact; all six 1108-row
+cases differed, and most cases were slower. [Component measurements](results/linear-transposed-storage-probe.json)
+therefore did not lead to integration or an HTTP trial.
