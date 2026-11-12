@@ -69,6 +69,55 @@ recipe. Imported source material supplies evidence, not execution authority.
 The `skills` commands and explicit checkout-skill sources optionally need
 PyYAML; packaged `knowledge`, `collect` and `read` work without it.
 
+### Consult MindIE for unresolved Ascend questions
+
+Assess each question independently. Consult MindIE only when the question
+needs evidence and its answer depends on Ascend hardware or software, such as
+CANN, torch_npu, vllm-ascend, Ascend Triton or SoC behavior. This applies during
+research, diagnosis, planning, implementation and review, including
+knowledge-only tasks.
+
+Use the usual framework sources first for generic framework questions.
+A miss in those sources, or an Ascend topic elsewhere in the conversation or
+workspace, does not establish an Ascend dependency. Without that dependency,
+continue with the usual sources rather than querying MindIE. For a mixed
+question, query MindIE only for its Ascend-dependent part. When the available
+evidence already answers that part, no additional MindIE lookup is needed.
+
+Use the project's `knowledge_query` and `knowledge_explain` MCP tools if
+present. Otherwise, run `mindie describe` through the bundled local launcher
+in the target checkout to discover the existing project grant, then use
+`mindie query --input <json>` and `mindie explain --input <json>` there.
+The operator enables a synced domain once per checkout. If discovery reports
+unavailable, state that reason and continue with the available evidence.
+
+The CLI input file contains the tool arguments directly:
+
+- Query: `{"query":"<question>","conditions":{}}`.
+- Explain: `{"refs":["<versioned-ref-from-query>"],"conditions":{},"known_refs":[]}`.
+
+Populate `conditions` from the task. Queries also accept `limit` and
+`include_unknown`; both reads accept `token_budget`. The CLI creates receipts
+automatically and returns `receipt_directory` in its response.
+
+Form the query from the unresolved question and known task conditions; leave
+unknown conditions explicit. Select relevant exact versioned refs from the
+returned cards. Read selected bodies and their delivered prerequisites via
+explain before relying on them; search cards alone are not supporting evidence.
+Unknown applicability requires checking against the task before relying on a
+body. Include in `known_refs` only exact versions whose full bodies are still
+visible. If no applicable card is found or a read fails, state the outcome and
+continue with the evidence available to you.
+
+Explain which conclusion or decision each delivered versioned ref supports,
+preserving its applicability limits. The CLI stores query and explain receipts
+under `~/.config/inferrsi/mindie-projects/reads/<project-hash>/`; do not copy
+them into the source checkout. A knowledge-only answer does not require creating
+a candidate or campaign. A knowledge read authorizes only the approved local
+knowledge operation.
+
+### Record research and campaign evidence
+
 When the requested deliverable includes an optimization dashboard or a
 replayable campaign trace, record the research as the work happens. Preserve
 the selected queries, exact revisions, source order, omissions and the complete
@@ -104,6 +153,22 @@ identifiers intact; a translation is not the original evidence. Explicitly leave
 unsupported or unavailable translations in their original language.
 
 ## Prepare and run a comparison
+
+Before editing a candidate, record whether to consult MindIE and the reason
+under the research guidance above. Use the same agent for the read and the
+edit. Record which delivered versioned ref informed a concrete implementation
+choice, with the resulting file or change. For campaign evidence, pass each
+receipt's `input.json`, `result.json` and exit code to `campaign import-mindie`.
+Review the delivered bodies and the per-candidate trace, then use
+`campaign assemble-trace` and
+`campaign record` to associate the trace with the round, frozen candidate and
+independent run. InferRSI owns execution and evaluation.
+
+Retain a separate candidate source snapshot before evaluating it. Commands must
+run that snapshot, even after the generation workspace changes. Inspect actual
+run source hashes and quality/timing evidence; a candidate ID or agent narrative
+does not prove which bytes ran. See `docs/codex-plugin.md` for MindIE setup and
+candidate trace association.
 
 Consult `plan --help` and `run --help` to build the current runtime's invocation.
 Reuse the user's benchmark and quality scripts, workload, accepted revisions,
