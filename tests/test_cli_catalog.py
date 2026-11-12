@@ -17,6 +17,7 @@ from inferrsi import catalog
 from inferrsi.arguments import make_spec, parser
 from inferrsi.catalog import get_knowledge, knowledge_records, repository_pack, search_knowledge
 from inferrsi.cli import main
+from inferrsi.knowledge import catalog as knowledge_catalog
 
 PROJECT = Path(__file__).resolve().parents[1]
 SOURCE_REPOSITORIES = {
@@ -186,7 +187,8 @@ def test_misfiled_or_overstated_record_cannot_leak_into_context(
     )
     destination.parent.mkdir(parents=True)
     destination.write_text(json.dumps(record))
-    monkeypatch.setattr(catalog, "files", lambda _: tmp_path)
+    # Patch implementation globals; the root module is a static re-export shell.
+    monkeypatch.setattr(knowledge_catalog, "files", lambda _: tmp_path)
     with pytest.raises(ValueError, match=error):
         search_knowledge(backend="cuda", scenario="diffusion.image_generation")
 

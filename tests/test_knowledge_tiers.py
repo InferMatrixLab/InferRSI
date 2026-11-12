@@ -10,6 +10,7 @@ from inferrsi import catalog
 from inferrsi.arguments import parser
 from inferrsi.catalog import get_knowledge, repository_pack, search_knowledge
 from inferrsi.cli import main
+from inferrsi.knowledge import catalog as knowledge_catalog
 
 ROOT = Path(__file__).resolve().parents[1] / "src/inferrsi/data/knowledge_packs"
 
@@ -86,7 +87,8 @@ def test_misclassified_external_card_is_rejected_before_retrieval(
     )
     target.parent.mkdir(parents=True)
     target.write_text(json.dumps(record))
-    monkeypatch.setattr(catalog, "files", lambda _: tmp_path)
+    # Patch implementation globals; the root module is a static re-export shell.
+    monkeypatch.setattr(knowledge_catalog, "files", lambda _: tmp_path)
     with pytest.raises(ValueError, match="tier disagrees"):
         search_knowledge(tier="contribution")
 

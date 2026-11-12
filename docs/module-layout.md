@@ -1,7 +1,9 @@
 # Target module layout
 
-This page records the directory rule for the integration slice. It is not an
-implemented migration. No package has been created or moved to satisfy it.
+This page records the directory rule for the integration slice. Only the
+first-wave Knowledge move (K01) is implemented: `src/inferrsi/knowledge/` holds
+the seven moved Knowledge bodies, and the old root modules are static
+compatibility shells. No other package has been created or moved to satisfy it.
 #371 remains the proposal for the Apps package path and is not accepted here.
 
 ## Target modules
@@ -56,7 +58,7 @@ Several flat modules remain shared seams until their slice starts.
 | Current path | Tentative reading | This slice |
 | --- | --- | --- |
 | `cli.py`, `arguments.py`, `__main__.py` | Future Apps entry, after #371 | Not moved |
-| `knowledge_operations.py`, `knowledge_store.py`, `catalog.py`, `research.py`, `skill_catalog.py`, `_skill_selection.py` | Knowledge behavior and corpus readers | Interfaces unchanged |
+| `knowledge_operations.py`, `knowledge_store.py`, `catalog.py`, `research.py`, `skill_catalog.py`, `_skill_selection.py`, `_source_snapshot.py` | Static compatibility shells since K01; bodies in `knowledge/` | Interfaces unchanged |
 | `harness/` | Mixed legacy tree, not target isolation | Not redefined |
 | `evaluation.py`, `model/validators/` | Benchmark-leaning checks | Not moved |
 | `infra/`, `execution.py`, `runspec.py`, `inspection.py` | Seams used by the current tree | Not a fourth core |
@@ -76,9 +78,10 @@ absolute name such as `from .bar import VALUE` inside `knowledge/`. Each forbidd
 importer and target pair is reported once. The only exceptions are the exact
 first-wave pairs below, read from `docs/legacy-knowledge-manifest.json`.
 
-"There is no exception list of current edges" describes today's tree: the
-three package names are unused, so no current edge needs an exception and the
-violation list is empty. It is not a permanent ban on reviewed exceptions.
+"There is no exception list of current edges" described the tree before K01,
+when the three package names were unused and no current edge needed an
+exception. It was never a permanent ban on reviewed exceptions; since K01 the
+exact first-wave pairs below are the only exceptions.
 
 The gate scans `src/inferrsi/**` as the transfer graph. It resolves absolute,
 relative, and `from package import name` imports, includes the parent-package
@@ -176,9 +179,11 @@ The manifest records the base commit, each old leaf's file hash at that
 commit, export names, audited definitions, consumer evidence, catalog's two
 symbol routes, the required `infra.inspection` import rewrite, and the
 original `REPO_TYPES` / `repository_pack` fragment from `catalog.py` with its
-hash. `_repo_pack_data.py` does not exist yet; K01 creates it and locks its
-full-file hash. K01 re-verifies every recorded hash against its own base and
-re-reviews the manifest if any differ.
+hash. K01 created `_repo_pack_data.py`, and the manifest locks its full-file
+hash. K01 re-verified every recorded hash against its own base. Two leaves
+had changed after P0b, so K01 re-recorded all seven hashes at its base and
+keeps the P0b values in `revision_history`; that revision goes through formal
+review with the move.
 
 ## Old `run` exit codes
 

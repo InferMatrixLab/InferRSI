@@ -377,7 +377,8 @@ class ClosedLoopTest(unittest.TestCase):
         self.assertIn("evaluate", calls)
         self.assertNotIn("search_knowledge", calls)
         self.assertNotIn("collect", calls)
-        knowledge = _import_modules(ROOT / "src/inferrsi/knowledge_operations.py")
+        # The root module is a static shell; check the implementation's imports.
+        knowledge = _import_modules(ROOT / "src/inferrsi/knowledge/knowledge_operations.py")
         harness = _import_modules(ROOT / "src/inferrsi/harness/scenarios/external.py")
         self.assertFalse(any("harness" in name or "evaluation" in name for name in knowledge))
         self.assertFalse(any("knowledge" in name or "evaluation" in name for name in harness))

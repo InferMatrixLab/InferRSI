@@ -173,6 +173,8 @@ def test_stale_head_and_unsupported_schema_fail():
     "docs/reference-matrix.md", "docs/searchspace-matrix.md", "docs/knowledge-base.md",
     "docs/knowledge-operations.md", "docs/knowledge-store.md", "src/inferrsi/catalog.py",
     "src/inferrsi/skill_catalog.py", "src/inferrsi/knowledge_operations.py",
+    "src/inferrsi/knowledge/catalog.py", "src/inferrsi/knowledge/skill_catalog.py",
+    "src/inferrsi/knowledge/knowledge_operations.py",
 ])
 def test_explicit_protected_paths_require_declarations(policy, path):
     item = pr()
