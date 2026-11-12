@@ -45,12 +45,15 @@ means the call did not confirm success, not proof that no directory exists.
 
 ## Port response validation and references
 
-Malformed binder or Harness return values become a validation-stage
-InvalidExecutionSpec result with exit code 2. Apps-generated errors distinguish
+Malformed binder or Harness return values become an InvalidExecutionSpec result
+(exit code 2) whose error.stage names the boundary. Apps-generated errors distinguish
 binder_validation from harness_response_validation in error.stage. The latter
 means the reply contract was violated, not that the submitted spec was invalid
 or that execution did not start: started remains null and automatic retry is
-not implied. Existing v1 codes are retained rather than adding a core enum
+not implied. Exit code 2 alone cannot distinguish invalid input from a Harness
+reply-contract violation and is not evidence that execution never started;
+callers must inspect error.stage and preserve the original attempt when reconciling.
+Existing v1 codes are retained rather than adding a core enum
 unilaterally; this Apps stage mapping remains a proposal for owner acceptance.
 Valid core PublicError stages are preserved. Raised typed PublicError is handled
 as a port error. Other host exceptions remain exceptions: these are programming
