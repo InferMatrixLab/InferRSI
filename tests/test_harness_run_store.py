@@ -704,7 +704,7 @@ def test_publish_fsyncs_prefix_and_objects_including_reuse(tmp_path: Path, monke
         first = list(calls)
         assert first == [prefix, objects]
         calls.clear()
-        # The same content address is reused; the prefix entry must still be fsync'd.
+        # The same content address is reused; prefix and objects/ must still be fsync'd.
         other = make_attempt()
         other_digest = make_digest(other)
     with store.claim(other, other_digest) as claim:
@@ -712,7 +712,7 @@ def test_publish_fsyncs_prefix_and_objects_including_reuse(tmp_path: Path, monke
             make_payload(other, other_digest, 1, "finished", artifact_ref=ref),
             [(ref, ARTIFACT)],
         )
-    assert calls == [prefix]
+    assert calls == [prefix, objects]
 
 
 def test_commit_does_not_append_when_directory_fsync_fails(
@@ -773,3 +773,57 @@ def test_explicit_claim_release_is_idempotent(tmp_path: Path) -> None:
     del claim
     gc.collect()
     assert held() is None
+
+
+def test_retry_after_objects_fsync_failure_still_requires_parent_barrier(
+    tmp_path: Path, monkeypatch
+) -> None:
+    # A persistent objects/ fsync failure must still block append on retry/reuse;
+    # after the injection is lifted, a successful retry must include that barrier.
+    store = _store(tmp_path)
+    objects = store.root / "objects"
+    calls: list[Path] = []
+    fail_objects = True
+
+    def hooked(path: Path) -> None:
+        calls.append(Path(path))
+        if fail_objects and Path(path) == objects:
+            raise OSError(errno.EIO, "injected directory fsync failure")
+
+    monkeypatch.setattr(run_store, "_fsync_directory", hooked)
+    attempt = make_attempt()
+    digest = make_digest(attempt)
+    ref = run_store.artifact_ref(NAMESPACE, ARTIFACT, ARTIFACT_MEDIA_TYPE)
+    prefix = store.root / "objects" / ref["sha256"][:2]
+    claim = store.claim(attempt, digest)
+    try:
+        with pytest.raises(PublicError, match="record commit failed"):
+            claim.commit(
+                make_payload(attempt, digest, 1, "finished", artifact_ref=ref),
+                [(ref, ARTIFACT)],
+            )
+        assert claim.latest_record_ref is None
+        assert _rows(store, "SELECT COUNT(*) FROM records") == [(0,)]
+        assert calls == [prefix, objects]
+        # Same live Claim, same version, injection still installed: reuse must
+        # not skip the parent barrier and must not append.
+        calls.clear()
+        with pytest.raises(PublicError, match="record commit failed"):
+            claim.commit(
+                make_payload(attempt, digest, 1, "finished", artifact_ref=ref),
+                [(ref, ARTIFACT)],
+            )
+        assert claim.latest_record_ref is None
+        assert _rows(store, "SELECT COUNT(*) FROM records") == [(0,)]
+        assert calls == [prefix, objects]
+        fail_objects = False
+        calls.clear()
+        committed = claim.commit(
+            make_payload(attempt, digest, 1, "finished", artifact_ref=ref),
+            [(ref, ARTIFACT)],
+        )
+        assert committed.record_ref is not None
+        assert _rows(store, "SELECT COUNT(*) FROM records") == [(1,)]
+        assert calls == [prefix, objects]
+    finally:
+        claim.release()

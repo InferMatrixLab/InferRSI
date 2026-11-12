@@ -276,17 +276,26 @@ def _is_regular_file(path: Path) -> bool:
     return stat.S_ISREG(st.st_mode)
 
 
+def _fsync_published(prefix: Path, objects: Path) -> None:
+    """Make the prefix entry and its objects/ parent entry durable.
+
+    Mere existence of the prefix is not proof that the objects/ directory
+    entry survived; every successful publication or reuse must fsync both.
+    """
+    _fsync_directory(prefix)
+    _fsync_directory(objects)
+
+
 def _publish(temp: Path, final: Path) -> None:
     """Atomically place bytes at a content address without following links or overwriting.
 
     A non-regular occupant is rejected so commit cannot return a ref that open
     would refuse. Directory entries are fsync'd before the caller appends a
-    SQLite record: the prefix after a rename or reuse, and objects/ when the
-    prefix directory was created in this call.
+    SQLite record: the hash prefix and objects/ after every successful rename
+    or reuse acknowledgment.
     """
     prefix = final.parent
     objects = prefix.parent
-    created_prefix = False
     try:
         mode = os.lstat(prefix).st_mode
         if not stat.S_ISDIR(mode):
@@ -294,10 +303,9 @@ def _publish(temp: Path, final: Path) -> None:
             raise _StorageFault("object prefix is not a regular directory")
     except FileNotFoundError:
         prefix.mkdir(exist_ok=True)
-        created_prefix = True
     if _is_regular_file(final):
         temp.unlink()
-        _fsync_directory(prefix)
+        _fsync_published(prefix, objects)
         return
     try:
         os.lstat(final)
@@ -315,13 +323,9 @@ def _publish(temp: Path, final: Path) -> None:
             raise _StorageFault("object path is not a regular file")
         temp.unlink(missing_ok=True)
     else:
-        _fsync_directory(prefix)
-        if created_prefix:
-            _fsync_directory(objects)
+        _fsync_published(prefix, objects)
         return
-    _fsync_directory(prefix)
-    if created_prefix:
-        _fsync_directory(objects)
+    _fsync_published(prefix, objects)
 
 
 def _file_digest(path: Path) -> tuple[str, int]:
