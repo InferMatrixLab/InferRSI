@@ -294,3 +294,12 @@ component cases. Native FP16 attention with conversion and power-of-two scaling
 also failed to improve the large sequence and was non-exact.
 [Samples and source hashes](results/attention-head-batch-and-fp16.json) retain
 these synthetic checks; neither variant entered an HTTP trial.
+
+## Final-step FIA round 19
+
+Using FIA only in the last of six denoising steps passed all 30 numerical
+image checks (minimum PSNR 45.50 dB, SSIM 0.997486). Latency remained mixed:
+candidate W1/W2/W3 medians were 11.047/2.726/4.584s versus control
+10.949/2.745/4.743s. [Samples, quality checks and source identity](results/fia-final-step-round19-result.json)
+record the completed comparison. The candidate was not adopted; visual and
+final ABBA qualification were not performed, and all targets remain unmet.
