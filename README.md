@@ -63,7 +63,7 @@ For every CLI/Python operation — discovery, normalized reads, store candidates
 
 <a id="results"></a>
 
-## InferRSI × vLLM-Omni optimization results
+## InferRSI × vLLM-Omni: Standout Performance Gains
 
 InferRSI campaigns and upstream experiments cover image, video and speech models.
 Each result applies to its linked workload and measured revisions. Some results
