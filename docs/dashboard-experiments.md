@@ -98,7 +98,9 @@ External `configuration` requires the following explicit values:
 }
 ```
 
-All fields except positive integer `batch` are nonempty strings. `shape` explicitly
+All fields except positive integer `batch` are nonempty strings. Whitespace-only
+values (including Unicode whitespace) are unknown for both required and optional
+string fields and cannot form a comparable series. `shape` explicitly
 identifies resolution/tile/input shape for the workload; use a recorded
 `not_applicable` value only when the adapter can establish that fact. Optional
 `server_profile`, `runtime` and `measurement_protocol` also participate when
@@ -168,6 +170,7 @@ pytest tests/test_dashboard_experiments_browser.py
 [Chinese screenshot](assets/dashboard-experiments-zh.png) ·
 [Evidence detail](assets/dashboard-experiments-evidence.png) ·
 [Narrow screen](assets/dashboard-experiments-mobile.png) ·
+[Blank configuration regression](assets/dashboard-experiments-blank-config.png) ·
 [Offline HTML example](examples/dashboard-experiments.html).
 All shown numbers and identities are synthetic. These artifacts demonstrate the
 visualization, not accelerator performance or campaign PASS. Browser checks

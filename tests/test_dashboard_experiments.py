@@ -220,3 +220,24 @@ def test_external_event_ids_survive_reorder_only_when_explicit(campaign):
     after = ids()
     assert before["First"] == after["First"]
     assert before["Second"] != after["Second"]
+
+
+@pytest.mark.parametrize("field", [
+    "model", "model_revision", "shape", "precision", "hardware", "protocol",
+    "server_profile", "runtime", "measurement_protocol",
+])
+@pytest.mark.parametrize("blank", ["", "   ", "\t\r\n", "\u00a0\u2003"])
+def test_blank_external_configuration_keeps_points_without_joining(tmp_path, field, blank):
+    FIXTURE["write"](tmp_path / "campaign.json", {"campaign_id": "synthetic-blank-config"})
+    for round_number in (1, 2):
+        metric = FIXTURE["metric"](value=8 + round_number)
+        metric["configuration"][field] = blank
+        FIXTURE["external"](tmp_path, f"blank-{round_number}", round_number, [metric])
+    projected = points(tmp_path)
+    assert len(projected) == 2
+    assert [p["value"] for p in projected] == [9, 10]
+    for p in projected:
+        assert p["plot_reasons"] == []  # Values and axes still support independent points.
+        assert p["series_id"] is None
+        assert f"unknown configuration: {field}" in p["comparison_reasons"]
+        assert field not in p["configuration"]

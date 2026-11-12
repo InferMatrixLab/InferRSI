@@ -170,3 +170,46 @@ def test_profile_layout_preserves_partial_summary_and_keyboard_drilldown(browser
     assert "123 s is narrative, not data" in page.locator("#original-summary-body").inner_text()
     assert not errors
     page.close()
+
+
+@pytest.mark.parametrize("field", ["hardware", "protocol", "server_profile"])
+@pytest.mark.parametrize("profile_first", [False, True])
+def test_blank_configuration_renders_isolated_points_and_reason(
+    browser, tmp_path, field, profile_first,
+):
+    FIXTURE["write"](tmp_path / "campaign.json", {
+        "campaign_id": "synthetic-blank-config", "synthetic": True,
+        **({"review_layout": "profile_first"} if profile_first else {}),
+    })
+    for round_number in (1, 2):
+        metric = FIXTURE["metric"](value=8 + round_number)
+        metric["configuration"][field] = "   "
+        FIXTURE["external"](tmp_path, f"blank-{round_number}", round_number, [metric])
+        control = FIXTURE["metric"]("W2", value=8 + round_number)
+        FIXTURE["external"](tmp_path, f"control-{round_number}", round_number, [control])
+    path = tmp_path / "dashboard.html"
+    path.write_text(render_dashboard(dashboard_snapshot(tmp_path)))
+    page = browser.new_page()
+    errors = []
+    page.on("pageerror", lambda e: errors.append(str(e)))
+    try:
+        page.goto(path.as_uri())
+        if profile_first:
+            page.locator("#language").click()
+        root = page.locator("#summary-experiments")
+        root.locator('[data-xp-control="workload"]').select_option("W1")
+        for panel in (root, page.locator("#chart")):
+            assert panel.locator(".xp-point").count() == 2
+            assert panel.locator(".xp-segment").count() == 0
+        root.locator('.xp-point[aria-label^="blank-1"]').focus()
+        detail = root.locator(".xp-detail")
+        assert f"unknown configuration: {field}" in detail.inner_text()
+        assert "9 s" in detail.inner_text()
+        root.locator('[data-xp-table] summary').click()
+        assert f"unknown configuration: {field}" in root.get_by_role("table").inner_text()
+        root.locator('[data-xp-control="workload"]').select_option("W2")
+        assert root.locator(".xp-point").count() == 2
+        assert root.locator(".xp-segment").count() == 1
+        assert not errors
+    finally:
+        page.close()

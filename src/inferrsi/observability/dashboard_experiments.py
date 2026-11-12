@@ -48,7 +48,7 @@ def external_dimensions(metric: dict) -> dict:
     for key in allowed:
         if key in config:
             value = config[key]
-            if key != "batch" and isinstance(value, str) and value and _text(value) == value:
+            if key != "batch" and label(value) is not None:
                 cleaned[key] = value
             elif key == "batch" and type(value) is int and value > 0:
                 cleaned[key] = value
