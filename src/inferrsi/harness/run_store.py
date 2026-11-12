@@ -303,6 +303,12 @@ def _publish(temp: Path, final: Path) -> None:
             raise _StorageFault("object prefix is not a regular directory")
     except FileNotFoundError:
         prefix.mkdir(exist_ok=True)
+        # mkdir(exist_ok=True) follows a symlink-to-dir planted after the first
+        # lstat; require a real directory before any replace or reuse.
+        mode = os.lstat(prefix).st_mode
+        if not stat.S_ISDIR(mode):
+            temp.unlink(missing_ok=True)
+            raise _StorageFault("object prefix is not a regular directory")
     if _is_regular_file(final):
         temp.unlink()
         _fsync_published(prefix, objects)
@@ -316,12 +322,18 @@ def _publish(temp: Path, final: Path) -> None:
         raise _StorageFault("object path is not a regular file")
     try:
         os.replace(temp, final)
-    except OSError:
+    except OSError as exc:
         # A concurrent writer may have published the same content first.
-        if not _is_regular_file(final):
-            temp.unlink(missing_ok=True)
-            raise _StorageFault("object path is not a regular file")
         temp.unlink(missing_ok=True)
+        if _is_regular_file(final):
+            pass
+        else:
+            try:
+                os.lstat(final)
+            except FileNotFoundError:
+                # The destination was never created; keep ENOSPC/EIO/etc.
+                raise exc
+            raise _StorageFault("object path is not a regular file") from exc
     else:
         _fsync_published(prefix, objects)
         return

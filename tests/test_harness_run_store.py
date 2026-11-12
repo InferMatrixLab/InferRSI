@@ -827,3 +827,41 @@ def test_retry_after_objects_fsync_failure_still_requires_parent_barrier(
         assert calls == [prefix, objects]
     finally:
         claim.release()
+
+
+def test_publish_rejects_a_non_directory_prefix_after_mkdir(
+    tmp_path: Path, monkeypatch
+) -> None:
+    # mkdir(exist_ok=True) must not accept a non-directory planted after the first lstat.
+    temp = tmp_path / "incoming.tmp"
+    temp.write_bytes(ARTIFACT)
+    final = tmp_path / "aa" / ("ab" * 32)
+    prefix = final.parent
+    original = Path.mkdir
+
+    def planted(self, *args, **kwargs):
+        if self == prefix:
+            self.write_bytes(b"not-a-directory")
+            return None
+        return original(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "mkdir", planted)
+    with pytest.raises(run_store._StorageFault, match="object prefix is not a regular directory"):
+        run_store._publish(temp, final)
+
+
+def test_publish_preserves_replace_errno_when_destination_is_absent(
+    tmp_path: Path, monkeypatch
+) -> None:
+    temp = tmp_path / "incoming.tmp"
+    temp.write_bytes(ARTIFACT)
+    final = tmp_path / "aa" / ("ab" * 32)
+    final.parent.mkdir()
+
+    def boom(src, dst):
+        raise OSError(errno.ENOSPC, "injected no space")
+
+    monkeypatch.setattr(os, "replace", boom)
+    with pytest.raises(OSError) as caught:
+        run_store._publish(temp, final)
+    assert caught.value.errno == errno.ENOSPC
