@@ -256,6 +256,119 @@ def test_a_lane_needing_two_devices_waits_until_it_can_hold_both(tmp_path):
     assert stamp.read_text(encoding="utf-8") == "1,2"
 
 
+def test_prepare_rejects_bad_repeats_margin_and_timeout(tmp_path):
+    incumbent = tmp_path / "incumbent"
+    _tree(incumbent, "10")
+    base = {"name": "latency_ms", "better": "lower"}
+    for extra, message in (
+        ({"repeats": 0}, "repeats"),
+        ({"repeats": True}, "repeats"),
+        ({"margin": -0.1}, "margin"),
+        ({"margin": float("nan")}, "margin"),
+        ({"spread": 1}, "metric needs"),
+    ):
+        with pytest.raises(RoundPlanError, match=message):
+            prepare(_spec(metric={**base, **extra}), incumbent, tmp_path / "round-metric")
+    for timeout in (0, -1, "30", float("inf")):
+        with pytest.raises(RoundPlanError, match="command_timeout_seconds"):
+            prepare(_spec(command_timeout_seconds=timeout), incumbent, tmp_path / "round-t")
+    plan = prepare(_spec(), incumbent, tmp_path / "round-defaults")
+    assert plan["metric"] == {**base, "repeats": 1, "margin": 0}
+    assert plan["command_timeout_seconds"] == 30
+
+
+def test_prepare_rejects_bad_device_paths_env_and_agent(tmp_path):
+    incumbent = tmp_path / "incumbent"
+    _tree(incumbent, "10")
+    for overrides, message in (
+        ({"device_paths": {"cpu-0": ["/dev/a"]}}, "every device id"),
+        ({"device_paths": {"cpu-0": ["dev/a"], "cpu-1": []}}, "absolute host paths"),
+        ({"device_paths": {"cpu-0": ["/"], "cpu-1": []}}, "absolute host paths"),
+        ({"shared_device_paths": ["/dev/../etc"]}, "absolute host paths"),
+        ({"runtime_paths": "/usr/lib64"}, "absolute host paths"),
+        ({"env": {"CUDA_VISIBLE_DEVICES": 0}}, "env"),
+    ):
+        with pytest.raises(RoundPlanError, match=message):
+            prepare(_spec(**overrides), incumbent, tmp_path / "round-paths")
+    lanes = _spec()["lanes"]
+    lanes[0]["agent"] = "claude -p"
+    with pytest.raises(RoundPlanError, match="agent must be a list"):
+        prepare(_spec(lanes=lanes), incumbent, tmp_path / "round-agent")
+
+
+def test_serve_passes_only_the_held_device_nodes_and_env(tmp_path):
+    incumbent = tmp_path / "incumbent"
+    _tree(incumbent, "10")
+    round_dir = tmp_path / "round"
+    prepare(
+        _spec(
+            build=[],
+            device_paths={"cpu-0": ["/dev/fake0"], "cpu-1": ["/dev/fake1"]},
+            shared_device_paths=["/dev/fakectl"],
+            runtime_paths=["/opt/driver"],
+            env={"CUDA_VISIBLE_DEVICES": "{device}"},
+        ),
+        incumbent,
+        round_dir,
+    )
+    work = tmp_path / "work"
+    _tree(work, "8")
+    ticket = submit(round_dir, "L1", incumbent, work, now=WHEN)["ticket"]
+    seen = []
+
+    class Recording:
+        name = "recording"
+
+        def run(self, argv, *args, **kwargs):
+            del args
+            seen.append(kwargs)
+            body = {"metrics": {"latency_ms": 8 if "candidate" in argv[-1] else 10}}
+            Path(argv[-1]).write_text(json.dumps(body), encoding="utf-8")
+            return {"status": "completed", "stdout": "", "stderr": ""}
+
+    with DeviceLease(round_dir / "leases").acquire("cpu-0"):
+        measured = serve_ticket(round_dir, ticket, incumbent, backend=Recording(), now=WHEN)
+    assert measured["devices"] == ["cpu-1"]
+    assert seen[0]["devices"] == (Path("/dev/fakectl"), Path("/dev/fake1"))
+    assert seen[0]["runtime"] == (Path("/opt/driver"),)
+    assert seen[0]["env"] == {"CUDA_VISIBLE_DEVICES": "cpu-1"}
+
+
+def test_repeats_alternate_abba_and_report_medians(tmp_path):
+    incumbent = tmp_path / "incumbent"
+    _tree(incumbent, "10")
+    round_dir = tmp_path / "round"
+    metric = {"name": "latency_ms", "better": "lower", "repeats": 3}
+    prepare(_spec(metric=metric, build=[]), incumbent, round_dir)
+    work = tmp_path / "work"
+    _tree(work, "8")
+    ticket = submit(round_dir, "L1", incumbent, work, now=WHEN)["ticket"]
+    values = {"candidate": [8, 100, 9], "incumbent": [10, 10, 1000]}
+    order = []
+
+    class Recording:
+        name = "recording"
+
+        def run(self, argv, *args, **kwargs):
+            del args, kwargs
+            result = Path(argv[-1])
+            order.append(result.stem)
+            side = result.stem.split("-")[0]
+            body = {"metrics": {"latency_ms": values[side].pop(0)}}
+            result.write_text(json.dumps(body), encoding="utf-8")
+            return {"status": "completed", "stdout": "", "stderr": ""}
+
+    measured = serve_ticket(round_dir, ticket, incumbent, backend=Recording(), now=WHEN)
+    assert order == [
+        "candidate-0", "incumbent-0", "incumbent-1", "candidate-1", "candidate-2", "incumbent-2"
+    ]
+    assert measured["candidate_samples"] == [8, 100, 9]
+    assert measured["candidate"] == 9
+    assert measured["incumbent"] == 10
+    assert measured["gain"] == 1
+    assert measured["relative_gain"] == pytest.approx(0.1)
+
+
 def test_higher_is_better_metric_reports_gain_in_the_better_direction(tmp_path):
     incumbent = tmp_path / "incumbent"
     _tree(incumbent, "10")

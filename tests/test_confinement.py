@@ -1,6 +1,8 @@
 """Confinement policy. The fixture backend is not an operating-system boundary."""
 
+import importlib.util
 import json
+import os
 import subprocess
 import sys
 import time
@@ -214,3 +216,112 @@ def test_build_and_trial_cannot_see_private_canaries(tmp_path, monkeypatch):
         assert "CANARY-ENV" not in record["stdout"]
         assert "CANARY-FILE" not in record["stdout"]
         assert "FILE-HIDDEN" in record["stdout"]
+
+
+def test_namespace_plan_binds_device_nodes_and_asks_for_a_fresh_proc(tmp_path):
+    runtime = tmp_path / "driver"
+    runtime.mkdir()
+    plan = namespace_plan(
+        (tmp_path / "work",),
+        (),
+        devices=(Path("/dev/null"),),
+        runtime=(runtime,),
+        env={"CUDA_VISIBLE_DEVICES": "0"},
+    )
+    modes = {item["source"]: item["mode"] for item in plan["mounts"]}
+    assert modes["/dev/null"] == "dev"
+    assert modes[str(runtime)] == "ro"
+    assert "/proc" not in modes
+    assert plan["proc"] is True
+    assert plan["env"]["CUDA_VISIBLE_DEVICES"] == "0"
+    assert namespace_plan((tmp_path / "work",), ())["proc"] is False
+
+
+@pytest.mark.skipif(not namespaces_available(), reason="user namespaces are unavailable")
+def test_unshare_binds_a_device_node_with_a_fresh_proc_and_scratch_dirs(tmp_path):
+    work = tmp_path / "work"
+    work.mkdir()
+    script = (
+        "import os, stat\n"
+        "open('/dev/null', 'w').write('x')\n"
+        "open('/tmp/x', 'w').write('x')\n"
+        "open('/dev/shm/x', 'w').write('x')\n"
+        "print('PID', os.getpid())\n"
+        "print('DEV', sorted(os.listdir('/dev')))\n"
+        "print('PROC', os.path.isdir('/proc/self'))\n"
+        "print('TMP', oct(stat.S_IMODE(os.stat('/tmp').st_mode)))\n"
+        "print('ENV', os.environ.get('GPU_PICK'))\n"
+    )
+    record = UnshareBackend().run(
+        (sys.executable, "-c", script),
+        work,
+        (work,),
+        (),
+        time.monotonic() + 30,
+        devices=(Path("/dev/null"),),
+        env={"GPU_PICK": "7"},
+    )
+    assert record["status"] == "completed"
+    lines = record["stdout"].splitlines()
+    assert "PID 1" in lines
+    assert "DEV ['null', 'shm']" in lines
+    assert "PROC True" in lines
+    assert "TMP 0o1777" in lines
+    assert "ENV 7" in lines
+
+
+def _gpu_ready() -> bool:
+    return (
+        namespaces_available()
+        and Path("/dev/nvidiactl").exists()
+        and importlib.util.find_spec("torch") is not None
+    )
+
+
+@pytest.mark.skipif(not _gpu_ready(), reason="needs user namespaces, an NVIDIA GPU and torch")
+def test_unshare_gpu_trial_sees_only_the_held_device(tmp_path):
+    device = os.environ.get("INFERRSI_GPU_TEST_DEVICE", "0")
+    nodes = tuple(
+        path
+        for path in (
+            Path(f"/dev/nvidia{device}"),
+            Path("/dev/nvidiactl"),
+            Path("/dev/nvidia-uvm"),
+            Path("/dev/nvidia-uvm-tools"),
+            Path("/dev/zero"),
+            Path("/dev/urandom"),
+        )
+        if path.exists()
+    )
+    found = subprocess.run(["ldconfig", "-p"], capture_output=True, text=True, check=False)
+    libraries = sorted(
+        {
+            str(Path(line.split("=>")[-1].strip()).parent)
+            for line in found.stdout.splitlines()
+            if "libcuda.so" in line or "libnvidia-ml.so" in line
+        }
+    )
+    work = tmp_path / "work"
+    work.mkdir()
+    script = (
+        "import os, torch\n"
+        "x = torch.ones(256, 256, device='cuda')\n"
+        "print('COUNT', torch.cuda.device_count())\n"
+        "print('SUM', float((x @ x).sum()))\n"
+        "print('NODES', sorted(n for n in os.listdir('/dev') if n[6:].isdigit()))\n"
+    )
+    record = UnshareBackend().run(
+        (sys.executable, "-c", script),
+        work,
+        (work,),
+        (),
+        time.monotonic() + 300,
+        devices=nodes,
+        runtime=tuple(Path(item) for item in libraries),
+        env={"HOME": "/tmp"},
+    )
+    assert record["status"] == "completed", record
+    lines = record["stdout"].splitlines()
+    assert "COUNT 1" in lines
+    assert f"SUM {256.0 * 256 * 256}" in lines
+    assert f"NODES ['nvidia{device}']" in lines
