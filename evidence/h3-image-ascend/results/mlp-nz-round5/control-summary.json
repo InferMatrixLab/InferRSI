@@ -1,0 +1,48 @@
+{
+  "workloads": {
+    "W1": {
+      "samples_s": [
+        11.194386482005939,
+        11.14005875698058,
+        11.293079041992314
+      ],
+      "median_s": 11.194386482005939,
+      "target_s": 7.34,
+      "target_met": false,
+      "h200_inverse_latency_fraction": 0.32784288856733906
+    },
+    "W2": {
+      "samples_s": [
+        2.7829511490126606,
+        2.667209385021124,
+        2.608137875999091
+      ],
+      "median_s": 2.667209385021124,
+      "target_s": 1.52,
+      "target_met": false,
+      "h200_inverse_latency_fraction": 0.284942008778205
+    },
+    "W3": {
+      "samples_s": [
+        4.384146344003966,
+        4.273199154995382,
+        4.5899705329793505
+      ],
+      "median_s": 4.384146344003966,
+      "target_s": 2.6,
+      "target_met": false,
+      "h200_inverse_latency_fraction": 0.2965229483678075
+    }
+  },
+  "requests": 12,
+  "expected_requests": 12,
+  "stage_metrics_enabled": false,
+  "quality_run": false,
+  "evidence": {
+    "requests_complete": true
+  },
+  "error": null,
+  "metrics": {
+    "max_target_latency_ratio": 1.7547430164612658
+  }
+}
