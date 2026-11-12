@@ -59,6 +59,7 @@ real-model gains remain unmeasured. [Flow, limits and reproduction →](docs/har
 | --- | --- |
 | Modify InferRSI itself | [Contributor guide](docs/contributing.md) and [agent collaboration](docs/agent-collaboration.md), under an accepted Issue scope |
 | Use the Workbench to run experiments | [Quickstart](docs/quickstart.md): prepared target environment, benchmark/quality contracts, authorized experiment, recorded evidence |
+| Complete an optimization benchmark in the current Agent | [Iterative task sessions](docs/optimization-benchmarks.md), with frozen rounds, independent feedback and final retesting |
 | Deliver an independent inference engine | [Engine delivery template](docs/template/README.md): copyable scaffold and recipe handoff; no InferRSI runtime dependency |
 
 For every CLI/Python operation — discovery, normalized reads, store candidates, experiments — see the [operation guide](docs/operations.md).
