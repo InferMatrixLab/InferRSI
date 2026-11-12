@@ -1,0 +1,181 @@
+{
+  "scope": "Numerical diagnosis only; request timings excluded from performance evidence",
+  "base_revision": "7f8395fede3cb79991a256d1752c887b40faca30",
+  "diagnostic_patch_sha256": "f8e192e14a9717b01d9b232e8a0ad56da69d5549ea3fccb65131b83adfa49c76",
+  "round14": {
+    "status": "execution_error",
+    "reason": "Diagnostic attempted to read write-only allow_internal_format property",
+    "comparisons": 0
+  },
+  "round15": {
+    "status": "completed",
+    "coverage_limit": "First occurrence per projection and input shape, not every denoising step",
+    "groups": [
+      {
+        "phase": "startup",
+        "input_rows": 1544,
+        "comparisons": 400,
+        "ranks": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "distinct_projections": 100,
+        "nd_repeat_exact": 400,
+        "nz_exact": 400,
+        "max_abs": 0.0
+      },
+      {
+        "phase": "http",
+        "input_rows": 1108,
+        "comparisons": 400,
+        "ranks": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "distinct_projections": 100,
+        "nd_repeat_exact": 400,
+        "nz_exact": 400,
+        "max_abs": 0.0
+      },
+      {
+        "phase": "http",
+        "input_rows": 1652,
+        "comparisons": 400,
+        "ranks": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "distinct_projections": 100,
+        "nd_repeat_exact": 400,
+        "nz_exact": 400,
+        "max_abs": 0.0
+      },
+      {
+        "phase": "http",
+        "input_rows": 4192,
+        "comparisons": 400,
+        "ranks": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "distinct_projections": 100,
+        "nd_repeat_exact": 400,
+        "nz_exact": 400,
+        "max_abs": 0.0
+      }
+    ],
+    "output_checks": [
+      {
+        "workload": "W1",
+        "seed": 42,
+        "index": 0,
+        "exact": true,
+        "psnr_db": null,
+        "ssim": 1.0,
+        "mean_abs_error": 0.0,
+        "numerical_screen_pass": true
+      },
+      {
+        "workload": "W2",
+        "seed": 42,
+        "index": 0,
+        "exact": true,
+        "psnr_db": null,
+        "ssim": 1.0,
+        "mean_abs_error": 0.0,
+        "numerical_screen_pass": true
+      },
+      {
+        "workload": "W3",
+        "seed": 42,
+        "index": 0,
+        "exact": true,
+        "psnr_db": null,
+        "ssim": 1.0,
+        "mean_abs_error": 0.0,
+        "numerical_screen_pass": true
+      }
+    ],
+    "service_exit_code": 0
+  },
+  "load_order_probe": [
+    {
+      "layer": "fc1",
+      "mode": "preload_full_copy",
+      "shape": [
+        28672,
+        5376
+      ],
+      "exact": true,
+      "max_abs": 0.0,
+      "relative_rmse": 0.0
+    },
+    {
+      "layer": "fc1",
+      "mode": "preload_chunk_copy",
+      "shape": [
+        28672,
+        5376
+      ],
+      "exact": false,
+      "max_abs": 6.6875,
+      "relative_rmse": 1.2165757417678833
+    },
+    {
+      "layer": "fc1",
+      "mode": "postload_cast",
+      "shape": [
+        28672,
+        5376
+      ],
+      "exact": true,
+      "max_abs": 0.0,
+      "relative_rmse": 0.0
+    },
+    {
+      "layer": "fc2",
+      "mode": "preload_full_copy",
+      "shape": [
+        5376,
+        14336
+      ],
+      "exact": true,
+      "max_abs": 0.0,
+      "relative_rmse": 0.0
+    },
+    {
+      "layer": "fc2",
+      "mode": "preload_chunk_copy",
+      "shape": [
+        5376,
+        14336
+      ],
+      "exact": false,
+      "max_abs": 5.9512939453125,
+      "relative_rmse": 1.2248444557189941
+    },
+    {
+      "layer": "fc2",
+      "mode": "postload_cast",
+      "shape": [
+        5376,
+        14336
+      ],
+      "exact": true,
+      "max_abs": 0.0,
+      "relative_rmse": 0.0
+    }
+  ],
+  "source_observation": "Platform patches run before checkpoint loading; H3 native fc1 loading splits the checkpoint into gate/up and invokes the merged weight loader twice.",
+  "inference": "Pre-load NZ chunk writes can corrupt weights and are a plausible cause of earlier full-model NZ quality failures. Direct NZ matmul on populated weights passed all captured comparisons.",
+  "next_action": "Validate conversion after checkpoint loading using whole-image screening and full performance/quality protocol; not yet adopted.",
+  "campaign_verdict": "INCONCLUSIVE"
+}
