@@ -204,3 +204,14 @@ the NPU worker grace through the outer stage client, and adds the explicit
 internal-format control. [Checks and limitations](results/review-followup-checks.json)
 record 26 CPU regressions and the single-device graph-output lifetime test.
 These checks do not requalify historical HTTP measurements on the new revision.
+
+## Round twelve: prepared row indices rejected
+
+Preparing local embedding-row indices once per request preserved exact RGB
+output in all 30 matched images. It did not improve HTTP latency: control
+W1/W2/W3 medians were 11.039/2.574/4.243 seconds, versus candidate
+11.197/2.925/4.502 seconds. [Samples and all quality checks](results/prepared-rows-round12-rejection.json)
+record the unchanged workload and source identity. The candidate was not
+adopted, and no final ABBA qualification was run. This experiment uses the
+older ad37f7f engine base; it does not requalify the 7f8395fed follow-up.
+Campaign acceptance remains **INCONCLUSIVE**, with all latency targets unmet.
