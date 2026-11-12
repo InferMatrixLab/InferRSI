@@ -1,0 +1,45 @@
+{
+  "verdict": "FAIL",
+  "scope": "numerical image-quality screen only",
+  "visual_review": "pending",
+  "additional_prompt_coverage": "pending",
+  "checks": [
+    {
+      "workload": "W1",
+      "seed": 42,
+      "index": 0,
+      "exact": false,
+      "psnr_db": 19.526087277910726,
+      "ssim": 0.8497624821024701,
+      "mean_abs_error": 12.177078247070312,
+      "numerical_screen_pass": false
+    },
+    {
+      "workload": "W2",
+      "seed": 42,
+      "index": 0,
+      "exact": false,
+      "psnr_db": 23.47634246356842,
+      "ssim": 0.9356128599483555,
+      "mean_abs_error": 6.540369033813477,
+      "numerical_screen_pass": false
+    },
+    {
+      "workload": "W3",
+      "seed": 42,
+      "index": 0,
+      "exact": false,
+      "psnr_db": 39.644794451992375,
+      "ssim": 0.9934143165636703,
+      "mean_abs_error": 0.6650431752204895,
+      "numerical_screen_pass": true
+    }
+  ],
+  "experiment": "round9: FIA BSND on 50 main attention blocks",
+  "base_revision": "ad37f7f79e10b946a87d60a0fab01416bd0f7837",
+  "adapter_sha256": "b414dff0ede7463e17ee20b7e6c66b563b5ca906a4fee7affd3b65821d43ba8d",
+  "decision": "Rejected; W1 and W2 fail frozen numerical quality gates. No full performance trial and no engine adoption.",
+  "measurement_limits": "One cold request per workload per fresh server, no warmups. Cold timings excluded from performance claims. Synthetic operator similarity did not establish image quality.",
+  "campaign_verdict": "INCONCLUSIVE",
+  "next_hypothesis": "Preserve native attention arithmetic and full key/value coverage; screen query tiling for exactness and component speed before any image trial."
+}

@@ -163,3 +163,20 @@ consistent benefit. The FIA BSND probe showed roughly 4–5% reductions at mediu
 and large sequence sizes, with nonzero error. Its padding boundaries and input
 tensors were synthetic, not captured model metadata. A three-image full-model
 screen is running before any formal qualification; no attention change is adopted.
+
+## Round nine: FIA rejected by whole-image screening
+
+The three-image matched screen replaced native packed attention with FIA BSND
+only in the 50 main transformer blocks. W1 scored PSNR 19.5261 dB / SSIM
+0.849762 and W2 23.4763 dB / 0.935613, failing the unchanged numerical gates.
+W3 passed (39.6448 dB / 0.993414); that does not qualify the candidate.
+[Rejection and source identity](results/fia-round9-rejection.json) retain all
+three checks. The full performance trial was skipped and no FIA code was
+adopted into the engine PR. These cold screen requests establish no latency
+improvement. Campaign acceptance remains **INCONCLUSIVE**.
+
+Native FAS query tiling was also screened on synthetic 4432/6608/16768-token
+inputs with real/padding document boundaries. All 12 cases were bitwise exact,
+but all were slower than the unchunked operation; no engine integration or
+HTTP trial followed. [Raw component samples](results/attention-query-tiling-probe.json)
+do not establish a service result.
