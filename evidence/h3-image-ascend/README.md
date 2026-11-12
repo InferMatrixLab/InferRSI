@@ -136,3 +136,11 @@ The conversion affected 104 projections, including token-refiner MLPs outside
 the original component probe. That scope mismatch is a diagnostic lead, not
 an established cause. Both controls and candidates were repeatable. No NZ
 change has been adopted in the downstream PR.
+
+The main-block-only NZ retry also failed all 30 image screens and was rejected
+(`results/mlp-nz-round5`). Parameter/2D/3D and complete MLP-chain component
+probes remained exact on the sampled activations; this does not explain or
+override the failed full-model result. An independent decoder-dtype probe
+observed 68.15 ms BF16 versus 65.65 ms FP16 for a batch of 32 tiles, with
+nonzero output error. A separate FP16 decoder model trial is queued; neither
+component timing nor finite outputs establish image-quality acceptance.
