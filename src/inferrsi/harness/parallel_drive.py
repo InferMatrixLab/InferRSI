@@ -1,16 +1,17 @@
 """Drive one parallel round from a single command, then close it.
 
-Each lane gets one worker. A worker keeps a work tree at ``round_dir/work/<lane>``
-(copied from the incumbent once) and loops: run the lane's ``agent`` command,
-submit the work tree, serve the ticket until it is no longer queued.
+Like a round without a cluster, each lane hands in one candidate per round; a
+retry belongs to the next round. Each lane gets one worker, all in parallel: copy
+the incumbent to ``round_dir/work/<lane>``, run the lane's ``agent`` command
+there once, submit the work tree, and serve the ticket until it is no longer
+queued. When every lane is done, ``close`` picks the next incumbent.
 
 The agent command runs on the host with the caller's environment; it is not
-confined. Placeholders: ``{work}`` is the work tree, ``{lane}`` the lane id and
-``{results}`` a JSON file listing this lane's earlier receipts.
+confined. Placeholders: ``{work}`` is the work tree and ``{lane}`` the lane id.
 
-A worker stops when the agent exits non-zero, submit refuses (``unchanged`` means
-the agent has nothing more to try), a ticket repeats, or serve returns anything
-other than ``measured``. A lane that reaches its cap stops on the rejected receipt.
+A lane's outcome is the serve status (``measured``, ``rejected``, ``unsettled``),
+``unchanged`` when the agent changed nothing, ``refused`` when submit refused the
+change, ``agent_failed``, ``deadline`` or ``error``.
 """
 
 import shutil
@@ -36,7 +37,7 @@ def drive_round(
     poll_seconds: float = 5.0,
     clock=None,
 ) -> dict:
-    """Prepare, run every lane until it stops, close, and write ``drive.json``."""
+    """Prepare, run one attempt on every lane in parallel, close, and write ``drive.json``."""
     plan = prepare(spec, incumbent, round_dir)
     missing = [lane["id"] for lane in plan["lanes"] if not lane.get("agent")]
     if missing:
@@ -55,7 +56,7 @@ def drive_round(
                 round_dir, incumbent, lane, backend, poll_seconds, current
             )
         except Exception as exc:  # noqa: BLE001 - one lane's crash must not hide the others
-            outcomes[lane["id"]] = {"stop": "error", "reason": repr(exc), "tickets": []}
+            outcomes[lane["id"]] = _outcome("error", repr(exc))
 
     workers = [threading.Thread(target=work, args=(lane,)) for lane in plan["lanes"]]
     for worker in workers:
@@ -77,44 +78,30 @@ def _drive_lane(round_dir, incumbent, lane, backend, poll_seconds, current) -> d
     work = round_dir / "work" / lane_id
     if not work.exists():
         shutil.copytree(incumbent, work)
-    history_path = round_dir / "history" / f"{lane_id}.json"
-    history: list[dict] = []
-    while True:
-        write_json(history_path, history)
-        try:
-            remaining = seconds_remaining(lane["deadline_utc"], current())
-        except BudgetError as exc:
-            return _stop("deadline", str(exc), history)
-        argv = [
-            part.replace("{work}", str(work))
-            .replace("{lane}", lane_id)
-            .replace("{results}", str(history_path))
-            for part in lane["agent"]
-        ]
-        try:
-            finished = subprocess.run(argv, cwd=work, timeout=remaining, check=False)
-        except subprocess.TimeoutExpired:
-            return _stop("deadline", "agent ran past the lane deadline", history)
-        except OSError as exc:
-            return _stop("agent_failed", str(exc), history)
-        if finished.returncode != 0:
-            return _stop("agent_failed", f"agent exited {finished.returncode}", history)
-        submitted = submit(round_dir, lane_id, incumbent, work, now=current())
-        if not submitted["submitted"]:
-            stop = "done" if submitted["reason"] == "unchanged" else "refused"
-            return _stop(stop, submitted["reason"], history)
-        ticket = submitted["ticket"]
-        if any(item["ticket"] == ticket for item in history):
-            return _stop("done", "agent resubmitted an earlier change", history)
+    try:
+        remaining = seconds_remaining(lane["deadline_utc"], current())
+    except BudgetError as exc:
+        return _outcome("deadline", str(exc))
+    argv = [part.replace("{work}", str(work)).replace("{lane}", lane_id) for part in lane["agent"]]
+    try:
+        finished = subprocess.run(argv, cwd=work, timeout=remaining, check=False)
+    except subprocess.TimeoutExpired:
+        return _outcome("deadline", "agent ran past the lane deadline")
+    except OSError as exc:
+        return _outcome("agent_failed", str(exc))
+    if finished.returncode != 0:
+        return _outcome("agent_failed", f"agent exited {finished.returncode}")
+    submitted = submit(round_dir, lane_id, incumbent, work, now=current())
+    if not submitted["submitted"]:
+        status = "unchanged" if submitted["reason"] == "unchanged" else "refused"
+        return _outcome(status, submitted["reason"])
+    ticket = submitted["ticket"]
+    result = serve_ticket(round_dir, ticket, incumbent, backend=backend, clock=current)
+    while result["status"] == "queued":
+        time.sleep(poll_seconds)
         result = serve_ticket(round_dir, ticket, incumbent, backend=backend, clock=current)
-        while result["status"] == "queued":
-            time.sleep(poll_seconds)
-            result = serve_ticket(round_dir, ticket, incumbent, backend=backend, clock=current)
-        history.append(result)
-        if result["status"] != "measured":
-            write_json(history_path, history)
-            return _stop(result["status"], result.get("reason", ""), history)
+    return _outcome(result["status"], result.get("reason", ""), ticket)
 
 
-def _stop(stop: str, reason: str, history: list[dict]) -> dict:
-    return {"stop": stop, "reason": reason, "tickets": [item["ticket"] for item in history]}
+def _outcome(status: str, reason: str, ticket: str | None = None) -> dict:
+    return {"status": status, "reason": reason, "ticket": ticket}
