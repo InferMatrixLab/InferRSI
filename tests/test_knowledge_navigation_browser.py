@@ -63,6 +63,16 @@ def test_navigation_keyboard_versions_and_refresh(browser, tmp_path, profile_fir
         assert target.count() == 1
         detail = target.locator("..") if profile_first else target
         assert "retry" in detail.inner_text()
+        if not profile_first:
+            catalog = detail.locator(".retrieval").filter(
+                has=page.get_by_role("heading", name="catalog", exact=True))
+            assert "context budget Not requested" in catalog.inner_text()
+            assert "Assembly not requested" in catalog.inner_text()
+            assert "undefined" not in catalog.inner_text()
+            assembled = detail.locator(".retrieval").filter(
+                has=page.get_by_role("heading", name="capture", exact=True))
+            assert "context budget 54 bytes" in assembled.inner_text()
+            assert "54 bytes of context" in assembled.inner_text()
         detail.get_by_role("button", name="Open retrieval · capture", exact=True).click()
         assert root.get_by_role("button", name="capture", exact=True).get_attribute(
             "aria-pressed") == "true"

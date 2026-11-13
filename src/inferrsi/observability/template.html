@@ -423,6 +423,7 @@ __DASHBOARD_KNOWLEDGE__
     'Decision reason':'决策原因', 'Next step':'下一步', 'Measured':'实测', 'No recorded run':'没有记录的运行', 'no gain value':'未记录提升数值',
     'Run evidence unavailable':'运行证据不可用', 'No recorded outcome':'未记录结果',
     'Why it was retrieved':'为什么检索', 'What was taken from it':'从中得到了什么', 'Search request':'检索请求', 'Captured':'采集信息',
+    'Not requested':'未请求', 'Assembly not requested':'未请求装配', 'Context bytes not recorded':'未记录上下文字节数',
     'Selected by search':'检索命中', 'Left out of the context':'未放进上下文', 'Nothing omitted':'没有遗漏', 'Used':'本次检索中采用的条目',
     'Knowledge retrieval for this round':'本轮知识库检索', 'Files included in the context':'检索实际装入的文件',
     'No retrieval capture is linked to this round.':'本轮没有关联检索快照。',
@@ -1148,8 +1149,11 @@ __DASHBOARD_KNOWLEDGE__
       knowledgeView.trace(box,retrieval,scope);
       if(retrieval.state==='verified'){
         const request=retrieval.request||{};
-        detailLine(grid,'Search request',[request.query?`query: ${request.query}`:'',request.relevance?`relevance: ${request.relevance}`:'',request.ids&&request.ids.length?`ids: ${request.ids.join(', ')}`:'',request.backend?`backend: ${request.backend}`:'',`limit ${request.limit} · context budget ${request.context_bytes} bytes`].filter(Boolean).join('\n'),true);
-        detailLine(grid,'Captured',`${retrieval.captured_at || 'Time not recorded'} · ${retrieval.captured_by || ''} · ${retrieval.context_bytes_used ?? 0} bytes of context`,true);
+        const assemblyNotRequested=retrieval.retrieval?.assembly==='not_requested';
+        const budget=assemblyNotRequested?translated('Not requested'):Number.isFinite(request.context_bytes)?`${request.context_bytes} bytes`:translated('Not recorded');
+        const contextSize=assemblyNotRequested?translated('Assembly not requested'):Number.isFinite(retrieval.context_bytes_used)?`${retrieval.context_bytes_used} bytes of context`:translated('Context bytes not recorded');
+        detailLine(grid,'Search request',[request.query?`query: ${request.query}`:'',request.relevance?`relevance: ${request.relevance}`:'',request.ids&&request.ids.length?`ids: ${request.ids.join(', ')}`:'',request.backend?`backend: ${request.backend}`:'',`limit ${request.limit ?? translated('Not recorded')} · context budget ${budget}`].filter(Boolean).join('\n'),true);
+        detailLine(grid,'Captured',`${retrieval.captured_at || 'Time not recorded'} · ${retrieval.captured_by || ''} · ${contextSize}`,true);
         const selectedBox=node('div',undefined,'detail-line');selectedBox.appendChild(node('strong','Selected by search'));
         const included=new Set(retrieval.contexts.map(context=>context.ref));
         chips(selectedBox,retrieval.items.map(item=>item.ref),new Set(retrieval.items.map(item=>item.ref).filter(ref=>!included.has(ref))));grid.appendChild(selectedBox);
