@@ -37,4 +37,17 @@ class DeviceLease:
         except BlockingIOError:
             handle.close()
             raise LeaseError(f"device busy: {device_id}") from None
+        if self._marker(device_id).exists():
+            _Held(handle).release()
+            raise LeaseError(f"device quarantined: {device_id}")
         return _Held(handle)
+
+    def quarantine(self, device_id: str, reason: str) -> None:
+        """Refuse every later acquire of ``device_id`` until the marker file is removed.
+
+        Call it while holding the lease, so no acquire can slip in before the marker.
+        """
+        self._marker(device_id).write_text(reason + "\n", encoding="utf-8")
+
+    def _marker(self, device_id: str) -> Path:
+        return self.directory / f"{device_id}.quarantined"

@@ -16,8 +16,9 @@ Other text, including ``{result}`` inside ``build``, is passed through unchanged
 ``device_paths`` (per device id), ``shared_device_paths``, ``runtime_paths`` and
 ``env`` (values may use ``{device}``) extend the confined view for GPU trials.
 Each command is capped by ``command_timeout_seconds`` and the lane deadline.
-If a timed-out command cannot be confirmed dead, its devices are written to
-``quarantine/<device>`` and are not handed out until that file is removed.
+If a timed-out command cannot be confirmed dead, its devices are quarantined:
+``leases/<device>.quarantined`` is written before the lease is released, and
+the device is refused until an operator removes that file.
 """
 
 import hashlib
@@ -594,8 +595,6 @@ def hold_devices(round_dir: Path, plan: dict, count: int) -> list[tuple[str, obj
     for device in plan["device_ids"]:
         if len(held) == count:
             break
-        if (round_dir / "quarantine" / device).exists():
-            continue
         try:
             held.append((device, leases.acquire(device)))
         except LeaseError:
@@ -734,8 +733,9 @@ def _measure(
             current=current,
         )
     except UnreapedCommand as exc:
+        leases = DeviceLease(round_dir / "leases")
         for device in devices:
-            write_json(round_dir / "quarantine" / device, {"ticket": ticket, "reason": str(exc)})
+            leases.quarantine(device, f"{ticket}: {exc}")
         return _record(round_dir, ticket, status="unsettled", reason=str(exc), devices=devices)
     except (ConfinementUnavailable, BudgetError, MeasurementError) as exc:
         return _record(round_dir, ticket, status="unsettled", reason=str(exc), devices=devices)
