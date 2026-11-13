@@ -72,24 +72,43 @@ def execution_result(*, record: dict | None = None, error: dict | None = None) -
     """Project a committed Harness record or a PublicError into AppsResultV1."""
     if (record is None) == (error is None):
         raise ValueError("expected one Harness record or PublicError")
-    reason = error["code"] if error is not None else None
-    outcome = _execute_outcome(record) if record is not None else _ERROR_OUTCOMES.get(
-        reason, "error"
-    )
     facts = record if record is not None else {}
     return {
-        "schema_version": 1,
-        "operation": "execute",
-        "outcome": outcome,
-        "reason_code": reason,
-        "exit_code": _EXIT_CODES[outcome],
-        "primary_scope": None,
-        "primary_claim_id": None,
+        **_operation_result(
+            "execute", error, _execute_outcome(record) if record is not None else "error"
+        ),
         "attempt_id": facts.get("attempt_id"),
         "admission": facts.get("budget_admission"),
         "execution": record,
         "prepared_ref": facts.get("prepared_ref"),
         "record_ref": facts.get("record_ref"),
+    }
+
+
+def preparation_result(*, prepared_ref: dict | None = None, error: dict | None = None) -> dict:
+    """Project a committed PreparedRef or a PublicError into AppsResultV1."""
+    if (prepared_ref is None) == (error is None):
+        raise ValueError("expected one PreparedRef or PublicError")
+    return {**_operation_result("prepare", error, "success"), "prepared_ref": prepared_ref}
+
+
+def _operation_result(operation: str, error: dict | None, outcome: str) -> dict:
+    reason = error["code"] if error is not None else None
+    if reason is not None:
+        outcome = _ERROR_OUTCOMES.get(reason, "error")
+    return {
+        "schema_version": 1,
+        "operation": operation,
+        "outcome": outcome,
+        "reason_code": reason,
+        "exit_code": _EXIT_CODES[outcome],
+        "primary_scope": None,
+        "primary_claim_id": None,
+        "attempt_id": None,
+        "admission": None,
+        "execution": None,
+        "prepared_ref": None,
+        "record_ref": None,
         "assessment_ref": None,
         "assessment": None,
         "error": error,
@@ -120,7 +139,7 @@ def publication_error(result: dict) -> dict:
     }
 
 
-def _check_artifact(artifact: object) -> None:
+def validate_artifact_ref(artifact: object) -> None:
     if (
         not isinstance(artifact, dict)
         or artifact.keys() != {"location", "sha256", "size_bytes", "media_type"}
@@ -142,7 +161,7 @@ def _check_ref(ref: object, id_field: str, version_field: str) -> None:
         or (version_field == "schema_version" and version != 1)
     ):
         raise ValueError("invalid Apps reference metadata")
-    _check_artifact(ref["artifact"])
+    validate_artifact_ref(ref["artifact"])
 
 
 def _check_partial(partial: dict) -> None:
@@ -193,7 +212,7 @@ def _check_error(error: dict, outcome: str) -> None:
     if error["latest_record_ref"] is not None:
         _check_ref(error["latest_record_ref"], *_REF_FIELDS["record_ref"])
     for ref in error["retained_refs"]:
-        _check_artifact(ref)
+        validate_artifact_ref(ref)
 
 
 def _check_artifact_ref(ref: dict, payload: dict) -> None:

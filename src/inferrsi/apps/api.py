@@ -8,9 +8,21 @@ from inferrsi._json_v1 import encode
 from inferrsi.harness.errors import PublicError
 from inferrsi.harness.execution_spec import request_digest
 
-from .archive import RunOutput, publish_result, validate_output_id
-from .result import execution_result, is_public_error, validate_result
+from .archive import (
+    ResourceReader,
+    RunOutput,
+    archive_mount,
+    archive_prepared,
+    publish_result,
+    validate_output_id,
+)
+from .result import execution_result, is_public_error, preparation_result, validate_result
 
+_PREPARE_FIELDS = {"schema_version", "request"}
+_BENCHMARK_REQUEST_FIELDS = {
+    "schema_version", "task", "operation", "validation_scope", "input_pins", "task_parameters",
+    "comparison_conditions", "expected_candidate", "budget_policy_refs",
+}
 _EXECUTE_FIELDS = {"schema_version", "prepared_ref", "proposal", "attempt", "output_root"}
 _ATTEMPT_FIELDS = {
     "request_id", "run_id", "attempt_id", "owner", "target_request", "deadline_utc",
@@ -74,7 +86,7 @@ def _preserves_request(spec: dict, fields: dict, inputs: list) -> bool:
     return all(encode(item) in bound_bytes for item in inputs)
 
 
-def _port_call(port: Callable[[dict], dict], value: dict) -> object:
+def _port_call(port: Callable[[dict], object], value: dict) -> object:
     # Programming/host exceptions are not port replies: do not silently swallow them.
     try:
         return port(value)
@@ -148,6 +160,89 @@ def _execute_saved(
         return result
     except (ValueError, TypeError, KeyError):
         return _invalid_port_result("harness_response_validation")
+
+
+def _prepare_request(request: dict) -> dict:
+    encode(request)
+    benchmark_request = request.get("request") if isinstance(request, dict) else None
+    envelopes = (request, _PREPARE_FIELDS), (benchmark_request, _BENCHMARK_REQUEST_FIELDS)
+    for value, fields in envelopes:
+        if not isinstance(value, dict) or type(value.get("schema_version")) is not int:
+            raise ValueError("expected a numeric schema version")
+        if value["schema_version"] != 1:
+            raise PublicError(
+                "UnsupportedSchema", stage="validation",
+                message="Unsupported prepare request version.",
+            )
+        if value.keys() != fields:
+            raise ValueError("unexpected prepare request fields")
+    return benchmark_request
+
+
+def prepare(
+    request: dict,
+    *,
+    workspace: Path,
+    storage_config: dict,
+    prepare_benchmark: Callable[[dict], tuple[dict, bytes, ResourceReader] | dict],
+    encode_prepared: Callable[[dict], bytes],
+    validate_prepared: Callable[[dict, bytes], None],
+    output_id: str | None = None,
+) -> RunOutput:
+    """Freeze a Benchmark request, archive its closure, and publish the Apps result.
+
+    The host adapts the Benchmark prepare port to return the prepared object,
+    protocol bytes and a role-keyed reader. Each stream returned by the reader
+    is owned by Apps for that read. The pure validator raises on invalid
+    prepared or protocol content. No Harness port is called during preparation.
+    """
+    if output_id is not None:
+        validate_output_id(output_id)
+    try:
+        benchmark_request = _prepare_request(request)
+        mount = archive_mount(storage_config)
+    except ValueError:
+        result = preparation_result(error=_validation_error(
+            "InvalidRequest", "Expected a v1 Apps prepare request."
+        ))
+    except PublicError as error:
+        result = preparation_result(error=error.to_json())
+    else:
+        response = _port_call(prepare_benchmark, deepcopy(benchmark_request))
+        try:
+            if is_public_error(response):
+                if any(response[key] is not None for key in (
+                    "attempt_id", "started", "latest_record_ref", "partial_record"
+                )):
+                    raise ValueError("unexpected execution facts from Benchmark")
+                result = preparation_result(error=response)
+                validate_result(result)
+            else:
+                if not isinstance(response, tuple) or len(response) != 3:
+                    raise ValueError("expected a prepared closure")
+                prepared, protocol, read_resource = response
+                if not isinstance(prepared, dict) or not callable(read_resource):
+                    raise ValueError("expected a prepared object and resource reader")
+                if any(encode(prepared[key]) != encode(benchmark_request[key]) for key in (
+                    "task", "operation", "validation_scope", "expected_candidate"
+                )):
+                    raise PublicError(
+                        "IdentityMismatch", stage="benchmark_response_validation",
+                        message="Benchmark prepared a different request.",
+                    )
+                prepared_ref = archive_prepared(
+                    prepared, protocol, read_resource, mount=mount,
+                    encode_prepared=encode_prepared, validate_prepared=validate_prepared,
+                )
+                result = preparation_result(prepared_ref=prepared_ref)
+        except PublicError as error:
+            result = preparation_result(error=error.to_json())
+        except (ValueError, TypeError, KeyError):
+            result = preparation_result(error=_validation_error(
+                "InvalidRequest", "Benchmark returned a malformed prepared closure.",
+                stage="benchmark_response_validation",
+            ))
+    return publish_result(workspace, result, output_id=output_id)
 
 
 def execute(
