@@ -82,14 +82,27 @@ validate ports. The prepare port returns the prepared object, canonical protocol
 bytes and a reader keyed by resource role. The reader can return bytes or an
 open binary stream that Apps closes after consuming it.
 
+The pure encoder returns canonical bytes and the validator returns normally on
+success. They raise `ValueError` for invalid content or `PublicError` for a
+structured rejection. The host adapts Benchmark-specific rejection exceptions
+to this contract. Apps publishes `InvalidRequest` at
+`benchmark_response_validation` for `ValueError` and preserves the code and stage
+of a valid `PublicError`.
+
 Apps selects the configured local archive directory and allocates the final
 logical locations for the prepared object, protocol and resources. The
 Benchmark encoder and validator check the relocated prepared object before
 publication. Apps checks the original protocol and resource bytes against their
 declared sizes and digests, then atomically publishes the complete directory
-under a generated ID. The archive directory must already exist. A failed
-closure commit yields no PreparedRef. If the closure commits and the separate
-output publication fails, the returned error retains the committed PreparedRef.
+under a generated ID. A missing or invalid archive root is an `InvalidRequest`
+at `storage_config` before Apps calls Benchmark.
+
+On POSIX, confirmation of the closure commit includes syncing the parent
+directory after the rename. If that sync fails, the archive may be visible.
+Apps returns `ArchivePersistenceError` with exit code 6 and a null
+`prepared_ref` because it cannot confirm the commit. If Apps confirms the
+closure commit and the separate output publication then fails, the returned
+error retains the committed PreparedRef.
 
 `read_prepared` verifies the fixed prepared bytes and identity using the same
 storage configuration. `read_archive_artifact` reads protocol or resource bytes

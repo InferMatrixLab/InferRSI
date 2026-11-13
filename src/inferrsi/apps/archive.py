@@ -49,8 +49,8 @@ def _logical_path(value: object) -> tuple[str, ...]:
     return parts
 
 
-def archive_mount(config: dict) -> tuple[str, Path]:
-    """Select the trusted local directory mount used for Apps writes."""
+def archive_mount(config: dict, *, for_write: bool = False) -> tuple[str, Path]:
+    """Select the trusted local archive mount and check write configuration."""
     try:
         if (
             not isinstance(config, dict)
@@ -92,6 +92,14 @@ def archive_mount(config: dict) -> tuple[str, Path]:
         raise PublicError(
             "InvalidRequest", stage="storage_config", message="Invalid Apps storage configuration."
         ) from None
+    if for_write:
+        try:
+            root = _directory(root)
+        except (OSError, PublicError):
+            raise PublicError(
+                "InvalidRequest", stage="storage_config",
+                message="The Apps archive root must be an existing authorized directory.",
+            ) from None
     return prefix, root
 
 

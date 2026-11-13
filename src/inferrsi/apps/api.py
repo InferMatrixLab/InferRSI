@@ -193,14 +193,16 @@ def prepare(
 
     The host adapts the Benchmark prepare port to return the prepared object,
     protocol bytes and a role-keyed reader. Each stream returned by the reader
-    is owned by Apps for that read. The pure validator raises on invalid
-    prepared or protocol content. No Harness port is called during preparation.
+    is owned by Apps for that read. The pure encoder and validator raise
+    ValueError for invalid content or PublicError for a structured rejection.
+    The host adapts any Benchmark-specific rejection exception to those types.
+    No Harness port is called during preparation.
     """
     if output_id is not None:
         validate_output_id(output_id)
     try:
         benchmark_request = _prepare_request(request)
-        mount = archive_mount(storage_config)
+        mount = archive_mount(storage_config, for_write=True)
     except ValueError:
         result = preparation_result(error=_validation_error(
             "InvalidRequest", "Expected a v1 Apps prepare request."

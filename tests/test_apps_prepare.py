@@ -272,6 +272,76 @@ def test_prepare_keeps_reference_only_after_commit(
         assert list(root.iterdir()) == []
 
 
+def test_prepare_returns_no_ref_if_parent_sync_fails_after_rename(
+    tmp_path, preparation, monkeypatch,
+):
+    _, _, _, _, _, root = preparation
+    real_sync = archive._sync_directory
+
+    def sync(path):
+        if path == root:
+            assert len(list(root.glob("*/prepared.json"))) == 1
+            raise OSError("private path")
+        real_sync(path)
+
+    monkeypatch.setattr(archive, "_sync_directory", sync)
+    run = _run(tmp_path, preparation)
+    assert run.result["prepared_ref"] is None
+    assert run.result["exit_code"] == 6
+    assert run.result["error"]["code"] == "ArchivePersistenceError"
+    assert run.result["error"]["stage"] == "prepared_archive"
+    assert "confirm the durability" in run.result["error"]["message"]
+    assert "private path" not in run.result["error"]["message"]
+    assert read_result(tmp_path, run.output_id) == run
+
+
+@pytest.mark.parametrize("port", ["encode_prepared", "validate_prepared"])
+@pytest.mark.parametrize("structured", [False, True])
+def test_prepare_publishes_codec_rejection(tmp_path, preparation, port, structured):
+    _, _, _, _, _, root = preparation
+
+    def reject(*_):
+        if structured:
+            raise PublicError(
+                "UnsupportedRuleVersion", stage="benchmark_codec", message="Unknown rule."
+            )
+        raise ValueError("private content")
+
+    run = _run(tmp_path, preparation, **{port: reject})
+    code, stage = (
+        ("UnsupportedRuleVersion", "benchmark_codec")
+        if structured else ("InvalidRequest", "benchmark_response_validation")
+    )
+    assert run.result["exit_code"] == 2
+    assert run.result["error"]["code"] == code
+    assert run.result["error"]["stage"] == stage
+    assert "private content" not in run.result["error"]["message"]
+    assert run.result["prepared_ref"] is None
+    assert list(root.iterdir()) == []
+    assert read_result(tmp_path, run.output_id) == run
+
+
+@pytest.mark.parametrize("root_is_file", [False, True])
+def test_prepare_rejects_unusable_archive_root_before_benchmark(
+    tmp_path, preparation, root_is_file,
+):
+    _, _, _, _, _, root = preparation
+    root.rmdir()
+    if root_is_file:
+        root.write_bytes(b"unchanged")
+
+    def benchmark(_):
+        pytest.fail("called with an invalid archive root")
+
+    run = _run(tmp_path, preparation, prepare_benchmark=benchmark)
+    assert run.result["exit_code"] == 2
+    assert run.result["error"]["code"] == "InvalidRequest"
+    assert run.result["error"]["stage"] == "storage_config"
+    assert run.result["prepared_ref"] is None
+    assert str(root) not in run.result["error"]["message"]
+    assert read_result(tmp_path, run.output_id) == run
+
+
 def test_read_rejects_wrong_mount_tampering_and_wrong_prepared_id(tmp_path, preparation):
     _, _, _, _, config, root = preparation
     ref = _run(tmp_path, preparation).result["prepared_ref"]
