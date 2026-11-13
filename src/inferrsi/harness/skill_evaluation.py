@@ -5,9 +5,9 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from ..infra.artifacts import atomic_write_json, sha256
-from ..infra.executors.local import execute_command
 from ..knowledge_operations import KnowledgeReader
 from . import skill_eval_engineering as engineering
+from .local_process import execute_command
 
 
 def global_skills() -> list[str]:

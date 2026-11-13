@@ -5,8 +5,8 @@ from collections.abc import Callable
 from pathlib import Path
 
 from ...infra.artifacts import atomic_write_json as _write_json
-from ...infra.executors.local import execute_command
 from ...model.protocols.metrics import read_metric, validate_metric
+from ..local_process import execute_command
 
 
 def execute_trial(
