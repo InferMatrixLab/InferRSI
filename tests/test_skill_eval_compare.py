@@ -1009,8 +1009,7 @@ def test_changed_runtime_controllers_reject_execution_and_report_without_calls(t
     authorization = module.prepare(config, repo, output)
     module.report(output)
     saved = (output / "report.json").read_bytes(), (output / "report.md").read_bytes()
-    assert "src/inferrsi/infra/executors/local.py" in module.CONTROLLERS
-    assert "src/inferrsi/infra/processes.py" in module.CONTROLLERS
+    assert "src/inferrsi/harness/local_process.py" in module.CONTROLLERS
     assert "src/inferrsi/infra/artifacts.py" in module.CONTROLLERS
     assert "tools/skill_eval_artifact_guidance.py" in module.CONTROLLERS
     client = FixedOutputClient(tmp_path)

@@ -5,9 +5,10 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from ..infra.artifacts import atomic_write_json, sha256
-from ..infra.executors.local import execute_command
 from ..knowledge_operations import KnowledgeReader
 from . import skill_eval_engineering as engineering
+from .local_process import execute_command
+from .usage import normalize_usage as normalize_usage
 
 
 def global_skills() -> list[str]:
@@ -74,19 +75,6 @@ class CodexClient:
         for key, value in values.items():
             argv.extend(("-c", key + "=" + toml_value(value)))
         return (*argv, prompt)
-
-
-def normalize_usage(usage) -> dict | None:
-    """Keep valid token observations; malformed containers/fields remain unknown.
-
-    The original provider event remains in the trace for diagnosis. This view is
-    shared by live parsing and retained-result reporting, including older records.
-    """
-    if not isinstance(usage, dict):
-        return None
-    return {key: value if type(value) is int and value >= 0 else None
-            for key, value in usage.items()
-            if key in ("input_tokens", "output_tokens", "cached_input_tokens")}
 
 
 def trace_metrics(path: Path) -> dict:

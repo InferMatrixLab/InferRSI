@@ -9,6 +9,7 @@ import pytest
 from inferrsi import catalog
 from inferrsi.catalog import get_knowledge, search_knowledge
 from inferrsi.cli import main
+from inferrsi.knowledge import catalog as knowledge_catalog
 from inferrsi.research import research_knowledge
 
 
@@ -88,7 +89,7 @@ def test_independent_queries_are_unioned_fairly_and_exact_search_is_unchanged(mo
             ("f-overlap", "ExampleModel mlx diffusion video offload"),
         )
     ]
-    monkeypatch.setattr(catalog, "knowledge_records", lambda: records)
+    monkeypatch.setattr(knowledge_catalog, "knowledge_records", lambda: records)
     exact = search_knowledge("ExampleModel mlx diffusion video offload")
     assert [record["id"] for record in exact] == ["f-overlap"]
     result = research_knowledge(
@@ -117,7 +118,7 @@ def test_query_attribution_survives_the_shared_output_limit(monkeypatch):
         {"id": "model", "summary": "SyntheticModel mlx"},
         {"id": "framework", "summary": "mlx mlx"},
     ]
-    monkeypatch.setattr(catalog, "knowledge_records", lambda: records)
+    monkeypatch.setattr(knowledge_catalog, "knowledge_records", lambda: records)
     result = research_knowledge("SyntheticModel", frameworks=["mlx"], limit=1)
     assert result["items"] == [{
         "record": records[0],

@@ -33,12 +33,111 @@ def _common(parser: argparse.ArgumentParser) -> None:
     )
 
 
+def _optimization_actions(stages, *, project=False):
+    start = stages.add_parser("start", help="Freeze explicit task conditions and search budget")
+    start.set_defaults(session_action="start", project_task=project)
+    if project:
+        start.add_argument("--repo", type=Path, required=True)
+        start.add_argument("--include", action="append", required=True,
+                           help="Project-relative input file/directory; repeat for dependencies")
+        start.add_argument("--protocol", type=Path, required=True)
+        start.add_argument("--instructions", type=Path, required=True)
+        for name in ("measure-command", "quality-command", "metric-key", "metric-unit",
+                     "quality-key", "scope"):
+            start.add_argument("--" + name, required=True)
+        start.add_argument("--direction", choices=("minimize", "maximize"), required=True)
+        start.add_argument("--min-improvement-pct", type=float, required=True)
+        start.add_argument("--repetitions", type=int, required=True)
+        start.add_argument("--warmups", type=int, required=True)
+        start.add_argument("--round-mode", choices=("exact", "up_to"), default="up_to")
+    else:
+        start.add_argument("task")
+        start.add_argument("--evaluation-args", required=True)
+        start.set_defaults(round_mode="exact")
+    start.add_argument("--session", "--directory", dest="session", type=Path, required=True)
+    start.add_argument("--rounds", type=int, required=True)
+    start.add_argument("--max-minutes", type=float, required=True)
+    start.add_argument("--evaluation-timeout-seconds", type=float, required=True)
+    start.add_argument("--final-reserve-seconds", type=float)
+    start.add_argument("--condition", default="current-agent" if project else None,
+                       required=not project)
+    start.add_argument("--knowledge", choices=("on", "off"), default="on")
+    start.add_argument("--evaluation-prefix", default="", help="Quoted allocator argv prefix")
+    start.add_argument("--python", default=sys.executable)
+    for name in ("status", "round", "final", "recover", "knowledge"):
+        stage = stages.add_parser(name)
+        stage.set_defaults(session_action=name)
+        stage.add_argument("--session", "--directory", dest="session", type=Path, required=True)
+        if name == "round":
+            stage.add_argument("--candidate", type=Path, required=True)
+            stage.add_argument("--hypothesis", required=True)
+        if name == "final":
+            stage.add_argument("--reason", help="Why the caller stopped an up-to-budget search")
+        if name in ("round", "final"):
+            stage.add_argument("--usage-export", type=Path)
+        if name == "knowledge":
+            stage.add_argument("--query", required=True)
+            stage.add_argument("--relevance-method", choices=RELEVANCE_METHODS,
+                               default="weighted-lexical-v1")
+            stage.add_argument("--context-bytes", type=int, required=True)
+            stage.add_argument("--limit", type=int, default=5)
+
+
 def parser() -> argparse.ArgumentParser:
     root = argparse.ArgumentParser(
         description="CLI-first reproducible experiments and tuning knowledge"
     )
     root.add_argument("--version", action="version", version=__version__)
     commands = root.add_subparsers(dest="command", required=True)
+    mindie = commands.add_parser("mindie", help="Use project-approved, local MindIE knowledge")
+    mindie_actions = mindie.add_subparsers(dest="mindie_action", required=True)
+    enable = mindie_actions.add_parser("enable", help="Approve a MindIE domain for this checkout")
+    enable.add_argument("--domain", default="operators")
+    enable.add_argument(
+        "--adapter-config", type=Path, default=Path.home() / ".config/mindie-agent/codex.json",
+        help="Installed MindIE Codex adapter configuration",
+    )
+    mindie_actions.add_parser("disable", help="Revoke the project grant")
+    mindie_actions.add_parser("describe", help="Discover read tools for the current project")
+    mindie_actions.add_parser("serve", help="Expose the approved read tools over stdio MCP")
+    for action in ("query", "explain"):
+        read = mindie_actions.add_parser(action, help=f"Run a MindIE {action} and keep a receipt")
+        read.add_argument("--input", type=Path, required=True, help="JSON tool arguments")
+    agents = commands.add_parser("agents", help="Record native host fresh-session handoffs")
+    agent_actions = agents.add_subparsers(dest="agent_action", required=True)
+    prepare = agent_actions.add_parser("prepare", help="Freeze a task for the current host")
+    prepare.add_argument("--job", type=Path, required=True)
+    prepare.add_argument("--prompt-file", type=Path, required=True)
+    prepare.add_argument("--workspace", type=Path, required=True)
+    prepare.add_argument("--title", required=True)
+    prepare.add_argument("--max-minutes", type=float, required=True)
+    prepare.add_argument("--model", help="Requested model, only if explicitly selected")
+    prepare.add_argument("--effort", help="Requested effort, only if explicitly selected")
+    prepare.add_argument("--plugin-ref", help="Requested plugin identity; not a loading receipt")
+    for name in ("dispatch", "bind", "record", "status"):
+        action = agent_actions.add_parser(name)
+        action.add_argument("--job", type=Path, required=True)
+        if name == "bind":
+            action.add_argument("--host", required=True)
+            action.add_argument("--session-id", required=True)
+            action.add_argument("--host-id")
+            action.add_argument("--receipt", type=Path, required=True)
+        if name == "record":
+            action.add_argument("--observation", type=Path, required=True)
+            action.add_argument("--artifact", type=Path, action="append", default=[])
+    benchmarks = commands.add_parser("benchmarks", help="Discover packaged engineering tasks")
+    actions = benchmarks.add_subparsers(dest="benchmark_action", required=True)
+    actions.add_parser("list")
+    show = actions.add_parser("show")
+    show.add_argument("task", help="Packaged engineering task name")
+    run = actions.add_parser("run", help="Run the selected task's benchmark.py")
+    run.add_argument("task", help="Packaged engineering task name")
+    run.add_argument("arguments", nargs=argparse.REMAINDER, help="Task-specific arguments")
+    session = actions.add_parser(
+        "session", help="Drive iterative optimization in the current Agent"
+    )
+    stages = session.add_subparsers(dest="session_action", required=True)
+    _optimization_actions(stages)
     doctor = commands.add_parser(
         "doctor", help="Inspect a prepared local target without installing dependencies"
     )
@@ -132,6 +231,7 @@ def parser() -> argparse.ArgumentParser:
 
     campaign = commands.add_parser("campaign", help="Create local campaign correlation records")
     campaign_actions = campaign.add_subparsers(dest="campaign_action", required=True)
+    _optimization_actions(campaign_actions, project=True)
     create = campaign_actions.add_parser("init", help="Create a new campaign manifest")
     create.add_argument("--directory", type=Path, required=True)
     create.add_argument("--id", required=True)
@@ -155,6 +255,15 @@ def parser() -> argparse.ArgumentParser:
     assemble.add_argument("--template", type=Path, required=True)
     assemble.add_argument("--context-file", type=Path, required=True)
     assemble.add_argument("--output", required=True, help="New JSON filename in the campaign root")
+    mindie = campaign_actions.add_parser(
+        "import-mindie", help="Keep supplied MindIE query/explain evidence for a reviewed trace",
+    )
+    mindie.add_argument("--directory", type=Path, required=True)
+    mindie.add_argument("--id", required=True, help="New local read id; never overwritten")
+    for name in ("query-input", "query-result", "explain-input", "explain-result"):
+        mindie.add_argument("--" + name, type=Path, required=True)
+    mindie.add_argument("--query-exit-code", type=int, required=True)
+    mindie.add_argument("--explain-exit-code", type=int, required=True)
     record = campaign_actions.add_parser("record", help="Associate a candidate with one run")
     record.add_argument("--directory", type=Path, required=True)
     record.add_argument("--candidate", required=True)
@@ -188,6 +297,25 @@ def parser() -> argparse.ArgumentParser:
     capture.add_argument("--context-bytes", type=int, default=65536)
     capture.add_argument("--skill-root", type=Path)
     capture.add_argument("--store", type=Path)
+    search = campaign_actions.add_parser(
+        "import-search", help="Import the observed knowledge searches for one campaign round"
+    )
+    search.add_argument("--directory", type=Path, required=True)
+    search.add_argument("--round", type=int, required=True)
+    search.add_argument("--trace", type=Path, help="Caller-selected Codex Desktop rollout JSONL")
+    search.add_argument("--lines", nargs=2, type=int, metavar=("FIRST", "LAST"),
+                        help="Inclusive, one-based round boundaries in that rollout")
+    search.add_argument("--knowledge-root", type=Path, help="Absolute corpus path in the rollout")
+    search.add_argument("--context-id", action="append", default=[], help="Capture in this round")
+    search.add_argument("--archive-review", type=Path, metavar="FILE",
+                        help="Build a round archive from reviewed passage and decision references")
+    search.add_argument("--stage", help="Retrieval stage if known, e.g. diagnosis")
+    search.add_argument("--used", action="append", nargs=2, metavar=("REF", "DECISION_LINE"),
+                        default=[], help="Reviewed material use in a cited assistant message")
+    search.add_argument("--rejected", action="append", nargs=2, metavar=("REF", "DECISION_LINE"),
+                        default=[], help="Reviewed rejection in a cited assistant message")
+    search.add_argument("--complete", action="store_true",
+                        help="Caller confirms coverage of all in-scope retrievals in this round")
     log = campaign_actions.add_parser(
         "log", help="Record a new version of the campaign optimization log"
     )

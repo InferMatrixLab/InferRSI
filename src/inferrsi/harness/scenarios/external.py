@@ -5,8 +5,8 @@ from collections.abc import Callable
 from pathlib import Path
 
 from ...infra.artifacts import atomic_write_json as _write_json
-from ...infra.executors.local import execute_command
 from ...model.protocols.metrics import read_metric, validate_metric
+from ..local_process import execute_command
 
 
 def execute_trial(
@@ -17,8 +17,10 @@ def execute_trial(
     metric_key: str | None,
     *,
     metric_reader: Callable[[dict, str], float] = read_metric,
+    environment: dict | None = None,
 ) -> dict:
-    record = execute_command(command, cwd, trial_dir, deadline)
+    options = {"environment": environment} if environment is not None else {}
+    record = execute_command(command, cwd, trial_dir, deadline, **options)
     result_path = Path(record["result_path"])
     if metric_key is not None:
         try:

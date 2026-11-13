@@ -33,6 +33,12 @@ def _identifier(value: str, name: str) -> str:
     return value
 
 
+def require_manual_campaign(root: Path) -> None:
+    manifest, _ = _object(root / "campaign.json", root)
+    if manifest.get("managed_optimization"):
+        raise ValueError("Managed campaigns use round/knowledge; manual record writes are disabled")
+
+
 def create_campaign(root: Path, campaign_id: str, *, target: float | None = None,
                     noise: float | None = None, synthetic: bool = False,
                     backend: str | None = None, profile_first: bool = False) -> Path:
@@ -143,6 +149,7 @@ def record_candidate(root: Path, *, candidate_id: str, run_id: str, round_number
                      optimization_trace: str | None = None) -> Path:
     """Associate a run and optional explicit evidence without copying raw data."""
     root = Path(root).resolve()
+    require_manual_campaign(root)
     _identifier(candidate_id, "candidate_id")
     _identifier(run_id, "run_id")
     if isinstance(round_number, bool) or not isinstance(round_number, int) or round_number < 1:
@@ -263,6 +270,7 @@ def record_candidate(root: Path, *, candidate_id: str, run_id: str, round_number
 def record_decision(root: Path, *, candidate_id: str, round_number: int, outcome: str) -> Path:
     """Record one round decision without overwriting an earlier one."""
     root = Path(root).resolve()
+    require_manual_campaign(root)
     _identifier(candidate_id, "candidate_id")
     if isinstance(round_number, bool) or not isinstance(round_number, int) or round_number < 1:
         raise ValueError("round must be a positive integer")

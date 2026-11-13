@@ -14,7 +14,7 @@ are observations with order/cache/provider-drift confounding, not causal skill
 effects; a time-effect study needs a separately authorized frozen plan and budget.
 
 The small report-audit driver reuses `KnowledgeReader` bundles, the real Codex
-CLI and `infra.executors.local.execute_command`. It adapts the sibling pilot's
+CLI and `harness.local_process.execute_command`. It adapts the sibling pilot's
 fresh-session, event and independent-verifier methods; its old fixed
 no-skill/human/distilled controller is not imported. No external evaluation
 platform source is copied. Existing knowledge retains its source/license limits.
