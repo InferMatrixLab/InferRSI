@@ -42,6 +42,11 @@ def test_offline_axes_keyboard_exact_run_and_shared_selection(browser, campaign)
     root.locator('[data-xp-control="workload"]').select_option("W1")
     assert page.locator('#chart [data-xp-control="workload"]').input_value() == "W1"
     assert root.locator(".xp-chart").count() == 2
+    tick = root.locator('.xp-axis-tick[aria-label*="quality-rejected"]').first
+    assert "R4" in tick.text_content()
+    assert tick.locator(".xp-axis-name title").first.text_content() == "quality-rejected"
+    assert "…" in tick.locator(".xp-axis-name").first.evaluate(
+        "node => node.firstChild.textContent")
     assert root.locator(".xp-card").nth(1).locator(".xp-event-mark").count() == 1
     assert root.locator(".xp-card").first.locator(".xp-segment").count() == 3
     point = root.locator('.xp-point[aria-label^="quality-rejected"]')
@@ -93,6 +98,7 @@ def test_time_axis_chinese_narrow_screen_and_accessible_table(browser, campaign)
     root.get_by_label("工作负载", exact=True).select_option("W1")
     root.get_by_label("横轴", exact=True).select_option("timestamp")
     assert root.locator(".xp-chart").count() == 1
+    assert root.locator(".xp-axis-name").count() == 0
     assert "未定位记录" in root.inner_text()
     root.locator('[data-xp-table] summary').click()
     assert root.get_by_role("table").is_visible()

@@ -145,11 +145,27 @@ window.InferRSIExperiments = (() => {
       if(!Number.isFinite(high-low)||!Number.isFinite(maxX-minX)){card.append(el('p',t('No plottable measurement')));return;}
       if(minX===maxX){minX-=1;maxX+=1;}
       const x=v=>70+(v-minX)/(maxX-minX)*730,y=v=>240-(v-low)/(high-low)*190;
-      const picture=svg('svg',{viewBox:'0 0 850 350',class:'xp-chart',role:'group','aria-label':title});
+      const ticks=[...new Set(xs)].sort((a,b)=>a-b);
+      const namesAt=v=>state.axis==='round'?[...new Set([...plotted,...locatedEvents]
+        .filter(p=>position(p,state.axis)===v).map(p=>p.title?narrative(p.title):p.candidate_id)
+        .filter(Boolean))]:[];
+      const labelRows=Math.max(0,...ticks.map(v=>namesAt(v).length));
+      const chartHeight=350+labelRows*16;
+      const picture=svg('svg',{viewBox:`0 0 850 ${chartHeight}`,class:'xp-chart',role:'group','aria-label':title});
       picture.append(svg('title',{},title+' · '+t('Absolute measurements')));
       for(let i=0;i<=4;i++){const v=low+(high-low)*i/4;picture.append(svg('line',{x1:70,x2:800,y1:y(v),y2:y(v),stroke:'#2c3b51'}),svg('text',{x:60,y:y(v)+4,'text-anchor':'end'},number(v)));}
-      for(const v of [...new Set(xs)].sort((a,b)=>a-b)){picture.append(svg('text',{x:x(v),y:263,'text-anchor':'middle'},state.axis==='timestamp'?new Date(v).toISOString().slice(11,19):String(v)));}
-      picture.append(svg('text',{x:430,y:342,'text-anchor':'middle'},t(state.axis==='round'?'Recorded round':state.axis==='order'?'Recorded order':'Recorded time')));
+      for(const v of ticks){
+        const names=namesAt(v),full=[`R${v}`,...names].join(' · ');
+        const tick=svg('g',{class:'xp-axis-tick','aria-label':state.axis==='round'?full:String(v)});
+        tick.append(svg('text',{x:x(v),y:263,'text-anchor':'middle'},state.axis==='timestamp'?new Date(v).toISOString().slice(11,19):state.axis==='round'?`R${v}`:String(v)));
+        names.forEach((name,i)=>{
+          const chars=Array.from(name),short=chars.length>10?chars.slice(0,9).join('')+'…':name;
+          const label=svg('text',{x:x(v),y:320+i*16,'text-anchor':'middle',class:'xp-axis-name'},short);
+          label.append(svg('title',{},name));tick.append(label);
+        });
+        tick.append(svg('title',{},full));picture.append(tick);
+      }
+      picture.append(svg('text',{x:430,y:chartHeight-8,'text-anchor':'middle'},t(state.axis==='round'?'Recorded round':state.axis==='order'?'Recorded order':'Recorded time')));
       const groups=new Map();for(const p of points){if(p.series_id){if(!groups.has(p.series_id))groups.set(p.series_id,[]);groups.get(p.series_id).push(p);}}
       const color=p=>p.series_id?colors[[...groups.keys()].indexOf(p.series_id)%colors.length]:'#bac4d5';
       for(const group of groups.values()){

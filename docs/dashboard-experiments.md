@@ -184,3 +184,8 @@ including the top performance trend and successes and failures. Their curves,
 events and original records are available by expanding the corresponding panel.
 Opening or closing these panels is preserved during language changes and live
 data refreshes.
+
+The round axis shows `R<round>` and abbreviated recorded experiment titles below
+the event track. Hover over a title to see its full text. Multiple titles at the
+same round remain separate labels; timestamp and order axes keep their original
+labels. Abbreviations shorten display text only and do not infer optimization names.
