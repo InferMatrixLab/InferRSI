@@ -321,6 +321,34 @@ def test_prepare_publishes_codec_rejection(tmp_path, preparation, port, structur
     assert read_result(tmp_path, run.output_id) == run
 
 
+@pytest.mark.parametrize(
+    "port", ["wire_prepare", "prepare_benchmark", "encode_prepared", "validate_prepared"],
+)
+def test_prepare_rejects_port_error_with_execution_facts(tmp_path, preparation, port):
+    _, _, _, _, _, root = preparation
+    error = PublicError(
+        "InvalidRequest", stage="benchmark", message="private content",
+        attempt_id="foreign-attempt", started=True,
+    )
+
+    def reject(*_):
+        if port == "wire_prepare":
+            return error.to_json()
+        raise error
+
+    option = "prepare_benchmark" if port == "wire_prepare" else port
+    run = _run(tmp_path, preparation, **{option: reject})
+    assert run.result["exit_code"] == 2
+    assert run.result["prepared_ref"] is None
+    actual = run.result["error"]
+    assert actual["code"] == "InvalidRequest"
+    assert actual["stage"] == "benchmark_response_validation"
+    assert actual["attempt_id"] is actual["started"] is None
+    assert "private content" not in actual["message"]
+    assert list(root.iterdir()) == []
+    assert read_result(tmp_path, run.output_id) == run
+
+
 @pytest.mark.parametrize("root_is_file", [False, True])
 def test_prepare_rejects_unusable_archive_root_before_benchmark(
     tmp_path, preparation, root_is_file,

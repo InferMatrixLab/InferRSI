@@ -343,6 +343,11 @@ def validate_result(result: object) -> None:
     ):
         raise ValueError("unexpected assessment fields for the Apps operation")
     if operation == "prepare":
+        if error is not None and any(
+            error[key] is not None
+            for key in ("attempt_id", "started", "latest_record_ref", "partial_record")
+        ):
+            raise ValueError("unexpected execution facts in prepare error")
         if any(
             result[field] is not None
             for field in ("execution", "record_ref", "attempt_id", "admission")

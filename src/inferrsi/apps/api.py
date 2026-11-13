@@ -179,6 +179,18 @@ def _prepare_request(request: dict) -> dict:
     return benchmark_request
 
 
+def _prepare_port_error(error: dict) -> dict:
+    try:
+        result = preparation_result(error=error)
+        validate_result(result)
+    except (ValueError, TypeError, KeyError):
+        return preparation_result(error=_validation_error(
+            "InvalidRequest", "Benchmark returned a malformed prepare error.",
+            stage="benchmark_response_validation",
+        ))
+    return result
+
+
 def prepare(
     request: dict,
     *,
@@ -213,12 +225,7 @@ def prepare(
         response = _port_call(prepare_benchmark, deepcopy(benchmark_request))
         try:
             if is_public_error(response):
-                if any(response[key] is not None for key in (
-                    "attempt_id", "started", "latest_record_ref", "partial_record"
-                )):
-                    raise ValueError("unexpected execution facts from Benchmark")
-                result = preparation_result(error=response)
-                validate_result(result)
+                result = _prepare_port_error(response)
             else:
                 if not isinstance(response, tuple) or len(response) != 3:
                     raise ValueError("expected a prepared closure")
@@ -238,7 +245,7 @@ def prepare(
                 )
                 result = preparation_result(prepared_ref=prepared_ref)
         except PublicError as error:
-            result = preparation_result(error=error.to_json())
+            result = _prepare_port_error(error.to_json())
         except (ValueError, TypeError, KeyError):
             result = preparation_result(error=_validation_error(
                 "InvalidRequest", "Benchmark returned a malformed prepared closure.",

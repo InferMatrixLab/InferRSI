@@ -88,6 +88,8 @@ structured rejection. The host adapts Benchmark-specific rejection exceptions
 to this contract. Apps publishes `InvalidRequest` at
 `benchmark_response_validation` for `ValueError` and preserves the code and stage
 of a valid `PublicError`.
+Prepare rejects errors carrying an attempt ID, start state, latest record
+reference or partial execution record at `benchmark_response_validation`.
 
 Apps selects the configured local archive directory and allocates the final
 logical locations for the prepared object, protocol and resources. The
