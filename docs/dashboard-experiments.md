@@ -187,5 +187,12 @@ data refreshes.
 
 The round axis shows `R<round>` and abbreviated recorded experiment titles below
 the event track. Hover over a title to see its full text. Multiple titles at the
-same round remain separate labels; timestamp and order axes keep their original
-labels. Abbreviations shorten display text only and do not infer optimization names.
+same round remain separate labels. Names are measured in the chart font and
+staggered into non-overlapping rows when rounds are close together, with the
+round repeated beside each name. Chart height includes those rows and any
+stacked events; timestamp and order axes keep their original labels. Abbreviations shorten display text only and do not infer optimization names.
+
+[Dense round labels screenshot](assets/dashboard-experiments-dense-rounds.png)
+shows synthetic 15-round data, long CJK titles, three candidates in one round,
+and stacked events. Browser regressions check text bounds for overlap and
+clipping at desktop and narrow widths in both layouts.

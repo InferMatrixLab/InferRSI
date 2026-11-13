@@ -149,8 +149,28 @@ window.InferRSIExperiments = (() => {
       const namesAt=v=>state.axis==='round'?[...new Set([...plotted,...locatedEvents]
         .filter(p=>position(p,state.axis)===v).map(p=>p.title?narrative(p.title):p.candidate_id)
         .filter(Boolean))]:[];
-      const labelRows=Math.max(0,...ticks.map(v=>namesAt(v).length));
-      const chartHeight=350+labelRows*16;
+      // Match the SVG text font even when a review panel is currently collapsed.
+      // Pack measured horizontal bounds into separate rows, retaining every title.
+      const measure=document.createElement('canvas').getContext('2d');
+      if(measure)measure.font='12px system-ui';
+      const laneEnds=[],labelsByRound=new Map();
+      for(const v of ticks){
+        let nextLane=0;const labels=[];
+        for(const name of namesAt(v)){
+          const chars=Array.from(name),short=chars.length>10?chars.slice(0,9).join('')+'…':name;
+          const text=`R${v} · ${short}`;
+          const width=measure?measure.measureText(text).width:Array.from(text).length*12;
+          const center=Math.max(8+width/2,Math.min(842-width/2,x(v)));
+          let lane=nextLane;
+          while((laneEnds[lane]??-Infinity)+12>center-width/2)lane++;
+          laneEnds[lane]=center+width/2;nextLane=lane+1;
+          labels.push({name,text,center,lane});
+        }
+        labelsByRound.set(v,labels);
+      }
+      const eventRows=Math.max(0,...ticks.map(v=>locatedEvents.filter(e=>position(e,state.axis)===v).length));
+      const labelTop=Math.max(320,280+eventRows*8+20);
+      const chartHeight=Math.max(350,labelTop+laneEnds.length*20+30);
       const picture=svg('svg',{viewBox:`0 0 850 ${chartHeight}`,class:'xp-chart',role:'group','aria-label':title});
       picture.append(svg('title',{},title+' · '+t('Absolute measurements')));
       for(let i=0;i<=4;i++){const v=low+(high-low)*i/4;picture.append(svg('line',{x1:70,x2:800,y1:y(v),y2:y(v),stroke:'#2c3b51'}),svg('text',{x:60,y:y(v)+4,'text-anchor':'end'},number(v)));}
@@ -158,11 +178,10 @@ window.InferRSIExperiments = (() => {
         const names=namesAt(v),full=[`R${v}`,...names].join(' · ');
         const tick=svg('g',{class:'xp-axis-tick','aria-label':state.axis==='round'?full:String(v)});
         tick.append(svg('text',{x:x(v),y:263,'text-anchor':'middle'},state.axis==='timestamp'?new Date(v).toISOString().slice(11,19):state.axis==='round'?`R${v}`:String(v)));
-        names.forEach((name,i)=>{
-          const chars=Array.from(name),short=chars.length>10?chars.slice(0,9).join('')+'…':name;
-          const label=svg('text',{x:x(v),y:320+i*16,'text-anchor':'middle',class:'xp-axis-name'},short);
+        for(const {name,text,center,lane} of labelsByRound.get(v)){
+          const label=svg('text',{x:center,y:labelTop+lane*20,'text-anchor':'middle',class:'xp-axis-name'},text);
           label.append(svg('title',{},name));tick.append(label);
-        });
+        }
         tick.append(svg('title',{},full));picture.append(tick);
       }
       picture.append(svg('text',{x:430,y:chartHeight-8,'text-anchor':'middle'},t(state.axis==='round'?'Recorded round':state.axis==='order'?'Recorded order':'Recorded time')));

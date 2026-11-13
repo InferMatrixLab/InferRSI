@@ -338,3 +338,67 @@ def test_profile_panels_collapsed_and_state_survives_render(
             server.shutdown()
             worker.join(timeout=5)
             server.server_close()
+
+
+@pytest.mark.parametrize("profile_first", [False, True])
+@pytest.mark.parametrize("width", [1440, 390])
+def test_dense_round_titles_do_not_overlap(browser, tmp_path, profile_first, width):
+    FIXTURE["write"](tmp_path / "campaign.json", {
+        "campaign_id": "synthetic-dense-rounds", "synthetic": True,
+        **({"review_layout": "profile_first"} if profile_first else {}),
+    })
+    titles = []
+    for index in range(17):
+        round_number = index + 1 if index < 15 else 8
+        name = f"candidate-{index}"
+        events = [{"stage": "validation", "category": "quality", "workload": "W1",
+                   "summary": f"Synthetic event {n}"} for n in range(8)] if index == 7 else []
+        FIXTURE["external"](tmp_path, name, round_number,
+                            [FIXTURE["metric"](value=20-index/2)], events=events)
+        path = tmp_path / "candidates" / name / "candidate.json"
+        data = json.loads(path.read_text())
+        title = f"方案{index:02d}中文长名称并行计算内存优化"
+        titles.append(title)
+        data["title"] = title
+        path.write_text(json.dumps(data, ensure_ascii=False))
+    path = tmp_path / "dashboard.html"
+    path.write_text(render_dashboard(dashboard_snapshot(tmp_path)))
+    page = browser.new_page(viewport={"width": width, "height": 1000})
+    errors = []
+    page.on("pageerror", lambda error: errors.append(str(error)))
+    try:
+        page.goto(path.as_uri())
+        if profile_first:
+            for key in ("trend", "summary"):
+                page.locator(f'[data-key="{key}"] > summary').click()
+        for panel in (page.locator("#chart"), page.locator("#summary-experiments")):
+            labels = panel.locator(".xp-axis-name")
+            assert labels.count() == len(titles)
+            assert sorted(labels.locator("title").all_text_contents()) == sorted(titles)
+            chart = panel.locator(".xp-chart")
+            geometry = chart.evaluate("""svg => {
+                const rect = node => {
+                    const r = node.getBBox();
+                    return {left:r.x, right:r.x+r.width, top:r.y, bottom:r.y+r.height};
+                };
+                return {labels:[...svg.querySelectorAll('.xp-axis-name')].map(rect),
+                        events:[...svg.querySelectorAll('.xp-event-mark')].map(rect),
+                        width:svg.viewBox.baseVal.width, height:svg.viewBox.baseVal.height};
+            }""")
+            for index, box in enumerate(geometry["labels"]):
+                assert 0 <= box["left"] < box["right"] <= geometry["width"]
+                assert 300 < box["top"] < box["bottom"] < geometry["height"] - 20
+                assert all(event["bottom"] < box["top"] for event in geometry["events"])
+                for other in geometry["labels"][index + 1:]:
+                    assert (box["right"] <= other["left"] or other["right"] <= box["left"]
+                            or box["bottom"] <= other["top"] or other["bottom"] <= box["top"])
+            assert panel.bounding_box()["width"] <= width
+            # Labels must not affect measurement selection or its full recorded name.
+            page.mouse.move(0, 0)
+            point = panel.locator('.xp-point[aria-label^="方案00"]')
+            point.focus()
+            page.keyboard.press("Enter")
+            assert titles[0] in panel.locator(".xp-detail").inner_text()
+        assert not errors
+    finally:
+        page.close()
