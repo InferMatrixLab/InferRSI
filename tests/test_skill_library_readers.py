@@ -220,7 +220,8 @@ def test_package_catalog_and_reader_do_not_require_yaml():
             "records = knowledge_records()\n"
             "identity = next(r['id'] for r in records if r.get('skill_documents'))\n"
             "assert KnowledgeReader().read(identity).content\n"
-            "assert 'inferrsi.skill_catalog' not in sys.modules\n",
+            "assert 'inferrsi.skill_catalog' not in sys.modules\n"
+            "assert 'inferrsi.knowledge.skill_catalog' not in sys.modules\n",
         ],
         capture_output=True,
         text=True,

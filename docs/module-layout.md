@@ -1,8 +1,11 @@
 # Target module layout
 
-This page records the directory rule for the integration slice. The engineering
-task contribution now implements `benchmark/registry.py` and `benchmark/tasks/`.
-The current flat `cli.py` and `benchmark_operations.py` assemble this slice.
+This page records the directory rule for the integration slice. The first-wave
+Knowledge move (K01) is implemented: `src/inferrsi/knowledge/` holds the seven
+moved Knowledge bodies, and the old root modules are static compatibility
+shells. The engineering task contribution now implements `benchmark/registry.py`
+and `benchmark/tasks/`. The current flat `cli.py` and `benchmark_operations.py`
+assemble this slice.
 #371 remains the proposal for the Apps package path and is not accepted here.
 
 ## Target modules
@@ -62,7 +65,7 @@ Several flat modules remain shared seams until their slice starts.
 | `harness/optimization_session.py`, `harness/project.py`, `harness/task_protocol.py` | Shared preparation, execution and retained-result assessment | CLI supplies task resources and knowledge access; ordinary project lifecycle does not import Benchmark |
 | `harness/optimization.py`, `harness/candidates.py`, `harness/usage.py` | Shared project and packaged-task lifecycle | Injected execution/assessment; declared file/directory candidates, selection direction and exact/up-to rounds |
 | `harness/agent_sessions.py` | Native host handoff records | Freezes requests and retains native IDs and exported observations; the initiating Agent calls host tools |
-| `knowledge_operations.py`, `knowledge_store.py`, `catalog.py`, `research.py`, `skill_catalog.py`, `_skill_selection.py` | Knowledge behavior and corpus readers | Interfaces unchanged |
+| `knowledge_operations.py`, `knowledge_store.py`, `catalog.py`, `research.py`, `skill_catalog.py`, `_skill_selection.py`, `_source_snapshot.py` | Static compatibility shells since K01; bodies in `knowledge/` | Interfaces unchanged |
 | `harness/` | Mixed legacy tree, not target isolation | Not redefined |
 | `evaluation.py`, `model/validators/` | Benchmark-leaning checks | Not moved |
 | `infra/`, `execution.py`, `runspec.py`, `inspection.py` | Seams used by the current tree | Not a fourth core |
@@ -87,8 +90,12 @@ first-wave pairs below, read from `docs/legacy-knowledge-manifest.json`.
 
 The Benchmark package now provides resource discovery and task scripts. The
 CLI and single-task application launcher assemble them with Harness; task
-scripts receive execution support without importing another core. The
-compatibility exceptions below remain scoped to the first-wave Knowledge move.
+scripts receive execution support without importing another core.
+"There is no exception list of current edges" described the tree before K01,
+when the three package names were unused and no current edge needed an
+exception. It was never a permanent ban on reviewed exceptions; since K01 the
+exact first-wave Knowledge pairs below are the only Knowledge compatibility
+exceptions, and they remain scoped to that move.
 
 The gate scans `src/inferrsi/**` as the transfer graph. It resolves absolute,
 relative, and `from package import name` imports, includes the parent-package
@@ -206,9 +213,11 @@ The manifest records the base commit, each old leaf's file hash at that
 commit, export names, audited definitions, consumer evidence, catalog's two
 symbol routes, the required `infra.inspection` import rewrite, and the
 original `REPO_TYPES` / `repository_pack` fragment from `catalog.py` with its
-hash. `_repo_pack_data.py` does not exist yet; K01 creates it and locks its
-full-file hash. K01 re-verifies every recorded hash against its own base and
-re-reviews the manifest if any differ.
+hash. K01 created `_repo_pack_data.py`, and the manifest locks its full-file
+hash. K01 re-verified every recorded hash against its own base. Two leaves
+had changed after P0b, so K01 re-recorded all seven hashes at its base and
+keeps the P0b values in `revision_history`; that revision goes through formal
+review with the move.
 
 ## Old `run` exit codes
 

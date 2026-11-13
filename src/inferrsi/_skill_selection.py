@@ -1,211 +1,30 @@
+# Compatibility shell. The implementation lives in inferrsi.knowledge._skill_selection.
 from __future__ import annotations
 
-import json
-import posixpath
-import re
+from inferrsi.knowledge._skill_selection import (
+    RELEVANCE_METHODS,
+    TASK_RELEVANCE,
+    SkillIndexError,
+    context_view,
+    indexed_skill,
+    lexical_score,
+    raw_string_lexical_score,
+    record_context,
+    skill_score,
+    task_score,
+    words,
+)
 
-TASK_RELEVANCE = "task-lexical-v1"
-RELEVANCE_METHODS = ("weighted-lexical-v1", "weighted-raw-string-v1", TASK_RELEVANCE)
-
-
-class SkillIndexError(ValueError):
-    pass
-
-
-def words(cue: str) -> set[str]:
-    return set(re.findall(r"\w+", cue.casefold()))
-
-
-def lexical_score(cue: str, fields: list[tuple[int, object]]) -> int:
-    tokens = words(cue)
-    return sum(
-        weight * sum(token in json.dumps(value, ensure_ascii=False).casefold() for token in tokens)
-        for weight, value in fields
-    )
-
-
-def raw_string_lexical_score(cue: str, fields: list[tuple[int, object]]) -> int:
-    """Match original strings; retain legacy JSON matching for nonstring fields."""
-    tokens = words(cue)
-    score = 0
-    for weight, value in fields:
-        text = value if isinstance(value, str) else json.dumps(value, ensure_ascii=False)
-        score += weight * sum(token in text.casefold() for token in tokens)
-    return score
-
-
-def indexed_skill(record: dict, view: dict, content: dict[str, bytes]) -> tuple:
-    """Validate the existing projection against this exact canonical bundle."""
-    registry_path = "data/skill_library/skill-index.json"
-    registry = json.loads(content[registry_path])
-    name = record["skill_metadata"]["name"]
-    entry = registry["skills"][name]
-    prefix = f"data/skill_library/{entry['path']}/"
-    core = prefix + "SKILL.md"
-    expected_id = f"inferrsi.{entry['backend']}.skills.{name.replace('-', '_')}"
-    if (
-        registry["schema_version"] != 1
-        or view["authority"] != "package"
-        or record["id"] != view["id"]
-        or record["id"] != expected_id
-        or record["backend"] != entry["backend"]
-        or record["skill_documents"] != {"original": core}
-        or posixpath.basename(entry["path"]) != name
-    ):
-        raise SkillIndexError("Packaged skill identity disagrees with the registry")
-    expected = {
-        "src/inferrsi/" + path: digest
-        for path, digest in view["resources"].items()
-        if path.startswith(prefix) or path == registry_path
-    }
-    if record["source_files"] != expected:
-        raise SkillIndexError("Stale packaged skill projection; rebuild with build_skill_index.py")
-
-    required = [core]
-    metadata = record["skill_metadata"]
-    notices = [
-        source["third_party_notices"]
-        for source in metadata.get("sources", []) if "third_party_notices" in source
-    ]
-    for relative in [
-        *metadata.get("references", []), *metadata.get("provenance_readsets", []), *notices,
-    ]:
-        path = posixpath.normpath(prefix + relative)
-        if "\\" in relative or not path.startswith("data/skill_library/") or path not in content:
-            raise SkillIndexError(f"Unavailable declared skill reference: {relative}")
-        if path not in required:
-            required.append(path)
-    for path in sorted(content):
-        if path.startswith(prefix) and re.search(
-            r"(?:^|[-_])(?:LICENSE|NOTICES?)(?:\.[^.]+)?$",
-            posixpath.basename(path), re.IGNORECASE,
-        ) and path not in required:
-            required.append(path)
-    for resource in list(required):
-        directory = posixpath.dirname(resource)
-        while directory.startswith("data/skill_library/"):
-            license_path = directory + "/LICENSE"
-            if license_path in content and license_path not in required:
-                required.append(license_path)
-            directory = posixpath.dirname(directory)
-    optional = sorted(
-        path for path in content
-        if path.startswith(prefix) and path not in required
-    )
-    return core, required, optional
-
-
-def skill_score(
-    cue: str, record: dict, core: bytes, *, method: str = "weighted-lexical-v1"
-) -> int:
-    if method not in ("weighted-lexical-v1", "weighted-raw-string-v1"):
-        raise ValueError("Unknown relevance method for skill-only ranking")
-    scorer = raw_string_lexical_score if method == "weighted-raw-string-v1" else lexical_score
-    return scorer(cue, [
-        (4, record["title"]),
-        (3, record["summary"]),
-        (2, [record.get("tags", []), record.get("applicability", {})]),
-        (1, core.decode("utf-8")),
-    ])
-
-
-def task_score(cue: str, record: dict, core: bytes, backend: str | None) -> int:
-    """Rank whole task terms across both skill and repository knowledge owners."""
-    def terms(text: str) -> set[str]:
-        return set(re.findall(r"[^\W_]+", text.casefold()))
-
-    tokens = terms(cue) - {"a", "an", "and", "for", "in", "of", "on", "the", "to", "with"}
-    fields = (
-        (4, record["title"]),
-        (3, record["summary"]),
-        (2, " ".join(record.get("tags", []))),
-        (2, record["repo"] + " " + record["scenario"]),
-        (1, json.dumps(record.get("applicability", {}), ensure_ascii=False)),
-        (1, core.decode("utf-8")),
-    )
-    score = sum(weight * len(tokens & terms(text)) for weight, text in fields)
-    # With no platform in scope prefer portable procedures to a specialization
-    # that happens to repeat the same task words in its description.
-    platforms = {
-        "cuda": {"cuda", "nvidia"}, "rocm": {"rocm", "amd"},
-        "ascend": {"ascend", "cann"}, "mlx": {"mlx"}, "cpu": {"cpu"},
-    }
-    in_scope = {backend} if backend else {key for key, names in platforms.items() if names & tokens}
-    return score * (2 if record["backend"] == "common" or record["backend"] in in_scope else 1)
-
-
-def record_context(record: dict, view: dict, content: dict[str, bytes], available: int) -> tuple:
-    """Keep the canonical package record including its sources and limits."""
-    path = view["entrypoint"]
-    body = content[path]
-    if len(body) > available:
-        return None, {"ref": view["ref"], "reason": "context_limit",
-                      "required_bytes": len(body), "available_bytes": available}
-    return {
-        "ref": view["ref"], "revision": view["revision"], "content_bytes": len(body),
-        "resources": [{"path": path, "sha256": view["resources"][path], "role": "record",
-                       "locator": "whole-resource", "content": body.decode("utf-8")}],
-        "omissions": [{"path": p, "reason": "linked_document"} for p in
-                      dict.fromkeys(record.get("skill_documents", {}).values())],
-        "sources": view["sources"], "attribution": view["attribution"],
-        "limitations": view["limitations"],
-    }, None
-
-
-def context_view(
-    record: dict, view: dict, content: dict[str, bytes], cue: str, available: int
-) -> tuple[dict | None, dict | None]:
-    core, required, optional = indexed_skill(record, view, content)
-    required_bytes = sum(len(content[path]) for path in required)
-    if required_bytes > available:
-        return None, {
-            "ref": view["ref"], "reason": "context_limit",
-            "required_bytes": required_bytes, "available_bytes": available,
-        }
-
-    resources, omissions = [], []
-    used = 0
-
-    def include(path: str) -> None:
-        nonlocal used
-        resources.append({
-            "path": path, "sha256": view["resources"][path], "locator": "whole-resource",
-            "role": "core" if path == core else "reference",
-            "content": content[path].decode("utf-8"),
-        })
-        used += len(content[path])
-
-    for path in required:
-        include(path)
-    candidates = []
-    for path in optional:
-        if (
-            posixpath.basename(path) == "metadata.json"
-            or posixpath.splitext(path)[1].lower() not in (".md", ".json", ".txt", ".csv")
-        ):
-            omissions.append({"path": path, "reason": "not_context_resource"})
-            continue
-        try:
-            text = content[path].decode("utf-8")
-        except UnicodeDecodeError:
-            omissions.append({"path": path, "reason": "not_utf8"})
-            continue
-        score = lexical_score(cue, [(2, path.rpartition("/")[2]), (1, text)])
-        if words(cue) and score == 0:
-            omissions.append({"path": path, "reason": "not_relevant"})
-            continue
-        candidates.append((score, path))
-    for _, path in sorted(candidates, key=lambda item: (-item[0], item[1])):
-        if used + len(content[path]) > available:
-            omissions.append({"path": path, "reason": "context_limit"})
-            continue
-        include(path)
-    return {
-        "ref": view["ref"], "revision": view["revision"], "resources": resources,
-        "content_bytes": used, "omissions": omissions,
-        "sources": view["sources"], "attribution": view["attribution"],
-        "limitations": view["limitations"] + [
-            "Selected resources are complete files; this view is not a standalone Bundle.",
-            "Follow omitted or other linked resources through the exact owner revision.",
-        ],
-    }, None
+__all__ = [
+    "RELEVANCE_METHODS",
+    "SkillIndexError",
+    "words",
+    "lexical_score",
+    "raw_string_lexical_score",
+    "indexed_skill",
+    "skill_score",
+    "context_view",
+    "TASK_RELEVANCE",
+    "task_score",
+    "record_context",
+]
