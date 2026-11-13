@@ -31,7 +31,8 @@ SCHEMA = REPO / "docs" / "contracts" / "schemas" / "contract-v1.schema.json"
 NEW_H_CLOSURE = {
     "inferrsi.harness.api", "inferrsi.harness.execution_service",
     "inferrsi.harness.input_binding", "inferrsi.harness.local_process",
-    "inferrsi.harness.run_store", "inferrsi.harness.errors", "inferrsi._json_v1",
+    "inferrsi.harness.run_store", "inferrsi.harness.errors", "inferrsi.harness.execution_spec",
+    "inferrsi._json_v1",
     "inferrsi.harness", "inferrsi.claim",
 }
 # Prints a grandchild's pid, then outlives any test deadline with it.
