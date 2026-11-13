@@ -8,7 +8,7 @@ import pytest
 
 from inferrsi._json_v1 import decode, encode
 from inferrsi.apps.api import execute
-from inferrsi.apps.bridge import bind_execution
+from inferrsi.apps.bridge import bind_execution, verify_protocol
 from inferrsi.harness.errors import PublicError
 from inferrsi.harness.execution_spec import request_digest
 
@@ -122,16 +122,21 @@ def test_bind_rejects_inconsistent_declarations(binding, fault, code):
         bind_execution(request, prepared)
 
 
-def test_execute_reads_fixed_archive_and_keeps_same_spec_for_replay(tmp_path, binding):
-    request, prepared, _ = binding
+def _write_archive(tmp_path, prepared, protocol):
     root = tmp_path / "archive"
     root.mkdir()
     (root / "prepared.json").write_bytes(encode(prepared))
-    protocol = root / "protocol.json"
-    protocol.write_bytes((_FIXTURES / "t108-v4/protocol.json").read_bytes())
+    (root / "protocol.json").write_bytes(protocol)
     config = decode((_FIXTURES / "t108-v4/storage-config.json").read_bytes())
     config["mounts"][0]["root"] = str(root)
     config["mounts"][1]["root"] = str(tmp_path / "store")
+    return root, config
+
+
+def test_execute_reads_fixed_archive_and_keeps_same_spec_for_replay(tmp_path, binding):
+    request, prepared, _ = binding
+    protocol = (_FIXTURES / "t108-v4/protocol.json").read_bytes()
+    root, config = _write_archive(tmp_path, prepared, protocol)
     submitted = []
 
     def harness(spec):
@@ -150,7 +155,7 @@ def test_execute_reads_fixed_archive_and_keeps_same_spec_for_replay(tmp_path, bi
         assert run.result["exit_code"] == 5
     assert submitted == [encode(bind_execution(request, prepared))] * 2
 
-    protocol.unlink()
+    (root / "protocol.json").unlink()
     run = execute(request, workspace=tmp_path, storage_config=config, execute_harness=harness)
     assert run.result["reason_code"] == "ArtifactUnavailable"
     assert len(submitted) == 2
@@ -159,3 +164,59 @@ def test_execute_reads_fixed_archive_and_keeps_same_spec_for_replay(tmp_path, bi
     run = execute(request, workspace=tmp_path, storage_config=config, execute_harness=harness)
     assert run.result["reason_code"] == "ArtifactIntegrityError"
     assert len(submitted) == 2
+
+
+@pytest.mark.parametrize("field", ["recipe", "protocol_digest", "validation_scope", "resources"])
+def test_execute_rejects_prepare_protocol_disagreement(tmp_path, binding, field):
+    request, prepared, _ = binding
+    protocol = (_FIXTURES / "t108-v4/protocol.json").read_bytes()
+    if field == "recipe":
+        prepared["recipe"]["code_sha256"] = "1" * 64
+    elif field == "protocol_digest":
+        prepared[field] = "sha256:" + "1" * 64
+    elif field == "resources":
+        prepared[field] = [{
+            "role": "extra", "required_for": ["assess"],
+            "format_schema": {"name": "fixture-data", "revision": "1"},
+            "artifact": prepared["protocol"],
+        }]
+    else:
+        prepared[field] = "another-scope"
+    _refresh_ref(request, prepared)
+    _, config = _write_archive(tmp_path, prepared, protocol)
+    run = execute(
+        request, workspace=tmp_path, storage_config=config,
+        execute_harness=lambda _: pytest.fail("submitted mismatched preparation"),
+    )
+    assert run.result["reason_code"] == "IdentityMismatch"
+    assert run.result["error"]["stage"] == "binder_validation"
+
+
+def test_protocol_projection_keeps_ref_shaped_parameters_and_ignores_resource_location(binding):
+    _, prepared, _ = binding
+    protocol = decode((_FIXTURES / "t108-v4/protocol.json").read_bytes())
+    artifact = {
+        "location": "fixtures/baseline", "sha256": "1" * 64, "size_bytes": 20,
+        "media_type": "application/octet-stream",
+    }
+    protocol["task_parameters"]["ref_shaped_value"] = deepcopy(artifact)
+    protocol["baseline"] = {
+        "role": "baseline", "artifact": artifact, "required_for": ["execute"],
+        "format_schema": {"name": "fixture-data", "revision": "1"},
+    }
+    prepared["resources"] = [deepcopy(protocol["baseline"])]
+    prepared["resources"][0]["artifact"]["location"] = "archive/relocated-baseline"
+
+    projection = deepcopy(protocol)
+    del projection["display_notes"]
+    del projection["baseline"]["artifact"]["location"]
+    prepared["protocol_digest"] = "sha256:" + sha256(encode(projection)).hexdigest()
+    data = encode(protocol)
+    prepared["protocol"].update(sha256=sha256(data).hexdigest(), size_bytes=len(data))
+    verify_protocol(prepared, data)
+
+    protocol["task_parameters"]["ref_shaped_value"]["location"] = "different/parameter"
+    data = encode(protocol)
+    prepared["protocol"].update(sha256=sha256(data).hexdigest(), size_bytes=len(data))
+    with pytest.raises(PublicError, match="IdentityMismatch"):
+        verify_protocol(prepared, data)

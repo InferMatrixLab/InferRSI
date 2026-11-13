@@ -4,7 +4,7 @@ import re
 from copy import deepcopy
 from hashlib import sha256
 
-from inferrsi._json_v1 import encode
+from inferrsi._json_v1 import decode, encode
 from inferrsi.harness.errors import PublicError
 
 from .archive import _logical_path
@@ -33,6 +33,16 @@ _PREPARED_FIELDS = {
     "required_evidence", "recipe", "resources", "created_at", "display_notes",
 }
 _RESOURCE_FIELDS = {"role", "artifact", "required_for", "format_schema"}
+_PROTOCOL_FIELDS = {
+    "schema_version", "task", "grader", "operation", "validation_scope",
+    "candidate_contract", "worker_recipe", "input_requirements", "claim_definitions",
+    "metric_definitions", "required_evidence", "task_parameters", "baseline", "reference",
+    "quality_reference", "sampling", "feedback_visibility", "budget_policy_refs",
+    "resources", "display_notes",
+}
+_PROTOCOL_COPIES = (
+    "task", "grader", "operation", "validation_scope", "candidate_contract", "required_evidence",
+)
 _ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9._:/@+-]{0,255}")
 _DIGEST = re.compile(r"[0-9a-f]{64}")
 _SEMANTIC_ID = re.compile(r"sha256:[0-9a-f]{64}")
@@ -218,6 +228,57 @@ def _require_disjoint_paths(paths: list[str]) -> None:
     ordered = sorted(_logical_path(path) for path in paths)
     if any(second[:len(first)] == first for first, second in zip(ordered, ordered[1:])):
         raise ValueError("input and output paths must not overlap")
+
+
+def _resource_projection(resource: dict) -> dict:
+    ref = resource["artifact"]
+    validate_artifact_ref(ref)
+    _logical_path(ref["location"])
+    return {**resource, "artifact": {key: value for key, value in ref.items() if key != "location"}}
+
+
+def verify_protocol(prepared: dict, data: bytes) -> None:
+    """Check the archived protocol's identity and the preparation's frozen fields."""
+    try:
+        ref = prepared["protocol"]
+        validate_artifact_ref(ref)
+        protocol = decode(data)
+        if (
+            not isinstance(protocol, dict) or protocol.keys() != _PROTOCOL_FIELDS
+            or type(protocol["schema_version"]) is not int or protocol["schema_version"] != 1
+        ):
+            raise ValueError("invalid ProtocolV1 envelope")
+        projection = dict(protocol)
+        del projection["display_notes"]
+        resources = [_resource_projection(item) for item in protocol["resources"]]
+        closure = list(resources)
+        projection["resources"] = resources
+        for key in ("baseline", "reference", "quality_reference"):
+            if protocol[key] is not None:
+                projection[key] = _resource_projection(protocol[key])
+                closure.append(projection[key])
+        digest = "sha256:" + sha256(encode(projection)).hexdigest()
+        fixed_resources = [_resource_projection(item) for item in prepared["resources"]]
+        expected_resources = {item["role"]: item for item in closure}
+        if (
+            ref["size_bytes"] != len(data) or ref["sha256"] != sha256(data).hexdigest()
+            or prepared["protocol_digest"] != digest
+            or encode(prepared["recipe"]) != encode(protocol["worker_recipe"])
+            or any(encode(prepared[key]) != encode(protocol[key]) for key in _PROTOCOL_COPIES)
+            or encode(fixed_resources) != encode(
+                [expected_resources[role] for role in sorted(expected_resources)]
+            )
+            or any(encode(item) != encode(expected_resources[item["role"]]) for item in closure)
+        ):
+            raise PublicError(
+                "IdentityMismatch", stage="binder_validation",
+                message="The fixed preparation disagrees with its archived protocol.",
+            )
+    except (KeyError, TypeError, ValueError):
+        raise PublicError(
+            "InvalidExecutionSpec", stage="binder_validation",
+            message="The fixed preparation or protocol is malformed.",
+        ) from None
 
 
 def _bind_spec(request: dict, prepared: dict) -> dict:

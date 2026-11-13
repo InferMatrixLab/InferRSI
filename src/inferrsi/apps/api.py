@@ -19,7 +19,7 @@ from .archive import (
     validate_output_id,
 )
 from .bridge import bind_execution as _bind_prepared_execution
-from .bridge import execution_fields
+from .bridge import execution_fields, verify_protocol
 from .result import execution_result, is_public_error, preparation_result, validate_result
 
 _PREPARE_FIELDS = {"schema_version", "request"}
@@ -262,7 +262,8 @@ def execute(
                     "InvalidExecutionSpec", stage="binder_validation",
                     message="The fixed preparation has no protocol reference.",
                 )
-            read_archive_artifact(storage_config, prepared["protocol"])
+            protocol = read_archive_artifact(storage_config, prepared["protocol"])
+            verify_protocol(prepared, protocol)
             return _bind_prepared_execution(saved, prepared)
 
         binder = bind_from_archive

@@ -114,9 +114,9 @@ functions are under `inferrsi.apps.archive`.
 ## Execute binding
 
 Supply `storage_config` to `inferrsi.apps.api.execute` to read the fixed
-`PreparedRef`, verify the referenced protocol bytes, and bind the saved
-request using `inferrsi.apps.bridge`. The
-existing injected binder remains available to hosts. The Apps binder maps
+`PreparedRef`, verify the protocol bytes and semantic digest, and check the
+prepared recipe, scope, and resources against that protocol before binding.
+The existing injected binder remains available to hosts. The Apps binder maps
 frozen execution resources to fixed artifact inputs and preserves the
 candidate declarations and the entire original AttemptContext.
 
