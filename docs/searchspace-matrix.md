@@ -653,3 +653,16 @@ hardware coverage or hardware prerequisite. The owner's existing N/A reason
 remains unchanged; source use of GPU, TensorRT, Flow or HiFT does not alter
 that boundary. Source-derived candidate / empirical not_run / efficacy
 not_evaluated; author reports are not local quality or service results.
+
+## Embodied.cpp benchmark methodology
+
+The [inference-benchmark-design](../src/inferrsi/data/skill_library/methods/inference-benchmark-design/SKILL.md)
+method uses [Embodied.cpp at 156bed15](https://github.com/SEU-PAISys/Embodied.cpp/tree/156bed151826780e2ce0132f8d0e3540889ae8cd)
+and [arXiv:2607.02501v3](https://arxiv.org/abs/2607.02501v3) as source context
+for observation-to-action timing, generated versus replayed actions, precision
+identity and per-task closed-loop quality. Its [operating reference](../src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/embodied-cpp-boundary-and-quality.md)
+and [readset](../src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/embodied-cpp-source.json)
+retain the later author's measurement and source-version limits.
+
+These are comparison methods. Experiment hardware is source context rather
+than a device prerequisite or a resource mechanism for this method.
