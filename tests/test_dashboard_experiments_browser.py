@@ -7,6 +7,9 @@ import threading
 from pathlib import Path
 
 import pytest
+from test_optimization_session import session as session
+from test_optimization_session import submit
+from test_optimization_session import task as task
 
 from inferrsi.observability.dashboard import dashboard_snapshot, render_dashboard
 from inferrsi.observability.dashboard_live import DashboardServer
@@ -216,3 +219,52 @@ def test_blank_configuration_renders_isolated_points_and_reason(
         assert not errors
     finally:
         page.close()
+
+
+@pytest.mark.parametrize("live", [False, True])
+def test_managed_session_preserves_objective_and_token_chart(browser, session, capsys, live):
+    submit(session, 2, capsys, usage={"input_tokens": 100, "output_tokens": 20})
+    snapshot = dashboard_snapshot(session)
+    assert "optimization_session" in snapshot["data"]
+    assert "experiments" not in snapshot["data"]
+    server = worker = None
+    page = browser.new_page()
+    errors = []
+    page.on("pageerror", lambda e: errors.append(str(e)))
+    try:
+        if live:
+            server = DashboardServer(session, None, 0)
+            worker = threading.Thread(target=server.serve_forever, daemon=True)
+            worker.start()
+            page.goto(f"http://127.0.0.1:{server.server_port}")
+        else:
+            path = session / "dashboard.html"
+            path.write_text(render_dashboard(snapshot), encoding="utf-8")
+            page.goto(path.as_uri())
+        chart = page.locator("#chart")
+        curve = chart.get_by_role("img", name="Optimization objective and cumulative tokens")
+        playwright.expect(curve).to_be_visible()
+        assert "Independent final" in chart.inner_text()
+        assert "These curves do not establish cross-environment comparability" in (
+            page.locator("#chart-note").inner_text())
+        assert "Candidate: round 1, 2" in curve.locator("title").all_text_contents()
+        assert "Input + output tokens: round 1, 120" in curve.locator("title").all_text_contents()
+        # UI re-renders must preserve the server chart too.
+        page.locator("#language-zh").click()
+        playwright.expect(curve).to_be_visible()
+        page.locator("#language-en").click()
+        if live:
+            submit(session, 3, capsys, usage={"input_tokens": 200, "output_tokens": 10})
+            playwright.expect(curve).to_contain_text("330", timeout=15000)
+            playwright.expect(curve).to_be_visible()
+            assert "Candidate: round 2, 3" in curve.locator("title").all_text_contents()
+            assert "These curves do not establish cross-environment comparability" in (
+                page.locator("#chart-note").inner_text())
+        assert "No plottable measurement" not in chart.inner_text()
+        assert not errors
+    finally:
+        page.close()
+        if server:
+            server.shutdown()
+            worker.join(timeout=5)
+            server.server_close()

@@ -1218,6 +1218,8 @@ __DASHBOARD_EXPERIMENTS__
     }
   });
   function renderExperiments(){
+    // Managed sessions keep their server-rendered objective/token chart and note.
+    if(!data.experiments)return;
     experimentView.render([byId('chart'),byId('summary-experiments')]);
     byId('chart-note').textContent='';
   }
