@@ -9,13 +9,15 @@ environment, which is not mount-namespace confinement.
 
 Callers may add device nodes (bound read-write, e.g. one GPU's ``/dev/nvidiaN``),
 extra read-only runtime paths (e.g. the driver's user-space libraries) and extra
-environment variables. With device nodes, the command also gets a new PID
-namespace and a fresh ``/proc``; the host ``/proc`` is never bound. Every jail has
-an empty ``/tmp`` and ``/dev/shm``.
+environment variables. Every command runs as PID 1 of its own PID namespace, so
+when it exits or is killed nothing it started survives. With device nodes, the
+jail also gets a fresh ``/proc``; the host ``/proc`` is never bound. Every jail
+has an empty ``/tmp`` and ``/dev/shm``.
 """
 
 import json
 import os
+import signal
 import struct
 import subprocess
 import sys
@@ -24,6 +26,12 @@ import time
 from pathlib import Path
 
 _ENV_ALLOW = frozenset({"PATH", "LANG", "LC_ALL", "LC_CTYPE", "TZ", "PYTHONIOENCODING"})
+_PACKAGE_ROOT = str(Path(__file__).resolve().parents[2])
+_SUPERVISOR = (
+    "import sys; sys.path.insert(0, sys.argv[1]); "
+    "from inferrsi.infra.confinement import enter_namespace; enter_namespace(sys.argv[2])"
+)
+_REAP_SECONDS = 10.0
 _GUARD = """
 import builtins
 import os
@@ -262,6 +270,32 @@ def _run_local(argv: tuple[str, ...], cwd: Path, deadline: float, environment: d
     }
 
 
+def supervisor_command(config_path: Path) -> list[str]:
+    """Isolated interpreter: the candidate cwd and PYTHON* variables do not reach sys.path."""
+    return [sys.executable, "-I", "-c", _SUPERVISOR, _PACKAGE_ROOT, str(config_path)]
+
+
+def _kill_group(process: subprocess.Popen) -> None:
+    """Kill the session and return only once no member of it is left."""
+    try:
+        os.killpg(process.pid, signal.SIGKILL)
+    except ProcessLookupError:
+        pass
+    process.wait()
+    for stream in (process.stdout, process.stderr):
+        if stream is not None:
+            stream.close()
+    give_up = time.monotonic() + _REAP_SECONDS
+    while True:
+        try:
+            os.killpg(process.pid, 0)
+        except ProcessLookupError:
+            return
+        if time.monotonic() > give_up:
+            raise ConfinementUnavailable("namespace command outlived its deadline")
+        time.sleep(0.05)
+
+
 class UnavailableBackend:
     """Fail closed. Does not execute the candidate."""
 
@@ -351,7 +385,7 @@ class UnshareBackend:
                 json.dumps({"argv": list(argv), "cwd": str(cwd), **plan}),
                 encoding="utf-8",
             )
-            completed = subprocess.run(
+            process = subprocess.Popen(
                 [
                     "unshare",
                     "--user",
@@ -359,24 +393,27 @@ class UnshareBackend:
                     "--mount",
                     "--propagation",
                     "private",
-                    *(["--pid", "--fork"] if plan["proc"] else []),
+                    "--pid",
+                    "--kill-child",
                     "--",
-                    sys.executable,
-                    "-c",
-                    "import sys; from inferrsi.infra.confinement import enter_namespace; "
-                    "enter_namespace(sys.argv[1])",
-                    str(config_path),
+                    *supervisor_command(config_path),
                 ],
                 cwd=cwd,
                 env=minimal_environment(),
                 stdin=subprocess.DEVNULL,
-                capture_output=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
                 text=True,
-                timeout=remaining,
-                check=False,
+                start_new_session=True,
             )
-        except subprocess.TimeoutExpired as exc:
-            raise ConfinementUnavailable("namespace command timed out") from exc
+            try:
+                stdout, stderr = process.communicate(timeout=remaining)
+            except subprocess.TimeoutExpired as exc:
+                _kill_group(process)
+                raise ConfinementUnavailable("namespace command timed out") from exc
+            completed = subprocess.CompletedProcess(
+                process.args, process.returncode, stdout, stderr
+            )
         finally:
             if config_path is not None:
                 config_path.unlink(missing_ok=True)

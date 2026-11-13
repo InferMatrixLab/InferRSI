@@ -10,6 +10,7 @@ from pathlib import Path
 
 import pytest
 
+from inferrsi.infra import confinement
 from inferrsi.infra.confinement import (
     ConfinementUnavailable,
     FixtureBackend,
@@ -17,9 +18,11 @@ from inferrsi.infra.confinement import (
     UnshareBackend,
     _elf_interpreter,
     confined_execute,
+    minimal_environment,
     namespace_plan,
     namespaces_available,
     select_backend,
+    supervisor_command,
 )
 
 
@@ -69,22 +72,25 @@ def test_select_backend_fails_closed_when_namespaces_are_disabled(monkeypatch):
 def test_unshare_failure_does_not_fall_back(tmp_path, monkeypatch):
     calls = []
     monkeypatch.setenv("SECRET_CANARY", "CANARY-ENV")
-    real_run = subprocess.run
+    real_popen = subprocess.Popen
 
-    def fake_run(argv, **kwargs):
-        if not argv or argv[0] != "unshare":
-            return real_run(argv, **kwargs)
-        del kwargs
-        calls.append(json.loads(Path(argv[-1]).read_text(encoding="utf-8")))
+    class FailedUnshare:
+        def __init__(self, argv):
+            self.args = argv
+            self.returncode = None
+            calls.append(json.loads(Path(argv[-1]).read_text(encoding="utf-8")))
 
-        class Completed:
-            returncode = 1
-            stdout = ""
-            stderr = "unshare failed"
+        def communicate(self, timeout=None):
+            del timeout
+            self.returncode = 1
+            return "", "unshare failed"
 
-        return Completed()
+    def fake_popen(argv, **kwargs):
+        if argv and argv[0] == "unshare":
+            return FailedUnshare(argv)
+        return real_popen(argv, **kwargs)
 
-    monkeypatch.setattr("inferrsi.infra.confinement.subprocess.run", fake_run)
+    monkeypatch.setattr("inferrsi.infra.confinement.subprocess.Popen", fake_popen)
     with pytest.raises(ConfinementUnavailable, match="unshare failed"):
         UnshareBackend().run(
             (sys.executable, "-c", "print('should-not-run')"),
@@ -98,23 +104,68 @@ def test_unshare_failure_does_not_fall_back(tmp_path, monkeypatch):
     assert "/" not in {item["source"] for item in calls[0]["mounts"]}
 
 
-def test_unshare_timeout_becomes_confinement_failure(tmp_path, monkeypatch):
-    real_run = subprocess.run
+_LATE_CHILD = """
+import pathlib, sys, time
+pathlib.Path(sys.argv[1], "started").write_text("1")
+time.sleep(float(sys.argv[2]))
+pathlib.Path(sys.argv[1], "late").write_text("1")
+"""
 
-    def fake_run(argv, **kwargs):
-        if not argv or argv[0] != "unshare":
-            return real_run(argv, **kwargs)
-        raise subprocess.TimeoutExpired(argv, kwargs.get("timeout") or 1)
 
-    monkeypatch.setattr("inferrsi.infra.confinement.subprocess.run", fake_run)
+def test_unshare_timeout_kills_the_whole_process_group(tmp_path, monkeypatch):
+    real_popen = subprocess.Popen
+    (tmp_path / "child.py").write_text(_LATE_CHILD, encoding="utf-8")
+    child = [str(tmp_path / "child.py"), str(tmp_path), "1.5"]
+    payload = (
+        "import subprocess, sys, time\n"
+        f"subprocess.Popen([sys.executable, *{child!r}])\n"
+        "time.sleep(30)\n"
+    )
+
+    def fake_popen(argv, **kwargs):
+        if argv and argv[0] == "unshare":
+            argv = [sys.executable, "-c", payload]
+        return real_popen(argv, **kwargs)
+
+    monkeypatch.setattr("inferrsi.infra.confinement.subprocess.Popen", fake_popen)
     with pytest.raises(ConfinementUnavailable, match="timed out"):
         UnshareBackend().run(
-            (sys.executable, "-c", "print('should-not-run')"),
+            (sys.executable, "-c", "print('unused')"),
             tmp_path,
             (tmp_path,),
             (),
-            time.monotonic() + 5,
+            time.monotonic() + 1,
         )
+    time.sleep(2)
+    assert (tmp_path / "started").exists()
+    assert not (tmp_path / "late").exists()
+
+
+def test_supervisor_ignores_a_shadow_package_in_the_candidate(tmp_path):
+    shadow = tmp_path / "candidate"
+    (shadow / "inferrsi" / "infra").mkdir(parents=True)
+    canary = tmp_path / "shadow-imported"
+    (shadow / "inferrsi" / "__init__.py").write_text(
+        f"open({str(canary)!r}, 'w').write('1')\n", encoding="utf-8"
+    )
+    (shadow / "inferrsi" / "infra" / "__init__.py").write_text("", encoding="utf-8")
+    (shadow / "inferrsi" / "infra" / "confinement.py").write_text(
+        "def enter_namespace(path):\n    raise SystemExit('shadow')\n", encoding="utf-8"
+    )
+    completed = subprocess.run(
+        supervisor_command(tmp_path / "missing.json"),
+        cwd=shadow,
+        env={**minimal_environment(), "PYTHONPATH": str(shadow)},
+        capture_output=True,
+        text=True,
+        timeout=30,
+        check=False,
+    )
+    assert completed.returncode != 0
+    assert not canary.exists()
+    assert "shadow" not in completed.stderr
+    assert "FileNotFoundError" in completed.stderr
+    assert str(Path(confinement.__file__).resolve()) in completed.stderr
 
 
 def test_namespace_plan_includes_the_loader_but_not_a_private_file(tmp_path, monkeypatch):
@@ -159,6 +210,30 @@ def test_unshare_starts_python_and_hides_a_private_canary(tmp_path, monkeypatch)
     assert "STARTED" in record["stdout"]
     assert "CANARY-ENV" not in record["stdout"]
     assert "True" not in record["stdout"]
+
+
+@pytest.mark.skipif(not namespaces_available(), reason="user namespaces are unavailable")
+def test_unshare_timeout_leaves_no_detached_child(tmp_path):
+    work = tmp_path / "work"
+    work.mkdir()
+    (work / "child.py").write_text(_LATE_CHILD, encoding="utf-8")
+    script = (
+        "import subprocess, sys, time\n"
+        f"subprocess.Popen([sys.executable, {str(work / 'child.py')!r}, {str(work)!r}, '4'], "
+        "start_new_session=True)\n"
+        "time.sleep(30)\n"
+    )
+    with pytest.raises(ConfinementUnavailable, match="timed out"):
+        UnshareBackend().run(
+            (sys.executable, "-c", script),
+            work,
+            (work,),
+            (),
+            time.monotonic() + 3,
+        )
+    time.sleep(3)
+    assert (work / "started").exists()
+    assert not (work / "late").exists()
 
 
 def test_blocked_unshare_reports_namespaces_unavailable(monkeypatch):
