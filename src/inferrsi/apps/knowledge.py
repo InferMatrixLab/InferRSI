@@ -22,7 +22,6 @@ def read(
     reader: KnowledgeReader, reference: str, *, revision: str | None = None, material: bool = False,
 ) -> tuple[str, str, dict]:
     """Return the qualified reference, actual revision, and public Bundle view."""
-    qualified = reader.resolve(reference)
-    bundle = reader.read(qualified, revision=revision)
+    qualified, bundle = reader.read_resolved(reference, revision=revision)
     view = bundle.view(material=material)
     return qualified, view["revision"], view
