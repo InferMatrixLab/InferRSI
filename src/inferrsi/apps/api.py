@@ -14,8 +14,12 @@ from .archive import (
     archive_mount,
     archive_prepared,
     publish_result,
+    read_archive_artifact,
+    read_prepared,
     validate_output_id,
 )
+from .bridge import bind_execution as _bind_prepared_execution
+from .bridge import execution_fields, verify_protocol
 from .result import execution_result, is_public_error, preparation_result, validate_result
 
 _PREPARE_FIELDS = {"schema_version", "request"}
@@ -23,12 +27,6 @@ _BENCHMARK_REQUEST_FIELDS = {
     "schema_version", "task", "operation", "validation_scope", "input_pins", "task_parameters",
     "comparison_conditions", "expected_candidate", "budget_policy_refs",
 }
-_EXECUTE_FIELDS = {"schema_version", "prepared_ref", "proposal", "attempt", "output_root"}
-_ATTEMPT_FIELDS = {
-    "request_id", "run_id", "attempt_id", "owner", "target_request", "deadline_utc",
-    "resources", "budget", "retry_of", "retry_reason",
-}
-_PROPOSAL_FIELDS = {"candidate", "inputs", "generation_record_ref"}
 
 
 def _validation_error(code: str, message: str, *, stage: str = "validation") -> dict:
@@ -42,34 +40,6 @@ def _validation_error(code: str, message: str, *, stage: str = "validation") -> 
         "retained_refs": [],
         "field_errors": [],
         "message": message,
-    }
-
-
-def _request_fields(request: dict) -> dict:
-    if not isinstance(request, dict) or request.keys() != _EXECUTE_FIELDS:
-        raise ValueError("expected AppsExecuteRequest fields")
-    attempt = request["attempt"]
-    proposal = request["proposal"]
-    if (
-        type(request["schema_version"]) is not int
-        or request["schema_version"] != 1
-        or not isinstance(attempt, dict)
-        or attempt.keys() != _ATTEMPT_FIELDS
-        or not isinstance(attempt["attempt_id"], str)
-        or not attempt["attempt_id"]
-        or attempt["request_id"] != attempt["attempt_id"]
-        or not isinstance(proposal, dict)
-        or proposal.keys() != _PROPOSAL_FIELDS
-        or not isinstance(proposal["inputs"], list)
-    ):
-        raise ValueError("expected a pre-allocated AttemptContext")
-    return {
-        **attempt,
-        "schema_version": 1,
-        "prepared_ref": request["prepared_ref"],
-        "output_root": request["output_root"],  # Harness runtime artifacts, per ExecutionSpec.
-        "candidate": proposal["candidate"],
-        "generation_record_ref": proposal["generation_record_ref"],
     }
 
 
@@ -258,26 +228,44 @@ def execute(
     request: dict,
     *,
     workspace: Path,
-    bind_execution: Callable[[dict], dict],
     execute_harness: Callable[[dict], dict],
+    bind_execution: Callable[[dict], dict] | None = None,
+    storage_config: dict | None = None,
     output_id: str | None = None,
 ) -> RunOutput:
     """Bind the saved request and submit its original attempt to Harness.
 
-    The trusted host supplies the binder and Harness port. Either may raise
-    PublicError or return its wire form. Harness owns the RunStore, request
-    identity and replay decisions. Workspace and output_id locate Apps output.
+    The trusted host supplies the Harness port and a storage configuration for
+    the Apps binder, or provides an existing custom binder. Either port may
+    raise PublicError or return its wire form. Workspace and output_id locate
+    Apps output. Harness owns the RunStore, request identity and replay decisions.
     """
     if output_id is not None:
         validate_output_id(output_id)
     try:
         encode(request)
-        fields = _request_fields(request)
+        fields = execution_fields(request)
+        if (bind_execution is None) == (storage_config is None):
+            raise ValueError("expected one storage configuration or binder")
     except ValueError:
         result = execution_result(error=_validation_error(
             "InvalidRequest", "Expected a v1 execute request with a pre-allocated attempt."
         ))
         return publish_result(workspace, result, output_id=output_id)
 
-    result = _execute_saved(request, fields, bind_execution, execute_harness)
+    binder = bind_execution
+    if binder is None:
+        def bind_from_archive(saved: dict) -> dict:
+            prepared = read_prepared(storage_config, saved["prepared_ref"])
+            if "protocol" not in prepared:
+                raise PublicError(
+                    "InvalidExecutionSpec", stage="binder_validation",
+                    message="The fixed preparation has no protocol reference.",
+                )
+            protocol = read_archive_artifact(storage_config, prepared["protocol"])
+            verify_protocol(prepared, protocol)
+            return _bind_prepared_execution(saved, prepared)
+
+        binder = bind_from_archive
+    result = _execute_saved(request, fields, binder, execute_harness)
     return publish_result(workspace, result, output_id=output_id)

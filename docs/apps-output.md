@@ -110,3 +110,18 @@ error retains the committed PreparedRef.
 storage configuration. `read_archive_artifact` reads protocol or resource bytes
 from the archive mount and verifies the reference's size and digest. Both
 functions are under `inferrsi.apps.archive`.
+
+## Execute binding
+
+Supply `storage_config` to `inferrsi.apps.api.execute` to read the fixed
+`PreparedRef`, verify the protocol bytes and semantic digest, and check the
+prepared recipe, scope, and resources against that protocol before binding.
+The existing injected binder remains available to hosts. The Apps binder maps
+frozen execution resources to fixed artifact inputs and preserves the
+candidate declarations and the entire original AttemptContext.
+
+Worker arguments substitute whole input and output role tokens. The worker
+uses the attempt root as its working directory and the original attempt
+deadline. OperationRecipe v1 has no per-step timeout, so the step timeout
+is null. The expected worker code digest comes from the fixed recipe.
+The bound spec is handed to the host-supplied Harness execution port.
