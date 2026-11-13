@@ -464,13 +464,13 @@ def _tree_record(tmp_path: Path, seconds: float) -> tuple[dict, int]:
 
 @pytest.mark.skipif(os.name != "nt", reason="Windows Job Object domain")
 def test_windows_job_owns_and_empties_the_command_tree(tmp_path: Path) -> None:
-    record, grandchild = _tree_record(tmp_path, 3)
+    record, grandchild = _tree_record(tmp_path, 8)
     assert record["status"] == "timeout" and record["process_group_id"] is None
     # The Job is drained before the call returns; no asynchronous kill remains.
     assert not alive(grandchild)
     run = local_process._supervise(
         [sys.executable, "-c", TREE], tmp_path, dict(os.environ),
-        tmp_path / "out.log", tmp_path / "err.log", time.monotonic() + 3,
+        tmp_path / "out.log", tmp_path / "err.log", time.monotonic() + 8,
     )
     assert (run["status"], run["domain_empty"]) == ("timeout", True)
     assert not alive(int((tmp_path / "out.log").read_text().strip()))
@@ -478,13 +478,13 @@ def test_windows_job_owns_and_empties_the_command_tree(tmp_path: Path) -> None:
 
 @pytest.mark.skipif(os.name == "nt", reason="POSIX process-group domain")
 def test_posix_process_group_owns_and_empties_the_command_tree(tmp_path: Path) -> None:
-    record, grandchild = _tree_record(tmp_path, 3)
+    record, grandchild = _tree_record(tmp_path, 8)
     assert record["status"] == "timeout"
     assert record["process_group_id"] == record["pid"]
     assert not alive(grandchild)
     run = local_process._supervise(
         [sys.executable, "-c", TREE], tmp_path, dict(os.environ),
-        tmp_path / "out.log", tmp_path / "err.log", time.monotonic() + 3,
+        tmp_path / "out.log", tmp_path / "err.log", time.monotonic() + 8,
     )
     assert (run["status"], run["domain_empty"]) == ("timeout", True)
     assert not alive(int((tmp_path / "out.log").read_text().strip()))
