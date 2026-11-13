@@ -159,6 +159,7 @@ class _WindowsJob:
 
 
 def _stop_tree(process: subprocess.Popen, windows_job: _WindowsJob | None = None) -> None:
+    """Best-effort tree stop. A leader still alive after the drain bound does not raise."""
     if windows_job is not None:
         windows_job.close()
     elif os.name != "nt":
@@ -166,9 +167,13 @@ def _stop_tree(process: subprocess.Popen, windows_job: _WindowsJob | None = None
             os.killpg(process.pid, signal.SIGKILL)
         except ProcessLookupError:
             pass
-    if process.poll() is None:
-        process.kill()
-    process.wait(timeout=10)
+    try:
+        if process.poll() is None:
+            process.kill()
+        process.wait(timeout=_DRAIN_SECONDS)
+    except (ProcessLookupError, subprocess.TimeoutExpired):
+        # The caller records domain_empty from the Job or process group, not by exception.
+        return
 
 
 def _group_empty(group: int) -> bool | None:
@@ -307,7 +312,10 @@ def _supervise(
         if windows_job is not None:
             windows_job.close()
         if process is not None and os.name != "nt":
-            _stop_tree(process)
+            try:
+                _stop_tree(process)
+            except (OSError, subprocess.SubprocessError):
+                pass
         if process is not None:
             # A process that never joined its domain leaves that domain unconfirmed.
             if attached:

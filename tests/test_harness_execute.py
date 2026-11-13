@@ -582,3 +582,84 @@ def test_normal_exit_still_empties_a_lingering_descendant(tmp_path: Path) -> Non
     assert (run["status"], run["returncode"], run["domain_empty"]) == ("completed", 0, True)
     assert run["termination_requested"] is False
     assert not alive(int((tmp_path / "out.log").read_text().strip()))
+
+
+def test_stop_tree_returns_when_leader_wait_times_out(monkeypatch) -> None:
+    class Leader:
+        pid = 4242
+        args = ["leader"]
+
+        def poll(self):
+            return None
+
+        def kill(self):
+            return None
+
+        def wait(self, timeout=None):
+            raise subprocess.TimeoutExpired(cmd=self.args, timeout=timeout)
+
+    if os.name != "nt":
+        monkeypatch.setattr(os, "killpg", lambda *args, **kwargs: None)
+    local_process._stop_tree(Leader())
+
+
+def test_supervise_returns_a_domain_fact_when_drain_wait_times_out(
+    tmp_path: Path, monkeypatch,
+) -> None:
+    real_wait = subprocess.Popen.wait
+
+    def wait_times_out_on_drain(self, timeout=None):
+        if timeout in (10, local_process._DRAIN_SECONDS):
+            raise subprocess.TimeoutExpired(cmd=self.args, timeout=timeout)
+        return real_wait(self, timeout=timeout)
+
+    monkeypatch.setattr(subprocess.Popen, "wait", wait_times_out_on_drain)
+    # A short deadline forces the timeout path, which calls _stop_tree on both hosts.
+    run = local_process._supervise(
+        [sys.executable, "-c", "import time; time.sleep(60)"],
+        tmp_path, dict(os.environ),
+        tmp_path / "out.log", tmp_path / "err.log", time.monotonic() + 1,
+    )
+    assert run["domain_empty"] in (True, False, None)
+    assert run["pid"] is not None
+
+
+@pytest.mark.skipif(os.name == "nt", reason="POSIX finally calls _stop_tree after SIGKILL")
+def test_supervise_records_unconfirmed_domain_when_leader_survives_sigkill(
+    tmp_path: Path, monkeypatch,
+) -> None:
+    real_wait = subprocess.Popen.wait
+    real_killpg = os.killpg
+    monkeypatch.setattr(local_process, "_DRAIN_SECONDS", 0.2)
+
+    def wait_times_out_on_drain(self, timeout=None):
+        if timeout in (10, local_process._DRAIN_SECONDS):
+            raise subprocess.TimeoutExpired(cmd=self.args, timeout=timeout)
+        return real_wait(self, timeout=timeout)
+
+    def ignore_killpg(*args, **kwargs):
+        return None
+
+    monkeypatch.setattr(subprocess.Popen, "wait", wait_times_out_on_drain)
+    monkeypatch.setattr(subprocess.Popen, "kill", lambda self: None)
+    monkeypatch.setattr(os, "killpg", ignore_killpg)
+    run = None
+    try:
+        run = local_process._supervise(
+            [sys.executable, "-c", "import time; time.sleep(60)"],
+            tmp_path, dict(os.environ),
+            tmp_path / "out.log", tmp_path / "err.log", time.monotonic() + 1,
+        )
+        assert run["pid"] is not None
+        assert run["domain_empty"] in (False, None)
+    finally:
+        pid = None if run is None else run.get("pid")
+        if pid is not None:
+            try:
+                real_killpg(pid, 9)
+            except OSError:
+                pass
+            try:
+                os.kill(pid, 9)
+            except OSError:
+                pass
