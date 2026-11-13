@@ -16,6 +16,8 @@ Other text, including ``{result}`` inside ``build``, is passed through unchanged
 ``device_paths`` (per device id), ``shared_device_paths``, ``runtime_paths`` and
 ``env`` (values may use ``{device}``) extend the confined view for GPU trials.
 Each command is capped by ``command_timeout_seconds`` and the lane deadline.
+If a timed-out command cannot be confirmed dead, its devices are written to
+``quarantine/<device>`` and are not handed out until that file is removed.
 """
 
 import hashlib
@@ -45,7 +47,11 @@ from inferrsi.harness.round_budget import (
     seconds_remaining,
 )
 from inferrsi.infra.artifacts import digest, write_json
-from inferrsi.infra.confinement import ConfinementUnavailable, confined_execute
+from inferrsi.infra.confinement import (
+    ConfinementUnavailable,
+    UnreapedCommand,
+    confined_execute,
+)
 from inferrsi.infra.device_lease import DeviceLease, LeaseError
 
 PLANES = {"harness", "model", "infra"}
@@ -588,6 +594,8 @@ def hold_devices(round_dir: Path, plan: dict, count: int) -> list[tuple[str, obj
     for device in plan["device_ids"]:
         if len(held) == count:
             break
+        if (round_dir / "quarantine" / device).exists():
+            continue
         try:
             held.append((device, leases.acquire(device)))
         except LeaseError:
@@ -725,6 +733,10 @@ def _measure(
             backend=backend,
             current=current,
         )
+    except UnreapedCommand as exc:
+        for device in devices:
+            write_json(round_dir / "quarantine" / device, {"ticket": ticket, "reason": str(exc)})
+        return _record(round_dir, ticket, status="unsettled", reason=str(exc), devices=devices)
     except (ConfinementUnavailable, BudgetError, MeasurementError) as exc:
         return _record(round_dir, ticket, status="unsettled", reason=str(exc), devices=devices)
     finished = advance(ledger, binding, "finished", actual_cost=0)

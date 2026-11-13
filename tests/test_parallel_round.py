@@ -14,6 +14,7 @@ from inferrsi.harness import parallel_round
 from inferrsi.harness.parallel_round import (
     RoundPlanError,
     _read_nofollow,
+    hold_devices,
     prepare,
     serve_ticket,
     submit,
@@ -22,6 +23,7 @@ from inferrsi.harness.parallel_round import (
 from inferrsi.infra.confinement import (
     ConfinementUnavailable,
     FixtureBackend,
+    UnreapedCommand,
     namespaces_available,
 )
 from inferrsi.infra.device_lease import DeviceLease, LeaseError
@@ -722,6 +724,28 @@ def test_a_queued_ticket_past_its_deadline_is_rejected_without_a_reservation(tmp
     assert "deadline" in rejected["reason"]
     assert ticket_status(round_dir, ticket)["status"] == "rejected"
     assert not (round_dir / "ledgers" / "L1.json").exists()
+
+
+def test_an_unreaped_command_quarantines_its_device(tmp_path):
+    incumbent, round_dir, ticket = _one_ticket(tmp_path)
+
+    class Unreaped:
+        name = "unreaped"
+
+        def run(self, *args, **kwargs):
+            del args, kwargs
+            raise UnreapedCommand("namespace command outlived its deadline")
+
+    result = serve_ticket(round_dir, ticket, incumbent, backend=Unreaped(), now=WHEN)
+    assert result["status"] == "unsettled"
+    assert result["devices"] == ["cpu-0"]
+    assert (round_dir / "quarantine" / "cpu-0").exists()
+    plan = json.loads((round_dir / "round-plan.json").read_text(encoding="utf-8"))
+    assert hold_devices(round_dir, plan, 2) is None
+    held = hold_devices(round_dir, plan, 1)
+    assert [device for device, _lease in held] == ["cpu-1"]
+    for _device, lease in held:
+        lease.release()
 
 
 def test_reading_a_fifo_does_not_block(tmp_path):
