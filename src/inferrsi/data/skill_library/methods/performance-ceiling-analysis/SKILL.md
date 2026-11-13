@@ -29,6 +29,30 @@ Before profiling, gather what you can analytically:
    must be resolved via vendor documentation or an empirical measurement).
 3. Existing benchmark numbers if available: throughput frames/s, TTFA p50/p95,
    RTF mean. Label their provenance (author-reported, local measurement, etc.).
+4. The checkpoint, whenever L1 prices weight traffic. Pass both gates in
+   [checkpoint anchoring](references/huggingarch-checkpoint-anchor.md) before
+   reporting any figure derived from weight bytes:
+   - **Gate 1, the per-tensor join.** Every tensor in the safetensors headers
+     must be selected by a name in the analysis, and every non-buffer name must
+     select a header tensor. Report both residuals. For each name, sum the stored
+     tensors that share it and compare physical elements with the header; a packed
+     format counts its container's elements. Only the byte totals, compared after
+     the join, switch to bytes. They are a checksum: equal totals do not pass a
+     join with a residual or a mismatch.
+   - **Gate 2, the per-rank weight ledger.** Gate 1 needs no layout, so passing
+     it says nothing about per-rank bytes. Before any per-rank or per-degree
+     weight figure, every stored weight needs a declared placement per stored axis
+     (replicated, or split on a named parallel world with its part count) and a
+     format. A degree that does not divide the part count follows a declared
+     policy: refuse, co-own or pad. Never substitute a divisor that divides.
+     Gate 2 checks the declared layout and format, not the placement a framework
+     uses at run time.
+
+   A gate that cannot be judged, such as an unreadable header or a weight with no
+   placement, counts as failed; the dependent figure is `INSUFFICIENT_EVIDENCE`.
+   The anchor covers stored weights only. A sliding-window and a global attention
+   with the same head dimensions have byte-identical weights, so KV size and
+   growth need their own evidence.
 
 ## Three-level ceiling model
 
@@ -125,6 +149,18 @@ Source: `hahnyuan/LLM-Viewer` @ 1893e4b5, `configs/DiT.py`, `model_params/DiT.py
   variation, mixed operation-class throughput or scheduling overhead. Changing
   the algorithm can change both work and traffic, so proximity to the old roof
   does not rule out improvement.
+- L1 never looks at the model again after counting, so a wrong count reaches the
+  floor unchallenged. The checkpoint gates (item 4 of *Evidence to inspect first*) anchor stored weight
+  bytes only. KV size and growth, activation traffic, collectives and achieved
+  rates stay unanchored by them.
+
+**Measurements against L1.** Reject a measured row only when it contradicts its
+own record: its work over its time exceeds the peak it recorded, so its
+numerator or its peak is wrong. A row faster than a separately computed L1 floor
+is flagged, not rejected; re-derive the count (through the checkpoint gates) and
+the peak (at the clock the device actually ran). Any tolerance for the flag
+belongs to the acceptance issue. The source rule and its reading are in
+[the two-threshold rule](references/huggingarch-checkpoint-anchor.md#which-bound-may-reject-a-measurement-the-two-threshold-rule).
 
 ### L2 — Empirical component ceiling
 
@@ -356,3 +392,13 @@ prediction-based shortlist and [attention diagnosis](../../hardware/cuda/diagnos
 for algorithm/operation-class changes. These remain candidate guidance, not local
 performance measurements. The bundled helper only computes explicitly supplied
 L1 inputs under the contract above.
+
+### Reviewed implementation source
+
+[Checkpoint anchoring](references/huggingarch-checkpoint-anchor.md) distills the
+checkpoint gates and the two-threshold rule from HuggingArch's validator and
+measured calibration, read at one full commit. The
+[source identity record](references/huggingarch-source-identity.json) gives each
+file's digests and the part that was read. Claims carry `[code]`, `[doc]`,
+`[tree]` or `[blog]` markers with locators. HuggingArch was not run, and no
+predicted figure was compared with a measurement.
