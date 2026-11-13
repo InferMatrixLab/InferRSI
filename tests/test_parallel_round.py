@@ -10,8 +10,10 @@ from pathlib import Path
 
 import pytest
 
+from inferrsi.harness import parallel_round
 from inferrsi.harness.parallel_round import (
     RoundPlanError,
+    _read_nofollow,
     prepare,
     serve_ticket,
     submit,
@@ -538,7 +540,7 @@ def test_launch_after_deadline_cancels_before_claim(tmp_path):
     work = tmp_path / "work"
     _tree(work, "8")
     ticket = submit(round_dir, "L1", incumbent, work, now=WHEN)["ticket"]
-    moments = [WHEN, datetime(2100, 1, 1, tzinfo=timezone.utc)]
+    moments = [WHEN, WHEN, datetime(2100, 1, 1, tzinfo=timezone.utc)]
 
     def clock():
         return moments.pop(0) if len(moments) > 1 else moments[0]
@@ -565,7 +567,7 @@ def test_deadline_expiring_between_build_and_candidate_stops_the_trial(tmp_path)
     work = tmp_path / "work"
     _tree(work, "8")
     ticket = submit(round_dir, "L1", incumbent, work, now=WHEN)["ticket"]
-    moments = [WHEN, WHEN, WHEN + timedelta(seconds=1), WHEN + timedelta(seconds=11)]
+    moments = [WHEN, WHEN, WHEN, WHEN + timedelta(seconds=1), WHEN + timedelta(seconds=11)]
 
     def clock():
         return moments.pop(0)
@@ -647,6 +649,90 @@ def test_failure_after_claim_stays_unsettled_across_restart(tmp_path):
     reloaded = json.loads(ledger_path.read_text(encoding="utf-8"))
     assert [entry["phase"] for entry in reloaded["entries"]] == ["claimed"]
     assert reloaded["entries"][0]["worst_case"] == ledger["entries"][0]["worst_case"]
+
+
+def _one_ticket(tmp_path):
+    incumbent = tmp_path / "incumbent"
+    _tree(incumbent, "10")
+    round_dir = tmp_path / "round"
+    prepare(_spec(), incumbent, round_dir)
+    work = tmp_path / "work"
+    _tree(work, "8")
+    ticket = submit(round_dir, "L1", incumbent, work, now=WHEN)["ticket"]
+    return incumbent, round_dir, ticket
+
+
+def _phases(round_dir):
+    ledger = json.loads((round_dir / "ledgers" / "L1.json").read_text(encoding="utf-8"))
+    return [entry["phase"] for entry in ledger["entries"]]
+
+
+def test_restart_after_reserve_resumes_the_same_attempt(tmp_path, monkeypatch):
+    incumbent, round_dir, ticket = _one_ticket(tmp_path)
+
+    def crash(*args, **kwargs):
+        del args, kwargs
+        raise KeyboardInterrupt
+
+    monkeypatch.setattr(parallel_round, "materialize", crash)
+    with pytest.raises(KeyboardInterrupt):
+        serve_ticket(round_dir, ticket, incumbent, backend=FixtureBackend(), now=WHEN)
+    assert _phases(round_dir) == ["reserved"]
+    monkeypatch.undo()
+    result = serve_ticket(round_dir, ticket, incumbent, backend=FixtureBackend(), now=WHEN)
+    assert result["status"] == "measured"
+    assert _phases(round_dir) == ["finished"]
+
+
+def test_restart_after_finish_writes_a_receipt_without_rerunning(tmp_path):
+    incumbent, round_dir, ticket = _one_ticket(tmp_path)
+    first = serve_ticket(round_dir, ticket, incumbent, backend=FixtureBackend(), now=WHEN)
+    assert first["status"] == "measured"
+    (round_dir / "results" / f"{ticket}.json").unlink()
+
+    class MustNotRun:
+        name = "must-not-run"
+
+        def run(self, *args, **kwargs):
+            raise AssertionError("a finished attempt was launched again")
+
+    second = serve_ticket(round_dir, ticket, incumbent, backend=MustNotRun(), now=WHEN)
+    assert second["status"] == "unsettled"
+    assert second["reason"] == "finished execution was not settled"
+    assert _phases(round_dir) == ["finished"]
+
+
+def test_a_queued_ticket_past_its_deadline_is_rejected_without_a_reservation(tmp_path):
+    incumbent, round_dir, ticket = _one_ticket(tmp_path)
+    leases = DeviceLease(round_dir / "leases")
+    held = [leases.acquire("cpu-0"), leases.acquire("cpu-1")]
+    try:
+        queued = serve_ticket(
+            round_dir, ticket, incumbent, backend=FixtureBackend(), clock=lambda: WHEN
+        )
+        assert queued["status"] == "queued"
+        late = datetime(2100, 1, 1, tzinfo=timezone.utc)
+        rejected = serve_ticket(
+            round_dir, ticket, incumbent, backend=FixtureBackend(), clock=lambda: late
+        )
+    finally:
+        for lease in held:
+            lease.release()
+    assert rejected["status"] == "rejected"
+    assert "deadline" in rejected["reason"]
+    assert ticket_status(round_dir, ticket)["status"] == "rejected"
+    assert not (round_dir / "ledgers" / "L1.json").exists()
+
+
+def test_reading_a_fifo_does_not_block(tmp_path):
+    os.mkfifo(tmp_path / "pipe")
+    found = []
+    reader = threading.Thread(target=lambda: found.append(_read_nofollow(tmp_path, "pipe")))
+    reader.daemon = True
+    reader.start()
+    reader.join(timeout=5)
+    assert not reader.is_alive()
+    assert found == [None]
 
 
 def test_completed_trial_without_a_latency_file_is_unsettled(tmp_path):

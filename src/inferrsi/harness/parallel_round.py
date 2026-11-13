@@ -95,6 +95,18 @@ def _snapshot(root: Path) -> tuple[dict[str, str], list[str]]:
     return hashes, blocked
 
 
+def _open_regular(name: str, dirfd: int) -> int | None:
+    """Open without following a link or blocking on a FIFO; refuse anything not regular."""
+    try:
+        fd = os.open(name, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=dirfd)
+    except OSError:
+        return None
+    if not stat.S_ISREG(os.fstat(fd).st_mode):
+        os.close(fd)
+        return None
+    return fd
+
+
 def _scan(dirfd: int, prefix: str, hashes: dict[str, str], blocked: list[str]) -> None:
     for name in os.listdir(dirfd):
         if name in {".", "..", ".git"}:
@@ -122,9 +134,8 @@ def _scan(dirfd: int, prefix: str, hashes: dict[str, str], blocked: list[str]) -
         if not stat.S_ISREG(info.st_mode):
             blocked.append(relative)
             continue
-        try:
-            file_fd = os.open(name, os.O_RDONLY | os.O_NOFOLLOW, dir_fd=dirfd)
-        except OSError:
+        file_fd = _open_regular(name, dirfd)
+        if file_fd is None:
             blocked.append(relative)
             continue
         try:
@@ -151,9 +162,8 @@ def _read_nofollow(root: Path, relative: str) -> bytes | None:
                 return None
             os.close(dirfd)
             dirfd = child
-        try:
-            file_fd = os.open(parts[-1], os.O_RDONLY | os.O_NOFOLLOW, dir_fd=dirfd)
-        except OSError:
+        file_fd = _open_regular(parts[-1], dirfd)
+        if file_fd is None:
             return None
     finally:
         os.close(dirfd)
@@ -442,10 +452,10 @@ def _record(round_dir: Path, ticket: str, **fields) -> dict:
     return body
 
 
-def _claimed_entry(ledger, ticket: str):
+def _ticket_entry(ledger, ticket: str):
     suffix = f"@{ticket}"
     for entry in ledger.entries:
-        if entry.binding.run_id.endswith(suffix) and entry.phase == "claimed":
+        if entry.binding.run_id.endswith(suffix):
             return entry
     return None
 
@@ -627,13 +637,27 @@ def serve_ticket(
     try:
         if result_path.exists():
             return json.loads(result_path.read_text(encoding="utf-8"))
-        if _claimed_entry(_load_ledger(round_dir, plan, lane), ticket) is not None:
+        entry = _ticket_entry(_load_ledger(round_dir, plan, lane), ticket)
+        if entry is not None and entry.phase == "cancelled":
+            return _record(
+                round_dir, ticket, status="rejected", reason="attempt was cancelled at the deadline"
+            )
+        if entry is not None and entry.phase != "reserved":
             return _record(
                 round_dir,
                 ticket,
                 status="unsettled",
-                reason="claimed execution was not settled",
+                reason=f"{entry.phase} execution was not settled",
             )
+        try:
+            ensure_open(lane["deadline_utc"], current())
+        except BudgetError as exc:
+            if entry is not None:
+                _save_ledger(
+                    round_dir,
+                    advance(_load_ledger(round_dir, plan, lane), entry.binding, "cancelled"),
+                )
+            return _record(round_dir, ticket, status="rejected", reason=str(exc))
         held = hold_devices(round_dir, plan, lane["device_count"])
         if held is None:
             return {"ticket": ticket, "status": "queued"}
@@ -648,6 +672,7 @@ def serve_ticket(
                 [device for device, _lease in held],
                 backend=backend,
                 current=current,
+                reserved=entry,
             )
         finally:
             for _device, lease in held:
@@ -667,13 +692,18 @@ def _measure(
     *,
     backend,
     current,
+    reserved=None,
 ) -> dict:
-    try:
-        loaded = _load_ledger(round_dir, plan, lane)
-        ledger, binding = admit_attempt(plan, loaded, lane["id"], current(), token=ticket)
-    except BudgetError as exc:
-        return _record(round_dir, ticket, status="rejected", reason=str(exc))
-    _save_ledger(round_dir, ledger)
+    """``reserved`` is this ticket's surviving reservation from an interrupted serve."""
+    ledger = _load_ledger(round_dir, plan, lane)
+    if reserved is not None:
+        binding = reserved.binding
+    else:
+        try:
+            ledger, binding = admit_attempt(plan, ledger, lane["id"], current(), token=ticket)
+        except BudgetError as exc:
+            return _record(round_dir, ticket, status="rejected", reason=str(exc))
+        _save_ledger(round_dir, ledger)
     candidate = round_dir / "candidates" / ticket
     trial_dir = round_dir / "trials" / ticket
     materialize(incumbent, [overlay], candidate)
