@@ -100,13 +100,23 @@ def test_navigation_keyboard_versions_and_refresh(browser, tmp_path, profile_fir
             declarations = archive.locator(
                 'details[data-kt-key="search/archive/round-1.json:declarations"]')
             declarations.locator(":scope > summary").click()
+            artifact_title = "Changes and result artifacts"
+            capture_artifacts = capture.get_by_text(artifact_title, exact=True).first
+            archive_artifacts = archive.get_by_text(artifact_title, exact=True).first
+            capture_artifacts.click()
+            archive_artifacts.click()
             for field, value in (("source", None), ("context_id", []), ("context_id", {})):
+                focused_artifacts = archive_artifacts if value == [] else capture_artifacts
+                focused_artifacts.focus()
                 doc["declarations"][0] = {**declaration, field: value}
                 record.write_text(json.dumps(doc))
                 playwright.expect(declarations.locator("pre")).to_contain_text(
                     f'"{field}": {json.dumps(value)}', timeout=15000)
                 playwright.expect(archive.locator(":scope > summary")).to_contain_text("Partial")
                 playwright.expect(archive).to_contain_text("source_mismatch")
+                playwright.expect(focused_artifacts).to_be_focused()
+                assert capture_artifacts.locator("..").evaluate("n=>n.open")
+                assert archive_artifacts.locator("..").evaluate("n=>n.open")
                 assert archive.evaluate("n=>n.open")
                 assert declarations.evaluate("n=>n.open")
                 assert root.get_by_role("button", name="capture", exact=True).get_attribute(

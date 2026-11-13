@@ -21,11 +21,11 @@ window.InferRSIKnowledge={create({getData,getLanguage,openRun}){
   function button(box,text,callback){const b=el('button',text);b.type='button';b.onclick=callback;box.append(b);return b;}
   function captureById(id){return getData().knowledge_trace?.retrievals?.find(c=>c.context_id===id);}
   function showCapture(id){selected=id;round='';render();const node=document.getElementById('knowledge-navigation');const panel=node?.querySelector('details');if(panel){panel.open=true;opened.add('navigation');panel.querySelector('summary').focus();panel.scrollIntoView({block:'start'});}}
-  function links(box,entries){
+  function links(box,entries,scope){
     if(!entries?.length){p(box,tr('No candidate/run association recorded.','未记录候选/运行关联。'),'kt-note');return;}
     for(const link of entries){const row=getData().candidates.find(r=>r.experiment_id && r.experiment_id===link.experiment_id);
       const title=['R'+link.round,link.candidate_id,link.run_id||unknown()].join(' · ');
-      if(link.state==='linked' && row){button(box,title,()=>openRun(link));p(box,[row.verdict,row.quality,row.outcome].map(label).join(' · '));fold(box,tr('Changes and result artifacts','改动与结果证据'),'run:'+row.experiment_id,d=>d.append(el('pre',json({changes:row.optimization?.code_locations,artifacts:row.artifacts}))));}
+      if(link.state==='linked' && row){button(box,title,()=>openRun(link));p(box,[row.verdict,row.quality,row.outcome].map(label).join(' · '));fold(box,tr('Changes and result artifacts','改动与结果证据'),scope+':run:'+row.experiment_id,d=>d.append(el('pre',json({changes:row.optimization?.code_locations,artifacts:row.artifacts}))));}
       else p(box,title+' · '+label(link.state),'kt-warning');
     }
   }
@@ -53,7 +53,7 @@ window.InferRSIKnowledge={create({getData,getLanguage,openRun}){
       }));
       fold(b,tr('Request, filters, limits and tie rule','请求、过滤、预算与并列规则'),scope+':request:'+c.context_id,d=>d.append(el('pre',json({request,implementation:o.implementation,selection,counts,context_budget:c.context_budget,context_bytes_used:c.context_bytes_used,omissions:c.omissions,context_omissions:c.context_omissions,candidate_details:o.candidate_details}))));
       if(c.display_redacted)p(b,tr('Display redacted; hashes identify the original capture bytes. Review the full bundle before sharing.','展示已脱敏；哈希标识原始快照字节。分享前请审核完整文件。'),'kt-note');
-      links(b,c.links);
+      links(b,c.links,scope+':'+c.context_id);
     });
   }
   function search(box,s){
@@ -74,7 +74,7 @@ window.InferRSIKnowledge={create({getData,getLanguage,openRun}){
       }));
       fold(b,tr('Caller declarations','调用者声明'),s.path+':declarations',d=>d.append(el('pre',json(s.declarations??[]))));
       fold(b,tr('Searches, reads, delivery and source versions','搜索、读取、返回及来源版本'),s.path+':events',d=>d.append(el('pre',json({corpus:s.corpus,events:s.events,unresolved_details:s.unresolved_details}))));
-      links(b,s.links);
+      links(b,s.links,s.path);
     });
   }
   function render(){
