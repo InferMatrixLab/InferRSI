@@ -143,6 +143,35 @@ def test_unshare_timeout_kills_the_whole_process_group(tmp_path, monkeypatch):
     assert not (tmp_path / "late").exists()
 
 
+def test_unshare_timeout_kills_a_direct_child_that_left_the_session(tmp_path, monkeypatch):
+    real_popen = subprocess.Popen
+    (tmp_path / "child.py").write_text(_LATE_CHILD, encoding="utf-8")
+    child = [str(tmp_path / "child.py"), str(tmp_path), "1.5"]
+    payload = (
+        "import subprocess, sys, time\n"
+        f"subprocess.Popen([sys.executable, *{child!r}], start_new_session=True)\n"
+        "time.sleep(30)\n"
+    )
+
+    def fake_popen(argv, **kwargs):
+        if argv and argv[0] == "unshare":
+            argv = [sys.executable, "-c", payload]
+        return real_popen(argv, **kwargs)
+
+    monkeypatch.setattr("inferrsi.infra.confinement.subprocess.Popen", fake_popen)
+    with pytest.raises(ConfinementUnavailable, match="timed out"):
+        UnshareBackend().run(
+            (sys.executable, "-c", "print('unused')"),
+            tmp_path,
+            (tmp_path,),
+            (),
+            time.monotonic() + 1,
+        )
+    time.sleep(2)
+    assert (tmp_path / "started").exists()
+    assert not (tmp_path / "late").exists()
+
+
 def test_a_group_that_never_empties_is_reported_unreaped(monkeypatch):
     process = subprocess.Popen(
         [sys.executable, "-c", "import time; time.sleep(30)"],
@@ -242,6 +271,30 @@ def test_unshare_timeout_leaves_no_detached_child(tmp_path):
         "import subprocess, sys, time\n"
         f"subprocess.Popen([sys.executable, {str(work / 'child.py')!r}, {str(work)!r}, '4'], "
         "start_new_session=True)\n"
+        "time.sleep(30)\n"
+    )
+    with pytest.raises(ConfinementUnavailable, match="timed out"):
+        UnshareBackend().run(
+            (sys.executable, "-c", script),
+            work,
+            (work,),
+            (),
+            time.monotonic() + 3,
+        )
+    time.sleep(3)
+    assert (work / "started").exists()
+    assert not (work / "late").exists()
+
+
+@pytest.mark.skipif(not namespaces_available(), reason="user namespaces are unavailable")
+def test_unshare_timeout_kills_a_pid_1_that_left_the_session(tmp_path):
+    work = tmp_path / "work"
+    work.mkdir()
+    (work / "child.py").write_text(_LATE_CHILD, encoding="utf-8")
+    script = (
+        "import os, subprocess, sys, time\n"
+        "os.setsid()\n"
+        f"subprocess.Popen([sys.executable, {str(work / 'child.py')!r}, {str(work)!r}, '4'])\n"
         "time.sleep(30)\n"
     )
     with pytest.raises(ConfinementUnavailable, match="timed out"):
