@@ -178,3 +178,8 @@ cover keyboard selection, exact run navigation, shared filters, time mode,
 Chinese narrow layout, table access, live reorder/value updates and disappearing
 selections. Automated browser tests require optional Playwright and its Chromium;
 they do not certify every browser or screen reader.
+
+In the `profile_first` layout, only the top performance trend is expanded on
+initial load. Successes and failures, including its curves and original records,
+sits inside a collapsed panel like the other review sections. Opening or closing
+that panel is preserved during language changes and live data refreshes.

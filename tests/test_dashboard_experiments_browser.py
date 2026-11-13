@@ -125,6 +125,7 @@ def test_real_live_refresh_keeps_filters_and_measurement_then_marks_disappearanc
         page.goto(f"http://127.0.0.1:{server.server_port}")
         if profile_first:
             page.locator("#language").click()
+            page.locator('[data-key="summary"] > summary').click()
         root = page.locator("#summary-experiments")
         root.locator('[data-xp-control="workload"]').select_option("W-throughput")
         point = root.locator('.xp-point[aria-label^="native-run-b"]')
@@ -163,6 +164,7 @@ def test_profile_layout_preserves_partial_summary_and_keyboard_drilldown(browser
     page.on("pageerror", lambda e: errors.append(str(e)))
     page.goto(path.as_uri())
     page.locator("#language").click()
+    page.locator('[data-key="summary"] > summary').click()
     root = page.locator("#summary-experiments")
     root.locator('[data-xp-control="workload"]').select_option("W-throughput")
     root.locator('.xp-point[aria-label^="native-run-b"]').focus()
@@ -202,6 +204,7 @@ def test_blank_configuration_renders_isolated_points_and_reason(
         page.goto(path.as_uri())
         if profile_first:
             page.locator("#language").click()
+            page.locator('[data-key="summary"] > summary').click()
         root = page.locator("#summary-experiments")
         root.locator('[data-xp-control="workload"]').select_option("W1")
         for panel in (root, page.locator("#chart")):
@@ -262,6 +265,62 @@ def test_managed_session_preserves_objective_and_token_chart(browser, session, c
                 page.locator("#chart-note").inner_text())
         assert "No plottable measurement" not in chart.inner_text()
         assert not errors
+    finally:
+        page.close()
+        if server:
+            server.shutdown()
+            worker.join(timeout=5)
+            server.server_close()
+
+
+@pytest.mark.parametrize("live", [False, True])
+def test_profile_only_trend_expanded_and_summary_state_survives_render(browser, campaign, live):
+    path = campaign / "campaign.json"
+    data = json.loads(path.read_text())
+    data["review_layout"] = "profile_first"
+    path.write_text(json.dumps(data))
+    server = worker = None
+    page = browser.new_page()
+    try:
+        if live:
+            server = DashboardServer(campaign, None, 0)
+            worker = threading.Thread(target=server.serve_forever, daemon=True)
+            worker.start()
+            page.goto(f"http://127.0.0.1:{server.server_port}")
+        else:
+            path = campaign / "profile.html"
+            path.write_text(render_dashboard(dashboard_snapshot(campaign)))
+            page.goto(path.as_uri())
+        assert page.locator("#chart .xp-chart").first.is_visible()
+        assert page.locator("main > section:not(.trend)").evaluate_all(
+            "nodes => nodes.every(n => n.querySelector(':scope > details.panel'))")
+        assert page.locator("details.panel[open]").count() == 0
+        panel = page.locator('[data-key="summary"]')
+        root = page.locator("#summary-experiments")
+        assert not root.is_visible()
+        panel.locator(":scope > summary").click()
+        playwright.expect(root).to_be_visible()
+        page.locator("#language").click()
+        assert panel.evaluate("node => node.open")
+        root.locator('[data-xp-control="workload"]').select_option("W-throughput")
+        root.locator('.xp-point[aria-label^="native-run-b"]').focus()
+        if live:
+            path = campaign / "runs/native-run-b/evaluation.json"
+            data = json.loads(path.read_text())
+            data["candidate"]["median"] = 107
+            path.write_text(json.dumps(data))
+            playwright.expect(root.locator(".xp-detail")).to_contain_text(
+                "107 tokens/s", timeout=15000)
+            assert panel.evaluate("node => node.open")
+        panel.locator(":scope > summary").click()
+        page.locator("#language").click()
+        assert not panel.evaluate("node => node.open")
+        if live:
+            data["candidate"]["median"] = 106
+            path.write_text(json.dumps(data))
+            playwright.expect(page.locator("#chart .xp-detail")).to_contain_text(
+                "106 tokens/s", timeout=15000)
+            assert not panel.evaluate("node => node.open")
     finally:
         page.close()
         if server:
