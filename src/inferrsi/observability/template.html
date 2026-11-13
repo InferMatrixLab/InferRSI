@@ -1357,6 +1357,8 @@ __DASHBOARD_KNOWLEDGE__
     const previousSelected=selected===null?null:data.candidates[selected];
     const previousRun=runSelect.value;
     const details=new Map([...document.querySelectorAll('details[id],details[data-live-key]')].map(el=>[el.id || el.dataset.liveKey,el.open]));
+    const focusedDetail=document.activeElement?.tagName==='SUMMARY'?document.activeElement.closest('details'):null;
+    const focusKey=focusedDetail?.id || focusedDetail?.dataset.liveKey;
     const scrollX=window.scrollX, scrollY=window.scrollY;
     data=restoreContexts(snapshot.data);
     clear(runSelect);option(runSelect,'','All runs');
@@ -1380,7 +1382,11 @@ __DASHBOARD_KNOWLEDGE__
     if(!snapshot.chart)byId('chart').appendChild(node('p',data.chart_note,'empty'));
     byId('temporal-chart').innerHTML=snapshot.temporal;byId('temporal-note').textContent=data.temporal_note;
     renderStats();render();
-    for(const el of document.querySelectorAll('details[id],details[data-live-key]')){const key=el.id || el.dataset.liveKey;if(details.has(key))el.open=details.get(key);}
+    for(const el of document.querySelectorAll('details[id],details[data-live-key]')){
+      const key=el.id || el.dataset.liveKey;
+      if(details.has(key))el.open=details.get(key);
+      if(focusKey && key===focusKey)el.querySelector(':scope > summary')?.focus({preventScroll:true});
+    }
     window.scrollTo(scrollX,scrollY);
     if(!byId('feedback-preview').hidden)byId('feedback-preview').textContent=buildFeedback();
   }

@@ -31,10 +31,12 @@ def test_navigation_keyboard_versions_and_refresh(browser, tmp_path, profile_fir
     server = worker = None
     page = browser.new_page(viewport={"width": 1440, "height": 1000})
     errors, requests = [], []
+    initial_polls = []
     page.on("pageerror", lambda e: errors.append(str(e)))
     page.on("request", lambda r: requests.append(r.url))
     try:
         if live:
+            page.route("**/api/state", lambda route: initial_polls.append(route), times=1)
             server = DashboardServer(tmp_path, None, 0)
             worker = threading.Thread(target=server.serve_forever, daemon=True)
             worker.start()
@@ -46,7 +48,16 @@ def test_navigation_keyboard_versions_and_refresh(browser, tmp_path, profile_fir
         if profile_first:
             page.locator("#language").click()
         root = page.locator("#knowledge-navigation")
-        root.locator(":scope > details > summary").focus()
+        summary = root.locator(":scope > details > summary")
+        summary.focus()
+        if live:
+            # Refresh between focus and Enter, so keyboard continuity is checked
+            # deterministically rather than depending on the first poll's timing.
+            assert len(initial_polls) == 1
+            initial_polls[0].continue_()
+            status = page.locator("#connection" if profile_first else "#live-status")
+            playwright.expect(status).to_contain_text("Connected", timeout=15000)
+            playwright.expect(summary).to_be_focused()
         page.keyboard.press("Enter")
         root.get_by_role("button", name="capture", exact=True).click()
         capture = root.locator('details[data-kt-key="navigation:capture"]')
