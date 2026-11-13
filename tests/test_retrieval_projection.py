@@ -213,3 +213,27 @@ def test_declaration_source_hash_mismatch_is_not_hidden(campaign):
                    if s["schema_version"] == 2)
     assert archive["declarations"][0]["state"] == "source_mismatch"
     assert "source_mismatch" in archive["issues"]
+
+
+@pytest.mark.parametrize("source", [None, False, 7, [], {}, "", "../source.json"])
+def test_invalid_declaration_source_preserves_dashboard(campaign, source):
+    path = campaign / "search/archive/round-1.json"
+    doc = json.loads(path.read_text())
+    doc["declarations"][0]["source"] = source
+    path.write_text(json.dumps(doc))
+
+    snapshot = dashboard_snapshot(campaign)
+    trace = snapshot["data"]["knowledge_trace"]
+    archive = next(s for s in trace["searches"] if s["schema_version"] == 2)
+    assert archive["state"] == "recorded"
+    assert archive["declarations"][0]["state"] == "source_mismatch"
+    assert "source_mismatch" in archive["issues"]
+    assert archive["counts"] == doc["counts"]
+    assert all(link["state"] == "linked" for link in archive["links"])
+    assert len(trace["retrievals"]) == 7
+    assert any(e["state"] == "archive_reviewed"
+               for material in archive["materials"] for e in material["evidence"])
+    for layout in ("default", "profile_first"):
+        snapshot["data"]["review_layout"] = layout
+        rendered = render_dashboard(snapshot)
+        assert "source_mismatch" in rendered and "__DASHBOARD_" not in rendered

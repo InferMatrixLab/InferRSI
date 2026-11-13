@@ -85,6 +85,7 @@ def test_navigation_keyboard_versions_and_refresh(browser, tmp_path, profile_fir
             record = tmp_path / "search/archive/round-1.json"
             doc = json.loads(record.read_text())
             doc["coverage"], doc["counts"] = "partial", None
+            doc["declarations"][0]["source"] = None
             record.write_text(json.dumps(doc))
             playwright.expect(archive.locator(":scope > summary")).to_contain_text(
                 "Partial", timeout=15000)
@@ -92,6 +93,7 @@ def test_navigation_keyboard_versions_and_refresh(browser, tmp_path, profile_fir
             assert root.get_by_role("button", name="capture", exact=True).get_attribute(
                 "aria-pressed") == "true"
             assert "Not recorded" in archive.get_by_role("table").first.inner_text()
+            playwright.expect(archive).to_contain_text("source_mismatch")
         root.get_by_label("Knowledge round").select_option("2")
         assert root.get_by_role("button", name="capture", exact=True).count() == 0
         root.get_by_role("button", name="collect", exact=True).click()

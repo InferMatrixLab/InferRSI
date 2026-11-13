@@ -278,7 +278,8 @@ def read_searches(root: Path, campaign_id, rows, retrievals):
             for declaration in record.get("declarations", []):
                 declaration_state = "caller_declaration"
                 if declaration.get("basis") == "optimization_log_declaration":
-                    source = declaration.get("source", "").partition("#")[0]
+                    locator = declaration.get("source")
+                    source = locator.partition("#")[0] if isinstance(locator, str) else ""
                     if not re.fullmatch(r"optimization-log-v[1-9]\d*\.json", source):
                         declaration_state = "source_mismatch"
                     else:
