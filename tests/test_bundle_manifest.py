@@ -4,7 +4,7 @@ from collections import Counter
 
 import pytest
 
-from inferrsi import knowledge_operations
+from inferrsi.knowledge import knowledge_operations
 from inferrsi.knowledge_operations import Bundle, RevisionConflict
 
 
@@ -70,6 +70,8 @@ def test_manifest_hashes_each_resource_once_per_call(bundle, monkeypatch):
         calls[data] += 1
         return _hash(data)
 
+    # Patch implementation globals; the root module is a static re-export shell.
+    assert Bundle.manifest.__globals__ is vars(knowledge_operations)
     monkeypatch.setattr(knowledge_operations, "_hash", counted)
     for count in (1, 2):
         bundle.manifest()

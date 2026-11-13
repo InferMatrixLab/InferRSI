@@ -1,7 +1,7 @@
 """Count saturation skips only redundant normal-view payload sizing."""
 import pytest
 
-from inferrsi import knowledge_operations as operations
+from inferrsi.knowledge import knowledge_operations as operations
 from inferrsi.knowledge_operations import Bundle, KnowledgeReader
 
 
@@ -44,6 +44,8 @@ def size_calls(monkeypatch):
             seen.append(value["id"])
         return original(value)
 
+    # Patch implementation globals; the root module is a static re-export shell.
+    assert KnowledgeReader.collect.__globals__ is vars(operations)
     monkeypatch.setattr(operations, "_json", observe)
     return seen
 

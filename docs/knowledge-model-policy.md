@@ -37,6 +37,9 @@ The exact protected scope is:
 - `docs/knowledge-base.md`, `docs/knowledge-operations.md`, `docs/knowledge-store.md`
 - `src/inferrsi/catalog.py`, `src/inferrsi/skill_catalog.py`,
   `src/inferrsi/knowledge_operations.py`
+- `src/inferrsi/knowledge/catalog.py`, `src/inferrsi/knowledge/skill_catalog.py`,
+  `src/inferrsi/knowledge/knowledge_operations.py`, the implementations behind
+  the three root compatibility shells above, which stay protected
 
 Deletions and both rename paths count. Mechanical/generated changes have no
 automatic exemption. Running a generator or obtaining an approved-model review

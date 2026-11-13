@@ -1,7 +1,19 @@
 {
   "$schema": "urn:inferrsi:docs:legacy-knowledge-manifest:v1",
-  "description": "First-wave compatibility exceptions for seven root Knowledge leaves plus the neutral technical data leaf. This manifest is frozen at P0b formal review and is not a wildcard approval. K01 verifies each hash against its base and re-reviews if any differ. D018/D020 chose these exact edges.",
-  "base_commit": "0da7e2f960cd4ec994ae8eddea5b71023c5379ca",
+  "description": "First-wave compatibility exceptions for seven root Knowledge leaves plus the neutral technical data leaf. P0b froze the first revision at 0da7e2f960cd4ec994ae8eddea5b71023c5379ca. This K01 revision re-records every leaf hash at base_commit before the move; it is not a wildcard approval and changes only through formal review. D018/D020 chose these exact edges. file_sha256 is the old root leaf before the move, and line references are at base_commit.",
+  "base_commit": "e2f4cd1e39b369f06835cdd655ad5dc9f6808918",
+  "revision_history": [
+    {
+      "base_commit": "0da7e2f960cd4ec994ae8eddea5b71023c5379ca",
+      "stage": "P0b",
+      "superseded_by": "K01 revision at e2f4cd1e39b369f06835cdd655ad5dc9f6808918",
+      "reason": "#389 (c013e7778e5d421df655b969d4c89f81ade65b44) changed two leaves after P0b. #393 changed none of the seven leaves. The five other hashes are unchanged.",
+      "changed_file_sha256": {
+        "src/inferrsi/_skill_selection.py": "acbec7c91bfa05bc2008b939e009fe600a40518051229fb7618c56b092ad36b9",
+        "src/inferrsi/knowledge_operations.py": "3725781bcedb308af6ad9edc0b970c63f82accf6b04ebee4008c1081b63bed9c"
+      }
+    }
+  ],
   "compatibility_pairs": [
     {
       "importer": "catalog",
@@ -29,7 +41,7 @@
         "REPO_TYPES is the same tuple object through root catalog, the neutral leaf, and K.catalog",
         "Derived KNOWLEDGE_SCOPES and KNOWLEDGE_REPOS stay unchanged"
       ],
-      "consumer_evidence": "tests/test_cli_catalog.py (L189) and tests/test_knowledge_tiers.py (L89) patch catalog.files; tests/test_research.py (L91, L120) patch catalog.knowledge_records; infra.inspection (L10, L56) imports and calls repository_pack",
+      "consumer_evidence": "tests/test_cli_catalog.py (L189) and tests/test_knowledge_tiers.py (L89) patch catalog.files; tests/test_research.py (L91, L120) patch catalog.knowledge_records; infra.inspection (L10, L56) imports and calls repository_pack; arguments (L12) imports BACKENDS, KNOWLEDGE_REPOS, KNOWLEDGE_SCOPES, REPO_TYPES; cli (L12) imports get_knowledge, search_knowledge; observability/campaign_records (L12) imports BACKENDS. On this K01 head, tests/test_cli_catalog.py (L191), tests/test_knowledge_tiers.py (L91), and tests/test_research.py (L92, L121) patch inferrsi.knowledge.catalog; a root-shell patch is no longer effective.",
       "retirement_evidence": "catalog sheds repository_pack to the neutral leaf; K.catalog does not export repository_pack"
     },
     {
@@ -96,13 +108,13 @@
       "audited_definitions": [
         "root:Path and checkout physical resource semantics unchanged"
       ],
-      "consumer_evidence": "knowledge_operations (L270, L308, L426 lazy imports; calls at L272, L310, L430, L433, L436) imports skill_directories, skill_directory, skill_metadata, skill_reference; KnowledgeReader._skill uses all skill_* APIs; tests/test_skill_catalog.py covers skill enumeration and loading"
+      "consumer_evidence": "knowledge_operations (L279, L317, L435 lazy imports; calls at L281, L319, L438, L439, L442, L445) imports skill_directories, get_skill, skill_directory, skill_metadata, skill_reference; KnowledgeReader._skill uses all skill_* APIs; cli (L129) lazily imports get_skill, skill_instructions, skill_records, skill_reference, skill_resource; tools/skill_eval_snapshot.py (L47) imports _skill_name, _unique_fields, skill_metadata; tests/test_skill_catalog.py covers skill enumeration and loading"
     },
     {
       "importer": "_skill_selection",
       "target": "inferrsi.knowledge._skill_selection",
       "file": "src/inferrsi/_skill_selection.py",
-      "file_sha256": "acbec7c91bfa05bc2008b939e009fe600a40518051229fb7618c56b092ad36b9",
+      "file_sha256": "7bcf1930b73e09fcadf78e7c9e384b30411ed599d83c32e6837f04ca25cbda77",
       "exports": {
         "public": [
           "RELEVANCE_METHODS",
@@ -112,14 +124,18 @@
           "raw_string_lexical_score",
           "indexed_skill",
           "skill_score",
-          "context_view"
+          "context_view",
+          "TASK_RELEVANCE",
+          "task_score",
+          "record_context"
         ],
         "private_used": []
       },
       "audited_definitions": [
-        "RELEVANCE_METHODS and scoring functions are the same objects; selection algorithm not rewritten"
+        "RELEVANCE_METHODS, TASK_RELEVANCE, and the scoring and context functions are the same objects; selection algorithm not rewritten",
+        "#389 audit: TASK_RELEVANCE is \"task-lexical-v1\" and is the third RELEVANCE_METHODS element; skill_score accepts only the two skill-only methods and rejects task-lexical-v1 with \"Unknown relevance method for skill-only ranking\"; task_score ranks skill and package records by whole task terms with a portable-or-in-scope backend factor; record_context returns the whole package record entrypoint as a context view or a context_limit omission"
       ],
-      "consumer_evidence": "knowledge_operations (L12) imports RELEVANCE_METHODS, context_view, indexed_skill, skill_score, words; collect uses these for relevance selection; tests/test_raw_string_selection.py covers scoring; tests/test_collect_selection.py covers context_view"
+      "consumer_evidence": "knowledge_operations (L12-L21) imports RELEVANCE_METHODS, TASK_RELEVANCE, context_view, indexed_skill, record_context, skill_score, task_score, words; collect uses them for relevance selection and context views; observability/knowledge_capture (L20) imports TASK_RELEVANCE through the root leaf and uses it at L74-L75, and cli (L335) and observability/optimization_story (L14) load that module; arguments (L11) imports RELEVANCE_METHODS; tools/evaluate_indexer.py (L138) imports SkillIndexError, indexed_skill; tests/test_raw_string_selection.py covers scoring and the skill_score rejection (L84-L86); tests/test_collect_selection.py covers context_view; tests/test_campaign_task_selection.py covers task-lexical-v1 through root KnowledgeReader. The observability/knowledge_capture import of TASK_RELEVANCE is removed by OBS (#413); K01 only keeps the root-shell pass-through of that name."
     },
     {
       "importer": "research",
@@ -162,7 +178,7 @@
       "importer": "knowledge_operations",
       "target": "inferrsi.knowledge.knowledge_operations",
       "file": "src/inferrsi/knowledge_operations.py",
-      "file_sha256": "3725781bcedb308af6ad9edc0b970c63f82accf6b04ebee4008c1081b63bed9c",
+      "file_sha256": "686b196e03ca0a1dba5ff5e246563f305ba2bea412172833905af41a6c6ad886",
       "exports": {
         "public": [
           "AUTHORITIES",
@@ -184,9 +200,10 @@
       },
       "audited_definitions": [
         "Bundle/KnowledgeReader/RevisionConflict/IdentityError/safe_path/AUTHORITIES/IDENTITY are the same objects; signatures/defaults/Path/exceptions and used symbols preserved",
-        "_json and _hash are explicitly re-exported for test injection (D1, D2)"
+        "The test-injection points for _json and _hash (D1, D2) are on the implementation module inferrsi.knowledge.knowledge_operations; the root shell only re-exports the same names as pass-throughs. Patching the root shell does not affect Bundle.manifest or KnowledgeReader.collect.",
+        "#389 audit of KnowledgeReader.collect: signature, defaults, and validation order are unchanged; relevance_method=\"task-lexical-v1\" ranks every package authority record with task_score, lets a packaged skills.discovery skill pass a scenario filter only for ranked selection without ids, builds non-skill contexts with record_context, and adds selection.scope \"package-skills-and-records\" with matched_count and returned_count; the two earlier methods keep the packaged-skill-only path and selection.scope \"generated-packaged-skills\". No top-level name was added or removed."
       ],
-      "consumer_evidence": "harness/skill_evaluation (L9) imports KnowledgeReader; cli (L15, L25, L33) imports and uses KnowledgeReader; knowledge_store (L10-18) imports KO symbols; tests/test_bundle_manifest.py (L73) patches _hash; tests/test_collect_limit_serialization.py (L39-47) patches _json; tests/test_knowledge_operations.py covers Bundle/KnowledgeReader contract"
+      "consumer_evidence": "harness/skill_evaluation (L9) imports KnowledgeReader; cli (L15, L25, L33) imports and uses KnowledgeReader; knowledge_store (L10-L19) imports KO symbols; tests/test_bundle_manifest.py (L73) patches _hash; tests/test_collect_limit_serialization.py (L39-47) patches _json; tests/test_knowledge_operations.py covers Bundle/KnowledgeReader contract; tests/test_campaign_task_selection.py covers the #389 task-lexical-v1 collect path. On this K01 head, tests/test_bundle_manifest.py (L74-L75) and tests/test_collect_limit_serialization.py (L48-L49) patch inferrsi.knowledge.knowledge_operations; a root-shell patch is no longer effective."
     },
     {
       "importer": "infra.inspection",
@@ -223,7 +240,9 @@
   },
   "technical_leaf": {
     "module": "inferrsi._repo_pack_data",
-    "note": "The new _repo_pack_data.py file does not exist yet; do not create it in P0b; do not lock a fabricated full-file hash. K01 will create it and lock the full-file hash.",
+    "note": "K01 creates src/inferrsi/_repo_pack_data.py from the recorded original fragment plus a leading comment, the future import, and the three listed stdlib imports. file_sha256 locks the complete new file; P0b recorded only the fragment.",
+    "file": "src/inferrsi/_repo_pack_data.py",
+    "file_sha256": "a14edac8283b1f7b6b5794381c44d7c2632dda5cc01f03c557dc293d05523afd",
     "allowed_imports": [
       "json",
       "importlib.resources",
@@ -246,7 +265,7 @@
     "module": "src/inferrsi/infra/inspection.py",
     "current_import": "from ..catalog import repository_pack",
     "required_new_import": "from .._repo_pack_data import repository_pack",
-    "note": "K01 must change only this import line. Original functions, injected parameters, and returns stay the same. Do not edit inspection.py in P0b."
+    "note": "K01 changes only this import line. Original functions, injected parameters, and returns stay the same. current_import records the line at base_commit."
   },
   "intra_closure_note": "An import of inferrsi._repo_pack_data from inside inferrsi.knowledge (for example inferrsi/knowledge/catalog.py) is intra-closure, not a tenth compatibility exception; it is governed by the leaf's no-inferrsi.*-import rule and by REPO_TYPES object identity, not by this allowlist."
 }

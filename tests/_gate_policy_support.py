@@ -17,6 +17,19 @@ ROOT = REPO / "src" / "inferrsi"
 MANIFEST = REPO / "docs" / "legacy-knowledge-manifest.json"
 NEW_CORES = ("knowledge", "benchmark", "apps")
 CORE_NAMES = ("knowledge", "harness", "benchmark", "apps")
+# Current application seams, until the Apps package migration. These are not
+# Knowledge compatibility shells and do not grant access to other flat modules.
+APPLICATION_ENTRIES = ("cli.py", "benchmark_operations.py")
+# Reviewed execution boundaries: owner function (or module scope) and the exact
+# local spec variable. They execute task resources/candidate code, not a hidden
+# core compatibility import. Their presence keeps isolation incomplete.
+RESOURCE_LOADERS = {
+    "inferrsi.harness.task_protocol": ("protocol", "spec"),
+    "inferrsi.benchmark.tasks.moe-forward-npu.benchmark": ("<module>", "_process_spec"),
+    "inferrsi.benchmark.tasks.moe-forward-npu.grader": ("load", "spec"),
+    "inferrsi.benchmark.tasks.qwen21-denoise-npu.benchmark": ("load", "spec"),
+    "inferrsi.benchmark.tasks.qwen3-tts-npu.benchmark": ("<module>", "_evaluation_spec"),
+}
 # D018 B2.4: the one registered residual legacy edge. It keeps overall false
 # and is not available to a new H entry.
 REGISTERED_RESIDUALS = (
@@ -123,6 +136,8 @@ def cross_core_violations(
     for path in sorted(root.rglob("*.py")):
         relative = path.relative_to(root)
         importer = relative.parts[0] if len(relative.parts) > 1 else ""
+        if relative.as_posix() in APPLICATION_ENTRIES:
+            importer = "apps"
         importer_module = _module_name(relative)
         for module in _imported_modules(path, root):
             target = _core_of(module)
@@ -226,8 +241,34 @@ def _scan(root: Path, pairs: frozenset[tuple[str, str]]) -> _Graph:
     return _Graph(trees, packages, edges)
 
 
-def _has_dynamic_import(tree: ast.Module) -> bool:
+def _resource_loader(tree: ast.Module, module: str) -> ast.Attribute | None:
+    declaration = RESOURCE_LOADERS.get(module)
+    if declaration is None:
+        return None
+    matches = []
+
+    def visit(node, owner="<module>"):
+        if isinstance(node, ast.ClassDef):
+            owner += ".<class>." + node.name
+        elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            owner = node.name if owner == "<module>" else owner + "." + node.name
+        if (isinstance(node, ast.Call) and owner == declaration[0]
+                and ast.unparse(node.func) == "importlib.util.module_from_spec"
+                and len(node.args) == 1 and not node.keywords
+                and isinstance(node.args[0], ast.Name) and node.args[0].id == declaration[1]):
+            matches.append(node.func)
+        for child in ast.iter_child_nodes(node):
+            visit(child, owner)
+
+    visit(tree)
+    return matches[0] if len(matches) == 1 else None
+
+
+def _has_dynamic_import(tree: ast.Module, module: str = "") -> bool:
+    declared = _resource_loader(tree, module)
     for node in ast.walk(tree):
+        if node is declared:
+            continue
         if isinstance(node, ast.Name) and node.id in DYNAMIC_IMPORT_NAMES:
             return True
         if isinstance(node, ast.Attribute) and node.attr in DYNAMIC_IMPORT_NAMES:
@@ -270,7 +311,7 @@ def _closure_violations(
     found += [
         f"{start} reaches an undeclared dynamic import in {node}"
         for node in expanded
-        if node in graph.trees and _has_dynamic_import(graph.trees[node])
+        if node in graph.trees and _has_dynamic_import(graph.trees[node], node)
     ]
     return found
 
@@ -531,7 +572,12 @@ def first_wave_report(
         blockers.append(f"harness reaches model/infra: {legacy[0]} ({len(legacy)} hits)")
     if violations:
         blockers.append(f"violations: {len(violations)}")
+    resource_loaders = [name for name in modules
+                        if _resource_loader(graph.trees[name], name) is not None]
+    if resource_loaders:
+        blockers.append(f"runtime resource loaders: {len(resource_loaders)}")
     return IsolationReport(
-        tuple(violations), residuals, tuple(blockers), bool(starts) and not new_core
+        tuple(violations), residuals, tuple(blockers),
+        bool(starts) and not new_core and not resource_loaders,
     )
 

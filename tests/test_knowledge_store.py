@@ -370,6 +370,7 @@ def test_package_only_collect_without_checkout_or_yaml(tmp_path):
         "assert item['authority'] == 'package', item\n"
         "assert reader.read(item['ref'], revision=item['revision']).revision == item['revision']\n"
         "assert 'inferrsi.skill_catalog' not in sys.modules\n"
+        "assert 'inferrsi.knowledge.skill_catalog' not in sys.modules\n"
     )
     env = {**os.environ, "PYTHONPATH": str(REPO / "src"), "PYTHONUTF8": "1"}
     result = subprocess.run(
