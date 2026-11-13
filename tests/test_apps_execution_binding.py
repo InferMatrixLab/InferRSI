@@ -220,3 +220,24 @@ def test_protocol_projection_keeps_ref_shaped_parameters_and_ignores_resource_lo
     prepared["protocol"].update(sha256=sha256(data).hexdigest(), size_bytes=len(data))
     with pytest.raises(PublicError, match="IdentityMismatch"):
         verify_protocol(prepared, data)
+
+
+def test_protocol_rejects_identical_duplicate_resource_roles(binding):
+    _, prepared, _ = binding
+    protocol = decode((_FIXTURES / "t108-v4/protocol.json").read_bytes())
+    resource = {
+        "role": "baseline", "required_for": ["execute"],
+        "format_schema": {"name": "fixture-data", "revision": "1"},
+        "artifact": prepared["protocol"],
+    }
+    protocol["resources"] = [deepcopy(resource), deepcopy(resource)]
+    prepared["resources"] = [deepcopy(resource)]
+    projection = deepcopy(protocol)
+    del projection["display_notes"]
+    for item in projection["resources"]:
+        del item["artifact"]["location"]
+    prepared["protocol_digest"] = "sha256:" + sha256(encode(projection)).hexdigest()
+    data = encode(protocol)
+    prepared["protocol"].update(sha256=sha256(data).hexdigest(), size_bytes=len(data))
+    with pytest.raises(PublicError, match="InvalidExecutionSpec"):
+        verify_protocol(prepared, data)

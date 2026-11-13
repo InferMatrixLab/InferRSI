@@ -260,6 +260,8 @@ def verify_protocol(prepared: dict, data: bytes) -> None:
         digest = "sha256:" + sha256(encode(projection)).hexdigest()
         fixed_resources = [_resource_projection(item) for item in prepared["resources"]]
         expected_resources = {item["role"]: item for item in closure}
+        if len(expected_resources) != len(closure):
+            raise ValueError("protocol resource roles must be unique")
         if (
             ref["size_bytes"] != len(data) or ref["sha256"] != sha256(data).hexdigest()
             or prepared["protocol_digest"] != digest
@@ -268,7 +270,6 @@ def verify_protocol(prepared: dict, data: bytes) -> None:
             or encode(fixed_resources) != encode(
                 [expected_resources[role] for role in sorted(expected_resources)]
             )
-            or any(encode(item) != encode(expected_resources[item["role"]]) for item in closure)
         ):
             raise PublicError(
                 "IdentityMismatch", stage="binder_validation",
