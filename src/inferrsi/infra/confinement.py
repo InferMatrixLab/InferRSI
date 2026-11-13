@@ -279,16 +279,49 @@ def supervisor_command(config_path: Path) -> list[str]:
     return [sys.executable, "-I", "-c", _SUPERVISOR, _PACKAGE_ROOT, str(config_path)]
 
 
-def _kill_group(process: subprocess.Popen) -> None:
-    """Kill the session and return once its process group is empty.
+def _proc_stat(pid: int) -> list[str] | None:
+    """Fields of /proc/<pid>/stat after the command name: state, ppid, ..."""
+    try:
+        text = Path(f"/proc/{pid}/stat").read_text(encoding="utf-8")
+    except OSError:
+        return None
+    return text.rsplit(")", 1)[1].split()
 
-    Processes that called setsid are not in the group; ``--kill-child`` covers
-    them, because killing PID 1 tears down the whole PID namespace.
+
+def _children(pid: int) -> list[tuple[int, str]]:
+    """Direct children of ``pid`` with their start times."""
+    found = []
+    for entry in Path("/proc").iterdir():
+        if not entry.name.isdigit():
+            continue
+        fields = _proc_stat(int(entry.name))
+        if fields is not None and fields[1] == str(pid):
+            found.append((int(entry.name), fields[19]))
+    return found
+
+
+def _running(pid: int, started: str) -> bool:
+    """A zombie PID 1 has already outlived every other process in its namespace."""
+    fields = _proc_stat(pid)
+    return fields is not None and fields[19] == started and fields[0] != "Z"
+
+
+def _kill_group(process: subprocess.Popen) -> None:
+    """Kill unshare, its session and the namespace's PID 1; return once all are gone.
+
+    PID 1 is found and killed directly because it may have left the session
+    with setsid. Killing PID 1 tears down the whole PID namespace.
     """
+    inits = _children(process.pid)
     try:
         os.killpg(process.pid, signal.SIGKILL)
     except ProcessLookupError:
         pass
+    for pid, _started in inits:
+        try:
+            os.kill(pid, signal.SIGKILL)
+        except ProcessLookupError:
+            pass
     process.wait()
     for stream in (process.stdout, process.stderr):
         if stream is not None:
@@ -297,7 +330,10 @@ def _kill_group(process: subprocess.Popen) -> None:
     while True:
         try:
             os.killpg(process.pid, 0)
+            group_left = True
         except ProcessLookupError:
+            group_left = False
+        if not group_left and not any(_running(pid, started) for pid, started in inits):
             return
         if time.monotonic() > give_up:
             raise UnreapedCommand("namespace command outlived its deadline")
