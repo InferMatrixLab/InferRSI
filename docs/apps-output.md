@@ -1,7 +1,8 @@
 # Apps output publication
 
-The Apps output slice remains a proposed contract under #371. This document
-records implementation limits, not design acceptance or production readiness.
+The [Apps design decision](https://github.com/InferMatrixLab/InferRSI/issues/371#issuecomment-6841315306)
+accepts the Apps package path, output contract, CLI and Harness field boundaries.
+This document describes the output implementation and its operational limits.
 
 ## Atomicity and platform support
 
@@ -53,8 +54,7 @@ or that execution did not start: started remains null and automatic retry is
 not implied. Exit code 2 alone cannot distinguish invalid input from a Harness
 reply-contract violation and is not evidence that execution never started;
 callers must inspect error.stage and preserve the original attempt when reconciling.
-Existing v1 codes are retained rather than adding a core enum
-unilaterally; this Apps stage mapping remains a proposal for owner acceptance.
+The accepted Apps stage mapping uses the existing v1 error codes.
 Valid core PublicError stages are preserved. Raised typed PublicError is handled
 as a port error. Other host exceptions remain exceptions: these are programming
 or host failures, not automatically trustworthy core responses. The future CLI
@@ -69,7 +69,7 @@ error. A consumer must use an authorized storage reader and verify the bytes,
 size and digest before treating a referenced artifact as evidence. Validating
 the result.json digest does not validate all referenced artifacts.
 
-The pure Harness execution_spec module owns request_digest, while run_store
-retains a compatibility import. This avoids making Apps depend on the storage
-implementation merely to compute the canonical digest. This proposed public
-surface remains subject to Harness owner and maintainer acceptance.
+The Apps design decision selects `inferrsi.harness.execution_spec.request_digest`
+as the public Harness digest entry point. `inferrsi.harness.run_store.request_digest`
+remains a compatibility export of the same function. Apps can compute the
+canonical digest without loading the RunStore implementation.
