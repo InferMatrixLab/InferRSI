@@ -739,13 +739,17 @@ def test_an_unreaped_command_quarantines_its_device(tmp_path):
     result = serve_ticket(round_dir, ticket, incumbent, backend=Unreaped(), now=WHEN)
     assert result["status"] == "unsettled"
     assert result["devices"] == ["cpu-0"]
-    assert (round_dir / "quarantine" / "cpu-0").exists()
+    assert (round_dir / "leases" / "cpu-0.quarantined").exists()
+    with pytest.raises(LeaseError, match="quarantined"):
+        DeviceLease(round_dir / "leases").acquire("cpu-0")
     plan = json.loads((round_dir / "round-plan.json").read_text(encoding="utf-8"))
     assert hold_devices(round_dir, plan, 2) is None
     held = hold_devices(round_dir, plan, 1)
     assert [device for device, _lease in held] == ["cpu-1"]
     for _device, lease in held:
         lease.release()
+    (round_dir / "leases" / "cpu-0.quarantined").unlink()
+    DeviceLease(round_dir / "leases").acquire("cpu-0").release()
 
 
 def test_reading_a_fifo_does_not_block(tmp_path):
