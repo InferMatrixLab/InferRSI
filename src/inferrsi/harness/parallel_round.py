@@ -1,8 +1,7 @@
 """Prepare, submit and measure one offline parallel round.
 
-Directory diffs stand in for git clones. ``parallel_close`` picks the next
-incumbent and ``parallel_drive`` runs a whole round. A synthetic metric value is
-not a campaign verdict.
+Directory diffs stand in for git clones. A synthetic metric value is not a
+campaign verdict.
 
 Each lane declares ``device_count`` (default 1). The counts of all lanes must fit
 in ``device_ids``. A ticket runs only after it holds that many devices at once.
@@ -205,7 +204,7 @@ def prepare(spec: dict, incumbent: Path, round_dir: Path) -> dict:
     metric = spec.get("metric")
     if (
         not isinstance(metric, dict)
-        or not {"name", "better"} <= set(metric) <= {"name", "better", "repeats", "margin"}
+        or not {"name", "better"} <= set(metric) <= {"name", "better", "repeats"}
         or not isinstance(metric["name"], str)
         or not metric["name"]
         or not isinstance(metric["better"], str)
@@ -215,9 +214,6 @@ def prepare(spec: dict, incumbent: Path, round_dir: Path) -> dict:
     repeats = metric.get("repeats", 1)
     if type(repeats) is not int or repeats < 1:
         raise RoundPlanError("metric repeats must be a positive integer")
-    margin = metric.get("margin", 0)
-    if type(margin) not in (int, float) or not math.isfinite(margin) or margin < 0:
-        raise RoundPlanError("metric margin must be a finite non-negative number")
     timeout = spec.get("command_timeout_seconds", 30)
     if type(timeout) not in (int, float) or not math.isfinite(timeout) or timeout <= 0:
         raise RoundPlanError("command_timeout_seconds must be a positive number")
@@ -263,9 +259,6 @@ def prepare(spec: dict, incumbent: Path, round_dir: Path) -> dict:
         count = lane.get("device_count", 1)
         if type(count) is not int or count < 1:
             raise RoundPlanError(f"{lane_id} device_count must be a positive integer")
-        agent = lane.get("agent", [])
-        if not isinstance(agent, list) or any(type(item) is not str for item in agent):
-            raise RoundPlanError(f"{lane_id} agent must be a list of strings")
         if any(_match(path, globs) and _match(path, protected) for path in files):
             raise RoundPlanError(f"{lane_id} reaches a protected path")
         seen_ids.add(lane_id)
@@ -293,7 +286,6 @@ def prepare(spec: dict, incumbent: Path, round_dir: Path) -> dict:
             "name": metric["name"],
             "better": metric["better"],
             "repeats": repeats,
-            "margin": margin,
         },
         "command_timeout_seconds": timeout,
         "device_paths": {device: list(device_paths[device]) for device in device_paths},
