@@ -1,0 +1,60 @@
+{
+  "variant": "replica4-k16-s3",
+  "hardware_group": "device-B",
+  "verdict": "INCONCLUSIVE",
+  "interrupted": true,
+  "reason": "GPU allocator reclaimed the allocation for a scheduled CI booking. Parent process exited 143. The final C32 cell has 61 failed requests and must be excluded from performance claims.",
+  "cells": [
+    {
+      "cell": "c1-k0",
+      "valid": true,
+      "n_requests": 64,
+      "n_failed": 0,
+      "rtf_mean": 0.07672306090613809,
+      "invalid_reasons": {}
+    },
+    {
+      "cell": "c1-k1",
+      "valid": true,
+      "n_requests": 64,
+      "n_failed": 0,
+      "rtf_mean": 0.07504771697673915,
+      "invalid_reasons": {}
+    },
+    {
+      "cell": "c16-k0",
+      "valid": true,
+      "n_requests": 64,
+      "n_failed": 0,
+      "rtf_mean": 0.2747643803474927,
+      "invalid_reasons": {}
+    },
+    {
+      "cell": "c16-k1",
+      "valid": true,
+      "n_requests": 64,
+      "n_failed": 0,
+      "rtf_mean": 0.250822158148434,
+      "invalid_reasons": {}
+    },
+    {
+      "cell": "c32-k0",
+      "valid": true,
+      "n_requests": 64,
+      "n_failed": 0,
+      "rtf_mean": 0.4127777845393368,
+      "invalid_reasons": {}
+    },
+    {
+      "cell": "c32-k1",
+      "valid": false,
+      "n_requests": 64,
+      "n_failed": 61,
+      "rtf_mean": 0.4235164402223677,
+      "invalid_reasons": {
+        "error": 61,
+        "empty_audio": 48
+      }
+    }
+  ]
+}

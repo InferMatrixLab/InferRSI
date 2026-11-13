@@ -1,0 +1,72 @@
+--- a/vllm_omni/model_executor/models/minicpmo_4_5/batched_token2wav.py
++++ b/vllm_omni/model_executor/models/minicpmo_4_5/batched_token2wav.py
+@@ -2043,6 +2043,43 @@
+                     self._setup_cache.popitem(last=False)
+         return [state] * batch_size
+ 
++    def setup_prompts(self, features: list[PromptFeatures], max_batch: int) -> list[BatchedToken2WavState]:
++        """Experimental equal-shape reference setup, preserving voice order."""
++        states: list[BatchedToken2WavState | None] = [None] * len(features)
++        groups: dict[tuple, list[int]] = {}
++        for row, feature in enumerate(features):
++            key = self._setup_cache_key(feature)
++            cached = self._setup_cache.get(key)
++            if cached is not None:
++                self._setup_cache.move_to_end(key)
++                states[row] = cached
++            else:
++                signature = tuple((tuple(t.shape[1:]), t.dtype, t.device) for t in
++                                  (feature.speech_tokens, feature.speaker_embedding, feature.mels))
++                groups.setdefault(signature, []).append(row)
++        for rows in groups.values():
++            for start in range(0, len(rows), max_batch):
++                selected = rows[start:start + max_batch]
++                group = [features[row] for row in selected]
++                if len(group) == 1:
++                    created = self._create_initial_states(group[0], 1)
++                else:
++                    combined = PromptFeatures(
++                        cache_key=("", ""),
++                        speech_tokens=torch.cat([f.speech_tokens for f in group]),
++                        speaker_embedding=torch.cat([f.speaker_embedding for f in group]),
++                        mels=torch.cat([f.mels for f in group]),
++                    )
++                    created = self._create_initial_states(combined, len(group))
++                for row, state in zip(selected, created, strict=True):
++                    states[row] = state
++                    if self._setup_cache_size > 0:
++                        self._setup_cache[self._setup_cache_key(features[row])] = state
++                        while len(self._setup_cache) > self._setup_cache_size:
++                            self._setup_cache.popitem(last=False)
++        assert all(state is not None for state in states)
++        return cast(list[BatchedToken2WavState], states)
++
+     @staticmethod
+     def _fade_in_out(
+         speech: torch.Tensor,
+--- a/vllm_omni/model_executor/models/minicpmo_4_5/minicpmo_4_5_code2wav.py
++++ b/vllm_omni/model_executor/models/minicpmo_4_5/minicpmo_4_5_code2wav.py
+@@ -522,6 +522,9 @@
+         self._min_batch_size = int(extra.get("code2wav_min_batch_size", 1))
+         if self._min_batch_size < 1:
+             raise ValueError("MiniCPM-o Code2Wav code2wav_min_batch_size must be >= 1")
++        self._ref_setup_batch_size = int(extra.get("ref_setup_batch_size", 1))
++        if self._ref_setup_batch_size < 1:
++            raise ValueError("ref_setup_batch_size must be positive")
+         self._initial_batch_size = int(extra.get("code2wav_initial_batch_size", 0))
+         if self._initial_batch_size < 0:
+             raise ValueError("MiniCPM-o Code2Wav code2wav_initial_batch_size must be >= 0")
+@@ -1043,6 +1046,13 @@
+             features.append(prompts[key])
+             if states[row] is None:
+                 fresh.setdefault(key, []).append(row)
++        if self._ref_setup_batch_size > 1 and fresh:
++            keys = list(fresh)
++            initial = self.backend.setup_prompts([prompts[key] for key in keys], self._ref_setup_batch_size)
++            for key, state in zip(keys, initial, strict=True):
++                for row in fresh[key]:
++                    states[row] = state
++            fresh = {}
+         for key, rows in fresh.items():
+             self._watchdog.phase(
+                 "setup/cfm",

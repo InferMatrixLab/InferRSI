@@ -1,0 +1,38 @@
+--- a/vllm_omni/model_executor/stage_input_processors/minicpmo_4_5_omni.py
++++ b/vllm_omni/model_executor/stage_input_processors/minicpmo_4_5_omni.py
+@@ -181,13 +181,19 @@
+         return None
+ 
+ 
+-def _codec_config(transfer_manager: Any) -> tuple[int, int]:
++def _codec_config(transfer_manager: Any, *, initial: bool = False) -> tuple[int, int]:
+     connector = getattr(transfer_manager, "connector", None)
+     raw_config = getattr(connector, "config", {}) or {}
+     config = raw_config.get("extra", raw_config) if isinstance(raw_config, dict) else {}
+     config = config if isinstance(config, dict) else {}
+     chunk_frames = int(config.get("codec_chunk_frames", 25))
+     left_context_frames = int(config.get("codec_left_context_frames", 3))
++    if initial:
++        initial_frames = int(config.get("initial_codec_chunk_frames") or 0)
++        if initial_frames < 0 or initial_frames > chunk_frames or (0 < initial_frames < 4):
++            raise ValueError("initial_codec_chunk_frames must be 0 or between 4 and codec_chunk_frames")
++        if initial_frames:
++            chunk_frames = initial_frames
+     if chunk_frames <= 0 or left_context_frames < 0:
+         raise ValueError(
+             "Invalid MiniCPM-o codec chunk config: "
+@@ -407,10 +413,10 @@
+         finished = finished or any(token in stop_ids for token in getattr(request, "sampled_token_ids", ()))
+     if finished and condition_key is not None:
+         record["last_closed_condition"] = condition_key
+-    chunk_frames, left_context_frames = _codec_config(transfer_manager)
+-    # One window size for every payload. A separate smaller first window
+-    # (initial_codec_chunk_frames) used to shorten the first payload, but with
+-    # the steady window itself at 25 frames it only added a seam.
++    chunk_frames, left_context_frames = _codec_config(
++        transfer_manager, initial=not native_duplex and int(state["codec_end"]) == 0
++    )
++    # Optional first turn payload; subsequent payloads retain the steady window.
+     flush_pending = finished
+     last_chunk = bool(flush_pending and (not native_duplex or turn_end))
+     if not flush_pending and len(pending) < chunk_frames:

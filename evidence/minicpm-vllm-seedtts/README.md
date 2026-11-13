@@ -69,6 +69,40 @@ observed first audio remained 0.84 seconds. A configured value is not proof of
 treatment delivery. An explicit implementation needs separate tests and quality
 validation before any small-onset performance conclusion.
 
+## Follow-up development screens
+
+`results/service-followup-development.json` retains seven additional screens
+and per-request results. Device C has matched original/independent-engine
+measurements: engine mean RTF is 0.06244 / 0.20621 / 0.26620 at C1/C16/C32.
+Existing K16 Talker plus Torch speaker replay reached approximately
+0.07495 / 0.29211 / 0.49040, still above every target. The name
+`k16-speaker-onset8` includes an ignored onset flag: first audio stayed 0.84 s.
+
+On device B, two existing Code2Wav replicas on one allocated GPU reached
+0.08106 / 0.24861 / 0.43934. Experimental grouped initial-state setup reached
+0.08012 / 0.29290 / 0.46508. This device lacks a paired engine run, so these
+are development observations, not qualification or cross-device speedups.
+
+An implemented first-eight-frame transport option delivered 0.16 s first
+audio, confirming treatment delivery, but did not improve end-to-end RTF
+(single replica 0.08040 / 0.29699 / 0.51859). Two replicas likewise failed to
+improve over their ordinary-onset screen. This option is rejected for the
+current RTF objective. Both experimental patches are retained separately;
+neither is part of the submitted S3 implementation. Local contract validation
+passed 71 existing transport tests and 133 batch-setup regression tests;
+these are correctness screens, not service acceptance.
+
+All recorded quality cells evaluated 64 items successfully. WER, embedding
+cosine SIM and UTMOS means do not establish a no-regression verdict: some
+small SIM/UTMOS reductions remain unresolved, and the SIM proxy is not the
+standalone engine's speaker-verification metric. Final qualification remains
+INCONCLUSIVE. A four-replica screen was preempted by a scheduled GPU booking; its last C32
+cell failed 61/64 requests. `results/replica4-interrupted.json` retains this
+interruption and excludes the incomplete run from acceptance.
+
+The later TensorRT, encoder-tail and Thinker n-gram hypotheses
+have no results in this archive and carry no performance claim.
+
 ## Lessons supported by this investigation
 
 - Check dependency source bytes as well as package versions. The shared local
