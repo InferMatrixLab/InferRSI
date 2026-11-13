@@ -25,8 +25,8 @@
   },
   "checkout_ref": "checkout:draft-acceptance-issue",
   "source_files": {
-    "src/inferrsi/data/skill_library/workflows/draft-acceptance-issue/SKILL.md": "ce983acfb7d7d3272775e7cf00c92e4ddadd97511b602575a76e5ab7ade01b56",
-    "src/inferrsi/data/skill_library/workflows/draft-acceptance-issue/metadata.json": "ff1c463a13d0c869baaf90505a7fe981d684ee7b79f2fa8d2358340b6b4139a7"
+    "src/inferrsi/data/skill_library/workflows/draft-acceptance-issue/SKILL.md": "e22c427a27ab7f41e8627fccba1c65717915af6d7f7c04d91463eb1ba1b4c53f",
+    "src/inferrsi/data/skill_library/workflows/draft-acceptance-issue/metadata.json": "57473329e01f341881cc298c916b70ea8b718bf7b516d3428227c2682f172fe0"
   },
   "skill_metadata": {
     "name": "draft-acceptance-issue",
@@ -50,8 +50,8 @@
     "applicability": {
       "scope": "Opening a new acceptance campaign in an RSI-style repository, before any baseline or candidate run",
       "prerequisites": "A chosen campaign subject and an empty evidence/<campaign-id>/ tree copied from evidence/_template/; SHAs may still be placeholders",
-      "input_contract": "A campaign id of the form {model-or-scenario}/{device}x{count} and the gates the campaign must meet",
-      "produced_artifact": "An acceptance issue body with campaign id, pinned baseline and candidate SHAs, RunSpec, gates, evidence paths, initial verdict and a downstream citation blurb",
+      "input_contract": "A campaign id of the form {model-or-scenario}/{device}x{count}, any user-supplied criteria or accepted plan, and available workload/baseline/calibration evidence for deriving missing targets",
+      "produced_artifact": "An acceptance issue body with campaign id, pinned baseline and candidate SHAs, RunSpec, criteria source and derivation including gaps and freeze authority, gates, evidence paths, initial verdict and a downstream citation blurb",
       "failure_modes": [
         "Gates written after the search loop has already run",
         "Campaign SHAs committed into recipes/, benchmarks/, skills or workflow defaults",
@@ -60,6 +60,7 @@
       "refusal_point": "Refuses to state a verdict other than INCONCLUSIVE while the validator freeze or results rationale is absent"
     },
     "recommendations": [
+      "Use user-supplied criteria; when absent, follow the performance-ceiling-analysis acceptance procedure to formulate targets, preserving partial requirements and identifying derived fields and evidence gaps.",
       "Write the gates in plan/ before any search loop; a gate chosen afterwards cannot reject the candidate honestly.",
       "Use the <baseline-sha> and <candidate-sha> placeholders until the campaign fixes them, and keep the real values in the issue.",
       "Set the initial verdict to INCONCLUSIVE so the absence of evidence is recorded rather than assumed away."
@@ -74,8 +75,8 @@
   "applicability": {
     "scope": "Opening a new acceptance campaign in an RSI-style repository, before any baseline or candidate run",
     "prerequisites": "A chosen campaign subject and an empty evidence/<campaign-id>/ tree copied from evidence/_template/; SHAs may still be placeholders",
-    "input_contract": "A campaign id of the form {model-or-scenario}/{device}x{count} and the gates the campaign must meet",
-    "produced_artifact": "An acceptance issue body with campaign id, pinned baseline and candidate SHAs, RunSpec, gates, evidence paths, initial verdict and a downstream citation blurb",
+    "input_contract": "A campaign id of the form {model-or-scenario}/{device}x{count}, any user-supplied criteria or accepted plan, and available workload/baseline/calibration evidence for deriving missing targets",
+    "produced_artifact": "An acceptance issue body with campaign id, pinned baseline and candidate SHAs, RunSpec, criteria source and derivation including gaps and freeze authority, gates, evidence paths, initial verdict and a downstream citation blurb",
     "failure_modes": [
       "Gates written after the search loop has already run",
       "Campaign SHAs committed into recipes/, benchmarks/, skills or workflow defaults",
@@ -84,6 +85,7 @@
     "refusal_point": "Refuses to state a verdict other than INCONCLUSIVE while the validator freeze or results rationale is absent"
   },
   "recommendations": [
+    "Use user-supplied criteria; when absent, follow the performance-ceiling-analysis acceptance procedure to formulate targets, preserving partial requirements and identifying derived fields and evidence gaps.",
     "Write the gates in plan/ before any search loop; a gate chosen afterwards cannot reject the candidate honestly.",
     "Use the <baseline-sha> and <candidate-sha> placeholders until the campaign fixes them, and keep the real values in the issue.",
     "Set the initial verdict to INCONCLUSIVE so the absence of evidence is recorded rather than assumed away."

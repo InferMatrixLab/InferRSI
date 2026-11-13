@@ -95,6 +95,7 @@
   "empirical_validation": "not_run",
   "limitations": [
     "Source-derived candidate; no local efficacy validation.",
+    "Acceptance-target preparation is agent guidance: the CLI and pure L1 helper do not infer gates, and unsupported estimates cannot replace user criteria or qualify campaign outcomes.",
     "Mooncake's prefix-reuse condition is an analytical approximation; current cache validity, placement, effective rates, overlap and SLO outcomes remain unverified.",
     "FlexGen's cross-tier feasibility comparison assumes fitted rates and perfect overlap; relaxed placements may OOM, the printed bls wording remains unresolved, and current compatibility, latency and efficacy are unverified."
   ],
@@ -118,5 +119,9 @@
     "references/papers-20261015/references/vidur.md",
     "references/papers-20261015/STATIC_CHECKS.md"
   ],
-  "consumption_mode": "packaged"
+  "consumption_mode": "packaged",
+  "recommendations": [
+    "Use supplied acceptance criteria unchanged. When absent, follow references/acceptance-criteria.md to derive targets from matching baseline, calibrated attainable performance and uncertainty; retain partial requirements and label derived fields.",
+    "Read the full procedure and linked resources; preserve the distinction between analytical bounds, observed attainable envelopes, predictions and measured application outcomes."
+  ]
 }

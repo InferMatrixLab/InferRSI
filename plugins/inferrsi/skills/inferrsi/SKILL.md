@@ -262,6 +262,15 @@ Reuse the user's benchmark and quality scripts, workload, accepted revisions,
 gates and budget. If they are missing, help prepare them and name the remaining
 inputs. Do not turn CLI defaults into accepted campaign criteria.
 
+Use supplied acceptance criteria unchanged, including a referenced accepted
+plan. When none are supplied, read
+`inferrsi.common.skills.performance_ceiling_analysis` with `--material` through
+the selected CLI path, then load its `references/acceptance-criteria.md` resource
+and follow that procedure to formulate targets. Preserve partial requirements
+and derive only missing fields. Record user versus derived criteria, calibration,
+uncertainty and existing freeze authority; missing evidence stays unresolved.
+The CLI does not invoke the skill automatically or infer gates from omitted flags.
+
 Use `plan` for a command/specification preview. It persists no frozen campaign
 and grants no execution authority. Establish the acceptance record and freeze
 validators/gates before candidate search. Preserve the declared SIAS plane.

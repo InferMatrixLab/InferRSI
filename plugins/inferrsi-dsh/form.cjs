@@ -157,7 +157,7 @@ function buildPrompt(form, connection) {
     '执行要求',
     '1. 校验目标仓库和运行环境，读取仓库的 AGENTS.md，加载 InferRSI 技能并检查随包运行时。',
     '   backend 表示 GPU 或 NPU 硬件类别。检查设备后再选择受支持的实际运行时后端。execution=remote 时，使用 inferrsi_remote 工具和 remote.connectionId，在已经测试的远程仓库内开展工作；通过 cli 操作运行随包 InferRSI，通过 dashboard 操作打开转发后的实时页面。',
-    '2. 使用 constraints 中填写的验收指标、门槛与约束，并核对 acceptance 引用中的已有条件。条件冲突时先澄清，缺失时检查仓库内的计划和脚本。冻结 baseline、工作负载、验证器和数值门槛后再开始候选实验。关键验收输入无法确定时说明缺口。',
+    '2. 优先使用用户提供的验收标准，包括 constraints 和 acceptance 引用中的已有条件，不得用估计值替换或降低门槛。未提供验收标准时，使用仓库的 performance-ceiling-analysis 技能及其 acceptance-criteria.md 流程制定标准；部分提供时保留已有要求，只推导缺失项并标明来源。记录基线、校准依据、不确定性和已有冻结授权；理论上限不能直接当作可达目标或质量容差。条件冲突时先澄清，证据不足时列出缺口和补测计划。冻结 baseline、工作负载、验证器和数值门槛后再开始候选实验。',
     '3. 在用户选择的 plane 范围内逐轮提出假设、修改、比较和决策。使用 maxRounds 限制优化迭代轮数，使用 maxMinutes 限制总时间。每轮中的 A/B 重复测量次数由冻结计划确定。到达预算后停止新实验并汇报当前证据。',
     '4. 使用现有 InferRSI CLI 和目标仓库的基准、质量脚本。远程 run_script 必须传入 maxMinutes，远程长时间 cli 操作也传入该参数，按任务剩余总时间预算设置，不能为每次调用重新分配完整预算。保留现有用户改动，遵守已有资源和执行授权。复用已准备好的目标环境。',
     '5. 使用明确的 campaign 记录目标、知识检索上下文、搜索空间、每轮假设、决策和 run_id 关联，保留失败、跳过和回滚记录。使用 campaign capture-context、campaign record 和 campaign log。',

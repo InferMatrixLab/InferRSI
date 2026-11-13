@@ -62,6 +62,15 @@ Phase 7 — Keep or discard
 
 After Phase 7, return to Phase 1 with the updated context.
 
+## Before candidate search
+
+Resolve the acceptance contract using the
+[acceptance-criteria procedure](../performance-ceiling-analysis/references/acceptance-criteria.md):
+use user-supplied criteria; otherwise derive targets with
+`performance-ceiling-analysis`. Preserve partial requirements, record provenance
+and freeze the resolved gates before search. Candidate outcomes cannot set or
+relax those gates; missing calibration remains an explicit evidence gap.
+
 ## Candidate generation
 
 Before generating a new candidate, consult:
