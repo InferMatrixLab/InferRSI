@@ -85,15 +85,26 @@ def test_navigation_keyboard_versions_and_refresh(browser, tmp_path, profile_fir
             record = tmp_path / "search/archive/round-1.json"
             doc = json.loads(record.read_text())
             doc["coverage"], doc["counts"] = "partial", None
-            doc["declarations"][0]["source"] = None
+            declaration = dict(doc["declarations"][0])
+            declarations = archive.locator(
+                'details[data-kt-key="search/archive/round-1.json:declarations"]')
+            declarations.locator(":scope > summary").click()
+            for field, value in (("source", None), ("context_id", []), ("context_id", {})):
+                doc["declarations"][0] = {**declaration, field: value}
+                record.write_text(json.dumps(doc))
+                playwright.expect(declarations.locator("pre")).to_contain_text(
+                    f'"{field}": {json.dumps(value)}', timeout=15000)
+                playwright.expect(archive.locator(":scope > summary")).to_contain_text("Partial")
+                playwright.expect(archive).to_contain_text("source_mismatch")
+                assert archive.evaluate("n=>n.open")
+                assert declarations.evaluate("n=>n.open")
+                assert root.get_by_role("button", name="capture", exact=True).get_attribute(
+                    "aria-pressed") == "true"
+                assert "Not recorded" in archive.get_by_role("table").first.inner_text()
+            doc["declarations"][0] = declaration
             record.write_text(json.dumps(doc))
-            playwright.expect(archive.locator(":scope > summary")).to_contain_text(
-                "Partial", timeout=15000)
-            assert archive.evaluate("n=>n.open")
-            assert root.get_by_role("button", name="capture", exact=True).get_attribute(
-                "aria-pressed") == "true"
-            assert "Not recorded" in archive.get_by_role("table").first.inner_text()
-            playwright.expect(archive).to_contain_text("source_mismatch")
+            playwright.expect(archive).not_to_contain_text("source_mismatch", timeout=15000)
+            playwright.expect(declarations.locator("pre")).to_contain_text('"caller_declaration"')
         root.get_by_label("Knowledge round").select_option("2")
         assert root.get_by_role("button", name="capture", exact=True).count() == 0
         root.get_by_role("button", name="collect", exact=True).click()

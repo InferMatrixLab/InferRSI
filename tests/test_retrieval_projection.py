@@ -215,11 +215,17 @@ def test_declaration_source_hash_mismatch_is_not_hidden(campaign):
     assert "source_mismatch" in archive["issues"]
 
 
-@pytest.mark.parametrize("source", [None, False, 7, [], {}, "", "../source.json"])
-def test_invalid_declaration_source_preserves_dashboard(campaign, source):
+@pytest.mark.parametrize(("field", "value"), [
+    *[("source", source) for source in [None, False, 7, [], {}, "", "../source.json"]],
+    *[("context_id", context_id) for context_id in [
+        [], {}, None, False, 7, "", " capture", "../capture", "_capture",
+        "x" * 129, "not-recorded", "catalog",
+    ]],
+])
+def test_invalid_declaration_identity_preserves_dashboard(campaign, field, value):
     path = campaign / "search/archive/round-1.json"
     doc = json.loads(path.read_text())
-    doc["declarations"][0]["source"] = source
+    doc["declarations"][0][field] = value
     path.write_text(json.dumps(doc))
 
     snapshot = dashboard_snapshot(campaign)

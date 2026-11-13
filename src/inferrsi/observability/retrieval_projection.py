@@ -9,7 +9,7 @@ import re
 from pathlib import Path
 
 from .dashboard_data import _inside, _relative_location, _text
-from .optimization_log import _unique
+from .optimization_log import _IDENTIFIER, _unique
 
 _MAX_BYTES = 4 * 1024 * 1024
 
@@ -280,11 +280,14 @@ def read_searches(root: Path, campaign_id, rows, retrievals):
                 if declaration.get("basis") == "optimization_log_declaration":
                     locator = declaration.get("source")
                     source = locator.partition("#")[0] if isinstance(locator, str) else ""
-                    if not re.fullmatch(r"optimization-log-v[1-9]\d*\.json", source):
+                    context_id = declaration.get("context_id")
+                    if (not re.fullmatch(r"optimization-log-v[1-9]\d*\.json", source)
+                            or not isinstance(context_id, str)
+                            or not _IDENTIFIER.fullmatch(context_id)):
                         declaration_state = "source_mismatch"
                     else:
                         _, source_state, source_hash = _read(root, root / source)
-                        capture = captures.get(declaration.get("context_id"))
+                        capture = captures.get(context_id)
                         if (source_state != "present"
                                 or source_hash != declaration.get("log_sha256")
                                 or not capture or capture.get("state") != "verified"
