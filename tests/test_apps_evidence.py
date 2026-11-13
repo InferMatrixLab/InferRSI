@@ -55,6 +55,7 @@ def test_projection_accepts_fixed_nonterminal_snapshot(fixed):
         ("validation_scope", "different", "IdentityMismatch"),
         ("protocol_digest", "sha256:" + "0" * 64, "IdentityMismatch"),
         ("prepared_ref", None, "IdentityMismatch"),
+        ("candidate", None, "IdentityMismatch"),
     ],
 )
 def test_projection_rejects_mismatched_or_observed_records(fixed, field, value, code):

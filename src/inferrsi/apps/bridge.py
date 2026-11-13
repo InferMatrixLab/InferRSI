@@ -413,6 +413,11 @@ def to_evidence(
                 "ArtifactIntegrityError", stage="assessment_binding",
                 message="The record bytes do not match the fixed reference.",
             )
+        if committed_payload["candidate"] is None:
+            raise PublicError(
+                "IdentityMismatch", stage="assessment_binding",
+                message="The fixed evaluation record has no candidate declaration.",
+            )
         if (
             committed_payload["attempt_id"] != record_ref["attempt_id"]
             or committed_payload["request_id"] != record_ref["attempt_id"]
