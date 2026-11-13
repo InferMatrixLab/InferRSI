@@ -9,11 +9,15 @@ import pytest
 from inferrsi import _source_snapshot as snapshot
 from inferrsi.catalog import search_knowledge
 from tools import build_skill_index as index_builder
-from tools.build_skill_index import DESTINATION, LIBRARY
+from tools.build_skill_index import DESTINATION
 
 PROJECT = Path(__file__).resolve().parents[1]
 GENERATED = PROJECT / DESTINATION
 REVISION = "a" * 40
+# These fixtures hold their corpus at the recorded location, where the physical
+# root and the pinned prefix are the same. The repository itself separates them
+# only because K02 moved the files after their pinned revision.
+LIBRARY = index_builder.PINNED_LIBRARY
 
 
 def record_files():
@@ -122,6 +126,7 @@ def _write_skill(root, name, body):
 def _generate(root, monkeypatch):
     revision = _git(root, "rev-parse", "HEAD")
     monkeypatch.setattr(index_builder, "PROJECT", root)
+    monkeypatch.setattr(index_builder, "LIBRARY", LIBRARY)
     assert index_builder.main(["--source-revision", revision]) == 0
     assert index_builder.main(["--source-revision", revision, "--check"]) == 0
     _git(root, "add", "-A")

@@ -5,11 +5,18 @@ from tools import knowledge_declaration_paths as helper
 
 POLICY = {
     "protected_paths": [
-        "src/inferrsi/data/skill_library/**", "src/inferrsi/data/repo_packs/**/knowledge/**",
+        "src/inferrsi/knowledge/data/skill_library/**",
+        "src/inferrsi/knowledge/data/repo_packs/**/knowledge/**",
         "docs/reference-matrix.md",
     ],
     "policy_paths": [".github/knowledge-model-policy.json"],
 }
+LIBRARY = "src/inferrsi/knowledge/data/skill_library"
+SKILL = f"{LIBRARY}/methods/a/SKILL.md"
+MOVED = f"{LIBRARY}/methods/b/old.md"
+RECORD = (
+    "src/inferrsi/knowledge/data/repo_packs/inferrsi/knowledge/common/skills/c.json"
+)
 
 
 def _git(root, *args):
@@ -28,19 +35,18 @@ def _write(root, path, text):
 def test_reports_every_protected_path_including_deletions_and_renames(tmp_path):
     _git(tmp_path, "init", "-q", "-b", "main")
     _write(tmp_path, helper.POLICY, json.dumps(POLICY))
-    _write(tmp_path, "src/inferrsi/data/skill_library/methods/a/SKILL.md", "a\n" * 20)
-    _write(tmp_path, "src/inferrsi/data/skill_library/methods/b/old.md", "b\n" * 20)
-    _write(tmp_path, "src/inferrsi/data/repo_packs/inferrsi/knowledge/common/skills/c.json", "{}\n")
+    _write(tmp_path, SKILL, "a\n" * 20)
+    _write(tmp_path, MOVED, "b\n" * 20)
+    _write(tmp_path, RECORD, "{}\n")
     _write(tmp_path, "README.md", "readme\n")
     _git(tmp_path, "add", "-A")
     _git(tmp_path, "commit", "-q", "-m", "base")
     base = _git(tmp_path, "rev-parse", "HEAD")
     _git(tmp_path, "switch", "-q", "-c", "contribution")
-    _write(tmp_path, "src/inferrsi/data/skill_library/methods/a/SKILL.md", "a\n" * 20 + "more\n")
+    _write(tmp_path, SKILL, "a\n" * 20 + "more\n")
     (tmp_path / "docs").mkdir()
-    _git(tmp_path, "mv", "src/inferrsi/data/skill_library/methods/b/old.md", "docs/moved.md")
-    _git(tmp_path, "rm", "-q",
-         "src/inferrsi/data/repo_packs/inferrsi/knowledge/common/skills/c.json")
+    _git(tmp_path, "mv", MOVED, "docs/moved.md")
+    _git(tmp_path, "rm", "-q", RECORD)
     _write(tmp_path, "README.md", "changed\n")
     # A PR cannot widen or narrow its own admission scope by editing its policy copy.
     _write(tmp_path, helper.POLICY, json.dumps({**POLICY, "protected_paths": []}))
@@ -49,9 +55,9 @@ def test_reports_every_protected_path_including_deletions_and_renames(tmp_path):
 
     result = helper.report(tmp_path, base, "HEAD")
     protected = [
-        "src/inferrsi/data/repo_packs/inferrsi/knowledge/common/skills/c.json",
-        "src/inferrsi/data/skill_library/methods/a/SKILL.md",
-        "src/inferrsi/data/skill_library/methods/b/old.md",
+        RECORD,
+        SKILL,
+        MOVED,
     ]
     assert result["head_sha"] == _git(tmp_path, "rev-parse", "HEAD")
     assert result["protected_paths"] == result["exception_scope"] == protected

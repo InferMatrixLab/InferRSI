@@ -341,12 +341,12 @@ operations or the control CLI to Linux.
 Package data is the canonical source for noneditable installations:
 
 ```text
-inferrsi/data/repo_packs/REPO/knowledge/
+inferrsi/knowledge/data/repo_packs/REPO/knowledge/
   README.md                       Organization and navigation only
   BACKEND/COMPONENT/ENTRY.json     One canonical reusable experience
-inferrsi/data/repo_packs/inferrsi/knowledge/
+inferrsi/knowledge/data/repo_packs/inferrsi/knowledge/
                                   Generated from data/skill_library/, never hand-edited
-inferrsi/data/knowledge_packs/
+inferrsi/knowledge/data/knowledge_packs/
   README.md                       Three-tier source navigation
   dependency/REPO/BACKEND/COMPONENT/ENTRY.json
   peer/REPO/BACKEND/COMPONENT/ENTRY.json
@@ -391,7 +391,7 @@ the two matrices retain their authority.
 Run evidence remains in the caller-selected run directory; frozen campaign
 plans/results/patches/validators remain under `evidence/`.
 
-See the [knowledge guide](../src/inferrsi/data/knowledge_packs/README.md)
+See the [knowledge guide](../src/inferrsi/knowledge/data/knowledge_packs/README.md)
 for all entries, retrieval rules and the maintenance workflow.
 
 The earlier [component design](assets/component-architecture-en.svg) and
@@ -407,7 +407,7 @@ automatic promotion into the knowledge catalog or RunSpec. The original diagram
 is preserved; the [source audit](reviews/source-audit-ac70272.md) tracks cleanup
 portability and other implementation gaps.
 
-The migrated skills have [generated catalog records](../src/inferrsi/data/repo_packs/inferrsi/knowledge/README.md)
+The migrated skills have [generated catalog records](../src/inferrsi/knowledge/data/repo_packs/inferrsi/knowledge/README.md)
 in `data/repo_packs/inferrsi/knowledge/`, with backend-scoped IDs and
 `skill_documents.original` pointing to the complete packaged procedures.
 Normalized reads retain the library's dependency resources. The library is the

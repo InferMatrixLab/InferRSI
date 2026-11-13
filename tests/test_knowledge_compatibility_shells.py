@@ -47,7 +47,16 @@ def test_catalog_routes_share_one_repo_types_tuple():
 def test_data_leaf_holds_the_recorded_fragment_and_locked_hash():
     data = (ROOT / "_repo_pack_data.py").read_bytes()
     assert hashlib.sha256(data).hexdigest() == LEAF["file_sha256"]
-    assert LEAF["original_fragment"]["source"] + "\n" in data.decode("utf-8")
+    # The body in the file today, and the P0b provenance text it came from.
+    current = LEAF["current_fragment"]
+    assert current["source"] + "\n" in data.decode("utf-8")
+    assert hashlib.sha256((current["source"] + "\n").encode("utf-8")).hexdigest() == (
+        current["fragment_sha256"]
+    )
+    revision = LEAF["resource_path_revision"]
+    original = LEAF["original_fragment"]["source"]
+    assert original.replace(revision["old_line"], revision["new_line"]) == current["source"]
+    assert revision["new_file_sha256"] == LEAF["file_sha256"]
 
 
 def _fresh(script: str) -> None:

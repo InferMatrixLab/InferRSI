@@ -5,6 +5,10 @@ from typing import Any
 
 # One shared snapshot keeps the repository-wide source revision and registry digest out of
 # per-owner records, so a one-owner edit regenerates only that owner's record.
+# LIBRARY is the repository path of the corpus at the pinned source_revision, not the
+# current checkout path. K02 moved the files to src/inferrsi/knowledge/data/skill_library
+# without recomputing pinned hashes, so stored records and _provenance.json keep this
+# prefix. Repointing it regenerates every record and needs an explicit new revision.
 MANIFEST = "_provenance.json"
 REPOSITORY = "https://github.com/InferMatrixLab/InferRSI"
 LIBRARY = "src/inferrsi/data/skill_library"

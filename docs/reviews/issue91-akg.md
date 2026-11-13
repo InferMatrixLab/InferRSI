@@ -17,9 +17,9 @@ The InferRSI library/reader contract remains authoritative.
   and the selected `inequality-convert-to-if` control flow.
 - **Ground:** repository identity and discovery prefix resolved to
   [mindspore-ai/akg @ 5aa15f3fe4d856eb60cd3b27447e04f5f1fb4dff](https://github.com/mindspore-ai/akg/tree/5aa15f3fe4d856eb60cd3b27447e04f5f1fb4dff).
-  The [canonical source ledger](../../src/inferrsi/data/skill_library/methods/kernel-writing-guide/references/akg-affine-tail-guards.md#source-ledger)
+  The [canonical source ledger](../../src/inferrsi/knowledge/data/skill_library/methods/kernel-writing-guide/references/akg-affine-tail-guards.md#source-ledger)
   records exact implementation/fixture/license ranges.
-- **Construct:** reuse [kernel-writing-guide](../../src/inferrsi/data/skill_library/methods/kernel-writing-guide/SKILL.md).
+- **Construct:** reuse [kernel-writing-guide](../../src/inferrsi/knowledge/data/skill_library/methods/kernel-writing-guide/SKILL.md).
   Its existing tail-mask and verify-before-benchmark guidance owns the question.
   The added reference supplies target/option/loop gates, an explicit example,
   failure observations and a bounded verification procedure. No new skill or

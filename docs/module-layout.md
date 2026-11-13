@@ -19,12 +19,18 @@ The current `src/inferrsi/harness/` tree is a mixed implementation. Its
 presence is not the target Harness boundary and is not evidence that the four
 modules are isolated.
 
-Do not keep a sibling `data/` resource tier. Knowledge corpus later moves
-under the Knowledge module. The internal corpus split is left to a future
-Knowledge issue. `repo_packs/*/pack.json` is a target description and follows
-the Harness slice. `observability/template.html` is a view template and
-follows the Apps slice. Neither belongs in the corpus only because it sits
-under `data/` today.
+There is no sibling `data/` resource tier. K02 moved the Knowledge corpus to
+`src/inferrsi/knowledge/data/` and the `repo_packs/*/pack.json` target
+descriptions to `src/inferrsi/harness/data/`. The internal corpus split is left
+to a future Knowledge issue. `observability/template.html` is a view template
+and follows the Apps slice; it did not belong to the corpus merely because it
+sat under `data/` before.
+
+The move is physical only. Bundle resource keys, dependency keys and the pinned
+`source_files` paths in generated records keep their recorded spelling, so
+content bytes, hashes and Bundle revisions are unchanged. `_source_snapshot.LIBRARY`
+names the corpus at its pinned `source_revision`, not the current checkout path;
+repointing it regenerates every record and needs an explicit new revision.
 
 `src/` stays the import root. `tests/` and `tools/` stay at the repository
 root. Also keep these root files where they are: `AGENTS.md` (entry contract),
@@ -72,7 +78,7 @@ Several flat modules remain shared seams until their slice starts.
 | `reporting.py`, `summary_chart.py`, `evidence_paths.py` | Current report helpers | Not moved |
 | `claim.py` | Verdict vocabulary used by current checks | Not moved and not a fourth core |
 | `contracts.py` | `RunSpec` compatibility re-export | Must remain one module file |
-| `data/` | Packaged resources, mixed kinds | Not relocated here |
+| `knowledge/data/`, `harness/data/` | Packaged resources, placed by owner since K02 | Corpus under Knowledge; pack descriptions under Harness |
 
 ## Import gate
 
@@ -102,7 +108,12 @@ relative, and `from package import name` imports, includes the parent-package
 `__init__` that Python executes when a submodule is imported, both for import
 targets and for the imported module itself (except the root `inferrsi`
 package init, which runs for every import and is not a business edge), adds
-the manifest-declared export edges, and computes the transitive closure. A dynamic import (`__import__`, `importlib.import_module`, or
+the manifest-declared export edges, and computes the transitive closure. Since
+K02 that scan also reaches the packaged helper scripts inside
+`knowledge/data/**`, which are resources rather than importable modules: their
+directories have no `__init__.py`. They import only the standard library and
+external engines, so the Knowledge closure rule holds for them unchanged. K02
+did not change the gate's scan scope or any closure rule. A dynamic import (`__import__`, `importlib.import_module`, or
 `module_from_spec`) inside a checked closure is an undeclared edge and fails
 closed, except for the exact resource execution declarations below.
 Other dynamic forms (`getattr`, `exec`, `eval`, `runpy`, `pkgutil`)
@@ -218,6 +229,16 @@ hash. K01 re-verified every recorded hash against its own base. Two leaves
 had changed after P0b, so K01 re-recorded all seven hashes at its base and
 keeps the P0b values in `revision_history`; that revision goes through formal
 review with the move.
+
+K02 moved `repo_packs/*/pack.json` to the Harness resource root, so the leaf's
+one path expression and its locked `file_sha256` changed. The manifest records
+that as `technical_leaf.resource_path_revision` with the old and new hashes and
+the exact old and new line, keeps the P0b `original_fragment` for provenance,
+and adds `current_fragment` for the body in the file today. The importlib anchor,
+allowed imports, two symbols, top-level shape and the two permitted importers
+are unchanged, so `infra` still gains no edge into Harness. That manifest
+revision goes through formal architecture review with the K02 move; the
+implementer does not self-approve it.
 
 ## Old `run` exit codes
 

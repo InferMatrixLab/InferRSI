@@ -36,7 +36,8 @@ def identity(root):
     groups = {}
     for name, paths in (
         ("python", sorted((root / "src").rglob("*.py"))),
-        ("corpus", sorted((root / "src/inferrsi/data").rglob("*"))),
+        ("corpus", sorted((root / "src/inferrsi/knowledge/data").rglob("*"))
+                    + sorted((root / "src/inferrsi/harness/data").rglob("*"))),
     ):
         members = {
             p.relative_to(root).as_posix(): digest(p.read_bytes())

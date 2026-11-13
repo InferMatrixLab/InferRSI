@@ -16,7 +16,7 @@ import pytest
 import yaml
 
 PROJECT = Path(__file__).resolve().parents[1]
-ROOT = PROJECT / "src/inferrsi/data/skill_library/repositories/vllm-metal"
+ROOT = PROJECT / "src/inferrsi/knowledge/data/skill_library/repositories/vllm-metal"
 CASES = PROJECT / "tests/fixtures/repo_to_skill/vllm-metal/test-cases"
 
 

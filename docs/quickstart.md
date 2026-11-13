@@ -64,10 +64,10 @@ remains a Python `KnowledgeStore` operation ([contract](knowledge-store.md)).
 The `--skill-root` examples below require the `skills` extra from above:
 
 ```bash
-inferrsi collect 'Ascend OOM' --kind case --limit 3 --material --skill-root src/inferrsi/data/skill_library
-inferrsi read calibrate-serving-simulation --skill-root src/inferrsi/data/skill_library --material
+inferrsi collect 'Ascend OOM' --kind case --limit 3 --material --skill-root src/inferrsi/knowledge/data/skill_library
+inferrsi read calibrate-serving-simulation --skill-root src/inferrsi/knowledge/data/skill_library --material
 inferrsi resource weight-loading-optimization methods/weight-loading-optimization/SKILL.md \
-  --revision <sha256-from-collect-or-read> --skill-root src/inferrsi/data/skill_library --output SKILL.md
+  --revision <sha256-from-collect-or-read> --skill-root src/inferrsi/knowledge/data/skill_library --output SKILL.md
 ```
 
 The revision for `resource` is the second field of the `collect` text-mode line,
@@ -176,8 +176,8 @@ or `--tier peer`. Export one source explicitly, for example
 `inferrsi context --repo-type xdit --backend cuda --tier peer`.
 `--repo-type` names the source owner; vllm_omni queries do not automatically
 include its dependencies or peers. See the
-[three-tier guide](../src/inferrsi/data/knowledge_packs/README.md) for all sources.
+[three-tier guide](../src/inferrsi/knowledge/data/knowledge_packs/README.md) for all sources.
 
 For per-trial completeness, lifecycle and graph qualification, see the
-[Omni experiment contract](../src/inferrsi/data/skill_library/workflows/rsi-evidence/references/omni-experiments.md). These optional checks
+[Omni experiment contract](../src/inferrsi/knowledge/data/skill_library/workflows/rsi-evidence/references/omni-experiments.md). These optional checks
 are frozen in RunSpec and do not replace the quality command.

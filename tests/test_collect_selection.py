@@ -9,7 +9,7 @@ from inferrsi.cli import main
 from inferrsi.knowledge_operations import Bundle, KnowledgeReader, _hash, _json
 from inferrsi.knowledge_store import KnowledgeStore
 
-ROOT = Path(__file__).resolve().parents[1] / "src/inferrsi/data/skill_library"
+ROOT = Path(__file__).resolve().parents[1] / "src/inferrsi/knowledge/data/skill_library"
 CGROUP = "inferrsi.common.skills.cgroup_resource_controls"
 H3 = "inferrsi.common.skills.audit_h3_runtime_residency"
 AFD = "inferrsi.cuda.skills.audit_afd_p2p_exchanges"

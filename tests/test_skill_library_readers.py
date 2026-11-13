@@ -194,7 +194,7 @@ def test_nested_checkout_bundle_preserves_references_cases_and_revision(tmp_path
 
 def test_cli_defaults_to_installed_library_and_allows_custom_root(tmp_path, monkeypatch, capsys):
     package = tmp_path / "package"
-    library = package / "data/skill_library"
+    library = package / "knowledge/data/skill_library"
     _skill(library, "hardware/cuda/installed")
     _index(library, {"installed": "hardware/cuda/installed"})
     custom = tmp_path / "custom"

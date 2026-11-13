@@ -17,8 +17,14 @@ from inferrsi import _source_snapshot
 from inferrsi.skill_catalog import skill_metadata, skill_records
 
 PROJECT = Path(__file__).resolve().parents[1]
-LIBRARY = Path("src/inferrsi/data/skill_library")
-DESTINATION = Path("src/inferrsi/data/repo_packs/inferrsi/knowledge")
+# Where the inputs and generated records live today.
+LIBRARY = Path("src/inferrsi/knowledge/data/skill_library")
+DESTINATION = Path("src/inferrsi/knowledge/data/repo_packs/inferrsi/knowledge")
+# How those inputs are named at the pinned source revision. K02 moved the files
+# without recomputing pinned hashes, so generated records keep this prefix and
+# Git lookups resolve it. The two agree again only after an explicit re-pinning
+# revision that regenerates every record and is reviewed on its own.
+PINNED_LIBRARY = Path(_source_snapshot.LIBRARY)
 REPOSITORY = _source_snapshot.REPOSITORY
 # Match the comparison tool: replacement refs and lazy promisor fetches must not
 # change the bytes hashed for a pinned revision.
@@ -57,11 +63,16 @@ def build_index(project: Path, source_revision: str) -> dict[str, str]:
     root = project / LIBRARY
     entries = _registry(root)
     inputs = source_inputs(root)
-    prefixes = tuple(f"{LIBRARY.as_posix()}/{item['path']}/" for item in entries.values())
-    tracked = _git(project, "ls-tree", "-r", "--name-only", revision, "--", str(LIBRARY))
+    prefixes = tuple(
+        f"{PINNED_LIBRARY.as_posix()}/{item['path']}/" for item in entries.values()
+    )
+    tracked = _git(
+        project, "ls-tree", "-r", "--name-only", revision, "--", str(PINNED_LIBRARY)
+    )
     pinned_inputs = {
         path for path in tracked.decode().splitlines()
-        if path.startswith(prefixes) or path == f"{LIBRARY.as_posix()}/skill-index.json"
+        if path.startswith(prefixes)
+        or path == f"{PINNED_LIBRARY.as_posix()}/skill-index.json"
     }
     if inputs != pinned_inputs:
         raise ValueError("Skill input paths differ from the source revision; commit sources first")
@@ -84,8 +95,8 @@ def _registry(root: Path) -> dict:
 
 def source_inputs(root: Path) -> set[str]:
     """All registered bodies/resources plus the registry that assigns their scopes."""
-    return {f"{LIBRARY.as_posix()}/skill-index.json"} | {
-        f"{LIBRARY.as_posix()}/{path.relative_to(root).as_posix()}"
+    return {f"{PINNED_LIBRARY.as_posix()}/skill-index.json"} | {
+        f"{PINNED_LIBRARY.as_posix()}/{path.relative_to(root).as_posix()}"
         for item in _registry(root).values()
         for path in (root / item["path"]).rglob("*") if path.is_file()
     }
@@ -118,11 +129,11 @@ def render_index(root: Path, revision: str, source_files: dict[str, str]) -> dic
         name = selected["name"]
         metadata = skill_metadata(root, name)
         backend = entries[name]["backend"]
-        directory = f"{LIBRARY.as_posix()}/{entries[name]['path']}"
+        directory = f"{PINNED_LIBRARY.as_posix()}/{entries[name]['path']}"
         hashes = {
             path: digest for path, digest in sorted(source_files.items())
             if path.startswith(f"{directory}/")
-            or path == f"{LIBRARY.as_posix()}/skill-index.json"
+            or path == f"{PINNED_LIBRARY.as_posix()}/skill-index.json"
         }
         paths = list(hashes)
         entry = f"{directory}/SKILL.md"

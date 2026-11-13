@@ -8,7 +8,7 @@ from pathlib import Path
 
 from inferrsi.skill_catalog import skill_directories, skill_metadata
 
-LIBRARY = Path("src/inferrsi/data/skill_library")
+LIBRARY = Path("src/inferrsi/knowledge/data/skill_library")
 INDEX = LIBRARY / "skill-index.json"
 OUTPUT = Path("docs/skill-coverage.md")
 SEARCHSPACE = Path("docs/searchspace-matrix.md")
@@ -371,7 +371,7 @@ def render(rows, unregistered, documents, dead, digest):
         "| Field | Owner of the fact |",
         "|---|---|",
         "| Skill id, canonical path, backend | "
-        "[`skill-index.json`](../src/inferrsi/data/skill_library/skill-index.json) |",
+        "[`skill-index.json`](../src/inferrsi/knowledge/data/skill_library/skill-index.json) |",
         "| Declared task, status, validation state, provenance readsets | "
         "the skill's `SKILL.md` frontmatter and `metadata.json` sidecar |",
         "| Declared applicability conditions, workflow input/output/failure/refusal | "

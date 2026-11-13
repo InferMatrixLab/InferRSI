@@ -11,7 +11,7 @@ from inferrsi.catalog import get_knowledge, knowledge_records, search_knowledge
 from inferrsi.cli import main
 
 PACKAGE = Path(__file__).resolve().parents[1] / "src/inferrsi"
-LIBRARY = PACKAGE / "data/skill_library"
+LIBRARY = PACKAGE / "knowledge/data/skill_library"
 REPOSITORIES = ("strata", "vllm", "sglang", "sglang_omni", "vllm_omni")
 
 
@@ -110,7 +110,9 @@ def test_english_documents_are_packaged_local_and_repository_owned():
     for record in records:
         assert set(record["skill_documents"]) == {"en"}
         expected = LIBRARY / "repositories" / record["repo"].replace("_", "-")
-        document = (PACKAGE / record["skill_documents"]["en"]).resolve()
+        # skill_documents holds the logical "data/..." key; K02 moved the physical
+        # corpus under the Knowledge module without changing that spelling.
+        document = (PACKAGE / "knowledge" / record["skill_documents"]["en"]).resolve()
         assert document.is_relative_to(expected.resolve())
         assert "translations" not in document.relative_to(expected.resolve()).parts
         assert document.name == "SKILL.md" and document.is_file()
@@ -132,7 +134,8 @@ def test_portable_library_retains_english_resources_licenses_and_resolving_local
     router = LIBRARY / "workflows/inference-engine-research"
     assert (router / "SKILL.md").is_file()
     documents = list(LIBRARY.rglob("*.md")) + [
-        PACKAGE / "data/repo_packs" / repo / "knowledge/README.md" for repo in REPOSITORIES
+        PACKAGE / "knowledge/data/repo_packs" / repo / "knowledge/README.md"
+        for repo in REPOSITORIES
     ]
     for document in documents:
         for target in re.findall(r"\]\(([^)]+)\)", document.read_text(encoding="utf-8")):

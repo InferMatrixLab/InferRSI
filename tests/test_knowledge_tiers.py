@@ -12,7 +12,7 @@ from inferrsi.catalog import get_knowledge, repository_pack, search_knowledge
 from inferrsi.cli import main
 from inferrsi.knowledge import catalog as knowledge_catalog
 
-ROOT = Path(__file__).resolve().parents[1] / "src/inferrsi/data/knowledge_packs"
+ROOT = Path(__file__).resolve().parents[1] / "src/inferrsi/knowledge/data/knowledge_packs"
 
 
 def test_external_snapshot_has_complete_navigation_and_pinned_sources():
@@ -83,7 +83,9 @@ def test_misclassified_external_card_is_rejected_before_retrieval(
     else:
         record["tier"] = bad_tier
     target = (
-        tmp_path / "data/knowledge_packs/dependency/flashinfer/cuda/llm/paged-decode-dispatch.json"
+        tmp_path
+        / "knowledge/data/knowledge_packs/dependency/flashinfer/cuda/llm"
+        / "paged-decode-dispatch.json"
     )
     target.parent.mkdir(parents=True)
     target.write_text(json.dumps(record))

@@ -1,6 +1,6 @@
 # Knowledge contribution workflow
 
-This is the short path for a change to one skill in `src/inferrsi/data/skill_library/`.
+This is the short path for a change to one skill in `src/inferrsi/knowledge/data/skill_library/`.
 It implements the representation accepted in
 [issue #355](https://github.com/InferMatrixLab/InferRSI/issues/355#issuecomment-6730172305).
 
@@ -28,12 +28,19 @@ decision.
    python tools/build_skill_coverage.py --check
    ```
 
+   Step 2 currently fails with `Skill input paths differ from the source revision`.
+   K02 moved the corpus to `src/inferrsi/knowledge/data/skill_library/` but kept the
+   recorded prefix pinned to `src/inferrsi/data/skill_library/`, so a new source
+   revision no longer carries the path the records name. Regenerating against the
+   existing pinned revision still works and still reproduces the current records.
+   Repointing the recorded prefix regenerates every record and is a separate,
+   reviewed change; until it lands, do not hand-edit generated records.
+
 3. Commit the generated changes. List the declaration paths for the final head:
 
    ```bash
    python tools/knowledge_declaration_paths.py --base origin/main --head HEAD
    ```
-
    The path lists overlap: under the current policy every generated path is also a
    protected path. Do not add their counts.
 
@@ -54,6 +61,13 @@ the registry hash:
   "registry": {"path": "src/inferrsi/data/skill_library/skill-index.json", "sha256": "<64-hex>"}
 }
 ```
+
+`registry.path` and the `source_files` keys name the library at the pinned
+`source_revision`, which is why they still read `src/inferrsi/data/skill_library/`
+after K02 moved the files to `src/inferrsi/knowledge/data/skill_library/`. A physical
+move does not change where those bytes were at the pinned commit, so no hash is
+recomputed. Repointing the prefix regenerates every record and needs an explicit new
+revision.
 
 `inferrsi.catalog` resolves each stored record into a public schema-1 record with
 the same fields and field order as before: the `sources` entry with the full commit

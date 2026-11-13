@@ -30,9 +30,9 @@ prospective; do not reconstruct unknown identities or rewrite historical commits
 
 The exact protected scope is:
 
-- `src/inferrsi/data/skill_library/**`
-- `src/inferrsi/data/knowledge_packs/**`
-- `src/inferrsi/data/repo_packs/**/knowledge/**`
+- `src/inferrsi/knowledge/data/skill_library/**`
+- `src/inferrsi/knowledge/data/knowledge_packs/**`
+- `src/inferrsi/knowledge/data/repo_packs/**/knowledge/**`
 - `docs/reference-matrix.md`, `docs/searchspace-matrix.md`
 - `docs/knowledge-base.md`, `docs/knowledge-operations.md`, `docs/knowledge-store.md`
 - `src/inferrsi/catalog.py`, `src/inferrsi/skill_catalog.py`,

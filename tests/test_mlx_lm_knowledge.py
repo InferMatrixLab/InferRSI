@@ -4,7 +4,7 @@ from inferrsi.catalog import get_knowledge, search_knowledge
 from inferrsi.knowledge_operations import KnowledgeReader
 from inferrsi.skill_catalog import skill_metadata, skill_resource
 
-LIBRARY = Path(__file__).resolve().parents[1] / "src/inferrsi/data/skill_library"
+LIBRARY = Path(__file__).resolve().parents[1] / "src/inferrsi/knowledge/data/skill_library"
 SKILL = "generation-cache-lifecycle"
 IDENTITY = "inferrsi.common.skills.generation_cache_lifecycle"
 

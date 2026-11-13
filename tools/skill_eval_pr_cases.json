@@ -1,5 +1,5 @@
 {
-  "skill_root": "src/inferrsi/data/skill_library",
+  "skill_root": "src/inferrsi/knowledge/data/skill_library",
   "model": {
     "name": "gpt-6.1-sol",
     "effort": "xhigh"
@@ -16,7 +16,7 @@
       "skill": "inference-benchmark-design",
       "entrypoint": "methods/inference-benchmark-design/SKILL.md",
       "paths": [
-        "src/inferrsi/data/skill_library/methods/inference-benchmark-design"
+        "src/inferrsi/knowledge/data/skill_library/methods/inference-benchmark-design"
       ],
       "cases": "../tests/fixtures/skill-comparison/cases.json"
     },
@@ -24,7 +24,7 @@
       "skill": "audit-fixed-workload-claim",
       "entrypoint": "methods/audit-fixed-workload-claim/SKILL.md",
       "paths": [
-        "src/inferrsi/data/skill_library/methods/audit-fixed-workload-claim"
+        "src/inferrsi/knowledge/data/skill_library/methods/audit-fixed-workload-claim"
       ],
       "cases": "../tests/fixtures/skill-comparison/cases.json"
     },
@@ -32,7 +32,7 @@
       "skill": "optimization-search-policy",
       "entrypoint": "methods/optimization-search-policy/SKILL.md",
       "paths": [
-        "src/inferrsi/data/skill_library/methods/optimization-search-policy"
+        "src/inferrsi/knowledge/data/skill_library/methods/optimization-search-policy"
       ],
       "cases": "../tests/fixtures/skill-comparison/pr133-diagnostic-case05.json",
       "adapter": "kv-admission-diagnostic-v1"
