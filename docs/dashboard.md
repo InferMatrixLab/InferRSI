@@ -312,6 +312,7 @@ The `root` in this example is the path that existed at the pinned revision
 repository uses `src/inferrsi/knowledge/data/skill_library`. The importer
 still takes the readable corpus from `--knowledge-root`, not by opening that
 recorded path.
+
 ```sh
 inferrsi campaign import-search --directory "$campaign" --round 1 \
   --trace "$trace" --lines "$FIRST" "$LAST" --knowledge-root "$corpus" \
