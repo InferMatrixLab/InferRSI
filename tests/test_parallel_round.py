@@ -208,7 +208,9 @@ def test_serve_records_a_synthetic_gain_and_a_held_device_stays_queued(tmp_path)
     assert measured["metric"] == "latency_ms"
     assert measured["candidate"] == 8
     assert measured["incumbent"] == 10
-    assert measured["gain"] == 2
+    assert measured["improvement_pct"] == pytest.approx(20)
+    assert measured["verdict"] == "INCONCLUSIVE"
+    assert (Path(measured["run_dir"]) / "evaluation.json").exists()
     assert measured["devices"] == ["cpu-0"]
     assert measured["confinement"] == "fixture"
     assert (round_dir / "candidates" / ticket / "build-stamp").read_text(encoding="utf-8") == "ok"
@@ -269,14 +271,25 @@ def test_prepare_rejects_bad_repeats_and_timeout(tmp_path):
         ({"repeats": True}, "repeats"),
         ({"margin": 0.03}, "metric needs"),
         ({"spread": 1}, "metric needs"),
+        ({"min_improvement_pct": -1}, "min_improvement_pct"),
+        ({"min_improvement_pct": float("nan")}, "min_improvement_pct"),
     ):
         with pytest.raises(RoundPlanError, match=message):
             prepare(_spec(metric={**base, **extra}), incumbent, tmp_path / "round-metric")
     for timeout in (0, -1, "30", float("inf")):
         with pytest.raises(RoundPlanError, match="command_timeout_seconds"):
             prepare(_spec(command_timeout_seconds=timeout), incumbent, tmp_path / "round-t")
+    for overrides, message in (
+        ({"validation": "pytest"}, "validation"),
+        ({"validation": []}, "validation"),
+        ({"device_model": ""}, "device_model"),
+    ):
+        with pytest.raises(RoundPlanError, match=message):
+            prepare(_spec(**overrides), incumbent, tmp_path / "round-fields")
     plan = prepare(_spec(), incumbent, tmp_path / "round-defaults")
-    assert plan["metric"] == {**base, "repeats": 1}
+    assert plan["metric"] == {**base, "repeats": 1, "min_improvement_pct": 0}
+    assert plan["validation"] is None
+    assert plan["device_model"] is None
     assert plan["command_timeout_seconds"] == 30
 
 
@@ -342,7 +355,7 @@ def test_repeats_alternate_abba_and_report_medians(tmp_path):
     work = tmp_path / "work"
     _tree(work, "8")
     ticket = submit(round_dir, "L1", incumbent, work, now=WHEN)["ticket"]
-    values = {"candidate": [8, 100, 9], "incumbent": [10, 10, 1000]}
+    values = {"candidate": [8, 100, 9], "baseline": [10, 10, 1000]}
     order = []
 
     class Recording:
@@ -351,21 +364,25 @@ def test_repeats_alternate_abba_and_report_medians(tmp_path):
         def run(self, argv, *args, **kwargs):
             del args, kwargs
             result = Path(argv[-1])
-            order.append(result.stem)
-            side = result.stem.split("-")[0]
+            side = result.parent.parent.name
+            order.append(f"{side}-{result.parent.name}")
             body = {"metrics": {"latency_ms": values[side].pop(0)}}
             result.write_text(json.dumps(body), encoding="utf-8")
             return {"status": "completed", "stdout": "", "stderr": ""}
 
     measured = serve_ticket(round_dir, ticket, incumbent, backend=Recording(), now=WHEN)
     assert order == [
-        "candidate-0", "incumbent-0", "incumbent-1", "candidate-1", "candidate-2", "incumbent-2"
+        "baseline-trial-001",
+        "candidate-trial-001",
+        "candidate-trial-002",
+        "baseline-trial-002",
+        "baseline-trial-003",
+        "candidate-trial-003",
     ]
     assert measured["candidate_samples"] == [8, 100, 9]
     assert measured["candidate"] == 9
     assert measured["incumbent"] == 10
-    assert measured["gain"] == 1
-    assert measured["relative_gain"] == pytest.approx(0.1)
+    assert measured["improvement_pct"] == pytest.approx(10)
 
 
 def test_higher_is_better_metric_reports_gain_in_the_better_direction(tmp_path):
@@ -379,7 +396,7 @@ def test_higher_is_better_metric_reports_gain_in_the_better_direction(tmp_path):
     measured = serve_ticket(round_dir, ticket, incumbent, backend=FixtureBackend(), now=WHEN)
     assert measured["status"] == "measured"
     assert measured["better"] == "higher"
-    assert measured["gain"] == -2
+    assert measured["improvement_pct"] == pytest.approx(-20)
 
 
 def test_serve_uses_a_free_device_and_passes_its_identity_to_the_commands(tmp_path):
@@ -445,7 +462,7 @@ def test_a_non_numeric_metric_is_an_unsettled_receipt(tmp_path):
 
     result = serve_ticket(round_dir, ticket, incumbent, backend=WritesText(), now=WHEN)
     assert result["status"] == "unsettled"
-    assert "not a finite number" in result["reason"]
+    assert "must be a number" in result["reason"]
     ledger = json.loads((round_dir / "ledgers" / "L1.json").read_text(encoding="utf-8"))
     assert [entry["phase"] for entry in ledger["entries"]] == ["claimed"]
 
@@ -783,8 +800,80 @@ def test_completed_trial_without_a_latency_file_is_unsettled(tmp_path):
         round_dir, ticket, incumbent, backend=CompletesWithoutResult(), now=WHEN
     )
     assert result["status"] == "unsettled"
-    assert "readable latency_ms result" in result["reason"]
+    assert "result.json" in result["reason"]
     assert ticket_status(round_dir, ticket)["status"] == "unsettled"
+
+
+def _git_tree(root: Path, knob: str) -> None:
+    _tree(root, knob)
+    for argv in (
+        ["init", "-q"],
+        ["add", "-A"],
+        ["-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", "incumbent"],
+    ):
+        subprocess.run(["git", "-C", str(root), *argv], check=True)
+
+
+def test_a_git_incumbent_with_validation_gets_a_verdict(tmp_path):
+    incumbent = tmp_path / "incumbent"
+    _git_tree(incumbent, "10")
+    work = tmp_path / "work"
+    _tree(work, "8")
+    passing = [sys.executable, "-c", "pass"]
+    for threshold, verdict in ((3, "PASS"), (25, "FAIL")):
+        round_dir = tmp_path / f"round-{threshold}"
+        metric = {"name": "latency_ms", "better": "lower", "min_improvement_pct": threshold}
+        prepare(_spec(metric=metric, validation=passing), incumbent, round_dir)
+        ticket = submit(round_dir, "L1", incumbent, work, now=WHEN)["ticket"]
+        measured = serve_ticket(round_dir, ticket, incumbent, backend=FixtureBackend(), now=WHEN)
+        assert measured["status"] == "measured"
+        assert measured["verdict"] == verdict, measured["reasons"]
+        assert measured["improvement_pct"] == pytest.approx(20)
+
+
+def test_a_failing_validation_is_a_measured_fail(tmp_path):
+    incumbent = tmp_path / "incumbent"
+    _git_tree(incumbent, "10")
+    round_dir = tmp_path / "round"
+    failing = [sys.executable, "-c", "raise SystemExit(1)"]
+    prepare(_spec(validation=failing), incumbent, round_dir)
+    work = tmp_path / "work"
+    _tree(work, "8")
+    ticket = submit(round_dir, "L1", incumbent, work, now=WHEN)["ticket"]
+    measured = serve_ticket(round_dir, ticket, incumbent, backend=FixtureBackend(), now=WHEN)
+    assert measured["status"] == "measured"
+    assert measured["verdict"] == "FAIL"
+    ledger = json.loads((round_dir / "ledgers" / "L1.json").read_text(encoding="utf-8"))
+    assert [entry["phase"] for entry in ledger["entries"]] == ["finished"]
+
+
+def test_device_model_checks_the_held_devices_before_reserving(tmp_path, monkeypatch):
+    incumbent = tmp_path / "incumbent"
+    _tree(incumbent, "10")
+    round_dir = tmp_path / "round"
+    prepare(_spec(device_ids=["0", "1"], device_model="L20X"), incumbent, round_dir)
+    work = tmp_path / "work"
+    _tree(work, "8")
+    ticket = submit(round_dir, "L1", incumbent, work, now=WHEN)["ticket"]
+    seen = []
+
+    def busy(*, count, device_model):
+        seen.append((count, device_model, os.environ.get("CUDA_VISIBLE_DEVICES")))
+        raise ValueError("An allocated GPU already has a compute process")
+
+    monkeypatch.delenv("CUDA_VISIBLE_DEVICES", raising=False)
+    monkeypatch.setattr(parallel_round, "qualify_devices", busy)
+    queued = serve_ticket(round_dir, ticket, incumbent, backend=FixtureBackend(), now=WHEN)
+    assert queued["status"] == "queued"
+    assert "compute process" in queued["reason"]
+    assert seen == [(1, "L20X", "0")]
+    assert "CUDA_VISIBLE_DEVICES" not in os.environ
+    assert not (round_dir / "ledgers").exists()
+    DeviceLease(round_dir / "leases").acquire("0").release()
+
+    monkeypatch.setattr(parallel_round, "qualify_devices", lambda **kwargs: [])
+    measured = serve_ticket(round_dir, ticket, incumbent, backend=FixtureBackend(), now=WHEN)
+    assert measured["status"] == "measured"
 
 
 def test_serve_cli_runs_without_a_caller_supplied_clock(tmp_path):
