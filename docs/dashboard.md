@@ -154,6 +154,221 @@ campaign-relative files; the recorder hashes them and does not copy them. The
 caller assigns IDs and must serialize campaign record updates. Neither command
 starts an agent or validates the experiment.
 
+### Import one round's searches
+
+A search import writes `search/round-<n>.json` inside an existing campaign.
+The record can exist before a candidate or run. Read it directly with a JSON
+viewer. The agent or host selects the trace for its own session and keeps the
+original private. When the Desktop host exposes `CODEX_THREAD_ID`, the agent
+can locate its own rollout by matching that exact thread ID in the filenames
+under the local Codex sessions directory. A host can also supply the trace
+path directly. The import command only opens the supplied file.
+
+For example, set `campaign` to the campaign directory, `trace` to the local
+Codex Desktop rollout JSONL and `corpus` to the absolute skill-library path
+**as it appeared in that session**. The importer normalizes path components
+such as `.` and `..` lexically. Use the root spelling recorded in the trace,
+including any symlink names, so replay also works after the checkout is gone.
+In the agent's first shell call of the round, save the next line number.
+In separate shell calls, use the knowledge
+directory normally. Once the completed tool events are visible in the rollout,
+run the import from the agent's closing shell call:
+
+```sh
+# Start of round 1. Save the printed value as FIRST for the closing call.
+awk 'END { print NR + 1 }' "$trace"
+
+# Separate agent shell calls with the skill library as the tool working directory.
+rg -Hn 'Operator tests passed' methods/inference-optimization-casebook/cases
+cat methods/inference-optimization-casebook/cases/qwen-b300-rejected-directions.md
+
+# End of round 1. FIRST is the value retained at the start of this round.
+LAST=$(wc -l < "$trace")
+inferrsi campaign import-search --directory "$campaign" --round 1 \
+  --trace "$trace" --lines "$FIRST" "$LAST" --knowledge-root "$corpus" --complete
+```
+
+For round 2 take a new first/last pair, even in the same session. Windows are
+one-based and inclusive. If the host buffers events, import after they have
+flushed. After an interruption the host can do the same handoff. Use
+`--context-id <id>` once per `campaign capture-context` performed in this round.
+These inputs can be combined with the rollout or used alone for an Indexer-only
+round. Each capture is verified and its returned refs, revisions, request and
+resource paths are recorded. Opening a resource and receiving a prepared context
+are distinct observations. A bare `collect` leaves no such capture.
+
+The importer reads Desktop `CommandExecution` events. It supports direct text
+or filename-match searches with `rg`, literal `cat`, `nl -ba` and `sed -n N,Mp`
+reads. Use `rg -Hn` for unambiguous filenames and matching lines. File results
+are corpus-relative. `-H` / `--with-filename` establishes the filename prefix,
+including for numeric filenames. Without it, nonempty text output is attributed
+only when the recorded scopes establish directory search or multiple operands.
+If a single operand's file/directory type is unknown, the event stays incomplete;
+the importer does not infer its format from text that resembles a path or number.
+Without a line-number option, a numeric prefix such as
+`42:` remains part of the matched text, with no source line number inferred.
+Drive-qualified `rg` paths retain their drive prefix when parsed. Unnumbered
+Windows output that could also be a single-letter filename plus text is attributed
+only when the recorded scopes establish one interpretation; otherwise it stays partial.
+Source lines are counted at LF or CRLF boundaries; form feeds remain within
+their source line.
+In shell commands, an unquoted `#` starts a comment only at a word boundary;
+`guide#v2.md` remains one filename.
+A shell event establishes the command's recorded output;
+the outer agent tool may have displayed a shorter excerpt. The default local
+record keeps locators and omits source text, output and assistant replies. Multiline
+retrieval scripts, unsupported pipelines and unparseable output leave
+unresolved event line numbers. Other tools and scripted/remote
+retrievals require separate evidence. Review query text and paths before sharing.
+
+- `observed` counts recognized searches, distinct materials per search (hits),
+  distinct hit refs across searches, and distinct refs with supported use.
+  A later file read is a separate event. File paths and versioned Indexer
+  entries keep their original identities, with no inferred cross-tool alias.
+- Supply `--complete` only when the selected inputs cover every in-scope
+  retrieval for the round. Otherwise only observed counts are known and
+  `counts` is null. A complete round without a search has zero searches.
+  With no inputs the command records missing coverage. A failed query or
+  unresolved supported command also makes totals unknown. For example,
+  `rg -C 2` without line numbers cannot reliably separate context text from
+  matching filenames. A failed multi-file `cat` may have read only some
+  operands. These commands retain an unresolved trace locator.
+- Use and rejection apply to materials observed in the imported round.
+  A decision based only on a previous round's material is outside this
+  record's scope. The existing optimization log can supply evidence when
+  its iteration references the exact verified capture. If that log claims
+  use of a selected item whose text was omitted, the record retains the
+  claim under `conflicts`. Counting it as used requires separate evidence.
+  For a decision recorded
+  in an assistant message, a reviewer can pass `--used REF LINE` or
+  `--rejected REF LINE` with the actual material ref and the JSONL line of
+  the relevant message. This explicitly attributes use; the importer validates
+  the locator and requires a material observation before the decision. A flag
+  referring only to an unordered capture stays under the material's
+  `declarations`, with `reason: observation_order_unknown`; it does not count
+  as adopted. Use archive review with a verified capture return to establish
+  that ordered passage-to-decision link. Unattributed use stays unknown.
+  Distinct use and rejection decisions for the same ref are both retained
+  and it counts once as used. Candidate links carry the recorded evaluation verdict
+  when present. `evaluation_state` reports the source file's status, including
+  `missing` for an absent file and `corrupt` for invalid JSON.
+- Serialize imports along with other campaign updates. Repeating an import
+  rebuilds the snapshot without adding events. To attach a later decision or
+  run, retain the same trace, start line, capture IDs and scope, and extend the
+  end line if necessary before the next round starts. Separate rounds cannot
+  claim overlapping windows or the same command event ID from one session,
+  even when duplicate events appear in disjoint windows.
+  Saved `--used` / `--rejected` claims survive reimport without repeated flags.
+  An explicit flag for the same material and decision line replaces the saved
+  status; claims at different decision lines remain distinct.
+  An accepted declaration stays uncounted if an extended window only adds
+  ordered observations after its decision; it does not block the closing import.
+  Its reason becomes `no_prior_ordered_observation`: none of the currently
+  orderable observations precedes that decision. This does not establish the
+  order of a capture whose return is still unknown. With no orderable
+  observations, the reason remains `observation_order_unknown`.
+  If correcting the corpus root reveals an observation before that decision,
+  reimport can establish adoption and clears the declaration's old reason.
+  A newly supplied decision that precedes every observation is still rejected.
+
+#### Archive evidence for readers outside the session
+
+Use `--archive-review review.json` on the same import when a campaign calls
+for independently readable evidence. Use the historical knowledge directory
+as `--knowledge-root`. In the review file, identify the repository, revision
+and repository-relative directory from the experiment's frozen inputs. These
+are caller-declared source coordinates. The importer obtains the passages
+from the recorded tool return, so it can also handle a corpus that the host
+copied into a temporary directory.
+
+For example, this reviewer input links a visible match to a passage of the
+agent's actual decision. The line numbers for the event and decision locate
+records in the private input. The `passage_line` field locates a line in the material.
+Use a verbatim, contiguous decision excerpt. The importer checks the cited
+event, passage and message before recording the reviewed relation.
+
+```json
+{
+  "task": "Decide what to check before combining three Qwen Ascend optimizations.",
+  "corpus": {
+    "repository": "InferMatrixLab/InferRSI",
+    "revision": "f6d200775d554d08fb73673833611dd6ac02d14b",
+    "root": "src/inferrsi/data/skill_library"
+  },
+  "decisions": [{
+    "use": "used",
+    "ref": "methods/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md",
+    "event_line": 73,
+    "passage_line": 18,
+    "decision_line": 108,
+    "decision_quote": "报告称 **RoPE + VAE fastpath + 融合 attention 在初始化时 OOM**，并建议先盘点初始化驻留。因此这是这次组合的首要风险，应先做资源检查，再决定是否进入组合试验。"
+  }]
+}
+```
+
+```sh
+inferrsi campaign import-search --directory "$campaign" --round 1 \
+  --trace "$trace" --lines "$FIRST" "$LAST" --knowledge-root "$corpus" \
+  --archive-review review.json --complete
+```
+
+The command keeps `search/round-1.json` as the local window record and
+returns the portable file `search/archive/round-1.json`. The latter embeds
+the evidence selected by this review. Supply all intended decisions on each
+archive import. Existing `--used`, `--rejected` and optimization-log claims
+retain their local meaning. In the portable record they appear under
+`declarations`, including saved flags restored from the local round record.
+They do not count as reviewed adoption in the archive. Reviewed passage-to-decision
+links appear under `materials[ref].evidence` and contribute to its adopted-material count.
+If a source excerpt was redacted, its root normalized, or its text shortened,
+the adoption entry also carries `passage_redacted`, `passage_root_normalized`,
+or `passage_truncated`, respectively. Its `passage_text` is then a transformed
+display excerpt, not an unchanged quotation of the source line. The decision
+quotation must still match the assistant message exactly.
+
+In the portable file, inspect the model-visible tool return and its
+passages before the adoption entry. A search can match three lines of one
+file and still count as one material hit. A reviewed decision can use one
+of those lines. Hit counts include references the command matched or the Indexer
+selected. Use each event's `delivery` to see which of those references can
+be placed in the agent's return. A material marked `ref_visible` has a
+confirmed reference but no archived content excerpt for that material. A zero `observed.used` means there were no
+reviewed positive uses. Each unattributed material retains `use: unknown`.
+Runtime truncation describes what the agent received. Archival omissions
+describe what the reader can inspect. An ambiguous host
+return leaves delivery unknown. A verified Indexer capture establishes what
+the Indexer prepared. Its campaign-relative source is the evidence for that
+preparation. When a tool actually returned its rendered context, the review
+file can also supply `"capture_returns": {"r1-diagnosis": 52}`, where 52 is
+the line of the model-facing tool response in the round. Pass the corresponding
+`--context-id r1-diagnosis`. Only complete resource blocks with matching
+owner, revision, path and body count as visibly delivered. A return that just
+names the capture file or prints its digest leaves delivery unknown.
+To review the use of a delivered Indexer passage, use its return line as
+`event_line`, the entry ID as `ref`, and its capture resource path as
+`passage_path`. The one-based `passage_line` selects a line within that
+resource. Cite the later assistant decision in the same way as for a file.
+
+To include a round in repository evidence, copy the portable file to
+`evidence/<campaign-id>/search/round-1.json`. Retain the campaign-relative
+paths to cited `knowledge/`, candidate and run artifacts, or document which
+are unavailable in the published bundle. Review the generated text,
+commands and referenced artifacts under the [privacy rules](privacy-security.md).
+The raw Codex rollout stays local. A missing candidate is expected for a
+decision-only exercise. See the [Qwen round archive](../evidence/search-attribution-qwen-s2-b1-20261110/README.md)
+for the generated evidence and its interpretation. To follow one material across
+events and then see its reviewed uses, set `record` to the portable JSON:
+
+```sh
+ref=methods/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md
+jq --arg ref "$ref" '{
+  returns: [.events[] | {event: .id, action, query,
+    passages: [.delivery.passages[]? | select(.ref == $ref)]}
+    | select(.passages | length > 0)],
+  decisions: .materials[$ref].evidence
+}' "$record"
+```
+
 ### Record the optimization story (campaign trace)
 
 Use `campaign init --profile-first` for a new profiled campaign, or set

@@ -220,6 +220,18 @@ why, the decision and its reason. At the end, write success and failure
 summaries that cite `candidate:<id>` evidence and name the failing stage.
 Resolve every **Narrative vs evidence** warning the dashboard shows, or explain it.
 
+When recording search attribution, mark the first line of the current round
+in the caller-selected Codex rollout before searching. At round close, use
+`campaign import-search` once with that round's inclusive line range, corpus
+root and any capture IDs. If the rollout is available only after interruption,
+the host can import the same range later. Keep private raw traces outside the
+campaign. The round-import section of `docs/dashboard.md` describes how to
+distinguish observed reads, explicit use and missing capture.
+For a round intended for repository evidence, supply the reviewed corpus
+version and decision references with `--archive-review`. Check that the
+published passages, decision excerpts and linked campaign artifacts let a
+reader verify the claim without the private rollout.
+
 For a bilingual dashboard, prepare and review a translation overlay for the
 recorded narrative, including the knowledge context, search space, decisions,
 benchmark and quality descriptions. Supply it to `dashboard --translations` as
