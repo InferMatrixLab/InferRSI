@@ -195,11 +195,14 @@ The leaf's own import rule and `REPO_TYPES` object identity govern it.
   residual below. Apps reaches no old root leaf. `inferrsi.infra`
   reaches no Knowledge, Harness, Benchmark, or Apps module, so `infra` → root
   `catalog` → Knowledge fails while `infra` → the data leaf passes.
-- **New H entries.** `harness.api` means `inferrsi.harness.api`.
-  `execution_service` and `run_store` are entry labels; the gate does not
-  infer module paths from those labels. Any `inferrsi.harness.*` module that
-  exists is still checked against the closure rule above. The current mixed
-  `harness` tree is not automatically an isolated core.
+- **New H entries.** The registered entry modules are
+  `inferrsi.harness.api`, `inferrsi.harness.execution_service`,
+  `inferrsi.harness.input_binding`, `inferrsi.harness.local_process`,
+  `inferrsi.harness.run_store`, and `inferrsi.harness.errors`. Each entry's
+  closure is walked on the full graph. The gate does not infer other module
+  paths from labels. Any `inferrsi.harness.*` module that exists is still
+  checked against the closure rule above. The current mixed `harness` tree is
+  not automatically an isolated core.
 - **Residual.** The registered `harness.skill_evaluation` → root
   `knowledge_operations` edge stays listed and keeps overall isolation false.
   A second direct harness importer of that target fails, and a new H entry

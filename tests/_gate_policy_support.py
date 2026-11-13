@@ -35,10 +35,17 @@ RESOURCE_LOADERS = {
 REGISTERED_RESIDUALS = (
     ("inferrsi.harness.skill_evaluation", "inferrsi.knowledge_operations"),
 )
-# New H entries. ``execution_service`` and ``run_store`` are labels only.
-# A later H-design PR is expected to add their accepted module paths to this
-# tuple once that design fixes them; this package does not invent the paths.
-NEW_H_ENTRIES = ("inferrsi.harness.api",)
+# New H entries: module paths walked on the full graph, without the residual
+# exemption. H01 added ``run_store`` and ``errors``; H02 added the public
+# ``api`` with ``execution_service``, ``input_binding`` and ``local_process``.
+NEW_H_ENTRIES = (
+    "inferrsi.harness.api",
+    "inferrsi.harness.errors",
+    "inferrsi.harness.execution_service",
+    "inferrsi.harness.input_binding",
+    "inferrsi.harness.local_process",
+    "inferrsi.harness.run_store",
+)
 # The P0a canonical encoder; the new K closure may use it and the data leaf.
 CANONICAL_ENCODER = "inferrsi._json_v1"
 # Names that load or build modules at run time. Any use fails closed.

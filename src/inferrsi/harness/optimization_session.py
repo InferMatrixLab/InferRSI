@@ -111,7 +111,7 @@ def _runtime_identity():
 
     root = Path(str(files("inferrsi")))
     names = ("harness/optimization_session.py", "harness/optimization.py",
-             "infra/executors/local.py",
+             "harness/local_process.py",
              "infra/processes.py", "infra/artifacts.py", "harness/scenarios/external.py",
              "harness/usage.py", "harness/agent_sessions.py", "harness/task_protocol.py",
              "harness/candidates.py", "harness/project.py", "observability/knowledge_capture.py")

@@ -1,6 +1,8 @@
 # Infrastructure
 
-`executors/` and `processes.py` own local subprocesses, deadlines and cleanup.
+`processes.py` owns supervised Linux serving workers and their cleanup. Local
+command execution, deadlines and process-tree cleanup live in
+`harness.local_process`.
 `targets/` fingerprints source; `platforms/` discovers and qualifies devices.
 Transport, artifact writes and environment probes are shared utilities.
 
