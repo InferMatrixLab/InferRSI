@@ -6,12 +6,18 @@ campaign verdict.
 Each lane declares ``device_count`` (default 1). The counts of all lanes must fit
 in ``device_ids``. A ticket runs only after it holds that many devices at once.
 
-Command placeholders: ``build`` gets ``{device}`` only. ``trial`` gets ``{device}``
-and ``{result}``; it must write ``{"metrics": {<metric.name>: <finite number>}}``
-to ``{result}``. The candidate is built once, then candidate and incumbent trials
-run ``metric.repeats`` times each in ABBA order; the receipt keeps every sample
-and the medians. ``{device}`` is the held device identities joined with commas.
-Other text, including ``{result}`` inside ``build``, is passed through unchanged.
+Command placeholders: ``build`` and ``validation`` get ``{device}`` only. ``trial``
+gets ``{device}`` and ``{result}``; it must write
+``{"metrics": {<metric.name>: <finite positive number>}}`` to ``{result}``. The
+candidate is built once in confinement; measurement is ``run_experiment`` with a
+confined ``execute``, so incumbent and candidate trials alternate AB/BA
+``metric.repeats`` times each, the optional ``validation`` runs once on the
+candidate, and ``evaluate`` gives the verdict against ``metric.min_improvement_pct``.
+``{device}`` is the held device identities joined with commas. Other text,
+including ``{result}`` inside ``build``, is passed through unchanged.
+
+With ``device_model`` set, ``qualify_devices`` checks the held devices before an
+attempt is reserved; a device that fails the check leaves the ticket queued.
 
 ``device_paths`` (per device id), ``shared_device_paths``, ``runtime_paths`` and
 ``env`` (values may use ``{device}``) extend the confined view for GPU trials.
@@ -27,7 +33,6 @@ import math
 import os
 import shutil
 import stat
-import statistics
 import subprocess
 import time
 from datetime import datetime, timezone
@@ -47,6 +52,7 @@ from inferrsi.harness.round_budget import (
     ensure_open,
     seconds_remaining,
 )
+from inferrsi.harness.runner import run_experiment
 from inferrsi.infra.artifacts import digest, write_json
 from inferrsi.infra.confinement import (
     ConfinementUnavailable,
@@ -54,6 +60,9 @@ from inferrsi.infra.confinement import (
     confined_execute,
 )
 from inferrsi.infra.device_lease import DeviceLease, LeaseError
+from inferrsi.infra.platforms.cuda import qualify_devices
+from inferrsi.model.protocols.metrics import read_metric
+from inferrsi.runspec import RunSpec
 
 PLANES = {"harness", "model", "infra"}
 DIRECTIONS = {"lower", "higher"}
@@ -221,7 +230,9 @@ def prepare(spec: dict, incumbent: Path, round_dir: Path) -> dict:
     metric = spec.get("metric")
     if (
         not isinstance(metric, dict)
-        or not {"name", "better"} <= set(metric) <= {"name", "better", "repeats"}
+        or not {"name", "better"}
+        <= set(metric)
+        <= {"name", "better", "repeats", "min_improvement_pct"}
         or not isinstance(metric["name"], str)
         or not metric["name"]
         or not isinstance(metric["better"], str)
@@ -231,6 +242,19 @@ def prepare(spec: dict, incumbent: Path, round_dir: Path) -> dict:
     repeats = metric.get("repeats", 1)
     if type(repeats) is not int or repeats < 1:
         raise RoundPlanError("metric repeats must be a positive integer")
+    threshold = metric.get("min_improvement_pct", 0)
+    if type(threshold) not in (int, float) or not math.isfinite(threshold) or threshold < 0:
+        raise RoundPlanError("metric min_improvement_pct must be a finite non-negative number")
+    validation = spec.get("validation")
+    if validation is not None and (
+        not isinstance(validation, list)
+        or not validation
+        or any(type(item) is not str for item in validation)
+    ):
+        raise RoundPlanError("validation must be a non-empty argv list")
+    device_model = spec.get("device_model")
+    if device_model is not None and (type(device_model) is not str or not device_model):
+        raise RoundPlanError("device_model must be a non-empty string")
     timeout = spec.get("command_timeout_seconds", 30)
     if type(timeout) not in (int, float) or not math.isfinite(timeout) or timeout <= 0:
         raise RoundPlanError("command_timeout_seconds must be a positive number")
@@ -303,6 +327,7 @@ def prepare(spec: dict, incumbent: Path, round_dir: Path) -> dict:
             "name": metric["name"],
             "better": metric["better"],
             "repeats": repeats,
+            "min_improvement_pct": threshold,
         },
         "command_timeout_seconds": timeout,
         "device_paths": {device: list(device_paths[device]) for device in device_paths},
@@ -313,6 +338,8 @@ def prepare(spec: dict, incumbent: Path, round_dir: Path) -> dict:
         "protected": protected,
         "build": list(spec.get("build", [])),
         "trial": list(spec.get("trial", [])),
+        "validation": list(validation) if validation is not None else None,
+        "device_model": device_model,
         "lanes": normalized,
     }
     body["round_digest"] = digest(body)
@@ -446,13 +473,6 @@ def _command(template: list[str], result: Path | None, device: str) -> tuple[str
     return tuple(part.replace("{result}", str(result)) for part in parts)
 
 
-def _metric_value(path: Path, name: str) -> float:
-    value = json.loads(path.read_text(encoding="utf-8"))["metrics"][name]
-    if type(value) not in (int, float) or not math.isfinite(value):
-        raise ValueError(f"{name} is not a finite number")
-    return value
-
-
 def _record(round_dir: Path, ticket: str, **fields) -> dict:
     body = {"ticket": ticket, "synthetic": True, **fields}
     write_json(round_dir / "results" / f"{ticket}.json", body)
@@ -467,8 +487,17 @@ def _ticket_entry(ledger, ticket: str):
     return None
 
 
-class MeasurementError(ValueError):
-    """A trial finished without a readable metric value."""
+def _device_view(plan: dict, devices: list[str]) -> dict:
+    """Confined-view extras for the held devices: their nodes, the runtime and the env."""
+    device = ",".join(devices)
+    nodes = list(plan["shared_device_paths"])
+    for held in devices:
+        nodes.extend(plan["device_paths"].get(held, []))
+    return {
+        "device_paths": tuple(Path(path) for path in nodes),
+        "runtime_paths": tuple(Path(path) for path in plan["runtime_paths"]),
+        "env": {key: value.replace("{device}", device) for key, value in plan["env"].items()},
+    }
 
 
 def _run_confined(
@@ -487,10 +516,6 @@ def _run_confined(
     remaining = plan["command_timeout_seconds"]
     if deadline_utc is not None:
         remaining = min(seconds_remaining(deadline_utc, current()), remaining)
-    device = ",".join(devices)
-    nodes = list(plan["shared_device_paths"])
-    for held in devices:
-        nodes.extend(plan["device_paths"].get(held, []))
     try:
         record = confined_execute(
             argv,
@@ -499,9 +524,7 @@ def _run_confined(
             readable,
             time.monotonic() + remaining,
             backend=backend,
-            device_paths=tuple(Path(path) for path in nodes),
-            runtime_paths=tuple(Path(path) for path in plan["runtime_paths"]),
-            env={key: value.replace("{device}", device) for key, value in plan["env"].items()},
+            **_device_view(plan, devices),
         )
     except subprocess.TimeoutExpired as exc:
         raise ConfinementUnavailable(f"{stage} timed out") from exc
@@ -509,83 +532,113 @@ def _run_confined(
         raise ConfinementUnavailable(f"{stage} {record.get('status')}")
 
 
-def compare(
+def _confined_trial(
+    plan: dict, devices: list[str], deadline_utc: str, *, backend, current, failures: list[str]
+):
+    """``execute`` for ``run_experiment``: one command in confinement, never past the lane deadline.
+
+    The trial directory is the only writable path and the repository is read-only.
+    An unreaped command propagates so the caller can quarantine its devices.
+    """
+    view = _device_view(plan, devices)
+
+    def execute(command, cwd, trial_dir, deadline, metric_key):
+        trial_dir.mkdir(parents=True)
+        result = trial_dir / "result.json"
+        argv = tuple(part.replace("{result}", str(result)) for part in command)
+        record = {
+            "status": "pending",
+            "argv": list(argv),
+            "cwd": str(cwd),
+            "returncode": None,
+            "result_path": str(result),
+            "metric": None,
+            "metric_error": None,
+        }
+        try:
+            remaining = min(
+                deadline - time.monotonic(),
+                plan["command_timeout_seconds"],
+                seconds_remaining(deadline_utc, current()),
+            )
+            if remaining <= 0:
+                raise BudgetError("run deadline passed")
+            outcome = confined_execute(
+                argv,
+                cwd,
+                (trial_dir,),
+                (cwd,),
+                time.monotonic() + remaining,
+                backend=backend,
+                **view,
+            )
+            record.update(status=outcome.get("status"), returncode=outcome.get("returncode"))
+            for stream in ("stdout", "stderr"):
+                (trial_dir / f"{stream}.log").write_text(
+                    outcome.get(stream) or "", encoding="utf-8"
+                )
+        except UnreapedCommand:
+            raise
+        except BudgetError as exc:
+            record.update(status="timeout", error=str(exc))
+        except subprocess.TimeoutExpired:
+            record.update(status="timeout", error="command timed out")
+        except ConfinementUnavailable as exc:
+            status = "timeout" if "timed out" in str(exc) else "failed"
+            record.update(status=status, error=str(exc))
+        if record["status"] == "completed" and metric_key is not None:
+            try:
+                document = json.loads(result.read_text(encoding="utf-8"))
+                record["metric"] = read_metric(document, metric_key)
+            except (OSError, ValueError, TypeError) as exc:
+                record["metric_error"] = str(exc)
+        if record.get("error") or record["metric_error"]:
+            failures.append(record.get("error") or record["metric_error"])
+        write_json(trial_dir / "execution.json", record)
+        return record
+
+    return execute
+
+
+def _run_spec(
     plan: dict,
     candidate: Path,
     incumbent: Path,
-    trial_dir: Path,
     devices: list[str],
-    deadline_utc: str | None,
-    *,
-    backend,
-    current,
-) -> tuple[list[float], list[float]]:
-    """Build the candidate once, then run ``repeats`` trial pairs in ABBA order.
-
-    Raises ``ConfinementUnavailable`` or ``BudgetError`` when a command cannot run, and
-    ``MeasurementError`` when a finished trial left no readable metric.
-    """
+    output_dir: Path,
+    seconds_left: float,
+) -> RunSpec:
     device = ",".join(devices)
-    build_dir = candidate / "build-output"
-    build_dir.mkdir(parents=True, exist_ok=True)
-    trial_dir.mkdir(parents=True, exist_ok=True)
-    common = {"backend": backend, "current": current}
-    if plan["build"]:
-        _run_confined(
-            plan,
-            "build",
-            _command(plan["build"], None, device),
-            candidate,
-            (candidate, build_dir),
-            (),
-            devices,
-            deadline_utc,
-            **common,
-        )
-    sides = {"candidate": candidate, "incumbent": incumbent}
-    samples: dict[str, list[float]] = {"candidate": [], "incumbent": []}
-    name = plan["metric"]["name"]
-    for index in range(plan["metric"]["repeats"]):
-        order = ("candidate", "incumbent") if index % 2 == 0 else ("incumbent", "candidate")
-        for side in order:
-            result = trial_dir / f"{side}-{index}.json"
-            _run_confined(
-                plan,
-                side,
-                _command(plan["trial"], result, device),
-                sides[side],
-                (trial_dir,),
-                (sides[side],),
-                devices,
-                deadline_utc,
-                **common,
-            )
-            try:
-                samples[side].append(_metric_value(result, name))
-            except (OSError, json.JSONDecodeError, KeyError, TypeError, ValueError) as exc:
-                raise MeasurementError(
-                    f"trial finished without a readable {name} result: {exc}"
-                ) from exc
-    return samples["candidate"], samples["incumbent"]
+    trial = _command(plan["trial"], None, device)
+    validation = plan.get("validation")
+    return RunSpec(
+        repo=str(incumbent),
+        candidate_repo=str(candidate),
+        baseline_command=trial,
+        candidate_command=trial,
+        validation_command=_command(validation, None, device) if validation else None,
+        metric_key=f"metrics.{plan['metric']['name']}",
+        metric_unit="metric",
+        direction="minimize" if plan["metric"]["better"] == "lower" else "maximize",
+        repetitions=plan["metric"]["repeats"],
+        min_improvement_pct=plan["metric"].get("min_improvement_pct", 0),
+        max_minutes=min(seconds_left, 7 * 24 * 3600) / 60,
+        device_ids=tuple(devices),
+        output_dir=str(output_dir),
+    )
 
 
-def summarize(plan: dict, candidate_samples: list[float], incumbent_samples: list[float]) -> dict:
-    """Medians and a gain where positive always means the candidate is better."""
-    candidate_value = statistics.median(candidate_samples)
-    incumbent_value = statistics.median(incumbent_samples)
-    gain = incumbent_value - candidate_value
-    if plan["metric"]["better"] == "higher":
-        gain = -gain
-    return {
-        "metric": plan["metric"]["name"],
-        "better": plan["metric"]["better"],
-        "candidate_samples": candidate_samples,
-        "incumbent_samples": incumbent_samples,
-        "candidate": candidate_value,
-        "incumbent": incumbent_value,
-        "gain": gain,
-        "relative_gain": gain / abs(incumbent_value) if incumbent_value else None,
-    }
+def _qualify(device_model: str, devices: list[str]) -> None:
+    """``qualify_devices`` reads the caller's reservation from ``CUDA_VISIBLE_DEVICES``."""
+    previous = os.environ.get("CUDA_VISIBLE_DEVICES")
+    os.environ["CUDA_VISIBLE_DEVICES"] = ",".join(devices)
+    try:
+        qualify_devices(count=len(devices), device_model=device_model)
+    finally:
+        if previous is None:
+            os.environ.pop("CUDA_VISIBLE_DEVICES", None)
+        else:
+            os.environ["CUDA_VISIBLE_DEVICES"] = previous
 
 
 def hold_devices(round_dir: Path, plan: dict, count: int) -> list[tuple[str, object]] | None:
@@ -669,6 +722,11 @@ def serve_ticket(
         if held is None:
             return {"ticket": ticket, "status": "queued"}
         try:
+            if plan.get("device_model"):
+                try:
+                    _qualify(plan["device_model"], [device for device, _lease in held])
+                except (ValueError, OSError, subprocess.SubprocessError) as exc:
+                    return {"ticket": ticket, "status": "queued", "reason": str(exc)}
             return _measure(
                 round_dir,
                 plan,
@@ -712,7 +770,6 @@ def _measure(
             return _record(round_dir, ticket, status="rejected", reason=str(exc))
         _save_ledger(round_dir, ledger)
     candidate = round_dir / "candidates" / ticket
-    trial_dir = round_dir / "trials" / ticket
     materialize(incumbent, [overlay], candidate)
     try:
         seconds_remaining(lane["deadline_utc"], current())
@@ -721,24 +778,61 @@ def _measure(
         return _record(round_dir, ticket, status="rejected", reason=str(exc))
     ledger = advance(ledger, binding, "claimed")
     _save_ledger(round_dir, ledger)
+    failures: list[str] = []
     try:
-        candidate_samples, incumbent_samples = compare(
+        if plan["build"]:
+            build_dir = candidate / "build-output"
+            build_dir.mkdir(parents=True, exist_ok=True)
+            _run_confined(
+                plan,
+                "build",
+                _command(plan["build"], None, ",".join(devices)),
+                candidate,
+                (candidate, build_dir),
+                (),
+                devices,
+                lane["deadline_utc"],
+                backend=backend,
+                current=current,
+            )
+        spec = _run_spec(
             plan,
             candidate,
             incumbent,
-            trial_dir,
             devices,
-            lane["deadline_utc"],
-            backend=backend,
-            current=current,
+            round_dir / "runs" / ticket,
+            seconds_remaining(lane["deadline_utc"], current()),
+        )
+        run_dir = run_experiment(
+            spec,
+            {"round_id": plan["round_id"], "ticket": ticket, "lane_id": lane["id"]},
+            execute=_confined_trial(
+                plan,
+                devices,
+                lane["deadline_utc"],
+                backend=backend,
+                current=current,
+                failures=failures,
+            ),
         )
     except UnreapedCommand as exc:
         leases = DeviceLease(round_dir / "leases")
         for device in devices:
             leases.quarantine(device, f"{ticket}: {exc}")
         return _record(round_dir, ticket, status="unsettled", reason=str(exc), devices=devices)
-    except (ConfinementUnavailable, BudgetError, MeasurementError) as exc:
+    except (ConfinementUnavailable, BudgetError, ValueError) as exc:
         return _record(round_dir, ticket, status="unsettled", reason=str(exc), devices=devices)
+    evaluation = json.loads((run_dir / "evaluation.json").read_text(encoding="utf-8"))
+    if evaluation["improvement_pct"] is None:
+        reason = failures[-1] if failures else "; ".join(evaluation["reasons"])
+        return _record(
+            round_dir,
+            ticket,
+            status="unsettled",
+            reason=reason,
+            devices=devices,
+            run_dir=str(run_dir),
+        )
     finished = advance(ledger, binding, "finished", actual_cost=0)
     _save_ledger(round_dir, finished)
     return _record(
@@ -746,7 +840,16 @@ def _measure(
         ticket,
         status="measured",
         lane_id=lane["id"],
-        **summarize(plan, candidate_samples, incumbent_samples),
+        metric=plan["metric"]["name"],
+        better=plan["metric"]["better"],
+        verdict=evaluation["verdict"],
+        improvement_pct=evaluation["improvement_pct"],
+        reasons=evaluation["reasons"],
+        candidate=evaluation["candidate"]["median"],
+        incumbent=evaluation["baseline"]["median"],
+        candidate_samples=evaluation["candidate"]["values"],
+        incumbent_samples=evaluation["baseline"]["values"],
+        run_dir=str(run_dir),
         devices=devices,
         confinement=getattr(backend, "name", "unknown"),
     )
