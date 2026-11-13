@@ -274,7 +274,12 @@ def test_managed_session_preserves_objective_and_token_chart(browser, session, c
 
 
 @pytest.mark.parametrize("live", [False, True])
-def test_profile_only_trend_expanded_and_summary_state_survives_render(browser, campaign, live):
+@pytest.mark.parametrize(
+    "panel_key,root_id", [("summary", "summary-experiments"), ("trend", "chart")],
+)
+def test_profile_panels_collapsed_and_state_survives_render(
+    browser, campaign, live, panel_key, root_id,
+):
     path = campaign / "campaign.json"
     data = json.loads(path.read_text())
     data["review_layout"] = "profile_first"
@@ -291,12 +296,12 @@ def test_profile_only_trend_expanded_and_summary_state_survives_render(browser, 
             path = campaign / "profile.html"
             path.write_text(render_dashboard(dashboard_snapshot(campaign)))
             page.goto(path.as_uri())
-        assert page.locator("#chart .xp-chart").first.is_visible()
-        assert page.locator("main > section:not(.trend)").evaluate_all(
+        assert not page.locator("#chart .xp-chart").first.is_visible()
+        assert page.locator("main > section").evaluate_all(
             "nodes => nodes.every(n => n.querySelector(':scope > details.panel'))")
         assert page.locator("details.panel[open]").count() == 0
-        panel = page.locator('[data-key="summary"]')
-        root = page.locator("#summary-experiments")
+        panel = page.locator(f'[data-key="{panel_key}"]')
+        root = page.locator(f"#{root_id}")
         assert not root.is_visible()
         panel.locator(":scope > summary").click()
         playwright.expect(root).to_be_visible()
