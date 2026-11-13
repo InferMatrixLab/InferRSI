@@ -285,7 +285,8 @@ def _proc_stat(pid: int) -> list[str] | None:
         text = Path(f"/proc/{pid}/stat").read_text(encoding="utf-8")
     except OSError:
         return None
-    return text.rsplit(")", 1)[1].split()
+    fields = text.rsplit(")", 1)[-1].split()
+    return fields if len(fields) > 19 else None
 
 
 def _children(pid: int) -> list[tuple[int, str]]:
@@ -317,7 +318,9 @@ def _kill_group(process: subprocess.Popen) -> None:
         os.killpg(process.pid, signal.SIGKILL)
     except ProcessLookupError:
         pass
-    for pid, _started in inits:
+    for pid, started in inits:
+        if not _running(pid, started):
+            continue
         try:
             os.kill(pid, signal.SIGKILL)
         except ProcessLookupError:
