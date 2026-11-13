@@ -30,6 +30,45 @@ initial hypothesis's mistaken mention of scalar synchronization. The published
 S3 0.3.0 encoder already uses static mask widths. The retained candidate wraps
 the unchanged encoder and quantizer; it does not replace their arithmetic.
 
+## Exploratory service results
+
+The host-driven development screens in `results/service-development.json`
+retain per-request RTF, duration and completion time so their means can be
+checked. They are **not** a managed Harness service campaign or final
+qualification: each cell uses 64 tuning requests, two consecutive repetitions
+in one server, with disjoint warmup requests. Both repetitions reuse the same
+canonical seed index; fresh-process and speech-quality gates remain separate.
+
+| Mean request RTF, two repetitions | C1 | C16 | C32 |
+| --- | ---: | ---: | ---: |
+| Independent engine, device A | 0.06238 | 0.20611 | 0.25723 |
+| Original Omni, device A | 0.08014 | 0.33299 | 0.60703 |
+| Omni + S3 replay, device A | 0.08023 | 0.33753 | 0.58381 |
+
+All listed cells completed without request failures. The S3 component gain
+has not met the service target, and C1/C16 show no persuasive improvement.
+No statistical significance is claimed.
+
+Additional screens on device B tested existing speaker CUDA replay and an
+experimental opt-out from padding short references to six seconds. They have
+no matched independent-engine run in this archive. Removing padding worsened
+C1 to 0.14655/0.12276 and C16 to 0.98626/0.73510. During C1 screening it reached
+253 CFM graph captures and seven cache flushes: reducing input length also
+increased shape diversity. That prototype was rejected and its working-tree
+changes reverted; widening its batch capacity was pruned before execution.
+The rejected change is retained in `patch/rejected-unpadded.patch`.
+Speaker replay used `token2wav_spk_cpu_reference: false` and
+`token2wav_spk_cuda_graph: true`; unpadded used only
+`ref_audio_pad_to_max_seconds: false`, each over the ordinary turn profile.
+These diagnostic counters are reported observations; full private server logs
+are outside this selected archive.
+
+A configuration-only attempt to shorten the first packet was also ineffective:
+the current MiniCPM transport ignores `initial_codec_chunk_frames`, so the
+observed first audio remained 0.84 seconds. A configured value is not proof of
+treatment delivery. An explicit implementation needs separate tests and quality
+validation before any small-onset performance conclusion.
+
 ## Lessons supported by this investigation
 
 - Check dependency source bytes as well as package versions. The shared local
