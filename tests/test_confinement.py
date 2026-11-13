@@ -15,8 +15,10 @@ from inferrsi.infra.confinement import (
     ConfinementUnavailable,
     FixtureBackend,
     UnavailableBackend,
+    UnreapedCommand,
     UnshareBackend,
     _elf_interpreter,
+    _kill_group,
     confined_execute,
     minimal_environment,
     namespace_plan,
@@ -139,6 +141,25 @@ def test_unshare_timeout_kills_the_whole_process_group(tmp_path, monkeypatch):
     time.sleep(2)
     assert (tmp_path / "started").exists()
     assert not (tmp_path / "late").exists()
+
+
+def test_a_group_that_never_empties_is_reported_unreaped(monkeypatch):
+    process = subprocess.Popen(
+        [sys.executable, "-c", "import time; time.sleep(30)"],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        start_new_session=True,
+    )
+    real_killpg = os.killpg
+
+    def killpg(pgid, sig):
+        if sig != 0:
+            real_killpg(pgid, sig)
+
+    monkeypatch.setattr(confinement, "_REAP_SECONDS", 0.2)
+    monkeypatch.setattr(confinement.os, "killpg", killpg)
+    with pytest.raises(UnreapedCommand):
+        _kill_group(process)
 
 
 def test_supervisor_ignores_a_shadow_package_in_the_candidate(tmp_path):

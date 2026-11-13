@@ -75,6 +75,10 @@ class ConfinementUnavailable(RuntimeError):
     """The command was not executed because confinement could not be enforced."""
 
 
+class UnreapedCommand(ConfinementUnavailable):
+    """A killed command may still hold its devices; they must not be handed out again."""
+
+
 def namespaces_available() -> bool:
     """True only when a user namespace can actually be created.
 
@@ -276,7 +280,11 @@ def supervisor_command(config_path: Path) -> list[str]:
 
 
 def _kill_group(process: subprocess.Popen) -> None:
-    """Kill the session and return only once no member of it is left."""
+    """Kill the session and return once its process group is empty.
+
+    Processes that called setsid are not in the group; ``--kill-child`` covers
+    them, because killing PID 1 tears down the whole PID namespace.
+    """
     try:
         os.killpg(process.pid, signal.SIGKILL)
     except ProcessLookupError:
@@ -292,7 +300,7 @@ def _kill_group(process: subprocess.Popen) -> None:
         except ProcessLookupError:
             return
         if time.monotonic() > give_up:
-            raise ConfinementUnavailable("namespace command outlived its deadline")
+            raise UnreapedCommand("namespace command outlived its deadline")
         time.sleep(0.05)
 
 
