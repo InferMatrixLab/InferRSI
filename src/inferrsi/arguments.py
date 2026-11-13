@@ -363,6 +363,8 @@ def parser() -> argparse.ArgumentParser:
     search.add_argument("--backend", choices=BACKENDS)
     search.add_argument("--scenario")
     search.add_argument("--limit", type=int, default=10)
+    search.add_argument("--explain", action="store_true",
+                        help="Return JSON with recorded matching and ranking observations")
     search.add_argument("--json", action="store_true")
     show = actions.add_parser("show")
     show.add_argument("id")

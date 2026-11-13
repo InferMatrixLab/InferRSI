@@ -587,16 +587,23 @@ class KnowledgeReader:
         used = 0
         ranked, contexts, context_omissions = [], [], []
         context_used = 0
+        explanations = {}
+        excluded = {"ranking_scope": 0, "filters": 0, "query": 0, "zero_score": 0,
+                    "item_limit": 0, "material_bytes": 0}
+        matched_count = 0
 
         def select(reference: str, bundle: Bundle, view: dict) -> None:
-            nonlocal used, context_used
+            nonlocal used, context_used, matched_count
+            matched_count += 1
             # Normal Bundle views were serialized while computing their revision.
             # Preserve custom subclasses' serialization/error behavior below.
             if type(bundle) is Bundle and len(selected) >= limit:
+                excluded["item_limit"] += 1
                 omitted.append({"id": reference, "reason": "output_limit"})
                 return
             size = len(_json(view))
             if len(selected) >= limit or (max_bytes is not None and used + size > max_bytes):
+                excluded["item_limit" if len(selected) >= limit else "material_bytes"] += 1
                 omitted.append({"id": reference, "reason": "output_limit"})
                 return
             selected.append(view)
@@ -645,8 +652,10 @@ class KnowledgeReader:
                     authority != "package"
                     or (not task_ranking and early.get("index_type") != "packaged-skill")
                 ):
+                    excluded["ranking_scope"] += 1
                     continue
                 if early is not None and not matches(early, authority):
+                    excluded["filters"] += 1
                     if ids is not None:
                         omitted.append({"id": reference, "reason": "filters"})
                     continue
@@ -666,10 +675,12 @@ class KnowledgeReader:
                 omitted.append({"id": reference, "reason": "invalid", "detail": str(exc)})
                 continue
             if not matches(view, authority):
+                excluded["filters"] += 1
                 if ids is not None:
                     omitted.append({"id": reference, "reason": "filters"})
                 continue
             if any(token not in haystack for token in query.casefold().split()):
+                excluded["query"] += 1
                 if ids is not None:
                     omitted.append({"id": reference, "reason": "query"})
                 continue
@@ -682,17 +693,23 @@ class KnowledgeReader:
                         body = bundle.content[core]
                     else:
                         body = entry
+                    explanation = {}
                     if task_ranking:
-                        score = task_score(relevance, record, body, backend)
+                        score = task_score(relevance, record, body, backend,
+                                           explanation=explanation)
                     else:
-                        score = skill_score(relevance, record, body, method=relevance_method)
+                        score = skill_score(relevance, record, body, method=relevance_method,
+                                            explanation=explanation)
                 except (ValueError, KeyError, TypeError) as exc:
                     omitted.append({
                         "id": reference, "reason": "index_unavailable", "detail": str(exc),
                     })
                     continue
                 if score:
+                    explanations[view["ref"]] = explanation
                     ranked.append((score, reference, bundle, view))
+                else:
+                    excluded["zero_score"] += 1
                 continue
             select(reference, bundle, view)
         for _, reference, bundle, view in sorted(
@@ -732,4 +749,30 @@ class KnowledgeReader:
                     "excludes": "provenance, omission and control metadata",
                 },
             })
+        from .retrieval import observation
+
+        ranking = relevance is not None and ids is None
+        result["retrieval"] = observation(
+            entrypoint="collect", request={
+                "query": query, "relevance": relevance, "relevance_method": relevance_method,
+                "ids": ids, "revisions": revisions, "kind": kind, "repo": repo, "tier": tier,
+                "backend": backend, "scenario": scenario, "limit": limit,
+                "max_bytes": max_bytes, "context_bytes": context_bytes,
+                "sources": ["package"] + (["checkout"] if self.skill_root else [])
+                           + (["store"] if self.store is not None else []),
+            }, selection={
+                "method": relevance_method if relevance is not None else None,
+                "scope": (("package-skills-and-records" if task_ranking else
+                           "generated-packaged-skills") if relevance is not None else None),
+                "ranking_applied": ranking,
+                "state": "applied" if ranking else "explicit_ids" if ids is not None
+                         else "not_requested",
+                "tie_break": "ref_ascending" if ranking else None,
+            }, items=[{"ref": item["ref"], "revision": item["revision"], "rank": n,
+                       **explanations.get(item["ref"], {})}
+                      for n, item in enumerate(selected, 1)],
+            counts={"considered": len(requested), "matched": matched_count,
+                    "returned": len(selected), "excluded": excluded},
+            assembly="not_requested" if context_bytes is None else "performed",
+        )
         return result

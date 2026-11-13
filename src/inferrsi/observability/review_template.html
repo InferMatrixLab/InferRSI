@@ -89,8 +89,10 @@ pre{max-height:22rem;overflow:auto;white-space:pre-wrap;padding:9px 12px;backgro
 <section aria-labelledby="decision-title"><h2 class="panel-heading" aria-labelledby="decision-title"></h2><details class="panel" data-key="decisions"><summary><span id="decision-title"></span></summary><div class="decisions" id="decisions"></div></details></section>
 <section aria-labelledby="summary-title"><h2 class="panel-heading" aria-labelledby="summary-title"></h2><details class="panel" data-key="summary"><summary><span id="summary-title"></span></summary><div id="summary-experiments"></div>
 <details id="original-summary"><summary id="original-summary-title"></summary><div id="original-summary-body"></div></details></details></section>
+<section id="knowledge-navigation" aria-label="Knowledge retrieval"></section>
 </main>
 __DASHBOARD_EXPERIMENTS__
+__DASHBOARD_KNOWLEDGE__
 <script id="dashboard-data" type="application/json">__DASHBOARD_DATA__</script>
 <script>
 (() => {
@@ -223,6 +225,7 @@ function renderStoryChecks(){
 function raw(parent,value){parent.append(el('pre',typeof value==='string'?value:JSON.stringify(value,null,2)));}
 function retrievalDetails(box,c,key,opened){
   if(c.state!=='verified'){p(box,c.state||tr('未校验','Unverified'),'note');return;}
+  knowledgeView.trace(box,c,key);
   if(c.purpose)p(box,recorded(c.purpose),'value');
   const request=c.request||{},selection=c.selection||{};
   p(box,tr('检索时间','Retrieved at')+' · '+(c.captured_at||dash),'meta');
@@ -239,10 +242,10 @@ function retrievalDetails(box,c,key,opened){
   const used=new Set(c.used_refs||[]),loaded=new Set((c.contexts||[]).filter(x=>x.resources?.length).map(x=>x.ref));
   const rejected=new Map((c.rejected_refs||[]).map(x=>[x.ref,recorded(x.reason)]));
   if(c.items?.length)table(box,[tr('返回顺序','Rank'),tr('知识条目','Result'),tr('上下文 / 采用情况','Context / use')],c.items.map((x,i)=>[
-    i+1,x.title||x.ref,[loaded.has(x.ref)?tr('已载入','Included'):tr('未载入','Omitted'),
+    i+1,x.title||x.ref,[c.retrieval?.assembly==='not_requested'?tr('未请求装配','Assembly not requested'):loaded.has(x.ref)?tr('已载入','Included'):tr('未记录正文装配','Assembly not recorded'),
       used.has(x.ref)?tr('记录为采用','Reported used'):rejected.get(x.ref)].filter(Boolean).join(' · ')]));
   for(const note of c.takeaways||[])p(box,recorded(note));
-  fold(box,tr('完整拼接上下文','Full assembled context')+' · '+(c.context_bytes_used??0)+' B',key+'-text',b=>{
+  fold(box,tr('完整拼接上下文','Full assembled context')+' · '+(c.context_bytes_used??dash)+' B',key+'-text',b=>{
     p(b,'SHA-256 · '+c.assembled_sha256,'meta');raw(b,c.assembled_text);
   },opened);
   fold(box,tr('检索参数、来源与排除原因','Search parameters, sources and omissions'),key+'-source',b=>
@@ -564,6 +567,10 @@ function timeline(box,c,baseline,opened){
     };
   },opened);
 }
+const knowledgeView=window.InferRSIKnowledge.create({getData:()=>data,getLanguage:()=>language,
+  openRun:link=>{const target=[...document.querySelectorAll('[data-experiment-id]')].find(n=>n.dataset.experimentId===link.experiment_id);
+    if(target){for(let p=target;p;p=p.parentElement)if(p.tagName==='DETAILS')p.open=true;
+      target.focus();target.scrollIntoView({block:'start'});}}});
 const experimentView=window.InferRSIExperiments.create({
   getData:()=>data,getLanguage:()=>language,narrative:recorded,
   openExperiment:id=>{const target=[...document.querySelectorAll('[data-experiment-id]')].find(n=>n.dataset.experimentId===id);if(target){for(let parent=target.parentElement;parent;parent=parent.parentElement){if(parent.tagName==='DETAILS')parent.open=true;}target.scrollIntoView({block:'start'});target.focus();}}
@@ -798,6 +805,7 @@ function render(){
     if(Number.isFinite(r.improvement_pct))facts.append(el('strong',fmt(r.improvement_pct,2)+'% · '+status(r.outcome)));
     facts.append(el('span',status(r.state)),el('span',tr('质量校验','Quality')+' · '+status(r.quality)));
     details(a,r,it,opened);
+    knowledgeView.backLinks(a,r);
     const item=el('div',null,'decision'),decision=it?.decision;
     const confirmed=r.decision && r.decision!=='not_recorded';
     const outcome=confirmed?r.decision:'not_recorded';
@@ -832,6 +840,7 @@ function render(){
     for(const [key,zh,en] of [['lessons','经验','Lessons'],['limitations','限制','Limitations']]){summaryBox.append(el('h3',tr(zh,en)));for(const item of summary[key])p(summaryBox,recorded(item));}
   }
   experimentView.render([byId('chart'),byId('summary-experiments')]);byId('chart-note').textContent='';
+  knowledgeView.render();
   if(previousFocus){for(const node of document.querySelectorAll('details'))if(node.dataset.key===previousFocus)node.querySelector('summary').focus({preventScroll:true});}
 }
 byId('language').addEventListener('click',()=>{

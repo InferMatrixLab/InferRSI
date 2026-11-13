@@ -145,7 +145,10 @@ def capture_event(context_id, captured, *, archive=False, return_chunks=None,
         if not isinstance(ref, str) or not isinstance(revision, str):
             raise ValueError("capture item is missing its ref or revision")
         materials.append({"ref": ref, "revision": revision, "resources": resources.get(ref, [])})
-    event = {"action": "search", "tool": "collect", "context_id": context_id,
+    observation = doc.get("retrieval") or {}
+    calls = observation.get("calls", [])
+    tool = calls[-1] if calls and calls[-1] in ("collect", "knowledge search") else "collect"
+    event = {"action": "search", "tool": tool, "context_id": context_id,
              "source": source, "sha256": digest, "request": doc["request"],
              "selection": doc.get("selection"), "materials": materials}
     if not archive:

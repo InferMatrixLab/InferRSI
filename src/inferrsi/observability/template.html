@@ -224,12 +224,14 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
   </div>
   <p class="footnote">Recorded text without a supplied translation remains in its original language. Commands, identifiers and raw event fields stay unchanged.</p>
   <p class="footnote">A successful quality command covers only that command. This view does not establish statistical significance. Raw logs and environment values are withheld; references and SHA-256 identify recorded artifacts.</p>
+<section id="knowledge-navigation" aria-label="Knowledge retrieval"></section>
 </main>
 <dialog id="event-record" aria-labelledby="event-heading">
   <form method="dialog"><button class="button">Close</button></form>
   <h2 id="event-heading"></h2><div id="event-body"></div>
 </dialog>
 __DASHBOARD_EXPERIMENTS__
+__DASHBOARD_KNOWLEDGE__
 <script id="dashboard-data" type="application/json">__DASHBOARD_DATA__</script>
 <script>
 (() => {
@@ -1143,6 +1145,7 @@ __DASHBOARD_EXPERIMENTS__
       const grid=node('div',undefined,'round-grid');
       detailLine(grid,'Why it was retrieved',retrieval.purpose,false,true);
       detailLine(grid,'What was taken from it',retrieval.takeaways.map(translatedNarrative).join('\n') || 'Not recorded');
+      knowledgeView.trace(box,retrieval,scope);
       if(retrieval.state==='verified'){
         const request=retrieval.request||{};
         detailLine(grid,'Search request',[request.query?`query: ${request.query}`:'',request.relevance?`relevance: ${request.relevance}`:'',request.ids&&request.ids.length?`ids: ${request.ids.join(', ')}`:'',request.backend?`backend: ${request.backend}`:'',`limit ${request.limit} · context budget ${request.context_bytes} bytes`].filter(Boolean).join('\n'),true);
@@ -1208,6 +1211,10 @@ __DASHBOARD_EXPERIMENTS__
       const wrap=node('div',undefined,'scroll');wrap.appendChild(table);box.appendChild(wrap);body.appendChild(box);
     }
   }
+  const knowledgeView=window.InferRSIKnowledge.create({getData:()=>data,getLanguage:()=>language,
+    openRun:link=>{const index=data.candidates.findIndex(r=>r.experiment_id===link.experiment_id);
+      if(index<0)return;runSelect.value='';stageSelect.value='';candidateSelect.value='';selected=index;render();
+      const target=byId('run-review');target.tabIndex=-1;target.focus();target.scrollIntoView({block:'start'});}});
   const experimentView=window.InferRSIExperiments.create({
     getData:()=>data,getLanguage:()=>language,narrative:translatedNarrative,
     openExperiment:id=>{
@@ -1289,7 +1296,7 @@ __DASHBOARD_EXPERIMENTS__
     const body=node('div',undefined,'story-body');body.setAttribute('role','tabpanel');root.appendChild(body);
     ({iterations:renderIterations,knowledge:renderKnowledge,space:renderSpace,summary:renderSummary})[storyTab](body,story);
   }
-  function render(){const visible=filtered();renderStory();renderWorkflow();renderRows(visible);renderRunReview(data.candidates[selected]);renderCandidate(selected===null?null:data.candidates[selected]);renderExperiments();localizePage();}
+  function render(){const visible=filtered();renderStory();renderWorkflow();renderRows(visible);renderRunReview(data.candidates[selected]);renderCandidate(selected===null?null:data.candidates[selected]);renderExperiments();knowledgeView.render();knowledgeView.backLinks(byId('run-review'),data.candidates[selected]);knowledgeView.backLinks(byId('candidate-inspection'),data.candidates[selected]);localizePage();}
   for(const select of [stageSelect,runSelect,candidateSelect])select.addEventListener('change',()=>{render();});
   for(const choice of ['en','zh'])byId(`language-${choice}`).addEventListener('click',()=>{
     if(language===choice)return;
