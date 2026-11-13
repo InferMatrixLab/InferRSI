@@ -256,15 +256,14 @@ def test_a_lane_needing_two_devices_waits_until_it_can_hold_both(tmp_path):
     assert stamp.read_text(encoding="utf-8") == "1,2"
 
 
-def test_prepare_rejects_bad_repeats_margin_and_timeout(tmp_path):
+def test_prepare_rejects_bad_repeats_and_timeout(tmp_path):
     incumbent = tmp_path / "incumbent"
     _tree(incumbent, "10")
     base = {"name": "latency_ms", "better": "lower"}
     for extra, message in (
         ({"repeats": 0}, "repeats"),
         ({"repeats": True}, "repeats"),
-        ({"margin": -0.1}, "margin"),
-        ({"margin": float("nan")}, "margin"),
+        ({"margin": 0.03}, "metric needs"),
         ({"spread": 1}, "metric needs"),
     ):
         with pytest.raises(RoundPlanError, match=message):
@@ -273,11 +272,11 @@ def test_prepare_rejects_bad_repeats_margin_and_timeout(tmp_path):
         with pytest.raises(RoundPlanError, match="command_timeout_seconds"):
             prepare(_spec(command_timeout_seconds=timeout), incumbent, tmp_path / "round-t")
     plan = prepare(_spec(), incumbent, tmp_path / "round-defaults")
-    assert plan["metric"] == {**base, "repeats": 1, "margin": 0}
+    assert plan["metric"] == {**base, "repeats": 1}
     assert plan["command_timeout_seconds"] == 30
 
 
-def test_prepare_rejects_bad_device_paths_env_and_agent(tmp_path):
+def test_prepare_rejects_bad_device_paths_and_env(tmp_path):
     incumbent = tmp_path / "incumbent"
     _tree(incumbent, "10")
     for overrides, message in (
@@ -290,10 +289,6 @@ def test_prepare_rejects_bad_device_paths_env_and_agent(tmp_path):
     ):
         with pytest.raises(RoundPlanError, match=message):
             prepare(_spec(**overrides), incumbent, tmp_path / "round-paths")
-    lanes = _spec()["lanes"]
-    lanes[0]["agent"] = "claude -p"
-    with pytest.raises(RoundPlanError, match="agent must be a list"):
-        prepare(_spec(lanes=lanes), incumbent, tmp_path / "round-agent")
 
 
 def test_serve_passes_only_the_held_device_nodes_and_env(tmp_path):
