@@ -42,7 +42,7 @@ class ArtifactReader:
         for namespace, (kind, prefix, root) in self._mounts.items():
             if location.startswith(prefix + "/"):
                 if kind == "directory":
-                    return BytesIO(_read_directory_artifact(prefix, root, ref))
+                    return BytesIO(_read_directory_artifact(prefix, root, ref, stage="open"))
                 # Archive-only consumers never load the SQLite implementation.
                 from inferrsi.harness.run_store import RunStoreReader
 

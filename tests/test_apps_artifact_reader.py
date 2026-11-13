@@ -63,8 +63,13 @@ def test_read_fixed_harness_ref_from_explicit_offline_export(tmp_path):
     exported.mkdir(parents=True)
     data = b"exported fixed bytes"
     (exported / "v1.json").write_bytes(data)
-    with ArtifactReader(config).open(_ref("stores/demo/attempts/v1.json", data)) as stream:
+    reader = ArtifactReader(config)
+    ref = _ref("stores/demo/attempts/v1.json", data)
+    with reader.open(ref) as stream:
         assert stream.read() == data
+    with pytest.raises(PublicError, match="ArtifactIntegrityError") as caught:
+        reader.open(_ref(ref["location"], b"different bytes"))
+    assert caught.value.stage == "open"
 
 
 @pytest.mark.parametrize(
@@ -83,8 +88,9 @@ def test_reader_rejects_bad_location_or_bytes(tmp_path, location, code):
     archive.mkdir()
     (archive / "file.bin").write_bytes(b"changed")
     reader = ArtifactReader(_config(tmp_path))
-    with pytest.raises(PublicError, match=code):
+    with pytest.raises(PublicError, match=code) as caught:
         reader.open(_ref(location, b"frozen"))
+    assert caught.value.stage == "open"
 
 
 @pytest.mark.parametrize("prefix", ["archive/apps/overlap", "different/demo"])

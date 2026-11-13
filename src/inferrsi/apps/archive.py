@@ -128,9 +128,11 @@ def _prepared_error(code: str, message: str) -> PublicError:
     return PublicError(code, stage="prepared_archive", message=message)
 
 
-def _check_bytes(ref: dict, size: int, digest: str) -> None:
+def _check_bytes(ref: dict, size: int, digest: str, *, stage: str = "prepared_archive") -> None:
     if ref["size_bytes"] != size or ref["sha256"] != digest:
-        raise _prepared_error("ArtifactIntegrityError", "Prepared artifact bytes do not match.")
+        raise PublicError(
+            "ArtifactIntegrityError", stage=stage, message="Artifact bytes do not match."
+        )
 
 
 def _write_verified(path: Path, ref: dict, source: bytes | BinaryIO) -> None:
@@ -260,7 +262,9 @@ def read_archive_artifact(storage_config: dict, ref: dict) -> bytes:
     return _read_directory_artifact(prefix, root, ref)
 
 
-def _read_directory_artifact(prefix: str, root: Path, ref: dict) -> bytes:
+def _read_directory_artifact(
+    prefix: str, root: Path, ref: dict, *, stage: str = "prepared_archive",
+) -> bytes:
     try:
         validate_artifact_ref(ref)
         parts = _logical_path(ref["location"])
@@ -278,15 +282,15 @@ def _read_directory_artifact(prefix: str, root: Path, ref: dict) -> bytes:
         ):
             raise ValueError
         data = _read_file(_directory(root).joinpath(*suffix))
-    except (ValueError, RuntimeError):
-        raise _prepared_error(
-            "UnsafeArtifactPath", "Invalid Apps archive artifact location."
+    except (ValueError, RuntimeError, PublicError):
+        raise PublicError(
+            "UnsafeArtifactPath", stage=stage, message="Invalid directory artifact location."
         ) from None
     except OSError:
-        raise _prepared_error(
-            "ArtifactUnavailable", "Could not read the Apps archive artifact."
+        raise PublicError(
+            "ArtifactUnavailable", stage=stage, message="Could not read the directory artifact."
         ) from None
-    _check_bytes(ref, len(data), sha256(data).hexdigest())
+    _check_bytes(ref, len(data), sha256(data).hexdigest(), stage=stage)
     return data
 
 
