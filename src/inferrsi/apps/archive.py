@@ -49,8 +49,7 @@ def _logical_path(value: object) -> tuple[str, ...]:
     return parts
 
 
-def archive_mount(config: dict, *, for_write: bool = False) -> tuple[str, Path]:
-    """Select the trusted local archive mount and check write configuration."""
+def _storage_mounts(config: dict) -> dict[str, tuple[str, str, Path]]:
     try:
         if (
             not isinstance(config, dict)
@@ -85,13 +84,23 @@ def archive_mount(config: dict, *, for_write: bool = False) -> tuple[str, Path]:
                 raise ValueError
             prefixes.append(prefix)
             mounts[namespace] = (mount["kind"], mount["prefix"], root)
-        kind, prefix, root = mounts[config["archive_namespace"]]
-        if kind != "directory" or config["harness_namespace"] not in mounts:
+        if config["archive_namespace"] not in mounts or config["harness_namespace"] not in mounts:
             raise ValueError
     except (KeyError, TypeError, ValueError):
         raise PublicError(
             "InvalidRequest", stage="storage_config", message="Invalid Apps storage configuration."
         ) from None
+    return mounts
+
+
+def archive_mount(config: dict, *, for_write: bool = False) -> tuple[str, Path]:
+    """Select the trusted local archive mount and check write configuration."""
+    mounts = _storage_mounts(config)
+    kind, prefix, root = mounts[config["archive_namespace"]]
+    if kind != "directory":
+        raise PublicError(
+            "InvalidRequest", stage="storage_config", message="The Apps archive needs a directory."
+        )
     if for_write:
         try:
             root = _directory(root)
@@ -248,6 +257,10 @@ def archive_prepared(
 def read_archive_artifact(storage_config: dict, ref: dict) -> bytes:
     """Read and verify an artifact under the selected Apps archive mount."""
     prefix, root = archive_mount(storage_config)
+    return _read_directory_artifact(prefix, root, ref)
+
+
+def _read_directory_artifact(prefix: str, root: Path, ref: dict) -> bytes:
     try:
         validate_artifact_ref(ref)
         parts = _logical_path(ref["location"])
