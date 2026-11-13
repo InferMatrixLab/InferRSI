@@ -448,6 +448,85 @@ def test_steps_run_in_fixed_order_and_fail_fast(h: Harness, tmp_path) -> None:
     assert len(record["resource_leases"]["leases"]) == 2
 
 
+def _supervise_with_domain(domain_empty, calls: list[list[str]]):
+    """Stub supervisor: first step uses the injected domain_empty fact; later steps are empty."""
+
+    def fake(argv, cwd, environment, stdout_path, stderr_path, deadline, *, cancellation=None):
+        calls.append(list(argv))
+        stdout_path.write_bytes(b"")
+        stderr_path.write_bytes(b"")
+        now = run_store.utc_now()
+        emptied = domain_empty if len(calls) == 1 else True
+        return {
+            "status": "completed",
+            "returncode": 0,
+            "pid": 4242 + len(calls),
+            "process_group_id": None,
+            "error": None,
+            "started_at": now,
+            "ended_at": now,
+            "process_seconds": 0.01,
+            "termination_requested": False,
+            "cancellation_source": None,
+            "cancellation_requested_at": None,
+            "domain_empty": emptied,
+            "elapsed_seconds": 0.01,
+        }
+
+    return fake
+
+
+@pytest.mark.parametrize(
+    ("domain_empty", "cleanup_status", "cleanup_reason", "skip_reason", "phase"),
+    [
+        (True, "confirmed", "process_domain_empty", None, "finished"),
+        (False, "failed", "process_domain_not_empty",
+         "previous_process_domain_not_empty", "recovery_required"),
+        (None, "unknown", "process_domain_unconfirmed",
+         "previous_process_domain_unconfirmed", "recovery_required"),
+    ],
+)
+def test_next_step_starts_only_after_process_domain_confirmed_empty(
+    h: Harness, monkeypatch, domain_empty, cleanup_status, cleanup_reason, skip_reason, phase,
+) -> None:
+    calls: list[list[str]] = []
+    monkeypatch.setattr(local_process, "_supervise", _supervise_with_domain(domain_empty, calls))
+    record = h.execute(make_spec(h, [
+        step("first-step", step_id="first"),
+        step("second-step", step_id="second"),
+    ]))
+    schema_check(record)
+    first, second = record["steps"]
+    assert first["status"] == "exited" and first["exit_code"] == 0
+    assert first["started_at"] is not None
+    assert record["started"] is True
+    assert record["cleanup"]["status"] == cleanup_status
+    assert record["cleanup"]["reasons"] == [cleanup_reason]
+    assert record["resource_leases"]["leases"][0]["release_confirmed"] is domain_empty
+    assert record["phase"] == phase
+    # One terminal committed record; attempt state tracks the payload phase.
+    assert attempt_rows(h) == [(record["attempt_id"], phase)]
+    assert h._store.committed(record["attempt_id"]).payload["phase"] == phase
+    if domain_empty is True:
+        assert [s["status"] for s in record["steps"]] == ["exited", "exited"]
+        assert second["exit_code"] == 0
+        assert len(calls) == 2 and calls[1][1:] == ["-c", "second-step"]
+        assert (record["process_outcome"], record["exit_code"]) == ("exited", 0)
+        assert len(record["resource_leases"]["leases"]) == 2
+    else:
+        # Unconfirmed or non-empty domain must not start step 2, report a timeout,
+        # or pretend the attempt never started or finished as a PASS.
+        assert [s["status"] for s in record["steps"]] == ["exited", "not_started"]
+        assert second["reasons"] == [skip_reason]
+        assert len(calls) == 1
+        assert (record["process_outcome"], record["exit_code"]) == ("exited", 0)
+        assert record["process_outcome"] not in ("timed_out", "not_started")
+        assert record["phase"] == "recovery_required"
+        assert "PASS" not in json.dumps(record)
+        assert record["errors"] == []
+        assert len(record["resource_leases"]["leases"]) == 1
+
+
 def test_record_bytes_are_canonical_and_store_fixed(h: Harness) -> None:
     record = h.execute(make_spec(h, [step("print('bytes')")]))
     committed = h._store.committed(record["attempt_id"])

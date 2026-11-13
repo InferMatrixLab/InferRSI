@@ -659,8 +659,16 @@ def _run_steps(ctx: _Context, argvs: list[list[str]], deadline: float, cancellat
             ),
             "reasons": reasons,
         })
-        if not (exited and run["returncode"] == 0):
-            stop = "previous_step_failed"
+        # Exit 0 is not enough to start the next step: the process domain must be confirmed empty.
+        if not (exited and run["returncode"] == 0 and run["domain_empty"] is True):
+            if exited and run["returncode"] == 0:
+                stop = (
+                    "previous_process_domain_not_empty"
+                    if run["domain_empty"] is False
+                    else "previous_process_domain_unconfirmed"
+                )
+            else:
+                stop = "previous_step_failed"
     return records, runs
 
 
@@ -675,6 +683,13 @@ def _outcome(records: list[dict]) -> tuple[str, int | None]:
         if record["status"] == "not_started":
             if record["reasons"] == ["cancelled"]:
                 return "cancelled", None
+            # A later step left unstarted after exit 0 with a non-empty or unconfirmed
+            # domain is not a timeout and not a blank start; the process fact is exit 0.
+            if record["reasons"] in (
+                ["previous_process_domain_not_empty"],
+                ["previous_process_domain_unconfirmed"],
+            ):
+                return "exited", 0
             return ("timed_out" if started else "not_started"), None
         return record["status"], None
     return "exited", 0
