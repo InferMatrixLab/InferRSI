@@ -1,0 +1,66 @@
+[
+  {
+    "file": "common_voice_en_19254683.wav",
+    "sha256": "c35ddc135399c62ccbffdb2b9f448065b81ee56c813487a5dd95fa2d6f3c4d44"
+  },
+  {
+    "file": "common_voice_en_19967495.wav",
+    "sha256": "aa7d2292d8baad76f58bd888005de19cb30b64cedf1df3760755f3a10170c5c5"
+  },
+  {
+    "file": "common_voice_en_21555942.wav",
+    "sha256": "55bda8141ba1ff92facaa17f352443de234421d1243338cc90a79cce9edbe2dc"
+  },
+  {
+    "file": "common_voice_en_125386.wav",
+    "sha256": "148025c5844bbe3a744c5ce422882442bf93f5fdbc95b090aec3eaa20b336bab"
+  },
+  {
+    "file": "common_voice_en_20236234.wav",
+    "sha256": "539132eaebf5b7010c1b3fdaa061cb085cce997d3ac933ff94a48df902433cec"
+  },
+  {
+    "file": "common_voice_en_32144882.wav",
+    "sha256": "931ea06c04f4436bee1a8059b1e642b483499a2204ecb94d6feed25c965fe62f"
+  },
+  {
+    "file": "common_voice_en_35734335.wav",
+    "sha256": "362ed8d380fca4699e500fa2cbd354771bb5f755fe7391f80bb1763fb0fe0e85"
+  },
+  {
+    "file": "common_voice_en_19152197.wav",
+    "sha256": "51706da5fc6d6b9131ea12418dd058cbb1e10fae7c9c3c31de76e7bd73d6a09b"
+  },
+  {
+    "file": "common_voice_en_22713724.wav",
+    "sha256": "079911f1e8cfdafc4a60569e409a9d64c9423080129d50520d410cb548e25f1c"
+  },
+  {
+    "file": "common_voice_en_523215.wav",
+    "sha256": "9c952d6c33c98386d6d82a875c874b82e523648e1dbd967e96717b6452d984ce"
+  },
+  {
+    "file": "common_voice_en_28638628.wav",
+    "sha256": "ed76bec643ee416108f84d89389047bcfc86549d8423bf3a0cbe72af7fd79da2"
+  },
+  {
+    "file": "common_voice_en_20303932.wav",
+    "sha256": "760541f0b54401762be6c4c86543480941377e6f429798fce4ddc936ec2fd8d5"
+  },
+  {
+    "file": "common_voice_en_19619551.wav",
+    "sha256": "51c0a72fe850ed8afa8ce5b8d411ed26bcd0d337311c8f9278ae724468e2f886"
+  },
+  {
+    "file": "common_voice_en_25127181.wav",
+    "sha256": "f5af7836d5721a01a7e6e434ffaf8b836d9d671eb3c3551d9452901aafde7399"
+  },
+  {
+    "file": "common_voice_en_19636954.wav",
+    "sha256": "f1431147dc4a2e6ee746aa568aa16a3875f3647e569aaa8ef4d666b3d558a2bd"
+  },
+  {
+    "file": "common_voice_en_557458.wav",
+    "sha256": "c0200c24e822ec02731516d54854611a9a57935d55b9360c4bfd11a4607a15df"
+  }
+]

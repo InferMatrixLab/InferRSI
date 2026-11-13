@@ -1,0 +1,44 @@
+{
+  "status": "completed",
+  "score": 3.7236768286675215,
+  "verdict": "PASS",
+  "reason": "fixed_checks_satisfied",
+  "evidence_files": {
+    "execution/quality-baseline/result.json": "00e2ee0dbd7e1b98ec874b186997e3cf57019697630f89aa19a14db2713092ad",
+    "execution/quality-candidate/result.json": "d3ce164e9f8eb9694a1738d5b34ab2a6b69f0f76e233fb74f8616b52f2c62ea9",
+    "execution/measurement-001-baseline/result.json": "f29de320bd9152a6a9d83015ba0679c73ff8ac1bbc0f586bb595af18a458af83",
+    "execution/measurement-001-candidate/result.json": "1ab98abad6ef4c8857cb82a89b7dacf027f6f1a0e9813b2b5c593d502b061336",
+    "execution/measurement-002-candidate/result.json": "1abfe454e04dd0eb0b7be660ebc6b898c44e175f819379b85de3897145764783",
+    "execution/measurement-002-baseline/result.json": "b176784fa7a5f1487228fc5df4883573089e1ceb39e7504eb2b31b772394cb31",
+    "execution/measurement-003-baseline/result.json": "c13e3bf1a10f6c22a1c79491803414d83b1608cbed7c63f39bca13815eed0387",
+    "execution/measurement-003-candidate/result.json": "f86309a874ac6beddeaeee08a1404507995e8f6c66e8d3af3a712188839f8d15"
+  },
+  "baseline_score": 4.315365524962544,
+  "eligible": true,
+  "quality_passed": true,
+  "improvement_pct": 13.711206915668136,
+  "speedup": 1.1588990461631312,
+  "metrics": {
+    "name": "latency_ms",
+    "unit": "ms",
+    "direction": "minimize",
+    "baseline": 4.315365524962544,
+    "candidate": 3.7236768286675215,
+    "samples": {
+      "baseline": [
+        4.350903118029237,
+        4.315365524962544,
+        4.291460569947958
+      ],
+      "candidate": [
+        3.727132873609662,
+        3.7236768286675215,
+        3.7155060097575188
+      ]
+    }
+  },
+  "scope": "L0/L1 S3 repeated-shape component only",
+  "statistical_significance": "not_established",
+  "quality_contract": "Only the supplied frozen quality script and its boolean result",
+  "environment_qualification": "Caller-managed; no automatic hardware isolation claim"
+}

@@ -1,0 +1,51 @@
+{
+  "issue": "https://github.com/InferMatrixLab/InferRSI/issues/431",
+  "scope": "L0/L1 S3 repeated-shape component only",
+  "round_verdict": "PASS",
+  "final": {
+    "status": "completed",
+    "score": 3.718740865588188,
+    "verdict": "PASS",
+    "reason": "fixed_checks_satisfied",
+    "evidence_files": {
+      "execution/quality-baseline/result.json": "00e2ee0dbd7e1b98ec874b186997e3cf57019697630f89aa19a14db2713092ad",
+      "execution/quality-candidate/result.json": "d3ce164e9f8eb9694a1738d5b34ab2a6b69f0f76e233fb74f8616b52f2c62ea9",
+      "execution/measurement-001-baseline/result.json": "2266e09f7a17d9fafa64e86fcffd99f2cb08751be6c4dfbf0fc5a4bc064a9bda",
+      "execution/measurement-001-candidate/result.json": "32ba5cc06a6963ae514acc10073fb1882f41b80146d70c7dffe33cdc30567f2a",
+      "execution/measurement-002-candidate/result.json": "bffa70d25e9edc024edcdac1525ad72088b985296553620f7c175f6865521497",
+      "execution/measurement-002-baseline/result.json": "999eb387b48b66ad8b74d15f3623b32a3aaeb823dce726a182ac2fe9ec1248ad",
+      "execution/measurement-003-baseline/result.json": "16b22bd0dfbe4a051cdd91212db8bec13143904a91b2732eb7b7ab4198e2a4c1",
+      "execution/measurement-003-candidate/result.json": "0dada7938266f32a6a98c1a06ef1ba61d598985c4ee3a48b41d0e443580c2f60"
+    },
+    "baseline_score": 4.279058240354061,
+    "eligible": true,
+    "quality_passed": true,
+    "improvement_pct": 13.094408706143499,
+    "speedup": 1.1506739498712686,
+    "metrics": {
+      "name": "latency_ms",
+      "unit": "ms",
+      "direction": "minimize",
+      "baseline": 4.279058240354061,
+      "candidate": 3.718740865588188,
+      "samples": {
+        "baseline": [
+          4.453523131087422,
+          4.250153573229909,
+          4.279058240354061
+        ],
+        "candidate": [
+          3.715382656082511,
+          3.732922486960888,
+          3.718740865588188
+        ]
+      }
+    },
+    "scope": "L0/L1 S3 repeated-shape component only",
+    "statistical_significance": "not_established",
+    "quality_contract": "Only the supplied frozen quality script and its boolean result",
+    "environment_qualification": "Caller-managed; no automatic hardware isolation claim"
+  },
+  "service_verdict": "INCONCLUSIVE",
+  "hypothesis_correction": "The original round hypothesis mentioned scalar synchronization. Published s3tokenizer 0.3.0 already uses static mask widths; the submitted candidate does not remove scalar reads or reimplement encoder arithmetic. Its mechanism is CUDA graph replay of the unchanged encoder and quantizer."
+}
