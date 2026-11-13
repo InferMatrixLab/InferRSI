@@ -27,6 +27,18 @@ imported or author-reported number is prior evidence and never the baseline for 
 Rows 1, 2, 3, 5, 6 and 7 are the frozen comparison contract. Row 4 is the
 versioned search strategy and search state, and is expected to change.
 
+For row 3, use user-provided criteria, including a referenced accepted plan.
+When none are supplied, follow the
+[ceiling-analysis acceptance procedure](../../../src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/acceptance-criteria.md).
+Keep partial requirements and label derived fields. Record the criteria source
+(`user`, `ceiling-derived` or `mixed`), request/plan reference, derived fields,
+analysis evidence (skill revision, baseline, calibration, attainable range,
+uncertainty and target-selection rationale), unresolved gaps and existing freeze
+authority. These are mirrored in `goal_detail.criteria_provenance` in the YAML.
+An unsupported estimate remains unresolved; it is not a frozen gate. Record
+delegated goal formulation accurately rather than implying the user supplied or
+confirmed an agent-derived number. Do not replace an existing frozen contract.
+
 | # | Row | Freeze | Content |
 | --- | --- | --- | --- |
 | 1 | Model | Frozen | repository `<org/model>` · exact revision `<40-hex>` · weight format `<...>` and hash `<sha256 or declined with reason>` · tokenizer and template `<...>` · modality and task `<...>` · precision policy `<...>` · supported modes `<...>` · excluded modes with expected error `<...>` · semantic reference `<framework@revision>` · performance baseline identity `<...>` · license `<...>` |

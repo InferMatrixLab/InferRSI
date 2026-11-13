@@ -38,7 +38,10 @@ from tests.h01_run_store_child import (
 
 NAMESPACE = "h01-test"
 SRC = REPO / "src"
-NEW_H_CLOSURE = {"inferrsi.harness.run_store", "inferrsi.harness.errors", "inferrsi._json_v1"}
+NEW_H_CLOSURE = {
+    "inferrsi.harness.run_store", "inferrsi.harness.errors",
+    "inferrsi.harness.execution_spec", "inferrsi._json_v1",
+}
 # Package initializers run on import: the existing mixed harness __init__ loads inferrsi.claim
 # (the Verdict enum). This is a known residue, not an edge added by the new H modules.
 PACKAGE_INIT_RESIDUE = {"inferrsi", "inferrsi.harness", "inferrsi.claim"}

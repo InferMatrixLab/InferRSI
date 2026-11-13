@@ -178,6 +178,12 @@ src/inferrsi/
     campaign_records.py     Campaign manifest, candidate and decision records
     campaign_trace.py       Correlation envelope for existing agent events
   harness/
+    api.py                  H public allocate/execute/read over one RunStore and CPU target
+    execution_service.py    Ordinary-command execute: admission, binding, steps, record
+    input_binding.py        Input capture, byte-equivalent copies and file digests
+    local_process.py        Windows Job / POSIX process group; deadline, cancel, cleanup
+    run_store.py            Local SQLite RunStore: claim, owner lock, fixed records
+    errors.py               H PublicError codes and partial execution facts
     optimization_session.py Shared start/knowledge/round/final operation assembly
     project.py              Freeze supplied project checks and assess retained results
     task_protocol.py        Freeze supplied task resources and load their protocol
@@ -198,8 +204,7 @@ src/inferrsi/
     validators/
       image.py              Explicit PNG dimensions/mode, hashes, RGB/alpha quality gates
   infra/
-    executors/local.py      Real subprocesses and whole-run deadline
-    processes.py            Owned process groups; Windows jobs; server cleanup
+    processes.py            Supervised Linux serving workers and their group cleanup
     targets/git.py          Repository identity and source snapshots
     platforms/              Backend discovery registry; CUDA qualification
     inspection.py           Environment inspection coordinator
@@ -317,8 +322,8 @@ The supervised server helpers (`infra.processes.launch_server` / `stop_server`)
 require Linux with a readable `/proc` process table. They reject other platforms
 before launch; missing or inaccessible process enumeration raises an error rather
 than reporting successful cleanup. Workers must remain in their owned process
-group. Windows Job Object support in the general command executor does not extend
-to these server helpers. These constraints do not restrict read-only knowledge
+group. Windows Job Object support in the general command executor
+(`harness.local_process`) does not extend to these server helpers. These constraints do not restrict read-only knowledge
 operations or the control CLI to Linux.
 
 - Existing CLI flags, root import paths, external JSON metrics, run artifacts,

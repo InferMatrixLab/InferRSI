@@ -303,3 +303,15 @@ def test_knowledge_delivery_is_retained_and_bound_to_round(session, monkeypatch,
     result = submit(session, 2, capsys)
     assert result["latest_observation"]["contexts"] == [delivered["reference"]]
     assert (session / delivered["reference"]["path"]).is_file()
+
+
+def test_runtime_identity_covers_migrated_process_domain_and_not_removed_executor() -> None:
+    from importlib.resources import files
+    from pathlib import Path
+
+    identity = optimization_session._runtime_identity()
+    root = Path(str(files("inferrsi")))
+    assert "harness/local_process.py" in identity
+    assert "infra/executors/local.py" not in identity
+    for name in identity:
+        assert (root / name).is_file(), name

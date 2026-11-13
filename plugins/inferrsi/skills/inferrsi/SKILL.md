@@ -220,6 +220,18 @@ why, the decision and its reason. At the end, write success and failure
 summaries that cite `candidate:<id>` evidence and name the failing stage.
 Resolve every **Narrative vs evidence** warning the dashboard shows, or explain it.
 
+When recording search attribution, mark the first line of the current round
+in the caller-selected Codex rollout before searching. At round close, use
+`campaign import-search` once with that round's inclusive line range, corpus
+root and any capture IDs. If the rollout is available only after interruption,
+the host can import the same range later. Keep private raw traces outside the
+campaign. The round-import section of `docs/dashboard.md` describes how to
+distinguish observed reads, explicit use and missing capture.
+For a round intended for repository evidence, supply the reviewed corpus
+version and decision references with `--archive-review`. Check that the
+published passages, decision excerpts and linked campaign artifacts let a
+reader verify the claim without the private rollout.
+
 For a bilingual dashboard, prepare and review a translation overlay for the
 recorded narrative, including the knowledge context, search space, decisions,
 benchmark and quality descriptions. Supply it to `dashboard --translations` as
@@ -249,6 +261,15 @@ Consult `plan --help` and `run --help` to build the current runtime's invocation
 Reuse the user's benchmark and quality scripts, workload, accepted revisions,
 gates and budget. If they are missing, help prepare them and name the remaining
 inputs. Do not turn CLI defaults into accepted campaign criteria.
+
+Use supplied acceptance criteria unchanged, including a referenced accepted
+plan. When none are supplied, read
+`inferrsi.common.skills.performance_ceiling_analysis` with `--material` through
+the selected CLI path, then load its `references/acceptance-criteria.md` resource
+and follow that procedure to formulate targets. Preserve partial requirements
+and derive only missing fields. Record user versus derived criteria, calibration,
+uncertainty and existing freeze authority; missing evidence stays unresolved.
+The CLI does not invoke the skill automatically or infer gates from omitted flags.
 
 Use `plan` for a command/specification preview. It persists no frozen campaign
 and grants no execution authority. Establish the acceptance record and freeze

@@ -1,6 +1,6 @@
 ---
 name: performance-ceiling-analysis
-description: 'Estimate optimization headroom before modifying an inference system. Produces a three-level ceiling model (analytical, empirical component, end-to-end) and a prioritized measurement plan. Use when asked whether a target speedup is worth pursuing, or to identify the binding bottleneck.
+description: 'Estimate optimization headroom before modifying an inference system. Produces a three-level ceiling model (analytical, empirical component, end-to-end) and a prioritized measurement plan. Use to formulate acceptance targets when the user has not supplied them, assess a requested speedup, or identify the binding bottleneck.
 
   '
 ---
@@ -14,6 +14,12 @@ Status: candidate. Procedures have not been evaluated against a real campaign.
 Use this skill before modifying an inference serving system when you need to
 answer: *does meaningful headroom exist, where is it, and is a requested
 speedup such as 2× plausible?*
+
+When preparing a task, preserve user-provided acceptance criteria. If none were
+supplied, follow [acceptance-criteria preparation](references/acceptance-criteria.md)
+to derive and freeze targets from this analysis. Preserve partial requirements,
+label derived fields and retain evidence gaps; a theoretical ceiling alone does
+not establish an attainable target or a quality tolerance.
 
 Do not use it to benchmark or compare two already-built candidates — that is
 the job of InferRSI's AB/BA harness and `rsi-evidence` skill.

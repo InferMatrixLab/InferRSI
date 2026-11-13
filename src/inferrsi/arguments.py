@@ -297,6 +297,25 @@ def parser() -> argparse.ArgumentParser:
     capture.add_argument("--context-bytes", type=int, default=65536)
     capture.add_argument("--skill-root", type=Path)
     capture.add_argument("--store", type=Path)
+    search = campaign_actions.add_parser(
+        "import-search", help="Import the observed knowledge searches for one campaign round"
+    )
+    search.add_argument("--directory", type=Path, required=True)
+    search.add_argument("--round", type=int, required=True)
+    search.add_argument("--trace", type=Path, help="Caller-selected Codex Desktop rollout JSONL")
+    search.add_argument("--lines", nargs=2, type=int, metavar=("FIRST", "LAST"),
+                        help="Inclusive, one-based round boundaries in that rollout")
+    search.add_argument("--knowledge-root", type=Path, help="Absolute corpus path in the rollout")
+    search.add_argument("--context-id", action="append", default=[], help="Capture in this round")
+    search.add_argument("--archive-review", type=Path, metavar="FILE",
+                        help="Build a round archive from reviewed passage and decision references")
+    search.add_argument("--stage", help="Retrieval stage if known, e.g. diagnosis")
+    search.add_argument("--used", action="append", nargs=2, metavar=("REF", "DECISION_LINE"),
+                        default=[], help="Reviewed material use in a cited assistant message")
+    search.add_argument("--rejected", action="append", nargs=2, metavar=("REF", "DECISION_LINE"),
+                        default=[], help="Reviewed rejection in a cited assistant message")
+    search.add_argument("--complete", action="store_true",
+                        help="Caller confirms coverage of all in-scope retrievals in this round")
     log = campaign_actions.add_parser(
         "log", help="Record a new version of the campaign optimization log"
     )

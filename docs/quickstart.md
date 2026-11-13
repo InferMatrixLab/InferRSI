@@ -85,6 +85,22 @@ The `skills` command defaults to the installed library's registered skills;
 its full bodies and resources are packaged. `--skill-root` in the normalized
 examples above explicitly adds that root's skill and case IDs.
 
+## Establish acceptance criteria
+
+Use criteria supplied by the user or their referenced accepted plan. If absent,
+the agent uses the packaged ceiling-analysis skill to formulate targets:
+
+```bash
+inferrsi read inferrsi.common.skills.performance_ceiling_analysis --material
+```
+
+Follow its [acceptance-criteria procedure](../src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/acceptance-criteria.md).
+Preserve partial requirements; record derived targets with their baseline,
+calibration, uncertainty and authority in the acceptance issue and frozen plan.
+Missing evidence requires calibration, not a guessed threshold. This is agent
+preparation: `plan`/`run` do not invoke the skill or infer acceptance criteria
+from omitted flags. CLI defaults are not accepted campaign goals.
+
 ## The actual configuration interface
 
 ```text

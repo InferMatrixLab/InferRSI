@@ -8,7 +8,7 @@
   "component": "skills",
   "scenario": "skills.discovery",
   "status": "imported",
-  "summary": "Guide agents to publish and cite RSI evidence using plan/results/patch/validator paths and PASS/FAIL/INCONCLUSIVE verdicts.",
+  "summary": "Guide agents to establish acceptance criteria, freeze and cite RSI evidence using plan/results/patch/validator paths and PASS/FAIL/INCONCLUSIVE verdicts.",
   "tags": [
     "evidence",
     "verdict",
@@ -25,8 +25,8 @@
   },
   "checkout_ref": "checkout:rsi-evidence",
   "source_files": {
-    "src/inferrsi/data/skill_library/workflows/rsi-evidence/SKILL.md": "5ce5b4903a3d7a4c3d20957be004c49c204d331ce76cc57274378f1ab97b4361",
-    "src/inferrsi/data/skill_library/workflows/rsi-evidence/metadata.json": "7adfbf39def6ac64987d537c11ad3a3d2e6c06649178b77d82285add8971a115",
+    "src/inferrsi/data/skill_library/workflows/rsi-evidence/SKILL.md": "065b18fda03c714596a175495f4594ac06a9f304182190cc8fab1272a0f5cea7",
+    "src/inferrsi/data/skill_library/workflows/rsi-evidence/metadata.json": "5d78e62f31978b1c9314766eaf402c83b7be1669266aa0374dfe4186f3d381ee",
     "src/inferrsi/data/skill_library/workflows/rsi-evidence/references/loopx-goal-governance/LICENSE": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
     "src/inferrsi/data/skill_library/workflows/rsi-evidence/references/loopx-goal-governance/LICENSE-MIT.md": "1df1cf519b9e5d8acbbc72820299d7aa95afa1acbfc1f43a15109ad1d59975f3",
     "src/inferrsi/data/skill_library/workflows/rsi-evidence/references/loopx-goal-governance/NOTICE.md": "3c3c36a40e1d65f3a6b20ec3a97319cb753e857f1d120f302cd828e107120f6d",
@@ -38,7 +38,7 @@
   },
   "skill_metadata": {
     "name": "rsi-evidence",
-    "description": "Guide agents to publish and cite RSI evidence using plan/results/patch/validator paths and PASS/FAIL/INCONCLUSIVE verdicts.",
+    "description": "Guide agents to establish acceptance criteria, freeze and cite RSI evidence using plan/results/patch/validator paths and PASS/FAIL/INCONCLUSIVE verdicts.",
     "schema_version": 1,
     "profile": "local-skill-v1",
     "kind": "skill",
@@ -59,8 +59,8 @@
       "references/loopx-goal-governance/README.md"
     ],
     "applicability": {
-      "scope": "Documenting or reviewing an optimization campaign whose verdict will be cited downstream",
-      "prerequisites": "A campaign with pinned baseline and candidate SHAs and an evidence tree under evidence/<campaign-id>/; conclusions about goal authority additionally need the LoopX governance reference",
+      "scope": "Preparing acceptance criteria, documenting or reviewing an optimization campaign whose verdict will be cited downstream",
+      "prerequisites": "For preparation, the user requirements and available model/hardware/workload evidence; for verdicts, pinned baseline and candidate SHAs and an evidence tree under evidence/<campaign-id>/; conclusions about LoopX goal authority additionally need its governance reference",
       "input_contract": "Campaign artifacts in plan/, results/, patch/ and validator/, plus the RunSpec that fixes repo x revision x backend x device x model x scenario",
       "produced_artifact": "An evidence record that links paths instead of pasting metrics, and states exactly one of PASS, FAIL or INCONCLUSIVE with its rationale",
       "failure_modes": [
@@ -74,6 +74,7 @@
       "refusal_point": "Refuses PASS when the validator freeze, the results rationale or the pinned SHAs are missing, and reports INCONCLUSIVE for that campaign instead"
     },
     "recommendations": [
+      "Use user-supplied acceptance criteria; otherwise follow performance-ceiling-analysis to formulate targets. Preserve partial requirements and record each derived field's evidence before freezing gates.",
       "Link evidence paths in the report; a metric quoted only in a comment cannot be re-checked later.",
       "Fingerprint tracked source even when the output directory overlaps it, and exclude only the current run's generated files.",
       "Treat a missing upstream-cache release proof as INCONCLUSIVE rather than a PASS with a caveat.",
@@ -86,8 +87,8 @@
     ]
   },
   "applicability": {
-    "scope": "Documenting or reviewing an optimization campaign whose verdict will be cited downstream",
-    "prerequisites": "A campaign with pinned baseline and candidate SHAs and an evidence tree under evidence/<campaign-id>/; conclusions about goal authority additionally need the LoopX governance reference",
+    "scope": "Preparing acceptance criteria, documenting or reviewing an optimization campaign whose verdict will be cited downstream",
+    "prerequisites": "For preparation, the user requirements and available model/hardware/workload evidence; for verdicts, pinned baseline and candidate SHAs and an evidence tree under evidence/<campaign-id>/; conclusions about LoopX goal authority additionally need its governance reference",
     "input_contract": "Campaign artifacts in plan/, results/, patch/ and validator/, plus the RunSpec that fixes repo x revision x backend x device x model x scenario",
     "produced_artifact": "An evidence record that links paths instead of pasting metrics, and states exactly one of PASS, FAIL or INCONCLUSIVE with its rationale",
     "failure_modes": [
@@ -101,6 +102,7 @@
     "refusal_point": "Refuses PASS when the validator freeze, the results rationale or the pinned SHAs are missing, and reports INCONCLUSIVE for that campaign instead"
   },
   "recommendations": [
+    "Use user-supplied acceptance criteria; otherwise follow performance-ceiling-analysis to formulate targets. Preserve partial requirements and record each derived field's evidence before freezing gates.",
     "Link evidence paths in the report; a metric quoted only in a comment cannot be re-checked later.",
     "Fingerprint tracked source even when the output directory overlaps it, and exclude only the current run's generated files.",
     "Treat a missing upstream-cache release proof as INCONCLUSIVE rather than a PASS with a caveat.",

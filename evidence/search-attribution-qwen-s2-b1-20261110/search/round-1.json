@@ -1,0 +1,1491 @@
+{
+  "schema_version": 2,
+  "campaign_id": "search-attribution-qwen-s2-b1-20261110",
+  "round": 1,
+  "stage": null,
+  "task": "Qwen S2-B1: Decide what to check before combining three Qwen Ascend optimizations.",
+  "corpus": {
+    "repository": "InferMatrixLab/InferRSI",
+    "revision": "f6d200775d554d08fb73673833611dd6ac02d14b",
+    "root": "src/inferrsi/data/skill_library"
+  },
+  "trace": {
+    "lines": [
+      16,
+      108
+    ],
+    "archive": true
+  },
+  "context_ids": [],
+  "coverage": "partial",
+  "unresolved_command_lines": [
+    25,
+    31
+  ],
+  "unresolved_details": [
+    {
+      "trace_line": 25,
+      "reason": "command_output_incomplete",
+      "action": "search",
+      "description": "Output is incomplete; cite only retained lines.",
+      "id": "file-25",
+      "operation": {
+        "tool": "rg",
+        "action": "search",
+        "scope": [
+          ".",
+          "frameworks/mlx/lazy-evaluation-stream-lifetimes/SKILL.md",
+          "skill-index.json",
+          "frameworks/mlx/lazy-evaluation-stream-lifetimes/references/source-map.md",
+          "frameworks/diffusers/diffusers-invocation-state/SKILL.md",
+          "hardware/README.md",
+          "README.md",
+          "frameworks/pytorch/pytorch/sub-skills/memory-streams-and-graphs/SKILL.md",
+          "frameworks/pytorch/pytorch/sub-skills/tensor-dispatch-autograd/SKILL.md",
+          "frameworks/pytorch/pytorch/references/repo-provenance.md",
+          "frameworks/pytorch/pytorch/sub-skills/training-and-data/SKILL.md",
+          "frameworks/pytorch/pytorch/sub-skills/memory-streams-and-graphs/references/troubleshooting.md",
+          "frameworks/pytorch/pytorch/sub-skills/memory-streams-and-graphs/references/workflows.md",
+          "workflows/inference-engine-research/SKILL.md",
+          "frameworks/pytorch/pytorch/sub-skills/tensor-dispatch-autograd/references/troubleshooting.md",
+          "methods/weight-loading-optimization/SKILL.md",
+          "frameworks/pytorch/pytorch/sub-skills/training-and-data/references/troubleshooting.md",
+          "frameworks/pytorch/pytorch/sub-skills/custom-operators-and-extension/SKILL.md",
+          "frameworks/pytorch/pytorch/sub-skills/tensor-dispatch-autograd/references/workflows.md",
+          "workflows/inference-engine-research/references/model-aware-preparation.md",
+          "workflows/rsi-evidence/references/omni-experiments.md",
+          "methods/weight-loading-optimization/metadata.json",
+          "frameworks/pytorch/pytorch/sub-skills/training-and-data/references/workflows.md",
+          "frameworks/pytorch/pytorch/references/troubleshooting.md",
+          "hardware/cuda/reason-hopper-kernels/references/sources.md",
+          "frameworks/pytorch/pytorch/sub-skills/distributed-and-checkpoint/SKILL.md",
+          "frameworks/pytorch/pytorch/sub-skills/installation-and-build/SKILL.md",
+          "frameworks/pytorch/pytorch/SKILL.md",
+          "workflows/inference-engine-research/references/repository-source-scope.md",
+          "repositories/lithos-metal/sub-skills/compile-fusion/SKILL.md",
+          "frameworks/torch-npu/torch-npu/sub-skills/memory-streams-and-events/metadata.json",
+          "repositories/lithos-metal/sub-skills/compile-fusion/metadata.json",
+          "frameworks/pytorch/pytorch/sub-skills/custom-operators-and-extension/references/workflows.md",
+          "repositories/vllm-ascend/references/sources.md",
+          "repositories/h3-c/audit-h3-runtime-residency/SKILL.md",
+          "repositories/h3-metal/audit-h3-metal-fasth3-semantics/SKILL.md",
+          "repositories/vllm-metal/references/scope-and-notices.md",
+          "repositories/h3-c/audit-h3-runtime-residency/metadata.json",
+          "repositories/h3-c/audit-h3-runtime-residency/references/minimax-h3-apple.md",
+          "repositories/vllm-metal/sub-skills/platform-config/references/configuration.md",
+          "repositories/h3-c/audit-h3-runtime-residency/references/source-notes.md",
+          "repositories/vllm/diagnose-vllm-admission-pressure/references/papers-20261015/notes/orca.md",
+          "repositories/h3-c/audit-h3-runtime-residency/references/phase-residency.md",
+          "repositories/vllm-metal/metadata.json",
+          "repositories/h3-c/audit-h3-runtime-residency/references/validation.md",
+          "repositories/h3-c/audit-h3-runtime-residency/references/precision-and-streaming.md",
+          "repositories/strata/sub-skills/design-space/references/design-space.md",
+          "repositories/vllm/diagnose-vllm-admission-pressure/references/papers-20261015/references/llumnix-readset.md",
+          "repositories/strata/references/design-space-analysis.md",
+          "repositories/sglang/SKILL.md",
+          "repositories/sglang/audit-sglang-diffusion-lifetimes/SKILL.md",
+          "repositories/sglang/audit-sglang-diffusion-lifetimes/metadata.json",
+          "repositories/lily/sub-skills/model-runtime/SKILL.md",
+          "repositories/sglang/audit-sglang-diffusion-lifetimes/references/source-notes.md",
+          "repositories/project-maya/sub-skills/model-runtime/references/notices.md",
+          "repositories/sglang-omni/sub-skills/sglang-omni-serving/references/recipes-and-tuning.md"
+        ]
+      },
+      "excerpt": {
+        "ref": "frameworks/mlx/lazy-evaluation-stream-lifetimes/SKILL.md",
+        "line": 8,
+        "text": "Use for an MLX workload with misleading submission timings, missing cross-stream dependencies, unexpected retained memory, or a result read before completion. Do not use as an LLM request scheduler, a model KV-cache policy, a compiler/fusion guide, or proof that a backend is installed."
+      }
+    },
+    {
+      "trace_line": 31,
+      "reason": "unsupported_or_compound_command",
+      "action": "unknown",
+      "description": "Samples are filenames only; no content or match count is attributed.",
+      "id": "file-31",
+      "operation": {
+        "tools": [
+          "rg",
+          "rg"
+        ],
+        "action": "file_list_filter",
+        "scope": [
+          "."
+        ],
+        "compound": true
+      },
+      "command_excerpt": "rg --files <KNOWLEDGE_ROOT> | rg -i '(qwen|ascend.*(optimization|video|casebook)|diffusion.*optimization|inference-optimization-casebook)'",
+      "excerpt": [
+        {
+          "ref": "methods/kernel-writing-guide/cases/hf-qwen35-gdn-binding.md",
+          "line": null,
+          "text": "<KNOWLEDGE_ROOT>/methods/kernel-writing-guide/cases/hf-qwen35-gdn-binding.md",
+          "root_normalized": true
+        },
+        {
+          "ref": "methods/kernel-writing-guide/references/hf-qwen35-gdn-binding.md",
+          "line": null,
+          "text": "<KNOWLEDGE_ROOT>/methods/kernel-writing-guide/references/hf-qwen35-gdn-binding.md",
+          "root_normalized": true
+        },
+        {
+          "ref": "methods/kernel-writing-guide/references/hf-qwen35-gdn-source.json",
+          "line": null,
+          "text": "<KNOWLEDGE_ROOT>/methods/kernel-writing-guide/references/hf-qwen35-gdn-source.json",
+          "root_normalized": true
+        },
+        {
+          "ref": "methods/video-diffusion-optimization/assets/campaign.template.json",
+          "line": null,
+          "text": "<KNOWLEDGE_ROOT>/methods/video-diffusion-optimization/assets/campaign.template.json",
+          "root_normalized": true
+        }
+      ],
+      "return_line": 33,
+      "runtime_truncated": false,
+      "command_root_normalized": true,
+      "archive_omitted": true,
+      "omitted_excerpt_count": 18
+    }
+  ],
+  "events": [
+    {
+      "action": "search",
+      "tool": "rg",
+      "query": "qwen.?image|910b1|ascend|interleav(ed|ing).*rope|npu.*rope|vae fast|fastpath|fused attention|fusion|eager|native eight|eight.step|8.step|turbo",
+      "scope": [
+        "."
+      ],
+      "options": [
+        "-n",
+        "-i"
+      ],
+      "exit_code": 0,
+      "materials": [
+        {
+          "ref": "frameworks/mlx/lazy-evaluation-stream-lifetimes/SKILL.md",
+          "match_line": 8
+        },
+        {
+          "ref": "skill-index.json",
+          "match_line": 4
+        },
+        {
+          "ref": "frameworks/mlx/lazy-evaluation-stream-lifetimes/references/source-map.md",
+          "match_line": 18
+        },
+        {
+          "ref": "frameworks/diffusers/diffusers-invocation-state/SKILL.md",
+          "match_line": 19
+        },
+        {
+          "ref": "hardware/README.md",
+          "match_line": 3
+        },
+        {
+          "ref": "README.md",
+          "match_line": 11
+        },
+        {
+          "ref": "frameworks/pytorch/pytorch/sub-skills/memory-streams-and-graphs/SKILL.md",
+          "match_line": 16
+        },
+        {
+          "ref": "frameworks/pytorch/pytorch/sub-skills/tensor-dispatch-autograd/SKILL.md",
+          "match_line": 16
+        },
+        {
+          "ref": "frameworks/pytorch/pytorch/references/repo-provenance.md",
+          "match_line": 15
+        },
+        {
+          "ref": "frameworks/pytorch/pytorch/sub-skills/training-and-data/SKILL.md",
+          "match_line": 16
+        },
+        {
+          "ref": "frameworks/pytorch/pytorch/sub-skills/memory-streams-and-graphs/references/troubleshooting.md",
+          "match_line": 8
+        },
+        {
+          "ref": "frameworks/pytorch/pytorch/sub-skills/memory-streams-and-graphs/references/workflows.md",
+          "match_line": 8
+        },
+        {
+          "ref": "workflows/inference-engine-research/SKILL.md",
+          "match_line": 22
+        },
+        {
+          "ref": "frameworks/pytorch/pytorch/sub-skills/tensor-dispatch-autograd/references/troubleshooting.md",
+          "match_line": 7
+        },
+        {
+          "ref": "methods/weight-loading-optimization/SKILL.md",
+          "match_line": 12
+        },
+        {
+          "ref": "frameworks/pytorch/pytorch/sub-skills/training-and-data/references/troubleshooting.md",
+          "match_line": 10
+        },
+        {
+          "ref": "frameworks/pytorch/pytorch/sub-skills/custom-operators-and-extension/SKILL.md",
+          "match_line": 16
+        },
+        {
+          "ref": "frameworks/pytorch/pytorch/sub-skills/tensor-dispatch-autograd/references/workflows.md",
+          "match_line": 7
+        },
+        {
+          "ref": "workflows/inference-engine-research/references/model-aware-preparation.md",
+          "match_line": 14
+        },
+        {
+          "ref": "workflows/rsi-evidence/references/omni-experiments.md",
+          "match_line": 24
+        },
+        {
+          "ref": "methods/weight-loading-optimization/metadata.json",
+          "match_line": 108
+        },
+        {
+          "ref": "frameworks/pytorch/pytorch/sub-skills/training-and-data/references/workflows.md",
+          "match_line": 17
+        },
+        {
+          "ref": "frameworks/pytorch/pytorch/references/troubleshooting.md",
+          "match_line": 8
+        },
+        {
+          "ref": "hardware/cuda/reason-hopper-kernels/references/sources.md",
+          "match_line": 59
+        },
+        {
+          "ref": "frameworks/pytorch/pytorch/sub-skills/distributed-and-checkpoint/SKILL.md",
+          "match_line": 16
+        },
+        {
+          "ref": "frameworks/pytorch/pytorch/sub-skills/installation-and-build/SKILL.md",
+          "match_line": 16
+        },
+        {
+          "ref": "frameworks/pytorch/pytorch/SKILL.md",
+          "match_line": 48
+        },
+        {
+          "ref": "workflows/inference-engine-research/references/repository-source-scope.md",
+          "match_line": 19
+        },
+        {
+          "ref": "repositories/lithos-metal/sub-skills/compile-fusion/SKILL.md",
+          "match_line": 2
+        },
+        {
+          "ref": "frameworks/torch-npu/torch-npu/sub-skills/memory-streams-and-events/metadata.json",
+          "match_line": 17
+        },
+        {
+          "ref": "repositories/lithos-metal/sub-skills/compile-fusion/metadata.json",
+          "match_line": 14
+        },
+        {
+          "ref": "frameworks/pytorch/pytorch/sub-skills/custom-operators-and-extension/references/workflows.md",
+          "match_line": 22
+        },
+        {
+          "ref": "repositories/vllm-ascend/references/sources.md",
+          "match_line": 40
+        },
+        {
+          "ref": "repositories/h3-c/audit-h3-runtime-residency/SKILL.md",
+          "match_line": 57
+        },
+        {
+          "ref": "repositories/h3-metal/audit-h3-metal-fasth3-semantics/SKILL.md",
+          "match_line": 51
+        },
+        {
+          "ref": "repositories/vllm-metal/references/scope-and-notices.md",
+          "match_line": 11
+        },
+        {
+          "ref": "repositories/h3-c/audit-h3-runtime-residency/metadata.json",
+          "match_line": 16
+        },
+        {
+          "ref": "repositories/h3-c/audit-h3-runtime-residency/references/minimax-h3-apple.md",
+          "match_line": 18
+        },
+        {
+          "ref": "repositories/vllm-metal/sub-skills/platform-config/references/configuration.md",
+          "match_line": 17
+        },
+        {
+          "ref": "repositories/h3-c/audit-h3-runtime-residency/references/source-notes.md",
+          "match_line": 48
+        },
+        {
+          "ref": "repositories/vllm/diagnose-vllm-admission-pressure/references/papers-20261015/notes/orca.md",
+          "match_line": 22
+        },
+        {
+          "ref": "repositories/h3-c/audit-h3-runtime-residency/references/phase-residency.md",
+          "match_line": 5
+        },
+        {
+          "ref": "repositories/vllm-metal/metadata.json",
+          "match_line": 102
+        },
+        {
+          "ref": "repositories/h3-c/audit-h3-runtime-residency/references/validation.md",
+          "match_line": 30
+        },
+        {
+          "ref": "repositories/h3-c/audit-h3-runtime-residency/references/precision-and-streaming.md",
+          "match_line": 21
+        },
+        {
+          "ref": "repositories/strata/sub-skills/design-space/references/design-space.md",
+          "match_line": 42
+        },
+        {
+          "ref": "repositories/vllm/diagnose-vllm-admission-pressure/references/papers-20261015/references/llumnix-readset.md",
+          "match_line": 20
+        },
+        {
+          "ref": "repositories/strata/references/design-space-analysis.md",
+          "match_line": 14
+        },
+        {
+          "ref": "repositories/sglang/SKILL.md",
+          "match_line": 11
+        },
+        {
+          "ref": "repositories/sglang/audit-sglang-diffusion-lifetimes/SKILL.md",
+          "match_line": 2
+        },
+        {
+          "ref": "repositories/sglang/audit-sglang-diffusion-lifetimes/metadata.json",
+          "match_line": 4
+        },
+        {
+          "ref": "repositories/lily/sub-skills/model-runtime/SKILL.md",
+          "match_line": 12
+        },
+        {
+          "ref": "repositories/sglang/audit-sglang-diffusion-lifetimes/references/source-notes.md",
+          "match_line": 1
+        },
+        {
+          "ref": "repositories/project-maya/sub-skills/model-runtime/references/notices.md",
+          "match_line": 45
+        },
+        {
+          "ref": "repositories/sglang-omni/sub-skills/sglang-omni-serving/references/recipes-and-tuning.md",
+          "match_line": 26
+        }
+      ],
+      "trace_line": 25,
+      "event_id": "file-25",
+      "id": "file-25",
+      "delivery": {
+        "state": "visible",
+        "runtime_truncated": true,
+        "archive_omitted": true,
+        "passages": [
+          {
+            "ref": "frameworks/mlx/lazy-evaluation-stream-lifetimes/SKILL.md",
+            "line": 8,
+            "text": "Use for an MLX workload with misleading submission timings, missing cross-stream dependencies, unexpected retained memory, or a result read before completion. Do not use as an LLM request scheduler, a model KV-cache policy, a compiler/fusion guide, or proof that a backend is installed."
+          },
+          {
+            "ref": "frameworks/mlx/lazy-evaluation-stream-lifetimes/SKILL.md",
+            "line": 29,
+            "text": "Do not claim a speedup from lazy graph construction time, infer fusion from lazy evaluation, infer zero data-movement cost from unified memory, or transfer Metal callback details to CUDA. A framework test does not establish model quality or serving behavior."
+          },
+          {
+            "ref": "skill-index.json",
+            "line": 4,
+            "text": "    \"ascend-aclgraph-capture-replay\": {"
+          },
+          {
+            "ref": "skill-index.json",
+            "line": 5,
+            "text": "      \"path\": \"hardware/ascend/ascend-aclgraph-capture-replay\","
+          },
+          {
+            "ref": "skill-index.json",
+            "line": 6,
+            "text": "      \"backend\": \"ascend\""
+          },
+          {
+            "ref": "skill-index.json",
+            "line": 8,
+            "text": "    \"ascend-device-health\": {"
+          },
+          {
+            "ref": "skill-index.json",
+            "line": 9,
+            "text": "      \"path\": \"hardware/ascend/ascend-device-health\","
+          },
+          {
+            "ref": "skill-index.json",
+            "line": 10,
+            "text": "      \"backend\": \"ascend\""
+          },
+          {
+            "ref": "skill-index.json",
+            "line": 12,
+            "text": "    \"ascend-distributed-parallel\": {"
+          },
+          {
+            "ref": "skill-index.json",
+            "line": 13,
+            "text": "      \"path\": \"hardware/ascend/ascend-distributed-parallel\","
+          },
+          {
+            "ref": "skill-index.json",
+            "line": 14,
+            "text": "      \"backend\": \"ascend\""
+          },
+          {
+            "ref": "skill-index.json",
+            "line": 16,
+            "text": "    \"ascend-graph-mode\": {"
+          }
+        ],
+        "visible_refs": [
+          "frameworks/mlx/lazy-evaluation-stream-lifetimes/SKILL.md",
+          "skill-index.json",
+          "frameworks/mlx/lazy-evaluation-stream-lifetimes/references/source-map.md",
+          "frameworks/diffusers/diffusers-invocation-state/SKILL.md",
+          "hardware/README.md",
+          "README.md",
+          "repositories/vllm-ascend/references/sources.md",
+          "repositories/h3-c/audit-h3-runtime-residency/SKILL.md",
+          "repositories/h3-metal/audit-h3-metal-fasth3-semantics/SKILL.md",
+          "repositories/vllm-metal/references/scope-and-notices.md",
+          "repositories/h3-c/audit-h3-runtime-residency/metadata.json",
+          "repositories/h3-c/audit-h3-runtime-residency/references/minimax-h3-apple.md",
+          "repositories/vllm-metal/sub-skills/platform-config/references/configuration.md",
+          "repositories/h3-c/audit-h3-runtime-residency/references/source-notes.md",
+          "repositories/vllm/diagnose-vllm-admission-pressure/references/papers-20261015/notes/orca.md",
+          "repositories/h3-c/audit-h3-runtime-residency/references/phase-residency.md",
+          "repositories/vllm-metal/metadata.json",
+          "repositories/h3-c/audit-h3-runtime-residency/references/validation.md",
+          "repositories/h3-c/audit-h3-runtime-residency/references/precision-and-streaming.md",
+          "repositories/strata/sub-skills/design-space/references/design-space.md",
+          "repositories/vllm/diagnose-vllm-admission-pressure/references/papers-20261015/references/llumnix-readset.md",
+          "repositories/strata/references/design-space-analysis.md",
+          "repositories/sglang/SKILL.md",
+          "repositories/sglang/audit-sglang-diffusion-lifetimes/SKILL.md",
+          "repositories/sglang/audit-sglang-diffusion-lifetimes/metadata.json",
+          "repositories/lily/sub-skills/model-runtime/SKILL.md",
+          "repositories/sglang/audit-sglang-diffusion-lifetimes/references/source-notes.md",
+          "repositories/project-maya/sub-skills/model-runtime/references/notices.md",
+          "repositories/sglang-omni/sub-skills/sglang-omni-serving/references/recipes-and-tuning.md"
+        ],
+        "return_line": 26,
+        "omitted_passages": 128
+      }
+    },
+    {
+      "action": "read",
+      "tool": "sed",
+      "materials": [
+        {
+          "ref": "methods/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md"
+        }
+      ],
+      "trace_line": 39,
+      "event_id": "file-39",
+      "id": "file-39",
+      "delivery": {
+        "state": "visible",
+        "runtime_truncated": false,
+        "archive_omitted": true,
+        "passages": [
+          {
+            "ref": "methods/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md",
+            "line": 1,
+            "text": "# Qwen Ascend: reported rejected directions"
+          },
+          {
+            "ref": "methods/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md",
+            "line": 3,
+            "text": "These observations come from the [pinned Ascend guide]([redacted-url]",
+            "redacted": true
+          },
+          {
+            "ref": "methods/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md",
+            "line": 4,
+            "text": "which attributes them to amy-why-3459 at the upstream head recorded in the"
+          },
+          {
+            "ref": "methods/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md",
+            "line": 5,
+            "text": "typed record below."
+          },
+          {
+            "ref": "methods/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md",
+            "line": 6,
+            "text": "They apply to its one-910B1, BF16, eager, 1280x704, native eight-sigma cohort."
+          },
+          {
+            "ref": "methods/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md",
+            "line": 7,
+            "text": "They are author-reported, `locally_verified=false`, with InferRSI acceptance"
+          },
+          {
+            "ref": "methods/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md",
+            "line": 8,
+            "text": "INCONCLUSIVE. No raw timings, images or frozen validator were imported."
+          },
+          {
+            "ref": "methods/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md",
+            "line": 9,
+            "text": "Kind, origin, state and source identities belong to the"
+          },
+          {
+            "ref": "methods/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md",
+            "line": 10,
+            "text": "[typed source and scope record](qwen-ascend-rejected-directions.json)."
+          },
+          {
+            "ref": "methods/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md",
+            "line": 12,
+            "text": "| Direction | Recorded observation and disposition | Suggested revisit condition and first check |"
+          },
+          {
+            "ref": "methods/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md",
+            "line": 13,
+            "text": "| --- | --- | --- |"
+          },
+          {
+            "ref": "methods/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md",
+            "line": 14,
+            "text": "| Cache eager RoPE cos/sin or expanded SDPA masks | Pixel-identical, but discarded as slower in the source trials. | Profile current recomputation and retained-tensor costs; qualify a matched timing cohort before attributing a regression. |"
+          }
+        ],
+        "visible_refs": [
+          "methods/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md"
+        ],
+        "return_line": 40,
+        "omitted_passages": 9,
+        "redacted_passages": 1
+      }
+    },
+    {
+      "action": "read",
+      "tool": "cat",
+      "materials": [
+        {
+          "ref": "methods/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.json"
+        }
+      ],
+      "trace_line": 45,
+      "event_id": "file-45",
+      "id": "file-45",
+      "delivery": {
+        "state": "visible",
+        "runtime_truncated": false,
+        "archive_omitted": true,
+        "passages": [
+          {
+            "ref": "methods/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.json",
+            "line": 1,
+            "text": "{"
+          },
+          {
+            "ref": "methods/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.json",
+            "line": 2,
+            "text": "  \"id\": \"case.qwen-ascend-rejected-directions\","
+          },
+          {
+            "ref": "methods/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.json",
+            "line": 3,
+            "text": "  \"kind\": \"case\","
+          },
+          {
+            "ref": "methods/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.json",
+            "line": 4,
+            "text": "  \"origin\": [\"external\"],"
+          },
+          {
+            "ref": "methods/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.json",
+            "line": 5,
+            "text": "  \"state\": \"author_reported\","
+          },
+          {
+            "ref": "methods/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.json",
+            "line": 6,
+            "text": "  \"content\": \"qwen-ascend-rejected-directions.md\","
+          },
+          {
+            "ref": "methods/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.json",
+            "line": 7,
+            "text": "  \"required_resources\": [\"qwen-ascend-rejected-directions.json\"],"
+          },
+          {
+            "ref": "methods/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.json",
+            "line": 8,
+            "text": "  \"sources\": [{"
+          },
+          {
+            "ref": "methods/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.json",
+            "line": 9,
+            "text": "    \"type\": \"git\","
+          },
+          {
+            "ref": "methods/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.json",
+            "line": 10,
+            "text": "    \"url\": \"[redacted-url]",
+            "redacted": true
+          },
+          {
+            "ref": "methods/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.json",
+            "line": 11,
+            "text": "    \"commit\": \"d51c941dc57807c1e16ea698cd9291f414110c45\","
+          },
+          {
+            "ref": "methods/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.json",
+            "line": 12,
+            "text": "    \"paths\": [\"docs/qwen-image-2.1-turbo-ascend.md\"],"
+          },
+          {
+            "ref": "methods/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.json",
+            "line": 15,
+            "text": "  \"applicability\": [\"Author-reported single Ascend 910B1 Qwen-Image-2.1-Turbo cohort\", \"BF16, eager, TORCH_SDPA, CFG=1, 1280x704, native eight sigmas\"],"
+          },
+          {
+            "ref": "methods/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.json",
+            "line": 17,
+            "text": "  \"limitations\": [\"Imported author report; locally_verified=false\", \"Raw request timings, RGBA outputs and frozen validator are absent from this import\", \"InferRSI acceptance remains INCONCLUSIVE; the source 30 percent target was not met\", \"No cross-device or HTTP-serving qualification\"],"
+          }
+        ],
+        "visible_refs": [
+          "methods/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.json"
+        ],
+        "return_line": 47,
+        "omitted_passages": 5,
+        "redacted_passages": 1
+      }
+    },
+    {
+      "action": "read",
+      "tool": "sed",
+      "materials": [
+        {
+          "ref": "hardware/ascend/ascend-optimization-casebook/SKILL.md"
+        }
+      ],
+      "trace_line": 52,
+      "event_id": "file-52",
+      "id": "file-52",
+      "delivery": {
+        "state": "visible",
+        "runtime_truncated": false,
+        "archive_omitted": true,
+        "passages": [
+          {
+            "ref": "hardware/ascend/ascend-optimization-casebook/SKILL.md",
+            "line": 1,
+            "text": "---"
+          },
+          {
+            "ref": "hardware/ascend/ascend-optimization-casebook/SKILL.md",
+            "line": 2,
+            "text": "name: ascend-optimization-casebook"
+          },
+          {
+            "ref": "hardware/ascend/ascend-optimization-casebook/SKILL.md",
+            "line": 3,
+            "text": "description: 'Casebook of NPU optimization cases for Ascend inference systems: symptom → diagnosis → action → evidence records for memory-bound, compute-bound, communication-exposed, graph-compilation, and AI-CPU-fallback bottleneck classes. Use when a bottleneck has been classified and you need prior art for what to try next. Complement to inference-optimization-casebook (which covers the caseboo",
+            "truncated": true
+          },
+          {
+            "ref": "hardware/ascend/ascend-optimization-casebook/SKILL.md",
+            "line": 5,
+            "text": "  '"
+          },
+          {
+            "ref": "hardware/ascend/ascend-optimization-casebook/SKILL.md",
+            "line": 6,
+            "text": "---"
+          },
+          {
+            "ref": "hardware/ascend/ascend-optimization-casebook/SKILL.md",
+            "line": 8,
+            "text": "# Ascend NPU Optimization Casebook"
+          },
+          {
+            "ref": "hardware/ascend/ascend-optimization-casebook/SKILL.md",
+            "line": 10,
+            "text": "Status: candidate. Cases grounded in MindIE-SD @ 8481d39b and vllm-ascend"
+          },
+          {
+            "ref": "hardware/ascend/ascend-optimization-casebook/SKILL.md",
+            "line": 11,
+            "text": "@ bc8115ed source evidence. All cases are source-grounded or inferred from"
+          },
+          {
+            "ref": "hardware/ascend/ascend-optimization-casebook/SKILL.md",
+            "line": 12,
+            "text": "observed patterns; none have been independently re-run on a local NPU."
+          },
+          {
+            "ref": "hardware/ascend/ascend-optimization-casebook/SKILL.md",
+            "line": 13,
+            "text": "Mark each applied case as `locally_verified: false` until you run it."
+          },
+          {
+            "ref": "hardware/ascend/ascend-optimization-casebook/SKILL.md",
+            "line": 15,
+            "text": "## How to use this casebook"
+          },
+          {
+            "ref": "hardware/ascend/ascend-optimization-casebook/SKILL.md",
+            "line": 17,
+            "text": "1. Classify the bottleneck first (see `ascend-performance-analysis` skill)."
+          }
+        ],
+        "visible_refs": [
+          "hardware/ascend/ascend-optimization-casebook/SKILL.md"
+        ],
+        "return_line": 54,
+        "omitted_passages": 145,
+        "truncated_passages": 1
+      }
+    },
+    {
+      "action": "read",
+      "tool": "sed",
+      "materials": [
+        {
+          "ref": "methods/inference-optimization-casebook/SKILL.md"
+        }
+      ],
+      "trace_line": 60,
+      "event_id": "file-60",
+      "id": "file-60",
+      "delivery": {
+        "state": "visible",
+        "runtime_truncated": false,
+        "archive_omitted": true,
+        "passages": [
+          {
+            "ref": "methods/inference-optimization-casebook/SKILL.md",
+            "line": 1,
+            "text": "---"
+          },
+          {
+            "ref": "methods/inference-optimization-casebook/SKILL.md",
+            "line": 2,
+            "text": "name: inference-optimization-casebook"
+          },
+          {
+            "ref": "methods/inference-optimization-casebook/SKILL.md",
+            "line": 3,
+            "text": "description: 'How to structure and use a casebook of past optimization decisions as a decision-support tool. Extracts the casebook pattern from TensorRT-LLM''s perf-optimization-casebook skill. Use when building a record of optimization experiments or when deciding which optimization to try next based on prior art."
+          },
+          {
+            "ref": "methods/inference-optimization-casebook/SKILL.md",
+            "line": 5,
+            "text": "  '"
+          },
+          {
+            "ref": "methods/inference-optimization-casebook/SKILL.md",
+            "line": 6,
+            "text": "---"
+          },
+          {
+            "ref": "methods/inference-optimization-casebook/SKILL.md",
+            "line": 8,
+            "text": "# Inference Optimization Casebook Pattern"
+          },
+          {
+            "ref": "methods/inference-optimization-casebook/SKILL.md",
+            "line": 10,
+            "text": "Status: candidate. Source-grounded from TensorRT-LLM @ f33e0e5f,"
+          },
+          {
+            "ref": "methods/inference-optimization-casebook/SKILL.md",
+            "line": 11,
+            "text": "`perf-optimization-casebook/SKILL.md`."
+          },
+          {
+            "ref": "methods/inference-optimization-casebook/SKILL.md",
+            "line": 13,
+            "text": "## What a casebook is"
+          },
+          {
+            "ref": "methods/inference-optimization-casebook/SKILL.md",
+            "line": 15,
+            "text": "A casebook is a queryable record of past optimization decisions: what worked,"
+          },
+          {
+            "ref": "methods/inference-optimization-casebook/SKILL.md",
+            "line": 16,
+            "text": "what failed, under what conditions, at what cost, and with what evidence."
+          },
+          {
+            "ref": "methods/inference-optimization-casebook/SKILL.md",
+            "line": 17,
+            "text": "It is reference material, not a coordinator. It does not run profiling or"
+          },
+          {
+            "ref": "methods/inference-optimization-casebook/SKILL.md",
+            "line": 96,
+            "text": "Before retrying, state which condition changed or which uncertainty a bounded"
+          },
+          {
+            "ref": "methods/inference-optimization-casebook/SKILL.md",
+            "line": 103,
+            "text": "A case is a precedent, not a guaranteed config. The procedure and expected"
+          }
+        ],
+        "visible_refs": [
+          "methods/inference-optimization-casebook/SKILL.md"
+        ],
+        "return_line": 61,
+        "omitted_passages": 101
+      }
+    },
+    {
+      "action": "read",
+      "tool": "sed",
+      "materials": [
+        {
+          "ref": "methods/video-diffusion-optimization/SKILL.md"
+        }
+      ],
+      "trace_line": 66,
+      "event_id": "file-66",
+      "id": "file-66",
+      "delivery": {
+        "state": "visible",
+        "runtime_truncated": false,
+        "archive_omitted": true,
+        "passages": [
+          {
+            "ref": "methods/video-diffusion-optimization/SKILL.md",
+            "line": 1,
+            "text": "---"
+          },
+          {
+            "ref": "methods/video-diffusion-optimization/SKILL.md",
+            "line": 2,
+            "text": "name: video-diffusion-optimization"
+          },
+          {
+            "ref": "methods/video-diffusion-optimization/SKILL.md",
+            "line": 3,
+            "text": "description: 'Run and verify goal-driven video diffusion optimization, backend-agnostic. Use when the user asks for latency, RTF, throughput, or memory targets across VLM, DiT, MoE, attention, or VAE, on any accelerator. Not for text-only LLMs.'"
+          },
+          {
+            "ref": "methods/video-diffusion-optimization/SKILL.md",
+            "line": 4,
+            "text": "---"
+          },
+          {
+            "ref": "methods/video-diffusion-optimization/SKILL.md",
+            "line": 6,
+            "text": "# Video Diffusion Optimization"
+          },
+          {
+            "ref": "methods/video-diffusion-optimization/SKILL.md",
+            "line": 8,
+            "text": "Status: candidate workflow guidance, backend-agnostic. The procedure is first-hand and has not been independently validated. Keep model identifiers, campaign revisions, and numeric gates out of this file; they belong to an acceptance issue and its frozen evidence."
+          },
+          {
+            "ref": "methods/video-diffusion-optimization/SKILL.md",
+            "line": 10,
+            "text": "Own the performance objective through implementation and final verification. Do not stop after profiling, proposing changes, or showing a faster microbenchmark. Continue the measure-change-verify loop until the target is met, the authorized budget is exhausted, or an external blocker prevents execution."
+          },
+          {
+            "ref": "methods/video-diffusion-optimization/SKILL.md",
+            "line": 12,
+            "text": "This skeleton is backend-agnostic. Operator names, memory layouts, and profiler references are backend-specific. The `ascend-video-diffusion-optimization` skill under `hardware/ascend/` specializes this skeleton with Ascend annotations (`TransData`, `FRACTAL_NZ`, `CANN`) and first-hand field notes; re-derive those per backend before following the candidate-selection sections below."
+          },
+          {
+            "ref": "methods/video-diffusion-optimization/SKILL.md",
+            "line": 14,
+            "text": "Verify every stage against the packaged [benchmark design](..[redacted-path] and [evidence discipline](..[redacted-path] A microbenchmark or operator parity check is not end-to-end evidence.",
+            "redacted": true
+          },
+          {
+            "ref": "methods/video-diffusion-optimization/SKILL.md",
+            "line": 16,
+            "text": "## 1. Freeze The Goal Contract"
+          },
+          {
+            "ref": "methods/video-diffusion-optimization/SKILL.md",
+            "line": 18,
+            "text": "Write the contract before editing code:"
+          },
+          {
+            "ref": "methods/video-diffusion-optimization/SKILL.md",
+            "line": 20,
+            "text": "- Primary metric and direction, such as a latency, RTF, throughput, or peak-memory bar."
+          }
+        ],
+        "visible_refs": [
+          "methods/video-diffusion-optimization/SKILL.md"
+        ],
+        "return_line": 68,
+        "omitted_passages": 116,
+        "redacted_passages": 1
+      }
+    },
+    {
+      "action": "search",
+      "tool": "rg",
+      "query": "interleav.*rope|rope.*interleav|initialization OOM|initialization residency|RoPE \\+ VAE|VAE fastpath|fusion attention",
+      "scope": [
+        "methods/inference-optimization-casebook",
+        "hardware/ascend/ascend-video-diffusion-optimization"
+      ],
+      "options": [
+        "-n",
+        "-i"
+      ],
+      "exit_code": 0,
+      "materials": [
+        {
+          "ref": "methods/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md",
+          "match_line": 16
+        }
+      ],
+      "trace_line": 73,
+      "event_id": "file-73",
+      "id": "file-73",
+      "delivery": {
+        "state": "visible",
+        "runtime_truncated": false,
+        "archive_omitted": false,
+        "passages": [
+          {
+            "ref": "methods/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md",
+            "line": 16,
+            "text": "| Fusion attention, including precise=2/0 and mask-free steps | No gain or a gain below the source keep criterion. | Check exact mask, dtype, shapes and device support; run operator quality then complete pipeline timing. Do not reuse the source keep threshold as a repository default. |"
+          },
+          {
+            "ref": "methods/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md",
+            "line": 18,
+            "text": "| RoPE + VAE fastpath + fusion attention | Initialization OOM for this triple stack. | Inventory initialization residency before attempting a new combination. |"
+          },
+          {
+            "ref": "methods/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md",
+            "line": 19,
+            "text": "| Separate kept RoPE + VAE stack on a later busy host | Later requests failed resource reservation; this is a different stack/host cohort from the triple-stack initialization failure. | Qualify current headroom and outside contention before retrying; do not attribute this resource blockage to fusion attention. |"
+          }
+        ],
+        "visible_refs": [
+          "methods/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md"
+        ],
+        "return_line": 75
+      }
+    },
+    {
+      "action": "read",
+      "tool": "sed",
+      "materials": [
+        {
+          "ref": "hardware/ascend/ascend-video-diffusion-optimization/SKILL.md"
+        }
+      ],
+      "trace_line": 81,
+      "event_id": "file-81",
+      "id": "file-81",
+      "delivery": {
+        "state": "visible",
+        "runtime_truncated": false,
+        "archive_omitted": true,
+        "passages": [
+          {
+            "ref": "hardware/ascend/ascend-video-diffusion-optimization/SKILL.md",
+            "line": 1,
+            "text": "---"
+          },
+          {
+            "ref": "hardware/ascend/ascend-video-diffusion-optimization/SKILL.md",
+            "line": 2,
+            "text": "name: ascend-video-diffusion-optimization"
+          },
+          {
+            "ref": "hardware/ascend/ascend-video-diffusion-optimization/SKILL.md",
+            "line": 3,
+            "text": "description: 'Run and verify goal-driven Ascend video diffusion optimization. Specializes the backend-agnostic video-diffusion-optimization skeleton with Ascend NPU operator, layout and profiler references. Use when the user asks for latency, RTF, throughput, or HBM targets across VLM, DiT, MoE, attention, or VAE on Ascend NPU. Not for text-only LLMs.'"
+          },
+          {
+            "ref": "hardware/ascend/ascend-video-diffusion-optimization/SKILL.md",
+            "line": 4,
+            "text": "---"
+          },
+          {
+            "ref": "hardware/ascend/ascend-video-diffusion-optimization/SKILL.md",
+            "line": 6,
+            "text": "# Ascend Video Diffusion Optimization"
+          },
+          {
+            "ref": "hardware/ascend/ascend-video-diffusion-optimization/SKILL.md",
+            "line": 8,
+            "text": "Status: candidate workflow guidance, Ascend-specific. The procedure is first-hand and has not been independently validated beyond the [field notes](references/field-notes-video-diffusion.md). Keep model identifiers, campaign revisions, and numeric gates out of this file; they belong to an acceptance issue and its frozen evidence."
+          },
+          {
+            "ref": "hardware/ascend/ascend-video-diffusion-optimization/SKILL.md",
+            "line": 10,
+            "text": "This skill is the Ascend specialization of the backend-agnostic [video diffusion optimization skeleton](..[redacted-path] Follow that skeleton for the goal contract, baseline discipline, optimization loop, candidate-selection strategy, correctness protection, final acceptance, and final report. This file adds the Ascend-specific operator, layout, and profiler references; it does not repeat the ful",
+            "redacted": true,
+            "truncated": true
+          },
+          {
+            "ref": "hardware/ascend/ascend-video-diffusion-optimization/SKILL.md",
+            "line": 12,
+            "text": "Own the performance objective through implementation and final verification. Do not stop after profiling, proposing changes, or showing a faster microbenchmark. Continue the measure-change-verify loop until the target is met, the authorized budget is exhausted, or an external blocker prevents execution."
+          },
+          {
+            "ref": "hardware/ascend/ascend-video-diffusion-optimization/SKILL.md",
+            "line": 14,
+            "text": "Read the field notes only for prior failures and starting hypotheses. Treat every observation there as untraceable and non-reproducible. Derive thresholds, chunk sizes, precision policy, and sparsity from the target model's own measurements."
+          },
+          {
+            "ref": "hardware/ascend/ascend-video-diffusion-optimization/SKILL.md",
+            "line": 16,
+            "text": "Verify every stage against the packaged [benchmark design](..[redacted-path] and [evidence discipline](..[redacted-path] A microbenchmark or operator parity check is not end-to-end evidence.",
+            "redacted": true
+          },
+          {
+            "ref": "hardware/ascend/ascend-video-diffusion-optimization/SKILL.md",
+            "line": 18,
+            "text": "## Ascend-Specific Layout And Profiler References"
+          },
+          {
+            "ref": "hardware/ascend/ascend-video-diffusion-optimization/SKILL.md",
+            "line": 20,
+            "text": "Where the common skeleton says \"operator names, memory layouts, and profiler references are backend-specific\", apply these Ascend facts:"
+          }
+        ],
+        "visible_refs": [
+          "hardware/ascend/ascend-video-diffusion-optimization/SKILL.md"
+        ],
+        "return_line": 82,
+        "omitted_passages": 6,
+        "truncated_passages": 1,
+        "redacted_passages": 2
+      }
+    },
+    {
+      "action": "read",
+      "tool": "sed",
+      "materials": [
+        {
+          "ref": "hardware/ascend/ascend-video-diffusion-optimization/references/field-notes-video-diffusion.md"
+        }
+      ],
+      "trace_line": 87,
+      "event_id": "file-87",
+      "id": "file-87",
+      "delivery": {
+        "state": "visible",
+        "runtime_truncated": false,
+        "archive_omitted": true,
+        "passages": [
+          {
+            "ref": "hardware/ascend/ascend-video-diffusion-optimization/references/field-notes-video-diffusion.md",
+            "line": 1,
+            "text": "# Field Notes: Ascend Video Diffusion Optimization"
+          },
+          {
+            "ref": "hardware/ascend/ascend-video-diffusion-optimization/references/field-notes-video-diffusion.md",
+            "line": 3,
+            "text": "First-hand observations from video-editing diffusion campaigns on Ascend NPU. Use them as starting hypotheses and as a list of failures to avoid, never as defaults."
+          },
+          {
+            "ref": "hardware/ascend/ascend-video-diffusion-optimization/references/field-notes-video-diffusion.md",
+            "line": 5,
+            "text": "Provenance and limits:"
+          },
+          {
+            "ref": "hardware/ascend/ascend-video-diffusion-optimization/references/field-notes-video-diffusion.md",
+            "line": 7,
+            "text": "- The observations cover two variants of one video-editing model family; both were edited for text and both used a vision-language condition encoder."
+          },
+          {
+            "ref": "hardware/ascend/ascend-video-diffusion-optimization/references/field-notes-video-diffusion.md",
+            "line": 8,
+            "text": "- Exact measurements were removed or coarsened. Remaining figures are order-of-magnitude recollections, not reproducible evidence."
+          },
+          {
+            "ref": "hardware/ascend/ascend-video-diffusion-optimization/references/field-notes-video-diffusion.md",
+            "line": 9,
+            "text": "- No campaign under a published evidence contract produced these notes. Treat them as `unverified` and non-reproducible."
+          },
+          {
+            "ref": "hardware/ascend/ascend-video-diffusion-optimization/references/field-notes-video-diffusion.md",
+            "line": 10,
+            "text": "- A redacted artifact cannot turn an unverified observation into local validation. Re-measure on the target model before relying on any figure below."
+          },
+          {
+            "ref": "hardware/ascend/ascend-video-diffusion-optimization/references/field-notes-video-diffusion.md",
+            "line": 12,
+            "text": "## Variants"
+          },
+          {
+            "ref": "hardware/ascend/ascend-video-diffusion-optimization/references/field-notes-video-diffusion.md",
+            "line": 14,
+            "text": "- **Variant A.** OCR-oriented vision-language condition encoder; short-video text editing; a sparse-attention path that only becomes eligible above a video-token threshold."
+          },
+          {
+            "ref": "hardware/ascend/ascend-video-diffusion-optimization/references/field-notes-video-diffusion.md",
+            "line": 15,
+            "text": "- **Variant B.** Vision-language encoder plus a byte-level text encoder; video DiT with routed and shared MoE experts; temporal video VAE."
+          },
+          {
+            "ref": "hardware/ascend/ascend-video-diffusion-optimization/references/field-notes-video-diffusion.md",
+            "line": 17,
+            "text": "## Findings That Transferred Across Both Variants"
+          },
+          {
+            "ref": "hardware/ascend/ascend-video-diffusion-optimization/references/field-notes-video-diffusion.md",
+            "line": 19,
+            "text": "1. Stage profiling repeatedly changed the optimization order. Condition encoding, DiT, and VAE dominated at different points; no single optimization stayed dominant through a campaign."
+          }
+        ],
+        "visible_refs": [
+          "hardware/ascend/ascend-video-diffusion-optimization/references/field-notes-video-diffusion.md"
+        ],
+        "return_line": 89,
+        "omitted_passages": 61
+      }
+    }
+  ],
+  "materials": {
+    "README.md": {
+      "use": "unknown",
+      "delivery_state": "ref_visible"
+    },
+    "frameworks/diffusers/diffusers-invocation-state/SKILL.md": {
+      "use": "unknown",
+      "delivery_state": "ref_visible"
+    },
+    "frameworks/mlx/lazy-evaluation-stream-lifetimes/SKILL.md": {
+      "use": "unknown",
+      "delivery_state": "visible"
+    },
+    "frameworks/mlx/lazy-evaluation-stream-lifetimes/references/source-map.md": {
+      "use": "unknown",
+      "delivery_state": "ref_visible"
+    },
+    "frameworks/pytorch/pytorch/SKILL.md": {
+      "use": "unknown",
+      "delivery_state": "unknown"
+    },
+    "frameworks/pytorch/pytorch/references/repo-provenance.md": {
+      "use": "unknown",
+      "delivery_state": "unknown"
+    },
+    "frameworks/pytorch/pytorch/references/troubleshooting.md": {
+      "use": "unknown",
+      "delivery_state": "unknown"
+    },
+    "frameworks/pytorch/pytorch/sub-skills/custom-operators-and-extension/SKILL.md": {
+      "use": "unknown",
+      "delivery_state": "unknown"
+    },
+    "frameworks/pytorch/pytorch/sub-skills/custom-operators-and-extension/references/workflows.md": {
+      "use": "unknown",
+      "delivery_state": "unknown"
+    },
+    "frameworks/pytorch/pytorch/sub-skills/distributed-and-checkpoint/SKILL.md": {
+      "use": "unknown",
+      "delivery_state": "unknown"
+    },
+    "frameworks/pytorch/pytorch/sub-skills/installation-and-build/SKILL.md": {
+      "use": "unknown",
+      "delivery_state": "unknown"
+    },
+    "frameworks/pytorch/pytorch/sub-skills/memory-streams-and-graphs/SKILL.md": {
+      "use": "unknown",
+      "delivery_state": "unknown"
+    },
+    "frameworks/pytorch/pytorch/sub-skills/memory-streams-and-graphs/references/troubleshooting.md": {
+      "use": "unknown",
+      "delivery_state": "unknown"
+    },
+    "frameworks/pytorch/pytorch/sub-skills/memory-streams-and-graphs/references/workflows.md": {
+      "use": "unknown",
+      "delivery_state": "unknown"
+    },
+    "frameworks/pytorch/pytorch/sub-skills/tensor-dispatch-autograd/SKILL.md": {
+      "use": "unknown",
+      "delivery_state": "unknown"
+    },
+    "frameworks/pytorch/pytorch/sub-skills/tensor-dispatch-autograd/references/troubleshooting.md": {
+      "use": "unknown",
+      "delivery_state": "unknown"
+    },
+    "frameworks/pytorch/pytorch/sub-skills/tensor-dispatch-autograd/references/workflows.md": {
+      "use": "unknown",
+      "delivery_state": "unknown"
+    },
+    "frameworks/pytorch/pytorch/sub-skills/training-and-data/SKILL.md": {
+      "use": "unknown",
+      "delivery_state": "unknown"
+    },
+    "frameworks/pytorch/pytorch/sub-skills/training-and-data/references/troubleshooting.md": {
+      "use": "unknown",
+      "delivery_state": "unknown"
+    },
+    "frameworks/pytorch/pytorch/sub-skills/training-and-data/references/workflows.md": {
+      "use": "unknown",
+      "delivery_state": "unknown"
+    },
+    "frameworks/torch-npu/torch-npu/sub-skills/memory-streams-and-events/metadata.json": {
+      "use": "unknown",
+      "delivery_state": "unknown"
+    },
+    "hardware/README.md": {
+      "use": "unknown",
+      "delivery_state": "ref_visible"
+    },
+    "hardware/cuda/reason-hopper-kernels/references/sources.md": {
+      "use": "unknown",
+      "delivery_state": "unknown"
+    },
+    "methods/weight-loading-optimization/SKILL.md": {
+      "use": "unknown",
+      "delivery_state": "unknown"
+    },
+    "methods/weight-loading-optimization/metadata.json": {
+      "use": "unknown",
+      "delivery_state": "unknown"
+    },
+    "repositories/h3-c/audit-h3-runtime-residency/SKILL.md": {
+      "use": "unknown",
+      "delivery_state": "ref_visible"
+    },
+    "repositories/h3-c/audit-h3-runtime-residency/metadata.json": {
+      "use": "unknown",
+      "delivery_state": "ref_visible"
+    },
+    "repositories/h3-c/audit-h3-runtime-residency/references/minimax-h3-apple.md": {
+      "use": "unknown",
+      "delivery_state": "ref_visible"
+    },
+    "repositories/h3-c/audit-h3-runtime-residency/references/phase-residency.md": {
+      "use": "unknown",
+      "delivery_state": "ref_visible"
+    },
+    "repositories/h3-c/audit-h3-runtime-residency/references/precision-and-streaming.md": {
+      "use": "unknown",
+      "delivery_state": "ref_visible"
+    },
+    "repositories/h3-c/audit-h3-runtime-residency/references/source-notes.md": {
+      "use": "unknown",
+      "delivery_state": "ref_visible"
+    },
+    "repositories/h3-c/audit-h3-runtime-residency/references/validation.md": {
+      "use": "unknown",
+      "delivery_state": "ref_visible"
+    },
+    "repositories/h3-metal/audit-h3-metal-fasth3-semantics/SKILL.md": {
+      "use": "unknown",
+      "delivery_state": "ref_visible"
+    },
+    "repositories/lily/sub-skills/model-runtime/SKILL.md": {
+      "use": "unknown",
+      "delivery_state": "ref_visible"
+    },
+    "repositories/lithos-metal/sub-skills/compile-fusion/SKILL.md": {
+      "use": "unknown",
+      "delivery_state": "unknown"
+    },
+    "repositories/lithos-metal/sub-skills/compile-fusion/metadata.json": {
+      "use": "unknown",
+      "delivery_state": "unknown"
+    },
+    "repositories/project-maya/sub-skills/model-runtime/references/notices.md": {
+      "use": "unknown",
+      "delivery_state": "ref_visible"
+    },
+    "repositories/sglang-omni/sub-skills/sglang-omni-serving/references/recipes-and-tuning.md": {
+      "use": "unknown",
+      "delivery_state": "ref_visible"
+    },
+    "repositories/sglang/SKILL.md": {
+      "use": "unknown",
+      "delivery_state": "ref_visible"
+    },
+    "repositories/sglang/audit-sglang-diffusion-lifetimes/SKILL.md": {
+      "use": "unknown",
+      "delivery_state": "ref_visible"
+    },
+    "repositories/sglang/audit-sglang-diffusion-lifetimes/metadata.json": {
+      "use": "unknown",
+      "delivery_state": "ref_visible"
+    },
+    "repositories/sglang/audit-sglang-diffusion-lifetimes/references/source-notes.md": {
+      "use": "unknown",
+      "delivery_state": "ref_visible"
+    },
+    "repositories/strata/references/design-space-analysis.md": {
+      "use": "unknown",
+      "delivery_state": "ref_visible"
+    },
+    "repositories/strata/sub-skills/design-space/references/design-space.md": {
+      "use": "unknown",
+      "delivery_state": "ref_visible"
+    },
+    "repositories/vllm-ascend/references/sources.md": {
+      "use": "unknown",
+      "delivery_state": "ref_visible"
+    },
+    "repositories/vllm-metal/metadata.json": {
+      "use": "unknown",
+      "delivery_state": "ref_visible"
+    },
+    "repositories/vllm-metal/references/scope-and-notices.md": {
+      "use": "unknown",
+      "delivery_state": "ref_visible"
+    },
+    "repositories/vllm-metal/sub-skills/platform-config/references/configuration.md": {
+      "use": "unknown",
+      "delivery_state": "ref_visible"
+    },
+    "repositories/vllm/diagnose-vllm-admission-pressure/references/papers-20261015/notes/orca.md": {
+      "use": "unknown",
+      "delivery_state": "ref_visible"
+    },
+    "repositories/vllm/diagnose-vllm-admission-pressure/references/papers-20261015/references/llumnix-readset.md": {
+      "use": "unknown",
+      "delivery_state": "ref_visible"
+    },
+    "skill-index.json": {
+      "use": "unknown",
+      "delivery_state": "visible"
+    },
+    "workflows/inference-engine-research/SKILL.md": {
+      "use": "unknown",
+      "delivery_state": "unknown"
+    },
+    "workflows/inference-engine-research/references/model-aware-preparation.md": {
+      "use": "unknown",
+      "delivery_state": "unknown"
+    },
+    "workflows/inference-engine-research/references/repository-source-scope.md": {
+      "use": "unknown",
+      "delivery_state": "unknown"
+    },
+    "workflows/rsi-evidence/references/omni-experiments.md": {
+      "use": "unknown",
+      "delivery_state": "unknown"
+    },
+    "methods/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md": {
+      "use": "used",
+      "delivery_state": "visible",
+      "evidence": [
+        {
+          "use": "used",
+          "basis": "archive_reviewed",
+          "event_id": "file-39",
+          "passage_line": 6,
+          "passage_text": "They apply to its one-910B1, BF16, eager, 1280x704, native eight-sigma cohort.",
+          "decision_line": 108,
+          "decision_quote": "已有 Qwen Ascend 记录正好覆盖单卡 910B1、BF16、eager、1280×704、原生八步这一队列，"
+        },
+        {
+          "use": "used",
+          "basis": "archive_reviewed",
+          "event_id": "file-73",
+          "passage_line": 18,
+          "passage_text": "| RoPE + VAE fastpath + fusion attention | Initialization OOM for this triple stack. | Inventory initialization residency before attempting a new combination. |",
+          "decision_line": 108,
+          "decision_quote": "报告称 **RoPE + VAE fastpath + 融合 attention 在初始化时 OOM**，并建议先盘点初始化驻留。因此这是这次组合的首要风险，应先做资源检查，再决定是否进入组合试验。"
+        },
+        {
+          "use": "used",
+          "basis": "archive_reviewed",
+          "event_id": "file-73",
+          "passage_line": 16,
+          "passage_text": "| Fusion attention, including precise=2/0 and mask-free steps | No gain or a gain below the source keep criterion. | Check exact mask, dtype, shapes and device support; run operator quality then complete pipeline timing. Do not reuse the source keep threshold as a repository default. |",
+          "decision_line": 108,
+          "decision_quote": "若 profile 未显示 attention 是明显成本，不应优先投入。"
+        }
+      ]
+    },
+    "methods/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.json": {
+      "use": "used",
+      "delivery_state": "visible",
+      "evidence": [
+        {
+          "use": "used",
+          "basis": "archive_reviewed",
+          "event_id": "file-45",
+          "passage_line": 15,
+          "passage_text": "  \"applicability\": [\"Author-reported single Ascend 910B1 Qwen-Image-2.1-Turbo cohort\", \"BF16, eager, TORCH_SDPA, CFG=1, 1280x704, native eight sigmas\"],",
+          "decision_line": 108,
+          "decision_quote": "记录还指定了 `CFG=1` 和 `TORCH_SDPA`；题目没有提供这两项以及当前代码版本，需先核对适用条件。"
+        },
+        {
+          "use": "used",
+          "basis": "archive_reviewed",
+          "event_id": "file-45",
+          "passage_line": 17,
+          "passage_text": "  \"limitations\": [\"Imported author report; locally_verified=false\", \"Raw request timings, RGBA outputs and frozen validator are absent from this import\", \"InferRSI acceptance remains INCONCLUSIVE; the source 30 percent target was not met\", \"No cross-device or HTTP-serving qualification\"],",
+          "decision_line": 108,
+          "decision_quote": "这条先例是作者报告，`locally_verified=false`，缺原始计时、图像和冻结的质量验证器，验收状态为 `INCONCLUSIVE`。"
+        }
+      ]
+    },
+    "hardware/ascend/ascend-optimization-casebook/SKILL.md": {
+      "use": "unknown",
+      "delivery_state": "visible"
+    },
+    "methods/inference-optimization-casebook/SKILL.md": {
+      "use": "used",
+      "delivery_state": "visible",
+      "evidence": [
+        {
+          "use": "used",
+          "basis": "archive_reviewed",
+          "event_id": "file-60",
+          "passage_line": 96,
+          "passage_text": "Before retrying, state which condition changed or which uncertainty a bounded",
+          "decision_line": 108,
+          "decision_quote": "“Before retrying”段要求说明条件变化或待解的不确定性，保留原结果，做未改变的 control，并选择成本最低的区分性检查；"
+        },
+        {
+          "use": "used",
+          "basis": "archive_reviewed",
+          "event_id": "file-60",
+          "passage_line": 103,
+          "passage_text": "A case is a precedent, not a guaranteed config. The procedure and expected",
+          "decision_line": 108,
+          "decision_quote": "“Adapt, do not copy”段说明先例不是保证有效的配置，应按目标模型和硬件重新推导并测量。"
+        }
+      ]
+    },
+    "methods/video-diffusion-optimization/SKILL.md": {
+      "use": "unknown",
+      "delivery_state": "visible"
+    },
+    "hardware/ascend/ascend-video-diffusion-optimization/SKILL.md": {
+      "use": "unknown",
+      "delivery_state": "visible"
+    },
+    "hardware/ascend/ascend-video-diffusion-optimization/references/field-notes-video-diffusion.md": {
+      "use": "unknown",
+      "delivery_state": "visible"
+    }
+  },
+  "declarations": [],
+  "observed": {
+    "searches": 2,
+    "hits": 56,
+    "unique_hits": 56,
+    "used": 3
+  },
+  "counts": null,
+  "candidates": [],
+  "result_note": "Historical decision exercise for #380. It produced no candidate and no new device measurement; this record documents retrieval and decision attribution only, not device performance or a candidate result.",
+  "result_note_basis": "caller_reviewed"
+}

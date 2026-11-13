@@ -525,7 +525,7 @@ inventory = {
     **_inventory(files("inferrsi").joinpath("knowledge", "data"), "knowledge/data"),
     **_inventory(files("inferrsi").joinpath("harness", "data"), "harness/data"),
 }
-assert len(inventory) == 922, f"installed resource count is {len(inventory)}, expected 922"
+assert len(inventory) == 923, f"installed resource count is {len(inventory)}, expected 923"
 assert sum(name.startswith("harness/data/") for name in inventory) == len(REPO_TYPES)
 # Every pinned record path and every registered skill body resolves inside that
 # same enumeration, so the inventory and the records describe one resource set.
