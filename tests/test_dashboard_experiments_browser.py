@@ -163,7 +163,10 @@ def test_profile_layout_preserves_partial_summary_and_keyboard_drilldown(browser
     root = page.locator("#summary-experiments")
     root.locator('[data-xp-control="workload"]').select_option("W-throughput")
     root.locator('.xp-point[aria-label^="native-run-b"]').focus()
+    assert not page.locator('[data-key="rounds"]').evaluate("node => node.open")
     root.get_by_role("button", name="Open experiment · native-run-b").click()
+    assert page.locator('[data-key="rounds"]').evaluate("node => node.open")
+    assert page.locator("[data-experiment-id]:focus").is_visible()
     assert page.locator("[data-experiment-id]:focus").inner_text().find("native-run-b") >= 0
     page.locator("#original-summary-title").click()
     assert "partial" in page.locator("#original-summary-body").inner_text()

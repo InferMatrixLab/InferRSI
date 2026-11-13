@@ -3,11 +3,12 @@
 import json
 import shutil
 import subprocess
+from pathlib import Path
 
 import pytest
 from test_optimization_story import campaign, log_document, write_log
 
-from inferrsi.observability.dashboard import write_dashboard
+from inferrsi.observability.dashboard import dashboard_snapshot, render_dashboard, write_dashboard
 
 
 @pytest.mark.skipif(shutil.which("node") is None, reason="Node.js runs the exported dashboard")
@@ -22,43 +23,44 @@ def test_profile_review_displays_narrative_evidence_conflicts(tmp_path, conflict
         document["iterations"][0]["decision"]["outcome"] = "rejected"
     write_log(tmp_path, document)
     html = write_dashboard(tmp_path)
-    script = r"""
-const fs=require('node:fs'), vm=require('node:vm'), assert=require('node:assert/strict');
-const html=fs.readFileSync(process.argv[1],'utf8'), conflicts=process.argv[2]==='true';
-class Element {
-  constructor(){this.children=[];this.dataset={};this.hidden=false;this.textContent='';}
-  append(...children){this.children.push(...children);}
-  replaceChildren(){this.children=[];}
-  addEventListener(event,listener){this[event]=listener;}
-}
-const nodes=new Map();
-for(const match of html.matchAll(/<[a-z][^>]*\bid="([^"]+)"[^>]*>/g)){
-  const el=new Element();el.hidden=/\shidden\b/.test(match[0]);nodes.set(match[1],el);
-}
-const id=k=>nodes.get(k), make=()=>new Element();
-const payload=html.match(/<script id="dashboard-data"[^>]*>([\s\S]*?)<\/script>/);
-id('dashboard-data').textContent=payload[1];
-const document={documentElement:make(),createElement:make,createTextNode:String,
-                getElementById:id,querySelectorAll:()=>[]};
-const source=[...html.matchAll(/<script>\s*([\s\S]*?)<\/script>/g)].at(-1)[1];
-vm.runInNewContext(source,{document,window:{addEventListener(){},
-  InferRSIExperiments:{create:()=>({render(){}})}},
-                          localStorage:{getItem(){return 'en';},setItem(){}}});
-const items=()=>id('checks-list').children.map(node=>node.textContent);
-assert.equal(id('story-checks').hidden,!conflicts);
-assert.equal(id('checks-title').textContent,'Narrative vs evidence');
-if(conflicts) assert.deepEqual(items(),[
-  'Warning · knowledge r1 · the log says package:missing was used, '
-    +'but it was not retrieved by this capture',
-  'Conflict · round 1 · the log says rejected, rounds.jsonl records adopted',
-]); else assert.deepEqual(items(),[]);
-id('language').click();
-assert.equal(id('story-checks').hidden,!conflicts);
-assert.equal(id('checks-title').textContent,'叙述与证据核对');
-if(conflicts) assert.deepEqual(items(),[
-  '警告 · 检索 r1 · 日志称采用了 package:missing，本次检索没有返回该条目',
-  '冲突 · 第 1 轮 · 日志记为未采纳，rounds.jsonl 记为已采纳',
-]); else assert.deepEqual(items(),[]);
-"""
-    subprocess.run([shutil.which("node"), "-e", script, str(html), str(conflicts).lower()],
-                   check=True)
+    _check_page(html, "conflicts" if conflicts else "clean")
+
+
+def _check_page(html, mode):
+    script = Path(__file__).with_name("check_profile_review.cjs")
+    subprocess.run([shutil.which("node"), str(script), str(html), mode], check=True)
+
+
+@pytest.mark.skipif(shutil.which("node") is None, reason="Node.js runs the exported dashboard")
+def test_profile_review_renders_baseline_link_states_and_partial_timings(tmp_path):
+    write_log(tmp_path, log_document(campaign(tmp_path)))
+    manifest = tmp_path / "campaign.json"
+    manifest.write_text(json.dumps({**json.loads(manifest.read_bytes()),
+                                    "review_layout": "profile_first",
+                                    "experiment_timing_sha256": "0" * 64}))
+    snapshot = dashboard_snapshot(tmp_path)
+    data = snapshot["data"]
+    data["experiment_timing"]["steps"].append(
+        {"kind": "model_call", "label": "#1", "model": "demo", "end": "2026-05-10T02:00:10Z",
+         "start": None, "seconds": None, "basis": "incomplete"})
+    row = data["candidates"][0]
+    row["artifacts"]["profile"] = {"state": "present", "sha256": "a" * 64}
+    row["optimization_trace"] = {"diagnosis": {
+        "scope": "baseline_request", "metric_unit": "s", "total": 5, "source_sha256": "a" * 64,
+        "components": [{"name": "Original worker", "samples": [5]}]}}
+    links = {"r1": "verified", "late": "not_before", "unknown": "unknown_time", "bad": "unverified"}
+    data["profile_captures"] = [{
+        "id": "other", "phase": "baseline", "duration_us": 50, "tracks": [{}],
+        "workload_id": "unrelated", "comparison_key": "other-clock", "source": {"sha256": "b" * 64},
+        "started_at": "2026-05-10T02:00:00Z",
+        "timing": {"basis": "Different clock", "stages_ms": {"Other worker": 42}},
+        "pre_profile_searches": [{"context_id": key, "state": value}
+                                 for key, value in links.items()]
+    }]
+    original = data["story"]["retrievals"][0]
+    for key in ("late", "unknown", "bad"):
+        data["story"]["retrievals"].append({**original, "context_id": key,
+                                            "assembled_text": "PRIVATE SENTINEL"})
+    html = tmp_path / "test-dashboard.html"
+    html.write_text(render_dashboard(snapshot), encoding="utf-8")
+    _check_page(html, "timing")

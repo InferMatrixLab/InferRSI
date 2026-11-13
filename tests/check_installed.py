@@ -7,6 +7,7 @@ from importlib.resources import as_file, files
 from pathlib import Path
 
 import inferrsi
+from inferrsi.benchmark.registry import builtin_tasks, describe_task, task_resources
 from inferrsi.catalog import knowledge_records, repository_pack, search_knowledge
 from inferrsi.cli import main
 from inferrsi.knowledge_operations import KnowledgeReader
@@ -14,6 +15,13 @@ from inferrsi.knowledge_operations import KnowledgeReader
 assert Path(inferrsi.__file__).resolve().parent.parent.name != "src", (
     "This check requires an installed package"
 )
+assert builtin_tasks(), "Task registry is missing from the installation"
+assert "torch" not in sys.modules and "torch_npu" not in sys.modules
+for benchmark_name in builtin_tasks():
+    assert isinstance(describe_task(benchmark_name)["manifest"], dict)
+    root = task_resources(benchmark_name)
+    for resource_name in ("task.json", "TASK.md", "benchmark.py", "LICENSE"):
+        assert root.joinpath(resource_name).is_file(), (benchmark_name, resource_name)
 records = knowledge_records()
 assert len(records) == 128, "Knowledge is missing from the installation"
 assert (

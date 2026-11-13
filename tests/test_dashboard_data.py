@@ -1059,3 +1059,14 @@ def test_profile_reference_trend_is_preserved_after_incompatible_round(tmp_path)
     changed = load_dashboard(tmp_path)
     assert "profile_best_improvement_pct" not in changed["overview"]
     assert not _chart(tmp_path, changed)[0]
+
+
+def test_model_name_is_projected_only_on_request_or_response():
+    from inferrsi.observability.dashboard_data import _event_details
+
+    for kind in ("agent.request", "agent.response"):
+        assert _event_details({"type": kind, "provider_model": "example-model.2_v1"}) == {
+            "provider_model": "example-model.2_v1"}
+        for bad in ("private/path", "two words", "a" * 97, None):
+            assert "provider_model" not in _event_details({"type": kind, "provider_model": bad})
+    assert "provider_model" not in _event_details({"type": "agent.tool", "provider_model": "demo"})

@@ -7,7 +7,7 @@ import sys
 from collections.abc import Callable
 from pathlib import Path
 
-from ..catalog import repository_pack
+from .._repo_pack_data import repository_pack
 from .commands import probe_command
 from .platforms import inspect_device
 from .targets import repository_identity

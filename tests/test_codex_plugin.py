@@ -72,17 +72,20 @@ def test_bundle_contains_all_declared_package_data(distribution):
     # The canonical packaging contract is the oracle, independent of both the
     # builder's file filter and the manifest of files it happened to emit.
     metadata = tomllib.loads((PROJECT / "pyproject.toml").read_text(encoding="utf-8"))
-    patterns = metadata["tool"]["setuptools"]["package-data"]["inferrsi"]
+    packages = metadata["tool"]["setuptools"]["package-data"]
     source = _io_path(PROJECT / "src/inferrsi")
     expected = {
         path.relative_to(source).as_posix()
-        for pattern in patterns for path in source.glob(pattern) if path.is_file()
+        for package, patterns in packages.items()
+        for pattern in patterns
+        for path in _io_path(PROJECT / "src" / Path(*package.split("."))).glob(pattern)
+        if path.is_file()
     }
     assert "data/skill_library/repositories/splash/THIRD_PARTY_NOTICES" in expected
     installed = {
         name.removeprefix("inferrsi/")
         for name in runtime_bytes(distribution)
-        if name.startswith("inferrsi/data/") or (
+        if name.startswith(("inferrsi/data/", "inferrsi/benchmark/tasks/")) or (
             name.startswith("inferrsi/observability/") and name.endswith(".html")
         )
     }

@@ -99,6 +99,35 @@ Agents and human reviewers **clear** work only with artifacts—not vibes. Green
 
 Portable operator guidance and candidate procedures live in [src/inferrsi/data/skill_library/](src/inferrsi/data/skill_library/README.md), with hardware-specific guidance under `hardware/<backend-or-host>/`, framework/repository guidance under its owner, and generic `methods/` and `workflows/`. The library owns complete procedures, metadata, references and cases. Keep library content in English; supporting documents stay in owner-local resource directories. The [knowledge-base contract](docs/knowledge-base.md) and two matrices define ownership and coverage. Keep **AGENTS.md** short; follow skill bodies for procedures—skills must remain free of campaign SHAs.
 
+## Optimization requests
+
+Ordinary project optimization stays in the current Agent conversation. Follow
+the [shared optimization workflow](docs/optimization-workflow-unification.md):
+prepare explicit workload, quality/measurement scripts, metric, gates, declared
+project inputs and budget, then use `campaign start/knowledge/round/status/final`.
+Harness freezes those supplied conditions and assesses the retained results;
+it does not infer acceptance from the user's goal. Ordinary optimization does
+not depend on Benchmark. Use `up_to` with a recorded stop reason or declare exact rounds.
+This and the packaged task path below share one Harness controller. Managed
+campaigns generate dashboard views from that control record; do not use legacy
+`campaign record/decide` to create a second set of optimization state.
+
+For a request to run an optimization task through RSI, follow the
+[current-Agent benchmark workflow](docs/optimization-benchmarks.md).
+Use `benchmarks session` to freeze the budget, submit each changed candidate,
+read its feedback, and independently retest the selected candidate with `final`.
+Report the session summary after the declared rounds and final are complete.
+`benchmarks run` is the single-candidate measurement operation inside that workflow.
+Benchmark requests default to a fresh conversation on the current host; follow
+[native Agent sessions](docs/native-agent-sessions.md). The initiator resolves
+the task/configuration, records a prompt through `agents prepare`, then dispatches,
+creates and binds one native session. It does not start the optimization campaign.
+The execution Agent reads the RSI entry, runs start through independent final,
+and returns the summary and artifacts. It must not redelegate. The initiator
+observes the native session and records the delivered results without inferring
+acceptance from host completion. An explicit current-conversation request uses
+the same full optimization lifecycle directly.
+
 ## Dev smoke (local)
 
 Same as [README.md](README.md)—do not expand scope unless an acceptance issue requires it:
