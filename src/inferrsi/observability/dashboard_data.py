@@ -751,7 +751,11 @@ def _run(root: Path, path: Path, candidate: dict, run_id: str | None, noise: flo
                     }
             else:
                 workflow["groups"][1].update(counts)
+    from .dashboard_experiments import native_measurements
+
+    plot_measurements = native_measurements(lock, evaluation, events)
     return {
+        "_plot_measurements": plot_measurements,
         "candidate_id": _text(candidate_id) if isinstance(candidate_id, str) else None,
         "title": _text(candidate.get("title"), "Recorded candidate"),
         "run_id": _text(run_id) if run_id else None,
@@ -794,6 +798,13 @@ def _run(root: Path, path: Path, candidate: dict, run_id: str | None, noise: flo
         "candidate_metadata_state": (candidate_ref.get("missing_reason", "present")
                                      if candidate_ref else "not_applicable"),
         "artifacts": refs, "_comparison_signature": signature,
+        "_plot_comparison_signature": (
+            signature + (tuple(lock["candidate_command"]), lock["repetitions"])
+            if signature is not None and isinstance(lock.get("candidate_command"), list)
+            and lock["candidate_command"] and all(isinstance(v, str) and v
+                                                  for v in lock["candidate_command"])
+            and type(lock.get("repetitions")) is int and lock["repetitions"] > 0 else None
+        ),
     }
 
 
@@ -1049,7 +1060,7 @@ def load_dashboard(source: Path) -> dict:
     anchor = anchors[0] if len(anchors) == 1 else None
     signatures = []
     for row in rows:
-        signature = row.pop("_comparison_signature")
+        signature = row.get("_comparison_signature")
         if anchor is not None:
             row["matches_profile_baseline"] = signature == anchor
         if row["improvement_pct"] is not None:
@@ -1100,6 +1111,12 @@ def load_dashboard(source: Path) -> dict:
         from .optimization_story import build_story
 
         story = build_story(root, rows, decisions, campaign.get("campaign_id"))
+    from .dashboard_experiments import project_experiments
+
+    experiments = project_experiments(_text(campaign.get("campaign_id"), "single"), rows, story)
+    for row in rows:
+        row.pop("_comparison_signature", None)
+        row.pop("_plot_comparison_signature", None)
     collection = campaign.get("collection")
     collection = collection if isinstance(collection, dict) else {}
     declared = campaign.get("stages_declared")
@@ -1132,4 +1149,5 @@ def load_dashboard(source: Path) -> dict:
                     "stage_not_recorded"} for stage in STAGES],
         "diagnostics": diagnostics,
         "story": story,
+        "experiments": experiments,
     }

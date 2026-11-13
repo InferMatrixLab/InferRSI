@@ -11,6 +11,7 @@ from pathlib import Path
 
 def external_record(root: Path, reference: object, candidate_id: str) -> tuple[dict, dict]:
     from .dashboard_data import STAGES, _explicit_ref, _number, _text
+    from .dashboard_experiments import external_dimensions
 
     ref = _explicit_ref(root, reference, "external_record")
     if ref["state"] != "present":
@@ -59,6 +60,7 @@ def external_record(root: Path, reference: object, candidate_id: str) -> tuple[d
                     raise ValueError("two round aggregate")
             metrics.append(
                 {
+                    "plot": external_dimensions(m),
                     "name": _text(m.get("name")),
                     "unit": _text(m.get("unit")),
                     "samples": samples,
@@ -80,6 +82,12 @@ def external_record(root: Path, reference: object, candidate_id: str) -> tuple[d
             events.append(
                 {
                     "line": i,
+                    "event_id": e.get("id") if isinstance(e.get("id"), str)
+                    and e["id"] and _text(e["id"]) == e["id"] else None,
+                    "workload": _text(e.get("workload"), "") or None,
+                    "scope": _text(e.get("scope"), "") or None,
+                    "metric": _text(e.get("metric"), "") or None,
+                    "category": _text(e.get("category"), "") or None,
                     "time": time,
                     "phase": None,
                     "type": "external.record",
