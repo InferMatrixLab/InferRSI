@@ -231,6 +231,8 @@ def _require_disjoint_paths(paths: list[str]) -> None:
 
 
 def _resource_projection(resource: dict) -> dict:
+    if not isinstance(resource, dict) or resource.keys() != _RESOURCE_FIELDS:
+        raise ValueError("invalid protocol resource")
     ref = resource["artifact"]
     validate_artifact_ref(ref)
     _logical_path(ref["location"])
@@ -246,6 +248,8 @@ def verify_protocol(prepared: dict, data: bytes) -> None:
         if (
             not isinstance(protocol, dict) or protocol.keys() != _PROTOCOL_FIELDS
             or type(protocol["schema_version"]) is not int or protocol["schema_version"] != 1
+            or not isinstance(protocol["resources"], list)
+            or not isinstance(prepared["resources"], list)
         ):
             raise ValueError("invalid ProtocolV1 envelope")
         projection = dict(protocol)

@@ -241,3 +241,20 @@ def test_protocol_rejects_identical_duplicate_resource_roles(binding):
     prepared["protocol"].update(sha256=sha256(data).hexdigest(), size_bytes=len(data))
     with pytest.raises(PublicError, match="InvalidExecutionSpec"):
         verify_protocol(prepared, data)
+
+
+@pytest.mark.parametrize("resources", [{}, "", None])
+def test_execute_rejects_non_array_protocol_resources(tmp_path, binding, resources):
+    request, prepared, _ = binding
+    protocol = decode((_FIXTURES / "t108-v4/protocol.json").read_bytes())
+    protocol["resources"] = resources
+    data = encode(protocol)
+    prepared["protocol"].update(sha256=sha256(data).hexdigest(), size_bytes=len(data))
+    _refresh_ref(request, prepared)
+    _, config = _write_archive(tmp_path, prepared, data)
+    run = execute(
+        request, workspace=tmp_path, storage_config=config,
+        execute_harness=lambda _: pytest.fail("submitted malformed archived protocol"),
+    )
+    assert run.result["reason_code"] == "InvalidExecutionSpec"
+    assert run.result["error"]["stage"] == "binder_validation"
