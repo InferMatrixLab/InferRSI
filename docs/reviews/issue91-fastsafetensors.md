@@ -22,7 +22,7 @@ No efficacy evaluation has been executed.
 - **Ground (`X`):** resolve the historical prefix from a clean source checkout;
   inspect caller, owner-only copier selection, collective adapters, readiness,
   output lifetime and author tests. The owner-local
-  [readset](../../src/inferrsi/data/skill_library/methods/weight-loading-optimization/references/fastsafetensors-transfer-readset.md)
+  [readset](../../src/inferrsi/knowledge/data/skill_library/methods/weight-loading-optimization/references/fastsafetensors-transfer-readset.md)
   maps each rule to immutable paths/lines and Apache-2.0 attribution. Other
   source claims, including inherited I/O/save performance, remain carried evidence.
 - **Construct (`G_tilde`):** one existing skill with additive §9 and one source

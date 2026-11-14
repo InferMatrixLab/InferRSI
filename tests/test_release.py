@@ -130,7 +130,7 @@ def test_reject_published_source_outside_default_history(release_repo):
 
 
 @pytest.mark.parametrize("name,allowed", [
-    ("src/inferrsi/data/example.json", True), ("README.md", True),
+    ("src/inferrsi/knowledge/data/example.json", True), ("README.md", True),
     ("evidence/run/results.json", False), (".github/workflows/release.yml", False),
     ("../outside", False),
 ])

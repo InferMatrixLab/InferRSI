@@ -186,7 +186,7 @@ def main(argv: list[str] | None = None) -> int:
             )
 
             root = args.root if args.root is not None else Path(
-                files("inferrsi").joinpath("data", "skill_library")
+                files("inferrsi").joinpath("knowledge", "data", "skill_library")
             )
             if args.skills_action == "list":
                 records = skill_records(root)

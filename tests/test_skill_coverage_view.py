@@ -323,8 +323,10 @@ def test_resource_layer_decisions_preserve_unknown_na_and_conflicts(tmp_path):
     assert "wording.\nSee" not in rendered
     assert "| **unknown** |" in rendered
     assert skill_metadata(library, "process")["searchspace_not_applicable"] == reason
+    # render_index names its inputs with the pinned prefix, which K02 kept while
+    # the physical corpus moved under the Knowledge module.
     hashes = {
-        f"{coverage.LIBRARY.as_posix()}/{path.relative_to(library).as_posix()}":
+        f"{index_builder.PINNED_LIBRARY.as_posix()}/{path.relative_to(library).as_posix()}":
         hashlib.sha256(path.read_bytes()).hexdigest()
         for path in library.rglob("*") if path.is_file()
     }

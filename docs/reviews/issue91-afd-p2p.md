@@ -14,9 +14,9 @@ is part of this delivery.
 The scoped capabilities are (1) role/world/subgroup rank interpretation with
 uneven Attention/FFN counts and (2) one per-stage, per-peer payload round trip.
 The payload scope is CUDA P2pNccl eager dense FFN, Attention-side gating disabled.
-The complete [candidate](../../src/inferrsi/data/skill_library/repositories/afd-plugin/audit-afd-p2p-exchanges/SKILL.md)
-owns both rules, with one [source ledger](../../src/inferrsi/data/skill_library/repositories/afd-plugin/audit-afd-p2p-exchanges/references/source-notes.md)
-and the full package-supported [license/notice resource](../../src/inferrsi/data/skill_library/repositories/afd-plugin/audit-afd-p2p-exchanges/references/afd-plugin-LICENSE.md).
+The complete [candidate](../../src/inferrsi/knowledge/data/skill_library/repositories/afd-plugin/audit-afd-p2p-exchanges/SKILL.md)
+owns both rules, with one [source ledger](../../src/inferrsi/knowledge/data/skill_library/repositories/afd-plugin/audit-afd-p2p-exchanges/references/source-notes.md)
+and the full package-supported [license/notice resource](../../src/inferrsi/knowledge/data/skill_library/repositories/afd-plugin/audit-afd-p2p-exchanges/references/afd-plugin-LICENSE.md).
 
 The [historical #105 intake](issue91-afd-plugin-intake.md) remains unchanged.
 Its located-not-mined conclusion described that earlier delivery; this bounded

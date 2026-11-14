@@ -1,7 +1,7 @@
 {
   "$schema": "urn:inferrsi:docs:legacy-knowledge-manifest:v1",
-  "description": "First-wave compatibility exceptions for seven root Knowledge leaves plus the neutral technical data leaf. P0b froze the first revision at 0da7e2f960cd4ec994ae8eddea5b71023c5379ca. This K01 revision re-records every leaf hash at base_commit before the move; it is not a wildcard approval and changes only through formal review. D018/D020 chose these exact edges. file_sha256 is the old root leaf before the move, and line references are at base_commit.",
-  "base_commit": "e2f4cd1e39b369f06835cdd655ad5dc9f6808918",
+  "description": "First-wave compatibility exceptions for seven root Knowledge leaves plus the neutral technical data leaf. P0b froze the first revision at 0da7e2f960cd4ec994ae8eddea5b71023c5379ca and K01 re-recorded every leaf hash before the code move. This K02 revision changes only the neutral data leaf's locked file hash, because the pack.json resource moved to the Harness root. It is not a wildcard approval and changes only through formal review. D018/D020 chose these exact edges. file_sha256 is the old root leaf before the move, and line references are at the recorded base_commit.",
+  "base_commit": "d7de7f3a7a4c089da08cc17a0117a54d89466dee",
   "revision_history": [
     {
       "base_commit": "0da7e2f960cd4ec994ae8eddea5b71023c5379ca",
@@ -11,6 +11,15 @@
       "changed_file_sha256": {
         "src/inferrsi/_skill_selection.py": "acbec7c91bfa05bc2008b939e009fe600a40518051229fb7618c56b092ad36b9",
         "src/inferrsi/knowledge_operations.py": "3725781bcedb308af6ad9edc0b970c63f82accf6b04ebee4008c1081b63bed9c"
+      }
+    },
+    {
+      "base_commit": "e2f4cd1e39b369f06835cdd655ad5dc9f6808918",
+      "stage": "K01",
+      "superseded_by": "K02 resource-path revision at d7de7f3a7a4c089da08cc17a0117a54d89466dee",
+      "reason": "K02 (#409) moves repo_packs/<pack>/pack.json to the Harness resource root per D007, so the neutral data leaf reads a new physical path and its locked file hash changes. The seven root leaf hashes, the nine compatibility pairs and catalog's two routes are unchanged.",
+      "changed_file_sha256": {
+        "src/inferrsi/_repo_pack_data.py": "a14edac8283b1f7b6b5794381c44d7c2632dda5cc01f03c557dc293d05523afd"
       }
     }
   ],
@@ -240,9 +249,9 @@
   },
   "technical_leaf": {
     "module": "inferrsi._repo_pack_data",
-    "note": "K01 creates src/inferrsi/_repo_pack_data.py from the recorded original fragment plus a leading comment, the future import, and the three listed stdlib imports. file_sha256 locks the complete new file; P0b recorded only the fragment.",
+    "note": "K01 created src/inferrsi/_repo_pack_data.py from the recorded original fragment plus a leading comment, the future import, and the three listed stdlib imports. K02 repointed the reader to the Harness resource root and extended that comment, so file_sha256 is relocked here. original_fragment keeps the P0b provenance text; current_fragment is the body in the file today. P0b recorded only the fragment.",
     "file": "src/inferrsi/_repo_pack_data.py",
-    "file_sha256": "a14edac8283b1f7b6b5794381c44d7c2632dda5cc01f03c557dc293d05523afd",
+    "file_sha256": "751d7bf663318962a2e73cf9d75369e0f8f8c2bda27964c56e44021b9f86c992",
     "allowed_imports": [
       "json",
       "importlib.resources",
@@ -259,6 +268,23 @@
       "hash_convention": "fragment_sha256 is the SHA-256 of source plus one trailing newline",
       "fragment_sha256": "d425a85de7a49f4b3748f9b496d13722b82a8de2d2a9b0b50fa38b16cc32babb",
       "source": "REPO_TYPES = (\"vllm\", \"vllm_omni\", \"afd_plugin\", \"vllm_rlt\", \"strata\", \"sglang\", \"sglang_omni\")\n\n\ndef repository_pack(repo_type: str) -> dict[str, Any]:\n    if repo_type not in REPO_TYPES:\n        raise ValueError(f\"Unknown repository type: {repo_type}\")\n    path = files(\"inferrsi\").joinpath(\"data\", \"repo_packs\", repo_type, \"pack.json\")\n    return json.loads(path.read_text(encoding=\"utf-8\"))"
+    },
+    "current_fragment": {
+      "description": "REPO_TYPES and repository_pack as they stand after the K02 resource-path revision",
+      "hash_convention": "fragment_sha256 is the SHA-256 of source plus one trailing newline",
+      "fragment_sha256": "b6e49fdd67f7029e080e5e224cf3bf417c7dbc1e337644c3e1cb2b783cae2e4c",
+      "source": "REPO_TYPES = (\"vllm\", \"vllm_omni\", \"afd_plugin\", \"vllm_rlt\", \"strata\", \"sglang\", \"sglang_omni\")\n\n\ndef repository_pack(repo_type: str) -> dict[str, Any]:\n    if repo_type not in REPO_TYPES:\n        raise ValueError(f\"Unknown repository type: {repo_type}\")\n    path = files(\"inferrsi\").joinpath(\"harness\", \"data\", \"repo_packs\", repo_type, \"pack.json\")\n    return json.loads(path.read_text(encoding=\"utf-8\"))"
+    },
+    "resource_path_revision": {
+      "stage": "K02",
+      "issue": "#409",
+      "reason": "D007 places repo_packs/<pack>/pack.json under the Harness resource root. The leaf is the only reader of that resource, so its one path expression moves with the file.",
+      "old_file_sha256": "a14edac8283b1f7b6b5794381c44d7c2632dda5cc01f03c557dc293d05523afd",
+      "new_file_sha256": "751d7bf663318962a2e73cf9d75369e0f8f8c2bda27964c56e44021b9f86c992",
+      "old_line": "path = files(\"inferrsi\").joinpath(\"data\", \"repo_packs\", repo_type, \"pack.json\")",
+      "new_line": "path = files(\"inferrsi\").joinpath(\"harness\", \"data\", \"repo_packs\", repo_type, \"pack.json\")",
+      "unchanged": "The importlib anchor stays files(\"inferrsi\") and joins the physical path, so the leaf still imports no inferrsi module. allowed_imports, the two symbols, the top-level shape, REPO_TYPES object identity and the two permitted importers are unchanged, and infra gains no edge into Harness.",
+      "review": "This manifest revision requires formal architecture review (amy-why-3459 and zengchuang-hw). The implementer does not self-approve it."
     }
   },
   "infra_inspection_rewrite": {

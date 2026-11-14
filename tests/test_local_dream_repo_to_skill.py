@@ -17,7 +17,7 @@ import pytest
 import yaml
 
 PROJECT = Path(__file__).resolve().parents[1]
-ROOT = PROJECT / "src/inferrsi/data/skill_library/repositories/local-dream"
+ROOT = PROJECT / "src/inferrsi/knowledge/data/skill_library/repositories/local-dream"
 CASES = PROJECT / "tests/fixtures/repo_to_skill/local-dream/test-cases"
 SCRIPT = ROOT / "scripts/screen_declarations.py"
 MODULE = runpy.run_path(str(SCRIPT))

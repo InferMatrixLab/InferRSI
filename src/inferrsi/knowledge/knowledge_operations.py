@@ -261,7 +261,10 @@ class KnowledgeReader:
 
     def _skill_library(self) -> tuple[dict[str, bytes], str]:
         if self._library is None:
-            root = files("inferrsi").joinpath("data", "skill_library")
+            # K02 moved the physical corpus under the Knowledge module. The bundle
+            # key prefix stays "data/skill_library" so resource keys, dependency
+            # keys and pinned record hashes keep their existing values.
+            root = files("inferrsi").joinpath("knowledge", "data", "skill_library")
             library = _tree(root, "data/skill_library")
             digest = _hash(_json({path: _hash(data) for path, data in sorted(library.items())}))
             self._library = (library, "sha256:" + digest)

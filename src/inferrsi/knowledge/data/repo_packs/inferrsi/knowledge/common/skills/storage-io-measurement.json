@@ -1,0 +1,98 @@
+{
+  "schema_version": 2,
+  "id": "inferrsi.common.skills.storage_io_measurement",
+  "title": "storage-io-measurement",
+  "repo": "inferrsi",
+  "tier": "contribution",
+  "backend": "common",
+  "component": "skills",
+  "scenario": "skills.discovery",
+  "status": "imported",
+  "summary": "Measure storage I/O for LLM/diffusion serving without conflating device metrics with application outcomes: match the fio workload to the observed loader signature, validate requested-versus-achieved I/O depth, keep a cache-state ledger (warm/cold/unknown with method), classify startup vs steady-state runs, read outputs with unit and latency-provenance awareness, attribute traffic per device (iostat) and per process (pidstat), and gate any \"storage bottleneck\" claim through a saturation-evidence check plus a separate application-outcome layer. Measurement methodology only — running benchmarks or manipulating caches requires separate authorization.\n",
+  "tags": [
+    "storage",
+    "fio",
+    "iostat",
+    "pidstat",
+    "measurement",
+    "io",
+    "evidence"
+  ],
+  "origin": [
+    "external"
+  ],
+  "index_type": "packaged-skill",
+  "skill_documents": {
+    "original": "data/skill_library/hardware/host/storage-io-measurement/SKILL.md"
+  },
+  "checkout_ref": "checkout:storage-io-measurement",
+  "source_files": {
+    "src/inferrsi/knowledge/data/skill_library/hardware/host/storage-io-measurement/SKILL.md": "63b883c10a8d3e7d918abfc7175b72e2b401ff1e02697f94b8382ec1c8f369b7",
+    "src/inferrsi/knowledge/data/skill_library/hardware/host/storage-io-measurement/metadata.json": "5017aa6c04b8cc45d8549b71bc283bfced8e7e1bdb29cf0b305a0447a3c12a9d"
+  },
+  "skill_metadata": {
+    "name": "storage-io-measurement",
+    "description": "Measure storage I/O for LLM/diffusion serving without conflating device metrics with application outcomes: match the fio workload to the observed loader signature, validate requested-versus-achieved I/O depth, keep a cache-state ledger (warm/cold/unknown with method), classify startup vs steady-state runs, read outputs with unit and latency-provenance awareness, attribute traffic per device (iostat) and per process (pidstat), and gate any \"storage bottleneck\" claim through a saturation-evidence check plus a separate application-outcome layer. Measurement methodology only — running benchmarks or manipulating caches requires separate authorization.\n",
+    "tags": [
+      "storage",
+      "fio",
+      "iostat",
+      "pidstat",
+      "measurement",
+      "io",
+      "evidence"
+    ],
+    "status": "candidate",
+    "profile": "local-skill-v1",
+    "schema_version": 1,
+    "kind": "skill",
+    "origin": [
+      "external"
+    ],
+    "empirical_validation": "not_run",
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+    ],
+    "provenance_readsets": [],
+    "consumption_mode": "packaged",
+    "applicability": {
+      "scope": "Measure and attribute storage traffic for model loading or serving while separating device/process observations from application outcomes and cache/startup effects.",
+      "prerequisites": "Resolve backing devices and participating worker PIDs first; active fio benchmarks or cache manipulation require separate authorization, with bounded observation during already-authorized runs.",
+      "input_contract": "Observed loader access pattern, tool/OS/filesystem versions, file-to-device mapping, worker PIDs, phase timestamps, cache-state method and raw IO/job/application measurements.",
+      "produced_artifact": "A workload- and cache-qualified IO evidence record with units, achieved depth, errors/bytes/completion and device/process attribution, plus a separately measured application outcome where benefit is claimed.",
+      "refusal_point": "Reject unspecified or copied-example benchmark workloads; do not name a storage bottleneck from util/iowait alone or infer application gain from synthetic bandwidth."
+    },
+    "recommendations": [
+      "Match the fio read pattern to the observed loader and verify achieved rather than requested depth; more queued work can increase latency.",
+      "Record warm/cold/unknown cache state and its method, separate startup from repeated/steady reads, and check completed bytes for truncated runs.",
+      "Align per-device and per-process observations with the application phase, retain units and latency provenance, and corroborate saturation using traffic, queues and process activity.",
+      "Only run a separately authorized bounded read-only job against an explicit existing regular file, then remeasure the real application before accepting a benefit."
+    ]
+  },
+  "applicability": {
+    "scope": "Measure and attribute storage traffic for model loading or serving while separating device/process observations from application outcomes and cache/startup effects.",
+    "prerequisites": "Resolve backing devices and participating worker PIDs first; active fio benchmarks or cache manipulation require separate authorization, with bounded observation during already-authorized runs.",
+    "input_contract": "Observed loader access pattern, tool/OS/filesystem versions, file-to-device mapping, worker PIDs, phase timestamps, cache-state method and raw IO/job/application measurements.",
+    "produced_artifact": "A workload- and cache-qualified IO evidence record with units, achieved depth, errors/bytes/completion and device/process attribution, plus a separately measured application outcome where benefit is claimed.",
+    "refusal_point": "Reject unspecified or copied-example benchmark workloads; do not name a storage bottleneck from util/iowait alone or infer application gain from synthetic bandwidth."
+  },
+  "recommendations": [
+    "Match the fio read pattern to the observed loader and verify achieved rather than requested depth; more queued work can increase latency.",
+    "Record warm/cold/unknown cache state and its method, separate startup from repeated/steady reads, and check completed bytes for truncated runs.",
+    "Align per-device and per-process observations with the application phase, retain units and latency provenance, and corroborate saturation using traffic, queues and process activity.",
+    "Only run a separately authorized bounded read-only job against an explicit existing regular file, then remeasure the real application before accepting a benefit."
+  ],
+  "limitations": [
+    "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",
+    "The imported status describes this index, not the original skill; its declared status is candidate.",
+    "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
+    "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
+    "Source-derived candidate; no local efficacy validation.",
+    "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}

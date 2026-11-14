@@ -12,7 +12,7 @@ from inferrsi.skill_catalog import (
     skill_reference,
 )
 
-ROOT = Path(__file__).resolve().parents[1] / "src/inferrsi/data/skill_library"
+ROOT = Path(__file__).resolve().parents[1] / "src/inferrsi/knowledge/data/skill_library"
 
 
 def test_local_profiles_preserve_core_and_structured_ownership():

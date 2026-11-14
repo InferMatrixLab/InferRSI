@@ -305,8 +305,8 @@ content or another boundary. The automated report does not invent that decision
 or silently count the gap as passed. Content/source review, authorship admission,
 and merge authority remain independent.
 
-Knowledge-only changes under `src/inferrsi/data/repo_packs/**/knowledge/**` and
-`src/inferrsi/data/knowledge_packs/**` now trigger bounded automatic planning.
+Knowledge-only changes under `src/inferrsi/knowledge/data/repo_packs/**/knowledge/**` and
+`src/inferrsi/knowledge/data/knowledge_packs/**` now trigger bounded automatic planning.
 Unmapped paths remain uncovered, select no paid work, and publish insufficient
 evidence rather than a pass. Other repository-pack paths can use the existing
 **plan-only dispatch** for an explicit scope report. No unrelated audit grader

@@ -1,0 +1,98 @@
+{
+  "schema_version": 2,
+  "id": "inferrsi.ascend.skills.ascend_operator_profiling",
+  "title": "ascend-operator-profiling",
+  "repo": "inferrsi",
+  "tier": "contribution",
+  "backend": "ascend",
+  "component": "skills",
+  "scenario": "skills.discovery",
+  "status": "imported",
+  "summary": "Benchmark a single Ascend NPU operator using msprof op: build, collect with warmup, read the 8 CSV metrics files, derive a bottleneck verdict, and iterate. Use when validating operator performance in isolation before system-level profiling.\n",
+  "tags": [
+    "ascend",
+    "npu",
+    "operator",
+    "profiling",
+    "msprof",
+    "benchmark"
+  ],
+  "origin": [
+    "external"
+  ],
+  "index_type": "packaged-skill",
+  "skill_documents": {
+    "original": "data/skill_library/hardware/ascend/ascend-operator-profiling/SKILL.md"
+  },
+  "checkout_ref": "checkout:ascend-operator-profiling",
+  "source_files": {
+    "src/inferrsi/knowledge/data/skill_library/hardware/ascend/ascend-operator-profiling/SKILL.md": "401981cf7828edcab0c9ea882f7ecd83badfa3c2a95006e912cf99d67b3d6a12",
+    "src/inferrsi/knowledge/data/skill_library/hardware/ascend/ascend-operator-profiling/metadata.json": "b2b93637f01546ecb1b7076be6798d234988c594cccdcb764ad222af9ad21af9"
+  },
+  "skill_metadata": {
+    "name": "ascend-operator-profiling",
+    "description": "Benchmark a single Ascend NPU operator using msprof op: build, collect with warmup, read the 8 CSV metrics files, derive a bottleneck verdict, and iterate. Use when validating operator performance in isolation before system-level profiling.\n",
+    "tags": [
+      "ascend",
+      "npu",
+      "operator",
+      "profiling",
+      "msprof",
+      "benchmark"
+    ],
+    "status": "candidate",
+    "synced-from": "https://gitcode.com/cann/cannbot-skills external/cannbot/ops/ops-profiling",
+    "synced-date": "2026-05-26",
+    "synced-commit": "ac5bbd2b4cf427d011874e11f8d1e8b1bef66eda",
+    "license": "UNKNOWN",
+    "profile": "local-skill-v1",
+    "schema_version": 1,
+    "kind": "skill",
+    "origin": [
+      "external"
+    ],
+    "empirical_validation": "not_run",
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+    ],
+    "provenance_readsets": [],
+    "consumption_mode": "packaged",
+    "applicability": {
+      "scope": "Build, measure and diagnose one Ascend operator in isolation using msprof op, before interpreting system-level or multi-kernel performance.",
+      "prerequisites": "A built executable or test harness and access to real NPU hardware with msprof op for collection.",
+      "input_contract": "Operator executable/harness, collection settings and OPPROF output directory, plus the operator directory used to archive each measurement round.",
+      "produced_artifact": "Per-round raw CSV archives and observational min/average/max summaries, followed by a bottleneck interpretation and comparison of operator duration and core balance.",
+      "failure_modes": "Unwarmed or reduced-frequency runs distort timing; separately budgeting simultaneous GM reads/writes misses shared bandwidth, and tiny workloads can be dominated by launch overhead."
+    },
+    "recommendations": [
+      "Collect warmup and repeated measurements into a named round, preserve the raw CSVs, and distinguish the summary statistics from the subsequent bottleneck judgment.",
+      "Compare task duration, dominant pipeline ratios and per-core balance together; change one optimization point, rebuild as needed and archive the new round before deciding to keep it.",
+      "Check current versus rated frequency and shared read/write bandwidth before blaming the kernel; aggregate msprof ratios do not provide an instruction-by-instruction timeline."
+    ]
+  },
+  "applicability": {
+    "scope": "Build, measure and diagnose one Ascend operator in isolation using msprof op, before interpreting system-level or multi-kernel performance.",
+    "prerequisites": "A built executable or test harness and access to real NPU hardware with msprof op for collection.",
+    "input_contract": "Operator executable/harness, collection settings and OPPROF output directory, plus the operator directory used to archive each measurement round.",
+    "produced_artifact": "Per-round raw CSV archives and observational min/average/max summaries, followed by a bottleneck interpretation and comparison of operator duration and core balance.",
+    "failure_modes": "Unwarmed or reduced-frequency runs distort timing; separately budgeting simultaneous GM reads/writes misses shared bandwidth, and tiny workloads can be dominated by launch overhead."
+  },
+  "recommendations": [
+    "Collect warmup and repeated measurements into a named round, preserve the raw CSVs, and distinguish the summary statistics from the subsequent bottleneck judgment.",
+    "Compare task duration, dominant pipeline ratios and per-core balance together; change one optimization point, rebuild as needed and archive the new round before deciding to keep it.",
+    "Check current versus rated frequency and shared read/write bandwidth before blaming the kernel; aggregate msprof ratios do not provide an instruction-by-instruction timeline."
+  ],
+  "limitations": [
+    "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",
+    "The imported status describes this index, not the original skill; its declared status is candidate.",
+    "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
+    "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
+    "Source-derived candidate; no local efficacy validation.",
+    "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}

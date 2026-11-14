@@ -115,7 +115,7 @@ are distinct from `knowledge search`, whose package catalog filters
 
 The tier/repo/backend/scenario filters are package-only: an empty filtered
 result does not mean that no checkout or store knowledge exists. See the
-[three-tier guide](../src/inferrsi/data/knowledge_packs/README.md) for all sources.
+[three-tier guide](../src/inferrsi/knowledge/data/knowledge_packs/README.md) for all sources.
 
 ### Prepare model-aware research — `knowledge research`
 
@@ -131,8 +131,8 @@ Exact `knowledge search` and `context` still AND query tokens. Independent
 research queries broaden discovery without relaxing the active package filters.
 Keep those filters explicit when transferring mechanisms from other backends;
 target intent does not qualify their applicability. Read the canonical
-[preparation procedure](../src/inferrsi/data/skill_library/workflows/inference-engine-research/references/model-aware-preparation.md)
-and the repository-owned [h3.c residency audit](../src/inferrsi/data/skill_library/repositories/h3-c/audit-h3-runtime-residency/SKILL.md)
+[preparation procedure](../src/inferrsi/knowledge/data/skill_library/workflows/inference-engine-research/references/model-aware-preparation.md)
+and the repository-owned [h3.c residency audit](../src/inferrsi/knowledge/data/skill_library/repositories/h3-c/audit-h3-runtime-residency/SKILL.md)
 for native-engine reference selection, full encoder/DiT/VAE accounting,
 quantized-package compatibility and target hardware decisions. Returned resource
 paths are relative to `importlib.resources.files("inferrsi")` and ship in the wheel.
@@ -181,7 +181,7 @@ for scoring, provenance and accounting. For example:
 - **Output:** with `--json`, the complete **normalized** envelope — items carrying the bundle's normalized metadata, resources and dependencies, plus `no_match`, `omissions`, `collisions`, `material_bytes` and the recorded limitations; fields that exist only in a package record's original entrypoint document are not projected into the normalized metadata and are read via `--material` or `resource`. Without `--json`, the envelope's selection is projected line-wise: one tab-separated line per item (`ref`, `revision`, `kind`, `state`, recorded `applicability`; free-text fields are control-character-escaped so one item stays one line), `collision` lines for multi-authority IDs, `omitted` lines with reason codes, an explicit `no_match` line when nothing was selected (query, filters or limits; when items were skipped the `omitted` lines above it carry the per-item causes), and — with `--material` — the entrypoint content in delimited blocks. The text mode does not print `material_bytes` or the envelope limitations; use `--json` for the complete envelope. The recorded `state` and applicability are printed as recorded and no validation status is invented. Exit 0 covers a result envelope, including no-match and omissions.
 - **Side effects:** none; both adapters and the read-only store connection are read-only.
 - **Failure behavior:** discovery-wide invalid identities fail the call; per-item omissions are reported individually. Package repo/tier/backend/scenario filters exclude checkout items.
-- **Example:** `inferrsi collect 'Ascend OOM' --kind case --limit 3 --material --skill-root src/inferrsi/data/skill_library`
+- **Example:** `inferrsi collect 'Ascend OOM' --kind case --limit 3 --material --skill-root src/inferrsi/knowledge/data/skill_library`
 
 ### Read exact material/resources — `read` / `resource` / `KnowledgeReader.read` / `.resource`
 
@@ -190,7 +190,7 @@ for scoring, provenance and accounting. For example:
 - **Output:** the bundle view at the requested revision, or the resource bytes (`resource` writes them to the required `--output` path).
 - **Side effects:** `resource` writes only the caller-chosen output file.
 - **Failure behavior:** ambiguous identity names the qualified choices; unavailable/stale revisions and missing/unsafe resources fail explicitly — no fallback to newer bytes.
-- **Example:** `inferrsi read calibrate-serving-simulation --skill-root src/inferrsi/data/skill_library --material`
+- **Example:** `inferrsi read calibrate-serving-simulation --skill-root src/inferrsi/knowledge/data/skill_library --material`
 
 ## Store candidates (Python)
 
