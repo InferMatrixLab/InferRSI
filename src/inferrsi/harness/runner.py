@@ -8,22 +8,28 @@ from collections.abc import Callable
 from datetime import datetime, timezone
 from pathlib import Path
 
-from ..infra.artifacts import atomic_write_json as _write_json
-from ..infra.targets import repository_identity
 from ..runspec import RunSpec
-from .evaluation import evaluate
-from .reporting import write_report
-from .scenarios.external import collect_trial_checks, execute_trial
+from .atomic_json import atomic_write_json as _write_json
+from .scenarios.external import collect_trial_checks
 
 
 def run_experiment(
     spec: RunSpec,
     environment: dict,
     *,
-    execute: Callable[[tuple[str, ...], Path, Path, float, str | None], dict] = execute_trial,
-    snapshot: Callable[[Path, Path | None], dict] = repository_identity,
+    execute: Callable[[tuple[str, ...], Path, Path, float, str | None], dict],
+    snapshot: Callable[[Path, Path | None], dict],
+    assess: Callable[[list[dict], list[dict], dict | None, dict, str | None], dict],
+    report: Callable[[Path], object],
 ) -> Path:
-    """Run paired commands, preserve evidence and return a unique run directory."""
+    """Run paired commands, preserve evidence and return a unique run directory.
+
+    The composing application supplies every port. ``execute`` runs one trial
+    with its metric validation and ``snapshot`` fingerprints a source tree.
+    ``assess(baseline, candidate, validation, integrity, error)`` returns the
+    assessment document, whose ``verdict`` this loop records without judging.
+    ``report(run_dir)`` renders the finished run.
+    """
     spec.validate()
     started = time.monotonic()
     deadline = started + spec.max_minutes * 60
@@ -117,16 +123,13 @@ def run_experiment(
                 else "source changed during experiment",
                 "command_checks": len(source_checks),
             }
-            result = evaluate(spec, baseline, candidate, validation, integrity)
-            if error:
-                result["reasons"].append(error)
-                result["verdict"] = "INCONCLUSIVE"
+            result = assess(baseline, candidate, validation, integrity, error)
             _write_json(run_dir / "evaluation.json", result)
             event("complete", state=state, verdict=result["verdict"])
             record_status(
                 "complete", state=state, verdict=result["verdict"], error=error
             )
-            write_report(run_dir)
+            report(run_dir)
         except KeyboardInterrupt as exc:
             # Interruption during termination is outside the caller's own
             # KeyboardInterrupt handler, so the state must be persisted here:

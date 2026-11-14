@@ -17,6 +17,7 @@ import uuid
 from pathlib import Path
 
 from inferrsi.infra.artifacts import atomic_write_json
+from inferrsi.model.protocols.metrics import read_metric
 
 _process_spec = importlib.util.spec_from_file_location(
     "moe_task_processes", Path(__file__).resolve().with_name("processes.py")
@@ -256,7 +257,8 @@ def evaluate(candidate: Path, output: Path, *, pairs: int, timeout_seconds: floa
     try:
         execution = execute_trial(
             (sys.executable, "-B", str(launcher), str(output), token), output,
-            output / "execution", started + timeout_seconds, "metrics.suite_latency_ms")
+            output / "execution", started + timeout_seconds, "metrics.suite_latency_ms",
+            metric=read_metric)
     except (OSError, ValueError, RuntimeError) as exc:
         execution["error"] = str(exc)
     finally:
