@@ -1,5 +1,5 @@
 {
-  "scope": "Component exploration with checkpoint weights and independent calibration activations; no HTTP or image-quality qualification.",
+  "scope": "Component exploration with checkpoint weights and calibration activations; no HTTP or image-quality qualification.",
   "verdict": "INCONCLUSIVE",
   "adopted": false,
   "acceptance_issue": "https://github.com/InferMatrixLab/InferRSI/issues/390",
@@ -8,8 +8,7 @@
     "Streaming quantization includes per-call weight conversion; only the largest tested rows show potential gains.",
     "Weight-only group128 implementation has large numerical error; root cause remains undetermined.",
     "Finer activation groups reduce error but eliminate speed benefits.",
-    "Low-rank correction trained on independent request0 does not reliably generalize to independent request1.",
-    "No frozen evaluation prompt was used for fitting. No candidate entered whole-model testing."
+    "Low-rank correction trained on independent request0 does not reliably generalize to independent request1."
   ],
   "probes": {
     "streaming_int8": {
@@ -5748,5 +5747,12 @@
         }
       ]
     }
+  },
+  "provenance_correction": {
+    "finding": "run_calibration.py uses architecture and portrait prompt assets also present in the expanded quality suite. These captures are not independent of that suite.",
+    "training": "request0 architecture, 192 sampled rows across four ranks",
+    "validation": "request1 portrait, a different prompt but not held out from the expanded campaign quality suite",
+    "original_metadata": "The raw sample training strings saying no evaluation prompts are incorrect; retained below as original reported metadata, superseded by this correction.",
+    "impact": "No candidate was adopted and no image-quality pass is claimed. Any future fitted candidate requires new calibration inputs and uncontaminated qualification."
   }
 }
