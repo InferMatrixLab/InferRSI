@@ -253,6 +253,33 @@ identity therefore is not presented as complete generated-waveform identity.
 Saved-audio quality scores remain descriptive; the service objective remains
 **INCONCLUSIVE**.
 
+## Flow FP16 on the clean dependency environment
+
+`results/service-phase15-development.json` adds six configuration-only tuning
+cells. It uses the phase-fourteen source snapshot with background CPU prefetch
+disabled and the existing `token2wav_float16` option enabled. Both Code2Wav
+replicas captured FP16 Whole-Euler graphs. The immediately preceding FP32
+control and independent engine are reused from the same reserved GPU; this
+screen does not add a new paired control server.
+
+| Mean request RTF, two tuning repetitions | C1 | C16 | C32 |
+| --- | ---: | ---: | ---: |
+| Flow FP16 | 0.06069 | 0.23159 | 0.30565 |
+| Preceding FP32 control | 0.06070 | 0.23153 | 0.33311 |
+| Preceding paired engine | 0.06424 | 0.21633 | 0.26031 |
+
+C32 RTF is about 8.2% lower than that control, while C1/C16 are essentially
+unchanged. C16/C32 still miss the objective. All six cells completed without
+request failures. Changing precision does not preserve waveform arithmetic;
+saved-audio WER/SV/UTMOS remain descriptive and do not establish non-inferiority.
+The overall result is **INCONCLUSIVE**.
+
+`plan/service-phase1314-config-chains.json` preserves the nine exact deployment
+configuration files and their repository-relative paths. Place the supplemental
+`plan/service-phase15-config.yaml` at `.local/inferrsi-minicpm/flow16-checked.yaml`
+alongside those reconstructed tuning configs to resolve its base config. These
+are development configurations, not a final managed Harness qualification.
+
 ## Lessons supported by this investigation
 
 - Match component precision to the running service. The HiFT diagnostic in
