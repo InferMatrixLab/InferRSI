@@ -224,12 +224,14 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
   </div>
   <p class="footnote">Recorded text without a supplied translation remains in its original language. Commands, identifiers and raw event fields stay unchanged.</p>
   <p class="footnote">A successful quality command covers only that command. This view does not establish statistical significance. Raw logs and environment values are withheld; references and SHA-256 identify recorded artifacts.</p>
+<section id="knowledge-navigation" aria-label="Knowledge retrieval"></section>
 </main>
 <dialog id="event-record" aria-labelledby="event-heading">
   <form method="dialog"><button class="button">Close</button></form>
   <h2 id="event-heading"></h2><div id="event-body"></div>
 </dialog>
 __DASHBOARD_EXPERIMENTS__
+__DASHBOARD_KNOWLEDGE__
 <script id="dashboard-data" type="application/json">__DASHBOARD_DATA__</script>
 <script>
 (() => {
@@ -253,6 +255,7 @@ __DASHBOARD_EXPERIMENTS__
   const liveMode = data.live === true;
   const byId = id => document.getElementById(id);
   const chinese = {
+    'Display redacted; hashes identify the original capture bytes. Review the full bundle before sharing.':'展示已脱敏；哈希标识原始快照字节。分享前请审核完整文件。',
     'samples':'个样本','cases':'个用例','manifests':'份清单','trials':'次试验','checks':'项检查','Total unknown':'总数未知','Source records':'原始记录','Review the failed check':'查看失败的检查','Below target':'未达目标',
     'Assembled knowledge context':'拼接后的知识上下文','Selection rules':'搜索逻辑','Search path':'搜索路径','Sources and search queries':'检索词与来源','Close':'关闭',
     'Run review':'本轮记录','What changed':'本轮改动','Performance tests':'性能测试','Accuracy check':'精度检查',
@@ -421,6 +424,7 @@ __DASHBOARD_EXPERIMENTS__
     'Decision reason':'决策原因', 'Next step':'下一步', 'Measured':'实测', 'No recorded run':'没有记录的运行', 'no gain value':'未记录提升数值',
     'Run evidence unavailable':'运行证据不可用', 'No recorded outcome':'未记录结果',
     'Why it was retrieved':'为什么检索', 'What was taken from it':'从中得到了什么', 'Search request':'检索请求', 'Captured':'采集信息',
+    'Not requested':'未请求', 'Assembly not requested':'未请求装配', 'Context bytes not recorded':'未记录上下文字节数',
     'Selected by search':'检索命中', 'Left out of the context':'未放进上下文', 'Nothing omitted':'没有遗漏', 'Used':'本次检索中采用的条目',
     'Knowledge retrieval for this round':'本轮知识库检索', 'Files included in the context':'检索实际装入的文件',
     'No retrieval capture is linked to this round.':'本轮没有关联检索快照。',
@@ -1143,10 +1147,14 @@ __DASHBOARD_EXPERIMENTS__
       const grid=node('div',undefined,'round-grid');
       detailLine(grid,'Why it was retrieved',retrieval.purpose,false,true);
       detailLine(grid,'What was taken from it',retrieval.takeaways.map(translatedNarrative).join('\n') || 'Not recorded');
+      knowledgeView.trace(box,retrieval,scope);
       if(retrieval.state==='verified'){
         const request=retrieval.request||{};
-        detailLine(grid,'Search request',[request.query?`query: ${request.query}`:'',request.relevance?`relevance: ${request.relevance}`:'',request.ids&&request.ids.length?`ids: ${request.ids.join(', ')}`:'',request.backend?`backend: ${request.backend}`:'',`limit ${request.limit} · context budget ${request.context_bytes} bytes`].filter(Boolean).join('\n'),true);
-        detailLine(grid,'Captured',`${retrieval.captured_at || 'Time not recorded'} · ${retrieval.captured_by || ''} · ${retrieval.context_bytes_used ?? 0} bytes of context`,true);
+        const assemblyNotRequested=retrieval.retrieval?.assembly==='not_requested';
+        const budget=assemblyNotRequested?translated('Not requested'):Number.isFinite(request.context_bytes)?`${request.context_bytes} bytes`:translated('Not recorded');
+        const contextSize=assemblyNotRequested?translated('Assembly not requested'):Number.isFinite(retrieval.context_bytes_used)?`${retrieval.context_bytes_used} bytes of context`:translated('Context bytes not recorded');
+        detailLine(grid,'Search request',[request.query?`query: ${request.query}`:'',request.relevance?`relevance: ${request.relevance}`:'',request.ids&&request.ids.length?`ids: ${request.ids.join(', ')}`:'',request.backend?`backend: ${request.backend}`:'',`limit ${request.limit ?? translated('Not recorded')} · context budget ${budget}`].filter(Boolean).join('\n'),true);
+        detailLine(grid,'Captured',`${retrieval.captured_at || 'Time not recorded'} · ${retrieval.captured_by || ''} · ${contextSize}`,true);
         const selectedBox=node('div',undefined,'detail-line');selectedBox.appendChild(node('strong','Selected by search'));
         const included=new Set(retrieval.contexts.map(context=>context.ref));
         chips(selectedBox,retrieval.items.map(item=>item.ref),new Set(retrieval.items.map(item=>item.ref).filter(ref=>!included.has(ref))));grid.appendChild(selectedBox);
@@ -1170,6 +1178,7 @@ __DASHBOARD_EXPERIMENTS__
         const fold=node('details',undefined,'context-detail');
         fold.dataset.liveKey=`${scope}-context:${retrieval.context_id}`;
         fold.appendChild(node('summary',`Full assembled context · ${retrieval.contexts.reduce((n,c)=>n+c.resources.length,0)} resources · sha256 ${retrieval.assembled_sha256.slice(0,12)}`));
+        if(retrieval.display_redacted)fold.appendChild(node('p','Display redacted; hashes identify the original capture bytes. Review the full bundle before sharing.','hint'));
         for(const context of retrieval.contexts){
           const list=node('div',undefined,'hint');list.style.margin='6px 0';
           list.textContent=`${context.ref} @ ${context.revision.slice(0,19)} — ${context.resources.map(r=>`${r.path.split('/').slice(-2).join('/')} (${r.role}, ${r.bytes} B)`).join(', ')}`;
@@ -1208,6 +1217,10 @@ __DASHBOARD_EXPERIMENTS__
       const wrap=node('div',undefined,'scroll');wrap.appendChild(table);box.appendChild(wrap);body.appendChild(box);
     }
   }
+  const knowledgeView=window.InferRSIKnowledge.create({getData:()=>data,getLanguage:()=>language,
+    openRun:link=>{const index=data.candidates.findIndex(r=>r.experiment_id===link.experiment_id);
+      if(index<0)return;runSelect.value='';stageSelect.value='';candidateSelect.value='';selected=index;render();
+      const target=byId('run-review');target.tabIndex=-1;target.focus();target.scrollIntoView({block:'start'});}});
   const experimentView=window.InferRSIExperiments.create({
     getData:()=>data,getLanguage:()=>language,narrative:translatedNarrative,
     openExperiment:id=>{
@@ -1289,7 +1302,7 @@ __DASHBOARD_EXPERIMENTS__
     const body=node('div',undefined,'story-body');body.setAttribute('role','tabpanel');root.appendChild(body);
     ({iterations:renderIterations,knowledge:renderKnowledge,space:renderSpace,summary:renderSummary})[storyTab](body,story);
   }
-  function render(){const visible=filtered();renderStory();renderWorkflow();renderRows(visible);renderRunReview(data.candidates[selected]);renderCandidate(selected===null?null:data.candidates[selected]);renderExperiments();localizePage();}
+  function render(){const visible=filtered();renderStory();renderWorkflow();renderRows(visible);renderRunReview(data.candidates[selected]);renderCandidate(selected===null?null:data.candidates[selected]);renderExperiments();knowledgeView.render();knowledgeView.backLinks(byId('run-review'),data.candidates[selected]);knowledgeView.backLinks(byId('candidate-inspection'),data.candidates[selected]);localizePage();}
   for(const select of [stageSelect,runSelect,candidateSelect])select.addEventListener('change',()=>{render();});
   for(const choice of ['en','zh'])byId(`language-${choice}`).addEventListener('click',()=>{
     if(language===choice)return;
@@ -1346,6 +1359,8 @@ __DASHBOARD_EXPERIMENTS__
     const previousSelected=selected===null?null:data.candidates[selected];
     const previousRun=runSelect.value;
     const details=new Map([...document.querySelectorAll('details[id],details[data-live-key]')].map(el=>[el.id || el.dataset.liveKey,el.open]));
+    const focusedDetail=document.activeElement?.tagName==='SUMMARY'?document.activeElement.closest('details'):null;
+    const focusKey=focusedDetail?.id || focusedDetail?.dataset.liveKey;
     const scrollX=window.scrollX, scrollY=window.scrollY;
     data=restoreContexts(snapshot.data);
     clear(runSelect);option(runSelect,'','All runs');
@@ -1369,7 +1384,11 @@ __DASHBOARD_EXPERIMENTS__
     if(!snapshot.chart)byId('chart').appendChild(node('p',data.chart_note,'empty'));
     byId('temporal-chart').innerHTML=snapshot.temporal;byId('temporal-note').textContent=data.temporal_note;
     renderStats();render();
-    for(const el of document.querySelectorAll('details[id],details[data-live-key]')){const key=el.id || el.dataset.liveKey;if(details.has(key))el.open=details.get(key);}
+    for(const el of document.querySelectorAll('details[id],details[data-live-key]')){
+      const key=el.id || el.dataset.liveKey;
+      if(details.has(key))el.open=details.get(key);
+      if(focusKey && key===focusKey)el.querySelector(':scope > summary')?.focus({preventScroll:true});
+    }
     window.scrollTo(scrollX,scrollY);
     if(!byId('feedback-preview').hidden)byId('feedback-preview').textContent=buildFeedback();
   }

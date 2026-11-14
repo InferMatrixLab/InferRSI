@@ -197,23 +197,34 @@ def _round_candidates(root, number):
     candidates = next((r["candidates"] for r in _round_records(rounds_path)
                        if r["round"] == number), [])
     runs = []
+    directory = root / "candidates"
+    paths = sorted(directory.glob("*/candidate.json")) if _inside(root, directory) else []
     for candidate in candidates:
         _identifier(candidate, "candidate")
-        path = root / "candidates" / candidate / "candidate.json"
-        data, status = _object(path, root)
-        if (status != "present" or data.get("round") != number
-                or data.get("candidate_id") != candidate):
+        matches = []
+        for path in paths:
+            data, status = _object(path, root)
+            if (status == "present" and data.get("round") == number
+                    and data.get("candidate_id") == candidate):
+                matches.append((path, data))
+        if not matches:
             raise ValueError("invalid candidate association for the round")
-        run_id = _identifier(data.get("run_id"), "run ID")
-        evaluation_path = root / "runs" / run_id / "evaluation.json"
-        evaluation, result_state = _object(evaluation_path, root)
-        verdict = evaluation.get("verdict")
-        runs.append({"candidate": candidate, "run_id": run_id,
-                     "source": path.relative_to(root).as_posix(),
-                     "evaluation_state": result_state,
-                     "evaluation": evaluation_path.relative_to(root).as_posix()
-                     if result_state == "present" else None,
-                     "verdict": verdict if verdict in ("PASS", "FAIL", "INCONCLUSIVE") else None})
+        seen = set()
+        for path, data in matches:
+            run_id = _identifier(data.get("run_id"), "run ID")
+            if run_id in seen:
+                raise ValueError("ambiguous candidate/run association for the round")
+            seen.add(run_id)
+            evaluation_path = root / "runs" / run_id / "evaluation.json"
+            evaluation, result_state = _object(evaluation_path, root)
+            verdict = evaluation.get("verdict")
+            runs.append({"candidate": candidate, "run_id": run_id,
+                         "source": path.relative_to(root).as_posix(),
+                         "evaluation_state": result_state,
+                         "evaluation": evaluation_path.relative_to(root).as_posix()
+                         if result_state == "present" else None,
+                         "verdict": verdict if verdict in ("PASS", "FAIL", "INCONCLUSIVE")
+                         else None})
     return runs
 
 

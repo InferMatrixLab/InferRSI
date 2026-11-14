@@ -240,6 +240,12 @@ helpers and CLI reads without installing any inference engine.
 The ready test and installed-package jobs cover the declared minimum Python
 3.10 alongside Python 3.11. This matrix does not certify later Python releases
 or accelerator runtime compatibility.
+For non-draft PRs, the ready `dashboard-browser` job installs Playwright and
+Chromium on Python 3.11 and runs the dashboard navigation and experiment browser
+tests. Its verbose log identifies each executed case, and the
+`dashboard-browser-results` artifact retains the JUnit report for 30 days.
+These checks cover offline/live layouts, keyboard navigation and refresh/recovery;
+they do not certify other browsers or replace independent review.
 The `pr-references` job fails when GitHub closing syntax appears inside PR body
 text, including negated sentences (working rule 6 in the
 [collaboration guide](agent-collaboration.md#working-rules)). It reads the body at

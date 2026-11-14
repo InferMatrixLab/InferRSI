@@ -61,6 +61,7 @@ def synthetic_reader(entries):
 def without_method(result):
     value = copy.deepcopy(result)
     value.get("selection", {}).pop("method", None)
+    value.pop("retrieval", None)  # Execution explanation is method-specific.
     return value
 
 

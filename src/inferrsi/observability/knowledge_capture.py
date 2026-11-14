@@ -43,7 +43,8 @@ def assemble_context_text(contexts: list[dict]) -> str:
 
 
 def _item(view: dict) -> dict:
-    fields = ("ref", "revision", "title", "kind", "backend", "scenario")
+    fields = ("ref", "revision", "title", "kind", "backend", "scenario", "authority",
+              "sources", "entrypoint", "skill_documents")
     return {key: view.get(key) for key in fields}
 
 
@@ -79,6 +80,38 @@ def capture_context(root: Path, *, context_id: str, reader, query: str = "",
         scenario=scenario, limit=limit, relevance=relevance,
         relevance_method=relevance_method, context_bytes=context_bytes,
     )
+    return save_retrieval(root, context_id=context_id, result=result, request={
+        "query": query, "relevance": relevance,
+        "relevance_method": relevance_method if relevance else None,
+        "ids": ids, "kind": kind, "repo": repo, "tier": tier,
+        "backend": backend, "scenario": scenario, "limit": limit,
+        "context_bytes": context_bytes, "sources": list(sources),
+    }, wrapper="campaign capture-context")
+
+
+def save_retrieval(root: Path, *, context_id: str, result: dict,
+                   request: dict | None = None, wrapper: str | None = None) -> tuple[Path, str]:
+    """Explicitly retain a search/collect result without executing another search.
+
+    The caller owns this local capture. Review/redact the bundle before sharing;
+    hashes attest bytes, not publication permission or actual model use.
+    """
+    root = Path(root).resolve()
+    if not isinstance(context_id, str) or not _IDENTIFIER.fullmatch(context_id):
+        raise ValueError("context id must be a safe single identifier")
+    campaign = json.loads((root / "campaign.json").read_text(encoding="utf-8"))
+    retrieval = result.get("retrieval")
+    if isinstance(retrieval, dict):
+        retrieval = {**retrieval}
+        if wrapper:
+            retrieval.update(entrypoint=wrapper, calls=[wrapper, *retrieval["calls"]])
+    request = request if request is not None else (retrieval or {}).get("request", {})
+    observations = {item["ref"]: item for item in (retrieval or {}).get("items", [])}
+    items = []
+    for view in result.get("items", []):
+        ref = view.get("ref") or "package:" + view["id"]
+        items.append(_item({**view, "ref": ref, "revision": view.get("revision")
+                           or observations.get(ref, {}).get("revision")}))
     contexts = [{
         "ref": context["ref"], "revision": context["revision"],
         "content_bytes": context["content_bytes"],
@@ -96,15 +129,12 @@ def capture_context(root: Path, *, context_id: str, reader, query: str = "",
         "schema_version": 1, "kind": CAPTURE_KIND,
         "campaign_id": campaign["campaign_id"], "context_id": context_id,
         "captured_at": datetime.now(timezone.utc).isoformat(),
-        "captured_by": f"inferrsi collect {version}",
+        "captured_by": f"inferrsi {(retrieval or {}).get('entrypoint', 'unknown')} {version}",
         # Only the source categories are kept; store and checkout paths can be private.
-        "request": {"query": query, "relevance": relevance,
-                    "relevance_method": relevance_method if relevance else None,
-                    "ids": ids or [], "kind": kind, "repo": repo, "tier": tier,
-                    "backend": backend, "scenario": scenario, "limit": limit,
-                    "context_bytes": context_bytes, "sources": list(sources)},
+        "request": request,
+        "retrieval": retrieval,
         "selection": result.get("selection"),
-        "items": [_item(view) for view in result.get("items", [])],
+        "items": items,
         "omissions": result.get("omissions", []),
         "context_omissions": result.get("context_omissions", []),
         "context_budget": result.get("context_budget"),
