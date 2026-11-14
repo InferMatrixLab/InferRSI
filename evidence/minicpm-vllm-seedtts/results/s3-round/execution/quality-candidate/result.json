@@ -1,0 +1,16 @@
+{
+  "quality": true,
+  "real_references": 16,
+  "graph_stats": {
+    "graph_hits": 4,
+    "graph_misses": 44,
+    "hit_rate": 0.08333333333333333,
+    "num_graphs": 2,
+    "ineligible_misses": 0,
+    "capacity_misses": 42,
+    "warmup_misses": 2,
+    "memory_misses": 0,
+    "capture_failures": 0
+  },
+  "scope": "L0/L1 S3 only (16 real references plus synthetic inputs); service acceptance INCONCLUSIVE"
+}

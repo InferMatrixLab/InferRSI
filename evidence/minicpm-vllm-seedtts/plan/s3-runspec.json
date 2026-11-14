@@ -1,0 +1,27 @@
+{
+  "issue": "https://github.com/InferMatrixLab/InferRSI/issues/431",
+  "hardware": {
+    "gpu": "NVIDIA L20X",
+    "count": 1,
+    "memory_mib": 143771,
+    "allocator": "exclusive gpu run",
+    "same_physical_device": true
+  },
+  "environment": {
+    "packages": {
+      "torch": "2.14.0+cu130",
+      "vllm": "0.33.0",
+      "vllm-omni": "0.31.0rc2.dev289+g04aa51e9f.d20261019",
+      "transformers": "5.20.2",
+      "flashinfer-python": "0.7.2.post1",
+      "minicpmo-utils": "1.0.6",
+      "onnxruntime": "1.27.0"
+    },
+    "source": "d111310d548486118a2d22a943fa0a10fcff65e2",
+    "model_revision": "503e754207c94da6bb26850b4469f367c9ea3582",
+    "issue": "https://github.com/InferMatrixLab/InferRSI/issues/431"
+  },
+  "baseline_source_identity": "d9e7cfaf656c813870e93e0ae8ec374b52f52a93c3279450df361248dd92c370",
+  "candidate_source_identity": "8d14ed09c283ad8aa1ebe5d447f7e078f386bf56ba31f52de8abe6fa07dc56e3",
+  "source_scope": "Baseline vllm_omni directory plus patch/s3-component.patch; facade and service wiring are outside the component snapshot."
+}

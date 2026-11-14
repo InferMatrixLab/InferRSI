@@ -1,0 +1,74 @@
+--- /dev/null
++++ b/vllm_omni/model_executor/models/minicpmo_4_5/talker_cuda_sample.py
+@@ -0,0 +1,33 @@
++# SPDX-License-Identifier: Apache-2.0
++# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
++"""Experimental CUDA single-row sampler retaining invalid-probability checks."""
++import torch
++import triton
++import triton.language as tl
++
++
++@triton.jit
++def _validate_argmax(probabilities, ratios, output, valid, N: tl.constexpr, BLOCK: tl.constexpr):
++    offsets = tl.arange(0, BLOCK)
++    p = tl.load(probabilities + offsets, offsets < N, other=0.0)
++    r = tl.load(ratios + offsets, offsets < N, other=-float('inf'))
++    finite_nonnegative = (p >= 0.0) & (p < float('inf'))
++    legal = (tl.sum(finite_nonnegative.to(tl.int32), 0) == BLOCK) & (tl.sum(p, 0) > 0.0)
++    token = tl.argmax(r, 0, tie_break_left=True)
++    tl.store(output, token.to(tl.int64))
++    tl.store(valid, legal)
++
++
++def sample(probabilities, generator):
++    if (not probabilities.is_cuda or probabilities.dtype != torch.float32
++            or probabilities.ndim != 2 or probabilities.shape[0] != 1
++            or not probabilities.is_contiguous() or probabilities.shape[1] > 8192):
++        return torch.multinomial(probabilities, 1, generator=generator).reshape(1)
++    noise = torch.empty_like(probabilities).exponential_(1, generator=generator)
++    ratios = probabilities / noise
++    output = torch.empty(1, dtype=torch.long, device=probabilities.device)
++    valid = torch.empty(1, dtype=torch.bool, device=probabilities.device)
++    width = probabilities.shape[1]
++    _validate_argmax[(1,)](probabilities, ratios, output, valid, width, triton.next_power_of_2(width))
++    torch._assert_async(valid, 'probability tensor contains inf, nan or a negative value, or has zero mass')
++    return output
+--- a/vllm_omni/model_executor/models/minicpmo_4_5/talker_codec_sample.py
++++ b/vllm_omni/model_executor/models/minicpmo_4_5/talker_codec_sample.py
+@@ -454,11 +454,14 @@
+         for row, (config, generator) in enumerate(zip(sampling, generators)):
+             temperature = config[0]
+             scores = filtered[row]
+-            token = (
+-                torch.multinomial(scores.softmax(-1), 1, generator=generator).reshape(1)
+-                if temperature
+-                else scores.argmax(dim=-1)
+-            )
++            if temperature and scores.is_cuda and _HAS_TRITON:
++                from .talker_cuda_sample import sample
++
++                token = sample(scores.softmax(-1), generator)
++            elif temperature:
++                token = torch.multinomial(scores.softmax(-1), 1, generator=generator).reshape(1)
++            else:
++                token = scores.argmax(dim=-1)
+             sampled.append(token)
+         return self.advance(torch.cat(sampled), frame, eos_token_id)
+
+--- a/vllm_omni/model_executor/models/minicpmo_4_5/minicpmo_4_5_code2wav.py
++++ b/vllm_omni/model_executor/models/minicpmo_4_5/minicpmo_4_5_code2wav.py
+@@ -1690,7 +1690,12 @@
+             ),
+             _stage_matmul_policy(self._tf32_mode),
+         ):
+-            return self._run_prefetch_phase(state_id, record)
++            queued_before = len(self._prefetch_queue)
++            ran = self._run_prefetch_phase(state_id, record)
++            if ran and queued_before > 1 and not getattr(self, "_rsi_multiqueue_prefetch_logged", False):
++                logger.info("[RSI prefetch treatment] executed with %d waiting references", queued_before)
++                self._rsi_multiqueue_prefetch_logged = True
++            return ran
+
+     def _run_prefetch_phase(self, state_id: str, record: _RefPrefetch) -> bool:
+         """Run the next phase of ``record``; see ``run_idle_prefetch``."""

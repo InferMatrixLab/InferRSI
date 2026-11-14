@@ -1,0 +1,12 @@
+{
+  "installed_s3_model_v2": "c7784d0884f851a1dbef5e47a2367701b101cbec1c3c3591f84a21262638030d",
+  "published_s3_model_v2": "c4ddd7b6e95f050a2575309baef8eba990a56654b1893e2e03f95c0bd0e0677f",
+  "wheel": "c9e93b1892a124a2c4d958ab53610a1b4433fcb4172056e2f2bd3c09cfe249a6",
+  "excluded_screens": [
+    "baseline-mrv2",
+    "baseline-k8",
+    "diagnostic-mrv2"
+  ],
+  "reason": "Local s3tokenizer source differs from the project-pinned published wheel, including quantizer arithmetic and LayerNorm epsilon. These runs are exploratory only, excluded from clean comparison.",
+  "clean_policy": "Isolated published s3tokenizer 0.3.0 on PYTHONPATH for both services and component tests; shared installation unchanged."
+}

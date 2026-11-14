@@ -1,0 +1,246 @@
+{
+  "verdict": "INCONCLUSIVE",
+  "qualification": false,
+  "scope": "HiFT diagnostic with service-matched precision; no candidate service treatment",
+  "reason": "The original microbenchmark forced cuDNN TF32 off, whereas the service already enables it. A matched-precision diagnostic found identical waveforms and no improvement. Treatment was pruned before launch.",
+  "configured_precision_component": {
+    "scope": "real weights and reference mels with service cuDNN/matmul TF32 enabled; diagnostic only, no quality PASS",
+    "cells": [
+      {
+        "batch": 1,
+        "mel_width": 16,
+        "graph_ms": {
+          "False": 2.0442437744140625,
+          "True": 2.0450904846191404
+        },
+        "max_abs_wave_difference": 0.0,
+        "relative_l2_wave_difference": 0.0,
+        "source_bit_exact": true
+      },
+      {
+        "batch": 1,
+        "mel_width": 50,
+        "graph_ms": {
+          "False": 2.4232826232910156,
+          "True": 2.42225341796875
+        },
+        "max_abs_wave_difference": 0.0,
+        "relative_l2_wave_difference": 0.0,
+        "source_bit_exact": true
+      },
+      {
+        "batch": 1,
+        "mel_width": 58,
+        "graph_ms": {
+          "False": 2.5226150512695313,
+          "True": 2.523498229980469
+        },
+        "max_abs_wave_difference": 0.0,
+        "relative_l2_wave_difference": 0.0,
+        "source_bit_exact": true
+      },
+      {
+        "batch": 4,
+        "mel_width": 16,
+        "graph_ms": {
+          "False": 2.3907814025878906,
+          "True": 2.391315155029297
+        },
+        "max_abs_wave_difference": 0.0,
+        "relative_l2_wave_difference": 0.0,
+        "source_bit_exact": true
+      },
+      {
+        "batch": 4,
+        "mel_width": 50,
+        "graph_ms": {
+          "False": 3.4030136108398437,
+          "True": 3.4015103149414063
+        },
+        "max_abs_wave_difference": 0.0,
+        "relative_l2_wave_difference": 0.0,
+        "source_bit_exact": true
+      },
+      {
+        "batch": 4,
+        "mel_width": 58,
+        "graph_ms": {
+          "False": 3.5603073120117186,
+          "True": 3.555714416503906
+        },
+        "max_abs_wave_difference": 0.0,
+        "relative_l2_wave_difference": 0.0,
+        "source_bit_exact": true
+      },
+      {
+        "batch": 8,
+        "mel_width": 16,
+        "graph_ms": {
+          "False": 2.646495361328125,
+          "True": 2.6507110595703125
+        },
+        "max_abs_wave_difference": 0.0,
+        "relative_l2_wave_difference": 0.0,
+        "source_bit_exact": true
+      },
+      {
+        "batch": 8,
+        "mel_width": 50,
+        "graph_ms": {
+          "False": 4.659511108398437,
+          "True": 4.663932800292969
+        },
+        "max_abs_wave_difference": 0.0,
+        "relative_l2_wave_difference": 0.0,
+        "source_bit_exact": true
+      },
+      {
+        "batch": 8,
+        "mel_width": 58,
+        "graph_ms": {
+          "False": 5.3491552734375,
+          "True": 5.34825927734375
+        },
+        "max_abs_wave_difference": 0.0,
+        "relative_l2_wave_difference": 0.0,
+        "source_bit_exact": true
+      }
+    ]
+  },
+  "service_controls": [
+    {
+      "name": "hift-tf32-control",
+      "cells": [
+        {
+          "cell": "c1-k0",
+          "rtf_mean": 0.062444785786467324,
+          "n_requests": 64,
+          "n_failed": 0,
+          "ids_sha256": "a5161d32e0564226472261371c14ff55380a887becdf8cde71d618456726a942",
+          "valid": true,
+          "total_audio_s": 273.88,
+          "makespan_s": 16.791277846321464
+        },
+        {
+          "cell": "c1-k1",
+          "rtf_mean": 0.06163367156068772,
+          "n_requests": 64,
+          "n_failed": 0,
+          "ids_sha256": "a5161d32e0564226472261371c14ff55380a887becdf8cde71d618456726a942",
+          "valid": true,
+          "total_audio_s": 273.88,
+          "makespan_s": 16.650722881779075
+        },
+        {
+          "cell": "c16-k0",
+          "rtf_mean": 0.2567460822183449,
+          "n_requests": 64,
+          "n_failed": 0,
+          "ids_sha256": "a5161d32e0564226472261371c14ff55380a887becdf8cde71d618456726a942",
+          "valid": true,
+          "total_audio_s": 277.44,
+          "makespan_s": 5.143701251596212
+        },
+        {
+          "cell": "c16-k1",
+          "rtf_mean": 0.2231866862001449,
+          "n_requests": 64,
+          "n_failed": 0,
+          "ids_sha256": "a5161d32e0564226472261371c14ff55380a887becdf8cde71d618456726a942",
+          "valid": true,
+          "total_audio_s": 273.16,
+          "makespan_s": 4.414332354441285
+        },
+        {
+          "cell": "c32-k0",
+          "rtf_mean": 0.5137826106921093,
+          "n_requests": 64,
+          "n_failed": 0,
+          "ids_sha256": "a5161d32e0564226472261371c14ff55380a887becdf8cde71d618456726a942",
+          "valid": true,
+          "total_audio_s": 275.68,
+          "makespan_s": 4.972759582102299
+        },
+        {
+          "cell": "c32-k1",
+          "rtf_mean": 0.5970937255252435,
+          "n_requests": 64,
+          "n_failed": 0,
+          "ids_sha256": "a5161d32e0564226472261371c14ff55380a887becdf8cde71d618456726a942",
+          "valid": true,
+          "total_audio_s": 276.24,
+          "makespan_s": 5.703577242791653
+        }
+      ]
+    },
+    {
+      "name": "engine-paired-phase11",
+      "cells": [
+        {
+          "cell": "c1-k0",
+          "rtf_mean": 0.06307773388053041,
+          "n_requests": 64,
+          "n_failed": 0,
+          "ids_sha256": "a5161d32e0564226472261371c14ff55380a887becdf8cde71d618456726a942",
+          "valid": true,
+          "total_audio_s": 290.0,
+          "makespan_s": 18.110856311395764
+        },
+        {
+          "cell": "c1-k1",
+          "rtf_mean": 0.06261039972068907,
+          "n_requests": 64,
+          "n_failed": 0,
+          "ids_sha256": "a5161d32e0564226472261371c14ff55380a887becdf8cde71d618456726a942",
+          "valid": true,
+          "total_audio_s": 290.0,
+          "makespan_s": 17.98368694446981
+        },
+        {
+          "cell": "c16-k0",
+          "rtf_mean": 0.20592279865153124,
+          "n_requests": 64,
+          "n_failed": 0,
+          "ids_sha256": "a5161d32e0564226472261371c14ff55380a887becdf8cde71d618456726a942",
+          "valid": true,
+          "total_audio_s": 290.48,
+          "makespan_s": 3.888478832319379
+        },
+        {
+          "cell": "c16-k1",
+          "rtf_mean": 0.20908399660669358,
+          "n_requests": 64,
+          "n_failed": 0,
+          "ids_sha256": "a5161d32e0564226472261371c14ff55380a887becdf8cde71d618456726a942",
+          "valid": true,
+          "total_audio_s": 292.72,
+          "makespan_s": 3.908289583399892
+        },
+        {
+          "cell": "c32-k0",
+          "rtf_mean": 0.4384860059027414,
+          "n_requests": 64,
+          "n_failed": 0,
+          "ids_sha256": "a5161d32e0564226472261371c14ff55380a887becdf8cde71d618456726a942",
+          "valid": true,
+          "total_audio_s": 291.68,
+          "makespan_s": 4.2525983620435
+        },
+        {
+          "cell": "c32-k1",
+          "rtf_mean": 0.43428827633514955,
+          "n_requests": 64,
+          "n_failed": 0,
+          "ids_sha256": "a5161d32e0564226472261371c14ff55380a887becdf8cde71d618456726a942",
+          "valid": true,
+          "total_audio_s": 290.0,
+          "makespan_s": 4.2572882659733295
+        }
+      ]
+    }
+  ],
+  "limitations": [
+    "The two C32 controls were slower than prior allocations; no cross-allocation gain or causal explanation is claimed.",
+    "Two reused tuning repetitions are not held-out final qualification."
+  ]
+}

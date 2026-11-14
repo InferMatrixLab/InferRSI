@@ -1,0 +1,106 @@
+diff --git a/tests/model_executor/models/minicpmo_4_5/test_reference_audio_normalization.py b/tests/model_executor/models/minicpmo_4_5/test_reference_audio_normalization.py
+index 9b9bbf5703..6513cc858f 100644
+--- a/tests/model_executor/models/minicpmo_4_5/test_reference_audio_normalization.py
++++ b/tests/model_executor/models/minicpmo_4_5/test_reference_audio_normalization.py
+@@ -165,7 +165,8 @@ def test_soundfile_2d_output_is_transposed_before_the_normalizer(tmp_path):
+     assert torch.allclose(normalized, torch.zeros_like(normalized), atol=1e-6)
+ 
+ 
+-def test_default_prompt_uses_the_configured_window(tmp_path):
++@pytest.mark.parametrize("pad_to_max", [True, False])
++def test_default_prompt_uses_the_configured_window(tmp_path, pad_to_max):
+     """The default prompt has to honour ``ref_audio_max_seconds``.
+ 
+     With a non-default window, a default prompt normalized at the fixed 6 s
+@@ -193,6 +194,7 @@ def test_default_prompt_uses_the_configured_window(tmp_path):
+             _default_prompt_id="HT_ref_audio",
+             _default_prompt_normalized=None,
+             _ref_max_seconds=window_seconds,
++            _ref_pad_to_max=pad_to_max,
+             _runtime_prompt_dir=SimpleNamespace(name=runtime_dir),
+         )
+         prompt_wav, _ = MiniCPMO45Code2Wav._normalized_default_prompt(stub)
+@@ -201,4 +203,12 @@ def test_default_prompt_uses_the_configured_window(tmp_path):
+ 
+     assert sample_rate_hz == TARGET
+     # The configured window, not the fixed 6 s default.
+-    assert normalized.shape[-1] == int(window_seconds * TARGET)
++    assert normalized.shape[-1] == (int(window_seconds * TARGET) if pad_to_max else frames)
++
++
++@pytest.mark.parametrize("seconds", [0, 1, 6, 7])
++def test_unpadded_reference_retains_samples_within_the_limit(seconds):
++    samples = torch.linspace(-0.5, 0.5, seconds * TARGET)
++    waveform, sample_rate = _normalize_reference(samples, TARGET, pad_to_max=False)
++    assert sample_rate == TARGET
++    torch.testing.assert_close(waveform, samples[:MAX_SAMPLES], rtol=0, atol=0)
+diff --git a/vllm_omni/model_executor/models/minicpmo_4_5/minicpmo_4_5_code2wav.py b/vllm_omni/model_executor/models/minicpmo_4_5/minicpmo_4_5_code2wav.py
+index 4fba97d52f..e669231ea8 100644
+--- a/vllm_omni/model_executor/models/minicpmo_4_5/minicpmo_4_5_code2wav.py
++++ b/vllm_omni/model_executor/models/minicpmo_4_5/minicpmo_4_5_code2wav.py
+@@ -190,6 +190,7 @@ def _normalize_reference(
+     sample_rate_hz: int,
+     *,
+     max_seconds: float = _REF_MAX_SECONDS,
++    pad_to_max: bool = True,
+ ) -> tuple[torch.Tensor, int]:
+     """Normalize a per-request reference waveform onto a shared grid.
+ 
+@@ -200,7 +201,9 @@ def _normalize_reference(
+     long ones, zero-pad short ones) so L0 becomes one constant value.
+ 
+     References longer than ``max_seconds`` are truncated with a warning;
+-    the window is configurable via ``ref_audio_max_seconds``.
++    the window is configurable via ``ref_audio_max_seconds``. Opting out of
++    padding retains short reference lengths and therefore different cache
++    origins; callers must account for the resulting shape diversity.
+     """
+     tensor = torch.as_tensor(ref_audio, dtype=torch.float32)
+     if tensor.dim() > 1:
+@@ -229,7 +232,7 @@ def _normalize_reference(
+             max_seconds,
+         )
+         waveform = waveform[:max_samples].contiguous()
+-    elif waveform.numel() < max_samples:
++    elif pad_to_max and waveform.numel() < max_samples:
+         # Zero-pad short references so every request shares one L0; trailing
+         # silence has minimal style impact (verified via E3 WER/SIM).
+         waveform = torch.nn.functional.pad(waveform, (0, max_samples - waveform.numel()))
+@@ -517,6 +520,7 @@ class MiniCPMO45Code2Wav(nn.Module):
+             "token_widths": [int(w) for w in extra.get("cfm_encoder_graph_token_widths") or ()],
+         }
+         self._ref_max_seconds = float(extra.get("ref_audio_max_seconds", _REF_MAX_SECONDS))
++        self._ref_pad_to_max = read_bool_flag(extra, "ref_audio_pad_to_max_seconds", True)
+         if self._ref_max_seconds <= 0:
+             raise ValueError("MiniCPM-o Code2Wav ref_audio_max_seconds must be > 0")
+         self._min_batch_size = int(extra.get("code2wav_min_batch_size", 1))
+@@ -574,6 +578,7 @@ class MiniCPMO45Code2Wav(nn.Module):
+                 waveform,
+                 sample_rate_hz,
+                 max_seconds=self._ref_max_seconds,
++                pad_to_max=self._ref_pad_to_max,
+             )
+         except Exception:
+             logger.warning("Could not normalize the default prompt %s; using it as-is", source)
+@@ -589,7 +594,12 @@ class MiniCPMO45Code2Wav(nn.Module):
+         path = Path(self._runtime_prompt_dir.name) / f"{cache_id}.wav"
+         if not path.is_file():
+             sf.write(path, normalized.numpy(), target_sr, format="WAV")
+-        logger.info("Default prompt normalized onto the %.2fs window: %s", self._ref_max_seconds, path)
++        logger.info(
++            "Default prompt normalized (limit %.2fs, pad_to_max=%s): %s",
++            self._ref_max_seconds,
++            self._ref_pad_to_max,
++            path,
++        )
+         self._default_prompt_normalized = (str(path), cache_id)
+         return self._default_prompt_normalized
+ 
+@@ -620,6 +630,7 @@ class MiniCPMO45Code2Wav(nn.Module):
+             ref_audio,
+             sample_rate_hz,
+             max_seconds=self._ref_max_seconds,
++            pad_to_max=self._ref_pad_to_max,
+         )
+         if waveform.numel() == 0:
+             raise _batch_error("empty_ref_audio")

@@ -1,0 +1,60 @@
+--- a/vllm_omni/model_executor/models/minicpmo_4_5/minicpmo_4_5_omni_tts.py
++++ b/vllm_omni/model_executor/models/minicpmo_4_5/minicpmo_4_5_omni_tts.py
+@@ -2606,6 +2606,8 @@
+         device_states = getattr(self, "_request_codec_device_states", None)
+         device_inputs = getattr(self, "_request_codec_device_inputs", None)
+         device_budgets = getattr(self, "_request_codec_device_budgets", None)
++        bank_targets: list[torch.Tensor] = []
++        bank_sources: list[torch.Tensor] = []
+         for row, (request_id, state) in enumerate(zip(request_ids, states)):
+             if device_states is not None:
+                 device_states.pop(request_id, None)
+@@ -2616,8 +2618,11 @@
+             entry = bank.get(request_id)
+             if entry is not None and entry["state"] is state:
+                 for name in _CUDA_KSTEP_STATE_FIELDS:
+-                    entry["tensors"][name].copy_(getattr(workspace, name)[row : row + 1])
++                    bank_targets.append(entry["tensors"][name])
++                    bank_sources.append(getattr(workspace, name)[row : row + 1])
+                 entry["ready"] = True
++        if bank_targets:
++            torch._foreach_copy_(bank_targets, bank_sources)
+         frames = workspace.tokens.shape[0]
+         packed = torch.stack((workspace.tokens, workspace.emits.long(), workspace.stops.long()), dim=-1)
+         if packed.is_cuda:
+@@ -2657,14 +2662,16 @@
+         deltas: list[torch.Tensor] = []
+         valids: list[torch.Tensor] = []
+         finished_flags: list[torch.Tensor] = []
+-        emits = workspace.emits
+-        tokens = workspace.tokens
++        # Own one contiguous request-major snapshot; row views stay valid
++        # when the workspace is reused and do not overlap other requests.
++        emits = workspace.emits.transpose(0, 1).clone(memory_format=torch.contiguous_format)
++        tokens = workspace.tokens.transpose(0, 1).clone(memory_format=torch.contiguous_format)
+         for row, (info, state) in enumerate(zip(infos, states)):
+             # Keep the full width and let the consumer crop via the
+             # ``meta.codec_frame_valid`` contract; masked_select would need a
+             # blocking read of the replay just launched.
+-            delta = tokens[:, row].clone().unsqueeze(1)
+-            valid = emits[:, row].clone()
++            delta = tokens[row].unsqueeze(1)
++            valid = emits[row]
+             old_codes = state.get("codes")
+             if not isinstance(old_codes, torch.Tensor):
+                 old_codes = hidden.new_empty((0,), dtype=torch.long)
+@@ -2679,12 +2686,12 @@
+             # ``last_tokens`` keeps the pre-step id when nothing emits, so the
+             # unconditional snapshot matches the host loop's ``if emitted``
+             # without a device->host read.
+-            state["_kstep_last_code"] = last_snapshot[row : row + 1].clone()
++            state["_kstep_last_code"] = last_snapshot[row : row + 1]
+             info["audio_state"] = state
+             info["audio_codes"] = {"current": delta.reshape(-1), "accumulated": state["codes"]}
+             deltas.append(delta)
+             valids.append(valid)
+-            finished_flags.append(finished_snapshot[row : row + 1].clone())
++            finished_flags.append(finished_snapshot[row : row + 1])
+         # compute_logits expects request-major [B*K, 2] control rows.
+         stop = workspace.stops.transpose(0, 1).reshape(-1, 1).long()
+         self.batch_stop_logits = hidden.new_full((stop.shape[0], 2), float("-inf")).scatter_(1, stop, 0.0)
