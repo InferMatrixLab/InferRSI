@@ -67,8 +67,8 @@ def test_manual_bundle_runs_from_an_external_workspace(tmp_path):
         assert installed_bytes == _io_path(PROJECT / "src" / relative).read_bytes()
         assert hashlib.sha256(installed_bytes).hexdigest() == digest
     with zipfile.ZipFile(io.BytesIO((package / "remote-runtime.zip").read_bytes())) as remote:
-        assert remote.read("inferrsi/observability/template.html") == (
-            runtime / "inferrsi/observability/template.html"
+        assert remote.read("inferrsi/apps/views/template.html") == (
+            runtime / "inferrsi/apps/views/template.html"
         ).read_bytes()
 
     target = tmp_path / "external workspace"

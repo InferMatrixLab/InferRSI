@@ -4,13 +4,13 @@ import json
 
 import pytest
 
+from inferrsi.apps.views.dashboard_data import load_dashboard
 from inferrsi.cli import main
-from inferrsi.observability.campaign_records import (
+from inferrsi.harness.records.campaign_records import (
     create_campaign,
     record_candidate,
     record_decision,
 )
-from inferrsi.observability.dashboard_data import load_dashboard
 
 
 def test_record_candidates_in_one_round_and_reference_trace(tmp_path):

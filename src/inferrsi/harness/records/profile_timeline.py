@@ -19,7 +19,8 @@ from collections import Counter
 from functools import lru_cache
 from pathlib import Path
 
-from .optimization_log import _append_index, _read_regular
+from .optimization_log import append_index as _append_index
+from .optimization_log import read_regular as _read_regular
 from .timing_clock import recorded_time
 
 _ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,119}")
@@ -35,25 +36,6 @@ def _label(value: object, limit: int) -> str:
     if any(ord(c) < 32 for c in value):
         raise ValueError("invalid profile label")
     return value
-
-
-def pre_profile_searches(capture: dict, retrievals: dict) -> list[dict]:
-    """Link only explicitly named, verified searches completed before this capture."""
-    links = []
-    for key in capture.get("context_ids", []):
-        search = retrievals.get(key)
-        if not search or search["state"] != "verified":
-            state = "unverified"
-        else:
-            try:
-                searched_at = recorded_time(search.get("captured_at"))
-                before = searched_at < recorded_time(capture.get("started_at"))
-            except ValueError:
-                state = "unknown_time"
-            else:
-                state = "verified" if before else "not_before"
-        links.append({"context_id": key, "state": state})
-    return links
 
 
 def _review(value: object) -> dict:
@@ -387,7 +369,6 @@ def _verified_summary(root, entry):
             or not re.fullmatch("[0-9a-f]{64}", ref["events_sha256"])
             or ref["events_path"] != f"profiles/{ref['events_sha256']}.events.json.gz"):
         raise ValueError("invalid compact trace")
-    ref["events_url"] = "/api/profile-events/" + ref["events_sha256"]
     return summary
 
 

@@ -9,17 +9,17 @@ from pathlib import Path
 
 import pytest
 
+from inferrsi.apps.campaign import capture_context, verify_capture
+from inferrsi.apps.views.dashboard import dashboard_snapshot, render_dashboard, write_dashboard
+from inferrsi.apps.views.dashboard_data import load_dashboard
 from inferrsi.cli import main
-from inferrsi.knowledge_operations import KnowledgeReader
-from inferrsi.observability.campaign_records import (
+from inferrsi.harness.records.campaign_records import (
     create_campaign,
     record_candidate,
     record_decision,
 )
-from inferrsi.observability.dashboard import dashboard_snapshot, render_dashboard, write_dashboard
-from inferrsi.observability.dashboard_data import load_dashboard
-from inferrsi.observability.knowledge_capture import capture_context, verify_capture
-from inferrsi.observability.optimization_log import LogError, parse_optimization_log, record_log
+from inferrsi.harness.records.optimization_log import LogError, parse_optimization_log, record_log
+from inferrsi.knowledge_operations import KnowledgeReader
 
 
 class FakeReader:
@@ -297,7 +297,7 @@ def test_summary_navigates_to_run_without_outcome_but_not_missing_runs(tmp_path)
         {"ref": "candidate:duplicate", "state": "ambiguous"},
     ])
 
-    template = Path(__file__).parents[1] / "src/inferrsi/observability/template.html"
+    template = Path(__file__).parents[1] / "src/inferrsi/apps/views/template.html"
     script = r"""
 const fs = require('node:fs'), assert = require('node:assert/strict');
 const data = JSON.parse(fs.readFileSync(0, 'utf8'));
@@ -654,7 +654,7 @@ def test_malformed_capture_envelope_is_withheld(tmp_path):
 
 
 def test_search_import_joins_capture_use_with_failed_run(tmp_path):
-    from inferrsi.observability.search_attribution import import_search
+    from inferrsi.apps.views.search_attribution import import_search
 
     digest = campaign(tmp_path)
     write_log(tmp_path, log_document(digest))
@@ -674,7 +674,7 @@ def test_search_import_joins_capture_use_with_failed_run(tmp_path):
 
 @pytest.mark.parametrize("expected", ["corrupt", "missing"])
 def test_search_import_reports_unavailable_evaluation(tmp_path, expected):
-    from inferrsi.observability.search_attribution import import_search
+    from inferrsi.apps.views.search_attribution import import_search
 
     campaign(tmp_path)
     evaluation = tmp_path / "runs/run-a/evaluation.json"
@@ -689,7 +689,7 @@ def test_search_import_reports_unavailable_evaluation(tmp_path, expected):
 
 
 def test_search_import_keeps_omitted_use_claim_without_counting_it(tmp_path):
-    from inferrsi.observability.search_attribution import import_search
+    from inferrsi.apps.views.search_attribution import import_search
 
     create_campaign(tmp_path, "camp")
     capture, digest = capture_context(tmp_path, context_id="r1", reader=KnowledgeReader(),

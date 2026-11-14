@@ -8,10 +8,10 @@ import sys
 
 import pytest
 
+from inferrsi.apps.views.dashboard_data import load_dashboard
 from inferrsi.cli import main
+from inferrsi.harness.records.campaign_records import create_campaign
 from inferrsi.mindie_context import export_context
-from inferrsi.observability.campaign_records import create_campaign
-from inferrsi.observability.dashboard_data import load_dashboard
 
 REF = "mindie://vllm-ascend/units/unit-precision@2"
 PREMISE = "mindie://vllm-ascend/units/unit-fp32@1"

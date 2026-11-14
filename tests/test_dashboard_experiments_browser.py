@@ -11,8 +11,8 @@ from test_optimization_session import session as session
 from test_optimization_session import submit
 from test_optimization_session import task as task
 
-from inferrsi.observability.dashboard import dashboard_snapshot, render_dashboard
-from inferrsi.observability.dashboard_live import DashboardServer
+from inferrsi.apps.views.dashboard import dashboard_snapshot, render_dashboard
+from inferrsi.apps.views.dashboard_live import DashboardServer
 
 playwright = pytest.importorskip("playwright.sync_api")
 FIXTURE = runpy.run_path(str(Path(__file__).parent / "fixtures/dashboard_experiments.py"))

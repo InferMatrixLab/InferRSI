@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 from test_optimization_story import campaign, log_document, write_log
 
-from inferrsi.observability.dashboard import dashboard_snapshot, render_dashboard, write_dashboard
+from inferrsi.apps.views.dashboard import dashboard_snapshot, render_dashboard, write_dashboard
 
 
 @pytest.mark.skipif(shutil.which("node") is None, reason="Node.js runs the exported dashboard")

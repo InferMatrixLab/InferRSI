@@ -2,6 +2,20 @@
 
 ## [Unreleased]
 
+### Changed
+
+- The `inferrsi.observability` package is dissolved into its owning packages. No forwarding
+  modules remain, so imports must use the new paths:
+  - `campaign_records`, `campaign_trace`, `optimization_log`, `optimization_trace`,
+    `profile_timeline` and `timing_clock` are under `inferrsi.harness.records`.
+  - `dashboard`, `dashboard_data`, `dashboard_external`, `dashboard_live`,
+    `dashboard_timeline`, `dashboard_workflow`, `experiment_timing`, `optimization_chart`,
+    `optimization_story` and both HTML templates are under `inferrsi.apps.views`.
+  - `pre_profile_searches` from `profile_timeline` is in
+    `inferrsi.apps.views.profile_searches`.
+  - `capture_context` and `verify_capture` from `knowledge_capture`, and `create_campaign`
+    with backend validation, are in `inferrsi.apps.campaign`.
+
 ## [0.1.0] — Developer Preview
 
 Pre-release only. v0.1.0 is a planned Developer Preview. The `v0.1.0` Git tag is not published yet, and this note does not publish a tag or a GitHub Release. There is no API stability promise. The package is not on PyPI. After the tag is published, install from that Git tag. Licensed under Apache-2.0 (`LICENSE`).

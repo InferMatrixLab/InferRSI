@@ -108,7 +108,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
             return
         events = re.fullmatch(r"/api/profile-events/([0-9a-f]{64})", self.path)
         if events:
-            from .profile_timeline import profile_event_table
+            from inferrsi.harness.records.profile_timeline import profile_event_table
 
             payload = profile_event_table(self.server.source, events.group(1))
             if payload is None:

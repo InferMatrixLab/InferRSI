@@ -4,9 +4,14 @@ import json
 import re
 from pathlib import Path
 
-from .campaign_records import _identifier
-from .dashboard_data import _relative_location, _text
-from .optimization_log import _unique as _unique_pairs
+from inferrsi.harness.records.campaign_records import _identifier
+from inferrsi.harness.records.evidence import (
+    relative_location as _relative_location,
+)
+from inferrsi.harness.records.evidence import (
+    sanitized_text as _text,
+)
+from inferrsi.harness.records.optimization_log import _unique as _unique_pairs
 
 _REVISION = re.compile(r"[A-Fa-f0-9]{40}|[A-Fa-f0-9]{64}")
 

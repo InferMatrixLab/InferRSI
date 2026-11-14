@@ -10,7 +10,9 @@ from pathlib import Path
 
 
 def external_record(root: Path, reference: object, candidate_id: str) -> tuple[dict, dict]:
-    from .dashboard_data import STAGES, _explicit_ref, _number, _text
+    from inferrsi.harness.records.evidence import STAGES, sanitized_text
+
+    from .dashboard_data import _explicit_ref, _number
     from .dashboard_experiments import external_dimensions
 
     ref = _explicit_ref(root, reference, "external_record")
@@ -61,11 +63,11 @@ def external_record(root: Path, reference: object, candidate_id: str) -> tuple[d
             metrics.append(
                 {
                     "plot": external_dimensions(m),
-                    "name": _text(m.get("name")),
-                    "unit": _text(m.get("unit")),
+                    "name": sanitized_text(m.get("name")),
+                    "unit": sanitized_text(m.get("unit")),
                     "samples": samples,
                     "aggregate": aggregate,
-                    "aggregation": _text(m.get("aggregation")),
+                    "aggregation": sanitized_text(m.get("aggregation")),
                     "baseline": _number(m.get("baseline")),
                     "target": _number(m.get("target")),
                 }
@@ -83,11 +85,11 @@ def external_record(root: Path, reference: object, candidate_id: str) -> tuple[d
                 {
                     "line": i,
                     "event_id": e.get("id") if isinstance(e.get("id"), str)
-                    and e["id"] and _text(e["id"]) == e["id"] else None,
-                    "workload": _text(e.get("workload"), "") or None,
-                    "scope": _text(e.get("scope"), "") or None,
-                    "metric": _text(e.get("metric"), "") or None,
-                    "category": _text(e.get("category"), "") or None,
+                    and e["id"] and sanitized_text(e["id"]) == e["id"] else None,
+                    "workload": sanitized_text(e.get("workload"), "") or None,
+                    "scope": sanitized_text(e.get("scope"), "") or None,
+                    "metric": sanitized_text(e.get("metric"), "") or None,
+                    "category": sanitized_text(e.get("category"), "") or None,
                     "time": time,
                     "phase": None,
                     "type": "external.record",
@@ -95,7 +97,7 @@ def external_record(root: Path, reference: object, candidate_id: str) -> tuple[d
                     "side": None,
                     "trial": None,
                     "tool": None,
-                    "details": {"summary": _text(e.get("summary"), "", 1500)},
+                    "details": {"summary": sanitized_text(e.get("summary"), "", 1500)},
                     "source": "events",
                     "refs": [ref, *sources],
                 }
@@ -115,8 +117,8 @@ def external_record(root: Path, reference: object, candidate_id: str) -> tuple[d
             for k in required
         )
         return {
-            "backend": _text(data.get("backend")),
-            "protocol": _text(data.get("protocol")),
+            "backend": sanitized_text(data.get("backend")),
+            "protocol": sanitized_text(data.get("protocol")),
             "metrics": metrics,
             "events": events,
             "source_refs": sources,
@@ -131,7 +133,7 @@ def external_record(root: Path, reference: object, candidate_id: str) -> tuple[d
             "state": data.get("state")
             if data.get("state") in ("running", "completed", "failed", "crashed", "cancelled")
             else "not_recorded",
-            "note": _text(data.get("note"), "", 2000),
+            "note": sanitized_text(data.get("note"), "", 2000),
             "identity_state": "recorded" if identity_complete else "incomplete",
             "comparison_state": "protocol_specific",
             "provenance": "Caller-adapted records; hashes check bytes, not experimental validity.",

@@ -8,13 +8,13 @@ import sys
 from importlib.resources import files
 from pathlib import Path
 
+from .apps.campaign import capture_context, create_campaign
 from .arguments import device_ids, make_spec, parser
 from .catalog import get_knowledge, search_knowledge
 from .execution import run_experiment
 from .inspection import inspect_environment
 from .knowledge_operations import KnowledgeReader
 from .knowledge_store import KnowledgeStore
-from .observability.knowledge_capture import capture_context
 from .reporting import write_report
 from .research import research_knowledge
 
@@ -345,14 +345,14 @@ def main(argv: list[str] | None = None) -> int:
             if args.live:
                 if args.output is not None:
                     raise ValueError("--output cannot be used with --live")
-                from .observability.dashboard_live import serve_dashboard
+                from .apps.views.dashboard_live import serve_dashboard
 
                 serve_dashboard(args.input, args.translations,
                                 port=args.port if args.port is not None else 8765)
             else:
                 if args.port is not None:
                     raise ValueError("--port requires --live")
-                from .observability.dashboard import write_dashboard
+                from .apps.views.dashboard import write_dashboard
 
                 _print({"dashboard": str(write_dashboard(args.input, args.output,
                                                           args.translations))})
@@ -381,16 +381,15 @@ def main(argv: list[str] | None = None) -> int:
                 )
                 _print(result)
                 return 2 if result.get("state") == "blocked" else 0
-            from .observability.campaign_records import (
+            from .harness.records.campaign_records import (
                 assemble_trace,
-                create_campaign,
                 record_candidate,
                 record_decision,
                 require_manual_campaign,
             )
 
             if args.campaign_action == "attach-profile":
-                from .observability.profile_timeline import attach_profile
+                from .harness.records.profile_timeline import attach_profile
 
                 _print(attach_profile(args.directory, capture_id=args.id, source=args.source,
                                       review=args.review))
@@ -411,7 +410,7 @@ def main(argv: list[str] | None = None) -> int:
                         "sha256": digest})
                 return 0
             if args.campaign_action == "import-search":
-                from .observability.search_attribution import import_search
+                from .apps.views.search_attribution import import_search
 
                 path = import_search(args.directory, number=args.round, trace=args.trace,
                                      lines=args.lines, knowledge_root=args.knowledge_root,
@@ -421,7 +420,7 @@ def main(argv: list[str] | None = None) -> int:
                 _print({"record": path.relative_to(args.directory.resolve()).as_posix()})
                 return 0
             if args.campaign_action == "log":
-                from .observability.optimization_log import record_log
+                from .harness.records.optimization_log import record_log
 
                 path, digest = record_log(args.directory, args.file)
                 _print({"log": path.name, "sha256": digest})
