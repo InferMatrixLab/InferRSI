@@ -172,8 +172,41 @@ output parsing. Moving a synchronization location is not proof that all of its
 time was eliminated. Neither prototype establishes speech-quality
 non-inferiority; the archived WER, SIM and UTMOS scores remain descriptive.
 
+## Sampling-overhead diagnostic
+
+`results/service-phase12-development.json` records a valid-input exponential
+sampling prototype layered on asynchronous history upload. Its component
+check preserved sampled tokens and generator state in eager and CUDA Graph
+execution, including the 6562-token vocabulary. Existing regressions recorded
+179 passed and 27 skipped. The prototype omits invalid-probability assertions
+and is **not a production patch**; its diagnostic diff is archived separately.
+
+| Mean request RTF, two tuning repetitions | C1 | C16 | C32 |
+| --- | ---: | ---: | ---: |
+| Asynchronous-history control | 0.06121 | 0.23879 | 0.33334 |
+| Sampling prototype | 0.05979 | 0.22041 | 0.31794 |
+| Same-allocation independent engine | 0.06223 | 0.20710 | 0.27125 |
+
+All 18 cells completed 64 requests without failures. The prototype improves
+its development control, but C16/C32 still miss the engine target. C16 also
+has substantial within-server repetition spread; these are not independent
+fresh-process measurements. Quality was scored on the first repetition's
+saved audio: WER was unchanged at C1/C32 and lower at C16, while speaker
+verification SIM fell by about 0.224 and 0.336 points at C16/C32. These
+descriptive scores do not establish non-inferiority. No service PASS follows
+from the component parity or development latency change.
+
 ## Lessons supported by this investigation
 
+- Match component precision to the running service. The HiFT diagnostic in
+  `results/hift-service-precision-diagnostic.json` initially compared against
+  a forced cuDNN-TF32-off control, but the service already enables TF32.
+  Repeating nine real-weight cells with the service precision produced
+  identical waveforms and essentially unchanged graph latency. The candidate
+  service treatment was pruned; the original microbenchmark is not an
+  available service speedup. Both fresh C32 controls were slower than earlier
+  allocations, without an established cause; no cross-allocation gain is
+  inferred from them.
 - Check dependency source bytes as well as package versions. The shared local
   S3 installation reported the pinned version but changed quantization,
   LayerNorm epsilon and mask construction. Its exploratory service runs were

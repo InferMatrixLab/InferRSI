@@ -1,0 +1,12 @@
+--- a/vllm_omni/model_executor/models/minicpmo_4_5/talker_codec_sample.py
++++ b/vllm_omni/model_executor/models/minicpmo_4_5/talker_codec_sample.py
+@@ -455,7 +455,8 @@
+             temperature = config[0]
+             scores = filtered[row]
+             token = (
+-                torch.multinomial(scores.softmax(-1), 1, generator=generator).reshape(1)
++                (scores.softmax(-1) / torch.empty_like(scores).exponential_(1, generator=generator))
++                .argmax(dim=-1)
+                 if temperature
+                 else scores.argmax(dim=-1)
+             )
