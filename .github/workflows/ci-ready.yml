@@ -67,3 +67,19 @@ jobs:
         env:
           PR_BODY: ${{ github.event.pull_request.body }}
         run: python3 tools/check_pr_references.py
+
+  evidence-budget:
+    # Report-only evidence byte budgets accepted in #273; enforcement is a separate decision.
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Report evidence byte budgets (Refs #273)
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: python3 tools/check_evidence_budget.py --base "$BASE_SHA" --report-only
