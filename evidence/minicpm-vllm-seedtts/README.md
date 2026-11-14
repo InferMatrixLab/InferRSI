@@ -100,8 +100,15 @@ INCONCLUSIVE. A four-replica screen was preempted by a scheduled GPU booking; it
 cell failed 61/64 requests. `results/replica4-interrupted.json` retains this
 interruption and excludes the incomplete run from acceptance.
 
-The later TensorRT, encoder-tail and Thinker n-gram hypotheses
-have no results in this archive and carry no performance claim.
+The next three hypotheses completed on device D, with a same-allocation
+independent-engine comparison in `results/service-phase5-development.json`.
+Thinker n-gram plus K16 Talker reached mean RTF 0.06164 / 0.26649 / 0.43239;
+the paired engine reached 0.06222 / 0.21053 / 0.26183. The small C1 advantage
+is unqualified; C16/C32 still miss the target. WER/SIM/UTMOS do not establish
+no regression, so the full goal remains INCONCLUSIVE. TensorRT speaker and
+encoder tail capture did not improve the earlier K16 speaker configuration.
+A subsequent combination screen is testing n-gram with multiple Code2Wav
+replicas and experimental grouped reference setup; it has no results here.
 
 ## Lessons supported by this investigation
 
