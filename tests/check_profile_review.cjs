@@ -22,6 +22,8 @@ const document={documentElement:make(),createElement:make,createTextNode:String,
                 getElementById:id,querySelectorAll:()=>[]};
 const source=[...html.matchAll(/<script>\s*([\s\S]*?)<\/script>/g)].at(-1)[1];
 vm.runInNewContext(source,{document,window:{addEventListener(){},
+  // Shared component behavior is covered by test_knowledge_navigation_browser.py.
+  InferRSIKnowledge:{create:()=>({render(){},trace(){},backLinks(){}})},
   InferRSIExperiments:{create:()=>({render(){}})}},
                           localStorage:{getItem(){return 'en';},setItem(){}}});
 if(mode==='timing'){

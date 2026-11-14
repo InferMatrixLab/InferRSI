@@ -303,6 +303,11 @@ def dashboard_snapshot(source: Path, translations: Path | None = None) -> dict:
     """Read one view and its charts from the currently recorded evidence."""
     source = Path(source).resolve()
     view = load_dashboard(source)
+    from .retrieval_projection import project_knowledge, public_value
+
+    view["knowledge_trace"] = project_knowledge(source, view)
+    if "story" in view:
+        view["story"] = public_value(view["story"])
     if view.get("review_layout") == "profile_first":
         from .experiment_timing import experiment_timing
         from .profile_timeline import pre_profile_searches, read_profiles
@@ -336,12 +341,14 @@ def render_dashboard(snapshot: dict, *, live: bool = False) -> str:
     )
     if live:
         template = template.replace("img-src data:;", "img-src data:; connect-src 'self';")
-    replacements = {"__DASHBOARD_DATA__": payload, "__DASHBOARD_CHART__": snapshot["chart"],
+    replacements = {"__DASHBOARD_KNOWLEDGE__": files("inferrsi").joinpath(
+        "observability", "knowledge_view.html").read_text(encoding="utf-8"),
+                    "__DASHBOARD_DATA__": payload, "__DASHBOARD_CHART__": snapshot["chart"],
                     "__DASHBOARD_TEMPORAL__": snapshot["temporal"],
                     "__DASHBOARD_EXPERIMENTS__": files("inferrsi").joinpath(
                         "observability", "experiment_view.html").read_text(encoding="utf-8")}
     return re.sub(
-        r"__DASHBOARD_(?:DATA|CHART|TEMPORAL|EXPERIMENTS)__",
+        r"__DASHBOARD_(?:DATA|CHART|TEMPORAL|EXPERIMENTS|KNOWLEDGE)__",
         lambda match: replacements[match.group()],
         template,
     )

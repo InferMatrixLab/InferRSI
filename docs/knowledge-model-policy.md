@@ -79,6 +79,7 @@ conflicting declarations and stale coverage fail. PR text is never shell input.
 | GPT-6-Astra | `gpt-6-astra` | None | `xhigh`, `max` |
 | GPT-6.1 Sol | `gpt-6.1-sol` | None | `xhigh`, `max` |
 | GPT-6.1 Terra | `gpt-6.1-terra` | None | `xhigh`, `max` |
+| Claude Fable 5.2 | `claude-fable-5-2` | None | `xhigh`, `max` |
 
 IDs and effort support were checked on 2026-10-21 against official
 [Claude IDs](https://platform.claude.com/docs/en/models/opus-5-5/overview),
@@ -94,6 +95,12 @@ GPT-6.1 Terra's canonical ID and support for `xhigh` and `max` were checked on
 2026-11-01 against its [official model documentation](https://developers.openai.com/api/docs/models/gpt-6.1-terra).
 The policy admits only those two efforts for Terra; the model's other supported
 efforts do not qualify for knowledge authorship.
+
+Claude Fable 5.2's canonical ID and support for `xhigh` and `max` were checked on
+2026-11-14 against its [official model documentation](https://platform.claude.com/docs/en/models/fable-5-2/whats-new-fable-5-2).
+The policy admits only those two efforts for Fable 5.2; other documented efforts
+(`low`, `medium`, `high`) do not qualify for knowledge authorship. The drifting
+`fable` alias is not admitted.
 
 ## Explicit exceptions and policy review
 

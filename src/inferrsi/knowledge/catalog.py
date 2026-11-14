@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 from importlib.resources import files
@@ -131,7 +132,8 @@ def search_knowledge(
     backend: str | None = None,
     scenario: str | None = None,
     limit: int = 10,
-) -> list[dict[str, Any]]:
+    explain: bool = False,
+) -> list[dict[str, Any]] | dict[str, Any]:
     if limit < 1:
         raise ValueError("limit must be positive")
     if tier is not None and tier not in KNOWLEDGE_SCOPES:
@@ -139,26 +141,56 @@ def search_knowledge(
     scenario = SCENARIO_ALIASES.get(scenario, scenario)
     tokens = re.findall(r"[\w.-]+", query.casefold())
     scored = []
-    for record in knowledge_records():
+    records = knowledge_records()
+    excluded = {"tier": 0, "repo": 0, "backend": 0, "scenario": 0, "query": 0}
+    explanations = {}
+    for record in records:
         if tier and record.get("tier", "contribution") != tier:
+            excluded["tier"] += 1
             continue
         if repo and record["repo"] != repo:
+            excluded["repo"] += 1
             continue
         if backend and record["backend"] not in (backend, "common"):
+            excluded["backend"] += 1
             continue
         if scenario:
             declared = record.get("scenario", "")
             if declared != scenario and not (
                 declared.endswith(".*") and scenario.startswith(declared[:-1])
             ):
+                excluded["scenario"] += 1
                 continue
         document = json.dumps(record, ensure_ascii=False).casefold()
         if any(token not in document for token in tokens):
+            excluded["query"] += 1
             continue
         score = sum(document.count(token) for token in tokens)
+        if explain:
+            explanations[record["id"]] = [
+                {"term": token, "occurrences": document.count(token)} for token in tokens]
         scored.append((score, record["id"], record))
     scored.sort(key=lambda item: (-item[0], item[1]))
-    return [item[2] for item in scored[:limit]]
+    items = [item[2] for item in scored[:limit]]
+    if not explain:
+        return items
+    from .retrieval import observation
+
+    return {"items": items, "retrieval": observation(
+        entrypoint="knowledge search",
+        request={"query": query, "repo": repo, "tier": tier, "backend": backend,
+                 "scenario": scenario, "limit": limit, "sources": ["package"]},
+        selection={"method": "catalog-occurrences-v1", "scope": "package-records",
+                   "ranking_applied": True, "state": "applied", "tie_break": "id_ascending"},
+        items=[{"ref": "package:" + identity, "rank": rank, "score": score,
+                "revision": "catalog-sha256:" + hashlib.sha256(json.dumps(
+                    record, sort_keys=True, ensure_ascii=False).encode()).hexdigest(),
+                "components": explanations[identity]}
+               for rank, (score, identity, record) in enumerate(scored[:limit], 1)],
+        counts={"considered": len(records), "matched": len(scored), "returned": len(items),
+                "excluded": {**excluded, "item_limit": max(0, len(scored) - limit)}},
+        assembly="not_requested",
+    )}
 
 
 def get_knowledge(record_id: str) -> dict[str, Any]:

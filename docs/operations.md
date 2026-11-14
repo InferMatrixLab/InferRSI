@@ -45,6 +45,7 @@ Effect classes used below:
 | Execute one ordinary local CPU command with a fixed record | Python `inferrsi.harness.api.Harness.allocate` / `execute` / `read` | Experiment-executing / record-writing | One explicit RunStore root and one trusted local CPU target; ordinary command mode only; a record holds execution facts, so exit 0 is not a verdict; no device, model or network fallback |
 | Visualize a recorded run or campaign | CLI `dashboard`; [dashboard](dashboard.md) | Report-generating / local read-only serving | Writes an offline HTML snapshot or serves an optional live view on loopback; does not run an agent or validate a claim |
 | Capture a knowledge context | CLI `campaign capture-context`; [offline dashboard](dashboard.md#record-the-optimization-story-campaign-trace) | Local evidence-writing | Runs `collect` with a context budget and keeps the full envelope and resource hashes in a new `knowledge/<id>.json`; proves what was prepared, not what a model read |
+| Retain an executed retrieval | Python `observability.knowledge_capture.save_retrieval`; [capture contract](knowledge-retrieval-trace.md#retain-a-standalone-result) | Local evidence-writing | Saves an existing catalog/collect result under a fresh campaign capture ID; no new search or automatic publication |
 | Import one round of knowledge searches | CLI `campaign import-search`; [round import](dashboard.md#import-one-rounds-searches) | Local evidence-writing | Reads a Codex rollout window or context captures. With `--archive-review`, retains excerpts of attributable tool returns and reviewed decisions for readers of the evidence bundle. |
 | Record the optimization log | CLI `campaign log`; [offline dashboard](dashboard.md#record-the-optimization-story-campaign-trace) | Local evidence-writing | Validates and stores a new numbered campaign log version; the dashboard cross-checks it against captures and runs |
 | Assemble an optimization trace | CLI `campaign assemble-trace`; [offline dashboard](dashboard.md#capture-the-optimization-trace) | Local evidence-writing | Copies an explicitly reviewed context into a new bounded campaign-root snapshot; caller owns redaction and narrative accuracy |
@@ -105,11 +106,11 @@ are distinct from `knowledge search`, whose package catalog filters
 
 ### Search packaged records — `knowledge search` / `knowledge show`
 
-- **Inputs:** query words plus optional `--tier`, `--repo-type`, `--backend`, `--scenario`, `--limit`, `--json`; `show` takes one record ID.
+- **Inputs:** query words plus optional `--tier`, `--repo-type`, `--backend`, `--scenario`, `--limit`, `--json`, `--explain`; `show` takes one record ID.
 - **Scope:** the installed package catalog (`repo_packs`, `knowledge_packs`) only.
-- **Output:** tab-separated record lines (id, status, backend, title), or a JSON list with `--json`; `show` prints one full record as JSON.
+- **Output:** tab-separated record lines (id, status, backend, title), or a JSON list with `--json`; `--explain` returns a JSON envelope with `items` and `retrieval` (entry, ranking, scores and counts). Python uses `search_knowledge(..., explain=True)` for that envelope. `show` prints one full record as JSON.
 - **Side effects:** none.
-- **Failure behavior:** no match prints nothing and exits 0 — an empty result is not an error (an empty JSON list with `--json`); an unknown `show` ID and unsupported filter values exit 2.
+- **Failure behavior:** no match prints nothing and exits 0 — an empty result is not an error (an empty JSON list with `--json`, or empty `items` in the `--explain` envelope); an unknown `show` ID and unsupported filter values exit 2.
 - **Example:** `inferrsi knowledge search 'Qwen-Image-2.1' --repo-type vllm_omni --backend ascend`
 
 The tier/repo/backend/scenario filters are package-only: an empty filtered

@@ -232,8 +232,9 @@ def main(argv: list[str] | None = None) -> int:
                     backend=args.backend,
                     scenario=args.scenario,
                     limit=args.limit,
+                    explain=args.explain,
                 )
-                if args.json:
+                if args.json or args.explain:
                     _print(records)
                 else:
                     for record in records:

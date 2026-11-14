@@ -48,6 +48,12 @@
       "efforts": ["xhigh", "max"],
       "suspended": false,
       "source": "https://developers.openai.com/api/docs/models/gpt-6.1-terra"
+    },
+    "claude-fable-5-2": {
+      "aliases": [],
+      "efforts": ["xhigh", "max"],
+      "suspended": false,
+      "source": "https://platform.claude.com/docs/en/models/fable-5-2/whats-new-fable-5-2"
     }
   },
   "approval_owners": ["Dong1017"],

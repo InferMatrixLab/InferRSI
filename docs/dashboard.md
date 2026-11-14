@@ -508,6 +508,13 @@ open under round details. A `diagnosis` with scope `baseline_request` or
 `denoiser_step` supplies the profile table when its `source_sha256` matches
 the attached profile artifact. The gap uses the acceptance baseline measurement.
 
+The shared **Knowledge retrieval and evidence navigation** panel explains actual
+entry points, recorded ranking and assembly, and local v1/portable v2 search
+records. It links explicit round/candidate/run identities in both layouts and
+preserves active selections during live refresh. See the [retrieval contract and
+integration guide](knowledge-retrieval-trace.md) for standalone captures,
+compatibility, historical gaps and the offline synthetic example.
+
 The **Optimization story** section is the campaign-level trace a reviewer reads
 to understand the whole optimization: what knowledge was retrieved and why, the
 declared search space and how it was narrowed, each round's hypothesis and

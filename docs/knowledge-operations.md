@@ -138,6 +138,7 @@ still returns `record.json` for these owners, not `SKILL.md`.
 
 | Additional result | Meaning |
 | --- | --- |
+| `retrieval` | Recorded entry, filters, ranking execution, returned-item scores and budget counts; outside budgeted item/resource payloads. See [retrieval observations](knowledge-retrieval-trace.md#execution-observations) |
 | `selection` | Method, cue, scope and whether discovery ranking was applied; only with `relevance` |
 | `contexts` | Selected owner views, each with `ref`, exact Bundle `revision`, resources, `content_bytes`, resource omissions, sources, attribution and limitations |
 | `context_omissions` | Owner context unavailable: `unsupported_context`, `index_unavailable` or `context_limit` |

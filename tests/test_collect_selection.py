@@ -50,6 +50,7 @@ def test_existing_item_payload_and_material_accounting_are_unchanged():
     old = reader.collect(ids=[CGROUP], material=True)
     assert set(old) == {
         "items", "omissions", "no_match", "collisions", "material_bytes", "limitations",
+        "retrieval",
     }
     new = reader.collect(ids=[CGROUP], material=True, context_bytes=65536)
     assert new["items"] == old["items"]

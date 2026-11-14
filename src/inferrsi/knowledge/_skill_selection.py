@@ -96,20 +96,28 @@ def indexed_skill(record: dict, view: dict, content: dict[str, bytes]) -> tuple:
 
 
 def skill_score(
-    cue: str, record: dict, core: bytes, *, method: str = "weighted-lexical-v1"
+    cue: str, record: dict, core: bytes, *, method: str = "weighted-lexical-v1",
+    explanation: dict | None = None,
 ) -> int:
     if method not in ("weighted-lexical-v1", "weighted-raw-string-v1"):
         raise ValueError("Unknown relevance method for skill-only ranking")
     scorer = raw_string_lexical_score if method == "weighted-raw-string-v1" else lexical_score
-    return scorer(cue, [
+    fields = [
         (4, record["title"]),
         (3, record["summary"]),
         (2, [record.get("tags", []), record.get("applicability", {})]),
         (1, core.decode("utf-8")),
-    ])
+    ]
+    components = [scorer(cue, [field]) for field in fields]
+    score = sum(components)
+    if explanation is not None:
+        explanation.update(score=score, components=dict(zip(
+            ("title", "summary", "tags_applicability", "body"), components)), multiplier=1)
+    return score
 
 
-def task_score(cue: str, record: dict, core: bytes, backend: str | None) -> int:
+def task_score(cue: str, record: dict, core: bytes, backend: str | None,
+               *, explanation: dict | None = None) -> int:
     """Rank whole task terms across both skill and repository knowledge owners."""
     def terms(text: str) -> set[str]:
         return set(re.findall(r"[^\W_]+", text.casefold()))
@@ -123,7 +131,8 @@ def task_score(cue: str, record: dict, core: bytes, backend: str | None) -> int:
         (1, json.dumps(record.get("applicability", {}), ensure_ascii=False)),
         (1, core.decode("utf-8")),
     )
-    score = sum(weight * len(tokens & terms(text)) for weight, text in fields)
+    components = [weight * len(tokens & terms(text)) for weight, text in fields]
+    score = sum(components)
     # With no platform in scope prefer portable procedures to a specialization
     # that happens to repeat the same task words in its description.
     platforms = {
@@ -131,7 +140,12 @@ def task_score(cue: str, record: dict, core: bytes, backend: str | None) -> int:
         "ascend": {"ascend", "cann"}, "mlx": {"mlx"}, "cpu": {"cpu"},
     }
     in_scope = {backend} if backend else {key for key, names in platforms.items() if names & tokens}
-    return score * (2 if record["backend"] == "common" or record["backend"] in in_scope else 1)
+    multiplier = 2 if record["backend"] == "common" or record["backend"] in in_scope else 1
+    if explanation is not None:
+        explanation.update(score=score * multiplier, components=dict(zip(
+            ("title", "summary", "tags", "repo_scenario", "applicability", "body"),
+            components)), multiplier=multiplier)
+    return score * multiplier
 
 
 def record_context(record: dict, view: dict, content: dict[str, bytes], available: int) -> tuple:
