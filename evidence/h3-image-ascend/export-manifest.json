@@ -1,5 +1,5 @@
 {
-  "README.md": "74d3f5b21a338f8c289217ac2a9626530aa646bd4e8fa802f09d107421398748",
+  "README.md": "19b42c07a4ed43902fd93bd45e2425bc40113dd7178ce87b2eed6004a30830c5",
   "patch/revision.json": "d8396389afd8c9c5565f9834e1a4ab092813e74c78285c921f7453b27a84235b",
   "plan/environment.json": "9b404a74007446fbbd6343383ebf8d18be446068d2018eb330c964473f54c45e",
   "plan/provenance.json": "a58206b9cb0f2dc1f0a51c71ce929630a3552a13bd7fdd5ced290a71945c28d6",
@@ -47,6 +47,7 @@
   "results/native-sp4-offload/request-measurements.json": "586eddd05b217320d86ff8a3d98b0067e1904f3a706e24cf3a2051d8a9da11e2",
   "results/native-sp4-offload/summary.json": "5eb77f9bada84dba34b2d097dda158f0e37f5bb9aa92fa776072491b828aa08c",
   "results/nov14-component-search.json": "268aad8459443cbfd98b3675c7daff77005e524947bc2b303b0505cf2f550d91",
+  "results/nov14-native-attention-followup.json": "213dc4a57932c9621e495945c01cf824c64abf17d502d8c025aff13bd633b793",
   "results/nov14-quantization-component-search.json": "46f10f18103c4c5b26ed7e69ea796b37b5a11c0952fbd4cbec5034179a3592a2",
   "results/nov14-torchair-component-search.json": "9f6bb641537551e42bb7c70ed0a9d4f3b8cf23cbf1477cfe4f681fb577ab988f",
   "results/nz-load-order-diagnosis.json": "f8ee43658c350928eb89d27e91026d73f0d4e22e5d7b0946c2a26103b4861701",
@@ -54,6 +55,7 @@
   "results/postload-nz-round16-result.json": "7969f33bea08171f7c44d98d43d497cf9c756965ecf1fcdd24268851dc2b00a5",
   "results/prepared-rows-round12-rejection.json": "5445aacc75663e99dbbe8193c3dc53491835150018c49db120e122e06f608ac4",
   "results/prepared-text-round13-result.json": "1405345323e64fe8e37e7918760f32b48e4920f81ecc5a6fc03bcf6f40c17c88",
+  "results/prompt-cache-round24-result.json": "0ae163528521e70f8cc545d2bdb881ec9c8fad640ff989e503cd8d52a4667afd",
   "results/quality-overview.png": "163b7d403cb01ec40a56469f859c7f90c0e9621abddf22f8c740c4baa47ea8d9",
   "results/quant-projection-sensitivity.json": "b3ae5166c955bda3a0e6d9b075376e2a31b02c2db315cadaef6bc166ce42c5be",
   "results/quant-sensitivity.json": "45de8c82872edd70e0d551741402a676529cc0fc28948cb856c809a2fc9f825a",

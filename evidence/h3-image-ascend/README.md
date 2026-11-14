@@ -367,3 +367,15 @@ not improve total synthetic cost. No whole-image candidate was adopted.
 The report also records the rejected first run with incorrect sequence-length
 semantics and the unsupported compiled BF16 TopK attempt. Results after the
 first NPU error were excluded; corrected experiments ran in fresh processes.
+
+## Native attention follow-up
+
+[GE compilation and head-padding results](results/nov14-native-attention-followup.json)
+retain all attention edges. A process-local TND converter produced exact outputs
+in five cases but no consistent speed benefit; the bundled converter rejected
+TND. Padding 14 heads to 16/28/32 was exact in all 15 cases and slower after
+including copies. Neither variant entered whole-model qualification.
+
+### Exact prompt cache follow-up (round 24)
+
+[Round 24](results/prompt-cache-round24-result.json) exposes H3 to the existing opt-in prompt embedding cache. All 30 paired images are RGB-exact, but control/candidate W1/W2/W3 medians are 11.081/2.690/4.658 s and 10.959/2.656/4.735 s. The mixed small changes do not establish an overall E2E gain; all issue #390 targets remain unmet. Cold/warm request semantics and reference-image bypass are disclosed in the result. No engine adoption or final ABBA/visual acceptance.

@@ -1,0 +1,520 @@
+{
+  "acceptance_issue": "https://github.com/InferMatrixLab/InferRSI/issues/390",
+  "source": {
+    "base": "bd30cbd3fb621fcca600b2de08fc1249c6c0987c",
+    "patch_sha256": "75234ff1786d67ba7245e3c2408cb910e5941840fc0f35c1732f9a7f5ab72599",
+    "control_prompt_embed_cache": false,
+    "candidate_prompt_embed_cache": true,
+    "cache_size": 32,
+    "scope": "Exact text-only prompt reuse via existing opt-in cache; PIL reference calls bypass; report cold and warm separately.",
+    "cpu_tests": "140 passed; baseline missing-interface regression 2 failed, 2 passed",
+    "quality": "Frozen screen3 then full30; no input/step/canvas/transport changes"
+  },
+  "candidate": "Expose H3 encode_prompt to the existing opt-in exact prompt embedding cache; preserve _encode_text profiling boundary.",
+  "quality": {
+    "reports": [
+      {
+        "group": "author-workloads",
+        "verdict": "PASS",
+        "scope": "numerical image-quality screen only",
+        "visual_review": "pending",
+        "additional_prompt_coverage": "pending",
+        "checks": [
+          {
+            "workload": "W1",
+            "seed": 42,
+            "index": 0,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W1",
+            "seed": 42,
+            "index": 1,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W1",
+            "seed": 42,
+            "index": 2,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W1",
+            "seed": 42,
+            "index": 3,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W2",
+            "seed": 42,
+            "index": 0,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W2",
+            "seed": 42,
+            "index": 1,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W2",
+            "seed": 42,
+            "index": 2,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W2",
+            "seed": 42,
+            "index": 3,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W3",
+            "seed": 42,
+            "index": 0,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W3",
+            "seed": 42,
+            "index": 1,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W3",
+            "seed": 42,
+            "index": 2,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W3",
+            "seed": 42,
+            "index": 3,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          }
+        ]
+      },
+      {
+        "group": "-quality",
+        "verdict": "PASS",
+        "scope": "numerical image-quality screen only",
+        "visual_review": "pending",
+        "additional_prompt_coverage": "pending",
+        "checks": [
+          {
+            "workload": "W1",
+            "seed": 43,
+            "index": 0,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W1",
+            "seed": 44,
+            "index": 0,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W2",
+            "seed": 43,
+            "index": 0,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W2",
+            "seed": 44,
+            "index": 0,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W3",
+            "seed": 43,
+            "index": 0,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W3",
+            "seed": 44,
+            "index": 0,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          }
+        ]
+      },
+      {
+        "group": "-architecture",
+        "verdict": "PASS",
+        "scope": "numerical image-quality screen only",
+        "visual_review": "pending",
+        "additional_prompt_coverage": "pending",
+        "checks": [
+          {
+            "workload": "W1",
+            "seed": 43,
+            "index": 0,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W1",
+            "seed": 44,
+            "index": 0,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W2",
+            "seed": 43,
+            "index": 0,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W2",
+            "seed": 44,
+            "index": 0,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          }
+        ]
+      },
+      {
+        "group": "-portrait",
+        "verdict": "PASS",
+        "scope": "numerical image-quality screen only",
+        "visual_review": "pending",
+        "additional_prompt_coverage": "pending",
+        "checks": [
+          {
+            "workload": "W1",
+            "seed": 43,
+            "index": 0,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W1",
+            "seed": 44,
+            "index": 0,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W2",
+            "seed": 43,
+            "index": 0,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W2",
+            "seed": 44,
+            "index": 0,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          }
+        ]
+      },
+      {
+        "group": "-edit-wall",
+        "verdict": "PASS",
+        "scope": "numerical image-quality screen only",
+        "visual_review": "pending",
+        "additional_prompt_coverage": "pending",
+        "checks": [
+          {
+            "workload": "W3",
+            "seed": 43,
+            "index": 0,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W3",
+            "seed": 44,
+            "index": 0,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          }
+        ]
+      },
+      {
+        "group": "-edit-sign",
+        "verdict": "PASS",
+        "scope": "numerical image-quality screen only",
+        "visual_review": "pending",
+        "additional_prompt_coverage": "pending",
+        "checks": [
+          {
+            "workload": "W3",
+            "seed": 43,
+            "index": 0,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W3",
+            "seed": 44,
+            "index": 0,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          }
+        ]
+      }
+    ],
+    "campaign_verdict": "INCONCLUSIVE",
+    "visual_review": "pending",
+    "abba": "pending"
+  },
+  "latency": {
+    "control": {
+      "W1": {
+        "samples_s": [
+          11.012348268006463,
+          11.29867628304055,
+          11.08051591803087
+        ],
+        "median_s": 11.08051591803087,
+        "target_s": 7.34,
+        "target_met": false,
+        "h200_inverse_latency_fraction": 0.3312120145983419
+      },
+      "W2": {
+        "samples_s": [
+          2.67034600203624,
+          2.6898184010060504,
+          2.77186039701337
+        ],
+        "median_s": 2.6898184010060504,
+        "target_s": 1.52,
+        "target_met": false,
+        "h200_inverse_latency_fraction": 0.28254695548061665
+      },
+      "W3": {
+        "samples_s": [
+          4.657603218045551,
+          4.632010047964286,
+          4.789532107010018
+        ],
+        "median_s": 4.657603218045551,
+        "target_s": 2.6,
+        "target_met": false,
+        "h200_inverse_latency_fraction": 0.2791135137839228
+      }
+    },
+    "candidate": {
+      "W1": {
+        "samples_s": [
+          10.987321007996798,
+          10.958950311993249,
+          10.922758449974936
+        ],
+        "median_s": 10.958950311993249,
+        "target_s": 7.34,
+        "target_met": false,
+        "h200_inverse_latency_fraction": 0.3348860881305053
+      },
+      "W2": {
+        "samples_s": [
+          2.6278567260014825,
+          2.689929188985843,
+          2.6561221340089105
+        ],
+        "median_s": 2.6561221340089105,
+        "target_s": 1.52,
+        "target_met": false,
+        "h200_inverse_latency_fraction": 0.2861314207916052
+      },
+      "W3": {
+        "samples_s": [
+          4.809876250976231,
+          4.363013138005044,
+          4.734642603027169
+        ],
+        "median_s": 4.734642603027169,
+        "target_s": 2.6,
+        "target_met": false,
+        "h200_inverse_latency_fraction": 0.27457193900313076
+      }
+    }
+  },
+  "warmup_requests": {
+    "control": [
+      {
+        "workload": "W1",
+        "latency_s": 22.43079964502249,
+        "warmup": true,
+        "seed": 42,
+        "index": 0,
+        "rgb_sha256": "7b22c75b04d0f69b56ce9dd67de14acaad0531959245c9c7304757dfa8105cc4"
+      },
+      {
+        "workload": "W2",
+        "latency_s": 2.696748654008843,
+        "warmup": true,
+        "seed": 42,
+        "index": 0,
+        "rgb_sha256": "a5eed4f1dc64f8e450ea8d4d8d1d21eaf586e1eb48c17b539605e8ab61d0ea15"
+      },
+      {
+        "workload": "W3",
+        "latency_s": 12.970219290989917,
+        "warmup": true,
+        "seed": 42,
+        "index": 0,
+        "rgb_sha256": "e2ac34b7c8b8afad6c40671a18bb7448cbe07781e566fe1668aabf365e17dea7"
+      }
+    ],
+    "candidate": [
+      {
+        "workload": "W1",
+        "latency_s": 23.044894996040966,
+        "warmup": true,
+        "seed": 42,
+        "index": 0,
+        "rgb_sha256": "7b22c75b04d0f69b56ce9dd67de14acaad0531959245c9c7304757dfa8105cc4"
+      },
+      {
+        "workload": "W2",
+        "latency_s": 2.6288349219830707,
+        "warmup": true,
+        "seed": 42,
+        "index": 0,
+        "rgb_sha256": "a5eed4f1dc64f8e450ea8d4d8d1d21eaf586e1eb48c17b539605e8ab61d0ea15"
+      },
+      {
+        "workload": "W3",
+        "latency_s": 13.473818578000646,
+        "warmup": true,
+        "seed": 42,
+        "index": 0,
+        "rgb_sha256": "e2ac34b7c8b8afad6c40671a18bb7448cbe07781e566fe1668aabf365e17dea7"
+      }
+    ]
+  },
+  "lifecycle": {
+    "control_parent_exit": 0,
+    "candidate_parent_exit": 0,
+    "control_worker_exits": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "candidate_worker_exits": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "candidate_cache_installed_ranks": 4
+  },
+  "cache_disclosure": "Text-only repeated prompts are eligible for exact reuse; seeds and output sizes do not affect text embeddings. W1 first warmup is a cold miss; later identical text-only prompts can hit, including W2 warmup. PIL-reference editing calls bypass. Cache-hit classification follows code and request order; per-request runtime counters were not enabled. Warmups below include other first-request overhead and are not isolated text-encoder measurements.",
+  "decision": "Not adopted: all latency targets remain unmet. About 1% lower text-to-image medians and a higher editing median in one paired trial do not establish robust overall E2E benefit. No final ABBA or visual qualification."
+}
