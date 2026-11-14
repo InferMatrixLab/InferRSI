@@ -255,6 +255,7 @@ __DASHBOARD_KNOWLEDGE__
   const liveMode = data.live === true;
   const byId = id => document.getElementById(id);
   const chinese = {
+    'Display redacted; hashes identify the original capture bytes. Review the full bundle before sharing.':'展示已脱敏；哈希标识原始快照字节。分享前请审核完整文件。',
     'samples':'个样本','cases':'个用例','manifests':'份清单','trials':'次试验','checks':'项检查','Total unknown':'总数未知','Source records':'原始记录','Review the failed check':'查看失败的检查','Below target':'未达目标',
     'Assembled knowledge context':'拼接后的知识上下文','Selection rules':'搜索逻辑','Search path':'搜索路径','Sources and search queries':'检索词与来源','Close':'关闭',
     'Run review':'本轮记录','What changed':'本轮改动','Performance tests':'性能测试','Accuracy check':'精度检查',
@@ -1177,6 +1178,7 @@ __DASHBOARD_KNOWLEDGE__
         const fold=node('details',undefined,'context-detail');
         fold.dataset.liveKey=`${scope}-context:${retrieval.context_id}`;
         fold.appendChild(node('summary',`Full assembled context · ${retrieval.contexts.reduce((n,c)=>n+c.resources.length,0)} resources · sha256 ${retrieval.assembled_sha256.slice(0,12)}`));
+        if(retrieval.display_redacted)fold.appendChild(node('p','Display redacted; hashes identify the original capture bytes. Review the full bundle before sharing.','hint'));
         for(const context of retrieval.contexts){
           const list=node('div',undefined,'hint');list.style.margin='6px 0';
           list.textContent=`${context.ref} @ ${context.revision.slice(0,19)} — ${context.resources.map(r=>`${r.path.split('/').slice(-2).join('/')} (${r.role}, ${r.bytes} B)`).join(', ')}`;

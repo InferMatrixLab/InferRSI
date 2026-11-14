@@ -82,6 +82,11 @@ not a budget rejection. Returned refs, prepared resources, caller declarations
 and review-supported associations are separate stages. Resource/capture hashes
 establish byte consistency, not model receipt, authorship or actual use.
 
+Capture item metadata retains the item's declared `skill_documents` and
+entrypoint, not its bundle-wide dependency manifest. Prepared resource paths,
+hashes and bodies remain in `contexts[]`; resource omissions and the original
+assembly byte budget are retained independently.
+
 ## Connect a new round
 
 1. Save the retrieval while working, using `capture-context` or
@@ -144,6 +149,9 @@ URLs, absolute paths and credential-like values are withheld/redacted. The
 redactor is not a publication review: inspect the complete bundle before sharing.
 Display redaction does not rewrite frozen originals. Hashes identify original
 bytes and do not authenticate a redacted display.
+Redaction preserves the complete text even when replacement markers are longer
+than their input. Both layouts repeat the original-byte hash explanation beside
+the full assembled context.
 
 ## Offline example and checks
 
@@ -159,6 +167,20 @@ items, all three entry paths, two linked optimization rounds, multiple searches,
 two runs for one candidate, FAIL/INCONCLUSIVE/no-gain results, local v1, portable
 v2, partial/missing coverage, declarations, reviewed evidence and historical gaps.
 Its synthetic scores and performance values are not optimization claims.
+
+### Synthetic screenshot examples
+
+These retained examples show the two layouts before the later validation and
+focus fixes. They illustrate synthetic fixture data, not current test execution
+or model performance. Current browser results are recorded in the implementation
+PR and CI.
+
+| View | Default layout | Profile layout |
+| --- | --- | --- |
+| Capture selection and budget | [Capture](assets/dashboard-knowledge-default-capture.png) | [Capture](assets/dashboard-knowledge-profile-capture.png) |
+| Run details and return navigation | [Run review](assets/dashboard-knowledge-default-run-review.png) | [Run review](assets/dashboard-knowledge-profile-run-review.png) |
+| Shared v2 records | [Archive](assets/dashboard-knowledge-default-archive-v2.png) | [Archive](assets/dashboard-knowledge-profile-archive-v2.png) |
+| Chinese narrow viewport | [Mobile](assets/dashboard-knowledge-default-mobile-zh.png) | [Mobile](assets/dashboard-knowledge-profile-mobile-zh.png) |
 
 The delivery includes existing-field projection, execution observations and
 shared-record navigation. It does not deliver a general token/cost ledger,

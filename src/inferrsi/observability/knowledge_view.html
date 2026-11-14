@@ -46,7 +46,7 @@ window.InferRSIKnowledge={create({getData,getLanguage,openRun}){
       table(b,[tr('Order','顺序'),tr('Knowledge / version','知识 / 版本'),tr('Score','分数'),tr('Assembly','正文装配'),tr('Caller declaration','调用者声明')],(c.items||[]).map((item,i)=>{
         const detail=el('div');detail.append(el('strong',item.ref));p(detail,item.revision||unknown());
         fold(detail,tr('Resources, sources and score components','资源、来源与分数组成'),scope+':item:'+c.context_id+':'+item.ref,d=>{
-          d.append(el('pre',json({title:item.title,authority:item.authority,entrypoint:item.entrypoint,sources:item.sources,resources:item.resources,score:scores.get(item.ref)??null,assembled:(c.contexts||[]).find(x=>x.ref===item.ref)})));
+          d.append(el('pre',json({title:item.title,authority:item.authority,entrypoint:item.entrypoint,sources:item.sources,skill_documents:item.skill_documents,score:scores.get(item.ref)??null,assembled:(c.contexts||[]).find(x=>x.ref===item.ref)})));
         });
         const use=c.used_refs?.includes(item.ref)?tr('Reported used','声明采用'):c.rejected_refs?.some(r=>r.ref===item.ref)?tr('Reported rejected','声明舍弃'):unknown();
         return [i+1,detail,scores.get(item.ref)?.score,o.assembly==='not_requested'?label('not_requested'):loaded.has(item.ref)?tr('Assembled','已装配'):label(omitted.get(item.ref)||'unknown'),use];

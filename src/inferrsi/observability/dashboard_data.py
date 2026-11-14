@@ -41,7 +41,7 @@ def _number(value: object) -> float | None:
         return None
 
 
-def _text(value: object, default: str = "not_recorded", limit: int = 240) -> str:
+def _text(value: object, default: str = "not_recorded", limit: int | None = 240) -> str:
     if not isinstance(value, str) or not value:
         return default
     value = re.sub(r"https?://\S+", "[redacted-url]", value, flags=re.I)

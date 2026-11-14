@@ -44,7 +44,7 @@ def assemble_context_text(contexts: list[dict]) -> str:
 
 def _item(view: dict) -> dict:
     fields = ("ref", "revision", "title", "kind", "backend", "scenario", "authority",
-              "sources", "entrypoint", "resources")
+              "sources", "entrypoint", "skill_documents")
     return {key: view.get(key) for key in fields}
 
 

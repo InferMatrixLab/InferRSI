@@ -246,6 +246,7 @@ function retrievalDetails(box,c,key,opened){
       used.has(x.ref)?tr('记录为采用','Reported used'):rejected.get(x.ref)].filter(Boolean).join(' · ')]));
   for(const note of c.takeaways||[])p(box,recorded(note));
   fold(box,tr('完整拼接上下文','Full assembled context')+' · '+(c.context_bytes_used??dash)+' B',key+'-text',b=>{
+    if(c.display_redacted)p(b,tr('展示已脱敏；哈希标识原始快照字节。分享前请审核完整文件。','Display redacted; hashes identify the original capture bytes. Review the full bundle before sharing.'),'note');
     p(b,'SHA-256 · '+c.assembled_sha256,'meta');raw(b,c.assembled_text);
   },opened);
   fold(box,tr('检索参数、来源与排除原因','Search parameters, sources and omissions'),key+'-source',b=>

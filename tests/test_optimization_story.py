@@ -16,7 +16,7 @@ from inferrsi.observability.campaign_records import (
     record_candidate,
     record_decision,
 )
-from inferrsi.observability.dashboard import write_dashboard
+from inferrsi.observability.dashboard import dashboard_snapshot, render_dashboard, write_dashboard
 from inferrsi.observability.dashboard_data import load_dashboard
 from inferrsi.observability.knowledge_capture import capture_context, verify_capture
 from inferrsi.observability.optimization_log import LogError, parse_optimization_log, record_log
@@ -155,6 +155,54 @@ def test_capture_matches_real_collect_output(tmp_path):
     assert state == "verified"
     assert document["contexts"], "the packaged library should supply a context"
     assert document["request"]["sources"] == ["package"]
+
+
+def test_capture_packaged_skills_does_not_repeat_bundle_manifest(tmp_path):
+    create_campaign(tmp_path, "camp", noise=1.5)
+    reader = KnowledgeReader()
+    options = {"relevance": "performance kernel optimization", "limit": 40,
+               "context_bytes": 65536, "relevance_method": "task-lexical-v1"}
+    expected = reader.collect(**options)
+    path, _ = capture_context(tmp_path, context_id="many-skills", reader=reader, **options)
+    document, state = verify_capture(path.read_bytes())
+    assert state == "verified"
+    assert len(document["items"]) == 40
+    assert [item["ref"] for item in document["items"]] == [
+        item["ref"] for item in expected["items"]]
+    for item, source in zip(document["items"], expected["items"]):
+        assert "resources" not in item
+        assert item["skill_documents"] == source.get("skill_documents")
+    assert document["context_bytes_used"] == expected["context_bytes"]
+    assert document["context_budget"] == expected["context_budget"]
+    assert document["context_omissions"] == expected["context_omissions"]
+
+
+def test_dashboard_preserves_redacted_packaged_context_and_lesson(tmp_path):
+    create_campaign(tmp_path, "camp", noise=1.5)
+    path, digest = capture_context(
+        tmp_path, context_id="r1", reader=KnowledgeReader(),
+        ids=["inferrsi.common.skills.kv_tier_management"], context_bytes=262144)
+    original = path.read_bytes()
+    document = json.loads(original)
+    assert "/dev/ng" in document["assembled_text"]
+    assert document["assembled_text"].endswith("not_context_resource\n")
+    log = log_document(digest)
+    log["summary"]["lessons"] = ["Mount /dev/shm before launch. Then run the step."]
+    write_log(tmp_path, log)
+    snapshot = dashboard_snapshot(tmp_path)
+    for key in ("story", "knowledge_trace"):
+        capture = snapshot["data"][key]["retrievals"][0]
+        assert capture["display_redacted"]
+        assert capture["assembled_text"].endswith("not_context_resource\n")
+        assert capture["assembled_sha256"] == document["assembled_sha256"]
+        assert "/dev/ng" not in capture["assembled_text"]
+    lesson = "Mount [redacted-path] before launch. Then run the step."
+    assert snapshot["data"]["story"]["summary"]["lessons"] == [lesson]
+    for layout in ("default", "profile_first"):
+        snapshot["data"]["review_layout"] = layout
+        html = render_dashboard(snapshot)
+        assert lesson in html and "not_context_resource" in html
+    assert path.read_bytes() == original
 
 
 def test_story_joins_log_with_captures_and_runs_without_conflicts(tmp_path):

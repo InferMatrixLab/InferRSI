@@ -9,7 +9,11 @@ import pytest
 
 from inferrsi.knowledge.catalog import search_knowledge
 from inferrsi.observability.dashboard import dashboard_snapshot, render_dashboard
-from inferrsi.observability.retrieval_projection import project_knowledge, retrieval_view
+from inferrsi.observability.retrieval_projection import (
+    project_knowledge,
+    public_value,
+    retrieval_view,
+)
 from inferrsi.observability.search_attribution import import_search
 
 FIXTURE = runpy.run_path(str(Path(__file__).parent / "fixtures/knowledge_retrieval.py"))
@@ -167,6 +171,35 @@ def test_untrusted_verified_capture_is_redacted_before_embedding(campaign):
     payload = json.dumps(value)
     assert "synthetic-secret" not in payload and "/private/example" not in payload
     assert "redacted" in payload
+
+
+@pytest.mark.parametrize(("private", "replacement"), [
+    ("/tmp", "[redacted-path]"),
+    ("/dev/shm", "[redacted-path]"),
+    ("192.0.2.1", "[redacted-address]"),
+    ("a@b.co", "[redacted-email]"),
+])
+def test_public_redaction_preserves_complete_text(private, replacement):
+    text = f"Use {private}. " + "Preserve this recorded tail. " * 20
+    # A path includes the trailing period; other redactors leave it intact.
+    expected = text.replace(private + "." if private.startswith("/") else private,
+                            replacement)
+    assert public_value({"text": text}) == {"text": expected}
+
+
+@pytest.mark.parametrize("declarations", [None, False, {}, [None], ["invalid"]])
+def test_v1_ignores_unsupported_top_level_declarations(campaign, declarations):
+    path = campaign / "search/round-2.json"
+    doc = json.loads(path.read_text())
+    path.write_text(json.dumps({**doc, "declarations": declarations}))
+    snapshot = dashboard_snapshot(campaign)
+    search = next(s for s in snapshot["data"]["knowledge_trace"]["searches"]
+                  if s["path"] == "search/round-2.json")
+    assert search["state"] == "recorded" and search["declarations"] == []
+    assert search["counts"] == doc["counts"]
+    for layout in ("default", "profile_first"):
+        snapshot["data"]["review_layout"] = layout
+        assert "__DASHBOARD_" not in render_dashboard(snapshot)
 
 
 def test_missing_capture_and_duplicate_json_keys_are_explicit(campaign):

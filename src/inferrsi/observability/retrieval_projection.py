@@ -21,7 +21,7 @@ def public_value(value):
         if re.fullmatch(r"https://github\.com/[\w.-]+/[\w.-]+/(?:blob|tree|commit)/[\w./-]+",
                         value):
             return value
-        return _text(value, "", limit=len(value))
+        return _text(value, "", limit=None)
     if isinstance(value, list):
         return [public_value(item) for item in value]
     if isinstance(value, dict):
@@ -275,7 +275,8 @@ def read_searches(root: Path, campaign_id, rows, retrievals):
                     issues.append("candidate_run_mismatch")
                 links.append(link)
             declarations = []
-            for declaration in record.get("declarations", []):
+            # Top-level declarations belong to v2; v1 records use material evidence.
+            for declaration in record["declarations"] if version == 2 else []:
                 declaration_state = "caller_declaration"
                 if declaration.get("basis") == "optimization_log_declaration":
                     locator = declaration.get("source")

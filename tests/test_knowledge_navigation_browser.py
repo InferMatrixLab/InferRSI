@@ -4,10 +4,13 @@ import json
 import threading
 
 import pytest
+from test_optimization_story import FakeReader, context, log_document, write_log
+from test_optimization_story import campaign as make_campaign
 from test_retrieval_projection import FIXTURE
 
 from inferrsi.observability.dashboard import dashboard_snapshot, render_dashboard
 from inferrsi.observability.dashboard_live import DashboardServer
+from inferrsi.observability.knowledge_capture import capture_context
 
 playwright = pytest.importorskip("playwright.sync_api")
 
@@ -18,6 +21,70 @@ def browser():
         instance = driver.chromium.launch()
         yield instance
         instance.close()
+
+
+@pytest.mark.parametrize("profile_first", [False, True])
+@pytest.mark.parametrize("live", [False, True])
+def test_redacted_context_tail_and_original_hash_note(browser, tmp_path, profile_first, live):
+    make_campaign(tmp_path)
+    body = "Mount /dev/shm before launch. Then run the step.\n"
+    path, digest = capture_context(
+        tmp_path, context_id="redacted", reader=FakeReader([context("package:graphs", body)]),
+        context_bytes=4096)
+    original = path.read_bytes()
+    doc = log_document(digest)
+    doc["knowledge"][0]["context_id"] = "redacted"
+    doc["iterations"][0]["context_ids"] = ["redacted"]
+    write_log(tmp_path, doc)
+    if profile_first:
+        manifest = tmp_path / "campaign.json"
+        manifest.write_text(json.dumps({**json.loads(manifest.read_text()),
+                                        "review_layout": "profile_first"}))
+    page = browser.new_page()
+    errors = []
+    page.on("pageerror", lambda e: errors.append(str(e)))
+    server = worker = None
+    try:
+        if live:
+            server = DashboardServer(tmp_path, None, 0)
+            worker = threading.Thread(target=server.serve_forever, daemon=True)
+            worker.start()
+            page.goto(f"http://127.0.0.1:{server.server_port}")
+            status = page.locator("#connection" if profile_first else "#live-status")
+            playwright.expect(status).to_contain_text("Connected", timeout=15000)
+        else:
+            html = tmp_path / "dashboard.html"
+            html.write_text(render_dashboard(dashboard_snapshot(tmp_path)))
+            page.goto(html.as_uri())
+        if profile_first:
+            page.locator("#language").click()
+            page.locator('details[data-key="rounds"] > summary').click()
+            page.locator("#rounds > details > summary").first.click()
+            page.get_by_text("Round details", exact=True).first.click()
+            page.get_by_text("Retrieval · redacted", exact=True).click()
+            review = page.locator("#rounds")
+        else:
+            navigation = page.locator("#knowledge-navigation")
+            navigation.locator(":scope > details > summary").click()
+            navigation.get_by_role("button", name="redacted", exact=True).click()
+            navigation.get_by_role("button", name="R1 · a · run-a", exact=True).click()
+            review = page.locator("#run-review")
+        summary = review.locator("summary").filter(has_text="Full assembled context").first
+        summary.click()
+        fold = summary.locator("..")
+        playwright.expect(fold.locator("pre").first).to_be_visible()
+        playwright.expect(fold).to_contain_text(
+            "Mount [redacted-path] before launch. Then run the step.")
+        playwright.expect(fold).to_contain_text("not_context_resource")
+        playwright.expect(fold).to_contain_text("hashes identify the original capture bytes")
+        assert not errors
+        assert path.read_bytes() == original
+    finally:
+        page.close()
+        if server:
+            server.shutdown()
+            worker.join(timeout=5)
+            server.server_close()
 
 
 @pytest.mark.parametrize("profile_first", [False, True])
