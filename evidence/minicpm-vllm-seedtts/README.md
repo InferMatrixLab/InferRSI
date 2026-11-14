@@ -196,6 +196,30 @@ verification SIM fell by about 0.224 and 0.336 points at C16/C32. These
 descriptive scores do not establish non-inferiority. No service PASS follows
 from the component parity or development latency change.
 
+## Checked sampling and idle-prefetch follow-up
+
+`results/service-phase13-development.json` retains 18 further tuning cells.
+The sampler now computes finite/nonnegative/positive-mass validation alongside
+argmax and retains a device assertion. Sparse and dense rows at widths 25,
+626 and 6562 preserve valid-row tokens and generator state in eager and graph
+checks. Invalid-row checks inspect rejection flags without deliberately
+poisoning a CUDA context. Existing regressions: 244 passed, 27 skipped.
+The experimental patch applies after the asynchronous-history candidate.
+
+| Mean request RTF, two tuning repetitions | C1 | C16 | C32 |
+| --- | ---: | ---: | ---: |
+| Checked sampler | 0.06066 | 0.23625 | 0.31924 |
+| Same sampler, idle-prefetch waiter limit 32 | 0.06051 | 0.24031 | 0.32161 |
+| Sequential paired engine | 0.06226 | 0.21039 | 0.26523 |
+
+The larger waiter limit was delivered: both Code2Wav replicas logged a
+prefetch phase with multiple waiting references. It did not improve the
+objective and is not retained for subsequent candidates. The checked sampler
+still misses C16/C32, and its C16 variation prevents a stable benefit claim.
+All cells completed 64 requests without failures. Saved-audio scores are
+retained as descriptive tuning evidence, not speech-quality qualification.
+The overall verdict remains **INCONCLUSIVE**.
+
 ## Lessons supported by this investigation
 
 - Match component precision to the running service. The HiFT diagnostic in
