@@ -5,7 +5,10 @@ Knowledge move (K01) is implemented: `src/inferrsi/knowledge/` holds the seven
 moved Knowledge bodies, and the old root modules are static compatibility
 shells. The engineering task contribution now implements `benchmark/registry.py`
 and `benchmark/tasks/`. The current flat `cli.py` and `benchmark_operations.py`
-assemble this slice.
+assemble this slice. The former `observability/` package is dissolved. Its
+campaign records, traces, logs and profile captures are in `harness/records/`,
+its dashboard views and templates are in `apps/views/`, and the
+collected-context projection is in `knowledge/context_projection.py`.
 #371 remains the proposal for the Apps package path and is not accepted here.
 
 ## Target modules
@@ -22,8 +25,8 @@ modules are isolated.
 Do not keep a sibling `data/` resource tier. Knowledge corpus later moves
 under the Knowledge module. The internal corpus split is left to a future
 Knowledge issue. `repo_packs/*/pack.json` is a target description and follows
-the Harness slice. `observability/template.html` is a view template and
-follows the Apps slice. Neither belongs in the corpus only because it sits
+the Harness slice. The dashboard templates are view templates and live in
+`apps/views/`. Neither belongs in the corpus only because it sits
 under `data/` today.
 
 `src/` stays the import root. `tests/` and `tools/` stay at the repository
@@ -66,6 +69,8 @@ Several flat modules remain shared seams until their slice starts.
 | `harness/optimization.py`, `harness/candidates.py`, `harness/usage.py` | Shared project and packaged-task lifecycle | Injected execution/assessment; declared file/directory candidates, selection direction and exact/up-to rounds |
 | `harness/agent_sessions.py` | Native host handoff records | Freezes requests and retains native IDs and exported observations; the initiating Agent calls host tools |
 | `knowledge_operations.py`, `knowledge_store.py`, `catalog.py`, `research.py`, `skill_catalog.py`, `_skill_selection.py`, `_source_snapshot.py` | Static compatibility shells since K01; bodies in `knowledge/` | Interfaces unchanged |
+| `harness/records/` | Campaign manifests, traces, logs, profile captures and delivered-context captures | Imports no Knowledge or Apps module; `apps/campaign.py` supplies the backend names, the selection default and the context projection |
+| `apps/views/`, `apps/campaign.py` | Dashboard views, templates and the Knowledge-to-records connection | Apps path still follows the #371 proposal |
 | `harness/` | Mixed legacy tree, not target isolation | Not redefined |
 | `evaluation.py`, `model/validators/` | Benchmark-leaning checks | Not moved |
 | `infra/`, `execution.py`, `runspec.py`, `inspection.py` | Seams used by the current tree | Not a fourth core |

@@ -105,7 +105,7 @@ def test_shared_layers_do_not_import_campaigns_or_reverse_dependencies():
     for plane in ("infra", "model", "harness"):
         for path in (root / plane).rglob("*.py"):
             package = ".".join(("inferrsi", *path.relative_to(root).parts[:-1]))
-            for node in ast.walk(ast.parse(path.read_text())):
+            for node in ast.walk(ast.parse(path.read_text(encoding="utf-8"))):
                 if isinstance(node, ast.Import):
                     names = [alias.name for alias in node.names]
                 elif isinstance(node, ast.ImportFrom):

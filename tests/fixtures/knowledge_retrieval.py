@@ -10,13 +10,13 @@ import sys
 from pathlib import Path
 from unittest.mock import patch
 
+from inferrsi.apps.campaign import capture_context, create_campaign, save_retrieval
+from inferrsi.apps.views.dashboard import write_dashboard
+from inferrsi.apps.views.search_attribution import import_search
+from inferrsi.harness.records.campaign_records import record_candidate
+from inferrsi.harness.records.optimization_log import record_log
 from inferrsi.knowledge.catalog import search_knowledge
 from inferrsi.knowledge.knowledge_operations import KnowledgeReader, _hash, _json
-from inferrsi.observability.campaign_records import create_campaign, record_candidate
-from inferrsi.observability.dashboard import write_dashboard
-from inferrsi.observability.knowledge_capture import capture_context, save_retrieval
-from inferrsi.observability.optimization_log import record_log
-from inferrsi.observability.search_attribution import import_search
 
 
 def reader():

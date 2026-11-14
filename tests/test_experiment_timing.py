@@ -3,8 +3,8 @@ import json
 
 import pytest
 
-from inferrsi.observability.dashboard import dashboard_snapshot
-from inferrsi.observability.experiment_timing import experiment_timing
+from inferrsi.apps.views.dashboard import dashboard_snapshot
+from inferrsi.apps.views.experiment_timing import experiment_timing
 
 
 def test_verified_external_calls_preserve_partial_and_parallel_time(tmp_path):

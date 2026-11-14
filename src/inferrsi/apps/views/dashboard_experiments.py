@@ -30,11 +30,13 @@ def timestamp(value: object) -> str | None:
 
 def external_dimensions(metric: dict) -> dict:
     """Map optional v1 fields explicitly; old name/unit/aggregation stay readable."""
-    from .dashboard_data import _number, _text
+    from inferrsi.harness.records.evidence import sanitized_text
+
+    from .dashboard_data import _number
 
     def label(value: object) -> str | None:
         return value if (isinstance(value, str) and value.strip()
-                         and _text(value) == value) else None
+                         and sanitized_text(value) == value) else None
 
     config = metric.get("configuration")
     config = config if isinstance(config, dict) else {}
@@ -71,7 +73,9 @@ def external_dimensions(metric: dict) -> dict:
 
 
 def reference_specs(entries: object) -> list[dict]:
-    from .dashboard_data import _number, _text
+    from inferrsi.harness.records.evidence import sanitized_text
+
+    from .dashboard_data import _number
 
     if not isinstance(entries, list):
         return []
@@ -80,12 +84,12 @@ def reference_specs(entries: object) -> list[dict]:
         if not isinstance(entry, dict):
             continue
         result.append({
-            "id": _text(entry.get("id")), "role": _text(entry.get("role")),
-            "value": _number(entry.get("value")), "unit": _text(entry.get("unit")),
-            "provenance": _text(entry.get("provenance"), "", 1000),
+            "id": sanitized_text(entry.get("id")), "role": sanitized_text(entry.get("role")),
+            "value": _number(entry.get("value")), "unit": sanitized_text(entry.get("unit")),
+            "provenance": sanitized_text(entry.get("provenance"), "", 1000),
             "frozen": entry.get("frozen") is True,
-            "definition": _text(entry.get("definition"), "absolute"),
-            "relative_to": _text(entry.get("relative_to"), ""),
+            "definition": sanitized_text(entry.get("definition"), "absolute"),
+            "relative_to": sanitized_text(entry.get("relative_to"), ""),
         })
     return result
 
@@ -302,7 +306,9 @@ def project_experiments(campaign_id: str, rows: list[dict], story: dict) -> dict
 
 def native_measurements(lock: dict, evaluation: dict, events: list[dict]) -> list[dict]:
     """The native adapter reads locked scope and the evaluator's absolute median."""
-    from .dashboard_data import _number, _text
+    from inferrsi.harness.records.evidence import sanitized_text
+
+    from .dashboard_data import _number
 
     measured = evaluation.get("candidate", {})
     baseline = evaluation.get("baseline", {})
@@ -311,7 +317,7 @@ def native_measurements(lock: dict, evaluation: dict, events: list[dict]) -> lis
     samples = measured.get("values")
     count = len(samples) if (isinstance(samples, list) and samples
                             and all(_number(v) is not None for v in samples)) else None
-    unit = _text(evaluation.get("metric_unit") or lock.get("metric_unit"))
+    unit = sanitized_text(evaluation.get("metric_unit") or lock.get("metric_unit"))
     specs = [{"id": "paired-baseline", "role": "local_baseline", "unit": unit,
               "value": _number(baseline.get("median")), "definition": "absolute",
               "provenance": "evaluation.json: baseline.median (paired native control)",
@@ -324,9 +330,9 @@ def native_measurements(lock: dict, evaluation: dict, events: list[dict]) -> lis
                       "relative_to": "paired-baseline"})
     return [{
         "measurement_id": "candidate.median", "locator": "/candidate/median",
-        "workload": _text(lock.get("workload_id")),
-        "metric": _text(evaluation.get("metric_key") or lock.get("metric_key")),
-        "unit": unit, "scope": _text(lock.get("comparison_scope")),
+        "workload": sanitized_text(lock.get("workload_id")),
+        "metric": sanitized_text(evaluation.get("metric_key") or lock.get("metric_key")),
+        "unit": unit, "scope": sanitized_text(lock.get("comparison_scope")),
         "direction": evaluation.get("direction")
         if evaluation.get("direction") in ("minimize", "maximize") else None,
         "statistic": "median", "value": _number(measured.get("median")),
@@ -337,7 +343,7 @@ def native_measurements(lock: dict, evaluation: dict, events: list[dict]) -> lis
                            and timestamp(e.get("time"))), None),
         "configuration": {"repetitions": lock.get("repetitions")
                           if type(lock.get("repetitions")) is int else None,
-                          "required_trial_checks": [_text(v) for v in
+                          "required_trial_checks": [sanitized_text(v) for v in
                                                     lock.get("required_trial_checks", [])]
                           if isinstance(lock.get("required_trial_checks", []), list) else None},
         "comparison_reasons": [], "references": specs,

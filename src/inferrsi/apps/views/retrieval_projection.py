@@ -8,8 +8,8 @@ import math
 import re
 from pathlib import Path
 
-from .dashboard_data import _inside, _relative_location, _text
-from .optimization_log import _IDENTIFIER, _unique
+from inferrsi.harness.records.evidence import inside, relative_location, sanitized_text
+from inferrsi.harness.records.optimization_log import _IDENTIFIER, _unique
 
 _MAX_BYTES = 4 * 1024 * 1024
 
@@ -21,7 +21,7 @@ def public_value(value):
         if re.fullmatch(r"https://github\.com/[\w.-]+/[\w.-]+/(?:blob|tree|commit)/[\w./-]+",
                         value):
             return value
-        return _text(value, "", limit=None)
+        return sanitized_text(value, "", limit=None)
     if isinstance(value, list):
         return [public_value(item) for item in value]
     if isinstance(value, dict):
@@ -71,7 +71,7 @@ def retrieval_view(capture):
 
 
 def _read(root, path):
-    if not _inside(root, path) or path.is_symlink():
+    if not inside(root, path) or path.is_symlink():
         return None, "unsafe_path", None
     try:
         with path.open("rb") as stream:
@@ -146,7 +146,7 @@ def _validate(record, campaign_id, number, version):
                 or not isinstance(corpus.get("revision"), str)
                 or not _REVISION.fullmatch(corpus["revision"])
                 or not re.fullmatch(r"[\w.-]+/[\w.-]+", str(corpus.get("repository", "")))
-                or (corpus.get("root") != "." and not _relative_location(corpus.get("root")))
+                or (corpus.get("root") != "." and not relative_location(corpus.get("root")))
                 or not isinstance(record.get("declarations"), list)):
             return "invalid_source"
         if any(not isinstance(d, dict) or not isinstance(d.get("ref"), str)
@@ -193,7 +193,7 @@ def read_searches(root: Path, campaign_id, rows, retrievals):
     results = []
     directories = [(root / "search", 1), (root / "search/archive", 2)]
     for directory, version in directories:
-        if not _inside(root, directory) or directory.is_symlink():
+        if not inside(root, directory) or directory.is_symlink():
             results.append({"path": "search", "state": "unsafe_path", "schema_version": version})
             continue
         for path in sorted(directory.glob("round-*.json")):

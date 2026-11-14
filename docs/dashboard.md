@@ -760,7 +760,7 @@ may include a `decision` object with `candidate_id` and `outcome` (including
 Agent trace JSONL can contain the existing `agent.*` event types and the
 optional `stage` field (`diagnosis`, `knowledge`, `search`, `execution`,
 `validation`, or `review`). An agent integration can pass an opt-in
-`inferrsi.observability.campaign_trace.CampaignTrace` instance as its existing event
+`inferrsi.harness.records.campaign_trace.CampaignTrace` instance as its existing event
 callback; it appends the original event with time and caller-supplied IDs. The
 caller associates the completed trace with `agent_trace_ref` using its SHA-256.
 The dashboard links a pre-run event when its campaign and uniquely identified

@@ -7,9 +7,9 @@ from pathlib import Path
 
 import pytest
 
-from inferrsi.observability.dashboard import dashboard_snapshot, render_dashboard
-from inferrsi.observability.dashboard_data import load_dashboard
-from inferrsi.observability.dashboard_experiments import (
+from inferrsi.apps.views.dashboard import dashboard_snapshot, render_dashboard
+from inferrsi.apps.views.dashboard_data import load_dashboard
+from inferrsi.apps.views.dashboard_experiments import (
     DIMENSIONS,
     external_dimensions,
     references_for,

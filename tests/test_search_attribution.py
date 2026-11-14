@@ -4,9 +4,9 @@ import json
 
 import pytest
 
+from inferrsi.apps.campaign import create_campaign
+from inferrsi.apps.views.search_attribution import import_search
 from inferrsi.cli import main
-from inferrsi.observability.campaign_records import create_campaign
-from inferrsi.observability.search_attribution import import_search
 
 
 def command(corpus, cmd, output, event_id, exit_code=0):

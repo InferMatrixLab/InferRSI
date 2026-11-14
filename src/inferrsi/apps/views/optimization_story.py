@@ -11,8 +11,10 @@ import hashlib
 import re
 from pathlib import Path
 
-from .knowledge_capture import MAX_CONTEXT_CAPTURE_BYTES, verify_capture
-from .optimization_log import read_latest_log
+from inferrsi.harness.records.knowledge_capture import MAX_CONTEXT_CAPTURE_BYTES
+from inferrsi.harness.records.optimization_log import read_latest_log
+
+from ..campaign import verify_capture
 
 _IDENTIFIER = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,127}")
 _GOOD = {"improved"}

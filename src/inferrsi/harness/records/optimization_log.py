@@ -295,11 +295,11 @@ def record_log(root: Path, source: Path) -> tuple[Path, str]:
             temporary.unlink()
     entry = {"version": number, "path": name, "sha256": digest,
              "recorded_at": datetime.now(timezone.utc).isoformat()}
-    _append_index(index_path, (json.dumps(entry, ensure_ascii=False) + "\n").encode("utf-8"))
+    append_index(index_path, (json.dumps(entry, ensure_ascii=False) + "\n").encode("utf-8"))
     return target, digest
 
 
-def _read_regular(path: Path, limit: int) -> bytes:
+def read_regular(path: Path, limit: int) -> bytes:
     before = path.lstat()
     if not stat.S_ISREG(before.st_mode) or not before.st_ino:
         raise ValueError("unsafe log path")
@@ -314,7 +314,7 @@ def _read_regular(path: Path, limit: int) -> bytes:
         return stream.read(limit + 1)
 
 
-def _append_index(path: Path, payload: bytes) -> None:
+def append_index(path: Path, payload: bytes) -> None:
     try:
         before = path.lstat()
     except FileNotFoundError:
@@ -336,7 +336,7 @@ def _append_index(path: Path, payload: bytes) -> None:
 
 def _index(path: Path) -> list[dict]:
     try:
-        raw = _read_regular(path, MAX_INDEX_BYTES)
+        raw = read_regular(path, MAX_INDEX_BYTES)
     except FileNotFoundError:
         return []
     except (OSError, ValueError) as exc:
@@ -380,7 +380,7 @@ def read_latest_log(root: Path) -> tuple[dict | None, list[dict], str]:
             continue
         path = root / name
         try:
-            raw = _read_regular(path, MAX_LOG_BYTES)
+            raw = read_regular(path, MAX_LOG_BYTES)
         except (OSError, ValueError):
             raw = None
         if raw is None:

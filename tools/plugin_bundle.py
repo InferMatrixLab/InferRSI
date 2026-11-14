@@ -61,7 +61,7 @@ def bundle_runtime(source: Path, runtime: Path, *, plugin_version: str,
             relative.parts[:2] == ("benchmark", "tasks")
             and (path.suffix in (".json", ".md", ".jsonl") or path.name == "LICENSE")
         )
-        template = relative.parent.parts == ("observability",) and path.suffix == ".html"
+        template = relative.parent.parts == ("apps", "views") and path.suffix == ".html"
         if path.suffix != ".py" and not (package_data or template):
             continue
         if path.is_symlink():

@@ -16,7 +16,7 @@ budget, attempts, feedback records, selection and independent final execution.
 `harness/task_protocol.py` freezes a supplied resource directory and loads its
 task-owned assessment protocol. `harness/optimization_session.py` assembles
 execution and assessment; the CLI resolves task resources and injects knowledge
-access and the existing Observability capture callback.
+access and the capture callback from `apps/campaign.py`.
 The external Agent chooses and edits candidates between round submissions.
 The same controller serves ordinary projects through `campaign start/round/final`
 and packaged tasks through `benchmarks session`. The
@@ -162,21 +162,27 @@ src/inferrsi/
   claim.py                  Campaign verdict labels PASS/FAIL/INCONCLUSIVE; rules only
   evidence_paths.py         Per-campaign evidence tree: plan/results/patch/validator
   summary_chart.py          Stdlib SVG gain chart (chain/branch) and report figure spec
-  observability/
-    optimization_chart.py   Managed optimization objective/token curves and final result
-    dashboard.py            Offline snapshot and HTML rendering
-    dashboard_data.py       Recorded run/campaign evidence into a view model
-    dashboard_live.py       Read-only loopback server for live observation
-    dashboard_timeline.py   Stage/result timeline SVG
-    dashboard_workflow.py   Paired command events into reviewable work units
-    dashboard_external.py   Protocol-specific external measurements
-    template.html           Dashboard view template
-    optimization_log.py     Campaign log write/read and reference checks
-    optimization_story.py   Caller narrative resolved against captures and runs
-    optimization_trace.py   Optimization trace parse, assemble and read
-    knowledge_capture.py    Bounded knowledge context capture and verification
-    campaign_records.py     Campaign manifest, candidate and decision records
-    campaign_trace.py       Correlation envelope for existing agent events
+  apps/
+    campaign.py             Knowledge values connected to Harness campaign records
+    views/
+      optimization_chart.py Managed optimization objective/token curves and final result
+      dashboard.py          Offline snapshot and HTML rendering
+      dashboard_data.py     Recorded run/campaign evidence into a view model
+      dashboard_live.py     Read-only loopback server for live observation
+      dashboard_timeline.py Stage/result timeline SVG
+      dashboard_workflow.py Paired command events into reviewable work units
+      dashboard_external.py Protocol-specific external measurements
+      template.html         Dashboard view template
+      optimization_story.py Caller narrative resolved against captures and runs
+      profile_searches.py  Pre-profile search presentation
+      experiment_timing.py Experiment timing presentation
+      search_attribution.py Import attributable file-search evidence into a campaign
+      search_archive.py    Reviewed search-archive uses
+      capture_delivery.py  Visible capture resources in a reviewed tool return
+      codex_search.py      Bounded attributable file-search evidence from Codex rollouts
+      codex_tool_returns.py Correlate Codex tool-return windows
+  knowledge/
+    context_projection.py   Collected context text and item projection
   harness/
     api.py                  H public allocate/execute/read over one RunStore and CPU target
     execution_service.py    Ordinary-command execute: admission, binding, steps, record
@@ -184,6 +190,15 @@ src/inferrsi/
     local_process.py        Windows Job / POSIX process group; deadline, cancel, cleanup
     run_store.py            Local SQLite RunStore: claim, owner lock, fixed records
     errors.py               H PublicError codes and partial execution facts
+    records/
+      evidence.py           Bounded evidence reads and record text rules
+      optimization_log.py   Campaign log write/read and reference checks
+      optimization_trace.py Optimization trace parse, assemble and read
+      knowledge_capture.py  Delivered context capture and byte verification
+      campaign_records.py   Campaign manifest, candidate and decision records
+      campaign_trace.py     Correlation envelope for existing agent events
+      profile_timeline.py   Profile attachment records
+      timing_clock.py       Recorded timing clock
     optimization_session.py Shared start/knowledge/round/final operation assembly
     project.py              Freeze supplied project checks and assess retained results
     task_protocol.py        Freeze supplied task resources and load their protocol

@@ -7,17 +7,27 @@ error messages and log contents are deliberately omitted.
 
 from __future__ import annotations
 
-import hashlib
 import json
 import math
 import re
 import shlex
 from pathlib import Path, PurePosixPath, PureWindowsPath
 
-from .dashboard_workflow import command_state, run_workflow, validation_progress
-from .optimization_trace import read_optimization_trace
+from inferrsi.harness.records.evidence import (
+    STAGES,
+    file_ref,
+    inside,
+    read_object,
+    read_object_snapshot,
+    read_snapshot,
+    relative_location,
+    safe_argv,
+    sanitized_text,
+)
+from inferrsi.harness.records.optimization_trace import read_optimization_trace
 
-STAGES = ("diagnosis", "knowledge", "search", "execution", "validation", "review")
+from .dashboard_workflow import command_state, run_workflow, validation_progress
+
 PHASE_STAGES = {
     "source_snapshot": "execution",
     "measurement": "execution",
@@ -41,42 +51,6 @@ def _number(value: object) -> float | None:
         return None
 
 
-def _text(value: object, default: str = "not_recorded", limit: int | None = 240) -> str:
-    if not isinstance(value, str) or not value:
-        return default
-    value = re.sub(r"https?://\S+", "[redacted-url]", value, flags=re.I)
-    value = re.sub(r"\b[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}\b", "[redacted-email]", value)
-    value = re.sub(r"\b(?:\d{1,3}\.){3}\d{1,3}\b", "[redacted-address]", value)
-    value = re.sub(r"(?<!\w)[A-Za-z]:[\\/][^\s<>\"']+", "[redacted-path]", value)
-    value = re.sub(r"(?<![\w:])/(?:[^\s/<>\"']+/)*[^\s/<>\"']+", "[redacted-path]", value)
-    value = re.sub(
-        r"(?i)\b(api[_-]?key|token|password|secret)\s*[:=]\s*\S+",
-        r"\1=[redacted]", value,
-    )
-    return value[:limit]
-
-
-_SENSITIVE_NAME = re.compile(
-    r"(?i)(?:password|passwd|token|secret|api[_-]?key|access[_-]?key|auth|credential|cookie|header)"
-)
-_SENSITIVE_PATH = re.compile(
-    r"(?i)(?:^|[/._-])(?:password|passwd|token|secret|api[_-]?key|credential|cookie)(?:$|[/._-])"
-)
-
-
-def _relative_location(value: object) -> str | None:
-    """Accept a source location, never a host path or a credential-like filename."""
-    if not isinstance(value, str) or not value or len(value) > 240:
-        return None
-    posix, windows = PurePosixPath(value), PureWindowsPath(value)
-    if (posix.is_absolute() or windows.is_absolute() or windows.drive or ".." in posix.parts
-            or ".." in windows.parts or "\\" in value or any(ord(c) < 32 for c in value)
-            or "://" in value or _text(value, "", 240) != value
-            or _SENSITIVE_PATH.search(value) or any(part.startswith(".") for part in posix.parts)):
-        return None
-    return posix.as_posix()
-
-
 def _optimization(candidate: dict) -> dict:
     data = candidate.get("details")
     data = data if isinstance(data, dict) else {}
@@ -89,7 +63,7 @@ def _optimization(candidate: dict) -> dict:
         for entry in raw_locations[:50]:
             if not isinstance(entry, dict):
                 continue
-            path = _relative_location(entry.get("path"))
+            path = relative_location(entry.get("path"))
             start = entry.get("line_start")
             end = entry.get("line_end")
             revision = entry.get("revision")
@@ -100,8 +74,8 @@ def _optimization(candidate: dict) -> dict:
                           and start <= end <= 10_000_000) else None
             locations.append({"path": path, "line_start": start, "line_end": end,
                               "revision": revision,
-                              "scope": _text(entry.get("scope"), "Not recorded"),
-                              "note": _text(entry.get("note"), "Not recorded", 1000)})
+                              "scope": sanitized_text(entry.get("scope"), "Not recorded"),
+                              "note": sanitized_text(entry.get("note"), "Not recorded", 1000)})
     commands = []
     candidate_id = candidate.get("candidate_id")
     candidate_ids = {candidate_id} if isinstance(candidate_id, str) else None
@@ -111,113 +85,18 @@ def _optimization(candidate: dict) -> dict:
             if isinstance(entry, dict):
                 command = _display_command(entry.get("argv"), candidate_ids=candidate_ids)
                 if command is not None:
-                    commands.append({"label": _text(entry.get("label"), "Caller-recorded command"),
-                                     "argv": command})
-    return {"kind": kind, "summary": _text(data.get("summary"), "Not recorded", 1500),
-            "hypothesis": _text(data.get("hypothesis"), "Not recorded", 1500),
-            "benchmark": _text(data.get("benchmark"), "Not recorded", 1500),
-            "accuracy": _text(data.get("accuracy"), "Not recorded", 1500),
+                    commands.append({
+                        "label": sanitized_text(entry.get("label"), "Caller-recorded command"),
+                        "argv": command})
+    return {"kind": kind, "summary": sanitized_text(data.get("summary"), "Not recorded", 1500),
+            "hypothesis": sanitized_text(data.get("hypothesis"), "Not recorded", 1500),
+            "benchmark": sanitized_text(data.get("benchmark"), "Not recorded", 1500),
+            "accuracy": sanitized_text(data.get("accuracy"), "Not recorded", 1500),
             "code_locations": locations, "commands": commands}
 
 
-def _safe_argv(value: object, *, candidate_ids: set[str] | None = None) -> list[str] | None:
-    """Keep useful argv structure without retaining arbitrary argument values."""
-    if not isinstance(value, list) or not value or len(value) > 100:
-        return None
-    if not all(isinstance(arg, str) and len(arg) <= 4096 for arg in value):
-        return None
-    safe_words = {"baseline", "candidate", "mtp", "quality-baseline", "quality-mtp", "smoke",
-                  "true", "false", "auto", "vllm", "float16", "bfloat16", "float32"}
-    safe_options = {"--mode", "--dtype", "--candidate", "--gpu", "--max-tokens", "--max-model-len",
-                    "--num-speculative-tokens", "--max-num-batched-tokens", "--input-len",
-                    "--output-len", "--batch-size", "--num-prompts", "--port",
-                    "--tensor-parallel-size", "--gpu-memory-utilization", "--max-num-seqs",
-                    "--generation-config"}
-    known_options = safe_options | {"-m", "--model", "--served-model-name", "--host", "--result",
-                                   "--speculative-config", "--disable-prefix-caching",
-                                   "--disable-log-requests", "--trust-remote-code",
-                                   "--enforce-eager",
-                                   "--dataset-name", "--dataset-path", "--backend", "--endpoint"}
-
-    def safe_value(name: str, val: str) -> bool:
-        if name == "--candidate":
-            return bool(candidate_ids and val in candidate_ids
-                        and re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,127}", val)
-                        and not _SENSITIVE_NAME.search(val) and _text(val, "", 128) == val)
-        if name == "--gpu":
-            return bool(re.fullmatch(r"[0-9]{1,3}", val))
-        return val in safe_words or bool(re.fullmatch(r"[0-9.]+", val))
-
-    result = []
-    hide_next = False
-    value_option = None
-    for index, arg in enumerate(value):
-        if hide_next:
-            result.append("[redacted]")
-            hide_next = False
-            value_option = None
-            continue
-        if arg in ("-H", "-c", "--header", "--data", "--data-raw"):
-            result.append(arg)
-            hide_next = True
-            continue
-        if arg.startswith("-"):
-            value_option = None
-            name, equal, val = arg.partition("=")
-            if not re.fullmatch(r"--?[A-Za-z0-9][A-Za-z0-9_-]*", name):
-                result.append("[redacted]")
-                continue
-            if _SENSITIVE_NAME.search(name) and name not in safe_options:
-                result.append("[sensitive-option]" + ("=[redacted]" if equal else ""))
-                hide_next = not equal
-                continue
-            if name not in known_options:
-                result.append("[redacted-option]")
-                continue
-            if equal:
-                safe = name in safe_options and safe_value(name, val)
-                shown = val if safe else "[redacted]"
-                result.append(name + "=" + shown)
-            else:
-                result.append(name)
-                hide_next = bool(_SENSITIVE_NAME.search(name)) and name not in safe_options
-                accepts_value = name in safe_options or name == "--speculative-config"
-                value_option = name if accepts_value else None
-            continue
-        if re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*=.*", arg):
-            result.append(arg.split("=", 1)[0] + "=[redacted]")
-            continue
-        base = PureWindowsPath(arg).name if "\\" in arg else PurePosixPath(arg).name
-        if (index == 0 and re.fullmatch(r"(?:python(?:[0-9.]+)?|vllm|pytest|bash|sh)", base)):
-            result.append(base)
-        elif (index == 1 and base.endswith(".py")
-              and re.fullmatch(r"[A-Za-z0-9_.-]{1,100}", base)
-              and not _SENSITIVE_NAME.search(base)):
-            result.append(base if base == arg else "[path]/" + base)
-        elif index == 2 and value[1] == "-m" and arg == "vllm.entrypoints.openai.api_server":
-            result.append(arg)
-        elif value_option == "--speculative-config":
-            try:
-                config = json.loads(arg)
-            except (ValueError, RecursionError):
-                config = None
-            if (isinstance(config, dict) and set(config) == {"method", "num_speculative_tokens"}
-                    and config.get("method") == "mtp"
-                    and type(config.get("num_speculative_tokens")) is int
-                    and 0 < config["num_speculative_tokens"] <= 128):
-                result.append(json.dumps(config, separators=(",", ":")))
-            else:
-                result.append("[redacted]")
-        elif value_option and safe_value(value_option, arg):
-            result.append(arg)
-        else:
-            result.append("[redacted]")
-        value_option = None
-    return result
-
-
 def _display_command(value: object, *, candidate_ids: set[str] | None = None) -> str | None:
-    safe = _safe_argv(value, candidate_ids=candidate_ids)
+    safe = safe_argv(value, candidate_ids=candidate_ids)
     return shlex.join(safe) if safe is not None else None
 
 
@@ -262,7 +141,7 @@ def _event_details(record: dict) -> dict:
         for file in files[:50]:
             if not isinstance(file, dict):
                 continue
-            path = _relative_location(file.get("path"))
+            path = relative_location(file.get("path"))
             size, digest = file.get("bytes"), file.get("sha256")
             if (path and type(size) is int and 0 <= size <= 1_000_000_000_000
                     and isinstance(digest, str) and re.fullmatch(r"[a-fA-F0-9]{64}", digest)):
@@ -295,10 +174,10 @@ def _event_details(record: dict) -> dict:
         value = record.get(key)
         if isinstance(value, str) and value in allowed:
             details[key] = value
-    path = _relative_location(record.get("path"))
+    path = relative_location(record.get("path"))
     if path is not None:
         details["path"] = path
-    artifact = _relative_location(record.get("artifact"))
+    artifact = relative_location(record.get("artifact"))
     if artifact is not None:
         details["artifact"] = artifact
     receipt = record.get("receipt")
@@ -334,68 +213,6 @@ def _event_details(record: dict) -> dict:
     return details
 
 
-def _inside(root: Path, path: Path) -> bool:
-    try:
-        path.resolve().relative_to(root.resolve())
-        return True
-    except (OSError, ValueError):
-        return False
-
-
-def _snapshot(root: Path, path: Path, kind: str) -> tuple[bytes | None, dict]:
-    try:
-        relative = path.resolve().relative_to(root.resolve()).as_posix()
-    except (OSError, ValueError):
-        return None, {"kind": kind, "state": "missing", "missing_reason": "unsafe_path"}
-    try:
-        data = path.read_bytes()
-    except FileNotFoundError:
-        return None, {"kind": kind, "path": relative, "state": "missing",
-                      "missing_reason": "file_absent"}
-    except OSError:
-        return None, {"kind": kind, "path": relative, "state": "missing",
-                      "missing_reason": "unreadable"}
-    return data, {"kind": kind, "path": relative, "state": "present",
-                  "sha256": hashlib.sha256(data).hexdigest()}
-
-
-def _object_snapshot(path: Path, root: Path, kind: str) -> tuple[dict, str, dict]:
-    raw, ref = _snapshot(root, path, kind)
-    if raw is None:
-        state = "unsafe" if ref["missing_reason"] == "unsafe_path" else "missing"
-        return {}, state, ref
-    try:
-        data = json.loads(raw.decode("utf-8"))
-        if not isinstance(data, dict):
-            raise ValueError("object required")
-    except (UnicodeError, json.JSONDecodeError, ValueError):
-        return {}, "corrupt", {**ref, "state": "missing", "missing_reason": "corrupt"}
-    return data, "present", ref
-
-
-def _object(path: Path, root: Path) -> tuple[dict, str]:
-    data, state, _ = _object_snapshot(path, root, "record")
-    return data, state
-
-
-def _file_ref(root: Path, path: Path, kind: str) -> dict:
-    try:
-        relative = path.resolve().relative_to(root.resolve()).as_posix()
-    except (OSError, ValueError):
-        return {"kind": kind, "state": "missing", "missing_reason": "unsafe_path"}
-    try:
-        hasher = hashlib.sha256()
-        with path.open("rb") as stream:
-            for block in iter(lambda: stream.read(1024 * 1024), b""):
-                hasher.update(block)
-        digest = hasher.hexdigest()
-    except FileNotFoundError:
-        return {"kind": kind, "path": relative, "state": "missing", "missing_reason": "file_absent"}
-    except OSError:
-        return {"kind": kind, "path": relative, "state": "missing", "missing_reason": "unreadable"}
-    return {"kind": kind, "path": relative, "state": "present", "sha256": digest}
-
-
 def _explicit_ref(root: Path, value: object, kind: str) -> dict:
     if not isinstance(value, dict):
         return {"kind": kind, "state": "missing", "missing_reason": "not_collected"}
@@ -415,7 +232,7 @@ def _explicit_ref(root: Path, value: object, kind: str) -> dict:
     if (posix.is_absolute() or windows.is_absolute() or windows.drive
             or ".." in posix.parts or ".." in windows.parts):
         return {"kind": kind, "state": "missing", "missing_reason": "unsafe_path"}
-    ref = _file_ref(root, root.joinpath(*posix.parts), kind)
+    ref = file_ref(root, root.joinpath(*posix.parts), kind)
     if ref["state"] == "present":
         expected = value.get("sha256")
         if not isinstance(expected, str) or not re.fullmatch(r"[a-fA-F0-9]{64}", expected):
@@ -428,7 +245,7 @@ def _explicit_ref(root: Path, value: object, kind: str) -> dict:
 def _events(path: Path, root: Path, expected: dict | None = None, unique_candidate: bool = False
             ) -> tuple[list[dict], list[int], str, dict[str, list[int]], dict]:
     unlinked = {"unlinked": [], "mismatched": []}
-    raw, ref = _snapshot(root, path, "events")
+    raw, ref = read_snapshot(root, path, "events")
     if raw is None:
         state = "unsafe" if ref["missing_reason"] == "unsafe_path" else "missing"
         return [], [], state, unlinked, ref
@@ -575,14 +392,16 @@ def _run(root: Path, path: Path, candidate: dict, run_id: str | None, noise: flo
         evaluation_state = status_state = validation_state = event_state = "missing"
         events, corrupt = [], []
     else:
-        lock, _, lock_ref = _object_snapshot(path / "run.lock.json", root, "run_lock")
-        repositories, _ = _object(path / "repositories.lock.json", root)
-        environment, _ = _object(path / "environment.json", root)
-        evaluation, evaluation_state, evaluation_ref = _object_snapshot(
+        lock, _, lock_ref = read_object_snapshot(path / "run.lock.json", root, "run_lock")
+        repositories, _ = read_object(path / "repositories.lock.json", root)
+        environment, _ = read_object(path / "environment.json", root)
+        evaluation, evaluation_state, evaluation_ref = read_object_snapshot(
             path / "evaluation.json", root, "evaluation"
         )
-        status, status_state, status_ref = _object_snapshot(path / "status.json", root, "status")
-        validation, validation_state, quality_ref = _object_snapshot(
+        status, status_state, status_ref = read_object_snapshot(
+            path / "status.json", root, "status"
+        )
+        validation, validation_state, quality_ref = read_object_snapshot(
             path / "validation" / "execution.json", root, "quality"
         )
         events, corrupt, event_state, _, events_ref = _events(path / "events.jsonl", root)
@@ -627,12 +446,12 @@ def _run(root: Path, path: Path, candidate: dict, run_id: str | None, noise: flo
                 and event["side"] and event["trial"]):
             trial = path / event["side"] / f'trial-{event["trial"]:03d}'
             if trial not in trial_refs:
-                execution, _, exec_ref = _object_snapshot(
+                execution, _, exec_ref = read_object_snapshot(
                     trial / "execution.json", root, "execution"
                 )
                 native["measurement", event["side"], event["trial"]] = command_state(execution)
                 trial_refs[trial] = [exec_ref] + [
-                    _file_ref(root, trial / name, kind) for name, kind in (
+                    file_ref(root, trial / name, kind) for name, kind in (
                         ("stdout.log", "stdout"), ("stderr.log", "stderr"),
                     )
                 ]
@@ -738,7 +557,7 @@ def _run(root: Path, path: Path, candidate: dict, run_id: str | None, noise: flo
     ) else None
     workflow = run_workflow(runner_events, lock, state, status.get("phase"), native)
     if run_id is not None:
-        progress, progress_state, progress_ref = _object_snapshot(
+        progress, progress_state, progress_ref = read_object_snapshot(
             path / "validation" / "progress.json", root, "validation_progress"
         )
         if progress_ref.get("missing_reason") != "file_absent":
@@ -756,9 +575,9 @@ def _run(root: Path, path: Path, candidate: dict, run_id: str | None, noise: flo
     plot_measurements = native_measurements(lock, evaluation, events)
     return {
         "_plot_measurements": plot_measurements,
-        "candidate_id": _text(candidate_id) if isinstance(candidate_id, str) else None,
-        "title": _text(candidate.get("title"), "Recorded candidate"),
-        "run_id": _text(run_id) if run_id else None,
+        "candidate_id": sanitized_text(candidate_id) if isinstance(candidate_id, str) else None,
+        "title": sanitized_text(candidate.get("title"), "Recorded candidate"),
+        "run_id": sanitized_text(run_id) if run_id else None,
         "round": candidate.get("round") if isinstance(candidate.get("round"), int)
         and not isinstance(candidate.get("round"), bool) and candidate["round"] > 0 else None,
         "round_state": candidate.get("_round_state", "not_recorded"),
@@ -768,8 +587,8 @@ def _run(root: Path, path: Path, candidate: dict, run_id: str | None, noise: flo
         "minimum_improvement_pct": _number(evaluation.get("min_improvement_pct")),
         "baseline_median": _number(baseline.get("median")),
         "candidate_median": _number(measured.get("median")), "noise_band_pct": noise,
-        "metric_key": _text(evaluation.get("metric_key") or lock.get("metric_key")),
-        "metric_unit": _text(evaluation.get("metric_unit") or lock.get("metric_unit")),
+        "metric_key": sanitized_text(evaluation.get("metric_key") or lock.get("metric_key")),
+        "metric_unit": sanitized_text(evaluation.get("metric_unit") or lock.get("metric_unit")),
         "direction": evaluation.get("direction")
         if evaluation.get("direction") in ("minimize", "maximize") else None,
         "verdict": verdict,
@@ -779,8 +598,8 @@ def _run(root: Path, path: Path, candidate: dict, run_id: str | None, noise: flo
         "run_workflow": workflow,
         "optimization": _optimization(candidate),
         "optimization_trace": optimization_trace,
-        "benchmark_context": {"scenario": _text(lock.get("scenario"), "Not recorded"),
-                              "workload": _text(lock.get("workload_id"), "Not recorded"),
+        "benchmark_context": {"scenario": sanitized_text(lock.get("scenario"), "Not recorded"),
+                              "workload": sanitized_text(lock.get("workload_id"), "Not recorded"),
                               "repetitions": lock.get("repetitions")
                               if type(lock.get("repetitions")) is int
                               and 0 < lock["repetitions"] <= 1_000_000 else None,
@@ -809,7 +628,7 @@ def _run(root: Path, path: Path, candidate: dict, run_id: str | None, noise: flo
 
 
 def _rounds(path: Path, root: Path) -> tuple[list[dict] | None, str, list[int], dict]:
-    raw, ref = _snapshot(root, path, "rounds")
+    raw, ref = read_snapshot(root, path, "rounds")
     if raw is None:
         state = "unsafe" if ref["missing_reason"] == "unsafe_path" else "missing"
         return None, state, [], ref
@@ -837,7 +656,7 @@ def _rounds(path: Path, root: Path) -> tuple[list[dict] | None, str, list[int], 
                     and decision.get("outcome") in (
                         "adopted", "rejected", "rolled_back", "no_gain", "noise"
                     )):
-                record["decision"] = {"candidate_id": _text(decision["candidate_id"]),
+                record["decision"] = {"candidate_id": sanitized_text(decision["candidate_id"]),
                                       "outcome": decision["outcome"]}
             result.append(record)
         else:
@@ -849,19 +668,19 @@ def _managed_summary(summary: dict) -> dict:
     """Keep chart data and sanitized labels; raw session exports stay private."""
     final = summary["final_assessment"]
     return {
-        "state": _text(summary["state"]), "task": _text(summary["task"]),
-        "condition": _text(summary["condition"]),
+        "state": sanitized_text(summary["state"]), "task": sanitized_text(summary["task"]),
+        "condition": sanitized_text(summary["condition"]),
         "completed_rounds": summary["completed_rounds"],
         "planned_rounds": summary["planned_rounds"],
         "wall_elapsed_seconds": _number(summary["wall_elapsed_seconds"]),
         "optimization_speedup": _number(summary["optimization_speedup"]),
-        "stop_reason": _text(summary["stop_reason"]),
-        "final_assessment": {"verdict": _text(final.get("verdict")),
-                             "reason": _text(final.get("reason")),
+        "stop_reason": sanitized_text(summary["stop_reason"]),
+        "final_assessment": {"verdict": sanitized_text(final.get("verdict")),
+                             "reason": sanitized_text(final.get("reason")),
                              "score": _number(final.get("score"))} if final else None,
-        "selection": {"metric": _text(summary["selection"]["metric"]),
+        "selection": {"metric": sanitized_text(summary["selection"]["metric"]),
                       "direction": summary["selection"]["direction"]},
-        "curve": [{"round": item["round"], "hypothesis": _text(item["hypothesis"]),
+        "curve": [{"round": item["round"], "hypothesis": sanitized_text(item["hypothesis"]),
                    "assessment": {"score": _number(item["assessment"].get("score"))},
                    "best_score": _number(item["best_score"]),
                    "cumulative_usage": {"total_tokens": _number(
@@ -872,7 +691,8 @@ def _managed_summary(summary: dict) -> dict:
 
 def _managed_dashboard(root: Path, campaign: dict) -> dict:
     """Project the shared control record; do not manufacture legacy AB/BA runs."""
-    from ..harness.optimization import read_records
+    from inferrsi.harness.optimization import read_records
+
     from .optimization_story import build_story
 
     plan, state, summary = read_records(root)
@@ -892,8 +712,8 @@ def _managed_dashboard(root: Path, campaign: dict) -> dict:
             gain = (speedup - 1) * 100
         decision = ("adopted" if record["best_after"].get("candidate_id") == candidate_id
                     and record["best_after"]["kind"] == "candidate" else "rejected")
-        facts = _file_ref(root, root / record["path"] / "execution/execution.json", "execution")
-        judged = _file_ref(root, root / record["path"] / "observation.json", "assessment")
+        facts = file_ref(root, root / record["path"] / "execution/execution.json", "execution")
+        judged = file_ref(root, root / record["path"] / "observation.json", "assessment")
         row.update(
             run_id=Path(record["path"]).name, state=record["execution"]["status"],
             status_state="present", evaluation_state="present", verdict=assessment["verdict"],
@@ -902,8 +722,8 @@ def _managed_dashboard(root: Path, campaign: dict) -> dict:
             source_verified=True, improvement_pct=_number(gain),
             baseline_median=_number(metrics.get("baseline")),
             candidate_median=_number(metrics.get("candidate")),
-            metric_key=_text(plan["selection"]["metric"]),
-            metric_unit=_text(metrics.get("unit", "ratio")),
+            metric_key=sanitized_text(plan["selection"]["metric"]),
+            metric_unit=sanitized_text(metrics.get("unit", "ratio")),
             direction=plan["selection"]["direction"], decision=decision,
             outcome="quality_failed" if assessment.get("quality_passed") is False else
                     "unverified",  # No synthetic environment qualification or noise estimate.
@@ -918,10 +738,10 @@ def _managed_dashboard(root: Path, campaign: dict) -> dict:
         decisions[(index, candidate_id)] = decision
     displayed_summary = _managed_summary(summary)
     displayed_summary["final_reference"] = (
-        _file_ref(root, root / state["final"]["path"] / "observation.json", "final_assessment")
+        file_ref(root, root / state["final"]["path"] / "observation.json", "final_assessment")
         if state["final"] else None)
     return {
-        "campaign_id": _text(campaign["campaign_id"]), "synthetic": False,
+        "campaign_id": sanitized_text(campaign["campaign_id"]), "synthetic": False,
         "rounds": rounds, "rounds_state": "present", "corrupt_round_lines": [],
         "candidates": rows, "optimization_session": displayed_summary,
         "integration": {"state": "connected" if rows else "not_connected",
@@ -943,7 +763,7 @@ def load_dashboard(source: Path) -> dict:
     if not root.is_dir():
         raise ValueError("dashboard input must be an existing directory")
     single = (root / "run.lock.json").is_file()
-    campaign, campaign_state = _object(root / "campaign.json", root)
+    campaign, campaign_state = read_object(root / "campaign.json", root)
     if not single and campaign_state != "present":
         raise ValueError("dashboard input must contain run.lock.json or campaign.json")
     if campaign.get("managed_optimization") is True:
@@ -970,11 +790,11 @@ def load_dashboard(source: Path) -> dict:
             for name in names:
                 if re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,127}", name):
                     candidate_rounds.setdefault(name, set()).add(round_record["round"])
-        if _inside(root, candidate_root) and candidate_root.is_dir():
+        if inside(root, candidate_root) and candidate_root.is_dir():
             for directory in sorted(candidate_root.iterdir()):
                 if not directory.is_dir() or directory.is_symlink():
                     continue
-                metadata, state, metadata_ref = _object_snapshot(
+                metadata, state, metadata_ref = read_object_snapshot(
                     directory / "candidate.json", root, "candidate_metadata"
                 )
                 if state != "present":
@@ -990,8 +810,8 @@ def load_dashboard(source: Path) -> dict:
             if candidate_id in known:
                 continue
             directory = candidate_root / candidate_id
-            _, _, metadata_ref = _object_snapshot(directory / "candidate.json", root,
-                                                    "candidate_metadata")
+            _, _, metadata_ref = read_object_snapshot(directory / "candidate.json", root,
+                                                      "candidate_metadata")
             entries.append((directory, {"candidate_id": candidate_id, "title": candidate_id},
                             None, metadata_ref))
             known.add(candidate_id)
@@ -1010,7 +830,7 @@ def load_dashboard(source: Path) -> dict:
             run_path = root / "runs" / run_id if run_id else directory / "missing-run"
             rows.append(_run(root, run_path, metadata, run_id, noise, campaign.get("campaign_id"),
                              unique, metadata_ref, known))
-        if not rows and _inside(root, root / "runs") and (root / "runs").is_dir():
+        if not rows and inside(root, root / "runs") and (root / "runs").is_dir():
             for directory in sorted((root / "runs").iterdir()):
                 if directory.is_dir() and not directory.is_symlink():
                     rows.append(_run(root, directory, {}, directory.name, noise))
@@ -1113,7 +933,8 @@ def load_dashboard(source: Path) -> dict:
         story = build_story(root, rows, decisions, campaign.get("campaign_id"))
     from .dashboard_experiments import project_experiments
 
-    experiments = project_experiments(_text(campaign.get("campaign_id"), "single"), rows, story)
+    experiments = project_experiments(
+        sanitized_text(campaign.get("campaign_id"), "single"), rows, story)
     for row in rows:
         row.pop("_comparison_signature", None)
         row.pop("_plot_comparison_signature", None)
@@ -1123,7 +944,8 @@ def load_dashboard(source: Path) -> dict:
     if not isinstance(declared, list):
         declared = None
     return {
-        "campaign_id": _text(campaign.get("campaign_id"), "Single run" if single else "Campaign"),
+        "campaign_id": sanitized_text(campaign.get("campaign_id"),
+                                      "Single run" if single else "Campaign"),
         **({"experiment_timing_sha256": timing_digest}
            if profiled and "experiment_timing_sha256" in campaign else {}),
         **({"review_layout": "profile_first"}
@@ -1136,8 +958,9 @@ def load_dashboard(source: Path) -> dict:
                         "stage_declaration": "explicit_empty" if declared == [] else
                         "missing" if declared is None else "declared",
                         "external_records": sum(bool(row.get("external")) for row in rows),
-                        "collection": {"state": _text(collection.get("state"), ""),
-                                       "observed_at": _text(collection.get("observed_at"), "")}},
+                        "collection": {
+                            "state": sanitized_text(collection.get("state"), ""),
+                            "observed_at": sanitized_text(collection.get("observed_at"), "")}},
         "overview": {"comparison_state": comparison_state,
                      **({"profile_best_improvement_pct": profile_best}
                         if anchor is not None else {}),
