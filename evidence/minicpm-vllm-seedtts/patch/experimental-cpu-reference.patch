@@ -1,0 +1,184 @@
+--- a/vllm_omni/model_executor/models/minicpmo_4_5/batched_token2wav.py
++++ b/vllm_omni/model_executor/models/minicpmo_4_5/batched_token2wav.py
+@@ -744,6 +744,30 @@
+             self._prompt_features[cache_key] = cached
+         return cached
+ 
++    def prepare_prompts(self, keys: list[tuple[str, str]], workers: int) -> dict[tuple[str, str], PromptFeatures]:
++        """Parallelize CPU features only; preserve accelerator submission order."""
++        from concurrent.futures import ThreadPoolExecutor
++
++        keys = list(dict.fromkeys(keys))
++        missing = [key for key in keys if key not in self._prompt_features]
++        if workers <= 1 or len(missing) <= 1:
++            return {key: self.prepare_prompt(*key) for key in keys}
++        logger.info("Parallel CPU reference preparation: %d misses, %d workers", len(missing), min(workers, len(missing)))
++        previous_dtype = torch.get_default_dtype()
++        try:
++            torch.set_default_dtype(torch.float32)
++            with ThreadPoolExecutor(max_workers=min(workers, len(missing))) as pool:
++                prepared = list(pool.map(self._token2wav._prepare_prompt_cpu, [key[1] for key in missing]))
++            with _autocast_disabled(self.speech_window.device):
++                for key, cpu_features in zip(missing, prepared, strict=True):
++                    values = self._token2wav._prepare_prompt(key[1], cpu_features=cpu_features)
++                    self._prompt_features[key] = PromptFeatures(
++                        cache_key=key, speech_tokens=values[0], speaker_embedding=values[2], mels=values[3]
++                    )
++        finally:
++            torch.set_default_dtype(previous_dtype)
++        return {key: self._prompt_features[key] for key in keys}
++
+     def evict_prompt(self, prompt_cache_id: str, prompt_wav: str) -> None:
+         """Release all cached artifacts associated with one prompt."""
+         prompt_key = (prompt_cache_id, prompt_wav)
+--- a/vllm_omni/model_executor/models/minicpmo_4_5/minicpmo_4_5_code2wav.py
++++ b/vllm_omni/model_executor/models/minicpmo_4_5/minicpmo_4_5_code2wav.py
+@@ -522,6 +522,9 @@
+         self._min_batch_size = int(extra.get("code2wav_min_batch_size", 1))
+         if self._min_batch_size < 1:
+             raise ValueError("MiniCPM-o Code2Wav code2wav_min_batch_size must be >= 1")
++        self._ref_prepare_workers = int(extra.get("ref_prepare_workers", 1))
++        if self._ref_prepare_workers < 1:
++            raise ValueError("ref_prepare_workers must be positive")
+         self._ref_setup_batch_size = int(extra.get("ref_setup_batch_size", 1))
+         if self._ref_setup_batch_size < 1:
+             raise ValueError("ref_setup_batch_size must be positive")
+@@ -1025,6 +1028,11 @@
+     ) -> tuple[list[BatchedToken2WavState], PromptFeatures | list[PromptFeatures]]:
+         """Prepare each voice separately, then keep conditioning in request order."""
+         prompts: dict[tuple[str, str], PromptFeatures] = {}
++        if self._ref_prepare_workers > 1:
++            self._watchdog.phase("prepare/parallel_cpu")
++            prompts = self.backend.prepare_prompts(
++                [(item.prompt_cache_id, item.prompt_wav) for item in items], self._ref_prepare_workers
++            )
+         fresh: dict[tuple[str, str], list[int]] = {}
+         states = [item.previous.token2wav if item.previous is not None else None for item in items]
+         features: list[PromptFeatures] = []
+--- a/vllm_omni/model_executor/models/minicpmo_4_5/minicpmo_4_5_token2wav.py
++++ b/vllm_omni/model_executor/models/minicpmo_4_5/minicpmo_4_5_token2wav.py
+@@ -119,9 +119,12 @@
+     def speech_window(self) -> torch.Tensor:
+         return self._core.speech_window
+ 
+-    def _prepare_prompt(self, prompt_wav: str):
++    def _prepare_prompt_cpu(self, prompt_wav: str):
++        return self._core._prepare_prompt_cpu(prompt_wav)
++
++    def _prepare_prompt(self, prompt_wav: str, *, cpu_features=None):
+         """Delegate prompt feature extraction to the wrapped core."""
+-        return self._core._prepare_prompt(prompt_wav)
++        return self._core._prepare_prompt(prompt_wav, cpu_features=cpu_features)
+ 
+     def enable_trt_spk_embedding(self, *, cpu_reference: bool = False) -> None:
+         """Run the campplus speaker-embedding model on TensorRT."""
+--- a/vllm_omni/model_executor/models/step_audio2/step_audio2_token2wav.py
++++ b/vllm_omni/model_executor/models/step_audio2/step_audio2_token2wav.py
+@@ -514,8 +514,9 @@
+                 )
+             return code, code_len
+ 
+-    def _prepare_prompt(self, prompt_wav: str):
+-        """Prepare prompt audio for conditioning"""
++    @staticmethod
++    def _prepare_prompt_cpu(prompt_wav: str):
++        """Extract reference features without accessing the accelerator."""
+         audio_np_raw, sample_rate = load_audio(prompt_wav, sr=None, mono=True)
+         sample_rate = int(sample_rate)
+ 
+@@ -524,29 +525,8 @@
+         audio = torch.from_numpy(audio_16k)
+         mels = s3tokenizer.log_mel_spectrogram(audio)
+         mels, mels_lens = s3tokenizer.padding([mels])
+-        mels_d = _h2d_async(mels, self.device)
+-        mels_lens_d = _h2d_async(mels_lens, self.device)
+-        if mels.shape[-1] > _S3_MAX_FRAMES:
+-            # Long audio (>30 s) keeps the library call: it routes to the
+-            # sliding-window mixed-batch path.
+-            prompt_speech_tokens, prompt_speech_tokens_lens = self.audio_tokenizer.quantize(mels_d, mels_lens_d)
+-        else:
+-            # Short audio: NPU graph replay of the library's else-branch
+-            # (encoder + quantizer.encode). The device-side
+-            # `mel_len > max_frames` check is skipped — its `.any()` forces an
+-            # implicit D2H sync; the frame count is static on host
+-            # (mels.shape[-1]), so the branch decision needs no sync.
+-            prompt_speech_tokens, prompt_speech_tokens_lens = self._quantize_s3_graph(mels_d, mels_lens_d)
+-
+         spk_feat = kaldi.fbank(audio.unsqueeze(0), num_mel_bins=80, dither=0, sample_frequency=16000)
+         spk_feat = spk_feat - spk_feat.mean(dim=0, keepdim=True)
+-        spk_emb = self._forward_spk_embedding(spk_feat)
+-        if self._spk_event is not None:
+-            # Device-side join for the private campplus stream (never blocks the
+-            # host); it lands here so the host-side 24 kHz mel work overlaps.
+-            torch.npu.current_stream(self.device).wait_event(self._spk_event)
+-            self._spk_event = None
+-
+         # 24 kHz branch: mel spectrogram for flow model conditioning
+         # Must resample from the ORIGINAL audio, not the 16 kHz version.
+         audio_24k = AudioResampler(target_sr=24000).resample(audio_np_raw.astype(np.float32), orig_sr=sample_rate)
+@@ -566,6 +546,65 @@
+             .transpose(1, 2)
+             .squeeze(0)
+         )  # [T, num_mels]
++        return mels, mels_lens, spk_feat, prompt_mel
++
++    def _prepare_prompt(self, prompt_wav: str, *, cpu_features=None):
++        """Prepare prompt audio for conditioning"""
++        if cpu_features is None:
++            audio_np_raw, sample_rate = load_audio(prompt_wav, sr=None, mono=True)
++            sample_rate = int(sample_rate)
++
++            # 16 kHz branch: s3tokenizer + speaker embedding
++            audio_16k = AudioResampler(target_sr=16000).resample(audio_np_raw.astype(np.float32), orig_sr=sample_rate)
++            audio = torch.from_numpy(audio_16k)
++            mels = s3tokenizer.log_mel_spectrogram(audio)
++            mels, mels_lens = s3tokenizer.padding([mels])
++        else:
++            mels, mels_lens, spk_feat, prompt_mel = cpu_features
++        mels_d = _h2d_async(mels, self.device)
++        mels_lens_d = _h2d_async(mels_lens, self.device)
++        if mels.shape[-1] > _S3_MAX_FRAMES:
++            # Long audio (>30 s) keeps the library call: it routes to the
++            # sliding-window mixed-batch path.
++            prompt_speech_tokens, prompt_speech_tokens_lens = self.audio_tokenizer.quantize(mels_d, mels_lens_d)
++        else:
++            # Short audio: NPU graph replay of the library's else-branch
++            # (encoder + quantizer.encode). The device-side
++            # `mel_len > max_frames` check is skipped — its `.any()` forces an
++            # implicit D2H sync; the frame count is static on host
++            # (mels.shape[-1]), so the branch decision needs no sync.
++            prompt_speech_tokens, prompt_speech_tokens_lens = self._quantize_s3_graph(mels_d, mels_lens_d)
++
++        if cpu_features is None:
++            spk_feat = kaldi.fbank(audio.unsqueeze(0), num_mel_bins=80, dither=0, sample_frequency=16000)
++            spk_feat = spk_feat - spk_feat.mean(dim=0, keepdim=True)
++        spk_emb = self._forward_spk_embedding(spk_feat)
++        if self._spk_event is not None:
++            # Device-side join for the private campplus stream (never blocks the
++            # host); it lands here so the host-side 24 kHz mel work overlaps.
++            torch.npu.current_stream(self.device).wait_event(self._spk_event)
++            self._spk_event = None
++
++        if cpu_features is None:
++            # 24 kHz branch: mel spectrogram for flow model conditioning
++            # Must resample from the ORIGINAL audio, not the 16 kHz version.
++            audio_24k = AudioResampler(target_sr=24000).resample(audio_np_raw.astype(np.float32), orig_sr=sample_rate)
++            audio_24k_t = torch.from_numpy(audio_24k).unsqueeze(0)  # [1, T]
++            prompt_mel = (
++                mel_spectrogram(
++                    audio_24k_t,
++                    n_fft=1920,
++                    num_mels=80,
++                    sampling_rate=24000,
++                    hop_size=480,
++                    win_size=1920,
++                    fmin=0,
++                    fmax=8000,
++                    center=False,
++                )
++                .transpose(1, 2)
++                .squeeze(0)
++            )  # [T, num_mels]
+         prompt_mels = _h2d_async(prompt_mel.unsqueeze(0), self.device)
+         # Build on host then async-copy: torch.tensor(..., device=...) is itself
+         # a synchronous H2D that blocks behind queued decode work.

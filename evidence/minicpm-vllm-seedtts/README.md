@@ -126,6 +126,35 @@ cell; quality remains unresolved. Development profiling ran only after all
 measured latency cells. Torch profiler export dominated the Talker CPU sample,
 so that diagnostic cannot establish its normal service bottleneck.
 
+## CPU reference and batch-size follow-up
+
+`results/service-phase78-development.json` adds 42 development cells, with a
+paired independent engine on each allocation. CPU reference parallelism was
+observed in the live service and passed exact feature checks (16 CPU references,
+four real-weight GPU references) plus 198 isolated-source regressions. However,
+C32 RTF stayed near 0.349 versus its 0.353 control and the paired engine's 0.264.
+Disabling grouped initialization reached about 0.345. Increasing initialization
+and CFM micro-batches to eight stayed near 0.347 versus a paired engine at 0.268.
+None establishes the requested service outcome. The CPU prototype is archived
+as an experimental patch layered on `experimental-batch-setup.patch`, not a
+submitted Omni implementation.
+
+A plain initial-state capture diagnostic looked faster than eager execution,
+but the configured service already uses inner graphs: its measured setup cost
+was mostly 12–17 ms, versus about 25 ms for that plain outer replay. Capturing
+around the configured wrappers failed when their nested-capture fallback reached
+a cold CPU-to-device frequency table. This direction is rejected in its tested
+form; the unconfigured microbenchmark does not describe service performance.
+
+Additional SIM results use the standalone engine's pinned WavLM speaker-
+verification source and hash-verified weights. Evaluator packages and identity
+are retained, without claiming the standalone engine's full locked environment.
+Original Omni C1/C16/C32 means were 51.55 / 51.70 / 51.34 on the x100 scale;
+the earlier two-replica candidate scored 50.98 / 51.64 / 50.79. Descriptive
+paired bootstrap intervals cross zero, which does not prove non-inferiority.
+The original embedding-cosine proxy results remain separately labeled, and
+speech-quality qualification remains unresolved.
+
 ## Lessons supported by this investigation
 
 - Check dependency source bytes as well as package versions. The shared local
