@@ -1,0 +1,448 @@
+{
+  "candidate": "FIA in the final three of six PDD steps; earlier steps native. Original workload and quality thresholds unchanged.",
+  "source": {
+    "base": "7f8395fede3cb79991a256d1752c887b40faca30",
+    "patch_sha256": "050cd23f7973a0d5e76aaeb590c502c29cce71e4bf2d333d2f0e359c34a6774e",
+    "adapter_sha256": "e083b546dcaa61f31fd34135a9b69c99672de1f9ac50cabc80623da9bce0dc7a"
+  },
+  "configuration": {
+    "candidate_last_steps": 3,
+    "control_last_steps": 0,
+    "total_inference_steps": 6,
+    "scope": "same original workload and gates; screen then full only on pass"
+  },
+  "decision": "Not adopted: essentially unchanged mixed latency; all targets unmet. No final ABBA or visual qualification.",
+  "latency": {
+    "control": {
+      "W1": {
+        "samples_s": [
+          10.895720429951325,
+          10.797475795960054,
+          10.82464353600517
+        ],
+        "median_s": 10.82464353600517,
+        "target_s": 7.34,
+        "target_met": false,
+        "h200_inverse_latency_fraction": 0.33904118761904395
+      },
+      "W2": {
+        "samples_s": [
+          2.7426591819967143,
+          2.6316521230037324,
+          2.595968150999397
+        ],
+        "median_s": 2.6316521230037324,
+        "target_s": 1.52,
+        "target_met": false,
+        "h200_inverse_latency_fraction": 0.28879196963637666
+      },
+      "W3": {
+        "samples_s": [
+          4.689603973994963,
+          4.501890171028208,
+          4.386693922046106
+        ],
+        "median_s": 4.501890171028208,
+        "target_s": 2.6,
+        "target_met": false,
+        "h200_inverse_latency_fraction": 0.28876759552379017
+      }
+    },
+    "candidate": {
+      "W1": {
+        "samples_s": [
+          10.80527696601348,
+          10.768587368016597,
+          10.849845571967307
+        ],
+        "median_s": 10.80527696601348,
+        "target_s": 7.34,
+        "target_met": false,
+        "h200_inverse_latency_fraction": 0.3396488596769414
+      },
+      "W2": {
+        "samples_s": [
+          2.6699132390203886,
+          2.640667744970415,
+          2.6257011739653535
+        ],
+        "median_s": 2.640667744970415,
+        "target_s": 1.52,
+        "target_met": false,
+        "h200_inverse_latency_fraction": 0.28780599204407475
+      },
+      "W3": {
+        "samples_s": [
+          4.326164802012499,
+          4.5360539149842225,
+          4.4705739339697175
+        ],
+        "median_s": 4.4705739339697175,
+        "target_s": 2.6,
+        "target_met": false,
+        "h200_inverse_latency_fraction": 0.29079040391703004
+      }
+    }
+  },
+  "quality": {
+    "reports": [
+      {
+        "group": "author-workloads",
+        "verdict": "PASS",
+        "scope": "numerical image-quality screen only",
+        "visual_review": "pending",
+        "additional_prompt_coverage": "pending",
+        "checks": [
+          {
+            "workload": "W1",
+            "seed": 42,
+            "index": 0,
+            "exact": false,
+            "psnr_db": 41.16155854138313,
+            "ssim": 0.9953351701847765,
+            "mean_abs_error": 1.0662287473678589,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W1",
+            "seed": 42,
+            "index": 1,
+            "exact": false,
+            "psnr_db": 41.16155854138313,
+            "ssim": 0.9953351701847765,
+            "mean_abs_error": 1.0662287473678589,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W1",
+            "seed": 42,
+            "index": 2,
+            "exact": false,
+            "psnr_db": 41.16155854138313,
+            "ssim": 0.9953351701847765,
+            "mean_abs_error": 1.0662287473678589,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W1",
+            "seed": 42,
+            "index": 3,
+            "exact": false,
+            "psnr_db": 41.16155854138313,
+            "ssim": 0.9953351701847765,
+            "mean_abs_error": 1.0662287473678589,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W2",
+            "seed": 42,
+            "index": 0,
+            "exact": false,
+            "psnr_db": 38.8631045935951,
+            "ssim": 0.9960722393763763,
+            "mean_abs_error": 1.013932228088379,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W2",
+            "seed": 42,
+            "index": 1,
+            "exact": false,
+            "psnr_db": 38.8631045935951,
+            "ssim": 0.9960722393763763,
+            "mean_abs_error": 1.013932228088379,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W2",
+            "seed": 42,
+            "index": 2,
+            "exact": false,
+            "psnr_db": 38.8631045935951,
+            "ssim": 0.9960722393763763,
+            "mean_abs_error": 1.013932228088379,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W2",
+            "seed": 42,
+            "index": 3,
+            "exact": false,
+            "psnr_db": 38.8631045935951,
+            "ssim": 0.9960722393763763,
+            "mean_abs_error": 1.013932228088379,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W3",
+            "seed": 42,
+            "index": 0,
+            "exact": false,
+            "psnr_db": 46.26442777770876,
+            "ssim": 0.996398169067184,
+            "mean_abs_error": 0.4563407897949219,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W3",
+            "seed": 42,
+            "index": 1,
+            "exact": false,
+            "psnr_db": 46.26442777770876,
+            "ssim": 0.996398169067184,
+            "mean_abs_error": 0.4563407897949219,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W3",
+            "seed": 42,
+            "index": 2,
+            "exact": false,
+            "psnr_db": 46.26442777770876,
+            "ssim": 0.996398169067184,
+            "mean_abs_error": 0.4563407897949219,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W3",
+            "seed": 42,
+            "index": 3,
+            "exact": false,
+            "psnr_db": 46.26442777770876,
+            "ssim": 0.996398169067184,
+            "mean_abs_error": 0.4563407897949219,
+            "numerical_screen_pass": true
+          }
+        ]
+      },
+      {
+        "group": "-quality",
+        "verdict": "PASS",
+        "scope": "numerical image-quality screen only",
+        "visual_review": "pending",
+        "additional_prompt_coverage": "pending",
+        "checks": [
+          {
+            "workload": "W1",
+            "seed": 43,
+            "index": 0,
+            "exact": false,
+            "psnr_db": 40.31234705362906,
+            "ssim": 0.9955495263230336,
+            "mean_abs_error": 1.215416669845581,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W1",
+            "seed": 44,
+            "index": 0,
+            "exact": false,
+            "psnr_db": 38.37469939060987,
+            "ssim": 0.9937794959569152,
+            "mean_abs_error": 1.3686959743499756,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W2",
+            "seed": 43,
+            "index": 0,
+            "exact": false,
+            "psnr_db": 39.88688566574714,
+            "ssim": 0.9968155645516982,
+            "mean_abs_error": 1.1591672897338867,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W2",
+            "seed": 44,
+            "index": 0,
+            "exact": false,
+            "psnr_db": 42.44717421864295,
+            "ssim": 0.9969634711404943,
+            "mean_abs_error": 1.0455427169799805,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W3",
+            "seed": 43,
+            "index": 0,
+            "exact": false,
+            "psnr_db": 49.84685943870694,
+            "ssim": 0.9970406017242386,
+            "mean_abs_error": 0.41145673394203186,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W3",
+            "seed": 44,
+            "index": 0,
+            "exact": false,
+            "psnr_db": 49.39467627223056,
+            "ssim": 0.9969756185895585,
+            "mean_abs_error": 0.410266250371933,
+            "numerical_screen_pass": true
+          }
+        ]
+      },
+      {
+        "group": "-architecture",
+        "verdict": "PASS",
+        "scope": "numerical image-quality screen only",
+        "visual_review": "pending",
+        "additional_prompt_coverage": "pending",
+        "checks": [
+          {
+            "workload": "W1",
+            "seed": 43,
+            "index": 0,
+            "exact": false,
+            "psnr_db": 38.20849918250156,
+            "ssim": 0.9917126927552399,
+            "mean_abs_error": 1.3125814199447632,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W1",
+            "seed": 44,
+            "index": 0,
+            "exact": false,
+            "psnr_db": 32.12567576108174,
+            "ssim": 0.9829566431295306,
+            "mean_abs_error": 2.2885825634002686,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W2",
+            "seed": 43,
+            "index": 0,
+            "exact": false,
+            "psnr_db": 34.43466918910424,
+            "ssim": 0.9893662067583576,
+            "mean_abs_error": 1.6820627450942993,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W2",
+            "seed": 44,
+            "index": 0,
+            "exact": false,
+            "psnr_db": 42.23108824056003,
+            "ssim": 0.9962148148567613,
+            "mean_abs_error": 0.9232355952262878,
+            "numerical_screen_pass": true
+          }
+        ]
+      },
+      {
+        "group": "-portrait",
+        "verdict": "PASS",
+        "scope": "numerical image-quality screen only",
+        "visual_review": "pending",
+        "additional_prompt_coverage": "pending",
+        "checks": [
+          {
+            "workload": "W1",
+            "seed": 43,
+            "index": 0,
+            "exact": false,
+            "psnr_db": 41.3461586151357,
+            "ssim": 0.9942162127583374,
+            "mean_abs_error": 0.8642678260803223,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W1",
+            "seed": 44,
+            "index": 0,
+            "exact": false,
+            "psnr_db": 31.868164754110182,
+            "ssim": 0.9887282187028567,
+            "mean_abs_error": 2.065732479095459,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W2",
+            "seed": 43,
+            "index": 0,
+            "exact": false,
+            "psnr_db": 42.77620764768127,
+            "ssim": 0.9968099517640946,
+            "mean_abs_error": 0.8493452072143555,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W2",
+            "seed": 44,
+            "index": 0,
+            "exact": false,
+            "psnr_db": 43.943131539737685,
+            "ssim": 0.9969723072711578,
+            "mean_abs_error": 0.6857483983039856,
+            "numerical_screen_pass": true
+          }
+        ]
+      },
+      {
+        "group": "-edit-wall",
+        "verdict": "PASS",
+        "scope": "numerical image-quality screen only",
+        "visual_review": "pending",
+        "additional_prompt_coverage": "pending",
+        "checks": [
+          {
+            "workload": "W3",
+            "seed": 43,
+            "index": 0,
+            "exact": false,
+            "psnr_db": 48.352273777084974,
+            "ssim": 0.9970599689281926,
+            "mean_abs_error": 0.41853460669517517,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W3",
+            "seed": 44,
+            "index": 0,
+            "exact": false,
+            "psnr_db": 48.120680541575524,
+            "ssim": 0.9969708189936036,
+            "mean_abs_error": 0.42115750908851624,
+            "numerical_screen_pass": true
+          }
+        ]
+      },
+      {
+        "group": "-edit-sign",
+        "verdict": "PASS",
+        "scope": "numerical image-quality screen only",
+        "visual_review": "pending",
+        "additional_prompt_coverage": "pending",
+        "checks": [
+          {
+            "workload": "W3",
+            "seed": 43,
+            "index": 0,
+            "exact": false,
+            "psnr_db": 47.88673937102325,
+            "ssim": 0.9969369917264063,
+            "mean_abs_error": 0.424750953912735,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W3",
+            "seed": 44,
+            "index": 0,
+            "exact": false,
+            "psnr_db": 49.05455510252363,
+            "ssim": 0.996956467779197,
+            "mean_abs_error": 0.4135913848876953,
+            "numerical_screen_pass": true
+          }
+        ]
+      }
+    ],
+    "campaign_verdict": "INCONCLUSIVE",
+    "visual_review": "pending",
+    "abba": "pending"
+  }
+}

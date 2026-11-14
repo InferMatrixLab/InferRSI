@@ -303,3 +303,12 @@ candidate W1/W2/W3 medians were 11.047/2.726/4.584s versus control
 10.949/2.745/4.743s. [Samples, quality checks and source identity](results/fia-final-step-round19-result.json)
 record the completed comparison. The candidate was not adopted; visual and
 final ABBA qualification were not performed, and all targets remain unmet.
+
+## Final-three-step FIA round 20
+
+All 30 numerical image checks passed (minimum PSNR 31.868 dB, SSIM 0.982957).
+Candidate W1/W2/W3 medians were 10.805/2.641/4.471s versus control
+10.825/2.632/4.502s: essentially unchanged, mixed latency.
+[Samples, checks and frozen configuration](results/fia-final-three-round20-result.json)
+record the comparison. The candidate was not adopted. All targets remain unmet;
+final ABBA and visual qualification were not performed.
