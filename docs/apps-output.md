@@ -73,3 +73,55 @@ The Apps design decision selects `inferrsi.harness.execution_spec.request_digest
 as the public Harness digest entry point. `inferrsi.harness.run_store.request_digest`
 remains a compatibility export of the same function. Apps can compute the
 canonical digest without loading the RunStore implementation.
+
+## Prepare archive
+
+`inferrsi.apps.api.prepare` accepts the v1 AppsPrepareRequest and a separate,
+trusted StorageConfig. The host supplies the Benchmark prepare, encode and
+validate ports. The prepare port returns the prepared object, canonical protocol
+bytes and a reader keyed by resource role. The reader can return bytes or an
+open binary stream that Apps closes after consuming it.
+
+The pure encoder returns canonical bytes and the validator returns normally on
+success. They raise `ValueError` for invalid content or `PublicError` for a
+structured rejection. The host adapts Benchmark-specific rejection exceptions
+to this contract. Apps publishes `InvalidRequest` at
+`benchmark_response_validation` for `ValueError` and preserves the code and stage
+of a valid `PublicError`.
+Prepare rejects errors carrying an attempt ID, start state, latest record
+reference or partial execution record at `benchmark_response_validation`.
+
+Apps selects the configured local archive directory and allocates the final
+logical locations for the prepared object, protocol and resources. The
+Benchmark encoder and validator check the relocated prepared object before
+publication. Apps checks the original protocol and resource bytes against their
+declared sizes and digests, then atomically publishes the complete directory
+under a generated ID. A missing or invalid archive root is an `InvalidRequest`
+at `storage_config` before Apps calls Benchmark.
+
+On POSIX, confirmation of the closure commit includes syncing the parent
+directory after the rename. If that sync fails, the archive may be visible.
+Apps returns `ArchivePersistenceError` with exit code 6 and a null
+`prepared_ref` because it cannot confirm the commit. If Apps confirms the
+closure commit and the separate output publication then fails, the returned
+error retains the committed PreparedRef.
+
+`read_prepared` verifies the fixed prepared bytes and identity using the same
+storage configuration. `read_archive_artifact` reads protocol or resource bytes
+from the archive mount and verifies the reference's size and digest. Both
+functions are under `inferrsi.apps.archive`.
+
+## Execute binding
+
+Supply `storage_config` to `inferrsi.apps.api.execute` to read the fixed
+`PreparedRef`, verify the protocol bytes and semantic digest, and check the
+prepared recipe, scope, and resources against that protocol before binding.
+The existing injected binder remains available to hosts. The Apps binder maps
+frozen execution resources to fixed artifact inputs and preserves the
+candidate declarations and the entire original AttemptContext.
+
+Worker arguments substitute whole input and output role tokens. The worker
+uses the attempt root as its working directory and the original attempt
+deadline. OperationRecipe v1 has no per-step timeout, so the step timeout
+is null. The expected worker code digest comes from the fixed recipe.
+The bound spec is handed to the host-supplied Harness execution port.

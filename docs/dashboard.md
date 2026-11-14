@@ -782,17 +782,14 @@ can be included in a local review export, including references attached to
 visible events. Missing agent tool-call events and
 corrupt round-record line numbers are also shown explicitly.
 
-The existing [summary chart](campaign-summary-chart.md) renderer is reused.
-An explicitly recorded, valid `summary-chart.json` with a chain layout produces
-a cumulative chart. Otherwise, when measured candidates have distinct recorded
-rounds and comparable evidence, a line connects their independent results in
-round order; the page explicitly says the line is not cumulative. Missing
-measurements are omitted, and status and quality remain visible in the table.
-When a unique round order cannot be established, a branch chart displays the
-independent candidate results instead.
-Failed candidates without a numeric measurement remain in the table and trace.
-Unrenderable numeric scales withhold the chart with a visible explanation;
-the recorded measurements remain available in the table and evidence.
+The performance overview and **Successes and failures** share the
+[experiment measurement projection](dashboard-experiments.md), chart renderer,
+filters and selected identity. They show absolute metrics by recorded round,
+explicit order or real timestamp. Compatible configurations connect; unknown
+comparability, repeated runs and missing measurements are kept explicit.
+Events occupy their own lane and never become zero measurements. Original
+summary text, limitations, lessons and partial state remain expandable.
+
 The dashboard also plots recorded terminal events and stage events on a shared
 UTC time axis. Results without a terminal timestamp are omitted from that plot;
 failed runs without a measurement appear in a separate no-value row. Stage dots
@@ -810,7 +807,8 @@ markers. Unrelated candidate measurements are not joined into a cumulative line.
   model revision, workload, scenario, backend, verified physical CUDA device,
   driver, host platform, target Python/packages, baseline source snapshot,
   baseline and validation commands, comparison scope, metric, unit and direction
-  agree. Otherwise the aggregate and shared chart are withheld. Private device
+  agree. Otherwise the aggregate is withheld. Experiment curves retain separate
+  compatible groups and independent points with explicit reasons. Private device
   identity is used only for the comparison and is not included in the export.
   Cross-run comparison for other device backends is currently withheld.
 - Noise uses the campaign's declared band, or the larger recorded trial range
@@ -836,7 +834,9 @@ markers. Unrelated candidate measurements are not joined into a cumulative line.
   commands. Caller-supplied benchmark and accuracy descriptions state what was
   measured; they are not independently verified. A validation exit code does not
   establish an accuracy result when no result was recorded.
-- Overview and charts show all candidates. The candidate, run and stage filters select the run review and candidate rows.
+- Overview statistics show all candidates. Experiment workload/metric/axis filters
+  are shared between the overview curve and summary. The candidate, run and stage
+  filters select the run review and candidate rows.
 - Existing non-dashboard files and symbolic-link outputs are never overwritten.
 
 ## Privacy

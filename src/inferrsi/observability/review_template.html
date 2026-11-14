@@ -79,7 +79,7 @@ pre{max-height:22rem;overflow:auto;white-space:pre-wrap;padding:9px 12px;backgro
 <body>
 <header><div><strong>InferRSI</strong><code id="campaign"></code><small id="mode"></small><small id="connection" role="status"></small><button id="language" type="button"></button></div></header>
 <main>
-<section class="trend" aria-labelledby="chart-title"><figure><h1 id="chart-title"></h1><div class="note" id="chart-note"></div><div id="chart">__DASHBOARD_CHART__</div></figure></section>
+<section class="trend" aria-labelledby="chart-title"><h1 class="panel-heading" aria-labelledby="chart-title"></h1><details class="panel" data-key="trend"><summary><span id="chart-title"></span></summary><figure><div class="note" id="chart-note"></div><div id="chart">__DASHBOARD_CHART__</div></figure></details></section>
 <section aria-labelledby="goal-title"><h2 class="panel-heading" aria-labelledby="goal-title"></h2><details class="panel" data-key="goal"><summary><span id="goal-title"></span></summary><div id="goal"></div></details></section>
 <section id="story-checks" hidden aria-labelledby="checks-title"><h2 class="panel-heading" aria-labelledby="checks-title"></h2><details class="panel" data-key="checks"><summary><span id="checks-title"></span> <span id="checks-count"></span></summary><ul id="checks-list"></ul></details></section>
 <section aria-labelledby="baseline-title"><h2 class="panel-heading" aria-labelledby="baseline-title"></h2><details class="panel" data-key="timings"><summary><span id="baseline-title"></span></summary><div id="baseline"></div></details></section>
@@ -87,7 +87,10 @@ pre{max-height:22rem;overflow:auto;white-space:pre-wrap;padding:9px 12px;backgro
 <section aria-labelledby="gap-title"><h2 class="panel-heading" aria-labelledby="gap-title"></h2><details class="panel" data-key="gap"><summary><span id="gap-title"></span></summary><div id="gap"></div></details></section>
 <section aria-labelledby="rounds-title"><h2 class="panel-heading" aria-labelledby="rounds-title"></h2><details class="panel" data-key="rounds"><summary><span id="rounds-title"></span></summary><div id="rounds"></div></details></section>
 <section aria-labelledby="decision-title"><h2 class="panel-heading" aria-labelledby="decision-title"></h2><details class="panel" data-key="decisions"><summary><span id="decision-title"></span></summary><div class="decisions" id="decisions"></div></details></section>
+<section aria-labelledby="summary-title"><h2 class="panel-heading" aria-labelledby="summary-title"></h2><details class="panel" data-key="summary"><summary><span id="summary-title"></span></summary><div id="summary-experiments"></div>
+<details id="original-summary"><summary id="original-summary-title"></summary><div id="original-summary-body"></div></details></details></section>
 </main>
+__DASHBOARD_EXPERIMENTS__
 <script id="dashboard-data" type="application/json">__DASHBOARD_DATA__</script>
 <script>
 (() => {
@@ -561,6 +564,10 @@ function timeline(box,c,baseline,opened){
     };
   },opened);
 }
+const experimentView=window.InferRSIExperiments.create({
+  getData:()=>data,getLanguage:()=>language,narrative:recorded,
+  openExperiment:id=>{const target=[...document.querySelectorAll('[data-experiment-id]')].find(n=>n.dataset.experimentId===id);if(target){for(let parent=target.parentElement;parent;parent=parent.parentElement){if(parent.tagName==='DETAILS')parent.open=true;}target.scrollIntoView({block:'start'});target.focus();}}
+});
 const captureLabel=c=>c.phase==='baseline'?tr('首轮前基线','Pre-round baseline'):rowLabel(c);
 function captureCard(box,c,baseline,opened){
   const key='profile:'+c.id;
@@ -774,6 +781,7 @@ function render(){
     outer.dataset.key='round:'+JSON.stringify([r.round,r.candidate_id,r.run_id]);outer.open=opened.has(outer.dataset.key);
     name.append(el('span',rowLabel(r),'tag'),document.createTextNode(recorded(r.title||r.candidate_id)));
     outer.append(name,a);rounds.append(outer);
+    name.dataset.experimentId=r.experiment_id;name.tabIndex=-1;
     if(r.optimization?.summary && r.optimization.summary!==r.title)p(a,recorded(r.optimization.summary));
     const skills=trace?.applied_skills||[];
     for(const skill of skills){
@@ -814,6 +822,16 @@ function render(){
       const parts=n.textContent.split(' · ');n.textContent=parts.map(s=>labels[s]||s).join(' · ');
     }
   }
+  byId('summary-title').textContent=tr('成功与失败','Successes and failures');
+  byId('original-summary-title').textContent=tr('全部原始成功与失败记录','All original successes and failures');
+  const summary=data.story?.summary,summaryBox=byId('original-summary-body');summaryBox.replaceChildren();
+  if(summary){p(summaryBox,status(summary.state)+' · '+recorded(summary.missing_reason||''));
+    for(const [key,zh,en] of [['successes','成功叙述','Successes'],['failures','失败叙述','Failures']]){
+      summaryBox.append(el('h3',tr(zh,en)));for(const item of summary[key]){p(summaryBox,recorded(item.text));for(const link of item.links)p(summaryBox,link.ref+' · '+status(link.state),'note');}
+    }
+    for(const [key,zh,en] of [['lessons','经验','Lessons'],['limitations','限制','Limitations']]){summaryBox.append(el('h3',tr(zh,en)));for(const item of summary[key])p(summaryBox,recorded(item));}
+  }
+  experimentView.render([byId('chart'),byId('summary-experiments')]);byId('chart-note').textContent='';
   if(previousFocus){for(const node of document.querySelectorAll('details'))if(node.dataset.key===previousFocus)node.querySelector('summary').focus({preventScroll:true});}
 }
 byId('language').addEventListener('click',()=>{
