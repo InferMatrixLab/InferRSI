@@ -25,7 +25,7 @@
   },
   "checkout_ref": "checkout:npu-skill-factory",
   "source_files": {
-    "src/inferrsi/knowledge/data/skill_library/workflows/npu-skill-factory/SKILL.md": "2c7aa603eb198e1638cd4ff045071f026dca266ccb9d967e8f62b7d5ddfaae0a",
+    "src/inferrsi/knowledge/data/skill_library/workflows/npu-skill-factory/SKILL.md": "94ad2b670863f45f26b85ce99a96a64c3d2050a74363931c59847bc2fceefb43",
     "src/inferrsi/knowledge/data/skill_library/workflows/npu-skill-factory/metadata.json": "c862565b814e98e0ebc4923e32eef2aa67a8df2357c255903d744f40aaea32c8",
     "src/inferrsi/knowledge/data/skill_library/workflows/npu-skill-factory/references/papers-20261015/COMPARISON.md": "38587678a96581f5c2dc697d982127343565504bffa191352811dffcc165aa23",
     "src/inferrsi/knowledge/data/skill_library/workflows/npu-skill-factory/references/papers-20261015/INTEGRATION_NOTES.md": "fbc4a96b6f6c477706eed83eaa4fcc29a14f881637629d6c004601ed049f2523",
