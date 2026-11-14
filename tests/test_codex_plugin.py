@@ -81,11 +81,15 @@ def test_bundle_contains_all_declared_package_data(distribution):
         for path in _io_path(PROJECT / "src" / Path(*package.split("."))).glob(pattern)
         if path.is_file()
     }
-    assert "data/skill_library/repositories/splash/THIRD_PARTY_NOTICES" in expected
+    assert (
+        "knowledge/data/skill_library/repositories/splash/THIRD_PARTY_NOTICES" in expected
+    )
     installed = {
         name.removeprefix("inferrsi/")
         for name in runtime_bytes(distribution)
-        if name.startswith(("inferrsi/data/", "inferrsi/benchmark/tasks/")) or (
+        if name.startswith((
+            "inferrsi/knowledge/data/", "inferrsi/harness/data/", "inferrsi/benchmark/tasks/",
+        )) or (
             name.startswith("inferrsi/observability/") and name.endswith(".html")
         )
     }

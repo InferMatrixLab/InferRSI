@@ -2,19 +2,40 @@ import contextlib
 import hashlib
 import io
 import json
+import os
 import sys
 from importlib.resources import as_file, files
 from pathlib import Path
 
 import inferrsi
 from inferrsi.benchmark.registry import builtin_tasks, describe_task, task_resources
-from inferrsi.catalog import knowledge_records, repository_pack, search_knowledge
+from inferrsi.catalog import REPO_TYPES, knowledge_records, repository_pack, search_knowledge
 from inferrsi.cli import main
+from inferrsi.knowledge._source_snapshot import BUNDLE_LIBRARY, LIBRARY
 from inferrsi.knowledge_operations import KnowledgeReader
 
 assert Path(inferrsi.__file__).resolve().parent.parent.name != "src", (
     "This check requires an installed package"
 )
+
+
+def bundle_key(logical):
+    """Return the package-relative bundle key for a bundle or pinned-record key.
+
+    Bundle keys are "data/...". Pinned record paths name the corpus at the
+    recorded source revision (LIBRARY); this is the inverse of source_entry().
+    """
+    if logical.startswith(LIBRARY + "/"):
+        return BUNDLE_LIBRARY + logical[len(LIBRARY):]
+    return logical
+
+
+def resource(logical):
+    """Resolve a logical knowledge key to its installed physical location."""
+    relative = bundle_key(logical)
+    assert relative.startswith("data/"), logical
+    return files("inferrsi").joinpath("knowledge", *relative.split("/"))
+
 assert builtin_tasks(), "Task registry is missing from the installation"
 assert "torch" not in sys.modules and "torch_npu" not in sys.modules
 for benchmark_name in builtin_tasks():
@@ -24,11 +45,7 @@ for benchmark_name in builtin_tasks():
         assert root.joinpath(resource_name).is_file(), (benchmark_name, resource_name)
 records = knowledge_records()
 assert len(records) == 128, "Knowledge is missing from the installation"
-assert (
-    files("inferrsi")
-    .joinpath("data", "repo_packs", "vllm_omni", "knowledge", "README.md")
-    .is_file()
-)
+assert resource("data/repo_packs/vllm_omni/knowledge/README.md").is_file()
 assert repository_pack("vllm_rlt")["id"] == "vllm_rlt"
 assert search_knowledge(repo="vllm_omni", backend="ascend")
 assert all(not item["verification"]["locally_verified"] for item in records)
@@ -46,21 +63,21 @@ for record in mlx_records:
     bundle = mlx_reader.read("package:" + record["id"])
     assert mlx_reader.resource(
         "package:" + record["id"], mlx_document, revision=bundle.revision
-    ) == files("inferrsi").joinpath(*mlx_document.split("/")).read_bytes()
+    ) == resource(mlx_document).read_bytes()
 skill_index = search_knowledge(repo="inferrsi", limit=100)
 assert len(skill_index) == 80, "Missing installed skill abstracts"
 assert all(record["index_type"] == "packaged-skill" for record in skill_index)
 ascend_rc = KnowledgeReader().read("inferrsi.ascend.skills.vllm_ascend")
-for resource in ("plugin-registration", "minimax-cache", "dspark-pd", "sources",
-                 "deepseek-v4-evolution", "communication-config", "model-performance",
-                 "fused-operators", "history-scope"):
-    key = f"data/skill_library/repositories/vllm-ascend/references/{resource}.md"
-    assert ascend_rc.content[key] == files("inferrsi").joinpath(*key.split("/")).read_bytes()
-for resource in ("references/history-reviewed.json", "scripts/screen_history.py"):
-    key = f"data/skill_library/repositories/vllm-ascend/{resource}"
-    assert ascend_rc.content[key] == files("inferrsi").joinpath(*key.split("/")).read_bytes()
+for note in ("plugin-registration", "minimax-cache", "dspark-pd", "sources",
+             "deepseek-v4-evolution", "communication-config", "model-performance",
+             "fused-operators", "history-scope"):
+    key = f"data/skill_library/repositories/vllm-ascend/references/{note}.md"
+    assert ascend_rc.content[key] == resource(key).read_bytes()
+for relative in ("references/history-reviewed.json", "scripts/screen_history.py"):
+    key = f"data/skill_library/repositories/vllm-ascend/{relative}"
+    assert ascend_rc.content[key] == resource(key).read_bytes()
 assert all("history-inventory.json" not in key for key in ascend_rc.content)
-assert not files("inferrsi").joinpath(
+assert not resource(
     "data/skill_library/repositories/vllm-ascend/references/history-inventory.json"
 ).is_file()
 indexed = KnowledgeReader().read("inferrsi.ascend.skills.ascend_operator_profiling")
@@ -200,7 +217,7 @@ assert selection_core["content"].encode() == selection_reader.resource(
 )
 assert selection["context_bytes"] <= 65536
 assert "yaml" not in sys.modules, "Packaged selection must not require the skills extra"
-assert files("inferrsi").joinpath("data", "knowledge_packs", "README.md").is_file()
+assert resource("data/knowledge_packs/README.md").is_file()
 for tier, count in (("dependency", 6), ("peer", 5)):
     imported = search_knowledge(tier=tier, limit=100)
     assert len(imported) >= count, f"Missing installed {tier} records"
@@ -212,12 +229,12 @@ qwen_tts = search_knowledge(
 assert len(qwen_tts) == 3, "Missing installed Qwen3-TTS peer techniques"
 assert all(not record["verification"]["locally_verified"] for record in qwen_tts)
 package = files("inferrsi")
-library = package.joinpath("data", "skill_library")
+library = resource("data/skill_library")
 for record in skill_index:
     for relative, expected_hash in record["source_files"].items():
-        resource = package.joinpath(*relative.removeprefix("src/inferrsi/").split("/"))
-        assert resource.is_file(), relative
-        data = resource.read_bytes()
+        pinned = resource(relative)
+        assert pinned.is_file(), relative
+        data = pinned.read_bytes()
         digest = hashlib.sha256(data).hexdigest()
         # Preserve exact upstream notice bytes before allowing the existing
         # platform-text newline equivalence for ordinary package resources.
@@ -275,7 +292,7 @@ for source in manifest["sources"]:
     for record in imported:
         assert set(record["skill_documents"]) == {"en"}
         for reference in record["skill_documents"].values():
-            assert package.joinpath(*reference.split("/")).is_file(), reference
+            assert resource(reference).is_file(), reference
     output = io.StringIO()
     with contextlib.redirect_stdout(output):
         assert main(["context", imported[0]["id"], "--repo-type", repo, "--backend", "cpu"]) == 0
@@ -307,19 +324,9 @@ ascend_image = search_knowledge(
 assert [item["id"] for item in ascend_image] == [
     "vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i"
 ]
-assert (
-    files("inferrsi")
-    .joinpath(
-        "data",
-        "repo_packs",
-        "vllm_omni",
-        "knowledge",
-        "ascend",
-        "diffusion",
-        "qwen-image-21-eager-t2i.json",
-    )
-    .is_file()
-)
+assert resource(
+    "data/repo_packs/vllm_omni/knowledge/ascend/diffusion/qwen-image-21-eager-t2i.json"
+).is_file()
 output = io.StringIO()
 with contextlib.redirect_stdout(output):
     assert main(["skills", "show", "ascend-operator-profiling"]) == 0
@@ -350,9 +357,9 @@ assert {item["group"] for item in research["queries"]} == {
     "model", "framework", "task", "modality", "mechanism",
 }
 for key in ("procedure_resource", "worked_example_resource"):
-    assert package.joinpath(research[key]).read_text(encoding="utf-8")
+    assert resource(research[key]).read_text(encoding="utf-8")
 for key in ("skill_resource", "inventory_resource"):
-    assert package.joinpath(research["profile"][key]).read_text(encoding="utf-8")
+    assert resource(research["profile"][key]).read_text(encoding="utf-8")
 assert set(research["profile"]["knowledge_ids"]) <= {
     item["record"]["id"] for item in research["items"]
 }
@@ -374,9 +381,7 @@ assert {"group": "mechanism", "query": "lazy evaluation"} in mlx_lifecycle["matc
 assert not inference_modules & sys.modules.keys()
 print(f"Installed package: {inferrsi.__file__}; {len(records)} source-grounded records available.")
 
-splash_notices = files("inferrsi").joinpath(
-    "data/skill_library/repositories/splash/THIRD_PARTY_NOTICES"
-)
+splash_notices = resource("data/skill_library/repositories/splash/THIRD_PARTY_NOTICES")
 assert splash_notices.is_file(), "Splash third-party notices are missing from the wheel"
 assert "The ggml authors" in splash_notices.read_text(encoding="utf-8")
 
@@ -503,3 +508,61 @@ assert dream_result["native_execution"] == "not_run"
 assert dream_result["qualification"] == "INCONCLUSIVE"
 assert dream_result["running_process_proven"] is False
 assert not inference_modules & sys.modules.keys()
+
+# K02 acceptance: the installed resource roots are enumerated completely, not
+# sampled. Every file under the Knowledge corpus and the Harness repository pack
+# descriptions is hashed, and the printed digest is the list a checkout-side run
+# compares against.
+def _inventory(root, prefix):
+    found = {}
+    pending = [(root, prefix)]
+    while pending:
+        node, name = pending.pop()
+        for child in node.iterdir():
+            path = f"{name}/{child.name}"
+            if child.is_dir():
+                # An installer byte-compiles packaged scripts; caches are not resources.
+                if child.name != "__pycache__":
+                    pending.append((child, path))
+            else:
+                found[path] = hashlib.sha256(child.read_bytes()).hexdigest()
+    return found
+
+
+inventory = {
+    **_inventory(files("inferrsi").joinpath("knowledge", "data"), "knowledge/data"),
+    **_inventory(files("inferrsi").joinpath("harness", "data"), "harness/data"),
+}
+assert len(inventory) == 923, f"installed resource count is {len(inventory)}, expected 923"
+assert sum(name.startswith("harness/data/") for name in inventory) == len(REPO_TYPES)
+# Every pinned record path and every registered skill body resolves inside that
+# same enumeration, so the inventory and the records describe one resource set.
+for record in skill_index:
+    for relative in record["source_files"]:
+        key = "knowledge/" + bundle_key(relative)
+        assert key in inventory, relative
+for entry in registry.values():
+    assert f"knowledge/data/skill_library/{entry['path']}/SKILL.md" in inventory, entry["path"]
+for repo_name in REPO_TYPES:
+    assert f"harness/data/repo_packs/{repo_name}/pack.json" in inventory, repo_name
+inventory_digest = hashlib.sha256(
+    "\n".join(f"{name}\0{digest}" for name, digest in sorted(inventory.items())).encode("utf-8")
+).hexdigest()
+print(f"Installed resource inventory: {len(inventory)} files, sha256 {inventory_digest}")
+checkout = os.environ.get("INFERRSI_CHECKOUT_RESOURCES")
+if checkout:
+    # Same K02-3 contract as the opt-in fresh-venv test: every packaged resource
+    # in this isolated install matches the checkout byte-for-byte.
+    expected = _inventory(Path(checkout) / "knowledge" / "data", "knowledge/data")
+    expected.update(_inventory(Path(checkout) / "harness" / "data", "harness/data"))
+    only_installed = sorted(set(inventory) - set(expected))[:8]
+    only_checkout = sorted(set(expected) - set(inventory))[:8]
+    changed = sorted(
+        name for name in set(inventory) & set(expected)
+        if inventory[name] != expected[name]
+    )[:8]
+    assert inventory == expected, (
+        "installed resources differ from the checkout at "
+        f"{checkout}: only-installed={only_installed!r} "
+        f"only-checkout={only_checkout!r} changed={changed!r}"
+    )

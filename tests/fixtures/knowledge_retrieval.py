@@ -10,6 +10,7 @@ import sys
 from pathlib import Path
 from unittest.mock import patch
 
+from inferrsi.knowledge._source_snapshot import source_entry
 from inferrsi.knowledge.catalog import search_knowledge
 from inferrsi.knowledge.knowledge_operations import KnowledgeReader, _hash, _json
 from inferrsi.observability.campaign_records import create_campaign, record_candidate
@@ -40,7 +41,7 @@ def reader():
     library[registry_path] = _json(registry)
     for record in records.values():
         core = record["skill_documents"]["original"]
-        record["source_files"] = {"src/inferrsi/" + p: _hash(library[p])
+        record["source_files"] = {source_entry(p): _hash(library[p])
                                   for p in (core, registry_path)}
     result = KnowledgeReader()
     result._records = records

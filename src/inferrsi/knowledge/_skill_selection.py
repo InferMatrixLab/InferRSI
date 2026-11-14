@@ -4,6 +4,8 @@ import json
 import posixpath
 import re
 
+from ._source_snapshot import source_entry
+
 TASK_RELEVANCE = "task-lexical-v1"
 RELEVANCE_METHODS = ("weighted-lexical-v1", "weighted-raw-string-v1", TASK_RELEVANCE)
 
@@ -54,7 +56,7 @@ def indexed_skill(record: dict, view: dict, content: dict[str, bytes]) -> tuple:
     ):
         raise SkillIndexError("Packaged skill identity disagrees with the registry")
     expected = {
-        "src/inferrsi/" + path: digest
+        source_entry(path): digest
         for path, digest in view["resources"].items()
         if path.startswith(prefix) or path == registry_path
     }

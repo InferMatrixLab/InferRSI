@@ -91,7 +91,7 @@ def test_completed_wrong_answer_fails_and_unavailable_grading_is_inconclusive():
 
 
 def test_export_preserves_declared_cross_skill_resource(tmp_path):
-    reader = KnowledgeReader(skill_root=ROOT / "src/inferrsi/data/skill_library")
+    reader = KnowledgeReader(skill_root=ROOT / "src/inferrsi/knowledge/data/skill_library")
     view = export_bundle(reader, "checkout:inference-benchmark-design", tmp_path)
     assert view["revision"].startswith("sha256:")
     assert (tmp_path / view["entrypoint"]).is_file()

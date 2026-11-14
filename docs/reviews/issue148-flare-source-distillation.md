@@ -12,10 +12,10 @@ NVIDIA/local-inference at that same commit. The actual commit tree is
 
 | Existing owner | Overlap decision | Delivered addition |
 |---|---|---|
-| [weight-loading-optimization](../../src/inferrsi/data/skill_library/methods/weight-loading-optimization/SKILL.md#10-separate-preparation-from-serving) | Generic loading/startup already has an owner | One preparation-boundary reference and typed Flare source; compilation/export/load/readiness/request phases stay distinct |
-| [audit-vllm-kv-lifetimes](../../src/inferrsi/data/skill_library/repositories/vllm/audit-vllm-kv-lifetimes/SKILL.md) | Scheduler/connector lifetime concepts overlap, but concrete vLLM contracts differ | Related route only; no source or runtime replacement |
-| [kv-tier-management](../../src/inferrsi/data/skill_library/repositories/lmcache/kv-tier-management/SKILL.md) | Tier policy overlaps, but LMCache MP configuration is not Flare's protocol | Related route only; no copied knobs or backend claims |
-| [audit-flare-session-lifecycle](../../src/inferrsi/data/skill_library/repositories/flare-local-inference/audit-flare-session-lifecycle/SKILL.md) | Complete KV plus recurrent/convolution/tail state and scheduler-owned transfer tickets were not covered by those owners | One CUDA-scoped registered candidate with complete-state/fence/admission diagnostics |
+| [weight-loading-optimization](../../src/inferrsi/knowledge/data/skill_library/methods/weight-loading-optimization/SKILL.md#10-separate-preparation-from-serving) | Generic loading/startup already has an owner | One preparation-boundary reference and typed Flare source; compilation/export/load/readiness/request phases stay distinct |
+| [audit-vllm-kv-lifetimes](../../src/inferrsi/knowledge/data/skill_library/repositories/vllm/audit-vllm-kv-lifetimes/SKILL.md) | Scheduler/connector lifetime concepts overlap, but concrete vLLM contracts differ | Related route only; no source or runtime replacement |
+| [kv-tier-management](../../src/inferrsi/knowledge/data/skill_library/repositories/lmcache/kv-tier-management/SKILL.md) | Tier policy overlaps, but LMCache MP configuration is not Flare's protocol | Related route only; no copied knobs or backend claims |
+| [audit-flare-session-lifecycle](../../src/inferrsi/knowledge/data/skill_library/repositories/flare-local-inference/audit-flare-session-lifecycle/SKILL.md) | Complete KV plus recurrent/convolution/tail state and scheduler-owned transfer tickets were not covered by those owners | One CUDA-scoped registered candidate with complete-state/fence/admission diagnostics |
 
 The construction uses AREX-Skill
 `ac3fe1afa80fb9a09775ecfb2b6cc3ba850a2db6` as a **method**, adapting its
@@ -29,7 +29,7 @@ AREX native verification or a new construction framework.
 The anchor is source/task-agnostic; scoped capabilities are preparation
 compatibility, complete restoration and admission/lifetime diagnosis. Strategy
 is reuse-existing: the existing generic owner plus one Flare-specific owner.
-The [20-file ledger](../../src/inferrsi/data/skill_library/repositories/flare-local-inference/audit-flare-session-lifecycle/references/source-ledger.json)
+The [20-file ledger](../../src/inferrsi/knowledge/data/skill_library/repositories/flare-local-inference/audit-flare-session-lifecycle/references/source-ledger.json)
 identifies exact bytes and inspected symbols/sections. Kernels, model recipes,
 exporter implementation and unrelated repository areas are excluded. Upstream
 scripts are reference-only: preparation and qualification require model/package,

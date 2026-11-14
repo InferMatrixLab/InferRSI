@@ -61,7 +61,7 @@ Parameterized or manual acceptance runs are issue-scoped; they are not the defau
 
 ## RSI contract
 
-- **Resolve acceptance criteria** — preserve user-supplied criteria; when absent, use [performance-ceiling-analysis](src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/acceptance-criteria.md) to derive evidence-backed campaign targets. Retain partial requirements and derive only missing fields; unresolved evidence stays explicit.
+- **Resolve acceptance criteria** — preserve user-supplied criteria; when absent, use [performance-ceiling-analysis](src/inferrsi/knowledge/data/skill_library/methods/performance-ceiling-analysis/references/acceptance-criteria.md) to derive evidence-backed campaign targets. Retain partial requirements and derive only missing fields; unresolved evidence stays explicit.
 - **Freeze gates before search** — checklist and `validator/` locked in `plan/` before Phase 3 candidate experiments ([validation levels](docs/contributing.md#validation-levels)).
 - **One plane per campaign step** — change only the declared SIAS plane per step: `harness` | `model` | `infra` (under `src/inferrsi/`).
 - **Emit RunSpec snapshots** — record repo × revision × backend × device × model × scenario (`runspec.py`, campaign `plan/`).
@@ -77,7 +77,7 @@ Parameterized or manual acceptance runs are issue-scoped; they are not the defau
 
 - Cite **acceptance issues + pinned SHAs** in downstream text; do not invent gain or quality bars.
 - **Public wording only after `PASS`** — follow [evidence and claim rules](docs/contributing.md#evidence-and-claims); until then, label unverified or `INCONCLUSIVE`.
-- Use [cite-check-downstream-pr](src/inferrsi/data/skill_library/workflows/cite-check-downstream-pr/SKILL.md) and [competitor-scan](src/inferrsi/data/skill_library/workflows/competitor-scan/SKILL.md) as **operators**, not campaign scripts (no pins in skill bodies).
+- Use [cite-check-downstream-pr](src/inferrsi/knowledge/data/skill_library/workflows/cite-check-downstream-pr/SKILL.md) and [competitor-scan](src/inferrsi/knowledge/data/skill_library/workflows/competitor-scan/SKILL.md) as **operators**, not campaign scripts (no pins in skill bodies).
 
 ## Evidence and clearing the bar
 
@@ -98,7 +98,7 @@ Agents and human reviewers **clear** work only with artifacts—not vibes. Green
 
 ## Skills
 
-Portable operator guidance and candidate procedures live in [src/inferrsi/data/skill_library/](src/inferrsi/data/skill_library/README.md), with hardware-specific guidance under `hardware/<backend-or-host>/`, framework/repository guidance under its owner, and generic `methods/` and `workflows/`. The library owns complete procedures, metadata, references and cases. Keep library content in English; supporting documents stay in owner-local resource directories. The [knowledge-base contract](docs/knowledge-base.md) and two matrices define ownership and coverage. Keep **AGENTS.md** short; follow skill bodies for procedures—skills must remain free of campaign SHAs.
+Portable operator guidance and candidate procedures live in [src/inferrsi/knowledge/data/skill_library/](src/inferrsi/knowledge/data/skill_library/README.md), with hardware-specific guidance under `hardware/<backend-or-host>/`, framework/repository guidance under its owner, and generic `methods/` and `workflows/`. The library owns complete procedures, metadata, references and cases. Keep library content in English; supporting documents stay in owner-local resource directories. The [knowledge-base contract](docs/knowledge-base.md) and two matrices define ownership and coverage. Keep **AGENTS.md** short; follow skill bodies for procedures—skills must remain free of campaign SHAs.
 
 ## Optimization requests
 

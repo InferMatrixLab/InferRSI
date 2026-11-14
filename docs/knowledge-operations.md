@@ -10,7 +10,7 @@ neither requires a conversation or workflow object.
 from pathlib import Path
 from inferrsi.knowledge_operations import KnowledgeReader
 
-reader = KnowledgeReader(skill_root=Path("src/inferrsi/data/skill_library"))
+reader = KnowledgeReader(skill_root=Path("src/inferrsi/knowledge/data/skill_library"))
 result = reader.collect(ids=["calibrate-serving-simulation"], material=True, limit=1)
 item = result["items"][0]
 source = reader.resource(item["ref"], "methods/calibrate-serving-simulation/references/source-notes.md",
@@ -28,8 +28,8 @@ the store records the skills root it reserves and rejects a mismatched or missin
 `collect`/`read` and writes bytes to `--output`.
 
 ```bash
-inferrsi collect 'Ascend OOM' --kind case --limit 3 --material --skill-root src/inferrsi/data/skill_library
-inferrsi read calibrate-serving-simulation --skill-root src/inferrsi/data/skill_library
+inferrsi collect 'Ascend OOM' --kind case --limit 3 --material --skill-root src/inferrsi/knowledge/data/skill_library
+inferrsi read calibrate-serving-simulation --skill-root src/inferrsi/knowledge/data/skill_library
 ```
 
 The `--skill-root` selections require the `skills` extra (`python -m pip install
@@ -237,7 +237,7 @@ supplied code never runs it or grants permissions.
 Rejected directions use the same checkout Case bundles as other observations:
 
 ```python
-reader = KnowledgeReader(skill_root=Path("src/inferrsi/data/skill_library"))
+reader = KnowledgeReader(skill_root=Path("src/inferrsi/knowledge/data/skill_library"))
 options = reader.collect("Ascend OOM", kind="case", material=True, limit=3)
 item = options["items"][0]  # Inspect no_match/omissions first in a general client.
 case = reader.read(item["ref"], revision=item["revision"])

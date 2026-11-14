@@ -44,18 +44,22 @@ def _version(path: Path) -> str:
 def bundle_runtime(source: Path, runtime: Path, *, plugin_version: str,
                    runtime_version: str) -> int:
     """Stage the canonical runtime and resource manifest for a host package."""
+    # The K02 resource roots add a directory level to every canonical resource
+    # name. Stage through an extended path so a caller's ordinary destination
+    # still works when Windows long-path support is disabled.
+    runtime = _io_path(runtime)
     hashes = {}
     for path in sorted(source.rglob("*")):
         if not path.is_file():
             continue
         relative = path.relative_to(source)
-        package_data = relative.parts[0] == "data" and (
-            path.suffix in (".md", ".json") or path.name in ("LICENSE", "THIRD_PARTY_NOTICES")
-            or (
-                path.suffix == ".txt"
-                and relative.parts[-3:-1] == ("references", "licenses")
-            )
-            or (path.name == "upstream-NOTICE" and relative.parent.name == "references")
+        # K02 resource roots: the Knowledge corpus and the Harness repository
+        # pack descriptions. The accepted kinds match the package-data globs in
+        # pyproject.toml, so a wheel and a plugin carry the same resource set.
+        resource_root = relative.parts[:2] in (("knowledge", "data"), ("harness", "data"))
+        package_data = resource_root and (
+            path.suffix in (".md", ".json", ".txt")
+            or path.name in ("LICENSE", "THIRD_PARTY_NOTICES", "upstream-NOTICE")
         )
         package_data = package_data or (
             relative.parts[:2] == ("benchmark", "tasks")

@@ -12,7 +12,7 @@ import pytest
 import yaml
 
 PROJECT = Path(__file__).resolve().parents[1]
-ROOT = PROJECT / "src/inferrsi/data/skill_library/repositories/project-maya"
+ROOT = PROJECT / "src/inferrsi/knowledge/data/skill_library/repositories/project-maya"
 CASES = PROJECT / "tests/fixtures/repo_to_skill/project-maya/test-cases"
 
 

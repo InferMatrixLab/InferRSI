@@ -17,6 +17,17 @@ PROJECT = Path(__file__).resolve().parents[1]
 ROOT = PROJECT / LIBRARY
 
 
+def _physical(relative: str) -> Path:
+    """Map a pinned input name to today's checkout location.
+
+    After the K02 re-pin the recorded prefix agrees with ``LIBRARY``. The helper
+    still strips the pinned prefix so a future split would keep working.
+    """
+    pinned = index_builder.PINNED_LIBRARY.as_posix()
+    assert relative.startswith(pinned + "/"), relative
+    return PROJECT / LIBRARY / relative[len(pinned) + 1:]
+
+
 def test_complete_index_retains_metadata_states_and_unknown_license():
     records = search_knowledge(repo="inferrsi", limit=100)
     names = {record["name"] for record in skill_records(ROOT)}
@@ -61,7 +72,7 @@ def test_generated_index_matches_current_sources_without_historical_git_objects(
     }
     source_files = {}
     for relative in source_inputs(ROOT):
-        data = (PROJECT / relative).read_bytes()
+        data = _physical(relative).read_bytes()
         raw_hash = hashlib.sha256(data).hexdigest()
         # Byte-preserved upstream notices can contain canonical CRLF. Ordinary
         # text may instead have platform checkout newlines; match the recorded
@@ -143,7 +154,11 @@ def test_index_checks_drift_and_rejects_changed_or_added_source_inputs(tmp_path,
         subprocess.run(["git", "-C", str(tmp_path), *args], check=True, capture_output=True)
 
     git("init")
-    library = tmp_path / LIBRARY
+    # The fixture holds its corpus at the recorded location, where the physical
+    # root and the pinned prefix are the same. The repository itself separates
+    # them only because K02 moved the files after their pinned revision.
+    fixture_library = index_builder.PINNED_LIBRARY
+    library = tmp_path / fixture_library
     root = library / "methods" / "example"
     root.mkdir(parents=True)
     (library / "skill-index.json").write_text(json.dumps({
@@ -152,12 +167,13 @@ def test_index_checks_drift_and_rejects_changed_or_added_source_inputs(tmp_path,
     }), encoding="utf-8")
     source = "---\nname: example\ndescription: A source fixture\n---\nOriginal body\n"
     (root / "SKILL.md").write_text(source, encoding="utf-8")
-    git("add", LIBRARY.as_posix())
+    git("add", fixture_library.as_posix())
     git(
         "-c", "user.name=Index test fixture", "-c", "user.email=index@example.invalid",
         "commit", "-s", "-m", "Create test source",
     )
     monkeypatch.setattr(index_builder, "PROJECT", tmp_path)
+    monkeypatch.setattr(index_builder, "LIBRARY", fixture_library)
     assert index_builder.main(["--source-revision", "HEAD"]) == 0
     assert index_builder.main(["--source-revision", "HEAD", "--check"]) == 0
     generated = tmp_path / DESTINATION / "common/skills/example.json"
@@ -181,6 +197,51 @@ def test_index_checks_drift_and_rejects_changed_or_added_source_inputs(tmp_path,
     (root / "metadata.json").write_text('{"status": "candidate"}', encoding="utf-8")
     with pytest.raises(ValueError, match="input paths differ"):
         build_index(tmp_path, "HEAD")
+
+
+def test_repinned_corpus_accepts_a_new_source_revision_at_the_checkout_path(tmp_path, monkeypatch):
+    # After the explicit re-pin, the recorded prefix and the checkout path agree,
+    # so a new committed source revision regenerates records under that path.
+    def git(*args):
+        subprocess.run(["git", "-C", str(tmp_path), *args], check=True, capture_output=True)
+
+    def commit(message):
+        git("-c", "user.name=Index test fixture", "-c", "user.email=index@example.invalid",
+            "commit", "-s", "-m", message)
+
+    git("init")
+    git("config", "core.autocrlf", "false")
+    assert index_builder.PINNED_LIBRARY == LIBRARY
+    root = tmp_path / LIBRARY / "methods" / "example"
+    root.mkdir(parents=True)
+    (tmp_path / LIBRARY / "skill-index.json").write_text(json.dumps({
+        "schema_version": 1,
+        "skills": {"example": {"path": "methods/example", "backend": "common"}},
+    }), encoding="utf-8", newline="\n")
+    original = "---\nname: example\ndescription: A source fixture\n---\nOriginal body\n"
+    (root / "SKILL.md").write_text(original, encoding="utf-8", newline="\n")
+    git("add", LIBRARY.as_posix())
+    commit("Create test source")
+    monkeypatch.setattr(index_builder, "PROJECT", tmp_path)
+    monkeypatch.setattr(index_builder, "LIBRARY", LIBRARY)
+
+    first = build_index(tmp_path, "HEAD")
+    record = json.loads(first["common/skills/example.json"])
+    recorded = set(record["source_files"])
+    assert recorded
+    prefix = LIBRARY.as_posix()
+    assert all(path.startswith(prefix + "/") for path in recorded), recorded
+    entry = f"{prefix}/methods/example/SKILL.md"
+    assert record["source_files"][entry] == hashlib.sha256(original.encode("utf-8")).hexdigest()
+
+    changed = original + "Changed body\n"
+    (root / "SKILL.md").write_text(changed, encoding="utf-8", newline="\n")
+    git("add", LIBRARY.as_posix())
+    commit("Edit the skill")
+    second = build_index(tmp_path, "HEAD")
+    updated = json.loads(second["common/skills/example.json"])
+    assert updated["source_files"][entry] == hashlib.sha256(changed.encode("utf-8")).hexdigest()
+    assert updated["source_files"][entry] != record["source_files"][entry]
 
 
 def test_package_index_and_checkout_skill_have_distinct_read_boundaries():

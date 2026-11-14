@@ -18,7 +18,7 @@ import pytest
 import yaml
 
 PROJECT = Path(__file__).resolve().parents[1]
-ROOT = PROJECT / "src/inferrsi/data/skill_library/repositories/mlx-swift-lm"
+ROOT = PROJECT / "src/inferrsi/knowledge/data/skill_library/repositories/mlx-swift-lm"
 CASES = PROJECT / "tests/fixtures/repo_to_skill/mlx-swift-lm/test-cases"
 SOURCE_COMMIT = "3d066d3a0ffdc7e70c476a3d31488ea62dfdd0ac"
 SOURCE_FILES_SHA256 = "df10bf7c0523c89c51e37f61eb79323b256879538874b33c03a2e242e3762705"

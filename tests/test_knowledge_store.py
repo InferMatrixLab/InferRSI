@@ -15,7 +15,7 @@ from inferrsi.knowledge_operations import Bundle, IdentityError, KnowledgeReader
 from inferrsi.knowledge_store import KnowledgeStore
 
 REPO = Path(__file__).resolve().parents[1]
-ROOT = REPO / "src/inferrsi/data/skill_library"
+ROOT = REPO / "src/inferrsi/knowledge/data/skill_library"
 NOTES = "methods/calibrate-serving-simulation/references/source-notes.md"
 LOCAL = "calibrate-serving-simulation-local"
 
@@ -233,7 +233,7 @@ def test_workspace_location_and_symlinks(tmp_path):
         with pytest.raises(ValueError, match="outside read-only"):
             KnowledgeStore(REPO / "evidence", skill_root=skill_root)
     with pytest.raises(ValueError, match="outside read-only"):
-        KnowledgeStore(Path(inferrsi.__file__).parent / "data", skill_root=None)
+        KnowledgeStore(Path(inferrsi.__file__).parent / "knowledge" / "data", skill_root=None)
     target = tmp_path / "target"
     target.mkdir()
     link = tmp_path / "link"
@@ -261,7 +261,7 @@ export = Path(sys.argv[1])
 workspace = Path(sys.argv[2])
 assert not (export / ".git").exists()
 assert (export / "pyproject.toml").is_file()
-for skill_root in (export / "src/inferrsi/data/skill_library", None):
+for skill_root in (export / "src/inferrsi/knowledge/data/skill_library", None):
     try:
         KnowledgeStore(export / "evidence", skill_root=skill_root)
     except ValueError as exc:
@@ -344,7 +344,8 @@ def _digest(paths):
 def test_operations_leave_sources_evidence_and_matrices_unchanged(tmp_path):
     watched = [
         ROOT,
-        REPO / "src" / "inferrsi" / "data",
+        REPO / "src" / "inferrsi" / "knowledge" / "data",
+        REPO / "src" / "inferrsi" / "harness" / "data",
         REPO / "evidence",
         REPO / "docs" / "reference-matrix.md",
         REPO / "docs" / "searchspace-matrix.md",

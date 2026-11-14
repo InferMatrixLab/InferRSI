@@ -5,8 +5,14 @@ Opt-in because it builds a real venv and installs from this source tree
 install backend). Run with:
 
     RUN_FRESH_VENV=1 pytest tests/test_knowledge_fresh_install.py
+
+The installed-package and release CI jobs enforce the same checkout-versus-wheel
+byte inventory through tests/check_installed.py when INFERRSI_CHECKOUT_RESOURCES
+points at the checkout (no second venv). This module remains the opt-in full
+fresh-venv path for local or extra isolation.
 """
 
+import hashlib
 import json
 import os
 import shutil
@@ -17,7 +23,7 @@ from pathlib import Path
 import pytest
 
 REPO = Path(__file__).resolve().parents[1]
-SKILLS = REPO / "src" / "inferrsi" / "data" / "skill_library"
+SKILLS = REPO / "src" / "inferrsi" / "knowledge" / "data" / "skill_library"
 SOURCE = "calibrate-serving-simulation"
 
 pytestmark = pytest.mark.skipif(
@@ -49,8 +55,27 @@ def _pip(venv_python: Path, *args: str) -> None:
         capture_output=True,
         text=True,
         encoding="utf-8",
+        env=dict(os.environ, SETUPTOOLS_SCM_PRETEND_VERSION="0.0.0"),
     )
     assert result.returncode == 0, result.stderr
+
+
+def _short_source_copy(workspace: Path) -> Path:
+    """Copy the build inputs under a short base.
+
+    The K02 resource roots add a directory level to already deep canonical
+    resource names. A wheel build under a long checkout path can exceed Windows'
+    260-character limit inside its own build tree, so the inputs are staged under
+    the short workspace before the build. The copy carries no Git metadata, so
+    the build reads an explicit pretend version.
+    """
+    source = workspace / "source"
+    source.mkdir()
+    shutil.copytree(REPO / "src", source / "src",
+                    ignore=shutil.ignore_patterns("__pycache__", "*.pyc", "*.egg-info"))
+    for name in ("pyproject.toml", "README.md", "LICENSE", "MANIFEST.in"):
+        shutil.copyfile(REPO / name, source / name)
+    return source
 
 
 def _cli(venv_python: Path, *args: str) -> subprocess.CompletedProcess:
@@ -78,8 +103,9 @@ def test_base_install_package_only_then_skills_extra_chain():
         )
         assert created.returncode == 0, created.stderr
         python = _venv_python(venv)
+        build_input = _short_source_copy(workspace)
 
-        _pip(python, "install", str(REPO))  # base only: no PyYAML, no pytest/ruff
+        _pip(python, "install", str(build_input))  # base only: no PyYAML, no pytest/ruff
 
         package_only = _cli(python, "collect", "--limit", "2", "--json")
         assert package_only.returncode == 0, package_only.stderr
@@ -92,7 +118,7 @@ def test_base_install_package_only_then_skills_extra_chain():
         assert "PyYAML" in blocked.stderr and "<inferrsi-checkout>[skills]" in blocked.stderr
         assert "Traceback" not in blocked.stderr
 
-        _pip(python, "install", f"{REPO}[skills]")
+        _pip(python, "install", f"{build_input}[skills]")
 
         collected = _cli(
             python, "collect", "--id", f"checkout:{SOURCE}", "--skill-root", str(SKILLS), "--json"
@@ -130,5 +156,94 @@ def test_base_install_package_only_then_skills_extra_chain():
         assert resource.returncode == 0, resource.stderr
         expected = json.loads(read.stdout)["content"].encode("utf-8")
         assert output.read_bytes() == expected
+    finally:
+        shutil.rmtree(workspace, ignore_errors=True)
+
+
+INVENTORY_SCRIPT = """
+import hashlib, json, sys
+from importlib.resources import files
+
+import inferrsi
+
+assert "src" != __import__("pathlib").Path(inferrsi.__file__).resolve().parents[1].name
+
+
+def walk(parts):
+    found = {}
+    pending = [(files("inferrsi").joinpath(*parts), "/".join(parts))]
+    while pending:
+        node, name = pending.pop()
+        for child in node.iterdir():
+            relative = name + "/" + child.name
+            if child.is_dir():
+                if child.name != "__pycache__":
+                    pending.append((child, relative))
+            else:
+                found[relative] = hashlib.sha256(child.read_bytes()).hexdigest()
+    return found
+
+
+inventory = {**walk(("knowledge", "data")), **walk(("harness", "data"))}
+json.dump({"package": inferrsi.__file__, "inventory": inventory}, sys.stdout)
+"""
+
+
+def _short_source_copy(workspace: Path) -> Path:
+    """Copy the build inputs under a short base.
+
+    The K02 resource roots add a directory level to already deep canonical
+    resource names. A wheel build under a long checkout path can exceed Windows'
+    260-character limit inside its own build tree, so the inputs are staged under
+    the short workspace before the build.
+    """
+    source = workspace / "source"
+    source.mkdir()
+    shutil.copytree(REPO / "src", source / "src",
+                    ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
+    for name in ("pyproject.toml", "README.md", "LICENSE", "MANIFEST.in"):
+        shutil.copyfile(REPO / name, source / name)
+    return source
+
+
+def test_installed_wheel_outside_the_checkout_holds_every_resource_byte_for_byte():
+    """K02-3: a real install resolves the same resource list and bytes as the checkout."""
+    source_tree = REPO / "src" / "inferrsi"
+    expected = {}
+    for root in (source_tree / "knowledge" / "data", source_tree / "harness" / "data"):
+        for path in root.rglob("*"):
+            if path.is_file() and "__pycache__" not in path.parts:
+                expected[path.relative_to(source_tree).as_posix()] = hashlib.sha256(
+                    path.read_bytes()
+                ).hexdigest()
+    assert expected, "the checkout resource roots are empty"
+
+    workspace = _short_workspace()
+    try:
+        venv = workspace / "venv"
+        created = subprocess.run(
+            [sys.executable, "-m", "venv", str(venv)],
+            capture_output=True, text=True, encoding="utf-8",
+        )
+        assert created.returncode == 0, created.stderr
+        python = _venv_python(venv)
+
+        build_input = _short_source_copy(workspace)
+        _pip(python, "install", str(build_input))
+
+        script = workspace / "inventory.py"
+        script.write_text(INVENTORY_SCRIPT, encoding="utf-8")
+        # Run outside the checkout with isolated imports: the installed package
+        # is the only source of these resources.
+        result = subprocess.run(
+            [str(python), "-I", str(script)],
+            capture_output=True, text=True, encoding="utf-8", cwd=workspace,
+        )
+        assert result.returncode == 0, result.stderr
+        payload = json.loads(result.stdout)
+        package = Path(payload["package"]).resolve()
+        assert not package.is_relative_to(REPO)
+        assert package.is_relative_to(venv)
+        assert payload["inventory"] == expected
     finally:
         shutil.rmtree(workspace, ignore_errors=True)

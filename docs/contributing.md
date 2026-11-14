@@ -46,7 +46,7 @@ For knowledge, edit one named JSON record under
 `data/repo_packs/<repo>/knowledge/<backend>/<component>/` for contribution sources,
 or `data/knowledge_packs/<dependency|peer>/<repo>/<backend>/<component>/` for
 external sources, and add its navigation link to the owning README. See the
-[three learning tiers](../src/inferrsi/data/knowledge_packs/README.md).
+[three learning tiers](../src/inferrsi/knowledge/data/knowledge_packs/README.md).
 `data/repo_packs/inferrsi/knowledge/` is the exception: it is generated from
 `data/skill_library/` and must be refreshed, never edited. Change the skill body,
 sidecar or registry, commit, then run
@@ -58,7 +58,7 @@ A one-skill edit regenerates only that skill's record, the shared
 Do not maintain a second per-entry Markdown summary.
 Keep IDs stable, omit PR links, retain source attribution and negative results,
 and qualify new backends independently. See the
-[knowledge maintenance guide](../src/inferrsi/data/repo_packs/vllm_omni/knowledge/README.md#maintaining-the-pack).
+[knowledge maintenance guide](../src/inferrsi/knowledge/data/repo_packs/vllm_omni/knowledge/README.md#maintaining-the-pack).
 
 Protected changes also require a current-head
 [knowledge authorship declaration](knowledge-model-policy.md). Every material AI
@@ -68,7 +68,7 @@ is a required status on `main`, so a failing declaration blocks merging; the
 `protect-main` ruleset is the source of truth for that enforcement. A passing
 check establishes declaration compliance only, not execution settings or results.
 
-The [skill library](../src/inferrsi/data/skill_library/README.md) owns complete
+The [skill library](../src/inferrsi/knowledge/data/skill_library/README.md) owns complete
 procedures, metadata, references and cases. Place platform-specific skills under
 `hardware/ascend`, `hardware/cuda` or `hardware/host`; use `frameworks/<name>`,
 `repositories/<name>`, `methods` or `workflows` for other primary owners. Maintain
@@ -92,7 +92,7 @@ licenses, local links and reads from a noneditable wheel installation.
 
 Use user-provided acceptance criteria, including those in a referenced accepted
 plan. When none are supplied, use
-[performance-ceiling-analysis](../src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/acceptance-criteria.md)
+[performance-ceiling-analysis](../src/inferrsi/knowledge/data/skill_library/methods/performance-ceiling-analysis/references/acceptance-criteria.md)
 to formulate evidence-backed targets. Retain partial requirements and label
 derived fields; record their source, calibration, uncertainty and freeze
 authority. Missing evidence stays unresolved, and estimates never lower an
@@ -267,7 +267,7 @@ lanes. Dependency drift and hardware qualification require their own evidence.
 When copying the repository, rename `src/inferrsi`, update package metadata,
 imports and tests, and keep the three module boundaries explicit. Copy the
 [evidence template](../evidence/_template/) for each campaign. Reuse portable
-[workflows](../src/inferrsi/data/skill_library/workflows/) as workflow guidance; keep campaign pins out of them.
+[workflows](../src/inferrsi/knowledge/data/skill_library/workflows/) as workflow guidance; keep campaign pins out of them.
 
 For a standalone engine delivery, start with the
 [engine delivery template](template/README.md) in `docs/template/` instead of
@@ -282,5 +282,5 @@ verification remains explicit. Workbench experiments use the
 the four CI lanes retain their current roles.
 
 For feedback-coupled models, stochastic audio and streaming/graph experiments,
-use the [Omni experiment contract](../src/inferrsi/data/skill_library/workflows/rsi-evidence/references/omni-experiments.md) to select
+use the [Omni experiment contract](../src/inferrsi/knowledge/data/skill_library/workflows/rsi-evidence/references/omni-experiments.md) to select
 reference, preflight and executable per-trial qualification checks.

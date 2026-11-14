@@ -29,7 +29,7 @@ versioned search strategy and search state, and is expected to change.
 
 For row 3, use user-provided criteria, including a referenced accepted plan.
 When none are supplied, follow the
-[ceiling-analysis acceptance procedure](../../../src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/acceptance-criteria.md).
+[ceiling-analysis acceptance procedure](../../../src/inferrsi/knowledge/data/skill_library/methods/performance-ceiling-analysis/references/acceptance-criteria.md).
 Keep partial requirements and label derived fields. Record the criteria source
 (`user`, `ceiling-derived` or `mixed`), request/plan reference, derived fields,
 analysis evidence (skill revision, baseline, calibration, attainable range,
@@ -62,8 +62,8 @@ D-01 | plane=<model|infra|harness> | stage=<stage>, <measured share> of E2E
 
 One variable per round and one plane per step. Justify conditional headroom
 against the campaign target and locally measured noise, following
-[performance-ceiling-analysis](../../../src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/SKILL.md)
-and its [bounds guidance](../../../src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/knowledge/bounds-predictions-and-decisions.md).
+[performance-ceiling-analysis](../../../src/inferrsi/knowledge/data/skill_library/methods/performance-ceiling-analysis/SKILL.md)
+and its [bounds guidance](../../../src/inferrsi/knowledge/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/knowledge/bounds-predictions-and-decisions.md).
 Record conditionally removable exposed critical-path time, assumptions and
 uncertainty. A non-dominant stage is not by itself a reason for rejection:
 overlap, synchronization, capacity, queueing, batching and bottleneck migration can

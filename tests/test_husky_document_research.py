@@ -13,7 +13,7 @@ import pytest
 import yaml
 
 PROJECT = Path(__file__).resolve().parents[1]
-ROOT = PROJECT / 'src/inferrsi/data/skill_library/repositories/husky'
+ROOT = PROJECT / 'src/inferrsi/knowledge/data/skill_library/repositories/husky'
 FIXTURES = PROJECT / 'tests/fixtures/repo_to_skill/husky'
 
 

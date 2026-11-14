@@ -11,7 +11,7 @@ Refs [#91](https://github.com/InferMatrixLab/InferRSI/issues/91) and its
   publication, tracker update and durable recovery; trace full/sharded replica
   transport through its consumer; select bounded follow-up checks by failure domain.
 - Evidence `X`: seven immutable files, read ranges and Apache-2.0 attribution in
-  the [canonical source inventory](../../src/inferrsi/data/skill_library/methods/checkpoint-recovery-consistency/references/sources.md).
+  the [canonical source inventory](../../src/inferrsi/knowledge/data/skill_library/methods/checkpoint-recovery-consistency/references/sources.md).
   Source text was fetched through the GitHub connector. No source package was
   installed or imported; documentation intent is kept separate from implementation.
 - Construction strategy: `reuse-existing`, single `extend-repo-skill` workflow

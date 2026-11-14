@@ -17,7 +17,7 @@ import pytest
 import yaml
 
 PROJECT = Path(__file__).resolve().parents[1]
-ROOT = PROJECT / "src/inferrsi/data/skill_library/repositories/mistral-rs"
+ROOT = PROJECT / "src/inferrsi/knowledge/data/skill_library/repositories/mistral-rs"
 CASES = PROJECT / "tests/fixtures/repo_to_skill/mistral-rs/test-cases"
 SCRIPTS = {
     "decode-contract": "audit_decode_metadata.py",

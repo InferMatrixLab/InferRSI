@@ -1,0 +1,116 @@
+{
+  "schema_version": 2,
+  "id": "inferrsi.common.skills.checkpoint_recovery_consistency",
+  "title": "checkpoint-recovery-consistency",
+  "repo": "inferrsi",
+  "tier": "contribution",
+  "backend": "common",
+  "component": "skills",
+  "scenario": "skills.discovery",
+  "status": "imported",
+  "summary": "Assess distributed checkpoint recovery using DLRover memory agreement, persistence completion and replica transport, and NVIDIA Resiliency Extension complete-iteration selection. Distinguish worker, host and replica loss; separate queued saves, publication, application-state validity and durable recovery.\n",
+  "tags": [
+    "checkpoint",
+    "recovery",
+    "distributed",
+    "shared-memory",
+    "replication"
+  ],
+  "origin": [
+    "external"
+  ],
+  "index_type": "packaged-skill",
+  "skill_documents": {
+    "original": "data/skill_library/methods/checkpoint-recovery-consistency/SKILL.md"
+  },
+  "checkout_ref": "checkout:checkpoint-recovery-consistency",
+  "source_files": {
+    "src/inferrsi/knowledge/data/skill_library/methods/checkpoint-recovery-consistency/SKILL.md": "6b7db1eb2780dec27858cb7aa0a3c093c5b5dfa4c30261aebfeaa255213ff688",
+    "src/inferrsi/knowledge/data/skill_library/methods/checkpoint-recovery-consistency/metadata.json": "4185ff9f8b4c06d2a984753127780f29ceebf50d87b225a7697bfecccc2a4a60",
+    "src/inferrsi/knowledge/data/skill_library/methods/checkpoint-recovery-consistency/references/dlrover-persistence-replicas.md": "055f4357f79026fcbcc766bbe77db610376ec353623f8898f5d14a30ee69e7bc",
+    "src/inferrsi/knowledge/data/skill_library/methods/checkpoint-recovery-consistency/references/sources.md": "9425b1aab963a2c8d35f3db897bd15ee69699bf5b0d0c8425c3c8bba3e9a0233"
+  },
+  "skill_metadata": {
+    "name": "checkpoint-recovery-consistency",
+    "description": "Assess distributed checkpoint recovery using DLRover memory agreement, persistence completion and replica transport, and NVIDIA Resiliency Extension complete-iteration selection. Distinguish worker, host and replica loss; separate queued saves, publication, application-state validity and durable recovery.\n",
+    "tags": [
+      "checkpoint",
+      "recovery",
+      "distributed",
+      "shared-memory",
+      "replication"
+    ],
+    "status": "candidate",
+    "profile": "local-skill-v1",
+    "schema_version": 1,
+    "kind": "skill",
+    "origin": [
+      "external"
+    ],
+    "empirical_validation": "not_run",
+    "applicability": {
+      "scope": "Assessing distributed checkpoint recovery through DLRover memory agreement, persistence completion and replica transport, and NVIDIA Resiliency Extension complete-iteration selection; distinguishes worker, host and replica loss and separates queued saves, publication, application-state validity and durable recovery. Save performance belongs to dcp-async-save-performance",
+      "prerequisites": "The pinned sources and limits are read; reading authorizes no launchers, failure injection or checkpoint loading, and restore evidence needs separate authorization",
+      "input_contract": "The declared failure domain; actual memory, storage and replica placement and helper lifetime; step or iteration identity, the expected shard/rank set and finalization result; the application's model, optimizer and caller-required RNG/scheduler/data-position state contract; the target environment's format and world-size/replication assumptions",
+      "produced_artifact": "An answer to each of the four acceptance questions (snapshot survival, cross-participant completeness, application-state completeness, restorability) at its own evidence level, a proposed per-generation recovery evidence record including errors and skipped saves, and a proposed verification split by worker, host, replica and persistent-storage loss; no recovery success, durability, NPU support or measured gain",
+      "failure_modes": [
+        "Equal steps or complete rank IDs are taken to verify tensor contents or whole application semantics",
+        "A skipped save, where not every participant acquired shared-memory access, is reported as a new recovery point",
+        "A returned step paired with an empty state dictionary is read as a successful restore",
+        "A local maximum filename or one clean shard substitutes for global coverage",
+        "The .dirty-then-rename publication is read as power-loss durability",
+        "An asynchronous save request is treated as a completed checkpoint, or queue concurrency is assumed unlimited",
+        "One failure domain is tested and recovery from all of them is claimed"
+      ],
+      "refusal_point": "Claims no recovery success, durability, NPU support or measured gain, does not upgrade allocation, metadata or a completed collective into proven recovery, and neither injects failures nor authorizes them"
+    },
+    "recommendations": [
+      "Answer the four acceptance questions separately; record each at its own evidence level.",
+      "Count replication as added availability only when copies occupy independent failure domains, and budget clean, dirty and replicated shards on each host.",
+      "Keep the one-outstanding asynchronous save restriction until the target queue version is checked.",
+      "Send save-throughput questions to dcp-async-save-performance; a faster return or higher write throughput does not establish recoverability."
+    ],
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+    ],
+    "provenance_readsets": [
+      "references/sources.md"
+    ],
+    "consumption_mode": "packaged"
+  },
+  "applicability": {
+    "scope": "Assessing distributed checkpoint recovery through DLRover memory agreement, persistence completion and replica transport, and NVIDIA Resiliency Extension complete-iteration selection; distinguishes worker, host and replica loss and separates queued saves, publication, application-state validity and durable recovery. Save performance belongs to dcp-async-save-performance",
+    "prerequisites": "The pinned sources and limits are read; reading authorizes no launchers, failure injection or checkpoint loading, and restore evidence needs separate authorization",
+    "input_contract": "The declared failure domain; actual memory, storage and replica placement and helper lifetime; step or iteration identity, the expected shard/rank set and finalization result; the application's model, optimizer and caller-required RNG/scheduler/data-position state contract; the target environment's format and world-size/replication assumptions",
+    "produced_artifact": "An answer to each of the four acceptance questions (snapshot survival, cross-participant completeness, application-state completeness, restorability) at its own evidence level, a proposed per-generation recovery evidence record including errors and skipped saves, and a proposed verification split by worker, host, replica and persistent-storage loss; no recovery success, durability, NPU support or measured gain",
+    "failure_modes": [
+      "Equal steps or complete rank IDs are taken to verify tensor contents or whole application semantics",
+      "A skipped save, where not every participant acquired shared-memory access, is reported as a new recovery point",
+      "A returned step paired with an empty state dictionary is read as a successful restore",
+      "A local maximum filename or one clean shard substitutes for global coverage",
+      "The .dirty-then-rename publication is read as power-loss durability",
+      "An asynchronous save request is treated as a completed checkpoint, or queue concurrency is assumed unlimited",
+      "One failure domain is tested and recovery from all of them is claimed"
+    ],
+    "refusal_point": "Claims no recovery success, durability, NPU support or measured gain, does not upgrade allocation, metadata or a completed collective into proven recovery, and neither injects failures nor authorizes them"
+  },
+  "recommendations": [
+    "Answer the four acceptance questions separately; record each at its own evidence level.",
+    "Count replication as added availability only when copies occupy independent failure domains, and budget clean, dirty and replicated shards on each host.",
+    "Keep the one-outstanding asynchronous save restriction until the target queue version is checked.",
+    "Send save-throughput questions to dcp-async-save-performance; a faster return or higher write throughput does not establish recoverability."
+  ],
+  "limitations": [
+    "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",
+    "The imported status describes this index, not the original skill; its declared status is candidate.",
+    "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
+    "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
+    "Source-derived candidate; no local efficacy validation.",
+    "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}
