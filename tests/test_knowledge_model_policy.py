@@ -87,7 +87,7 @@ def approval(paths, kind="exception", reason="Bounded exception", login="policy-
 
 
 @pytest.mark.parametrize("model", ["gpt-6-astra", "gpt-6.1-sol", "gpt-6.1-terra", "claude-opus-5-5",
-                                  "anthropic.claude-opus-5-5"])
+                                  "anthropic.claude-opus-5-5", "claude-fable-5-2"])
 @pytest.mark.parametrize("effort", ["xhigh", "max"])
 def test_verified_models_and_explicit_aliases_qualify(policy, model, effort):
     result = assess(pr(declared([attribution(model, effort)])), {KNOWLEDGE}, policy)
@@ -97,14 +97,15 @@ def test_verified_models_and_explicit_aliases_qualify(policy, model, effort):
 
 @pytest.mark.parametrize("effort", ["low", "medium", "high", "ultra", "maximum", "unknown",
                                    "XHIGH", "xhigh "])
-@pytest.mark.parametrize("model", ["gpt-6.1-sol", "gpt-6.1-terra"])
+@pytest.mark.parametrize("model", ["gpt-6.1-sol", "gpt-6.1-terra", "claude-fable-5-2"])
 def test_effort_is_exact_set_membership(policy, model, effort):
     assert model_errors([attribution(model=model, effort=effort)], policy)
 
 
 @pytest.mark.parametrize("model", ["gpt-6-sol", "gpt-6-astra-latest", "GPT-6.1 Sol", "unknown",
                                    "claude-opus-5-5-extra", "gpt-6.1-terra-latest",
-                                   "GPT-6.1 Terra"])
+                                   "GPT-6.1 Terra", "fable", "claude-fable-5-2-latest",
+                                   "Claude Fable 5.2"])
 def test_unknown_models_and_inferred_aliases_fail(policy, model):
     assert assess(pr(declared([attribution(model)])), {KNOWLEDGE}, policy)["state"] == "failure"
 
@@ -112,6 +113,7 @@ def test_unknown_models_and_inferred_aliases_fail(policy, model):
 @pytest.mark.parametrize("canonical, identities", [
     ("claude-opus-5-5", ("claude-opus-5-5", "anthropic.claude-opus-5-5")),
     ("gpt-6.1-terra", ("gpt-6.1-terra",)),
+    ("claude-fable-5-2", ("claude-fable-5-2",)),
 ])
 def test_suspension_overrides_canonical_and_alias(policy, canonical, identities):
     policy["models"][canonical]["suspended"] = True
