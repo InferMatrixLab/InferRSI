@@ -13,6 +13,7 @@ from pathlib import Path
 import pytest
 
 from tests._gate_policy_support import (
+    LEGACY_RUN_FORWARDERS,
     NEW_CORES,
     ROOT,
     blocker_kinds,
@@ -55,7 +56,14 @@ def test_resource_loader_declaration_does_not_cover_an_adjacent_module(tmp_path)
 
 class TargetModuleImportGateTest(unittest.TestCase):
     def test_no_new_cross_core_imports(self) -> None:
-        self.assertEqual(cross_core_violations(allowed=exact_pairs(load_manifest())), [])
+        allowed = exact_pairs(load_manifest()) | frozenset(LEGACY_RUN_FORWARDERS)
+        self.assertEqual(cross_core_violations(allowed=allowed), [])
+        # Without the registered forwarders, each of the three root files fails.
+        self.assertEqual(
+            cross_core_violations(allowed=exact_pairs(load_manifest())),
+            [f"{name}.py imports inferrsi.apps" for name in ("evaluation", "execution",
+                                                             "reporting")],
+        )
 
     def test_first_wave_policy_holds_on_current_tree(self) -> None:
         self.assertEqual(first_wave_report().violations, ())
@@ -82,6 +90,7 @@ class TargetModuleImportGateTest(unittest.TestCase):
         )
         self.assertIn("residual", kinds)
         self.assertIn("harness reaches model/infra", kinds)
+        self.assertIn("legacy run forwarders: 3", report.blockers)
 
     def test_real_tree_allows_apps_and_same_core_only(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:

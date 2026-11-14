@@ -8,6 +8,13 @@ and `benchmark/tasks/`. The current flat `cli.py` and `benchmark_operations.py`
 assemble this slice.
 #371 remains the proposal for the Apps package path and is not accepted here.
 
+The old `run` chain is split by owner. Its gates are in
+`benchmark/legacy_run_v0.py`, its execution facts stay in `harness/`, and
+`apps/legacy/` composes them with the report. `apps/legacy/` is the path named
+by the confirmed split for this slice; that use does not accept #371.
+`cli.py` imports the old run only inside its `run` command, so the other
+commands, including ordinary optimization, still load no Benchmark module.
+
 ## Target modules
 
 The four target modules are peers: `knowledge`, `harness`, `benchmark`, and
@@ -67,9 +74,13 @@ Several flat modules remain shared seams until their slice starts.
 | `harness/agent_sessions.py` | Native host handoff records | Freezes requests and retains native IDs and exported observations; the initiating Agent calls host tools |
 | `knowledge_operations.py`, `knowledge_store.py`, `catalog.py`, `research.py`, `skill_catalog.py`, `_skill_selection.py`, `_source_snapshot.py` | Static compatibility shells since K01; bodies in `knowledge/` | Interfaces unchanged |
 | `harness/` | Mixed legacy tree, not target isolation | Not redefined |
-| `evaluation.py`, `model/validators/` | Benchmark-leaning checks | Not moved |
-| `infra/`, `execution.py`, `runspec.py`, `inspection.py` | Seams used by the current tree | Not a fourth core |
-| `reporting.py`, `summary_chart.py`, `evidence_paths.py` | Current report helpers | Not moved |
+| `harness/runner.py`, `harness/scenarios/external.py`, `harness/atomic_json.py` | Old run execution facts and Harness-owned JSON writes | Ports injected; no Model edge, and no Infra edge except the local process executor |
+| `benchmark/legacy_run_v0.py`, `benchmark/sampling.py` | Old run gates and metric validation; image/video sample collection | Imports only `model/protocols/metrics`; owns its rule inputs and verdict labels |
+| `apps/legacy/` | Old run composition, old `evaluate` entry and HTML report | Supplies the Git source snapshot from `infra/targets`; path follows the confirmed split, #371 still proposed |
+| `evaluation.py`, `execution.py`, `reporting.py` | Root forwarders of the old run chain | Each forwards to one `apps.legacy` module; retired by R01 |
+| `model/validators/` | Benchmark-leaning checks | Not moved |
+| `infra/`, `runspec.py`, `inspection.py` | Seams used by the current tree | Not a fourth core |
+| `summary_chart.py`, `evidence_paths.py` | Current report helpers | Not moved |
 | `claim.py` | Verdict vocabulary used by current checks | Not moved and not a fourth core |
 | `contracts.py` | `RunSpec` compatibility re-export | Must remain one module file |
 | `data/` | Packaged resources, mixed kinds | Not relocated here |
@@ -128,12 +139,30 @@ The report adds a `runtime resource loaders` blocker when these loaders are
 present and does not claim either complete isolation or new-core closure
 isolation. The seven Knowledge shells and their nine exact pairs are unchanged.
 
+The old run chain keeps three root forwarders, declared as
+`LEGACY_RUN_FORWARDERS` in `tests/_gate_policy_support.py`. They are separate
+from the Knowledge compatibility pairs and are not in the manifest. Each root
+module may import exactly one Apps module:
+
+| Root module | Exact target |
+| --- | --- |
+| `evaluation` | `inferrsi.apps.legacy.evaluation` |
+| `execution` | `inferrsi.apps.legacy.run` |
+| `reporting` | `inferrsi.apps.legacy.reporting` |
+
+An adjacent Apps module and a second root importer both fail. A Harness or
+Benchmark module that reaches a forwarder reaches Apps and fails. An Apps module
+may not import a forwarder back. Every forwarder that exists adds the
+`legacy run forwarders` blocker, so overall isolation stays false until R01
+retires them. This rule is Proposed and needs formal gate review.
+
 A clean result means no new cross-core import of those names. It does not mean
 the modules are isolated. Isolation stays false while any one of these holds:
 `knowledge/`, `benchmark/`, or `apps/` is absent or has no scannable
 module; the compatibility allowlist
 is non-empty; the registered residual `harness.skill_evaluation` → root
-`knowledge_operations` exists; or `harness/**` still imports Model or Infra,
+`knowledge_operations` exists; a registered old-run root forwarder exists; or
+`harness/**` still imports Model or Infra,
 directly or through another module. The three packages may appear in stages.
 A clean graph for the new cores is reported separately as "new core business
 closure isolated" and never sets overall `isolation_complete` to true.
@@ -235,6 +264,11 @@ change that code.
 | `status["verdict"]` is `FAIL` | 1 |
 | Any other verdict, including missing | 2 |
 | `OSError`, `ValueError`, `JSONDecodeError`, or `sqlite3.Error` via `parser.error` | 2 |
+
+`tests/test_legacy_run_v0_frozen.py` runs the `run` command for pass, fail and
+incomplete scenarios. It compares each exit code and the `evaluation.json` bytes
+with goldens in `tests/fixtures/legacy_run_v0/`, which the chain wrote before
+its evaluation moved to Benchmark. Missing evidence decides over a failed gate.
 
 ## Fixture locations
 

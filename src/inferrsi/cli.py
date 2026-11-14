@@ -10,7 +10,6 @@ from pathlib import Path
 
 from .arguments import device_ids, make_spec, parser
 from .catalog import get_knowledge, search_knowledge
-from .execution import run_experiment
 from .inspection import inspect_environment
 from .knowledge_operations import KnowledgeReader
 from .knowledge_store import KnowledgeStore
@@ -494,6 +493,10 @@ def main(argv: list[str] | None = None) -> int:
             raise ValueError("Requested device selection is not verified by platform discovery")
         if not environment["target_python"].get("environment"):
             raise ValueError("Target Python inspection failed")
+
+        # The old run loads its Benchmark gates. Import it here so that the
+        # other commands, including ordinary optimization, never load Benchmark.
+        from .execution import run_experiment
 
         directory = run_experiment(spec, environment)
         (directory / "args.json").write_text(

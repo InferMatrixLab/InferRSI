@@ -35,6 +35,15 @@ RESOURCE_LOADERS = {
 REGISTERED_RESIDUALS = (
     ("inferrsi.harness.skill_evaluation", "inferrsi.knowledge_operations"),
 )
+# B01: the old run chain's three root forwarders, each to one exact Apps legacy
+# module. They are not Knowledge shells and are not in the manifest. A forwarder
+# that exists keeps overall false until R01 retires it. An adjacent Apps module
+# or a second root importer is not covered.
+LEGACY_RUN_FORWARDERS = (
+    ("inferrsi.evaluation", "inferrsi.apps.legacy.evaluation"),
+    ("inferrsi.execution", "inferrsi.apps.legacy.run"),
+    ("inferrsi.reporting", "inferrsi.apps.legacy.reporting"),
+)
 # New H entries: module paths walked on the full graph, without the residual
 # exemption. H01 added ``run_store`` and ``errors``; H02 added the public
 # ``api`` with ``execution_service``, ``input_binding`` and ``local_process``.
@@ -477,8 +486,10 @@ def first_wave_report(
     old_leaves = set(sources)
     graph = _scan(root, pairs)
     modules = sorted(graph.trees)
+    forwarders = frozenset(LEGACY_RUN_FORWARDERS)
+    forwarder_leaves = {importer for importer, _ in forwarders}
 
-    violations = cross_core_violations(root, pairs)
+    violations = cross_core_violations(root, pairs | forwarders)
     leaf_importers = {importer for importer, target in pairs if target == leaf}
     violations += [
         f"{name} is a second importer of {leaf}"
@@ -511,8 +522,9 @@ def first_wave_report(
     rules: dict[str, Callable[[str], bool]] = {
         "knowledge": outside_knowledge,
         "benchmark": benchmark_forbidden,
-        # Apps calls core public APIs and never passes through an old root leaf.
-        "apps": lambda node: node in old_leaves,
+        # Apps calls core public APIs and never passes through an old root leaf
+        # or one of its own root forwarders.
+        "apps": lambda node: node in old_leaves or node in forwarder_leaves,
     }
     starts = [(name, rules[_core_of(name)]) for name in modules if _core_of(name) in rules]
     starts += [(name, h_entry_forbidden) for name in h_entries if name in graph.trees]
@@ -562,6 +574,12 @@ def first_wave_report(
     if pairs:
         blockers.append(f"allowlist: {len(pairs)} compatibility pairs")
     blockers += [f"residual: {item}" for item in residuals]
+    forwarding = [
+        importer for importer, target in LEGACY_RUN_FORWARDERS
+        if target in graph.edges.get(importer, ())
+    ]
+    if forwarding:
+        blockers.append(f"legacy run forwarders: {len(forwarding)}")
     legacy = [
         path
         for name in modules

@@ -1,0 +1,39 @@
+{
+  "verdict": "PASS",
+  "reasons": [],
+  "required_trial_checks": [],
+  "metric_key": "metrics.latency_ms",
+  "metric_unit": "ms",
+  "comparison_scope": "external_command",
+  "direction": "maximize",
+  "min_improvement_pct": 0.0,
+  "baseline": {
+    "values": [
+      100.0
+    ],
+    "median": 100.0,
+    "min": 100.0,
+    "max": 100.0,
+    "range_pct_of_median": 0.0,
+    "excluded_trials": 0
+  },
+  "candidate": {
+    "values": [
+      120.0
+    ],
+    "median": 120.0,
+    "min": 120.0,
+    "max": 120.0,
+    "range_pct_of_median": 0.0,
+    "excluded_trials": 0
+  },
+  "improvement_pct": 20.0,
+  "measurement_method": "Alternating AB/BA sequential trials; median and range are descriptive only.",
+  "quality_contract": "Exit zero covers only the supplied validation command; inspect its logs and coverage.",
+  "source_integrity": {
+    "verified": true,
+    "reason": "Git source snapshots unchanged",
+    "command_checks": 3
+  },
+  "statistical_significance": "not established"
+}

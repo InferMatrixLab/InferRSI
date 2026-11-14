@@ -7,7 +7,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 import pytest
 
-from inferrsi.harness.scenarios.media import collect_samples
+from inferrsi.benchmark.sampling import collect_samples
 from inferrsi.infra.artifacts import sha256
 from inferrsi.model.protocols.image import ImageProtocol
 from inferrsi.model.validators.image import ImageQualityGate, compare_images
