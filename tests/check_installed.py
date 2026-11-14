@@ -548,9 +548,14 @@ if checkout:
     # in this isolated install matches the checkout byte-for-byte.
     expected = _inventory(Path(checkout) / "knowledge" / "data", "knowledge/data")
     expected.update(_inventory(Path(checkout) / "harness" / "data", "harness/data"))
+    only_installed = sorted(set(inventory) - set(expected))[:8]
+    only_checkout = sorted(set(expected) - set(inventory))[:8]
+    changed = sorted(
+        name for name in set(inventory) & set(expected)
+        if inventory[name] != expected[name]
+    )[:8]
     assert inventory == expected, (
         "installed resources differ from the checkout at "
-        f"{checkout}: only-installed={sorted(set(inventory) - set(expected))[:8]!r} "
-        f"only-checkout={sorted(set(expected) - set(inventory))[:8]!r} "
-        f"changed={sorted(name for name in set(inventory) & set(expected) if inventory[name] != expected[name])[:8]!r}"
+        f"{checkout}: only-installed={only_installed!r} "
+        f"only-checkout={only_checkout!r} changed={changed!r}"
     )
