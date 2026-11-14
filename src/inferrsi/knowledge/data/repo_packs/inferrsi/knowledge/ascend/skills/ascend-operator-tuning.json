@@ -27,8 +27,8 @@
   },
   "checkout_ref": "checkout:ascend-operator-tuning",
   "source_files": {
-    "src/inferrsi/data/skill_library/hardware/ascend/ascend-operator-tuning/SKILL.md": "38b151bc6b4e9734c6fa41efb7a30343559400c0c75bbdd26bd8a968b8ea4592",
-    "src/inferrsi/data/skill_library/hardware/ascend/ascend-operator-tuning/metadata.json": "776fe88247ddacd3cf245920c580a9ff8f2a80fbc0ad1fa7d8be6d63b15a66f7"
+    "src/inferrsi/knowledge/data/skill_library/hardware/ascend/ascend-operator-tuning/SKILL.md": "38b151bc6b4e9734c6fa41efb7a30343559400c0c75bbdd26bd8a968b8ea4592",
+    "src/inferrsi/knowledge/data/skill_library/hardware/ascend/ascend-operator-tuning/metadata.json": "776fe88247ddacd3cf245920c580a9ff8f2a80fbc0ad1fa7d8be6d63b15a66f7"
   },
   "skill_metadata": {
     "name": "ascend-operator-tuning",

@@ -27,8 +27,8 @@
   },
   "checkout_ref": "checkout:ascendc-tiling-design",
   "source_files": {
-    "src/inferrsi/data/skill_library/hardware/ascend/ascendc-tiling-design/SKILL.md": "93aa1b775ced304cebfe6c4dec0503ddb2260ecb3cb01edc17ce329446c5ce2b",
-    "src/inferrsi/data/skill_library/hardware/ascend/ascendc-tiling-design/metadata.json": "03cfd09faa3edf42f9d08d0d8878fe5cb7c7a376abacf211dd8f500c698f3a8f"
+    "src/inferrsi/knowledge/data/skill_library/hardware/ascend/ascendc-tiling-design/SKILL.md": "93aa1b775ced304cebfe6c4dec0503ddb2260ecb3cb01edc17ce329446c5ce2b",
+    "src/inferrsi/knowledge/data/skill_library/hardware/ascend/ascendc-tiling-design/metadata.json": "03cfd09faa3edf42f9d08d0d8878fe5cb7c7a376abacf211dd8f500c698f3a8f"
   },
   "skill_metadata": {
     "name": "ascendc-tiling-design",

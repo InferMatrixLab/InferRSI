@@ -19,11 +19,11 @@
   },
   "checkout_ref": "checkout:calibrate-serving-simulation",
   "source_files": {
-    "src/inferrsi/data/skill_library/methods/calibrate-serving-simulation/SKILL.md": "500231dd32f470dc90831ff1cdf5a8f0c791660958db92fcfbaa333162c28e5a",
-    "src/inferrsi/data/skill_library/methods/calibrate-serving-simulation/metadata.json": "69fbc43e3b354670600dc8e8423957f28c90e30b5270f2659020cc4473f25509",
-    "src/inferrsi/data/skill_library/methods/calibrate-serving-simulation/references/infera-serving-search/README.md": "fe614b1c62f1d4a9db797a85d9b11931ae32169c40109c7b69ecd648fb6e9d1e",
-    "src/inferrsi/data/skill_library/methods/calibrate-serving-simulation/references/infera-serving-search/source-record.json": "61fafa5e92ae6312f8792e4630a35c78da4c1810fac4bf9cde385824c3894f36",
-    "src/inferrsi/data/skill_library/methods/calibrate-serving-simulation/references/source-notes.md": "9696d3c0ef96b6611787446bd6f96d4d6255ca8d107105de8c1d9af83edb9fa5"
+    "src/inferrsi/knowledge/data/skill_library/methods/calibrate-serving-simulation/SKILL.md": "500231dd32f470dc90831ff1cdf5a8f0c791660958db92fcfbaa333162c28e5a",
+    "src/inferrsi/knowledge/data/skill_library/methods/calibrate-serving-simulation/metadata.json": "69fbc43e3b354670600dc8e8423957f28c90e30b5270f2659020cc4473f25509",
+    "src/inferrsi/knowledge/data/skill_library/methods/calibrate-serving-simulation/references/infera-serving-search/README.md": "fe614b1c62f1d4a9db797a85d9b11931ae32169c40109c7b69ecd648fb6e9d1e",
+    "src/inferrsi/knowledge/data/skill_library/methods/calibrate-serving-simulation/references/infera-serving-search/source-record.json": "61fafa5e92ae6312f8792e4630a35c78da4c1810fac4bf9cde385824c3894f36",
+    "src/inferrsi/knowledge/data/skill_library/methods/calibrate-serving-simulation/references/source-notes.md": "9696d3c0ef96b6611787446bd6f96d4d6255ca8d107105de8c1d9af83edb9fa5"
   },
   "skill_metadata": {
     "name": "calibrate-serving-simulation",

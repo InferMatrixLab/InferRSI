@@ -26,10 +26,10 @@
   },
   "checkout_ref": "checkout:bound-windowed-attention-replay",
   "source_files": {
-    "src/inferrsi/data/skill_library/repositories/deepinfer/bound-windowed-attention-replay/SKILL.md": "4703beb6e5194ef2ff2c0b5ec69f64e35417a4bc0dfb50a10c80a920b77ef3b5",
-    "src/inferrsi/data/skill_library/repositories/deepinfer/bound-windowed-attention-replay/metadata.json": "c68254b1a96a8834ae46c7a1d9035856fa4783315b219aa95e31461bd8ac58c9",
-    "src/inferrsi/data/skill_library/repositories/deepinfer/bound-windowed-attention-replay/references/source-notes.md": "fd917bd5ac80bee9c9f4525f8e0300f6d67dc144e2a16632af42a67f3d53d098",
-    "src/inferrsi/data/skill_library/repositories/deepinfer/bound-windowed-attention-replay/references/validation.md": "60e71e70c5519bcdf6c171eec2be2f342e8801bedd746d6005f11adc646dfaff"
+    "src/inferrsi/knowledge/data/skill_library/repositories/deepinfer/bound-windowed-attention-replay/SKILL.md": "4703beb6e5194ef2ff2c0b5ec69f64e35417a4bc0dfb50a10c80a920b77ef3b5",
+    "src/inferrsi/knowledge/data/skill_library/repositories/deepinfer/bound-windowed-attention-replay/metadata.json": "c68254b1a96a8834ae46c7a1d9035856fa4783315b219aa95e31461bd8ac58c9",
+    "src/inferrsi/knowledge/data/skill_library/repositories/deepinfer/bound-windowed-attention-replay/references/source-notes.md": "fd917bd5ac80bee9c9f4525f8e0300f6d67dc144e2a16632af42a67f3d53d098",
+    "src/inferrsi/knowledge/data/skill_library/repositories/deepinfer/bound-windowed-attention-replay/references/validation.md": "60e71e70c5519bcdf6c171eec2be2f342e8801bedd746d6005f11adc646dfaff"
   },
   "skill_metadata": {
     "name": "bound-windowed-attention-replay",

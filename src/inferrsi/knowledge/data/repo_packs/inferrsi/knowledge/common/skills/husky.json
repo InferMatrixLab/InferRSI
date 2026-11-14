@@ -24,14 +24,14 @@
   },
   "checkout_ref": "checkout:husky",
   "source_files": {
-    "src/inferrsi/data/skill_library/repositories/husky/SKILL.md": "ac86afdabf9adffb684cb635971934438724bdfde8628ec549727ea23c40cf3b",
-    "src/inferrsi/data/skill_library/repositories/husky/metadata.json": "b1cb0a5be02d1170125bfc3e16c044b9c1463a611a14d36fac40638524fc2e52",
-    "src/inferrsi/data/skill_library/repositories/husky/references/author-report.md": "4c1351ca42b2535a7c03c4da87706040650ef10d86eadcdb496e881a147fc0f7",
-    "src/inferrsi/data/skill_library/repositories/husky/references/repo-provenance.md": "37de912e2e2a36b44233560e6a8368b994428bff587ed4f04b1cb5fbaba0a9e7",
-    "src/inferrsi/data/skill_library/repositories/husky/references/source-availability.json": "d3523e53c89d4aee5bfaa17db84501aa4c4eddd59bcee486df5d48d3aa48173d",
-    "src/inferrsi/data/skill_library/repositories/husky/references/troubleshooting.md": "3948711437d25822d389dd857c72dc7fcc15727c9048d2e3eae3317d97aca6dd",
-    "src/inferrsi/data/skill_library/repositories/husky/references/verification-protocol.md": "83c5a966ed3f721b412b8d8417af8336c5a8c1e46044a888720936bf2f1deeab",
-    "src/inferrsi/data/skill_library/repositories/husky/scripts/audit_evidence_card.py": "291e62701ef7a37a5bfab963ea4e20abb94245bc015584223a101f18b1490895"
+    "src/inferrsi/knowledge/data/skill_library/repositories/husky/SKILL.md": "ac86afdabf9adffb684cb635971934438724bdfde8628ec549727ea23c40cf3b",
+    "src/inferrsi/knowledge/data/skill_library/repositories/husky/metadata.json": "b1cb0a5be02d1170125bfc3e16c044b9c1463a611a14d36fac40638524fc2e52",
+    "src/inferrsi/knowledge/data/skill_library/repositories/husky/references/author-report.md": "4c1351ca42b2535a7c03c4da87706040650ef10d86eadcdb496e881a147fc0f7",
+    "src/inferrsi/knowledge/data/skill_library/repositories/husky/references/repo-provenance.md": "37de912e2e2a36b44233560e6a8368b994428bff587ed4f04b1cb5fbaba0a9e7",
+    "src/inferrsi/knowledge/data/skill_library/repositories/husky/references/source-availability.json": "d3523e53c89d4aee5bfaa17db84501aa4c4eddd59bcee486df5d48d3aa48173d",
+    "src/inferrsi/knowledge/data/skill_library/repositories/husky/references/troubleshooting.md": "3948711437d25822d389dd857c72dc7fcc15727c9048d2e3eae3317d97aca6dd",
+    "src/inferrsi/knowledge/data/skill_library/repositories/husky/references/verification-protocol.md": "83c5a966ed3f721b412b8d8417af8336c5a8c1e46044a888720936bf2f1deeab",
+    "src/inferrsi/knowledge/data/skill_library/repositories/husky/scripts/audit_evidence_card.py": "291e62701ef7a37a5bfab963ea4e20abb94245bc015584223a101f18b1490895"
   },
   "skill_metadata": {
     "name": "husky",

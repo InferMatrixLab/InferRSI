@@ -33,17 +33,17 @@
   },
   "checkout_ref": "checkout:host-memory-management",
   "source_files": {
-    "src/inferrsi/data/skill_library/hardware/host/host-memory-management/SKILL.md": "4c8db9f603cd581d002e8f41da65af9cbd03699be05c4965a55de47e044e4dd8",
-    "src/inferrsi/data/skill_library/hardware/host/host-memory-management/metadata.json": "9fe5988b136da9aeff9d00b0c6c607cac00b4071efaf637d287a350e5d4fcafb",
-    "src/inferrsi/data/skill_library/hardware/host/host-memory-management/references/cpython-PSF-LICENSE.md": "33f1a470702f459c160751bf3188b3fa7462fc761a006e03e80ef3f0a7a01ed6",
-    "src/inferrsi/data/skill_library/hardware/host/host-memory-management/references/cpython-free-threading-readset.json": "46336623b3c573fad97d4c686d9836baab807adf10f4bea05352d7a46236e004",
-    "src/inferrsi/data/skill_library/hardware/host/host-memory-management/references/legacy-source-notes.md": "bb1c0fb7a4d1a0301ca9e699e733224f3dcf0ded3cfe13e612e5c04d48a8cab5",
-    "src/inferrsi/data/skill_library/hardware/host/host-memory-management/references/pytorch-LICENSE.md": "a8a2c6b67cf8a597ffaa5c82380a6bd1b82629c0417e00673d8013d662eb500a",
-    "src/inferrsi/data/skill_library/hardware/host/host-memory-management/references/pytorch-host-copy-readset.json": "881258c97edfee0a89f2392c2ff61cd7fe37ff8344f18620f281e841fb92cbc8",
-    "src/inferrsi/data/skill_library/hardware/host/host-memory-management/references/pytorch-host-copy.md": "fa9da5c39d37ebe44e5a336a7b88d7aece6a0f118ec47cb38271e29925e11117",
-    "src/inferrsi/data/skill_library/hardware/host/host-memory-management/references/vllm-ascend-LICENSE.md": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
-    "src/inferrsi/data/skill_library/hardware/host/host-memory-management/references/vllm-ascend-native-offload-readset.json": "cc6c2011be746002ba3ff96ccefab1809863748ddd17eb102b75e7b0e134fe55",
-    "src/inferrsi/data/skill_library/hardware/host/host-memory-management/references/vllm-ascend-native-offload.md": "6c2a72b5ba3708a01d229e0576570837a617e6a42dbb0b5312a26a65a6c31542"
+    "src/inferrsi/knowledge/data/skill_library/hardware/host/host-memory-management/SKILL.md": "4c8db9f603cd581d002e8f41da65af9cbd03699be05c4965a55de47e044e4dd8",
+    "src/inferrsi/knowledge/data/skill_library/hardware/host/host-memory-management/metadata.json": "9fe5988b136da9aeff9d00b0c6c607cac00b4071efaf637d287a350e5d4fcafb",
+    "src/inferrsi/knowledge/data/skill_library/hardware/host/host-memory-management/references/cpython-PSF-LICENSE.md": "33f1a470702f459c160751bf3188b3fa7462fc761a006e03e80ef3f0a7a01ed6",
+    "src/inferrsi/knowledge/data/skill_library/hardware/host/host-memory-management/references/cpython-free-threading-readset.json": "46336623b3c573fad97d4c686d9836baab807adf10f4bea05352d7a46236e004",
+    "src/inferrsi/knowledge/data/skill_library/hardware/host/host-memory-management/references/legacy-source-notes.md": "bb1c0fb7a4d1a0301ca9e699e733224f3dcf0ded3cfe13e612e5c04d48a8cab5",
+    "src/inferrsi/knowledge/data/skill_library/hardware/host/host-memory-management/references/pytorch-LICENSE.md": "a8a2c6b67cf8a597ffaa5c82380a6bd1b82629c0417e00673d8013d662eb500a",
+    "src/inferrsi/knowledge/data/skill_library/hardware/host/host-memory-management/references/pytorch-host-copy-readset.json": "881258c97edfee0a89f2392c2ff61cd7fe37ff8344f18620f281e841fb92cbc8",
+    "src/inferrsi/knowledge/data/skill_library/hardware/host/host-memory-management/references/pytorch-host-copy.md": "fa9da5c39d37ebe44e5a336a7b88d7aece6a0f118ec47cb38271e29925e11117",
+    "src/inferrsi/knowledge/data/skill_library/hardware/host/host-memory-management/references/vllm-ascend-LICENSE.md": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+    "src/inferrsi/knowledge/data/skill_library/hardware/host/host-memory-management/references/vllm-ascend-native-offload-readset.json": "cc6c2011be746002ba3ff96ccefab1809863748ddd17eb102b75e7b0e134fe55",
+    "src/inferrsi/knowledge/data/skill_library/hardware/host/host-memory-management/references/vllm-ascend-native-offload.md": "6c2a72b5ba3708a01d229e0576570837a617e6a42dbb0b5312a26a65a6c31542"
   },
   "skill_metadata": {
     "name": "host-memory-management",

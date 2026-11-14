@@ -25,8 +25,8 @@
   },
   "checkout_ref": "checkout:claim-contract",
   "source_files": {
-    "src/inferrsi/data/skill_library/workflows/claim-contract/SKILL.md": "3af1dbbe81d91cb05fc2ef15a2ae25d7592a08558e1a5535f49c52f33a488c55",
-    "src/inferrsi/data/skill_library/workflows/claim-contract/metadata.json": "25c0137cf347f75d7ff8f8305d9ff5f055c6881ddf4b708f923c3176de16c153"
+    "src/inferrsi/knowledge/data/skill_library/workflows/claim-contract/SKILL.md": "3af1dbbe81d91cb05fc2ef15a2ae25d7592a08558e1a5535f49c52f33a488c55",
+    "src/inferrsi/knowledge/data/skill_library/workflows/claim-contract/metadata.json": "25c0137cf347f75d7ff8f8305d9ff5f055c6881ddf4b708f923c3176de16c153"
   },
   "skill_metadata": {
     "name": "claim-contract",

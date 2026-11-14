@@ -25,8 +25,8 @@
   },
   "checkout_ref": "checkout:ascend-model-adaptation",
   "source_files": {
-    "src/inferrsi/data/skill_library/hardware/ascend/ascend-model-adaptation/SKILL.md": "8fdf46fb2743b67a66bc069d22a45305a222debfb606777bc451b4b8f31d9cc6",
-    "src/inferrsi/data/skill_library/hardware/ascend/ascend-model-adaptation/metadata.json": "989b91821b36c0b80caf1323ec527e7ac847219b8f4fe8ca4ea22d292365cc3c"
+    "src/inferrsi/knowledge/data/skill_library/hardware/ascend/ascend-model-adaptation/SKILL.md": "8fdf46fb2743b67a66bc069d22a45305a222debfb606777bc451b4b8f31d9cc6",
+    "src/inferrsi/knowledge/data/skill_library/hardware/ascend/ascend-model-adaptation/metadata.json": "989b91821b36c0b80caf1323ec527e7ac847219b8f4fe8ca4ea22d292365cc3c"
   },
   "skill_metadata": {
     "name": "ascend-model-adaptation",

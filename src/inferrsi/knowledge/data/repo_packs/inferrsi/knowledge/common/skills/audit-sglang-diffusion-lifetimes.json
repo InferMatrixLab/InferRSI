@@ -26,10 +26,10 @@
   },
   "checkout_ref": "checkout:audit-sglang-diffusion-lifetimes",
   "source_files": {
-    "src/inferrsi/data/skill_library/repositories/sglang/audit-sglang-diffusion-lifetimes/LICENSE": "1495e1e757ef4d0925a2350563cf5754bb23c51701a8ec4fb3c5cdcbedae6747",
-    "src/inferrsi/data/skill_library/repositories/sglang/audit-sglang-diffusion-lifetimes/SKILL.md": "b0a4ba4751087126143ef86983798deb0ed00e24b6ff06bf6ef76a9df6e274f2",
-    "src/inferrsi/data/skill_library/repositories/sglang/audit-sglang-diffusion-lifetimes/metadata.json": "e2cb137978960d29b3644967a29dab930c768d3453bce8aff2aad96fd90a56d9",
-    "src/inferrsi/data/skill_library/repositories/sglang/audit-sglang-diffusion-lifetimes/references/source-notes.md": "d0fcfd1177ae2f351041c5b2abba7f5121cec133006d9e4dca8f74ddb567332d"
+    "src/inferrsi/knowledge/data/skill_library/repositories/sglang/audit-sglang-diffusion-lifetimes/LICENSE": "1495e1e757ef4d0925a2350563cf5754bb23c51701a8ec4fb3c5cdcbedae6747",
+    "src/inferrsi/knowledge/data/skill_library/repositories/sglang/audit-sglang-diffusion-lifetimes/SKILL.md": "b0a4ba4751087126143ef86983798deb0ed00e24b6ff06bf6ef76a9df6e274f2",
+    "src/inferrsi/knowledge/data/skill_library/repositories/sglang/audit-sglang-diffusion-lifetimes/metadata.json": "e2cb137978960d29b3644967a29dab930c768d3453bce8aff2aad96fd90a56d9",
+    "src/inferrsi/knowledge/data/skill_library/repositories/sglang/audit-sglang-diffusion-lifetimes/references/source-notes.md": "d0fcfd1177ae2f351041c5b2abba7f5121cec133006d9e4dca8f74ddb567332d"
   },
   "skill_metadata": {
     "name": "audit-sglang-diffusion-lifetimes",

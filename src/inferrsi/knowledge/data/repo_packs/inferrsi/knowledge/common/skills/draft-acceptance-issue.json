@@ -25,8 +25,8 @@
   },
   "checkout_ref": "checkout:draft-acceptance-issue",
   "source_files": {
-    "src/inferrsi/data/skill_library/workflows/draft-acceptance-issue/SKILL.md": "e22c427a27ab7f41e8627fccba1c65717915af6d7f7c04d91463eb1ba1b4c53f",
-    "src/inferrsi/data/skill_library/workflows/draft-acceptance-issue/metadata.json": "57473329e01f341881cc298c916b70ea8b718bf7b516d3428227c2682f172fe0"
+    "src/inferrsi/knowledge/data/skill_library/workflows/draft-acceptance-issue/SKILL.md": "e22c427a27ab7f41e8627fccba1c65717915af6d7f7c04d91463eb1ba1b4c53f",
+    "src/inferrsi/knowledge/data/skill_library/workflows/draft-acceptance-issue/metadata.json": "57473329e01f341881cc298c916b70ea8b718bf7b516d3428227c2682f172fe0"
   },
   "skill_metadata": {
     "name": "draft-acceptance-issue",

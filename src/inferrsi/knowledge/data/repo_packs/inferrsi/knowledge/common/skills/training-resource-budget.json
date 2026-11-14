@@ -26,17 +26,17 @@
   },
   "checkout_ref": "checkout:training-resource-budget",
   "source_files": {
-    "src/inferrsi/data/skill_library/methods/training-resource-budget/SKILL.md": "d3805c5f605faae663ad5a674a56c1e1e5fdd211cd58833c008e557cfd7e4c37",
-    "src/inferrsi/data/skill_library/methods/training-resource-budget/metadata.json": "9ae014b0ca5ca5d32e31e05b52e7436ad1c197fdce8d731fd4d9c79965fd4f2d",
-    "src/inferrsi/data/skill_library/methods/training-resource-budget/references/mindspeed-historical.md": "ad65c27f278c3d0ca3599a7630c02d3e529477a05b71b7703bd2d75f0d8fdd2c",
-    "src/inferrsi/data/skill_library/methods/training-resource-budget/references/mindspeed-source-readset.md": "4462d69ed6a941a03639c756968be3ce54f947e51f6ca618f4fb1cd43b643b35",
-    "src/inferrsi/data/skill_library/methods/training-resource-budget/references/papers-20261015/INTEGRATION_NOTES.md": "c55c6ad2131ef788866411dcc7056f221420ebff30c95c6bc919b09a4818cb73",
-    "src/inferrsi/data/skill_library/methods/training-resource-budget/references/papers-20261015/cases/paper-grounded-cases.md": "19bd25b1a944adb2351ebc6b1d795150ea033041a44f6cc261e881677812a101",
-    "src/inferrsi/data/skill_library/methods/training-resource-budget/references/papers-20261015/knowledge/offload-delta.md": "f8740fc5c8bbbe5ac13ff1cfec7ca499569d0b46e8cd56cf1f5a44c3a5e72242",
-    "src/inferrsi/data/skill_library/methods/training-resource-budget/references/papers-20261015/notes/training-memory-scheduling.md": "9aa6d3e01452dff95c8a8940ff62ead8c146ce215c9175b78c9f2ef508a7b2de",
-    "src/inferrsi/data/skill_library/methods/training-resource-budget/references/papers-20261015/references/source-readset.md": "2a5c166767f56fa47e7eba7386f1f36da8cb73702e5b5bbe14d6a456ca9ebfae",
-    "src/inferrsi/data/skill_library/methods/training-resource-budget/references/sources.md": "53d70671a183de4aaa3369f9caf2383a23b6f8a0a7b04464a8d8a639150afc6a",
-    "src/inferrsi/data/skill_library/methods/training-resource-budget/references/stas-decision-notes.md": "f1a993e6c4ca9a035a2effcaf5500081f227b0cc56cc885a6b22fda0041fc744"
+    "src/inferrsi/knowledge/data/skill_library/methods/training-resource-budget/SKILL.md": "d3805c5f605faae663ad5a674a56c1e1e5fdd211cd58833c008e557cfd7e4c37",
+    "src/inferrsi/knowledge/data/skill_library/methods/training-resource-budget/metadata.json": "9ae014b0ca5ca5d32e31e05b52e7436ad1c197fdce8d731fd4d9c79965fd4f2d",
+    "src/inferrsi/knowledge/data/skill_library/methods/training-resource-budget/references/mindspeed-historical.md": "ad65c27f278c3d0ca3599a7630c02d3e529477a05b71b7703bd2d75f0d8fdd2c",
+    "src/inferrsi/knowledge/data/skill_library/methods/training-resource-budget/references/mindspeed-source-readset.md": "4462d69ed6a941a03639c756968be3ce54f947e51f6ca618f4fb1cd43b643b35",
+    "src/inferrsi/knowledge/data/skill_library/methods/training-resource-budget/references/papers-20261015/INTEGRATION_NOTES.md": "c55c6ad2131ef788866411dcc7056f221420ebff30c95c6bc919b09a4818cb73",
+    "src/inferrsi/knowledge/data/skill_library/methods/training-resource-budget/references/papers-20261015/cases/paper-grounded-cases.md": "19bd25b1a944adb2351ebc6b1d795150ea033041a44f6cc261e881677812a101",
+    "src/inferrsi/knowledge/data/skill_library/methods/training-resource-budget/references/papers-20261015/knowledge/offload-delta.md": "f8740fc5c8bbbe5ac13ff1cfec7ca499569d0b46e8cd56cf1f5a44c3a5e72242",
+    "src/inferrsi/knowledge/data/skill_library/methods/training-resource-budget/references/papers-20261015/notes/training-memory-scheduling.md": "9aa6d3e01452dff95c8a8940ff62ead8c146ce215c9175b78c9f2ef508a7b2de",
+    "src/inferrsi/knowledge/data/skill_library/methods/training-resource-budget/references/papers-20261015/references/source-readset.md": "2a5c166767f56fa47e7eba7386f1f36da8cb73702e5b5bbe14d6a456ca9ebfae",
+    "src/inferrsi/knowledge/data/skill_library/methods/training-resource-budget/references/sources.md": "53d70671a183de4aaa3369f9caf2383a23b6f8a0a7b04464a8d8a639150afc6a",
+    "src/inferrsi/knowledge/data/skill_library/methods/training-resource-budget/references/stas-decision-notes.md": "f1a993e6c4ca9a035a2effcaf5500081f227b0cc56cc885a6b22fda0041fc744"
   },
   "skill_metadata": {
     "name": "training-resource-budget",

@@ -32,13 +32,13 @@
   },
   "checkout_ref": "checkout:audit-flare-session-lifecycle",
   "source_files": {
-    "src/inferrsi/data/skill_library/repositories/flare-local-inference/audit-flare-session-lifecycle/LICENSE": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
-    "src/inferrsi/data/skill_library/repositories/flare-local-inference/audit-flare-session-lifecycle/SKILL.md": "02a5f7c18e44201215ecec17c6ac96b27be9148bcc189df287f39d1b372b7721",
-    "src/inferrsi/data/skill_library/repositories/flare-local-inference/audit-flare-session-lifecycle/metadata.json": "9c667c7735ebe4fb07247e098218f6b03a1c1fafa776f1372f8d948ea8ea756b",
-    "src/inferrsi/data/skill_library/repositories/flare-local-inference/audit-flare-session-lifecycle/references/diagnostics.md": "0908a0eae53a2e10775a8b6ee3e3944b2fa410174402b5a1a8c98eb674dd4b4d",
-    "src/inferrsi/data/skill_library/repositories/flare-local-inference/audit-flare-session-lifecycle/references/lifecycle.md": "107ebe3c22e5dba8007c3b8ea61149f10bc55c51b557a4230f3e5de859bb0f7c",
-    "src/inferrsi/data/skill_library/repositories/flare-local-inference/audit-flare-session-lifecycle/references/source-ledger.json": "61e51a97ffd7c1fa7866bdd440b024d0c5e0065635ac8d0ba53d2c69c7f9e470",
-    "src/inferrsi/data/skill_library/repositories/flare-local-inference/audit-flare-session-lifecycle/references/source-notes.md": "fc7ceb819b91ef1731d8b7783f543c92ef6bb5c97ef5f897c055824f8a560168"
+    "src/inferrsi/knowledge/data/skill_library/repositories/flare-local-inference/audit-flare-session-lifecycle/LICENSE": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+    "src/inferrsi/knowledge/data/skill_library/repositories/flare-local-inference/audit-flare-session-lifecycle/SKILL.md": "02a5f7c18e44201215ecec17c6ac96b27be9148bcc189df287f39d1b372b7721",
+    "src/inferrsi/knowledge/data/skill_library/repositories/flare-local-inference/audit-flare-session-lifecycle/metadata.json": "9c667c7735ebe4fb07247e098218f6b03a1c1fafa776f1372f8d948ea8ea756b",
+    "src/inferrsi/knowledge/data/skill_library/repositories/flare-local-inference/audit-flare-session-lifecycle/references/diagnostics.md": "0908a0eae53a2e10775a8b6ee3e3944b2fa410174402b5a1a8c98eb674dd4b4d",
+    "src/inferrsi/knowledge/data/skill_library/repositories/flare-local-inference/audit-flare-session-lifecycle/references/lifecycle.md": "107ebe3c22e5dba8007c3b8ea61149f10bc55c51b557a4230f3e5de859bb0f7c",
+    "src/inferrsi/knowledge/data/skill_library/repositories/flare-local-inference/audit-flare-session-lifecycle/references/source-ledger.json": "61e51a97ffd7c1fa7866bdd440b024d0c5e0065635ac8d0ba53d2c69c7f9e470",
+    "src/inferrsi/knowledge/data/skill_library/repositories/flare-local-inference/audit-flare-session-lifecycle/references/source-notes.md": "fc7ceb819b91ef1731d8b7783f543c92ef6bb5c97ef5f897c055824f8a560168"
   },
   "skill_metadata": {
     "name": "audit-flare-session-lifecycle",

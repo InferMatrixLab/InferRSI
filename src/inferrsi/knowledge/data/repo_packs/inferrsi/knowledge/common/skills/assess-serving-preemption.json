@@ -19,9 +19,9 @@
   },
   "checkout_ref": "checkout:assess-serving-preemption",
   "source_files": {
-    "src/inferrsi/data/skill_library/methods/assess-serving-preemption/SKILL.md": "0a5f48d9352c5bf460775ef47f9136829978811f4a16e84983e299782cae305d",
-    "src/inferrsi/data/skill_library/methods/assess-serving-preemption/metadata.json": "3e2cea37f5669e7c60f7c01c390a48ea960b15cbd6de8f5340cf8fe2afb9e1a1",
-    "src/inferrsi/data/skill_library/methods/assess-serving-preemption/references/source-notes.md": "f29fcecfba0490008a354c11b42403983fe165e56ff907ad61cc6040d2b6407f"
+    "src/inferrsi/knowledge/data/skill_library/methods/assess-serving-preemption/SKILL.md": "0a5f48d9352c5bf460775ef47f9136829978811f4a16e84983e299782cae305d",
+    "src/inferrsi/knowledge/data/skill_library/methods/assess-serving-preemption/metadata.json": "3e2cea37f5669e7c60f7c01c390a48ea960b15cbd6de8f5340cf8fe2afb9e1a1",
+    "src/inferrsi/knowledge/data/skill_library/methods/assess-serving-preemption/references/source-notes.md": "f29fcecfba0490008a354c11b42403983fe165e56ff907ad61cc6040d2b6407f"
   },
   "skill_metadata": {
     "name": "assess-serving-preemption",

@@ -39,17 +39,17 @@
   },
   "checkout_ref": "checkout:reason-hopper-kernels",
   "source_files": {
-    "src/inferrsi/data/skill_library/hardware/cuda/reason-hopper-kernels/SKILL.md": "cec4e3aa1eb64c31c54b5f5ca40af2b61b7919d94be4174968581d5f752c0538",
-    "src/inferrsi/data/skill_library/hardware/cuda/reason-hopper-kernels/metadata.json": "79ca64dc97ad34331036dc071e86954c98ac568e651adfae74cce74f1ca61c7b",
-    "src/inferrsi/data/skill_library/hardware/cuda/reason-hopper-kernels/references/fp8.md": "31d9c211c11c2224007abbdcd4059913c4a54833fe2d2f926411c5238fcd3501",
-    "src/inferrsi/data/skill_library/hardware/cuda/reason-hopper-kernels/references/licenses/cutlass-bsd.md": "42fec630f410aa308f70a51a89fadcd19586fa620f9831a32bee528a9a10000e",
-    "src/inferrsi/data/skill_library/hardware/cuda/reason-hopper-kernels/references/licenses/deepgemm-mit.md": "6c73a30c14a2938abaa6afe98ebb19e6d81dac5bd4ace0cb05c61c20afa37b85",
-    "src/inferrsi/data/skill_library/hardware/cuda/reason-hopper-kernels/references/licenses/kernelwiki-kda-mit.md": "84aab57158a914f448b38d8be29dd842b634a08c192d844f416a256beed4ae94",
-    "src/inferrsi/data/skill_library/hardware/cuda/reason-hopper-kernels/references/notices.md": "876ec016644bf5331b3f257985e126c0e61980e3bfd82569b7b0c3f6b2c6c64c",
-    "src/inferrsi/data/skill_library/hardware/cuda/reason-hopper-kernels/references/resources-and-scheduling.md": "1ce25b426736072435a1ead9a2a8e1f56df5d0abb8198e8c4fdcb34321db4964",
-    "src/inferrsi/data/skill_library/hardware/cuda/reason-hopper-kernels/references/source-inventory.json": "1dc09c895c970a0c9708158bcc6dd65cdb736274fd2c35d44542c70407d3849d",
-    "src/inferrsi/data/skill_library/hardware/cuda/reason-hopper-kernels/references/sources.md": "6b74b9e774f2a80db0860510d9e6940d36284430f29c1e124f115a9eaf25833d",
-    "src/inferrsi/data/skill_library/hardware/cuda/reason-hopper-kernels/references/synchronization.md": "4322f6b3c0e4368bf8c192b4ec752529767f50d19c0c38dad8fdf9cd781e41d9"
+    "src/inferrsi/knowledge/data/skill_library/hardware/cuda/reason-hopper-kernels/SKILL.md": "cec4e3aa1eb64c31c54b5f5ca40af2b61b7919d94be4174968581d5f752c0538",
+    "src/inferrsi/knowledge/data/skill_library/hardware/cuda/reason-hopper-kernels/metadata.json": "79ca64dc97ad34331036dc071e86954c98ac568e651adfae74cce74f1ca61c7b",
+    "src/inferrsi/knowledge/data/skill_library/hardware/cuda/reason-hopper-kernels/references/fp8.md": "31d9c211c11c2224007abbdcd4059913c4a54833fe2d2f926411c5238fcd3501",
+    "src/inferrsi/knowledge/data/skill_library/hardware/cuda/reason-hopper-kernels/references/licenses/cutlass-bsd.md": "42fec630f410aa308f70a51a89fadcd19586fa620f9831a32bee528a9a10000e",
+    "src/inferrsi/knowledge/data/skill_library/hardware/cuda/reason-hopper-kernels/references/licenses/deepgemm-mit.md": "6c73a30c14a2938abaa6afe98ebb19e6d81dac5bd4ace0cb05c61c20afa37b85",
+    "src/inferrsi/knowledge/data/skill_library/hardware/cuda/reason-hopper-kernels/references/licenses/kernelwiki-kda-mit.md": "84aab57158a914f448b38d8be29dd842b634a08c192d844f416a256beed4ae94",
+    "src/inferrsi/knowledge/data/skill_library/hardware/cuda/reason-hopper-kernels/references/notices.md": "876ec016644bf5331b3f257985e126c0e61980e3bfd82569b7b0c3f6b2c6c64c",
+    "src/inferrsi/knowledge/data/skill_library/hardware/cuda/reason-hopper-kernels/references/resources-and-scheduling.md": "1ce25b426736072435a1ead9a2a8e1f56df5d0abb8198e8c4fdcb34321db4964",
+    "src/inferrsi/knowledge/data/skill_library/hardware/cuda/reason-hopper-kernels/references/source-inventory.json": "1dc09c895c970a0c9708158bcc6dd65cdb736274fd2c35d44542c70407d3849d",
+    "src/inferrsi/knowledge/data/skill_library/hardware/cuda/reason-hopper-kernels/references/sources.md": "6b74b9e774f2a80db0860510d9e6940d36284430f29c1e124f115a9eaf25833d",
+    "src/inferrsi/knowledge/data/skill_library/hardware/cuda/reason-hopper-kernels/references/synchronization.md": "4322f6b3c0e4368bf8c192b4ec752529767f50d19c0c38dad8fdf9cd781e41d9"
   },
   "skill_metadata": {
     "name": "reason-hopper-kernels",

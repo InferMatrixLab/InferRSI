@@ -199,11 +199,9 @@ def test_index_checks_drift_and_rejects_changed_or_added_source_inputs(tmp_path,
         build_index(tmp_path, "HEAD")
 
 
-def test_moved_corpus_regenerates_from_its_pin_but_refuses_a_new_one(tmp_path, monkeypatch):
-    # K02 moved the corpus and kept the recorded prefix. Regenerating against the
-    # pinned revision still reads that revision's bytes, so no hash changes.
-    # Pinning a revision that no longer carries the recorded prefix is refused,
-    # which keeps re-pinning an explicit, separately reviewed change.
+def test_repinned_corpus_accepts_a_new_source_revision_at_the_checkout_path(tmp_path, monkeypatch):
+    # After the explicit re-pin, the recorded prefix and the checkout path agree,
+    # so a new committed source revision regenerates records under that path.
     def git(*args):
         subprocess.run(["git", "-C", str(tmp_path), *args], check=True, capture_output=True)
 
@@ -212,36 +210,38 @@ def test_moved_corpus_regenerates_from_its_pin_but_refuses_a_new_one(tmp_path, m
             "commit", "-s", "-m", message)
 
     git("init")
-    pinned = tmp_path / index_builder.PINNED_LIBRARY
-    root = pinned / "methods" / "example"
+    git("config", "core.autocrlf", "false")
+    assert index_builder.PINNED_LIBRARY == LIBRARY
+    root = tmp_path / LIBRARY / "methods" / "example"
     root.mkdir(parents=True)
-    (pinned / "skill-index.json").write_text(json.dumps({
+    (tmp_path / LIBRARY / "skill-index.json").write_text(json.dumps({
         "schema_version": 1,
         "skills": {"example": {"path": "methods/example", "backend": "common"}},
-    }), encoding="utf-8")
-    (root / "SKILL.md").write_text(
-        "---\nname: example\ndescription: A source fixture\n---\nOriginal body\n",
-        encoding="utf-8",
-    )
-    git("add", index_builder.PINNED_LIBRARY.as_posix())
+    }), encoding="utf-8", newline="\n")
+    original = "---\nname: example\ndescription: A source fixture\n---\nOriginal body\n"
+    (root / "SKILL.md").write_text(original, encoding="utf-8", newline="\n")
+    git("add", LIBRARY.as_posix())
     commit("Create test source")
     monkeypatch.setattr(index_builder, "PROJECT", tmp_path)
+    monkeypatch.setattr(index_builder, "LIBRARY", LIBRARY)
 
-    (tmp_path / LIBRARY).parent.mkdir(parents=True, exist_ok=True)
-    git("mv", index_builder.PINNED_LIBRARY.as_posix(), LIBRARY.as_posix())
-    commit("Move the corpus")
-    assert (tmp_path / LIBRARY / "skill-index.json").is_file()
-
-    outputs = build_index(tmp_path, "HEAD~1")
-    record = json.loads(outputs["common/skills/example.json"])
+    first = build_index(tmp_path, "HEAD")
+    record = json.loads(first["common/skills/example.json"])
     recorded = set(record["source_files"])
     assert recorded
-    prefix = index_builder.PINNED_LIBRARY.as_posix()
+    prefix = LIBRARY.as_posix()
     assert all(path.startswith(prefix + "/") for path in recorded), recorded
-    assert not any(path.startswith(LIBRARY.as_posix() + "/") for path in recorded), recorded
+    entry = f"{prefix}/methods/example/SKILL.md"
+    assert record["source_files"][entry] == hashlib.sha256(original.encode("utf-8")).hexdigest()
 
-    with pytest.raises(ValueError, match="input paths differ"):
-        build_index(tmp_path, "HEAD")
+    changed = original + "Changed body\n"
+    (root / "SKILL.md").write_text(changed, encoding="utf-8", newline="\n")
+    git("add", LIBRARY.as_posix())
+    commit("Edit the skill")
+    second = build_index(tmp_path, "HEAD")
+    updated = json.loads(second["common/skills/example.json"])
+    assert updated["source_files"][entry] == hashlib.sha256(changed.encode("utf-8")).hexdigest()
+    assert updated["source_files"][entry] != record["source_files"][entry]
 
 
 def test_package_index_and_checkout_skill_have_distinct_read_boundaries():

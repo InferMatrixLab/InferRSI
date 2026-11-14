@@ -25,8 +25,8 @@
   },
   "checkout_ref": "checkout:cite-check-downstream-pr",
   "source_files": {
-    "src/inferrsi/data/skill_library/workflows/cite-check-downstream-pr/SKILL.md": "485932cdf3b1fba5dc69be73e75d38f86a7b79442d26e82a296c963a7598d226",
-    "src/inferrsi/data/skill_library/workflows/cite-check-downstream-pr/metadata.json": "ade23e3def5c7b875fba4084d32fa63b1af90bebeade72506265c974405eb55d"
+    "src/inferrsi/knowledge/data/skill_library/workflows/cite-check-downstream-pr/SKILL.md": "485932cdf3b1fba5dc69be73e75d38f86a7b79442d26e82a296c963a7598d226",
+    "src/inferrsi/knowledge/data/skill_library/workflows/cite-check-downstream-pr/metadata.json": "ade23e3def5c7b875fba4084d32fa63b1af90bebeade72506265c974405eb55d"
   },
   "skill_metadata": {
     "name": "cite-check-downstream-pr",

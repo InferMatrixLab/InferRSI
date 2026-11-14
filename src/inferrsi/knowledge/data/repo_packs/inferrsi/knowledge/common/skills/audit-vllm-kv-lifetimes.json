@@ -24,9 +24,9 @@
   },
   "checkout_ref": "checkout:audit-vllm-kv-lifetimes",
   "source_files": {
-    "src/inferrsi/data/skill_library/repositories/vllm/audit-vllm-kv-lifetimes/SKILL.md": "4c3f27459df239f9f4fc971c559d4c9ddfbfebd70507a8a93be8eae59a30b69d",
-    "src/inferrsi/data/skill_library/repositories/vllm/audit-vllm-kv-lifetimes/metadata.json": "8ded6e60c562131616dc8cdcf0d7efc04aef1884885da0b30fb16f42d7433b7c",
-    "src/inferrsi/data/skill_library/repositories/vllm/audit-vllm-kv-lifetimes/references/source-notes.md": "3665b034594fc8cc767c408002f4e16f8803369242405027c7f37ce6c9ecebe9"
+    "src/inferrsi/knowledge/data/skill_library/repositories/vllm/audit-vllm-kv-lifetimes/SKILL.md": "4c3f27459df239f9f4fc971c559d4c9ddfbfebd70507a8a93be8eae59a30b69d",
+    "src/inferrsi/knowledge/data/skill_library/repositories/vllm/audit-vllm-kv-lifetimes/metadata.json": "8ded6e60c562131616dc8cdcf0d7efc04aef1884885da0b30fb16f42d7433b7c",
+    "src/inferrsi/knowledge/data/skill_library/repositories/vllm/audit-vllm-kv-lifetimes/references/source-notes.md": "3665b034594fc8cc767c408002f4e16f8803369242405027c7f37ce6c9ecebe9"
   },
   "skill_metadata": {
     "name": "audit-vllm-kv-lifetimes",

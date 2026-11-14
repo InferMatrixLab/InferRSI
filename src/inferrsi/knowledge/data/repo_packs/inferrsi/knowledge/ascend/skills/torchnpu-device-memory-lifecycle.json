@@ -25,9 +25,9 @@
   },
   "checkout_ref": "checkout:torchnpu-device-memory-lifecycle",
   "source_files": {
-    "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-device-memory-lifecycle/SKILL.md": "8428df7157af024fa17cfe0b3818ed54bd9f468306dda46eb8d4f0edf4f3f230",
-    "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-device-memory-lifecycle/metadata.json": "02de593e638e71c6debb763b6b0d5a5596e0b810bbe48450ead28dc43de83f99",
-    "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-device-memory-lifecycle/references/source-notes.md": "80cba4d3a884e7ee2618326cf74b9f9c3a34e4d9cf443707f6bbe673f2d5ba65"
+    "src/inferrsi/knowledge/data/skill_library/hardware/ascend/torchnpu-device-memory-lifecycle/SKILL.md": "8428df7157af024fa17cfe0b3818ed54bd9f468306dda46eb8d4f0edf4f3f230",
+    "src/inferrsi/knowledge/data/skill_library/hardware/ascend/torchnpu-device-memory-lifecycle/metadata.json": "02de593e638e71c6debb763b6b0d5a5596e0b810bbe48450ead28dc43de83f99",
+    "src/inferrsi/knowledge/data/skill_library/hardware/ascend/torchnpu-device-memory-lifecycle/references/source-notes.md": "80cba4d3a884e7ee2618326cf74b9f9c3a34e4d9cf443707f6bbe673f2d5ba65"
   },
   "skill_metadata": {
     "name": "torchnpu-device-memory-lifecycle",

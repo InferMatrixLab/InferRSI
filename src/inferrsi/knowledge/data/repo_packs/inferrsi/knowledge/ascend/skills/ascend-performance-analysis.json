@@ -25,10 +25,10 @@
   },
   "checkout_ref": "checkout:ascend-performance-analysis",
   "source_files": {
-    "src/inferrsi/data/skill_library/hardware/ascend/ascend-performance-analysis/SKILL.md": "a057b7f86a24f34a8f84abbbb4910d58d4e50ff47060e1c404600017e3febe89",
-    "src/inferrsi/data/skill_library/hardware/ascend/ascend-performance-analysis/metadata.json": "f3fb35b14b5b1054a9192459862451149395368f4a75f430caef2f41ad050296",
-    "src/inferrsi/data/skill_library/hardware/ascend/ascend-performance-analysis/references/cannbot-CANN-2.0-LICENSE.md": "89b1c114df62cfd183004f38d18d07f186436c3b37203dd69c3e84becf9d2282",
-    "src/inferrsi/data/skill_library/hardware/ascend/ascend-performance-analysis/references/cannbot-stage-evidence.md": "f56e4125325c9c1b9235a1d64fd732861c7686444492422daff44ba8dd648be4"
+    "src/inferrsi/knowledge/data/skill_library/hardware/ascend/ascend-performance-analysis/SKILL.md": "a057b7f86a24f34a8f84abbbb4910d58d4e50ff47060e1c404600017e3febe89",
+    "src/inferrsi/knowledge/data/skill_library/hardware/ascend/ascend-performance-analysis/metadata.json": "f3fb35b14b5b1054a9192459862451149395368f4a75f430caef2f41ad050296",
+    "src/inferrsi/knowledge/data/skill_library/hardware/ascend/ascend-performance-analysis/references/cannbot-CANN-2.0-LICENSE.md": "89b1c114df62cfd183004f38d18d07f186436c3b37203dd69c3e84becf9d2282",
+    "src/inferrsi/knowledge/data/skill_library/hardware/ascend/ascend-performance-analysis/references/cannbot-stage-evidence.md": "f56e4125325c9c1b9235a1d64fd732861c7686444492422daff44ba8dd648be4"
   },
   "skill_metadata": {
     "name": "ascend-performance-analysis",

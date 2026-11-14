@@ -33,17 +33,17 @@
   },
   "checkout_ref": "checkout:audit-h3-runtime-residency",
   "source_files": {
-    "src/inferrsi/data/skill_library/repositories/h3-c/audit-h3-runtime-residency/LICENSE": "663e51edcd9a3a8f858018ce6924ad2895a24c269c26c39ad75325bcd0f7e5bc",
-    "src/inferrsi/data/skill_library/repositories/h3-c/audit-h3-runtime-residency/SKILL.md": "fdb4d9483c6efa836f9e59617da605fa9c2186e11c2041b05d5c81850ba0475d",
-    "src/inferrsi/data/skill_library/repositories/h3-c/audit-h3-runtime-residency/metadata.json": "952bd2947b68e56d249f10798e028d191a8ffbdb2f123775be66946d3e2ef77e",
-    "src/inferrsi/data/skill_library/repositories/h3-c/audit-h3-runtime-residency/references/THIRD_PARTY_NOTICES.md": "a0d77db7d2aca0eda811ab3c386cc32b3143f2c2609a042cf4642954f0f6fb09",
-    "src/inferrsi/data/skill_library/repositories/h3-c/audit-h3-runtime-residency/references/minimax-h3-apple.md": "57ce01754ba96c378f13a91305ef3d418b926f99b2753f0af99315572bce063a",
-    "src/inferrsi/data/skill_library/repositories/h3-c/audit-h3-runtime-residency/references/minimax-h3-weight-inventory.json": "fbaacaeec340d3ce893556ee864405a0746af4d13530a38cb3d5aa9d60929271",
-    "src/inferrsi/data/skill_library/repositories/h3-c/audit-h3-runtime-residency/references/phase-residency.md": "2836a550eb2be7f5a862f51ec7b135ebd9715bf3c4faa84a7ecbc9d9c11f5d8d",
-    "src/inferrsi/data/skill_library/repositories/h3-c/audit-h3-runtime-residency/references/precision-and-streaming.md": "7e166c89193f4c7aed852ec95346a2de2b5008dac002e2e1862be1b3e57f6093",
-    "src/inferrsi/data/skill_library/repositories/h3-c/audit-h3-runtime-residency/references/source-identity.json": "730f8dd23648a3f8f47b9726cc613d893a79d1817d515eec609a9b06d8a9ff90",
-    "src/inferrsi/data/skill_library/repositories/h3-c/audit-h3-runtime-residency/references/source-notes.md": "7304bf9369efc157dc7aa40686dd828cc14db45c49442e908b3d3cc4b329eb86",
-    "src/inferrsi/data/skill_library/repositories/h3-c/audit-h3-runtime-residency/references/validation.md": "0754873a758e048480938314894e25b504ae0c269549312e7f8e6020d83fe294"
+    "src/inferrsi/knowledge/data/skill_library/repositories/h3-c/audit-h3-runtime-residency/LICENSE": "663e51edcd9a3a8f858018ce6924ad2895a24c269c26c39ad75325bcd0f7e5bc",
+    "src/inferrsi/knowledge/data/skill_library/repositories/h3-c/audit-h3-runtime-residency/SKILL.md": "fdb4d9483c6efa836f9e59617da605fa9c2186e11c2041b05d5c81850ba0475d",
+    "src/inferrsi/knowledge/data/skill_library/repositories/h3-c/audit-h3-runtime-residency/metadata.json": "952bd2947b68e56d249f10798e028d191a8ffbdb2f123775be66946d3e2ef77e",
+    "src/inferrsi/knowledge/data/skill_library/repositories/h3-c/audit-h3-runtime-residency/references/THIRD_PARTY_NOTICES.md": "a0d77db7d2aca0eda811ab3c386cc32b3143f2c2609a042cf4642954f0f6fb09",
+    "src/inferrsi/knowledge/data/skill_library/repositories/h3-c/audit-h3-runtime-residency/references/minimax-h3-apple.md": "57ce01754ba96c378f13a91305ef3d418b926f99b2753f0af99315572bce063a",
+    "src/inferrsi/knowledge/data/skill_library/repositories/h3-c/audit-h3-runtime-residency/references/minimax-h3-weight-inventory.json": "fbaacaeec340d3ce893556ee864405a0746af4d13530a38cb3d5aa9d60929271",
+    "src/inferrsi/knowledge/data/skill_library/repositories/h3-c/audit-h3-runtime-residency/references/phase-residency.md": "2836a550eb2be7f5a862f51ec7b135ebd9715bf3c4faa84a7ecbc9d9c11f5d8d",
+    "src/inferrsi/knowledge/data/skill_library/repositories/h3-c/audit-h3-runtime-residency/references/precision-and-streaming.md": "7e166c89193f4c7aed852ec95346a2de2b5008dac002e2e1862be1b3e57f6093",
+    "src/inferrsi/knowledge/data/skill_library/repositories/h3-c/audit-h3-runtime-residency/references/source-identity.json": "730f8dd23648a3f8f47b9726cc613d893a79d1817d515eec609a9b06d8a9ff90",
+    "src/inferrsi/knowledge/data/skill_library/repositories/h3-c/audit-h3-runtime-residency/references/source-notes.md": "7304bf9369efc157dc7aa40686dd828cc14db45c49442e908b3d3cc4b329eb86",
+    "src/inferrsi/knowledge/data/skill_library/repositories/h3-c/audit-h3-runtime-residency/references/validation.md": "0754873a758e048480938314894e25b504ae0c269549312e7f8e6020d83fe294"
   },
   "skill_metadata": {
     "name": "audit-h3-runtime-residency",

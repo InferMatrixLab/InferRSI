@@ -26,10 +26,10 @@
   },
   "checkout_ref": "checkout:audit-afd-p2p-exchanges",
   "source_files": {
-    "src/inferrsi/data/skill_library/repositories/afd-plugin/audit-afd-p2p-exchanges/SKILL.md": "a46110891eca860915e314d6921a22856d631453b22b17837fe30262d6780535",
-    "src/inferrsi/data/skill_library/repositories/afd-plugin/audit-afd-p2p-exchanges/metadata.json": "ae8c7582265dd6902cc4172293fc709244cc915df9390672fde25687b9e79b4b",
-    "src/inferrsi/data/skill_library/repositories/afd-plugin/audit-afd-p2p-exchanges/references/afd-plugin-LICENSE.md": "0e8566ea362276878e1f38f97da49964dbea301c15d4aa9d727f97a4c39fd943",
-    "src/inferrsi/data/skill_library/repositories/afd-plugin/audit-afd-p2p-exchanges/references/source-notes.md": "5073d87450cb60d1b245308dff8807e73749c07de976d50f2fa26694fad81a72"
+    "src/inferrsi/knowledge/data/skill_library/repositories/afd-plugin/audit-afd-p2p-exchanges/SKILL.md": "a46110891eca860915e314d6921a22856d631453b22b17837fe30262d6780535",
+    "src/inferrsi/knowledge/data/skill_library/repositories/afd-plugin/audit-afd-p2p-exchanges/metadata.json": "ae8c7582265dd6902cc4172293fc709244cc915df9390672fde25687b9e79b4b",
+    "src/inferrsi/knowledge/data/skill_library/repositories/afd-plugin/audit-afd-p2p-exchanges/references/afd-plugin-LICENSE.md": "0e8566ea362276878e1f38f97da49964dbea301c15d4aa9d727f97a4c39fd943",
+    "src/inferrsi/knowledge/data/skill_library/repositories/afd-plugin/audit-afd-p2p-exchanges/references/source-notes.md": "5073d87450cb60d1b245308dff8807e73749c07de976d50f2fa26694fad81a72"
   },
   "skill_metadata": {
     "name": "audit-afd-p2p-exchanges",

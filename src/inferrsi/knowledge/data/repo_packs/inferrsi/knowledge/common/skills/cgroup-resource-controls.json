@@ -28,8 +28,8 @@
   },
   "checkout_ref": "checkout:cgroup-resource-controls",
   "source_files": {
-    "src/inferrsi/data/skill_library/hardware/host/cgroup-resource-controls/SKILL.md": "fd1f5a7e6a55714730044155f5b38c1d700383d4e16c3e91963bbfbe1c773af5",
-    "src/inferrsi/data/skill_library/hardware/host/cgroup-resource-controls/metadata.json": "155aa391e573fa5bd90a089f4e3d06f357795f5d89c8cf9260e3e8ec3636b243"
+    "src/inferrsi/knowledge/data/skill_library/hardware/host/cgroup-resource-controls/SKILL.md": "fd1f5a7e6a55714730044155f5b38c1d700383d4e16c3e91963bbfbe1c773af5",
+    "src/inferrsi/knowledge/data/skill_library/hardware/host/cgroup-resource-controls/metadata.json": "155aa391e573fa5bd90a089f4e3d06f357795f5d89c8cf9260e3e8ec3636b243"
   },
   "skill_metadata": {
     "name": "cgroup-resource-controls",

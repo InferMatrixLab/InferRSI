@@ -30,12 +30,12 @@
   },
   "checkout_ref": "checkout:ascend-distributed-parallel",
   "source_files": {
-    "src/inferrsi/data/skill_library/hardware/ascend/ascend-distributed-parallel/SKILL.md": "0b79d95e8d5abf0a822f8ae6bfa3779cbb40595c5b6f0fb934233275f5899ef8",
-    "src/inferrsi/data/skill_library/hardware/ascend/ascend-distributed-parallel/metadata.json": "096a12d4a5b98bd057e1a87f972038fd43556e82e484b5134943b6e45e880178",
-    "src/inferrsi/data/skill_library/hardware/ascend/ascend-distributed-parallel/references/awesome-ascend-communication-tests.md": "0cb27a3d24409171bb414d7ebf0c49ad62be5f46482f29624695496ba9eb3e63",
-    "src/inferrsi/data/skill_library/hardware/ascend/ascend-distributed-parallel/references/hccl-LICENSE.md": "05205a02acebd671c78d3b876c1f6097b84cce89780f5d9bdc204bfbea92d0c1",
-    "src/inferrsi/data/skill_library/hardware/ascend/ascend-distributed-parallel/references/hccl-allreduce-readset.json": "4a3d403986dfceaa28605f2f30b79545e1efdc27f35c88755402b75b4d13d7e2",
-    "src/inferrsi/data/skill_library/hardware/ascend/ascend-distributed-parallel/references/hccl-allreduce.md": "4770bba0090ed5ead3d2fd3b2cce2d21ba708acae3e0b4d859cc503499da5b93"
+    "src/inferrsi/knowledge/data/skill_library/hardware/ascend/ascend-distributed-parallel/SKILL.md": "0b79d95e8d5abf0a822f8ae6bfa3779cbb40595c5b6f0fb934233275f5899ef8",
+    "src/inferrsi/knowledge/data/skill_library/hardware/ascend/ascend-distributed-parallel/metadata.json": "096a12d4a5b98bd057e1a87f972038fd43556e82e484b5134943b6e45e880178",
+    "src/inferrsi/knowledge/data/skill_library/hardware/ascend/ascend-distributed-parallel/references/awesome-ascend-communication-tests.md": "0cb27a3d24409171bb414d7ebf0c49ad62be5f46482f29624695496ba9eb3e63",
+    "src/inferrsi/knowledge/data/skill_library/hardware/ascend/ascend-distributed-parallel/references/hccl-LICENSE.md": "05205a02acebd671c78d3b876c1f6097b84cce89780f5d9bdc204bfbea92d0c1",
+    "src/inferrsi/knowledge/data/skill_library/hardware/ascend/ascend-distributed-parallel/references/hccl-allreduce-readset.json": "4a3d403986dfceaa28605f2f30b79545e1efdc27f35c88755402b75b4d13d7e2",
+    "src/inferrsi/knowledge/data/skill_library/hardware/ascend/ascend-distributed-parallel/references/hccl-allreduce.md": "4770bba0090ed5ead3d2fd3b2cce2d21ba708acae3e0b4d859cc503499da5b93"
   },
   "skill_metadata": {
     "name": "ascend-distributed-parallel",

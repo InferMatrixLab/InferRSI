@@ -32,15 +32,15 @@
   },
   "checkout_ref": "checkout:local-dream",
   "source_files": {
-    "src/inferrsi/data/skill_library/repositories/local-dream/SKILL.md": "e51fd3c71d693070abeba57ca67dcca82c7347cb94eb98f43e7c455bcacbaa46",
-    "src/inferrsi/data/skill_library/repositories/local-dream/metadata.json": "63b71cc6a237d8c4e00db875d15594df09d6e3cf87a1cb25183a311b4d480804",
-    "src/inferrsi/data/skill_library/repositories/local-dream/references/android-lifecycle.md": "f85e5fce39f5de5f88548fd8c21978240c810f899e03ff05ed72eb3508ee5e36",
-    "src/inferrsi/data/skill_library/repositories/local-dream/references/native-contracts.md": "40206892f5e421f9d8edf303870f5c4aefa3e87123537178d45f438f3d04b7ce",
-    "src/inferrsi/data/skill_library/repositories/local-dream/references/packaging-and-abi.md": "9a19bca59e19c3bfbfc1a15f5fc756c13d954ace367812aeb000551f4484ad06",
-    "src/inferrsi/data/skill_library/repositories/local-dream/references/repo-provenance.md": "0b848082c0ce893d8ae26d779c5b663d914d1a208cb2293c4a84668cdde86293",
-    "src/inferrsi/data/skill_library/repositories/local-dream/references/source-identity.json": "b85f028bb96a37852e9d9780b5d5052fdd9c8f3a704ad391b6381adb58291347",
-    "src/inferrsi/data/skill_library/repositories/local-dream/references/upstream-license.md": "41003d4a74749c0220e33dd415042164b5a1093ed401f36277234f772d22d3d0",
-    "src/inferrsi/data/skill_library/repositories/local-dream/scripts/screen_declarations.py": "ccd7d0d55be9a47484ec3a74498d8edef8aba55287f92287775c8d82050c8932"
+    "src/inferrsi/knowledge/data/skill_library/repositories/local-dream/SKILL.md": "e51fd3c71d693070abeba57ca67dcca82c7347cb94eb98f43e7c455bcacbaa46",
+    "src/inferrsi/knowledge/data/skill_library/repositories/local-dream/metadata.json": "63b71cc6a237d8c4e00db875d15594df09d6e3cf87a1cb25183a311b4d480804",
+    "src/inferrsi/knowledge/data/skill_library/repositories/local-dream/references/android-lifecycle.md": "f85e5fce39f5de5f88548fd8c21978240c810f899e03ff05ed72eb3508ee5e36",
+    "src/inferrsi/knowledge/data/skill_library/repositories/local-dream/references/native-contracts.md": "40206892f5e421f9d8edf303870f5c4aefa3e87123537178d45f438f3d04b7ce",
+    "src/inferrsi/knowledge/data/skill_library/repositories/local-dream/references/packaging-and-abi.md": "9a19bca59e19c3bfbfc1a15f5fc756c13d954ace367812aeb000551f4484ad06",
+    "src/inferrsi/knowledge/data/skill_library/repositories/local-dream/references/repo-provenance.md": "0b848082c0ce893d8ae26d779c5b663d914d1a208cb2293c4a84668cdde86293",
+    "src/inferrsi/knowledge/data/skill_library/repositories/local-dream/references/source-identity.json": "b85f028bb96a37852e9d9780b5d5052fdd9c8f3a704ad391b6381adb58291347",
+    "src/inferrsi/knowledge/data/skill_library/repositories/local-dream/references/upstream-license.md": "41003d4a74749c0220e33dd415042164b5a1093ed401f36277234f772d22d3d0",
+    "src/inferrsi/knowledge/data/skill_library/repositories/local-dream/scripts/screen_declarations.py": "ccd7d0d55be9a47484ec3a74498d8edef8aba55287f92287775c8d82050c8932"
   },
   "skill_metadata": {
     "name": "local-dream",

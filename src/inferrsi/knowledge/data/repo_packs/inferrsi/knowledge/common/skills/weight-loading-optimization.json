@@ -34,13 +34,13 @@
   },
   "checkout_ref": "checkout:weight-loading-optimization",
   "source_files": {
-    "src/inferrsi/data/skill_library/methods/weight-loading-optimization/SKILL.md": "b970ef27da2de14c20d3fe734cc5ee0cf8445c396f53dab588bd180943921833",
-    "src/inferrsi/data/skill_library/methods/weight-loading-optimization/metadata.json": "007142544806e5b065b8c48b6e467f49c65b4a55465d09d7a88e0997287bb212",
-    "src/inferrsi/data/skill_library/methods/weight-loading-optimization/references/deepseek-expert-cache-oracles.md": "5e42c4a01f9ac810663979dee0658c4cbe87060594c16622ae6ec0b854e44b29",
-    "src/inferrsi/data/skill_library/methods/weight-loading-optimization/references/deepseek-expert-cache-source.json": "65bf0623616b4f633d8f51b30134798cbf71176716c8a8613209e2fc48ff84bd",
-    "src/inferrsi/data/skill_library/methods/weight-loading-optimization/references/fastsafetensors-transfer-readset.md": "5a39f14b102b0cee304541e011aa31e44e6b13527d1bee9987c3f3b66c064d3d",
-    "src/inferrsi/data/skill_library/methods/weight-loading-optimization/references/flare-preparation-boundary.md": "1d7922785a196bdbafdc9791fe79428465a5acc0292ca8f99446f8c764b35454",
-    "src/inferrsi/data/skill_library/methods/weight-loading-optimization/references/llama-loading-readset.md": "6c640f28ee3f0253a17b81461c865cb9f947367002cb75bf72550c4572d02e97"
+    "src/inferrsi/knowledge/data/skill_library/methods/weight-loading-optimization/SKILL.md": "b970ef27da2de14c20d3fe734cc5ee0cf8445c396f53dab588bd180943921833",
+    "src/inferrsi/knowledge/data/skill_library/methods/weight-loading-optimization/metadata.json": "007142544806e5b065b8c48b6e467f49c65b4a55465d09d7a88e0997287bb212",
+    "src/inferrsi/knowledge/data/skill_library/methods/weight-loading-optimization/references/deepseek-expert-cache-oracles.md": "5e42c4a01f9ac810663979dee0658c4cbe87060594c16622ae6ec0b854e44b29",
+    "src/inferrsi/knowledge/data/skill_library/methods/weight-loading-optimization/references/deepseek-expert-cache-source.json": "65bf0623616b4f633d8f51b30134798cbf71176716c8a8613209e2fc48ff84bd",
+    "src/inferrsi/knowledge/data/skill_library/methods/weight-loading-optimization/references/fastsafetensors-transfer-readset.md": "5a39f14b102b0cee304541e011aa31e44e6b13527d1bee9987c3f3b66c064d3d",
+    "src/inferrsi/knowledge/data/skill_library/methods/weight-loading-optimization/references/flare-preparation-boundary.md": "1d7922785a196bdbafdc9791fe79428465a5acc0292ca8f99446f8c764b35454",
+    "src/inferrsi/knowledge/data/skill_library/methods/weight-loading-optimization/references/llama-loading-readset.md": "6c640f28ee3f0253a17b81461c865cb9f947367002cb75bf72550c4572d02e97"
   },
   "skill_metadata": {
     "name": "weight-loading-optimization",

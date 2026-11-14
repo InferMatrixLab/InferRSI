@@ -19,9 +19,9 @@
   },
   "checkout_ref": "checkout:plan-activation-residency",
   "source_files": {
-    "src/inferrsi/data/skill_library/methods/plan-activation-residency/SKILL.md": "542d8a1e6963f5019986e1fbd79d3a247a045a51487c09313026087ac457c15e",
-    "src/inferrsi/data/skill_library/methods/plan-activation-residency/metadata.json": "0289c62f93d087cd6a4ba4140487925c4b3258a9db1f7004ff1dfb22fd6d4582",
-    "src/inferrsi/data/skill_library/methods/plan-activation-residency/references/source-notes.md": "5ff52655cfd06fcf970ed2a7d4d4fe1c31115b102af2d41497de0c74848ed2b3"
+    "src/inferrsi/knowledge/data/skill_library/methods/plan-activation-residency/SKILL.md": "542d8a1e6963f5019986e1fbd79d3a247a045a51487c09313026087ac457c15e",
+    "src/inferrsi/knowledge/data/skill_library/methods/plan-activation-residency/metadata.json": "0289c62f93d087cd6a4ba4140487925c4b3258a9db1f7004ff1dfb22fd6d4582",
+    "src/inferrsi/knowledge/data/skill_library/methods/plan-activation-residency/references/source-notes.md": "5ff52655cfd06fcf970ed2a7d4d4fe1c31115b102af2d41497de0c74848ed2b3"
   },
   "skill_metadata": {
     "name": "plan-activation-residency",

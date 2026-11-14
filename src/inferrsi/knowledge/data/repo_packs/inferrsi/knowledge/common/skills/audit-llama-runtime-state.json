@@ -26,9 +26,9 @@
   },
   "checkout_ref": "checkout:audit-llama-runtime-state",
   "source_files": {
-    "src/inferrsi/data/skill_library/repositories/llama-cpp/audit-llama-runtime-state/SKILL.md": "95e81b6bc096a954fa73139ea5bc001d1efa6c99747161da62f012b494e5c013",
-    "src/inferrsi/data/skill_library/repositories/llama-cpp/audit-llama-runtime-state/metadata.json": "22f1d01b48ea6e2b2ef2deeb20c1404ce8b586eb18442b5adb1390310b4b7503",
-    "src/inferrsi/data/skill_library/repositories/llama-cpp/audit-llama-runtime-state/references/source-notes.md": "3d12a401e9decb55a2f4f3b2bfa0d360ef5110f63a0469dfe285654e78054190"
+    "src/inferrsi/knowledge/data/skill_library/repositories/llama-cpp/audit-llama-runtime-state/SKILL.md": "95e81b6bc096a954fa73139ea5bc001d1efa6c99747161da62f012b494e5c013",
+    "src/inferrsi/knowledge/data/skill_library/repositories/llama-cpp/audit-llama-runtime-state/metadata.json": "22f1d01b48ea6e2b2ef2deeb20c1404ce8b586eb18442b5adb1390310b4b7503",
+    "src/inferrsi/knowledge/data/skill_library/repositories/llama-cpp/audit-llama-runtime-state/references/source-notes.md": "3d12a401e9decb55a2f4f3b2bfa0d360ef5110f63a0469dfe285654e78054190"
   },
   "skill_metadata": {
     "name": "audit-llama-runtime-state",

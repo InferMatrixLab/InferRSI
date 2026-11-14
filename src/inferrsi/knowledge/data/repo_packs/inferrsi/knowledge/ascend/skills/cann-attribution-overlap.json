@@ -27,8 +27,8 @@
   },
   "checkout_ref": "checkout:cann-attribution-overlap",
   "source_files": {
-    "src/inferrsi/data/skill_library/hardware/ascend/cann-attribution-overlap/SKILL.md": "0e6f094dc554abea12e07def50f20b233b47127779a8aefad595b4ab1efd24c2",
-    "src/inferrsi/data/skill_library/hardware/ascend/cann-attribution-overlap/metadata.json": "7ad137076afb55fbea74c6c5c0c0ca8eb3a8e615a765ec23199e8df75a8abd4f"
+    "src/inferrsi/knowledge/data/skill_library/hardware/ascend/cann-attribution-overlap/SKILL.md": "0e6f094dc554abea12e07def50f20b233b47127779a8aefad595b4ab1efd24c2",
+    "src/inferrsi/knowledge/data/skill_library/hardware/ascend/cann-attribution-overlap/metadata.json": "7ad137076afb55fbea74c6c5c0c0ca8eb3a8e615a765ec23199e8df75a8abd4f"
   },
   "skill_metadata": {
     "name": "cann-attribution-overlap",

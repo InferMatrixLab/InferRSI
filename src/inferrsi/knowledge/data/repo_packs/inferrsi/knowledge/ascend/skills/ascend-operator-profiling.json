@@ -26,8 +26,8 @@
   },
   "checkout_ref": "checkout:ascend-operator-profiling",
   "source_files": {
-    "src/inferrsi/data/skill_library/hardware/ascend/ascend-operator-profiling/SKILL.md": "401981cf7828edcab0c9ea882f7ecd83badfa3c2a95006e912cf99d67b3d6a12",
-    "src/inferrsi/data/skill_library/hardware/ascend/ascend-operator-profiling/metadata.json": "b2b93637f01546ecb1b7076be6798d234988c594cccdcb764ad222af9ad21af9"
+    "src/inferrsi/knowledge/data/skill_library/hardware/ascend/ascend-operator-profiling/SKILL.md": "401981cf7828edcab0c9ea882f7ecd83badfa3c2a95006e912cf99d67b3d6a12",
+    "src/inferrsi/knowledge/data/skill_library/hardware/ascend/ascend-operator-profiling/metadata.json": "b2b93637f01546ecb1b7076be6798d234988c594cccdcb764ad222af9ad21af9"
   },
   "skill_metadata": {
     "name": "ascend-operator-profiling",

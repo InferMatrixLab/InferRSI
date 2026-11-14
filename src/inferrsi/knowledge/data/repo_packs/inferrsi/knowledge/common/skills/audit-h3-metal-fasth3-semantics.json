@@ -32,17 +32,17 @@
   },
   "checkout_ref": "checkout:audit-h3-metal-fasth3-semantics",
   "source_files": {
-    "src/inferrsi/data/skill_library/repositories/h3-metal/audit-h3-metal-fasth3-semantics/LICENSE": "663e51edcd9a3a8f858018ce6924ad2895a24c269c26c39ad75325bcd0f7e5bc",
-    "src/inferrsi/data/skill_library/repositories/h3-metal/audit-h3-metal-fasth3-semantics/SKILL.md": "e5205de6eba52b3d1693666af755640697717e52ee7834e1ae30e4071b208d54",
-    "src/inferrsi/data/skill_library/repositories/h3-metal/audit-h3-metal-fasth3-semantics/metadata.json": "f1681981db4f9077ee27ff71571dceecd69daf25136bd374b7d9ad3b59762a6a",
-    "src/inferrsi/data/skill_library/repositories/h3-metal/audit-h3-metal-fasth3-semantics/references/THIRD_PARTY_NOTICES.md": "a0d77db7d2aca0eda811ab3c386cc32b3143f2c2609a042cf4642954f0f6fb09",
-    "src/inferrsi/data/skill_library/repositories/h3-metal/audit-h3-metal-fasth3-semantics/references/preflight.md": "5cf745005914c74b18a09f127d1d02ce0cb64f6cd7899501ce3cb40938c42a4c",
-    "src/inferrsi/data/skill_library/repositories/h3-metal/audit-h3-metal-fasth3-semantics/references/repo-provenance.md": "6a4c14207223dcc2584f7133bd14ff4590c2258fc2bd44f3721b6bf63e3e35cf",
-    "src/inferrsi/data/skill_library/repositories/h3-metal/audit-h3-metal-fasth3-semantics/references/semantic-contracts.md": "3f518160e8a227272e698486e6c67acd364af0d74755103ffc868b2d66052c20",
-    "src/inferrsi/data/skill_library/repositories/h3-metal/audit-h3-metal-fasth3-semantics/references/source-identity.json": "b0e63197725c6a1baa4888ca3c48ccd4926b6e6f0f8bf781ae76ac97ffd1ceb1",
-    "src/inferrsi/data/skill_library/repositories/h3-metal/audit-h3-metal-fasth3-semantics/references/source-notes.md": "f9430103644eacd9c55ace6f84d8587fc0bc063bfcd9cb60e6045b139a9fee05",
-    "src/inferrsi/data/skill_library/repositories/h3-metal/audit-h3-metal-fasth3-semantics/references/troubleshooting.md": "ed552d87f9fb9fb2c56de64df61f3fc6e2333cb049116cd0736f784c8a327612",
-    "src/inferrsi/data/skill_library/repositories/h3-metal/audit-h3-metal-fasth3-semantics/scripts/audit_fasth3.py": "05bfb9348cf88a76f4fba8bc8a600fe54246d83a98c1685bc4847ace28e2fbac"
+    "src/inferrsi/knowledge/data/skill_library/repositories/h3-metal/audit-h3-metal-fasth3-semantics/LICENSE": "663e51edcd9a3a8f858018ce6924ad2895a24c269c26c39ad75325bcd0f7e5bc",
+    "src/inferrsi/knowledge/data/skill_library/repositories/h3-metal/audit-h3-metal-fasth3-semantics/SKILL.md": "e5205de6eba52b3d1693666af755640697717e52ee7834e1ae30e4071b208d54",
+    "src/inferrsi/knowledge/data/skill_library/repositories/h3-metal/audit-h3-metal-fasth3-semantics/metadata.json": "f1681981db4f9077ee27ff71571dceecd69daf25136bd374b7d9ad3b59762a6a",
+    "src/inferrsi/knowledge/data/skill_library/repositories/h3-metal/audit-h3-metal-fasth3-semantics/references/THIRD_PARTY_NOTICES.md": "a0d77db7d2aca0eda811ab3c386cc32b3143f2c2609a042cf4642954f0f6fb09",
+    "src/inferrsi/knowledge/data/skill_library/repositories/h3-metal/audit-h3-metal-fasth3-semantics/references/preflight.md": "5cf745005914c74b18a09f127d1d02ce0cb64f6cd7899501ce3cb40938c42a4c",
+    "src/inferrsi/knowledge/data/skill_library/repositories/h3-metal/audit-h3-metal-fasth3-semantics/references/repo-provenance.md": "6a4c14207223dcc2584f7133bd14ff4590c2258fc2bd44f3721b6bf63e3e35cf",
+    "src/inferrsi/knowledge/data/skill_library/repositories/h3-metal/audit-h3-metal-fasth3-semantics/references/semantic-contracts.md": "3f518160e8a227272e698486e6c67acd364af0d74755103ffc868b2d66052c20",
+    "src/inferrsi/knowledge/data/skill_library/repositories/h3-metal/audit-h3-metal-fasth3-semantics/references/source-identity.json": "b0e63197725c6a1baa4888ca3c48ccd4926b6e6f0f8bf781ae76ac97ffd1ceb1",
+    "src/inferrsi/knowledge/data/skill_library/repositories/h3-metal/audit-h3-metal-fasth3-semantics/references/source-notes.md": "f9430103644eacd9c55ace6f84d8587fc0bc063bfcd9cb60e6045b139a9fee05",
+    "src/inferrsi/knowledge/data/skill_library/repositories/h3-metal/audit-h3-metal-fasth3-semantics/references/troubleshooting.md": "ed552d87f9fb9fb2c56de64df61f3fc6e2333cb049116cd0736f784c8a327612",
+    "src/inferrsi/knowledge/data/skill_library/repositories/h3-metal/audit-h3-metal-fasth3-semantics/scripts/audit_fasth3.py": "05bfb9348cf88a76f4fba8bc8a600fe54246d83a98c1685bc4847ace28e2fbac"
   },
   "skill_metadata": {
     "name": "audit-h3-metal-fasth3-semantics",
