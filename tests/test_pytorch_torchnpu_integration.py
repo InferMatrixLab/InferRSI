@@ -9,6 +9,7 @@ import pytest
 import yaml
 
 from inferrsi.catalog import get_knowledge
+from inferrsi.knowledge._source_snapshot import source_entry
 from inferrsi.knowledge_operations import KnowledgeReader
 from inferrsi.skill_catalog import skill_metadata, skill_resource
 
@@ -19,7 +20,7 @@ GRAPHS = (("pytorch", "common"), ("torch-npu", "ascend"))
 
 def _pinned(path: Path) -> str:
     """Name a corpus file the way the pinned source_revision recorded it."""
-    return "src/inferrsi/" + path.relative_to(LIBRARY.parent.parent).as_posix()
+    return source_entry(path.relative_to(LIBRARY.parent.parent).as_posix())
 
 
 @pytest.mark.parametrize("name,backend", GRAPHS)

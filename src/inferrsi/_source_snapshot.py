@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 from inferrsi.knowledge._source_snapshot import (
-    BUNDLE_LIBRARY,
     LIBRARY,
     MANIFEST,
     REGISTRY,
@@ -12,19 +11,16 @@ from inferrsi.knowledge._source_snapshot import (
     compact,
     manifest,
     resolve,
-    source_entry,
 )
 
 __all__ = [
     "MANIFEST",
     "REPOSITORY",
     "LIBRARY",
-    "BUNDLE_LIBRARY",
     "REGISTRY",
     "STORED_SCHEMA",
     "manifest",
     "compact",
     "resolve",
-    "source_entry",
     "_snapshot",
 ]

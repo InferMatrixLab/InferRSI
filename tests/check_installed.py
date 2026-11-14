@@ -11,6 +11,7 @@ import inferrsi
 from inferrsi.benchmark.registry import builtin_tasks, describe_task, task_resources
 from inferrsi.catalog import REPO_TYPES, knowledge_records, repository_pack, search_knowledge
 from inferrsi.cli import main
+from inferrsi.knowledge._source_snapshot import BUNDLE_LIBRARY, LIBRARY
 from inferrsi.knowledge_operations import KnowledgeReader
 
 assert Path(inferrsi.__file__).resolve().parent.parent.name != "src", (
@@ -18,14 +19,20 @@ assert Path(inferrsi.__file__).resolve().parent.parent.name != "src", (
 )
 
 
-def resource(logical):
-    """Resolve a logical knowledge key to its installed physical location.
+def bundle_key(logical):
+    """Return the package-relative bundle key for a bundle or pinned-record key.
 
-    Bundle keys are "data/...", and pinned record paths are "src/inferrsi/data/...".
-    K02 moved the physical corpus under the Knowledge module without changing
-    either spelling, so both resolve through the same prefix.
+    Bundle keys are "data/...". Pinned record paths name the corpus at the
+    recorded source revision (LIBRARY); this is the inverse of source_entry().
     """
-    relative = logical.removeprefix("src/inferrsi/")
+    if logical.startswith(LIBRARY + "/"):
+        return BUNDLE_LIBRARY + logical[len(LIBRARY):]
+    return logical
+
+
+def resource(logical):
+    """Resolve a logical knowledge key to its installed physical location."""
+    relative = bundle_key(logical)
     assert relative.startswith("data/"), logical
     return files("inferrsi").joinpath("knowledge", *relative.split("/"))
 
@@ -532,7 +539,7 @@ assert sum(name.startswith("harness/data/") for name in inventory) == len(REPO_T
 # same enumeration, so the inventory and the records describe one resource set.
 for record in skill_index:
     for relative in record["source_files"]:
-        key = "knowledge/" + relative.removeprefix("src/inferrsi/")
+        key = "knowledge/" + bundle_key(relative)
         assert key in inventory, relative
 for entry in registry.values():
     assert f"knowledge/data/skill_library/{entry['path']}/SKILL.md" in inventory, entry["path"]

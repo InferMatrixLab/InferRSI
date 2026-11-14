@@ -64,8 +64,8 @@ authorized evaluation trail remains unvalidated regardless of packaging.
 
 | Artifact | Location | Format |
 |----------|----------|--------|
-| Knowledge records (experience) | `src/inferrsi/data/repo_packs/<repo>/knowledge/<backend>/<component>/<name>.json` | Validated JSON (catalog.py schema) |
-| Bilingual skill library | `src/inferrsi/data/skill_library/en/<repo>/` and `zh-CN/<repo>/` | SKILL.md + references/ + scripts/ |
+| Knowledge records (experience) | `src/inferrsi/knowledge/data/repo_packs/<repo>/knowledge/<backend>/<component>/<name>.json` | Validated JSON (catalog.py schema) |
+| Bilingual skill library | `src/inferrsi/knowledge/data/skill_library/en/<repo>/` and `zh-CN/<repo>/` | SKILL.md + references/ + scripts/ |
 | Skill bundle (distillation output) | `evidence/<campaign-id>/plan/agent-source-candidates/` | schema-validated JSON bundle |
 | Human reference skill | `evidence/<campaign-id>/plan/human-<name>/SKILL.md` | SKILL.md + references/ |
 | Candidate skill under evaluation | `evidence/<campaign-id>/plan/agent-source-candidates/<name>/` | SKILL.md + references/ |
