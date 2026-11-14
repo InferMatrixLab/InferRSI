@@ -338,3 +338,17 @@ All 30 matched images were exact, but component transport gains did not improve
 HTTP latency. Candidate W1/W2/W3 medians were 11.064/2.723/4.564s versus
 control 11.040/2.698/4.561s. [Full samples, quality and source identity](results/async-qkv-round22-rejection.json)
 record the rejection. No engine adoption or final ABBA/visual acceptance followed.
+
+## Quantization and TorchAir component follow-up
+
+[Quantization samples](results/nov14-quantization-component-search.json) cover
+streaming weight quantization, weight-only INT8, grouped activation quantization
+and low-rank correction fitted on independent calibration inputs. None provided
+a convincing speed and accuracy tradeoff for whole-model qualification. The
+group128 weight-only implementation had large errors whose cause is unresolved.
+
+[TorchAir samples](results/nov14-torchair-component-search.json) cover the native
+MLP, tiling optimization and a larger norm/MLP/gated-residual fragment. All nine
+comparisons were exact, but compiled execution remained slower. Modulation
+parameters in the larger fragment were synthetic. These are component results;
+HTTP performance and final acceptance remain INCONCLUSIVE, with no adoption.

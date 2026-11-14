@@ -1,5 +1,5 @@
 {
-  "README.md": "7ae0c8044f9c6c06f00a8407e26efa32787e10b647815a0848eb233c4efd62d0",
+  "README.md": "ef3f7375e58f5fb44061f8fa6877665832fb4f0d43c0d370cc3668b1cc551f8b",
   "patch/revision.json": "d8396389afd8c9c5565f9834e1a4ab092813e74c78285c921f7453b27a84235b",
   "plan/environment.json": "9b404a74007446fbbd6343383ebf8d18be446068d2018eb330c964473f54c45e",
   "plan/provenance.json": "a58206b9cb0f2dc1f0a51c71ce929630a3552a13bd7fdd5ced290a71945c28d6",
@@ -46,6 +46,8 @@
   "results/native-sp4-offload/request-measurements.json": "586eddd05b217320d86ff8a3d98b0067e1904f3a706e24cf3a2051d8a9da11e2",
   "results/native-sp4-offload/summary.json": "5eb77f9bada84dba34b2d097dda158f0e37f5bb9aa92fa776072491b828aa08c",
   "results/nov14-component-search.json": "268aad8459443cbfd98b3675c7daff77005e524947bc2b303b0505cf2f550d91",
+  "results/nov14-quantization-component-search.json": "0679fd34c93bc46809918e025177cecad2c49e69346e98776189c28b18aff3b5",
+  "results/nov14-torchair-component-search.json": "9f6bb641537551e42bb7c70ed0a9d4f3b8cf23cbf1477cfe4f681fb577ab988f",
   "results/nz-load-order-diagnosis.json": "f8ee43658c350928eb89d27e91026d73f0d4e22e5d7b0946c2a26103b4861701",
   "results/outlier-fc1-rejection.json": "3394892b99d137d73b1246748e588bf2ebbdcdd6b3c75245ea7251b02e3c3b55",
   "results/postload-nz-round16-result.json": "7969f33bea08171f7c44d98d43d497cf9c756965ecf1fcdd24268851dc2b00a5",
