@@ -1,0 +1,4525 @@
+{
+  "scope": "Attention component exploration; not HTTP latency or image-quality qualification.",
+  "verdict": "INCONCLUSIVE",
+  "adopted": false,
+  "acceptance_issue": "https://github.com/InferMatrixLab/InferRSI/issues/390",
+  "engine_revision": "bd30cbd3fb621fcca600b2de08fc1249c6c0987c",
+  "capture": {
+    "manifest": {
+      "scope": "New prompts not taken from acceptance assets; diagnostic-only capture; no HTTP timing claim",
+      "engine_revision": "bd30cbd3fb621fcca600b2de08fc1249c6c0987c",
+      "files": {
+        "request0-step0-block0.pt": "289fce9e84a38d9fe2ad99c716ebabff55264b0d95ceaa6a611b2a492bd37b35",
+        "request0-step0-block25.pt": "d43df1dfb04ddc45db37c8ef6d056c190feb15c687ef480eb4f616c29a103870",
+        "request0-step0-block49.pt": "a6af1050baa8a2983d0e0062dd331ed5ec7f39fa4260b81a19ea796b611d1014",
+        "request0-step5-block0.pt": "2418d097a1839794dca972fd2b4d0e2b95a86abd0f1501e8e30c658f7e31e053",
+        "request0-step5-block25.pt": "c0183184d9178aafc67f9fb36b88d6af271e791f01446f1e106bc3172cac7860",
+        "request0-step5-block49.pt": "891a01492b501182fd46ca734a211d9fb657322621b0a9a727516e35ce580b05",
+        "request1-step0-block0.pt": "0cb39fd63cf4ea9dc22b925c51e287cd6aa61e64562ff3c1a7b8e394f1670227",
+        "request1-step0-block25.pt": "cae034b4e77e67529a2a64423be3dd88a7167e1740d438a8e495e00db6eed536",
+        "request1-step0-block49.pt": "bc5867dcfd28b5adec4f8c60d88f27af19fc0b71a6cba87557ede0e520aff1c0",
+        "request1-step5-block0.pt": "1e7efff3313116425f29bfc21fff1fe543530a419029194cd9c02b2302e9cd1c",
+        "request1-step5-block25.pt": "9cacf83ecd1a0c0a567196b750527b18d15180ca8938bddcf0742691ce00d92e",
+        "request1-step5-block49.pt": "1955fa8c2720ca232e3121bccd2d985a7db9598276d4f7e1d540c539efc144c4"
+      }
+    },
+    "requests": [
+      {
+        "request": {
+          "model": "MiniMaxAI/MiniMax-H3-Image",
+          "prompt": "A red ceramic teapot beside three green pears on a blue linen tablecloth, soft morning window light, detailed still life photograph.",
+          "size": "1024x1024",
+          "seed": 910,
+          "generator_device": "cpu",
+          "num_inference_steps": 6,
+          "response_format": "b64_json",
+          "output_format": "png",
+          "output_compression": 100
+        },
+        "status_code": 200,
+        "scope": "diagnostic capture only, latency invalid"
+      },
+      {
+        "request": {
+          "model": "MiniMaxAI/MiniMax-H3-Image",
+          "prompt": "An old wooden fishing boat resting on a quiet pebble beach under a cloudy violet sky, distant lighthouse, wide landscape photograph.",
+          "size": "1024x1024",
+          "seed": 911,
+          "generator_device": "cpu",
+          "num_inference_steps": 6,
+          "response_format": "b64_json",
+          "output_format": "png",
+          "output_compression": 100
+        },
+        "status_code": 200,
+        "scope": "diagnostic capture only, latency invalid"
+      }
+    ],
+    "server_exit": 0,
+    "tensor_availability": "Raw tensors retained locally, not included in this export.",
+    "hook_sha256": "4932e80fcb8fed4dab51ba1c5d96727d32cf294c762620c7dadce21d364cbd86"
+  },
+  "limitations": [
+    "Synthetic density excludes mask construction and importance ranking; it is only an operator cost screen.",
+    "Real captures cover two new 1024-square prompts, rank0, blocks0/25/49 and steps0/5; they do not cover the full frozen workload.",
+    "Component output error includes all packed rows, including padding. It does not establish image acceptance.",
+    "Including eager importance-mask construction made every captured case slower. Compiling FP32 TopK masks was exact relative to eager FP32 masks but did not improve the synthetic total cost.",
+    "No sparse candidate entered whole-model quality validation."
+  ],
+  "failed_attempts": [
+    {
+      "experiment": "First synthetic importance run",
+      "reason": "Passed cumulative FAS boundaries to BlockSparseAttention, which expects individual document lengths. The first operation failed tiling; all subsequent samples from that process are invalid and excluded.",
+      "resolution": "Fresh process, convert lengths, check finite nonzero reference, and stop immediately after any backend error."
+    },
+    {
+      "experiment": "Compiled BF16 importance mask",
+      "reason": "GE TopK did not support BF16 input in the installed stack. Stopped after first error.",
+      "resolution": "Fresh-process retry with FP32 ranking scores, preserving BF16 Q/K/V."
+    }
+  ],
+  "probes": {
+    "synthetic_density": {
+      "source_file": "probe_sparse_density_attention.py",
+      "source_sha256": "4e34f3200cb887323d23dd95326be6ae0fd36c03c72e61fb8c568f550e95bb19",
+      "samples": [
+        {
+          "tokens": 4432,
+          "block_shape": [
+            128,
+            128
+          ],
+          "mask": "synthetic cyclic contiguous block selection; no importance calculation or mask-build cost included",
+          "requested_keep_ratio": 0.9,
+          "actual_keep_ratio": 0.9142857142857143,
+          "native": {
+            "samples_ms": [
+              1.3869269751012325,
+              1.3824860216118395,
+              1.1690410319715738,
+              1.16297003114596,
+              1.1677409638650715,
+              1.1561099672690034,
+              1.163039996754378,
+              1.1753810103982687
+            ],
+            "median_ms": 1.1683909979183227
+          },
+          "candidate": {
+            "samples_ms": [
+              1.1809109710156918,
+              1.1385499965399504,
+              1.1390100116841495,
+              1.1384199606254697,
+              1.1671099928207695,
+              1.147200004197657,
+              1.1356699978932738,
+              1.1320500052534044
+            ],
+            "median_ms": 1.13878000411205
+          },
+          "exact": false,
+          "max_abs": 0.11328125,
+          "relative_rmse": 0.3072599470615387
+        },
+        {
+          "tokens": 4432,
+          "block_shape": [
+            128,
+            128
+          ],
+          "mask": "synthetic cyclic contiguous block selection; no importance calculation or mask-build cost included",
+          "requested_keep_ratio": 0.75,
+          "actual_keep_ratio": 0.7714285714285715,
+          "native": {
+            "samples_ms": [
+              1.3869269751012325,
+              1.3824860216118395,
+              1.1690410319715738,
+              1.16297003114596,
+              1.1677409638650715,
+              1.1561099672690034,
+              1.163039996754378,
+              1.1753810103982687
+            ],
+            "median_ms": 1.1683909979183227
+          },
+          "candidate": {
+            "samples_ms": [
+              0.9906160412356257,
+              0.988835992757231,
+              0.9763750131241977,
+              0.9890060173347592,
+              0.9861360304057598,
+              0.9813659708015621,
+              0.9814650402404368,
+              0.9826460154727101
+            ],
+            "median_ms": 0.984391022939235
+          },
+          "exact": false,
+          "max_abs": 0.157470703125,
+          "relative_rmse": 0.5456088781356812
+        },
+        {
+          "tokens": 4432,
+          "block_shape": [
+            128,
+            128
+          ],
+          "mask": "synthetic cyclic contiguous block selection; no importance calculation or mask-build cost included",
+          "requested_keep_ratio": 0.5,
+          "actual_keep_ratio": 0.5142857142857142,
+          "native": {
+            "samples_ms": [
+              1.3869269751012325,
+              1.3824860216118395,
+              1.1690410319715738,
+              1.16297003114596,
+              1.1677409638650715,
+              1.1561099672690034,
+              1.163039996754378,
+              1.1753810103982687
+            ],
+            "median_ms": 1.1683909979183227
+          },
+          "candidate": {
+            "samples_ms": [
+              0.7479399791918695,
+              0.7485100068151951,
+              0.7437089807353914,
+              0.7380589959211648,
+              0.7471800199709833,
+              0.7392590050585568,
+              0.742000003810972,
+              0.7402289775200188
+            ],
+            "median_ms": 0.7428544922731817
+          },
+          "exact": false,
+          "max_abs": 0.173828125,
+          "relative_rmse": 0.9732673764228821
+        },
+        {
+          "tokens": 4432,
+          "block_shape": [
+            128,
+            128
+          ],
+          "mask": "synthetic cyclic contiguous block selection; no importance calculation or mask-build cost included",
+          "requested_keep_ratio": 0.25,
+          "actual_keep_ratio": 0.2571428571428571,
+          "native": {
+            "samples_ms": [
+              1.3869269751012325,
+              1.3824860216118395,
+              1.1690410319715738,
+              1.16297003114596,
+              1.1677409638650715,
+              1.1561099672690034,
+              1.163039996754378,
+              1.1753810103982687
+            ],
+            "median_ms": 1.1683909979183227
+          },
+          "candidate": {
+            "samples_ms": [
+              0.5464240093715489,
+              0.5500750266946852,
+              0.548003998119384,
+              0.547173956874758,
+              0.5447349976748228,
+              0.5459539825096726,
+              0.5419840454123914,
+              2.2792890085838735
+            ],
+            "median_ms": 0.5467989831231534
+          },
+          "exact": false,
+          "max_abs": 0.3603515625,
+          "relative_rmse": 1.6990705728530884
+        },
+        {
+          "tokens": 4432,
+          "block_shape": [
+            128,
+            128
+          ],
+          "mask": "synthetic cyclic contiguous block selection; no importance calculation or mask-build cost included",
+          "requested_keep_ratio": 0.125,
+          "actual_keep_ratio": 0.14285714285714285,
+          "native": {
+            "samples_ms": [
+              1.3869269751012325,
+              1.3824860216118395,
+              1.1690410319715738,
+              1.16297003114596,
+              1.1677409638650715,
+              1.1561099672690034,
+              1.163039996754378,
+              1.1753810103982687
+            ],
+            "median_ms": 1.1683909979183227
+          },
+          "candidate": {
+            "samples_ms": [
+              0.469531980343163,
+              0.46806299360468984,
+              0.4674019874073565,
+              0.460261944681406,
+              0.4639520193450153,
+              0.4596619983203709,
+              0.4666119930334389,
+              0.45946199679747224
+            ],
+            "median_ms": 0.4652820061892271
+          },
+          "exact": false,
+          "max_abs": 0.5771484375,
+          "relative_rmse": 2.443821907043457
+        },
+        {
+          "tokens": 4432,
+          "block_shape": [
+            256,
+            256
+          ],
+          "mask": "synthetic cyclic contiguous block selection; no importance calculation or mask-build cost included",
+          "requested_keep_ratio": 0.9,
+          "actual_keep_ratio": 0.9444444444444444,
+          "native": {
+            "samples_ms": [
+              1.3869269751012325,
+              1.3824860216118395,
+              1.1690410319715738,
+              1.16297003114596,
+              1.1677409638650715,
+              1.1561099672690034,
+              1.163039996754378,
+              1.1753810103982687
+            ],
+            "median_ms": 1.1683909979183227
+          },
+          "candidate": {
+            "samples_ms": [
+              1.1287099914625287,
+              1.1258789454586804,
+              1.1402899981476367,
+              1.1313099530525506,
+              1.135830010753125,
+              1.1170689831487834,
+              1.125070033594966,
+              1.1323289945721626
+            ],
+            "median_ms": 1.1300099722575396
+          },
+          "exact": false,
+          "max_abs": 0.1046142578125,
+          "relative_rmse": 0.24342621862888336
+        },
+        {
+          "tokens": 4432,
+          "block_shape": [
+            256,
+            256
+          ],
+          "mask": "synthetic cyclic contiguous block selection; no importance calculation or mask-build cost included",
+          "requested_keep_ratio": 0.75,
+          "actual_keep_ratio": 0.7777777777777778,
+          "native": {
+            "samples_ms": [
+              1.3869269751012325,
+              1.3824860216118395,
+              1.1690410319715738,
+              1.16297003114596,
+              1.1677409638650715,
+              1.1561099672690034,
+              1.163039996754378,
+              1.1753810103982687
+            ],
+            "median_ms": 1.1683909979183227
+          },
+          "candidate": {
+            "samples_ms": [
+              0.990856031421572,
+              0.9805060108192265,
+              0.980316021014005,
+              0.9839749545790255,
+              0.9790760232135653,
+              0.9778749663382769,
+              1.004196994472295,
+              0.9877750417217612
+            ],
+            "median_ms": 0.982240482699126
+          },
+          "exact": false,
+          "max_abs": 0.1484375,
+          "relative_rmse": 0.5358709096908569
+        },
+        {
+          "tokens": 4432,
+          "block_shape": [
+            256,
+            256
+          ],
+          "mask": "synthetic cyclic contiguous block selection; no importance calculation or mask-build cost included",
+          "requested_keep_ratio": 0.5,
+          "actual_keep_ratio": 0.5,
+          "native": {
+            "samples_ms": [
+              1.3869269751012325,
+              1.3824860216118395,
+              1.1690410319715738,
+              1.16297003114596,
+              1.1677409638650715,
+              1.1561099672690034,
+              1.163039996754378,
+              1.1753810103982687
+            ],
+            "median_ms": 1.1683909979183227
+          },
+          "candidate": {
+            "samples_ms": [
+              0.7276590331457555,
+              0.7325789774768054,
+              0.7276990218088031,
+              0.7274689851328731,
+              0.729189021512866,
+              0.7292689988389611,
+              0.7265390013344586,
+              0.725518970284611
+            ],
+            "median_ms": 0.7276790274772793
+          },
+          "exact": false,
+          "max_abs": 0.17578125,
+          "relative_rmse": 1.0003479719161987
+        },
+        {
+          "tokens": 4432,
+          "block_shape": [
+            256,
+            256
+          ],
+          "mask": "synthetic cyclic contiguous block selection; no importance calculation or mask-build cost included",
+          "requested_keep_ratio": 0.25,
+          "actual_keep_ratio": 0.2777777777777778,
+          "native": {
+            "samples_ms": [
+              1.3869269751012325,
+              1.3824860216118395,
+              1.1690410319715738,
+              1.16297003114596,
+              1.1677409638650715,
+              1.1561099672690034,
+              1.163039996754378,
+              1.1753810103982687
+            ],
+            "median_ms": 1.1683909979183227
+          },
+          "candidate": {
+            "samples_ms": [
+              0.5539049743674695,
+              0.5574440001510084,
+              0.5443039699457586,
+              0.5620449665002525,
+              0.5481539992615581,
+              0.5475049838423729,
+              0.5538939731195569,
+              0.5481339758262038
+            ],
+            "median_ms": 0.5510239861905575
+          },
+          "exact": false,
+          "max_abs": 0.3916015625,
+          "relative_rmse": 1.6107524633407593
+        },
+        {
+          "tokens": 4432,
+          "block_shape": [
+            256,
+            256
+          ],
+          "mask": "synthetic cyclic contiguous block selection; no importance calculation or mask-build cost included",
+          "requested_keep_ratio": 0.125,
+          "actual_keep_ratio": 0.16666666666666666,
+          "native": {
+            "samples_ms": [
+              1.3869269751012325,
+              1.3824860216118395,
+              1.1690410319715738,
+              1.16297003114596,
+              1.1677409638650715,
+              1.1561099672690034,
+              1.163039996754378,
+              1.1753810103982687
+            ],
+            "median_ms": 1.1683909979183227
+          },
+          "candidate": {
+            "samples_ms": [
+              0.4779319860972464,
+              0.473232998047024,
+              0.47188199823722243,
+              0.46840199502184987,
+              0.4851329722441733,
+              0.4707119660452008,
+              0.46990299597382545,
+              0.4690730129368603
+            ],
+            "median_ms": 0.47129698214121163
+          },
+          "exact": false,
+          "max_abs": 0.6123046875,
+          "relative_rmse": 2.230780601501465
+        },
+        {
+          "tokens": 6608,
+          "block_shape": [
+            128,
+            128
+          ],
+          "mask": "synthetic cyclic contiguous block selection; no importance calculation or mask-build cost included",
+          "requested_keep_ratio": 0.9,
+          "actual_keep_ratio": 0.9038461538461539,
+          "native": {
+            "samples_ms": [
+              2.2048180107958615,
+              2.186437021009624,
+              2.180817013140768,
+              2.1762169781140983,
+              2.178366994485259,
+              2.186477999202907,
+              2.205557015258819,
+              2.175297006033361
+            ],
+            "median_ms": 2.183627017075196
+          },
+          "candidate": {
+            "samples_ms": [
+              2.0801140344701707,
+              2.0823749946430326,
+              2.0669240038841963,
+              2.0722440094687045,
+              2.1448759944178164,
+              2.1066750050522387,
+              2.1193259744904935,
+              2.143935998901725
+            ],
+            "median_ms": 2.0945249998476356
+          },
+          "exact": false,
+          "max_abs": 0.0716552734375,
+          "relative_rmse": 0.33085259795188904
+        },
+        {
+          "tokens": 6608,
+          "block_shape": [
+            128,
+            128
+          ],
+          "mask": "synthetic cyclic contiguous block selection; no importance calculation or mask-build cost included",
+          "requested_keep_ratio": 0.75,
+          "actual_keep_ratio": 0.75,
+          "native": {
+            "samples_ms": [
+              2.2048180107958615,
+              2.186437021009624,
+              2.180817013140768,
+              2.1762169781140983,
+              2.178366994485259,
+              2.186477999202907,
+              2.205557015258819,
+              2.175297006033361
+            ],
+            "median_ms": 2.183627017075196
+          },
+          "candidate": {
+            "samples_ms": [
+              1.8155970028601587,
+              1.8170579569414258,
+              1.8048869678750634,
+              1.776715973392129,
+              1.783267012797296,
+              1.8137769657187164,
+              1.786026987247169,
+              1.7945769941434264
+            ],
+            "median_ms": 1.799731981009245
+          },
+          "exact": false,
+          "max_abs": 0.108642578125,
+          "relative_rmse": 0.5843815803527832
+        },
+        {
+          "tokens": 6608,
+          "block_shape": [
+            128,
+            128
+          ],
+          "mask": "synthetic cyclic contiguous block selection; no importance calculation or mask-build cost included",
+          "requested_keep_ratio": 0.5,
+          "actual_keep_ratio": 0.5,
+          "native": {
+            "samples_ms": [
+              2.2048180107958615,
+              2.186437021009624,
+              2.180817013140768,
+              2.1762169781140983,
+              2.178366994485259,
+              2.186477999202907,
+              2.205557015258819,
+              2.175297006033361
+            ],
+            "median_ms": 2.183627017075196
+          },
+          "candidate": {
+            "samples_ms": [
+              1.2856630492024124,
+              1.2843830045312643,
+              1.2868939666077495,
+              1.2862829607911408,
+              1.290534040890634,
+              1.2759239762090147,
+              1.2923430185765028,
+              1.278804033063352
+            ],
+            "median_ms": 1.2859730049967766
+          },
+          "exact": false,
+          "max_abs": 0.13299560546875,
+          "relative_rmse": 1.012399673461914
+        },
+        {
+          "tokens": 6608,
+          "block_shape": [
+            128,
+            128
+          ],
+          "mask": "synthetic cyclic contiguous block selection; no importance calculation or mask-build cost included",
+          "requested_keep_ratio": 0.25,
+          "actual_keep_ratio": 0.25,
+          "native": {
+            "samples_ms": [
+              2.2048180107958615,
+              2.186437021009624,
+              2.180817013140768,
+              2.1762169781140983,
+              2.178366994485259,
+              2.186477999202907,
+              2.205557015258819,
+              2.175297006033361
+            ],
+            "median_ms": 2.183627017075196
+          },
+          "candidate": {
+            "samples_ms": [
+              0.8145709871314466,
+              0.8127319742925465,
+              0.8137710392475128,
+              0.8093109936453402,
+              0.8139510173350573,
+              0.8147620246745646,
+              0.8132310467772186,
+              0.8240309543907642
+            ],
+            "median_ms": 0.813861028291285
+          },
+          "exact": false,
+          "max_abs": 0.243408203125,
+          "relative_rmse": 1.7513450384140015
+        },
+        {
+          "tokens": 6608,
+          "block_shape": [
+            128,
+            128
+          ],
+          "mask": "synthetic cyclic contiguous block selection; no importance calculation or mask-build cost included",
+          "requested_keep_ratio": 0.125,
+          "actual_keep_ratio": 0.1346153846153846,
+          "native": {
+            "samples_ms": [
+              2.2048180107958615,
+              2.186437021009624,
+              2.180817013140768,
+              2.1762169781140983,
+              2.178366994485259,
+              2.186477999202907,
+              2.205557015258819,
+              2.175297006033361
+            ],
+            "median_ms": 2.183627017075196
+          },
+          "candidate": {
+            "samples_ms": [
+              0.6909680087119341,
+              0.6823069998063147,
+              0.6829479825682938,
+              0.676908006425947,
+              0.6862079608254135,
+              0.6808180478401482,
+              0.6778770475648344,
+              0.6735780043527484
+            ],
+            "median_ms": 0.6815625238232315
+          },
+          "exact": false,
+          "max_abs": 0.43310546875,
+          "relative_rmse": 2.5632379055023193
+        },
+        {
+          "tokens": 6608,
+          "block_shape": [
+            256,
+            256
+          ],
+          "mask": "synthetic cyclic contiguous block selection; no importance calculation or mask-build cost included",
+          "requested_keep_ratio": 0.9,
+          "actual_keep_ratio": 0.9230769230769231,
+          "native": {
+            "samples_ms": [
+              2.2048180107958615,
+              2.186437021009624,
+              2.180817013140768,
+              2.1762169781140983,
+              2.178366994485259,
+              2.186477999202907,
+              2.205557015258819,
+              2.175297006033361
+            ],
+            "median_ms": 2.183627017075196
+          },
+          "candidate": {
+            "samples_ms": [
+              2.184546960052103,
+              2.1654260344803333,
+              2.176416979636997,
+              2.1653869771398604,
+              2.176057023461908,
+              2.15793598908931,
+              2.1604470093734562,
+              2.1577959996648133
+            ],
+            "median_ms": 2.165406505810097
+          },
+          "exact": false,
+          "max_abs": 0.070068359375,
+          "relative_rmse": 0.29305317997932434
+        },
+        {
+          "tokens": 6608,
+          "block_shape": [
+            256,
+            256
+          ],
+          "mask": "synthetic cyclic contiguous block selection; no importance calculation or mask-build cost included",
+          "requested_keep_ratio": 0.75,
+          "actual_keep_ratio": 0.7692307692307693,
+          "native": {
+            "samples_ms": [
+              2.2048180107958615,
+              2.186437021009624,
+              2.180817013140768,
+              2.1762169781140983,
+              2.178366994485259,
+              2.186477999202907,
+              2.205557015258819,
+              2.175297006033361
+            ],
+            "median_ms": 2.183627017075196
+          },
+          "candidate": {
+            "samples_ms": [
+              1.865458965767175,
+              1.8628290272317827,
+              1.8632590072229505,
+              1.8796490039676428,
+              1.8650690326467156,
+              1.8608079990372062,
+              1.8562289769761264,
+              1.8585989600978792
+            ],
+            "median_ms": 1.8630440172273666
+          },
+          "exact": false,
+          "max_abs": 0.102783203125,
+          "relative_rmse": 0.554558515548706
+        },
+        {
+          "tokens": 6608,
+          "block_shape": [
+            256,
+            256
+          ],
+          "mask": "synthetic cyclic contiguous block selection; no importance calculation or mask-build cost included",
+          "requested_keep_ratio": 0.5,
+          "actual_keep_ratio": 0.5,
+          "native": {
+            "samples_ms": [
+              2.2048180107958615,
+              2.186437021009624,
+              2.180817013140768,
+              2.1762169781140983,
+              2.178366994485259,
+              2.186477999202907,
+              2.205557015258819,
+              2.175297006033361
+            ],
+            "median_ms": 2.183627017075196
+          },
+          "candidate": {
+            "samples_ms": [
+              1.2892640079371631,
+              1.2767630396410823,
+              1.2892640079371631,
+              1.2828540056943893,
+              1.300763979088515,
+              1.2870439677499235,
+              1.281633973121643,
+              1.2796929804608226
+            ],
+            "median_ms": 1.2849489867221564
+          },
+          "exact": false,
+          "max_abs": 0.1407470703125,
+          "relative_rmse": 1.0121344327926636
+        },
+        {
+          "tokens": 6608,
+          "block_shape": [
+            256,
+            256
+          ],
+          "mask": "synthetic cyclic contiguous block selection; no importance calculation or mask-build cost included",
+          "requested_keep_ratio": 0.25,
+          "actual_keep_ratio": 0.2692307692307692,
+          "native": {
+            "samples_ms": [
+              2.2048180107958615,
+              2.186437021009624,
+              2.180817013140768,
+              2.1762169781140983,
+              2.178366994485259,
+              2.186477999202907,
+              2.205557015258819,
+              2.175297006033361
+            ],
+            "median_ms": 2.183627017075196
+          },
+          "candidate": {
+            "samples_ms": [
+              0.8271820261143148,
+              0.8247119840234518,
+              0.8324409718625247,
+              0.823681999463588,
+              0.8293020073324442,
+              0.8355319732800126,
+              0.8260520407930017,
+              0.8398420177400112
+            ],
+            "median_ms": 0.8282420167233795
+          },
+          "exact": false,
+          "max_abs": 0.222900390625,
+          "relative_rmse": 1.666031837463379
+        },
+        {
+          "tokens": 6608,
+          "block_shape": [
+            256,
+            256
+          ],
+          "mask": "synthetic cyclic contiguous block selection; no importance calculation or mask-build cost included",
+          "requested_keep_ratio": 0.125,
+          "actual_keep_ratio": 0.15384615384615385,
+          "native": {
+            "samples_ms": [
+              2.2048180107958615,
+              2.186437021009624,
+              2.180817013140768,
+              2.1762169781140983,
+              2.178366994485259,
+              2.186477999202907,
+              2.205557015258819,
+              2.175297006033361
+            ],
+            "median_ms": 2.183627017075196
+          },
+          "candidate": {
+            "samples_ms": [
+              0.6727470317855477,
+              0.6767869926989079,
+              0.6859980057924986,
+              0.6718380027450621,
+              0.6753269699402153,
+              0.6690080044791102,
+              0.679308024700731,
+              0.6690479931421578
+            ],
+            "median_ms": 0.6740370008628815
+          },
+          "exact": false,
+          "max_abs": 0.392822265625,
+          "relative_rmse": 2.3712332248687744
+        },
+        {
+          "tokens": 16768,
+          "block_shape": [
+            128,
+            128
+          ],
+          "mask": "synthetic cyclic contiguous block selection; no importance calculation or mask-build cost included",
+          "requested_keep_ratio": 0.9,
+          "actual_keep_ratio": 0.9007633587786259,
+          "native": {
+            "samples_ms": [
+              13.696498004719615,
+              13.695317960809916,
+              13.539384002797306,
+              13.463782030157745,
+              13.535364007111639,
+              13.484043010976166,
+              13.464952004142106,
+              13.471731974277645
+            ],
+            "median_ms": 13.509703509043902
+          },
+          "candidate": {
+            "samples_ms": [
+              12.143316969741136,
+              12.061135959811509,
+              12.277390982490033,
+              12.006144039332867,
+              11.86296995729208,
+              12.314602034166455,
+              12.558069021906704,
+              12.238339986652136
+            ],
+            "median_ms": 12.190828478196636
+          },
+          "exact": false,
+          "max_abs": 0.04656982421875,
+          "relative_rmse": 0.3327254056930542
+        },
+        {
+          "tokens": 16768,
+          "block_shape": [
+            128,
+            128
+          ],
+          "mask": "synthetic cyclic contiguous block selection; no importance calculation or mask-build cost included",
+          "requested_keep_ratio": 0.75,
+          "actual_keep_ratio": 0.7557251908396947,
+          "native": {
+            "samples_ms": [
+              13.696498004719615,
+              13.695317960809916,
+              13.539384002797306,
+              13.463782030157745,
+              13.535364007111639,
+              13.484043010976166,
+              13.464952004142106,
+              13.471731974277645
+            ],
+            "median_ms": 13.509703509043902
+          },
+          "candidate": {
+            "samples_ms": [
+              10.212427005171776,
+              10.099373990669847,
+              10.208747000433505,
+              10.162465972825885,
+              10.142215003725141,
+              10.162105958443135,
+              10.096474026795477,
+              10.055263002868742
+            ],
+            "median_ms": 10.152160481084138
+          },
+          "exact": false,
+          "max_abs": 0.0500606894493103,
+          "relative_rmse": 0.5698423981666565
+        },
+        {
+          "tokens": 16768,
+          "block_shape": [
+            128,
+            128
+          ],
+          "mask": "synthetic cyclic contiguous block selection; no importance calculation or mask-build cost included",
+          "requested_keep_ratio": 0.5,
+          "actual_keep_ratio": 0.5038167938931297,
+          "native": {
+            "samples_ms": [
+              13.696498004719615,
+              13.695317960809916,
+              13.539384002797306,
+              13.463782030157745,
+              13.535364007111639,
+              13.484043010976166,
+              13.464952004142106,
+              13.471731974277645
+            ],
+            "median_ms": 13.509703509043902
+          },
+          "candidate": {
+            "samples_ms": [
+              6.72335596755147,
+              6.661203980911523,
+              6.659104023128748,
+              6.666834000498056,
+              6.665404012892395,
+              6.680204998701811,
+              6.674723990727216,
+              6.694275012705475
+            ],
+            "median_ms": 6.670778995612636
+          },
+          "exact": false,
+          "max_abs": 0.07958984375,
+          "relative_rmse": 0.9961057901382446
+        },
+        {
+          "tokens": 16768,
+          "block_shape": [
+            128,
+            128
+          ],
+          "mask": "synthetic cyclic contiguous block selection; no importance calculation or mask-build cost included",
+          "requested_keep_ratio": 0.25,
+          "actual_keep_ratio": 0.25190839694656486,
+          "native": {
+            "samples_ms": [
+              13.696498004719615,
+              13.695317960809916,
+              13.539384002797306,
+              13.463782030157745,
+              13.535364007111639,
+              13.484043010976166,
+              13.464952004142106,
+              13.471731974277645
+            ],
+            "median_ms": 13.509703509043902
+          },
+          "candidate": {
+            "samples_ms": [
+              3.5478330100886524,
+              3.51952196797356,
+              3.511531976982951,
+              3.536742995493114,
+              3.5680130240507424,
+              3.598593990318477,
+              3.5671640071086586,
+              3.568743006326258
+            ],
+            "median_ms": 3.5574985085986555
+          },
+          "exact": false,
+          "max_abs": 0.18017578125,
+          "relative_rmse": 1.726284146308899
+        },
+        {
+          "tokens": 16768,
+          "block_shape": [
+            128,
+            128
+          ],
+          "mask": "synthetic cyclic contiguous block selection; no importance calculation or mask-build cost included",
+          "requested_keep_ratio": 0.125,
+          "actual_keep_ratio": 0.1297709923664122,
+          "native": {
+            "samples_ms": [
+              13.696498004719615,
+              13.695317960809916,
+              13.539384002797306,
+              13.463782030157745,
+              13.535364007111639,
+              13.484043010976166,
+              13.464952004142106,
+              13.471731974277645
+            ],
+            "median_ms": 13.509703509043902
+          },
+          "candidate": {
+            "samples_ms": [
+              2.0182330044917762,
+              2.016722981352359,
+              2.014492987655103,
+              2.0291630062274635,
+              2.019333012867719,
+              2.010241965763271,
+              2.0118830143474042,
+              2.0225829794071615
+            ],
+            "median_ms": 2.0174779929220676
+          },
+          "exact": false,
+          "max_abs": 0.33056640625,
+          "relative_rmse": 2.5920214653015137
+        },
+        {
+          "tokens": 16768,
+          "block_shape": [
+            256,
+            256
+          ],
+          "mask": "synthetic cyclic contiguous block selection; no importance calculation or mask-build cost included",
+          "requested_keep_ratio": 0.9,
+          "actual_keep_ratio": 0.9090909090909091,
+          "native": {
+            "samples_ms": [
+              13.696498004719615,
+              13.695317960809916,
+              13.539384002797306,
+              13.463782030157745,
+              13.535364007111639,
+              13.484043010976166,
+              13.464952004142106,
+              13.471731974277645
+            ],
+            "median_ms": 13.509703509043902
+          },
+          "candidate": {
+            "samples_ms": [
+              11.959622032009065,
+              12.151778035331517,
+              12.252500979229808,
+              12.216358969453722,
+              12.35943305073306,
+              12.836885987780988,
+              12.785614002496004,
+              12.537248025182635
+            ],
+            "median_ms": 12.305967014981434
+          },
+          "exact": false,
+          "max_abs": 0.04193115234375,
+          "relative_rmse": 0.31708380579948425
+        },
+        {
+          "tokens": 16768,
+          "block_shape": [
+            256,
+            256
+          ],
+          "mask": "synthetic cyclic contiguous block selection; no importance calculation or mask-build cost included",
+          "requested_keep_ratio": 0.75,
+          "actual_keep_ratio": 0.7575757575757576,
+          "native": {
+            "samples_ms": [
+              13.696498004719615,
+              13.695317960809916,
+              13.539384002797306,
+              13.463782030157745,
+              13.535364007111639,
+              13.484043010976166,
+              13.464952004142106,
+              13.471731974277645
+            ],
+            "median_ms": 13.509703509043902
+          },
+          "candidate": {
+            "samples_ms": [
+              9.83953702962026,
+              10.139655030798167,
+              10.107325040735304,
+              10.130264970939606,
+              9.99492104165256,
+              10.121415019966662,
+              10.114963981322944,
+              10.08016400737688
+            ],
+            "median_ms": 10.111144511029124
+          },
+          "exact": false,
+          "max_abs": 0.0538482666015625,
+          "relative_rmse": 0.5669525861740112
+        },
+        {
+          "tokens": 16768,
+          "block_shape": [
+            256,
+            256
+          ],
+          "mask": "synthetic cyclic contiguous block selection; no importance calculation or mask-build cost included",
+          "requested_keep_ratio": 0.5,
+          "actual_keep_ratio": 0.5,
+          "native": {
+            "samples_ms": [
+              13.696498004719615,
+              13.695317960809916,
+              13.539384002797306,
+              13.463782030157745,
+              13.535364007111639,
+              13.484043010976166,
+              13.464952004142106,
+              13.471731974277645
+            ],
+            "median_ms": 13.509703509043902
+          },
+          "candidate": {
+            "samples_ms": [
+              6.735055998433381,
+              6.550600985065103,
+              6.543500989209861,
+              6.701005971990526,
+              6.6334030125290155,
+              6.645603978540748,
+              6.630183022934943,
+              6.6297739977017045
+            ],
+            "median_ms": 6.6317930177319795
+          },
+          "exact": false,
+          "max_abs": 0.075927734375,
+          "relative_rmse": 1.0037325620651245
+        },
+        {
+          "tokens": 16768,
+          "block_shape": [
+            256,
+            256
+          ],
+          "mask": "synthetic cyclic contiguous block selection; no importance calculation or mask-build cost included",
+          "requested_keep_ratio": 0.25,
+          "actual_keep_ratio": 0.25757575757575757,
+          "native": {
+            "samples_ms": [
+              13.696498004719615,
+              13.695317960809916,
+              13.539384002797306,
+              13.463782030157745,
+              13.535364007111639,
+              13.484043010976166,
+              13.464952004142106,
+              13.471731974277645
+            ],
+            "median_ms": 13.509703509043902
+          },
+          "candidate": {
+            "samples_ms": [
+              3.605533973313868,
+              3.566163999494165,
+              3.5748030059039593,
+              3.5826240200549364,
+              3.6183850024826825,
+              3.529842011630535,
+              3.5432929871603847,
+              3.54485196294263
+            ],
+            "median_ms": 3.5704835026990622
+          },
+          "exact": false,
+          "max_abs": 0.17138671875,
+          "relative_rmse": 1.700831651687622
+        },
+        {
+          "tokens": 16768,
+          "block_shape": [
+            256,
+            256
+          ],
+          "mask": "synthetic cyclic contiguous block selection; no importance calculation or mask-build cost included",
+          "requested_keep_ratio": 0.125,
+          "actual_keep_ratio": 0.13636363636363635,
+          "native": {
+            "samples_ms": [
+              13.696498004719615,
+              13.695317960809916,
+              13.539384002797306,
+              13.463782030157745,
+              13.535364007111639,
+              13.484043010976166,
+              13.464952004142106,
+              13.471731974277645
+            ],
+            "median_ms": 13.509703509043902
+          },
+          "candidate": {
+            "samples_ms": [
+              2.114425995387137,
+              2.1180949988774955,
+              2.118675969541073,
+              2.1374860079959035,
+              2.111324982251972,
+              2.099654986523092,
+              2.1031450014561415,
+              2.107154985424131
+            ],
+            "median_ms": 2.1128754888195544
+          },
+          "exact": false,
+          "max_abs": 0.3294677734375,
+          "relative_rmse": 2.5189263820648193
+        }
+      ]
+    },
+    "synthetic_importance_cost": {
+      "source_file": "probe_synthetic_importance_sparse.py",
+      "source_sha256": "85df4a035049c189721dd1b844dfe11170f0881cf3bf4c93319c9be16d24d6e6",
+      "samples": [
+        {
+          "scope": "synthetic importance-mask cost only; no real activation or image claim",
+          "capture": "synthetic-4432",
+          "tokens": 4432,
+          "document_bounds": [
+            4400,
+            4432
+          ],
+          "keep_ratio": 1.0,
+          "native": [
+            {
+              "samples_ms": [
+                1.4410080038942397,
+                1.391105994116515,
+                1.217292039655149,
+                1.2221919605508447,
+                1.2058719876222312,
+                1.2131219846196473
+              ],
+              "median_ms": 1.2197420001029968
+            },
+            {
+              "samples_ms": [
+                1.277513976674527,
+                1.2133420095779002,
+                1.208471949212253,
+                1.215380965732038,
+                1.2040320434607565,
+                1.2086620554327965
+              ],
+              "median_ms": 1.2110020325053483
+            }
+          ],
+          "candidate": [
+            {
+              "samples_ms": [
+                3.7120869965292513,
+                3.42901999829337,
+                3.4435500274412334,
+                3.4731710329651833,
+                3.4374900278635323,
+                3.396698972210288
+              ],
+              "median_ms": 3.440520027652383
+            },
+            {
+              "samples_ms": [
+                3.4709209576249123,
+                3.436520986724645,
+                3.4259000094607472,
+                3.4333199728280306,
+                3.452361037489027,
+                3.4657110227271914
+              ],
+              "median_ms": 3.444441012106836
+            }
+          ],
+          "mask_cost_included": true,
+          "exact": false,
+          "relative_rmse": 0.0011129685444757342,
+          "max_abs": 0.00048828125,
+          "repeat_exact": true
+        },
+        {
+          "scope": "synthetic importance-mask cost only; no real activation or image claim",
+          "capture": "synthetic-4432",
+          "tokens": 4432,
+          "document_bounds": [
+            4400,
+            4432
+          ],
+          "keep_ratio": 0.9,
+          "native": [
+            {
+              "samples_ms": [
+                1.4410080038942397,
+                1.391105994116515,
+                1.217292039655149,
+                1.2221919605508447,
+                1.2058719876222312,
+                1.2131219846196473
+              ],
+              "median_ms": 1.2197420001029968
+            },
+            {
+              "samples_ms": [
+                1.2627330143004656,
+                1.1973610380664468,
+                1.192961004562676,
+                1.2141219922341406,
+                1.205862034112215,
+                1.2170319678261876
+              ],
+              "median_ms": 1.2099920131731778
+            }
+          ],
+          "candidate": [
+            {
+              "samples_ms": [
+                3.4000989980995655,
+                3.406879026442766,
+                3.3632389968261123,
+                3.421899047680199,
+                3.374747990164906,
+                5.368551006540656
+              ],
+              "median_ms": 3.403489012271166
+            },
+            {
+              "samples_ms": [
+                3.423880029004067,
+                3.3829990425147116,
+                3.3853090135380626,
+                3.418790001887828,
+                3.3525179605931044,
+                3.392969025298953
+              ],
+              "median_ms": 3.389139019418508
+            }
+          ],
+          "mask_cost_included": true,
+          "exact": false,
+          "relative_rmse": 0.2172749936580658,
+          "max_abs": 0.0914154052734375,
+          "repeat_exact": true
+        },
+        {
+          "scope": "synthetic importance-mask cost only; no real activation or image claim",
+          "capture": "synthetic-4432",
+          "tokens": 4432,
+          "document_bounds": [
+            4400,
+            4432
+          ],
+          "keep_ratio": 0.75,
+          "native": [
+            {
+              "samples_ms": [
+                1.4410080038942397,
+                1.391105994116515,
+                1.217292039655149,
+                1.2221919605508447,
+                1.2058719876222312,
+                1.2131219846196473
+              ],
+              "median_ms": 1.2197420001029968
+            },
+            {
+              "samples_ms": [
+                1.2432030052877963,
+                1.2079409789294004,
+                1.2221519718877971,
+                1.2099019950255752,
+                1.2120819883421063,
+                1.1994109954684973
+              ],
+              "median_ms": 1.2109919916838408
+            }
+          ],
+          "candidate": [
+            {
+              "samples_ms": [
+                3.2473350293003023,
+                3.2320449827238917,
+                3.2226250041276217,
+                3.2337349839508533,
+                3.255455056205392,
+                3.2360749901272357
+              ],
+              "median_ms": 3.2349049870390445
+            },
+            {
+              "samples_ms": [
+                3.256944997701794,
+                3.207203990314156,
+                3.206403984222561,
+                3.21966502815485,
+                3.226325032301247,
+                3.2233840320259333
+              ],
+              "median_ms": 3.2215245300903916
+            }
+          ],
+          "mask_cost_included": true,
+          "exact": false,
+          "relative_rmse": 0.39175155758857727,
+          "max_abs": 0.1785888671875,
+          "repeat_exact": true
+        },
+        {
+          "scope": "synthetic importance-mask cost only; no real activation or image claim",
+          "capture": "synthetic-4432",
+          "tokens": 4432,
+          "document_bounds": [
+            4400,
+            4432
+          ],
+          "keep_ratio": 0.5,
+          "native": [
+            {
+              "samples_ms": [
+                1.4410080038942397,
+                1.391105994116515,
+                1.217292039655149,
+                1.2221919605508447,
+                1.2058719876222312,
+                1.2131219846196473
+              ],
+              "median_ms": 1.2197420001029968
+            },
+            {
+              "samples_ms": [
+                1.2416630052030087,
+                1.198560988996178,
+                1.2088619987480342,
+                1.211612019687891,
+                1.230292022228241,
+                1.2099220184609294
+              ],
+              "median_ms": 1.2107670190744102
+            }
+          ],
+          "candidate": [
+            {
+              "samples_ms": [
+                3.005868988111615,
+                3.0108389910310507,
+                3.0061189900152385,
+                3.0045989551581442,
+                3.037490008864552,
+                6.095470045693219
+              ],
+              "median_ms": 3.0084789905231446
+            },
+            {
+              "samples_ms": [
+                3.3681989880278707,
+                3.035519039258361,
+                3.0063290032558143,
+                3.010949003510177,
+                3.0192489502951503,
+                3.004299011081457
+              ],
+              "median_ms": 3.0150989769026637
+            }
+          ],
+          "mask_cost_included": true,
+          "exact": false,
+          "relative_rmse": 0.7061272263526917,
+          "max_abs": 0.180419921875,
+          "repeat_exact": true
+        },
+        {
+          "scope": "synthetic importance-mask cost only; no real activation or image claim",
+          "capture": "synthetic-6608",
+          "tokens": 6608,
+          "document_bounds": [
+            6576,
+            6608
+          ],
+          "keep_ratio": 1.0,
+          "native": [
+            {
+              "samples_ms": [
+                2.2994710016064346,
+                2.2428089869208634,
+                2.246968972031027,
+                2.2558090277016163,
+                2.2441490436904132,
+                2.2727400064468384
+              ],
+              "median_ms": 2.2513889998663217
+            },
+            {
+              "samples_ms": [
+                2.296250022482127,
+                2.2475890000350773,
+                2.245329029392451,
+                2.2782199666835368,
+                2.2416890133172274,
+                2.2245779982768
+              ],
+              "median_ms": 2.246459014713764
+            }
+          ],
+          "candidate": [
+            {
+              "samples_ms": [
+                4.57307999022305,
+                4.541849019005895,
+                4.53866901807487,
+                4.54668904421851,
+                4.5647399965673685,
+                4.56715002655983
+              ],
+              "median_ms": 4.5557145203929394
+            },
+            {
+              "samples_ms": [
+                4.6109610120765865,
+                4.552589962258935,
+                4.590740019921213,
+                4.572860954795033,
+                4.558349028229713,
+                4.56167000811547
+              ],
+              "median_ms": 4.567265481455252
+            }
+          ],
+          "mask_cost_included": true,
+          "exact": false,
+          "relative_rmse": 0.0010670525953173637,
+          "max_abs": 0.00048828125,
+          "repeat_exact": true
+        },
+        {
+          "scope": "synthetic importance-mask cost only; no real activation or image claim",
+          "capture": "synthetic-6608",
+          "tokens": 6608,
+          "document_bounds": [
+            6576,
+            6608
+          ],
+          "keep_ratio": 0.9,
+          "native": [
+            {
+              "samples_ms": [
+                2.2994710016064346,
+                2.2428089869208634,
+                2.246968972031027,
+                2.2558090277016163,
+                2.2441490436904132,
+                2.2727400064468384
+              ],
+              "median_ms": 2.2513889998663217
+            },
+            {
+              "samples_ms": [
+                2.2659189999103546,
+                2.252869016956538,
+                2.223509014584124,
+                2.224048017524183,
+                2.2711100173182786,
+                2.2434889688156545
+              ],
+              "median_ms": 2.2481789928860962
+            }
+          ],
+          "candidate": [
+            {
+              "samples_ms": [
+                4.317272978369147,
+                4.342833999544382,
+                4.324993991758674,
+                4.312033008318394,
+                4.320373991504312,
+                4.349464026745409
+              ],
+              "median_ms": 4.322683991631493
+            },
+            {
+              "samples_ms": [
+                4.336623998824507,
+                4.302723042201251,
+                4.323803004808724,
+                4.309463954996318,
+                4.312072996981442,
+                4.366915032733232
+              ],
+              "median_ms": 4.317938000895083
+            }
+          ],
+          "mask_cost_included": true,
+          "exact": false,
+          "relative_rmse": 0.2343648225069046,
+          "max_abs": 0.110595703125,
+          "repeat_exact": true
+        },
+        {
+          "scope": "synthetic importance-mask cost only; no real activation or image claim",
+          "capture": "synthetic-6608",
+          "tokens": 6608,
+          "document_bounds": [
+            6576,
+            6608
+          ],
+          "keep_ratio": 0.75,
+          "native": [
+            {
+              "samples_ms": [
+                2.2994710016064346,
+                2.2428089869208634,
+                2.246968972031027,
+                2.2558090277016163,
+                2.2441490436904132,
+                2.2727400064468384
+              ],
+              "median_ms": 2.2513889998663217
+            },
+            {
+              "samples_ms": [
+                2.4366240249946713,
+                2.257429005112499,
+                2.2419390152208507,
+                2.224918978754431,
+                2.2278479882515967,
+                2.279419975820929
+              ],
+              "median_ms": 2.249684010166675
+            }
+          ],
+          "candidate": [
+            {
+              "samples_ms": [
+                3.959313966333866,
+                3.9691939600743353,
+                3.9475939702242613,
+                3.948634024709463,
+                3.9760139770805836,
+                3.9757349877618253
+              ],
+              "median_ms": 3.9642539632041007
+            },
+            {
+              "samples_ms": [
+                3.952622995711863,
+                3.9493140066042542,
+                3.9586840430274606,
+                3.974563966039568,
+                3.968344011809677,
+                5.443061992991716
+              ],
+              "median_ms": 3.9635140274185687
+            }
+          ],
+          "mask_cost_included": true,
+          "exact": false,
+          "relative_rmse": 0.4178835451602936,
+          "max_abs": 0.12744140625,
+          "repeat_exact": true
+        },
+        {
+          "scope": "synthetic importance-mask cost only; no real activation or image claim",
+          "capture": "synthetic-6608",
+          "tokens": 6608,
+          "document_bounds": [
+            6576,
+            6608
+          ],
+          "keep_ratio": 0.5,
+          "native": [
+            {
+              "samples_ms": [
+                2.2994710016064346,
+                2.2428089869208634,
+                2.246968972031027,
+                2.2558090277016163,
+                2.2441490436904132,
+                2.2727400064468384
+              ],
+              "median_ms": 2.2513889998663217
+            },
+            {
+              "samples_ms": [
+                2.2736400132998824,
+                2.277238992974162,
+                2.2715890081599355,
+                2.254428982269019,
+                2.258959983009845,
+                2.238749002572149
+              ],
+              "median_ms": 2.2652744955848902
+            }
+          ],
+          "candidate": [
+            {
+              "samples_ms": [
+                3.5166830057278275,
+                3.506671986542642,
+                3.481820982415229,
+                3.544114006217569,
+                3.4897509613074362,
+                3.4709119936451316
+              ],
+              "median_ms": 3.498211473925039
+            },
+            {
+              "samples_ms": [
+                3.473741002380848,
+                3.4687009756453335,
+                3.5107220173813403,
+                3.4862820175476372,
+                3.5034220200031996,
+                3.4868010552600026
+              ],
+              "median_ms": 3.48654153640382
+            }
+          ],
+          "mask_cost_included": true,
+          "exact": false,
+          "relative_rmse": 0.7280659675598145,
+          "max_abs": 0.1650390625,
+          "repeat_exact": true
+        },
+        {
+          "scope": "synthetic importance-mask cost only; no real activation or image claim",
+          "capture": "synthetic-16768",
+          "tokens": 16768,
+          "document_bounds": [
+            16736,
+            16768
+          ],
+          "keep_ratio": 1.0,
+          "native": [
+            {
+              "samples_ms": [
+                12.885328964330256,
+                13.261738000437617,
+                12.977650971151888,
+                12.924709008075297,
+                12.968051014468074,
+                13.108863960951567
+              ],
+              "median_ms": 12.972850992809981
+            },
+            {
+              "samples_ms": [
+                12.952880992088467,
+                13.151305029168725,
+                12.93440000154078,
+                12.984450964722782,
+                12.996340985409915,
+                13.029212015680969
+              ],
+              "median_ms": 12.990395975066349
+            }
+          ],
+          "candidate": [
+            {
+              "samples_ms": [
+                15.879357000812888,
+                15.690492000430822,
+                15.81491599790752,
+                15.650151006411761,
+                16.06343104504049,
+                15.669660991989076
+              ],
+              "median_ms": 15.75270399916917
+            },
+            {
+              "samples_ms": [
+                15.74201404582709,
+                15.673451009206474,
+                15.552139026112854,
+                15.473535982891917,
+                15.518187021370977,
+                15.783974959049374
+              ],
+              "median_ms": 15.612795017659664
+            }
+          ],
+          "mask_cost_included": true,
+          "exact": false,
+          "relative_rmse": 0.0009413061779923737,
+          "max_abs": 0.00048828125,
+          "repeat_exact": true
+        },
+        {
+          "scope": "synthetic importance-mask cost only; no real activation or image claim",
+          "capture": "synthetic-16768",
+          "tokens": 16768,
+          "document_bounds": [
+            16736,
+            16768
+          ],
+          "keep_ratio": 0.9,
+          "native": [
+            {
+              "samples_ms": [
+                12.885328964330256,
+                13.261738000437617,
+                12.977650971151888,
+                12.924709008075297,
+                12.968051014468074,
+                13.108863960951567
+              ],
+              "median_ms": 12.972850992809981
+            },
+            {
+              "samples_ms": [
+                13.073512993287295,
+                13.110704021528363,
+                13.030712027102709,
+                13.158054964151233,
+                13.033432012889534,
+                13.096073002088815
+              ],
+              "median_ms": 13.084792997688055
+            }
+          ],
+          "candidate": [
+            {
+              "samples_ms": [
+                14.04668897157535,
+                14.372686971910298,
+                14.080599998123944,
+                14.470069960225374,
+                14.35426704119891,
+                14.37525695655495
+              ],
+              "median_ms": 14.363477006554604
+            },
+            {
+              "samples_ms": [
+                14.36061697313562,
+                14.397087972611189,
+                14.31039598537609,
+                14.402299013454467,
+                14.29394498700276,
+                14.375208003912121
+              ],
+              "median_ms": 14.36791248852387
+            }
+          ],
+          "mask_cost_included": true,
+          "exact": false,
+          "relative_rmse": 0.24040746688842773,
+          "max_abs": 0.0679931640625,
+          "repeat_exact": true
+        },
+        {
+          "scope": "synthetic importance-mask cost only; no real activation or image claim",
+          "capture": "synthetic-16768",
+          "tokens": 16768,
+          "document_bounds": [
+            16736,
+            16768
+          ],
+          "keep_ratio": 0.75,
+          "native": [
+            {
+              "samples_ms": [
+                12.885328964330256,
+                13.261738000437617,
+                12.977650971151888,
+                12.924709008075297,
+                12.968051014468074,
+                13.108863960951567
+              ],
+              "median_ms": 12.972850992809981
+            },
+            {
+              "samples_ms": [
+                13.020591984968632,
+                13.121735013555735,
+                13.011912000365555,
+                12.913348968140781,
+                12.905818992294371,
+                13.009890972170979
+              ],
+              "median_ms": 13.010901486268267
+            }
+          ],
+          "candidate": [
+            {
+              "samples_ms": [
+                12.64117198297754,
+                12.551619031000882,
+                12.644311995245516,
+                12.6106709940359,
+                12.537859030999243,
+                12.525499041657895
+              ],
+              "median_ms": 12.581145012518391
+            },
+            {
+              "samples_ms": [
+                12.611181009560823,
+                12.57487095426768,
+                12.285773002076894,
+                12.552889005746692,
+                12.671621982008219,
+                12.530449021141976
+              ],
+              "median_ms": 12.563879980007187
+            }
+          ],
+          "mask_cost_included": true,
+          "exact": false,
+          "relative_rmse": 0.4133927822113037,
+          "max_abs": 0.0673828125,
+          "repeat_exact": true
+        },
+        {
+          "scope": "synthetic importance-mask cost only; no real activation or image claim",
+          "capture": "synthetic-16768",
+          "tokens": 16768,
+          "document_bounds": [
+            16736,
+            16768
+          ],
+          "keep_ratio": 0.5,
+          "native": [
+            {
+              "samples_ms": [
+                12.885328964330256,
+                13.261738000437617,
+                12.977650971151888,
+                12.924709008075297,
+                12.968051014468074,
+                13.108863960951567
+              ],
+              "median_ms": 12.972850992809981
+            },
+            {
+              "samples_ms": [
+                13.093224028125405,
+                13.171046040952206,
+                13.028732035309076,
+                12.997221027035266,
+                13.041893020272255,
+                13.004390988498926
+              ],
+              "median_ms": 13.035312527790666
+            }
+          ],
+          "candidate": [
+            {
+              "samples_ms": [
+                9.076189016923308,
+                9.250603034161031,
+                9.271323040593415,
+                9.332965011708438,
+                9.29936399916187,
+                9.305874991696328
+              ],
+              "median_ms": 9.285343519877642
+            },
+            {
+              "samples_ms": [
+                9.168340999167413,
+                9.356335969641805,
+                9.195382008329034,
+                9.151879989076406,
+                9.238513011951,
+                9.34423494618386
+              ],
+              "median_ms": 9.216947510140017
+            }
+          ],
+          "mask_cost_included": true,
+          "exact": false,
+          "relative_rmse": 0.7244176268577576,
+          "max_abs": 0.077880859375,
+          "repeat_exact": true
+        }
+      ]
+    },
+    "captured_importance_cost": {
+      "source_file": "probe_captured_sparse_attention.py",
+      "source_sha256": "c1f5803091b42c8828fd365b546e6fcd1147e1628369b6fb36b4fe4887c3ac6a",
+      "samples": [
+        {
+          "capture": "request0-step0-block0.pt",
+          "tokens": 4144,
+          "document_bounds": [
+            4123,
+            4144
+          ],
+          "keep_ratio": 0.9,
+          "native": [
+            {
+              "samples_ms": [
+                1.2670139549300075,
+                1.2705529807135463,
+                1.1011390015482903,
+                1.10931001836434,
+                1.06998800765723,
+                1.0756280389614403
+              ],
+              "median_ms": 1.1052245099563152
+            },
+            {
+              "samples_ms": [
+                1.1439700028859079,
+                1.09797902405262,
+                1.1125390301458538,
+                1.0992889874614775,
+                1.108739001210779,
+                1.1083889985457063
+              ],
+              "median_ms": 1.1085639998782426
+            }
+          ],
+          "candidate": [
+            {
+              "samples_ms": [
+                3.6813070182688534,
+                3.2274549594148993,
+                3.2937360228970647,
+                3.2914969488047063,
+                3.253046015743166,
+                3.333658038172871
+              ],
+              "median_ms": 3.2926164858508855
+            },
+            {
+              "samples_ms": [
+                3.3347280113957822,
+                3.2872669980861247,
+                3.3141570165753365,
+                3.300187992863357,
+                3.2798260217532516,
+                3.2802560017444193
+              ],
+              "median_ms": 3.293727495474741
+            }
+          ],
+          "mask_cost_included": true,
+          "exact": false,
+          "relative_rmse": 0.0334269143640995,
+          "max_abs": 4.8515625,
+          "repeat_exact": true
+        },
+        {
+          "capture": "request0-step0-block0.pt",
+          "tokens": 4144,
+          "document_bounds": [
+            4123,
+            4144
+          ],
+          "keep_ratio": 0.75,
+          "native": [
+            {
+              "samples_ms": [
+                1.2670139549300075,
+                1.2705529807135463,
+                1.1011390015482903,
+                1.10931001836434,
+                1.06998800765723,
+                1.0756280389614403
+              ],
+              "median_ms": 1.1052245099563152
+            },
+            {
+              "samples_ms": [
+                1.1408799909986556,
+                1.1263799970038235,
+                1.116889005061239,
+                1.1112389620393515,
+                1.1046089930459857,
+                1.0977889760397375
+              ],
+              "median_ms": 1.1140639835502952
+            }
+          ],
+          "candidate": [
+            {
+              "samples_ms": [
+                3.2525660353712738,
+                3.189284005202353,
+                3.214505035430193,
+                3.167774004396051,
+                3.1435529817827046,
+                3.1823839526623487
+              ],
+              "median_ms": 3.185833978932351
+            },
+            {
+              "samples_ms": [
+                3.1600830261595547,
+                3.1914939754642546,
+                3.1943749636411667,
+                3.154433041345328,
+                3.207384957931936,
+                3.2188850454986095
+              ],
+              "median_ms": 3.1929344695527107
+            }
+          ],
+          "mask_cost_included": true,
+          "exact": false,
+          "relative_rmse": 0.05993795022368431,
+          "max_abs": 4.8359375,
+          "repeat_exact": true
+        },
+        {
+          "capture": "request0-step0-block0.pt",
+          "tokens": 4144,
+          "document_bounds": [
+            4123,
+            4144
+          ],
+          "keep_ratio": 0.5,
+          "native": [
+            {
+              "samples_ms": [
+                1.2670139549300075,
+                1.2705529807135463,
+                1.1011390015482903,
+                1.10931001836434,
+                1.06998800765723,
+                1.0756280389614403
+              ],
+              "median_ms": 1.1052245099563152
+            },
+            {
+              "samples_ms": [
+                1.1365899699740112,
+                1.1007990106008947,
+                1.109449949581176,
+                1.091218029614538,
+                1.0957589838653803,
+                1.1171800433658063
+              ],
+              "median_ms": 1.1051244800910354
+            }
+          ],
+          "candidate": [
+            {
+              "samples_ms": [
+                3.003120014909655,
+                3.0060490244068205,
+                2.982538950163871,
+                3.009159001521766,
+                2.9797580209560692,
+                2.9790890403091908
+              ],
+              "median_ms": 2.992829482536763
+            },
+            {
+              "samples_ms": [
+                2.9414070304483175,
+                2.969979017507285,
+                2.9661579756066203,
+                2.9628879856318235,
+                2.9638379928655922,
+                2.945657994132489
+              ],
+              "median_ms": 2.963362989248708
+            }
+          ],
+          "mask_cost_included": true,
+          "exact": false,
+          "relative_rmse": 0.1091029942035675,
+          "max_abs": 4.9296875,
+          "repeat_exact": true
+        },
+        {
+          "capture": "request0-step0-block25.pt",
+          "tokens": 4144,
+          "document_bounds": [
+            4123,
+            4144
+          ],
+          "keep_ratio": 0.9,
+          "native": [
+            {
+              "samples_ms": [
+                1.1307399836368859,
+                1.107479038182646,
+                1.0958490311168134,
+                1.1039689998142421,
+                1.1080090189352632,
+                1.1067489976994693
+              ],
+              "median_ms": 1.1071140179410577
+            },
+            {
+              "samples_ms": [
+                1.119958993513137,
+                1.0928090196102858,
+                1.0963989770971239,
+                1.0839389869943261,
+                1.097829022910446,
+                1.0866890079341829
+              ],
+              "median_ms": 1.0946039983537048
+            }
+          ],
+          "candidate": [
+            {
+              "samples_ms": [
+                3.2474459731020033,
+                3.2248650095425546,
+                3.2154250075109303,
+                3.2578560058027506,
+                3.2715059933252633,
+                3.2426159596070647
+              ],
+              "median_ms": 3.245030966354534
+            },
+            {
+              "samples_ms": [
+                3.2423249795101583,
+                3.252665977925062,
+                3.254285955335945,
+                3.28760698903352,
+                3.235856012906879,
+                3.201683983206749
+              ],
+              "median_ms": 3.2474954787176102
+            }
+          ],
+          "mask_cost_included": true,
+          "exact": false,
+          "relative_rmse": 0.013199564069509506,
+          "max_abs": 8.15625,
+          "repeat_exact": true
+        },
+        {
+          "capture": "request0-step0-block25.pt",
+          "tokens": 4144,
+          "document_bounds": [
+            4123,
+            4144
+          ],
+          "keep_ratio": 0.75,
+          "native": [
+            {
+              "samples_ms": [
+                1.1307399836368859,
+                1.107479038182646,
+                1.0958490311168134,
+                1.1039689998142421,
+                1.1080090189352632,
+                1.1067489976994693
+              ],
+              "median_ms": 1.1071140179410577
+            },
+            {
+              "samples_ms": [
+                1.13001000136137,
+                1.104998984374106,
+                1.084228977560997,
+                1.1043790145777166,
+                1.1051790206693113,
+                1.0951689910143614
+              ],
+              "median_ms": 1.1046889994759113
+            }
+          ],
+          "candidate": [
+            {
+              "samples_ms": [
+                3.1168829882517457,
+                3.0753110186196864,
+                3.1166619737632573,
+                3.117502958048135,
+                3.120301989838481,
+                3.1247829901985824
+              ],
+              "median_ms": 3.1171929731499404
+            },
+            {
+              "samples_ms": [
+                3.0669610132463276,
+                3.0868719913996756,
+                3.0935319955460727,
+                3.0513500096276402,
+                3.0921020079404116,
+                3.092721977736801
+              ],
+              "median_ms": 3.0894869996700436
+            }
+          ],
+          "mask_cost_included": true,
+          "exact": false,
+          "relative_rmse": 0.049381498247385025,
+          "max_abs": 71.625,
+          "repeat_exact": true
+        },
+        {
+          "capture": "request0-step0-block25.pt",
+          "tokens": 4144,
+          "document_bounds": [
+            4123,
+            4144
+          ],
+          "keep_ratio": 0.5,
+          "native": [
+            {
+              "samples_ms": [
+                1.1307399836368859,
+                1.107479038182646,
+                1.0958490311168134,
+                1.1039689998142421,
+                1.1080090189352632,
+                1.1067489976994693
+              ],
+              "median_ms": 1.1071140179410577
+            },
+            {
+              "samples_ms": [
+                1.1321399942971766,
+                1.1065190192312002,
+                1.1021789978258312,
+                1.09166803304106,
+                1.1205900227651,
+                1.0921289795078337
+              ],
+              "median_ms": 1.1043490085285157
+            }
+          ],
+          "candidate": [
+            {
+              "samples_ms": [
+                2.9021769878454506,
+                2.8966970276087523,
+                2.932826988399029,
+                2.8788259951397777,
+                2.9236370464786887,
+                2.9325869982130826
+              ],
+              "median_ms": 2.9129070171620697
+            },
+            {
+              "samples_ms": [
+                2.8821759624406695,
+                2.9124270076863468,
+                2.9145170119591057,
+                2.869004965759814,
+                2.949387999251485,
+                2.888645976781845
+              ],
+              "median_ms": 2.900536492234096
+            }
+          ],
+          "mask_cost_included": true,
+          "exact": false,
+          "relative_rmse": 0.34521743655204773,
+          "max_abs": 107.65625,
+          "repeat_exact": true
+        },
+        {
+          "capture": "request0-step0-block49.pt",
+          "tokens": 4144,
+          "document_bounds": [
+            4123,
+            4144
+          ],
+          "keep_ratio": 0.9,
+          "native": [
+            {
+              "samples_ms": [
+                1.119100023061037,
+                1.1112389620393515,
+                1.1124889715574682,
+                1.102688955143094,
+                1.0904190130531788,
+                1.1100990232080221
+              ],
+              "median_ms": 1.1106689926236868
+            },
+            {
+              "samples_ms": [
+                1.1360200005583465,
+                1.1066890438087285,
+                1.1105400044471025,
+                1.0884180082939565,
+                1.0693089570850134,
+                1.0895989835262299
+              ],
+              "median_ms": 1.0981440136674792
+            }
+          ],
+          "candidate": [
+            {
+              "samples_ms": [
+                3.153132973238826,
+                3.130031982436776,
+                3.1592840095981956,
+                3.118811990134418,
+                3.141203022096306,
+                3.1408430077135563
+              ],
+              "median_ms": 3.141023014904931
+            },
+            {
+              "samples_ms": [
+                3.1468530069105327,
+                3.097432025242597,
+                3.141632943879813,
+                3.1339729903265834,
+                3.1430430244654417,
+                3.1351629877462983
+              ],
+              "median_ms": 3.1383979658130556
+            }
+          ],
+          "mask_cost_included": true,
+          "exact": false,
+          "relative_rmse": 0.013887672685086727,
+          "max_abs": 198.0,
+          "repeat_exact": true
+        },
+        {
+          "capture": "request0-step0-block49.pt",
+          "tokens": 4144,
+          "document_bounds": [
+            4123,
+            4144
+          ],
+          "keep_ratio": 0.75,
+          "native": [
+            {
+              "samples_ms": [
+                1.119100023061037,
+                1.1112389620393515,
+                1.1124889715574682,
+                1.102688955143094,
+                1.0904190130531788,
+                1.1100990232080221
+              ],
+              "median_ms": 1.1106689926236868
+            },
+            {
+              "samples_ms": [
+                1.1179590364918113,
+                1.102908980101347,
+                1.0984590044245124,
+                1.0911289718933403,
+                1.083737995941192,
+                1.091698999516666
+              ],
+              "median_ms": 1.0950790019705892
+            }
+          ],
+          "candidate": [
+            {
+              "samples_ms": [
+                3.0161699978634715,
+                2.9899889486841857,
+                2.98097898485139,
+                3.021890006493777,
+                2.9958990053273737,
+                2.9943790286779404
+              ],
+              "median_ms": 2.995139017002657
+            },
+            {
+              "samples_ms": [
+                2.9981990228407085,
+                3.0328300199471414,
+                3.0091290245763958,
+                2.997589996084571,
+                2.9817280010320246,
+                3.0130500090308487
+              ],
+              "median_ms": 3.003664023708552
+            }
+          ],
+          "mask_cost_included": true,
+          "exact": false,
+          "relative_rmse": 0.14227616786956787,
+          "max_abs": 223.5,
+          "repeat_exact": true
+        },
+        {
+          "capture": "request0-step0-block49.pt",
+          "tokens": 4144,
+          "document_bounds": [
+            4123,
+            4144
+          ],
+          "keep_ratio": 0.5,
+          "native": [
+            {
+              "samples_ms": [
+                1.119100023061037,
+                1.1112389620393515,
+                1.1124889715574682,
+                1.102688955143094,
+                1.0904190130531788,
+                1.1100990232080221
+              ],
+              "median_ms": 1.1106689926236868
+            },
+            {
+              "samples_ms": [
+                1.1137790279462934,
+                1.1064190184697509,
+                1.1023289989680052,
+                1.103439019061625,
+                1.0973889729939401,
+                1.096788968425244
+              ],
+              "median_ms": 1.102884009014815
+            }
+          ],
+          "candidate": [
+            {
+              "samples_ms": [
+                2.847504976671189,
+                2.815704036038369,
+                2.8202650137245655,
+                2.843244990799576,
+                2.8228950104676187,
+                2.799593028612435
+              ],
+              "median_ms": 2.821580012096092
+            },
+            {
+              "samples_ms": [
+                2.8170039877295494,
+                2.814513980410993,
+                2.816453983541578,
+                2.7983440086245537,
+                2.8458050219342113,
+                2.827234973665327
+              ],
+              "median_ms": 2.8167289856355637
+            }
+          ],
+          "mask_cost_included": true,
+          "exact": false,
+          "relative_rmse": 0.3397071659564972,
+          "max_abs": 236.0,
+          "repeat_exact": true
+        },
+        {
+          "capture": "request0-step5-block0.pt",
+          "tokens": 4144,
+          "document_bounds": [
+            4123,
+            4144
+          ],
+          "keep_ratio": 0.9,
+          "native": [
+            {
+              "samples_ms": [
+                1.1015989584848285,
+                1.0939790518023074,
+                1.1035989737138152,
+                1.094768987968564,
+                1.1013589682988822,
+                1.0822280310094357
+              ],
+              "median_ms": 1.0980639781337231
+            },
+            {
+              "samples_ms": [
+                1.120838976930827,
+                1.1057889787480235,
+                1.1035290081053972,
+                1.0893589933402836,
+                1.092968974262476,
+                1.084568037185818
+              ],
+              "median_ms": 1.0982489911839366
+            }
+          ],
+          "candidate": [
+            {
+              "samples_ms": [
+                3.1751939677633345,
+                3.147322975564748,
+                3.137623018119484,
+                3.146792994812131,
+                3.1661730026826262,
+                3.1529240077361465
+              ],
+              "median_ms": 3.1501234916504472
+            },
+            {
+              "samples_ms": [
+                3.1281730043701828,
+                3.149483003653586,
+                3.147013019770384,
+                3.1531440326943994,
+                3.169882984366268,
+                3.159963001962751
+              ],
+              "median_ms": 3.1513135181739926
+            }
+          ],
+          "mask_cost_included": true,
+          "exact": false,
+          "relative_rmse": 0.013234888203442097,
+          "max_abs": 1.921875,
+          "repeat_exact": true
+        },
+        {
+          "capture": "request0-step5-block0.pt",
+          "tokens": 4144,
+          "document_bounds": [
+            4123,
+            4144
+          ],
+          "keep_ratio": 0.75,
+          "native": [
+            {
+              "samples_ms": [
+                1.1015989584848285,
+                1.0939790518023074,
+                1.1035989737138152,
+                1.094768987968564,
+                1.1013589682988822,
+                1.0822280310094357
+              ],
+              "median_ms": 1.0980639781337231
+            },
+            {
+              "samples_ms": [
+                1.1241089669056237,
+                1.1002690298482776,
+                1.0938889463432133,
+                1.1037790100090206,
+                1.094689010642469,
+                1.0978190111927688
+              ],
+              "median_ms": 1.0990440205205232
+            }
+          ],
+          "candidate": [
+            {
+              "samples_ms": [
+                2.993379021063447,
+                2.9991789488121867,
+                3.0099099967628717,
+                3.0618809978477657,
+                3.02816997282207,
+                3.018729970790446
+              ],
+              "median_ms": 3.0143199837766588
+            },
+            {
+              "samples_ms": [
+                3.0045989551581442,
+                3.0112899839878082,
+                3.0292600276879966,
+                3.027870028745383,
+                3.0139500158838928,
+                3.011678985785693
+              ],
+              "median_ms": 3.012814500834793
+            }
+          ],
+          "mask_cost_included": true,
+          "exact": false,
+          "relative_rmse": 0.024883022531867027,
+          "max_abs": 2.15625,
+          "repeat_exact": true
+        },
+        {
+          "capture": "request0-step5-block0.pt",
+          "tokens": 4144,
+          "document_bounds": [
+            4123,
+            4144
+          ],
+          "keep_ratio": 0.5,
+          "native": [
+            {
+              "samples_ms": [
+                1.1015989584848285,
+                1.0939790518023074,
+                1.1035989737138152,
+                1.094768987968564,
+                1.1013589682988822,
+                1.0822280310094357
+              ],
+              "median_ms": 1.0980639781337231
+            },
+            {
+              "samples_ms": [
+                1.1246689828112721,
+                1.1057599913328886,
+                1.0953890159726143,
+                1.10452005174011,
+                1.0791280074045062,
+                1.0908290278166533
+              ],
+              "median_ms": 1.099954533856362
+            }
+          ],
+          "candidate": [
+            {
+              "samples_ms": [
+                2.834044978953898,
+                2.841754991095513,
+                2.8343150042928755,
+                2.8122339863330126,
+                2.812455000821501,
+                2.8096939786337316
+              ],
+              "median_ms": 2.8232499898876995
+            },
+            {
+              "samples_ms": [
+                2.8299749828875065,
+                2.8634860063903034,
+                2.8573349700309336,
+                2.837373991496861,
+                2.820104011334479,
+                2.8440849855542183
+              ],
+              "median_ms": 2.8407294885255396
+            }
+          ],
+          "mask_cost_included": true,
+          "exact": false,
+          "relative_rmse": 0.046203963458538055,
+          "max_abs": 12.8359375,
+          "repeat_exact": true
+        },
+        {
+          "capture": "request0-step5-block25.pt",
+          "tokens": 4144,
+          "document_bounds": [
+            4123,
+            4144
+          ],
+          "keep_ratio": 0.9,
+          "native": [
+            {
+              "samples_ms": [
+                1.1051889741793275,
+                1.1054989881813526,
+                1.0947390110231936,
+                1.09722901834175,
+                1.1018089717254043,
+                1.0923289810307324
+              ],
+              "median_ms": 1.099518995033577
+            },
+            {
+              "samples_ms": [
+                1.1199689470231533,
+                1.1153899831697345,
+                1.0980090009979904,
+                1.0930189746432006,
+                1.0964790126308799,
+                1.087588956579566
+              ],
+              "median_ms": 1.0972440068144351
+            }
+          ],
+          "candidate": [
+            {
+              "samples_ms": [
+                3.164893016219139,
+                3.135362989269197,
+                3.1548929982818663,
+                3.173103032168001,
+                3.15708399284631,
+                3.1418930157087743
+              ],
+              "median_ms": 3.1559884955640882
+            },
+            {
+              "samples_ms": [
+                3.154753998387605,
+                3.166073001921177,
+                3.150592965539545,
+                3.126961993984878,
+                3.16132401349023,
+                3.1478730379603803
+              ],
+              "median_ms": 3.152673481963575
+            }
+          ],
+          "mask_cost_included": true,
+          "exact": false,
+          "relative_rmse": 0.015267494134604931,
+          "max_abs": 16.921875,
+          "repeat_exact": true
+        },
+        {
+          "capture": "request0-step5-block25.pt",
+          "tokens": 4144,
+          "document_bounds": [
+            4123,
+            4144
+          ],
+          "keep_ratio": 0.75,
+          "native": [
+            {
+              "samples_ms": [
+                1.1051889741793275,
+                1.1054989881813526,
+                1.0947390110231936,
+                1.09722901834175,
+                1.1018089717254043,
+                1.0923289810307324
+              ],
+              "median_ms": 1.099518995033577
+            },
+            {
+              "samples_ms": [
+                1.131199998781085,
+                1.1026690481230617,
+                1.0950490250252187,
+                1.0916590108536184,
+                1.0964289540424943,
+                1.0912090074270964
+              ],
+              "median_ms": 1.0957389895338565
+            }
+          ],
+          "candidate": [
+            {
+              "samples_ms": [
+                2.984869002830237,
+                3.0059199780225754,
+                3.0062090372666717,
+                3.0120699666440487,
+                3.0082790181040764,
+                3.0445310403592885
+              ],
+              "median_ms": 3.007244027685374
+            },
+            {
+              "samples_ms": [
+                3.0191499972715974,
+                3.016809991095215,
+                2.9511579778045416,
+                3.0037389951758087,
+                2.9975390061736107,
+                2.993669011630118
+              ],
+              "median_ms": 3.0006390006747097
+            }
+          ],
+          "mask_cost_included": true,
+          "exact": false,
+          "relative_rmse": 0.12421773374080658,
+          "max_abs": 96.28125,
+          "repeat_exact": true
+        },
+        {
+          "capture": "request0-step5-block25.pt",
+          "tokens": 4144,
+          "document_bounds": [
+            4123,
+            4144
+          ],
+          "keep_ratio": 0.5,
+          "native": [
+            {
+              "samples_ms": [
+                1.1051889741793275,
+                1.1054989881813526,
+                1.0947390110231936,
+                1.09722901834175,
+                1.1018089717254043,
+                1.0923289810307324
+              ],
+              "median_ms": 1.099518995033577
+            },
+            {
+              "samples_ms": [
+                1.1179400025866926,
+                1.0901790228672326,
+                1.0897890315391123,
+                1.0891790152527392,
+                1.0844279895536602,
+                1.0980289662256837
+              ],
+              "median_ms": 1.0899840272031724
+            }
+          ],
+          "candidate": [
+            {
+              "samples_ms": [
+                2.8189640142954886,
+                2.802333969157189,
+                2.811105048749596,
+                2.821073983795941,
+                2.8333549853414297,
+                2.8079039766453207
+              ],
+              "median_ms": 2.8150345315225422
+            },
+            {
+              "samples_ms": [
+                2.8064140351489186,
+                2.823114045895636,
+                2.8085149824619293,
+                2.8186740237288177,
+                2.832264988683164,
+                2.830915036611259
+              ],
+              "median_ms": 2.820894034812227
+            }
+          ],
+          "mask_cost_included": true,
+          "exact": false,
+          "relative_rmse": 0.21442535519599915,
+          "max_abs": 96.1875,
+          "repeat_exact": true
+        },
+        {
+          "capture": "request0-step5-block49.pt",
+          "tokens": 4144,
+          "document_bounds": [
+            4123,
+            4144
+          ],
+          "keep_ratio": 0.9,
+          "native": [
+            {
+              "samples_ms": [
+                1.1030490277335048,
+                1.09849899308756,
+                1.0869690449908376,
+                1.097008993383497,
+                1.0900789638981223,
+                1.0854889987967908
+              ],
+              "median_ms": 1.0935439786408097
+            },
+            {
+              "samples_ms": [
+                1.142520981375128,
+                1.1063599959015846,
+                1.09559902921319,
+                1.0975890327244997,
+                1.1006889981217682,
+                1.0991390445269644
+              ],
+              "median_ms": 1.0999140213243663
+            }
+          ],
+          "candidate": [
+            {
+              "samples_ms": [
+                3.1310730264522135,
+                3.1546229729428887,
+                3.122241992969066,
+                3.109682002104819,
+                3.1099719926714897,
+                3.1098429462872446
+              ],
+              "median_ms": 3.116106992820278
+            },
+            {
+              "samples_ms": [
+                3.1172619783319533,
+                3.0820409883745015,
+                3.111122001428157,
+                3.1386030022986233,
+                3.139023028779775,
+                3.129902994260192
+              ],
+              "median_ms": 3.1235824862960726
+            }
+          ],
+          "mask_cost_included": true,
+          "exact": false,
+          "relative_rmse": 0.004753535613417625,
+          "max_abs": 211.0,
+          "repeat_exact": true
+        },
+        {
+          "capture": "request0-step5-block49.pt",
+          "tokens": 4144,
+          "document_bounds": [
+            4123,
+            4144
+          ],
+          "keep_ratio": 0.75,
+          "native": [
+            {
+              "samples_ms": [
+                1.1030490277335048,
+                1.09849899308756,
+                1.0869690449908376,
+                1.097008993383497,
+                1.0900789638981223,
+                1.0854889987967908
+              ],
+              "median_ms": 1.0935439786408097
+            },
+            {
+              "samples_ms": [
+                1.1251899995841086,
+                1.105158997233957,
+                1.0981690138578415,
+                1.092518970835954,
+                1.0982690146192908,
+                1.0747889755293727
+              ],
+              "median_ms": 1.0982190142385662
+            }
+          ],
+          "candidate": [
+            {
+              "samples_ms": [
+                2.9937989893369377,
+                3.0065489700064063,
+                2.986338979098946,
+                3.0020989943295717,
+                3.000558994244784,
+                2.9976299847476184
+              ],
+              "median_ms": 2.9990944894962013
+            },
+            {
+              "samples_ms": [
+                3.0071900109760463,
+                3.004148951731622,
+                2.9987400048412383,
+                3.004578989930451,
+                2.9830189887434244,
+                2.981008030474186
+              ],
+              "median_ms": 3.0014444782864302
+            }
+          ],
+          "mask_cost_included": true,
+          "exact": false,
+          "relative_rmse": 0.01894688792526722,
+          "max_abs": 441.0,
+          "repeat_exact": true
+        },
+        {
+          "capture": "request0-step5-block49.pt",
+          "tokens": 4144,
+          "document_bounds": [
+            4123,
+            4144
+          ],
+          "keep_ratio": 0.5,
+          "native": [
+            {
+              "samples_ms": [
+                1.1030490277335048,
+                1.09849899308756,
+                1.0869690449908376,
+                1.097008993383497,
+                1.0900789638981223,
+                1.0854889987967908
+              ],
+              "median_ms": 1.0935439786408097
+            },
+            {
+              "samples_ms": [
+                1.1209000367671251,
+                1.0923990048468113,
+                1.1044990387745202,
+                1.0973990429192781,
+                1.106118957977742,
+                1.1028589797206223
+              ],
+              "median_ms": 1.1036790092475712
+            }
+          ],
+          "candidate": [
+            {
+              "samples_ms": [
+                2.8082539793103933,
+                2.814054023474455,
+                2.8301149723120034,
+                2.8236039797775447,
+                2.8170240111649036,
+                2.833314996678382
+              ],
+              "median_ms": 2.820313995471224
+            },
+            {
+              "samples_ms": [
+                2.825524949003011,
+                2.8423650073818862,
+                2.7966939960606396,
+                2.8377349954098463,
+                2.852895006071776,
+                2.809803991112858
+              ],
+              "median_ms": 2.8316299722064286
+            }
+          ],
+          "mask_cost_included": true,
+          "exact": false,
+          "relative_rmse": 0.06315626949071884,
+          "max_abs": 958.0,
+          "repeat_exact": true
+        },
+        {
+          "capture": "request1-step0-block0.pt",
+          "tokens": 4144,
+          "document_bounds": [
+            4122,
+            4144
+          ],
+          "keep_ratio": 0.9,
+          "native": [
+            {
+              "samples_ms": [
+                1.135599974077195,
+                1.0953590390272439,
+                1.0923690279014409,
+                1.10664899693802,
+                1.0867589735426009,
+                1.1057599913328886
+              ],
+              "median_ms": 1.1005595151800662
+            },
+            {
+              "samples_ms": [
+                1.1533210054039955,
+                1.1097790556959808,
+                1.0993690229952335,
+                1.0993789765052497,
+                1.0991989984177053,
+                1.1093589710071683
+              ],
+              "median_ms": 1.104368973756209
+            }
+          ],
+          "candidate": [
+            {
+              "samples_ms": [
+                3.122482041362673,
+                3.1340430141426623,
+                3.12650203704834,
+                3.117482003290206,
+                3.1289629987441003,
+                3.138653002679348
+              ],
+              "median_ms": 3.12773251789622
+            },
+            {
+              "samples_ms": [
+                3.1243630219250917,
+                3.1021920149214566,
+                3.1065919902175665,
+                3.112441976554692,
+                3.0991119565442204,
+                3.133863036055118
+              ],
+              "median_ms": 3.109516983386129
+            }
+          ],
+          "mask_cost_included": true,
+          "exact": false,
+          "relative_rmse": 0.016660023480653763,
+          "max_abs": 3.8193359375,
+          "repeat_exact": true
+        },
+        {
+          "capture": "request1-step0-block0.pt",
+          "tokens": 4144,
+          "document_bounds": [
+            4122,
+            4144
+          ],
+          "keep_ratio": 0.75,
+          "native": [
+            {
+              "samples_ms": [
+                1.135599974077195,
+                1.0953590390272439,
+                1.0923690279014409,
+                1.10664899693802,
+                1.0867589735426009,
+                1.1057599913328886
+              ],
+              "median_ms": 1.1005595151800662
+            },
+            {
+              "samples_ms": [
+                1.1339900083839893,
+                1.1122989817522466,
+                1.0949589777737856,
+                1.1057090014219284,
+                1.1045599821954966,
+                1.097718020901084
+              ],
+              "median_ms": 1.1051344918087125
+            }
+          ],
+          "candidate": [
+            {
+              "samples_ms": [
+                2.9656480182893574,
+                3.009659005329013,
+                3.0158600420691073,
+                2.9900689842179418,
+                2.9799490002915263,
+                2.9869190184399486
+              ],
+              "median_ms": 2.988494001328945
+            },
+            {
+              "samples_ms": [
+                3.014349960722029,
+                7.092816988006234,
+                3.051881038118154,
+                3.021149954292923,
+                3.0523600289598107,
+                3.0640600016340613
+              ],
+              "median_ms": 3.0521205335389823
+            }
+          ],
+          "mask_cost_included": true,
+          "exact": false,
+          "relative_rmse": 0.05277266725897789,
+          "max_abs": 4.4296875,
+          "repeat_exact": true
+        },
+        {
+          "capture": "request1-step0-block0.pt",
+          "tokens": 4144,
+          "document_bounds": [
+            4122,
+            4144
+          ],
+          "keep_ratio": 0.5,
+          "native": [
+            {
+              "samples_ms": [
+                1.135599974077195,
+                1.0953590390272439,
+                1.0923690279014409,
+                1.10664899693802,
+                1.0867589735426009,
+                1.1057599913328886
+              ],
+              "median_ms": 1.1005595151800662
+            },
+            {
+              "samples_ms": [
+                1.14718999247998,
+                1.104779017623514,
+                1.0990690207108855,
+                1.092148944735527,
+                1.1048290180042386,
+                1.0858280002139509
+              ],
+              "median_ms": 1.1019240191671997
+            }
+          ],
+          "candidate": [
+            {
+              "samples_ms": [
+                2.844305010512471,
+                2.843395050149411,
+                2.8462150366976857,
+                2.8367949998937547,
+                2.8440949972718954,
+                2.8397550340741873
+              ],
+              "median_ms": 2.843745023710653
+            },
+            {
+              "samples_ms": [
+                2.844905015081167,
+                2.848235017154366,
+                2.8517459868453443,
+                2.854974998626858,
+                2.8490159893408418,
+                2.8494750149548054
+              ],
+              "median_ms": 2.8492455021478236
+            }
+          ],
+          "mask_cost_included": true,
+          "exact": false,
+          "relative_rmse": 0.10531307011842728,
+          "max_abs": 4.64453125,
+          "repeat_exact": true
+        },
+        {
+          "capture": "request1-step0-block25.pt",
+          "tokens": 4144,
+          "document_bounds": [
+            4122,
+            4144
+          ],
+          "keep_ratio": 0.9,
+          "native": [
+            {
+              "samples_ms": [
+                1.11932004801929,
+                1.091248996090144,
+                1.1069089523516595,
+                1.085088006220758,
+                1.089608995243907,
+                1.103138958569616
+              ],
+              "median_ms": 1.09719397732988
+            },
+            {
+              "samples_ms": [
+                1.1207089992240071,
+                1.1042500264011323,
+                1.0952689917758107,
+                1.1070100008510053,
+                1.1051190085709095,
+                1.1016990174539387
+              ],
+              "median_ms": 1.104684517486021
+            }
+          ],
+          "candidate": [
+            {
+              "samples_ms": [
+                3.1548929982818663,
+                3.128343028947711,
+                3.136392973829061,
+                3.1362230074591935,
+                3.1354730017483234,
+                3.117542015388608
+              ],
+              "median_ms": 3.1358480046037585
+            },
+            {
+              "samples_ms": [
+                3.1462329789064825,
+                3.123821981716901,
+                3.1399430008605123,
+                3.1233220361173153,
+                3.132313024252653,
+                3.1189019791781902
+              ],
+              "median_ms": 3.128067502984777
+            }
+          ],
+          "mask_cost_included": true,
+          "exact": false,
+          "relative_rmse": 0.025301363319158554,
+          "max_abs": 65.25,
+          "repeat_exact": true
+        },
+        {
+          "capture": "request1-step0-block25.pt",
+          "tokens": 4144,
+          "document_bounds": [
+            4122,
+            4144
+          ],
+          "keep_ratio": 0.75,
+          "native": [
+            {
+              "samples_ms": [
+                1.11932004801929,
+                1.091248996090144,
+                1.1069089523516595,
+                1.085088006220758,
+                1.089608995243907,
+                1.103138958569616
+              ],
+              "median_ms": 1.09719397732988
+            },
+            {
+              "samples_ms": [
+                1.137930026743561,
+                1.0995790362358093,
+                1.0954189929179847,
+                1.0917489998973906,
+                1.0998190264217556,
+                1.0930389980785549
+              ],
+              "median_ms": 1.097499014576897
+            }
+          ],
+          "candidate": [
+            {
+              "samples_ms": [
+                3.00278898794204,
+                3.0049090273678303,
+                3.008008992765099,
+                2.9711680253967643,
+                3.0086589977145195,
+                3.008719999343157
+              ],
+              "median_ms": 3.0064590100664645
+            },
+            {
+              "samples_ms": [
+                2.9839990311302245,
+                2.991149027366191,
+                2.975337964016944,
+                2.9874180327169597,
+                2.986938983667642,
+                2.9780890326946974
+              ],
+              "median_ms": 2.985469007398933
+            }
+          ],
+          "mask_cost_included": true,
+          "exact": false,
+          "relative_rmse": 0.11203031986951828,
+          "max_abs": 72.578125,
+          "repeat_exact": true
+        },
+        {
+          "capture": "request1-step0-block25.pt",
+          "tokens": 4144,
+          "document_bounds": [
+            4122,
+            4144
+          ],
+          "keep_ratio": 0.5,
+          "native": [
+            {
+              "samples_ms": [
+                1.11932004801929,
+                1.091248996090144,
+                1.1069089523516595,
+                1.085088006220758,
+                1.089608995243907,
+                1.103138958569616
+              ],
+              "median_ms": 1.09719397732988
+            },
+            {
+              "samples_ms": [
+                1.1130289640277624,
+                1.1127799516543746,
+                1.0845389915630221,
+                1.100818975828588,
+                1.099468965549022,
+                1.087508979253471
+              ],
+              "median_ms": 1.100143970688805
+            }
+          ],
+          "candidate": [
+            {
+              "samples_ms": [
+                2.826504991389811,
+                2.8142440132796764,
+                2.810323960147798,
+                2.810393983963877,
+                2.8193439939059317,
+                2.8063440113328397
+              ],
+              "median_ms": 2.8123189986217767
+            },
+            {
+              "samples_ms": [
+                2.8324949671514332,
+                2.823205024469644,
+                2.786292985547334,
+                2.824485010933131,
+                2.822705020662397,
+                2.8226940194144845
+              ],
+              "median_ms": 2.8229550225660205
+            }
+          ],
+          "mask_cost_included": true,
+          "exact": false,
+          "relative_rmse": 0.3574526906013489,
+          "max_abs": 82.125,
+          "repeat_exact": true
+        },
+        {
+          "capture": "request1-step0-block49.pt",
+          "tokens": 4144,
+          "document_bounds": [
+            4122,
+            4144
+          ],
+          "keep_ratio": 0.9,
+          "native": [
+            {
+              "samples_ms": [
+                1.1089500039815903,
+                1.0999689693562686,
+                1.0980889783240855,
+                1.088238030206412,
+                1.133300014771521,
+                1.1007989523932338
+              ],
+              "median_ms": 1.1003839608747512
+            },
+            {
+              "samples_ms": [
+                1.133300014771521,
+                1.1055089998990297,
+                1.1002389946952462,
+                1.097008993383497,
+                1.093128987122327,
+                1.1023689876310527
+              ],
+              "median_ms": 1.1013039911631495
+            }
+          ],
+          "candidate": [
+            {
+              "samples_ms": [
+                3.1311630154959857,
+                3.1213430338539183,
+                3.121062007267028,
+                3.095332009252161,
+                3.092391008976847,
+                3.0936310067772865
+              ],
+              "median_ms": 3.1081970082595944
+            },
+            {
+              "samples_ms": [
+                3.0956219998188317,
+                3.1493830028921366,
+                3.1131620053201914,
+                3.1161820515990257,
+                3.120241977740079,
+                3.0792810139246285
+              ],
+              "median_ms": 3.1146720284596086
+            }
+          ],
+          "mask_cost_included": true,
+          "exact": false,
+          "relative_rmse": 0.011321470141410828,
+          "max_abs": 164.75,
+          "repeat_exact": true
+        },
+        {
+          "capture": "request1-step0-block49.pt",
+          "tokens": 4144,
+          "document_bounds": [
+            4122,
+            4144
+          ],
+          "keep_ratio": 0.75,
+          "native": [
+            {
+              "samples_ms": [
+                1.1089500039815903,
+                1.0999689693562686,
+                1.0980889783240855,
+                1.088238030206412,
+                1.133300014771521,
+                1.1007989523932338
+              ],
+              "median_ms": 1.1003839608747512
+            },
+            {
+              "samples_ms": [
+                1.1245189816690981,
+                1.082659000530839,
+                1.1004789848811924,
+                1.100078981835395,
+                1.0981889790855348,
+                1.096708991099149
+              ],
+              "median_ms": 1.099133980460465
+            }
+          ],
+          "candidate": [
+            {
+              "samples_ms": [
+                3.0013489886187017,
+                3.0182700138539076,
+                2.974497969262302,
+                3.0027200118638575,
+                3.0072490335442126,
+                3.003339981660247
+              ],
+              "median_ms": 3.003029996762052
+            },
+            {
+              "samples_ms": [
+                2.9805690282955766,
+                3.004089987371117,
+                3.0140389571897686,
+                2.97999894246459,
+                2.974217990413308,
+                3.0100789736025035
+              ],
+              "median_ms": 2.9923295078333467
+            }
+          ],
+          "mask_cost_included": true,
+          "exact": false,
+          "relative_rmse": 0.13114115595817566,
+          "max_abs": 224.0,
+          "repeat_exact": true
+        },
+        {
+          "capture": "request1-step0-block49.pt",
+          "tokens": 4144,
+          "document_bounds": [
+            4122,
+            4144
+          ],
+          "keep_ratio": 0.5,
+          "native": [
+            {
+              "samples_ms": [
+                1.1089500039815903,
+                1.0999689693562686,
+                1.0980889783240855,
+                1.088238030206412,
+                1.133300014771521,
+                1.1007989523932338
+              ],
+              "median_ms": 1.1003839608747512
+            },
+            {
+              "samples_ms": [
+                1.1196190025657415,
+                1.0814190027303994,
+                1.0796880233101547,
+                1.1076200171373785,
+                1.0830480023287237,
+                1.0858189780265093
+              ],
+              "median_ms": 1.0844334901776165
+            }
+          ],
+          "candidate": [
+            {
+              "samples_ms": [
+                2.8411750099621713,
+                2.827963966410607,
+                2.7922539738938212,
+                2.8130850405432284,
+                2.8174640028737485,
+                2.8009539819322526
+              ],
+              "median_ms": 2.8152745217084885
+            },
+            {
+              "samples_ms": [
+                2.7983729960396886,
+                2.8147840057499707,
+                2.794394036754966,
+                2.7891629724763334,
+                2.81892396742478,
+                2.8144140378572047
+              ],
+              "median_ms": 2.8063935169484466
+            }
+          ],
+          "mask_cost_included": true,
+          "exact": false,
+          "relative_rmse": 0.4067668616771698,
+          "max_abs": 228.5,
+          "repeat_exact": true
+        },
+        {
+          "capture": "request1-step5-block0.pt",
+          "tokens": 4144,
+          "document_bounds": [
+            4122,
+            4144
+          ],
+          "keep_ratio": 0.9,
+          "native": [
+            {
+              "samples_ms": [
+                1.1066289735026658,
+                1.1072589550167322,
+                1.1065999860875309,
+                1.0944679961539805,
+                1.1076799710281193,
+                1.0863280040211976
+              ],
+              "median_ms": 1.1066144797950983
+            },
+            {
+              "samples_ms": [
+                1.1256499565206468,
+                1.0972789605148137,
+                1.0980389779433608,
+                1.1008289875462651,
+                1.090809004381299,
+                1.0925179813057184
+              ],
+              "median_ms": 1.0976589692290872
+            }
+          ],
+          "candidate": [
+            {
+              "samples_ms": [
+                3.1459929887205362,
+                3.131871984805912,
+                3.1225220300257206,
+                3.125382005237043,
+                3.154492995236069,
+                3.1339729903265834
+              ],
+              "median_ms": 3.1329224875662476
+            },
+            {
+              "samples_ms": [
+                3.1181429512798786,
+                3.133632999379188,
+                3.148972988128662,
+                3.1138320337049663,
+                3.139252949040383,
+                3.13258299138397
+              ],
+              "median_ms": 3.133107995381579
+            }
+          ],
+          "mask_cost_included": true,
+          "exact": false,
+          "relative_rmse": 0.007099673617631197,
+          "max_abs": 0.6875,
+          "repeat_exact": true
+        },
+        {
+          "capture": "request1-step5-block0.pt",
+          "tokens": 4144,
+          "document_bounds": [
+            4122,
+            4144
+          ],
+          "keep_ratio": 0.75,
+          "native": [
+            {
+              "samples_ms": [
+                1.1066289735026658,
+                1.1072589550167322,
+                1.1065999860875309,
+                1.0944679961539805,
+                1.1076799710281193,
+                1.0863280040211976
+              ],
+              "median_ms": 1.1066144797950983
+            },
+            {
+              "samples_ms": [
+                1.1278390302322805,
+                1.1080499971285462,
+                1.0907580144703388,
+                1.0819189483299851,
+                1.0940490174107254,
+                1.0987090063281357
+              ],
+              "median_ms": 1.0963790118694305
+            }
+          ],
+          "candidate": [
+            {
+              "samples_ms": [
+                2.9960090178065,
+                2.9760480392724276,
+                3.003089048434049,
+                2.996438997797668,
+                2.9823380173183978,
+                2.998168987687677
+              ],
+              "median_ms": 2.996224007802084
+            },
+            {
+              "samples_ms": [
+                2.982298959977925,
+                3.0021690181456506,
+                3.008369996678084,
+                3.0076990369707346,
+                2.9938790248706937,
+                3.0480310088023543
+              ],
+              "median_ms": 3.0049340275581926
+            }
+          ],
+          "mask_cost_included": true,
+          "exact": false,
+          "relative_rmse": 0.021706579253077507,
+          "max_abs": 1.71875,
+          "repeat_exact": true
+        },
+        {
+          "capture": "request1-step5-block0.pt",
+          "tokens": 4144,
+          "document_bounds": [
+            4122,
+            4144
+          ],
+          "keep_ratio": 0.5,
+          "native": [
+            {
+              "samples_ms": [
+                1.1066289735026658,
+                1.1072589550167322,
+                1.1065999860875309,
+                1.0944679961539805,
+                1.1076799710281193,
+                1.0863280040211976
+              ],
+              "median_ms": 1.1066144797950983
+            },
+            {
+              "samples_ms": [
+                1.1401199735701084,
+                1.0893589933402836,
+                1.0942179942503572,
+                1.0867990204133093,
+                1.0797479772008955,
+                1.0986190172843635
+              ],
+              "median_ms": 1.0917884937953204
+            }
+          ],
+          "candidate": [
+            {
+              "samples_ms": [
+                2.8525349916890264,
+                2.8393749962560833,
+                2.822844951879233,
+                2.842334972228855,
+                2.8450650279410183,
+                2.844724978785962
+              ],
+              "median_ms": 2.8435299755074084
+            },
+            {
+              "samples_ms": [
+                2.863515983335674,
+                2.8624359983950853,
+                2.7939240098930895,
+                2.773682994302362,
+                2.769262995570898,
+                2.7645230293273926
+              ],
+              "median_ms": 2.783803502097726
+            }
+          ],
+          "mask_cost_included": true,
+          "exact": false,
+          "relative_rmse": 0.05006130412220955,
+          "max_abs": 2.84375,
+          "repeat_exact": true
+        },
+        {
+          "capture": "request1-step5-block25.pt",
+          "tokens": 4144,
+          "document_bounds": [
+            4122,
+            4144
+          ],
+          "keep_ratio": 0.9,
+          "native": [
+            {
+              "samples_ms": [
+                1.0783080360852182,
+                1.0924990056082606,
+                1.080489018931985,
+                1.089347992092371,
+                1.0828790254890919,
+                1.0775979608297348
+              ],
+              "median_ms": 1.0816840222105384
+            },
+            {
+              "samples_ms": [
+                1.1167199700139463,
+                1.105528965126723,
+                1.0991989984177053,
+                1.0889190016314387,
+                1.098439039196819,
+                1.0990790324285626
+              ],
+              "median_ms": 1.099139015423134
+            }
+          ],
+          "candidate": [
+            {
+              "samples_ms": [
+                3.0696510220877826,
+                3.082371025811881,
+                3.068090998567641,
+                3.0471410136669874,
+                3.0573210096918046,
+                3.0716409673914313
+              ],
+              "median_ms": 3.0688710103277117
+            },
+            {
+              "samples_ms": [
+                3.061830997467041,
+                3.0764120165258646,
+                3.071531013119966,
+                3.068240999709815,
+                3.0326200067065656,
+                3.0566809582524
+              ],
+              "median_ms": 3.065035998588428
+            }
+          ],
+          "mask_cost_included": true,
+          "exact": false,
+          "relative_rmse": 0.025778695940971375,
+          "max_abs": 58.5,
+          "repeat_exact": true
+        },
+        {
+          "capture": "request1-step5-block25.pt",
+          "tokens": 4144,
+          "document_bounds": [
+            4122,
+            4144
+          ],
+          "keep_ratio": 0.75,
+          "native": [
+            {
+              "samples_ms": [
+                1.0783080360852182,
+                1.0924990056082606,
+                1.080489018931985,
+                1.089347992092371,
+                1.0828790254890919,
+                1.0775979608297348
+              ],
+              "median_ms": 1.0816840222105384
+            },
+            {
+              "samples_ms": [
+                1.1145489988848567,
+                1.1018089717254043,
+                1.0913890437223017,
+                1.0910789715126157,
+                1.0838680318556726,
+                1.0807489743456244
+              ],
+              "median_ms": 1.0912340076174587
+            }
+          ],
+          "candidate": [
+            {
+              "samples_ms": [
+                2.9328970122151077,
+                2.955618023406714,
+                2.917007019277662,
+                2.9297079890966415,
+                2.9720080201514065,
+                2.9525079880841076
+              ],
+              "median_ms": 2.9427025001496077
+            },
+            {
+              "samples_ms": [
+                2.8979560011066496,
+                2.942598017398268,
+                2.931997994892299,
+                2.9374370351433754,
+                2.915876975748688,
+                2.9429279966279864
+              ],
+              "median_ms": 2.9347175150178373
+            }
+          ],
+          "mask_cost_included": true,
+          "exact": false,
+          "relative_rmse": 0.11256950348615646,
+          "max_abs": 84.90625,
+          "repeat_exact": true
+        },
+        {
+          "capture": "request1-step5-block25.pt",
+          "tokens": 4144,
+          "document_bounds": [
+            4122,
+            4144
+          ],
+          "keep_ratio": 0.5,
+          "native": [
+            {
+              "samples_ms": [
+                1.0783080360852182,
+                1.0924990056082606,
+                1.080489018931985,
+                1.089347992092371,
+                1.0828790254890919,
+                1.0775979608297348
+              ],
+              "median_ms": 1.0816840222105384
+            },
+            {
+              "samples_ms": [
+                1.125000009778887,
+                1.0922590154223144,
+                1.1019189842045307,
+                1.0786979692056775,
+                1.0960890213027596,
+                1.0751980007626116
+              ],
+              "median_ms": 1.094174018362537
+            }
+          ],
+          "candidate": [
+            {
+              "samples_ms": [
+                2.7384819695726037,
+                2.748302009422332,
+                2.752052969299257,
+                2.743961988016963,
+                2.7746239793486893,
+                2.7232420397922397
+              ],
+              "median_ms": 2.7461319987196475
+            },
+            {
+              "samples_ms": [
+                2.7402429841458797,
+                2.7502119773998857,
+                2.7459730044938624,
+                2.7378819650039077,
+                2.767672995105386,
+                2.734663023147732
+              ],
+              "median_ms": 2.743107994319871
+            }
+          ],
+          "mask_cost_included": true,
+          "exact": false,
+          "relative_rmse": 0.21920143067836761,
+          "max_abs": 85.03125,
+          "repeat_exact": true
+        },
+        {
+          "capture": "request1-step5-block49.pt",
+          "tokens": 4144,
+          "document_bounds": [
+            4122,
+            4144
+          ],
+          "keep_ratio": 0.9,
+          "native": [
+            {
+              "samples_ms": [
+                1.11758999992162,
+                1.0857390007004142,
+                1.0881879716180265,
+                1.0943689849227667,
+                1.0877890163101256,
+                1.1015090276487172
+              ],
+              "median_ms": 1.0912784782703966
+            },
+            {
+              "samples_ms": [
+                1.1146400356665254,
+                1.098439039196819,
+                1.0925590177066624,
+                1.0955290053971112,
+                1.0955090401694179,
+                1.0915589518845081
+              ],
+              "median_ms": 1.0955190227832645
+            }
+          ],
+          "candidate": [
+            {
+              "samples_ms": [
+                3.078311972785741,
+                3.090671030804515,
+                3.1047220109030604,
+                3.072992025408894,
+                3.070581005886197,
+                3.053869993891567
+              ],
+              "median_ms": 3.0756519990973175
+            },
+            {
+              "samples_ms": [
+                3.0759010114707053,
+                3.08340199990198,
+                3.078661044128239,
+                3.071331011597067,
+                3.0852220370434225,
+                3.0733110033906996
+              ],
+              "median_ms": 3.077281027799472
+            }
+          ],
+          "mask_cost_included": true,
+          "exact": false,
+          "relative_rmse": 0.01042692456394434,
+          "max_abs": 339.0,
+          "repeat_exact": true
+        },
+        {
+          "capture": "request1-step5-block49.pt",
+          "tokens": 4144,
+          "document_bounds": [
+            4122,
+            4144
+          ],
+          "keep_ratio": 0.75,
+          "native": [
+            {
+              "samples_ms": [
+                1.11758999992162,
+                1.0857390007004142,
+                1.0881879716180265,
+                1.0943689849227667,
+                1.0877890163101256,
+                1.1015090276487172
+              ],
+              "median_ms": 1.0912784782703966
+            },
+            {
+              "samples_ms": [
+                1.121330016758293,
+                1.1025989660993218,
+                1.0944090317934752,
+                1.0965290130116045,
+                1.099709013942629,
+                1.0960489744320512
+              ],
+              "median_ms": 1.0981190134771168
+            }
+          ],
+          "candidate": [
+            {
+              "samples_ms": [
+                2.957547956611961,
+                2.937497978564352,
+                2.9276669956743717,
+                2.963668026495725,
+                2.9484970145858824,
+                2.9478679643943906
+              ],
+              "median_ms": 2.9481824894901365
+            },
+            {
+              "samples_ms": [
+                2.93598702410236,
+                2.941337996162474,
+                2.9538479866459966,
+                2.922516956459731,
+                2.919527003541589,
+                2.952206996269524
+              ],
+              "median_ms": 2.938662510132417
+            }
+          ],
+          "mask_cost_included": true,
+          "exact": false,
+          "relative_rmse": 0.044242117553949356,
+          "max_abs": 794.0,
+          "repeat_exact": true
+        },
+        {
+          "capture": "request1-step5-block49.pt",
+          "tokens": 4144,
+          "document_bounds": [
+            4122,
+            4144
+          ],
+          "keep_ratio": 0.5,
+          "native": [
+            {
+              "samples_ms": [
+                1.11758999992162,
+                1.0857390007004142,
+                1.0881879716180265,
+                1.0943689849227667,
+                1.0877890163101256,
+                1.1015090276487172
+              ],
+              "median_ms": 1.0912784782703966
+            },
+            {
+              "samples_ms": [
+                1.1061999830417335,
+                1.0985690169036388,
+                1.0957189952023327,
+                1.0826489888131618,
+                1.1020390084013343,
+                1.0849490063264966
+              ],
+              "median_ms": 1.0971440060529858
+            }
+          ],
+          "candidate": [
+            {
+              "samples_ms": [
+                2.7664030203595757,
+                2.765582990832627,
+                2.758932998403907,
+                2.7667430113069713,
+                2.773474028799683,
+                2.7536519919522107
+              ],
+              "median_ms": 2.7659930055961013
+            },
+            {
+              "samples_ms": [
+                2.7561430470086634,
+                2.75000196415931,
+                2.7485729660838842,
+                2.7813839842565358,
+                2.7623120113275945,
+                2.7392019983381033
+              ],
+              "median_ms": 2.7530725055839866
+            }
+          ],
+          "mask_cost_included": true,
+          "exact": false,
+          "relative_rmse": 0.06566981971263885,
+          "max_abs": 772.0,
+          "repeat_exact": true
+        }
+      ]
+    },
+    "compiled_fp32_importance": {
+      "source_file": "probe_compiled_fp32_importance_sparse.py",
+      "source_sha256": "bebea4f3c80b66fdbc52d83823905fe9d37d8302511d46a2be0e8ab93c4ee9c5",
+      "samples": [
+        {
+          "scope": "synthetic importance-mask cost only; no real activation or image claim",
+          "capture": "synthetic-4432",
+          "tokens": 4432,
+          "document_bounds": [
+            4400,
+            4432
+          ],
+          "keep_ratio": 0.75,
+          "native": [
+            {
+              "samples_ms": [
+                1.4290770050138235,
+                1.3940170174464583,
+                1.2262020027264953,
+                1.217362005263567,
+                1.217441982589662,
+                1.205931999720633
+              ],
+              "median_ms": 1.2218219926580787
+            },
+            {
+              "samples_ms": [
+                1.3716070097871125,
+                1.2378619867376983,
+                1.2002320145256817,
+                1.2316519860178232,
+                1.2100609601475298,
+                1.2206329847685993
+              ],
+              "median_ms": 1.2261424853932112
+            }
+          ],
+          "candidate": [
+            {
+              "samples_ms": [
+                2.0354230073280632,
+                1.9105710089206696,
+                1.919050992000848,
+                1.9221000256948173,
+                1.877648988738656,
+                1.8809500033967197
+              ],
+              "median_ms": 1.9148110004607588
+            },
+            {
+              "samples_ms": [
+                1.8722499953582883,
+                1.8979000160470605,
+                1.8845400190912187,
+                1.8897100235335529,
+                1.871219021268189,
+                1.847609004471451
+              ],
+              "median_ms": 1.8783950072247535
+            }
+          ],
+          "mask_cost_included": true,
+          "mask_backend": "TorchAir GE",
+          "compiled_mask_exact": true,
+          "exact": false,
+          "relative_rmse": 0.39175155758857727,
+          "max_abs": 0.1785888671875,
+          "repeat_exact": true
+        },
+        {
+          "scope": "synthetic importance-mask cost only; no real activation or image claim",
+          "capture": "synthetic-4432",
+          "tokens": 4432,
+          "document_bounds": [
+            4400,
+            4432
+          ],
+          "keep_ratio": 0.5,
+          "native": [
+            {
+              "samples_ms": [
+                1.4290770050138235,
+                1.3940170174464583,
+                1.2262020027264953,
+                1.217362005263567,
+                1.217441982589662,
+                1.205931999720633
+              ],
+              "median_ms": 1.2218219926580787
+            },
+            {
+              "samples_ms": [
+                1.3126650010235608,
+                1.2409830233082175,
+                1.2373519712127745,
+                1.2140919570811093,
+                1.2187329703010619,
+                1.2252419837750494
+              ],
+              "median_ms": 1.231296977493912
+            }
+          ],
+          "candidate": [
+            {
+              "samples_ms": [
+                1.630443031899631,
+                1.5701709780842066,
+                1.5811020275577903,
+                1.5929420478641987,
+                1.5643910155631602,
+                1.5524899936281145
+              ],
+              "median_ms": 1.5756365028209984
+            },
+            {
+              "samples_ms": [
+                1.580921991262585,
+                1.5493709943257272,
+                2.5589470169506967,
+                1.6208130400627851,
+                1.6028719837777317,
+                1.5922320308163762
+              ],
+              "median_ms": 1.597552007297054
+            }
+          ],
+          "mask_cost_included": true,
+          "mask_backend": "TorchAir GE",
+          "compiled_mask_exact": true,
+          "exact": false,
+          "relative_rmse": 0.7061272263526917,
+          "max_abs": 0.180419921875,
+          "repeat_exact": true
+        },
+        {
+          "scope": "synthetic importance-mask cost only; no real activation or image claim",
+          "capture": "synthetic-16768",
+          "tokens": 16768,
+          "document_bounds": [
+            16736,
+            16768
+          ],
+          "keep_ratio": 0.75,
+          "native": [
+            {
+              "samples_ms": [
+                13.021932973060757,
+                13.281621038913727,
+                12.982551997993141,
+                13.11811595223844,
+                13.000592996831983,
+                13.05754401255399
+              ],
+              "median_ms": 13.039738492807373
+            },
+            {
+              "samples_ms": [
+                13.066155021078885,
+                13.046733976807445,
+                12.89955002721399,
+                13.832554977852851,
+                12.98014196800068,
+                13.11508601065725
+              ],
+              "median_ms": 13.056444498943165
+            }
+          ],
+          "candidate": [
+            {
+              "samples_ms": [
+                13.306251028552651,
+                13.20803799899295,
+                13.0856650066562,
+                13.356862007640302,
+                13.142595998942852,
+                13.196568004786968
+              ],
+              "median_ms": 13.202303001889959
+            },
+            {
+              "samples_ms": [
+                13.349291984923184,
+                13.234738958999515,
+                13.287880050484091,
+                13.260600040666759,
+                12.959032028447837,
+                13.198678032495081
+              ],
+              "median_ms": 13.247669499833137
+            }
+          ],
+          "mask_cost_included": true,
+          "mask_backend": "TorchAir GE",
+          "compiled_mask_exact": true,
+          "exact": false,
+          "relative_rmse": 0.4133927822113037,
+          "max_abs": 0.0673828125,
+          "repeat_exact": true
+        },
+        {
+          "scope": "synthetic importance-mask cost only; no real activation or image claim",
+          "capture": "synthetic-16768",
+          "tokens": 16768,
+          "document_bounds": [
+            16736,
+            16768
+          ],
+          "keep_ratio": 0.5,
+          "native": [
+            {
+              "samples_ms": [
+                13.021932973060757,
+                13.281621038913727,
+                12.982551997993141,
+                13.11811595223844,
+                13.000592996831983,
+                13.05754401255399
+              ],
+              "median_ms": 13.039738492807373
+            },
+            {
+              "samples_ms": [
+                13.065834005828947,
+                13.09609500458464,
+                14.641275978647172,
+                12.94133102055639,
+                12.917450978420675,
+                13.02000303985551
+              ],
+              "median_ms": 13.042918522842228
+            }
+          ],
+          "candidate": [
+            {
+              "samples_ms": [
+                9.616143011953682,
+                9.438298991881311,
+                9.638194984290749,
+                9.390207007527351,
+                9.31837601820007,
+                9.482509980443865
+              ],
+              "median_ms": 9.460404486162588
+            },
+            {
+              "samples_ms": [
+                9.332895977422595,
+                9.586333006154746,
+                9.384467033669353,
+                9.313596005085856,
+                9.399277972988784,
+                9.31537599535659
+              ],
+              "median_ms": 9.358681505545974
+            }
+          ],
+          "mask_cost_included": true,
+          "mask_backend": "TorchAir GE",
+          "compiled_mask_exact": true,
+          "exact": false,
+          "relative_rmse": 0.7244176268577576,
+          "max_abs": 0.077880859375,
+          "repeat_exact": true
+        }
+      ]
+    }
+  }
+}
