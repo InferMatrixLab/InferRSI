@@ -343,7 +343,9 @@ record the rejection. No engine adoption or final ABBA/visual acceptance followe
 
 [Quantization samples](results/nov14-quantization-component-search.json) cover
 streaming weight quantization, weight-only INT8, grouped activation quantization
-and low-rank correction fitted on independent calibration inputs. None provided
+and low-rank correction fitted on calibration inputs. The original calibration
+script reused architecture/portrait prompts from the expanded quality suite;
+these are not held out, as corrected in the result provenance. None provided
 a convincing speed and accuracy tradeoff for whole-model qualification. The
 group128 weight-only implementation had large errors whose cause is unresolved.
 
