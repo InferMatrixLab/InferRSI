@@ -155,6 +155,23 @@ paired bootstrap intervals cross zero, which does not prove non-inferiority.
 The original embedding-cosine proxy results remain separately labeled, and
 speech-quality qualification remains unresolved.
 
+## Asynchronous history follow-up
+
+`results/service-phase910-development.json` retains 36 additional development
+cells, their per-request results and completed speech-quality scores. On the
+phase-nine allocation, asynchronous history upload reduced mean C1/C16/C32 RTF
+from 0.06631 / 0.26794 / 0.36096 to 0.06307 / 0.25763 / 0.33202.
+This is a two-repeat tuning observation, not final qualification. A fresh
+phase-ten control reached 0.06214 / 0.23917 / 0.34450; batching its history
+commit reached 0.06785 / 0.23567 / 0.34862, while the paired independent engine
+reached 0.06300 / 0.21091 / 0.27334. Batched history did not improve the overall
+objective. Both patches remain experimental and C16/C32 remain above target.
+
+The asynchronous-history CPU profile places much of the remaining wait in
+output parsing. Moving a synchronization location is not proof that all of its
+time was eliminated. Neither prototype establishes speech-quality
+non-inferiority; the archived WER, SIM and UTMOS scores remain descriptive.
+
 ## Lessons supported by this investigation
 
 - Check dependency source bytes as well as package versions. The shared local
