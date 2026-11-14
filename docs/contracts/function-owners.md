@@ -25,3 +25,10 @@ Status: **Proposed baseline**; individually **adopted** entries are identified b
 D008 rows are architecture decisions under the delegation recorded at the top of this file. An independent reviewer verifies the cited code, tests and dependency direction and may block on a missing adoption record; a reviewer does not choose the owner, and a PR approval is not the D008 adoption record. The architecture owner records adoption in the governed contract or decision record; the rows cite that decision record, independently of PR approval.
 
 Any later split of a mixed function is accepted by real pytest/host/wheel/record comparison in the corresponding PR; none of this delays today's contract or gate-policy start. Existing external public composed entries keep their original semantics and paths per D018/D022, and an owner change cannot be used to delete an old promise.
+
+## Implemented rows
+
+The skill-evaluation split (#410) implements the `skill_evaluation`, `skill_eval_diagnostic`, `skill_eval_engineering` and `improvement` rows. H keeps `harness/skill_evaluation.py`, `harness/artifact_sandbox.py` and `harness/improvement.py`; B holds `benchmark/skill_evaluation.py`, `benchmark/skill_eval_diagnostic.py`, `benchmark/skill_eval_engineering.py` and `benchmark/improvement.py`; Apps composes them in `apps/skill_evaluation.py`, `apps/skill_eval_engineering.py` and `apps/improvement.py`. Two points follow the tree as it stands after #338, not the row text:
+
+- `usage_totals` stays in `harness/usage.py`, because `harness/optimization.py` consumes it for budget accounting. B `assessment` receives the baseline and candidate totals from Apps and does not import H.
+- `SelectionPolicy` holds only the two thresholds, so it lives whole in B. H `choose` receives the assessments, the validity block and the composition flag; it holds no threshold and no policy class.

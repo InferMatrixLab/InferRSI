@@ -154,10 +154,21 @@ src/inferrsi/
     tasks/                  Task-specific definitions, workloads and assessment
     legacy_run_v0.py        Old run gates: metric contract, summaries and verdict
     sampling.py             Warmup seeds, first-response retention, sample/artifact groups
-  apps/legacy/
-    run.py                  Old run composed from Harness, Benchmark and the report
-    evaluation.py           Old evaluate entry: RunSpec to the Benchmark gates
-    reporting.py            HTML evidence report
+    skill_evaluation.py     Skill trial check validity, verdict and condition statistics
+    skill_eval_diagnostic.py   Synthetic KV admission diagnosis task and grader
+    skill_eval_engineering.py  Serving-parser task, public vectors and vector judgment
+    improvement.py          Improvement-step thresholds and acceptance rules
+  apps/
+    api.py                  Python entry points for assembling and publishing Apps operations
+    archive.py              Publish and read the standardized Apps output in a workspace
+    result.py               Assemble and check the AppsResultV1 output envelope
+    skill_evaluation.py     Composed bundle export, trial run and summary
+    skill_eval_engineering.py  Composed artifact check: task rules around sandbox replay
+    improvement.py          Composed assessment, selection, rerun and holdout acceptance
+    legacy/
+      run.py                Old run composed from Harness, Benchmark and the report
+      evaluation.py         Old evaluate entry: RunSpec to the Benchmark gates
+      reporting.py          HTML evidence report
   runspec.py, contracts.py   Immutable experiment contract and compatibility export
   catalog.py                Knowledge search and cited context
   skill_catalog.py          Packaged/default or custom skill metadata/body/resource resolution
@@ -195,10 +206,11 @@ src/inferrsi/
     task_protocol.py        Freeze supplied task resources and load their protocol
     optimization.py         Current-Agent round budget, records and recovery
     usage.py                Shared observed-token normalization and totals
-    improvement.py          Offline quality-first selection and usage accounting
-    skill_evaluation.py     Skill trial/client interface and independent grading
-    runner.py               One AB/BA loop; execute/snapshot/assess/report ports injected
+    improvement.py          Offline search progression over injected assessments
+    skill_evaluation.py     Skill client adapter, trial execution and retention; injected rules
+    artifact_sandbox.py     Artifact capture and bubblewrap replay; no vectors or verdicts
     atomic_json.py          Harness-owned atomic JSON evidence writes
+    runner.py               One AB/BA loop; execute/snapshot/assess/report ports injected
     scenarios/
       external.py           External command trials; metric validation injected
   model/

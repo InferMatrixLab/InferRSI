@@ -30,11 +30,6 @@ RESOURCE_LOADERS = {
     "inferrsi.benchmark.tasks.qwen21-denoise-npu.benchmark": ("load", "spec"),
     "inferrsi.benchmark.tasks.qwen3-tts-npu.benchmark": ("<module>", "_evaluation_spec"),
 }
-# D018 B2.4: the one registered residual legacy edge. It keeps overall false
-# and is not available to a new H entry.
-REGISTERED_RESIDUALS = (
-    ("inferrsi.harness.skill_evaluation", "inferrsi.knowledge_operations"),
-)
 # B01: the old run chain's three root forwarders, each to one exact Apps legacy
 # module. They are not Knowledge shells and are not in the manifest. A forwarder
 # that exists keeps overall false until R01 retires it. An adjacent Apps module
@@ -44,9 +39,9 @@ LEGACY_RUN_FORWARDERS = (
     ("inferrsi.execution", "inferrsi.apps.legacy.run"),
     ("inferrsi.reporting", "inferrsi.apps.legacy.reporting"),
 )
-# New H entries: module paths walked on the full graph, without the residual
-# exemption. H01 added ``run_store`` and ``errors``; H02 added the public
-# ``api`` with ``execution_service``, ``input_binding`` and ``local_process``.
+# New H entries: module paths whose closures count toward the new-core result.
+# H01 added ``run_store`` and ``errors``; H02 added the public ``api`` with
+# ``execution_service``, ``input_binding`` and ``local_process``.
 NEW_H_ENTRIES = (
     "inferrsi.harness.api",
     "inferrsi.harness.errors",
@@ -460,7 +455,8 @@ class IsolationReport:
     """
 
     violations: tuple[str, ...]
-    residuals: tuple[str, ...]
+    # Every remaining ``harness`` path into Model or Infra, one per hit.
+    harness_model_infra: tuple[str, ...]
     blockers: tuple[str, ...]
     new_core_closure_isolated: bool
 
@@ -515,8 +511,7 @@ def first_wave_report(
 
     def h_entry_forbidden(node: str) -> bool:
         # Every harness module, including a new H entry, may not reach a new
-        # core, an old root leaf, or the data leaf. The registered residual
-        # is exempted only for its exact importer, below.
+        # core, an old root leaf, or the data leaf. No importer is exempt.
         return _core_of(node) in NEW_CORES or node in old_leaves or node == leaf
 
     rules: dict[str, Callable[[str], bool]] = {
@@ -536,33 +531,17 @@ def first_wave_report(
         for v in _closure_violations(name, graph, lambda node: _core_of(node) is not None)
     ]
 
-    def _without_residual(edges: dict[str, set[str]]) -> dict[str, set[str]]:
-        """Copy the graph with only the exact registered residual edges removed."""
-        trimmed = {name: set(targets) for name, targets in edges.items()}
-        for importer, target in REGISTERED_RESIDUALS:
-            if importer in trimmed:
-                trimmed[importer].discard(target)
-        return trimmed
-
-    # Non-entry harness modules are gated the same way as entries, but the
-    # exemption is reachability after removing only the exact residual edge.
-    # A second path to the residual target is still a violation. New H entries
-    # are walked on the full graph above and are not exempted.
-    residual_free = _Graph(graph.trees, graph.packages, _without_residual(graph.edges))
+    # Non-entry harness modules follow the same rule on the same full graph.
+    # They add violations without counting toward the new-core result.
     declared = set(h_entries)
     harness_extra = [
         message
         for name in modules
         if _core_of(name) == "harness" and name not in declared
-        for message in _closure_violations(name, residual_free, h_entry_forbidden)
+        for message in _closure_violations(name, graph, h_entry_forbidden)
     ]
     violations += new_core + infra + harness_extra
 
-    residuals = tuple(
-        f"{importer} -> {target}"
-        for importer, target in REGISTERED_RESIDUALS
-        if target in graph.edges.get(importer, ())
-    )
     blockers = []
     for name in (*NEW_CORES, "harness"):
         package = root / name
@@ -573,7 +552,6 @@ def first_wave_report(
             blockers.append(f"unscannable: {name}/")
     if pairs:
         blockers.append(f"allowlist: {len(pairs)} compatibility pairs")
-    blockers += [f"residual: {item}" for item in residuals]
     forwarding = [
         importer for importer, target in LEGACY_RUN_FORWARDERS
         if target in graph.edges.get(importer, ())
@@ -595,7 +573,7 @@ def first_wave_report(
     if resource_loaders:
         blockers.append(f"runtime resource loaders: {len(resource_loaders)}")
     return IsolationReport(
-        tuple(violations), residuals, tuple(blockers),
+        tuple(violations), tuple(legacy), tuple(blockers),
         bool(starts) and not new_core and not resource_loaders,
     )
 
