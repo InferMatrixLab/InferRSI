@@ -1,0 +1,442 @@
+{
+  "source": {
+    "base": "bd30cbd3fb621fcca600b2de08fc1249c6c0987c",
+    "patch_sha256": "af5ac9308e40c75a072a8147072d12a2fc330c4d7f125fb7b379bf22e1373af6",
+    "adapter_sha256": "1bdfb75b64fd8b73a7ce7d3f67fc7a883e58f09c8c1c8ec54a691c40df4d9f45"
+  },
+  "candidate": "Asynchronous separate QKV exchanges, preserving buffers until all waits complete.",
+  "quality": {
+    "reports": [
+      {
+        "group": "author-workloads",
+        "verdict": "PASS",
+        "scope": "numerical image-quality screen only",
+        "visual_review": "pending",
+        "additional_prompt_coverage": "pending",
+        "checks": [
+          {
+            "workload": "W1",
+            "seed": 42,
+            "index": 0,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W1",
+            "seed": 42,
+            "index": 1,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W1",
+            "seed": 42,
+            "index": 2,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W1",
+            "seed": 42,
+            "index": 3,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W2",
+            "seed": 42,
+            "index": 0,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W2",
+            "seed": 42,
+            "index": 1,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W2",
+            "seed": 42,
+            "index": 2,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W2",
+            "seed": 42,
+            "index": 3,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W3",
+            "seed": 42,
+            "index": 0,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W3",
+            "seed": 42,
+            "index": 1,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W3",
+            "seed": 42,
+            "index": 2,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W3",
+            "seed": 42,
+            "index": 3,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          }
+        ]
+      },
+      {
+        "group": "-quality",
+        "verdict": "PASS",
+        "scope": "numerical image-quality screen only",
+        "visual_review": "pending",
+        "additional_prompt_coverage": "pending",
+        "checks": [
+          {
+            "workload": "W1",
+            "seed": 43,
+            "index": 0,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W1",
+            "seed": 44,
+            "index": 0,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W2",
+            "seed": 43,
+            "index": 0,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W2",
+            "seed": 44,
+            "index": 0,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W3",
+            "seed": 43,
+            "index": 0,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W3",
+            "seed": 44,
+            "index": 0,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          }
+        ]
+      },
+      {
+        "group": "-architecture",
+        "verdict": "PASS",
+        "scope": "numerical image-quality screen only",
+        "visual_review": "pending",
+        "additional_prompt_coverage": "pending",
+        "checks": [
+          {
+            "workload": "W1",
+            "seed": 43,
+            "index": 0,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W1",
+            "seed": 44,
+            "index": 0,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W2",
+            "seed": 43,
+            "index": 0,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W2",
+            "seed": 44,
+            "index": 0,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          }
+        ]
+      },
+      {
+        "group": "-portrait",
+        "verdict": "PASS",
+        "scope": "numerical image-quality screen only",
+        "visual_review": "pending",
+        "additional_prompt_coverage": "pending",
+        "checks": [
+          {
+            "workload": "W1",
+            "seed": 43,
+            "index": 0,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W1",
+            "seed": 44,
+            "index": 0,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W2",
+            "seed": 43,
+            "index": 0,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W2",
+            "seed": 44,
+            "index": 0,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          }
+        ]
+      },
+      {
+        "group": "-edit-wall",
+        "verdict": "PASS",
+        "scope": "numerical image-quality screen only",
+        "visual_review": "pending",
+        "additional_prompt_coverage": "pending",
+        "checks": [
+          {
+            "workload": "W3",
+            "seed": 43,
+            "index": 0,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W3",
+            "seed": 44,
+            "index": 0,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          }
+        ]
+      },
+      {
+        "group": "-edit-sign",
+        "verdict": "PASS",
+        "scope": "numerical image-quality screen only",
+        "visual_review": "pending",
+        "additional_prompt_coverage": "pending",
+        "checks": [
+          {
+            "workload": "W3",
+            "seed": 43,
+            "index": 0,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W3",
+            "seed": 44,
+            "index": 0,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          }
+        ]
+      }
+    ],
+    "campaign_verdict": "INCONCLUSIVE",
+    "visual_review": "pending",
+    "abba": "pending"
+  },
+  "latency": {
+    "control": {
+      "W1": {
+        "samples_s": [
+          11.062993968022056,
+          10.9524115039967,
+          11.039703988004476
+        ],
+        "median_s": 11.039703988004476,
+        "target_s": 7.34,
+        "target_met": false,
+        "h200_inverse_latency_fraction": 0.33243644974428205
+      },
+      "W2": {
+        "samples_s": [
+          2.6980322760064155,
+          2.766532742010895,
+          2.6794842520030215
+        ],
+        "median_s": 2.6980322760064155,
+        "target_s": 1.52,
+        "target_met": false,
+        "h200_inverse_latency_fraction": 0.2816867710437252
+      },
+      "W3": {
+        "samples_s": [
+          4.401116231980268,
+          4.561449392000213,
+          4.592726986971684
+        ],
+        "median_s": 4.561449392000213,
+        "target_s": 2.6,
+        "target_met": false,
+        "h200_inverse_latency_fraction": 0.28499713320943915
+      }
+    },
+    "candidate": {
+      "W1": {
+        "samples_s": [
+          10.845680460974108,
+          11.07793716294691,
+          11.063999608973972
+        ],
+        "median_s": 11.063999608973972,
+        "target_s": 7.34,
+        "target_met": false,
+        "h200_inverse_latency_fraction": 0.3317064470088444
+      },
+      "W2": {
+        "samples_s": [
+          2.7047464809729718,
+          2.7231325689936057,
+          2.776616233983077
+        ],
+        "median_s": 2.7231325689936057,
+        "target_s": 1.52,
+        "target_met": false,
+        "h200_inverse_latency_fraction": 0.27909034200302446
+      },
+      "W3": {
+        "samples_s": [
+          4.564043162041344,
+          4.8289527369779535,
+          4.24916139501147
+        ],
+        "median_s": 4.564043162041344,
+        "target_s": 2.6,
+        "target_met": false,
+        "h200_inverse_latency_fraction": 0.2848351678204887
+      }
+    }
+  },
+  "decision": "Rejected: component gains did not improve end-to-end latency. No final ABBA or visual acceptance. All targets unmet."
+}

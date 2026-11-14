@@ -1,5 +1,5 @@
 {
-  "README.md": "f842ccc9855aecfd50ecc2f46a7a7834e260a17429bcf6d19ff1b5bbd251f3f1",
+  "README.md": "7ae0c8044f9c6c06f00a8407e26efa32787e10b647815a0848eb233c4efd62d0",
   "patch/revision.json": "d8396389afd8c9c5565f9834e1a4ab092813e74c78285c921f7453b27a84235b",
   "plan/environment.json": "9b404a74007446fbbd6343383ebf8d18be446068d2018eb330c964473f54c45e",
   "plan/provenance.json": "a58206b9cb0f2dc1f0a51c71ce929630a3552a13bd7fdd5ced290a71945c28d6",
@@ -11,6 +11,7 @@
   "results/allgather4-local-bounds/source-manifest.json": "8cb9c77c0b292095cfb59307e0fec41c1e5ebfc459b9819a125072f3b1dc96a8",
   "results/allgather4-local-bounds/summary.json": "ed7a0cee9fb8bf667dc7ce0e6be215f30214e9d50f34daed2ab3b75d45374d21",
   "results/alltoall-mm-real-rank0.json": "4c52042c7682438447b23c421c9104f4629ca3cbc16f04e45d454b969ae6af13",
+  "results/async-qkv-round22-rejection.json": "7503a7e17dd72cbf13d973b71c532e17503ee284d64b7d784d985538e173a0a9",
   "results/attention-comm-fusion-rank0.json": "5d4fdd1f468f8b37175ed40a35cabbd2bfaa9beaaab5ac4da90d4f385b80b650",
   "results/attention-execution-probes.json": "fa9ff9671c81149075193ed2d72ac628e1ded01a4862d7a9511e50a4e19cacc4",
   "results/attention-fia-packed-probe.json": "a53b16948cccf6e14ebaaece6c899a29c9346f9f21574806852bb0ff8c0c2c12",
@@ -44,6 +45,7 @@
   "results/mm-alltoall-real-rank0.json": "8a0eb090272def70c860477d9867a51cf7dbb34e4638952719b2ae05c2177ccb",
   "results/native-sp4-offload/request-measurements.json": "586eddd05b217320d86ff8a3d98b0067e1904f3a706e24cf3a2051d8a9da11e2",
   "results/native-sp4-offload/summary.json": "5eb77f9bada84dba34b2d097dda158f0e37f5bb9aa92fa776072491b828aa08c",
+  "results/nov14-component-search.json": "268aad8459443cbfd98b3675c7daff77005e524947bc2b303b0505cf2f550d91",
   "results/nz-load-order-diagnosis.json": "f8ee43658c350928eb89d27e91026d73f0d4e22e5d7b0946c2a26103b4861701",
   "results/outlier-fc1-rejection.json": "3394892b99d137d73b1246748e588bf2ebbdcdd6b3c75245ea7251b02e3c3b55",
   "results/postload-nz-round16-result.json": "7969f33bea08171f7c44d98d43d497cf9c756965ecf1fcdd24268851dc2b00a5",
