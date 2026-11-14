@@ -28,13 +28,9 @@ decision.
    python tools/build_skill_coverage.py --check
    ```
 
-   Step 2 currently fails with `Skill input paths differ from the source revision`.
-   K02 moved the corpus to `src/inferrsi/knowledge/data/skill_library/` but kept the
-   recorded prefix pinned to `src/inferrsi/data/skill_library/`, so a new source
-   revision no longer carries the path the records name. Regenerating against the
-   existing pinned revision still works and still reproduces the current records.
-   Repointing the recorded prefix regenerates every record and is a separate,
-   reviewed change; until it lands, do not hand-edit generated records.
+   The recorded prefix is `src/inferrsi/knowledge/data/skill_library/`, the same
+   path as the current checkout. Commit the skill and registry edits first, then
+   regenerate from that commit. Do not hand-edit generated records.
 
 3. Commit the generated changes. List the declaration paths for the final head:
 
@@ -58,16 +54,16 @@ the registry hash:
   "schema_version": 1,
   "repository": "https://github.com/InferMatrixLab/InferRSI",
   "source_revision": "<40-hex commit>",
-  "registry": {"path": "src/inferrsi/data/skill_library/skill-index.json", "sha256": "<64-hex>"}
+  "registry": {"path": "src/inferrsi/knowledge/data/skill_library/skill-index.json", "sha256": "<64-hex>"}
 }
 ```
 
 `registry.path` and the `source_files` keys name the library at the pinned
-`source_revision`, which is why they still read `src/inferrsi/data/skill_library/`
-after K02 moved the files to `src/inferrsi/knowledge/data/skill_library/`. A physical
-move does not change where those bytes were at the pinned commit, so no hash is
-recomputed. Repointing the prefix regenerates every record and needs an explicit new
-revision.
+`source_revision`. After the explicit re-pin that path is
+`src/inferrsi/knowledge/data/skill_library/`, matching the current checkout.
+`skill_documents.original` and installed bundle keys stay at the package-relative
+prefix `data/skill_library/`. A later move again needs an explicit new revision
+that regenerates every record; do not hand-edit the generated files.
 
 `inferrsi.catalog` resolves each stored record into a public schema-1 record with
 the same fields and field order as before: the `sources` entry with the full commit

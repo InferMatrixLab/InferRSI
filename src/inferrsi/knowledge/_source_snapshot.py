@@ -5,15 +5,28 @@ from typing import Any
 
 # One shared snapshot keeps the repository-wide source revision and registry digest out of
 # per-owner records, so a one-owner edit regenerates only that owner's record.
-# LIBRARY is the repository path of the corpus at the pinned source_revision, not the
-# current checkout path. K02 moved the files to src/inferrsi/knowledge/data/skill_library
-# without recomputing pinned hashes, so stored records and _provenance.json keep this
-# prefix. Repointing it regenerates every record and needs an explicit new revision.
+# LIBRARY is the repository path of the corpus at the pinned source_revision.
+# After the K02 move and the explicit re-pin, this agrees with the current checkout
+# path src/inferrsi/knowledge/data/skill_library. skill_documents.original and
+# wheel bundle keys stay at the package-relative prefix data/skill_library/.
 MANIFEST = "_provenance.json"
 REPOSITORY = "https://github.com/InferMatrixLab/InferRSI"
-LIBRARY = "src/inferrsi/data/skill_library"
+LIBRARY = "src/inferrsi/knowledge/data/skill_library"
+BUNDLE_LIBRARY = "data/skill_library"
 REGISTRY = f"{LIBRARY}/skill-index.json"
 STORED_SCHEMA = 2
+
+
+def source_entry(original: str) -> str:
+    """Return the git path of a skill entry at the pinned source revision.
+
+    ``skill_documents.original`` is the package-relative bundle key
+    ``data/skill_library/<category>/<name>/SKILL.md``, not the checkout path.
+    """
+    prefix = BUNDLE_LIBRARY + "/"
+    if not isinstance(original, str) or not original.startswith(prefix):
+        raise ValueError(f"Invalid skill document path: {original!r}")
+    return f"{LIBRARY}/{original[len(prefix):]}"
 
 
 def manifest(revision: str, registry_sha256: str) -> dict[str, Any]:
@@ -70,7 +83,7 @@ def resolve(stored: dict[str, Any], snapshot: Any) -> dict[str, Any]:
         or not isinstance(documents, dict) or not isinstance(documents.get("original"), str)
     ):
         raise ValueError(f"Invalid stored skill record: {stored.get('id')}")
-    entry = "src/inferrsi/" + documents["original"]
+    entry = source_entry(documents["original"])
     if entry not in files:
         raise ValueError(f"Stored skill record lacks its entry hash: {stored.get('id')}")
     hashes = dict(sorted({**files, REGISTRY: registry_sha256}.items()))

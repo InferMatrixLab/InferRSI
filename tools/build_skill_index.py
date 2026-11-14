@@ -20,10 +20,8 @@ PROJECT = Path(__file__).resolve().parents[1]
 # Where the inputs and generated records live today.
 LIBRARY = Path("src/inferrsi/knowledge/data/skill_library")
 DESTINATION = Path("src/inferrsi/knowledge/data/repo_packs/inferrsi/knowledge")
-# How those inputs are named at the pinned source revision. K02 moved the files
-# without recomputing pinned hashes, so generated records keep this prefix and
-# Git lookups resolve it. The two agree again only after an explicit re-pinning
-# revision that regenerates every record and is reviewed on its own.
+# How those inputs are named at the pinned source revision. After the explicit
+# K02 re-pin this agrees with LIBRARY, the current checkout path.
 PINNED_LIBRARY = Path(_source_snapshot.LIBRARY)
 REPOSITORY = _source_snapshot.REPOSITORY
 # Match the comparison tool: replacement refs and lazy promisor fetches must not

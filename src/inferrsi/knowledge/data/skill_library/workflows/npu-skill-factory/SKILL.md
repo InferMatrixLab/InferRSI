@@ -27,7 +27,7 @@ and transfer evidence separate. Construction, selection, deployment-context and
 downstream costs need distinct denominators; a library entry or upstream score
 is not local promotion. Source limitations and unrun checks remain explicit.
 
-Current candidate bundles live under `src/inferrsi/data/skill_library/<category>/<name>/`,
+Current candidate bundles live under `src/inferrsi/knowledge/data/skill_library/<category>/<name>/`,
 with linked references and cases under their owning skill. The library's
 `skill-index.json` maps stable skill names to those category paths. Exactly two primary matrices record provenance
 and coverage. Do not invent a paper Git SHA or force these notes into a repository

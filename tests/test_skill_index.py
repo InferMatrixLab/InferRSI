@@ -20,8 +20,8 @@ ROOT = PROJECT / LIBRARY
 def _physical(relative: str) -> Path:
     """Map a pinned input name to today's checkout location.
 
-    K02 moved the corpus without recomputing pinned hashes, so generated records
-    keep the prefix the files had at their ``source_revision``.
+    After the K02 re-pin the recorded prefix agrees with ``LIBRARY``. The helper
+    still strips the pinned prefix so a future split would keep working.
     """
     pinned = index_builder.PINNED_LIBRARY.as_posix()
     assert relative.startswith(pinned + "/"), relative

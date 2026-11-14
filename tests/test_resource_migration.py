@@ -128,7 +128,7 @@ def test_bundle_keys_and_pinned_provenance_survive_the_physical_move():
     library = [key for key in bundle.content if key != "record.json"]
     assert library and all(key.startswith("data/skill_library/") for key in library)
     assert "data/skill_library" in bundle.dependencies
-    # The pinned prefix names the corpus at source_revision, not today's checkout.
-    assert _source_snapshot.LIBRARY == "src/inferrsi/data/skill_library"
+    # After the explicit re-pin, LIBRARY agrees with today's checkout path.
+    assert _source_snapshot.LIBRARY == "src/inferrsi/knowledge/data/skill_library"
     snapshot = KNOWLEDGE_DATA / "repo_packs" / "inferrsi" / "knowledge" / _source_snapshot.MANIFEST
     assert f'"{_source_snapshot.REGISTRY}"' in snapshot.read_text(encoding="utf-8")

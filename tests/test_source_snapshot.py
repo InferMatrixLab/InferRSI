@@ -15,8 +15,8 @@ PROJECT = Path(__file__).resolve().parents[1]
 GENERATED = PROJECT / DESTINATION
 REVISION = "a" * 40
 # These fixtures hold their corpus at the recorded location, where the physical
-# root and the pinned prefix are the same. The repository itself separates them
-# only because K02 moved the files after their pinned revision.
+# root and the pinned prefix are the same. After the K02 re-pin the repository
+# agrees on src/inferrsi/knowledge/data/skill_library as well.
 LIBRARY = index_builder.PINNED_LIBRARY
 
 
@@ -88,7 +88,7 @@ def test_invalid_stored_record_never_resolves(mutation):
     elif mutation == "registry_hash":
         stored["source_files"][snapshot.REGISTRY] = "0" * 64
     elif mutation == "missing_entry":
-        stored["source_files"].pop("src/inferrsi/" + stored["skill_documents"]["original"])
+        stored["source_files"].pop(snapshot.source_entry(stored["skill_documents"]["original"]))
     else:
         del stored["origin"]
     with pytest.raises(ValueError):
