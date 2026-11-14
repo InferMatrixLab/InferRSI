@@ -1,6 +1,6 @@
 # D008-r2 — explicit ownership for reviewed functions
 
-Status: **Proposed baseline**. A row is adopted only where it says so and cites its decision record; the other rows remain proposed. Author decisions under the user's delegation, based on the same-SHA Phase 2/3 source text. Audit-model suggestions are not automatically treated as accepted. Target directories and names are design; this does not claim the production code already exists, and unreviewed functions are not moved merely because of their file name. This table resolves owner choices raised in discussion; it does not make later B/Apps/Agent implementation a prerequisite for P0a/K01/H01.
+Status: **Proposed baseline**; individually **adopted** entries are identified by their linked decision records. This is not blanket acceptance of the table. Author decisions under the user's delegation, based on the same-SHA Phase 2/3 source text. Audit-model suggestions are not automatically treated as accepted. Target directories and names are design; this does not claim the production code already exists, and unreviewed functions are not moved merely because of their file name. This table resolves owner choices raised in discussion; it does not make later B/Apps/Agent implementation a prerequisite for P0a/K01/H01.
 
 | Existing file / symbol | Chosen owner and target responsibility | Migration / retention constraint |
 | --- | --- | --- |
