@@ -1,0 +1,35 @@
+name: CI — independent approvals
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, edited, ready_for_review, converted_to_draft, closed]
+  workflow_run:
+    workflows: [CI — approval review event]
+    types: [completed]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+  statuses: write
+
+concurrency:
+  group: independent-approval-status-writer
+  queue: max
+
+jobs:
+  reconcile:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.event == 'pull_request_review'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          persist-credentials: false
+      - name: Reconcile current approvals using trusted main code
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 -m tools.check_independent_approvals
