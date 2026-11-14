@@ -11,7 +11,7 @@
 @@ -721,6 +722,31 @@
              next_mel = torch.cat((old_mel[..., -(keep - chunk_mel.shape[2]) :], chunk_mel), dim=2)
          return speech, source, next_mel.detach()
- 
+
 +    def prefetch_prompt_cpu(self, prompt_cache_id: str, prompt_wav: str, workers: int) -> bool:
 +        """Queue bounded CPU extraction; accelerator work stays on the caller."""
 +        if workers <= 0 or torch.get_default_dtype() != torch.float32:
@@ -99,7 +99,7 @@
 +                    logger.exception("MiniCPM-o CPU reference prefetch failed for %s", state_id)
 +                    self._drop_prefetch(state_id)
 +
- 
+
      @torch.inference_mode()
      def run_idle_prefetch(self) -> bool:
 --- a/vllm_omni/model_executor/models/minicpmo_4_5/minicpmo_4_5_token2wav.py
@@ -107,7 +107,7 @@
 @@ -119,9 +119,12 @@
      def speech_window(self) -> torch.Tensor:
          return self._core.speech_window
- 
+
 -    def _prepare_prompt(self, prompt_wav: str):
 +    def _prepare_prompt_cpu(self, prompt_wav: str):
 +        return self._core._prepare_prompt_cpu(prompt_wav)
@@ -116,7 +116,7 @@
          """Delegate prompt feature extraction to the wrapped core."""
 -        return self._core._prepare_prompt(prompt_wav)
 +        return self._core._prepare_prompt(prompt_wav, cpu_features=cpu_features)
- 
+
      def enable_trt_spk_embedding(self, *, cpu_reference: bool = False) -> None:
          """Run the campplus speaker-embedding model on TensorRT."""
 --- a/vllm_omni/model_executor/models/step_audio2/step_audio2_token2wav.py
@@ -124,7 +124,7 @@
 @@ -514,8 +514,9 @@
                  )
              return code, code_len
- 
+
 -    def _prepare_prompt(self, prompt_wav: str):
 -        """Prepare prompt audio for conditioning"""
 +    @staticmethod
@@ -132,7 +132,7 @@
 +        """Extract reference features without accessing the accelerator."""
          audio_np_raw, sample_rate = load_audio(prompt_wav, sr=None, mono=True)
          sample_rate = int(sample_rate)
- 
+
 @@ -524,29 +525,8 @@
          audio = torch.from_numpy(audio_16k)
          mels = s3tokenizer.log_mel_spectrogram(audio)

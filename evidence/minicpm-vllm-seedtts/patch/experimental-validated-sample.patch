@@ -55,7 +55,7 @@
 +                token = scores.argmax(dim=-1)
              sampled.append(token)
          return self.advance(torch.cat(sampled), frame, eos_token_id)
- 
+
 --- a/vllm_omni/model_executor/models/minicpmo_4_5/minicpmo_4_5_code2wav.py
 +++ b/vllm_omni/model_executor/models/minicpmo_4_5/minicpmo_4_5_code2wav.py
 @@ -1690,7 +1690,12 @@
@@ -69,6 +69,6 @@
 +                logger.info("[RSI prefetch treatment] executed with %d waiting references", queued_before)
 +                self._rsi_multiqueue_prefetch_logged = True
 +            return ran
- 
+
      def _run_prefetch_phase(self, state_id: str, record: _RefPrefetch) -> bool:
          """Run the next phase of ``record``; see ``run_idle_prefetch``."""
