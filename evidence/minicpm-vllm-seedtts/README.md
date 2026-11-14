@@ -107,8 +107,24 @@ the paired engine reached 0.06222 / 0.21053 / 0.26183. The small C1 advantage
 is unqualified; C16/C32 still miss the target. WER/SIM/UTMOS do not establish
 no regression, so the full goal remains INCONCLUSIVE. TensorRT speaker and
 encoder tail capture did not improve the earlier K16 speaker configuration.
-A subsequent combination screen is testing n-gram with multiple Code2Wav
-replicas and experimental grouped reference setup; it has no results here.
+The combination screens on device E are retained in
+`results/service-phase6-development.json` (36 cells). Two Code2Wav replicas
+with n-gram and grouped reference setup reached mean RTF
+0.06155 / 0.24457 / 0.34937; the same-allocation independent engine reached
+0.06277 / 0.20555 / 0.26662. C16/C32 still miss the target. Four replicas
+worsened C32; increasing stage capacity, doubling codec chunks, and a
+slot-pool/micro-batch combination also failed to improve the C32 result.
+The K32 proposal was not executed: the supported Talker contract ends at K16.
+
+A real-weight synthetic-feature diagnostic measured grouped reference setup
+at about 75 ms per four voices versus about 284 ms serially, but cache values
+were not identical (maximum estimator attention-cache difference about 0.29).
+This establishes neither generated-speech equivalence nor service speedup.
+An exploratory paired bootstrap over 64 utterances is retained as uncertainty
+analysis, not an acceptance gate. C32 WER worsened in the first two-replica
+cell; quality remains unresolved. Development profiling ran only after all
+measured latency cells. Torch profiler export dominated the Talker CPU sample,
+so that diagnostic cannot establish its normal service bottleneck.
 
 ## Lessons supported by this investigation
 
