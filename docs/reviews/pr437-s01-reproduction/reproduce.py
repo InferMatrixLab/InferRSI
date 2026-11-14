@@ -109,48 +109,115 @@ def tree_digest(files: dict) -> str:
     return hashlib.sha256(lines.encode()).hexdigest()
 
 
-def preflight_diag(_args) -> int:
+def _print_sys_file(path: Path) -> None:
+    if path.exists():
+        try:
+            value = path.read_text().strip().replace("\n", " ")
+        except OSError as error:
+            print(f"{path}: (unreadable: {error})")
+            return
+        if len(value) > 200:
+            value = value[:200] + "…"
+        print(f"{path}: {value}")
+    else:
+        print(f"{path}: (file not present)")
+
+
+def _run_probe(label: str, cmd: list[str]) -> int:
+    print(f"probe[{label}]:", " ".join(cmd))
+    completed = subprocess.run(cmd, capture_output=True, text=True)
+    print(f"probe[{label}] exit:", completed.returncode)
+    err = (completed.stderr or completed.stdout or "").strip()
+    if err:
+        print(err[:1000])
+    return completed.returncode
+
+
+def preflight_diag(args) -> int:
+    """Print host facts. Does not change sysctl, AppArmor, or the sandbox."""
+    from datetime import datetime
+    from zoneinfo import ZoneInfo
+
+    now = datetime.now(ZoneInfo("Asia/Shanghai"))
+    try:
+        sys.stdout.reconfigure(line_buffering=True)
+    except Exception:
+        pass
+    print("captured_at_asia_shanghai:", now.strftime("%Y-%m-%d %H:%M:%S %Z (UTC+8)"))
     print("platform:", sys.platform)
     print("python:", sys.version.replace("\n", " "))
     print("executable:", sys.executable)
     system_py = Path("/usr/bin/python3")
+    resolved = str(system_py.resolve()) if system_py.exists() else "n/a"
     print("system_/usr/bin/python3:", system_py, "exists=" + str(system_py.exists()),
-          "resolved=" + (str(system_py.resolve()) if system_py.exists() else "n/a"))
+          "resolved=" + resolved)
+    if system_py.exists():
+        ver = subprocess.run([str(system_py), "--version"], capture_output=True, text=True)
+        print("system_python_version:", (ver.stdout or ver.stderr or "").strip())
     bwrap = shutil.which("bwrap")
     print("bwrap:", bwrap)
     if bwrap:
-        subprocess.run([bwrap, "--version"])
-    userns = Path("/proc/sys/kernel/unprivileged_userns_clone")
-    if userns.exists():
-        print("unprivileged_userns_clone:", userns.read_text().strip())
-    else:
-        print("unprivileged_userns_clone: (file not present)")
-    max_ns = Path("/proc/sys/user/max_user_namespaces")
-    if max_ns.exists():
-        print("max_user_namespaces:", max_ns.read_text().strip())
+        ver = subprocess.run([bwrap, "--version"], capture_output=True, text=True)
+        print("bwrap_version:", (ver.stdout or ver.stderr or "").strip())
+
+    _print_sys_file(Path("/proc/sys/kernel/unprivileged_userns_clone"))
+    _print_sys_file(Path("/proc/sys/user/max_user_namespaces"))
+    _print_sys_file(Path("/proc/sys/kernel/apparmor_restrict_unprivileged_userns"))
+    _print_sys_file(Path("/sys/module/apparmor/parameters/enabled"))
+
+    print("note: the next two probes are NOT the official qualify preflight.")
+    print("bubblewrap's sandbox root is empty until paths are bound, so")
+    print("`bwrap --unshare-all -- /bin/true` can exit 1 with execvp ENOENT")
+    print("on a host where official qualify still PASSes.")
     if bwrap:
-        probe = subprocess.run(
-            [bwrap, "--unshare-all", "--die-with-parent", "--dev", "/dev",
-             "--proc", "/proc", "--tmpfs", "/tmp", "--unshare-user",
-             "/bin/true"],
-            capture_output=True, text=True,
-        )
-        # Some hosts do not need/accept a second --unshare-user; try the qualify shape next.
-        print("bwrap --unshare-all /bin/true exit:", probe.returncode)
-        if probe.returncode != 0:
-            err = (probe.stderr or probe.stdout or "").strip()
-            if err:
-                print(err[:1000])
-        simple = subprocess.run([bwrap, "--unshare-all", "--", "/bin/true"],
-                                capture_output=True, text=True)
-        print("bwrap --unshare-all -- /bin/true exit:", simple.returncode)
-        if simple.returncode != 0:
-            err = (simple.stderr or simple.stdout or "").strip()
-            if err:
-                print(err[:1000])
-    print("This host is a local Linux qualify host only if the bwrap unshare probe")
-    print("succeeds and /usr/bin/python3 is a system CPython 3.x. It is not the")
-    print("GitHub ubuntu-22.04 official workflow runner.")
+        _run_probe("naive-/bin/true", [bwrap, "--unshare-all", "--", "/bin/true"])
+        _run_probe("naive-/usr/bin/true", [bwrap, "--unshare-all", "--", "/usr/bin/true"])
+        true = "/usr/bin/true" if Path("/usr/bin/true").exists() else "/bin/true"
+        _run_probe("unshare-all-ro-bind-root",
+                   [bwrap, "--unshare-all", "--ro-bind", "/", "/", "--", true])
+
+    # Official qualify-shaped probe, when this tree's sandbox module is importable.
+    repo = None
+    if getattr(args, "repo", None):
+        repo = Path(args.repo).resolve()
+    else:
+        guessed = HERE.parents[2]
+        if (guessed / "src" / "inferrsi" / "harness" / "artifact_sandbox.py").is_file():
+            repo = guessed
+    if repo is None:
+        print("qualify_shaped_probe: skipped (no --repo and this file is not inside a clone)")
+        print("Re-run with --repo pointing at a git archive or clone of 8b4a0cf / 03a6a62.")
+    else:
+        src = repo / "src"
+        sys.path.insert(0, str(src))
+        try:
+            from inferrsi.harness.artifact_sandbox import (  # type: ignore
+                RUNNER, SandboxUnavailable, _invoke,
+            )
+        except Exception as error:
+            print("qualify_shaped_probe: import failed:", type(error).__name__, error)
+        else:
+            import tempfile
+            with tempfile.TemporaryDirectory(prefix="s01-preflight-probe-") as temporary:
+                work = Path(temporary)
+                (work / "runner.py").write_text(RUNNER, encoding="utf-8")
+                (work / "parser.py").write_text(
+                    "def evaluate(*_a):\n    return True\n", encoding="utf-8",
+                )
+                try:
+                    result = _invoke(work, probe=True)
+                except SandboxUnavailable as error:
+                    print("qualify_shaped_probe: SandboxUnavailable:", error)
+                    result = None
+            print("qualify_shaped_probe result:", result)
+            print("qualify_shaped_probe ready:", result == {"ready": True})
+            print("qualify_shaped_probe: official sandbox_command binds system")
+            print("Python, stdlib, lib dirs, a temp /work, /proc and /dev; it is")
+            print("not `bwrap --unshare-all -- /bin/true`.")
+
+    print("This host is a local Linux qualify host only if the qualify-shaped")
+    print("probe is ready and /usr/bin/python3 is a system CPython 3.x. It is")
+    print("not the GitHub ubuntu-22.04 official workflow runner.")
     return 0
 
 
@@ -323,6 +390,7 @@ def main() -> int:
     sub = parser.add_subparsers(dest="command", required=True)
 
     p = sub.add_parser("preflight-diag", help="Print sandbox-preflight environment facts")
+    p.add_argument("--repo", help="Clone or git-archive tree that contains src/inferrsi/harness/artifact_sandbox.py")
     p.set_defaults(handler=preflight_diag)
 
     p = sub.add_parser("trial-bytes", help="Shared-work trial-record capture and compare")

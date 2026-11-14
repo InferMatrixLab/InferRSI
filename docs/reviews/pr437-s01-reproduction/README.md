@@ -125,6 +125,7 @@ Receipts (verbatim):
 
 - [`receipts/qualify-8b4a0cf-debian13/qualification.json`](receipts/qualify-8b4a0cf-debian13/qualification.json)
 - [`receipts/qualify-8b4a0cf-debian13/environment.json`](receipts/qualify-8b4a0cf-debian13/environment.json)
+- [`receipts/qualify-8b4a0cf-debian13/preflight-diag-pass-host.txt`](receipts/qualify-8b4a0cf-debian13/preflight-diag-pass-host.txt) — `preflight-diag` stdout from the same PASS host, **2026-11-14 20:59:47 Asia/Shanghai**, including `unprivileged_userns_clone` (file not present), `max_user_namespaces` (`63991`), AppArmor sysctls (absent), naive `bwrap --unshare-all -- /bin/true` (exit 1, `execvp` ENOENT; this is **not** the official probe), `--ro-bind / /` (exit 0), and official `sandbox_command(..., probe=True)` `{"ready": True}`.
 
 Controls: `correct.passed` true (19/19 assertions true); `bad_starter.passed`
 false (only `length` and `http_failure` true, as designed). No host fallback.
@@ -132,7 +133,7 @@ false (only `length` and `http_failure` true, as designed). No host fallback.
 Re-run on Linux with working unprivileged user namespaces:
 
 ```bash
-python3 docs/reviews/pr437-s01-reproduction/reproduce.py preflight-diag
+python3 docs/reviews/pr437-s01-reproduction/reproduce.py preflight-diag --repo .
 python3 docs/reviews/pr437-s01-reproduction/reproduce.py qualify \
   --scratch ./tmp/s01-repro \
   --revision 8b4a0cfbde8a1f726c2ec1dcc4886cbb5f773db3 \
