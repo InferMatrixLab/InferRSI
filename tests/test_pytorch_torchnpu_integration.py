@@ -9,12 +9,18 @@ import pytest
 import yaml
 
 from inferrsi.catalog import get_knowledge
+from inferrsi.knowledge._source_snapshot import source_entry
 from inferrsi.knowledge_operations import KnowledgeReader
 from inferrsi.skill_catalog import skill_metadata, skill_resource
 
 PROJECT = Path(__file__).resolve().parents[1]
-LIBRARY = PROJECT / "src/inferrsi/data/skill_library"
+LIBRARY = PROJECT / "src/inferrsi/knowledge/data/skill_library"
 GRAPHS = (("pytorch", "common"), ("torch-npu", "ascend"))
+
+
+def _pinned(path: Path) -> str:
+    """Name a corpus file the way the pinned source_revision recorded it."""
+    return source_entry(path.relative_to(LIBRARY.parent.parent).as_posix())
 
 
 @pytest.mark.parametrize("name,backend", GRAPHS)
@@ -78,8 +84,10 @@ def test_framework_catalog_preserves_owner_metadata_and_scope_without_promotion(
     }
     source_paths = set(record["source_files"])
     for document in owner.rglob("SKILL.md"):
-        assert document.relative_to(PROJECT).as_posix() in source_paths
-        assert document.with_name("metadata.json").relative_to(PROJECT).as_posix() in source_paths
+        # source_files names each input at the pinned source_revision, where the
+        # corpus still sat directly under src/inferrsi/data.
+        assert _pinned(document) in source_paths
+        assert _pinned(document.with_name("metadata.json")) in source_paths
 
 
 def test_pytorch_retained_license_and_notice_match_declared_immutable_blob_bytes():

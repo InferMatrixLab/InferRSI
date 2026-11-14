@@ -205,7 +205,7 @@ def prepare(
     write_json(output / "plan/tasks.json", tasks)
     write_json(output / "plan/schema.json", SCHEMA)
     shutil.copyfile(ROOT / "tools/skill_eval_verifier.py", output / "validator/verify.py")
-    reader = KnowledgeReader(skill_root=ROOT / "src/inferrsi/data/skill_library")
+    reader = KnowledgeReader(skill_root=ROOT / "src/inferrsi/knowledge/data/skill_library")
     bundles = {name: reader.read("checkout:" + name).view() for name in SKILLS}
     schedule = build_schedule(tasks, final_only)
     source_files = [
@@ -310,7 +310,7 @@ def execute(output: Path, max_new_trials: int | None = None):
         plan["timeout_seconds"],
     )
     tasks = {t["id"]: t for t in json.loads((output / "plan/tasks.json").read_text())}
-    reader = KnowledgeReader(skill_root=ROOT / "src/inferrsi/data/skill_library")
+    reader = KnowledgeReader(skill_root=ROOT / "src/inferrsi/knowledge/data/skill_library")
     for name, bundle in plan["skills"].items():
         assert reader.read("checkout:" + name).revision == bundle["revision"]
     trials = recover_attempts(output, plan["schedule"])

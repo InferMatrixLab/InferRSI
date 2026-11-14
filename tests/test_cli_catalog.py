@@ -142,7 +142,7 @@ class CatalogTests(unittest.TestCase):
 
 
 def test_knowledge_has_one_canonical_record_and_complete_navigation():
-    packs = PROJECT / "src/inferrsi/data/repo_packs"
+    packs = PROJECT / "src/inferrsi/knowledge/data/repo_packs"
     canonical_paths = list(packs.glob("*/knowledge/*/*/*.json"))
     records = search_knowledge(tier="contribution", limit=len(canonical_paths))
     assert len(records) == len(canonical_paths)
@@ -183,7 +183,8 @@ def test_misfiled_or_overstated_record_cannot_leak_into_context(
     record[field] = value
     destination = (
         tmp_path
-        / "data/repo_packs/vllm_omni/knowledge/ascend/diffusion/qwen-image-21-eager-t2i.json"
+        / "knowledge/data/repo_packs/vllm_omni/knowledge/ascend/diffusion"
+        / "qwen-image-21-eager-t2i.json"
     )
     destination.parent.mkdir(parents=True)
     destination.write_text(json.dumps(record))

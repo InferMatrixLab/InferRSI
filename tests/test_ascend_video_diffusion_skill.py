@@ -8,7 +8,7 @@ import pytest
 from inferrsi.skill_catalog import get_skill, skill_instructions, skill_records
 
 ROOT = Path(__file__).resolve().parents[1]
-SKILL_ROOT = ROOT / "src/inferrsi/data/skill_library"
+SKILL_ROOT = ROOT / "src/inferrsi/knowledge/data/skill_library"
 SKILL_NAME = "ascend-video-diffusion-optimization"
 SKILL = SKILL_ROOT / "hardware/ascend" / SKILL_NAME
 COMMON_NAME = "video-diffusion-optimization"

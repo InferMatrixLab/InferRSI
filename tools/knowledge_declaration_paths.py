@@ -15,7 +15,7 @@ from pathlib import Path
 
 PROJECT = Path(__file__).resolve().parents[1]
 POLICY = ".github/knowledge-model-policy.json"
-GENERATED = ("src/inferrsi/data/repo_packs/inferrsi/knowledge/", "docs/skill-coverage.md")
+GENERATED = ("src/inferrsi/knowledge/data/repo_packs/inferrsi/knowledge/", "docs/skill-coverage.md")
 GIT = ("git", "--no-replace-objects", "--no-lazy-fetch")
 
 

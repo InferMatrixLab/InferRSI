@@ -27,7 +27,7 @@ def _symlink(target: Path, link: Path) -> None:
 
 
 def test_checkout_catalog_is_metadata_only():
-    root = PROJECT / "src/inferrsi/data/skill_library"
+    root = PROJECT / "src/inferrsi/knowledge/data/skill_library"
     records = skill_records(root)
     assert len(records) == len(skill_directories(root))
     assert len(records) >= 32
@@ -128,7 +128,7 @@ def test_metadata_symlink_escape_rejected(tmp_path):
 
 
 def test_cli_list(capsys):
-    root = PROJECT / "src/inferrsi/data/skill_library"
+    root = PROJECT / "src/inferrsi/knowledge/data/skill_library"
     assert main(["skills", "--root", str(root), "list", "--json"]) == 0
     assert json.loads(capsys.readouterr().out) == skill_records(root)
 
@@ -136,7 +136,7 @@ def test_cli_list(capsys):
 @pytest.mark.parametrize("name", ["../claim-contract", "unknown", "Claim-Contract", ""])
 def test_selection_rejects_invalid_or_unknown_names(name):
     with pytest.raises(ValueError):
-        get_skill(PROJECT / "src/inferrsi/data/skill_library", name)
+        get_skill(PROJECT / "src/inferrsi/knowledge/data/skill_library", name)
 
 
 @pytest.mark.parametrize(

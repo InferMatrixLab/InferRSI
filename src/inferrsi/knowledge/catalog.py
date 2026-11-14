@@ -89,7 +89,7 @@ def _validate_record(
 
 
 def knowledge_records() -> list[dict[str, Any]]:
-    data = files("inferrsi").joinpath("data")
+    data = files("inferrsi").joinpath("knowledge", "data")
     records = []
     seen = set()
     for tier, repos in KNOWLEDGE_SCOPES.items():

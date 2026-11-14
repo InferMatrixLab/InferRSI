@@ -99,7 +99,7 @@ jobs:
           "$RUNNER_TEMP/wheel-env/bin/python" -m pip install "${wheels[0]}[skills]"
           cp tests/check_installed.py tools/check_release.py "$RUNNER_TEMP/"
           cd "$RUNNER_TEMP"
-          env -u PYTHONPATH "$RUNNER_TEMP/wheel-env/bin/python" -I check_installed.py
+          env -u PYTHONPATH INFERRSI_CHECKOUT_RESOURCES="$GITHUB_WORKSPACE/src/inferrsi" "$RUNNER_TEMP/wheel-env/bin/python" -I check_installed.py
           env -u PYTHONPATH "$RUNNER_TEMP/wheel-env/bin/python" -I check_release.py \
             installed --tag "$RELEASE_TAG"
       - name: Build and validate the installable host plugin ZIPs

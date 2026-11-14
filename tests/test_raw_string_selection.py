@@ -13,6 +13,7 @@ from inferrsi._skill_selection import (
     skill_score,
 )
 from inferrsi.cli import main
+from inferrsi.knowledge._source_snapshot import source_entry
 from inferrsi.knowledge_operations import KnowledgeReader, _hash, _json
 from inferrsi.knowledge_store import KnowledgeStore
 
@@ -47,7 +48,7 @@ def synthetic_reader(entries):
     for record in records.values():
         prefix = record["skill_documents"]["original"].removesuffix("SKILL.md")
         record["source_files"] = {
-            "src/inferrsi/" + path: _hash(data)
+            source_entry(path): _hash(data)
             for path, data in library.items() if path.startswith(prefix) or path == registry_path
         }
     reader = KnowledgeReader()

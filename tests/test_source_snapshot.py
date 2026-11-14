@@ -8,12 +8,17 @@ import pytest
 
 from inferrsi import _source_snapshot as snapshot
 from inferrsi.catalog import search_knowledge
+from inferrsi.knowledge._source_snapshot import source_entry
 from tools import build_skill_index as index_builder
-from tools.build_skill_index import DESTINATION, LIBRARY
+from tools.build_skill_index import DESTINATION
 
 PROJECT = Path(__file__).resolve().parents[1]
 GENERATED = PROJECT / DESTINATION
 REVISION = "a" * 40
+# These fixtures hold their corpus at the recorded location, where the physical
+# root and the pinned prefix are the same. After the K02 re-pin the repository
+# agrees on src/inferrsi/knowledge/data/skill_library as well.
+LIBRARY = index_builder.PINNED_LIBRARY
 
 
 def record_files():
@@ -84,7 +89,7 @@ def test_invalid_stored_record_never_resolves(mutation):
     elif mutation == "registry_hash":
         stored["source_files"][snapshot.REGISTRY] = "0" * 64
     elif mutation == "missing_entry":
-        stored["source_files"].pop("src/inferrsi/" + stored["skill_documents"]["original"])
+        stored["source_files"].pop(source_entry(stored["skill_documents"]["original"]))
     else:
         del stored["origin"]
     with pytest.raises(ValueError):
@@ -122,6 +127,7 @@ def _write_skill(root, name, body):
 def _generate(root, monkeypatch):
     revision = _git(root, "rev-parse", "HEAD")
     monkeypatch.setattr(index_builder, "PROJECT", root)
+    monkeypatch.setattr(index_builder, "LIBRARY", LIBRARY)
     assert index_builder.main(["--source-revision", revision]) == 0
     assert index_builder.main(["--source-revision", revision, "--check"]) == 0
     _git(root, "add", "-A")

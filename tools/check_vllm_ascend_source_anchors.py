@@ -11,7 +11,7 @@ from collections.abc import Mapping
 from pathlib import Path
 
 OWNER = (Path(__file__).resolve().parents[1]
-         / "src/inferrsi/data/skill_library/repositories/vllm-ascend")
+         / "src/inferrsi/knowledge/data/skill_library/repositories/vllm-ascend")
 DEFAULT_DOC = OWNER / "references/communication-config.md"
 DEFAULT_METADATA = OWNER / "metadata.json"
 SOURCE_URL = "https://github.com/vllm-project/vllm-ascend"

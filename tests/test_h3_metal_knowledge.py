@@ -23,7 +23,7 @@ from inferrsi.knowledge_operations import KnowledgeReader
 from inferrsi.skill_catalog import get_skill, skill_metadata
 
 PROJECT = Path(__file__).resolve().parents[1]
-LIBRARY = PROJECT / "src/inferrsi/data/skill_library"
+LIBRARY = PROJECT / "src/inferrsi/knowledge/data/skill_library"
 NAME = "audit-h3-metal-fasth3-semantics"
 OWNER = LIBRARY / "repositories/h3-metal" / NAME
 IDENTITY = "inferrsi.common.skills.audit_h3_metal_fasth3_semantics"

@@ -9,7 +9,7 @@ from inferrsi.catalog import get_knowledge, search_knowledge
 from inferrsi.knowledge_operations import KnowledgeReader
 from inferrsi.skill_catalog import get_skill, skill_metadata, skill_reference, skill_resource
 
-ROOT = Path(__file__).resolve().parents[1] / "src/inferrsi/data/skill_library"
+ROOT = Path(__file__).resolve().parents[1] / "src/inferrsi/knowledge/data/skill_library"
 NAME = "reason-hopper-kernels"
 OWNER = ROOT / "hardware/cuda" / NAME
 IDENTITY = "inferrsi.cuda.skills.reason_hopper_kernels"

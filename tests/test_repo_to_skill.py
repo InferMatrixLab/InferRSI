@@ -10,7 +10,7 @@ from urllib.parse import unquote, urlsplit
 import yaml
 
 PROJECT = Path(__file__).resolve().parents[1]
-LIBRARY = PROJECT / "src/inferrsi/data/skill_library/repositories"
+LIBRARY = PROJECT / "src/inferrsi/knowledge/data/skill_library/repositories"
 FIXTURES = PROJECT / "tests/fixtures/repo_to_skill"
 GRAPHS = ("dwarfstar",)
 

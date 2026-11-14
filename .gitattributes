@@ -9,7 +9,7 @@
 /evidence/_template/** text eol=lf
 
 # Retain this upstream license's original CRLF Git blob bytes.
-/src/inferrsi/data/skill_library/frameworks/torch-npu/torch-npu/references/licenses/op-plugin-LICENSE.txt -text
+/src/inferrsi/knowledge/data/skill_library/frameworks/torch-npu/torch-npu/references/licenses/op-plugin-LICENSE.txt -text
 
 # Generated third-party bundles, with source references and notices beside them.
 /plugins/inferrsi-dsh/vendor/ssh2.cjs linguist-generated=true linguist-vendored=true

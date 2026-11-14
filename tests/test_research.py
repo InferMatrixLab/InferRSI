@@ -167,7 +167,9 @@ def test_unknown_model_never_invents_tasks_or_components():
 @pytest.mark.parametrize("alias", ["MiniMax-H3", "minimax h3", "MiniMax_H3"])
 def test_model_profile_links_packaged_resources_at_the_repository_owner(alias):
     result = research_knowledge(alias)
-    package = files("inferrsi")
+    # Returned resource keys stay logical "data/..."; K02 moved the physical
+    # corpus under the Knowledge module without changing that spelling.
+    package = files("inferrsi").joinpath("knowledge")
     profile = result["profile"]
     assert profile["model"] == "MiniMax-H3"
     assert package.joinpath(result["procedure_resource"]).read_text(encoding="utf-8")
