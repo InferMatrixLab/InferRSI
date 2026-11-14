@@ -220,6 +220,39 @@ All cells completed 64 requests without failures. Saved-audio scores are
 retained as descriptive tuning evidence, not speech-quality qualification.
 The overall verdict remains **INCONCLUSIVE**.
 
+## Background CPU reference preparation
+
+`results/service-phase14-development.json` records 18 tuning cells from the
+same source snapshot with zero or four background CPU feature workers, followed
+by a sequential engine reference on the same reserved GPU. Both replicas logged
+submission and consumption of background features. The queue is bounded at 32;
+reference files stay pinned until their readers finish. GPU feature completion
+remains on the service thread. This is an experimental patch layered on the
+checked-sampler snapshot, not a production change.
+
+| Mean request RTF, two tuning repetitions | C1 | C16 | C32 |
+| --- | ---: | ---: | ---: |
+| CPU prefetch disabled | 0.06070 | 0.23153 | 0.33311 |
+| Four background CPU workers | 0.06166 | 0.39736 | 0.33687 |
+| Sequential paired engine | 0.06424 | 0.21633 | 0.26031 |
+
+All cells completed 64 requests without failures. CPU features matched exactly
+on 16 real references, and complete real-weight prompt features matched on four.
+Regressions and lifecycle checks: 247 passed, 27 skipped, including cancellation,
+pinning and bounded queues. An isolated CPU diagnostic found roughly 0.048 s for
+16 references with four workers versus 0.17 s with one, with one PyTorch thread
+per worker in that diagnostic. This local speedup did not translate to the
+service. C16 audio chunk gaps increased; graph logs show no cache flushes in
+either variant. These observations do not establish the cause of the regression.
+The four-worker configuration is not retained.
+
+C1 saved waveforms had identical lengths, with 54/64 PCM-exact pairs and a
+maximum sample difference of 0.000214. Two fresh control servers themselves
+had 55/64 exact pairs and a maximum difference of 0.000519. Component feature
+identity therefore is not presented as complete generated-waveform identity.
+Saved-audio quality scores remain descriptive; the service objective remains
+**INCONCLUSIVE**.
+
 ## Lessons supported by this investigation
 
 - Match component precision to the running service. The HiFT diagnostic in
