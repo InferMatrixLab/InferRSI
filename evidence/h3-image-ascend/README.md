@@ -354,3 +354,16 @@ MLP, tiling optimization and a larger norm/MLP/gated-residual fragment. All nine
 comparisons were exact, but compiled execution remained slower. Modulation
 parameters in the larger fragment were synthetic. These are component results;
 HTTP performance and final acceptance remain INCONCLUSIVE, with no adoption.
+
+## Attention sparsity diagnostic, round 23
+
+[Component results and capture provenance](results/attention-sparsity-round23-components.json)
+use two new prompts, with 12 rank0 attention captures from selected blocks and
+steps. Synthetic sparse-kernel gains shrank after importance-mask costs were
+included. All 36 real-capture cases were slower, with errors increasing as more
+blocks were removed. Compiling FP32 importance ranking preserved masks but did
+not improve total synthetic cost. No whole-image candidate was adopted.
+
+The report also records the rejected first run with incorrect sequence-length
+semantics and the unsupported compiled BF16 TopK attempt. Results after the
+first NPU error were excluded; corrected experiments ran in fresh processes.
