@@ -321,3 +321,20 @@ head medians were 11.130/2.801/4.571s versus control 11.143/2.958/4.662s.
 [Paired samples and quality checks](results/current-head-round21-baseline.json)
 refresh the baseline; this is not a new optimization or final ABBA claim.
 All targets remain unmet.
+
+## November 14 component search
+
+[Component samples and source hashes](results/nov14-component-search.json) cover
+TND FIA, single-group BF16 matmul, packed HCCL, persistent packing and asynchronous
+QKV transport. Layout and packing variants did not show a qualifying overall
+benefit; the persistent kernel also failed correctness/compilation checks.
+Asynchronous separate QKV exchanges were exact in all twelve four-rank cases
+and advanced to whole-model testing. Component results alone do not establish
+HTTP latency or final image acceptance.
+
+## Asynchronous QKV round 22
+
+All 30 matched images were exact, but component transport gains did not improve
+HTTP latency. Candidate W1/W2/W3 medians were 11.064/2.723/4.564s versus
+control 11.040/2.698/4.561s. [Full samples, quality and source identity](results/async-qkv-round22-rejection.json)
+record the rejection. No engine adoption or final ABBA/visual acceptance followed.
