@@ -94,7 +94,7 @@ the agent uses the packaged ceiling-analysis skill to formulate targets:
 inferrsi read inferrsi.common.skills.performance_ceiling_analysis --material
 ```
 
-Follow its [acceptance-criteria procedure](../src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/acceptance-criteria.md).
+Follow its [acceptance-criteria procedure](../src/inferrsi/knowledge/data/skill_library/methods/performance-ceiling-analysis/references/acceptance-criteria.md).
 Preserve partial requirements; record derived targets with their baseline,
 calibration, uncertainty and authority in the acceptance issue and frozen plan.
 Missing evidence requires calibration, not a guessed threshold. This is agent

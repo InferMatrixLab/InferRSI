@@ -92,7 +92,7 @@ licenses, local links and reads from a noneditable wheel installation.
 
 Use user-provided acceptance criteria, including those in a referenced accepted
 plan. When none are supplied, use
-[performance-ceiling-analysis](../src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/acceptance-criteria.md)
+[performance-ceiling-analysis](../src/inferrsi/knowledge/data/skill_library/methods/performance-ceiling-analysis/references/acceptance-criteria.md)
 to formulate evidence-backed targets. Retain partial requirements and label
 derived fields; record their source, calibration, uncertainty and freeze
 authority. Missing evidence stays unresolved, and estimates never lower an

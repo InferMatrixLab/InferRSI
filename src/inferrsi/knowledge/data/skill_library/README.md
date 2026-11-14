@@ -197,7 +197,7 @@ For an installed wheel, locate a document without assuming a checkout path:
 
 ```python
 from importlib.resources import files
-library = files("inferrsi").joinpath("data", "skill_library")
+library = files("inferrsi").joinpath("knowledge", "data", "skill_library")
 router = library.joinpath("workflows", "inference-engine-research", "SKILL.md")
 print(router.read_text(encoding="utf-8"))
 ```

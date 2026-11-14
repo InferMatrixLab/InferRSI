@@ -5,6 +5,11 @@ Opt-in because it builds a real venv and installs from this source tree
 install backend). Run with:
 
     RUN_FRESH_VENV=1 pytest tests/test_knowledge_fresh_install.py
+
+The installed-package and release CI jobs enforce the same checkout-versus-wheel
+byte inventory through tests/check_installed.py when INFERRSI_CHECKOUT_RESOURCES
+points at the checkout (no second venv). This module remains the opt-in full
+fresh-venv path for local or extra isolation.
 """
 
 import hashlib

@@ -2,6 +2,7 @@ import contextlib
 import hashlib
 import io
 import json
+import os
 import sys
 from importlib.resources import as_file, files
 from pathlib import Path
@@ -541,3 +542,15 @@ inventory_digest = hashlib.sha256(
     "\n".join(f"{name}\0{digest}" for name, digest in sorted(inventory.items())).encode("utf-8")
 ).hexdigest()
 print(f"Installed resource inventory: {len(inventory)} files, sha256 {inventory_digest}")
+checkout = os.environ.get("INFERRSI_CHECKOUT_RESOURCES")
+if checkout:
+    # Same K02-3 contract as the opt-in fresh-venv test: every packaged resource
+    # in this isolated install matches the checkout byte-for-byte.
+    expected = _inventory(Path(checkout) / "knowledge" / "data", "knowledge/data")
+    expected.update(_inventory(Path(checkout) / "harness" / "data", "harness/data"))
+    assert inventory == expected, (
+        "installed resources differ from the checkout at "
+        f"{checkout}: only-installed={sorted(set(inventory) - set(expected))[:8]!r} "
+        f"only-checkout={sorted(set(expected) - set(inventory))[:8]!r} "
+        f"changed={sorted(name for name in set(inventory) & set(expected) if inventory[name] != expected[name])[:8]!r}"
+    )
