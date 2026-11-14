@@ -312,3 +312,12 @@ Candidate W1/W2/W3 medians were 10.805/2.641/4.471s versus control
 [Samples, checks and frozen configuration](results/fia-final-three-round20-result.json)
 record the comparison. The candidate was not adopted. All targets remain unmet;
 final ABBA and visual qualification were not performed.
+
+## Current PR head baseline, round 21
+
+The updated PR head `bd30cbd3f` preserves exact RGB for all 30 matched images
+against the prior `7f8395fed` control with the same explicit settings. Updated
+head medians were 11.130/2.801/4.571s versus control 11.143/2.958/4.662s.
+[Paired samples and quality checks](results/current-head-round21-baseline.json)
+refresh the baseline; this is not a new optimization or final ABBA claim.
+All targets remain unmet.

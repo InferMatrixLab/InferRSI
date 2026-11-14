@@ -1,0 +1,444 @@
+{
+  "purpose": "Paired baseline refresh for advanced PR head, not a new optimization claim.",
+  "source": {
+    "control_base": "7f8395fede3cb79991a256d1752c887b40faca30",
+    "control_adapter_patch": "050cd23f7973a0d5e76aaeb590c502c29cce71e4bf2d333d2f0e359c34a6774e",
+    "control_fia_flag": 0,
+    "candidate_head": "bd30cbd3fb621fcca600b2de08fc1249c6c0987c",
+    "purpose": "Fresh paired current-PR baseline, not a new optimization. Explicit settings retain frozen workload."
+  },
+  "latency": {
+    "control": {
+      "W1": {
+        "samples_s": [
+          11.102237075043377,
+          11.174494576000143,
+          11.143421485030558
+        ],
+        "median_s": 11.143421485030558,
+        "target_s": 7.34,
+        "target_met": false,
+        "h200_inverse_latency_fraction": 0.32934229445866964
+      },
+      "W2": {
+        "samples_s": [
+          3.192186189990025,
+          2.8012695999932475,
+          2.9578179260133766
+        ],
+        "median_s": 2.9578179260133766,
+        "target_s": 1.52,
+        "target_met": false,
+        "h200_inverse_latency_fraction": 0.25694617417656523
+      },
+      "W3": {
+        "samples_s": [
+          4.6620253850123845,
+          4.668766779999714,
+          4.652220778982155
+        ],
+        "median_s": 4.6620253850123845,
+        "target_s": 2.6,
+        "target_met": false,
+        "h200_inverse_latency_fraction": 0.2788487604935138
+      }
+    },
+    "candidate": {
+      "W1": {
+        "samples_s": [
+          11.255458589002956,
+          11.04647467500763,
+          11.130074119952042
+        ],
+        "median_s": 11.130074119952042,
+        "target_s": 7.34,
+        "target_met": false,
+        "h200_inverse_latency_fraction": 0.32973724707017615
+      },
+      "W2": {
+        "samples_s": [
+          2.725174133956898,
+          2.8007357019814663,
+          2.8498396200011484
+        ],
+        "median_s": 2.8007357019814663,
+        "target_s": 1.52,
+        "target_met": false,
+        "h200_inverse_latency_fraction": 0.2713572721132932
+      },
+      "W3": {
+        "samples_s": [
+          4.664237959019374,
+          4.570845616981387,
+          4.377812591963448
+        ],
+        "median_s": 4.570845616981387,
+        "target_s": 2.6,
+        "target_met": false,
+        "h200_inverse_latency_fraction": 0.28441126849051784
+      }
+    }
+  },
+  "quality": {
+    "reports": [
+      {
+        "group": "author-workloads",
+        "verdict": "PASS",
+        "scope": "numerical image-quality screen only",
+        "visual_review": "pending",
+        "additional_prompt_coverage": "pending",
+        "checks": [
+          {
+            "workload": "W1",
+            "seed": 42,
+            "index": 0,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W1",
+            "seed": 42,
+            "index": 1,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W1",
+            "seed": 42,
+            "index": 2,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W1",
+            "seed": 42,
+            "index": 3,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W2",
+            "seed": 42,
+            "index": 0,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W2",
+            "seed": 42,
+            "index": 1,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W2",
+            "seed": 42,
+            "index": 2,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W2",
+            "seed": 42,
+            "index": 3,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W3",
+            "seed": 42,
+            "index": 0,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W3",
+            "seed": 42,
+            "index": 1,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W3",
+            "seed": 42,
+            "index": 2,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W3",
+            "seed": 42,
+            "index": 3,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          }
+        ]
+      },
+      {
+        "group": "-quality",
+        "verdict": "PASS",
+        "scope": "numerical image-quality screen only",
+        "visual_review": "pending",
+        "additional_prompt_coverage": "pending",
+        "checks": [
+          {
+            "workload": "W1",
+            "seed": 43,
+            "index": 0,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W1",
+            "seed": 44,
+            "index": 0,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W2",
+            "seed": 43,
+            "index": 0,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W2",
+            "seed": 44,
+            "index": 0,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W3",
+            "seed": 43,
+            "index": 0,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W3",
+            "seed": 44,
+            "index": 0,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          }
+        ]
+      },
+      {
+        "group": "-architecture",
+        "verdict": "PASS",
+        "scope": "numerical image-quality screen only",
+        "visual_review": "pending",
+        "additional_prompt_coverage": "pending",
+        "checks": [
+          {
+            "workload": "W1",
+            "seed": 43,
+            "index": 0,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W1",
+            "seed": 44,
+            "index": 0,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W2",
+            "seed": 43,
+            "index": 0,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W2",
+            "seed": 44,
+            "index": 0,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          }
+        ]
+      },
+      {
+        "group": "-portrait",
+        "verdict": "PASS",
+        "scope": "numerical image-quality screen only",
+        "visual_review": "pending",
+        "additional_prompt_coverage": "pending",
+        "checks": [
+          {
+            "workload": "W1",
+            "seed": 43,
+            "index": 0,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W1",
+            "seed": 44,
+            "index": 0,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W2",
+            "seed": 43,
+            "index": 0,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W2",
+            "seed": 44,
+            "index": 0,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          }
+        ]
+      },
+      {
+        "group": "-edit-wall",
+        "verdict": "PASS",
+        "scope": "numerical image-quality screen only",
+        "visual_review": "pending",
+        "additional_prompt_coverage": "pending",
+        "checks": [
+          {
+            "workload": "W3",
+            "seed": 43,
+            "index": 0,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W3",
+            "seed": 44,
+            "index": 0,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          }
+        ]
+      },
+      {
+        "group": "-edit-sign",
+        "verdict": "PASS",
+        "scope": "numerical image-quality screen only",
+        "visual_review": "pending",
+        "additional_prompt_coverage": "pending",
+        "checks": [
+          {
+            "workload": "W3",
+            "seed": 43,
+            "index": 0,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          },
+          {
+            "workload": "W3",
+            "seed": 44,
+            "index": 0,
+            "exact": true,
+            "psnr_db": null,
+            "ssim": 1.0,
+            "mean_abs_error": 0.0,
+            "numerical_screen_pass": true
+          }
+        ]
+      }
+    ],
+    "campaign_verdict": "INCONCLUSIVE",
+    "visual_review": "pending",
+    "abba": "pending"
+  },
+  "conclusion": "All 30 images exact. All latency targets unmet. Final acceptance not established."
+}
