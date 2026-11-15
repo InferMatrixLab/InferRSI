@@ -4,6 +4,22 @@
 
 ### Changed
 
+- Shared technical contracts now live in `inferrsi.contracts` (Refs #451). The four
+  root files `_json_v1.py`, `runspec.py`, `claim.py`, and `contracts.py` are removed
+  in the same change. Canonical implementations are `contracts/json_v1.py`,
+  `contracts/runspec.py`, and `contracts/claim.py`; `contracts/__init__.py`
+  re-exports only `RunSpec` from its single definition. Public
+  `from inferrsi.contracts import RunSpec` remains supported, and Harness
+  re-exports the same `inferrsi.contracts.claim.Verdict` object.
+  - The old `inferrsi._json_v1`, `inferrsi.runspec`, and `inferrsi.claim` imports
+    and pickle module paths are retired, with no forwarding shells or
+    `sys.modules` aliases. Historical pickles require explicit migration or the
+    prior release; new pickles name the canonical implementation modules.
+  - Canonical JSON bytes, error stages, RunSpec serialization/validation, and
+    Verdict values are unchanged. Frozen evidence is not rewritten.
+  - `tests/test_package_root_inventory.py` locks the exact current 23-file root
+    inventory and rejects unexpected additions; each later removal must shrink
+    that set in its own PR, rather than requiring the final two-file root now.
 - The `inferrsi.observability` package is dissolved into its owning packages. No forwarding
   modules remain, so imports must use the new paths:
   - `campaign_records`, `campaign_trace`, `optimization_log`, `optimization_trace`,

@@ -10,17 +10,17 @@ from dataclasses import fields
 
 import pytest
 
-from inferrsi import claim, evaluation, execution, reporting
+from inferrsi import evaluation, execution, reporting
 from inferrsi.apps.legacy import evaluation as legacy_evaluation
 from inferrsi.apps.legacy import reporting as legacy_reporting
 from inferrsi.apps.legacy import run as legacy_run
 from inferrsi.benchmark import legacy_run_v0, sampling
+from inferrsi.contracts import RunSpec, claim
 from inferrsi.harness import atomic_json
 from inferrsi.harness.runner import run_experiment
 from inferrsi.harness.scenarios.external import execute_trial
 from inferrsi.infra import artifacts
 from inferrsi.model.protocols import metrics
-from inferrsi.runspec import RunSpec
 from tests._gate_policy_support import ROOT, _scan, _walk
 
 GRAPH = _scan(ROOT, frozenset())

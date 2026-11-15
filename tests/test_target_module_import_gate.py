@@ -73,8 +73,23 @@ class TargetModuleImportGateTest(unittest.TestCase):
         # Facts that hold at every stage.
         self.assertTrue((ROOT / "benchmark" / "registry.py").is_file())
         self.assertTrue((ROOT / "harness").is_dir())
-        self.assertTrue((ROOT / "contracts.py").is_file())
-        self.assertFalse((ROOT / "contracts").is_dir())
+        # #451 C1: the shared data/byte contracts are one bounded package with exactly
+        # these files. The single-file re-export and its three root siblings are retired.
+        self.assertEqual(
+            sorted(path.name for path in (ROOT / "contracts").iterdir() if path.is_file()),
+            ["__init__.py", "claim.py", "json_v1.py", "runspec.py"],
+        )
+        for retired in ("contracts.py", "_json_v1.py", "runspec.py", "claim.py"):
+            self.assertFalse((ROOT / retired).exists(), retired)
+        self.assertEqual(
+            support.CONTRACTS_MODULES,
+            {
+                "inferrsi.contracts",
+                "inferrsi.contracts.claim",
+                "inferrsi.contracts.json_v1",
+                "inferrsi.contracts.runspec",
+            },
+        )
         # A01-4 staged model: packages may appear one at a time, but each
         # remaining trigger keeps overall false.
         report = first_wave_report()

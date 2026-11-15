@@ -11,7 +11,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 
-from inferrsi import _json_v1
+from inferrsi.contracts import json_v1
 from inferrsi.harness import input_binding, local_process, run_store
 from inferrsi.harness.errors import PublicError
 
@@ -125,7 +125,7 @@ def _is_ids(value: object) -> bool:
 
 
 def _is_uint(value: object) -> bool:
-    return type(value) is int and 0 <= value <= _json_v1.MAX_SAFE_INTEGER
+    return type(value) is int and 0 <= value <= json_v1.MAX_SAFE_INTEGER
 
 
 def _is_definition(value: object) -> bool:
@@ -328,8 +328,8 @@ def validate(spec: object, target: LocalCpuTarget) -> None:
     errors += _input_errors(spec["inputs"])
     errors += _step_errors(spec["steps"], ordinary=not evaluation)
     try:
-        _json_v1.encode(spec)
-    except _json_v1.CanonicalError as exc:
+        json_v1.encode(spec)
+    except json_v1.CanonicalError as exc:
         errors.append(f"spec: not canonical inferrsi-json-v1 ({exc.stage})")
     if errors:
         raise PublicError(

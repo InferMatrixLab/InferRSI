@@ -4,7 +4,7 @@ import re
 from dataclasses import fields
 from hashlib import sha256
 
-from inferrsi._json_v1 import encode
+from inferrsi.contracts.json_v1 import encode
 from inferrsi.harness.errors import PUBLIC_ERROR_CODES, PartialExecutionFacts
 
 _EXIT_CODES = {

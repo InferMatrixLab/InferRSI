@@ -9,12 +9,12 @@ from pathlib import Path
 
 import pytest
 
-from inferrsi._json_v1 import decode, encode
 from inferrsi.apps import archive
 from inferrsi.apps.api import assess as run_assess
 from inferrsi.apps.api import read_attempt_view
 from inferrsi.apps.artifact_reader import ArtifactReader
 from inferrsi.cli import main
+from inferrsi.contracts.json_v1 import decode, encode
 from inferrsi.harness.errors import PublicError
 from inferrsi.harness.run_store import RunStore
 
@@ -337,7 +337,7 @@ def test_new_process_reassesses_the_requested_sqlite_revision(tmp_path, offline)
     subprocess.run(
         [sys.executable, "-c", """
 from pathlib import Path
-from inferrsi._json_v1 import decode, encode
+from inferrsi.contracts.json_v1 import decode, encode
 from inferrsi.apps.api import assess as run_assess, read_attempt_view
 
 workspace = Path.cwd()

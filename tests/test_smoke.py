@@ -5,8 +5,8 @@ import json
 import pytest
 
 from inferrsi import __version__
+from inferrsi.contracts import RunSpec
 from inferrsi.evidence_paths import EVIDENCE_SEGMENTS, evidence_subpaths
-from inferrsi.runspec import RunSpec
 
 
 def test_version_is_string() -> None:

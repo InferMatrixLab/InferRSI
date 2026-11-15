@@ -3,7 +3,7 @@
 
 from inferrsi.benchmark.legacy_run_v0 import RunRules, _summary, read_metric
 from inferrsi.benchmark.legacy_run_v0 import evaluate as _evaluate
-from inferrsi.runspec import RunSpec
+from inferrsi.contracts import RunSpec
 
 __all__ = ["evaluate", "read_metric", "run_rules", "_summary"]
 

@@ -8,9 +8,9 @@ from pathlib import Path
 
 from .apps.legacy.run import execute_trial as _execute
 from .apps.legacy.run import run_experiment as _run_experiment
+from .contracts import RunSpec
 from .harness.local_process import _stop_tree, _WindowsJob
 from .infra.targets import repository_identity
-from .runspec import RunSpec
 
 __all__ = ["run_experiment", "repository_identity", "_execute", "_WindowsJob", "_stop_tree"]
 

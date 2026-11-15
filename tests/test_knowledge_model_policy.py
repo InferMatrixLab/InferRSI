@@ -184,7 +184,8 @@ def test_explicit_protected_paths_require_declarations(policy, path):
     assert assess(item, {path}, policy)["state"] == "failure"
 
 
-@pytest.mark.parametrize("path", ["README.md", "src/inferrsi/cli.py", "src/inferrsi/contracts.py",
+@pytest.mark.parametrize("path", ["README.md", "src/inferrsi/cli.py",
+                                  "src/inferrsi/contracts/__init__.py",
                                   "src/inferrsi/knowledge_store.py", "tests/test_claim.py"])
 def test_no_blanket_source_scope_and_stable_not_applicable(policy, path):
     item = pr()

@@ -5,12 +5,15 @@ import json
 import os
 import sys
 from importlib.resources import as_file, files
+from importlib.util import find_spec
 from pathlib import Path
 
 import inferrsi
+import inferrsi.harness
 from inferrsi.benchmark.registry import builtin_tasks, describe_task, task_resources
 from inferrsi.catalog import REPO_TYPES, knowledge_records, repository_pack, search_knowledge
 from inferrsi.cli import main
+from inferrsi.contracts import RunSpec, claim, json_v1
 from inferrsi.knowledge._source_snapshot import BUNDLE_LIBRARY, LIBRARY
 from inferrsi.knowledge_operations import KnowledgeReader
 
@@ -565,4 +568,21 @@ if checkout:
         "installed resources differ from the checkout at "
         f"{checkout}: only-installed={only_installed!r} "
         f"only-checkout={only_checkout!r} changed={changed!r}"
+    )
+
+# #451 C1: the shared data/byte contracts ship as one package. The four retired root
+# modules are not in the wheel and have no alias.
+assert RunSpec.__module__ == "inferrsi.contracts.runspec"
+assert inferrsi.harness.Verdict is claim.Verdict
+assert json_v1.decode(json_v1.encode({"b": [1, None], "a": "x"})) == {"a": "x", "b": [1, None]}
+for retired in ("_json_v1", "runspec", "claim"):
+    assert find_spec(f"inferrsi.{retired}") is None, retired
+installed_root = {child.name for child in files("inferrsi").iterdir() if child.is_file()}
+assert not installed_root & {"_json_v1.py", "runspec.py", "claim.py", "contracts.py"}
+if checkout:
+    # The wheel root holds the checkout's root files; the only file that may differ is
+    # the build-generated version metadata.
+    checkout_root = {child.name for child in Path(checkout).iterdir() if child.is_file()}
+    assert installed_root - {"_version.py"} == checkout_root - {"_version.py"}, (
+        sorted(installed_root ^ checkout_root)
     )
