@@ -2,6 +2,24 @@
 
 ## [Unreleased]
 
+### Changed
+
+- The old `run` chain is split by owner. The CLI, its exit codes 0/1/2 and the
+  `evaluation.json` bytes are unchanged. Root `inferrsi.evaluation`,
+  `inferrsi.execution` and `inferrsi.reporting` keep working as forwarders.
+- Moved import paths, with no forwarder left under `inferrsi.harness`:
+  - `inferrsi.harness.evaluation` → `inferrsi.apps.legacy.evaluation` (`evaluate` with a
+    `RunSpec`) and `inferrsi.benchmark.legacy_run_v0` (the gates).
+  - `inferrsi.harness.reporting` → `inferrsi.apps.legacy.reporting`.
+  - `inferrsi.harness.scenarios.media` → `inferrsi.benchmark.sampling`.
+- `inferrsi.harness.runner.run_experiment` now requires its `execute`, `snapshot`,
+  `assess` and `report` ports. Use `inferrsi.apps.legacy.run.run_experiment` for the
+  composed old run with the previous defaults.
+- `inferrsi.harness.scenarios.external.execute_trial` takes `metric=` (a complete
+  validation function) in place of `metric_reader=`. Use
+  `inferrsi.apps.legacy.run.execute_trial` to keep `metric_reader=` with the common
+  metric contract applied.
+
 ## [0.1.0] — Developer Preview
 
 Pre-release only. v0.1.0 is a planned Developer Preview. The `v0.1.0` Git tag is not published yet, and this note does not publish a tag or a GitHub Release. There is no API stability promise. The package is not on PyPI. After the tag is published, install from that Git tag. Licensed under Apache-2.0 (`LICENSE`).

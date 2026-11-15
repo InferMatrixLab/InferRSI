@@ -7,7 +7,7 @@ from importlib import metadata
 from pathlib import Path
 from unittest.mock import patch
 
-from inferrsi.harness.reporting import write_report
+from inferrsi.apps.legacy.reporting import write_report
 from inferrsi.infra.artifacts import atomic_write_json
 from inferrsi.inspection import inspect_environment
 

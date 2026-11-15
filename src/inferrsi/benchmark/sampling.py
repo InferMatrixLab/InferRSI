@@ -1,10 +1,17 @@
 """Warmups and artifact collection shared by image/video request adapters."""
 
+import hashlib
 import json
 from pathlib import Path
 from statistics import mean
 
-from ...infra.artifacts import sha256
+
+def _sha256(path: Path) -> str:
+    hasher = hashlib.sha256()
+    with path.open("rb") as stream:
+        for block in iter(lambda: stream.read(1024 * 1024), b""):
+            hasher.update(block)
+    return hasher.hexdigest()
 
 
 def collect_samples(
@@ -51,7 +58,7 @@ def collect_samples(
                 path.rename(first)
                 record["first_request"] = {
                     "path": str(first),
-                    "sha256": sha256(first),
+                    "sha256": _sha256(first),
                     "seed": seed,
                     "latency_ms": latency,
                 }
@@ -69,7 +76,7 @@ def collect_samples(
                 {"group": group + 1, "id": item["id"], "latency_ms": latency}
             )
             record["artifacts"].append(
-                {"group": group + 1, "id": item["id"], "path": str(path), "sha256": sha256(path)}
+                {"group": group + 1, "id": item["id"], "path": str(path), "sha256": _sha256(path)}
             )
             print(
                 json.dumps({"group": group + 1, "id": item["id"], "latency_ms": latency}),

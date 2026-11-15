@@ -28,6 +28,8 @@ FREE_BUDGET = {
 SCHEMA = REPO / "docs" / "contracts" / "schemas" / "contract-v1.schema.json"
 # The new H closure: the H01/H02 modules, the canonical encoder, and the package init
 # residue (the mixed ``inferrsi.harness`` __init__ loads ``inferrsi.claim``).
+# execution_spec landed on main with the #397 squash 8150ee04, which also
+# added it to this H02 closure. The set matches current main.
 NEW_H_CLOSURE = {
     "inferrsi.harness.api", "inferrsi.harness.execution_service",
     "inferrsi.harness.input_binding", "inferrsi.harness.local_process",

@@ -113,6 +113,7 @@ def _runtime_identity():
     names = ("harness/optimization_session.py", "harness/optimization.py",
              "harness/local_process.py",
              "infra/processes.py", "infra/artifacts.py", "harness/scenarios/external.py",
+             "harness/atomic_json.py",
              "harness/usage.py", "harness/agent_sessions.py", "harness/task_protocol.py",
              "harness/candidates.py", "harness/project.py", "observability/knowledge_capture.py")
     return {name: sha256(root / name) for name in names}

@@ -84,7 +84,9 @@ therefore stay with their task definitions.
 The application child adapter executes the entry with `runpy`, providing the
 generic `execute_trial` callback as an initial global. MoE's script entry passes
 that callback explicitly to `main` and `evaluate`. The task package depends on
-the supplied execution function. The existing flat CLI and adapter are the
+the supplied execution function. The Harness executor holds no metric rule, so
+the MoE entry passes its own metric validation (`metric=read_metric`) with the
+metric key. The existing flat CLI and adapter are the
 application assembly seam until the Apps path migration.
 
 To add a task, create its package with the files shown above and register its

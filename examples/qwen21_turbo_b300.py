@@ -16,7 +16,7 @@ import sys
 import time
 import urllib.request
 
-from inferrsi.harness.scenarios.media import collect_samples
+from inferrsi.benchmark.sampling import collect_samples
 from inferrsi.model.protocols.image import ImageProtocol
 from inferrsi.infra import campaign as lifecycle
 from inferrsi.infra.platforms.cuda import qualify_devices

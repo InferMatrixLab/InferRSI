@@ -1,14 +1,14 @@
 """Compatibility entry points for the local experiment runner.
 
-New integrations use harness.runner and infra directly. Existing imports and
-legacy injection points continue to delegate to the same implementations.
+The old run is composed in apps.legacy.run. Existing imports and legacy
+injection points continue to delegate to the same implementations.
 """
 
 from pathlib import Path
 
+from .apps.legacy.run import execute_trial as _execute
+from .apps.legacy.run import run_experiment as _run_experiment
 from .harness.local_process import _stop_tree, _WindowsJob
-from .harness.runner import run_experiment as _run_experiment
-from .harness.scenarios.external import execute_trial as _execute
 from .infra.targets import repository_identity
 from .runspec import RunSpec
 

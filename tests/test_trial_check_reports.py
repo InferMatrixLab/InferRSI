@@ -4,8 +4,8 @@ import json
 
 import pytest
 
-from inferrsi.harness.evaluation import evaluate
-from inferrsi.harness.reporting import write_report
+from inferrsi.apps.legacy.evaluation import evaluate
+from inferrsi.apps.legacy.reporting import write_report
 from inferrsi.runspec import RunSpec
 from inferrsi.summary_chart import SpecError, spec_from_evaluation
 
