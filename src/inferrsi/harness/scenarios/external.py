@@ -1,11 +1,10 @@
-"""External benchmark/validator command scenario, independent of model and device."""
+"""External command execution and retained trial facts, independent of model and device."""
 
 import json
 from collections.abc import Callable
 from pathlib import Path
 
-from ...infra.artifacts import atomic_write_json as _write_json
-from ...model.protocols.metrics import read_metric, validate_metric
+from ..atomic_json import atomic_write_json as _write_json
 from ..local_process import execute_command
 
 
@@ -16,18 +15,24 @@ def execute_trial(
     deadline: float,
     metric_key: str | None,
     *,
-    metric_reader: Callable[[dict, str], float] = read_metric,
+    metric: Callable[[dict, str], float] | None = None,
     environment: dict | None = None,
 ) -> dict:
+    """Run one command and retain its record.
+
+    ``metric(document, metric_key)`` is the caller's metric validation. Harness
+    reads the result document and records the value or error that validation
+    returns; it holds no metric rule of its own.
+    """
+    if metric_key is not None and metric is None:
+        raise TypeError("execute_trial needs the caller's metric validation for metric_key")
     options = {"environment": environment} if environment is not None else {}
     record = execute_command(command, cwd, trial_dir, deadline, **options)
     result_path = Path(record["result_path"])
     if metric_key is not None:
         try:
             document = json.loads(result_path.read_text(encoding="utf-8"))
-            # A reader is a conversion, not an exemption: the common metric
-            # contract applies here, before the value enters the trial record.
-            record["metric"] = validate_metric(metric_key, metric_reader(document, metric_key))
+            record["metric"] = metric(document, metric_key)
         except (OSError, ValueError, TypeError, OverflowError) as exc:
             record["metric_error"] = str(exc)
     _write_json(trial_dir / "execution.json", record)

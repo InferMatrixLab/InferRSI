@@ -152,6 +152,8 @@ src/inferrsi/
   benchmark/
     registry.py             Generic task resource discovery
     tasks/                  Task-specific definitions, workloads and assessment
+    legacy_run_v0.py        Old run gates: metric contract, summaries and verdict
+    sampling.py             Warmup seeds, first-response retention, sample/artifact groups
     skill_evaluation.py     Skill trial check validity, verdict and condition statistics
     skill_eval_diagnostic.py   Synthetic KV admission diagnosis task and grader
     skill_eval_engineering.py  Serving-parser task, public vectors and vector judgment
@@ -163,6 +165,10 @@ src/inferrsi/
     skill_evaluation.py     Composed bundle export, trial run and summary
     skill_eval_engineering.py  Composed artifact check: task rules around sandbox replay
     improvement.py          Composed assessment, selection, rerun and holdout acceptance
+    legacy/
+      run.py                Old run composed from Harness, Benchmark and the report
+      evaluation.py         Old evaluate entry: RunSpec to the Benchmark gates
+      reporting.py          HTML evidence report
   runspec.py, contracts.py   Immutable experiment contract and compatibility export
   catalog.py                Knowledge search and cited context
   skill_catalog.py          Packaged/default or custom skill metadata/body/resource resolution
@@ -219,12 +225,9 @@ src/inferrsi/
     skill_evaluation.py     Skill client adapter, trial execution and retention; injected rules
     artifact_sandbox.py     Artifact capture and bubblewrap replay; no vectors or verdicts
     atomic_json.py          Harness-owned atomic JSON evidence writes
-    runner.py               One AB/BA loop; execute/snapshot adapter hooks
-    evaluation.py           Performance/quality/source-integrity adjudication
-    reporting.py            HTML evidence report
+    runner.py               One AB/BA loop; execute/snapshot/assess/report ports injected
     scenarios/
-      external.py           External benchmark/validator commands; metric-reader hook
-      media.py              Warmup seeds, first-response retention, sample/artifact groups
+      external.py           External command trials; metric validation injected
   model/
     protocols/
       metrics.py            Finite positive dotted-key metric contract
@@ -245,10 +248,10 @@ src/inferrsi/
     repo_packs/             Contribution descriptors and versioned tuning knowledge
     knowledge_packs/        Dependency and peer knowledge, preserving existing tiers
     skill_library/          Complete categorized English skills and resources
-  execution.py              Compatibility entrypoint -> harness.runner
-  evaluation.py             Compatibility exports -> harness.evaluation
+  execution.py              Compatibility entrypoint -> apps.legacy.run
+  evaluation.py             Compatibility exports -> apps.legacy.evaluation
   inspection.py             Compatibility entrypoint -> infra.inspection
-  reporting.py              Compatibility export -> harness.reporting
+  reporting.py              Compatibility export -> apps.legacy.reporting
 examples/                   Current Qwen runner, image validator and v4 adapter
 tests/fixtures/legacy/      Frozen historical validation dependencies for regressions
 ```
@@ -269,15 +272,16 @@ synthetic contract fixtures, not accelerator measurements.
 
 ### Compose a new scenario
 
-`harness.runner.run_experiment(spec, environment, *, execute, snapshot)` accepts
-small callable adapters. For a new external benchmark format, reuse the standard
-executor and only replace metric interpretation:
+`apps.legacy.run.run_experiment(spec, environment, *, execute, snapshot)` composes
+the old run and accepts small callable adapters. It passes them, the Benchmark v0
+gates and the report to `harness.runner.run_experiment`, whose four ports
+(`execute`, `snapshot`, `assess`, `report`) have no defaults. For a new external
+benchmark format, reuse the standard executor and only replace metric interpretation:
 
 ```python
 from functools import partial
 
-from inferrsi.harness.runner import run_experiment
-from inferrsi.harness.scenarios.external import execute_trial
+from inferrsi.apps.legacy.run import execute_trial, run_experiment
 from inferrsi.model.protocols.metrics import read_metric
 
 
@@ -297,10 +301,12 @@ The standard executor retains timeout, cancellation, logs, result paths and chil
 cleanup. A custom `execute(command, cwd, trial_dir, deadline, metric_key)` must
 preserve that trial record contract. Prefer composing `execute_trial` over
 reimplementing process lifetime. Metric readers convert a result document into a
-float; `execute_trial` then applies the one finite, positive metric contract
-(`model.protocols.metrics.validate_metric`) to whatever the reader returns, so a
-reader that yields `0.0`, a `bool` or a non-finite value records a metric error
-rather than entering the evaluation.
+float; `benchmark.legacy_run_v0.trial_metric` then applies the one finite, positive
+metric contract (`model.protocols.metrics.validate_metric`) to whatever the reader
+returns, so a reader that yields `0.0`, a `bool` or a non-finite value records a
+metric error rather than entering the evaluation. The Harness executor
+`harness.scenarios.external.execute_trial` holds no metric rule: a caller that
+passes a metric key also passes `metric=`, its validation function.
 
 Run state is written by the termination path, never assumed. `status.json`
 reports `completed` only after the final artifacts were written;
@@ -315,7 +321,8 @@ fingerprint relevant source, including changes between individual commands; it
 must not claim availability without a trustworthy identity. Git remains the
 default. Alternative adapters must define their own exclusion semantics.
 
-Image campaigns can compose `ImageProtocol.request` with `collect_samples`.
+Image campaigns can compose `ImageProtocol.request` with
+`benchmark.sampling.collect_samples`.
 The protocol receives model name, dimensions and sampling parameters from the
 campaign. The collector owns warmups, first-response retention, groups and
 artifact hashes; it accepts a request callback and file suffix, so it has no

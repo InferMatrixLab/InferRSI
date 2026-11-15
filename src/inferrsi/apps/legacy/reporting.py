@@ -5,7 +5,7 @@ from html import escape
 from pathlib import Path
 from urllib.parse import quote
 
-from ..summary_chart import (
+from inferrsi.summary_chart import (
     SpecError,
     build_svg,
     check_trial_chart_eligibility,

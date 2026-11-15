@@ -48,6 +48,8 @@ inferrsi benchmarks run moe-forward-npu \
 四组为 32 个。超时包括入口准备和执行，之后最多有额外的有界进程清理等待。
 入口先冻结题目、候选和 grader 的副本及 SHA256，再通过现有
 由应用入口注入的 `harness.scenarios.external.execute_trial` 执行。
+该执行器不含 metric 规则，入口在传 metric key 的同时传入自己的校验函数
+（`metric=read_metric`）。
 Python 调用 `evaluate` 时须显式传入 `execute_trial`。它额外清理本次唯一环境标记的
 torchrun 子进程，覆盖子进程创建独立 session 的情况；不会按宽泛进程名杀进程。
 

@@ -15,6 +15,21 @@
     `inferrsi.apps.views.profile_searches`.
   - `capture_context` and `verify_capture` from `knowledge_capture`, and `create_campaign`
     with backend validation, are in `inferrsi.apps.campaign`.
+- The old `run` chain is split by owner. The CLI, its exit codes 0/1/2 and the
+  `evaluation.json` bytes are unchanged. Root `inferrsi.evaluation`,
+  `inferrsi.execution` and `inferrsi.reporting` keep working as forwarders.
+- Moved import paths, with no forwarder left under `inferrsi.harness`:
+  - `inferrsi.harness.evaluation` → `inferrsi.apps.legacy.evaluation` (`evaluate` with a
+    `RunSpec`) and `inferrsi.benchmark.legacy_run_v0` (the gates).
+  - `inferrsi.harness.reporting` → `inferrsi.apps.legacy.reporting`.
+  - `inferrsi.harness.scenarios.media` → `inferrsi.benchmark.sampling`.
+- `inferrsi.harness.runner.run_experiment` now requires its `execute`, `snapshot`,
+  `assess` and `report` ports. Use `inferrsi.apps.legacy.run.run_experiment` for the
+  composed old run with the previous defaults.
+- `inferrsi.harness.scenarios.external.execute_trial` takes `metric=` (a complete
+  validation function) in place of `metric_reader=`. Use
+  `inferrsi.apps.legacy.run.execute_trial` to keep `metric_reader=` with the common
+  metric contract applied.
 
 ## [0.1.0] — Developer Preview
 

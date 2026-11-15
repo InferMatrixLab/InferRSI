@@ -12,11 +12,11 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
 
+from inferrsi.apps.legacy.evaluation import _summary, evaluate
+from inferrsi.apps.legacy.run import execute_trial
+from inferrsi.apps.legacy.run import run_experiment as run_with_adapters
 from inferrsi.contracts import RunSpec
 from inferrsi.execution import repository_identity, run_experiment
-from inferrsi.harness.evaluation import _summary, evaluate
-from inferrsi.harness.runner import run_experiment as run_with_adapters
-from inferrsi.harness.scenarios.external import execute_trial
 from inferrsi.infra.environment import storage_locations
 from inferrsi.reporting import write_report
 
@@ -724,7 +724,7 @@ class TerminationTests(unittest.TestCase):
         # OSError/ValueError contract, after `completed` was already written.
         # That failure must be persisted as the terminal state instead of
         # escaping while `completed` remains the last recorded status.
-        with patch("inferrsi.harness.runner.write_report",
+        with patch("inferrsi.apps.legacy.run.write_report",
                    side_effect=RuntimeError("report backend crashed")):
             with self.assertRaises(RuntimeError):
                 run_with_adapters(self.spec, {"backend": "cpu", "test": True})
@@ -739,7 +739,7 @@ class TerminationTests(unittest.TestCase):
         # Ctrl-C inside terminate() is outside the caller's own KeyboardInterrupt
         # handler. `completed` was already written, so the interruption must be
         # persisted as a termination failure rather than left looking finished.
-        with patch("inferrsi.harness.runner.write_report", side_effect=KeyboardInterrupt):
+        with patch("inferrsi.apps.legacy.run.write_report", side_effect=KeyboardInterrupt):
             with self.assertRaises(KeyboardInterrupt):
                 run_with_adapters(self.spec, {"backend": "cpu", "test": True})
         run = sorted((self.root / "runs").iterdir())[-1]

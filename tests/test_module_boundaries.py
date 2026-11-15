@@ -10,8 +10,7 @@ from unittest.mock import patch
 
 import pytest
 
-from inferrsi.harness.runner import run_experiment
-from inferrsi.harness.scenarios.external import execute_trial
+from inferrsi.apps.legacy.run import execute_trial, run_experiment
 from inferrsi.infra.platforms import PLATFORM_PROBES, inspect_device
 from inferrsi.infra.platforms.cuda import qualify_devices
 from inferrsi.model.protocols.metrics import read_metric

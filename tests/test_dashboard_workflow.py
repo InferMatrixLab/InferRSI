@@ -5,9 +5,8 @@ import sys
 
 import pytest
 
+from inferrsi.apps.legacy.run import execute_trial, run_experiment
 from inferrsi.apps.views.dashboard_data import load_dashboard
-from inferrsi.harness.runner import run_experiment
-from inferrsi.harness.scenarios.external import execute_trial
 from inferrsi.runspec import RunSpec
 
 

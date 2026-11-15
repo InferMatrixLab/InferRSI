@@ -7,9 +7,9 @@ from dataclasses import replace
 
 import pytest
 
+from inferrsi.apps.legacy.evaluation import evaluate
+from inferrsi.apps.legacy.run import run_experiment
 from inferrsi.arguments import make_spec, parser
-from inferrsi.harness.evaluation import evaluate
-from inferrsi.harness.runner import run_experiment
 from inferrsi.harness.scenarios.external import collect_trial_checks
 from inferrsi.runspec import RunSpec
 
