@@ -255,6 +255,14 @@ The same read-only view is available through
 `inferrsi.apps.api.read_attempt_view`. The legacy `status --run-id` form
 reads the legacy experiment directory.
 
+Use the same reference files with `trace`, `report` or `dashboard`.
+`trace` prints the view plus recorded steps, checks and error codes. An
+unknown step time stays null. `report` and offline `dashboard` accept
+`--output <file.html>` and present the same facts and claims. With
+`dashboard --live`, the loopback page and its state endpoint serve the
+snapshot pinned at startup. The campaign Dashboard remains available through
+`--input`, including its reviewed translation overlay.
+
 ## Campaign summary figure
 
 ### Summarize a campaign figure — `tools/campaign_summary_chart.py`

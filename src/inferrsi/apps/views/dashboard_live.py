@@ -8,6 +8,7 @@ import json
 import re
 import sys
 from collections import Counter
+from copy import deepcopy
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
@@ -44,13 +45,24 @@ def _compact_contexts(snapshot: dict) -> dict:
 class DashboardServer(ThreadingHTTPServer):
     """Only expose the generated view, never the underlying directory."""
 
-    def __init__(self, source: Path, translations: Path | None, port: int):
+    def __init__(
+        self, source: Path | None, translations: Path | None, port: int,
+        *, fixed_attempt: dict | None = None,
+    ):
         if not 0 <= port <= 65535:
             raise ValueError("dashboard port must be between 0 and 65535")
-        self.source = Path(source).resolve()
+        if (source is None) == (fixed_attempt is None):
+            raise ValueError("select a Dashboard directory or a fixed attempt")
+        self.source = Path(source).resolve() if source is not None else None
         self.translations = Path(translations).resolve() if translations else None
-        dashboard_snapshot(self.source, self.translations)
+        self._fixed_attempt = deepcopy(fixed_attempt)
+        self.snapshot()
         super().__init__(("127.0.0.1", port), DashboardHandler)
+
+    def snapshot(self) -> dict:
+        if self._fixed_attempt is not None:
+            return {"data": {"fixed_attempt": self._fixed_attempt}, "chart": "", "temporal": ""}
+        return dashboard_snapshot(self.source, self.translations)
 
 
 class DashboardHandler(BaseHTTPRequestHandler):
@@ -107,7 +119,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
             self._reply(403, b"Invalid host")
             return
         events = re.fullmatch(r"/api/profile-events/([0-9a-f]{64})", self.path)
-        if events:
+        if events and self.server.source is not None:
             from inferrsi.harness.records.profile_timeline import profile_event_table
 
             payload = profile_event_table(self.server.source, events.group(1))
@@ -120,7 +132,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
             self._reply(404, b"Not found")
             return
         try:
-            snapshot = dashboard_snapshot(self.server.source, self.server.translations)
+            snapshot = self.server.snapshot()
             if self.path == "/":
                 html = render_dashboard(_compact_contexts(snapshot), live=True)
                 body, encoding = self._representation(html.encode("utf-8"))
@@ -142,9 +154,12 @@ class DashboardHandler(BaseHTTPRequestHandler):
             self._reply(503, b"Dashboard snapshot is temporarily unavailable")
 
 
-def serve_dashboard(source: Path, translations: Path | None = None, port: int = 8765) -> None:
+def serve_dashboard(
+    source: Path | None, translations: Path | None = None, port: int = 8765,
+    *, fixed_attempt: dict | None = None,
+) -> None:
     """Serve until interrupted; the listening socket never leaves loopback."""
-    with DashboardServer(source, translations, port) as server:
+    with DashboardServer(source, translations, port, fixed_attempt=fixed_attempt) as server:
         print(json.dumps({"dashboard": f"http://127.0.0.1:{server.server_port}/"}), flush=True)
         try:
             server.serve_forever(poll_interval=0.25)

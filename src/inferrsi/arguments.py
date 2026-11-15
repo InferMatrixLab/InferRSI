@@ -13,6 +13,24 @@ from .catalog import BACKENDS, KNOWLEDGE_REPOS, KNOWLEDGE_SCOPES, REPO_TYPES
 from .contracts import RunSpec
 
 
+def _fixed_attempt_args(
+    parser: argparse.ArgumentParser, *, legacy_flag: str | None = None,
+) -> None:
+    source = parser
+    if legacy_flag is not None:
+        source = parser.add_mutually_exclusive_group(required=True)
+        if legacy_flag == "--input":
+            source.add_argument("--input", type=Path, help="Run or campaign directory")
+        else:
+            source.add_argument(legacy_flag)
+    source.add_argument(
+        "--record-ref", type=Path, required=legacy_flag is None,
+        help="JSON file containing a RecordRef",
+    )
+    parser.add_argument("--storage-config", type=Path, help="Trusted storage config JSON")
+    parser.add_argument("--assessment-ref", type=Path, help="Optional AssessmentRef JSON")
+
+
 def _common(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--repo", default=".", help="Prepared target Git checkout")
     parser.add_argument("--repo-type", choices=REPO_TYPES, default="vllm_omni")
@@ -211,20 +229,18 @@ def parser() -> argparse.ArgumentParser:
             name,
             help="Read a recorded experiment" if name == "status" else "Regenerate its HTML report",
         )
-        if name == "status":
-            source = child.add_mutually_exclusive_group(required=True)
-            source.add_argument("--run-id")
-            source.add_argument("--record-ref", type=Path, help="JSON file containing a RecordRef")
-            child.add_argument("--storage-config", type=Path, help="Trusted storage config JSON")
-            child.add_argument("--assessment-ref", type=Path, help="Optional AssessmentRef JSON")
-        else:
-            child.add_argument("--run-id", required=True)
+        _fixed_attempt_args(child, legacy_flag="--run-id")
+        if name == "report":
+            child.add_argument("--output", type=Path, help="HTML output for a fixed RecordRef")
         child.add_argument("--output-dir", default="runs")
+
+    trace = commands.add_parser("trace", help="Read recorded steps, checks and errors")
+    _fixed_attempt_args(trace)
 
     dashboard = commands.add_parser(
         "dashboard", help="Export an offline dashboard for one run or recorded campaign"
     )
-    dashboard.add_argument("--input", type=Path, required=True, help="Run or campaign directory")
+    _fixed_attempt_args(dashboard, legacy_flag="--input")
     dashboard.add_argument(
         "--output", type=Path, help="HTML output (default: input/dashboard.html)"
     )

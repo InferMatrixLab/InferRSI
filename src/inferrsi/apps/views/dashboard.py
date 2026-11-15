@@ -13,6 +13,7 @@ from pathlib import Path
 from inferrsi.harness.records.evidence import inside, sanitized_text
 from inferrsi.summary_chart import SpecError, build_svg
 
+from .attempt_html import render_attempt
 from .dashboard_data import _number, load_dashboard
 from .dashboard_timeline import temporal_chart
 
@@ -334,6 +335,8 @@ def dashboard_snapshot(source: Path, translations: Path | None = None) -> dict:
 
 def render_dashboard(snapshot: dict, *, live: bool = False) -> str:
     """Render a snapshot; only the local live view enables same-origin requests."""
+    if "fixed_attempt" in snapshot["data"]:
+        return render_attempt(snapshot["data"]["fixed_attempt"], title="fixed attempt Dashboard")
     view = {**snapshot["data"], "live": live}
     payload = json.dumps(view, ensure_ascii=False, allow_nan=False)
     # The JSON data block cannot terminate its script element or create markup.
@@ -366,6 +369,18 @@ def write_dashboard(source: Path, destination: Path | None = None,
     source = Path(source).resolve()
     document = render_dashboard(dashboard_snapshot(source, translations))
     output = Path(destination) if destination is not None else source / "dashboard.html"
+    return _write_view_document(output, document, generator="InferRSI dashboard")
+
+
+def write_attempt_document(view: dict, destination: Path, *, kind: str) -> Path:
+    """Export the shared attempt view as the selected HTML document."""
+    title = "fixed attempt Dashboard" if kind == "dashboard" else "fixed attempt report"
+    return _write_view_document(
+        destination, render_attempt(view, title=title), generator=f"InferRSI {title}",
+    )
+
+
+def _write_view_document(output: Path, document: str, *, generator: str) -> Path:
     output.parent.mkdir(parents=True, exist_ok=True)
     if output.is_symlink():
         raise ValueError("dashboard output cannot be a symbolic link")
@@ -375,7 +390,7 @@ def write_dashboard(source: Path, destination: Path | None = None,
         if output.suffix.lower() != ".html":
             raise ValueError("refusing to overwrite an existing non-dashboard file")
         with output.open("r", encoding="utf-8", errors="replace") as existing:
-            if '<meta name="generator" content="InferRSI dashboard">' not in existing.read(1024):
+            if f'<meta name="generator" content="{generator}">' not in existing.read(1024):
                 raise ValueError("refusing to overwrite an existing non-dashboard file")
     temporary = None
     try:
