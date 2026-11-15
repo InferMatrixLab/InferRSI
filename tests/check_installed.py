@@ -3,7 +3,9 @@ import hashlib
 import io
 import json
 import os
+import subprocess
 import sys
+from importlib import import_module
 from importlib.resources import as_file, files
 from importlib.util import find_spec
 from pathlib import Path
@@ -13,9 +15,10 @@ import inferrsi.harness
 from inferrsi.benchmark.registry import builtin_tasks, describe_task, task_resources
 from inferrsi.catalog import REPO_TYPES, knowledge_records, repository_pack, search_knowledge
 from inferrsi.cli import main
-from inferrsi.contracts import RunSpec, claim, json_v1
+from inferrsi.contracts import RunSpec, claim, evidence, json_v1
 from inferrsi.knowledge._source_snapshot import BUNDLE_LIBRARY, LIBRARY
 from inferrsi.knowledge_operations import KnowledgeReader
+from inferrsi.resources import repository_packs
 
 assert Path(inferrsi.__file__).resolve().parent.parent.name != "src", (
     "This check requires an installed package"
@@ -586,3 +589,44 @@ if checkout:
     assert installed_root - {"_version.py"} == checkout_root - {"_version.py"}, (
         sorted(installed_root ^ checkout_root)
     )
+
+# #451 C2: the neutral repository-pack facade and the evidence path rules ship at their
+# canonical paths. The two retired root modules are not in the wheel and have no alias.
+assert repository_packs.REPO_TYPES is REPO_TYPES and len(REPO_TYPES) == 7
+for consumer in ("inferrsi.knowledge.catalog", "inferrsi.arguments"):
+    assert import_module(consumer).REPO_TYPES is REPO_TYPES, consumer
+for repo_name in REPO_TYPES:
+    packed = files("inferrsi").joinpath("harness", "data", "repo_packs", repo_name, "pack.json")
+    data = packed.read_bytes()
+    # The inventory digest above is the one compared with the checkout byte for byte.
+    assert inventory[f"harness/data/repo_packs/{repo_name}/pack.json"] == (
+        hashlib.sha256(data).hexdigest()
+    ), repo_name
+    assert repository_packs.repository_pack(repo_name) == json.loads(data.decode("utf-8"))
+    assert repository_pack(repo_name)["id"] == repo_name
+try:
+    repository_packs.repository_pack("not-a-repository")
+except ValueError as error:
+    assert str(error) == "Unknown repository type: not-a-repository"
+else:
+    raise AssertionError("an unknown repository type must be refused")
+assert evidence.EVIDENCE_SEGMENTS == ("plan", "results", "patch", "validator")
+assert find_spec("inferrsi.apps.evidence_layout") is not None
+for retired in ("_repo_pack_data", "evidence_paths"):
+    assert find_spec(f"inferrsi.{retired}") is None, retired
+assert not installed_root & {"_repo_pack_data.py", "evidence_paths.py"}
+# A fresh isolated interpreter reads all seven packs with only the facade and its
+# import-free parent loaded: no Harness, Knowledge, Infra or Apps module.
+facade_probe = (
+    "import sys\n"
+    "from inferrsi.resources import repository_packs as packs\n"
+    "assert [packs.repository_pack(n)['id'] for n in packs.REPO_TYPES] == list(packs.REPO_TYPES)\n"
+    "loaded = {name for name in sys.modules if name.split('.')[0] == 'inferrsi'}\n"
+    "allowed = {'inferrsi', 'inferrsi._version', 'inferrsi.resources',\n"
+    "           'inferrsi.resources.repository_packs'}\n"
+    "assert loaded <= allowed, sorted(loaded - allowed)\n"
+)
+facade = subprocess.run(
+    [sys.executable, "-I", "-c", facade_probe], capture_output=True, text=True, check=False,
+)
+assert facade.returncode == 0, facade.stderr

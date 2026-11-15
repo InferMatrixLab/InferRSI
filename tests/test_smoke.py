@@ -6,7 +6,7 @@ import pytest
 
 from inferrsi import __version__
 from inferrsi.contracts import RunSpec
-from inferrsi.evidence_paths import EVIDENCE_SEGMENTS, evidence_subpaths
+from inferrsi.contracts.evidence import EVIDENCE_SEGMENTS, evidence_subpaths
 
 
 def test_version_is_string() -> None:

@@ -8,7 +8,7 @@ import re
 from importlib.resources import files
 from typing import Any
 
-from .._repo_pack_data import REPO_TYPES
+from ..resources.repository_packs import REPO_TYPES
 from . import _source_snapshot
 
 # Learning scope does not imply that a repository has a runnable target adapter.

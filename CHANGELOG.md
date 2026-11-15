@@ -4,6 +4,44 @@
 
 ### Changed
 
+- Repository-pack access and the evidence path rules leave the package root
+  (Refs #451). Root `_repo_pack_data.py` and `evidence_paths.py` are removed in the
+  same change, with no forwarding shells or `sys.modules` aliases:
+  - `inferrsi._repo_pack_data` → `inferrsi.resources.repository_packs`
+    (`REPO_TYPES`, `repository_pack`).
+  - `inferrsi.evidence_paths` → `inferrsi.contracts.evidence` for
+    `EVIDENCE_SEGMENTS`, `campaign_evidence_root` and `evidence_subpaths`, and
+    `inferrsi.apps.evidence_layout` for `ensure_evidence_layout`.
+  - Importing either old module path fails, and a pickle that names one of these
+    functions by an old module path no longer loads. Such external pickles need
+    explicit migration or the prior release; new pickles name the canonical
+    modules above. `src/` has no pickle usage, and frozen evidence is not
+    rewritten.
+  - Signatures, return values and errors are unchanged. `REPO_TYPES` stays one
+    seven-entry tuple object for every remaining consumer: root `catalog`,
+    `knowledge.catalog` and the CLI arguments. The reader keeps the anchor
+    `files("inferrsi").joinpath("harness", "data", "repo_packs", ...)` and imports
+    no `inferrsi` module, and `resources/__init__.py` imports nothing. The seven
+    `pack.json` files keep their bytes and stay under `harness/data/`.
+  - `contracts.evidence` only builds paths and does no filesystem I/O.
+    `apps.evidence_layout` creates the four directories in the same order with
+    the same `mkdir(parents=True, exist_ok=True)` call. `contracts/__init__.py`
+    still re-exports only `RunSpec`.
+  - `docs/legacy-knowledge-manifest.json` relocks the neutral leaf's module and
+    file path and points the `catalog` and `infra.inspection` pairs at the new
+    module. The leaf's bytes and locked hash value are unchanged, and the nine
+    compatibility pairs remain. That relock requires formal architecture review:
+    passing tests do not supply it, and the implementer does not self-approve it.
+  - The exact root inventory in `tests/test_package_root_inventory.py` shrinks
+    from 23 to 21 tracked files: `__init__.py`, `__main__.py`,
+    `_mindie_read_worker.py`, `_skill_selection.py`, `_source_snapshot.py`,
+    `arguments.py`, `benchmark_operations.py`, `catalog.py`, `cli.py`,
+    `evaluation.py`, `execution.py`, `inspection.py`, `knowledge_operations.py`,
+    `knowledge_store.py`, `mindie_context.py`, `mindie_mcp.py`,
+    `mindie_project.py`, `reporting.py`, `research.py`, `skill_catalog.py` and
+    `summary_chart.py`. It is an exact set that each later removal shrinks, not
+    the final two-file root. The build-generated `_version.py` is wheel metadata,
+    not a tracked root file.
 - Shared technical contracts now live in `inferrsi.contracts` (Refs #451). The four
   root files `_json_v1.py`, `runspec.py`, `claim.py`, and `contracts.py` are removed
   in the same change. Canonical implementations are `contracts/json_v1.py`,
@@ -17,9 +55,10 @@
     prior release; new pickles name the canonical implementation modules.
   - Canonical JSON bytes, error stages, RunSpec serialization/validation, and
     Verdict values are unchanged. Frozen evidence is not rewritten.
-  - `tests/test_package_root_inventory.py` locks the exact current 23-file root
-    inventory and rejects unexpected additions; each later removal must shrink
-    that set in its own PR, rather than requiring the final two-file root now.
+  - `tests/test_package_root_inventory.py` locked the exact 23-file root
+    inventory that this change left and rejects unexpected additions; each later
+    removal must shrink that set in its own PR, rather than requiring the final
+    two-file root now. The entry above shrinks it to 21.
 - The `inferrsi.observability` package is dissolved into its owning packages. No forwarding
   modules remain, so imports must use the new paths:
   - `campaign_records`, `campaign_trace`, `optimization_log`, `optimization_trace`,

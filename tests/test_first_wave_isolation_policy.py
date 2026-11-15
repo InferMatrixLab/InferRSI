@@ -6,6 +6,7 @@ import unittest
 from pathlib import Path
 from typing import Any
 
+from tests import _gate_policy_support as support
 from tests._gate_policy_support import (
     IsolationReport,
     blocker_kinds,
@@ -35,19 +36,23 @@ SYNTHETIC_H_ENTRIES = (
     "inferrsi.harness.execution_service",
     "inferrsi.harness.run_store",
 )
+# #451 C2: the leaf lives in ``inferrsi.resources``, whose initializer imports nothing.
+LEAF_FILE = "resources/repository_packs.py"
+RESOURCES_INIT = '"""Packaged resources."""\n'
 # Every first-wave trigger is cleared: no allowlist and no legacy mix.
 CLEARED_TREE = {
     "__init__.py": "",
-    "_repo_pack_data.py": LEAF_SOURCE,
+    "resources/__init__.py": RESOURCES_INIT,
+    LEAF_FILE: LEAF_SOURCE,
     "knowledge/__init__.py": "",
-    "knowledge/catalog.py": "from .._repo_pack_data import REPO_TYPES\n",
+    "knowledge/catalog.py": "from ..resources.repository_packs import REPO_TYPES\n",
     "benchmark/__init__.py": "",
     "apps/__init__.py": "",
     "apps/main.py": "from inferrsi.knowledge import catalog\nfrom inferrsi.harness import api\n",
     "harness/__init__.py": "",
     "harness/api.py": "VALUE = 1\n",
 }
-# The bounded contracts package (#451 C1): the initializer's one export and three
+# The bounded contracts package (#451 C1, C2): the initializer's one export and four
 # standalone modules.
 CONTRACTS_INIT = (
     '"""Shared contracts."""\n\n'
@@ -59,6 +64,7 @@ CONTRACTS_TREE = {
     "contracts/json_v1.py": "import json\n",
     "contracts/runspec.py": "import math\n\n\nclass RunSpec:\n    pass\n",
     "contracts/claim.py": "from enum import Enum\n",
+    "contracts/evidence.py": "from pathlib import Path\n",
 }
 
 def _shell(importer: str) -> str:
@@ -77,14 +83,17 @@ def _k01_tree() -> dict[str, str]:
     """A K01-shaped tree that follows every first-wave rule."""
     files = {
         "__init__.py": "",
-        "_repo_pack_data.py": LEAF_SOURCE,
+        "resources/__init__.py": RESOURCES_INIT,
+        LEAF_FILE: LEAF_SOURCE,
         **CONTRACTS_TREE,
         "knowledge/__init__.py": '"""Knowledge."""\n',
         # K.catalog -> the data leaf is intra-closure, not a tenth pair.
-        "knowledge/catalog.py": "from .. import _repo_pack_data\nfrom . import _source_snapshot\n",
+        "knowledge/catalog.py": (
+            "from ..resources import repository_packs\nfrom . import _source_snapshot\n"
+        ),
         "knowledge/knowledge_operations.py": "from inferrsi.contracts import json_v1\n",
         "infra/__init__.py": "",
-        "infra/inspection.py": "from .._repo_pack_data import repository_pack\n",
+        "infra/inspection.py": "from ..resources.repository_packs import repository_pack\n",
         "harness/__init__.py": "",
         "harness/api.py": "VALUE = 1\n",
         "benchmark/__init__.py": "",
@@ -136,6 +145,15 @@ class ManifestTest(unittest.TestCase):
         leaf_routes = {("inferrsi.catalog", LEAF), ("inferrsi.infra.inspection", LEAF)}
         self.assertEqual(len(MANIFEST["compatibility_pairs"]), 9)
         self.assertEqual(PAIRS, same_named | leaf_routes)
+        # #451 C2 redirected the two leaf routes to the canonical module and left
+        # nothing on the retired root path.
+        self.assertEqual(LEAF, "inferrsi.resources.repository_packs")
+        self.assertEqual(
+            MANIFEST["catalog_two_routes"]["neutral_leaf_export"]["target"], LEAF
+        )
+        self.assertFalse(
+            [pair for pair in PAIRS if "inferrsi._repo_pack_data" in pair], PAIRS
+        )
 
     def test_catalog_routes_keep_repository_pack_out_of_knowledge(self) -> None:
         catalog = SOURCES["inferrsi.catalog"]
@@ -182,13 +200,21 @@ class AllowlistTest(unittest.TestCase):
             ),
             (
                 "evaluation.py",
-                "from inferrsi._repo_pack_data import repository_pack\n",
-                "inferrsi.evaluation is a second importer of inferrsi._repo_pack_data",
+                "from inferrsi.resources.repository_packs import repository_pack\n",
+                "inferrsi.evaluation is a second importer of "
+                "inferrsi.resources.repository_packs",
             ),
             (
                 "harness/api.py",
-                "from inferrsi import _repo_pack_data\n",
-                "inferrsi.harness.api is a second importer of inferrsi._repo_pack_data",
+                "from inferrsi.resources import repository_packs\n",
+                "inferrsi.harness.api is a second importer of "
+                "inferrsi.resources.repository_packs",
+            ),
+            (
+                "benchmark/probe.py",
+                "import inferrsi.resources.repository_packs\n",
+                "inferrsi.benchmark.probe is a second importer of "
+                "inferrsi.resources.repository_packs",
             ),
         )
         for path, source, expected in cases:
@@ -207,11 +233,14 @@ class AllowlistTest(unittest.TestCase):
             if importer.startswith("inferrsi.infra.") and target == LEAF
         }
         self.assertEqual(infra_leaf, {("inferrsi.infra.inspection", LEAF)})
-        report = _report({"infra/other.py": "from .._repo_pack_data import REPO_TYPES\n"})
+        report = _report(
+            {"infra/other.py": "from ..resources.repository_packs import REPO_TYPES\n"}
+        )
         self.assertTrue(
             _violated(
                 report,
-                "inferrsi.infra.other is a second importer of inferrsi._repo_pack_data",
+                "inferrsi.infra.other is a second importer of "
+                "inferrsi.resources.repository_packs",
             ),
             report.violations,
         )
@@ -303,16 +332,84 @@ class TransferGraphTest(unittest.TestCase):
             (hidden, "imports inferrsi.catalog"),
             (LEAF_SOURCE.replace("import json\n", "import json\nimport inferrsi.infra\n"),
              "imports inferrsi.infra"),
-            (LEAF_SOURCE.replace("import json\n", "import json\nfrom . import catalog\n"),
+            # Relative forms resolve from the leaf's own package, inferrsi.resources.
+            (LEAF_SOURCE.replace("import json\n", "import json\nfrom .. import catalog\n"),
              "imports inferrsi.catalog"),
+            (LEAF_SOURCE.replace("import json\n", "import json\nfrom . import sibling\n"),
+             "imports inferrsi.resources.sibling"),
+            # The leaf never imports Harness to find the Harness-owned pack.json.
+            (LEAF_SOURCE.replace("import json\n", "import json\nfrom ..harness import api\n"),
+             "imports inferrsi.harness.api"),
+            (LEAF_SOURCE.replace("import json\n", "import json\nimport inferrsi.harness\n"),
+             "imports inferrsi.harness"),
             (dynamic, "has a dynamic import"),
             (LEAF_SOURCE.replace("import Any", "import Any, Dict"), "imports typing.Dict"),
             (LEAF_SOURCE + "\nEXTRA = 1\n", "defines EXTRA at top level"),
         )
         for source, expected in cases:
             with self.subTest(expected=expected):
-                report = _report({"_repo_pack_data.py": source})
+                report = _report({LEAF_FILE: source})
                 self.assertTrue(_violated(report, f"{LEAF} {expected}"), report.violations)
+
+    def test_leaf_parent_initializer_must_stay_import_free(self) -> None:
+        # #451 C2: Python runs inferrsi/resources/__init__.py with every leaf import.
+        self.assertEqual(_report({}).violations, ())
+        dynamic = "import importlib\nimportlib.import_module('inferrsi.harness')\n"
+        cases = (
+            ("from ..harness import api\n", "imports inferrsi.harness.api"),
+            ("from inferrsi.knowledge import catalog\n", "imports inferrsi.knowledge.catalog"),
+            ("import inferrsi.apps\n", "imports inferrsi.apps"),
+            ("from . import repository_packs\n", "imports inferrsi.resources.repository_packs"),
+            ("import json\n", "imports json"),
+            (dynamic, "has a dynamic import"),
+            ("__import__('inferrsi.harness')\n", "has a dynamic import"),
+            ("def __getattr__(name):\n    raise AttributeError(name)\n",
+             "has a FunctionDef statement"),
+            ("VALUE = 1\n", "has a Assign statement"),
+            ("open('pack.json')\n", "has a Expr statement"),
+        )
+        for snippet, expected in cases:
+            with self.subTest(snippet=snippet):
+                report = _report({"resources/__init__.py": RESOURCES_INIT + snippet})
+                self.assertTrue(
+                    _violated(report, "inferrsi.resources ", expected), report.violations
+                )
+
+    def test_core_import_in_the_leaf_parent_fails_every_closure_that_loads_it(self) -> None:
+        report = _report({"resources/__init__.py": "from ..harness import api\n"})
+        for importer in ("inferrsi.infra.inspection", "inferrsi.knowledge.catalog"):
+            with self.subTest(importer=importer):
+                self.assertTrue(
+                    _violated(report, f"{importer} reaches inferrsi.harness"), report.violations
+                )
+        self.assertFalse(report.new_core_closure_isolated)
+
+    def test_resources_prefix_exempts_no_adjacent_module(self) -> None:
+        # Knowledge may load the leaf and its initializer, not a sibling beside them.
+        report = _report(
+            {
+                "resources/extra.py": "VALUE = 1\n",
+                "knowledge/research.py": "from inferrsi.resources import extra\n",
+            }
+        )
+        self.assertTrue(
+            _violated(report, "inferrsi.knowledge.research reaches inferrsi.resources.extra"),
+            report.violations,
+        )
+        self.assertFalse(report.new_core_closure_isolated)
+
+    def test_retired_root_leaf_is_outside_the_knowledge_closure(self) -> None:
+        # Adding the old root file back does not restore it as the leaf.
+        report = _report(
+            {
+                "_repo_pack_data.py": LEAF_SOURCE,
+                "knowledge/research.py": "from .. import _repo_pack_data\n",
+            }
+        )
+        self.assertTrue(
+            _violated(report, "inferrsi.knowledge.research reaches inferrsi._repo_pack_data"),
+            report.violations,
+        )
 
     def test_infra_through_root_catalog_fails(self) -> None:
         report = _report({"infra/inspection.py": "from ..catalog import repository_pack\n"})
@@ -387,6 +484,12 @@ class ContractsPackageTest(unittest.TestCase):
             ),
             ("from ..contracts import claim\n", "imports inferrsi.contracts.claim;"),
             ("from inferrsi.contracts.claim import Verdict\n", "reaches inferrsi.contracts.claim"),
+            # #451 C2: the evidence path rules are a contracts module, not a Knowledge input.
+            ("from inferrsi.contracts import evidence\n", "imports inferrsi.contracts.evidence;"),
+            (
+                "from ..contracts.evidence import EVIDENCE_SEGMENTS\n",
+                "reaches inferrsi.contracts.evidence",
+            ),
         )
         for source, expected in refused:
             with self.subTest(source=source):
@@ -471,11 +574,53 @@ class ContractsPackageTest(unittest.TestCase):
                 "inferrsi.contracts.claim imports inferrsi.contracts.json_v1",
             ),
             ("contracts/claim.py", dynamic, "inferrsi.contracts.claim has a dynamic import"),
+            # #451 C2: the path rules import no core, and never the Apps mkdir module.
+            (
+                "contracts/evidence.py",
+                "from inferrsi.apps import evidence_layout\n",
+                "inferrsi.contracts.evidence imports inferrsi.apps.evidence_layout",
+            ),
+            (
+                "contracts/evidence.py",
+                "from ..harness import api\n",
+                "inferrsi.contracts.evidence imports inferrsi.harness.api",
+            ),
+            (
+                "contracts/evidence.py",
+                "from . import runspec\n",
+                "inferrsi.contracts.evidence imports inferrsi.contracts.runspec",
+            ),
+            ("contracts/evidence.py", dynamic, "inferrsi.contracts.evidence has a dynamic import"),
         )
         for path, source, expected in cases:
             with self.subTest(expected=expected):
-                report = _report({path: source})
+                report = _report(
+                    {"apps/evidence_layout.py": "VALUE = 1\n", path: source}
+                )
                 self.assertTrue(_violated(report, expected), report.violations)
+
+    def test_apps_directory_creation_is_not_a_contracts_module(self) -> None:
+        # #451 C2: mkdir stays in Apps. The declared set gains evidence and nothing else.
+        self.assertIn("inferrsi.contracts.evidence", support.CONTRACTS_MODULES)
+        self.assertEqual(len(support.CONTRACTS_MODULES), 5)
+        self.assertFalse(
+            [name for name in support.CONTRACTS_MODULES if "evidence_layout" in name]
+        )
+        clean = _report(
+            {
+                "apps/evidence_layout.py": (
+                    "from inferrsi.contracts.evidence import evidence_subpaths\n"
+                )
+            }
+        )
+        self.assertEqual(clean.violations, ())
+        report = _report({"contracts/evidence_layout.py": "from pathlib import Path\n"})
+        self.assertTrue(
+            _violated(
+                report, "inferrsi.contracts.evidence_layout is not a declared contracts module"
+            ),
+            report.violations,
+        )
 
     def test_core_reached_through_the_package_still_fails_its_importers(self) -> None:
         # The package grants no path: a core import inside it fails every closure that
