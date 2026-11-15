@@ -10,9 +10,12 @@ import pytest
 from inferrsi.harness import optimization_session
 from inferrsi.harness.measurement import (
     bootstrap_median_interval,
+    explain,
     gate_speedup,
     paired_speedups,
     paired_statistics,
+    profile_evidence,
+    validate_mechanism,
 )
 
 BASE = [10.0, 10.1, 9.9, 10.05, 9.95]
@@ -177,3 +180,75 @@ def test_measurement_module_is_part_of_runtime_identity():
 def test_invalid_resample_count_reports_unavailable(resamples):
     result = report(BASE, [8.0, 8.1, 7.9, 8.02, 7.98], resamples=resamples)
     assert result["status"] == "unavailable" and result["interval"] is None
+
+
+def profiles(rows, jitter=None):
+    """Per-repetition profiles; jitter scales every region of a step together."""
+    jitter = jitter or [1.0] * len(rows)
+    return [{"breakdown": {k: v * g for k, v in r["breakdown"].items()},
+             "counters": r.get("counters", {"launches": 10})} for r, g in zip(rows, jitter)]
+
+
+STEP_B = {"breakdown": {"gemm": 6.0, "norm": 2.0}, "counters": {"launches": 12, "bytes": 900}}
+STEP_C = {"breakdown": {"gemm": 6.0, "norm": 1.0}, "counters": {"launches": 8, "bytes": 900}}
+JITTER_B = [1.0, 1.08, 0.93, 1.05, 0.97]
+JITTER_C = [1.06, 0.94, 1.02, 0.95, 1.09]
+
+
+def test_reference_regions_cancel_device_wide_jitter():
+    evidence = profile_evidence(profiles([STEP_B] * 5, JITTER_B),
+                                profiles([STEP_C] * 5, JITTER_C), reference_regions=["gemm"])
+    assert evidence["status"] == "available" and evidence["reference_regions"] == ["gemm"]
+    norm = evidence["regions"]["norm"]
+    assert norm["basis"] == "normalized_to_reference_regions"
+    assert norm["ratio_median"] == pytest.approx(0.5) and norm["observed"] == "decrease"
+    assert evidence["share_based_speedup"]["median"] == pytest.approx(8 / 7)
+    assert evidence["share_based_speedup"]["interval"] == pytest.approx([8 / 7, 8 / 7])
+    assert evidence["counters"]["launches"]["observed"] == "decrease"
+    assert evidence["counters"]["bytes"]["observed"] == "no_clear_change"
+    # Without a reference the same region is only compared raw, jitter included.
+    raw = profile_evidence(profiles([STEP_B] * 5, JITTER_B), profiles([STEP_C] * 5, JITTER_C))
+    assert raw["regions"]["norm"]["basis"] == "raw" and raw["share_based_speedup"] is None
+
+
+def test_profile_evidence_absent_or_unpaired():
+    assert profile_evidence([{}] * 5, [{}] * 5)["status"] == "absent"
+    assert profile_evidence([STEP_B], [STEP_C, STEP_C])["status"] == "unavailable"
+    few = profile_evidence(profiles([STEP_B] * 2), profiles([STEP_C] * 2))
+    assert few["counters"]["launches"]["observed"] == "insufficient_pairs"
+
+
+MECHANISM = {"mechanism": "Fuse the norm into the GEMM epilogue",
+             "expect": [{"region": "norm", "direction": "decrease"},
+                        {"region": "gemm", "direction": "unchanged"},
+                        {"counter": "launches", "direction": "decrease"}]}
+
+
+@pytest.mark.parametrize("expect,status", [
+    (MECHANISM["expect"], "explained"),
+    ([{"region": "norm", "direction": "increase"}], "contradicted"),
+    ([{"counter": "bytes", "direction": "decrease"}], "unsupported"),
+    ([{"counter": "l2_hits", "direction": "increase"}], "unverifiable"),
+    ([{"counter": "launches", "direction": "decrease"},
+      {"counter": "bytes", "direction": "unchanged"}], "explained"),
+])
+def test_explain_classifies_declared_mechanisms(expect, status):
+    mechanism = validate_mechanism({"mechanism": "m", "expect": expect})
+    reference = [e["region"] for e in expect if "region" in e and e["direction"] == "unchanged"]
+    evidence = profile_evidence(profiles([STEP_B] * 5, JITTER_B),
+                                profiles([STEP_C] * 5, JITTER_C), reference_regions=reference)
+    assert explain(mechanism, evidence)["status"] == status
+    assert explain(None, evidence) == {"status": "not_declared"}
+
+
+@pytest.mark.parametrize("document", [
+    {"mechanism": "", "expect": [{"region": "a", "direction": "decrease"}]},
+    {"mechanism": "m", "expect": []},
+    {"mechanism": "m", "expect": [{"region": "a", "direction": "faster"}]},
+    {"mechanism": "m", "expect": [{"region": "a", "counter": "b", "direction": "decrease"}]},
+    {"mechanism": "m", "expect": [{"region": "a", "direction": "unchanged"}]},
+    {"mechanism": "m", "expect": [{"region": "a", "direction": "decrease"}], "extra": 1},
+])
+def test_invalid_mechanisms_are_rejected(document):
+    with pytest.raises(ValueError):
+        validate_mechanism(document)

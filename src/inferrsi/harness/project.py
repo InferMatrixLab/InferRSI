@@ -11,7 +11,9 @@ from pathlib import Path
 from statistics import median
 
 from .artifact_primitives import sha256
-from .measurement import paired_statistics
+from .measurement import MIN_PAIRS, explain, paired_statistics, profile_evidence, validate_mechanism
+
+DECISIONS = ("point", "paired")
 
 
 def validate(settings: dict) -> None:
@@ -35,6 +37,12 @@ def validate(settings: dict) -> None:
     value = settings["min_improvement_pct"]
     if type(value) not in (int, float) or not math.isfinite(value) or value < 0:
         raise ValueError("An explicit finite nonnegative improvement gate is required")
+    if settings.get("decision", "point") not in DECISIONS:
+        raise ValueError("Decision must be point or paired")
+    if settings.get("decision") == "paired" and settings["repetitions"] < MIN_PAIRS:
+        raise ValueError(f"A paired decision needs at least {MIN_PAIRS} repetitions")
+    if type(settings.get("require_explanation", False)) is not bool:
+        raise ValueError("require_explanation must be a boolean")
 
 
 def prepare(destination: Path, protocol: Path, instructions: Path, settings: dict) -> dict:
@@ -117,7 +125,19 @@ def inspect_step(directory: Path, settings: dict, definition: dict, execution: d
         type(value) not in (int, float) or not math.isfinite(value) or value <= 0
     ):
         return {**failure, "reason": "invalid_metric", "evidence_files": evidence}
-    return {"status": "completed", "value": value, "evidence_files": evidence}
+    profile = {key: document[key] for key in ("breakdown", "counters") if key in document}
+    return {"status": "completed", "value": value, "profile": profile,
+            "evidence_files": evidence}
+
+
+def read_mechanism(directory: Path) -> dict | None:
+    """Read the mechanism retained with an attempt, if the round declared one."""
+    path = directory / "mechanism.json"
+    if not path.exists():
+        return None
+    if path.is_symlink():
+        raise ValueError("Symbolic mechanism declaration")
+    return validate_mechanism(json.loads(path.read_bytes()))
 
 
 def assess(directory: Path, settings: dict, execution: dict) -> dict:
@@ -135,6 +155,7 @@ def assess(directory: Path, settings: dict, execution: dict) -> dict:
             or any(c.get("verified") is not True for c in checks)):
         return result("infrastructure_failure", "incomplete_execution")
     samples = {"baseline": [], "candidate": []}
+    profiles = {"baseline": [], "candidate": []}
     candidate_quality = None
     for definition, record in zip(expected, actual):
         if record.get("id") != definition["id"]:
@@ -150,6 +171,7 @@ def assess(directory: Path, settings: dict, execution: dict) -> dict:
             candidate_quality = True
         if definition["phase"] == "measurement":
             samples[definition["side"]].append(checked["value"])
+            profiles[definition["side"]].append(checked["profile"])
     if execution.get("status") != "completed" or len(actual) != len(expected):
         return result("infrastructure_failure", "incomplete_execution")
     before, after = median(samples["baseline"]), median(samples["candidate"])
@@ -159,20 +181,56 @@ def assess(directory: Path, settings: dict, execution: dict) -> dict:
     speedup = before / after if settings["direction"] == "minimize" else after / before
     if not all(math.isfinite(value) for value in (improvement, speedup)):
         return result("infrastructure_failure", "nonfinite_derived_metric")
-    accepted = improvement > 0 and improvement >= settings["min_improvement_pct"]
+    point_accepted = improvement > 0 and improvement >= settings["min_improvement_pct"]
     paired = paired_statistics(samples["baseline"], samples["candidate"],
                                direction=settings["direction"],
                                min_improvement_pct=settings["min_improvement_pct"],
-                               point_gate_passed=accepted)
+                               point_gate_passed=point_accepted)
+    decision = settings.get("decision", "point")
+    verdict, reason = (("PASS", "fixed_checks_satisfied") if point_accepted
+                       else ("FAIL", "performance_gate_not_met"))
+    if decision == "paired":
+        relation = paired.get("gate_relation")
+        if paired.get("status") != "available":
+            verdict, reason = "INCONCLUSIVE", "paired_statistics_unavailable"
+        elif relation == "above_gate":
+            verdict, reason = "PASS", "paired_interval_above_gate"
+        elif relation == "straddles_gate":
+            verdict, reason = "FAIL", "within_noise"
+        else:
+            verdict, reason = "FAIL", "performance_gate_not_met"
+    try:
+        mechanism = read_mechanism(directory)
+        if mechanism is not None:
+            evidence["mechanism.json"] = sha256(directory / "mechanism.json")
+    except (OSError, ValueError) as error:
+        mechanism, mechanism_error = None, str(error)
+    else:
+        mechanism_error = None
+    reference = [item["region"] for item in (mechanism or {}).get("expect", [])
+                 if "region" in item and item["direction"] == "unchanged"]
+    observed = profile_evidence(profiles["baseline"], profiles["candidate"],
+                                reference_regions=reference)
+    explanation = explain(mechanism, observed)
+    if mechanism_error:
+        explanation = {"status": "unverifiable", "reason": mechanism_error}
+    if settings.get("require_explanation", False) and verdict == "PASS":
+        if explanation["status"] in ("contradicted", "unsupported"):
+            verdict, reason = "FAIL", "explanation_" + explanation["status"]
+        elif explanation["status"] != "explained":
+            verdict, reason = "INCONCLUSIVE", "explanation_" + explanation["status"]
+    accepted = verdict == "PASS"
     return result(
-        "completed", "fixed_checks_satisfied" if accepted else "performance_gate_not_met",
-        verdict="PASS" if accepted else "FAIL", score=after, baseline_score=before,
+        "completed", reason,
+        verdict=verdict, score=after, baseline_score=before,
         eligible=accepted, quality_passed=True, improvement_pct=improvement, speedup=speedup,
         metrics={"name": settings["metric_key"], "unit": settings["metric_unit"],
                  "direction": settings["direction"], "baseline": before, "candidate": after,
                  "samples": samples},
         scope=settings["scope"], statistical_significance="not_established",
-        paired_statistics=paired,
+        paired_statistics=paired, decision=decision,
+        require_explanation=settings.get("require_explanation", False),
+        profile_evidence=observed, explanation=explanation,
         quality_contract="Only the supplied frozen quality script and its boolean result",
         environment_qualification="Caller-managed; no automatic hardware isolation claim",
     )

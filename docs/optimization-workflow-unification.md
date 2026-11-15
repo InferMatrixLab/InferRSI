@@ -215,6 +215,36 @@ profile 或测量确定瓶颈，提交包含 workload 和观测值的 UTF-8 摘�
 继续使用，瓶颈变化时重新运行 `diagnose`。service-reuse 的 reference epoch 改变后
 需要记录新诊断。已有会话按其冻结计划继续。
 
+### 用 profile 解释改进（可选）
+
+端到端时间会随时钟、温度和共享负载整体漂移，单凭数值很难区分真实改进与波动。测量脚本可以在结果 JSON 中额外输出同一步骤的分区域耗时和工作量计数，单位由脚本自定并在各步骤保持一致：
+
+```json
+{"metric": 8.1,
+ "breakdown": {"attention": 4.0, "norm": 0.1, "other": 4.0},
+ "counters": {"kernel_launches": 20, "dram_bytes": 8.0e8}}
+```
+
+每轮可以用 `--mechanism-file` 声明机制和可核对的预期特征：
+
+```json
+{"mechanism": "把 norm 融合进 attention 的 epilogue，少一次 HBM 往返",
+ "expect": [{"region": "norm", "direction": "decrease"},
+            {"region": "attention", "direction": "unchanged"},
+            {"counter": "kernel_launches", "direction": "decrease"}]}
+```
+
+assessment 的 `profile_evidence` 按重复配对比较每个区域和计数。声明为 `unchanged` 的区域作为同一步骤内的参照：其他区域先除以参照区域再比较，`share_based_speedup` 用参照区域在步骤总时间中的占比推算整体加速，因此整卡同比例的漂移会被抵消。计数一类的工作量指标基本不随时钟和温度变化，可以说明波动范围内的小幅改进是否可重复。方向只由配对区间判断（区间整体低于或高于 1），仓库内没有设置数值容差；参照区域如果实际也变了，推算会有偏差，`profile_evidence` 只描述数据，不判断机制文字本身。
+
+`explanation.status` 取值：`explained`（每条预期都被数据确认，且至少一条是变化）、`unsupported`（预期的变化没有在数据中出现）、`contradicted`（数据与预期方向相反，或声明不变的项出现明显变化）、`unverifiable`（缺少对应区域或计数，或少于 5 对）、`not_declared`（本轮未声明）。final 沿用被选中轮次的机制重新核对。
+
+两个开关在 `campaign start` 时冻结，默认都不改变原有判定：
+
+- `--require-explanation`：只有 `explained` 的候选可以被采纳。`unsupported`、`contradicted` 记为 FAIL，`unverifiable`、`not_declared` 记为 INCONCLUSIVE；两类都不阻塞后续轮次。
+- `--decision paired`：用 `paired_statistics` 判定，要求至少 5 次重复。区间整体高于门槛为 PASS；跨过门槛为 FAIL，`reason` 为 `within_noise`，搜索继续；统计不可用时为 INCONCLUSIVE。默认 `point` 保持中位数点估计规则。
+
+提交未修改的候选可以作为 A/A 对照，`paired_statistics` 的区间即给出该环境的噪声范围。
+
 ## 实际保留什么、保护什么
 
 `campaign.json` 关联计划，`plan.json` 固定协议、预算和候选格式，`state.json` 是唯一可写控制状态。`summary.json` 是可重建摘要，dashboard 从同一记录生成展示；不额外写一份 `rounds.jsonl`。原有知识交付和优化日志格式继续复用。

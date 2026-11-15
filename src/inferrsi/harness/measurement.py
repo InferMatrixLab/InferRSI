@@ -146,3 +146,161 @@ def paired_statistics(baseline: list, candidate: list, *, direction: str,
         return {**header, "status": "unavailable",
                 "reason": "A derived statistic is not finite", "interval": None}
     return {**header, **report}
+
+
+# Profile evidence and declared mechanisms ---------------------------------------
+#
+# A measurement script may add per-step ``breakdown`` (region durations in one
+# unit) and ``counters`` (work metrics such as kernel launches or DRAM bytes).
+# Work metrics are largely independent of clock and thermal state, and region
+# shares within one step cancel device-wide fluctuation, so they can explain a
+# gain that end-to-end time alone cannot separate from noise. Directions are
+# decided only from the paired data; no numeric tolerance is built in.
+
+DIRECTIONS = ("decrease", "increase", "unchanged")
+
+
+def _numeric_map(value) -> dict | None:
+    if not isinstance(value, dict) or not value:
+        return None
+    if not all(isinstance(k, str) and k and type(v) in (int, float) and math.isfinite(v)
+               and v >= 0 for k, v in value.items()):
+        return None
+    return value
+
+
+def _paired_change(baseline: list, candidate: list, *, resamples: int, seed: int) -> dict:
+    ratios = []
+    for b, c in zip(baseline, candidate):
+        if b > 0:
+            ratios.append(c / b)
+        elif c == 0:
+            ratios.append(1.0)
+        else:
+            return {"ratio_median": None, "interval": None, "observed": "increase",
+                    "note": "baseline value is zero and candidate value is positive"}
+    report = {"ratio_median": median(ratios), "interval": None}
+    if len(ratios) < MIN_PAIRS:
+        return {**report, "observed": "insufficient_pairs"}
+    low, high = bootstrap_median_interval(ratios, resamples=resamples, seed=seed)
+    observed = "decrease" if high < 1 else "increase" if low > 1 else "no_clear_change"
+    return {**report, "interval": [low, high], "observed": observed}
+
+
+def _interval_report(values: list, *, resamples: int, seed: int) -> dict:
+    report = {"median": median(values), "interval": None}
+    if len(values) >= MIN_PAIRS:
+        report["interval"] = bootstrap_median_interval(values, resamples=resamples, seed=seed)
+    return report
+
+
+def profile_evidence(baseline_profiles: list, candidate_profiles: list, *,
+                     reference_regions=(), resamples: int = RESAMPLES,
+                     seed: int = SEED) -> dict:
+    """Compare per-repetition region durations and work counters between paired steps.
+
+    ``reference_regions`` are regions the round declares unchanged. Within one step
+    they act as an internal clock: dividing another region by them, and reading the
+    reference share of the step total, cancels device-wide changes such as clock or
+    temperature drift that scale every region of that step together.
+    """
+    if len(baseline_profiles) != len(candidate_profiles) or not baseline_profiles:
+        return {"status": "unavailable", "reason": "Profiles must be paired per repetition"}
+    sides = (baseline_profiles, candidate_profiles)
+    result = {"status": "available", "pairs": len(baseline_profiles), "regions": {},
+              "counters": {}, "reference_regions": [], "share_based_speedup": None}
+    for kind in ("breakdown", "counters"):
+        maps = [[_numeric_map((p or {}).get(kind)) for p in side] for side in sides]
+        if not all(m is not None for side in maps for m in side):
+            continue
+        shared = sorted(set.intersection(*(set(m) for side in maps for m in side)))
+        reference = [r for r in reference_regions if r in shared] if kind == "breakdown" else []
+        if kind == "breakdown":
+            result["reference_regions"] = reference
+        target = result["regions" if kind == "breakdown" else "counters"]
+        for name in shared:
+            b = [m[name] for m in maps[0]]
+            c = [m[name] for m in maps[1]]
+            entry = {"baseline_median": median(b), "candidate_median": median(c),
+                     **_paired_change(b, c, resamples=resamples, seed=seed), "basis": "raw"}
+            clock = [r for r in reference if r != name]
+            if clock:
+                bn = [m[name] / sum(m[r] for r in clock) for m in maps[0]
+                      if sum(m[r] for r in clock) > 0]
+                cn = [m[name] / sum(m[r] for r in clock) for m in maps[1]
+                      if sum(m[r] for r in clock) > 0]
+                if len(bn) == len(cn) == len(b):
+                    entry.update(_paired_change(bn, cn, resamples=resamples, seed=seed),
+                                 basis="normalized_to_reference_regions")
+            if kind == "breakdown":
+                totals = [[sum(m.values()) for m in side] for side in maps]
+                entry["baseline_share"] = median(v / t for v, t in zip(b, totals[0]) if t > 0)
+                entry["candidate_share"] = median(v / t for v, t in zip(c, totals[1]) if t > 0)
+            target[name] = entry
+        if reference:
+            ratios = []
+            for mb, mc in zip(*maps):
+                ref_b, ref_c = (sum(m[r] for r in reference) for m in (mb, mc))
+                tot_b, tot_c = sum(mb.values()), sum(mc.values())
+                if min(ref_b, ref_c, tot_b, tot_c) > 0:
+                    ratios.append((ref_c / tot_c) / (ref_b / tot_b))
+            if len(ratios) == len(maps[0]):
+                result["share_based_speedup"] = _interval_report(
+                    ratios, resamples=resamples, seed=seed)
+    if not result["regions"] and not result["counters"]:
+        return {**result, "status": "absent",
+                "reason": "No breakdown or counters were present in every measured step"}
+    return result if _finite(result) else {"status": "unavailable",
+                                           "reason": "A derived profile value is not finite"}
+
+
+def validate_mechanism(document) -> dict:
+    """Validate a declared mechanism: a statement plus checkable expected signatures."""
+    if not isinstance(document, dict) or set(document) - {"mechanism", "expect"}:
+        raise ValueError("A mechanism declares only 'mechanism' and 'expect'")
+    text = document.get("mechanism")
+    expect = document.get("expect")
+    if not isinstance(text, str) or not text.strip():
+        raise ValueError("Describe the mechanism that should cause the change")
+    if not isinstance(expect, list) or not expect:
+        raise ValueError("List at least one expected region or counter signature")
+    for item in expect:
+        keys = set(item) if isinstance(item, dict) else set()
+        kinds = keys & {"region", "counter"}
+        if (len(kinds) != 1 or keys - {"region", "counter", "direction"}
+                or not isinstance(item[next(iter(kinds))], str)
+                or not item[next(iter(kinds))].strip()
+                or item.get("direction") not in DIRECTIONS):
+            raise ValueError("Each expectation names one region or counter and a direction "
+                             "of decrease, increase or unchanged")
+    if all(item["direction"] == "unchanged" for item in expect):
+        raise ValueError("At least one expectation must predict a change")
+    return document
+
+
+def explain(mechanism: dict | None, evidence: dict) -> dict:
+    """Check a declared mechanism against observed profile evidence, without judging prose."""
+    if mechanism is None:
+        return {"status": "not_declared"}
+    checks, missing = [], False
+    for item in mechanism["expect"]:
+        kind = "region" if "region" in item else "counter"
+        table = evidence.get("regions" if kind == "region" else "counters") or {}
+        observed = table.get(item[kind], {}).get("observed")
+        if observed in (None, "insufficient_pairs"):
+            missing = True
+        checks.append({"kind": kind, "name": item[kind], "expected": item["direction"],
+                       "observed": observed or "missing"})
+    report = {"mechanism": mechanism["mechanism"], "checks": checks}
+    if any(c["expected"] in ("decrease", "increase") and c["observed"] in ("decrease", "increase")
+           and c["observed"] != c["expected"] for c in checks) or any(
+            c["expected"] == "unchanged" and c["observed"] in ("decrease", "increase")
+            for c in checks):
+        return {**report, "status": "contradicted"}
+    if missing or evidence.get("status") != "available":
+        return {**report, "status": "unverifiable"}
+    if all(c["observed"] == c["expected"] or (c["expected"] == "unchanged"
+                                              and c["observed"] == "no_clear_change")
+           for c in checks):
+        return {**report, "status": "explained"}
+    return {**report, "status": "unsupported"}

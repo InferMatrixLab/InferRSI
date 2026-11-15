@@ -970,3 +970,14 @@ else:
 
     canonical = Path(__file__).resolve().parents[1] / "src/inferrsi/apps/workflows/campaign.py"
     assert new_identity["apps/workflows/campaign.py"] == sha256(canonical)
+
+
+def test_mechanism_checks_are_rejected_for_packaged_task_sessions(session, tmp_path):
+    mechanism = tmp_path / "mechanism.json"
+    mechanism.write_text(json.dumps({"mechanism": "m", "expect": [
+        {"region": "a", "direction": "decrease"}]}), encoding="utf-8")
+    with pytest.raises(SystemExit):
+        main(["benchmarks", "session", "round", "--session", str(session),
+              "--candidate", str(session / "work/candidate.py"), "--hypothesis", "h",
+              "--mechanism-file", str(mechanism)])
+    assert not (session / "rounds").exists() or not any((session / "rounds").iterdir())

@@ -595,7 +595,8 @@ def _settle(root, plan, state, pending, execution, assess):
 
 def evaluate_round(root: Path, *, candidate: Path | None, hypothesis: str,
                    usage: Path | None, execute, assess, final=False, reason=None,
-                   strategy=None, knowledge_refs=None) -> dict:
+                   strategy=None, knowledge_refs=None,
+                   mechanism: dict | None = None) -> dict:
     with _locked(root):
         plan, state = _load(root)
         _active(state, reserve=0 if final else plan["final_reserve_seconds"])
@@ -628,12 +629,20 @@ def evaluate_round(root: Path, *, candidate: Path | None, hypothesis: str,
             (directory / "agent-usage.json").write_bytes(usage_bytes)
         fingerprint = candidates.retain(source, directory / plan["candidate_name"],
                                         plan.get("candidate_includes"))
+        if final and state["best"]["kind"] == "candidate":
+            # The independent final rechecks the mechanism declared by the selected round.
+            selected = (root / state["best"]["path"]).parent / "mechanism.json"
+            if selected.is_file():
+                mechanism = json.loads(selected.read_text(encoding="utf-8"))
+        if mechanism is not None:
+            atomic_write_json(directory / "mechanism.json", mechanism)
         pending = {"kind": "final" if final else "round", "path": relative,
                    "candidate_id": state["best"].get("candidate_id", "baseline") if final
                    else f"candidate-{count + 1:03d}",
                    "hypothesis": hypothesis, "strategy": strategy,
                    "knowledge_refs": knowledge_refs, "observations": observations,
                    **diagnosis,
+                   "mechanism": mechanism,
                    "candidate_sha256": fingerprint,
                    "contexts": list(state["contexts"]), "started_at": time.time()}
         state["pending"] = pending

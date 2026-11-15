@@ -214,7 +214,8 @@ def session_command(args, *, task_source: Path | None = None, knowledge_reader=N
             identity(repo, args.include)  # Reject invalid inputs before preparation writes.
             specification = {key: getattr(args, key) for key in (
                 "metric_key", "metric_unit", "quality_key", "scope", "direction",
-                "min_improvement_pct", "repetitions", "warmups")}
+                "min_improvement_pct", "repetitions", "warmups", "decision",
+                "require_explanation")}
             specification.update(measure_command=shlex.split(args.measure_command),
                                  quality_command=shlex.split(args.quality_command))
             settings = prepare_project(root / "frozen", args.protocol.resolve(),
@@ -325,6 +326,14 @@ def session_command(args, *, task_source: Path | None = None, knowledge_reader=N
     if args.session_action == "recover":
         return optimization.recover(root, _session_assess)
     final = args.session_action == "final"
+    mechanism = None
+    if not final and getattr(args, "mechanism_file", None) is not None:
+        if plan.get("task_source") != "project":
+            raise ValueError("Mechanism checks apply to project campaign rounds only")
+        from inferrsi.harness.measurement import validate_mechanism
+
+        mechanism = validate_mechanism(
+            json.loads(Path(args.mechanism_file).read_text(encoding="utf-8")))
     return optimization.evaluate_round(
         root, candidate=None if final else args.candidate,
         hypothesis="Independent final of the selected candidate" if final else args.hypothesis,
@@ -332,6 +341,7 @@ def session_command(args, *, task_source: Path | None = None, knowledge_reader=N
         reason=getattr(args, "reason", None),
         strategy=getattr(args, "strategy", None),
         knowledge_refs=getattr(args, "knowledge_ref", None),
+        mechanism=mechanism,
     )
 
 
