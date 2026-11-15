@@ -236,6 +236,19 @@ Operation success, recorded execution state and the experiment verdict are
 distinct conclusions; a completed run does not upgrade imported knowledge or
 unvalidated candidates.
 
+### Inspect a fixed attempt — `status --record-ref`
+
+Pass a JSON `RecordRef` file and its trusted `--storage-config` JSON. An
+optional `--assessment-ref` JSON adds the archived claim outcomes and scopes
+for the same record revision. The output shows committed execution facts,
+including phase, process outcome, cleanup and recording time. A successful
+read exits 0. Invalid references, archive integrity failures and mismatched
+revisions exit 2.
+
+The same read-only view is available through
+`inferrsi.apps.api.read_attempt_view`. The legacy `status --run-id` form
+reads the legacy experiment directory.
+
 ## Campaign summary figure
 
 ### Summarize a campaign figure — `tools/campaign_summary_chart.py`

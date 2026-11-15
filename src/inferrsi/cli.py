@@ -329,6 +329,29 @@ def main(argv: list[str] | None = None) -> int:
                 print(text, end="")
             return 0
         if args.command in ("status", "report"):
+            if args.command == "status" and args.record_ref is not None:
+                if args.storage_config is None:
+                    raise ValueError("--record-ref requires --storage-config")
+                from .apps.api import read_attempt_view
+                from .harness.errors import PublicError
+
+                record_ref = json.loads(args.record_ref.read_text(encoding="utf-8"))
+                config = json.loads(args.storage_config.read_text(encoding="utf-8"))
+                assessment_ref = (
+                    json.loads(args.assessment_ref.read_text(encoding="utf-8"))
+                    if args.assessment_ref is not None else None
+                )
+                if args.assessment_ref is not None and not isinstance(assessment_ref, dict):
+                    raise ValueError("--assessment-ref requires an AssessmentRef JSON object")
+                try:
+                    _print(read_attempt_view(
+                        record_ref, storage_config=config, assessment_ref=assessment_ref,
+                    ))
+                except PublicError as exc:
+                    raise ValueError(str(exc)) from exc
+                return 0
+            if args.command == "status" and (args.storage_config or args.assessment_ref):
+                raise ValueError("--storage-config and --assessment-ref require --record-ref")
             directory = _run_directory(args.output_dir, args.run_id)
             if args.command == "status":
                 _print(json.loads((directory / "status.json").read_text(encoding="utf-8")))

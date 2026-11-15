@@ -211,7 +211,14 @@ def parser() -> argparse.ArgumentParser:
             name,
             help="Read a recorded experiment" if name == "status" else "Regenerate its HTML report",
         )
-        child.add_argument("--run-id", required=True)
+        if name == "status":
+            source = child.add_mutually_exclusive_group(required=True)
+            source.add_argument("--run-id")
+            source.add_argument("--record-ref", type=Path, help="JSON file containing a RecordRef")
+            child.add_argument("--storage-config", type=Path, help="Trusted storage config JSON")
+            child.add_argument("--assessment-ref", type=Path, help="Optional AssessmentRef JSON")
+        else:
+            child.add_argument("--run-id", required=True)
         child.add_argument("--output-dir", default="runs")
 
     dashboard = commands.add_parser(
