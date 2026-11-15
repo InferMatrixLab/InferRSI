@@ -101,7 +101,10 @@ def run_scenario(name: str, root: Path) -> tuple[int, bytes]:
         stack.enter_context(contextlib.redirect_stdout(stream))
         if scenario.executor_error is not None:
             stack.enter_context(
-                patch("inferrsi.execution._execute", side_effect=OSError(scenario.executor_error))
+                patch(
+                    "inferrsi.apps.legacy.run.execute_trial",
+                    side_effect=OSError(scenario.executor_error),
+                )
             )
         code = main(arguments)
     printed = json.loads(stream.getvalue())

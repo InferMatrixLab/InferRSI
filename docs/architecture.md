@@ -99,10 +99,21 @@ Dependencies flow from entrypoints to Harness, from scenarios to Model/Infra,
 and from Model to Infra utilities. Infra does not import Model or Harness. None
 of these shared packages imports a campaign from `examples/`.
 
+Environment inspection follows that direction. `infra/inspection.py` is the
+facts API: it takes the command probe and the repository snapshot as ports.
+`apps/inspection.py` binds those ports to this host with
+`infra.commands.probe_command` and `infra.targets.repository_identity`, and the
+CLI calls that composition. Infra reaches no Apps, Knowledge, Harness or
+Benchmark module and is not a fourth core. `infra/inspection.py` reads a
+repository-pack description through the neutral `resources.repository_packs`
+leaf, under the one permanent importer rule in
+[module-layout.md](module-layout.md#permanent-neutral-leaf-importer-rule-proposed).
+
 The implemented table above is not the target four-module layout. The
 suggested rule, including what the import gate does not prove, is
 [module-layout.md](module-layout.md). That page does not move code. It also
-lists the Proposed first-wave compatibility exceptions recorded in
+records the first-wave compatibility pairs that #412 R1 retired and the
+permanent neutral-leaf importer rule, both held in
 [legacy-knowledge-manifest.json](legacy-knowledge-manifest.json).
 
 The caller still prepares the benchmark runtime and baseline/candidate source
@@ -165,6 +176,7 @@ src/inferrsi/
     skill_evaluation.py     Composed bundle export, trial run and summary
     skill_eval_engineering.py  Composed artifact check: task rules around sandbox replay
     improvement.py          Composed assessment, selection, rerun and holdout acceptance
+    inspection.py           Environment inspection bound to the host probe and Git identity
     legacy/
       run.py                Old run composed from Harness, Benchmark and the report
       evaluation.py         Old evaluate entry: RunSpec to the Benchmark gates
@@ -177,12 +189,6 @@ src/inferrsi/
   resources/
     __init__.py             Import-free initializer
     repository_packs.py     Neutral REPO_TYPES and pack.json reader; imports no inferrsi module
-  catalog.py                Knowledge search and cited context
-  skill_catalog.py          Packaged/default or custom skill metadata/body/resource resolution
-  knowledge_operations.py   Normalized reads and bounded Collect (KnowledgeReader)
-  knowledge_store.py        Authorized local store Create/Update (KnowledgeStore)
-  research.py               Read-only model-aware discovery joined over catalog queries
-  _skill_selection.py       Deterministic lexical skill ranking and context view
   summary_chart.py          Stdlib SVG gain chart (chain/branch) and report figure spec
   apps/
     evidence_layout.py      Create the plan/results/patch/validator evidence directories
@@ -205,6 +211,13 @@ src/inferrsi/
       codex_search.py      Bounded attributable file-search evidence from Codex rollouts
       codex_tool_returns.py Correlate Codex tool-return windows
   knowledge/
+    catalog.py              Knowledge search and cited context
+    skill_catalog.py        Packaged/default or custom skill metadata/body/resource resolution
+    knowledge_operations.py Normalized reads and bounded Collect (KnowledgeReader)
+    knowledge_store.py      Authorized local store Create/Update (KnowledgeStore)
+    research.py             Read-only model-aware discovery joined over catalog queries
+    _skill_selection.py     Deterministic lexical skill ranking and context view
+    _source_snapshot.py     Shared source snapshot for stored records: manifest, compact, resolve
     context_projection.py   Collected context text and item projection
   harness/
     api.py                  H public allocate/execute/read over one RunStore and CPU target
@@ -244,7 +257,7 @@ src/inferrsi/
     processes.py            Supervised Linux serving workers and their group cleanup
     targets/git.py          Repository identity and source snapshots
     platforms/              Backend discovery registry; CUDA qualification
-    inspection.py           Environment inspection coordinator
+    inspection.py           Environment inspection facts API; command and snapshot ports
     commands.py             Bounded read-only probes
     environment.py          Dependency versions and storage checks
     http.py                 HTTP POST/download timing
@@ -254,13 +267,21 @@ src/inferrsi/
     repo_packs/             Contribution descriptors and versioned tuning knowledge
     knowledge_packs/        Dependency and peer knowledge, preserving existing tiers
     skill_library/          Complete categorized English skills and resources
-  execution.py              Compatibility entrypoint -> apps.legacy.run
-  evaluation.py             Compatibility exports -> apps.legacy.evaluation
-  inspection.py             Compatibility entrypoint -> infra.inspection
-  reporting.py              Compatibility export -> apps.legacy.reporting
 examples/                   Current Qwen runner, image validator and v4 adapter
 tests/fixtures/legacy/      Frozen historical validation dependencies for regressions
 ```
+
+The package root holds exactly ten tracked files at this stage: `__init__.py`,
+`__main__.py`, `cli.py`, `arguments.py`, `benchmark_operations.py`,
+`summary_chart.py`, `mindie_context.py`, `mindie_mcp.py`, `mindie_project.py`
+and `_mindie_read_worker.py`. #412 R1 deleted eleven root modules with no
+forwarding shell or alias: the seven Knowledge shells, whose code is in
+`knowledge/`; the three old-run forwarders `evaluation.py`, `execution.py` and
+`reporting.py`, whose code is in `apps/legacy/`; and `inspection.py`, whose
+host binding is `apps/inspection.py`. The final two-file root (`__init__.py`
+and `__main__.py`) waits for the A1/A2 (#408) and M1 (#452) moves.
+[module-layout.md](module-layout.md#retired-root-modules) maps each retired
+path to its replacement and lists what still keeps the isolation gate false.
 
 ## Where to extend
 
@@ -281,7 +302,10 @@ synthetic contract fixtures, not accelerator measurements.
 `apps.legacy.run.run_experiment(spec, environment, *, execute, snapshot)` composes
 the old run and accepts small callable adapters. It passes them, the Benchmark v0
 gates and the report to `harness.runner.run_experiment`, whose four ports
-(`execute`, `snapshot`, `assess`, `report`) have no defaults. For a new external
+(`execute`, `snapshot`, `assess`, `report`) have no defaults. An omitted
+`execute` or `snapshot` is read from `apps.legacy.run` when the run starts
+(`execute_trial` and `repository_identity`), which is the two-argument call
+that the retired root `execution.run_experiment` provided. For a new external
 benchmark format, reuse the standard executor and only replace metric interpretation:
 
 ```python
@@ -344,7 +368,7 @@ the default control package continues to require only the standard library.
 
 Register a device probe in `infra.platforms.PLATFORM_PROBES`; supply the selected
 IDs, device model and bounded command runner. A new backend name additionally
-needs an entry in `catalog.BACKENDS`, which supplies the CLI `--backend` choices
+needs an entry in `knowledge.catalog.BACKENDS`, which supplies the CLI `--backend` choices
 and the accepted knowledge and skill backends; no package-data descriptor is
 required. Adding a device SKU within a backend is a parameter/configuration
 change. CUDA qualification takes an explicit device count and model; it contains
@@ -367,8 +391,11 @@ group. Windows Job Object support in the general command executor
 (`harness.local_process`) does not extend to these server helpers. These constraints do not restrict read-only knowledge
 operations or the control CLI to Linux.
 
-- Existing CLI flags, root import paths, external JSON metrics, run artifacts,
-  cancellation handling and report generation are retained.
+- Existing CLI flags, external JSON metrics, run artifacts, cancellation
+  handling and report generation are retained. Root Python import paths are
+  not all retained: #451 and #412 R1 retired the root modules listed in
+  [CHANGELOG.md](../CHANGELOG.md) with no forwarding shell or alias. That file
+  maps each old path to its replacement and states the pickle impact.
 - `examples/qwen21_turbo_b300.py` retains its command interface and campaign
   settings while delegating lifecycle, requests and sampling to shared modules.
 - The LTX helper and quality script, plus the pre-cleanup Qwen quality script,

@@ -13,12 +13,11 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 from inferrsi.apps.legacy.evaluation import _summary, evaluate
-from inferrsi.apps.legacy.run import execute_trial
+from inferrsi.apps.legacy.reporting import write_report
+from inferrsi.apps.legacy.run import execute_trial, repository_identity, run_experiment
 from inferrsi.apps.legacy.run import run_experiment as run_with_adapters
 from inferrsi.contracts import RunSpec
-from inferrsi.execution import repository_identity, run_experiment
 from inferrsi.infra.environment import storage_locations
-from inferrsi.reporting import write_report
 
 
 def benchmark(value: object) -> tuple[str, ...]:
@@ -534,14 +533,16 @@ class RuntimeTests(unittest.TestCase):
         )
 
     def test_keyboard_interrupt_preserves_cancelled_run(self):
-        with patch("inferrsi.execution._execute", side_effect=KeyboardInterrupt):
+        with patch("inferrsi.apps.legacy.run.execute_trial", side_effect=KeyboardInterrupt):
             path, evaluation = self.run_spec()
         self.assertEqual(json.loads((path / "status.json").read_text())["state"], "cancelled")
         self.assertEqual(evaluation["verdict"], "INCONCLUSIVE")
         self.assertTrue((path / "report.html").exists())
 
     def test_execution_exception_preserves_failed_status_and_inconclusive_verdict(self):
-        with patch("inferrsi.execution._execute", side_effect=OSError("executor unavailable")):
+        with patch(
+            "inferrsi.apps.legacy.run.execute_trial", side_effect=OSError("executor unavailable")
+        ):
             path, evaluation = self.run_spec()
         status = json.loads((path / "status.json").read_text())
         self.assertEqual(status["state"], "failed")

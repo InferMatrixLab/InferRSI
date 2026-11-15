@@ -11,8 +11,13 @@ from pathlib import Path
 import pytest
 
 import inferrsi
-from inferrsi.knowledge_operations import Bundle, IdentityError, KnowledgeReader, RevisionConflict
-from inferrsi.knowledge_store import KnowledgeStore
+from inferrsi.knowledge.knowledge_operations import (
+    Bundle,
+    IdentityError,
+    KnowledgeReader,
+    RevisionConflict,
+)
+from inferrsi.knowledge.knowledge_store import KnowledgeStore
 
 REPO = Path(__file__).resolve().parents[1]
 ROOT = REPO / "src/inferrsi/knowledge/data/skill_library"
@@ -254,8 +259,8 @@ EXPORT_CHECK = """
 import sys
 from pathlib import Path
 
-from inferrsi.knowledge_operations import Bundle
-from inferrsi.knowledge_store import KnowledgeStore
+from inferrsi.knowledge.knowledge_operations import Bundle
+from inferrsi.knowledge.knowledge_store import KnowledgeStore
 
 export = Path(sys.argv[1])
 workspace = Path(sys.argv[2])
@@ -364,13 +369,13 @@ def test_operations_leave_sources_evidence_and_matrices_unchanged(tmp_path):
 def test_package_only_collect_without_checkout_or_yaml(tmp_path):
     script = (
         "import sys; sys.modules['yaml'] = None\n"
-        "from inferrsi.knowledge_operations import KnowledgeReader\n"
+        "from inferrsi.knowledge.knowledge_operations import KnowledgeReader\n"
         "reader = KnowledgeReader()\n"
         "result = reader.collect(tier='dependency', material=True, limit=2)\n"
         "item = result['items'][0]\n"
         "assert item['authority'] == 'package', item\n"
         "assert reader.read(item['ref'], revision=item['revision']).revision == item['revision']\n"
-        "assert 'inferrsi.skill_catalog' not in sys.modules\n"
+        "assert 'inferrsi.knowledge.skill_catalog' not in sys.modules\n"
         "assert 'inferrsi.knowledge.skill_catalog' not in sys.modules\n"
     )
     env = {**os.environ, "PYTHONPATH": str(REPO / "src"), "PYTHONUTF8": "1"}

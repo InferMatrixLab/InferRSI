@@ -1,9 +1,9 @@
 import json
 from pathlib import Path
 
-from inferrsi.catalog import get_knowledge, search_knowledge
-from inferrsi.knowledge_operations import KnowledgeReader
-from inferrsi.skill_catalog import get_skill, skill_metadata, skill_resource
+from inferrsi.knowledge.catalog import get_knowledge, search_knowledge
+from inferrsi.knowledge.knowledge_operations import KnowledgeReader
+from inferrsi.knowledge.skill_catalog import get_skill, skill_metadata, skill_resource
 
 ROOT = Path(__file__).resolve().parents[1] / "src/inferrsi/knowledge/data/skill_library"
 NAME = "audit-flare-session-lifecycle"

@@ -4,10 +4,10 @@ from pathlib import Path
 
 import pytest
 
-from inferrsi._skill_selection import lexical_score
 from inferrsi.cli import main
-from inferrsi.knowledge_operations import Bundle, KnowledgeReader, _hash, _json
-from inferrsi.knowledge_store import KnowledgeStore
+from inferrsi.knowledge._skill_selection import lexical_score
+from inferrsi.knowledge.knowledge_operations import Bundle, KnowledgeReader, _hash, _json
+from inferrsi.knowledge.knowledge_store import KnowledgeStore
 
 ROOT = Path(__file__).resolve().parents[1] / "src/inferrsi/knowledge/data/skill_library"
 CGROUP = "inferrsi.common.skills.cgroup_resource_controls"

@@ -5,7 +5,7 @@ from collections import Counter
 import pytest
 
 from inferrsi.knowledge import knowledge_operations
-from inferrsi.knowledge_operations import Bundle, RevisionConflict
+from inferrsi.knowledge.knowledge_operations import Bundle, RevisionConflict
 
 
 def _hash(data):

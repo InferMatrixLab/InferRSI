@@ -126,7 +126,7 @@ result does not mean that no checkout or store knowledge exists. See the
 - **Side effects:** none; no network requests, hardware probes, model download or engine execution. Target annotations do not add runtime backends.
 - **Failure behavior:** no match returns an explicit empty envelope and exits 0; invalid limits/memory or unsupported catalog filters exit 2. A zero-match dimension stays visible.
 - **Example:** `inferrsi knowledge research MiniMax-H3 --framework mlx --target-backend metal --target-device "M5 Mac Studio" --target-memory-gib 64 --limit 12`
-- **Python:** `from inferrsi.research import research_knowledge`; `research_knowledge("MiniMax-H3", frameworks=["mlx"], modalities=["video"], limit=12)`.
+- **Python:** `from inferrsi.knowledge.research import research_knowledge`; `research_knowledge("MiniMax-H3", frameworks=["mlx"], modalities=["video"], limit=12)`.
 
 Exact `knowledge search` and `context` still AND query tokens. Independent
 research queries broaden discovery without relaxing the active package filters.

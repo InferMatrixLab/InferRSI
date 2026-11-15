@@ -9,7 +9,7 @@ import pytest
 from inferrsi.apps.skill_evaluation import export_bundle, run_trial, summarize
 from inferrsi.benchmark.skill_evaluation import task_verdict
 from inferrsi.harness.skill_evaluation import CodexClient, toml_value, trace_metrics
-from inferrsi.knowledge_operations import KnowledgeReader
+from inferrsi.knowledge.knowledge_operations import KnowledgeReader
 
 ROOT = Path(__file__).resolve().parents[1]
 

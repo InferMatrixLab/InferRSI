@@ -6,9 +6,9 @@ from pathlib import Path
 
 import pytest
 
-from inferrsi import _source_snapshot as snapshot
-from inferrsi.catalog import search_knowledge
+from inferrsi.knowledge import _source_snapshot as snapshot
 from inferrsi.knowledge._source_snapshot import source_entry
+from inferrsi.knowledge.catalog import search_knowledge
 from tools import build_skill_index as index_builder
 from tools.build_skill_index import DESTINATION
 

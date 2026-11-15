@@ -16,10 +16,10 @@ import time
 from pathlib import Path
 from unittest.mock import patch
 
+from inferrsi.apps.legacy.evaluation import evaluate
 from inferrsi.contracts import RunSpec
-from inferrsi.evaluation import evaluate
 from inferrsi.harness.scenarios.external import execute_trial
-from inferrsi.knowledge_operations import KnowledgeReader
+from inferrsi.knowledge.knowledge_operations import KnowledgeReader
 from tests.architecture_closed_loop import _canonical, _digest
 
 # Installed package card. Its bundle is record.json only, so this read does

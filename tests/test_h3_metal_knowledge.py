@@ -18,9 +18,9 @@ from urllib.parse import unquote, urlsplit
 
 import pytest
 
-from inferrsi.catalog import get_knowledge, search_knowledge
-from inferrsi.knowledge_operations import KnowledgeReader
-from inferrsi.skill_catalog import get_skill, skill_metadata
+from inferrsi.knowledge.catalog import get_knowledge, search_knowledge
+from inferrsi.knowledge.knowledge_operations import KnowledgeReader
+from inferrsi.knowledge.skill_catalog import get_skill, skill_metadata
 
 PROJECT = Path(__file__).resolve().parents[1]
 LIBRARY = PROJECT / "src/inferrsi/knowledge/data/skill_library"

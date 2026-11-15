@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from inferrsi.skill_catalog import get_skill, skill_instructions, skill_records
+from inferrsi.knowledge.skill_catalog import get_skill, skill_instructions, skill_records
 
 ROOT = Path(__file__).resolve().parents[1]
 SKILL_ROOT = ROOT / "src/inferrsi/knowledge/data/skill_library"

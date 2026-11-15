@@ -10,7 +10,7 @@ from pathlib import Path
 import pytest
 
 from inferrsi.infra.artifacts import sha256, write_json
-from inferrsi.knowledge_operations import KnowledgeReader, RevisionConflict
+from inferrsi.knowledge.knowledge_operations import KnowledgeReader, RevisionConflict
 from tests.fixtures.skill_eval_compare_support import (
     DATA,
     ROOT,

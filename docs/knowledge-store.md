@@ -9,8 +9,8 @@ PR path.
 
 ```python
 from pathlib import Path
-from inferrsi.knowledge_operations import Bundle, KnowledgeReader
-from inferrsi.knowledge_store import KnowledgeStore
+from inferrsi.knowledge.knowledge_operations import Bundle, KnowledgeReader
+from inferrsi.knowledge.knowledge_store import KnowledgeStore
 
 skills = Path("src/inferrsi/knowledge/data/skill_library")
 store = KnowledgeStore(Path("/authorized/local/knowledge-workspace"), skill_root=skills)

@@ -1,7 +1,7 @@
 import json
 
 from inferrsi.apps.campaign import capture_context, create_campaign, verify_capture
-from inferrsi.knowledge_operations import KnowledgeReader
+from inferrsi.knowledge.knowledge_operations import KnowledgeReader
 
 BASELINE_CUE = "reproducible diffusion baseline correctness fixed seed end to end benchmark"
 

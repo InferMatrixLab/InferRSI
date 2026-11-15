@@ -21,7 +21,7 @@ import pytest
 
 import inferrsi.contracts as contracts
 import inferrsi.harness as harness
-from inferrsi import arguments, execution
+from inferrsi import arguments
 from inferrsi.apps.legacy import evaluation as legacy_evaluation
 from inferrsi.apps.legacy import run as legacy_run
 from inferrsi.contracts import RunSpec, claim, json_v1, runspec
@@ -125,7 +125,7 @@ def test_initializer_reexports_only_runspec_and_there_is_one_class() -> None:
     assert contracts.RunSpec is runspec.RunSpec is RunSpec
     assert (RunSpec.__module__, RunSpec.__qualname__) == ("inferrsi.contracts.runspec", "RunSpec")
     # Every consumer in the tree holds that same class object.
-    for consumer in (arguments, execution, legacy_evaluation, legacy_run, runner):
+    for consumer in (arguments, legacy_evaluation, legacy_run, runner):
         assert consumer.RunSpec is RunSpec, consumer.__name__
 
 

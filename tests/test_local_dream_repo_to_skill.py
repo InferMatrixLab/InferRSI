@@ -178,7 +178,7 @@ def test_registration_and_catalog_preserve_candidate_boundary():
     assert index["skills"]["local-dream"] == {
         "path": "repositories/local-dream", "backend": "common",
     }
-    from inferrsi.skill_catalog import skill_metadata, skill_resource
+    from inferrsi.knowledge.skill_catalog import skill_metadata, skill_resource
     assert skill_metadata(ROOT.parents[1], "local-dream")["status"] == "candidate"
     assert "desired" in skill_resource(ROOT.parents[1], "local-dream",
                                        "references/android-lifecycle.md").read_text().lower()

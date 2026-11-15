@@ -5,6 +5,7 @@ import tempfile
 import unittest
 from pathlib import Path
 from typing import Any
+from unittest import mock
 
 from tests import _gate_policy_support as support
 from tests._gate_policy_support import (
@@ -18,8 +19,13 @@ from tests._gate_policy_support import (
 
 MANIFEST = load_manifest()
 PAIRS = exact_pairs(MANIFEST)
-SOURCES = shell_sources(MANIFEST)
 LEAF = MANIFEST["technical_leaf"]["module"]
+# #412 R1 emptied the allowlist. The nine retired pair records stay in the manifest
+# history. Staging them again drives the staged-pair rules that the gate still holds.
+RETIRED_PAIRS = MANIFEST["revision_history"][-1]["retired_compatibility_pairs"]
+STAGED = {**MANIFEST, "compatibility_pairs": RETIRED_PAIRS}
+STAGED_PAIRS = exact_pairs(STAGED)
+SOURCES = shell_sources(STAGED)
 EMPTY_ALLOWLIST = {**MANIFEST, "compatibility_pairs": []}
 # The future neutral leaf, built from the manifest fragment and allowed imports.
 LEAF_SOURCE = (
@@ -107,6 +113,25 @@ def _k01_tree() -> dict[str, str]:
     return files
 
 
+# The two declared importers of the data leaf, as the real tree writes them.
+INSPECTION = "from ..resources.repository_packs import repository_pack\n"
+ARGUMENTS = (
+    "from .knowledge.catalog import BACKENDS\n"
+    "from .resources.repository_packs import REPO_TYPES\n"
+)
+
+
+def _r1_tree() -> dict[str, str]:
+    """The R1 shape: the K01 tree with no root shell, plus the root CLI parser."""
+    files = {
+        relative: source
+        for relative, source in _k01_tree().items()
+        if f"inferrsi.{relative.removesuffix('.py')}" not in SOURCES
+    }
+    files["arguments.py"] = ARGUMENTS
+    return files
+
+
 def _report(
     changes: dict[str, str | None],
     manifest: dict[str, Any] = MANIFEST,
@@ -114,7 +139,7 @@ def _report(
     base: dict[str, str] | None = None,
 ) -> IsolationReport:
     """Scan a temporary tree; a ``None`` change drops that file."""
-    files = {**(_k01_tree() if base is None else base), **changes}
+    files = {**(_r1_tree() if base is None else base), **changes}
     with tempfile.TemporaryDirectory() as temporary:
         root = Path(temporary)
         for relative, source in files.items():
@@ -130,8 +155,13 @@ def _violated(report: IsolationReport, *parts: str) -> bool:
     return any(all(part in message for part in parts) for message in report.violations)
 
 
+def _staged(changes: dict[str, str | None]) -> IsolationReport:
+    """The K01 shape with the nine retired pairs staged again."""
+    return _report(changes, manifest=STAGED, base=_k01_tree())
+
+
 class ManifestTest(unittest.TestCase):
-    def test_allowlist_is_exactly_nine_pairs(self) -> None:
+    def test_allowlist_is_empty_and_the_nine_retired_pairs_are_recorded(self) -> None:
         leaves = (
             "catalog",
             "_source_snapshot",
@@ -143,16 +173,26 @@ class ManifestTest(unittest.TestCase):
         )
         same_named = {(f"inferrsi.{n}", f"inferrsi.knowledge.{n}") for n in leaves}
         leaf_routes = {("inferrsi.catalog", LEAF), ("inferrsi.infra.inspection", LEAF)}
-        self.assertEqual(len(MANIFEST["compatibility_pairs"]), 9)
-        self.assertEqual(PAIRS, same_named | leaf_routes)
-        # #451 C2 redirected the two leaf routes to the canonical module and left
-        # nothing on the retired root path.
+        # R1 ends at zero pairs: nothing is staged, so no shell source is declared.
+        self.assertEqual(MANIFEST["compatibility_pairs"], [])
+        self.assertEqual(PAIRS, frozenset())
+        self.assertEqual(shell_sources(MANIFEST), {})
+        # The record of what retired is the exact nine, kept with its export lists.
+        self.assertEqual(len(RETIRED_PAIRS), 9)
+        self.assertEqual(STAGED_PAIRS, same_named | leaf_routes)
+        self.assertEqual({importer for importer, _ in same_named}, set(SOURCES))
+        self.assertLess(set(SOURCES), support.RETIRED_ROOT_MODULES)
         self.assertEqual(LEAF, "inferrsi.resources.repository_packs")
         self.assertEqual(
-            MANIFEST["catalog_two_routes"]["neutral_leaf_export"]["target"], LEAF
+            MANIFEST["revision_history"][-1]["retired_catalog_two_routes"][
+                "neutral_leaf_export"
+            ]["target"],
+            LEAF,
         )
+        self.assertNotIn("catalog_two_routes", MANIFEST)
         self.assertFalse(
-            [pair for pair in PAIRS if "inferrsi._repo_pack_data" in pair], PAIRS
+            [pair for pair in STAGED_PAIRS if "inferrsi._repo_pack_data" in pair],
+            STAGED_PAIRS,
         )
 
     def test_catalog_routes_keep_repository_pack_out_of_knowledge(self) -> None:
@@ -170,17 +210,26 @@ class ManifestTest(unittest.TestCase):
 
 
 class AllowlistTest(unittest.TestCase):
-    """A01-1: nine exact (importer, target) pairs and nothing else."""
+    """A01-1: only exact (importer, target) pairs pass, and R1 leaves none staged."""
 
-    def test_nine_exact_pairs_pass(self) -> None:
+    def test_r1_tree_passes_with_no_pair(self) -> None:
         report = _report({})
         self.assertEqual(report.violations, ())
-        self.assertNotIn(("inferrsi.knowledge.catalog", LEAF), PAIRS)
+        self.assertNotIn("allowlist", blocker_kinds(report))
+
+    def test_nine_staged_pairs_still_pass_and_block(self) -> None:
+        # The staged-pair rules were kept, not erased: the K01 shape is clean under
+        # the nine retired pairs, and staging them is what blocks.
+        report = _staged({})
+        self.assertEqual(report.violations, ())
+        self.assertNotIn(("inferrsi.knowledge.catalog", LEAF), STAGED_PAIRS)
+        self.assertEqual(report.blockers, ("allowlist: 9 compatibility pairs",))
+        self.assertFalse(report.isolation_complete)
 
     def test_adjacent_knowledge_target_fails(self) -> None:
         shell = _shell("inferrsi.catalog")
         shell += "from inferrsi.knowledge.catalog_extra import VALUE as VALUE\n"
-        report = _report({"catalog.py": shell, "knowledge/catalog_extra.py": "VALUE = 1\n"})
+        report = _staged({"catalog.py": shell, "knowledge/catalog_extra.py": "VALUE = 1\n"})
         self.assertTrue(_violated(report, "catalog.py imports inferrsi.knowledge"))
         self.assertTrue(
             _violated(report, "unlisted import from inferrsi.knowledge.catalog_extra")
@@ -217,10 +266,11 @@ class AllowlistTest(unittest.TestCase):
                 "inferrsi.resources.repository_packs",
             ),
         )
-        for path, source, expected in cases:
-            with self.subTest(path=path, source=source):
-                report = _report({path: source})
-                self.assertTrue(_violated(report, expected), report.violations)
+        for manifest, base in ((MANIFEST, _r1_tree()), (STAGED, _k01_tree())):
+            for path, source, expected in cases:
+                with self.subTest(path=path, source=source, pairs=len(exact_pairs(manifest))):
+                    report = _report({path: source}, manifest=manifest, base=base)
+                    self.assertTrue(_violated(report, expected), report.violations)
 
     def test_only_declared_infra_importer_may_use_the_leaf(self) -> None:
         # D020: infra -> the data leaf passes, and only infra.inspection is
@@ -228,11 +278,11 @@ class AllowlistTest(unittest.TestCase):
         report = _report({})
         self.assertEqual(report.violations, ())
         infra_leaf = {
-            (importer, target)
-            for importer, target in PAIRS
-            if importer.startswith("inferrsi.infra.") and target == LEAF
+            importer
+            for importer in (*support.LEAF_IMPORTERS, *support.TEMPORARY_LEAF_IMPORTERS)
+            if importer.startswith("inferrsi.infra")
         }
-        self.assertEqual(infra_leaf, {("inferrsi.infra.inspection", LEAF)})
+        self.assertEqual(infra_leaf, {"inferrsi.infra.inspection"})
         report = _report(
             {"infra/other.py": "from ..resources.repository_packs import REPO_TYPES\n"}
         )
@@ -244,6 +294,228 @@ class AllowlistTest(unittest.TestCase):
             ),
             report.violations,
         )
+
+
+def _importer_defects(line: str, name: str, other: str) -> tuple[tuple[str, str], ...]:
+    """Every way a declared importer may not reach the leaf: (source, expected)."""
+    relative = line.split(" import ")[0].removeprefix("from ")
+    package = relative.removesuffix(".repository_packs")
+    bound = f"import {name}"
+    return (
+        (line.replace(bound, f"import {other}"), f"imports unlisted name {LEAF}.{other}"),
+        (
+            line.replace(bound, f"import {name}, {other}"),
+            f"imports unlisted name {LEAF}.{other}",
+        ),
+        (line.replace(bound, f"import {name} as loaded"), f"aliases {name} as loaded"),
+        (line.replace(bound, "import *"), f"has a star import from {LEAF}"),
+        (f"from {package} import repository_packs\n", f"imports {LEAF} as a module object"),
+        (
+            f"from {package} import repository_packs as packs\n",
+            f"imports {LEAF} as a module object",
+        ),
+        (f"import {LEAF}\n", f"imports {LEAF} as a module object"),
+        (f"import {LEAF} as packs\n", f"imports {LEAF} as a module object"),
+        (line + "import inferrsi.resources\n", f"imports inferrsi.resources beside {LEAF}"),
+        (
+            line + f"from {package}.extra import VALUE\n",
+            f"imports inferrsi.resources.extra.VALUE beside {LEAF}",
+        ),
+        (
+            line + f"from {package} import extra\n",
+            f"imports inferrsi.resources.extra beside {LEAF}",
+        ),
+        (f"def load():\n    {line}    return {name}\n", f"imports {LEAF} below module level"),
+        (
+            line + "import sys\nsys.modules['inferrsi._repo_pack_data'] = sys.modules[__name__]\n",
+            "touches sys.modules",
+        ),
+        (
+            line + f"import importlib\nimportlib.import_module('{LEAF}')\n",
+            "has a dynamic import",
+        ),
+        (line + f"__import__('{LEAF}')\n", "has a dynamic import"),
+    )
+
+
+class PermanentLeafImporterTest(unittest.TestCase):
+    """#412 R1: one exact importer of the data leaf, outside the staged allowlist."""
+
+    def test_the_rule_is_one_importer_and_one_name_and_not_a_pair(self) -> None:
+        self.assertEqual(
+            support.LEAF_IMPORTERS,
+            {"inferrsi.infra.inspection": frozenset({"repository_pack"})},
+        )
+        self.assertEqual(
+            support.TEMPORARY_LEAF_IMPORTERS,
+            {"inferrsi.arguments": frozenset({"REPO_TYPES"})},
+        )
+        self.assertEqual(MANIFEST["compatibility_pairs"], [])
+        # No Knowledge, Harness, Benchmark or Apps module is declared, and no prefix.
+        for importer in (*support.LEAF_IMPORTERS, *support.TEMPORARY_LEAF_IMPORTERS):
+            self.assertIsNone(support._core_of(importer), importer)
+            self.assertNotIn("*", importer)
+
+    def test_the_permanent_rule_alone_does_not_block(self) -> None:
+        # The infra edge is admitted with nothing staged and adds no blocker.
+        report = _report({"arguments.py": None})
+        self.assertEqual(report.violations, ())
+        self.assertEqual(report.blockers, ())
+        self.assertTrue(report.isolation_complete)
+
+    def test_the_temporary_parser_entry_blocks_until_a1_removes_it(self) -> None:
+        report = _report({})
+        self.assertEqual(report.violations, ())
+        self.assertEqual(report.blockers, ("temporary leaf importers: 1",))
+        self.assertTrue(report.new_core_closure_isolated)
+        self.assertFalse(report.isolation_complete)
+        # The entry names root arguments.py only. The parser at an Apps path, or any
+        # other Apps module, is not covered by it.
+        for path in ("apps/cli/arguments.py", "apps/main.py", "cli.py"):
+            with self.subTest(path=path):
+                moved = _report(
+                    {"arguments.py": None, path: "from inferrsi.resources.repository_packs "
+                                                 "import REPO_TYPES\n"}
+                )
+                self.assertTrue(_violated(moved, f"is a second importer of {LEAF}"),
+                                moved.violations)
+
+    def test_the_edge_is_admitted_by_the_rule_and_not_by_an_erased_scan(self) -> None:
+        with mock.patch.dict(support.LEAF_IMPORTERS, clear=True):
+            report = _report({})
+        self.assertTrue(
+            _violated(report, f"inferrsi.infra.inspection is a second importer of {LEAF}"),
+            report.violations,
+        )
+        with mock.patch.dict(support.TEMPORARY_LEAF_IMPORTERS, clear=True):
+            report = _report({})
+        self.assertTrue(
+            _violated(report, f"inferrsi.arguments is a second importer of {LEAF}"),
+            report.violations,
+        )
+
+    def test_staging_the_infra_pair_again_blocks(self) -> None:
+        pair = [item for item in RETIRED_PAIRS if item["importer"] == "infra.inspection"]
+        self.assertEqual(len(pair), 1)
+        report = _report(
+            {"arguments.py": None}, manifest={**MANIFEST, "compatibility_pairs": pair}
+        )
+        self.assertEqual(report.violations, ())
+        self.assertEqual(report.blockers, ("allowlist: 1 compatibility pairs",))
+
+    def test_another_importer_fails(self) -> None:
+        line = "from inferrsi.resources.repository_packs import repository_pack\n"
+        paths = (
+            "infra/other.py", "infra/inspection_helpers.py", "infra/__init__.py",
+            "infra/platforms/__init__.py", "harness/api.py", "harness/runner.py",
+            "benchmark/probe.py", "apps/main.py", "apps/inspection.py", "model/probe.py",
+            "cli.py", "benchmark_operations.py", "helper.py", "catalog.py",
+            "_repo_pack_data.py",
+        )
+        for path in paths:
+            with self.subTest(path=path):
+                report = _report({path: line})
+                module = "inferrsi." + path.removesuffix(".py").removesuffix(
+                    "/__init__"
+                ).replace("/", ".")
+                self.assertTrue(
+                    _violated(report, f"{module} is a second importer of {LEAF}"),
+                    report.violations,
+                )
+
+    def test_declared_importer_shape_is_exact(self) -> None:
+        declared = (
+            ("infra/inspection.py", "inferrsi.infra.inspection", INSPECTION,
+             "repository_pack", "REPO_TYPES"),
+            ("arguments.py", "inferrsi.arguments",
+             "from .resources.repository_packs import REPO_TYPES\n",
+             "REPO_TYPES", "repository_pack"),
+        )
+        for path, module, line, name, other in declared:
+            clean = _report({path: line, "resources/extra.py": None})
+            self.assertEqual(clean.violations, ())
+            for source, expected in _importer_defects(line, name, other):
+                with self.subTest(module=module, source=source):
+                    report = _report({path: source, "resources/extra.py": "VALUE = 1\n"})
+                    self.assertTrue(
+                        _violated(report, f"{module} ", expected), report.violations
+                    )
+
+    def test_hidden_routes_around_the_rule_fail(self) -> None:
+        dynamic = f"import importlib\nimportlib.import_module('{LEAF}')\n"
+        cases = (
+            # A forwarding module under the retired leaf name, static or star.
+            ({"_repo_pack_data.py": f"from {LEAF} import *\n"},
+             f"inferrsi._repo_pack_data is a second importer of {LEAF}"),
+            # The retired root catalog route back to the leaf.
+            ({"catalog.py": _shell("inferrsi.catalog")},
+             f"inferrsi.catalog is a second importer of {LEAF}"),
+            ({"catalog.py": _shell("inferrsi.catalog")},
+             "inferrsi.catalog is a retired root module"),
+            # A re-export through the leaf's own initializer.
+            ({"resources/__init__.py": RESOURCES_INIT + "from .repository_packs import "
+                                                         "REPO_TYPES\n"},
+             "inferrsi.resources imports inferrsi.resources.repository_packs.REPO_TYPES"),
+            # A dynamic import from an undeclared Infra, Harness or Knowledge module.
+            ({"infra/other.py": dynamic},
+             "inferrsi.infra.other reaches an undeclared dynamic import"),
+            ({"harness/api.py": dynamic},
+             "inferrsi.harness.api reaches an undeclared dynamic import"),
+            ({"knowledge/research.py": dynamic},
+             "inferrsi.knowledge.research reaches an undeclared dynamic import"),
+            # A module beside the leaf is not the leaf, for Knowledge either.
+            ({"resources/extra.py": "VALUE = 1\n",
+              "knowledge/research.py": "from inferrsi.resources import extra\n"},
+             "inferrsi.knowledge.research reaches inferrsi.resources.extra"),
+        )
+        for changes, expected in cases:
+            with self.subTest(expected=expected):
+                report = _report(changes)
+                self.assertTrue(_violated(report, expected), report.violations)
+                self.assertFalse(report.isolation_complete)
+
+
+class RetiredRootModuleTest(unittest.TestCase):
+    """#412 R1: the eleven deleted root modules cannot return, as any kind of file."""
+
+    def test_the_retired_set_is_the_exact_eleven_and_absent_from_the_tree(self) -> None:
+        self.assertEqual(
+            support.RETIRED_ROOT_MODULES,
+            {
+                "inferrsi._skill_selection", "inferrsi._source_snapshot", "inferrsi.catalog",
+                "inferrsi.knowledge_operations", "inferrsi.knowledge_store",
+                "inferrsi.research", "inferrsi.skill_catalog", "inferrsi.evaluation",
+                "inferrsi.execution", "inferrsi.reporting", "inferrsi.inspection",
+            },
+        )
+        for module in support.RETIRED_ROOT_MODULES:
+            name = module.removeprefix("inferrsi.")
+            self.assertFalse((support.ROOT / f"{name}.py").exists(), name)
+            self.assertFalse((support.ROOT / name).exists(), name)
+        self.assertFalse(hasattr(support, "LEGACY_RUN_FORWARDERS"))
+
+    def test_a_returning_file_fails_whatever_it_holds(self) -> None:
+        for module in sorted(support.RETIRED_ROOT_MODULES):
+            name = module.removeprefix("inferrsi.")
+            bodies = ['"""Returned."""\n', "VALUE = 1\n"]
+            if module in SOURCES:
+                bodies.append(_shell(module))
+            for path in (f"{name}.py", f"{name}/__init__.py"):
+                for body in bodies:
+                    with self.subTest(path=path, body=body[:24]):
+                        report = _report({path: body})
+                        self.assertIn(f"{module} is a retired root module", report.violations)
+                        self.assertFalse(report.isolation_complete)
+
+    def test_a_returning_shell_also_fails_as_a_cross_core_import(self) -> None:
+        for module in sorted(SOURCES):
+            name = module.removeprefix("inferrsi.")
+            with self.subTest(module=module):
+                report = _report({f"{name}.py": _shell(module)})
+                self.assertTrue(
+                    _violated(report, f"{name}.py imports inferrsi.knowledge"),
+                    report.violations,
+                )
 
 
 SHELL_DEFECTS = (
@@ -279,7 +551,7 @@ class ShellShapeTest(unittest.TestCase):
     def test_illegal_shell_shapes_fail(self) -> None:
         for snippet, expected in SHELL_DEFECTS:
             with self.subTest(snippet=snippet):
-                report = _report({"research.py": _shell("inferrsi.research") + snippet})
+                report = _staged({"research.py": _shell("inferrsi.research") + snippet})
                 self.assertTrue(
                     _violated(report, "inferrsi.research ", expected), report.violations
                 )
@@ -287,7 +559,7 @@ class ShellShapeTest(unittest.TestCase):
     def test_old_leaf_keeping_a_body_beside_its_k_module_fails(self) -> None:
         # The declared export edge makes root catalog a shell once K.catalog
         # exists, so a second copy of the body is rejected.
-        report = _report(
+        report = _staged(
             {
                 "catalog.py": "def search_knowledge():\n    return []\n",
                 "infra/inspection.py": "from ..catalog import search_knowledge\n",
@@ -311,15 +583,25 @@ class TransferGraphTest(unittest.TestCase):
         )
         for source in forms:
             with self.subTest(source=source):
-                report = _report({"knowledge/research.py": source})
+                # The shell is back on disk: Knowledge may not reach it by any form.
+                report = _report(
+                    {"catalog.py": _shell("inferrsi.catalog"), "knowledge/research.py": source}
+                )
                 self.assertTrue(
                     _violated(report, "inferrsi.knowledge.research reaches inferrsi.catalog"),
                     report.violations,
                 )
 
     def test_apps_through_old_shell_fails(self) -> None:
-        report = _report({"apps/main.py": "from inferrsi.knowledge_store import KnowledgeStore\n"})
-        self.assertTrue(_violated(report, "inferrsi.apps.main reaches inferrsi.knowledge_store"))
+        source = "from inferrsi.knowledge_store import KnowledgeStore\n"
+        # With or without the file, the retired name is an old root leaf for Apps.
+        for shell in (None, _shell("inferrsi.knowledge_store")):
+            with self.subTest(returned=shell is not None):
+                report = _report({"apps/main.py": source, "knowledge_store.py": shell})
+                self.assertTrue(
+                    _violated(report, "inferrsi.apps.main reaches inferrsi.knowledge_store"),
+                    report.violations,
+                )
 
     def test_data_leaf_accepts_only_listed_stdlib_imports(self) -> None:
         self.assertFalse(_violated(_report({}), LEAF))
@@ -412,7 +694,12 @@ class TransferGraphTest(unittest.TestCase):
         )
 
     def test_infra_through_root_catalog_fails(self) -> None:
-        report = _report({"infra/inspection.py": "from ..catalog import repository_pack\n"})
+        report = _report(
+            {
+                "catalog.py": _shell("inferrsi.catalog"),
+                "infra/inspection.py": "from ..catalog import repository_pack\n",
+            }
+        )
         self.assertIn(
             "inferrsi.infra.inspection reaches inferrsi.knowledge.catalog: "
             "inferrsi.infra.inspection -> inferrsi.catalog -> inferrsi.knowledge.catalog",
@@ -774,6 +1061,7 @@ class HarnessEntryTest(unittest.TestCase):
                 report = _report(
                     {
                         **direct,
+                        "knowledge_operations.py": _shell("inferrsi.knowledge_operations"),
                         f"{name}.py": "from . import knowledge_operations\n",
                         "harness/runner.py": (
                             f"from . import skill_evaluation\nfrom .. import {name}\n"
@@ -870,7 +1158,8 @@ class HarnessEntryTest(unittest.TestCase):
         )
         for changes, expected in cases:
             with self.subTest(expected=expected):
-                report = _report(changes)
+                # ``from inferrsi import catalog`` names a module only while the file exists.
+                report = _report({"catalog.py": _shell("inferrsi.catalog"), **changes})
                 self.assertIn(expected, report.violations, report.violations)
 
     def test_returning_skill_evaluation_infra_edge_fails(self) -> None:
@@ -929,7 +1218,8 @@ class StagedIsolationTest(unittest.TestCase):
              EMPTY_ALLOWLIST),
             ("absent: benchmark/", {"benchmark/__init__.py": None}, EMPTY_ALLOWLIST),
             ("absent: apps/", {"apps/__init__.py": None, "apps/main.py": None}, EMPTY_ALLOWLIST),
-            ("allowlist: 9 compatibility pairs", {}, MANIFEST),
+            ("allowlist: 9 compatibility pairs", {}, STAGED),
+            ("temporary leaf importers: 1", {"arguments.py": ARGUMENTS}, EMPTY_ALLOWLIST),
             (
                 "harness reaches model/infra: inferrsi.harness.skill_evaluation"
                 " -> inferrsi.infra",
@@ -950,13 +1240,14 @@ class StagedIsolationTest(unittest.TestCase):
                 EMPTY_ALLOWLIST,
             ),
             (
-                "harness reaches model/infra: inferrsi.harness.runner -> inferrsi.execution"
+                "harness reaches model/infra: inferrsi.harness.runner -> inferrsi.bridge"
                 " -> inferrsi.model",
                 {
-                    "execution.py": "from inferrsi.model import metrics\n",
+                    # A root helper that is not a retired name: the path alone blocks.
+                    "bridge.py": "from inferrsi.model import metrics\n",
                     "model/__init__.py": "",
                     "model/metrics.py": "",
-                    "harness/runner.py": "from inferrsi import execution\n",
+                    "harness/runner.py": "from inferrsi import bridge\n",
                 },
                 EMPTY_ALLOWLIST,
             ),
@@ -992,11 +1283,15 @@ class StagedIsolationTest(unittest.TestCase):
             self.assertNotIn(f"absent: {name}/", report.blockers)
 
     def test_clean_new_core_graph_never_sets_overall_true(self) -> None:
-        report = _report({})
-        self.assertEqual(report.violations, ())
-        self.assertTrue(report.new_core_closure_isolated)
-        self.assertEqual(blocker_kinds(report), {"allowlist"})
-        self.assertFalse(report.isolation_complete)
+        for report, kinds in (
+            (_staged({}), {"allowlist"}),
+            (_report({}), {"temporary leaf importers"}),
+        ):
+            with self.subTest(kinds=kinds):
+                self.assertEqual(report.violations, ())
+                self.assertTrue(report.new_core_closure_isolated)
+                self.assertEqual(blocker_kinds(report), kinds)
+                self.assertFalse(report.isolation_complete)
 
 
 if __name__ == "__main__":

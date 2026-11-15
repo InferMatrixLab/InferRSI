@@ -42,10 +42,16 @@ def run_experiment(
     spec: RunSpec,
     environment: dict,
     *,
-    execute: Callable[[tuple[str, ...], Path, Path, float, str | None], dict] = execute_trial,
-    snapshot: Callable[[Path, Path | None], dict] = repository_identity,
+    execute: Callable[[tuple[str, ...], Path, Path, float, str | None], dict] | None = None,
+    snapshot: Callable[[Path, Path | None], dict] | None = None,
 ) -> Path:
     """Run paired commands, judge them with the v0 gates and write the report."""
+    # An omitted port is read from this module on every call, as the report writer
+    # below already is. The retired root ``execution`` entry bound the same two
+    # ports that way, so replacing ``execute_trial`` or ``repository_identity``
+    # here changes the next two-argument run.
+    execute = execute_trial if execute is None else execute
+    snapshot = repository_identity if snapshot is None else snapshot
 
     def assess(baseline, candidate, validation, integrity, error):
         return _evaluate(

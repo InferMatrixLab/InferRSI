@@ -6,10 +6,11 @@ from pathlib import Path
 import pytest
 
 from inferrsi.arguments import parser
-from inferrsi.catalog import REPO_TYPES, repository_pack, search_knowledge
 from inferrsi.cli import main
-from inferrsi.knowledge_operations import KnowledgeReader
-from inferrsi.skill_catalog import skill_metadata, skill_records
+from inferrsi.knowledge.catalog import search_knowledge
+from inferrsi.knowledge.knowledge_operations import KnowledgeReader
+from inferrsi.knowledge.skill_catalog import skill_metadata, skill_records
+from inferrsi.resources.repository_packs import REPO_TYPES, repository_pack
 from tools import build_skill_index as index_builder
 from tools.build_skill_index import DESTINATION, LIBRARY, build_index, render_index, source_inputs
 

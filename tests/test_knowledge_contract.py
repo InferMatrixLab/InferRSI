@@ -4,8 +4,8 @@ from pathlib import Path
 
 import pytest
 
-from inferrsi.knowledge_operations import KnowledgeReader
-from inferrsi.skill_catalog import (
+from inferrsi.knowledge.knowledge_operations import KnowledgeReader
+from inferrsi.knowledge.skill_catalog import (
     skill_directories,
     skill_directory,
     skill_records,

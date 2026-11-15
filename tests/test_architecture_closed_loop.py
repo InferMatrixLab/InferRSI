@@ -11,7 +11,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from inferrsi.knowledge_operations import KnowledgeReader
+from inferrsi.knowledge.knowledge_operations import KnowledgeReader
 from tests.architecture_closed_loop import MemoryArchive, _canonical, _digest, run_loop
 from tests.architecture_real_ports import (
     PACKAGE_READ,
@@ -24,6 +24,23 @@ LOOP = Path(__file__).with_name("architecture_closed_loop.py")
 PORTS = Path(__file__).with_name("architecture_real_ports.py")
 LAYOUT = Path(__file__).resolve().parents[1] / "docs" / "module-layout.md"
 ROOT = Path(__file__).resolve().parents[1]
+# Families the CPU/offline assembler must not couple to: the CLI, its parser, the
+# Harness runner, and Apps, Knowledge or Benchmark as packages.
+BANNED_FAMILIES = (
+    "inferrsi.cli",
+    "inferrsi.arguments",
+    "inferrsi.harness.runner",
+    "inferrsi.apps",
+    "inferrsi.knowledge",
+    "inferrsi.benchmark",
+)
+# #412 R1 deleted the root shells through which the assembler reached Knowledge and the
+# old evaluator, so those two seams are now canonical modules inside two banned
+# families. They are exempt by exact module name only. The package above a seam, a
+# module beside it and a module below it stay banned.
+EXACT_SEAMS = frozenset(
+    {"inferrsi.knowledge.knowledge_operations", "inferrsi.apps.legacy.evaluation"}
+)
 
 
 class FakeKnowledge:
@@ -357,27 +374,25 @@ class ClosedLoopTest(unittest.TestCase):
 
     def test_real_ports_stay_on_three_existing_seams(self) -> None:
         imported = _import_modules(PORTS)
-        self.assertIn("inferrsi.knowledge_operations", imported)
+        self.assertIn("inferrsi.knowledge.knowledge_operations", imported)
         self.assertIn("inferrsi.harness.scenarios.external", imported)
-        self.assertIn("inferrsi.evaluation", imported)
-        banned = (
-            "inferrsi.cli",
-            "inferrsi.arguments",
-            "inferrsi.harness.runner",
-            "inferrsi.apps",
-            "inferrsi.knowledge",
-            "inferrsi.benchmark",
-        )
-        for name in imported:
-            for prefix in banned:
-                self.assertFalse(name == prefix or name.startswith(prefix + "."))
+        self.assertIn("inferrsi.apps.legacy.evaluation", imported)
+        # The six banned families are unchanged. Two of the three seams are canonical
+        # Knowledge and Apps modules since #412 R1; the guard exempts those two exact
+        # names and nothing else in either family.
+        source = PORTS.read_text(encoding="utf-8")
+        self.assertEqual(_seam_violations(source), [])
+        # Each exempt name is a seam this assembler really imports; none is spare.
+        self.assertLessEqual(EXACT_SEAMS, set(imported))
+        # The guard reads every name the earlier per-module view read, and more.
+        self.assertLessEqual(set(imported), set(_named_modules(source)))
         calls = _call_names(PORTS)
         self.assertIn("read", calls)
         self.assertIn("execute_trial", calls)
         self.assertIn("evaluate", calls)
         self.assertNotIn("search_knowledge", calls)
         self.assertNotIn("collect", calls)
-        # The root module is a static shell; check the implementation's imports.
+        # #412 R1 deleted the root shell; these are the implementation's own imports.
         knowledge = _import_modules(ROOT / "src/inferrsi/knowledge/knowledge_operations.py")
         harness = _import_modules(ROOT / "src/inferrsi/harness/scenarios/external.py")
         self.assertFalse(any("harness" in name or "evaluation" in name for name in knowledge))
@@ -385,6 +400,134 @@ class ClosedLoopTest(unittest.TestCase):
         text = LAYOUT.read_text(encoding="utf-8")
         self.assertIn("does not call `collect` or `search_knowledge`", text)
         self.assertIn("campaign `PASS`", text)
+
+    def test_seam_guard_exempts_only_the_two_exact_seams(self) -> None:
+        # The guard that passes the real assembler above, on single import lines.
+        allowed = (
+            "from inferrsi.knowledge.knowledge_operations import KnowledgeReader\n",
+            "from inferrsi.apps.legacy.evaluation import evaluate\n",
+            "import inferrsi.knowledge.knowledge_operations\n",
+            "import inferrsi.apps.legacy.evaluation as old_evaluate\n",
+            "from inferrsi.harness.scenarios.external import execute_trial\n",
+            "from inferrsi.contracts import RunSpec\n",
+            "import json\nfrom pathlib import Path\n",
+        )
+        for source in allowed:
+            with self.subTest(allowed=source):
+                self.assertEqual(_seam_violations(source), [])
+        refused = (
+            # A module beside a seam, including one whose name only starts like it.
+            ("from inferrsi.apps.legacy.run import run_experiment\n", "inferrsi.apps.legacy.run"),
+            ("from inferrsi.apps.legacy.reporting import write_report\n",
+             "inferrsi.apps.legacy.reporting"),
+            ("import inferrsi.apps.legacy.evaluation_extra\n",
+             "inferrsi.apps.legacy.evaluation_extra"),
+            ("from inferrsi.knowledge.catalog import search_knowledge\n",
+             "inferrsi.knowledge.catalog"),
+            ("from inferrsi.knowledge.knowledge_store import KnowledgeStore\n",
+             "inferrsi.knowledge.knowledge_store"),
+            ("import inferrsi.knowledge.knowledge_operations_v2\n",
+             "inferrsi.knowledge.knowledge_operations_v2"),
+            # Another Apps or Knowledge module that is no seam of this assembler.
+            ("from inferrsi.apps.inspection import inspect_environment\n",
+             "inferrsi.apps.inspection"),
+            ("from inferrsi.apps.api import read_attempt_view\n", "inferrsi.apps.api"),
+            ("from inferrsi.knowledge.skill_catalog import get_skill\n",
+             "inferrsi.knowledge.skill_catalog"),
+            # The package above a seam, by any spelling. Binding a seam as a module
+            # object names its package, so only the plain from-import form passes.
+            ("import inferrsi.apps\n", "inferrsi.apps"),
+            ("import inferrsi.apps.legacy\n", "inferrsi.apps.legacy"),
+            ("import inferrsi.knowledge\n", "inferrsi.knowledge"),
+            ("from inferrsi import apps\n", "inferrsi.apps"),
+            ("from inferrsi import knowledge\n", "inferrsi.knowledge"),
+            ("from inferrsi.apps import legacy\n", "inferrsi.apps.legacy"),
+            ("from inferrsi.apps.legacy import evaluation\n", "inferrsi.apps.legacy"),
+            ("from inferrsi.knowledge import knowledge_operations\n", "inferrsi.knowledge"),
+            ("from inferrsi.knowledge import *\n", "inferrsi.knowledge"),
+            # A module below a seam.
+            ("import inferrsi.apps.legacy.evaluation.rules\n",
+             "inferrsi.apps.legacy.evaluation.rules"),
+            ("from inferrsi.apps.legacy.evaluation.rules import VALUE\n",
+             "inferrsi.apps.legacy.evaluation.rules"),
+            ("import inferrsi.knowledge.knowledge_operations.bundle\n",
+             "inferrsi.knowledge.knowledge_operations.bundle"),
+            # An alias, a nested import and a seam on the line before change nothing.
+            ("import inferrsi.apps.legacy.run as evaluation\n", "inferrsi.apps.legacy.run"),
+            ("def late():\n    from inferrsi.knowledge.catalog import search_knowledge\n",
+             "inferrsi.knowledge.catalog"),
+            ("from inferrsi.apps.legacy.evaluation import evaluate\n"
+             "from inferrsi.apps.legacy import run\n", "inferrsi.apps.legacy.run"),
+        )
+        for source, expected in refused:
+            with self.subTest(refused=source):
+                self.assertIn(expected, _seam_violations(source))
+        # A name taken from a seam is an attribute while no module of that name exists
+        # below it. If a seam ever becomes a package, such a module is refused too.
+        self.assertTrue(_is_module("inferrsi.apps.legacy.evaluation"))
+        self.assertTrue(_is_module("inferrsi.apps.legacy"))
+        self.assertFalse(_is_module("inferrsi.apps.legacy.evaluation.evaluate"))
+        below = "from inferrsi.apps.legacy.evaluation import rules\n"
+        self.assertEqual(_seam_violations(below), [])
+        with patch.object(sys.modules[__name__], "_is_module", return_value=True):
+            self.assertEqual(
+                _seam_violations(below), ["inferrsi.apps.legacy.evaluation.rules"]
+            )
+
+    def test_seam_guard_keeps_the_cli_parser_runner_and_benchmark_bans(self) -> None:
+        refused = (
+            ("from inferrsi.cli import main\n", "inferrsi.cli"),
+            ("import inferrsi.cli\n", "inferrsi.cli"),
+            ("from inferrsi import cli\n", "inferrsi.cli"),
+            ("from inferrsi.arguments import parser\n", "inferrsi.arguments"),
+            ("import inferrsi.arguments as options\n", "inferrsi.arguments"),
+            ("from inferrsi import arguments\n", "inferrsi.arguments"),
+            ("from inferrsi.harness.runner import run_experiment\n", "inferrsi.harness.runner"),
+            ("import inferrsi.harness.runner as loop\n", "inferrsi.harness.runner"),
+            ("from inferrsi.harness import runner\n", "inferrsi.harness.runner"),
+            ("from inferrsi.benchmark.legacy_run_v0 import evaluate\n",
+             "inferrsi.benchmark.legacy_run_v0"),
+            ("import inferrsi.benchmark\n", "inferrsi.benchmark"),
+            ("from inferrsi import benchmark\n", "inferrsi.benchmark"),
+            ("from inferrsi.benchmark import registry\n", "inferrsi.benchmark.registry"),
+            ("def late():\n    import inferrsi.cli\n", "inferrsi.cli"),
+        )
+        for source, expected in refused:
+            with self.subTest(refused=source):
+                self.assertIn(expected, _seam_violations(source))
+        # Harness is not banned whole: only its runner is, and a lookalike is not it.
+        self.assertEqual(_seam_violations("from inferrsi.harness import atomic_json\n"), [])
+        self.assertEqual(_seam_violations("import inferrsi.harness.runner_notes\n"), [])
+
+    def test_real_assembler_fails_the_same_guard_once_a_coupling_is_added(self) -> None:
+        text = PORTS.read_text(encoding="utf-8")
+        seam = "from inferrsi.apps.legacy.evaluation import evaluate\n"
+        self.assertEqual(text.count(seam), 1)
+        self.assertEqual(_seam_violations(text), [])
+        mutations = (
+            (text.replace(seam, "from inferrsi.apps.legacy.run import run_experiment\n"),
+             "inferrsi.apps.legacy.run"),
+            (text.replace(seam, "from inferrsi.apps.legacy import evaluation\n"),
+             "inferrsi.apps.legacy"),
+            (text + "\nfrom inferrsi.knowledge.catalog import search_knowledge\n",
+             "inferrsi.knowledge.catalog"),
+            (text + "\nfrom inferrsi.cli import main\n", "inferrsi.cli"),
+            (text + "\nfrom inferrsi.arguments import parser\n", "inferrsi.arguments"),
+            (text + "\nfrom inferrsi.harness.runner import run_experiment\n",
+             "inferrsi.harness.runner"),
+            (text + "\nfrom inferrsi.benchmark.legacy_run_v0 import evaluate\n",
+             "inferrsi.benchmark.legacy_run_v0"),
+        )
+        for source, expected in mutations:
+            with self.subTest(expected=expected):
+                self.assertIn(expected, _seam_violations(source))
+        # Both families are still banned whole: without the exact exemption, the two
+        # canonical seams of the unchanged assembler are refused as well.
+        seams = sorted(EXACT_SEAMS)
+        with patch.object(sys.modules[__name__], "EXACT_SEAMS", frozenset()):
+            unexempted = _seam_violations(text)
+        for name in seams:
+            self.assertIn(name, unexempted)
 
 
 def _import_modules(path: Path) -> list[str]:
@@ -409,6 +552,46 @@ def _call_names(path: Path) -> set[str]:
         elif isinstance(func, ast.Attribute):
             names.add(func.attr)
     return names
+
+
+def _is_module(name: str) -> bool:
+    path = ROOT.joinpath("src", *name.split("."))
+    return path.with_name(path.name + ".py").is_file() or (path / "__init__.py").is_file()
+
+
+def _named_modules(source: str) -> list[str]:
+    """Every module a source may import.
+
+    This holds each name ``_import_modules`` records, and adds ``package.name`` for an
+    absolute ``from package import name``, which that helper cannot see. A name taken
+    from an exact seam module is one of its attributes, so it is added only when a
+    module of that name exists below the seam.
+    """
+    names: list[str] = []
+    for node in ast.walk(ast.parse(source)):
+        if isinstance(node, ast.Import):
+            names.extend(alias.name for alias in node.names)
+        elif isinstance(node, ast.ImportFrom) and node.module:
+            names.append(node.module)
+            if node.level:
+                continue
+            for alias in node.names:
+                candidate = f"{node.module}.{alias.name}"
+                if alias.name != "*" and (
+                    node.module not in EXACT_SEAMS or _is_module(candidate)
+                ):
+                    names.append(candidate)
+    return names
+
+
+def _seam_violations(source: str) -> list[str]:
+    """Banned-family modules that assembler source imports, other than an exact seam."""
+    return [
+        name
+        for name in _named_modules(source)
+        if name not in EXACT_SEAMS
+        and any(name == prefix or name.startswith(prefix + ".") for prefix in BANNED_FAMILIES)
+    ]
 
 
 if __name__ == "__main__":

@@ -16,10 +16,9 @@ from inferrsi.knowledge.context_projection import context_item
 from tests._gate_policy_support import (
     NEW_H_ENTRIES,
     REPO,
+    RETIRED_ROOT_MODULES,
     ROOT,
     first_wave_report,
-    load_manifest,
-    shell_sources,
 )
 
 TEXT = "Capture repeated launches.\n"
@@ -364,7 +363,9 @@ def _record_modules():
 
 
 def test_harness_records_load_no_knowledge_or_apps_module():
-    leaves = sorted(shell_sources(load_manifest()))
+    # #412 R1 retired the root shells; none of those names may be loaded either.
+    leaves = sorted(RETIRED_ROOT_MODULES)
+    assert len(leaves) == 11
     script = (
         "import importlib, sys\n"
         f"for name in {_record_modules()!r}:\n"

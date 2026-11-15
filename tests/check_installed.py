@@ -13,12 +13,13 @@ from pathlib import Path
 import inferrsi
 import inferrsi.harness
 from inferrsi.benchmark.registry import builtin_tasks, describe_task, task_resources
-from inferrsi.catalog import REPO_TYPES, knowledge_records, repository_pack, search_knowledge
 from inferrsi.cli import main
 from inferrsi.contracts import RunSpec, claim, evidence, json_v1
 from inferrsi.knowledge._source_snapshot import BUNDLE_LIBRARY, LIBRARY
-from inferrsi.knowledge_operations import KnowledgeReader
+from inferrsi.knowledge.catalog import knowledge_records, search_knowledge
+from inferrsi.knowledge.knowledge_operations import KnowledgeReader
 from inferrsi.resources import repository_packs
+from inferrsi.resources.repository_packs import REPO_TYPES, repository_pack
 
 assert Path(inferrsi.__file__).resolve().parent.parent.name != "src", (
     "This check requires an installed package"
@@ -615,6 +616,48 @@ assert find_spec("inferrsi.apps.evidence_layout") is not None
 for retired in ("_repo_pack_data", "evidence_paths"):
     assert find_spec(f"inferrsi.{retired}") is None, retired
 assert not installed_root & {"_repo_pack_data.py", "evidence_paths.py"}
+
+# #412 R1: the seven root Knowledge shells, the three old-run forwarders and the root
+# inspection binding are not in the wheel and have no alias. Their implementations ship
+# at the canonical Knowledge and Apps paths, and the wheel root is the exact ten files
+# plus the build-generated version metadata.
+r1_retired = {
+    "_skill_selection": "inferrsi.knowledge._skill_selection",
+    "_source_snapshot": "inferrsi.knowledge._source_snapshot",
+    "catalog": "inferrsi.knowledge.catalog",
+    "knowledge_operations": "inferrsi.knowledge.knowledge_operations",
+    "knowledge_store": "inferrsi.knowledge.knowledge_store",
+    "research": "inferrsi.knowledge.research",
+    "skill_catalog": "inferrsi.knowledge.skill_catalog",
+    "evaluation": "inferrsi.apps.legacy.evaluation",
+    "execution": "inferrsi.apps.legacy.run",
+    "reporting": "inferrsi.apps.legacy.reporting",
+    "inspection": "inferrsi.apps.inspection",
+}
+assert len(r1_retired) == 11
+for retired, canonical in r1_retired.items():
+    assert find_spec(f"inferrsi.{retired}") is None, retired
+    assert f"inferrsi.{retired}" not in sys.modules, retired
+    assert not hasattr(inferrsi, retired), retired
+    assert find_spec(canonical) is not None, canonical
+    try:
+        import_module(f"inferrsi.{retired}")
+    except ModuleNotFoundError:
+        pass
+    else:
+        raise AssertionError(f"retired module inferrsi.{retired} must not import")
+assert not installed_root & {f"{name}.py" for name in r1_retired}
+assert installed_root - {"_version.py"} == {
+    "__init__.py", "__main__.py", "_mindie_read_worker.py", "arguments.py",
+    "benchmark_operations.py", "cli.py", "mindie_context.py", "mindie_mcp.py",
+    "mindie_project.py", "summary_chart.py",
+}, sorted(installed_root)
+host_inspection = import_module("inferrsi.apps.inspection")
+assert host_inspection._command is import_module("inferrsi.infra.commands").probe_command
+assert host_inspection.repository_identity is (
+    import_module("inferrsi.infra.targets").repository_identity
+)
+assert import_module("inferrsi.arguments").REPO_TYPES is REPO_TYPES
 # A fresh isolated interpreter reads all seven packs with only the facade and its
 # import-free parent loaded: no Harness, Knowledge, Infra or Apps module.
 facade_probe = (

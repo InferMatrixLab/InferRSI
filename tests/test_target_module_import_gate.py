@@ -9,12 +9,12 @@ from __future__ import annotations
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 import pytest
 
 from tests import _gate_policy_support as support
 from tests._gate_policy_support import (
-    LEGACY_RUN_FORWARDERS,
     NEW_CORES,
     ROOT,
     blocker_kinds,
@@ -57,14 +57,23 @@ def test_resource_loader_declaration_does_not_cover_an_adjacent_module(tmp_path)
 
 class TargetModuleImportGateTest(unittest.TestCase):
     def test_no_new_cross_core_imports(self) -> None:
-        allowed = exact_pairs(load_manifest()) | frozenset(LEGACY_RUN_FORWARDERS)
+        # #412 R1: nothing is allowlisted any more, and the tree is still clean.
+        allowed = exact_pairs(load_manifest())
+        self.assertEqual(allowed, frozenset())
         self.assertEqual(cross_core_violations(allowed=allowed), [])
-        # Without the registered forwarders, each of the three root files fails.
+        self.assertFalse(hasattr(support, "LEGACY_RUN_FORWARDERS"))
+        # The root CLI parser now names Knowledge itself. Its exact application-entry
+        # listing is what admits that, and each listed file exists in the root, so an
+        # entry cannot outlive the file that A1 or A2 removes.
         self.assertEqual(
-            cross_core_violations(allowed=exact_pairs(load_manifest())),
-            [f"{name}.py imports inferrsi.apps" for name in ("evaluation", "execution",
-                                                             "reporting")],
+            support.APPLICATION_ENTRIES, ("cli.py", "arguments.py", "benchmark_operations.py")
         )
+        for entry in support.APPLICATION_ENTRIES:
+            self.assertTrue((ROOT / entry).is_file(), entry)
+        with mock.patch.object(
+            support, "APPLICATION_ENTRIES", ("cli.py", "benchmark_operations.py")
+        ):
+            self.assertEqual(cross_core_violations(), ["arguments.py imports inferrsi.knowledge"])
 
     def test_first_wave_policy_holds_on_current_tree(self) -> None:
         self.assertEqual(first_wave_report().violations, ())
@@ -82,6 +91,13 @@ class TargetModuleImportGateTest(unittest.TestCase):
         for retired in ("contracts.py", "_json_v1.py", "runspec.py", "claim.py",
                         "_repo_pack_data.py", "evidence_paths.py"):
             self.assertFalse((ROOT / retired).exists(), retired)
+        # #412 R1: the eleven retired root modules are gone, with no package in their place.
+        self.assertEqual(len(support.RETIRED_ROOT_MODULES), 11)
+        for module in support.RETIRED_ROOT_MODULES:
+            name = module.removeprefix("inferrsi.")
+            self.assertFalse((ROOT / f"{name}.py").exists(), name)
+            self.assertFalse((ROOT / name).exists(), name)
+        self.assertTrue((ROOT / "apps" / "inspection.py").is_file())
         self.assertEqual(
             support.CONTRACTS_MODULES,
             {
@@ -108,15 +124,28 @@ class TargetModuleImportGateTest(unittest.TestCase):
             self.assertEqual(f"absent: {name}/" in report.blockers, absent)
             self.assertNotIn(f"unscannable: {name}/", report.blockers)
         kinds = blocker_kinds(report)
-        self.assertIn("allowlist", kinds)
+        # #412 R1: the allowlist is empty and no old-run forwarder is registered.
+        self.assertNotIn("allowlist", kinds)
+        self.assertNotIn("legacy run forwarders", kinds)
         # No residual: the gate registers no exempt edge, and the scan above
         # already fails any harness module that reaches an old root leaf.
         self.assertFalse(hasattr(support, "REGISTERED_RESIDUALS"))
         self.assertFalse(hasattr(report, "residuals"))
         self.assertNotIn("residual", kinds)
         self.assertEqual(report.violations, ())
-        self.assertIn("harness reaches model/infra", kinds)
-        self.assertIn("legacy run forwarders: 3", report.blockers)
+        # What keeps isolation false after R1: the parser entry due in A1, the six
+        # Harness modules that R2 closes and the five loaders that R3 closes.
+        self.assertEqual(
+            report.blockers,
+            (
+                "temporary leaf importers: 1",
+                "harness reaches model/infra: inferrsi.harness.agent_sessions -> "
+                "inferrsi.infra (12 hits)",
+                "runtime resource loaders: 5",
+            ),
+        )
+        self.assertEqual(len(report.harness_model_infra), 12)
+        self.assertFalse(report.new_core_closure_isolated)
 
     def test_split_skill_eval_modules_reach_no_model_or_infra(self) -> None:
         # S01: the split Harness modules own their writes and digests. The
@@ -153,6 +182,9 @@ class TargetModuleImportGateTest(unittest.TestCase):
                 "benchmark/edge.py": "from inferrsi.benchmark import edge\n",
                 "benchmark/forbidden.py": "import inferrsi.harness\n",
                 "cli.py": "from inferrsi.benchmark.registry import builtin_tasks\n",
+                "arguments.py": "from inferrsi.knowledge import catalog\n",
+                # The listing is the exact file name: a module beside it gains nothing.
+                "arguments_extra.py": "from inferrsi.knowledge import catalog\n",
                 "benchmark_operations.py": "import inferrsi.benchmark\n",
                 "unowned.py": "import inferrsi.benchmark\n",
             }
@@ -164,6 +196,7 @@ class TargetModuleImportGateTest(unittest.TestCase):
         self.assertEqual(
             violations,
             [
+                "arguments_extra.py imports inferrsi.knowledge",
                 "benchmark/forbidden.py imports inferrsi.harness",
                 "harness/probe.py imports inferrsi.knowledge",
                 "knowledge/out.py imports inferrsi.harness",

@@ -281,7 +281,7 @@ def test_task_runner_does_not_expose_harness_as_top_level_modules(task, tmp_path
 
 
 def test_knowledge_delivery_is_retained_and_bound_to_round(session, monkeypatch, capsys):
-    from inferrsi.knowledge_operations import KnowledgeReader
+    from inferrsi.knowledge.knowledge_operations import KnowledgeReader
 
     def collect(self, query, **options):
         import hashlib

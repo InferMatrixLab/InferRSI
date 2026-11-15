@@ -2,10 +2,12 @@
 
 This page records the directory rule for the integration slice. The first-wave
 Knowledge move (K01) is implemented: `src/inferrsi/knowledge/` holds the seven
-moved Knowledge bodies, and the old root modules are static compatibility
-shells. The engineering task contribution now implements `benchmark/registry.py`
-and `benchmark/tasks/`. The current flat `cli.py` and `benchmark_operations.py`
-assemble this slice. The former `observability/` package is dissolved. Its
+moved Knowledge bodies. R1 (#412) deleted the seven static root compatibility
+shells that K01 left, so those names import only from `inferrsi.knowledge`.
+The engineering task contribution now implements `benchmark/registry.py`
+and `benchmark/tasks/`. The current flat `cli.py`, `arguments.py` and
+`benchmark_operations.py` assemble this slice. The former `observability/`
+package is dissolved. Its
 campaign records, traces, logs and profile captures are in `harness/records/`,
 its dashboard views and templates are in `apps/views/`, and the
 collected-context projection is in `knowledge/context_projection.py`.
@@ -17,6 +19,8 @@ The old `run` chain is split by owner. Its gates are in
 by the confirmed split for this slice; that use does not accept #371.
 `cli.py` imports the old run only inside its `run` command, so the other
 commands, including ordinary optimization, still load no Benchmark module.
+R1 deleted the three root forwarders of that chain (`evaluation.py`,
+`execution.py` and `reporting.py`), and `cli.py` imports `apps/legacy/` itself.
 
 ## Target modules
 
@@ -39,10 +43,16 @@ no forwarding shell or alias.
 
 The flat package root is retired in stages.
 `tests/test_package_root_inventory.py` pins the root to an exact file set: 23
-tracked files after C1 and 21 after C2. Each later removal PR shrinks that set
-in the same change. The guard does not assert the final two-file root
-(`__init__.py` and `__main__.py`) early, and the build-generated `_version.py`
-is ignored wheel metadata, not a tracked root file.
+tracked files after C1, 21 after C2 and 10 after R1 (#412). The ten are
+`__init__.py`, `__main__.py`, `_mindie_read_worker.py`, `arguments.py`,
+`benchmark_operations.py`, `cli.py`, `mindie_context.py`, `mindie_mcp.py`,
+`mindie_project.py` and `summary_chart.py`. Each later removal PR shrinks that
+set in the same change: A1 and A2 (#408) move the CLI, the chart and the
+benchmark launcher, and M1 (#452) moves the four MindIE files. The guard does
+not assert the final two-file root (`__init__.py` and `__main__.py`) early,
+and the build-generated `_version.py` is ignored wheel metadata, not a tracked
+root file. [Retired root modules](#retired-root-modules) lists the eleven
+paths that R1 removed.
 
 The current `src/inferrsi/harness/` tree is a mixed implementation. Its
 presence is not the target Harness boundary and is not evidence that the four
@@ -94,7 +104,7 @@ Several flat modules remain shared seams until their slice starts.
 
 | Current path | Tentative reading | This slice |
 | --- | --- | --- |
-| `cli.py`, `arguments.py`, `__main__.py` | Future Apps entry, after #371 | Not moved |
+| `cli.py`, `arguments.py`, `__main__.py` | Future Apps entry, after #371 | Not moved; R1 changed only the imports of `cli.py` and `arguments.py`, and A1 (#408) moves both |
 | `benchmark_operations.py` | Single-task application launcher | Resolves a task entry and invokes the Harness runner; ordinary projects do not use it |
 | `benchmark/registry.py`, `benchmark/tasks/` | Task discovery, definitions and specialized rules | Task-specific quality and measurement code stays with each task |
 | `harness/optimization_session.py`, `harness/project.py`, `harness/task_protocol.py` | Shared preparation, execution and retained-result assessment | CLI supplies task resources and knowledge access; ordinary project lifecycle does not import Benchmark |
@@ -103,16 +113,16 @@ Several flat modules remain shared seams until their slice starts.
 | `harness/skill_evaluation.py`, `harness/artifact_sandbox.py`, `harness/improvement.py`, `harness/atomic_json.py` | Skill-evaluation host adapter, trial execution and retention, sandbox replay, search progression | Verdict rules and task definitions arrive as injected values; no Model, Infra, Knowledge, Benchmark or Apps import |
 | `benchmark/skill_evaluation.py`, `benchmark/skill_eval_diagnostic.py`, `benchmark/skill_eval_engineering.py`, `benchmark/improvement.py` | Skill-evaluation criteria, task definitions and acceptance rules | Pure judgments over retained facts; no Harness import and no process start |
 | `apps/skill_evaluation.py`, `apps/skill_eval_engineering.py`, `apps/improvement.py` | Composed skill-evaluation entries | Join Knowledge reads, Harness execution and Benchmark rules behind the signatures that `harness/` held before the split |
-| `knowledge_operations.py`, `knowledge_store.py`, `catalog.py`, `research.py`, `skill_catalog.py`, `_skill_selection.py`, `_source_snapshot.py` | Static compatibility shells since K01; bodies in `knowledge/` | Interfaces unchanged |
+| `knowledge/knowledge_operations.py`, `knowledge/knowledge_store.py`, `knowledge/catalog.py`, `knowledge/research.py`, `knowledge/skill_catalog.py`, `knowledge/_skill_selection.py`, `knowledge/_source_snapshot.py` | The seven Knowledge implementations, moved by K01 | Interfaces unchanged; the same-named root shells were deleted by R1 |
 | `harness/records/` | Campaign manifests, traces, logs, profile captures and delivered-context captures | Imports no Knowledge or Apps module; `apps/campaign.py` supplies the backend names, the selection default and the context projection |
 | `apps/views/`, `apps/campaign.py` | Dashboard views, templates and the Knowledge-to-records connection | Apps path still follows the #371 proposal |
 | `harness/` | Mixed legacy tree, not target isolation | Not redefined |
 | `harness/runner.py`, `harness/scenarios/external.py`, `harness/atomic_json.py` | Old run execution facts and Harness-owned JSON writes | Ports injected; no Model edge, and no Infra edge except the local process executor |
 | `benchmark/legacy_run_v0.py`, `benchmark/sampling.py` | Old run gates and metric validation; image/video sample collection | Imports only `model/protocols/metrics`; owns its rule inputs and verdict labels |
 | `apps/legacy/` | Old run composition, old `evaluate` entry and HTML report | Supplies the Git source snapshot from `infra/targets`; path follows the confirmed split, #371 still proposed |
-| `evaluation.py`, `execution.py`, `reporting.py` | Root forwarders of the old run chain | Each forwards to one `apps.legacy` module; retired by R01 |
+| `apps/inspection.py` | Prepared-environment inspection bound to this host | Binds the `infra/inspection.py` facts API to `infra.commands.probe_command` and `infra.targets.repository_identity`; replaces root `inspection.py`, which R1 deleted with the three old-run root forwarders |
 | `model/validators/` | Benchmark-leaning checks | Not moved |
-| `infra/`, `inspection.py` | Seams used by the current tree | Not a fourth core |
+| `infra/` | Seams used by the current tree, including the `infra/inspection.py` facts API | Not a fourth core; reaches no Knowledge, Harness, Benchmark or Apps module |
 | `summary_chart.py` | Current report helper | Not moved |
 | `contracts/` (`runspec.py`, `json_v1.py`, `claim.py`, `evidence.py`) | Technical-only contracts: RunSpec, canonical JSON, verdict vocabulary, evidence segment and path rules | Exact module set; the initializer re-exports only `RunSpec`; not a fourth core |
 | `apps/evidence_layout.py` | Evidence directory creation over the `contracts/evidence.py` path rules | The `mkdir` half of former root `evidence_paths.py`; host I/O stays in Apps |
@@ -124,23 +134,30 @@ Several flat modules remain shared seams until their slice starts.
 `tests/test_target_module_import_gate.py` fails on a new import of
 `inferrsi.knowledge`, `inferrsi.benchmark`, or `inferrsi.apps` from anywhere
 except application assembly, and on Knowledge or Benchmark importing Harness.
-Application assembly includes `inferrsi.apps` and the two current flat entries
-`cli.py` and `benchmark_operations.py`. Other flat modules retain the same
-restrictions. The gate checks Benchmark task scripts as well as module code.
+Application assembly includes `inferrsi.apps` and the three current flat
+entries `cli.py`, `arguments.py` and `benchmark_operations.py`, listed by exact
+file name as `APPLICATION_ENTRIES` in `tests/_gate_policy_support.py`.
+`arguments.py` joined that list in R1: the CLI parser names
+`inferrsi.knowledge` itself now that the root shells are gone. The listing is
+temporary. A1 (#408) moves `cli.py` and `arguments.py` into `apps/cli/` and
+removes both entries, and A2 removes the last one. Other flat modules retain
+the same restrictions. The gate checks Benchmark task scripts as well as
+module code.
 `from inferrsi import knowledge` counts as an import of that core.
 Same-core imports are allowed, including a relative import rewritten to an
 absolute name such as `from .bar import VALUE` inside `knowledge/`. Each forbidden
-importer and target pair is reported once. The only exceptions are the exact
-first-wave pairs below, read from `docs/legacy-knowledge-manifest.json`.
+importer and target pair is reported once. The only exceptions are exact pairs
+read from `compatibility_pairs` in `docs/legacy-knowledge-manifest.json`.
+Since R1 that list is empty, so the gate admits no exception.
 
 The Benchmark package now provides resource discovery and task scripts. The
 CLI and single-task application launcher assemble them with Harness; task
 scripts receive execution support without importing another core.
 "There is no exception list of current edges" described the tree before K01,
 when the three package names were unused and no current edge needed an
-exception. It was never a permanent ban on reviewed exceptions; since K01 the
-exact first-wave Knowledge pairs below are the only Knowledge compatibility
-exceptions, and they remain scoped to that move.
+exception. It was never a permanent ban on reviewed exceptions. From K01 until
+R1 the nine exact first-wave pairs recorded below were the only compatibility
+exceptions, scoped to that move. R1 retired them.
 
 The gate scans `src/inferrsi/**` as the transfer graph. It resolves absolute,
 relative, and `from package import name` imports, includes the parent-package
@@ -176,40 +193,57 @@ checked. These declarations do not make arbitrary candidate code isolated.
 
 The report adds a `runtime resource loaders` blocker when these loaders are
 present and does not claim either complete isolation or new-core closure
-isolation. The seven Knowledge shells and their nine exact pairs are unchanged.
+isolation. R1 changed none of these five declarations; closing them is R3 (#412).
 
-The old run chain keeps three root forwarders, declared as
-`LEGACY_RUN_FORWARDERS` in `tests/_gate_policy_support.py`. They are separate
-from the Knowledge compatibility pairs and are not in the manifest. Each root
-module may import exactly one Apps module:
+R1 (#412) deleted the three root forwarders of the old run chain and removed
+their `LEGACY_RUN_FORWARDERS` registration from `tests/_gate_policy_support.py`.
+With the seven Knowledge shells and root `inspection`, their names are now
+`RETIRED_ROOT_MODULES` in that file. Nothing is registered for them:
 
-| Root module | Exact target |
-| --- | --- |
-| `evaluation` | `inferrsi.apps.legacy.evaluation` |
-| `execution` | `inferrsi.apps.legacy.run` |
-| `reporting` | `inferrsi.apps.legacy.reporting` |
+- A file or package that returns under one of the eleven names is a violation
+  by itself, whatever it contains.
+- A returning forwarder or shell also fails as a root-file import of Apps or
+  Knowledge, as any unlisted flat module does.
+- Every checked closure still treats each name as an old root leaf. A
+  Knowledge, Harness, Benchmark or Apps module that imports one fails, with or
+  without a file behind the name.
 
-An adjacent Apps module and a second root importer both fail. A Harness or
-Benchmark module that reaches a forwarder reaches Apps and fails. An Apps module
-may not import a forwarder back. Every forwarder that exists adds the
-`legacy run forwarders` blocker, so overall isolation stays false until R01
-retires them. This rule is Proposed and needs formal gate review.
+No `legacy run forwarders` blocker exists any more.
+[Retired root modules](#retired-root-modules) gives each replacement.
 
 A clean result means no new cross-core import of those names. It does not mean
 the modules are isolated. Isolation stays false while any one of these holds:
 `knowledge/`, `benchmark/`, or `apps/` is absent or has no scannable
 module; the compatibility allowlist
-is non-empty; a registered old-run root forwarder exists; or
+is non-empty; a temporary neutral-leaf importer still imports the leaf;
 `harness/**` still imports Model or Infra,
-directly or through another module. The three packages may appear in stages.
+directly or through another module; a declared runtime resource loader is
+present; or the scan reports a violation. The three packages may appear in stages.
 A clean graph for the new cores is reported separately as "new core business
 closure isolated" and never sets overall `isolation_complete` to true.
+
+On the tree after R1, `first_wave_report()` has no violation and three
+blockers, so `isolation_complete` is false and R1 does not claim otherwise:
+
+| Blocker | Cause | Closed by |
+| --- | --- | --- |
+| `temporary leaf importers: 1` | Root `arguments.py` reads `REPO_TYPES` from the neutral leaf | A1 (#408) |
+| `harness reaches model/infra` (12 hits) | `agent_sessions`, `candidates`, `optimization`, `optimization_session`, `project` and `task_protocol` each reach `inferrsi.infra` and `inferrsi.infra.artifacts` | R2 (#412) |
+| `runtime resource loaders: 5` | The five declared loaders in the table above | R3 (#412) |
+
+R1 cleared the `allowlist` and `legacy run forwarders` blockers. The loaders
+also keep `new_core_closure_isolated` false.
 
 `knowledge-model-policy` stays the only required status. Until a separate
 process decision makes this import gate required, every migration PR attaches
 the gate result and does not describe it as branch protection.
 
 ## First-wave compatibility exceptions (Proposed)
+
+Status after R1 (#412): none of these exceptions is in force. The seven root
+shells are deleted and `compatibility_pairs` in the manifest is empty. This
+section keeps the record of the nine pairs and the rules that still apply. The
+heading is unchanged because other pages link to it.
 
 These exceptions implement D018/D020 in
 [`contracts/gate-policy-runstore-and-first-prs.md`](contracts/gate-policy-runstore-and-first-prs.md)
@@ -218,8 +252,8 @@ and
 They stay Proposed until this policy passes formal architecture review. K01
 must not start before that review accepts them.
 
-Relative to `src/inferrsi/`, exactly nine (importer, target) pairs are
-permitted:
+Relative to `src/inferrsi/`, exactly nine (importer, target) pairs were
+permitted from K01 until R1. None is permitted now:
 
 | Importer | Exact target | Route |
 | --- | --- | --- |
@@ -233,23 +267,30 @@ permitted:
 | `knowledge_operations` | `inferrsi.knowledge.knowledge_operations` | Same-named Knowledge module |
 | `infra.inspection` | `inferrsi.resources.repository_packs` | Direct, never through `catalog` or H |
 
-These nine pairs are the only compatibility exceptions. A module prefix does
+These nine pairs were the only compatibility exceptions. A module prefix did
 not authorize an adjacent module, and a second importer of an allowed
-Knowledge target fails. C2 (#451) redirected the two data-leaf targets from
+Knowledge target failed. C2 (#451) redirected the two data-leaf targets from
 `inferrsi._repo_pack_data` to `inferrsi.resources.repository_packs`; the count
-stays nine. Retiring the eight root-shell pairs and replacing the
-`infra.inspection` edge with a permanent exact rule outside this allowlist is
-later R1 work (#412) and is not done by C2.
-`inferrsi.resources.repository_packs` has exactly two permitted
-importers outside Knowledge: root `catalog` and `infra.inspection`. An import
-of that leaf from inside `inferrsi.knowledge`, for example from
-`inferrsi/knowledge/catalog.py`, is intra-closure and not a tenth exception.
+stayed nine. R1 (#412) then ended at zero pairs. The first eight rows were
+edges of the seven root shells, two of them from root `catalog`, and retired
+when R1 deleted those files. The ninth row is not a root-file edge:
+`infra/inspection.py` imports the leaf and calls it, so no deletion removes
+it. It left the allowlist and is the
+[permanent rule below](#permanent-neutral-leaf-importer-rule-proposed).
+The manifest keeps all nine records and root `catalog`'s two routes,
+unchanged, under its last `revision_history` entry as
+`retired_compatibility_pairs` and `retired_catalog_two_routes`.
+An import of the leaf from inside `inferrsi.knowledge`, for example from
+`inferrsi/knowledge/catalog.py`, is intra-closure and was never an exception.
 The leaf's own import rule and `REPO_TYPES` object identity govern it.
-`REPO_TYPES` is the same tuple object through root `catalog`, the leaf, and
-`inferrsi.knowledge.catalog`.
+`REPO_TYPES` is the same tuple object in the leaf,
+`inferrsi.knowledge.catalog` and root `arguments.py`.
 
-- **Shell shape.** An old root leaf that imports its Knowledge target or the
-  data leaf is a compatibility shell. It may contain only a module docstring,
+- **Shell shape.** No shell exists after R1. The rule is kept for a pair that
+  review stages again, and `tests/test_first_wave_isolation_policy.py` still
+  drives it with the nine retired pair records. A staged root leaf that imports
+  its Knowledge target or the data leaf is a compatibility shell. It may
+  contain only a module docstring,
   a `__future__` import, `ImportFrom` lines from its listed targets with
   listed names (an alias only as `name as name`), and an `__all__` that is a
   literal list of constant strings. Star imports, function or class bodies,
@@ -270,7 +311,8 @@ The leaf's own import rule and `REPO_TYPES` object identity govern it.
   not arbitrary `contracts.*` or `resources.*` modules, and `contracts.evidence`
   is not a Knowledge input. Benchmark modules and every `inferrsi.harness.*` module reach no
   other core, no Apps module, and no old root leaf. Apps reaches no old root
-  leaf. `inferrsi.infra`
+  leaf. Since R1 an old root leaf is any of the eleven retired root module
+  names, with or without a file behind it. `inferrsi.infra`
   reaches no Knowledge, Harness, Benchmark, or Apps module, so `infra` → root
   `catalog` → Knowledge fails while `infra` → the data leaf passes.
 - **New H entries.** The registered entry modules are
@@ -326,6 +368,114 @@ import-free parent initializer. The K01 and K02 records above stay as
 provenance. The nine pairs remain, so the allowlist blocker remains. That
 manifest revision requires formal architecture review; the implementer does
 not self-approve it, and passing tests are not that review.
+
+R1 (#412) deleted the seven root shells in the change that moved their last
+consumers to `inferrsi.knowledge`, so the manifest's `compatibility_pairs` is
+now empty and the allowlist blocker is gone. The C2 revision joined
+`revision_history` with the nine retired pair records and root `catalog`'s two
+routes, each unchanged, including the old root leaf hashes that K01 recorded.
+`technical_leaf` keeps its module, file, locked `file_sha256`, allowed imports,
+two symbols, top-level shape, both fragments and the K02 and C2 revision
+records. It gains `permanent_importers` and `temporary_importers`, described
+in the next section. The K01, K02 and C2 paragraphs above stay as provenance
+and describe the tree at their own revisions. This R1 manifest revision
+requires formal architecture review; the implementer does not self-approve
+it, and passing tests are not that review.
+
+## Permanent neutral-leaf importer rule (Proposed)
+
+Outside `inferrsi.knowledge`, exactly one module may import
+`inferrsi.resources.repository_packs`:
+
+| Importer | Bound name | Exact import line |
+| --- | --- | --- |
+| `inferrsi.infra.inspection` | `repository_pack` | `from ..resources.repository_packs import repository_pack` |
+
+This is D020's direct read: Infra gets one pack description without reaching
+Knowledge or Harness. The rule is `LEAF_IMPORTERS` in
+`tests/_gate_policy_support.py`, restated as
+`technical_leaf.permanent_importers` in the manifest.
+`tests/test_knowledge_compatibility_shells.py` requires the two to match, and
+requires that line to be the file's only import under `inferrsi.resources`.
+The rule is not a `compatibility_pairs` entry. It adds no blocker and does not
+retire, because the importer is not a shell.
+
+The rule covers that one importer, target, name and shape, and nothing wider:
+
+- Any other module outside Knowledge that imports the leaf fails as a second
+  importer. That includes another `infra` module, `infra/__init__.py`, an Apps,
+  Harness or Benchmark module and any root file.
+- In the declared importer, another leaf name, an alias, a star import, the
+  leaf imported as a module object, an import below module level, a
+  `sys.modules` use and a dynamic import each fail.
+- An `inferrsi.resources.` prefix allows nothing: the package itself and a
+  module beside the leaf are refused, for Knowledge too. The rule adds no
+  `inferrsi.contracts.` allowance either; that package keeps its own exact
+  module list.
+- The leaf's locks are unchanged: its bytes and `file_sha256`, the listed
+  standard-library imports, the two symbols, the top-level shape and the
+  docstring-only parent initializer `resources/__init__.py`.
+- A forwarding module under a retired name, a re-export through the leaf's
+  initializer and a dynamic import from an undeclared module fail.
+
+`tests/test_first_wave_isolation_policy.py` holds these negative controls. One
+of them removes the declaration and shows that the scan then rejects the
+`infra.inspection` edge, so the edge passes by the rule and not by a relaxed
+scan.
+
+One temporary entry sits beside the rule and is not part of it. Root `catalog`
+is gone, so root `arguments.py` binds `REPO_TYPES` with
+`from .resources.repository_packs import REPO_TYPES` for the `--repo-type`
+choices. It is `TEMPORARY_LEAF_IMPORTERS` in the gate and
+`technical_leaf.temporary_importers` in the manifest, held to the same exact
+shape. It names root `arguments.py` only: the parser at an Apps path, or any
+other Apps module, is not covered. While it exists the report carries the
+`temporary leaf importers` blocker. A1 (#408) deletes root `arguments.py` and
+removes the entry in the same change; how the moved parser reads `REPO_TYPES`
+is decided by that change's review.
+
+The permanent rule and the temporary entry are Proposed. Both require formal
+architecture review. The implementer does not self-approve them, and passing
+tests are not that review.
+
+## Retired root modules
+
+R1 (#412) deleted these eleven root modules with no forwarding shell,
+`sys.modules` alias or import fallback:
+
+| Retired root module | Canonical module |
+| --- | --- |
+| `inferrsi._skill_selection` | `inferrsi.knowledge._skill_selection` |
+| `inferrsi._source_snapshot` | `inferrsi.knowledge._source_snapshot` |
+| `inferrsi.catalog` | `inferrsi.knowledge.catalog`; `REPO_TYPES` and `repository_pack` from `inferrsi.resources.repository_packs` |
+| `inferrsi.knowledge_operations` | `inferrsi.knowledge.knowledge_operations` |
+| `inferrsi.knowledge_store` | `inferrsi.knowledge.knowledge_store` |
+| `inferrsi.research` | `inferrsi.knowledge.research` |
+| `inferrsi.skill_catalog` | `inferrsi.knowledge.skill_catalog` |
+| `inferrsi.evaluation` | `inferrsi.apps.legacy.evaluation` |
+| `inferrsi.execution` | `inferrsi.apps.legacy.run` |
+| `inferrsi.reporting` | `inferrsi.apps.legacy.reporting` |
+| `inferrsi.inspection` | `inferrsi.apps.inspection` |
+
+Root `inspection.py` was not an alias. It bound the Infra facts API to the
+host, and `apps/inspection.py` now holds that binding: `_command` is
+`infra.commands.probe_command` and `repository_identity` is
+`infra.targets.repository_identity`, both read from the module on each call,
+so a test replaces either name there. `infra/inspection.py` is unchanged and
+imports no Apps module. Root `execution.py` defined the two-argument
+`run_experiment`; `apps.legacy.run.run_experiment` is that entry, and an
+omitted `execute` or `snapshot` port is read from the module when the run
+starts.
+
+Importing a retired path raises `ModuleNotFoundError`, in external code too,
+and a pickle that names a class or function by one no longer loads.
+[`CHANGELOG.md`](../CHANGELOG.md) states the full import and pickle impact.
+Frozen evidence is not rewritten; a historical campaign replays with its
+original bundle.
+
+The root now holds the ten files listed under
+[Target modules](#target-modules). The final two-file root waits for the
+A1/A2 (#408) and M1 (#452) moves.
 
 ## Old `run` exit codes
 

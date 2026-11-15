@@ -15,8 +15,9 @@ from pathlib import Path
 from unittest.mock import Mock, patch
 
 import inferrsi
-from inferrsi import execution
-from inferrsi.execution import _execute, repository_identity
+from inferrsi.apps.legacy import run as legacy_run
+from inferrsi.apps.legacy.run import execute_trial as _execute
+from inferrsi.apps.legacy.run import repository_identity
 
 SCRIPT = Path(__file__).resolve().parents[1] / "tests" / "fixtures" / "legacy" / "ltx25_b300.py"
 SPEC = importlib.util.spec_from_file_location("ltx25_campaign", SCRIPT)
@@ -37,7 +38,11 @@ class CampaignTests(unittest.TestCase):
     def setUp(self):
         # The frozen helper imports its historical package name. Confine that
         # alias to these archived-protocol tests; the installed API is inferrsi.
-        aliases = patch.dict(sys.modules, {"omnirsi": inferrsi, "omnirsi.execution": execution})
+        # It asks ``omnirsi.execution`` only for ``repository_identity``, which the
+        # old-run composition holds since root ``execution`` was retired.
+        aliases = patch.dict(
+            sys.modules, {"omnirsi": inferrsi, "omnirsi.execution": legacy_run}
+        )
         aliases.start()
         self.addCleanup(aliases.stop)
         self.temporary = tempfile.TemporaryDirectory()

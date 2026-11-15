@@ -6,16 +6,16 @@ import json
 
 import pytest
 
-from inferrsi._skill_selection import (
+from inferrsi.cli import main
+from inferrsi.knowledge._skill_selection import (
     indexed_skill,
     lexical_score,
     raw_string_lexical_score,
     skill_score,
 )
-from inferrsi.cli import main
 from inferrsi.knowledge._source_snapshot import source_entry
-from inferrsi.knowledge_operations import KnowledgeReader, _hash, _json
-from inferrsi.knowledge_store import KnowledgeStore
+from inferrsi.knowledge.knowledge_operations import KnowledgeReader, _hash, _json
+from inferrsi.knowledge.knowledge_store import KnowledgeStore
 
 RAW = "weighted-raw-string-v1"
 LEGACY = "weighted-lexical-v1"

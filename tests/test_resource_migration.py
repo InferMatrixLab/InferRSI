@@ -18,9 +18,9 @@ from pathlib import Path
 
 import pytest
 
-from inferrsi.catalog import REPO_TYPES, repository_pack
 from inferrsi.knowledge import _source_snapshot
-from inferrsi.knowledge_operations import KnowledgeReader
+from inferrsi.knowledge.knowledge_operations import KnowledgeReader
+from inferrsi.resources.repository_packs import REPO_TYPES, repository_pack
 
 try:
     import tomllib
