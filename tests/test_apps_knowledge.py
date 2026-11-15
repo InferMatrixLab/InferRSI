@@ -4,8 +4,8 @@ from hashlib import sha256
 
 import pytest
 
-from inferrsi.apps.knowledge import knowledge_reader, read
-from inferrsi.knowledge.knowledge_operations import RevisionConflict
+from inferrsi.apps.knowledge import knowledge_reader, open_knowledge_store, read
+from inferrsi.knowledge.knowledge_operations import Bundle, RevisionConflict
 from inferrsi.knowledge.knowledge_store import KnowledgeStore
 
 _IDENTITY = "inferrsi.common.skills.audit_h3_runtime_residency"
@@ -51,3 +51,43 @@ def test_checkout_read_scans_owners_once_with_a_read_only_store(tmp_path, monkey
     assert revision == view["revision"]
     assert view["content"].endswith("Example\n")
     assert len(scans) == 1
+
+
+def test_apps_store_requires_explicit_write_and_retains_fixed_history(tmp_path):
+    root = tmp_path / "candidate-store"
+    root.mkdir()
+    with pytest.raises(ValueError, match="requires an existing database"):
+        open_knowledge_store(store_root=root)
+    with pytest.raises(ValueError, match="boolean"):
+        open_knowledge_store(store_root=root, writable="yes")
+    assert not list(root.iterdir())
+
+    source = knowledge_reader().read(_IDENTITY)
+    source_ref = f"package:{_IDENTITY}"
+    identity = "apps-example-candidate"
+    metadata = {
+        **source.metadata,
+        "id": identity,
+        "state": "candidate",
+        "derived_from": [{"ref": source_ref, "revision": source.revision}],
+    }
+    bundle = Bundle(metadata, source.content, source.dependencies)
+    store = open_knowledge_store(store_root=root, writable=True)
+    first = store.create(bundle)
+    updated = Bundle(
+        {**metadata, "title": "Revised candidate"}, bundle.content, bundle.dependencies,
+    )
+    second = store.update(updated, expected=first, reason="clarify title", evidence=[])
+    with pytest.raises(RevisionConflict, match="Stale"):
+        store.update(bundle, expected=first, reason="stale write", evidence=[])
+
+    viewer = open_knowledge_store(store_root=root)
+    assert viewer.history(identity) == [
+        {"revision": first, "parent": None, "reason": "create", "evidence": []},
+        {"revision": second, "parent": first, "reason": "clarify title", "evidence": []},
+    ]
+    with pytest.raises(ValueError, match="read-only"):
+        viewer.update(bundle, expected=second, reason="read-only write", evidence=[])
+    reader = knowledge_reader(store_root=root)
+    assert read(reader, f"store:{identity}")[1] == second
+    assert read(reader, f"store:{identity}", revision=first)[1] == first
