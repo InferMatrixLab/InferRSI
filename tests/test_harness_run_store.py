@@ -18,7 +18,7 @@ from pathlib import Path
 
 import pytest
 
-from inferrsi import _json_v1
+from inferrsi.contracts import json_v1
 from inferrsi.harness import run_store
 from inferrsi.harness.errors import PublicError
 from inferrsi.harness.run_store import Claim, CommittedRecord, RunStore, RunStoreReader
@@ -40,15 +40,22 @@ NAMESPACE = "h01-test"
 SRC = REPO / "src"
 NEW_H_CLOSURE = {
     "inferrsi.harness.run_store", "inferrsi.harness.errors",
-    "inferrsi.harness.execution_spec", "inferrsi._json_v1",
+    "inferrsi.harness.execution_spec", "inferrsi.contracts.json_v1",
 }
-# Package initializers run on import: the existing mixed harness __init__ loads inferrsi.claim
-# (the Verdict enum). This is a known residue, not an edge added by the new H modules.
-PACKAGE_INIT_RESIDUE = {"inferrsi", "inferrsi.harness", "inferrsi.claim"}
+# #451 C1: the canonical encoder lives in the contracts package, so importing it runs the
+# ``inferrsi.contracts`` initializer, whose single import is the RunSpec module. These are
+# the two exact names that initializer adds; a ``contracts`` prefix is never allowed.
+CONTRACTS_INIT = {"inferrsi.contracts", "inferrsi.contracts.runspec"}
+# Package initializers run on import: the existing mixed harness __init__ loads
+# inferrsi.contracts.claim (the Verdict enum). This is a known residue, not an edge added
+# by the new H modules.
+PACKAGE_INIT_RESIDUE = {"inferrsi", "inferrsi.harness", "inferrsi.contracts.claim"}
 FORBIDDEN_PREFIXES = (
     "inferrsi.knowledge", "inferrsi.benchmark", "inferrsi.apps", "inferrsi.evaluation",
     "inferrsi.catalog", "inferrsi.research", "inferrsi.knowledge_store", "inferrsi.inspection",
     "inferrsi.skill_catalog", "inferrsi.runspec", "inferrsi.cli", "inferrsi.arguments",
+    # Root paths retired by #451 C1 with ``inferrsi.runspec``; none may return as an alias.
+    "inferrsi._json_v1", "inferrsi.claim",
 )
 
 
@@ -138,8 +145,8 @@ def test_h01_2_same_key_with_another_digest_conflicts(tmp_path: Path) -> None:
 def test_h01_3_new_process_reads_the_fixed_record_hash_and_version(tmp_path: Path) -> None:
     # Commit the frozen fixture payload; its golden RecordRef hash is the byte reference.
     payload_bytes = (FIXTURES / "record-payload.json").read_bytes()
-    golden = _json_v1.decode((FIXTURES / "fixed-refs.json").read_bytes())["record_ref"]
-    payload = _json_v1.decode(payload_bytes)
+    golden = json_v1.decode((FIXTURES / "fixed-refs.json").read_bytes())["record_ref"]
+    payload = json_v1.decode(payload_bytes)
     attempt = {
         "request_id": "att-1", "run_id": "run-1", "attempt_id": "att-1", "owner": "fixture",
         "target_request": payload["target_request"], "deadline_utc": "2099-01-01T00:00:00Z",
@@ -219,7 +226,7 @@ def test_h01_4_crash_points_issue_no_fake_ref(tmp_path: Path, scenario: str) -> 
         # Committed but the response was lost: the same key replays the original record.
         replay = store.claim(attempt, digest)
         assert isinstance(replay, CommittedRecord)
-        assert replay.payload_bytes == _json_v1.encode(
+        assert replay.payload_bytes == json_v1.encode(
             make_payload(attempt, digest, 1, "finished")
         )
         assert _error(store.read, attempt_id, 2).code == "RecordNotFound"
@@ -307,8 +314,9 @@ def _inferrsi_imports(module: str) -> set[str]:
                 base = ".".join(parts + ([node.module] if node.module else []))
             names.add(base)
             names.update(f"{base}.{alias.name}" for alias in node.names)
-    # Keep only names that resolve to a real module file; ``from inferrsi import x`` names the
-    # package container and an imported attribute such as ``_json_v1`` resolves to its file.
+    # Keep only names that resolve to a real module file; ``from inferrsi.contracts import x``
+    # names the package initializer and an imported submodule such as ``json_v1`` resolves
+    # to its file.
     return {
         name for name in names
         if name.startswith("inferrsi.") and _module_file(name) is not None
@@ -316,7 +324,8 @@ def _inferrsi_imports(module: str) -> set[str]:
 
 
 def test_h01_6_new_h_closure_reaches_no_legacy_k_b_or_apps_module() -> None:
-    # Static closure: explicit imports of the new H modules, followed transitively.
+    # Static closure: explicit imports of the new H modules, followed transitively. The
+    # encoder import passes through the contracts initializer and its RunSpec module.
     closure: set[str] = set()
     pending = ["inferrsi.harness.run_store"]
     while pending:
@@ -324,11 +333,11 @@ def test_h01_6_new_h_closure_reaches_no_legacy_k_b_or_apps_module() -> None:
         if module not in closure:
             closure.add(module)
             pending.extend(_inferrsi_imports(module))
-    assert closure == NEW_H_CLOSURE
+    assert closure == NEW_H_CLOSURE | CONTRACTS_INIT
 
     # Runtime: importing a submodule also runs each parent package's __init__. The mixed
-    # ``inferrsi.harness`` __init__ loads ``inferrsi.claim`` (the Verdict enum). That is a
-    # known residue of the existing package, not a legacy, K, B, or Apps module.
+    # ``inferrsi.harness`` __init__ loads ``inferrsi.contracts.claim`` (the Verdict enum).
+    # That is a known residue of the existing package, not a legacy, K, B, or Apps module.
     code = (
         "import json, sys, inferrsi.harness.run_store; "
         "print(json.dumps(sorted(m for m in sys.modules if m.split('.')[0] == 'inferrsi')))"
@@ -342,9 +351,9 @@ def test_h01_6_new_h_closure_reaches_no_legacy_k_b_or_apps_module() -> None:
     assert not [m for m in loaded if m.startswith(FORBIDDEN_PREFIXES)]
     # Keep the static graph exact. The runtime set may also include inferrsi._version
     # when setuptools_scm has written the gitignored file after `pip install -e`.
-    allowed = NEW_H_CLOSURE | PACKAGE_INIT_RESIDUE | {"inferrsi._version"}
+    allowed = NEW_H_CLOSURE | CONTRACTS_INIT | PACKAGE_INIT_RESIDUE | {"inferrsi._version"}
     assert loaded <= allowed
-    assert NEW_H_CLOSURE | PACKAGE_INIT_RESIDUE <= loaded
+    assert NEW_H_CLOSURE | CONTRACTS_INIT | PACKAGE_INIT_RESIDUE <= loaded
 
 
 def test_commit_rejects_unbacked_or_foreign_artifact_refs(tmp_path: Path) -> None:
@@ -525,7 +534,7 @@ def test_reader_routes_only_its_own_mount_and_locations(tmp_path: Path) -> None:
 def test_request_digest_matches_the_d023_anchor() -> None:
     spec = (FIXTURES.parent / "execution-spec-d023.json").read_bytes()
     manifest = json.loads((FIXTURES.parent / "MANIFEST-d023.json").read_text(encoding="utf-8"))
-    assert run_store.request_digest(_json_v1.decode(spec)) == manifest["files"][0]["request_digest"]
+    assert run_store.request_digest(json_v1.decode(spec)) == manifest["files"][0]["request_digest"]
 
 
 def test_reentry_of_unknown_side_effect_is_recovery_required_even_with_owner_lock(
@@ -591,8 +600,8 @@ def _strict_json_cases() -> list[dict]:
 
 @pytest.mark.parametrize("case", _strict_json_cases(), ids=lambda case: case["id"])
 def test_json_v1_rejects_p0a_strict_byte_vectors(case: dict) -> None:
-    with pytest.raises(_json_v1.CanonicalError) as caught:
-        _json_v1.decode(bytes.fromhex(case["raw_hex"]))
+    with pytest.raises(json_v1.CanonicalError) as caught:
+        json_v1.decode(bytes.fromhex(case["raw_hex"]))
     assert caught.value.stage == case["expected_rejection_stage"]
 
 
@@ -601,12 +610,12 @@ def test_json_v1_matches_p0a_codec_string_vectors() -> None:
     golden = (FIXTURES / "codec-strings.json").read_bytes()
     assert len(golden) == vectors["bytes"]
     assert hashlib.sha256(golden).hexdigest() == vectors["sha256"]
-    assert _json_v1.encode(vectors["value"]) == golden
-    assert _json_v1.decode(golden) == vectors["value"]
-    assert _json_v1.encode(_json_v1.decode(golden)) == golden
+    assert json_v1.encode(vectors["value"]) == golden
+    assert json_v1.decode(golden) == vectors["value"]
+    assert json_v1.encode(json_v1.decode(golden)) == golden
     for case in vectors["negative_fixed_payload_bytes"]:
-        with pytest.raises(_json_v1.CanonicalError):
-            _json_v1.decode(case["raw_utf8"].encode("utf-8"))
+        with pytest.raises(json_v1.CanonicalError):
+            json_v1.decode(case["raw_utf8"].encode("utf-8"))
 
 
 def _object_path(store: RunStore, ref: Mapping) -> Path:

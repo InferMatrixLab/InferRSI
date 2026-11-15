@@ -16,7 +16,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 
-from inferrsi import _json_v1
+from inferrsi.contracts import json_v1
 from inferrsi.harness.errors import PartialExecutionFacts, PublicError
 from inferrsi.harness.execution_spec import request_digest as request_digest
 
@@ -575,8 +575,8 @@ def _load_record(
     if digest != row["sha256"] or len(data) != row["size_bytes"]:
         raise _IntegrityFault(f"record version {version} bytes do not match their index row")
     try:
-        payload = _json_v1.decode(data)
-    except _json_v1.CanonicalError as exc:
+        payload = json_v1.decode(data)
+    except json_v1.CanonicalError as exc:
         raise _IntegrityFault(f"record version {version} is not canonical: {exc.stage}") from exc
     if (
         not _has_fields(payload, PAYLOAD_FIELDS)
@@ -689,7 +689,7 @@ class RunStoreReader:
         errors = [] if _is_id(attempt_id) else ["attempt_id: not an Id"]
         if record_version is not None and (
             type(record_version) is not int
-            or not 1 <= record_version <= _json_v1.MAX_SAFE_INTEGER
+            or not 1 <= record_version <= json_v1.MAX_SAFE_INTEGER
         ):
             errors.append("record_version: must be null or a positive integer")
         if errors:
@@ -1017,7 +1017,7 @@ class Claim:
         errors.extend(_payload_artifact_errors(payload, artifacts, self._store.namespace))
         if errors:
             raise ValueError(f"illegal record commit: {errors}")
-        data = _json_v1.encode(payload)
+        data = json_v1.encode(payload)
         try:
             for ref, source in artifacts:
                 self._store._retain(ref, source)

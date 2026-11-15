@@ -5,7 +5,7 @@ from copy import deepcopy
 from pathlib import Path
 from typing import Protocol
 
-from inferrsi._json_v1 import decode, encode
+from inferrsi.contracts.json_v1 import decode, encode
 from inferrsi.harness.errors import PublicError
 from inferrsi.harness.execution_spec import request_digest
 

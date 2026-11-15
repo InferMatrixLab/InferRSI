@@ -50,8 +50,18 @@ NEW_H_ENTRIES = (
     "inferrsi.harness.local_process",
     "inferrsi.harness.run_store",
 )
+# Shared data/byte contracts (#451 C1). This exact module list is the whole package. A
+# new module is a reviewed change to this list; an ``inferrsi.contracts.`` prefix never
+# exempts anything.
+CONTRACTS_PACKAGE = "inferrsi.contracts"
 # The P0a canonical encoder; the new K closure may use it and the data leaf.
-CANONICAL_ENCODER = "inferrsi._json_v1"
+CANONICAL_ENCODER = "inferrsi.contracts.json_v1"
+# The initializer's single import. Python runs the initializer for every contracts
+# import, so a module that may use the encoder also loads these two names, and no other.
+CONTRACTS_INIT_EXPORT = ("inferrsi.contracts.runspec", "RunSpec")
+CONTRACTS_MODULES = frozenset(
+    {CONTRACTS_PACKAGE, CANONICAL_ENCODER, CONTRACTS_INIT_EXPORT[0], "inferrsi.contracts.claim"}
+)
 # Names that load or build modules at run time. Any use fails closed.
 # P0b scans only these three spellings; getattr, exec, eval, runpy, and
 # pkgutil are intentionally out of scope here.
@@ -207,8 +217,8 @@ def _package_ancestors(name: str, modules: dict[str, Path]) -> set[str]:
     return found
 
 
-def _edges(tree: ast.Module, package: str, modules: dict[str, Path]) -> set[str]:
-    """Resolved ``inferrsi.*`` targets of every import in one module."""
+def _direct_targets(tree: ast.Module, package: str, modules: dict[str, Any]) -> set[str]:
+    """Resolved ``inferrsi.*`` targets written in one module, without parent inits."""
     found: set[str] = set()
     for node in ast.walk(tree):
         if isinstance(node, ast.Import):
@@ -218,7 +228,12 @@ def _edges(tree: ast.Module, package: str, modules: dict[str, Path]) -> set[str]
             for alias in node.names:
                 candidate = f"{base}.{alias.name}"
                 found.add(candidate if candidate in modules else base)
-    resolved = {name for name in found if name.startswith("inferrsi.")}
+    return {name for name in found if name.startswith("inferrsi.")}
+
+
+def _edges(tree: ast.Module, package: str, modules: dict[str, Path]) -> set[str]:
+    """Resolved ``inferrsi.*`` targets of every import in one module."""
+    resolved = _direct_targets(tree, package, modules)
     ancestors: set[str] = set()
     for name in resolved:
         ancestors.update(_package_ancestors(name, modules))
@@ -442,6 +457,46 @@ def _leaf_errors(tree: ast.Module, technical_leaf: dict[str, Any]) -> list[str]:
     return errors
 
 
+def _contracts_errors(graph: _Graph) -> list[str]:
+    """The bounded contracts package: declared modules, one initializer export, no core.
+
+    The initializer is a static shell that re-exports ``RunSpec`` from its own
+    ``runspec`` module and nothing else. Every other declared module imports no
+    ``inferrsi.*`` module at all, so loading the package cannot load a core, Apps,
+    Infra or Model module. An undeclared module under the package fails outright.
+    """
+    export_module, export_name = CONTRACTS_INIT_EXPORT
+    errors: list[str] = []
+    for name in sorted(name for name in graph.trees if _matches(name, CONTRACTS_PACKAGE)):
+        tree, package = graph.trees[name], graph.packages[name]
+        if name not in CONTRACTS_MODULES:
+            errors.append(f"{name} is not a declared contracts module")
+        elif name == CONTRACTS_PACKAGE:
+            errors += _shell_errors(name, tree, package, {export_module: {export_name}})
+            imported = [
+                alias.name
+                for node in tree.body
+                if isinstance(node, ast.ImportFrom) and _from_base(node, package) == export_module
+                for alias in node.names
+            ]
+            exported = [
+                item.value
+                for node in tree.body
+                if "__all__" in _assigned_names(node) and _literal_all(node)
+                for item in node.value.elts
+            ]
+            if imported != [export_name] or exported != [export_name]:
+                errors.append(f"{name} must re-export exactly {export_name}")
+        else:
+            errors += [
+                f"{name} imports {target}"
+                for target in sorted(_direct_targets(tree, package, graph.trees))
+            ]
+            if _has_dynamic_import(tree):
+                errors.append(f"{name} has a dynamic import")
+    return errors
+
+
 def _model_or_infra(module: str) -> bool:
     return _matches(module, "inferrsi.model") or _matches(module, "inferrsi.infra")
 
@@ -502,9 +557,22 @@ def first_wave_report(
             )
     if leaf in graph.trees:
         violations += _leaf_errors(graph.trees[leaf], manifest["technical_leaf"])
+    violations += _contracts_errors(graph)
+    # Inside the contracts package a Knowledge module may name only the encoder. The
+    # initializer and its RunSpec module load with that import and are never named.
+    violations += [
+        f"{name} imports {target}; Knowledge may import only {CANONICAL_ENCODER} there"
+        for name in modules
+        if _core_of(name) == "knowledge"
+        for target in sorted(
+            _direct_targets(graph.trees[name], graph.packages[name], graph.trees)
+        )
+        if _matches(target, CONTRACTS_PACKAGE) and target != CANONICAL_ENCODER
+    ]
+    encoder_closure = (CANONICAL_ENCODER, CONTRACTS_PACKAGE, CONTRACTS_INIT_EXPORT[0])
 
     def outside_knowledge(node: str) -> bool:
-        return _core_of(node) != "knowledge" and node not in (leaf, CANONICAL_ENCODER)
+        return _core_of(node) != "knowledge" and node != leaf and node not in encoder_closure
 
     def benchmark_forbidden(node: str) -> bool:
         return _core_of(node) in ("knowledge", "harness", "apps") or node in old_leaves

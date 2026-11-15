@@ -64,7 +64,7 @@ Parameterized or manual acceptance runs are issue-scoped; they are not the defau
 - **Resolve acceptance criteria** — preserve user-supplied criteria; when absent, use [performance-ceiling-analysis](src/inferrsi/knowledge/data/skill_library/methods/performance-ceiling-analysis/references/acceptance-criteria.md) to derive evidence-backed campaign targets. Retain partial requirements and derive only missing fields; unresolved evidence stays explicit.
 - **Freeze gates before search** — checklist and `validator/` locked in `plan/` before Phase 3 candidate experiments ([validation levels](docs/contributing.md#validation-levels)).
 - **One plane per campaign step** — change only the declared SIAS plane per step: `harness` | `model` | `infra` (under `src/inferrsi/`).
-- **Emit RunSpec snapshots** — record repo × revision × backend × device × model × scenario (`runspec.py`, campaign `plan/`).
+- **Emit RunSpec snapshots** — record repo × revision × backend × device × model × scenario (`contracts/runspec.py`, campaign `plan/`).
 - **Evaluator + evidence win** — never treat agent narrative as `PASS`; verdicts follow frozen gates and `evidence/<campaign-id>/` artifacts.
 
 ## Issues and claims (PM)
@@ -81,7 +81,7 @@ Parameterized or manual acceptance runs are issue-scoped; they are not the defau
 
 ## Evidence and clearing the bar
 
-Verdicts are **`PASS`**, **`FAIL`**, or **`INCONCLUSIVE`** only (`src/inferrsi/claim.py`).
+Verdicts are **`PASS`**, **`FAIL`**, or **`INCONCLUSIVE`** only (`src/inferrsi/contracts/claim.py`).
 
 A public **`PASS`** requires:
 

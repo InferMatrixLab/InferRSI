@@ -2,7 +2,7 @@
 
 from io import BytesIO
 
-from inferrsi._json_v1 import encode
+from inferrsi.contracts.json_v1 import encode
 from inferrsi.harness.errors import PublicError
 
 from .archive import _logical_path, _read_directory_artifact, _storage_mounts

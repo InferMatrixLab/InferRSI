@@ -2,7 +2,7 @@
 
 from copy import deepcopy
 
-from inferrsi._json_v1 import decode
+from inferrsi.contracts.json_v1 import decode
 from inferrsi.harness.errors import PublicError
 
 from ..archive import read_assessment

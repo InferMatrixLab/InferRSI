@@ -7,7 +7,7 @@ import pytest
 
 from inferrsi.apps.legacy.run import execute_trial, run_experiment
 from inferrsi.apps.views.dashboard_data import load_dashboard
-from inferrsi.runspec import RunSpec
+from inferrsi.contracts import RunSpec
 
 
 def test_dashboard_tracks_real_native_abba_and_validation(tmp_path):

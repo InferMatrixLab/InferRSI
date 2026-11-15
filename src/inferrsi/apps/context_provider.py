@@ -4,7 +4,7 @@ import re
 from dataclasses import dataclass
 from hashlib import sha256
 
-from inferrsi._json_v1 import MAX_SAFE_INTEGER
+from inferrsi.contracts.json_v1 import MAX_SAFE_INTEGER
 from inferrsi.knowledge.knowledge_operations import KnowledgeReader
 
 _REQUEST_FIELDS = {"query", "ids", "pins", "selection_limits", "max_bytes", "round_id"}

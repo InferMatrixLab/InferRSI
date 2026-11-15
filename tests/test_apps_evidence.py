@@ -5,8 +5,8 @@ from pathlib import Path
 
 import pytest
 
-from inferrsi._json_v1 import decode, encode
 from inferrsi.apps.bridge import to_evidence
+from inferrsi.contracts.json_v1 import decode, encode
 from inferrsi.harness.errors import PublicError
 
 _FIXTURES = Path(__file__).resolve().parents[1] / "docs/contracts/fixtures/t108-v4"

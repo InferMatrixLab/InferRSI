@@ -11,7 +11,7 @@ from pathlib import Path
 
 import pytest
 
-from inferrsi import _json_v1
+from inferrsi.contracts import json_v1
 from inferrsi.harness import execution_service, input_binding, local_process, run_store
 from inferrsi.harness.api import Harness, LocalCpuTarget
 from inferrsi.harness.errors import PublicError
@@ -27,15 +27,19 @@ FREE_BUDGET = {
 }
 SCHEMA = REPO / "docs" / "contracts" / "schemas" / "contract-v1.schema.json"
 # The new H closure: the H01/H02 modules, the canonical encoder, and the package init
-# residue (the mixed ``inferrsi.harness`` __init__ loads ``inferrsi.claim``).
+# residue (the mixed ``inferrsi.harness`` __init__ loads ``inferrsi.contracts.claim``).
 # execution_spec landed on main with the #397 squash 8150ee04, which also
 # added it to this H02 closure. The set matches current main.
+# #451 C1: the encoder and the claim types live in the contracts package, so importing
+# either runs the ``inferrsi.contracts`` initializer, whose single import is the RunSpec
+# module. The last two names are that exact residue; a ``contracts`` prefix is never allowed.
 NEW_H_CLOSURE = {
     "inferrsi.harness.api", "inferrsi.harness.execution_service",
     "inferrsi.harness.input_binding", "inferrsi.harness.local_process",
     "inferrsi.harness.run_store", "inferrsi.harness.errors", "inferrsi.harness.execution_spec",
-    "inferrsi._json_v1",
-    "inferrsi.harness", "inferrsi.claim",
+    "inferrsi.contracts.json_v1",
+    "inferrsi.harness", "inferrsi.contracts.claim",
+    "inferrsi.contracts", "inferrsi.contracts.runspec",
 }
 # Prints a grandchild's pid, then outlives any test deadline with it.
 TREE = (
@@ -533,7 +537,7 @@ def test_next_step_starts_only_after_process_domain_confirmed_empty(
 def test_record_bytes_are_canonical_and_store_fixed(h: Harness) -> None:
     record = h.execute(make_spec(h, [step("print('bytes')")]))
     committed = h._store.committed(record["attempt_id"])
-    assert _json_v1.encode(committed.payload) == committed.payload_bytes
+    assert json_v1.encode(committed.payload) == committed.payload_bytes
     assert committed.record_ref == record["record_ref"]
 
 

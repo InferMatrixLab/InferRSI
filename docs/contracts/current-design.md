@@ -25,11 +25,12 @@ Historical candidate text, review dispositions, and the earlier Proposed drafts 
 
 ## D001 — One distribution, three cores plus Apps, document contracts rather than shared business DTOs
 
-Decision: keep Knowledge, Harness, and Benchmark as sibling independent cores; Apps is the only assembler. Each core owns its types. Cross-boundary traffic uses versioned JSON envelopes with explicit conversion; there is no shared business `contracts` package. `contracts.py` remains a single-file `RunSpec` re-export. The legacy `claim.py` enum stays for compatibility but is not a new shared business model.
+Decision: keep Knowledge, Harness, and Benchmark as sibling independent cores; Apps is the only assembler. Each core owns its types. Cross-boundary traffic uses versioned JSON envelopes with explicit conversion; there is no shared business `contracts` package. The technical-only `inferrsi.contracts` package re-exports only `RunSpec`, defined once in `contracts/runspec.py`; `contracts/claim.py` owns the same Verdict enum re-exported by Harness. These are not shared business DTOs. The old root `contracts.py`, `runspec.py`, `claim.py`, and `_json_v1.py` files are retired without forwarding shells.
 
 Permitted shared technical leaves are only:
 
-- `inferrsi._json_v1` — the canonical encoder (D002);
+- `inferrsi.contracts.json_v1` — the canonical encoder (D002);
+- `inferrsi.contracts.runspec` and `inferrsi.contracts.claim` — the existing RunSpec and Verdict technical types, with only RunSpec re-exported by the package initializer;
 - `inferrsi._repo_pack_data` — the neutral raw pack-data reader and the existing static data enumeration (D020).
 
 The neutral leaf carries no target selection, task, scoring, scheduling, or public business DTO, and imports none of K/H/B/Apps.

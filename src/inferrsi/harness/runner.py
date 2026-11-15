@@ -8,7 +8,7 @@ from collections.abc import Callable
 from datetime import datetime, timezone
 from pathlib import Path
 
-from ..runspec import RunSpec
+from ..contracts import RunSpec
 from .atomic_json import atomic_write_json as _write_json
 from .scenarios.external import collect_trial_checks
 

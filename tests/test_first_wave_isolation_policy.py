@@ -47,6 +47,19 @@ CLEARED_TREE = {
     "harness/__init__.py": "",
     "harness/api.py": "VALUE = 1\n",
 }
+# The bounded contracts package (#451 C1): the initializer's one export and three
+# standalone modules.
+CONTRACTS_INIT = (
+    '"""Shared contracts."""\n\n'
+    "from .runspec import RunSpec\n\n"
+    '__all__ = ["RunSpec"]\n'
+)
+CONTRACTS_TREE = {
+    "contracts/__init__.py": CONTRACTS_INIT,
+    "contracts/json_v1.py": "import json\n",
+    "contracts/runspec.py": "import math\n\n\nclass RunSpec:\n    pass\n",
+    "contracts/claim.py": "from enum import Enum\n",
+}
 
 def _shell(importer: str) -> str:
     """A shape-valid static shell generated from the manifest export lists."""
@@ -65,11 +78,11 @@ def _k01_tree() -> dict[str, str]:
     files = {
         "__init__.py": "",
         "_repo_pack_data.py": LEAF_SOURCE,
-        "_json_v1.py": "import json\n",
+        **CONTRACTS_TREE,
         "knowledge/__init__.py": '"""Knowledge."""\n',
         # K.catalog -> the data leaf is intra-closure, not a tenth pair.
         "knowledge/catalog.py": "from .. import _repo_pack_data\nfrom . import _source_snapshot\n",
-        "knowledge/knowledge_operations.py": "from inferrsi import _json_v1\n",
+        "knowledge/knowledge_operations.py": "from inferrsi.contracts import json_v1\n",
         "infra/__init__.py": "",
         "infra/inspection.py": "from .._repo_pack_data import repository_pack\n",
         "harness/__init__.py": "",
@@ -331,6 +344,154 @@ class TransferGraphTest(unittest.TestCase):
                 self.assertTrue(
                     _violated(report, f"{module} reaches an undeclared dynamic import in {module}")
                 )
+
+
+K_OPERATIONS = "inferrsi.knowledge.knowledge_operations"
+CONTRACTS_INIT_DEFECTS = (
+    ("from .claim import Verdict\n", "unlisted import from inferrsi.contracts.claim"),
+    ("from . import json_v1\n", "unlisted import from inferrsi.contracts"),
+    ("from inferrsi.apps import main\n", "unlisted import from inferrsi.apps"),
+    ("from inferrsi.harness import api\n", "unlisted import from inferrsi.harness"),
+    ("from .runspec import helper\n", "unlisted name inferrsi.contracts.runspec.helper"),
+    ("def __getattr__(name):\n    raise AttributeError(name)\n", "defines __getattr__"),
+    (
+        "import sys\nsys.modules['inferrsi.runspec'] = sys.modules[__name__]\n",
+        "touches sys.modules",
+    ),
+    ("import importlib\nimportlib.import_module('inferrsi.claim')\n", "dynamic import"),
+    ("VALUE = 1\n", "module-level assignment"),
+)
+
+
+class ContractsPackageTest(unittest.TestCase):
+    """#451 C1: one bounded contracts package. Exact modules, one export, no core import."""
+
+    def test_knowledge_names_only_the_encoder_inside_the_package(self) -> None:
+        allowed = (
+            "from inferrsi.contracts import json_v1\n",
+            "from inferrsi.contracts.json_v1 import encode\n",
+            "import inferrsi.contracts.json_v1\n",
+            "from ..contracts import json_v1\n",
+        )
+        for source in allowed:
+            with self.subTest(source=source):
+                report = _report({"knowledge/knowledge_operations.py": source})
+                self.assertEqual(report.violations, ())
+        refused = (
+            ("from inferrsi.contracts import RunSpec\n", "imports inferrsi.contracts;"),
+            ("from inferrsi.contracts import json_v1, RunSpec\n", "imports inferrsi.contracts;"),
+            ("import inferrsi.contracts\n", "imports inferrsi.contracts;"),
+            (
+                "from inferrsi.contracts.runspec import RunSpec\n",
+                "imports inferrsi.contracts.runspec;",
+            ),
+            ("from ..contracts import claim\n", "imports inferrsi.contracts.claim;"),
+            ("from inferrsi.contracts.claim import Verdict\n", "reaches inferrsi.contracts.claim"),
+        )
+        for source, expected in refused:
+            with self.subTest(source=source):
+                report = _report({"knowledge/knowledge_operations.py": source})
+                self.assertTrue(_violated(report, K_OPERATIONS, expected), report.violations)
+
+    def test_retired_root_encoder_is_outside_the_knowledge_closure(self) -> None:
+        report = _report(
+            {
+                "_json_v1.py": "import json\n",
+                "knowledge/knowledge_operations.py": "from inferrsi import _json_v1\n",
+            }
+        )
+        self.assertTrue(
+            _violated(report, f"{K_OPERATIONS} reaches inferrsi._json_v1"), report.violations
+        )
+
+    def test_package_prefix_exempts_no_undeclared_module(self) -> None:
+        report = _report(
+            {
+                "contracts/extra.py": "VALUE = 1\n",
+                "knowledge/knowledge_operations.py": "from inferrsi.contracts import extra\n",
+            }
+        )
+        self.assertTrue(
+            _violated(report, "inferrsi.contracts.extra is not a declared contracts module"),
+            report.violations,
+        )
+        self.assertTrue(
+            _violated(report, f"{K_OPERATIONS} reaches inferrsi.contracts.extra"),
+            report.violations,
+        )
+
+    def test_initializer_is_limited_to_the_runspec_export(self) -> None:
+        for snippet, expected in CONTRACTS_INIT_DEFECTS:
+            with self.subTest(snippet=snippet):
+                report = _report({"contracts/__init__.py": CONTRACTS_INIT + snippet})
+                self.assertTrue(
+                    _violated(report, "inferrsi.contracts ", expected), report.violations
+                )
+        shapes = (
+            CONTRACTS_INIT.replace('["RunSpec"]', '["RunSpec", "runspec"]'),
+            CONTRACTS_INIT.replace('["RunSpec"]', "[]"),
+            CONTRACTS_INIT.replace("from .runspec import RunSpec\n", ""),
+            CONTRACTS_INIT.replace("import RunSpec", "import RunSpec, RunSpec"),
+        )
+        for source in shapes:
+            with self.subTest(source=source):
+                report = _report({"contracts/__init__.py": source})
+                self.assertTrue(
+                    _violated(report, "inferrsi.contracts must re-export exactly RunSpec"),
+                    report.violations,
+                )
+        aliased = CONTRACTS_INIT.replace("import RunSpec", "import RunSpec as Spec")
+        report = _report({"contracts/__init__.py": aliased})
+        self.assertTrue(_violated(report, "inferrsi.contracts aliases RunSpec as Spec"))
+
+    def test_contract_modules_import_no_inferrsi_module(self) -> None:
+        dynamic = (
+            "import importlib\n\n\n"
+            "def load(name):\n    return importlib.import_module(name)\n"
+        )
+        cases = (
+            (
+                "contracts/json_v1.py",
+                "from inferrsi.knowledge import catalog\n",
+                "inferrsi.contracts.json_v1 imports inferrsi.knowledge.catalog",
+            ),
+            (
+                "contracts/json_v1.py",
+                "from inferrsi.harness import api\n",
+                "inferrsi.contracts.json_v1 imports inferrsi.harness.api",
+            ),
+            (
+                "contracts/runspec.py",
+                "from inferrsi.infra import inspection\n",
+                "inferrsi.contracts.runspec imports inferrsi.infra.inspection",
+            ),
+            (
+                "contracts/claim.py",
+                "from . import json_v1\n",
+                "inferrsi.contracts.claim imports inferrsi.contracts.json_v1",
+            ),
+            ("contracts/claim.py", dynamic, "inferrsi.contracts.claim has a dynamic import"),
+        )
+        for path, source, expected in cases:
+            with self.subTest(expected=expected):
+                report = _report({path: source})
+                self.assertTrue(_violated(report, expected), report.violations)
+
+    def test_core_reached_through_the_package_still_fails_its_importers(self) -> None:
+        # The package grants no path: a core import inside it fails every closure that
+        # loads it, here a new H entry and the Knowledge module that uses the encoder.
+        report = _report(
+            {
+                "contracts/json_v1.py": "from inferrsi.apps import main\n",
+                "harness/api.py": "from inferrsi.contracts import json_v1\n",
+            }
+        )
+        for importer in ("inferrsi.harness.api", K_OPERATIONS):
+            with self.subTest(importer=importer):
+                self.assertTrue(
+                    _violated(report, f"{importer} reaches inferrsi.apps"), report.violations
+                )
+        self.assertFalse(report.new_core_closure_isolated)
 
 
 class HarnessEntryTest(unittest.TestCase):

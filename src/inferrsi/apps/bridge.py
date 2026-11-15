@@ -4,7 +4,7 @@ import re
 from copy import deepcopy
 from hashlib import sha256
 
-from inferrsi._json_v1 import decode, encode
+from inferrsi.contracts.json_v1 import decode, encode
 from inferrsi.harness.errors import PublicError
 
 from .archive import _logical_path

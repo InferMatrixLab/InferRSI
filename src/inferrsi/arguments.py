@@ -10,7 +10,7 @@ from pathlib import Path
 from . import __version__
 from ._skill_selection import RELEVANCE_METHODS
 from .catalog import BACKENDS, KNOWLEDGE_REPOS, KNOWLEDGE_SCOPES, REPO_TYPES
-from .runspec import RunSpec
+from .contracts import RunSpec
 
 
 def _fixed_attempt_args(

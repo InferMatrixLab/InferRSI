@@ -9,7 +9,7 @@ import time
 from contextlib import contextmanager
 from pathlib import Path
 
-from inferrsi import _json_v1
+from inferrsi.contracts import json_v1
 from inferrsi.harness import run_store
 from inferrsi.harness.errors import PublicError
 
@@ -49,7 +49,7 @@ def make_payload(
     attempt: dict, digest: str, version: int, phase: str, artifact_ref: dict | None = None
 ) -> dict:
     """The fixture not_started payload rebound to this attempt, or a started running one."""
-    payload = _json_v1.decode((FIXTURES / "record-payload.json").read_bytes())
+    payload = json_v1.decode((FIXTURES / "record-payload.json").read_bytes())
     payload.update(
         request_id=attempt["request_id"],
         attempt_id=attempt["attempt_id"],

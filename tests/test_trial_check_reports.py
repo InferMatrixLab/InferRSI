@@ -6,7 +6,7 @@ import pytest
 
 from inferrsi.apps.legacy.evaluation import evaluate
 from inferrsi.apps.legacy.reporting import write_report
-from inferrsi.runspec import RunSpec
+from inferrsi.contracts import RunSpec
 from inferrsi.summary_chart import SpecError, spec_from_evaluation
 
 

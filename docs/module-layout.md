@@ -22,8 +22,10 @@ commands, including ordinary optimization, still load no Benchmark module.
 
 The four target modules are peers: `knowledge`, `harness`, `benchmark`, and
 `apps`. Knowledge, Harness, and Benchmark do not import one another. Apps is
-the only assembler. `src/inferrsi/contracts.py` stays a `RunSpec`
-re-export. It must not become a shared business-contracts package.
+the only assembler. `src/inferrsi/contracts/__init__.py` re-exports only
+`RunSpec`, defined once in `contracts/runspec.py`. The technical-only package
+also owns `json_v1.py` and `claim.py`; it contains no shared business DTOs
+and performs no core or host initialization.
 
 The current `src/inferrsi/harness/` tree is a mixed implementation. Its
 presence is not the target Harness boundary and is not evidence that the four
@@ -236,8 +238,9 @@ The leaf's own import rule and `REPO_TYPES` object identity govern it.
   annotations`, anywhere in the file. It defines only `REPO_TYPES` and
   `repository_pack`. Any `inferrsi.*` import or dynamic import in it fails.
 - **Closures.** A Knowledge module reaches nothing outside Knowledge except
-  the data leaf and `inferrsi._json_v1`, the canonical encoder in the P0a
-  design. Benchmark modules and every `inferrsi.harness.*` module reach no
+  the data leaf and `inferrsi.contracts.json_v1`, the canonical encoder in the P0a
+  design. The gate admits its exact RunSpec-only parent initialization closure,
+  not arbitrary `contracts.*` modules. Benchmark modules and every `inferrsi.harness.*` module reach no
   other core, no Apps module, and no old root leaf. Apps reaches no old root
   leaf. `inferrsi.infra`
   reaches no Knowledge, Harness, Benchmark, or Apps module, so `infra` → root
