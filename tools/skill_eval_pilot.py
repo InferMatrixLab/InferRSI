@@ -11,7 +11,7 @@ from inferrsi.apps.skill_evaluation import export_bundle, run_trial, summarize
 from inferrsi.harness.skill_evaluation import CodexClient
 from inferrsi.harness.usage import normalize_usage
 from inferrsi.infra.artifacts import sha256, write_json
-from inferrsi.knowledge_operations import KnowledgeReader
+from inferrsi.knowledge.knowledge_operations import KnowledgeReader
 
 ROOT = Path(__file__).resolve().parents[1]
 SKILLS = ("inference-benchmark-design", "dense-performance-evidence")

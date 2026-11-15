@@ -9,14 +9,14 @@ from importlib.resources import files
 from pathlib import Path
 
 from .apps.campaign import capture_context, create_campaign
+from .apps.inspection import inspect_environment
 from .apps.knowledge import knowledge_reader
 from .apps.knowledge import read as read_knowledge
+from .apps.legacy.reporting import write_report
 from .arguments import device_ids, make_spec, parser
-from .catalog import get_knowledge, search_knowledge
-from .inspection import inspect_environment
-from .knowledge_operations import KnowledgeReader
-from .reporting import write_report
-from .research import research_knowledge
+from .knowledge.catalog import get_knowledge, search_knowledge
+from .knowledge.knowledge_operations import KnowledgeReader
+from .knowledge.research import research_knowledge
 
 
 def _print(value: object) -> None:
@@ -216,7 +216,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "skills":
             # Optional dependencies load only for the skills command; the core
             # CLI stays independent of them.
-            from .skill_catalog import (
+            from .knowledge.skill_catalog import (
                 get_skill,
                 skill_instructions,
                 skill_records,
@@ -544,7 +544,7 @@ def main(argv: list[str] | None = None) -> int:
 
         # The old run loads its Benchmark gates. Import it here so that the
         # other commands, including ordinary optimization, never load Benchmark.
-        from .execution import run_experiment
+        from .apps.legacy.run import run_experiment
 
         directory = run_experiment(spec, environment)
         (directory / "args.json").write_text(

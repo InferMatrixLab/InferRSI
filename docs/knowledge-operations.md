@@ -8,7 +8,7 @@ neither requires a conversation or workflow object.
 
 ```python
 from pathlib import Path
-from inferrsi.knowledge_operations import KnowledgeReader
+from inferrsi.knowledge.knowledge_operations import KnowledgeReader
 
 reader = KnowledgeReader(skill_root=Path("src/inferrsi/knowledge/data/skill_library"))
 result = reader.collect(ids=["calibrate-serving-simulation"], material=True, limit=1)

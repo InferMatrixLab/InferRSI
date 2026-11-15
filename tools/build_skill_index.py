@@ -13,8 +13,8 @@ import json
 import subprocess
 from pathlib import Path
 
-from inferrsi import _source_snapshot
-from inferrsi.skill_catalog import skill_metadata, skill_records
+from inferrsi.knowledge import _source_snapshot
+from inferrsi.knowledge.skill_catalog import skill_metadata, skill_records
 
 PROJECT = Path(__file__).resolve().parents[1]
 # Where the inputs and generated records live today.

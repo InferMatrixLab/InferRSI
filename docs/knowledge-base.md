@@ -25,8 +25,8 @@ src/inferrsi/knowledge/data/skill_library/
   <category>/<id>/metadata.json      Provenance, state and relationships
   <category>/<id>/references/        Owner's mechanisms, readsets and comparisons
   <category>/<id>/cases/             Owner's scoped cases (optional)
-src/inferrsi/catalog.py              Installed knowledge reader
-src/inferrsi/skill_catalog.py        Packaged or custom-root skill reader
+src/inferrsi/knowledge/catalog.py    Installed knowledge reader
+src/inferrsi/knowledge/skill_catalog.py  Packaged or custom-root skill reader
 src/inferrsi/knowledge/data/repo_packs/        Contribution records and existing public IDs
 src/inferrsi/knowledge/data/repo_packs/inferrsi/ Generated records linking full packaged skills
 src/inferrsi/knowledge/data/knowledge_packs/   Dependency and peer records

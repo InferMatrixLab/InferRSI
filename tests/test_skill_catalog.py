@@ -4,7 +4,7 @@ from pathlib import Path
 import pytest
 
 from inferrsi.cli import main
-from inferrsi.skill_catalog import (
+from inferrsi.knowledge.skill_catalog import (
     get_skill,
     skill_directories,
     skill_instructions,

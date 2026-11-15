@@ -1,47 +1,88 @@
-# K01: root Knowledge names are static re-exports of the moved implementations.
+# K01 moved the Knowledge implementations and left static root shells. #412 R1 deleted
+# those seven shells: the root names no longer import, the moved modules keep every
+# recorded name, and the data leaf keeps its locks and its one permanent importer.
 
 from __future__ import annotations
 
 import ast
 import hashlib
 import importlib
+import importlib.util
 import os
+import pickle
 import subprocess
 import sys
 
 import pytest
 
-from tests._gate_policy_support import REPO, ROOT, blocker_kinds, first_wave_report, load_manifest
+from tests._gate_policy_support import (
+    LEAF_IMPORTERS,
+    REPO,
+    RETIRED_ROOT_MODULES,
+    ROOT,
+    TEMPORARY_LEAF_IMPORTERS,
+    exact_pairs,
+    first_wave_report,
+    load_manifest,
+)
 
 MANIFEST = load_manifest()
 LEAF = MANIFEST["technical_leaf"]
-LEAF_NAMES = MANIFEST["catalog_two_routes"]["neutral_leaf_export"]["symbols"]
-MOVED = [item for item in MANIFEST["compatibility_pairs"] if "exports" in item]
+# The nine pairs and the two root catalog routes as they stood before R1 retired them.
+RETIRED = MANIFEST["revision_history"][-1]
+LEAF_NAMES = RETIRED["retired_catalog_two_routes"]["neutral_leaf_export"]["symbols"]
+MOVED = [item for item in RETIRED["retired_compatibility_pairs"] if "exports" in item]
 
 
 @pytest.mark.parametrize("item", MOVED, ids=lambda item: item["importer"])
-def test_root_names_are_the_moved_objects(item):
-    # K01-1: identity carries signatures, defaults, exception types and Path behavior.
-    root = importlib.import_module(f"inferrsi.{item['importer']}")
+def test_retired_root_name_fails_and_the_moved_module_keeps_every_name(item):
+    retired = f"inferrsi.{item['importer']}"
+    assert retired in RETIRED_ROOT_MODULES
+    assert not (ROOT / f"{item['importer']}.py").exists()
+    assert importlib.util.find_spec(retired) is None
+    with pytest.raises(ModuleNotFoundError):
+        importlib.import_module(retired)
+    assert retired not in sys.modules
+    assert not hasattr(sys.modules["inferrsi"], item["importer"])
+    # K01-1 carried identity through the shell. The same names are now read where
+    # they are defined, so nothing the shell exported was lost with it.
     moved = importlib.import_module(item["target"])
     names = [*item["exports"]["public"], *item["exports"]["private_used"]]
+    assert len(names) == len(set(names))
     for name in names:
-        assert getattr(root, name) is getattr(moved, name), name
-    extra = LEAF_NAMES if item["importer"] == "catalog" else []
-    # REPO_TYPES is listed on both catalog routes; __all__ names it once.
-    assert len(root.__all__) == len(set(root.__all__))
-    assert set(root.__all__) == {*names, *extra}
+        assert hasattr(moved, name), name
+    # A pickle that names a class or function by the retired root path no longer loads.
+    with pytest.raises(ModuleNotFoundError):
+        pickle.loads(f"c{retired}\n{names[0]}\n.".encode("ascii"))
 
 
-def test_catalog_routes_share_one_repo_types_tuple():
-    from inferrsi import arguments, catalog
+def test_retired_record_is_the_seven_shells_and_the_manifest_stages_nothing():
+    assert MANIFEST["compatibility_pairs"] == []
+    assert exact_pairs(MANIFEST) == frozenset()
+    assert "catalog_two_routes" not in MANIFEST
+    assert RETIRED["stage"] == "C2"
+    assert MANIFEST["base_commit"] in RETIRED["superseded_by"]
+    assert len(RETIRED["retired_compatibility_pairs"]) == 9
+    assert len(MOVED) == 7
+    assert {f"inferrsi.{item['importer']}" for item in MOVED} < RETIRED_ROOT_MODULES
+    # Every retired shell record still carries the old root file hash it was audited at.
+    for item in MOVED:
+        assert item["file"] == f"src/inferrsi/{item['importer']}.py"
+        assert len(item["file_sha256"]) == 64
+        assert not (REPO / item["file"]).exists()
+
+
+def test_one_repo_types_tuple_reaches_knowledge_and_the_parser_directly():
+    from inferrsi import arguments
     from inferrsi.knowledge import catalog as knowledge_catalog
     from inferrsi.resources import repository_packs
 
-    assert catalog.REPO_TYPES is repository_packs.REPO_TYPES is knowledge_catalog.REPO_TYPES
-    # The CLI argument surface takes the tuple through root catalog: still one object.
+    assert knowledge_catalog.REPO_TYPES is repository_packs.REPO_TYPES
+    # Root catalog is retired, so the CLI parser binds the tuple from the leaf itself:
+    # still one object, never a copy.
     assert arguments.REPO_TYPES is repository_packs.REPO_TYPES
-    assert catalog.repository_pack is repository_packs.repository_pack
+    assert LEAF_NAMES == ["REPO_TYPES", "repository_pack"]
+    assert not hasattr(arguments, "repository_pack")
     assert not hasattr(knowledge_catalog, "repository_pack")
     assert knowledge_catalog.KNOWLEDGE_SCOPES["contribution"] == (
         *repository_packs.REPO_TYPES, "vllm_ascend", "inferrsi"
@@ -85,12 +126,15 @@ def test_c2_relock_moves_the_leaf_without_changing_a_byte():
     # The review requirement is recorded, never an approval.
     assert "requires formal architecture review" in moved["review"]
     assert "does not self-approve" in moved["review"]
-    superseded = MANIFEST["revision_history"][-1]
-    assert superseded["stage"] == "K02"
-    assert superseded["changed_technical_leaf"] == {
+    # R1 appended the C2 record after the K02 one and rewrote neither.
+    k02, c2 = MANIFEST["revision_history"][-2:]
+    assert (k02["stage"], c2["stage"]) == ("K02", "C2")
+    assert k02["changed_technical_leaf"] == {
         "module": moved["old_module"], "file": moved["old_file"],
     }
-    assert MANIFEST["base_commit"] in superseded["superseded_by"]
+    assert c2["base_commit"] in k02["superseded_by"]
+    assert MANIFEST["base_commit"] in c2["superseded_by"]
+    assert MANIFEST["base_commit"] != c2["base_commit"]
 
 
 def _leaf_imports(tree: ast.Module) -> set[str]:
@@ -142,6 +186,60 @@ def test_infra_inspection_imports_the_leaf_by_the_recorded_line():
     assert not [line for line in lines if "_repo_pack_data" in line or "catalog" in line]
 
 
+def _declared(section: str) -> dict[str, frozenset[str]]:
+    return {
+        item["importer"]: frozenset(item["names"]) for item in LEAF[section]["importers"]
+    }
+
+
+def test_manifest_restates_the_exact_gate_importer_rules():
+    # #412 R1: the permanent rule is one importer and one name, outside the allowlist.
+    permanent, temporary = LEAF["permanent_importers"], LEAF["temporary_importers"]
+    assert _declared("permanent_importers") == LEAF_IMPORTERS == {
+        "inferrsi.infra.inspection": frozenset({"repository_pack"}),
+    }
+    assert _declared("temporary_importers") == TEMPORARY_LEAF_IMPORTERS == {
+        "inferrsi.arguments": frozenset({"REPO_TYPES"}),
+    }
+    assert MANIFEST["compatibility_pairs"] == []
+    assert permanent["importers"][0]["import_line"] == (
+        MANIFEST["infra_inspection_rewrite"]["canonical_import"]
+    )
+    # The review requirement is recorded for both, never an approval.
+    for section in (permanent, temporary):
+        assert (section["stage"], section["issue"]) == ("R1", "#412")
+        assert "requires formal architecture review" in section["review"]
+        assert "does not self-approve" in section["review"]
+    # The parser entry is temporary: A1 removes it, and it blocks until then.
+    assert temporary["due"] == "A1 (#408)"
+    assert "temporary leaf importers" in temporary["blocker"]
+    assert "not an allowance for Apps modules in general" in temporary["rule"]
+    assert "temporary leaf importers: 1" in first_wave_report().blockers
+
+
+@pytest.mark.parametrize("section", ["permanent_importers", "temporary_importers"])
+def test_each_declared_importer_binds_the_leaf_by_its_one_recorded_line(section):
+    for item in LEAF[section]["importers"]:
+        source = (REPO / item["file"]).read_text(encoding="utf-8")
+        assert source.splitlines().count(item["import_line"]) == 1, item["importer"]
+        tree = ast.parse(source)
+        package = item["importer"].rpartition(".")[0]
+        found = []
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Import):
+                found += [alias.name for alias in node.names if "resources" in alias.name]
+            elif isinstance(node, ast.ImportFrom) and "resources" in (node.module or ""):
+                parts = package.split(".")
+                keep = parts[: len(parts) - node.level + 1] if node.level else []
+                base = ".".join([*keep, node.module])
+                if not base.startswith("inferrsi."):
+                    continue
+                assert node in tree.body, "the leaf import is at module level"
+                found += [(base, alias.name, alias.asname) for alias in node.names]
+        # That line is the file's only import of anything under inferrsi.resources.
+        assert found == [(LEAF["module"], name, None) for name in item["names"]]
+
+
 def _fresh(script: str) -> None:
     environment = {**os.environ, "PYTHONPATH": str(REPO / "src")}
     result = subprocess.run(
@@ -168,19 +266,23 @@ def test_package_init_and_infra_inspection_load_no_knowledge_body():
     )
 
 
-def test_knowledge_closure_is_isolated_while_overall_stays_false():
-    # K01-5: the Knowledge package exists and its closure is clean, but the
-    # allowlist and harness -> model/infra remain. S01 removed the residual.
-    # After #338, runtime resource loaders keep new_core_closure_isolated
-    # false; that is not a Knowledge-closure regression.
+def test_knowledge_closure_is_clean_while_overall_stays_false():
+    # K01-5: the Knowledge package exists and its closure is clean. R1 cleared the
+    # allowlist and the old-run forwarders. The parser entry due in A1, the twelve
+    # harness -> infra hits (R2) and the five runtime resource loaders (R3) remain,
+    # and the loaders keep new_core_closure_isolated false.
     report = first_wave_report()
     assert report.violations == ()
-    assert "absent: knowledge/" not in report.blockers
-    assert {
-        "allowlist",
-        "harness reaches model/infra",
-        "runtime resource loaders",
-    } <= blocker_kinds(report)
-    assert "residual" not in blocker_kinds(report)
+    assert report.blockers == (
+        "temporary leaf importers: 1",
+        "harness reaches model/infra: inferrsi.harness.agent_sessions -> inferrsi.infra (12 hits)",
+        "runtime resource loaders: 5",
+    )
+    assert len(report.harness_model_infra) == 12
+    assert {path.split(" -> ")[0] for path in report.harness_model_infra} == {
+        f"inferrsi.harness.{name}"
+        for name in ("agent_sessions", "candidates", "optimization", "optimization_session",
+                     "project", "task_protocol")
+    }
     assert not report.new_core_closure_isolated
     assert not report.isolation_complete

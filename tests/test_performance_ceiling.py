@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from inferrsi.knowledge_operations import KnowledgeReader
+from inferrsi.knowledge.knowledge_operations import KnowledgeReader
 
 ROOT = Path(__file__).resolve().parents[1]
 OWNER = ROOT / "src/inferrsi/knowledge/data/skill_library/methods/performance-ceiling-analysis"

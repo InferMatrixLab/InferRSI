@@ -13,11 +13,11 @@ from pathlib import Path
 
 import pytest
 
-from inferrsi import catalog
 from inferrsi.arguments import make_spec, parser
-from inferrsi.catalog import get_knowledge, knowledge_records, repository_pack, search_knowledge
 from inferrsi.cli import main
 from inferrsi.knowledge import catalog as knowledge_catalog
+from inferrsi.knowledge.catalog import get_knowledge, knowledge_records, search_knowledge
+from inferrsi.resources.repository_packs import REPO_TYPES, repository_pack
 
 PROJECT = Path(__file__).resolve().parents[1]
 SOURCE_REPOSITORIES = {
@@ -66,7 +66,7 @@ class CatalogTests(unittest.TestCase):
             get_knowledge("not-a-record")
         with self.assertRaises(ValueError):
             search_knowledge(limit=0)
-        for name in catalog.REPO_TYPES:
+        for name in REPO_TYPES:
             pack = repository_pack(name)
             self.assertEqual(pack["execution_support"], "caller_supplied_external_commands")
             self.assertTrue(

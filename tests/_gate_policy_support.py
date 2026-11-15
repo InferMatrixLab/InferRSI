@@ -1,4 +1,4 @@
-"""First-wave Knowledge compatibility gate helpers (P0b).
+"""First-wave isolation gate helpers (P0b, revised through #412 R1).
 
 Imported by the import-gate and isolation-policy tests. This is a test
 support module, not a runtime package.
@@ -19,7 +19,10 @@ NEW_CORES = ("knowledge", "benchmark", "apps")
 CORE_NAMES = ("knowledge", "harness", "benchmark", "apps")
 # Current application seams, until the Apps package migration. These are not
 # Knowledge compatibility shells and do not grant access to other flat modules.
-APPLICATION_ENTRIES = ("cli.py", "benchmark_operations.py")
+# #412 R1 retired the root shells that ``arguments.py`` read its Knowledge choices
+# through, so the CLI parser is listed beside the CLI it belongs to. A1 (#408) moves
+# both files into ``apps/cli/`` and removes both entries.
+APPLICATION_ENTRIES = ("cli.py", "arguments.py", "benchmark_operations.py")
 # Reviewed execution boundaries: owner function (or module scope) and the exact
 # local spec variable. They execute task resources/candidate code, not a hidden
 # core compatibility import. Their presence keeps isolation incomplete.
@@ -30,15 +33,47 @@ RESOURCE_LOADERS = {
     "inferrsi.benchmark.tasks.qwen21-denoise-npu.benchmark": ("load", "spec"),
     "inferrsi.benchmark.tasks.qwen3-tts-npu.benchmark": ("<module>", "_evaluation_spec"),
 }
-# B01: the old run chain's three root forwarders, each to one exact Apps legacy
-# module. They are not Knowledge shells and are not in the manifest. A forwarder
-# that exists keeps overall false until R01 retires it. An adjacent Apps module
-# or a second root importer is not covered.
-LEGACY_RUN_FORWARDERS = (
-    ("inferrsi.evaluation", "inferrsi.apps.legacy.evaluation"),
-    ("inferrsi.execution", "inferrsi.apps.legacy.run"),
-    ("inferrsi.reporting", "inferrsi.apps.legacy.reporting"),
+# #412 R1 deleted these eleven root modules: the seven Knowledge shells, the three
+# old-run forwarders and the root inspection binding. None is registered any more.
+# A file that returns under one of these names is a violation by itself, and every
+# checked closure still treats the name as an old root leaf it may not reach.
+RETIRED_ROOT_MODULES = frozenset(
+    {
+        "inferrsi._skill_selection",
+        "inferrsi._source_snapshot",
+        "inferrsi.catalog",
+        "inferrsi.knowledge_operations",
+        "inferrsi.knowledge_store",
+        "inferrsi.research",
+        "inferrsi.skill_catalog",
+        "inferrsi.evaluation",
+        "inferrsi.execution",
+        "inferrsi.reporting",
+        "inferrsi.inspection",
+    }
 )
+# #412 R1, permanent: the one importer of the neutral data leaf outside
+# ``inferrsi.knowledge``, with the only name it may bind (D020: Infra reads one pack
+# description and reaches no Knowledge or Harness). This is not a manifest
+# ``compatibility_pairs`` entry: it never counts toward the allowlist blocker and it
+# does not retire. It covers this one module and this one name, bound by a plain
+# module-level ``from <leaf> import <name>`` line. Another importer, another name, an
+# alias, the leaf imported as a module object, a nested import, a ``sys.modules`` use
+# or a dynamic import fails. No ``inferrsi.resources.`` prefix is ever allowed.
+# ``technical_leaf.permanent_importers`` in the manifest restates this rule and
+# records that it needs formal architecture review.
+LEAF_IMPORTERS = {
+    "inferrsi.infra.inspection": frozenset({"repository_pack"}),
+}
+# #412 R1, temporary and due in A1 (#408): root ``catalog`` is retired, so the root CLI
+# parser takes the one REPO_TYPES tuple from the leaf itself. The entry is held to the
+# same exact shape as the permanent rule and names one module and one name. It is not
+# part of that rule and not an Apps-wide allowance. While a listed module imports the
+# leaf, the report carries a ``temporary leaf importers`` blocker, so isolation cannot
+# be reported complete on it. A1 deletes root ``arguments.py`` and removes this entry.
+TEMPORARY_LEAF_IMPORTERS = {
+    "inferrsi.arguments": frozenset({"REPO_TYPES"}),
+}
 # New H entries: module paths whose closures count toward the new-core result.
 # H01 added ``run_store`` and ``errors``; H02 added the public ``api`` with
 # ``execution_service``, ``input_binding`` and ``local_process``.
@@ -187,9 +222,13 @@ def exact_pairs(manifest: dict[str, Any]) -> frozenset[tuple[str, str]]:
 
 
 def shell_sources(manifest: dict[str, Any]) -> dict[str, dict[str, set[str]]]:
-    """Old root leaf -> {exact target: names that leaf may re-export}."""
+    """Staged root shell -> {exact target: names that shell may re-export}.
+
+    Empty since #412 R1 emptied ``compatibility_pairs``. A pair that review stages
+    again is held to the same shell shape as before.
+    """
     leaf = manifest["technical_leaf"]["module"]
-    leaf_names = set(manifest["catalog_two_routes"]["neutral_leaf_export"]["symbols"])
+    leaf_names = set(manifest["technical_leaf"]["two_symbols"])
     sources: dict[str, dict[str, set[str]]] = {}
     for item in manifest["compatibility_pairs"]:
         if _core_of(item["target"]) == "knowledge":
@@ -472,6 +511,58 @@ def _leaf_errors(
     return errors
 
 
+def _leaf_importer_errors(
+    module: str, tree: ast.Module, package: str, leaf: str, names: frozenset[str]
+) -> list[str]:
+    """A declared leaf importer: listed names, plain module-level from-imports only.
+
+    Nothing else under the leaf's package is covered: the leaf as a module object, the
+    package itself and a module beside the leaf all fail.
+    """
+    parent = leaf.rpartition(".")[0]
+    top_level = {id(node) for node in tree.body}
+    errors: list[str] = []
+
+    def outside(target: str) -> list[str]:
+        if target == leaf:
+            return [f"{module} imports {leaf} as a module object"]
+        if _matches(target, parent):
+            return [f"{module} imports {target} beside {leaf}"]
+        return []
+
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            for alias in node.names:
+                errors += outside(alias.name)
+        elif isinstance(node, ast.ImportFrom):
+            base = _from_base(node, package)
+            if base != leaf:
+                for alias in node.names:
+                    errors += outside(f"{base}.{alias.name}")
+                continue
+            if id(node) not in top_level:
+                errors.append(f"{module} imports {leaf} below module level")
+            for alias in node.names:
+                if alias.name == "*":
+                    errors.append(f"{module} has a star import from {leaf}")
+                elif alias.name not in names:
+                    errors.append(f"{module} imports unlisted name {leaf}.{alias.name}")
+                elif alias.asname not in (None, alias.name):
+                    errors.append(f"{module} aliases {alias.name} as {alias.asname}")
+    for node in ast.walk(tree):
+        if (
+            isinstance(node, ast.Attribute)
+            and node.attr == "modules"
+            and isinstance(node.value, ast.Name)
+            and node.value.id == "sys"
+        ):
+            errors.append(f"{module} touches sys.modules")
+            break
+    if _has_dynamic_import(tree):
+        errors.append(f"{module} has a dynamic import")
+    return errors
+
+
 def _initializer_errors(module: str, tree: ast.Module, package: str) -> list[str]:
     """A parent initializer of the data leaf: a docstring and no other statement.
 
@@ -571,14 +662,22 @@ def first_wave_report(
     pairs = exact_pairs(manifest)
     leaf = manifest["technical_leaf"]["module"]
     sources = shell_sources(manifest)
-    old_leaves = set(sources)
+    # A retired root module stays an old root leaf for every closure rule below.
+    old_leaves = set(sources) | RETIRED_ROOT_MODULES
     graph = _scan(root, pairs)
     modules = sorted(graph.trees)
-    forwarders = frozenset(LEGACY_RUN_FORWARDERS)
-    forwarder_leaves = {importer for importer, _ in forwarders}
 
-    violations = cross_core_violations(root, pairs | forwarders)
+    violations = cross_core_violations(root, pairs)
+    violations += [
+        f"{name} is a retired root module"
+        for name in modules
+        if name in RETIRED_ROOT_MODULES and name not in sources
+    ]
+    # Outside Knowledge the leaf has its one permanent importer, the temporary entry
+    # due in A1 and any staged pair that names it. Every other importer fails.
+    declared_importers = {**TEMPORARY_LEAF_IMPORTERS, **LEAF_IMPORTERS}
     leaf_importers = {importer for importer, target in pairs if target == leaf}
+    leaf_importers |= set(declared_importers)
     violations += [
         f"{name} is a second importer of {leaf}"
         for name in modules
@@ -586,8 +685,12 @@ def first_wave_report(
         and name not in leaf_importers
         and _core_of(name) != "knowledge"
     ]
-    for name in sorted(old_leaves & set(modules)):
-        # An old leaf that reaches into K or the data leaf is a shell.
+    for name in sorted(set(declared_importers) & set(modules)):
+        violations += _leaf_importer_errors(
+            name, graph.trees[name], graph.packages[name], leaf, declared_importers[name]
+        )
+    for name in sorted(set(sources) & set(modules)):
+        # A staged root leaf that reaches into K or the data leaf is a shell.
         if any(_core_of(t) == "knowledge" or t == leaf for t in graph.edges[name]):
             violations += _shell_errors(
                 name, graph.trees[name], graph.packages[name], sources[name]
@@ -635,9 +738,9 @@ def first_wave_report(
     rules: dict[str, Callable[[str], bool]] = {
         "knowledge": outside_knowledge,
         "benchmark": benchmark_forbidden,
-        # Apps calls core public APIs and never passes through an old root leaf
-        # or one of its own root forwarders.
-        "apps": lambda node: node in old_leaves or node in forwarder_leaves,
+        # Apps calls core public APIs and never passes through an old root leaf,
+        # which since #412 R1 includes the three retired old-run forwarders.
+        "apps": lambda node: node in old_leaves,
     }
     starts = [(name, rules[_core_of(name)]) for name in modules if _core_of(name) in rules]
     starts += [(name, h_entry_forbidden) for name in h_entries if name in graph.trees]
@@ -668,14 +771,15 @@ def first_wave_report(
         elif not any(package.rglob("*.py")):
             # An empty directory is not a present, scannable package (A01-4).
             blockers.append(f"unscannable: {name}/")
+    # #412 R1 left the manifest with no pair. One that review stages again blocks.
     if pairs:
         blockers.append(f"allowlist: {len(pairs)} compatibility pairs")
-    forwarding = [
-        importer for importer, target in LEGACY_RUN_FORWARDERS
-        if target in graph.edges.get(importer, ())
+    temporary = [
+        name for name in sorted(TEMPORARY_LEAF_IMPORTERS)
+        if leaf in graph.edges.get(name, ())
     ]
-    if forwarding:
-        blockers.append(f"legacy run forwarders: {len(forwarding)}")
+    if temporary:
+        blockers.append(f"temporary leaf importers: {len(temporary)}")
     legacy = [
         path
         for name in modules

@@ -173,8 +173,7 @@ def test_stale_head_and_unsupported_schema_fail():
     "src/inferrsi/knowledge/data/skill_library/skill-index.json",
     "src/inferrsi/knowledge/data/knowledge_packs/peer/example/case.json", KNOWLEDGE,
     "docs/reference-matrix.md", "docs/searchspace-matrix.md", "docs/knowledge-base.md",
-    "docs/knowledge-operations.md", "docs/knowledge-store.md", "src/inferrsi/catalog.py",
-    "src/inferrsi/skill_catalog.py", "src/inferrsi/knowledge_operations.py",
+    "docs/knowledge-operations.md", "docs/knowledge-store.md",
     "src/inferrsi/knowledge/catalog.py", "src/inferrsi/knowledge/skill_catalog.py",
     "src/inferrsi/knowledge/knowledge_operations.py",
 ])
@@ -184,9 +183,13 @@ def test_explicit_protected_paths_require_declarations(policy, path):
     assert assess(item, {path}, policy)["state"] == "failure"
 
 
+# #412 R1 deleted the three root shells that were listed beside their implementations.
+# Their exact paths left the scope with the files; the implementations above stay in it.
 @pytest.mark.parametrize("path", ["README.md", "src/inferrsi/cli.py",
                                   "src/inferrsi/contracts/__init__.py",
-                                  "src/inferrsi/knowledge_store.py", "tests/test_claim.py"])
+                                  "src/inferrsi/knowledge_store.py", "tests/test_claim.py",
+                                  "src/inferrsi/catalog.py", "src/inferrsi/skill_catalog.py",
+                                  "src/inferrsi/knowledge_operations.py"])
 def test_no_blanket_source_scope_and_stable_not_applicable(policy, path):
     item = pr()
     item["body"] = None

@@ -14,8 +14,8 @@ import tempfile
 import unicodedata
 from pathlib import Path, PurePosixPath
 
-from inferrsi.catalog import BACKENDS
-from inferrsi.knowledge_operations import KnowledgeReader, safe_path
+from inferrsi.knowledge.catalog import BACKENDS
+from inferrsi.knowledge.knowledge_operations import KnowledgeReader, safe_path
 
 GIT_READ = ("git", "--no-replace-objects", "--no-lazy-fetch")
 
@@ -44,7 +44,7 @@ def selected_snapshot(repo: Path, revision: str, skill_root: str, skill: str,
     """
     # Only materializing checkout skills requires the optional PyYAML parser;
     # reporting and controller imports must remain usable in the base install.
-    from inferrsi.skill_catalog import _skill_name, _unique_fields, skill_metadata
+    from inferrsi.knowledge.skill_catalog import _skill_name, _unique_fields, skill_metadata
 
     if not re.fullmatch(r"[0-9a-f]{40}", revision):
         raise ValueError("Selected snapshot requires a full immutable Git commit SHA")

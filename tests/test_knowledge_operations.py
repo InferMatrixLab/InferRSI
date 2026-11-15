@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from inferrsi.knowledge_operations import (
+from inferrsi.knowledge.knowledge_operations import (
     Bundle,
     IdentityError,
     KnowledgeReader,

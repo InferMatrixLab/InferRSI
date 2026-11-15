@@ -65,7 +65,7 @@ the registry hash:
 prefix `data/skill_library/`. A later move again needs an explicit new revision
 that regenerates every record; do not hand-edit the generated files.
 
-`inferrsi.catalog` resolves each stored record into a public schema-1 record with
+`inferrsi.knowledge.catalog` resolves each stored record into a public schema-1 record with
 the same fields and field order as before: the `sources` entry with the full commit
 URL, and `source_files` including the registry hash. Search, `knowledge show`,
 Collect and installed wheels keep reading schema 1. The generator refuses to write a
@@ -106,6 +106,7 @@ same matrix row, remain ordinary content conflicts that must be resolved by hand
   as unavailable. This already happened with the previous format: the projections
   on `main` before this change pinned a squashed branch commit.
 - Raw stored records changed from schema 1 to schema 2. Code that reads the JSON
-  files directly must use `inferrsi.catalog` or `inferrsi._source_snapshot.resolve`.
+  files directly must use `inferrsi.knowledge.catalog` or
+  `inferrsi.knowledge._source_snapshot.resolve`.
 - Generated files are protected knowledge paths. Regenerating them is material
   authorship work and needs a valid declaration.

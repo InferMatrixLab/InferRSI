@@ -23,7 +23,7 @@ from pathlib import Path
 import pytest
 
 import inferrsi.resources as resources
-from inferrsi import arguments, catalog
+from inferrsi import arguments
 from inferrsi.infra import inspection
 from inferrsi.knowledge import catalog as knowledge_catalog
 from inferrsi.resources import repository_packs
@@ -35,7 +35,9 @@ PACKS = ROOT / "harness" / "data" / "repo_packs"
 SEVEN = ("vllm", "vllm_omni", "afd_plugin", "vllm_rlt", "strata", "sglang", "sglang_omni")
 RETIRED = "inferrsi._repo_pack_data"
 FACADE_CLOSURE = {"inferrsi", "inferrsi.resources", "inferrsi.resources.repository_packs"}
-CORES = ("inferrsi.harness", "inferrsi.knowledge", "inferrsi.catalog", "inferrsi.infra",
+# The facade needs none of these. #412 R1 retired root catalog, so the CLI parser that
+# now reads the tuple directly stands in its place.
+CORES = ("inferrsi.harness", "inferrsi.knowledge", "inferrsi.arguments", "inferrsi.infra",
          "inferrsi.apps", "inferrsi.benchmark", "inferrsi.contracts")
 # Every other inferrsi import is refused, so the facade works only if it needs none.
 BLOCKED = """
@@ -108,10 +110,14 @@ def _without_version(names) -> set[str]:
 def test_one_repo_types_object_reaches_every_consumer() -> None:
     canonical = repository_packs.REPO_TYPES
     assert canonical == SEVEN and type(canonical) is tuple and len(canonical) == 7
-    assert catalog.REPO_TYPES is canonical
     assert knowledge_catalog.REPO_TYPES is canonical
+    # #412 R1: root catalog is retired, so the parser binds the tuple from the facade
+    # itself. It is the same object, read directly and never copied.
     assert arguments.REPO_TYPES is canonical
-    assert catalog.repository_pack is repository_packs.repository_pack
+    assert importlib.util.find_spec("inferrsi.catalog") is None
+    source = (ROOT / "arguments.py").read_text(encoding="utf-8")
+    assert source.splitlines().count("from .resources.repository_packs import REPO_TYPES") == 1
+    assert "repository_pack(" not in source and not hasattr(arguments, "repository_pack")
     assert inspection.repository_pack is repository_packs.repository_pack
     assert not hasattr(knowledge_catalog, "repository_pack")
     assert knowledge_catalog.KNOWLEDGE_SCOPES["contribution"] == (
@@ -149,7 +155,8 @@ def test_each_pack_parses_to_its_packaged_bytes(repo_type: str) -> None:
     assert type(pack) is dict and pack["id"] == repo_type
     # Each call parses again; callers never share one mutable dict.
     assert repository_packs.repository_pack(repo_type) is not pack
-    assert catalog.repository_pack(repo_type) == pack
+    # The one permanent importer outside Knowledge reads the same bytes.
+    assert inspection.repository_pack(repo_type) == pack
 
 
 def test_the_seven_packs_are_the_whole_harness_resource_root() -> None:

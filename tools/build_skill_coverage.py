@@ -6,7 +6,7 @@ import sys
 from difflib import unified_diff
 from pathlib import Path
 
-from inferrsi.skill_catalog import skill_directories, skill_metadata
+from inferrsi.knowledge.skill_catalog import skill_directories, skill_metadata
 
 LIBRARY = Path("src/inferrsi/knowledge/data/skill_library")
 INDEX = LIBRARY / "skill-index.json"

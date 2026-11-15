@@ -11,7 +11,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from inferrsi.knowledge_operations import KnowledgeReader
+from inferrsi.knowledge.knowledge_operations import KnowledgeReader
 from tests.architecture_closed_loop import MemoryArchive, _canonical, _digest, run_loop
 from tests.architecture_real_ports import (
     PACKAGE_READ,
@@ -357,9 +357,9 @@ class ClosedLoopTest(unittest.TestCase):
 
     def test_real_ports_stay_on_three_existing_seams(self) -> None:
         imported = _import_modules(PORTS)
-        self.assertIn("inferrsi.knowledge_operations", imported)
+        self.assertIn("inferrsi.knowledge.knowledge_operations", imported)
         self.assertIn("inferrsi.harness.scenarios.external", imported)
-        self.assertIn("inferrsi.evaluation", imported)
+        self.assertIn("inferrsi.apps.legacy.evaluation", imported)
         banned = (
             "inferrsi.cli",
             "inferrsi.arguments",

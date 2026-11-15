@@ -19,7 +19,7 @@ from inferrsi.harness.records.campaign_records import (
     record_decision,
 )
 from inferrsi.harness.records.optimization_log import LogError, parse_optimization_log, record_log
-from inferrsi.knowledge_operations import KnowledgeReader
+from inferrsi.knowledge.knowledge_operations import KnowledgeReader
 
 
 class FakeReader:

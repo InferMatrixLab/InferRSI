@@ -1,8 +1,11 @@
 # Acceptance for the old run/evaluate split: the removed Harness edges, the
 # injected runner ports, Benchmark's own v0 rules, and the composed old entries.
 
+import importlib
+import importlib.util
 import inspect
 import json
+import pickle
 import subprocess
 import sys
 import time
@@ -10,7 +13,6 @@ from dataclasses import fields
 
 import pytest
 
-from inferrsi import evaluation, execution, reporting
 from inferrsi.apps.legacy import evaluation as legacy_evaluation
 from inferrsi.apps.legacy import reporting as legacy_reporting
 from inferrsi.apps.legacy import run as legacy_run
@@ -19,7 +21,7 @@ from inferrsi.contracts import RunSpec, claim
 from inferrsi.harness import atomic_json
 from inferrsi.harness.runner import run_experiment
 from inferrsi.harness.scenarios.external import execute_trial
-from inferrsi.infra import artifacts
+from inferrsi.infra import artifacts, targets
 from inferrsi.model.protocols import metrics
 from tests._gate_policy_support import ROOT, _scan, _walk
 
@@ -216,12 +218,110 @@ def test_trial_metric_applies_the_contract_to_any_reader():
         legacy_run_v0.trial_metric({}, "k", reader=lambda document, key: 0.0)
 
 
-def test_root_entries_forward_to_the_same_objects():
-    assert evaluation.evaluate is legacy_evaluation.evaluate
-    assert evaluation._summary is legacy_run_v0._summary
-    assert evaluation.read_metric is metrics.read_metric
-    assert reporting.write_report is legacy_reporting.write_report
-    assert execution._execute is legacy_run.execute_trial
+@pytest.mark.parametrize("name", ["evaluation", "execution", "reporting"])
+def test_retired_root_entries_no_longer_import(name):
+    # #412 R1 deleted the three root forwarders with no alias behind them.
+    retired = f"inferrsi.{name}"
+    assert importlib.util.find_spec(retired) is None
+    with pytest.raises(ModuleNotFoundError):
+        importlib.import_module(retired)
+    assert retired not in sys.modules
+    assert not hasattr(sys.modules["inferrsi"], name)
+
+
+def test_canonical_entries_hold_the_objects_the_root_entries_forwarded():
+    assert legacy_evaluation._summary is legacy_run_v0._summary
+    assert legacy_evaluation.read_metric is metrics.read_metric
+    assert legacy_evaluation.evaluate.__module__ == "inferrsi.apps.legacy.evaluation"
+    assert legacy_reporting.write_report.__module__ == "inferrsi.apps.legacy.reporting"
+    assert legacy_run.execute_trial.__module__ == "inferrsi.apps.legacy.run"
+    assert legacy_run.repository_identity is targets.repository_identity
+    assert legacy_run.write_report is legacy_reporting.write_report
+    # The two-argument entry that root ``execution`` defined is this one function now.
+    assert legacy_run.run_experiment.__module__ == "inferrsi.apps.legacy.run"
+    parameters = inspect.signature(legacy_run.run_experiment).parameters
+    assert list(parameters) == ["spec", "environment", "execute", "snapshot"]
+    for port in ("execute", "snapshot"):
+        assert parameters[port].kind is inspect.Parameter.KEYWORD_ONLY
+        assert parameters[port].default is None
+    # A pickle that names the retired entry no longer loads; the canonical one does.
+    with pytest.raises(ModuleNotFoundError):
+        pickle.loads(b"cinferrsi.execution\nrun_experiment\n.")
+    assert pickle.loads(pickle.dumps(legacy_run.run_experiment)) is legacy_run.run_experiment
+
+
+def _port_spec(tmp_path):
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    return RunSpec(
+        repo=str(repo), baseline_command=("baseline",), candidate_command=("candidate",),
+        repetitions=1, output_dir=str(tmp_path / "runs"), max_minutes=1,
+    )
+
+
+def test_two_argument_run_reads_both_ports_from_the_module_on_each_call(tmp_path, monkeypatch):
+    # The retired root entry looked up its executor and snapshot when it was called.
+    # The canonical entry keeps that: replacing either name here changes the next run.
+    calls = []
+
+    def execute(command, cwd, trial_dir, deadline, metric_key):
+        trial_dir.mkdir(parents=True)
+        calls.append(("execute", tuple(command)))
+        return {"status": "completed", "command": list(command), "metric": 1.0}
+
+    def snapshot(path, exclude=None):
+        calls.append(("snapshot", str(path)))
+        return {"available": True, "snapshot_hash": "fixed"}
+
+    monkeypatch.setattr(legacy_run, "execute_trial", execute)
+    monkeypatch.setattr(legacy_run, "repository_identity", snapshot)
+    monkeypatch.setattr(legacy_run, "write_report", lambda run_dir: None)
+    run_dir = legacy_run.run_experiment(_port_spec(tmp_path), {"backend": "cpu"})
+    assert [call for call in calls if call[0] == "execute"] == [
+        ("execute", ("baseline",)), ("execute", ("candidate",)),
+    ]
+    assert [call for call in calls if call[0] == "snapshot"]
+    assert json.loads((run_dir / "status.json").read_text(encoding="utf-8"))["state"] == (
+        "completed"
+    )
+
+
+def test_an_explicit_port_wins_over_the_module_name(tmp_path, monkeypatch):
+    def forbidden(*args, **kwargs):
+        raise AssertionError("the module-level port must not run when one is passed")
+
+    seen = []
+
+    def execute(command, cwd, trial_dir, deadline, metric_key):
+        trial_dir.mkdir(parents=True)
+        seen.append(tuple(command))
+        return {"status": "completed", "command": list(command), "metric": 1.0}
+
+    monkeypatch.setattr(legacy_run, "execute_trial", forbidden)
+    monkeypatch.setattr(legacy_run, "repository_identity", forbidden)
+    monkeypatch.setattr(legacy_run, "write_report", lambda run_dir: None)
+    legacy_run.run_experiment(
+        _port_spec(tmp_path), {}, execute=execute,
+        snapshot=lambda path, exclude=None: {"available": True, "snapshot_hash": "fixed"},
+    )
+    assert seen == [("baseline",), ("candidate",)]
+
+
+def test_a_failing_module_level_executor_is_recorded_not_swallowed(tmp_path, monkeypatch):
+    def unavailable(*args, **kwargs):
+        raise OSError("executor unavailable")
+
+    monkeypatch.setattr(legacy_run, "execute_trial", unavailable)
+    monkeypatch.setattr(
+        legacy_run, "repository_identity",
+        lambda path, exclude=None: {"available": True, "snapshot_hash": "fixed"},
+    )
+    run_dir = legacy_run.run_experiment(_port_spec(tmp_path), {"backend": "cpu"})
+    status = json.loads((run_dir / "status.json").read_text(encoding="utf-8"))
+    evaluation = json.loads((run_dir / "evaluation.json").read_text(encoding="utf-8"))
+    assert status["state"] == "failed"
+    assert evaluation["verdict"] == "INCONCLUSIVE"
+    assert "executor unavailable" in evaluation["reasons"]
 
 
 def test_cli_import_loads_no_benchmark_and_no_old_run_composition():
@@ -229,7 +329,9 @@ def test_cli_import_loads_no_benchmark_and_no_old_run_composition():
     code = (
         "import sys; sys.path.insert(0, sys.argv[1]); import inferrsi.cli; "
         "print(sorted(name for name in sys.modules if name.startswith(('inferrsi.benchmark', "
-        "'inferrsi.execution', 'inferrsi.evaluation', 'inferrsi.apps.legacy.run'))))"
+        "'inferrsi.execution', 'inferrsi.evaluation', 'inferrsi.reporting', "
+        "'inferrsi.inspection', 'inferrsi.apps.legacy.run', "
+        "'inferrsi.apps.legacy.evaluation'))))"
     )
     result = subprocess.run(
         [sys.executable, "-c", code, str(ROOT.parent)], capture_output=True, text=True, check=True

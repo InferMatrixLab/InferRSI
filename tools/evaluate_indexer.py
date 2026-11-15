@@ -94,8 +94,8 @@ def cli(root, mode, case):
 
 def worker(root, action, payload):
     sys.path.insert(0, str(root / "src"))
-    from inferrsi.catalog import search_knowledge
-    from inferrsi.knowledge_operations import KnowledgeReader
+    from inferrsi.knowledge.catalog import search_knowledge
+    from inferrsi.knowledge.knowledge_operations import KnowledgeReader
 
     if action == "identity":
         return identity(root)
@@ -136,7 +136,7 @@ def worker(root, action, payload):
                 raise ValueError("API/CLI payload mismatch: " + api)
         return rows
     if action == "contracts":
-        from inferrsi._skill_selection import SkillIndexError, indexed_skill
+        from inferrsi.knowledge._skill_selection import SkillIndexError, indexed_skill
         reader = KnowledgeReader()
         cgroup = "inferrsi.common.skills.cgroup_resource_controls"
         afd = "inferrsi.cuda.skills.audit_afd_p2p_exchanges"

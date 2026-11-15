@@ -20,7 +20,7 @@ from inferrsi.harness import artifact_sandbox
 from inferrsi.harness.skill_evaluation import CodexClient
 from inferrsi.harness.usage import normalize_usage
 from inferrsi.infra.artifacts import atomic_write_json, sha256, write_json
-from inferrsi.knowledge_operations import KnowledgeReader, safe_path
+from inferrsi.knowledge.knowledge_operations import KnowledgeReader, safe_path
 from inferrsi.model.anthropic_agent import (
     FULL_CONTEXT_KIND,
     AnthropicAgentClient,

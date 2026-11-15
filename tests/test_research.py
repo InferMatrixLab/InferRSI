@@ -6,11 +6,10 @@ from importlib.resources import files
 
 import pytest
 
-from inferrsi import catalog
-from inferrsi.catalog import get_knowledge, search_knowledge
 from inferrsi.cli import main
 from inferrsi.knowledge import catalog as knowledge_catalog
-from inferrsi.research import research_knowledge
+from inferrsi.knowledge.catalog import get_knowledge, search_knowledge
+from inferrsi.knowledge.research import research_knowledge
 
 
 def test_h3_retrieves_framework_and_task_knowledge_with_source_boundaries():
@@ -52,7 +51,7 @@ def test_h3_retrieves_framework_and_task_knowledge_with_source_boundaries():
     assert result["target"]["memory_gib"] == 64
     assert result["target"]["backend"] == "metal"
     assert result["target_validation"] == "unverified"
-    assert "metal" not in catalog.BACKENDS
+    assert "metal" not in knowledge_catalog.BACKENDS
     assert {part["role"] for part in result["components"]} == {
         "denoiser", "text_encoder", "video_vae", "audio_vae",
     }

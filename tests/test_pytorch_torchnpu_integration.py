@@ -8,10 +8,10 @@ from pathlib import Path
 import pytest
 import yaml
 
-from inferrsi.catalog import get_knowledge
 from inferrsi.knowledge._source_snapshot import source_entry
-from inferrsi.knowledge_operations import KnowledgeReader
-from inferrsi.skill_catalog import skill_metadata, skill_resource
+from inferrsi.knowledge.catalog import get_knowledge
+from inferrsi.knowledge.knowledge_operations import KnowledgeReader
+from inferrsi.knowledge.skill_catalog import skill_metadata, skill_resource
 
 PROJECT = Path(__file__).resolve().parents[1]
 LIBRARY = PROJECT / "src/inferrsi/knowledge/data/skill_library"
