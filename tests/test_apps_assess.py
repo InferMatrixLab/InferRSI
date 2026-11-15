@@ -1,5 +1,6 @@
-"""Apps assembles offline assessment from a fixed record and publishes its result."""
+"""Apps assembles and reads offline assessments from fixed records."""
 
+import json
 import subprocess
 import sys
 from copy import deepcopy
@@ -11,7 +12,9 @@ import pytest
 from inferrsi._json_v1 import decode, encode
 from inferrsi.apps import archive
 from inferrsi.apps.api import assess as run_assess
+from inferrsi.apps.api import read_attempt_view
 from inferrsi.apps.artifact_reader import ArtifactReader
+from inferrsi.cli import main
 from inferrsi.harness.errors import PublicError
 from inferrsi.harness.run_store import RunStore
 
@@ -217,6 +220,101 @@ def test_read_assessment_rejects_the_wrong_identity_even_if_bytes_match(offline)
         archive.read_assessment(config, ref)
 
 
+def test_fixed_attempt_view_keeps_process_facts_and_claim_outcomes_separate(offline):
+    request, config, directory = offline
+    record_ref = request["record_ref"]
+    record = _fixture("record-payload")
+    ref = _fixture("fixed-refs")["assessment_ref"]
+    ref["artifact"] = _write_export(directory, "assessment.json", encode(_fixture("assessment")))
+
+    assert read_attempt_view(record_ref, storage_config=config)["assessment"] is None
+    view = read_attempt_view(record_ref, storage_config=config, assessment_ref=ref)
+    assert view["record_ref"] == record_ref
+    assert view["assessment_ref"] == ref
+    assert view["execution"] == {
+        **{key: record[key] for key in (
+            "run_id", "attempt_id", "record_version", "phase", "started", "side_effect_unknown",
+            "process_outcome", "exit_code", "recorded_at", "prepared_ref",
+        )},
+        "candidate_id": record["candidate"]["candidate_id"],
+        "cleanup_status": record["cleanup"]["status"],
+    }
+    assert [(c["claim_id"], c["validation_scope"], c["verdict"])
+            for c in view["assessment"]["claims"]] == [
+        (c["claim_id"], c["validation_scope"], c["verdict"])
+        for c in _fixture("assessment")["claims"]
+    ]
+    assert view["assessment"]["claims"][0]["missing_evidence"] == ["format"]
+    view["record_ref"]["record_version"] = 42
+    assert record_ref["record_version"] == 1
+
+
+def test_fixed_attempt_view_rejects_a_swapped_record_identity(offline):
+    request, config, _ = offline
+    ref = {**request["record_ref"], "record_version": 2}
+    with pytest.raises(PublicError, match="IdentityMismatch"):
+        read_attempt_view(ref, storage_config=config)
+
+
+def test_fixed_attempt_view_rejects_an_assessment_of_another_revision(offline):
+    request, config, directory = offline
+    decision = _fixture("assessment")
+    decision["record_ref"]["record_version"] = 2
+    _sign_assessment(decision)
+    ref = {
+        "assessment_id": decision["assessment_id"], "schema_version": 1,
+        "artifact": _write_export(directory, "assessment.json", encode(decision)),
+    }
+    with pytest.raises(PublicError, match="IdentityMismatch"):
+        read_attempt_view(request["record_ref"], storage_config=config, assessment_ref=ref)
+
+
+def test_fixed_attempt_view_rechecks_assessment_semantic_identity(offline):
+    request, config, directory = offline
+    decision = _fixture("assessment")
+    decision["claims"][0]["verdict"] = "PASS"
+    ref = {
+        "assessment_id": decision["assessment_id"], "schema_version": 1,
+        "artifact": _write_export(directory, "assessment.json", encode(decision)),
+    }
+    with pytest.raises(PublicError, match="ArtifactIntegrityError"):
+        read_attempt_view(request["record_ref"], storage_config=config, assessment_ref=ref)
+
+
+def test_fixed_status_command_matches_the_python_view(tmp_path, offline, capsys):
+    request, config, directory = offline
+    record_ref = request["record_ref"]
+    assessment_ref = _fixture("fixed-refs")["assessment_ref"]
+    assessment_ref["artifact"] = _write_export(
+        directory, "assessment.json", encode(_fixture("assessment")),
+    )
+    flags = ["status"]
+    for name, value in (
+        ("record-ref", record_ref), ("storage-config", config), ("assessment-ref", assessment_ref),
+    ):
+        path = tmp_path / f"{name}.json"
+        path.write_bytes(encode(value))
+        flags.extend((f"--{name}", str(path)))
+    assert main(flags) == 0
+    assert json.loads(capsys.readouterr().out) == read_attempt_view(
+        record_ref, storage_config=config, assessment_ref=assessment_ref,
+    )
+
+
+@pytest.mark.parametrize(("args", "message"), [
+    (["--record-ref", "record.json"], "--record-ref requires --storage-config"),
+    (["--run-id", "legacy", "--storage-config", "storage.json"], "require --record-ref"),
+    (["--run-id", "legacy", "--record-ref", "record.json"], "not allowed with argument"),
+])
+def test_fixed_status_requires_its_own_flag_combination(args, message, capsys):
+    with pytest.raises(SystemExit) as error:
+        main(["status", *args])
+    assert error.value.code == 2
+    captured = capsys.readouterr()
+    assert captured.out == ""
+    assert message in captured.err
+
+
 def test_new_process_reassesses_the_requested_sqlite_revision(tmp_path, offline):
     request, config, _ = offline
     store = RunStore(config["mounts"][1]["root"], config["harness_namespace"])
@@ -240,7 +338,7 @@ def test_new_process_reassesses_the_requested_sqlite_revision(tmp_path, offline)
         [sys.executable, "-c", """
 from pathlib import Path
 from inferrsi._json_v1 import decode, encode
-from inferrsi.apps.api import assess as run_assess
+from inferrsi.apps.api import assess as run_assess, read_attempt_view
 
 workspace = Path.cwd()
 request, config, decision = decode((workspace / 'offline.json').read_bytes())
@@ -255,6 +353,11 @@ output = run_assess(request, workspace=workspace, storage_config=config,
                     encode_assessment=encode,
                     output_id='reassessed')
 assert output.result['exit_code'] == 9
+view = read_attempt_view(request['record_ref'], storage_config=config,
+                         assessment_ref=output.result['assessment_ref'])
+assert view['execution']['record_version'] == 1
+assert view['execution']['phase'] == 'running'
+assert view['assessment']['claims'][0]['verdict'] == 'INCONCLUSIVE'
 """],
         cwd=tmp_path, capture_output=True, text=True, check=True,
     )

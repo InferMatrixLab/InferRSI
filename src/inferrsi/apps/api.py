@@ -30,6 +30,7 @@ from .result import (
     preparation_result,
     validate_result,
 )
+from .views.attempt import read_attempt_view as read_attempt_view
 
 _PREPARE_FIELDS = {"schema_version", "request"}
 _BENCHMARK_REQUEST_FIELDS = {
