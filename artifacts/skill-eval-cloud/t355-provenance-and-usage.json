@@ -1,0 +1,150 @@
+{
+  "schema": "issue410-t355-local-producer-evidence-v1",
+  "created_Asia_Shanghai": "2026-11-15T16:02:58.332844+08:00",
+  "main": "36440109d4a81ec33fdd2e5ac28449a7fd0ddea9",
+  "main_tree": "2a6bc3c470e0f83f17e631eef71ea12c492c3bf0",
+  "native_generation": "Owner-authorized independent Windows producer, not historical broker or GitHub Actions",
+  "producer_script_sha256": "9a3b1a988c233f263c2b8cabbc456e9152f584d81e2961babac74847d135e52c",
+  "producer_model_authorship": "Fable supplied the two retained parser.py artifacts; coordinator authored the task-scoped producer. No repository implementation change was needed for this experiment.",
+  "source_integrity": {
+    "native_source_files_checked_against_git_blobs": 1135,
+    "linux_source_files_matched": 1135,
+    "all_source_tools_exact_git_main": true
+  },
+  "fresh_plan_sha256": "e02e74453bbdab44a01da23c21c9135973bbd1401225c0326d45b1b7c513f8d7",
+  "protocol_sha256": "99af4793e77eb3e175e76dc458025e372039d2b9385e2098237cc9cbd38a7034",
+  "bundle_sha256": "eb3d20cd477aa7254890641f92c4685664c045391e0387a46ff07c029f110a95",
+  "snapshots": {
+    "baseline": "a1ee3266466194c16f4e2159ab845b758ed9561b",
+    "candidate": "86f003364804d116b3202c4d807cc898a3a02ade"
+  },
+  "constraints": {
+    "max_calls": 2,
+    "calls_per_arm": 1,
+    "max_tokens_per_call": 16384,
+    "timeout_seconds_per_arm": 180,
+    "automatic_retries": 0,
+    "source_execution_during_generation": false,
+    "historical_policy_modified": false,
+    "settings_modified": false
+  },
+  "calls": [
+    {
+      "arm": "baseline",
+      "at_Asia_Shanghai": "2026-11-15T15:54:33.706797+08:00",
+      "url": "https://yibuapi.com/v1/messages",
+      "headers_names": [
+        "x-api-key",
+        "anthropic-version",
+        "Content-Type",
+        "Accept"
+      ],
+      "request_model": "claude-fable-5-2",
+      "request_sha256": "03929693a81d474ab74c8d77751d02061650d2a0fedc844ad6beeadc71c9e15a",
+      "max_tokens": 16384,
+      "retries": 0,
+      "timeout_seconds": 174.85664900019765,
+      "http_status": 200,
+      "response_model": "claude-fable-5-2",
+      "stop_reason": "tool_use",
+      "usage": {
+        "input_tokens": 4,
+        "cache_creation_input_tokens": 12892,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 12892,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 4208,
+        "output_tokens_details": {
+          "thinking_tokens": 2396
+        },
+        "speed": "standard",
+        "service_tier": "standard",
+        "inference_geo": "global"
+      },
+      "elapsed_seconds": 47.261926
+    },
+    {
+      "arm": "candidate",
+      "at_Asia_Shanghai": "2026-11-15T15:55:25.032827+08:00",
+      "url": "https://yibuapi.com/v1/messages",
+      "headers_names": [
+        "x-api-key",
+        "anthropic-version",
+        "Content-Type",
+        "Accept"
+      ],
+      "request_model": "claude-fable-5-2",
+      "request_sha256": "6e9f7e22edae247d4fe0798214204a48058bf149c37ff5bf658b7c7c31926e9f",
+      "max_tokens": 16384,
+      "retries": 0,
+      "timeout_seconds": 174.8239806999918,
+      "http_status": 200,
+      "response_model": "claude-fable-5-2",
+      "stop_reason": "tool_use",
+      "usage": {
+        "input_tokens": 4,
+        "cache_creation_input_tokens": 17505,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 17505,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 3993,
+        "output_tokens_details": {
+          "thinking_tokens": 2163
+        },
+        "speed": "standard",
+        "service_tier": "standard",
+        "inference_geo": "global"
+      },
+      "elapsed_seconds": 51.006659
+    }
+  ],
+  "usage_totals": {
+    "uncached_input_tokens": 8,
+    "cache_creation_input_tokens": 30397,
+    "cache_read_input_tokens": 0,
+    "normalized_input_including_cache_tokens": 30405,
+    "output_tokens_including_reported_thinking": 8201
+  },
+  "cost": {
+    "actual_invoice": "unknown",
+    "price_source": "https://yibuapi.com/pricing",
+    "public_list_USD_per_million": {
+      "input": "16",
+      "output": "80",
+      "cache_read": "0.4",
+      "cache_write": "unknown"
+    },
+    "effective_account_multiplier": "unknown",
+    "request_fee": "unknown",
+    "known_non_cache_creation_list_component_USD": "0.656208",
+    "missing_cost_term": "30397/1000000 * actual cache-write USD-per-million rate; plus unknown account multiplier/fees",
+    "hard_monetary_cap_claimed": false
+  },
+  "main_export_reproduces_native_bundle": true,
+  "fresh_sandbox_qualification": "PASS",
+  "exact_main_local_replay": "PASS",
+  "parser_results": [
+    {
+      "arm": "baseline",
+      "artifact_sha256": "8f83e4602e6506a9bc7900f38f83c07f19580c5defbe0f52b500a7b1c240458d",
+      "public_checks_passed": 19,
+      "public_checks_total": 19
+    },
+    {
+      "arm": "candidate",
+      "artifact_sha256": "4f83dd27476388fa8044223fc13422f679dadf7e259c5eacc1ae7240bbbf69c2",
+      "public_checks_passed": 19,
+      "public_checks_total": 19
+    }
+  ],
+  "focused_main_regressions": {
+    "exit": 0,
+    "result": "39 passed in 1.43s"
+  },
+  "hosted_workflow_dispatched": false,
+  "scope": "Replay delivery and public reconstructed CPU parser checks only. Both arms pass; no efficacy/generalization claim. Overall isolation_complete remains false."
+}
