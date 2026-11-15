@@ -39,6 +39,7 @@ Effect classes used below:
 | Read exact material/resources | CLI `read` / `resource`; Python `KnowledgeReader.read` / `KnowledgeReader.resource` | Read-only | Returns the requested revision or an explicit unavailable/stale error; never substitutes newer bytes |
 | Export legacy cited material | CLI `context` | Read-only | Cited package export for manual use with a coding agent; not a conversation store and not a full Collect equivalent |
 | Create/update a store candidate | Python `KnowledgeStore.create` / `KnowledgeStore.update` | Candidate-writing | One explicitly authorized local store; expected-revision updates with reason and evidence; retained history; no promotion and no edits to package/checkout content |
+| Inspect a store candidate's history | Python `open_knowledge_store(...).history` | Read-only | Opens an existing store and reads the revision lineage for one store ID |
 | Amend repository-owned knowledge | Scoped repository PR | — | Repository review and integration authority apply; this is not a runtime store Update |
 | Inspect/prepare experiments | CLI `doctor`; `plan` or `--dry-run` | Read-only inspection / preview | `doctor` may invoke bounded probes and does not certify target compatibility; `plan` previews a specification without persisting a campaign or authorizing execution |
 | Execute/inspect experiments | CLI `run`; `status`; `report` | Experiment-executing / read-only / report-generating | `run` executes caller-supplied commands and records evidence; `status` reads recorded progress; `report` generates HTML from recorded evidence |
@@ -193,6 +194,11 @@ for scoring, provenance and accounting. For example:
 - **Example:** `inferrsi read calibrate-serving-simulation --skill-root src/inferrsi/knowledge/data/skill_library --material`
 
 ## Store candidates (Python)
+
+Open the store with `inferrsi.apps.knowledge.open_knowledge_store`. Pass the
+authorized `store_root` and the store's reserved `skill_root`, if configured.
+The default opens an existing store read-only for history. Pass
+`writable=True` explicitly to create or update candidates.
 
 ### Create / Update — `KnowledgeStore.create` / `.update`
 
