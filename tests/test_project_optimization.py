@@ -543,3 +543,63 @@ def test_final_reserve_blocks_search_but_allows_final(project, capsys, monkeypat
     assert main(["campaign", "final", "--directory", str(project[3]),
                  "--reason", "Search time exhausted"]) == 0
     capsys.readouterr()
+
+
+@pytest.mark.parametrize("direction,value", [("maximize", 20), ("minimize", 5)])
+def test_assessment_reports_paired_statistics_without_changing_the_verdict(
+    project, capsys, direction, value,
+):
+    start(project, capsys, direction=direction, extra=("--repetitions", "5"))
+    code, result = submit(project, capsys, value)
+    assert code == 0 and result["best"]["kind"] == "candidate"
+    assessment = result["latest_observation"]["assessment"]
+    assert assessment["verdict"] == "PASS" and assessment["speedup"] == 2
+    assert assessment["statistical_significance"] == "not_established"
+    paired = assessment["paired_statistics"]
+    assert paired["report_only"] is True and paired["pairs"] == 5
+    assert paired["status"] == "available"
+    assert paired["interval"] == pytest.approx([2.0, 2.0])
+    assert paired["gate_relation"] == "above_gate"
+    assert paired["agrees_with_point_gate"] is True
+    assert main(["campaign", "final", "--directory", str(project[3]),
+                 "--reason", "Synthetic search done"]) == 0
+    capsys.readouterr()
+    _, state, summary = read_records(project[3])
+    final = state["final"]["assessment"]
+    assert final["verdict"] == "PASS" and summary["optimization_speedup"] == 2
+    assert final["paired_statistics"]["gate_relation"] == "above_gate"
+
+
+def test_unreachable_gate_keeps_the_original_fail_and_strict_json_records(project, capsys):
+    # A minimize gate of 100% has no finite speedup; the report must not block the FAIL.
+    start(project, capsys, direction="minimize",
+          extra=("--repetitions", "5", "--min-improvement-pct", "100"))
+    code, result = submit(project, capsys, 5)
+    assert code == 0 and result["best"]["kind"] == "baseline"
+    assessment = result["latest_observation"]["assessment"]
+    assert assessment["verdict"] == "FAIL" and assessment["eligible"] is False
+    paired = assessment["paired_statistics"]
+    assert paired["gate_speedup"] is None and paired["gate_relation"] == "gate_unreachable"
+    json.dumps(read_records(project[3])[1], allow_nan=False)
+
+
+def test_records_without_paired_statistics_remain_readable(project, capsys, monkeypatch):
+    """Assessments retained before this field existed still load in records and dashboard."""
+    from inferrsi.harness import project as project_protocol
+
+    original = project_protocol.assess
+
+    def legacy_assess(*args, **kwargs):
+        result = original(*args, **kwargs)
+        result.pop("paired_statistics", None)
+        return result
+
+    monkeypatch.setattr(project_protocol, "assess", legacy_assess)
+    start(project, capsys)
+    code, result = submit(project, capsys, 20)
+    assert code == 0 and "paired_statistics" not in result["latest_observation"]["assessment"]
+    _, state, _ = read_records(project[3])
+    assert state["best"]["kind"] == "candidate"
+    snapshot = dashboard_snapshot(project[3])
+    assert snapshot["data"]["candidates"][0]["verdict"] == "PASS"
+    assert "Synthetic candidate" in render_dashboard(snapshot)

@@ -187,6 +187,8 @@ inferrsi campaign start --directory <campaign-dir-outside-project> \
 
 项目适配器先检查基线和候选质量，再做 warmup 和交替顺序的基线/候选测量；每轮和 final 使用相同协议。每步骤启动新进程，因此跨进程 warmup 只能预热可持久缓存；设备/进程内 warmup 必须在测量脚本内完成并说明。性能取声明指标的中位数，当前没有通用服务生命周期管理器或统计显著性判定。
 
+assessment 另附只读的 `paired_statistics`：同一次重复内的第 k 个基线与第 k 个候选样本按顺序配对，计算逐对加速比的中位数，以及按重复重采样的 95% percentile bootstrap 区间（记录 resamples 与 seed），并给出区间与冻结门槛的关系（`above_gate`、`straddles_gate`、`below_gate`；门槛没有有限加速比时为 `gate_unreachable`；少于 5 次重复为 `insufficient_pairs`；样本或派生值无效为 `unavailable`）。`agrees_with_point_gate` 标出中位数点估计的判定与配对区间是否一致。该字段只描述留存样本，不改变 verdict、eligible 或选优，`statistical_significance` 仍为 `not_established`。区间是名义 95%，覆盖率未经校准：合成对照中 3 对时约 75%，因此少于 5 对不报告区间。区间假设各次重复独立，不能消除同一对内共同的设备争用，也不构成环境资格。合成对照可用 `python tools/measurement_simulation.py` 复算。
+
 结果协议：
 
 - 测量脚本正常结束并写 JSON，提供指定字段的有限正数。

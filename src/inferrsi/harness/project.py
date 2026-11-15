@@ -11,6 +11,7 @@ from pathlib import Path
 from statistics import median
 
 from .artifact_primitives import sha256
+from .measurement import paired_statistics
 
 
 def validate(settings: dict) -> None:
@@ -159,6 +160,10 @@ def assess(directory: Path, settings: dict, execution: dict) -> dict:
     if not all(math.isfinite(value) for value in (improvement, speedup)):
         return result("infrastructure_failure", "nonfinite_derived_metric")
     accepted = improvement > 0 and improvement >= settings["min_improvement_pct"]
+    paired = paired_statistics(samples["baseline"], samples["candidate"],
+                               direction=settings["direction"],
+                               min_improvement_pct=settings["min_improvement_pct"],
+                               point_gate_passed=accepted)
     return result(
         "completed", "fixed_checks_satisfied" if accepted else "performance_gate_not_met",
         verdict="PASS" if accepted else "FAIL", score=after, baseline_score=before,
@@ -167,6 +172,7 @@ def assess(directory: Path, settings: dict, execution: dict) -> dict:
                  "direction": settings["direction"], "baseline": before, "candidate": after,
                  "samples": samples},
         scope=settings["scope"], statistical_significance="not_established",
+        paired_statistics=paired,
         quality_contract="Only the supplied frozen quality script and its boolean result",
         environment_qualification="Caller-managed; no automatic hardware isolation claim",
     )
