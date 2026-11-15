@@ -654,6 +654,16 @@ remains unchanged; source use of GPU, TensorRT, Flow or HiFT does not alter
 that boundary. Source-derived candidate / empirical not_run / efficacy
 not_evaluated; author reports are not local quality or service results.
 
+## GPU measurement validity and profiler attribution
+
+[GPU measurement validity and profiler attribution](../src/inferrsi/knowledge/data/skill_library/methods/inference-benchmark-design/references/gpu-measurement-validity.md)
+extends `inference-benchmark-design` with clock/cache controls, conditional
+within-run attribution, work-count signatures and timing-trap checks. This is
+evaluation guidance, not a hardware-resource optimization mechanism or added
+numbered-layer coverage; the owner's N/A declaration remains applicable.
+Candidate / empirical not_run / efficacy not_evaluated; task-supplied numerical
+observations are unverified and establish no device or service gain.
+
 ## Embodied.cpp benchmark methodology
 
 The [inference-benchmark-design](../src/inferrsi/knowledge/data/skill_library/methods/inference-benchmark-design/SKILL.md)
