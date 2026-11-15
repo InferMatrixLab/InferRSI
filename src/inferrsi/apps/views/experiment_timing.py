@@ -9,9 +9,9 @@ from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
 
-from .dashboard_data import _text
-from .optimization_log import _read_regular
-from .timing_clock import recorded_time
+from inferrsi.harness.records.evidence import sanitized_text
+from inferrsi.harness.records.optimization_log import read_regular
+from inferrsi.harness.records.timing_clock import recorded_time
 
 
 def _utc(value):
@@ -31,7 +31,7 @@ def _step(kind, label, start=None, end=None, *, seconds=None, basis, **fields):
 
 def _reviewed_steps(root: Path, campaign_id: str, digest: str) -> list[dict]:
     # The bounded read returns one extra byte so oversize files can be rejected.
-    raw = _read_regular(root / "experiment-timing.json", 2 << 20)
+    raw = read_regular(root / "experiment-timing.json", 2 << 20)
     if len(raw) > 2 << 20 or hashlib.sha256(raw).hexdigest() != digest:
         raise ValueError("timing ledger failed verification")
     doc = json.loads(raw)
@@ -56,7 +56,7 @@ def _reviewed_steps(root: Path, campaign_id: str, digest: str) -> list[dict]:
         n = item.get("round")
         if n is not None and (type(n) is not int or n < 1):
             raise ValueError("invalid round")
-        fields = {k: _text(item[k]) for k in keys}
+        fields = {k: sanitized_text(item[k]) for k in keys}
         steps.append(_step(item["kind"], start=start, end=end, round=n,
                            evidence=f"experiment-timing.json · {line}", **fields))
     return steps

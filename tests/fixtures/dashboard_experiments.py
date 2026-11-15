@@ -10,8 +10,8 @@ import json
 import sys
 from pathlib import Path
 
-from inferrsi.observability.dashboard import write_dashboard
-from inferrsi.observability.optimization_log import record_log
+from inferrsi.apps.views.dashboard import write_dashboard
+from inferrsi.harness.records.optimization_log import record_log
 
 
 def write(path: Path, data: dict) -> dict:

@@ -3,10 +3,21 @@
 import hashlib
 import json
 
-from .campaign_records import _identifier
+from inferrsi.apps.campaign import verify_capture
+from inferrsi.harness.records.campaign_records import _identifier
+from inferrsi.harness.records.evidence import (
+    inside as _inside,
+)
+from inferrsi.harness.records.evidence import (
+    relative_location as _relative_location,
+)
+from inferrsi.harness.records.evidence import (
+    sanitized_text as _text,
+)
+from inferrsi.harness.records.knowledge_capture import MAX_CONTEXT_CAPTURE_BYTES
+from inferrsi.knowledge.context_projection import assemble_context_text
+
 from .codex_tool_returns import _output_lines
-from .dashboard_data import _inside, _relative_location, _text
-from .knowledge_capture import MAX_CONTEXT_CAPTURE_BYTES, assemble_context_text, verify_capture
 
 
 def capture_return_texts(trace, lines, references, context_ids):

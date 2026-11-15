@@ -4,6 +4,17 @@
 
 ### Changed
 
+- The `inferrsi.observability` package is dissolved into its owning packages. No forwarding
+  modules remain, so imports must use the new paths:
+  - `campaign_records`, `campaign_trace`, `optimization_log`, `optimization_trace`,
+    `profile_timeline` and `timing_clock` are under `inferrsi.harness.records`.
+  - `dashboard`, `dashboard_data`, `dashboard_external`, `dashboard_live`,
+    `dashboard_timeline`, `dashboard_workflow`, `experiment_timing`, `optimization_chart`,
+    `optimization_story` and both HTML templates are under `inferrsi.apps.views`.
+  - `pre_profile_searches` from `profile_timeline` is in
+    `inferrsi.apps.views.profile_searches`.
+  - `capture_context` and `verify_capture` from `knowledge_capture`, and `create_campaign`
+    with backend validation, are in `inferrsi.apps.campaign`.
 - The old `run` chain is split by owner. The CLI, its exit codes 0/1/2 and the
   `evaluation.json` bytes are unchanged. Root `inferrsi.evaluation`,
   `inferrsi.execution` and `inferrsi.reporting` keep working as forwarders.

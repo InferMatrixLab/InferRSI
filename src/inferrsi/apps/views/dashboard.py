@@ -10,8 +10,10 @@ import tempfile
 from importlib.resources import files
 from pathlib import Path
 
-from ..summary_chart import SpecError, build_svg
-from .dashboard_data import _inside, _number, _text, load_dashboard
+from inferrsi.harness.records.evidence import inside, sanitized_text
+from inferrsi.summary_chart import SpecError, build_svg
+
+from .dashboard_data import _number, load_dashboard
 from .dashboard_timeline import temporal_chart
 
 
@@ -19,7 +21,7 @@ def _sanitize_spec(value: object, depth: int = 0) -> object:
     if depth > 12:
         raise ValueError("chart specification is too deeply nested")
     if isinstance(value, str):
-        return _text(value, "")
+        return sanitized_text(value, "")
     if isinstance(value, list):
         return [_sanitize_spec(item, depth + 1) for item in value[:100]]
     if isinstance(value, dict):
@@ -187,7 +189,7 @@ def _chart(source: Path, view: dict) -> tuple[str, str]:
                                          if r.get("matches_profile_baseline")]}
     elif view["overview"]["comparison_state"] != "comparable":
         return "", "Comparison evidence is missing, unsupported, or incompatible."
-    if not profile_first and _inside(source, chart_file) and chart_file.is_file():
+    if not profile_first and inside(source, chart_file) and chart_file.is_file():
         try:
             if chart_file.stat().st_size <= 256 * 1024:
                 recorded = json.loads(chart_file.read_text(encoding="utf-8"))
@@ -309,12 +311,16 @@ def dashboard_snapshot(source: Path, translations: Path | None = None) -> dict:
     if "story" in view:
         view["story"] = public_value(view["story"])
     if view.get("review_layout") == "profile_first":
+        from inferrsi.harness.records.profile_timeline import read_profiles
+
         from .experiment_timing import experiment_timing
-        from .profile_timeline import pre_profile_searches, read_profiles
+        from .profile_searches import pre_profile_searches
 
         view["profile_captures"], view["unavailable_profiles"] = read_profiles(source)
         retrievals = {r["context_id"]: r for r in (view.get("story") or {}).get("retrievals", [])}
         for capture in view["profile_captures"]:
+            ref = capture["source"]
+            ref["events_url"] = "/api/profile-events/" + ref["events_sha256"]
             capture["pre_profile_searches"] = pre_profile_searches(capture, retrievals)
         view["experiment_timing"] = experiment_timing(view, source)
     chart, chart_note = _chart(source, view)
@@ -336,17 +342,17 @@ def render_dashboard(snapshot: dict, *, live: bool = False) -> str:
                .replace("\u2029", "\\u2029"))
     filename = ("review_template.html" if view.get("review_layout") == "profile_first"
                 else "template.html")
-    template = files("inferrsi").joinpath("observability", filename).read_text(
+    template = files("inferrsi").joinpath("apps", "views", filename).read_text(
         encoding="utf-8"
     )
     if live:
         template = template.replace("img-src data:;", "img-src data:; connect-src 'self';")
     replacements = {"__DASHBOARD_KNOWLEDGE__": files("inferrsi").joinpath(
-        "observability", "knowledge_view.html").read_text(encoding="utf-8"),
+        "apps", "views", "knowledge_view.html").read_text(encoding="utf-8"),
                     "__DASHBOARD_DATA__": payload, "__DASHBOARD_CHART__": snapshot["chart"],
                     "__DASHBOARD_TEMPORAL__": snapshot["temporal"],
                     "__DASHBOARD_EXPERIMENTS__": files("inferrsi").joinpath(
-                        "observability", "experiment_view.html").read_text(encoding="utf-8")}
+                        "apps", "views", "experiment_view.html").read_text(encoding="utf-8")}
     return re.sub(
         r"__DASHBOARD_(?:DATA|CHART|TEMPORAL|EXPERIMENTS|KNOWLEDGE)__",
         lambda match: replacements[match.group()],

@@ -5,7 +5,7 @@ from pathlib import PureWindowsPath
 
 import pytest
 
-from inferrsi.observability.codex_search import read_window
+from inferrsi.apps.views.codex_search import read_window
 
 
 def _meta(cwd):
@@ -124,7 +124,7 @@ def test_rg_known_directory_or_multiple_operands_have_filename_prefixes(
 @pytest.mark.parametrize("separator", ["/", "\\"])
 @pytest.mark.parametrize("mode", ["numbered_text", "numbered_context", "text"])
 def test_rg_drive_qualified_output(monkeypatch, separator, mode):
-    from inferrsi.observability import codex_search
+    from inferrsi.apps.views import codex_search
 
     # Exercise Windows path semantics on every host, without requiring a Windows drive.
     monkeypatch.setattr(codex_search, "Path", PureWindowsPath)
@@ -147,7 +147,7 @@ def test_rg_drive_qualified_output(monkeypatch, separator, mode):
     ("F:/corpus", "F:/corpus/F/manual:needle\n", []),
 ])
 def test_windows_unnumbered_drive_or_single_letter_filename(monkeypatch, root, output, expected):
-    from inferrsi.observability import codex_search
+    from inferrsi.apps.views import codex_search
 
     monkeypatch.setattr(codex_search, "Path", PureWindowsPath)
     corpus = PureWindowsPath(root)

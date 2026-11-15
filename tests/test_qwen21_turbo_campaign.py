@@ -15,7 +15,7 @@ sys.path.insert(0, str(EXAMPLES))
 import qwen21_turbo_b300 as campaign  # noqa: E402 - standalone campaign helpers require the examples path
 import qwen21_turbo_quality as quality  # noqa: E402 - standalone campaign helpers require the examples path
 
-from inferrsi.observability.dashboard_workflow import validation_progress  # noqa: E402
+from inferrsi.apps.views.dashboard_workflow import validation_progress  # noqa: E402
 
 
 class QwenTurboTests(unittest.TestCase):

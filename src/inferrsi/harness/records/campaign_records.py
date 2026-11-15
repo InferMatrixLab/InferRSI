@@ -9,14 +9,13 @@ import re
 import uuid
 from pathlib import Path
 
-from ..catalog import BACKENDS
-from .dashboard_data import (
-    _file_ref,
-    _inside,
-    _object,
-    _relative_location,
-    _safe_argv,
-    _text,
+from .evidence import (
+    file_ref,
+    inside,
+    read_object,
+    relative_location,
+    safe_argv,
+    sanitized_text,
 )
 from .optimization_trace import (
     MAX_OPTIMIZATION_TRACE_BYTES,
@@ -34,20 +33,22 @@ def _identifier(value: str, name: str) -> str:
 
 
 def require_manual_campaign(root: Path) -> None:
-    manifest, _ = _object(root / "campaign.json", root)
+    manifest, _ = read_object(root / "campaign.json", root)
     if manifest.get("managed_optimization"):
         raise ValueError("Managed campaigns use round/knowledge; manual record writes are disabled")
 
 
 def create_campaign(root: Path, campaign_id: str, *, target: float | None = None,
                     noise: float | None = None, synthetic: bool = False,
-                    backend: str | None = None, profile_first: bool = False) -> Path:
+                    backend: str | None = None, profile_first: bool = False,
+                    backends: tuple[str, ...] = ()) -> Path:
+    """Write a new manifest. ``backends`` is the backend vocabulary the caller supplies."""
     _identifier(campaign_id, "campaign_id")
     for name, value in (("target", target), ("noise", noise)):
         if value is not None and (isinstance(value, bool) or not isinstance(value, (int, float))
                                   or not math.isfinite(value) or value < 0):
             raise ValueError(f"{name} must be finite and nonnegative")
-    if backend is not None and backend not in BACKENDS:
+    if backend is not None and backend not in backends:
         raise ValueError("Unknown campaign backend")
     root = Path(root).resolve()
     root.mkdir(parents=True, exist_ok=True)
@@ -93,7 +94,7 @@ def _reference(root: Path, raw: str | None, kind: str) -> dict | None:
     path = Path(raw)
     if path.is_absolute() or ".." in path.parts:
         raise ValueError(f"{kind} must be a campaign-relative path")
-    ref = _file_ref(root, root / path, kind)
+    ref = file_ref(root, root / path, kind)
     if ref["state"] != "present":
         raise ValueError(f"{kind} is missing or outside the campaign")
     return ref
@@ -113,7 +114,7 @@ def _write_rounds(root: Path, path: Path, records: list[dict]) -> None:
 def assemble_trace(root: Path, *, template: Path, context_file: Path, output: str) -> Path:
     """Create a new caller-reviewed trace from exact context-file bytes."""
     root = Path(root).resolve()
-    campaign, state = _object(root / "campaign.json", root)
+    campaign, state = read_object(root / "campaign.json", root)
     if state != "present":
         raise ValueError("campaign.json is missing or invalid")
     _identifier(output, "trace output")
@@ -175,7 +176,7 @@ def record_candidate(root: Path, *, candidate_id: str, run_id: str, round_number
         for location in locations:
             if (not isinstance(location, dict) or set(location) - {
                 "path", "line_start", "line_end", "scope", "note", "revision"
-            } or _relative_location(location.get("path")) is None):
+            } or relative_location(location.get("path")) is None):
                 raise ValueError("code location must contain a safe relative path")
             start, end = location.get("line_start"), location.get("line_end")
             if ((start is not None and (type(start) is not int or not 0 < start <= 10_000_000))
@@ -200,31 +201,31 @@ def record_candidate(root: Path, *, candidate_id: str, run_id: str, round_number
                     or not all(isinstance(arg, str) and len(arg) <= 4096
                                for arg in command["argv"])):
                 raise ValueError("each command needs a label and a bounded argument list")
-    campaign, state = _object(root / "campaign.json", root)
+    campaign, state = read_object(root / "campaign.json", root)
     if state != "present":
         raise ValueError("campaign.json is missing or invalid")
     run = root / "runs" / run_id
-    if not _inside(root, run / "run.lock.json") or not (run / "run.lock.json").is_file():
+    if not inside(root, run / "run.lock.json") or not (run / "run.lock.json").is_file():
         raise ValueError("run must be an existing InferRSI run inside the campaign")
     candidate_dir = root / "candidates" / candidate_id
-    if not _inside(root, candidate_dir):
+    if not inside(root, candidate_dir):
         raise ValueError("candidate directory escapes the campaign")
     metadata = {"candidate_id": candidate_id, "run_id": run_id,
                 "round": round_number, "title": title}
     if details is not None:
-        sanitized = {key: _text(value, "", 1500) if key != "change_kind" else value
+        sanitized = {key: sanitized_text(value, "", 1500) if key != "change_kind" else value
                      for key, value in details.items()
                      if key in ("change_kind", "summary", "hypothesis", "benchmark", "accuracy")}
         if "code_locations" in details:
             sanitized["code_locations"] = [
-                {key: _text(value, "", 1000) if key in ("scope", "note") else value
+                {key: sanitized_text(value, "", 1000) if key in ("scope", "note") else value
                  for key, value in location.items()}
                 for location in details["code_locations"]
             ]
         if "commands" in details:
             sanitized["commands"] = [
-                {"label": _text(command["label"], "", 120),
-                 "argv": _safe_argv(command["argv"], candidate_ids={candidate_id})}
+                {"label": sanitized_text(command["label"], "", 120),
+                 "argv": safe_argv(command["argv"], candidate_ids={candidate_id})}
                 for command in details["commands"]
             ]
         metadata["details"] = sanitized
@@ -243,7 +244,7 @@ def record_candidate(root: Path, *, candidate_id: str, run_id: str, round_number
             raise ValueError(f"optimization trace: {ref['missing_reason']}")
         metadata["optimization_trace_ref"] = ref
     rounds_path = root / "rounds.jsonl"
-    if not _inside(root, rounds_path):
+    if not inside(root, rounds_path):
         raise ValueError("rounds file escapes the campaign")
     records = _round_records(rounds_path)
     matching = next((item for item in records if item["round"] == round_number), None)
@@ -279,7 +280,7 @@ def record_decision(root: Path, *, candidate_id: str, round_number: int, outcome
     }:
         raise ValueError("unknown decision outcome")
     path = root / "rounds.jsonl"
-    if not _inside(root, path):
+    if not inside(root, path):
         raise ValueError("rounds file escapes the campaign")
     records = _round_records(path)
     matching = next((item for item in records if item["round"] == round_number), None)

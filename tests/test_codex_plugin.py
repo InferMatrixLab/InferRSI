@@ -90,7 +90,7 @@ def test_bundle_contains_all_declared_package_data(distribution):
         if name.startswith((
             "inferrsi/knowledge/data/", "inferrsi/harness/data/", "inferrsi/benchmark/tasks/",
         )) or (
-            name.startswith("inferrsi/observability/") and name.endswith(".html")
+            name.startswith("inferrsi/apps/views/") and name.endswith(".html")
         )
     }
     assert expected == installed

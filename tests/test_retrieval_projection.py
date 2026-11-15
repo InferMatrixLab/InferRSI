@@ -7,14 +7,14 @@ from pathlib import Path
 
 import pytest
 
-from inferrsi.knowledge.catalog import search_knowledge
-from inferrsi.observability.dashboard import dashboard_snapshot, render_dashboard
-from inferrsi.observability.retrieval_projection import (
+from inferrsi.apps.views.dashboard import dashboard_snapshot, render_dashboard
+from inferrsi.apps.views.retrieval_projection import (
     project_knowledge,
     public_value,
     retrieval_view,
 )
-from inferrsi.observability.search_attribution import import_search
+from inferrsi.apps.views.search_attribution import import_search
+from inferrsi.knowledge.catalog import search_knowledge
 
 FIXTURE = runpy.run_path(str(Path(__file__).parent / "fixtures/knowledge_retrieval.py"))
 

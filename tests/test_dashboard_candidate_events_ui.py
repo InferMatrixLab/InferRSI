@@ -9,7 +9,7 @@ import pytest
 
 @pytest.mark.skipif(shutil.which("node") is None, reason="Node.js is needed for this UI regression")
 def test_candidate_event_disclosure_and_live_elapsed():
-    template = Path(__file__).parents[1] / "src/inferrsi/observability/template.html"
+    template = Path(__file__).parents[1] / "src/inferrsi/apps/views/template.html"
     script = r"""
 const fs=require('node:fs'),assert=require('node:assert/strict');
 const html=fs.readFileSync(process.argv[1],'utf8');

@@ -7,9 +7,9 @@ import sys
 
 import pytest
 
+from inferrsi.apps.views.dashboard import dashboard_snapshot, render_dashboard
 from inferrsi.cli import main
 from inferrsi.harness.optimization import read_records
-from inferrsi.observability.dashboard import dashboard_snapshot, render_dashboard
 
 
 @pytest.fixture

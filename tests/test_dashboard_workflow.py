@@ -6,7 +6,7 @@ import sys
 import pytest
 
 from inferrsi.apps.legacy.run import execute_trial, run_experiment
-from inferrsi.observability.dashboard_data import load_dashboard
+from inferrsi.apps.views.dashboard_data import load_dashboard
 from inferrsi.runspec import RunSpec
 
 
@@ -187,7 +187,7 @@ def test_crashed_end_remains_terminal_without_command_record(tmp_path):
 
 
 def test_provider_events_share_activity_without_exporting_payload(tmp_path):
-    from inferrsi.observability.dashboard_data import _events
+    from inferrsi.apps.views.dashboard_data import _events
 
     path = tmp_path / "events.jsonl"
     path.write_text(

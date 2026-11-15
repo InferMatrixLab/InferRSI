@@ -23,7 +23,7 @@ where = ["src"]
 namespaces = false
 
 [tool.setuptools.package-data]
-inferrsi = ["observability/*.html"]
+inferrsi = ["apps/views/*.html"]
 "inferrsi.knowledge" = [
     "data/**/*.json",
     "data/**/*.md",

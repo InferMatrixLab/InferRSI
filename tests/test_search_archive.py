@@ -2,14 +2,16 @@
 
 import hashlib
 import json
+import os
 import shutil
 import subprocess
+from pathlib import Path
 
 import pytest
 
-from inferrsi.observability.campaign_records import create_campaign
-from inferrsi.observability.knowledge_capture import assemble_context_text, capture_context
-from inferrsi.observability.search_attribution import import_search
+from inferrsi.apps.campaign import capture_context, create_campaign
+from inferrsi.apps.views.search_attribution import import_search
+from inferrsi.knowledge.context_projection import assemble_context_text
 
 REVISION = "f6d200" + "a" * 34
 CORPUS = {"repository": "InferMatrixLab/InferRSI", "revision": REVISION,
@@ -45,7 +47,7 @@ def _reader(monkeypatch, event):
                 4: "I will use the stable RoPE case for validation."}, [], []
         return window, [], {4: "I will use the stable RoPE case for validation."}, [], []
 
-    monkeypatch.setattr("inferrsi.observability.search_attribution.read_window", read_window)
+    monkeypatch.setattr("inferrsi.apps.views.search_attribution.read_window", read_window)
 
 
 def _decision(**changes):
@@ -78,6 +80,37 @@ def _real_read_trace(path, corpus, *, command="cat case.md", output="Use the sta
     path.write_text("".join(json.dumps(row) + "\n" for row in rows), encoding="utf-8")
 
 
+
+def _usable_bash() -> str | None:
+    """Return a native POSIX bash, not the Windows WSL/WindowsApps stub.
+
+    ``shutil.which("bash")`` on this host finds ``C:\\Windows\\System32\\bash.exe``.
+    That stub can hang indefinitely on a Windows pytest cwd when running
+    ``cat`` of names that contain ``#``. Git Bash can evaluate the same
+    commands. Skip the WSL stubs and require a timeout at the call site.
+    """
+    seen: list[str] = []
+    for candidate in (
+        shutil.which("bash"),
+        r"C:\Program Files\Git\usr\bin\bash.exe",
+        r"C:\Program Files (x86)\Git\usr\bin\bash.exe",
+    ):
+        if not candidate:
+            continue
+        path = Path(candidate)
+        if not path.is_file():
+            continue
+        resolved = str(path.resolve())
+        if resolved in seen:
+            continue
+        seen.append(resolved)
+        parts = {part.lower() for part in path.resolve().parts}
+        if "system32" in parts or "windowsapps" in parts:
+            continue
+        return resolved
+    return None
+
+
 @pytest.mark.parametrize(("command", "ref"), [
     ("cat guide#v2.md", "guide#v2.md"),
     ("cat guide#v2.md # ignored 'quote", "guide#v2.md"),
@@ -88,15 +121,20 @@ def _real_read_trace(path, corpus, *, command="cat case.md", output="Use the sta
     ("cat guide #v2.md", "guide"),
 ])
 def test_shell_hash_filenames_and_comments_match_real_bash(tmp_path, command, ref):
-    bash = shutil.which("bash")
+    bash = _usable_bash()
     if not bash:
-        pytest.skip("bash is needed to check shell comment boundaries")
+        pytest.skip("a non-WSL bash is needed to check shell comment boundaries")
     campaign, corpus = tmp_path / "campaign", tmp_path / "corpus"
     create_campaign(campaign, "example")
     corpus.mkdir()
     (corpus / "guide").write_text("Unversioned guide.\n", encoding="utf-8")
     (corpus / ref).write_text("Use the stable RoPE case.\n", encoding="utf-8")
-    result = subprocess.run([bash, "-c", command], cwd=corpus, capture_output=True, check=True)
+    env = os.environ.copy()
+    env["PATH"] = "/usr/bin:/bin" + os.pathsep + env.get("PATH", "")
+    result = subprocess.run(
+        [bash, "-c", command], cwd=corpus, capture_output=True, check=True,
+        timeout=15, env=env,
+    )
     trace = tmp_path / "rollout.jsonl"
     _real_read_trace(trace, corpus, command=command, output=result.stdout.decode())
     review = _review(tmp_path / "review.json", decisions=[_decision(

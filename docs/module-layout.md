@@ -5,7 +5,10 @@ Knowledge move (K01) is implemented: `src/inferrsi/knowledge/` holds the seven
 moved Knowledge bodies, and the old root modules are static compatibility
 shells. The engineering task contribution now implements `benchmark/registry.py`
 and `benchmark/tasks/`. The current flat `cli.py` and `benchmark_operations.py`
-assemble this slice.
+assemble this slice. The former `observability/` package is dissolved. Its
+campaign records, traces, logs and profile captures are in `harness/records/`,
+its dashboard views and templates are in `apps/views/`, and the
+collected-context projection is in `knowledge/context_projection.py`.
 #371 remains the proposal for the Apps package path and is not accepted here.
 
 The old `run` chain is split by owner. Its gates are in
@@ -29,8 +32,8 @@ modules are isolated.
 There is no sibling `data/` resource tier. K02 moved the Knowledge corpus to
 `src/inferrsi/knowledge/data/` and the `repo_packs/*/pack.json` target
 descriptions to `src/inferrsi/harness/data/`. The internal corpus split is left
-to a future Knowledge issue. `observability/template.html` is a view template
-and follows the Apps slice; it did not belong to the corpus merely because it
+to a future Knowledge issue. The dashboard templates are view templates and
+live in `apps/views/`; they did not belong to the corpus merely because they
 sat under `data/` before.
 
 The move is physical only. Bundle resource keys, dependency keys and the pinned
@@ -82,6 +85,8 @@ Several flat modules remain shared seams until their slice starts.
 | `benchmark/skill_evaluation.py`, `benchmark/skill_eval_diagnostic.py`, `benchmark/skill_eval_engineering.py`, `benchmark/improvement.py` | Skill-evaluation criteria, task definitions and acceptance rules | Pure judgments over retained facts; no Harness import and no process start |
 | `apps/skill_evaluation.py`, `apps/skill_eval_engineering.py`, `apps/improvement.py` | Composed skill-evaluation entries | Join Knowledge reads, Harness execution and Benchmark rules behind the signatures that `harness/` held before the split |
 | `knowledge_operations.py`, `knowledge_store.py`, `catalog.py`, `research.py`, `skill_catalog.py`, `_skill_selection.py`, `_source_snapshot.py` | Static compatibility shells since K01; bodies in `knowledge/` | Interfaces unchanged |
+| `harness/records/` | Campaign manifests, traces, logs, profile captures and delivered-context captures | Imports no Knowledge or Apps module; `apps/campaign.py` supplies the backend names, the selection default and the context projection |
+| `apps/views/`, `apps/campaign.py` | Dashboard views, templates and the Knowledge-to-records connection | Apps path still follows the #371 proposal |
 | `harness/` | Mixed legacy tree, not target isolation | Not redefined |
 | `harness/runner.py`, `harness/scenarios/external.py`, `harness/atomic_json.py` | Old run execution facts and Harness-owned JSON writes | Ports injected; no Model edge, and no Infra edge except the local process executor |
 | `benchmark/legacy_run_v0.py`, `benchmark/sampling.py` | Old run gates and metric validation; image/video sample collection | Imports only `model/protocols/metrics`; owns its rule inputs and verdict labels |

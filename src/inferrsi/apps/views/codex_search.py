@@ -8,9 +8,15 @@ import re
 import shlex
 from pathlib import Path
 
-from .campaign_records import _identifier
+from inferrsi.harness.records.campaign_records import _identifier
+from inferrsi.harness.records.evidence import (
+    relative_location as _relative_location,
+)
+from inferrsi.harness.records.evidence import (
+    sanitized_text as _text,
+)
+
 from .codex_tool_returns import _output_lines, _path, correlate_window
-from .dashboard_data import _relative_location, _text
 
 _SHELLS = ("sh", "bash", "zsh", "dash")
 _TOOLS = ("rg", "cat", "sed", "nl")

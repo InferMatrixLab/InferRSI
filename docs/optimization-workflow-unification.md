@@ -26,7 +26,7 @@
 
 ## 时序图
 
-以下是普通项目的完整流程。CLI 接入既有入口，调用 Harness 的 `optimization_session.session_command()`。初始化、执行、判定和结算均在 Harness 内；CLI 注入 KnowledgeReader 和已有知识记录回调。主干已将记录与展示移入 Observability，Harness 仍负责优化状态与预算。
+以下是普通项目的完整流程。CLI 接入既有入口，调用 Harness 的 `optimization_session.session_command()`。初始化、执行、判定和结算均在 Harness 内；CLI 注入 KnowledgeReader 和已有知识记录回调。知识记录回调在 `apps/campaign.py`，展示在 `apps/views`，记录由 `harness/records` 写入；Harness 仍负责优化状态与预算。
 
 先准备任务条件，再调用 start。start 内复制任务、脚本和基线并写入计划/状态，不执行测量。Agent 逐次调用 round，最后调用 final 独立重测已保存的最佳版本。
 
@@ -36,7 +36,7 @@ sequenceDiagram
     participant A as 当前 Agent
     participant C as CLI 入口
     participant H as Harness
-    participant O as Observability
+    participant O as Apps 记录回调与展示
     participant K as Knowledge
 
     U->>A: 提出项目优化目标和约束
@@ -61,7 +61,7 @@ sequenceDiagram
                 H->>O: 调用注入的 capture_context，传入 reader 和查询
                 O->>K: reader.collect 检索
                 K-->>O: 返回资料正文、版本、来源和遗漏信息
-                O-->>H: 保存 knowledge/context-….json，返回路径与哈希
+                O-->>H: 经 harness/records 保存 knowledge/context-….json，返回路径与哈希
                 H->>H: 更新 state.contexts 引用
                 H-->>C: 返回留存引用与正文
                 C-->>A: 返回可阅读的资料，供本轮分析使用
@@ -145,7 +145,7 @@ Harness 没有常驻 Agent 驱动。Agent 逐次调用这些操作，代码在�
 
 两个优化入口都调用 `harness.optimization_session.session_command`，再调用 **同一个** `harness.optimization.evaluate_round`。执行与评测适配也在 Harness 内。普通项目由 `harness.project` 固化调用方协议并判定留存结果，整个生命周期不导入 Benchmark。
 
-题库 `start` 由 CLI 经 `benchmark.registry` 定位资源目录，再交给 `harness.task_protocol.prepare` 固化；后续从冻结目录加载题包自己的 `optimization.py`，无需再次查询注册表。专用协议检查仍属于题包。两类 `assess` 都只读留存结果，不重新测量。KnowledgeReader 与 Observability 的记录回调由 CLI 注入，Harness 不直接导入 Benchmark 或目标 Knowledge 模块，也不经记录模块间接引入知识实现。
+题库 `start` 由 CLI 经 `benchmark.registry` 定位资源目录，再交给 `harness.task_protocol.prepare` 固化；后续从冻结目录加载题包自己的 `optimization.py`，无需再次查询注册表。专用协议检查仍属于题包。两类 `assess` 都只读留存结果，不重新测量。KnowledgeReader 与 `apps/campaign.py` 的记录回调由 CLI 注入，Harness 不直接导入 Benchmark 或目标 Knowledge 模块，也不经记录模块间接引入知识实现。
 
 本次交付可以分成三块：**Benchmark 的优化题目、Harness 的优化管理与验收、Harness 与宿主协作的新会话派发和回收**。第三块不改变第二块的生命周期；新会话仍自行 start 到 final。
 

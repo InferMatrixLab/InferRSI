@@ -68,7 +68,7 @@ same immutable capture envelope used by `capture-context`:
 ```python
 from pathlib import Path
 from inferrsi.knowledge.catalog import search_knowledge
-from inferrsi.observability.knowledge_capture import save_retrieval
+from inferrsi.apps.campaign import save_retrieval
 
 result = search_knowledge("decode launch", explain=True)
 path, sha256 = save_retrieval(
