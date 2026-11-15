@@ -4,6 +4,7 @@ The CLI supplies a task directory only when starting a packaged task. Ordinary
 projects and all subsequent operations use Harness and the retained inputs.
 """
 
+import json
 import os
 import runpy
 import shlex
@@ -52,7 +53,9 @@ def _session_assess(root, directory, plan, execution):
     if plan["task_source"] == "project":
         from inferrsi.harness.project import assess
 
-        return assess(directory, plan["evaluation_settings"], execution)
+        pending = json.loads((root / "state.json").read_text(encoding="utf-8"))["pending"]
+        return assess(directory, plan["evaluation_settings"], execution,
+                      mechanism=(pending or {}).get("mechanism"))
     return run_protocol(root / "frozen", plan["frozen_files"]["optimization.py"], "assess",
                         directory=directory, settings=plan["evaluation_settings"],
                         execution=execution)
@@ -266,7 +269,6 @@ def session_command(args, *, task_source: Path | None = None, knowledge_reader=N
                 "item or read receipt with --knowledge-ref when submitting a candidate."
             )
         return result
-    import json
 
     plan = json.loads((root / "plan.json").read_text(encoding="utf-8"))
     manifest = json.loads((root / "campaign.json").read_text(encoding="utf-8"))

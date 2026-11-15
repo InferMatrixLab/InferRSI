@@ -201,7 +201,8 @@ def test_reference_regions_cancel_device_wide_jitter():
     assert evidence["status"] == "available" and evidence["reference_regions"] == ["gemm"]
     norm = evidence["regions"]["norm"]
     assert norm["basis"] == "normalized_to_reference_regions"
-    assert norm["ratio_median"] == pytest.approx(0.5) and norm["observed"] == "decrease"
+    assert norm["normalized"]["ratio_median"] == pytest.approx(0.5)
+    assert norm["observed"] == "decrease"
     assert evidence["share_based_speedup"]["median"] == pytest.approx(8 / 7)
     assert evidence["share_based_speedup"]["interval"] == pytest.approx([8 / 7, 8 / 7])
     assert evidence["counters"]["launches"]["observed"] == "decrease"
@@ -252,3 +253,40 @@ def test_explain_classifies_declared_mechanisms(expect, status):
 def test_invalid_mechanisms_are_rejected(document):
     with pytest.raises(ValueError):
         validate_mechanism(document)
+
+
+def test_zero_baseline_counter_is_undefined_not_decisive():
+    one = profile_evidence([{"counters": {"new_work": 0}}], [{"counters": {"new_work": 1}}])
+    assert one["counters"]["new_work"]["observed"] == "insufficient_pairs"
+    mixed = profile_evidence([{"counters": {"w": v}} for v in (0, 100, 100, 100, 100)],
+                             [{"counters": {"w": v}} for v in (1, 50, 50, 50, 50)])
+    assert mixed["counters"]["w"]["observed"] == "undefined"
+    mechanism = validate_mechanism({"mechanism": "m", "expect": [
+        {"counter": "w", "direction": "increase"}]})
+    assert explain(mechanism, mixed)["status"] == "unverifiable"
+
+
+def test_all_zero_candidate_breakdown_is_reported_not_raised():
+    evidence = profile_evidence([{"breakdown": {"only": 2.0}}] * 5,
+                                [{"breakdown": {"only": 0.0}}] * 5)
+    assert evidence["status"] == "available"
+    assert evidence["regions"]["only"]["candidate_share"] is None
+    assert evidence["regions"]["only"]["observed"] == "decrease"
+
+
+def test_references_are_checked_raw_never_against_each_other():
+    base = [{"breakdown": {"r1": 2.0, "r2": 2.0, "t": 2.0}}] * 5
+    cand = [{"breakdown": {"r1": 1.0, "r2": 1.0, "t": 0.5}}] * 5
+    evidence = profile_evidence(base, cand, reference_regions=["r1", "r2"])
+    assert evidence["regions"]["r1"]["basis"] == "raw"
+    assert evidence["regions"]["r1"]["observed"] == "decrease"
+    mechanism = validate_mechanism({"mechanism": "m", "expect": [
+        {"region": "r1", "direction": "unchanged"}, {"region": "r2", "direction": "unchanged"},
+        {"region": "t", "direction": "decrease"}]})
+    assert explain(mechanism, evidence)["status"] == "contradicted"
+
+
+def test_duplicate_expectations_are_rejected():
+    with pytest.raises(ValueError):
+        validate_mechanism({"mechanism": "m", "expect": [
+            {"region": "a", "direction": "unchanged"}, {"region": "a", "direction": "decrease"}]})

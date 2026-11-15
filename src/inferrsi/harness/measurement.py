@@ -170,28 +170,21 @@ def _numeric_map(value) -> dict | None:
 
 
 def _paired_change(baseline: list, candidate: list, *, resamples: int, seed: int) -> dict:
-    ratios = []
-    for b, c in zip(baseline, candidate):
-        if b > 0:
-            ratios.append(c / b)
-        elif c == 0:
-            ratios.append(1.0)
-        else:
-            return {"ratio_median": None, "interval": None, "observed": "increase",
-                    "note": "baseline value is zero and candidate value is positive"}
-    report = {"ratio_median": median(ratios), "interval": None}
-    if len(ratios) < MIN_PAIRS:
-        return {**report, "observed": "insufficient_pairs"}
+    """Paired ratio direction; a zero baseline makes the ratio undefined, never decisive."""
+    if len(baseline) < MIN_PAIRS:
+        return {"ratio_median": None, "interval": None, "observed": "insufficient_pairs"}
+    if any(b <= 0 for b in baseline):
+        return {"ratio_median": None, "interval": None, "observed": "undefined",
+                "note": "A zero baseline value has no paired ratio"}
+    ratios = [c / b for b, c in zip(baseline, candidate)]
     low, high = bootstrap_median_interval(ratios, resamples=resamples, seed=seed)
     observed = "decrease" if high < 1 else "increase" if low > 1 else "no_clear_change"
-    return {**report, "interval": [low, high], "observed": observed}
+    return {"ratio_median": median(ratios), "interval": [low, high], "observed": observed}
 
 
-def _interval_report(values: list, *, resamples: int, seed: int) -> dict:
-    report = {"median": median(values), "interval": None}
-    if len(values) >= MIN_PAIRS:
-        report["interval"] = bootstrap_median_interval(values, resamples=resamples, seed=seed)
-    return report
+def _shares(values: list, totals: list) -> float | None:
+    shares = [v / t for v, t in zip(values, totals) if t > 0]
+    return median(shares) if len(shares) == len(values) else None
 
 
 def profile_evidence(baseline_profiles: list, candidate_profiles: list, *,
@@ -199,10 +192,11 @@ def profile_evidence(baseline_profiles: list, candidate_profiles: list, *,
                      seed: int = SEED) -> dict:
     """Compare per-repetition region durations and work counters between paired steps.
 
-    ``reference_regions`` are regions the round declares unchanged. Within one step
-    they act as an internal clock: dividing another region by them, and reading the
-    reference share of the step total, cancels device-wide changes such as clock or
-    temperature drift that scale every region of that step together.
+    Every region and counter is compared raw. ``reference_regions`` are regions the
+    round declares unchanged; they are an assumption, not a conclusion. Other regions
+    are additionally compared after dividing by the reference total of the same step,
+    which cancels a change that scales every region of that step by the same factor.
+    References themselves are only ever checked raw, against each other never.
     """
     if len(baseline_profiles) != len(candidate_profiles) or not baseline_profiles:
         return {"status": "unavailable", "reason": "Profiles must be paired per repetition"}
@@ -214,39 +208,38 @@ def profile_evidence(baseline_profiles: list, candidate_profiles: list, *,
         if not all(m is not None for side in maps for m in side):
             continue
         shared = sorted(set.intersection(*(set(m) for side in maps for m in side)))
-        reference = [r for r in reference_regions if r in shared] if kind == "breakdown" else []
-        if kind == "breakdown":
-            result["reference_regions"] = reference
         target = result["regions" if kind == "breakdown" else "counters"]
+        reference = [r for r in dict.fromkeys(reference_regions) if r in shared] if (
+            kind == "breakdown") else []
+        clock = [[sum(m[r] for r in reference) for m in side] for side in maps]
+        usable_clock = bool(reference) and min(min(side) for side in clock) > 0
+        totals = [[sum(m.values()) for m in side] for side in maps]
         for name in shared:
             b = [m[name] for m in maps[0]]
             c = [m[name] for m in maps[1]]
+            raw = _paired_change(b, c, resamples=resamples, seed=seed)
             entry = {"baseline_median": median(b), "candidate_median": median(c),
-                     **_paired_change(b, c, resamples=resamples, seed=seed), "basis": "raw"}
-            clock = [r for r in reference if r != name]
-            if clock:
-                bn = [m[name] / sum(m[r] for r in clock) for m in maps[0]
-                      if sum(m[r] for r in clock) > 0]
-                cn = [m[name] / sum(m[r] for r in clock) for m in maps[1]
-                      if sum(m[r] for r in clock) > 0]
-                if len(bn) == len(cn) == len(b):
-                    entry.update(_paired_change(bn, cn, resamples=resamples, seed=seed),
-                                 basis="normalized_to_reference_regions")
+                     "raw": raw, "observed": raw["observed"], "basis": "raw"}
+            if usable_clock and name not in reference:
+                normalized = _paired_change([v / k for v, k in zip(b, clock[0])],
+                                            [v / k for v, k in zip(c, clock[1])],
+                                            resamples=resamples, seed=seed)
+                entry.update(normalized=normalized, observed=normalized["observed"],
+                             basis="normalized_to_reference_regions")
             if kind == "breakdown":
-                totals = [[sum(m.values()) for m in side] for side in maps]
-                entry["baseline_share"] = median(v / t for v, t in zip(b, totals[0]) if t > 0)
-                entry["candidate_share"] = median(v / t for v, t in zip(c, totals[1]) if t > 0)
+                entry["baseline_share"] = _shares(b, totals[0])
+                entry["candidate_share"] = _shares(c, totals[1])
             target[name] = entry
-        if reference:
-            ratios = []
-            for mb, mc in zip(*maps):
-                ref_b, ref_c = (sum(m[r] for r in reference) for m in (mb, mc))
-                tot_b, tot_c = sum(mb.values()), sum(mc.values())
-                if min(ref_b, ref_c, tot_b, tot_c) > 0:
-                    ratios.append((ref_c / tot_c) / (ref_b / tot_b))
-            if len(ratios) == len(maps[0]):
-                result["share_based_speedup"] = _interval_report(
-                    ratios, resamples=resamples, seed=seed)
+        if kind == "breakdown":
+            result["reference_regions"] = reference
+            if usable_clock and min(min(side) for side in totals) > 0:
+                ratios = [(kc / tc) / (kb / tb) for kb, tb, kc, tc in zip(
+                    clock[0], totals[0], clock[1], totals[1])]
+                report = {"median": median(ratios), "interval": None}
+                if len(ratios) >= MIN_PAIRS:
+                    report["interval"] = bootstrap_median_interval(
+                        ratios, resamples=resamples, seed=seed)
+                result["share_based_speedup"] = report
     if not result["regions"] and not result["counters"]:
         return {**result, "status": "absent",
                 "reason": "No breakdown or counters were present in every measured step"}
@@ -275,6 +268,10 @@ def validate_mechanism(document) -> dict:
                              "of decrease, increase or unchanged")
     if all(item["direction"] == "unchanged" for item in expect):
         raise ValueError("At least one expectation must predict a change")
+    names = [("region" if "region" in item else "counter",
+              item.get("region") or item.get("counter")) for item in expect]
+    if len(names) != len(set(names)):
+        raise ValueError("Declare each region or counter once")
     return document
 
 
@@ -287,7 +284,7 @@ def explain(mechanism: dict | None, evidence: dict) -> dict:
         kind = "region" if "region" in item else "counter"
         table = evidence.get("regions" if kind == "region" else "counters") or {}
         observed = table.get(item[kind], {}).get("observed")
-        if observed in (None, "insufficient_pairs"):
+        if observed in (None, "insufficient_pairs", "undefined"):
             missing = True
         checks.append({"kind": kind, "name": item[kind], "expected": item["direction"],
                        "observed": observed or "missing"})

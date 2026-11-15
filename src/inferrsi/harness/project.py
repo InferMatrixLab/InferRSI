@@ -130,17 +130,11 @@ def inspect_step(directory: Path, settings: dict, definition: dict, execution: d
             "evidence_files": evidence}
 
 
-def read_mechanism(directory: Path) -> dict | None:
-    """Read the mechanism retained with an attempt, if the round declared one."""
-    path = directory / "mechanism.json"
-    if not path.exists():
-        return None
-    if path.is_symlink():
-        raise ValueError("Symbolic mechanism declaration")
-    return validate_mechanism(json.loads(path.read_bytes()))
 
 
-def assess(directory: Path, settings: dict, execution: dict) -> dict:
+def assess(directory: Path, settings: dict, execution: dict, *,
+           mechanism: dict | None = None) -> dict:
+    """Judge one attempt; ``mechanism`` is the declaration bound before execution."""
     evidence = {}
 
     def result(status, reason, **fields):
@@ -200,13 +194,10 @@ def assess(directory: Path, settings: dict, execution: dict) -> dict:
         else:
             verdict, reason = "FAIL", "performance_gate_not_met"
     try:
-        mechanism = read_mechanism(directory)
-        if mechanism is not None:
-            evidence["mechanism.json"] = sha256(directory / "mechanism.json")
-    except (OSError, ValueError) as error:
-        mechanism, mechanism_error = None, str(error)
-    else:
+        mechanism = None if mechanism is None else validate_mechanism(mechanism)
         mechanism_error = None
+    except ValueError as error:
+        mechanism, mechanism_error = None, str(error)
     reference = [item["region"] for item in (mechanism or {}).get("expect", [])
                  if "region" in item and item["direction"] == "unchanged"]
     observed = profile_evidence(profiles["baseline"], profiles["candidate"],

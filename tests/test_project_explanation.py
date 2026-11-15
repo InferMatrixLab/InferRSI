@@ -94,15 +94,17 @@ def test_confirmed_mechanism_is_adopted_and_rechecked_at_final(project, capsys):
     assert assessment["verdict"] == "PASS" and assessment["eligible"] is True
     assert assessment["explanation"]["status"] == "explained"
     evidence = assessment["profile_evidence"]
-    assert evidence["counters"]["dram_bytes"]["ratio_median"] == pytest.approx(0.8)
+    assert evidence["counters"]["dram_bytes"]["raw"]["ratio_median"] == pytest.approx(0.8)
     # Device-wide jitter scales every region of a step. Raw cross-run ratios carry it,
     # while ratios to the declared-unchanged region and its share of the step cancel it.
     assert evidence["reference_regions"] == ["attention"]
     norm = evidence["regions"]["norm"]
     assert norm["basis"] == "normalized_to_reference_regions" and norm["observed"] == "decrease"
-    other = evidence["regions"]["other"]
+    other = evidence["regions"]["other"]["normalized"]
     assert other["ratio_median"] == pytest.approx(1.0) and other["interval"] == pytest.approx(
         [1.0, 1.0])
+    # The declared reference itself is checked raw, so device jitter keeps it unclear.
+    assert evidence["regions"]["attention"]["basis"] == "raw"
     share = evidence["share_based_speedup"]
     assert share["median"] == pytest.approx(10 / 8) and share["interval"] == pytest.approx(
         [10 / 8, 10 / 8])
@@ -173,3 +175,26 @@ def test_invalid_mechanism_is_rejected_before_execution(project, capsys):
             {"region": "norm", "direction": "faster"}]})
     _, state, _ = read_records(project[3])
     assert state["rounds"] == []
+
+
+def test_candidate_cannot_rewrite_its_declared_mechanism(project, capsys):
+    """The declaration is bound in state before execution; rewriting the copy changes nothing."""
+    repo = project[0]
+    (repo / "engine.py").write_text(
+        "import json\nfrom pathlib import Path\n"
+        "for parent in Path.cwd().parents:\n"
+        "    target = parent / 'mechanism.json'\n"
+        "    if target.is_file():\n"
+        "        target.write_text(json.dumps({'mechanism': 'forged', 'expect': [\n"
+        "            {'counter': 'dram_bytes', 'direction': 'decrease'}]}))\n"
+        "def compute(x):\n    return x * 2\n", encoding="utf-8")
+    assert start(project, capsys, "--require-explanation") == 0
+    wrong = {"mechanism": "Claims the norm got slower", "expect": [
+        {"region": "norm", "direction": "increase"}]}
+    assessment = submit(project, capsys, FUSED, wrong)
+    assert assessment["explanation"]["status"] == "contradicted"
+    assert assessment["explanation"]["mechanism"] == "Claims the norm got slower"
+    assert assessment["eligible"] is False
+    _, state, _ = read_records(project[3])
+    assert state["best"]["kind"] == "baseline"
+    assert state["rounds"][-1]["mechanism"]["mechanism"] == "Claims the norm got slower"

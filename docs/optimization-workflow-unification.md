@@ -234,9 +234,9 @@ profile 或测量确定瓶颈，提交包含 workload 和观测值的 UTF-8 摘�
             {"counter": "kernel_launches", "direction": "decrease"}]}
 ```
 
-assessment 的 `profile_evidence` 按重复配对比较每个区域和计数。声明为 `unchanged` 的区域作为同一步骤内的参照：其他区域先除以参照区域再比较，`share_based_speedup` 用参照区域在步骤总时间中的占比推算整体加速，因此整卡同比例的漂移会被抵消。计数一类的工作量指标基本不随时钟和温度变化，可以说明波动范围内的小幅改进是否可重复。方向只由配对区间判断（区间整体低于或高于 1），仓库内没有设置数值容差；参照区域如果实际也变了，推算会有偏差，`profile_evidence` 只描述数据，不判断机制文字本身。
+assessment 的 `profile_evidence` 按重复配对比较每个区域和计数，`raw` 保留原始比值。声明为 `unchanged` 的区域是本轮的假设，不是结论：其他区域另外给出除以同一步骤参照区域总和后的 `normalized` 比较，`share_based_speedup` 用参照区域在步骤总时间中的占比推算整体加速。只有当某种变化让同一步骤的所有区域按同一比例缩放时，它才会被抵消；若各区域受影响程度不同（例如降频对计算受限和访存受限的区域影响不同），抵消就不成立。参照区域本身始终只做原始比较，不会互相归一化，因此整体漂移较大时它可能显示为变化，使解释判为矛盾。计数一类的工作量指标基本不随时钟和温度变化，可以说明波动范围内的小幅改进是否可重复。方向只由配对区间判断（区间整体低于或高于 1），仓库内没有设置数值容差；基线为 0 的计数没有比值，记为 `undefined`。`profile_evidence` 只描述数据，不判断机制文字本身。
 
-`explanation.status` 取值：`explained`（每条预期都被数据确认，且至少一条是变化）、`unsupported`（预期的变化没有在数据中出现）、`contradicted`（数据与预期方向相反，或声明不变的项出现明显变化）、`unverifiable`（缺少对应区域或计数，或少于 5 对）、`not_declared`（本轮未声明）。final 沿用被选中轮次的机制重新核对。
+`explanation.status` 取值：`explained`（每条预期都被数据确认，且至少一条是变化）、`unsupported`（预期的变化没有在数据中出现）、`contradicted`（数据与预期方向相反，或声明不变的项出现明显变化）、`unverifiable`（缺少对应区域或计数、比值无定义，或少于 5 对）、`not_declared`（本轮未声明）。机制声明在执行前写入控制状态，判定使用这份绑定的声明，attempt 目录中的 `mechanism.json` 只是可读副本；final 沿用被选中轮次绑定的机制重新核对。
 
 两个开关在 `campaign start` 时冻结，默认都不改变原有判定：
 

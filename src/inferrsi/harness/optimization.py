@@ -630,11 +630,11 @@ def evaluate_round(root: Path, *, candidate: Path | None, hypothesis: str,
         fingerprint = candidates.retain(source, directory / plan["candidate_name"],
                                         plan.get("candidate_includes"))
         if final and state["best"]["kind"] == "candidate":
-            # The independent final rechecks the mechanism declared by the selected round.
-            selected = (root / state["best"]["path"]).parent / "mechanism.json"
-            if selected.is_file():
-                mechanism = json.loads(selected.read_text(encoding="utf-8"))
+            # The independent final rechecks the mechanism bound to the selected round.
+            mechanism = next((r.get("mechanism") for r in state["rounds"]
+                              if r["candidate_id"] == state["best"]["candidate_id"]), None)
         if mechanism is not None:
+            # A readable copy only; assessment uses the copy bound in state before execution.
             atomic_write_json(directory / "mechanism.json", mechanism)
         pending = {"kind": "final" if final else "round", "path": relative,
                    "candidate_id": state["best"].get("candidate_id", "baseline") if final
