@@ -25,15 +25,16 @@ Historical candidate text, review dispositions, and the earlier Proposed drafts 
 
 ## D001 — One distribution, three cores plus Apps, document contracts rather than shared business DTOs
 
-Decision: keep Knowledge, Harness, and Benchmark as sibling independent cores; Apps is the only assembler. Each core owns its types. Cross-boundary traffic uses versioned JSON envelopes with explicit conversion; there is no shared business `contracts` package. The technical-only `inferrsi.contracts` package re-exports only `RunSpec`, defined once in `contracts/runspec.py`; `contracts/claim.py` owns the same Verdict enum re-exported by Harness. These are not shared business DTOs. The old root `contracts.py`, `runspec.py`, `claim.py`, and `_json_v1.py` files are retired without forwarding shells.
+Decision: keep Knowledge, Harness, and Benchmark as sibling independent cores; Apps is the only assembler. Each core owns its types. Cross-boundary traffic uses versioned JSON envelopes with explicit conversion; there is no shared business `contracts` package. The technical-only `inferrsi.contracts` package re-exports only `RunSpec`, defined once in `contracts/runspec.py`; `contracts/claim.py` owns the same Verdict enum re-exported by Harness. These are not shared business DTOs. The old root `contracts.py`, `runspec.py`, `claim.py`, and `_json_v1.py` files are retired without forwarding shells, and so are the old root `_repo_pack_data.py` and `evidence_paths.py`.
 
 Permitted shared technical leaves are only:
 
 - `inferrsi.contracts.json_v1` — the canonical encoder (D002);
 - `inferrsi.contracts.runspec` and `inferrsi.contracts.claim` — the existing RunSpec and Verdict technical types, with only RunSpec re-exported by the package initializer;
-- `inferrsi._repo_pack_data` — the neutral raw pack-data reader and the existing static data enumeration (D020).
+- `inferrsi.contracts.evidence` — the existing evidence segment names and pure path rules; it reads and writes no filesystem state and is not re-exported by the package initializer;
+- `inferrsi.resources.repository_packs` — the neutral raw pack-data reader and the existing static data enumeration (D020), formerly root `inferrsi._repo_pack_data`. Its parent initializer `resources/__init__.py` imports nothing.
 
-The neutral leaf carries no target selection, task, scoring, scheduling, or public business DTO, and imports none of K/H/B/Apps.
+The neutral leaf carries no target selection, task, scoring, scheduling, or public business DTO, and imports none of K/H/B/Apps. It still finds the Harness-owned `pack.json` through `files("inferrsi").joinpath("harness", "data", "repo_packs", ...)`, so reading it never imports Harness. Creating the evidence directories is host I/O and stays in Apps, in `inferrsi.apps.evidence_layout`; that module is not a shared leaf. The list is exact: a `contracts.` or `resources.` prefix admits no other module.
 
 Why: this matches the accepted A–D direction and removes the reverse dependency that a shared DTO package creates. Rejected: a shared business DTO package; Apps owning scoring/sampling/budget algorithms; creating empty packages to declare migration done.
 

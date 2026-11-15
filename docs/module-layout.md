@@ -24,8 +24,25 @@ The four target modules are peers: `knowledge`, `harness`, `benchmark`, and
 `apps`. Knowledge, Harness, and Benchmark do not import one another. Apps is
 the only assembler. `src/inferrsi/contracts/__init__.py` re-exports only
 `RunSpec`, defined once in `contracts/runspec.py`. The technical-only package
-also owns `json_v1.py` and `claim.py`; it contains no shared business DTOs
-and performs no core or host initialization.
+also owns `json_v1.py`, `claim.py` and `evidence.py`; it contains no shared
+business DTOs and performs no core or host initialization.
+
+`contracts/evidence.py` holds the evidence segment names and the per-campaign
+path rules. It only builds paths and does no filesystem I/O. Creating the
+directories is `apps/evidence_layout.py`, which reuses those rules, so `mkdir`
+stays out of the contracts package. `resources/repository_packs.py` is the
+neutral repository-pack facade: the one `REPO_TYPES` tuple and the `pack.json`
+reader. It imports no `inferrsi` module, and `resources/__init__.py` imports
+nothing. Neither package is a fourth core. C2 (#451) moved these out of root
+`_repo_pack_data.py` and `evidence_paths.py` and deleted both root files, with
+no forwarding shell or alias.
+
+The flat package root is retired in stages.
+`tests/test_package_root_inventory.py` pins the root to an exact file set: 23
+tracked files after C1 and 21 after C2. Each later removal PR shrinks that set
+in the same change. The guard does not assert the final two-file root
+(`__init__.py` and `__main__.py`) early, and the build-generated `_version.py`
+is ignored wheel metadata, not a tracked root file.
 
 The current `src/inferrsi/harness/` tree is a mixed implementation. Its
 presence is not the target Harness boundary and is not evidence that the four
@@ -95,10 +112,11 @@ Several flat modules remain shared seams until their slice starts.
 | `apps/legacy/` | Old run composition, old `evaluate` entry and HTML report | Supplies the Git source snapshot from `infra/targets`; path follows the confirmed split, #371 still proposed |
 | `evaluation.py`, `execution.py`, `reporting.py` | Root forwarders of the old run chain | Each forwards to one `apps.legacy` module; retired by R01 |
 | `model/validators/` | Benchmark-leaning checks | Not moved |
-| `infra/`, `runspec.py`, `inspection.py` | Seams used by the current tree | Not a fourth core |
-| `summary_chart.py`, `evidence_paths.py` | Current report helpers | Not moved |
-| `claim.py` | Verdict vocabulary used by current checks | Not moved and not a fourth core |
-| `contracts.py` | `RunSpec` compatibility re-export | Must remain one module file |
+| `infra/`, `inspection.py` | Seams used by the current tree | Not a fourth core |
+| `summary_chart.py` | Current report helper | Not moved |
+| `contracts/` (`runspec.py`, `json_v1.py`, `claim.py`, `evidence.py`) | Technical-only contracts: RunSpec, canonical JSON, verdict vocabulary, evidence segment and path rules | Exact module set; the initializer re-exports only `RunSpec`; not a fourth core |
+| `apps/evidence_layout.py` | Evidence directory creation over the `contracts/evidence.py` path rules | The `mkdir` half of former root `evidence_paths.py`; host I/O stays in Apps |
+| `resources/repository_packs.py` | Neutral `REPO_TYPES` and `repository_pack` facade | Former root `_repo_pack_data.py`, bytes unchanged; import-free initializer; not a fourth core |
 | `knowledge/data/`, `harness/data/` | Packaged resources, placed by owner since K02 | Corpus under Knowledge; pack descriptions under Harness |
 
 ## Import gate
@@ -206,18 +224,23 @@ permitted:
 | Importer | Exact target | Route |
 | --- | --- | --- |
 | `catalog` | `inferrsi.knowledge.catalog` | Named symbols only; not `repository_pack` |
-| `catalog` | `inferrsi._repo_pack_data` | `REPO_TYPES`, `repository_pack` |
+| `catalog` | `inferrsi.resources.repository_packs` | `REPO_TYPES`, `repository_pack` |
 | `_source_snapshot` | `inferrsi.knowledge._source_snapshot` | Same-named Knowledge module |
 | `skill_catalog` | `inferrsi.knowledge.skill_catalog` | Same-named Knowledge module |
 | `_skill_selection` | `inferrsi.knowledge._skill_selection` | Same-named Knowledge module |
 | `research` | `inferrsi.knowledge.research` | Same-named Knowledge module |
 | `knowledge_store` | `inferrsi.knowledge.knowledge_store` | Same-named Knowledge module |
 | `knowledge_operations` | `inferrsi.knowledge.knowledge_operations` | Same-named Knowledge module |
-| `infra.inspection` | `inferrsi._repo_pack_data` | Direct, never through `catalog` or H |
+| `infra.inspection` | `inferrsi.resources.repository_packs` | Direct, never through `catalog` or H |
 
 These nine pairs are the only compatibility exceptions. A module prefix does
 not authorize an adjacent module, and a second importer of an allowed
-Knowledge target fails. `inferrsi._repo_pack_data` has exactly two permitted
+Knowledge target fails. C2 (#451) redirected the two data-leaf targets from
+`inferrsi._repo_pack_data` to `inferrsi.resources.repository_packs`; the count
+stays nine. Retiring the eight root-shell pairs and replacing the
+`infra.inspection` edge with a permanent exact rule outside this allowlist is
+later R1 work (#412) and is not done by C2.
+`inferrsi.resources.repository_packs` has exactly two permitted
 importers outside Knowledge: root `catalog` and `infra.inspection`. An import
 of that leaf from inside `inferrsi.knowledge`, for example from
 `inferrsi/knowledge/catalog.py`, is intra-closure and not a tenth exception.
@@ -233,14 +256,19 @@ The leaf's own import rule and `REPO_TYPES` object identity govern it.
   module-level assignment, `__getattr__`, `sys.modules`, dynamic imports, and
   unlisted import lines or names fail. An old leaf that keeps a body after its
   Knowledge module exists also fails.
-- **Data leaf.** `inferrsi._repo_pack_data` imports only `json`,
+- **Data leaf.** `inferrsi.resources.repository_packs` imports only `json`,
   `importlib.resources`, `typing.Any`, and `from __future__ import
   annotations`, anywhere in the file. It defines only `REPO_TYPES` and
   `repository_pack`. Any `inferrsi.*` import or dynamic import in it fails.
+  Python runs its parent initializer `resources/__init__.py` with every import
+  of the leaf, so that initializer is a docstring only: any import, any other
+  statement or a dynamic import there fails.
 - **Closures.** A Knowledge module reaches nothing outside Knowledge except
-  the data leaf and `inferrsi.contracts.json_v1`, the canonical encoder in the P0a
+  the data leaf with its import-free `inferrsi.resources` initializer and
+  `inferrsi.contracts.json_v1`, the canonical encoder in the P0a
   design. The gate admits its exact RunSpec-only parent initialization closure,
-  not arbitrary `contracts.*` modules. Benchmark modules and every `inferrsi.harness.*` module reach no
+  not arbitrary `contracts.*` or `resources.*` modules, and `contracts.evidence`
+  is not a Knowledge input. Benchmark modules and every `inferrsi.harness.*` module reach no
   other core, no Apps module, and no old root leaf. Apps reaches no old root
   leaf. `inferrsi.infra`
   reaches no Knowledge, Harness, Benchmark, or Apps module, so `infra` → root
@@ -282,6 +310,22 @@ allowed imports, two symbols, top-level shape and the two permitted importers
 are unchanged, so `infra` still gains no edge into Harness. That manifest
 revision goes through formal architecture review with the K02 move; the
 implementer does not self-approve it.
+
+C2 (#451) moved the leaf from `src/inferrsi/_repo_pack_data.py` to
+`src/inferrsi/resources/repository_packs.py` without changing a byte and
+deleted the root file, with no forwarding shell or alias. The manifest relocks
+`technical_leaf.module` and `technical_leaf.file` to the new location, records
+the move as `technical_leaf.module_path_revision`, and points the
+`neutral_leaf_export` route and the `catalog` and `infra.inspection` pairs at
+the new module. `file_sha256` keeps its K02 value and is now checked against
+the relocated file. The importlib anchor, allowed imports, two symbols,
+top-level shape, `REPO_TYPES` object identity and the two permitted importers
+are unchanged, so `infra` still gains no edge into Harness; the
+`top_level_shape` text is restated for the relocated file and also names the
+import-free parent initializer. The K01 and K02 records above stay as
+provenance. The nine pairs remain, so the allowlist blocker remains. That
+manifest revision requires formal architecture review; the implementer does
+not self-approve it, and passing tests are not that review.
 
 ## Old `run` exit codes
 

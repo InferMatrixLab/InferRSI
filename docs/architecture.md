@@ -169,17 +169,23 @@ src/inferrsi/
       run.py                Old run composed from Harness, Benchmark and the report
       evaluation.py         Old evaluate entry: RunSpec to the Benchmark gates
       reporting.py          HTML evidence report
-  runspec.py, contracts.py   Immutable experiment contract and compatibility export
+  contracts/
+    runspec.py              Immutable experiment contract; the initializer re-exports only RunSpec
+    json_v1.py              Canonical inferrsi-json-v1 encoder and decoder
+    claim.py                Campaign verdict labels PASS/FAIL/INCONCLUSIVE; rules only
+    evidence.py             Evidence segments and per-campaign path rules; no filesystem I/O
+  resources/
+    __init__.py             Import-free initializer
+    repository_packs.py     Neutral REPO_TYPES and pack.json reader; imports no inferrsi module
   catalog.py                Knowledge search and cited context
   skill_catalog.py          Packaged/default or custom skill metadata/body/resource resolution
   knowledge_operations.py   Normalized reads and bounded Collect (KnowledgeReader)
   knowledge_store.py        Authorized local store Create/Update (KnowledgeStore)
   research.py               Read-only model-aware discovery joined over catalog queries
   _skill_selection.py       Deterministic lexical skill ranking and context view
-  claim.py                  Campaign verdict labels PASS/FAIL/INCONCLUSIVE; rules only
-  evidence_paths.py         Per-campaign evidence tree: plan/results/patch/validator
   summary_chart.py          Stdlib SVG gain chart (chain/branch) and report figure spec
   apps/
+    evidence_layout.py      Create the plan/results/patch/validator evidence directories
     campaign.py             Knowledge values connected to Harness campaign records
     views/
       optimization_chart.py Managed optimization objective/token curves and final result
