@@ -241,7 +241,9 @@ assessment 的 `profile_evidence` 按重复配对比较每个区域和计数，`
 两个开关在 `campaign start` 时冻结，默认都不改变原有判定：
 
 - `--require-explanation`：只有 `explained` 的候选可以被采纳。`unsupported`、`contradicted` 记为 FAIL，`unverifiable`、`not_declared` 记为 INCONCLUSIVE；两类都不阻塞后续轮次。
-- `--decision paired`：用 `paired_statistics` 判定，要求至少 5 次重复。区间整体高于门槛为 PASS；跨过门槛为 FAIL，`reason` 为 `within_noise`，搜索继续；统计不可用时为 INCONCLUSIVE。默认 `point` 保持中位数点估计规则。
+- `--decision paired`：用 `paired_statistics` 判定，要求至少 5 次重复。区间整体高于门槛为 PASS；跨过门槛为 FAIL，`reason` 为 `within_noise`，搜索继续；区间整体低于门槛为 FAIL（`performance_gate_not_met`）；统计不可用时为 INCONCLUSIVE，不退回未配对的中位数规则。默认 `point` 保持中位数点估计规则。`paired` 只看区间，不再看点估计：点估计未过门槛、但配对区间整体高于门槛时判 PASS（`paired_interval_above_gate`）；反过来点估计过门槛、区间跨过门槛时判 FAIL（`within_noise`）。两者不一致时 `paired_statistics.agrees_with_point_gate` 为 `false`，供评审查看。
+
+两个开关同时打开时按固定顺序判定：先由 `--decision` 得到性能结论，`--require-explanation` 只作用于性能结论为 PASS 的轮次，把它降为 FAIL 或 INCONCLUSIVE，不会提升或改写非 PASS 的结论。因此性能结论已是 FAIL（包括 `within_noise`）或 INCONCLUSIVE 时，无论 `explanation.status` 是什么，最终 verdict 和 `reason` 都保持性能结论；`explanation` 仍完整写入报告。
 
 提交未修改的候选可以作为 A/A 对照，`paired_statistics` 的区间即给出该环境的噪声范围。
 

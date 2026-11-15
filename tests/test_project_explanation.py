@@ -163,6 +163,66 @@ def test_paired_decision_fails_within_noise_without_blocking(project, capsys):
     assert assessment["reason"] == "paired_interval_above_gate"
 
 
+@pytest.mark.parametrize("config,mechanism,verdict,reason,status", [
+    # The paired gate fails first; an unverifiable explanation does not turn it into
+    # INCONCLUSIVE, because the explanation switch only acts on a performance PASS.
+    ({**BASELINE, "metric": 9.85}, {"mechanism": "Names a counter never measured",
+                                    "expect": [{"counter": "l2_hit_rate",
+                                                "direction": "increase"}]},
+     "FAIL", "within_noise", "unverifiable"),
+    ({**BASELINE, "metric": 9.85}, None, "FAIL", "within_noise", "not_declared"),
+    # A paired PASS is still downgraded by the explanation switch.
+    (FUSED, None, "INCONCLUSIVE", "explanation_not_declared", "not_declared"),
+    (FUSED, {"mechanism": "Claims the norm got slower", "expect": [
+        {"region": "norm", "direction": "increase"}]},
+     "FAIL", "explanation_contradicted", "contradicted"),
+    (FUSED, FUSION, "PASS", "paired_interval_above_gate", "explained"),
+])
+def test_both_switches_apply_the_decision_before_the_explanation(
+    project, capsys, config, mechanism, verdict, reason, status,
+):
+    assert start(project, capsys, "--decision", "paired", "--require-explanation") == 0
+    assessment = submit(project, capsys, config, mechanism)
+    assert assessment["decision"] == "paired" and assessment["require_explanation"] is True
+    assert assessment["explanation"]["status"] == status
+    assert assessment["verdict"] == verdict and assessment["reason"] == reason
+    assert assessment["eligible"] is (verdict == "PASS")
+
+
+def test_paired_decision_passes_when_only_the_point_estimate_misses_the_gate(
+    project, capsys,
+):
+    """The paired decision reads the interval alone and records the disagreement."""
+    repo, protocol, _, root = project
+    repetitions = 10
+    # Index 0 is the warmup; pairs run at ten different levels, as drifting load would.
+    levels = [10.0 + k for k in range(repetitions + 1)]
+    (protocol / "measure.py").write_text(
+        "import json, sys\nfrom pathlib import Path\n"
+        "c = json.loads((Path(sys.argv[1]) / 'config.json').read_text())\n"
+        f"counter = Path({str(root.parent)!r}) / ('calls-' + c['side'])\n"
+        "k = int(counter.read_text()) if counter.exists() else 0\n"
+        "counter.write_text(str(k + 1))\n"
+        "Path(sys.argv[2]).write_text(json.dumps({'metric': c['series'][k]}))\n",
+        encoding="utf-8",
+    )
+    (repo / "config.json").write_text(json.dumps(
+        {"side": "baseline", "series": levels}), encoding="utf-8")
+    assert start(project, capsys, "--decision", "paired", repetitions=repetitions) == 0
+    # Every pair is 7% faster except one slow outlier, which shifts the candidate's
+    # independent median so that the point estimate is only about 0.5% better.
+    candidate = [value / 1.07 for value in levels]
+    candidate[1] = 200.0
+    assessment = submit(project, capsys, {"side": "candidate", "series": candidate})
+    assert 0 < assessment["improvement_pct"] < 1  # the point rule alone would FAIL
+    paired = assessment["paired_statistics"]
+    assert paired["gate_relation"] == "above_gate"
+    assert paired["interval"] == pytest.approx([1.07, 1.07])
+    assert paired["agrees_with_point_gate"] is False
+    assert assessment["verdict"] == "PASS"
+    assert assessment["reason"] == "paired_interval_above_gate"
+
+
 def test_paired_decision_requires_enough_repetitions(project, capsys):
     with pytest.raises(SystemExit):
         start(project, capsys, "--decision", "paired", repetitions=3)
