@@ -23,6 +23,52 @@ def _print(value: object) -> None:
     print(json.dumps(value, ensure_ascii=False, indent=2, allow_nan=False))
 
 
+def _fixed_attempt_command(args) -> int:
+    from .apps.api import read_attempt_view
+    from .harness.errors import PublicError
+
+    if args.storage_config is None:
+        raise ValueError("--record-ref requires --storage-config")
+    command = args.command
+    live = command == "dashboard" and args.live
+    if command == "dashboard":
+        if args.translations is not None:
+            raise ValueError("--translations requires a Dashboard --input directory")
+        if live and args.output is not None:
+            raise ValueError("--output cannot be used with --live")
+        if not live and args.port is not None:
+            raise ValueError("--port requires --live")
+    if command in ("report", "dashboard") and not live and args.output is None:
+        raise ValueError(f"fixed {command} requires --output")
+
+    record_ref = json.loads(args.record_ref.read_text(encoding="utf-8"))
+    config = json.loads(args.storage_config.read_text(encoding="utf-8"))
+    assessment_ref = None
+    if args.assessment_ref is not None:
+        assessment_ref = json.loads(args.assessment_ref.read_text(encoding="utf-8"))
+        if not isinstance(assessment_ref, dict):
+            raise ValueError("--assessment-ref requires an AssessmentRef JSON object")
+    try:
+        view = read_attempt_view(
+            record_ref, storage_config=config, assessment_ref=assessment_ref,
+            include_trace=command != "status",
+        )
+    except PublicError as exc:
+        raise ValueError(str(exc)) from exc
+
+    if command in ("status", "trace"):
+        _print(view)
+    elif live:
+        from .apps.views.dashboard_live import serve_dashboard
+
+        serve_dashboard(None, port=args.port if args.port is not None else 8765, fixed_attempt=view)
+    else:
+        from .apps.views.dashboard import write_attempt_document
+
+        _print({command: str(write_attempt_document(view, args.output, kind=command))})
+    return 0
+
+
 def _knowledge_reader(args) -> KnowledgeReader:
     return knowledge_reader(skill_root=args.skill_root, store_root=args.store)
 
@@ -328,30 +374,14 @@ def main(argv: list[str] | None = None) -> int:
             else:
                 print(text, end="")
             return 0
-        if args.command in ("status", "report"):
-            if args.command == "status" and args.record_ref is not None:
-                if args.storage_config is None:
-                    raise ValueError("--record-ref requires --storage-config")
-                from .apps.api import read_attempt_view
-                from .harness.errors import PublicError
-
-                record_ref = json.loads(args.record_ref.read_text(encoding="utf-8"))
-                config = json.loads(args.storage_config.read_text(encoding="utf-8"))
-                assessment_ref = (
-                    json.loads(args.assessment_ref.read_text(encoding="utf-8"))
-                    if args.assessment_ref is not None else None
-                )
-                if args.assessment_ref is not None and not isinstance(assessment_ref, dict):
-                    raise ValueError("--assessment-ref requires an AssessmentRef JSON object")
-                try:
-                    _print(read_attempt_view(
-                        record_ref, storage_config=config, assessment_ref=assessment_ref,
-                    ))
-                except PublicError as exc:
-                    raise ValueError(str(exc)) from exc
-                return 0
-            if args.command == "status" and (args.storage_config or args.assessment_ref):
+        if args.command in ("status", "report", "dashboard", "trace"):
+            if args.record_ref is not None:
+                return _fixed_attempt_command(args)
+            if args.storage_config is not None or args.assessment_ref is not None:
                 raise ValueError("--storage-config and --assessment-ref require --record-ref")
+            if args.command == "report" and args.output is not None:
+                raise ValueError("report --output requires --record-ref")
+        if args.command in ("status", "report"):
             directory = _run_directory(args.output_dir, args.run_id)
             if args.command == "status":
                 _print(json.loads((directory / "status.json").read_text(encoding="utf-8")))
