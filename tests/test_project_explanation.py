@@ -177,24 +177,48 @@ def test_invalid_mechanism_is_rejected_before_execution(project, capsys):
     assert state["rounds"] == []
 
 
-def test_candidate_cannot_rewrite_its_declared_mechanism(project, capsys):
-    """The declaration is bound in state before execution; rewriting the copy changes nothing."""
-    repo = project[0]
-    (repo / "engine.py").write_text(
+@pytest.mark.parametrize("target", ["state", "copy"])
+def test_rewriting_the_bound_declaration_is_detected(project, capsys, target):
+    """A candidate that rewrites state.json or the attempt copy cannot change the verdict."""
+    rewrite_state = (
+        "    state = parent / 'state.json'\n"
+        "    if state.is_file():\n"
+        "        data = json.loads(state.read_text())\n"
+        "        if data.get('pending') and data['pending'].get('mechanism'):\n"
+        "            data['pending']['mechanism'] = FORGED\n"
+        "            state.write_text(json.dumps(data))\n")
+    rewrite_copy = (
+        "    copy = parent / 'mechanism.json'\n"
+        "    if copy.is_file():\n"
+        "        copy.write_text(json.dumps(FORGED))\n")
+    (project[0] / "engine.py").write_text(
         "import json\nfrom pathlib import Path\n"
+        "FORGED = {'mechanism': 'forged', 'expect': [\n"
+        "    {'counter': 'dram_bytes', 'direction': 'decrease'}]}\n"
         "for parent in Path.cwd().parents:\n"
-        "    target = parent / 'mechanism.json'\n"
-        "    if target.is_file():\n"
-        "        target.write_text(json.dumps({'mechanism': 'forged', 'expect': [\n"
-        "            {'counter': 'dram_bytes', 'direction': 'decrease'}]}))\n"
+        + (rewrite_state if target == "state" else rewrite_copy) +
         "def compute(x):\n    return x * 2\n", encoding="utf-8")
     assert start(project, capsys, "--require-explanation") == 0
     wrong = {"mechanism": "Claims the norm got slower", "expect": [
         {"region": "norm", "direction": "increase"}]}
-    assessment = submit(project, capsys, FUSED, wrong)
-    assert assessment["explanation"]["status"] == "contradicted"
-    assert assessment["explanation"]["mechanism"] == "Claims the norm got slower"
-    assert assessment["eligible"] is False
-    _, state, _ = read_records(project[3])
+    repo, _, _, root = project
+    (repo / "config.json").write_text(json.dumps(FUSED), encoding="utf-8")
+    path = root.parent / "mechanism.json"
+    path.write_text(json.dumps(wrong), encoding="utf-8")
+    main(["campaign", "round", "--directory", str(root), "--candidate", str(repo),
+          "--hypothesis", "Synthetic candidate", "--mechanism-file", str(path)])
+    view = json.loads(capsys.readouterr().out)
+    state = json.loads((root / "state.json").read_text())
     assert state["best"]["kind"] == "baseline"
-    assert state["rounds"][-1]["mechanism"]["mechanism"] == "Claims the norm got slower"
+    if target == "copy":
+        # The sealed copy no longer matches its digest: an integrity failure blocks the
+        # campaign and nothing is adopted.
+        assert view["state"] == "blocked"
+        assert "mechanism changed" in view["integrity_error"]
+    else:
+        # state.json is rewritten wholesale at settle from the in-memory record, so the
+        # forged pending entry is discarded and the original declaration is judged.
+        assert view["state"] == "active"
+        record = state["rounds"][-1]
+        assert record["mechanism"]["mechanism"] == "Claims the norm got slower"
+        assert record["assessment"]["explanation"]["status"] == "contradicted"

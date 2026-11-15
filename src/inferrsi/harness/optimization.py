@@ -519,6 +519,15 @@ def _settle(root, plan, state, pending, execution, assess):
         _load(root)
         if candidates.identity(directory / plan["candidate_name"]) != pending["candidate_sha256"]:
             raise ValueError("Submitted candidate changed during evaluation")
+        bound = pending.get("mechanism_sha256")
+        if bound is not None and not (
+            digest(pending.get("mechanism")) == bound
+            and (directory / "mechanism.json").is_file()
+            and not (directory / "mechanism.json").is_symlink()
+            and digest(json.loads((directory / "mechanism.json").read_text(encoding="utf-8")))
+            == bound
+        ):
+            raise ValueError("Declared mechanism changed during evaluation")
     except (OSError, ValueError, TypeError, KeyError) as error:
         state["integrity_error"] = str(error)
     try:
@@ -533,7 +542,11 @@ def _settle(root, plan, state, pending, execution, assess):
                 or execution["returncode"] < 0):
             raise ValueError(
                 "Execution did not finish normally; candidate result cannot resume search")
-        assessment = assess(root, directory, plan, execution)
+        # Pass the declaration held in memory since before execution; the candidate
+        # can write files during execution, including state.json and attempt copies.
+        assessment = (assess(root, directory, plan, execution, mechanism=pending["mechanism"])
+                      if pending.get("mechanism") is not None
+                      else assess(root, directory, plan, execution))
         if not isinstance(assessment, dict) or assessment.get("status") not in (
             "completed", "candidate_failure", "infrastructure_failure"
         ):
@@ -633,16 +646,17 @@ def evaluate_round(root: Path, *, candidate: Path | None, hypothesis: str,
             # The independent final rechecks the mechanism bound to the selected round.
             mechanism = next((r.get("mechanism") for r in state["rounds"]
                               if r["candidate_id"] == state["best"]["candidate_id"]), None)
+        mechanism_sha256 = None
         if mechanism is not None:
-            # A readable copy only; assessment uses the copy bound in state before execution.
             atomic_write_json(directory / "mechanism.json", mechanism)
+            mechanism_sha256 = digest(mechanism)
         pending = {"kind": "final" if final else "round", "path": relative,
                    "candidate_id": state["best"].get("candidate_id", "baseline") if final
                    else f"candidate-{count + 1:03d}",
                    "hypothesis": hypothesis, "strategy": strategy,
                    "knowledge_refs": knowledge_refs, "observations": observations,
                    **diagnosis,
-                   "mechanism": mechanism,
+                   "mechanism": mechanism, "mechanism_sha256": mechanism_sha256,
                    "candidate_sha256": fingerprint,
                    "contexts": list(state["contexts"]), "started_at": time.time()}
         state["pending"] = pending

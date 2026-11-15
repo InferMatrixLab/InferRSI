@@ -47,15 +47,13 @@ def _session_execute(root, directory, plan, deadline):
                          None, environment=environment)
 
 
-def _session_assess(root, directory, plan, execution):
+def _session_assess(root, directory, plan, execution, mechanism=None):
     from inferrsi.harness.task_protocol import run as run_protocol
 
     if plan["task_source"] == "project":
         from inferrsi.harness.project import assess
 
-        pending = json.loads((root / "state.json").read_text(encoding="utf-8"))["pending"]
-        return assess(directory, plan["evaluation_settings"], execution,
-                      mechanism=(pending or {}).get("mechanism"))
+        return assess(directory, plan["evaluation_settings"], execution, mechanism=mechanism)
     return run_protocol(root / "frozen", plan["frozen_files"]["optimization.py"], "assess",
                         directory=directory, settings=plan["evaluation_settings"],
                         execution=execution)
