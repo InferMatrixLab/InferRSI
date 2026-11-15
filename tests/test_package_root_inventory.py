@@ -1,8 +1,8 @@
-"""Exact inventory of the files directly under ``src/inferrsi/`` (#451 C1).
+"""Exact inventory of the files directly under ``src/inferrsi/`` (#451 C1, C2).
 
 The flat package root is being retired. This guard pins the root to the exact file
-set left after C1 and rejects any other root file. Each later removal PR (C2, R1,
-A1/A2, M1) shrinks ``ROOT_FILES`` in the same change, until only ``__init__.py`` and
+set left after C2 and rejects any other root file. Each later removal PR (R1, A1/A2,
+M1) shrinks ``ROOT_FILES`` in the same change, until only ``__init__.py`` and
 ``__main__.py`` remain. It does not assert that final state early.
 """
 
@@ -15,14 +15,16 @@ import pytest
 
 REPO = Path(__file__).resolve().parents[1]
 PACKAGE = "src/inferrsi"
-# The 27 tracked root files before C1, minus the four that C1 moved into contracts/.
+# The 27 tracked root files before C1, minus the four that C1 moved into contracts/
+# and the two that C2 moved into resources/, contracts/ and apps/.
 RETIRED_BY_C1 = frozenset({"_json_v1.py", "claim.py", "contracts.py", "runspec.py"})
+RETIRED_BY_C2 = frozenset({"_repo_pack_data.py", "evidence_paths.py"})
+RETIRED = RETIRED_BY_C1 | RETIRED_BY_C2
 ROOT_FILES = frozenset(
     {
         "__init__.py",
         "__main__.py",
         "_mindie_read_worker.py",
-        "_repo_pack_data.py",
         "_skill_selection.py",
         "_source_snapshot.py",
         "arguments.py",
@@ -30,7 +32,6 @@ ROOT_FILES = frozenset(
         "catalog.py",
         "cli.py",
         "evaluation.py",
-        "evidence_paths.py",
         "execution.py",
         "inspection.py",
         "knowledge_operations.py",
@@ -81,11 +82,21 @@ def root_files(repo: Path) -> set[str]:
     return present - _listed(repo, "--deleted")
 
 
-def test_inventory_is_the_exact_post_c1_set() -> None:
-    assert len(ROOT_FILES) == 23
-    assert not ROOT_FILES & RETIRED_BY_C1
+def test_inventory_is_the_exact_post_c2_set() -> None:
+    assert len(ROOT_FILES) == 21
+    assert len(RETIRED_BY_C1) == 4 and len(RETIRED_BY_C2) == 2
+    assert not ROOT_FILES & RETIRED
+    # 27 before C1, 23 after C1, 21 after C2.
+    assert len(ROOT_FILES | RETIRED) == 27
+    assert len(ROOT_FILES | RETIRED_BY_C2) == 23
     assert GENERATED not in ROOT_FILES
     assert {"__init__.py", "__main__.py"} <= ROOT_FILES
+    # C2 moved its two files; it left nothing behind under either old name.
+    assert (REPO / PACKAGE / "resources" / "repository_packs.py").is_file()
+    assert (REPO / PACKAGE / "contracts" / "evidence.py").is_file()
+    assert (REPO / PACKAGE / "apps" / "evidence_layout.py").is_file()
+    for name in RETIRED:
+        assert not (REPO / PACKAGE / name).exists(), name
 
 
 def test_on_disk_root_matches_the_inventory() -> None:
@@ -104,7 +115,7 @@ def test_tracked_root_matches_the_inventory() -> None:
     assert ignored.returncode == 0
 
 
-@pytest.mark.parametrize("name", ["helper.py", "py.typed", GENERATED, *sorted(RETIRED_BY_C1)])
+@pytest.mark.parametrize("name", ["helper.py", "py.typed", GENERATED, *sorted(RETIRED)])
 def test_an_added_root_file_is_rejected(name: str) -> None:
     assert inventory_errors(set(ROOT_FILES) | {name}) == [
         f"unexpected root file {PACKAGE}/{name}: a new module belongs in a subpackage"
@@ -116,8 +127,19 @@ def test_a_removed_root_file_must_shrink_the_inventory() -> None:
         f"missing root file {PACKAGE}/cli.py: shrink ROOT_FILES in the PR that removes it"
     ]
     # A later removal PR passes once it shrinks the expected set with the files.
-    smaller = ROOT_FILES - {"_repo_pack_data.py", "evidence_paths.py"}
+    smaller = ROOT_FILES - {"catalog.py", "inspection.py"}
     assert inventory_errors(set(smaller), smaller) == []
+    # C2 itself: the 23-file set it started from no longer matches the 21-file root.
+    before_c2 = ROOT_FILES | RETIRED_BY_C2
+    assert inventory_errors(set(ROOT_FILES), before_c2) == [
+        f"missing root file {PACKAGE}/{name}: shrink ROOT_FILES in the PR that removes it"
+        for name in sorted(RETIRED_BY_C2)
+    ]
+    # Keeping either old file beside its moved implementation is rejected.
+    assert inventory_errors(set(before_c2)) == [
+        f"unexpected root file {PACKAGE}/{name}: a new module belongs in a subpackage"
+        for name in sorted(RETIRED_BY_C2)
+    ]
 
 
 def test_git_view_reports_root_changes_before_and_after_staging(tmp_path: Path) -> None:

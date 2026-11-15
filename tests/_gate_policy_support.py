@@ -59,8 +59,17 @@ CANONICAL_ENCODER = "inferrsi.contracts.json_v1"
 # The initializer's single import. Python runs the initializer for every contracts
 # import, so a module that may use the encoder also loads these two names, and no other.
 CONTRACTS_INIT_EXPORT = ("inferrsi.contracts.runspec", "RunSpec")
+# #451 C2 adds exactly one module: the evidence segment and path rules. Directory
+# creation is ``inferrsi.apps.evidence_layout`` and is not a contracts module.
+CONTRACTS_EVIDENCE = "inferrsi.contracts.evidence"
 CONTRACTS_MODULES = frozenset(
-    {CONTRACTS_PACKAGE, CANONICAL_ENCODER, CONTRACTS_INIT_EXPORT[0], "inferrsi.contracts.claim"}
+    {
+        CONTRACTS_PACKAGE,
+        CANONICAL_ENCODER,
+        CONTRACTS_INIT_EXPORT[0],
+        "inferrsi.contracts.claim",
+        CONTRACTS_EVIDENCE,
+    }
 )
 # Names that load or build modules at run time. Any use fails closed.
 # P0b scans only these three spellings; getattr, exec, eval, runpy, and
@@ -423,8 +432,14 @@ def _allowed_key(entry: str) -> str:
     return f"{node.module}.{node.names[0].name}"
 
 
-def _leaf_errors(tree: ast.Module, technical_leaf: dict[str, Any]) -> list[str]:
-    """The neutral data leaf: listed stdlib imports anywhere, two symbols only."""
+def _leaf_errors(
+    tree: ast.Module, technical_leaf: dict[str, Any], package: str = "inferrsi"
+) -> list[str]:
+    """The neutral data leaf: listed stdlib imports anywhere, two symbols only.
+
+    ``package`` is the leaf's own package, so a relative import is reported by the
+    module it really names.
+    """
     module = technical_leaf["module"]
     allowed = {_allowed_key(entry) for entry in technical_leaf["allowed_imports"]}
     symbols = set(technical_leaf["two_symbols"])
@@ -433,7 +448,7 @@ def _leaf_errors(tree: ast.Module, technical_leaf: dict[str, Any]) -> list[str]:
         if isinstance(node, ast.Import):
             names = [alias.name for alias in node.names]
         elif isinstance(node, ast.ImportFrom):
-            base = _from_base(node, "inferrsi")
+            base = _from_base(node, package)
             names = [base if base in allowed else f"{base}.{alias.name}" for alias in node.names]
         else:
             continue
@@ -454,6 +469,28 @@ def _leaf_errors(tree: ast.Module, technical_leaf: dict[str, Any]) -> list[str]:
             else:
                 errors.append(f"{module} defines {name} at top level")
     errors.extend(f"{module} lacks {name}" for name in sorted(symbols - defined))
+    return errors
+
+
+def _initializer_errors(module: str, tree: ast.Module, package: str) -> list[str]:
+    """A parent initializer of the data leaf: a docstring and no other statement.
+
+    Python runs it on every import of the leaf, so it may import nothing at all, not
+    even a standard-library module, and may define nothing.
+    """
+    errors: list[str] = []
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            errors += [f"{module} imports {alias.name}" for alias in node.names]
+        elif isinstance(node, ast.ImportFrom):
+            base = _from_base(node, package)
+            errors += [f"{module} imports {base}.{alias.name}" for alias in node.names]
+    if _has_dynamic_import(tree):
+        errors.append(f"{module} has a dynamic import")
+    for index, node in enumerate(tree.body):
+        if (index == 0 and _is_docstring(node)) or isinstance(node, (ast.Import, ast.ImportFrom)):
+            continue
+        errors.append(f"{module} has a {type(node).__name__} statement")
     return errors
 
 
@@ -556,7 +593,15 @@ def first_wave_report(
                 name, graph.trees[name], graph.packages[name], sources[name]
             )
     if leaf in graph.trees:
-        violations += _leaf_errors(graph.trees[leaf], manifest["technical_leaf"])
+        violations += _leaf_errors(
+            graph.trees[leaf], manifest["technical_leaf"], graph.packages[leaf]
+        )
+    # #451 C2: the leaf sits in a package, so Python runs that package's initializer
+    # with it. Only those exact parent initializers join the leaf, and each must stay
+    # import-free. A sibling module under the same package gains nothing.
+    leaf_parents = _package_ancestors(leaf, graph.trees)
+    for parent in sorted(leaf_parents):
+        violations += _initializer_errors(parent, graph.trees[parent], graph.packages[parent])
     violations += _contracts_errors(graph)
     # Inside the contracts package a Knowledge module may name only the encoder. The
     # initializer and its RunSpec module load with that import and are never named.
@@ -572,7 +617,12 @@ def first_wave_report(
     encoder_closure = (CANONICAL_ENCODER, CONTRACTS_PACKAGE, CONTRACTS_INIT_EXPORT[0])
 
     def outside_knowledge(node: str) -> bool:
-        return _core_of(node) != "knowledge" and node != leaf and node not in encoder_closure
+        return (
+            _core_of(node) != "knowledge"
+            and node != leaf
+            and node not in leaf_parents
+            and node not in encoder_closure
+        )
 
     def benchmark_forbidden(node: str) -> bool:
         return _core_of(node) in ("knowledge", "harness", "apps") or node in old_leaves

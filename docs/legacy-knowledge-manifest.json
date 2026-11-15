@@ -1,7 +1,7 @@
 {
   "$schema": "urn:inferrsi:docs:legacy-knowledge-manifest:v1",
-  "description": "First-wave compatibility exceptions for seven root Knowledge leaves plus the neutral technical data leaf. P0b froze the first revision at 0da7e2f960cd4ec994ae8eddea5b71023c5379ca and K01 re-recorded every leaf hash before the code move. This K02 revision changes only the neutral data leaf's locked file hash, because the pack.json resource moved to the Harness root. It is not a wildcard approval and changes only through formal review. D018/D020 chose these exact edges. file_sha256 is the old root leaf before the move, and line references are at the recorded base_commit.",
-  "base_commit": "d7de7f3a7a4c089da08cc17a0117a54d89466dee",
+  "description": "First-wave compatibility exceptions for seven root Knowledge leaves plus the neutral technical data leaf. P0b froze the first revision at 0da7e2f960cd4ec994ae8eddea5b71023c5379ca and K01 re-recorded every leaf hash before the code move. K02 changed only the neutral data leaf's locked file hash, because the pack.json resource moved to the Harness root. This C2 revision (#451) changes only where that leaf lives: it moves byte for byte from inferrsi._repo_pack_data to inferrsi.resources.repository_packs, and the two declared importers of the leaf point at the new module. The leaf's bytes and locked file hash, the seven root leaf hashes and the nine-pair count are unchanged. It is not a wildcard approval and changes only through formal review. D018/D020 chose these exact edges. file_sha256 is the old root leaf before the move, and line references are at the base_commit recorded by the revision that wrote them; this revision re-records none of them.",
+  "base_commit": "cd8fcb452bd2c7969a7a6e2544aa1cb5f8ad5332",
   "revision_history": [
     {
       "base_commit": "0da7e2f960cd4ec994ae8eddea5b71023c5379ca",
@@ -20,6 +20,16 @@
       "reason": "K02 (#409) moves repo_packs/<pack>/pack.json to the Harness resource root per D007, so the neutral data leaf reads a new physical path and its locked file hash changes. The seven root leaf hashes, the nine compatibility pairs and catalog's two routes are unchanged.",
       "changed_file_sha256": {
         "src/inferrsi/_repo_pack_data.py": "a14edac8283b1f7b6b5794381c44d7c2632dda5cc01f03c557dc293d05523afd"
+      }
+    },
+    {
+      "base_commit": "d7de7f3a7a4c089da08cc17a0117a54d89466dee",
+      "stage": "K02",
+      "superseded_by": "C2 module-path revision at cd8fcb452bd2c7969a7a6e2544aa1cb5f8ad5332",
+      "reason": "C2 (#451) moves the neutral data leaf from src/inferrsi/_repo_pack_data.py to src/inferrsi/resources/repository_packs.py and deletes the root file in the same change. The file bytes are unchanged, so the locked file hash keeps its value. The leaf's module and file, the neutral_leaf_export target and the targets of the catalog and infra.inspection pairs change to the new module. The seven root leaf hashes and the nine-pair count are unchanged.",
+      "changed_technical_leaf": {
+        "module": "inferrsi._repo_pack_data",
+        "file": "src/inferrsi/_repo_pack_data.py"
       }
     }
   ],
@@ -55,7 +65,7 @@
     },
     {
       "importer": "catalog",
-      "target": "inferrsi._repo_pack_data",
+      "target": "inferrsi.resources.repository_packs",
       "note": "Root catalog statically re-exports REPO_TYPES and repository_pack from the business-free neutral technical leaf"
     },
     {
@@ -216,8 +226,8 @@
     },
     {
       "importer": "infra.inspection",
-      "target": "inferrsi._repo_pack_data",
-      "note": "infra.inspection imports the neutral leaf directly, never via catalog or H. D020 requires the import rewrite; K01 implementation must change only the import line (currently L10: from ..catalog import repository_pack → from .._repo_pack_data import repository_pack) and keep original functions, injected parameters, and returns unchanged"
+      "target": "inferrsi.resources.repository_packs",
+      "note": "infra.inspection imports the neutral leaf directly, never via catalog or H. D020 required the import rewrite; K01 changed only the import line (L10: from ..catalog import repository_pack → from .._repo_pack_data import repository_pack) and kept original functions, injected parameters, and returns unchanged. C2 (#451) changes that same line to from ..resources.repository_packs import repository_pack and nothing else in the module."
     }
   ],
   "catalog_two_routes": {
@@ -239,7 +249,7 @@
       "note": "K.catalog does not export repository_pack; the named-symbol-only K export excludes repository_pack"
     },
     "neutral_leaf_export": {
-      "target": "inferrsi._repo_pack_data",
+      "target": "inferrsi.resources.repository_packs",
       "symbols": [
         "REPO_TYPES",
         "repository_pack"
@@ -248,9 +258,9 @@
     }
   },
   "technical_leaf": {
-    "module": "inferrsi._repo_pack_data",
-    "note": "K01 created src/inferrsi/_repo_pack_data.py from the recorded original fragment plus a leading comment, the future import, and the three listed stdlib imports. K02 repointed the reader to the Harness resource root and extended that comment, so file_sha256 is relocked here. original_fragment keeps the P0b provenance text; current_fragment is the body in the file today. P0b recorded only the fragment.",
-    "file": "src/inferrsi/_repo_pack_data.py",
+    "module": "inferrsi.resources.repository_packs",
+    "note": "K01 created src/inferrsi/_repo_pack_data.py from the recorded original fragment plus a leading comment, the future import, and the three listed stdlib imports. K02 repointed the reader to the Harness resource root and extended that comment, so file_sha256 was relocked then. C2 (#451) moved the file byte for byte to src/inferrsi/resources/repository_packs.py and deleted the root file; file_sha256 is checked against the relocated file and keeps its K02 value. original_fragment keeps the P0b provenance text; current_fragment is the body in the file today. P0b recorded only the fragment.",
+    "file": "src/inferrsi/resources/repository_packs.py",
     "file_sha256": "751d7bf663318962a2e73cf9d75369e0f8f8c2bda27964c56e44021b9f86c992",
     "allowed_imports": [
       "json",
@@ -262,7 +272,7 @@
       "REPO_TYPES",
       "repository_pack"
     ],
-    "top_level_shape": "module docstring, a future import, the two symbols only, and no other business definitions or core imports",
+    "top_level_shape": "a leading comment (a module docstring is also accepted), the future import, exactly the three listed stdlib imports, the two symbols only, and no other definition, inferrsi import or dynamic import. Its one parent initializer, src/inferrsi/resources/__init__.py, is a module docstring and no other statement, so it imports nothing",
     "original_fragment": {
       "description": "REPO_TYPES and repository_pack body from current catalog.py (lines 12, 171-175)",
       "hash_convention": "fragment_sha256 is the SHA-256 of source plus one trailing newline",
@@ -285,13 +295,28 @@
       "new_line": "path = files(\"inferrsi\").joinpath(\"harness\", \"data\", \"repo_packs\", repo_type, \"pack.json\")",
       "unchanged": "The importlib anchor stays files(\"inferrsi\") and joins the physical path, so the leaf still imports no inferrsi module. allowed_imports, the two symbols, the top-level shape, REPO_TYPES object identity and the two permitted importers are unchanged, and infra gains no edge into Harness.",
       "review": "This manifest revision requires formal architecture review (amy-why-3459 and zengchuang-hw). The implementer does not self-approve it."
+    },
+    "module_path_revision": {
+      "stage": "C2",
+      "issue": "#451",
+      "reason": "Packaged-resource access leaves the flat package root. The leaf moves with its bytes unchanged, and the root file is deleted in the same change with no forwarding shell or sys.modules alias.",
+      "old_module": "inferrsi._repo_pack_data",
+      "new_module": "inferrsi.resources.repository_packs",
+      "old_file": "src/inferrsi/_repo_pack_data.py",
+      "new_file": "src/inferrsi/resources/repository_packs.py",
+      "old_file_sha256": "751d7bf663318962a2e73cf9d75369e0f8f8c2bda27964c56e44021b9f86c992",
+      "new_file_sha256": "751d7bf663318962a2e73cf9d75369e0f8f8c2bda27964c56e44021b9f86c992",
+      "parent_initializer": "src/inferrsi/resources/__init__.py",
+      "unchanged": "The file bytes, the importlib anchor files(\"inferrsi\") joined with harness/data/repo_packs/<repo>/pack.json, allowed_imports, the two symbols, REPO_TYPES object identity and the two permitted importers outside Knowledge (root catalog and infra.inspection) are unchanged. The leaf still imports no inferrsi module, and its new parent initializer imports nothing, so infra gains no edge into Harness.",
+      "review": "This manifest revision requires formal architecture review, as the K02 resource_path_revision did. The implementer does not self-approve it, and passing tests are not that review."
     }
   },
   "infra_inspection_rewrite": {
     "module": "src/inferrsi/infra/inspection.py",
     "current_import": "from ..catalog import repository_pack",
     "required_new_import": "from .._repo_pack_data import repository_pack",
-    "note": "K01 changes only this import line. Original functions, injected parameters, and returns stay the same. current_import records the line at base_commit."
+    "canonical_import": "from ..resources.repository_packs import repository_pack",
+    "note": "K01 changed only this import line, from current_import to required_new_import; both record that K01 rewrite. C2 (#451) changes the same line to canonical_import, which is the line in the module today. Original functions, injected parameters, and returns stay the same."
   },
-  "intra_closure_note": "An import of inferrsi._repo_pack_data from inside inferrsi.knowledge (for example inferrsi/knowledge/catalog.py) is intra-closure, not a tenth compatibility exception; it is governed by the leaf's no-inferrsi.*-import rule and by REPO_TYPES object identity, not by this allowlist."
+  "intra_closure_note": "An import of inferrsi.resources.repository_packs from inside inferrsi.knowledge (for example inferrsi/knowledge/catalog.py) is intra-closure, not a tenth compatibility exception; it is governed by the leaf's no-inferrsi.*-import rule, its import-free parent initializer and REPO_TYPES object identity, not by this allowlist."
 }

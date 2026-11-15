@@ -1,8 +1,7 @@
 # Compatibility shell. Knowledge names live in inferrsi.knowledge.catalog;
-# REPO_TYPES and repository_pack live in the neutral inferrsi._repo_pack_data.
+# REPO_TYPES and repository_pack live in the neutral inferrsi.resources.repository_packs.
 from __future__ import annotations
 
-from inferrsi._repo_pack_data import REPO_TYPES, repository_pack
 from inferrsi.knowledge.catalog import (
     BACKENDS,
     KNOWLEDGE_REPOS,
@@ -15,6 +14,7 @@ from inferrsi.knowledge.catalog import (
     knowledge_records,
     search_knowledge,
 )
+from inferrsi.resources.repository_packs import REPO_TYPES, repository_pack
 
 __all__ = [
     "REPO_TYPES",

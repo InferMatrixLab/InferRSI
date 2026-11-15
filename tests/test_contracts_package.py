@@ -39,6 +39,8 @@ MODULES = (
     "inferrsi.contracts.runspec",
     "inferrsi.contracts.json_v1",
     "inferrsi.contracts.claim",
+    # #451 C2: evidence segment and path rules; no filesystem access.
+    "inferrsi.contracts.evidence",
 )
 COLD_IMPORT = """
 import importlib, json, sys
@@ -165,6 +167,12 @@ def test_module_bodies_do_no_io_on_import() -> None:
     assert "RunSpec" in defined["inferrsi.contracts.runspec"]
     assert {"CanonicalError", "decode", "encode"} <= set(defined["inferrsi.contracts.json_v1"])
     assert {"Verdict", "parse_verdict"} <= set(defined["inferrsi.contracts.claim"])
+    assert {"EVIDENCE_SEGMENTS", "campaign_evidence_root", "evidence_subpaths"} <= set(
+        defined["inferrsi.contracts.evidence"]
+    )
+    # The initializer still re-exports RunSpec alone; evidence is reached by its module.
+    assert not hasattr(contracts, "EVIDENCE_SEGMENTS")
+    assert not hasattr(contracts, "evidence_subpaths")
 
 
 @pytest.mark.parametrize("name", sorted(RETIRED))
