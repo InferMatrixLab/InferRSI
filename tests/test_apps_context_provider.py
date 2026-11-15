@@ -84,6 +84,8 @@ def test_discovery_delegates_selection_to_knowledge():
     )
     assert [item["pin"]["reference"] for item in draft.items] == [_CGROUP]
     assert draft.selection["ranking_applied"] is True
+    assert draft.selection["state"] == "applied"
+    assert draft.selection["tie_break"] == "ref_ascending"
 
 
 @pytest.mark.parametrize("overrides", [

@@ -61,7 +61,7 @@ class ContextProvider:
             query or "", ids=ids or None, revisions=_revisions(pins),
             context_bytes=max_bytes or None, **limits,
         )
-        selection = dict(result.get("selection") or result["retrieval"]["selection"])
+        selection = {**result.get("selection", {}), **result["retrieval"]["selection"]}
         selection.update(no_match=result["no_match"], collisions=result["collisions"])
         omissions = [_omission(item, stage="knowledge_selection") for item in result["omissions"]]
         limitations = list(result["limitations"])
