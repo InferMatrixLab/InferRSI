@@ -222,3 +222,37 @@ def test_rewriting_the_bound_declaration_is_detected(project, capsys, target):
         record = state["rounds"][-1]
         assert record["mechanism"]["mechanism"] == "Claims the norm got slower"
         assert record["assessment"]["explanation"]["status"] == "contradicted"
+
+
+def test_recovered_attempt_does_not_trust_a_rewritable_declaration(project, capsys, monkeypatch):
+    """After an interruption the bound declaration is unprovable, so it is not adopted."""
+    from inferrsi.harness import optimization_session
+
+    original = optimization_session._session_execute
+
+    def forge_then_crash(root, directory, plan, deadline):
+        original(root, directory, plan, deadline)
+        forged = {"mechanism": "forged", "expect": [
+            {"counter": "dram_bytes", "direction": "decrease"}]}
+        from inferrsi.infra.artifacts import digest
+        state = json.loads((root / "state.json").read_text())
+        state["pending"].update(mechanism=forged, mechanism_sha256=digest(forged))
+        (root / "state.json").write_text(json.dumps(state))
+        (directory / "mechanism.json").write_text(json.dumps(forged))
+        raise KeyboardInterrupt("coordinator interrupted after the candidate ran")
+
+    assert start(project, capsys, "--require-explanation") == 0
+    monkeypatch.setattr(optimization_session, "_session_execute", forge_then_crash)
+    wrong = {"mechanism": "Claims the norm got slower", "expect": [
+        {"region": "norm", "direction": "increase"}]}
+    with pytest.raises(KeyboardInterrupt):
+        submit(project, capsys, FUSED, wrong)
+    monkeypatch.setattr(optimization_session, "_session_execute", original)
+    assert main(["campaign", "recover", "--directory", str(project[3])]) == 0
+    capsys.readouterr()
+    _, state, _ = read_records(project[3])
+    record = state["rounds"][-1]
+    assert record["mechanism_unverified_after_recovery"] is True
+    assert record["assessment"]["explanation"]["status"] == "not_declared"
+    assert record["assessment"]["eligible"] is False
+    assert state["best"]["kind"] == "baseline" and state["state"] == "active"

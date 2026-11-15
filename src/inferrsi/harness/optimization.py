@@ -709,6 +709,13 @@ def recover(root: Path, assess) -> dict:
         if not path.is_file():
             raise ValueError("Execution record unavailable, inspect cleanup before recovery")
         execution = json.loads(path.read_text(encoding="utf-8"))
+        if pending.get("mechanism") is not None or pending.get("mechanism_sha256") is not None:
+            # The candidate ran with write access to every file that could hold the
+            # declaration after submission, so an interrupted attempt cannot prove which
+            # declaration was bound. Settle it without one: the explanation is reported as
+            # not declared and, under require_explanation, the round is not adopted.
+            pending = {**pending, "mechanism": None, "mechanism_sha256": None,
+                       "mechanism_unverified_after_recovery": True}
         return _settle(root, plan, state, pending, execution, assess)
 
 
