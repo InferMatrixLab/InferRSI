@@ -15,12 +15,20 @@ _EXECUTION_FIELDS = (
     "process_outcome", "exit_code", "recorded_at", "prepared_ref",
 )
 _CLAIM_FIELDS = ("claim_id", "validation_scope", "verdict", "reasons", "missing_evidence")
+_TRACE_FIELDS = {
+    "steps": (
+        "step_id", "status", "started_at", "ended_at", "elapsed_seconds", "exit_code", "reasons",
+    ),
+    "checks": ("check_id", "subject", "phase", "status", "reasons"),
+    "errors": ("code", "stage", "retryable"),
+}
 
 
 def read_attempt_view(
     record_ref: dict, *, storage_config: dict, assessment_ref: dict | None = None,
+    include_trace: bool = False,
 ) -> dict:
-    """Return fixed execution facts and claim outcomes for one record revision."""
+    """Return fixed facts, claim outcomes and optional trace for one record revision."""
     try:
         _check_ref(record_ref, "attempt_id", "record_version")
         if record_ref["artifact"]["media_type"] != "application/json":
@@ -44,6 +52,10 @@ def read_attempt_view(
         execution["cleanup_status"] = record["cleanup"]["status"]
         candidate = record["candidate"]
         execution["candidate_id"] = candidate["candidate_id"] if candidate is not None else None
+        trace = {
+            group: [{key: item[key] for key in fields} for item in record[group]]
+            for group, fields in _TRACE_FIELDS.items()
+        } if include_trace else None
     except (KeyError, TypeError, ValueError):
         raise PublicError(
             "ArtifactIntegrityError", stage="attempt_view",
@@ -82,7 +94,10 @@ def read_attempt_view(
                 message="Invalid archived assessment for this record.",
             ) from None
 
-    return {
+    view = {
         "record_ref": deepcopy(record_ref), "execution": execution,
         "assessment_ref": deepcopy(assessment_ref), "assessment": evaluation,
     }
+    if include_trace:
+        view["trace"] = trace
+    return view

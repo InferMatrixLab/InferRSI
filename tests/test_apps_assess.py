@@ -6,6 +6,8 @@ import sys
 from copy import deepcopy
 from hashlib import sha256
 from pathlib import Path
+from threading import Thread
+from urllib.request import urlopen
 
 import pytest
 
@@ -14,6 +16,7 @@ from inferrsi.apps import archive
 from inferrsi.apps.api import assess as run_assess
 from inferrsi.apps.api import read_attempt_view
 from inferrsi.apps.artifact_reader import ArtifactReader
+from inferrsi.apps.views.dashboard_live import DashboardServer
 from inferrsi.cli import main
 from inferrsi.harness.errors import PublicError
 from inferrsi.harness.run_store import RunStore
@@ -281,24 +284,60 @@ def test_fixed_attempt_view_rechecks_assessment_semantic_identity(offline):
         read_attempt_view(request["record_ref"], storage_config=config, assessment_ref=ref)
 
 
-def test_fixed_status_command_matches_the_python_view(tmp_path, offline, capsys):
+def test_fixed_surfaces_read_the_same_record_and_assessment(tmp_path, offline, capsys):
     request, config, directory = offline
     record_ref = request["record_ref"]
     assessment_ref = _fixture("fixed-refs")["assessment_ref"]
     assessment_ref["artifact"] = _write_export(
         directory, "assessment.json", encode(_fixture("assessment")),
     )
-    flags = ["status"]
+    flags = []
     for name, value in (
         ("record-ref", record_ref), ("storage-config", config), ("assessment-ref", assessment_ref),
     ):
         path = tmp_path / f"{name}.json"
         path.write_bytes(encode(value))
         flags.extend((f"--{name}", str(path)))
-    assert main(flags) == 0
-    assert json.loads(capsys.readouterr().out) == read_attempt_view(
+    assert main(["status", *flags]) == 0
+    status = json.loads(capsys.readouterr().out)
+    assert status == read_attempt_view(
         record_ref, storage_config=config, assessment_ref=assessment_ref,
     )
+    assert main(["trace", *flags]) == 0
+    fixed = json.loads(capsys.readouterr().out)
+    assert fixed == read_attempt_view(
+        record_ref, storage_config=config, assessment_ref=assessment_ref, include_trace=True,
+    )
+    assert {key: fixed[key] for key in status} == status
+    assert fixed["trace"]["steps"][0]["started_at"] is None
+    assert fixed["trace"]["checks"][0]["check_id"] == "input_identity"
+    assert fixed["trace"]["errors"][0] == {
+        "code": "capacity_unavailable", "stage": "admission", "retryable": False,
+    }
+    reports = {}
+    for command in ("report", "dashboard"):
+        output = tmp_path / f"{command}.html"
+        assert main([command, *flags, "--output", str(output)]) == 0
+        assert json.loads(capsys.readouterr().out) == {command: str(output.resolve())}
+        document = output.read_text(encoding="utf-8")
+        assert record_ref["artifact"]["sha256"] in document
+        assert assessment_ref["artifact"]["sha256"] in document
+        assert "input_identity" in document
+        assert "INCONCLUSIVE" in document
+        assert "documentation fixture; not actual execution" not in document
+        reports[command] = document
+    with DashboardServer(None, None, 0, fixed_attempt=fixed) as server:
+        thread = Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        url = f"http://127.0.0.1:{server.server_port}"
+        try:
+            with urlopen(f"{url}/api/state", timeout=5) as response:
+                assert json.load(response)["data"]["fixed_attempt"] == fixed
+            with urlopen(f"{url}/", timeout=5) as response:
+                assert response.read().decode("utf-8") == reports["dashboard"]
+        finally:
+            server.shutdown()
+            thread.join(timeout=5)
 
 
 @pytest.mark.parametrize(("args", "message"), [
@@ -354,10 +393,11 @@ output = run_assess(request, workspace=workspace, storage_config=config,
                     output_id='reassessed')
 assert output.result['exit_code'] == 9
 view = read_attempt_view(request['record_ref'], storage_config=config,
-                         assessment_ref=output.result['assessment_ref'])
+                         assessment_ref=output.result['assessment_ref'], include_trace=True)
 assert view['execution']['record_version'] == 1
 assert view['execution']['phase'] == 'running'
 assert view['assessment']['claims'][0]['verdict'] == 'INCONCLUSIVE'
+assert view['trace']['checks'][0]['check_id'] == 'input_identity'
 """],
         cwd=tmp_path, capture_output=True, text=True, check=True,
     )
