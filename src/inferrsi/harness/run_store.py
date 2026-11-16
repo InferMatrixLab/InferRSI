@@ -61,6 +61,14 @@ _TIMESTAMP = re.compile(r"\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d{1,9})?Z", re.ASC
 _SHA256 = re.compile(r"[0-9a-f]{64}", re.ASCII)
 _RECORD_REST = re.compile(r"attempts/([0-9a-f]{64})/records/([1-9][0-9]{0,15})\.json", re.ASCII)
 _OBJECT_REST = re.compile(r"objects/([0-9a-f]{2})/([0-9a-f]{64})", re.ASCII)
+_GENERATION_REST = re.compile(
+    r"generation/([0-9a-f]{64})/(delivered-context|generation-plan)/([0-9a-f]{64})", re.ASCII,
+)
+_GENERATION_MEDIA = {
+    "delivered-context": "application/octet-stream",
+    "generation-plan": "application/json",
+}
+_DELIVERY_FIELDS = frozenset({"items", "selection", "omissions", "limitations"})
 # Errno values meaning "another handle holds the lock" for msvcrt.locking and flock.
 _CONTENDED = frozenset({errno.EACCES, errno.EAGAIN, errno.EWOULDBLOCK, errno.EDEADLK})
 _CHUNK = 1024 * 1024
@@ -95,6 +103,13 @@ _SCHEMA = (
     "WHEN NEW.latest_record_version IS NULL OR (OLD.latest_record_version IS NOT NULL "
     "AND NEW.latest_record_version <= OLD.latest_record_version) "
     "BEGIN SELECT RAISE(ABORT, 'record versions only move forward'); END",
+)
+_GENERATION_SCHEMA = (
+    "CREATE TABLE IF NOT EXISTS generation_inputs ("
+    "attempt_hash TEXT NOT NULL, role TEXT NOT NULL, sha256 TEXT NOT NULL, data BLOB NOT NULL, "
+    "descriptor BLOB, PRIMARY KEY (attempt_hash, role))",
+    "CREATE TRIGGER IF NOT EXISTS generation_inputs_no_update BEFORE UPDATE ON generation_inputs "
+    "BEGIN SELECT RAISE(ABORT, 'generation inputs are immutable'); END",
 )
 
 
@@ -136,6 +151,12 @@ def artifact_ref(namespace: str, data: bytes, media_type: str) -> dict:
         "size_bytes": len(data),
         "media_type": media_type,
     }
+
+
+def _generation_ref(namespace: str, key: str, role: str, data: bytes) -> dict:
+    ref = artifact_ref(namespace, data, _GENERATION_MEDIA[role])
+    ref["location"] = f"stores/{namespace}/generation/{key}/{role}/{ref['sha256']}"
+    return ref
 
 
 def flatten(committed: CommittedRecord, observed_at: str) -> dict:
@@ -755,16 +776,19 @@ class RunStoreReader:
         rest = location[len(prefix):] if inside else ""
         record = _RECORD_REST.fullmatch(rest)
         stored = _OBJECT_REST.fullmatch(rest)
+        generation = _GENERATION_REST.fullmatch(rest)
         if stored is not None and stored[2][:2] != stored[1]:
             stored = None
-        if record is None and stored is None:
+        if record is None and stored is None and generation is None:
             raise PublicError(
                 "UnsafeArtifactPath", stage="open",
-                message="location is not a record or object location of this store",
+                message="location is not a fixed artifact location of this store",
             )
         try:
             if record is not None:
                 data = self._record_bytes(record[1], int(record[2]))
+            elif generation is not None:
+                data = self._generation_bytes(generation[1], generation[2], generation[3], ref)
             else:
                 data = self._object_bytes(stored[2])
         except (sqlite3.Error, OSError) as exc:
@@ -782,6 +806,54 @@ class RunStoreReader:
                 message="bytes do not match the declared sha256 or size",
             )
         return io.BytesIO(data)
+
+    def _generation_bytes(self, key: str, role: str, digest: str, ref: Mapping) -> bytes | None:
+        with self._connection() as conn:
+            row = conn.execute(
+                "SELECT data FROM generation_inputs "
+                "WHERE attempt_hash = ? AND role = ? AND sha256 = ?",
+                (key, role, digest),
+            ).fetchone()
+        if row is None:
+            return None
+        if ref["sha256"] != digest or ref["media_type"] != _GENERATION_MEDIA[role]:
+            raise PublicError(
+                "ArtifactIntegrityError", stage="open", message="generation input identity differs",
+            )
+        return bytes(row["data"])
+
+    def read_delivered_context(self, attempt_id: str) -> dict:
+        """Read the immutable delivery metadata of a prepared generation attempt."""
+        if not _is_id(attempt_id):
+            raise PublicError("InvalidRequest", stage="read_delivery", message="invalid attempt ID")
+        role = "delivered-context"
+        key = attempt_hash(attempt_id)
+        try:
+            with self._connection() as conn:
+                row = conn.execute(
+                    "SELECT sha256, data, descriptor FROM generation_inputs "
+                    "WHERE attempt_hash = ? AND role = ?", (key, role),
+                ).fetchone()
+        except (sqlite3.Error, OSError) as exc:
+            raise PublicError(
+                "ArtifactUnavailable", stage="read_delivery", message="delivery is not accessible",
+            ) from exc
+        if row is None:
+            raise PublicError(
+                "ArtifactUnavailable", stage="read_delivery", message="delivery is not committed",
+            )
+        data = bytes(row["data"])
+        ref = _generation_ref(self.namespace, key, role, data)
+        try:
+            descriptor = json_v1.decode(bytes(row["descriptor"]))
+            if ref["sha256"] != row["sha256"] or not _has_fields(descriptor, _DELIVERY_FIELDS):
+                raise ValueError("delivery failed integrity checks")
+        except (TypeError, ValueError) as exc:
+            raise PublicError(
+                "ArtifactIntegrityError", stage="read_delivery",
+                message="invalid committed delivery",
+            ) from exc
+        return {**descriptor, "artifact": ref}
 
     def _record_bytes(self, hashed_attempt: str, version: int) -> bytes | None:
         with self._connection() as conn:
@@ -828,12 +900,55 @@ class RunStore(RunStoreReader):
                         "INSERT INTO meta (key, value) VALUES (?, ?)",
                         (("format", STORE_FORMAT), ("namespace", namespace)),
                     )
+                for statement in _GENERATION_SCHEMA:
+                    conn.execute(statement)
         except (sqlite3.Error, OSError) as exc:
             raise PublicError(
                 "ExecutionPersistenceError", stage="open", started=False,
                 message=f"cannot initialize the RunStore: {_describe(exc)}",
             ) from exc
         super().__init__(path, namespace, busy_timeout=busy_timeout)
+
+    def _seal_generation_input(
+        self, attempt_id: str, role: str, data: bytes, *, descriptor: dict | None = None,
+    ) -> dict:
+        """Commit one attempt input before registering the final execution request."""
+        key = attempt_hash(attempt_id)
+        ref = _generation_ref(self.namespace, key, role, data)
+        descriptor_bytes = None if descriptor is None else json_v1.encode(descriptor)
+        stage = "delivered-context-retention" if role == "delivered-context" else "generation-seal"
+        try:
+            with self._connection() as conn, _transaction(conn):
+                values = (ref["sha256"], data, descriptor_bytes)
+                row = conn.execute(
+                    "SELECT sha256, data, descriptor FROM generation_inputs "
+                    "WHERE attempt_hash = ? AND role = ?", (key, role),
+                ).fetchone()
+                if row is None:
+                    registered = conn.execute(
+                        "SELECT 1 FROM attempts WHERE attempt_id = ?", (attempt_id,),
+                    ).fetchone()
+                    if registered is not None:
+                        raise PublicError(
+                            "RequestConflict", stage=stage, attempt_id=attempt_id,
+                            message="cannot seal new generation inputs after registration",
+                        )
+                    conn.execute(
+                        "INSERT INTO generation_inputs "
+                        "(attempt_hash, role, sha256, data, descriptor) "
+                        "VALUES (?, ?, ?, ?, ?)", (key, role, *values),
+                    )
+                elif tuple(row) != values:
+                    raise PublicError(
+                        "RequestConflict", stage=stage, attempt_id=attempt_id,
+                        message="the attempt already has a different committed generation input",
+                    )
+        except (sqlite3.Error, OSError) as exc:
+            raise PublicError(
+                "ExecutionPersistenceError", stage=stage, attempt_id=attempt_id, started=False,
+                message="generation input commit failed",
+            ) from exc
+        return ref
 
     def claim(self, attempt: Mapping, request_digest: str) -> Claim | CommittedRecord:
         """Register an attempt atomically, or apply the D021 re-entry table to its registration.
