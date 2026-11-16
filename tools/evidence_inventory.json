@@ -3,9 +3,20 @@
   "bundles": {
     "minicpm-vllm-seedtts": {
       "kind": "campaign",
-      "manifests": [{"path": "results/publication-integrity.json", "schema": "bundle-sha256"}],
+      "manifests": [
+        {
+          "path": "results/core-integrity.json",
+          "schema": "bundle-sha256"
+        },
+        {
+          "path": "results/artifacts.json",
+          "schema": "archive-sha256",
+          "field": "archive",
+          "artifact": "results/minicpm-seedtts-dec7a734-v1.tar.gz"
+        }
+      ],
       "external": [
-        "Service verdict remains INCONCLUSIVE. Raw traces, WAVs, model and evaluator weights, full Harness workspaces and generated TensorRT caches are external. Published timing projections, source/config pins and quality scores do not establish service qualification. Publication hashes are retrospective, not a pre-search freeze."
+        "Archive metadata is authoritative in results/artifacts.json. Offline checks report the absent local asset as unavailable; run the explicit verifier for remote bytes and recomputation. Private traces/audio/models remain outside the public snapshot; service qualification is INCONCLUSIVE."
       ]
     },
     "h3-ref2va-910c-4logical-20261101-297": {

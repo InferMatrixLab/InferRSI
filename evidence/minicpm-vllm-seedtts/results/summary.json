@@ -1,0 +1,5590 @@
+{
+  "snapshot_revision": "dec7a734f27215092f62728f78b98fe26cd58ba2",
+  "artifact_id": "minicpm-seedtts-dec7a734-v1",
+  "service_verdict": "INCONCLUSIVE",
+  "qualification": false,
+  "coverage": {
+    "trial_records": 340,
+    "by_kind": {
+      "service": 288,
+      "diagnostic": 30,
+      "proposal": 3,
+      "excluded_screen": 3,
+      "component": 16
+    },
+    "by_status": {
+      "completed": 333,
+      "not_run": 3,
+      "interrupted": 1,
+      "not_recorded": 3
+    },
+    "scope": "Every retained service cell, managed component execution, named diagnostic/proposal and excluded screen in the dec7a734 public result records. Per-request samples are not trials. No completeness claim for unarchived private runs or logs."
+  },
+  "metric_definitions": {
+    "request_rtf": "(last unique-audio arrival - dispatch) / delivered duration",
+    "cell_rtf": "Unweighted mean of per-request RTFs; terminal completion is separate.",
+    "group_rtf": "Mean/min/max/sample stdev of the recorded cell means; per-repetition values retained.",
+    "repetition_scope": "Two tuning repetitions in one server; not fresh-server uncertainty.",
+    "quality": "WER, embedding-cosine SIM and UTMOS; WavLM speaker verification is separately labelled. Descriptive, not non-inferiority."
+  },
+  "component": {
+    "s3-round": {
+      "verdict": "PASS",
+      "scope": "L0/L1 S3 repeated-shape component only",
+      "baseline_score": 4.315365524962544,
+      "score": 3.7236768286675215,
+      "improvement_pct": 13.711206915668136,
+      "metrics": {
+        "name": "latency_ms",
+        "unit": "ms",
+        "direction": "minimize",
+        "baseline": 4.315365524962544,
+        "candidate": 3.7236768286675215,
+        "samples": {
+          "baseline": [
+            4.350903118029237,
+            4.315365524962544,
+            4.291460569947958
+          ],
+          "candidate": [
+            3.727132873609662,
+            3.7236768286675215,
+            3.7155060097575188
+          ]
+        }
+      }
+    },
+    "s3-final": {
+      "verdict": "PASS",
+      "scope": "L0/L1 S3 repeated-shape component only",
+      "baseline_score": 4.279058240354061,
+      "score": 3.718740865588188,
+      "improvement_pct": 13.094408706143499,
+      "metrics": {
+        "name": "latency_ms",
+        "unit": "ms",
+        "direction": "minimize",
+        "baseline": 4.279058240354061,
+        "candidate": 3.718740865588188,
+        "samples": {
+          "baseline": [
+            4.453523131087422,
+            4.250153573229909,
+            4.279058240354061
+          ],
+          "candidate": [
+            3.715382656082511,
+            3.732922486960888,
+            3.718740865588188
+          ]
+        }
+      }
+    }
+  },
+  "sources": {
+    "results/service-development.json": {
+      "scope": "Host-driven exploratory service screens, not managed Harness service qualification; only the separate S3 component was Harness-managed.",
+      "protocol": "Same canonical Seed-TTS EN tuning requests; 2*C disjoint warmups; two consecutive 64-request repetitions at each concurrency in one server lifetime. Not the frozen five-fresh-server evaluation protocol. Both repetitions reuse canonical seed_index=0; stochastic execution need not produce byte-identical audio.",
+      "hardware": "One allocated NVIDIA L20X per server; hardware_group distinguishes physical cards without publishing identifiers.",
+      "comparison_limit": "Only engine/clean-k8/s3-k8 share device-A. Speaker/unpadded share device-B, with no matching independent-engine cell on that device in this archive; no cross-device speedup claim."
+    },
+    "results/service-followup-development.json": {
+      "scope": "Host-driven development only; not managed Harness service qualification.",
+      "protocol": "64 canonical tuning requests, two consecutive repetitions per concurrency in one server lifetime, seed_index=0 in both; 2*C disjoint warmups.",
+      "limitations": [
+        "Device-B has no paired engine measurement.",
+        "SIM uses mean WavLM embedding cosine, not the independent engine WavLM-large speaker-verification metric.",
+        "No final fresh-server repetitions or disjoint evaluation split completed.",
+        "New batch-setup and active-onset prototypes remain local; no service gain is claimed for the submitted S3-only change."
+      ]
+    },
+    "results/service-phase12-development.json": {
+      "scope": "host-driven tuning screen, not managed Harness final evaluation",
+      "protocol": "64 canonical tuning requests, two repetitions per C1/C16/C32, seed_index=0, disjoint 2*C warmups",
+      "hardware": "one reserved L20X, sequential services with private MPS; shared host CPU",
+      "limitations": [
+        "Candidate is a diagnostic prototype omitting invalid-probability assertions; not a production patch.",
+        "Exact valid-row tokens and generator state do not prove identical handling of invalid inputs.",
+        "Five fresh-server held-out measurements have not run.",
+        "Grouped reference setup remains an experimental prerequisite; quality non-inferiority remains unresolved."
+      ]
+    },
+    "results/service-phase13-development.json": {
+      "scope": "host-driven tuning screen, not managed Harness final evaluation",
+      "protocol": "64 canonical tuning requests, two repetitions per C1/C16/C32, seed_index=0, disjoint 2*C warmups",
+      "hardware": "one reserved L20X, sequential services with private MPS; shared host CPU",
+      "limitations": [
+        "Development runs do not establish performance or speech-quality non-inferiority.",
+        "Five fresh-server held-out measurements have not run.",
+        "Grouped reference setup remains experimental.",
+        "Invalid-row tests inspect the rejection flag; they do not deliberately trigger a device assertion."
+      ]
+    },
+    "results/service-phase14-development.json": {
+      "scope": "host-driven tuning screen, not managed Harness final evaluation",
+      "protocol": "64 canonical tuning requests, two repetitions per C1/C16/C32, seed_index=0, disjoint 2*C warmups",
+      "hardware": "one reserved L20X, sequential services with private MPS; shared host CPU",
+      "limitations": [
+        "Development runs do not establish performance or speech-quality non-inferiority.",
+        "Five fresh-server held-out measurements have not run.",
+        "Grouped reference setup remains experimental.",
+        "CPU prefetch is an experimental bounded thread pool; production integration is not proposed."
+      ]
+    },
+    "results/service-phase15-development.json": {
+      "scope": "configuration-only development screen, not managed Harness qualification",
+      "protocol": "64 canonical tuning requests, two repetitions per C1/C16/C32, seed_index0, disjoint 2*C warmups",
+      "limitations": [
+        "Reuses the immediately preceding same-allocation control and engine; no new paired control server.",
+        "Precision change does not preserve waveform arithmetic; saved-audio scores are descriptive only.",
+        "No five fresh-server held-out performance or speech-quality qualification."
+      ],
+      "comparison_reference": "service-phase14-development.json"
+    },
+    "results/service-phase5-development.json": {
+      "scope": "Host-driven development screening; not final service qualification.",
+      "protocol": "64 canonical tuning requests, two consecutive repetitions at C1/C16/C32; same seed_index=0 and disjoint 2*C warmups.",
+      "hardware_group": "device-D, same allocated NVIDIA L20X for all four variants",
+      "limitations": [
+        "Small C1 advantage is unqualified and has no statistical significance claim.",
+        "C16/C32 miss the target.",
+        "Quality includes unresolved regressions and uses embedding cosine SIM, not standalone speaker verification."
+      ]
+    },
+    "results/service-phase6-development.json": {
+      "scope": "Host-driven development screening, not a managed Harness service campaign or final qualification.",
+      "protocol": "64 canonical tuning requests, two consecutive repetitions per C1/C16/C32, same seed_index=0, disjoint 2*C warmups.",
+      "hardware_group": "device-E, one allocated NVIDIA L20X with private MPS; shared host CPU",
+      "limitations": [
+        "C16/C32 have not met the paired-engine target.",
+        "Five fresh-server held-out measurements have not run.",
+        "Quality remains unresolved; SIM uses mean-embedding cosine, not the standalone speaker-verification metric.",
+        "Grouped setup changes real-weight cache values; finite shapes and faster initialization do not prove speech equivalence.",
+        "A separate next-phase GPU job shared the host during the pool experiment; GPU allocation remained exclusive."
+      ]
+    },
+    "results/service-phase78-development.json": {
+      "scope": "host-driven tuning screens, not managed Harness final evaluation",
+      "shared_host": "Other experiments used separate exclusively allocated GPUs on the same host.",
+      "limitations": [
+        "64 tuning requests per cell; two consecutive repetitions in one server, not five fresh-server qualification repetitions.",
+        "All measured cells finished without request failures, but no candidate beat its paired engine at C16/C32.",
+        "SIM proxy and WavLM speaker verification are different metrics and must not be conflated.",
+        "The pinned speaker-verification source and checkpoint hashes match the standalone engine, but this recorded environment does not claim its full locked evaluator identity.",
+        "Quality no-regression remains unresolved."
+      ]
+    },
+    "results/service-phase910-development.json": {
+      "scope": "host-driven tuning screens, not managed Harness final evaluation",
+      "protocol": "64 canonical tuning requests, two consecutive repetitions per C1/C16/C32, same seed_index=0, disjoint 2*C warmups",
+      "hardware": "one exclusively allocated L20X shared sequentially by both engines; private MPS; shared host CPU",
+      "limitations": [
+        "C16/C32 remain above the independent engine.",
+        "Five fresh-server held-out measurements have not run.",
+        "Quality remains unresolved; development SV uses pinned source/weights but not the full standalone locked evaluator environment.",
+        "Grouped reference setup is an experimental prerequisite and changes real-weight cache values.",
+        "CPU samples identify a synchronization location, not all removable work; nonblocking history upload moves some waiting to output parsing."
+      ]
+    },
+    "results/replica4-interrupted.json": {
+      "variant": "replica4-k16-s3",
+      "hardware_group": "device-B",
+      "verdict": "INCONCLUSIVE",
+      "interrupted": true,
+      "reason": "GPU allocator reclaimed the allocation for a scheduled CI booking. Parent process exited 143. The final C32 cell has 61 failed requests and must be excluded from performance claims."
+    },
+    "results/hift-service-precision-diagnostic.json": {
+      "scope": "HiFT diagnostic with service-matched precision; no candidate service treatment",
+      "reason": "The original microbenchmark forced cuDNN TF32 off, whereas the service already enables it. A matched-precision diagnostic found identical waveforms and no improvement. Treatment was pruned before launch.",
+      "limitations": [
+        "The two C32 controls were slower than prior allocations; no cross-allocation gain or causal explanation is claimed.",
+        "Two reused tuning repetitions are not held-out final qualification."
+      ]
+    }
+  },
+  "service_groups": [
+    {
+      "source": "results/service-development.json",
+      "variant": "engine",
+      "concurrency": 1,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.062380211946810246,
+        "min": 0.06204657605228989,
+        "max": 0.0627138478413306,
+        "stdev": 0.0004718324069251716,
+        "per_repetition": [
+          0.0627138478413306,
+          0.06204657605228989
+        ]
+      },
+      "quality": {},
+      "configuration": {
+        "name": "engine",
+        "hardware_group": "device-A"
+      }
+    },
+    {
+      "source": "results/service-development.json",
+      "variant": "engine",
+      "concurrency": 16,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.20610812847727739,
+        "min": 0.20113143879632156,
+        "max": 0.21108481815823318,
+        "stdev": 0.007038102042529941,
+        "per_repetition": [
+          0.21108481815823318,
+          0.20113143879632156
+        ]
+      },
+      "quality": {},
+      "configuration": {
+        "name": "engine",
+        "hardware_group": "device-A"
+      }
+    },
+    {
+      "source": "results/service-development.json",
+      "variant": "engine",
+      "concurrency": 32,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.2572302031428698,
+        "min": 0.2565451481452941,
+        "max": 0.2579152581404456,
+        "stdev": 0.0009688140685430719,
+        "per_repetition": [
+          0.2579152581404456,
+          0.2565451481452941
+        ]
+      },
+      "quality": {},
+      "configuration": {
+        "name": "engine",
+        "hardware_group": "device-A"
+      }
+    },
+    {
+      "source": "results/service-development.json",
+      "variant": "clean-k8",
+      "concurrency": 1,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.0801356386030099,
+        "min": 0.0793159894207476,
+        "max": 0.08095528778527221,
+        "stdev": 0.0011591589899433632,
+        "per_repetition": [
+          0.08095528778527221,
+          0.0793159894207476
+        ]
+      },
+      "quality": {},
+      "configuration": {
+        "name": "clean-k8",
+        "hardware_group": "device-A"
+      }
+    },
+    {
+      "source": "results/service-development.json",
+      "variant": "clean-k8",
+      "concurrency": 16,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.33299306996350925,
+        "min": 0.3327211341284332,
+        "max": 0.3332650057985853,
+        "stdev": 0.00038457534605982404,
+        "per_repetition": [
+          0.3327211341284332,
+          0.3332650057985853
+        ]
+      },
+      "quality": {},
+      "configuration": {
+        "name": "clean-k8",
+        "hardware_group": "device-A"
+      }
+    },
+    {
+      "source": "results/service-development.json",
+      "variant": "clean-k8",
+      "concurrency": 32,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.6070283663673863,
+        "min": 0.6016598433933524,
+        "max": 0.6123968893414203,
+        "stdev": 0.007592237999790357,
+        "per_repetition": [
+          0.6123968893414203,
+          0.6016598433933524
+        ]
+      },
+      "quality": {},
+      "configuration": {
+        "name": "clean-k8",
+        "hardware_group": "device-A"
+      }
+    },
+    {
+      "source": "results/service-development.json",
+      "variant": "s3-k8",
+      "concurrency": 1,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.08022977296109583,
+        "min": 0.07936800225489032,
+        "max": 0.08109154366730134,
+        "stdev": 0.00121872782037167,
+        "per_repetition": [
+          0.08109154366730134,
+          0.07936800225489032
+        ]
+      },
+      "quality": {},
+      "configuration": {
+        "name": "s3-k8",
+        "hardware_group": "device-A"
+      }
+    },
+    {
+      "source": "results/service-development.json",
+      "variant": "s3-k8",
+      "concurrency": 16,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.33753097237094387,
+        "min": 0.32668059369239616,
+        "max": 0.34838135104949153,
+        "stdev": 0.015344752684085996,
+        "per_repetition": [
+          0.34838135104949153,
+          0.32668059369239616
+        ]
+      },
+      "quality": {},
+      "configuration": {
+        "name": "s3-k8",
+        "hardware_group": "device-A"
+      }
+    },
+    {
+      "source": "results/service-development.json",
+      "variant": "s3-k8",
+      "concurrency": 32,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.5838069048517815,
+        "min": 0.5827573408231934,
+        "max": 0.5848564688803696,
+        "stdev": 0.0014843076838082045,
+        "per_repetition": [
+          0.5827573408231934,
+          0.5848564688803696
+        ]
+      },
+      "quality": {},
+      "configuration": {
+        "name": "s3-k8",
+        "hardware_group": "device-A"
+      }
+    },
+    {
+      "source": "results/service-development.json",
+      "variant": "speaker-k8",
+      "concurrency": 1,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.08072822518899199,
+        "min": 0.08003461305565707,
+        "max": 0.08142183732232691,
+        "stdev": 0.000980915685988783,
+        "per_repetition": [
+          0.08142183732232691,
+          0.08003461305565707
+        ]
+      },
+      "quality": {},
+      "configuration": {
+        "name": "speaker-k8",
+        "hardware_group": "device-B"
+      }
+    },
+    {
+      "source": "results/service-development.json",
+      "variant": "speaker-k8",
+      "concurrency": 16,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.2909496188600331,
+        "min": 0.2903158678297146,
+        "max": 0.2915833698903517,
+        "stdev": 0.0008962593022444427,
+        "per_repetition": [
+          0.2903158678297146,
+          0.2915833698903517
+        ]
+      },
+      "quality": {},
+      "configuration": {
+        "name": "speaker-k8",
+        "hardware_group": "device-B"
+      }
+    },
+    {
+      "source": "results/service-development.json",
+      "variant": "speaker-k8",
+      "concurrency": 32,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.5015946751944043,
+        "min": 0.5002910086728725,
+        "max": 0.5028983417159361,
+        "stdev": 0.0018436628755620266,
+        "per_repetition": [
+          0.5028983417159361,
+          0.5002910086728725
+        ]
+      },
+      "quality": {},
+      "configuration": {
+        "name": "speaker-k8",
+        "hardware_group": "device-B"
+      }
+    },
+    {
+      "source": "results/service-development.json",
+      "variant": "unpadded-k8",
+      "concurrency": 1,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.13465595789363036,
+        "min": 0.12276308598864137,
+        "max": 0.14654882979861933,
+        "stdev": 0.01681906074360136,
+        "per_repetition": [
+          0.14654882979861933,
+          0.12276308598864137
+        ]
+      },
+      "quality": {},
+      "configuration": {
+        "name": "unpadded-k8",
+        "hardware_group": "device-B"
+      }
+    },
+    {
+      "source": "results/service-development.json",
+      "variant": "unpadded-k8",
+      "concurrency": 16,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.8606987463181437,
+        "min": 0.7351355469523569,
+        "max": 0.9862619456839304,
+        "stdev": 0.17757317947805243,
+        "per_repetition": [
+          0.9862619456839304,
+          0.7351355469523569
+        ]
+      },
+      "quality": {},
+      "configuration": {
+        "name": "unpadded-k8",
+        "hardware_group": "device-B"
+      }
+    },
+    {
+      "source": "results/service-development.json",
+      "variant": "unpadded-k8",
+      "concurrency": 32,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.8001846638614576,
+        "min": 0.7180752473143573,
+        "max": 0.882294080408558,
+        "stdev": 0.11612025047945107,
+        "per_repetition": [
+          0.7180752473143573,
+          0.882294080408558
+        ]
+      },
+      "quality": {},
+      "configuration": {
+        "name": "unpadded-k8",
+        "hardware_group": "device-B"
+      }
+    },
+    {
+      "source": "results/service-followup-development.json",
+      "variant": "engine-paired-next",
+      "concurrency": 1,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.062442009079856094,
+        "min": 0.062384200650779334,
+        "max": 0.06249981750893285,
+        "stdev": 8.175346441983675e-05,
+        "per_repetition": [
+          0.06249981750893285,
+          0.062384200650779334
+        ]
+      },
+      "quality": {},
+      "configuration": {
+        "name": "engine-paired-next",
+        "hardware_group": "device-C"
+      }
+    },
+    {
+      "source": "results/service-followup-development.json",
+      "variant": "engine-paired-next",
+      "concurrency": 16,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.20620495203099423,
+        "min": 0.20448205372008643,
+        "max": 0.20792785034190203,
+        "stdev": 0.002436546157875508,
+        "per_repetition": [
+          0.20448205372008643,
+          0.20792785034190203
+        ]
+      },
+      "quality": {},
+      "configuration": {
+        "name": "engine-paired-next",
+        "hardware_group": "device-C"
+      }
+    },
+    {
+      "source": "results/service-followup-development.json",
+      "variant": "engine-paired-next",
+      "concurrency": 32,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.26619526784337016,
+        "min": 0.26375943942323266,
+        "max": 0.2686310962635077,
+        "stdev": 0.003444781587372295,
+        "per_repetition": [
+          0.26375943942323266,
+          0.2686310962635077
+        ]
+      },
+      "quality": {},
+      "configuration": {
+        "name": "engine-paired-next",
+        "hardware_group": "device-C"
+      }
+    },
+    {
+      "source": "results/service-followup-development.json",
+      "variant": "baseline-paired-next",
+      "concurrency": 1,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.0804112454371527,
+        "min": 0.07947266084557207,
+        "max": 0.08134983002873333,
+        "stdev": 0.0013273590588477407,
+        "per_repetition": [
+          0.08134983002873333,
+          0.07947266084557207
+        ]
+      },
+      "quality": {},
+      "configuration": {
+        "name": "baseline-paired-next",
+        "hardware_group": "device-C"
+      }
+    },
+    {
+      "source": "results/service-followup-development.json",
+      "variant": "baseline-paired-next",
+      "concurrency": 16,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.3451566574993331,
+        "min": 0.34397823279041817,
+        "max": 0.3463350822082481,
+        "stdev": 0.0016665442055831114,
+        "per_repetition": [
+          0.34397823279041817,
+          0.3463350822082481
+        ]
+      },
+      "quality": {},
+      "configuration": {
+        "name": "baseline-paired-next",
+        "hardware_group": "device-C"
+      }
+    },
+    {
+      "source": "results/service-followup-development.json",
+      "variant": "baseline-paired-next",
+      "concurrency": 32,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.6275041027254037,
+        "min": 0.622753637088244,
+        "max": 0.6322545683625633,
+        "stdev": 0.006718172931658509,
+        "per_repetition": [
+          0.6322545683625633,
+          0.622753637088244
+        ]
+      },
+      "quality": {},
+      "configuration": {
+        "name": "baseline-paired-next",
+        "hardware_group": "device-C"
+      }
+    },
+    {
+      "source": "results/service-followup-development.json",
+      "variant": "k16-speaker-onset8",
+      "concurrency": 1,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.07494730413535772,
+        "min": 0.07386627454736752,
+        "max": 0.0760283337233479,
+        "stdev": 0.0015288067046623237,
+        "per_repetition": [
+          0.0760283337233479,
+          0.07386627454736752
+        ]
+      },
+      "quality": {},
+      "configuration": {
+        "name": "k16-speaker-onset8",
+        "hardware_group": "device-C"
+      }
+    },
+    {
+      "source": "results/service-followup-development.json",
+      "variant": "k16-speaker-onset8",
+      "concurrency": 16,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.29211464350218364,
+        "min": 0.269463025401959,
+        "max": 0.3147662616024083,
+        "stdev": 0.032034225527033576,
+        "per_repetition": [
+          0.3147662616024083,
+          0.269463025401959
+        ]
+      },
+      "quality": {},
+      "configuration": {
+        "name": "k16-speaker-onset8",
+        "hardware_group": "device-C"
+      }
+    },
+    {
+      "source": "results/service-followup-development.json",
+      "variant": "k16-speaker-onset8",
+      "concurrency": 32,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.4904021207964121,
+        "min": 0.4790021484637461,
+        "max": 0.5018020931290781,
+        "stdev": 0.016121995483534286,
+        "per_repetition": [
+          0.5018020931290781,
+          0.4790021484637461
+        ]
+      },
+      "quality": {},
+      "configuration": {
+        "name": "k16-speaker-onset8",
+        "hardware_group": "device-C"
+      }
+    },
+    {
+      "source": "results/service-followup-development.json",
+      "variant": "onset8-speaker-active",
+      "concurrency": 1,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.08039577423312846,
+        "min": 0.0797594369272957,
+        "max": 0.08103211153896124,
+        "stdev": 0.0008999168481526587,
+        "per_repetition": [
+          0.08103211153896124,
+          0.0797594369272957
+        ]
+      },
+      "quality": {
+        "c1-k0": {
+          "quality": {
+            "wer": {
+              "mean": 0.0224504662004662,
+              "count": 64,
+              "basis": "archived_aggregate"
+            },
+            "sim": {
+              "mean": 0.8667420502752066,
+              "count": 64,
+              "basis": "archived_aggregate"
+            },
+            "utmos": {
+              "mean": 3.3597814217209816,
+              "count": 64,
+              "basis": "archived_aggregate"
+            }
+          }
+        }
+      },
+      "configuration": {
+        "name": "onset8-speaker-active",
+        "hardware_group": "device-C"
+      }
+    },
+    {
+      "source": "results/service-followup-development.json",
+      "variant": "onset8-speaker-active",
+      "concurrency": 16,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.29698673910723583,
+        "min": 0.2958360839175056,
+        "max": 0.29813739429696606,
+        "stdev": 0.001627272174931481,
+        "per_repetition": [
+          0.2958360839175056,
+          0.29813739429696606
+        ]
+      },
+      "quality": {
+        "c16-k0": {
+          "quality": {
+            "wer": {
+              "mean": 0.022884493978243978,
+              "count": 64,
+              "basis": "archived_aggregate"
+            },
+            "sim": {
+              "mean": 0.8660526731982827,
+              "count": 64,
+              "basis": "archived_aggregate"
+            },
+            "utmos": {
+              "mean": 3.360363308340311,
+              "count": 64,
+              "basis": "archived_aggregate"
+            }
+          }
+        }
+      },
+      "configuration": {
+        "name": "onset8-speaker-active",
+        "hardware_group": "device-C"
+      }
+    },
+    {
+      "source": "results/service-followup-development.json",
+      "variant": "onset8-speaker-active",
+      "concurrency": 32,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.5185859839788951,
+        "min": 0.5141798857814518,
+        "max": 0.5229920821763383,
+        "stdev": 0.006231163827971896,
+        "per_repetition": [
+          0.5229920821763383,
+          0.5141798857814518
+        ]
+      },
+      "quality": {
+        "c32-k0": {
+          "quality": {
+            "wer": {
+              "mean": 0.0224504662004662,
+              "count": 64,
+              "basis": "archived_aggregate"
+            },
+            "sim": {
+              "mean": 0.8668311340734363,
+              "count": 64,
+              "basis": "archived_aggregate"
+            },
+            "utmos": {
+              "mean": 3.358665306121111,
+              "count": 64,
+              "basis": "archived_aggregate"
+            }
+          }
+        }
+      },
+      "configuration": {
+        "name": "onset8-speaker-active",
+        "hardware_group": "device-C"
+      }
+    },
+    {
+      "source": "results/service-followup-development.json",
+      "variant": "batch-setup-k8",
+      "concurrency": 1,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.08012014375616917,
+        "min": 0.07946634979975686,
+        "max": 0.08077393771258148,
+        "stdev": 0.0009246042801558533,
+        "per_repetition": [
+          0.08077393771258148,
+          0.07946634979975686
+        ]
+      },
+      "quality": {
+        "c1-k0": {
+          "quality": {
+            "wer": {
+              "mean": 0.0224504662004662,
+              "count": 64,
+              "basis": "archived_aggregate"
+            },
+            "sim": {
+              "mean": 0.867043943144381,
+              "count": 64,
+              "basis": "archived_aggregate"
+            },
+            "utmos": {
+              "mean": 3.3600087463855743,
+              "count": 64,
+              "basis": "archived_aggregate"
+            }
+          }
+        }
+      },
+      "configuration": {
+        "name": "batch-setup-k8",
+        "hardware_group": "device-B"
+      }
+    },
+    {
+      "source": "results/service-followup-development.json",
+      "variant": "batch-setup-k8",
+      "concurrency": 16,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.2928997994471047,
+        "min": 0.2802078801773695,
+        "max": 0.30559171871683993,
+        "stdev": 0.01794908436380399,
+        "per_repetition": [
+          0.30559171871683993,
+          0.2802078801773695
+        ]
+      },
+      "quality": {
+        "c16-k0": {
+          "quality": {
+            "wer": {
+              "mean": 0.0224504662004662,
+              "count": 64,
+              "basis": "archived_aggregate"
+            },
+            "sim": {
+              "mean": 0.8667426519095898,
+              "count": 64,
+              "basis": "archived_aggregate"
+            },
+            "utmos": {
+              "mean": 3.359957568347454,
+              "count": 64,
+              "basis": "archived_aggregate"
+            }
+          }
+        }
+      },
+      "configuration": {
+        "name": "batch-setup-k8",
+        "hardware_group": "device-B"
+      }
+    },
+    {
+      "source": "results/service-followup-development.json",
+      "variant": "batch-setup-k8",
+      "concurrency": 32,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.46507650362550307,
+        "min": 0.4626160918797677,
+        "max": 0.4675369153712384,
+        "stdev": 0.0034795476598410064,
+        "per_repetition": [
+          0.4626160918797677,
+          0.4675369153712384
+        ]
+      },
+      "quality": {
+        "c32-k0": {
+          "quality": {
+            "wer": {
+              "mean": 0.01960955710955711,
+              "count": 64,
+              "basis": "archived_aggregate"
+            },
+            "sim": {
+              "mean": 0.8655081475153565,
+              "count": 64,
+              "basis": "archived_aggregate"
+            },
+            "utmos": {
+              "mean": 3.3592443987727165,
+              "count": 64,
+              "basis": "archived_aggregate"
+            }
+          }
+        }
+      },
+      "configuration": {
+        "name": "batch-setup-k8",
+        "hardware_group": "device-B"
+      }
+    },
+    {
+      "source": "results/service-followup-development.json",
+      "variant": "replica2-speaker-k8",
+      "concurrency": 1,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.08105885294887921,
+        "min": 0.0804369951384947,
+        "max": 0.08168071075926372,
+        "stdev": 0.0008794397493134147,
+        "per_repetition": [
+          0.08168071075926372,
+          0.0804369951384947
+        ]
+      },
+      "quality": {},
+      "configuration": {
+        "name": "replica2-speaker-k8",
+        "hardware_group": "device-B"
+      }
+    },
+    {
+      "source": "results/service-followup-development.json",
+      "variant": "replica2-speaker-k8",
+      "concurrency": 16,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.24861121312830747,
+        "min": 0.23857944564085143,
+        "max": 0.2586429806157635,
+        "stdev": 0.014187061635333805,
+        "per_repetition": [
+          0.2586429806157635,
+          0.23857944564085143
+        ]
+      },
+      "quality": {},
+      "configuration": {
+        "name": "replica2-speaker-k8",
+        "hardware_group": "device-B"
+      }
+    },
+    {
+      "source": "results/service-followup-development.json",
+      "variant": "replica2-speaker-k8",
+      "concurrency": 32,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.4393419589489305,
+        "min": 0.434293840586077,
+        "max": 0.44439007731178404,
+        "stdev": 0.007139117453212106,
+        "per_repetition": [
+          0.434293840586077,
+          0.44439007731178404
+        ]
+      },
+      "quality": {},
+      "configuration": {
+        "name": "replica2-speaker-k8",
+        "hardware_group": "device-B"
+      }
+    },
+    {
+      "source": "results/service-followup-development.json",
+      "variant": "replica2-onset8-active",
+      "concurrency": 1,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.0800776676380982,
+        "min": 0.07911125229760749,
+        "max": 0.08104408297858892,
+        "stdev": 0.0013667176814073849,
+        "per_repetition": [
+          0.08104408297858892,
+          0.07911125229760749
+        ]
+      },
+      "quality": {
+        "c1-k0": {
+          "quality": {
+            "wer": {
+              "mean": 0.0224504662004662,
+              "count": 64,
+              "basis": "archived_aggregate"
+            },
+            "sim": {
+              "mean": 0.866794515401125,
+              "count": 64,
+              "basis": "archived_aggregate"
+            },
+            "utmos": {
+              "mean": 3.359766487032175,
+              "count": 64,
+              "basis": "archived_aggregate"
+            }
+          }
+        }
+      },
+      "configuration": {
+        "name": "replica2-onset8-active",
+        "hardware_group": "device-B"
+      }
+    },
+    {
+      "source": "results/service-followup-development.json",
+      "variant": "replica2-onset8-active",
+      "concurrency": 16,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.26144977949479803,
+        "min": 0.24984002712104605,
+        "max": 0.27305953186855003,
+        "stdev": 0.016418669262753295,
+        "per_repetition": [
+          0.27305953186855003,
+          0.24984002712104605
+        ]
+      },
+      "quality": {
+        "c16-k0": {
+          "quality": {
+            "wer": {
+              "mean": 0.019325466200466202,
+              "count": 64,
+              "basis": "archived_aggregate"
+            },
+            "sim": {
+              "mean": 0.8663691431283951,
+              "count": 64,
+              "basis": "archived_aggregate"
+            },
+            "utmos": {
+              "mean": 3.361745275557041,
+              "count": 64,
+              "basis": "archived_aggregate"
+            }
+          }
+        }
+      },
+      "configuration": {
+        "name": "replica2-onset8-active",
+        "hardware_group": "device-B"
+      }
+    },
+    {
+      "source": "results/service-followup-development.json",
+      "variant": "replica2-onset8-active",
+      "concurrency": 32,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.4560802384292023,
+        "min": 0.4534225788331722,
+        "max": 0.45873789802523235,
+        "stdev": 0.0037584982448767195,
+        "per_repetition": [
+          0.45873789802523235,
+          0.4534225788331722
+        ]
+      },
+      "quality": {
+        "c32-k0": {
+          "quality": {
+            "wer": {
+              "mean": 0.0224504662004662,
+              "count": 64,
+              "basis": "archived_aggregate"
+            },
+            "sim": {
+              "mean": 0.8656735513359308,
+              "count": 64,
+              "basis": "archived_aggregate"
+            },
+            "utmos": {
+              "mean": 3.3603805378079414,
+              "count": 64,
+              "basis": "archived_aggregate"
+            }
+          }
+        }
+      },
+      "configuration": {
+        "name": "replica2-onset8-active",
+        "hardware_group": "device-B"
+      }
+    },
+    {
+      "source": "results/service-phase12-development.json",
+      "variant": "exponential-control",
+      "concurrency": 1,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.061206864838407385,
+        "min": 0.06080726271923768,
+        "max": 0.061606466957577086,
+        "stdev": 0.0005651227364828255,
+        "per_repetition": [
+          0.061606466957577086,
+          0.06080726271923768
+        ]
+      },
+      "quality": {
+        "c1-k0": {
+          "quality_embedding_proxy": {
+            "wer": {
+              "mean": 0.02114838286713287,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "sim": {
+              "mean": 0.8660329394042492,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "utmos": {
+              "mean": 3.3592804931104183,
+              "count": 64,
+              "basis": "per_item"
+            }
+          },
+          "quality_speaker_verification": {
+            "count": 64,
+            "mean": 50.96180632710457,
+            "scale": "x100"
+          }
+        }
+      },
+      "configuration": {
+        "name": "exponential-control",
+        "source_tree_sha256": "ab6555c9539001103c92613e17ce58c1e435e5bdb2275ec9570fa239015b8c89"
+      }
+    },
+    {
+      "source": "results/service-phase12-development.json",
+      "variant": "exponential-control",
+      "concurrency": 16,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.2387852398723474,
+        "min": 0.214052902189242,
+        "max": 0.2635175775554528,
+        "stdev": 0.034976807380638825,
+        "per_repetition": [
+          0.2635175775554528,
+          0.214052902189242
+        ]
+      },
+      "quality": {
+        "c16-k0": {
+          "quality_embedding_proxy": {
+            "wer": {
+              "mean": 0.0224504662004662,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "sim": {
+              "mean": 0.8662316026166081,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "utmos": {
+              "mean": 3.3602694049477577,
+              "count": 64,
+              "basis": "per_item"
+            }
+          },
+          "quality_speaker_verification": {
+            "count": 64,
+            "mean": 51.32536271214485,
+            "scale": "x100"
+          }
+        }
+      },
+      "configuration": {
+        "name": "exponential-control",
+        "source_tree_sha256": "ab6555c9539001103c92613e17ce58c1e435e5bdb2275ec9570fa239015b8c89"
+      }
+    },
+    {
+      "source": "results/service-phase12-development.json",
+      "variant": "exponential-control",
+      "concurrency": 32,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.3333361770576735,
+        "min": 0.32781733938010754,
+        "max": 0.3388550147352394,
+        "stdev": 0.007804815092149356,
+        "per_repetition": [
+          0.3388550147352394,
+          0.32781733938010754
+        ]
+      },
+      "quality": {
+        "c32-k0": {
+          "quality_embedding_proxy": {
+            "wer": {
+              "mean": 0.023870920745920746,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "sim": {
+              "mean": 0.8654249617829919,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "utmos": {
+              "mean": 3.35974146053195,
+              "count": 64,
+              "basis": "per_item"
+            }
+          },
+          "quality_speaker_verification": {
+            "count": 64,
+            "mean": 51.65938284993172,
+            "scale": "x100"
+          }
+        }
+      },
+      "configuration": {
+        "name": "exponential-control",
+        "source_tree_sha256": "ab6555c9539001103c92613e17ce58c1e435e5bdb2275ec9570fa239015b8c89"
+      }
+    },
+    {
+      "source": "results/service-phase12-development.json",
+      "variant": "exponential-sample",
+      "concurrency": 1,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.05978704084883791,
+        "min": 0.05948870754669901,
+        "max": 0.06008537415097681,
+        "stdev": 0.00042190700199238554,
+        "per_repetition": [
+          0.06008537415097681,
+          0.05948870754669901
+        ]
+      },
+      "quality": {
+        "c1-k0": {
+          "quality_embedding_proxy": {
+            "wer": {
+              "mean": 0.02114838286713287,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "sim": {
+              "mean": 0.8660347405821085,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "utmos": {
+              "mean": 3.3592802472412586,
+              "count": 64,
+              "basis": "per_item"
+            }
+          },
+          "quality_speaker_verification": {
+            "count": 64,
+            "mean": 50.961704045534134,
+            "scale": "x100"
+          }
+        }
+      },
+      "configuration": {
+        "name": "exponential-sample",
+        "source_tree_sha256": "4d43f9c732be542db600136317dff8e7ce1fffedf6baf44f29e361d6af15dfcb"
+      }
+    },
+    {
+      "source": "results/service-phase12-development.json",
+      "variant": "exponential-sample",
+      "concurrency": 16,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.22040555892383756,
+        "min": 0.1949796603813024,
+        "max": 0.2458314574663727,
+        "stdev": 0.03595765055437551,
+        "per_repetition": [
+          0.2458314574663727,
+          0.1949796603813024
+        ]
+      },
+      "quality": {
+        "c16-k0": {
+          "quality_embedding_proxy": {
+            "wer": {
+              "mean": 0.019443837412587414,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "sim": {
+              "mean": 0.867087529040873,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "utmos": {
+              "mean": 3.360521897673607,
+              "count": 64,
+              "basis": "per_item"
+            }
+          },
+          "quality_speaker_verification": {
+            "count": 64,
+            "mean": 51.1016811132431,
+            "scale": "x100"
+          }
+        }
+      },
+      "configuration": {
+        "name": "exponential-sample",
+        "source_tree_sha256": "4d43f9c732be542db600136317dff8e7ce1fffedf6baf44f29e361d6af15dfcb"
+      }
+    },
+    {
+      "source": "results/service-phase12-development.json",
+      "variant": "exponential-sample",
+      "concurrency": 32,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.31794111629960853,
+        "min": 0.3152516403752615,
+        "max": 0.3206305922239556,
+        "stdev": 0.0038034933278875394,
+        "per_repetition": [
+          0.3206305922239556,
+          0.3152516403752615
+        ]
+      },
+      "quality": {
+        "c32-k0": {
+          "quality_embedding_proxy": {
+            "wer": {
+              "mean": 0.023870920745920746,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "sim": {
+              "mean": 0.8667021011933684,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "utmos": {
+              "mean": 3.359296500682831,
+              "count": 64,
+              "basis": "per_item"
+            }
+          },
+          "quality_speaker_verification": {
+            "count": 64,
+            "mean": 51.32303526997566,
+            "scale": "x100"
+          }
+        }
+      },
+      "configuration": {
+        "name": "exponential-sample",
+        "source_tree_sha256": "4d43f9c732be542db600136317dff8e7ce1fffedf6baf44f29e361d6af15dfcb"
+      }
+    },
+    {
+      "source": "results/service-phase12-development.json",
+      "variant": "engine-paired-phase12",
+      "concurrency": 1,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.06223353554387665,
+        "min": 0.061966760792578054,
+        "max": 0.06250031029517525,
+        "stdev": 0.0003772764713851855,
+        "per_repetition": [
+          0.06250031029517525,
+          0.061966760792578054
+        ]
+      },
+      "quality": {},
+      "configuration": {
+        "name": "engine-paired-phase12",
+        "source_tree_sha256": "b4ca6ab660543646d5ceba27d7d051f2135153e2f04386e035fa7a834cc41046"
+      }
+    },
+    {
+      "source": "results/service-phase12-development.json",
+      "variant": "engine-paired-phase12",
+      "concurrency": 16,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.2070948854004594,
+        "min": 0.20676688017518877,
+        "max": 0.20742289062573,
+        "stdev": 0.0004638694381069445,
+        "per_repetition": [
+          0.20676688017518877,
+          0.20742289062573
+        ]
+      },
+      "quality": {},
+      "configuration": {
+        "name": "engine-paired-phase12",
+        "source_tree_sha256": "b4ca6ab660543646d5ceba27d7d051f2135153e2f04386e035fa7a834cc41046"
+      }
+    },
+    {
+      "source": "results/service-phase12-development.json",
+      "variant": "engine-paired-phase12",
+      "concurrency": 32,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.27125123102793103,
+        "min": 0.26732803516496484,
+        "max": 0.27517442689089716,
+        "stdev": 0.005548236797252764,
+        "per_repetition": [
+          0.27517442689089716,
+          0.26732803516496484
+        ]
+      },
+      "quality": {},
+      "configuration": {
+        "name": "engine-paired-phase12",
+        "source_tree_sha256": "b4ca6ab660543646d5ceba27d7d051f2135153e2f04386e035fa7a834cc41046"
+      }
+    },
+    {
+      "source": "results/service-phase13-development.json",
+      "variant": "validated-sample",
+      "concurrency": 1,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.060660062981221896,
+        "min": 0.06055549744808257,
+        "max": 0.06076462851436122,
+        "stdev": 0.0001478779951224071,
+        "per_repetition": [
+          0.06076462851436122,
+          0.06055549744808257
+        ]
+      },
+      "quality": {
+        "c1-k0": {
+          "quality_embedding_proxy": {
+            "wer": {
+              "mean": 0.02114838286713287,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "sim": {
+              "mean": 0.86603460367769,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "utmos": {
+              "mean": 3.359280239790678,
+              "count": 64,
+              "basis": "per_item"
+            }
+          },
+          "quality_speaker_verification": {
+            "count": 64,
+            "mean": 50.96186634898186,
+            "scale": "x100"
+          }
+        }
+      },
+      "configuration": {
+        "name": "validated-sample",
+        "source_tree_sha256": "502345f6646973d466b5fdc381f4d7e2e947f73c72461eebc1ef9966d34d1939",
+        "prefetch_max_waiters": 1,
+        "config_sha256": "4b73c7bd1554e4f2f47139b09a3b55dfc260e5d22d28b07cfa7413ada8d3c56c",
+        "multiple_waiter_treatment_observed": false
+      }
+    },
+    {
+      "source": "results/service-phase13-development.json",
+      "variant": "validated-sample",
+      "concurrency": 16,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.23624660613485543,
+        "min": 0.21956161056764345,
+        "max": 0.2529316017020674,
+        "stdev": 0.023596147019286154,
+        "per_repetition": [
+          0.2529316017020674,
+          0.21956161056764345
+        ]
+      },
+      "quality": {
+        "c16-k0": {
+          "quality_embedding_proxy": {
+            "wer": {
+              "mean": 0.019325466200466202,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "sim": {
+              "mean": 0.8647180935367942,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "utmos": {
+              "mean": 3.3581802546977997,
+              "count": 64,
+              "basis": "per_item"
+            }
+          },
+          "quality_speaker_verification": {
+            "count": 64,
+            "mean": 50.87310916185379,
+            "scale": "x100"
+          }
+        }
+      },
+      "configuration": {
+        "name": "validated-sample",
+        "source_tree_sha256": "502345f6646973d466b5fdc381f4d7e2e947f73c72461eebc1ef9966d34d1939",
+        "prefetch_max_waiters": 1,
+        "config_sha256": "4b73c7bd1554e4f2f47139b09a3b55dfc260e5d22d28b07cfa7413ada8d3c56c",
+        "multiple_waiter_treatment_observed": false
+      }
+    },
+    {
+      "source": "results/service-phase13-development.json",
+      "variant": "validated-sample",
+      "concurrency": 32,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.31924409521348995,
+        "min": 0.31275083947977095,
+        "max": 0.3257373509472089,
+        "stdev": 0.009182850322582242,
+        "per_repetition": [
+          0.31275083947977095,
+          0.3257373509472089
+        ]
+      },
+      "quality": {
+        "c32-k0": {
+          "quality_embedding_proxy": {
+            "wer": {
+              "mean": 0.017905011655011654,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "sim": {
+              "mean": 0.8642208753153682,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "utmos": {
+              "mean": 3.35971736907959,
+              "count": 64,
+              "basis": "per_item"
+            }
+          },
+          "quality_speaker_verification": {
+            "count": 64,
+            "mean": 50.40612015128136,
+            "scale": "x100"
+          }
+        }
+      },
+      "configuration": {
+        "name": "validated-sample",
+        "source_tree_sha256": "502345f6646973d466b5fdc381f4d7e2e947f73c72461eebc1ef9966d34d1939",
+        "prefetch_max_waiters": 1,
+        "config_sha256": "4b73c7bd1554e4f2f47139b09a3b55dfc260e5d22d28b07cfa7413ada8d3c56c",
+        "multiple_waiter_treatment_observed": false
+      }
+    },
+    {
+      "source": "results/service-phase13-development.json",
+      "variant": "validated-prefetch32",
+      "concurrency": 1,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.06050785309659408,
+        "min": 0.060372245207037996,
+        "max": 0.06064346098615017,
+        "stdev": 0.00019177851657501232,
+        "per_repetition": [
+          0.06064346098615017,
+          0.060372245207037996
+        ]
+      },
+      "quality": {
+        "c1-k0": {
+          "quality_embedding_proxy": {
+            "wer": {
+              "mean": 0.02114838286713287,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "sim": {
+              "mean": 0.8660352258011699,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "utmos": {
+              "mean": 3.359280399978161,
+              "count": 64,
+              "basis": "per_item"
+            }
+          },
+          "quality_speaker_verification": {
+            "count": 64,
+            "mean": 50.96173295378685,
+            "scale": "x100"
+          }
+        }
+      },
+      "configuration": {
+        "name": "validated-prefetch32",
+        "source_tree_sha256": "502345f6646973d466b5fdc381f4d7e2e947f73c72461eebc1ef9966d34d1939",
+        "prefetch_max_waiters": 32,
+        "config_sha256": "92aca3bf2d27263aeec6bcbd86b8bac116cc419e6b20588885a28674ed5903d2",
+        "multiple_waiter_treatment_observed": true
+      }
+    },
+    {
+      "source": "results/service-phase13-development.json",
+      "variant": "validated-prefetch32",
+      "concurrency": 16,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.24031168133055658,
+        "min": 0.20054709946805827,
+        "max": 0.2800762631930549,
+        "stdev": 0.05623561097204031,
+        "per_repetition": [
+          0.2800762631930549,
+          0.20054709946805827
+        ]
+      },
+      "quality": {
+        "c16-k0": {
+          "quality_embedding_proxy": {
+            "wer": {
+              "mean": 0.018023382867132866,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "sim": {
+              "mean": 0.8660096870735288,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "utmos": {
+              "mean": 3.359815251082182,
+              "count": 64,
+              "basis": "per_item"
+            }
+          },
+          "quality_speaker_verification": {
+            "count": 64,
+            "mean": 50.893680810928345,
+            "scale": "x100"
+          }
+        }
+      },
+      "configuration": {
+        "name": "validated-prefetch32",
+        "source_tree_sha256": "502345f6646973d466b5fdc381f4d7e2e947f73c72461eebc1ef9966d34d1939",
+        "prefetch_max_waiters": 32,
+        "config_sha256": "92aca3bf2d27263aeec6bcbd86b8bac116cc419e6b20588885a28674ed5903d2",
+        "multiple_waiter_treatment_observed": true
+      }
+    },
+    {
+      "source": "results/service-phase13-development.json",
+      "variant": "validated-prefetch32",
+      "concurrency": 32,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.32161058596098385,
+        "min": 0.3193884289096375,
+        "max": 0.3238327430123302,
+        "stdev": 0.0031426046397370483,
+        "per_repetition": [
+          0.3193884289096375,
+          0.3238327430123302
+        ]
+      },
+      "quality": {
+        "c32-k0": {
+          "quality_embedding_proxy": {
+            "wer": {
+              "mean": 0.022568837412587413,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "sim": {
+              "mean": 0.8659146782010794,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "utmos": {
+              "mean": 3.3603521063923836,
+              "count": 64,
+              "basis": "per_item"
+            }
+          },
+          "quality_speaker_verification": {
+            "count": 64,
+            "mean": 51.29159215092659,
+            "scale": "x100"
+          }
+        }
+      },
+      "configuration": {
+        "name": "validated-prefetch32",
+        "source_tree_sha256": "502345f6646973d466b5fdc381f4d7e2e947f73c72461eebc1ef9966d34d1939",
+        "prefetch_max_waiters": 32,
+        "config_sha256": "92aca3bf2d27263aeec6bcbd86b8bac116cc419e6b20588885a28674ed5903d2",
+        "multiple_waiter_treatment_observed": true
+      }
+    },
+    {
+      "source": "results/service-phase13-development.json",
+      "variant": "engine-paired-phase13",
+      "concurrency": 1,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.062256244673564595,
+        "min": 0.06185921959283068,
+        "max": 0.06265326975429851,
+        "stdev": 0.0005614782537761753,
+        "per_repetition": [
+          0.06265326975429851,
+          0.06185921959283068
+        ]
+      },
+      "quality": {},
+      "configuration": {
+        "name": "engine-paired-phase13",
+        "source_tree_sha256": "b4ca6ab660543646d5ceba27d7d051f2135153e2f04386e035fa7a834cc41046"
+      }
+    },
+    {
+      "source": "results/service-phase13-development.json",
+      "variant": "engine-paired-phase13",
+      "concurrency": 16,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.21039167986552493,
+        "min": 0.20920268241161036,
+        "max": 0.21158067731943947,
+        "stdev": 0.001681496324953044,
+        "per_repetition": [
+          0.21158067731943947,
+          0.20920268241161036
+        ]
+      },
+      "quality": {},
+      "configuration": {
+        "name": "engine-paired-phase13",
+        "source_tree_sha256": "b4ca6ab660543646d5ceba27d7d051f2135153e2f04386e035fa7a834cc41046"
+      }
+    },
+    {
+      "source": "results/service-phase13-development.json",
+      "variant": "engine-paired-phase13",
+      "concurrency": 32,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.26522535690089183,
+        "min": 0.2624982102959316,
+        "max": 0.26795250350585204,
+        "stdev": 0.0038567677153144657,
+        "per_repetition": [
+          0.26795250350585204,
+          0.2624982102959316
+        ]
+      },
+      "quality": {},
+      "configuration": {
+        "name": "engine-paired-phase13",
+        "source_tree_sha256": "b4ca6ab660543646d5ceba27d7d051f2135153e2f04386e035fa7a834cc41046"
+      }
+    },
+    {
+      "source": "results/service-phase14-development.json",
+      "variant": "async-reference-control",
+      "concurrency": 1,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.06070376503035507,
+        "min": 0.060316727435114355,
+        "max": 0.06109080262559578,
+        "stdev": 0.0005473538163376865,
+        "per_repetition": [
+          0.06109080262559578,
+          0.060316727435114355
+        ]
+      },
+      "quality": {
+        "c1-k0": {
+          "quality_embedding_proxy": {
+            "wer": {
+              "mean": 0.02114838286713287,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "sim": {
+              "mean": 0.8660350861027837,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "utmos": {
+              "mean": 3.3592802844941616,
+              "count": 64,
+              "basis": "per_item"
+            }
+          },
+          "quality_speaker_verification": {
+            "count": 64,
+            "mean": 50.96166828274727,
+            "scale": "x100"
+          }
+        }
+      },
+      "configuration": {
+        "name": "async-reference-control",
+        "source_tree_sha256": "ab8a11badc9d3be799f27f04c61747d94f76e2c1e57912d7e96f65ad31ee6b79",
+        "cpu_prefetch_workers": 0,
+        "config_sha256": "4b73c7bd1554e4f2f47139b09a3b55dfc260e5d22d28b07cfa7413ada8d3c56c",
+        "cpu_prefetch_submitted": false,
+        "cpu_prefetch_consumed": false
+      }
+    },
+    {
+      "source": "results/service-phase14-development.json",
+      "variant": "async-reference-control",
+      "concurrency": 16,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.23153237201695193,
+        "min": 0.21427862737458828,
+        "max": 0.2487861166593156,
+        "stdev": 0.02440047967495282,
+        "per_repetition": [
+          0.2487861166593156,
+          0.21427862737458828
+        ]
+      },
+      "quality": {
+        "c16-k0": {
+          "quality_embedding_proxy": {
+            "wer": {
+              "mean": 0.019443837412587414,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "sim": {
+              "mean": 0.8660279419273138,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "utmos": {
+              "mean": 3.3612574860453606,
+              "count": 64,
+              "basis": "per_item"
+            }
+          },
+          "quality_speaker_verification": {
+            "count": 64,
+            "mean": 50.930240631103516,
+            "scale": "x100"
+          }
+        }
+      },
+      "configuration": {
+        "name": "async-reference-control",
+        "source_tree_sha256": "ab8a11badc9d3be799f27f04c61747d94f76e2c1e57912d7e96f65ad31ee6b79",
+        "cpu_prefetch_workers": 0,
+        "config_sha256": "4b73c7bd1554e4f2f47139b09a3b55dfc260e5d22d28b07cfa7413ada8d3c56c",
+        "cpu_prefetch_submitted": false,
+        "cpu_prefetch_consumed": false
+      }
+    },
+    {
+      "source": "results/service-phase14-development.json",
+      "variant": "async-reference-control",
+      "concurrency": 32,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.3331095548159577,
+        "min": 0.32437099413157255,
+        "max": 0.3418481155003429,
+        "stdev": 0.012358191035477818,
+        "per_repetition": [
+          0.3418481155003429,
+          0.32437099413157255
+        ]
+      },
+      "quality": {
+        "c32-k0": {
+          "quality_embedding_proxy": {
+            "wer": {
+              "mean": 0.023870920745920746,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "sim": {
+              "mean": 0.8656895402818918,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "utmos": {
+              "mean": 3.3592976070940495,
+              "count": 64,
+              "basis": "per_item"
+            }
+          },
+          "quality_speaker_verification": {
+            "count": 64,
+            "mean": 50.941353380680084,
+            "scale": "x100"
+          }
+        }
+      },
+      "configuration": {
+        "name": "async-reference-control",
+        "source_tree_sha256": "ab8a11badc9d3be799f27f04c61747d94f76e2c1e57912d7e96f65ad31ee6b79",
+        "cpu_prefetch_workers": 0,
+        "config_sha256": "4b73c7bd1554e4f2f47139b09a3b55dfc260e5d22d28b07cfa7413ada8d3c56c",
+        "cpu_prefetch_submitted": false,
+        "cpu_prefetch_consumed": false
+      }
+    },
+    {
+      "source": "results/service-phase14-development.json",
+      "variant": "async-reference4",
+      "concurrency": 1,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.0616621064481355,
+        "min": 0.06058856115793801,
+        "max": 0.062735651738333,
+        "stdev": 0.001518222309219055,
+        "per_repetition": [
+          0.062735651738333,
+          0.06058856115793801
+        ]
+      },
+      "quality": {
+        "c1-k0": {
+          "quality_embedding_proxy": {
+            "wer": {
+              "mean": 0.02114838286713287,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "sim": {
+              "mean": 0.8660381380468607,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "utmos": {
+              "mean": 3.3592803589999676,
+              "count": 64,
+              "basis": "per_item"
+            }
+          },
+          "quality_speaker_verification": {
+            "count": 64,
+            "mean": 50.96185556054115,
+            "scale": "x100"
+          }
+        }
+      },
+      "configuration": {
+        "name": "async-reference4",
+        "source_tree_sha256": "ab8a11badc9d3be799f27f04c61747d94f76e2c1e57912d7e96f65ad31ee6b79",
+        "cpu_prefetch_workers": 4,
+        "config_sha256": "0ba250f33ec58ac28bec2cf0ba92a785cc29065d69c2bb6ac59eec4cf8fda903",
+        "cpu_prefetch_submitted": true,
+        "cpu_prefetch_consumed": true
+      }
+    },
+    {
+      "source": "results/service-phase14-development.json",
+      "variant": "async-reference4",
+      "concurrency": 16,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.3973630993848969,
+        "min": 0.3523635917791338,
+        "max": 0.44236260699065993,
+        "stdev": 0.06363891395618138,
+        "per_repetition": [
+          0.44236260699065993,
+          0.3523635917791338
+        ]
+      },
+      "quality": {
+        "c16-k0": {
+          "quality_embedding_proxy": {
+            "wer": {
+              "mean": 0.022568837412587413,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "sim": {
+              "mean": 0.8660711031407118,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "utmos": {
+              "mean": 3.3606154769659042,
+              "count": 64,
+              "basis": "per_item"
+            }
+          },
+          "quality_speaker_verification": {
+            "count": 64,
+            "mean": 51.57308241724968,
+            "scale": "x100"
+          }
+        }
+      },
+      "configuration": {
+        "name": "async-reference4",
+        "source_tree_sha256": "ab8a11badc9d3be799f27f04c61747d94f76e2c1e57912d7e96f65ad31ee6b79",
+        "cpu_prefetch_workers": 4,
+        "config_sha256": "0ba250f33ec58ac28bec2cf0ba92a785cc29065d69c2bb6ac59eec4cf8fda903",
+        "cpu_prefetch_submitted": true,
+        "cpu_prefetch_consumed": true
+      }
+    },
+    {
+      "source": "results/service-phase14-development.json",
+      "variant": "async-reference4",
+      "concurrency": 32,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.3368678470931575,
+        "min": 0.3323413414318066,
+        "max": 0.34139435275450836,
+        "stdev": 0.006401445696441006,
+        "per_repetition": [
+          0.34139435275450836,
+          0.3323413414318066
+        ]
+      },
+      "quality": {
+        "c32-k0": {
+          "quality_embedding_proxy": {
+            "wer": {
+              "mean": 0.021030011655011657,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "sim": {
+              "mean": 0.86469691619277,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "utmos": {
+              "mean": 3.359565921127796,
+              "count": 64,
+              "basis": "per_item"
+            }
+          },
+          "quality_speaker_verification": {
+            "count": 64,
+            "mean": 51.470548033714294,
+            "scale": "x100"
+          }
+        }
+      },
+      "configuration": {
+        "name": "async-reference4",
+        "source_tree_sha256": "ab8a11badc9d3be799f27f04c61747d94f76e2c1e57912d7e96f65ad31ee6b79",
+        "cpu_prefetch_workers": 4,
+        "config_sha256": "0ba250f33ec58ac28bec2cf0ba92a785cc29065d69c2bb6ac59eec4cf8fda903",
+        "cpu_prefetch_submitted": true,
+        "cpu_prefetch_consumed": true
+      }
+    },
+    {
+      "source": "results/service-phase14-development.json",
+      "variant": "engine-paired-phase14",
+      "concurrency": 1,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.06423754128654025,
+        "min": 0.06312858751515536,
+        "max": 0.06534649505792514,
+        "stdev": 0.0015682974635373031,
+        "per_repetition": [
+          0.06534649505792514,
+          0.06312858751515536
+        ]
+      },
+      "quality": {},
+      "configuration": {
+        "name": "engine-paired-phase14",
+        "source_tree_sha256": "b4ca6ab660543646d5ceba27d7d051f2135153e2f04386e035fa7a834cc41046"
+      }
+    },
+    {
+      "source": "results/service-phase14-development.json",
+      "variant": "engine-paired-phase14",
+      "concurrency": 16,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.21632520033357333,
+        "min": 0.21328490410117665,
+        "max": 0.21936549656597001,
+        "stdev": 0.004299628165487212,
+        "per_repetition": [
+          0.21328490410117665,
+          0.21936549656597001
+        ]
+      },
+      "quality": {},
+      "configuration": {
+        "name": "engine-paired-phase14",
+        "source_tree_sha256": "b4ca6ab660543646d5ceba27d7d051f2135153e2f04386e035fa7a834cc41046"
+      }
+    },
+    {
+      "source": "results/service-phase14-development.json",
+      "variant": "engine-paired-phase14",
+      "concurrency": 32,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.2603057101894922,
+        "min": 0.25177537437558134,
+        "max": 0.26883604600340305,
+        "stdev": 0.012063716599629666,
+        "per_repetition": [
+          0.25177537437558134,
+          0.26883604600340305
+        ]
+      },
+      "quality": {},
+      "configuration": {
+        "name": "engine-paired-phase14",
+        "source_tree_sha256": "b4ca6ab660543646d5ceba27d7d051f2135153e2f04386e035fa7a834cc41046"
+      }
+    },
+    {
+      "source": "results/service-phase15-development.json",
+      "variant": "flow16-checked",
+      "concurrency": 1,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.06068800384162119,
+        "min": 0.06028714429563431,
+        "max": 0.061088863387608064,
+        "stdev": 0.0005669010065413631,
+        "per_repetition": [
+          0.061088863387608064,
+          0.06028714429563431
+        ]
+      },
+      "quality": {
+        "c1-k0": {
+          "quality_embedding_proxy": {
+            "wer": {
+              "mean": 0.02114838286713287,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "sim": {
+              "mean": 0.8659883607178926,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "utmos": {
+              "mean": 3.35941356793046,
+              "count": 64,
+              "basis": "per_item"
+            }
+          },
+          "quality_speaker_verification": {
+            "count": 64,
+            "mean": 51.14257872104645,
+            "scale": "x100"
+          }
+        }
+      },
+      "configuration": {
+        "name": "flow16-checked",
+        "source_tree_sha256": "ab8a11badc9d3be799f27f04c61747d94f76e2c1e57912d7e96f65ad31ee6b79",
+        "config_sha256": "531b5937e6743779c204770fa0d0e68766c336c3bf7f8e01001421d56d390063",
+        "treatment": {
+          "token2wav_float16": true,
+          "cpu_prefetch_workers": 0,
+          "float16_graph_observed": true
+        }
+      }
+    },
+    {
+      "source": "results/service-phase15-development.json",
+      "variant": "flow16-checked",
+      "concurrency": 16,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.2315853766037612,
+        "min": 0.19613768170579643,
+        "max": 0.26703307150172595,
+        "stdev": 0.05013061087956533,
+        "per_repetition": [
+          0.26703307150172595,
+          0.19613768170579643
+        ]
+      },
+      "quality": {
+        "c16-k0": {
+          "quality_embedding_proxy": {
+            "wer": {
+              "mean": 0.018023382867132866,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "sim": {
+              "mean": 0.8657759604975581,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "utmos": {
+              "mean": 3.3620429784059525,
+              "count": 64,
+              "basis": "per_item"
+            }
+          },
+          "quality_speaker_verification": {
+            "count": 64,
+            "mean": 51.35343641042709,
+            "scale": "x100"
+          }
+        }
+      },
+      "configuration": {
+        "name": "flow16-checked",
+        "source_tree_sha256": "ab8a11badc9d3be799f27f04c61747d94f76e2c1e57912d7e96f65ad31ee6b79",
+        "config_sha256": "531b5937e6743779c204770fa0d0e68766c336c3bf7f8e01001421d56d390063",
+        "treatment": {
+          "token2wav_float16": true,
+          "cpu_prefetch_workers": 0,
+          "float16_graph_observed": true
+        }
+      }
+    },
+    {
+      "source": "results/service-phase15-development.json",
+      "variant": "flow16-checked",
+      "concurrency": 32,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.30564707573928507,
+        "min": 0.30310117969915945,
+        "max": 0.30819297177941074,
+        "stdev": 0.003600440708337644,
+        "per_repetition": [
+          0.30310117969915945,
+          0.30819297177941074
+        ]
+      },
+      "quality": {
+        "c32-k0": {
+          "quality_embedding_proxy": {
+            "wer": {
+              "mean": 0.023870920745920746,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "sim": {
+              "mean": 0.866144978441298,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "utmos": {
+              "mean": 3.360696781426668,
+              "count": 64,
+              "basis": "per_item"
+            }
+          },
+          "quality_speaker_verification": {
+            "count": 64,
+            "mean": 50.893589556217194,
+            "scale": "x100"
+          }
+        }
+      },
+      "configuration": {
+        "name": "flow16-checked",
+        "source_tree_sha256": "ab8a11badc9d3be799f27f04c61747d94f76e2c1e57912d7e96f65ad31ee6b79",
+        "config_sha256": "531b5937e6743779c204770fa0d0e68766c336c3bf7f8e01001421d56d390063",
+        "treatment": {
+          "token2wav_float16": true,
+          "cpu_prefetch_workers": 0,
+          "float16_graph_observed": true
+        }
+      }
+    },
+    {
+      "source": "results/service-phase5-development.json",
+      "variant": "thinker-ngram-k16",
+      "concurrency": 1,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.061635252102097235,
+        "min": 0.060802890428908546,
+        "max": 0.06246761377528592,
+        "stdev": 0.0011771371670230009,
+        "per_repetition": [
+          0.06246761377528592,
+          0.060802890428908546
+        ]
+      },
+      "quality": {
+        "c1-k0": {
+          "quality": {
+            "wer": {
+              "mean": 0.02114838286713287,
+              "count": 64,
+              "basis": "archived_aggregate"
+            },
+            "sim": {
+              "mean": 0.8659790623933077,
+              "count": 64,
+              "basis": "archived_aggregate"
+            },
+            "utmos": {
+              "mean": 3.3592872507870197,
+              "count": 64,
+              "basis": "archived_aggregate"
+            }
+          }
+        }
+      },
+      "configuration": {
+        "name": "thinker-ngram-k16"
+      }
+    },
+    {
+      "source": "results/service-phase5-development.json",
+      "variant": "thinker-ngram-k16",
+      "concurrency": 16,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.26648674368374,
+        "min": 0.2569230545422696,
+        "max": 0.27605043282521036,
+        "stdev": 0.01352509889018771,
+        "per_repetition": [
+          0.27605043282521036,
+          0.2569230545422696
+        ]
+      },
+      "quality": {
+        "c16-k0": {
+          "quality": {
+            "wer": {
+              "mean": 0.017620920745920747,
+              "count": 64,
+              "basis": "archived_aggregate"
+            },
+            "sim": {
+              "mean": 0.8669443055987358,
+              "count": 64,
+              "basis": "archived_aggregate"
+            },
+            "utmos": {
+              "mean": 3.3618268705904484,
+              "count": 64,
+              "basis": "archived_aggregate"
+            }
+          }
+        }
+      },
+      "configuration": {
+        "name": "thinker-ngram-k16"
+      }
+    },
+    {
+      "source": "results/service-phase5-development.json",
+      "variant": "thinker-ngram-k16",
+      "concurrency": 32,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.43238800276735606,
+        "min": 0.4316542200821102,
+        "max": 0.43312178545260194,
+        "stdev": 0.001037725425309266,
+        "per_repetition": [
+          0.4316542200821102,
+          0.43312178545260194
+        ]
+      },
+      "quality": {
+        "c32-k0": {
+          "quality": {
+            "wer": {
+              "mean": 0.023870920745920746,
+              "count": 64,
+              "basis": "archived_aggregate"
+            },
+            "sim": {
+              "mean": 0.8655600156635046,
+              "count": 64,
+              "basis": "archived_aggregate"
+            },
+            "utmos": {
+              "mean": 3.35909940674901,
+              "count": 64,
+              "basis": "archived_aggregate"
+            }
+          }
+        }
+      },
+      "configuration": {
+        "name": "thinker-ngram-k16"
+      }
+    },
+    {
+      "source": "results/service-phase5-development.json",
+      "variant": "trt-speaker-k16",
+      "concurrency": 1,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.07621043405975099,
+        "min": 0.07517770953331307,
+        "max": 0.07724315858618891,
+        "stdev": 0.001460493031483838,
+        "per_repetition": [
+          0.07724315858618891,
+          0.07517770953331307
+        ]
+      },
+      "quality": {
+        "c1-k0": {
+          "quality": {
+            "wer": {
+              "mean": 0.0224504662004662,
+              "count": 64,
+              "basis": "archived_aggregate"
+            },
+            "sim": {
+              "mean": 0.8672635108232498,
+              "count": 64,
+              "basis": "archived_aggregate"
+            },
+            "utmos": {
+              "mean": 3.359984576702118,
+              "count": 64,
+              "basis": "archived_aggregate"
+            }
+          }
+        }
+      },
+      "configuration": {
+        "name": "trt-speaker-k16"
+      }
+    },
+    {
+      "source": "results/service-phase5-development.json",
+      "variant": "trt-speaker-k16",
+      "concurrency": 16,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.3180904167947288,
+        "min": 0.29981047384858966,
+        "max": 0.33637035974086793,
+        "stdev": 0.025851743233836353,
+        "per_repetition": [
+          0.33637035974086793,
+          0.29981047384858966
+        ]
+      },
+      "quality": {
+        "c16-k0": {
+          "quality": {
+            "wer": {
+              "mean": 0.0224504662004662,
+              "count": 64,
+              "basis": "archived_aggregate"
+            },
+            "sim": {
+              "mean": 0.8666583923622966,
+              "count": 64,
+              "basis": "archived_aggregate"
+            },
+            "utmos": {
+              "mean": 3.36041422188282,
+              "count": 64,
+              "basis": "archived_aggregate"
+            }
+          }
+        }
+      },
+      "configuration": {
+        "name": "trt-speaker-k16"
+      }
+    },
+    {
+      "source": "results/service-phase5-development.json",
+      "variant": "trt-speaker-k16",
+      "concurrency": 32,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.5507433251962839,
+        "min": 0.5481889697341522,
+        "max": 0.5532976806584154,
+        "stdev": 0.0036124041376683303,
+        "per_repetition": [
+          0.5481889697341522,
+          0.5532976806584154
+        ]
+      },
+      "quality": {
+        "c32-k0": {
+          "quality": {
+            "wer": {
+              "mean": 0.020627549533799534,
+              "count": 64,
+              "basis": "archived_aggregate"
+            },
+            "sim": {
+              "mean": 0.8665464967489243,
+              "count": 64,
+              "basis": "archived_aggregate"
+            },
+            "utmos": {
+              "mean": 3.358813911676407,
+              "count": 64,
+              "basis": "archived_aggregate"
+            }
+          }
+        }
+      },
+      "configuration": {
+        "name": "trt-speaker-k16"
+      }
+    },
+    {
+      "source": "results/service-phase5-development.json",
+      "variant": "encoder-tail-k16",
+      "concurrency": 1,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.07843958069255305,
+        "min": 0.07691072383268682,
+        "max": 0.0799684375524193,
+        "stdev": 0.0021621301061499733,
+        "per_repetition": [
+          0.0799684375524193,
+          0.07691072383268682
+        ]
+      },
+      "quality": {
+        "c1-k0": {
+          "quality": {
+            "wer": {
+              "mean": 0.0224504662004662,
+              "count": 64,
+              "basis": "archived_aggregate"
+            },
+            "sim": {
+              "mean": 0.867276300676167,
+              "count": 64,
+              "basis": "archived_aggregate"
+            },
+            "utmos": {
+              "mean": 3.3600285425782204,
+              "count": 64,
+              "basis": "archived_aggregate"
+            }
+          }
+        }
+      },
+      "configuration": {
+        "name": "encoder-tail-k16"
+      }
+    },
+    {
+      "source": "results/service-phase5-development.json",
+      "variant": "encoder-tail-k16",
+      "concurrency": 16,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.3113840526083348,
+        "min": 0.28432601332837054,
+        "max": 0.33844209188829905,
+        "stdev": 0.03826584612094938,
+        "per_repetition": [
+          0.33844209188829905,
+          0.28432601332837054
+        ]
+      },
+      "quality": {
+        "c16-k0": {
+          "quality": {
+            "wer": {
+              "mean": 0.02114838286713287,
+              "count": 64,
+              "basis": "archived_aggregate"
+            },
+            "sim": {
+              "mean": 0.8660925971344113,
+              "count": 64,
+              "basis": "archived_aggregate"
+            },
+            "utmos": {
+              "mean": 3.3603104054927826,
+              "count": 64,
+              "basis": "archived_aggregate"
+            }
+          }
+        }
+      },
+      "configuration": {
+        "name": "encoder-tail-k16"
+      }
+    },
+    {
+      "source": "results/service-phase5-development.json",
+      "variant": "encoder-tail-k16",
+      "concurrency": 32,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.48761464217788064,
+        "min": 0.47962516521208737,
+        "max": 0.49560411914367397,
+        "stdev": 0.011298826681292331,
+        "per_repetition": [
+          0.47962516521208737,
+          0.49560411914367397
+        ]
+      },
+      "quality": {
+        "c32-k0": {
+          "quality": {
+            "wer": {
+              "mean": 0.018023382867132866,
+              "count": 64,
+              "basis": "archived_aggregate"
+            },
+            "sim": {
+              "mean": 0.8667866196483374,
+              "count": 64,
+              "basis": "archived_aggregate"
+            },
+            "utmos": {
+              "mean": 3.3602044694125652,
+              "count": 64,
+              "basis": "archived_aggregate"
+            }
+          }
+        }
+      },
+      "configuration": {
+        "name": "encoder-tail-k16"
+      }
+    },
+    {
+      "source": "results/service-phase5-development.json",
+      "variant": "engine-paired-phase5",
+      "concurrency": 1,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.062223478184228076,
+        "min": 0.06205654936040512,
+        "max": 0.06239040700805103,
+        "stdev": 0.00023607300660141129,
+        "per_repetition": [
+          0.06239040700805103,
+          0.06205654936040512
+        ]
+      },
+      "quality": {},
+      "configuration": {
+        "name": "engine-paired-phase5"
+      }
+    },
+    {
+      "source": "results/service-phase5-development.json",
+      "variant": "engine-paired-phase5",
+      "concurrency": 16,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.21053368153709906,
+        "min": 0.208580405643097,
+        "max": 0.21248695743110113,
+        "stdev": 0.002762349260354161,
+        "per_repetition": [
+          0.21248695743110113,
+          0.208580405643097
+        ]
+      },
+      "quality": {},
+      "configuration": {
+        "name": "engine-paired-phase5"
+      }
+    },
+    {
+      "source": "results/service-phase5-development.json",
+      "variant": "engine-paired-phase5",
+      "concurrency": 32,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.2618288867748314,
+        "min": 0.2597269155160223,
+        "max": 0.26393085803364047,
+        "stdev": 0.002972636261926267,
+        "per_repetition": [
+          0.2597269155160223,
+          0.26393085803364047
+        ]
+      },
+      "quality": {},
+      "configuration": {
+        "name": "engine-paired-phase5"
+      }
+    },
+    {
+      "source": "results/service-phase6-development.json",
+      "variant": "ngram-replica2-batch",
+      "concurrency": 1,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.061551893116061726,
+        "min": 0.061050236922068034,
+        "max": 0.062053549310055425,
+        "stdev": 0.0007094489931943529,
+        "per_repetition": [
+          0.062053549310055425,
+          0.061050236922068034
+        ]
+      },
+      "quality": {
+        "c1-k0": {
+          "quality": {
+            "wer": {
+              "mean": 0.02114838286713287,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "sim": {
+              "mean": 0.86600970197469,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "utmos": {
+              "mean": 3.3592738769948483,
+              "count": 64,
+              "basis": "per_item"
+            }
+          }
+        }
+      },
+      "configuration": {
+        "name": "ngram-replica2-batch",
+        "screen_exit": 0
+      }
+    },
+    {
+      "source": "results/service-phase6-development.json",
+      "variant": "ngram-replica2-batch",
+      "concurrency": 16,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.2445699903984921,
+        "min": 0.21886709651720201,
+        "max": 0.2702728842797822,
+        "stdev": 0.03634938111915688,
+        "per_repetition": [
+          0.2702728842797822,
+          0.21886709651720201
+        ]
+      },
+      "quality": {
+        "c16-k0": {
+          "quality": {
+            "wer": {
+              "mean": 0.021030011655011657,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "sim": {
+              "mean": 0.8665315555408597,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "utmos": {
+              "mean": 3.359286442399025,
+              "count": 64,
+              "basis": "per_item"
+            }
+          }
+        }
+      },
+      "configuration": {
+        "name": "ngram-replica2-batch",
+        "screen_exit": 0
+      }
+    },
+    {
+      "source": "results/service-phase6-development.json",
+      "variant": "ngram-replica2-batch",
+      "concurrency": 32,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.3493749490212259,
+        "min": 0.34706831528897036,
+        "max": 0.3516815827534815,
+        "stdev": 0.0032620727075830893,
+        "per_repetition": [
+          0.3516815827534815,
+          0.34706831528897036
+        ]
+      },
+      "quality": {
+        "c32-k0": {
+          "quality": {
+            "wer": {
+              "mean": 0.023870920745920746,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "sim": {
+              "mean": 0.8663125447928905,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "utmos": {
+              "mean": 3.359606120735407,
+              "count": 64,
+              "basis": "per_item"
+            }
+          }
+        },
+        "c32-k1": {
+          "quality": {
+            "wer": {
+              "mean": 0.01972792832167832,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "sim": {
+              "mean": 0.8661675415933132,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "utmos": {
+              "mean": 3.359137039631605,
+              "count": 64,
+              "basis": "per_item"
+            }
+          }
+        }
+      },
+      "configuration": {
+        "name": "ngram-replica2-batch",
+        "screen_exit": 0
+      }
+    },
+    {
+      "source": "results/service-phase6-development.json",
+      "variant": "ngram-replica4-batch",
+      "concurrency": 1,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.06191537756082521,
+        "min": 0.06135207072147244,
+        "max": 0.06247868440017798,
+        "stdev": 0.0007966361719902108,
+        "per_repetition": [
+          0.06247868440017798,
+          0.06135207072147244
+        ]
+      },
+      "quality": {
+        "c1-k0": {
+          "quality": {
+            "wer": {
+              "mean": 0.02114838286713287,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "sim": {
+              "mean": 0.8660126030445099,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "utmos": {
+              "mean": 3.359294790774584,
+              "count": 64,
+              "basis": "per_item"
+            }
+          }
+        }
+      },
+      "configuration": {
+        "name": "ngram-replica4-batch",
+        "screen_exit": 0
+      }
+    },
+    {
+      "source": "results/service-phase6-development.json",
+      "variant": "ngram-replica4-batch",
+      "concurrency": 16,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.25744940685680634,
+        "min": 0.21794504937985892,
+        "max": 0.29695376433375376,
+        "stdev": 0.055867598116734016,
+        "per_repetition": [
+          0.29695376433375376,
+          0.21794504937985892
+        ]
+      },
+      "quality": {
+        "c16-k0": {
+          "quality": {
+            "wer": {
+              "mean": 0.019325466200466202,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "sim": {
+              "mean": 0.8660587230697274,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "utmos": {
+              "mean": 3.3588982820510864,
+              "count": 64,
+              "basis": "per_item"
+            }
+          }
+        }
+      },
+      "configuration": {
+        "name": "ngram-replica4-batch",
+        "screen_exit": 0
+      }
+    },
+    {
+      "source": "results/service-phase6-development.json",
+      "variant": "ngram-replica4-batch",
+      "concurrency": 32,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.3686320349661768,
+        "min": 0.36744552280446724,
+        "max": 0.3698185471278863,
+        "stdev": 0.0016779815910102438,
+        "per_repetition": [
+          0.36744552280446724,
+          0.3698185471278863
+        ]
+      },
+      "quality": {
+        "c32-k0": {
+          "quality": {
+            "wer": {
+              "mean": 0.022568837412587413,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "sim": {
+              "mean": 0.8660752652212977,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "utmos": {
+              "mean": 3.359459728002548,
+              "count": 64,
+              "basis": "per_item"
+            }
+          }
+        }
+      },
+      "configuration": {
+        "name": "ngram-replica4-batch",
+        "screen_exit": 0
+      }
+    },
+    {
+      "source": "results/service-phase6-development.json",
+      "variant": "ngram-replica2-wide",
+      "concurrency": 1,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.06203013304175534,
+        "min": 0.06131997963480826,
+        "max": 0.06274028644870243,
+        "stdev": 0.0010043085794700277,
+        "per_repetition": [
+          0.06274028644870243,
+          0.06131997963480826
+        ]
+      },
+      "quality": {
+        "c1-k0": {
+          "quality": {
+            "wer": {
+              "mean": 0.0208879662004662,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "sim": {
+              "mean": 0.8667847877368331,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "utmos": {
+              "mean": 3.3603304475545883,
+              "count": 64,
+              "basis": "per_item"
+            }
+          }
+        }
+      },
+      "configuration": {
+        "name": "ngram-replica2-wide",
+        "screen_exit": 0
+      }
+    },
+    {
+      "source": "results/service-phase6-development.json",
+      "variant": "ngram-replica2-wide",
+      "concurrency": 16,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.2212707111503815,
+        "min": 0.21354910373585123,
+        "max": 0.22899231856491176,
+        "stdev": 0.010920001928949347,
+        "per_repetition": [
+          0.22899231856491176,
+          0.21354910373585123
+        ]
+      },
+      "quality": {
+        "c16-k0": {
+          "quality": {
+            "wer": {
+              "mean": 0.01648455710955711,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "sim": {
+              "mean": 0.8658705577254295,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "utmos": {
+              "mean": 3.3611851185560226,
+              "count": 64,
+              "basis": "per_item"
+            }
+          }
+        }
+      },
+      "configuration": {
+        "name": "ngram-replica2-wide",
+        "screen_exit": 0
+      }
+    },
+    {
+      "source": "results/service-phase6-development.json",
+      "variant": "ngram-replica2-wide",
+      "concurrency": 32,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.38198289868743557,
+        "min": 0.3636548960069772,
+        "max": 0.40031090136789393,
+        "stdev": 0.02591970996191466,
+        "per_repetition": [
+          0.40031090136789393,
+          0.3636548960069772
+        ]
+      },
+      "quality": {
+        "c32-k0": {
+          "quality": {
+            "wer": {
+              "mean": 0.0162004662004662,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "sim": {
+              "mean": 0.8659783620387316,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "utmos": {
+              "mean": 3.3614799715578556,
+              "count": 64,
+              "basis": "per_item"
+            }
+          }
+        }
+      },
+      "configuration": {
+        "name": "ngram-replica2-wide",
+        "screen_exit": 0
+      }
+    },
+    {
+      "source": "results/service-phase6-development.json",
+      "variant": "ngram-replica2-chunk50",
+      "concurrency": 1,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.06114301218824646,
+        "min": 0.060854987002790704,
+        "max": 0.0614310373737022,
+        "stdev": 0.0004073291235765458,
+        "per_repetition": [
+          0.0614310373737022,
+          0.060854987002790704
+        ]
+      },
+      "quality": {
+        "c1-k0": {
+          "quality": {
+            "wer": {
+              "mean": 0.0208879662004662,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "sim": {
+              "mean": 0.8664430184289813,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "utmos": {
+              "mean": 3.3600746504962444,
+              "count": 64,
+              "basis": "per_item"
+            }
+          }
+        }
+      },
+      "configuration": {
+        "name": "ngram-replica2-chunk50",
+        "screen_exit": 0
+      }
+    },
+    {
+      "source": "results/service-phase6-development.json",
+      "variant": "ngram-replica2-chunk50",
+      "concurrency": 16,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.20856366032295706,
+        "min": 0.1948325814063003,
+        "max": 0.22229473923961382,
+        "stdev": 0.01941867802995125,
+        "per_repetition": [
+          0.22229473923961382,
+          0.1948325814063003
+        ]
+      },
+      "quality": {
+        "c16-k0": {
+          "quality": {
+            "wer": {
+              "mean": 0.019325466200466202,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "sim": {
+              "mean": 0.8662357870489359,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "utmos": {
+              "mean": 3.3610572181642056,
+              "count": 64,
+              "basis": "per_item"
+            }
+          }
+        }
+      },
+      "configuration": {
+        "name": "ngram-replica2-chunk50",
+        "screen_exit": 0
+      }
+    },
+    {
+      "source": "results/service-phase6-development.json",
+      "variant": "ngram-replica2-chunk50",
+      "concurrency": 32,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.560083336780502,
+        "min": 0.48306269931825596,
+        "max": 0.637103974242748,
+        "stdev": 0.1089236300817296,
+        "per_repetition": [
+          0.637103974242748,
+          0.48306269931825596
+        ]
+      },
+      "quality": {
+        "c32-k0": {
+          "quality": {
+            "wer": {
+              "mean": 0.02204800407925408,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "sim": {
+              "mean": 0.8651241976767778,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "utmos": {
+              "mean": 3.3615151718258858,
+              "count": 64,
+              "basis": "per_item"
+            }
+          }
+        }
+      },
+      "configuration": {
+        "name": "ngram-replica2-chunk50",
+        "screen_exit": 0
+      }
+    },
+    {
+      "source": "results/service-phase6-development.json",
+      "variant": "ngram-replica2-pool",
+      "concurrency": 1,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.06197333949285952,
+        "min": 0.06099975014561428,
+        "max": 0.06294692884010475,
+        "stdev": 0.0013768632590561772,
+        "per_repetition": [
+          0.06294692884010475,
+          0.06099975014561428
+        ]
+      },
+      "quality": {
+        "c1-k0": {
+          "quality": {
+            "wer": {
+              "mean": 0.0208879662004662,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "sim": {
+              "mean": 0.8667259905487299,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "utmos": {
+              "mean": 3.3604358471930027,
+              "count": 64,
+              "basis": "per_item"
+            }
+          }
+        }
+      },
+      "configuration": {
+        "name": "ngram-replica2-pool",
+        "screen_exit": 0
+      }
+    },
+    {
+      "source": "results/service-phase6-development.json",
+      "variant": "ngram-replica2-pool",
+      "concurrency": 16,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.22584159680689986,
+        "min": 0.19935646939266002,
+        "max": 0.25232672422113966,
+        "stdev": 0.037455626390397415,
+        "per_repetition": [
+          0.25232672422113966,
+          0.19935646939266002
+        ]
+      },
+      "quality": {
+        "c16-k0": {
+          "quality": {
+            "wer": {
+              "mean": 0.023870920745920746,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "sim": {
+              "mean": 0.8668991960585117,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "utmos": {
+              "mean": 3.3600439354777336,
+              "count": 64,
+              "basis": "per_item"
+            }
+          }
+        }
+      },
+      "configuration": {
+        "name": "ngram-replica2-pool",
+        "screen_exit": 0
+      }
+    },
+    {
+      "source": "results/service-phase6-development.json",
+      "variant": "ngram-replica2-pool",
+      "concurrency": 32,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.45063501944631584,
+        "min": 0.3857530861132228,
+        "max": 0.5155169527794089,
+        "stdev": 0.09175691007264719,
+        "per_repetition": [
+          0.5155169527794089,
+          0.3857530861132228
+        ]
+      },
+      "quality": {
+        "c32-k0": {
+          "quality": {
+            "wer": {
+              "mean": 0.019467511655011656,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "sim": {
+              "mean": 0.865900443866849,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "utmos": {
+              "mean": 3.3612195067107677,
+              "count": 64,
+              "basis": "per_item"
+            }
+          }
+        }
+      },
+      "configuration": {
+        "name": "ngram-replica2-pool",
+        "screen_exit": 0
+      }
+    },
+    {
+      "source": "results/service-phase6-development.json",
+      "variant": "engine-paired-phase6",
+      "concurrency": 1,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.06277073286886059,
+        "min": 0.062221202279998736,
+        "max": 0.06332026345772244,
+        "stdev": 0.000777153611707308,
+        "per_repetition": [
+          0.06332026345772244,
+          0.062221202279998736
+        ]
+      },
+      "quality": {},
+      "configuration": {
+        "name": "engine-paired-phase6",
+        "screen_exit": 0
+      }
+    },
+    {
+      "source": "results/service-phase6-development.json",
+      "variant": "engine-paired-phase6",
+      "concurrency": 16,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.2055526995348006,
+        "min": 0.2023995367468087,
+        "max": 0.20870586232279253,
+        "stdev": 0.0044592455791483375,
+        "per_repetition": [
+          0.20870586232279253,
+          0.2023995367468087
+        ]
+      },
+      "quality": {},
+      "configuration": {
+        "name": "engine-paired-phase6",
+        "screen_exit": 0
+      }
+    },
+    {
+      "source": "results/service-phase6-development.json",
+      "variant": "engine-paired-phase6",
+      "concurrency": 32,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.26661681915808977,
+        "min": 0.26536802599108117,
+        "max": 0.2678656123250984,
+        "stdev": 0.0017660602333824502,
+        "per_repetition": [
+          0.2678656123250984,
+          0.26536802599108117
+        ]
+      },
+      "quality": {},
+      "configuration": {
+        "name": "engine-paired-phase6",
+        "screen_exit": 0
+      }
+    },
+    {
+      "source": "results/service-phase78-development.json",
+      "variant": "ngram-replica2-tail43-resume1",
+      "concurrency": 1,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.06273477874443922,
+        "min": 0.062303658665441956,
+        "max": 0.06316589882343648,
+        "stdev": 0.0006096958627292905,
+        "per_repetition": [
+          0.06316589882343648,
+          0.062303658665441956
+        ]
+      },
+      "quality": {
+        "c1-k0": {
+          "quality": {
+            "wer": {
+              "mean": 0.02114838286713287,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "sim": {
+              "mean": 0.8660347005352378,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "utmos": {
+              "mean": 3.359280500560999,
+              "count": 64,
+              "basis": "per_item"
+            }
+          },
+          "speaker_verification": {
+            "count": 64,
+            "mean": 50.96170017123222,
+            "scale": "x100"
+          }
+        }
+      },
+      "configuration": {
+        "name": "ngram-replica2-tail43-resume1",
+        "source_tree_sha256": "657b5de1f75f1417c44a06440c30ca29763caa189a1c4e71b953ddcd1f226341",
+        "config_sha256": "4b73c7bd1554e4f2f47139b09a3b55dfc260e5d22d28b07cfa7413ada8d3c56c"
+      }
+    },
+    {
+      "source": "results/service-phase78-development.json",
+      "variant": "ngram-replica2-tail43-resume1",
+      "concurrency": 16,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.2279696841552107,
+        "min": 0.21389558342429044,
+        "max": 0.24204378488613099,
+        "stdev": 0.01990378413187254,
+        "per_repetition": [
+          0.24204378488613099,
+          0.21389558342429044
+        ]
+      },
+      "quality": {
+        "c16-k0": {
+          "quality": {
+            "wer": {
+              "mean": 0.019443837412587414,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "sim": {
+              "mean": 0.8654342228546739,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "utmos": {
+              "mean": 3.362364459782839,
+              "count": 64,
+              "basis": "per_item"
+            }
+          },
+          "speaker_verification": {
+            "count": 64,
+            "mean": 51.368931382894516,
+            "scale": "x100"
+          }
+        }
+      },
+      "configuration": {
+        "name": "ngram-replica2-tail43-resume1",
+        "source_tree_sha256": "657b5de1f75f1417c44a06440c30ca29763caa189a1c4e71b953ddcd1f226341",
+        "config_sha256": "4b73c7bd1554e4f2f47139b09a3b55dfc260e5d22d28b07cfa7413ada8d3c56c"
+      }
+    },
+    {
+      "source": "results/service-phase78-development.json",
+      "variant": "ngram-replica2-tail43-resume1",
+      "concurrency": 32,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.35332140005470214,
+        "min": 0.3502869998001409,
+        "max": 0.3563558003092634,
+        "stdev": 0.0042912899936688965,
+        "per_repetition": [
+          0.3563558003092634,
+          0.3502869998001409
+        ]
+      },
+      "quality": {
+        "c32-k0": {
+          "quality": {
+            "wer": {
+              "mean": 0.020745920745920746,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "sim": {
+              "mean": 0.8656375361606479,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "utmos": {
+              "mean": 3.360820822417736,
+              "count": 64,
+              "basis": "per_item"
+            }
+          },
+          "speaker_verification": {
+            "count": 64,
+            "mean": 51.364853620529175,
+            "scale": "x100"
+          }
+        }
+      },
+      "configuration": {
+        "name": "ngram-replica2-tail43-resume1",
+        "source_tree_sha256": "657b5de1f75f1417c44a06440c30ca29763caa189a1c4e71b953ddcd1f226341",
+        "config_sha256": "4b73c7bd1554e4f2f47139b09a3b55dfc260e5d22d28b07cfa7413ada8d3c56c"
+      }
+    },
+    {
+      "source": "results/service-phase78-development.json",
+      "variant": "ngram-replica2-cpu4-resume1",
+      "concurrency": 1,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.0623831376241691,
+        "min": 0.062370430320583155,
+        "max": 0.062395844927755045,
+        "stdev": 1.7970841072436062e-05,
+        "per_repetition": [
+          0.062370430320583155,
+          0.062395844927755045
+        ]
+      },
+      "quality": {
+        "c1-k0": {
+          "quality": {
+            "wer": {
+              "mean": 0.02114838286713287,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "sim": {
+              "mean": 0.8660355322062969,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "utmos": {
+              "mean": 3.3592804074287415,
+              "count": 64,
+              "basis": "per_item"
+            }
+          },
+          "speaker_verification": {
+            "count": 64,
+            "mean": 50.96186617016792,
+            "scale": "x100"
+          }
+        }
+      },
+      "configuration": {
+        "name": "ngram-replica2-cpu4-resume1",
+        "source_tree_sha256": "a62a25ea1499f403670667b7803c2784dba6ff976385f4e8fb5a8cb4acbc0e99",
+        "config_sha256": "eb07b69143dcde3e3030b91a7a3b8f3a4f3a1dea831aeed5135406be3d555415"
+      }
+    },
+    {
+      "source": "results/service-phase78-development.json",
+      "variant": "ngram-replica2-cpu4-resume1",
+      "concurrency": 16,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.24757677789398275,
+        "min": 0.20359610538776407,
+        "max": 0.2915574504002014,
+        "stdev": 0.06219806354058395,
+        "per_repetition": [
+          0.2915574504002014,
+          0.20359610538776407
+        ]
+      },
+      "quality": {
+        "c16-k0": {
+          "quality": {
+            "wer": {
+              "mean": 0.023870920745920746,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "sim": {
+              "mean": 0.8657693741843104,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "utmos": {
+              "mean": 3.358662895858288,
+              "count": 64,
+              "basis": "per_item"
+            }
+          },
+          "speaker_verification": {
+            "count": 64,
+            "mean": 50.62298995256424,
+            "scale": "x100"
+          }
+        }
+      },
+      "configuration": {
+        "name": "ngram-replica2-cpu4-resume1",
+        "source_tree_sha256": "a62a25ea1499f403670667b7803c2784dba6ff976385f4e8fb5a8cb4acbc0e99",
+        "config_sha256": "eb07b69143dcde3e3030b91a7a3b8f3a4f3a1dea831aeed5135406be3d555415"
+      }
+    },
+    {
+      "source": "results/service-phase78-development.json",
+      "variant": "ngram-replica2-cpu4-resume1",
+      "concurrency": 32,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.3490955873938383,
+        "min": 0.3472683340397341,
+        "max": 0.35092284074794244,
+        "stdev": 0.0025841264752658358,
+        "per_repetition": [
+          0.3472683340397341,
+          0.35092284074794244
+        ]
+      },
+      "quality": {
+        "c32-k0": {
+          "quality": {
+            "wer": {
+              "mean": 0.023870920745920746,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "sim": {
+              "mean": 0.8654844528064132,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "utmos": {
+              "mean": 3.360199172049761,
+              "count": 64,
+              "basis": "per_item"
+            }
+          },
+          "speaker_verification": {
+            "count": 64,
+            "mean": 50.75662112236023,
+            "scale": "x100"
+          }
+        }
+      },
+      "configuration": {
+        "name": "ngram-replica2-cpu4-resume1",
+        "source_tree_sha256": "a62a25ea1499f403670667b7803c2784dba6ff976385f4e8fb5a8cb4acbc0e99",
+        "config_sha256": "eb07b69143dcde3e3030b91a7a3b8f3a4f3a1dea831aeed5135406be3d555415"
+      }
+    },
+    {
+      "source": "results/service-phase78-development.json",
+      "variant": "ngram-replica2-cpu4-serialsetup-resume1",
+      "concurrency": 1,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.0626746370041837,
+        "min": 0.061982947762185686,
+        "max": 0.06336632624618171,
+        "stdev": 0.0009781963069811575,
+        "per_repetition": [
+          0.06336632624618171,
+          0.061982947762185686
+        ]
+      },
+      "quality": {
+        "c1-k0": {
+          "quality": {
+            "wer": {
+              "mean": 0.02114838286713287,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "sim": {
+              "mean": 0.8660354185849428,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "utmos": {
+              "mean": 3.35928063839674,
+              "count": 64,
+              "basis": "per_item"
+            }
+          },
+          "speaker_verification": {
+            "count": 64,
+            "mean": 50.961580365896225,
+            "scale": "x100"
+          }
+        }
+      },
+      "configuration": {
+        "name": "ngram-replica2-cpu4-serialsetup-resume1",
+        "source_tree_sha256": "a62a25ea1499f403670667b7803c2784dba6ff976385f4e8fb5a8cb4acbc0e99",
+        "config_sha256": "a6f301d4ff6ddcb339731dabb1b4806826a093c2f976ade024d76745584bc7db"
+      }
+    },
+    {
+      "source": "results/service-phase78-development.json",
+      "variant": "ngram-replica2-cpu4-serialsetup-resume1",
+      "concurrency": 16,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.2583778471538646,
+        "min": 0.22983582426454444,
+        "max": 0.28691987004318475,
+        "stdev": 0.04036451586763988,
+        "per_repetition": [
+          0.28691987004318475,
+          0.22983582426454444
+        ]
+      },
+      "quality": {
+        "c16-k0": {
+          "quality": {
+            "wer": {
+              "mean": 0.0224504662004662,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "sim": {
+              "mean": 0.8656927347183228,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "utmos": {
+              "mean": 3.358726102858782,
+              "count": 64,
+              "basis": "per_item"
+            }
+          },
+          "speaker_verification": {
+            "count": 64,
+            "mean": 50.771782636642456,
+            "scale": "x100"
+          }
+        }
+      },
+      "configuration": {
+        "name": "ngram-replica2-cpu4-serialsetup-resume1",
+        "source_tree_sha256": "a62a25ea1499f403670667b7803c2784dba6ff976385f4e8fb5a8cb4acbc0e99",
+        "config_sha256": "a6f301d4ff6ddcb339731dabb1b4806826a093c2f976ade024d76745584bc7db"
+      }
+    },
+    {
+      "source": "results/service-phase78-development.json",
+      "variant": "ngram-replica2-cpu4-serialsetup-resume1",
+      "concurrency": 32,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.3451957682280077,
+        "min": 0.34357872324227423,
+        "max": 0.3468128132137412,
+        "stdev": 0.002286846949791694,
+        "per_repetition": [
+          0.34357872324227423,
+          0.3468128132137412
+        ]
+      },
+      "quality": {
+        "c32-k0": {
+          "quality": {
+            "wer": {
+              "mean": 0.023870920745920746,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "sim": {
+              "mean": 0.8659978667274117,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "utmos": {
+              "mean": 3.360099695622921,
+              "count": 64,
+              "basis": "per_item"
+            }
+          },
+          "speaker_verification": {
+            "count": 64,
+            "mean": 51.437317192554474,
+            "scale": "x100"
+          }
+        }
+      },
+      "configuration": {
+        "name": "ngram-replica2-cpu4-serialsetup-resume1",
+        "source_tree_sha256": "a62a25ea1499f403670667b7803c2784dba6ff976385f4e8fb5a8cb4acbc0e99",
+        "config_sha256": "a6f301d4ff6ddcb339731dabb1b4806826a093c2f976ade024d76745584bc7db"
+      }
+    },
+    {
+      "source": "results/service-phase78-development.json",
+      "variant": "engine-paired-phase7-resume1",
+      "concurrency": 1,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.06329449586359358,
+        "min": 0.06312570716952268,
+        "max": 0.06346328455766448,
+        "stdev": 0.00023870326033031145,
+        "per_repetition": [
+          0.06312570716952268,
+          0.06346328455766448
+        ]
+      },
+      "quality": {},
+      "configuration": {
+        "name": "engine-paired-phase7-resume1",
+        "source_tree_sha256": "b4ca6ab660543646d5ceba27d7d051f2135153e2f04386e035fa7a834cc41046",
+        "config_sha256": null
+      }
+    },
+    {
+      "source": "results/service-phase78-development.json",
+      "variant": "engine-paired-phase7-resume1",
+      "concurrency": 16,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.20629834726040724,
+        "min": 0.20391179813845228,
+        "max": 0.2086848963823622,
+        "stdev": 0.0033750901355383083,
+        "per_repetition": [
+          0.20391179813845228,
+          0.2086848963823622
+        ]
+      },
+      "quality": {},
+      "configuration": {
+        "name": "engine-paired-phase7-resume1",
+        "source_tree_sha256": "b4ca6ab660543646d5ceba27d7d051f2135153e2f04386e035fa7a834cc41046",
+        "config_sha256": null
+      }
+    },
+    {
+      "source": "results/service-phase78-development.json",
+      "variant": "engine-paired-phase7-resume1",
+      "concurrency": 32,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.2640946490907476,
+        "min": 0.2633969970089023,
+        "max": 0.2647923011725929,
+        "stdev": 0.0009866290359634498,
+        "per_repetition": [
+          0.2633969970089023,
+          0.2647923011725929
+        ]
+      },
+      "quality": {},
+      "configuration": {
+        "name": "engine-paired-phase7-resume1",
+        "source_tree_sha256": "b4ca6ab660543646d5ceba27d7d051f2135153e2f04386e035fa7a834cc41046",
+        "config_sha256": null
+      }
+    },
+    {
+      "source": "results/service-phase78-development.json",
+      "variant": "ngram-replica2-setup8",
+      "concurrency": 1,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.0636747234489371,
+        "min": 0.06327916628626552,
+        "max": 0.06407028061160869,
+        "stdev": 0.0005594023041439722,
+        "per_repetition": [
+          0.06407028061160869,
+          0.06327916628626552
+        ]
+      },
+      "quality": {
+        "c1-k0": {
+          "quality": {
+            "wer": {
+              "mean": 0.02114838286713287,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "sim": {
+              "mean": 0.8660317827016115,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "utmos": {
+              "mean": 3.3592805936932564,
+              "count": 64,
+              "basis": "per_item"
+            }
+          }
+        }
+      },
+      "configuration": {
+        "name": "ngram-replica2-setup8",
+        "source_tree_sha256": "657b5de1f75f1417c44a06440c30ca29763caa189a1c4e71b953ddcd1f226341",
+        "config_sha256": "72e78b7bb3e8449e27d1e3b0574695330c5d99b353f435303abb50a73fb2bae2"
+      }
+    },
+    {
+      "source": "results/service-phase78-development.json",
+      "variant": "ngram-replica2-setup8",
+      "concurrency": 16,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.23608986798411824,
+        "min": 0.19848990789099863,
+        "max": 0.27368982807723785,
+        "stdev": 0.05317437350837689,
+        "per_repetition": [
+          0.27368982807723785,
+          0.19848990789099863
+        ]
+      },
+      "quality": {
+        "c16-k0": {
+          "quality": {
+            "wer": {
+              "mean": 0.018023382867132866,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "sim": {
+              "mean": 0.8663477720692754,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "utmos": {
+              "mean": 3.3605525828897953,
+              "count": 64,
+              "basis": "per_item"
+            }
+          }
+        }
+      },
+      "configuration": {
+        "name": "ngram-replica2-setup8",
+        "source_tree_sha256": "657b5de1f75f1417c44a06440c30ca29763caa189a1c4e71b953ddcd1f226341",
+        "config_sha256": "72e78b7bb3e8449e27d1e3b0574695330c5d99b353f435303abb50a73fb2bae2"
+      }
+    },
+    {
+      "source": "results/service-phase78-development.json",
+      "variant": "ngram-replica2-setup8",
+      "concurrency": 32,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.34675959589525585,
+        "min": 0.3383760421775979,
+        "max": 0.3551431496129137,
+        "stdev": 0.011856135368395174,
+        "per_repetition": [
+          0.3551431496129137,
+          0.3383760421775979
+        ]
+      },
+      "quality": {
+        "c32-k0": {
+          "quality": {
+            "wer": {
+              "mean": 0.022568837412587413,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "sim": {
+              "mean": 0.8660300178453326,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "utmos": {
+              "mean": 3.360390331596136,
+              "count": 64,
+              "basis": "per_item"
+            }
+          }
+        }
+      },
+      "configuration": {
+        "name": "ngram-replica2-setup8",
+        "source_tree_sha256": "657b5de1f75f1417c44a06440c30ca29763caa189a1c4e71b953ddcd1f226341",
+        "config_sha256": "72e78b7bb3e8449e27d1e3b0574695330c5d99b353f435303abb50a73fb2bae2"
+      }
+    },
+    {
+      "source": "results/service-phase78-development.json",
+      "variant": "ngram-replica2-micro8",
+      "concurrency": 1,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.062175046687246334,
+        "min": 0.06180612026779554,
+        "max": 0.06254397310669713,
+        "stdev": 0.0005217407459050554,
+        "per_repetition": [
+          0.06254397310669713,
+          0.06180612026779554
+        ]
+      },
+      "quality": {
+        "c1-k0": {
+          "quality": {
+            "wer": {
+              "mean": 0.02114838286713287,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "sim": {
+              "mean": 0.8660338381305337,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "utmos": {
+              "mean": 3.3592804670333862,
+              "count": 64,
+              "basis": "per_item"
+            }
+          }
+        }
+      },
+      "configuration": {
+        "name": "ngram-replica2-micro8",
+        "source_tree_sha256": "657b5de1f75f1417c44a06440c30ca29763caa189a1c4e71b953ddcd1f226341",
+        "config_sha256": "d8630505e55241e9e619e314c34581d684e0ae8ff8d5433fbac32f3fc8865bc8"
+      }
+    },
+    {
+      "source": "results/service-phase78-development.json",
+      "variant": "ngram-replica2-micro8",
+      "concurrency": 16,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.25544393134205146,
+        "min": 0.2225062000719243,
+        "max": 0.2883816626121786,
+        "stdev": 0.04658098627601423,
+        "per_repetition": [
+          0.2883816626121786,
+          0.2225062000719243
+        ]
+      },
+      "quality": {
+        "c16-k0": {
+          "quality": {
+            "wer": {
+              "mean": 0.0224504662004662,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "sim": {
+              "mean": 0.8666930543258786,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "utmos": {
+              "mean": 3.3589427173137665,
+              "count": 64,
+              "basis": "per_item"
+            }
+          }
+        }
+      },
+      "configuration": {
+        "name": "ngram-replica2-micro8",
+        "source_tree_sha256": "657b5de1f75f1417c44a06440c30ca29763caa189a1c4e71b953ddcd1f226341",
+        "config_sha256": "d8630505e55241e9e619e314c34581d684e0ae8ff8d5433fbac32f3fc8865bc8"
+      }
+    },
+    {
+      "source": "results/service-phase78-development.json",
+      "variant": "ngram-replica2-micro8",
+      "concurrency": 32,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.34682108177757937,
+        "min": 0.3364716148061815,
+        "max": 0.35717054874897725,
+        "stdev": 0.014636356554283284,
+        "per_repetition": [
+          0.3364716148061815,
+          0.35717054874897725
+        ]
+      },
+      "quality": {
+        "c32-k0": {
+          "quality": {
+            "wer": {
+              "mean": 0.023870920745920746,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "sim": {
+              "mean": 0.8663705177605152,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "utmos": {
+              "mean": 3.3593252785503864,
+              "count": 64,
+              "basis": "per_item"
+            }
+          }
+        }
+      },
+      "configuration": {
+        "name": "ngram-replica2-micro8",
+        "source_tree_sha256": "657b5de1f75f1417c44a06440c30ca29763caa189a1c4e71b953ddcd1f226341",
+        "config_sha256": "d8630505e55241e9e619e314c34581d684e0ae8ff8d5433fbac32f3fc8865bc8"
+      }
+    },
+    {
+      "source": "results/service-phase78-development.json",
+      "variant": "engine-paired-phase8",
+      "concurrency": 1,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.06271093908363275,
+        "min": 0.06266640818701008,
+        "max": 0.06275546998025541,
+        "stdev": 6.297619794840845e-05,
+        "per_repetition": [
+          0.06275546998025541,
+          0.06266640818701008
+        ]
+      },
+      "quality": {},
+      "configuration": {
+        "name": "engine-paired-phase8",
+        "source_tree_sha256": "b4ca6ab660543646d5ceba27d7d051f2135153e2f04386e035fa7a834cc41046",
+        "config_sha256": null
+      }
+    },
+    {
+      "source": "results/service-phase78-development.json",
+      "variant": "engine-paired-phase8",
+      "concurrency": 16,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.20337811145188123,
+        "min": 0.1964055896799337,
+        "max": 0.21035063322382871,
+        "stdev": 0.00986063485382984,
+        "per_repetition": [
+          0.1964055896799337,
+          0.21035063322382871
+        ]
+      },
+      "quality": {},
+      "configuration": {
+        "name": "engine-paired-phase8",
+        "source_tree_sha256": "b4ca6ab660543646d5ceba27d7d051f2135153e2f04386e035fa7a834cc41046",
+        "config_sha256": null
+      }
+    },
+    {
+      "source": "results/service-phase78-development.json",
+      "variant": "engine-paired-phase8",
+      "concurrency": 32,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.2681037094924665,
+        "min": 0.265587453338748,
+        "max": 0.27061996564618496,
+        "stdev": 0.0035585235789934297,
+        "per_repetition": [
+          0.27061996564618496,
+          0.265587453338748
+        ]
+      },
+      "quality": {},
+      "configuration": {
+        "name": "engine-paired-phase8",
+        "source_tree_sha256": "b4ca6ab660543646d5ceba27d7d051f2135153e2f04386e035fa7a834cc41046",
+        "config_sha256": null
+      }
+    },
+    {
+      "source": "results/service-phase910-development.json",
+      "variant": "async-history-control",
+      "concurrency": 1,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.06631261722755993,
+        "min": 0.06621515329804446,
+        "max": 0.06641008115707542,
+        "stdev": 0.00013783481096296367,
+        "per_repetition": [
+          0.06641008115707542,
+          0.06621515329804446
+        ]
+      },
+      "quality": {
+        "c1-k0": {
+          "quality_embedding_proxy": {
+            "wer": {
+              "mean": 0.02114838286713287,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "sim": {
+              "mean": 0.8660348616540432,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "utmos": {
+              "mean": 3.3592803962528706,
+              "count": 64,
+              "basis": "per_item"
+            }
+          },
+          "quality_speaker_verification": {
+            "count": 64,
+            "mean": 50.96183803677559,
+            "scale": "x100"
+          }
+        }
+      },
+      "configuration": {
+        "name": "async-history-control",
+        "screen_exit": 0,
+        "source_tree_sha256": "657b5de1f75f1417c44a06440c30ca29763caa189a1c4e71b953ddcd1f226341"
+      }
+    },
+    {
+      "source": "results/service-phase910-development.json",
+      "variant": "async-history-control",
+      "concurrency": 16,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.267935994675407,
+        "min": 0.21970438791785218,
+        "max": 0.31616760143296185,
+        "stdev": 0.06820979241157987,
+        "per_repetition": [
+          0.31616760143296185,
+          0.21970438791785218
+        ]
+      },
+      "quality": {
+        "c16-k0": {
+          "quality_embedding_proxy": {
+            "wer": {
+              "mean": 0.02114838286713287,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "sim": {
+              "mean": 0.8664852287620306,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "utmos": {
+              "mean": 3.3594519905745983,
+              "count": 64,
+              "basis": "per_item"
+            }
+          },
+          "quality_speaker_verification": {
+            "count": 64,
+            "mean": 51.04945781826973,
+            "scale": "x100"
+          }
+        }
+      },
+      "configuration": {
+        "name": "async-history-control",
+        "screen_exit": 0,
+        "source_tree_sha256": "657b5de1f75f1417c44a06440c30ca29763caa189a1c4e71b953ddcd1f226341"
+      }
+    },
+    {
+      "source": "results/service-phase910-development.json",
+      "variant": "async-history-control",
+      "concurrency": 32,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.3609587077440815,
+        "min": 0.35051162359203336,
+        "max": 0.37140579189612966,
+        "stdev": 0.014774408095079515,
+        "per_repetition": [
+          0.37140579189612966,
+          0.35051162359203336
+        ]
+      },
+      "quality": {
+        "c32-k0": {
+          "quality_embedding_proxy": {
+            "wer": {
+              "mean": 0.023870920745920746,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "sim": {
+              "mean": 0.8664832869544625,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "utmos": {
+              "mean": 3.359230700880289,
+              "count": 64,
+              "basis": "per_item"
+            }
+          },
+          "quality_speaker_verification": {
+            "count": 64,
+            "mean": 50.17604914307594,
+            "scale": "x100"
+          }
+        }
+      },
+      "configuration": {
+        "name": "async-history-control",
+        "screen_exit": 0,
+        "source_tree_sha256": "657b5de1f75f1417c44a06440c30ca29763caa189a1c4e71b953ddcd1f226341"
+      }
+    },
+    {
+      "source": "results/service-phase910-development.json",
+      "variant": "async-history",
+      "concurrency": 1,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.06307151264245359,
+        "min": 0.0627822115452146,
+        "max": 0.06336081373969257,
+        "stdev": 0.0004091335353247922,
+        "per_repetition": [
+          0.0627822115452146,
+          0.06336081373969257
+        ]
+      },
+      "quality": {
+        "c1-k0": {
+          "quality_embedding_proxy": {
+            "wer": {
+              "mean": 0.02114838286713287,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "sim": {
+              "mean": 0.8660347620025277,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "utmos": {
+              "mean": 3.359280686825514,
+              "count": 64,
+              "basis": "per_item"
+            }
+          },
+          "quality_speaker_verification": {
+            "count": 64,
+            "mean": 50.961788922548294,
+            "scale": "x100"
+          }
+        }
+      },
+      "configuration": {
+        "name": "async-history",
+        "screen_exit": 0,
+        "source_tree_sha256": "ab6555c9539001103c92613e17ce58c1e435e5bdb2275ec9570fa239015b8c89"
+      }
+    },
+    {
+      "source": "results/service-phase910-development.json",
+      "variant": "async-history",
+      "concurrency": 16,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.2576254374507576,
+        "min": 0.21658620580368765,
+        "max": 0.2986646690978275,
+        "stdev": 0.05803823798465743,
+        "per_repetition": [
+          0.2986646690978275,
+          0.21658620580368765
+        ]
+      },
+      "quality": {
+        "c16-k0": {
+          "quality_embedding_proxy": {
+            "wer": {
+              "mean": 0.020745920745920746,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "sim": {
+              "mean": 0.8673835350200534,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "utmos": {
+              "mean": 3.359712842851877,
+              "count": 64,
+              "basis": "per_item"
+            }
+          },
+          "quality_speaker_verification": {
+            "count": 64,
+            "mean": 51.293193101882935,
+            "scale": "x100"
+          }
+        }
+      },
+      "configuration": {
+        "name": "async-history",
+        "screen_exit": 0,
+        "source_tree_sha256": "ab6555c9539001103c92613e17ce58c1e435e5bdb2275ec9570fa239015b8c89"
+      }
+    },
+    {
+      "source": "results/service-phase910-development.json",
+      "variant": "async-history",
+      "concurrency": 32,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.3320182003174065,
+        "min": 0.323880023841221,
+        "max": 0.340156376793592,
+        "stdev": 0.011509119545607224,
+        "per_repetition": [
+          0.323880023841221,
+          0.340156376793592
+        ]
+      },
+      "quality": {
+        "c32-k0": {
+          "quality_embedding_proxy": {
+            "wer": {
+              "mean": 0.023870920745920746,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "sim": {
+              "mean": 0.8650890160351992,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "utmos": {
+              "mean": 3.3614925034344196,
+              "count": 64,
+              "basis": "per_item"
+            }
+          },
+          "quality_speaker_verification": {
+            "count": 64,
+            "mean": 51.16495904326439,
+            "scale": "x100"
+          }
+        }
+      },
+      "configuration": {
+        "name": "async-history",
+        "screen_exit": 0,
+        "source_tree_sha256": "ab6555c9539001103c92613e17ce58c1e435e5bdb2275ec9570fa239015b8c89"
+      }
+    },
+    {
+      "source": "results/service-phase910-development.json",
+      "variant": "engine-paired-phase9",
+      "concurrency": 1,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.06539260118070374,
+        "min": 0.06481676853149096,
+        "max": 0.06596843382991652,
+        "stdev": 0.0008143503421739411,
+        "per_repetition": [
+          0.06481676853149096,
+          0.06596843382991652
+        ]
+      },
+      "quality": {},
+      "configuration": {
+        "name": "engine-paired-phase9",
+        "screen_exit": 0,
+        "source_tree_sha256": "b4ca6ab660543646d5ceba27d7d051f2135153e2f04386e035fa7a834cc41046"
+      }
+    },
+    {
+      "source": "results/service-phase910-development.json",
+      "variant": "engine-paired-phase9",
+      "concurrency": 16,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.20763724920960266,
+        "min": 0.2053634412931511,
+        "max": 0.20991105712605423,
+        "stdev": 0.00321564999367712,
+        "per_repetition": [
+          0.2053634412931511,
+          0.20991105712605423
+        ]
+      },
+      "quality": {},
+      "configuration": {
+        "name": "engine-paired-phase9",
+        "screen_exit": 0,
+        "source_tree_sha256": "b4ca6ab660543646d5ceba27d7d051f2135153e2f04386e035fa7a834cc41046"
+      }
+    },
+    {
+      "source": "results/service-phase910-development.json",
+      "variant": "engine-paired-phase9",
+      "concurrency": 32,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.27152447738052676,
+        "min": 0.26955753543077204,
+        "max": 0.2734914193302814,
+        "stdev": 0.0027816759817436633,
+        "per_repetition": [
+          0.26955753543077204,
+          0.2734914193302814
+        ]
+      },
+      "quality": {},
+      "configuration": {
+        "name": "engine-paired-phase9",
+        "screen_exit": 0,
+        "source_tree_sha256": "b4ca6ab660543646d5ceba27d7d051f2135153e2f04386e035fa7a834cc41046"
+      }
+    },
+    {
+      "source": "results/service-phase910-development.json",
+      "variant": "async-history-batched-control",
+      "concurrency": 1,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.06214395895424212,
+        "min": 0.06213526947678996,
+        "max": 0.06215264843169428,
+        "stdev": 1.2288776862780397e-05,
+        "per_repetition": [
+          0.06213526947678996,
+          0.06215264843169428
+        ]
+      },
+      "quality": {
+        "c1-k0": {
+          "quality_embedding_proxy": {
+            "wer": {
+              "mean": 0.02114838286713287,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "sim": {
+              "mean": 0.8660341147333384,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "utmos": {
+              "mean": 3.359280791133642,
+              "count": 64,
+              "basis": "per_item"
+            }
+          },
+          "quality_speaker_verification": {
+            "count": 64,
+            "mean": 50.961700946092606,
+            "scale": "x100"
+          }
+        }
+      },
+      "configuration": {
+        "name": "async-history-batched-control",
+        "screen_exit": 0,
+        "source_tree_sha256": "ab6555c9539001103c92613e17ce58c1e435e5bdb2275ec9570fa239015b8c89"
+      }
+    },
+    {
+      "source": "results/service-phase910-development.json",
+      "variant": "async-history-batched-control",
+      "concurrency": 16,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.23916658761629694,
+        "min": 0.21505968416053825,
+        "max": 0.2632734910720556,
+        "stdev": 0.03409230981395276,
+        "per_repetition": [
+          0.2632734910720556,
+          0.21505968416053825
+        ]
+      },
+      "quality": {
+        "c16-k0": {
+          "quality_embedding_proxy": {
+            "wer": {
+              "mean": 0.019325466200466202,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "sim": {
+              "mean": 0.865896038711071,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "utmos": {
+              "mean": 3.3604112826287746,
+              "count": 64,
+              "basis": "per_item"
+            }
+          },
+          "quality_speaker_verification": {
+            "count": 64,
+            "mean": 51.84047657251358,
+            "scale": "x100"
+          }
+        }
+      },
+      "configuration": {
+        "name": "async-history-batched-control",
+        "screen_exit": 0,
+        "source_tree_sha256": "ab6555c9539001103c92613e17ce58c1e435e5bdb2275ec9570fa239015b8c89"
+      }
+    },
+    {
+      "source": "results/service-phase910-development.json",
+      "variant": "async-history-batched-control",
+      "concurrency": 32,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.3444960168963499,
+        "min": 0.3405254103009054,
+        "max": 0.34846662349179436,
+        "stdev": 0.005615285698125655,
+        "per_repetition": [
+          0.3405254103009054,
+          0.34846662349179436
+        ]
+      },
+      "quality": {
+        "c32-k0": {
+          "quality_embedding_proxy": {
+            "wer": {
+              "mean": 0.017905011655011654,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "sim": {
+              "mean": 0.8657199470326304,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "utmos": {
+              "mean": 3.3585726357996464,
+              "count": 64,
+              "basis": "per_item"
+            }
+          },
+          "quality_speaker_verification": {
+            "count": 64,
+            "mean": 50.80631935596466,
+            "scale": "x100"
+          }
+        }
+      },
+      "configuration": {
+        "name": "async-history-batched-control",
+        "screen_exit": 0,
+        "source_tree_sha256": "ab6555c9539001103c92613e17ce58c1e435e5bdb2275ec9570fa239015b8c89"
+      }
+    },
+    {
+      "source": "results/service-phase910-development.json",
+      "variant": "batched-history",
+      "concurrency": 1,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.06784910957768313,
+        "min": 0.0632080100425555,
+        "max": 0.07249020911281076,
+        "stdev": 0.006563505906900965,
+        "per_repetition": [
+          0.07249020911281076,
+          0.0632080100425555
+        ]
+      },
+      "quality": {
+        "c1-k0": {
+          "quality_embedding_proxy": {
+            "wer": {
+              "mean": 0.02114838286713287,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "sim": {
+              "mean": 0.8660350330173969,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "utmos": {
+              "mean": 3.3592804186046124,
+              "count": 64,
+              "basis": "per_item"
+            }
+          },
+          "quality_speaker_verification": {
+            "count": 64,
+            "mean": 50.96184492111206,
+            "scale": "x100"
+          }
+        }
+      },
+      "configuration": {
+        "name": "batched-history",
+        "screen_exit": 0,
+        "source_tree_sha256": "a4923143f6d48c1d3818166918473b7c68bb6b20fa45005c0105037138b84cb2"
+      }
+    },
+    {
+      "source": "results/service-phase910-development.json",
+      "variant": "batched-history",
+      "concurrency": 16,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.235670887399549,
+        "min": 0.2303586588221877,
+        "max": 0.24098311597691033,
+        "stdev": 0.007512625700530302,
+        "per_repetition": [
+          0.24098311597691033,
+          0.2303586588221877
+        ]
+      },
+      "quality": {
+        "c16-k0": {
+          "quality_embedding_proxy": {
+            "wer": {
+              "mean": 0.022568837412587413,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "sim": {
+              "mean": 0.8662619832903147,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "utmos": {
+              "mean": 3.35950443521142,
+              "count": 64,
+              "basis": "per_item"
+            }
+          },
+          "quality_speaker_verification": {
+            "count": 64,
+            "mean": 51.33180329203606,
+            "scale": "x100"
+          }
+        }
+      },
+      "configuration": {
+        "name": "batched-history",
+        "screen_exit": 0,
+        "source_tree_sha256": "a4923143f6d48c1d3818166918473b7c68bb6b20fa45005c0105037138b84cb2"
+      }
+    },
+    {
+      "source": "results/service-phase910-development.json",
+      "variant": "batched-history",
+      "concurrency": 32,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.3486221041737543,
+        "min": 0.3381746182679414,
+        "max": 0.3590695900795672,
+        "stdev": 0.014774976260702368,
+        "per_repetition": [
+          0.3590695900795672,
+          0.3381746182679414
+        ]
+      },
+      "quality": {
+        "c32-k0": {
+          "quality_embedding_proxy": {
+            "wer": {
+              "mean": 0.020745920745920746,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "sim": {
+              "mean": 0.8662272607907653,
+              "count": 64,
+              "basis": "per_item"
+            },
+            "utmos": {
+              "mean": 3.360426504164934,
+              "count": 64,
+              "basis": "per_item"
+            }
+          },
+          "quality_speaker_verification": {
+            "count": 64,
+            "mean": 50.25130361318588,
+            "scale": "x100"
+          }
+        }
+      },
+      "configuration": {
+        "name": "batched-history",
+        "screen_exit": 0,
+        "source_tree_sha256": "a4923143f6d48c1d3818166918473b7c68bb6b20fa45005c0105037138b84cb2"
+      }
+    },
+    {
+      "source": "results/service-phase910-development.json",
+      "variant": "engine-paired-phase10",
+      "concurrency": 1,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.06300178479338221,
+        "min": 0.06253525310619329,
+        "max": 0.06346831648057114,
+        "stdev": 0.0006597754392993773,
+        "per_repetition": [
+          0.06346831648057114,
+          0.06253525310619329
+        ]
+      },
+      "quality": {},
+      "configuration": {
+        "name": "engine-paired-phase10",
+        "screen_exit": 0,
+        "source_tree_sha256": "b4ca6ab660543646d5ceba27d7d051f2135153e2f04386e035fa7a834cc41046"
+      }
+    },
+    {
+      "source": "results/service-phase910-development.json",
+      "variant": "engine-paired-phase10",
+      "concurrency": 16,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.21090757833406706,
+        "min": 0.20840414853913763,
+        "max": 0.2134110081289965,
+        "stdev": 0.003540384368438095,
+        "per_repetition": [
+          0.2134110081289965,
+          0.20840414853913763
+        ]
+      },
+      "quality": {},
+      "configuration": {
+        "name": "engine-paired-phase10",
+        "screen_exit": 0,
+        "source_tree_sha256": "b4ca6ab660543646d5ceba27d7d051f2135153e2f04386e035fa7a834cc41046"
+      }
+    },
+    {
+      "source": "results/service-phase910-development.json",
+      "variant": "engine-paired-phase10",
+      "concurrency": 32,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.2733375277051813,
+        "min": 0.27175252039665543,
+        "max": 0.2749225350137072,
+        "stdev": 0.0022415388321778023,
+        "per_repetition": [
+          0.27175252039665543,
+          0.2749225350137072
+        ]
+      },
+      "quality": {},
+      "configuration": {
+        "name": "engine-paired-phase10",
+        "screen_exit": 0,
+        "source_tree_sha256": "b4ca6ab660543646d5ceba27d7d051f2135153e2f04386e035fa7a834cc41046"
+      }
+    },
+    {
+      "source": "results/replica4-interrupted.json",
+      "variant": "replica4-k16-s3",
+      "concurrency": 1,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": false,
+      "rtf": {
+        "mean": 0.07588538894143862,
+        "min": 0.07504771697673915,
+        "max": 0.07672306090613809,
+        "stdev": 0.0011846470532977087,
+        "per_repetition": [
+          0.07672306090613809,
+          0.07504771697673915
+        ]
+      },
+      "quality": {},
+      "configuration": {
+        "name": "replica4-k16-s3"
+      }
+    },
+    {
+      "source": "results/replica4-interrupted.json",
+      "variant": "replica4-k16-s3",
+      "concurrency": 16,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": false,
+      "rtf": {
+        "mean": 0.2627932692479633,
+        "min": 0.250822158148434,
+        "max": 0.2747643803474927,
+        "stdev": 0.01692970767362948,
+        "per_repetition": [
+          0.2747643803474927,
+          0.250822158148434
+        ]
+      },
+      "quality": {},
+      "configuration": {
+        "name": "replica4-k16-s3"
+      }
+    },
+    {
+      "source": "results/replica4-interrupted.json",
+      "variant": "replica4-k16-s3",
+      "concurrency": 32,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 61,
+      "eligible_for_comparison": false,
+      "rtf": {
+        "mean": 0.4181471123808522,
+        "min": 0.4127777845393368,
+        "max": 0.4235164402223677,
+        "stdev": 0.007593376254298603,
+        "per_repetition": [
+          0.4127777845393368,
+          0.4235164402223677
+        ]
+      },
+      "quality": {},
+      "configuration": {
+        "name": "replica4-k16-s3"
+      }
+    },
+    {
+      "source": "results/hift-service-precision-diagnostic.json",
+      "variant": "hift-tf32-control",
+      "concurrency": 1,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.06203922867357752,
+        "min": 0.06163367156068772,
+        "max": 0.062444785786467324,
+        "stdev": 0.000573544369365635,
+        "per_repetition": [
+          0.062444785786467324,
+          0.06163367156068772
+        ]
+      },
+      "quality": {},
+      "configuration": {
+        "name": "hift-tf32-control"
+      }
+    },
+    {
+      "source": "results/hift-service-precision-diagnostic.json",
+      "variant": "hift-tf32-control",
+      "concurrency": 16,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.23996638420924488,
+        "min": 0.2231866862001449,
+        "max": 0.2567460822183449,
+        "stdev": 0.023730076496994032,
+        "per_repetition": [
+          0.2567460822183449,
+          0.2231866862001449
+        ]
+      },
+      "quality": {},
+      "configuration": {
+        "name": "hift-tf32-control"
+      }
+    },
+    {
+      "source": "results/hift-service-precision-diagnostic.json",
+      "variant": "hift-tf32-control",
+      "concurrency": 32,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.5554381681086764,
+        "min": 0.5137826106921093,
+        "max": 0.5970937255252435,
+        "stdev": 0.05890985424672039,
+        "per_repetition": [
+          0.5137826106921093,
+          0.5970937255252435
+        ]
+      },
+      "quality": {},
+      "configuration": {
+        "name": "hift-tf32-control"
+      }
+    },
+    {
+      "source": "results/hift-service-precision-diagnostic.json",
+      "variant": "engine-paired-phase11",
+      "concurrency": 1,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.06284406680060975,
+        "min": 0.06261039972068907,
+        "max": 0.06307773388053041,
+        "stdev": 0.0003304551535039255,
+        "per_repetition": [
+          0.06307773388053041,
+          0.06261039972068907
+        ]
+      },
+      "quality": {},
+      "configuration": {
+        "name": "engine-paired-phase11"
+      }
+    },
+    {
+      "source": "results/hift-service-precision-diagnostic.json",
+      "variant": "engine-paired-phase11",
+      "concurrency": 16,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.2075033976291124,
+        "min": 0.20592279865153124,
+        "max": 0.20908399660669358,
+        "stdev": 0.00223530451076834,
+        "per_repetition": [
+          0.20592279865153124,
+          0.20908399660669358
+        ]
+      },
+      "quality": {},
+      "configuration": {
+        "name": "engine-paired-phase11"
+      }
+    },
+    {
+      "source": "results/hift-service-precision-diagnostic.json",
+      "variant": "engine-paired-phase11",
+      "concurrency": 32,
+      "repetitions": 2,
+      "requests": 128,
+      "failed": 0,
+      "eligible_for_comparison": true,
+      "rtf": {
+        "mean": 0.4363871411189455,
+        "min": 0.43428827633514955,
+        "max": 0.4384860059027414,
+        "stdev": 0.002968243042831468,
+        "per_repetition": [
+          0.4384860059027414,
+          0.43428827633514955
+        ]
+      },
+      "quality": {},
+      "configuration": {
+        "name": "engine-paired-phase11"
+      }
+    }
+  ]
+}
