@@ -228,6 +228,13 @@ def _settle(root, plan, state, pending, execution, assess):
             raise ValueError(state["integrity_error"])
         if execution.get("coordinator_error"):
             raise ValueError(execution["coordinator_error"])
+        # A task result cannot override an interrupted or unknown execution.
+        # A normal nonzero exit may carry a deliberate candidate rejection.
+        if (execution.get("status") not in ("completed", "failed")
+                or type(execution.get("returncode")) is not int
+                or execution["returncode"] < 0):
+            raise ValueError(
+                "Execution did not finish normally; candidate result cannot resume search")
         assessment = assess(root, directory, plan, execution)
         if not isinstance(assessment, dict) or assessment.get("status") not in (
             "completed", "candidate_failure", "infrastructure_failure"
@@ -235,6 +242,8 @@ def _settle(root, plan, state, pending, execution, assess):
             raise ValueError("Unknown task assessment status")
         score = assessment.get("score")
         if assessment["status"] == "completed":
+            if execution["status"] != "completed" or execution["returncode"] != 0:
+                raise ValueError("Completed assessment requires successful execution")
             if type(score) not in (int, float) or not math.isfinite(score) or score <= 0:
                 raise ValueError("Completed assessment requires a finite positive score")
             if pending["kind"] == "round" and state["best"]["score"] is None:

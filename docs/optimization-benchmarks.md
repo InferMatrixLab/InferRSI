@@ -87,6 +87,36 @@ Repeat this operation until the declared round budget is consumed. Use
 evaluates a newly retained candidate snapshot and returns independent feedback.
 Profiling is available to the Agent as an optional diagnostic.
 
+### A failed experiment can leave a usable best candidate
+
+A normally finished evaluation may explicitly reject a candidate. Harness keeps
+that round and its evidence, assigns no score to it, and preserves the selected
+best snapshot. The Agent can repair the candidate or, when the frozen round and
+time rules permit, run `final` on the retained best without repairing the working
+copy. Final still executes the full frozen protocol in a new process.
+
+For Qwen, a missing optional `tbe` module is a candidate dependency rejection only
+when it is raised inside the candidate function and the same case's baseline
+has already passed. This includes CANN's specific EC0010 TBE import failure at
+`AclSetCompileopt`, which wraps the missing dependency in a `RuntimeError`.
+Before rejecting the candidate, the worker reruns the same case's baseline
+against the independent reference using pristine inputs and baseline parameters;
+execution, synchronization and quality must all pass again. That check produces
+no optimization score. A failed recheck remains an infrastructure failure and
+retains both errors. Setup/import failures, failed baselines, other missing
+modules and unknown device errors remain infrastructure failures. The task
+assessor binds rejected results to the evaluated source snapshots and requires
+the worker's normal rejection exit. A written rejection cannot override a
+timeout, cancellation, signal or unknown execution state in the shared controller.
+
+This prevents a known candidate dependency failure from unnecessarily blocking
+the campaign. It does not unlock existing `blocked` campaigns, bypass a failed
+final or waive `exact` rounds. `recover` still only settles an existing attempt;
+it is not an environment repair operation. Normal process exit does not certify
+remote allocation release. Interruptions and unknown resource state remain
+blocked and require external investigation. Historical frozen experiments and
+their verdicts must not be rewritten with the new task protocol.
+
 ## Independently retest and report
 
 ```bash

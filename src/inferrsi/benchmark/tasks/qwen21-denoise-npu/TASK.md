@@ -120,6 +120,16 @@ or baseline failure. Candidate import/execution consumes an attempt. A failure
 keeps its evidence and has no valid speed score. The caller must collect process
 termination and allocation-release evidence when cancelling or timing out a run.
 
+A candidate-only missing optional TBE dependency (including the specific CANN
+EC0010 import error) is rejected only after the same case's baseline has passed
+and passes again after the error, with pristine inputs and its own parameters.
+The recheck includes synchronization and reference quality; it produces no score.
+The missing module and traceback remain in the result and log. A failed baseline
+recheck remains an infrastructure failure. A normally finished rejection preserves the earlier
+best implementation. Repair the candidate or complete independent final when
+the frozen budget permits. Setup, baseline and unknown runtime failures still
+block the session; a rejection result never overrides an interrupted execution.
+
 ## Scope
 
 This task measures a scaled denoiser with synthetic weights and conditioning.
