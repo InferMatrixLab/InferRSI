@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "campaign": "qwen38-h20-fp8-single-request-vllm032",
+  "configuration": [
+    "plan/search-8k-v1/activation.json",
+    "plan/formal-8k-baseline-identities.json",
+    "plan/quality-v5-source-identities.json"
+  ],
+  "integrity_manifests": [
+    "plan/retrieval-integrity.json",
+    "plan/search-8k-v1-integrity.json",
+    "results/search-observations-2163-2175-integrity.json",
+    "results/diagnostics/sandbox-offline-prefetch-integrity.json"
+  ],
+  "verdict": {
+    "path": "results/fp8-projections-search-v1/bound-result.json",
+    "pointer": "/campaign_verdict"
+  },
+  "metrics": [
+    {
+      "name": "baseline-ttft_s",
+      "path": "results/fp8-projections-search-v1/bound-result.json",
+      "pointer": "/rows",
+      "field": "ttft_s",
+      "where": {
+        "arm": "baseline"
+      },
+      "unit": "s",
+      "scope": "Published paired 8K search: 10 inputs x 3 repetitions per arm; pooled descriptive distribution"
+    },
+    {
+      "name": "baseline-tpot_s",
+      "path": "results/fp8-projections-search-v1/bound-result.json",
+      "pointer": "/rows",
+      "field": "tpot_s",
+      "where": {
+        "arm": "baseline"
+      },
+      "unit": "s",
+      "scope": "Published paired 8K search: 10 inputs x 3 repetitions per arm; pooled descriptive distribution"
+    },
+    {
+      "name": "candidate-ttft_s",
+      "path": "results/fp8-projections-search-v1/bound-result.json",
+      "pointer": "/rows",
+      "field": "ttft_s",
+      "where": {
+        "arm": "candidate"
+      },
+      "unit": "s",
+      "scope": "Published paired 8K search: 10 inputs x 3 repetitions per arm; pooled descriptive distribution"
+    },
+    {
+      "name": "candidate-tpot_s",
+      "path": "results/fp8-projections-search-v1/bound-result.json",
+      "pointer": "/rows",
+      "field": "tpot_s",
+      "where": {
+        "arm": "candidate"
+      },
+      "unit": "s",
+      "scope": "Published paired 8K search: 10 inputs x 3 repetitions per arm; pooled descriptive distribution"
+    }
+  ],
+  "recorded_results": [
+    {
+      "path": "results/fp8-projections-search-v1/bound-result.json",
+      "pointer": "/statistics"
+    },
+    {
+      "path": "results/merged-flash-prefill-v1/parent-review.json"
+    },
+    {
+      "path": "results/profile-merged-v1/phase-summary.json"
+    }
+  ],
+  "limitations": [
+    "Campaign acceptance remains INCONCLUSIVE; this is a storage-only projection.",
+    "The index covers all published result JSON documents and their named/nested attempt observations, not unpublished controller history.",
+    "Repeated identical observations of one named attempt are merged with every source pointer retained. Changed observations and anonymous records remain distinct.",
+    "Record/index entry counts are not independent trial counts. Text-only history and per-request traces remain in the byte-preserved original archive.",
+    "Only declared sample distributions are recomputed. Other retained results are explicitly reported frozen values, not independently requalified quality or statistics.",
+    "Original private models, media, raw receipts and runtime records were not published; archiving does not restore them or complete outstanding acceptance."
+  ]
+}

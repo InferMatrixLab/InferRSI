@@ -1,0 +1,84 @@
+{
+  "schema_version": 2,
+  "archive": {
+    "id": "h3-ref2va-910c-4logical-20261101-297-6c7e237-v1",
+    "file": "h3-ref2va-910c-4logical-20261101-297-6c7e237-v1.tar.gz",
+    "url": "https://github.com/InferMatrixLab/InferRSI/releases/download/evidence-model-cleanup-v1/h3-ref2va-910c-4logical-20261101-297-6c7e237-v1.tar.gz",
+    "sha256": "2d4a2ef1eaabb8f3efe1b4fe8337fc2792c735c7e235e354ca6e962553684377",
+    "bytes": 244406,
+    "format": "tar+gzip",
+    "retention_owner": "amy-why-3459",
+    "source_revision": "6c7e237935a22cc5e90e954d4f397376e753e7d8",
+    "root": "h3-ref2va-910c-4logical-20261101-297",
+    "files": 96,
+    "uncompressed_bytes": 1259483,
+    "key_files": {
+      "historical_narrative": "h3-ref2va-910c-4logical-20261101-297/README.md",
+      "snapshot": "snapshot.json",
+      "projection": "replay/projection.json",
+      "control": "h3-ref2va-910c-4logical-20261101-297/results/c12-through-c23-execution-checkpoint.json",
+      "validator": "h3-ref2va-910c-4logical-20261101-297/validator/strict_compare.py"
+    }
+  },
+  "verification": {
+    "summary": "results/summary.json",
+    "trials": "results/trials.jsonl",
+    "command": [
+      "python",
+      "tools/rebuild_model_evidence.py",
+      "evidence/h3-ref2va-910c-4logical-20261101-297/results/artifacts.json",
+      "--archive",
+      "<verified-archive>",
+      "--output",
+      "<new-output-directory>"
+    ],
+    "inputs": [
+      {
+        "role": "control",
+        "path": "h3-ref2va-910c-4logical-20261101-297/results/c12-through-c23-execution-checkpoint.json",
+        "sha256": "f87cc234efc10adb703d01124c76d2076b46d5251d142ad178b3dc6590079f6b"
+      },
+      {
+        "role": "configuration",
+        "path": "h3-ref2va-910c-4logical-20261101-297/plan/execution-checkpoint.json",
+        "sha256": "8decf6192d1e99d6665efff3af375909ac8f223ac6dc81a0d4077ca43c920416"
+      },
+      {
+        "role": "validator",
+        "path": "h3-ref2va-910c-4logical-20261101-297/validator/strict_compare.py",
+        "sha256": "b83f2bff553ff6ca2970a16e25525cac5d9523612e9c05ea563852c814019028"
+      },
+      {
+        "role": "configuration",
+        "path": "replay/projection.json",
+        "sha256": "a461ab6386cfea8db2e197a23c1237b38087e33111758fcc57e6363354e9749a"
+      },
+      {
+        "role": "control",
+        "path": "snapshot.json",
+        "sha256": "2695c4b1f345999214c5098a444b62756f47b57c57c8fc51d95de12de9cde673"
+      },
+      {
+        "role": "validator",
+        "path": "replay/rebuild_model_evidence.py",
+        "sha256": "bf9472493aff02d52ed341eba46e71f3f620cad48fd6eddc86cd9fe34036f607"
+      },
+      {
+        "role": "validator",
+        "path": "replay/evidence_archives.py",
+        "sha256": "0c141cf6d925627ffd3ddafc18f927ae19449bbf8ff4c26175d975801311e936"
+      }
+    ],
+    "absolute_tolerance": 1e-12,
+    "relative_tolerance": 1e-12
+  },
+  "availability_limits": [
+    "Campaign acceptance remains INCONCLUSIVE; this is a storage-only projection.",
+    "The index covers all published result JSON documents and their named/nested attempt observations, not unpublished controller history.",
+    "Repeated identical observations of one named attempt are merged with every source pointer retained. Changed observations and anonymous records remain distinct.",
+    "Record/index entry counts are not independent trial counts. Text-only history and per-request traces remain in the byte-preserved original archive.",
+    "Only declared sample distributions are recomputed. Other retained results are explicitly reported frozen values, not independently requalified quality or statistics.",
+    "Original private models, media, raw receipts and runtime records were not published; archiving does not restore them or complete outstanding acceptance."
+  ],
+  "retention_policy": "Keep this exact asset retrievable while referenced; changed bytes require a new version."
+}

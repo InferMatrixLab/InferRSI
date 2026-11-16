@@ -1,0 +1,605 @@
+{
+  "schema_version": 2,
+  "source_revision": "6c7e237935a22cc5e90e954d4f397376e753e7d8",
+  "artifact_id": "qwen38-h20-fp8-single-request-vllm032-6c7e237-v1",
+  "campaign_verdict": "INCONCLUSIVE",
+  "coverage": {
+    "original_files": 413,
+    "original_bytes": 5205664,
+    "indexed_result_documents": [
+      "results/deepgemm-prefill/actual-2084.json",
+      "results/deepgemm-prefill/extraction-metadata.json",
+      "results/deepgemm-prefill/knowledge-2084.json",
+      "results/diagnostics/baseline-long-1961.json",
+      "results/diagnostics/benchmark-client-ledger.json",
+      "results/diagnostics/client-base-1950.json",
+      "results/diagnostics/client-repair-1950.json",
+      "results/diagnostics/demotion-preflight.json",
+      "results/diagnostics/graph-demotion-1955.json",
+      "results/diagnostics/graph-forced96-1957.json",
+      "results/diagnostics/graph-long-1951.json",
+      "results/diagnostics/http-summary.json",
+      "results/diagnostics/ipc-preflight-1960.json",
+      "results/diagnostics/quality-binding-gap.json",
+      "results/diagnostics/quality-binding-v5-controls.json",
+      "results/diagnostics/quality-eos-v4-check.json",
+      "results/diagnostics/quality-eos-v5-check.json",
+      "results/diagnostics/quality-null-echo-check.json",
+      "results/diagnostics/quality-score-v5-controls.json",
+      "results/diagnostics/repair-summary.json",
+      "results/diagnostics/retrieval-baseline-1968.json",
+      "results/diagnostics/sandbox-benign-retry-2002.json",
+      "results/diagnostics/sandbox-benign-retry-2006.json",
+      "results/diagnostics/sandbox-benign-retry-packages-before.json",
+      "results/diagnostics/sandbox-benign-v2-packages-verified.json",
+      "results/diagnostics/sandbox-benign-v2-probe-execution.json",
+      "results/diagnostics/sandbox-benign-v2-probe-stdout.json",
+      "results/diagnostics/sandbox-bounds-2012.json",
+      "results/diagnostics/sandbox-bounds-2014.json",
+      "results/diagnostics/sandbox-bounds-v1-late-bounds-stdout.json",
+      "results/diagnostics/sandbox-bounds-v1-summary.json",
+      "results/diagnostics/sandbox-bounds-v2-actual-review.json",
+      "results/diagnostics/sandbox-bounds-v2-bounds-stdout.json",
+      "results/diagnostics/sandbox-bounds-v2-serialized-evaluator-results.json",
+      "results/diagnostics/sandbox-bounds-v2-synthetic-stdout.json",
+      "results/diagnostics/sandbox-build-1986.json",
+      "results/diagnostics/sandbox-bwrap-build-2000.json",
+      "results/diagnostics/sandbox-bwrap-build-2001.json",
+      "results/diagnostics/sandbox-bwrap-build-destdir-control.json",
+      "results/diagnostics/sandbox-bwrap-build-extraction-control.json",
+      "results/diagnostics/sandbox-bwrap-build-make-control.json",
+      "results/diagnostics/sandbox-bwrap-build-ninja-control.json",
+      "results/diagnostics/sandbox-bwrap-capability-1999.json",
+      "results/diagnostics/sandbox-elf-context-2004.json",
+      "results/diagnostics/sandbox-elf-context-2005.json",
+      "results/diagnostics/sandbox-elf-context-v1-observations.json",
+      "results/diagnostics/sandbox-elf-context-v2-observations.json",
+      "results/diagnostics/sandbox-elf-dependency-2003.json",
+      "results/diagnostics/sandbox-elf-dependency-observations.json",
+      "results/diagnostics/sandbox-executor-2018.json",
+      "results/diagnostics/sandbox-executor-v1-actual-review.json",
+      "results/diagnostics/sandbox-executor-v1-execution-record.json",
+      "results/diagnostics/sandbox-executor-v1-summary.json",
+      "results/diagnostics/sandbox-full164-2024.json",
+      "results/diagnostics/sandbox-full164-v1-actual-review.json",
+      "results/diagnostics/sandbox-full164-v1-failed-status-metadata.json",
+      "results/diagnostics/sandbox-full164-v1-summary.json",
+      "results/diagnostics/sandbox-install-1992.json",
+      "results/diagnostics/sandbox-install-1994.json",
+      "results/diagnostics/sandbox-offline-install-1998.json",
+      "results/diagnostics/sandbox-offline-install-dependencies-verified.json",
+      "results/diagnostics/sandbox-offline-install-evaluator-packages-verified.json",
+      "results/diagnostics/sandbox-offline-install-wheels-before.json",
+      "results/diagnostics/sandbox-offline-prefetch-controls.json",
+      "results/diagnostics/sandbox-offline-prefetch-report.json",
+      "results/diagnostics/sandbox-offline-prefetch-wheel-records.json",
+      "results/diagnostics/sandbox-platform-fs-1997.json",
+      "results/diagnostics/sandbox-platform-fs-controls.json",
+      "results/diagnostics/sandbox-platform-fs-observations.json",
+      "results/diagnostics/sandbox-resolve-1985.json",
+      "results/diagnostics/sandbox-resolve-1991.json",
+      "results/diagnostics/sandbox-synthetic-2009.json",
+      "results/diagnostics/sandbox-synthetic-v3-probe-execution.json",
+      "results/diagnostics/sandbox-synthetic-v3-probe-stdout.json",
+      "results/diagnostics/sandbox-transport-1996.json",
+      "results/diagnostics/sandbox-transport-controls.json",
+      "results/diagnostics/sandbox-transport-local-control.json",
+      "results/diagnostics/sandbox-transport-observations.json",
+      "results/diagnostics/sandbox-wheel-prefetch.json",
+      "results/diagnostics/statistics-proposal-check.json",
+      "results/flash-attention-prefill/result-2113.json",
+      "results/flashinfer-gdn/actual-2097.json",
+      "results/flashinfer-gdn/knowledge-2095.json",
+      "results/flashinfer-gdn/knowledge-2097.json",
+      "results/flashinfer-gdn/knowledge-preparation.json",
+      "results/flashinfer-small-m/actual-2076.json",
+      "results/flashinfer-small-m/knowledge-2076.json",
+      "results/flashinfer-small-m/operator-2076.json",
+      "results/flashinfer-small-m/status.json",
+      "results/formal-8k-baseline/independent-review.json",
+      "results/formal-8k-baseline/raw-audit.json",
+      "results/fp8-projections-search-v1/bound-result.json",
+      "results/fp8-projections-search-v1/knowledge.json",
+      "results/fp8-projections-search-v1/parent-review.json",
+      "results/fp8-projections-search-v1/receipt-review.json",
+      "results/full-context-graph/actual-2091.json",
+      "results/full-context-graph/knowledge-2091.json",
+      "results/full-context-graph/knowledge.json",
+      "results/merged-flash-prefill-v1/knowledge.json",
+      "results/merged-flash-prefill-v1/parent-review.json",
+      "results/merged-flash-prefill-v1/raw-audit.json",
+      "results/merged-flash-prefill-v1/receipt-review.json",
+      "results/profile-merged-v1/knowledge.json",
+      "results/profile-merged-v1/parent-review.json",
+      "results/profile-merged-v1/phase-summary.json",
+      "results/profile-merged-v1/receipt-review.json",
+      "results/profile-merged-v1/source-provenance.json",
+      "results/quality-executor/production-binding-review.json"
+    ],
+    "index_entries": 130,
+    "named_attempt_identities": 59,
+    "record_occurrences": 130,
+    "status_counts": {
+      "CANCELLED": 2,
+      "COMPLETED": 15,
+      "COMPLETED 0:0": 3,
+      "FAILED": 9,
+      "FAILED124:0": 1,
+      "INCONCLUSIVE": 1,
+      "PENDING": 1,
+      "completed": 2,
+      "failed": 1,
+      "recorded": 95
+    },
+    "unit": "published record/attempt observation; not a count of independent trials"
+  },
+  "recomputed_metrics": {
+    "baseline-ttft_s": {
+      "source": {
+        "name": "baseline-ttft_s",
+        "path": "results/fp8-projections-search-v1/bound-result.json",
+        "pointer": "/rows",
+        "field": "ttft_s",
+        "where": {
+          "arm": "baseline"
+        },
+        "unit": "s",
+        "scope": "Published paired 8K search: 10 inputs x 3 repetitions per arm; pooled descriptive distribution"
+      },
+      "distribution": {
+        "count": 30,
+        "min": 1.6797754659783095,
+        "max": 1.6857226910069585,
+        "median": 1.6820332545321435,
+        "mean": 1.6824048391426913,
+        "stdev": 0.0015193378245608993
+      }
+    },
+    "baseline-tpot_s": {
+      "source": {
+        "name": "baseline-tpot_s",
+        "path": "results/fp8-projections-search-v1/bound-result.json",
+        "pointer": "/rows",
+        "field": "tpot_s",
+        "where": {
+          "arm": "baseline"
+        },
+        "unit": "s",
+        "scope": "Published paired 8K search: 10 inputs x 3 repetitions per arm; pooled descriptive distribution"
+      },
+      "distribution": {
+        "count": 30,
+        "min": 0.010484485398126292,
+        "max": 0.010825176634070517,
+        "median": 0.010567210277008566,
+        "mean": 0.010582620528395193,
+        "stdev": 8.29582774749074e-05
+      }
+    },
+    "candidate-ttft_s": {
+      "source": {
+        "name": "candidate-ttft_s",
+        "path": "results/fp8-projections-search-v1/bound-result.json",
+        "pointer": "/rows",
+        "field": "ttft_s",
+        "where": {
+          "arm": "candidate"
+        },
+        "unit": "s",
+        "scope": "Published paired 8K search: 10 inputs x 3 repetitions per arm; pooled descriptive distribution"
+      },
+      "distribution": {
+        "count": 30,
+        "min": 2.8576242129784077,
+        "max": 2.8680209269514307,
+        "median": 2.860997973533813,
+        "mean": 2.861812592072723,
+        "stdev": 0.0028047357042848713
+      }
+    },
+    "candidate-tpot_s": {
+      "source": {
+        "name": "candidate-tpot_s",
+        "path": "results/fp8-projections-search-v1/bound-result.json",
+        "pointer": "/rows",
+        "field": "tpot_s",
+        "where": {
+          "arm": "candidate"
+        },
+        "unit": "s",
+        "scope": "Published paired 8K search: 10 inputs x 3 repetitions per arm; pooled descriptive distribution"
+      },
+      "distribution": {
+        "count": 30,
+        "min": 0.012172944966781453,
+        "max": 0.012215168506571769,
+        "median": 0.012188331024207376,
+        "mean": 0.012192562011545538,
+        "stdev": 1.2489118313243294e-05
+      }
+    }
+  },
+  "recorded_results": [
+    {
+      "source": {
+        "path": "results/fp8-projections-search-v1/bound-result.json",
+        "pointer": "/statistics"
+      },
+      "value": {
+        "campaign_verdict": "INCONCLUSIVE",
+        "statistics_approved": true,
+        "scope": "approved_8k_statistics_only",
+        "metrics": [
+          {
+            "input_tokens": 8192,
+            "metric": "ttft_s",
+            "paired_ratios_by_input": [
+              [
+                1.702292798609853,
+                1.699358675803024,
+                1.700673009062922
+              ],
+              [
+                1.700369306692157,
+                1.6993543723400795,
+                1.6992039596955852
+              ],
+              [
+                1.7004501320617282,
+                1.7012500612253891,
+                1.702090905985738
+              ],
+              [
+                1.7011941600862193,
+                1.7020216040287146,
+                1.7055641552219623
+              ],
+              [
+                1.7004924174190703,
+                1.6971446147289424,
+                1.7009584254623584
+              ],
+              [
+                1.6993359344791013,
+                1.6974080411011256,
+                1.7033882401028912
+              ],
+              [
+                1.699884050963867,
+                1.7005622041478314,
+                1.7034518233235505
+              ],
+              [
+                1.7047236362441305,
+                1.7006056989758997,
+                1.7026285019163367
+              ],
+              [
+                1.701284401747634,
+                1.6999993484514537,
+                1.7037070916181098
+              ],
+              [
+                1.700209019865402,
+                1.7005199434298837,
+                1.7006487486952797
+              ]
+            ],
+            "median_paired_ratio": 1.7006272238355897,
+            "paired_ratio_p10": 1.6993227370007498,
+            "paired_ratio_p90": 1.7034773501530065,
+            "upper_one_sided_95": 1.7012392809169268,
+            "limit": 1.03,
+            "metric_verdict": "FAIL",
+            "arms": {
+              "baseline": {
+                "median": 1.6820332545321435,
+                "p10": 1.6811239291797393,
+                "p90": 1.6850990878767333
+              },
+              "candidate": {
+                "median": 2.860997973533813,
+                "p10": 2.8582675250363536,
+                "p90": 2.865111770189833
+              }
+            }
+          },
+          {
+            "input_tokens": 8192,
+            "metric": "tpot_s",
+            "paired_ratios_by_input": [
+              [
+                1.1304008076084764,
+                1.1648727498173903,
+                1.162488459395516
+              ],
+              [
+                1.1287640625520843,
+                1.1634105104412242,
+                1.1605667096849948
+              ],
+              [
+                1.125864457635976,
+                1.1579382003965255,
+                1.155342654416893
+              ],
+              [
+                1.1378043301027634,
+                1.156582264747381,
+                1.156308950668831
+              ],
+              [
+                1.1533040277992193,
+                1.1542772310517573,
+                1.1540538590307976
+              ],
+              [
+                1.1534842469281767,
+                1.1554632826690245,
+                1.1535526899173518
+              ],
+              [
+                1.1523087598996873,
+                1.1553701468490283,
+                1.153805300531391
+              ],
+              [
+                1.1536572914924696,
+                1.154674614713675,
+                1.1528816355366849
+              ],
+              [
+                1.1523826191989737,
+                1.1537480314300095,
+                1.152395869923435
+              ],
+              [
+                1.1528452230330744,
+                1.1541411919392488,
+                1.1533333392660574
+              ]
+            ],
+            "median_paired_ratio": 1.1537766659807003,
+            "paired_ratio_p10": 1.1370639778533347,
+            "paired_ratio_p90": 1.1607588846560468,
+            "upper_one_sided_95": 1.154741923178071,
+            "limit": 1.03,
+            "metric_verdict": "FAIL",
+            "arms": {
+              "baseline": {
+                "median": 0.010567210277008566,
+                "p10": 0.01049987686839265,
+                "p90": 0.010708999877766459
+              },
+              "candidate": {
+                "median": 0.012188331024207376,
+                "p10": 0.012179919562867148,
+                "p90": 0.012213256699931646
+              }
+            }
+          }
+        ],
+        "errors": [],
+        "bootstrap": {
+          "draws": 10000,
+          "seed": 670032,
+          "cluster": "input_id_all_three_repetitions",
+          "quantile": "linear",
+          "sample_indices_sha256": "f3dc88ecceb93a2bd68db9ada5acd635fec76425dcc68f7c5b0a2f8fa513ccce"
+        }
+      }
+    },
+    {
+      "source": {
+        "path": "results/merged-flash-prefill-v1/parent-review.json"
+      },
+      "value": {
+        "reviewer": "root",
+        "scope": "independent interpretation of delegated raw-receipt review and unchanged auditor replay",
+        "requests": 4,
+        "measured_requests": 2,
+        "ttft_ratio": 0.8105649764179438,
+        "ttft_reduction_percent": 18.94350235820562,
+        "tpot_ratio": 0.9980892217854955,
+        "output_token_ids_equal": false,
+        "first_different_output_token_zero_based": 5,
+        "full_quality_required": true,
+        "formal_statistics_eligible": false,
+        "verdict": "INCONCLUSIVE",
+        "receipt_sha256": "3c730644ac349ff858b10aa7ac10d621ff2eaa1cf71fbb175f98c6e08db6d3ca"
+      }
+    },
+    {
+      "source": {
+        "path": "results/profile-merged-v1/phase-summary.json"
+      },
+      "value": {
+        "source_trace_sha256": "1b8acff4a74a52f4583331f2eace080c2304701f86a88dd58697481ce05cb5c6",
+        "method": "GPU kernel start/end within CPU record_function boundaries; both phases end with CUDA synchronize; one device and stream verified. Device duration is instrumented and not a service latency claim.",
+        "phases": {
+          "profile_prefill_8192": {
+            "host_phase_us": 2918166.624,
+            "kernel_count": 3470,
+            "kernel_sum_us": 2861020.825,
+            "kernel_union_us": 2861020.813720703,
+            "first_to_last_kernel_us": 2905205.6950683594,
+            "memcpy_count": 116,
+            "memcpy_us": 26983.22,
+            "memset_count": 34,
+            "memset_us": 33.246
+          },
+          "profile_graph_decode_8": {
+            "host_phase_us": 103191.981,
+            "kernel_count": 17328,
+            "kernel_sum_us": 97940.197,
+            "kernel_union_us": 97775.2578125,
+            "first_to_last_kernel_us": 103063.44580078125,
+            "memcpy_count": 8,
+            "memcpy_us": 20.512,
+            "memset_count": 144,
+            "memset_us": 124.962
+          }
+        },
+        "decode_structure": {
+          "method": "Repeated graph-node ordering checked for all eight replays; each of 64 layer blocks anchored by hidden input RMSNorm [grid=1], then checked against model.py's 30-node GDN or 44-node full-attention sequence. Attribution to source phases is inference from these matched sequences, not NVTX module annotations.",
+          "graph_nodes_per_replay": 2163,
+          "non_graph_kernel_count": 24,
+          "non_graph_kernel_us": 82.534,
+          "groups": {
+            "fp8_mlp_gate_up": {
+              "kernel_count": 512,
+              "device_us": 24650.932,
+              "per_token_us": 3081.3665,
+              "share_of_all_decode_kernels_pct": 25.169371468591187
+            },
+            "fp8_mlp_down": {
+              "kernel_count": 512,
+              "device_us": 14005.476999999999,
+              "per_token_us": 1750.6846249999999,
+              "share_of_all_decode_kernels_pct": 14.300029435309385
+            },
+            "fp8_gdn_qkvz": {
+              "kernel_count": 384,
+              "device_us": 9370.256999999998,
+              "per_token_us": 1171.2821249999997,
+              "share_of_all_decode_kernels_pct": 9.56732504836599
+            },
+            "fp8_attention_output": {
+              "kernel_count": 512,
+              "device_us": 6104.394999999997,
+              "per_token_us": 763.0493749999996,
+              "share_of_all_decode_kernels_pct": 6.232777947138493
+            },
+            "full_scores_mask_softmax_value_bmm": {
+              "kernel_count": 1408,
+              "device_us": 5577.405,
+              "per_token_us": 697.175625,
+              "share_of_all_decode_kernels_pct": 5.694704698214973
+            },
+            "bf16_gdn_b_a_projection_and_splitK_reduce": {
+              "kernel_count": 1536,
+              "device_us": 4785.7339999999995,
+              "per_token_us": 598.2167499999999,
+              "share_of_all_decode_kernels_pct": 4.886383881788598
+            },
+            "bf16_lm_head": {
+              "kernel_count": 8,
+              "device_us": 4541.804,
+              "per_token_us": 567.7255,
+              "share_of_all_decode_kernels_pct": 4.637323733379871
+            },
+            "gdn_conv_window_copy_conv_silu": {
+              "kernel_count": 1920,
+              "device_us": 4021.128000000001,
+              "per_token_us": 502.64100000000013,
+              "share_of_all_decode_kernels_pct": 4.105697275654858
+            },
+            "hidden_input_rmsnorm": {
+              "kernel_count": 512,
+              "device_us": 3582.819,
+              "per_token_us": 447.852375,
+              "share_of_all_decode_kernels_pct": 3.658170097411587
+            },
+            "full_q_gate_layout_qk_norm_partial_rope": {
+              "kernel_count": 2048,
+              "device_us": 3496.767999999999,
+              "per_token_us": 437.0959999999999,
+              "share_of_all_decode_kernels_pct": 3.5703093388713514
+            },
+            "fp8_activation_quant": {
+              "kernel_count": 2048,
+              "device_us": 3167.651999999999,
+              "per_token_us": 395.9564999999999,
+              "share_of_all_decode_kernels_pct": 3.234271623938023
+            },
+            "fp8_full_qkv": {
+              "kernel_count": 128,
+              "device_us": 2896.261,
+              "per_token_us": 362.032625,
+              "share_of_all_decode_kernels_pct": 2.9571729368688118
+            },
+            "gdn_qk_repeat_Alog_cast_output_zero": {
+              "kernel_count": 1536,
+              "device_us": 2219.371,
+              "per_token_us": 277.421375,
+              "share_of_all_decode_kernels_pct": 2.2660471062764964
+            },
+            "post_attention_add_rmsnorm": {
+              "kernel_count": 512,
+              "device_us": 2050.9760000000006,
+              "per_token_us": 256.37200000000007,
+              "share_of_all_decode_kernels_pct": 2.0941105519728542
+            },
+            "flashinfer_gdn_recurrence": {
+              "kernel_count": 384,
+              "device_us": 1905.0459999999991,
+              "per_token_us": 238.1307499999999,
+              "share_of_all_decode_kernels_pct": 1.9451114642948892
+            },
+            "gdn_norm_silu_gate": {
+              "kernel_count": 1152,
+              "device_us": 1738.3990000000006,
+              "per_token_us": 217.29987500000007,
+              "share_of_all_decode_kernels_pct": 1.7749596725846901
+            },
+            "mlp_silu_multiply": {
+              "kernel_count": 1024,
+              "device_us": 1693.3380000000006,
+              "per_token_us": 211.66725000000008,
+              "share_of_all_decode_kernels_pct": 1.728950984241946
+            },
+            "mlp_output_residual_add": {
+              "kernel_count": 512,
+              "device_us": 780.4710000000003,
+              "per_token_us": 97.55887500000004,
+              "share_of_all_decode_kernels_pct": 0.7968852666285737
+            },
+            "full_kv_cache_index_copy": {
+              "kernel_count": 256,
+              "device_us": 651.3229999999999,
+              "per_token_us": 81.41537499999998,
+              "share_of_all_decode_kernels_pct": 0.6650211250851373
+            },
+            "full_sigmoid_output_gate": {
+              "kernel_count": 256,
+              "device_us": 379.388,
+              "per_token_us": 47.4235,
+              "share_of_all_decode_kernels_pct": 0.3873669970257462
+            },
+            "embedding_and_position_tables": {
+              "kernel_count": 136,
+              "device_us": 183.008,
+              "per_token_us": 22.876,
+              "share_of_all_decode_kernels_pct": 0.18685688369607834
+            },
+            "final_hidden_rmsnorm": {
+              "kernel_count": 8,
+              "device_us": 55.711,
+              "per_token_us": 6.963875,
+              "share_of_all_decode_kernels_pct": 0.056882670962975494
+            }
+          },
+          "per_replay_kernel_us": [
+            12233.914,
+            12224.673,
+            12236.986,
+            12240.038,
+            12234.154,
+            12237.394,
+            12227.691,
+            12222.813
+          ]
+        },
+        "publication_note": "Compact derived copy; long per-kernel symbol lists omitted. Original trace and full report remain private; original trace digest retained. Source-region attribution is inference."
+      }
+    }
+  ],
+  "limitations": [
+    "Campaign acceptance remains INCONCLUSIVE; this is a storage-only projection.",
+    "The index covers all published result JSON documents and their named/nested attempt observations, not unpublished controller history.",
+    "Repeated identical observations of one named attempt are merged with every source pointer retained. Changed observations and anonymous records remain distinct.",
+    "Record/index entry counts are not independent trial counts. Text-only history and per-request traces remain in the byte-preserved original archive.",
+    "Only declared sample distributions are recomputed. Other retained results are explicitly reported frozen values, not independently requalified quality or statistics.",
+    "Original private models, media, raw receipts and runtime records were not published; archiving does not restore them or complete outstanding acceptance."
+  ]
+}

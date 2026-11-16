@@ -1,7 +1,0 @@
-{
-  "platform_sha256": "9d13f8c349b340b3a697c4892794557f17d0cac10a87a28f15afe15aa5a674db",
-  "locks": {
-    "build.lock": "8f033a8ba24ddabb64ac12e4e5e701d7c52986902a7943cd3c2aee2dc46c0bd1",
-    "dependencies.lock": "2c60d833d1a705050a152c767da55c90d9f30a4b831d140e115dbffe4d6bb823"
-  }
-}
