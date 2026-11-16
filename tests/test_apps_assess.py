@@ -139,6 +139,27 @@ def test_loop_rejects_changed_receipt_before_assessing(offline):
     assert (caught.value.code, caught.value.stage) == ("IdentityMismatch", "assessment_binding")
 
 
+@pytest.mark.parametrize("raises", (True, False), ids=("raised", "returned"))
+def test_loop_propagates_benchmark_rejection_without_archiving(offline, raises):
+    request, config, directory = offline
+    before = set(directory.iterdir())
+    rejection = PublicError(
+        "UnsupportedRuleVersion", stage="assess", message="Unsupported frozen rule revision.",
+        attempt_id=request["record_ref"]["attempt_id"], field_errors=["claim_definitions[0]"],
+    )
+
+    def reject(prepared, evidence, *, artifacts):
+        if raises:
+            raise rejection
+        return rejection.to_json()
+
+    with pytest.raises(PublicError) as caught:
+        _loop_port(config, assess_benchmark=reject).assess(_loop_receipt(request))
+
+    assert caught.value.to_json() == rejection.to_json()
+    assert set(directory.iterdir()) == before
+
+
 def test_loop_archive_failure_does_not_return_an_assessment_ref(offline, monkeypatch):
     request, config, _ = offline
 
