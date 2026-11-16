@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "authority": "This file owns archive URL, bytes, SHA256 and retention metadata; tools/evidence_inventory.json references archive below without copying them.",
+  "archive": {
+    "id": "minicpm-seedtts-dec7a734-v1",
+    "file": "minicpm-seedtts-dec7a734-v1.tar.gz",
+    "sha256": "b8515b822c54b42dd5ad186872cfcffd81bc8376338309713cf0b292ac60ed6c",
+    "bytes": 1533125,
+    "files": 56,
+    "uncompressed_bytes": 10430698,
+    "snapshot_revision": "dec7a734f27215092f62728f78b98fe26cd58ba2",
+    "publication_integrity_sha256": "e673326642deaae59450d25591237c80c53964c1675f12edbc653da9a50f64e6",
+    "format": "tar.gz",
+    "root": "minicpm-vllm-seedtts",
+    "url": "https://github.com/InferMatrixLab/InferRSI/releases/download/evidence-minicpm-seedtts-dec7a734-v1/minicpm-seedtts-dec7a734-v1.tar.gz",
+    "retention_owner": "amy-why-3459",
+    "retention_policy": "Keep the versioned public asset retrievable while this PR or repository references it; updates publish a new asset version, never replace these bytes."
+  },
+  "trial_association": {
+    "index": "results/trials.jsonl",
+    "artifact_id": "minicpm-seedtts-dec7a734-v1",
+    "records": 340
+  },
+  "key_files": {
+    "historical_readme": "README.md",
+    "frozen_file_hashes": "results/publication-integrity.json",
+    "timing": "results/service-timing.json",
+    "quality_reference": "results/service-quality-reference.json",
+    "launch_and_config_versions": "plan/service-review-provenance.json",
+    "service_checker": "validator/check_service_archive.py",
+    "component_validator": "validator/check.py"
+  },
+  "versions": {
+    "source_and_config": "plan/service-review-provenance.json",
+    "validator_snapshot_revision": "dec7a734f27215092f62728f78b98fe26cd58ba2",
+    "summary_generator": "validator/build_core.py",
+    "verification_entrypoint": "validator/verify_archive.py"
+  },
+  "availability": {
+    "public_archive": "All 56 files published at dec7a734, byte-for-byte; no new redactions. Original private artifacts were never part of that snapshot.",
+    "not_in_public_archive": [
+      "Complete original trace payloads and private launch/server logs",
+      "Generated WAVs, model/evaluator weights and TensorRT engine caches",
+      "Raw rows for the three excluded early screens and summary-only diagnostic/interrupted cells"
+    ],
+    "restricted_retention": "Original host captures remain controlled by the evidence owner; no public URL or replay guarantee is claimed for them. Their digests identify external inputs and are not proof of availability."
+  },
+  "verification_contract": {
+    "format": "Offline inventory validates archive digest/size schema only; it does not fetch assets or certify availability.",
+    "explicit": "verify_archive.py --download checks availability, bytes/hash before bounded extraction, all original file hashes, complete retained trial coverage, metric summaries and the preserved CPU checker.",
+    "comparison": "Structure, IDs and integers exact; finite numerical results use absolute tolerance 1e-12, no relative tolerance.",
+    "failure": "Each failure identifies metadata, download, archive_bytes, extraction, snapshot_integrity or recomputation; historical verdicts remain unchanged."
+  }
+}

@@ -1,6 +1,24 @@
 {
   "version": 1,
   "bundles": {
+    "minicpm-vllm-seedtts": {
+      "kind": "campaign",
+      "manifests": [
+        {
+          "path": "results/core-integrity.json",
+          "schema": "bundle-sha256"
+        },
+        {
+          "path": "results/artifacts.json",
+          "schema": "archive-sha256",
+          "field": "archive",
+          "artifact": "results/minicpm-seedtts-dec7a734-v1.tar.gz"
+        }
+      ],
+      "external": [
+        "Archive metadata is authoritative in results/artifacts.json. Offline checks report the absent local asset as unavailable; run the explicit verifier for remote bytes and recomputation. Private traces/audio/models remain outside the public snapshot; service qualification is INCONCLUSIVE."
+      ]
+    },
     "h3-ref2va-910c-4logical-20261101-297": {
       "kind": "campaign",
       "manifests": [
