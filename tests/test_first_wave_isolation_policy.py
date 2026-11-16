@@ -420,7 +420,8 @@ class PermanentLeafImporterTest(unittest.TestCase):
             "infra/platforms/__init__.py", "harness/api.py", "harness/runner.py",
             "benchmark/probe.py", "apps/main.py", "apps/inspection.py", "model/probe.py",
             "cli.py", "arguments.py", "apps/cli/__init__.py", "apps/cli/arguments.py",
-            "benchmark_operations.py", "helper.py", "catalog.py",
+            "benchmark_operations.py", "apps/benchmark_operations.py", "summary_chart.py",
+            "apps/views/summary_chart.py", "helper.py", "catalog.py",
             "_repo_pack_data.py",
         )
         for path in paths:
@@ -484,13 +485,18 @@ class PermanentLeafImporterTest(unittest.TestCase):
 
 
 class RetiredRootModuleTest(unittest.TestCase):
-    """#412 R1: the eleven deleted root modules cannot return, as any kind of file."""
+    """#412 R1 and #408 A1, A2: the fifteen deleted root modules cannot return, as any file."""
 
     def test_the_retired_set_is_the_exact_eleven_and_absent_from_the_tree(self) -> None:
         self.assertEqual(support.RETIRED_BY_A1, {"inferrsi.cli", "inferrsi.arguments"})
         self.assertEqual(
-            support.RETIRED_ROOT_MODULES, support.RETIRED_BY_R1 | support.RETIRED_BY_A1
+            support.RETIRED_BY_A2, {"inferrsi.summary_chart", "inferrsi.benchmark_operations"}
         )
+        self.assertEqual(
+            support.RETIRED_ROOT_MODULES,
+            support.RETIRED_BY_R1 | support.RETIRED_BY_A1 | support.RETIRED_BY_A2,
+        )
+        self.assertEqual(len(support.RETIRED_ROOT_MODULES), 15)
         self.assertEqual(
             support.RETIRED_BY_R1,
             {

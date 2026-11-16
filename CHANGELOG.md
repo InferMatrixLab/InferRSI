@@ -4,6 +4,38 @@
 
 ### Changed
 
+- The campaign chart renderer and the single-task launcher move into the Apps
+  package and the two root modules are removed (Refs #408, A2), with no
+  forwarding shell, `sys.modules` alias or import fallback. Both files move
+  with their bytes unchanged:
+  - `inferrsi.summary_chart` → `inferrsi.apps.views.summary_chart`
+    (`src/inferrsi/summary_chart.py` →
+    `src/inferrsi/apps/views/summary_chart.py`), which keeps `build_svg`,
+    `build_markdown`, `spec_from_evaluation`, `check_trial_chart_eligibility`,
+    `SpecError` and `main`
+  - `inferrsi.benchmark_operations` → `inferrsi.apps.benchmark_operations`
+    (`src/inferrsi/benchmark_operations.py` →
+    `src/inferrsi/apps/benchmark_operations.py`), which keeps `run_task`
+  - `tools/campaign_summary_chart.py` keeps its command line and arguments.
+    Its exit codes, stdout, stderr and the SVG and Markdown bytes it writes are
+    unchanged. The dashboard, the HTML report and `benchmarks run` import the
+    canonical modules.
+  - Importing `inferrsi.summary_chart` or `inferrsi.benchmark_operations` now
+    raises `ModuleNotFoundError`, in external Python code as well as in this
+    repository, and a pickle that names an object by either path no longer
+    loads. Callers import from `inferrsi.apps.views.summary_chart` and
+    `inferrsi.apps.benchmark_operations`. Frozen evidence is not rewritten.
+  - The tracked package root shrinks from eight files to six. Besides
+    `__init__.py` and `__main__.py`, the four left (`mindie_context.py`,
+    `mindie_mcp.py`, `mindie_project.py` and `_mindie_read_worker.py`) wait for
+    M1 (#452). The gate's exact-file `APPLICATION_ENTRIES` listing is removed
+    with its last entry, so no root file is application assembly, and
+    `inferrsi.summary_chart` and `inferrsi.benchmark_operations` join
+    `RETIRED_ROOT_MODULES`, so a root file that returns under either name
+    fails.
+  - Isolation is still incomplete: the 12 Harness hits into Infra (R2, #412)
+    and the five runtime resource loaders (R3, #412) remain.
+
 - The CLI moves into the Apps package and the two root CLI modules are removed
   (Refs #408, A1), with no forwarding shell, `sys.modules` alias or import
   fallback:

@@ -203,7 +203,7 @@ def main(argv: list[str] | None = None) -> int:
                 _print(result)
                 return 2 if result.get("state") == "blocked" else 0
             if args.benchmark_action == "run":
-                from ...benchmark_operations import run_task
+                from ..benchmark_operations import run_task
 
                 return run_task(args.task, args.arguments)
             from ...benchmark.registry import builtin_tasks, describe_task

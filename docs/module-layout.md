@@ -5,8 +5,8 @@ Knowledge move (K01) is implemented: `src/inferrsi/knowledge/` holds the seven
 moved Knowledge bodies. R1 (#412) deleted the seven static root compatibility
 shells that K01 left, so those names import only from `inferrsi.knowledge`.
 The engineering task contribution now implements `benchmark/registry.py`
-and `benchmark/tasks/`. The CLI package `apps/cli/` and the flat
-`benchmark_operations.py` assemble this slice. The former `observability/`
+and `benchmark/tasks/`. The CLI package `apps/cli/` and
+`apps/benchmark_operations.py` assemble this slice. The former `observability/`
 package is dissolved. Its
 campaign records, traces, logs and profile captures are in `harness/records/`,
 its dashboard views and templates are in `apps/views/`, and the
@@ -43,18 +43,20 @@ no forwarding shell or alias.
 
 The flat package root is retired in stages.
 `tests/test_package_root_inventory.py` pins the root to an exact file set: 23
-tracked files after C1, 21 after C2, 10 after R1 (#412) and 8 after A1 (#408).
-The eight are `__init__.py`, `__main__.py`, `_mindie_read_worker.py`,
-`benchmark_operations.py`, `mindie_context.py`, `mindie_mcp.py`,
-`mindie_project.py` and `summary_chart.py`. A1 moved root `cli.py` and
+tracked files after C1, 21 after C2, 10 after R1 (#412), 8 after A1 (#408) and 6
+after A2 (#408). The six are `__init__.py`, `__main__.py`,
+`_mindie_read_worker.py`, `mindie_context.py`, `mindie_mcp.py` and
+`mindie_project.py`. A2 moved root `summary_chart.py` to
+`apps/views/summary_chart.py` and root `benchmark_operations.py` to
+`apps/benchmark_operations.py` and deleted both root files with no forwarding
+shell or alias. A1 moved root `cli.py` and
 `arguments.py` to `apps/cli/__init__.py` and `apps/cli/arguments.py` and
-deleted both root files with no forwarding shell or alias. Each later removal
-PR shrinks the set in the same change: A2 (#408) moves the chart and the
-benchmark launcher, and M1 (#452) moves the four MindIE files. The guard does
+deleted both root files the same way. The last removal PR shrinks the set in
+the same change: M1 (#452) moves the four MindIE files. The guard does
 not assert the final two-file root (`__init__.py` and `__main__.py`) early,
 and the build-generated `_version.py` is ignored wheel metadata, not a tracked
 root file. [Retired root modules](#retired-root-modules) lists the eleven
-paths that R1 removed and the two that A1 removed.
+paths that R1 removed, the two that A1 removed and the two that A2 removed.
 
 The current `src/inferrsi/harness/` tree is a mixed implementation. Its
 presence is not the target Harness boundary and is not evidence that the four
@@ -107,7 +109,7 @@ Several flat modules remain shared seams until their slice starts.
 | Current path | Tentative reading | This slice |
 | --- | --- | --- |
 | `apps/cli/` (`__init__.py`, `arguments.py`), root `__main__.py` | Apps CLI entry and its parser | A1 (#408) moved root `cli.py` and `arguments.py` here; the entry is `inferrsi.apps.cli:main`, and `__main__.py` only delegates to it |
-| `benchmark_operations.py` | Single-task application launcher | Resolves a task entry and invokes the Harness runner; ordinary projects do not use it |
+| `apps/benchmark_operations.py` | Single-task application launcher | A2 (#408) moved root `benchmark_operations.py` here; resolves a task entry and invokes the Harness runner, and ordinary projects do not use it |
 | `benchmark/registry.py`, `benchmark/tasks/` | Task discovery, definitions and specialized rules | Task-specific quality and measurement code stays with each task |
 | `harness/optimization_session.py`, `harness/project.py`, `harness/task_protocol.py` | Shared preparation, execution and retained-result assessment | CLI supplies task resources and knowledge access; ordinary project lifecycle does not import Benchmark |
 | `harness/optimization.py`, `harness/candidates.py`, `harness/usage.py` | Shared project and packaged-task lifecycle | Injected execution/assessment; declared file/directory candidates, selection direction and exact/up-to rounds |
@@ -125,7 +127,7 @@ Several flat modules remain shared seams until their slice starts.
 | `apps/inspection.py` | Prepared-environment inspection bound to this host | Binds the `infra/inspection.py` facts API to `infra.commands.probe_command` and `infra.targets.repository_identity`; replaces root `inspection.py`, which R1 deleted with the three old-run root forwarders |
 | `model/validators/` | Benchmark-leaning checks | Not moved |
 | `infra/` | Seams used by the current tree, including the `infra/inspection.py` facts API | Not a fourth core; reaches no Knowledge, Harness, Benchmark or Apps module |
-| `summary_chart.py` | Current report helper | Not moved |
+| `apps/views/summary_chart.py` | Stdlib SVG gain chart and report figure spec | A2 (#408) moved root `summary_chart.py` here; the renderer, its specification checks and its `main` are unchanged, and `tools/campaign_summary_chart.py` calls it |
 | `contracts/` (`runspec.py`, `json_v1.py`, `claim.py`, `evidence.py`) | Technical-only contracts: RunSpec, canonical JSON, verdict vocabulary, evidence segment and path rules | Exact module set; the initializer re-exports only `RunSpec`; not a fourth core |
 | `apps/evidence_layout.py` | Evidence directory creation over the `contracts/evidence.py` path rules | The `mkdir` half of former root `evidence_paths.py`; host I/O stays in Apps |
 | `resources/repository_packs.py` | Neutral `REPO_TYPES` and `repository_pack` facade | Former root `_repo_pack_data.py`, bytes unchanged; import-free initializer; not a fourth core |
@@ -136,13 +138,12 @@ Several flat modules remain shared seams until their slice starts.
 `tests/test_target_module_import_gate.py` fails on a new import of
 `inferrsi.knowledge`, `inferrsi.benchmark`, or `inferrsi.apps` from anywhere
 except application assembly, and on Knowledge or Benchmark importing Harness.
-Application assembly includes `inferrsi.apps` and the one remaining flat
-entry `benchmark_operations.py`, listed by exact file name as
-`APPLICATION_ENTRIES` in `tests/_gate_policy_support.py`. A1 (#408) moved
-`cli.py` and `arguments.py` into `apps/cli/`, which is Apps by its first path
-segment, and removed their two entries, so a root file that returns under
-either name is not admitted. The listing is temporary: A2 removes the last
-entry. Other flat modules retain
+Application assembly is the `inferrsi.apps` package, identified by its first path
+segment. No root file is application assembly: A1 (#408) moved `cli.py` and
+`arguments.py` into `apps/cli/`, A2 (#408) moved `benchmark_operations.py` into
+`apps/`, and with that last move the exact-file `APPLICATION_ENTRIES` listing in
+`tests/_gate_policy_support.py` is removed. A root file that returns under any of
+those names is not admitted. Other flat modules retain
 the same restrictions. The gate checks Benchmark task scripts as well as
 module code.
 `from inferrsi import knowledge` counts as an import of that core.
@@ -491,9 +492,21 @@ The `inferrsi` console script and `python -m inferrsi` call
 unchanged. A test replaces a CLI name such as `_knowledge_reader` or `files` on
 `inferrsi.apps.cli`.
 
-The root now holds the eight files listed under
+The root now holds the six files listed under
 [Target modules](#target-modules). The final two-file root waits for the
-A2 (#408) and M1 (#452) moves.
+M1 (#452) move.
+
+A2 (#408) deleted two more root modules the same way:
+
+| Retired root module | Canonical module |
+| --- | --- |
+| `inferrsi.summary_chart` | `inferrsi.apps.views.summary_chart` |
+| `inferrsi.benchmark_operations` | `inferrsi.apps.benchmark_operations` |
+
+`tools/campaign_summary_chart.py` keeps its command line and calls
+`inferrsi.apps.views.summary_chart:main`, so its arguments, exit codes, output and
+the SVG and Markdown bytes it writes are unchanged. The dashboard, the HTML report
+and the CLI `benchmarks run` command import the canonical modules.
 
 ## Old `run` exit codes
 

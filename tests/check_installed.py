@@ -648,11 +648,14 @@ for retired, canonical in r1_retired.items():
         raise AssertionError(f"retired module inferrsi.{retired} must not import")
 assert not installed_root & {f"{name}.py" for name in r1_retired}
 assert installed_root - {"_version.py"} == {
-    "__init__.py", "__main__.py", "_mindie_read_worker.py", "benchmark_operations.py",
-    "mindie_context.py", "mindie_mcp.py", "mindie_project.py", "summary_chart.py",
+    "__init__.py", "__main__.py", "_mindie_read_worker.py",
+    "mindie_context.py", "mindie_mcp.py", "mindie_project.py",
 }, sorted(installed_root)
 # #408 A1: the CLI and its parser ship only as inferrsi.apps.cli; neither root name imports.
-for a1_retired in ("cli", "arguments"):
+# #408 A2: the chart renderer and the task launcher ship only under inferrsi.apps.
+for a1_retired in ("cli", "arguments", "summary_chart", "benchmark_operations"):
+    assert find_spec(f"inferrsi.{a1_retired}") is None, a1_retired
+    assert f"inferrsi.{a1_retired}" not in sys.modules, a1_retired
     try:
         import_module(f"inferrsi.{a1_retired}")
     except ModuleNotFoundError:
@@ -660,6 +663,11 @@ for a1_retired in ("cli", "arguments"):
     else:
         raise AssertionError(f"retired module inferrsi.{a1_retired} must not import")
 assert main.__module__ == "inferrsi.apps.cli"
+for canonical in ("inferrsi.apps.views.summary_chart", "inferrsi.apps.benchmark_operations"):
+    assert find_spec(canonical) is not None, canonical
+assert import_module("inferrsi.apps.views.summary_chart").main.__module__ == (
+    "inferrsi.apps.views.summary_chart"
+)
 host_inspection = import_module("inferrsi.apps.inspection")
 assert host_inspection._command is import_module("inferrsi.infra.commands").probe_command
 assert host_inspection.repository_identity is (
