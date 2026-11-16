@@ -421,7 +421,8 @@ class PermanentLeafImporterTest(unittest.TestCase):
             "benchmark/probe.py", "apps/main.py", "apps/inspection.py", "model/probe.py",
             "cli.py", "arguments.py", "apps/cli/__init__.py", "apps/cli/arguments.py",
             "benchmark_operations.py", "apps/benchmark_operations.py", "summary_chart.py",
-            "apps/views/summary_chart.py", "helper.py", "catalog.py",
+            "apps/views/summary_chart.py", "mindie_project.py", "apps/mindie/project.py",
+            "_mindie_read_worker.py", "apps/mindie/read_worker.py", "helper.py", "catalog.py",
             "_repo_pack_data.py",
         )
         for path in paths:
@@ -485,7 +486,7 @@ class PermanentLeafImporterTest(unittest.TestCase):
 
 
 class RetiredRootModuleTest(unittest.TestCase):
-    """#412 R1 and #408 A1, A2: the fifteen deleted root modules cannot return, as any file."""
+    """#412 R1 and #408 A1, A2 and #452 M1: the nineteen deleted root modules cannot return."""
 
     def test_the_retired_set_is_the_exact_eleven_and_absent_from_the_tree(self) -> None:
         self.assertEqual(support.RETIRED_BY_A1, {"inferrsi.cli", "inferrsi.arguments"})
@@ -493,10 +494,18 @@ class RetiredRootModuleTest(unittest.TestCase):
             support.RETIRED_BY_A2, {"inferrsi.summary_chart", "inferrsi.benchmark_operations"}
         )
         self.assertEqual(
-            support.RETIRED_ROOT_MODULES,
-            support.RETIRED_BY_R1 | support.RETIRED_BY_A1 | support.RETIRED_BY_A2,
+            support.RETIRED_BY_M1,
+            {
+                "inferrsi.mindie_project", "inferrsi.mindie_context", "inferrsi.mindie_mcp",
+                "inferrsi._mindie_read_worker",
+            },
         )
-        self.assertEqual(len(support.RETIRED_ROOT_MODULES), 15)
+        self.assertEqual(
+            support.RETIRED_ROOT_MODULES,
+            support.RETIRED_BY_R1 | support.RETIRED_BY_A1 | support.RETIRED_BY_A2
+            | support.RETIRED_BY_M1,
+        )
+        self.assertEqual(len(support.RETIRED_ROOT_MODULES), 19)
         self.assertEqual(
             support.RETIRED_BY_R1,
             {

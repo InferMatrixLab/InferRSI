@@ -4,9 +4,9 @@ import json
 import re
 import sys
 
-from . import __version__
-from .mindie_context import MAX_BYTES, _invalid_constant, _object
-from .mindie_project import call, describe
+from ... import __version__
+from .context import MAX_BYTES, _invalid_constant, _object
+from .project import call, describe
 
 _PROTOCOL = "2025-11-25"
 _SUPPORTED = {"2024-11-05", "2025-03-26", "2025-06-18", _PROTOCOL}

@@ -4,6 +4,40 @@
 
 ### Changed
 
+- The local MindIE adapter moves into the Apps package and its four root files
+  are removed (Refs #452, M1), with no forwarding shell, `sys.modules` alias or
+  import fallback:
+  - `inferrsi.mindie_project` → `inferrsi.apps.mindie.project`
+  - `inferrsi.mindie_context` → `inferrsi.apps.mindie.context`
+  - `inferrsi.mindie_mcp` → `inferrsi.apps.mindie.mcp`
+  - `src/inferrsi/_mindie_read_worker.py` →
+    `src/inferrsi/apps/mindie/read_worker.py`, a standalone file that is run by
+    path and never imported
+  - The four files move with their code unchanged apart from the imports that
+    name their neighbours (`.context`, `.project`, `.mcp`) and the package
+    version, which `mcp.py` now reads with `from ... import __version__`.
+    `apps/mindie/__init__.py` imports nothing and does not re-export the
+    version. The `inferrsi mindie` and `inferrsi campaign import-mindie`
+    commands, the Codex configuration and the MCP server name are unchanged.
+  - The worker keeps its boundary: it starts with `-I -B` in a private working
+    directory, with a 20 second limit and a 2 MiB cap, opens SQLite read-only,
+    imports only the standard library at the top level and imports
+    `mindie_knowledge` inside `read()`. It is not standard-library-only overall.
+    The grant file, its explicit opt-in and the recorded read receipts are
+    unchanged, as is the OBS layout.
+  - Importing `inferrsi.mindie_project`, `inferrsi.mindie_context` or
+    `inferrsi.mindie_mcp` now raises `ModuleNotFoundError`, in external Python
+    code as well as in this repository, and a pickle that names an object by
+    one of these paths no longer loads. Callers import from
+    `inferrsi.apps.mindie`. Frozen evidence is not rewritten.
+  - The tracked package root shrinks from six files to the final two,
+    `__init__.py` and `__main__.py`. The four paths join `RETIRED_ROOT_MODULES`
+    in the gate, so a root file that returns under any of them fails, and the
+    installed-wheel checker verifies that the adapter and worker ship under
+    `apps/mindie/`.
+  - Isolation is still incomplete: the 12 Harness hits into Infra (R2, #412)
+    and the five runtime resource loaders (R3, #412) remain.
+
 - The campaign chart renderer and the single-task launcher move into the Apps
   package and the two root modules are removed (Refs #408, A2), with no
   forwarding shell, `sys.modules` alias or import fallback. Both files move

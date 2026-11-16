@@ -18,6 +18,7 @@ from tests._gate_policy_support import (
     REPO,
     RETIRED_BY_A1,
     RETIRED_BY_A2,
+    RETIRED_BY_M1,
     RETIRED_BY_R1,
     RETIRED_ROOT_MODULES,
     ROOT,
@@ -367,18 +368,21 @@ def _record_modules():
 
 def test_harness_records_load_no_knowledge_or_apps_module():
     # #412 R1 retired eleven root modules, #408 A1 retired the root CLI and its parser,
-    # and #408 A2 retired the root chart renderer and task launcher. None of those fifteen
-    # names may be loaded either.
+    # #408 A2 retired the root chart renderer and task launcher, and #452 M1 retired the four
+    # root MindIE files. None of those nineteen names may be loaded either.
     assert len(RETIRED_BY_R1) == 11
     assert RETIRED_BY_A1 == {"inferrsi.cli", "inferrsi.arguments"}
     assert RETIRED_BY_A2 == {"inferrsi.summary_chart", "inferrsi.benchmark_operations"}
+    assert len(RETIRED_BY_M1) == 4
     assert not RETIRED_BY_R1 & RETIRED_BY_A1
     assert not (RETIRED_BY_R1 | RETIRED_BY_A1) & RETIRED_BY_A2
-    assert RETIRED_ROOT_MODULES == RETIRED_BY_R1 | RETIRED_BY_A1 | RETIRED_BY_A2
+    assert not (RETIRED_BY_R1 | RETIRED_BY_A1 | RETIRED_BY_A2) & RETIRED_BY_M1
+    assert RETIRED_ROOT_MODULES == RETIRED_BY_R1 | RETIRED_BY_A1 | RETIRED_BY_A2 | RETIRED_BY_M1
     leaves = sorted(RETIRED_ROOT_MODULES)
-    assert len(leaves) == 15
+    assert len(leaves) == 19
     assert {"inferrsi.cli", "inferrsi.arguments"} <= set(leaves)
     assert RETIRED_BY_A2 <= set(leaves)
+    assert RETIRED_BY_M1 <= set(leaves)
     script = (
         "import importlib, sys\n"
         f"for name in {_record_modules()!r}:\n"
