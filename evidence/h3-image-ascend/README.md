@@ -1,381 +1,133 @@
-# MiniMax-H3-Image: four-device Ascend iteration record
+# H3 Image on four Ascend devices: evidence archive
 
-Governing acceptance and requester-approved scope:
-[InferRSI issue 390](https://github.com/InferMatrixLab/InferRSI/issues/390).
-This is an exploratory evidence export, **INCONCLUSIVE for campaign acceptance**.
-All three latency targets remain unmet. No final A/B/B/A qualification or
-independent cross-hardware image-quality comparison is claimed.
+Campaign [#390](https://github.com/InferMatrixLab/InferRSI/issues/390), engine
+[PR #10184](https://github.com/vllm-project/vllm-omni/pull/10184).
+**Campaign acceptance remains INCONCLUSIVE; all three latency targets are unmet.**
+Final isolated ABBA, full visual acceptance and independent cross-hardware
+reference quality are incomplete. CPU checks and archive verification do not
+qualify the model or change any historical conclusion.
 
-## Delivered evidence
+This unmerged-PR pilot applies the storage approach proposed in
+[#464](https://github.com/InferMatrixLab/InferRSI/issues/464). It does not adopt
+repository-wide policy or migrate merged evidence. The complete public export
+at `2e850be2a2f9e4b38e1eec7741be1f406f69a532` is preserved byte-for-byte in the
+[versioned Release asset](https://github.com/InferMatrixLab/InferRSI/releases/tag/evidence-h3-image-ascend-v1):
+156 original files, 74,543,002 uncompressed bytes. This tree keeps the frozen
+configuration and validators, derived summaries, a complete index of the
+published records, and an explicit verification entry point.
 
-- `plan/`: frozen author workload, the separately authorized approximate-image
-  screen, environment and source provenance.
-- `results/`: per-request timings and pixel hashes, image-screen reports,
-  rejected quantization diagnostics and component measurements.
-- `patch/`: the consolidated downstream engine revision and retained scope.
-- `validator/`: byte-identical experiment/validator code. The `plan/` copy inside
-  this directory preserves the original quality validator's relative lookup.
+## Read the results
 
-The historical runs use the earlier source revision recorded in provenance.
-The submission runs use the updated upstream base and the consolidated patch;
-these groups must not be silently combined. The baseline for an incremental VAE
-comparison is the same-layout native SP4 integration control with AdaLN offload,
-not the historical TP4 run. Single-launch medians are observations, not a
-reproducible service speedup claim or proof of the H200 target.
+- [Structured summary](results/summary.json): source/configuration context,
+  workload statistics and recorded quality aggregates, grouped by experiment.
+- [Trial index](results/trials.jsonl): each HTTP run/comparison, component
+  parameter case, execution attempt and diagnostic has an individual entry.
+  Repeated configurations retain distinct IDs; failed and interrupted attempts
+  remain indexed. Validation-only records are labelled separately.
+- [Archive reference](results/artifacts.json): the **single authority** for
+  download URL, SHA-256, bytes, format, retention owner and source revision.
+  The repository inventory references it instead of maintaining another copy.
+- [Frozen workload](plan/workload.json), [quality gates](plan/quality-exploration.json),
+  [environment](plan/environment.json), [provenance](plan/provenance.json) and
+  [initial engine delivery](patch/revision.json) remain unchanged. The initial
+  revision pointer is historical; later revisions are in the summary's groups.
 
-Historical candidate source manifests are included where available; their full
-experimental source snapshots remain local. Most raw images, profiler traces and host
-logs remain local. Six representative round-two full-resolution images are now
-included in the [image gallery](results/round2-images/README.md). Published request
-records omit prompts, local file names and process identifiers. Pixel hashes
-identify retained outputs, but this export alone cannot independently recompute
-image-quality scores. Reproduction requires the public checkpoint and example
-assets, four allocated devices, and rerunning the recorded workloads. Numerical
-screen PASS is narrower than final image-quality acceptance.
+The latest round 24 uses engine base `bd30cbd3fb621fcca600b2de08fc1249c6c0987c`.
+It compares the existing opt-in exact text prompt cache with caching disabled;
+reference-image calls bypass that cache. Six PDD steps, canvas, transport and
+quality gates remain unchanged. Measurements are HTTP POST start through full
+response receipt, concurrency one, one warmup then three timed requests per
+workload and arm. These are one launch pair, not final repeated ABBA.
 
-## Lessons from this iteration
+| Round 24 | Control median (s) | Candidate median (s) | Target (s) |
+| --- | ---: | ---: | ---: |
+| W1, text-to-image 4736×3552 | 11.081 | 10.959 | 7.34 |
+| W2, text-to-image 1024×1024 | 2.690 | 2.656 | 1.52 |
+| W3, editing 1024×1024 | 4.658 | 4.735 | 2.60 |
 
-1. **Establish repeatability first.** The initial native TP4 outputs changed
-   across identical requests. Deterministic PyTorch algorithms and HCCL settings
-   established same-device controls before pixel comparisons.
-2. **Reduce residency before selecting parallelism.** Host-master AdaLN staging
-   made resident SP4 feasible in the tested memory budget. Preserve the owning
-   stager's transfer and projection-cache semantics; do not conflate this with
-   approximate activation reuse.
-3. **Graph lifetime is part of correctness.** VAE decoder replicas need separate
-   streams and static buffers. Encoder autocast casts must be graph-owned rather
-   than borrowed from a temporary autocast cache. Weight relocation invalidates
-   captures, and retained outputs must survive reuse of a replica's buffers.
-4. **Validate complete images after every numerical change.** Whole-model W8A8,
-   SmoothQuant and all 58 bounded precision diagnostics failed the frozen screen.
-   Small raw-projection differences in a communication-fusion trial also caused
-   a W2 image failure, despite passing isolated operator probes. Padding the
-   reordered weights did not resolve it. No failed variant was adopted.
-5. **Microbench improvement is not service improvement.** Output-only fused
-   communication preserved the tested image hashes but did not improve the
-   overall HTTP result. SHMEM, static AdaLN graphs and AllGather-KV also lacked
-   a consistent benefit in the tested configurations.
-6. **Observe process exit, not only application shutdown.** The application
-   cleanup message preceded NPU runtime finalization by roughly 20 seconds.
-   A shared NPU-specific graceful deadline allowed natural worker exit while
-   retaining bounded escalation and the existing deadline on other platforms.
+All 30 matched images were RGB-exact, but the mixed latency changes did not
+establish an overall benefit; the candidate was not adopted. Cold/warm cache
+semantics and reference-image bypass are retained in the structured summary.
+The precise values, sample counts and ranges are generated from archived
+samples, not maintained separately from the experiment records.
 
-The latest batched VAE candidate has 12 measured/warmup images and six heldout
-seed images screened locally. The published overview was visually inspected without an obvious content or
-structure regression; additional prompts and full-resolution visual review of
-that exact configuration remain incomplete. The prior FP16-encoder/batch8
-configuration has broader evidence; it does not automatically qualify batch32.
+Earlier comparisons remain revision-scoped. Whole-model W8A8, SmoothQuant,
+communication fusion, early NZ conversions and full-step FIA include rejected
+quality screens. Post-load NZ, text/row preparation, final-step FIA and async
+QKV include mixed or slower latency despite passing their numerical screens.
+Component probes retain each parameter case and do not establish service gains.
+The low-rank quantization calibration reused architecture/portrait inputs from
+the expanded quality suite; these were **not independent heldout inputs**.
+The failed first sparse-attention process and its invalid samples remain
+explicitly recorded and excluded as in the original export.
 
-## Reproduction
+The full historical narrative, source fingerprints, per-request records,
+quality reports, raw component samples and round-two image gallery are in the
+archive at their original relative paths. The original README contains earlier
+"pending" observations; later records supersede them without rewriting history.
 
-Use the downstream engine's `docs/user_guide/diffusion/minimax_h3_image_npu.md`
-for serving. In an isolated experiment directory, place the validator scripts
-alongside the supplied `plan/` directory and install `requests`, `Pillow`,
-`numpy` and `scikit-image`. For each fresh server configuration:
+## Verify or regenerate
+
+Run from the repository root with Python 3.10 or later; these operations are
+CPU-only and use the standard library:
 
 ```bash
-python benchmark.py --plan plan/workload.json \
-  --examples "${MODEL_PATH:?}/examples" --output results/control
+# Offline inventory: layout and available bytes only; no implicit download.
+python tools/validate_evidence.py
+
+# Explicit public download, byte/hash verification, and exact view comparison.
+python evidence/h3-image-ascend/validator/archive.py --download
+
+# An independently downloaded asset can be verified without network access.
+python evidence/h3-image-ascend/validator/archive.py --archive /path/to/archive.tar.gz
+
+# Regenerate the two derived views from the authenticated snapshot.
+python evidence/h3-image-ascend/validator/archive.py --archive /path/to/archive.tar.gz --write
 ```
 
-Repeat with a distinct candidate output directory and the same workload. Use
-`--quality` for heldout seeds; validate only complete, independent matched runs:
+The verifier authenticates the compressed archive before reading its members.
+It checks every original file against the snapshot and original frozen export
+manifest, and compares retained configuration/validator bytes. It never executes
+archived code or extracts paths to disk. Links, devices, duplicate/unsafe paths,
+excessive expansion and member counts are rejected; download/read operations
+have size and time bounds. Missing access, wrong bytes/hash, missing files and
+view mismatches return distinct failure reasons and a nonzero exit status.
 
-```bash
-python validate_approximate_images.py \
-  --reference results/control --candidate results/candidate \
-  --output results/candidate/quality-screen.json
-```
+`summary.json` and `trials.jsonl` are deterministic projections of the archived
+records, not another experiment controller. Every ID is the results-relative
+JSON filename without `.json`, followed by `#` and a JSON Pointer; an empty
+pointer selects the entire record. Resolve it beneath the archive's
+`h3-image-ascend/results/` directory. Index coverage is checked by regenerating
+all IDs and entries, including repeated cases and failures, then comparing the
+complete index. Supporting measurements and quality reports are enumerated in
+`summary.json` under `coverage.support_records`.
 
-The original validator remains frozen. The cached variant verifies all request
-identities and image hashes, then reuses PSNR/SSIM only for identical image pairs;
-its complete result matched the original on the failed full-fusion run. Neither
-validator substitutes for prompt coverage, visual inspection, ABBA or independent
-review. Rejected attempts and the remaining acceptance work are intentionally
-preserved rather than presented as a successful campaign.
+HTTP medians are recomputed from the original sample arrays and compared exactly
+to historical medians. Where per-request records exist, measured samples are
+also cross-checked against those records after excluding warmups. Counts and
+all generated JSON values must match exactly; no new numerical tolerance or
+acceptance gate is introduced. Component timing summaries preserve individual
+repetition groups; their min/median/max and counts come from raw samples.
+Image pass/fail counts and score extrema are recomputed from **recorded checks**,
+not by rerunning PSNR/SSIM on unavailable image pairs.
 
-The [downsampled overview](results/quality-overview.png) is a visual aid only.
-The [check summary](results/checks.json) records the current validation limits.
+## Availability and integration limits
 
-Engine delivery: [vLLM-Omni PR 10184](https://github.com/vllm-project/vllm-omni/pull/10184).
+Most full-resolution images, activation tensors, original candidate source
+snapshots and host/profiler logs were never published. Six representative
+round-two full-resolution PNGs are archived; the other 24 images in that screen
+remain unavailable. Historical source-manifest hashes identify external
+snapshots, not source bytes verified by this archive. These gaps existed before
+the migration and remain explicit in `artifacts.json`.
 
-The attention component probes used real block weights and captured activations,
-but synthetic RoPE and epsilon `1e-6` rather than the model's `1e-5`. They are
-not complete model-correctness evidence. The K/V projection discrepancy was
-measured before normalization; actual engine trials used the model epsilon.
+The offline inventory reports the absent external archive as unavailable. That
+is distinct from manifest validity and from a successful explicit download
+verification at a particular time. Loss of future access must be recorded as an
+availability gap, preserving the original experiment conclusions. The named
+retention owner is `amy-why-3459`; updates require a new archive version.
 
-The MLP layout probe used real weights from three blocks and captured activations
-repeated to two token counts. Padding was slower and sometimes changed outputs;
-transposed storage showed only small component differences. Neither variant is
-adopted or evidence of an HTTP speedup. See `results/mlp-layout-probe.json`.
-
-The evidence inventory validates the public export hashes. Historical source
-hashes are classified as external dependencies, with original revision/context
-metadata retained alongside each flat source manifest. These checks do not
-qualify missing raw images or change the campaign verdict.
-
-## Round-two generated images
-
-[Control/candidate gallery and full-resolution PNGs](results/round2-images/README.md)
-cover W1, W2 and W3 at seed 42, first measured request. The gallery includes the
-30-image numerical-screen report and pixel-hash provenance. Panels were inspected
-for presentation and obvious structural differences; this does not complete
-full-resolution visual acceptance. The remaining 24 images are not bundled.
-
-The subsequent real-weight NZ MLP probe covered three blocks, both MLP
-projections and two token counts under two format settings (24 cases). All
-outputs matched exactly. With internal formats disabled during linear execution,
-observed component latency reductions ranged from 2.4% to 10.3%. Activations
-were captured samples repeated to the tested lengths; these results do not
-establish complete model parity or HTTP improvement. A same-VAE-configuration
-four-device control/candidate experiment is pending; NZ is not yet adopted.
-
-The [NZ round-four full-model trial](results/mlp-nz-round4/decision.json)
-was rejected: all 30 image screens failed, and W2/W3 latency regressed.
-The conversion affected 104 projections, including token-refiner MLPs outside
-the original component probe. That scope mismatch is a diagnostic lead, not
-an established cause. Both controls and candidates were repeatable. No NZ
-change has been adopted in the downstream PR.
-
-The main-block-only NZ retry also failed all 30 image screens and was rejected
-(`results/mlp-nz-round5`). Parameter/2D/3D and complete MLP-chain component
-probes remained exact on the sampled activations; this does not explain or
-override the failed full-model result. An independent decoder-dtype probe
-observed 68.15 ms BF16 versus 65.65 ms FP16 for a batch of 32 tiles, with
-nonzero output error. A separate FP16 decoder model trial is queued; neither
-component timing nor finite outputs establish image-quality acceptance.
-
-The [FP16 decoder model trial](results/vae-fp16-round6/decision.json) passed
-all 30 numerical image screens (minimum PSNR 46.90 dB, SSIM 0.99754), but
-showed mixed latency: W1 improved while W2/W3 regressed. It is not adopted.
-Complete visual acceptance and isolated repeated performance qualification
-remain missing. Profiling the published configuration is queued to guide
-the next distinct mechanism; all campaign targets remain unmet.
-
-The refreshed rank-zero three-request profile was successfully exported in the
-collection container after the initial offline export failed despite exit code
-zero. Nonempty kernel/operator/step tables were verified. MatMulV3 and
-FlashAttentionScore each account for about 39% of aggregate operator time;
-these sums are not an E2E speedup claim. See `results/current-profile-round8.json`.
-
-A controlled two-document layout probe preserved outputs but did not establish
-consistent benefit. The FIA BSND probe showed roughly 4–5% reductions at medium
-and large sequence sizes, with nonzero error. Its padding boundaries and input
-tensors were synthetic, not captured model metadata. A three-image full-model
-screen is running before any formal qualification; no attention change is adopted.
-
-## Round nine: FIA rejected by whole-image screening
-
-The three-image matched screen replaced native packed attention with FIA BSND
-only in the 50 main transformer blocks. W1 scored PSNR 19.5261 dB / SSIM
-0.849762 and W2 23.4763 dB / 0.935613, failing the unchanged numerical gates.
-W3 passed (39.6448 dB / 0.993414); that does not qualify the candidate.
-[Rejection and source identity](results/fia-round9-rejection.json) retain all
-three checks. The full performance trial was skipped and no FIA code was
-adopted into the engine PR. These cold screen requests establish no latency
-improvement. Campaign acceptance remains **INCONCLUSIVE**.
-
-Native FAS query tiling was also screened on synthetic 4432/6608/16768-token
-inputs with real/padding document boundaries. All 12 cases were bitwise exact,
-but all were slower than the unchunked operation; no engine integration or
-HTTP trial followed. [Raw component samples](results/attention-query-tiling-probe.json)
-do not establish a service result.
-
-## Runtime compatibility and control-setting correction
-
-`TASK_QUEUE_ENABLE=2` was rejected by the installed torch-npu graph capture
-runtime before an HTTP experiment. A subsequent per-request row-index
-preparation trial failed its dummy run because the new keyword was missing
-from the model's strict forward contract. The corrected retry passed 14 CPU
-checks; hardware qualification was pending at this checkpoint.
-[Execution failures and retry identity](results/runtime-and-prepared-row-startup.json)
-preserve these gaps without treating them as quality or performance results.
-
-Review also identified a confound in historical graph-on/off comparisons:
-the graph adapter disabled `allow_internal_format`, while a graph-off control
-left the platform default enabled. Those samples compare coupled runtime
-changes and cannot isolate the VAE contribution. The engine follow-up exposes
-`npu_disable_internal_format` for matching future controls. Rounds 5, 6, 9 and
-the prepared-row experiment use the same graph-on VAE setup in both arms;
-their within-round comparisons do not have this specific confound.
-
-Engine follow-up `7f8395fede3cb79991a256d1752c887b40faca30` restores deterministic caller state, propagates
-the NPU worker grace through the outer stage client, and adds the explicit
-internal-format control. [Checks and limitations](results/review-followup-checks.json)
-record 26 CPU regressions and the single-device graph-output lifetime test.
-These checks do not requalify historical HTTP measurements on the new revision.
-
-## Round twelve: prepared row indices rejected
-
-Preparing local embedding-row indices once per request preserved exact RGB
-output in all 30 matched images. It did not improve HTTP latency: control
-W1/W2/W3 medians were 11.039/2.574/4.243 seconds, versus candidate
-11.197/2.925/4.502 seconds. [Samples and all quality checks](results/prepared-rows-round12-rejection.json)
-record the unchanged workload and source identity. The candidate was not
-adopted, and no final ABBA qualification was run. This experiment uses the
-older ad37f7f engine base; it does not requalify the 7f8395fed follow-up.
-Campaign acceptance remains **INCONCLUSIVE**, with all latency targets unmet.
-
-## Round thirteen: request-local text preparation
-
-Hoisting timestep-independent text projection and refinement preserved exact
-RGB output in all 30 matched images. The candidate path was confirmed active.
-Control W1/W2/W3 medians were 11.084/2.689/4.743 seconds, versus candidate
-11.035/2.786/4.733 seconds. W1/W3 differ by less than 0.5%, while W2 is slower;
-these sequential samples do not establish a consistent benefit.
-[Samples, source identity and quality checks](results/prepared-text-round13-result.json)
-use the current 7f8395fed base. The candidate was not adopted, and no final
-ABBA qualification was run. All latency targets remain unmet.
-
-## NZ load-order diagnosis
-
-A full-model diagnostic compared ND repeats and NZ linear operations while
-returning the original outputs. All 1,200 HTTP-stage comparisons were exact
-(100 projections across four ranks and three input lengths), as were 400
-startup comparisons. Only the first occurrence of each layer/input shape was
-checked. All three output images remained exact; diagnostic timings are excluded.
-
-The platform adapter runs before checkpoint loading. A separate real-weight
-single-device probe found that copying chunks into a pre-converted NZ tensor
-changed its contents, whereas converting populated weights was exact. H3's
-merged fc1 loader performs chunked writes, making load order a plausible
-explanation for prior NZ failures. [Probe results and limitations](results/nz-load-order-diagnosis.json)
-also preserve the failed diagnostic attempt. Conversion after loading is being
-qualified separately; these findings do not establish an end-to-end speedup.
-
-## Round sixteen: NZ conversion after loading
-
-Deferring MLP weight conversion until after checkpoint loading restored exact
-RGB output in all 30 matched images. Four ranks each confirmed conversion of
-100 populated projection weights. Control W1/W2/W3 medians were
-10.842/2.480/4.191 seconds, versus candidate 10.727/2.556/4.065 seconds.
-These mixed results do not establish a consistent overall benefit, and the
-candidate was not adopted. [Samples and all quality checks](results/postload-nz-round16-result.json)
-retain the source identity and protocol. Final ABBA qualification was not run;
-all latency targets remain unmet.
-
-A separate transposed-storage linear probe tested 18 cases using actual weights
-and repeated captured activation samples. Twelve were exact; all six 1108-row
-cases differed, and most cases were slower. [Component measurements](results/linear-transposed-storage-probe.json)
-therefore did not lead to integration or an HTTP trial.
-
-## Outlier-channel FC1 quantization rejected
-
-Keeping 1024 input channels in BF16 reduced component-level error, but did not
-qualify whole images. Round 17 failed during dummy VAE reference encoding
-before the transformer preparation hook ran. Moving preparation to the first
-pipeline entry allowed round 18 to finish, with both services exiting normally.
-W1 scored PSNR 20.1129 / SSIM 0.855984 and W2 23.1108 / 0.915849, failing the
-unchanged gates; W3 passed at 38.8175 / 0.990182.
-[Component cases, startup failure and image checks](results/outlier-fc1-rejection.json)
-retain the source and calibration hashes. The candidate was rejected, no full
-performance trial ran, and no mixed-precision code was adopted.
-
-## Attention execution probes
-
-Nine native attention execution-option cases were exact but slower. Six
-full-mask block-attention cases retained all tokens, but were slower and
-non-exact. These synthetic single-device measurements did not justify an HTTP
-trial or engine integration. [Component samples](results/attention-execution-probes.json)
-include source hashes; they do not establish image quality or final performance.
-
-Splitting BF16 linear projections into two or four output-channel partitions
-also failed the component screen: all 36 cases were slower, and only 15 were
-exact. [ABBA component samples](results/linear-output-split-probe.json) include
-concatenation cost. No model integration or HTTP trial followed.
-
-Zero-padding linear input rows to multiples of 128 or 512, then cropping back
-to the original rows, was also slower in all 36 cases. Twenty-four were exact;
-all twelve 1108-row cases differed. [Component samples](results/linear-row-padding-probe.json)
-include padding cost. This candidate was also rejected before model integration.
-
-Mapping independent attention heads to batches produced nine exact but slower
-component cases. Native FP16 attention with conversion and power-of-two scaling
-also failed to improve the large sequence and was non-exact.
-[Samples and source hashes](results/attention-head-batch-and-fp16.json) retain
-these synthetic checks; neither variant entered an HTTP trial.
-
-## Final-step FIA round 19
-
-Using FIA only in the last of six denoising steps passed all 30 numerical
-image checks (minimum PSNR 45.50 dB, SSIM 0.997486). Latency remained mixed:
-candidate W1/W2/W3 medians were 11.047/2.726/4.584s versus control
-10.949/2.745/4.743s. [Samples, quality checks and source identity](results/fia-final-step-round19-result.json)
-record the completed comparison. The candidate was not adopted; visual and
-final ABBA qualification were not performed, and all targets remain unmet.
-
-## Final-three-step FIA round 20
-
-All 30 numerical image checks passed (minimum PSNR 31.868 dB, SSIM 0.982957).
-Candidate W1/W2/W3 medians were 10.805/2.641/4.471s versus control
-10.825/2.632/4.502s: essentially unchanged, mixed latency.
-[Samples, checks and frozen configuration](results/fia-final-three-round20-result.json)
-record the comparison. The candidate was not adopted. All targets remain unmet;
-final ABBA and visual qualification were not performed.
-
-## Current PR head baseline, round 21
-
-The updated PR head `bd30cbd3f` preserves exact RGB for all 30 matched images
-against the prior `7f8395fed` control with the same explicit settings. Updated
-head medians were 11.130/2.801/4.571s versus control 11.143/2.958/4.662s.
-[Paired samples and quality checks](results/current-head-round21-baseline.json)
-refresh the baseline; this is not a new optimization or final ABBA claim.
-All targets remain unmet.
-
-## November 14 component search
-
-[Component samples and source hashes](results/nov14-component-search.json) cover
-TND FIA, single-group BF16 matmul, packed HCCL, persistent packing and asynchronous
-QKV transport. Layout and packing variants did not show a qualifying overall
-benefit; the persistent kernel also failed correctness/compilation checks.
-Asynchronous separate QKV exchanges were exact in all twelve four-rank cases
-and advanced to whole-model testing. Component results alone do not establish
-HTTP latency or final image acceptance.
-
-## Asynchronous QKV round 22
-
-All 30 matched images were exact, but component transport gains did not improve
-HTTP latency. Candidate W1/W2/W3 medians were 11.064/2.723/4.564s versus
-control 11.040/2.698/4.561s. [Full samples, quality and source identity](results/async-qkv-round22-rejection.json)
-record the rejection. No engine adoption or final ABBA/visual acceptance followed.
-
-## Quantization and TorchAir component follow-up
-
-[Quantization samples](results/nov14-quantization-component-search.json) cover
-streaming weight quantization, weight-only INT8, grouped activation quantization
-and low-rank correction fitted on calibration inputs. The original calibration
-script reused architecture/portrait prompts from the expanded quality suite;
-these are not held out, as corrected in the result provenance. None provided
-a convincing speed and accuracy tradeoff for whole-model qualification. The
-group128 weight-only implementation had large errors whose cause is unresolved.
-
-[TorchAir samples](results/nov14-torchair-component-search.json) cover the native
-MLP, tiling optimization and a larger norm/MLP/gated-residual fragment. All nine
-comparisons were exact, but compiled execution remained slower. Modulation
-parameters in the larger fragment were synthetic. These are component results;
-HTTP performance and final acceptance remain INCONCLUSIVE, with no adoption.
-
-## Attention sparsity diagnostic, round 23
-
-[Component results and capture provenance](results/attention-sparsity-round23-components.json)
-use two new prompts, with 12 rank0 attention captures from selected blocks and
-steps. Synthetic sparse-kernel gains shrank after importance-mask costs were
-included. All 36 real-capture cases were slower, with errors increasing as more
-blocks were removed. Compiling FP32 importance ranking preserved masks but did
-not improve total synthetic cost. No whole-image candidate was adopted.
-
-The report also records the rejected first run with incorrect sequence-length
-semantics and the unsupported compiled BF16 TopK attempt. Results after the
-first NPU error were excluded; corrected experiments ran in fresh processes.
-
-## Native attention follow-up
-
-[GE compilation and head-padding results](results/nov14-native-attention-followup.json)
-retain all attention edges. A process-local TND converter produced exact outputs
-in five cases but no consistent speed benefit; the bundled converter rejected
-TND. Padding 14 heads to 16/28/32 was exact in all 15 cases and slower after
-including copies. Neither variant entered whole-model qualification.
-
-### Exact prompt cache follow-up (round 24)
-
-[Round 24](results/prompt-cache-round24-result.json) exposes H3 to the existing opt-in prompt embedding cache. All 30 paired images are RGB-exact, but control/candidate W1/W2/W3 medians are 11.081/2.690/4.658 s and 10.959/2.656/4.735 s. The mixed small changes do not establish an overall E2E gain; all issue #390 targets remain unmet. Cold/warm request semantics and reference-image bypass are disclosed in the result. No engine adoption or final ABBA/visual acceptance.
+The repository's existing squash-merge convention is required to keep the
+externalized blobs out of the commit entering `main`. The release tag is anchored
+to an existing main commit; the evidence source revision is recorded in the
+manifest. Old PR commits remain historical references. This change neither
+rewrites `main` nor claims to erase previously uploaded Git objects.

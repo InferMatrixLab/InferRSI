@@ -1,0 +1,2648 @@
+{
+  "schema_version": 1,
+  "source_revision": "2e850be2a2f9e4b38e1eec7741be1f406f69a532",
+  "campaign_verdict": "INCONCLUSIVE",
+  "scope": "Derived from the complete published export; unavailable private runs are not inferred.",
+  "metric_definition": "HTTP POST start through complete response receipt; warmups excluded.",
+  "comparison": "Exact JSON equality for derived views and integer counts; archived HTTP medians exactly match recomputation.",
+  "quality_limit": "Counts/extrema recomputed from recorded screens, not PSNR/SSIM rerun from unavailable images.",
+  "coverage": {
+    "indexed_records": 771,
+    "kinds": {
+      "http_run": 28,
+      "component_case": 717,
+      "http_comparison": 8,
+      "execution_attempt": 13,
+      "validation_record": 2,
+      "diagnostic": 2,
+      "image_screen": 1
+    },
+    "statuses": {
+      "recorded": 106,
+      "measured": 653,
+      "execution_error": 8,
+      "interrupted": 1,
+      "completed": 1,
+      "error": 2
+    },
+    "support_records": [
+      "results/allgather4-local-bounds/quality-screen.json",
+      "results/allgather4-local-bounds/request-measurements.json",
+      "results/allgather4-local-bounds/source-context.json",
+      "results/allgather4-local-bounds/source-manifest.json",
+      "results/deterministic-control-tp4/request-measurements.json",
+      "results/mlp-nz-round4/decision.json",
+      "results/mlp-nz-round4/quality-summary.json",
+      "results/mlp-nz-round5/decision.json",
+      "results/mlp-nz-round5/quality-summary.json",
+      "results/native-sp4-offload/request-measurements.json",
+      "results/round2-images/images.json",
+      "results/round2-images/quality-summary.json",
+      "results/sp4-cached-rows/exact-quality.json",
+      "results/sp4-cached-rows/request-measurements.json",
+      "results/sp4-comm-fusion-init/quality-screen.json",
+      "results/sp4-comm-fusion-init/request-measurements.json",
+      "results/sp4-comm-fusion-init/source-context.json",
+      "results/sp4-comm-fusion-init/source-manifest.json",
+      "results/sp4-laser/quality-screen.json",
+      "results/sp4-laser/request-measurements.json",
+      "results/sp4-output-fusion/quality-screen.json",
+      "results/sp4-output-fusion/request-measurements.json",
+      "results/sp4-output-fusion/source-context.json",
+      "results/sp4-output-fusion/source-manifest.json",
+      "results/sp4-shmem-batch8-fp16enc/quality-screen.json",
+      "results/sp4-shmem-batch8-fp16enc/request-measurements.json",
+      "results/sp4-shmem-batch8-fp16enc/source-context.json",
+      "results/sp4-shmem-batch8-fp16enc/source-manifest.json",
+      "results/sp4-shmem-native/exact-quality.json",
+      "results/sp4-shmem-native/request-measurements.json",
+      "results/sp4-shmem-vae4-omp1/exact-quality.json",
+      "results/sp4-shmem-vae4-omp1/request-measurements.json",
+      "results/sp4-shmem-vae4/exact-quality.json",
+      "results/sp4-shmem-vae4/request-measurements.json",
+      "results/sp4-smoothquant/quality-screen.json",
+      "results/sp4-smoothquant/request-measurements.json",
+      "results/sp4-smoothquant/source-context.json",
+      "results/sp4-smoothquant/source-manifest.json",
+      "results/sp4-static-adaln/quality-screen.json",
+      "results/sp4-static-adaln/request-measurements.json",
+      "results/sp4-static-adaln/source-context.json",
+      "results/sp4-static-adaln/source-manifest.json",
+      "results/sp4-vae-batched-both-quality/quality-screen.json",
+      "results/sp4-vae-batched-both-quality/request-measurements.json",
+      "results/sp4-vae-batched-both-quality/source-context.json",
+      "results/sp4-vae-batched-both-quality/source-manifest.json",
+      "results/sp4-vae-batched-both/quality-screen.json",
+      "results/sp4-vae-batched-both/request-measurements.json",
+      "results/sp4-vae-batched-both/source-context.json",
+      "results/sp4-vae-batched-both/source-manifest.json",
+      "results/sp4-vae4/quality.json",
+      "results/sp4-vae4/request-measurements.json",
+      "results/sp4-vaebatch8/quality-screen.json",
+      "results/sp4-vaebatch8/request-measurements.json",
+      "results/sp4-vaebatch8/source-manifest.json",
+      "results/sp4-w8a8/quality-screen.json",
+      "results/sp4-w8a8/request-measurements.json",
+      "results/sp4-w8a8/source-context.json",
+      "results/sp4-w8a8/source-manifest.json",
+      "results/submission-control-sp4/request-measurements.json",
+      "results/submission-vae-batched/quality-screen.json",
+      "results/submission-vae-batched/request-measurements.json",
+      "results/vae-fp16-round6/decision.json",
+      "results/vae-fp16-round6/quality-summary.json"
+    ]
+  },
+  "groups": {
+    "allgather4-local-bounds/summary": {
+      "record": "results/allgather4-local-bounds/summary.json",
+      "http_seconds": {
+        "/workloads/W1": {
+          "n": 3,
+          "median": 14.223902233992703,
+          "min": 14.144799811998382,
+          "max": 14.494777375017293,
+          "target_s": 7.34,
+          "target_met": false
+        },
+        "/workloads/W2": {
+          "n": 3,
+          "median": 2.865725501003908,
+          "min": 2.836654760001693,
+          "max": 2.9111961709859315,
+          "target_s": 1.52,
+          "target_met": false
+        },
+        "/workloads/W3": {
+          "n": 3,
+          "median": 5.044705078005791,
+          "min": 4.995075457991334,
+          "max": 5.146444021986099,
+          "target_s": 2.6,
+          "target_met": false
+        }
+      },
+      "recorded_image_checks": {},
+      "requests": {
+        "total": 12,
+        "warmup": 3,
+        "failed": 0
+      },
+      "quality-screen.json": {
+        "http_seconds": {},
+        "recorded_image_checks": {
+          "/checks": {
+            "checks": 12,
+            "passed": 4,
+            "failed": 8,
+            "exact": 0,
+            "min_finite_psnr_db": 20.54624337621293,
+            "min_ssim": 0.8701905360402947
+          }
+        }
+      }
+    },
+    "alltoall-mm-real-rank0": {
+      "record": "results/alltoall-mm-real-rank0.json",
+      "http_seconds": {},
+      "recorded_image_checks": {}
+    },
+    "async-qkv-round22-rejection": {
+      "record": "results/async-qkv-round22-rejection.json",
+      "decision": "Rejected: component gains did not improve end-to-end latency. No final ABBA or visual acceptance. All targets unmet.",
+      "candidate": "Asynchronous separate QKV exchanges, preserving buffers until all waits complete.",
+      "source": {
+        "base": "bd30cbd3fb621fcca600b2de08fc1249c6c0987c",
+        "patch_sha256": "af5ac9308e40c75a072a8147072d12a2fc330c4d7f125fb7b379bf22e1373af6",
+        "adapter_sha256": "1bdfb75b64fd8b73a7ce7d3f67fc7a883e58f09c8c1c8ec54a691c40df4d9f45"
+      },
+      "http_seconds": {
+        "/latency/control/W1": {
+          "n": 3,
+          "median": 11.039703988004476,
+          "min": 10.9524115039967,
+          "max": 11.062993968022056,
+          "target_s": 7.34,
+          "target_met": false
+        },
+        "/latency/control/W2": {
+          "n": 3,
+          "median": 2.6980322760064155,
+          "min": 2.6794842520030215,
+          "max": 2.766532742010895,
+          "target_s": 1.52,
+          "target_met": false
+        },
+        "/latency/control/W3": {
+          "n": 3,
+          "median": 4.561449392000213,
+          "min": 4.401116231980268,
+          "max": 4.592726986971684,
+          "target_s": 2.6,
+          "target_met": false
+        },
+        "/latency/candidate/W1": {
+          "n": 3,
+          "median": 11.063999608973972,
+          "min": 10.845680460974108,
+          "max": 11.07793716294691,
+          "target_s": 7.34,
+          "target_met": false
+        },
+        "/latency/candidate/W2": {
+          "n": 3,
+          "median": 2.7231325689936057,
+          "min": 2.7047464809729718,
+          "max": 2.776616233983077,
+          "target_s": 1.52,
+          "target_met": false
+        },
+        "/latency/candidate/W3": {
+          "n": 3,
+          "median": 4.564043162041344,
+          "min": 4.24916139501147,
+          "max": 4.8289527369779535,
+          "target_s": 2.6,
+          "target_met": false
+        }
+      },
+      "recorded_image_checks": {
+        "/quality/reports/0/checks": {
+          "checks": 12,
+          "passed": 12,
+          "failed": 0,
+          "exact": 12,
+          "min_finite_psnr_db": null,
+          "min_ssim": 1.0
+        },
+        "/quality/reports/1/checks": {
+          "checks": 6,
+          "passed": 6,
+          "failed": 0,
+          "exact": 6,
+          "min_finite_psnr_db": null,
+          "min_ssim": 1.0
+        },
+        "/quality/reports/2/checks": {
+          "checks": 4,
+          "passed": 4,
+          "failed": 0,
+          "exact": 4,
+          "min_finite_psnr_db": null,
+          "min_ssim": 1.0
+        },
+        "/quality/reports/3/checks": {
+          "checks": 4,
+          "passed": 4,
+          "failed": 0,
+          "exact": 4,
+          "min_finite_psnr_db": null,
+          "min_ssim": 1.0
+        },
+        "/quality/reports/4/checks": {
+          "checks": 2,
+          "passed": 2,
+          "failed": 0,
+          "exact": 2,
+          "min_finite_psnr_db": null,
+          "min_ssim": 1.0
+        },
+        "/quality/reports/5/checks": {
+          "checks": 2,
+          "passed": 2,
+          "failed": 0,
+          "exact": 2,
+          "min_finite_psnr_db": null,
+          "min_ssim": 1.0
+        }
+      },
+      "findings": {
+        "/decision": "Rejected: component gains did not improve end-to-end latency. No final ABBA or visual acceptance. All targets unmet."
+      }
+    },
+    "attention-comm-fusion-rank0": {
+      "record": "results/attention-comm-fusion-rank0.json",
+      "http_seconds": {},
+      "recorded_image_checks": {}
+    },
+    "attention-execution-probes": {
+      "record": "results/attention-execution-probes.json",
+      "scope": "Synthetic single-device component probes only; no HTTP or image-quality qualification.",
+      "decision": "Rejected: no latency benefit. No engine integration.",
+      "http_seconds": {},
+      "recorded_image_checks": {},
+      "findings": {
+        "/decision": "Rejected: no latency benefit. No engine integration."
+      }
+    },
+    "attention-fia-packed-probe": {
+      "record": "results/attention-fia-packed-probe.json",
+      "http_seconds": {},
+      "recorded_image_checks": {}
+    },
+    "attention-head-batch-and-fp16": {
+      "record": "results/attention-head-batch-and-fp16.json",
+      "scope": "Synthetic single-device attention probes, including conversion/reorder costs; no HTTP or image qualification.",
+      "decision": "No integration: head-to-batch all nine exact but slower; native FP16 large-sequence cases slower and non-exact.",
+      "http_seconds": {},
+      "recorded_image_checks": {},
+      "findings": {
+        "/decision": "No integration: head-to-batch all nine exact but slower; native FP16 large-sequence cases slower and non-exact."
+      }
+    },
+    "attention-layout-probe": {
+      "record": "results/attention-layout-probe.json",
+      "http_seconds": {},
+      "recorded_image_checks": {}
+    },
+    "attention-query-tiling-probe": {
+      "record": "results/attention-query-tiling-probe.json",
+      "http_seconds": {},
+      "recorded_image_checks": {}
+    },
+    "attention-sparsity-round23-components": {
+      "record": "results/attention-sparsity-round23-components.json",
+      "scope": "Attention component exploration; not HTTP latency or image-quality qualification.",
+      "engine_revision": "bd30cbd3fb621fcca600b2de08fc1249c6c0987c",
+      "limitations": [
+        "Synthetic density excludes mask construction and importance ranking; it is only an operator cost screen.",
+        "Real captures cover two new 1024-square prompts, rank0, blocks0/25/49 and steps0/5; they do not cover the full frozen workload.",
+        "Component output error includes all packed rows, including padding. It does not establish image acceptance.",
+        "Including eager importance-mask construction made every captured case slower. Compiling FP32 TopK masks was exact relative to eager FP32 masks but did not improve the synthetic total cost.",
+        "No sparse candidate entered whole-model quality validation."
+      ],
+      "adopted": false,
+      "verdict": "INCONCLUSIVE",
+      "http_seconds": {},
+      "recorded_image_checks": {}
+    },
+    "checks": {
+      "record": "results/checks.json",
+      "http_seconds": {},
+      "recorded_image_checks": {}
+    },
+    "current-head-round21-baseline": {
+      "record": "results/current-head-round21-baseline.json",
+      "conclusion": "All 30 images exact. All latency targets unmet. Final acceptance not established.",
+      "purpose": "Paired baseline refresh for advanced PR head, not a new optimization claim.",
+      "source": {
+        "control_base": "7f8395fede3cb79991a256d1752c887b40faca30",
+        "control_adapter_patch": "050cd23f7973a0d5e76aaeb590c502c29cce71e4bf2d333d2f0e359c34a6774e",
+        "control_fia_flag": 0,
+        "candidate_head": "bd30cbd3fb621fcca600b2de08fc1249c6c0987c",
+        "purpose": "Fresh paired current-PR baseline, not a new optimization. Explicit settings retain frozen workload."
+      },
+      "http_seconds": {
+        "/latency/control/W1": {
+          "n": 3,
+          "median": 11.143421485030558,
+          "min": 11.102237075043377,
+          "max": 11.174494576000143,
+          "target_s": 7.34,
+          "target_met": false
+        },
+        "/latency/control/W2": {
+          "n": 3,
+          "median": 2.9578179260133766,
+          "min": 2.8012695999932475,
+          "max": 3.192186189990025,
+          "target_s": 1.52,
+          "target_met": false
+        },
+        "/latency/control/W3": {
+          "n": 3,
+          "median": 4.6620253850123845,
+          "min": 4.652220778982155,
+          "max": 4.668766779999714,
+          "target_s": 2.6,
+          "target_met": false
+        },
+        "/latency/candidate/W1": {
+          "n": 3,
+          "median": 11.130074119952042,
+          "min": 11.04647467500763,
+          "max": 11.255458589002956,
+          "target_s": 7.34,
+          "target_met": false
+        },
+        "/latency/candidate/W2": {
+          "n": 3,
+          "median": 2.8007357019814663,
+          "min": 2.725174133956898,
+          "max": 2.8498396200011484,
+          "target_s": 1.52,
+          "target_met": false
+        },
+        "/latency/candidate/W3": {
+          "n": 3,
+          "median": 4.570845616981387,
+          "min": 4.377812591963448,
+          "max": 4.664237959019374,
+          "target_s": 2.6,
+          "target_met": false
+        }
+      },
+      "recorded_image_checks": {
+        "/quality/reports/0/checks": {
+          "checks": 12,
+          "passed": 12,
+          "failed": 0,
+          "exact": 12,
+          "min_finite_psnr_db": null,
+          "min_ssim": 1.0
+        },
+        "/quality/reports/1/checks": {
+          "checks": 6,
+          "passed": 6,
+          "failed": 0,
+          "exact": 6,
+          "min_finite_psnr_db": null,
+          "min_ssim": 1.0
+        },
+        "/quality/reports/2/checks": {
+          "checks": 4,
+          "passed": 4,
+          "failed": 0,
+          "exact": 4,
+          "min_finite_psnr_db": null,
+          "min_ssim": 1.0
+        },
+        "/quality/reports/3/checks": {
+          "checks": 4,
+          "passed": 4,
+          "failed": 0,
+          "exact": 4,
+          "min_finite_psnr_db": null,
+          "min_ssim": 1.0
+        },
+        "/quality/reports/4/checks": {
+          "checks": 2,
+          "passed": 2,
+          "failed": 0,
+          "exact": 2,
+          "min_finite_psnr_db": null,
+          "min_ssim": 1.0
+        },
+        "/quality/reports/5/checks": {
+          "checks": 2,
+          "passed": 2,
+          "failed": 0,
+          "exact": 2,
+          "min_finite_psnr_db": null,
+          "min_ssim": 1.0
+        }
+      }
+    },
+    "current-profile-round8": {
+      "record": "results/current-profile-round8.json",
+      "scope": "rank0 aggregate over three diagnostic requests W1/W2/W3; operator times are not E2E speedups",
+      "http_seconds": {},
+      "recorded_image_checks": {}
+    },
+    "deterministic-control-tp4/summary": {
+      "record": "results/deterministic-control-tp4/summary.json",
+      "http_seconds": {
+        "/workloads/W1": {
+          "n": 3,
+          "median": 19.51957072300138,
+          "min": 19.156706795009086,
+          "max": 19.710310849011876,
+          "target_s": 7.34,
+          "target_met": false
+        },
+        "/workloads/W2": {
+          "n": 3,
+          "median": 5.190239276998909,
+          "min": 4.942365750990575,
+          "max": 5.2578209129860625,
+          "target_s": 1.52,
+          "target_met": false
+        },
+        "/workloads/W3": {
+          "n": 3,
+          "median": 7.3843114290211815,
+          "min": 7.035085637005977,
+          "max": 7.506492679007351,
+          "target_s": 2.6,
+          "target_met": false
+        }
+      },
+      "recorded_image_checks": {},
+      "requests": {
+        "total": 12,
+        "warmup": 3,
+        "failed": 0
+      }
+    },
+    "fia-final-step-round19-result": {
+      "record": "results/fia-final-step-round19-result.json",
+      "decision": "Not adopted: mixed latency, all targets unmet. No final ABBA or visual qualification.",
+      "candidate": "FIA for the final PDD step only; earlier steps use native attention. Six steps and workloads unchanged.",
+      "source": {
+        "base": "7f8395fede3cb79991a256d1752c887b40faca30",
+        "patch_sha256": "050cd23f7973a0d5e76aaeb590c502c29cce71e4bf2d333d2f0e359c34a6774e",
+        "adapter_sha256": "e083b546dcaa61f31fd34135a9b69c99672de1f9ac50cabc80623da9bce0dc7a"
+      },
+      "server_exit_codes": {
+        "screen_control": 0,
+        "screen_candidate": 0,
+        "full_control": 0,
+        "full_candidate": 0
+      },
+      "http_seconds": {
+        "/latency/control/W1": {
+          "n": 3,
+          "median": 10.948617280984763,
+          "min": 10.896488068974577,
+          "max": 11.106052532035392,
+          "target_s": 7.34,
+          "target_met": false
+        },
+        "/latency/control/W2": {
+          "n": 3,
+          "median": 2.745068908960093,
+          "min": 2.471144629002083,
+          "max": 2.85457187902648,
+          "target_s": 1.52,
+          "target_met": false
+        },
+        "/latency/control/W3": {
+          "n": 3,
+          "median": 4.743019656976685,
+          "min": 4.146575177030172,
+          "max": 4.777089187002275,
+          "target_s": 2.6,
+          "target_met": false
+        },
+        "/latency/candidate/W1": {
+          "n": 3,
+          "median": 11.046752591035329,
+          "min": 10.930958051001653,
+          "max": 11.170802891021594,
+          "target_s": 7.34,
+          "target_met": false
+        },
+        "/latency/candidate/W2": {
+          "n": 3,
+          "median": 2.7261871369555593,
+          "min": 2.621208076016046,
+          "max": 2.8040298990090378,
+          "target_s": 1.52,
+          "target_met": false
+        },
+        "/latency/candidate/W3": {
+          "n": 3,
+          "median": 4.584208678046707,
+          "min": 4.4331787650007755,
+          "max": 4.6910714079858735,
+          "target_s": 2.6,
+          "target_met": false
+        }
+      },
+      "recorded_image_checks": {
+        "/quality/reports/0/checks": {
+          "checks": 12,
+          "passed": 12,
+          "failed": 0,
+          "exact": 0,
+          "min_finite_psnr_db": 48.92166508839183,
+          "min_ssim": 0.9975270416352284
+        },
+        "/quality/reports/1/checks": {
+          "checks": 6,
+          "passed": 6,
+          "failed": 0,
+          "exact": 0,
+          "min_finite_psnr_db": 47.754829725337764,
+          "min_ssim": 0.9974857640589754
+        },
+        "/quality/reports/2/checks": {
+          "checks": 4,
+          "passed": 4,
+          "failed": 0,
+          "exact": 0,
+          "min_finite_psnr_db": 46.63496047938339,
+          "min_ssim": 0.9980385079606585
+        },
+        "/quality/reports/3/checks": {
+          "checks": 4,
+          "passed": 4,
+          "failed": 0,
+          "exact": 0,
+          "min_finite_psnr_db": 45.50006452044036,
+          "min_ssim": 0.9978722980147254
+        },
+        "/quality/reports/4/checks": {
+          "checks": 2,
+          "passed": 2,
+          "failed": 0,
+          "exact": 0,
+          "min_finite_psnr_db": 52.36515485204214,
+          "min_ssim": 0.9976258424588145
+        },
+        "/quality/reports/5/checks": {
+          "checks": 2,
+          "passed": 2,
+          "failed": 0,
+          "exact": 0,
+          "min_finite_psnr_db": 52.19843031231747,
+          "min_ssim": 0.9975060248304023
+        },
+        "/screen/checks": {
+          "checks": 3,
+          "passed": 3,
+          "failed": 0,
+          "exact": 0,
+          "min_finite_psnr_db": 48.92166508839183,
+          "min_ssim": 0.9975270416352284
+        }
+      },
+      "findings": {
+        "/decision": "Not adopted: mixed latency, all targets unmet. No final ABBA or visual qualification."
+      }
+    },
+    "fia-final-three-round20-result": {
+      "record": "results/fia-final-three-round20-result.json",
+      "decision": "Not adopted: essentially unchanged mixed latency; all targets unmet. No final ABBA or visual qualification.",
+      "candidate": "FIA in the final three of six PDD steps; earlier steps native. Original workload and quality thresholds unchanged.",
+      "source": {
+        "base": "7f8395fede3cb79991a256d1752c887b40faca30",
+        "patch_sha256": "050cd23f7973a0d5e76aaeb590c502c29cce71e4bf2d333d2f0e359c34a6774e",
+        "adapter_sha256": "e083b546dcaa61f31fd34135a9b69c99672de1f9ac50cabc80623da9bce0dc7a"
+      },
+      "configuration": {
+        "candidate_last_steps": 3,
+        "control_last_steps": 0,
+        "total_inference_steps": 6,
+        "scope": "same original workload and gates; screen then full only on pass"
+      },
+      "http_seconds": {
+        "/latency/control/W1": {
+          "n": 3,
+          "median": 10.82464353600517,
+          "min": 10.797475795960054,
+          "max": 10.895720429951325,
+          "target_s": 7.34,
+          "target_met": false
+        },
+        "/latency/control/W2": {
+          "n": 3,
+          "median": 2.6316521230037324,
+          "min": 2.595968150999397,
+          "max": 2.7426591819967143,
+          "target_s": 1.52,
+          "target_met": false
+        },
+        "/latency/control/W3": {
+          "n": 3,
+          "median": 4.501890171028208,
+          "min": 4.386693922046106,
+          "max": 4.689603973994963,
+          "target_s": 2.6,
+          "target_met": false
+        },
+        "/latency/candidate/W1": {
+          "n": 3,
+          "median": 10.80527696601348,
+          "min": 10.768587368016597,
+          "max": 10.849845571967307,
+          "target_s": 7.34,
+          "target_met": false
+        },
+        "/latency/candidate/W2": {
+          "n": 3,
+          "median": 2.640667744970415,
+          "min": 2.6257011739653535,
+          "max": 2.6699132390203886,
+          "target_s": 1.52,
+          "target_met": false
+        },
+        "/latency/candidate/W3": {
+          "n": 3,
+          "median": 4.4705739339697175,
+          "min": 4.326164802012499,
+          "max": 4.5360539149842225,
+          "target_s": 2.6,
+          "target_met": false
+        }
+      },
+      "recorded_image_checks": {
+        "/quality/reports/0/checks": {
+          "checks": 12,
+          "passed": 12,
+          "failed": 0,
+          "exact": 0,
+          "min_finite_psnr_db": 38.8631045935951,
+          "min_ssim": 0.9953351701847765
+        },
+        "/quality/reports/1/checks": {
+          "checks": 6,
+          "passed": 6,
+          "failed": 0,
+          "exact": 0,
+          "min_finite_psnr_db": 38.37469939060987,
+          "min_ssim": 0.9937794959569152
+        },
+        "/quality/reports/2/checks": {
+          "checks": 4,
+          "passed": 4,
+          "failed": 0,
+          "exact": 0,
+          "min_finite_psnr_db": 32.12567576108174,
+          "min_ssim": 0.9829566431295306
+        },
+        "/quality/reports/3/checks": {
+          "checks": 4,
+          "passed": 4,
+          "failed": 0,
+          "exact": 0,
+          "min_finite_psnr_db": 31.868164754110182,
+          "min_ssim": 0.9887282187028567
+        },
+        "/quality/reports/4/checks": {
+          "checks": 2,
+          "passed": 2,
+          "failed": 0,
+          "exact": 0,
+          "min_finite_psnr_db": 48.120680541575524,
+          "min_ssim": 0.9969708189936036
+        },
+        "/quality/reports/5/checks": {
+          "checks": 2,
+          "passed": 2,
+          "failed": 0,
+          "exact": 0,
+          "min_finite_psnr_db": 47.88673937102325,
+          "min_ssim": 0.9969369917264063
+        }
+      },
+      "findings": {
+        "/decision": "Not adopted: essentially unchanged mixed latency; all targets unmet. No final ABBA or visual qualification."
+      }
+    },
+    "fia-round9-rejection": {
+      "record": "results/fia-round9-rejection.json",
+      "scope": "numerical image-quality screen only",
+      "decision": "Rejected; W1 and W2 fail frozen numerical quality gates. No full performance trial and no engine adoption.",
+      "base_revision": "ad37f7f79e10b946a87d60a0fab01416bd0f7837",
+      "measurement_limits": "One cold request per workload per fresh server, no warmups. Cold timings excluded from performance claims. Synthetic operator similarity did not establish image quality.",
+      "verdict": "FAIL",
+      "http_seconds": {},
+      "recorded_image_checks": {
+        "/checks": {
+          "checks": 3,
+          "passed": 1,
+          "failed": 2,
+          "exact": 0,
+          "min_finite_psnr_db": 19.526087277910726,
+          "min_ssim": 0.8497624821024701
+        }
+      },
+      "findings": {
+        "/decision": "Rejected; W1 and W2 fail frozen numerical quality gates. No full performance trial and no engine adoption."
+      }
+    },
+    "linear-output-split-probe": {
+      "record": "results/linear-output-split-probe.json",
+      "scope": "Actual weights and repeated captured activations; single-device component ABBA timings including concatenation. No HTTP qualification.",
+      "decision": "Reject: all 36 cases slower; 15 exact, 21 non-exact.",
+      "http_seconds": {},
+      "recorded_image_checks": {},
+      "findings": {
+        "/decision": "Reject: all 36 cases slower; 15 exact, 21 non-exact."
+      }
+    },
+    "linear-row-padding-probe": {
+      "record": "results/linear-row-padding-probe.json",
+      "scope": "Actual weights and repeated captured activations; single-device component ABBA timings including padding and crop. No HTTP qualification.",
+      "decision": "Reject: all 36 cases slower; 24 exact, 12 non-exact.",
+      "http_seconds": {},
+      "recorded_image_checks": {},
+      "findings": {
+        "/decision": "Reject: all 36 cases slower; 24 exact, 12 non-exact."
+      }
+    },
+    "linear-transposed-storage-probe": {
+      "record": "results/linear-transposed-storage-probe.json",
+      "scope": "Single-device component ABBA order; not service performance qualification",
+      "decision": "No integration: most cases slower; all six 1108-row cases non-exact",
+      "change": "Same logical weight values stored with transposed strides",
+      "http_seconds": {},
+      "recorded_image_checks": {},
+      "findings": {
+        "/decision": "No integration: most cases slower; all six 1108-row cases non-exact"
+      }
+    },
+    "mlp-layout-probe": {
+      "record": "results/mlp-layout-probe.json",
+      "http_seconds": {},
+      "recorded_image_checks": {}
+    },
+    "mlp-nz-chain-probe": {
+      "record": "results/mlp-nz-chain-probe.json",
+      "http_seconds": {},
+      "recorded_image_checks": {}
+    },
+    "mlp-nz-parameter-probe": {
+      "record": "results/mlp-nz-parameter-probe.json",
+      "http_seconds": {},
+      "recorded_image_checks": {}
+    },
+    "mlp-nz-real-probe": {
+      "record": "results/mlp-nz-real-probe.json",
+      "http_seconds": {},
+      "recorded_image_checks": {}
+    },
+    "mlp-nz-round4/candidate-summary": {
+      "record": "results/mlp-nz-round4/candidate-summary.json",
+      "http_seconds": {
+        "/workloads/W1": {
+          "n": 3,
+          "median": 10.928870070987614,
+          "min": 10.838703221001197,
+          "max": 11.08806008900865,
+          "target_s": 7.34,
+          "target_met": false
+        },
+        "/workloads/W2": {
+          "n": 3,
+          "median": 2.7820617689867504,
+          "min": 2.77874442198663,
+          "max": 2.837160513998242,
+          "target_s": 1.52,
+          "target_met": false
+        },
+        "/workloads/W3": {
+          "n": 3,
+          "median": 4.592507252003998,
+          "min": 4.5461893640167546,
+          "max": 4.795962572999997,
+          "target_s": 2.6,
+          "target_met": false
+        }
+      },
+      "recorded_image_checks": {},
+      "requests": {
+        "total": 12,
+        "expected": 12,
+        "complete": true,
+        "error": null
+      },
+      "quality-summary.json": {
+        "http_seconds": {},
+        "recorded_image_checks": {
+          "/reports/0/checks": {
+            "checks": 12,
+            "passed": 0,
+            "failed": 12,
+            "exact": 0,
+            "min_finite_psnr_db": 7.131628451494885,
+            "min_ssim": 0.09800482766551992
+          },
+          "/reports/1/checks": {
+            "checks": 6,
+            "passed": 0,
+            "failed": 6,
+            "exact": 0,
+            "min_finite_psnr_db": 7.603789196554208,
+            "min_ssim": 0.09165113951590774
+          },
+          "/reports/2/checks": {
+            "checks": 4,
+            "passed": 0,
+            "failed": 4,
+            "exact": 0,
+            "min_finite_psnr_db": 8.049327006788262,
+            "min_ssim": 0.08452450924040478
+          },
+          "/reports/3/checks": {
+            "checks": 4,
+            "passed": 0,
+            "failed": 4,
+            "exact": 0,
+            "min_finite_psnr_db": 9.117697158693458,
+            "min_ssim": 0.09266745580529978
+          },
+          "/reports/4/checks": {
+            "checks": 2,
+            "passed": 0,
+            "failed": 2,
+            "exact": 0,
+            "min_finite_psnr_db": 9.821642869508022,
+            "min_ssim": 0.0975165194799623
+          },
+          "/reports/5/checks": {
+            "checks": 2,
+            "passed": 0,
+            "failed": 2,
+            "exact": 0,
+            "min_finite_psnr_db": 9.144097195399208,
+            "min_ssim": 0.08982330026777953
+          }
+        }
+      },
+      "decision.json": {
+        "verdict": "FAIL",
+        "adopted": false,
+        "scope": "NZ conversion across all transformer MiniMaxH3MLP modules",
+        "converted_projections_per_rank": 104,
+        "quality_checks": 30,
+        "quality_passed": 0,
+        "repeatability": "Both configurations produced one distinct RGB hash per author workload across seed42 repetitions.",
+        "performance": "No consistent benefit; W2 and W3 slower than same-VAE control.",
+        "next_diagnosis": "Check Parameter storage assignment and 3D inputs versus isolated 2D F.linear probes; separately check unprobed token-refiner scope. No root cause established."
+      }
+    },
+    "mlp-nz-round4/control-summary": {
+      "record": "results/mlp-nz-round4/control-summary.json",
+      "http_seconds": {
+        "/workloads/W1": {
+          "n": 3,
+          "median": 10.968113838986028,
+          "min": 10.947167512989836,
+          "max": 10.995087691990193,
+          "target_s": 7.34,
+          "target_met": false
+        },
+        "/workloads/W2": {
+          "n": 3,
+          "median": 2.6546720810001716,
+          "min": 2.60803691597539,
+          "max": 2.6817610469879583,
+          "target_s": 1.52,
+          "target_met": false
+        },
+        "/workloads/W3": {
+          "n": 3,
+          "median": 4.417782194999745,
+          "min": 4.33660256001167,
+          "max": 4.644940874015447,
+          "target_s": 2.6,
+          "target_met": false
+        }
+      },
+      "recorded_image_checks": {},
+      "requests": {
+        "total": 12,
+        "expected": 12,
+        "complete": true,
+        "error": null
+      }
+    },
+    "mlp-nz-round5/candidate-summary": {
+      "record": "results/mlp-nz-round5/candidate-summary.json",
+      "http_seconds": {
+        "/workloads/W1": {
+          "n": 3,
+          "median": 11.02408566797385,
+          "min": 10.849576242006151,
+          "max": 11.066331947018625,
+          "target_s": 7.34,
+          "target_met": false
+        },
+        "/workloads/W2": {
+          "n": 3,
+          "median": 2.6727890519832727,
+          "min": 2.631361823005136,
+          "max": 2.7215116799925454,
+          "target_s": 1.52,
+          "target_met": false
+        },
+        "/workloads/W3": {
+          "n": 3,
+          "median": 4.650774960988201,
+          "min": 4.647539297002368,
+          "max": 4.775879689026624,
+          "target_s": 2.6,
+          "target_met": false
+        }
+      },
+      "recorded_image_checks": {},
+      "requests": {
+        "total": 12,
+        "expected": 12,
+        "complete": true,
+        "error": null
+      },
+      "quality-summary.json": {
+        "http_seconds": {},
+        "recorded_image_checks": {
+          "/reports/0/checks": {
+            "checks": 12,
+            "passed": 0,
+            "failed": 12,
+            "exact": 0,
+            "min_finite_psnr_db": 7.248036401156779,
+            "min_ssim": 0.10074158762490631
+          },
+          "/reports/1/checks": {
+            "checks": 6,
+            "passed": 0,
+            "failed": 6,
+            "exact": 0,
+            "min_finite_psnr_db": 7.808471412609574,
+            "min_ssim": 0.08542078979562284
+          },
+          "/reports/2/checks": {
+            "checks": 4,
+            "passed": 0,
+            "failed": 4,
+            "exact": 0,
+            "min_finite_psnr_db": 8.060793275329237,
+            "min_ssim": 0.08629125312357039
+          },
+          "/reports/3/checks": {
+            "checks": 4,
+            "passed": 0,
+            "failed": 4,
+            "exact": 0,
+            "min_finite_psnr_db": 9.068596809614526,
+            "min_ssim": 0.09224535805989027
+          },
+          "/reports/4/checks": {
+            "checks": 2,
+            "passed": 0,
+            "failed": 2,
+            "exact": 0,
+            "min_finite_psnr_db": 9.895866787995857,
+            "min_ssim": 0.09848863208285324
+          },
+          "/reports/5/checks": {
+            "checks": 2,
+            "passed": 0,
+            "failed": 2,
+            "exact": 0,
+            "min_finite_psnr_db": 8.62814764496881,
+            "min_ssim": 0.082100955884214
+          }
+        }
+      },
+      "decision.json": {
+        "verdict": "FAIL",
+        "adopted": false,
+        "scope": "100 projections in 50 main DiT blocks; token refiner unchanged",
+        "quality_passed": 0,
+        "quality_total": 30,
+        "interpretation": "Excluding the token refiner did not resolve full-model quality failure. No consistent E2E improvement. Root cause unresolved."
+      }
+    },
+    "mlp-nz-round5/control-summary": {
+      "record": "results/mlp-nz-round5/control-summary.json",
+      "http_seconds": {
+        "/workloads/W1": {
+          "n": 3,
+          "median": 11.194386482005939,
+          "min": 11.14005875698058,
+          "max": 11.293079041992314,
+          "target_s": 7.34,
+          "target_met": false
+        },
+        "/workloads/W2": {
+          "n": 3,
+          "median": 2.667209385021124,
+          "min": 2.608137875999091,
+          "max": 2.7829511490126606,
+          "target_s": 1.52,
+          "target_met": false
+        },
+        "/workloads/W3": {
+          "n": 3,
+          "median": 4.384146344003966,
+          "min": 4.273199154995382,
+          "max": 4.5899705329793505,
+          "target_s": 2.6,
+          "target_met": false
+        }
+      },
+      "recorded_image_checks": {},
+      "requests": {
+        "total": 12,
+        "expected": 12,
+        "complete": true,
+        "error": null
+      }
+    },
+    "mlp-nz-startup-failure": {
+      "record": "results/mlp-nz-startup-failure.json",
+      "scope": "NZ candidate full-model startup; no candidate HTTP measurements",
+      "verdict": "INCONCLUSIVE",
+      "observed": "AttributeError: _npuConfig object has no attribute allow_internal_format",
+      "cause": "Installed torch-npu configuration exposes a setter without a getter; experimental conversion attempted to read the property.",
+      "http_seconds": {},
+      "recorded_image_checks": {}
+    },
+    "mm-alltoall-real-rank0": {
+      "record": "results/mm-alltoall-real-rank0.json",
+      "http_seconds": {},
+      "recorded_image_checks": {}
+    },
+    "native-sp4-offload/summary": {
+      "record": "results/native-sp4-offload/summary.json",
+      "http_seconds": {
+        "/workloads/W1": {
+          "n": 3,
+          "median": 17.07945372501854,
+          "min": 16.952066835016012,
+          "max": 17.66166205200716,
+          "target_s": 7.34,
+          "target_met": false
+        },
+        "/workloads/W2": {
+          "n": 3,
+          "median": 4.2433499449980445,
+          "min": 4.102955902024405,
+          "max": 4.368401106999954,
+          "target_s": 1.52,
+          "target_met": false
+        },
+        "/workloads/W3": {
+          "n": 3,
+          "median": 5.853426082001533,
+          "min": 5.776471454009879,
+          "max": 5.931299413990928,
+          "target_s": 2.6,
+          "target_met": false
+        }
+      },
+      "recorded_image_checks": {},
+      "requests": {
+        "total": 12,
+        "warmup": 3,
+        "failed": 0
+      }
+    },
+    "nov14-component-search": {
+      "record": "results/nov14-component-search.json",
+      "scope": "Component exploration only; no HTTP improvement or image-quality claim.",
+      "decision": "Only asynchronous separate QKV transport advanced to whole-model screening; other candidates not adopted.",
+      "http_seconds": {},
+      "recorded_image_checks": {},
+      "findings": {
+        "/persistent_pack/termination": "Block size 16384 compilation failed with reported UB overflow; first completed pack case was non-exact and much slower. Not adopted.",
+        "/decision": "Only asynchronous separate QKV transport advanced to whole-model screening; other candidates not adopted."
+      }
+    },
+    "nov14-native-attention-followup": {
+      "record": "results/nov14-native-attention-followup.json",
+      "scope": "Native attention component variants; no HTTP gain or final image qualification.",
+      "engine_revision": "bd30cbd3fb621fcca600b2de08fc1249c6c0987c",
+      "limitations": [
+        "Two captured cases use new round23 prompts; remaining shapes use synthetic inputs.",
+        "Component first compiled-call times can reuse caches and are not cold-start measurements.",
+        "No full-model experiment or engine adoption followed."
+      ],
+      "adopted": false,
+      "verdict": "INCONCLUSIVE",
+      "http_seconds": {},
+      "recorded_image_checks": {},
+      "findings": {
+        "/ge_tnd/finding": "Five exact cases; smaller shapes slower and largest effectively unchanged.",
+        "/head_padding/finding": "Fifteen exact cases, all slower; input padding and output copy are included."
+      }
+    },
+    "nov14-quantization-component-search": {
+      "record": "results/nov14-quantization-component-search.json",
+      "scope": "Component exploration with checkpoint weights and calibration activations; no HTTP or image-quality qualification.",
+      "engine_revision": "bd30cbd3fb621fcca600b2de08fc1249c6c0987c",
+      "limitations": [
+        "Streaming quantization includes per-call weight conversion; only the largest tested rows show potential gains.",
+        "Weight-only group128 implementation has large numerical error; root cause remains undetermined.",
+        "Finer activation groups reduce error but eliminate speed benefits.",
+        "Low-rank correction trained on independent request0 does not reliably generalize to independent request1."
+      ],
+      "provenance_correction": {
+        "finding": "run_calibration.py uses architecture and portrait prompt assets also present in the expanded quality suite. These captures are not independent of that suite.",
+        "training": "request0 architecture, 192 sampled rows across four ranks",
+        "validation": "request1 portrait, a different prompt but not held out from the expanded campaign quality suite",
+        "original_metadata": "The raw sample training strings saying no evaluation prompts are incorrect; retained below as original reported metadata, superseded by this correction.",
+        "impact": "No candidate was adopted and no image-quality pass is claimed. Any future fitted candidate requires new calibration inputs and uncontaminated qualification."
+      },
+      "adopted": false,
+      "verdict": "INCONCLUSIVE",
+      "http_seconds": {},
+      "recorded_image_checks": {},
+      "findings": {
+        "/provenance_correction/finding": "run_calibration.py uses architecture and portrait prompt assets also present in the expanded quality suite. These captures are not independent of that suite."
+      }
+    },
+    "nov14-torchair-component-search": {
+      "record": "results/nov14-torchair-component-search.json",
+      "scope": "Single-device BF16 component compilation, not HTTP or whole-model validation.",
+      "engine_revision": "bd30cbd3fb621fcca600b2de08fc1249c6c0987c",
+      "limitations": [
+        "All nine comparisons were exact, but none showed a sustained latency improvement.",
+        "Modulated MLP uses real block0 weights and captured input samples with synthetic seeded modulation parameters, unit norm weight and cycling indices.",
+        "First compiled call includes reference evaluation and may use compiler caches; it is not a cold compilation benchmark.",
+        "No engine change was adopted."
+      ],
+      "adopted": false,
+      "verdict": "INCONCLUSIVE",
+      "http_seconds": {},
+      "recorded_image_checks": {}
+    },
+    "nz-load-order-diagnosis": {
+      "record": "results/nz-load-order-diagnosis.json",
+      "scope": "Numerical diagnosis only; request timings excluded from performance evidence",
+      "base_revision": "7f8395fede3cb79991a256d1752c887b40faca30",
+      "http_seconds": {},
+      "recorded_image_checks": {
+        "/round15/output_checks": {
+          "checks": 3,
+          "passed": 3,
+          "failed": 0,
+          "exact": 3,
+          "min_finite_psnr_db": null,
+          "min_ssim": 1.0
+        }
+      }
+    },
+    "outlier-fc1-rejection": {
+      "record": "results/outlier-fc1-rejection.json",
+      "scope": "Component exploration, failed startup and three-image rejection; no formal latency qualification",
+      "source": {
+        "base_revision": "7f8395fede3cb79991a256d1752c887b40faca30",
+        "patch_sha256": "3077462b54015aeabcc8f1159ed8164cfd13c3a05d254e71f4c015cb48cb5f29",
+        "calibration_sha256": "17bba5e84335564d1305c426ff840b89748cfd1558b1373d6c9609ce0be00db9",
+        "change": "Only main fc1:1024 high-impact input channels BF16, remaining channels W8A8, prepared after loading",
+        "calibration": "Full channel maxima across independent two-prompt eight-rank/request captures; different from the sampled maxima used by the component probe",
+        "changed_condition": "Prepare at first pipeline forward entry, after loading but before VAE reference encoding; preserve deterministic wrapper"
+      },
+      "http_seconds": {},
+      "recorded_image_checks": {
+        "/round18/quality_checks": {
+          "checks": 3,
+          "passed": 1,
+          "failed": 2,
+          "exact": 0,
+          "min_finite_psnr_db": 20.112939847612573,
+          "min_ssim": 0.8559841819748568
+        }
+      },
+      "findings": {
+        "/round18/decision": "Rejected: W1/W2 fail unchanged PSNR>=30 and SSIM>=0.98 gates; W3 alone passing does not qualify"
+      }
+    },
+    "postload-nz-round16-result": {
+      "record": "results/postload-nz-round16-result.json",
+      "scope": "Sequential matched four-device HTTP experiment; not final ABBA qualification",
+      "decision": "Not adopted: small W1/W3 decreases and slower W2 do not establish consistent overall benefit; targets remain unmet",
+      "change": "Convert 100 main MLP weights to NZ on the first forward after checkpoint loading, then remove the hook",
+      "base_revision": "7f8395fede3cb79991a256d1752c887b40faca30",
+      "workload_protocol": "Unchanged prompts, seeds, six denoising steps, canvas and PNG transport; one warmup and three measured samples per workload",
+      "service_exit_codes": {
+        "control": 0,
+        "candidate": 0
+      },
+      "runtime_receipt": "Four ranks each converted 100 populated weights after loading",
+      "http_seconds": {
+        "/latency/control/W1": {
+          "n": 3,
+          "median": 10.842028710001614,
+          "min": 10.768387861025985,
+          "max": 10.846111858962104,
+          "target_s": 7.34,
+          "target_met": false
+        },
+        "/latency/control/W2": {
+          "n": 3,
+          "median": 2.480429027986247,
+          "min": 2.4569082320085727,
+          "max": 2.5291971170227043,
+          "target_s": 1.52,
+          "target_met": false
+        },
+        "/latency/control/W3": {
+          "n": 3,
+          "median": 4.190977571008261,
+          "min": 4.135045217000879,
+          "max": 4.234387699980289,
+          "target_s": 2.6,
+          "target_met": false
+        },
+        "/latency/candidate/W1": {
+          "n": 3,
+          "median": 10.726764983031899,
+          "min": 10.651246193039697,
+          "max": 10.946343896968756,
+          "target_s": 7.34,
+          "target_met": false
+        },
+        "/latency/candidate/W2": {
+          "n": 3,
+          "median": 2.555793688981794,
+          "min": 2.4591618969570845,
+          "max": 2.6394489009981044,
+          "target_s": 1.52,
+          "target_met": false
+        },
+        "/latency/candidate/W3": {
+          "n": 3,
+          "median": 4.065325953008141,
+          "min": 4.024679867958184,
+          "max": 4.140093671972863,
+          "target_s": 2.6,
+          "target_met": false
+        }
+      },
+      "recorded_image_checks": {
+        "/quality/checks": {
+          "checks": 30,
+          "passed": 30,
+          "failed": 0,
+          "exact": 30,
+          "min_finite_psnr_db": null,
+          "min_ssim": 1.0
+        }
+      },
+      "findings": {
+        "/decision": "Not adopted: small W1/W3 decreases and slower W2 do not establish consistent overall benefit; targets remain unmet"
+      }
+    },
+    "prepared-rows-round12-rejection": {
+      "record": "results/prepared-rows-round12-rejection.json",
+      "scope": "Sequential matched four-device HTTP experiment; not final ABBA qualification",
+      "decision": "Not adopted: all three measured medians were slower than same-round control; no final ABBA trial",
+      "change": "Prepare immutable local embedding-row indices once per request",
+      "base_revision": "ad37f7f79e10b946a87d60a0fab01416bd0f7837",
+      "workload_protocol": "Unchanged prompts, seeds, six denoising steps, canvas and PNG transport; one warmup and three measured samples per author workload",
+      "provenance_limit": "This experiment predates engine follow-up 7f8395fed and does not qualify that revision.",
+      "service_exit_codes": {
+        "control": 0,
+        "candidate": 0
+      },
+      "http_seconds": {
+        "/latency/control/W1": {
+          "n": 3,
+          "median": 11.0388825830305,
+          "min": 11.001073798979633,
+          "max": 11.472221762989648,
+          "target_s": 7.34,
+          "target_met": false
+        },
+        "/latency/control/W2": {
+          "n": 3,
+          "median": 2.574322043976281,
+          "min": 2.548009514051955,
+          "max": 2.726380683016032,
+          "target_s": 1.52,
+          "target_met": false
+        },
+        "/latency/control/W3": {
+          "n": 3,
+          "median": 4.242674378969241,
+          "min": 4.235416648967657,
+          "max": 4.31632623198675,
+          "target_s": 2.6,
+          "target_met": false
+        },
+        "/latency/candidate/W1": {
+          "n": 3,
+          "median": 11.197234658990055,
+          "min": 11.081164463015739,
+          "max": 11.381713073991705,
+          "target_s": 7.34,
+          "target_met": false
+        },
+        "/latency/candidate/W2": {
+          "n": 3,
+          "median": 2.925251036998816,
+          "min": 2.880630375992041,
+          "max": 3.2121071310248226,
+          "target_s": 1.52,
+          "target_met": false
+        },
+        "/latency/candidate/W3": {
+          "n": 3,
+          "median": 4.501575561997015,
+          "min": 4.259682046016678,
+          "max": 4.685298379976302,
+          "target_s": 2.6,
+          "target_met": false
+        }
+      },
+      "recorded_image_checks": {
+        "/quality/checks": {
+          "checks": 30,
+          "passed": 30,
+          "failed": 0,
+          "exact": 30,
+          "min_finite_psnr_db": null,
+          "min_ssim": 1.0
+        }
+      },
+      "findings": {
+        "/decision": "Not adopted: all three measured medians were slower than same-round control; no final ABBA trial"
+      }
+    },
+    "prepared-text-round13-result": {
+      "record": "results/prepared-text-round13-result.json",
+      "scope": "Sequential matched four-device HTTP experiment; not final ABBA qualification",
+      "decision": "Not adopted: W1/W3 medians differ by less than 0.5%, W2 is slower; sequential samples do not establish a consistent benefit. No final ABBA trial.",
+      "change": "Prepare timestep-independent text projection and refinement once per request, without cross-request reuse",
+      "base_revision": "7f8395fede3cb79991a256d1752c887b40faca30",
+      "workload_protocol": "Unchanged prompts, seeds, six denoising steps, canvas and PNG transport; one warmup and three measured samples per author workload",
+      "service_exit_codes": {
+        "control": 0,
+        "candidate": 0
+      },
+      "runtime_receipt": "Candidate emitted text refinement prepared once per request; no hook fallback",
+      "http_seconds": {
+        "/latency/control/W1": {
+          "n": 3,
+          "median": 11.084399988991208,
+          "min": 11.02606394002214,
+          "max": 11.126241965976078,
+          "target_s": 7.34,
+          "target_met": false
+        },
+        "/latency/control/W2": {
+          "n": 3,
+          "median": 2.6888775739935227,
+          "min": 2.5512886440264992,
+          "max": 3.160487346991431,
+          "target_s": 1.52,
+          "target_met": false
+        },
+        "/latency/control/W3": {
+          "n": 3,
+          "median": 4.742767457966693,
+          "min": 4.404598266002722,
+          "max": 4.969410013989545,
+          "target_s": 2.6,
+          "target_met": false
+        },
+        "/latency/candidate/W1": {
+          "n": 3,
+          "median": 11.034759288013447,
+          "min": 10.92935256200144,
+          "max": 11.268849636020605,
+          "target_s": 7.34,
+          "target_met": false
+        },
+        "/latency/candidate/W2": {
+          "n": 3,
+          "median": 2.7862397260032594,
+          "min": 2.7197117310133763,
+          "max": 2.8014850659528747,
+          "target_s": 1.52,
+          "target_met": false
+        },
+        "/latency/candidate/W3": {
+          "n": 3,
+          "median": 4.732556299015414,
+          "min": 4.339034087024629,
+          "max": 5.067875273991376,
+          "target_s": 2.6,
+          "target_met": false
+        }
+      },
+      "recorded_image_checks": {
+        "/quality/checks": {
+          "checks": 30,
+          "passed": 30,
+          "failed": 0,
+          "exact": 30,
+          "min_finite_psnr_db": null,
+          "min_ssim": 1.0
+        }
+      },
+      "findings": {
+        "/decision": "Not adopted: W1/W3 medians differ by less than 0.5%, W2 is slower; sequential samples do not establish a consistent benefit. No final ABBA trial."
+      }
+    },
+    "prompt-cache-round24-result": {
+      "record": "results/prompt-cache-round24-result.json",
+      "decision": "Not adopted: all latency targets remain unmet. About 1% lower text-to-image medians and a higher editing median in one paired trial do not establish robust overall E2E benefit. No final ABBA or visual qualification.",
+      "candidate": "Expose H3 encode_prompt to the existing opt-in exact prompt embedding cache; preserve _encode_text profiling boundary.",
+      "source": {
+        "base": "bd30cbd3fb621fcca600b2de08fc1249c6c0987c",
+        "patch_sha256": "75234ff1786d67ba7245e3c2408cb910e5941840fc0f35c1732f9a7f5ab72599",
+        "control_prompt_embed_cache": false,
+        "candidate_prompt_embed_cache": true,
+        "cache_size": 32,
+        "scope": "Exact text-only prompt reuse via existing opt-in cache; PIL reference calls bypass; report cold and warm separately.",
+        "cpu_tests": "140 passed; baseline missing-interface regression 2 failed, 2 passed",
+        "quality": "Frozen screen3 then full30; no input/step/canvas/transport changes"
+      },
+      "cache_disclosure": "Text-only repeated prompts are eligible for exact reuse; seeds and output sizes do not affect text embeddings. W1 first warmup is a cold miss; later identical text-only prompts can hit, including W2 warmup. PIL-reference editing calls bypass. Cache-hit classification follows code and request order; per-request runtime counters were not enabled. Warmups below include other first-request overhead and are not isolated text-encoder measurements.",
+      "lifecycle": {
+        "control_parent_exit": 0,
+        "candidate_parent_exit": 0,
+        "control_worker_exits": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "candidate_worker_exits": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "candidate_cache_installed_ranks": 4
+      },
+      "http_seconds": {
+        "/latency/control/W1": {
+          "n": 3,
+          "median": 11.08051591803087,
+          "min": 11.012348268006463,
+          "max": 11.29867628304055,
+          "target_s": 7.34,
+          "target_met": false
+        },
+        "/latency/control/W2": {
+          "n": 3,
+          "median": 2.6898184010060504,
+          "min": 2.67034600203624,
+          "max": 2.77186039701337,
+          "target_s": 1.52,
+          "target_met": false
+        },
+        "/latency/control/W3": {
+          "n": 3,
+          "median": 4.657603218045551,
+          "min": 4.632010047964286,
+          "max": 4.789532107010018,
+          "target_s": 2.6,
+          "target_met": false
+        },
+        "/latency/candidate/W1": {
+          "n": 3,
+          "median": 10.958950311993249,
+          "min": 10.922758449974936,
+          "max": 10.987321007996798,
+          "target_s": 7.34,
+          "target_met": false
+        },
+        "/latency/candidate/W2": {
+          "n": 3,
+          "median": 2.6561221340089105,
+          "min": 2.6278567260014825,
+          "max": 2.689929188985843,
+          "target_s": 1.52,
+          "target_met": false
+        },
+        "/latency/candidate/W3": {
+          "n": 3,
+          "median": 4.734642603027169,
+          "min": 4.363013138005044,
+          "max": 4.809876250976231,
+          "target_s": 2.6,
+          "target_met": false
+        }
+      },
+      "recorded_image_checks": {
+        "/quality/reports/0/checks": {
+          "checks": 12,
+          "passed": 12,
+          "failed": 0,
+          "exact": 12,
+          "min_finite_psnr_db": null,
+          "min_ssim": 1.0
+        },
+        "/quality/reports/1/checks": {
+          "checks": 6,
+          "passed": 6,
+          "failed": 0,
+          "exact": 6,
+          "min_finite_psnr_db": null,
+          "min_ssim": 1.0
+        },
+        "/quality/reports/2/checks": {
+          "checks": 4,
+          "passed": 4,
+          "failed": 0,
+          "exact": 4,
+          "min_finite_psnr_db": null,
+          "min_ssim": 1.0
+        },
+        "/quality/reports/3/checks": {
+          "checks": 4,
+          "passed": 4,
+          "failed": 0,
+          "exact": 4,
+          "min_finite_psnr_db": null,
+          "min_ssim": 1.0
+        },
+        "/quality/reports/4/checks": {
+          "checks": 2,
+          "passed": 2,
+          "failed": 0,
+          "exact": 2,
+          "min_finite_psnr_db": null,
+          "min_ssim": 1.0
+        },
+        "/quality/reports/5/checks": {
+          "checks": 2,
+          "passed": 2,
+          "failed": 0,
+          "exact": 2,
+          "min_finite_psnr_db": null,
+          "min_ssim": 1.0
+        }
+      },
+      "findings": {
+        "/decision": "Not adopted: all latency targets remain unmet. About 1% lower text-to-image medians and a higher editing median in one paired trial do not establish robust overall E2E benefit. No final ABBA or visual qualification."
+      }
+    },
+    "quant-projection-sensitivity": {
+      "record": "results/quant-projection-sensitivity.json",
+      "http_seconds": {},
+      "recorded_image_checks": {}
+    },
+    "quant-sensitivity": {
+      "record": "results/quant-sensitivity.json",
+      "http_seconds": {},
+      "recorded_image_checks": {}
+    },
+    "review-followup-checks": {
+      "record": "results/review-followup-checks.json",
+      "scope": "Lifecycle and regression validation only; does not establish new latency gain, matched graph-off quality, final ABBA or campaign acceptance",
+      "engine_revision": "7f8395fede3cb79991a256d1752c887b40faca30",
+      "http_seconds": {},
+      "recorded_image_checks": {}
+    },
+    "round2-images/candidate-summary": {
+      "record": "results/round2-images/candidate-summary.json",
+      "http_seconds": {
+        "/workloads/W1": {
+          "n": 3,
+          "median": 10.986412770987954,
+          "min": 10.790598347986815,
+          "max": 11.038841233996209,
+          "target_s": 7.34,
+          "target_met": false
+        },
+        "/workloads/W2": {
+          "n": 3,
+          "median": 2.572789660014678,
+          "min": 2.5710100540018175,
+          "max": 2.6313792429864407,
+          "target_s": 1.52,
+          "target_met": false
+        },
+        "/workloads/W3": {
+          "n": 3,
+          "median": 4.266053218016168,
+          "min": 4.159473518986488,
+          "max": 4.555161541997222,
+          "target_s": 2.6,
+          "target_met": false
+        }
+      },
+      "recorded_image_checks": {},
+      "requests": {
+        "total": 12,
+        "expected": 12,
+        "complete": true,
+        "error": null
+      },
+      "quality-summary.json": {
+        "http_seconds": {},
+        "recorded_image_checks": {
+          "/reports/0/checks": {
+            "checks": 12,
+            "passed": 12,
+            "failed": 0,
+            "exact": 0,
+            "min_finite_psnr_db": 38.84918692251142,
+            "min_ssim": 0.9923444472781661
+          },
+          "/reports/1/checks": {
+            "checks": 6,
+            "passed": 6,
+            "failed": 0,
+            "exact": 0,
+            "min_finite_psnr_db": 37.574506447504824,
+            "min_ssim": 0.9902695938023937
+          },
+          "/reports/2/checks": {
+            "checks": 4,
+            "passed": 4,
+            "failed": 0,
+            "exact": 0,
+            "min_finite_psnr_db": 54.71936703107679,
+            "min_ssim": 0.9991155651379415
+          },
+          "/reports/3/checks": {
+            "checks": 4,
+            "passed": 4,
+            "failed": 0,
+            "exact": 0,
+            "min_finite_psnr_db": 54.595866117679286,
+            "min_ssim": 0.998981993020856
+          },
+          "/reports/4/checks": {
+            "checks": 2,
+            "passed": 2,
+            "failed": 0,
+            "exact": 0,
+            "min_finite_psnr_db": 46.65156765163316,
+            "min_ssim": 0.9962983737157155
+          },
+          "/reports/5/checks": {
+            "checks": 2,
+            "passed": 2,
+            "failed": 0,
+            "exact": 0,
+            "min_finite_psnr_db": 34.602508060940266,
+            "min_ssim": 0.9870127984753467
+          }
+        }
+      }
+    },
+    "round2-images/control-summary": {
+      "record": "results/round2-images/control-summary.json",
+      "http_seconds": {
+        "/workloads/W1": {
+          "n": 3,
+          "median": 16.933341007999843,
+          "min": 16.630787415022496,
+          "max": 17.133936054015066,
+          "target_s": 7.34,
+          "target_met": false
+        },
+        "/workloads/W2": {
+          "n": 3,
+          "median": 3.922200678003719,
+          "min": 3.9003130460041575,
+          "max": 3.9241329380020034,
+          "target_s": 1.52,
+          "target_met": false
+        },
+        "/workloads/W3": {
+          "n": 3,
+          "median": 5.6902777180075645,
+          "min": 5.510211357002845,
+          "max": 5.714084660983644,
+          "target_s": 2.6,
+          "target_met": false
+        }
+      },
+      "recorded_image_checks": {},
+      "requests": {
+        "total": 12,
+        "expected": 12,
+        "complete": true,
+        "error": null
+      }
+    },
+    "runtime-and-prepared-row-startup": {
+      "record": "results/runtime-and-prepared-row-startup.json",
+      "scope": "Component and startup rejection records, not performance qualification",
+      "http_seconds": {},
+      "recorded_image_checks": {},
+      "findings": {
+        "/experiments/0/decision": "Rejected as incompatible with the current graph path. Full-model screen was not started.",
+        "/experiments/1/decision": "Preserved failure; added strict-forward-contract registration and regression before retrying under a new round identifier."
+      }
+    },
+    "sp4-cached-rows/summary": {
+      "record": "results/sp4-cached-rows/summary.json",
+      "http_seconds": {
+        "/workloads/W1": {
+          "n": 3,
+          "median": 11.94741840599454,
+          "min": 11.803104074002476,
+          "max": 12.029802445991663,
+          "target_s": 7.34,
+          "target_met": false
+        },
+        "/workloads/W2": {
+          "n": 3,
+          "median": 2.864325155998813,
+          "min": 2.8104410840023775,
+          "max": 2.897295450005913,
+          "target_s": 1.52,
+          "target_met": false
+        },
+        "/workloads/W3": {
+          "n": 3,
+          "median": 4.266936518019065,
+          "min": 4.25868226098828,
+          "max": 4.567275164008606,
+          "target_s": 2.6,
+          "target_met": false
+        }
+      },
+      "recorded_image_checks": {},
+      "requests": {
+        "total": 12,
+        "warmup": 3,
+        "failed": 0
+      },
+      "exact-quality.json": {
+        "http_seconds": {},
+        "recorded_image_checks": {}
+      }
+    },
+    "sp4-comm-fusion-init/summary": {
+      "record": "results/sp4-comm-fusion-init/summary.json",
+      "http_seconds": {
+        "/workloads/W1": {
+          "n": 3,
+          "median": 10.5281353329774,
+          "min": 10.511329598986777,
+          "max": 10.544539052003529,
+          "target_s": 7.34,
+          "target_met": false
+        },
+        "/workloads/W2": {
+          "n": 3,
+          "median": 2.5605320670001674,
+          "min": 2.4841241740214173,
+          "max": 2.5894490649807267,
+          "target_s": 1.52,
+          "target_met": false
+        },
+        "/workloads/W3": {
+          "n": 3,
+          "median": 4.536601455998607,
+          "min": 4.172276622004574,
+          "max": 4.6401847829984035,
+          "target_s": 2.6,
+          "target_met": false
+        }
+      },
+      "recorded_image_checks": {},
+      "requests": {
+        "total": 12,
+        "warmup": 3,
+        "failed": 0
+      },
+      "quality-screen.json": {
+        "http_seconds": {},
+        "recorded_image_checks": {
+          "/checks": {
+            "checks": 12,
+            "passed": 8,
+            "failed": 4,
+            "exact": 0,
+            "min_finite_psnr_db": 22.909959257954988,
+            "min_ssim": 0.9234763201161647
+          }
+        }
+      }
+    },
+    "sp4-laser/summary": {
+      "record": "results/sp4-laser/summary.json",
+      "http_seconds": {
+        "/workloads/W1": {
+          "n": 3,
+          "median": 10.334943293011747,
+          "min": 10.262038650020259,
+          "max": 10.351143295003567,
+          "target_s": 7.34,
+          "target_met": false
+        },
+        "/workloads/W2": {
+          "n": 3,
+          "median": 2.90869437600486,
+          "min": 2.7318745740049053,
+          "max": 2.9950336729816627,
+          "target_s": 1.52,
+          "target_met": false
+        },
+        "/workloads/W3": {
+          "n": 3,
+          "median": 4.985266331001185,
+          "min": 4.838683109992417,
+          "max": 5.013157938985387,
+          "target_s": 2.6,
+          "target_met": false
+        }
+      },
+      "recorded_image_checks": {},
+      "requests": {
+        "total": 12,
+        "warmup": 3,
+        "failed": 0
+      },
+      "quality-screen.json": {
+        "http_seconds": {},
+        "recorded_image_checks": {
+          "/checks": {
+            "checks": 12,
+            "passed": 4,
+            "failed": 8,
+            "exact": 0,
+            "min_finite_psnr_db": 18.993440043893752,
+            "min_ssim": 0.8418112292243388
+          }
+        }
+      }
+    },
+    "sp4-output-fusion/summary": {
+      "record": "results/sp4-output-fusion/summary.json",
+      "http_seconds": {
+        "/workloads/W1": {
+          "n": 3,
+          "median": 11.089950343011878,
+          "min": 10.933192843018332,
+          "max": 11.101264930999605,
+          "target_s": 7.34,
+          "target_met": false
+        },
+        "/workloads/W2": {
+          "n": 3,
+          "median": 2.6775245599856135,
+          "min": 2.5485110380104743,
+          "max": 2.7119381229858845,
+          "target_s": 1.52,
+          "target_met": false
+        },
+        "/workloads/W3": {
+          "n": 3,
+          "median": 4.559664615982911,
+          "min": 4.217140177002875,
+          "max": 4.60969851797563,
+          "target_s": 2.6,
+          "target_met": false
+        }
+      },
+      "recorded_image_checks": {},
+      "requests": {
+        "total": 12,
+        "warmup": 3,
+        "failed": 0
+      },
+      "quality-screen.json": {
+        "http_seconds": {},
+        "recorded_image_checks": {
+          "/checks": {
+            "checks": 12,
+            "passed": 12,
+            "failed": 0,
+            "exact": 0,
+            "min_finite_psnr_db": 38.84870804453869,
+            "min_ssim": 0.992344905699888
+          }
+        }
+      }
+    },
+    "sp4-shmem-batch8-fp16enc/summary": {
+      "record": "results/sp4-shmem-batch8-fp16enc/summary.json",
+      "http_seconds": {
+        "/workloads/W1": {
+          "n": 3,
+          "median": 10.79468696602271,
+          "min": 10.614148024003953,
+          "max": 10.836070463003125,
+          "target_s": 7.34,
+          "target_met": false
+        },
+        "/workloads/W2": {
+          "n": 3,
+          "median": 2.6116147420252673,
+          "min": 2.5418542740226258,
+          "max": 2.6958260990213603,
+          "target_s": 1.52,
+          "target_met": false
+        },
+        "/workloads/W3": {
+          "n": 3,
+          "median": 4.6722320429980755,
+          "min": 4.494912196998484,
+          "max": 4.690411460003816,
+          "target_s": 2.6,
+          "target_met": false
+        }
+      },
+      "recorded_image_checks": {},
+      "requests": {
+        "total": 12,
+        "warmup": 3,
+        "failed": 0
+      },
+      "quality-screen.json": {
+        "http_seconds": {},
+        "recorded_image_checks": {
+          "/checks": {
+            "checks": 12,
+            "passed": 12,
+            "failed": 0,
+            "exact": 0,
+            "min_finite_psnr_db": 38.84870804453869,
+            "min_ssim": 0.992344905699888
+          }
+        }
+      }
+    },
+    "sp4-shmem-native/summary": {
+      "record": "results/sp4-shmem-native/summary.json",
+      "http_seconds": {
+        "/workloads/W1": {
+          "n": 3,
+          "median": 16.224713742005406,
+          "min": 16.12757755300845,
+          "max": 16.25429439501022,
+          "target_s": 7.34,
+          "target_met": false
+        },
+        "/workloads/W2": {
+          "n": 3,
+          "median": 3.8361408910132013,
+          "min": 3.7869941350072622,
+          "max": 3.8632281300087925,
+          "target_s": 1.52,
+          "target_met": false
+        },
+        "/workloads/W3": {
+          "n": 3,
+          "median": 5.641050181991886,
+          "min": 5.498465248994762,
+          "max": 5.735104283026885,
+          "target_s": 2.6,
+          "target_met": false
+        }
+      },
+      "recorded_image_checks": {},
+      "requests": {
+        "total": 12,
+        "warmup": 3,
+        "failed": 0
+      },
+      "exact-quality.json": {
+        "http_seconds": {},
+        "recorded_image_checks": {}
+      }
+    },
+    "sp4-shmem-vae4-omp1/summary": {
+      "record": "results/sp4-shmem-vae4-omp1/summary.json",
+      "http_seconds": {
+        "/workloads/W1": {
+          "n": 3,
+          "median": 11.180704417987727,
+          "min": 11.145306388003519,
+          "max": 11.40009489399381,
+          "target_s": 7.34,
+          "target_met": false
+        },
+        "/workloads/W2": {
+          "n": 3,
+          "median": 2.792589827993652,
+          "min": 2.561114626994822,
+          "max": 2.854544572008308,
+          "target_s": 1.52,
+          "target_met": false
+        },
+        "/workloads/W3": {
+          "n": 3,
+          "median": 4.703524553013267,
+          "min": 4.521325433976017,
+          "max": 4.828801897994708,
+          "target_s": 2.6,
+          "target_met": false
+        }
+      },
+      "recorded_image_checks": {},
+      "requests": {
+        "total": 12,
+        "warmup": 3,
+        "failed": 0
+      },
+      "exact-quality.json": {
+        "http_seconds": {},
+        "recorded_image_checks": {}
+      }
+    },
+    "sp4-shmem-vae4/summary": {
+      "record": "results/sp4-shmem-vae4/summary.json",
+      "http_seconds": {
+        "/workloads/W1": {
+          "n": 3,
+          "median": 10.9701159579854,
+          "min": 10.910422290005954,
+          "max": 11.33337533500162,
+          "target_s": 7.34,
+          "target_met": false
+        },
+        "/workloads/W2": {
+          "n": 3,
+          "median": 2.8691274950106163,
+          "min": 2.7020109899749514,
+          "max": 2.96330260601826,
+          "target_s": 1.52,
+          "target_met": false
+        },
+        "/workloads/W3": {
+          "n": 3,
+          "median": 4.635089490009705,
+          "min": 4.6217672799830325,
+          "max": 4.856100720004179,
+          "target_s": 2.6,
+          "target_met": false
+        }
+      },
+      "recorded_image_checks": {},
+      "requests": {
+        "total": 12,
+        "warmup": 3,
+        "failed": 0
+      },
+      "exact-quality.json": {
+        "http_seconds": {},
+        "recorded_image_checks": {}
+      }
+    },
+    "sp4-smoothquant/summary": {
+      "record": "results/sp4-smoothquant/summary.json",
+      "http_seconds": {
+        "/workloads/W1": {
+          "n": 3,
+          "median": 9.72700083698146,
+          "min": 9.662380343012046,
+          "max": 9.77162157400744,
+          "target_s": 7.34,
+          "target_met": false
+        },
+        "/workloads/W2": {
+          "n": 3,
+          "median": 2.34719407898956,
+          "min": 2.307605392008554,
+          "max": 2.356840402004309,
+          "target_s": 1.52,
+          "target_met": false
+        },
+        "/workloads/W3": {
+          "n": 3,
+          "median": 4.115202966990182,
+          "min": 4.048406817018986,
+          "max": 4.140809297998203,
+          "target_s": 2.6,
+          "target_met": false
+        }
+      },
+      "recorded_image_checks": {},
+      "requests": {
+        "total": 12,
+        "warmup": 3,
+        "failed": 0
+      },
+      "quality-screen.json": {
+        "http_seconds": {},
+        "recorded_image_checks": {
+          "/checks": {
+            "checks": 12,
+            "passed": 0,
+            "failed": 12,
+            "exact": 0,
+            "min_finite_psnr_db": 16.87180844349228,
+            "min_ssim": 0.7349434446320933
+          }
+        }
+      }
+    },
+    "sp4-static-adaln/summary": {
+      "record": "results/sp4-static-adaln/summary.json",
+      "http_seconds": {
+        "/workloads/W1": {
+          "n": 3,
+          "median": 11.138379019015701,
+          "min": 11.083132853003917,
+          "max": 12.973196535982424,
+          "target_s": 7.34,
+          "target_met": false
+        },
+        "/workloads/W2": {
+          "n": 3,
+          "median": 2.805177828995511,
+          "min": 2.7185219590028282,
+          "max": 3.028036144998623,
+          "target_s": 1.52,
+          "target_met": false
+        },
+        "/workloads/W3": {
+          "n": 3,
+          "median": 4.817303585994523,
+          "min": 4.459023833012907,
+          "max": 6.151418627006933,
+          "target_s": 2.6,
+          "target_met": false
+        }
+      },
+      "recorded_image_checks": {},
+      "requests": {
+        "total": 12,
+        "warmup": 3,
+        "failed": 0
+      },
+      "quality-screen.json": {
+        "http_seconds": {},
+        "recorded_image_checks": {
+          "/checks": {
+            "checks": 12,
+            "passed": 12,
+            "failed": 0,
+            "exact": 0,
+            "min_finite_psnr_db": 38.84870804453869,
+            "min_ssim": 0.992344905699888
+          }
+        }
+      }
+    },
+    "sp4-vae-batched-both-quality/summary": {
+      "record": "results/sp4-vae-batched-both-quality/summary.json",
+      "http_seconds": {
+        "/workloads/W1": {
+          "n": 2,
+          "median": 10.727705010998761,
+          "min": 10.69990856500226,
+          "max": 10.755501456995262,
+          "target_s": 7.34,
+          "target_met": false
+        },
+        "/workloads/W2": {
+          "n": 2,
+          "median": 2.6319265409983927,
+          "min": 2.540482059994247,
+          "max": 2.7233710220025387,
+          "target_s": 1.52,
+          "target_met": false
+        },
+        "/workloads/W3": {
+          "n": 2,
+          "median": 4.059371747513069,
+          "min": 4.024137972010067,
+          "max": 4.094605523016071,
+          "target_s": 2.6,
+          "target_met": false
+        }
+      },
+      "recorded_image_checks": {},
+      "requests": {
+        "total": 6,
+        "warmup": 0,
+        "failed": 0
+      },
+      "quality-screen.json": {
+        "http_seconds": {},
+        "recorded_image_checks": {
+          "/checks": {
+            "checks": 6,
+            "passed": 6,
+            "failed": 0,
+            "exact": 0,
+            "min_finite_psnr_db": 37.574506447504824,
+            "min_ssim": 0.9902695938023937
+          }
+        }
+      }
+    },
+    "sp4-vae-batched-both/summary": {
+      "record": "results/sp4-vae-batched-both/summary.json",
+      "http_seconds": {
+        "/workloads/W1": {
+          "n": 3,
+          "median": 10.733350692986278,
+          "min": 10.719975991989486,
+          "max": 10.738122589013074,
+          "target_s": 7.34,
+          "target_met": false
+        },
+        "/workloads/W2": {
+          "n": 3,
+          "median": 2.550167806999525,
+          "min": 2.469710595003562,
+          "max": 2.6083167040196713,
+          "target_s": 1.52,
+          "target_met": false
+        },
+        "/workloads/W3": {
+          "n": 3,
+          "median": 4.092191904986976,
+          "min": 4.013899098994443,
+          "max": 4.2028263490065,
+          "target_s": 2.6,
+          "target_met": false
+        }
+      },
+      "recorded_image_checks": {},
+      "requests": {
+        "total": 12,
+        "warmup": 3,
+        "failed": 0
+      },
+      "quality-screen.json": {
+        "http_seconds": {},
+        "recorded_image_checks": {
+          "/checks": {
+            "checks": 12,
+            "passed": 12,
+            "failed": 0,
+            "exact": 0,
+            "min_finite_psnr_db": 38.84918692251142,
+            "min_ssim": 0.9923444472781661
+          }
+        }
+      }
+    },
+    "sp4-vae4/summary": {
+      "record": "results/sp4-vae4/summary.json",
+      "http_seconds": {
+        "/workloads/W1": {
+          "n": 3,
+          "median": 11.311260574992048,
+          "min": 11.304233572998783,
+          "max": 11.414874661975773,
+          "target_s": 7.34,
+          "target_met": false
+        },
+        "/workloads/W2": {
+          "n": 3,
+          "median": 2.5920406370132696,
+          "min": 2.5889540769858286,
+          "max": 2.612901483022142,
+          "target_s": 1.52,
+          "target_met": false
+        },
+        "/workloads/W3": {
+          "n": 3,
+          "median": 4.340460253995843,
+          "min": 4.2208766270196065,
+          "max": 4.3434900239808485,
+          "target_s": 2.6,
+          "target_met": false
+        }
+      },
+      "recorded_image_checks": {},
+      "requests": {
+        "total": 12,
+        "warmup": 3,
+        "failed": 0
+      },
+      "quality.json": {
+        "http_seconds": {},
+        "recorded_image_checks": {}
+      }
+    },
+    "sp4-vaebatch8/summary": {
+      "record": "results/sp4-vaebatch8/summary.json",
+      "http_seconds": {
+        "/workloads/W1": {
+          "n": 3,
+          "median": 10.896698396012653,
+          "min": 10.891394995996961,
+          "max": 10.913649814989185,
+          "target_s": 7.34,
+          "target_met": false
+        },
+        "/workloads/W2": {
+          "n": 3,
+          "median": 2.5351163540035486,
+          "min": 2.5065092779987026,
+          "max": 2.5511557449935935,
+          "target_s": 1.52,
+          "target_met": false
+        },
+        "/workloads/W3": {
+          "n": 3,
+          "median": 4.144250381999882,
+          "min": 4.059850436024135,
+          "max": 4.195486241020262,
+          "target_s": 2.6,
+          "target_met": false
+        }
+      },
+      "recorded_image_checks": {},
+      "requests": {
+        "total": 12,
+        "warmup": 3,
+        "failed": 0
+      },
+      "quality-screen.json": {
+        "http_seconds": {},
+        "recorded_image_checks": {
+          "/checks": {
+            "checks": 12,
+            "passed": 12,
+            "failed": 0,
+            "exact": 0,
+            "min_finite_psnr_db": 55.39449262659298,
+            "min_ssim": 0.9988312379498231
+          }
+        }
+      }
+    },
+    "sp4-w8a8/summary": {
+      "record": "results/sp4-w8a8/summary.json",
+      "http_seconds": {
+        "/workloads/W1": {
+          "n": 3,
+          "median": 10.408907328994246,
+          "min": 10.359616892994381,
+          "max": 10.449155562004307,
+          "target_s": 7.34,
+          "target_met": false
+        },
+        "/workloads/W2": {
+          "n": 3,
+          "median": 2.3231913250056095,
+          "min": 2.320640218007611,
+          "max": 2.359278598014498,
+          "target_s": 1.52,
+          "target_met": false
+        },
+        "/workloads/W3": {
+          "n": 3,
+          "median": 3.6815071429882664,
+          "min": 3.664169399999082,
+          "max": 3.6884945549827535,
+          "target_s": 2.6,
+          "target_met": false
+        }
+      },
+      "recorded_image_checks": {},
+      "requests": {
+        "total": 12,
+        "warmup": 3,
+        "failed": 0
+      },
+      "quality-screen.json": {
+        "http_seconds": {},
+        "recorded_image_checks": {
+          "/checks": {
+            "checks": 12,
+            "passed": 4,
+            "failed": 8,
+            "exact": 0,
+            "min_finite_psnr_db": 16.219494592945196,
+            "min_ssim": 0.7309825846218531
+          }
+        }
+      }
+    },
+    "submission-control-sp4/summary": {
+      "record": "results/submission-control-sp4/summary.json",
+      "http_seconds": {
+        "/workloads/W1": {
+          "n": 3,
+          "median": 16.8905410010193,
+          "min": 16.822192678024294,
+          "max": 17.178425610007253,
+          "target_s": 7.34,
+          "target_met": false
+        },
+        "/workloads/W2": {
+          "n": 3,
+          "median": 4.179959593020612,
+          "min": 4.009914345020661,
+          "max": 4.389383674017154,
+          "target_s": 1.52,
+          "target_met": false
+        },
+        "/workloads/W3": {
+          "n": 3,
+          "median": 5.675844104000134,
+          "min": 5.39679881700431,
+          "max": 5.8423453379946295,
+          "target_s": 2.6,
+          "target_met": false
+        }
+      },
+      "recorded_image_checks": {},
+      "requests": {
+        "total": 12,
+        "warmup": 3,
+        "failed": 0
+      }
+    },
+    "submission-vae-batched/summary": {
+      "record": "results/submission-vae-batched/summary.json",
+      "http_seconds": {
+        "/workloads/W1": {
+          "n": 3,
+          "median": 10.815262966003502,
+          "min": 10.777019353990909,
+          "max": 10.898112213995773,
+          "target_s": 7.34,
+          "target_met": false
+        },
+        "/workloads/W2": {
+          "n": 3,
+          "median": 2.6686195700021926,
+          "min": 2.614466659986647,
+          "max": 2.670891568996012,
+          "target_s": 1.52,
+          "target_met": false
+        },
+        "/workloads/W3": {
+          "n": 3,
+          "median": 4.572257775987964,
+          "min": 4.378187030990375,
+          "max": 4.585386579972692,
+          "target_s": 2.6,
+          "target_met": false
+        }
+      },
+      "recorded_image_checks": {},
+      "requests": {
+        "total": 12,
+        "warmup": 3,
+        "failed": 0
+      },
+      "quality-screen.json": {
+        "http_seconds": {},
+        "recorded_image_checks": {
+          "/checks": {
+            "checks": 12,
+            "passed": 12,
+            "failed": 0,
+            "exact": 0,
+            "min_finite_psnr_db": 38.84918692251142,
+            "min_ssim": 0.9923444472781661
+          }
+        }
+      }
+    },
+    "vae-decoder-dtype-probe": {
+      "record": "results/vae-decoder-dtype-probe.json",
+      "http_seconds": {},
+      "recorded_image_checks": {}
+    },
+    "vae-encoder-batch-probe": {
+      "record": "results/vae-encoder-batch-probe.json",
+      "http_seconds": {},
+      "recorded_image_checks": {}
+    },
+    "vae-fp16-round6/candidate-summary": {
+      "record": "results/vae-fp16-round6/candidate-summary.json",
+      "http_seconds": {
+        "/workloads/W1": {
+          "n": 3,
+          "median": 10.791138782020425,
+          "min": 10.724196939991089,
+          "max": 11.040718303003814,
+          "target_s": 7.34,
+          "target_met": false
+        },
+        "/workloads/W2": {
+          "n": 3,
+          "median": 2.7469574449933134,
+          "min": 2.655700486007845,
+          "max": 2.798621018009726,
+          "target_s": 1.52,
+          "target_met": false
+        },
+        "/workloads/W3": {
+          "n": 3,
+          "median": 4.666251771996031,
+          "min": 4.412583647994325,
+          "max": 4.733559524000157,
+          "target_s": 2.6,
+          "target_met": false
+        }
+      },
+      "recorded_image_checks": {},
+      "requests": {
+        "total": 12,
+        "expected": 12,
+        "complete": true,
+        "error": null
+      },
+      "quality-summary.json": {
+        "http_seconds": {},
+        "recorded_image_checks": {
+          "/reports/0/checks": {
+            "checks": 12,
+            "passed": 12,
+            "failed": 0,
+            "exact": 0,
+            "min_finite_psnr_db": 49.28320294239426,
+            "min_ssim": 0.9975705774167039
+          },
+          "/reports/1/checks": {
+            "checks": 6,
+            "passed": 6,
+            "failed": 0,
+            "exact": 0,
+            "min_finite_psnr_db": 48.34193623973856,
+            "min_ssim": 0.9975384719566031
+          },
+          "/reports/2/checks": {
+            "checks": 4,
+            "passed": 4,
+            "failed": 0,
+            "exact": 0,
+            "min_finite_psnr_db": 48.3461281596012,
+            "min_ssim": 0.9980379440947044
+          },
+          "/reports/3/checks": {
+            "checks": 4,
+            "passed": 4,
+            "failed": 0,
+            "exact": 0,
+            "min_finite_psnr_db": 46.8990454967858,
+            "min_ssim": 0.9975422431539868
+          },
+          "/reports/4/checks": {
+            "checks": 2,
+            "passed": 2,
+            "failed": 0,
+            "exact": 0,
+            "min_finite_psnr_db": 53.06941354026124,
+            "min_ssim": 0.997585786098972
+          },
+          "/reports/5/checks": {
+            "checks": 2,
+            "passed": 2,
+            "failed": 0,
+            "exact": 0,
+            "min_finite_psnr_db": 52.9619573563463,
+            "min_ssim": 0.9975356871232243
+          }
+        }
+      },
+      "decision.json": {
+        "verdict": "INCONCLUSIVE",
+        "adopted": false,
+        "numerical_checks_passed": 30,
+        "numerical_checks_total": 30,
+        "visual_review": "pending",
+        "performance": "W1 improved, W2/W3 regressed in one matched launch pair. No consistent three-workload improvement or target attainment.",
+        "next_step": "Reprofile published configuration; no further equivalent precision sweep without bottleneck evidence."
+      }
+    },
+    "vae-fp16-round6/control-summary": {
+      "record": "results/vae-fp16-round6/control-summary.json",
+      "http_seconds": {
+        "/workloads/W1": {
+          "n": 3,
+          "median": 11.109825799008831,
+          "min": 11.053648930974305,
+          "max": 11.199859517015284,
+          "target_s": 7.34,
+          "target_met": false
+        },
+        "/workloads/W2": {
+          "n": 3,
+          "median": 2.6620230569969863,
+          "min": 2.6432661560247652,
+          "max": 3.132759898988297,
+          "target_s": 1.52,
+          "target_met": false
+        },
+        "/workloads/W3": {
+          "n": 3,
+          "median": 4.593785620993003,
+          "min": 4.36647575799725,
+          "max": 4.718146569997771,
+          "target_s": 2.6,
+          "target_met": false
+        }
+      },
+      "recorded_image_checks": {},
+      "requests": {
+        "total": 12,
+        "expected": 12,
+        "complete": true,
+        "error": null
+      }
+    },
+    "vae-large-batch-probe": {
+      "record": "results/vae-large-batch-probe.json",
+      "http_seconds": {},
+      "recorded_image_checks": {}
+    }
+  }
+}
