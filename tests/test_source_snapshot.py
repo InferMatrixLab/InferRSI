@@ -7,6 +7,7 @@ from pathlib import Path
 import pytest
 
 from inferrsi.knowledge import _source_snapshot as snapshot
+from inferrsi.knowledge import catalog
 from inferrsi.knowledge._source_snapshot import source_entry
 from inferrsi.knowledge.catalog import search_knowledge
 from tools import build_skill_index as index_builder
@@ -94,6 +95,29 @@ def test_invalid_stored_record_never_resolves(mutation):
         del stored["origin"]
     with pytest.raises(ValueError):
         snapshot.resolve(stored, manifest)
+
+
+def test_snapshot_pack_reads_only_the_root_manifest_and_stored_records(tmp_path, monkeypatch):
+    pack = tmp_path / "knowledge/data/repo_packs/inferrsi/knowledge"
+    source = record_files()[0]
+    target = pack / source.relative_to(GENERATED)
+    target.parent.mkdir(parents=True)
+    target.write_bytes(source.read_bytes())
+    (pack / snapshot.MANIFEST).write_bytes((GENERATED / snapshot.MANIFEST).read_bytes())
+    monkeypatch.setattr(catalog, "files", lambda _: tmp_path)
+    assert len(catalog.knowledge_records()) == 1
+    # Only the root manifest is the snapshot; a nested copy is an invalid record.
+    nested = target.parent / snapshot.MANIFEST
+    nested.write_bytes((pack / snapshot.MANIFEST).read_bytes())
+    with pytest.raises(ValueError, match="not schema 2"):
+        catalog.knowledge_records()
+    nested.unlink()
+    # Schema-1 and schema-2 records never mix in one snapshot pack.
+    manifest = json.loads((pack / snapshot.MANIFEST).read_text(encoding="utf-8"))
+    public = snapshot.resolve(json.loads(target.read_text(encoding="utf-8")), manifest)
+    target.write_text(json.dumps(public), encoding="utf-8")
+    with pytest.raises(ValueError, match="not schema 2"):
+        catalog.knowledge_records()
 
 
 # Fixture identity and settings; hosted runners have no global Git identity.

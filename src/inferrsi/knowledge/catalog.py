@@ -110,12 +110,18 @@ def knowledge_records() -> list[dict[str, Any]]:
                     continue
                 record = json.loads(item.read_text(encoding="utf-8"))
                 # Generated skill records store schema v2; readers always receive schema v1.
+                # A pack with a snapshot holds only generated records.
                 if isinstance(record, dict) and record.get("schema_version") == (
                     _source_snapshot.STORED_SCHEMA
                 ):
                     if snapshot is None:
                         raise ValueError(f"Knowledge record lacks its source snapshot: {repo}")
                     record = _source_snapshot.resolve(record, snapshot)
+                elif snapshot is not None:
+                    raise ValueError(
+                        f"Source-snapshot pack holds a record that is not schema "
+                        f"{_source_snapshot.STORED_SCHEMA}: {repo}/{'/'.join(parts)}"
+                    )
                 _validate_record(record, repo, parts, tier)
                 if record["id"] in seen:
                     raise ValueError(f"Duplicate knowledge ID: {record['id']}")
