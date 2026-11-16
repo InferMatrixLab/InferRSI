@@ -383,6 +383,43 @@ def test_references_are_checked_raw_never_against_each_other():
     assert explain(mechanism, evidence)["status"] == "contradicted"
 
 
+def test_raw_and_normalized_sign_reversal_is_not_read_as_either_direction():
+    """Raw +20% but normalized decrease, while each reference interval crosses 1.
+
+    Two references each dip below 1 in different pairs, so neither is contradicted,
+    yet their sum (the per-step reference) rises in every pair. Dividing by it turns
+    an absolute increase into an apparent decrease.
+    """
+    r1 = [0.9, 0.9, 1.6, 1.6, 1.6, 1.6, 1.6, 1.6, 1.6, 1.6]
+    r2 = [1.6, 1.6, 0.9, 0.9, 1.6, 1.6, 1.6, 1.6, 1.6, 1.6]
+    base = [{"breakdown": {"target": 2.0, "r1": 5.0, "r2": 5.0}}] * 10
+    cand = [{"breakdown": {"target": 2.4, "r1": 5.0 * a, "r2": 5.0 * b}}
+            for a, b in zip(r1, r2)]
+    mechanism = validate_mechanism({"mechanism": "m", "expect": [
+        {"region": "target", "direction": "decrease"},
+        {"region": "r1", "direction": "unchanged"}, {"region": "r2", "direction": "unchanged"}]})
+    evidence = profile_evidence(base, cand, reference_regions=["r1", "r2"], family_size=3)
+    target = evidence["regions"]["target"]
+    assert target["raw"]["observed"] == "increase"
+    assert target["normalized"]["observed"] == "decrease"
+    assert target["observed"] == "raw_normalized_conflict"
+    assert evidence["regions"]["r1"]["observed"] == "no_clear_change"
+    assert evidence["regions"]["r2"]["observed"] == "no_clear_change"
+    result = explain(mechanism, evidence)
+    assert result["checks"][0]["outcome"] == "unverifiable"
+    assert result["status"] == "unverifiable"
+
+
+def test_normalization_still_resolves_a_raw_change_hidden_by_drift():
+    # Raw shows no clear change, normalized shows a decrease: not a conflict.
+    jitter = [1.0, 1.3, 0.8, 1.25, 0.85, 1.2, 0.9, 1.15]
+    base = [{"breakdown": {"t": 2.0, "ref": 6.0}}] * 8
+    cand = [{"breakdown": {"t": 1.6 * g, "ref": 6.0 * g}} for g in jitter]
+    evidence = profile_evidence(base, cand, reference_regions=["ref"], family_size=2)
+    t = evidence["regions"]["t"]
+    assert t["raw"]["observed"] == "no_clear_change" and t["observed"] == "decrease"
+
+
 def test_duplicate_expectations_are_rejected():
     with pytest.raises(ValueError):
         validate_mechanism({"mechanism": "m", "expect": [

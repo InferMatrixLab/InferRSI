@@ -213,7 +213,8 @@ def assess(directory: Path, settings: dict, execution: dict, *,
     if mechanism_error:
         explanation = {"status": "unverifiable", "reason": mechanism_error}
     if settings.get("require_explanation", False) and verdict == "PASS":
-        if explanation["status"] in ("contradicted", "unsupported"):
+        # Only evidence against the prediction fails; missing evidence is INCONCLUSIVE.
+        if explanation["status"] == "contradicted":
             verdict, reason = "FAIL", "explanation_" + explanation["status"]
         elif explanation["status"] != "explained":
             verdict, reason = "INCONCLUSIVE", "explanation_" + explanation["status"]

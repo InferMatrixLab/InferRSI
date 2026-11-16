@@ -259,7 +259,13 @@ def profile_evidence(baseline_profiles: list, candidate_profiles: list, *,
                 normalized = _paired_change([v / k for v, k in zip(b, clock[0])],
                                             [v / k for v, k in zip(c, clock[1])],
                                             confidence=confidence)
-                entry.update(normalized=normalized, observed=normalized["observed"],
+                observed = normalized["observed"]
+                if {observed, raw["observed"]} == {"decrease", "increase"}:
+                    # Opposite definite directions: the absolute and the relative-to-
+                    # reference change disagree. No declaration predicts a relative
+                    # effect, so neither direction may be read as the result.
+                    observed = "raw_normalized_conflict"
+                entry.update(normalized=normalized, observed=observed,
                              basis="normalized_to_reference_regions")
             if kind == "breakdown":
                 entry["baseline_share"] = _shares(b, totals[0])

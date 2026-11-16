@@ -4,7 +4,7 @@ import json
 
 import pytest
 
-from inferrsi.cli import main
+from inferrsi.apps.cli import main
 from inferrsi.harness.optimization import read_records
 
 # Device-wide factor applied to every timed value of one measurement call, cycling per
@@ -122,7 +122,7 @@ def test_confirmed_mechanism_is_adopted_and_rechecked_at_final(project, capsys):
     ({"mechanism": "Claims the norm got slower", "expect": [
         {"region": "norm", "direction": "increase"}]}, "contradicted", "FAIL"),
     ({"mechanism": "Claims attention got faster", "expect": [
-        {"region": "attention", "direction": "decrease"}]}, "unsupported", "FAIL"),
+        {"region": "attention", "direction": "decrease"}]}, "unsupported", "INCONCLUSIVE"),
     ({"mechanism": "Names a counter that was never measured", "expect": [
         {"counter": "l2_hit_rate", "direction": "increase"}]}, "unverifiable", "INCONCLUSIVE"),
     (None, "not_declared", "INCONCLUSIVE"),
