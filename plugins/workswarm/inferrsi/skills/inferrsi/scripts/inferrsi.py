@@ -159,10 +159,10 @@ def main() -> int:
         entry = cache_runtime(manifest_bytes, launcher, content)
         # No wrapper subprocess: the host still owns the foreground CLI process.
         try:
-            runpy.run_path(str(entry), run_name="__main__")
+            runtime_main = runpy.run_path(str(entry))["main"]
+            return runtime_main(launcher_path=Path(__file__))
         except SystemExit as exit_status:
             return exit_status.code if isinstance(exit_status.code, int) else 1
-        return 0
     except (OSError, ValueError, KeyError, zipfile.BadZipFile) as error:
         print(f"InferRSI plugin bundle is incomplete: {error}. "
               "See the package-integrity and runtime-cache repair steps in the bundled README.",

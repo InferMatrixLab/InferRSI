@@ -1,0 +1,335 @@
+[
+  {
+    "case_id": "round1:qwen_b300_applicable",
+    "queries": [
+      {
+        "query": "BF16 QK normalization complex RoPE fusion numerical order",
+        "axis": "terminology",
+        "expect": "record",
+        "expect_reason": "The proposed fusion makes the numerical effects of operation ordering and precision relevant to validation.",
+        "must_surface": "The record explains how changes to operation order or BF16 rounding in the fusion can produce numerical differences and under which conditions.",
+        "confidence": "medium"
+      },
+      {
+        "query": "Has Qwen Image QK normalization and complex RoPE fusion been tried on four B300s, and what happened to speed and full-image quality?",
+        "axis": "question",
+        "expect": "case",
+        "expect_reason": "A prior attempt on the same accelerator cohort could inform the experiment without substituting for a new measurement.",
+        "must_surface": "The result describes the implementations tried, their operator, full-image quality, and latency outcomes, and their hardware, precision, and step-count conditions.",
+        "confidence": "high"
+      },
+      {
+        "query": "QK norm RoPE B300",
+        "axis": "terse",
+        "expect": "case",
+        "expect_reason": "Past attempts at this fusion on B300s could reveal useful implementation and validation pitfalls.",
+        "must_surface": "A comparable B300 experiment reports the implementation, workload conditions, and observed quality and latency for the fusion.",
+        "confidence": "medium"
+      },
+      {
+        "query": "图像生成里把 QK 归一化和旋转位置编码融合后，如何验证算子、整图质量和端到端时延？",
+        "axis": "chinese",
+        "expect": "skill",
+        "expect_reason": "The untested candidate needs a practical sequence for checking correctness and end-to-end performance.",
+        "must_surface": "Compare the fused and baseline implementations at operator and full-image levels before evaluating end-to-end latency.",
+        "confidence": "high"
+      }
+    ]
+  },
+  {
+    "case_id": "round1:qwen_ascend_mismatch",
+    "queries": [
+      {
+        "query": "Has RoPE cosine and sine caching been tried for Qwen Image on one Ascend 910B1 with BF16 eager execution, and what happened?",
+        "axis": "question",
+        "expect": "case",
+        "expect_reason": "A prior cache experiment with matching hardware and execution conditions could help plan the unmeasured candidate.",
+        "must_surface": "A comparable caching trial reports its implementation, latency and image-quality outcomes, and accelerator and workload conditions.",
+        "confidence": "high"
+      },
+      {
+        "query": "Qwen Image single 910B1 BF16 eager eight-step RoPE cosine sine cache",
+        "axis": "terminology",
+        "expect": "case",
+        "expect_reason": "The component and cohort identify a potentially relevant prior attempt at the same optimization.",
+        "must_surface": "A comparable trial identifies whether cosine and sine caching was used and reports its speed and correctness outcomes.",
+        "confidence": "high"
+      },
+      {
+        "query": "910B1 RoPE cache benchmark",
+        "axis": "terse",
+        "expect": "case",
+        "expect_reason": "A measured caching attempt on this accelerator could provide a useful starting point for a controlled local test.",
+        "must_surface": "A comparable 910B1 trial reports the RoPE cache’s measured effect and correctness together with its configuration.",
+        "confidence": "medium"
+      },
+      {
+        "query": "四卡 B300 上的融合经验能直接推断单卡 910B1 缓存三角值的效果吗？",
+        "axis": "chinese",
+        "expect": "none",
+        "expect_reason": "The stated hardware and optimization both differ, so the B300 experience cannot establish the outcome of this candidate.",
+        "must_surface": "The earlier fusion result cannot establish the cache result on a different accelerator, so profile and compare the current candidate against its own baseline.",
+        "confidence": "high"
+      }
+    ]
+  },
+  {
+    "case_id": "round1:qwen_gate_sufficient",
+    "queries": [
+      {
+        "query": "operator test passes but image output fails the confirmed quality gate",
+        "axis": "symptom",
+        "expect": "none",
+        "expect_reason": "The verified full-image failure already decides whether this candidate meets the stated acceptance gate.",
+        "must_surface": "The candidate does not meet this round’s quality requirement and must be withdrawn or fixed and retested on full images.",
+        "confidence": "high"
+      },
+      {
+        "query": "Can a candidate that failed the confirmed full-image quality gate be accepted because its operator test passed?",
+        "axis": "question",
+        "expect": "none",
+        "expect_reason": "A passing operator test does not change the given failure of the required full-image check.",
+        "must_surface": "The candidate cannot be accepted as passing and any repair needs a new full-image quality check.",
+        "confidence": "high"
+      },
+      {
+        "query": "image quality gate failure",
+        "axis": "terse",
+        "expect": "none",
+        "expect_reason": "The current acceptance decision follows directly from the confirmed quality-gate result.",
+        "must_surface": "The confirmed image-quality failure rules out accepting the current candidate until a fix passes the full check.",
+        "confidence": "high"
+      },
+      {
+        "query": "算子测过了但整图验收没过，这个版本还能入选吗，接下来怎么办？",
+        "axis": "chinese",
+        "expect": "none",
+        "expect_reason": "The problem already states that the required quality failure is valid and the decision concerns this round.",
+        "must_surface": "本轮不能把当前候选作为验收通过的版本，应撤回它或修复后重新验证整图质量。",
+        "confidence": "high"
+      }
+    ]
+  },
+  {
+    "case_id": "round1:drama3_occupancy_holdout",
+    "queries": [
+      {
+        "query": "continuously fed service has low full-run average decode batch below C64",
+        "axis": "symptom",
+        "expect": "case",
+        "expect_reason": "A comparable service run with phase-specific observations could help interpret an aggregate that includes drain.",
+        "must_surface": "A comparable run reports active decode batches during admission and drain, the phase boundaries, and the corresponding end-to-end outcome.",
+        "confidence": "medium"
+      },
+      {
+        "query": "Does a low full-run average decode batch prove that the active batch stayed far below 64 while requests were still being admitted?",
+        "axis": "question",
+        "expect": "none",
+        "expect_reason": "The given average includes a drain phase, so it cannot establish the occupancy throughout admission by itself.",
+        "must_surface": "The aggregate alone does not prove sustained underfill, so inspect the current run by admission and drain while retaining whole-run evaluation.",
+        "confidence": "high"
+      },
+      {
+        "query": "decode batch drain occupancy",
+        "axis": "terse",
+        "expect": "case",
+        "expect_reason": "A prior analysis of the same phases could illustrate how the workload affects the reported mean.",
+        "must_surface": "A comparable workload reports phase-specific occupancy, whole-run metrics, and enough workload detail to judge applicability.",
+        "confidence": "medium"
+      },
+      {
+        "query": "怎么分开统计持续接收请求和尾部排空时的活跃批量，同时检查整个请求集的吞吐？",
+        "axis": "chinese",
+        "expect": "skill",
+        "expect_reason": "The current trace needs a phase-aware measurement procedure without dropping requests from end-to-end evaluation.",
+        "must_surface": "Define and measure admission and drain separately while reporting the full-run results for every request.",
+        "confidence": "high"
+      }
+    ]
+  },
+  {
+    "case_id": "round2:N1",
+    "queries": [
+      {
+        "query": "fused kernel passed unit checks but the finished image failed the verified acceptance test",
+        "axis": "symptom",
+        "expect": "none",
+        "expect_reason": "The confirmed end-to-end quality result already determines the acceptance decision.",
+        "must_surface": "The candidate cannot pass this round’s acceptance and needs to be withdrawn or repaired and retested on the complete image.",
+        "confidence": "high"
+      },
+      {
+        "query": "Should I keep an operator-tested fusion as accepted when its confirmed full-image quality check failed?",
+        "axis": "question",
+        "expect": "none",
+        "expect_reason": "Operator-level success cannot override the stated mandatory image-quality failure.",
+        "must_surface": "Do not retain the candidate as accepted, and rerun the full-image quality gate after any fix.",
+        "confidence": "high"
+      },
+      {
+        "query": "fusion quality acceptance failure",
+        "axis": "terse",
+        "expect": "none",
+        "expect_reason": "The verified failed gate supplies all facts needed for this acceptance decision.",
+        "must_surface": "The existing candidate has failed acceptance and must be withdrawn or corrected before full-image revalidation.",
+        "confidence": "high"
+      },
+      {
+        "query": "融合版本的单算子测试合格，最终图片却没达到验收标准，该如何处理？",
+        "axis": "chinese",
+        "expect": "none",
+        "expect_reason": "The scenario already establishes that the final-image failure is valid for the current round.",
+        "must_surface": "当前版本不能算验收合格，应撤回，或者修复并重新完成整图质量验证。",
+        "confidence": "high"
+      }
+    ]
+  },
+  {
+    "case_id": "round2:N2",
+    "queries": [
+      {
+        "query": "candidate ran at 360 ms with diagnostics running versus an old 277 ms result on a quiet host",
+        "axis": "symptom",
+        "expect": "none",
+        "expect_reason": "The two timings are unpaired and were taken under different host conditions, so they cannot establish the cause.",
+        "must_surface": "The existing timings do not prove a code regression, and baseline and candidate should be remeasured in repeated matched runs.",
+        "confidence": "high"
+      },
+      {
+        "query": "Do unpaired latency measurements under different host loads establish that a code change caused a regression?",
+        "axis": "question",
+        "expect": "none",
+        "expect_reason": "The stated comparison lacks a controlled baseline and has a host-load confounder.",
+        "must_surface": "A causal regression claim is unsupported until unchanged and modified code are compared under the same controlled conditions.",
+        "confidence": "high"
+      },
+      {
+        "query": "unpaired latency host contention",
+        "axis": "terse",
+        "expect": "none",
+        "expect_reason": "The known difference in measurement conditions is enough to reject an immediate attribution to the code.",
+        "must_surface": "Treat the observed latency difference as inconclusive and collect matched repeated baseline and candidate measurements.",
+        "confidence": "high"
+      },
+      {
+        "query": "主机忙闲不一致时，旧基线与新改动的耗时差能归因于代码吗？",
+        "axis": "chinese",
+        "expect": "none",
+        "expect_reason": "The old result and the busy-host candidate are not a controlled comparison of the code change.",
+        "must_surface": "现有耗时差不能证明代码导致回退，应在一致且受控的环境中重复对比未修改基线与候选。",
+        "confidence": "high"
+      }
+    ]
+  },
+  {
+    "case_id": "round2:S1",
+    "queries": [
+      {
+        "query": "fixed-request check passes but baseline and async candidate both fail speech-recognition quality in full service",
+        "axis": "symptom",
+        "expect": "case",
+        "expect_reason": "A comparable service experiment could suggest a focused diagnostic while showing which conditions limit its applicability.",
+        "must_surface": "A comparable full-service experiment reports its symptoms, shared conditions, diagnostic controls, and observed cause or remaining uncertainty.",
+        "confidence": "medium"
+      },
+      {
+        "query": "If full-service speech recognition fails for both baseline and candidate, does that prove async overlap caused the failure?",
+        "axis": "question",
+        "expect": "none",
+        "expect_reason": "A failure present on both sides does not establish that the candidate caused the shared failure.",
+        "must_surface": "The shared failure alone does not identify the cause, so check shared conditions and use a controlled comparison before attributing a candidate effect.",
+        "confidence": "high"
+      },
+      {
+        "query": "ASR baseline candidate failure",
+        "axis": "terse",
+        "expect": "skill",
+        "expect_reason": "The engineer needs a small controlled diagnostic that separates common failures from an effect of the change.",
+        "must_surface": "Hold inputs and environment constant, inspect the baseline quality failure, and compare the candidate under the same conditions.",
+        "confidence": "medium"
+      },
+      {
+        "query": "异步服务的基线和候选语音识别都不达标，怎样用最少对照排查共同问题？",
+        "axis": "chinese",
+        "expect": "skill",
+        "expect_reason": "Both full-service results fail, so a procedure for isolating shared inputs, environment, and metric computation can guide the next experiment.",
+        "must_surface": "Reproduce the failure with shared inputs and environment, inspect the baseline recognition output and reference, and compare the candidate under the same conditions.",
+        "confidence": "medium"
+      }
+    ]
+  },
+  {
+    "case_id": "round2:N3",
+    "queries": [
+      {
+        "query": "quality checks passed but candidate service is 4307 frames/s versus 4371 baseline with longer drain",
+        "axis": "symptom",
+        "expect": "none",
+        "expect_reason": "The reported candidate throughput is lower in the only comparison, so the result does not demonstrate an improvement.",
+        "must_surface": "Do not claim a throughput improvement, and repeat the full-service comparison while recording output frame counts and the drain phase.",
+        "confidence": "high"
+      },
+      {
+        "query": "Can I claim a full-service throughput improvement when the candidate measured 4307 frames/s and the baseline 4371 frames/s in one run?",
+        "axis": "question",
+        "expect": "none",
+        "expect_reason": "The sole measured candidate throughput is lower than the baseline even though the quality checks passed.",
+        "must_surface": "The comparison does not establish a throughput gain, and controlled repeated whole-service measurements are needed.",
+        "confidence": "high"
+      },
+      {
+        "query": "throughput comparison drain mismatch",
+        "axis": "terse",
+        "expect": "none",
+        "expect_reason": "The given single comparison and its different frame counts and drain durations already rule out declaring an improvement.",
+        "must_surface": "Report the candidate as not shown to improve throughput and remeasure with comparable workloads while accounting for all output and drain time.",
+        "confidence": "high"
+      },
+      {
+        "query": "两边语音质量检查都过了但候选帧吞吐更低，能宣布优化成功吗？",
+        "axis": "chinese",
+        "expect": "none",
+        "expect_reason": "Passing quality checks does not turn the reported lower candidate throughput into evidence of a gain.",
+        "must_surface": "不能宣称吞吐提升，应重复完整服务对照并记录生成帧数和排空时间。",
+        "confidence": "high"
+      }
+    ]
+  },
+  {
+    "case_id": "round2:S2",
+    "queries": [
+      {
+        "query": "Qwen Image 910B1 BF16 eager 1280x704 interleaved RoPE VAE fastpath fused attention",
+        "axis": "terminology",
+        "expect": "case",
+        "expect_reason": "Prior trials of these specific directions under matching conditions could inform which candidates to test first.",
+        "must_surface": "Relevant trials report the hardware, configuration, speed, and image-quality outcomes for each direction alone and for any combination tested.",
+        "confidence": "high"
+      },
+      {
+        "query": "How should I isolate and then combine interleaved RoPE, VAE fastpath and fused attention when this build has not run the combination?",
+        "axis": "question",
+        "expect": "skill",
+        "expect_reason": "The unmeasured combination requires a procedure that can distinguish individual effects from interactions and check quality.",
+        "must_surface": "Run a matched baseline, test the candidates individually, and then test the combination for full-image quality and end-to-end latency.",
+        "confidence": "high"
+      },
+      {
+        "query": "910B1 RoPE VAE attention",
+        "axis": "terse",
+        "expect": "case",
+        "expect_reason": "Comparable experiments on the target accelerator may reveal useful results or compatibility limits for these directions.",
+        "must_surface": "Comparable trials report which directions were tested, whether alone or together, and their measured outcomes and conditions.",
+        "confidence": "medium"
+      },
+      {
+        "query": "昇腾单卡上这些 RoPE、VAE 和注意力改动有没有在相同配置组合试过，速度和整图质量怎样？",
+        "axis": "chinese",
+        "expect": "case",
+        "expect_reason": "The requested combination has no current-version measurement, so comparable prior attempts could provide bounded evidence.",
+        "must_surface": "A comparable combination reports its measured latency, full-image quality, and configuration separately from results for individual changes.",
+        "confidence": "high"
+      }
+    ]
+  }
+]

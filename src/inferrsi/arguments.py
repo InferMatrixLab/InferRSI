@@ -414,6 +414,26 @@ def parser() -> argparse.ArgumentParser:
         "--target-memory-gib", type=float, help="Caller-declared unified/device GiB"
     )
 
+    find = commands.add_parser(
+        "find",
+        help="Rank packaged skills, imported records and checkout cases for one "
+        "question; returns corpus paths, not pinned revisions",
+    )
+    find.add_argument("query", help="Describe the problem in your own words")
+    find.add_argument("--limit", type=int, default=5)
+    find.add_argument(
+        "--kinds", default="case,skill,record",
+        help="Comma-separated subset of case,skill,record; default is all three",
+    )
+    find.add_argument(
+        "--skill-root", type=Path,
+        help="Skills root to rank; defaults to the installed library",
+    )
+    find.add_argument(
+        "--explain", action="store_true", help="Report each query term's contribution"
+    )
+    find.add_argument("--json", action="store_true")
+
     collect = commands.add_parser(
         "collect",
         help="Collect explicitly selected sources as a revision-pinned envelope; "
@@ -448,7 +468,7 @@ def parser() -> argparse.ArgumentParser:
     collect.add_argument(
         "--skill-root",
         type=Path,
-        help="Select an explicit skills root (requires the 'skills' extra)",
+        help="Select a skills root; reading checkout skills requires the 'skills' extra",
     )
     collect.add_argument(
         "--store",
@@ -465,9 +485,13 @@ def parser() -> argparse.ArgumentParser:
     read.add_argument("--revision", help="Exact revision returned by collect or read")
     read.add_argument("--material", action="store_true")
     read.add_argument(
+        "--omit-resources", action="store_true",
+        help="Omit the resource inventory from output; the revision still covers the full bundle",
+    )
+    read.add_argument(
         "--skill-root",
         type=Path,
-        help="Select an explicit skills root (requires the 'skills' extra)",
+        help="Select a skills root; reading checkout skills requires the 'skills' extra",
     )
     read.add_argument(
         "--store",
@@ -487,7 +511,7 @@ def parser() -> argparse.ArgumentParser:
     resource.add_argument(
         "--skill-root",
         type=Path,
-        help="Select an explicit skills root (requires the 'skills' extra)",
+        help="Select a skills root; reading checkout skills requires the 'skills' extra",
     )
     resource.add_argument(
         "--store",

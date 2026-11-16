@@ -86,6 +86,23 @@ def test_read_returns_bundle_view_and_rejects_wrong_revision():
     assert "unavailable" in stderr
 
 
+def test_read_can_omit_inventory_without_changing_material_or_revision():
+    args = ("read", "package:vllm_omni.common.diffusion.step_state_and_output_validation",
+            "--material")
+    code, stdout, stderr = run_cli(*args)
+    assert code == 0, stderr
+    full = json.loads(stdout)
+    assert "record.json" in full["resources"]
+    assert full["required_resources"]
+
+    code, stdout, stderr = run_cli(*args, "--omit-resources", "--revision", full["revision"])
+    assert code == 0, stderr
+    assert json.loads(stdout) == {
+        key: value for key, value in full.items()
+        if key not in ("resources", "required_resources")
+    }
+
+
 def test_resource_writes_exact_bytes_of_requested_revision():
     bundle = KnowledgeReader(skill_root=SKILLS).read(SOURCE)
     entrypoint = bundle.metadata["entrypoint"]
