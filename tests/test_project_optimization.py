@@ -280,14 +280,25 @@ def test_bad_candidate_exception_is_classified_by_frozen_wrapper(project, capsys
         "    result = {'status':'candidate_failure', 'reason':'compute raised RuntimeError'}\n"
         "Path(sys.argv[2]).write_text(json.dumps(result))\n", encoding="utf-8")
     start(project, capsys)
+    code, before = submit(project, capsys, 20)
+    assert code == 0 and before["best"]["kind"] == "candidate"
     (project[0] / "engine.py").write_text(
         "def compute(x):\n    raise RuntimeError('bad candidate')\n", encoding="utf-8")
     code, view = submit(project, capsys, 20)
-    assert code == 0 and view["state"] == "active" and view["completed_rounds"] == 1
+    assert code == 0 and view["state"] == "active" and view["completed_rounds"] == 2
+    assert view["best"] == before["best"]
     assert view["latest_observation"]["assessment"]["verdict"] == "FAIL"
     assert len(view["latest_observation"]["execution"]["steps"]) == 2  # No wasted measurement.
-    (project[0] / "engine.py").write_text("def compute(x):\n    return x*2\n", encoding="utf-8")
-    assert submit(project, capsys, 20)[1]["best"]["kind"] == "candidate"
+    failed_record = project[3] / view["latest_observation"]["path"] / "observation.json"
+    failed_bytes = failed_record.read_bytes()
+    assert main(["campaign", "final", "--directory", str(project[3]),
+                 "--reason", "Keep the measured best after a rejected experiment"]) == 0
+    capsys.readouterr()
+    _, state, summary = read_records(project[3])
+    assert state["final"]["candidate_sha256"] == before["best"]["sha256"]
+    assert summary["final_assessment"]["verdict"] == "PASS"
+    assert failed_record.read_bytes() == failed_bytes
+    assert "raise RuntimeError" in (project[0] / "engine.py").read_text()
 
 
 def test_unclassified_process_crash_does_not_claim_candidate_failure(project, capsys):
