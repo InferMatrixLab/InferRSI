@@ -137,8 +137,9 @@ def test_ties_break_towards_stronger_evidence():
 def test_findings_are_ordered_by_query_overlap_and_truncated(corpus):
     result = find("cache per-step masks ran out of device memory", corpus, limit=5)
     item = next(i for i in result["items"] if i["id"] == "case.qwen-ascend-rejected-directions")
-    assert item["findings"][0]["direction"] == "Cache per-step masks and prompt tensors"
-    assert item["findings"][0]["outcome"] == "rejected"
+    top = item["findings"][0]
+    assert "per-step masks" in top["direction"] and "prompt tensors" in top["direction"]
+    assert top["outcome"] == "rejected"
     assert len(item["findings"]) == 3
     assert item["findings_total"] == 6
     assert item["findings_withheld"] == 3
@@ -218,11 +219,11 @@ def test_finding_order_is_not_decided_by_corpus_common_terms(corpus):
         corpus, limit=5,
     )
     item = next(i for i in result["items"] if i["id"] == "case.qwen-ascend-rejected-directions")
-    shown = [f["direction"] for f in item["findings"]]
+    shown = item["findings"]
     # Both memory failures the question distinguishes between must be present.
-    assert any("RoPE + VAE fastpath" in d for d in shown), shown
-    assert any("later busy host" in d for d in shown), shown
-    assert not any("TASK_QUEUE_ENABLE" in d for d in shown), shown
+    assert any("initialization" in f["direction"] and f["outcome"] == "rejected" for f in shown)
+    assert any("reservation" in f["direction"] and f["outcome"] == "inconclusive" for f in shown)
+    assert all("TASK_QUEUE_ENABLE" not in f["reason"] for f in shown)
 
 
 def _plant_case(root: Path, owner: str, *, registered: bool = True) -> None:
@@ -395,9 +396,9 @@ def test_finding_order_holds_when_the_library_has_one_entry(tmp_path):
         "did the Qwen Ascend memory failure happen at startup or on later requests",
         corpus, limit=1,
     )
-    shown = [f["direction"] for f in result["items"][0]["findings"]]
-    assert any("RoPE + VAE fastpath" in d for d in shown), shown
-    assert any("later busy host" in d for d in shown), shown
+    shown = result["items"][0]["findings"]
+    assert any("initialization" in f["direction"] and f["outcome"] == "rejected" for f in shown)
+    assert any("reservation" in f["direction"] and f["outcome"] == "inconclusive" for f in shown)
 
 
 def test_english_synonyms_bridge_a_spelling_the_corpus_does_not_use(corpus):

@@ -49,64 +49,6 @@
     "Pinned Qwen3.5/Qwen3-Next GDN caller/backend qualification",
     "Separate causal-conv phase/layout/state contracts and conditional one-shot classification-prefill transfer"
   ],
-  "findings": [
-    {
-      "direction": "Use one backend label for both convolution and recurrence",
-      "outcome": "failure_signal",
-      "scope": "regime_bound",
-      "reason": "A prefill flag does not replace both operators; equating an explicit flag, package availability or a registered symbol with executed dispatch misreads the source, and sm89 compatibility cannot be claimed from an SM9/10 automatic default",
-      "revisit_when": "Read the backend aliases/policy and the ordinary decode path separately before naming a dispatch",
-      "keywords": [
-        "backend label",
-        "prefill flag",
-        "executed dispatch",
-        "sm89",
-        "automatic default"
-      ]
-    },
-    {
-      "direction": "Infer strides from shape for the Triton prefill path",
-      "outcome": "failure_signal",
-      "scope": "regime_bound",
-      "reason": "CUDA input can select stride-aware Triton prefill; assuming unconditional input aliasing or no mutation, letting packed requests read each other's history, or assuming the conv mask clears the recurrent matrix are all source misreadings",
-      "revisit_when": "Check the prefill caller, SRT wrapper and Triton wrapper for the actual stride and mutation contract",
-      "keywords": [
-        "stride-aware",
-        "Triton prefill",
-        "input aliasing",
-        "packed request history",
-        "conv mask"
-      ]
-    },
-    {
-      "direction": "Reuse batch index as persistent identity across reordered rows",
-      "outcome": "failure_signal",
-      "scope": "regime_bound",
-      "reason": "Equating temporal state with attention KV, losing gather/scatter write-back, or treating a successful output computation as proof that continuation, reset or recycling is correct all break the state contract",
-      "revisit_when": "Trace mapping/ownership and the state gather and write-back paths; both state writes must be kept",
-      "keywords": [
-        "batch index",
-        "persistent identity",
-        "strided pool",
-        "gather scatter",
-        "write-back"
-      ]
-    },
-    {
-      "direction": "Treat fresh classification prefill as decode or multi-item scoring",
-      "outcome": "failure_signal",
-      "scope": "regime_bound",
-      "reason": "Presenting source reasoning or packaged reads as a binding, native test, quality pass or service gain confuses the evidence level; a generic classifier is not MIS, and unused returned cache does not make internal state writes dispensable",
-      "revisit_when": "Read the MIS constraints before classifying a prefill path; keep source reasoning distinct from a native result",
-      "keywords": [
-        "classification prefill",
-        "multi-item scoring",
-        "MIS",
-        "returned cache",
-        "internal state write"
-      ]
-    }
-  ],
   "limitations": [
     "Native kernels, models and devices not_run",
     "Agent efficacy not_evaluated",
@@ -116,5 +58,67 @@
   "attribution": "SGLang and Qwen contributors; Apache-2.0 root license. Conv files retain vLLM adaptation and Tri Dao notices. Caller contracts only; no external kernel implementation imported.",
   "required_resources": [
     "sglang-gdn-source-contract.json"
+  ],
+  "findings": [
+    {
+      "direction": "Resolve prefill recurrence and decode convolution separately",
+      "outcome": "failure_signal",
+      "reason": "On the pinned path, the CUDA GDN prefill convolution alias can be rebound while ordinary decode keeps the Triton conv-update alias. A FlashInfer prefill setting or a CUDA update symbol does not show that decode was dispatched there.",
+      "revisit_when": "Trace runner-level overrides and effective aliases through the owning backend. Check the SM9/FP32 and SM10/BF16/CUDA13 prefill predicates before asking for an execution trace.",
+      "keywords": [
+        "SGLang",
+        "GDN",
+        "FlashInfer prefill",
+        "Triton conv update",
+        "decode convolution",
+        "effective dispatch"
+      ],
+      "scope": "regime_bound"
+    },
+    {
+      "direction": "Use the actual last-axis stride and sequence lengths to classify convolution prefill",
+      "outcome": "failure_signal",
+      "reason": "Even a CUDA input can take Triton when last_stride != 1 and seq_lens_cpu is supplied. That path returns a distinct output while updating state; the CUDA branch returns the modified input buffer it uses.",
+      "revisit_when": "Inspect strides, packed token offsets and row IDs. Verify the prefix-history mask for convolution independently of recurrent state initialization.",
+      "keywords": [
+        "causal_conv1d",
+        "CUDA prefill",
+        "Triton stride",
+        "seq_lens_cpu",
+        "aliasing",
+        "initial-history mask"
+      ],
+      "scope": "regime_bound"
+    },
+    {
+      "direction": "Preserve both state write-backs through a reorder and noncontiguous gather",
+      "outcome": "failure_signal",
+      "reason": "Ordinary non-CPU extend maps requests to persistent Mamba rows. With noncontiguous pools it gathers indexed copies and scatters both convolution history and the GDN matrix back. A correct immediate output does not exercise their later use.",
+      "revisit_when": "Check fresh and continued requests after a reorder and compare both state tensors at their mapped rows. Account for separate dtypes and head sharding.",
+      "keywords": [
+        "Mamba rows",
+        "strided state pool",
+        "gather scatter",
+        "conv history",
+        "temporal state",
+        "request reorder"
+      ],
+      "scope": "regime_bound"
+    },
+    {
+      "direction": "Prove HF classifier parity before transferring an SGLang prefill path",
+      "outcome": "failure_signal",
+      "reason": "A fresh whole-sequence classifier can use prefill reasoning only after identifying its worker and state contract. MIS additionally assumes delimiter-driven query/item branches, zero cached prefixes, Triton and a compatible layout.",
+      "revisit_when": "Pin the HF caller and check layout, gates, zero state, mutation behavior, output/state parity and classifier quality before timed comparison.",
+      "keywords": [
+        "HF classifier",
+        "MIS",
+        "multi-item scoring",
+        "one-shot prefill",
+        "zero state",
+        "caller binding"
+      ],
+      "scope": "regime_bound"
+    }
   ]
 }
