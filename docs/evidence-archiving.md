@@ -147,9 +147,41 @@ behavioral tests to small synthetic inputs when they do not need a full source
 scan. Verify links and affected consumers after removal. This removes the file
 from the current tree, not existing Git history.
 
-Frozen merged campaign evidence is not retroactively migrated by this workflow.
+This workflow does not automatically migrate frozen merged campaign evidence.
+An explicitly requested, scoped cleanup may replace the current presentation
+only after every original file is preserved in a verified versioned archive;
+original frozen bytes, historical conclusions and Git history remain unchanged.
 For new/unmerged work, externalize before the required squash merge so large
 blobs do not enter main. The two pilot archive/replay checks and their
 independent reviews remain campaign-specific acceptance records. Completing
 this tool or removing redundant data neither establishes experiment PASS nor
 closes the parent RFC.
+
+### Scoped legacy record projections
+
+The [H3 four-device bundle](../evidence/h3-ref2va-910c-4logical-20261101-297/README.md)
+and [Qwen3.8 bundle](../evidence/qwen38-h20-fp8-single-request-vllm032/README.md)
+use v2 for their explicitly requested cleanup. Their full originals, including
+superseded cumulative checkpoints and repeated diagnostic code, remain in the
+archives. This is not blanket authorization to migrate other frozen campaigns.
+
+`tools/rebuild_model_evidence.py` regenerates compact views from authenticated
+originals. `archive.key_files.snapshot` identifies the original per-file hash map;
+`archive.key_files.projection` identifies the declarative source/metric selection.
+Both and the replay code are pinned by `verification.inputs`. The replayer uses
+the common bounded reader to capture authenticated bytes, checks original frozen
+manifests, and requires its local implementation to match the pinned code. It
+never executes code from an archive and never overwrites an existing output.
+
+Index coverage is deliberately labelled: every published result JSON document
+and named/nested attempt observation, including failures and cancellations.
+Identical observations of the same named attempt share one row and retain all
+source pointers; changed observations, retries and anonymous records remain
+distinct. `configuration.record_sha256` hashes canonical JSON for the source
+observation. Entry counts are not independent trial counts. Narrative-only
+history and unpublished controller records cannot become fully structured
+trial evidence through a storage migration; those limits remain explicit.
+
+Declared sample distributions are recomputed; other frozen reported statistics
+and verdicts are labelled as recorded values. Replaying the projection does not
+rerun inaccessible quality checks, change gates or complete campaign acceptance.

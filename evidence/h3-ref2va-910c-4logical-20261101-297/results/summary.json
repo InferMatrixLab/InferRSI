@@ -1,0 +1,186 @@
+{
+  "schema_version": 2,
+  "source_revision": "6c7e237935a22cc5e90e954d4f397376e753e7d8",
+  "artifact_id": "h3-ref2va-910c-4logical-20261101-297-6c7e237-v1",
+  "campaign_verdict": "INCONCLUSIVE",
+  "coverage": {
+    "original_files": 96,
+    "original_bytes": 1259483,
+    "indexed_result_documents": [
+      "results/automatic-quality-checkpoint.json",
+      "results/c1-15s-execution.json",
+      "results/c1-15s-strict-comparison.json",
+      "results/c1-5s-strict-comparison.json",
+      "results/c1-clean-5s-screening.json",
+      "results/c1-queryfold-operator.json",
+      "results/c1-upstream-main-native.json",
+      "results/c10-5s-00-audit.json",
+      "results/c10-5s-01-audit.json",
+      "results/c10-native-tests.json",
+      "results/c11-fp32-15s-00-audit.json",
+      "results/c11-fp32-15s-first-step.json",
+      "results/c11-fp32-5s-00-audit.json",
+      "results/c11-fp32-5s-first-step.json",
+      "results/c11-fp32-native-execution.json",
+      "results/c11-full-compute-first-step.json",
+      "results/c11-native-execution.json",
+      "results/c11-original-5s-00-audit.json",
+      "results/c12-through-c15-execution-checkpoint.json",
+      "results/c12-through-c17-execution-checkpoint.json",
+      "results/c12-through-c19-execution-checkpoint.json",
+      "results/c12-through-c20-execution-checkpoint.json",
+      "results/c12-through-c21-execution-checkpoint.json",
+      "results/c12-through-c22-execution-checkpoint.json",
+      "results/c12-through-c23-execution-checkpoint.json",
+      "results/c13-5s-strict-comparison.json",
+      "results/c15-native-qualification.json",
+      "results/c16-5s-00-execution-proof.json",
+      "results/c16-native-qualification.json",
+      "results/c17-5s-00-execution-proof.json",
+      "results/c17-native-qualification.json",
+      "results/c18-native-qualification.json",
+      "results/c19-native-qualification.json",
+      "results/c20-native-qualification.json",
+      "results/c21-5s-00-execution-proof.json",
+      "results/c21-c22-direction-identity-correction.json",
+      "results/c21-native-qualification.json",
+      "results/c22-5s-00-execution-proof.json",
+      "results/c22-native-qualification.json",
+      "results/c23-5s-00-execution-proof.json",
+      "results/c23-native-qualification.json",
+      "results/c23-retired-proof.json",
+      "results/c4-pfa-operator.json",
+      "results/installed-foca-source-check.json",
+      "results/mindie-quant-api-source-check.json",
+      "results/native-cli-doctor.json"
+    ],
+    "index_entries": 95,
+    "named_attempt_identities": 54,
+    "record_occurrences": 248,
+    "status_counts": {
+      "completed": 36,
+      "failed": 16,
+      "recorded": 43
+    },
+    "unit": "published record/attempt observation; not a count of independent trials"
+  },
+  "recomputed_metrics": {
+    "c1-clean-5s-baseline": {
+      "source": {
+        "name": "c1-clean-5s-baseline",
+        "path": "results/c1-clean-5s-screening.json",
+        "pointer": "/arms/baseline/samples_ms",
+        "unit": "ms",
+        "scope": "One fresh-server screening pair, 2 warmups and 3 timed requests per arm; not final"
+      },
+      "distribution": {
+        "count": 3,
+        "min": 291051.2047139928,
+        "max": 291434.0972539503,
+        "median": 291247.76331102476,
+        "mean": 291244.3550929893,
+        "stdev": 191.46902164950015
+      }
+    },
+    "c1-clean-5s-candidate": {
+      "source": {
+        "name": "c1-clean-5s-candidate",
+        "path": "results/c1-clean-5s-screening.json",
+        "pointer": "/arms/candidate/samples_ms",
+        "unit": "ms",
+        "scope": "One fresh-server screening pair, 2 warmups and 3 timed requests per arm; not final"
+      },
+      "distribution": {
+        "count": 3,
+        "min": 286197.25764304167,
+        "max": 286812.4624299817,
+        "median": 286666.7601839872,
+        "mean": 286558.82675233687,
+        "stdev": 321.49098232974296
+      }
+    }
+  },
+  "recorded_results": [
+    {
+      "source": {
+        "path": "plan/execution-checkpoint.json",
+        "pointer": "/acceptance"
+      },
+      "value": {
+        "complete_http_reduction_pct": 50,
+        "per_duration_and_quality_track": true,
+        "clean_paired_runs_completed": 1,
+        "final_confirmation_pairs_completed": 0,
+        "human_output_checks_in_rsi": false
+      }
+    },
+    {
+      "source": {
+        "path": "results/c1-clean-5s-screening.json",
+        "pointer": "/native_verdict"
+      },
+      "value": "FAIL"
+    },
+    {
+      "source": {
+        "path": "results/c1-clean-5s-screening.json",
+        "pointer": "/gain_attribution_limit"
+      },
+      "value": "Original B0 versus migration+C1; no clean migration-only timing arm in this pair"
+    },
+    {
+      "source": {
+        "path": "results/c23-5s-00-execution-proof.json",
+        "pointer": "/quality_verdict"
+      },
+      "value": "FAIL"
+    },
+    {
+      "source": {
+        "path": "results/c23-5s-00-execution-proof.json",
+        "pointer": "/failures"
+      },
+      "value": [
+        "5s-00:dino: similarity",
+        "5s-00:clip: similarity",
+        "5s-00:clap: similarity",
+        "5s-00: clap segment",
+        "5s-00:reference_dino_cosine: adherence",
+        "5s-00:audio_caption_clap_cosine: adherence",
+        "5s-00: audio level",
+        "5s-00: audio temporal envelope"
+      ]
+    },
+    {
+      "source": {
+        "path": "results/c12-through-c23-execution-checkpoint.json",
+        "pointer": "/decisions"
+      },
+      "value": [
+        "C12 fixed profile stopped: zero actual predictions.",
+        "C14 pinned block-FP8 and block-INT8 prerequisites failed; per-token INT8 is not excluded.",
+        "C13 numerical qualification and clean performance are separate.",
+        "C15 fixed FP16 video residual profile failed finite velocity at first reuse.",
+        "C16 FP32 residual completed but failed three frozen audio quality guards; fixed profile stopped.",
+        "C17 completed5s but failed11frozen quality checks; fixed window profile stopped.",
+        "C18 native17PASS but operation reduced only7.25%; no full model run.",
+        "C19 native17PASS; operation52.85%faster but relL2 .258805 exceeded fixed .258052screen; no model run.",
+        "C20 native17PASS; operation48.42%faster and relL2 .263361 failed both fixed primitive gates; no model run.",
+        "C21 native36PASS; full5s completed but failed7frozen quality checks; fixed zero-order profile stopped.",
+        "C22 native45PASS; full5s completed but failed9frozen quality checks; fixed secant profile stopped.",
+        "C23 V1 native44PASS; weighted attention cycle reduced38.255%, below unchanged50%operator gate; no model run for V1.",
+        "C23 component diagnosis found a bit-equal native Torch merge faster than manual Triton on real tensors; V2 native44PASS and weighted operator66.459%reduction passed, full-model quality and HTTP remain separate.",
+        "C23 full5s completed with134input checks and expected counters but failed8frozen quality checks; fixed profile stopped, no15s or clean timing expansion.",
+        "First C22 model stopped before startup on duplicate controller aliases; audited canonicalization retains all attempts and time charges."
+      ]
+    }
+  ],
+  "limitations": [
+    "Campaign acceptance remains INCONCLUSIVE; this is a storage-only projection.",
+    "The index covers all published result JSON documents and their named/nested attempt observations, not unpublished controller history.",
+    "Repeated identical observations of one named attempt are merged with every source pointer retained. Changed observations and anonymous records remain distinct.",
+    "Record/index entry counts are not independent trial counts. Text-only history and per-request traces remain in the byte-preserved original archive.",
+    "Only declared sample distributions are recomputed. Other retained results are explicitly reported frozen values, not independently requalified quality or statistics.",
+    "Original private models, media, raw receipts and runtime records were not published; archiving does not restore them or complete outstanding acceptance."
+  ]
+}

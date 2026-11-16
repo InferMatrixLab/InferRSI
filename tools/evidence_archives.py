@@ -276,7 +276,7 @@ class LimitedStream:
         return block
 
 
-def verify_archive(path, manifest, limits=Limits()):
+def verify_archive(path, manifest, limits=Limits(), *, capture=None):
     """Hash before parsing; inspect member bytes without writing or executing them."""
     spec = manifest["archive"]
     require(spec["bytes"] <= limits.compressed_bytes, "resource_limit", "Compressed size limit")
@@ -294,6 +294,7 @@ def verify_archive(path, manifest, limits=Limits()):
             require(identity.hexdigest() == spec["sha256"], "bad_hash", "Archive SHA-256 mismatch")
             stream.seek(0)
             names, identities, total, originals, original_bytes = set(), {}, 0, 0, 0
+            captured = {}
             with gzip.GzipFile(fileobj=stream) as uncompressed:
                 bounded = LimitedStream(uncompressed, limits.expanded_bytes, deadline)
                 with tarfile.open(fileobj=bounded, mode="r|") as archive:
@@ -316,13 +317,18 @@ def verify_archive(path, manifest, limits=Limits()):
                             "Member limit",
                         )
                         member_hash, received = hashlib.sha256(), 0
+                        chunks = []
                         with archive.extractfile(member) as content:
                             while block := content.read(1024 * 1024):
                                 deadline_check(deadline)
                                 received += len(block)
                                 member_hash.update(block)
+                                if capture is not None:
+                                    chunks.append(block)
                         require(received == member.size, "invalid_archive", "Truncated member")
                         identities[name] = member_hash.hexdigest()
+                        if capture is not None:
+                            captured[name] = b"".join(chunks)
                         if not spec["root"] or name.startswith(spec["root"] + "/"):
                             originals += 1
                             original_bytes += received
@@ -351,6 +357,10 @@ def verify_archive(path, manifest, limits=Limits()):
                 "bad_hash",
                 "Verification input SHA-256 mismatch",
             )
+    # Replay callers receive the exact authenticated bytes, only after all checks
+    # succeed. No second path open, extraction, or archived-code execution.
+    if capture is not None:
+        capture.update(captured)
     return {
         "content": "verified",
         "members": len(names),
