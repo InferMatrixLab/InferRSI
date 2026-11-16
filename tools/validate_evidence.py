@@ -6,6 +6,13 @@ import json
 import re
 from pathlib import Path
 
+if __package__:
+    from .evidence_archives import normalize_manifest
+    from .evidence_archives import read_json as read_archive_json
+else:
+    from evidence_archives import normalize_manifest
+    from evidence_archives import read_json as read_archive_json
+
 SEGMENTS = ("plan", "results", "patch", "validator")
 REQUIRED = {
     "template": [f"{part}/README.md" for part in SEGMENTS],
@@ -78,6 +85,13 @@ def validate_manifest(repo, bundle, entry, unavailable):
             verify_file(local, expected)
             checked += 1
     elif schema == "archive-sha256":
+        # The campaign document owns the metadata. Inventory entries remain
+        # pointers; validation never downloads or implies remote availability.
+        if "schema_version" in data and "archive" in data:
+            normalized = normalize_manifest(read_archive_json(path))
+            if entry.get("field") != "archive":
+                raise ValueError("versioned archive inventory must reference field archive")
+            data = normalized
         if "field" in entry:
             data = data[entry["field"]]
         if not isinstance(data, dict):
@@ -142,11 +156,20 @@ def validate_inventory(repo, inventory=None):
                     json.loads(path.read_text(encoding="utf-8"))
                     if (
                         "manifest" in path.name
-                        or path.name in ("freeze.json", "frozen-compatibility.json")
+                        or path.name in (
+                            "freeze.json", "frozen-compatibility.json", "artifacts.json"
+                        )
                     ) and path.relative_to(bundle).as_posix() not in declared:
                         errors.append(f"{name}: unclassified manifest {path.relative_to(bundle)}")
                 for manifest in manifests:
                     try:
+                        if (
+                            manifest["path"] == "results/artifacts.json"
+                            and entry.get("external_assets")
+                        ):
+                            raise ValueError(
+                                "external_assets duplicates authoritative artifacts.json"
+                            )
                         report["checked_hashes"] += validate_manifest(
                             repo, bundle, manifest, unavailable
                         )
@@ -168,10 +191,40 @@ def validate_inventory(repo, inventory=None):
     return report
 
 
+def budget_assets(repo):
+    """Generate #328's legacy input shape from authority; do not persist a second index."""
+    inventory = read_object(repo / "tools/evidence_inventory.json")
+    bundles = {}
+    for name, entry in inventory["bundles"].items():
+        assets = []
+        for manifest in entry["manifests"]:
+            if manifest["path"] != "results/artifacts.json":
+                continue
+            path = safe_path(safe_path(repo / "evidence", name), manifest["path"])
+            record = normalize_manifest(read_archive_json(path))["archive"]
+            assets.append({
+                key: record[key] for key in ("url", "sha256", "bytes", "retention_owner")
+            })
+        if assets:
+            if entry.get("external_assets"):
+                raise ValueError("external_assets duplicates authoritative artifacts.json")
+            bundles[name] = {"external_assets": assets}
+    return {"bundles": bundles}
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, default=Path(__file__).resolve().parents[1])
+    parser.add_argument("--budget-assets", action="store_true",
+                        help="Emit a derived, disposable external-assets view for the R6 checker")
     args = parser.parse_args()
+    if args.budget_assets:
+        try:
+            print(json.dumps(budget_assets(args.root.resolve()), indent=2))
+            return 0
+        except (OSError, ValueError, KeyError, TypeError) as exc:
+            print(json.dumps({"errors": [str(exc)]}))
+            return 1
     report = validate_inventory(args.root)
     print(json.dumps(report, indent=2))
     return int(bool(report["errors"]))
