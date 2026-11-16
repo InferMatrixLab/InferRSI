@@ -5,8 +5,8 @@ from pathlib import Path
 
 import pytest
 
-from inferrsi.arguments import parser
-from inferrsi.cli import main
+from inferrsi.apps.cli import main
+from inferrsi.apps.cli.arguments import parser
 from inferrsi.knowledge.catalog import search_knowledge
 from inferrsi.knowledge.knowledge_operations import KnowledgeReader
 from inferrsi.knowledge.skill_catalog import skill_metadata, skill_records

@@ -8,8 +8,8 @@ from pathlib import Path
 
 import pytest
 
+from inferrsi.apps.cli import main
 from inferrsi.benchmark.registry import builtin_tasks, describe_task, task_resources
-from inferrsi.cli import main
 from inferrsi.harness import optimization_session
 
 EXPECTED = {
@@ -90,7 +90,9 @@ def test_generic_launcher_preserves_task_arguments_and_status(name, exit_code, m
             sys.executable, str(Path(optimization_session.__file__).resolve()),
             str(task_resources(name).joinpath("benchmark.py")), *arguments
         ]
-        assert (Path(env["PYTHONPATH"].split(os.pathsep)[0]) / "inferrsi" / "cli.py").is_file()
+        package = Path(env["PYTHONPATH"].split(os.pathsep)[0]) / "inferrsi"
+        assert (package / "apps" / "cli" / "__init__.py").is_file()
+        assert not (package / "cli.py").exists()
         assert env["PYTHONDONTWRITEBYTECODE"] == "1"
         return exit_code
 

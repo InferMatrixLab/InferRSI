@@ -64,7 +64,7 @@ def main() -> int:
         )
         return 2
 
-    from inferrsi.cli import main as cli_main
+    from inferrsi.apps.cli import main as cli_main
 
     return cli_main(args)
 

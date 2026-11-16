@@ -4,8 +4,8 @@ import json
 
 import pytest
 
+from inferrsi.apps.cli import main
 from inferrsi.benchmark import registry
-from inferrsi.cli import main
 from inferrsi.harness import optimization_session
 from inferrsi.harness.optimization import _locked
 

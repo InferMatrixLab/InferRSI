@@ -13,8 +13,8 @@ from pathlib import Path
 
 import pytest
 
-from inferrsi.arguments import make_spec, parser
-from inferrsi.cli import main
+from inferrsi.apps.cli import main
+from inferrsi.apps.cli.arguments import make_spec, parser
 from inferrsi.knowledge import catalog as knowledge_catalog
 from inferrsi.knowledge.catalog import get_knowledge, knowledge_records, search_knowledge
 from inferrsi.resources.repository_packs import REPO_TYPES, repository_pack

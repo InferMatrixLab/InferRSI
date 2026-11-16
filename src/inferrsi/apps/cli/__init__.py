@@ -8,15 +8,15 @@ import sys
 from importlib.resources import files
 from pathlib import Path
 
-from .apps.campaign import capture_context, create_campaign
-from .apps.inspection import inspect_environment
-from .apps.knowledge import knowledge_reader
-from .apps.knowledge import read as read_knowledge
-from .apps.legacy.reporting import write_report
+from ...knowledge.catalog import get_knowledge, search_knowledge
+from ...knowledge.knowledge_operations import KnowledgeReader
+from ...knowledge.research import research_knowledge
+from ..campaign import capture_context, create_campaign
+from ..inspection import inspect_environment
+from ..knowledge import knowledge_reader
+from ..knowledge import read as read_knowledge
+from ..legacy.reporting import write_report
 from .arguments import device_ids, make_spec, parser
-from .knowledge.catalog import get_knowledge, search_knowledge
-from .knowledge.knowledge_operations import KnowledgeReader
-from .knowledge.research import research_knowledge
 
 
 def _print(value: object) -> None:
@@ -24,8 +24,8 @@ def _print(value: object) -> None:
 
 
 def _fixed_attempt_command(args) -> int:
-    from .apps.api import read_attempt_view
-    from .harness.errors import PublicError
+    from ...harness.errors import PublicError
+    from ..api import read_attempt_view
 
     if args.storage_config is None:
         raise ValueError("--record-ref requires --storage-config")
@@ -59,11 +59,11 @@ def _fixed_attempt_command(args) -> int:
     if command in ("status", "trace"):
         _print(view)
     elif live:
-        from .apps.views.dashboard_live import serve_dashboard
+        from ..views.dashboard_live import serve_dashboard
 
         serve_dashboard(None, port=args.port if args.port is not None else 8765, fixed_attempt=view)
     else:
-        from .apps.views.dashboard import write_attempt_document
+        from ..views.dashboard import write_attempt_document
 
         _print({command: str(write_attempt_document(view, args.output, kind=command))})
     return 0
@@ -157,14 +157,14 @@ def main(argv: list[str] | None = None) -> int:
     args = argument_parser.parse_args(argv)
     try:
         if args.command == "mindie":
-            from .mindie_project import dispatch
+            from ...mindie_project import dispatch
 
             result = dispatch(args)
             if result is not None:
                 _print(result)
             return 0
         if args.command == "agents":
-            from .harness import agent_sessions
+            from ...harness import agent_sessions
 
             if args.agent_action == "prepare":
                 result = agent_sessions.prepare(
@@ -187,11 +187,11 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command == "benchmarks":
             if args.benchmark_action == "session":
-                from .harness.optimization_session import session_command
+                from ...harness.optimization_session import session_command
 
                 task_source = None
                 if args.session_action == "start":
-                    from .benchmark.registry import task_resources
+                    from ...benchmark.registry import task_resources
 
                     task_source = Path(str(task_resources(args.task)))
                 result = session_command(
@@ -203,10 +203,10 @@ def main(argv: list[str] | None = None) -> int:
                 _print(result)
                 return 2 if result.get("state") == "blocked" else 0
             if args.benchmark_action == "run":
-                from .benchmark_operations import run_task
+                from ...benchmark_operations import run_task
 
                 return run_task(args.task, args.arguments)
-            from .benchmark.registry import builtin_tasks, describe_task
+            from ...benchmark.registry import builtin_tasks, describe_task
 
             if args.benchmark_action == "list":
                 _print(builtin_tasks())
@@ -216,7 +216,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "skills":
             # Optional dependencies load only for the skills command; the core
             # CLI stays independent of them.
-            from .knowledge.skill_catalog import (
+            from ...knowledge.skill_catalog import (
                 get_skill,
                 skill_instructions,
                 skill_records,
@@ -393,14 +393,14 @@ def main(argv: list[str] | None = None) -> int:
             if args.live:
                 if args.output is not None:
                     raise ValueError("--output cannot be used with --live")
-                from .apps.views.dashboard_live import serve_dashboard
+                from ..views.dashboard_live import serve_dashboard
 
                 serve_dashboard(args.input, args.translations,
                                 port=args.port if args.port is not None else 8765)
             else:
                 if args.port is not None:
                     raise ValueError("--port requires --live")
-                from .apps.views.dashboard import write_dashboard
+                from ..views.dashboard import write_dashboard
 
                 _print({"dashboard": str(write_dashboard(args.input, args.output,
                                                           args.translations))})
@@ -408,7 +408,7 @@ def main(argv: list[str] | None = None) -> int:
 
         if args.command == "campaign":
             if args.campaign_action == "import-mindie":
-                from .mindie_context import export_context
+                from ...mindie_context import export_context
 
                 path = export_context(
                     args.directory, context_id=args.id, query_input=args.query_input,
@@ -419,7 +419,7 @@ def main(argv: list[str] | None = None) -> int:
                 _print({"context_directory": str(path), "reviewed_by_caller": False})
                 return 0
             if getattr(args, "session_action", None) is not None:
-                from .harness.optimization_session import session_command
+                from ...harness.optimization_session import session_command
 
                 result = session_command(
                     args,
@@ -429,7 +429,7 @@ def main(argv: list[str] | None = None) -> int:
                 )
                 _print(result)
                 return 2 if result.get("state") == "blocked" else 0
-            from .harness.records.campaign_records import (
+            from ...harness.records.campaign_records import (
                 assemble_trace,
                 record_candidate,
                 record_decision,
@@ -437,7 +437,7 @@ def main(argv: list[str] | None = None) -> int:
             )
 
             if args.campaign_action == "attach-profile":
-                from .harness.records.profile_timeline import attach_profile
+                from ...harness.records.profile_timeline import attach_profile
 
                 _print(attach_profile(args.directory, capture_id=args.id, source=args.source,
                                       review=args.review))
@@ -458,7 +458,7 @@ def main(argv: list[str] | None = None) -> int:
                         "sha256": digest})
                 return 0
             if args.campaign_action == "import-search":
-                from .apps.views.search_attribution import import_search
+                from ..views.search_attribution import import_search
 
                 path = import_search(args.directory, number=args.round, trace=args.trace,
                                      lines=args.lines, knowledge_root=args.knowledge_root,
@@ -468,7 +468,7 @@ def main(argv: list[str] | None = None) -> int:
                 _print({"record": path.relative_to(args.directory.resolve()).as_posix()})
                 return 0
             if args.campaign_action == "log":
-                from .harness.records.optimization_log import record_log
+                from ...harness.records.optimization_log import record_log
 
                 path, digest = record_log(args.directory, args.file)
                 _print({"log": path.name, "sha256": digest})
@@ -544,7 +544,7 @@ def main(argv: list[str] | None = None) -> int:
 
         # The old run loads its Benchmark gates. Import it here so that the
         # other commands, including ordinary optimization, never load Benchmark.
-        from .apps.legacy.run import run_experiment
+        from ..legacy.run import run_experiment
 
         directory = run_experiment(spec, environment)
         (directory / "args.json").write_text(

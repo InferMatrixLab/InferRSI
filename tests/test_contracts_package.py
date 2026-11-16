@@ -21,7 +21,7 @@ import pytest
 
 import inferrsi.contracts as contracts
 import inferrsi.harness as harness
-from inferrsi import arguments
+from inferrsi.apps.cli import arguments
 from inferrsi.apps.legacy import evaluation as legacy_evaluation
 from inferrsi.apps.legacy import run as legacy_run
 from inferrsi.contracts import RunSpec, claim, json_v1, runspec

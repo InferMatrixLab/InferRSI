@@ -327,7 +327,7 @@ def test_a_failing_module_level_executor_is_recorded_not_swallowed(tmp_path, mon
 def test_cli_import_loads_no_benchmark_and_no_old_run_composition():
     # Only the `run` command loads the old run and its Benchmark gates.
     code = (
-        "import sys; sys.path.insert(0, sys.argv[1]); import inferrsi.cli; "
+        "import sys; sys.path.insert(0, sys.argv[1]); import inferrsi.apps.cli; "
         "print(sorted(name for name in sys.modules if name.startswith(('inferrsi.benchmark', "
         "'inferrsi.execution', 'inferrsi.evaluation', 'inferrsi.reporting', "
         "'inferrsi.inspection', 'inferrsi.apps.legacy.run', "

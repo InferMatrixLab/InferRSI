@@ -12,8 +12,8 @@ from pathlib import Path
 
 import inferrsi
 import inferrsi.harness
+from inferrsi.apps.cli import main
 from inferrsi.benchmark.registry import builtin_tasks, describe_task, task_resources
-from inferrsi.cli import main
 from inferrsi.contracts import RunSpec, claim, evidence, json_v1
 from inferrsi.knowledge._source_snapshot import BUNDLE_LIBRARY, LIBRARY
 from inferrsi.knowledge.catalog import knowledge_records, search_knowledge
@@ -594,7 +594,7 @@ if checkout:
 # #451 C2: the neutral repository-pack facade and the evidence path rules ship at their
 # canonical paths. The two retired root modules are not in the wheel and have no alias.
 assert repository_packs.REPO_TYPES is REPO_TYPES and len(REPO_TYPES) == 7
-for consumer in ("inferrsi.knowledge.catalog", "inferrsi.arguments"):
+for consumer in ("inferrsi.knowledge.catalog", "inferrsi.apps.cli.arguments"):
     assert import_module(consumer).REPO_TYPES is REPO_TYPES, consumer
 for repo_name in REPO_TYPES:
     packed = files("inferrsi").joinpath("harness", "data", "repo_packs", repo_name, "pack.json")
@@ -648,16 +648,24 @@ for retired, canonical in r1_retired.items():
         raise AssertionError(f"retired module inferrsi.{retired} must not import")
 assert not installed_root & {f"{name}.py" for name in r1_retired}
 assert installed_root - {"_version.py"} == {
-    "__init__.py", "__main__.py", "_mindie_read_worker.py", "arguments.py",
-    "benchmark_operations.py", "cli.py", "mindie_context.py", "mindie_mcp.py",
-    "mindie_project.py", "summary_chart.py",
+    "__init__.py", "__main__.py", "_mindie_read_worker.py", "benchmark_operations.py",
+    "mindie_context.py", "mindie_mcp.py", "mindie_project.py", "summary_chart.py",
 }, sorted(installed_root)
+# #408 A1: the CLI and its parser ship only as inferrsi.apps.cli; neither root name imports.
+for a1_retired in ("cli", "arguments"):
+    try:
+        import_module(f"inferrsi.{a1_retired}")
+    except ModuleNotFoundError:
+        pass
+    else:
+        raise AssertionError(f"retired module inferrsi.{a1_retired} must not import")
+assert main.__module__ == "inferrsi.apps.cli"
 host_inspection = import_module("inferrsi.apps.inspection")
 assert host_inspection._command is import_module("inferrsi.infra.commands").probe_command
 assert host_inspection.repository_identity is (
     import_module("inferrsi.infra.targets").repository_identity
 )
-assert import_module("inferrsi.arguments").REPO_TYPES is REPO_TYPES
+assert import_module("inferrsi.apps.cli.arguments").REPO_TYPES is REPO_TYPES
 # A fresh isolated interpreter reads all seven packs with only the facade and its
 # import-free parent loaded: no Harness, Knowledge, Infra or Apps module.
 facade_probe = (

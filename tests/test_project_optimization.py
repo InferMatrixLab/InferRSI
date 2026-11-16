@@ -7,8 +7,8 @@ import sys
 
 import pytest
 
+from inferrsi.apps.cli import main
 from inferrsi.apps.views.dashboard import dashboard_snapshot, render_dashboard
-from inferrsi.cli import main
 from inferrsi.harness.optimization import read_records
 
 
@@ -82,7 +82,7 @@ class NoBenchmark(importlib.abc.MetaPathFinder):
         ):
             raise AssertionError('Ordinary optimization imported ' + fullname)
 sys.meta_path.insert(0, NoBenchmark())
-from inferrsi.cli import main
+from inferrsi.apps.cli import main
 from inferrsi.harness.optimization import read_records
 config = json.loads(sys.stdin.read())
 assert main(config['start']) == 0

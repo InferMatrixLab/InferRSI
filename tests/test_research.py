@@ -6,7 +6,7 @@ from importlib.resources import files
 
 import pytest
 
-from inferrsi.cli import main
+from inferrsi.apps.cli import main
 from inferrsi.knowledge import catalog as knowledge_catalog
 from inferrsi.knowledge.catalog import get_knowledge, search_knowledge
 from inferrsi.knowledge.research import research_knowledge

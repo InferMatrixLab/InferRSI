@@ -32,7 +32,7 @@ Permitted shared technical leaves are only:
 - `inferrsi.contracts.json_v1` — the canonical encoder (D002);
 - `inferrsi.contracts.runspec` and `inferrsi.contracts.claim` — the existing RunSpec and Verdict technical types, with only RunSpec re-exported by the package initializer;
 - `inferrsi.contracts.evidence` — the existing evidence segment names and pure path rules; it reads and writes no filesystem state and is not re-exported by the package initializer;
-- `inferrsi.resources.repository_packs` — the neutral raw pack-data reader and the existing static data enumeration (D020), formerly root `inferrsi._repo_pack_data`. Its parent initializer `resources/__init__.py` imports nothing. Outside Knowledge it has one permanent importer, `inferrsi.infra.inspection`, which binds only `repository_pack`; that exact rule is not a compatibility pair. Root `arguments.py` reads `REPO_TYPES` from it under a separate temporary entry that A1 (#408) removes.
+- `inferrsi.resources.repository_packs` — the neutral raw pack-data reader and the existing static data enumeration (D020), formerly root `inferrsi._repo_pack_data`. Its parent initializer `resources/__init__.py` imports nothing. Outside Knowledge it has one permanent importer, `inferrsi.infra.inspection`, which binds only `repository_pack`; that exact rule is not a compatibility pair. A1 (#408) removed the separate temporary entry for root `arguments.py`: the moved parser `inferrsi.apps.cli.arguments` reads the same `REPO_TYPES` object through `inferrsi.knowledge.catalog` and does not import the leaf.
 
 The neutral leaf carries no target selection, task, scoring, scheduling, or public business DTO, and imports none of K/H/B/Apps. It still finds the Harness-owned `pack.json` through `files("inferrsi").joinpath("harness", "data", "repo_packs", ...)`, so reading it never imports Harness. Creating the evidence directories is host I/O and stays in Apps, in `inferrsi.apps.evidence_layout`; that module is not a shared leaf. The list is exact: a `contracts.` or `resources.` prefix admits no other module.
 
@@ -143,7 +143,7 @@ Decision: see [`gate-policy-runstore-and-first-prs.md`](gate-policy-runstore-and
 
 Decision: old entry points, arguments, `Path`, stdout, stderr, and old run 0/1/2 stay byte-for-byte compatible. New Apps naming/envelope/exit mapping is fixed by D022, but K01/H01 do not implement a CLI.
 
-Current reading: this covers the CLI commands and the `inferrsi` and `python -m inferrsi` entry points. It no longer covers old root Python module paths. The revised delivery decision in #412, #451 and #408 retires those paths without aliases, in the change that moves their last consumers. R1 (#412) removed the old-run root modules `evaluation`, `execution` and `reporting` together with root `inspection`; the old run is `inferrsi.apps.legacy` and the host inspection binding is `inferrsi.apps.inspection`. Root `cli.py` and `arguments.py` stay in place until A1 (#408), and R1 changed only their imports.
+Current reading: this covers the CLI commands and the `inferrsi` and `python -m inferrsi` entry points. It no longer covers old root Python module paths. The revised delivery decision in #412, #451 and #408 retires those paths without aliases, in the change that moves their last consumers. R1 (#412) removed the old-run root modules `evaluation`, `execution` and `reporting` together with root `inspection`; the old run is `inferrsi.apps.legacy` and the host inspection binding is `inferrsi.apps.inspection`. A1 (#408) then moved root `cli.py` and `arguments.py` to `inferrsi.apps.cli` and `inferrsi.apps.cli.arguments` and deleted both root files; the console script and `python -m inferrsi` call `inferrsi.apps.cli:main`.
 
 ## D014 — events remain local, not a new shared event schema
 
@@ -165,8 +165,8 @@ Current status after R1 (#412):
 
 - The seven root leaves are deleted, so `compatibility_pairs` in [`../legacy-knowledge-manifest.json`](../legacy-knowledge-manifest.json) is empty. The nine pair records stay in its `revision_history`, unchanged, as the record of this decision.
 - The former ninth pair, `infra.inspection` → `inferrsi.resources.repository_packs`, is a live import that no root deletion removes. It is now a permanent exact rule outside the allowlist: that one module binds the one name `repository_pack` with one plain module-level import. The leaf's bytes, SHA-256, allowed imports, shape and import-free parent initializer stay locked, and no `resources.` or `contracts.` prefix is allowed.
-- Root `arguments.py` → the same leaf, for `REPO_TYPES`, is a separate temporary entry. It adds a blocker until A1 (#408) removes root `arguments.py`.
-- `overall isolation_complete` is still false. That temporary entry, twelve `harness` → `inferrsi.infra` hits in six Harness modules (R2) and five declared runtime resource loaders (R3) remain. The package root holds ten tracked files; the final two-file root waits for A1/A2 (#408) and M1 (#452).
+- Root `arguments.py` → the same leaf, for `REPO_TYPES`, was a separate temporary entry with its own blocker. A1 (#408) removed both with the root file, and no Apps importer of the leaf replaced them.
+- `overall isolation_complete` is still false. A1 (#408) cleared that temporary entry; twelve `harness` → `inferrsi.infra` hits in six Harness modules (R2) and five declared runtime resource loaders (R3) remain. The package root holds eight tracked files; the final two-file root waits for A2 (#408) and M1 (#452).
 - The permanent rule and that manifest revision require formal architecture review. The implementer does not self-approve them, and passing tests are not that review.
 
 [`../module-layout.md`](../module-layout.md) has the exact rules and their negative controls.

@@ -5,7 +5,7 @@ import json
 import re
 from pathlib import Path
 
-from inferrsi.cli import main
+from inferrsi.apps.cli import main
 from inferrsi.knowledge.catalog import get_knowledge, search_knowledge
 from inferrsi.knowledge.knowledge_operations import KnowledgeReader
 from inferrsi.knowledge.skill_catalog import get_skill, skill_metadata, skill_resource

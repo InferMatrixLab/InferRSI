@@ -6,7 +6,7 @@ import json
 
 import pytest
 
-from inferrsi.cli import main
+from inferrsi.apps.cli import main
 from inferrsi.knowledge._skill_selection import (
     indexed_skill,
     lexical_score,
@@ -201,7 +201,7 @@ def test_raw_method_keeps_fail_closed_index_validation():
 
 def test_cli_and_store_delegate_the_explicit_method(monkeypatch, capsys, tmp_path):
     reader = synthetic_reader({"owner": {"title": "n"}})
-    monkeypatch.setattr("inferrsi.cli._knowledge_reader", lambda args: reader)
+    monkeypatch.setattr("inferrsi.apps.cli._knowledge_reader", lambda args: reader)
     assert main(["collect", "--relevance", "n", "--relevance-method", RAW, "--json"]) == 0
     assert json.loads(capsys.readouterr().out)["selection"]["method"] == RAW
     with pytest.raises(SystemExit):

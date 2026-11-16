@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from inferrsi.cli import main
+from inferrsi.apps.cli import main
 from inferrsi.knowledge._skill_selection import lexical_score
 from inferrsi.knowledge.knowledge_operations import Bundle, KnowledgeReader, _hash, _json
 from inferrsi.knowledge.knowledge_store import KnowledgeStore

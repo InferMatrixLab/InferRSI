@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from inferrsi.cli import main
+from inferrsi.apps.cli import main
 from inferrsi.knowledge.knowledge_operations import IdentityError, KnowledgeReader, RevisionConflict
 from inferrsi.knowledge.skill_catalog import (
     get_skill,
@@ -199,7 +199,7 @@ def test_cli_defaults_to_installed_library_and_allows_custom_root(tmp_path, monk
     _index(library, {"installed": "hardware/cuda/installed"})
     custom = tmp_path / "custom"
     _skill(custom, "local")
-    monkeypatch.setattr("inferrsi.cli.files", lambda name: package)
+    monkeypatch.setattr("inferrsi.apps.cli.files", lambda name: package)
     monkeypatch.chdir(tmp_path)
     assert main(["skills", "show", "installed"]) == 0
     assert json.loads(capsys.readouterr().out)["name"] == "installed"
