@@ -12,8 +12,8 @@ from urllib.request import urlopen
 import pytest
 
 from inferrsi.apps import archive
+from inferrsi.apps.api import EvaluationPort, read_attempt_view
 from inferrsi.apps.api import assess as run_assess
-from inferrsi.apps.api import read_attempt_view
 from inferrsi.apps.artifact_reader import ArtifactReader
 from inferrsi.apps.views.dashboard_live import DashboardServer
 from inferrsi.cli import main
@@ -77,6 +77,82 @@ def _write_export(directory, name, data):
         "location": f"fixtures/{name}", "media_type": "application/json",
         "sha256": sha256(data).hexdigest(), "size_bytes": len(data),
     }
+
+
+def _loop_port(config, *, assess_benchmark=_golden_assessor):
+    return EvaluationPort(
+        storage_config=config, output_root_for=lambda attempt_id: f"evaluation/{attempt_id}",
+        assess_benchmark=assess_benchmark, validate_assessment=_validate_assessment,
+        encode_assessment=encode,
+    )
+
+
+def _loop_receipt(request):
+    return {
+        **_fixture("record-payload"), "record_ref": request["record_ref"],
+        "observed_at": "2026-01-01T00:00:00Z", "controller_observation": {"status": "unknown"},
+    }
+
+
+def test_loop_binds_the_original_attempt_and_requires_the_frozen_scope(offline):
+    _, config, _ = offline
+    golden = _fixture("execution-spec")
+    attempt = {key: golden[key] for key in (
+        "request_id", "run_id", "attempt_id", "owner", "target_request", "deadline_utc",
+        "resources", "budget", "retry_of", "retry_reason",
+    )}
+    proposal = {key: golden[key] for key in ("candidate", "inputs", "generation_record_ref")}
+    port = _loop_port(config, assess_benchmark=_never_assess)
+
+    spec = port.execution_for(golden["prepared_ref"], proposal, attempt, scope="p1")
+    assert {key: spec[key] for key in attempt} == attempt
+    assert spec["output_root"] == f"evaluation/{attempt['attempt_id']}"
+    assert spec["steps"][0]["expected_code_sha256"] == _fixture("prepared")["recipe"]["code_sha256"]
+    assert spec["steps"][0]["timeout_seconds"] is None
+    with pytest.raises(PublicError, match="IdentityMismatch"):
+        port.execution_for(golden["prepared_ref"], proposal, attempt, scope="final")
+
+
+def test_loop_assessment_returns_the_archived_summary_for_all_claims(offline):
+    request, config, directory = offline
+    before = set(directory.iterdir())
+    summary = _loop_port(config).assess(_loop_receipt(request))
+    saved = archive.read_assessment(config, summary["assessment_ref"])
+    fields = ("candidate", "attempt_id", "protocol_digest", "claims", "metrics",
+              "eligibility", "comparison")
+    assert summary == {
+        **{key: saved[key] for key in fields}, "evidence": saved["evidence_artifacts"],
+        "assessment_ref": summary["assessment_ref"],
+    }
+    assert saved == _fixture("assessment")
+    assert set(directory.iterdir()) - before == {
+        directory / Path(summary["assessment_ref"]["artifact"]["location"]).parent.name
+    }
+
+
+def test_loop_rejects_changed_receipt_before_assessing(offline):
+    request, config, _ = offline
+    receipt = _loop_receipt(request)
+    receipt["phase"] = "running"
+    with pytest.raises(PublicError) as caught:
+        _loop_port(config, assess_benchmark=_never_assess).assess(receipt)
+    assert (caught.value.code, caught.value.stage) == ("IdentityMismatch", "assessment_binding")
+
+
+def test_loop_archive_failure_does_not_return_an_assessment_ref(offline, monkeypatch):
+    request, config, _ = offline
+
+    def fail(*args, **kwargs):
+        raise PublicError(
+            "ArchivePersistenceError", stage="assessment_archive", message="archive failed",
+        )
+
+    monkeypatch.setattr("inferrsi.apps.api.archive_assessment", fail)
+    with pytest.raises(PublicError) as caught:
+        _loop_port(config).assess(_loop_receipt(request))
+    assert (caught.value.code, caught.value.stage) == (
+        "ArchivePersistenceError", "assessment_archive",
+    )
 
 
 @pytest.mark.parametrize(("primary", "exit_code"), [("F", 0), ("C", 8), ("M", 9)])
@@ -371,16 +447,18 @@ def test_new_process_reassesses_the_requested_sqlite_revision(tmp_path, offline)
     decision = _fixture("assessment")
     decision["record_ref"] = first.record_ref
     _sign_assessment(decision)
-    (tmp_path / "offline.json").write_bytes(encode([request, config, decision]))
+    receipt = store.read(attempt["attempt_id"], record_version=first.record_ref["record_version"])
+    (tmp_path / "offline.json").write_bytes(encode([request, config, decision, receipt]))
 
     subprocess.run(
         [sys.executable, "-c", """
 from pathlib import Path
 from inferrsi.contracts.json_v1 import decode, encode
-from inferrsi.apps.api import assess as run_assess, read_attempt_view
+from inferrsi.apps.api import EvaluationPort, assess as run_assess, read_attempt_view
+from inferrsi.apps.archive import read_assessment
 
 workspace = Path.cwd()
-request, config, decision = decode((workspace / 'offline.json').read_bytes())
+request, config, decision, receipt = decode((workspace / 'offline.json').read_bytes())
 
 def assessor(prepared, evidence, *, artifacts):
     assert evidence['record_ref'] == request['record_ref']
@@ -398,6 +476,12 @@ assert view['execution']['record_version'] == 1
 assert view['execution']['phase'] == 'running'
 assert view['assessment']['claims'][0]['verdict'] == 'INCONCLUSIVE'
 assert view['trace']['checks'][0]['check_id'] == 'input_identity'
+port = EvaluationPort(storage_config=config, output_root_for=lambda attempt: attempt,
+                      assess_benchmark=assessor, validate_assessment=lambda value: None,
+                      encode_assessment=encode)
+summary = port.assess(receipt)
+assert summary['claims'] == decision['claims']
+assert read_assessment(config, summary['assessment_ref']) == decision
 """],
         cwd=tmp_path, capture_output=True, text=True, check=True,
     )
