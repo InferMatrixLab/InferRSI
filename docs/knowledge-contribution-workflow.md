@@ -69,7 +69,10 @@ that regenerates every record; do not hand-edit the generated files.
 the same fields and field order as before: the `sources` entry with the full commit
 URL, and `source_files` including the registry hash. Search, `knowledge show`,
 Collect and installed wheels keep reading schema 1. The generator refuses to write a
-record that does not resolve back to the record it rendered.
+record that does not resolve back to the record it rendered. A pack with
+`_provenance.json` holds only schema-2 records: the catalog rejects any other JSON
+file in it, including a nested `_provenance.json`. Packs without a snapshot keep
+hand-written schema-1 records.
 
 The one-time migration regenerated all 80 records at the previous pin
 `d648f25732dee1c974da62a94c46a642ad52cef8`; each resolved record was byte-identical
