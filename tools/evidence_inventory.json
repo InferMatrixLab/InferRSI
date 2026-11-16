@@ -19,6 +19,29 @@
         "Archive metadata is authoritative in results/artifacts.json. Offline checks report the absent local asset as unavailable; run the explicit verifier for remote bytes and recomputation. Private traces/audio/models remain outside the public snapshot; service qualification is INCONCLUSIVE."
       ]
     },
+    "h3-image-ascend": {
+      "kind": "campaign",
+      "manifests": [
+        {
+          "path": "plan/retained-sha256.json",
+          "schema": "bundle-sha256"
+        },
+        {
+          "path": "results/artifacts.json",
+          "schema": "archive-sha256",
+          "field": "archive",
+          "artifact": "results/h3-image-ascend-2e850be2-v1.tar.gz"
+        }
+      ],
+      "external": [
+        "Versioned public archive: metadata in results/artifacts.json; use validator/archive.py --download to verify actual content and regenerate summaries.",
+        "This archive preserves only the already public export; no private artifacts were added.",
+        "Most original images, activation tensors, historical candidate source snapshots and host/profiler logs were not published and remain unavailable for independent replay.",
+        "Six representative full-resolution round-two PNGs are archived; the other 24 images in that numerical screen are not included.",
+        "Source digests in historical source-manifest files identify external snapshots and are not verification of those unavailable source bytes.",
+        "Final ABBA, full visual acceptance and cross-hardware reference quality remain incomplete; all latency targets remain unmet."
+      ]
+    },
     "h3-ref2va-910c-4logical-20261101-297": {
       "kind": "campaign",
       "manifests": [

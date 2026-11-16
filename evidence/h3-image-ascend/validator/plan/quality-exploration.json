@@ -1,0 +1,16 @@
+{
+  "status": "user-authorized exploration; no approximate candidate admitted yet",
+  "authorization": "User explicitly allowed exploration of small numerical differences and quantization, with quality validation before adoption.",
+  "exact_control": "runs/native-sp4-offload and runs/native-sp4-offload-quality",
+  "retained_exact_candidate": "runs/sp4-vae4",
+  "initial_screen": {
+    "request_identity_and_dimensions": "must match",
+    "images": "all 12 seed42 requests and six heldout seed43/44 images",
+    "per_image_psnr_db_min": 30.0,
+    "per_image_ssim_min": 0.98,
+    "nan_inf_or_blank": "reject",
+    "visual_review": "required; check prompt content, structure, colors, text and editing intent",
+    "note": "These are conservative screening thresholds chosen before approximation trials, not evidence that image quality is equivalent. Final adoption also requires additional prompt coverage and visual inspection. No threshold changes to admit a failing trial."
+  },
+  "performance": "Original HTTP workload, steps, canvas and targets remain unchanged; disclose changed precision and cold-start behavior."
+}
