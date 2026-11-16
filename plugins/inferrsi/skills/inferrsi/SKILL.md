@@ -124,8 +124,14 @@ repository or user instead of guessing a model architecture.
 Use `find "<problem or symptom>"` to rank skills, imported records and casebook
 entries. Add `--kinds case` when you specifically need a past observation.
 Open a promising hit using its displayed `open` command or the JSON
-`open_argv` argument list. If the result says `cannot open`, check the reason
-and consult another hit when appropriate.
+`open_argv` argument list.
+
+When a Skill hit is unreadable because PyYAML is missing, use
+`collect --relevance "<same query>" --limit 1 --material --json` to look up
+the packaged skill. Save the JSON to a file and use the hit's `ref`,
+`revision` and `skill_documents.original`
+to fetch the body with `resource <ref> <path> --revision <revision> --output <file>`.
+For other `cannot open` results, check the reason before choosing another hit.
 
 `read` returns the material, its source, applicability, limitations and
 revision. To cite or reopen exact evidence, add `--revision <revision>` to the

@@ -243,6 +243,11 @@ did.
   entrypoint, provenance and revision with a smaller response. Remove
   `--omit-resources` to list the bundle's resources. Hits that fail the reader's
   material check carry `unreadable` with the reason.
+- **Base installation fallback.** When a Skill hit requires PyYAML, use
+  `inferrsi collect --relevance "<same query>" --limit 1 --material --json`
+  to look up the packaged skill. Fetch its `skill_documents.original` with
+  `inferrsi resource <ref> <path> --revision <revision> --output <file>` using
+  the returned `ref` and `revision`.
 - **Side effects:** none. No revision is pinned; use `read`/`resource` when a capture or evidence record needs exact bytes.
 - **Example:** `inferrsi find "NPU OOM after caching per-step masks" --limit 3` returns the casebook entry recording that attempt first. A vaguer phrasing ranks the procedural skills above it, which is the first limit below rather than a defect.
 
