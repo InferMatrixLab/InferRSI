@@ -176,11 +176,12 @@ def assess(directory: Path, settings: dict, execution: dict, *,
     if not all(math.isfinite(value) for value in (improvement, speedup)):
         return result("infrastructure_failure", "nonfinite_derived_metric")
     point_accepted = improvement > 0 and improvement >= settings["min_improvement_pct"]
+    decision = settings.get("decision", "point")
     paired = paired_statistics(samples["baseline"], samples["candidate"],
                                direction=settings["direction"],
                                min_improvement_pct=settings["min_improvement_pct"],
-                               point_gate_passed=point_accepted)
-    decision = settings.get("decision", "point")
+                               point_gate_passed=point_accepted,
+                               decides=decision == "paired")
     verdict, reason = (("PASS", "fixed_checks_satisfied") if point_accepted
                        else ("FAIL", "performance_gate_not_met"))
     if decision == "paired":
@@ -190,7 +191,8 @@ def assess(directory: Path, settings: dict, execution: dict, *,
         elif relation == "above_gate":
             verdict, reason = "PASS", "paired_interval_above_gate"
         elif relation == "straddles_gate":
-            verdict, reason = "FAIL", "within_noise"
+            # Not shown to pass is not evidence that the gate was missed.
+            verdict, reason = "INCONCLUSIVE", "within_noise"
         else:
             verdict, reason = "FAIL", "performance_gate_not_met"
     try:
@@ -201,7 +203,8 @@ def assess(directory: Path, settings: dict, execution: dict, *,
     reference = [item["region"] for item in (mechanism or {}).get("expect", [])
                  if "region" in item and item["direction"] == "unchanged"]
     observed = profile_evidence(profiles["baseline"], profiles["candidate"],
-                                reference_regions=reference)
+                                reference_regions=reference,
+                                family_size=len((mechanism or {}).get("expect", [])) or 1)
     explanation = explain(mechanism, observed)
     if mechanism_error:
         explanation = {"status": "unverifiable", "reason": mechanism_error}

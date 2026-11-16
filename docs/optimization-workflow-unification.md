@@ -187,7 +187,9 @@ inferrsi campaign start --directory <campaign-dir-outside-project> \
 
 项目适配器先检查基线和候选质量，再做 warmup 和交替顺序的基线/候选测量；每轮和 final 使用相同协议。每步骤启动新进程，因此跨进程 warmup 只能预热可持久缓存；设备/进程内 warmup 必须在测量脚本内完成并说明。性能取声明指标的中位数，当前没有通用服务生命周期管理器或统计显著性判定。
 
-assessment 另附只读的 `paired_statistics`：同一次重复内的第 k 个基线与第 k 个候选样本按顺序配对，计算逐对加速比的中位数，以及按重复重采样的 95% percentile bootstrap 区间（记录 resamples 与 seed），并给出区间与冻结门槛的关系（`above_gate`、`straddles_gate`、`below_gate`；门槛没有有限加速比时为 `gate_unreachable`；少于 5 次重复为 `insufficient_pairs`；样本或派生值无效为 `unavailable`）。`agrees_with_point_gate` 标出中位数点估计的判定与配对区间是否一致。该字段只描述留存样本，不改变 verdict、eligible 或选优，`statistical_significance` 仍为 `not_established`。区间是名义 95%，覆盖率未经校准：合成对照中 3 对时约 75%，因此少于 5 对不报告区间。区间假设各次重复独立，不能消除同一对内共同的设备争用，也不构成环境资格。合成对照可用 `python tools/measurement_simulation.py` 复算。
+assessment 另附 `paired_statistics`：同一次重复内的第 k 个基线与第 k 个候选样本按顺序配对，计算逐对加速比的中位数及其 95% 精确次序统计量区间（即符号检验反演），并给出区间与冻结门槛的关系（`above_gate`、`straddles_gate`、`below_gate`；门槛没有有限加速比时为 `gate_unreachable`；对数不足时为 `insufficient_pairs`；样本或派生值无效为 `unavailable`）。`agrees_with_point_gate` 标出中位数点估计的判定与配对区间是否一致。默认只报告，不改变 verdict、eligible 或选优，记录 `report_only: true`，`statistical_significance` 仍为 `not_established`；只有 `--decision paired` 用它判定，此时记录 `report_only: false`。
+
+区间取逐对加速比排序后的第 j 小与第 j 大，j 是使 P(Bin(n, 1/2) ≤ j−1) ≤ 2.5% 的最大秩，并记录 `order_statistic_rank` 和实际置信度 `achieved_confidence`。当各对独立、来自连续分布时，下界高于真实中位数的概率不超过 2.5%，与重复次数无关；因此真实中位加速比恰好等于门槛时（门槛为 0% 即 A/A），`above_gate` 的概率不超过 2.5%。5 对时最极端的一对也有 1/32 ≈ 3.1% 的单侧误差，所以至少需要 6 对才给区间。区间假设各次重复独立，不能消除同一对内共同的设备争用，也不构成环境资格。合成对照可用 `python tools/measurement_simulation.py` 复算，`--gate-pct 0` 给出门槛处的 A/A 比例与精确上界 `exact_one_sided_bound`。
 
 结果协议：
 
@@ -234,18 +236,18 @@ profile 或测量确定瓶颈，提交包含 workload 和观测值的 UTF-8 摘�
             {"counter": "kernel_launches", "direction": "decrease"}]}
 ```
 
-assessment 的 `profile_evidence` 按重复配对比较每个区域和计数，`raw` 保留原始比值。声明为 `unchanged` 的区域是本轮的假设，不是结论：其他区域另外给出除以同一步骤参照区域总和后的 `normalized` 比较，`share_based_speedup` 用参照区域在步骤总时间中的占比推算整体加速。只有当某种变化让同一步骤的所有区域按同一比例缩放时，它才会被抵消；若各区域受影响程度不同（例如降频对计算受限和访存受限的区域影响不同），抵消就不成立。参照区域本身始终只做原始比较，不会互相归一化，因此整体漂移较大时它可能显示为变化，使解释判为矛盾。计数一类的工作量指标基本不随时钟和温度变化，可以说明波动范围内的小幅改进是否可重复。方向只由配对区间判断（区间整体低于或高于 1），仓库内没有设置数值容差；基线为 0 的计数没有比值，记为 `undefined`。`profile_evidence` 只描述数据，不判断机制文字本身。
+assessment 的 `profile_evidence` 按重复配对比较每个区域和计数，`raw` 保留原始比值。声明为 `unchanged` 的区域是本轮的假设，不是结论：其他区域另外给出除以同一步骤参照区域总和后的 `normalized` 比较，`share_based_speedup` 用参照区域在步骤总时间中的占比推算整体加速。只有当某种变化让同一步骤的所有区域按同一比例缩放时，它才会被抵消；若各区域受影响程度不同（例如降频对计算受限和访存受限的区域影响不同），抵消就不成立。参照区域本身始终只做原始比较，不会互相归一化，因此整体漂移较大时它可能显示为变化，使解释判为矛盾。计数一类的工作量指标基本不随时钟和温度变化，可以说明波动范围内的小幅改进是否可重复。方向只由配对区间判断（区间整体低于或高于 1），仓库内没有设置数值容差；基线为 0 的计数没有比值，记为 `undefined`。区间包含 1 记为 `no_clear_change`，它只表示没有检出变化，不是"没有变化"的证据。声明了 k 条预期时，所有区域和计数的区间按 Bonferroni 校正使用 1 − 5%/k 的置信度（记录 `family_size`、`confidence`、`pairs_needed`），使任一条核对因噪声误判的概率合计不超过 5%。所需对数随 k 增加：k = 1 为 6 对，k = 2–3 为 7 对，k = 4–6 为 8 对，k = 7–12 为 9 对；对数不足时记为 `insufficient_pairs`。`profile_evidence` 只描述数据，不判断机制文字本身。
 
-`explanation.status` 取值：`explained`（每条预期都被数据确认，且至少一条是变化）、`unsupported`（预期的变化没有在数据中出现）、`contradicted`（数据与预期方向相反，或声明不变的项出现明显变化）、`unverifiable`（缺少对应区域或计数、比值无定义，或少于 5 对）、`not_declared`（本轮未声明）。机制声明在执行前绑定：判定使用执行前保存的声明，并核对其摘要与 attempt 目录中的 `mechanism.json`；副本被改动时按完整性错误阻断 campaign。执行后被中断、经 `recover` 结算的轮次无法证明执行前绑定的是哪份声明，因此按未声明处理（记录 `mechanism_unverified_after_recovery`），在 `--require-explanation` 下不会被采纳。final 沿用被选中轮次绑定的机制重新核对。
+每条核对记录 `outcome`：预期变化的项为 `confirmed`（方向一致）、`not_shown`（未检出变化）或 `contradicted`（方向相反）；声明 `unchanged` 的项只能是 `not_contradicted`（未检出变化）或 `contradicted`（检出变化），永远不会被"确认不变"。`explanation.status` 取值：`explained`（每条预期变化都 `confirmed`，且没有任何一条 `contradicted`）、`unsupported`（有预期变化 `not_shown`）、`contradicted`（任一条 `contradicted`）、`unverifiable`（缺少对应区域或计数、比值无定义、对数不足以支撑校正后的置信度，或证据的 `family_size` 小于声明条数）、`not_declared`（本轮未声明）。机制声明在执行前绑定：判定使用执行前保存的声明，并核对其摘要与 attempt 目录中的 `mechanism.json`；副本被改动时按完整性错误阻断 campaign。执行后被中断、经 `recover` 结算的轮次无法证明执行前绑定的是哪份声明，因此按未声明处理（记录 `mechanism_unverified_after_recovery`），在 `--require-explanation` 下不会被采纳。final 沿用被选中轮次绑定的机制重新核对。
 
 两个开关在 `campaign start` 时冻结，默认都不改变原有判定：
 
 - `--require-explanation`：只有 `explained` 的候选可以被采纳。`unsupported`、`contradicted` 记为 FAIL，`unverifiable`、`not_declared` 记为 INCONCLUSIVE；两类都不阻塞后续轮次。
-- `--decision paired`：用 `paired_statistics` 判定，要求至少 5 次重复。区间整体高于门槛为 PASS；跨过门槛为 FAIL，`reason` 为 `within_noise`，搜索继续；区间整体低于门槛为 FAIL（`performance_gate_not_met`）；统计不可用时为 INCONCLUSIVE，不退回未配对的中位数规则。默认 `point` 保持中位数点估计规则。`paired` 只看区间，不再看点估计：点估计未过门槛、但配对区间整体高于门槛时判 PASS（`paired_interval_above_gate`）；反过来点估计过门槛、区间跨过门槛时判 FAIL（`within_noise`）。两者不一致时 `paired_statistics.agrees_with_point_gate` 为 `false`，供评审查看。
+- `--decision paired`：用 `paired_statistics` 判定，要求至少 6 次重复。区间整体高于门槛为 PASS（`paired_interval_above_gate`）；区间整体低于门槛为 FAIL（`performance_gate_not_met`），即有证据表明门槛没达到；区间跨过门槛为 INCONCLUSIVE，`reason` 为 `within_noise`——这只说明没能证明过门槛，不是门槛未达到的证据，所以不记 FAIL；候选不被采纳，搜索继续；统计不可用时为 INCONCLUSIVE，不退回未配对的中位数规则。默认 `point` 保持中位数点估计规则。`paired` 只看区间，不再看点估计：点估计未过门槛、但配对区间整体高于门槛时判 PASS；反过来点估计过门槛、区间跨过门槛时判 INCONCLUSIVE（`within_noise`）。两者不一致时 `paired_statistics.agrees_with_point_gate` 为 `false`，供评审查看。
 
-两个开关同时打开时按固定顺序判定：先由 `--decision` 得到性能结论，`--require-explanation` 只作用于性能结论为 PASS 的轮次，把它降为 FAIL 或 INCONCLUSIVE，不会提升或改写非 PASS 的结论。因此性能结论已是 FAIL（包括 `within_noise`）或 INCONCLUSIVE 时，无论 `explanation.status` 是什么，最终 verdict 和 `reason` 都保持性能结论；`explanation` 仍完整写入报告。
+两个开关同时打开时按固定顺序判定：先由 `--decision` 得到性能结论，`--require-explanation` 只作用于性能结论为 PASS 的轮次，把它降为 FAIL 或 INCONCLUSIVE，不会提升或改写非 PASS 的结论。因此性能结论已是 FAIL 或 INCONCLUSIVE（包括 `within_noise`）时，无论 `explanation.status` 是什么，最终 verdict 和 `reason` 都保持性能结论；`explanation` 仍完整写入报告。
 
-提交未修改的候选可以作为 A/A 对照，`paired_statistics` 的区间即给出该环境的噪声范围。
+提交未修改的候选可以作为 A/A 对照，`paired_statistics` 的区间即给出该环境的噪声范围；`--require-explanation` 下的 A/A 轮次在声明的变化项上应为 `not_shown`。
 
 ## 实际保留什么、保护什么
 

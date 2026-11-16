@@ -1,30 +1,65 @@
-"""Paired, report-only statistics for alternating baseline/candidate measurements.
+"""Paired statistics for alternating baseline/candidate measurements.
 
 The project protocol alternates AB/BA order inside each repetition, so the k-th
 baseline and k-th candidate sample share one repetition. Their per-pair ratio
 cancels drift shared within a repetition, which independent per-side medians
-retain. This module only describes retained samples: it never changes a verdict,
-eligibility or gate, and any value it cannot compute is reported as unavailable.
+retain. By default this module only describes retained samples; the caller-frozen
+``--decision paired`` switch is the only path on which its interval decides a
+verdict, and the record then says ``report_only: false``.
 
-The estimand is the median per-repetition speedup. The interval is a nominal 95%
-percentile bootstrap over repetitions with a recorded seed. Its coverage is not
-calibrated in general: with few repetitions it collapses towards the observed pair
-range and under-covers (about 75% at three pairs in tools/measurement_simulation.py),
-so no interval is reported below MIN_PAIRS. Repetitions are assumed independent;
-pairing cannot
-remove contention shared by both sides of one pair and does not qualify the
-environment.
+The estimand is the median per-repetition speedup. Its interval is the exact
+distribution-free order-statistic interval for a median (the inverted sign test):
+with n independent pairs drawn from a continuous distribution, the j-th smallest
+pair lies above the true median with probability P(Bin(n, 1/2) <= j - 1). The rank
+j is the largest one keeping that tail at or below (1 - confidence) / 2, so each
+side errs at most 2.5% for a 95% interval and the achieved confidence is recorded.
+No rank satisfies this below MIN_PAIRS (six at 95%), so no interval is reported.
+Repetitions are assumed independent; pairing cannot remove contention shared by
+both sides of one pair and does not qualify the environment.
 """
 
 import math
-import random
 from statistics import median
 
-METHOD = "paired_median_speedup_percentile_bootstrap"
+METHOD = "paired_median_speedup_sign_test_interval"
 CONFIDENCE = 0.95
-MIN_PAIRS = 5
-RESAMPLES = 10_000
-SEED = 0
+
+
+def interval_rank(pairs: int, confidence: float = CONFIDENCE) -> int | None:
+    """Largest order-statistic rank whose one-sided binomial tail fits the confidence."""
+    if type(pairs) is not int or pairs < 1 or not 0 < confidence < 1:
+        return None
+    allowed = (1 - confidence) / 2 * 2 ** pairs
+    rank, tail = None, 0
+    for k in range(pairs):
+        tail += math.comb(pairs, k)
+        if tail > allowed:
+            break
+        rank = k + 1
+    return rank
+
+
+def min_pairs(confidence: float = CONFIDENCE) -> int:
+    """Fewest independent pairs for which an exact interval exists at this confidence."""
+    pairs = 1
+    while interval_rank(pairs, confidence) is None:
+        pairs += 1
+    return pairs
+
+
+MIN_PAIRS = min_pairs()
+
+
+def median_interval(values: list, confidence: float = CONFIDENCE) -> dict | None:
+    """Exact order-statistic interval for the median, or None when too few values."""
+    pairs = len(values)
+    rank = interval_rank(pairs, confidence)
+    if rank is None:
+        return None
+    ordered = sorted(values)
+    tail = sum(math.comb(pairs, k) for k in range(rank)) / 2 ** pairs
+    return {"interval": [ordered[rank - 1], ordered[pairs - rank]], "rank": rank,
+            "achieved_confidence": 1 - 2 * tail}
 
 
 def gate_speedup(min_improvement_pct: float, direction: str) -> float:
@@ -63,23 +98,6 @@ def relative_mad(values: list) -> float | None:
     return median(abs(v - center) for v in values) / center
 
 
-def _percentile(ordered: list, q: float) -> float:
-    position = q * (len(ordered) - 1)
-    low = math.floor(position)
-    high = min(low + 1, len(ordered) - 1)
-    return ordered[low] + (ordered[high] - ordered[low]) * (position - low)
-
-
-def bootstrap_median_interval(values: list, *, resamples: int = RESAMPLES,
-                              seed: int = SEED) -> list[float]:
-    if type(resamples) is not int or resamples < 1 or not values:
-        raise ValueError("Bootstrap needs a positive resample count and at least one value")
-    rng = random.Random(seed)
-    medians = sorted(median(rng.choices(values, k=len(values))) for _ in range(resamples))
-    tail = (1 - CONFIDENCE) / 2
-    return [_percentile(medians, tail), _percentile(medians, 1 - tail)]
-
-
 def _finite(value) -> bool:
     if isinstance(value, bool) or value is None or isinstance(value, str):
         return True
@@ -92,8 +110,8 @@ def _finite(value) -> bool:
     return False
 
 
-def _describe(baseline, candidate, *, direction, min_improvement_pct, point_gate_passed,
-              resamples, seed) -> dict:
+def _describe(baseline, candidate, *, direction, min_improvement_pct,
+              point_gate_passed) -> dict:
     speedups = paired_speedups(baseline, candidate, direction)
     gate = gate_speedup(min_improvement_pct, direction)
     report = {
@@ -105,11 +123,12 @@ def _describe(baseline, candidate, *, direction, min_improvement_pct, point_gate
         "baseline_relative_mad": relative_mad(baseline),
         "candidate_relative_mad": relative_mad(candidate), "interval": None,
     }
-    if len(speedups) < MIN_PAIRS:
+    exact = median_interval(speedups)
+    if exact is None:
         return {**report, "status": "insufficient_pairs", "gate_relation": "insufficient_pairs",
                 "agrees_with_point_gate": None,
                 "reason": f"At least {MIN_PAIRS} repetitions are needed for an interval"}
-    low, high = bootstrap_median_interval(speedups, resamples=resamples, seed=seed)
+    low, high = exact["interval"]
     if not math.isfinite(gate):
         relation = "gate_unreachable"
     elif low > gate:
@@ -118,28 +137,29 @@ def _describe(baseline, candidate, *, direction, min_improvement_pct, point_gate
         relation = "below_gate"
     else:
         relation = "straddles_gate"
-    return {**report, "interval": [low, high], "gate_relation": relation,
+    return {**report, "interval": [low, high], "order_statistic_rank": exact["rank"],
+            "achieved_confidence": exact["achieved_confidence"], "gate_relation": relation,
             "excludes_no_change": low > 1 or high < 1,
             "agrees_with_point_gate": point_gate_passed == (relation == "above_gate")}
 
 
 def paired_statistics(baseline: list, candidate: list, *, direction: str,
                       min_improvement_pct: float, point_gate_passed: bool,
-                      resamples: int = RESAMPLES, seed: int = SEED) -> dict:
-    """Describe paired samples against the frozen gate without changing any verdict.
+                      decides: bool = False) -> dict:
+    """Describe paired samples against the frozen gate.
 
-    Every returned number is finite so the record stays strict-JSON serializable;
-    anything that cannot be computed is reported with ``status="unavailable"``.
+    ``decides`` records whether the caller uses this interval for the verdict; the
+    statistics themselves are identical either way. Every returned number is finite
+    so the record stays strict-JSON serializable; anything that cannot be computed is
+    reported with ``status="unavailable"``.
     """
-    header = {"method": METHOD, "report_only": True, "confidence": CONFIDENCE,
-              "coverage": "nominal_uncalibrated",
-              "pairing": "kth baseline with kth candidate; AB/BA order alternates by repetition",
-              "resamples": resamples, "seed": seed}
+    header = {"method": METHOD, "report_only": not decides, "confidence": CONFIDENCE,
+              "coverage": "exact_one_sided_bound_for_independent_continuous_pairs",
+              "pairing": "kth baseline with kth candidate; AB/BA order alternates by repetition"}
     try:
         report = _describe(baseline, candidate, direction=direction,
                            min_improvement_pct=min_improvement_pct,
-                           point_gate_passed=point_gate_passed,
-                           resamples=resamples, seed=seed)
+                           point_gate_passed=point_gate_passed)
     except (ArithmeticError, TypeError, ValueError) as error:
         return {**header, "status": "unavailable", "reason": str(error), "interval": None}
     if not _finite(report):
@@ -169,15 +189,18 @@ def _numeric_map(value) -> dict | None:
     return value
 
 
-def _paired_change(baseline: list, candidate: list, *, resamples: int, seed: int) -> dict:
+def _paired_change(baseline: list, candidate: list, *, confidence: float) -> dict:
     """Paired ratio direction; a zero baseline makes the ratio undefined, never decisive."""
-    if len(baseline) < MIN_PAIRS:
-        return {"ratio_median": None, "interval": None, "observed": "insufficient_pairs"}
+    if interval_rank(len(baseline), confidence) is None:
+        return {"ratio_median": None, "interval": None, "observed": "insufficient_pairs",
+                "note": f"At least {min_pairs(confidence)} pairs are needed at this confidence"}
     if any(b <= 0 for b in baseline):
         return {"ratio_median": None, "interval": None, "observed": "undefined",
                 "note": "A zero baseline value has no paired ratio"}
     ratios = [c / b for b, c in zip(baseline, candidate)]
-    low, high = bootstrap_median_interval(ratios, resamples=resamples, seed=seed)
+    low, high = median_interval(ratios, confidence)["interval"]
+    # no_clear_change means only that no change was detected; it is not evidence that
+    # the value stayed the same, because no equivalence margin is defined.
     observed = "decrease" if high < 1 else "increase" if low > 1 else "no_clear_change"
     return {"ratio_median": median(ratios), "interval": [low, high], "observed": observed}
 
@@ -188,21 +211,31 @@ def _shares(values: list, totals: list) -> float | None:
 
 
 def profile_evidence(baseline_profiles: list, candidate_profiles: list, *,
-                     reference_regions=(), resamples: int = RESAMPLES,
-                     seed: int = SEED) -> dict:
+                     reference_regions=(), family_size: int = 1) -> dict:
     """Compare per-repetition region durations and work counters between paired steps.
 
-    Every region and counter is compared raw. ``reference_regions`` are regions the
-    round declares unchanged; they are an assumption, not a conclusion. Other regions
-    are additionally compared after dividing by the reference total of the same step,
-    which cancels a change that scales every region of that step by the same factor.
-    References themselves are only ever checked raw, against each other never.
+    ``family_size`` is the number of declared expectations judged together. Each
+    region and counter interval uses the Bonferroni confidence 1 - (1 - CONFIDENCE) /
+    family_size, so the chance that any declared check is wrong by noise alone stays
+    at or below 1 - CONFIDENCE; too few pairs for that confidence is reported as
+    ``insufficient_pairs``. Every region and counter is compared raw.
+    ``reference_regions`` are regions the round declares unchanged; they are an
+    assumption, not a conclusion. Other regions are additionally compared after
+    dividing by the reference total of the same step, which cancels a change that
+    scales every region of that step by the same factor. References themselves are
+    only ever checked raw, against each other never.
     """
     if len(baseline_profiles) != len(candidate_profiles) or not baseline_profiles:
         return {"status": "unavailable", "reason": "Profiles must be paired per repetition"}
     sides = (baseline_profiles, candidate_profiles)
+    if type(family_size) is not int or family_size < 1:
+        return {"status": "unavailable", "reason": "family_size must be a positive integer"}
+    confidence = 1 - (1 - CONFIDENCE) / family_size
     result = {"status": "available", "pairs": len(baseline_profiles), "regions": {},
-              "counters": {}, "reference_regions": [], "share_based_speedup": None}
+              "counters": {}, "reference_regions": [], "share_based_speedup": None,
+              "method": METHOD, "family_size": family_size, "confidence": confidence,
+              "adjustment": "bonferroni_over_declared_expectations",
+              "pairs_needed": min_pairs(confidence)}
     for kind in ("breakdown", "counters"):
         maps = [[_numeric_map((p or {}).get(kind)) for p in side] for side in sides]
         if not all(m is not None for side in maps for m in side):
@@ -217,13 +250,13 @@ def profile_evidence(baseline_profiles: list, candidate_profiles: list, *,
         for name in shared:
             b = [m[name] for m in maps[0]]
             c = [m[name] for m in maps[1]]
-            raw = _paired_change(b, c, resamples=resamples, seed=seed)
+            raw = _paired_change(b, c, confidence=confidence)
             entry = {"baseline_median": median(b), "candidate_median": median(c),
                      "raw": raw, "observed": raw["observed"], "basis": "raw"}
             if usable_clock and name not in reference:
                 normalized = _paired_change([v / k for v, k in zip(b, clock[0])],
                                             [v / k for v, k in zip(c, clock[1])],
-                                            resamples=resamples, seed=seed)
+                                            confidence=confidence)
                 entry.update(normalized=normalized, observed=normalized["observed"],
                              basis="normalized_to_reference_regions")
             if kind == "breakdown":
@@ -235,10 +268,9 @@ def profile_evidence(baseline_profiles: list, candidate_profiles: list, *,
             if usable_clock and min(min(side) for side in totals) > 0:
                 ratios = [(kc / tc) / (kb / tb) for kb, tb, kc, tc in zip(
                     clock[0], totals[0], clock[1], totals[1])]
-                report = {"median": median(ratios), "interval": None}
-                if len(ratios) >= MIN_PAIRS:
-                    report["interval"] = bootstrap_median_interval(
-                        ratios, resamples=resamples, seed=seed)
+                exact = median_interval(ratios)  # report-only, never judged: CONFIDENCE
+                report = {"median": median(ratios),
+                          "interval": exact["interval"] if exact else None}
                 result["share_based_speedup"] = report
     if not result["regions"] and not result["counters"]:
         return {**result, "status": "absent",
@@ -275,29 +307,45 @@ def validate_mechanism(document) -> dict:
     return document
 
 
+def _check_outcome(expected: str, observed: str) -> str:
+    if observed not in ("decrease", "increase", "no_clear_change"):
+        return "unverifiable"
+    if expected == "unchanged":
+        # Only "no detected change": without an equivalence margin this never proves
+        # that the value stayed the same, so it is reported as not contradicted.
+        return "not_contradicted" if observed == "no_clear_change" else "contradicted"
+    if observed == expected:
+        return "confirmed"
+    return "not_shown" if observed == "no_clear_change" else "contradicted"
+
+
 def explain(mechanism: dict | None, evidence: dict) -> dict:
-    """Check a declared mechanism against observed profile evidence, without judging prose."""
+    """Check a declared mechanism against observed profile evidence, without judging prose.
+
+    ``explained`` needs every predicted change confirmed and no declared-unchanged item
+    contradicted, with the evidence adjusted for at least as many expectations as were
+    declared. A declared-unchanged item is never confirmed, only not contradicted.
+    """
     if mechanism is None:
         return {"status": "not_declared"}
-    checks, missing = [], False
+    checks = []
     for item in mechanism["expect"]:
         kind = "region" if "region" in item else "counter"
         table = evidence.get("regions" if kind == "region" else "counters") or {}
-        observed = table.get(item[kind], {}).get("observed")
-        if observed in (None, "insufficient_pairs", "undefined"):
-            missing = True
+        observed = table.get(item[kind], {}).get("observed") or "missing"
         checks.append({"kind": kind, "name": item[kind], "expected": item["direction"],
-                       "observed": observed or "missing"})
-    report = {"mechanism": mechanism["mechanism"], "checks": checks}
-    if any(c["expected"] in ("decrease", "increase") and c["observed"] in ("decrease", "increase")
-           and c["observed"] != c["expected"] for c in checks) or any(
-            c["expected"] == "unchanged" and c["observed"] in ("decrease", "increase")
-            for c in checks):
+                       "observed": observed,
+                       "outcome": _check_outcome(item["direction"], observed)})
+    report = {"mechanism": mechanism["mechanism"], "checks": checks,
+              "family_size": evidence.get("family_size"),
+              "confidence": evidence.get("confidence")}
+    outcomes = {c["outcome"] for c in checks}
+    adjusted = (type(evidence.get("family_size")) is int
+                and evidence["family_size"] >= len(checks))
+    if evidence.get("status") == "available" and adjusted and "contradicted" in outcomes:
         return {**report, "status": "contradicted"}
-    if missing or evidence.get("status") != "available":
+    if evidence.get("status") != "available" or not adjusted or "unverifiable" in outcomes:
         return {**report, "status": "unverifiable"}
-    if all(c["observed"] == c["expected"] or (c["expected"] == "unchanged"
-                                              and c["observed"] == "no_clear_change")
-           for c in checks):
-        return {**report, "status": "explained"}
-    return {**report, "status": "unsupported"}
+    if "not_shown" in outcomes:
+        return {**report, "status": "unsupported"}
+    return {**report, "status": "explained"}

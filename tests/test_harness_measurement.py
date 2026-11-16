@@ -9,16 +9,20 @@ import pytest
 
 from inferrsi.harness import optimization_session
 from inferrsi.harness.measurement import (
-    bootstrap_median_interval,
+    MIN_PAIRS,
     explain,
     gate_speedup,
+    interval_rank,
+    median_interval,
+    min_pairs,
     paired_speedups,
     paired_statistics,
     profile_evidence,
     validate_mechanism,
 )
 
-BASE = [10.0, 10.1, 9.9, 10.05, 9.95]
+BASE = [10.0, 10.1, 9.9, 10.05, 9.95, 10.02]
+GAIN = [8.0, 8.1, 7.9, 8.02, 7.98, 8.01]
 
 
 def report(baseline, candidate, *, direction="minimize", gate_pct=1.0, passed=True, **kwargs):
@@ -72,31 +76,56 @@ def test_ratio_overflow_reports_unavailable_and_stays_strict_json(baseline, cand
 
 
 def test_unreachable_minimize_gate_is_serializable_not_infinite():
-    result = report(BASE, [5.0, 5.1, 4.9, 5.02, 4.98], gate_pct=100, passed=False)
+    result = report(BASE, [v / 2 for v in GAIN], gate_pct=100, passed=False)
     assert result["gate_speedup"] is None and result["gate_relation"] == "gate_unreachable"
     assert result["agrees_with_point_gate"] is True
     json.dumps(result, allow_nan=False)
 
 
-@pytest.mark.parametrize("pairs", [2, 4])
+@pytest.mark.parametrize("pairs", [2, 5])
 def test_too_few_repetitions_report_no_interval(pairs):
-    # Below five pairs the simulated coverage of the nominal 95% interval is ~75%.
-    result = report(BASE[:pairs], [8.0, 8.1, 7.9, 8.05][:pairs])
+    # Five pairs cannot give a 95% interval: even the extreme pair errs 1/32 > 2.5%.
+    result = report(BASE[:pairs], GAIN[:pairs])
     assert result["status"] == "insufficient_pairs" and result["pairs"] == pairs
     assert result["interval"] is None and result["agrees_with_point_gate"] is None
 
 
-def test_interval_is_deterministic_for_the_recorded_seed():
-    values = [1.02, 0.99, 1.05, 1.01, 0.97, 1.03]
-    assert bootstrap_median_interval(values, seed=7) == bootstrap_median_interval(values, seed=7)
-    result = report([10.0] * 6, [10 / v for v in values])
-    assert result["seed"] == 0 and result["resamples"] == 10_000
+def tail(pairs, rank):
+    """P(Bin(pairs, 1/2) <= rank - 1): the chance the rank-th smallest exceeds the median."""
+    return sum(math.comb(pairs, k) for k in range(rank)) / 2 ** pairs
+
+
+@pytest.mark.parametrize("pairs", range(1, 41))
+def test_interval_rank_is_the_largest_exact_rank_within_two_and_a_half_percent(pairs):
+    rank = interval_rank(pairs)
+    if pairs < MIN_PAIRS:
+        assert rank is None
+        return
+    assert tail(pairs, rank) <= 0.025 < tail(pairs, rank + 1)
+    values = [float(v) for v in range(pairs)]
+    exact = median_interval(values)
+    assert exact["interval"] == [values[rank - 1], values[pairs - rank]]
+    assert exact["achieved_confidence"] == pytest.approx(1 - 2 * tail(pairs, rank))
+
+
+def test_exact_ranks_and_minimum_pairs():
+    assert MIN_PAIRS == 6 and min_pairs(0.95) == 6
+    assert [interval_rank(n) for n in (6, 7, 8, 9, 12, 13, 20)] == [1, 1, 1, 2, 3, 3, 6]
+    # Bonferroni over k expectations needs a tail of 0.025 / k on each side.
+    assert [min_pairs(1 - 0.05 / k) for k in (1, 2, 3, 4, 6, 7)] == [6, 7, 7, 8, 8, 9]
+
+
+def test_report_only_follows_whether_the_interval_decides():
+    assert report(BASE, GAIN)["report_only"] is True
+    decided = report(BASE, GAIN, decides=True)
+    assert decided["report_only"] is False
+    assert decided["method"] == "paired_median_speedup_sign_test_interval"
+    assert decided["order_statistic_rank"] == 1
+    assert decided["achieved_confidence"] == pytest.approx(1 - 2 / 64)
 
 
 def test_consistent_real_gain_is_above_gate():
-    baseline = [10.0, 10.1, 9.9, 10.05, 9.95]
-    candidate = [8.0, 8.1, 7.9, 8.02, 7.98]
-    result = report(baseline, candidate, gate_pct=5)
+    result = report(BASE, GAIN, gate_pct=5)
     low, high = result["interval"]
     assert low > result["gate_speedup"] and low <= result["median_speedup"] <= high
     assert result["gate_relation"] == "above_gate" and result["excludes_no_change"] is True
@@ -106,8 +135,8 @@ def test_consistent_real_gain_is_above_gate():
 def test_aa_noise_straddles_gate_even_when_point_estimate_clears_it():
     # A/A control: identical code, noisy alternation. Independent medians differ by
     # more than the 1% gate, so the current point gate passes; the pairs do not.
-    baseline = [10.0, 10.6, 9.6, 10.4, 9.9]
-    candidate = [9.7, 10.2, 9.8, 10.1, 9.75]
+    baseline = [10.0, 10.6, 9.6, 10.4, 9.9, 10.3]
+    candidate = [9.7, 10.2, 9.8, 10.1, 9.75, 10.35]
     assert point_gate(baseline, candidate, 1)
     result = report(baseline, candidate, gate_pct=1, passed=True)
     assert result["gate_relation"] == "straddles_gate"
@@ -136,7 +165,7 @@ def test_alternating_order_penalty_does_not_create_a_gain():
 
 
 def test_clear_regression_is_below_gate():
-    result = report(BASE, [12.0, 12.1, 11.9, 12.02, 11.98], gate_pct=1, passed=False)
+    result = report(BASE, [v * 1.5 for v in GAIN], gate_pct=1, passed=False)
     assert result["gate_relation"] == "below_gate"
     assert result["agrees_with_point_gate"] is True
 
@@ -166,20 +195,32 @@ def test_aa_simulation_paired_false_gains_stay_rare_and_below_point_gate(noise):
             baseline.append(sample())
             candidate.append(sample())
         point_false += point_gate(baseline, candidate, 1)
-        result = report(baseline, candidate, gate_pct=1, resamples=1000, seed=index)
+        result = report(baseline, candidate, gate_pct=1)
         paired_false += result["gate_relation"] == "above_gate"
     assert paired_false / campaigns <= 0.05
     assert paired_false < point_false
 
 
+@pytest.mark.parametrize("pairs", [6, 7, 10, 13])
+def test_aa_pass_rate_at_the_gate_stays_within_the_exact_bound(pairs):
+    """A/A with the true median speedup exactly at a 0% gate: PASS is a false gain.
+
+    The exact bound is the binomial tail of the chosen rank (at most 2.5%); the
+    simulated rate must not exceed it beyond Monte Carlo error. 4000 campaigns, seed 7.
+    """
+    rng = random.Random(7)
+    campaigns, passes = 4000, 0
+    for _ in range(campaigns):
+        baseline = [10.0 * math.exp(rng.gauss(0, 0.03)) for _ in range(pairs)]
+        candidate = [10.0 * math.exp(rng.gauss(0, 0.03)) for _ in range(pairs)]
+        passes += report(baseline, candidate, gate_pct=0)["gate_relation"] == "above_gate"
+    bound = tail(pairs, interval_rank(pairs))
+    assert bound <= 0.025
+    assert passes / campaigns <= bound + 3 * math.sqrt(bound * (1 - bound) / campaigns)
+
+
 def test_measurement_module_is_part_of_runtime_identity():
     assert "harness/measurement.py" in optimization_session._runtime_identity()
-
-
-@pytest.mark.parametrize("resamples", [0, -1, 1.5])
-def test_invalid_resample_count_reports_unavailable(resamples):
-    result = report(BASE, [8.0, 8.1, 7.9, 8.02, 7.98], resamples=resamples)
-    assert result["status"] == "unavailable" and result["interval"] is None
 
 
 def profiles(rows, jitter=None):
@@ -191,13 +232,14 @@ def profiles(rows, jitter=None):
 
 STEP_B = {"breakdown": {"gemm": 6.0, "norm": 2.0}, "counters": {"launches": 12, "bytes": 900}}
 STEP_C = {"breakdown": {"gemm": 6.0, "norm": 1.0}, "counters": {"launches": 8, "bytes": 900}}
-JITTER_B = [1.0, 1.08, 0.93, 1.05, 0.97]
-JITTER_C = [1.06, 0.94, 1.02, 0.95, 1.09]
+JITTER_B = [1.0, 1.08, 0.93, 1.05, 0.97, 1.03, 0.96, 1.01]
+JITTER_C = [1.06, 0.94, 1.02, 0.95, 1.09, 0.98, 1.04, 0.99]
+N = len(JITTER_B)  # eight pairs: enough for Bonferroni over up to six expectations
 
 
 def test_reference_regions_cancel_device_wide_jitter():
-    evidence = profile_evidence(profiles([STEP_B] * 5, JITTER_B),
-                                profiles([STEP_C] * 5, JITTER_C), reference_regions=["gemm"])
+    evidence = profile_evidence(profiles([STEP_B] * N, JITTER_B),
+                                profiles([STEP_C] * N, JITTER_C), reference_regions=["gemm"])
     assert evidence["status"] == "available" and evidence["reference_regions"] == ["gemm"]
     norm = evidence["regions"]["norm"]
     assert norm["basis"] == "normalized_to_reference_regions"
@@ -208,7 +250,7 @@ def test_reference_regions_cancel_device_wide_jitter():
     assert evidence["counters"]["launches"]["observed"] == "decrease"
     assert evidence["counters"]["bytes"]["observed"] == "no_clear_change"
     # Without a reference the same region is only compared raw, jitter included.
-    raw = profile_evidence(profiles([STEP_B] * 5, JITTER_B), profiles([STEP_C] * 5, JITTER_C))
+    raw = profile_evidence(profiles([STEP_B] * N, JITTER_B), profiles([STEP_C] * N, JITTER_C))
     assert raw["regions"]["norm"]["basis"] == "raw" and raw["share_based_speedup"] is None
 
 
@@ -236,10 +278,52 @@ MECHANISM = {"mechanism": "Fuse the norm into the GEMM epilogue",
 def test_explain_classifies_declared_mechanisms(expect, status):
     mechanism = validate_mechanism({"mechanism": "m", "expect": expect})
     reference = [e["region"] for e in expect if "region" in e and e["direction"] == "unchanged"]
-    evidence = profile_evidence(profiles([STEP_B] * 5, JITTER_B),
-                                profiles([STEP_C] * 5, JITTER_C), reference_regions=reference)
+    evidence = profile_evidence(profiles([STEP_B] * N, JITTER_B),
+                                profiles([STEP_C] * N, JITTER_C), reference_regions=reference,
+                                family_size=len(expect))
+    assert evidence["confidence"] == pytest.approx(1 - 0.05 / len(expect))
     assert explain(mechanism, evidence)["status"] == status
     assert explain(None, evidence) == {"status": "not_declared"}
+
+
+def test_unchanged_is_reported_as_not_contradicted_never_confirmed():
+    mechanism = validate_mechanism(MECHANISM)
+    evidence = profile_evidence(profiles([STEP_B] * N, JITTER_B),
+                                profiles([STEP_C] * N, JITTER_C), reference_regions=["gemm"],
+                                family_size=3)
+    result = explain(mechanism, evidence)
+    assert result["status"] == "explained" and result["family_size"] == 3
+    assert [c["outcome"] for c in result["checks"]] == [
+        "confirmed", "not_contradicted", "confirmed"]
+
+
+@pytest.mark.parametrize("pairs,family,status", [
+    (6, 1, "explained"),       # 95%: rank 1 exists at six pairs
+    (6, 2, "unverifiable"),    # 97.5% needs seven pairs
+    (7, 2, "explained"),
+    (7, 4, "unverifiable"),    # 98.75% needs eight pairs
+    (8, 4, "explained"),
+])
+def test_bonferroni_family_sets_the_pairs_needed(pairs, family, status):
+    expect = [{"counter": "launches", "direction": "decrease"}] + [
+        {"counter": f"same{k}", "direction": "unchanged"} for k in range(family - 1)]
+    rows = [{"breakdown": {"x": 1.0},
+             "counters": {"launches": 12, **{f"same{k}": 5 for k in range(family - 1)}}}]
+    cand = [{"breakdown": {"x": 1.0},
+             "counters": {"launches": 8, **{f"same{k}": 5 for k in range(family - 1)}}}]
+    evidence = profile_evidence(rows * pairs, cand * pairs, family_size=family)
+    assert evidence["pairs_needed"] == min_pairs(1 - 0.05 / family)
+    mechanism = validate_mechanism({"mechanism": "m", "expect": expect})
+    assert explain(mechanism, evidence)["status"] == status
+
+
+def test_evidence_adjusted_for_fewer_expectations_is_not_trusted():
+    mechanism = validate_mechanism(MECHANISM)
+    evidence = profile_evidence(profiles([STEP_B] * N, JITTER_B),
+                                profiles([STEP_C] * N, JITTER_C), reference_regions=["gemm"])
+    assert evidence["family_size"] == 1
+    assert explain(mechanism, evidence)["status"] == "unverifiable"
+    assert profile_evidence([STEP_B], [STEP_C], family_size=0)["status"] == "unavailable"
 
 
 @pytest.mark.parametrize("document", [
@@ -258,8 +342,8 @@ def test_invalid_mechanisms_are_rejected(document):
 def test_zero_baseline_counter_is_undefined_not_decisive():
     one = profile_evidence([{"counters": {"new_work": 0}}], [{"counters": {"new_work": 1}}])
     assert one["counters"]["new_work"]["observed"] == "insufficient_pairs"
-    mixed = profile_evidence([{"counters": {"w": v}} for v in (0, 100, 100, 100, 100)],
-                             [{"counters": {"w": v}} for v in (1, 50, 50, 50, 50)])
+    mixed = profile_evidence([{"counters": {"w": v}} for v in (0, 100, 100, 100, 100, 100)],
+                             [{"counters": {"w": v}} for v in (1, 50, 50, 50, 50, 50)])
     assert mixed["counters"]["w"]["observed"] == "undefined"
     mechanism = validate_mechanism({"mechanism": "m", "expect": [
         {"counter": "w", "direction": "increase"}]})
@@ -267,17 +351,17 @@ def test_zero_baseline_counter_is_undefined_not_decisive():
 
 
 def test_all_zero_candidate_breakdown_is_reported_not_raised():
-    evidence = profile_evidence([{"breakdown": {"only": 2.0}}] * 5,
-                                [{"breakdown": {"only": 0.0}}] * 5)
+    evidence = profile_evidence([{"breakdown": {"only": 2.0}}] * 6,
+                                [{"breakdown": {"only": 0.0}}] * 6)
     assert evidence["status"] == "available"
     assert evidence["regions"]["only"]["candidate_share"] is None
     assert evidence["regions"]["only"]["observed"] == "decrease"
 
 
 def test_references_are_checked_raw_never_against_each_other():
-    base = [{"breakdown": {"r1": 2.0, "r2": 2.0, "t": 2.0}}] * 5
-    cand = [{"breakdown": {"r1": 1.0, "r2": 1.0, "t": 0.5}}] * 5
-    evidence = profile_evidence(base, cand, reference_regions=["r1", "r2"])
+    base = [{"breakdown": {"r1": 2.0, "r2": 2.0, "t": 2.0}}] * 7
+    cand = [{"breakdown": {"r1": 1.0, "r2": 1.0, "t": 0.5}}] * 7
+    evidence = profile_evidence(base, cand, reference_regions=["r1", "r2"], family_size=3)
     assert evidence["regions"]["r1"]["basis"] == "raw"
     assert evidence["regions"]["r1"]["observed"] == "decrease"
     mechanism = validate_mechanism({"mechanism": "m", "expect": [

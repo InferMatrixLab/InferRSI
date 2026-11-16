@@ -48,7 +48,7 @@ def project(tmp_path):
     return repo, protocol, instructions, tmp_path / "campaign"
 
 
-def start(project, capsys, *extra, repetitions=5):
+def start(project, capsys, *extra, repetitions=8):
     repo, protocol, instructions, root = project
     code = main([
         "campaign", "start", "--directory", str(root), "--repo", str(repo),
@@ -150,12 +150,15 @@ def test_explanation_is_report_only_without_the_switch(project, capsys):
     assert assessment["require_explanation"] is False
 
 
-def test_paired_decision_fails_within_noise_without_blocking(project, capsys):
+def test_paired_decision_is_inconclusive_within_noise_without_blocking(project, capsys):
     assert start(project, capsys, "--decision", "paired") == 0
     nominal = {**BASELINE, "metric": 9.85}  # 1.5% nominal gain inside ±6% device jitter
     assessment = submit(project, capsys, nominal)
     assert assessment["paired_statistics"]["gate_relation"] == "straddles_gate"
-    assert assessment["verdict"] == "FAIL" and assessment["reason"] == "within_noise"
+    # Not shown to pass is not evidence that the gate was missed: INCONCLUSIVE, not FAIL.
+    assert assessment["verdict"] == "INCONCLUSIVE" and assessment["reason"] == "within_noise"
+    assert assessment["eligible"] is False
+    assert assessment["paired_statistics"]["report_only"] is False
     _, state, _ = read_records(project[3])
     assert state["state"] == "active" and state["best"]["kind"] == "baseline"
     assessment = submit(project, capsys, FUSED)
@@ -164,13 +167,16 @@ def test_paired_decision_fails_within_noise_without_blocking(project, capsys):
 
 
 @pytest.mark.parametrize("config,mechanism,verdict,reason,status", [
-    # The paired gate fails first; an unverifiable explanation does not turn it into
-    # INCONCLUSIVE, because the explanation switch only acts on a performance PASS.
+    # The paired gate is not met first; the explanation switch only acts on a
+    # performance PASS, so the paired outcome and its reason are kept.
     ({**BASELINE, "metric": 9.85}, {"mechanism": "Names a counter never measured",
                                     "expect": [{"counter": "l2_hit_rate",
                                                 "direction": "increase"}]},
-     "FAIL", "within_noise", "unverifiable"),
-    ({**BASELINE, "metric": 9.85}, None, "FAIL", "within_noise", "not_declared"),
+     "INCONCLUSIVE", "within_noise", "unverifiable"),
+    ({**BASELINE, "metric": 9.85}, None, "INCONCLUSIVE", "within_noise", "not_declared"),
+    ({**BASELINE, "metric": 12.0}, {"mechanism": "Claims the norm got slower", "expect": [
+        {"region": "norm", "direction": "increase"}]},
+     "FAIL", "performance_gate_not_met", "unsupported"),  # below the gate stays FAIL
     # A paired PASS is still downgraded by the explanation switch.
     (FUSED, None, "INCONCLUSIVE", "explanation_not_declared", "not_declared"),
     (FUSED, {"mechanism": "Claims the norm got slower", "expect": [
@@ -223,9 +229,11 @@ def test_paired_decision_passes_when_only_the_point_estimate_misses_the_gate(
     assert assessment["reason"] == "paired_interval_above_gate"
 
 
-def test_paired_decision_requires_enough_repetitions(project, capsys):
+@pytest.mark.parametrize("repetitions", [3, 5])
+def test_paired_decision_requires_enough_repetitions(project, capsys, repetitions):
+    # Five pairs cannot give an exact 95% interval; six is the minimum.
     with pytest.raises(SystemExit):
-        start(project, capsys, "--decision", "paired", repetitions=3)
+        start(project, capsys, "--decision", "paired", repetitions=repetitions)
 
 
 def test_invalid_mechanism_is_rejected_before_execution(project, capsys):

@@ -7,16 +7,20 @@ separated:
 * point_rule        current project.assess: ratio of independent medians >= gate
 * paired_point      median of per-repetition speedups >= gate, no interval
 * unpaired_interval percentile bootstrap of the ratio of independently resampled
-                    medians; lower bound > gate
-* paired_interval   harness.measurement.paired_statistics: above_gate
+                    medians; lower bound > gate (a comparison rule, not used by the harness)
+* paired_interval   harness.measurement.paired_statistics: above_gate, using the exact
+                    order-statistic (sign-test) interval
 
-The data seed generates samples; the paired interval uses the production
-bootstrap configuration (RESAMPLES, SEED) unless overridden. Coverage is the
-fraction of campaigns whose paired bootstrap interval contains the true median
-speedup (computed even below MIN_PAIRS, where the harness reports no interval),
-which equals the configured true speedup under this symmetric noise model.
+The data seed generates samples. Coverage is the fraction of campaigns whose exact
+paired interval contains the true median speedup, which equals the configured true
+speedup under this symmetric noise model; it is null below MIN_PAIRS, where no
+interval exists. ``exact_one_sided_bound`` is the binomial tail of the chosen rank:
+the largest probability that the interval's lower bound exceeds the true median,
+so it bounds the paired PASS rate when the true speedup equals the gate. Use
+``--gate-pct 0`` for that A/A case.
 
-    python tools/measurement_simulation.py            # production bootstrap config
+    python tools/measurement_simulation.py                      # gate 1%
+    python tools/measurement_simulation.py --gate-pct 0         # A/A at the gate
     python tools/measurement_simulation.py --resamples 1000 --campaigns 100   # quick
 """
 
@@ -28,14 +32,12 @@ from statistics import median
 
 from inferrsi.harness.measurement import (
     MIN_PAIRS,
-    RESAMPLES,
-    SEED,
-    bootstrap_median_interval,
     gate_speedup,
+    median_interval,
     paired_statistics,
 )
 
-REPETITIONS = (3, 5, 10, 20)
+REPETITIONS = (3, 5, 6, 7, 10, 13, 20)
 TRUE_SPEEDUPS = (1.0, 1.01, 1.03, 1.05, 1.10)
 NOISES = ("lognormal", "heavy_tail")
 
@@ -65,8 +67,7 @@ def unpaired_lower_bound(baseline, candidate, rng, resamples):
     return ratios[int(0.025 * (resamples - 1))]
 
 
-def rates(*, repetitions, true_speedup, noise, gate_pct, campaigns, data_seed, resamples,
-          bootstrap_seed):
+def rates(*, repetitions, true_speedup, noise, gate_pct, campaigns, data_seed, resamples):
     rng = random.Random(f"{data_seed}-{noise}-{repetitions}-{true_speedup}")
     unpaired_rng = random.Random(f"unpaired-{data_seed}")
     gate = gate_speedup(gate_pct, "minimize")
@@ -83,17 +84,22 @@ def rates(*, repetitions, true_speedup, noise, gate_pct, campaigns, data_seed, r
             unpaired_lower_bound(baseline, candidate, unpaired_rng, resamples) > gate
         )
         result = paired_statistics(baseline, candidate, direction="minimize",
-                                   min_improvement_pct=gate_pct, point_gate_passed=True,
-                                   resamples=resamples, seed=bootstrap_seed)
-        # Coverage is computed for every repetition count, including those below
-        # MIN_PAIRS where the harness deliberately reports no interval.
-        low, high = bootstrap_median_interval(pairs, resamples=resamples, seed=bootstrap_seed)
-        counts["covered"] += low <= true_speedup <= high
-        widths.append(high / low)
+                                   min_improvement_pct=gate_pct, point_gate_passed=True)
+        exact = median_interval(pairs)
+        if exact is not None:
+            low, high = exact["interval"]
+            counts["covered"] += low <= true_speedup <= high
+            widths.append(high / low)
         counts["paired_interval"] += result.get("gate_relation") == "above_gate"
+    exact = median_interval(list(range(repetitions)))
     row = {"noise": noise, "repetitions": repetitions, "true_speedup": true_speedup,
-           "harness_reports_interval": repetitions >= MIN_PAIRS}
+           "harness_reports_interval": repetitions >= MIN_PAIRS,
+           "exact_one_sided_bound": (round((1 - exact["achieved_confidence"]) / 2, 6)
+                                     if exact else None)}
     for name, count in counts.items():
+        if name == "covered" and exact is None:
+            row[name] = None
+            continue
         p = count / campaigns
         row[name] = {"rate": round(p, 4),
                      "monte_carlo_se": round(math.sqrt(p * (1 - p) / campaigns), 4)}
@@ -106,12 +112,12 @@ def main():
     parser.add_argument("--campaigns", type=int, default=200)
     parser.add_argument("--gate-pct", type=float, default=1.0)
     parser.add_argument("--data-seed", type=int, default=20261115)
-    parser.add_argument("--resamples", type=int, default=RESAMPLES)
-    parser.add_argument("--bootstrap-seed", type=int, default=SEED)
+    parser.add_argument("--resamples", type=int, default=10_000,
+                        help="bootstrap resamples for the unpaired comparison rule only")
     args = parser.parse_args()
     rows = [rates(repetitions=r, true_speedup=t, noise=n, gate_pct=args.gate_pct,
                   campaigns=args.campaigns, data_seed=args.data_seed,
-                  resamples=args.resamples, bootstrap_seed=args.bootstrap_seed)
+                  resamples=args.resamples)
             for n in NOISES for r in REPETITIONS for t in TRUE_SPEEDUPS]
     print(json.dumps({"settings": vars(args), "rows": rows}, indent=2))
 

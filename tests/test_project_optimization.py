@@ -549,14 +549,14 @@ def test_final_reserve_blocks_search_but_allows_final(project, capsys, monkeypat
 def test_assessment_reports_paired_statistics_without_changing_the_verdict(
     project, capsys, direction, value,
 ):
-    start(project, capsys, direction=direction, extra=("--repetitions", "5"))
+    start(project, capsys, direction=direction, extra=("--repetitions", "6"))
     code, result = submit(project, capsys, value)
     assert code == 0 and result["best"]["kind"] == "candidate"
     assessment = result["latest_observation"]["assessment"]
     assert assessment["verdict"] == "PASS" and assessment["speedup"] == 2
     assert assessment["statistical_significance"] == "not_established"
     paired = assessment["paired_statistics"]
-    assert paired["report_only"] is True and paired["pairs"] == 5
+    assert paired["report_only"] is True and paired["pairs"] == 6
     assert paired["status"] == "available"
     assert paired["interval"] == pytest.approx([2.0, 2.0])
     assert paired["gate_relation"] == "above_gate"
@@ -573,7 +573,7 @@ def test_assessment_reports_paired_statistics_without_changing_the_verdict(
 def test_unreachable_gate_keeps_the_original_fail_and_strict_json_records(project, capsys):
     # A minimize gate of 100% has no finite speedup; the report must not block the FAIL.
     start(project, capsys, direction="minimize",
-          extra=("--repetitions", "5", "--min-improvement-pct", "100"))
+          extra=("--repetitions", "6", "--min-improvement-pct", "100"))
     code, result = submit(project, capsys, 5)
     assert code == 0 and result["best"]["kind"] == "baseline"
     assessment = result["latest_observation"]["assessment"]
