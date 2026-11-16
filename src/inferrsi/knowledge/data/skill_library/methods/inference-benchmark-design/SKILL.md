@@ -1,6 +1,6 @@
 ---
 name: inference-benchmark-design
-description: 'Select task quality gates, reference parity checks and performance workloads for text, agentic coding, work agents, cache-aware ASR, TTS, full-duplex audio/video, image and video inference. Covers AIPerf AgentX/Exgentic replay, vLLM/SGLang benchmark boundaries, SLO-aware metrics and InferRSI integration.'
+description: 'Select task quality gates, reference parity checks and performance workloads for text, agentic coding, work agents, cache-aware ASR, TTS, full-duplex audio/video, image, video and VLA inference. Covers AIPerf AgentX/Exgentic replay, vLLM/SGLang benchmark boundaries, VLA action-chunk timing and quality, SLO-aware metrics and InferRSI integration.'
 ---
 
 # Inference Benchmark Design
@@ -29,6 +29,13 @@ read [dependency-aware TTS playout](references/dependency-aware-tts-playout.md).
 It traces server PCM credit, client playback events, independent batching work
 and partial pipeline costs at one pinned source; it adds no hardware coverage,
 runtime or locally reproduced quality/performance result.
+
+For VLA and robot deployment comparisons, read
+[observation-to-action timing and closed-loop quality](references/embodied-cpp-boundary-and-quality.md).
+Define the complete CPU-action boundary, distinguish generated and replayed
+horizons from the control clock, and reconcile per-task quality, precision and
+the measured source revision. Freeze latency/jitter and quality objectives for
+the actual control use case; per-generated-action cost is amortization.
 
 For treatment-enabled tuning comparisons or claimed protocol integrity, read
 [treatment delivery and trial validity](references/autotunebench-trial-validity.md).

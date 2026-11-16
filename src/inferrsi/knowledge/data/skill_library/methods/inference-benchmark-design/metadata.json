@@ -24,7 +24,11 @@
     "candidate-selection",
     "accepted-prefix",
     "state-restoration",
-    "completion-accounting"
+    "completion-accounting",
+    "vla",
+    "embodied",
+    "action-chunks",
+    "closed-loop"
   ],
   "status": "candidate",
   "profile": "local-skill-v1",
@@ -371,14 +375,53 @@
       "readset": "references/faster-cosyvoice-source.json",
       "license": "UNKNOWN overall; selected file-level Apache-2.0 headers and unresolved inherited attribution retained",
       "scope": "Selected PCM/playout, routed-credit, chunk-dependency and timing-denominator source audit; original analysis and immutable links only, no code/media copying or native/model/quality/service execution"
+    },
+    {
+      "type": "git",
+      "url": "https://github.com/SEU-PAISys/Embodied.cpp",
+      "commit": "156bed151826780e2ce0132f8d0e3540889ae8cd",
+      "paths": [
+        "adapter/typed_io.py",
+        "eval/client/libero_profile.py",
+        "eval/client/vla_cpp_client.py",
+        "eval/conf/libero_smolvla_object_q8_eval.yaml",
+        "eval/README.md",
+        "eval/smolvla_q8_fixed_boundary_20261002.json",
+        "eval/smolvla_q8_object_followup_20260930.md",
+        "eval/SMOLVLA_VALIDATION.md",
+        "eval/THREE_MODEL_VALIDATION.md",
+        "eval/VLA_BENCHMARK_STANDARD.md",
+        "LICENSE",
+        "README.md",
+        "scripts/aggregate_smolvla_object_eval.py",
+        "scripts/bench_vla_boundary.py",
+        "scripts/profile_smolvla_python_baseline.py",
+        "serving/vla-server.cpp",
+        "serving/vla.proto"
+      ],
+      "readset": "references/embodied-cpp-source.json",
+      "license": "Apache-2.0",
+      "scope": "Selected CPU observation-to-action benchmark, client/profiler/aggregation and author artifact contracts; source-derived methodology, not native execution or quality/performance acceptance"
+    },
+    {
+      "type": "paper",
+      "id": "arxiv:2607.02501",
+      "version": "v3",
+      "url": "https://arxiv.org/abs/2607.02501v3",
+      "sections": [
+        "4 (VLA discussion and Table 3)"
+      ],
+      "readset": "references/embodied-cpp-source.json",
+      "license": "CC-BY-4.0",
+      "scope": "Independently normalized VLA metric semantics; predates the later SmolVLA experiment"
     }
   ],
   "empirical_validation": "not_run",
   "applicability": {
-    "scope": "Selecting task quality gates, reference parity checks and performance workloads for text, agentic coding, work agents, cache-aware ASR, TTS, full-duplex audio/video, image and video inference, and designing goodput-based multi-regime comparisons that fit InferRSI's evidence trail; interpreting treatment delivery, arm validity and stated-versus-observed protocol enforcement in supplied tuning reports; interpreting source-bound kernel trial origin, host evaluator outcomes, unresolved performance and measured-only versus manual candidate selection; designing and interpreting the selected NInfer hybrid speculative state-restoration and completion validation contract",
-    "prerequisites": "The primary objective, timing boundary, quality gates, sample/failure accounting, required regimes, repetitions, seeds and decision rule are frozen before optimization; baseline and candidate share hardware, software stack, input distribution, benchmark configuration, warmup and measurement protocol, and on a shared machine also one time window and dedicated devices; cache-aware ASR also requires the selected model/config and first/steady geometry, decoded clock and reset/EOU/EOF boundaries to be established",
-    "input_contract": "The task family and deployment use case; candidate quality evaluators and reference parity; the declared SLO and the caller's policy on which regimes must improve or must not regress; for an audit, a supplied fixed-workload report with request-to-trial grouping, exclusion and failure counts and the declared aggregation rule; for a treatment audit, the frozen delivery/arm-validity rules, run/candidate identities, feedback and consumer-input evidence, and per-arm raw records; for a kernel trial audit, complete saved candidate bytes and IDs, baseline/spec/reference/variant identities, result-origin fields, raw host outcome and return code, named gate and persisted ratio, actual oracle and the selecting/delivering caller; for the NInfer slice, a complete checkpoint/frontier identity, physical verify-block/state oracle, final adopted extents and correlated execution/termination records",
-    "produced_artifact": "A frozen benchmark design with evaluators, reference parity, primary objective, timing boundary, quality gates, required regimes, repetition and seed rules and an explicit decision config, plus the evidence-tree layout a PASS claim must produce; for a supplied report, the computed threshold result and missing evidence. Candidate knowledge, not qualification of any model or backend; for a treatment audit, a contract-bound eligibility and interpretation report separating treatment exposure, observed checks, comparator identity, anomaly disposition and source conflicts; for a kernel trial audit, a source-bound interpretation separating artifact/cohort identity, origin, oracle, performance resolution and selected-versus-delivered eligibility, without promoting kernel parity into a gain or whole-model acceptance; for the NInfer slice, a source-bound validation plan or report interpretation that separates state-oracle evidence, final adoption, retirement and workload denominators",
+    "scope": "Selecting task quality gates, reference parity checks and performance workloads for text, agentic coding, work agents, cache-aware ASR, TTS, full-duplex audio/video, image and video inference, and designing goodput-based multi-regime comparisons that fit InferRSI's evidence trail; interpreting treatment delivery, arm validity and stated-versus-observed protocol enforcement in supplied tuning reports; interpreting source-bound kernel trial origin, host evaluator outcomes, unresolved performance and measured-only versus manual candidate selection; designing and interpreting the selected NInfer hybrid speculative state-restoration and completion validation contract; designing or auditing VLA deployment comparisons with explicit observation-to-action boundaries, generated/replayed horizons, per-task quality and source/precision identity",
+    "prerequisites": "The primary objective, timing boundary, quality gates, sample/failure accounting, required regimes, repetitions, seeds and decision rule are frozen before optimization; baseline and candidate share hardware, software stack, input distribution, benchmark configuration, warmup and measurement protocol, and on a shared machine also one time window and dedicated devices; cache-aware ASR also requires the selected model/config and first/steady geometry, decoded clock and reset/EOU/EOF boundaries to be established; VLA comparisons also freeze generated/replayed horizons, initial-state/noise protocol and intended precision or quantization treatment",
+    "input_contract": "The task family and deployment use case; candidate quality evaluators and reference parity; the declared SLO and the caller's policy on which regimes must improve or must not regress; for an audit, a supplied fixed-workload report with request-to-trial grouping, exclusion and failure counts and the declared aggregation rule; for a treatment audit, the frozen delivery/arm-validity rules, run/candidate identities, feedback and consumer-input evidence, and per-arm raw records; for a kernel trial audit, complete saved candidate bytes and IDs, baseline/spec/reference/variant identities, result-origin fields, raw host outcome and return code, named gate and persisted ratio, actual oracle and the selecting/delivering caller; for the NInfer slice, a complete checkpoint/frontier identity, physical verify-block/state oracle, final adopted extents and correlated execution/termination records; for VLA audits, the declared CPU input/output boundary, source/fixture/checkpoint/processor identities, per-task trial scope and available raw records or explicit artifact gaps",
+    "produced_artifact": "A frozen benchmark design with evaluators, reference parity, primary objective, timing boundary, quality gates, required regimes, repetition and seed rules and an explicit decision config, plus the evidence-tree layout a PASS claim must produce; for a supplied report, the computed threshold result and missing evidence. Candidate knowledge, not qualification of any model or backend; for a treatment audit, a contract-bound eligibility and interpretation report separating treatment exposure, observed checks, comparator identity, anomaly disposition and source conflicts; for a kernel trial audit, a source-bound interpretation separating artifact/cohort identity, origin, oracle, performance resolution and selected-versus-delivered eligibility, without promoting kernel parity into a gain or whole-model acceptance; for the NInfer slice, a source-bound validation plan or report interpretation that separates state-oracle evidence, final adoption, retirement and workload denominators; for VLA reports, a timing/denominator and precision reconciliation with per-task quality/completion accounting and source-artifact limits",
     "failure_modes": [
       "Raw throughput is optimized in place of goodput, so requests served outside the SLO count toward a win",
       "One concurrency level or one undisclosed aggregate score stands in for all required regimes",
@@ -395,9 +438,14 @@
       "A displayed/manual best, baseline copy or edited candidate is reported as the eligible measured delivery",
       "Ratio omission alone is assumed to clear an earlier ratio, or baseline agreement is treated as independent semantic correctness",
       "Zero accepted drafts is treated as zero adopted input, or a matching token prefix is used to splice unrelated State and KV checkpoints",
-      "ResultReady or a commit receipt is treated as DeviceRetired, or selected full-batch intervals are compared with complete-cohort rates under one unlabeled denominator"
+      "ResultReady or a commit receipt is treated as DeviceRetired, or selected full-batch intervals are compared with complete-cohort rates under one unlabeled denominator",
+      "Generated-action amortization is read as action-response latency or actual control frequency",
+      "Matching structural pair fields are taken to certify matched effective compute precision or quality equivalence",
+      "An aggregate VLA success rate conceals task-specific losses or missing/skipped episodes",
+      "A public current script, recorded experiment revision or binary hash is treated as the exact measured dirty source patch",
+      "Whole-device fallback memory is relabelled as process-attributed memory or compared with simulator-inclusive/allocator quantities"
     ],
-    "refusal_point": "Records missing coverage and high-variance results as INCONCLUSIVE rather than a win; a run without a frozen RunSpec, or whose validator changed after the plan was frozen, is INCONCLUSIVE regardless of metric values; sets no universal numeric gate or noise threshold; withholds causal treatment benefit/null conclusions when required delivery or arm eligibility is unverified, and preserves conflicts between stated protocol, exported code and source reports; withholds a kernel gain for unresolved performance or an unbound comparison and identifies missing independent semantic evidence when only baseline agreement is available; withholds native state-correctness and cancellation/reuse conclusions when the required same-block oracle, checkpoint identity or matching receipt is missing"
+    "refusal_point": "Records missing coverage and high-variance results as INCONCLUSIVE rather than a win; a run without a frozen RunSpec, or whose validator changed after the plan was frozen, is INCONCLUSIVE regardless of metric values; sets no universal numeric gate or noise threshold; withholds causal treatment benefit/null conclusions when required delivery or arm eligibility is unverified, and preserves conflicts between stated protocol, exported code and source reports; withholds a kernel gain for unresolved performance or an unbound comparison and identifies missing independent semantic evidence when only baseline agreement is available; withholds native state-correctness and cancellation/reuse conclusions when the required same-block oracle, checkpoint identity or matching receipt is missing; withholds VLA quality-preservation, runtime-only attribution, control-rate or current-build conclusions when their required precision, per-task, timestamp or measured-source evidence is missing"
   },
   "recommendations": [
     "Freeze one primary objective, timing boundary, quality gates and sample/failure accounting before optimization.",
@@ -406,7 +454,8 @@
     "State the concurrency, trace, model, SKU and microbenchmark scope boundaries in any report that cites benchmark results.",
     "Trace treatment to its eligible consumer and apply the frozen arm-validity precedence before attributing benefit, saturation or a null.",
     "Bind the complete saved candidate and comparator cohort; keep result origin, actual oracle, named gate/ratio and delivered eligibility separate.",
-    "For hybrid speculative comparisons, freeze the coupled restore point, same-physical-block oracle, zero-draft/zero-adoption controls and complete-cohort versus steady-phase denominators before interpreting a result."
+    "For hybrid speculative comparisons, freeze the coupled restore point, same-physical-block oracle, zero-draft/zero-adoption controls and complete-cohort versus steady-phase denominators before interpreting a result.",
+    "Separate complete VLA request cost, generated/replayed action denominators and actual control cadence; retain per-task quality and measured-source/precision limits."
   ],
   "limitations": [
     "Source-derived candidate; no local efficacy validation.",
@@ -418,7 +467,8 @@
     "The AutoTuneBench reference is source-only: original operational checkpoint/prompt receipts remain unavailable, source contradictions remain explicit, and no tuning, device/performance or agent-efficacy validation was run.",
     "The Xe-Forge reference is source-only and limited to inspected host/manual/Claude trial paths; named-verdict update predicates and caller defaults remain explicit. Native tests, backend/model/quality/performance/service behavior and agent efficacy were not evaluated, and source/package checks do not promote whole-model support.",
     "The NInfer reference inspects selected Qwen3.5 GDN/MTP source contracts and unexecuted test definitions; its historical author measurements use a different engine revision. Native state/model/device/quality/performance and efficacy remain unvalidated.",
-    "The Faster CosyVoice reference is source-only: server route credit and client simulated playback remain distinct, reported costs/quality retain their boundaries, overall source rights are UNKNOWN, and native/model/device/audio quality/service/performance are not_run with efficacy not_evaluated."
+    "The Faster CosyVoice reference is source-only: server route credit and client simulated playback remain distinct, reported costs/quality retain their boundaries, overall source rights are UNKNOWN, and native/model/device/audio quality/service/performance are not_run with efficacy not_evaluated.",
+    "The Embodied.cpp reference is source-derived: its public latency arrays allow arithmetic audit, but raw episode recount, exact measured script/dirty patch, effective dispatch and current model/device/service or efficacy qualification remain unresolved."
   ],
   "provenance_readsets": [
     "references/task-benchmark-selection.md",
@@ -433,7 +483,9 @@
     "references/ninfer-state-and-completion-contracts.md",
     "references/ninfer-source.json",
     "references/dependency-aware-tts-playout.md",
-    "references/faster-cosyvoice-source.json"
+    "references/faster-cosyvoice-source.json",
+    "references/embodied-cpp-boundary-and-quality.md",
+    "references/embodied-cpp-source.json"
   ],
   "references": [
     "../inference-optimization-casebook/cases/admission-drain-occupancy.md",
