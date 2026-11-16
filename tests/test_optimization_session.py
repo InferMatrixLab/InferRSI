@@ -266,7 +266,7 @@ def test_assessor_exception_preserves_type_and_settles_failed_attempt(session, m
 
 
 def test_task_runner_does_not_expose_harness_as_top_level_modules(task, tmp_path):
-    from inferrsi.benchmark_operations import run_task
+    from inferrsi.apps.benchmark_operations import run_task
 
     output = tmp_path / "imports.json"
     (task / "benchmark.py").write_text(

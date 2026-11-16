@@ -74,21 +74,15 @@ class TargetModuleImportGateTest(unittest.TestCase):
         self.assertEqual(allowed, frozenset())
         self.assertEqual(cross_core_violations(allowed=allowed), [])
         self.assertFalse(hasattr(support, "LEGACY_RUN_FORWARDERS"))
-        # #408 A1: the CLI and its parser are apps/cli/, Apps by first path segment, so
-        # their two exact entries are gone and neither root file exists. Each listed
-        # file exists in the root, so an entry cannot outlive the file that A2 removes.
-        self.assertEqual(support.APPLICATION_ENTRIES, ("benchmark_operations.py",))
-        for entry in support.APPLICATION_ENTRIES:
-            self.assertTrue((ROOT / entry).is_file(), entry)
-        for retired in ("cli.py", "arguments.py"):
+        # #408 A1 and A2: the CLI, its parser and the task launcher are under apps/, Apps by
+        # first path segment. With the last move the exact flat-entry listing is gone, so no
+        # root file is read as Apps and none of the old root files exists.
+        self.assertFalse(hasattr(support, "APPLICATION_ENTRIES"))
+        for retired in ("cli.py", "arguments.py", "benchmark_operations.py", "summary_chart.py"):
             self.assertFalse((ROOT / retired).exists(), retired)
-        for moved in ("__init__.py", "arguments.py"):
-            self.assertTrue((ROOT / "apps" / "cli" / moved).is_file(), moved)
-        # The listing is what admits the last flat entry: without it that file fails.
-        with mock.patch.object(support, "APPLICATION_ENTRIES", ()):
-            self.assertEqual(
-                cross_core_violations(), ["benchmark_operations.py imports inferrsi.benchmark"]
-            )
+        for moved in ("cli/__init__.py", "cli/arguments.py", "benchmark_operations.py",
+                      "views/summary_chart.py"):
+            self.assertTrue((ROOT / "apps" / moved).is_file(), moved)
 
     def test_first_wave_policy_holds_on_current_tree(self) -> None:
         self.assertEqual(first_wave_report().violations, ())
@@ -107,9 +101,13 @@ class TargetModuleImportGateTest(unittest.TestCase):
                         "_repo_pack_data.py", "evidence_paths.py"):
             self.assertFalse((ROOT / retired).exists(), retired)
         # #412 R1: the eleven retired root modules are gone, with no package in their place.
+        # #408 A1 and A2 each retired two more.
         self.assertEqual(len(support.RETIRED_BY_R1), 11)
         self.assertEqual(support.RETIRED_BY_A1, {"inferrsi.cli", "inferrsi.arguments"})
-        self.assertEqual(len(support.RETIRED_ROOT_MODULES), 13)
+        self.assertEqual(
+            support.RETIRED_BY_A2, {"inferrsi.summary_chart", "inferrsi.benchmark_operations"}
+        )
+        self.assertEqual(len(support.RETIRED_ROOT_MODULES), 15)
         for module in support.RETIRED_ROOT_MODULES:
             name = module.removeprefix("inferrsi.")
             self.assertFalse((ROOT / f"{name}.py").exists(), name)
@@ -203,8 +201,11 @@ class TargetModuleImportGateTest(unittest.TestCase):
                 "apps/cli/arguments.py": "from inferrsi.knowledge import catalog\n",
                 "cli.py": "from inferrsi.apps.cli import main\n",
                 "arguments.py": "from inferrsi.knowledge import catalog\n",
-                # The listing is the exact file name: a module beside it gains nothing.
+                # No root file is listed, so a module beside an old name gains nothing.
                 "arguments_extra.py": "from inferrsi.knowledge import catalog\n",
+                # #408 A2: the task launcher is Apps by path too. The root file that held
+                # it is no longer an application entry and fails like the others.
+                "apps/benchmark_operations.py": "import inferrsi.benchmark\n",
                 "benchmark_operations.py": "import inferrsi.benchmark\n",
                 "unowned.py": "import inferrsi.benchmark\n",
             }
@@ -219,6 +220,7 @@ class TargetModuleImportGateTest(unittest.TestCase):
                 "arguments.py imports inferrsi.knowledge",
                 "arguments_extra.py imports inferrsi.knowledge",
                 "benchmark/forbidden.py imports inferrsi.harness",
+                "benchmark_operations.py imports inferrsi.benchmark",
                 "cli.py imports inferrsi.apps",
                 "harness/probe.py imports inferrsi.knowledge",
                 "knowledge/out.py imports inferrsi.harness",
@@ -236,8 +238,8 @@ class TargetModuleImportGateTest(unittest.TestCase):
         )
         self.assertEqual(support.MODULE_ENTRY, "__main__.py")
         self.assertEqual(support.MODULE_ENTRY_DELEGATION, ("inferrsi.apps.cli", "main"))
-        # It passes by its own exact rule and is never listed as an application entry.
-        self.assertNotIn(support.MODULE_ENTRY, support.APPLICATION_ENTRIES)
+        # It passes by its own exact rule; since A2 no root file is an application entry.
+        self.assertFalse(hasattr(support, "APPLICATION_ENTRIES"))
         self.assertEqual(_scan_tree({"__main__.py": entry}), [])
         self.assertEqual(_scan_tree({"__main__.py": "from inferrsi.apps.cli import main\n"}), [])
         # Positive control: without the rule the same file is refused, so the statement

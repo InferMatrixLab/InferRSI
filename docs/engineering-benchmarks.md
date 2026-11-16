@@ -57,9 +57,9 @@ and TTS entries also run directly by file path.
 
 ```text
 src/inferrsi/
-  arguments.py                     Existing CLI argument assembly
-  cli.py                           Existing command dispatch
-  benchmark_operations.py          Application child launcher and executor injection
+  apps/
+    cli/                           CLI command dispatch and argument assembly
+    benchmark_operations.py        Application child launcher and executor injection
   harness/
     optimization.py                Current-Agent session budget, records and recovery
     usage.py                       Shared usage normalization and totals

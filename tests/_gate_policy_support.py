@@ -1,4 +1,4 @@
-"""First-wave isolation gate helpers (P0b, revised through #408 A1).
+"""First-wave isolation gate helpers (P0b, revised through #408 A2).
 
 Imported by the import-gate and isolation-policy tests. This is a test
 support module, not a runtime package.
@@ -17,17 +17,17 @@ ROOT = REPO / "src" / "inferrsi"
 MANIFEST = REPO / "docs" / "legacy-knowledge-manifest.json"
 NEW_CORES = ("knowledge", "benchmark", "apps")
 CORE_NAMES = ("knowledge", "harness", "benchmark", "apps")
-# Current application seams, until the Apps package migration. These are not
-# Knowledge compatibility shells and do not grant access to other flat modules.
-# A1 (#408) moved the CLI and its parser into ``apps/cli/`` and removed their two
-# entries. That package is Apps by its first path segment, so a root ``cli.py`` or
-# ``arguments.py`` that returns is an unlisted flat module. A2 removes the last entry.
-APPLICATION_ENTRIES = ("benchmark_operations.py",)
+# No root file is application assembly. A1 (#408) moved the CLI and its parser into
+# ``apps/cli/``, and A2 (#408) moved the task launcher to ``apps/benchmark_operations.py``.
+# With that last move the ``APPLICATION_ENTRIES`` listing is gone: Apps is the
+# ``inferrsi.apps`` package by its first path segment and nothing else, so a root
+# ``cli.py``, ``arguments.py`` or ``benchmark_operations.py`` that returns is an unlisted
+# flat module.
 # #408 A1, permanent: ``python -m inferrsi`` runs root ``__main__.py``, which stays in
 # the package root and hands over to the canonical Apps CLI. The gate admits that one
 # statement and nothing wider: this exact root file, this exact target module and this
 # exact name, bound by a plain module-level ``from <target> import <name>`` line. It is
-# not an ``APPLICATION_ENTRIES`` listing, so the file is never treated as Apps. Every
+# not an application entry, so the file is never treated as Apps. Every
 # other import in it of Apps, Knowledge or Benchmark fails as in any flat module. So do
 # an alias, a second name, a star import, the target imported as a module object, a
 # module beside or below the target, and the same line below module level. No other
@@ -66,7 +66,11 @@ RETIRED_BY_R1 = frozenset(
 # #408 A1 deleted the root CLI and its parser the same way, with no forwarder or alias.
 # The implementation is ``inferrsi.apps.cli`` and ``inferrsi.apps.cli.arguments``.
 RETIRED_BY_A1 = frozenset({"inferrsi.cli", "inferrsi.arguments"})
-RETIRED_ROOT_MODULES = RETIRED_BY_R1 | RETIRED_BY_A1
+# #408 A2 deleted the root chart renderer and task launcher the same way. The
+# implementations are ``inferrsi.apps.views.summary_chart`` and
+# ``inferrsi.apps.benchmark_operations``.
+RETIRED_BY_A2 = frozenset({"inferrsi.summary_chart", "inferrsi.benchmark_operations"})
+RETIRED_ROOT_MODULES = RETIRED_BY_R1 | RETIRED_BY_A1 | RETIRED_BY_A2
 # #412 R1, permanent: the one importer of the neutral data leaf outside
 # ``inferrsi.knowledge``, with the only name it may bind (D020: Infra reads one pack
 # description and reaches no Knowledge or Harness). This is not a manifest
@@ -231,8 +235,6 @@ def cross_core_violations(
     for path in sorted(root.rglob("*.py")):
         relative = path.relative_to(root)
         importer = relative.parts[0] if len(relative.parts) > 1 else ""
-        if relative.as_posix() in APPLICATION_ENTRIES:
-            importer = "apps"
         importer_module = _module_name(relative)
         for module in _imported_modules(path, root):
             target = _core_of(module)

@@ -4,7 +4,7 @@ import json
 
 import pytest
 
-from inferrsi import benchmark_operations
+from inferrsi.apps import benchmark_operations
 from inferrsi.apps.cli import main
 from inferrsi.benchmark import registry
 

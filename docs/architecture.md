@@ -7,7 +7,7 @@ packages. `inferrsi benchmarks run <package> ...` launches the package's
 `benchmark.py`. Task-specific orchestration, sampling and assessment live inside
 each package. The task library owns its `index.json` registration. The existing
 `benchmark/registry.py` discovers the resources. The CLI package `apps/cli/`
-and the existing `benchmark_operations.py` provide application assembly and launch.
+and `apps/benchmark_operations.py` provide application assembly and launch.
 Each task retains its own protocol and task-specific code.
 
 The [current-Agent optimization session](optimization-benchmarks.md) assembles
@@ -159,7 +159,6 @@ the comparator; the engine AB/BA path retains its independent acceptance contrac
 ```text
 src/inferrsi/
   apps/cli/                  CLI entry `main` and its argument parser
-  benchmark_operations.py   Resolve a task entry and launch it through Harness
   benchmark/
     registry.py             Generic task resource discovery
     tasks/                  Task-specific definitions, workloads and assessment
@@ -171,6 +170,7 @@ src/inferrsi/
     improvement.py          Improvement-step thresholds and acceptance rules
   apps/
     api.py                  Python entry points for assembling and publishing Apps operations
+    benchmark_operations.py Resolve a task entry and launch it through Harness
     archive.py              Publish and read the standardized Apps output in a workspace
     result.py               Assemble and check the AppsResultV1 output envelope
     skill_evaluation.py     Composed bundle export, trial run and summary
@@ -189,11 +189,11 @@ src/inferrsi/
   resources/
     __init__.py             Import-free initializer
     repository_packs.py     Neutral REPO_TYPES and pack.json reader; imports no inferrsi module
-  summary_chart.py          Stdlib SVG gain chart (chain/branch) and report figure spec
   apps/
     evidence_layout.py      Create the plan/results/patch/validator evidence directories
     campaign.py             Knowledge values connected to Harness campaign records
     views/
+      summary_chart.py      Stdlib SVG gain chart (chain/branch) and report figure spec
       optimization_chart.py Managed optimization objective/token curves and final result
       dashboard.py          Offline snapshot and HTML rendering
       dashboard_data.py     Recorded run/campaign evidence into a view model
@@ -271,17 +271,19 @@ examples/                   Current Qwen runner, image validator and v4 adapter
 tests/fixtures/legacy/      Frozen historical validation dependencies for regressions
 ```
 
-The package root holds exactly eight tracked files at this stage: `__init__.py`,
-`__main__.py`, `benchmark_operations.py`, `summary_chart.py`,
-`mindie_context.py`, `mindie_mcp.py`, `mindie_project.py` and
-`_mindie_read_worker.py`. #408 A1 moved the CLI and its parser to `apps/cli/`
-and deleted root `cli.py` and `arguments.py` with no forwarding shell or alias;
+The package root holds exactly six tracked files at this stage: `__init__.py`,
+`__main__.py`, `mindie_context.py`, `mindie_mcp.py`, `mindie_project.py` and
+`_mindie_read_worker.py`. #408 A2 moved the chart renderer to
+`apps/views/summary_chart.py` and the task launcher to `apps/benchmark_operations.py`
+and deleted root `summary_chart.py` and `benchmark_operations.py` with no forwarding
+shell or alias. #408 A1 moved the CLI and its parser to `apps/cli/`
+and deleted root `cli.py` and `arguments.py` the same way;
 `__main__.py` and the console script call `inferrsi.apps.cli:main`. #412 R1 deleted eleven root modules with no
 forwarding shell or alias: the seven Knowledge shells, whose code is in
 `knowledge/`; the three old-run forwarders `evaluation.py`, `execution.py` and
 `reporting.py`, whose code is in `apps/legacy/`; and `inspection.py`, whose
 host binding is `apps/inspection.py`. The final two-file root (`__init__.py`
-and `__main__.py`) waits for the A2 (#408) and M1 (#452) moves.
+and `__main__.py`) waits for the M1 (#452) move.
 [module-layout.md](module-layout.md#retired-root-modules) maps each retired
 path to its replacement and lists what still keeps the isolation gate false.
 

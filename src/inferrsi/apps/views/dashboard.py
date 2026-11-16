@@ -11,11 +11,11 @@ from importlib.resources import files
 from pathlib import Path
 
 from inferrsi.harness.records.evidence import inside, sanitized_text
-from inferrsi.summary_chart import SpecError, build_svg
 
 from .attempt_html import render_attempt
 from .dashboard_data import _number, load_dashboard
 from .dashboard_timeline import temporal_chart
+from .summary_chart import SpecError, build_svg
 
 
 def _sanitize_spec(value: object, depth: int = 0) -> object:

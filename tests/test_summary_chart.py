@@ -6,8 +6,8 @@ from pathlib import Path
 
 import pytest
 
-from inferrsi import summary_chart
 from inferrsi.apps.legacy.reporting import write_report
+from inferrsi.apps.views import summary_chart
 
 PROJECT = Path(__file__).resolve().parents[1]
 EXAMPLES = PROJECT / "evidence" / "_template" / "results"
