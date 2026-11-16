@@ -127,10 +127,17 @@ research spikes.
 ```text
 evidence/<campaign-id>/
   plan/        Hypothesis, RunSpec, frozen gates and environment
-  results/     Raw measurements, outputs, profiler data and verdict rationale
+  results/     Metric summaries, complete trial index, archive references and rationale
   patch/       Candidate diff or exact revision pointer
   validator/   Frozen validation code, versions and inputs
 ```
+
+Follow the [archiving contract](evidence-archiving.md) and
+[bundle template](../evidence/_template/README.md). Keep large raw measurements,
+logs, profiler data and generated inventories in versioned external archives.
+The campaign's `results/artifacts.json` owns metadata; index every attempt and
+retain executable replay and comparison criteria. Existing frozen evidence is
+not rewritten to match the template.
 
 | Verdict | Meaning |
 | --- | --- |

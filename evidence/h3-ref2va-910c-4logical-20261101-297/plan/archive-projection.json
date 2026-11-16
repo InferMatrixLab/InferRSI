@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "campaign": "h3-ref2va-910c-4logical-20261101-297",
+  "configuration": [
+    "plan/execution-checkpoint.json",
+    "plan/frozen-lossless-contract-v1.json",
+    "plan/frozen-lossy-contract-v1.json"
+  ],
+  "integrity_manifests": [
+    "results/publication-integrity.json",
+    "validator/frozen-snapshots.json"
+  ],
+  "verdict": {
+    "path": "plan/execution-checkpoint.json",
+    "pointer": "/campaign_verdict"
+  },
+  "metrics": [
+    {
+      "name": "c1-clean-5s-baseline",
+      "path": "results/c1-clean-5s-screening.json",
+      "pointer": "/arms/baseline/samples_ms",
+      "unit": "ms",
+      "scope": "One fresh-server screening pair, 2 warmups and 3 timed requests per arm; not final"
+    },
+    {
+      "name": "c1-clean-5s-candidate",
+      "path": "results/c1-clean-5s-screening.json",
+      "pointer": "/arms/candidate/samples_ms",
+      "unit": "ms",
+      "scope": "One fresh-server screening pair, 2 warmups and 3 timed requests per arm; not final"
+    }
+  ],
+  "recorded_results": [
+    {
+      "path": "plan/execution-checkpoint.json",
+      "pointer": "/acceptance"
+    },
+    {
+      "path": "results/c1-clean-5s-screening.json",
+      "pointer": "/native_verdict"
+    },
+    {
+      "path": "results/c1-clean-5s-screening.json",
+      "pointer": "/gain_attribution_limit"
+    },
+    {
+      "path": "results/c23-5s-00-execution-proof.json",
+      "pointer": "/quality_verdict"
+    },
+    {
+      "path": "results/c23-5s-00-execution-proof.json",
+      "pointer": "/failures"
+    },
+    {
+      "path": "results/c12-through-c23-execution-checkpoint.json",
+      "pointer": "/decisions"
+    }
+  ],
+  "limitations": [
+    "Campaign acceptance remains INCONCLUSIVE; this is a storage-only projection.",
+    "The index covers all published result JSON documents and their named/nested attempt observations, not unpublished controller history.",
+    "Repeated identical observations of one named attempt are merged with every source pointer retained. Changed observations and anonymous records remain distinct.",
+    "Record/index entry counts are not independent trial counts. Text-only history and per-request traces remain in the byte-preserved original archive.",
+    "Only declared sample distributions are recomputed. Other retained results are explicitly reported frozen values, not independently requalified quality or statistics.",
+    "Original private models, media, raw receipts and runtime records were not published; archiving does not restore them or complete outstanding acceptance."
+  ]
+}
