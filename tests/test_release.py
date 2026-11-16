@@ -1,10 +1,17 @@
 import io
+import shlex
 import subprocess
 import tarfile
+from pathlib import Path
 
 import pytest
 
 from tools.check_release import check_sdist, check_versions, plan_release, release_version
+
+try:
+    import tomllib
+except ModuleNotFoundError:
+    import tomli as tomllib
 
 
 @pytest.mark.parametrize("tag", ["v0.1.0", "v1.2.3", "v10.20.30"])
@@ -46,12 +53,27 @@ def published(tag="v0.1.0", draft=False, prerelease=False):
 
 
 def change_source(git):
-    from pathlib import Path
-
     Path("source.txt").write_text("changed", encoding="utf-8")
     git("add", "source.txt")
     git("commit", "-m", "change")
     git("update-ref", "refs/remotes/origin/main", "HEAD")
+
+
+def test_wheel_version_discovery_ignores_nearer_nonrelease_tags(release_repo):
+    git = release_repo
+    project = Path(__file__).resolve().parents[1] / "pyproject.toml"
+    with project.open("rb") as stream:
+        scm = tomllib.load(stream)["tool"]["setuptools_scm"]
+    command = shlex.split(scm["git_describe_command"])
+
+    git("tag", "v1.2.3")
+    assert git(*command[1:]).startswith("v1.2.3-0-g")
+    change_source(git)
+    git("tag", "-a", "evidence-candidate-v1", "-m", "retained evidence")
+    git("tag", "-a", "v9.0.0rc1", "-m", "prerelease")
+    git("tag", "-a", "v9.0.0.1", "-m", "extra version component")
+    assert git("describe", "--tags").startswith(("evidence-", "v9."))
+    assert git(*command[1:]).startswith("v1.2.3-1-g")
 
 
 def test_bootstrap_without_existing_tags(release_repo):
