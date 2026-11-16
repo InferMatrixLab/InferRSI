@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "code_license": "Apache-2.0",
+  "implementation": "Bundled independent text preparation, inference orchestration and loopback service; official Qwen components execute the real model",
+  "sources": [
+    {
+      "url": "https://github.com/vllm-project/vllm-omni/tree/b164fea797531c1fa10f8b87829632cad006b9fc",
+      "role": "Historical pre-candidate Ascend reference",
+      "inspected": [
+        "examples/online_serving/text_to_speech/qwen3_tts/run_server.sh",
+        "vllm_omni/deploy/qwen3_tts.yaml",
+        "benchmarks/tts/bench_tts.py",
+        "vllm_omni/entrypoints/cli/main.py"
+      ]
+    },
+    {
+      "url": "https://github.com/InferMatrixLab/qwen3-tts-rsi-npu-engine/tree/8a5f414a0d576d69dfa63b1ea5b403cc7d58068e",
+      "role": "Task scope, SSE protocol and historical source/model provenance",
+      "inspected": [
+        "compare.md",
+        "qwen3_tts_engine/benchmark.py",
+        "tools/serve_baseline.sh",
+        "evidence/campaign-20261017/plan/contract.json",
+        "evidence/campaign-20261017/plan/quality-gates.json",
+        "evidence/campaign-20261017/plan/environment.md"
+      ]
+    },
+    {
+      "url": "https://github.com/InferMatrixLab/InferRSI/issues/75",
+      "role": "Separate CUDA/0.6B negative experiment motivating quality/repeatability gates",
+      "reported_outcome": "FAIL; combined performance/quality target missed"
+    },
+    {
+      "url": "https://github.com/InferMatrixLab/qwen3-tts-rsi-npu-engine/tree/665f0c1",
+      "role": "Initial standalone model-owner and reference-service design before optimization",
+      "inspected": [
+        "qwen3_tts_engine/model.py",
+        "qwen3_tts_engine/server.py"
+      ]
+    },
+    {
+      "url": "https://pypi.org/project/qwen-tts/0.1.1/",
+      "role": "Official Apache-2.0 model components, CustomVoice preparation and codec decode; source inspected from the distribution",
+      "inspected": [
+        "qwen_tts/inference/qwen3_tts_model.py",
+        "qwen_tts/core/models/modeling_qwen3_tts.py"
+      ]
+    }
+  ],
+  "decisions": [
+    "Keep the real 1.7B CustomVoice checkpoint and speech tokenizer",
+    "Bundle model-owner, text/instruction preparation, Talker/predictor orchestration, codec decode and speech serving",
+    "Use official qwen-tts/PyTorch components with inference-engine imports blocked",
+    "Reference emits complete-waveform SSE; candidates may optimize streaming and scheduling under frozen quality gates",
+    "Preserve the collector, PCM evidence and independent ASR/speaker assessment"
+  ],
+  "qualification": "Historical external results inform design; the new task requires its own device replay."
+}

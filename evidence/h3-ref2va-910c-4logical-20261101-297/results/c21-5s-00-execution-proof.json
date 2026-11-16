@@ -1,0 +1,139 @@
+{
+  "run": "c21-video-pre-gate-quality-5s-00-7265c33e",
+  "source_commit": "d48fa51d03dd748568cbcf57ed40f533c691c9bd",
+  "latency_diagnostic_ms": 163805.5620979867,
+  "clean_timing": false,
+  "cleanup_passed": true,
+  "helpers_unchanged": true,
+  "input_checks": {
+    "verdict": "PASS",
+    "checks": 134,
+    "failures": [],
+    "scope": "input/schedule/geometry/finite-state checks only; perceptual quality and latency acceptance are separate"
+  },
+  "counters_by_rank": {
+    "0": {
+      "full_steps": 8,
+      "partial_steps": 42,
+      "full_blocks": 400,
+      "partial_blocks": 2100,
+      "subset_attention_calls": 2100,
+      "subset_query_rows": 5197500,
+      "omitted_query_rows": 78321600,
+      "partial_mlp_rows": 5197500,
+      "peak_cache_bytes": 8039270400,
+      "closed": true,
+      "storage_dtype": "torch.bfloat16",
+      "cache_stage": "pre_gate",
+      "fresh_attention_gates": 2100,
+      "fresh_mlp_gates": 2100,
+      "live_cache_bytes": 0
+    },
+    "1": {
+      "full_steps": 8,
+      "partial_steps": 42,
+      "full_blocks": 400,
+      "partial_blocks": 2100,
+      "subset_attention_calls": 2100,
+      "subset_query_rows": 5197500,
+      "omitted_query_rows": 78321600,
+      "partial_mlp_rows": 0,
+      "peak_cache_bytes": 10700390400,
+      "closed": true,
+      "storage_dtype": "torch.bfloat16",
+      "cache_stage": "pre_gate",
+      "fresh_attention_gates": 2100,
+      "fresh_mlp_gates": 2100,
+      "live_cache_bytes": 0
+    },
+    "2": {
+      "full_steps": 8,
+      "partial_steps": 42,
+      "full_blocks": 400,
+      "partial_blocks": 2100,
+      "subset_attention_calls": 2100,
+      "subset_query_rows": 5197500,
+      "omitted_query_rows": 78321600,
+      "partial_mlp_rows": 0,
+      "peak_cache_bytes": 10700390400,
+      "closed": true,
+      "storage_dtype": "torch.bfloat16",
+      "cache_stage": "pre_gate",
+      "fresh_attention_gates": 2100,
+      "fresh_mlp_gates": 2100,
+      "live_cache_bytes": 0
+    },
+    "3": {
+      "full_steps": 8,
+      "partial_steps": 42,
+      "full_blocks": 400,
+      "partial_blocks": 2100,
+      "subset_attention_calls": 2100,
+      "subset_query_rows": 5197500,
+      "omitted_query_rows": 78321600,
+      "partial_mlp_rows": 0,
+      "peak_cache_bytes": 10660608000,
+      "closed": true,
+      "storage_dtype": "torch.bfloat16",
+      "cache_stage": "pre_gate",
+      "fresh_attention_gates": 2100,
+      "fresh_mlp_gates": 2100,
+      "live_cache_bytes": 0
+    }
+  },
+  "actual_paths_by_rank": {
+    "0": {
+      "dlo._issue_chunked_allgather.ungated": 100,
+      "dlo._allgather_after_attn_a2a": 2600,
+      "dlo._issue_chunked_allgather.gated": 2600,
+      "dlo._flush_deferred_allgather": 2600,
+      "_prefix_bnsd": 2500
+    },
+    "1": {
+      "dlo._issue_chunked_allgather.ungated": 100,
+      "dlo._allgather_after_attn_a2a": 2600,
+      "dlo._issue_chunked_allgather.gated": 2600,
+      "dlo._flush_deferred_allgather": 2600,
+      "_prefix_bnsd": 2500
+    },
+    "2": {
+      "dlo._issue_chunked_allgather.ungated": 100,
+      "dlo._allgather_after_attn_a2a": 2600,
+      "dlo._issue_chunked_allgather.gated": 2600,
+      "dlo._flush_deferred_allgather": 2600,
+      "_prefix_bnsd": 2500
+    },
+    "3": {
+      "dlo._issue_chunked_allgather.ungated": 100,
+      "dlo._allgather_after_attn_a2a": 2600,
+      "dlo._issue_chunked_allgather.gated": 2600,
+      "dlo._flush_deferred_allgather": 2600,
+      "_prefix_bnsd": 2500
+    }
+  },
+  "quality_verdict": "FAIL",
+  "observed_checks": 39,
+  "failures": [
+    "5s-00:dino: similarity",
+    "5s-00:clip: similarity",
+    "5s-00:clap: similarity",
+    "5s-00: dino lower tail",
+    "5s-00: clap segment",
+    "5s-00:reference_dino_cosine: adherence",
+    "5s-00: audio temporal envelope"
+  ],
+  "missing_samples": [
+    "5s-01",
+    "5s-02",
+    "5s-03",
+    "5s-04",
+    "15s-00",
+    "15s-01",
+    "15s-02",
+    "15s-03",
+    "15s-04"
+  ],
+  "media_sha256": "c03567a778ed6aae6a8b8e05674e6d83065178871751603ba3ffe2f7a363a4ce",
+  "features_sha256": "71638d355adff149f27d135fceb8b0b0e2de34557a26344113218adcb2a6ea75",
+  "decision": "Reject fixed C21 eight-anchor zero-order pre-gate profile on seven observed quality violations; no15s or clean timing expansion."
+}

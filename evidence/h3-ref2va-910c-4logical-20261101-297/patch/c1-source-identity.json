@@ -1,0 +1,12 @@
+{
+  "head": "be319692b96413918973b5bd399cdda3f320c574",
+  "tree": "8dfb3c6edbac7ca3a92edfa9659cc7a7eb58bbc3",
+  "base": "922f1e9f1cb85b9f2b66d86e1eb500e6872b2dcb",
+  "branch": "rsi/h3-297-bf16-prefix",
+  "files": {
+    "vllm_omni/diffusion/models/minimax_h3/attention/flash_h3.py": "6e175317c8db76b1e4e1b094a4c43923c8fbe3a5f039405f1cba070772497fe6",
+    "vllm_omni/diffusion/models/minimax_h3/minimax_h3_blocks.py": "e7e26ad0b2a9120b99281bf59a67eced7f7207f5679a8f02f2ede5859695be1a",
+    "tests/diffusion/models/minimax_h3/test_minimax_h3_flash_attention.py": "34fb26fb848556d8a67af91f7d3ee6443e77018e149672aed0450fd970be1968"
+  },
+  "published": false
+}

@@ -1,6 +1,22 @@
 {
   "version": 1,
   "bundles": {
+    "h3-ref2va-910c-4logical-20261101-297": {
+      "kind": "campaign",
+      "manifests": [
+        {
+          "path": "results/publication-integrity.json",
+          "schema": "bundle-sha256"
+        },
+        {
+          "path": "validator/frozen-snapshots.json",
+          "schema": "bundle-sha256"
+        }
+      ],
+      "external": [
+        "Original model/reference/scorer weights, raw media/tensors, full executor archives and private namespace/bootstrap runtime are not bundled. Source hashes and sanitized field projections do not make these artifacts publicly replayable."
+      ]
+    },
     "h3-ref2va-ascend-293": {
       "kind": "campaign",
       "manifests": [
@@ -149,6 +165,10 @@
     "qwen21-turbo-b300-review-20261012": {
       "kind": "review", "manifests": [],
       "external": ["Review summary only; no local freeze manifest or raw output bundle is recorded."]
+    },
+    "search-attribution-qwen-s2-b1-20261110": {
+      "kind": "review", "manifests": [],
+      "external": ["The raw Codex rollout and temporary local campaign ledger are not committed; bounded reviewed excerpts and relative source references are preserved in search/round-1.json."]
     },
     "skill-eval-v1-20261021": {
       "kind": "campaign",

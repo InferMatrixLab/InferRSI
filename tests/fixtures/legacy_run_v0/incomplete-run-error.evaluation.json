@@ -1,0 +1,26 @@
+{
+  "verdict": "INCONCLUSIVE",
+  "reasons": [
+    "baseline: expected 1 trials, recorded 0",
+    "candidate: expected 1 trials, recorded 0",
+    "quality validation command was not supplied",
+    "executor unavailable"
+  ],
+  "required_trial_checks": [],
+  "metric_key": "metrics.latency_ms",
+  "metric_unit": "ms",
+  "comparison_scope": "external_command",
+  "direction": "minimize",
+  "min_improvement_pct": 0.0,
+  "baseline": null,
+  "candidate": null,
+  "improvement_pct": null,
+  "measurement_method": "Alternating AB/BA sequential trials; median and range are descriptive only.",
+  "quality_contract": "Exit zero covers only the supplied validation command; inspect its logs and coverage.",
+  "source_integrity": {
+    "verified": true,
+    "reason": "Git source snapshots unchanged",
+    "command_checks": 0
+  },
+  "statistical_significance": "not established"
+}

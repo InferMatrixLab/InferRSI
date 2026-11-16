@@ -1,7 +1,7 @@
 # Stable-diffusion.cpp catalog-to-storage construction
 
 This bounded Issue #91 slice extends the existing
-[`audit-sd-cpp-residency`](../../src/inferrsi/data/skill_library/repositories/stable-diffusion-cpp/audit-sd-cpp-residency/SKILL.md)
+[`audit-sd-cpp-residency`](../../src/inferrsi/knowledge/data/skill_library/repositories/stable-diffusion-cpp/audit-sd-cpp-residency/SKILL.md)
 candidate. It preserves its stable ID, eight residency steps, MIT text, original
 source pin and historical archive receipt. No engine, dependency, evaluator or
 hardware execution is introduced. Material author: Codex / `gpt-6.1-sol`,
@@ -12,8 +12,8 @@ reasoning effort `xhigh`.
 | AREX phase | Decision and native InferRSI asset |
 |---|---|
 | Scope | Fill the catalog/source → actual byte delivery → immediate storage-consumer gap. Select ordinary non-ZIP safetensors and its shard index; leave generic startup optimization with `weight-loading-optimization`. Do not replace request-time residency guidance. |
-| Ground | Fixed leejet/stable-diffusion.cpp `b13a48219d5cdf408edcb93da6cd69b612ed03d3`, tree `df847d004c6529eefb02bb629d7ee26e740121a9`. Twelve C++ blobs and retained MIT text have exact byte identity checks; semantic ranges are in the [new ledger](../../src/inferrsi/data/skill_library/repositories/stable-diffusion-cpp/audit-sd-cpp-residency/references/loader-storage-boundaries.md#fixed-readset-and-attribution). The prior nineteen-blob receipt remains historical. |
-| Construct | Reuse one owner and the native metadata/readers. Add [two loader/storage decisions](../../src/inferrsi/data/skill_library/repositories/stable-diffusion-cpp/audit-sd-cpp-residency/references/loader-storage-boundaries.md), a root route, additive source/validation notes and scoped entries in both matrices. No new ID, backend, counter or parallel registry is needed. |
+| Ground | Fixed leejet/stable-diffusion.cpp `b13a48219d5cdf408edcb93da6cd69b612ed03d3`, tree `df847d004c6529eefb02bb629d7ee26e740121a9`. Twelve C++ blobs and retained MIT text have exact byte identity checks; semantic ranges are in the [new ledger](../../src/inferrsi/knowledge/data/skill_library/repositories/stable-diffusion-cpp/audit-sd-cpp-residency/references/loader-storage-boundaries.md#fixed-readset-and-attribution). The prior nineteen-blob receipt remains historical. |
+| Construct | Reuse one owner and the native metadata/readers. Add [two loader/storage decisions](../../src/inferrsi/knowledge/data/skill_library/repositories/stable-diffusion-cpp/audit-sd-cpp-residency/references/loader-storage-boundaries.md), a root route, additive source/validation notes and scoped entries in both matrices. No new ID, backend, counter or parallel registry is needed. |
 | Verify | Check actual owner/resource discovery, metadata, local links, immutable source ranges and retained license. Preserve the old eight-step body and source identity. Bind generated records to a real source commit only after source freeze. Exact execution and independent-review receipts belong to the PR; package/schema checks do not qualify native loading or agent efficacy. |
 
 AREX portable distill/extend guidance is used from fixed

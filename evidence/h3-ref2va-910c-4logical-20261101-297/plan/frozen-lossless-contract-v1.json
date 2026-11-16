@@ -1,0 +1,108 @@
+{
+  "schema_version": 1,
+  "frozen_at": "2026-11-01T10:09:45.855117+00:00",
+  "issue": "https://github.com/InferMatrixLab/InferRSI/issues/297",
+  "track_scope": [
+    "5s-lossless",
+    "15s-lossless"
+  ],
+  "status": "Prospective numerical contract; performance confirmation remains separate.",
+  "baseline_source": "df1c1b05936381dbaa3891c1ae4c4b21ab375a5d",
+  "first_migration_candidate": "922f1e9f1cb85b9f2b66d86e1eb500e6872b2dcb",
+  "model_revision": "6818f6c32d12b210915e44ad56a4228c2608f160",
+  "model_manifest_sha256": "38e36913cf7a7dea81b2c7fc8ae6dd2ad1d0f9d27a8cd4deee3b1927f593b512",
+  "device_ids": [
+    2,
+    3,
+    4,
+    5
+  ],
+  "quality": {
+    "mode": "strict_bit_exact",
+    "points": [
+      "initial_noise",
+      "post_step_000",
+      "post_step_009",
+      "post_step_024",
+      "post_step_049",
+      "vae_inputs"
+    ],
+    "streams": [
+      "video",
+      "audio"
+    ],
+    "ranks": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "dtype": "torch.float32",
+    "compare": [
+      "shape",
+      "dtype",
+      "logical_bytes_sha256"
+    ],
+    "raw_rank0_payload_sha_and_finite_required": true,
+    "global_replicated_state_equality_required": true,
+    "sampler_and_all_51_sigma_boundaries_equal": true,
+    "decoded_pixels": "every RGB24 frame, exact bytes",
+    "decoded_audio": "every interleaved float32 PCM sample, exact bytes",
+    "container_bytes_identity": "reported, not a substitute for pixels/PCM",
+    "human_checks": false
+  },
+  "workload": {
+    "steps": 50,
+    "width": 1344,
+    "height": 768,
+    "fps": 24,
+    "durations_frames": {
+      "5": 124,
+      "15": 362
+    },
+    "seed": 3100,
+    "flow_shift": 12,
+    "audio_flow_shift": 3,
+    "parameters": "BF16 dense original model; original FP32 intermediate/latent state preserved",
+    "parallel": "USP4, ring1, TE TP4, tiled VAE patch parallel4; DLO on for reference"
+  },
+  "latency_target": {
+    "scope": "full HTTP request through complete MP4 response body",
+    "min_reduction_pct": 50,
+    "min_speedup": 2,
+    "diagnostic_latencies_are_not_qualifying": true
+  },
+  "protocol": {
+    "numerical_qualification": {
+      "fresh_server": true,
+      "warmup": 0,
+      "measured_requests": 2,
+      "audit": true,
+      "not_clean_timing": true
+    },
+    "screening_per_arm": {
+      "fresh_server": true,
+      "same_shape_warmups": 2,
+      "measured_requests": 3,
+      "profiler": false,
+      "audit": false
+    },
+    "final_confirmation": {
+      "fresh_server_pairs": 3,
+      "order": [
+        "AB",
+        "BA",
+        "AB"
+      ],
+      "warmups_per_server": 2,
+      "measurements_per_server": 3,
+      "statistical_unit": "server median",
+      "requirement": "Each paired candidate server median and overall server-median comparison meet 50% reduction; all quality/lifecycle gates complete.",
+      "statistical_significance": "not claimed",
+      "budget": "Check remaining total ceiling or separately authorize an additional phase; never exceed the active deadline."
+    },
+    "revision_note": "Final 3-pair proposal replaces the unfrozen 5-pair draft before any candidate outcome is observed, to bound execution cost. The quality and 50% bars are unchanged."
+  },
+  "validator_sha256": "b83f2bff553ff6ca2970a16e25525cac5d9523612e9c05ea563852c814019028",
+  "lossy_contract": "not frozen; no lossy candidate qualification"
+}

@@ -5,7 +5,7 @@ import json
 
 import pytest
 
-from inferrsi.harness.campaign_trace import CampaignTrace
+from inferrsi.harness.records.campaign_trace import CampaignTrace
 from inferrsi.model import anthropic_agent as agent
 
 

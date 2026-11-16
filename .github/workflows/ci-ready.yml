@@ -33,7 +33,7 @@ jobs:
           "$RUNNER_TEMP/wheel-env/bin/python" -m pip install "${wheels[0]}[skills]"
           cp tests/check_installed.py "$RUNNER_TEMP/check_installed.py"
           cd "$RUNNER_TEMP"
-          env -u PYTHONPATH "$RUNNER_TEMP/wheel-env/bin/python" -I check_installed.py
+          env -u PYTHONPATH INFERRSI_CHECKOUT_RESOURCES="$GITHUB_WORKSPACE/src/inferrsi" "$RUNNER_TEMP/wheel-env/bin/python" -I check_installed.py
 
   full-check:
     strategy:
@@ -51,7 +51,38 @@ jobs:
       - name: Ruff
         run: ruff check src tests tools
       - name: Tests (smoke + unit)
-        run: pytest
+        run: pytest -rs
+
+  dashboard-browser:
+    if: ${{ !github.event.pull_request.draft }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install browser test dependencies
+        run: |
+          python -m pip install -e ".[dev]" playwright
+          python -m playwright install --with-deps chromium
+      - name: Test dashboard navigation and live refresh in Chromium
+        run: |
+          python -m pytest -vv -o addopts='' \
+            tests/test_knowledge_navigation_browser.py \
+            tests/test_dashboard_experiments_browser.py \
+            --junitxml="$RUNNER_TEMP/dashboard-browser-results.xml"
+      - name: Retain browser test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dashboard-browser-results
+          path: ${{ runner.temp }}/dashboard-browser-results.xml
+          retention-days: 30
 
   pr-references:
     # Reports closing syntax in PR body text at each ready-lane event; not a branch-protection gate.

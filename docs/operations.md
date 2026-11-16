@@ -1,5 +1,16 @@
 # Operation guide
 
+Packaged engineering tasks use `inferrsi benchmarks list|show` for read-only
+discovery and `inferrsi benchmarks run <package> ...` to execute its own entry.
+The [task library](engineering-benchmarks.md) links the MoE forward,
+Qwen-Image denoising and Qwen3-TTS execution protocols. Their task-specific
+entries run inside caller-managed NPU allocations.
+
+For a complete optimization benchmark, the current Agent uses
+[`benchmarks session`](optimization-benchmarks.md) to freeze the task, retrieve
+permitted context, submit changed candidates, inspect feedback and independently
+retest the selection. The first iterative task is Qwen-Image denoising.
+
 One concise map from an agent's intent to the supported entry point. This guide
 is navigation only: detailed contracts stay with their owning documents, and it
 is not a third primary matrix. The two authoritative matrices remain the
@@ -16,6 +27,11 @@ Effect classes used below:
 
 | Intent | Entry | Effect class | Boundary |
 | --- | --- | --- | --- |
+| Complete a task optimization in the current Agent | CLI `benchmarks session start/knowledge/round/status/final/recover` | Experiment-executing / local records | Frozen budget, actual candidates and independent task outcomes. The current Agent drives edits. Real usage is imported explicitly. Recovery collects an existing execution |
+| Optimize an ordinary project in the current Agent | CLI `campaign start/knowledge/round/status/final/recover` | Experiment-executing / local records | Harness freezes explicit caller-provided checks, manages multi-file candidates, executes and assesses retained results. This path does not depend on Benchmark or infer acceptance from the goal. See [shared workflow](optimization-workflow-unification.md) |
+| Prepare and record a fresh native Agent | CLI `agents prepare/dispatch/bind/record/status` | Local records / explicit host handoff | The initiating Agent calls native host tools. Records prevent repeated dispatch; exported host observations do not establish task acceptance. See [native sessions](native-agent-sessions.md) |
+| Discover packaged tasks | CLI `benchmarks list` / `benchmarks show`; Python `benchmark.registry.builtin_tasks` / `describe_task` | Read-only | Reads the task library's registry and opaque manifests from installed resources |
+| Execute one packaged task | CLI `benchmarks run`; Python `benchmark_operations.run_task` | Experiment-executing | Application launches the task entry, supplies the execution callback and preserves arguments and exit status. The task owns its device, measurement and assessment protocol |
 | Search packaged records | CLI `knowledge search` / `knowledge show`; catalog API | Read-only | Installed package catalog with the existing tier/repo/backend/scenario filters and IDs; these package-only filters exclude skills and cases from every other authority |
 | Prepare model-aware engine research | CLI `knowledge research`; Python `research_knowledge` | Read-only | Independent model/framework/task/modality/mechanism queries over the same package catalog; source-grounded known profiles, deduplicated matches and explicit target annotations; no engine/hardware qualification |
 | Discover/read packaged or custom skills | CLI `skills list` / `show` / `resource` / `reference` | Read-only | Metadata-first listing; `show` loads one named instruction body; `resource`/`reference` resolve paths for your file reader without loading or executing them |
@@ -23,14 +39,19 @@ Effect classes used below:
 | Read exact material/resources | CLI `read` / `resource`; Python `KnowledgeReader.read` / `KnowledgeReader.resource` | Read-only | Returns the requested revision or an explicit unavailable/stale error; never substitutes newer bytes |
 | Export legacy cited material | CLI `context` | Read-only | Cited package export for manual use with a coding agent; not a conversation store and not a full Collect equivalent |
 | Create/update a store candidate | Python `KnowledgeStore.create` / `KnowledgeStore.update` | Candidate-writing | One explicitly authorized local store; expected-revision updates with reason and evidence; retained history; no promotion and no edits to package/checkout content |
+| Inspect a store candidate's history | Python `open_knowledge_store(...).history` | Read-only | Opens an existing store and reads the revision lineage for one store ID |
 | Amend repository-owned knowledge | Scoped repository PR | — | Repository review and integration authority apply; this is not a runtime store Update |
 | Inspect/prepare experiments | CLI `doctor`; `plan` or `--dry-run` | Read-only inspection / preview | `doctor` may invoke bounded probes and does not certify target compatibility; `plan` previews a specification without persisting a campaign or authorizing execution |
 | Execute/inspect experiments | CLI `run`; `status`; `report` | Experiment-executing / read-only / report-generating | `run` executes caller-supplied commands and records evidence; `status` reads recorded progress; `report` generates HTML from recorded evidence |
+| Execute one ordinary local CPU command with a fixed record | Python `inferrsi.harness.api.Harness.allocate` / `execute` / `read` | Experiment-executing / record-writing | One explicit RunStore root and one trusted local CPU target; ordinary command mode only; a record holds execution facts, so exit 0 is not a verdict; no device, model or network fallback |
 | Visualize a recorded run or campaign | CLI `dashboard`; [dashboard](dashboard.md) | Report-generating / local read-only serving | Writes an offline HTML snapshot or serves an optional live view on loopback; does not run an agent or validate a claim |
 | Capture a knowledge context | CLI `campaign capture-context`; [offline dashboard](dashboard.md#record-the-optimization-story-campaign-trace) | Local evidence-writing | Runs `collect` with a context budget and keeps the full envelope and resource hashes in a new `knowledge/<id>.json`; proves what was prepared, not what a model read |
+| Retain an executed retrieval | Python `apps.campaign.save_retrieval`; [capture contract](knowledge-retrieval-trace.md#retain-a-standalone-result) | Local evidence-writing | Saves an existing catalog/collect result under a fresh campaign capture ID; no new search or automatic publication |
+| Import one round of knowledge searches | CLI `campaign import-search`; [round import](dashboard.md#import-one-rounds-searches) | Local evidence-writing | Reads a Codex rollout window or context captures. With `--archive-review`, retains excerpts of attributable tool returns and reviewed decisions for readers of the evidence bundle. |
 | Record the optimization log | CLI `campaign log`; [offline dashboard](dashboard.md#record-the-optimization-story-campaign-trace) | Local evidence-writing | Validates and stores a new numbered campaign log version; the dashboard cross-checks it against captures and runs |
 | Assemble an optimization trace | CLI `campaign assemble-trace`; [offline dashboard](dashboard.md#capture-the-optimization-trace) | Local evidence-writing | Copies an explicitly reviewed context into a new bounded campaign-root snapshot; caller owns redaction and narrative accuracy |
-| Associate runs with a local campaign | CLI `campaign init` / `campaign record` / `campaign decide`; [offline dashboard](dashboard.md) | Local evidence-writing | Creates caller-named campaign, round and candidate records; references existing artifacts and never starts an agent |
+| Import a MindIE read | CLI `campaign import-mindie`; [Codex workflow](codex-plugin.md#mindie-knowledge) | Local evidence-writing | Retains caller-supplied query/explain bytes and hashes, exports delivered graded bodies and a trace context fragment; no activation, model call, transcript capture or automatic caller review |
+| Associate runs with a local campaign | CLI `campaign init` / `campaign record` / `campaign decide`; [offline dashboard](dashboard.md) | Local evidence-writing | Legacy manual records reference existing artifacts and never start an agent; record/decide cannot mutate a managed optimization campaign |
 | Adapt existing Flare delivery evidence | [Offline qualification adapter](flare-qualification.md), `python -m inferrsi.model.validators.flare` | Read-only | Existing raw packets and a separate receipt; one HTTP delivery metric, no model/server/device execution |
 | Evaluate selected skill revisions | [Bounded skill-evaluation driver](skill-evaluation.md) | Experiment-executing | Explicitly authorized real Codex calls, independent task verdicts and private evidence; separate from numeric engine-performance scoring |
 | Compare skill additions or updates | [Configured skill comparison](skill-eval-comparison.md), `python -m tools.skill_eval_compare` | Read-only preparation / experiment-executing / report-generating | Fixed Git snapshots and one shared exam; explicit plan authorization for execution; JSON + Markdown regeneration makes no model calls |
@@ -86,16 +107,16 @@ are distinct from `knowledge search`, whose package catalog filters
 
 ### Search packaged records — `knowledge search` / `knowledge show`
 
-- **Inputs:** query words plus optional `--tier`, `--repo-type`, `--backend`, `--scenario`, `--limit`, `--json`; `show` takes one record ID.
+- **Inputs:** query words plus optional `--tier`, `--repo-type`, `--backend`, `--scenario`, `--limit`, `--json`, `--explain`; `show` takes one record ID.
 - **Scope:** the installed package catalog (`repo_packs`, `knowledge_packs`) only.
-- **Output:** tab-separated record lines (id, status, backend, title), or a JSON list with `--json`; `show` prints one full record as JSON.
+- **Output:** tab-separated record lines (id, status, backend, title), or a JSON list with `--json`; `--explain` returns a JSON envelope with `items` and `retrieval` (entry, ranking, scores and counts). Python uses `search_knowledge(..., explain=True)` for that envelope. `show` prints one full record as JSON.
 - **Side effects:** none.
-- **Failure behavior:** no match prints nothing and exits 0 — an empty result is not an error (an empty JSON list with `--json`); an unknown `show` ID and unsupported filter values exit 2.
+- **Failure behavior:** no match prints nothing and exits 0 — an empty result is not an error (an empty JSON list with `--json`, or empty `items` in the `--explain` envelope); an unknown `show` ID and unsupported filter values exit 2.
 - **Example:** `inferrsi knowledge search 'Qwen-Image-2.1' --repo-type vllm_omni --backend ascend`
 
 The tier/repo/backend/scenario filters are package-only: an empty filtered
 result does not mean that no checkout or store knowledge exists. See the
-[three-tier guide](../src/inferrsi/data/knowledge_packs/README.md) for all sources.
+[three-tier guide](../src/inferrsi/knowledge/data/knowledge_packs/README.md) for all sources.
 
 ### Prepare model-aware research — `knowledge research`
 
@@ -105,14 +126,14 @@ result does not mean that no checkout or store knowledge exists. See the
 - **Side effects:** none; no network requests, hardware probes, model download or engine execution. Target annotations do not add runtime backends.
 - **Failure behavior:** no match returns an explicit empty envelope and exits 0; invalid limits/memory or unsupported catalog filters exit 2. A zero-match dimension stays visible.
 - **Example:** `inferrsi knowledge research MiniMax-H3 --framework mlx --target-backend metal --target-device "M5 Mac Studio" --target-memory-gib 64 --limit 12`
-- **Python:** `from inferrsi.research import research_knowledge`; `research_knowledge("MiniMax-H3", frameworks=["mlx"], modalities=["video"], limit=12)`.
+- **Python:** `from inferrsi.knowledge.research import research_knowledge`; `research_knowledge("MiniMax-H3", frameworks=["mlx"], modalities=["video"], limit=12)`.
 
 Exact `knowledge search` and `context` still AND query tokens. Independent
 research queries broaden discovery without relaxing the active package filters.
 Keep those filters explicit when transferring mechanisms from other backends;
 target intent does not qualify their applicability. Read the canonical
-[preparation procedure](../src/inferrsi/data/skill_library/workflows/inference-engine-research/references/model-aware-preparation.md)
-and the repository-owned [h3.c residency audit](../src/inferrsi/data/skill_library/repositories/h3-c/audit-h3-runtime-residency/SKILL.md)
+[preparation procedure](../src/inferrsi/knowledge/data/skill_library/workflows/inference-engine-research/references/model-aware-preparation.md)
+and the repository-owned [h3.c residency audit](../src/inferrsi/knowledge/data/skill_library/repositories/h3-c/audit-h3-runtime-residency/SKILL.md)
 for native-engine reference selection, full encoder/DiT/VAE accounting,
 quantized-package compatibility and target hardware decisions. Returned resource
 paths are relative to `importlib.resources.files("inferrsi")` and ship in the wheel.
@@ -161,7 +182,7 @@ for scoring, provenance and accounting. For example:
 - **Output:** with `--json`, the complete **normalized** envelope — items carrying the bundle's normalized metadata, resources and dependencies, plus `no_match`, `omissions`, `collisions`, `material_bytes` and the recorded limitations; fields that exist only in a package record's original entrypoint document are not projected into the normalized metadata and are read via `--material` or `resource`. Without `--json`, the envelope's selection is projected line-wise: one tab-separated line per item (`ref`, `revision`, `kind`, `state`, recorded `applicability`; free-text fields are control-character-escaped so one item stays one line), `collision` lines for multi-authority IDs, `omitted` lines with reason codes, an explicit `no_match` line when nothing was selected (query, filters or limits; when items were skipped the `omitted` lines above it carry the per-item causes), and — with `--material` — the entrypoint content in delimited blocks. The text mode does not print `material_bytes` or the envelope limitations; use `--json` for the complete envelope. The recorded `state` and applicability are printed as recorded and no validation status is invented. Exit 0 covers a result envelope, including no-match and omissions.
 - **Side effects:** none; both adapters and the read-only store connection are read-only.
 - **Failure behavior:** discovery-wide invalid identities fail the call; per-item omissions are reported individually. Package repo/tier/backend/scenario filters exclude checkout items.
-- **Example:** `inferrsi collect 'Ascend OOM' --kind case --limit 3 --material --skill-root src/inferrsi/data/skill_library`
+- **Example:** `inferrsi collect 'Ascend OOM' --kind case --limit 3 --material --skill-root src/inferrsi/knowledge/data/skill_library`
 
 ### Read exact material/resources — `read` / `resource` / `KnowledgeReader.read` / `.resource`
 
@@ -170,9 +191,14 @@ for scoring, provenance and accounting. For example:
 - **Output:** the bundle view at the requested revision, or the resource bytes (`resource` writes them to the required `--output` path).
 - **Side effects:** `resource` writes only the caller-chosen output file.
 - **Failure behavior:** ambiguous identity names the qualified choices; unavailable/stale revisions and missing/unsafe resources fail explicitly — no fallback to newer bytes.
-- **Example:** `inferrsi read calibrate-serving-simulation --skill-root src/inferrsi/data/skill_library --material`
+- **Example:** `inferrsi read calibrate-serving-simulation --skill-root src/inferrsi/knowledge/data/skill_library --material`
 
 ## Store candidates (Python)
+
+Open the store with `inferrsi.apps.knowledge.open_knowledge_store`. Pass the
+authorized `store_root` and the store's reserved `skill_root`, if configured.
+The default opens an existing store read-only for history. Pass
+`writable=True` explicitly to create or update candidates.
 
 ### Create / Update — `KnowledgeStore.create` / `.update`
 
@@ -215,6 +241,27 @@ compatibility.
 Operation success, recorded execution state and the experiment verdict are
 distinct conclusions; a completed run does not upgrade imported knowledge or
 unvalidated candidates.
+
+### Inspect a fixed attempt — `status --record-ref`
+
+Pass a JSON `RecordRef` file and its trusted `--storage-config` JSON. An
+optional `--assessment-ref` JSON adds the archived claim outcomes and scopes
+for the same record revision. The output shows committed execution facts,
+including phase, process outcome, cleanup and recording time. A successful
+read exits 0. Invalid references, archive integrity failures and mismatched
+revisions exit 2.
+
+The same read-only view is available through
+`inferrsi.apps.api.read_attempt_view`. The legacy `status --run-id` form
+reads the legacy experiment directory.
+
+Use the same reference files with `trace`, `report` or `dashboard`.
+`trace` prints the view plus recorded steps, checks and error codes. An
+unknown step time stays null. `report` and offline `dashboard` accept
+`--output <file.html>` and present the same facts and claims. With
+`dashboard --live`, the loopback page and its state endpoint serve the
+snapshot pinned at startup. The campaign Dashboard remains available through
+`--input`, including its reviewed translation overlay.
 
 ## Campaign summary figure
 

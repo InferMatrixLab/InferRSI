@@ -7,11 +7,11 @@ from types import SimpleNamespace
 
 import pytest
 
-from inferrsi.catalog import search_knowledge
-from inferrsi.knowledge_operations import KnowledgeReader
-from inferrsi.skill_catalog import skill_instructions, skill_metadata, skill_resource
+from inferrsi.knowledge.catalog import search_knowledge
+from inferrsi.knowledge.knowledge_operations import KnowledgeReader
+from inferrsi.knowledge.skill_catalog import skill_instructions, skill_metadata, skill_resource
 
-LIBRARY = Path(__file__).resolve().parents[1] / "src/inferrsi/data/skill_library"
+LIBRARY = Path(__file__).resolve().parents[1] / "src/inferrsi/knowledge/data/skill_library"
 NAME = "vllm-ascend"
 
 

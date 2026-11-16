@@ -1,0 +1,15 @@
+{
+  "title": "Qwen S2-B1 search archive",
+  "campaign_id": "search-attribution-qwen-s2-b1-20261110",
+  "record_path": "search/round-1.json",
+  "decision": "The historical answer treated an author-reported triple-stack initialization OOM as a reason to check initialization residency before deciding whether to combine the optimizations.",
+  "outcome": {
+    "candidate_count": 0,
+    "new_device_measurement": "none"
+  },
+  "coverage": {
+    "state": "partial",
+    "counts": null,
+    "reason": "The broad-search return was truncated. The filename filter has verified path excerpts and an unknown hit count."
+  }
+}

@@ -8,9 +8,9 @@ neither requires a conversation or workflow object.
 
 ```python
 from pathlib import Path
-from inferrsi.knowledge_operations import KnowledgeReader
+from inferrsi.knowledge.knowledge_operations import KnowledgeReader
 
-reader = KnowledgeReader(skill_root=Path("src/inferrsi/data/skill_library"))
+reader = KnowledgeReader(skill_root=Path("src/inferrsi/knowledge/data/skill_library"))
 result = reader.collect(ids=["calibrate-serving-simulation"], material=True, limit=1)
 item = result["items"][0]
 source = reader.resource(item["ref"], "methods/calibrate-serving-simulation/references/source-notes.md",
@@ -28,8 +28,8 @@ the store records the skills root it reserves and rejects a mismatched or missin
 `collect`/`read` and writes bytes to `--output`.
 
 ```bash
-inferrsi collect 'Ascend OOM' --kind case --limit 3 --material --skill-root src/inferrsi/data/skill_library
-inferrsi read calibrate-serving-simulation --skill-root src/inferrsi/data/skill_library
+inferrsi collect 'Ascend OOM' --kind case --limit 3 --material --skill-root src/inferrsi/knowledge/data/skill_library
+inferrsi read calibrate-serving-simulation --skill-root src/inferrsi/knowledge/data/skill_library
 ```
 
 The `--skill-root` selections require the `skills` extra (`python -m pip install
@@ -106,6 +106,30 @@ Explicit IDs still bypass ranking. This option changes only owner discovery
 ranking, not query matching or optional context-resource scoring. It is a
 lexical-presence contract option, not evidence of general retrieval quality.
 
+Campaign discovery (`campaign capture-context --relevance ...`) defaults to
+`task-lexical-v1`. This method searches registered skills and package knowledge
+records, including GPU procedures under the engine's repository pack.
+`collect --relevance-method task-lexical-v1 --relevance ...` runs the same
+search. Whole words in titles, summaries, tags, repository/scenario labels,
+applicability and body text contribute to rank. A portable owner or one
+matching the backend receives twice the lexical score of an unscoped
+specialization. Without an explicit backend, platform words in the cue
+can supply this preference. Qualification by identity breaks ties.
+
+Use `campaign init --backend <backend>` to retain the runtime backend for
+later searches. An explicit capture backend takes precedence. Existing
+campaigns can pass `--backend` directly on the capture. The search returns
+the best matches up to the requested limit and records the matched and
+returned counts. For engine records it captures the complete `record.json`,
+including the source, applicable geometry and limitations. Linked skill
+documents can be read at the returned revision. Registered skills keep the
+resource rules below. In task discovery, `--scenario` admits records matching
+the workload and registered skills tagged `skills.discovery`. That tag describes
+the discovery operation. The task cue ranks these procedures, whose suitability
+must be checked against their own conditions. Captured hits retain their
+declared scenario. Explicit IDs and the older ranking methods still filter on
+the owner's declared catalog scenario.
+
 `context_bytes` requests a separate context view for returned generated packaged
 skills. It requires an explicit positive integer budget, with no token estimate
 or default. It can be used without `relevance`; optional resources then match the
@@ -114,6 +138,7 @@ still returns `record.json` for these owners, not `SKILL.md`.
 
 | Additional result | Meaning |
 | --- | --- |
+| `retrieval` | Recorded entry, filters, ranking execution, returned-item scores and budget counts; outside budgeted item/resource payloads. See [retrieval observations](knowledge-retrieval-trace.md#execution-observations) |
 | `selection` | Method, cue, scope and whether discovery ranking was applied; only with `relevance` |
 | `contexts` | Selected owner views, each with `ref`, exact Bundle `revision`, resources, `content_bytes`, resource omissions, sources, attribution and limitations |
 | `context_omissions` | Owner context unavailable: `unsupported_context`, `index_unavailable` or `context_limit` |
@@ -212,7 +237,7 @@ supplied code never runs it or grants permissions.
 Rejected directions use the same checkout Case bundles as other observations:
 
 ```python
-reader = KnowledgeReader(skill_root=Path("src/inferrsi/data/skill_library"))
+reader = KnowledgeReader(skill_root=Path("src/inferrsi/knowledge/data/skill_library"))
 options = reader.collect("Ascend OOM", kind="case", material=True, limit=3)
 item = options["items"][0]  # Inspect no_match/omissions first in a general client.
 case = reader.read(item["ref"], revision=item["revision"])

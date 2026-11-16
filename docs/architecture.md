@@ -1,5 +1,45 @@
 # Modular architecture
 
+The [engineering task library](engineering-benchmarks.md) packages MoE forward,
+Qwen-Image denoising and real-model Qwen3-TTS under
+`benchmark/tasks`. `inferrsi benchmarks list|show` discovers the
+packages. `inferrsi benchmarks run <package> ...` launches the package's
+`benchmark.py`. Task-specific orchestration, sampling and assessment live inside
+each package. The task library owns its `index.json` registration. The existing
+`benchmark/registry.py` discovers the resources. The existing `arguments.py`,
+`cli.py` and `benchmark_operations.py` provide application assembly and launch.
+Each task retains its own protocol and task-specific code.
+
+The [current-Agent optimization session](optimization-benchmarks.md) assembles
+the first complete handoff for the Qwen task. `harness/optimization.py` controls
+budget, attempts, feedback records, selection and independent final execution.
+`harness/task_protocol.py` freezes a supplied resource directory and loads its
+task-owned assessment protocol. `harness/optimization_session.py` assembles
+execution and assessment; the CLI resolves task resources and injects knowledge
+access and the capture callback from `apps/campaign.py`.
+The external Agent chooses and edits candidates between round submissions.
+The same controller serves ordinary projects through `campaign start/round/final`
+and packaged tasks through `benchmarks session`. The
+[shared workflow and sequence diagram](optimization-workflow-unification.md)
+describe multi-file candidates, explicit acceptance inputs, stop rules and
+dashboard projections from one control record. `harness/project.py` freezes
+caller-provided checks and assesses their retained outputs. Ordinary optimization
+does not import Benchmark. Benchmark supplies task definitions and specialized
+rules, while Harness manages their execution and the complete optimization lifecycle.
+Neither infers quality criteria from a natural-language goal.
+Ordinary projects default to the current Agent conversation.
+The [native host handoff](native-agent-sessions.md) lets the initiating Agent
+resolve the task request before any campaign exists, use its host's new-session
+tool and retain the native identity and returned artifacts. The child owns the
+complete start/knowledge/round/final lifecycle; the parent observes and collects. This path records the handoff; it
+does not implement a background Agent CLI driver or a native-host deadline.
+
+The application injects `harness.scenarios.external.execute_trial` into the
+[two-rank MoE entry](moe-forward-benchmark.md). The standalone image benchmark
+and [TTS service protocol](tts-benchmark.md) expose their documented execution
+boundaries. Apps and Harness callers assemble these operations into optimization
+rounds under the #362 target architecture. Each task records its qualification.
+
 The local experiment path now has concrete Harness, Model and Infra modules. The
 CLI, RunSpec, knowledge retrieval and existing command contracts remain stable.
 The diagrams below describe implemented code, with the historical compatibility
@@ -59,9 +99,22 @@ Dependencies flow from entrypoints to Harness, from scenarios to Model/Infra,
 and from Model to Infra utilities. Infra does not import Model or Harness. None
 of these shared packages imports a campaign from `examples/`.
 
+Environment inspection follows that direction. `infra/inspection.py` is the
+facts API: it takes the command probe and the repository snapshot as ports.
+`apps/inspection.py` binds those ports to this host with
+`infra.commands.probe_command` and `infra.targets.repository_identity`, and the
+CLI calls that composition. Infra reaches no Apps, Knowledge, Harness or
+Benchmark module and is not a fourth core. `infra/inspection.py` reads a
+repository-pack description through the neutral `resources.repository_packs`
+leaf, under the one permanent importer rule in
+[module-layout.md](module-layout.md#permanent-neutral-leaf-importer-rule-proposed).
+
 The implemented table above is not the target four-module layout. The
 suggested rule, including what the import gate does not prove, is
-[module-layout.md](module-layout.md). That page does not move code.
+[module-layout.md](module-layout.md). That page does not move code. It also
+records the first-wave compatibility pairs that #412 R1 retired and the
+permanent neutral-leaf importer rule, both held in
+[legacy-knowledge-manifest.json](legacy-knowledge-manifest.json).
 
 The caller still prepares the benchmark runtime and baseline/candidate source
 checkouts. Separate working directories alone do not isolate Python imports,
@@ -106,25 +159,94 @@ the comparator; the engine AB/BA path retains its independent acceptance contrac
 ```text
 src/inferrsi/
   cli.py, arguments.py       Existing CLI
-  runspec.py, contracts.py   Immutable experiment contract and compatibility export
-  catalog.py                Knowledge search and cited context
-  skill_catalog.py          Packaged/default or custom skill metadata/body/resource resolution
-  knowledge_operations.py   Normalized reads and bounded Collect (KnowledgeReader)
-  knowledge_store.py        Authorized local store Create/Update (KnowledgeStore)
-  research.py               Read-only model-aware discovery joined over catalog queries
-  _skill_selection.py       Deterministic lexical skill ranking and context view
-  claim.py                  Campaign verdict labels PASS/FAIL/INCONCLUSIVE; rules only
-  evidence_paths.py         Per-campaign evidence tree: plan/results/patch/validator
+  benchmark_operations.py   Resolve a task entry and launch it through Harness
+  benchmark/
+    registry.py             Generic task resource discovery
+    tasks/                  Task-specific definitions, workloads and assessment
+    legacy_run_v0.py        Old run gates: metric contract, summaries and verdict
+    sampling.py             Warmup seeds, first-response retention, sample/artifact groups
+    skill_evaluation.py     Skill trial check validity, verdict and condition statistics
+    skill_eval_diagnostic.py   Synthetic KV admission diagnosis task and grader
+    skill_eval_engineering.py  Serving-parser task, public vectors and vector judgment
+    improvement.py          Improvement-step thresholds and acceptance rules
+  apps/
+    api.py                  Python entry points for assembling and publishing Apps operations
+    archive.py              Publish and read the standardized Apps output in a workspace
+    result.py               Assemble and check the AppsResultV1 output envelope
+    skill_evaluation.py     Composed bundle export, trial run and summary
+    skill_eval_engineering.py  Composed artifact check: task rules around sandbox replay
+    improvement.py          Composed assessment, selection, rerun and holdout acceptance
+    inspection.py           Environment inspection bound to the host probe and Git identity
+    legacy/
+      run.py                Old run composed from Harness, Benchmark and the report
+      evaluation.py         Old evaluate entry: RunSpec to the Benchmark gates
+      reporting.py          HTML evidence report
+  contracts/
+    runspec.py              Immutable experiment contract; the initializer re-exports only RunSpec
+    json_v1.py              Canonical inferrsi-json-v1 encoder and decoder
+    claim.py                Campaign verdict labels PASS/FAIL/INCONCLUSIVE; rules only
+    evidence.py             Evidence segments and per-campaign path rules; no filesystem I/O
+  resources/
+    __init__.py             Import-free initializer
+    repository_packs.py     Neutral REPO_TYPES and pack.json reader; imports no inferrsi module
   summary_chart.py          Stdlib SVG gain chart (chain/branch) and report figure spec
+  apps/
+    evidence_layout.py      Create the plan/results/patch/validator evidence directories
+    campaign.py             Knowledge values connected to Harness campaign records
+    views/
+      optimization_chart.py Managed optimization objective/token curves and final result
+      dashboard.py          Offline snapshot and HTML rendering
+      dashboard_data.py     Recorded run/campaign evidence into a view model
+      dashboard_live.py     Read-only loopback server for live observation
+      dashboard_timeline.py Stage/result timeline SVG
+      dashboard_workflow.py Paired command events into reviewable work units
+      dashboard_external.py Protocol-specific external measurements
+      template.html         Dashboard view template
+      optimization_story.py Caller narrative resolved against captures and runs
+      profile_searches.py  Pre-profile search presentation
+      experiment_timing.py Experiment timing presentation
+      search_attribution.py Import attributable file-search evidence into a campaign
+      search_archive.py    Reviewed search-archive uses
+      capture_delivery.py  Visible capture resources in a reviewed tool return
+      codex_search.py      Bounded attributable file-search evidence from Codex rollouts
+      codex_tool_returns.py Correlate Codex tool-return windows
+  knowledge/
+    catalog.py              Knowledge search and cited context
+    skill_catalog.py        Packaged/default or custom skill metadata/body/resource resolution
+    knowledge_operations.py Normalized reads and bounded Collect (KnowledgeReader)
+    knowledge_store.py      Authorized local store Create/Update (KnowledgeStore)
+    research.py             Read-only model-aware discovery joined over catalog queries
+    _skill_selection.py     Deterministic lexical skill ranking and context view
+    _source_snapshot.py     Shared source snapshot for stored records: manifest, compact, resolve
+    context_projection.py   Collected context text and item projection
   harness/
-    improvement.py          Offline quality-first selection and usage accounting
-    skill_evaluation.py     Skill trial/client interface and independent grading
-    runner.py               One AB/BA loop; execute/snapshot adapter hooks
-    evaluation.py           Performance/quality/source-integrity adjudication
-    reporting.py            HTML evidence report
+    api.py                  H public allocate/execute/read over one RunStore and CPU target
+    execution_service.py    Ordinary-command execute: admission, binding, steps, record
+    input_binding.py        Input capture, byte-equivalent copies and file digests
+    local_process.py        Windows Job / POSIX process group; deadline, cancel, cleanup
+    run_store.py            Local SQLite RunStore: claim, owner lock, fixed records
+    errors.py               H PublicError codes and partial execution facts
+    records/
+      evidence.py           Bounded evidence reads and record text rules
+      optimization_log.py   Campaign log write/read and reference checks
+      optimization_trace.py Optimization trace parse, assemble and read
+      knowledge_capture.py  Delivered context capture and byte verification
+      campaign_records.py   Campaign manifest, candidate and decision records
+      campaign_trace.py     Correlation envelope for existing agent events
+      profile_timeline.py   Profile attachment records
+      timing_clock.py       Recorded timing clock
+    optimization_session.py Shared start/knowledge/round/final operation assembly
+    project.py              Freeze supplied project checks and assess retained results
+    task_protocol.py        Freeze supplied task resources and load their protocol
+    optimization.py         Current-Agent round budget, records and recovery
+    usage.py                Shared observed-token normalization and totals
+    improvement.py          Offline search progression over injected assessments
+    skill_evaluation.py     Skill client adapter, trial execution and retention; injected rules
+    artifact_sandbox.py     Artifact capture and bubblewrap replay; no vectors or verdicts
+    atomic_json.py          Harness-owned atomic JSON evidence writes
+    runner.py               One AB/BA loop; execute/snapshot/assess/report ports injected
     scenarios/
-      external.py           External benchmark/validator commands; metric-reader hook
-      media.py              Warmup seeds, first-response retention, sample/artifact groups
+      external.py           External command trials; metric validation injected
   model/
     protocols/
       metrics.py            Finite positive dotted-key metric contract
@@ -132,11 +254,10 @@ src/inferrsi/
     validators/
       image.py              Explicit PNG dimensions/mode, hashes, RGB/alpha quality gates
   infra/
-    executors/local.py      Real subprocesses and whole-run deadline
-    processes.py            Owned process groups; Windows jobs; server cleanup
+    processes.py            Supervised Linux serving workers and their group cleanup
     targets/git.py          Repository identity and source snapshots
     platforms/              Backend discovery registry; CUDA qualification
-    inspection.py           Environment inspection coordinator
+    inspection.py           Environment inspection facts API; command and snapshot ports
     commands.py             Bounded read-only probes
     environment.py          Dependency versions and storage checks
     http.py                 HTTP POST/download timing
@@ -146,13 +267,21 @@ src/inferrsi/
     repo_packs/             Contribution descriptors and versioned tuning knowledge
     knowledge_packs/        Dependency and peer knowledge, preserving existing tiers
     skill_library/          Complete categorized English skills and resources
-  execution.py              Compatibility entrypoint -> harness.runner
-  evaluation.py             Compatibility exports -> harness.evaluation
-  inspection.py             Compatibility entrypoint -> infra.inspection
-  reporting.py              Compatibility export -> harness.reporting
 examples/                   Current Qwen runner, image validator and v4 adapter
 tests/fixtures/legacy/      Frozen historical validation dependencies for regressions
 ```
+
+The package root holds exactly ten tracked files at this stage: `__init__.py`,
+`__main__.py`, `cli.py`, `arguments.py`, `benchmark_operations.py`,
+`summary_chart.py`, `mindie_context.py`, `mindie_mcp.py`, `mindie_project.py`
+and `_mindie_read_worker.py`. #412 R1 deleted eleven root modules with no
+forwarding shell or alias: the seven Knowledge shells, whose code is in
+`knowledge/`; the three old-run forwarders `evaluation.py`, `execution.py` and
+`reporting.py`, whose code is in `apps/legacy/`; and `inspection.py`, whose
+host binding is `apps/inspection.py`. The final two-file root (`__init__.py`
+and `__main__.py`) waits for the A1/A2 (#408) and M1 (#452) moves.
+[module-layout.md](module-layout.md#retired-root-modules) maps each retired
+path to its replacement and lists what still keeps the isolation gate false.
 
 ## Where to extend
 
@@ -170,15 +299,19 @@ synthetic contract fixtures, not accelerator measurements.
 
 ### Compose a new scenario
 
-`harness.runner.run_experiment(spec, environment, *, execute, snapshot)` accepts
-small callable adapters. For a new external benchmark format, reuse the standard
-executor and only replace metric interpretation:
+`apps.legacy.run.run_experiment(spec, environment, *, execute, snapshot)` composes
+the old run and accepts small callable adapters. It passes them, the Benchmark v0
+gates and the report to `harness.runner.run_experiment`, whose four ports
+(`execute`, `snapshot`, `assess`, `report`) have no defaults. An omitted
+`execute` or `snapshot` is read from `apps.legacy.run` when the run starts
+(`execute_trial` and `repository_identity`), which is the two-argument call
+that the retired root `execution.run_experiment` provided. For a new external
+benchmark format, reuse the standard executor and only replace metric interpretation:
 
 ```python
 from functools import partial
 
-from inferrsi.harness.runner import run_experiment
-from inferrsi.harness.scenarios.external import execute_trial
+from inferrsi.apps.legacy.run import execute_trial, run_experiment
 from inferrsi.model.protocols.metrics import read_metric
 
 
@@ -198,10 +331,12 @@ The standard executor retains timeout, cancellation, logs, result paths and chil
 cleanup. A custom `execute(command, cwd, trial_dir, deadline, metric_key)` must
 preserve that trial record contract. Prefer composing `execute_trial` over
 reimplementing process lifetime. Metric readers convert a result document into a
-float; `execute_trial` then applies the one finite, positive metric contract
-(`model.protocols.metrics.validate_metric`) to whatever the reader returns, so a
-reader that yields `0.0`, a `bool` or a non-finite value records a metric error
-rather than entering the evaluation.
+float; `benchmark.legacy_run_v0.trial_metric` then applies the one finite, positive
+metric contract (`model.protocols.metrics.validate_metric`) to whatever the reader
+returns, so a reader that yields `0.0`, a `bool` or a non-finite value records a
+metric error rather than entering the evaluation. The Harness executor
+`harness.scenarios.external.execute_trial` holds no metric rule: a caller that
+passes a metric key also passes `metric=`, its validation function.
 
 Run state is written by the termination path, never assumed. `status.json`
 reports `completed` only after the final artifacts were written;
@@ -216,7 +351,8 @@ fingerprint relevant source, including changes between individual commands; it
 must not claim availability without a trustworthy identity. Git remains the
 default. Alternative adapters must define their own exclusion semantics.
 
-Image campaigns can compose `ImageProtocol.request` with `collect_samples`.
+Image campaigns can compose `ImageProtocol.request` with
+`benchmark.sampling.collect_samples`.
 The protocol receives model name, dimensions and sampling parameters from the
 campaign. The collector owns warmups, first-response retention, groups and
 artifact hashes; it accepts a request callback and file suffix, so it has no
@@ -232,7 +368,7 @@ the default control package continues to require only the standard library.
 
 Register a device probe in `infra.platforms.PLATFORM_PROBES`; supply the selected
 IDs, device model and bounded command runner. A new backend name additionally
-needs an entry in `catalog.BACKENDS`, which supplies the CLI `--backend` choices
+needs an entry in `knowledge.catalog.BACKENDS`, which supplies the CLI `--backend` choices
 and the accepted knowledge and skill backends; no package-data descriptor is
 required. Adding a device SKU within a backend is a parameter/configuration
 change. CUDA qualification takes an explicit device count and model; it contains
@@ -251,12 +387,15 @@ The supervised server helpers (`infra.processes.launch_server` / `stop_server`)
 require Linux with a readable `/proc` process table. They reject other platforms
 before launch; missing or inaccessible process enumeration raises an error rather
 than reporting successful cleanup. Workers must remain in their owned process
-group. Windows Job Object support in the general command executor does not extend
-to these server helpers. These constraints do not restrict read-only knowledge
+group. Windows Job Object support in the general command executor
+(`harness.local_process`) does not extend to these server helpers. These constraints do not restrict read-only knowledge
 operations or the control CLI to Linux.
 
-- Existing CLI flags, root import paths, external JSON metrics, run artifacts,
-  cancellation handling and report generation are retained.
+- Existing CLI flags, external JSON metrics, run artifacts, cancellation
+  handling and report generation are retained. Root Python import paths are
+  not all retained: #451 and #412 R1 retired the root modules listed in
+  [CHANGELOG.md](../CHANGELOG.md) with no forwarding shell or alias. That file
+  maps each old path to its replacement and states the pickle impact.
 - `examples/qwen21_turbo_b300.py` retains its command interface and campaign
   settings while delegating lifecycle, requests and sampling to shared modules.
 - The LTX helper and quality script, plus the pre-cleanup Qwen quality script,
@@ -275,12 +414,12 @@ operations or the control CLI to Linux.
 Package data is the canonical source for noneditable installations:
 
 ```text
-inferrsi/data/repo_packs/REPO/knowledge/
+inferrsi/knowledge/data/repo_packs/REPO/knowledge/
   README.md                       Organization and navigation only
   BACKEND/COMPONENT/ENTRY.json     One canonical reusable experience
-inferrsi/data/repo_packs/inferrsi/knowledge/
+inferrsi/knowledge/data/repo_packs/inferrsi/knowledge/
                                   Generated from data/skill_library/, never hand-edited
-inferrsi/data/knowledge_packs/
+inferrsi/knowledge/data/knowledge_packs/
   README.md                       Three-tier source navigation
   dependency/REPO/BACKEND/COMPONENT/ENTRY.json
   peer/REPO/BACKEND/COMPONENT/ENTRY.json
@@ -325,7 +464,7 @@ the two matrices retain their authority.
 Run evidence remains in the caller-selected run directory; frozen campaign
 plans/results/patches/validators remain under `evidence/`.
 
-See the [knowledge guide](../src/inferrsi/data/knowledge_packs/README.md)
+See the [knowledge guide](../src/inferrsi/knowledge/data/knowledge_packs/README.md)
 for all entries, retrieval rules and the maintenance workflow.
 
 The earlier [component design](assets/component-architecture-en.svg) and
@@ -341,7 +480,7 @@ automatic promotion into the knowledge catalog or RunSpec. The original diagram
 is preserved; the [source audit](reviews/source-audit-ac70272.md) tracks cleanup
 portability and other implementation gaps.
 
-The migrated skills have [generated catalog records](../src/inferrsi/data/repo_packs/inferrsi/knowledge/README.md)
+The migrated skills have [generated catalog records](../src/inferrsi/knowledge/data/repo_packs/inferrsi/knowledge/README.md)
 in `data/repo_packs/inferrsi/knowledge/`, with backend-scoped IDs and
 `skill_documents.original` pointing to the complete packaged procedures.
 Normalized reads retain the library's dependency resources. The library is the

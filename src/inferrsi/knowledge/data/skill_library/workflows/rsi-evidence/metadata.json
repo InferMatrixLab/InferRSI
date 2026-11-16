@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "profile": "local-skill-v1",
+  "kind": "skill",
+  "status": "candidate",
+  "origin": [
+    "first-party"
+  ],
+  "consumption_mode": "packaged",
+  "tags": [
+    "evidence",
+    "verdict",
+    "runspec",
+    "provenance",
+    "review"
+  ],
+  "empirical_validation": "not_run",
+  "provenance_readsets": [
+    "references/loopx-goal-governance/README.md"
+  ],
+  "applicability": {
+    "scope": "Preparing acceptance criteria, documenting or reviewing an optimization campaign whose verdict will be cited downstream",
+    "prerequisites": "For preparation, the user requirements and available model/hardware/workload evidence; for verdicts, pinned baseline and candidate SHAs and an evidence tree under evidence/<campaign-id>/; conclusions about LoopX goal authority additionally need its governance reference",
+    "input_contract": "Campaign artifacts in plan/, results/, patch/ and validator/, plus the RunSpec that fixes repo x revision x backend x device x model x scenario",
+    "produced_artifact": "An evidence record that links paths instead of pasting metrics, and states exactly one of PASS, FAIL or INCONCLUSIVE with its rationale",
+    "failure_modes": [
+      "Metrics pasted into an issue comment with no link to an evidence path",
+      "A verdict vocabulary outside PASS/FAIL/INCONCLUSIVE",
+      "PASS recorded on a cleanup or integrity-probe failure",
+      "Output reused across trials, aliased into a reference, or written outside its own trial directory",
+      "Source fingerprint taken over a directory overlap that excludes changed tracked files",
+      "Org-wide default SHAs assumed in a skill or CI instead of read from the acceptance issue"
+    ],
+    "refusal_point": "Refuses PASS when the validator freeze, the results rationale or the pinned SHAs are missing, and reports INCONCLUSIVE for that campaign instead"
+  },
+  "recommendations": [
+    "Use user-supplied acceptance criteria; otherwise follow performance-ceiling-analysis to formulate targets. Preserve partial requirements and record each derived field's evidence before freezing gates.",
+    "Link evidence paths in the report; a metric quoted only in a comment cannot be re-checked later.",
+    "Fingerprint tracked source even when the output directory overlaps it, and exclude only the current run's generated files.",
+    "Treat a missing upstream-cache release proof as INCONCLUSIVE rather than a PASS with a caveat.",
+    "Read baseline and candidate SHAs from the acceptance issue for that campaign, never from a skill default.",
+    "Freeze optional required_trial_checks for complete requests, effective graph controls and clean worker exits; require literal true per trial and retain supporting receipts."
+  ],
+  "limitations": [
+    "Documents evidence discipline; it performs no measurement and certifies no campaign.",
+    "The LoopX goal-governance reference is a source-derived candidate and adds no execution permission or empirical validation."
+  ]
+}

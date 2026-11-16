@@ -10,12 +10,11 @@ from unittest.mock import patch
 
 import pytest
 
-from inferrsi.harness.runner import run_experiment
-from inferrsi.harness.scenarios.external import execute_trial
+from inferrsi.apps.legacy.run import execute_trial, run_experiment
+from inferrsi.contracts import RunSpec
 from inferrsi.infra.platforms import PLATFORM_PROBES, inspect_device
 from inferrsi.infra.platforms.cuda import qualify_devices
 from inferrsi.model.protocols.metrics import read_metric
-from inferrsi.runspec import RunSpec
 
 
 def test_new_scenario_target_and_backend_share_abba_and_verdict(tmp_path):
@@ -105,7 +104,7 @@ def test_shared_layers_do_not_import_campaigns_or_reverse_dependencies():
     for plane in ("infra", "model", "harness"):
         for path in (root / plane).rglob("*.py"):
             package = ".".join(("inferrsi", *path.relative_to(root).parts[:-1]))
-            for node in ast.walk(ast.parse(path.read_text())):
+            for node in ast.walk(ast.parse(path.read_text(encoding="utf-8"))):
                 if isinstance(node, ast.Import):
                     names = [alias.name for alias in node.names]
                 elif isinstance(node, ast.ImportFrom):

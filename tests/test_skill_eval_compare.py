@@ -10,7 +10,7 @@ from pathlib import Path
 import pytest
 
 from inferrsi.infra.artifacts import sha256, write_json
-from inferrsi.knowledge_operations import KnowledgeReader, RevisionConflict
+from inferrsi.knowledge.knowledge_operations import KnowledgeReader, RevisionConflict
 from tests.fixtures.skill_eval_compare_support import (
     DATA,
     ROOT,
@@ -1009,10 +1009,17 @@ def test_changed_runtime_controllers_reject_execution_and_report_without_calls(t
     authorization = module.prepare(config, repo, output)
     module.report(output)
     saved = (output / "report.json").read_bytes(), (output / "report.md").read_bytes()
-    assert "src/inferrsi/infra/executors/local.py" in module.CONTROLLERS
-    assert "src/inferrsi/infra/processes.py" in module.CONTROLLERS
+    assert "src/inferrsi/harness/local_process.py" in module.CONTROLLERS
     assert "src/inferrsi/infra/artifacts.py" in module.CONTROLLERS
     assert "tools/skill_eval_artifact_guidance.py" in module.CONTROLLERS
+    # Each owner of the split trial path is frozen: composed entry, rules and host.
+    for owner in ("apps", "benchmark", "harness"):
+        assert f"src/inferrsi/{owner}/skill_evaluation.py" in module.CONTROLLERS
+    for name in ("apps/skill_eval_engineering.py", "benchmark/skill_eval_engineering.py",
+                 "benchmark/skill_eval_diagnostic.py", "harness/artifact_sandbox.py",
+                 "harness/atomic_json.py", "harness/input_binding.py"):
+        assert "src/inferrsi/" + name in module.CONTROLLERS
+    assert not any("harness/skill_eval_" in name for name in module.CONTROLLERS)
     client = FixedOutputClient(tmp_path)
     for name in module.CONTROLLERS:
         target = runtime / name

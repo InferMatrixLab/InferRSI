@@ -1,0 +1,509 @@
+{
+  "campaign_verdict": "INCONCLUSIVE",
+  "performance_acceptance": "No newly accepted gain",
+  "runs": [
+    {
+      "trial": "c12-alignment-quality-5s-00-9bf5c373",
+      "model_controller": {
+        "status": "completed",
+        "returncode": 0,
+        "elapsed_seconds": 471.80311120999977
+      },
+      "model_diagnostic": {
+        "source_head": "a29648e5acd3077b7b22739bc9522017782fe1ac",
+        "samples_ms": [
+          318280.59680899605
+        ],
+        "latency_median_ms": 318280.59680899605,
+        "scope": "http_complete_mp4",
+        "warmup": 0,
+        "repetitions": 1,
+        "kind": "quality",
+        "diagnostic": "audit",
+        "clean_timing": false,
+        "cleanup_passed": true
+      },
+      "actual_counters": {
+        "request-000\\rank-0\\alignment_cache_stats.json": {
+          "request_counters": {
+            "computed": 50,
+            "predicted": 0,
+            "vetoes": 45
+          },
+          "scope": "actual state-aligned compute/forecast/veto counts; not quality acceptance"
+        },
+        "request-000\\rank-1\\alignment_cache_stats.json": {
+          "request_counters": {
+            "computed": 50,
+            "predicted": 0,
+            "vetoes": 45
+          },
+          "scope": "actual state-aligned compute/forecast/veto counts; not quality acceptance"
+        },
+        "request-000\\rank-2\\alignment_cache_stats.json": {
+          "request_counters": {
+            "computed": 50,
+            "predicted": 0,
+            "vetoes": 45
+          },
+          "scope": "actual state-aligned compute/forecast/veto counts; not quality acceptance"
+        },
+        "request-000\\rank-3\\alignment_cache_stats.json": {
+          "request_counters": {
+            "computed": 50,
+            "predicted": 0,
+            "vetoes": 45
+          },
+          "scope": "actual state-aligned compute/forecast/veto counts; not quality acceptance"
+        },
+        "request-000\\rank-0\\attention_path_counts.json": {
+          "_prefix_bnsd": 2500
+        },
+        "request-000\\rank-1\\attention_path_counts.json": {
+          "_prefix_bnsd": 2500
+        },
+        "request-000\\rank-2\\attention_path_counts.json": {
+          "_prefix_bnsd": 2500
+        },
+        "request-000\\rank-3\\attention_path_counts.json": {
+          "_prefix_bnsd": 2500
+        }
+      }
+    },
+    {
+      "trial": "c12-state-alignment-native-tests-0dc5859b",
+      "cleanup_passed": true,
+      "source_unchanged": true,
+      "native_test_executed": true,
+      "files_before": {
+        "vllm_omni/diffusion/models/minimax_h3/cache_state_alignment.py": "3340ec21a77aef78531c601be241bcfb1e44107c795e8c8649907d1a18ed377f",
+        "vllm_omni/diffusion/models/minimax_h3/reference_kv_cache_dit.py": "f4cd0e9aa9e824c92ec1acd02c57a8f7d8684c35d4edf92ffdfae3345ff44e99",
+        "vllm_omni/diffusion/models/minimax_h3/minimax_h3_transformer.py": "436ec52cd6329cbc64e91d94b450bfa6f773a9a953b8f974db73a5eb986a98bb",
+        "vllm_omni/diffusion/models/minimax_h3/denoise_loop.py": "4dec8f02a04bfe7e8d2ada24fc6d5ae40a0058671d8515c8a266ecf88824b7b0",
+        "tests/diffusion/models/minimax_h3/test_minimax_h3_state_cache.py": "89cf57482b35d8d8ad8d4978aec87e9ee3ef45330e5b911161adef4379950a65"
+      },
+      "scope": "focused tests only; no full-model quality or performance acceptance",
+      "status": "completed",
+      "returncode": 0,
+      "elapsed_seconds": 82.06077561300481
+    },
+    {
+      "trial": "c13-baseline-cuda-staging-e22d8651",
+      "cleanup_passed": true,
+      "source_unchanged": true,
+      "native_test_executed": false,
+      "files_before": {
+        "vllm_omni/diffusion/offloader/sequential_backend.py": "d542935b656a0d9dced78de8fb086b8e1c5aade26fac6cee5316b32a49f0d569",
+        "tests/diffusion/offloader/test_sequential_backend.py": "dcf1d64e65bed572d65b095c1350950f55d7e8d9ddf8c7dfd72d0ea6e721685a"
+      },
+      "scope": "Reproduce stock CUDA-graph staging expectation on unchanged migration owning source in the same Ascend test environment",
+      "status": "failed",
+      "returncode": 1,
+      "elapsed_seconds": 50.234599059971515
+    },
+    {
+      "trial": "c13-c1-dlo-5s-audit-cead10d1",
+      "model_controller": {
+        "status": "failed",
+        "returncode": 2,
+        "elapsed_seconds": 0.11969929095357656
+      }
+    },
+    {
+      "trial": "c13-c1-dlo-5s-audit-v2-b0b86c6d",
+      "model_controller": {
+        "status": "completed",
+        "returncode": 0,
+        "elapsed_seconds": 749.505351218977
+      },
+      "model_diagnostic": {
+        "source_head": "e89b1d40d37f7f72767892a56fa7980ea572ba8e",
+        "samples_ms": [
+          315593.86175096733,
+          284456.94282796467
+        ],
+        "latency_median_ms": 300025.402289466,
+        "scope": "http_complete_mp4",
+        "warmup": 0,
+        "repetitions": 2,
+        "kind": "diagnostic",
+        "diagnostic": "audit",
+        "clean_timing": false,
+        "cleanup_passed": true
+      },
+      "actual_counters": {
+        "request-000\\rank-0\\attention_path_counts.json": {
+          "dlo._issue_chunked_allgather.ungated": 100,
+          "dlo._allgather_after_attn_a2a": 2600,
+          "dlo._issue_chunked_allgather.gated": 2600,
+          "dlo._flush_deferred_allgather": 2600,
+          "_prefix_bnsd": 2500
+        },
+        "request-000\\rank-1\\attention_path_counts.json": {
+          "dlo._issue_chunked_allgather.ungated": 100,
+          "dlo._allgather_after_attn_a2a": 2600,
+          "dlo._issue_chunked_allgather.gated": 2600,
+          "dlo._flush_deferred_allgather": 2600,
+          "_prefix_bnsd": 2500
+        },
+        "request-000\\rank-2\\attention_path_counts.json": {
+          "dlo._issue_chunked_allgather.ungated": 100,
+          "dlo._allgather_after_attn_a2a": 2600,
+          "dlo._issue_chunked_allgather.gated": 2600,
+          "dlo._flush_deferred_allgather": 2600,
+          "_prefix_bnsd": 2500
+        },
+        "request-000\\rank-3\\attention_path_counts.json": {
+          "dlo._issue_chunked_allgather.ungated": 100,
+          "dlo._allgather_after_attn_a2a": 2600,
+          "dlo._issue_chunked_allgather.gated": 2600,
+          "dlo._flush_deferred_allgather": 2600,
+          "_prefix_bnsd": 2500
+        },
+        "request-001\\rank-0\\attention_path_counts.json": {
+          "dlo._issue_chunked_allgather.ungated": 100,
+          "dlo._allgather_after_attn_a2a": 2600,
+          "dlo._issue_chunked_allgather.gated": 2600,
+          "dlo._flush_deferred_allgather": 2600,
+          "_prefix_bnsd": 2500
+        },
+        "request-001\\rank-1\\attention_path_counts.json": {
+          "dlo._issue_chunked_allgather.ungated": 100,
+          "dlo._allgather_after_attn_a2a": 2600,
+          "dlo._issue_chunked_allgather.gated": 2600,
+          "dlo._flush_deferred_allgather": 2600,
+          "_prefix_bnsd": 2500
+        },
+        "request-001\\rank-2\\attention_path_counts.json": {
+          "dlo._issue_chunked_allgather.ungated": 100,
+          "dlo._allgather_after_attn_a2a": 2600,
+          "dlo._issue_chunked_allgather.gated": 2600,
+          "dlo._flush_deferred_allgather": 2600,
+          "_prefix_bnsd": 2500
+        },
+        "request-001\\rank-3\\attention_path_counts.json": {
+          "dlo._issue_chunked_allgather.ungated": 100,
+          "dlo._allgather_after_attn_a2a": 2600,
+          "dlo._issue_chunked_allgather.gated": 2600,
+          "dlo._flush_deferred_allgather": 2600,
+          "_prefix_bnsd": 2500
+        }
+      }
+    },
+    {
+      "trial": "c13-c1-dlo-5s-calibration-c98129d8",
+      "model_controller": {
+        "status": "completed",
+        "returncode": 0,
+        "elapsed_seconds": 768.8735517460154
+      },
+      "model_diagnostic": {
+        "source_head": "e89b1d40d37f7f72767892a56fa7980ea572ba8e",
+        "samples_ms": [
+          317177.1984040388,
+          285534.089674009
+        ],
+        "latency_median_ms": 301355.6440390239,
+        "scope": "http_complete_mp4",
+        "warmup": 0,
+        "repetitions": 2,
+        "kind": "calibration",
+        "diagnostic": "audit",
+        "clean_timing": false,
+        "cleanup_passed": true
+      },
+      "actual_counters": {
+        "request-000\\rank-0\\attention_path_counts.json": {
+          "dlo._issue_chunked_allgather.ungated": 100,
+          "dlo._allgather_after_attn_a2a": 2600,
+          "dlo._issue_chunked_allgather.gated": 2600,
+          "dlo._flush_deferred_allgather": 2600,
+          "_prefix_bnsd": 2500
+        },
+        "request-000\\rank-1\\attention_path_counts.json": {
+          "dlo._issue_chunked_allgather.ungated": 100,
+          "dlo._allgather_after_attn_a2a": 2600,
+          "dlo._issue_chunked_allgather.gated": 2600,
+          "dlo._flush_deferred_allgather": 2600,
+          "_prefix_bnsd": 2500
+        },
+        "request-000\\rank-2\\attention_path_counts.json": {
+          "dlo._issue_chunked_allgather.ungated": 100,
+          "dlo._allgather_after_attn_a2a": 2600,
+          "dlo._issue_chunked_allgather.gated": 2600,
+          "dlo._flush_deferred_allgather": 2600,
+          "_prefix_bnsd": 2500
+        },
+        "request-000\\rank-3\\attention_path_counts.json": {
+          "dlo._issue_chunked_allgather.ungated": 100,
+          "dlo._allgather_after_attn_a2a": 2600,
+          "dlo._issue_chunked_allgather.gated": 2600,
+          "dlo._flush_deferred_allgather": 2600,
+          "_prefix_bnsd": 2500
+        },
+        "request-001\\rank-0\\attention_path_counts.json": {
+          "dlo._issue_chunked_allgather.ungated": 100,
+          "dlo._allgather_after_attn_a2a": 2600,
+          "dlo._issue_chunked_allgather.gated": 2600,
+          "dlo._flush_deferred_allgather": 2600,
+          "_prefix_bnsd": 2500
+        },
+        "request-001\\rank-1\\attention_path_counts.json": {
+          "dlo._issue_chunked_allgather.ungated": 100,
+          "dlo._allgather_after_attn_a2a": 2600,
+          "dlo._issue_chunked_allgather.gated": 2600,
+          "dlo._flush_deferred_allgather": 2600,
+          "_prefix_bnsd": 2500
+        },
+        "request-001\\rank-2\\attention_path_counts.json": {
+          "dlo._issue_chunked_allgather.ungated": 100,
+          "dlo._allgather_after_attn_a2a": 2600,
+          "dlo._issue_chunked_allgather.gated": 2600,
+          "dlo._flush_deferred_allgather": 2600,
+          "_prefix_bnsd": 2500
+        },
+        "request-001\\rank-3\\attention_path_counts.json": {
+          "dlo._issue_chunked_allgather.ungated": 100,
+          "dlo._allgather_after_attn_a2a": 2600,
+          "dlo._issue_chunked_allgather.gated": 2600,
+          "dlo._flush_deferred_allgather": 2600,
+          "_prefix_bnsd": 2500
+        }
+      }
+    },
+    {
+      "trial": "c13-dlo-gate-tests-bc92a71d",
+      "cleanup_passed": true,
+      "source_unchanged": true,
+      "native_test_executed": false,
+      "files_before": {
+        "tests/diffusion/distributed/test_collective_gate.py": "2b33f73dff9c79118cc2b1bd4d50e3542ebc45b7bf029b38c17abbef37e4b917",
+        "vllm_omni/config/omni_config.py": "6894120a330474f718d43bf2bf7928892eb996152839ce6469c34d18a7df09d1",
+        "vllm_omni/config/stage_config.py": "0752e8cc1c6f1021f737830d08663cfc118923a83fd909c607f9ec3ab2a3d2fb",
+        "vllm_omni/diffusion/attention/layer.py": "76c5fce3dabd23e39a8890316e1691c03bc203066cb60af5611ec4790eefc632",
+        "vllm_omni/diffusion/data.py": "5db83d5c71cb27cc7810d35fcfc891da80f0b003adbb16bdecc3816a63305e11",
+        "vllm_omni/diffusion/distributed/collective_gate.py": "01c6317cfa615840681b8bb8b8513fa3736d26e845a24ad9e1ab7f87489b962f",
+        "vllm_omni/diffusion/offloader/base.py": "533c793119e4cdc14a2ea3c6cb5bf97ffede673befeab3f0fb8dbbf51e655379",
+        "vllm_omni/diffusion/offloader/distributed_layerwise_backend.py": "d441481513aba9e90a91265f4bba3f53f8766197be8c1302c3c714e690d5ea76",
+        "vllm_omni/engine/arg_utils.py": "52569e3688cc708729a48ca0a2c875c28193733c2f934f6ff89f6c815e4009c7",
+        "vllm_omni/entrypoints/cli/serve.py": "350461dfca565bc0b07087ac7af1e27b0e247f5eac717e350b637e37f62dd088",
+        "tests/diffusion/offloader/helpers.py": "729c73abba3b9a12911282d4bcd3cf8bfa148fbcbfdc2e2b7c86000e387fa687"
+      },
+      "scope": "CPU mock barrier/chunk tests; no actual NPU collective or full-model quality/performance acceptance",
+      "status": "completed",
+      "returncode": 0,
+      "elapsed_seconds": 47.3752507569734
+    },
+    {
+      "trial": "c13-dlo-regression-tests-95e9ed2a",
+      "cleanup_passed": true,
+      "source_unchanged": true,
+      "native_test_executed": false,
+      "files_before": {
+        "tests/diffusion/distributed/test_collective_gate.py": "2b33f73dff9c79118cc2b1bd4d50e3542ebc45b7bf029b38c17abbef37e4b917",
+        "vllm_omni/config/omni_config.py": "6894120a330474f718d43bf2bf7928892eb996152839ce6469c34d18a7df09d1",
+        "vllm_omni/config/stage_config.py": "0752e8cc1c6f1021f737830d08663cfc118923a83fd909c607f9ec3ab2a3d2fb",
+        "vllm_omni/diffusion/attention/layer.py": "76c5fce3dabd23e39a8890316e1691c03bc203066cb60af5611ec4790eefc632",
+        "vllm_omni/diffusion/data.py": "5db83d5c71cb27cc7810d35fcfc891da80f0b003adbb16bdecc3816a63305e11",
+        "vllm_omni/diffusion/distributed/collective_gate.py": "01c6317cfa615840681b8bb8b8513fa3736d26e845a24ad9e1ab7f87489b962f",
+        "vllm_omni/diffusion/offloader/base.py": "533c793119e4cdc14a2ea3c6cb5bf97ffede673befeab3f0fb8dbbf51e655379",
+        "vllm_omni/diffusion/offloader/distributed_layerwise_backend.py": "d441481513aba9e90a91265f4bba3f53f8766197be8c1302c3c714e690d5ea76",
+        "vllm_omni/engine/arg_utils.py": "52569e3688cc708729a48ca0a2c875c28193733c2f934f6ff89f6c815e4009c7",
+        "vllm_omni/entrypoints/cli/serve.py": "350461dfca565bc0b07087ac7af1e27b0e247f5eac717e350b637e37f62dd088",
+        "tests/diffusion/offloader/helpers.py": "729c73abba3b9a12911282d4bcd3cf8bfa148fbcbfdc2e2b7c86000e387fa687"
+      },
+      "scope": "CPU mock barrier/chunk tests; no actual NPU collective or full-model quality/performance acceptance",
+      "status": "failed",
+      "returncode": 1,
+      "elapsed_seconds": 62.34616496198578
+    },
+    {
+      "trial": "c13-dlo-regression-v2-12c217d5",
+      "cleanup_passed": true,
+      "source_unchanged": true,
+      "native_test_executed": false,
+      "files_before": {
+        "tests/diffusion/distributed/test_collective_gate.py": "2b33f73dff9c79118cc2b1bd4d50e3542ebc45b7bf029b38c17abbef37e4b917",
+        "vllm_omni/config/omni_config.py": "6894120a330474f718d43bf2bf7928892eb996152839ce6469c34d18a7df09d1",
+        "vllm_omni/config/stage_config.py": "0752e8cc1c6f1021f737830d08663cfc118923a83fd909c607f9ec3ab2a3d2fb",
+        "vllm_omni/diffusion/attention/layer.py": "76c5fce3dabd23e39a8890316e1691c03bc203066cb60af5611ec4790eefc632",
+        "vllm_omni/diffusion/data.py": "5db83d5c71cb27cc7810d35fcfc891da80f0b003adbb16bdecc3816a63305e11",
+        "vllm_omni/diffusion/distributed/collective_gate.py": "01c6317cfa615840681b8bb8b8513fa3736d26e845a24ad9e1ab7f87489b962f",
+        "vllm_omni/diffusion/offloader/base.py": "533c793119e4cdc14a2ea3c6cb5bf97ffede673befeab3f0fb8dbbf51e655379",
+        "vllm_omni/diffusion/offloader/distributed_layerwise_backend.py": "d441481513aba9e90a91265f4bba3f53f8766197be8c1302c3c714e690d5ea76",
+        "vllm_omni/engine/arg_utils.py": "52569e3688cc708729a48ca0a2c875c28193733c2f934f6ff89f6c815e4009c7",
+        "vllm_omni/entrypoints/cli/serve.py": "350461dfca565bc0b07087ac7af1e27b0e247f5eac717e350b637e37f62dd088",
+        "tests/diffusion/offloader/helpers.py": "729c73abba3b9a12911282d4bcd3cf8bfa148fbcbfdc2e2b7c86000e387fa687"
+      },
+      "scope": "Expanded offloader tests in Ascend environment; some stock accelerator fixtures use NPU, not a full model test",
+      "status": "failed",
+      "returncode": 1,
+      "elapsed_seconds": 65.14432259398745
+    },
+    {
+      "trial": "c14-int8-prerequisites-fdd6633b",
+      "cleanup_passed": true,
+      "source_unchanged": true,
+      "helpers_unchanged": true,
+      "scope": "Bounded native prerequisites only; a failed probe is retained as negative evidence.",
+      "status": "failed",
+      "returncode": 1,
+      "elapsed_seconds": 20.795623040001374,
+      "native_prerequisite": {
+        "verdict": "FAIL",
+        "scope": "TorchNPU block-INT8 attention prerequisites only",
+        "phase": "dynamic_block_int8_quant_query",
+        "versions": {
+          "torch": "2.10.0+cpu",
+          "torch_npu": "2.10.0.post4",
+          "mindiesd": "3.1.0"
+        },
+        "apis": {
+          "float8_e4m3fn": true,
+          "npu_dynamic_block_quant": true,
+          "npu_fused_infer_attention_score_v2": true
+        },
+        "device_name": "Ascend910_9392",
+        "input": {
+          "shape": [
+            1,
+            14,
+            256,
+            128
+          ],
+          "dtype": "torch.bfloat16",
+          "visible_devices": "2"
+        },
+        "error_type": "RuntimeError",
+        "probe_sha256": "fab18252f860231f9b7fcaa54587afbaa96fce15987fd551922246c8964f7217",
+        "error": "npu_dynamic_block_quant:../third_party/op-plugin/op_plugin/ops/opapi/DynamicBlockQuantNpuOpApi.cpp:61 NPU function error: call aclnnDynamicBlockQuantV2 failed, error code is 561002\n[ERROR] 2026-11-02-02:00:57 (PID:2662830, Device:0, RankID:-1) ERR00100 PTA call acl api failed.\n[PID: 2662830] 2026-11-02-02:00:57.039.986 Invalid_Argument(EZ0024): Parameter row_block_size of DynamicBlockQuant has incorrect value 128. It should be 1.\n        Solution: Check whether the parameter value is correct.\nTraceBack (most recent call last):\n        The attr get failed.[FUNC:CheckParams][FILE:dynamic_block_quant_i8_tiling.cpp][LINE:78]\n        The params check failed.[FUNC:Tiling4DynamicBlockQuant][FILE:dynamic_block_quant_tiling.cpp][LINE:564]\n        Failed to execute operator DynamicBlockQuant_0. Reason: Failed to execute tiling function.\n        Check NnopbaseExecutorDoTiling(executor) failed\n        Check NnopbaseExecutorTilingAndUpdateBinInfo(executor) failed\n        Check NnopbaseExecutorMatchCache(executor) failed\n        Check NnopbaseRunForWorkspace(*executor, workspaceSize) failed\n"
+      }
+    },
+    {
+      "trial": "c14-quant-prerequisites-358b9b28",
+      "cleanup_passed": true,
+      "source_unchanged": true,
+      "helpers_unchanged": true,
+      "scope": "Bounded native prerequisites only; a failed probe is retained as negative evidence.",
+      "status": "failed",
+      "returncode": 1,
+      "elapsed_seconds": 20.143024684977718,
+      "native_prerequisite": {
+        "verdict": "FAIL",
+        "scope": "TorchNPU FP8 prerequisites only",
+        "phase": "dynamic_block_quant_query",
+        "versions": {
+          "torch": "2.10.0+cpu",
+          "torch_npu": "2.10.0.post4",
+          "mindiesd": "3.1.0"
+        },
+        "apis": {
+          "float8_e4m3fn": true,
+          "npu_dynamic_block_quant": true,
+          "npu_fused_infer_attention_score_v2": true
+        },
+        "device_name": "Ascend910_9392",
+        "input": {
+          "shape": [
+            1,
+            14,
+            256,
+            128
+          ],
+          "dtype": "torch.bfloat16",
+          "visible_devices": "2"
+        },
+        "error_type": "RuntimeError",
+        "probe_sha256": "df6465956e6f73bbca140fb9880057e30869fd4b7976b2dc091f71a575dd1096",
+        "error": "npu_dynamic_block_quant:../third_party/op-plugin/op_plugin/ops/opapi/DynamicBlockQuantNpuOpApi.cpp:61 NPU function error: call aclnnDynamicBlockQuantV2 failed, error code is 161002\n[ERROR] 2026-11-02-01:45:24 (PID:2491012, Device:0, RankID:-1) ERR00100 PTA call acl api failed.\n[PID: 2491012] 2026-11-02-01:45:24.732.576 Execution_Error(EZ1009): Failed to execute operator DynamicBlockQuant_0. Reason: The dtype or format of the actual input or output parameter of the operator is inconsistent with that defined in the operator prototype OpDef, details of parameter are x(DT_BFLOAT16, ND), yOut(DT_FLOAT8_E4M3FN, ND), scaleOut(DT_FLOAT, ND).\nTraceBack (most recent call last):\n        Supported dtype and format list is:\n        SupportInfo[0]: x(DT_FLOAT16, ND), yOut(DT_INT8, ND), scaleOut(DT_FLOAT, ND)\n        SupportInfo[1]: x(DT_BFLOAT16, ND), yOut(DT_INT8, ND), scaleOut(DT_FLOAT, ND)\n        Check NnopbaseExecutorTilingAndUpdateBinInfo(executor) failed\n        Check NnopbaseExecutorMatchCache(executor) failed\n        Check NnopbaseRunForWorkspace(*executor, workspaceSize) failed\n"
+      }
+    },
+    {
+      "trial": "c15-video-row-native-066a9a40",
+      "cleanup_passed": true,
+      "source_unchanged": true,
+      "required_native_test_executed": true,
+      "files_before": {
+        "vllm_omni/diffusion/models/minimax_h3/video_row_cache.py": "e35b551b8fc0ec3b0ba1384b4df96a8daa0e5179c5ed39d641125310b2ee957f",
+        "vllm_omni/diffusion/models/minimax_h3/attention/flash_h3.py": "ca87df1936fd2694fcc768079e9e8f926b6d45969ddc61ebf353f5e726d70b8b",
+        "vllm_omni/diffusion/models/minimax_h3/minimax_h3_blocks.py": "1258655fcdca4692c2306100846761a2b0b149bbcaa5cde48a9abaa559913bc3",
+        "vllm_omni/diffusion/models/minimax_h3/minimax_h3_transformer.py": "a8257f98c2e30c7bc7978bf645966d2eaa98cd49a42a8a923c062b5808dcdcdf",
+        "vllm_omni/diffusion/models/minimax_h3/denoise_loop.py": "6f890fcf84047bc5bc084f7b756a2b02e72573888a3bcc12ba7d0211e1bb62ef",
+        "tests/diffusion/models/minimax_h3/test_minimax_h3_video_row_cache.py": "d2a5bed10620a337ff9aaf99cf4a3740d94a8962ef903bf2da75d65e3b50e21c"
+      },
+      "scope": "Focused state/block tests and native four-rank subset attention; no full-model quality/performance acceptance",
+      "status": "failed",
+      "returncode": 1,
+      "elapsed_seconds": 82.27795292000519
+    },
+    {
+      "trial": "c15-video-row-native-3a9721a6",
+      "cleanup_passed": true,
+      "source_unchanged": true,
+      "required_native_test_executed": true,
+      "files_before": {
+        "vllm_omni/diffusion/models/minimax_h3/video_row_cache.py": "cf9fb13c5f24c7595d62d13cae6e283cafb2178612b20028d35357f0cafaac83",
+        "vllm_omni/diffusion/models/minimax_h3/attention/flash_h3.py": "ca87df1936fd2694fcc768079e9e8f926b6d45969ddc61ebf353f5e726d70b8b",
+        "vllm_omni/diffusion/models/minimax_h3/minimax_h3_blocks.py": "1258655fcdca4692c2306100846761a2b0b149bbcaa5cde48a9abaa559913bc3",
+        "vllm_omni/diffusion/models/minimax_h3/minimax_h3_transformer.py": "a8257f98c2e30c7bc7978bf645966d2eaa98cd49a42a8a923c062b5808dcdcdf",
+        "vllm_omni/diffusion/models/minimax_h3/denoise_loop.py": "c5fab405ee82bc553e9a902fa27e6dfbc5213ec18311e17b6415396a69b50f43",
+        "tests/diffusion/models/minimax_h3/test_minimax_h3_video_row_cache.py": "8ec1b3ae4cd252f5d95ab23e0232b983900939e8cb15d1e64f4740f7204abf39",
+        "vllm_omni/diffusion/models/minimax_h3/pipeline_minimax_h3.py": "e8e2e74fb8edb05e02d3e2328ea1f3ad5ddcfd7a10ed09c5cf3911b1d063e849"
+      },
+      "scope": "Focused state/block tests and native four-rank subset attention; no full-model quality/performance acceptance",
+      "status": "completed",
+      "returncode": 0,
+      "elapsed_seconds": 81.91829407500336
+    },
+    {
+      "trial": "c15-video-row-native-a2a224de",
+      "cleanup_passed": true,
+      "source_unchanged": true,
+      "required_native_test_executed": true,
+      "files_before": {
+        "vllm_omni/diffusion/models/minimax_h3/video_row_cache.py": "cf9fb13c5f24c7595d62d13cae6e283cafb2178612b20028d35357f0cafaac83",
+        "vllm_omni/diffusion/models/minimax_h3/attention/flash_h3.py": "ca87df1936fd2694fcc768079e9e8f926b6d45969ddc61ebf353f5e726d70b8b",
+        "vllm_omni/diffusion/models/minimax_h3/minimax_h3_blocks.py": "1258655fcdca4692c2306100846761a2b0b149bbcaa5cde48a9abaa559913bc3",
+        "vllm_omni/diffusion/models/minimax_h3/minimax_h3_transformer.py": "a8257f98c2e30c7bc7978bf645966d2eaa98cd49a42a8a923c062b5808dcdcdf",
+        "vllm_omni/diffusion/models/minimax_h3/denoise_loop.py": "118afcc28379dd73feec763fbb9cfc9f17c6a208afe5969a85b3c969b8059552",
+        "tests/diffusion/models/minimax_h3/test_minimax_h3_video_row_cache.py": "875d0e70621fc76906be130519d7bb1242de5dd58159e31025e26da37e60d98c"
+      },
+      "scope": "Focused state/block tests and native four-rank subset attention; no full-model quality/performance acceptance",
+      "status": "failed",
+      "returncode": 1,
+      "elapsed_seconds": 82.86056435096543
+    },
+    {
+      "trial": "c15-video-row-native-bb5084cc",
+      "cleanup_passed": true,
+      "source_unchanged": true,
+      "required_native_test_executed": true,
+      "files_before": {
+        "vllm_omni/diffusion/models/minimax_h3/video_row_cache.py": "cf9fb13c5f24c7595d62d13cae6e283cafb2178612b20028d35357f0cafaac83",
+        "vllm_omni/diffusion/models/minimax_h3/attention/flash_h3.py": "ca87df1936fd2694fcc768079e9e8f926b6d45969ddc61ebf353f5e726d70b8b",
+        "vllm_omni/diffusion/models/minimax_h3/minimax_h3_blocks.py": "1258655fcdca4692c2306100846761a2b0b149bbcaa5cde48a9abaa559913bc3",
+        "vllm_omni/diffusion/models/minimax_h3/minimax_h3_transformer.py": "a8257f98c2e30c7bc7978bf645966d2eaa98cd49a42a8a923c062b5808dcdcdf",
+        "vllm_omni/diffusion/models/minimax_h3/denoise_loop.py": "118afcc28379dd73feec763fbb9cfc9f17c6a208afe5969a85b3c969b8059552",
+        "tests/diffusion/models/minimax_h3/test_minimax_h3_video_row_cache.py": "fa1ac8fd375d754503b3507fae006381138d8875afdad2418f1ea5ae338b9c26"
+      },
+      "scope": "Focused state/block tests and native four-rank subset attention; no full-model quality/performance acceptance",
+      "status": "completed",
+      "returncode": 0,
+      "elapsed_seconds": 81.50971999001922
+    },
+    {
+      "trial": "c15-video-row-quality-5s-00-710315e0",
+      "model_controller": {
+        "status": "failed",
+        "returncode": 1,
+        "elapsed_seconds": 153.44603093498154
+      }
+    }
+  ],
+  "decisions": [
+    "C12 fixed profile stopped: zero actual predictions.",
+    "C14 pinned block-FP8 and block-INT8 prerequisites failed; per-token INT8 is not excluded.",
+    "C13 numerical qualification and clean performance are separate.",
+    "C15 is a separate lossy fixed profile; native fixtures do not establish model quality."
+  ]
+}

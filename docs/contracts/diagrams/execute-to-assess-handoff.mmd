@@ -1,0 +1,29 @@
+sequenceDiagram
+  participant H as Harness.execute
+  participant Rec as ExecutionRecord
+  participant A as Apps mapping
+  participant Dash as dashboard / trace
+  participant B as Benchmark.assess
+
+  H->>Rec: observed facts, artifact locators, completed checks, identity binding result
+  Note over Rec: no task verdict; exit_code is only an execution fact
+  Dash--x B: claim-style records are not assessment input
+  Rec->>A: committed fixed RecordRef and payload, prepared_ref, protocol, scope and identity
+  A->>A: check top-level prepared / record revision, attempt, operation, scope
+  alt top-level handoff mismatch
+    A-->>A: refuse handoff; do not call assess, produce no normal assessment
+  else top-level handoff correct
+    A->>A: project to Benchmark read-only evidence envelope (retain fields, no scoring)
+    A->>B: fixed PreparedEvaluation + evidence envelope + actual candidate binding
+    Note over B: starts no process; reads no current/latest; top-level mismatch still refused if missed upstream
+    B->>B: check top-level objects; retain phase/process/cleanup; check frozen evidence by claim/scope
+    Note over B: D003 selected: accept a legal fixed non-terminal snapshot; not a successful measurement
+    alt evidence sufficient and protocol passes
+      B-->>A: EvaluationResult.claims[claim_id,scope].verdict = PASS
+    else candidate proven wrong within the declared scope
+      B-->>A: EvaluationResult.claims[claim_id,scope].verdict = FAIL
+    else correct combination but missing/corrupt/unusable evidence
+      B-->>A: EvaluationResult.claims[claim_id,scope].verdict = INCONCLUSIVE (or metric invalid)
+    end
+    Note over A,B: each claim/scope independent; actual candidate anomaly is not a wrong record; unknown cleanup does not override an independent candidate error
+  end

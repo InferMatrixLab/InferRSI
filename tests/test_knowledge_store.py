@@ -11,11 +11,16 @@ from pathlib import Path
 import pytest
 
 import inferrsi
-from inferrsi.knowledge_operations import Bundle, IdentityError, KnowledgeReader, RevisionConflict
-from inferrsi.knowledge_store import KnowledgeStore
+from inferrsi.knowledge.knowledge_operations import (
+    Bundle,
+    IdentityError,
+    KnowledgeReader,
+    RevisionConflict,
+)
+from inferrsi.knowledge.knowledge_store import KnowledgeStore
 
 REPO = Path(__file__).resolve().parents[1]
-ROOT = REPO / "src/inferrsi/data/skill_library"
+ROOT = REPO / "src/inferrsi/knowledge/data/skill_library"
 NOTES = "methods/calibrate-serving-simulation/references/source-notes.md"
 LOCAL = "calibrate-serving-simulation-local"
 
@@ -233,7 +238,7 @@ def test_workspace_location_and_symlinks(tmp_path):
         with pytest.raises(ValueError, match="outside read-only"):
             KnowledgeStore(REPO / "evidence", skill_root=skill_root)
     with pytest.raises(ValueError, match="outside read-only"):
-        KnowledgeStore(Path(inferrsi.__file__).parent / "data", skill_root=None)
+        KnowledgeStore(Path(inferrsi.__file__).parent / "knowledge" / "data", skill_root=None)
     target = tmp_path / "target"
     target.mkdir()
     link = tmp_path / "link"
@@ -254,14 +259,14 @@ EXPORT_CHECK = """
 import sys
 from pathlib import Path
 
-from inferrsi.knowledge_operations import Bundle
-from inferrsi.knowledge_store import KnowledgeStore
+from inferrsi.knowledge.knowledge_operations import Bundle
+from inferrsi.knowledge.knowledge_store import KnowledgeStore
 
 export = Path(sys.argv[1])
 workspace = Path(sys.argv[2])
 assert not (export / ".git").exists()
 assert (export / "pyproject.toml").is_file()
-for skill_root in (export / "src/inferrsi/data/skill_library", None):
+for skill_root in (export / "src/inferrsi/knowledge/data/skill_library", None):
     try:
         KnowledgeStore(export / "evidence", skill_root=skill_root)
     except ValueError as exc:
@@ -344,7 +349,8 @@ def _digest(paths):
 def test_operations_leave_sources_evidence_and_matrices_unchanged(tmp_path):
     watched = [
         ROOT,
-        REPO / "src" / "inferrsi" / "data",
+        REPO / "src" / "inferrsi" / "knowledge" / "data",
+        REPO / "src" / "inferrsi" / "harness" / "data",
         REPO / "evidence",
         REPO / "docs" / "reference-matrix.md",
         REPO / "docs" / "searchspace-matrix.md",
@@ -363,13 +369,14 @@ def test_operations_leave_sources_evidence_and_matrices_unchanged(tmp_path):
 def test_package_only_collect_without_checkout_or_yaml(tmp_path):
     script = (
         "import sys; sys.modules['yaml'] = None\n"
-        "from inferrsi.knowledge_operations import KnowledgeReader\n"
+        "from inferrsi.knowledge.knowledge_operations import KnowledgeReader\n"
         "reader = KnowledgeReader()\n"
         "result = reader.collect(tier='dependency', material=True, limit=2)\n"
         "item = result['items'][0]\n"
         "assert item['authority'] == 'package', item\n"
         "assert reader.read(item['ref'], revision=item['revision']).revision == item['revision']\n"
-        "assert 'inferrsi.skill_catalog' not in sys.modules\n"
+        "assert 'inferrsi.knowledge.skill_catalog' not in sys.modules\n"
+        "assert 'inferrsi.knowledge.skill_catalog' not in sys.modules\n"
     )
     env = {**os.environ, "PYTHONPATH": str(REPO / "src"), "PYTHONUTF8": "1"}
     result = subprocess.run(

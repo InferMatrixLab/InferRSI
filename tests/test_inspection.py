@@ -1,15 +1,26 @@
 """Inspection facts must not become accelerator compatibility claims."""
 
+import importlib
+import importlib.util
+import inspect
 import json
+import os
+import pickle
+import subprocess
 import sys
 import unittest
 from importlib import metadata
 from pathlib import Path
 from unittest.mock import patch
 
-from inferrsi.harness.reporting import write_report
+import pytest
+
+from inferrsi.apps import inspection as host_inspection
+from inferrsi.apps.inspection import inspect_environment
+from inferrsi.apps.legacy.reporting import write_report
+from inferrsi.infra import commands, targets
+from inferrsi.infra import inspection as facts
 from inferrsi.infra.artifacts import atomic_write_json
-from inferrsi.inspection import inspect_environment
 
 ROCM_INFO = (
     "=====================\n"
@@ -57,10 +68,10 @@ class InspectionTests(unittest.TestCase):
 
         with (
             patch(
-                "inferrsi.execution.repository_identity",
+                "inferrsi.apps.inspection.repository_identity",
                 return_value={"available": True, "head": "test"},
             ),
-            patch("inferrsi.inspection._command", side_effect=command),
+            patch("inferrsi.apps.inspection._command", side_effect=command),
         ):
             return inspect_environment(".", "vllm_omni", "cuda", device_ids=ids, device_model=model)
 
@@ -92,10 +103,10 @@ class InspectionTests(unittest.TestCase):
 
         with (
             patch(
-                "inferrsi.execution.repository_identity",
+                "inferrsi.apps.inspection.repository_identity",
                 return_value={"available": True, "head": "test"},
             ),
-            patch("inferrsi.inspection._command", side_effect=command),
+            patch("inferrsi.apps.inspection._command", side_effect=command),
         ):
             return inspect_environment(
                 ".", "vllm_omni", backend, device_ids=ids, device_model=model
@@ -219,6 +230,124 @@ def test_hostname_is_not_captured_in_environment_or_report(tmp_path):
     report = write_report(tmp_path)
     assert hostname not in (tmp_path / "environment.json").read_text(encoding="utf-8")
     assert hostname not in report.read_text(encoding="utf-8")
+
+
+def _fake_command(argv):
+    stdout = json.dumps({"python": "test", "packages": {}}) if "-c" in argv else ""
+    return {"argv": argv, "returncode": 0, "stdout": stdout, "stderr": ""}
+
+
+def test_canonical_binding_is_the_real_host_probe_and_git_identity():
+    # #412 R1: the Apps composition binds the Infra facts API to this host.
+    assert host_inspection._command is commands.probe_command
+    assert host_inspection.repository_identity is targets.repository_identity
+    assert host_inspection._inspect_environment is facts.inspect_environment
+    assert inspect_environment.__module__ == "inferrsi.apps.inspection"
+    assert str(inspect.signature(inspect_environment)) == (
+        "(repo: str, repo_type: str, backend: str, *, device_ids: tuple[str, ...] = (), "
+        "device_model: str | None = None, python: str | None = None) -> dict"
+    )
+    # The facts API keeps its own injectable ports and their real defaults.
+    parameters = inspect.signature(facts.inspect_environment).parameters
+    assert parameters["command"].default is commands.probe_command
+    assert parameters["snapshot"].default is targets.repository_identity
+
+
+def test_both_ports_are_read_from_the_canonical_module_on_each_call(monkeypatch):
+    seen = []
+
+    def snapshot(path):
+        seen.append(("snapshot", path))
+        return {"available": True, "head": "injected"}
+
+    def command(argv):
+        seen.append(("command", argv[0]))
+        return _fake_command(argv)
+
+    monkeypatch.setattr(host_inspection, "repository_identity", snapshot)
+    monkeypatch.setattr(host_inspection, "_command", command)
+    result = inspect_environment(".", "vllm_omni", "cpu", python="python-probe")
+    assert seen[0] == ("snapshot", Path(".").resolve())
+    assert ("command", "python-probe") in seen
+    assert result["repository"] == {"available": True, "head": "injected"}
+    assert result["target_python"]["environment"] == {"python": "test", "packages": {}}
+    assert result["repository_pack"]["id"] == "vllm_omni"
+    # Replacing a port again changes the very next call: nothing was captured early.
+    monkeypatch.setattr(
+        host_inspection, "repository_identity", lambda path: {"available": False}
+    )
+    assert inspect_environment(".", "vllm_omni", "cpu")["repository"] == {"available": False}
+
+
+def test_port_failures_reach_the_caller_unchanged(monkeypatch):
+    def broken(path):
+        raise OSError("repository identity unavailable")
+
+    def crashed(argv):
+        raise RuntimeError("probe crashed")
+
+    monkeypatch.setattr(host_inspection, "_command", _fake_command)
+    monkeypatch.setattr(host_inspection, "repository_identity", broken)
+    with pytest.raises(OSError, match="repository identity unavailable"):
+        inspect_environment(".", "vllm_omni", "cpu")
+    monkeypatch.setattr(
+        host_inspection, "repository_identity", lambda path: {"available": False}
+    )
+    monkeypatch.setattr(host_inspection, "_command", crashed)
+    with pytest.raises(RuntimeError, match="probe crashed"):
+        inspect_environment(".", "vllm_omni", "cpu")
+    # The pack reader still refuses an unknown repository type.
+    monkeypatch.setattr(host_inspection, "_command", _fake_command)
+    with pytest.raises(ValueError, match="Unknown repository type: not-a-pack"):
+        inspect_environment(".", "not-a-pack", "cpu")
+
+
+def test_probe_results_are_recorded_as_the_port_returned_them(monkeypatch):
+    monkeypatch.setattr(
+        host_inspection, "repository_identity", lambda path: {"available": False}
+    )
+    missing = {"returncode": None, "stdout": "", "stderr": "Executable not found"}
+    monkeypatch.setattr(host_inspection, "_command", lambda argv: {"argv": argv, **missing})
+    result = inspect_environment(".", "vllm_omni", "cpu", python="absent-python")
+    assert result["target_python"]["argv"][0] == "absent-python"
+    assert result["target_python"]["stderr"] == "Executable not found"
+    assert "environment" not in result["target_python"]
+    garbled = {"returncode": 0, "stdout": "not json", "stderr": ""}
+    monkeypatch.setattr(host_inspection, "_command", lambda argv: {"argv": argv, **garbled})
+    result = inspect_environment(".", "vllm_omni", "cpu")
+    assert result["target_python"]["parse_error"] == (
+        "Target Python did not emit a JSON environment"
+    )
+    assert result["compatibility"] == "unverified"
+
+
+def test_retired_root_inspection_is_gone_and_infra_loads_no_apps():
+    assert importlib.util.find_spec("inferrsi.inspection") is None
+    with pytest.raises(ModuleNotFoundError):
+        importlib.import_module("inferrsi.inspection")
+    # A pickle that names the retired function no longer loads; the canonical one does.
+    with pytest.raises(ModuleNotFoundError):
+        pickle.loads(b"cinferrsi.inspection\ninspect_environment\n.")
+    assert pickle.loads(pickle.dumps(inspect_environment)) is inspect_environment
+    script = (
+        "import sys\n"
+        "import inferrsi.infra.inspection\n"
+        "cores = ('inferrsi.apps', 'inferrsi.knowledge', 'inferrsi.harness',\n"
+        "         'inferrsi.benchmark')\n"
+        "loaded = [name for name in sys.modules if name.startswith(cores)]\n"
+        "assert not loaded, loaded\n"
+        # The retired root binding reached the snapshot through the old run. The
+        # canonical one loads no Benchmark module and no old-run composition.
+        "import inferrsi.apps.inspection\n"
+        "old_run = ('inferrsi.benchmark', 'inferrsi.apps.legacy', 'inferrsi.execution')\n"
+        "loaded = [name for name in sys.modules if name.startswith(old_run)]\n"
+        "assert not loaded, loaded\n"
+    )
+    result = subprocess.run(
+        [sys.executable, "-c", script], capture_output=True, text=True, check=False,
+        env={**os.environ, "PYTHONPATH": str(Path(__file__).resolve().parents[1] / "src")},
+    )
+    assert result.returncode == 0, result.stderr
 
 
 if __name__ == "__main__":

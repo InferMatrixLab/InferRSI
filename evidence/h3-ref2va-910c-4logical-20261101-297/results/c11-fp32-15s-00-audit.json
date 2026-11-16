@@ -1,0 +1,72 @@
+{
+  "trial": "c11-sigma-fp32-quality-15s-00-aaa2b0d6",
+  "source_commit": "d4d25b420889965ab42459c96ab4a82389c9fa64",
+  "cache_configuration": {
+    "Fn_compute_blocks": 1,
+    "Bn_compute_blocks": 0,
+    "max_warmup_steps": 4,
+    "scm_steps_mask_policy": null,
+    "residual_diff_threshold": 0.08,
+    "max_continuous_cached_steps": 3,
+    "enable_taylorseer": false,
+    "minimax_h3_sigma_cache": true
+  },
+  "latency_diagnostic_ms": 845953.8551190053,
+  "clean_timing": false,
+  "input_checks_passed": 134,
+  "cleanup_passed": true,
+  "actual_middle_counts_by_rank": [
+    {
+      "computed": 23,
+      "predicted": 27,
+      "history_vetoes": 0
+    },
+    {
+      "computed": 23,
+      "predicted": 27,
+      "history_vetoes": 0
+    },
+    {
+      "computed": 23,
+      "predicted": 27,
+      "history_vetoes": 0
+    },
+    {
+      "computed": 23,
+      "predicted": 27,
+      "history_vetoes": 0
+    }
+  ],
+  "quality_contract_sha256": "b8fd9e634e6db5ebfbce3842f3360f1b2241a08119953ee71bfc26553dbbafed",
+  "duration_verdict": "FAIL",
+  "duration_failures": [
+    "15s-00:dino: similarity",
+    "15s-00:clip: similarity",
+    "15s-00:clap: similarity",
+    "15s-00: dino lower tail",
+    "15s-00: clap segment"
+  ],
+  "all_comparison_failures": [
+    "5s-00:audio_caption_clap_cosine: adherence",
+    "15s-00:dino: similarity",
+    "15s-00:clip: similarity",
+    "15s-00:clap: similarity",
+    "15s-00: dino lower tail",
+    "15s-00: clap segment"
+  ],
+  "global_verdict": "FAIL",
+  "missing_samples": [
+    "5s-01",
+    "5s-02",
+    "5s-03",
+    "5s-04",
+    "15s-01",
+    "15s-02",
+    "15s-03",
+    "15s-04"
+  ],
+  "media_sha256": "afe42452f0852eabb49d123a8e6e328891b56876cf265fc71b7fdacff1f6bbbd",
+  "features_sha256": "561381462449683f8fb0ca3536fbff580789352aaf36b74efc9ece5c23b9fabf",
+  "decision": "Reject15s from its own five observed violations. Known5s failure is retained separately.",
+  "performance_acceptance": "PENDING; diagnostic HTTP cannot qualify a rejected candidate"
+}

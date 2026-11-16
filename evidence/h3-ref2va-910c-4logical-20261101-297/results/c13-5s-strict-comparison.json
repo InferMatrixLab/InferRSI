@@ -1,0 +1,9 @@
+{
+  "verdict": "PASS",
+  "checks": 439,
+  "failures": [],
+  "missing_count": 0,
+  "scope": "specified latent points, schedule, decoded RGB24/PCM; no performance acceptance",
+  "source_commit": "e89b1d40d37f7f72767892a56fa7980ea572ba8e",
+  "performance_acceptance": "NOT_EVALUATED"
+}

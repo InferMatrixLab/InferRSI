@@ -1,0 +1,412 @@
+diff --git a/tests/diffusion/models/minimax_h3/test_minimax_h3_audio_cache_guard.py b/tests/diffusion/models/minimax_h3/test_minimax_h3_audio_cache_guard.py
+new file mode 100644
+index 0000000..c973180
+--- /dev/null
++++ b/tests/diffusion/models/minimax_h3/test_minimax_h3_audio_cache_guard.py
+@@ -0,0 +1,185 @@
++# SPDX-License-Identifier: Apache-2.0
++# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
++
++from types import SimpleNamespace
++
++import pytest
++import torch
++import torch.nn as nn
++
++from tests.helpers.mark import hardware_marks
++from vllm_omni.diffusion.models.minimax_h3 import cache_audio_guard as guard
++from vllm_omni.diffusion.models.minimax_h3.reference_kv_cache_dit import (
++    MiniMaxH3CachedAdapter,
++    MiniMaxH3CachedBlocks,
++)
++from vllm_omni.platforms import current_omni_platform
++
++pytestmark = [pytest.mark.core_model, pytest.mark.diffusion, *hardware_marks(res={"npu": "A3"}, num_cards=1)]
++
++
++def decision(previous, current, indices, **kwargs):
++    return guard._modality_changes_allow_reuse(
++        previous,
++        current,
++        indices,
++        max_seqlen=kwargs.pop("max_seqlen", current.shape[0]),
++        packed_total=kwargs.pop("packed_total", current.shape[0]),
++        video_limit=kwargs.pop("video_limit", 0.08),
++        parallelized=kwargs.pop("parallelized", False),
++        **kwargs,
++    )
++
++
++def test_audio_change_hidden_by_global_mean_vetoes():
++    before = torch.ones(128, 8)
++    after = before.clone()
++    after[-2:] = 1.3
++    indices = torch.zeros(128, dtype=torch.long)
++    indices[-2:] = 17  # timestep-index5, audio-modality2
++    assert ((before - after).abs().mean() / before.abs().mean()).item() < 0.08
++    assert not decision(before, after, indices)
++    after[-2:] = 1.02
++    assert decision(before, after, indices)
++    assert not decision(before, after, indices, video_limit=0.01)
++
++
++def test_video_change_and_structural_padding():
++    before = torch.ones(8, 4)
++    after = before.clone()
++    indices = torch.tensor([0, 0, 2, 2, 0, 0, 0, 0])
++    after[4:] = float("nan")
++    assert decision(before, after, indices, max_seqlen=4)
++    after[:2] = 1.2
++    assert not decision(before, after, indices, max_seqlen=4)
++
++
++def test_zero_denominator_and_invalid_layout():
++    before = torch.zeros(4, 2)
++    after = before.clone()
++    indices = torch.full((4,), 2)
++    assert decision(before, after, indices)
++    after[0] = 1
++    assert not decision(before, after, indices)
++    with pytest.raises(ValueError, match="valid packed prefix"):
++        decision(before, after, indices, packed_total=5)
++    with pytest.raises(ValueError, match="modality index"):
++        decision(before, after, indices[:2])
++
++
++def test_remote_audio_participates_when_local_rank_has_none(monkeypatch):
++    from vllm_omni.diffusion.distributed import parallel_state
++
++    monkeypatch.setattr(guard.dist, "is_initialized", lambda: True)
++    monkeypatch.setattr(parallel_state, "get_sequence_parallel_rank", lambda: 0)
++    monkeypatch.setattr(parallel_state, "get_sequence_parallel_world_size", lambda: 2)
++    calls = []
++
++    def reduce(values, op):
++        assert op == guard.dist.ReduceOp.SUM
++        calls.append(values.clone())
++        values.add_(torch.tensor([0.0, 2.0, 1.0, 0.8, 2.0, 1.0]))
++
++    monkeypatch.setattr(guard.dist, "all_reduce", reduce)
++    before = torch.ones(2, 8)
++    assert not decision(before, before, torch.zeros(2, dtype=torch.long), packed_total=4, parallelized=True)
++    assert len(calls) == 1 and calls[0][5].item() == 0
++
++
++@pytest.mark.parametrize("change", ["default", "task", "cache", "refkv", "dp", "cfg"])
++def test_adapter_selection_preserves_other_modes(change):
++    config = SimpleNamespace(
++        task_type="ref2va",
++        cache_backend="cache_dit",
++        kv_offload_config=None,
++        parallel_config=SimpleNamespace(data_parallel_size=1, cfg_parallel_size=1),
++    )
++    if change == "task":
++        config.task_type = "t2va"
++    elif change == "cache":
++        config.cache_backend = "none"
++    elif change == "refkv":
++        config.kv_offload_config = {"mode": "on"}
++    elif change == "dp":
++        config.parallel_config.data_parallel_size = 2
++    elif change == "cfg":
++        config.parallel_config.cfg_parallel_size = 2
++    assert guard.audio_cache_guard_enabled(config) == (change == "default")
++    assert MiniMaxH3CachedAdapter.block_class is MiniMaxH3CachedBlocks
++    assert guard.MiniMaxH3AudioGuardCachedAdapter.block_class is guard.MiniMaxH3AudioGuardCachedBlocks
++
++
++def test_parent_denial_does_not_run_guard():
++    class Owner:
++        _audio_guard_bypass = False
++        _audio_guard_layout = None
++        _audio_guard_checks = 0
++        _audio_guard_vetoes = 0
++
++    owner = Owner()
++    proxy = guard._AudioCacheManager(SimpleNamespace(can_cache=lambda *args, **kwargs: False), owner)
++    assert proxy.can_cache(torch.ones(4, 2)) is False
++    assert owner._audio_guard_checks == 0
++
++
++def test_allowed_parent_hit_is_vetoed_without_changing_buffers():
++    class Owner:
++        _audio_guard_bypass = False
++        _audio_guard_checks = 0
++        _audio_guard_vetoes = 0
++
++    previous = torch.ones(128, 8)
++    current = previous.clone()
++    current[-2:] = 1.3
++    indices = torch.zeros(128, dtype=torch.long)
++    indices[-2:] = 2
++    owner = Owner()
++    owner._audio_guard_layout = (indices, 128, 128)
++    manager = SimpleNamespace(
++        can_cache=lambda *args, **kwargs: True,
++        get_Fn_buffer=lambda prefix: previous,
++        get_residual_diff_threshold=lambda: 0.08,
++    )
++    proxy = guard._AudioCacheManager(manager, owner)
++    assert proxy.can_cache(current, prefix="blocks_Fn_residual", parallelized=False) is False
++    assert (owner._audio_guard_checks, owner._audio_guard_vetoes) == (1, 1)
++    current[-2:] = 1.01
++    assert proxy.can_cache(current, prefix="blocks_Fn_residual", parallelized=False) is True
++    assert (owner._audio_guard_checks, owner._audio_guard_vetoes) == (2, 1)
++    assert torch.equal(previous, torch.ones_like(previous))
++    owner._audio_guard_bypass, owner._audio_guard_layout = True, None
++    assert proxy.can_cache(current) is True
++    assert owner._audio_guard_checks == 2
++
++
++@pytest.mark.parametrize("failure", ["metadata", "parent"])
++def test_forward_releases_layout_on_failure(monkeypatch, failure):
++    wrapper = object.__new__(guard.MiniMaxH3AudioGuardCachedBlocks)
++    nn.Module.__init__(wrapper)
++    wrapper._audio_guard_layout, wrapper._audio_guard_bypass = None, False
++
++    def broken(self, *args, **kwargs):
++        raise RuntimeError("parent failed")
++
++    monkeypatch.setattr(MiniMaxH3CachedBlocks, "forward", broken)
++    kwargs = (
++        {}
++        if failure == "metadata"
++        else {"combined_indices": torch.zeros(4, dtype=torch.long), "max_seqlen": 4, "packed_total": 4}
++    )
++    with pytest.raises((KeyError, RuntimeError)):
++        wrapper.forward(torch.ones(4, 2), **kwargs)
++    assert wrapper._audio_guard_layout is None and wrapper._audio_guard_bypass is False
++
++
++@pytest.mark.skipif(not current_omni_platform.is_npu(), reason="Requires native Ascend reductions")
++def test_native_audio_guard_preserves_input_values():
++    device = torch.device(current_omni_platform.device_type)
++    before = torch.ones(128, 64, dtype=torch.bfloat16, device=device)
++    after = before.clone()
++    indices = torch.zeros(128, dtype=torch.long, device=device)
++    indices[-2:] = 2
++    after[-2:] = 1.3
++    saved = [tensor.clone() for tensor in (before, after, indices)]
++    assert not decision(before, after, indices)
++    assert all(torch.equal(x, y) for x, y in zip(saved, (before, after, indices)))
+diff --git a/vllm_omni/diffusion/models/minimax_h3/cache_audio_guard.py b/vllm_omni/diffusion/models/minimax_h3/cache_audio_guard.py
+new file mode 100644
+index 0000000..7472404
+--- /dev/null
++++ b/vllm_omni/diffusion/models/minimax_h3/cache_audio_guard.py
+@@ -0,0 +1,174 @@
++# SPDX-License-Identifier: Apache-2.0
++# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
++"""Ref2VA-owned veto for cache hits with a changing audio modality."""
++
++from __future__ import annotations
++
++import math
++from typing import Any
++from weakref import ref
++
++import torch
++import torch.distributed as dist
++
++from .reference_kv_cache_dit import MiniMaxH3CachedAdapter, MiniMaxH3CachedBlocks
++
++_AUDIO_REUSE_LIMIT = 0.04
++
++
++def audio_cache_guard_enabled(config: Any) -> bool:
++    parallel = getattr(config, "parallel_config", None)
++    return (
++        getattr(config, "task_type", None) == "ref2va"
++        and getattr(config, "cache_backend", None) == "cache_dit"
++        and getattr(config, "kv_offload_config", None) is None
++        and (getattr(parallel, "data_parallel_size", 1) or 1) == 1
++        and (getattr(parallel, "cfg_parallel_size", 1) or 1) == 1
++    )
++
++
++def _modality_changes_allow_reuse(
++    previous: torch.Tensor,
++    current: torch.Tensor,
++    combined_indices: torch.Tensor,
++    *,
++    max_seqlen: int,
++    packed_total: int,
++    video_limit: float,
++    parallelized: bool,
++) -> bool:
++    if previous.shape != current.shape or current.ndim != 2:
++        raise ValueError("H3 audio cache guard requires matching [local_rows, hidden] states")
++    if combined_indices.ndim != 1 or combined_indices.shape[0] != current.shape[0]:
++        raise ValueError("H3 audio cache guard requires one modality index per local row")
++    if previous.device != current.device or combined_indices.device != current.device:
++        raise ValueError("H3 audio cache guard state and modality devices must match")
++    if not math.isfinite(video_limit) or video_limit <= 0:
++        return False
++
++    sp_rank, sp_size = 0, 1
++    if dist.is_initialized():
++        from vllm_omni.diffusion.distributed.parallel_state import (
++            get_sequence_parallel_rank,
++            get_sequence_parallel_world_size,
++        )
++
++        sp_rank, sp_size = get_sequence_parallel_rank(), get_sequence_parallel_world_size()
++    rows = current.shape[0]
++    if packed_total != rows * sp_size or not 0 < max_seqlen <= packed_total:
++        raise ValueError("H3 audio cache guard requires equal SP shards and a valid packed prefix")
++
++    # Padding tags were clamped before combined_indices was built. Exclude the
++    # structural suffix using positions rather than interpreting those tags.
++    valid = torch.arange(rows, device=current.device) + sp_rank * rows < max_seqlen
++    modalities = combined_indices.remainder(3)
++    before, after = previous.float(), current.float()
++    delta = (before - after).abs().mean(dim=-1)
++    magnitude = before.abs().mean(dim=-1)
++    scalars = []
++    for modality in (0, 2):  # Video and audio; the parent still checks all tokens.
++        mask = valid & (modalities == modality)
++        scalars.extend(
++            [
++                torch.where(mask, delta, 0.0).sum(),
++                torch.where(mask, magnitude, 0.0).sum(),
++                mask.sum(dtype=torch.float32),
++            ]
++        )
++    totals = torch.stack(scalars)
++    if parallelized:
++        if not dist.is_initialized():
++            raise RuntimeError("Parallel H3 audio cache guard requires an initialized process group")
++        # Every rank participates, including ranks with no local audio rows.
++        # TP replicas duplicate both sums equally, so their ratio is preserved.
++        dist.all_reduce(totals, op=dist.ReduceOp.SUM)
++    values = totals.cpu().tolist()
++    for start, limit in ((0, video_limit), (3, min(video_limit, _AUDIO_REUSE_LIMIT))):
++        numerator, denominator, count = values[start : start + 3]
++        if count == 0:
++            continue
++        if not math.isfinite(numerator) or not math.isfinite(denominator):
++            return False
++        if denominator == 0:
++            if numerator != 0:
++                return False
++        elif numerator / denominator > limit:
++            return False
++    return True
++
++
++class _AudioCacheManager:
++    def __init__(self, manager: Any, owner: MiniMaxH3AudioGuardCachedBlocks) -> None:
++        self._manager = manager
++        self._owner = ref(owner)
++
++    def __getattr__(self, name: str) -> Any:
++        return getattr(self._manager, name)
++
++    def can_cache(self, states_tensor: torch.Tensor, *args, **kwargs) -> bool:
++        allowed = self._manager.can_cache(states_tensor, *args, **kwargs)
++        owner = self._owner()
++        if not allowed or owner is None or owner._audio_guard_bypass:
++            return allowed
++        if args:
++            raise TypeError("H3 audio cache guard expects named cache-decision options")
++        layout = owner._audio_guard_layout
++        if layout is None:
++            raise RuntimeError("H3 audio cache guard has no active block layout")
++        prefix = kwargs.get("prefix", "Fn")
++        previous = self._manager.get_Fn_buffer(prefix)
++        if previous is None:
++            return False
++        threshold = kwargs.get("threshold")
++        if threshold is None or threshold <= 0:
++            threshold = self._manager.get_residual_diff_threshold()
++        owner._audio_guard_checks += 1
++        accepted = _modality_changes_allow_reuse(
++            previous,
++            states_tensor,
++            layout[0],
++            max_seqlen=layout[1],
++            packed_total=layout[2],
++            video_limit=float(threshold),
++            parallelized=kwargs.get("parallelized", False),
++        )
++        owner._audio_guard_vetoes += int(not accepted)
++        return accepted
++
++
++class MiniMaxH3AudioGuardCachedBlocks(MiniMaxH3CachedBlocks):
++    def __init__(self, *args, **kwargs) -> None:
++        super().__init__(*args, **kwargs)
++        self._audio_guard_layout = None
++        self._audio_guard_bypass = False
++        self._audio_guard_checks = 0
++        self._audio_guard_vetoes = 0
++        self.context_manager = _AudioCacheManager(self.context_manager, self)
++
++    def audio_cache_guard_stats(self) -> dict[str, int | float]:
++        """Diagnostic counters for this wrapper's lifetime, not quality metrics."""
++        return {
++            "checks": self._audio_guard_checks,
++            "vetoes": self._audio_guard_vetoes,
++            "audio_reuse_limit": _AUDIO_REUSE_LIMIT,
++        }
++
++    def forward(self, hidden_states: torch.Tensor, *args, **kwargs):
++        old_layout, old_bypass = self._audio_guard_layout, self._audio_guard_bypass
++        try:
++            self._audio_guard_bypass = (
++                kwargs.get("num_requests", 1) != 1 or kwargs.get("reference_kv_state") is not None
++            )
++            self._audio_guard_layout = (
++                None
++                if self._audio_guard_bypass
++                else (kwargs["combined_indices"], kwargs["max_seqlen"], kwargs["packed_total"])
++            )
++            return super().forward(hidden_states, *args, **kwargs)
++        finally:
++            # Do not retain request metadata in a persistent cached model.
++            self._audio_guard_layout, self._audio_guard_bypass = old_layout, old_bypass
++
++
++class MiniMaxH3AudioGuardCachedAdapter(MiniMaxH3CachedAdapter):
++    block_class = MiniMaxH3AudioGuardCachedBlocks
+diff --git a/vllm_omni/diffusion/models/minimax_h3/minimax_h3_transformer.py b/vllm_omni/diffusion/models/minimax_h3/minimax_h3_transformer.py
+index 9518828..1669757 100644
+--- a/vllm_omni/diffusion/models/minimax_h3/minimax_h3_transformer.py
++++ b/vllm_omni/diffusion/models/minimax_h3/minimax_h3_transformer.py
+@@ -784,6 +784,14 @@ class MiniMaxH3DiTModel(nn.Module):
+                 self._cache_dit_adapter_config,
+                 cached_adapter_cls=MiniMaxH3CachedAdapter,
+             )
++        elif getattr(od_config, "cache_backend", None) == "cache_dit":
++            from .cache_audio_guard import MiniMaxH3AudioGuardCachedAdapter, audio_cache_guard_enabled
++
++            if audio_cache_guard_enabled(od_config):
++                self._cache_dit_adapter_config = replace(
++                    self._cache_dit_adapter_config,
++                    cached_adapter_cls=MiniMaxH3AudioGuardCachedAdapter,
++                )
+         self.parallel_config = od_config.parallel_config
+         self.hidden_size = arch.hidden_size
+         self.num_attention_heads = arch.num_attention_heads
+diff --git a/vllm_omni/diffusion/models/minimax_h3/reference_kv_cache_dit.py b/vllm_omni/diffusion/models/minimax_h3/reference_kv_cache_dit.py
+index f14dcc9..f78598b 100644
+--- a/vllm_omni/diffusion/models/minimax_h3/reference_kv_cache_dit.py
++++ b/vllm_omni/diffusion/models/minimax_h3/reference_kv_cache_dit.py
+@@ -125,6 +125,8 @@ class MiniMaxH3CachedBlocks(CachedBlocks_Pattern_3_4_5):
+ 
+ 
+ class MiniMaxH3CachedAdapter(CachedAdapter):
++    block_class = MiniMaxH3CachedBlocks
++
+     @classmethod
+     def collect_unified_blocks(
+         cls, block_adapter: BlockAdapter, contexts_kwargs: list[dict]
+@@ -139,7 +141,7 @@ class MiniMaxH3CachedAdapter(CachedAdapter):
+                 context_index += 1
+                 contexts[block_adapter.unique_blocks_name[i][j]] = nn.ModuleList(
+                     [
+-                        MiniMaxH3CachedBlocks(
++                        cls.block_class(
+                             blocks,
+                             transformer=transformer,
+                             forward_pattern=block_adapter.forward_pattern[i][j],

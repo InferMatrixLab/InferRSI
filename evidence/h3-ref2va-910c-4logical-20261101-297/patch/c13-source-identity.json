@@ -1,0 +1,21 @@
+{
+  "head": "e89b1d40d37f7f72767892a56fa7980ea572ba8e",
+  "tree": "cc5924c4270350d34c8d3f2213bce95d88fa2210",
+  "base": "be319692b96413918973b5bd399cdda3f320c574",
+  "branch": "rsi/h3-297-c1-dlo-stack",
+  "files": {
+    "tests/diffusion/distributed/test_collective_gate.py": "2b33f73dff9c79118cc2b1bd4d50e3542ebc45b7bf029b38c17abbef37e4b917",
+    "vllm_omni/config/omni_config.py": "6894120a330474f718d43bf2bf7928892eb996152839ce6469c34d18a7df09d1",
+    "vllm_omni/config/stage_config.py": "0752e8cc1c6f1021f737830d08663cfc118923a83fd909c607f9ec3ab2a3d2fb",
+    "vllm_omni/diffusion/attention/layer.py": "76c5fce3dabd23e39a8890316e1691c03bc203066cb60af5611ec4790eefc632",
+    "vllm_omni/diffusion/data.py": "5db83d5c71cb27cc7810d35fcfc891da80f0b003adbb16bdecc3816a63305e11",
+    "vllm_omni/diffusion/distributed/collective_gate.py": "01c6317cfa615840681b8bb8b8513fa3736d26e845a24ad9e1ab7f87489b962f",
+    "vllm_omni/diffusion/offloader/base.py": "533c793119e4cdc14a2ea3c6cb5bf97ffede673befeab3f0fb8dbbf51e655379",
+    "vllm_omni/diffusion/offloader/distributed_layerwise_backend.py": "d441481513aba9e90a91265f4bba3f53f8766197be8c1302c3c714e690d5ea76",
+    "vllm_omni/engine/arg_utils.py": "52569e3688cc708729a48ca0a2c875c28193733c2f934f6ff89f6c815e4009c7",
+    "vllm_omni/entrypoints/cli/serve.py": "350461dfca565bc0b07087ac7af1e27b0e247f5eac717e350b637e37f62dd088",
+    "tests/diffusion/offloader/helpers.py": "729c73abba3b9a12911282d4bcd3cf8bfa148fbcbfdc2e2b7c86000e387fa687"
+  },
+  "published": false,
+  "patch_base": "be319692b96413918973b5bd399cdda3f320c574"
+}

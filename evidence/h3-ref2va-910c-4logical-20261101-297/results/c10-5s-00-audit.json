@@ -1,0 +1,73 @@
+{
+  "source_commit": "0af99184bc860cffa8d1e5343c2bff4664f667c5",
+  "sample_id": "5s-00",
+  "scope": "http_complete_mp4",
+  "diagnostic": "audit",
+  "clean_timing": false,
+  "samples_ms": [
+    243038.95941301016
+  ],
+  "cleanup_passed": true,
+  "actual_execution": {
+    "0": {
+      "calls": {
+        "MiniMaxH3AudioGuardCachedBlocks.forward": 50
+      },
+      "guard": {
+        "checks": 42,
+        "vetoes": 27,
+        "audio_reuse_limit": 0.04
+      }
+    },
+    "1": {
+      "calls": {
+        "MiniMaxH3AudioGuardCachedBlocks.forward": 50
+      },
+      "guard": {
+        "checks": 42,
+        "vetoes": 27,
+        "audio_reuse_limit": 0.04
+      }
+    },
+    "2": {
+      "calls": {
+        "MiniMaxH3AudioGuardCachedBlocks.forward": 50
+      },
+      "guard": {
+        "checks": 42,
+        "vetoes": 27,
+        "audio_reuse_limit": 0.04
+      }
+    },
+    "3": {
+      "calls": {
+        "MiniMaxH3AudioGuardCachedBlocks.forward": 50
+      },
+      "guard": {
+        "checks": 42,
+        "vetoes": 27,
+        "audio_reuse_limit": 0.04
+      }
+    }
+  },
+  "quality_contract_sha256": "b8fd9e634e6db5ebfbce3842f3360f1b2241a08119953ee71bfc26553dbbafed",
+  "cumulative_observed_checks": 76,
+  "observed_failures": [
+    "5s-00:clap: similarity",
+    "5s-00:audio_caption_clap_cosine: adherence"
+  ],
+  "quality_verdict": "FAIL",
+  "missing_samples": [
+    "5s-02",
+    "5s-03",
+    "5s-04",
+    "15s-00",
+    "15s-01",
+    "15s-02",
+    "15s-03",
+    "15s-04"
+  ],
+  "decision": "Reject original C10 for5s; its first5s-01 observation did not generalize.",
+  "performance_acceptance": "NOT_EVALUATED",
+  "campaign_verdict": "INCONCLUSIVE"
+}

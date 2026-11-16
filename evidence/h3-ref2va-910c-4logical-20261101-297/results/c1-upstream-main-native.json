@@ -1,0 +1,74 @@
+{
+  "upstream_pr": "https://github.com/vllm-project/vllm-omni/pull/9745",
+  "draft": true,
+  "base": "b84bade9b9be8fdad0a1a9b3e8dd3ab4273dc4d9",
+  "head": "7a20cf9b987b22fe3ce00221cb30cc3c6fb90e63",
+  "source_bound_files": {
+    "vllm_omni/diffusion/models/minimax_h3/attention/flash_h3.py": {
+      "tested_working_sha256": "25989bba0e0f07b65c33d69e1c217655e65bf62722c982032f9c749bf560553c",
+      "published_blob_sha256": "25989bba0e0f07b65c33d69e1c217655e65bf62722c982032f9c749bf560553c",
+      "difference": "none"
+    },
+    "vllm_omni/diffusion/models/minimax_h3/minimax_h3_blocks.py": {
+      "tested_working_sha256": "e7e26ad0b2a9120b99281bf59a67eced7f7207f5679a8f02f2ede5859695be1a",
+      "published_blob_sha256": "e7e26ad0b2a9120b99281bf59a67eced7f7207f5679a8f02f2ede5859695be1a",
+      "difference": "none"
+    },
+    "tests/diffusion/models/minimax_h3/test_minimax_h3_flash_attention.py": {
+      "tested_working_sha256": "94c17d91c4dfe1f611655002f7a4b10a6ea9e49cf21d37469c26daff58f1e766",
+      "published_blob_sha256": "94c17d91c4dfe1f611655002f7a4b10a6ea9e49cf21d37469c26daff58f1e766",
+      "difference": "none"
+    }
+  },
+  "source_snapshot_sha256": "925d80d2c26f4e37e3cbf287b2d942d474744236200e12f130d2003cbcddc9cf",
+  "all_source_support_files_bound": 2285,
+  "native_run": "c1-upstream-pr-v2-native-a3c17706",
+  "hardware": {
+    "model": "Ascend910C",
+    "logical_device_count": 1,
+    "memory_gib": 64
+  },
+  "stack": {
+    "torch": "2.10.0+cpu",
+    "torch_npu": "2.10.0.post4",
+    "cann": "9.1",
+    "mindie_sd": "3.1.0",
+    "mindie_sd_source_revision": "UNKNOWN",
+    "vllm": "0.32.0+empty"
+  },
+  "execution_status": "completed",
+  "tests_passed": 12,
+  "tests_failed": 0,
+  "tests_skipped": 0,
+  "required_native_executed": true,
+  "source_unchanged": true,
+  "cleanup_passed": true,
+  "executor_elapsed_seconds": 50.47770592797315,
+  "test_cases": [
+    "test_h3_prefix_dispatch_preserves_unselected_paths[fused]",
+    "test_h3_prefix_dispatch_preserves_unselected_paths[default]",
+    "test_h3_prefix_dispatch_preserves_unselected_paths[laser]",
+    "test_h3_prefix_dispatch_preserves_unselected_paths[causal]",
+    "test_h3_prefix_dispatch_preserves_unselected_paths[masked]",
+    "test_h3_prefix_dispatch_preserves_unselected_paths[compact]",
+    "test_h3_prefix_dispatch_preserves_unselected_paths[gqa]",
+    "test_h3_prefix_dispatch_preserves_unselected_paths[unresolved]",
+    "test_h3_prefix_dispatch_preserves_unselected_paths[short]",
+    "test_h3_prefix_dispatch_preserves_unselected_paths[piecewise]",
+    "test_h3_prefix_dispatch_preserves_unselected_paths[ranges]",
+    "test_native_prefix_bnsd_excludes_padding_and_preserves_inputs"
+  ],
+  "prior_attempt": {
+    "run": "c1-upstream-pr-native-80d5d51f",
+    "status": "failed",
+    "phase": "collection",
+    "missing_existing_upstream_helper": "tests.model_executor.helpers",
+    "tests_executed": 0
+  },
+  "scope": "Main-based C1 dispatch/native operation checks; not full-model/HTTP requalification.",
+  "historical_c1_strict_results_apply_to": "be319692b96413918973b5bd399cdda3f320c574",
+  "full_model_5s_15s_on_new_base": "NOT_RUN",
+  "clean_http_on_new_base": "NOT_RUN",
+  "new_search_direction_charged": false,
+  "campaign_verdict": "INCONCLUSIVE"
+}

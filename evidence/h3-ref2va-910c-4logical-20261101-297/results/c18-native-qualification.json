@@ -1,0 +1,13 @@
+{
+  "trial": "c18-video-pooled-context-native-1673db72",
+  "tests_passed": 17,
+  "source_base_head": "e89b1d40d37f7f72767892a56fa7980ea572ba8e",
+  "files_before": {
+    "vllm_omni/diffusion/models/minimax_h3/attention/flash_h3.py": "1febc030a7917b6e10fe287014fe2aacef76ade7bf58ebb604fdedc36fb7c21d",
+    "tests/diffusion/models/minimax_h3/test_minimax_h3_pooled_context.py": "45a9ae5ba56858daee6a1088a8c8b1ed612ea9afd3c229c90a9b6db3c80a06b2"
+  },
+  "cleanup_passed": true,
+  "source_unchanged": true,
+  "required_native_test_executed": true,
+  "scope": "Independent weighted global-context reference and native padded-head BF16 FAS; no full-model quality/performance acceptance"
+}

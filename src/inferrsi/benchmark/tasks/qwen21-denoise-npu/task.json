@@ -1,0 +1,46 @@
+{
+  "id": "qwen21-denoise-npu-v1",
+  "entrypoint": "compute(latents, text, text_mask, sigmas, positions, params, *, config)",
+  "backend": "ascend",
+  "devices": 1,
+  "dtype": "bfloat16",
+  "output": "all post-Euler latent states, shape [steps, batch, height*width, channels]",
+  "tolerance": {"rtol": 0.03, "atol": 0.03, "max_nrmse": 0.01},
+  "measurement": {
+    "scope": "one complete request, prefill plus every denoising step and trajectory materialization",
+    "aggregation": "geometric mean of per-case baseline/candidate median latency ratios",
+    "timing": "device synchronization before and after compute, host dispatch included",
+    "inputs": "fresh latent and text values for every measured request",
+    "pairing": "AB/BA blocks, caller specifies pairs and samples"
+  },
+  "defaults": {"channels": 64, "time_dim": 64, "eps": 0.000001,
+    "axes_dims": [8, 24, 32],
+    "sigmas": [1.0, 0.978453, 0.95418, 0.926626, 0.89508, 0.845148, 0.704534, 0.414568, 0.0]},
+  "cases": [
+    {"id": "compact", "batch": 1, "prefix": 32, "height": 8, "width": 12,
+      "hidden": 256, "heads": 4, "context_dim": 256, "intermediate": 768, "layers": 2,
+      "measured": true},
+    {"id": "portrait", "batch": 1, "prefix": 64, "height": 12, "width": 16,
+      "hidden": 384, "heads": 6, "context_dim": 384, "intermediate": 1152, "layers": 3,
+      "measured": true},
+    {"id": "landscape", "batch": 1, "prefix": 96, "height": 16, "width": 24,
+      "hidden": 512, "heads": 4, "context_dim": 512, "intermediate": 1536, "layers": 4,
+      "axes_dims": [16, 56, 56],
+      "measured": true},
+    {"id": "padded-batch", "batch": 2, "prefix": 7, "height": 2, "width": 3,
+      "hidden": 64, "heads": 4, "context_dim": 48, "intermediate": 160, "layers": 2,
+      "time_dim": 32, "axes_dims": [2, 6, 8], "sigmas": [1.0, 0.7, 0.2, 0.0],
+      "measured": false},
+    {"id": "smoke", "batch": 1, "prefix": 3, "height": 2, "width": 2,
+      "hidden": 32, "heads": 2, "context_dim": 24, "intermediate": 80, "layers": 2,
+      "time_dim": 32, "axes_dims": [2, 6, 8], "sigmas": [1.0, 0.6, 0.0],
+      "measured": false}
+  ],
+  "provenance": {
+    "architecture": "https://github.com/vllm-project/vllm-omni/blob/f69b1f2b19cece03f6736c7da093ea25de0e24fd/vllm_omni/diffusion/models/qwen_image_21/qwen_image_21_transformer.py",
+    "historical_optimization": "https://github.com/vllm-project/vllm-omni/pull/8729",
+    "accepted_rsi_campaign": "https://github.com/InferMatrixLab/InferRSI/issues/3",
+    "license": "Apache-2.0",
+    "adaptation": "Independently implemented scaled single-stream DiT and deterministic Euler loop with random weights and embedded text inputs. Prefix K/V reuse is already in the original baseline."
+  }
+}

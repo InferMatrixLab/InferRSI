@@ -1,0 +1,24 @@
+{
+  "parent": "61b8efa06e88372bc5ab87b9e2668a133eaac282",
+  "cumulative_patch_base": "922f1e9f1cb85b9f2b66d86e1eb500e6872b2dcb",
+  "head": "d4d25b420889965ab42459c96ab4a82389c9fa64",
+  "tree": "a1aa28529bd71b733914d82a80aa76e12f5a76f7",
+  "files": {
+    "vllm_omni/diffusion/models/minimax_h3/cache_sigma_prediction.py": "fb27fdebdf0cb45e678243c0180d56cf3e7a7470ff424bdf2d3bf144c8e2aee3",
+    "vllm_omni/diffusion/models/minimax_h3/reference_kv_cache_dit.py": "d3381079ff012f32176a917bb0825d12288c058d3a058f5169ecc97d1e2c675c",
+    "vllm_omni/diffusion/models/minimax_h3/minimax_h3_transformer.py": "a649a09e5b59256b5887c12fe508d8e14e3dedd9019bdb82c65db2d59f11de91",
+    "vllm_omni/diffusion/models/minimax_h3/denoise_loop.py": "a9524734a4f3410a0c6f766fa64fa9e5bd5a4d41bd7481738e9024cac54ce7f9",
+    "tests/diffusion/models/minimax_h3/test_minimax_h3_sigma_cache.py": "16d1e9329c0088eabf4bb17214fc364ec0c6176d92f871786456a2b92aaa418f"
+  },
+  "native_tests_passed": 23,
+  "native_test_names": [
+    "test_native_two_clock_forecast_and_input_immutability",
+    "test_native_real_cache_manager_computes_then_forecasts",
+    "test_native_bf16_blocks_use_fp32_anchors_and_keep_output_dtype"
+  ],
+  "cleanup_passed": true,
+  "source_unchanged": true,
+  "published": false,
+  "full_model_quality": "5s-00 FAIL adherence;15s-00 FAIL five visual/audio guards",
+  "performance_acceptance": "PENDING"
+}

@@ -8,10 +8,10 @@ from pathlib import Path
 
 import pytest
 
-from inferrsi.knowledge_operations import KnowledgeReader
+from inferrsi.knowledge.knowledge_operations import KnowledgeReader
 
 REPO = Path(__file__).resolve().parents[1]
-SKILLS = REPO / "src" / "inferrsi" / "data" / "skill_library"
+SKILLS = REPO / "src" / "inferrsi" / "knowledge" / "data" / "skill_library"
 SOURCE = "calibrate-serving-simulation"
 
 

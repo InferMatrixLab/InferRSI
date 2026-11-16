@@ -8,29 +8,69 @@ import sys
 from importlib.resources import files
 from pathlib import Path
 
+from .apps.campaign import capture_context, create_campaign
+from .apps.inspection import inspect_environment
+from .apps.knowledge import knowledge_reader
+from .apps.knowledge import read as read_knowledge
+from .apps.legacy.reporting import write_report
 from .arguments import device_ids, make_spec, parser
-from .catalog import get_knowledge, search_knowledge
-from .execution import run_experiment
-from .inspection import inspect_environment
-from .knowledge_operations import KnowledgeReader
-from .knowledge_store import KnowledgeStore
-from .reporting import write_report
-from .research import research_knowledge
+from .knowledge.catalog import get_knowledge, search_knowledge
+from .knowledge.knowledge_operations import KnowledgeReader
+from .knowledge.research import research_knowledge
 
 
 def _print(value: object) -> None:
     print(json.dumps(value, ensure_ascii=False, indent=2, allow_nan=False))
 
 
+def _fixed_attempt_command(args) -> int:
+    from .apps.api import read_attempt_view
+    from .harness.errors import PublicError
+
+    if args.storage_config is None:
+        raise ValueError("--record-ref requires --storage-config")
+    command = args.command
+    live = command == "dashboard" and args.live
+    if command == "dashboard":
+        if args.translations is not None:
+            raise ValueError("--translations requires a Dashboard --input directory")
+        if live and args.output is not None:
+            raise ValueError("--output cannot be used with --live")
+        if not live and args.port is not None:
+            raise ValueError("--port requires --live")
+    if command in ("report", "dashboard") and not live and args.output is None:
+        raise ValueError(f"fixed {command} requires --output")
+
+    record_ref = json.loads(args.record_ref.read_text(encoding="utf-8"))
+    config = json.loads(args.storage_config.read_text(encoding="utf-8"))
+    assessment_ref = None
+    if args.assessment_ref is not None:
+        assessment_ref = json.loads(args.assessment_ref.read_text(encoding="utf-8"))
+        if not isinstance(assessment_ref, dict):
+            raise ValueError("--assessment-ref requires an AssessmentRef JSON object")
+    try:
+        view = read_attempt_view(
+            record_ref, storage_config=config, assessment_ref=assessment_ref,
+            include_trace=command != "status",
+        )
+    except PublicError as exc:
+        raise ValueError(str(exc)) from exc
+
+    if command in ("status", "trace"):
+        _print(view)
+    elif live:
+        from .apps.views.dashboard_live import serve_dashboard
+
+        serve_dashboard(None, port=args.port if args.port is not None else 8765, fixed_attempt=view)
+    else:
+        from .apps.views.dashboard import write_attempt_document
+
+        _print({command: str(write_attempt_document(view, args.output, kind=command))})
+    return 0
+
+
 def _knowledge_reader(args) -> KnowledgeReader:
-    # Source selection stays explicit: installed package by default, with the
-    # checkout and store added only through --skill-root/--store.
-    store = (
-        KnowledgeStore(args.store, skill_root=args.skill_root, read_only=True)
-        if args.store is not None
-        else None
-    )
-    return KnowledgeReader(skill_root=args.skill_root, store=store)
+    return knowledge_reader(skill_root=args.skill_root, store_root=args.store)
 
 
 def _revisions(pairs: list[str]) -> dict[str, str]:
@@ -116,10 +156,67 @@ def main(argv: list[str] | None = None) -> int:
     argument_parser = parser()
     args = argument_parser.parse_args(argv)
     try:
+        if args.command == "mindie":
+            from .mindie_project import dispatch
+
+            result = dispatch(args)
+            if result is not None:
+                _print(result)
+            return 0
+        if args.command == "agents":
+            from .harness import agent_sessions
+
+            if args.agent_action == "prepare":
+                result = agent_sessions.prepare(
+                    args.job, prompt=args.prompt_file.read_text(encoding="utf-8"),
+                    workspace=args.workspace, title=args.title, max_seconds=args.max_minutes * 60,
+                    model=args.model, effort=args.effort, plugin_ref=args.plugin_ref,
+                )
+            elif args.agent_action == "bind":
+                result = agent_sessions.bind(
+                    args.job, host=args.host, session_id=args.session_id,
+                    host_id=args.host_id, receipt=args.receipt,
+                )
+            elif args.agent_action == "record":
+                result = agent_sessions.record(
+                    args.job, observation=args.observation, artifacts=args.artifact,
+                )
+            else:
+                result = getattr(agent_sessions, args.agent_action)(args.job)
+            _print(result)
+            return 0
+        if args.command == "benchmarks":
+            if args.benchmark_action == "session":
+                from .harness.optimization_session import session_command
+
+                task_source = None
+                if args.session_action == "start":
+                    from .benchmark.registry import task_resources
+
+                    task_source = Path(str(task_resources(args.task)))
+                result = session_command(
+                    args, task_source=task_source,
+                    retain_context=capture_context,
+                    knowledge_reader=(KnowledgeReader()
+                                      if args.session_action == "knowledge" else None),
+                )
+                _print(result)
+                return 2 if result.get("state") == "blocked" else 0
+            if args.benchmark_action == "run":
+                from .benchmark_operations import run_task
+
+                return run_task(args.task, args.arguments)
+            from .benchmark.registry import builtin_tasks, describe_task
+
+            if args.benchmark_action == "list":
+                _print(builtin_tasks())
+            else:
+                _print(describe_task(args.task))
+            return 0
         if args.command == "skills":
             # Optional dependencies load only for the skills command; the core
             # CLI stays independent of them.
-            from .skill_catalog import (
+            from .knowledge.skill_catalog import (
                 get_skill,
                 skill_instructions,
                 skill_records,
@@ -128,7 +225,7 @@ def main(argv: list[str] | None = None) -> int:
             )
 
             root = args.root if args.root is not None else Path(
-                files("inferrsi").joinpath("data", "skill_library")
+                files("inferrsi").joinpath("knowledge", "data", "skill_library")
             )
             if args.skills_action == "list":
                 records = skill_records(root)
@@ -174,8 +271,9 @@ def main(argv: list[str] | None = None) -> int:
                     backend=args.backend,
                     scenario=args.scenario,
                     limit=args.limit,
+                    explain=args.explain,
                 )
-                if args.json:
+                if args.json or args.explain:
                     _print(records)
                 else:
                     for record in records:
@@ -189,6 +287,8 @@ def main(argv: list[str] | None = None) -> int:
                 ids=args.ids,
                 revisions=_revisions(args.revisions or []),
                 kind=args.kind,
+                backend=args.backend,
+                scenario=args.scenario,
                 limit=args.limit,
                 max_bytes=args.max_bytes,
                 material=args.material,
@@ -244,8 +344,10 @@ def main(argv: list[str] | None = None) -> int:
                     )
             return 0
         if args.command == "read":
-            bundle = _knowledge_reader(args).read(args.id, revision=args.revision)
-            _print(bundle.view(material=args.material))
+            _, _, view = read_knowledge(
+                _knowledge_reader(args), args.id, revision=args.revision, material=args.material,
+            )
+            _print(view)
             return 0
         if args.command == "resource":
             data = _knowledge_reader(args).resource(args.id, args.path, revision=args.revision)
@@ -272,6 +374,13 @@ def main(argv: list[str] | None = None) -> int:
             else:
                 print(text, end="")
             return 0
+        if args.command in ("status", "report", "dashboard", "trace"):
+            if args.record_ref is not None:
+                return _fixed_attempt_command(args)
+            if args.storage_config is not None or args.assessment_ref is not None:
+                raise ValueError("--storage-config and --assessment-ref require --record-ref")
+            if args.command == "report" and args.output is not None:
+                raise ValueError("report --output requires --record-ref")
         if args.command in ("status", "report"):
             directory = _run_directory(args.output_dir, args.run_id)
             if args.command == "status":
@@ -284,30 +393,57 @@ def main(argv: list[str] | None = None) -> int:
             if args.live:
                 if args.output is not None:
                     raise ValueError("--output cannot be used with --live")
-                from .harness.dashboard_live import serve_dashboard
+                from .apps.views.dashboard_live import serve_dashboard
 
                 serve_dashboard(args.input, args.translations,
                                 port=args.port if args.port is not None else 8765)
             else:
                 if args.port is not None:
                     raise ValueError("--port requires --live")
-                from .harness.dashboard import write_dashboard
+                from .apps.views.dashboard import write_dashboard
 
                 _print({"dashboard": str(write_dashboard(args.input, args.output,
                                                           args.translations))})
             return 0
 
         if args.command == "campaign":
-            from .harness.campaign_records import (
+            if args.campaign_action == "import-mindie":
+                from .mindie_context import export_context
+
+                path = export_context(
+                    args.directory, context_id=args.id, query_input=args.query_input,
+                    query_result=args.query_result, explain_input=args.explain_input,
+                    explain_result=args.explain_result, query_exit_code=args.query_exit_code,
+                    explain_exit_code=args.explain_exit_code,
+                )
+                _print({"context_directory": str(path), "reviewed_by_caller": False})
+                return 0
+            if getattr(args, "session_action", None) is not None:
+                from .harness.optimization_session import session_command
+
+                result = session_command(
+                    args,
+                    retain_context=capture_context,
+                    knowledge_reader=(KnowledgeReader()
+                                      if args.session_action == "knowledge" else None),
+                )
+                _print(result)
+                return 2 if result.get("state") == "blocked" else 0
+            from .harness.records.campaign_records import (
                 assemble_trace,
-                create_campaign,
                 record_candidate,
                 record_decision,
+                require_manual_campaign,
             )
 
-            if args.campaign_action == "capture-context":
-                from .harness.knowledge_capture import capture_context
+            if args.campaign_action == "attach-profile":
+                from .harness.records.profile_timeline import attach_profile
 
+                _print(attach_profile(args.directory, capture_id=args.id, source=args.source,
+                                      review=args.review))
+                return 0
+            if args.campaign_action == "capture-context":
+                require_manual_campaign(Path(args.directory).resolve())
                 sources = ("package",) + (("checkout",) if args.skill_root else ()) + (
                     ("store",) if args.store else ())
                 path, digest = capture_context(
@@ -321,15 +457,26 @@ def main(argv: list[str] | None = None) -> int:
                 _print({"context": path.relative_to(Path(args.directory).resolve()).as_posix(),
                         "sha256": digest})
                 return 0
+            if args.campaign_action == "import-search":
+                from .apps.views.search_attribution import import_search
+
+                path = import_search(args.directory, number=args.round, trace=args.trace,
+                                     lines=args.lines, knowledge_root=args.knowledge_root,
+                                     context_ids=args.context_id, used=args.used,
+                                     rejected=args.rejected, stage=args.stage,
+                                     complete=args.complete, archive_review=args.archive_review)
+                _print({"record": path.relative_to(args.directory.resolve()).as_posix()})
+                return 0
             if args.campaign_action == "log":
-                from .harness.optimization_log import record_log
+                from .harness.records.optimization_log import record_log
 
                 path, digest = record_log(args.directory, args.file)
                 _print({"log": path.name, "sha256": digest})
                 return 0
             if args.campaign_action == "init":
                 path = create_campaign(args.directory, args.id, target=args.target_pct,
-                                       noise=args.noise_pct, synthetic=args.synthetic)
+                                       noise=args.noise_pct, synthetic=args.synthetic,
+                                       backend=args.backend, profile_first=args.profile_first)
             elif args.campaign_action == "assemble-trace":
                 path = assemble_trace(args.directory, template=args.template,
                                       context_file=args.context_file, output=args.output)
@@ -394,6 +541,10 @@ def main(argv: list[str] | None = None) -> int:
             raise ValueError("Requested device selection is not verified by platform discovery")
         if not environment["target_python"].get("environment"):
             raise ValueError("Target Python inspection failed")
+
+        # The old run loads its Benchmark gates. Import it here so that the
+        # other commands, including ordinary optimization, never load Benchmark.
+        from .apps.legacy.run import run_experiment
 
         directory = run_experiment(spec, environment)
         (directory / "args.json").write_text(

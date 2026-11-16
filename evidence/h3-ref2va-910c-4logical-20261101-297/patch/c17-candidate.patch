@@ -1,0 +1,282 @@
+diff --git a/tests/diffusion/models/minimax_h3/test_minimax_h3_video_window.py b/tests/diffusion/models/minimax_h3/test_minimax_h3_video_window.py
+new file mode 100644
+index 0000000..b29edf8
+--- /dev/null
++++ b/tests/diffusion/models/minimax_h3/test_minimax_h3_video_window.py
+@@ -0,0 +1,164 @@
++# SPDX-License-Identifier: Apache-2.0
++# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
++
++from types import SimpleNamespace
++
++import pytest
++import torch
++
++from tests.helpers.mark import hardware_marks
++from vllm_omni.diffusion.models.minimax_h3.attention import flash_h3 as flash
++from vllm_omni.platforms import current_omni_platform
++
++pytestmark = [pytest.mark.core_model, pytest.mark.diffusion, *hardware_marks(res={"npu": "A3"}, num_cards=1)]
++
++
++def reference(query, key, value, scale):
++    q, k, v = [tensor.transpose(1, 2).float() for tensor in (query, key, value)]
++    return (torch.softmax(q @ k.transpose(-2, -1) * scale, dim=-1) @ v).transpose(1, 2).to(query.dtype)
++
++
++def fixture(frames=5, prefix=4, rows=3, padding=2, heads=2, dim=8, device="cpu"):
++    torch.manual_seed(19)
++    used = prefix + frames * rows
++    q = torch.randn(1, used + padding, heads, dim, dtype=torch.bfloat16).to(device)
++    k, v = [torch.randn(1, used, heads, dim, dtype=torch.bfloat16).to(device) for _ in range(2)]
++    return q, k, v
++
++
++@pytest.mark.parametrize("frames,prefix", [(3, 0), (3, 4), (5, 4), (7, 2)])
++def test_window_matches_explicit_per_frame_key_sets(monkeypatch, frames, prefix):
++    q, k, v = fixture(frames=frames, prefix=prefix)
++    before = [tensor.clone() for tensor in (q, k, v)]
++    calls = []
++
++    def primitive(query, key, value, scale):
++        calls.append((query.shape, key.shape))
++        return reference(query, key, value, scale)
++
++    monkeypatch.setattr(flash, "_prefix_bnsd", primitive)
++    actual = flash._video_temporal_window_bnsd(q, k, v, 0.25, target_start=prefix, frames=frames, rows_per_frame=3)
++    if prefix:
++        torch.testing.assert_close(actual[:, :prefix], reference(q[:, :prefix], k, v, 0.25), rtol=0, atol=0)
++    for t in range(frames):
++        start = min(max(t - 1, 0), frames - 3)
++        keys = torch.cat((k[:, :prefix], k[:, prefix + start * 3 : prefix + (start + 3) * 3]), dim=1)
++        values = torch.cat((v[:, :prefix], v[:, prefix + start * 3 : prefix + (start + 3) * 3]), dim=1)
++        expected = reference(q[:, prefix + t * 3 : prefix + (t + 1) * 3], keys, values, 0.25)
++        torch.testing.assert_close(actual[:, prefix + t * 3 : prefix + (t + 1) * 3], expected, rtol=0, atol=0)
++    assert torch.count_nonzero(actual[:, k.shape[1] :]) == 0
++    assert all(torch.equal(a, b) for a, b in zip(before, (q, k, v)))
++    assert len(calls) == (2 if prefix else 1)
++    assert calls[-1][0] == (frames, 3, 2, 8)
++    assert calls[-1][1] == (frames, prefix + 9, 2, 8)
++
++
++@pytest.mark.parametrize("kind", ["short", "tail", "batch", "query"])
++def test_requested_unsupported_geometry_raises(kind):
++    q, k, v = fixture()
++    kwargs = dict(target_start=4, frames=5, rows_per_frame=3)
++    if kind == "short":
++        kwargs["frames"] = 2
++    elif kind == "tail":
++        kwargs["target_start"] = 3
++    elif kind == "batch":
++        q, k, v = [tensor.expand(2, -1, -1, -1) for tensor in (q, k, v)]
++    else:
++        q = q[:, :2]
++    with pytest.raises(ValueError, match="temporal window"):
++        flash._video_temporal_window_bnsd(q, k, v, 0.25, **kwargs)
++
++
++def test_fixed_step_profile_and_invalid_progress(monkeypatch):
++    monkeypatch.setenv("H3_VIDEO_TEMPORAL_WINDOW", "3")
++    for step in range(50):
++        monkeypatch.setattr(
++            flash, "get_forward_context", lambda: SimpleNamespace(denoise_step_idx=step, total_denoise_steps=50)
++        )
++        assert flash._use_video_temporal_window() == (step not in (0, 49))
++    monkeypatch.setattr(
++        flash, "get_forward_context", lambda: SimpleNamespace(denoise_step_idx=None, total_denoise_steps=50)
++    )
++    with pytest.raises(ValueError, match="published"):
++        flash._use_video_temporal_window()
++    monkeypatch.setenv("H3_VIDEO_TEMPORAL_WINDOW", "5")
++    with pytest.raises(ValueError, match="window=3"):
++        flash._use_video_temporal_window()
++
++
++def test_default_long_prefix_path_does_not_read_window_progress(monkeypatch):
++    from vllm_omni.diffusion.attention.backends.abstract import AttentionMetadata
++
++    monkeypatch.setenv("MINDIE_SD_FA_TYPE", "fused_attn_score")
++    monkeypatch.delenv("H3_VIDEO_TEMPORAL_WINDOW", raising=False)
++    impl = object.__new__(flash.MiniMaxH3FlashAttentionImpl)
++    impl.causal, impl.softmax_scale = False, 0.25
++    impl._resolve_packed_seq_npu = lambda *args: ([4096], [4093])
++    monkeypatch.setattr(flash, "get_forward_context", lambda: pytest.fail("default path read window progress"))
++    calls = []
++    monkeypatch.setattr(flash, "_prefix_bnsd", lambda q, k, v, scale: calls.append(k.shape[1]) or q)
++    q = torch.ones(1, 4096, 1, 8, dtype=torch.bfloat16)
++    metadata = AttentionMetadata(extra={"npu_attn_varlen": True})
++    assert impl.forward_fa_npu(q, q, q, metadata) is q
++    assert calls == [4093]
++
++
++@pytest.mark.parametrize("step", [0, 1, 49])
++def test_configured_long_path_routes_published_geometry(monkeypatch, step):
++    from vllm_omni.diffusion.attention.backends.abstract import AttentionMetadata, VideoTokenLayout, VideoTokenSpan
++
++    monkeypatch.setenv("MINDIE_SD_FA_TYPE", "fused_attn_score")
++    monkeypatch.setenv("H3_VIDEO_TEMPORAL_WINDOW", "3")
++    monkeypatch.setattr(
++        flash, "get_forward_context", lambda: SimpleNamespace(denoise_step_idx=step, total_denoise_steps=50)
++    )
++    impl = object.__new__(flash.MiniMaxH3FlashAttentionImpl)
++    impl.causal, impl.softmax_scale = False, 0.25
++    impl._resolve_packed_seq_npu = lambda *args: ([4160], [4160])
++    q = torch.ones(1, 4192, 1, 8, dtype=torch.bfloat16)
++    layout = VideoTokenLayout(
++        used_len=4160, video_spans=(VideoTokenSpan(start=64, latent_grid=(4, 32, 32), role="target"),)
++    )
++    metadata = AttentionMetadata(extra={"npu_attn_varlen": True}, video_layout=layout)
++    calls = []
++    monkeypatch.setattr(flash, "_prefix_bnsd", lambda *args: calls.append("dense") or q)
++
++    def window(query, key, value, scale, **kwargs):
++        assert key.shape[1] == value.shape[1] == 4160
++        assert kwargs == {"target_start": 64, "frames": 4, "rows_per_frame": 1024}
++        calls.append("window")
++        return q
++
++    monkeypatch.setattr(flash, "_video_temporal_window_bnsd", window)
++    assert impl.forward_fa_npu(q, q, q, metadata) is q
++    assert calls == (["dense"] if step in (0, 49) else ["window"])
++
++
++@pytest.mark.skipif(not current_omni_platform.is_npu(), reason="Requires native Ascend FAS")
++def test_native_bf16_window_fas_executes_real_batched_geometry():
++    import torch_npu  # noqa: F401
++
++    q, k, v = fixture(rows=8, heads=14, dim=128, device="npu")
++    output = flash._video_temporal_window_bnsd(q, k, v, 128**-0.5, target_start=4, frames=5, rows_per_frame=8)
++    torch.npu.synchronize()
++    assert output.dtype == torch.bfloat16 and torch.isfinite(output).all()
++    for t in range(5):
++        start = min(max(t - 1, 0), 2)
++        keys = torch.cat((k[:, :4], k[:, 4 + start * 8 : 4 + (start + 3) * 8]), dim=1)
++        values = torch.cat((v[:, :4], v[:, 4 + start * 8 : 4 + (start + 3) * 8]), dim=1)
++        expected = reference(q[:, 4 + t * 8 : 4 + (t + 1) * 8].cpu(), keys.cpu(), values.cpu(), 128**-0.5)
++        torch.testing.assert_close(
++            output[:, 4 + t * 8 : 4 + (t + 1) * 8].cpu().float(), expected.float(), atol=0.03125, rtol=0.02
++        )
++
++
++def test_requested_main_geometry_does_not_silently_fallback(monkeypatch):
++    from vllm_omni.diffusion.attention.backends.abstract import AttentionMetadata
++
++    monkeypatch.setenv("MINDIE_SD_FA_TYPE", "fused_attn_score")
++    monkeypatch.setenv("H3_VIDEO_TEMPORAL_WINDOW", "3")
++    impl = object.__new__(flash.MiniMaxH3FlashAttentionImpl)
++    impl.causal = True
++    q = torch.ones(1, 4096, 1, 8, dtype=torch.bfloat16)
++    with pytest.raises(ValueError, match="unsupported"):
++        impl.forward_fa_npu(q, q, q, AttentionMetadata(extra={"npu_attn_varlen": True}))
+diff --git a/vllm_omni/diffusion/models/minimax_h3/attention/flash_h3.py b/vllm_omni/diffusion/models/minimax_h3/attention/flash_h3.py
+index 6ebfb10..0f0024b 100644
+--- a/vllm_omni/diffusion/models/minimax_h3/attention/flash_h3.py
++++ b/vllm_omni/diffusion/models/minimax_h3/attention/flash_h3.py
+@@ -10,6 +10,7 @@ import torch
+ 
+ from vllm_omni.diffusion.attention.backends.abstract import AttentionMetadata
+ from vllm_omni.diffusion.attention.backends.flash_attn import FlashAttentionImpl
++from vllm_omni.diffusion.forward_context import get_forward_context
+ 
+ 
+ def _prefix_bnsd(query: torch.Tensor, key: torch.Tensor, value: torch.Tensor, scale: float) -> torch.Tensor:
+@@ -36,6 +37,58 @@ def _prefix_bnsd(query: torch.Tensor, key: torch.Tensor, value: torch.Tensor, sc
+     return output.reshape(batch, heads, rows, dim).transpose(1, 2).contiguous()
+ 
+ 
++def _video_temporal_window_bnsd(
++    query: torch.Tensor,
++    key: torch.Tensor,
++    value: torch.Tensor,
++    scale: float,
++    *,
++    target_start: int,
++    frames: int,
++    rows_per_frame: int,
++) -> torch.Tensor:
++    """Fresh global-prefix queries and local video queries, in original row order."""
++    if (
++        query.shape[0] != 1
++        or key.shape[0] != 1
++        or value.shape != key.shape
++        or query.shape[2:] != key.shape[2:]
++        or target_start < 0
++        or frames < 3
++        or rows_per_frame < 1
++        or target_start + frames * rows_per_frame != key.shape[1]
++        or query.shape[1] < key.shape[1]
++    ):
++        raise ValueError("H3 temporal window requires one final contiguous target-video span and a valid KV prefix")
++    heads, dim = query.shape[2:]
++    starts = (torch.arange(frames, device=key.device) - 1).clamp(0, frames - 3)
++
++    def pack_windows(tensor: torch.Tensor) -> torch.Tensor:
++        video = tensor[:, target_start:].reshape(frames, rows_per_frame, heads, dim)
++        windows = video.unfold(0, 3, 1).permute(0, 4, 1, 2, 3).reshape(frames - 2, 3 * rows_per_frame, heads, dim)
++        selected = windows.index_select(0, starts)
++        prefix = tensor[:, :target_start].expand(frames, -1, -1, -1)
++        return torch.cat((prefix, selected), dim=1)
++
++    output = torch.zeros_like(query)
++    if target_start:
++        output[:, :target_start] = _prefix_bnsd(query[:, :target_start], key, value, scale)
++    video_query = query[:, target_start : key.shape[1]].reshape(frames, rows_per_frame, heads, dim)
++    video_output = _prefix_bnsd(video_query, pack_windows(key), pack_windows(value), scale)
++    output[:, target_start : key.shape[1]] = video_output.reshape(1, frames * rows_per_frame, heads, dim)
++    return output
++
++
++def _use_video_temporal_window() -> bool:
++    if os.environ.get("H3_VIDEO_TEMPORAL_WINDOW") != "3":
++        raise ValueError("The experimental H3 temporal-window profile requires window=3")
++    context = get_forward_context()
++    step, total = context.denoise_step_idx, context.total_denoise_steps
++    if total != 50 or step is None or not 0 <= step < 50:
++        raise ValueError("The experimental H3 temporal-window profile requires published 50-step progress")
++    return step not in (0, 49)
++
++
+ class MiniMaxH3FlashAttentionImpl(FlashAttentionImpl):
+     """Use independent head batches for explicit long BF16 prefix attention.
+ 
+@@ -51,7 +104,10 @@ class MiniMaxH3FlashAttentionImpl(FlashAttentionImpl):
+         value: torch.Tensor,
+         attn_metadata: AttentionMetadata | None = None,
+     ) -> torch.Tensor:
++        window_requested = os.environ.get("H3_VIDEO_TEMPORAL_WINDOW") is not None and query.shape[1] >= 4096
+         if os.environ.get("MINDIE_SD_FA_TYPE") != "fused_attn_score" or attn_metadata is None:
++            if window_requested:
++                raise ValueError("H3 temporal window requires explicit fused attention and packed metadata")
+             return super().forward_fa_npu(query, key, value, attn_metadata)
+         extra = attn_metadata.extra
+         if (
+@@ -68,9 +124,29 @@ class MiniMaxH3FlashAttentionImpl(FlashAttentionImpl):
+             or query.shape[2:] != value.shape[2:]
+             or key.shape[1] != value.shape[1]
+         ):
++            if window_requested:
++                raise ValueError("H3 temporal window received unsupported packed fused-attention inputs")
+             return super().forward_fa_npu(query, key, value, attn_metadata)
+         resolved = self._resolve_packed_seq_npu(query, key, extra)
+         if resolved is None:
++            if window_requested:
++                raise ValueError("H3 temporal window requires a resolved packed prefix")
+             return super().forward_fa_npu(query, key, value, attn_metadata)
+         used_k = resolved[1][0]
++        if os.environ.get("H3_VIDEO_TEMPORAL_WINDOW") is not None and _use_video_temporal_window():
++            layout = attn_metadata.video_layout
++            targets = [] if layout is None else [span for span in layout.video_spans if span.role == "target"]
++            if len(targets) != 1:
++                raise ValueError("H3 temporal window requires exactly one target-video span")
++            target = targets[0]
++            frames, height, width = target.latent_grid
++            return _video_temporal_window_bnsd(
++                query,
++                key[:, :used_k],
++                value[:, :used_k],
++                self.softmax_scale,
++                target_start=target.start,
++                frames=frames,
++                rows_per_frame=height * width,
++            )
+         return _prefix_bnsd(query, key[:, :used_k], value[:, :used_k], self.softmax_scale)

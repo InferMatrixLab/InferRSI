@@ -11,7 +11,7 @@ Refs [issue #91](https://github.com/InferMatrixLab/InferRSI/issues/91).
 - Capability `Q`: one decision rule for accepting a fixed-stage PyTorch/Ascend
   optimization report: current execution identity, quality result and comparable
   measurements must agree; callback completion has a narrower meaning.
-- Evidence `X`: the bounded [source ledger and trace](../../src/inferrsi/data/skill_library/hardware/ascend/ascend-performance-analysis/references/cannbot-stage-evidence.md).
+- Evidence `X`: the bounded [source ledger and trace](../../src/inferrsi/knowledge/data/skill_library/hardware/ascend/ascend-performance-analysis/references/cannbot-stage-evidence.md).
   Exact Git objects establish identity; source reading establishes instructions
   and callback predicates. No upstream code, installer, agent host, model, API,
   device or paid evaluation was executed.

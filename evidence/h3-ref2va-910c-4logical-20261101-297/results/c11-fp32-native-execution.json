@@ -1,0 +1,76 @@
+{
+  "attempts": [
+    {
+      "trial": "c11-sigma-fp32-native-tests-b873db4a",
+      "status": "failed",
+      "cleanup_passed": true,
+      "source_unchanged": true,
+      "files_before": {
+        "vllm_omni/diffusion/models/minimax_h3/cache_sigma_prediction.py": "fb27fdebdf0cb45e678243c0180d56cf3e7a7470ff424bdf2d3bf144c8e2aee3",
+        "vllm_omni/diffusion/models/minimax_h3/reference_kv_cache_dit.py": "d3381079ff012f32176a917bb0825d12288c058d3a058f5169ecc97d1e2c675c",
+        "vllm_omni/diffusion/models/minimax_h3/minimax_h3_transformer.py": "a649a09e5b59256b5887c12fe508d8e14e3dedd9019bdb82c65db2d59f11de91",
+        "vllm_omni/diffusion/models/minimax_h3/denoise_loop.py": "a9524734a4f3410a0c6f766fa64fa9e5bd5a4d41bd7481738e9024cac54ce7f9",
+        "tests/diffusion/models/minimax_h3/test_minimax_h3_sigma_cache.py": "f48d3180de2b25b8ef03c7ca37eee5ff2adb0243268d18adae17142d5eedcd13"
+      },
+      "native_test_names": [
+        "test_native_two_clock_forecast_and_input_immutability",
+        "test_native_real_cache_manager_computes_then_forecasts"
+      ],
+      "elapsed_seconds": 51.38206260098377
+    },
+    {
+      "trial": "c11-sigma-fp32-native-tests-cc806d17",
+      "status": "failed",
+      "cleanup_passed": true,
+      "source_unchanged": true,
+      "files_before": {
+        "vllm_omni/diffusion/models/minimax_h3/cache_sigma_prediction.py": "fb27fdebdf0cb45e678243c0180d56cf3e7a7470ff424bdf2d3bf144c8e2aee3",
+        "vllm_omni/diffusion/models/minimax_h3/reference_kv_cache_dit.py": "d3381079ff012f32176a917bb0825d12288c058d3a058f5169ecc97d1e2c675c",
+        "vllm_omni/diffusion/models/minimax_h3/minimax_h3_transformer.py": "a649a09e5b59256b5887c12fe508d8e14e3dedd9019bdb82c65db2d59f11de91",
+        "vllm_omni/diffusion/models/minimax_h3/denoise_loop.py": "a9524734a4f3410a0c6f766fa64fa9e5bd5a4d41bd7481738e9024cac54ce7f9",
+        "tests/diffusion/models/minimax_h3/test_minimax_h3_sigma_cache.py": "f52b3050a8dab6141eb9d84abf6f62f9cb1b78c9233588117fe47817c62cc72c"
+      },
+      "native_test_names": [
+        "test_native_two_clock_forecast_and_input_immutability"
+      ],
+      "elapsed_seconds": 49.97501417802414
+    },
+    {
+      "trial": "c11-sigma-fp32-native-tests-9542a13d",
+      "status": "completed",
+      "cleanup_passed": true,
+      "source_unchanged": true,
+      "files_before": {
+        "vllm_omni/diffusion/models/minimax_h3/cache_sigma_prediction.py": "fb27fdebdf0cb45e678243c0180d56cf3e7a7470ff424bdf2d3bf144c8e2aee3",
+        "vllm_omni/diffusion/models/minimax_h3/reference_kv_cache_dit.py": "d3381079ff012f32176a917bb0825d12288c058d3a058f5169ecc97d1e2c675c",
+        "vllm_omni/diffusion/models/minimax_h3/minimax_h3_transformer.py": "a649a09e5b59256b5887c12fe508d8e14e3dedd9019bdb82c65db2d59f11de91",
+        "vllm_omni/diffusion/models/minimax_h3/denoise_loop.py": "a9524734a4f3410a0c6f766fa64fa9e5bd5a4d41bd7481738e9024cac54ce7f9",
+        "tests/diffusion/models/minimax_h3/test_minimax_h3_sigma_cache.py": "16d1e9329c0088eabf4bb17214fc364ec0c6176d92f871786456a2b92aaa418f"
+      },
+      "native_test_names": [
+        "test_native_two_clock_forecast_and_input_immutability",
+        "test_native_real_cache_manager_computes_then_forecasts",
+        "test_native_bf16_blocks_use_fp32_anchors_and_keep_output_dtype"
+      ],
+      "elapsed_seconds": 50.17931097600376
+    }
+  ],
+  "tests_passed_after_fixture_correction": 23,
+  "corrections": [
+    {
+      "failed_run": "c11-sigma-fp32-native-tests-b873db4a",
+      "old_test_sha256": "f48d3180de2b25b8ef03c7ca37eee5ff2adb0243268d18adae17142d5eedcd13",
+      "new_test_sha256": "f52b3050a8dab6141eb9d84abf6f62f9cb1b78c9233588117fe47817c62cc72c",
+      "production_unchanged": true,
+      "reason": "Old fixture ignored BF16 anchor quantization. Replace analytic unquantized reference with independent FP64 Vandermonde solve through actual anchors; exact full-compute checks and stricter forecast bound. Frozen quality evaluator unchanged."
+    },
+    {
+      "failed_run": "c11-sigma-fp32-native-tests-cc806d17",
+      "old_test_sha256": "f52b3050a8dab6141eb9d84abf6f62f9cb1b78c9233588117fe47817c62cc72c",
+      "new_test_sha256": "16d1e9329c0088eabf4bb17214fc364ec0c6176d92f871786456a2b92aaa418f",
+      "production_unchanged": true,
+      "reason": "Move actual NPU anchor values to CPU before .double(): Ascend warns and downgrades double operations on device. CPU FP64 solve now receives matching Double A/B. No numerical/quality threshold change."
+    }
+  ],
+  "scope": "Two failed test-reference attempts retained, then23passed incl3executed NPUtests. Productionbytes unchanged across attempts. Frozen modelquality thresholds/scorers unchanged."
+}

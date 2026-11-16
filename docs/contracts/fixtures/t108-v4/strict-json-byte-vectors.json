@@ -1,0 +1,92 @@
+{
+  "scope": "Normative input-byte vectors with exact hex and rejection stage. Box-only documentation reference checks; no production encoder, repository tests or cross-language implementation executed.",
+  "root_definition": "Parameters",
+  "fixed_payload_context": true,
+  "cases": [
+    {
+      "id": "float",
+      "raw_hex": "7b2278223a312e307d",
+      "expected_rejection_stage": "float_token"
+    },
+    {
+      "id": "exponent",
+      "raw_hex": "7b2278223a3165307d",
+      "expected_rejection_stage": "float_token"
+    },
+    {
+      "id": "NaN",
+      "raw_hex": "7b2278223a4e614e7d",
+      "expected_rejection_stage": "nonfinite_token"
+    },
+    {
+      "id": "Infinity",
+      "raw_hex": "7b2278223a496e66696e6974797d",
+      "expected_rejection_stage": "nonfinite_token"
+    },
+    {
+      "id": "duplicate",
+      "raw_hex": "7b2278223a302c2278223a317d",
+      "expected_rejection_stage": "duplicate_key"
+    },
+    {
+      "id": "lone_surrogate",
+      "raw_hex": "7b2278223a225c7564383030227d",
+      "expected_rejection_stage": "unicode_scalar"
+    },
+    {
+      "id": "bad_utf8",
+      "raw_hex": "7b2278223a22ff227d",
+      "expected_rejection_stage": "strict_utf8"
+    },
+    {
+      "id": "BOM",
+      "raw_hex": "efbbbf7b2278223a307d",
+      "expected_rejection_stage": "no_bom"
+    },
+    {
+      "id": "integer_range",
+      "raw_hex": "7b2278223a393030373139393235343734303939327d",
+      "expected_rejection_stage": "integer_range"
+    },
+    {
+      "id": "nonascii_key",
+      "raw_hex": "7b22e4b8ad223a2278227d",
+      "expected_rejection_stage": "ascii_key"
+    },
+    {
+      "id": "integer_negzero",
+      "raw_hex": "7b2278223a2d307d",
+      "expected_rejection_stage": "canonical_bytes"
+    },
+    {
+      "id": "newline_long_escape",
+      "raw_hex": "7b2278223a225c7530303061227d",
+      "expected_rejection_stage": "canonical_bytes"
+    },
+    {
+      "id": "solidus_escape",
+      "raw_hex": "7b2278223a225c2f227d",
+      "expected_rejection_stage": "canonical_bytes"
+    },
+    {
+      "id": "chinese_escape",
+      "raw_hex": "7b2278223a225c7534653264227d",
+      "expected_rejection_stage": "canonical_bytes"
+    },
+    {
+      "id": "surrogate_pair_escape",
+      "raw_hex": "7b2278223a225c75643833645c7564653432227d",
+      "expected_rejection_stage": "canonical_bytes"
+    },
+    {
+      "id": "trailing_lf",
+      "raw_hex": "7b2278223a307d0a",
+      "expected_rejection_stage": "canonical_bytes"
+    },
+    {
+      "id": "spaces",
+      "raw_hex": "7b2278223a20307d",
+      "expected_rejection_stage": "canonical_bytes"
+    }
+  ]
+}

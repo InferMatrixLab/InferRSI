@@ -7,9 +7,9 @@ from pathlib import Path
 import pytest
 from fixtures.flare_packet import build_packet, write_json
 
-from inferrsi.harness.runner import run_experiment
+from inferrsi.apps.legacy.run import run_experiment
+from inferrsi.contracts import RunSpec
 from inferrsi.model.validators.flare import adapt, main, validate_pair
-from inferrsi.runspec import RunSpec
 
 
 @pytest.fixture

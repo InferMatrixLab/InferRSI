@@ -5,13 +5,13 @@ from pathlib import Path
 
 import pytest
 
-from inferrsi import catalog
-from inferrsi.catalog import get_knowledge, search_knowledge
 from inferrsi.cli import main
 from inferrsi.infra.commands import probe_command
 from inferrsi.infra.platforms import inspect_device
 from inferrsi.infra.platforms.mlx import _parse_sysctl_info
-from inferrsi.knowledge_operations import KnowledgeReader
+from inferrsi.knowledge.catalog import get_knowledge, search_knowledge
+from inferrsi.knowledge.knowledge_operations import KnowledgeReader
+from inferrsi.resources.repository_packs import REPO_TYPES
 
 PROJECT = Path(__file__).resolve().parents[1]
 IDS = {
@@ -79,7 +79,7 @@ def test_discrete_ids_are_rejected_by_real_adapter():
 def test_mlx_cards_are_source_scoped_and_readable(capsys):
     records = search_knowledge(repo="mlx", tier="dependency", backend="mlx", limit=100)
     assert {item["id"] for item in records} == IDS
-    assert "mlx" not in catalog.REPO_TYPES
+    assert "mlx" not in REPO_TYPES
     assert search_knowledge(repo="mlx", tier="peer", backend="mlx") == []
     assert search_knowledge(repo="mlx", backend="cuda") == []
     assert main([
@@ -89,7 +89,8 @@ def test_mlx_cards_are_source_scoped_and_readable(capsys):
     assert {item["id"] for item in json.loads(capsys.readouterr().out)} == IDS
     reader = KnowledgeReader()
     document = "data/skill_library/frameworks/mlx/lazy-evaluation-stream-lifetimes/SKILL.md"
-    expected = (PROJECT / "src/inferrsi" / document).read_bytes()
+    # The bundle key stays logical; K02 moved the physical corpus under Knowledge.
+    expected = (PROJECT / "src/inferrsi/knowledge" / document).read_bytes()
     for record in records:
         assert record["backend"] == "mlx"
         assert record["status"] == "imported"

@@ -97,7 +97,7 @@ All paths are relative to the same full source commit above. The eight blobs are
 | `skills/training/torch-npu-comm-test/references/supported-ops.md` | 49-58,81-89,143-152,195-224: documented shape and P2P intent checked against code |
 
 Detailed communication clauses map to immutable lines in the
-[owner-local readset](../../src/inferrsi/data/skill_library/hardware/ascend/ascend-distributed-parallel/references/awesome-ascend-communication-tests.md).
+[owner-local readset](../../src/inferrsi/knowledge/data/skill_library/hardware/ascend/ascend-distributed-parallel/references/awesome-ascend-communication-tests.md).
 
 ## Candidate old/new cases
 

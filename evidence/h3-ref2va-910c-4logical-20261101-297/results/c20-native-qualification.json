@@ -1,0 +1,13 @@
+{
+  "trial": "c20-video-variance-pool-native-50101063",
+  "tests_passed": 17,
+  "source_base_head": "e89b1d40d37f7f72767892a56fa7980ea572ba8e",
+  "files_before": {
+    "vllm_omni/diffusion/models/minimax_h3/attention/flash_h3.py": "4390450bc5324f7028125101cd4bb32e9de237b04bc12fa879b48110d7122e3c",
+    "tests/diffusion/models/minimax_h3/test_minimax_h3_variance_pool.py": "e871fb4b222d61d10b6c442a333a52c976cceaa0d406233502ecbcaddfeba8c9"
+  },
+  "cleanup_passed": true,
+  "source_unchanged": true,
+  "required_native_test_executed": true,
+  "scope": "Independent weighted global-context reference and native padded-head BF16 FAS; no full-model quality/performance acceptance"
+}

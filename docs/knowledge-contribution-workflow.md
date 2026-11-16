@@ -1,6 +1,6 @@
 # Knowledge contribution workflow
 
-This is the short path for a change to one skill in `src/inferrsi/data/skill_library/`.
+This is the short path for a change to one skill in `src/inferrsi/knowledge/data/skill_library/`.
 It implements the representation accepted in
 [issue #355](https://github.com/InferMatrixLab/InferRSI/issues/355#issuecomment-6730172305).
 
@@ -28,12 +28,15 @@ decision.
    python tools/build_skill_coverage.py --check
    ```
 
+   The recorded prefix is `src/inferrsi/knowledge/data/skill_library/`, the same
+   path as the current checkout. Commit the skill and registry edits first, then
+   regenerate from that commit. Do not hand-edit generated records.
+
 3. Commit the generated changes. List the declaration paths for the final head:
 
    ```bash
    python tools/knowledge_declaration_paths.py --base origin/main --head HEAD
    ```
-
    The path lists overlap: under the current policy every generated path is also a
    protected path. Do not add their counts.
 
@@ -51,11 +54,18 @@ the registry hash:
   "schema_version": 1,
   "repository": "https://github.com/InferMatrixLab/InferRSI",
   "source_revision": "<40-hex commit>",
-  "registry": {"path": "src/inferrsi/data/skill_library/skill-index.json", "sha256": "<64-hex>"}
+  "registry": {"path": "src/inferrsi/knowledge/data/skill_library/skill-index.json", "sha256": "<64-hex>"}
 }
 ```
 
-`inferrsi.catalog` resolves each stored record into a public schema-1 record with
+`registry.path` and the `source_files` keys name the library at the pinned
+`source_revision`. After the explicit re-pin that path is
+`src/inferrsi/knowledge/data/skill_library/`, matching the current checkout.
+`skill_documents.original` and installed bundle keys stay at the package-relative
+prefix `data/skill_library/`. A later move again needs an explicit new revision
+that regenerates every record; do not hand-edit the generated files.
+
+`inferrsi.knowledge.catalog` resolves each stored record into a public schema-1 record with
 the same fields and field order as before: the `sources` entry with the full commit
 URL, and `source_files` including the registry hash. Search, `knowledge show`,
 Collect and installed wheels keep reading schema 1. The generator refuses to write a
@@ -96,6 +106,7 @@ same matrix row, remain ordinary content conflicts that must be resolved by hand
   as unavailable. This already happened with the previous format: the projections
   on `main` before this change pinned a squashed branch commit.
 - Raw stored records changed from schema 1 to schema 2. Code that reads the JSON
-  files directly must use `inferrsi.catalog` or `inferrsi._source_snapshot.resolve`.
+  files directly must use `inferrsi.knowledge.catalog` or
+  `inferrsi.knowledge._source_snapshot.resolve`.
 - Generated files are protected knowledge paths. Regenerating them is material
   authorship work and needs a valid declaration.

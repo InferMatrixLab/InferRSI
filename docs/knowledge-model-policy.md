@@ -30,13 +30,15 @@ prospective; do not reconstruct unknown identities or rewrite historical commits
 
 The exact protected scope is:
 
-- `src/inferrsi/data/skill_library/**`
-- `src/inferrsi/data/knowledge_packs/**`
-- `src/inferrsi/data/repo_packs/**/knowledge/**`
+- `src/inferrsi/knowledge/data/skill_library/**`
+- `src/inferrsi/knowledge/data/knowledge_packs/**`
+- `src/inferrsi/knowledge/data/repo_packs/**/knowledge/**`
 - `docs/reference-matrix.md`, `docs/searchspace-matrix.md`
 - `docs/knowledge-base.md`, `docs/knowledge-operations.md`, `docs/knowledge-store.md`
-- `src/inferrsi/catalog.py`, `src/inferrsi/skill_catalog.py`,
-  `src/inferrsi/knowledge_operations.py`
+- `src/inferrsi/knowledge/catalog.py`, `src/inferrsi/knowledge/skill_catalog.py`,
+  `src/inferrsi/knowledge/knowledge_operations.py`, the Knowledge implementations.
+  The three root compatibility shells of the same names were deleted by #412 R1,
+  and their paths left this list with the files. The implementations stay protected
 
 Deletions and both rename paths count. Mechanical/generated changes have no
 automatic exemption. Running a generator or obtaining an approved-model review
@@ -76,6 +78,7 @@ conflicting declarations and stale coverage fail. PR text is never shell input.
 | GPT-6-Astra | `gpt-6-astra` | None | `xhigh`, `max` |
 | GPT-6.1 Sol | `gpt-6.1-sol` | None | `xhigh`, `max` |
 | GPT-6.1 Terra | `gpt-6.1-terra` | None | `xhigh`, `max` |
+| Claude Fable 5.2 | `claude-fable-5-2` | None | `xhigh`, `max` |
 
 IDs and effort support were checked on 2026-10-21 against official
 [Claude IDs](https://platform.claude.com/docs/en/models/opus-5-5/overview),
@@ -91,6 +94,12 @@ GPT-6.1 Terra's canonical ID and support for `xhigh` and `max` were checked on
 2026-11-01 against its [official model documentation](https://developers.openai.com/api/docs/models/gpt-6.1-terra).
 The policy admits only those two efforts for Terra; the model's other supported
 efforts do not qualify for knowledge authorship.
+
+Claude Fable 5.2's canonical ID and support for `xhigh` and `max` were checked on
+2026-11-14 against its [official model documentation](https://platform.claude.com/docs/en/models/fable-5-2/whats-new-fable-5-2).
+The policy admits only those two efforts for Fable 5.2; other documented efforts
+(`low`, `medium`, `high`) do not qualify for knowledge authorship. The drifting
+`fable` alias is not admitted.
 
 ## Explicit exceptions and policy review
 
