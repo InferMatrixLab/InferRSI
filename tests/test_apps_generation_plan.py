@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from inferrsi.apps.api import plan_generation
+from inferrsi.apps.api import CandidateProvider
 from inferrsi.contracts.json_v1 import decode, encode
 from inferrsi.harness.errors import PublicError
 from inferrsi.harness.execution_service import LocalCpuTarget, validate
@@ -76,14 +76,23 @@ def generation():
                  "media_type": "text/plain", "format_schema": candidate_contract["format_schema"]},
             ],
         }],
-        "output_root": "generation/attempt-1",
         "required_capabilities": ["local-process-tree"],
     }
 
 
+def _provider(generation, bind_inputs=None):
+    return CandidateProvider(
+        provider=generation["provider"], output_contract=generation["output_contract"],
+        steps=generation["steps"], required_capabilities=generation["required_capabilities"],
+        bind_inputs=bind_inputs or (lambda context: generation["inputs"]),
+        output_root_for=lambda attempt_id: f"generation/{attempt_id}",
+    )
+
+
 def test_plan_preserves_attempt_and_keeps_manifest_separate(generation, tmp_path):
     original = deepcopy(generation)
-    result = plan_generation(**generation)
+    provider = _provider(generation)
+    result = provider.plan_generation(generation["context"], generation["attempt"])
     spec, manifest = result["spec"], result["manifest"]
 
     assert {key: spec[key] for key in _ATTEMPT_FIELDS} == generation["attempt"]
@@ -93,6 +102,7 @@ def test_plan_preserves_attempt_and_keeps_manifest_separate(generation, tmp_path
     ))
     assert spec["inputs"] == generation["inputs"]
     assert spec["steps"] == generation["steps"]
+    assert spec["output_root"] == f"generation/{generation['attempt']['attempt_id']}"
     assert manifest == {
         "schema_version": 1, "provider": generation["provider"],
         "output_contract": generation["output_contract"],
@@ -103,10 +113,38 @@ def test_plan_preserves_attempt_and_keeps_manifest_separate(generation, tmp_path
     validate(spec, LocalCpuTarget(
         target_request["target_id"], target_request["config_revision"], tmp_path,
     ))
-    assert encode(plan_generation(**generation)) == encode(result)
+    assert encode(provider.plan_generation(generation["context"], generation["attempt"])) == encode(
+        result,
+    )
     spec["inputs"][0]["source_ref"]["location"] = "other"
     manifest["output_contract"]["required_input_roles"].clear()
     assert generation == original
+
+
+def test_provider_binds_each_context_with_the_same_worker_configuration(generation):
+    def bind_context(context):
+        return [
+            _fixed_input("knowledge", context["delivered_context"]["artifact"]),
+            _fixed_input("task", context["task_materials"][0]),
+            _fixed_input("feedback", context["allowed_feedback"][0]),
+        ]
+
+    context, attempt = generation["context"], generation["attempt"]
+    provider = _provider(generation, bind_context)
+    first = provider.plan_generation(context, attempt)
+    next_context = deepcopy(context)
+    next_context["delivered_context"]["artifact"] = _artifact("another-context")
+    next_context["allowed_feedback"] = [_artifact("another-feedback")]
+    next_attempt = {**attempt, "attempt_id": "next-attempt", "request_id": "next-attempt"}
+    generation["steps"][0]["entrypoint"] = "altered-after-configuration"
+
+    second = provider.plan_generation(next_context, next_attempt)
+
+    assert second["spec"]["steps"] == first["spec"]["steps"]
+    assert second["spec"]["output_root"] == "generation/next-attempt"
+    assert second["manifest"]["attempt_id"] == "next-attempt"
+    assert second["manifest"]["context_refs"] == [next_context["delivered_context"]["artifact"]]
+    assert second["spec"]["inputs"] == bind_context(next_context)
 
 
 @pytest.mark.parametrize(("path", "value"), (
@@ -129,5 +167,5 @@ def test_plan_rejects_invalid_handoff(generation, path, value):
     target[path[-1]] = value
 
     with pytest.raises(PublicError) as caught:
-        plan_generation(**generation)
+        _provider(generation).plan_generation(generation["context"], generation["attempt"])
     assert (caught.value.code, caught.value.stage) == ("InvalidExecutionSpec", "generation_plan")

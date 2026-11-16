@@ -1,5 +1,6 @@
 """Construct the Apps side of a generation plan for Harness to seal."""
 
+from collections.abc import Callable
 from copy import deepcopy
 
 from inferrsi.contracts.json_v1 import encode
@@ -25,15 +26,36 @@ _OUTPUT_CONTRACT_FIELDS = {
 }
 
 
-def plan_generation(
-    context: dict, attempt: dict, *, provider: dict, output_contract: dict,
-    inputs: list[dict], steps: list[dict], output_root: str, required_capabilities: list[str],
-) -> dict:
-    """Build a fixed-input GenerationPlan without retaining bytes or running the worker.
+class CandidateProvider:
+    """Apps adapter for planning the generation leg of a Harness loop."""
 
-    The caller supplies the generation command and output declarations. Harness
-    supplies its allocated attempt and the retained context and authorized inputs.
-    """
+    def __init__(
+        self, *, provider: dict, output_contract: dict, steps: list[dict],
+        bind_inputs: Callable[[dict], list[dict]], output_root_for: Callable[[str], str],
+        required_capabilities: list[str],
+    ):
+        self._provider = deepcopy(provider)
+        self._output_contract = deepcopy(output_contract)
+        self._steps = deepcopy(steps)
+        self._bind_inputs = bind_inputs
+        self._output_root_for = output_root_for
+        self._required_capabilities = deepcopy(required_capabilities)
+
+    def plan_generation(self, context: dict, attempt: dict) -> dict:
+        """Bind the authorized context and original attempt to the configured worker."""
+        return _plan_generation(
+            context, attempt, provider=self._provider, output_contract=self._output_contract,
+            steps=self._steps, bind_inputs=self._bind_inputs, output_root_for=self._output_root_for,
+            required_capabilities=self._required_capabilities,
+        )
+
+
+def _plan_generation(
+    context: dict, attempt: dict, *, provider: dict, output_contract: dict,
+    steps: list[dict], bind_inputs: Callable[[dict], list[dict]],
+    output_root_for: Callable[[str], str], required_capabilities: list[str],
+) -> dict:
+    """Build the fixed-input plan for Harness to seal and execute."""
     try:
         if (
             not isinstance(context, dict) or context.keys() != _CONTEXT_FIELDS
@@ -57,12 +79,6 @@ def plan_generation(
             raise ValueError("invalid required input roles")
         if len(set(roles)) != len(roles):
             raise ValueError("duplicate required input role")
-        if not isinstance(inputs, list):
-            raise ValueError("expected generation inputs")
-        by_role = _input_paths(inputs)
-        if "generation_plan" in by_role:
-            raise ValueError("the generation_plan input role is reserved for Harness sealing")
-
         delivery = context["delivered_context"]["artifact"]
         for key in ("task_materials", "allowed_feedback"):
             if not isinstance(context[key], list):
@@ -72,6 +88,12 @@ def plan_generation(
             validate_artifact_ref(ref)
             _logical_path(ref["location"])
             allowed.add(encode(ref))
+        inputs = bind_inputs(deepcopy(context))
+        if not isinstance(inputs, list):
+            raise ValueError("expected generation inputs")
+        by_role = _input_paths(inputs)
+        if "generation_plan" in by_role:
+            raise ValueError("the generation_plan input role is reserved for Harness sealing")
         used = set()
         for item in by_role.values():
             if item["source_namespace"] != "artifact":
@@ -98,6 +120,7 @@ def plan_generation(
         ):
             raise ValueError("expected distinct required manifest and candidate outputs")
         _require_disjoint_paths([*paths.values(), *(item["materialized_path"] for item in inputs)])
+        output_root = output_root_for(attempt["attempt_id"])
         _logical_path(output_root)
         if not isinstance(required_capabilities, list) or not all(
             _id(capability) for capability in required_capabilities

@@ -23,7 +23,7 @@ from .archive import (
 from .artifact_reader import ArtifactReader, AssessmentArtifacts
 from .bridge import bind_execution as _bind_prepared_execution
 from .bridge import check_assessment_identity, execution_fields, to_evidence, verify_protocol
-from .candidate_provider import plan_generation as plan_generation
+from .candidate_provider import CandidateProvider as CandidateProvider
 from .result import (
     assessment_result,
     execution_result,
