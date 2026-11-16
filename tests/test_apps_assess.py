@@ -15,8 +15,8 @@ from inferrsi.apps import archive
 from inferrsi.apps.api import EvaluationPort, read_attempt_view
 from inferrsi.apps.api import assess as run_assess
 from inferrsi.apps.artifact_reader import ArtifactReader
+from inferrsi.apps.cli import main
 from inferrsi.apps.views.dashboard_live import DashboardServer
-from inferrsi.cli import main
 from inferrsi.contracts.json_v1 import decode, encode
 from inferrsi.harness.errors import PublicError
 from inferrsi.harness.run_store import RunStore

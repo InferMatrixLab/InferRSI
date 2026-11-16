@@ -7,11 +7,10 @@ import shlex
 import sys
 from pathlib import Path
 
-from . import __version__
-from .contracts import RunSpec
-from .knowledge._skill_selection import RELEVANCE_METHODS
-from .knowledge.catalog import BACKENDS, KNOWLEDGE_REPOS, KNOWLEDGE_SCOPES
-from .resources.repository_packs import REPO_TYPES
+from ... import __version__
+from ...contracts import RunSpec
+from ...knowledge._skill_selection import RELEVANCE_METHODS
+from ...knowledge.catalog import BACKENDS, KNOWLEDGE_REPOS, KNOWLEDGE_SCOPES, REPO_TYPES
 
 
 def _fixed_attempt_args(

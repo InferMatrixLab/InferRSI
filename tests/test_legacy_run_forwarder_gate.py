@@ -96,6 +96,6 @@ def test_real_tree_holds_no_forwarder_and_stays_incomplete():
         assert not (support.ROOT / f"{name}.py").exists(), name
     # What is left belongs to R2 and R3, plus the parser entry due in A1.
     assert support.blocker_kinds(report) == {
-        "temporary leaf importers", "harness reaches model/infra", "runtime resource loaders",
+        "harness reaches model/infra", "runtime resource loaders",
     }
     assert not report.isolation_complete

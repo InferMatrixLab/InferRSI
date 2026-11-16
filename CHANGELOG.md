@@ -4,6 +4,46 @@
 
 ### Changed
 
+- The CLI moves into the Apps package and the two root CLI modules are removed
+  (Refs #408, A1), with no forwarding shell, `sys.modules` alias or import
+  fallback:
+  - `inferrsi.cli` → `inferrsi.apps.cli` (`src/inferrsi/cli.py` →
+    `src/inferrsi/apps/cli/__init__.py`), which exposes the canonical `main`
+  - `inferrsi.arguments` → `inferrsi.apps.cli.arguments`
+    (`src/inferrsi/arguments.py` → `src/inferrsi/apps/cli/arguments.py`), which
+    holds `parser`, `make_spec` and `device_ids`
+  - The `inferrsi` console script names `inferrsi.apps.cli:main`, and
+    `python -m inferrsi` delegates to the same function. Commands, flags, exit
+    codes and stdout/stderr are unchanged. The shared Codex and WorkSwarm
+    launcher and the DSH remote bootstrap import the canonical modules.
+  - Importing `inferrsi.cli` or `inferrsi.arguments` now raises
+    `ModuleNotFoundError`, in external Python code as well as in this
+    repository, and a pickle that names an object by either path no longer
+    loads. Callers import `main` from `inferrsi.apps.cli` and the parser
+    helpers from `inferrsi.apps.cli.arguments`. Test injection points move
+    with the code: `inferrsi.cli._knowledge_reader` and `inferrsi.cli.files`
+    are the same names on `inferrsi.apps.cli`. Frozen evidence is not
+    rewritten.
+  - The tracked package root shrinks from ten files to eight. Besides
+    `__init__.py` and `__main__.py`, the six left (`summary_chart.py`,
+    `benchmark_operations.py` and the four MindIE files) wait for A2 (#408) and
+    M1 (#452). The gate's `APPLICATION_ENTRIES` lists only
+    `benchmark_operations.py`, and `inferrsi.cli` and `inferrsi.arguments` join
+    `RETIRED_ROOT_MODULES`, so a root file that returns under either name
+    fails.
+  - The temporary neutral-leaf entry for root `arguments.py`
+    (`technical_leaf.temporary_importers`, `TEMPORARY_LEAF_IMPORTERS`) and its
+    `temporary leaf importers` blocker are removed, and nothing replaces them.
+    The moved parser reads `REPO_TYPES` through `inferrsi.knowledge.catalog`,
+    which binds the one tuple object from
+    `inferrsi.resources.repository_packs`. An Apps module that imports the leaf
+    itself still fails as a second importer. The permanent
+    `inferrsi.infra.inspection` rule and the empty `compatibility_pairs` are
+    unchanged, and the manifest keeps the removed entry in `revision_history`.
+    This route for `REPO_TYPES` needs architecture review and is not
+    self-approved.
+  - Isolation is still incomplete: the 12 Harness hits into Infra (R2, #412)
+    and the five runtime resource loaders (R3, #412) remain.
 - Eleven legacy root modules are removed (Refs #412, R1). Their implementations
   already lived in `inferrsi.knowledge` and `inferrsi.apps`. The root files are
   deleted in the change that moves their last consumers, with no forwarding

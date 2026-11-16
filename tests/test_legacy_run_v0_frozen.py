@@ -2,7 +2,7 @@
 #
 # The goldens in tests/fixtures/legacy_run_v0 were written by the chain as it
 # stood before evaluation moved to Benchmark and composition moved to Apps. Each
-# scenario enters through the unchanged `inferrsi.cli` `run` command, so the
+# scenario enters through the unchanged `inferrsi.apps.cli` `run` command, so the
 # same file compares the chain before and after that move.
 
 import contextlib
@@ -17,7 +17,7 @@ from unittest.mock import patch
 
 import pytest
 
-from inferrsi.cli import main
+from inferrsi.apps.cli import main
 
 FIXTURES = Path(__file__).resolve().parent / "fixtures"
 GOLDENS = FIXTURES / "legacy_run_v0"

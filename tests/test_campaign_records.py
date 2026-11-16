@@ -4,8 +4,8 @@ import json
 
 import pytest
 
+from inferrsi.apps.cli import main
 from inferrsi.apps.views.dashboard_data import load_dashboard
-from inferrsi.cli import main
 from inferrsi.harness.records.campaign_records import (
     create_campaign,
     record_candidate,

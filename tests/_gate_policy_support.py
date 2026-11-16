@@ -1,4 +1,4 @@
-"""First-wave isolation gate helpers (P0b, revised through #412 R1).
+"""First-wave isolation gate helpers (P0b, revised through #408 A1).
 
 Imported by the import-gate and isolation-policy tests. This is a test
 support module, not a runtime package.
@@ -19,10 +19,21 @@ NEW_CORES = ("knowledge", "benchmark", "apps")
 CORE_NAMES = ("knowledge", "harness", "benchmark", "apps")
 # Current application seams, until the Apps package migration. These are not
 # Knowledge compatibility shells and do not grant access to other flat modules.
-# #412 R1 retired the root shells that ``arguments.py`` read its Knowledge choices
-# through, so the CLI parser is listed beside the CLI it belongs to. A1 (#408) moves
-# both files into ``apps/cli/`` and removes both entries.
-APPLICATION_ENTRIES = ("cli.py", "arguments.py", "benchmark_operations.py")
+# A1 (#408) moved the CLI and its parser into ``apps/cli/`` and removed their two
+# entries. That package is Apps by its first path segment, so a root ``cli.py`` or
+# ``arguments.py`` that returns is an unlisted flat module. A2 removes the last entry.
+APPLICATION_ENTRIES = ("benchmark_operations.py",)
+# #408 A1, permanent: ``python -m inferrsi`` runs root ``__main__.py``, which stays in
+# the package root and hands over to the canonical Apps CLI. The gate admits that one
+# statement and nothing wider: this exact root file, this exact target module and this
+# exact name, bound by a plain module-level ``from <target> import <name>`` line. It is
+# not an ``APPLICATION_ENTRIES`` listing, so the file is never treated as Apps. Every
+# other import in it of Apps, Knowledge or Benchmark fails as in any flat module. So do
+# an alias, a second name, a star import, the target imported as a module object, a
+# module beside or below the target, and the same line below module level. No other
+# file is covered, in the root or under a package.
+MODULE_ENTRY = "__main__.py"
+MODULE_ENTRY_DELEGATION = ("inferrsi.apps.cli", "main")
 # Reviewed execution boundaries: owner function (or module scope) and the exact
 # local spec variable. They execute task resources/candidate code, not a hidden
 # core compatibility import. Their presence keeps isolation incomplete.
@@ -37,7 +48,7 @@ RESOURCE_LOADERS = {
 # old-run forwarders and the root inspection binding. None is registered any more.
 # A file that returns under one of these names is a violation by itself, and every
 # checked closure still treats the name as an old root leaf it may not reach.
-RETIRED_ROOT_MODULES = frozenset(
+RETIRED_BY_R1 = frozenset(
     {
         "inferrsi._skill_selection",
         "inferrsi._source_snapshot",
@@ -52,6 +63,10 @@ RETIRED_ROOT_MODULES = frozenset(
         "inferrsi.inspection",
     }
 )
+# #408 A1 deleted the root CLI and its parser the same way, with no forwarder or alias.
+# The implementation is ``inferrsi.apps.cli`` and ``inferrsi.apps.cli.arguments``.
+RETIRED_BY_A1 = frozenset({"inferrsi.cli", "inferrsi.arguments"})
+RETIRED_ROOT_MODULES = RETIRED_BY_R1 | RETIRED_BY_A1
 # #412 R1, permanent: the one importer of the neutral data leaf outside
 # ``inferrsi.knowledge``, with the only name it may bind (D020: Infra reads one pack
 # description and reaches no Knowledge or Harness). This is not a manifest
@@ -65,15 +80,10 @@ RETIRED_ROOT_MODULES = frozenset(
 LEAF_IMPORTERS = {
     "inferrsi.infra.inspection": frozenset({"repository_pack"}),
 }
-# #412 R1, temporary and due in A1 (#408): root ``catalog`` is retired, so the root CLI
-# parser takes the one REPO_TYPES tuple from the leaf itself. The entry is held to the
-# same exact shape as the permanent rule and names one module and one name. It is not
-# part of that rule and not an Apps-wide allowance. While a listed module imports the
-# leaf, the report carries a ``temporary leaf importers`` blocker, so isolation cannot
-# be reported complete on it. A1 deletes root ``arguments.py`` and removes this entry.
-TEMPORARY_LEAF_IMPORTERS = {
-    "inferrsi.arguments": frozenset({"REPO_TYPES"}),
-}
+# #408 A1 removed the temporary entry that let root ``arguments.py`` bind REPO_TYPES from
+# the leaf, together with its ``temporary leaf importers`` blocker. Nothing replaced it:
+# the moved parser reads the same tuple object through ``inferrsi.knowledge.catalog``,
+# and an Apps module that names the leaf fails as a second importer like any other.
 # New H entries: module paths whose closures count toward the new-core result.
 # H01 added ``run_store`` and ``errors``; H02 added the public ``api`` with
 # ``execution_service``, ``input_binding`` and ``local_process``.
@@ -121,11 +131,35 @@ def _from_base(node: ast.ImportFrom, package: str) -> str:
     return ".".join(keep + ([node.module] if node.module else []))
 
 
-def _modules_in_source(source: str, package_parts: list[str]) -> list[str]:
-    """Resolve import targets, including ``from package import name`` forms."""
+def _is_entry_delegation(node: ast.stmt, package: str) -> bool:
+    """The module entry's one admitted statement, in its exact plain shape."""
+    module, name = MODULE_ENTRY_DELEGATION
+    return (
+        isinstance(node, ast.ImportFrom)
+        and _from_base(node, package) == module
+        and [(alias.name, alias.asname) for alias in node.names] == [(name, None)]
+    )
+
+
+def _modules_in_source(
+    source: str, package_parts: list[str], module_entry: bool = False
+) -> list[str]:
+    """Resolve import targets, including ``from package import name`` forms.
+
+    For the module entry only, its admitted delegation statement is left out where it
+    stands at module level. Every other import in that file is resolved as usual.
+    """
     package = ".".join(package_parts)
+    tree = ast.parse(source)
+    admitted = {
+        id(node)
+        for node in tree.body
+        if module_entry and _is_entry_delegation(node, package)
+    }
     names: list[str] = []
-    for node in ast.walk(ast.parse(source)):
+    for node in ast.walk(tree):
+        if id(node) in admitted:
+            continue
         if isinstance(node, ast.Import):
             names.extend(alias.name for alias in node.names)
         elif isinstance(node, ast.ImportFrom):
@@ -156,6 +190,7 @@ def _imported_modules(path: Path, root: Path) -> list[str]:
     return _modules_in_source(
         path.read_text(encoding="utf-8"),
         ["inferrsi", *relative.parts[:-1]],
+        module_entry=relative.as_posix() == MODULE_ENTRY,
     )
 
 
@@ -188,6 +223,8 @@ def cross_core_violations(
     of ``inferrsi.knowledge``, ``inferrsi.benchmark``, or ``inferrsi.apps``
     is forbidden, as is Knowledge or Benchmark importing Harness. ``allowed``
     holds exact (importer module, target module) pairs; a prefix never counts.
+    The one other admission is the ``MODULE_ENTRY`` delegation statement: that
+    exact statement in that exact root file, and no other import in it.
     """
     modules = _module_index(root)
     found: set[tuple[str, str]] = set()
@@ -673,9 +710,9 @@ def first_wave_report(
         for name in modules
         if name in RETIRED_ROOT_MODULES and name not in sources
     ]
-    # Outside Knowledge the leaf has its one permanent importer, the temporary entry
-    # due in A1 and any staged pair that names it. Every other importer fails.
-    declared_importers = {**TEMPORARY_LEAF_IMPORTERS, **LEAF_IMPORTERS}
+    # Outside Knowledge the leaf has its one permanent importer and any staged pair
+    # that names it. Every other importer fails.
+    declared_importers = dict(LEAF_IMPORTERS)
     leaf_importers = {importer for importer, target in pairs if target == leaf}
     leaf_importers |= set(declared_importers)
     violations += [
@@ -774,12 +811,6 @@ def first_wave_report(
     # #412 R1 left the manifest with no pair. One that review stages again blocks.
     if pairs:
         blockers.append(f"allowlist: {len(pairs)} compatibility pairs")
-    temporary = [
-        name for name in sorted(TEMPORARY_LEAF_IMPORTERS)
-        if leaf in graph.edges.get(name, ())
-    ]
-    if temporary:
-        blockers.append(f"temporary leaf importers: {len(temporary)}")
     legacy = [
         path
         for name in modules

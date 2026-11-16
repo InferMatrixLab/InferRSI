@@ -5,7 +5,7 @@ Knowledge move (K01) is implemented: `src/inferrsi/knowledge/` holds the seven
 moved Knowledge bodies. R1 (#412) deleted the seven static root compatibility
 shells that K01 left, so those names import only from `inferrsi.knowledge`.
 The engineering task contribution now implements `benchmark/registry.py`
-and `benchmark/tasks/`. The current flat `cli.py`, `arguments.py` and
+and `benchmark/tasks/`. The CLI package `apps/cli/` and the flat
 `benchmark_operations.py` assemble this slice. The former `observability/`
 package is dissolved. Its
 campaign records, traces, logs and profile captures are in `harness/records/`,
@@ -17,10 +17,10 @@ The old `run` chain is split by owner. Its gates are in
 `benchmark/legacy_run_v0.py`, its execution facts stay in `harness/`, and
 `apps/legacy/` composes them with the report. `apps/legacy/` is the path named
 by the confirmed split for this slice; that use does not accept #371.
-`cli.py` imports the old run only inside its `run` command, so the other
+`apps/cli/` imports the old run only inside its `run` command, so the other
 commands, including ordinary optimization, still load no Benchmark module.
 R1 deleted the three root forwarders of that chain (`evaluation.py`,
-`execution.py` and `reporting.py`), and `cli.py` imports `apps/legacy/` itself.
+`execution.py` and `reporting.py`), and the CLI imports `apps/legacy/` itself.
 
 ## Target modules
 
@@ -43,16 +43,18 @@ no forwarding shell or alias.
 
 The flat package root is retired in stages.
 `tests/test_package_root_inventory.py` pins the root to an exact file set: 23
-tracked files after C1, 21 after C2 and 10 after R1 (#412). The ten are
-`__init__.py`, `__main__.py`, `_mindie_read_worker.py`, `arguments.py`,
-`benchmark_operations.py`, `cli.py`, `mindie_context.py`, `mindie_mcp.py`,
-`mindie_project.py` and `summary_chart.py`. Each later removal PR shrinks that
-set in the same change: A1 and A2 (#408) move the CLI, the chart and the
+tracked files after C1, 21 after C2, 10 after R1 (#412) and 8 after A1 (#408).
+The eight are `__init__.py`, `__main__.py`, `_mindie_read_worker.py`,
+`benchmark_operations.py`, `mindie_context.py`, `mindie_mcp.py`,
+`mindie_project.py` and `summary_chart.py`. A1 moved root `cli.py` and
+`arguments.py` to `apps/cli/__init__.py` and `apps/cli/arguments.py` and
+deleted both root files with no forwarding shell or alias. Each later removal
+PR shrinks the set in the same change: A2 (#408) moves the chart and the
 benchmark launcher, and M1 (#452) moves the four MindIE files. The guard does
 not assert the final two-file root (`__init__.py` and `__main__.py`) early,
 and the build-generated `_version.py` is ignored wheel metadata, not a tracked
 root file. [Retired root modules](#retired-root-modules) lists the eleven
-paths that R1 removed.
+paths that R1 removed and the two that A1 removed.
 
 The current `src/inferrsi/harness/` tree is a mixed implementation. Its
 presence is not the target Harness boundary and is not evidence that the four
@@ -104,7 +106,7 @@ Several flat modules remain shared seams until their slice starts.
 
 | Current path | Tentative reading | This slice |
 | --- | --- | --- |
-| `cli.py`, `arguments.py`, `__main__.py` | Future Apps entry, after #371 | Not moved; R1 changed only the imports of `cli.py` and `arguments.py`, and A1 (#408) moves both |
+| `apps/cli/` (`__init__.py`, `arguments.py`), root `__main__.py` | Apps CLI entry and its parser | A1 (#408) moved root `cli.py` and `arguments.py` here; the entry is `inferrsi.apps.cli:main`, and `__main__.py` only delegates to it |
 | `benchmark_operations.py` | Single-task application launcher | Resolves a task entry and invokes the Harness runner; ordinary projects do not use it |
 | `benchmark/registry.py`, `benchmark/tasks/` | Task discovery, definitions and specialized rules | Task-specific quality and measurement code stays with each task |
 | `harness/optimization_session.py`, `harness/project.py`, `harness/task_protocol.py` | Shared preparation, execution and retained-result assessment | CLI supplies task resources and knowledge access; ordinary project lifecycle does not import Benchmark |
@@ -134,13 +136,13 @@ Several flat modules remain shared seams until their slice starts.
 `tests/test_target_module_import_gate.py` fails on a new import of
 `inferrsi.knowledge`, `inferrsi.benchmark`, or `inferrsi.apps` from anywhere
 except application assembly, and on Knowledge or Benchmark importing Harness.
-Application assembly includes `inferrsi.apps` and the three current flat
-entries `cli.py`, `arguments.py` and `benchmark_operations.py`, listed by exact
-file name as `APPLICATION_ENTRIES` in `tests/_gate_policy_support.py`.
-`arguments.py` joined that list in R1: the CLI parser names
-`inferrsi.knowledge` itself now that the root shells are gone. The listing is
-temporary. A1 (#408) moves `cli.py` and `arguments.py` into `apps/cli/` and
-removes both entries, and A2 removes the last one. Other flat modules retain
+Application assembly includes `inferrsi.apps` and the one remaining flat
+entry `benchmark_operations.py`, listed by exact file name as
+`APPLICATION_ENTRIES` in `tests/_gate_policy_support.py`. A1 (#408) moved
+`cli.py` and `arguments.py` into `apps/cli/`, which is Apps by its first path
+segment, and removed their two entries, so a root file that returns under
+either name is not admitted. The listing is temporary: A2 removes the last
+entry. Other flat modules retain
 the same restrictions. The gate checks Benchmark task scripts as well as
 module code.
 `from inferrsi import knowledge` counts as an import of that core.
@@ -215,23 +217,23 @@ A clean result means no new cross-core import of those names. It does not mean
 the modules are isolated. Isolation stays false while any one of these holds:
 `knowledge/`, `benchmark/`, or `apps/` is absent or has no scannable
 module; the compatibility allowlist
-is non-empty; a temporary neutral-leaf importer still imports the leaf;
+is non-empty;
 `harness/**` still imports Model or Infra,
 directly or through another module; a declared runtime resource loader is
 present; or the scan reports a violation. The three packages may appear in stages.
 A clean graph for the new cores is reported separately as "new core business
 closure isolated" and never sets overall `isolation_complete` to true.
 
-On the tree after R1, `first_wave_report()` has no violation and three
-blockers, so `isolation_complete` is false and R1 does not claim otherwise:
+On the tree after A1 (#408), `first_wave_report()` has no violation and two
+blockers, so `isolation_complete` is false and A1 does not claim otherwise:
 
 | Blocker | Cause | Closed by |
 | --- | --- | --- |
-| `temporary leaf importers: 1` | Root `arguments.py` reads `REPO_TYPES` from the neutral leaf | A1 (#408) |
 | `harness reaches model/infra` (12 hits) | `agent_sessions`, `candidates`, `optimization`, `optimization_session`, `project` and `task_protocol` each reach `inferrsi.infra` and `inferrsi.infra.artifacts` | R2 (#412) |
 | `runtime resource loaders: 5` | The five declared loaders in the table above | R3 (#412) |
 
-R1 cleared the `allowlist` and `legacy run forwarders` blockers. The loaders
+R1 cleared the `allowlist` and `legacy run forwarders` blockers, and A1 cleared
+the `temporary leaf importers` blocker that R1 left for root `arguments.py`. The loaders
 also keep `new_core_closure_isolated` false.
 
 `knowledge-model-policy` stays the only required status. Until a separate
@@ -278,13 +280,13 @@ when R1 deleted those files. The ninth row is not a root-file edge:
 it. It left the allowlist and is the
 [permanent rule below](#permanent-neutral-leaf-importer-rule-proposed).
 The manifest keeps all nine records and root `catalog`'s two routes,
-unchanged, under its last `revision_history` entry as
+unchanged, under the C2 entry of its `revision_history` as
 `retired_compatibility_pairs` and `retired_catalog_two_routes`.
 An import of the leaf from inside `inferrsi.knowledge`, for example from
 `inferrsi/knowledge/catalog.py`, is intra-closure and was never an exception.
 The leaf's own import rule and `REPO_TYPES` object identity govern it.
 `REPO_TYPES` is the same tuple object in the leaf,
-`inferrsi.knowledge.catalog` and root `arguments.py`.
+`inferrsi.knowledge.catalog` and the moved parser `inferrsi.apps.cli.arguments`.
 
 - **Shell shape.** No shell exists after R1. The rule is kept for a pair that
   review stages again, and `tests/test_first_wave_isolation_policy.py` still
@@ -376,8 +378,9 @@ now empty and the allowlist blocker is gone. The C2 revision joined
 routes, each unchanged, including the old root leaf hashes that K01 recorded.
 `technical_leaf` keeps its module, file, locked `file_sha256`, allowed imports,
 two symbols, top-level shape, both fragments and the K02 and C2 revision
-records. It gains `permanent_importers` and `temporary_importers`, described
-in the next section. The K01, K02 and C2 paragraphs above stay as provenance
+records. With R1 it gained `permanent_importers` and `temporary_importers`, described
+in the next section; A1 (#408) removed the second and kept the removed record
+in `revision_history`. The K01, K02 and C2 paragraphs above stay as provenance
 and describe the tree at their own revisions. This R1 manifest revision
 requires formal architecture review; the implementer does not self-approve
 it, and passing tests are not that review.
@@ -423,20 +426,23 @@ of them removes the declaration and shows that the scan then rejects the
 `infra.inspection` edge, so the edge passes by the rule and not by a relaxed
 scan.
 
-One temporary entry sits beside the rule and is not part of it. Root `catalog`
-is gone, so root `arguments.py` binds `REPO_TYPES` with
-`from .resources.repository_packs import REPO_TYPES` for the `--repo-type`
-choices. It is `TEMPORARY_LEAF_IMPORTERS` in the gate and
-`technical_leaf.temporary_importers` in the manifest, held to the same exact
-shape. It names root `arguments.py` only: the parser at an Apps path, or any
-other Apps module, is not covered. While it exists the report carries the
-`temporary leaf importers` blocker. A1 (#408) deletes root `arguments.py` and
-removes the entry in the same change; how the moved parser reads `REPO_TYPES`
-is decided by that change's review.
+One temporary entry sat beside the rule from R1 until A1 (#408) and was never
+part of it. Root `catalog` was gone, so root `arguments.py` bound `REPO_TYPES`
+with `from .resources.repository_packs import REPO_TYPES` for the `--repo-type`
+choices. It was `TEMPORARY_LEAF_IMPORTERS` in the gate and
+`technical_leaf.temporary_importers` in the manifest, and the report carried a
+`temporary leaf importers` blocker. A1 deleted root `arguments.py` and removed
+the entry, the gate constant and the blocker in the same change. Nothing
+replaced them. The moved parser `apps/cli/arguments.py` reads `REPO_TYPES` from
+`inferrsi.knowledge.catalog`, which binds the one tuple object from the leaf.
+The `--repo-type` choices are still that object, and the Apps parser imports no
+`inferrsi.resources` module. An Apps module that imports the leaf itself fails
+as a second importer, the moved parser included. The manifest keeps the removed
+entry unchanged in `revision_history`.
 
-The permanent rule and the temporary entry are Proposed. Both require formal
-architecture review. The implementer does not self-approve them, and passing
-tests are not that review.
+The permanent rule is Proposed and requires formal architecture review. So does
+the A1 choice to read `REPO_TYPES` through Knowledge. The implementer does not
+self-approve either, and passing tests are not that review.
 
 ## Retired root modules
 
@@ -473,9 +479,21 @@ and a pickle that names a class or function by one no longer loads.
 Frozen evidence is not rewritten; a historical campaign replays with its
 original bundle.
 
-The root now holds the ten files listed under
+A1 (#408) deleted two more root modules the same way:
+
+| Retired root module | Canonical module |
+| --- | --- |
+| `inferrsi.cli` | `inferrsi.apps.cli` |
+| `inferrsi.arguments` | `inferrsi.apps.cli.arguments` |
+
+The `inferrsi` console script and `python -m inferrsi` call
+`inferrsi.apps.cli:main`, and every command, flag, exit code and output byte is
+unchanged. A test replaces a CLI name such as `_knowledge_reader` or `files` on
+`inferrsi.apps.cli`.
+
+The root now holds the eight files listed under
 [Target modules](#target-modules). The final two-file root waits for the
-A1/A2 (#408) and M1 (#452) moves.
+A2 (#408) and M1 (#452) moves.
 
 ## Old `run` exit codes
 

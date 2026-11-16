@@ -133,7 +133,7 @@ def test_control_imports_need_no_inference_or_image_dependencies():
         [
             sys.executable,
             "-c",
-            "import sys; import inferrsi.cli; "
+            "import sys; import inferrsi.apps.cli; "
             "import inferrsi.model.validators.image; "
             "assert not {'torch', 'vllm', 'numpy', 'PIL', 'skimage'}.intersection(sys.modules)",
         ],

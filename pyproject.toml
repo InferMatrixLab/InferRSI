@@ -12,7 +12,7 @@ requires-python = ">=3.10"
 dependencies = []
 
 [project.scripts]
-inferrsi = "inferrsi.cli:main"
+inferrsi = "inferrsi.apps.cli:main"
 
 [project.urls]
 Repository = "https://github.com/InferMatrixLab/InferRSI"
