@@ -1,6 +1,13 @@
 {
   "version": 1,
   "bundles": {
+    "minicpm-vllm-seedtts": {
+      "kind": "campaign",
+      "manifests": [{"path": "results/publication-integrity.json", "schema": "bundle-sha256"}],
+      "external": [
+        "Service verdict remains INCONCLUSIVE. Raw traces, WAVs, model and evaluator weights, full Harness workspaces and generated TensorRT caches are external. Published timing projections, source/config pins and quality scores do not establish service qualification. Publication hashes are retrospective, not a pre-search freeze."
+      ]
+    },
     "h3-ref2va-910c-4logical-20261101-297": {
       "kind": "campaign",
       "manifests": [

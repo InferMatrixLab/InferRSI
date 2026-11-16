@@ -5,6 +5,54 @@ Implementation draft: [vLLM-Omni #10331](https://github.com/vllm-project/vllm-om
 The service goal remains **INCONCLUSIVE**. A component PASS below does not
 establish lower RTF than the independent engine at all requested concurrencies.
 
+## Archive reproducibility corrections
+
+The review supplements preserve the original result JSONs and frozen component
+validator. They recover omitted fields from retained captures; they are not new
+measurements or a prospective freeze.
+
+- `results/service-timing.json` retains client dispatch, last unique-audio and
+  completion timestamps, unique sample counts and sample rates for all **270
+  cells / 17,280 requests** in the ten `service*development.json` files.
+  RTF is `(t_last_unique_audio - t_dispatch) /
+  (unique_samples / sample_rate)`; `e2e_s` instead ends at the terminal event or
+  end of body. A terminal event after the last audio explains their difference.
+  The timestamps come from original traces, not from multiplying stored RTF by
+  duration. Cell means are unweighted means of the recomputed request RTFs.
+- `plan/service-review-provenance.json` pins all four phase-5 arms: the Omni
+  baseline revision plus complete `patch/service-phase5-source.patch`, the
+  matching launch-time source hashes, launch arguments, configuration chains
+  and TensorRT package versions. Shared config bytes are in
+  `plan/service-phase1314-config-chains.json`; the supplement adds the TensorRT
+  and encoder-tail leaves. Reconstruct the source at the pinned base and apply
+  the full phase-5 patch once, then place each config at its recorded relative
+  path. Select the CUDA platform with the recorded CLI arguments. This patch
+  includes the S3 wrapper and service integration; do not also apply the
+  standalone component patch to that reconstruction.
+- The same supplement records `track_s_fast_r16.json` for the phase-5, phase-7,
+  phase-8 and phase-14 engine controls. Their launch records stored a profile
+  name, so the launcher's file-only hash check omitted `config_sha256`. The
+  recovered hash covers the exact profile bytes at the recorded engine revision;
+  it is explicitly a retrospective pin, not a newly discovered launch-time hash.
+- `results/service-quality-reference.json` retains the exact `clean-k8` C1/C16/C32
+  first-repetition WER, embedding SIM and UTMOS scores used by phase-6 uncertainty,
+  linked to its existing timing cells and saved-WAV hashes. The paired bootstrap
+  uses original reference order, `numpy.random.default_rng(20261114)`, 10,000
+  draws per concurrency in C1/C16/C32 order and shared draw indices across metrics.
+  All nine archived intervals reproduce. The phase-78 `clean-k8`, `s3-k8` and
+  `speaker-k8` scores refer to **three separate runs**, with distinct traces
+  and saved audio. They are not three copies of one baseline; only `clean-k8`
+  supplies the uncertainty reference. Their original score differences remain.
+
+Run `python evidence/minicpm-vllm-seedtts/validator/check_service_archive.py`
+from the repository root with NumPy and PyYAML installed to recompute timings,
+means and bootstrap intervals and check config hashes and run associations.
+This retrospective CPU check does not rerun the model, verify external WAV
+bytes or establish service qualification. `results/publication-integrity.json`
+records hashes of the published bundle at this correction, not a pre-search
+freeze; the repository evidence inventory checks these hashes. Full raw traces,
+WAVs, model bytes and generated TensorRT caches remain external.
+
 ## Verified component result
 
 The current-Agent workflow ran `campaign start`, `knowledge`, `round` and an
@@ -242,8 +290,10 @@ Regressions and lifecycle checks: 247 passed, 27 skipped, including cancellation
 pinning and bounded queues. An isolated CPU diagnostic found roughly 0.048 s for
 16 references with four workers versus 0.17 s with one, with one PyTorch thread
 per worker in that diagnostic. This local speedup did not translate to the
-service. C16 audio chunk gaps increased; graph logs show no cache flushes in
-either variant. These observations do not establish the cause of the regression.
+service. Increased C16 audio chunk gaps and no graph-cache flushes in either
+variant were reported during execution; their gap arrays and diagnostic logs
+are not preserved in this public archive. These unarchived observations do not
+establish the cause of the regression.
 The four-worker configuration is not retained.
 
 C1 saved waveforms had identical lengths, with 54/64 PCM-exact pairs and a
@@ -257,10 +307,12 @@ Saved-audio quality scores remain descriptive; the service objective remains
 
 `results/service-phase15-development.json` adds six configuration-only tuning
 cells. It uses the phase-fourteen source snapshot with background CPU prefetch
-disabled and the existing `token2wav_float16` option enabled. Both Code2Wav
-replicas captured FP16 Whole-Euler graphs. The immediately preceding FP32
-control and independent engine are reused from the same reserved GPU; this
-screen does not add a new paired control server.
+disabled and the existing `token2wav_float16` option enabled. FP16 Whole-Euler
+capture was reported on both Code2Wav replicas during execution. The archive
+retains only an aggregate `float16_graph_observed` flag, not per-replica capture
+logs, so that observation cannot be independently verified here. The immediately
+preceding FP32 control and independent engine are reused from the same reserved
+GPU; this screen does not add a new paired control server.
 
 | Mean request RTF, two tuning repetitions | C1 | C16 | C32 |
 | --- | ---: | ---: | ---: |

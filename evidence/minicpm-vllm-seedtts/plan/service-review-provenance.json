@@ -1,0 +1,172 @@
+{
+  "scope": "Retrospective recovery from retained launch records and source snapshots; no new experiment or qualification.",
+  "source_tree_hash_algorithm": "SHA256 of sorted .py/.yaml/.json files excluding __pycache__: relative POSIX path, NUL, then exact file bytes; root is vllm_omni/ or engine/.",
+  "omni_source": {
+    "repository": "https://github.com/vllm-project/vllm-omni",
+    "base_revision": "d111310d548486118a2d22a943fa0a10fcff65e2",
+    "patch": "patch/service-phase5-source.patch",
+    "patch_sha256": "4a9b346513e090c84317d8410b7781e1d8870fb9ac0be463c51c285ee964ca95",
+    "source_tree_sha256": "7db5836c30d62beb5f64cc6b850d96c20503ee5144a8ac59ce831df0c53c40a7",
+    "verification": "Retained baseline files match Git blobs at base_revision; full candidate patch reconstructed from retained snapshot, whose hash matches all three phase-5 launch records.",
+    "baseline_source_tree_sha256": "da985980f714617f3498e92e441e54f9bc1c349e2df3cfcfc6d464ac29313577"
+  },
+  "engine_source": {
+    "repository": "https://github.com/InferMatrixLab/minicpm-o-4.5-single-gpu-engine",
+    "revision": "b6a6cb16f68fba336170e1600067af4f1a5eb5c4",
+    "source_tree_sha256": "b4ca6ab660543646d5ceba27d7d051f2135153e2f04386e035fa7a834cc41046"
+  },
+  "config_files": {
+    ".local/inferrsi-minicpm/trt-speaker-k16.yaml": {
+      "sha256": "3c87054023327d745f237c5ab7f8534f24e057d3e16fa92e47792ac578b9f16e",
+      "content": "base_config: k16-speaker-onset8.yaml\nconnectors:\n  connector_of_shared_memory:\n    extra:\n      initial_codec_chunk_frames: 0\n      token2wav_spk_cpu_reference: true\n      token2wav_spk_cuda_graph: false\n"
+    },
+    ".local/inferrsi-minicpm/encoder-tail-k16.yaml": {
+      "sha256": "e60e52f6c54acf2da314aef515013177edcff67d08334f459e62849a444ac4b3",
+      "content": "base_config: k16-speaker-onset8.yaml\nconnectors:\n  connector_of_shared_memory:\n    extra:\n      initial_codec_chunk_frames: 0\n      code2wav_encoder_capture_after_precapture: true\n      code2wav_encoder_capture_after: 2\n      code2wav_encoder_max_graphs: 32\n"
+    },
+    "configs/engine/track_s_fast_r16.json": {
+      "sha256": "01d5e8394f2fb21cad9aa1e25f022ecb2843817cca3fd67a716b43ad8fe2355e",
+      "content": "{\"backend\": \"engine.runtime.backend_s:TrackSBackend\", \"max_live\": 64, \"thinker_pages\": 1024, \"talker_pages\": 1280, \"float16_flow\": true, \"talker_k\": 4, \"use_graphs\": true, \"t2w_graphs\": true, \"t2w_compile\": true, \"spk_threads\": 4, \"first_chunk\": 8, \"t2w_process\": true, \"feature_workers\": 4, \"thinker_page_size\": 64, \"talker_page_size\": 128, \"feature_processes\": 4, \"talker_k_max\": 4, \"prefill_graphs\": true, \"t2w_fast_dit\": true, \"t2w_fast_slots\": 65536, \"t2w_policy\": \"edf\", \"prefill_token_budget\": 2048, \"prefill_max_age_ms\": 250.0, \"talker_start_budget\": 1024, \"t2w_first_lane_slack_ms\": 100.0, \"prefill_slack_floor_ms\": null, \"t2w_hift_decode_tf32\": [1, 2, \"0:src\", \"0:res\"], \"t2w_batch_setup_encoder\": true, \"talker_prefill_graphs\": true, \"tick_overlap\": true, \"tick_overlap_first_chunks\": false, \"tick_overlap_max_live\": 16}"
+    }
+  },
+  "phase5_arms": {
+    "thinker-ngram-k16": {
+      "source": "omni_source",
+      "source_tree_sha256": "7db5836c30d62beb5f64cc6b850d96c20503ee5144a8ac59ce831df0c53c40a7",
+      "config_sha256": "288ab69270d4885d9c1eacb00db5dea6890f1c94672c3d33c1d68b1655a8c001",
+      "config_chain_leaf_to_root": [
+        ".local/inferrsi-minicpm/thinker-ngram-k16.yaml",
+        ".local/inferrsi-minicpm/k16-speaker-onset8.yaml",
+        ".local/inferrsi-minicpm/speaker-k8.yaml",
+        "vllm_omni/deploy/minicpmo_4_5_turn.yaml",
+        "vllm_omni/deploy/minicpmo_4_5.yaml"
+      ],
+      "shared_config_file_archive": "plan/service-phase1314-config-chains.json",
+      "tensorrt_packages": {}
+    },
+    "trt-speaker-k16": {
+      "source": "omni_source",
+      "source_tree_sha256": "7db5836c30d62beb5f64cc6b850d96c20503ee5144a8ac59ce831df0c53c40a7",
+      "config_sha256": "3c87054023327d745f237c5ab7f8534f24e057d3e16fa92e47792ac578b9f16e",
+      "config_chain_leaf_to_root": [
+        ".local/inferrsi-minicpm/trt-speaker-k16.yaml",
+        ".local/inferrsi-minicpm/k16-speaker-onset8.yaml",
+        ".local/inferrsi-minicpm/speaker-k8.yaml",
+        "vllm_omni/deploy/minicpmo_4_5_turn.yaml",
+        "vllm_omni/deploy/minicpmo_4_5.yaml"
+      ],
+      "shared_config_file_archive": "plan/service-phase1314-config-chains.json",
+      "tensorrt_packages": {
+        "tensorrt": "10.16.1.11",
+        "tensorrt_cu13": "10.16.1.11",
+        "tensorrt_cu13_bindings": "10.16.1.11",
+        "tensorrt_cu13_libs": "10.16.1.11"
+      }
+    },
+    "encoder-tail-k16": {
+      "source": "omni_source",
+      "source_tree_sha256": "7db5836c30d62beb5f64cc6b850d96c20503ee5144a8ac59ce831df0c53c40a7",
+      "config_sha256": "e60e52f6c54acf2da314aef515013177edcff67d08334f459e62849a444ac4b3",
+      "config_chain_leaf_to_root": [
+        ".local/inferrsi-minicpm/encoder-tail-k16.yaml",
+        ".local/inferrsi-minicpm/k16-speaker-onset8.yaml",
+        ".local/inferrsi-minicpm/speaker-k8.yaml",
+        "vllm_omni/deploy/minicpmo_4_5_turn.yaml",
+        "vllm_omni/deploy/minicpmo_4_5.yaml"
+      ],
+      "shared_config_file_archive": "plan/service-phase1314-config-chains.json",
+      "tensorrt_packages": {}
+    },
+    "engine-paired-phase5": {
+      "archive": "results/service-phase5-development.json",
+      "source": "engine_source",
+      "source_tree_sha256": "b4ca6ab660543646d5ceba27d7d051f2135153e2f04386e035fa7a834cc41046",
+      "config_path": "configs/engine/track_s_fast_r16.json",
+      "config_sha256": "01d5e8394f2fb21cad9aa1e25f022ecb2843817cca3fd67a716b43ad8fe2355e",
+      "config_hash_origin": "recovered from revision-pinned profile bytes"
+    }
+  },
+  "engine_controls": {
+    "engine-paired-phase5": {
+      "archive": "results/service-phase5-development.json",
+      "source": "engine_source",
+      "source_tree_sha256": "b4ca6ab660543646d5ceba27d7d051f2135153e2f04386e035fa7a834cc41046",
+      "config_path": "configs/engine/track_s_fast_r16.json",
+      "config_sha256": "01d5e8394f2fb21cad9aa1e25f022ecb2843817cca3fd67a716b43ad8fe2355e",
+      "config_hash_origin": "recovered from revision-pinned profile bytes"
+    },
+    "engine-paired-phase7-resume1": {
+      "archive": "results/service-phase78-development.json",
+      "source": "engine_source",
+      "source_tree_sha256": "b4ca6ab660543646d5ceba27d7d051f2135153e2f04386e035fa7a834cc41046",
+      "config_path": "configs/engine/track_s_fast_r16.json",
+      "config_sha256": "01d5e8394f2fb21cad9aa1e25f022ecb2843817cca3fd67a716b43ad8fe2355e",
+      "config_hash_origin": "recovered from revision-pinned profile bytes"
+    },
+    "engine-paired-phase8": {
+      "archive": "results/service-phase78-development.json",
+      "source": "engine_source",
+      "source_tree_sha256": "b4ca6ab660543646d5ceba27d7d051f2135153e2f04386e035fa7a834cc41046",
+      "config_path": "configs/engine/track_s_fast_r16.json",
+      "config_sha256": "01d5e8394f2fb21cad9aa1e25f022ecb2843817cca3fd67a716b43ad8fe2355e",
+      "config_hash_origin": "recovered from revision-pinned profile bytes"
+    },
+    "engine-paired-phase14": {
+      "archive": "results/service-phase14-development.json",
+      "source": "engine_source",
+      "source_tree_sha256": "b4ca6ab660543646d5ceba27d7d051f2135153e2f04386e035fa7a834cc41046",
+      "config_path": "configs/engine/track_s_fast_r16.json",
+      "config_sha256": "01d5e8394f2fb21cad9aa1e25f022ecb2843817cca3fd67a716b43ad8fe2355e",
+      "config_hash_origin": "recovered from revision-pinned profile bytes"
+    }
+  },
+  "dependencies": {
+    "torch": "2.14.0+cu130",
+    "vllm": "0.33.0",
+    "vllm-omni": "0.31.0rc2.dev289+g04aa51e9f.d20261019",
+    "transformers": "5.20.2",
+    "flashinfer-python": "0.7.2.post1",
+    "minicpmo-utils": "1.0.6",
+    "onnxruntime": "1.27.0"
+  },
+  "s3": "Published 0.3.0 wheel isolated ahead of installed packages; see results/dependency-audit.json.",
+  "model_revision": "503e754207c94da6bb26850b4469f367c9ea3582",
+  "launch": {
+    "omni_argv": [
+      "python",
+      "-m",
+      "vllm_omni.entrypoints.cli.main",
+      "serve",
+      "<MODEL_PATH>",
+      "--omni",
+      "--served-model-name",
+      "openbmb/MiniCPM-o-4_5",
+      "--host",
+      "127.0.0.1",
+      "--port",
+      "<PORT>",
+      "--deploy-config",
+      "<ARM_CONFIG>",
+      "--trust-remote-code"
+    ],
+    "engine_argv": [
+      "bash",
+      "scripts/serve_engine.sh",
+      "track_s_fast_r16",
+      "<PORT>"
+    ],
+    "engine_mps": true,
+    "platform": "cuda",
+    "omni_import_order": [
+      "<RECONSTRUCTED_SOURCE>",
+      "<PUBLISHED_S3_0_3_0>",
+      "<TENSORRT_DEPS_IF_TRT_ARM>"
+    ],
+    "redactions": "Model mount, port, private paths and device identities are placeholders; private MPS on one reserved L20X. See issue #431 for workload and sampling."
+  },
+  "limitations": [
+    "Config identities for named engine profiles are recovered now from revision-pinned bytes, not launch-time file hashes. The launcher did not hash profile names because they are not file paths.",
+    "Generated TensorRT engine cache, checkpoint bytes, full logs and the host environment are external; these pins do not establish full environmental replay or service qualification."
+  ],
+  "dependency_metadata_note": "Installed distribution versions describe the host environment; the imported Omni implementation is the source snapshot selected by the recorded PYTHONPATH order, not the installed vllm-omni version string."
+}
