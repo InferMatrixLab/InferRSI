@@ -18,6 +18,50 @@
     }
   ],
   "applicability": ["Continuous admission, mixed prefill/decode and final drain", "Recorded Drama3 B300 C64 diagnostic only"],
+  "findings": [
+    {
+      "direction": "Use the whole-run mean batch as sustained-admission occupancy",
+      "outcome": "caveat",
+      "scope": "general",
+      "reason": "A whole-run mean can be dominated by drain. In the recorded C64 diagnostic, pure decode averaged 60.718 of 64 active requests during client admission, final drain averaged 8.793, and the whole-trace pure-decode average was 28.146",
+      "revisit_when": "Separate the client-admission and drain intervals before reading occupancy; using the whole-run mean can misidentify scheduling headroom",
+      "keywords": [
+        "whole run mean batch",
+        "sustained admission",
+        "drain",
+        "scheduling headroom",
+        "occupancy"
+      ]
+    },
+    {
+      "direction": "Read a near-full batch in a selected interval as a service speedup",
+      "outcome": "caveat",
+      "scope": "general",
+      "reason": "A near-full batch in a selected interval does not establish a service speedup; client in-flight counts also include queueing and codec work, and CPU/GPU clock alignment was approximate",
+      "revisit_when": "Keep all requests and complete quality/repetition groups in the end-to-end metric rather than a selected-phase rate",
+      "keywords": [
+        "selected phase rate",
+        "service speedup",
+        "in-flight count",
+        "queueing",
+        "codec work"
+      ]
+    },
+    {
+      "direction": "Count PIECEWISE graph fragments instead of scheduler annotations",
+      "outcome": "caveat",
+      "scope": "regime_bound",
+      "reason": "The original investigation counted scheduler execution annotations rather than PIECEWISE graph fragments, and retained the full request cohort for acceptance. Scheduled prompt entries may be chunks, not unique requests",
+      "revisit_when": "Confirm which quantity the annotations represent; kernel sums, annotation unions and SM utilization are different quantities",
+      "keywords": [
+        "scheduler steps",
+        "PIECEWISE graph",
+        "annotation union",
+        "SM utilization",
+        "chunk vs request"
+      ]
+    }
+  ],
   "limitations": ["Campaign INCONCLUSIVE", "No new measurement or trace reproduction", "Selected-phase occupancy is not service throughput", "Raw evidence remains under its existing owner"],
   "attribution": "InferRSI issue #10 diagnostic evidence; extraction retains the original observation and its limits"
 }

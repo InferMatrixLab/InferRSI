@@ -13,6 +13,103 @@
     "issue": "https://github.com/InferMatrixLab/InferRSI/issues/10"
   }],
   "applicability": ["Drama3 standalone native-computation runtime on one B300", "Only each cited microbenchmark, fixed-state diagnostic or complete service trial"],
+  "findings": [
+    {
+      "direction": "Fused tower projections / multi-step decode",
+      "outcome": "no_gain",
+      "scope": "regime_bound",
+      "reason": "Faster or correct in isolated checks but no full-service throughput gain; multi-step decode delayed admission",
+      "revisit_when": "Measure actual active batches, admission/drain and complete service latency, including sampling and codec. Kernel timing alone cannot select the runtime",
+      "keywords": [
+        "fused tower projection",
+        "multi-step decode",
+        "admission delay",
+        "service throughput"
+      ]
+    },
+    {
+      "direction": "Async service / overlap",
+      "outcome": "inconclusive",
+      "scope": "regime_bound",
+      "reason": "Early fixed-request controls passed while service WER failed in both arms; later bounded dynamic replay identified shared ATen cuBLAS workspace interference. Dedicated codec capture matched tested states and fresh private-capture service WER passed while shared capture failed",
+      "revisit_when": "Preserve the required private/dedicated capture setup and unchanged controls. This specific reproducer does not establish one cause for every historical WER failure, or qualify arbitrary overlap/throughput; all-concurrency acceptance remains unmet",
+      "keywords": [
+        "async overlap",
+        "WER failure",
+        "cuBLAS workspace",
+        "shared capture",
+        "dedicated capture",
+        "bilateral"
+      ]
+    },
+    {
+      "direction": "Production prefix reuse",
+      "outcome": "rejected",
+      "scope": "regime_bound",
+      "reason": "Extensive graph/state checks and both full quality groups passed, yet the complete C64 service continuation gate failed; default-off",
+      "revisit_when": "Retain final drain and all returned work. Investigate the actual schedule and GPU critical path before retrying; removed MoE rows and intake-only rates cannot replace the failed service score",
+      "keywords": [
+        "prefix reuse",
+        "continuation gate",
+        "C64 service",
+        "default-off"
+      ]
+    },
+    {
+      "direction": "Initial prefix-reuse harness comparison",
+      "outcome": "inconclusive",
+      "scope": "local",
+      "reason": "Compared different private padding histories; mismatch was confined to a private slot before later states were checked. Corrected identical-input controls reran it",
+      "revisit_when": "Reset complete physical input rows and run A/A before blaming production math. Do not reuse this superseded setup failure as evidence of model incompatibility",
+      "keywords": [
+        "harness mismatch",
+        "padding history",
+        "A/A control",
+        "identical input"
+      ]
+    },
+    {
+      "direction": "Transparent VMM weight compression",
+      "outcome": "no_gain",
+      "scope": "regime_bound",
+      "reason": "Native correctness/lifetime checks passed, but the fixed three-body screen missed its frozen timing gate; no runtime promotion",
+      "revisit_when": "First measure the current bottleneck and physical traffic/compression where possible. Mapped flags and logical capacity do not prove a bandwidth benefit",
+      "keywords": [
+        "VMM",
+        "weight compression",
+        "memory compression",
+        "bandwidth",
+        "timing gate"
+      ]
+    },
+    {
+      "direction": "Producer scale-tile cache",
+      "outcome": "no_gain",
+      "scope": "regime_bound",
+      "reason": "Complete-body reductions missed the source gate; stopped without model/service promotion",
+      "revisit_when": "New shapes or a different resource regime may justify another bounded screen; do not subtract unrelated historical screens to infer a cause",
+      "keywords": [
+        "scale-tile cache",
+        "producer cache",
+        "bounded screen"
+      ]
+    },
+    {
+      "direction": "Fixed eight-lane FP8 SIMT proposal",
+      "outcome": "rejected",
+      "scope": "regime_bound",
+      "reason": "Stopped at CPU/AOT cost analysis for that mapping, before a runtime benchmark. An analytical rejection, not an empirical GPU failure",
+      "revisit_when": "Revisit only with a changed mapping or supported cost model; this is not a universal ceiling",
+      "bounds": "That fixed eight-lane mapping and its cost model only",
+      "keywords": [
+        "FP8",
+        "SIMT",
+        "eight-lane",
+        "AOT cost analysis",
+        "analysis-only"
+      ]
+    }
+  ],
   "tags": ["negative-evidence", "service-regression", "quality-rejection", "harness-mismatch", "prefix-reuse", "memory-compression", "analysis-only"],
   "limitations": ["Campaign remains INCONCLUSIVE and optimization is paused", "Individual completed gate failures do not complete the all-concurrency acceptance matrix", "Repository summary inspected; external raw traces and runtime artifacts not rerun or rehashed", "No root cause inferred from client accounting or cross-screen timing subtraction"],
   "attribution": "Issue #10 diagnostic lessons, including runtime 47c3d2ec4e3406d8a71fccc3cb4967783c2650f5; revisit checks are current suggestions"

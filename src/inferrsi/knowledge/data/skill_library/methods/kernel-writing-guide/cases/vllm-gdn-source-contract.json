@@ -32,6 +32,63 @@
     "Source-only qualification of the pinned Qwen3-Next CUDA-facing GDN caller",
     "Mixed prefill/decode, packed/speculative metadata and state-row contracts"
   ],
+  "findings": [
+    {
+      "direction": "Treat every one-token row as decode in a mixed Qwen3-Next batch",
+      "outcome": "failure_signal",
+      "scope": "regime_bound",
+      "reason": "A first one-token chunk can require the prefill route to mask recycled state; selecting a decode-only convolution for the whole mixed batch, or passing unre-based offsets to the prefill recurrence, misreads the source",
+      "revisit_when": "Use prior-state/prefill metadata as well as query length; identify the varlen forward convolution when non-speculative prefill rows exist",
+      "keywords": [
+        "one-token initialization",
+        "mixed phase",
+        "decode-only conv",
+        "rebased offsets",
+        "varlen forward"
+      ]
+    },
+    {
+      "direction": "Infer the actual GDN branch from the requested backend",
+      "outcome": "failure_signal",
+      "scope": "regime_bound",
+      "reason": "Selection inferred from package presence, default flags or symbol names does not establish the branch; a separate-conv rule does not generalize to every model/backend, and a source predicate is not hardware compatibility or speedup",
+      "revisit_when": "Trace the actual branch in the pinned source rather than the requested backend label",
+      "keywords": [
+        "requested backend",
+        "actual branch",
+        "FlashInfer",
+        "package presence",
+        "default flags"
+      ]
+    },
+    {
+      "direction": "Equate batch index with cache row under reordering and speculation",
+      "outcome": "failure_signal",
+      "scope": "regime_bound",
+      "reason": "Copying standalone-package cursor semantics into this API, preserving stale first-chunk state, or treating convolution and recurrent state as attention KV all break the state-row contract",
+      "revisit_when": "Track reordered state rows and speculative progress explicitly; account for both state writes",
+      "keywords": [
+        "reordered state rows",
+        "batch index",
+        "cache row",
+        "speculative progress",
+        "cursor semantics"
+      ]
+    },
+    {
+      "direction": "Assert a model-to-HF binding from source reading alone",
+      "outcome": "failure_signal",
+      "scope": "regime_bound",
+      "reason": "Inventing a model-to-HF implementation mapping, prescribing an unverified installation, or asserting numeric correctness, hardware support or speedup all exceed what source classification establishes",
+      "revisit_when": "Keep the binding unproven until an identified caller is verified; native execution here is not_run",
+      "keywords": [
+        "HF caller",
+        "binding",
+        "unverified installation",
+        "numeric correctness"
+      ]
+    }
+  ],
   "limitations": [
     "Native kernel/model/device execution not_run",
     "Representative agent evaluation not_evaluated",

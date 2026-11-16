@@ -13,6 +13,89 @@
     "upstream_head": "399cc01d1bc4542964d91aaa17fb43862a8cf3b3"
   }],
   "applicability": ["Author-reported single Ascend 910B1 Qwen-Image-2.1-Turbo cohort", "BF16, eager, TORCH_SDPA, CFG=1, 1280x704, native eight sigmas"],
+  "findings": [
+    {
+      "direction": "Cache eager RoPE cos/sin or expanded SDPA masks",
+      "outcome": "no_gain",
+      "scope": "regime_bound",
+      "reason": "Pixel-identical, but discarded as slower in the source trials",
+      "revisit_when": "Profile current recomputation and retained-tensor costs; qualify a matched timing cohort before attributing a regression",
+      "keywords": [
+        "RoPE",
+        "cos sin cache",
+        "SDPA mask",
+        "expanded mask",
+        "recomputation"
+      ]
+    },
+    {
+      "direction": "Cache per-step masks and prompt tensors",
+      "outcome": "rejected",
+      "scope": "regime_bound",
+      "reason": "NPU OOM",
+      "revisit_when": "First inventory live tensor lifetimes and allocator headroom; a different residency policy or workload may change feasibility",
+      "keywords": [
+        "per-step mask",
+        "prompt tensor",
+        "mask cache",
+        "OOM",
+        "allocator headroom"
+      ]
+    },
+    {
+      "direction": "Fusion attention, including precise=2/0 and mask-free steps",
+      "outcome": "no_gain",
+      "scope": "regime_bound",
+      "reason": "No gain or a gain below the source keep criterion",
+      "revisit_when": "Check exact mask, dtype, shapes and device support; run operator quality then complete pipeline timing",
+      "keywords": [
+        "fusion attention",
+        "precise",
+        "mask-free",
+        "operator quality"
+      ]
+    },
+    {
+      "direction": "TASK_QUEUE_ENABLE=1/2 or enforce_eager=0",
+      "outcome": "no_gain",
+      "scope": "regime_bound",
+      "reason": "No gain or slower than the source eager configuration",
+      "revisit_when": "Inspect the actual execution path and scheduling overhead under the new stack; repeat with unchanged workload and warmups",
+      "keywords": [
+        "TASK_QUEUE_ENABLE",
+        "enforce_eager",
+        "scheduling overhead",
+        "task queue"
+      ]
+    },
+    {
+      "direction": "RoPE + VAE fastpath + fusion attention",
+      "outcome": "rejected",
+      "scope": "regime_bound",
+      "reason": "Initialization OOM for this triple stack",
+      "revisit_when": "Inventory initialization residency before attempting a new combination",
+      "keywords": [
+        "RoPE",
+        "VAE fastpath",
+        "fusion attention",
+        "triple stack",
+        "initialization OOM"
+      ]
+    },
+    {
+      "direction": "Separate kept RoPE + VAE stack on a later busy host",
+      "outcome": "inconclusive",
+      "scope": "local",
+      "reason": "Later requests failed resource reservation; a different stack/host cohort from the triple-stack initialization failure",
+      "revisit_when": "Qualify current headroom and outside contention before retrying; do not attribute this resource blockage to fusion attention",
+      "keywords": [
+        "busy host",
+        "resource reservation",
+        "contention",
+        "VAE fastpath"
+      ]
+    }
+  ],
   "tags": ["negative-evidence", "resource-failure", "OOM", "no-demonstrated-gain", "RoPE", "fusion-attention", "task-queue"],
   "limitations": ["Imported author report; locally_verified=false", "Raw request timings, RGBA outputs and frozen validator are absent from this import", "InferRSI acceptance remains INCONCLUSIVE; the source 30 percent target was not met", "No cross-device or HTTP-serving qualification"],
   "attribution": "amy-why-3459 source report, retained by the existing Ascend guide; revisit checks are current suggestions"

@@ -9,6 +9,7 @@ from datetime import date, datetime
 from importlib.resources import files
 from pathlib import Path, PurePosixPath
 
+from ._knowledge_errors import MissingSkillsExtra
 from ._skill_selection import (
     RELEVANCE_METHODS,
     TASK_RELEVANCE,
@@ -46,6 +47,24 @@ def safe_path(value: str) -> str:
     ):
         raise ValueError(f"Unsafe bundle path: {value}")
     return value
+
+
+def case_resource_path(root: Path, record_path: Path, resource: object) -> Path:
+    """Resolve a resource a case record names, refusing anything outside `root`.
+
+    `read` loads a case through this check, and `find` locates a case body for
+    ranking through it too, so a body that one would refuse is never treated as
+    readable by the other.
+    """
+    if not isinstance(resource, str):
+        raise ValueError("Case resource must be a relative POSIX path")
+    safe_path(resource)
+    if resource == "case.json":
+        raise ValueError("Case resource collides with its case.json record")
+    path = record_path.parent / resource
+    if path.is_symlink() or not path.resolve().is_relative_to(root):
+        raise ValueError(f"Case resource escapes the skills root: {resource}")
+    return path
 
 
 def _json(value: object) -> bytes:
@@ -314,6 +333,14 @@ class KnowledgeReader:
             )
         return f"{found[0]}:{identity}"
 
+    def cases(self) -> dict[str, Path]:
+        """Case identities owned by this checkout's registered skills.
+
+        The discovery `read` and `collect` resolve against, exposed so a caller
+        ranking cases cannot drift from the rule that decides whether they open.
+        """
+        return self._cases()
+
     def _cases(self) -> dict[str, Path]:
         result = {}
         if self.skill_root is not None:
@@ -366,18 +393,11 @@ class KnowledgeReader:
                 raise ValueError("Case required_resources must be a string list")
             if len(set(declared)) != len(declared):
                 raise ValueError("Case required_resources must not repeat a path")
-            relative = safe_path(record["content"])
+            relative = record["content"]
             required = [relative, "case.json", *(p for p in declared if p != relative)]
             content = {"case.json": path.read_bytes()}
             for resource in [relative, *required[2:]]:
-                safe_path(resource)
-                if resource == "case.json":
-                    raise ValueError("Case resource collides with its case.json record")
-                resource_path = path.parent / resource
-                if resource_path.is_symlink() or not resource_path.resolve().is_relative_to(
-                    self.skill_root
-                ):
-                    raise ValueError(f"Case resource escapes the skills root: {resource}")
+                resource_path = case_resource_path(self.skill_root, path, resource)
                 if not resource_path.is_file():
                     raise ValueError(f"Missing case resource: {resource}")
                 content[resource] = resource_path.read_bytes()
@@ -680,6 +700,11 @@ class KnowledgeReader:
                     {"id": reference, "reason": "unavailable_revision", "detail": str(exc)}
                 )
                 continue
+            except MissingSkillsExtra:
+                # The install cannot parse any checkout skill, not just this one.
+                # As an omission it would return `no_match`, which reads as
+                # "nothing found" rather than "install the skills extra".
+                raise
             except (ValueError, KeyError, TypeError, AttributeError, OSError, sqlite3.Error) as exc:
                 omitted.append({"id": reference, "reason": "invalid", "detail": str(exc)})
                 continue

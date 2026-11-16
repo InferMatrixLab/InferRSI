@@ -28,6 +28,74 @@
     "Source-supported hypothesis selection when observed long prefills interfere with ongoing decodes",
     "Chunked-prefill token-budget tradeoffs under specified latency, workload, hardware and parallelism conditions"
   ],
+  "findings": [
+    {
+      "direction": "Split a long prefill into chunks and combine them with ongoing decodes",
+      "outcome": "tradeoff",
+      "scope": "general",
+      "reason": "Source mechanism for long prefills interrupting token generation; chunking limits prefill work per iteration but does not make that work free. Figure 9 still shows added batch latency relative to decode-only execution",
+      "revisit_when": "Diagnose queueing, memory shortage or suspended requests first; only attribute the delay to prefill interference after that",
+      "keywords": [
+        "chunked prefill",
+        "long prefill interrupts decode",
+        "TBT",
+        "time between tokens",
+        "prefill interference"
+      ]
+    },
+    {
+      "direction": "Tighten the token budget with smaller chunks",
+      "outcome": "tradeoff",
+      "scope": "general",
+      "reason": "Smaller chunks reduce prefill work per iteration but can lower compute utilization and repeat fixed launch costs",
+      "revisit_when": "Profile the actual utilization and launch overhead for the target hardware before choosing a budget",
+      "keywords": [
+        "token budget",
+        "chunk size",
+        "compute utilization",
+        "launch cost"
+      ]
+    },
+    {
+      "direction": "Accept the KV re-read cost of later chunks",
+      "outcome": "caveat",
+      "scope": "general",
+      "reason": "Each later chunk attends to earlier chunks of the same prompt, rereading their KV cache. The source distinguishes these additional memory reads from unchanged attention computation",
+      "revisit_when": "Account for the extra memory reads separately from attention compute when estimating cost",
+      "keywords": [
+        "KV cache reread",
+        "memory reads",
+        "attention computation",
+        "chunk attention"
+      ]
+    },
+    {
+      "direction": "Pick a budget without accounting for tile boundaries or pipeline parallelism",
+      "outcome": "caveat",
+      "scope": "general",
+      "reason": "Matrix tile boundaries affect execution cost and neighboring token counts need not have neighboring runtimes; with pipeline parallelism, batch runtime differences can leave stages idle",
+      "revisit_when": "Measure runtime across neighboring token counts and check stage idling before fixing a budget",
+      "keywords": [
+        "matrix tile boundary",
+        "pipeline parallelism",
+        "stage idle",
+        "batch runtime variation"
+      ]
+    },
+    {
+      "direction": "Read Table 4 as an all-round improvement",
+      "outcome": "caveat",
+      "scope": "regime_bound",
+      "reason": "The combined design has lower P99 TBT than either component alone, but its P50 TTFT is higher than hybrid-batching-only. It trades first-token latency against tighter token gaps",
+      "revisit_when": "State which metric the deployment optimizes; the combined design does not improve every metric over each alternative",
+      "keywords": [
+        "P99 TBT",
+        "P50 TTFT",
+        "hybrid batching",
+        "first token latency"
+      ]
+    }
+  ],
   "limitations": [
     "Paper-author observations and proposed adaptation checks are not local measurements or current-engine support.",
     "The combined design does not beat hybrid-only P50 TTFT in either Table 4 trace.",

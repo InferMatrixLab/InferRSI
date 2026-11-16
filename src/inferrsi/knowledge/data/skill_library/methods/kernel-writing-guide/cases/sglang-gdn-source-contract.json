@@ -49,6 +49,64 @@
     "Pinned Qwen3.5/Qwen3-Next GDN caller/backend qualification",
     "Separate causal-conv phase/layout/state contracts and conditional one-shot classification-prefill transfer"
   ],
+  "findings": [
+    {
+      "direction": "Use one backend label for both convolution and recurrence",
+      "outcome": "failure_signal",
+      "scope": "regime_bound",
+      "reason": "A prefill flag does not replace both operators; equating an explicit flag, package availability or a registered symbol with executed dispatch misreads the source, and sm89 compatibility cannot be claimed from an SM9/10 automatic default",
+      "revisit_when": "Read the backend aliases/policy and the ordinary decode path separately before naming a dispatch",
+      "keywords": [
+        "backend label",
+        "prefill flag",
+        "executed dispatch",
+        "sm89",
+        "automatic default"
+      ]
+    },
+    {
+      "direction": "Infer strides from shape for the Triton prefill path",
+      "outcome": "failure_signal",
+      "scope": "regime_bound",
+      "reason": "CUDA input can select stride-aware Triton prefill; assuming unconditional input aliasing or no mutation, letting packed requests read each other's history, or assuming the conv mask clears the recurrent matrix are all source misreadings",
+      "revisit_when": "Check the prefill caller, SRT wrapper and Triton wrapper for the actual stride and mutation contract",
+      "keywords": [
+        "stride-aware",
+        "Triton prefill",
+        "input aliasing",
+        "packed request history",
+        "conv mask"
+      ]
+    },
+    {
+      "direction": "Reuse batch index as persistent identity across reordered rows",
+      "outcome": "failure_signal",
+      "scope": "regime_bound",
+      "reason": "Equating temporal state with attention KV, losing gather/scatter write-back, or treating a successful output computation as proof that continuation, reset or recycling is correct all break the state contract",
+      "revisit_when": "Trace mapping/ownership and the state gather and write-back paths; both state writes must be kept",
+      "keywords": [
+        "batch index",
+        "persistent identity",
+        "strided pool",
+        "gather scatter",
+        "write-back"
+      ]
+    },
+    {
+      "direction": "Treat fresh classification prefill as decode or multi-item scoring",
+      "outcome": "failure_signal",
+      "scope": "regime_bound",
+      "reason": "Presenting source reasoning or packaged reads as a binding, native test, quality pass or service gain confuses the evidence level; a generic classifier is not MIS, and unused returned cache does not make internal state writes dispensable",
+      "revisit_when": "Read the MIS constraints before classifying a prefill path; keep source reasoning distinct from a native result",
+      "keywords": [
+        "classification prefill",
+        "multi-item scoring",
+        "MIS",
+        "returned cache",
+        "internal state write"
+      ]
+    }
+  ],
   "limitations": [
     "Native kernels, models and devices not_run",
     "Agent efficacy not_evaluated",

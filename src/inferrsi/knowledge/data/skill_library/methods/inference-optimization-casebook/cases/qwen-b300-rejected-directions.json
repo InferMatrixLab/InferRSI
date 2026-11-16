@@ -13,6 +13,88 @@
     "issue": "https://github.com/InferMatrixLab/InferRSI/issues/3"
   }],
   "applicability": ["Qwen-Image-2.1-Turbo, four B300, BF16, native eight steps", "Only the source ledger's individual trials and controls"],
+  "findings": [
+    {
+      "direction": "H3: initial Q/K RMSNorm + complex RoPE fusion",
+      "outcome": "rejected",
+      "scope": "regime_bound",
+      "reason": "Operator tests passed; complete images failed; reverted. A quality rejection, not a kernel-speed result",
+      "revisit_when": "First match the actual reduction, complex FMA order and BF16 materialization; compare full native images after operator checks. H10/H13 show later, different implementations were retained, so the technique is not permanently excluded",
+      "keywords": [
+        "RMSNorm",
+        "complex RoPE fusion",
+        "quality rejection",
+        "BF16 materialization",
+        "FMA order"
+      ]
+    },
+    {
+      "direction": "H1: packed Q/K/V 5D exchange",
+      "outcome": "inconclusive",
+      "scope": "local",
+      "reason": "Quality passed but the exploratory trial was discarded",
+      "revisit_when": "Changed layouts/topology may justify another trial; measure staging/copies and the complete request against a matched control. Do not infer the cause from the one ledger timing",
+      "keywords": [
+        "packed QKV",
+        "5D exchange",
+        "layout",
+        "staging copies"
+      ]
+    },
+    {
+      "direction": "H6/H7: graph projection/norm/RoPE or post-attention work",
+      "outcome": "no_gain",
+      "scope": "regime_bound",
+      "reason": "Removed for no material E2E gain; H7 records replay/copy costs",
+      "revisit_when": "A new capture boundary or buffer lifetime may change the tradeoff; include capture/replay, copies and full request cost",
+      "keywords": [
+        "CUDA Graph",
+        "graph projection",
+        "post-attention",
+        "replay cost",
+        "capture boundary"
+      ]
+    },
+    {
+      "direction": "H14/H16: broadcast decode scale/gate or skip empty concatenation",
+      "outcome": "no_gain",
+      "scope": "regime_bound",
+      "reason": "No demonstrated benefit; removed/reverted",
+      "revisit_when": "Confirm these operations are on the current critical path before repeating; retain a matched E2E control",
+      "keywords": [
+        "broadcast decode",
+        "scale gate",
+        "empty concatenation",
+        "critical path"
+      ]
+    },
+    {
+      "direction": "H17 and the noisy H13 attempt",
+      "outcome": "inconclusive",
+      "scope": "local",
+      "reason": "Observed host load/concurrent diagnostics invalidate causal attribution",
+      "revisit_when": "Repeat on a qualified, uncontended host. Do not classify the numerical timing difference as a confirmed code regression",
+      "keywords": [
+        "host load",
+        "contention",
+        "confounded run",
+        "causal attribution"
+      ]
+    },
+    {
+      "direction": "H18: compiled launch API probe",
+      "outcome": "inconclusive",
+      "scope": "local",
+      "reason": "Host enqueue improved in a diagnostic; no E2E integration was performed",
+      "revisit_when": "Treat it as an unintegrated lead; verify actual execution, correctness and complete service overhead before accepting it",
+      "keywords": [
+        "compiled launch",
+        "launch API",
+        "host enqueue",
+        "unintegrated lead"
+      ]
+    }
+  ],
   "tags": ["negative-evidence", "quality-rejection", "no-demonstrated-gain", "confounded-run", "RoPE", "CUDA-Graph"],
   "limitations": ["The final campaign PASS does not qualify each rejected direction", "Exploratory trial timings are not additive gains or causal comparisons", "No experiment was rerun for this extraction"],
   "attribution": "Historical issue #3 optimization ledger; revisit checks are current diagnostic suggestions"

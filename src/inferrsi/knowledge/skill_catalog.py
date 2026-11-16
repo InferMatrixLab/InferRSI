@@ -1,20 +1,46 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 from pathlib import Path, PurePosixPath
 from typing import BinaryIO
 
-try:
-    import yaml
-except ImportError as exc:  # The base install stays PyYAML-free by contract.
-    raise ValueError(
-        "Reading checkout skills requires the 'skills' extra (PyYAML); install it "
-        "from your InferRSI checkout, replacing the placeholder path: "
-        "python -m pip install '<inferrsi-checkout>[skills]'"
-    ) from exc
-
+from ._knowledge_errors import MissingSkillsExtra
 from .catalog import BACKENDS
+
+_SKILLS_EXTRA = (
+    "Reading checkout skills requires the 'skills' extra (PyYAML); install it "
+    "from your InferRSI checkout, replacing the placeholder path: "
+    "python -m pip install '<inferrsi-checkout>[skills]'"
+)
+# A bundled runtime has no checkout to install an extra from; what the caller
+# can do there is put PyYAML into the interpreter running the launcher.
+_SKILLS_EXTRA_BUNDLED = (
+    "Reading checkout skill bodies requires PyYAML; install it into the Python "
+    "interpreter that runs this plugin, or use packaged knowledge, cases and "
+    "find, which do not need it."
+)
+
+
+def _install_hint() -> str:
+    return _SKILLS_EXTRA_BUNDLED if os.environ.get("INFERRSI_LAUNCHER") else _SKILLS_EXTRA
+
+
+def _yaml():
+    """Import PyYAML only for the calls that parse skill frontmatter.
+
+    Resolving which skills a root registers reads skill-index.json or lists
+    directories; neither needs a YAML parser. Importing it at module load made
+    every caller depend on an optional package, so a base install could not
+    discover or open a case -- which parses no frontmatter -- merely because
+    discovery lives in this module.
+    """
+    try:
+        import yaml
+    except ImportError as exc:  # The base install stays PyYAML-free by contract.
+        raise MissingSkillsExtra(_install_hint()) from exc
+    return yaml
 
 
 def _frontmatter(stream: BinaryIO) -> dict:
@@ -27,6 +53,7 @@ def _frontmatter(stream: BinaryIO) -> dict:
         lines.append(line)
     else:
         raise ValueError("Unclosed SKILL.md frontmatter")
+    yaml = _yaml()
     try:
         record = yaml.safe_load(b"".join(lines).decode("utf-8"))
     except yaml.YAMLError as exc:

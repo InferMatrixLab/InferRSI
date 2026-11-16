@@ -44,7 +44,12 @@ def selected_snapshot(repo: Path, revision: str, skill_root: str, skill: str,
     """
     # Only materializing checkout skills requires the optional PyYAML parser;
     # reporting and controller imports must remain usable in the base install.
-    from inferrsi.knowledge.skill_catalog import _skill_name, _unique_fields, skill_metadata
+    from inferrsi.knowledge.skill_catalog import (
+        _skill_name,
+        _unique_fields,
+        _yaml,
+        skill_metadata,
+    )
 
     if not re.fullmatch(r"[0-9a-f]{40}", revision):
         raise ValueError("Selected snapshot requires a full immutable Git commit SHA")
@@ -52,6 +57,9 @@ def selected_snapshot(repo: Path, revision: str, skill_root: str, skill: str,
     _skill_name(skill)
     if destination.exists() or destination.is_symlink():
         raise ValueError("Selected snapshot destination must not exist")
+    # The parser is imported lazily now; require it before any Git or
+    # filesystem side effect, as the module-level import used to.
+    _yaml()
     version = subprocess.check_output(["git", "--version"], cwd=repo, text=True)
     match = re.match(r"git version (\d+)\.(\d+)", version)
     if match is None or tuple(map(int, match.groups())) < (2, 45):
