@@ -239,7 +239,7 @@ def test_mcp_stdio_round_trip(reader, tmp_path, monkeypatch, oversized_line):
     source = str(Path(mindie_project.__file__).resolve().parents[1])
     process = subprocess.run(
         [sys.executable, "-I", "-B", "-c", f"import sys; sys.path.insert(0, {source!r}); "
-         "from inferrsi.cli import main; raise SystemExit(main(['mindie', 'serve']))"],
+         "from inferrsi.apps.cli import main; raise SystemExit(main(['mindie', 'serve']))"],
         input=wire, text=True, capture_output=True, timeout=30, check=True,
     )
     assert process.stderr == ""

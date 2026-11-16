@@ -6,6 +6,7 @@ present, and the existing ``inferrsi.harness`` tree still mixes other layers.
 
 from __future__ import annotations
 
+import ast
 import tempfile
 import unittest
 from pathlib import Path
@@ -55,6 +56,17 @@ def test_resource_loader_declaration_does_not_cover_an_adjacent_module(tmp_path)
     assert any("dynamic import" in item for item in first_wave_report(tmp_path).violations)
 
 
+def _scan_tree(files: dict[str, str]) -> list[str]:
+    """Cross-core violations of a synthetic package root holding only ``files``."""
+    with tempfile.TemporaryDirectory() as temporary:
+        root = Path(temporary)
+        for relative, source in files.items():
+            path = root / relative
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(source, encoding="utf-8")
+        return cross_core_violations(root)
+
+
 class TargetModuleImportGateTest(unittest.TestCase):
     def test_no_new_cross_core_imports(self) -> None:
         # #412 R1: nothing is allowlisted any more, and the tree is still clean.
@@ -62,18 +74,21 @@ class TargetModuleImportGateTest(unittest.TestCase):
         self.assertEqual(allowed, frozenset())
         self.assertEqual(cross_core_violations(allowed=allowed), [])
         self.assertFalse(hasattr(support, "LEGACY_RUN_FORWARDERS"))
-        # The root CLI parser now names Knowledge itself. Its exact application-entry
-        # listing is what admits that, and each listed file exists in the root, so an
-        # entry cannot outlive the file that A1 or A2 removes.
-        self.assertEqual(
-            support.APPLICATION_ENTRIES, ("cli.py", "arguments.py", "benchmark_operations.py")
-        )
+        # #408 A1: the CLI and its parser are apps/cli/, Apps by first path segment, so
+        # their two exact entries are gone and neither root file exists. Each listed
+        # file exists in the root, so an entry cannot outlive the file that A2 removes.
+        self.assertEqual(support.APPLICATION_ENTRIES, ("benchmark_operations.py",))
         for entry in support.APPLICATION_ENTRIES:
             self.assertTrue((ROOT / entry).is_file(), entry)
-        with mock.patch.object(
-            support, "APPLICATION_ENTRIES", ("cli.py", "benchmark_operations.py")
-        ):
-            self.assertEqual(cross_core_violations(), ["arguments.py imports inferrsi.knowledge"])
+        for retired in ("cli.py", "arguments.py"):
+            self.assertFalse((ROOT / retired).exists(), retired)
+        for moved in ("__init__.py", "arguments.py"):
+            self.assertTrue((ROOT / "apps" / "cli" / moved).is_file(), moved)
+        # The listing is what admits the last flat entry: without it that file fails.
+        with mock.patch.object(support, "APPLICATION_ENTRIES", ()):
+            self.assertEqual(
+                cross_core_violations(), ["benchmark_operations.py imports inferrsi.benchmark"]
+            )
 
     def test_first_wave_policy_holds_on_current_tree(self) -> None:
         self.assertEqual(first_wave_report().violations, ())
@@ -92,7 +107,9 @@ class TargetModuleImportGateTest(unittest.TestCase):
                         "_repo_pack_data.py", "evidence_paths.py"):
             self.assertFalse((ROOT / retired).exists(), retired)
         # #412 R1: the eleven retired root modules are gone, with no package in their place.
-        self.assertEqual(len(support.RETIRED_ROOT_MODULES), 11)
+        self.assertEqual(len(support.RETIRED_BY_R1), 11)
+        self.assertEqual(support.RETIRED_BY_A1, {"inferrsi.cli", "inferrsi.arguments"})
+        self.assertEqual(len(support.RETIRED_ROOT_MODULES), 13)
         for module in support.RETIRED_ROOT_MODULES:
             name = module.removeprefix("inferrsi.")
             self.assertFalse((ROOT / f"{name}.py").exists(), name)
@@ -138,7 +155,6 @@ class TargetModuleImportGateTest(unittest.TestCase):
         self.assertEqual(
             report.blockers,
             (
-                "temporary leaf importers: 1",
                 "harness reaches model/infra: inferrsi.harness.agent_sessions -> "
                 "inferrsi.infra (12 hits)",
                 "runtime resource loaders: 5",
@@ -181,7 +197,11 @@ class TargetModuleImportGateTest(unittest.TestCase):
                 "knowledge/out.py": "import inferrsi.harness\n",
                 "benchmark/edge.py": "from inferrsi.benchmark import edge\n",
                 "benchmark/forbidden.py": "import inferrsi.harness\n",
-                "cli.py": "from inferrsi.benchmark.registry import builtin_tasks\n",
+                # #408 A1: the CLI package is Apps by path. A root file that returns
+                # under either old name is unlisted and fails like any other flat module.
+                "apps/cli/__init__.py": "from inferrsi.benchmark.registry import builtin_tasks\n",
+                "apps/cli/arguments.py": "from inferrsi.knowledge import catalog\n",
+                "cli.py": "from inferrsi.apps.cli import main\n",
                 "arguments.py": "from inferrsi.knowledge import catalog\n",
                 # The listing is the exact file name: a module beside it gains nothing.
                 "arguments_extra.py": "from inferrsi.knowledge import catalog\n",
@@ -196,13 +216,115 @@ class TargetModuleImportGateTest(unittest.TestCase):
         self.assertEqual(
             violations,
             [
+                "arguments.py imports inferrsi.knowledge",
                 "arguments_extra.py imports inferrsi.knowledge",
                 "benchmark/forbidden.py imports inferrsi.harness",
+                "cli.py imports inferrsi.apps",
                 "harness/probe.py imports inferrsi.knowledge",
                 "knowledge/out.py imports inferrsi.harness",
                 "unowned.py imports inferrsi.benchmark",
             ],
         )
+
+    def test_module_entry_admits_only_the_canonical_cli_delegation(self) -> None:
+        # #408 A1: ``python -m inferrsi`` runs root ``__main__.py``, which must stay in the
+        # root. The real file is the hand-over to the Apps CLI and nothing else.
+        entry = (ROOT / support.MODULE_ENTRY).read_text(encoding="utf-8")
+        self.assertEqual(
+            [ast.unparse(node) for node in ast.parse(entry).body],
+            ["from .apps.cli import main", "raise SystemExit(main())"],
+        )
+        self.assertEqual(support.MODULE_ENTRY, "__main__.py")
+        self.assertEqual(support.MODULE_ENTRY_DELEGATION, ("inferrsi.apps.cli", "main"))
+        # It passes by its own exact rule and is never listed as an application entry.
+        self.assertNotIn(support.MODULE_ENTRY, support.APPLICATION_ENTRIES)
+        self.assertEqual(_scan_tree({"__main__.py": entry}), [])
+        self.assertEqual(_scan_tree({"__main__.py": "from inferrsi.apps.cli import main\n"}), [])
+        # Positive control: without the rule the same file is refused, so the statement
+        # passes by the rule and not by an erased scan.
+        refused = ["__main__.py imports inferrsi.apps"]
+        with mock.patch.object(support, "MODULE_ENTRY", "elsewhere.py"):
+            self.assertEqual(_scan_tree({"__main__.py": entry}), refused)
+        with mock.patch.object(support, "MODULE_ENTRY_DELEGATION", ("inferrsi.apps.cli", "run")):
+            self.assertEqual(_scan_tree({"__main__.py": entry}), refused)
+        with mock.patch.object(support, "MODULE_ENTRY_DELEGATION", ("inferrsi.apps", "cli")):
+            self.assertEqual(_scan_tree({"__main__.py": entry}), refused)
+        # The staged report carries the same result: the delegation adds no violation,
+        # and another shape is a violation that keeps isolation false.
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            (root / "__main__.py").write_text(entry, encoding="utf-8")
+            self.assertEqual(first_wave_report(root).violations, ())
+            (root / "__main__.py").write_text("from .apps import cli\n", encoding="utf-8")
+            report = first_wave_report(root)
+            self.assertEqual(report.violations, tuple(refused))
+            self.assertFalse(report.isolation_complete)
+
+    def test_module_entry_rule_covers_no_other_shape_target_or_file(self) -> None:
+        line = "from .apps.cli import main\n"
+        cases = (
+            # Another name, a second name, an alias or a star import from the target.
+            ("from .apps.cli import parser\n", "apps"),
+            ("from .apps.cli import main, parser\n", "apps"),
+            ("from .apps.cli import main as run\n", "apps"),
+            ("from .apps.cli import main as main\n", "apps"),
+            ("from .apps.cli import *\n", "apps"),
+            # The target as a module object, and the Apps package itself.
+            ("from .apps import cli\n", "apps"),
+            ("import inferrsi.apps.cli\n", "apps"),
+            ("import inferrsi.apps.cli as entry\n", "apps"),
+            ("import inferrsi.apps\n", "apps"),
+            ("from .apps import main\n", "apps"),
+            # A module below the target, a module beside it and a lookalike of it.
+            ("from .apps.cli.arguments import parser\n", "apps"),
+            ("from .apps.cli import arguments\n", "apps"),
+            ("from .apps.cli.main import main\n", "apps"),
+            ("from .apps.cli_extra import main\n", "apps"),
+            ("from .apps.inspection import main\n", "apps"),
+            ("from .apps.legacy.run import main\n", "apps"),
+            # The same line below module level, an import fallback included.
+            ("def run():\n    from .apps.cli import main\n    return main()\n", "apps"),
+            ("if True:\n    from .apps.cli import main\n", "apps"),
+            (
+                "try:\n    from .apps.cli import main\nexcept ImportError:\n    main = None\n",
+                "apps",
+            ),
+            # Beside the admitted line every other core import still fails.
+            (line + "from .apps.views import dashboard\n", "apps"),
+            (line + "from .apps.cli.arguments import parser\n", "apps"),
+            (line + "from .apps.cli import main as run\n", "apps"),
+            (line + "from .knowledge.catalog import BACKENDS\n", "knowledge"),
+            (line + "import inferrsi.benchmark\n", "benchmark"),
+            (line + "def late():\n    from inferrsi.knowledge import catalog\n", "knowledge"),
+            # The same name in another core is not the target.
+            ("from .knowledge.cli import main\n", "knowledge"),
+            ("from .benchmark.cli import main\n", "benchmark"),
+        )
+        for source, core in cases:
+            with self.subTest(source=source):
+                self.assertEqual(
+                    _scan_tree({"__main__.py": source}), [f"__main__.py imports inferrsi.{core}"]
+                )
+        # No other file is the module entry. A root file beside it, a returning root CLI
+        # shell and a ``__main__`` under any package fail with the very same statement.
+        absolute = "from inferrsi.apps.cli import main\n"
+        others = (
+            "main.py", "__main__extra.py", "_main.py", "cli.py", "arguments.py", "helper.py",
+            "harness/__main__.py", "knowledge/__main__.py", "benchmark/__main__.py",
+            "model/__main__.py", "infra/__main__.py", "resources/__main__.py",
+        )
+        for path in others:
+            with self.subTest(path=path):
+                self.assertEqual(_scan_tree({path: absolute}), [f"{path} imports inferrsi.apps"])
+        # All of them at once, with the real entry beside them: only the entry passes.
+        entry = (ROOT / support.MODULE_ENTRY).read_text(encoding="utf-8")
+        together = {path: absolute for path in others}
+        self.assertEqual(
+            _scan_tree({"__main__.py": entry, **together}),
+            sorted(f"{path} imports inferrsi.apps" for path in others),
+        )
+        # Apps itself never needed the rule.
+        self.assertEqual(_scan_tree({"apps/__main__.py": absolute}), [])
 
     def test_layout_doc_states_the_same_limit(self) -> None:
         text = (

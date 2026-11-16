@@ -1,0 +1,35 @@
+{
+  "schema_version": 2,
+  "archive": {
+    "id": "<campaign-id>-v1",
+    "file": "<campaign-id>-v1.tar.gz",
+    "url": "https://github.com/<owner>/<repo>/releases/download/<tag>/<campaign-id>-v1.tar.gz",
+    "sha256": "<archive-sha256>",
+    "bytes": "<compressed-byte-count>",
+    "format": "tar+gzip",
+    "retention_owner": "<owner>",
+    "source_revision": "<immutable-source-revision>",
+    "root": "<campaign-id>",
+    "files": "<regular-file-count-under-root>",
+    "uncompressed_bytes": "<file-byte-count-under-root>",
+    "key_files": {
+      "control": "<campaign-id>/control/trials.jsonl",
+      "configuration": "<campaign-id>/plan/effective.json",
+      "validator": "<campaign-id>/validator/recompute.py"
+    }
+  },
+  "verification": {
+    "summary": "results/summary.json",
+    "trials": "results/trials.jsonl",
+    "command": ["python", "validator/recompute.py", "--archive", "<verified-archive>", "--output", "<new-output-directory>"],
+    "inputs": [
+      {"role": "control", "path": "<campaign-id>/control/trials.jsonl", "sha256": "<control-sha256>"},
+      {"role": "configuration", "path": "<campaign-id>/plan/effective.json", "sha256": "<configuration-sha256>"},
+      {"role": "validator", "path": "<campaign-id>/validator/recompute.py", "sha256": "<validator-sha256>"}
+    ],
+    "absolute_tolerance": 0,
+    "relative_tolerance": 0
+  },
+  "availability_limits": ["<restricted or unpublished inputs and their verification limits>"],
+  "retention_policy": "<owner keeps this version retrievable while referenced; publish a new version for updates>"
+}

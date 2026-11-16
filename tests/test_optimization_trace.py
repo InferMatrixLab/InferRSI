@@ -6,9 +6,9 @@ from pathlib import Path
 
 import pytest
 
+from inferrsi.apps.cli import main
 from inferrsi.apps.views.dashboard import write_dashboard
 from inferrsi.apps.views.dashboard_data import load_dashboard
-from inferrsi.cli import main
 from inferrsi.harness.records import campaign_records, optimization_trace
 from inferrsi.harness.records.campaign_records import create_campaign, record_candidate
 from inferrsi.harness.records.optimization_trace import (

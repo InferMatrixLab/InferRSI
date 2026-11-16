@@ -1,0 +1,5 @@
+base_config: ngram-replica2-tail43.yaml
+connectors:
+  connector_of_shared_memory:
+    extra:
+      token2wav_float16: true

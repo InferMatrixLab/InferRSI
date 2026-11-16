@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from inferrsi.cli import main
+from inferrsi.apps.cli import main
 from inferrsi.infra.commands import probe_command
 from inferrsi.infra.platforms import inspect_device
 from inferrsi.infra.platforms.mlx import _parse_sysctl_info

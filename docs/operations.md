@@ -44,6 +44,9 @@ Effect classes used below:
 | Amend repository-owned knowledge | Scoped repository PR | — | Repository review and integration authority apply; this is not a runtime store Update |
 | Inspect/prepare experiments | CLI `doctor`; `plan` or `--dry-run` | Read-only inspection / preview | `doctor` may invoke bounded probes and does not certify target compatibility; `plan` previews a specification without persisting a campaign or authorizing execution |
 | Execute/inspect experiments | CLI `run`; `status`; `report` | Experiment-executing / read-only / report-generating | `run` executes caller-supplied commands and records evidence; `status` reads recorded progress; `report` generates HTML from recorded evidence |
+| Inspect/verify archived evidence | `python tools/verify_evidence_archive.py`; [archive contract](evidence-archiving.md) | Read-only by default; explicit network/local scratch with `--download` | Default validates metadata offline; `--archive`/`--download` authenticates and bounds archive reading; `--recomputed` compares separately generated v2 results; never executes archived code or changes verdicts |
+| Rebuild scoped legacy evidence views | `python tools/rebuild_model_evidence.py <manifest> --archive <path> --output <new-directory>` | CPU-only; creates a new output directory | Authenticates original bytes and pinned projection/code; no extraction, network, archived-code execution or campaign qualification |
+| Inspect evidence inventory / generate budget input | `python tools/validate_evidence.py [--budget-assets]` | Read-only | Offline layout/hash/schema checks; optional disposable #328 metadata view derived from campaign authority; no downloads |
 | Execute one ordinary local CPU command with a fixed record | Python `inferrsi.harness.api.Harness.allocate` / `execute` / `read` | Experiment-executing / record-writing | One explicit RunStore root and one trusted local CPU target; ordinary command mode only; a record holds execution facts, so exit 0 is not a verdict; no device, model or network fallback |
 | Visualize a recorded run or campaign | CLI `dashboard`; [dashboard](dashboard.md) | Report-generating / local read-only serving | Writes an offline HTML snapshot or serves an optional live view on loopback; does not run an agent or validate a claim |
 | Capture a knowledge context | CLI `campaign capture-context`; [offline dashboard](dashboard.md#record-the-optimization-story-campaign-trace) | Local evidence-writing | Runs `collect` with a context budget and keeps the full envelope and resource hashes in a new `knowledge/<id>.json`; proves what was prepared, not what a model read |
@@ -243,11 +246,13 @@ did.
   entrypoint, provenance and revision with a smaller response. Remove
   `--omit-resources` to list the bundle's resources. Hits that fail the reader's
   material check carry `unreadable` with the reason.
-- **Base installation fallback.** When a Skill hit requires PyYAML, use
-  `inferrsi collect --relevance "<same query>" --limit 1 --material --json`
-  to look up the packaged skill. Fetch its `skill_documents.original` with
+- **Base installation fallback.** When a Skill hit requires PyYAML, run a new
+  search of the packaged Skills with
+  `inferrsi collect --relevance "<same query>" --limit 1 --material --json`.
+  It may select a different Skill. Check that the returned Skill fits your
+  task, then fetch its `skill_documents.original` with
   `inferrsi resource <ref> <path> --revision <revision> --output <file>` using
-  the returned `ref` and `revision`.
+  the `ref` and `revision` from the new result.
 - **Side effects:** none. No revision is pinned; use `read`/`resource` when a capture or evidence record needs exact bytes.
 - **Example:** `inferrsi find "NPU OOM after caching per-step masks" --limit 3` returns the casebook entry recording that attempt first. A vaguer phrasing ranks the procedural skills above it, which is the first limit below rather than a defect.
 

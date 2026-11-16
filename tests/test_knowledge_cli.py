@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytest
 
-from inferrsi.cli import main
+from inferrsi.apps.cli import main
 from inferrsi.knowledge.knowledge_operations import Bundle, KnowledgeReader
 from inferrsi.knowledge.knowledge_store import KnowledgeStore
 

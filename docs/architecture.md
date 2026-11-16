@@ -6,8 +6,8 @@ Qwen-Image denoising and real-model Qwen3-TTS under
 packages. `inferrsi benchmarks run <package> ...` launches the package's
 `benchmark.py`. Task-specific orchestration, sampling and assessment live inside
 each package. The task library owns its `index.json` registration. The existing
-`benchmark/registry.py` discovers the resources. The existing `arguments.py`,
-`cli.py` and `benchmark_operations.py` provide application assembly and launch.
+`benchmark/registry.py` discovers the resources. The CLI package `apps/cli/`
+and the existing `benchmark_operations.py` provide application assembly and launch.
 Each task retains its own protocol and task-specific code.
 
 The [current-Agent optimization session](optimization-benchmarks.md) assembles
@@ -158,7 +158,7 @@ the comparator; the engine AB/BA path retains its independent acceptance contrac
 
 ```text
 src/inferrsi/
-  cli.py, arguments.py       Existing CLI
+  apps/cli/                  CLI entry `main` and its argument parser
   benchmark_operations.py   Resolve a task entry and launch it through Harness
   benchmark/
     registry.py             Generic task resource discovery
@@ -271,15 +271,17 @@ examples/                   Current Qwen runner, image validator and v4 adapter
 tests/fixtures/legacy/      Frozen historical validation dependencies for regressions
 ```
 
-The package root holds exactly ten tracked files at this stage: `__init__.py`,
-`__main__.py`, `cli.py`, `arguments.py`, `benchmark_operations.py`,
-`summary_chart.py`, `mindie_context.py`, `mindie_mcp.py`, `mindie_project.py`
-and `_mindie_read_worker.py`. #412 R1 deleted eleven root modules with no
+The package root holds exactly eight tracked files at this stage: `__init__.py`,
+`__main__.py`, `benchmark_operations.py`, `summary_chart.py`,
+`mindie_context.py`, `mindie_mcp.py`, `mindie_project.py` and
+`_mindie_read_worker.py`. #408 A1 moved the CLI and its parser to `apps/cli/`
+and deleted root `cli.py` and `arguments.py` with no forwarding shell or alias;
+`__main__.py` and the console script call `inferrsi.apps.cli:main`. #412 R1 deleted eleven root modules with no
 forwarding shell or alias: the seven Knowledge shells, whose code is in
 `knowledge/`; the three old-run forwarders `evaluation.py`, `execution.py` and
 `reporting.py`, whose code is in `apps/legacy/`; and `inspection.py`, whose
 host binding is `apps/inspection.py`. The final two-file root (`__init__.py`
-and `__main__.py`) waits for the A1/A2 (#408) and M1 (#452) moves.
+and `__main__.py`) waits for the A2 (#408) and M1 (#452) moves.
 [module-layout.md](module-layout.md#retired-root-modules) maps each retired
 path to its replacement and lists what still keeps the isolation gate false.
 

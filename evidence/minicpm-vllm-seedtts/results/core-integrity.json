@@ -1,0 +1,19 @@
+{
+  "README.md": "48c0db5dfbe4b24d2cc8b56b446aad5ad64ccafd9d7f55917d3588559964cf81",
+  "patch/s3-component.patch": "99fec8b1018e5781377944ca4182221b4ecf1dd31ef9037ead3cd2706d314010",
+  "patch/service-phase5-source.patch": "4a9b346513e090c84317d8410b7781e1d8870fb9ac0be463c51c285ee964ca95",
+  "plan/acceptance.md": "8447592865f9185ac24c5e319c035e2b51ac1ed8b82042e93840fcf8386a0169",
+  "plan/s3-component-task.md": "e12f7860a4fa6e51e9d8bce42dbdf866370d072709f85978008859fdad4a6b08",
+  "plan/s3-runspec.json": "b706947583eeca628f54f5c18338e8f8b1080ba878be36a0cf5c7d5f8df3e1e3",
+  "plan/service-phase1314-config-chains.json": "b07f2490655c6e10bb25c34a23b1576ec0d2052a2149619f2ab49fd89d70c520",
+  "plan/service-phase15-config.yaml": "531b5937e6743779c204770fa0d0e68766c336c3bf7f8e01001421d56d390063",
+  "plan/service-review-provenance.json": "caa6a7ff08d72fd91057659192c59c752d08cced06d2ec7f0e936320087904f3",
+  "results/artifacts.json": "9769b88a07858d085d0124d8670e76bf03821843982a6d2e7eb4d506c6acd0cf",
+  "results/pilot.json": "e8a675d34f3cef66c863456b7c356e66b18fb23d3e1447bd7c867f72d2fd0803",
+  "results/summary.json": "04c4cbeba66508bd6eff13f82520976c44ecc372b73961918e65b71369c7f3c8",
+  "results/trials.jsonl": "739267b8b6856251fd14057c300d1ebcc1822bf67bd78d53b584479faed2593d",
+  "validator/build_core.py": "7d8ac11e7572abfd18ffcd20395e0f0f07e66e9c3aa88241b8655e9ede1918d0",
+  "validator/check.py": "37a6c092f2e50e4fa927bb3af3bcd5e58af74f0064c361bf984239d113bf4fba",
+  "validator/references.json": "cfbd0beff80df6468d5019a8c818ad18aa638a7ff7ecdf2ed4bf82ce20a20ae9",
+  "validator/verify_archive.py": "e481c2cd7e19ee5902aa498c613e6868e72787ddd536ab04dd0348b0d56e9e10"
+}

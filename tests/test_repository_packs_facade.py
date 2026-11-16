@@ -23,7 +23,7 @@ from pathlib import Path
 import pytest
 
 import inferrsi.resources as resources
-from inferrsi import arguments
+from inferrsi.apps.cli import arguments
 from inferrsi.infra import inspection
 from inferrsi.knowledge import catalog as knowledge_catalog
 from inferrsi.resources import repository_packs
@@ -37,8 +37,8 @@ RETIRED = "inferrsi._repo_pack_data"
 FACADE_CLOSURE = {"inferrsi", "inferrsi.resources", "inferrsi.resources.repository_packs"}
 # The facade needs none of these. #412 R1 retired root catalog, so the CLI parser that
 # now reads the tuple directly stands in its place.
-CORES = ("inferrsi.harness", "inferrsi.knowledge", "inferrsi.arguments", "inferrsi.infra",
-         "inferrsi.apps", "inferrsi.benchmark", "inferrsi.contracts")
+CORES = ("inferrsi.harness", "inferrsi.knowledge", "inferrsi.infra", "inferrsi.apps",
+         "inferrsi.benchmark", "inferrsi.contracts")
 # Every other inferrsi import is refused, so the facade works only if it needs none.
 BLOCKED = """
 import importlib.abc, json, sys
@@ -115,8 +115,15 @@ def test_one_repo_types_object_reaches_every_consumer() -> None:
     # itself. It is the same object, read directly and never copied.
     assert arguments.REPO_TYPES is canonical
     assert importlib.util.find_spec("inferrsi.catalog") is None
-    source = (ROOT / "arguments.py").read_text(encoding="utf-8")
-    assert source.splitlines().count("from .resources.repository_packs import REPO_TYPES") == 1
+    # #408 A1: the parser is in Apps and reads the tuple through the Knowledge catalog.
+    assert arguments.__name__ == "inferrsi.apps.cli.arguments"
+    assert importlib.util.find_spec("inferrsi.arguments") is None
+    assert not (ROOT / "arguments.py").exists()
+    source = (ROOT / "apps" / "cli" / "arguments.py").read_text(encoding="utf-8")
+    assert source.splitlines().count(
+        "from ...knowledge.catalog import BACKENDS, KNOWLEDGE_REPOS, KNOWLEDGE_SCOPES, REPO_TYPES"
+    ) == 1
+    assert "repository_packs" not in source
     assert "repository_pack(" not in source and not hasattr(arguments, "repository_pack")
     assert inspection.repository_pack is repository_packs.repository_pack
     assert not hasattr(knowledge_catalog, "repository_pack")

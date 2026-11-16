@@ -4,8 +4,8 @@ import json
 
 import pytest
 
+from inferrsi.apps.cli import main
 from inferrsi.benchmark import registry
-from inferrsi.cli import main
 from inferrsi.harness import optimization_session
 from inferrsi.harness.optimization import _locked
 
@@ -132,28 +132,68 @@ def test_generic_job_precedes_child_start_and_collects_child_final(tmp_path, tas
     assert not (job / "plan.json").exists()  # Host job and optimization stay separate.
 
 
-def test_real_loop_rejects_bad_round_keeps_best_and_retests_independently(session, capsys):
+@pytest.mark.parametrize("factors", [(2, -1, 1.5), (2, 1.5, -1)])
+def test_real_loop_rejects_bad_round_keeps_best_and_retests_independently(session, capsys, factors):
     observations = []
-    for factor, input_tokens, output_tokens in ((2, 100, 20), (-1, 200, 10), (1.5, 20, 10)):
+    for factor, (input_tokens, output_tokens) in zip(factors, ((100, 20), (200, 10), (20, 10))):
         observations.append(submit(session, factor, capsys, {
             "input_tokens": input_tokens, "output_tokens": output_tokens,
             "cached_input_tokens": 10,
         }))
-    assert observations[1]["latest_observation"]["assessment"]["status"] == "candidate_failure"
+    rejected = factors.index(-1)
+    assert observations[rejected]["latest_observation"]["assessment"]["status"] == (
+        "candidate_failure")
     assert observations[-1]["best"]["score"] == 2
     assert observations[-1]["next_action"].startswith("independently_retest")
+    failed_record = (session / observations[rejected]["latest_observation"]["path"]
+                     / "observation.json")
+    failed_bytes = failed_record.read_bytes()
     assert main(["benchmarks", "session", "final", "--session", str(session)]) == 0
     final = json.loads(capsys.readouterr().out)
     assert final["state"] == "completed"
-    assert (session / "calls.log").read_text().splitlines() == ["2", "-1", "1.5", "2"]
+    assert (session / "calls.log").read_text().splitlines() == [*map(str, factors), "2"]
+    assert failed_record.read_bytes() == failed_bytes
+    state = json.loads((session / "state.json").read_text())
+    assert state["final"]["candidate_sha256"] == observations[0]["best"]["sha256"]
     report = json.loads((session / "summary.json").read_text())
     assert report["optimization_speedup"] == 2
     assert report["completed_rounds"] == 3
     assert report["usage"]["total_tokens"] == 360
     assert [row["cumulative_usage"]["total_tokens"] for row in report["curve"]] == [120, 330, 360]
-    assert report["curve"][1]["assessment"]["score"] is None
+    assert report["curve"][rejected]["assessment"]["score"] is None
     assert all(row["best_score"] == 2 for row in report["curve"])
     assert report["wall_elapsed_seconds"] > 0
+
+
+@pytest.mark.parametrize("status,code", [
+    ("timeout", 0), ("cancelled", 0), ("error", None), ("failed", -9),
+])
+def test_interrupted_execution_cannot_resume_using_a_written_candidate_rejection(
+    session, capsys, monkeypatch, status, code,
+):
+    best = submit(session, 2, capsys)["best"]
+    original = optimization_session._session_execute
+
+    def interrupted(*args):
+        record = original(*args)
+        record.update(status=status, returncode=code)
+        (args[1] / "execution/execution.json").write_text(json.dumps(record), encoding="utf-8")
+        return record
+
+    monkeypatch.setattr(optimization_session, "_session_execute", interrupted)
+    candidate = session / "work/candidate.py"
+    candidate.write_text("FACTOR = -1\n", encoding="utf-8")
+    assert main(["benchmarks", "session", "round", "--session", str(session),
+                 "--candidate", str(candidate), "--hypothesis", "Interrupted rejection"]) == 2
+    view = json.loads(capsys.readouterr().out)
+    assert view["state"] == "blocked" and view["best"] == best
+    assert view["latest_observation"]["assessment"]["verdict"] == "INCONCLUSIVE"
+    assert not view["can_finalize"]
+    assert main(["benchmarks", "session", "recover", "--session", str(session)]) == 2
+    assert json.loads(capsys.readouterr().out)["state"] == "blocked"
+    with pytest.raises(SystemExit):
+        main(["benchmarks", "session", "final", "--session", str(session)])
+    assert (session / "calls.log").read_text().splitlines() == ["2", "-1"]
 
 
 def test_final_cannot_skip_optimization_rounds(session):

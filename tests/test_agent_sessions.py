@@ -5,7 +5,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 import pytest
 
-from inferrsi.cli import main
+from inferrsi.apps.cli import main
 from inferrsi.harness import agent_sessions
 
 

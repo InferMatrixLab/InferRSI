@@ -14,10 +14,10 @@ from pathlib import Path
 
 import pytest
 
+from inferrsi.apps.cli import main
 from inferrsi.apps.views import dashboard_live
 from inferrsi.apps.views.dashboard import write_dashboard
 from inferrsi.apps.views.dashboard_live import DashboardServer
-from inferrsi.cli import main
 
 
 @pytest.fixture

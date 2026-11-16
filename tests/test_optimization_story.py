@@ -10,9 +10,9 @@ from pathlib import Path
 import pytest
 
 from inferrsi.apps.campaign import capture_context, verify_capture
+from inferrsi.apps.cli import main
 from inferrsi.apps.views.dashboard import dashboard_snapshot, render_dashboard, write_dashboard
 from inferrsi.apps.views.dashboard_data import load_dashboard
-from inferrsi.cli import main
 from inferrsi.harness.records.campaign_records import (
     create_campaign,
     record_candidate,

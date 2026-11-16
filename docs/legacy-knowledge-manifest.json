@@ -1,7 +1,7 @@
 {
   "$schema": "urn:inferrsi:docs:legacy-knowledge-manifest:v1",
-  "description": "First-wave Knowledge compatibility record and the neutral technical data leaf's locks. P0b froze the first revision at 0da7e2f960cd4ec994ae8eddea5b71023c5379ca, K01 re-recorded every leaf hash before the code move, K02 changed only the data leaf's locked file hash, and C2 (#451) moved that leaf byte for byte to inferrsi.resources.repository_packs. This R1 revision (#412) deletes the seven root Knowledge shells with their eight pairs, so compatibility_pairs is empty and the allowlist blocker is gone. The former ninth pair, infra.inspection -> the data leaf, is now the permanent exact rule in technical_leaf.permanent_importers, outside the allowlist. The nine retired pair records, with the old root leaf hashes and export lists, are kept unchanged under the last revision_history entry. The leaf's bytes and locked file hash are unchanged. Nothing here is a wildcard approval, and it changes only through formal review. Line references are at the base_commit recorded by the revision that wrote them; this revision re-records none of them.",
-  "base_commit": "5db1bc94042f386f0b4b35c3e6fe91598fef118f",
+  "description": "First-wave Knowledge compatibility record and the neutral technical data leaf's locks. P0b froze the first revision at 0da7e2f960cd4ec994ae8eddea5b71023c5379ca, K01 re-recorded every leaf hash before the code move, K02 changed only the data leaf's locked file hash, and C2 (#451) moved that leaf byte for byte to inferrsi.resources.repository_packs. The R1 revision (#412) deleted the seven root Knowledge shells with their eight pairs, so compatibility_pairs is empty and the allowlist blocker is gone. The former ninth pair, infra.inspection -> the data leaf, is now the permanent exact rule in technical_leaf.permanent_importers, outside the allowlist. The nine retired pair records, with the old root leaf hashes and export lists, are kept unchanged under the C2 revision_history entry, the record that R1 appended; it is no longer the last entry. The leaf's bytes and locked file hash are unchanged. Nothing here is a wildcard approval, and it changes only through formal review. Line references are at the base_commit recorded by the revision that wrote them; no later revision re-records them. This A1 revision (#408) removes technical_leaf.temporary_importers with root arguments.py: the moved Apps parser reads the same REPO_TYPES object through inferrsi.knowledge.catalog, no Apps importer of the leaf is declared, and the removed entry is kept unchanged as retired_temporary_importers under the last revision_history entry, the R1 record.",
+  "base_commit": "aaa17a5dd333449d15fb052bb09b2012d55f2327",
   "revision_history": [
     {
       "base_commit": "0da7e2f960cd4ec994ae8eddea5b71023c5379ca",
@@ -261,6 +261,32 @@
           "note": "Root catalog also re-exports REPO_TYPES and repository_pack from the neutral data leaf"
         }
       }
+    },
+    {
+      "base_commit": "5db1bc94042f386f0b4b35c3e6fe91598fef118f",
+      "stage": "R1",
+      "superseded_by": "A1 parser-move revision at aaa17a5dd333449d15fb052bb09b2012d55f2327",
+      "reason": "A1 (#408) moves root cli.py and arguments.py to inferrsi.apps.cli and deletes both root files in the same change, with no forwarding shell or alias. The moved parser binds REPO_TYPES through inferrsi.knowledge.catalog, which holds the leaf's one tuple object, and names no inferrsi.resources module, so technical_leaf.temporary_importers and its blocker are removed and no importer entry replaces it. compatibility_pairs stays empty, and the permanent infra.inspection rule and every leaf lock are unchanged.",
+      "retired_temporary_importers": {
+        "stage": "R1",
+        "issue": "#412",
+        "due": "A1 (#408)",
+        "rule": "Root catalog is retired, so the root CLI parser takes the one REPO_TYPES tuple from the leaf itself for its --repo-type choices. The entry is held to the same exact import shape as the permanent rule. It is not part of the permanent rule and it is not an allowance for Apps modules in general.",
+        "importers": [
+          {
+            "importer": "inferrsi.arguments",
+            "file": "src/inferrsi/arguments.py",
+            "names": [
+              "REPO_TYPES"
+            ],
+            "import_line": "from .resources.repository_packs import REPO_TYPES"
+          }
+        ],
+        "blocker": "While a listed module imports the leaf, first_wave_report() carries a 'temporary leaf importers' blocker, so isolation_complete stays false.",
+        "removal": "A1 deletes root arguments.py and removes this entry in the same change. How the moved parser reads REPO_TYPES is decided by that change's review, not here.",
+        "gate": "tests/_gate_policy_support.py TEMPORARY_LEAF_IMPORTERS holds the same importer and name.",
+        "review": "This entry requires formal architecture review. The implementer does not self-approve it, and passing tests are not that review."
+      }
     }
   ],
   "compatibility_pairs": [],
@@ -335,26 +361,6 @@
       "not_a_compatibility_pair": "The entry is not in compatibility_pairs and is never counted by the allowlist blocker. It does not retire with a shell, because the importer is not a shell.",
       "gate": "tests/_gate_policy_support.py LEAF_IMPORTERS holds the same importer and name. tests/test_knowledge_compatibility_shells.py requires the two to match exactly.",
       "review": "This rule requires formal architecture review. The implementer does not self-approve it, and passing tests are not that review."
-    },
-    "temporary_importers": {
-      "stage": "R1",
-      "issue": "#412",
-      "due": "A1 (#408)",
-      "rule": "Root catalog is retired, so the root CLI parser takes the one REPO_TYPES tuple from the leaf itself for its --repo-type choices. The entry is held to the same exact import shape as the permanent rule. It is not part of the permanent rule and it is not an allowance for Apps modules in general.",
-      "importers": [
-        {
-          "importer": "inferrsi.arguments",
-          "file": "src/inferrsi/arguments.py",
-          "names": [
-            "REPO_TYPES"
-          ],
-          "import_line": "from .resources.repository_packs import REPO_TYPES"
-        }
-      ],
-      "blocker": "While a listed module imports the leaf, first_wave_report() carries a 'temporary leaf importers' blocker, so isolation_complete stays false.",
-      "removal": "A1 deletes root arguments.py and removes this entry in the same change. How the moved parser reads REPO_TYPES is decided by that change's review, not here.",
-      "gate": "tests/_gate_policy_support.py TEMPORARY_LEAF_IMPORTERS holds the same importer and name.",
-      "review": "This entry requires formal architecture review. The implementer does not self-approve it, and passing tests are not that review."
     }
   },
   "infra_inspection_rewrite": {

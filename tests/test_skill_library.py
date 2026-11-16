@@ -7,7 +7,7 @@ from urllib.parse import unquote, urlsplit
 
 import pytest
 
-from inferrsi.cli import main
+from inferrsi.apps.cli import main
 from inferrsi.knowledge.catalog import get_knowledge, knowledge_records, search_knowledge
 
 PACKAGE = Path(__file__).resolve().parents[1] / "src/inferrsi"

@@ -1,0 +1,80 @@
+{
+  "scope": "Bounded evidence migration pilot for proposed RFC 464; no repository policy adoption.",
+  "measurement": "Sum of Git blob sizes under evidence/minicpm-vllm-seedtts, including this report and core-integrity.json; not working-tree disk use or compressed Git storage. Modified files count their old blob as deleted and new blob as added.",
+  "before": {
+    "revision": "dec7a734f27215092f62728f78b98fe26cd58ba2",
+    "files": 56,
+    "git_blob_bytes": 10430698
+  },
+  "after": {
+    "files": 18,
+    "git_blob_bytes": 414347,
+    "largest_file": "evidence/minicpm-vllm-seedtts/results/trials.jsonl",
+    "largest_file_bytes": 162809,
+    "removed_bytes_vs_snapshot": 10016351,
+    "added_bytes_vs_snapshot": 363102,
+    "deleted_bytes_vs_snapshot": 10379453,
+    "added_bytes_vs_base": 414347,
+    "deleted_bytes_vs_base": 0,
+    "net_evidence_bytes_vs_base": 414347,
+    "files_over_report_threshold": [],
+    "net_over_report_threshold": false
+  },
+  "comparison_base": {
+    "revision": "a590ccb25596396a592f237105166ade4aedeaaa",
+    "files": 0,
+    "git_blob_bytes": 0
+  },
+  "report_only_thresholds": {
+    "single_file_bytes": 524288,
+    "net_evidence_bytes": 2097152
+  },
+  "preservation": "All 56 original files were packed from Git blobs unchanged; archive uploaded, publicly downloaded and verified before removing original detail files. Metadata authority: results/artifacts.json.",
+  "verification": {
+    "command": "python evidence/minicpm-vllm-seedtts/validator/verify_archive.py --download",
+    "result": "passed",
+    "stages": [
+      "metadata",
+      "download",
+      "archive_bytes",
+      "extraction",
+      "snapshot_integrity",
+      "recomputation"
+    ],
+    "coverage": {
+      "trial_records": 340,
+      "by_kind": {
+        "service": 288,
+        "diagnostic": 30,
+        "proposal": 3,
+        "excluded_screen": 3,
+        "component": 16
+      },
+      "by_status": {
+        "completed": 333,
+        "not_run": 3,
+        "interrupted": 1,
+        "not_recorded": 3
+      },
+      "scope": "Every retained service cell, managed component execution, named diagnostic/proposal and excluded screen in the dec7a734 public result records. Per-request samples are not trials. No completeness claim for unarchived private runs or logs."
+    },
+    "frozen_checker": {
+      "service_cells": 270,
+      "request_timings_recomputed": 17280,
+      "e2e_over_duration_differs_from_rtf": 9316,
+      "config_files_verified": 12,
+      "phase5_source_patch_hash_verified": true,
+      "phase6_bootstrap_intervals_reproduced": 9,
+      "speaker_verification_runs_traced": 6,
+      "campaign_verdict": "INCONCLUSIVE",
+      "limits": "No GPU rerun, external audio/model verification or service qualification."
+    },
+    "archive_tests": {
+      "command": "pytest -q tests/test_minicpm_archive.py",
+      "passed": 36
+    },
+    "limits": "CPU checks only. No GPU, model, inaccessible audio, private-log or service qualification rerun. Remote availability is an observation, not a perpetual guarantee."
+  },
+  "integration": "Squash merge is required: the compact final tree avoids adding original large PR blobs to main ancestry. Earlier branch commits remain; no main history rewrite.",
+  "campaign_verdict": "INCONCLUSIVE"
+}

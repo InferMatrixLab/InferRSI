@@ -2,7 +2,7 @@
 
 import pytest
 
-from inferrsi.cli import main
+from inferrsi.apps.cli import main
 from inferrsi.knowledge.catalog import get_knowledge, search_knowledge
 from inferrsi.resources.repository_packs import repository_pack
 

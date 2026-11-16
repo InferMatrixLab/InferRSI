@@ -66,7 +66,7 @@ def main(*, launcher_path: Path | None = None) -> int:
     launcher = launcher_path.resolve() if launcher_path is not None else script
     os.environ["INFERRSI_LAUNCHER"] = json.dumps([sys.executable, "-X", "utf8", str(launcher)])
 
-    from inferrsi.cli import main as cli_main
+    from inferrsi.apps.cli import main as cli_main
 
     return cli_main(args)
 

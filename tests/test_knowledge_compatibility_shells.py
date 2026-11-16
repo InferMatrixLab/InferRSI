@@ -15,12 +15,12 @@ import sys
 
 import pytest
 
+from tests import _gate_policy_support as support
 from tests._gate_policy_support import (
     LEAF_IMPORTERS,
     REPO,
     RETIRED_ROOT_MODULES,
     ROOT,
-    TEMPORARY_LEAF_IMPORTERS,
     exact_pairs,
     first_wave_report,
     load_manifest,
@@ -29,7 +29,10 @@ from tests._gate_policy_support import (
 MANIFEST = load_manifest()
 LEAF = MANIFEST["technical_leaf"]
 # The nine pairs and the two root catalog routes as they stood before R1 retired them.
-RETIRED = MANIFEST["revision_history"][-1]
+HISTORY = MANIFEST["revision_history"]
+RETIRED = next(item for item in HISTORY if "retired_compatibility_pairs" in item)
+# #408 A1 appended the R1 record, which holds the temporary parser entry it removed.
+R1_RECORD = HISTORY[-1]
 LEAF_NAMES = RETIRED["retired_catalog_two_routes"]["neutral_leaf_export"]["symbols"]
 MOVED = [item for item in RETIRED["retired_compatibility_pairs"] if "exports" in item]
 
@@ -61,7 +64,12 @@ def test_retired_record_is_the_seven_shells_and_the_manifest_stages_nothing():
     assert exact_pairs(MANIFEST) == frozenset()
     assert "catalog_two_routes" not in MANIFEST
     assert RETIRED["stage"] == "C2"
-    assert MANIFEST["base_commit"] in RETIRED["superseded_by"]
+    assert R1_RECORD["stage"] == "R1" and HISTORY[-2] is RETIRED
+    assert R1_RECORD["base_commit"] in RETIRED["superseded_by"]
+    # Every record names the base commit of the revision that superseded it.
+    bases = [item["base_commit"] for item in HISTORY[1:]] + [MANIFEST["base_commit"]]
+    for item, following in zip(HISTORY, bases):
+        assert following in item["superseded_by"], item["stage"]
     assert len(RETIRED["retired_compatibility_pairs"]) == 9
     assert len(MOVED) == 7
     assert {f"inferrsi.{item['importer']}" for item in MOVED} < RETIRED_ROOT_MODULES
@@ -73,13 +81,13 @@ def test_retired_record_is_the_seven_shells_and_the_manifest_stages_nothing():
 
 
 def test_one_repo_types_tuple_reaches_knowledge_and_the_parser_directly():
-    from inferrsi import arguments
+    from inferrsi.apps.cli import arguments
     from inferrsi.knowledge import catalog as knowledge_catalog
     from inferrsi.resources import repository_packs
 
     assert knowledge_catalog.REPO_TYPES is repository_packs.REPO_TYPES
-    # Root catalog is retired, so the CLI parser binds the tuple from the leaf itself:
-    # still one object, never a copy.
+    # #408 A1: the Apps parser reads the tuple through the Knowledge catalog, which
+    # binds it from the leaf: still one object on every route, never a copy.
     assert arguments.REPO_TYPES is repository_packs.REPO_TYPES
     assert LEAF_NAMES == ["REPO_TYPES", "repository_pack"]
     assert not hasattr(arguments, "repository_pack")
@@ -127,14 +135,14 @@ def test_c2_relock_moves_the_leaf_without_changing_a_byte():
     assert "requires formal architecture review" in moved["review"]
     assert "does not self-approve" in moved["review"]
     # R1 appended the C2 record after the K02 one and rewrote neither.
-    k02, c2 = MANIFEST["revision_history"][-2:]
+    k02, c2 = HISTORY[2:4]
     assert (k02["stage"], c2["stage"]) == ("K02", "C2")
     assert k02["changed_technical_leaf"] == {
         "module": moved["old_module"], "file": moved["old_file"],
     }
     assert c2["base_commit"] in k02["superseded_by"]
-    assert MANIFEST["base_commit"] in c2["superseded_by"]
-    assert MANIFEST["base_commit"] != c2["base_commit"]
+    assert R1_RECORD["base_commit"] in c2["superseded_by"]
+    assert R1_RECORD["base_commit"] != c2["base_commit"]
 
 
 def _leaf_imports(tree: ast.Module) -> set[str]:
@@ -194,13 +202,19 @@ def _declared(section: str) -> dict[str, frozenset[str]]:
 
 def test_manifest_restates_the_exact_gate_importer_rules():
     # #412 R1: the permanent rule is one importer and one name, outside the allowlist.
-    permanent, temporary = LEAF["permanent_importers"], LEAF["temporary_importers"]
+    permanent = LEAF["permanent_importers"]
+    temporary = R1_RECORD["retired_temporary_importers"]
     assert _declared("permanent_importers") == LEAF_IMPORTERS == {
         "inferrsi.infra.inspection": frozenset({"repository_pack"}),
     }
-    assert _declared("temporary_importers") == TEMPORARY_LEAF_IMPORTERS == {
-        "inferrsi.arguments": frozenset({"REPO_TYPES"}),
-    }
+    # #408 A1 removed the temporary parser entry from the manifest and from the gate.
+    # The removed record is kept unchanged in the history, and nothing replaced it.
+    assert "temporary_importers" not in LEAF
+    assert not hasattr(support, "TEMPORARY_LEAF_IMPORTERS")
+    assert [(item["importer"], item["names"]) for item in temporary["importers"]] == [
+        ("inferrsi.arguments", ["REPO_TYPES"])
+    ]
+    assert not (REPO / temporary["importers"][0]["file"]).exists()
     assert MANIFEST["compatibility_pairs"] == []
     assert permanent["importers"][0]["import_line"] == (
         MANIFEST["infra_inspection_rewrite"]["canonical_import"]
@@ -214,10 +228,10 @@ def test_manifest_restates_the_exact_gate_importer_rules():
     assert temporary["due"] == "A1 (#408)"
     assert "temporary leaf importers" in temporary["blocker"]
     assert "not an allowance for Apps modules in general" in temporary["rule"]
-    assert "temporary leaf importers: 1" in first_wave_report().blockers
+    assert "temporary leaf importers" not in support.blocker_kinds(first_wave_report())
 
 
-@pytest.mark.parametrize("section", ["permanent_importers", "temporary_importers"])
+@pytest.mark.parametrize("section", ["permanent_importers"])
 def test_each_declared_importer_binds_the_leaf_by_its_one_recorded_line(section):
     for item in LEAF[section]["importers"]:
         source = (REPO / item["file"]).read_text(encoding="utf-8")
@@ -274,7 +288,6 @@ def test_knowledge_closure_is_clean_while_overall_stays_false():
     report = first_wave_report()
     assert report.violations == ()
     assert report.blockers == (
-        "temporary leaf importers: 1",
         "harness reaches model/infra: inferrsi.harness.agent_sessions -> inferrsi.infra (12 hits)",
         "runtime resource loaders: 5",
     )

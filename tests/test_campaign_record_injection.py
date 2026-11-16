@@ -16,6 +16,8 @@ from inferrsi.knowledge.context_projection import context_item
 from tests._gate_policy_support import (
     NEW_H_ENTRIES,
     REPO,
+    RETIRED_BY_A1,
+    RETIRED_BY_R1,
     RETIRED_ROOT_MODULES,
     ROOT,
     first_wave_report,
@@ -363,9 +365,15 @@ def _record_modules():
 
 
 def test_harness_records_load_no_knowledge_or_apps_module():
-    # #412 R1 retired the root shells; none of those names may be loaded either.
+    # #412 R1 retired eleven root modules and #408 A1 retired the root CLI and its parser.
+    # None of those thirteen names may be loaded either.
+    assert len(RETIRED_BY_R1) == 11
+    assert RETIRED_BY_A1 == {"inferrsi.cli", "inferrsi.arguments"}
+    assert not RETIRED_BY_R1 & RETIRED_BY_A1
+    assert RETIRED_ROOT_MODULES == RETIRED_BY_R1 | RETIRED_BY_A1
     leaves = sorted(RETIRED_ROOT_MODULES)
-    assert len(leaves) == 11
+    assert len(leaves) == 13
+    assert {"inferrsi.cli", "inferrsi.arguments"} <= set(leaves)
     script = (
         "import importlib, sys\n"
         f"for name in {_record_modules()!r}:\n"

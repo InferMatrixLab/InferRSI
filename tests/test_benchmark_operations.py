@@ -5,8 +5,8 @@ import json
 import pytest
 
 from inferrsi import benchmark_operations
+from inferrsi.apps.cli import main
 from inferrsi.benchmark import registry
-from inferrsi.cli import main
 
 
 @pytest.fixture
