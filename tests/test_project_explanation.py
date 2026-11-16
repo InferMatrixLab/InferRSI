@@ -324,3 +324,20 @@ def test_recovered_attempt_does_not_trust_a_rewritable_declaration(project, caps
     assert record["assessment"]["explanation"]["status"] == "not_declared"
     assert record["assessment"]["eligible"] is False
     assert state["best"]["kind"] == "baseline" and state["state"] == "active"
+
+
+def test_failing_profile_report_does_not_change_the_default_verdict(project, capsys, monkeypatch):
+    """Profile evidence is report-only by default; its failure must not block or flip it."""
+    from inferrsi.harness import project as project_protocol
+
+    def explode(*args, **kwargs):
+        raise OverflowError("synthetic report failure")
+
+    monkeypatch.setattr(project_protocol, "profile_evidence", explode)
+    assert start(project, capsys) == 0
+    assessment = submit(project, capsys, FUSED, FUSION)
+    assert assessment["verdict"] == "PASS" and assessment["eligible"] is True
+    assert assessment["profile_evidence"]["status"] == "unavailable"
+    assert assessment["explanation"]["status"] == "unverifiable"
+    _, state, _ = read_records(project[3])
+    assert state["state"] == "active" and state["best"]["kind"] == "candidate"

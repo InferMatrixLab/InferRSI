@@ -202,9 +202,13 @@ def assess(directory: Path, settings: dict, execution: dict, *,
         mechanism, mechanism_error = None, str(error)
     reference = [item["region"] for item in (mechanism or {}).get("expect", [])
                  if "region" in item and item["direction"] == "unchanged"]
-    observed = profile_evidence(profiles["baseline"], profiles["candidate"],
-                                reference_regions=reference,
-                                family_size=len((mechanism or {}).get("expect", [])) or 1)
+    try:
+        observed = profile_evidence(profiles["baseline"], profiles["candidate"],
+                                    reference_regions=reference,
+                                    family_size=len((mechanism or {}).get("expect", [])) or 1)
+    except (ArithmeticError, TypeError, ValueError) as error:
+        # Profile evidence is a report: a failure here must not change the verdict.
+        observed = {"status": "unavailable", "reason": f"Profile evidence failed: {error}"}
     explanation = explain(mechanism, observed)
     if mechanism_error:
         explanation = {"status": "unverifiable", "reason": mechanism_error}

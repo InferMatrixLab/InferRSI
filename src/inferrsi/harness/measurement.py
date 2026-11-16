@@ -19,6 +19,7 @@ both sides of one pair and does not qualify the environment.
 """
 
 import math
+from fractions import Fraction
 from statistics import median
 
 METHOD = "paired_median_speedup_sign_test_interval"
@@ -29,7 +30,8 @@ def interval_rank(pairs: int, confidence: float = CONFIDENCE) -> int | None:
     """Largest order-statistic rank whose one-sided binomial tail fits the confidence."""
     if type(pairs) is not int or pairs < 1 or not 0 < confidence < 1:
         return None
-    allowed = (1 - confidence) / 2 * 2 ** pairs
+    # Exact rational comparison: a float 2 ** pairs overflows near a thousand pairs.
+    allowed = (1 - Fraction(confidence)) / 2 * 2 ** pairs
     rank, tail = None, 0
     for k in range(pairs):
         tail += math.comb(pairs, k)
@@ -57,9 +59,9 @@ def median_interval(values: list, confidence: float = CONFIDENCE) -> dict | None
     if rank is None:
         return None
     ordered = sorted(values)
-    tail = sum(math.comb(pairs, k) for k in range(rank)) / 2 ** pairs
+    tail = Fraction(sum(math.comb(pairs, k) for k in range(rank)), 2 ** pairs)
     return {"interval": [ordered[rank - 1], ordered[pairs - rank]], "rank": rank,
-            "achieved_confidence": 1 - 2 * tail}
+            "achieved_confidence": float(1 - 2 * tail)}
 
 
 def gate_speedup(min_improvement_pct: float, direction: str) -> float:

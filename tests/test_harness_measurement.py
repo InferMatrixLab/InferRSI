@@ -115,6 +115,19 @@ def test_exact_ranks_and_minimum_pairs():
     assert [min_pairs(1 - 0.05 / k) for k in (1, 2, 3, 4, 6, 7)] == [6, 7, 7, 8, 8, 9]
 
 
+def test_many_pairs_use_exact_arithmetic_without_overflow():
+    # A float 2 ** n overflows near n = 1024; the rank must still be exact and finite.
+    for pairs in (1023, 1024, 3000):
+        rank = interval_rank(pairs)
+        assert rank is not None and 1 < rank < pairs // 2
+    evidence = profile_evidence([{"counters": {"x": 10}}] * 1024,
+                                [{"counters": {"x": 8}}] * 1024)
+    assert evidence["counters"]["x"]["observed"] == "decrease"
+    result = report([10.0] * 1024, [8.0] * 1024)
+    assert result["status"] == "available" and result["gate_relation"] == "above_gate"
+    json.dumps(result, allow_nan=False)
+
+
 def test_report_only_follows_whether_the_interval_decides():
     assert report(BASE, GAIN)["report_only"] is True
     decided = report(BASE, GAIN, decides=True)
