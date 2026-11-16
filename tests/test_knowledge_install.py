@@ -80,7 +80,8 @@ def test_packaged_skill_search_and_resource_work_without_pyyaml(without_yaml, tm
         "--output", str(output),
     ], env)
     assert fetched.returncode == 0, fetched.stderr
-    assert output.read_bytes() == (SKILLS / Path(original).relative_to("data/skill_library")).read_bytes()
+    expected = SKILLS / Path(original).relative_to("data/skill_library")
+    assert output.read_bytes() == expected.read_bytes()
 
 
 def test_skill_root_without_pyyaml_fails_with_install_hint(without_yaml):
