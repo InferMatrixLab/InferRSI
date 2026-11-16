@@ -1,5 +1,6 @@
-"""Check the unsealed Apps plan handed to the Harness generation controller."""
+"""Check generation planning and proposal collection across the Apps/Harness boundary."""
 
+import sys
 from copy import deepcopy
 from hashlib import sha256
 from pathlib import Path
@@ -7,9 +8,13 @@ from pathlib import Path
 import pytest
 
 from inferrsi.apps.api import CandidateProvider
+from inferrsi.apps.artifact_reader import ArtifactReader
+from inferrsi.apps.bridge import bind_execution
 from inferrsi.contracts.json_v1 import decode, encode
+from inferrsi.harness.api import Harness
 from inferrsi.harness.errors import PublicError
 from inferrsi.harness.execution_service import LocalCpuTarget, validate
+from inferrsi.harness.run_store import RunStore
 
 _FIXTURES = Path(__file__).resolve().parents[1] / "docs/contracts/fixtures/t108-v4"
 _ATTEMPT_FIELDS = (
@@ -80,12 +85,13 @@ def generation():
     }
 
 
-def _provider(generation, bind_inputs=None):
+def _provider(generation, bind_inputs=None, *, parse_candidate=None):
     return CandidateProvider(
         provider=generation["provider"], output_contract=generation["output_contract"],
         steps=generation["steps"], required_capabilities=generation["required_capabilities"],
         bind_inputs=bind_inputs or (lambda context: generation["inputs"]),
         output_root_for=lambda attempt_id: f"generation/{attempt_id}",
+        parse_candidate=parse_candidate,
     )
 
 
@@ -169,3 +175,152 @@ def test_plan_rejects_invalid_handoff(generation, path, value):
     with pytest.raises(PublicError) as caught:
         _provider(generation).plan_generation(generation["context"], generation["attempt"])
     assert (caught.value.code, caught.value.stage) == ("InvalidExecutionSpec", "generation_plan")
+
+
+def _archive_bytes(root, name, data):
+    (root / name).write_bytes(data)
+    return {
+        "location": f"archive/apps/{name}", "sha256": sha256(data).hexdigest(),
+        "media_type": "application/octet-stream", "size_bytes": len(data),
+    }
+
+
+@pytest.fixture
+def execute_generation(generation, tmp_path):
+    archive = tmp_path / "archive"
+    archive.mkdir()
+    namespace = "generation-tests"
+    store = RunStore(tmp_path / "store", namespace)
+    reader = ArtifactReader({
+        "schema_version": 1, "archive_namespace": "apps", "harness_namespace": namespace,
+        "mounts": [
+            {"kind": "directory", "namespace": "apps", "prefix": "archive/apps",
+             "root": str(archive)},
+            {"kind": "harness_sqlite", "namespace": namespace, "prefix": f"stores/{namespace}",
+             "root": str(store.root)},
+        ],
+    })
+    context = generation["context"]
+    context_ref = _archive_bytes(archive, "context", b"approved context")
+    context["delivered_context"]["artifact"] = context_ref
+    context["task_materials"] = []
+    context["allowed_feedback"] = []
+    generation["inputs"] = [_fixed_input("knowledge", context_ref)]
+    prepared = decode((_FIXTURES / "prepared.json").read_bytes())
+    candidate_bytes = (_FIXTURES / "candidate.txt").read_bytes()
+    metadata = {
+        "candidate_id": prepared["expected_candidate"]["candidate_id"],
+        "kind": context["output_contract"]["kind"],
+        "input_role": "candidate", "parent_id": None, "parent_digest": None,
+    }
+    target = generation["attempt"]["target_request"]
+    work = tmp_path / "work"
+    harness = Harness(store, LocalCpuTarget(target["target_id"], target["config_revision"], work),
+                      artifact_reader=reader)
+
+    def run(mode="ok", *, override_parser=None):
+        step = generation["steps"][0]
+        step["entrypoint_kind"] = "executable"
+        step["entrypoint"] = sys.executable
+        code = (
+            "from pathlib import Path\n"
+            "Path('output').mkdir(exist_ok=True)\n"
+            f"Path('output/manifest.json').write_bytes({encode(metadata)!r})\n"
+        )
+        if mode != "missing-output":
+            code += f"Path('output/candidate.txt').write_bytes({candidate_bytes!r})\n"
+        if mode == "failed":
+            code += "raise SystemExit(1)\n"
+        step["args"] = ["-c", code]
+
+        def parse(worker_manifest, candidate):
+            assert candidate == candidate_bytes
+            return decode(worker_manifest), {"candidate": "candidate"}
+
+        provider = _provider(generation, parse_candidate=override_parser or parse)
+        attempt = harness.allocate(
+            run_id="test-generation", owner="tests", target_request=target,
+            deadline_utc="2099-01-01T00:00:00Z", resources=generation["attempt"]["resources"],
+            budget=generation["attempt"]["budget"],
+        )
+        plan = provider.plan_generation(context, attempt)
+        spec = plan["spec"]
+        if mode != "unsealed":
+            # Supply the sealed input shape here until the Harness controller implements V24.
+            manifest = plan["manifest"]
+            if mode == "foreign-plan":
+                manifest = {**manifest, "attempt_id": "another-attempt"}
+            sealed = _archive_bytes(archive, f"{attempt['attempt_id']}.json", encode(manifest))
+            spec["inputs"].append(_fixed_input("generation_plan", sealed))
+        record = harness.execute(spec)
+        return provider, record, reader, harness, work / "workspaces" / spec["output_root"]
+
+    return run
+
+
+def test_collect_uses_committed_bytes_after_workspace_changes(execute_generation):
+    provider, record, reader, harness, workspace = execute_generation()
+    output_ref = next(item["artifact"] for item in record["artifacts"]
+                      if item["role"] == "candidate")
+    (workspace / "output/candidate.txt").write_bytes(b"new live bytes")
+    (workspace / "output/manifest.json").write_bytes(b"invalid live manifest")
+    fixed = harness.read(record["attempt_id"], record["record_version"])
+
+    proposal = provider.collect_candidate(fixed, artifacts=reader)
+
+    assert proposal["generation_record_ref"] == record["record_ref"]
+    assert proposal["candidate"]["candidate_id"] == "cand-1"
+    assert proposal["candidate"]["context_refs"][0]["location"] == "archive/apps/context"
+    assert len(proposal["inputs"]) == 1
+    assert proposal["inputs"][0] == {
+        **_fixed_input("candidate", output_ref),
+        "materialized_path": f"inputs/{sha256(b'candidate').hexdigest()}",
+    }
+    golden = decode((_FIXTURES.parent / "execution-spec-d023.json").read_bytes())
+    prepared = decode((_FIXTURES / "prepared.json").read_bytes())
+    spec = bind_execution({
+        "schema_version": 1, "proposal": proposal, "prepared_ref": golden["prepared_ref"],
+        "attempt": {field: golden[field] for field in _ATTEMPT_FIELDS},
+        "output_root": golden["output_root"],
+    }, prepared)
+    assert spec["generation_record_ref"] == record["record_ref"]
+    assert spec["inputs"][0]["source_ref"] == output_ref
+    proposal["inputs"][0]["source_ref"]["location"] = "altered"
+    reread = provider.collect_candidate(fixed, artifacts=reader)
+    assert reread["inputs"][0]["source_ref"] == output_ref
+
+
+@pytest.mark.parametrize(("mode", "error"), (
+    ("unsealed", "InvalidRequest"),
+    ("foreign-plan", "InvalidRequest"),
+    ("missing-output", "ArtifactUnavailable"),
+    ("failed", "InvalidRequest"),
+))
+def test_collect_refuses_bad_generation(execute_generation, mode, error):
+    def unexpected_parser(*args):
+        pytest.fail("parser must not be called for a rejected generation")
+
+    provider, record, reader, _, _ = execute_generation(mode, override_parser=unexpected_parser)
+    with pytest.raises(PublicError) as caught:
+        provider.collect_candidate(record, artifacts=reader)
+    assert (caught.value.code, caught.value.stage) == (error, "candidate_collection")
+
+
+def test_collect_refuses_a_record_receipt_that_differs_from_storage(execute_generation):
+    provider, record, reader, _, _ = execute_generation()
+    record["artifacts"].clear()
+    with pytest.raises(PublicError, match="IdentityMismatch"):
+        provider.collect_candidate(record, artifacts=reader)
+
+
+def test_collect_does_not_bind_an_undeclared_worker_output(execute_generation, generation):
+    generation["output_contract"]["required_input_roles"].append("receipt")
+
+    def parse_with_undeclared_output(manifest, candidate):
+        return decode(manifest), {"candidate": "candidate", "receipt": "stdout"}
+
+    provider, record, reader, _, _ = execute_generation(
+        override_parser=parse_with_undeclared_output,
+    )
+    with pytest.raises(PublicError, match="ArtifactUnavailable"):
+        provider.collect_candidate(record, artifacts=reader)
