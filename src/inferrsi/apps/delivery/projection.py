@@ -263,6 +263,7 @@ def iterative(snapshot, result):
     final_refs = []
     final_candidate = None
     final_observation = None
+    final_assessment_verified = False
     result["rounds"], result["metrics"], result["checks"] = [], [], []
     records = [*rounds, *([final] if final else [])]
     for index, record in enumerate(records):
@@ -273,12 +274,25 @@ def iterative(snapshot, result):
             directory + "/observation.json", "assessment", record.get("observation_sha256")
         )
         # Compare cached assessment with its independently retained original.
-        if observation and observation != {
+        if observation is not None and observation != {
             k: v for k, v in record.items() if k != "observation_sha256"
         }:
             observation = None
             gap(result, "ASSESSMENT_CONFLICT", ref, "Cached and retained observations disagree")
-        value = observation.get("assessment") if observation else None
+        # Committed state retains history when the original is lost or conflicts;
+        # this fallback is never current verification.
+        historical = observation if observation is not None else record
+        assessment_ref = ref if observation is not None else state_ref
+        provenance = {
+            "kind": "retained_observation" if observation is not None else "cached_state",
+            "artifact_ref": assessment_ref,
+            "json_pointer": (
+                "" if observation is not None else "/final" if is_final else f"/rounds/{index}"
+            )
+            + "/assessment",
+            "verification": "verified" if observation is not None else "unverified",
+        }
+        value = historical.get("assessment")
         if (
             not isinstance(value, dict)
             or value.get("status")
@@ -290,7 +304,16 @@ def iterative(snapshot, result):
                 result,
                 "ASSESSMENT_UNAVAILABLE",
                 ref,
-                "The original assessment is absent or malformed",
+                "No readable assessment remains in the retained observation or committed state",
+            )
+        elif observation is None:
+            gap(
+                result,
+                "CACHED_ASSESSMENT_UNVERIFIED",
+                ref,
+                "Cached historical assessment from state.json is retained for audit; "
+                "the original observation is unavailable or conflicts. Current verification "
+                "is not established by this cached record.",
             )
         candidate = (
             snapshot.candidate(
@@ -317,7 +340,8 @@ def iterative(snapshot, result):
         parsed.append(usage_record)
         metric_start = len(result["metrics"])
         if value:
-            result["metrics"].extend(_metrics(value, plan, phase, ref))
+            if observation is not None:
+                result["metrics"].extend(_metrics(value, plan, phase, ref))
             result["checks"].append(
                 {
                     "name": "frozen_assessment",
@@ -327,22 +351,32 @@ def iterative(snapshot, result):
                     "gate_ref": plan_ref,
                     "observation": value,
                     "verdict": value.get("verdict"),
-                    "evidence_refs": [ref, *evidence_refs],
+                    "assessment_provenance": provenance,
+                    "evidence_refs": list(dict.fromkeys([assessment_ref, ref, *evidence_refs])),
                 }
             )
         if is_final:
             final_value, final_refs = value, [ref, *evidence_refs]
-            final_candidate, final_observation = candidate, observation
+            final_candidate, final_observation = candidate, historical
+            final_assessment_verified = observation is not None and value is not None
             result["final"] = {
                 "attempt_id": directory.rsplit("/", 1)[-1],
                 "fingerprint": record.get("candidate_sha256"),
                 "protocol_ref": plan_ref,
-                "assessment_ref": ref,
-                "execution": observation.get("execution") if observation else None,
+                "assessment_ref": assessment_ref,
+                "assessment_provenance": provenance if value else None,
+                "execution": historical.get("execution"),
                 "status": (value or {}).get("status"),
                 "candidate_binding": record.get("candidate_binding"),
             }
-            assessment(result, value, ref, scope=plan.get("evaluation_settings", {}).get("scope"))
+            assessment(
+                result,
+                value,
+                assessment_ref,
+                scope=plan.get("evaluation_settings", {}).get("scope"),
+            )
+            if value:
+                result["acceptance"]["assessment_provenance"] = provenance
         else:
             best_after = record.get("best_after", {})
             result["rounds"].append(
@@ -352,8 +386,9 @@ def iterative(snapshot, result):
                     "candidate_fingerprint": record.get("candidate_sha256"),
                     "hypothesis": record.get("hypothesis"),
                     "change_summary": record.get("change_summary"),
-                    "execution_state": (observation or {}).get("execution", {}).get("status"),
-                    "assessment_ref": ref,
+                    "execution_state": historical.get("execution", {}).get("status"),
+                    "assessment_ref": assessment_ref,
+                    "assessment_provenance": provenance if value else None,
                     "verdict": (value or {}).get("verdict"),
                     "reason": (value or {}).get("reason"),
                     "score": (value or {}).get("score"),
@@ -415,6 +450,11 @@ def iterative(snapshot, result):
         if finished
         else "Required rounds or independent final assessment are incomplete",
     }
+    if finished and not final_assessment_verified:
+        result["completion"]["reason"] = (
+            "Required search and independent final assessment completed according to "
+            "cached state; unverified against the retained final observation"
+        )
     if not final:
         gap(result, "FINAL_NOT_RUN", "final_acceptance", "Independent final evaluation is absent")
     fingerprint_bound = bool(
@@ -455,6 +495,7 @@ def iterative(snapshot, result):
             )
     current = (
         bound
+        and final_assessment_verified
         and snapshot.verified(frozen_refs)
         and snapshot.verified(final_refs)
         and baseline["verified"]

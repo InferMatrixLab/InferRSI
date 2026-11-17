@@ -20,6 +20,12 @@ def _markdown(value):
     return "".join(f"&#{ord(c)};" if c in '\\`*_{}[]()#+-.!|<>"&\n\r' else c for c in _text(value))
 
 
+def _assessment_source(value):
+    if not value:
+        return None
+    return "cached state; unverified" if value["kind"] == "cached_state" else "retained observation"
+
+
 def _sections(result):
     acceptance = result["acceptance"]
     selected = result["selected_candidate"]
@@ -35,6 +41,8 @@ def _sections(result):
                 ["Completion reason", result["completion"]["reason"]],
                 ["Outcome", result["outcome"]["kind"]],
                 ["Original assessment", verdict],
+                ["Assessment source", _assessment_source(acceptance.get("assessment_provenance"))],
+                ["Assessment reference", acceptance["assessment_ref"]],
                 ["Acceptance scope", acceptance["scope"]],
                 ["Delivery acceptance verified", acceptance["delivery_accepted"]],
                 [
@@ -101,6 +109,7 @@ def _sections(result):
                 "Change",
                 "State",
                 "Verdict",
+                "Assessment source",
                 "Score",
                 "Best score",
                 "Selection / reason",
@@ -113,6 +122,7 @@ def _sections(result):
                     r.get("change_summary"),
                     r.get("execution_state"),
                     r.get("verdict"),
+                    _assessment_source(r.get("assessment_provenance")),
                     r.get("score"),
                     r.get("best_score"),
                     [r.get("selection_decision"), r.get("reason")],
@@ -197,6 +207,11 @@ def _curve(result):
         "Hover a point for its recorded value. Final acceptance remains separate.</figcaption>"
         "</figure>",
     ]
+    if any((r.get("assessment_provenance") or {}).get("kind") == "cached_state" for r in rounds):
+        nodes.append(
+            "<p>Some search scores are from cached state; unverified. "
+            "See each round's assessment source below.</p>"
+        )
     return "".join(nodes)
 
 
@@ -205,9 +220,12 @@ def reports(result, result_digest):
         f"Export: {result['export']['id']} · Snapshot: {result['export']['snapshot_at']} · "
         f"Kind: {result['export']['kind']} · Structured result SHA-256: {result_digest}"
     )
+    verdict = result["acceptance"]["verdict"] or "Not assessed"
+    if (result["acceptance"].get("assessment_provenance") or {}).get("kind") == "cached_state":
+        verdict += " (cached state; unverified)"
     conclusion = (
         f"{result['completion']['status']}: {result['outcome']['kind']}. "
-        f"Original assessment: {result['acceptance']['verdict'] or 'Not assessed'}. "
+        f"Original assessment: {verdict}. "
         f"{result['completion']['reason']}."
     )
     md = [

@@ -51,9 +51,12 @@ acceptance remain separate.
    as an audit fact and sets `delivery_accepted: false`.
 3. **Degraded reads:** a separate read-only adapter never weakens Harness `_load`
    or reassesses evidence. An intact digest-bound observation retains historical
-   PASS when measurement bytes are missing or modified. A missing, invalid or
-   changed observation cannot establish PASS from its unverified cached assessment;
-   the report says “Not assessed” and references preserved state for audit.
+   PASS when measurement bytes are missing or modified. If the observation is
+   missing, invalid or conflicts with committed state, a readable cached assessment
+   in `state.json` retains the historical verdict and completion facts, explicitly
+   labelled **cached state; unverified**. It cannot establish current delivery
+   acceptance. If neither source supplies a readable assessment, the report says
+   “Not assessed”; it never invents a verdict or substitutes a search PASS for final.
 4. **Snapshot:** native exports share the controller's nonblocking OS lock. Since
    writers hold it throughout an attempt, progress exports happen between committed
    operations. A second digest pass checks every source read, negative lookup and
@@ -100,7 +103,24 @@ A missing/interrupted final stays incomplete. A final snapshot means the source
 stopped, not that it succeeded. Historical completion survives later evidence loss;
 prominent current gaps prevent current delivery acceptance.
 
-The primary assessment is the final observation, never a favorable search result.
+The primary assessment is the final record, never a favorable search result.
+For native records, `assessment_provenance` on acceptance, final, checks and rounds
+identifies `kind: retained_observation / cached_state`, an indexed `artifact_ref`,
+the assessment's `json_pointer` inside that document, and
+`verification: verified / unverified`. A retained observation must agree with the
+committed record and its recorded digest. A readable cached assessment is used
+only when that original cannot be read consistently; its reference resolves to
+`state.json`, with `/final/assessment` or `/rounds/<index>/assessment`. Conflicting
+values retain an explicit gap instead of choosing the more favorable verdict.
+The index still records the missing or damaged observation and raw evidence.
+Observation verification does not certify all evidence: `delivery_accepted`
+separately requires current evidence and candidate binding to verify. Cached
+assessments always remain unverified, even if the other evidence is intact.
+Their raw measurements remain in the historical check for audit, but do not
+produce comparison metrics, derived gains or usage totals. Cached search scores
+remain labelled in the history and curve. Malformed or absent cached assessments
+cannot establish historical completion; cached timeouts stay incomplete.
+
 Missing claim identities stay null with `identity_incomplete`. Existing INCONCLUSIVE
 is preserved; missing assessments are “Not assessed,” never fabricated INCONCLUSIVE.
 `improved` also requires a non-baseline selection, passing verified final and a gain
@@ -127,7 +147,7 @@ remain null without accounting observations; elapsed wall time is insufficient.
 
 | Input | Authoritative facts | Deliberate gaps |
 | --- | --- | --- |
-| Native project / Benchmark | Plan, campaign, state, digest-bound observations/execution/evidence and retained code | Missing identities stay unknown; summaries cannot substitute for final |
+| Native project / Benchmark | Plan, campaign, state, digest-bound observations/execution/evidence and retained code; labelled cached history if observations are lost | Cached history cannot verify delivery; summaries cannot substitute for final |
 | Historical version 1 `summary.json` | Recorded final assessment and reported completion | No reconstructed rounds, independent final, binding or usage coverage |
 | Legacy run directory | `run.lock.json`, `status.json`, `evaluation.json`; paired single-experiment median | No invented iterative rounds/final or generalized L4 claim |
 | Apps `result.json` | Validated AppsResultV1, explicitly selected primary claim, fixed refs, all original claims | Operation success is not campaign completion; storage is not implicitly mounted/fetched |

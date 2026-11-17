@@ -111,6 +111,7 @@ def empty_result(export_id, observed_at, version):
             "claim_id": None,
             "scope": None,
             "assessment_ref": None,
+            "assessment_provenance": None,
             "delivery_accepted": False,
         },
         "metrics": None,
@@ -171,6 +172,10 @@ def validate_result(value):
         or value["completion"]["status"] != "completed"
         or not value["final"]
         or value["final"].get("binding", {}).get("verified") is not True
+        or (
+            acceptance.get("assessment_provenance") is not None
+            and acceptance["assessment_provenance"].get("verification") != "verified"
+        )
     ):
         raise ValueError("Delivery acceptance requires a completed final with verified binding")
     for measure in value["usage"].values():

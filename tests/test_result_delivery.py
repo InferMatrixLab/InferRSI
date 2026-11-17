@@ -219,12 +219,91 @@ def test_damaged_evidence_does_not_rewrite_history_or_accept_different_code(tmp_
     result, output = export(root, tmp_path)
     assert result["acceptance"]["delivery_accepted"] is False
     assert result["outcome"]["kind"] == "undetermined"
-    recoverable = "assessment" not in damage
-    assert result["acceptance"]["verdict"] == ("PASS" if recoverable else None)
-    assert result["completion"]["status"] == ("completed" if recoverable else "incomplete")
+    assert result["acceptance"]["verdict"] == "PASS"
+    assert result["completion"]["status"] == "completed"
     assert "Current gaps" in (output / "report.md").read_text()
     with pytest.raises((ValueError, FileNotFoundError)):
         optimization.read_records(root)  # Normal execution reader remains strict.
+
+
+@pytest.mark.parametrize("verdict", ["PASS", "FAIL", "INCONCLUSIVE"])
+@pytest.mark.parametrize("damage", ["missing", "invalid", "changed"])
+def test_cached_final_preserves_history_without_verifying_delivery(tmp_path, verdict, damage):
+    root = make_campaign(tmp_path, final_verdict=verdict)
+    committed = (root / "state.json").read_bytes()
+    record = state(root)["final"]
+    observation = root / record["path"] / "observation.json"
+    if damage == "missing":
+        observation.unlink()
+    elif damage == "invalid":
+        observation.write_text('{"assessment":')
+    else:
+        changed = json.loads(observation.read_text())
+        changed["assessment"]["verdict"] = "FAIL" if verdict == "PASS" else "PASS"
+        atomic_write_json(observation, changed)
+    result, output = export(root, tmp_path)
+    assert (root / "state.json").read_bytes() == committed
+    assert result["completion"]["status"] == "completed"
+    assert result["acceptance"]["status"] == "assessed"
+    assert result["acceptance"]["verdict"] == verdict
+    assert result["acceptance"]["delivery_accepted"] is False
+    assert result["outcome"]["kind"] == "undetermined"
+    assert result["outcome"]["optimization_speedup"] is None
+    provenance = {
+        "kind": "cached_state",
+        "artifact_ref": "source:state.json",
+        "json_pointer": "/final/assessment",
+        "verification": "unverified",
+    }
+    assert result["acceptance"]["assessment_ref"] == "source:state.json"
+    assert result["acceptance"]["assessment_provenance"] == provenance
+    assert result["final"]["assessment_provenance"] == provenance
+    check = next(c for c in result["checks"] if c["phase"] == "final")
+    assert check["observation"] == record["assessment"]
+    assert check["assessment_provenance"] == provenance
+    assert "source:state.json" in check["evidence_refs"]
+    assert "source:" + record["path"] + "/observation.json" in check["evidence_refs"]
+    assert not [m for m in result["metrics"] if m["phase"] == "final"]
+    for filename in ("report.md", "report.html"):
+        text = (output / filename).read_text()
+        assert "cached state; unverified" in text
+        assert "Current gaps" in text
+
+
+def test_conflicting_retained_observation_cannot_verify_cached_pass(tmp_path):
+    root = make_campaign(tmp_path)
+    value = state(root)
+    record = value["final"]
+    observation = root / record["path"] / "observation.json"
+    changed = json.loads(observation.read_text())
+    changed["assessment"]["verdict"] = "FAIL"
+    atomic_write_json(observation, changed)
+    record["observation_sha256"] = sha256(observation)
+    atomic_write_json(root / "state.json", value)
+    result, _ = export(root, tmp_path)
+    assert result["acceptance"]["verdict"] == "PASS"
+    assert result["acceptance"]["assessment_provenance"]["kind"] == "cached_state"
+    assert result["acceptance"]["delivery_accepted"] is False
+    assert any(g["code"] == "ASSESSMENT_CONFLICT" for g in result["gaps"])
+    result["acceptance"]["delivery_accepted"] = True
+    with pytest.raises(ValueError, match="Delivery acceptance requires"):
+        validate_result(result)
+
+
+def test_missing_search_observation_retains_labelled_history(tmp_path):
+    root = make_campaign(tmp_path)
+    record = state(root)["rounds"][0]
+    (root / record["path"] / "observation.json").unlink()
+    result, _ = export(root, tmp_path)
+    search = result["rounds"][0]
+    assert search["verdict"] == "PASS"
+    assert search["score"] == record["assessment"]["score"]
+    assert search["assessment_ref"] == "source:state.json"
+    assert search["assessment_provenance"]["json_pointer"] == "/rounds/0/assessment"
+    assert search["assessment_provenance"]["verification"] == "unverified"
+    # The independently retained final still supplies its own verified assessment.
+    assert result["acceptance"]["assessment_provenance"]["kind"] == "retained_observation"
+    assert result["acceptance"]["delivery_accepted"] is True
 
 
 @pytest.mark.parametrize("binding_state", ["verified", "missing", "mismatch", "bad_revision"])
@@ -539,7 +618,10 @@ def test_export_cli_success_describes_export_not_experiment_verdict(tmp_path, ca
     assert receipt["report_html"]["label"] == "Open in a browser"
 
 
-def test_interrupted_final_is_incomplete_and_keeps_original_inconclusive(tmp_path):
+@pytest.mark.parametrize("missing_observation", [False, True])
+def test_interrupted_final_is_incomplete_and_keeps_original_inconclusive(
+    tmp_path, missing_observation
+):
     root = make_campaign(tmp_path)
     value = state(root)
     record = value["final"]
@@ -550,6 +632,8 @@ def test_interrupted_final_is_incomplete_and_keeps_original_inconclusive(tmp_pat
     atomic_write_json(execution, record["execution"])
     record["execution_sha256"] = sha256(execution)
     rewrite_final(root, value)
+    if missing_observation:
+        (root / record["path"] / "observation.json").unlink()
     result, _ = export(root, tmp_path)
     assert result["execution"]["state"] == "blocked"
     assert result["completion"]["status"] == "incomplete"
@@ -557,11 +641,17 @@ def test_interrupted_final_is_incomplete_and_keeps_original_inconclusive(tmp_pat
     assert result["outcome"]["optimization_speedup"] is None
 
 
-def test_malformed_assessment_cannot_become_historical_pass(tmp_path):
+@pytest.mark.parametrize("missing_observation", [False, True])
+@pytest.mark.parametrize("assessment", [None, "PASS", {}])
+def test_malformed_assessment_cannot_become_historical_pass(
+    tmp_path, missing_observation, assessment
+):
     root = make_campaign(tmp_path)
     value = state(root)
-    value["final"]["assessment"] = "PASS"
+    value["final"]["assessment"] = assessment
     rewrite_final(root, value)
+    if missing_observation:
+        (root / value["final"]["path"] / "observation.json").unlink()
     result, _ = export(root, tmp_path)
     assert result["acceptance"]["status"] == "not_assessed"
     assert result["completion"]["status"] == "incomplete"
@@ -585,9 +675,12 @@ def test_frozen_member_change_during_read_cannot_publish_accepted_snapshot(tmp_p
     assert not (tmp_path / "changing").exists()
 
 
-def test_offline_html_remains_readable_without_scripts_or_network(tmp_path):
+@pytest.mark.parametrize("missing_observation", [False, True])
+def test_offline_html_remains_readable_without_scripts_or_network(tmp_path, missing_observation):
     playwright = pytest.importorskip("playwright.sync_api")
     root = make_campaign(tmp_path)
+    if missing_observation:
+        (root / state(root)["final"]["path"] / "observation.json").unlink()
     _, output = export(root, tmp_path)
     with playwright.sync_playwright() as driver:
         browser = driver.chromium.launch()
@@ -596,7 +689,12 @@ def test_offline_html_remains_readable_without_scripts_or_network(tmp_path):
         page.on("request", lambda request: requests.append(request.url))
         page.goto((output / "report.html").as_uri())
         assert page.locator("h1").inner_text() == "RSI result report"
-        assert "completed: improved" in page.locator("body > p").first.inner_text()
+        conclusion = page.locator("body > p").first.inner_text()
+        expected = "completed: undetermined" if missing_observation else "completed: improved"
+        assert expected in conclusion
+        if missing_observation:
+            assert "Original assessment: PASS (cached state; unverified)" in conclusion
+            assert "Cached historical assessment" in page.locator(".gaps").inner_text()
         assert page.get_by_role("img").count() == 1
         page.locator("details summary").click()
         assert (
