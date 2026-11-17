@@ -54,7 +54,14 @@ def write(path, value):
     path.write_text(json.dumps(value, indent=2), encoding="utf-8")
 
 
-def build(root):
+DEFAULT_RUNS = (
+    ("repeat", "first", 1, "FAIL", -2, "failed"),
+    ("repeat", "retry", 1, "INCONCLUSIVE", 0, "failed"),
+    ("second", "no-gain", 2, "FAIL", 0, "failed"),
+)
+
+
+def build(root, *, runs=DEFAULT_RUNS):
     root = Path(root)
     create_campaign(root, "synthetic-retrieval")
     manifest = json.loads((root / "campaign.json").read_text())
@@ -79,11 +86,7 @@ def build(root):
         if name == "legacy":
             result.pop("retrieval")
         _, captures[name] = save_retrieval(root, context_id=name, result=result)
-    for candidate, run, number, verdict, gain in (
-        ("repeat", "first", 1, "FAIL", -2),
-        ("repeat", "retry", 1, "INCONCLUSIVE", 0),
-        ("second", "no-gain", 2, "FAIL", 0),
-    ):
+    for candidate, run, number, verdict, gain, quality in runs:
         directory = root / "runs" / run
         write(directory / "run.lock.json", {"workload_id": "synthetic", "scenario": "http"})
         write(directory / "status.json", {"state": "completed"})
@@ -92,7 +95,9 @@ def build(root):
             "direction": "minimize", "improvement_pct": gain,
             "baseline": {"median": 10}, "candidate": {"median": 10 - gain / 10},
             "source_integrity": {"verified": True}})
-        write(directory / "validation/execution.json", {"status": "failed", "returncode": 1})
+        write(directory / "validation/execution.json", {
+            "status": quality, "returncode": 0 if quality == "completed" else 1,
+        })
         if run == "retry":
             original = json.loads((root / "candidates/repeat/candidate.json").read_text())
             write(root / "candidates/repeat-retry/candidate.json", {**original, "run_id": run})

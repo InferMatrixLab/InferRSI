@@ -1,22 +1,81 @@
 <style>
-.experiments{--xp-blue:#76b7ff;--xp-muted:#a8b3c5;color:#e7edf7;padding:14px;min-width:0;font:14px/1.5 system-ui,sans-serif}
-.experiments *{box-sizing:border-box}.xp-controls{display:flex;gap:16px;flex-wrap:wrap;margin:8px 0 16px}.xp-controls label{display:grid;gap:5px;color:var(--xp-muted);font-size:12px}
-.experiments select,.experiments button{background:#202a3b;border:1px solid #40516b;color:#e7edf7;border-radius:5px;padding:6px 10px;font:inherit}.experiments button{cursor:pointer}.experiments :focus-visible{outline:3px solid #ffc76a;outline-offset:3px}
-.xp-note{color:var(--xp-muted);font-size:12px}.xp-card{border:1px solid #334159;background:#141c29;border-radius:8px;padding:12px;margin:12px 0}.xp-card h3{font-size:14px;margin:0 0 4px}.xp-scroll{overflow:auto;max-width:100%}
-.experiments .xp-chart{display:block;min-width:600px;width:100%;height:auto;max-height:none}.xp-chart text{font:12px system-ui;fill:#b5c1d3}.xp-chart .xp-point{cursor:pointer;stroke:#141c29;stroke-width:2}.xp-chart .xp-point[aria-pressed="true"]{stroke:#fff;stroke-width:4}.xp-chart .xp-point:focus{outline:none;stroke:#ffc76a;stroke-width:4}
-.xp-events{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}.xp-events button{font-size:12px;text-align:left;max-width:100%}.xp-events .failure,.xp-events .failures{border-color:#ea7c84}.xp-events .successes{border-color:#62c9a4}
-.xp-detail{border-left:3px solid var(--xp-blue);padding:12px 16px;background:#1b2638;margin-top:12px;overflow-wrap:anywhere}.xp-detail dl{display:grid;grid-template-columns:minmax(100px,150px) 1fr;gap:5px 14px;margin:10px 0}.xp-detail dt{color:var(--xp-muted)}.xp-detail dd{margin:0;white-space:pre-wrap}
-.experiments details{margin-top:12px}.experiments summary{cursor:pointer;color:var(--xp-blue);padding:8px 0}.experiments table{width:100%;border-collapse:collapse;white-space:normal;min-width:700px;font-size:12px}.experiments th,.experiments td{padding:9px;text-align:left;border-bottom:1px solid #334159;vertical-align:top}.experiments th{color:#a8b3c5}.xp-badge{color:#ffca7c;font-size:11px;letter-spacing:.08em}.xp-legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--xp-muted)}.xp-detail p{margin:6px 0}.xp-unplaced{border-left:2px solid #ffbd69;padding-left:10px}
-@media(max-width:650px){.experiments{padding:8px}.xp-detail dl{grid-template-columns:1fr}.xp-detail dd{padding-bottom:6px}.xp-controls{gap:10px}.xp-controls select{max-width:210px}}
+.experiments {
+  --xp-accent:#75e9d2;
+  --xp-muted:#afbed0;
+  color:#e9f0f7;
+  font:14px/1.5 system-ui,sans-serif;
+  min-width:0;
+  padding:14px;
+  overflow-wrap:anywhere;
+  container:experiment / inline-size;
+}
+.experiments * { box-sizing:border-box; }
+.experiments h2 { margin:0 0 4px; font-size:18px; }
+#chart.experiments > :is(h2,.xp-badge) { display:none; }
+.xp-note { margin:4px 0; color:var(--xp-muted); font-size:12px; }
+.xp-controls { display:flex; flex-wrap:wrap; align-items:end; gap:6px 12px; margin:10px 0; }
+.xp-controls label { display:flex; align-items:center; gap:6px; max-width:100%; color:var(--xp-muted); font-size:12px; }
+.experiments select,.experiments button {
+  min-width:0; max-width:100%; padding:5px 9px; border:1px solid #3d5166;
+  border-radius:6px; background:#182536; color:#e9f0f7; font:inherit;
+}
+.experiments button { cursor:pointer; overflow-wrap:anywhere; }
+.experiments button[aria-pressed="true"] { border-color:var(--xp-accent); background:#153a3b; }
+.experiments :focus-visible { outline:3px solid #ffe396; outline-offset:2px; }
+.xp-card {
+  margin:8px 0; padding:12px; background:linear-gradient(150deg,#162b36,#101a28 65%);
+  border:1px solid #33485b; border-radius:9px;
+}
+.xp-card h3 { margin:0; font-size:14px; }
+.xp-scroll { overflow:auto; max-width:100%; scrollbar-color:#50637b #13202c; }
+.experiments .xp-chart { display:block; width:100%; min-width:720px; height:auto; max-height:none; }
+.xp-chart text { font:12px system-ui; fill:#bfccd9; }
+.xp-chart .xp-axis-name { fill:#e0e9ef; }
+.xp-chart .xp-point { cursor:pointer; stroke:#102431; stroke-width:2; }
+.xp-chart .xp-segment { stroke-width:3; stroke-linecap:round; }
+.xp-chart .xp-event-mark { cursor:pointer; }
+.xp-chart :is(.xp-point,.xp-event-mark)[aria-pressed="true"] { stroke:#fff; stroke-width:3; }
+.xp-chart :is(.xp-point,.xp-event-mark):focus-visible { outline:none; stroke:#ffe396; stroke-width:4; }
+.xp-legend { display:flex; flex-wrap:wrap; gap:4px 14px; font-size:12px; color:var(--xp-muted); }
+.xp-legend span { min-width:0; }
+.xp-events { display:flex; flex-wrap:wrap; gap:7px; margin-top:10px; }
+.xp-events button { font-size:12px; text-align:left; }
+.xp-events :is(.failure,.failures) { border-color:#c4718c; }
+.xp-events .successes { border-color:#519f8c; }
+.xp-detail { margin-top:12px; padding:12px 16px; border-inline-start:3px solid var(--xp-accent); background:#162633; }
+.xp-detail dl { display:grid; grid-template-columns:minmax(100px,150px) minmax(0,1fr); gap:5px 14px; margin:10px 0; }
+.xp-detail dt { color:var(--xp-muted); }
+.xp-detail dd { margin:0; white-space:pre-wrap; }
+.xp-detail p { margin:6px 0; }
+.experiments details { margin-top:12px; }
+.experiments summary { cursor:pointer; color:var(--xp-accent); padding:8px 0; }
+.xp-other-axes { border-block:1px solid #304558; }
+.xp-other-axes > summary { font-weight:600; }
+.experiments table { width:100%; min-width:700px; border-collapse:separate; border-spacing:0; white-space:normal; font-size:12px; }
+.experiments :is(td,th) { padding:9px; text-align:left; border-bottom:1px solid #334159; vertical-align:top; }
+.experiments th { color:var(--xp-muted); position:sticky; top:0; background:#182738; }
+[data-xp-table] > .xp-scroll { max-height:min(32rem,70vh); }
+.xp-badge { color:#ffca7c; font-size:11px; letter-spacing:.08em; }
+.xp-unplaced { border-inline-start:2px solid #ffbd69; padding-inline-start:10px; }
+@container experiment (max-width:560px) {
+  .xp-controls { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,112px),1fr)); }
+  .xp-controls label { display:grid; gap:3px; }
+  .xp-controls select { width:100%; }
+  .xp-card { padding:8px; }
+  .xp-detail dl { grid-template-columns:1fr; }
+  .xp-detail dd { padding-bottom:6px; }
+}
 </style>
 <script>
 /* One renderer and selection store for the overview and summary, also offline. */
 window.InferRSIExperiments = (() => {
   'use strict';
-  const colors=['#76b7ff','#c49bff','#ffbe73','#7bd6bc','#ef8bac'];
+  const colors=['#73e1cf','#aaa9ff','#ffbf78','#7fc8ff','#ef99ba'];
   const words={
     'Description':'描述','Run':'运行','Source record':'来源记录',
     'Experiment performance':'实验性能','Absolute measurements':'绝对测量值','Workload':'工作负载',
+    'More measurement axes':'更多测量坐标轴',
+    'Selected evidence and experiment events':'选中记录的证据与实验事件',
     'Metric':'指标','Axis':'横轴','All workloads':'全部工作负载','All metrics':'全部指标',
     'Recorded round':'已记录轮次','Recorded order':'已记录顺序','Recorded time':'已记录时间',
     'Event track':'事件轨道','Unpositioned records':'未定位记录','All records':'完整记录',
@@ -54,12 +113,20 @@ window.InferRSIExperiments = (() => {
     'unsupported target definition or direction':'目标定义或方向不支持转换','non-finite conversion':'转换结果非有限值'
   };
   const el=(tag,text,cls)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(cls)n.className=cls;return n;};
+  function scrollRegion(label){
+    const region=el('div',undefined,'xp-scroll');
+    region.tabIndex=0;
+    region.setAttribute('role','region');
+    region.setAttribute('aria-label',label);
+    return region;
+  }
   const svg=(tag,attrs,text)=>{const n=document.createElementNS('http://www.w3.org/2000/svg',tag);for(const [k,v] of Object.entries(attrs))n.setAttribute(k,v);if(text!==undefined)n.textContent=text;return n;};
   const number=v=>Number.isFinite(v)?Number(v.toPrecision(6)).toString():'—';
   const position=(p,axis)=>axis==='timestamp'?(p.timestamp?Date.parse(p.timestamp):null):p[axis];
   const roleLabel={local_baseline:'Local baseline',external_reference:'External reference',frozen_target:'Frozen target'};
   function create({getData,getLanguage,openExperiment,narrative=s=>s}) {
     const state={workload:'',metric:'',axis:'round',selected:null};
+    let moreAxesOpen=false;
     let roots=[];
     const t=s=>{
       if(getLanguage()!=='zh')return s;
@@ -72,7 +139,19 @@ window.InferRSIExperiments = (() => {
     const shown=p=>(!state.workload||p.workload===state.workload)&&(!state.metric||p.metric===state.metric);
     const eventShown=e=>(!state.workload||!e.workloads.length||e.workloads.includes(state.workload))&&(!state.metric||!e.metrics.length||e.metrics.includes(state.metric));
     const xText=p=>{const x=position(p,state.axis);return Number.isFinite(x)?state.axis==='timestamp'?new Date(x).toISOString():String(x):t('Unpositioned records');};
-    const bind=(n,id)=>{n.dataset.xpId=id;n.setAttribute('aria-pressed',String(state.selected===id));n.addEventListener('click',()=>select(id));n.addEventListener('focus',()=>select(id));n.addEventListener('mouseenter',()=>select(id));};
+    const bind=(n,id)=>{
+      n.dataset.xpId=id;n.setAttribute('aria-pressed',String(state.selected===id));
+      const activate=()=>{
+        select(id);
+        const inspector=n.closest('[data-review-overview]')?.querySelector('.xp-inspect');
+        if(inspector)inspector.open=true;
+      };
+      n.addEventListener('click',activate);
+      if(n.getAttribute('role')==='button')n.addEventListener('keydown',event=>{
+        if(event.key==='Enter'||event.key===' '){event.preventDefault();activate();}
+      });
+      n.addEventListener('focus',()=>select(id));n.addEventListener('mouseenter',()=>select(id));
+    };
     function select(id){state.selected=id;for(const root of roots.filter(r=>r.isConnected)){
       for(const n of root.querySelectorAll('[data-xp-id]'))n.setAttribute('aria-pressed',String(n.dataset.xpId===id));
       detail(root.querySelector('.xp-detail'));
@@ -83,6 +162,8 @@ window.InferRSIExperiments = (() => {
     function detail(box){
       box.replaceChildren();const {points,events}=projection();
       const p=points.find(p=>p.id===state.selected),e=events.find(e=>e.id===state.selected),item=p||e;
+      const summary=box.closest('.xp-inspect')?.querySelector('summary');
+      if(summary)summary.textContent=[t('Selected evidence and experiment events'),item?.title?narrative(item.title):null].filter(Boolean).join(' · ');
       if(!item){box.append(el('p',t(state.selected?'Selection no longer available':'Select a measurement or event to inspect its evidence.')));return;}
       box.append(el('strong',item.title?narrative(item.title):description(item)));
       if(!(p?shown(p):eventShown(e)))box.append(el('p',t('Selected record is outside this filter'),'xp-note'));
@@ -130,7 +211,7 @@ window.InferRSIExperiments = (() => {
       if([...points,...events].some(p=>p.timestamp))axes.push(['timestamp',t('Recorded time')]);
       selector('axis','Axis',axes);
     }
-    function chart(root,points,events){
+    function chart(root,points,events,showReferences){
       const first=points[0],card=el('section',undefined,'xp-card');root.append(card);
       const title=[first.workload,first.metric,first.scope,first.statistic].filter(Boolean).join(' · ');
       card.append(el('h3',title),el('p',`${first.unit||'—'} · ${t(first.direction==='minimize'?'Lower is better':first.direction==='maximize'?'Higher is better':'Unknown direction')}`,'xp-note'));
@@ -139,16 +220,20 @@ window.InferRSIExperiments = (() => {
       const locatedEvents=events.filter(e=>Number.isFinite(position(e,state.axis)));
       const xs=[...plotted.map(p=>position(p,state.axis)),...locatedEvents.map(e=>position(e,state.axis))],ys=plotted.map(p=>p.value);
       // Reference roles stay point-specific, even if multiple local controls differ.
-      for(const p of plotted)for(const ref of p.references)if(ref.value!==null)ys.push(ref.value);
+      if(showReferences)for(const p of plotted)for(const ref of p.references)if(ref.value!==null)ys.push(ref.value);
       let low=Math.min(...ys),high=Math.max(...ys),minX=Math.min(...xs),maxX=Math.max(...xs);
       const pad=(high-low)*.15||Math.abs(high)*.1||1;low-=pad;high+=pad;
       if(!Number.isFinite(high-low)||!Number.isFinite(maxX-minX)){card.append(el('p',t('No plottable measurement')));return;}
       if(minX===maxX){minX-=1;maxX+=1;}
       const x=v=>70+(v-minX)/(maxX-minX)*730,y=v=>240-(v-low)/(high-low)*190;
       const ticks=[...new Set(xs)].sort((a,b)=>a-b);
-      const namesAt=v=>state.axis==='round'?[...new Set([...plotted,...locatedEvents]
-        .filter(p=>position(p,state.axis)===v).map(p=>p.title?narrative(p.title):p.candidate_id)
-        .filter(Boolean))]:[];
+      const roundNames=new Map();
+      if(state.axis==='round')for(const record of [...plotted,...locatedEvents]){
+        const name=record.title?narrative(record.title):record.candidate_id;
+        if(!name)continue;
+        if(!roundNames.has(record.round))roundNames.set(record.round,new Set());
+        roundNames.get(record.round).add(name);
+      }
       // Match the SVG text font even when a review panel is currently collapsed.
       // Pack measured horizontal bounds into separate rows, retaining every title.
       const measure=document.createElement('canvas').getContext('2d');
@@ -156,7 +241,7 @@ window.InferRSIExperiments = (() => {
       const laneEnds=[],labelsByRound=new Map();
       for(const v of ticks){
         let nextLane=0;const labels=[];
-        for(const name of namesAt(v)){
+        for(const name of roundNames.get(v)||[]){
           const chars=Array.from(name),short=chars.length>10?chars.slice(0,9).join('')+'…':name;
           const text=`R${v} · ${short}`;
           const width=measure?measure.measureText(text).width:Array.from(text).length*12;
@@ -168,14 +253,19 @@ window.InferRSIExperiments = (() => {
         }
         labelsByRound.set(v,labels);
       }
-      const eventRows=Math.max(0,...ticks.map(v=>locatedEvents.filter(e=>position(e,state.axis)===v).length));
+      const eventLanes=new Map(),offsets=new Map();
+      for(const event of locatedEvents){
+        const at=position(event,state.axis),lane=eventLanes.get(at)||0;
+        offsets.set(event,lane*8);eventLanes.set(at,lane+1);
+      }
+      const eventRows=Math.max(0,...eventLanes.values());
       const labelTop=Math.max(320,280+eventRows*8+20);
       const chartHeight=Math.max(350,labelTop+laneEnds.length*20+30);
       const picture=svg('svg',{viewBox:`0 0 850 ${chartHeight}`,class:'xp-chart',role:'group','aria-label':title});
       picture.append(svg('title',{},title+' · '+t('Absolute measurements')));
       for(let i=0;i<=4;i++){const v=low+(high-low)*i/4;picture.append(svg('line',{x1:70,x2:800,y1:y(v),y2:y(v),stroke:'#2c3b51'}),svg('text',{x:60,y:y(v)+4,'text-anchor':'end'},number(v)));}
       for(const v of ticks){
-        const names=namesAt(v),full=[`R${v}`,...names].join(' · ');
+        const names=roundNames.get(v)||[],full=[`R${v}`,...names].join(' · ');
         const tick=svg('g',{class:'xp-axis-tick','aria-label':state.axis==='round'?full:String(v)});
         tick.append(svg('text',{x:x(v),y:263,'text-anchor':'middle'},state.axis==='timestamp'?new Date(v).toISOString().slice(11,19):state.axis==='round'?`R${v}`:String(v)));
         for(const {name,text,center,lane} of labelsByRound.get(v)){
@@ -187,35 +277,36 @@ window.InferRSIExperiments = (() => {
       picture.append(svg('text',{x:430,y:chartHeight-8,'text-anchor':'middle'},t(state.axis==='round'?'Recorded round':state.axis==='order'?'Recorded order':'Recorded time')));
       const groups=new Map();for(const p of points){if(p.series_id){if(!groups.has(p.series_id))groups.set(p.series_id,[]);groups.get(p.series_id).push(p);}}
       const color=p=>p.series_id?colors[[...groups.keys()].indexOf(p.series_id)%colors.length]:'#bac4d5';
+      const plottedSet=new Set(plotted),experimentIds=new Set(plotted.map(p=>p.experiment_id));
+      const gaps=locatedEvents.filter(e=>e.experiment_ids.length && e.experiment_ids.every(id=>!experimentIds.has(id)))
+        .map(e=>position(e,state.axis));
       for(const group of groups.values()){
         const sorted=[...group].filter(p=>Number.isFinite(position(p,state.axis))).sort((a,b)=>position(a,state.axis)-position(b,state.axis));
         // Repeated runs are separate points at the same x. Do not imply their order.
         for(let i=1;i<sorted.length;i++){const a=sorted[i-1],b=sorted[i],ax=position(a,state.axis),bx=position(b,state.axis);
-          const repeated=sorted.filter(p=>position(p,state.axis)===ax).length>1||sorted.filter(p=>position(p,state.axis)===bx).length>1;
-          const gap=events.some(e=>e.experiment_ids.length && e.experiment_ids.every(id=>!plotted.some(p=>p.experiment_id===id)) && position(e,state.axis)>ax && position(e,state.axis)<bx);
-          if(!repeated&&!gap&&plotted.includes(a)&&plotted.includes(b)&&ax!==bx)picture.append(svg('line',{class:'xp-segment',x1:x(ax),x2:x(bx),y1:y(a.value),y2:y(b.value),stroke:color(a),'stroke-width':2}));
+          const repeated=ax===bx || (i>1&&position(sorted[i-2],state.axis)===ax) || (i+1<sorted.length&&position(sorted[i+1],state.axis)===bx);
+          if(!repeated&&plottedSet.has(a)&&plottedSet.has(b)&&!gaps.some(v=>v>ax&&v<bx))picture.append(svg('line',{class:'xp-segment',x1:x(ax),x2:x(bx),y1:y(a.value),y2:y(b.value),stroke:color(a),'stroke-width':2}));
         }
       }
       for(const p of plotted){
-        for(const ref of p.references){if(ref.value===null)continue;const c=ref.role==='frozen_target'?'#70d5b2':ref.role==='external_reference'?'#e1b980':'#abb7ca';
+        for(const ref of showReferences?p.references:[]){if(ref.value===null)continue;const c=ref.role==='frozen_target'?'#70d5b2':ref.role==='external_reference'?'#e1b980':'#abb7ca';
           const n=svg('line',{class:'xp-reference',x1:Math.max(70,x(position(p,state.axis))-35),x2:Math.min(800,x(position(p,state.axis))+35),y1:y(ref.value),y2:y(ref.value),stroke:c,'stroke-dasharray':ref.role==='external_reference'?'2 4':'6 4'});n.append(svg('title',{},t(roleLabel[ref.role])+': '+number(ref.value)+' '+p.unit+' · '+ref.provenance));picture.append(n);
         }
         const label=`${p.title} · ${p.run_id||p.source_record} · ${number(p.value)} ${p.unit} · ${p.statistic} · ${p.verdict} · ${t('Quality')}: ${p.quality}`;
         const circle=svg('circle',{cx:x(position(p,state.axis)),cy:y(p.value),r:6,fill:p.quality==='FAIL'||p.quality==='failed'||p.verdict==='FAIL'?'#ef8bac':color(p),class:'xp-point',tabindex:0,role:'button','aria-label':label});circle.append(svg('title',{},label));bind(circle,p.id);
-        circle.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();select(p.id);}});
-        circle.addEventListener('focus',()=>select(p.id));circle.addEventListener('mouseenter',()=>{circle.querySelector('title').textContent=label+' · '+[...p.comparison_reasons,...p.plot_reasons].map(t).join('; ');});picture.append(circle);
+        circle.addEventListener('mouseenter',()=>{circle.querySelector('title').textContent=label+' · '+[...p.comparison_reasons,...p.plot_reasons].map(t).join('; ');});picture.append(circle);
       }
       picture.append(svg('line',{x1:70,x2:800,y1:296,y2:296,stroke:'#40516b'}),svg('text',{x:60,y:300,'text-anchor':'end'},t('Events')));
       for(const e of locatedEvents){
-        const at=position(e,state.axis),same=locatedEvents.filter(other=>position(other,state.axis)===at),offset=same.indexOf(e)*8;
+        const at=position(e,state.axis),offset=offsets.get(e);
         const label=xText(e)+' · '+t(e.category)+' · '+description(e);
         const mark=svg('rect',{x:x(at)-4,y:280+offset,width:8,height:8,rx:2,fill:['failure','failures'].includes(e.category)||['FAIL','failed'].includes(e.quality)||e.state==='failed'?'#ef8bac':'#76b7ff',tabindex:0,role:'button',class:'xp-event-mark','aria-label':label});
-        mark.append(svg('title',{},label));bind(mark,e.id);mark.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();select(e.id);}});picture.append(mark);
+        mark.append(svg('title',{},label));bind(mark,e.id);picture.append(mark);
       }
-      const scroll=el('div',undefined,'xp-scroll');scroll.append(picture);card.append(scroll);
+      const scroll=scrollRegion(title+' · '+t('Absolute measurements'));scroll.append(picture);card.append(scroll);
       const legend=el('div',undefined,'xp-legend');for(const [i,key] of [...groups.keys()].entries()){const cfg=groups.get(key)[0].configuration;const label=el('span',[key,cfg.precision,cfg.shape,cfg.hardware].filter(Boolean).join(' · '));label.title=JSON.stringify(cfg);label.style.color=colors[i%colors.length];legend.append(label);}if(points.some(p=>!p.series_id))legend.append(el('span',t('Independent point')));card.append(legend);
       const roles=[...new Set(plotted.flatMap(p=>p.references.filter(r=>r.value!==null).map(r=>r.role)))];
-      if(roles.length)card.append(el('p',roles.map(r=>t(roleLabel[r])).join(' · ')+' — '+t('Reference lines apply only to their experiment and configuration.'),'xp-note'));
+      if(showReferences&&roles.length)card.append(el('p',roles.map(r=>t(roleLabel[r])).join(' · ')+' — '+t('Reference lines apply only to their experiment and configuration.'),'xp-note'));
     }
     function eventList(root,events,title){
       if(!events.length)return;root.append(el('h3',t(title)));const track=el('div',undefined,'xp-events');root.append(track);
@@ -223,8 +314,11 @@ window.InferRSIExperiments = (() => {
     }
     function table(root,points,events){
       const more=el('details');more.dataset.xpTable='records';more.append(el('summary',`${t('All records')} · ${points.length} ${t('Measurements')} · ${events.length} ${t('Events')}`));root.append(more);
-      const scroll=el('div',undefined,'xp-scroll'),table=el('table'),head=el('thead'),row=el('tr');
-      for(const label of ['Experiment','Axis','Value','Scope','Statistic','Quality','Evidence verdict','Reason'])row.append(el('th',t(label)));head.append(row);table.append(head);const body=el('tbody');table.append(body);scroll.append(table);more.append(scroll);
+      const scroll=scrollRegion(t('All records')),table=el('table'),head=el('thead'),row=el('tr');
+      for(const label of ['Experiment','Axis','Value','Scope','Statistic','Quality','Evidence verdict','Reason']){
+        const cell=el('th',t(label));cell.scope='col';row.append(cell);
+      }
+      head.append(row);table.append(head);const body=el('tbody');table.append(body);scroll.append(table);more.append(scroll);
       for(const p of points){const tr=el('tr'),cell=el('td'),button=el('button',p.title);button.type='button';bind(button,p.id);cell.append(button);tr.append(cell);
         for(const text of [xText(p),number(p.value)+' '+(p.unit||''),p.scope,p.statistic,t(p.quality),p.verdict,[...p.plot_reasons,...p.comparison_reasons,p.group_note].filter(Boolean).map(t).join('; ')])tr.append(el('td',text||'—'));body.append(tr);}
       for(const e of events){const tr=el('tr'),cell=el('td'),button=el('button',[e.title,t(e.category)].filter(Boolean).join(' · '));button.type='button';bind(button,e.id);cell.append(button);tr.append(cell);
@@ -233,16 +327,38 @@ window.InferRSIExperiments = (() => {
     function render(targets){
       roots=targets.filter(Boolean);const {points,events}=projection();const visible=points.filter(shown),ev=events.filter(eventShown).sort((a,b)=>(position(a,state.axis)??Infinity)-(position(b,state.axis)??Infinity));
       for(const root of roots){const focus=root.contains(document.activeElement)?document.activeElement.dataset.xpControl:null;const opened=root.querySelector('[data-xp-table]')?.open;
+        const overview=root.hasAttribute('data-review-overview'),inspectOpen=root.querySelector('.xp-inspect')?.open;
         root.replaceChildren();root.classList.add('experiments');root.setAttribute('data-no-translate','');
         if(getData().synthetic)root.append(el('span',t('SYNTHETIC DATA'),'xp-badge'));
         root.append(el('h2',t('Experiment performance')),el('p',t('Absolute measurements')+' · '+t('Missing measurements are never zero-filled. Lines join only compatible recorded configurations.'),'xp-note'));controls(root);
         const axes=new Map();for(const p of visible){if(!axes.has(p.axis_key))axes.set(p.axis_key,[]);axes.get(p.axis_key).push(p);}
-        for(const values of axes.values()){const first=values[0];chart(root,values,ev.filter(e=>(!e.workloads.length||e.workloads.includes(first.workload))&&(!e.metrics.length||e.metrics.includes(first.metric))&&e.scopes.includes(first.scope)));}
+        let chartParent=root;
+        for(const [index,values] of [...axes.values()].entries()){
+          if(index===1 && root.id==='chart' && !state.workload && axes.size>2){
+            chartParent=el('details',undefined,'xp-other-axes');
+            chartParent.dataset.liveKey=chartParent.dataset.key='additional-measurement-axes';
+            chartParent.append(el('summary',t('More measurement axes')+' · '+(axes.size-1)));
+            chartParent.open=moreAxesOpen;
+            chartParent.addEventListener('toggle',()=>{if(chartParent.isConnected)moreAxesOpen=chartParent.open;});
+            root.append(chartParent);
+          }
+          const first=values[0];
+          chart(chartParent,values,ev.filter(e=>(!e.workloads.length||e.workloads.includes(first.workload))&&(!e.metrics.length||e.metrics.includes(first.metric))&&e.scopes.includes(first.scope)),!overview);
+        }
         if(!visible.length)root.append(el('p',t('No plottable measurement')));
-        eventList(root,ev.filter(e=>Number.isFinite(position(e,state.axis))),'Event track');
+        let inspector=root;
+        if(overview){
+          inspector=el('details',undefined,'xp-inspect');
+          inspector.dataset.key='performance-evidence';inspector.open=Boolean(inspectOpen);
+          inspector.append(el('summary',t('Selected evidence and experiment events')));root.append(inspector);
+        }
+        const detailBox=el('div',undefined,'xp-detail');detailBox.setAttribute('aria-live','polite');
+        if(overview)inspector.append(detailBox);
+        eventList(inspector,ev.filter(e=>Number.isFinite(position(e,state.axis))),'Event track');
         const unplaced=visible.filter(p=>!Number.isFinite(position(p,state.axis))),unplacedEvents=ev.filter(e=>!Number.isFinite(position(e,state.axis)));
-        if(unplaced.length||unplacedEvents.length){const box=el('div',undefined,'xp-unplaced');root.append(box);eventList(box,unplacedEvents,'Unpositioned records');for(const p of unplaced){const b=el('button',t('Unpositioned records')+' · '+p.title);b.type='button';bind(b,p.id);box.append(b);}}
-        const detailBox=el('div',undefined,'xp-detail');detailBox.setAttribute('aria-live','polite');root.append(detailBox);detail(detailBox);table(root,visible,ev);
+        if(unplaced.length||unplacedEvents.length){const box=el('div',undefined,'xp-unplaced');inspector.append(box);eventList(box,unplacedEvents,'Unpositioned records');for(const p of unplaced){const b=el('button',t('Unpositioned records')+' · '+p.title);b.type='button';bind(b,p.id);box.append(b);}}
+        if(!overview)inspector.append(detailBox);
+        detail(detailBox);table(inspector,visible,ev);
         if(opened)root.querySelector('[data-xp-table]').open=true;
         if(focus)root.querySelector(`[data-xp-control="${focus}"]`)?.focus();
       }

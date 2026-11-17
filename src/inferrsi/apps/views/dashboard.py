@@ -352,12 +352,14 @@ def render_dashboard(snapshot: dict, *, live: bool = False) -> str:
         template = template.replace("img-src data:;", "img-src data:; connect-src 'self';")
     replacements = {"__DASHBOARD_KNOWLEDGE__": files("inferrsi").joinpath(
         "apps", "views", "knowledge_view.html").read_text(encoding="utf-8"),
+                    "__DASHBOARD_OVERVIEW__": files("inferrsi").joinpath(
+                        "apps", "views", "overview_view.html").read_text(encoding="utf-8"),
                     "__DASHBOARD_DATA__": payload, "__DASHBOARD_CHART__": snapshot["chart"],
                     "__DASHBOARD_TEMPORAL__": snapshot["temporal"],
                     "__DASHBOARD_EXPERIMENTS__": files("inferrsi").joinpath(
                         "apps", "views", "experiment_view.html").read_text(encoding="utf-8")}
     return re.sub(
-        r"__DASHBOARD_(?:DATA|CHART|TEMPORAL|EXPERIMENTS|KNOWLEDGE)__",
+        r"__DASHBOARD_(?:DATA|CHART|TEMPORAL|EXPERIMENTS|KNOWLEDGE|OVERVIEW)__",
         lambda match: replacements[match.group()],
         template,
     )

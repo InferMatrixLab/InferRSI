@@ -232,7 +232,48 @@ def test_chinese_table_fallback_and_narrow_screen(browser, tmp_path, profile_fir
         assert "knowledge search" in capture.inner_text()
         assert "未请求" in capture.inner_text()
         assert capture.get_by_role("table").first.is_visible()
-        assert root.bounding_box()["width"] <= 390
+        page.set_viewport_size({"width": 320, "height": 840})
+        assert page.evaluate("document.documentElement.scrollWidth") == 320
+        table_region = capture.get_by_role("table").first.locator("..")
+        assert table_region.get_attribute("aria-label")
+        assert table_region.get_attribute("tabindex") == "0"
         assert not errors
+    finally:
+        page.close()
+
+
+@pytest.mark.parametrize("profile_first", [False, True])
+def test_knowledge_shortcut_shows_legacy_ranking_cue_and_returned_titles(
+    browser, tmp_path, profile_first,
+):
+    FIXTURE["build"](tmp_path)
+    snapshot = dashboard_snapshot(tmp_path)
+    if profile_first:
+        snapshot["data"]["review_layout"] = "profile_first"
+    capture = next(c for c in snapshot["data"]["knowledge_trace"]["retrievals"]
+                   if c["context_id"] == "legacy")
+    path = tmp_path / "dashboard.html"
+    path.write_text(render_dashboard(snapshot), encoding="utf-8")
+    page = browser.new_page()
+    try:
+        page.goto(path.as_uri() + "#knowledge-navigation")
+        root = page.locator("#knowledge-navigation")
+        panel = root.locator(":scope > details")
+        playwright.expect(panel).to_have_attribute("open", "")
+        playwright.expect(panel.locator(":scope > summary")).to_be_focused()
+        panel.locator(":scope > summary").click()
+        link = page.locator("#knowledge-link")
+        link.focus()
+        page.keyboard.press("Enter")
+        playwright.expect(panel).to_have_attribute("open", "")
+        playwright.expect(panel.locator(":scope > summary")).to_be_focused()
+        card = root.locator("article").filter(has=page.get_by_role("button", name="legacy"))
+        assert capture["selection"]["cue"] in card.inner_text()
+        card.get_by_role("button", name="legacy").press("Enter")
+        detail = root.locator('[data-kt-key="navigation:legacy"]')
+        playwright.expect(detail.locator(":scope > summary")).to_be_focused()
+        results = detail.get_by_role("table").nth(1)
+        for item in capture["items"]:
+            assert item["title"] in results.inner_text()
     finally:
         page.close()

@@ -172,6 +172,19 @@ pytest tests/test_dashboard_experiments_browser.py
 [Narrow screen](assets/dashboard-experiments-mobile.png) ·
 [Blank configuration regression](assets/dashboard-experiments-blank-config.png) ·
 [Offline HTML example](examples/dashboard-experiments.html).
+
+Download the [profile-first review example](examples/dashboard-profile-review.html)
+and open it in a browser, or [view the desktop screenshot](examples/dashboard-profile-review.webp).
+Follow **Profile captures** to inspect CPU and kernel spans, **Experiment
+trace** to see the duration of each capture request, or **Knowledge trace**
+to follow a saved context into its experiment. Both baseline and candidate
+captures refer to the same synthetic retrieval. Regenerate this example with an
+unused output directory and open the resulting `dashboard.html`:
+
+```sh
+python tests/fixtures/dashboard_profile_review.py /tmp/dashboard-profile-review
+```
+
 All shown numbers and identities are synthetic. These artifacts demonstrate the
 visualization, not accelerator performance or campaign PASS. Browser checks
 cover keyboard selection, exact run navigation, shared filters, time mode,
@@ -179,11 +192,11 @@ Chinese narrow layout, table access, live reorder/value updates and disappearing
 selections. Automated browser tests require optional Playwright and its Chromium;
 they do not certify every browser or screen reader.
 
-In the `profile_first` layout, all review panels are collapsed on initial load,
-including the top performance trend and successes and failures. Their curves,
-events and original records are available by expanding the corresponding panel.
-Opening or closing these panels is preserved during language changes and live
-data refreshes.
+In the `profile_first` layout, the performance overview shows recorded
+measurements alongside links to each round's evidence. Use the chart filters
+to inspect individual events. Expand the paired-baseline chart to compare
+compatible rounds against their own baseline.
+Review panels preserve their open state during language changes and live refresh.
 
 The round axis shows `R<round>` and abbreviated recorded experiment titles below
 the event track. Hover over a title to see its full text. Multiple titles at the
