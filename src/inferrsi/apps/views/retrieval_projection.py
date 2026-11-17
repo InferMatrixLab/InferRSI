@@ -237,7 +237,8 @@ def read_searches(root: Path, campaign_id, rows, retrievals):
                             event_state = "revision_mismatch"
                 events.append(public_value({key: event[key] for key in (
                     "id", "action", "tool", "context_id", "source", "sha256", "request",
-                    "selection", "materials", "delivery", "trace_line") if key in event})
+                    "query", "scope", "selection", "materials", "delivery", "trace_line")
+                    if key in event})
                               | {"state": event_state})
                 if event_state != "recorded":
                     issues.append(event_state)

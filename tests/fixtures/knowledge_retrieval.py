@@ -51,10 +51,17 @@ def reader():
 
 def write(path, value):
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(value, indent=2), encoding="utf-8")
+    path.write_bytes(json.dumps(value, indent=2).encode("utf-8"))
 
 
-def build(root):
+DEFAULT_RUNS = (
+    ("repeat", "first", 1, "FAIL", -2, "failed"),
+    ("repeat", "retry", 1, "INCONCLUSIVE", 0, "failed"),
+    ("second", "no-gain", 2, "FAIL", 0, "failed"),
+)
+
+
+def build(root, *, runs=DEFAULT_RUNS):
     root = Path(root)
     create_campaign(root, "synthetic-retrieval")
     manifest = json.loads((root / "campaign.json").read_text())
@@ -79,11 +86,7 @@ def build(root):
         if name == "legacy":
             result.pop("retrieval")
         _, captures[name] = save_retrieval(root, context_id=name, result=result)
-    for candidate, run, number, verdict, gain in (
-        ("repeat", "first", 1, "FAIL", -2),
-        ("repeat", "retry", 1, "INCONCLUSIVE", 0),
-        ("second", "no-gain", 2, "FAIL", 0),
-    ):
+    for candidate, run, number, verdict, gain, quality in runs:
         directory = root / "runs" / run
         write(directory / "run.lock.json", {"workload_id": "synthetic", "scenario": "http"})
         write(directory / "status.json", {"state": "completed"})
@@ -92,7 +95,9 @@ def build(root):
             "direction": "minimize", "improvement_pct": gain,
             "baseline": {"median": 10}, "candidate": {"median": 10 - gain / 10},
             "source_integrity": {"verified": True}})
-        write(directory / "validation/execution.json", {"status": "failed", "returncode": 1})
+        write(directory / "validation/execution.json", {
+            "status": quality, "returncode": 0 if quality == "completed" else 1,
+        })
         if run == "retry":
             original = json.loads((root / "candidates/repeat/candidate.json").read_text())
             write(root / "candidates/repeat-retry/candidate.json", {**original, "run_id": run})
@@ -102,6 +107,9 @@ def build(root):
                              details={"change_kind": "code", "summary": "Synthetic code change",
                                       "code_locations": [{"path": "src/synthetic.py",
                                                           "revision": "a" * 40}]})
+    # Search records pin candidate bytes, so the synthetic inputs use LF on every host.
+    for path in (root / "candidates").glob("*/candidate.json"):
+        path.write_bytes(path.read_bytes().replace(b"\r\n", b"\n"))
     first_ref = captured["items"][0]["ref"]
     log = {
         "schema_version": 2, "reviewed_by_caller": True, "campaign_id": "synthetic-retrieval",
@@ -130,7 +138,7 @@ def build(root):
               {"type": "response_item", "payload": {"type": "message", "role": "assistant",
                "phase": "final_answer",
                "content": [{"type": "output_text", "text": "Use synthetic launch guidance."}]}}]
-    trace.write_text("".join(json.dumps(e) + "\n" for e in events))
+    trace.write_bytes("".join(json.dumps(e) + "\n" for e in events).encode("utf-8"))
     review = root / "archive-review.json"
     write(review, {"task": "Synthetic review", "corpus": {
         "repository": "example/synthetic", "revision": "a" * 40, "root": "."},

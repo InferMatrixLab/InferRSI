@@ -4,6 +4,11 @@
 .kt-view button[aria-pressed="true"]{outline:2px solid #6dc1ff}.kt-view pre{white-space:pre-wrap;max-height:24rem;overflow:auto}.kt-scroll{overflow:auto;max-width:100%}
 .kt-view table{border-collapse:collapse;width:100%;font-size:13px}.kt-view td,.kt-view th{padding:8px;text-align:left;border-bottom:1px solid #59606b;vertical-align:top}
 .kt-view :focus-visible{outline:3px solid #6dc1ff;outline-offset:3px}.kt-note{opacity:.8;font-size:13px}.kt-warning{color:#e8a759}
+.kt-captures{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,17rem),1fr));gap:8px;margin:12px 0}
+.kt-capture{min-width:0;padding:10px 12px;border:1px solid var(--line,#425368);border-radius:6px;background:var(--panel2,#172533)}
+.kt-capture button{margin:3px 0;color:var(--green,#69e5cd);font:600 14px/1.4 system-ui,sans-serif;overflow-wrap:anywhere;max-width:100%}
+.kt-capture p,.kt-view .kt-query{white-space:normal;margin:5px 0;overflow-wrap:anywhere}
+.kt-view table td{white-space:normal;vertical-align:top}
 </style>
 <script>
 window.InferRSIKnowledge={create({getData,getLanguage,openRun}){
@@ -13,14 +18,48 @@ window.InferRSIKnowledge={create({getData,getLanguage,openRun}){
   const words={applied:['Ranking applied','已执行排序'],explicit_ids:['Explicit IDs · caller order','显式 ID · 调用者顺序'],not_requested:['Not requested','未请求'],performed:['Performed','已执行'],unknown:['Unknown','未知'],not_recorded:['Not recorded','未记录'],recorded:['Recorded','已记录'],linked:['Linked','已关联'],used:['Used','采用'],rejected:['Rejected','舍弃'],used_and_rejected:['Used and rejected','采用且舍弃'],local_v1:['Local v1 evidence','本地 v1 依据'],archive_reviewed:['Archive-reviewed association','存档 review 关联'],complete:['Complete','完整'],partial:['Partial','部分'],missing:['Missing','缺失'],context_limit:['Context budget','上下文预算'],output_limit:['Output limit','输出限制'],unsupported_context:['Unsupported assembly','不支持装配'],visible:['Visible return recorded','已记录可见返回'],ref_visible:['Reference visible','引用可见']};
   const label=x=>words[x]?tr(...words[x]):x??unknown();
   const json=x=>JSON.stringify(x,null,2);
-  let selected=null,round='';
+  let selected=null,round='',initial=true;
   const opened=new Set();
+  const navLink=document.getElementById('knowledge-link');
+  function openNavigation(){
+    const panel=document.querySelector('#knowledge-navigation > details');
+    if(!panel || navLink?.hidden)return;
+    opened.add('navigation');panel.open=true;
+    const summary=panel.querySelector('summary');
+    summary.focus({preventScroll:true});summary.scrollIntoView({block:'start'});
+  }
+  if(navLink){
+    navLink.addEventListener('click',event=>{
+      if(!event.ctrlKey&&!event.metaKey&&!event.shiftKey&&!event.altKey && location.hash===navLink.hash){
+        event.preventDefault();openNavigation();
+      }
+    });
+    window.addEventListener('hashchange',()=>{if(location.hash===navLink.hash)openNavigation();});
+  }
   function fold(box,title,key,draw){const d=el('details');if(key==='navigation')d.className='panel';d.dataset.ktKey=key;d.dataset.liveKey='kt:'+key;d.dataset.key='kt:'+key;d.open=opened.has(key);d.append(el('summary',title));d.addEventListener('toggle',()=>{if(!d.isConnected)return;if(d.open)opened.add(key);else opened.delete(key);});box.append(d);draw(d);return d;}
   const p=(box,text,cls)=>{const n=el('p',text);if(cls)n.className=cls;box.append(n);return n;};
-  function table(box,headers,rows){const wrap=el('div');wrap.className='kt-scroll';const t=el('table'),head=el('thead'),hr=el('tr'),body=el('tbody');headers.forEach(h=>{const th=el('th',h);th.scope='col';hr.append(th);});head.append(hr);rows.forEach(cells=>{const row=el('tr');cells.forEach(v=>{const cell=el('td');cell.append(v instanceof Node?v:document.createTextNode(v==null?unknown():String(v)));row.append(cell);});body.append(row);});t.append(head,body);wrap.append(t);box.append(wrap);}
+  function table(box,headers,rows){const wrap=el('div');wrap.className='kt-scroll';
+    wrap.tabIndex=0;wrap.setAttribute('role','region');
+    wrap.setAttribute('aria-label',[box.closest('details')?.querySelector('summary')?.textContent,headers[0]].filter(Boolean).join(' · '));
+    const t=el('table'),head=el('thead'),hr=el('tr'),body=el('tbody');headers.forEach(h=>{const th=el('th',h);th.scope='col';hr.append(th);});head.append(hr);rows.forEach(cells=>{const row=el('tr');cells.forEach(v=>{const cell=el('td');cell.append(v instanceof Node?v:document.createTextNode(v==null?unknown():String(v)));row.append(cell);});body.append(row);});t.append(head,body);wrap.append(t);box.append(wrap);}
   function button(box,text,callback){const b=el('button',text);b.type='button';b.onclick=callback;box.append(b);return b;}
   function captureById(id){return getData().knowledge_trace?.retrievals?.find(c=>c.context_id===id);}
-  function showCapture(id){selected=id;round='';render();const node=document.getElementById('knowledge-navigation');const panel=node?.querySelector('details');if(panel){panel.open=true;opened.add('navigation');panel.querySelector('summary').focus();panel.scrollIntoView({block:'start'});}}
+  function showCapture(id,keepRound=false){
+    selected=id;if(!keepRound)round='';
+    opened.add('navigation');opened.add('navigation:'+id);render();
+    const panel=[...document.querySelectorAll('#knowledge-navigation [data-kt-key]')].find(d=>d.dataset.ktKey==='navigation:'+id);
+    if(panel){const summary=panel.querySelector('summary');summary.focus({preventScroll:true});summary.scrollIntoView({block:'start'});}
+    else openNavigation();
+  }
+  function queryText(request){
+    const terms=[request?.query,request?.relevance].filter(v=>typeof v==='string'&&v.trim());
+    if(terms.length)return [...new Set(terms)].join(' · ');
+    return Array.isArray(request?.ids)&&request.ids.length?request.ids.join(', '):null;
+  }
+  function captureTerms(c){
+    const cue=c.trace?.selection?.cue||c.selection?.cue;
+    return queryText(c.trace?.request)||queryText(c.request)||(cue?tr('Ranking cue','排序线索')+' · '+cue:null);
+  }
   function links(box,entries,scope){
     if(!entries?.length){p(box,tr('No candidate/run association recorded.','未记录候选/运行关联。'),'kt-note');return;}
     for(const link of entries){const row=getData().candidates.find(r=>r.experiment_id && r.experiment_id===link.experiment_id);
@@ -33,6 +72,8 @@ window.InferRSIKnowledge={create({getData,getLanguage,openRun}){
     const c=captureById(raw.context_id)||raw, o=c.trace||{},request=o.request||c.request||{},selection=o.selection||{};
     const root=el('div');root.className='kt-view';box.append(root);
     fold(root,tr('Retrieval path and ranking','检索路径与排序')+' · '+c.context_id,scope+':'+c.context_id,b=>{
+      p(b,captureTerms(c)||tr('No search terms recorded.','未记录检索词。'),'kt-query');
+      if(c.purpose)p(b,c.purpose);
       p(b,(o.calls?.length?o.calls.join(' → '):tr('Entry point unknown','入口未知')),'kt-path');
       p(b,[label(selection.state),selection.method,selection.scope,selection.ranking_applied===true?tr('ranking_applied=true','ranking_applied=true'):selection.ranking_applied===false?'ranking_applied=false':tr('Ranking execution unknown','排序执行情况未知')].filter(Boolean).join(' · '));
       const counts=o.counts||{};
@@ -44,13 +85,26 @@ window.InferRSIKnowledge={create({getData,getLanguage,openRun}){
       const omitted=new Map((c.context_omissions||[]).map(x=>[x.ref,x.reason]));
       if(c.used_refs?.some(ref=>omitted.has(ref)))p(b,tr('A declared use names text omitted from this capture. Check its separate evidence.','声明采用的条目包含本快照省略的正文，请核对其独立依据。'),'kt-warning');
       table(b,[tr('Order','顺序'),tr('Knowledge / version','知识 / 版本'),tr('Score','分数'),tr('Assembly','正文装配'),tr('Caller declaration','调用者声明')],(c.items||[]).map((item,i)=>{
-        const detail=el('div');detail.append(el('strong',item.ref));p(detail,item.revision||unknown());
+        const detail=el('div');detail.append(el('strong',item.title||item.ref));
+        if(item.title && item.title!==item.ref)p(detail,item.ref);
+        p(detail,item.revision||unknown());
         fold(detail,tr('Resources, sources and score components','资源、来源与分数组成'),scope+':item:'+c.context_id+':'+item.ref,d=>{
           d.append(el('pre',json({title:item.title,authority:item.authority,entrypoint:item.entrypoint,sources:item.sources,skill_documents:item.skill_documents,score:scores.get(item.ref)??null,assembled:(c.contexts||[]).find(x=>x.ref===item.ref)})));
         });
-        const use=c.used_refs?.includes(item.ref)?tr('Reported used','声明采用'):c.rejected_refs?.some(r=>r.ref===item.ref)?tr('Reported rejected','声明舍弃'):unknown();
+        const rejection=c.rejected_refs?.find(r=>r.ref===item.ref);
+        const use=c.used_refs?.includes(item.ref)?tr('Reported used','声明采用'):rejection?[tr('Reported rejected','声明舍弃'),rejection.reason].filter(Boolean).join(' · '):unknown();
         return [i+1,detail,scores.get(item.ref)?.score,o.assembly==='not_requested'?label('not_requested'):loaded.has(item.ref)?tr('Assembled','已装配'):label(omitted.get(item.ref)||'unknown'),use];
       }));
+      for(const note of c.takeaways||[])p(b,note);
+      if(c.assembled_text){
+        const title=tr('Captured context text','当次检索装配的正文');
+        fold(b,title,scope+':text:'+c.context_id,d=>{
+          p(d,[c.path,c.expected_sha256&&'SHA-256 '+c.expected_sha256].filter(Boolean).join(' · '),'kt-note');
+          const pre=el('pre');d.append(pre);
+          const fill=()=>{if(d.open){pre.textContent=c.assembled_text;d.removeEventListener('toggle',fill);}};
+          d.addEventListener('toggle',fill);fill();
+        });
+      }
       fold(b,tr('Request, filters, limits and tie rule','请求、过滤、预算与并列规则'),scope+':request:'+c.context_id,d=>d.append(el('pre',json({request,implementation:o.implementation,selection,counts,context_budget:c.context_budget,context_bytes_used:c.context_bytes_used,omissions:c.omissions,context_omissions:c.context_omissions,candidate_details:o.candidate_details}))));
       if(c.display_redacted)p(b,tr('Display redacted; hashes identify the original capture bytes. Review the full bundle before sharing.','展示已脱敏；哈希标识原始快照字节。分享前请审核完整文件。'),'kt-note');
       links(b,c.links,scope+':'+c.context_id);
@@ -73,7 +127,21 @@ window.InferRSIKnowledge={create({getData,getLanguage,openRun}){
         return [m.ref,label(m.use),d];
       }));
       fold(b,tr('Caller declarations','调用者声明'),s.path+':declarations',d=>d.append(el('pre',json(s.declarations??[]))));
-      fold(b,tr('Searches, reads, delivery and source versions','搜索、读取、返回及来源版本'),s.path+':events',d=>d.append(el('pre',json({corpus:s.corpus,events:s.events,unresolved_details:s.unresolved_details}))));
+      fold(b,tr('Searches, reads, delivery and source versions','搜索、读取、返回及来源版本'),s.path+':events',d=>{
+        for(const [i,e] of (s.events||[]).entries()){
+          const action=e.action==='search'?tr('Search','检索'):e.action==='read'?tr('Read','读取'):label(e.action);
+          const title=[action,e.tool,e.context_id||e.id].filter(Boolean).join(' · ');
+          fold(d,title,s.path+':operation:'+i,entry=>{
+            const query=e.query||queryText(e.request);if(query)p(entry,query,'kt-query');
+            if(Array.isArray(e.scope)&&e.scope.length)p(entry,tr('Scope','检索范围')+' · '+e.scope.join(', '));
+            if(e.materials.length)table(entry,[tr('Recorded material','记录条目'),tr('Revision','版本')],e.materials.map(m=>[m.ref,m.revision]));
+            else p(entry,tr('No material recorded for this operation.','此次操作未记录知识条目。'));
+            if(e.delivery)p(entry,tr('Delivery','返回状态')+' · '+label(e.delivery.state));
+            fold(entry,tr('Event evidence','事件证据'),s.path+':operation-evidence:'+i,node=>node.append(el('pre',json(e))));
+          });
+        }
+        if(s.corpus||s.unresolved_details?.length)d.append(el('pre',json({corpus:s.corpus,unresolved_details:s.unresolved_details})));
+      });
       links(b,s.links,s.path);
     });
   }
@@ -81,15 +149,25 @@ window.InferRSIKnowledge={create({getData,getLanguage,openRun}){
     const root=document.getElementById('knowledge-navigation');if(!root)return;
     root.replaceChildren();root.classList.add('kt-view');root.setAttribute('data-no-translate','');
     const data=getData().knowledge_trace||{}, captures=data.retrievals||[],searches=data.searches||[];
-    fold(root,tr('Knowledge retrieval and evidence navigation','知识检索与证据导航'),'navigation',box=>{
-      p(box,tr('Only recorded identities are linked. Missing history remains unknown.','仅连接记录中的明确身份，缺失历史保留为未知。'),'kt-note');
+    const title=tr('Knowledge trace','知识检索 Trace');
+    if(navLink){navLink.textContent=title;navLink.hidden=!captures.length&&!searches.length;}
+    fold(root,title,'navigation',box=>{
       const rounds=[...new Set([...searches.map(s=>s.round),...captures.flatMap(c=>(c.links||[]).map(l=>l.round))])].sort((a,b)=>a-b);
       if(round && !rounds.includes(Number(round)))round='';
       const control=el('select');control.setAttribute('aria-label',tr('Knowledge round','知识轮次'));control.append(new Option(tr('All rounds','全部轮次'),''));rounds.forEach(n=>control.append(new Option('R'+n,String(n))));control.value=round;control.onchange=()=>{round=control.value;selected=null;render();};box.append(control);
       const visible=captures.filter(c=>!round || c.links?.some(l=>l.round===Number(round)) || searches.some(s=>s.round===Number(round) && s.context_ids?.includes(c.context_id)));
       if(selected && !visible.some(c=>c.context_id===selected)){p(box,tr('Selection no longer available','所选记录已不可用'),'kt-warning');selected=null;}
       if(!visible.length)p(box,tr('No retrieval capture recorded.','未记录检索快照。'));
-      for(const c of visible){button(box,c.context_id,()=>{selected=c.context_id;opened.add('navigation:'+c.context_id);render();}).setAttribute('aria-pressed',String(selected===c.context_id));}
+      const cards=el('div');cards.className='kt-captures';box.append(cards);
+      for(const c of visible){
+        const card=el('article');card.className='kt-capture';cards.append(card);
+        const rounds=[...new Set((c.links||[]).map(l=>l.round).filter(Number.isInteger))];
+        const metadata=[...rounds.map(n=>'R'+n),c.captured_at].filter(Boolean);
+        if(metadata.length)p(card,metadata.join(' · '),'kt-note');
+        button(card,c.context_id,()=>showCapture(c.context_id,true)).setAttribute('aria-pressed',String(selected===c.context_id));
+        const query=captureTerms(c);if(query)p(card,query);
+        p(card,c.state==='verified'?tr('Returned items','返回条目')+' · '+c.items.length:label(c.state),'kt-note');
+      }
       for(const c of visible.filter(c=>!selected || c.context_id===selected)){
         if(c.state!=='verified')p(box,c.context_id+' · '+label(c.state),'kt-warning');
         else trace(box,c,'navigation');
@@ -98,6 +176,15 @@ window.InferRSIKnowledge={create({getData,getLanguage,openRun}){
       if(!filtered.length)p(box,tr('Shared round search record not recorded.','未记录共享逐轮搜索记录。'),'kt-note');
       filtered.forEach(s=>search(box,s));
     });
+    if(initial){
+      initial=false;
+      if(navLink && location.hash===navLink.hash){
+        openNavigation();
+        window.addEventListener('load',()=>requestAnimationFrame(()=>{
+          if(location.hash===navLink.hash && document.activeElement===document.body)openNavigation();
+        }),{once:true});
+      }
+    }
   }
   function backLinks(box,row){
     if(!row)return;const all=getData().knowledge_trace||{};

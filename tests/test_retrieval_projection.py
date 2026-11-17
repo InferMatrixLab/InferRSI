@@ -65,6 +65,18 @@ def test_catalog_observation_does_not_mutate_records_or_return_order(monkeypatch
     assert result["retrieval"]["counts"]["excluded"]["repo"] == 5
 
 
+def test_shell_search_keeps_its_recorded_query_scope_and_hits(campaign):
+    path = campaign / "search/round-3.json"
+    record = json.loads(path.read_text())
+    hit = {"ref": "cases/launch.md"}
+    record["events"] = [{"id": "search:1", "action": "search", "tool": "rg",
+                         "query": "dense BF16", "scope": ["cases"], "materials": [hit]}]
+    path.write_text(json.dumps(record))
+    searches = dashboard_snapshot(campaign)["data"]["knowledge_trace"]["searches"]
+    event, = next(s["events"] for s in searches if s["path"] == "search/round-3.json")
+    assert (event["query"], event["scope"], event["materials"]) == ("dense BF16", ["cases"], [hit])
+
+
 def test_actual_paths_ranking_states_and_multi_run_navigation(campaign):
     data = dashboard_snapshot(campaign)["data"]
     trace = data["knowledge_trace"]

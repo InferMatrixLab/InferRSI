@@ -163,10 +163,14 @@ def _chart(source: Path, view: dict) -> tuple[str, str]:
                 "These curves do not establish cross-environment comparability.")
     external = [row for row in view["candidates"] if row.get("external")]
     if external:
+        native = [row for row in view["candidates"] if not row.get("external")]
+        if view.get("review_layout") == "profile_first":
+            # Absolute protocol measurements already have their own explorer.
+            # This layout uses the server chart only for native paired rounds.
+            return _chart(source, {**view, "candidates": native})
         from .dashboard_external import metric_chart
         measured = [row for row in external if row["external"]["metrics"]]
         chart = metric_chart(measured) if measured else ""
-        native = [row for row in view["candidates"] if not row.get("external")]
         if native:
             native_chart, _ = _chart(source, {**view, "candidates": native})
             chart += native_chart
@@ -352,12 +356,14 @@ def render_dashboard(snapshot: dict, *, live: bool = False) -> str:
         template = template.replace("img-src data:;", "img-src data:; connect-src 'self';")
     replacements = {"__DASHBOARD_KNOWLEDGE__": files("inferrsi").joinpath(
         "apps", "views", "knowledge_view.html").read_text(encoding="utf-8"),
+                    "__DASHBOARD_OVERVIEW__": files("inferrsi").joinpath(
+                        "apps", "views", "overview_view.html").read_text(encoding="utf-8"),
                     "__DASHBOARD_DATA__": payload, "__DASHBOARD_CHART__": snapshot["chart"],
                     "__DASHBOARD_TEMPORAL__": snapshot["temporal"],
                     "__DASHBOARD_EXPERIMENTS__": files("inferrsi").joinpath(
                         "apps", "views", "experiment_view.html").read_text(encoding="utf-8")}
     return re.sub(
-        r"__DASHBOARD_(?:DATA|CHART|TEMPORAL|EXPERIMENTS|KNOWLEDGE)__",
+        r"__DASHBOARD_(?:DATA|CHART|TEMPORAL|EXPERIMENTS|KNOWLEDGE|OVERVIEW)__",
         lambda match: replacements[match.group()],
         template,
     )

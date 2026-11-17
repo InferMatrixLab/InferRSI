@@ -302,7 +302,12 @@ def _compile(raw: bytes, compressed: bool) -> tuple[dict, bytes]:
     payload = json.dumps(full, separators=(",", ":"), ensure_ascii=True, allow_nan=False).encode()
     if len(payload) > 128 << 20:
         raise ValueError("compiled event table exceeds its limit")
-    return summary, gzip.compress(payload, compresslevel=3, mtime=0)
+    # GzipFile writes a neutral OS header on all supported Python versions.
+    # The digest identifies these exact bytes, including the gzip header.
+    buffer = io.BytesIO()
+    with gzip.GzipFile(fileobj=buffer, mode="wb", compresslevel=3, mtime=0) as stream:
+        stream.write(payload)
+    return summary, buffer.getvalue()
 
 
 def _put(path, data):

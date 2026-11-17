@@ -21,6 +21,14 @@ Omit `--output` to write `dashboard.html` in the input directory. Open the file
 in a browser. Filters and review export work locally. A generated snapshot does
 not update as an experiment runs; regenerate it to show new records.
 
+The overview groups candidate/run records by their recorded performance verdict.
+The ring total includes records without a verdict. Expand the overview statistics
+for gain, target gap and missing evidence. The performance chart has its own
+workload and metric filters. When more than two measurement axes are available
+across all workloads, expand **More measurement axes** to see the rest.
+Select a workflow stage and follow **View matching candidates** to its rows.
+Open a candidate or measurement to inspect its run and source evidence.
+
 ### Live observation
 
 To observe a run or campaign while its records are being written, start the
@@ -380,15 +388,26 @@ jq --arg ref "$ref" '{
 
 Use `campaign init --profile-first` for a new profiled campaign, or set
 `"review_layout": "profile_first"` in an existing `campaign.json`.
-The live view and HTML export keep the performance trend visible. Other sections
-start collapsed. Each capture has separate disclosures for its prior searches
-and timeline. Below the trend are
-acceptance criteria, recorded request profiles, the baseline breakdown and
-target gap, each round's measurements, and adoption decisions. The trend uses each
-candidate's paired medians. For example, a target latency reduction of 50%
+To revisit an optimization, pass its original campaign directory to
+`inferrsi dashboard --input`. In both the live page and the offline export,
+**Profile captures** (`#profiles`) opens the request timeline, **Experiment
+trace** (`#trace`) opens the timestamped steps, and **Knowledge trace**
+(`#knowledge-navigation`) opens the retrieval history. Select a capture to see
+its query, returned items and recorded use. The experiment trace includes model
+calls when their boundaries were recorded.
+
+The review opens with absolute candidate measurements grouped by workload, metric, scope
+and statistic. The axis follows the observed candidate values. Baseline and target values
+are available in the point evidence. Select a round beside the chart to open that run’s
+changes and measurements. Each profile has separate disclosures for its prior searches
+and timeline. Open the review sections for the acceptance criteria, baseline
+breakdown, target gap, per-round measurements, and adoption decisions. The expandable paired
+reference chart uses native runs with paired medians. Adding external candidates leaves this
+chart in place; their protocol-specific measurements appear in the absolute measurement view.
+For example, a target latency reduction of 50%
 is a 2× speedup. When there is one verified baseline profile, only runs
-with its measurement signature share the trend line and compete for its best
-result. Pairs from different conditions appear separately beside the chart.
+with its measurement signature share the speedup line and compete for its best
+result. The round list identifies runs with different measurement conditions.
 Cancelled runs retain their records in the round list.
 
 Attach a complete, reviewed worker trace before the first trial. Store a
