@@ -60,11 +60,11 @@ Run the `open` command on a relevant hit to read the entry and its source,
 applicability, limitations and revision. Add `--kinds case` to focus the search
 on recorded observations and failed directions.
 
-Nothing is filtered out for an unmatched word, so a question phrased in
-sentences still returns something; read the reported state, `scope` and bounds
-before acting on a hit. The remaining commands are exact-lookup and export —
-the [operation guide](operations.md) maps every entry point, effect class and
-boundary:
+Unmatched query terms do not exclude results that match other terms. If no
+query terms match the index, `find` returns `no_match`. Read the reported state,
+`scope` and bounds before acting on a hit. The remaining commands are
+exact-lookup and export — the [operation guide](operations.md) maps every entry
+point, effect class and boundary:
 
 ```bash
 inferrsi knowledge search 'Qwen-Image-2.1' --repo-type vllm_omni --backend ascend
