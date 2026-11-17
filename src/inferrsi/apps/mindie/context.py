@@ -2,7 +2,7 @@
 
 This CLI host adapter never activates MindIE, reads a session or calls a model.
 Retained responses establish supplied bytes, not their authenticity or consumption.
-It stays with the current flat CLI; it does not instantiate the proposed Apps package.
+It lives in the Apps package with the rest of the MindIE adapter.
 """
 
 from __future__ import annotations

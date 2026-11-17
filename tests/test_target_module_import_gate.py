@@ -74,14 +74,18 @@ class TargetModuleImportGateTest(unittest.TestCase):
         self.assertEqual(allowed, frozenset())
         self.assertEqual(cross_core_violations(allowed=allowed), [])
         self.assertFalse(hasattr(support, "LEGACY_RUN_FORWARDERS"))
-        # #408 A1 and A2: the CLI, its parser and the task launcher are under apps/, Apps by
-        # first path segment. With the last move the exact flat-entry listing is gone, so no
-        # root file is read as Apps and none of the old root files exists.
+        # #408 A1 and A2 and #452 M1: the CLI, its parser, the task launcher and the MindIE
+        # adapter are under apps/, Apps by first path segment. With the A2 move the exact
+        # flat-entry listing is gone, so no root file is read as Apps and none of the old
+        # root files exists.
         self.assertFalse(hasattr(support, "APPLICATION_ENTRIES"))
-        for retired in ("cli.py", "arguments.py", "benchmark_operations.py", "summary_chart.py"):
+        for retired in ("cli.py", "arguments.py", "benchmark_operations.py", "summary_chart.py",
+                        "mindie_project.py", "mindie_context.py", "mindie_mcp.py",
+                        "_mindie_read_worker.py"):
             self.assertFalse((ROOT / retired).exists(), retired)
         for moved in ("cli/__init__.py", "cli/arguments.py", "benchmark_operations.py",
-                      "views/summary_chart.py"):
+                      "views/summary_chart.py", "mindie/project.py", "mindie/context.py",
+                      "mindie/mcp.py", "mindie/read_worker.py"):
             self.assertTrue((ROOT / "apps" / moved).is_file(), moved)
 
     def test_first_wave_policy_holds_on_current_tree(self) -> None:
@@ -101,13 +105,14 @@ class TargetModuleImportGateTest(unittest.TestCase):
                         "_repo_pack_data.py", "evidence_paths.py"):
             self.assertFalse((ROOT / retired).exists(), retired)
         # #412 R1: the eleven retired root modules are gone, with no package in their place.
-        # #408 A1 and A2 each retired two more.
+        # #408 A1 and A2 each retired two more, and #452 M1 retired four.
         self.assertEqual(len(support.RETIRED_BY_R1), 11)
         self.assertEqual(support.RETIRED_BY_A1, {"inferrsi.cli", "inferrsi.arguments"})
         self.assertEqual(
             support.RETIRED_BY_A2, {"inferrsi.summary_chart", "inferrsi.benchmark_operations"}
         )
-        self.assertEqual(len(support.RETIRED_ROOT_MODULES), 15)
+        self.assertEqual(len(support.RETIRED_BY_M1), 4)
+        self.assertEqual(len(support.RETIRED_ROOT_MODULES), 19)
         for module in support.RETIRED_ROOT_MODULES:
             name = module.removeprefix("inferrsi.")
             self.assertFalse((ROOT / f"{name}.py").exists(), name)

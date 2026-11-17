@@ -70,7 +70,17 @@ RETIRED_BY_A1 = frozenset({"inferrsi.cli", "inferrsi.arguments"})
 # implementations are ``inferrsi.apps.views.summary_chart`` and
 # ``inferrsi.apps.benchmark_operations``.
 RETIRED_BY_A2 = frozenset({"inferrsi.summary_chart", "inferrsi.benchmark_operations"})
-RETIRED_ROOT_MODULES = RETIRED_BY_R1 | RETIRED_BY_A1 | RETIRED_BY_A2
+# #452 M1 deleted the four root MindIE files the same way. The adapter is the
+# ``inferrsi.apps.mindie`` package: ``project``, ``context``, ``mcp`` and ``read_worker``.
+RETIRED_BY_M1 = frozenset(
+    {
+        "inferrsi.mindie_project",
+        "inferrsi.mindie_context",
+        "inferrsi.mindie_mcp",
+        "inferrsi._mindie_read_worker",
+    }
+)
+RETIRED_ROOT_MODULES = RETIRED_BY_R1 | RETIRED_BY_A1 | RETIRED_BY_A2 | RETIRED_BY_M1
 # #412 R1, permanent: the one importer of the neutral data leaf outside
 # ``inferrsi.knowledge``, with the only name it may bind (D020: Infra reads one pack
 # description and reaches no Knowledge or Harness). This is not a manifest

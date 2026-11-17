@@ -10,11 +10,11 @@ import subprocess
 import tempfile
 from pathlib import Path
 
-from .mindie_context import MAX_BYTES, _parse
+from .context import MAX_BYTES, _parse
 
 _SCHEMA = "inferrsi-mindie-project/1"
 _DOMAIN = re.compile(r"[a-z][a-z0-9-]{0,63}")
-_WORKER = Path(__file__).with_name("_mindie_read_worker.py")
+_WORKER = Path(__file__).with_name("read_worker.py")
 _REF_ID = r"[A-Za-z0-9_.-]+@[1-9][0-9]*"
 _SEARCH_FIELDS = {"query", "conditions", "limit", "token_budget", "include_unknown"}
 _EXPLAIN_FIELDS = {"refs", "conditions", "known_refs", "token_budget"}
@@ -241,7 +241,7 @@ def dispatch(args) -> dict | None:
     if args.mindie_action == "describe":
         return describe()
     if args.mindie_action == "serve":
-        from .mindie_mcp import serve
+        from .mcp import serve
 
         serve()
         return None

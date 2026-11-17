@@ -192,6 +192,11 @@ src/inferrsi/
   apps/
     evidence_layout.py      Create the plan/results/patch/validator evidence directories
     campaign.py             Knowledge values connected to Harness campaign records
+    mindie/
+      project.py            Opt-in per-checkout grant, the worker launch and the recorded read
+      context.py            Export supplied MindIE reads into a caller-reviewed campaign trace
+      mcp.py                Stdio MCP for the two approved local MindIE reads
+      read_worker.py        Standalone worker run by the approved MindIE interpreter
     views/
       summary_chart.py      Stdlib SVG gain chart (chain/branch) and report figure spec
       optimization_chart.py Managed optimization objective/token curves and final result
@@ -271,19 +276,20 @@ examples/                   Current Qwen runner, image validator and v4 adapter
 tests/fixtures/legacy/      Frozen historical validation dependencies for regressions
 ```
 
-The package root holds exactly six tracked files at this stage: `__init__.py`,
-`__main__.py`, `mindie_context.py`, `mindie_mcp.py`, `mindie_project.py` and
-`_mindie_read_worker.py`. #408 A2 moved the chart renderer to
+The package root holds exactly two tracked files: `__init__.py` and `__main__.py`.
+#452 M1 moved the MindIE adapter to `apps/mindie/` (`project.py`, `context.py`,
+`mcp.py` and the standalone `read_worker.py`) and deleted root `mindie_project.py`,
+`mindie_context.py`, `mindie_mcp.py` and `_mindie_read_worker.py` with no forwarding
+shell or alias. #408 A2 moved the chart renderer to
 `apps/views/summary_chart.py` and the task launcher to `apps/benchmark_operations.py`
-and deleted root `summary_chart.py` and `benchmark_operations.py` with no forwarding
-shell or alias. #408 A1 moved the CLI and its parser to `apps/cli/`
-and deleted root `cli.py` and `arguments.py` the same way;
+and deleted root `summary_chart.py` and `benchmark_operations.py` the same way. #408 A1 moved the CLI and its parser to `apps/cli/`
+and deleted root `cli.py` and `arguments.py`;
 `__main__.py` and the console script call `inferrsi.apps.cli:main`. #412 R1 deleted eleven root modules with no
 forwarding shell or alias: the seven Knowledge shells, whose code is in
 `knowledge/`; the three old-run forwarders `evaluation.py`, `execution.py` and
 `reporting.py`, whose code is in `apps/legacy/`; and `inspection.py`, whose
-host binding is `apps/inspection.py`. The final two-file root (`__init__.py`
-and `__main__.py`) waits for the M1 (#452) move.
+host binding is `apps/inspection.py`. The build-generated `_version.py` is ignored
+wheel metadata, not a tracked root file.
 [module-layout.md](module-layout.md#retired-root-modules) maps each retired
 path to its replacement and lists what still keeps the isolation gate false.
 
