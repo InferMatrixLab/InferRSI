@@ -16,7 +16,10 @@ Apps projects those records without writing selection decisions.
 Use the Git checkout root and commit the declared project inputs first. The
 controller records the source repository and commit, and rebuilds each execution
 workspace from that commit's Git objects, including baseline, reference refresh
-and final. Keep those repositories and commits available throughout the campaign.
+and final. It reads declared tree members and raw blobs directly, preserving their
+executable modes while making copies read-only; archive export attributes cannot
+omit or rewrite inputs. Keep those repositories and commits available throughout
+the campaign.
 Replacing a retained directory does not replace the executed version; an unavailable
 source commit makes execution INCONCLUSIVE. Older records without a source repository
 cannot establish that binding and must start a new campaign.
@@ -176,6 +179,8 @@ abandonment decision; it does not make an incomplete attempt pass or satisfy an
 exact-round policy.
 
 If conditions change, use `refresh-references --conditions <json> --reason <text>`.
+This requires room for a new candidate round; when the round budget is exhausted,
+the command rejects the refresh before changing conditions or starting a service.
 It measures the original baseline and comparison parent under the new conditions
 (one run when they are the same version), retains both old/new records, and does
 not collect another parent profile. This restores comparison references only.
@@ -218,9 +223,11 @@ Captured material proves preparation, not model consumption.
 repair attempts; `other_attempt_usage` is separate. Unknown usage stays unknown,
 and recovering a settled attempt never imports or counts the same usage twice.
 
-Consecutive complete rejections/unselected candidates may trigger the declared
-system-wide analysis reminder. Infrastructure/cancelled/incomplete attempts do
-not count; recovery does not double-count. Advisory does not pause execution;
+Consecutive complete rejections may trigger the declared system-wide analysis
+reminder. Every accepted gain resets the streak, even when ranking leaves the
+candidate unselected. A new reference epoch resets the streak and notification
+flag while retaining earlier events. Infrastructure/cancelled/incomplete attempts
+do not count; recovery does not double-count. Advisory does not pause execution;
 explicit pause is resumed with a reason.
 
 The synthetic CPU controls are `tests/test_project_objectives.py` and

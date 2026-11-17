@@ -448,12 +448,22 @@ def test_baseline_comparison_quality_and_pause_resume(campaign):
 
 
 def test_accepted_but_unselected_candidate_keeps_its_verdict(campaign):
+    config = settings()
+    config["stagnation"] = {"rounds": 1, "action": "pause"}
+    campaign["config"].write_text(json.dumps(config))
     begin(campaign)
+    rejected_round = submit(campaign, version="rejected", a=110)
+    assert rejected_round["state"] == "paused"
+    call(campaign, "resume", "--reason", "Try a second-objective gain")
     result = submit(campaign, version="second-objective-gain", a=102, b=90)
     attempt = result["latest_observation"]
     assert attempt["assessment"]["eligible"] is True
     assert attempt["selected"] is False
     assert result["best"]["kind"] == "baseline"
+    assert result["state"] == "active"
+    assert result["stagnation"]["consecutive"] == 0
+    assert result["stagnation"]["notified"] is False
+    assert result["stagnation"]["events"] == rejected_round["stagnation"]["events"]
 
 
 def test_screening_below_estimate_runs_formal_quality_and_profile_on_same_service(campaign):
@@ -970,3 +980,84 @@ def test_whole_attempt_timeout_still_runs_bounded_stop(campaign):
     assert attempt["assessment"]["verdict"] == "INCONCLUSIVE"
     assert attempt["assessment"]["quality_passed"] is True
     assert [row["stage"] for row in events(campaign, attempt)][-1] == "stop"
+
+
+@pytest.mark.parametrize("attribute", ["export-ignore", "export-subst"])
+def test_execution_preserves_tree_inputs_despite_export_attributes(campaign, attribute):
+    repo = campaign["repo"]
+    payload = repo / "inputs/payload.txt"
+    payload.parent.mkdir()
+    content = b"literal $Format:%s$\r\n\x00payload\n"
+    payload.write_bytes(content)
+    payload.chmod(0o755)
+    (repo / ".gitattributes").write_text(f"inputs/payload.txt {attribute}\n")
+    subprocess.run(["git", "-C", str(repo), "add", ".gitattributes", "inputs"], check=True)
+    commit(repo)
+    campaign["start"] += ["--include", "inputs"]
+    baseline = begin(campaign)["latest_observation"]
+    candidate = submit(campaign, version="accepted", a=90)["latest_observation"]
+    final = call(campaign, "final", "--reason", "Verify exact committed inputs")["final"]
+    assert final["assessment"]["verdict"] == "PASS"
+    for attempt in (baseline, candidate, final):
+        for directory in ("candidate", "workspace"):
+            retained = campaign["root"] / attempt["path"] / directory / "inputs/payload.txt"
+            assert retained.read_bytes() == content
+            assert retained.stat().st_mode & 0o777 == 0o555
+
+
+@pytest.mark.parametrize("invalid", ["missing", "symlink"])
+def test_tree_snapshot_rejects_missing_or_special_declared_input(campaign, invalid):
+    repo = campaign["repo"]
+    if invalid == "symlink":
+        (repo / invalid).symlink_to("engine.py")
+        subprocess.run(["git", "-C", str(repo), "add", invalid], check=True)
+        commit(repo)
+    revision = subprocess.check_output(
+        ["git", "-C", str(repo), "rev-parse", "HEAD"], text=True
+    ).strip()
+    destination = repo.parent / "snapshot"
+    with pytest.raises(ValueError, match="missing|symbolic"):
+        project_service.retain_revision(repo, destination, ["engine.py", invalid], revision)
+    assert not destination.exists()
+
+
+@pytest.mark.parametrize("rejections", [1, 2])
+def test_refresh_resets_stagnation_without_erasing_history(campaign, rejections):
+    begin(campaign)
+    for index in range(rejections):
+        before = submit(campaign, version=f"rejected-{index}", a=110)
+    conditions = {**settings()["conditions"], "id": "new-conditions"}
+    path = campaign["root"].parent / "conditions.json"
+    path.write_text(json.dumps(conditions))
+    refreshed = call(
+        campaign, "refresh-references", "--conditions", path, "--reason", "Changed workload"
+    )
+    assert refreshed["stagnation"]["consecutive"] == 0
+    assert refreshed["stagnation"]["notified"] is False
+    assert refreshed["stagnation"]["events"] == before["stagnation"]["events"]
+    after = submit(campaign, version="new-conditions-rejected", a=110)
+    assert after["stagnation"]["consecutive"] == 1
+    assert after["stagnation"]["events"] == before["stagnation"]["events"]
+
+
+@pytest.mark.parametrize("round_mode", ["exact", "up_to"])
+def test_refresh_without_round_capacity_preserves_finalizable_state(campaign, round_mode):
+    campaign["start"][campaign["start"].index("--rounds") + 1] = "1"
+    campaign["start"] += ["--round-mode", round_mode]
+    begin(campaign)
+    submit(campaign, version="selected", a=90)
+    before = project_service.read(campaign["root"] / "state.json")
+    conditions = {**settings()["conditions"], "id": "new-conditions"}
+    path = campaign["root"].parent / "conditions.json"
+    path.write_text(json.dumps(conditions))
+    assert rejected([
+        "campaign", "refresh-references", "--session", str(campaign["root"]),
+        "--conditions", str(path), "--reason", "No acceptance capacity",
+    ]) == 2
+    assert "No round budget for current-conditions acceptance" in (
+        campaign["capsys"].readouterr().err
+    )
+    assert project_service.read(campaign["root"] / "state.json") == before
+    assert not (campaign["root"] / "references").exists()
+    result = call(campaign, "final", "--reason", "Complete original conditions")
+    assert result["final"]["assessment"]["verdict"] == "PASS"

@@ -780,43 +780,41 @@ def _service_settle(root, plan, state, pending, execution):
         round_record = state["rounds"][record["round_number"] - 1]
         round_record["attempt_ids"].append(record["attempt_id"])
         round_record["terminal"] = verdict != "INCONCLUSIVE"
-        selected = record["selected"]
         if verdict == "PASS":
             state["accepted_attempt_ids"].append(record["attempt_id"])
-            if selected:
+            if record["selected"]:
                 state.update(
                     best=choice,
                     comparison_parent=choice,
                     requires_current_conditions_acceptance=False,
                 )
         state["state"] = "blocked" if verdict == "INCONCLUSIVE" else "active"
-        if verdict != "INCONCLUSIVE":
+        if verdict == "PASS":
+            state["stagnation"].update(consecutive=0, notified=False)
+        elif verdict != "INCONCLUSIVE":
             stagnation = state["stagnation"]
-            if selected:
-                stagnation.update(consecutive=0, notified=False)
-            else:
-                stagnation["consecutive"] += 1
-                policy = plan["evaluation_settings"]["stagnation"]
-                if (
-                    not policy.get("disabled")
-                    and not stagnation["notified"]
-                    and (stagnation["consecutive"] >= policy["rounds"])
-                ):
-                    event = {
-                        "id": record["attempt_id"] + "-stagnation",
-                        "round": record["round_number"],
-                        "consecutive": stagnation["consecutive"],
-                        "best": state["best"],
-                        "attempt_path": record["path"],
-                        "action": policy["action"],
-                        "message": "Reassess system-wide critical paths, compute, communication, "
-                        "scheduling and resources across scenarios. Use available profiles; "
-                        "record evidence gaps, the next hypothesis and restructuring tradeoffs.",
-                    }
-                    stagnation["events"].append(event)
-                    stagnation["notified"] = True
-                    if policy["action"] == "pause":
-                        state["state"] = "paused"
+            stagnation["consecutive"] += 1
+            policy = plan["evaluation_settings"]["stagnation"]
+            if (
+                not policy.get("disabled")
+                and not stagnation["notified"]
+                and (stagnation["consecutive"] >= policy["rounds"])
+            ):
+                event = {
+                    "id": record["attempt_id"] + "-stagnation",
+                    "round": record["round_number"],
+                    "consecutive": stagnation["consecutive"],
+                    "best": state["best"],
+                    "attempt_path": record["path"],
+                    "action": policy["action"],
+                    "message": "Reassess system-wide critical paths, compute, communication, "
+                    "scheduling and resources across scenarios. Use available profiles; "
+                    "record evidence gaps, the next hypothesis and restructuring tradeoffs.",
+                }
+                stagnation["events"].append(event)
+                stagnation["notified"] = True
+                if policy["action"] == "pause":
+                    state["state"] = "paused"
     elif kind == "final":
         state["final"] = record
         state["stop_reason"] = record["hypothesis"]
@@ -1132,6 +1130,8 @@ def service_command(root, args, *, knowledge_reader=None):
         elif kind == "refresh":
             if initial is None or parent is None or not args.reason.strip():
                 raise ValueError("Initial references and a change reason required")
+            if len(state["rounds"]) >= plan["round_limit"]:
+                raise ValueError("No round budget for current-conditions acceptance")
             conditions = service.read(args.conditions)
             service.validate_conditions(conditions)
             if not old:
@@ -1145,6 +1145,7 @@ def service_command(root, args, *, knowledge_reader=None):
                     requires_current_conditions_acceptance=True,
                     accepted_attempt_ids=[],
                 )
+                state["stagnation"].update(consecutive=0, notified=False)
             elif conditions != old["conditions"]:
                 raise ValueError("Reference retry must retain its declared conditions")
             source, commit = root / plan["baseline_path"], plan["baseline_revision"]

@@ -4,13 +4,11 @@ No file/content fingerprints are calculated here. Revision, configuration and
 actual service receipts establish the explicitly declared execution binding.
 """
 
-import io
 import json
 import math
 import os
 import re
 import subprocess
-import tarfile
 import time
 import uuid
 from pathlib import Path
@@ -366,24 +364,33 @@ def revision(source, includes):
 def retain_revision(source, destination, includes, commit):
     if not isinstance(commit, str) or not re.fullmatch(r"[a-f0-9]{40,64}", commit):
         raise ValueError("Candidate requires an existing Git commit")
-    archive = subprocess.check_output(
-        ["git", "-C", str(source), "archive", "--format=tar", commit, "--", *includes]
-    )
+    entries = {}
+    for name in includes or ["."]:
+        relative = Path(name)
+        if relative.is_absolute() or ".." in relative.parts:
+            raise ValueError("Candidate includes must be relative paths inside the project")
+        listing = subprocess.check_output(
+            ["git", "-C", str(source), "ls-tree", "-rz", "--full-tree",
+             "--format=%(objectmode) %(objecttype)%x09%(path)", commit, "--",
+             relative.as_posix()]
+        )
+        if not listing:
+            raise ValueError("Declared candidate files are missing from the retained commit")
+        for entry in listing.rstrip(b"\0").split(b"\0"):
+            metadata, path = entry.split(b"\t", 1)
+            mode, kind = metadata.split()
+            if kind != b"blob" or mode not in (b"100644", b"100755"):
+                raise ValueError("Candidate tree contains symbolic or special files")
+            entries[os.fsdecode(path)] = int(mode, 8) & 0o555
     destination.mkdir()
-    copied = False
-    with tarfile.open(fileobj=io.BytesIO(archive)) as stream:
-        for item in stream.getmembers():
-            if item.isdir():
-                continue
-            if not item.isfile():
-                raise ValueError("Candidate archive contains symbolic or special files")
-            target = safe_path(destination, item.name)
-            target.parent.mkdir(parents=True, exist_ok=True)
-            target.write_bytes(stream.extractfile(item).read())
-            target.chmod(item.mode & ~0o222)
-            copied = True
-    if not copied:
-        raise ValueError("Declared candidate files are missing from the retained commit")
+    for name, mode in entries.items():
+        target = safe_path(destination, name)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        # Read raw tree content; archive export attributes can omit or rewrite inputs.
+        target.write_bytes(subprocess.check_output(
+            ["git", "-C", str(source), "cat-file", "blob", f"{commit}:{name}"]
+        ))
+        target.chmod(mode)
 
 
 def prepare(root, args):
