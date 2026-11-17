@@ -264,6 +264,100 @@ def _tree(
 
 
 class KnowledgeReader:
+    def collect_service_context(self, cue, *, relevance_method, limit, context_bytes):
+        """Package knowledge for service campaigns; no Bundle/content identity path."""
+        from .catalog import without_file_fingerprints
+        from .context_projection import assemble_context_text
+
+        if (
+            not words(cue)
+            or relevance_method not in RELEVANCE_METHODS
+            or (
+                type(limit) is not int
+                or limit < 1
+                or type(context_bytes) is not int
+                or context_bytes < 1
+            )
+        ):
+            raise ValueError("Valid cue, relevance method, positive limit/context budget required")
+        ranked, omissions = [], []
+        package = files("inferrsi").joinpath("knowledge")
+        for record in knowledge_records(file_fingerprints=False):
+            documents = record.get("skill_documents", {})
+            path = documents.get("original") if documents else None
+            if path is not None:
+                safe_path(path)
+                if not path.startswith("data/skill_library/"):
+                    raise ValueError("Service knowledge resource must stay inside the library")
+                node = package.joinpath(*path.split("/"))
+                if isinstance(node, Path) and node.is_symlink():
+                    raise ValueError("Symbolic knowledge resource")
+                body = node.read_bytes()
+            else:
+                body = _json(record)
+                path = "record.json"
+            scorer = task_score if relevance_method == TASK_RELEVANCE else skill_score
+            score = (
+                scorer(cue, record, body, None)
+                if relevance_method == TASK_RELEVANCE
+                else scorer(cue, record, body, method=relevance_method)
+            )
+            if score:
+                ranked.append((score, record["id"], record, path, body))
+        contexts, used = [], 0
+        for score, identity, record, path, body in sorted(
+            ranked, key=lambda item: (-item[0], item[1])
+        ):
+            ref = "package:" + identity
+            if len(contexts) >= limit or used + len(body) > context_bytes:
+                omissions.append(
+                    {
+                        "ref": ref,
+                        "reason": "context_limit"
+                        if used + len(body) > context_bytes
+                        else "item_limit",
+                    }
+                )
+                continue
+            sources = record["sources"]
+            contexts.append(
+                {
+                    "ref": ref,
+                    "revision": sources[0]["commit"],
+                    "sources": sources,
+                    "content_bytes": len(body),
+                    "score": score,
+                    "resources": [{"path": path, "role": "core", "content": body.decode("utf-8")}],
+                    "omissions": [
+                        {"path": target, "reason": "linked_document_not_loaded"}
+                        for target in record.get("skill_metadata", {}).get("references", [])
+                    ],
+                    "limitations": [
+                        "Prepared source text; no content identity or model-consumption claim."
+                    ],
+                }
+            )
+            used += len(body)
+        if self.skill_root or self.store:
+            omissions.append({"reason": "checkout_and_store_require_content_identity_not_used"})
+        return without_file_fingerprints(
+            {
+                "schema_version": 2,
+                "kind": "service_knowledge_context",
+                "request": {
+                    "relevance": cue,
+                    "relevance_method": relevance_method,
+                    "limit": limit,
+                    "context_bytes": context_bytes,
+                },
+                "contexts": contexts,
+                "omissions": omissions,
+                "context_bytes": used,
+                "assembled_text": assemble_context_text(contexts),
+                "prepared_not_consumed": True,
+            }
+        )
+
     def __init__(self, *, skill_root: Path | None = None, store=None):
         self.skill_root = skill_root.resolve() if skill_root is not None else None
         if store is not None and store.skill_root != self.skill_root:

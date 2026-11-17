@@ -28,6 +28,10 @@ does not import Benchmark. Benchmark supplies task definitions and specialized
 rules, while Harness manages their execution and the complete optimization lifecycle.
 Neither infers quality criteria from a natural-language goal.
 Ordinary projects default to the current Agent conversation.
+The optional [service-reuse protocol](service-reuse-campaigns.md) adds project
+assessment and foreground service ownership within this same controller. Its
+protocol and result rules live in `harness.project_service`, with process
+lifetime managed by `local_process`.
 The [native host handoff](native-agent-sessions.md) lets the initiating Agent
 resolve the task request before any campaign exists, use its host's new-session
 tool and retain the native identity and returned artifacts. The child owns the

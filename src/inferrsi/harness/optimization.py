@@ -19,6 +19,8 @@ def _locked(root):
 
 
 def initialize(root: Path, plan: dict) -> dict:
+    if plan.get("evaluation_mode") == "service_reuse":
+        return _service_initialize(root, plan)
     if type(plan["round_limit"]) is not int or plan["round_limit"] < 1:
         raise ValueError("rounds must be a positive integer")
     if (type(plan["max_seconds"]) not in (int, float)
@@ -55,6 +57,29 @@ def initialize(root: Path, plan: dict) -> dict:
 def _control(root):
     plan = json.loads((root / "plan.json").read_text(encoding="utf-8"))
     state = json.loads((root / "state.json").read_text(encoding="utf-8"))
+    manifest_header = json.loads((root / "campaign.json").read_text(encoding="utf-8"))
+    if (
+        plan.get("evaluation_mode") == "service_reuse"
+        or plan.get("schema_version") == 3
+        or manifest_header.get("evaluation_mode") == "service_reuse"
+    ):
+        from . import project_service as service
+
+        manifest = service.read(root / "campaign.json")
+        if (
+            plan.get("evaluation_mode") != "service_reuse"
+            or plan.get("schema_version") != 3
+            or state.get("schema_version") != 2
+            or (
+                manifest.get("evaluation_mode") != "service_reuse"
+                or manifest.get("protocol_id") != plan["evaluation_settings"]["protocol_id"]
+                or state.get("protocol_id") != manifest["protocol_id"]
+            )
+        ):
+            raise ValueError("Incompatible service campaign records")
+        service.no_fingerprints(plan)
+        service.no_fingerprints(state)
+        return plan, state
     if digest(plan) != state["plan_digest"]:
         raise ValueError("Frozen optimization plan changed")
     manifest = json.loads((root / "campaign.json").read_text(encoding="utf-8"))
@@ -65,6 +90,8 @@ def _control(root):
 
 def _load(root):
     plan, state = _control(root)
+    if plan.get("evaluation_mode") == "service_reuse":
+        return _service_load(root, plan, state)
     frozen = root / "frozen"
     paths = list(frozen.rglob("*"))
     if frozen.is_symlink() or any(path.is_symlink() for path in paths):
@@ -97,6 +124,10 @@ def _load(root):
 
 
 def status(root: Path) -> dict:
+    plan, control = _control(root)
+    if plan.get("evaluation_mode") == "service_reuse":
+        plan, control = _load(root)
+        return _service_status(root, plan, control)
     _, control = _control(root)
     if control["state"] == "blocked" and control.get("integrity_error"):
         # A diagnostic is still readable after rejected input drift. Never expose
@@ -159,18 +190,23 @@ def capture_context(root: Path, reader, *, retain_context, **request) -> dict:
     return {"reference": reference, "context": json.loads(path.read_text(encoding="utf-8"))}
 
 
-def _usage_record(source):
+def _usage_record(source, *, fingerprint=True):
     if source is None:
         return {"usage": None, "tool_calls": None, "usage_source": None}, None
     raw = Path(source).read_bytes()
     payload = json.loads(raw)
     if not isinstance(payload, dict):
         raise ValueError("Usage export must be a JSON object")
+    if not fingerprint:
+        from .project_service import no_fingerprints
+
+        no_fingerprints(payload)
     usage = normalize_usage(payload)
     if not usage or usage.get("input_tokens") is None or usage.get("output_tokens") is None:
         raise ValueError("Usage export requires nonnegative input_tokens and output_tokens")
     return ({"usage": usage, "tool_calls": None,
-             "usage_source": {"kind": "caller_export", "sha256": hashlib.sha256(raw).hexdigest()}},
+             "usage_source": {"kind": "caller_export", **(
+                 {"sha256": hashlib.sha256(raw).hexdigest()} if fingerprint else {})}},
             raw)
 
 
@@ -181,6 +217,8 @@ def _token_totals(records):
 
 
 def _summary(root, plan, state):
+    if plan.get("evaluation_mode") == "service_reuse":
+        return _service_summary(root, plan, state)
     rounds = state["rounds"]
     final = state["final"]
     return {
@@ -384,3 +422,825 @@ def recover(root: Path, assess) -> dict:
             raise ValueError("Execution record unavailable, inspect cleanup before recovery")
         execution = json.loads(path.read_text(encoding="utf-8"))
         return _settle(root, plan, state, pending, execution, assess)
+
+
+def _service_initialize(root, plan):
+    from . import project_service as service
+
+    service.validate(plan["evaluation_settings"])
+    if (
+        type(plan["round_limit"]) is not int
+        or plan["round_limit"] < 1
+        or (
+            plan["round_mode"] not in ("up_to", "exact")
+            or not service.positive(plan["max_seconds"])
+            or not service.positive(plan["evaluation_timeout_seconds"])
+            or not service.positive(plan["final_reserve_seconds"])
+            or plan["final_reserve_seconds"] >= plan["max_seconds"]
+        )
+    ):
+        raise ValueError("Invalid service campaign round/time budget")
+    started = time.time()
+    state = {
+        "schema_version": 2,
+        "protocol_id": plan["evaluation_settings"]["protocol_id"],
+        "state": "needs_baseline",
+        "started_at": started,
+        "deadline": started + plan["max_seconds"],
+        "pending": None,
+        "rounds": [],
+        "attempts": [],
+        "contexts": [],
+        "recovery_events": [],
+        "reference_epoch": 0,
+        "protocol_path": "frozen/protocol",
+        "conditions": plan["evaluation_settings"]["conditions"],
+        "requires_current_conditions_acceptance": False,
+        "accepted_attempt_ids": [],
+        "initial_reference": None,
+        "comparison_parent": None,
+        "best": None,
+        "final": None,
+        "stop_reason": None,
+        "stagnation": {"consecutive": 0, "notified": False, "events": []},
+    }
+    atomic_write_json(root / "plan.json", plan)
+    atomic_write_json(
+        root / "campaign.json",
+        {
+            "campaign_id": root.name,
+            "managed_optimization": True,
+            "evaluation_mode": "service_reuse",
+            "protocol_id": state["protocol_id"],
+        },
+    )
+    atomic_write_json(root / "state.json", state)
+    return _service_status(root, plan, state)
+
+
+def _service_load(root, plan, state):
+    from inferrsi import __version__
+
+    from . import project_service as service
+
+    if plan.get("runtime_version") != __version__:
+        raise ValueError("Runtime package version changed; use the recorded version to resume")
+    service.validate(plan["evaluation_settings"])
+    if service.read(root / "frozen/evaluation.json") != plan["evaluation_settings"]:
+        raise ValueError("Retained protocol and plan disagree")
+    service.validate_conditions(state["conditions"])
+    candidates.members(service.safe_path(root, state["protocol_path"]))
+    candidates.members(service.safe_path(root, plan["baseline_path"]))
+    for attempt in state["attempts"]:
+        directory = service.safe_path(root, attempt["path"])
+        if service.read(directory / "observation.json") != attempt:
+            raise ValueError("Retained attempt and control record disagree")
+    for context in state["contexts"]:
+        service.read(service.safe_path(root, context["path"]))
+    for event in state["recovery_events"]:
+        if event["kind"] == "cleanup_inspection":
+            proof = service.read(service.safe_path(root, event["path"]))
+            if (
+                proof["attempt_id"] != event["attempt_id"]
+                or proof.get("cleanup_complete") is not True
+            ):
+                raise ValueError("Retained cleanup inspection is incomplete")
+    if state["best"] is not None:
+        candidates.members(service.safe_path(root, state["best"]["path"]))
+    return plan, state
+
+
+def _service_profile(root, selected, conditions):
+    from . import project_service as service
+
+    if selected is None:
+        return False
+    profile = selected.get("profile")
+    try:
+        if (
+            not profile
+            or not isinstance(selected.get("binding"), dict)
+            or profile["conditions"] != conditions
+            or (profile["attempt_id"] != selected["attempt_id"])
+            or profile["binding"] != selected["binding"]
+            or any(
+                selected["binding"].get(key) != selected[key]
+                for key in ("attempt_id", "revision", "conditions")
+            )
+            or selected["binding"].get("effective_config") != conditions["effective_config"]
+            or not selected["binding"].get("service_id")
+            or not selected["binding"].get("run_id")
+            or not isinstance(profile["artifacts"], list)
+            or not profile["artifacts"]
+        ):
+            return False
+        trace = service.read(service.safe_path(root, profile["result"]))
+        if (
+            trace.get("status") != "completed"
+            or trace.get("validated") is not True
+            or (trace.get("binding") != profile["binding"])
+            or trace != profile.get("receipt")
+        ):
+            return False
+        return all(
+            service.safe_path(root, path).is_file()
+            and service.safe_path(root, path).stat().st_size > 0
+            for path in profile["artifacts"]
+        )
+    except (OSError, ValueError, KeyError, TypeError):
+        return False
+
+
+def _service_selected_evidence_reason(root, state):
+    from . import project_service as service
+
+    if not state["initial_reference"] or state["best"] is None:
+        return "missing_baseline_reference"
+    retained = next(
+        (item for item in state["attempts"] if item["attempt_id"] == state["best"]["attempt_id"]),
+        None,
+    )
+    if (
+        retained is None
+        or retained["assessment"]["verdict"] != "PASS"
+        or (_service_choice(retained, retained["execution"]) != state["best"])
+    ):
+        return "unverifiable_selected_attempt_binding"
+    if state["best"]["conditions"] != state["conditions"]:
+        return "incompatible_selected_conditions"
+    try:
+        config = service.read(service.safe_path(root, state["best"]["effective_config_path"]))
+        if config != state["best"]["conditions"]["effective_config"]:
+            return "unverifiable_selected_configuration"
+    except (OSError, ValueError, KeyError):
+        return "unverifiable_selected_configuration"
+    if state["best"]["kind"] == "candidate" and not _service_profile(
+        root, state["best"], state["conditions"]
+    ):
+        return "missing_or_incompatible_selected_profile"
+    return None
+
+
+def _service_final_reason(root, plan, state):
+    if state["requires_current_conditions_acceptance"] or (
+        state["reference_epoch"] > 0
+        and (
+            state["best"] is None
+            or state["best"]["attempt_id"] not in state["accepted_attempt_ids"]
+            or state["best"]["reference_epoch"] != state["reference_epoch"]
+        )
+    ):
+        return "missing_current_conditions_acceptance"
+    reason = _service_selected_evidence_reason(root, state)
+    if reason:
+        return reason
+    if state["pending"] is not None or state["state"] != "active":
+        return "unresolved_attempt_or_pause"
+    completed = sum(item["terminal"] for item in state["rounds"])
+    if not completed or plan["round_mode"] == "exact" and completed != plan["round_limit"]:
+        return "incomplete_round_policy"
+    if time.time() >= state["deadline"]:
+        return "deadline_exhausted"
+    return None
+
+
+def _service_status(root, plan, state):
+    reason = _service_final_reason(root, plan, state)
+    remaining = max(0, state["deadline"] - time.time())
+    next_action = (
+        "campaign_baseline"
+        if state["state"] == "needs_baseline"
+        else "recover_existing_attempt_without_relaunch"
+        if state["pending"]
+        else "investigate_then_explicit_retry_or_resume"
+        if state["state"] == "blocked"
+        else "resume_after_recorded_analysis"
+        if state["state"] == "paused"
+        else "submit_current_conditions_candidate"
+        if state["requires_current_conditions_acceptance"]
+        else "independently_retest_selected_candidate_with_final"
+        if len(state["rounds"]) >= plan["round_limit"]
+        else "edit_candidate_and_submit_round"
+    )
+    if state["state"] == "completed":
+        next_action = "completed"
+    return {
+        "session": str(root),
+        "evaluation_mode": "service_reuse",
+        "state": state["state"],
+        "next_action": next_action,
+        "can_finalize": reason is None,
+        "final_block_reason": reason,
+        "completed_rounds": sum(item["terminal"] for item in state["rounds"]),
+        "allocated_rounds": len(state["rounds"]),
+        "round_limit": plan["round_limit"],
+        "remaining_seconds": remaining,
+        "remaining_search_seconds": max(0, remaining - plan["final_reserve_seconds"]),
+        "round_mode": plan["round_mode"],
+        "working_candidate": plan["working_candidate"],
+        "best": state["best"],
+        "no_candidate_selected": state["best"] is not None and state["best"]["kind"] == "baseline",
+        "pending": state["pending"],
+        "reference_epoch": state["reference_epoch"],
+        "conditions": state["conditions"],
+        "accepted_attempt_ids": state["accepted_attempt_ids"],
+        "stagnation": state["stagnation"],
+        "final": state["final"],
+        "latest_observation": state["attempts"][-1] if state["attempts"] else None,
+        "summary": str(root / "summary.json"),
+    }
+
+
+def _service_summary(root, plan, state):
+    return {
+        "schema_version": 2,
+        "evaluation_mode": "service_reuse",
+        "task": plan["task"],
+        "condition": plan["condition"],
+        "state": state["state"],
+        "planned_rounds": plan["round_limit"],
+        "completed_rounds": sum(item["terminal"] for item in state["rounds"]),
+        "selected_candidate": state["best"],
+        "selection": plan["selection"],
+        "final_assessment": state["final"]["assessment"] if state["final"] else None,
+        "final_block_reason": (
+            None if state["state"] == "completed" else _service_final_reason(root, plan, state)
+        ),
+        "optimization_speedup": None,
+        "reference_epoch": state["reference_epoch"],
+        "conditions": state["conditions"],
+        "initial_reference": state["initial_reference"],
+        "comparison_parent": state["comparison_parent"],
+        "accepted_attempt_ids": state["accepted_attempt_ids"],
+        "attempts": state["attempts"],
+        "knowledge_deliveries": state["contexts"],
+        "stagnation": state["stagnation"],
+        "usage": _token_totals([item for item in state["attempts"] if item["kind"] == "round"]),
+        "usage_scope": "caller_round_attempt_exports",
+        "other_attempt_usage": _token_totals(
+            [item for item in state["attempts"] if item["kind"] != "round"]
+        ),
+        "stop_reason": state["stop_reason"],
+        "wall_elapsed_seconds": time.time() - state["started_at"],
+    }
+
+
+def _service_choice(pending, execution):
+    return {
+        "kind": "candidate" if pending["role"] == "candidate" else "baseline",
+        "attempt_id": pending["attempt_id"],
+        "candidate_id": pending["candidate_id"],
+        "path": pending["path"] + "/candidate",
+        "revision": pending["revision"],
+        "conditions": pending["conditions"],
+        "reference_epoch": pending["reference_epoch"],
+        "effective_config_path": pending["path"] + "/effective-config.json",
+        "measurements": execution["measurements"],
+        "quality_score": execution["quality_score"],
+        "profile": execution.get("profile"),
+        "protocol_path": pending["protocol_path"],
+        "binding": execution["binding"],
+        "parent_reference_at_acceptance": (
+            {
+                key: value
+                for key, value in pending["parent"].items()
+                if key != "parent_reference_at_acceptance"
+            }
+            if pending.get("parent")
+            else None
+        ),
+    }
+
+
+def _service_settle(root, plan, state, pending, execution):
+    from . import project_service as service
+
+    path = service.safe_path(root, pending["path"]) / "observation.json"
+    if path.exists():
+        record = service.read(path)
+        if record["attempt_id"] != pending["attempt_id"]:
+            raise ValueError("Recovery attempt identity mismatch")
+    else:
+        record = {
+            **pending,
+            "execution": execution,
+            "assessment": execution["assessment"],
+            "elapsed_seconds": execution.get("elapsed_seconds"),
+        }
+    if any(item["attempt_id"] == record["attempt_id"] for item in state["attempts"]):
+        state["pending"] = None
+        return _service_status(root, plan, state)
+    reason, choice = None, None
+    if record["kind"] == "round" and record["assessment"]["verdict"] == "PASS":
+        choice = _service_choice(record, record["execution"])
+        if not _service_profile(root, choice, record["conditions"]):
+            reason = "profile: incomplete_or_unverifiable_after_cleanup"
+    elif record["kind"] == "final" and record["assessment"]["verdict"] != "INCONCLUSIVE":
+        reason = _service_selected_evidence_reason(root, state)
+    if reason:
+        choice = None
+        record["assessment_before_settlement"] = record["assessment"]
+        record["assessment"] = service.assessment(
+            "INCONCLUSIVE",
+            reason,
+            performance=record["assessment"].get("performance"),
+            quality_passed=record["assessment"].get("quality_passed"),
+        )
+    if record["kind"] == "round":
+        record["selected"] = choice is not None and (
+            state["best"] is None
+            or service.better(
+                plan["evaluation_settings"],
+                choice["measurements"]["values"],
+                state["best"]["measurements"]["values"],
+            )
+        )
+        record["best_after"] = choice if record["selected"] else state["best"]
+    atomic_write_json(path, record)
+    judged = record["assessment"]
+    verdict, kind = judged["verdict"], record["kind"]
+    if kind == "baseline":
+        if verdict == "PASS":
+            choice = _service_choice(record, record["execution"])
+            state.update(
+                initial_reference=choice, comparison_parent=choice, best=choice, state="active"
+            )
+        else:
+            state["state"] = "blocked"
+    elif kind == "refresh":
+        if verdict == "PASS":
+            initial, parent = record["execution"]["references"]
+            state.update(
+                initial_reference=initial, comparison_parent=parent, best=None, state="active"
+            )
+        else:
+            state["state"] = "blocked"
+    elif kind == "round":
+        round_record = state["rounds"][record["round_number"] - 1]
+        round_record["attempt_ids"].append(record["attempt_id"])
+        round_record["terminal"] = verdict != "INCONCLUSIVE"
+        selected = record["selected"]
+        if verdict == "PASS":
+            state["accepted_attempt_ids"].append(record["attempt_id"])
+            if selected:
+                state.update(
+                    best=choice,
+                    comparison_parent=choice,
+                    requires_current_conditions_acceptance=False,
+                )
+        state["state"] = "blocked" if verdict == "INCONCLUSIVE" else "active"
+        if verdict != "INCONCLUSIVE":
+            stagnation = state["stagnation"]
+            if selected:
+                stagnation.update(consecutive=0, notified=False)
+            else:
+                stagnation["consecutive"] += 1
+                policy = plan["evaluation_settings"]["stagnation"]
+                if (
+                    not policy.get("disabled")
+                    and not stagnation["notified"]
+                    and (stagnation["consecutive"] >= policy["rounds"])
+                ):
+                    event = {
+                        "id": record["attempt_id"] + "-stagnation",
+                        "round": record["round_number"],
+                        "consecutive": stagnation["consecutive"],
+                        "best": state["best"],
+                        "attempt_path": record["path"],
+                        "action": policy["action"],
+                        "message": "Reassess system-wide critical paths, compute, communication, "
+                        "scheduling and resources across scenarios. Use available profiles; "
+                        "record evidence gaps, the next hypothesis and restructuring tradeoffs.",
+                    }
+                    stagnation["events"].append(event)
+                    stagnation["notified"] = True
+                    if policy["action"] == "pause":
+                        state["state"] = "paused"
+    elif kind == "final":
+        state["final"] = record
+        state["stop_reason"] = record["hypothesis"]
+        if verdict != "INCONCLUSIVE":
+            state["state"] = "completed"
+        elif not record.get("admission_failure"):
+            state["state"] = "blocked"
+    state["attempts"].append(record)
+    state["pending"] = None
+    atomic_write_json(root / "state.json", state)
+    atomic_write_json(root / "summary.json", _service_summary(root, plan, state))
+    return _service_status(root, plan, state)
+
+
+def _service_execute(root, directory, plan, pending, deadline):
+    from . import project_service as service
+
+    if pending["kind"] != "refresh":
+        return service.execute(root, directory, plan, pending, deadline)
+    references, runs = [], []
+    started = time.monotonic()
+    initial = pending["refresh_initial"]
+    for label, reference_kind, source in (
+        ("baseline", "initial", initial),
+        ("parent", "parent", pending["refresh_parent"]),
+    ):
+        if (
+            reference_kind == "parent"
+            and source["revision"] == initial["revision"]
+            and (
+                source["conditions"]["effective_config"]
+                == initial["conditions"]["effective_config"]
+            )
+        ):
+            references.append(references[0])
+            continue
+        relative = pending["path"] + "/" + label
+        subdir = service.safe_path(root, relative)
+        subdir.mkdir()
+        candidates.retain(
+            service.safe_path(root, source["path"]), subdir / "candidate", fingerprint=False
+        )
+        job = {
+            **pending,
+            "path": relative,
+            "revision": source["revision"],
+            "attempt_id": pending["attempt_id"] + "-" + label,
+            "candidate_id": source["candidate_id"],
+            "role": "baseline",
+            "reference_kind": reference_kind,
+            "parent": None,
+            "initial": None,
+        }
+        result = service.execute(root, subdir, plan, job, deadline)
+        runs.append(result)
+        if result["assessment"]["verdict"] != "PASS":
+            return {
+                "assessment": service.assessment("INCONCLUSIVE", "reference_refresh_incomplete"),
+                "runs": runs,
+                "cleanup_verified": result["cleanup_verified"],
+                "elapsed_seconds": time.monotonic() - started,
+            }
+        references.append(_service_choice(job, result))
+    return {
+        "assessment": service.assessment(
+            "PASS", "references_refreshed_not_candidate_acceptance", eligible=False
+        ),
+        "retained_parent_profile": pending["refresh_parent"].get("profile"),
+        "parent_profile_applicability": "not_applicable"
+        if pending["refresh_parent"].get("profile")
+        else "not_available",
+        "references": references,
+        "runs": runs,
+        "cleanup_verified": True,
+        "elapsed_seconds": time.monotonic() - started,
+    }
+
+
+def _service_cleanup_confirmed(state, attempt):
+    return attempt.get("execution", {}).get("cleanup_verified") is True or any(
+        event["kind"] == "cleanup_inspection" and event["attempt_id"] == attempt["attempt_id"]
+        for event in state["recovery_events"]
+    )
+
+
+def _service_cleanup_receipt(root, state, path):
+    from . import project_service as service
+    from .local_process import _group_empty
+
+    latest = state["pending"] or (state["attempts"][-1] if state["attempts"] else None)
+    proof = service.read(path)
+    if (
+        latest is None
+        or proof.get("attempt_id") != latest["attempt_id"]
+        or not proof.get("reason")
+        or (
+            proof.get("cleanup_complete") is not True
+            or not service.positive(proof.get("observed_at"))
+            or not isinstance(proof.get("services"), list)
+            or any(not isinstance(item, dict) for item in proof.get("services", []))
+        )
+    ):
+        raise ValueError(
+            "Cleanup inspection must identify the attempt, time, reason and all services"
+        )
+    directory = service.safe_path(root, latest["path"])
+    owners = [
+        service.read(service.safe_path(directory, name))
+        for name in (
+            "service/owner.json",
+            "baseline/service/owner.json",
+            "parent/service/owner.json",
+        )
+        if service.safe_path(directory, name).is_file()
+    ]
+    if len(owners) != len(proof["services"]):
+        raise ValueError("Cleanup inspection must cover every recorded service owner")
+    for owner in owners:
+        matches = [
+            item for item in proof["services"] if item.get("service_id") == owner["service_id"]
+        ]
+        if (
+            len(matches) != 1
+            or matches[0].get("pid") != owner["pid"]
+            or (matches[0].get("domain_empty") is not True)
+        ):
+            raise ValueError("Cleanup inspection service owner mismatch")
+        if (
+            owner.get("process_group_id") is not None
+            and _group_empty(owner["process_group_id"]) is not True
+        ):
+            raise ValueError("Recorded process domain is still live or unobservable")
+    relative = "recoveries/cleanup-" + uuid.uuid4().hex + ".json"
+    (root / "recoveries").mkdir(exist_ok=True)
+    atomic_write_json(service.safe_path(root, relative), proof)
+    state["recovery_events"].append(
+        {"kind": "cleanup_inspection", "attempt_id": latest["attempt_id"], "path": relative}
+    )
+    atomic_write_json(root / "state.json", state)
+
+
+def service_command(root, args, *, knowledge_reader=None):
+    """Service-mode operations inside the shared controller's lock and control record."""
+    from . import project_service as service
+
+    with _locked(root):
+        plan, state = _load(root)
+        action = args.session_action
+        if getattr(args, "cleanup_receipt", None) is not None:
+            _service_cleanup_receipt(root, state, args.cleanup_receipt)
+        if action == "status":
+            return _service_status(root, plan, state)
+        if action == "recover":
+            if state["pending"] is None:
+                return _service_status(root, plan, state)
+            pending = state["pending"]
+            directory = service.safe_path(root, pending["path"])
+            observation = directory / "observation.json"
+            if observation.exists():
+                result = service.read(observation)["execution"]
+            else:
+                try:
+                    result = service.read(directory / "execution/execution.json")
+                except (OSError, ValueError):
+                    if not _service_cleanup_confirmed(state, pending):
+                        raise ValueError(
+                            "No execution receipt; inspect cleanup before recovery"
+                        ) from None
+                    result = {"status": "interrupted", "available_evidence_path": pending["path"]}
+                if result.get("status") == "running" or result.get("assessment") is None:
+                    if not _service_cleanup_confirmed(state, pending):
+                        raise ValueError(
+                            "Execution incomplete; inspect cleanup and supply --cleanup-receipt"
+                        )
+                    result.update(
+                        status="interrupted",
+                        cleanup_verified=True,
+                        assessment=service.assessment(
+                            "INCONCLUSIVE", "interrupted_execution_requires_full_retry"
+                        ),
+                    )
+            return _service_settle(root, plan, state, pending, result)
+        if action == "knowledge":
+            _active(
+                {
+                    **state,
+                    "state": "active" if state["state"] == "needs_baseline" else state["state"],
+                },
+                reserve=plan["final_reserve_seconds"],
+            )
+            if not plan["knowledge_allowed"] or knowledge_reader is None:
+                raise ValueError("Knowledge delivery is disabled or unavailable")
+            context = knowledge_reader.collect_service_context(
+                args.query,
+                relevance_method=args.relevance_method,
+                limit=args.limit,
+                context_bytes=args.context_bytes,
+            )
+            service.no_fingerprints(context)
+            relative = "knowledge/context-" + uuid.uuid4().hex + ".json"
+            (root / "knowledge").mkdir(exist_ok=True)
+            atomic_write_json(service.safe_path(root, relative), context)
+            reference = {
+                "path": relative,
+                "kind": "delivered_context",
+                "prepared_not_consumed": True,
+            }
+            state["contexts"].append(reference)
+            atomic_write_json(root / "state.json", state)
+            return {"reference": reference, "context": context}
+        if action == "resume":
+            if not args.reason.strip() or state["pending"] is not None:
+                raise ValueError(
+                    "Record investigation before resume; resolve pending execution first"
+                )
+            latest = state["attempts"][-1] if state["attempts"] else None
+            if (
+                state["state"] == "active"
+                and state["recovery_events"]
+                and (
+                    state["recovery_events"][-1].get("kind") == "resume"
+                    and state["recovery_events"][-1].get("reason") == args.reason
+                )
+            ):
+                return _service_status(root, plan, state)
+            if (
+                state["state"] not in ("paused", "blocked")
+                or latest is None
+                or not _service_cleanup_confirmed(state, latest)
+                or latest["kind"] in ("baseline", "refresh")
+            ):
+                raise ValueError("Cannot resume without verified cleanup and usable references")
+            state["recovery_events"].append(
+                {"kind": "resume", "reason": args.reason, "attempt_id": latest["attempt_id"]}
+            )
+            state["state"] = "active"
+            atomic_write_json(root / "state.json", state)
+            return _service_status(root, plan, state)
+        retry = getattr(args, "retry_of", None)
+        repair = getattr(args, "repair_reason", None)
+        repaired_protocol = getattr(args, "repair_protocol", None)
+        if repaired_protocol and not retry:
+            raise ValueError("Execution script repairs require an explicit --retry-of")
+        old = next((item for item in state["attempts"] if item["attempt_id"] == retry), None)
+        if retry or repair:
+            if (
+                not old
+                or not repair
+                or not repair.strip()
+                or old != state["attempts"][-1]
+                or (
+                    old["assessment"]["verdict"] != "INCONCLUSIVE"
+                    or not _service_cleanup_confirmed(state, old)
+                    or old["kind"]
+                    != {
+                        "round": "round",
+                        "baseline": "baseline",
+                        "refresh-references": "refresh",
+                    }.get(action)
+                )
+            ):
+                raise ValueError(
+                    "Retry needs the latest inconclusive attempt, a reason and verified cleanup"
+                )
+        elif state["state"] in ("blocked", "paused"):
+            raise ValueError(
+                "Investigate and explicitly retry or resume before launching more work"
+            )
+        if state["pending"] is not None or state["state"] == "completed":
+            raise ValueError("Campaign completed or attempt unresolved")
+        reserve = 0 if action == "final" else plan["final_reserve_seconds"]
+        if time.time() >= state["deadline"] - reserve:
+            raise ValueError("Campaign budget exhausted; no automatic retry or reduced sampling")
+        kind = {
+            "round": "round",
+            "baseline": "baseline",
+            "final": "final",
+            "refresh-references": "refresh",
+        }.get(action)
+        if kind is None:
+            raise ValueError("Unknown service campaign action")
+        initial, parent = state["initial_reference"], state["comparison_parent"]
+        admission = None
+        if kind == "baseline":
+            if initial is not None:
+                raise ValueError("Initial baseline is already measured")
+            source, commit = root / plan["baseline_path"], plan["baseline_revision"]
+            candidate_id, number = "baseline", None
+        elif kind == "round":
+            if initial is None or parent is None:
+                raise ValueError("Complete baseline and compatible reference refresh first")
+            if (
+                state["best"] is not None
+                and state["best"]["kind"] == "candidate"
+                and not _service_profile(root, state["best"], state["conditions"])
+            ):
+                raise ValueError(
+                    "Selected parent profile is missing or incompatible; investigate first"
+                )
+            if (
+                initial["conditions"] != state["conditions"]
+                or parent["conditions"] != state["conditions"]
+            ):
+                raise ValueError("Refresh both incompatible performance references first")
+            number = old["round_number"] if old else len(state["rounds"]) + 1
+            if number > plan["round_limit"] or not args.hypothesis.strip():
+                raise ValueError("Round budget exhausted or hypothesis missing")
+            if args.candidate.is_symlink():
+                raise ValueError("Candidate root cannot be symbolic")
+            source = args.candidate.resolve()
+            commit = service.revision(source, plan["candidate_includes"])
+            candidate_id = f"candidate-{number:03d}"
+            if not old:
+                state["rounds"].append({"number": number, "terminal": False, "attempt_ids": []})
+        elif kind == "refresh":
+            if initial is None or parent is None or not args.reason.strip():
+                raise ValueError("Initial references and a change reason required")
+            conditions = service.read(args.conditions)
+            service.validate_conditions(conditions)
+            if not old:
+                if conditions == state["conditions"]:
+                    raise ValueError("No changed conditions; reuse compatible retained references")
+                if conditions["id"] == state["conditions"]["id"]:
+                    raise ValueError("Changed conditions require a new explicit ID")
+                state.update(
+                    conditions=conditions,
+                    reference_epoch=state["reference_epoch"] + 1,
+                    requires_current_conditions_acceptance=True,
+                    accepted_attempt_ids=[],
+                )
+            elif conditions != old["conditions"]:
+                raise ValueError("Reference retry must retain its declared conditions")
+            source, commit = root / plan["baseline_path"], plan["baseline_revision"]
+            candidate_id, number = "reference-refresh", None
+        else:
+            if plan["round_mode"] == "up_to" and not (args.reason or "").strip():
+                raise ValueError("Record why search stopped")
+            admission = _service_final_reason(root, plan, state)
+            selected = state["best"]
+            source = (
+                service.safe_path(root, selected["path"])
+                if selected
+                else root / plan["baseline_path"]
+            )
+            commit = selected["revision"] if selected else plan["baseline_revision"]
+            candidate_id, number = selected["candidate_id"] if selected else "none", None
+            parent = selected.get("parent_reference_at_acceptance") if selected else None
+        attempt_id = uuid.uuid4().hex
+        prefix = (
+            f"rounds/round-{number:02d}"
+            if kind == "round"
+            else (f"references/epoch-{state['reference_epoch']}" if kind == "refresh" else kind)
+        )
+        relative = prefix + "/attempt-" + attempt_id
+        directory = service.safe_path(root, relative)
+        directory.mkdir(parents=True)
+        protocol_path = state["protocol_path"]
+        if kind == "final" and state["best"] is not None:
+            protocol_path = state["best"]["protocol_path"]
+        if repaired_protocol:
+            candidates.retain(repaired_protocol, directory / "protocol", fingerprint=False)
+            protocol_path = relative + "/protocol"
+            state["protocol_path"] = protocol_path
+        observations, raw = _usage_record(getattr(args, "usage_export", None), fingerprint=False)
+        if raw is not None:
+            (directory / "agent-usage.json").write_bytes(raw)
+        if kind == "round":
+            service.retain_revision(
+                source, directory / "candidate", plan["candidate_includes"], commit
+            )
+        else:
+            candidates.retain(source, directory / "candidate", fingerprint=False)
+        if kind == "round" and service.revision(source, plan["candidate_includes"]) != commit:
+            raise ValueError("Candidate revision changed while retaining inputs")
+        pending = {
+            "attempt_id": attempt_id,
+            "protocol_path": protocol_path,
+            "kind": kind,
+            "path": relative,
+            "candidate_id": candidate_id,
+            "revision": commit,
+            "round_number": number,
+            "started_at": time.time(),
+            "hypothesis": getattr(args, "hypothesis", None)
+            or getattr(args, "reason", None)
+            or "Initial baseline",
+            "retry_of": retry,
+            "repair_reason": repair,
+            "role": "candidate" if kind == "round" else "final" if kind == "final" else "baseline",
+            "conditions": state["conditions"],
+            "reference_epoch": state["reference_epoch"],
+            "observations": observations,
+            "parent": parent,
+            "initial": initial,
+            "contexts": list(state["contexts"]),
+            "admission_failure": admission,
+        }
+        if kind == "refresh":
+            pending.update(refresh_initial=initial, refresh_parent=parent)
+        state["pending"] = pending
+        atomic_write_json(root / "state.json", state)
+        try:
+            if admission:
+                result = {
+                    "assessment": service.assessment("INCONCLUSIVE", admission),
+                    "cleanup_verified": True,
+                    "elapsed_seconds": 0,
+                }
+            else:
+                result = _service_execute(
+                    root, directory, plan, pending, state["deadline"] - reserve
+                )
+        except (Exception, KeyboardInterrupt) as error:
+            receipt = directory / "execution/execution.json"
+            try:
+                result = service.read(receipt)
+            except (OSError, ValueError):
+                result = {"cleanup_verified": None}
+            result["assessment"] = service.assessment(
+                "INCONCLUSIVE",
+                f"coordinator: {error}",
+                performance=(result.get("assessment") or {}).get("performance"),
+                quality_passed=(result.get("assessment") or {}).get("quality_passed"),
+            )
+        execution_dir = directory / "execution"
+        execution_dir.mkdir(exist_ok=True)
+        atomic_write_json(execution_dir / "execution.json", result)
+        return _service_settle(root, plan, state, pending, result)

@@ -43,22 +43,30 @@ def identity(source: Path, includes: list[str] | None = None) -> str:
                    for name, path in members(source, includes).items()})
 
 
-def retain(source: Path, destination: Path, includes: list[str] | None = None) -> str:
+def retain(source: Path, destination: Path, includes: list[str] | None = None, *,
+           fingerprint: bool = True) -> str | None:
     """Copy bytes, then reject a changing input set or partial snapshot."""
     source = source.absolute()
     if destination.resolve().is_relative_to(source.resolve()):
         raise ValueError("Snapshot output must be outside the candidate inputs")
-    before = identity(source, includes)
+    selected = members(source, includes)
+    before = identity(source, includes) if fingerprint else None
     if source.is_file():
         destination.write_bytes(source.read_bytes())
         shutil.copymode(source, destination)
     else:
         destination.mkdir()
-        for name, path in members(source, includes).items():
+        for name, path in selected.items():
             target = destination / name
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_bytes(path.read_bytes())
             shutil.copymode(path, target)
+    if not fingerprint:
+        if set(members(source, includes)) != set(selected) or (
+            set(members(destination)) != set(selected)
+        ):
+            raise ValueError("Candidate file set changed while taking its snapshot")
+        return None
     if identity(source, includes) != before or identity(destination) != before:
         raise ValueError("Candidate changed while taking its snapshot")
     return before
