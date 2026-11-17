@@ -10,7 +10,8 @@ import time
 import uuid
 from pathlib import Path
 
-from ..infra.artifacts import atomic_write_json, digest, file_lock, sha256
+from .artifact_primitives import digest, file_lock, sha256
+from .atomic_json import atomic_write_json
 from .usage import normalize_usage
 
 TERMINAL = {"completed", "failed", "cancelled"}

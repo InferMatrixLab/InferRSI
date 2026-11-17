@@ -55,10 +55,10 @@ def _session_assess(root, directory, plan, execution):
 
 
 def _project_execute(root, directory, plan, deadline):
+    from inferrsi.harness.atomic_json import atomic_write_json
     from inferrsi.harness.candidates import identity, members, retain
     from inferrsi.harness.project import inspect_step, steps
     from inferrsi.harness.scenarios.external import execute_trial
-    from inferrsi.infra.artifacts import atomic_write_json
 
     output = directory / "execution"
     output.mkdir()
@@ -107,13 +107,13 @@ def _project_execute(root, directory, plan, deadline):
 
 
 def _runtime_identity():
-    from inferrsi.infra.artifacts import sha256
+    from inferrsi.harness.artifact_primitives import sha256
 
     root = Path(str(files("inferrsi")))
     names = ("harness/optimization_session.py", "harness/optimization.py",
              "harness/local_process.py",
              "infra/processes.py", "infra/artifacts.py", "harness/scenarios/external.py",
-             "harness/atomic_json.py",
+             "harness/atomic_json.py", "harness/artifact_primitives.py",
              "harness/usage.py", "harness/agent_sessions.py", "harness/task_protocol.py",
              "harness/candidates.py", "harness/project.py",
              "harness/records/knowledge_capture.py", "apps/campaign.py",
@@ -130,9 +130,9 @@ def session_command(args, *, task_source: Path | None = None, knowledge_reader=N
     if args.session_action == "start":
         import math
 
+        from inferrsi.harness.artifact_primitives import sha256
         from inferrsi.harness.candidates import identity, retain
         from inferrsi.harness.task_protocol import prepare
-        from inferrsi.infra.artifacts import sha256
 
         if args.rounds < 1 or any(not math.isfinite(value) or value <= 0 for value in (
             args.max_minutes, args.evaluation_timeout_seconds

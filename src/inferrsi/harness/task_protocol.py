@@ -8,7 +8,7 @@ import importlib.util
 import shutil
 from pathlib import Path
 
-from ..infra.artifacts import sha256
+from .artifact_primitives import sha256
 
 
 def protocol(root: Path):

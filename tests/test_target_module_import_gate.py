@@ -148,17 +148,11 @@ class TargetModuleImportGateTest(unittest.TestCase):
         self.assertFalse(hasattr(report, "residuals"))
         self.assertNotIn("residual", kinds)
         self.assertEqual(report.violations, ())
-        # What keeps isolation false after R1: the parser entry due in A1, the six
-        # Harness modules that R2 closes and the five loaders that R3 closes.
-        self.assertEqual(
-            report.blockers,
-            (
-                "harness reaches model/infra: inferrsi.harness.agent_sessions -> "
-                "inferrsi.infra (12 hits)",
-                "runtime resource loaders: 5",
-            ),
-        )
-        self.assertEqual(len(report.harness_model_infra), 12)
+        # #412 R2 closed the six Harness modules: no Harness module reaches the
+        # package-level ``inferrsi.infra``, ``inferrsi.infra.artifacts`` or
+        # ``inferrsi.model``. What keeps isolation false is the five loaders that R3 closes.
+        self.assertEqual(report.blockers, ("runtime resource loaders: 5",))
+        self.assertEqual(report.harness_model_infra, ())
         self.assertFalse(report.new_core_closure_isolated)
 
     def test_split_skill_eval_modules_reach_no_model_or_infra(self) -> None:
