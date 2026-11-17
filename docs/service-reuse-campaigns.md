@@ -14,9 +14,13 @@ Apps projects those records without writing selection decisions.
 ## Prepare the protocol
 
 Use the Git checkout root and commit the declared project inputs first. The
-controller extracts those files
-from the recorded commit into a retained candidate; it never runs the editable
-workspace as `final`. The protocol directory contains the caller's scripts and
+controller records the source repository and commit, and rebuilds each execution
+workspace from that commit's Git objects, including baseline, reference refresh
+and final. Keep those repositories and commits available throughout the campaign.
+Replacing a retained directory does not replace the executed version; an unavailable
+source commit makes execution INCONCLUSIVE. Older records without a source repository
+cannot establish that binding and must start a new campaign.
+The protocol directory contains the caller's scripts and
 any declared inputs. Campaign output must be outside the project and protocol.
 
 Supply a JSON file with these fields; every threshold and workload is explicit:
@@ -91,6 +95,14 @@ the same instance; it does not invent an integrated profiler. Performance sample
 exclude profiling requests and time. `stop` returns `cleanup_complete: true`;
 Harness also stops and verifies its owned process domain. Unknown cleanup blocks
 further execution until investigated.
+
+Cleanup has a separate bounded window of `sampling.stage_timeout_seconds`, starting
+when `stop` is invoked even if the evaluation deadline was exhausted. This window
+is additional to the evaluation/campaign budget and is recorded as
+`cleanup_timeout_seconds` with `cleanup_budget_scope: separate_from_evaluation`.
+It applies per service, including each service in a reference refresh. Owned process
+termination still runs afterward. A successful cleanup does not change a timed-out
+evaluation's INCONCLUSIVE verdict.
 
 ## Lifecycle
 

@@ -364,26 +364,25 @@ def revision(source, includes):
 
 
 def retain_revision(source, destination, includes, commit):
-    selected = members(source, includes)
+    if not isinstance(commit, str) or not re.fullmatch(r"[a-f0-9]{40,64}", commit):
+        raise ValueError("Candidate requires an existing Git commit")
     archive = subprocess.check_output(
         ["git", "-C", str(source), "archive", "--format=tar", commit, "--", *includes]
     )
     destination.mkdir()
-    copied = set()
+    copied = False
     with tarfile.open(fileobj=io.BytesIO(archive)) as stream:
         for item in stream.getmembers():
             if item.isdir():
                 continue
             if not item.isfile():
                 raise ValueError("Candidate archive contains symbolic or special files")
-            if item.name not in selected:
-                continue
             target = safe_path(destination, item.name)
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_bytes(stream.extractfile(item).read())
             target.chmod(item.mode & ~0o222)
-            copied.add(item.name)
-    if copied != set(selected):
+            copied = True
+    if not copied:
         raise ValueError("Declared candidate files are missing from the retained commit")
 
 
@@ -448,7 +447,6 @@ def execute(root, directory, plan, pending, deadline):
     config = conditions["effective_config"]
     source = directory / "candidate"
     workspace = directory / "workspace"
-    retain(source, workspace, fingerprint=False)
     expected = {
         "attempt_id": pending["attempt_id"],
         "service_id": uuid.uuid4().hex,
@@ -481,6 +479,8 @@ def execute(root, directory, plan, pending, deadline):
         "cleanup_verified": None,
         "binding": expected,
         "assessment": None,
+        "cleanup_timeout_seconds": settings["sampling"]["stage_timeout_seconds"],
+        "cleanup_budget_scope": "separate_from_evaluation",
     }
     output = directory / "execution"
     output.mkdir()
@@ -509,11 +509,14 @@ def execute(root, directory, plan, pending, deadline):
         save()
         if bound and (process is None or process.poll() is not None):
             raise ValueError(f"Service unavailable before {name}")
+        stage_end = time.monotonic() + settings["sampling"]["stage_timeout_seconds"]
+        if name != "stop":
+            stage_end = min(end, stage_end)
         executed = execute_trial(
             tuple(command(argv or settings["commands"][name.split("-")[0]])),
             workspace,
             output / name,
-            min(end, time.monotonic() + settings["sampling"]["stage_timeout_seconds"]),
+            stage_end,
             None,
             environment=environment,
         )
@@ -544,6 +547,13 @@ def execute(root, directory, plan, pending, deadline):
 
     measured, gate, score, profile, quality_ok = None, None, None, None, None
     try:
+        # Rebuild from Git objects; retained directories can be replaced after acceptance.
+        repository = pending.get("source_repo")
+        if not repository:
+            raise ValueError("Authoritative source repository is unavailable")
+        retain_revision(repository, workspace, plan["candidate_includes"], pending["revision"])
+        if not source.exists():
+            retain(workspace, source, fingerprint=False)
         precheck = stage("precheck", bound=False)
         if precheck.get("status") == "candidate_failure" or precheck.get("passed") is False:
             skipped(("service", "measurement", "quality", "profile"), "precheck_rejected")

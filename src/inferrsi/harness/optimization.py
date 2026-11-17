@@ -692,6 +692,7 @@ def _service_choice(pending, execution):
         "candidate_id": pending["candidate_id"],
         "path": pending["path"] + "/candidate",
         "revision": pending["revision"],
+        "source_repo": pending.get("source_repo"),
         "conditions": pending["conditions"],
         "reference_epoch": pending["reference_epoch"],
         "effective_config_path": pending["path"] + "/effective-config.json",
@@ -855,13 +856,11 @@ def _service_execute(root, directory, plan, pending, deadline):
         relative = pending["path"] + "/" + label
         subdir = service.safe_path(root, relative)
         subdir.mkdir()
-        candidates.retain(
-            service.safe_path(root, source["path"]), subdir / "candidate", fingerprint=False
-        )
         job = {
             **pending,
             "path": relative,
             "revision": source["revision"],
+            "source_repo": source.get("source_repo"),
             "attempt_id": pending["attempt_id"] + "-" + label,
             "candidate_id": source["candidate_id"],
             "role": "baseline",
@@ -1186,10 +1185,13 @@ def service_command(root, args, *, knowledge_reader=None):
             service.retain_revision(
                 source, directory / "candidate", plan["candidate_includes"], commit
             )
+            if service.revision(source, plan["candidate_includes"]) != commit:
+                raise ValueError("Candidate revision changed while retaining inputs")
+            source_repo = str(source)
+        elif kind == "final" and selected:
+            source_repo = selected.get("source_repo")
         else:
-            candidates.retain(source, directory / "candidate", fingerprint=False)
-        if kind == "round" and service.revision(source, plan["candidate_includes"]) != commit:
-            raise ValueError("Candidate revision changed while retaining inputs")
+            source_repo = plan["working_candidate"]
         pending = {
             "attempt_id": attempt_id,
             "protocol_path": protocol_path,
@@ -1197,6 +1199,7 @@ def service_command(root, args, *, knowledge_reader=None):
             "path": relative,
             "candidate_id": candidate_id,
             "revision": commit,
+            "source_repo": source_repo,
             "round_number": number,
             "started_at": time.time(),
             "hypothesis": getattr(args, "hypothesis", None)

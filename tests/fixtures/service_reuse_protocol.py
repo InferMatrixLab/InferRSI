@@ -100,7 +100,9 @@ if phase == "service":
             self.wfile.write(encoded)
 
     server = HTTPServer(("127.0.0.1", 0), Handler)
-    write(receipt_path, {"endpoint": f"http://127.0.0.1:{server.server_port}"})
+    temporary_receipt = receipt_path.with_suffix(".tmp")
+    write(temporary_receipt, {"endpoint": f"http://127.0.0.1:{server.server_port}"})
+    os.replace(temporary_receipt, receipt_path)
     server.serve_forever()
     server.server_close()
 elif phase == "precheck":

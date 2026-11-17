@@ -12,7 +12,13 @@ import pytest
 from inferrsi.apps.views import dashboard_data
 from inferrsi.apps.cli import main
 from inferrsi.apps.cli.arguments import parser
-from inferrsi.harness import candidates, optimization, optimization_session, project_service
+from inferrsi.harness import (
+    candidates,
+    optimization,
+    optimization_session,
+    project,
+    project_service,
+)
 from inferrsi.harness.records import evidence, knowledge_capture
 from inferrsi.infra import artifacts
 from inferrsi.knowledge import knowledge_operations
@@ -33,6 +39,7 @@ def no_fingerprints(monkeypatch):
         (optimization, "sha256"),
         (optimization, "digest"),
         (optimization_session, "_runtime_identity"),
+        (project, "sha256"),
         (knowledge_operations, "_hash"),
         (hashlib, "sha256"),
     ):
@@ -906,3 +913,60 @@ def test_final_checks_selected_revision_against_original_attempt(campaign):
     assert result["final"]["assessment"]["reason"] == "unverifiable_selected_attempt_binding"
     assert result["final"]["assessment"]["verdict"] == "INCONCLUSIVE"
     assert not (campaign["root"] / result["final"]["path"] / "service").exists()
+
+
+@pytest.mark.parametrize("role", ["baseline", "candidate"])
+def test_final_rebuilds_changed_retained_code_from_recorded_commit(campaign, role):
+    begin(campaign)
+    if role == "candidate":
+        alternate = campaign["repo"].with_name("alternate-repo")
+        shutil.copytree(campaign["repo"], alternate)
+        campaign["repo"] = alternate
+    result = submit(campaign, version="accepted", a=90 if role == "candidate" else 100)
+    selected = result["best"]
+    saved = campaign["root"] / selected["path"] / "engine.py"
+    saved.unlink()
+    saved.write_text("raise RuntimeError('changed retained source must never run')\n")
+    # The current checkout and file set are not the authority for an older commit.
+    (campaign["repo"] / "engine.py").unlink()
+    result = call(campaign, "final", "--reason", "Verify original committed version")
+    final = result["final"]
+    assert final["assessment"]["verdict"] == "PASS"
+    assert final["revision"] == selected["revision"]
+    expected_version = "accepted" if role == "candidate" else "baseline"
+    assert {row["version"] for row in events(campaign, final)} == {expected_version}
+    assert "changed retained" not in (
+        campaign["root"] / final["path"] / "candidate/engine.py"
+    ).read_text()
+
+
+def test_missing_authoritative_repository_cannot_run_retained_selection(campaign):
+    begin(campaign)
+    selected = submit(campaign, version="selected", a=90)["best"]
+    shutil.rmtree(campaign["repo"] / ".git")
+    result = call(campaign, "final", "--reason", "Source commit unavailable", expected=2)
+    final = result["final"]
+    assert final["assessment"]["verdict"] == "INCONCLUSIVE"
+    assert result["best"] == selected
+    assert not (campaign["root"] / final["path"] / "service").exists()
+
+
+def test_whole_attempt_timeout_still_runs_bounded_stop(campaign):
+    config = settings()
+    config["sampling"]["stage_timeout_seconds"] = 8
+    campaign["config"].write_text(json.dumps(config))
+    index = campaign["start"].index("--evaluation-timeout-seconds")
+    campaign["start"][index + 1] = "6"
+    begin(campaign)
+    result = submit(campaign, version="deadline", a=90, profile_mode="timeout", expected=2)
+    attempt = result["latest_observation"]
+    execution = attempt["execution"]
+    steps = {row["id"]: row for row in execution["steps"]}
+    assert steps["profile"]["status"] == "timeout"
+    assert steps["stop"]["status"] == "completed"
+    assert execution["cleanup_timeout_seconds"] == 8
+    assert execution["cleanup_budget_scope"] == "separate_from_evaluation"
+    assert execution["cleanup_verified"] is True
+    assert attempt["assessment"]["verdict"] == "INCONCLUSIVE"
+    assert attempt["assessment"]["quality_passed"] is True
+    assert [row["stage"] for row in events(campaign, attempt)][-1] == "stop"
