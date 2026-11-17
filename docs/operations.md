@@ -217,20 +217,20 @@ symptom, operator or flag where you can, and when a plausible query returns
 nothing useful, search the corpus directly rather than assuming it holds
 nothing — `find` ranks words, not meanings.
 
-The third is that `find` always answers. It cannot tell a question the corpus
-can help with from one the caller can already settle from the facts in front of
-them, and it returns its best matches either way. On the labelled set, a
-majority of queries were ones an engineer should decide without searching at
-all, and `find` returned results for every one of them; their scores overlap
-the answerable range too broadly for a cutoff to separate the two without
-suppressing real answers. Deciding whether the question needs the corpus
-remains the caller's judgement, and a returned list is not evidence that it
-did.
+The third limit is deciding whether the question needs the corpus. `find`
+returns `no_match` when no query terms match. On the labelled set, a majority
+of queries were ones an engineer should decide without searching at all, yet
+each had lexical matches. Their scores overlap the answerable range, so a
+cutoff would suppress useful results too. The caller decides whether the
+question calls for prior evidence.
 
-- **Inputs:** the query, `--limit`, `--kinds` (subset of `case,skill,record`), `--skill-root` to rank an explicit root, `--explain` for per-term contributions, `--json`.
+- **Inputs:** the query, `--limit`, `--kinds` (subset of `case,skill,record`), `--skill-root` to select the library for cases and skills, `--explain` for per-term contributions, `--json`.
 - **Scope:** installed package records and the packaged (or selected) skill library, including its cases. Packaged-skill projections are excluded from the record side so one owner is not ranked under two identities.
 - **Output.** Items identify their `id`, `authority` (`package` or `checkout`),
-  `kind`, recorded `state`, `score`, `title` and corpus-relative `path`.
+  `source_location` (`installed` or `checkout`), `kind`, recorded `state`,
+  `score`, `title` and corpus-relative `path`. `source_location` identifies
+  where the material was indexed. For installed skill and case bodies, the
+  `checkout:` read reference uses the installed library as `--skill-root`.
   Where recorded, items carry source, summary, applicability, limitations and
   local verification status. Case findings are ordered by query overlap,
   with `findings_total` and `findings_withheld` describing the available preview.

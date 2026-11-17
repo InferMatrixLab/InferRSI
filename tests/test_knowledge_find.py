@@ -86,6 +86,13 @@ def test_partial_query_still_ranks_instead_of_filtering(corpus):
     assert result["matched"] > 1
 
 
+def test_repeated_query_terms_contribute_once(corpus):
+    single = find("vae tiling", corpus, limit=1, explain=True)
+    repeated = find("vae tiling vae tiling", corpus, limit=1, explain=True)
+    assert repeated["tokens"] == single["tokens"] == ["vae", "tiling"]
+    assert repeated["items"] == single["items"]
+
+
 def test_cjk_query_is_cut_into_bigrams(corpus):
     """Single characters make idf treat particles as rare terms; pairs carry terms."""
     assert tokens("缓存 optimization") == ["optimization", "缓存"]
@@ -205,6 +212,7 @@ def test_reference_survives_a_root_whose_path_has_spaces(tmp_path, capsys):
     corpus = load_corpus(root)
     result = find("mask caching ran out of device memory", corpus, limit=10)
     item = next(i for i in result["items"] if i["id"] == "case.qwen-ascend-rejected-directions")
+    assert item["source_location"] == "checkout"
     assert main(item["read_args"]) == 0
     assert "910B1" in json.loads(capsys.readouterr().out)["content"]
     if os.name != "nt":
@@ -295,6 +303,20 @@ def test_default_search_works_on_a_flat_root(tmp_path, capsys):
     item = next(i for i in result["items"] if i["id"] == "case.qwen-ascend-rejected-directions")
     assert main(item["read_args"]) == 0
     assert "910B1" in json.loads(capsys.readouterr().out)["content"]
+
+
+@pytest.mark.parametrize(("description", "expected"), [
+    (">-\n  Reuse tiles\n  across steps", "Reuse tiles across steps"),
+    ("'TensorRT-LLM''s casebook'", "TensorRT-LLM's casebook"),
+])
+def test_skill_summary_uses_yaml_parsing(tmp_path, description, expected):
+    directory = tmp_path / "demo"
+    directory.mkdir()
+    (directory / "SKILL.md").write_text(
+        f"---\nname: demo\ndescription: {description}\n---\n\nDemo body\n", encoding="utf-8"
+    )
+    item, = find("demo", load_corpus(tmp_path, kinds=("skill",)))["items"]
+    assert item["summary"] == expected
 
 
 def test_latin_aliases_match_whole_words_only():
@@ -450,7 +472,7 @@ def _plant_custom_case(root: Path, record: dict) -> None:
     owner.joinpath("SKILL.md").write_text(
         "---\nname: demo\ndescription: demo owner\n---\n\nbody\n", encoding="utf-8"
     )
-    owner.joinpath("cases", "demo.md").write_text("body\n", encoding="utf-8")
+    owner.joinpath("cases", "demo.md").write_bytes(b"body\n")
     owner.joinpath("cases", "demo.json").write_text(
         json.dumps(record), encoding="utf-8"
     )
@@ -477,6 +499,23 @@ def test_find_opens_both_authorities_when_ids_overlap(tmp_path, capsys):
         assert opened["revision"].startswith("sha256:")
         if authority == "checkout":
             assert opened["content"] == "body\n"
+
+
+def test_find_preserves_a_structured_verification_limitation(tmp_path, capsys):
+    limitation = {"locally_verified": False}
+    _plant_custom_case(tmp_path, {
+        "id": "case.demo", "kind": "case", "content": "demo.md",
+        "state": "historical_observation", "applicability": [],
+        "limitations": [limitation], "attribution": "Local demo",
+        "sources": [{"type": "internal", "issue": "local", "artifact": "fixture"}],
+    })
+    args = ["find", "demo", "--kinds", "case", "--skill-root", str(tmp_path)]
+    assert main([*args, "--json"]) == 0
+    item, = json.loads(capsys.readouterr().out)["items"]
+    assert item["locally_verified"] is False
+    assert item["limitations"] == [limitation]
+    assert main(args) == 0
+    assert "not locally verified" in capsys.readouterr().out
 
 
 def test_unknown_outcome_is_rejected(tmp_path):
@@ -635,9 +674,29 @@ def test_cli_reports_findings_and_path(capsys):
 def test_cli_json_mode_states_its_limits(capsys):
     assert main(["find", "ascend device health", "--limit", "1", "--json"]) == 0
     payload = json.loads(capsys.readouterr().out)
-    assert payload["items"][0]["id"] == "ascend-device-health"
+    item, = payload["items"]
+    assert item["id"] == "ascend-device-health"
+    assert item["source_location"] == "installed"
+    assert item["read_args"][:2] == ["read", "checkout:ascend-device-health"]
     assert payload["corpus_size"] == len(load_corpus(ROOT).documents)
     assert any("not a learned ranking" in line for line in payload["limitations"])
+
+
+def test_record_only_search_ignores_an_unused_skill_root(tmp_path, capsys):
+    assert main([
+        "find", "vae tiling", "--kinds", "record", "--skill-root", str(tmp_path / "missing"),
+        "--limit", "1", "--json",
+    ]) == 0
+    item, = json.loads(capsys.readouterr().out)["items"]
+    assert item["kind"] == "record"
+    assert item["authority"] == "package"
+    assert item["locally_verified"] is False
+
+
+def test_record_body_excludes_fields_scored_separately(corpus):
+    record = next(document for document in corpus.documents if document.kind == "record")
+    fields = json.loads(record.fields["body"])
+    assert fields.keys().isdisjoint({"title", "summary", "tags", "applicability"})
 
 
 def test_cli_rejects_unknown_kind(capsys):

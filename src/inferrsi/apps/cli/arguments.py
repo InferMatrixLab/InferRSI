@@ -426,7 +426,7 @@ def parser() -> argparse.ArgumentParser:
     )
     find.add_argument(
         "--skill-root", type=Path,
-        help="Skills root to rank; defaults to the installed library",
+        help="Root for case and skill searches, defaulting to the installed library",
     )
     find.add_argument(
         "--explain", action="store_true", help="Report each query term's contribution"

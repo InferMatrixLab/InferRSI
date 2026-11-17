@@ -142,6 +142,8 @@ def _print_find(result: dict) -> None:
         return
     for item in result["items"]:
         labels = [_FIND_KIND.get(item["kind"], item["kind"]), _tsv(item["state"])]
+        if item.get("source_location") == "installed":
+            labels.append("installed")
         if item.get("locally_verified") is False:
             labels.append("not locally verified")
         print(f"\n{item['id']}\t[{' · '.join(labels)}]\tscore {item['score']}")
@@ -174,7 +176,8 @@ def _print_find(result: dict) -> None:
         # How far the record itself says its evidence goes. The state label
         # above says the claim is unverified; these say what is missing.
         for caveat in item.get("limitations", [])[:_MAX_SHOWN_LIMITS]:
-            print(f"  caveat: {_clip(caveat)}")
+            text = caveat if isinstance(caveat, str) else json.dumps(caveat, ensure_ascii=False)
+            print(f"  caveat: {_clip(text)}")
         withheld = len(item.get("limitations", [])) - _MAX_SHOWN_LIMITS
         if withheld > 0:
             print(f"  ... {withheld} more recorded limitation(s); see --json")
@@ -365,14 +368,11 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "find":
             from ...knowledge.knowledge_find import find, load_corpus
 
-            root = args.skill_root if args.skill_root is not None else Path(
-                files("inferrsi").joinpath("knowledge", "data", "skill_library")
-            )
             kinds = tuple(k.strip() for k in args.kinds.split(",") if k.strip())
             unknown = [k for k in kinds if k not in ("case", "skill", "record")]
             if unknown or not kinds:
                 raise ValueError("--kinds takes a subset of case,skill,record")
-            result = find(args.query, load_corpus(root, kinds=kinds),
+            result = find(args.query, load_corpus(args.skill_root, kinds=kinds),
                           limit=args.limit, explain=args.explain)
             if args.json:
                 _print(result)

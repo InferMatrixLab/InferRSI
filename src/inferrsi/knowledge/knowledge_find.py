@@ -10,8 +10,8 @@ Three properties separate this from the existing ``collect`` selection path:
 * Cases participate. A rejected direction is the material a retrieval system
   can supply that re-reading the current source cannot, so it is ranked beside
   skills rather than excluded until its owner is already chosen.
-* Nothing is filtered on the query. Requiring every token to appear is a hard
-  cut on short queries; ranking degrades instead, and ``limit`` truncates.
+* Each distinct matching term contributes to the score. One match is enough
+  to be eligible, and ``limit`` caps the ranked results.
 * Scoring reads the entries directly. Bundle closures may contain unrelated
   files. The reader checks material only for results offered to the caller.
 
@@ -30,6 +30,7 @@ from collections import Counter
 from dataclasses import dataclass
 from functools import lru_cache
 from importlib.resources import files
+from io import BytesIO
 from pathlib import Path
 from statistics import median
 from typing import Any
@@ -174,15 +175,21 @@ class Document:
     summary: str
     fields: dict[str, str]
     applicability: Any = None
-    limitations: tuple[str, ...] = ()
+    limitations: tuple[str | dict[str, Any], ...] = ()
     findings: tuple[Finding, ...] = ()
     owner: str = ""
     qualified: str = ""
     root: Path | None = None
     source_url: str = ""    # where the observation was originally recorded
+    source_location: str = ""
+    locally_verified: bool | None = None
 
     def unverified(self) -> bool:
-        return any("locally_verified=false" in _flatten(item) for item in self.limitations)
+        return self.locally_verified is False or any(
+            item.get("locally_verified") is False if isinstance(item, dict)
+            else isinstance(item, str) and "locally_verified=false" in item
+            for item in self.limitations
+        )
 
     def cohort(self) -> str:
         """The hardware and configuration this entry's observations belong to."""
@@ -259,6 +266,8 @@ class Document:
                 record["ref"] = shell_command(argv)
             else:
                 record["unreadable"] = unreadable
+        if self.source_location:
+            record["source_location"] = self.source_location
         if self.source_url:
             record["source"] = self.source_url
         if self.summary:
@@ -378,7 +387,7 @@ def _findings(record: dict, identity: str) -> tuple[Finding, ...]:
     return tuple(result)
 
 
-def _case_documents(root: Path) -> list[Document]:
+def _case_documents(root: Path, *, source_location: str) -> list[Document]:
     """Cases owned by the registered skills of this root.
 
     Discovery is delegated to the reader that `read` uses, rather than globbing
@@ -410,6 +419,7 @@ def _case_documents(root: Path) -> list[Document]:
             qualified=f"checkout:{identity}",
             root=root,
             source_url=_source_url(record),
+            source_location=source_location,
             fields={
                 "title": identity.removeprefix("case.").replace("-", " "),
                 "summary": _flatten(record.get("attribution")),
@@ -433,7 +443,21 @@ def _body_text(path: Path) -> str:
         return ""
 
 
-def _skill_documents(root: Path) -> list[Document]:
+def _skill_description(body: str) -> str:
+    from .skill_catalog import _frontmatter
+
+    try:
+        description = _frontmatter(BytesIO(body.encode("utf-8"))).get("description")
+    except ValueError:
+        # Keep simple descriptions searchable in base installs. The reader
+        # reports missing PyYAML or invalid frontmatter for a returned hit.
+        frontmatter = body.split("\n---", 1)[0] if body.startswith("---\n") else ""
+        match = re.search(r"^description:[ \t]*(.+)$", frontmatter, re.MULTILINE)
+        return match.group(1).strip().strip("'\"") if match else ""
+    return description.strip() if isinstance(description, str) else ""
+
+
+def _skill_documents(root: Path, *, source_location: str) -> list[Document]:
     """Skills registered by this root, resolved the way `skills` and `read` do.
 
     Reading skill-index.json directly assumed every root is a generated library.
@@ -447,11 +471,7 @@ def _skill_documents(root: Path) -> list[Document]:
     for name, directory in sorted(skill_directories(root).items()):
         core = directory / "SKILL.md"
         body = _body_text(core)
-        description = ""
-        frontmatter = body.split("\n---", 1)[0] if body.startswith("---\n") else ""
-        match = re.search(r"^description:[ \t]*(.+)$", frontmatter, re.MULTILINE)
-        if match:
-            description = match.group(1).strip().strip("'\"")
+        description = _skill_description(body)
         try:
             metadata = _sidecar(directory) or {}
         except (ValueError, OSError):
@@ -469,6 +489,7 @@ def _skill_documents(root: Path) -> list[Document]:
             qualified=f"checkout:{name}",
             root=root,
             source_url=_source_url(metadata),
+            source_location=source_location,
             fields={
                 "title": name.replace("-", " "),
                 "summary": description,
@@ -496,7 +517,10 @@ def _record_documents() -> list[Document]:
         identity = record["id"]
         body = _flatten({
             key: value for key, value in record.items()
-            if key not in ("sources", "source_files", "skill_documents", "id")
+            if key not in (
+                "id", "title", "summary", "tags", "applicability",
+                "sources", "source_files", "skill_documents",
+            )
         })
         documents.append(Document(
             identity=identity,
@@ -508,6 +532,8 @@ def _record_documents() -> list[Document]:
             owner=record.get("repo", ""),
             qualified=f"package:{identity}",
             source_url=_source_url(record),
+            source_location="installed",
+            locally_verified=record["verification"]["locally_verified"],
             fields={
                 "title": f"{record.get('title', '')} {identity.replace('.', ' ')}",
                 "summary": record.get("summary", ""),
@@ -574,16 +600,19 @@ class Corpus:
 
 
 def load_corpus(
-    skill_root: Path, *, kinds: tuple[str, ...] = ("case", "skill", "record")
+    skill_root: Path | None = None, *, kinds: tuple[str, ...] = ("case", "skill", "record")
 ) -> Corpus:
-    root = Path(skill_root).resolve()
-    if not root.is_dir():
-        raise ValueError(f"Skill root is not a directory: {root}")
     documents: list[Document] = []
-    if "case" in kinds:
-        documents.extend(_case_documents(root))
-    if "skill" in kinds:
-        documents.extend(_skill_documents(root))
+    if "case" in kinds or "skill" in kinds:
+        installed = Path(files("inferrsi").joinpath("knowledge", "data", "skill_library")).resolve()
+        root = installed if skill_root is None else Path(skill_root).resolve()
+        if not root.is_dir():
+            raise ValueError(f"Skill root is not a directory: {root}")
+        source_location = "installed" if root == installed else "checkout"
+        if "case" in kinds:
+            documents.extend(_case_documents(root, source_location=source_location))
+        if "skill" in kinds:
+            documents.extend(_skill_documents(root, source_location=source_location))
     if "record" in kinds:
         documents.extend(_record_documents())
     identities = [document.qualified for document in documents]
@@ -650,7 +679,7 @@ def expand(query: str) -> tuple[list[str], dict[str, tuple[str, ...]]]:
         folded = re.sub(pattern, lambda hit: " " * len(hit.group()), folded)
         for expansion in expansions:
             found.extend(tokens(expansion))
-    return found, applied
+    return list(dict.fromkeys(found)), applied
 
 
 def _why_unreadable(document: Document, readers: dict) -> str | None:
