@@ -34,6 +34,7 @@ class Snapshot:
         self.observed_at = observed_at
         self.entries = {}
         self.documents = {}
+        self.document_names = set()
         self.observations = {}
         self.trees = {}
 
@@ -50,6 +51,8 @@ class Snapshot:
 
     def file(self, name, role, expected=None, *, document=False):
         path = self.path(name)
+        if document:
+            self.document_names.add(name)
         identity = "source:" + name
         previous = self.entries.get(identity)
         expected = expected or (previous or {}).get("sha256")
@@ -61,15 +64,15 @@ class Snapshot:
             if not stat.S_ISREG(mode):
                 raise ValueError("Delivery source must be a regular file")
             size = path.stat().st_size
-            if document:
-                if size > MAX_DOCUMENT_BYTES:
-                    raise ValueError("Delivery source document exceeds the read limit")
+            availability = "available"
+            if document and size > MAX_DOCUMENT_BYTES:
+                availability = "unreadable"
+            elif document:
                 raw = path.read_bytes()
                 size = len(raw)
                 observed = hashlib.sha256(raw).hexdigest()
             else:
                 observed = sha256(path)
-            availability = "available"
         except FileNotFoundError:
             availability = "missing"
         except PermissionError:
@@ -89,7 +92,11 @@ class Snapshot:
             if observed
             else "not_checked",
             "checked_at": self.observed_at,
-            "access": "Requires the original input directory; no remote fetch was performed",
+            "access": (
+                "Document exceeds the 8 MiB read limit; bytes were not read"
+                if availability == "unreadable"
+                else "Requires the original input directory; no remote fetch was performed"
+            ),
         }
         if previous and previous["observed_sha256"] != observed:
             raise SnapshotChanged("Source changed during snapshot")
@@ -160,7 +167,7 @@ class Snapshot:
         """Detect uncoordinated writes, including candidate member-set changes."""
         probe = Snapshot(self.root, self.observed_at)
         for name in self.observations:
-            probe.file(name, "snapshot_check")
+            probe.file(name, "snapshot_check", document=name in self.document_names)
         if probe.observations != self.observations:
             return False
         for name, expected in self.trees.items():

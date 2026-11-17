@@ -189,11 +189,17 @@ itself. Both reports display the JSON digest and export ID.
 Reports escape imported text and use only fixed local navigation links. There is
 no executable embedded data or arbitrary URL fetching. V1 does not bundle arbitrary
 attachments, follow symlinks or traverse outside input paths. Documents have an
-8 MiB read limit; larger raw evidence is streamed for hashing and indexed. Redacted
+8 MiB read limit. Oversized optional documents are indexed as `unreadable` with
+integrity `not_checked`, retaining the expected digest without reading or hashing
+their bytes, including during snapshot rechecks. They allow labelled cached history;
+oversized required control documents still prevent export. Larger raw evidence is
+streamed for hashing and indexed. Redacted
 shared copies need separate identities; export never replaces frozen originals.
 
 Generation fixes the snapshot, creates JSON, renders reports, builds the index,
 validates the bundle and uses the existing Apps no-replace directory publisher.
+The reader rejects duplicate artifact IDs and duplicate bundled locations before
+checking file digests, so a later entry cannot hide an earlier invalid checksum.
 Existing destinations survive every failure. Post-rename directory-sync failure
 returns `uncertain` with the same export ID and visible output path: inspect it with
 `read_bundle` before retrying. Atomic visibility and durability retain the platform

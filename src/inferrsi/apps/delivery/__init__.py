@@ -146,7 +146,14 @@ def read_bundle(directory: Path):
     entries = index.get("artifacts", [])
     if len({entry["id"] for entry in entries}) != len(entries):
         raise ValueError("Duplicate delivery artifact ID")
-    bundled = {entry["location"]: entry for entry in entries if entry["location_kind"] == "bundle"}
+    bundled = {}
+    for entry in entries:
+        if entry["location_kind"] != "bundle":
+            continue
+        name = entry["location"]
+        if name in bundled:
+            raise ValueError("Duplicate delivery bundle location")
+        bundled[name] = entry
     if set(bundled) != {"report.md", "report.html", "campaign-result.json"}:
         raise ValueError("Incomplete delivery bundle")
     for name, entry in bundled.items():

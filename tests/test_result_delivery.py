@@ -8,7 +8,7 @@ from inferrsi.apps import archive, delivery
 from inferrsi.apps.cli import main
 from inferrsi.apps.delivery.projection import metric
 from inferrsi.apps.delivery.schema import decode, validate_result
-from inferrsi.apps.delivery.snapshot import Snapshot
+from inferrsi.apps.delivery.snapshot import MAX_DOCUMENT_BYTES, Snapshot
 from inferrsi.apps.result import preparation_result
 from inferrsi.harness import optimization
 from inferrsi.infra.artifacts import atomic_write_json, sha256
@@ -304,6 +304,51 @@ def test_missing_search_observation_retains_labelled_history(tmp_path):
     # The independently retained final still supplies its own verified assessment.
     assert result["acceptance"]["assessment_provenance"]["kind"] == "retained_observation"
     assert result["acceptance"]["delivery_accepted"] is True
+
+
+@pytest.mark.parametrize("phase", ["search", "final"])
+def test_oversized_optional_observation_keeps_cached_history_without_reading_it(
+    tmp_path, monkeypatch, phase
+):
+    root = make_campaign(tmp_path)
+    value = state(root)
+    record = value["final"] if phase == "final" else value["rounds"][0]
+    path = root / record["path"] / "observation.json"
+    path.write_bytes(b" " * (MAX_DOCUMENT_BYTES + 1))
+    original_open = type(path).open
+
+    def bounded_open(self, *args, **kwargs):
+        assert self != path, "An oversized observation must not be read, including during recheck"
+        return original_open(self, *args, **kwargs)
+
+    monkeypatch.setattr(type(path), "open", bounded_open)
+    result, output = export(root, tmp_path)
+    assert result["completion"]["status"] == "completed"
+    historical = result["acceptance"] if phase == "final" else result["rounds"][0]
+    assert historical["verdict"] == "PASS"
+    assert historical["assessment_provenance"]["kind"] == "cached_state"
+    assert result["acceptance"]["delivery_accepted"] is (phase == "search")
+    index = json.loads((output / "artifacts.json").read_text())
+    entry = next(
+        e for e in index["artifacts"] if e["id"] == "source:" + record["path"] + "/observation.json"
+    )
+    assert entry["availability"] == "unreadable"
+    assert entry["integrity"] == "not_checked"
+    assert entry["observed_sha256"] is None
+    assert entry["sha256"] == record["observation_sha256"]
+    assert "read limit" in entry["access"]
+
+
+@pytest.mark.parametrize("name", ["plan.json", "state.json", "campaign.json"])
+def test_oversized_required_control_document_prevents_publication(tmp_path, name):
+    root = make_campaign(tmp_path)
+    (root / name).write_bytes(b" " * (MAX_DOCUMENT_BYTES + 1))
+    with pytest.raises(ValueError, match="Required delivery control document"):
+        delivery.project(root, export_id="oversized-control")
+    output = tmp_path / "delivery"
+    receipt = delivery.export_bundle(root, output)
+    assert receipt["status"] == "error"
+    assert not output.exists()
 
 
 @pytest.mark.parametrize("binding_state", ["verified", "missing", "mismatch", "bad_revision"])
@@ -607,6 +652,24 @@ def test_reader_rejects_versions_nonfinite_and_modified_reports(tmp_path):
             decode(raw)
     (output / "report.md").write_text("modified")
     with pytest.raises(ValueError, match="integrity"):
+        delivery.read_bundle(output)
+
+
+@pytest.mark.parametrize("name", ["report.md", "report.html", "campaign-result.json"])
+@pytest.mark.parametrize("position", [0, -1])
+def test_reader_rejects_unique_id_entries_with_duplicate_bundle_locations(tmp_path, name, position):
+    root = make_campaign(tmp_path)
+    _, output = export(root, tmp_path)
+    index_path = output / "artifacts.json"
+    index = json.loads(index_path.read_text())
+    entry = next(e for e in index["artifacts"] if e["id"] == "bundle:" + name)
+    duplicate = {**entry, "id": "duplicate:" + name, "sha256": "0" * 64}
+    if position == 0:
+        index["artifacts"].insert(0, duplicate)
+    else:
+        index["artifacts"].append(duplicate)
+    atomic_write_json(index_path, index)
+    with pytest.raises(ValueError, match="Duplicate delivery bundle location"):
         delivery.read_bundle(output)
 
 
