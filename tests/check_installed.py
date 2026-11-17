@@ -5,6 +5,7 @@ import json
 import os
 import subprocess
 import sys
+import tempfile
 from importlib import import_module
 from importlib.resources import as_file, files
 from importlib.util import find_spec
@@ -733,3 +734,33 @@ with as_file(worker_file) as worker_path:
         check=False,
     )
 assert worker.returncode == 0, worker.stderr
+# The installed adapter launches that worker through its own ``_WORKER`` lookup and the
+# real ``python -I -B <worker>`` entry. From a temporary cwd, with a synthetic grant whose
+# engine file does not exist and no MindIE library, the read must end in the worker's
+# fixed structured rejection, not a missing-file or non-JSON failure.
+launch_probe = (
+    "import json, sys\n"
+    "from pathlib import Path\n"
+    "import inferrsi.apps.mindie as adapter\n"
+    "from inferrsi.apps.mindie import project\n"
+    "assert project._WORKER == Path(adapter.__path__[0]) / 'read_worker.py', project._WORKER\n"
+    "assert project._WORKER.is_file()\n"
+    "grant = {'python': sys.executable, 'engine': str(Path.cwd() / 'missing-engine.json'),\n"
+    "         'domain': 'probe'}\n"
+    "try:\n"
+    "    project._worker(grant, 'describe', b'{}')\n"
+    "except project.ReadFailure as exc:\n"
+    "    failure = exc\n"
+    "else:\n"
+    "    raise AssertionError('the synthetic read must be rejected')\n"
+    "expected = 'The local MindIE catalog is unavailable'\n"
+    "assert str(failure) == expected, str(failure)\n"
+    "assert failure.exit_code == 1, failure.exit_code\n"
+    "assert json.loads(failure.response) == {'isError': True, 'error': expected}\n"
+)
+with tempfile.TemporaryDirectory(prefix="inferrsi-mindie-launch-") as launch_cwd:
+    launch = subprocess.run(
+        [sys.executable, "-I", "-B", "-c", launch_probe], capture_output=True, text=True,
+        check=False, cwd=launch_cwd,
+    )
+assert launch.returncode == 0, launch.stderr

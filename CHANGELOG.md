@@ -34,7 +34,8 @@
     `__init__.py` and `__main__.py`. The four paths join `RETIRED_ROOT_MODULES`
     in the gate, so a root file that returns under any of them fails, and the
     installed-wheel checker verifies that the adapter and worker ship under
-    `apps/mindie/`.
+    `apps/mindie/` and that the installed adapter starts the installed worker by
+    file path and gets its structured rejection for an unavailable catalog.
   - Isolation is still incomplete: the 12 Harness hits into Infra (R2, #412)
     and the five runtime resource loaders (R3, #412) remain.
 
