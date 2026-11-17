@@ -402,7 +402,9 @@ are available in the point evidence. Select a round beside the chart to open tha
 changes and measurements. Each profile has separate disclosures for its prior searches
 and timeline. Open the review sections for the acceptance criteria, baseline
 breakdown, target gap, per-round measurements, and adoption decisions. The expandable paired
-reference chart uses each candidate's paired medians. For example, a target latency reduction of 50%
+reference chart uses native runs with paired medians. Adding external candidates leaves this
+chart in place; their protocol-specific measurements appear in the absolute measurement view.
+For example, a target latency reduction of 50%
 is a 2× speedup. When there is one verified baseline profile, only runs
 with its measurement signature share the speedup line and compete for its best
 result. The round list identifies runs with different measurement conditions.

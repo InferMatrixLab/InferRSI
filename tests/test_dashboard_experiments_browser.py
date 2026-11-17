@@ -285,6 +285,32 @@ def test_profile_home_shows_absolute_trend_and_links_exact_round(browser, tmp_pa
     page.close()
 
 
+def test_mixed_profile_keeps_native_paired_reference(browser, tmp_path):
+    from test_dashboard_data import candidate, run, write_json
+
+    write_json(tmp_path / "campaign.json", {
+        "campaign_id": "mixed", "review_layout": "profile_first",
+        "goal": {"target_improvement_pct": 50},
+    })
+    run(tmp_path, "native", 15, quality="completed", verified=True)
+    candidate(tmp_path, "native", "native", round=1)
+    native_chart = dashboard_snapshot(tmp_path)["chart"]
+    FIXTURE["external"](tmp_path, "external-latency", 2, [FIXTURE["metric"]()])
+    snapshot = dashboard_snapshot(tmp_path)
+    path = tmp_path / "dashboard.html"
+    path.write_text(render_dashboard(snapshot), encoding="utf-8")
+    page = browser.new_page()
+    page.goto(path.as_uri())
+    playwright.expect(page.locator("#paired-title")).to_be_visible()
+    page.locator("#paired-title").click()
+    playwright.expect(page.locator("#paired-chart svg")).to_be_visible()
+    assert "Target" in native_chart and snapshot["chart"] == native_chart
+    chart = page.locator("#chart")
+    chart.locator('[data-xp-control="workload"]').select_option("W1")
+    playwright.expect(chart.locator('.xp-point[aria-label^="external-latency"]')).to_be_visible()
+    page.close()
+
+
 @pytest.mark.parametrize("field", ["hardware", "protocol", "server_profile"])
 @pytest.mark.parametrize("profile_first", [False, True])
 def test_blank_configuration_renders_isolated_points_and_reason(
@@ -308,6 +334,7 @@ def test_blank_configuration_renders_isolated_points_and_reason(
     try:
         page.goto(path.as_uri())
         if profile_first:
+            assert page.locator("#paired-reference").is_hidden()  # External-only campaign.
             page.locator("#language").click()
             page.locator('[data-key="summary"] > summary').click()
         root = page.locator("#summary-experiments")

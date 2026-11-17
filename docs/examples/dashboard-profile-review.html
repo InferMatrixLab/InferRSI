@@ -1601,9 +1601,7 @@ function render(){
   if(!rows.length){p(rounds,tr('尚无轮次记录。','No rounds recorded.'));p(decisions,dash);}
   byId('paired-title').textContent=tr('配对参照 · 相对同轮基线的加速比','Paired reference · speedup against each round’s baseline');
   byId('chart-note').textContent=tr('各点独立比较同轮基线和候选测量值。','Each point compares its candidate with the baseline measured in the same round.');
-  // The server emits protocol-specific charts for external candidates. Their
-  // measurements and references remain available in the experiment explorer.
-  byId('paired-reference').hidden=!chart||rows.some(r=>r.external);
+  byId('paired-reference').hidden=!chart;
   const chartBox=byId('paired-chart');chartBox.innerHTML=chart;
   if(!chart)chartBox.textContent=tr('暂无可比测量。','No comparable measurements.');
   else if(language==='zh'){
