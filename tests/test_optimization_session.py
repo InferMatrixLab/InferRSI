@@ -354,6 +354,8 @@ def test_runtime_identity_covers_migrated_process_domain_and_not_removed_executo
     assert "harness/local_process.py" in identity
     # #412 R2: the Harness-owned primitives replace infra.artifacts in six modules.
     assert "harness/artifact_primitives.py" in identity
+    # #412 R3: the protocol child entry runs every task protocol operation.
+    assert "harness/protocol_child.py" in identity
     assert "infra/executors/local.py" not in identity
     for name in identity:
         assert (root / name).is_file(), name

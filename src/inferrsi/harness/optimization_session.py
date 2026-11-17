@@ -28,13 +28,15 @@ def runtime_environment() -> dict:
 
 def _session_execute(root, directory, plan, deadline):
     from inferrsi.harness.scenarios.external import execute_trial
-    from inferrsi.harness.task_protocol import protocol
+    from inferrsi.harness.task_protocol import run as run_protocol
 
     if plan["task_source"] == "project":
         return _project_execute(root, directory, plan, deadline)
     task = root / "frozen"
-    arguments = protocol(task).arguments(directory / "candidate.py", directory / "measurement",
-                                         plan["evaluation_settings"])
+    arguments = run_protocol(task, plan["frozen_files"]["optimization.py"], "arguments",
+                             candidate=directory / "candidate.py",
+                             output=directory / "measurement",
+                             settings=plan["evaluation_settings"])
     command = (*plan["evaluation_prefix"], plan["python"], str(Path(__file__).resolve()),
                str(task / "benchmark.py"), *arguments)
     timeout = min(plan["evaluation_timeout_seconds"], max(0, deadline - time.time()))
@@ -45,13 +47,15 @@ def _session_execute(root, directory, plan, deadline):
 
 
 def _session_assess(root, directory, plan, execution):
-    from inferrsi.harness.task_protocol import protocol
+    from inferrsi.harness.task_protocol import run as run_protocol
 
     if plan["task_source"] == "project":
         from inferrsi.harness.project import assess
 
         return assess(directory, plan["evaluation_settings"], execution)
-    return protocol(root / "frozen").assess(directory, plan["evaluation_settings"], execution)
+    return run_protocol(root / "frozen", plan["frozen_files"]["optimization.py"], "assess",
+                        directory=directory, settings=plan["evaluation_settings"],
+                        execution=execution)
 
 
 def _project_execute(root, directory, plan, deadline):
@@ -115,6 +119,7 @@ def _runtime_identity():
              "infra/processes.py", "infra/artifacts.py", "harness/scenarios/external.py",
              "harness/atomic_json.py", "harness/artifact_primitives.py",
              "harness/usage.py", "harness/agent_sessions.py", "harness/task_protocol.py",
+             "harness/protocol_child.py",
              "harness/candidates.py", "harness/project.py",
              "harness/records/knowledge_capture.py", "apps/campaign.py",
              "knowledge/context_projection.py")

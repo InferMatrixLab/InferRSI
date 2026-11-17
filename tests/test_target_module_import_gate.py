@@ -25,35 +25,92 @@ from tests._gate_policy_support import (
     load_manifest,
 )
 
+# #412 R3: the one admitted evaluator loader shape, as in the MoE grader.
+EVALUATOR = "benchmark/tasks/moe-forward-npu/grader.py"
+EVALUATOR_MODULE = "inferrsi.benchmark.tasks.moe-forward-npu.grader"
+LOADER = (
+    "import importlib.util\n"
+    "def load(path, name):\n"
+    "    spec = importlib.util.spec_from_file_location(name, path)\n"
+    "    module = importlib.util.module_from_spec(spec)\n"
+    "    spec.loader.exec_module(module)\n"
+    "    return module\n"
+)
+MISSING = f"{EVALUATOR_MODULE} does not hold exactly its one declared evaluator loader"
+
+
+def _report(root, files):
+    for relative, source in files.items():
+        path = root / relative
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(source, encoding="utf-8")
+    return first_wave_report(root)
+
+
+def test_declared_evaluator_loader_is_admitted_listed_and_never_a_blocker(tmp_path):
+    report = _report(tmp_path, {EVALUATOR: LOADER})
+    assert report.violations == ()
+    assert "runtime resource loaders" not in blocker_kinds(report)
+    assert report.runtime_execution == (
+        f"{EVALUATOR_MODULE}.load: importlib.util.module_from_spec(spec) executes frozen "
+        "run files in-process",
+    )
+
 
 @pytest.mark.parametrize("extra", [
     "\nimport importlib\nimportlib.import_module('inferrsi.knowledge')\n",
+    "\n__import__('json')\n",
     "\nimportlib.util.module_from_spec(spec)\n",
-    "\ndef another():\n    return importlib.util.module_from_spec(spec)\n",
+    "\ndef another(spec):\n    return importlib.util.module_from_spec(spec)\n",
 ])
-def test_declared_resource_loader_does_not_allow_an_extra_dynamic_edge(tmp_path, extra):
-    task = tmp_path / "harness/task_protocol.py"
-    task.parent.mkdir()
-    source = ("import importlib.util\ndef protocol():\n"
-              "    return importlib.util.module_from_spec(spec)\n")
-    task.write_text(source, encoding="utf-8")
-    report = first_wave_report(tmp_path)
-    assert not report.violations
-    assert "runtime resource loaders" in blocker_kinds(report)
+def test_declared_evaluator_loader_does_not_allow_an_extra_dynamic_edge(tmp_path, extra):
+    report = _report(tmp_path, {EVALUATOR: LOADER + extra})
+    assert any("dynamic import" in item for item in report.violations)
     assert not report.isolation_complete
-    task.write_text(source + extra, encoding="utf-8")
-    assert any("dynamic import" in item for item in first_wave_report(tmp_path).violations)
 
 
-def test_resource_loader_declaration_does_not_cover_an_adjacent_module(tmp_path):
-    task = tmp_path / "harness/other_protocol.py"
-    task.parent.mkdir()
-    task.write_text(
-        "import importlib.util\ndef protocol():\n"
-        "    return importlib.util.module_from_spec(spec)\n",
-        encoding="utf-8",
-    )
-    assert any("dynamic import" in item for item in first_wave_report(tmp_path).violations)
+@pytest.mark.parametrize("source", [
+    # A second call in the declared function voids the declaration for both calls.
+    LOADER.replace("    return module\n",
+                   "    importlib.util.module_from_spec(spec)\n    return module\n"),
+    # The call under another spec variable or in another function is not the declared one.
+    LOADER.replace("spec =", "other =").replace("(spec)", "(other)")
+          .replace("spec.loader", "other.loader"),
+    LOADER.replace("def load(", "def load_module("),
+])
+def test_declared_evaluator_loader_shape_is_exact(tmp_path, source):
+    report = _report(tmp_path, {EVALUATOR: source})
+    assert MISSING in report.violations
+    assert any("dynamic import" in item for item in report.violations)
+    assert report.runtime_execution == ()
+
+
+def test_declared_evaluator_without_its_call_is_a_stale_declaration(tmp_path):
+    report = _report(tmp_path, {EVALUATOR: "def load(path, name):\n    return None\n"})
+    assert MISSING in report.violations
+    assert report.runtime_execution == ()
+
+
+def test_declared_evaluator_inside_an_importable_package_fails(tmp_path):
+    report = _report(tmp_path, {EVALUATOR: LOADER,
+                                "benchmark/tasks/moe-forward-npu/__init__.py": ""})
+    assert (f"{EVALUATOR_MODULE} declares an evaluator loader outside a task bundle program"
+            in report.violations)
+
+
+@pytest.mark.parametrize("relative", [
+    "benchmark/tasks/moe-forward-npu/workload.py",
+    "benchmark/tasks/qwen3-tts-npu/benchmark.py",
+    "benchmark/registry.py",
+    # The Harness protocol loader that R3 retired, and its neighbours.
+    "harness/task_protocol.py",
+    "harness/other_protocol.py",
+    "apps/benchmark_operations.py",
+])
+def test_the_evaluator_loader_shape_is_admitted_nowhere_else(tmp_path, relative):
+    report = _report(tmp_path, {relative: LOADER})
+    assert any("dynamic import" in item for item in report.violations)
+    assert report.runtime_execution == ()
 
 
 def _scan_tree(files: dict[str, str]) -> list[str]:
@@ -135,14 +192,11 @@ class TargetModuleImportGateTest(unittest.TestCase):
             ["__init__.py", "repository_packs.py"],
         )
         self.assertTrue((ROOT / "apps" / "evidence_layout.py").is_file())
-        # A01-4 staged model: packages may appear one at a time, but each
-        # remaining trigger keeps overall false.
+        # #412 R3: every staged trigger is gone, so the final tree is fully isolated in
+        # the static import-closure sense.
         report = first_wave_report()
-        self.assertFalse(report.isolation_complete)
         for name in NEW_CORES:
-            absent = not (ROOT / name).is_dir()
-            self.assertEqual(f"absent: {name}/" in report.blockers, absent)
-            self.assertNotIn(f"unscannable: {name}/", report.blockers)
+            self.assertTrue((ROOT / name).is_dir())
         kinds = blocker_kinds(report)
         # #412 R1: the allowlist is empty and no old-run forwarder is registered.
         self.assertNotIn("allowlist", kinds)
@@ -153,12 +207,21 @@ class TargetModuleImportGateTest(unittest.TestCase):
         self.assertFalse(hasattr(report, "residuals"))
         self.assertNotIn("residual", kinds)
         self.assertEqual(report.violations, ())
-        # #412 R2 closed the six Harness modules: no Harness module reaches the
-        # package-level ``inferrsi.infra``, ``inferrsi.infra.artifacts`` or
-        # ``inferrsi.model``. What keeps isolation false is the five loaders that R3 closes.
-        self.assertEqual(report.blockers, ("runtime resource loaders: 5",))
+        # R2 closed the Harness -> Infra/Model edges; R3 retired the five temporary
+        # resource loaders and their blocker.
+        self.assertFalse(hasattr(support, "RESOURCE_LOADERS"))
         self.assertEqual(report.harness_model_infra, ())
-        self.assertFalse(report.new_core_closure_isolated)
+        self.assertEqual(report.blockers, ())
+        self.assertTrue(report.new_core_closure_isolated)
+        self.assertTrue(report.isolation_complete)
+        # Static closure is not runtime isolation: the two declared evaluators still
+        # execute frozen run files in-process, and the report says so.
+        self.assertEqual(report.runtime_execution, (
+            "inferrsi.benchmark.tasks.moe-forward-npu.grader.load: "
+            "importlib.util.module_from_spec(spec) executes frozen run files in-process",
+            "inferrsi.benchmark.tasks.qwen21-denoise-npu.benchmark.load: "
+            "importlib.util.module_from_spec(spec) executes frozen run files in-process",
+        ))
 
     def test_split_skill_eval_modules_reach_no_model_or_infra(self) -> None:
         # S01: the split Harness modules own their writes and digests. The

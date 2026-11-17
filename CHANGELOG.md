@@ -4,6 +4,31 @@
 
 ### Changed
 
+- The five runtime resource loaders are closed and the combined tree is isolated
+  (Refs #412, R3). `first_wave_report()` now has no violation and no blocker, and
+  `new_core_closure_isolated` and `isolation_complete` are both true.
+  - The Harness task protocol no longer runs in the Harness process. Each
+    `validate_arguments`, `arguments` and `assess` call runs the new
+    `harness/protocol_child.py` as `python -I -B` under a 120 second deadline, in
+    its own process group or Windows Job, and returns one strict JSON envelope.
+    The child compiles only protocol bytes that match the frozen SHA-256, and a
+    protocol `SystemExit` keeps its exit code (argparse usage errors still exit 2).
+    `task_protocol.protocol()` is removed; callers use `task_protocol.run()`. A
+    task `optimization.py` must take and return JSON values.
+  - `moe-forward-npu`: `processes.py` is folded into `benchmark.py`
+    (`MARKER`, `cleanup` and `_members` unchanged) and leaves `TASK_FILES`.
+  - `qwen3-tts-npu`: `evaluation.py` and the CLI are one `benchmark.py`; the
+    prepared bundle no longer has `evaluation.py`. A bundle prepared before this
+    change fails its frozen digests and must be prepared again. Retained results
+    are not rewritten.
+  - The MoE grader and Qwen21 evaluator keep their in-process candidate loaders
+    under a permanent gate rule (`EVALUATOR_LOADERS`): one exact call each, only in
+    a task bundle program. `first_wave_report().runtime_execution` lists them,
+    because static isolation does not cover what the loaded code does at run time.
+  - The optimization session's runtime identity adds `harness/protocol_child.py`,
+    and `harness/task_protocol.py` changed, so a session started before this
+    change does not resume after it.
+
 - Six Harness modules stop importing Infra (Refs #412, R2). `agent_sessions`,
   `candidates`, `optimization`, `optimization_session`, `project` and
   `task_protocol` take `digest`, `sha256` and `file_lock` from the new

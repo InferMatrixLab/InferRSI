@@ -34,16 +34,21 @@ CORE_NAMES = ("knowledge", "harness", "benchmark", "apps")
 # file is covered, in the root or under a package.
 MODULE_ENTRY = "__main__.py"
 MODULE_ENTRY_DELEGATION = ("inferrsi.apps.cli", "main")
-# Reviewed execution boundaries: owner function (or module scope) and the exact
-# local spec variable. They execute task resources/candidate code, not a hidden
-# core compatibility import. Their presence keeps isolation incomplete.
-RESOURCE_LOADERS = {
-    "inferrsi.harness.task_protocol": ("protocol", "spec"),
-    "inferrsi.benchmark.tasks.moe-forward-npu.benchmark": ("<module>", "_process_spec"),
+# #412 R3, permanent: the two task evaluators that must call submitted code in their own
+# process to time it. Each entry is a task bundle program (a file in a directory without
+# ``__init__.py`` under ``benchmark/tasks/``), the owner function and the exact local
+# spec variable of its one admitted ``importlib.util.module_from_spec`` call. A second
+# call, a call elsewhere in the file, the same shape in any other module, a declared
+# module that becomes importable or loses its call, and every other dynamic import fail.
+# These loaders execute frozen run files; they are listed in ``runtime_execution``,
+# which ``isolation_complete`` (a static import-closure result) does not cover. R3
+# retired the temporary ``RESOURCE_LOADERS`` table and its blocker: the Harness task
+# protocol runs in a child interpreter and the two sibling loads were merged away.
+EVALUATOR_LOADERS = {
     "inferrsi.benchmark.tasks.moe-forward-npu.grader": ("load", "spec"),
     "inferrsi.benchmark.tasks.qwen21-denoise-npu.benchmark": ("load", "spec"),
-    "inferrsi.benchmark.tasks.qwen3-tts-npu.benchmark": ("<module>", "_evaluation_spec"),
 }
+TASK_BUNDLES = "inferrsi.benchmark.tasks"
 # #412 R1 deleted these eleven root modules: the seven Knowledge shells, the three
 # old-run forwarders and the root inspection binding. None is registered any more.
 # A file that returns under one of these names is a violation by itself, and every
@@ -357,8 +362,9 @@ def _scan(root: Path, pairs: frozenset[tuple[str, str]]) -> _Graph:
     return _Graph(trees, packages, edges)
 
 
-def _resource_loader(tree: ast.Module, module: str) -> ast.Attribute | None:
-    declaration = RESOURCE_LOADERS.get(module)
+def _evaluator_loader(tree: ast.Module, module: str) -> ast.Attribute | None:
+    """The one declared evaluator call in ``module``; None unless exactly one exists."""
+    declaration = EVALUATOR_LOADERS.get(module)
     if declaration is None:
         return None
     matches = []
@@ -381,7 +387,7 @@ def _resource_loader(tree: ast.Module, module: str) -> ast.Attribute | None:
 
 
 def _has_dynamic_import(tree: ast.Module, module: str = "") -> bool:
-    declared = _resource_loader(tree, module)
+    declared = _evaluator_loader(tree, module)
     for node in ast.walk(tree):
         if node is declared:
             continue
@@ -683,7 +689,10 @@ class IsolationReport:
     """Staged first-wave result (A01-4).
 
     ``new_core_closure_isolated`` covers only the new-core closures present in
-    the tree. It never stands in for ``isolation_complete``.
+    the tree. It never stands in for ``isolation_complete``. Both are static
+    import-closure results. ``runtime_execution`` lists the declared sites that
+    execute frozen task or candidate files in-process at run time; neither flag
+    says anything about what that code does once it runs.
     """
 
     violations: tuple[str, ...]
@@ -691,6 +700,7 @@ class IsolationReport:
     harness_model_infra: tuple[str, ...]
     blockers: tuple[str, ...]
     new_core_closure_isolated: bool
+    runtime_execution: tuple[str, ...] = ()
 
     @property
     def isolation_complete(self) -> bool:
@@ -755,6 +765,20 @@ def first_wave_report(
     for parent in sorted(leaf_parents):
         violations += _initializer_errors(parent, graph.trees[parent], graph.packages[parent])
     violations += _contracts_errors(graph)
+    # #412 R3: a declared evaluator must stay a task bundle program and keep exactly its
+    # one call. A stale or widened declaration fails instead of passing silently.
+    runtime_execution = []
+    for name in sorted(set(EVALUATOR_LOADERS) & set(modules)):
+        bundle = name.rpartition(".")[0]
+        if bundle.rpartition(".")[0] != TASK_BUNDLES or bundle in graph.trees:
+            violations.append(f"{name} declares an evaluator loader outside a task bundle program")
+        if _evaluator_loader(graph.trees[name], name) is None:
+            violations.append(f"{name} does not hold exactly its one declared evaluator loader")
+        else:
+            function, spec = EVALUATOR_LOADERS[name]
+            runtime_execution.append(
+                f"{name}.{function}: importlib.util.module_from_spec({spec}) executes frozen "
+                "run files in-process")
     # Inside the contracts package a Knowledge module may name only the encoder. The
     # initializer and its RunSpec module load with that import and are never named.
     violations += [
@@ -833,12 +857,8 @@ def first_wave_report(
         blockers.append(f"harness reaches model/infra: {legacy[0]} ({len(legacy)} hits)")
     if violations:
         blockers.append(f"violations: {len(violations)}")
-    resource_loaders = [name for name in modules
-                        if _resource_loader(graph.trees[name], name) is not None]
-    if resource_loaders:
-        blockers.append(f"runtime resource loaders: {len(resource_loaders)}")
     return IsolationReport(
         tuple(violations), tuple(legacy), tuple(blockers),
-        bool(starts) and not new_core and not resource_loaders,
+        bool(starts) and not new_core, tuple(runtime_execution),
     )
 
