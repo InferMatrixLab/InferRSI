@@ -94,8 +94,6 @@ def test_real_tree_holds_no_forwarder_and_stays_incomplete():
     assert report.violations == ()
     for name in RETIRED_FORWARDERS:
         assert not (support.ROOT / f"{name}.py").exists(), name
-    # What is left belongs to R2 and R3, plus the parser entry due in A1.
-    assert support.blocker_kinds(report) == {
-        "harness reaches model/infra", "runtime resource loaders",
-    }
+    # What is left belongs to R3: R2 closed the harness -> infra hits.
+    assert support.blocker_kinds(report) == {"runtime resource loaders"}
     assert not report.isolation_complete
