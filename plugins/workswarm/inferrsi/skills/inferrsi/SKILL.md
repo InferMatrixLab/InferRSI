@@ -39,6 +39,20 @@ Setup and knowledge retrieval do not require a hardware probe or a benchmark.
 Use command help for exact flags. Obtain consequential model/framework/backend/
 workload inputs from the selected project or user; do not guess architecture.
 
+Run `python -X utf8 "<launcher>" find "<problem or symptom>"` to rank skills,
+imported records and casebook entries. Add `--kinds case` to focus on past
+observations. Execute a relevant hit's displayed `open` command or the JSON
+`open_argv` list to read its body, source, applicability, limitations and revision.
+
+If a Skill hit reports missing PyYAML, use the same launcher with
+`collect --relevance "<same query>" --limit 1 --material --json` to search the
+packaged Skills. This fresh search may select a different Skill. Check that the
+new result fits the task, then use its `ref`, `revision` and
+`skill_documents.original` to fetch the body with
+`resource <ref> <path> --revision <revision> --output <file>`.
+
+Use these commands for packaged and exact lookups.
+
 - `knowledge research <model>` combines independent research dimensions.
 - `knowledge search <query> --json` searches the packaged records with filters.
 - `collect --relevance "<task>" --limit 3 --json` selects bounded packaged

@@ -150,10 +150,10 @@ that nothing is recorded on the strength of one query. Each result states how
 far its evidence reaches: `scope` and `bounds` name the cohort an observation
 belongs to, and their absence means not assessed, never "holds anywhere".
 
-`find` also always answers. It cannot tell that a question is already settled by
-the measurements and source in front of you, so a returned list is not evidence
-that searching was the right move. When the recorded facts decide the question,
-decide it and say so rather than looking for support.
+`find` returns `no_match` when no query terms match the index. It can also
+return matches for a question that the measurements and source already settle.
+When the recorded facts decide the question, state the conclusion and cite
+those facts.
 
 Use qualified identities and revisions returned by the runtime. Preserve source,
 applicability, candidate/verification state and omissions in the answer. Package
