@@ -1000,6 +1000,46 @@ def test_tree_snapshot_rejects_missing_or_special_declared_input(campaign, inval
     assert not destination.exists()
 
 
+@pytest.mark.parametrize("staged", [False, True])
+@pytest.mark.parametrize("includes", [["inputs"], None])
+def test_revision_rejects_deleted_files_inside_declared_directory(campaign, staged, includes):
+    repo = campaign["repo"]
+    inputs = repo / "inputs"
+    inputs.mkdir()
+    (inputs / "keep.txt").write_text("keep")
+    deleted = inputs / "delete.txt"
+    deleted.write_text("delete")
+    subprocess.run(["git", "-C", str(repo), "add", "inputs"], check=True)
+    commit(repo)
+    project_service.revision(repo, includes)
+
+    deleted.unlink()
+    if staged:
+        subprocess.run(["git", "-C", str(repo), "add", "-u"], check=True)
+    with pytest.raises(ValueError, match="Commit declared candidate inputs"):
+        project_service.revision(repo, includes)
+
+    subprocess.run(["git", "-C", str(repo), "add", "-u"], check=True)
+    commit(repo)
+    revision = project_service.revision(repo, includes)
+    destination = repo.parent / "snapshot"
+    project_service.retain_revision(repo, destination, includes, revision)
+    assert (destination / "inputs/keep.txt").read_text() == "keep"
+    assert not (destination / "inputs/delete.txt").exists()
+
+
+def test_revision_ignores_deletions_outside_declared_inputs(campaign):
+    repo = campaign["repo"]
+    inputs = repo / "inputs"
+    inputs.mkdir()
+    (inputs / "keep.txt").write_text("keep")
+    subprocess.run(["git", "-C", str(repo), "add", "inputs"], check=True)
+    commit(repo)
+    revision = project_service.revision(repo, ["inputs"])
+    (repo / "engine.py").unlink()
+    assert project_service.revision(repo, ["inputs"]) == revision
+
+
 @pytest.mark.parametrize("rejections", [1, 2])
 def test_refresh_resets_stagnation_without_erasing_history(campaign, rejections):
     begin(campaign)
