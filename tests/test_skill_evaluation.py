@@ -340,8 +340,8 @@ def test_harness_artifact_primitives_match_infra_bytes_and_semantics(tmp_path):
     with pytest.raises(FileNotFoundError):
         harness.sha256(tmp_path / "missing.bin")
     lock = tmp_path / "state.lock"
+    # No read inside a held lock: a Windows byte-range lock denies it even in-process.
     with harness.file_lock(lock):
-        assert lock.read_bytes() == b"0"
         with pytest.raises(OSError):
             with infra.file_lock(lock):
                 pass
