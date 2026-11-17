@@ -33,7 +33,10 @@ from importlib.resources import files
 from io import BytesIO
 from pathlib import Path
 from statistics import median
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from .channels import ChannelRegistry
 
 from ._skill_selection import TASK_STOP_WORDS, named_backends
 from .catalog import BACKENDS

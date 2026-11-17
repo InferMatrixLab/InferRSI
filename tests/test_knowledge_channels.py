@@ -1,9 +1,5 @@
 """External channels: gating, per-channel states, and no mixing into `items`."""
 
-import json
-import sys
-from pathlib import Path
-
 import pytest
 
 from inferrsi.knowledge.channels import (
@@ -38,12 +34,12 @@ class FakeChannel:
         self.platform_seen = None
         self.limit_seen = None
 
-    def describe(self):
+    def describe(self, *, request):
         if self._error:
             raise RuntimeError(self._error)
         return self._status
 
-    def search(self, query, *, platform, limit):
+    def search(self, query, *, platform, limit, request):
         self.searched += 1
         self.platform_seen = platform
         self.limit_seen = limit
@@ -123,7 +119,7 @@ def test_hit_carries_score_scale_and_sha(corpus):
     hit = result["external"][0]["items"][0]
     assert hit["score_scale"] == "fake/v1"
     assert hit["card_sha256"] == "ab" * 32
-    assert hit["open"] == "fake read ops/x/card"
+    assert hit["open"] == "fake read ops/x/card --sha256 " + "ab" * 32
 
 
 def test_failure_is_a_state_not_empty_list(corpus):
@@ -211,3 +207,26 @@ def test_registry_declared_backend_is_what_the_task_asked_for():
     assert undeclared.for_backend(undeclared.declared_backend) == []
     declared = ChannelRegistry([channel], declared_backend="ascend")
     assert declared.for_backend(declared.declared_backend) == [channel]
+
+
+def test_cleanup_failure_is_visible_and_does_not_hide_other_channels():
+    cleaned = []
+
+    class FailedCleanup(FakeChannel):
+        def describe(self, *, request):
+            def fail(_):
+                raise OSError("synthetic cleanup failure")
+
+            request.start(object, fail)
+            request.start(object, lambda _: cleaned.append(True))
+            return self._status
+
+    results = search_channels(
+        ChannelRegistry([FailedCleanup(name="bad"), FakeChannel(name="good", items=[_hit()])]),
+        "q", backend="ascend",
+    )
+    assert results[0].status.state == "rejected"
+    assert "cleanup failed" in results[0].status.detail
+    assert cleaned == [True]
+    assert results[1].status.state == "ok"
+    assert results[1].items

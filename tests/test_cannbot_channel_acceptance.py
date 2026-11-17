@@ -7,11 +7,10 @@ is skipped rather than faked when either is absent: a fabricated number here
 would be worse than no number.
 """
 
+import functools
 import json
-import shutil
 import subprocess
 import sys
-from importlib.resources import files
 from pathlib import Path
 
 import pytest
@@ -37,6 +36,7 @@ def _run(*args):
     return json.loads(result.stdout)
 
 
+@functools.lru_cache(maxsize=1)
 def _approved():
     info = _run("cannbot", "describe")
     return bool(info) and info.get("state") == "ok"
@@ -48,8 +48,8 @@ def test_gate_off_matches_the_pre_channel_behaviour():
     An unflagged run is *supposed* to differ: it adds the gate explanation.
     The invariant is only about `--no-external`, and it must be exact.
     """
-    from inferrsi.knowledge.knowledge_find import find, load_corpus
     from inferrsi.apps.cli import _channels
+    from inferrsi.knowledge.knowledge_find import find, load_corpus
 
     corpus = load_corpus()
     pre_channel = find("AscendC tiling", corpus, limit=5)
@@ -145,8 +145,10 @@ def test_every_query_reaches_more_than_the_local_corpus():
 def test_read_returns_one_pinned_card():
     result = _run("find", "CeilDivision", "--backend", "ascend")
     entry = next(item for item in result["external"] if item["channel"] == "cannbot-knowledge")
-    locator = entry["items"][0]["locator"]
-    card = _run("cannbot", "read", locator)
+    hit = entry["items"][0]
+    locator = hit["locator"]
+    card = _run("cannbot", "read", locator, "--sha256", hit["card_sha256"])
+    assert card["card_sha256"] == hit["card_sha256"]
     assert card["state"] == "ok"
     assert card["locator"] == locator
     assert card["text"].strip()

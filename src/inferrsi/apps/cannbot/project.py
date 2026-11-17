@@ -15,6 +15,8 @@ import subprocess
 import tempfile
 from pathlib import Path
 
+from .read_worker import OutputLimitError, _finite, capture
+
 _SCHEMA = "inferrsi-cannbot-project/1"
 _WORKER = Path(__file__).with_name("read_worker.py")
 MAX_BYTES = 2 * 1024 * 1024
@@ -40,7 +42,10 @@ def project_root() -> Path:
     for folder in (cwd, *cwd.parents):
         if (folder / ".git").exists():
             return folder
-    raise ValueError("Open a Git project to use project-scoped cannbot knowledge")
+    raise ChannelFailure(
+        "Open a Git project to use project-scoped cannbot knowledge",
+        state="not_enabled", fix="Open a Git project, then enable cannbot knowledge",
+    )
 
 
 def _grant_path(root: Path) -> Path:
@@ -74,7 +79,8 @@ def _parse(raw: bytes) -> dict:
         raise ValueError("cannbot response contains a non-finite JSON value")
 
     try:
-        value = json.loads(raw, object_pairs_hook=_object, parse_constant=_invalid)
+        value = json.loads(raw, object_pairs_hook=_object, parse_constant=_invalid,
+                           parse_float=_finite)
     except (ValueError, UnicodeError, RecursionError) as exc:
         raise ValueError("cannbot did not return a JSON object") from exc
     if not isinstance(value, dict):
@@ -119,7 +125,7 @@ def load_grant(root: Path | None = None) -> dict:
     return grant
 
 
-def _run(grant: dict, action: str, arguments: dict, *, timeout: float) -> dict:
+def _run(grant: dict, action: str, arguments: dict, *, timeout: float, request=None) -> dict:
     environment = os.environ.copy()
     for key in ("CANNBOT_MCP_TOKENS", "CANNBOT_KNOWLEDGE_PLATFORM"):
         environment.pop(key, None)
@@ -127,23 +133,28 @@ def _run(grant: dict, action: str, arguments: dict, *, timeout: float) -> dict:
         with tempfile.TemporaryDirectory(prefix="inferrsi-cannbot-read-") as temporary:
             cwd = Path(temporary) / "reader"
             cwd.mkdir(mode=0o700)
-            result = subprocess.run(
+            result = capture(
                 [grant["python"], "-I", "-B", str(_WORKER),
-                 grant["upstream"], action, json.dumps(arguments)],
-                input=b"", stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
-                cwd=cwd, env=environment, timeout=timeout, check=False,
+                 grant["upstream"], action, json.dumps(arguments), str(timeout)],
+                cwd=cwd, environment=environment, timeout=timeout, request=request,
+                own_group=True,
             )
     except subprocess.TimeoutExpired:
         raise ChannelFailure(
             f"cannbot did not answer within {timeout:g}s", state="timeout"
         ) from None
+    except OutputLimitError:
+        raise ChannelFailure("cannbot output exceeded 2 MiB", state="rejected") from None
     except OSError:
         raise ChannelFailure(
             "The approved cannbot reader could not be started", state="unreachable"
         ) from None
     if len(result.stdout) > MAX_BYTES:
         raise ChannelFailure("cannbot returned more than 2 MiB", state="rejected")
-    payload = _parse(result.stdout)
+    try:
+        payload = _parse(result.stdout)
+    except ValueError:
+        raise ChannelFailure("cannbot returned invalid JSON", state="rejected") from None
     if result.returncode or payload.get("isError"):
         raise ChannelFailure(
             str(payload.get("error") or "The approved cannbot reader failed"),
@@ -154,13 +165,13 @@ def _run(grant: dict, action: str, arguments: dict, *, timeout: float) -> dict:
     return payload
 
 
-def describe(root: Path | None = None, *, timeout: float = 15.0) -> dict:
+def describe(root: Path | None = None, *, timeout: float = 15.0, request=None) -> dict:
     try:
         grant = load_grant(root)
     except ChannelFailure as exc:
         return {"state": exc.state, "detail": str(exc), "fix": exc.fix}
     try:
-        payload = _run(grant, "discover", {}, timeout=timeout)
+        payload = _run(grant, "discover", {}, timeout=timeout, request=request)
     except ChannelFailure as exc:
         return {"state": exc.state, "detail": str(exc), "fix": exc.fix}
     return {
@@ -173,8 +184,8 @@ def describe(root: Path | None = None, *, timeout: float = 15.0) -> dict:
 
 
 def search(
-    query: str, *, platform: str | None = None, limit: int = 10,
-    root: Path | None = None, timeout: float = 8.0,
+    query: str, *, platform: str | None = None, limit: int = 100,
+    root: Path | None = None, timeout: float = 8.0, request=None,
 ) -> dict:
     if not isinstance(query, str) or not query.strip():
         raise ChannelFailure("cannbot search needs a non-empty query")
@@ -186,23 +197,30 @@ def search(
         if not platforms:
             raise ChannelFailure(
                 "cannbot search needs a platform", state="rejected",
-                fix="inferrsi cannbot search ... --platform a2",
+                fix="inferrsi find <query> --backend ascend --platform <platform>",
             )
         platform = platforms[0]
     if platform not in PLATFORMS:
         raise ChannelFailure(f"cannbot does not know platform {platform!r}", state="rejected")
     return _run(grant, "search", {
         "query": query, "platform": platform, "limit": limit,
-    }, timeout=timeout)
+    }, timeout=timeout, request=request)
 
 
-def read(locator: str, *, page: int = 1, root: Path | None = None,
-         timeout: float = 15.0) -> dict:
+def read(locator: str, *, page: int = 1, expected_sha256: str | None = None,
+         root: Path | None = None, timeout: float = 15.0) -> dict:
     if not isinstance(locator, str) or not locator.strip():
         raise ChannelFailure("cannbot read needs a locator from a search result")
     if type(page) is not int or page < 1:
         raise ChannelFailure("cannbot page must be a positive integer")
-    return _run(load_grant(root), "read", {"locator": locator, "page": page}, timeout=timeout)
+    if expected_sha256 is not None and (
+        not isinstance(expected_sha256, str) or not re.fullmatch(r"[0-9a-f]{64}", expected_sha256)
+    ):
+        raise ChannelFailure("cannbot expected_sha256 must be a lowercase 64-hex digest")
+    arguments = {"locator": locator, "page": page}
+    if expected_sha256:
+        arguments["expected_sha256"] = expected_sha256
+    return _run(load_grant(root), "read", arguments, timeout=timeout)
 
 
 def enable(*, upstream: Path, python: Path, backend: str = "ascend",

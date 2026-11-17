@@ -29,15 +29,12 @@ to prevent.
 
 ## Why it is not downloaded for you
 
-cannbot-knowledge is licensed under **CANN Open Software License Agreement v2.0**,
-which is not an OSI licence: the grant is limited, royalty-free but
-**non-transferable, non-sublicensable and revocable**, and its use is restricted
-to Huawei AI processor systems. This repository is Apache-2.0.
-
-Cloning that corpus on your behalf would mean accepting its terms for you and
-placing a copy on your machine — a decision this project has no standing to
-make. So `enable` is a person's explicit action. It is not an unimplemented
-convenience; it is the compliance boundary.
+cannbot-knowledge has its own CANN Open Software License Agreement v2.0.
+InferRSI requires an explicitly approved local checkout and interpreter; it
+does not clone, install or deploy that source automatically. Review the upstream
+terms for your intended use before enabling it. Keeping the content outside the
+package does not establish permission to use, transmit or redistribute it;
+that organisational decision remains open in #476 Q1.
 
 Nothing from an external checkout is ever copied into `src/inferrsi/knowledge/data/`,
 a wheel, or `evidence/`.
@@ -71,7 +68,7 @@ already could have fixed.
 | --- | --- |
 | `--checkout` | Git checkout containing `knowledge/` |
 | `--python` | Interpreter with `pyyaml`, able to run the checkout's scripts |
-| `--backend` | Backend this source serves; `find` compares it to the task backend |
+| `--backend` | Default task backend; explicit `find --backend` takes precedence. Cannbot serves Ascend only. |
 | `--platform` | Default upstream platform (`a2`, `a3`, `950`, `310p`, `910`, …) |
 
 Check it:
@@ -100,10 +97,36 @@ inferrsi find "AscendC tiling 参数怎么算"
 Or declare it per call:
 
 ```bash
-inferrsi find "AscendC tiling 参数怎么算" --backend ascend
+inferrsi find "AscendC tiling 参数怎么算" --backend ascend --platform a2
 inferrsi cannbot search "CeilDivision 向上取整" --platform a2 --limit 100
 inferrsi cannbot read ops/ascendc/apis/utils_api/cpp_stdlib/math_functions/ceil_division
 ```
+
+The generated `open` command includes `--sha256 <card_sha256>`. Use that command
+and retain the same digest with `--page 2` (and later pages): a changed card is
+rejected. Every successful read returns the digest of the full card bytes.
+The upstream CLI uses `card_sha256` for a parsed metadata/body fingerprint;
+this adapter preserves it as `source_card_sha256`. Before emitting a selected
+hit, it verifies the source fingerprint using the approved checkout's parser
+and computes `card_sha256` over those same raw bytes. It returns neither the
+bytes nor private filesystem paths in search results.
+A locator-only read returns the current card and its digest, without promising
+continuity with an earlier search or page. A card digest does not validate its
+cited resources or make it eligible as campaign evidence.
+
+`find --platform` overrides the grant's upstream platform. If neither supplies
+one, the channel reports `rejected` and gives the missing-platform guidance.
+The default external result cap is 100 for cannbot; `--external-limit` overrides
+it (1–200). These are returned hits, not the total number of upstream matches.
+
+`--external-timeout` covers discovery and search together. Channels run
+concurrently under that deadline. On timeout the caller cancels owned worker
+processes and discards late results; subprocess teardown adds a short cleanup
+interval. The cannbot adapter terminates its process group on POSIX; Windows
+uses `taskkill /T /F` while the worker is alive. The new process-tree regression
+runs on POSIX; Windows cleanup has not been qualified by that test. Generic
+Python channel adapters must cooperate with the request deadline and register
+owned resources; Python cannot forcibly stop arbitrary in-process threads.
 
 ### The backend gate
 
@@ -126,8 +149,9 @@ silent.
   "score_scale": "knowledge-search.v5", "count": 3,
   "items": [{"locator": "ops/ascendc/apis/.../ceil_division", "score": 14.0,
              "status": "stable", "platforms": ["a2", "a3"],
-             "card_sha256": "b97cbe82...",
-             "open": "inferrsi cannbot read ops/..."}]
+             "card_sha256": "<raw-byte-sha256>",
+             "source_card_sha256": "<upstream-card-fingerprint>",
+             "open": "inferrsi cannbot read ops/... --sha256 <card_sha256>"}]
 }]
 ```
 
@@ -187,6 +211,7 @@ conclusion.
 | `cannbot serve` (stdio MCP proxying `discover` / `search` / `read_card`) | not yet |
 | `campaign import-cannbot` (receipts into evidence) | not yet |
 | Automatic clone, index build or deployment | deliberately absent |
+| In-memory discovery cache | deferred; discovery and search share the current call’s budget |
 
 ## Related
 

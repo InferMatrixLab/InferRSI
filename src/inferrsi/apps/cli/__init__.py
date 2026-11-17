@@ -152,7 +152,7 @@ def _channels():
     from ..cannbot import CannbotChannel
 
     channel = CannbotChannel()
-    return ChannelRegistry([channel], declared_backend=channel.backend)
+    return ChannelRegistry([channel], declared_backend=channel.declared_backend)
 
 
 def _print_external(result: dict) -> None:
@@ -315,7 +315,9 @@ def main(argv: list[str] | None = None) -> int:
                     args.query, platform=args.platform, limit=args.limit,
                 )
             else:
-                result = cannbot.project.read(args.locator, page=args.page)
+                result = cannbot.project.read(
+                    args.locator, page=args.page, expected_sha256=args.sha256,
+                )
             _print(result)
             return 0
         if args.command == "agents":
@@ -447,7 +449,7 @@ def main(argv: list[str] | None = None) -> int:
                 args.query, load_corpus(args.skill_root, kinds=kinds),
                 limit=args.limit, explain=args.explain,
                 registry=None if args.no_external else _channels(),
-                backend=args.backend,
+                backend=args.backend, platform=args.platform,
                 external_limit=args.external_limit,
                 external_timeout=args.external_timeout,
             )

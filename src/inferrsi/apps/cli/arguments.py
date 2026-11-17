@@ -148,6 +148,11 @@ def parser() -> argparse.ArgumentParser:
     cannbot_search.add_argument("--limit", type=int, default=100)
     cannbot_read = cannbot_actions.add_parser("read", help="Read one card by locator")
     cannbot_read.add_argument("locator")
+    cannbot_read.add_argument(
+        "--sha256",
+        help="Expected card digest from a search result; refuse the read if the "
+        "card changed since then",
+    )
     cannbot_read.add_argument("--page", type=int, default=1)
     agents = commands.add_parser("agents", help="Record native host fresh-session handoffs")
     agent_actions = agents.add_subparsers(dest="agent_action", required=True)
@@ -464,13 +469,14 @@ def parser() -> argparse.ArgumentParser:
         help="Declare the task backend once, e.g. ascend; external channels run only "
         "for a declared backend and are never inferred from the query",
     )
+    find.add_argument("--platform", help="Override the grant’s upstream platform, e.g. a2")
     find.add_argument(
         "--no-external", action="store_true",
         help="Skip every external channel; use in CI and offline runs",
     )
     find.add_argument(
         "--external-limit", type=int,
-        help="Override the per-channel result cap (cannbot 10, MindIE 5 by default)",
+        help="Override the per-channel result cap (cannbot 100, MindIE 5 by default)",
     )
     find.add_argument(
         "--external-timeout", type=float, default=8.0,

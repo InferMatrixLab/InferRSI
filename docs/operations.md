@@ -279,14 +279,16 @@ external (not locally verified; scores are not comparable across channels)
 
 Enabling a channel is a deliberate, per-checkout action by a person; see
 [external knowledge channels](external-channels.md). This repository does not
-clone, download or bundle a third-party corpus, because doing so would accept
-and redistribute a licence on the user's behalf.
+clone, download or bundle the corpus automatically. Review the upstream terms
+for the intended use before granting access; source permissions remain separate
+from this integration mechanism.
 
 - **Inputs:** `--backend <name>` declares the task backend; **without it and
   without an approved grant, no channel is searched** and each one reports
   `backend_unknown`. `--no-external` skips all channels for CI and offline runs.
   `--external-limit <N>` overrides the per-channel cap (`cannbot-knowledge` 100,
-  `mindie-agent` 5). `--external-timeout <S>` bounds each channel (8s default).
+  `mindie-agent` 5). `--external-timeout <S>` bounds discovery and search
+  together (8s default); `--platform` overrides the upstream platform in the grant.
 - **Output:** `external[]` sits beside `items`, never inside it. Each entry
   carries `state`, `revision`, `elapsed_ms`, `score_scale` and `count`. A state
   other than `ok` (`not_enabled`, `unreachable`, `index_stale`, `timeout`,

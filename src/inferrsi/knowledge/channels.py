@@ -14,8 +14,8 @@ Three rules follow from that and are enforced here rather than by convention:
 * A failure is a state, not an empty list. "Searched and found nothing" and
   "could not search" are different facts, and conflating them lets a caller
   conclude the source has no such knowledge.
-* Nothing here reads a channel body on the ranking path. Reading is a separate
-  call with its own budget.
+* No card text is returned on the ranking path. An adapter may verify selected
+  card bytes to bind locators to a digest; material reads are separate calls.
 
 Channels are opt-in. Resolving a registry never imports or probes one until the
 platform gate has selected it, and an absent registry leaves `find` behaving
@@ -25,7 +25,11 @@ exactly as it did before channels existed.
 from __future__ import annotations
 
 import concurrent.futures
-from dataclasses import dataclass, field
+import math
+import shlex
+import threading
+import time
+from dataclasses import dataclass, field, replace
 from typing import Any, Protocol, runtime_checkable
 
 # States a channel can report. `ok` is the only one that carries items; every
@@ -95,6 +99,7 @@ class ChannelHit:
     status: str = ""
     platforms: tuple[str, ...] = ()
     card_sha256: str = ""
+    source_card_sha256: str = ""
 
     def view(self, *, read_prefix: str) -> dict:
         record: dict[str, Any] = {
@@ -111,8 +116,13 @@ class ChannelHit:
             record["platforms"] = list(self.platforms)
         if self.card_sha256:
             record["card_sha256"] = self.card_sha256
+        if self.source_card_sha256:
+            record["source_card_sha256"] = self.source_card_sha256
         if read_prefix:
-            record["open"] = f"{read_prefix} {self.locator}"
+            argv = [*shlex.split(read_prefix), self.locator]
+            if self.card_sha256:
+                argv.extend(["--sha256", self.card_sha256])
+            record["open"] = shlex.join(argv)
         return record
 
 
@@ -150,13 +160,13 @@ class Channel(Protocol):
     name: str
     backend: str | None
 
-    def describe(self) -> ChannelStatus: ...
+    def describe(self, *, request: ChannelRequest) -> ChannelStatus: ...
 
     def search(
-        self, query: str, *, platform: str | None, limit: int
+        self, query: str, *, platform: str | None, limit: int, request: ChannelRequest
     ) -> ChannelResult: ...
 
-    def read(self, locator: str) -> str: ...
+    def read(self, locator: str, *, expected_sha256: str | None = None) -> str: ...
 
 
 @dataclass
@@ -202,32 +212,77 @@ def _empty(name: str, state: str, *, detail: str = "", fix: str = "",
     )
 
 
+class ChannelRequest:
+    """One deadline and owned resources for describe plus search.
+
+    Adapters must start subprocesses through this request, so cancellation and
+    process creation cannot race. Cleanup is idempotent and synchronous; once
+    cancelled, a late worker cannot start more work. Pure Python adapters must
+    cooperate with the deadline. Their daemon threads cannot delay CLI exit.
+    """
+
+    def __init__(self, deadline: float):
+        self.deadline = deadline
+        self._lock = threading.Lock()
+        self._cancelled = False
+        self._resources: dict = {}
+
+    def remaining(self) -> float:
+        remaining = self.deadline - time.monotonic()
+        if self._cancelled or remaining <= 0:
+            raise TimeoutError("external channel deadline expired")
+        return remaining
+
+    def start(self, factory, cleanup):
+        with self._lock:
+            self.remaining()
+            resource = factory()
+            self._resources[resource] = cleanup
+            return resource
+
+    def finish(self, resource):
+        with self._lock:
+            cleanup = self._resources.get(resource)
+            if cleanup:
+                cleanup(resource)
+                self._resources.pop(resource)
+
+    def cancel(self):
+        with self._lock:
+            self._cancelled = True
+            failed = False
+            for resource, cleanup in self._resources.items():
+                try:
+                    cleanup(resource)
+                except Exception:
+                    failed = True
+            self._resources.clear()
+            return not failed
+
+
 def _run_one(
-    channel: Channel, query: str, *, platform: str | None, limit: int, timeout: float
+    channel: Channel, query: str, *, platform: str | None, limit: int,
+    request: ChannelRequest, started: float,
 ) -> ChannelResult:
+    phase = "describe"
     try:
-        described = channel.describe()
-    except Exception as exc:  # a broken channel must not break find
-        return _empty(channel.name, UNREACHABLE, detail=_reason(exc))
-    if described.state != OK:
-        return ChannelResult(name=channel.name, status=described)
-    try:
-        result = channel.search(query, platform=platform, limit=limit)
+        request.remaining()
+        described = channel.describe(request=request)
+        request.remaining()
+        if described.state != OK:
+            result = ChannelResult(name=channel.name, status=described)
+        else:
+            phase = "search"
+            result = channel.search(query, platform=platform, limit=limit, request=request)
+            request.remaining()
     except TimeoutError:
-        return _empty(channel.name, TIMEOUT, detail=f"no answer within {timeout:g}s")
+        result = _empty(channel.name, TIMEOUT, detail="external channel deadline expired")
     except Exception as exc:
-        return _empty(channel.name, REJECTED, detail=_reason(exc))
-    if result.elapsed_ms > timeout * 1000:
-        # The work finished, so report what it found and the budget it broke.
-        return ChannelResult(
-            name=channel.name, status=ChannelStatus(
-                OK, revision=result.status.revision,
-                detail=f"answered in {result.elapsed_ms} ms, over the {timeout:g}s budget",
-            ),
-            items=result.items, elapsed_ms=result.elapsed_ms,
-            score_scale=result.score_scale, read_prefix=result.read_prefix,
+        result = _empty(
+            channel.name, UNREACHABLE if phase == "describe" else REJECTED,
+            detail=_reason(exc),
         )
-    return result
+    return replace(result, elapsed_ms=max(1, int((time.monotonic() - started) * 1000)))
 
 
 def _reason(exc: BaseException) -> str:
@@ -244,39 +299,53 @@ def search_channels(
     limit: int | None = None,
     timeout: float = 8.0,
 ) -> list[ChannelResult]:
-    """Query every eligible channel concurrently; one failure never hides another.
+    """Query eligible channels concurrently, cancel owned work at one deadline.
 
-    Channels are independent I/O, so the wall clock is the slowest one rather
-    than the sum. An empty registry is not an error: it means this checkout has
-    no external source, which is the default state.
+    There is no executor shutdown/atexit join and no fresh timeout per future.
+    Adapters receive the same request for both phases, including the remaining
+    budget and resource cleanup. A late answer is discarded, never labelled OK.
     """
-    if timeout <= 0:
-        raise ValueError("external timeout must be positive")
+    if not math.isfinite(timeout) or timeout <= 0:
+        raise ValueError("external timeout must be positive and finite")
     if limit is not None and (type(limit) is not int or limit < 1):
         raise ValueError("external limit must be a positive integer")
     eligible = registry.for_backend(backend)
-    if not eligible:
-        return []
+    started = time.monotonic()
+    pending = []
 
-    def work(channel: Channel) -> ChannelResult:
-        return _run_one(
+    def work(channel, request, future):
+        future.set_result(_run_one(
             channel, query, platform=platform,
             limit=limit or DEFAULT_LIMITS.get(channel.name, FALLBACK_LIMIT),
-            timeout=timeout,
-        )
+            request=request, started=started,
+        ))
 
-    if len(eligible) == 1:
-        return [work(eligible[0])]
-    with concurrent.futures.ThreadPoolExecutor(max_workers=len(eligible)) as pool:
-        futures = [pool.submit(work, channel) for channel in eligible]
-        results = []
-        for channel, future in zip(eligible, futures):
-            try:
-                results.append(future.result(timeout=timeout))
-            except concurrent.futures.TimeoutError:
-                results.append(_empty(
-                    channel.name, TIMEOUT, detail=f"no answer within {timeout:g}s",
-                ))
+    for channel in eligible:
+        request = ChannelRequest(started + timeout)
+        future = concurrent.futures.Future()
+        threading.Thread(
+            target=work, args=(channel, request, future), daemon=True,
+            name="inferrsi-channel",
+        ).start()
+        pending.append((channel, request, future))
+
+    results = []
+    for channel, request, future in pending:
+        try:
+            result = future.result(timeout=max(0, request.deadline - time.monotonic()))
+        except concurrent.futures.TimeoutError:
+            result = replace(
+                _empty(channel.name, TIMEOUT, detail=f"no answer within {timeout:g}s"),
+                elapsed_ms=max(1, int((time.monotonic() - started) * 1000)),
+            )
+        finally:
+            cleaned = request.cancel()
+        if not cleaned:
+            result = replace(
+                _empty(channel.name, REJECTED, detail="channel resource cleanup failed"),
+                elapsed_ms=max(1, int((time.monotonic() - started) * 1000)),
+            )
+        results.append(result)
     return results
 
 

@@ -7,6 +7,7 @@ from pathlib import Path
 
 from ...knowledge.channels import (
     ChannelHit,
+    ChannelRequest,
     ChannelResult,
     ChannelStatus,
 )
@@ -38,12 +39,13 @@ class CannbotChannel:
         except (OSError, ValueError) as exc:
             grant = {}
             self.hint = ChannelStatus("rejected", detail=str(exc))
-        self.backend = grant.get("backend")
+        self.backend = "ascend"
+        self.declared_backend = grant.get("backend")
         self.name = "cannbot-knowledge"
 
-    def describe(self) -> ChannelStatus:
+    def describe(self, *, request: ChannelRequest) -> ChannelStatus:
         try:
-            info = self._project.describe(self.root, timeout=max(self.timeout, 15.0))
+            info = self._project.describe(self.root, timeout=request.remaining(), request=request)
         except self._project.ChannelFailure as exc:
             return ChannelStatus(exc.state, detail=str(exc), fix=exc.fix)
         state = info.get("state", "rejected")
@@ -55,19 +57,20 @@ class CannbotChannel:
         return ChannelStatus("ok", revision=info.get("revision"))
 
     def search(
-        self, query: str, *, platform: str | None, limit: int
+        self, query: str, *, platform: str | None, limit: int, request: ChannelRequest
     ) -> ChannelResult:
         started = time.monotonic()
         try:
             payload = self._project.search(
                 query, platform=platform, limit=limit, root=self.root,
-                timeout=self.timeout,
+                timeout=request.remaining(), request=request,
             )
         except self._project.ChannelFailure as exc:
             return ChannelResult(
                 name=self.name, status=ChannelStatus(
                     exc.state, detail=str(exc), fix=exc.fix,
                 ),
+                elapsed_ms=max(1, int((time.monotonic() - started) * 1000)),
             )
         elapsed = int((time.monotonic() - started) * 1000)
         items = tuple(
@@ -80,6 +83,7 @@ class CannbotChannel:
                 status=str(row.get("status") or ""),
                 platforms=tuple(row.get("platforms") or ()),
                 card_sha256=str(row.get("card_sha256") or ""),
+                source_card_sha256=str(row.get("source_card_sha256") or ""),
             )
             for row in payload.get("items") or []
             if row.get("locator")
@@ -93,6 +97,9 @@ class CannbotChannel:
             read_prefix="inferrsi cannbot read",
         )
 
-    def read(self, locator: str) -> str:
-        payload = self._project.read(locator, root=self.root, timeout=max(self.timeout, 15.0))
+    def read(self, locator: str, *, expected_sha256: str | None = None) -> str:
+        payload = self._project.read(
+            locator, expected_sha256=expected_sha256, root=self.root,
+            timeout=max(self.timeout, 15.0),
+        )
         return str(payload.get("text") or "")
