@@ -245,6 +245,10 @@ assessment 的 `profile_evidence` 按重复配对比较每个区域和计数，`
 - `--require-explanation`：只有 `explained` 的候选可以被采纳。与配对性能判定同一原则区分证据：只有 `contradicted`（数据与预期相反）记为 FAIL；`unsupported`（预期变化未检出，区间仍可能包含预期的变化）、`unverifiable`、`not_declared` 都是证据不足，记为 INCONCLUSIVE，`reason` 为 `explanation_<status>`。两类候选都不被采纳，也都不阻塞后续轮次。打开此开关时，`campaign start` 要求至少 6 次重复（否则任何预期都拿不到区间，没有候选能被采纳）；`campaign round --mechanism-file` 在执行前拒绝所需对数超过冻结重复次数的声明（例如 4 条预期需要 8 对），不会因此消耗一轮预算。不打开此开关时，机制声明只做报告，不受这两条限制。
 - `--decision paired`：用 `paired_statistics` 判定，要求至少 6 次重复。区间整体高于门槛为 PASS（`paired_interval_above_gate`）；区间整体低于门槛为 FAIL（`performance_gate_not_met`），即有证据表明门槛没达到；区间跨过门槛为 INCONCLUSIVE，`reason` 为 `within_noise`——这只说明没能证明过门槛，不是门槛未达到的证据，所以不记 FAIL；候选不被采纳，搜索继续；统计不可用时为 INCONCLUSIVE，不退回未配对的中位数规则。默认 `point` 保持中位数点估计规则。`paired` 只看区间，不再看点估计：点估计未过门槛、但配对区间整体高于门槛时判 PASS；反过来点估计过门槛、区间跨过门槛时判 INCONCLUSIVE（`within_noise`）。两者不一致时 `paired_statistics.agrees_with_point_gate` 为 `false`，供评审查看。
 
+`paired` 同时决定选优，判定和采纳用同一份证据。启动时冻结的 `selection` 为 `{"metric": "paired_median_speedup", "direction": "maximize", "initial_score": 1.0}`：每轮的 `score` 和 `speedup` 是本轮相对冻结基线的逐对加速比中位数，基线记为 1.0，`improvement_pct` 由该加速比换算（极端比值换算后不是有限值时为空）。判 PASS 且该加速比高于当前最佳的候选才被采纳，独立中位数不能否决配对 PASS；中位数点估计保留在 `point_estimate`（`improvement_pct`、`speedup`），原始中位数仍在 `metrics`。每轮都与冻结基线交替重测，所以不同轮次的配对加速比都相对同一基线、可以直接比较。统计不可用时该轮为 INCONCLUSIVE、不会被采纳，`score`、`speedup`、`improvement_pct` 与 `score_basis` 均为空，不用点估计顶替配对值，搜索继续；独立 final 遇到这种情况时 `optimization_speedup` 也为空。默认 `point` 的选优不变，仍比较候选中位数（`score_basis: candidate_median`）。
+
+每个轮次记录都带 `selection`：`outcome` 为 `adopted`、`not_eligible`（verdict 不是 PASS 或未完成）、`not_better_than_best`（按冻结的选择指标没有超过当前最佳）或 `baseline_identity`（提交的就是基线），并附上本轮 `score` 与比较时的 `best_score_before`，说明一个 PASS 轮次为什么没有被选中。
+
 两个开关同时打开时按固定顺序判定：先由 `--decision` 得到性能结论，`--require-explanation` 只作用于性能结论为 PASS 的轮次，把它降为 FAIL 或 INCONCLUSIVE，不会提升或改写非 PASS 的结论。因此性能结论已是 FAIL 或 INCONCLUSIVE（包括 `within_noise`）时，无论 `explanation.status` 是什么，最终 verdict 和 `reason` 都保持性能结论；`explanation` 仍完整写入报告。
 
 提交未修改的候选可以作为 A/A 对照，`paired_statistics` 的区间即给出该环境的噪声范围；`--require-explanation` 下的 A/A 轮次在声明的变化项上应为 `not_shown`。

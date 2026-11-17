@@ -88,7 +88,8 @@ def _optimization_actions(stages, *, project=False):
         start.add_argument("--warmups", type=int)
         start.add_argument("--decision", choices=("point", "paired"), default="point",
                            help="point: independent medians (default); paired: the paired "
-                                "interval must clear the gate (>= 6 repetitions); "
+                                "interval must clear the gate (>= 6 repetitions) and "
+                                "candidates are ranked by median paired speedup; "
                                 "within-noise rounds are INCONCLUSIVE")
         start.add_argument("--require-explanation", action="store_true",
                            help="Adopt a candidate only when its declared mechanism is "

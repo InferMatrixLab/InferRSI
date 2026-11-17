@@ -480,6 +480,7 @@ def _summary(root, plan, state):
         "final_assessment": final["assessment"] if final else None,
         "optimization_speedup": (
             1.0 if final and final["assessment"]["status"] == "completed"
+            and final["assessment"].get("score") is not None
             and state["best"]["kind"] == "baseline"
             else (final["assessment"].get("speedup")
                   if final["assessment"].get("speedup") is not None
@@ -555,7 +556,9 @@ def _settle(root, plan, state, pending, execution, assess):
         if assessment["status"] == "completed":
             if execution["status"] != "completed" or execution["returncode"] != 0:
                 raise ValueError("Completed assessment requires successful execution")
-            if type(score) not in (int, float) or not math.isfinite(score) or score <= 0:
+            # A round the task marks ineligible may lack a score: it can never be adopted.
+            if not (score is None and assessment.get("eligible") is False) and (
+                    type(score) not in (int, float) or not math.isfinite(score) or score <= 0):
                 raise ValueError("Completed assessment requires a finite positive score")
             if pending["kind"] == "round" and state["best"]["score"] is None:
                 baseline_score = assessment.get("baseline_score")
@@ -565,8 +568,8 @@ def _settle(root, plan, state, pending, execution, assess):
     except Exception as error:
         assessment = _failure(error)
     score = assessment.get("score")
-    if assessment["status"] != "completed":
-        assessment["score"] = None
+    # Normalized so every record carries the key, even for a scoreless ineligible round.
+    assessment["score"] = score if assessment["status"] == "completed" else None
     record = {**pending, "assessment": assessment, "execution": execution,
               "execution_sha256": sha256(directory / "execution/execution.json"),
               "elapsed_seconds": execution.get("elapsed_seconds")}
@@ -578,13 +581,20 @@ def _settle(root, plan, state, pending, execution, assess):
         improved = (score is not None and best_score is not None and (
             score < best_score if plan["selection"]["direction"] == "minimize"
             else score > best_score))
-        if (assessment["status"] == "completed" and assessment.get("eligible", True)
-                and improved and pending["candidate_sha256"] != candidates.identity(
-                    root / plan["baseline_path"])):
+        eligible = assessment["status"] == "completed" and assessment.get("eligible", True)
+        outcome = ("not_eligible" if not eligible
+                   else "not_better_than_best" if not improved
+                   else "baseline_identity" if pending["candidate_sha256"] == candidates.identity(
+                       root / plan["baseline_path"])
+                   else "adopted")
+        if outcome == "adopted":
             state["best"] = {"kind": "candidate",
                              "candidate_id": pending["candidate_id"],
                              "path": pending["path"] + "/" + plan["candidate_name"],
                              "sha256": pending["candidate_sha256"], "score": score}
+        # Why this round was or was not selected, compared on the frozen selection metric.
+        record["selection"] = {"outcome": outcome, "metric": plan["selection"]["metric"],
+                               "score": assessment["score"], "best_score_before": best_score}
         record["best_after"] = dict(state["best"])
         state["rounds"].append(record)
     else:

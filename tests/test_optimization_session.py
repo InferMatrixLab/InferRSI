@@ -981,3 +981,28 @@ def test_mechanism_checks_are_rejected_for_packaged_task_sessions(session, tmp_p
               "--candidate", str(session / "work/candidate.py"), "--hypothesis", "h",
               "--mechanism-file", str(mechanism)])
     assert not (session / "rounds").exists() or not any((session / "rounds").iterdir())
+
+
+def test_scoreless_ineligible_rounds_settle_and_final_reports_no_speedup(
+    session, monkeypatch, capsys,
+):
+    """A completed round marked ineligible may omit its score; it never blocks or adopts."""
+    def scoreless(*args, **kwargs):
+        return {"status": "completed", "verdict": "INCONCLUSIVE",
+                "reason": "synthetic_statistics_unavailable", "eligible": False}
+
+    monkeypatch.setattr(optimization_session, "_session_assess", scoreless)
+    for factor in (2, 3, 4):
+        view = submit(session, factor, capsys)
+        assert view["state"] == "active" and view["pending"] is None
+        record = view["latest_observation"]
+        assert record["assessment"]["score"] is None
+        assert record["selection"]["outcome"] == "not_eligible"
+        assert view["best"]["kind"] == "baseline"
+    assert main(["benchmarks", "session", "final", "--session", str(session)]) == 0
+    capsys.readouterr()
+    summary = json.loads((session / "summary.json").read_text(encoding="utf-8"))
+    assert summary["state"] == "completed"
+    assert summary["final_assessment"]["score"] is None
+    # The final measured nothing usable, so no speedup is reported even for the baseline.
+    assert summary["optimization_speedup"] is None

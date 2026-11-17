@@ -228,8 +228,13 @@ def session_command(args, *, task_source: Path | None = None, knowledge_reader=N
                          "candidate_kind": "directory", "candidate_name": "candidate",
                          "candidate_includes": args.include, "baseline_path": "frozen/baseline",
                          "working_candidate": str(repo),
-                         "selection": {"direction": args.direction, "initial_score": None,
-                                       "metric": args.metric_key}}
+                         "selection": (
+                             # Paired mode ranks by the speedup its decision reads.
+                             {"direction": "maximize", "initial_score": 1.0,
+                              "metric": "paired_median_speedup"}
+                             if args.decision == "paired" else
+                             {"direction": args.direction, "initial_score": None,
+                              "metric": args.metric_key})}
         else:
             if task_source is None:
                 raise ValueError("A resolved task resource directory is required to start")

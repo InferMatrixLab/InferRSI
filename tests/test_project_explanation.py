@@ -5,6 +5,8 @@ import json
 import pytest
 
 from inferrsi.apps.cli import main
+from inferrsi.apps.views.dashboard_data import load_dashboard
+from inferrsi.apps.views.optimization_chart import render_result
 from inferrsi.harness.optimization import read_records
 
 # Device-wide factor applied to every timed value of one measurement call, cycling per
@@ -220,13 +222,164 @@ def test_paired_decision_passes_when_only_the_point_estimate_misses_the_gate(
     candidate = [value / 1.07 for value in levels]
     candidate[1] = 200.0
     assessment = submit(project, capsys, {"side": "candidate", "series": candidate})
-    assert 0 < assessment["improvement_pct"] < 1  # the point rule alone would FAIL
+    # The point rule alone would FAIL; the headline fields follow the paired decision.
+    assert 0 < assessment["point_estimate"]["improvement_pct"] < 1
+    assert assessment["score_basis"] == "paired_median_speedup"
+    assert assessment["score"] == assessment["speedup"] == pytest.approx(1.07)
+    assert assessment["baseline_score"] == 1.0
     paired = assessment["paired_statistics"]
     assert paired["gate_relation"] == "above_gate"
     assert paired["interval"] == pytest.approx([1.07, 1.07])
     assert paired["agrees_with_point_gate"] is False
     assert assessment["verdict"] == "PASS"
     assert assessment["reason"] == "paired_interval_above_gate"
+
+
+def test_paired_decision_also_selects_the_candidate_that_final_retests(project, capsys):
+    """A paired PASS is ranked by paired speedup, so unpaired medians cannot veto it."""
+    repo, protocol, _, root = project
+    (protocol / "measure.py").write_text(
+        "import json, sys\nfrom pathlib import Path\n"
+        "c = json.loads((Path(sys.argv[1]) / 'config.json').read_text())\n"
+        f"counter = Path({str(root.parent)!r}) / ('calls-' + c['side'])\n"
+        "k = int(counter.read_text()) if counter.exists() else 0\n"
+        "counter.write_text(str(k + 1))\n"
+        "Path(sys.argv[2]).write_text(json.dumps({'metric': c['series'][k % 10]}))\n",
+        encoding="utf-8",
+    )
+    # One warmup then nine pairs per evaluation, for round, round and final alike.
+    baseline = [1.0, 2.0, 3.0, 4.0, 6.0, 10.0, 10.0, 10.0, 10.0]
+    # Eight pairs are 1/0.9 faster; one slow outlier sits on a low baseline value, so
+    # the independent medians are 6 (baseline) and 9 (candidate): the point rule says worse.
+    outlier = [b * 0.9 for b in baseline]
+    outlier[4] = 100.0
+    (repo / "config.json").write_text(json.dumps(
+        {"side": "baseline", "series": [5.0, *baseline]}), encoding="utf-8")
+    assert start(project, capsys, "--decision", "paired", repetitions=9) == 0
+    plan, _, _ = read_records(root)
+    assert plan["selection"] == {"direction": "maximize", "initial_score": 1.0,
+                                 "metric": "paired_median_speedup"}
+    first = submit(project, capsys, {"side": "candidate", "series": [5.0, *outlier]})
+    assert first["metrics"]["baseline"] == 6.0 and first["metrics"]["candidate"] == 9.0
+    assert first["point_estimate"]["improvement_pct"] == pytest.approx(-50)
+    assert first["paired_statistics"]["interval"] == pytest.approx([1 / 0.9, 1 / 0.9])
+    assert first["verdict"] == "PASS" and first["score"] == pytest.approx(1 / 0.9)
+    _, state, _ = read_records(root)
+    assert state["best"]["kind"] == "candidate"
+    assert state["rounds"][0]["selection"] == {
+        "outcome": "adopted", "metric": "paired_median_speedup",
+        "score": pytest.approx(1 / 0.9), "best_score_before": 1.0}
+    # A later PASS with a smaller paired speedup is recorded as outranked, not adopted.
+    second = submit(project, capsys, {"side": "candidate",
+                                      "series": [5.0, *(b / 1.05 for b in baseline)]})
+    assert second["verdict"] == "PASS" and second["score"] == pytest.approx(1.05)
+    _, state, _ = read_records(root)
+    assert state["rounds"][1]["selection"]["outcome"] == "not_better_than_best"
+    assert state["best"]["candidate_id"] == state["rounds"][0]["candidate_id"]
+    # Final retests the retained copy of the selected candidate, not the working tree.
+    assert main(["campaign", "final", "--directory", str(root),
+                 "--reason", "Synthetic search done"]) == 0
+    capsys.readouterr()
+    _, state, summary = read_records(root)
+    assert state["final"]["assessment"]["verdict"] == "PASS"
+    assert summary["selected_candidate"]["candidate_id"] == state["rounds"][0]["candidate_id"]
+    assert summary["optimization_speedup"] == pytest.approx(1 / 0.9)
+    # The dashboard labels the medians with the measured metric, not the selection metric.
+    row = load_dashboard(root)["candidates"][0]
+    assert (row["metric_key"], row["metric_unit"], row["direction"]) == ("metric", "ms",
+                                                                        "minimize")
+    assert (row["baseline_median"], row["candidate_median"]) == (6.0, 9.0)
+    assert row["decision"] == "adopted"
+    assert row["improvement_pct"] == pytest.approx(10)
+
+
+def test_unavailable_paired_statistics_neither_block_nor_borrow_a_point_score(
+    project, capsys,
+):
+    """An underflowing pair makes the statistics unavailable: INCONCLUSIVE, no score."""
+    repo, protocol, _, root = project
+    (protocol / "measure.py").write_text(
+        "import json, sys\nfrom pathlib import Path\n"
+        "c = json.loads((Path(sys.argv[1]) / 'config.json').read_text())\n"
+        f"counter = Path({str(root.parent)!r}) / ('calls-' + c['side'])\n"
+        "k = int(counter.read_text()) if counter.exists() else 0\n"
+        "counter.write_text(str(k + 1))\n"
+        "Path(sys.argv[2]).write_text(json.dumps({'metric': c['series'][k]}))\n",
+        encoding="utf-8",
+    )
+    # Ten calls per side per evaluation (one warmup, nine pairs): round, round, final.
+    # Every value is finite and positive, but 1e-200 / 1e200 underflows to zero.
+    tiny, huge, plain = [5.0, 1e-200, *[10.0] * 8], [5.0, 1e200, *[9.0] * 8], [5.0, *[9.0] * 9]
+    (repo / "config.json").write_text(json.dumps(
+        {"side": "baseline", "series": [*tiny, 5.0, *[10.0] * 9, *tiny]}), encoding="utf-8")
+    assert start(project, capsys, "--decision", "paired", repetitions=9) == 0
+    first = submit(project, capsys, {"side": "candidate", "series": [*huge, *plain, *huge]})
+    assert first["paired_statistics"]["status"] == "unavailable"
+    assert first["verdict"] == "INCONCLUSIVE"
+    assert first["reason"] == "paired_statistics_unavailable"
+    assert first["score"] is None and first["speedup"] is None
+    assert first["score_basis"] is None
+    assert first["point_estimate"]["speedup"] == pytest.approx(10 / 9)
+    _, state, _ = read_records(root)
+    assert state["state"] == "active" and state["best"]["kind"] == "baseline"
+    assert state["rounds"][0]["selection"]["outcome"] == "not_eligible"
+    second = submit(project, capsys, {"side": "candidate", "series": [*plain, *plain, *huge]})
+    assert second["verdict"] == "PASS" and second["score"] == pytest.approx(10 / 9)
+    assert main(["campaign", "final", "--directory", str(root),
+                 "--reason", "Synthetic search done"]) == 0
+    capsys.readouterr()
+    _, state, summary = read_records(root)
+    final = state["final"]["assessment"]
+    assert state["state"] == "completed" and final["verdict"] == "INCONCLUSIVE"
+    assert final["score"] is None and summary["optimization_speedup"] is None
+    assert "paired_median_speedup" not in render_result(summary)
+
+
+def test_extreme_paired_speedup_settles_without_a_nonfinite_improvement(project, capsys):
+    repo, protocol, _, root = project
+    (protocol / "measure.py").write_text(
+        "import json, sys\nfrom pathlib import Path\n"
+        "c = json.loads((Path(sys.argv[1]) / 'config.json').read_text())\n"
+        f"counter = Path({str(root.parent)!r}) / ('calls-' + c['side'])\n"
+        "k = int(counter.read_text()) if counter.exists() else 0\n"
+        "counter.write_text(str(k + 1))\n"
+        "Path(sys.argv[2]).write_text(json.dumps({'metric': c['series'][k]}))\n",
+        encoding="utf-8",
+    )
+    # Finite positive samples whose median paired speedup is 1e-307: converting it to a
+    # minimize improvement overflows, which must not leave the round unrecorded.
+    (repo / "config.json").write_text(json.dumps(
+        {"side": "baseline", "series": [1.0, *[1e-307] * 4, 1e-6, *[1.0] * 4]}),
+        encoding="utf-8")
+    assert start(project, capsys, "--decision", "paired", repetitions=9) == 0
+    assessment = submit(project, capsys, {"side": "candidate",
+                                          "series": [1.0, *[1.0] * 4, 1e301, *[1e-6] * 4]})
+    assert assessment["paired_statistics"]["status"] == "available"
+    assert assessment["score"] == pytest.approx(1e-307)
+    assert assessment["improvement_pct"] is None
+    assert assessment["verdict"] == "INCONCLUSIVE" and assessment["reason"] == "within_noise"
+    _, state, _ = read_records(root)
+    assert state["state"] == "active" and state["pending"] is None
+
+
+def test_unrepresentable_point_estimate_does_not_block_a_paired_decision(project, capsys):
+    repo, protocol, _, root = project
+    (protocol / "measure.py").write_text(
+        "import json, sys\nfrom pathlib import Path\n"
+        "c = json.loads((Path(sys.argv[1]) / 'config.json').read_text())\n"
+        "Path(sys.argv[2]).write_text(json.dumps({'metric': c['metric']}))\n",
+        encoding="utf-8",
+    )
+    (repo / "config.json").write_text(json.dumps({"metric": 1.0}), encoding="utf-8")
+    assert start(project, capsys, "--decision", "paired", "--direction", "maximize",
+                 repetitions=9) == 0
+    # The point improvement overflows (1e307 is a finite sample), but every paired ratio
+    # is finite, so the paired decision still applies and adopts the candidate.
+    assessment = submit(project, capsys, {"metric": 1e307})
+    assert assessment["point_estimate"] == {"improvement_pct": None, "speedup": 1e307}
+    assert assessment["verdict"] == "PASS" and assessment["score"] == pytest.approx(1e307)
+    _, state, _ = read_records(root)
+    assert state["state"] == "active" and state["best"]["kind"] == "candidate"
 
 
 @pytest.mark.parametrize("repetitions", [3, 5])
@@ -372,3 +525,24 @@ def test_failing_profile_report_does_not_change_the_default_verdict(project, cap
     assert assessment["explanation"]["status"] == "unverifiable"
     _, state, _ = read_records(project[3])
     assert state["state"] == "active" and state["best"]["kind"] == "candidate"
+
+
+def test_overflowing_even_medians_leave_a_recorded_inconclusive_round(project, capsys):
+    repo, protocol, _, root = project
+    (protocol / "measure.py").write_text(
+        "import json, sys\nfrom pathlib import Path\n"
+        "c = json.loads((Path(sys.argv[1]) / 'config.json').read_text())\n"
+        "Path(sys.argv[2]).write_text(json.dumps({'metric': c['metric']}))\n",
+        encoding="utf-8",
+    )
+    (repo / "config.json").write_text(json.dumps({"metric": 1.0}), encoding="utf-8")
+    assert start(project, capsys, "--decision", "paired", "--direction", "maximize",
+                 repetitions=10) == 0
+    # Ten pairs: the even candidate median and the even paired median overflow, so
+    # neither is representable; the round is INCONCLUSIVE but still recorded.
+    assessment = submit(project, capsys, {"metric": 1e308})
+    assert assessment["metrics"]["candidate"] is None
+    assert assessment["paired_statistics"]["status"] == "unavailable"
+    assert assessment["verdict"] == "INCONCLUSIVE" and assessment["score"] is None
+    _, state, _ = read_records(root)
+    assert state["state"] == "active" and state["pending"] is None

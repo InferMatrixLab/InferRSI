@@ -177,10 +177,17 @@ def assess(directory: Path, settings: dict, execution: dict, *,
     if settings["direction"] == "minimize":
         improvement = -improvement
     speedup = before / after if settings["direction"] == "minimize" else after / before
-    if not all(math.isfinite(value) for value in (improvement, speedup)):
-        return result("infrastructure_failure", "nonfinite_derived_metric")
-    point_accepted = improvement > 0 and improvement >= settings["min_improvement_pct"]
     decision = settings.get("decision", "point")
+    point_finite = all(math.isfinite(value) for value in (before, after, improvement, speedup))
+    if not point_finite:
+        if decision != "paired":
+            return result("infrastructure_failure", "nonfinite_derived_metric")
+        # The paired decision does not read the point estimate; keep the record JSON.
+        before, after, improvement, speedup = (
+            value if math.isfinite(value) else None
+            for value in (before, after, improvement, speedup))
+    point_accepted = (point_finite and improvement > 0
+                      and improvement >= settings["min_improvement_pct"])
     paired = paired_statistics(samples["baseline"], samples["candidate"],
                                direction=settings["direction"],
                                min_improvement_pct=settings["min_improvement_pct"],
@@ -223,10 +230,28 @@ def assess(directory: Path, settings: dict, execution: dict, *,
         elif explanation["status"] != "explained":
             verdict, reason = "INCONCLUSIVE", "explanation_" + explanation["status"]
     accepted = verdict == "PASS"
+    point = {"improvement_pct": improvement, "speedup": speedup}
+    score, baseline_score, basis = after, before, "candidate_median"
+    if decision == "paired":
+        # The paired decision ranks candidates too: the score is the median paired
+        # speedup against the frozen baseline (1.0), measured within this round, so
+        # independent medians cannot outrank or veto a paired PASS.
+        speedup = paired.get("median_speedup") if paired.get("status") != "unavailable" else None
+        if speedup is None:
+            # INCONCLUSIVE and never adopted; no point value is relabelled as paired.
+            basis = improvement = None
+        else:
+            basis = "paired_median_speedup"
+            improvement = ((1 - 1 / speedup) if settings["direction"] == "minimize"
+                           else (speedup - 1)) * 100
+            if not math.isfinite(improvement):  # an extreme ratio; the record stays JSON
+                improvement = None
+        score, baseline_score = speedup, 1.0
     return result(
         "completed", reason,
-        verdict=verdict, score=after, baseline_score=before,
+        verdict=verdict, score=score, baseline_score=baseline_score, score_basis=basis,
         eligible=accepted, quality_passed=True, improvement_pct=improvement, speedup=speedup,
+        point_estimate=point,
         metrics={"name": settings["metric_key"], "unit": settings["metric_unit"],
                  "direction": settings["direction"], "baseline": before, "candidate": after,
                  "samples": samples},
