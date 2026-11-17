@@ -121,6 +121,34 @@ def parser() -> argparse.ArgumentParser:
     for action in ("query", "explain"):
         read = mindie_actions.add_parser(action, help=f"Run a MindIE {action} and keep a receipt")
         read.add_argument("--input", type=Path, required=True, help="JSON tool arguments")
+    cannbot = commands.add_parser(
+        "cannbot", help="Use a project-approved, external cannbot-knowledge checkout"
+    )
+    cannbot_actions = cannbot.add_subparsers(dest="cannbot_action", required=True)
+    cannbot_enable = cannbot_actions.add_parser(
+        "enable", help="Approve one cannbot-knowledge checkout for this project"
+    )
+    cannbot_enable.add_argument("--checkout", type=Path, required=True)
+    cannbot_enable.add_argument(
+        "--python", type=Path, required=True,
+        help="Interpreter with pyyaml that can run the checkout's knowledge-query scripts",
+    )
+    cannbot_enable.add_argument("--backend", default="ascend")
+    cannbot_enable.add_argument(
+        "--platform", action="append", default=[],
+        help="Default upstream platform; repeatable. Required for a platform-less search.",
+    )
+    cannbot_actions.add_parser("disable", help="Revoke the project grant")
+    cannbot_actions.add_parser("describe", help="Probe the approved checkout and its index")
+    cannbot_search = cannbot_actions.add_parser(
+        "search", help="Search the approved checkout; returns card locators, not text"
+    )
+    cannbot_search.add_argument("query")
+    cannbot_search.add_argument("--platform")
+    cannbot_search.add_argument("--limit", type=int, default=100)
+    cannbot_read = cannbot_actions.add_parser("read", help="Read one card by locator")
+    cannbot_read.add_argument("locator")
+    cannbot_read.add_argument("--page", type=int, default=1)
     agents = commands.add_parser("agents", help="Record native host fresh-session handoffs")
     agent_actions = agents.add_subparsers(dest="agent_action", required=True)
     prepare = agent_actions.add_parser("prepare", help="Freeze a task for the current host")
@@ -430,6 +458,23 @@ def parser() -> argparse.ArgumentParser:
     )
     find.add_argument(
         "--explain", action="store_true", help="Report each query term's contribution"
+    )
+    find.add_argument(
+        "--backend",
+        help="Declare the task backend once, e.g. ascend; external channels run only "
+        "for a declared backend and are never inferred from the query",
+    )
+    find.add_argument(
+        "--no-external", action="store_true",
+        help="Skip every external channel; use in CI and offline runs",
+    )
+    find.add_argument(
+        "--external-limit", type=int,
+        help="Override the per-channel result cap (cannbot 10, MindIE 5 by default)",
+    )
+    find.add_argument(
+        "--external-timeout", type=float, default=8.0,
+        help="Per-channel budget in seconds; a timeout is reported, never shown as no hit",
     )
     find.add_argument("--json", action="store_true")
 

@@ -729,7 +729,18 @@ def _why_unreadable(document: Document, readers: dict) -> str | None:
     return None
 
 
-def find(query: str, corpus: Corpus, *, limit: int = 5, explain: bool = False) -> dict:
+def find(
+    query: str,
+    corpus: Corpus,
+    *,
+    limit: int = 5,
+    explain: bool = False,
+    registry: "ChannelRegistry | None" = None,
+    backend: str | None = None,
+    platform: str | None = None,
+    external_limit: int | None = None,
+    external_timeout: float = 8.0,
+) -> dict:
     if type(limit) is not int or limit < 1:
         raise ValueError("limit must be a positive integer")
     # A topic alias can add backend terms for matching, as 图模式 adds cuda graph.
@@ -774,4 +785,51 @@ def find(query: str, corpus: Corpus, *, limit: int = 5, explain: bool = False) -
         # Report what a query term was taken to mean, so a wrong expansion is
         # visible in the result rather than only in the ranking.
         result["expanded"] = {term: list(values) for term, values in applied.items()}
+    return _with_channels(
+        result, query, registry=registry, backend=backend, platform=platform,
+        external_limit=external_limit, external_timeout=external_timeout,
+    )
+
+
+def _with_channels(
+    result: dict,
+    query: str,
+    *,
+    registry: "ChannelRegistry | None",
+    backend: str | None,
+    platform: str | None,
+    external_limit: int | None,
+    external_timeout: float,
+) -> dict:
+    """Add the external column, or leave the result untouched when there is none.
+
+    External hits stay out of `items`. They were not ranked on this corpus and
+    are not locally verified, so putting them in the same list would let any
+    caller that only reads `items` treat them as validated knowledge. The list
+    is also absent rather than empty when no channel exists, so callers that
+    predate channels see the output they always got.
+    """
+    if registry is None or not registry.channels:
+        return result
+    from .channels import explain_gate, search_channels
+
+    declared = backend if backend is not None else registry.declared_backend
+    results = search_channels(
+        registry, query, backend=declared, platform=platform,
+        limit=external_limit, timeout=external_timeout,
+    )
+    if declared is not None:
+        result["backend"] = declared
+    if results:
+        result["external"] = [item.view() for item in results]
+    gated = explain_gate(registry, declared)
+    if gated:
+        result.setdefault("external", []).extend(gated)
+    if results or gated:
+        result["external_notes"] = [
+            "External results are not locally verified; scores are not "
+            "comparable across channels.",
+            "Pin the reported revision when citing an external locator.",
+            "Open external cards with the channel's read command, not `read`.",
+        ]
     return result
