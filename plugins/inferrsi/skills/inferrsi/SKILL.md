@@ -121,15 +121,39 @@ Use the CLI's help for exact flags. Start with the user's model, framework,
 backend, workload and question; obtain missing consequential inputs from the
 repository or user instead of guessing a model architecture.
 
-- `knowledge research <model>` unions independent research dimensions.
-- `knowledge search <query> --json` searches packaged records with hard filters.
-- `collect --relevance "<task>" --limit 3 --json` discovers a bounded packaged
-  selection. Adjust the limit to the task. Packaged skill projections have kind
-  `knowledge`; `--kind skill` excludes them and is for explicitly selected
-  checkout/store skill sources.
-- `read <ref> --revision <revision> --material` loads a selected exact revision.
-  Use the returned resource keys with `resource --help` when further material
-  is needed.
+Use `find "<problem or symptom>"` to rank skills, imported records and casebook
+entries. Add `--kinds case` when you specifically need a past observation.
+Open a promising hit using its displayed `open` command or the JSON
+`open_argv` argument list.
+
+When a Skill hit is unreadable because PyYAML is missing, run a new search of
+the packaged Skills with `collect --relevance "<same query>" --limit 1 --material --json`.
+It may select a different Skill. Check that the returned Skill fits the task,
+then use that result's `ref`, `revision` and `skill_documents.original` to
+fetch the body with `resource <ref> <path> --revision <revision> --output <file>`.
+For other `cannot open` results, check the reason before choosing another hit.
+
+`read` returns the material, its source, applicability, limitations and
+revision. To cite or reopen exact evidence, add `--revision <revision>` to the
+same read arguments. Remove `--omit-resources` to list bundle resource keys.
+Use those keys with `resource --help` for further material.
+
+A ranked hit is not a substitute for reading the repository. `find` supplies
+what re-reading current source cannot: directions already tried, why they were
+dropped, and the cohort each observation belongs to. Keep searching the tree
+directly for anything about present-day code.
+
+`find` ranks words, not meanings. A query sharing no vocabulary with its target
+will not reach it, so when a plausible query returns nothing useful, try the
+terms the corpus itself would use, then grep the library directly. Do not report
+that nothing is recorded on the strength of one query. Each result states how
+far its evidence reaches: `scope` and `bounds` name the cohort an observation
+belongs to, and their absence means not assessed, never "holds anywhere".
+
+`find` returns `no_match` when no query terms match the index. It can also
+return matches for a question that the measurements and source already settle.
+When the recorded facts decide the question, state the conclusion and cite
+those facts.
 
 Use qualified identities and revisions returned by the runtime. Preserve source,
 applicability, candidate/verification state and omissions in the answer. Package

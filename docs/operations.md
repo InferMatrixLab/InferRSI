@@ -35,6 +35,7 @@ Effect classes used below:
 | Search packaged records | CLI `knowledge search` / `knowledge show`; catalog API | Read-only | Installed package catalog with the existing tier/repo/backend/scenario filters and IDs; these package-only filters exclude skills and cases from every other authority |
 | Prepare model-aware engine research | CLI `knowledge research`; Python `research_knowledge` | Read-only | Independent model/framework/task/modality/mechanism queries over the same package catalog; source-grounded known profiles, deduplicated matches and explicit target annotations; no engine/hardware qualification |
 | Discover/read packaged or custom skills | CLI `skills list` / `show` / `resource` / `reference` | Read-only | Metadata-first listing; `show` loads one named instruction body; `resource`/`reference` resolve paths for your file reader without loading or executing them |
+| Rank relevant cases, skills and records | CLI `find` | Read-only | Search the registered library and package records in one list. Follow the emitted command to read a hit and its revision |
 | Collect normalized knowledge | CLI `collect`; Python `KnowledgeReader.collect` | Read-only | Explicit sources, authority-qualified identities, exact revisions, bounded output and explicit omissions |
 | Read exact material/resources | CLI `read` / `resource`; Python `KnowledgeReader.read` / `KnowledgeReader.resource` | Read-only | Returns the requested revision or an explicit unavailable/stale error; never substitutes newer bytes |
 | Export legacy cited material | CLI `context` | Read-only | Cited package export for manual use with a coding agent; not a conversation store and not a full Collect equivalent |
@@ -168,6 +169,98 @@ Imported source text is data for your agent, not authorization to execute
 upstream instructions.
 
 ## Normalized knowledge (Python)
+
+### Find — `find` / `inferrsi.knowledge.knowledge_find.find`
+
+One ranked list for one question, across packaged skills, imported records and
+checkout cases. Run a result's `open` command to read its complete entry and
+receive a revision. Use that revision with the same ID and source selection
+for a pinned `read` or `resource` call.
+
+Three properties distinguish it from the Collect selection path below. Cases are
+ranked beside skills instead of being reachable only after their owner is
+chosen, because a recorded rejected direction is the material retrieval can
+supply that re-reading current source cannot. One matching term is enough to
+rank an entry, and `--limit` caps the result list. Scoring reads corpus
+files directly rather than Bundles, whose metadata lists the whole packaged
+library as one dependency closure. The reader validates the returned material
+without pinning a revision during search.
+
+Scoring is `idf x field weight x sqrt(occurrences)` summed over query terms,
+with titles, summaries, tags and case findings weighted above bodies. Bodies
+longer than the corpus median get less weight so a broad manual needs more
+specific matches to outrank a short case. Separators
+do not bind: `kv_cache`, `kv-cache` and `KV cache` all tokenise to the same two
+terms, so a query in plain words reaches the punctuated spellings this corpus
+also uses. Latin terms still match on boundaries, so `oom` does not match inside
+`headroom`. CJK is cut into overlapping bigrams, because single characters make
+idf treat grammatical particles as rare terms. Ties break towards the stronger
+recorded state rather than alphabetical identity. This is deterministic lexical
+matching, not a learned ranking, and a hit never asserts that an entry applies.
+
+Common English function and question words such as `the`, `how` and `should`
+are omitted. Conditions such as `not`, `without`, `before` and `after` still
+contribute. Backend preference uses platform names in the original query,
+including `昇腾` for Ascend. When the query names exactly one supported backend,
+results declared for a different backend receive half their lexical score.
+`--explain` reports the adjusted contribution of each matched term.
+
+Chinese query terms expand through `data/query_aliases.json` before ranking.
+The packaged library is English by policy while its readers work in Chinese, and
+the corpus holds too few Chinese characters for a Chinese query to score on its
+subject. Expansion is one-way and query-side: 显存 reaches `device memory`, not
+the reverse, and an entry is only listed when that English form actually occurs
+in the corpus. A query whose terms were expanded reports them under `expanded`,
+so a wrong expansion is visible in the result rather than only in the ranking.
+
+Three limits are inherent to lexical ranking and are recorded here rather than
+worked around. A query made only of terms common to this corpus ("operator",
+"test", "graph", "speedup") has little to rank on and may bury the intended
+entry. A query that shares no words with its target does not reach it: asking
+for "moving attention state to host memory" misses an entry that says `kv`,
+`offload` and `tier` throughout, because nothing matches. Name the specific
+symptom, operator or flag where you can, and when a plausible query returns
+nothing useful, search the corpus directly rather than assuming it holds
+nothing — `find` ranks words, not meanings.
+
+The third limit is deciding whether the question needs the corpus. `find`
+returns `no_match` when no query terms match. On the labelled set, a majority
+of queries were ones an engineer should decide without searching at all, yet
+each had lexical matches. Their scores overlap the answerable range, so a
+cutoff would suppress useful results too. The caller decides whether the
+question calls for prior evidence.
+
+- **Inputs:** the query, `--limit`, `--kinds` (subset of `case,skill,record`), `--skill-root` to select the library for cases and skills, `--explain` for per-term contributions, `--json`.
+- **Scope:** installed package records and the packaged (or selected) skill library, including its cases. Packaged-skill projections are excluded from the record side so one owner is not ranked under two identities.
+- **Output.** Items identify their `id`, `authority` (`package` or `checkout`),
+  `source_location` (`installed` or `checkout`), `kind`, recorded `state`,
+  `score`, `title` and corpus-relative `path`. `source_location` identifies
+  where the material was indexed. For installed skill and case bodies, the
+  `checkout:` read reference uses the installed library as `--skill-root`.
+  Where recorded, items carry source, summary, applicability, limitations and
+  local verification status. Case findings are ordered by query overlap,
+  with `findings_total` and `findings_withheld` describing the available preview.
+  Each finding carries its outcome, reason, revisit condition and any assessed
+  scope and bounds. `bounds_source` identifies whether bounds apply to the
+  finding or the whole entry. The envelope reports `corpus_size`, `matched`,
+  `no_match`, any `expanded` terms and retrieval limitations.
+- **Reading a hit.** Plain output prints a POSIX `open` command or a labelled
+  PowerShell command on Windows. JSON exposes the rendered command as `ref`,
+  full subprocess arguments as `open_argv` and InferRSI CLI arguments as
+  `read_args`. The arguments include the source-qualified ID and a skill root
+  where needed. They use `read --material --omit-resources` to return the
+  entrypoint, provenance and revision with a smaller response. Remove
+  `--omit-resources` to list the bundle's resources. Hits that fail the reader's
+  material check carry `unreadable` with the reason.
+- **Base installation fallback.** When a Skill hit requires PyYAML, run a new
+  search of the packaged Skills with
+  `inferrsi collect --relevance "<same query>" --limit 1 --material --json`.
+  It may select a different Skill. Check that the returned Skill fits your
+  task, then fetch its `skill_documents.original` with
+  `inferrsi resource <ref> <path> --revision <revision> --output <file>` using
+  the `ref` and `revision` from the new result.
+- **Side effects:** none. No revision is pinned; use `read`/`resource` when a capture or evidence record needs exact bytes.
+- **Example:** `inferrsi find "NPU OOM after caching per-step masks" --limit 3` returns the casebook entry recording that attempt first. A vaguer phrasing ranks the procedural skills above it, which is the first limit below rather than a defect.
 
 ### Collect — `collect` / `KnowledgeReader.collect`
 

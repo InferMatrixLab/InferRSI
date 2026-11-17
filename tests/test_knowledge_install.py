@@ -59,6 +59,31 @@ def test_package_only_commands_work_without_pyyaml(without_yaml):
     assert json.loads(result.stdout)["id"] == items[0]["id"]
 
 
+def test_packaged_skill_search_and_resource_work_without_pyyaml(without_yaml, tmp_path):
+    env = _cli_env(without_yaml)
+    query = "cuda graph warmup"
+    found = _run(["find", query, "--kinds", "skill", "--limit", "1", "--json"], env)
+    assert found.returncode == 0, found.stderr
+    hit, = json.loads(found.stdout)["items"]
+    assert "PyYAML" in hit["unreadable"]
+    assert "open_argv" not in hit
+
+    collected = _run(["collect", "--relevance", query, "--limit", "1", "--material", "--json"], env)
+    assert collected.returncode == 0, collected.stderr
+    packaged, = json.loads(collected.stdout)["items"]
+    assert packaged["authority"] == "package"
+    original = packaged["skill_documents"]["original"]
+
+    output = tmp_path / "packaged-skill.md"
+    fetched = _run([
+        "resource", packaged["ref"], original, "--revision", packaged["revision"],
+        "--output", str(output),
+    ], env)
+    assert fetched.returncode == 0, fetched.stderr
+    expected = SKILLS / Path(original).relative_to("data/skill_library")
+    assert output.read_bytes() == expected.read_bytes()
+
+
 def test_skill_root_without_pyyaml_fails_with_install_hint(without_yaml):
     result = _run(
         ["collect", "--id", f"checkout:{SOURCE}", "--skill-root", str(SKILLS)],

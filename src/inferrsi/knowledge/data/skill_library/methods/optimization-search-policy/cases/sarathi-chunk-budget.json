@@ -35,5 +35,81 @@
     "Raw source redistribution and adaptation permission remain UNKNOWN.",
     "The same case identity and central mechanism appeared in closed-unmerged PR 156; this independently written fixed-edition contribution does not recover the missing historical archive or establish novelty over its unavailable synthesis."
   ],
-  "attribution": "Original attributed explanation of Agrawal et al., OSDI 2024. The paper's reported results remain distinct from InferRSI's proposed checks; no raw source asset or prior proposal prose is reproduced."
+  "attribution": "Original attributed explanation of Agrawal et al., OSDI 2024. The paper's reported results remain distinct from InferRSI's proposed checks; no raw source asset or prior proposal prose is reproduced.",
+  "findings": [
+    {
+      "direction": "Subtract active decode tokens before filling a mixed batch with prefill",
+      "outcome": "caveat",
+      "reason": "Sarathi-Serve budgets one token per ongoing decode first, then accounts for partial prefills and admits new prompt chunks with the remaining budget and allocation capacity. The extra work can still extend a decode iteration.",
+      "revisit_when": "Confirm trace evidence of prefill interference and verify that the target engine’s mixed batch implements the same ordering before adapting the policy.",
+      "keywords": [
+        "Sarathi-Serve",
+        "mixed token budget",
+        "ongoing decode",
+        "chunked prefill",
+        "TBT",
+        "admission"
+      ],
+      "scope": "regime_bound"
+    },
+    {
+      "direction": "Compare the token-gap gain from smaller chunks with repeated launch and KV costs",
+      "outcome": "tradeoff",
+      "reason": "Smaller chunks bound prefill work per iteration but can reduce utilization and repeat fixed overhead. Later chunks attend back over earlier prompt chunks, causing extra KV-cache reads even though total attention computation is unchanged.",
+      "revisit_when": "Profile candidate sizes on the actual device and report prefill time, sustained throughput and token gaps together.",
+      "keywords": [
+        "small chunks",
+        "KV cache reread",
+        "compute utilization",
+        "launch overhead",
+        "token gaps"
+      ],
+      "scope": "regime_bound"
+    },
+    {
+      "direction": "Sample tile boundaries and stage imbalance when tuning chunk length",
+      "outcome": "tradeoff",
+      "reason": "The paper identifies tile boundaries and uneven pipeline batch runtimes as sources of nonlinear cost. Larger chunks can leave stages idle, while very small chunks also lose efficiency.",
+      "revisit_when": "Under the intended model and parallelism, profile nearby lengths on both sides of tile boundaries and include pipeline idle time when applicable.",
+      "keywords": [
+        "tile granularity",
+        "pipeline parallelism",
+        "stage idle",
+        "chunk size",
+        "Vidur"
+      ],
+      "scope": "regime_bound"
+    },
+    {
+      "direction": "Read the reported TTFT and TBT comparison as a workload-conditioned trade",
+      "outcome": "tradeoff",
+      "reason": "For both Table 4 traces, the combined design lowered P99 TBT versus either component alone. Median TTFT was below chunked-only and above hybrid-only in that setup.",
+      "revisit_when": "Preserve separate percentile and load definitions before borrowing this comparison for a new service configuration.",
+      "keywords": [
+        "P99 TBT",
+        "P50 TTFT",
+        "hybrid batching",
+        "chunked prefills",
+        "Table 4",
+        "Yi-34B"
+      ],
+      "scope": "regime_bound",
+      "bounds": "128 requests, Yi-34B on two A100s, 1024-token budget, separately for OpenChat and arXiv summarization."
+    },
+    {
+      "direction": "Freeze matched arrival, queueing and latency objectives before changing a serving budget",
+      "outcome": "caveat",
+      "reason": "The reported capacity work combined a model-specific token-gap objective with a scheduling-delay limit and defined request length filters. An improvement to one latency number alone does not settle the deployment tradeoff.",
+      "revisit_when": "Hold workload, model, hardware, runtime and parallelism constant. Measure TTFT, TBT, scheduling delay and sustainable throughput and keep the incumbent when the required evidence is missing.",
+      "keywords": [
+        "capacity tuning",
+        "Poisson arrivals",
+        "scheduling delay",
+        "TTFT TBT SLO",
+        "sustainable throughput",
+        "length filters"
+      ],
+      "scope": "general"
+    }
+  ]
 }

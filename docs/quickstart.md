@@ -47,8 +47,24 @@ Its common catalog ID and the separate MLX-LM procedure remain unchanged.
 
 ## Discover knowledge and skills
 
-Read-only discovery and export — the [operation guide](operations.md) maps every
-entry point, effect class and boundary:
+Start from the problem. `find` ranks packaged skills, imported records and
+casebook entries together and reports what each one's evidence covers, so a
+direction already tried and dropped surfaces beside the procedure for trying it:
+
+```bash
+inferrsi find 'cache per-step masks ran out of device memory'
+inferrsi find '算子测过了但整图质量没过' --limit 3
+```
+
+Run the `open` command on a relevant hit to read the entry and its source,
+applicability, limitations and revision. Add `--kinds case` to focus the search
+on recorded observations and failed directions.
+
+Unmatched query terms do not exclude results that match other terms. If no
+query terms match the index, `find` returns `no_match`. Read the reported state,
+`scope` and bounds before acting on a hit. The remaining commands are
+exact-lookup and export — the [operation guide](operations.md) maps every entry
+point, effect class and boundary:
 
 ```bash
 inferrsi knowledge search 'Qwen-Image-2.1' --repo-type vllm_omni --backend ascend
@@ -113,6 +129,7 @@ plan/run: all doctor flags, plus
   --repetitions --min-improvement-pct --max-minutes
   --workload-id --model --model-revision --output-dir --dry-run
 status/report: --run-id --output-dir
+find: QUERY --limit --kinds --skill-root --explain --json
 knowledge search: QUERY --tier --repo-type --backend --scenario --limit --json
 knowledge show: ID
 context: QUERY --tier --repo-type --backend --scenario --limit --output

@@ -25,7 +25,7 @@
   "checkout_ref": "checkout:optimization-search-policy",
   "source_files": {
     "src/inferrsi/knowledge/data/skill_library/methods/optimization-search-policy/SKILL.md": "493001e1266b91434d873d688c978486bbac4a4b86fb657492746877b652e4fb",
-    "src/inferrsi/knowledge/data/skill_library/methods/optimization-search-policy/cases/sarathi-chunk-budget.json": "f8448973cf1c9e506179c02c5e55bd804ea039b7276cf08071952f6c0be656ad",
+    "src/inferrsi/knowledge/data/skill_library/methods/optimization-search-policy/cases/sarathi-chunk-budget.json": "681871983ec4033ef9861ad270bc0d312f9134a76933b8f7ce740659ef1e4dd5",
     "src/inferrsi/knowledge/data/skill_library/methods/optimization-search-policy/cases/sarathi-chunk-budget.md": "2c2a8147001d24d1abc8672f15cf0ca759ae461b734413c8dcb7497634bb6821",
     "src/inferrsi/knowledge/data/skill_library/methods/optimization-search-policy/metadata.json": "43e6378cdc801a71fe510e6adc17079016220c94bd6debfa8366b3cc7117d493",
     "src/inferrsi/knowledge/data/skill_library/methods/optimization-search-policy/references/distserve-phase-placement/README.md": "56e16efce447dfd4990a024ff1d6f7cb428f8e3e1f7b32a7e4d05f57139b836a",

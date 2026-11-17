@@ -224,8 +224,9 @@ python -m venv .venv
 source .venv/bin/activate
 python -m pip install .
 
-# Explore tuning knowledge, then export context for your coding agent.
-inferrsi knowledge search 'Qwen-Image-2.1' --repo-type vllm_omni --backend ascend
+# Find relevant tuning knowledge and follow the printed open command.
+inferrsi find 'Qwen-Image-2.1 Ascend memory bottleneck'
+# Export a context bundle for an agent that needs one.
 inferrsi context --repo-type vllm_omni --backend cuda --output context.md
 ```
 

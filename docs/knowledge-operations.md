@@ -32,8 +32,9 @@ inferrsi collect 'Ascend OOM' --kind case --limit 3 --material --skill-root src/
 inferrsi read calibrate-serving-simulation --skill-root src/inferrsi/knowledge/data/skill_library
 ```
 
-The `--skill-root` selections require the `skills` extra (`python -m pip install
-'.[skills]'`); package-only collect/read work with the base install.
+Reading checkout skill bodies requires the `skills` extra (`python -m pip install
+'.[skills]'`). Package-only operations and checkout case reads work with the base
+install.
 
 Every item has an owning `authority` (`package`, `checkout` or `store`) and a qualified
 `ref` of the form `<authority>:<id>`. Public IDs are unchanged and may be used
@@ -201,6 +202,10 @@ resolved dependency revision. Resource-only changes change the revision.
 Selected resource reads require the exact returned revision. A changed checkout
 or installation rejects an old revision; it never substitutes new bytes.
 This reader does not itself retain history or claim standalone exports.
+
+`read --material --omit-resources` returns the full entrypoint, provenance,
+applicability and revision. Remove `--omit-resources` to list resource paths and
+digests. Both forms use the same full-bundle revision.
 
 - Local skills include their complete owner folder (except incidental
   `__pycache__`, `*.pyc` and `.DS_Store`) and declared cross-skill references,

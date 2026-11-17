@@ -58,5 +58,67 @@
   "attribution": "SGLang and Qwen contributors; Apache-2.0 root license. Conv files retain vLLM adaptation and Tri Dao notices. Caller contracts only; no external kernel implementation imported.",
   "required_resources": [
     "sglang-gdn-source-contract.json"
+  ],
+  "findings": [
+    {
+      "direction": "Resolve prefill recurrence and decode convolution separately",
+      "outcome": "failure_signal",
+      "reason": "On the pinned path, the CUDA GDN prefill convolution alias can be rebound while ordinary decode keeps the Triton conv-update alias. A FlashInfer prefill setting or a CUDA update symbol does not show that decode was dispatched there.",
+      "revisit_when": "Trace runner-level overrides and effective aliases through the owning backend. Check the SM9/FP32 and SM10/BF16/CUDA13 prefill predicates before asking for an execution trace.",
+      "keywords": [
+        "SGLang",
+        "GDN",
+        "FlashInfer prefill",
+        "Triton conv update",
+        "decode convolution",
+        "effective dispatch"
+      ],
+      "scope": "regime_bound"
+    },
+    {
+      "direction": "Use the actual last-axis stride and sequence lengths to classify convolution prefill",
+      "outcome": "failure_signal",
+      "reason": "Even a CUDA input can take Triton when last_stride != 1 and seq_lens_cpu is supplied. That path returns a distinct output while updating state; the CUDA branch returns the modified input buffer it uses.",
+      "revisit_when": "Inspect strides, packed token offsets and row IDs. Verify the prefix-history mask for convolution independently of recurrent state initialization.",
+      "keywords": [
+        "causal_conv1d",
+        "CUDA prefill",
+        "Triton stride",
+        "seq_lens_cpu",
+        "aliasing",
+        "initial-history mask"
+      ],
+      "scope": "regime_bound"
+    },
+    {
+      "direction": "Preserve both state write-backs through a reorder and noncontiguous gather",
+      "outcome": "failure_signal",
+      "reason": "Ordinary non-CPU extend maps requests to persistent Mamba rows. With noncontiguous pools it gathers indexed copies and scatters both convolution history and the GDN matrix back. A correct immediate output does not exercise their later use.",
+      "revisit_when": "Check fresh and continued requests after a reorder and compare both state tensors at their mapped rows. Account for separate dtypes and head sharding.",
+      "keywords": [
+        "Mamba rows",
+        "strided state pool",
+        "gather scatter",
+        "conv history",
+        "temporal state",
+        "request reorder"
+      ],
+      "scope": "regime_bound"
+    },
+    {
+      "direction": "Prove HF classifier parity before transferring an SGLang prefill path",
+      "outcome": "failure_signal",
+      "reason": "A fresh whole-sequence classifier can use prefill reasoning only after identifying its worker and state contract. MIS additionally assumes delimiter-driven query/item branches, zero cached prefixes, Triton and a compatible layout.",
+      "revisit_when": "Pin the HF caller and check layout, gates, zero state, mutation behavior, output/state parity and classifier quality before timed comparison.",
+      "keywords": [
+        "HF classifier",
+        "MIS",
+        "multi-item scoring",
+        "one-shot prefill",
+        "zero state",
+        "caller binding"
+      ],
+      "scope": "regime_bound"
+    }
   ]
 }

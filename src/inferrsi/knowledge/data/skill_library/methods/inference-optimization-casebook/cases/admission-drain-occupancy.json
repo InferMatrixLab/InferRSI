@@ -19,5 +19,50 @@
   ],
   "applicability": ["Continuous admission, mixed prefill/decode and final drain", "Recorded Drama3 B300 C64 diagnostic only"],
   "limitations": ["Campaign INCONCLUSIVE", "No new measurement or trace reproduction", "Selected-phase occupancy is not service throughput", "Raw evidence remains under its existing owner"],
-  "attribution": "InferRSI issue #10 diagnostic evidence; extraction retains the original observation and its limits"
+  "attribution": "InferRSI issue #10 diagnostic evidence; extraction retains the original observation and its limits",
+  "findings": [
+    {
+      "direction": "Split admitted traffic from the final drain when reading decode occupancy",
+      "outcome": "caveat",
+      "reason": "Across the 256-request B300 diagnostic, pure decode averaged 60.718 of 64 active requests during admission, 8.793 in drain and 28.146 over the full trace. The trace-wide mean cannot identify how full decode was while requests were still entering.",
+      "revisit_when": "Mark the client admission interval and the final drain in the trace before using occupancy to select a scheduling hypothesis.",
+      "keywords": [
+        "active decode batch",
+        "continuous admission",
+        "final drain",
+        "whole-run occupancy",
+        "C64"
+      ],
+      "scope": "local",
+      "bounds": "Drama3 B300, 256 requests and a C64 continuous-admission diagnostic; approximate CPU/GPU clock alignment."
+    },
+    {
+      "direction": "Count scheduler steps using owning CPU annotations",
+      "outcome": "caveat",
+      "reason": "The owning CPU annotations count 1 prefill, 37 mixed, 762 decode and 2 empty steps, totaling 802. PIECEWISE fragments describe graph execution, and scheduled prompt entries may describe chunks.",
+      "revisit_when": "Verify annotation ownership, align the clocks and pair the counts with actual generated work when profiling another trace.",
+      "keywords": [
+        "owning CPU annotation",
+        "PIECEWISE",
+        "mixed batch",
+        "prefill chunks",
+        "scheduler steps"
+      ],
+      "scope": "regime_bound"
+    },
+    {
+      "direction": "Carry the complete cohort into the service gate",
+      "outcome": "caveat",
+      "reason": "Near-full decode occupancy in a selected interval is a diagnostic. The service decision still depends on all requests, complete quality and repetition groups, and the end-to-end metric.",
+      "revisit_when": "Use phase statistics to pick a hypothesis. Evaluate the resulting change with the unchanged complete cohort and matched frozen service controls.",
+      "keywords": [
+        "acceptance gate",
+        "service throughput",
+        "request cohort",
+        "quality groups",
+        "model-only microbenchmark"
+      ],
+      "scope": "general"
+    }
+  ]
 }

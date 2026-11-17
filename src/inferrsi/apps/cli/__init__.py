@@ -105,6 +105,90 @@ def _run_directory(output_dir: str, run_id: str) -> Path:
     return directory
 
 
+_FIND_KIND = {"case": "case", "skill": "skill", "record": "record"}
+_FIND_OUTCOME = {
+    "rejected": "rejected",
+    "no_gain": "no gain",
+    "inconclusive": "inconclusive",
+    "adopted": "adopted",
+    "tradeoff": "tradeoff",
+    "caveat": "caveat",
+    "failure_signal": "failure signal",
+}
+# How far the observation is claimed to reach. Absent means not assessed, which
+# is printed as such rather than silently read as "holds anywhere".
+_FIND_SCOPE = {
+    "local": "this run only",
+    "regime_bound": "this cohort only",
+    "general": "holds generally",
+}
+
+
+# Enough to carry the qualifications that decide whether a result is usable,
+# without burying the finding it qualifies.
+_MAX_SHOWN_LIMITS = 3
+
+
+def _clip(value: str, limit: int = 160) -> str:
+    text = _tsv(value).strip()
+    return text if len(text) <= limit else text[: limit - 1].rstrip() + "…"
+
+
+def _print_find(result: dict) -> None:
+    """Lead with what was tried and how far the evidence goes, then the path."""
+    if result["no_match"]:
+        print(f"no_match\t{result['corpus_size']} entries searched; "
+              f"rephrase, or search the corpus directly with rg")
+        return
+    for item in result["items"]:
+        labels = [_FIND_KIND.get(item["kind"], item["kind"]), _tsv(item["state"])]
+        if item.get("source_location") == "installed":
+            labels.append("installed")
+        if item.get("locally_verified") is False:
+            labels.append("not locally verified")
+        print(f"\n{item['id']}\t[{' · '.join(labels)}]\tscore {item['score']}")
+        if item.get("ref"):
+            label = "open (PowerShell)" if sys.platform == "win32" else "open"
+            print(f"     {label}: {item['ref']}")
+        elif item.get("unreadable"):
+            print(f"     cannot open: {_clip(item['unreadable'], 120)}")
+        if item.get("summary"):
+            print(f"  {_clip(item['summary'])}")
+        for finding in item.get("findings", []):
+            outcome = _FIND_OUTCOME.get(finding["outcome"], finding["outcome"])
+            label = outcome
+            if finding.get("scope"):
+                label += f", {_FIND_SCOPE.get(finding['scope'], finding['scope'])}"
+            print(f"  ({label}) {_clip(finding['direction'], 90)}"
+                  f" -> {_clip(finding['reason'], 110)}")
+            if finding.get("bounds"):
+                # Say whose bounds these are: an entry-level cohort describes
+                # the whole record, not a measurement of this direction alone.
+                whose = "entry" if finding.get("bounds_source") == "entry" else "observed"
+                print(f"      bounds ({whose}): {_clip(finding['bounds'], 120)}")
+            if finding.get("revisit_when"):
+                print(f"      revisit: {_clip(finding['revisit_when'], 120)}")
+        if item.get("findings_withheld"):
+            print(f"  ... {item['findings_withheld']} more of "
+                  f"{item['findings_total']} recorded directions in the file")
+        if item.get("applicability"):
+            print(f"  applies to: {_clip(item['applicability'])}")
+        # How far the record itself says its evidence goes. The state label
+        # above says the claim is unverified; these say what is missing.
+        for caveat in item.get("limitations", [])[:_MAX_SHOWN_LIMITS]:
+            text = caveat if isinstance(caveat, str) else json.dumps(caveat, ensure_ascii=False)
+            print(f"  caveat: {_clip(text)}")
+        withheld = len(item.get("limitations", [])) - _MAX_SHOWN_LIMITS
+        if withheld > 0:
+            print(f"  ... {withheld} more recorded limitation(s); see --json")
+        if item.get("path"):
+            print(f"  -> {item['path']}")
+        if item.get("source"):
+            print(f"     source: {item['source']}")
+        for token, gain in item.get("matched", {}).items():
+            print(f"     [{token}] {gain}")
+
+
 def _context(records: list[dict]) -> str:
     lines = [
         "# InferRSI knowledge context",
@@ -281,6 +365,20 @@ def main(argv: list[str] | None = None) -> int:
                             f"{record['id']}\t{record['status']}\t{record['backend']}\t{record['title']}"
                         )
             return 0
+        if args.command == "find":
+            from ...knowledge.knowledge_find import find, load_corpus
+
+            kinds = tuple(k.strip() for k in args.kinds.split(",") if k.strip())
+            unknown = [k for k in kinds if k not in ("case", "skill", "record")]
+            if unknown or not kinds:
+                raise ValueError("--kinds takes a subset of case,skill,record")
+            result = find(args.query, load_corpus(args.skill_root, kinds=kinds),
+                          limit=args.limit, explain=args.explain)
+            if args.json:
+                _print(result)
+            else:
+                _print_find(result)
+            return 0
         if args.command == "collect":
             result = _knowledge_reader(args).collect(
                 args.query,
@@ -347,6 +445,9 @@ def main(argv: list[str] | None = None) -> int:
             _, _, view = read_knowledge(
                 _knowledge_reader(args), args.id, revision=args.revision, material=args.material,
             )
+            if args.omit_resources:
+                view.pop("resources")
+                view.pop("required_resources", None)
             _print(view)
             return 0
         if args.command == "resource":
