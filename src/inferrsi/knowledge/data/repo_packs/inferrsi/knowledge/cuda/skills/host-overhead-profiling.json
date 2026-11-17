@@ -1,0 +1,92 @@
+{
+  "schema_version": 2,
+  "id": "inferrsi.cuda.skills.host_overhead_profiling",
+  "title": "host-overhead-profiling",
+  "repo": "inferrsi",
+  "tier": "contribution",
+  "backend": "cuda",
+  "component": "skills",
+  "scenario": "skills.discovery",
+  "status": "imported",
+  "summary": "Detect and diagnose CPU/host overhead in inference serving from nsys traces. Answers: is host overhead the bottleneck? What specific work is causing it? Covers GPU idle ratio, host-prep exposed ratio, NVTX breakdown, inter-kernel gap analysis, and multi-rank straggler detection.\n",
+  "tags": [
+    "host",
+    "cpu",
+    "profiling",
+    "nsys",
+    "inference"
+  ],
+  "origin": [
+    "external"
+  ],
+  "index_type": "packaged-skill",
+  "skill_documents": {
+    "original": "data/skill_library/hardware/cuda/host-overhead-profiling/SKILL.md"
+  },
+  "checkout_ref": "checkout:host-overhead-profiling",
+  "source_files": {
+    "src/inferrsi/knowledge/data/skill_library/hardware/cuda/host-overhead-profiling/SKILL.md": "326e566fbe30d3ba04e4b50c3e87aad9df037f0ac4ad6fe129165ae97dc5f91d",
+    "src/inferrsi/knowledge/data/skill_library/hardware/cuda/host-overhead-profiling/metadata.json": "bc4236c65e37378f4a74e0b88c47776055c186aca44c000b1f68e8c63cc4b277"
+  },
+  "skill_metadata": {
+    "name": "host-overhead-profiling",
+    "description": "Detect and diagnose CPU/host overhead in inference serving from nsys traces. Answers: is host overhead the bottleneck? What specific work is causing it? Covers GPU idle ratio, host-prep exposed ratio, NVTX breakdown, inter-kernel gap analysis, and multi-rank straggler detection.\n",
+    "tags": [
+      "host",
+      "cpu",
+      "profiling",
+      "nsys",
+      "inference"
+    ],
+    "status": "candidate",
+    "profile": "local-skill-v1",
+    "schema_version": 1,
+    "kind": "skill",
+    "origin": [
+      "external"
+    ],
+    "empirical_validation": "not_run",
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+    ],
+    "provenance_readsets": [],
+    "consumption_mode": "packaged",
+    "applicability": {
+      "scope": "Detect exposed host overhead and diagnose per-step host regressions in CUDA inference serving from existing nsys timelines.",
+      "prerequisites": "An existing serving nsys trace and Python with sqlite3; comparative root-cause analysis needs baseline and target traces, with nsys export available for report-format input.",
+      "input_contract": "One trace for detection/breakdown or two comparable traces for regression analysis, including the workload/phase context needed to isolate steady-state forward steps.",
+      "produced_artifact": "A detection verdict with metric/phase evidence, per-step NVTX/kernel/API breakdown and ranked host-operation deltas for a targeted optimization handoff.",
+      "failure_modes": "Warmup/loading or mismatched phase mixtures distort per-step comparisons; duplicated rank ranges, unresolved NVTX text IDs or overlapping rank end times can miscompute host gaps."
+    },
+    "recommendations": [
+      "Isolate comparable steady-state forward iterations and inspect context/generation separately; aggregate utilization can hide a phase-specific host bottleneck.",
+      "Confirm exposed preparation using both performance impact and idle attribution, retain communication as a confounder, and triage absolute NVTX time deltas before line-level optimization.",
+      "Resolve NVTX text IDs, account for TP rank duplication and use the maximum overlapping end time for gaps; do not compare full-trace totals as per-step overhead."
+    ]
+  },
+  "applicability": {
+    "scope": "Detect exposed host overhead and diagnose per-step host regressions in CUDA inference serving from existing nsys timelines.",
+    "prerequisites": "An existing serving nsys trace and Python with sqlite3; comparative root-cause analysis needs baseline and target traces, with nsys export available for report-format input.",
+    "input_contract": "One trace for detection/breakdown or two comparable traces for regression analysis, including the workload/phase context needed to isolate steady-state forward steps.",
+    "produced_artifact": "A detection verdict with metric/phase evidence, per-step NVTX/kernel/API breakdown and ranked host-operation deltas for a targeted optimization handoff.",
+    "failure_modes": "Warmup/loading or mismatched phase mixtures distort per-step comparisons; duplicated rank ranges, unresolved NVTX text IDs or overlapping rank end times can miscompute host gaps."
+  },
+  "recommendations": [
+    "Isolate comparable steady-state forward iterations and inspect context/generation separately; aggregate utilization can hide a phase-specific host bottleneck.",
+    "Confirm exposed preparation using both performance impact and idle attribution, retain communication as a confounder, and triage absolute NVTX time deltas before line-level optimization.",
+    "Resolve NVTX text IDs, account for TP rank duplication and use the maximum overlapping end time for gaps; do not compare full-trace totals as per-step overhead."
+  ],
+  "limitations": [
+    "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",
+    "The imported status describes this index, not the original skill; its declared status is candidate.",
+    "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
+    "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
+    "Source-derived candidate; no local efficacy validation.",
+    "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}

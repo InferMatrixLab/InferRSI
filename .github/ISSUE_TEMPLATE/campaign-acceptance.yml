@@ -48,6 +48,20 @@ body:
     validations:
       required: true
   - type: textarea
+    id: criteria_source
+    attributes:
+      label: Acceptance criteria source and derivation
+      description: Use user criteria when supplied; otherwise use performance-ceiling-analysis. Preserve partial requirements and identify derived fields and missing evidence.
+      value: |
+        Source: <user | ceiling-derived | mixed>
+        User request or accepted plan: <reference or none>
+        Derived fields: <fields or none; preserve supplied criteria>
+        Analysis: <skill revision, baseline, calibration, attainable range, uncertainty and target-selection rationale, or not needed>
+        Evidence gaps and next measurements: <paths or none>
+        Freeze authority: <existing user or delegated authority>
+    validations:
+      required: true
+  - type: textarea
     id: gates
     attributes:
       label: Gate checklist (frozen before runs)

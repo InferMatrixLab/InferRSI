@@ -19,7 +19,7 @@ def test_local_executor_does_not_inherit_parent_stdin(tmp_path):
         "import sys\n"
         "import time\n"
         "from pathlib import Path\n"
-        "from inferrsi.infra.executors.local import execute_command\n"
+        "from inferrsi.harness.local_process import execute_command\n"
         "command = (sys.executable, str(Path(__file__).with_name('child.py')))\n"
         "result = execute_command(command, Path.cwd(), Path('trial'), time.monotonic() + 30)\n"
         "print(json.dumps({'status': result['status']}))\n",

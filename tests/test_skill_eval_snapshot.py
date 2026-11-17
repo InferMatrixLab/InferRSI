@@ -5,7 +5,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from inferrsi.knowledge_operations import KnowledgeReader
+from inferrsi.knowledge.knowledge_operations import KnowledgeReader
 from tools.skill_eval_compare import snapshot
 from tools.skill_eval_snapshot import selected_snapshot
 

@@ -1,4 +1,4 @@
-from inferrsi.claim import Verdict, claim_requires_pinned_shas, parse_verdict
+from inferrsi.contracts.claim import Verdict, claim_requires_pinned_shas, parse_verdict
 
 
 def test_parse_verdict() -> None:

@@ -13,10 +13,11 @@ from pathlib import Path
 
 import pytest
 
-from inferrsi import catalog
-from inferrsi.arguments import make_spec, parser
-from inferrsi.catalog import get_knowledge, knowledge_records, repository_pack, search_knowledge
-from inferrsi.cli import main
+from inferrsi.apps.cli import main
+from inferrsi.apps.cli.arguments import make_spec, parser
+from inferrsi.knowledge import catalog as knowledge_catalog
+from inferrsi.knowledge.catalog import get_knowledge, knowledge_records, search_knowledge
+from inferrsi.resources.repository_packs import REPO_TYPES, repository_pack
 
 PROJECT = Path(__file__).resolve().parents[1]
 SOURCE_REPOSITORIES = {
@@ -65,7 +66,7 @@ class CatalogTests(unittest.TestCase):
             get_knowledge("not-a-record")
         with self.assertRaises(ValueError):
             search_knowledge(limit=0)
-        for name in catalog.REPO_TYPES:
+        for name in REPO_TYPES:
             pack = repository_pack(name)
             self.assertEqual(pack["execution_support"], "caller_supplied_external_commands")
             self.assertTrue(
@@ -141,7 +142,7 @@ class CatalogTests(unittest.TestCase):
 
 
 def test_knowledge_has_one_canonical_record_and_complete_navigation():
-    packs = PROJECT / "src/inferrsi/data/repo_packs"
+    packs = PROJECT / "src/inferrsi/knowledge/data/repo_packs"
     canonical_paths = list(packs.glob("*/knowledge/*/*/*.json"))
     records = search_knowledge(tier="contribution", limit=len(canonical_paths))
     assert len(records) == len(canonical_paths)
@@ -182,11 +183,13 @@ def test_misfiled_or_overstated_record_cannot_leak_into_context(
     record[field] = value
     destination = (
         tmp_path
-        / "data/repo_packs/vllm_omni/knowledge/ascend/diffusion/qwen-image-21-eager-t2i.json"
+        / "knowledge/data/repo_packs/vllm_omni/knowledge/ascend/diffusion"
+        / "qwen-image-21-eager-t2i.json"
     )
     destination.parent.mkdir(parents=True)
     destination.write_text(json.dumps(record))
-    monkeypatch.setattr(catalog, "files", lambda _: tmp_path)
+    # Patch implementation globals; the root module is a static re-export shell.
+    monkeypatch.setattr(knowledge_catalog, "files", lambda _: tmp_path)
     with pytest.raises(ValueError, match=error):
         search_knowledge(backend="cuda", scenario="diffusion.image_generation")
 

@@ -6,15 +6,16 @@ import json
 
 import pytest
 
-from inferrsi._skill_selection import (
+from inferrsi.apps.cli import main
+from inferrsi.knowledge._skill_selection import (
     indexed_skill,
     lexical_score,
     raw_string_lexical_score,
     skill_score,
 )
-from inferrsi.cli import main
-from inferrsi.knowledge_operations import KnowledgeReader, _hash, _json
-from inferrsi.knowledge_store import KnowledgeStore
+from inferrsi.knowledge._source_snapshot import source_entry
+from inferrsi.knowledge.knowledge_operations import KnowledgeReader, _hash, _json
+from inferrsi.knowledge.knowledge_store import KnowledgeStore
 
 RAW = "weighted-raw-string-v1"
 LEGACY = "weighted-lexical-v1"
@@ -47,7 +48,7 @@ def synthetic_reader(entries):
     for record in records.values():
         prefix = record["skill_documents"]["original"].removesuffix("SKILL.md")
         record["source_files"] = {
-            "src/inferrsi/" + path: _hash(data)
+            source_entry(path): _hash(data)
             for path, data in library.items() if path.startswith(prefix) or path == registry_path
         }
     reader = KnowledgeReader()
@@ -61,6 +62,7 @@ def synthetic_reader(entries):
 def without_method(result):
     value = copy.deepcopy(result)
     value.get("selection", {}).pop("method", None)
+    value.pop("retrieval", None)  # Execution explanation is method-specific.
     return value
 
 
@@ -81,8 +83,9 @@ def test_skill_adapter_keeps_field_weights_and_combined_nonstring_metadata():
     record = {"title": "n", "summary": "n", "tags": ["\n"], "applicability": {}}
     assert skill_score("n N", record, b"n", method=RAW) == 10
     assert skill_score("n N", record, b"n") == 10
-    with pytest.raises(ValueError, match="Unknown relevance method"):
-        skill_score("n", record, b"n", method="unknown")
+    for method in ("unknown", "task-lexical-v1"):
+        with pytest.raises(ValueError, match="Unknown relevance method"):
+            skill_score("n", record, b"n", method=method)
 
 
 def test_opt_in_changes_only_raw_string_owner_ranking_and_positive_admission():
@@ -198,7 +201,7 @@ def test_raw_method_keeps_fail_closed_index_validation():
 
 def test_cli_and_store_delegate_the_explicit_method(monkeypatch, capsys, tmp_path):
     reader = synthetic_reader({"owner": {"title": "n"}})
-    monkeypatch.setattr("inferrsi.cli._knowledge_reader", lambda args: reader)
+    monkeypatch.setattr("inferrsi.apps.cli._knowledge_reader", lambda args: reader)
     assert main(["collect", "--relevance", "n", "--relevance-method", RAW, "--json"]) == 0
     assert json.loads(capsys.readouterr().out)["selection"]["method"] == RAW
     with pytest.raises(SystemExit):

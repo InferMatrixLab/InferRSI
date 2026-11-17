@@ -17,7 +17,7 @@ import pytest
 import yaml
 
 PROJECT = Path(__file__).resolve().parents[1]
-ROOT = PROJECT / "src/inferrsi/data/skill_library/repositories/local-dream"
+ROOT = PROJECT / "src/inferrsi/knowledge/data/skill_library/repositories/local-dream"
 CASES = PROJECT / "tests/fixtures/repo_to_skill/local-dream/test-cases"
 SCRIPT = ROOT / "scripts/screen_declarations.py"
 MODULE = runpy.run_path(str(SCRIPT))
@@ -178,7 +178,7 @@ def test_registration_and_catalog_preserve_candidate_boundary():
     assert index["skills"]["local-dream"] == {
         "path": "repositories/local-dream", "backend": "common",
     }
-    from inferrsi.skill_catalog import skill_metadata, skill_resource
+    from inferrsi.knowledge.skill_catalog import skill_metadata, skill_resource
     assert skill_metadata(ROOT.parents[1], "local-dream")["status"] == "candidate"
     assert "desired" in skill_resource(ROOT.parents[1], "local-dream",
                                        "references/android-lifecycle.md").read_text().lower()

@@ -46,16 +46,19 @@ For knowledge, edit one named JSON record under
 `data/repo_packs/<repo>/knowledge/<backend>/<component>/` for contribution sources,
 or `data/knowledge_packs/<dependency|peer>/<repo>/<backend>/<component>/` for
 external sources, and add its navigation link to the owning README. See the
-[three learning tiers](../src/inferrsi/data/knowledge_packs/README.md).
+[three learning tiers](../src/inferrsi/knowledge/data/knowledge_packs/README.md).
 `data/repo_packs/inferrsi/knowledge/` is the exception: it is generated from
 `data/skill_library/` and must be refreshed, never edited. Change the skill body,
 sidecar or registry, commit, then run
 `python tools/build_skill_index.py --source-revision <committed-revision>`; a
 hand edit there is reverted by the next run and only `--check` reports it.
+A one-skill edit regenerates only that skill's record, the shared
+`_provenance.json` snapshot and the coverage view; see the
+[knowledge contribution workflow](knowledge-contribution-workflow.md).
 Do not maintain a second per-entry Markdown summary.
 Keep IDs stable, omit PR links, retain source attribution and negative results,
 and qualify new backends independently. See the
-[knowledge maintenance guide](../src/inferrsi/data/repo_packs/vllm_omni/knowledge/README.md#maintaining-the-pack).
+[knowledge maintenance guide](../src/inferrsi/knowledge/data/repo_packs/vllm_omni/knowledge/README.md#maintaining-the-pack).
 
 Protected changes also require a current-head
 [knowledge authorship declaration](knowledge-model-policy.md). Every material AI
@@ -65,7 +68,7 @@ is a required status on `main`, so a failing declaration blocks merging; the
 `protect-main` ruleset is the source of truth for that enforcement. A passing
 check establishes declaration compliance only, not execution settings or results.
 
-The [skill library](../src/inferrsi/data/skill_library/README.md) owns complete
+The [skill library](../src/inferrsi/knowledge/data/skill_library/README.md) owns complete
 procedures, metadata, references and cases. Place platform-specific skills under
 `hardware/ascend`, `hardware/cuda` or `hardware/host`; use `frameworks/<name>`,
 `repositories/<name>`, `methods` or `workflows` for other primary owners. Maintain
@@ -86,6 +89,14 @@ identify research evidence, not campaign defaults. Check linked resources,
 licenses, local links and reads from a noneditable wheel installation.
 
 ## Acceptance checklist
+
+Use user-provided acceptance criteria, including those in a referenced accepted
+plan. When none are supplied, use
+[performance-ceiling-analysis](../src/inferrsi/knowledge/data/skill_library/methods/performance-ceiling-analysis/references/acceptance-criteria.md)
+to formulate evidence-backed targets. Retain partial requirements and label
+derived fields; record their source, calibration, uncertainty and freeze
+authority. Missing evidence stays unresolved, and estimates never lower an
+existing gate. Freeze resolved criteria before candidate search.
 
 For software packaging and automatic daily Releases, follow the
 [release guide](releases.md). Release preparation is separate from campaign
@@ -116,10 +127,17 @@ research spikes.
 ```text
 evidence/<campaign-id>/
   plan/        Hypothesis, RunSpec, frozen gates and environment
-  results/     Raw measurements, outputs, profiler data and verdict rationale
+  results/     Metric summaries, complete trial index, archive references and rationale
   patch/       Candidate diff or exact revision pointer
   validator/   Frozen validation code, versions and inputs
 ```
+
+Follow the [archiving contract](evidence-archiving.md) and
+[bundle template](../evidence/_template/README.md). Keep large raw measurements,
+logs, profiler data and generated inventories in versioned external archives.
+The campaign's `results/artifacts.json` owns metadata; index every attempt and
+retain executable replay and comparison criteria. Existing frozen evidence is
+not rewritten to match the template.
 
 | Verdict | Meaning |
 | --- | --- |
@@ -229,6 +247,12 @@ helpers and CLI reads without installing any inference engine.
 The ready test and installed-package jobs cover the declared minimum Python
 3.10 alongside Python 3.11. This matrix does not certify later Python releases
 or accelerator runtime compatibility.
+For non-draft PRs, the ready `dashboard-browser` job installs Playwright and
+Chromium on Python 3.11 and runs the dashboard navigation and experiment browser
+tests. Its verbose log identifies each executed case, and the
+`dashboard-browser-results` artifact retains the JUnit report for 30 days.
+These checks cover offline/live layouts, keyboard navigation and refresh/recovery;
+they do not certify other browsers or replace independent review.
 The `pr-references` job fails when GitHub closing syntax appears inside PR body
 text, including negated sentences (working rule 6 in the
 [collaboration guide](agent-collaboration.md#working-rules)). It reads the body at
@@ -250,7 +274,7 @@ lanes. Dependency drift and hardware qualification require their own evidence.
 When copying the repository, rename `src/inferrsi`, update package metadata,
 imports and tests, and keep the three module boundaries explicit. Copy the
 [evidence template](../evidence/_template/) for each campaign. Reuse portable
-[workflows](../src/inferrsi/data/skill_library/workflows/) as workflow guidance; keep campaign pins out of them.
+[workflows](../src/inferrsi/knowledge/data/skill_library/workflows/) as workflow guidance; keep campaign pins out of them.
 
 For a standalone engine delivery, start with the
 [engine delivery template](template/README.md) in `docs/template/` instead of
@@ -265,5 +289,5 @@ verification remains explicit. Workbench experiments use the
 the four CI lanes retain their current roles.
 
 For feedback-coupled models, stochastic audio and streaming/graph experiments,
-use the [Omni experiment contract](../src/inferrsi/data/skill_library/workflows/rsi-evidence/references/omni-experiments.md) to select
+use the [Omni experiment contract](../src/inferrsi/knowledge/data/skill_library/workflows/rsi-evidence/references/omni-experiments.md) to select
 reference, preflight and executable per-trial qualification checks.

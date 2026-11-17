@@ -48,7 +48,7 @@ try:
                 names.add(name)
             archive.extractall(directory)
         sys.path.insert(0, directory)
-        from inferrsi.arguments import parser
+        from inferrsi.apps.cli.arguments import parser
         argument_parser = parser()
         def exact_options(current):
             current.allow_abbrev = False
@@ -83,7 +83,7 @@ try:
             if (argv[1].startswith('-') or not script.startswith(root + '/') or
                     not os.path.isfile(script)):
                 raise ValueError('script outside repository')
-        from inferrsi.cli import main
+        from inferrsi.apps.cli import main
         sys.exit(main(payload['args']))
 except KeyboardInterrupt:
     sys.exit(130)

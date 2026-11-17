@@ -9,6 +9,7 @@ import re
 import shutil
 import subprocess
 import sys
+import venv
 import zipfile
 from pathlib import Path
 from urllib.parse import unquote, urlsplit
@@ -72,16 +73,26 @@ def test_bundle_contains_all_declared_package_data(distribution):
     # The canonical packaging contract is the oracle, independent of both the
     # builder's file filter and the manifest of files it happened to emit.
     metadata = tomllib.loads((PROJECT / "pyproject.toml").read_text(encoding="utf-8"))
-    patterns = metadata["tool"]["setuptools"]["package-data"]["inferrsi"]
+    packages = metadata["tool"]["setuptools"]["package-data"]
     source = _io_path(PROJECT / "src/inferrsi")
     expected = {
         path.relative_to(source).as_posix()
-        for pattern in patterns for path in source.glob(pattern) if path.is_file()
+        for package, patterns in packages.items()
+        for pattern in patterns
+        for path in _io_path(PROJECT / "src" / Path(*package.split("."))).glob(pattern)
+        if path.is_file()
     }
-    assert "data/skill_library/repositories/splash/THIRD_PARTY_NOTICES" in expected
+    assert (
+        "knowledge/data/skill_library/repositories/splash/THIRD_PARTY_NOTICES" in expected
+    )
     installed = {
         name.removeprefix("inferrsi/")
-        for name in runtime_bytes(distribution) if name.startswith("inferrsi/data/")
+        for name in runtime_bytes(distribution)
+        if name.startswith((
+            "inferrsi/knowledge/data/", "inferrsi/harness/data/", "inferrsi/benchmark/tasks/",
+        )) or (
+            name.startswith("inferrsi/apps/views/") and name.endswith(".html")
+        )
     }
     assert expected == installed
     manifest = json.loads((distribution / "runtime/manifest.json").read_text(encoding="utf-8"))
@@ -171,16 +182,79 @@ def test_missing_runtime_has_repair_guidance(tmp_path):
 
 @pytest.mark.parametrize("args", [
     ("skills", "list", "--json"),
-    ("collect", "--skill-root", "."),
-    ("read", "example", "--skill-root=."),
+    ("read", "calibrate-serving-simulation", "--skill-root", "{skills}"),
 ])
 def test_optional_dependency_guidance_does_not_require_a_checkout(distribution, tmp_path, args):
+    """Operations that parse skill frontmatter explain the missing dependency.
+
+    The hint comes from the runtime, at the call that needs the parser, rather
+    than from the launcher guessing from argument names -- see the next test
+    for what that guess used to refuse.
+    """
+    # Any registered root will do; the point is the parser, not this library.
+    skills = PROJECT / "src" / "inferrsi" / "knowledge" / "data" / "skill_library"
+    args = tuple(str(skills) if arg == "{skills}" else arg for arg in args)
     result = invoke(distribution, tmp_path, *args)
     assert result.returncode == 2
     assert "PyYAML" in result.stderr
     assert "<inferrsi-checkout>" not in result.stderr
     help_result = invoke(distribution, tmp_path, "skills", "list", "--help")
     assert help_result.returncode == 0
+
+
+def test_find_reference_opens_from_a_bare_plugin_host(distribution, tmp_path):
+    """Use the returned command unchanged in a bare plugin environment."""
+    bare = tmp_path / "bare python"
+    venv.EnvBuilder().create(bare)
+    python = bare / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
+    launcher = distribution / "skills/inferrsi/scripts/inferrsi.py"
+    cache = tmp_path / "runtime cache"
+    env = {
+        **os.environ, "PATH": os.pathsep.join((str(python.parent), os.defpath)),
+        "LOCALAPPDATA": str(cache),
+    }
+    env.pop("PYTHONHOME", None)
+    env.pop("PYTHONPATH", None)
+    assert shutil.which("inferrsi", path=env["PATH"]) is None
+
+    def run(*command):
+        return subprocess.run(
+            command, cwd=tmp_path, capture_output=True, text=True, encoding="utf-8",
+            timeout=45, env=env,
+        )
+
+    prefix = (str(python), "-X", "utf8", str(launcher))
+    info = run(*prefix, "--plugin-info")
+    assert info.returncode == 0, info.stderr
+    assert not json.loads(info.stdout)["optional_skills_dependency"]
+    search = ("find", "mask caching ran out of device memory", "--kinds", "case", "--limit", "1")
+    found = run(*prefix, *search, "--json")
+    assert found.returncode == 0, found.stderr
+    item, = json.loads(found.stdout)["items"]
+    assert item["id"] == "case.qwen-ascend-rejected-directions"
+    assert item["open_argv"] == [*prefix[:-1], str(launcher.resolve()), *item["read_args"]]
+    if cache.is_dir():
+        # WorkSwarm's installed launcher recreates its private cache.
+        shutil.rmtree(_io_path(cache))
+    opened = run(*item["open_argv"])
+    assert opened.returncode == 0, opened.stderr
+    material = json.loads(opened.stdout)
+    assert "910B1" in material["content"]
+    assert material["sources"] and material["applicability"] and material["limitations"]
+
+    plain = run(*prefix, *search)
+    assert plain.returncode == 0, plain.stderr
+    label = "open (PowerShell)" if os.name == "nt" else "open"
+    assert f"     {label}: {item['ref']}" in plain.stdout.splitlines()
+    if os.name == "nt":
+        powershell = shutil.which("powershell.exe")
+        shell = (powershell, "-NoProfile", "-Command") if powershell else ()
+    else:
+        shell = ("/bin/sh", "-c")
+    if shell:
+        pasted = run(*shell, item["ref"])
+        assert pasted.returncode == 0, pasted.stderr
+        assert json.loads(pasted.stdout) == material
 
 
 def test_builder_refuses_to_replace_existing_files(tmp_path):

@@ -2,8 +2,9 @@
 
 import pytest
 
-from inferrsi.catalog import get_knowledge, repository_pack, search_knowledge
-from inferrsi.cli import main
+from inferrsi.apps.cli import main
+from inferrsi.knowledge.catalog import get_knowledge, search_knowledge
+from inferrsi.resources.repository_packs import repository_pack
 
 
 def test_qwen_tts_peer_scope_and_runtime_boundary():

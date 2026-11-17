@@ -1,6 +1,0 @@
-{
-  "scope": "lexical_vs_resolved_interpreter_alias_control",
-  "original_lexical_alias_rejected": true,
-  "resolved_alias_valid": true,
-  "model_or_interpreter_execution": false
-}

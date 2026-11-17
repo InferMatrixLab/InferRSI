@@ -7,11 +7,12 @@
 <rect x="48" y="170" width="596" height="298" rx="18" fill="#142139" stroke="#30435f"/>
 <text x="72" y="207" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="25" font-weight="700" fill="#77cafa">harness/</text>
 <text x="72" y="237" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="400" fill="#91a8c4">Experiment composition</text>
-<text x="72" y="277" font-family="ui-monospace,SFMono-Regular,Consolas,monospace" font-size="18" font-weight="400" fill="#c1cee1">runner.py            AB/BA + adapter hooks</text>
-<text x="72" y="306" font-family="ui-monospace,SFMono-Regular,Consolas,monospace" font-size="18" font-weight="400" fill="#c1cee1">scenarios/external.py  Commands + metrics</text>
-<text x="72" y="335" font-family="ui-monospace,SFMono-Regular,Consolas,monospace" font-size="18" font-weight="400" fill="#c1cee1">scenarios/media.py     Warmups + artifacts</text>
-<text x="72" y="364" font-family="ui-monospace,SFMono-Regular,Consolas,monospace" font-size="18" font-weight="400" fill="#c1cee1">evaluation.py        Evidence adjudication</text>
-<text x="72" y="393" font-family="ui-monospace,SFMono-Regular,Consolas,monospace" font-size="18" font-weight="400" fill="#c1cee1">reporting.py         HTML report</text>
+<text x="72" y="277" font-family="ui-monospace,SFMono-Regular,Consolas,monospace" font-size="18" font-weight="400" fill="#c1cee1">runner.py            AB/BA + injected ports</text>
+<text x="72" y="306" font-family="ui-monospace,SFMono-Regular,Consolas,monospace" font-size="18" font-weight="400" fill="#c1cee1">scenarios/external.py  Command trials</text>
+<text x="72" y="335" font-family="ui-monospace,SFMono-Regular,Consolas,monospace" font-size="18" font-weight="400" fill="#c1cee1">Sampling -&gt; benchmark/sampling.py</text>
+<text x="72" y="364" font-family="ui-monospace,SFMono-Regular,Consolas,monospace" font-size="18" font-weight="400" fill="#c1cee1">Gates -&gt; benchmark/legacy_run_v0.py</text>
+<text x="72" y="393" font-family="ui-monospace,SFMono-Regular,Consolas,monospace" font-size="18" font-weight="400" fill="#c1cee1">Old run, report -&gt; apps/legacy/</text>
+<text x="72" y="422" font-family="ui-monospace,SFMono-Regular,Consolas,monospace" font-size="18" font-weight="400" fill="#c1cee1">api.py, local_process.py  Execute + cleanup</text>
 <rect x="676" y="170" width="596" height="298" rx="18" fill="#142139" stroke="#30435f"/>
 <text x="700" y="207" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="25" font-weight="700" fill="#69dfc4">model/</text>
 <text x="700" y="237" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="400" fill="#91a8c4">Request and quality contracts</text>

@@ -1,0 +1,130 @@
+{
+  "scope": "Normative documentation fixtures generated and schema-validated on the box; no repository implementation or actual process/assess ran",
+  "schema_definition_count": 106,
+  "protocol_digest": "sha256:497290081c4f3d3cab0c50c42a0be1c467e1a840dcf680eaace602311c46a80c",
+  "prepared_1_id": "sha256:7f481e7e61c98343015118d7dcd98806abe863398b2c16dacac125d2d00ed486",
+  "prepared_2_id": "sha256:8d5f4615026c0d6b700ecd211fc7a9ce6061c7e974184bc6c6716a34b8caacba",
+  "request_digest": "sha256:34793d13ea8ff634e364acafc1c9d75624e221733026ffb28c924bd9c671ed5c",
+  "assessment_id": "sha256:c59829c47211503f8ce6aa3df32d0fdd1f11b08e30c7479eab1f6dccf498311d",
+  "positive_full_documents_checked": 13,
+  "negative_schema_cases_checked": 7,
+  "T21_protocol_same_prepared_different": true,
+  "prepared_location_change_same_semantic_id": true,
+  "lookalike_parameter_location_is_semantic": true,
+  "files": [
+    {
+      "file": "fixtures/apps-assess-request.json",
+      "bytes": 300,
+      "sha256": "551a00e6d2827d329a68fa8dc13bb74f8c06ecbab3cb527c92453dc7a5006435"
+    },
+    {
+      "file": "fixtures/apps-not-started.json",
+      "bytes": 3913,
+      "sha256": "b120b9e1a80061e795fbda7d571d6fcef4d2b7425815fa4c41e013c466cf12c2"
+    },
+    {
+      "file": "fixtures/assessment.json",
+      "bytes": 1939,
+      "sha256": "380131251520af2a0d6f414b5ef159b22e503ff7fc8db9e0e50795cba9b9899b"
+    },
+    {
+      "file": "fixtures/candidate-2.txt",
+      "bytes": 11,
+      "sha256": "5b9f45cfe85bb8dccbe042aadc887f928cba25e9241dcc0442c85e8f8d0c49e9"
+    },
+    {
+      "file": "fixtures/candidate.txt",
+      "bytes": 18,
+      "sha256": "e39494a6eed78161414f7afdef602f86ff19de6efa9ca9053407d548981fe01f"
+    },
+    {
+      "file": "fixtures/evidence-input.json",
+      "bytes": 3022,
+      "sha256": "e0c071d35c0bdc1a45838996303cecab41c68c80450c63707b89fa71ad0326dc"
+    },
+    {
+      "file": "fixtures/execution-spec.json",
+      "bytes": 1979,
+      "sha256": "34793d13ea8ff634e364acafc1c9d75624e221733026ffb28c924bd9c671ed5c"
+    },
+    {
+      "file": "fixtures/fixed-refs.json",
+      "bytes": 841,
+      "sha256": "14783ecf100cbaf053f4f87a3844c6d76ddd07a438474019e691845c7f663d14"
+    },
+    {
+      "file": "fixtures/negative-schema-cases.json",
+      "bytes": 8618,
+      "sha256": "5552d24d5bf55d6f098c80de56986eaff6c19350c5945ee68be5a7b95c2758b3"
+    },
+    {
+      "file": "fixtures/prepared-candidate-2.json",
+      "bytes": 2690,
+      "sha256": "f91db487cfb19ab31053d47785baac09b77fe32828ddd06cec738596b1ab0c6a"
+    },
+    {
+      "file": "fixtures/prepared.json",
+      "bytes": 2690,
+      "sha256": "8450cf590172a785282fed31480eb82bb192f4e9a72c73dd70d0b5ea9a3d30ff"
+    },
+    {
+      "file": "fixtures/projection-typed-parameter-counterexample.json",
+      "bytes": 6866,
+      "sha256": "e98d36f715418d98acb581549061ee78313af8a10a4425f3ee6cb7c8dbaedd10"
+    },
+    {
+      "file": "fixtures/protocol.json",
+      "bytes": 3100,
+      "sha256": "a9ab5f1e4202775e535dba6cb6e33472108e5de8dc6fd0517253e3cf17c72929"
+    },
+    {
+      "file": "fixtures/public-error.json",
+      "bytes": 259,
+      "sha256": "f9c70fc8b485a637adfa2dccd7da0b8977ceda32c26567dd3861b85eb51b78a1"
+    },
+    {
+      "file": "fixtures/record-api-envelope.json",
+      "bytes": 2983,
+      "sha256": "170376bf29e8309ccc6602402ff9e093c34f6155977b687c99ee5b033eef0b7c"
+    },
+    {
+      "file": "fixtures/record-payload.json",
+      "bytes": 2579,
+      "sha256": "2db75e54c89b0087276d6f87ba08691194f3385cf4bdd0d5b05589ce36e07553"
+    },
+    {
+      "file": "fixtures/semantic-conformance-vectors.json",
+      "bytes": 10982,
+      "sha256": "83123e6bd0631a4a6094fc7e750d41003f4e9523aa9725877e1d43a91537c5d4"
+    },
+    {
+      "file": "fixtures/storage-config.json",
+      "bytes": 296,
+      "sha256": "d47cda3efb14056dc4b461df9e429ca14c11193802381b590c0db80fea965013"
+    },
+    {
+      "file": "fixtures/codec-strings.json",
+      "bytes": 136,
+      "sha256": "84155c27491b0d28382f4edf8aee374a7b6a668895a7b2b5d6691929657cb0f4"
+    },
+    {
+      "file": "fixtures/codec-string-vectors.json",
+      "bytes": 917,
+      "sha256": "689e32b109590131df85ef70b0a8697ce964d9d63297859138a4c32725015833"
+    },
+    {
+      "file": "fixtures/apps-assessment.json",
+      "bytes": 6130,
+      "sha256": "258b462629abe79466ad40b16a2356527a60b1f26c78a438a9a4be2222bceb28"
+    },
+    {
+      "file": "fixtures/strict-json-byte-vectors.json",
+      "bytes": 2580,
+      "sha256": "f7921999260046c1332e8d0c5b4eb1a0c58c4e07dac566ef59b9b2447856e83f"
+    }
+  ],
+  "codec_string_projection_vectors": "Explicit control escapes, raw solidus/DEL/U+2028/U+2029/nonBMP/decomposed Unicode; four noncanonical fixed-byte vectors. Existing protocol/record/reference bytes unchanged.",
+  "canonical_byte_negatives_checked": 4,
+  "codec_parameters_schema_checked": true,
+  "strict_json_byte_negatives_checked": 17
+}

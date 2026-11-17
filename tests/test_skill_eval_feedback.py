@@ -6,7 +6,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import Mock, patch
 
-from inferrsi.harness import skill_eval_diagnostic as diagnostic
+from inferrsi.benchmark import skill_eval_diagnostic as diagnostic
 from inferrsi.infra.artifacts import sha256, write_json
 from tests.fixtures.skill_eval_compare_support import FixedOutputClient
 from tests.fixtures.skill_eval_pr_support import approval, setup
@@ -14,7 +14,7 @@ from tools import skill_eval_feedback as feedback
 from tools import skill_eval_pr as integration
 
 ROOT = Path(__file__).resolve().parents[1]
-TASK_PATH = ROOT / 'docs/examples/skill-comparison/pr133-diagnostic-case05.json'
+TASK_PATH = ROOT / 'tests/fixtures/skill-comparison/pr133-diagnostic-case05.json'
 TASK = json.loads(TASK_PATH.read_text())[0]
 OLD = dict(diagnosis='capacity', evidence=['E4'], next_check='inspect_allocator_accounting',
            reuse_authorized=False)

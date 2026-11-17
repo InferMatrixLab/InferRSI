@@ -172,7 +172,7 @@ Changes to shared process, runner or evaluation code must preserve the SIAS depe
 
 ### 15. P0 — Resolve project licensing and unclear imported-source permissions
 
-**Observation:** the baseline has no root project `LICENSE` or `pyproject.toml` license declaration. `PHASE1_REPORT.md` flags unknown licensing for `awesome-ascend-skills`; separately, `skills/ascend-operator-profiling/metadata.json` declares `license: UNKNOWN` and records its `cannbot-skills` synchronization source. Resolve the actual source chain rather than assuming those names identify identical licensing terms. This requires maintainer resolution; a missing declaration alone does not establish infringement or permit selecting a license on behalf of owners.
+**Observation:** the baseline has no root project `LICENSE` or `pyproject.toml` license declaration. `docs/plans/2026-10-14-phase1-report.md` flags unknown licensing for `awesome-ascend-skills`; separately, `skills/ascend-operator-profiling/metadata.json` declares `license: UNKNOWN` and records its `cannbot-skills` synchronization source. Resolve the actual source chain rather than assuming those names identify identical licensing terms. This requires maintainer resolution; a missing declaration alone does not establish infringement or permit selecting a license on behalf of owners.
 
 **Proposed approach:** have the rights holders choose the project license, inventory imported material and retain its notices, and resolve unknown upstream terms through authoritative source evidence or permission. If unresolved, define a distribution exclusion or replacement plan for the affected content. Do not label unknown material as licensed or validated during metadata indexing.
 

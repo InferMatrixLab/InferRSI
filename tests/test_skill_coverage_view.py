@@ -251,7 +251,7 @@ def test_list_valued_scope_is_rendered_not_treated_as_missing(tmp_path):
 
 def test_applicability_is_descriptive_and_never_promotes_validation():
     """Filling conditions must not raise locally_verified or change declared state."""
-    from inferrsi.skill_catalog import skill_metadata
+    from inferrsi.knowledge.skill_catalog import skill_metadata
 
     rows, _, _, _, _ = coverage.collect(PROJECT)
     described = [row for row in rows if row["typed_conditions"]]
@@ -273,7 +273,7 @@ def test_recommendations_default_only_when_the_sidecar_is_silent():
 
 
 def test_resource_layer_decisions_preserve_unknown_na_and_conflicts(tmp_path):
-    from inferrsi.skill_catalog import skill_metadata
+    from inferrsi.knowledge.skill_catalog import skill_metadata
     from tools import build_skill_index as index_builder
 
     library = tmp_path / coverage.LIBRARY
@@ -323,12 +323,14 @@ def test_resource_layer_decisions_preserve_unknown_na_and_conflicts(tmp_path):
     assert "wording.\nSee" not in rendered
     assert "| **unknown** |" in rendered
     assert skill_metadata(library, "process")["searchspace_not_applicable"] == reason
+    # render_index names its inputs with the pinned prefix, which K02 kept while
+    # the physical corpus moved under the Knowledge module.
     hashes = {
-        f"{coverage.LIBRARY.as_posix()}/{path.relative_to(library).as_posix()}":
+        f"{index_builder.PINNED_LIBRARY.as_posix()}/{path.relative_to(library).as_posix()}":
         hashlib.sha256(path.read_bytes()).hexdigest()
         for path in library.rglob("*") if path.is_file()
     }
-    outputs = index_builder.render_index(library, "test-source", hashes)
+    outputs = index_builder.render_index(library, "0" * 40, hashes)
     record = json.loads(outputs["common/skills/process.json"])
     assert record["skill_metadata"]["searchspace_not_applicable"] == reason
     assert record["skill_metadata"]["status"] == "candidate"

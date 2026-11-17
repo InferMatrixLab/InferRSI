@@ -1,0 +1,49 @@
+{
+  "verified_at_utc": "2026-11-01T17:58:30.353138+00:00",
+  "inferrsi_source": "50c19da43e0b358e6f990c00719891ad308a8ac1",
+  "inspection_owner": "src/inferrsi/infra/platforms/__init__.py:_npu_smi_records reads physical NPU rows",
+  "native_inventory": {
+    "physical_dual_die_npus": 8,
+    "logical_devices": 16,
+    "unchanged_native_inventory": true
+  },
+  "native_cli_device_ids": [
+    "1",
+    "2"
+  ],
+  "native_cli_id_semantics": "physical NPU IDs in npu-smi info",
+  "execution_logical_device_ids": [
+    2,
+    3,
+    4,
+    5
+  ],
+  "mapping": [
+    {
+      "physical_npu_id": 1,
+      "chip_id": 0,
+      "logical_id": 2
+    },
+    {
+      "physical_npu_id": 1,
+      "chip_id": 1,
+      "logical_id": 3
+    },
+    {
+      "physical_npu_id": 2,
+      "chip_id": 0,
+      "logical_id": 4
+    },
+    {
+      "physical_npu_id": 2,
+      "chip_id": 1,
+      "logical_id": 5
+    }
+  ],
+  "runtime_enforcement": "Existing unchanged runtime.sh exports ASCEND_RT_VISIBLE_DEVICES=2,3,4,5; launch_server num_gpus4/USP4. InferRSI runner external commands do not derive runtime visibility from discovery IDs. Each service independently checks native foreign processes and records environment.",
+  "scope": "Only metadata in prospective unexecuted C1 CLI argv corrected. Original v1 retained. No allocation, execution devices, native inventory, numerical/quality/timing contract or source revision changed. CLI plan/run still unexecuted.",
+  "native_readback_sha256": "280c0d3e579acf7e11ad1092ba7d894ee7507ea49de881691313bed6bb6bdc4c",
+  "native_readback": "Private rawreceipt retained outside this draft; selected mapping projected here.",
+  "corrected_plan_argv": "plan/c1-screening-plan-argv-v2.json",
+  "raw_receipt_included": false
+}

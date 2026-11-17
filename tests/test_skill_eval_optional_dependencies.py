@@ -29,7 +29,8 @@ class OptionalSkillsDependencyTests(unittest.TestCase):
             assert set(summary) == {'baseline', 'candidate'}
             assert all(item['input_tokens'] is None for item in summary.values())
             assert callable(read_report)
-            assert 'inferrsi.skill_catalog' not in sys.modules
+            assert 'inferrsi.knowledge.skill_catalog' not in sys.modules
+            assert 'inferrsi.knowledge.skill_catalog' not in sys.modules
         """)
 
     def test_checkpoint_without_yaml(self):
@@ -40,7 +41,8 @@ class OptionalSkillsDependencyTests(unittest.TestCase):
                                 'input_sha256': '0' * 64})
             assert result.action == 'repair_evidence'
             assert result.reasons == ('missing_evidence',)
-            assert 'inferrsi.skill_catalog' not in sys.modules
+            assert 'inferrsi.knowledge.skill_catalog' not in sys.modules
+            assert 'inferrsi.knowledge.skill_catalog' not in sys.modules
         """)
 
     def test_daily_controller_without_yaml(self):
@@ -54,7 +56,8 @@ class OptionalSkillsDependencyTests(unittest.TestCase):
                 assert 'Audited global daily genesis' in str(error)
             else:
                 raise AssertionError('Daily controller accepted missing budget configuration')
-            assert 'inferrsi.skill_catalog' not in sys.modules
+            assert 'inferrsi.knowledge.skill_catalog' not in sys.modules
+            assert 'inferrsi.knowledge.skill_catalog' not in sys.modules
         """)
 
     def test_selected_snapshot_still_requires_yaml_before_side_effects(self):

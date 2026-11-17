@@ -1,0 +1,10 @@
+{
+  "plan/frozen-lossy-contract-v1.json": "b8fd9e634e6db5ebfbce3842f3360f1b2241a08119953ee71bfc26553dbbafed",
+  "plan/frozen-lossless-contract-v1.json": "b3ec4b2f58d1f9de4475977ed4bbdd75e4d38cad3857244fe0cfd842f7469cab",
+  "validator/strict_compare.py": "b83f2bff553ff6ca2970a16e25525cac5d9523612e9c05ea563852c814019028",
+  "validator/check_media.py": "617c79d3c55dd74b5ccd2a10ba51f70241e36fe95be28a08e3f714fddcdbfa38",
+  "validator/quality-tools/compare_quality.py": "99e8e23463f8ce83b52a22de9cdc697ef4bbf14d910a0c67e76bfd01e94c4b3d",
+  "validator/quality-tools/score_media.py": "99f5a76436a3c8d37462fab83f63d24eae74b4458c30e5a00b60c19fde139f3e",
+  "results/c1-5s-strict-comparison.json": "f333a0cf8d65d59e92d67a3882608a344a00f57542ab5a22e832c6800d81a4cb",
+  "results/c1-15s-strict-comparison.json": "72b196500c0f045eb78c4e994279189c36b59c48f103e0ab4f94ff51968c62be"
+}

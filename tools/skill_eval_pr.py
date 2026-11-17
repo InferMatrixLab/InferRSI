@@ -35,8 +35,8 @@ MARKER = "<!-- inferrsi-skill-eval-pr:v1 -->"
 RETENTION_DAYS = 30
 MAX_ARCHIVE = 100 * 1024 * 1024
 SHA = r"[0-9a-f]{40}"
-LIBRARY_PATH = "src/inferrsi/data/skill_library"
-PROJECTION_PATH = "src/inferrsi/data/repo_packs/inferrsi/knowledge"
+LIBRARY_PATH = "src/inferrsi/knowledge/data/skill_library"
+PROJECTION_PATH = "src/inferrsi/knowledge/data/repo_packs/inferrsi/knowledge"
 
 
 def canonical(value):

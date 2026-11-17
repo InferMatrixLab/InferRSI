@@ -1,0 +1,24 @@
+flowchart LR
+  subgraph NOW["current mixed tree"]
+    Know["knowledge-related flat modules + corpus"]
+    Mix["existing harness/ mixed tree"]
+    Ev["evaluation / validators"]
+    AppNow["cli / arguments / dashboard resources"]
+    Seam["infra / model / runspec seams"]
+  end
+  subgraph TGT["3+1 target"]
+    K["Knowledge"]
+    H["Harness"]
+    B["Benchmark"]
+    A["Apps"]
+  end
+  Know -->|"after P0 formal review, K01 seven K bodies/tests move together; old roots are exact static exports"| K
+  Mix -->|"extract execution and records"| H
+  Mix -->|"presentation projection; trace split by responsibility"| A
+  Mix -->|"later extract scoring/task freezing; decouple runner first, then review exact old-entry edges"| B
+  Ev -->|"merge"| B
+  AppNow -->|"migrate per #371, keep compatibility forwarding at the root"| A
+  Seam -.->|"old seams not moved wholesale; H01 adds a new persistent record core"| TGT
+  Raw["neutral raw pack-data technical leaf (not a fourth core)"]
+  Know -->|"repository_pack + original REPO_TYPES, not K public API"| Raw
+  Seam -->|"infra.inspection changes only its same-leaf import, never via K/H"| Raw

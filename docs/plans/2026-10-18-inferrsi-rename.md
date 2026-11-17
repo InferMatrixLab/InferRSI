@@ -1,5 +1,7 @@
 # InferRSI Rename Implementation Plan
 
+> Historical archive. Kept for provenance. Not current implementation or validation status.
+
 > Execute plan -> code -> test -> review in this session. The user authorized
 > direct integration into main and separate commits for follow-up work.
 

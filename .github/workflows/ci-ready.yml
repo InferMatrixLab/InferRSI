@@ -33,7 +33,7 @@ jobs:
           "$RUNNER_TEMP/wheel-env/bin/python" -m pip install "${wheels[0]}[skills]"
           cp tests/check_installed.py "$RUNNER_TEMP/check_installed.py"
           cd "$RUNNER_TEMP"
-          env -u PYTHONPATH "$RUNNER_TEMP/wheel-env/bin/python" -I check_installed.py
+          env -u PYTHONPATH INFERRSI_CHECKOUT_RESOURCES="$GITHUB_WORKSPACE/src/inferrsi" "$RUNNER_TEMP/wheel-env/bin/python" -I check_installed.py
 
   full-check:
     strategy:
@@ -51,7 +51,38 @@ jobs:
       - name: Ruff
         run: ruff check src tests tools
       - name: Tests (smoke + unit)
-        run: pytest
+        run: pytest -rs
+
+  dashboard-browser:
+    if: ${{ !github.event.pull_request.draft }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install browser test dependencies
+        run: |
+          python -m pip install -e ".[dev]" playwright
+          python -m playwright install --with-deps chromium
+      - name: Test dashboard navigation and live refresh in Chromium
+        run: |
+          python -m pytest -vv -o addopts='' \
+            tests/test_knowledge_navigation_browser.py \
+            tests/test_dashboard_experiments_browser.py \
+            --junitxml="$RUNNER_TEMP/dashboard-browser-results.xml"
+      - name: Retain browser test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dashboard-browser-results
+          path: ${{ runner.temp }}/dashboard-browser-results.xml
+          retention-days: 30
 
   pr-references:
     # Reports closing syntax in PR body text at each ready-lane event; not a branch-protection gate.
@@ -67,6 +98,154 @@ jobs:
         env:
           PR_BODY: ${{ github.event.pull_request.body }}
         run: python3 tools/check_pr_references.py
+
+  host-compatibility:
+    # GitHub-hosted Windows and macOS CPU evidence, separate from the Ubuntu jobs above:
+    # a pass on Linux is not a pass on these hosts. It runs only the eight plugin and DSH
+    # nodes that an earlier Windows run recorded as failing (63 passed, 8 failed), then an
+    # installed-wheel check. A pass here does not rewrite that record. No GPU, remote
+    # service or credential is used; the DSH node talks to the fake SSH server that its
+    # own check starts. One host at a time, one pytest process, no full suite.
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        os: [windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install dev deps and the build frontend
+        run: python -m pip install -e ".[dev]" build
+      - name: Test the eight plugin and DSH host nodes
+        # Started from Python so both hosts receive identical node IDs; no shell rewrites
+        # "::" or "[...]". The checkout path is absolute and PYTHONPATH is not set.
+        shell: python
+        env:
+          RESULTS: ${{ runner.temp }}/host-compatibility-results.xml
+        run: |
+          import os
+          import shutil
+          import subprocess
+          import sys
+          import xml.etree.ElementTree as ET
+
+          nodes = [
+              "tests/test_codex_plugin.py::test_comparison_preview_execution_status_and_report[codex-fail-1-FAIL]",
+              "tests/test_codex_plugin.py::test_isolated_runtime_can_export_dashboard[workswarm]",
+              "tests/test_codex_plugin.py::test_comparison_preview_execution_status_and_report[workswarm-pass-0-PASS]",
+              "tests/test_codex_plugin.py::test_comparison_preview_execution_status_and_report[workswarm-fail-1-FAIL]",
+              "tests/test_codex_plugin.py::test_comparison_preview_execution_status_and_report[workswarm-missing-2-INCONCLUSIVE]",
+              "tests/test_codex_plugin.py::test_release_archive_is_installable_and_all_versions_match[codex]",
+              "tests/test_codex_plugin.py::test_release_archive_is_installable_and_all_versions_match[workswarm]",
+              "tests/test_dsh_plugin.py::test_remote_ssh_connection_and_scoped_operations",
+          ]
+          # The DSH node skips without Node.js, and every node needs Git or Python.
+          for tool in ("node", "git"):
+              path = shutil.which(tool)
+              if path is None:
+                  raise SystemExit(tool + " is required by the selected nodes")
+              subprocess.run([path, "--version"], check=True)
+          results = os.environ["RESULTS"]
+          command = [sys.executable, "-m", "pytest", "-vv", "-rs", "-o", "addopts=",
+                     "--junitxml=" + results, *nodes]
+          status = subprocess.run(
+              command, cwd=os.environ["GITHUB_WORKSPACE"], check=False
+          ).returncode
+          if status:
+              raise SystemExit(status)
+          # A skipped or deselected node is not a pass: all eight must have run.
+          suite = next(ET.parse(results).getroot().iter("testsuite"))
+          counts = {name: int(suite.get(name))
+                    for name in ("tests", "errors", "failures", "skipped")}
+          print(counts, flush=True)
+          if counts != {"tests": len(nodes), "errors": 0, "failures": 0, "skipped": 0}:
+              raise SystemExit("every selected host node must run and pass")
+      - name: Check a wheel built from the sdist in a fresh environment outside the checkout
+        # Runs even if a node above failed, so both results are recorded; either failure
+        # still fails the job.
+        if: ${{ !cancelled() }}
+        shell: python
+        run: |
+          import os
+          import shutil
+          import subprocess
+          import sys
+          from pathlib import Path
+
+          workspace = Path(os.environ["GITHUB_WORKSPACE"]).resolve()
+          work = Path(os.environ["RUNNER_TEMP"]).resolve() / "host-wheel"
+          log = work.parent / "host-wheel.log"
+          assert work != workspace and workspace not in work.parents, work
+          work.mkdir()
+          # Children never see PYTHONPATH, and the checker compares with this absolute path.
+          environment = {key: value for key, value in os.environ.items() if key != "PYTHONPATH"}
+          environment["INFERRSI_CHECKOUT_RESOURCES"] = str(workspace / "src" / "inferrsi")
+
+
+          def run(*command, cwd=work):
+              command = [str(part) for part in command]
+              result = subprocess.run(
+                  command, cwd=cwd, env=environment, capture_output=True, text=True,
+                  encoding="utf-8", errors="replace", check=False,
+              )
+              text = "$ " + " ".join(command) + "\n" + result.stdout + result.stderr
+              print(text, flush=True)
+              with log.open("a", encoding="utf-8") as stream:
+                  stream.write(text)
+              if result.returncode:
+                  raise SystemExit(f"exit {result.returncode}: {command[0]}")
+              return result.stdout
+
+
+          # python -m build writes the sdist and builds the wheel from that sdist.
+          dist = work / "dist"
+          run(sys.executable, "-m", "build", "--outdir", dist, cwd=workspace)
+          sdists, wheels = sorted(dist.glob("*.tar.gz")), sorted(dist.glob("*.whl"))
+          assert len(sdists) == 1 and len(wheels) == 1, (sdists, wheels)
+          venv = work / "env"
+          run(sys.executable, "-m", "venv", venv)
+          scripts = venv / ("Scripts" if os.name == "nt" else "bin")
+          python = scripts / ("python.exe" if os.name == "nt" else "python")
+          console = scripts / ("inferrsi.exe" if os.name == "nt" else "inferrsi")
+          run(python, "-m", "pip", "install", f"{wheels[0]}[skills]")
+          assert console.is_file(), console
+          shutil.copyfile(workspace / "tests" / "check_installed.py", work / "check_installed.py")
+          run(python, "-I", "check_installed.py")
+          # The package under test is the installed wheel, never the source checkout.
+          location = Path(
+              run(python, "-I", "-c", "import inferrsi; print(inferrsi.__file__)").strip()
+          ).resolve()
+          assert venv.resolve() in location.parents, location
+          assert workspace not in location.parents, location
+          installed = run(
+              python, "-I", "-c", "from importlib.metadata import version; print(version('inferrsi'))"
+          )
+          # The console script and python -m inferrsi answer with the same bytes.
+          for arguments in (["--version"], ["benchmarks", "list"]):
+              module = run(python, "-I", "-m", "inferrsi", *arguments)
+              assert module.strip() and module == run(console, *arguments), arguments
+              if arguments == ["--version"]:
+                  assert module == installed, (module, installed)
+      - name: Retain host results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: host-compatibility-${{ matrix.os }}
+          path: |
+            ${{ runner.temp }}/host-compatibility-results.xml
+            ${{ runner.temp }}/host-wheel.log
+          retention-days: 30
 
   evidence-budget:
     # Report-only evidence byte budgets accepted in #273; enforcement is a separate decision.

@@ -1,6 +1,69 @@
 {
   "version": 1,
   "bundles": {
+    "minicpm-vllm-seedtts": {
+      "kind": "campaign",
+      "manifests": [
+        {
+          "path": "results/core-integrity.json",
+          "schema": "bundle-sha256"
+        },
+        {
+          "path": "results/artifacts.json",
+          "schema": "archive-sha256",
+          "field": "archive",
+          "artifact": "results/minicpm-seedtts-dec7a734-v1.tar.gz"
+        }
+      ],
+      "external": [
+        "Archive metadata is authoritative in results/artifacts.json. Offline checks report the absent local asset as unavailable; run the explicit verifier for remote bytes and recomputation. Private traces/audio/models remain outside the public snapshot; service qualification is INCONCLUSIVE."
+      ]
+    },
+    "h3-image-ascend": {
+      "kind": "campaign",
+      "manifests": [
+        {
+          "path": "plan/retained-sha256.json",
+          "schema": "bundle-sha256"
+        },
+        {
+          "path": "results/artifacts.json",
+          "schema": "archive-sha256",
+          "field": "archive",
+          "artifact": "results/h3-image-ascend-2e850be2-v1.tar.gz"
+        }
+      ],
+      "external": [
+        "Versioned public archive: metadata in results/artifacts.json; use validator/archive.py --download to verify actual content and regenerate summaries.",
+        "This archive preserves only the already public export; no private artifacts were added.",
+        "Most original images, activation tensors, historical candidate source snapshots and host/profiler logs were not published and remain unavailable for independent replay.",
+        "Six representative full-resolution round-two PNGs are archived; the other 24 images in that numerical screen are not included.",
+        "Source digests in historical source-manifest files identify external snapshots and are not verification of those unavailable source bytes.",
+        "Final ABBA, full visual acceptance and cross-hardware reference quality remain incomplete; all latency targets remain unmet."
+      ]
+    },
+    "h3-ref2va-910c-4logical-20261101-297": {
+      "kind": "campaign",
+      "manifests": [
+        {
+          "path": "results/core-integrity.json",
+          "schema": "bundle-sha256"
+        },
+        {
+          "path": "results/artifacts.json",
+          "schema": "archive-sha256",
+          "field": "archive",
+          "artifact": "results/h3-ref2va-910c-4logical-20261101-297-6c7e237-v1.tar.gz"
+        },
+        {
+          "path": "validator/frozen-snapshots.json",
+          "schema": "bundle-sha256"
+        }
+      ],
+      "external": [
+        "Original model/reference/scorer weights, raw media/tensors, full executor archives and private namespace/bootstrap runtime are not bundled. Source hashes and sanitized field projections do not make these artifacts publicly replayable."
+      ]
+    },
     "h3-ref2va-ascend-293": {
       "kind": "campaign",
       "manifests": [
@@ -97,13 +160,22 @@
     },
     "_template": {"kind": "template", "manifests": []},
     "qwen38-h20-fp8-single-request-vllm032": {
-      "kind": "campaign", "manifests": [
-        {"path": "plan/retrieval-integrity.json", "schema": "bundle-sha256"},
-        {"path": "plan/search-8k-v1-integrity.json", "schema": "bundle-sha256"},
-        {"path": "results/search-observations-2163-2175-integrity.json", "schema": "bundle-sha256"},
-        {"path": "results/diagnostics/sandbox-offline-prefetch-integrity.json", "schema": "bundle-sha256"}
+      "kind": "campaign",
+      "manifests": [
+        {
+          "path": "results/core-integrity.json",
+          "schema": "bundle-sha256"
+        },
+        {
+          "path": "results/artifacts.json",
+          "schema": "archive-sha256",
+          "field": "archive",
+          "artifact": "results/qwen38-h20-fp8-single-request-vllm032-6c7e237-v1.tar.gz"
+        }
       ],
-      "external": ["Owner-approved 8K search protocol activated prospectively in Issue67; campaign remains INCONCLUSIVE. Private source wrappers, operational logs, model outputs and runtime identities remain in controlled task storage."]
+      "external": [
+        "Owner-approved 8K search protocol activated prospectively in Issue67; campaign remains INCONCLUSIVE. Private source wrappers, operational logs, model outputs and runtime identities remain in controlled task storage."
+      ]
     },
     "drama3-ascend-20261023": {
       "kind": "campaign",
@@ -149,6 +221,10 @@
     "qwen21-turbo-b300-review-20261012": {
       "kind": "review", "manifests": [],
       "external": ["Review summary only; no local freeze manifest or raw output bundle is recorded."]
+    },
+    "search-attribution-qwen-s2-b1-20261110": {
+      "kind": "review", "manifests": [],
+      "external": ["The raw Codex rollout and temporary local campaign ledger are not committed; bounded reviewed excerpts and relative source references are preserved in search/round-1.json."]
     },
     "skill-eval-v1-20261021": {
       "kind": "campaign",

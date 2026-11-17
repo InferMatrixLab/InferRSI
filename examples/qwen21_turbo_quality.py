@@ -128,11 +128,24 @@ def main():
     try:
         parallel=tuple(map(int,args.expected_parallel.split(','))) if args.expected_parallel else None
         if args.inferrsi_run:
-            paths=inferrsi_manifests(os.environ['INFERRSI_RESULT_PATH'])
+            # execute_command sets this to RUN/validation/result.json for validation.
+            validation_result = Path(os.environ.get('INFERRSI_RESULT_PATH') or args.output)
+            paths=inferrsi_manifests(validation_result)
         elif args.candidate_manifest:paths=[Path(args.candidate_manifest)]
         else:raise ValueError('Candidate manifest or complete InferRSI run required')
         seen_paths = set()
-        reports=[{'manifest':str(path),**validate(args.reference_manifest,path,parallel,seen_paths=seen_paths)} for path in paths]
+        reports = []
+        for path in paths:
+            reports.append({'manifest': str(path), **validate(
+                args.reference_manifest, path, parallel, seen_paths=seen_paths
+            )})
+            if args.inferrsi_run:
+                try:
+                    lifecycle.atomic_write_json(validation_result.with_name('progress.json'), {
+                        'unit': 'manifests', 'completed': len(reports), 'total': len(paths)
+                    })
+                except (OSError, ValueError):
+                    print('Could not record validation progress.', file=sys.stderr)
         result={'verdict':'PASS' if all(r['verdict']=='PASS' for r in reports) else 'FAIL','min_ssim':0.99,'min_psnr_db':35,'reports':reports}
     except Exception as error:result={'verdict':'FAIL','error':str(error)}
     lifecycle.write_json(args.output,result)

@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from inferrsi.knowledge_operations import (
+from inferrsi.knowledge.knowledge_operations import (
     Bundle,
     IdentityError,
     KnowledgeReader,
@@ -13,7 +13,7 @@ from inferrsi.knowledge_operations import (
     safe_path,
 )
 
-ROOT = Path(__file__).resolve().parents[1] / "src/inferrsi/data/skill_library"
+ROOT = Path(__file__).resolve().parents[1] / "src/inferrsi/knowledge/data/skill_library"
 
 
 def test_normalized_sources_and_original_catalog_identity():

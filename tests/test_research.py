@@ -6,10 +6,10 @@ from importlib.resources import files
 
 import pytest
 
-from inferrsi import catalog
-from inferrsi.catalog import get_knowledge, search_knowledge
-from inferrsi.cli import main
-from inferrsi.research import research_knowledge
+from inferrsi.apps.cli import main
+from inferrsi.knowledge import catalog as knowledge_catalog
+from inferrsi.knowledge.catalog import get_knowledge, search_knowledge
+from inferrsi.knowledge.research import research_knowledge
 
 
 def test_h3_retrieves_framework_and_task_knowledge_with_source_boundaries():
@@ -51,7 +51,7 @@ def test_h3_retrieves_framework_and_task_knowledge_with_source_boundaries():
     assert result["target"]["memory_gib"] == 64
     assert result["target"]["backend"] == "metal"
     assert result["target_validation"] == "unverified"
-    assert "metal" not in catalog.BACKENDS
+    assert "metal" not in knowledge_catalog.BACKENDS
     assert {part["role"] for part in result["components"]} == {
         "denoiser", "text_encoder", "video_vae", "audio_vae",
     }
@@ -88,7 +88,7 @@ def test_independent_queries_are_unioned_fairly_and_exact_search_is_unchanged(mo
             ("f-overlap", "ExampleModel mlx diffusion video offload"),
         )
     ]
-    monkeypatch.setattr(catalog, "knowledge_records", lambda: records)
+    monkeypatch.setattr(knowledge_catalog, "knowledge_records", lambda: records)
     exact = search_knowledge("ExampleModel mlx diffusion video offload")
     assert [record["id"] for record in exact] == ["f-overlap"]
     result = research_knowledge(
@@ -117,7 +117,7 @@ def test_query_attribution_survives_the_shared_output_limit(monkeypatch):
         {"id": "model", "summary": "SyntheticModel mlx"},
         {"id": "framework", "summary": "mlx mlx"},
     ]
-    monkeypatch.setattr(catalog, "knowledge_records", lambda: records)
+    monkeypatch.setattr(knowledge_catalog, "knowledge_records", lambda: records)
     result = research_knowledge("SyntheticModel", frameworks=["mlx"], limit=1)
     assert result["items"] == [{
         "record": records[0],
@@ -166,7 +166,9 @@ def test_unknown_model_never_invents_tasks_or_components():
 @pytest.mark.parametrize("alias", ["MiniMax-H3", "minimax h3", "MiniMax_H3"])
 def test_model_profile_links_packaged_resources_at_the_repository_owner(alias):
     result = research_knowledge(alias)
-    package = files("inferrsi")
+    # Returned resource keys stay logical "data/..."; K02 moved the physical
+    # corpus under the Knowledge module without changing that spelling.
+    package = files("inferrsi").joinpath("knowledge")
     profile = result["profile"]
     assert profile["model"] == "MiniMax-H3"
     assert package.joinpath(result["procedure_resource"]).read_text(encoding="utf-8")

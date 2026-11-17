@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "id": "qwen3-tts-npu-v2",
+  "title": "Standalone Qwen3-TTS CustomVoice text-to-audio synthesis",
+  "backend": "ascend",
+  "devices": 1,
+  "model": "Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice",
+  "model_revision": "0c0e3051f131929182e2c023b9537f8b1c68adfe",
+  "baseline_role": "Bundled standalone reference adapted from the pre-optimization official-component service",
+  "candidate": "Self-contained inference/service source directory, real model weights fixed",
+  "precision": "bfloat16",
+  "response": "24 kHz mono little-endian signed PCM16 over SSE",
+  "measurement": {
+    "primary": "mean of per-request completion seconds / decoded audio seconds",
+    "secondary": [
+      "median first-complete-PCM-sample latency",
+      "audio seconds / cohort wall seconds"
+    ],
+    "aggregation": "geometric mean of per-concurrency RTF ratios after all gates pass",
+    "warmups": "explicit in frozen campaign policy; retained and excluded from speed score",
+    "cohort": "closed-loop concurrency, request latency begins at HTTP dispatch"
+  },
+  "required_quality": [
+    "English WER or Chinese CER",
+    "speaker similarity",
+    "duration preservation"
+  ],
+  "qualification": "Independent runtime conversion; current source needs its own software/device qualification",
+  "runtime_dependencies": [
+    "PyTorch and torch_npu/CANN",
+    "qwen-tts==0.1.1",
+    "transformers==4.57.3",
+    "official Qwen processor and speech tokenizer assets"
+  ],
+  "audio_delivery": "SSE; the reference emits the completed waveform as one PCM chunk",
+  "source_provenance": {
+    "reference": "https://github.com/InferMatrixLab/qwen3-tts-rsi-npu-engine/tree/665f0c1",
+    "official_model_components": "https://github.com/Qwen/Qwen3-TTS",
+    "official_distribution": "qwen-tts==0.1.1"
+  }
+}

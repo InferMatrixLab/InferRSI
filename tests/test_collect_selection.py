@@ -4,12 +4,12 @@ from pathlib import Path
 
 import pytest
 
-from inferrsi._skill_selection import lexical_score
-from inferrsi.cli import main
-from inferrsi.knowledge_operations import Bundle, KnowledgeReader, _hash, _json
-from inferrsi.knowledge_store import KnowledgeStore
+from inferrsi.apps.cli import main
+from inferrsi.knowledge._skill_selection import lexical_score
+from inferrsi.knowledge.knowledge_operations import Bundle, KnowledgeReader, _hash, _json
+from inferrsi.knowledge.knowledge_store import KnowledgeStore
 
-ROOT = Path(__file__).resolve().parents[1] / "src/inferrsi/data/skill_library"
+ROOT = Path(__file__).resolve().parents[1] / "src/inferrsi/knowledge/data/skill_library"
 CGROUP = "inferrsi.common.skills.cgroup_resource_controls"
 H3 = "inferrsi.common.skills.audit_h3_runtime_residency"
 AFD = "inferrsi.cuda.skills.audit_afd_p2p_exchanges"
@@ -50,6 +50,7 @@ def test_existing_item_payload_and_material_accounting_are_unchanged():
     old = reader.collect(ids=[CGROUP], material=True)
     assert set(old) == {
         "items", "omissions", "no_match", "collisions", "material_bytes", "limitations",
+        "retrieval",
     }
     new = reader.collect(ids=[CGROUP], material=True, context_bytes=65536)
     assert new["items"] == old["items"]

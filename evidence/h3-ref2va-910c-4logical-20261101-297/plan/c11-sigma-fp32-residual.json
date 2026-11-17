@@ -1,0 +1,52 @@
+{
+  "id": "C11-H3-modality-sigma-residual",
+  "configuration_key": "modality-sigma-fp32-anchor",
+  "source_base": "61b8efa06e88372bc5ab87b9e2668a133eaac282",
+  "branch": "rsi/h3-297-sigma-fp32-residual",
+  "track": "lossy",
+  "files": [
+    "vllm_omni/diffusion/models/minimax_h3/cache_sigma_prediction.py",
+    "vllm_omni/diffusion/models/minimax_h3/reference_kv_cache_dit.py",
+    "vllm_omni/diffusion/models/minimax_h3/minimax_h3_transformer.py",
+    "vllm_omni/diffusion/models/minimax_h3/denoise_loop.py",
+    "tests/diffusion/models/minimax_h3/test_minimax_h3_sigma_cache.py"
+  ],
+  "production_changes": [
+    "vllm_omni/diffusion/models/minimax_h3/cache_sigma_prediction.py",
+    "vllm_omni/diffusion/models/minimax_h3/reference_kv_cache_dit.py",
+    "vllm_omni/diffusion/models/minimax_h3/minimax_h3_transformer.py",
+    "vllm_omni/diffusion/models/minimax_h3/denoise_loop.py",
+    "tests/diffusion/models/minimax_h3/test_minimax_h3_sigma_cache.py"
+  ],
+  "cache_config": {
+    "Fn_compute_blocks": 1,
+    "Bn_compute_blocks": 0,
+    "max_warmup_steps": 4,
+    "scm_steps_mask_policy": null,
+    "residual_diff_threshold": 0.08,
+    "max_continuous_cached_steps": 3,
+    "enable_taylorseer": false,
+    "minimax_h3_sigma_cache": true
+  },
+  "hypothesis": "Original Fn1Bn0sigma passed38/39guards but failedcaption; Bn1passedcaption but failedaudiolevel. Preserve bothfailures. Source shows BF16packedstates, BF16middle-residual subtraction and a BF16forecast cast before BF16prefixaddition. Test only residualprecision: subtractactualcomputedmiddle-end.float()-prefix.float(), own threeFP32anchors, same dualsigmaquadratic, addforecast+prefixinFP32 and castonce to originalBF16hidden. This preserves more information from actualBF16endpoints; whether it improves modelquality is unverified. No threshold/tail/step/model change and no reference-output-dependent normalization.",
+  "ownership": "Same request-ownedthreeanchors/finallycleanup; anchorstorage FP32. ParentFn decision/bookkeeping delegated. The newlycomputedrawMnresidual is FP32; wrappercasts the reconstructedhidden to incominghidden dtype before anytail/finalprojection. Untargeted/defaultoffpath unchanged.",
+  "selection": "Existing DiffusionCacheConfig extra field minimax_h3_sigma_cache, strictly boolean, only explicit cache_dit Ref2VA DP1/CFG1 without RefKV/control/edit; reject incompatible combinations before execution. No dependency or generic cache API edit.",
+  "stability": "Three distinct monotonically descending sigma anchors per modality; quadratic Lagrange coefficient absolute-sum<=64 on both clocks or full compute. Host-only shared clocks keep rank decision agreement. Accumulate FP32, cast forecast to raw residual dtype, add to Fn hidden states using parent residual semantics. Text/padding use video clock, padding remains masked by existing attention.",
+  "validation": [
+    "Ruff0.14.10 check/format, exactfive-path diff and private base identity.",
+    "Native pytest polynomial recovery on nonuniform two-clock fixtures, inputimmutability, parentdenial/historyveto, disabled/unsupportedselection, transientrelease and denoise error/cancellation cleanup. RealNPUtest must execute.",
+    "InferRSI native trial is first C11family charge. Commit testedbytes privately before fullmodel.",
+    "Full50step 5s-00 then5s-01 automaticquality using distinctkey, with actual computed/predicted counts. Reject any observedfrozenviolation. MissingcohortremainsINC.",
+    "Only retainedcandidate proceeds to independent15s, completefive-samplecohorts, cleanpairedtiming and final3freshpairs within remainingbudget."
+  ],
+  "quality_contract_sha256": "b8fd9e634e6db5ebfbce3842f3360f1b2241a08119953ee71bfc26553dbbafed",
+  "budget": "Original start17:19+08 deadline09:19+08 and64logical-device-hours unchanged; lastunspentfamily C11. No extra finalbudget. Nativecap8min, first5smodelcap15min, no parallel selected-device job.",
+  "status": "Prospective revision2 plan before source edits or native execution.",
+  "new_delta_files": [
+    "vllm_omni/diffusion/models/minimax_h3/cache_sigma_prediction.py",
+    "tests/diffusion/models/minimax_h3/test_minimax_h3_sigma_cache.py"
+  ],
+  "native_validation": "Retain20focusedtests; add nativeBF16middle-endpoint residual test proving exactFP32differenceandBF16reconstruction, mixedFP32history/BF16current admission, and outputdtype/immutability. RunactualnativepaththroughInferRSI; sourceproofbeforeprivatecommit andfullmodel. Keepold61b8efacommit/nativeproof separate.",
+  "scope": "Exactlytwochangedpaths over61b8efa; overallfive-fileH3scope over922funchanged. No genericCacheDit/backendconfig/dependency change. ExistingC11family, no13thfamily.",
+  "stop": "Firstfull5s-00; reject anyobserved frozenfailure. Ifretainedindependent5s-01 then15s-00/fullcohorts/cleanpairs withinremainingbudget. Ifprecision controlalsofails, stop predictor variants; no threshold/tail grid."
+}

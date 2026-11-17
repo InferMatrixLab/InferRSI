@@ -4,15 +4,15 @@ from pathlib import Path
 
 import pytest
 
-from inferrsi.knowledge_operations import KnowledgeReader
-from inferrsi.skill_catalog import (
+from inferrsi.knowledge.knowledge_operations import KnowledgeReader
+from inferrsi.knowledge.skill_catalog import (
     skill_directories,
     skill_directory,
     skill_records,
     skill_reference,
 )
 
-ROOT = Path(__file__).resolve().parents[1] / "src/inferrsi/data/skill_library"
+ROOT = Path(__file__).resolve().parents[1] / "src/inferrsi/knowledge/data/skill_library"
 
 
 def test_local_profiles_preserve_core_and_structured_ownership():

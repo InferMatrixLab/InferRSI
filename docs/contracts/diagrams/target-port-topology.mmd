@@ -1,0 +1,32 @@
+flowchart TB
+  USER["person / Coding Agent"] --> APP["Apps: CLI / Python / plugin<br/>assembly only, carries no business judgment"]
+
+  subgraph K["Knowledge"]
+    KREAD["read / collect / resource"]
+    KUPD["create / update / history"]
+  end
+  subgraph B["Benchmark"]
+    BPREP["prepare"]
+    BASS["assess"]
+  end
+  subgraph H["Harness"]
+    HALLOC["allocate_attempt"]
+    HEXEC["execute"]
+    HREAD["read(attempt_id, record_version?)"]
+  end
+
+  APP -->|"reference, revision pin / selection criteria; resource also needs path"| KREAD
+  KREAD -->|"KnowledgeBundle / Collection"| APP
+  APP -->|"Bundle, expected, reason, evidence"| KUPD
+  KUPD -->|"new revision or history"| APP
+  APP -->|"task and grader version, operation, input pins"| BPREP
+  BPREP -->|"PreparedEvaluation; PreparedRef only after Apps archive succeeds"| APP
+  APP -->|"run_id, owner, deadline and resources"| HALLOC
+  HALLOC -->|"AttemptContext (no budget, no start)"| APP
+  APP -->|"ExecutionSpec: commands, candidate and expected identity, expected_code_sha256, prepared reference"| HEXEC
+  HEXEC -->|"H commit succeeds: fixed RecordRef + payload; includes prepared/protocol/scope/identity"| APP
+  HEXEC <-->|"commands / artifacts and measurement"| TGT["external runtime environment"]
+  APP -->|"read-only projection of prepared + record facts and locators (no scoring)"| BASS
+  BASS -->|"EvaluationResult; AssessmentRef only after Apps archive succeeds"| APP
+  APP -->|"specified revision, or latest committed; performs no recovery"| HREAD
+  HREAD -->|"flat record; transient observations do not enter the fixed payload"| APP

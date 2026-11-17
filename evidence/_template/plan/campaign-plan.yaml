@@ -77,6 +77,13 @@ hardware:
 # row 3: frozen
 goal: "<primary statement: primary metric, unit, direction and target line>"
 goal_detail:
+  criteria_provenance:
+    source: "<user|ceiling-derived|mixed>"
+    user_reference: "<request or accepted plan reference, or none>"
+    derived_fields: ["<derived field, or none; preserve supplied criteria>"]
+    analysis_evidence: "<skill revision, baseline, calibration, attainable range, uncertainty and target-selection rationale, or not needed>"
+    evidence_gaps: "<unresolved inputs and bounded calibration plan, or none>"
+    freeze_authority: "<existing user or delegated authority>"
   primary_metric: "<metric>"
   unit: "<unit>"
   direction: "<minimize|maximize>"
@@ -91,7 +98,7 @@ goal_detail:
     aggregation: "<how repetitions are combined>"
   guard_metrics: ["<peak memory|failure rate|percentile latency>"]
   required_levels: ["<ladder and level names>"]
-  user_confirmed: "<who confirmed the goal and when>"
+  user_confirmed: "<who confirmed the goal and when, or not separately confirmed; see freeze_authority>"
 
 # row 4: mutable and versioned
 search_state:

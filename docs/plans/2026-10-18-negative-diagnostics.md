@@ -1,5 +1,7 @@
 # Negative Diagnostic Knowledge Implementation Plan
 
+> Historical archive. Kept for provenance. Not current implementation or validation status.
+
 **Goal:** Preserve previously rejected directions as scoped diagnostic options.
 
 **Architecture:** Reuse owner-local Case records and the existing explicit

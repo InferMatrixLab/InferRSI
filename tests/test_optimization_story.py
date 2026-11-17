@@ -9,13 +9,17 @@ from pathlib import Path
 
 import pytest
 
-from inferrsi.cli import main
-from inferrsi.harness.campaign_records import create_campaign, record_candidate, record_decision
-from inferrsi.harness.dashboard import write_dashboard
-from inferrsi.harness.dashboard_data import load_dashboard
-from inferrsi.harness.knowledge_capture import capture_context, verify_capture
-from inferrsi.harness.optimization_log import LogError, parse_optimization_log, record_log
-from inferrsi.knowledge_operations import KnowledgeReader
+from inferrsi.apps.campaign import capture_context, verify_capture
+from inferrsi.apps.cli import main
+from inferrsi.apps.views.dashboard import dashboard_snapshot, render_dashboard, write_dashboard
+from inferrsi.apps.views.dashboard_data import load_dashboard
+from inferrsi.harness.records.campaign_records import (
+    create_campaign,
+    record_candidate,
+    record_decision,
+)
+from inferrsi.harness.records.optimization_log import LogError, parse_optimization_log, record_log
+from inferrsi.knowledge.knowledge_operations import KnowledgeReader
 
 
 class FakeReader:
@@ -153,6 +157,54 @@ def test_capture_matches_real_collect_output(tmp_path):
     assert document["request"]["sources"] == ["package"]
 
 
+def test_capture_packaged_skills_does_not_repeat_bundle_manifest(tmp_path):
+    create_campaign(tmp_path, "camp", noise=1.5)
+    reader = KnowledgeReader()
+    options = {"relevance": "performance kernel optimization", "limit": 40,
+               "context_bytes": 65536, "relevance_method": "task-lexical-v1"}
+    expected = reader.collect(**options)
+    path, _ = capture_context(tmp_path, context_id="many-skills", reader=reader, **options)
+    document, state = verify_capture(path.read_bytes())
+    assert state == "verified"
+    assert len(document["items"]) == 40
+    assert [item["ref"] for item in document["items"]] == [
+        item["ref"] for item in expected["items"]]
+    for item, source in zip(document["items"], expected["items"]):
+        assert "resources" not in item
+        assert item["skill_documents"] == source.get("skill_documents")
+    assert document["context_bytes_used"] == expected["context_bytes"]
+    assert document["context_budget"] == expected["context_budget"]
+    assert document["context_omissions"] == expected["context_omissions"]
+
+
+def test_dashboard_preserves_redacted_packaged_context_and_lesson(tmp_path):
+    create_campaign(tmp_path, "camp", noise=1.5)
+    path, digest = capture_context(
+        tmp_path, context_id="r1", reader=KnowledgeReader(),
+        ids=["inferrsi.common.skills.kv_tier_management"], context_bytes=262144)
+    original = path.read_bytes()
+    document = json.loads(original)
+    assert "/dev/ng" in document["assembled_text"]
+    assert document["assembled_text"].endswith("not_context_resource\n")
+    log = log_document(digest)
+    log["summary"]["lessons"] = ["Mount /dev/shm before launch. Then run the step."]
+    write_log(tmp_path, log)
+    snapshot = dashboard_snapshot(tmp_path)
+    for key in ("story", "knowledge_trace"):
+        capture = snapshot["data"][key]["retrievals"][0]
+        assert capture["display_redacted"]
+        assert capture["assembled_text"].endswith("not_context_resource\n")
+        assert capture["assembled_sha256"] == document["assembled_sha256"]
+        assert "/dev/ng" not in capture["assembled_text"]
+    lesson = "Mount [redacted-path] before launch. Then run the step."
+    assert snapshot["data"]["story"]["summary"]["lessons"] == [lesson]
+    for layout in ("default", "profile_first"):
+        snapshot["data"]["review_layout"] = layout
+        html = render_dashboard(snapshot)
+        assert lesson in html and "not_context_resource" in html
+    assert path.read_bytes() == original
+
+
 def test_story_joins_log_with_captures_and_runs_without_conflicts(tmp_path):
     digest = campaign(tmp_path)
     write_log(tmp_path, log_document(digest))
@@ -245,7 +297,7 @@ def test_summary_navigates_to_run_without_outcome_but_not_missing_runs(tmp_path)
         {"ref": "candidate:duplicate", "state": "ambiguous"},
     ])
 
-    template = Path(__file__).parents[1] / "src/inferrsi/data/dashboard/template.html"
+    template = Path(__file__).parents[1] / "src/inferrsi/apps/views/template.html"
     script = r"""
 const fs = require('node:fs'), assert = require('node:assert/strict');
 const data = JSON.parse(fs.readFileSync(0, 'utf8'));
@@ -258,7 +310,7 @@ assert(selectStart >= 0 && selectEnd > selectStart);
 assert(summaryStart >= 0 && summaryEnd > summaryStart);
 const source = html.slice(selectStart, selectEnd) + html.slice(summaryStart, summaryEnd);
 function node(tag, text, cls) {
-  return {tag, text, cls, children: [], style: {}, disabled: false, listeners: {},
+  return {tag, text, cls, children: [], style: {}, dataset: {}, disabled: false, listeners: {},
     appendChild(child) { this.children.push(child); },
     setAttribute() {}, addEventListener(type, fn) { this.listeners[type] = fn; },
     click() { if (!this.disabled) this.listeners.click(); }};
@@ -268,10 +320,10 @@ const target = {setAttribute(name, value) { this[name] = value; },
 const runSelect = {value: 'old'}, stageSelect = {value: 'old'}, candidateSelect = {value: 'old'};
 const api = new Function('data', 'node', 'narrativeNode', 'translatedNarrative',
   'stageNames', 'runSelect', 'stageSelect', 'candidateSelect', 'byId', 'render', 'detailLine',
-  'let selected = -1, jumpNotice = "old";\n' + source +
-  '\nreturn {renderSummary, selected: () => selected, jumpNotice: () => jumpNotice};')(
+  'let selected = -1;\n' + source +
+  '\nreturn {renderSummary, selected: () => selected};')(
   data, node, node, value => value, {search: 'Search'}, runSelect, stageSelect,
-  candidateSelect, id => { assert.equal(id, 'candidate-inspection'); return target; },
+  candidateSelect, id => { assert.equal(id, 'run-review'); return target; },
   () => {}, () => {});
 const root = node('div'); api.renderSummary(root, data.story);
 const buttons = [];
@@ -286,11 +338,11 @@ assert.equal(button('b').text, 'b · No recorded outcome');
 assert.equal(button('b').disabled, false);
 button('b').click();
 assert.equal(data.candidates[api.selected()].candidate_id, 'b');
-assert.equal(api.jumpNotice(), '');
 assert.equal(runSelect.value, ''); assert.equal(stageSelect.value, '');
 assert.equal(candidateSelect.value, '');
 assert.equal(target.tabindex, '-1'); assert(target.focused && target.scrolled);
-for (const id of ['missing', 'corrupt', 'duplicate']) {
+assert.equal(button('duplicate').disabled, false); // Ambiguous references offer a run chooser.
+for (const id of ['missing', 'corrupt']) {
   assert.equal(button(id).disabled, true); button(id).click();
   assert.equal(data.candidates[api.selected()].candidate_id, 'b');
 }
@@ -599,3 +651,59 @@ def test_malformed_capture_envelope_is_withheld(tmp_path):
     retrieval = load_dashboard(tmp_path)["story"]["retrievals"][0]
     assert retrieval["state"] == "invalid_format"
     assert "assembled_text" not in retrieval
+
+
+def test_search_import_joins_capture_use_with_failed_run(tmp_path):
+    from inferrsi.apps.views.search_attribution import import_search
+
+    digest = campaign(tmp_path)
+    write_log(tmp_path, log_document(digest))
+    evaluation = tmp_path / "runs/run-a/evaluation.json"
+    evaluation.write_text(json.dumps({"verdict": "FAIL"}), encoding="utf-8")
+    p = import_search(tmp_path, number=1, context_ids=["r1", "r1"], complete=True)
+    doc = json.loads(p.read_bytes())
+    assert doc["counts"] == {"searches": 1, "hits": 2, "unique_hits": 2, "used": 1}
+    assert doc["materials"]["package:graphs"]["use"] == "used"
+    assert doc["materials"]["package:kv"]["use"] == "rejected"
+    assert doc["events"][0]["materials"][0]["resources"]
+    assert doc["candidates"][0]["verdict"] == "FAIL"
+    assert doc["candidates"][0]["evaluation_state"] == "present"
+    with pytest.raises(ValueError, match="another round"):
+        import_search(tmp_path, number=2, context_ids=["r1"])
+
+
+@pytest.mark.parametrize("expected", ["corrupt", "missing"])
+def test_search_import_reports_unavailable_evaluation(tmp_path, expected):
+    from inferrsi.apps.views.search_attribution import import_search
+
+    campaign(tmp_path)
+    evaluation = tmp_path / "runs/run-a/evaluation.json"
+    if expected == "missing":
+        evaluation.unlink()
+    else:
+        evaluation.write_text("{", encoding="utf-8")
+    path = import_search(tmp_path, number=1)
+    candidate = json.loads(path.read_bytes())["candidates"][0]
+    assert candidate["evaluation_state"] == expected
+    assert candidate["evaluation"] is None and candidate["verdict"] is None
+
+
+def test_search_import_keeps_omitted_use_claim_without_counting_it(tmp_path):
+    from inferrsi.apps.views.search_attribution import import_search
+
+    create_campaign(tmp_path, "camp")
+    capture, digest = capture_context(tmp_path, context_id="r1", reader=KnowledgeReader(),
+                                      relevance="casebook Qwen B300 RoPE", limit=1, context_bytes=1)
+    context = json.loads(capture.read_bytes())
+    ref = context["items"][0]["ref"]
+    assert context["contexts"] == []
+    document = log_document(digest)
+    document["knowledge"][0].update(used_refs=[ref], rejected_refs=[])
+    document["iterations"][0]["knowledge_refs"] = [ref]
+    write_log(tmp_path, document)
+    path = import_search(tmp_path, number=1, context_ids=["r1"], complete=True)
+    record = json.loads(path.read_bytes())
+    assert record["counts"] == {"searches": 1, "hits": 1, "unique_hits": 1, "used": 0}
+    assert record["materials"][ref]["use"] == "unknown"
+    conflict, = record["materials"][ref]["conflicts"]
+    assert conflict["context_id"] == "r1" and conflict["reason"] == "context_omitted"

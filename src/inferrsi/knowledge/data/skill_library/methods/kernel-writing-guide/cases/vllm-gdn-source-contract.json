@@ -1,0 +1,108 @@
+{
+  "id": "case.vllm-gdn-source-contract",
+  "kind": "case",
+  "origin": [
+    "external"
+  ],
+  "state": "candidate",
+  "content": "vllm-gdn-source-contract.md",
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/vllm-project/vllm",
+      "commit": "537a79f0fc5ba564d2bef43d54915b2f80f9f77d",
+      "paths": [
+        "LICENSE",
+        "vllm/model_executor/models/qwen3_next.py",
+        "vllm/model_executor/layers/mamba/gdn/qwen_gdn_linear_attn.py",
+        "vllm/model_executor/layers/mamba/gdn/base.py",
+        "vllm/model_executor/layers/mamba/mamba_utils.py",
+        "vllm/model_executor/layers/mamba/ops/causal_conv1d.py",
+        "vllm/v1/attention/backends/gdn_attn.py",
+        "vllm/v1/attention/backends/utils.py",
+        "vllm/envs.py",
+        "vllm/third_party/flash_linear_attention/LICENSE",
+        "tests/v1/attention/test_gdn_metadata_builder.py",
+        "tests/kernels/mamba/test_causal_conv1d.py"
+      ],
+      "readset": "references/vllm-gdn-causal-conv-contract.md"
+    }
+  ],
+  "applicability": [
+    "Source-only qualification of the pinned Qwen3-Next CUDA-facing GDN caller",
+    "Mixed prefill/decode, packed/speculative metadata and state-row contracts"
+  ],
+  "limitations": [
+    "Native kernel/model/device execution not_run",
+    "Representative agent evaluation not_evaluated",
+    "No concrete HF binding, external implementation equivalence, hardware compatibility or performance claim",
+    "Physical state allocation, release and recycling outside the readset"
+  ],
+  "attribution": "vLLM contributors; Apache-2.0 root and in-file notices retained in the source reference. The in-tree conv file additionally credits Tri Dao; vendored FLA carries its separate MIT notice.",
+  "required_resources": [
+    "vllm-gdn-source-contract.json",
+    "vllm-gdn-causal-conv-contract.md"
+  ],
+  "findings": [
+    {
+      "direction": "Classify one-token GDN rows with prefill and prior-state metadata",
+      "outcome": "failure_signal",
+      "reason": "The first one-token chunk may require the prefill route to mask recycled state. Mixed non-speculative input with any prefill row uses varlen forward convolution; the recurrent split requires decode-first handling, rebased prefill lengths and an output stitch.",
+      "revisit_when": "Inspect first and resumed one-token rows and a mixed batch with longer prefill. Treat speculative-row classification as a separate test.",
+      "keywords": [
+        "vLLM",
+        "Qwen3-Next",
+        "one-token prefill",
+        "varlen",
+        "mixed batch",
+        "rebased seqlens"
+      ],
+      "scope": "regime_bound"
+    },
+    {
+      "direction": "Verify actual GDN and convolution branches after requesting FlashInfer",
+      "outcome": "failure_signal",
+      "reason": "Requested FlashInfer prefill does not resolve decode convolution. Inspect the packed decode guard and effective recurrence selection. Qwen3-Next’s interleaved GQA layout excludes the inspected fused CUDA MTP option, while XPU SYCL has its own whole-layer route.",
+      "revisit_when": "Record the effective operator on the intended backend and distinguish an automatic fallback from an explicitly rejected CUDA configuration.",
+      "keywords": [
+        "FlashInfer prefill",
+        "decode conv",
+        "packed decode",
+        "fused CUDA MTP",
+        "gqa_interleaved_layout",
+        "XPU SYCL"
+      ],
+      "scope": "regime_bound"
+    },
+    {
+      "direction": "Use mapped state rows and the accepted-token offset in speculative updates",
+      "outcome": "failure_signal",
+      "reason": "Batch position and cumulative packed offsets do not own persistent history. The inspected speculative read uses num_accepted_tokens minus one. Convolution history writes and the recurrent matrix must retain their own initialization, padding and row semantics.",
+      "revisit_when": "For padded and reordered requests, compare both writes using real cache-row mapping, accepted-token metadata and per-rank layout.",
+      "keywords": [
+        "causal_conv1d_update",
+        "cache_seqlens",
+        "num_accepted_tokens",
+        "speculative",
+        "row mapping",
+        "conv state"
+      ],
+      "scope": "regime_bound"
+    },
+    {
+      "direction": "Resolve the concrete HF caller before attempting a vLLM conv binding",
+      "outcome": "failure_signal",
+      "reason": "A common symbol name does not establish equivalence between the vLLM in-tree call chain and standalone Dao, FlashInfer or vendored FLA paths. The unidentified HF implementation leaves projection, state ownership and mutation contracts unresolved.",
+      "revisit_when": "Pin the caller and compare initial, resumed, mixed, reordered, padded and speculative cases that the eventual binding supports, including state and output parity.",
+      "keywords": [
+        "HF binding",
+        "causal conv",
+        "GDN",
+        "in-tree import",
+        "Dao",
+        "state ownership"
+      ],
+      "scope": "regime_bound"
+    }
+  ]
+}

@@ -1,0 +1,130 @@
+{
+  "schema_version": 1,
+  "governing_issue": "https://github.com/InferMatrixLab/InferRSI/issues/297",
+  "recorded_at_utc": "2026-11-02T07:51:55.651531+00:00",
+  "campaign_verdict": "INCONCLUSIVE",
+  "baseline_source": "df1c1b05936381dbaa3891c1ae4c4b21ab375a5d",
+  "migration_source": "922f1e9f1cb85b9f2b66d86e1eb500e6872b2dcb",
+  "inferrsi_source": "50c19da43e0b358e6f990c00719891ad308a8ac1",
+  "model_revision": "6818f6c32d12b210915e44ad56a4228c2608f160",
+  "hardware": {
+    "backend": "ascend",
+    "model": "910C",
+    "logical_device_count": 4,
+    "physical_dual_die_device_count": 2,
+    "memory_gib_per_logical_device": 64
+  },
+  "stack": {
+    "os": "private Ubuntu22.04 namespace",
+    "glibc": "2.35",
+    "cann": "9.1",
+    "torch": "2.10.0+cpu",
+    "torch_npu": "2.10.0.post4",
+    "mindie_sd": "3.1.0",
+    "mindie_sd_source_revision": "UNKNOWN",
+    "vllm": "0.32.0+empty",
+    "vllm_ascend": "450e55698"
+  },
+  "workload": {
+    "steps": 50,
+    "width": 1344,
+    "height": 768,
+    "fps": 24,
+    "durations_frames": {
+      "5": 124,
+      "15": 362
+    },
+    "seed": 3100,
+    "flow_shift": 12,
+    "audio_flow_shift": 3,
+    "parameters": "BF16 dense original model; original FP32 intermediate/latent state preserved",
+    "parallel": "USP4, ring1, TE TP4, tiled VAE patch parallel4; DLO on for reference"
+  },
+  "frozen_quality_contract_sha256": "b8fd9e634e6db5ebfbce3842f3360f1b2241a08119953ee71bfc26553dbbafed",
+  "frozen_strict_validator_sha256": "b83f2bff553ff6ca2970a16e25525cac5d9523612e9c05ea563852c814019028",
+  "latency_protocol": {
+    "numerical_qualification": {
+      "fresh_server": true,
+      "warmup": 0,
+      "measured_requests": 2,
+      "audit": true,
+      "not_clean_timing": true
+    },
+    "screening_per_arm": {
+      "fresh_server": true,
+      "same_shape_warmups": 2,
+      "measured_requests": 3,
+      "profiler": false,
+      "audit": false
+    },
+    "final_confirmation": {
+      "fresh_server_pairs": 3,
+      "order": [
+        "AB",
+        "BA",
+        "AB"
+      ],
+      "warmups_per_server": 2,
+      "measurements_per_server": 3,
+      "statistical_unit": "server median",
+      "requirement": "Each paired candidate server median and overall server-median comparison meet 50% reduction; all quality/lifecycle gates complete.",
+      "statistical_significance": "not claimed",
+      "budget": "Check remaining total ceiling or separately authorize an additional phase; never exceed the active deadline."
+    },
+    "revision_note": "Final 3-pair proposal replaces the unfrozen 5-pair draft before any candidate outcome is observed, to bound execution cost. The quality and 50% bars are unchanged."
+  },
+  "acceptance": {
+    "complete_http_reduction_pct": 50,
+    "per_duration_and_quality_track": true,
+    "clean_paired_runs_completed": 1,
+    "final_confirmation_pairs_completed": 0,
+    "human_output_checks_in_rsi": false
+  },
+  "budget": {
+    "start": "2026-11-01T17:19:00+08:00",
+    "deadline": "2026-11-03T01:19:00+08:00",
+    "wall_hours_ceiling": 32.0,
+    "logical_device_hours_ceiling": 128,
+    "directions_ceiling": 24,
+    "charged_direction_families": [
+      "C0",
+      "C1",
+      "C2",
+      "C3",
+      "C4",
+      "C5",
+      "C6",
+      "C7",
+      "C8",
+      "C9",
+      "C10",
+      "C11",
+      "C12",
+      "C13",
+      "C14",
+      "C15",
+      "C16",
+      "C17",
+      "C18",
+      "C19",
+      "C20",
+      "C21",
+      "C22",
+      "C23"
+    ],
+    "extra_final_confirmation_budget_authorized": false
+  },
+  "limitations": [
+    "Diagnostic HTTP values are not clean timing or accepted gains.",
+    "C1 numerical qualification covers fixed5s/15s requests; 15s clean timing and final confirmation remain incomplete.",
+    "Quality corpus incomplete; heldout requests have not been generated.",
+    "Raw private captures,model weights and quality dependency weights are not included.",
+    "Draft tracking snapshot; independent review, full quality coverage and four-track goal acceptance remain incomplete."
+  ],
+  "publication": {
+    "scope": "Sanitized projections and source patch artifacts",
+    "device_experiments_rerun_for_publication": false,
+    "runtime_harness_revision_unchanged": true,
+    "inventory_registration": "Layout and available-byte verification only; not campaign acceptance"
+  }
+}

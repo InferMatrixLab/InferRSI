@@ -1,0 +1,45 @@
+{
+  "id": "C11-H3-modality-sigma-residual",
+  "configuration_key": "modality-sigma-quadratic",
+  "source_base": "922f1e9f1cb85b9f2b66d86e1eb500e6872b2dcb",
+  "branch": "rsi/h3-297-modality-sigma-residual",
+  "track": "lossy",
+  "files": [
+    "vllm_omni/diffusion/models/minimax_h3/cache_sigma_prediction.py",
+    "vllm_omni/diffusion/models/minimax_h3/reference_kv_cache_dit.py",
+    "vllm_omni/diffusion/models/minimax_h3/minimax_h3_transformer.py",
+    "vllm_omni/diffusion/models/minimax_h3/denoise_loop.py",
+    "tests/diffusion/models/minimax_h3/test_minimax_h3_sigma_cache.py"
+  ],
+  "production_changes": [
+    "vllm_omni/diffusion/models/minimax_h3/cache_sigma_prediction.py",
+    "vllm_omni/diffusion/models/minimax_h3/reference_kv_cache_dit.py",
+    "vllm_omni/diffusion/models/minimax_h3/minimax_h3_transformer.py",
+    "vllm_omni/diffusion/models/minimax_h3/denoise_loop.py",
+    "tests/diffusion/models/minimax_h3/test_minimax_h3_sigma_cache.py"
+  ],
+  "cache_config": {
+    "Fn_compute_blocks": 1,
+    "Bn_compute_blocks": 0,
+    "max_warmup_steps": 4,
+    "scm_steps_mask_policy": null,
+    "residual_diff_threshold": 0.08,
+    "max_continuous_cached_steps": 3,
+    "enable_taylorseer": false,
+    "minimax_h3_sigma_cache": true
+  },
+  "hypothesis": "Replace integer-step Taylor residual forecasting with a quadratic through the last three actual middle-block residuals, using video sigma for video/text rows and audio sigma for audio rows. Nonuniform schedule and different modality clocks are verified source facts; improvement of frozen audio/visual quality is unverified. Keep parent reuse decisions plus insufficient/ill-conditioned history veto, all50solver steps, weights, attention and reference conditioning unchanged. No C10 audio-veto or Laser composition.",
+  "ownership": "Denoise request owns three detached cloned BF16/FP32 residual anchors and clocks, reset before each request and cleared in finally on success/cancel/error. Persistent wrapper keeps transient metadata with try/finally and weak owner references; model retains scalar-only stats after cleanup. Default disabled; explicit unsupported config fails.",
+  "selection": "Existing DiffusionCacheConfig extra field minimax_h3_sigma_cache, strictly boolean, only explicit cache_dit Ref2VA DP1/CFG1 without RefKV/control/edit; reject incompatible combinations before execution. No dependency or generic cache API edit.",
+  "stability": "Three distinct monotonically descending sigma anchors per modality; quadratic Lagrange coefficient absolute-sum<=64 on both clocks or full compute. Host-only shared clocks keep rank decision agreement. Accumulate FP32, cast forecast to raw residual dtype, add to Fn hidden states using parent residual semantics. Text/padding use video clock, padding remains masked by existing attention.",
+  "validation": [
+    "Ruff0.14.10 check/format, exactfive-path diff and private base identity.",
+    "Native pytest polynomial recovery on nonuniform two-clock fixtures, inputimmutability, parentdenial/historyveto, disabled/unsupportedselection, transientrelease and denoise error/cancellation cleanup. RealNPUtest must execute.",
+    "InferRSI native trial is first C11family charge. Commit testedbytes privately before fullmodel.",
+    "Full50step 5s-00 then5s-01 automaticquality using distinctkey, with actual computed/predicted counts. Reject any observedfrozenviolation. MissingcohortremainsINC.",
+    "Only retainedcandidate proceeds to independent15s, completefive-samplecohorts, cleanpairedtiming and final3freshpairs within remainingbudget."
+  ],
+  "quality_contract_sha256": "b8fd9e634e6db5ebfbce3842f3360f1b2241a08119953ee71bfc26553dbbafed",
+  "budget": "Original start17:19+08 deadline09:19+08 and64logical-device-hours unchanged; lastunspentfamily C11. No extra finalbudget. Nativecap8min, first5smodelcap15min, no parallel selected-device job.",
+  "status": "Prospective plan before edits; no native/model result and no quality/speed acceptance."
+}

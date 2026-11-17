@@ -1,0 +1,36 @@
+{
+  "lossless": {
+    "mode": "bit-exact",
+    "comparison_points_and_dtypes": "frozen in frozen-lossless-contract-v1.json",
+    "baseline_repeatability": "Original5s and15s PASS219; see private raw receipts and numerical scope"
+  },
+  "lossy": {
+    "framework": "reduced vBench relative BF16 score error <1%",
+    "human_checks_in_rsi": false,
+    "automated_video_audio_reference_temporal_gates": "frozen-lossy-contract-v1.json; incomplete corpus,observed violations retained"
+  },
+  "search_ceiling": {
+    "candidate_directions": 24,
+    "wall_hours": 32,
+    "logical_device_hours": 128,
+    "includes_failures_and_retries": true,
+    "allocation_and_accounting": "Original start17:19+08 unchanged; requester extended ceilingto24directions/32wallhours/128logical-device-hours,deadline11-03 01:19+08; see execution-manifest.json",
+    "final_confirmation_budget": "No additional amount authorized; must fit original ceiling or remain pending",
+    "extension_basis": "Requester decisions recorded by the accountable owner in the campaign session; no restart or extra final budget."
+  },
+  "latency_objective": {
+    "metric": "complete HTTP latency versus matched B0",
+    "min_reduction_pct": 50,
+    "min_speedup": 2,
+    "scope": "each of the four tracks independently"
+  },
+  "campaign_verdict": "INCONCLUSIVE",
+  "candidate_search_started": true,
+  "decision_source": "https://github.com/InferMatrixLab/InferRSI/issues/297#issuecomment-6555458151",
+  "status": "Execution checkpoint; no accepted complete-HTTP gain",
+  "initial_search_ceiling": {
+    "candidate_directions": 12,
+    "wall_hours": 16,
+    "logical_device_hours": 64
+  }
+}
