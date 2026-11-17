@@ -6,7 +6,13 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-from inferrsi.harness.parallel_round import prepare, serve_ticket, submit, ticket_status
+from inferrsi.harness.parallel_round import (
+    close_round,
+    prepare,
+    serve_ticket,
+    submit,
+    ticket_status,
+)
 from inferrsi.infra.confinement import select_backend
 
 
@@ -38,6 +44,13 @@ def main(argv: list[str] | None = None) -> int:
     status_command.add_argument("--round-dir", required=True, type=Path)
     status_command.add_argument("--ticket", required=True)
 
+    close_command = commands.add_parser(
+        "close",
+        help="Joint single-rerun: compose PASS lanes once, measure once, write successor or retain",
+    )
+    close_command.add_argument("--round-dir", required=True, type=Path)
+    close_command.add_argument("--incumbent", required=True, type=Path)
+
     args = parser.parse_args(argv)
     if args.command == "prepare":
         result = prepare(_load(args.spec), args.incumbent, args.round_dir)
@@ -53,6 +66,12 @@ def main(argv: list[str] | None = None) -> int:
         result = serve_ticket(
             args.round_dir,
             args.ticket,
+            args.incumbent,
+            backend=select_backend(),
+        )
+    elif args.command == "close":
+        result = close_round(
+            args.round_dir,
             args.incumbent,
             backend=select_backend(),
         )

@@ -14,6 +14,7 @@ from inferrsi.harness import parallel_round
 from inferrsi.harness.parallel_round import (
     RoundPlanError,
     _read_nofollow,
+    close_round,
     hold_devices,
     prepare,
     serve_ticket,
@@ -911,3 +912,157 @@ def test_serve_cli_runs_without_a_caller_supplied_clock(tmp_path):
     else:
         assert body["status"] == "unsettled"
         assert body["reason"] == "confinement backend unavailable"
+
+
+SUM_BENCH = (
+    "import json, sys\n"
+    "from pathlib import Path\n"
+    "a = float(Path('knobs/a.txt').read_text())\n"
+    "b = float(Path('knobs/b.txt').read_text())\n"
+    "body = {'metrics': {'latency_ms': a + b}, 'synthetic': True}\n"
+    "Path(sys.argv[1]).write_text(json.dumps(body))\n"
+)
+
+
+def _sum_tree(root: Path, a: str, b: str) -> None:
+    (root / "knobs").mkdir(parents=True)
+    (root / "knobs" / "a.txt").write_text(a, encoding="utf-8")
+    (root / "knobs" / "b.txt").write_text(b, encoding="utf-8")
+    (root / "bench.py").write_text(SUM_BENCH, encoding="utf-8")
+
+
+def _sum_spec(**overrides):
+    return _spec(
+        build=[],
+        trial=[sys.executable, "bench.py", "{result}"],
+        validation=[sys.executable, "-c", "pass"],
+        **overrides,
+    )
+
+
+def test_close_composes_pass_lanes_once_and_writes_a_successor(tmp_path):
+    incumbent = tmp_path / "incumbent"
+    _sum_tree(incumbent, "10", "10")
+    round_dir = tmp_path / "round"
+    prepare(_sum_spec(), incumbent, round_dir)
+    for lane_id, knob, value in (("L1", "a.txt", "8"), ("L2", "b.txt", "8")):
+        work = tmp_path / f"work-{lane_id}"
+        _sum_tree(work, "10", "10")
+        (work / "knobs" / knob).write_text(value, encoding="utf-8")
+        ticket = submit(round_dir, lane_id, incumbent, work, now=WHEN)["ticket"]
+        measured = serve_ticket(round_dir, ticket, incumbent, backend=FixtureBackend(), now=WHEN)
+        assert measured["status"] == "measured"
+        assert measured["verdict"] == "PASS"
+    closed = close_round(round_dir, incumbent, backend=FixtureBackend(), now=WHEN)
+    assert closed["status"] == "closed"
+    assert closed["composition"] == "joint-single-rerun"
+    assert closed["accepted"] is True
+    assert closed["retained"] is False
+    assert [item["lane_id"] for item in closed["composed"]] == ["L1", "L2"]
+    successor = Path(closed["successor"])
+    assert (successor / "knobs" / "a.txt").read_text(encoding="utf-8") == "8"
+    assert (successor / "knobs" / "b.txt").read_text(encoding="utf-8") == "8"
+    assert closed["improvement_pct"] == pytest.approx(20)
+    again = close_round(round_dir, incumbent, backend=FixtureBackend(), now=WHEN)
+    assert again == closed
+
+
+def test_close_with_no_pass_lanes_retains_the_incumbent(tmp_path):
+    incumbent = tmp_path / "incumbent"
+    _sum_tree(incumbent, "10", "10")
+    round_dir = tmp_path / "round"
+    prepare(_sum_spec(), incumbent, round_dir)
+    work = tmp_path / "work"
+    _sum_tree(work, "12", "10")
+    ticket = submit(round_dir, "L1", incumbent, work, now=WHEN)["ticket"]
+    measured = serve_ticket(round_dir, ticket, incumbent, backend=FixtureBackend(), now=WHEN)
+    assert measured["verdict"] == "FAIL"
+    closed = close_round(round_dir, incumbent, backend=FixtureBackend(), now=WHEN)
+    assert closed["accepted"] is False
+    assert closed["retained"] is True
+    assert closed["composed"] == []
+    assert closed["successor"] is None
+    assert not (round_dir / "successor").exists()
+
+
+def test_close_refuses_while_a_ticket_is_unsettled(tmp_path):
+    incumbent = tmp_path / "incumbent"
+    _tree(incumbent, "10")
+    round_dir = tmp_path / "round"
+    prepare(_spec(build=[]), incumbent, round_dir)
+    work = tmp_path / "work"
+    _tree(work, "8")
+    ticket = submit(round_dir, "L1", incumbent, work, now=WHEN)["ticket"]
+
+    class Empty(FixtureBackend):
+        def run(self, *args, **kwargs):
+            del args, kwargs
+            return {"status": "completed", "stdout": "", "stderr": "", "returncode": 0}
+
+    unsettled = serve_ticket(round_dir, ticket, incumbent, backend=Empty(), now=WHEN)
+    assert unsettled["status"] == "unsettled"
+    refused = close_round(round_dir, incumbent, backend=FixtureBackend(), now=WHEN)
+    assert refused["status"] == "refused"
+    assert "unsettled" in refused["reason"]
+    assert not (round_dir / "close.json").exists()
+
+
+def test_build_planted_git_hooks_do_not_run_on_the_host(tmp_path):
+    canary = tmp_path / "hook-ran"
+    hook = tmp_path / "evil-hook.py"
+    hook.write_text(
+        f"from pathlib import Path\nPath({str(canary)!r}).write_text('ran')\n",
+        encoding="utf-8",
+    )
+    incumbent = tmp_path / "incumbent"
+    _git_tree(incumbent, "10")
+    plant = (
+        "from pathlib import Path\n"
+        "root = Path('.git')\n"
+        "root.mkdir(exist_ok=True)\n"
+        f"(root / 'config').write_text('[diff]\\n\\texternal = {sys.executable} {hook}\\n')\n"
+    )
+    round_dir = tmp_path / "round"
+    prepare(
+        _spec(
+            build=[sys.executable, "-c", plant],
+            validation=[sys.executable, "-c", "pass"],
+        ),
+        incumbent,
+        round_dir,
+    )
+    work = tmp_path / "work"
+    _tree(work, "8")
+    ticket = submit(round_dir, "L1", incumbent, work, now=WHEN)["ticket"]
+    measured = serve_ticket(round_dir, ticket, incumbent, backend=FixtureBackend(), now=WHEN)
+    assert measured["status"] == "measured", measured
+    assert not canary.exists()
+    assert "diff" in (round_dir / "candidates" / ticket / ".git" / "config").read_text(
+        encoding="utf-8"
+    )
+
+
+def test_validation_confinement_failure_stays_unsettled(tmp_path):
+    incumbent = tmp_path / "incumbent"
+    _tree(incumbent, "10")
+    round_dir = tmp_path / "round"
+    prepare(
+        _spec(build=[], validation=[sys.executable, "-c", "pass"]),
+        incumbent,
+        round_dir,
+    )
+    work = tmp_path / "work"
+    _tree(work, "8")
+    ticket = submit(round_dir, "L1", incumbent, work, now=WHEN)["ticket"]
+
+    class BoomValidation(FixtureBackend):
+        def run(self, argv, cwd, writable, readable, deadline, **kwargs):
+            if writable and Path(writable[0]).name == "validation":
+                raise ConfinementUnavailable("device node missing")
+            return super().run(argv, cwd, writable, readable, deadline, **kwargs)
+
+    result = serve_ticket(round_dir, ticket, incumbent, backend=BoomValidation(), now=WHEN)
+    assert result["status"] == "unsettled"
+    assert "device node missing" in result["reason"]
+    ledger = json.loads((round_dir / "ledgers" / "L1.json").read_text(encoding="utf-8"))
+    assert [entry["phase"] for entry in ledger["entries"]] == ["claimed"]

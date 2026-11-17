@@ -1,4 +1,4 @@
-"""Prepare, submit and measure one offline parallel round.
+"""Prepare, submit, measure and jointly close one offline parallel round.
 
 Directory diffs stand in for git clones. A synthetic metric value is not a
 campaign verdict.
@@ -25,6 +25,12 @@ Each command is capped by ``command_timeout_seconds`` and the lane deadline.
 If a timed-out command cannot be confirmed dead, its devices are quarantined:
 ``leases/<device>.quarantined`` is written before the lease is released, and
 the device is refused until an operator removes that file.
+
+``close`` is a joint single-rerun MVP (not #249 stepwise composition): after every
+outbox ticket has a terminal receipt, PASS lanes are overlaid in ``lane_id``
+order onto one candidate and measured once against the incumbent. A PASS joint
+run writes ``successor/``; otherwise the incumbent is retained. This is not
+Claude/Codex drivers, SwarmFlow, or campaign incumbent advancement.
 """
 
 import hashlib
@@ -63,6 +69,8 @@ from inferrsi.infra.device_lease import DeviceLease, LeaseError
 from inferrsi.infra.platforms.cuda import qualify_devices
 from inferrsi.model.protocols.metrics import read_metric
 from inferrsi.runspec import RunSpec
+
+_TERMINAL = frozenset({"measured", "rejected", "unsettled"})
 
 PLANES = {"harness", "model", "infra"}
 DIRECTIONS = {"lower", "higher"}
@@ -500,6 +508,38 @@ def _device_view(plan: dict, devices: list[str]) -> dict:
     }
 
 
+def _tree_identity(root: Path, exclude: Path | None = None) -> dict:
+    """Fingerprint a tree by hashing regular files. Never invokes host ``git``.
+
+    Build runs as a writable candidate and may rewrite ``.git``; calling
+    ``repository_identity`` afterward would execute planted ``diff.external`` /
+    ``core.fsmonitor`` hooks outside confinement. This digest stays inert.
+    """
+    root = Path(root).resolve()
+    identity: dict = {"path": str(root), "available": False, "tool": "directory"}
+    try:
+        hashes, blocked = _snapshot(root)
+        if blocked:
+            raise ValueError(f"unreadable paths: {sorted(blocked)}")
+        if exclude is not None:
+            excluded = Path(exclude).resolve()
+            hashes = {
+                path: digest_value
+                for path, digest_value in hashes.items()
+                if not (root / path).resolve().is_relative_to(excluded)
+            }
+        snapshot_hash = digest({"files": hashes})
+        identity.update(
+            available=True,
+            snapshot_hash=snapshot_hash,
+            dirty=False,
+            files=len(hashes),
+        )
+    except (OSError, ValueError) as exc:
+        identity["error"] = str(exc)
+    return identity
+
+
 def _run_confined(
     plan: dict,
     stage: str,
@@ -584,7 +624,9 @@ def _confined_trial(
         except subprocess.TimeoutExpired:
             record.update(status="timeout", error="command timed out")
         except ConfinementUnavailable as exc:
-            status = "timeout" if "timed out" in str(exc) else "failed"
+            # Infrastructure refusal is not a quality-gate failure: evaluate maps
+            # status "failed" to FAIL, while "error" stays incomplete / INCONCLUSIVE.
+            status = "timeout" if "timed out" in str(exc) else "error"
             record.update(status=status, error=str(exc))
         if record["status"] == "completed" and metric_key is not None:
             try:
@@ -814,6 +856,7 @@ def _measure(
                 current=current,
                 failures=failures,
             ),
+            snapshot=_tree_identity,
         )
     except UnreapedCommand as exc:
         leases = DeviceLease(round_dir / "leases")
@@ -823,7 +866,9 @@ def _measure(
     except (ConfinementUnavailable, BudgetError, ValueError) as exc:
         return _record(round_dir, ticket, status="unsettled", reason=str(exc), devices=devices)
     evaluation = json.loads((run_dir / "evaluation.json").read_text(encoding="utf-8"))
-    if evaluation["improvement_pct"] is None:
+    # failures include ConfinementUnavailable during validation: that must not
+    # settle as measured FAIL after metrics already produced an improvement_pct.
+    if evaluation["improvement_pct"] is None or failures:
         reason = failures[-1] if failures else "; ".join(evaluation["reasons"])
         return _record(
             round_dir,
@@ -860,3 +905,211 @@ def ticket_status(round_dir: Path, ticket: str) -> dict:
     if path.exists():
         return json.loads(path.read_text(encoding="utf-8"))
     return {"ticket": ticket, "status": "queued"}
+
+
+def _receipts(round_dir: Path) -> dict[str, dict]:
+    root = round_dir / "results"
+    if not root.exists():
+        return {}
+    return {path.stem: json.loads(path.read_text(encoding="utf-8")) for path in root.glob("*.json")}
+
+
+def close_round(
+    round_dir: Path,
+    incumbent: Path,
+    *,
+    backend,
+    now: datetime | None = None,
+    clock=None,
+) -> dict:
+    """Joint single-rerun close: compose PASS overlays once, measure once, keep or retain.
+
+    Refuses while any outbox ticket lacks a terminal receipt, or any receipt is
+    ``unsettled``. Device shortage returns ``queued`` without writing ``close.json``.
+    """
+    del now
+
+    def current() -> datetime:
+        if clock is not None:
+            return clock()
+        return datetime.now(timezone.utc)
+
+    close_path = round_dir / "close.json"
+    if close_path.exists():
+        return json.loads(close_path.read_text(encoding="utf-8"))
+
+    plan = json.loads((round_dir / "round-plan.json").read_text(encoding="utf-8"))
+    outbox = round_dir / "outbox"
+    tickets = (
+        sorted(path.name for path in outbox.iterdir() if path.is_dir()) if outbox.exists() else []
+    )
+    receipts = _receipts(round_dir)
+    missing = [ticket for ticket in tickets if ticket not in receipts]
+    if missing:
+        return {
+            "status": "refused",
+            "composition": "joint-single-rerun",
+            "reason": f"tickets without receipts: {', '.join(missing)}",
+        }
+    unsettled = [ticket for ticket in tickets if receipts[ticket].get("status") == "unsettled"]
+    if unsettled:
+        return {
+            "status": "refused",
+            "composition": "joint-single-rerun",
+            "reason": f"unsettled tickets: {', '.join(unsettled)}",
+        }
+    bad = [ticket for ticket in tickets if receipts[ticket].get("status") not in _TERMINAL]
+    if bad:
+        return {
+            "status": "refused",
+            "composition": "joint-single-rerun",
+            "reason": f"non-terminal receipts: {', '.join(bad)}",
+        }
+
+    selected = sorted(
+        (
+            receipts[ticket]
+            for ticket in tickets
+            if receipts[ticket].get("status") == "measured"
+            and receipts[ticket].get("verdict") == "PASS"
+        ),
+        key=lambda body: body["lane_id"],
+    )
+
+    def finish(**fields) -> dict:
+        body = {
+            "status": "closed",
+            "composition": "joint-single-rerun",
+            "accepted": False,
+            "retained": True,
+            "composed": [],
+            "successor": None,
+            **fields,
+        }
+        write_json(close_path, body)
+        return body
+
+    if not selected:
+        return finish(reason="no PASS lanes")
+
+    lanes = [_lane(plan, body["lane_id"]) for body in selected]
+    deadline_utc = min(lane["deadline_utc"] for lane in lanes)
+    try:
+        ensure_open(deadline_utc, current())
+    except BudgetError as exc:
+        return finish(reason=str(exc), composed=[body["ticket"] for body in selected])
+
+    count = max(lane["device_count"] for lane in lanes)
+    held = hold_devices(round_dir, plan, count)
+    if held is None:
+        return {
+            "status": "queued",
+            "composition": "joint-single-rerun",
+            "reason": "devices unavailable",
+            "composed": [body["ticket"] for body in selected],
+        }
+    devices = [device for device, _lease in held]
+    composed = [{"ticket": body["ticket"], "lane_id": body["lane_id"]} for body in selected]
+    try:
+        if plan.get("device_model"):
+            try:
+                _qualify(plan["device_model"], devices)
+            except (ValueError, OSError, subprocess.SubprocessError) as exc:
+                return {
+                    "status": "queued",
+                    "composition": "joint-single-rerun",
+                    "reason": str(exc),
+                    "composed": [item["ticket"] for item in composed],
+                }
+        overlays = [outbox / body["ticket"] for body in selected]
+        joint = round_dir / "candidates" / "joint-close"
+        materialize(incumbent, overlays, joint)
+        failures: list[str] = []
+        try:
+            if plan["build"]:
+                build_dir = joint / "build-output"
+                build_dir.mkdir(parents=True, exist_ok=True)
+                _run_confined(
+                    plan,
+                    "build",
+                    _command(plan["build"], None, ",".join(devices)),
+                    joint,
+                    (joint, build_dir),
+                    (),
+                    devices,
+                    deadline_utc,
+                    backend=backend,
+                    current=current,
+                )
+            spec = _run_spec(
+                plan,
+                joint,
+                incumbent,
+                devices,
+                round_dir / "runs" / "joint-close",
+                seconds_remaining(deadline_utc, current()),
+            )
+            run_dir = run_experiment(
+                spec,
+                {"round_id": plan["round_id"], "ticket": "joint-close", "lane_id": "close"},
+                execute=_confined_trial(
+                    plan,
+                    devices,
+                    deadline_utc,
+                    backend=backend,
+                    current=current,
+                    failures=failures,
+                ),
+                snapshot=_tree_identity,
+            )
+        except UnreapedCommand as exc:
+            leases = DeviceLease(round_dir / "leases")
+            for device in devices:
+                leases.quarantine(device, f"joint-close: {exc}")
+            return finish(
+                reason=str(exc),
+                composed=composed,
+                devices=devices,
+            )
+        except (ConfinementUnavailable, BudgetError, ValueError) as exc:
+            return finish(reason=str(exc), composed=composed, devices=devices)
+        evaluation = json.loads((run_dir / "evaluation.json").read_text(encoding="utf-8"))
+        if evaluation["improvement_pct"] is None or failures:
+            return finish(
+                reason=failures[-1] if failures else "; ".join(evaluation["reasons"]),
+                composed=composed,
+                devices=devices,
+                run_dir=str(run_dir),
+                verdict=evaluation.get("verdict"),
+                improvement_pct=evaluation.get("improvement_pct"),
+                reasons=evaluation.get("reasons"),
+            )
+        if evaluation["verdict"] != "PASS":
+            return finish(
+                reason="joint measurement did not PASS",
+                composed=composed,
+                devices=devices,
+                run_dir=str(run_dir),
+                verdict=evaluation["verdict"],
+                improvement_pct=evaluation["improvement_pct"],
+                reasons=evaluation["reasons"],
+            )
+        successor = round_dir / "successor"
+        materialize(incumbent, overlays, successor)
+        return finish(
+            accepted=True,
+            retained=False,
+            reason="joint measurement PASS",
+            composed=composed,
+            successor=str(successor),
+            devices=devices,
+            run_dir=str(run_dir),
+            verdict=evaluation["verdict"],
+            improvement_pct=evaluation["improvement_pct"],
+            reasons=evaluation["reasons"],
+            candidate=evaluation["candidate"]["median"],
+            incumbent=evaluation["baseline"]["median"],
+        )
+    finally:
+        for _device, lease in held:
+            lease.release()
