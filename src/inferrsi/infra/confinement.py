@@ -112,28 +112,33 @@ def minimal_environment(extra: dict | None = None) -> dict:
     return environment
 
 
+# Broad host trees must never become jail roots; use versioned stdlib instead.
+_BROAD_RUNTIME_ROOTS = frozenset({Path("/"), Path("/usr")})
+
+
 def runtime_roots() -> tuple[Path, ...]:
     """Python prefixes and stdlib needed to start the interpreter. Never the host root.
 
     A virtualenv's ``sys.prefix`` does not contain ``encodings``; the versioned
     stdlib tree under the base install must be mounted too. Prefer that tree
-    over mounting a broad ``sys.base_prefix`` such as ``/usr``.
+    over mounting a broad ``sys.prefix`` / ``sys.base_prefix`` such as ``/usr``.
+    Every candidate is filtered the same way, including system interpreters.
     """
     import sysconfig
 
     candidates = [Path(sys.prefix).resolve(), Path(sys.executable).resolve().parent]
     stdlib = Path(sysconfig.get_path("stdlib")).resolve()
-    if stdlib.is_dir() and stdlib != Path("/"):
+    if stdlib.is_dir():
         candidates.append(stdlib)
     base = Path(sys.base_prefix).resolve()
     prefix = Path(sys.prefix).resolve()
     # Contained base installs (pyenv, standalone builds) may keep more than
-    # stdlib under base_prefix; skip over-broad roots like / or /usr.
-    if base not in (prefix, Path("/"), Path("/usr")) and base.is_dir():
+    # stdlib under base_prefix; the loop below still drops / and /usr.
+    if base != prefix and base.is_dir():
         candidates.append(base)
     roots: list[Path] = []
     for candidate in candidates:
-        if candidate == Path("/") or any(
+        if candidate in _BROAD_RUNTIME_ROOTS or any(
             candidate == earlier or earlier in candidate.parents for earlier in roots
         ):
             continue

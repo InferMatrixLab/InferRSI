@@ -236,16 +236,73 @@ def test_namespace_plan_includes_the_loader_but_not_a_private_file(tmp_path, mon
     assert "SECRET_CANARY" not in plan["env"]
 
 
+def _assert_runtime_roots_exclude_broad_hosts(roots, *, prefix, base_prefix, stdlib):
+    del base_prefix
+    assert Path("/") not in roots
+    assert Path("/usr") not in roots
+    stdlib_path = Path(stdlib).resolve()
+    assert any(root == stdlib_path or stdlib_path.is_relative_to(root) for root in roots)
+    prefix_path = Path(prefix).resolve()
+    # Virtualenv prefix must stay visible; a system prefix of /usr is skipped on purpose.
+    if prefix_path not in {Path("/"), Path("/usr")}:
+        assert prefix_path in roots
+
+
 def test_runtime_roots_include_stdlib_without_mounting_usr():
     import sysconfig
 
-    roots = runtime_roots()
-    assert Path("/") not in roots
-    assert Path("/usr") not in roots
-    stdlib = Path(sysconfig.get_path("stdlib")).resolve()
-    assert any(root == stdlib or stdlib.is_relative_to(root) for root in roots)
-    if Path(sys.prefix).resolve() != Path(sys.base_prefix).resolve():
-        assert Path(sys.prefix).resolve() in roots
+    _assert_runtime_roots_exclude_broad_hosts(
+        runtime_roots(),
+        prefix=sys.prefix,
+        base_prefix=sys.base_prefix,
+        stdlib=sysconfig.get_path("stdlib"),
+    )
+
+
+def test_runtime_roots_under_system_python_exclude_usr():
+    """System interpreters often use prefix=/usr; that tree must not be mounted whole."""
+    system = Path("/usr/bin/python3")
+    if not system.is_file():
+        pytest.skip("no /usr/bin/python3")
+    if Path(sys.executable).resolve() == system.resolve() and Path(sys.prefix).resolve() == Path(
+        "/usr"
+    ):
+        # Already covered by the current-interpreter test above.
+        import sysconfig
+
+        _assert_runtime_roots_exclude_broad_hosts(
+            runtime_roots(),
+            prefix=sys.prefix,
+            base_prefix=sys.base_prefix,
+            stdlib=sysconfig.get_path("stdlib"),
+        )
+        return
+    repo = Path(__file__).resolve().parents[1]
+    script = (
+        "import json, sys, sysconfig\n"
+        "sys.path[:0] = %r\n"
+        "from inferrsi.infra.confinement import runtime_roots\n"
+        "print(json.dumps({\n"
+        "  'roots': [str(p) for p in runtime_roots()],\n"
+        "  'prefix': sys.prefix,\n"
+        "  'base_prefix': sys.base_prefix,\n"
+        "  'stdlib': sysconfig.get_path('stdlib'),\n"
+        "}))\n" % [str(repo / "src"), str(repo)]
+    )
+    completed = subprocess.run(
+        [str(system), "-c", script],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert completed.returncode == 0, completed.stderr
+    payload = json.loads(completed.stdout)
+    _assert_runtime_roots_exclude_broad_hosts(
+        [Path(item) for item in payload["roots"]],
+        prefix=payload["prefix"],
+        base_prefix=payload["base_prefix"],
+        stdlib=payload["stdlib"],
+    )
 
 
 @pytest.mark.skipif(not namespaces_available(), reason="user namespaces are unavailable")
