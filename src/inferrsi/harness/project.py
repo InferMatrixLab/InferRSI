@@ -43,6 +43,10 @@ def validate(settings: dict) -> None:
         raise ValueError(f"A paired decision needs at least {MIN_PAIRS} repetitions")
     if type(settings.get("require_explanation", False)) is not bool:
         raise ValueError("require_explanation must be a boolean")
+    if settings.get("require_explanation") and settings["repetitions"] < MIN_PAIRS:
+        # Fewer pairs give no interval for any expectation, so every round would be
+        # unverifiable and no candidate could ever be adopted.
+        raise ValueError(f"--require-explanation needs at least {MIN_PAIRS} repetitions")
 
 
 def prepare(destination: Path, protocol: Path, instructions: Path, settings: dict) -> dict:

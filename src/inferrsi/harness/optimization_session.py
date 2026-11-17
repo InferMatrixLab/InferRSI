@@ -330,10 +330,18 @@ def session_command(args, *, task_source: Path | None = None, knowledge_reader=N
     if not final and getattr(args, "mechanism_file", None) is not None:
         if plan.get("task_source") != "project":
             raise ValueError("Mechanism checks apply to project campaign rounds only")
-        from inferrsi.harness.measurement import validate_mechanism
+        from inferrsi.harness.measurement import CONFIDENCE, min_pairs, validate_mechanism
 
         mechanism = validate_mechanism(
             json.loads(Path(args.mechanism_file).read_text(encoding="utf-8")))
+        settings = plan["evaluation_settings"]
+        needed = min_pairs(1 - (1 - CONFIDENCE) / len(mechanism["expect"]))
+        if settings.get("require_explanation") and needed > settings["repetitions"]:
+            # Reject before execution so an uncheckable declaration spends no round.
+            raise ValueError(
+                f"{len(mechanism['expect'])} expectations need {needed} repetitions under "
+                f"--require-explanation; the campaign froze {settings['repetitions']}. "
+                "Declare fewer expectations")
     return optimization.evaluate_round(
         root, candidate=None if final else args.candidate,
         hypothesis="Independent final of the selected candidate" if final else args.hypothesis,

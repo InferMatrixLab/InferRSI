@@ -236,6 +236,37 @@ def test_paired_decision_requires_enough_repetitions(project, capsys, repetition
         start(project, capsys, "--decision", "paired", repetitions=repetitions)
 
 
+@pytest.mark.parametrize("repetitions", [3, 5])
+def test_require_explanation_rejects_too_few_repetitions_at_start(
+    project, capsys, repetitions,
+):
+    # Below six pairs no expectation can get an interval, so nothing could be adopted.
+    with pytest.raises(SystemExit):
+        start(project, capsys, "--require-explanation", repetitions=repetitions)
+    assert start(project, capsys, repetitions=repetitions) == 0  # report-only stays allowed
+
+
+def test_uncheckable_declaration_is_rejected_before_it_spends_a_round(project, capsys):
+    # FUSION declares four expectations: Bonferroni needs eight pairs, six are frozen.
+    assert start(project, capsys, "--require-explanation", repetitions=6) == 0
+    with pytest.raises(SystemExit):
+        submit(project, capsys, FUSED, FUSION)
+    _, state, _ = read_records(project[3])
+    assert state["rounds"] == [] and state["state"] == "active"
+    one = {"mechanism": "Fewer launches", "expect": [
+        {"counter": "kernel_launches", "direction": "decrease"}]}
+    assessment = submit(project, capsys, FUSED, one)  # one expectation needs six
+    assert assessment["explanation"]["status"] == "explained"
+    assert assessment["verdict"] == "PASS"
+
+
+def test_uncheckable_declaration_stays_a_report_without_the_switch(project, capsys):
+    assert start(project, capsys, repetitions=6) == 0
+    assessment = submit(project, capsys, FUSED, FUSION)
+    assert assessment["explanation"]["status"] == "unverifiable"
+    assert assessment["verdict"] == "PASS" and assessment["eligible"] is True
+
+
 def test_invalid_mechanism_is_rejected_before_execution(project, capsys):
     assert start(project, capsys, "--require-explanation") == 0
     with pytest.raises(SystemExit):
