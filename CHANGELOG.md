@@ -4,6 +4,23 @@
 
 ### Changed
 
+- Six Harness modules stop importing Infra (Refs #412, R2). `agent_sessions`,
+  `candidates`, `optimization`, `optimization_session`, `project` and
+  `task_protocol` take `digest`, `sha256` and `file_lock` from the new
+  `harness/artifact_primitives.py` and `atomic_write_json` from the existing
+  `harness/atomic_json.py`. The function bodies equal those in
+  `infra/artifacts.py`, so digests, file hashes, JSON bytes, atomic replace and
+  lock files are unchanged, and a Harness lock and an Infra lock on the same
+  path still exclude each other. `infra/artifacts.py` stays for its other users.
+  - `first_wave_report()` no longer reports `harness reaches model/infra`; it had
+    12 hits, the package-level `inferrsi.infra` and `inferrsi.infra.artifacts`
+    edge from each of the six modules. Harness has no `inferrsi.model` edge.
+  - The optimization session's runtime identity adds
+    `harness/artifact_primitives.py`. The six edited modules are already in it,
+    so a session started before this change does not resume after it.
+  - Isolation is still incomplete: the five runtime resource loaders (R3, #412)
+    remain.
+
 - The local MindIE adapter moves into the Apps package and its four root files
   are removed (Refs #452, M1), with no forwarding shell, `sys.modules` alias or
   import fallback:
@@ -38,6 +55,7 @@
     file path and gets its structured rejection for an unavailable catalog.
   - Isolation is still incomplete: the 12 Harness hits into Infra (R2, #412)
     and the five runtime resource loaders (R3, #412) remain.
+
 
 - The campaign chart renderer and the single-task launcher move into the Apps
   package and the two root modules are removed (Refs #408, A2), with no

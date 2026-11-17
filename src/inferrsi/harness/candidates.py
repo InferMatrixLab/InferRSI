@@ -4,7 +4,7 @@ import shutil
 import stat
 from pathlib import Path
 
-from ..infra.artifacts import digest, sha256
+from .artifact_primitives import digest, sha256
 
 
 def members(source: Path, includes: list[str] | None = None) -> dict[str, Path]:

@@ -352,6 +352,8 @@ def test_runtime_identity_covers_migrated_process_domain_and_not_removed_executo
     identity = optimization_session._runtime_identity()
     root = Path(str(files("inferrsi")))
     assert "harness/local_process.py" in identity
+    # #412 R2: the Harness-owned primitives replace infra.artifacts in six modules.
+    assert "harness/artifact_primitives.py" in identity
     assert "infra/executors/local.py" not in identity
     for name in identity:
         assert (root / name).is_file(), name

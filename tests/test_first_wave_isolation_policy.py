@@ -1222,6 +1222,44 @@ class HarnessEntryTest(unittest.TestCase):
         )
         self.assertFalse(report.isolation_complete)
 
+    def test_returning_r2_harness_infra_edges_fail(self) -> None:
+        # #412 R2 removed infra.artifacts from six Harness modules. Putting one edge back,
+        # relative or absolute, top-level or inside a function, reports both the package
+        # and the module edge; reaching another infra module or model also counts.
+        infra = {"infra/__init__.py": "", "infra/artifacts.py": "VALUE = 1\n",
+                 "infra/processes.py": "VALUE = 1\n", "model/__init__.py": "",
+                 "model/metrics.py": "VALUE = 1\n"}
+        primitives = {"harness/artifact_primitives.py": "VALUE = 1\n",
+                      "harness/atomic_json.py": "VALUE = 1\n"}
+        modules = ("agent_sessions", "candidates", "optimization", "optimization_session",
+                   "project", "task_protocol")
+        clean = {f"harness/{name}.py": "from .artifact_primitives import VALUE\n"
+                 for name in modules}
+        cleared = _report({**infra, **primitives, **clean}, manifest=EMPTY_ALLOWLIST,
+                          base=CLEARED_TREE)
+        self.assertEqual(cleared.harness_model_infra, ())
+        self.assertTrue(cleared.isolation_complete)
+        sources = (
+            ("from ..infra.artifacts import VALUE\n", "inferrsi.infra.artifacts"),
+            ("def late():\n    from inferrsi.infra.artifacts import VALUE\n",
+             "inferrsi.infra.artifacts"),
+            ("from ..infra import processes\n", "inferrsi.infra.processes"),
+            ("from inferrsi.model import metrics\n", "inferrsi.model.metrics"),
+        )
+        for name in modules:
+            for source, target in sources:
+                with self.subTest(module=name, source=source):
+                    report = _report({**infra, **primitives, **clean,
+                                      f"harness/{name}.py": source},
+                                     manifest=EMPTY_ALLOWLIST, base=CLEARED_TREE)
+                    package = target.rsplit(".", 1)[0]
+                    self.assertEqual(
+                        report.harness_model_infra,
+                        (f"inferrsi.harness.{name} -> {package}",
+                         f"inferrsi.harness.{name} -> {target}"),
+                    )
+                    self.assertFalse(report.isolation_complete)
+
     def test_mixed_harness_tree_is_not_an_isolated_core(self) -> None:
         tree = {"__init__.py": "", "harness/__init__.py": "", "harness/runner.py": "VALUE = 1\n"}
         report = _report({}, base=tree)

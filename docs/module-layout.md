@@ -226,17 +226,23 @@ present; or the scan reports a violation. The three packages may appear in stage
 A clean graph for the new cores is reported separately as "new core business
 closure isolated" and never sets overall `isolation_complete` to true.
 
-On the tree after A1 (#408), `first_wave_report()` has no violation and two
-blockers, so `isolation_complete` is false and A1 does not claim otherwise:
+On the tree after R2 (#412), `first_wave_report()` has no violation and one
+blocker, so `isolation_complete` is false and R2 does not claim otherwise:
 
 | Blocker | Cause | Closed by |
 | --- | --- | --- |
-| `harness reaches model/infra` (12 hits) | `agent_sessions`, `candidates`, `optimization`, `optimization_session`, `project` and `task_protocol` each reach `inferrsi.infra` and `inferrsi.infra.artifacts` | R2 (#412) |
 | `runtime resource loaders: 5` | The five declared loaders in the table above | R3 (#412) |
 
 R1 cleared the `allowlist` and `legacy run forwarders` blockers, and A1 cleared
-the `temporary leaf importers` blocker that R1 left for root `arguments.py`. The loaders
-also keep `new_core_closure_isolated` false.
+the `temporary leaf importers` blocker that R1 left for root `arguments.py`. R2
+cleared `harness reaches model/infra` (12 hits): `agent_sessions`, `candidates`,
+`optimization`, `optimization_session`, `project` and `task_protocol` each reached
+`inferrsi.infra` and `inferrsi.infra.artifacts`. They now take `digest`, `sha256`
+and `file_lock` from `harness/artifact_primitives.py` and `atomic_write_json` from
+`harness/atomic_json.py`, whose function bodies equal those in `infra/artifacts.py`.
+`infra/artifacts.py` stays for its other users. No Harness module reaches
+`inferrsi.infra` or `inferrsi.model`. The loaders also keep
+`new_core_closure_isolated` false.
 
 `knowledge-model-policy` stays the only required status. Until a separate
 process decision makes this import gate required, every migration PR attaches

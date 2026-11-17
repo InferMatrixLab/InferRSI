@@ -315,6 +315,44 @@ def test_harness_owned_writes_and_digests_match_infra_bytes(tmp_path):
     assert not (tmp_path / "nan.json").exists()
 
 
+def test_harness_artifact_primitives_match_infra_bytes_and_semantics(tmp_path):
+    # #412 R2: the six Harness modules now use these copies. Same source, same bytes,
+    # same failures, and the two file locks exclude each other on one path.
+    import ast
+    import inspect
+
+    from inferrsi.harness import artifact_primitives as harness
+    from inferrsi.infra import artifacts as infra
+
+    for name in ("digest", "sha256", "file_lock"):
+        assert inspect.getsource(getattr(harness, name)) == inspect.getsource(
+            getattr(infra, name)), name
+    tree = ast.parse(inspect.getsource(harness))
+    assert not [node for node in ast.walk(tree) if isinstance(node, ast.ImportFrom)
+                and (node.level or (node.module or "").split(".")[0] == "inferrsi")]
+    value = {"b": [1.5, None, True, 1e-07, 1e16], "a": "非 ASCII", "nested": {"z": 0.1 + 0.2}}
+    assert harness.digest(value) == infra.digest(value)
+    with pytest.raises(ValueError):
+        harness.digest({"value": float("nan")})
+    blob = tmp_path / "blob.bin"
+    blob.write_bytes(bytes(range(256)) * 9000)  # crosses the 1 MiB read block
+    assert harness.sha256(blob) == infra.sha256(str(blob))
+    with pytest.raises(FileNotFoundError):
+        harness.sha256(tmp_path / "missing.bin")
+    lock = tmp_path / "state.lock"
+    # No read inside a held lock: a Windows byte-range lock denies it even in-process.
+    with harness.file_lock(lock):
+        with pytest.raises(OSError):
+            with infra.file_lock(lock):
+                pass
+    with infra.file_lock(lock):
+        with pytest.raises(OSError):
+            with harness.file_lock(lock):
+                pass
+    with harness.file_lock(lock):
+        pass
+    assert lock.read_bytes() == b"0"
+
 def test_summary_normalizes_usage_before_the_pure_statistics():
     from inferrsi.benchmark import skill_evaluation as rules
 

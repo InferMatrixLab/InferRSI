@@ -10,7 +10,7 @@ import shutil
 from pathlib import Path
 from statistics import median
 
-from ..infra.artifacts import sha256
+from .artifact_primitives import sha256
 
 
 def validate(settings: dict) -> None:
