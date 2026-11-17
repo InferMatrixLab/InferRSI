@@ -52,7 +52,7 @@ casebook entries together and reports what each one's evidence covers, so a
 direction already tried and dropped surfaces beside the procedure for trying it:
 
 ```bash
-inferrsi find 'mask caching ran out of device memory'
+inferrsi find 'cache per-step masks ran out of device memory'
 inferrsi find '算子测过了但整图质量没过' --limit 3
 ```
 
