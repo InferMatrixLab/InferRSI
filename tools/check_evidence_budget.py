@@ -9,7 +9,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 
-# Candidate R6 Byte Budgets (Refs #273, F5/R6 - proposed defaults under owner discussion)
+# Report-only R6 Byte Budgets (adopted in #273 R6; enforcement pending 2026-12-02 review)
 # Per-file budget: 512 KiB for files tracked in evidence/
 PER_FILE_MAX_BYTES = 512 * 1024
 # Per-PR net evidence addition budget: 2.0 MiB
@@ -20,10 +20,10 @@ RELEASE_ASSET_URL_PATTERN = re.compile(
 )
 
 ADVICE = (
-    "Candidate evidence byte budget exceeded. Large raw artifacts should be stored outside "
-    "Git as GitHub Release assets, recording their downloadable asset URL, "
+    "Evidence byte budget (report-only, #273 R6) exceeded. Large raw artifacts should be stored "
+    "outside Git as GitHub Release assets, recording their downloadable asset URL, "
     "SHA-256 digest, byte count, and retention owner in tools/evidence_inventory.json. "
-    "See discussion in Issue #273 (Remedy R6)."
+    "See decision in Issue #273 (Remedy R6)."
 )
 
 

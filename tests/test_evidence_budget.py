@@ -399,7 +399,7 @@ def test_main_negative_case_fails_without_report_only(tmp_path: Path, monkeypatc
     captured = capsys.readouterr()
     assert rc == 1
     assert "exceeds per-file limit" in captured.out
-    assert "Candidate evidence byte budget exceeded" in captured.out
+    assert "Evidence byte budget (report-only, #273 R6) exceeded" in captured.out
     assert "Running in report-only mode" not in captured.out
 
 
