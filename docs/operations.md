@@ -180,9 +180,8 @@ for a pinned `read` or `resource` call.
 Three properties distinguish it from the Collect selection path below. Cases are
 ranked beside skills instead of being reachable only after their owner is
 chosen, because a recorded rejected direction is the material retrieval can
-supply that re-reading current source cannot. Nothing is filtered on the query:
-requiring every token to appear returns nothing for a question phrased in
-sentences, so ranking degrades and `--limit` truncates. Scoring reads corpus
+supply that re-reading current source cannot. One matching term is enough to
+rank an entry, and `--limit` caps the result list. Scoring reads corpus
 files directly rather than Bundles, whose metadata lists the whole packaged
 library as one dependency closure. The reader validates the returned material
 without pinning a revision during search.
@@ -198,6 +197,12 @@ also uses. Latin terms still match on boundaries, so `oom` does not match inside
 idf treat grammatical particles as rare terms. Ties break towards the stronger
 recorded state rather than alphabetical identity. This is deterministic lexical
 matching, not a learned ranking, and a hit never asserts that an entry applies.
+
+Common English function and question words such as `the`, `how` and `should`
+are omitted. Conditions such as `not`, `without`, `before` and `after` still
+contribute. When a query names exactly one supported backend, results declared
+for a different backend receive half their lexical score. `--explain` reports
+the adjusted contribution of each matched term.
 
 Chinese query terms expand through `data/query_aliases.json` before ranking.
 The packaged library is English by policy while its readers work in Chinese, and

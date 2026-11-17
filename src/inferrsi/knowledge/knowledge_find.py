@@ -35,6 +35,9 @@ from pathlib import Path
 from statistics import median
 from typing import Any
 
+from ._skill_selection import TASK_STOP_WORDS, named_backends
+from .catalog import BACKENDS
+
 # Author-written intent outranks bulk prose: a term in a title is evidence the
 # document is about it, the same term in a long body often is not.
 FIELD_WEIGHTS = {
@@ -70,6 +73,10 @@ FINDING_SCOPES = ("local", "regime_bound", "general")
 _CJK = re.compile(r"[㐀-䶿一-鿿豈-﫿]")
 _CJK_RUN = re.compile(_CJK.pattern + "+")
 _WORD = re.compile(r"[a-z0-9]+")
+_QUERY_STOP_WORDS = TASK_STOP_WORDS | {
+    "how", "what", "why", "which", "where", "who", "can", "could", "should", "would",
+    "i", "you", "we", "do", "does", "did", "is", "are", "was", "were",
+}
 _MAX_SNIPPET = 400
 # A case can record a dozen directions; listing all of them buries the one the
 # caller asked about. The rest stay available through the cited file.
@@ -183,6 +190,7 @@ class Document:
     source_url: str = ""    # where the observation was originally recorded
     source_location: str = ""
     locally_verified: bool | None = None
+    backend: str | None = None
 
     def unverified(self) -> bool:
         return self.locally_verified is False or any(
@@ -465,10 +473,10 @@ def _skill_documents(root: Path, *, source_location: str) -> list[Document]:
     and carries no index, so the default search raised on a library whose cases
     `find` could already rank and `read` could already open.
     """
-    from .skill_catalog import _sidecar, skill_directories
+    from .skill_catalog import _sidecar, skill_registrations
 
     documents = []
-    for name, directory in sorted(skill_directories(root).items()):
+    for name, (directory, backend) in sorted(skill_registrations(root).items()):
         core = directory / "SKILL.md"
         body = _body_text(core)
         description = _skill_description(body)
@@ -490,6 +498,7 @@ def _skill_documents(root: Path, *, source_location: str) -> list[Document]:
             root=root,
             source_url=_source_url(metadata),
             source_location=source_location,
+            backend=backend,
             fields={
                 "title": name.replace("-", " "),
                 "summary": description,
@@ -534,6 +543,7 @@ def _record_documents() -> list[Document]:
             source_url=_source_url(record),
             source_location="installed",
             locally_verified=record["verification"]["locally_verified"],
+            backend=record["backend"],
             fields={
                 "title": f"{record.get('title', '')} {identity.replace('.', ' ')}",
                 "summary": record.get("summary", ""),
@@ -577,18 +587,25 @@ class Corpus:
     def idf(self, token: str) -> float:
         return self._idf.get(token, self._unseen)
 
-    def score(self, index: int, query_tokens: list[str]) -> tuple[float, dict]:
+    def score(
+        self, index: int, query_tokens: list[str], *, query_backend: str | None = None
+    ) -> tuple[float, dict]:
         """Sum of idf x field weight x sqrt(occurrences).
 
         The square root damps repetition. Bodies longer than the corpus median
         get a lower weight so broad manuals compete with much shorter cases
-        through their specific matches. Every matched term contributes.
+        through their specific matches. With one named backend, an entry
+        registered for a different backend receives half its lexical score.
         """
         total = 0.0
         detail: dict[str, float] = {}
         body_weight = self._body_weights[index]
+        backend = self.documents[index].backend
+        backend_weight = (
+            0.5 if query_backend and backend in BACKENDS and backend != query_backend else 1.0
+        )
         for token in query_tokens:
-            weight = self.idf(token)
+            weight = self.idf(token) * backend_weight
             for name, counts in self._counts[index].items():
                 hits = counts[token]
                 if hits:
@@ -679,7 +696,7 @@ def expand(query: str) -> tuple[list[str], dict[str, tuple[str, ...]]]:
         folded = re.sub(pattern, lambda hit: " " * len(hit.group()), folded)
         for expansion in expansions:
             found.extend(tokens(expansion))
-    return list(dict.fromkeys(found)), applied
+    return [token for token in dict.fromkeys(found) if token not in _QUERY_STOP_WORDS], applied
 
 
 def _why_unreadable(document: Document, readers: dict) -> str | None:
@@ -715,9 +732,11 @@ def find(query: str, corpus: Corpus, *, limit: int = 5, explain: bool = False) -
     if type(limit) is not int or limit < 1:
         raise ValueError("limit must be a positive integer")
     query_tokens, applied = expand(query)
+    backends = named_backends(set(query_tokens))
+    query_backend = next(iter(backends)) if len(backends) == 1 else None
     scored = []
     for index, document in enumerate(corpus.documents):
-        value, detail = corpus.score(index, query_tokens)
+        value, detail = corpus.score(index, query_tokens, query_backend=query_backend)
         if value > 0:
             scored.append((value, STATE_RANK.get(document.state, 0), index, detail))
     scored.sort(key=lambda row: (

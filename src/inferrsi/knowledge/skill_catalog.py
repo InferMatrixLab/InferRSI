@@ -98,7 +98,7 @@ def _unique_fields(pairs: list[tuple[str, object]]) -> dict:
     return record
 
 
-def _indexed_directories(root: Path) -> dict[str, Path] | None:
+def _indexed_skills(root: Path) -> dict[str, tuple[Path, str | None]] | None:
     index = _entry(root, "skill-index.json")
     if not index.exists():
         return None
@@ -110,7 +110,7 @@ def _indexed_directories(root: Path) -> dict[str, Path] | None:
         or not isinstance(record.get("skills"), dict)
     ):
         raise ValueError("Skill index requires schema_version 1 and a skills mapping")
-    directories = {}
+    registrations = {}
     paths = set()
     for name, entry in sorted(record["skills"].items()):
         if (
@@ -123,35 +123,40 @@ def _indexed_directories(root: Path) -> dict[str, Path] | None:
         directory = _directory(root, name, entry["path"])
         if directory in paths:
             raise ValueError(f"Duplicate skill index path: {entry['path']}")
-        directories[name] = directory
+        registrations[name] = (directory, entry["backend"])
         paths.add(directory)
-    return directories
+    return registrations
+
+
+def skill_registrations(root: Path) -> dict[str, tuple[Path, str | None]]:
+    """Resolve each skill's directory and declared backend without reading its body."""
+    root = root.resolve()
+    if not root.is_dir():
+        raise ValueError(f"Skill root is not a directory: {root}")
+    indexed = _indexed_skills(root)
+    if indexed is not None:
+        return indexed
+    return {
+        path.parent.name: (_directory(root, path.parent.name, path.parent.name), None)
+        for path in sorted(root.glob("*/SKILL.md"))
+    }
 
 
 def skill_directories(root: Path) -> dict[str, Path]:
     """Resolve registered skill locations without reading instruction bodies."""
-    root = root.resolve()
-    if not root.is_dir():
-        raise ValueError(f"Skill root is not a directory: {root}")
-    indexed = _indexed_directories(root)
-    if indexed is not None:
-        return indexed
-    return {
-        path.parent.name: _directory(root, path.parent.name, path.parent.name)
-        for path in sorted(root.glob("*/SKILL.md"))
-    }
+    return {name: directory for name, (directory, _) in skill_registrations(root).items()}
 
 
 def skill_directory(root: Path, name: str) -> Path:
     """Resolve one named skill in an indexed library or a legacy flat root."""
     _skill_name(name)
     root = root.resolve()
-    indexed = _indexed_directories(root)
+    indexed = _indexed_skills(root)
     if indexed is None:
         return _directory(root, name, name)
     if name not in indexed:
         raise ValueError(f"Unknown skill: {name}")
-    return indexed[name]
+    return indexed[name][0]
 
 
 def _entry(directory: Path, filename: str) -> Path:

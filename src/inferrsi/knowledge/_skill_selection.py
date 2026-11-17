@@ -8,6 +8,12 @@ from ._source_snapshot import source_entry
 
 TASK_RELEVANCE = "task-lexical-v1"
 RELEVANCE_METHODS = ("weighted-lexical-v1", "weighted-raw-string-v1", TASK_RELEVANCE)
+TASK_STOP_WORDS = frozenset({"a", "an", "and", "for", "in", "of", "on", "the", "to", "with"})
+
+_BACKEND_TERMS = {
+    "cuda": {"cuda", "nvidia"}, "rocm": {"rocm", "amd"},
+    "ascend": {"ascend", "cann"}, "mlx": {"mlx"}, "cpu": {"cpu"},
+}
 
 
 class SkillIndexError(ValueError):
@@ -16,6 +22,10 @@ class SkillIndexError(ValueError):
 
 def words(cue: str) -> set[str]:
     return set(re.findall(r"\w+", cue.casefold()))
+
+
+def named_backends(terms: set[str]) -> set[str]:
+    return {backend for backend, names in _BACKEND_TERMS.items() if names & terms}
 
 
 def lexical_score(cue: str, fields: list[tuple[int, object]]) -> int:
@@ -124,7 +134,7 @@ def task_score(cue: str, record: dict, core: bytes, backend: str | None,
     def terms(text: str) -> set[str]:
         return set(re.findall(r"[^\W_]+", text.casefold()))
 
-    tokens = terms(cue) - {"a", "an", "and", "for", "in", "of", "on", "the", "to", "with"}
+    tokens = terms(cue) - TASK_STOP_WORDS
     fields = (
         (4, record["title"]),
         (3, record["summary"]),
@@ -137,11 +147,7 @@ def task_score(cue: str, record: dict, core: bytes, backend: str | None,
     score = sum(components)
     # With no platform in scope prefer portable procedures to a specialization
     # that happens to repeat the same task words in its description.
-    platforms = {
-        "cuda": {"cuda", "nvidia"}, "rocm": {"rocm", "amd"},
-        "ascend": {"ascend", "cann"}, "mlx": {"mlx"}, "cpu": {"cpu"},
-    }
-    in_scope = {backend} if backend else {key for key, names in platforms.items() if names & tokens}
+    in_scope = {backend} if backend else named_backends(tokens)
     multiplier = 2 if record["backend"] == "common" or record["backend"] in in_scope else 1
     if explanation is not None:
         explanation.update(score=score * multiplier, components=dict(zip(

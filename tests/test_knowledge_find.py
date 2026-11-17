@@ -93,6 +93,39 @@ def test_repeated_query_terms_contribute_once(corpus):
     assert repeated["items"] == single["items"]
 
 
+@pytest.mark.parametrize("query", [
+    "CUDA graph capture",
+    "How should I warm up CUDA graph capture?",
+])
+def test_cuda_graph_capture_queries_reach_cuda_guidance(corpus, query):
+    result = find(query, corpus, limit=3, explain=True)
+    assert _ranked(result, "pytorch.cuda.compiler.cudagraph_shapes_and_lifetimes") == 1
+    assert _ranked(result, "skill-evolution-playbook") is None
+
+
+def test_question_words_leave_negation_and_timing_terms():
+    query_tokens, _ = expand("How should I test before capture and not after, without allocation?")
+    assert set(query_tokens).isdisjoint({"how", "should", "i", "and"})
+    assert {"before", "after", "not", "without", "capture"} <= set(query_tokens)
+
+
+def test_backend_preference_keeps_cross_backend_matches():
+    corpus = Corpus([
+        Document(
+            identity=backend, kind="skill", state="candidate", path=None,
+            title="Graph capture", summary="", fields={"title": "graph capture"},
+            backend=backend,
+        )
+        for backend in ("ascend", "common", "cuda")
+    ])
+    cuda = find("NVIDIA graph capture", corpus)
+    assert [item["id"] for item in cuda["items"]] == ["common", "cuda", "ascend"]
+    comparison = find("CUDA and Ascend graph capture", corpus)
+    assert len({item["score"] for item in comparison["items"]}) == 1
+    general = find("graph capture", corpus)
+    assert len({item["score"] for item in general["items"]}) == 1
+
+
 def test_cjk_query_is_cut_into_bigrams(corpus):
     """Single characters make idf treat particles as rare terms; pairs carry terms."""
     assert tokens("缓存 optimization") == ["optimization", "缓存"]
@@ -143,7 +176,8 @@ def test_ties_break_towards_stronger_evidence():
 
 def test_findings_are_ordered_by_query_overlap_and_truncated(corpus):
     result = find("cache per-step masks ran out of device memory", corpus, limit=5)
-    item = next(i for i in result["items"] if i["id"] == "case.qwen-ascend-rejected-directions")
+    item = result["items"][0]
+    assert item["id"] == "case.qwen-ascend-rejected-directions"
     top = item["findings"][0]
     assert "per-step masks" in top["direction"] and "prompt tensors" in top["direction"]
     assert top["outcome"] == "rejected"
