@@ -200,9 +200,10 @@ matching, not a learned ranking, and a hit never asserts that an entry applies.
 
 Common English function and question words such as `the`, `how` and `should`
 are omitted. Conditions such as `not`, `without`, `before` and `after` still
-contribute. When a query names exactly one supported backend, results declared
-for a different backend receive half their lexical score. `--explain` reports
-the adjusted contribution of each matched term.
+contribute. Backend preference uses platform names in the original query,
+including `昇腾` for Ascend. When the query names exactly one supported backend,
+results declared for a different backend receive half their lexical score.
+`--explain` reports the adjusted contribution of each matched term.
 
 Chinese query terms expand through `data/query_aliases.json` before ranking.
 The packaged library is English by policy while its readers work in Chinese, and

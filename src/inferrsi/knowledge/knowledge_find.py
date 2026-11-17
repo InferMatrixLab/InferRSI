@@ -77,6 +77,7 @@ _QUERY_STOP_WORDS = TASK_STOP_WORDS | {
     "how", "what", "why", "which", "where", "who", "can", "could", "should", "would",
     "i", "you", "we", "do", "does", "did", "is", "are", "was", "were",
 }
+_BACKEND_NAME_ALIASES = {"昇腾": "ascend"}
 _MAX_SNIPPET = 400
 # A case can record a dozen directions; listing all of them buries the one the
 # caller asked about. The rest stay available through the cited file.
@@ -731,9 +732,11 @@ def _why_unreadable(document: Document, readers: dict) -> str | None:
 def find(query: str, corpus: Corpus, *, limit: int = 5, explain: bool = False) -> dict:
     if type(limit) is not int or limit < 1:
         raise ValueError("limit must be a positive integer")
-    query_tokens, applied = expand(query)
-    backends = named_backends(set(query_tokens))
+    # A topic alias can add backend terms for matching, as 图模式 adds cuda graph.
+    explicit_terms = {_BACKEND_NAME_ALIASES.get(term, term) for term in tokens(query)}
+    backends = named_backends(explicit_terms)
     query_backend = next(iter(backends)) if len(backends) == 1 else None
+    query_tokens, applied = expand(query)
     scored = []
     for index, document in enumerate(corpus.documents):
         value, detail = corpus.score(index, query_tokens, query_backend=query_backend)

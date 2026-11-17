@@ -109,8 +109,9 @@ def test_question_words_leave_negation_and_timing_terms():
     assert {"before", "after", "not", "without", "capture"} <= set(query_tokens)
 
 
-def test_backend_preference_keeps_cross_backend_matches():
-    corpus = Corpus([
+@pytest.fixture
+def graph_backends():
+    return Corpus([
         Document(
             identity=backend, kind="skill", state="candidate", path=None,
             title="Graph capture", summary="", fields={"title": "graph capture"},
@@ -118,12 +119,29 @@ def test_backend_preference_keeps_cross_backend_matches():
         )
         for backend in ("ascend", "common", "cuda")
     ])
-    cuda = find("NVIDIA graph capture", corpus)
+
+
+def test_backend_preference_keeps_cross_backend_matches(graph_backends):
+    cuda = find("NVIDIA graph capture", graph_backends)
     assert [item["id"] for item in cuda["items"]] == ["common", "cuda", "ascend"]
-    comparison = find("CUDA and Ascend graph capture", corpus)
+    comparison = find("CUDA and Ascend graph capture", graph_backends)
     assert len({item["score"] for item in comparison["items"]}) == 1
-    general = find("graph capture", corpus)
+    general = find("graph capture", graph_backends)
     assert len({item["score"] for item in general["items"]}) == 1
+
+
+def test_graph_mode_alias_matches_without_backend_preference(graph_backends):
+    result = find("图模式", graph_backends)
+    assert "cuda" in result["tokens"]
+    scores = {item["id"]: item["score"] for item in result["items"]}
+    assert scores["ascend"] == scores["cuda"]
+
+
+def test_explicit_ascend_preference_survives_graph_mode_alias(graph_backends):
+    result = find("昇腾 图模式", graph_backends)
+    assert "cuda" in result["tokens"]
+    scores = {item["id"]: item["score"] for item in result["items"]}
+    assert scores["ascend"] > scores["cuda"]
 
 
 def test_cjk_query_is_cut_into_bigrams(corpus):

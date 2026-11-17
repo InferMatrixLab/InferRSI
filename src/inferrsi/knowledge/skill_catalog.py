@@ -128,6 +128,14 @@ def _indexed_skills(root: Path) -> dict[str, tuple[Path, str | None]] | None:
     return registrations
 
 
+def _indexed_directories(root: Path) -> dict[str, Path] | None:
+    """Return the path-only view of the registered skills."""
+    indexed = _indexed_skills(root)
+    if indexed is None:
+        return None
+    return {name: directory for name, (directory, _) in indexed.items()}
+
+
 def skill_registrations(root: Path) -> dict[str, tuple[Path, str | None]]:
     """Resolve each skill's directory and declared backend without reading its body."""
     root = root.resolve()
@@ -151,12 +159,12 @@ def skill_directory(root: Path, name: str) -> Path:
     """Resolve one named skill in an indexed library or a legacy flat root."""
     _skill_name(name)
     root = root.resolve()
-    indexed = _indexed_skills(root)
+    indexed = _indexed_directories(root)
     if indexed is None:
         return _directory(root, name, name)
     if name not in indexed:
         raise ValueError(f"Unknown skill: {name}")
-    return indexed[name][0]
+    return indexed[name]
 
 
 def _entry(directory: Path, filename: str) -> Path:
