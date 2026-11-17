@@ -70,12 +70,13 @@ jobs:
         run: |
           python -m pip install -e ".[dev]" playwright
           python -m playwright install --with-deps chromium
-      - name: Test dashboard navigation and live refresh in Chromium
+      - name: Test dashboards and offline delivery reports in Chromium
         run: |
           python -m pytest -vv -o addopts='' \
             tests/test_profile_story_checks.py::test_profile_and_trace_shortcuts_open_recorded_evidence \
             tests/test_knowledge_navigation_browser.py \
             tests/test_dashboard_experiments_browser.py \
+            tests/test_result_delivery.py::test_offline_html_remains_readable_without_scripts_or_network \
             --junitxml="$RUNNER_TEMP/dashboard-browser-results.xml"
       - name: Retain browser test results
         if: always()

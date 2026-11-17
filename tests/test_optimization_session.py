@@ -151,6 +151,12 @@ def test_real_loop_rejects_bad_round_keeps_best_and_retests_independently(sessio
     assert main(["benchmarks", "session", "final", "--session", str(session)]) == 0
     final = json.loads(capsys.readouterr().out)
     assert final["state"] == "completed"
+    from inferrsi.apps.delivery import read_bundle
+
+    assert final["delivery"]["status"] == "published"
+    delivery = read_bundle(session / "delivery" / final["delivery"]["export_id"])
+    assert delivery["acceptance"]["verdict"] == "PASS"
+    assert delivery["outcome"]["kind"] == "improved"
     assert (session / "calls.log").read_text().splitlines() == [*map(str, factors), "2"]
     assert failed_record.read_bytes() == failed_bytes
     state = json.loads((session / "state.json").read_text())
@@ -201,6 +207,30 @@ def test_final_cannot_skip_optimization_rounds(session):
         main(["benchmarks", "session", "final", "--session", str(session)])
     assert error.value.code == 2
     assert not (session / "final").exists()
+
+
+def test_final_report_error_preserves_execution_outcome_and_can_be_exported_later(
+    session, capsys, monkeypatch,
+):
+    from inferrsi.apps import delivery
+
+    for factor in (2, 3, 4):
+        submit(session, factor, capsys)
+    original = delivery.export_bundle
+
+    def fail(*args, **kwargs):
+        raise OSError("Synthetic publication failure")
+
+    monkeypatch.setattr(delivery, "export_bundle", fail)
+    assert main(["benchmarks", "session", "final", "--session", str(session)]) == 0
+    result = json.loads(capsys.readouterr().out)
+    assert result["state"] == "completed" and result["delivery"]["status"] == "error"
+    calls = (session / "calls.log").read_bytes()
+    monkeypatch.setattr(delivery, "export_bundle", original)
+    assert main(["export", "--input", str(session),
+                 "--output", str(session / "delivery" / "retry")]) == 0
+    assert json.loads(capsys.readouterr().out)["status"] == "published"
+    assert (session / "calls.log").read_bytes() == calls
 
 
 def test_missing_usage_remains_unknown_and_baseline_noise_is_not_a_gain(session, capsys):

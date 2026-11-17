@@ -1,5 +1,11 @@
 # Optimize a task through RSI in its execution Agent session
 
+The CLI `final` operation automatically publishes a [result delivery](result-delivery.md)
+under `delivery/<export-id>/`: lead the response with the conclusion and `report.md`,
+then `report.html` (**Open in a browser**), `campaign-result.json`, and retained code.
+Execution and export outcomes are separate. Use `inferrsi export --input <session>
+--output <new-directory>` for progress or a delivery retry without remeasurement.
+
 An optimization benchmark covers the Agent's complete search under a frozen
 task and budget. The execution Agent proposes changes, uses permitted knowledge,
 submits candidates, reads independent feedback and completes the declared rounds.
