@@ -23,6 +23,7 @@ from inferrsi.infra.confinement import (
     minimal_environment,
     namespace_plan,
     namespaces_available,
+    runtime_roots,
     select_backend,
     supervisor_command,
 )
@@ -233,6 +234,33 @@ def test_namespace_plan_includes_the_loader_but_not_a_private_file(tmp_path, mon
     assert "/" not in sources
     assert str(private) not in sources
     assert "SECRET_CANARY" not in plan["env"]
+
+
+def test_runtime_roots_include_stdlib_without_mounting_usr():
+    import sysconfig
+
+    roots = runtime_roots()
+    assert Path("/") not in roots
+    assert Path("/usr") not in roots
+    stdlib = Path(sysconfig.get_path("stdlib")).resolve()
+    assert any(root == stdlib or stdlib.is_relative_to(root) for root in roots)
+    if Path(sys.prefix).resolve() != Path(sys.base_prefix).resolve():
+        assert Path(sys.prefix).resolve() in roots
+
+
+@pytest.mark.skipif(not namespaces_available(), reason="user namespaces are unavailable")
+def test_unshare_from_venv_can_import_encodings(tmp_path):
+    work = tmp_path / "work"
+    work.mkdir()
+    record = UnshareBackend().run(
+        (sys.executable, "-c", "import encodings; print(encodings.__file__)"),
+        work,
+        (work,),
+        (),
+        time.monotonic() + 30,
+    )
+    assert record["status"] == "completed"
+    assert "encodings" in record["stdout"]
 
 
 @pytest.mark.skipif(not namespaces_available(), reason="user namespaces are unavailable")

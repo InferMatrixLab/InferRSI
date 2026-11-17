@@ -2,6 +2,7 @@
 
 import json
 import os
+import shutil
 import subprocess
 import sys
 import threading
@@ -10,14 +11,13 @@ from pathlib import Path
 
 import pytest
 
+from inferrsi.apps.parallel_round import close_round, serve_ticket
 from inferrsi.harness import parallel_round
 from inferrsi.harness.parallel_round import (
     RoundPlanError,
     _read_nofollow,
-    close_round,
     hold_devices,
     prepare,
-    serve_ticket,
     submit,
     ticket_status,
 )
@@ -186,6 +186,57 @@ def test_submit_rejects_paths_outside_the_lane_and_is_idempotent(tmp_path):
     second = submit(round_dir, "L1", incumbent, work)
     assert first["submitted"] is True
     assert first["ticket"] == second["ticket"]
+
+
+def test_submit_rejects_new_protected_and_cross_lane_owned_paths(tmp_path):
+    """prepare only sees the incumbent; submit must police concrete new paths."""
+    incumbent = tmp_path / "incumbent"
+    _tree(incumbent, "10")
+    round_dir = tmp_path / "round"
+    prepare(
+        _spec(
+            protected=["new/protected.txt"],
+            lanes=[
+                {
+                    "id": "L1",
+                    "entry": "D-01",
+                    "plane": "infra",
+                    "globs": ["new/*"],
+                    "cap": 2,
+                    "per_attempt_worst_case": 1,
+                    "deadline_utc": "2099-01-01T00:00:00+00:00",
+                },
+                {
+                    "id": "L2",
+                    "entry": "D-02",
+                    "plane": "harness",
+                    "globs": ["new/*.txt"],
+                    "cap": 2,
+                    "per_attempt_worst_case": 1,
+                    "deadline_utc": "2099-01-01T00:00:00+00:00",
+                },
+            ],
+        ),
+        incumbent,
+        round_dir,
+    )
+    work = tmp_path / "work"
+    shutil.copytree(incumbent, work)
+    (work / "new").mkdir()
+    (work / "new" / "protected.txt").write_text("x", encoding="utf-8")
+    for lane_id in ("L1", "L2"):
+        refused = submit(round_dir, lane_id, incumbent, work)
+        assert refused["submitted"] is False
+        assert refused["reason"] == "protected"
+        assert refused["rejected"] == ["new/protected.txt"]
+    (work / "new" / "protected.txt").unlink()
+    (work / "new" / "shared.txt").write_text("y", encoding="utf-8")
+    for lane_id in ("L1", "L2"):
+        refused = submit(round_dir, lane_id, incumbent, work)
+        assert refused["submitted"] is False
+        assert refused["reason"] == "overlap"
+        assert refused["rejected"] == ["new/shared.txt"]
+    assert not (round_dir / "outbox").exists()
 
 
 def test_serve_records_a_synthetic_gain_and_a_held_device_stays_queued(tmp_path):
