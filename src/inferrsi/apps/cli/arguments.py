@@ -237,6 +237,11 @@ def parser() -> argparse.ArgumentParser:
     trace = commands.add_parser("trace", help="Read recorded steps, checks and errors")
     _fixed_attempt_args(trace)
 
+    delivery = commands.add_parser("export", help="Export retained results without remeasurement")
+    delivery.add_argument("--input", type=Path, required=True, help="Campaign, run or record JSON")
+    delivery.add_argument("--output", type=Path, required=True, help="New delivery directory")
+    delivery.add_argument("--export-id", help="Optional identity for publication reconciliation")
+
     dashboard = commands.add_parser(
         "dashboard", help="Export an offline dashboard for one run or recorded campaign"
     )

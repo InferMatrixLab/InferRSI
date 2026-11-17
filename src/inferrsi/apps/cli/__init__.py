@@ -240,6 +240,12 @@ def main(argv: list[str] | None = None) -> int:
     argument_parser = parser()
     args = argument_parser.parse_args(argv)
     try:
+        if args.command == "export":
+            from ..delivery import export_bundle
+
+            delivery = export_bundle(args.input, args.output, export_id=args.export_id)
+            _print(delivery)
+            return 0 if delivery["status"] == "published" else 2
         if args.command == "mindie":
             from ..mindie.project import dispatch
 
@@ -272,6 +278,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "benchmarks":
             if args.benchmark_action == "session":
                 from ...harness.optimization_session import session_command
+                from ..delivery import after_final
 
                 task_source = None
                 if args.session_action == "start":
@@ -284,7 +291,7 @@ def main(argv: list[str] | None = None) -> int:
                     knowledge_reader=(KnowledgeReader()
                                       if args.session_action == "knowledge" else None),
                 )
-                _print(result)
+                _print(after_final(args, result))
                 return 2 if result.get("state") == "blocked" else 0
             if args.benchmark_action == "run":
                 from ..benchmark_operations import run_task
@@ -521,6 +528,7 @@ def main(argv: list[str] | None = None) -> int:
                 return 0
             if getattr(args, "session_action", None) is not None:
                 from ...harness.optimization_session import session_command
+                from ..delivery import after_final
 
                 result = session_command(
                     args,
@@ -528,7 +536,7 @@ def main(argv: list[str] | None = None) -> int:
                     knowledge_reader=(KnowledgeReader()
                                       if args.session_action == "knowledge" else None),
                 )
-                _print(result)
+                _print(after_final(args, result))
                 return 2 if result.get("state") == "blocked" else 0
             from ...harness.records.campaign_records import (
                 assemble_trace,

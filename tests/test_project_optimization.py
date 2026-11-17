@@ -128,7 +128,14 @@ def test_project_runs_shared_rounds_and_final_from_retained_multifile_candidate(
     (repo / "engine.py").write_text("raise RuntimeError('unsubmitted edit')", encoding="utf-8")
     assert main(["campaign", "final", "--directory", str(root),
                  "--reason", "Caller ended the up-to-budget search"]) == 0
-    capsys.readouterr()
+    receipt = json.loads(capsys.readouterr().out)
+    from inferrsi.apps.delivery import read_bundle
+
+    assert receipt["delivery"]["status"] == "published"
+    delivery = read_bundle(root / "delivery" / receipt["delivery"]["export_id"])
+    assert delivery["completion"]["status"] == "completed"
+    assert delivery["outcome"]["kind"] == "improved"
+    assert delivery["acceptance"]["delivery_accepted"] is True
     plan, state, summary = read_records(root)
     assert plan["round_mode"] == "up_to" and summary["completed_rounds"] == 1
     assert state["final"]["assessment"]["verdict"] == "PASS"
