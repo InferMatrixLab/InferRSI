@@ -14,6 +14,13 @@ def _parse_sysctl_info(stdout: str) -> tuple[bool, str]:
     return flag == "1", chip
 
 
+def _model_names(chip: str) -> set[str]:
+    # A chip is selected by its whole name, with or without the "Apple" prefix,
+    # so "M1" or "Pro" never selects an "Apple M1 Pro".
+    name = " ".join(chip.casefold().split())
+    return {name, name.removeprefix("apple ")}
+
+
 def inspect_devices(*, device_ids, device_model, command):
     result = {"status": "unavailable", "tool": "sysctl", "selection_verified": False}
     if device_ids:
@@ -36,7 +43,7 @@ def inspect_devices(*, device_ids, device_model, command):
     result["chip"] = chip
     if not arm64:
         result["reason"] = "Host is not Apple Silicon"
-    elif device_model and device_model.casefold() not in chip.casefold():
+    elif device_model and " ".join(device_model.casefold().split()) not in _model_names(chip):
         result["status"] = "device_model_mismatch"
         result["reason"] = "Discovered chip does not match the requested device model"
     else:
