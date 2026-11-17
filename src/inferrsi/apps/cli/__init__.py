@@ -157,7 +157,7 @@ def main(argv: list[str] | None = None) -> int:
     args = argument_parser.parse_args(argv)
     try:
         if args.command == "mindie":
-            from ...mindie_project import dispatch
+            from ..mindie.project import dispatch
 
             result = dispatch(args)
             if result is not None:
@@ -408,7 +408,7 @@ def main(argv: list[str] | None = None) -> int:
 
         if args.command == "campaign":
             if args.campaign_action == "import-mindie":
-                from ...mindie_context import export_context
+                from ..mindie.context import export_context
 
                 path = export_context(
                     args.directory, context_id=args.id, query_input=args.query_input,

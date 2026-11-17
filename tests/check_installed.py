@@ -5,6 +5,7 @@ import json
 import os
 import subprocess
 import sys
+import tempfile
 from importlib import import_module
 from importlib.resources import as_file, files
 from importlib.util import find_spec
@@ -647,13 +648,12 @@ for retired, canonical in r1_retired.items():
     else:
         raise AssertionError(f"retired module inferrsi.{retired} must not import")
 assert not installed_root & {f"{name}.py" for name in r1_retired}
-assert installed_root - {"_version.py"} == {
-    "__init__.py", "__main__.py", "_mindie_read_worker.py",
-    "mindie_context.py", "mindie_mcp.py", "mindie_project.py",
-}, sorted(installed_root)
+assert installed_root - {"_version.py"} == {"__init__.py", "__main__.py"}, sorted(installed_root)
 # #408 A1: the CLI and its parser ship only as inferrsi.apps.cli; neither root name imports.
 # #408 A2: the chart renderer and the task launcher ship only under inferrsi.apps.
-for a1_retired in ("cli", "arguments", "summary_chart", "benchmark_operations"):
+# #452 M1: the MindIE adapter ships only as inferrsi.apps.mindie.
+for a1_retired in ("cli", "arguments", "summary_chart", "benchmark_operations",
+                   "mindie_project", "mindie_context", "mindie_mcp", "_mindie_read_worker"):
     assert find_spec(f"inferrsi.{a1_retired}") is None, a1_retired
     assert f"inferrsi.{a1_retired}" not in sys.modules, a1_retired
     try:
@@ -663,7 +663,9 @@ for a1_retired in ("cli", "arguments", "summary_chart", "benchmark_operations"):
     else:
         raise AssertionError(f"retired module inferrsi.{a1_retired} must not import")
 assert main.__module__ == "inferrsi.apps.cli"
-for canonical in ("inferrsi.apps.views.summary_chart", "inferrsi.apps.benchmark_operations"):
+for canonical in ("inferrsi.apps.views.summary_chart", "inferrsi.apps.benchmark_operations",
+                  "inferrsi.apps.mindie.project", "inferrsi.apps.mindie.context",
+                  "inferrsi.apps.mindie.mcp", "inferrsi.apps.mindie.read_worker"):
     assert find_spec(canonical) is not None, canonical
 assert import_module("inferrsi.apps.views.summary_chart").main.__module__ == (
     "inferrsi.apps.views.summary_chart"
@@ -689,3 +691,76 @@ facade = subprocess.run(
     [sys.executable, "-I", "-c", facade_probe], capture_output=True, text=True, check=False,
 )
 assert facade.returncode == 0, facade.stderr
+# #452 M1: the MindIE adapter ships in the wheel. A fresh isolated interpreter imports the
+# package initializer with no core loaded and without a re-exported version, then imports
+# the stdio MCP module through its absolute package path.
+mindie_probe = (
+    "import sys\n"
+    "import inferrsi.apps.mindie as adapter\n"
+    "loaded = {name for name in sys.modules if name.split('.')[0] == 'inferrsi'}\n"
+    "allowed = {'inferrsi', 'inferrsi._version', 'inferrsi.apps', 'inferrsi.apps.mindie'}\n"
+    "assert loaded <= allowed, sorted(loaded - allowed)\n"
+    "assert not hasattr(adapter, '__version__')\n"
+    "from inferrsi.apps.mindie import mcp\n"
+    "import inferrsi\n"
+    "reply = mcp._reply('initialize', {'protocolVersion': '2025-11-25'})\n"
+    "assert reply['serverInfo']['version'] == inferrsi.__version__, reply\n"
+    "assert mcp.__file__.startswith(adapter.__path__[0]), mcp.__file__\n"
+)
+mindie = subprocess.run(
+    [sys.executable, "-I", "-B", "-c", mindie_probe], capture_output=True, text=True, check=False,
+)
+assert mindie.returncode == 0, mindie.stderr
+# The worker ships as a plain file beside the adapter. It is started by file path under
+# ``-I -B`` with no package context, so it must load without a package-relative import.
+worker_file = files("inferrsi").joinpath("apps", "mindie", "read_worker.py")
+assert worker_file.is_file()
+with as_file(worker_file) as worker_path:
+    worker_probe = (
+        "import ast, runpy, sys\n"
+        f"path = {str(worker_path)!r}\n"
+        "tree = ast.parse(open(path, encoding='utf-8').read())\n"
+        "top = [node for node in tree.body if isinstance(node, (ast.Import, ast.ImportFrom))]\n"
+        "assert all(not (isinstance(node, ast.ImportFrom) and node.level) for node in top)\n"
+        "assert all((node.module if isinstance(node, ast.ImportFrom) else node.names[0].name)\n"
+        "           .split('.')[0] in sys.stdlib_module_names for node in top)\n"
+        "namespace = runpy.run_path(path, run_name='not_main')\n"
+        "assert callable(namespace['read'])\n"
+        "assert not [name for name in sys.modules if name.split('.')[0] in\n"
+        "            ('inferrsi', 'mindie_knowledge')]\n"
+    )
+    worker = subprocess.run(
+        [sys.executable, "-I", "-B", "-c", worker_probe], capture_output=True, text=True,
+        check=False,
+    )
+assert worker.returncode == 0, worker.stderr
+# The installed adapter launches that worker through its own ``_WORKER`` lookup and the
+# real ``python -I -B <worker>`` entry. From a temporary cwd, with a synthetic grant whose
+# engine file does not exist and no MindIE library, the read must end in the worker's
+# fixed structured rejection, not a missing-file or non-JSON failure.
+launch_probe = (
+    "import json, sys\n"
+    "from pathlib import Path\n"
+    "import inferrsi.apps.mindie as adapter\n"
+    "from inferrsi.apps.mindie import project\n"
+    "assert project._WORKER == Path(adapter.__path__[0]) / 'read_worker.py', project._WORKER\n"
+    "assert project._WORKER.is_file()\n"
+    "grant = {'python': sys.executable, 'engine': str(Path.cwd() / 'missing-engine.json'),\n"
+    "         'domain': 'probe'}\n"
+    "try:\n"
+    "    project._worker(grant, 'describe', b'{}')\n"
+    "except project.ReadFailure as exc:\n"
+    "    failure = exc\n"
+    "else:\n"
+    "    raise AssertionError('the synthetic read must be rejected')\n"
+    "expected = 'The local MindIE catalog is unavailable'\n"
+    "assert str(failure) == expected, str(failure)\n"
+    "assert failure.exit_code == 1, failure.exit_code\n"
+    "assert json.loads(failure.response) == {'isError': True, 'error': expected}\n"
+)
+with tempfile.TemporaryDirectory(prefix="inferrsi-mindie-launch-") as launch_cwd:
+    launch = subprocess.run(
+        [sys.executable, "-I", "-B", "-c", launch_probe], capture_output=True, text=True,
+        check=False, cwd=launch_cwd,
+    )
+assert launch.returncode == 0, launch.stderr

@@ -1,14 +1,13 @@
 """Exact inventory of the files directly under ``src/inferrsi/``.
 
-Set by #451 C1, C2, #412 R1 and #408 A1, A2. The flat package root is being retired.
-This guard pins the root to the exact file
-set left after A2 and rejects any other root file. The last removal PR (M1)
-shrinks ``ROOT_FILES`` in the same change, until only ``__init__.py`` and
-``__main__.py`` remain. It does not assert that final state early.
+Set by #451 C1, C2, #412 R1 and #408 A1, A2 and #452 M1. The flat package root is
+retired. This guard pins the root to the exact two files that remain, ``__init__.py``
+and ``__main__.py``, and rejects any other root file.
 """
 
 from __future__ import annotations
 
+import ast
 import subprocess
 from pathlib import Path
 
@@ -17,9 +16,11 @@ import pytest
 REPO = Path(__file__).resolve().parents[1]
 PACKAGE = "src/inferrsi"
 # The 27 tracked root files before C1, minus the four that C1 moved into contracts/,
-# the two that C2 moved into resources/, contracts/ and apps/, and the eleven that R1
+# the two that C2 moved into resources/, contracts/ and apps/, the eleven that R1
 # retired: seven Knowledge shells, three old-run forwarders and the root inspection
-# binding, whose implementations are in knowledge/ and apps/.
+# binding, whose implementations are in knowledge/ and apps/, the two that A1 moved
+# into apps/cli/, the two that A2 moved into apps/ and the four that M1 moved into
+# apps/mindie/.
 RETIRED_BY_C1 = frozenset({"_json_v1.py", "claim.py", "contracts.py", "runspec.py"})
 RETIRED_BY_C2 = frozenset({"_repo_pack_data.py", "evidence_paths.py"})
 RETIRED_BY_R1 = frozenset(
@@ -42,17 +43,14 @@ RETIRED_BY_A1 = frozenset({"arguments.py", "cli.py"})
 # A2 (#408) moved the chart renderer to apps/views/ and the task launcher to apps/, and
 # deleted both root files.
 RETIRED_BY_A2 = frozenset({"benchmark_operations.py", "summary_chart.py"})
-RETIRED = RETIRED_BY_C1 | RETIRED_BY_C2 | RETIRED_BY_R1 | RETIRED_BY_A1 | RETIRED_BY_A2
-ROOT_FILES = frozenset(
-    {
-        "__init__.py",
-        "__main__.py",
-        "_mindie_read_worker.py",
-        "mindie_context.py",
-        "mindie_mcp.py",
-        "mindie_project.py",
-    }
+# M1 (#452) moved the MindIE adapter to apps/mindie/ and deleted the four root files.
+RETIRED_BY_M1 = frozenset(
+    {"_mindie_read_worker.py", "mindie_context.py", "mindie_mcp.py", "mindie_project.py"}
 )
+RETIRED = (
+    RETIRED_BY_C1 | RETIRED_BY_C2 | RETIRED_BY_R1 | RETIRED_BY_A1 | RETIRED_BY_A2 | RETIRED_BY_M1
+)
+ROOT_FILES = frozenset({"__init__.py", "__main__.py"})
 # setuptools-scm writes this file at build time. It is gitignored wheel metadata and is
 # never a tracked root file.
 GENERATED = "_version.py"
@@ -90,26 +88,36 @@ def root_files(repo: Path) -> set[str]:
     return present - _listed(repo, "--deleted")
 
 
-def test_inventory_is_the_exact_post_a2_set() -> None:
-    assert len(ROOT_FILES) == 6
+def test_inventory_is_the_exact_final_two_file_root() -> None:
+    assert len(ROOT_FILES) == 2
     assert len(RETIRED_BY_C1) == 4 and len(RETIRED_BY_C2) == 2 and len(RETIRED_BY_R1) == 11
     assert RETIRED_BY_A1 == {"arguments.py", "cli.py"}
     assert RETIRED_BY_A2 == {"benchmark_operations.py", "summary_chart.py"}
-    assert not ROOT_FILES & RETIRED
-    assert len(RETIRED) == 21
-    # 27 before C1, 23 after C1, 21 after C2, 10 after R1, 8 after A1, 6 after A2.
-    assert len(ROOT_FILES | RETIRED) == 27
-    assert len(ROOT_FILES | RETIRED_BY_C2 | RETIRED_BY_R1 | RETIRED_BY_A1 | RETIRED_BY_A2) == 23
-    assert len(ROOT_FILES | RETIRED_BY_R1 | RETIRED_BY_A1 | RETIRED_BY_A2) == 21
-    assert len(ROOT_FILES | RETIRED_BY_A1 | RETIRED_BY_A2) == 10
-    assert len(ROOT_FILES | RETIRED_BY_A2) == 8
-    assert GENERATED not in ROOT_FILES
-    assert {"__init__.py", "__main__.py"} <= ROOT_FILES
-    # The final two-file root waits for the M1 move; it is not asserted here.
-    # These four are its move targets and stay until then.
-    assert ROOT_FILES - {"__init__.py", "__main__.py"} == {
+    assert RETIRED_BY_M1 == {
         "_mindie_read_worker.py", "mindie_context.py", "mindie_mcp.py", "mindie_project.py",
     }
+    assert not ROOT_FILES & RETIRED
+    assert len(RETIRED) == 25
+    # 27 before C1, 23 after C1, 21 after C2, 10 after R1, 8 after A1, 6 after A2, 2 after M1.
+    assert len(ROOT_FILES | RETIRED) == 27
+    assert len(
+        ROOT_FILES | RETIRED_BY_C2 | RETIRED_BY_R1 | RETIRED_BY_A1 | RETIRED_BY_A2 | RETIRED_BY_M1
+    ) == 23
+    assert len(ROOT_FILES | RETIRED_BY_R1 | RETIRED_BY_A1 | RETIRED_BY_A2 | RETIRED_BY_M1) == 21
+    assert len(ROOT_FILES | RETIRED_BY_A1 | RETIRED_BY_A2 | RETIRED_BY_M1) == 10
+    assert len(ROOT_FILES | RETIRED_BY_A2 | RETIRED_BY_M1) == 8
+    assert len(ROOT_FILES | RETIRED_BY_M1) == 6
+    assert GENERATED not in ROOT_FILES
+    assert ROOT_FILES == {"__init__.py", "__main__.py"}
+    # M1 moved its four files; the implementation is the apps/mindie package.
+    for name in ("project.py", "context.py", "mcp.py", "read_worker.py"):
+        assert (REPO / PACKAGE / "apps" / "mindie" / name).is_file(), name
+    # The package initializer stays import-free, so importing it loads no core and
+    # does not re-export the package version.
+    initializer = ast.parse((REPO / PACKAGE / "apps" / "mindie" / "__init__.py").read_text(
+        encoding="utf-8"))
+    assert not [node for node in ast.walk(initializer)
+                if isinstance(node, (ast.Import, ast.ImportFrom))]
     # A2 moved its two files into Apps.
     assert (REPO / PACKAGE / "apps" / "benchmark_operations.py").is_file()
     assert (REPO / PACKAGE / "apps" / "views" / "summary_chart.py").is_file()
@@ -159,21 +167,29 @@ def test_an_added_root_file_is_rejected(name: str) -> None:
 
 
 def test_a_removed_root_file_must_shrink_the_inventory() -> None:
-    worker = "_mindie_read_worker.py"
-    assert inventory_errors(set(ROOT_FILES) - {worker}) == [
-        f"missing root file {PACKAGE}/{worker}: shrink ROOT_FILES in the PR that removes it"
+    # M1 itself: the 6-file set it started from no longer matches the 2-file root, and
+    # keeping any of the four old files beside the apps/mindie package is rejected.
+    after_a2 = ROOT_FILES | RETIRED_BY_M1
+    assert inventory_errors(set(ROOT_FILES), after_a2) == [
+        f"missing root file {PACKAGE}/{name}: shrink ROOT_FILES in the PR that removes it"
+        for name in sorted(RETIRED_BY_M1)
     ]
-    # A later removal PR passes once it shrinks the expected set with the files.
-    smaller = ROOT_FILES - {worker, "mindie_context.py", "mindie_mcp.py", "mindie_project.py"}
-    assert inventory_errors(set(smaller), smaller) == []
-    # A2 itself: the 8-file set it started from no longer matches the 6-file root, and
-    # keeping either old file beside its moved module is rejected.
-    after_a1 = ROOT_FILES | RETIRED_BY_A2
-    assert inventory_errors(set(ROOT_FILES), after_a1) == [
+    assert inventory_errors(set(after_a2)) == [
+        f"unexpected root file {PACKAGE}/{name}: a new module belongs in a subpackage"
+        for name in sorted(RETIRED_BY_M1)
+    ]
+    for name in sorted(RETIRED_BY_M1):
+        assert inventory_errors(set(ROOT_FILES) | {name}) == [
+            f"unexpected root file {PACKAGE}/{name}: a new module belongs in a subpackage"
+        ]
+    # A2 itself: the 8-file set it started from no longer matched its 6-file root, and
+    # keeping either old file beside its moved module was rejected.
+    after_a1 = after_a2 | RETIRED_BY_A2
+    assert inventory_errors(set(after_a2), after_a1) == [
         f"missing root file {PACKAGE}/{name}: shrink ROOT_FILES in the PR that removes it"
         for name in sorted(RETIRED_BY_A2)
     ]
-    assert inventory_errors(set(after_a1)) == [
+    assert inventory_errors(set(after_a1), after_a2) == [
         f"unexpected root file {PACKAGE}/{name}: a new module belongs in a subpackage"
         for name in sorted(RETIRED_BY_A2)
     ]
@@ -255,7 +271,7 @@ def test_git_view_reports_root_changes_before_and_after_staging(tmp_path: Path) 
     (root / "runspec.py").write_text("", encoding="utf-8")
     assert inventory_errors(root_files(tmp_path)) == [unexpected("runspec.py")]
     (root / "runspec.py").unlink()
-    (root / "mindie_mcp.py").unlink()
+    (root / "__main__.py").unlink()
     assert inventory_errors(root_files(tmp_path)) == [
-        f"missing root file {PACKAGE}/mindie_mcp.py: shrink ROOT_FILES in the PR that removes it"
+        f"missing root file {PACKAGE}/__main__.py: shrink ROOT_FILES in the PR that removes it"
     ]

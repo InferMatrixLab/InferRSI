@@ -41,22 +41,22 @@ nothing. Neither package is a fourth core. C2 (#451) moved these out of root
 `_repo_pack_data.py` and `evidence_paths.py` and deleted both root files, with
 no forwarding shell or alias.
 
-The flat package root is retired in stages.
-`tests/test_package_root_inventory.py` pins the root to an exact file set: 23
-tracked files after C1, 21 after C2, 10 after R1 (#412), 8 after A1 (#408) and 6
-after A2 (#408). The six are `__init__.py`, `__main__.py`,
-`_mindie_read_worker.py`, `mindie_context.py`, `mindie_mcp.py` and
-`mindie_project.py`. A2 moved root `summary_chart.py` to
+The flat package root is retired. `tests/test_package_root_inventory.py` pins the
+root to an exact file set: 23 tracked files after C1, 21 after C2, 10 after R1
+(#412), 8 after A1 (#408), 6 after A2 (#408) and the final two after M1 (#452).
+The two are `__init__.py` and `__main__.py`. M1 moved root `mindie_project.py`,
+`mindie_context.py`, `mindie_mcp.py` and `_mindie_read_worker.py` to
+`apps/mindie/project.py`, `context.py`, `mcp.py` and `read_worker.py` and deleted
+the four root files with no forwarding shell or alias. A2 moved root
+`summary_chart.py` to
 `apps/views/summary_chart.py` and root `benchmark_operations.py` to
-`apps/benchmark_operations.py` and deleted both root files with no forwarding
-shell or alias. A1 moved root `cli.py` and
+`apps/benchmark_operations.py` and deleted both root files the same way. A1 moved root `cli.py` and
 `arguments.py` to `apps/cli/__init__.py` and `apps/cli/arguments.py` and
-deleted both root files the same way. The last removal PR shrinks the set in
-the same change: M1 (#452) moves the four MindIE files. The guard does
-not assert the final two-file root (`__init__.py` and `__main__.py`) early,
-and the build-generated `_version.py` is ignored wheel metadata, not a tracked
-root file. [Retired root modules](#retired-root-modules) lists the eleven
-paths that R1 removed, the two that A1 removed and the two that A2 removed.
+deleted both root files. A new root file now fails the guard, so a later module
+belongs in a subpackage. The build-generated `_version.py` is ignored wheel
+metadata, not a tracked root file. [Retired root modules](#retired-root-modules)
+lists the eleven paths that R1 removed, the two that A1 removed, the two that A2
+removed and the four that M1 removed.
 
 The current `src/inferrsi/harness/` tree is a mixed implementation. Its
 presence is not the target Harness boundary and is not evidence that the four
@@ -120,6 +120,7 @@ Several flat modules remain shared seams until their slice starts.
 | `knowledge/knowledge_operations.py`, `knowledge/knowledge_store.py`, `knowledge/catalog.py`, `knowledge/research.py`, `knowledge/skill_catalog.py`, `knowledge/_skill_selection.py`, `knowledge/_source_snapshot.py` | The seven Knowledge implementations, moved by K01 | Interfaces unchanged; the same-named root shells were deleted by R1 |
 | `harness/records/` | Campaign manifests, traces, logs, profile captures and delivered-context captures | Imports no Knowledge or Apps module; `apps/campaign.py` supplies the backend names, the selection default and the context projection |
 | `apps/views/`, `apps/campaign.py` | Dashboard views, templates and the Knowledge-to-records connection | Apps path still follows the #371 proposal |
+| `apps/mindie/` (`project.py`, `context.py`, `mcp.py`, `read_worker.py`) | The local MindIE adapter: project grant, stdio MCP, context export and the read worker | M1 (#452) moved the four root MindIE files here; no Harness, Knowledge or Infra module names MindIE, and the initializer imports nothing |
 | `harness/` | Mixed legacy tree, not target isolation | Not redefined |
 | `harness/runner.py`, `harness/scenarios/external.py`, `harness/atomic_json.py` | Old run execution facts and Harness-owned JSON writes | Ports injected; no Model edge, and no Infra edge except the local process executor |
 | `benchmark/legacy_run_v0.py`, `benchmark/sampling.py` | Old run gates and metric validation; image/video sample collection | Imports only `model/protocols/metrics`; owns its rule inputs and verdict labels |
@@ -492,10 +493,6 @@ The `inferrsi` console script and `python -m inferrsi` call
 unchanged. A test replaces a CLI name such as `_knowledge_reader` or `files` on
 `inferrsi.apps.cli`.
 
-The root now holds the six files listed under
-[Target modules](#target-modules). The final two-file root waits for the
-M1 (#452) move.
-
 A2 (#408) deleted two more root modules the same way:
 
 | Retired root module | Canonical module |
@@ -507,6 +504,30 @@ A2 (#408) deleted two more root modules the same way:
 `inferrsi.apps.views.summary_chart:main`, so its arguments, exit codes, output and
 the SVG and Markdown bytes it writes are unchanged. The dashboard, the HTML report
 and the CLI `benchmarks run` command import the canonical modules.
+
+M1 (#452) deleted the four root MindIE files the same way:
+
+| Retired root module | Canonical module or file |
+| --- | --- |
+| `inferrsi.mindie_project` | `inferrsi.apps.mindie.project` |
+| `inferrsi.mindie_context` | `inferrsi.apps.mindie.context` |
+| `inferrsi.mindie_mcp` | `inferrsi.apps.mindie.mcp` |
+| `inferrsi._mindie_read_worker` | `src/inferrsi/apps/mindie/read_worker.py`, a file run by path and not imported |
+
+The four files moved with their code unchanged except the imports that name
+their neighbours and the package version. `apps/mindie/__init__.py` imports
+nothing and does not re-export `__version__`; `mcp.py` reads it with
+`from ... import __version__`. The worker is still started as
+`python -I -B read_worker.py` with a private working directory, a 20 second limit
+and a 2 MiB cap, opens SQLite read-only, imports only the standard library at
+the top level and takes `mindie_knowledge` inside `read()`. It is not described
+as standard-library-only overall. The grant file, its explicit opt-in, the
+recorded read receipts and the OBS layout are unchanged. The `inferrsi mindie`
+and `inferrsi campaign import-mindie` commands, the Codex configuration in
+[codex-plugin.md](codex-plugin.md) and the MCP server name are unchanged.
+
+The root now holds exactly the two files `__init__.py` and `__main__.py`. The
+build-generated `_version.py` is separate wheel metadata.
 
 ## Old `run` exit codes
 
