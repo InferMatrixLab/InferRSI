@@ -1019,6 +1019,7 @@ class RunStore(RunStoreReader):
                 ).fetchone()
                 if row is not None:
                     return self._reenter(conn, row, request_digest, lock_path)
+                self._check_generation_request(conn, attempt_id, request_digest)
                 # Take the owner lock before the registration commits, so no reader can
                 # observe a registered attempt whose live owner is not yet locked.
                 fd = _acquire(lock_path)
@@ -1044,6 +1045,36 @@ class RunStore(RunStoreReader):
                 message=f"registration failed: {_describe(exc)}",
             ) from exc
         return Claim(self, attempt, request_digest, session, fd)
+
+    def _check_generation_request(
+        self, conn: sqlite3.Connection, attempt_id: str, request_digest: str,
+    ) -> None:
+        """Enforce a committed generation spec binding in the registration transaction."""
+        rows = dict(conn.execute(
+            "SELECT role, descriptor FROM generation_inputs WHERE attempt_hash = ?",
+            (attempt_hash(attempt_id),),
+        ))
+        if not rows:
+            return
+        if "generation-plan" not in rows:
+            raise PublicError(
+                "RequestConflict", stage="claim", attempt_id=attempt_id,
+                message="the generation manifest has not been committed",
+            )
+        try:
+            descriptor = json_v1.decode(rows["generation-plan"])
+            expected = descriptor["request_digest"]
+            if not isinstance(expected, str) or not _DIGEST.fullmatch(expected):
+                raise ValueError("invalid request digest")
+        except (AttributeError, KeyError, TypeError, ValueError) as exc:
+            raise _IntegrityFault(
+                "the sealed generation plan has no valid execution digest",
+            ) from exc
+        if expected != request_digest:
+            raise PublicError(
+                "RequestConflict", stage="claim", attempt_id=attempt_id,
+                message="the sealed generation plan has a different request digest",
+            )
 
     def _reenter(
         self, conn: sqlite3.Connection, row: sqlite3.Row, request_digest: str, lock_path: Path

@@ -234,6 +234,12 @@ def test_manifest_commit_failure_keeps_delivery_without_registering_execution(
         sealed_roles = [row[0] for row in conn.execute("SELECT role FROM generation_inputs")]
         assert sealed_roles == ["delivered-context"]
         assert conn.execute("SELECT count(*) FROM attempts").fetchone()[0] == 0
+    unsealed = inputs["candidate_provider"].plan_generation(
+        {**inputs["candidate_context"], "delivered_context": delivery}, inputs["attempt"],
+    )["spec"]
+    with pytest.raises(PublicError, match="RequestConflict") as caught:
+        harness.execute(unsealed)
+    assert caught.value.stage == "claim"
     changed_content = b"updated Knowledge bytes"
     changed = replace(
         draft, content=changed_content, sha256=sha256(changed_content).hexdigest(),
@@ -251,3 +257,28 @@ def test_manifest_commit_failure_keeps_delivery_without_registering_execution(
     assert sightings == []
     assert store.read_delivered_context(attempt_id) == delivery
     assert harness.execute(spec)["attempt_id"] == attempt_id
+
+
+def test_retry_cannot_change_the_final_spec_after_the_manifest_commits(cpu_generation, monkeypatch):
+    store, target, harness, _, inputs = cpu_generation
+    original = prepare_generation(store, target, **inputs)
+    attempt_id = original["attempt_id"]
+    manifest_ref = original["inputs"][-1]["source_ref"]
+    # The caller has yet to submit the sealed request, as after a lost preparation reply.
+    with monkeypatch.context() as patch:
+        patch.setattr(inputs["candidate_provider"], "_output_root_for", lambda _: "another-output")
+        with pytest.raises(PublicError, match="RequestConflict") as caught:
+            prepare_generation(store, target, **inputs)
+        assert caught.value.stage == "generation-seal"
+    with pytest.raises(PublicError, match="RequestConflict") as caught:
+        harness.execute({**original, "output_root": "another-output"})
+    assert caught.value.stage == "claim"
+    with pytest.raises(PublicError, match="NoCommittedRecord"):
+        harness.read(attempt_id)
+
+    assert prepare_generation(store, target, **inputs) == original
+    with store.open(manifest_ref) as stream:
+        assert "request_digest" not in decode(stream.read())
+    record = harness.execute(original)
+    assert record["exit_code"] == 0
+    assert record["request_digest"] == run_store.request_digest(original)

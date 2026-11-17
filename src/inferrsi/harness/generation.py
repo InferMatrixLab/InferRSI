@@ -98,5 +98,9 @@ def _bind_generation_plan(store, target, attempt, plan, delivery_ref):
         "materialized_path": _MANIFEST_PATH.as_posix(),
     })
     validate(spec, target)
-    store._seal_generation_input(attempt_id, "generation-plan", data)
+    # Commit the binding with the manifest, outside the manifest's own bytes.
+    store._seal_generation_input(
+        attempt_id, "generation-plan", data,
+        descriptor={"request_digest": run_store.request_digest(spec)},
+    )
     return spec

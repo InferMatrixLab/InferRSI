@@ -110,7 +110,7 @@ Collection rules: `Resource` items are uniquely sorted by role; input collection
 
 JSON Schema alone cannot guarantee the cross-reference, authorization, trust-source, and lifecycle invariants above. “The schema passed” is not acceptance of this table; combined acceptance requires both.
 
-Harness commits generation inputs in append-only slots keyed by attempt and role. A retry after a generation manifest commit failure uses the same preparation request and provider configuration. Harness reuses the committed delivery, including its bytes and pins, before retrying the manifest commit. A changed preparation request requires a new attempt.
+Harness commits generation inputs in append-only slots keyed by attempt and role. A retry after a generation manifest commit failure uses the same preparation request and provider configuration. Harness reuses the committed delivery, including its bytes and pins, before retrying the manifest commit. The manifest commit also binds the digest of the final execution spec in separate RunStore metadata. A changed preparation request or final spec requires a new attempt.
 
 ## 5. Fixed fixtures and current verification evidence
 
