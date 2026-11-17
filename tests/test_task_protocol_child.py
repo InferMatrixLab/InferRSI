@@ -96,15 +96,43 @@ def test_arguments_result_must_be_strings(tmp_path):
     assert error.kind == "invalid_response"
 
 
-def test_protocol_output_goes_to_stderr_and_never_reaches_the_envelope(tmp_path):
+def test_protocol_output_goes_to_stderr_and_never_reaches_the_envelope(tmp_path, capsys):
     digest = write_protocol(tmp_path, (
         "import os, subprocess, sys\n"
         "def validate_arguments(a):\n"
         "    print('python print')\n"
+        "    sys.stdout.flush()\n"
         "    os.write(1, b'raw descriptor write\\n')\n"
         "    subprocess.run([sys.executable, '-c', 'print(\"grandchild\")'], check=True)\n"
+        "    print('diagnostic line', file=sys.stderr)\n"
         "    return {'kept': True}\n"))
     assert run(tmp_path, digest, "validate_arguments", arguments=[]) == {"kept": True}
+    # The diagnostics contract: every byte the protocol wrote reaches the caller's stderr.
+    forwarded = capsys.readouterr().err
+    for line in ("python print", "raw descriptor write", "grandchild", "diagnostic line"):
+        assert line in forwarded
+
+
+def test_diagnostics_are_forwarded_when_the_protocol_raises(tmp_path, capsys):
+    digest = write_protocol(tmp_path, (
+        "import sys\n"
+        "def validate_arguments(a):\n"
+        "    print('context before failure', file=sys.stderr)\n"
+        "    raise ValueError('rejected')\n"))
+    error = failure(tmp_path, digest)
+    assert str(error) == "protocol_exception: ValueError: rejected"
+    assert "context before failure" in capsys.readouterr().err
+
+
+def test_only_the_stderr_tail_is_forwarded(tmp_path, capsys, monkeypatch):
+    monkeypatch.setattr(task_protocol, "STDERR_TAIL_BYTES", 16)
+    digest = write_protocol(tmp_path, (
+        "import sys\n"
+        "def validate_arguments(a):\n"
+        "    sys.stderr.write('x' * 100 + 'END-OF-LOG')\n"
+        "    return {}\n"))
+    run(tmp_path, digest, "validate_arguments", arguments=[])
+    assert capsys.readouterr().err == "xxxxxxEND-OF-LOG"
 
 
 @pytest.mark.parametrize("payload, kind", [

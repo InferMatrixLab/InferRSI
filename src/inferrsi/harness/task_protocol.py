@@ -20,9 +20,11 @@ from .artifact_primitives import sha256
 # One protocol operation must finish within this time; the child and every process in
 # its group or Job are then stopped and the operation fails with kind "timeout".
 PROTOCOL_TIMEOUT_SECONDS = 120.0
-# Harness reads at most this many bytes of the envelope on stdout ...
+# The child writes stdout and stderr to files in a private scratch directory. These two
+# limits apply when Harness reads those files, not while the child writes them; the
+# deadline above bounds the run. Harness reads at most this many bytes of envelope ...
 STDOUT_LIMIT_BYTES = 16 * 1024 * 1024
-# ... and quotes at most this tail of stderr in a failure message.
+# ... and copies at most this tail of stderr to its own stderr after every operation.
 STDERR_TAIL_BYTES = 4096
 # The child entry that every operation runs as a separate script.
 CHILD_ENTRY = Path(protocol_child.__file__).resolve()
@@ -78,10 +80,10 @@ def _response_problem(response, operation: str) -> str | None:
 def run(root: Path, protocol_sha256: str, operation: str, **arguments):
     """Run one operation of ``root/optimization.py`` whose bytes have ``protocol_sha256``.
 
-    Path arguments must be absolute. A protocol ``SystemExit`` is raised again with its
-    exit code after the child's stderr tail is copied to this process's stderr; every
-    other failure raises ``TaskProtocolError``. Descendants that the protocol leaves
-    running are stopped with the child.
+    Path arguments must be absolute. The child's stderr tail is copied to this process's
+    stderr after every operation. A protocol ``SystemExit`` is raised again with its
+    exit code; every other failure raises ``TaskProtocolError``. Descendants that the
+    protocol leaves running are stopped with the child.
     """
     path = Path(root).resolve() / "optimization.py"
     if sha256(path) != protocol_sha256:
@@ -105,6 +107,11 @@ def run(root: Path, protocol_sha256: str, operation: str, **arguments):
             argv, work, dict(os.environ), work / "stdout", work / "stderr",
             time.monotonic() + PROTOCOL_TIMEOUT_SECONDS)
         stderr = _tail(work / "stderr") if (work / "stderr").is_file() else ""
+        # Diagnostics contract: after every operation, whatever its result, the last
+        # STDERR_TAIL_BYTES of the child's stderr (protocol prints included) are copied to
+        # this process's stderr. The scratch directory with the full logs is then deleted.
+        sys.stderr.write(stderr)
+        sys.stderr.flush()
         if record["status"] == "cancelled" and record["cancellation_source"] == (
                 "keyboard_interrupt"):
             raise KeyboardInterrupt
@@ -132,8 +139,6 @@ def run(root: Path, protocol_sha256: str, operation: str, **arguments):
         return response["result"]
     error = response["error"]
     if error["kind"] == "system_exit":
-        # argparse explains a usage error on stderr; keep that message visible.
-        sys.stderr.write(stderr)
         raise SystemExit(error["exit_code"])
     raise TaskProtocolError(error["kind"], f"{error['type']}: {error['message']}")
 

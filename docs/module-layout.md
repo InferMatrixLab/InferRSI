@@ -188,8 +188,10 @@ registered consumers; this gate does not scan them.
   as `python -I -B` in its own process group or Windows Job under a deadline, and
   answers with one strict JSON envelope on a private copy of stdout. The child
   imports only the standard library and compiles the exact protocol bytes it has
-  checked against the frozen SHA-256. This is an interpreter and process
-  boundary, not a filesystem or network sandbox.
+  checked against the frozen SHA-256. After every operation the last 4 KiB of the
+  child's stderr is copied to the caller's stderr; size limits apply when Harness
+  reads the child's output files, and the deadline bounds the run. This is an
+  interpreter and process boundary, not a filesystem or network sandbox.
 - `moe-forward-npu` folded its sibling `processes.py` into `benchmark.py`, and
   `qwen3-tts-npu` folded its sibling `evaluation.py` into `benchmark.py`. The
   bundles no longer load a sibling module by path, and a bundle prepared before
