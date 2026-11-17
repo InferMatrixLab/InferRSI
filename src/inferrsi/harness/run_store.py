@@ -110,6 +110,13 @@ _GENERATION_SCHEMA = (
     "descriptor BLOB, PRIMARY KEY (attempt_hash, role))",
     "CREATE TRIGGER IF NOT EXISTS generation_inputs_no_update BEFORE UPDATE ON generation_inputs "
     "BEGIN SELECT RAISE(ABORT, 'generation inputs are immutable'); END",
+    "CREATE TRIGGER IF NOT EXISTS generation_inputs_no_delete BEFORE DELETE ON generation_inputs "
+    "BEGIN SELECT RAISE(ABORT, 'generation inputs are append-only'); END",
+    # REPLACE's implicit DELETE does not fire delete triggers on default SQLite connections.
+    "CREATE TRIGGER IF NOT EXISTS generation_inputs_no_replace BEFORE INSERT ON generation_inputs "
+    "WHEN EXISTS (SELECT 1 FROM generation_inputs "
+    "WHERE attempt_hash = NEW.attempt_hash AND role = NEW.role) "
+    "BEGIN SELECT RAISE(ABORT, 'generation inputs are append-only'); END",
 )
 
 
@@ -824,35 +831,61 @@ class RunStoreReader:
 
     def read_delivered_context(self, attempt_id: str) -> dict:
         """Read the immutable delivery metadata of a prepared generation attempt."""
+        delivery = self._find_delivery(attempt_id)
+        if delivery is None:
+            raise PublicError(
+                "ArtifactUnavailable", stage="read_delivery", message="delivery is not committed",
+            )
+        return delivery
+
+    def _find_delivery(
+        self, attempt_id: str, *, preparation_digest: str | None = None,
+    ) -> dict | None:
         if not _is_id(attempt_id):
             raise PublicError("InvalidRequest", stage="read_delivery", message="invalid attempt ID")
-        role = "delivered-context"
-        key = attempt_hash(attempt_id)
         try:
             with self._connection() as conn:
                 row = conn.execute(
                     "SELECT sha256, data, descriptor FROM generation_inputs "
-                    "WHERE attempt_hash = ? AND role = ?", (key, role),
+                    "WHERE attempt_hash = ? AND role = 'delivered-context'",
+                    (attempt_hash(attempt_id),),
                 ).fetchone()
         except (sqlite3.Error, OSError) as exc:
             raise PublicError(
                 "ArtifactUnavailable", stage="read_delivery", message="delivery is not accessible",
             ) from exc
         if row is None:
-            raise PublicError(
-                "ArtifactUnavailable", stage="read_delivery", message="delivery is not committed",
-            )
-        data = bytes(row["data"])
-        ref = _generation_ref(self.namespace, key, role, data)
+            return None
+        return self._decode_delivery(attempt_id, tuple(row), preparation_digest=preparation_digest)
+
+    def _decode_delivery(
+        self, attempt_id: str, row: tuple, *, preparation_digest: str | None,
+    ) -> dict:
+        digest, data, metadata = row
         try:
-            descriptor = json_v1.decode(bytes(row["descriptor"]))
-            if ref["sha256"] != row["sha256"] or not _has_fields(descriptor, _DELIVERY_FIELDS):
+            ref = _generation_ref(
+                self.namespace, attempt_hash(attempt_id), "delivered-context", data,
+            )
+            descriptor = json_v1.decode(metadata)
+            if not isinstance(descriptor, dict):
+                raise ValueError("delivery metadata is not an object")
+            saved_digest = descriptor.pop("preparation_digest", None)
+            if ref["sha256"] != digest or not _has_fields(descriptor, _DELIVERY_FIELDS):
                 raise ValueError("delivery failed integrity checks")
-        except (TypeError, ValueError) as exc:
+            if saved_digest is not None and (
+                not isinstance(saved_digest, str) or not _DIGEST.fullmatch(saved_digest)
+            ):
+                raise ValueError("invalid delivery request identity")
+        except (AttributeError, TypeError, ValueError) as exc:
             raise PublicError(
                 "ArtifactIntegrityError", stage="read_delivery",
                 message="invalid committed delivery",
             ) from exc
+        if preparation_digest is not None and saved_digest != preparation_digest:
+            raise PublicError(
+                "RequestConflict", stage="delivered-context-retention", attempt_id=attempt_id,
+                message="the committed delivery does not match this preparation request",
+            )
         return {**descriptor, "artifact": ref}
 
     def _record_bytes(self, hashed_attempt: str, version: int) -> bytes | None:
@@ -909,17 +942,25 @@ class RunStore(RunStoreReader):
             ) from exc
         super().__init__(path, namespace, busy_timeout=busy_timeout)
 
+    def _seal_delivered_context(
+        self, attempt_id: str, preparation_digest: str, data: bytes, descriptor: dict,
+    ) -> dict:
+        row = self._seal_generation_input(
+            attempt_id, "delivered-context", data,
+            descriptor={**descriptor, "preparation_digest": preparation_digest},
+        )
+        return self._decode_delivery(attempt_id, row, preparation_digest=preparation_digest)
+
     def _seal_generation_input(
         self, attempt_id: str, role: str, data: bytes, *, descriptor: dict | None = None,
-    ) -> dict:
-        """Commit one attempt input before registering the final execution request."""
+    ) -> tuple:
+        """Append one attempt input before registration, or return its existing delivery row."""
         key = attempt_hash(attempt_id)
-        ref = _generation_ref(self.namespace, key, role, data)
         descriptor_bytes = None if descriptor is None else json_v1.encode(descriptor)
+        values = (hashlib.sha256(data).hexdigest(), data, descriptor_bytes)
         stage = "delivered-context-retention" if role == "delivered-context" else "generation-seal"
         try:
             with self._connection() as conn, _transaction(conn):
-                values = (ref["sha256"], data, descriptor_bytes)
                 row = conn.execute(
                     "SELECT sha256, data, descriptor FROM generation_inputs "
                     "WHERE attempt_hash = ? AND role = ?", (key, role),
@@ -938,6 +979,9 @@ class RunStore(RunStoreReader):
                         "(attempt_hash, role, sha256, data, descriptor) "
                         "VALUES (?, ?, ?, ?, ?)", (key, role, *values),
                     )
+                elif role == "delivered-context":
+                    # Concurrent preparations compare request identity against the first commit.
+                    return tuple(row)
                 elif tuple(row) != values:
                     raise PublicError(
                         "RequestConflict", stage=stage, attempt_id=attempt_id,
@@ -948,7 +992,7 @@ class RunStore(RunStoreReader):
                 "ExecutionPersistenceError", stage=stage, attempt_id=attempt_id, started=False,
                 message="generation input commit failed",
             ) from exc
-        return ref
+        return values
 
     def claim(self, attempt: Mapping, request_digest: str) -> Claim | CommittedRecord:
         """Register an attempt atomically, or apply the D021 re-entry table to its registration.

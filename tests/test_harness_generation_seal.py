@@ -6,6 +6,8 @@ import subprocess
 import sys
 from contextlib import contextmanager
 from copy import deepcopy
+from dataclasses import replace
+from hashlib import sha256
 from pathlib import Path
 
 import pytest
@@ -165,22 +167,49 @@ def test_retention_failure_exposes_neither_context_nor_plan(
     assert reader.read_delivered_context(attempt_id)["artifact"] == prospective_ref
 
 
-def test_same_attempt_cannot_replace_committed_delivery(cpu_generation):
+@pytest.mark.parametrize("field", ["context_request", "candidate_context", "attempt"])
+def test_same_attempt_rejects_changed_preparation(cpu_generation, monkeypatch, field):
     store, target, _, _, inputs = cpu_generation
     attempt_id = inputs["attempt"]["attempt_id"]
     first = prepare_generation(store, target, **inputs)
     committed = store.read_delivered_context(attempt_id)
-    changed = {**inputs["context_request"], "max_bytes": 0}
+    changes = {"context_request": {"max_bytes": 0},
+               "candidate_context": {"generation_id": "different-generation"},
+               "attempt": {"deadline_utc": "2099-02-01T00:00:00Z"}}
+    changed = {**inputs[field], **changes[field]}
+    monkeypatch.setattr(inputs["context_provider"], "collect",
+                        lambda request: pytest.fail("committed delivery was recollected"))
     with pytest.raises(PublicError, match="RequestConflict"):
-        prepare_generation(store, target, **{**inputs, "context_request": changed})
+        prepare_generation(store, target, **{**inputs, field: changed})
     assert store.read_delivered_context(attempt_id) == committed
     assert prepare_generation(store, target, **inputs) == first
+
+
+def test_generation_slots_are_append_only_through_sqlite(cpu_generation):
+    store, target, _, _, inputs = cpu_generation
+    spec = prepare_generation(store, target, **inputs)
+    id_ = spec["attempt_id"]
+    delivery = store.read_delivered_context(id_)
+    key = run_store.attempt_hash(id_)
+    # Direct SQLite clients use the default recursive-trigger setting.
+    with sqlite3.connect(store.root / run_store.INDEX_NAME) as conn:
+        for operation in (
+            "UPDATE generation_inputs SET data = X'ff' WHERE attempt_hash = ?",
+            "DELETE FROM generation_inputs WHERE attempt_hash = ?",
+            "INSERT OR REPLACE INTO generation_inputs(attempt_hash, role, sha256, data) "
+            "VALUES (?, 'delivered-context', 'changed', X'ff')",
+        ):
+            with pytest.raises(sqlite3.IntegrityError, match="generation inputs"):
+                conn.execute(operation, (key,))
+    assert store.read_delivered_context(id_) == delivery
+    assert prepare_generation(store, target, **inputs) == spec
 
 
 def test_manifest_commit_failure_keeps_delivery_without_registering_execution(
     cpu_generation, monkeypatch,
 ):
     store, target, harness, draft, inputs = cpu_generation
+    inputs["context_request"] = {**inputs["context_request"], "pins": []}
     attempt_id = inputs["attempt"]["attempt_id"]
     transact = run_store._transaction
     writes = 0
@@ -205,5 +234,20 @@ def test_manifest_commit_failure_keeps_delivery_without_registering_execution(
         sealed_roles = [row[0] for row in conn.execute("SELECT role FROM generation_inputs")]
         assert sealed_roles == ["delivered-context"]
         assert conn.execute("SELECT count(*) FROM attempts").fetchone()[0] == 0
+    changed_content = b"updated Knowledge bytes"
+    changed = replace(
+        draft, content=changed_content, sha256=sha256(changed_content).hexdigest(),
+        items=[{**draft.items[0], "delivered_bytes": len(changed_content),
+                "pin": {"reference": _KNOWLEDGE, "revision": "sha256:" + "1" * 64}}],
+    )
+    sightings = []
+
+    def changed_knowledge(request):
+        sightings.append(request)
+        return changed
+
+    monkeypatch.setattr(inputs["context_provider"], "collect", changed_knowledge)
     spec = prepare_generation(store, target, **inputs)
+    assert sightings == []
+    assert store.read_delivered_context(attempt_id) == delivery
     assert harness.execute(spec)["attempt_id"] == attempt_id

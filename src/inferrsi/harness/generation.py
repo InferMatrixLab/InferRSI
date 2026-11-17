@@ -19,6 +19,8 @@ def prepare_generation(
 ) -> dict:
     """Collect and seal the approved context, then return the final ordinary ExecutionSpec.
 
+    A retry with the same preparation request uses the committed delivery and the same
+    provider configuration. A changed request requires a new attempt.
     The caller saves and replays this spec through Harness.execute. Preparation does not
     register an execution or allocate a new attempt.
     """
@@ -30,23 +32,18 @@ def prepare_generation(
         )
     attempt_id = attempt["attempt_id"]
     try:
-        draft = context_provider.collect(deepcopy(context_request))
-        content = draft.content
-        if (
-            not isinstance(content, bytes) or sha256(content).hexdigest() != draft.sha256
-            or len(content) > context_request["max_bytes"]
-            or sum(item["delivered_bytes"] for item in draft.items) != len(content)
-        ):
-            raise ValueError("invalid generation delivery bytes")
-        descriptor = {
-            "items": draft.items, "selection": draft.selection, "omissions": draft.omissions,
-            "limitations": draft.limitations,
-        }
-        ref = store._seal_generation_input(
-            attempt_id, "delivered-context", content, descriptor=descriptor,
-        )
-        context = {**deepcopy(candidate_context),
-                   "delivered_context": {**deepcopy(descriptor), "artifact": ref}}
+        context = deepcopy(candidate_context)
+        context.pop("delivered_context", None)
+        preparation = {"attempt": attempt, "context_request": context_request,
+                       "candidate_context": context}
+        digest = "sha256:" + sha256(encode(preparation)).hexdigest()
+        delivery = store._find_delivery(attempt_id, preparation_digest=digest)
+        if delivery is None:
+            delivery = _collect_delivery(
+                store, context_provider, attempt_id, context_request, digest,
+            )
+        context["delivered_context"] = delivery
+        ref = deepcopy(delivery["artifact"])
         plan = candidate_provider.plan_generation(context, deepcopy(attempt))
         spec = _bind_generation_plan(store, target, attempt, plan, ref)
     except (AttributeError, KeyError, TypeError, ValueError) as exc:
@@ -55,6 +52,20 @@ def prepare_generation(
             message="invalid delivery or candidate generation plan",
         ) from exc
     return spec
+
+
+def _collect_delivery(store, context_provider, attempt_id, context_request, preparation_digest):
+    draft = context_provider.collect(deepcopy(context_request))
+    content = draft.content
+    if (
+        not isinstance(content, bytes) or sha256(content).hexdigest() != draft.sha256
+        or len(content) > context_request["max_bytes"]
+        or sum(item["delivered_bytes"] for item in draft.items) != len(content)
+    ):
+        raise ValueError("invalid generation delivery bytes")
+    descriptor = {"items": draft.items, "selection": draft.selection, "omissions": draft.omissions,
+                  "limitations": draft.limitations}
+    return store._seal_delivered_context(attempt_id, preparation_digest, content, descriptor)
 
 
 def _bind_generation_plan(store, target, attempt, plan, delivery_ref):
