@@ -302,7 +302,7 @@ def test_summary_navigates_to_run_without_outcome_but_not_missing_runs(tmp_path)
 const fs = require('node:fs'), assert = require('node:assert/strict');
 const data = JSON.parse(fs.readFileSync(0, 'utf8'));
 const html = fs.readFileSync(process.argv[1], 'utf8');
-const selectStart = html.indexOf('  function selectCandidate(');
+const selectStart = html.indexOf('  function focusRunReview(');
 const selectEnd = html.indexOf('  function renderIterations(', selectStart);
 const summaryStart = html.indexOf('  function renderSummary(');
 const summaryEnd = html.indexOf('  function renderStory(', summaryStart);
@@ -340,7 +340,8 @@ button('b').click();
 assert.equal(data.candidates[api.selected()].candidate_id, 'b');
 assert.equal(runSelect.value, ''); assert.equal(stageSelect.value, '');
 assert.equal(candidateSelect.value, '');
-assert.equal(target.tabindex, '-1'); assert(target.focused && target.scrolled);
+assert.match(html, /<section\b(?=[^>]*\bid="run-review")(?=[^>]*\btabindex="-1")[^>]*>/);
+assert(target.focused && target.scrolled);
 assert.equal(button('duplicate').disabled, false); // Ambiguous references offer a run chooser.
 for (const id of ['missing', 'corrupt']) {
   assert.equal(button(id).disabled, true); button(id).click();
@@ -348,7 +349,7 @@ for (const id of ['missing', 'corrupt']) {
 }
 """
     subprocess.run([shutil.which("node"), "-e", script, str(template)], input=json.dumps(data),
-                   check=True, capture_output=True, text=True)
+                   check=True, text=True)
 
 
 def test_story_retains_a_recorded_failure_when_other_run_files_are_corrupt(tmp_path):

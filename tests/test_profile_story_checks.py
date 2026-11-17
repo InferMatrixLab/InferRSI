@@ -3,6 +3,7 @@
 import json
 import shutil
 import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -11,6 +12,15 @@ from test_profile_timeline import fixture as profile_fixture
 
 from inferrsi.apps.views.dashboard import dashboard_snapshot, render_dashboard, write_dashboard
 from inferrsi.harness.records.profile_timeline import attach_profile
+
+
+def test_published_profile_example_matches_fixture(tmp_path):
+    repo = Path(__file__).resolve().parents[1]
+    script = repo / "tests/fixtures/dashboard_profile_review.py"
+    subprocess.run([sys.executable, str(script), str(tmp_path)], check=True)
+    published = repo / "docs/examples/dashboard-profile-review.html"
+    assert (tmp_path / "dashboard.html").read_text(encoding="utf-8") == published.read_text(
+        encoding="utf-8")
 
 
 @pytest.mark.skipif(shutil.which("node") is None, reason="Node.js runs the exported dashboard")

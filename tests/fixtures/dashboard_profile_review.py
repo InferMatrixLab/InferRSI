@@ -6,8 +6,9 @@ Usage: python tests/fixtures/dashboard_profile_review.py <new-output-directory>
 import hashlib
 import json
 import sys
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from unittest.mock import patch
 
 from dashboard_experiments import native_inputs
 from knowledge_retrieval import build as build_retrievals
@@ -19,18 +20,27 @@ from inferrsi.harness.records.profile_timeline import attach_profile
 
 def build(root: Path):
     root = root.resolve()
-    # One measurement per round supports a paired-baseline trend.
-    build_retrievals(root, runs=(
-        ("repeat", "first", 1, "FAIL", -2, "failed"),
-        ("second", "no-gain", 2, "INCONCLUSIVE", 0, "completed"),
-        ("batched-dispatch", "batch", 3, "PASS", 16, "completed"),
-    ))
+    # Freeze the two recorded clocks before hashing the synthetic evidence.
+    start = datetime(2026, 1, 1, 12, tzinfo=timezone.utc)
+    with (
+        patch("inferrsi.__version__", "0+synthetic"),
+        patch("inferrsi.apps.campaign.__version__", "0+synthetic"),
+        patch("inferrsi.harness.records.knowledge_capture.datetime", wraps=datetime) as clock,
+        patch("inferrsi.harness.records.optimization_log.datetime", wraps=datetime) as log_clock,
+    ):
+        clock.now.return_value = start
+        log_clock.now.return_value = start
+        build_retrievals(root, runs=(
+            ("repeat", "first", 1, "FAIL", -2, "failed"),
+            ("second", "no-gain", 2, "INCONCLUSIVE", 0, "completed"),
+            ("batched-dispatch", "batch", 3, "PASS", 16, "completed"),
+        ))
+    # The projection includes each search file's digest. Normalize the fabricated
+    # files before projecting them rather than rewriting hashes in the output.
+    for path in (root / "search").rglob("*.json"):
+        path.write_bytes(path.read_bytes().replace(b"\r\n", b"\n"))
     for run in (root / "runs").iterdir():
         native_inputs(run, "synthetic", "latency", "s", "minimize")
-    # Tie the mock execution clock to the saved fixture retrievals so the
-    # pre-profile link follows the same chronology on every regeneration.
-    captures = [json.loads(path.read_bytes()) for path in (root / "knowledge").glob("*.json")]
-    start = max(datetime.fromisoformat(item["captured_at"]) for item in captures)
     steps = []
     for phase, offset, projection_us in (("baseline", 1, 6200), ("candidate", 22, 5700)):
         at = start + timedelta(seconds=offset)
@@ -66,7 +76,9 @@ def build(root: Path):
     write(timing, {"schema_version": 1, "campaign_id": campaign["campaign_id"], "steps": steps})
     write(manifest, {**campaign, "review_layout": "profile_first",
                      "experiment_timing_sha256": hashlib.sha256(timing.read_bytes()).hexdigest()})
-    return write_dashboard(root)
+    output = write_dashboard(root)
+    output.write_bytes(output.read_bytes().replace(b"\r\n", b"\n"))
+    return output
 
 
 if __name__ == "__main__":

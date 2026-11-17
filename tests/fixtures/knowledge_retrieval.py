@@ -51,7 +51,7 @@ def reader():
 
 def write(path, value):
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(value, indent=2), encoding="utf-8")
+    path.write_bytes(json.dumps(value, indent=2).encode("utf-8"))
 
 
 DEFAULT_RUNS = (
@@ -107,6 +107,9 @@ def build(root, *, runs=DEFAULT_RUNS):
                              details={"change_kind": "code", "summary": "Synthetic code change",
                                       "code_locations": [{"path": "src/synthetic.py",
                                                           "revision": "a" * 40}]})
+    # Search records pin candidate bytes, so the synthetic inputs use LF on every host.
+    for path in (root / "candidates").glob("*/candidate.json"):
+        path.write_bytes(path.read_bytes().replace(b"\r\n", b"\n"))
     first_ref = captured["items"][0]["ref"]
     log = {
         "schema_version": 2, "reviewed_by_caller": True, "campaign_id": "synthetic-retrieval",
@@ -135,7 +138,7 @@ def build(root, *, runs=DEFAULT_RUNS):
               {"type": "response_item", "payload": {"type": "message", "role": "assistant",
                "phase": "final_answer",
                "content": [{"type": "output_text", "text": "Use synthetic launch guidance."}]}}]
-    trace.write_text("".join(json.dumps(e) + "\n" for e in events))
+    trace.write_bytes("".join(json.dumps(e) + "\n" for e in events).encode("utf-8"))
     review = root / "archive-review.json"
     write(review, {"task": "Synthetic review", "corpus": {
         "repository": "example/synthetic", "revision": "a" * 40, "root": "."},

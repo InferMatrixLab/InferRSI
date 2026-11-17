@@ -400,9 +400,8 @@ The review opens with absolute candidate measurements grouped by workload, metri
 and statistic. The axis follows the observed candidate values. Baseline and target values
 are available in the point evidence. Select a round beside the chart to open that run’s
 changes and measurements. Each profile has separate disclosures for its prior searches
-and timeline. Below the trend are
-acceptance criteria, recorded request profiles, the baseline breakdown and
-target gap, each round's measurements, and adoption decisions. The expandable paired
+and timeline. Open the review sections for the acceptance criteria, baseline
+breakdown, target gap, per-round measurements, and adoption decisions. The expandable paired
 reference chart uses each candidate's paired medians. For example, a target latency reduction of 50%
 is a 2× speedup. When there is one verified baseline profile, only runs
 with its measurement signature share the speedup line and compete for its best

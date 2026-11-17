@@ -185,6 +185,10 @@ unused output directory and open the resulting `dashboard.html`:
 python tests/fixtures/dashboard_profile_review.py /tmp/dashboard-profile-review
 ```
 
+The profile fixture uses a fixed clock and synthetic package version. The test
+`test_published_profile_example_matches_fixture` compares its generated HTML with
+the checked-in file.
+
 All shown numbers and identities are synthetic. These artifacts demonstrate the
 visualization, not accelerator performance or campaign PASS. Browser checks
 cover keyboard selection, exact run navigation, shared filters, time mode,

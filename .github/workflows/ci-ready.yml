@@ -73,6 +73,7 @@ jobs:
       - name: Test dashboard navigation and live refresh in Chromium
         run: |
           python -m pytest -vv -o addopts='' \
+            tests/test_profile_story_checks.py::test_profile_and_trace_shortcuts_open_recorded_evidence \
             tests/test_knowledge_navigation_browser.py \
             tests/test_dashboard_experiments_browser.py \
             --junitxml="$RUNNER_TEMP/dashboard-browser-results.xml"
