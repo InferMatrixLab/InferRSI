@@ -45,6 +45,9 @@ from datetime import datetime, timezone
 from fnmatch import fnmatch
 from pathlib import Path
 
+from inferrsi.benchmark.legacy_run_v0 import RunRules
+from inferrsi.benchmark.legacy_run_v0 import evaluate as assess_run
+from inferrsi.contracts import RunSpec
 from inferrsi.harness.round_budget import (
     Binding,
     BudgetError,
@@ -58,7 +61,7 @@ from inferrsi.harness.round_budget import (
     ensure_open,
     seconds_remaining,
 )
-from inferrsi.harness.runner import run_experiment
+from inferrsi.harness.runner import run_experiment as run_experiment_loop
 from inferrsi.infra.artifacts import digest, write_json
 from inferrsi.infra.confinement import (
     ConfinementUnavailable,
@@ -68,7 +71,6 @@ from inferrsi.infra.confinement import (
 from inferrsi.infra.device_lease import DeviceLease, LeaseError
 from inferrsi.infra.platforms.cuda import qualify_devices
 from inferrsi.model.protocols.metrics import read_metric
-from inferrsi.runspec import RunSpec
 
 _TERMINAL = frozenset({"measured", "rejected", "unsettled"})
 
@@ -670,6 +672,37 @@ def _run_spec(
     )
 
 
+def _run_experiment(spec: RunSpec, environment: dict, *, execute, snapshot) -> Path:
+    """Compose the harness loop with the v0 gates; report rendering is optional here."""
+
+    def assess(baseline, candidate, validation, integrity, error):
+        return assess_run(
+            RunRules(
+                repetitions=spec.repetitions,
+                required_trial_checks=spec.required_trial_checks,
+                metric_key=spec.metric_key,
+                metric_unit=spec.metric_unit,
+                comparison_scope=spec.comparison_scope,
+                direction=spec.direction,
+                min_improvement_pct=spec.min_improvement_pct,
+            ),
+            baseline,
+            candidate,
+            validation,
+            integrity,
+            run_error=error,
+        )
+
+    return run_experiment_loop(
+        spec,
+        environment,
+        execute=execute,
+        snapshot=snapshot,
+        assess=assess,
+        report=lambda _run_dir: None,
+    )
+
+
 def _qualify(device_model: str, devices: list[str]) -> None:
     """``qualify_devices`` reads the caller's reservation from ``CUDA_VISIBLE_DEVICES``."""
     previous = os.environ.get("CUDA_VISIBLE_DEVICES")
@@ -845,7 +878,7 @@ def _measure(
             round_dir / "runs" / ticket,
             seconds_remaining(lane["deadline_utc"], current()),
         )
-        run_dir = run_experiment(
+        run_dir = _run_experiment(
             spec,
             {"round_id": plan["round_id"], "ticket": ticket, "lane_id": lane["id"]},
             execute=_confined_trial(
@@ -1049,7 +1082,7 @@ def close_round(
                 round_dir / "runs" / "joint-close",
                 seconds_remaining(deadline_utc, current()),
             )
-            run_dir = run_experiment(
+            run_dir = _run_experiment(
                 spec,
                 {"round_id": plan["round_id"], "ticket": "joint-close", "lane_id": "close"},
                 execute=_confined_trial(
