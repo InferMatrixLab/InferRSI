@@ -101,11 +101,12 @@ jobs:
 
   host-compatibility:
     # GitHub-hosted Windows and macOS CPU evidence, separate from the Ubuntu jobs above:
-    # a pass on Linux is not a pass on these hosts. It runs only the eight plugin and DSH
-    # nodes that an earlier Windows run recorded as failing (63 passed, 8 failed), then an
-    # installed-wheel check. A pass here does not rewrite that record. No GPU, remote
-    # service or credential is used; the DSH node talks to the fake SSH server that its
-    # own check starts. One host at a time, one pytest process, no full suite.
+    # a pass on Linux is not a pass on these hosts. It runs the eight plugin and DSH nodes
+    # that an earlier Windows run recorded as failing (63 passed, 8 failed), on Windows the
+    # Harness artifact-primitive and writer nodes, then an installed-wheel check. A pass
+    # here does not rewrite that record. No GPU, remote service or credential is used; the
+    # DSH node talks to the fake SSH server that its own check starts. One host at a time,
+    # one pytest process per step, no full suite.
     strategy:
       fail-fast: false
       max-parallel: 1
@@ -171,6 +172,46 @@ jobs:
           print(counts, flush=True)
           if counts != {"tests": len(nodes), "errors": 0, "failures": 0, "skipped": 0}:
               raise SystemExit("every selected host node must run and pass")
+      - name: Test the Harness artifact-primitive and writer nodes on Windows
+        # #412 R2: Harness owns copies of the Infra digest, hash, file lock and atomic
+        # writer. On Windows the lock is an msvcrt byte range that even denies a read of
+        # the locked byte, which no Linux job can show. macOS uses the same fcntl lock as
+        # the Linux jobs, so only Windows runs these nodes. Runs even if the step above
+        # failed, so both results are recorded.
+        if: ${{ !cancelled() && runner.os == 'Windows' }}
+        shell: python
+        env:
+          RESULTS: ${{ runner.temp }}/host-primitives-results.xml
+        run: |
+          import os
+          import subprocess
+          import sys
+          import xml.etree.ElementTree as ET
+
+          nodes = [
+              "tests/test_skill_evaluation.py::test_harness_artifact_primitives_match_infra_bytes_and_semantics",
+              "tests/test_skill_evaluation.py::test_harness_owned_writes_and_digests_match_infra_bytes",
+              "tests/test_legacy_run_split.py::test_harness_writer_bytes_equal_the_infra_writer",
+              "tests/test_legacy_run_split.py::test_harness_writer_rejects_nan_and_leaves_no_file",
+              "tests/test_legacy_run_split.py::test_sampling_sha256_matches_the_infra_hasher",
+              "tests/test_optimization_session.py::test_runtime_identity_covers_migrated_process_domain_and_not_removed_executor",
+              "tests/test_agent_sessions.py",
+          ]
+          results = os.environ["RESULTS"]
+          command = [sys.executable, "-m", "pytest", "-vv", "-rs", "-o", "addopts=",
+                     "--junitxml=" + results, *nodes]
+          status = subprocess.run(
+              command, cwd=os.environ["GITHUB_WORKSPACE"], check=False
+          ).returncode
+          if status:
+              raise SystemExit(status)
+          # pytest exits 0 with skips, and a skipped node is not a pass.
+          suite = next(ET.parse(results).getroot().iter("testsuite"))
+          counts = {name: int(suite.get(name))
+                    for name in ("tests", "errors", "failures", "skipped")}
+          print(counts, flush=True)
+          if counts["skipped"]:
+              raise SystemExit("every selected primitive node must run and pass")
       - name: Check a wheel built from the sdist in a fresh environment outside the checkout
         # Runs even if a node above failed, so both results are recorded; either failure
         # still fails the job.
@@ -244,5 +285,6 @@ jobs:
           name: host-compatibility-${{ matrix.os }}
           path: |
             ${{ runner.temp }}/host-compatibility-results.xml
+            ${{ runner.temp }}/host-primitives-results.xml
             ${{ runner.temp }}/host-wheel.log
           retention-days: 30
