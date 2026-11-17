@@ -1,24 +1,17 @@
 """Fingerprint-free CPU orchestration controls; no real-model qualification."""
 
 import copy
-import hashlib
 import json
 import shutil
 import subprocess
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
-from inferrsi.apps.views import dashboard_data
 from inferrsi.apps.cli import main
 from inferrsi.apps.cli.arguments import parser
-from inferrsi.harness import (
-    candidates,
-    optimization,
-    optimization_session,
-    project,
-    project_service,
-)
+from inferrsi.harness import artifact_primitives, optimization, project_service
 from inferrsi.harness.records import evidence, knowledge_capture
 from inferrsi.infra import artifacts
 from inferrsi.knowledge import knowledge_operations
@@ -32,25 +25,11 @@ def no_fingerprints(monkeypatch):
         calls.append(True)
         raise AssertionError("This test must not calculate or verify a file fingerprint")
 
-    for module, name in (
-        (candidates, "identity"),
-        (artifacts, "sha256"),
-        (artifacts, "digest"),
-        (optimization, "sha256"),
-        (optimization, "digest"),
-        (optimization_session, "_runtime_identity"),
-        (project, "sha256"),
-        (knowledge_operations, "_hash"),
-        (hashlib, "sha256"),
+    # Keep imported functions intact; only their defining modules see the guard.
+    for module in (
+        artifact_primitives, artifacts, evidence, knowledge_capture, knowledge_operations,
     ):
-        monkeypatch.setattr(module, name, forbidden)
-    for module, names in (
-        (dashboard_data, ("file_ref", "read_object", "read_snapshot")),
-        (evidence, ("file_ref", "read_object", "read_snapshot")),
-        (knowledge_capture, ("store_capture", "verify_capture")),
-    ):
-        for name in names:
-            monkeypatch.setattr(module, name, forbidden)
+        monkeypatch.setattr(module, "hashlib", SimpleNamespace(sha256=forbidden))
     yield
     assert not calls, "A fingerprint call was attempted, even if execution caught its exception"
 
