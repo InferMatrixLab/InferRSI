@@ -113,11 +113,29 @@ def minimal_environment(extra: dict | None = None) -> dict:
 
 
 def runtime_roots() -> tuple[Path, ...]:
-    """Python prefix needed to start the interpreter. Never the host root."""
+    """Python prefixes and stdlib needed to start the interpreter. Never the host root.
+
+    A virtualenv's ``sys.prefix`` does not contain ``encodings``; the versioned
+    stdlib tree under the base install must be mounted too. Prefer that tree
+    over mounting a broad ``sys.base_prefix`` such as ``/usr``.
+    """
+    import sysconfig
+
     candidates = [Path(sys.prefix).resolve(), Path(sys.executable).resolve().parent]
+    stdlib = Path(sysconfig.get_path("stdlib")).resolve()
+    if stdlib.is_dir() and stdlib != Path("/"):
+        candidates.append(stdlib)
+    base = Path(sys.base_prefix).resolve()
+    prefix = Path(sys.prefix).resolve()
+    # Contained base installs (pyenv, standalone builds) may keep more than
+    # stdlib under base_prefix; skip over-broad roots like / or /usr.
+    if base not in (prefix, Path("/"), Path("/usr")) and base.is_dir():
+        candidates.append(base)
     roots: list[Path] = []
     for candidate in candidates:
-        if any(candidate == earlier or earlier in candidate.parents for earlier in roots):
+        if candidate == Path("/") or any(
+            candidate == earlier or earlier in candidate.parents for earlier in roots
+        ):
             continue
         roots.append(candidate)
     return tuple(roots)

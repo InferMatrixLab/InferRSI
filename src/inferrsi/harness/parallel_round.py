@@ -11,8 +11,9 @@ gets ``{device}`` and ``{result}``; it must write
 ``{"metrics": {<metric.name>: <finite positive number>}}`` to ``{result}``. The
 candidate is built once in confinement; measurement is ``run_experiment`` with a
 confined ``execute``, so incumbent and candidate trials alternate AB/BA
-``metric.repeats`` times each, the optional ``validation`` runs once on the
-candidate, and ``evaluate`` gives the verdict against ``metric.min_improvement_pct``.
+``metric.repeats`` times each, and the optional ``validation`` runs once on the
+candidate. The composing application supplies ``make_assess`` so Harness never
+imports Benchmark; that assess gives the verdict against ``metric.min_improvement_pct``.
 ``{device}`` is the held device identities joined with commas. Other text,
 including ``{result}`` inside ``build``, is passed through unchanged.
 
@@ -41,12 +42,11 @@ import shutil
 import stat
 import subprocess
 import time
+from collections.abc import Callable
 from datetime import datetime, timezone
 from fnmatch import fnmatch
 from pathlib import Path
 
-from inferrsi.benchmark.legacy_run_v0 import RunRules
-from inferrsi.benchmark.legacy_run_v0 import evaluate as assess_run
 from inferrsi.contracts import RunSpec
 from inferrsi.harness.round_budget import (
     Binding,
@@ -388,6 +388,18 @@ def submit(
     outside = [path for path in changed if not _match(path, lane["globs"])]
     if outside or not changed:
         return _refusal("unchanged" if not changed else "outside", outside=outside)
+    # Concrete paths, including newly created files: prepare only saw the incumbent.
+    protected_hits = [path for path in changed if _match(path, plan.get("protected") or [])]
+    if protected_hits:
+        return _refusal("protected", rejected=protected_hits)
+    others = [other for other in plan["lanes"] if other["id"] != lane_id]
+    shared = [
+        path
+        for path in changed
+        if any(_match(path, other["globs"]) for other in others)
+    ]
+    if shared:
+        return _refusal("overlap", rejected=shared)
     manifest = {path: after[path] for path in changed}
     ticket = digest(
         {"round_digest": plan["round_digest"], "lane_id": lane_id, "manifest": manifest}
@@ -672,33 +684,21 @@ def _run_spec(
     )
 
 
-def _run_experiment(spec: RunSpec, environment: dict, *, execute, snapshot) -> Path:
-    """Compose the harness loop with the v0 gates; report rendering is optional here."""
-
-    def assess(baseline, candidate, validation, integrity, error):
-        return assess_run(
-            RunRules(
-                repetitions=spec.repetitions,
-                required_trial_checks=spec.required_trial_checks,
-                metric_key=spec.metric_key,
-                metric_unit=spec.metric_unit,
-                comparison_scope=spec.comparison_scope,
-                direction=spec.direction,
-                min_improvement_pct=spec.min_improvement_pct,
-            ),
-            baseline,
-            candidate,
-            validation,
-            integrity,
-            run_error=error,
-        )
-
+def _run_experiment(
+    spec: RunSpec,
+    environment: dict,
+    *,
+    execute,
+    snapshot,
+    make_assess: Callable[[RunSpec], Callable],
+) -> Path:
+    """Run the harness loop with an application-supplied assess port; report is a no-op."""
     return run_experiment_loop(
         spec,
         environment,
         execute=execute,
         snapshot=snapshot,
-        assess=assess,
+        assess=make_assess(spec),
         report=lambda _run_dir: None,
     )
 
@@ -740,14 +740,17 @@ def serve_ticket(
     incumbent: Path,
     *,
     backend,
+    make_assess: Callable[[RunSpec], Callable],
     now: datetime | None = None,
     clock=None,
 ) -> dict:
     """Measure one ticket on the lane's ``device_count`` free devices. A busy lane or too
     few free devices leaves it queued and does not reserve an attempt.
 
-    ``now`` is accepted for older callers and is not a frozen deadline. Every
-    admission and command reads ``clock`` or the current time again.
+    ``make_assess`` binds Benchmark (or other) gates for one ``RunSpec``; Harness
+    only calls the returned assess port. ``now`` is accepted for older callers and
+    is not a frozen deadline. Every admission and command reads ``clock`` or the
+    current time again.
     """
     del now
 
@@ -811,6 +814,7 @@ def serve_ticket(
                 incumbent,
                 [device for device, _lease in held],
                 backend=backend,
+                make_assess=make_assess,
                 current=current,
                 reserved=entry,
             )
@@ -831,6 +835,7 @@ def _measure(
     devices: list[str],
     *,
     backend,
+    make_assess: Callable[[RunSpec], Callable],
     current,
     reserved=None,
 ) -> dict:
@@ -890,6 +895,7 @@ def _measure(
                 failures=failures,
             ),
             snapshot=_tree_identity,
+            make_assess=make_assess,
         )
     except UnreapedCommand as exc:
         leases = DeviceLease(round_dir / "leases")
@@ -952,11 +958,13 @@ def close_round(
     incumbent: Path,
     *,
     backend,
+    make_assess: Callable[[RunSpec], Callable],
     now: datetime | None = None,
     clock=None,
 ) -> dict:
     """Joint single-rerun close: compose PASS overlays once, measure once, keep or retain.
 
+    ``make_assess`` is the same application-supplied port as ``serve_ticket``.
     Refuses while any outbox ticket lacks a terminal receipt, or any receipt is
     ``unsettled``. Device shortage returns ``queued`` without writing ``close.json``.
     """
@@ -1094,6 +1102,7 @@ def close_round(
                     failures=failures,
                 ),
                 snapshot=_tree_identity,
+                make_assess=make_assess,
             )
         except UnreapedCommand as exc:
             leases = DeviceLease(round_dir / "leases")
