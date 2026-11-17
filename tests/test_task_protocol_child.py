@@ -107,7 +107,7 @@ def test_protocol_output_goes_to_stderr_and_never_reaches_the_envelope(tmp_path,
         "    print('diagnostic line', file=sys.stderr)\n"
         "    return {'kept': True}\n"))
     assert run(tmp_path, digest, "validate_arguments", arguments=[]) == {"kept": True}
-    # The diagnostics contract: every byte the protocol wrote reaches the caller's stderr.
+    # Each of these small writes reaches the caller's stderr within the forwarded tail.
     forwarded = capsys.readouterr().err
     for line in ("python print", "raw descriptor write", "grandchild", "diagnostic line"):
         assert line in forwarded
@@ -149,17 +149,19 @@ def test_only_the_stderr_tail_is_forwarded(tmp_path, capsys, monkeypatch):
     (b'{"schema_version":1,"operation":"validate_arguments",'
      b'"error":{"kind":"unknown","type":"X","message":"m"}}', "invalid_response"),
 ])
-def test_malformed_or_foreign_envelopes_are_distinct_failures(tmp_path, monkeypatch, payload,
-                                                              kind):
+def test_malformed_or_foreign_envelopes_are_distinct_failures(tmp_path, monkeypatch, capsys,
+                                                              payload, kind):
     # Fault injection: a real child process writes exactly these envelope bytes.
     child = tmp_path / "child.py"
-    child.write_text(f"import os\nos.write(1, {payload!r})\n", encoding="utf-8")
+    child.write_text("import os, sys\nsys.stderr.write('child diagnostics')\n"
+                     f"os.write(1, {payload!r})\n", encoding="utf-8")
     monkeypatch.setattr(task_protocol, "CHILD_ENTRY", child)
     digest = write_protocol(tmp_path / "task", "def validate_arguments(a):\n    return {}\n")
     assert failure(tmp_path / "task", digest).kind == kind
+    assert "child diagnostics" in capsys.readouterr().err
 
 
-def test_child_exit_without_an_envelope_is_an_exit_status_failure(tmp_path):
+def test_child_exit_without_an_envelope_is_an_exit_status_failure(tmp_path, capsys):
     digest = write_protocol(tmp_path, (
         "import os, sys\n"
         "def validate_arguments(a):\n"
@@ -169,6 +171,7 @@ def test_child_exit_without_an_envelope_is_an_exit_status_failure(tmp_path):
     error = failure(tmp_path, digest)
     assert error.kind == "exit_status"
     assert "exited with 3" in str(error) and "protocol broke" in str(error)
+    assert "protocol broke" in capsys.readouterr().err
 
 
 def test_launch_failure_is_a_transport_failure(tmp_path, monkeypatch):
@@ -189,17 +192,37 @@ def _late_writer(marker):
     return f"    subprocess.Popen([sys.executable, '-c', {code!r}])\n"
 
 
-def test_deadline_stops_the_child_and_its_descendants(tmp_path, monkeypatch):
+def test_deadline_stops_the_child_and_its_descendants(tmp_path, monkeypatch, capsys):
     marker = tmp_path / "late.txt"
     monkeypatch.setattr(task_protocol, "PROTOCOL_TIMEOUT_SECONDS", 3.0)
     digest = write_protocol(tmp_path / "task", (
         "import subprocess, sys, time\n"
-        "def validate_arguments(a):\n" + _late_writer(marker) + "    time.sleep(60)\n"))
+        "def validate_arguments(a):\n" + _late_writer(marker) +
+        "    print('waiting past the deadline', file=sys.stderr, flush=True)\n"
+        "    time.sleep(60)\n"))
     started = time.monotonic()
     assert failure(tmp_path / "task", digest).kind == "timeout"
     assert time.monotonic() - started < 30
+    assert "waiting past the deadline" in capsys.readouterr().err
     time.sleep(5)
     assert not marker.exists()
+
+
+@pytest.mark.parametrize("body, raises", [
+    ("    return {}\n", False),
+    ("    raise ValueError('rejected')\n", True),
+])
+def test_scratch_directory_is_removed_after_every_operation(tmp_path, monkeypatch, body,
+                                                           raises):
+    scratch = tmp_path / "scratch"
+    scratch.mkdir()
+    monkeypatch.setattr(task_protocol.tempfile, "tempdir", str(scratch))
+    digest = write_protocol(tmp_path / "task", "def validate_arguments(a):\n" + body)
+    if raises:
+        assert failure(tmp_path / "task", digest).kind == "protocol_exception"
+    else:
+        assert run(tmp_path / "task", digest, "validate_arguments", arguments=[]) == {}
+    assert list(scratch.iterdir()) == []
 
 
 def test_descendants_left_running_are_stopped_with_the_child(tmp_path):
