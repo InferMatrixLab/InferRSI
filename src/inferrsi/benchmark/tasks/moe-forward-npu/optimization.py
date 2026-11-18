@@ -16,6 +16,17 @@ TASK_FILES = (
     "benchmark.py", "grader.py", "optimization.py",
 )
 
+# Rank receipt vocabulary written by grader.py.
+RUN_PHASES = ("import", "correctness", "warmup", "shape_warmup", "measurement")
+CANDIDATE_PHASES = tuple(f"candidate_{phase}" for phase in RUN_PHASES)
+RANK_PHASES = (
+    "initializing", "hccl_initialization", "trusted_case_preparation",
+    "trusted_pre_call_validation", "trusted_rank_alignment_failure", "trusted_output_validation",
+    "trusted_output_reset", "trusted_summary", "completed",
+    *(f"baseline_{phase}" for phase in RUN_PHASES), *CANDIDATE_PHASES,
+)
+RANK_FAILURE_KINDS = ("", "candidate_invalid_output", "baseline_invalid_output")
+
 LAUNCHER_SOURCE = (
     "from pathlib import Path\nimport runpy, sys\n"
     "root = Path(sys.argv[1])\n"
@@ -235,6 +246,7 @@ def _adjudicate(root: Path, execution: dict, guard: dict, identity: dict, pairs:
               "correctness": "INCONCLUSIVE", "speedup": None, "metrics": {},
               "round_consumed": False, "process_cleanup": guard, "execution": execution}
     ranks = []
+    failed = False
     try:
         malformed_ranks = []
         for rank in range(2):
@@ -252,23 +264,22 @@ def _adjudicate(root: Path, execution: dict, guard: dict, identity: dict, pairs:
                 # A peer may leave a truncated record when the job is stopped.
                 # Preserve observed candidate work before parsing the next rank.
                 phase, kind, calls = (record.get(k) for k in ("phase", "failure_kind", "calls"))
-                if ((isinstance(phase, str) and phase.startswith("candidate_"))
-                        or (isinstance(kind, str) and kind.startswith("candidate_"))
-                        or (isinstance(calls, list) and any(
-                            isinstance(c, dict) and c.get("label") == "candidate" for c in calls))):
+                rejected = phase in CANDIDATE_PHASES or kind == "candidate_invalid_output"
+                failed = failed or rejected
+                if rejected or (isinstance(calls, list) and any(
+                    isinstance(call, dict) and call.get("label") == "candidate" for call in calls
+                )):
                     result["round_consumed"] = True
         result["rank_status"] = [{k: r.get(k) for k in (
             "rank", "phase", "completed", "correctness", "failure_kind", "error")} for r in ranks]
         # Invalid evidence can still record spent work, but cannot establish rejection.
-        if any(not isinstance(r.get("phase"), str) or not r["phase"].strip()
-               or not isinstance(r.get("failure_kind", ""), str) for r in ranks):
+        if any(r.get("phase") not in RANK_PHASES
+               or r.get("failure_kind", "") not in RANK_FAILURE_KINDS for r in ranks):
             raise ValueError("Malformed rank phase or failure_kind")
-        failed = any(r["phase"].startswith("candidate_")
-                     or r.get("failure_kind", "").startswith("candidate_") for r in ranks)
         # A later cleanup/integrity failure cannot erase observed candidate work
         # and turn a consumed attempt into a free infrastructure retry.
         if failed:
-            result.update(status="candidate_failure", correctness="FAIL", round_consumed=True)
+            result.update(status="candidate_failure", correctness="FAIL")
         if malformed_ranks:
             raise ValueError("Incomplete or malformed rank records; no usable score")
         if not guard.get("verified"):

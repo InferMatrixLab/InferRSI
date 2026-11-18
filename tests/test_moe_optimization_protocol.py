@@ -243,7 +243,7 @@ def test_rejection_cannot_resume_after_unknown_cleanup_or_interruption(
 
 
 @pytest.mark.parametrize("damage", ["missing", "invalid_rank", "missing_phase", "null_phase",
-                                    "invalid_failure_kind"])
+                                    "invalid_failure_kind", "unknown_phase", "unknown_kind"])
 def test_incomplete_rank_evidence_cannot_make_a_resumable_rejection(transcript, damage):
     rejection(transcript)
     directory, settings = transcript
@@ -255,8 +255,12 @@ def test_incomplete_rank_evidence_cannot_make_a_resumable_rejection(transcript, 
         if damage == "missing_phase":
             del record["phase"]
         else:
-            field, invalid = {"invalid_rank": ("rank", True), "null_phase": ("phase", None),
-                              "invalid_failure_kind": ("failure_kind", [])}[damage]
+            field, invalid = {
+                "invalid_rank": ("rank", True), "null_phase": ("phase", None),
+                "invalid_failure_kind": ("failure_kind", []),
+                "unknown_phase": ("phase", "candidate_unknown"),
+                "unknown_kind": ("failure_kind", "candidate_unknown"),
+            }[damage]
             record[field] = invalid
         write(path, record)
     _, value = document(transcript, "result.json")
