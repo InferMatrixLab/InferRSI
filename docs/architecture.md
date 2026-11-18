@@ -92,7 +92,7 @@ interfaces; existing CLI commands remain supported.
 | --- | --- | --- |
 | Entry and knowledge | CLI arguments, immutable RunSpec, cited knowledge/context export | Model execution or automatic source editing |
 | Harness | AB/BA order, deadlines, source checks, scenario composition, evidence, performance adjudication and reporting | Device-specific conditions, request schemas or kernel dispatch |
-| Model | Request payloads, metric schemas, output decoding and explicit quality checks | Scheduling, worker lifetime or hardware selection |
+| Model | Request payloads and output decoding | Scheduling, worker lifetime, hardware selection, metric contracts or quality checks |
 | Infra | Repository identity, device discovery/qualification, process ownership, HTTP transport, storage and artifacts | Model constants, campaign gates or performance verdicts |
 
 Dependencies flow from entrypoints to Harness, from scenarios to Model/Infra,
@@ -163,6 +163,11 @@ src/inferrsi/
     registry.py             Generic task resource discovery
     tasks/                  Task-specific definitions, workloads and assessment
     legacy_run_v0.py        Old run gates: metric contract, summaries and verdict
+    metrics.py              Finite positive dotted-key metric contract
+    artifacts.py            Benchmark-owned file digests and JSON writes
+    validators/
+      flare.py              Offline Flare delivery-evidence adapter and pair check
+      image.py              Explicit PNG dimensions/mode, hashes, RGB/alpha quality gates
     sampling.py             Warmup seeds, first-response retention, sample/artifact groups
     skill_evaluation.py     Skill trial check validity, verdict and condition statistics
     skill_eval_diagnostic.py   Synthetic KV admission diagnosis task and grader
@@ -258,10 +263,7 @@ src/inferrsi/
       external.py           External command trials; metric validation injected
   model/
     protocols/
-      metrics.py            Finite positive dotted-key metric contract
       image.py              OpenAI-style image payload and PNG response protocol
-    validators/
-      image.py              Explicit PNG dimensions/mode, hashes, RGB/alpha quality gates
   infra/
     processes.py            Supervised Linux serving workers and their group cleanup
     targets/git.py          Repository identity and source snapshots
@@ -301,7 +303,7 @@ path to its replacement and lists what still keeps the isolation gate false.
 
 | Add | Main extension locations | Required qualification |
 | --- | --- | --- |
-| Model or scenario | `model/protocols`, `model/validators`, `harness/scenarios` | Frozen request and metric contract; model-specific quality coverage |
+| Model or scenario | `model/protocols`, `benchmark/metrics.py`, `benchmark/validators`, `harness/scenarios` | Frozen request and metric contract; model-specific quality coverage |
 | Repository | `infra/targets`, a composed scenario, `data/repo_packs` | Stable source identity; command/result contract; environment isolation |
 | Hardware | `infra/platforms` | Device selection, process exclusivity and independent backend/model evidence; a backend is registered in `infra/platforms/__init__.py` and its probe command is defined in the implementing module under `infra/platforms/`, not in package data |
 
@@ -326,7 +328,7 @@ benchmark format, reuse the standard executor and only replace metric interpreta
 from functools import partial
 
 from inferrsi.apps.legacy.run import execute_trial, run_experiment
-from inferrsi.model.protocols.metrics import read_metric
+from inferrsi.benchmark.metrics import read_metric
 
 
 def read_engine_metric(document, key):
@@ -346,7 +348,7 @@ cleanup. A custom `execute(command, cwd, trial_dir, deadline, metric_key)` must
 preserve that trial record contract. Prefer composing `execute_trial` over
 reimplementing process lifetime. Metric readers convert a result document into a
 float; `benchmark.legacy_run_v0.trial_metric` then applies the one finite, positive
-metric contract (`model.protocols.metrics.validate_metric`) to whatever the reader
+metric contract (`benchmark.metrics.validate_metric`) to whatever the reader
 returns, so a reader that yields `0.0`, a `bool` or a non-finite value records a
 metric error rather than entering the evaluation. The Harness executor
 `harness.scenarios.external.execute_trial` holds no metric rule: a caller that

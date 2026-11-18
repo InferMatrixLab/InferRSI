@@ -154,6 +154,48 @@ def test_by_path_loading_is_admitted_nowhere_else(tmp_path, relative):
     assert report.runtime_execution == ()
 
 
+@pytest.mark.parametrize("importer, source, target", [
+    # #498 slice 1: the old paths fail even though no file is behind them.
+    ("benchmark/runner.py", "from inferrsi.model.protocols.metrics import read_metric\n",
+     "inferrsi.model.protocols.metrics"),
+    ("benchmark/runner.py", "from inferrsi.model.protocols import metrics\n",
+     "inferrsi.model.protocols.metrics"),
+    ("benchmark/runner.py", "import inferrsi.model.validators.flare\n",
+     "inferrsi.model.validators.flare"),
+    ("benchmark/runner.py", "from inferrsi.model import validators\n",
+     "inferrsi.model.validators"),
+    ("benchmark/runner.py", "from ..model.validators.image import ImageQualityGate\n",
+     "inferrsi.model.validators.image"),
+    ("apps/runner.py", "from inferrsi.model.validators.flare import main\n",
+     "inferrsi.model.validators.flare"),
+    ("model/protocols/image.py", "from .metrics import read_metric\n",
+     "inferrsi.model.protocols.metrics"),
+])
+def test_retired_model_paths_fail_to_import(tmp_path, importer, source, target):
+    report = _report(tmp_path, {importer: source})
+    assert f"{_module(importer)} imports retired module {target}" in report.violations
+    assert "violations" in blocker_kinds(report)
+
+
+@pytest.mark.parametrize("relative", [
+    "model/protocols/metrics.py",
+    "model/validators/__init__.py",
+    "model/validators/flare.py",
+])
+def test_retired_model_files_fail_when_they_return(tmp_path, relative):
+    report = _report(tmp_path, {relative: "VALUE = 1\n"})
+    assert f"{_module(relative).removesuffix('.__init__')} is a retired module" in (
+        report.violations)
+
+
+def test_the_model_paths_that_remain_are_not_retired(tmp_path):
+    report = _report(tmp_path, {
+        "benchmark/runner.py": "from inferrsi.model.protocols import image\n",
+        "apps/runner.py": "from inferrsi.model.protocols.image import ImageProtocol\n",
+    })
+    assert not [item for item in report.violations if "retired module" in item]
+
+
 def _scan_tree(files: dict[str, str]) -> list[str]:
     """Cross-core violations of a synthetic package root holding only ``files``."""
     with tempfile.TemporaryDirectory() as temporary:

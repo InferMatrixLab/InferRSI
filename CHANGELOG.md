@@ -4,6 +4,31 @@
 
 ### Changed
 
+- The metric contract and the quality validators move from `inferrsi.model` to
+  Benchmark (Refs #498, slice 1). There is no forwarding module or alias, and the
+  import gate fails any import of an old path, even when no file is behind it.
+  - `inferrsi.model.protocols.metrics` is now `inferrsi.benchmark.metrics`.
+    `inferrsi.model.validators` (`flare`, `image`) is now
+    `inferrsi.benchmark.validators`.
+  - The Flare adapter command is now
+    `python -m inferrsi.benchmark.validators.flare`, with the same arguments,
+    outputs and exit codes. The old `python -m inferrsi.model.validators.flare`
+    fails with `ModuleNotFoundError`.
+  - New `inferrsi.benchmark.artifacts` holds Benchmark's own `sha256`,
+    `write_json` and `atomic_write_json`. Their code equals the copies in
+    `inferrsi.infra.artifacts` and Harness, and
+    `tests/test_artifact_helper_copies.py` keeps the copies equal.
+    `inferrsi.infra.artifacts` stays for its other users.
+  - A new Flare receipt keeps its schema and keys. Its `adapter` digests are those
+    of `benchmark/validators/flare.py` and `benchmark/artifacts.py`. Existing
+    receipts are not rewritten.
+  - The MoE task's `benchmark.py` imports the Benchmark modules. Each MoE
+    `evaluate` call prepares its own copy of the task files and launches that copy
+    in the same call, so a new run binds the changed `benchmark.py` bytes and no
+    directory prepared before this change is launched again.
+  - Pickled objects that name an old module path no longer load. The Knowledge
+    records that cite `src/inferrsi/model/protocols/metrics.py` at commit
+    `b3ef95a` keep that pinned path.
 - The five runtime resource loaders are closed and the combined tree is isolated
   (Refs #412, R3). `first_wave_report()` now has no violation and no blocker, and
   `new_core_closure_isolated` and `isolation_complete` are both true.

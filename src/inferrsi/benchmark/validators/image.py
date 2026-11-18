@@ -7,7 +7,7 @@ validators in examples remain frozen and do not import this implementation.
 import math
 from dataclasses import dataclass
 
-from ...infra.artifacts import sha256
+from ..artifacts import sha256
 
 
 @dataclass(frozen=True)
