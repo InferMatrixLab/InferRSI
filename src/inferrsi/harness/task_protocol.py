@@ -32,11 +32,19 @@ _RESULT_TYPES = {"validate_arguments": dict, "arguments": list, "assess": dict}
 
 
 class TaskProtocolError(ValueError):
-    """A protocol operation gave no valid result. ``kind`` names the failure class."""
+    """A protocol operation gave no valid result. ``kind`` names the failure class.
 
-    def __init__(self, kind: str, message: str):
-        super().__init__(f"{kind}: {message}")
+    For ``protocol_exception`` the protocol itself raised: ``str()`` is its own message
+    and ``reason`` its ``"<Type>: <message>"``, the text the in-process call gave before
+    #412 R3. For every other kind both name the transport failure, so the two stay
+    distinguishable.
+    """
+
+    def __init__(self, kind: str, message: str, *, error_type: str | None = None):
+        super().__init__(message if kind == "protocol_exception" else f"{kind}: {message}")
         self.kind = kind
+        self.reason = (f"{error_type}: {message}" if kind == "protocol_exception"
+                       else f"{type(self).__name__}: {self}")
 
 
 def _tail(path: Path) -> str:
@@ -140,6 +148,8 @@ def run(root: Path, protocol_sha256: str, operation: str, **arguments):
     error = response["error"]
     if error["kind"] == "system_exit":
         raise SystemExit(error["exit_code"])
+    if error["kind"] == "protocol_exception":
+        raise TaskProtocolError("protocol_exception", error["message"], error_type=error["type"])
     raise TaskProtocolError(error["kind"], f"{error['type']}: {error['message']}")
 
 

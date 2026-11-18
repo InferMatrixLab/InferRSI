@@ -10,6 +10,7 @@ from pathlib import Path
 from . import candidates
 from .artifact_primitives import digest, file_lock, sha256
 from .atomic_json import atomic_write_json
+from .task_protocol import TaskProtocolError
 from .usage import normalize_usage, usage_totals
 
 
@@ -210,8 +211,12 @@ def _summary(root, plan, state):
 
 
 def _failure(error):
+    # A task protocol that raised keeps its own "<Type>: <message>" across the child
+    # transport (#412 R3); any other error is named by its own type.
+    reason = (error.reason if isinstance(error, TaskProtocolError)
+              else f"{type(error).__name__}: {error}")
     return {"status": "infrastructure_failure", "score": None,
-            "verdict": "INCONCLUSIVE", "reason": f"{type(error).__name__}: {error}"}
+            "verdict": "INCONCLUSIVE", "reason": reason}
 
 
 def _settle(root, plan, state, pending, execution, assess):

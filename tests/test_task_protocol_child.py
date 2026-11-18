@@ -68,7 +68,18 @@ def test_protocol_exception_keeps_its_type_and_message(tmp_path):
                                       "    raise TypeError('bad settings')\n")
     error = failure(tmp_path, digest)
     assert error.kind == "protocol_exception"
-    assert str(error) == "protocol_exception: TypeError: bad settings"
+    # The protocol's own message and "<Type>: <message>" survive the child transport.
+    assert str(error) == "bad settings"
+    assert error.reason == "TypeError: bad settings"
+
+
+def test_transport_failures_stay_distinguishable_from_protocol_exceptions(tmp_path):
+    digest = write_protocol(tmp_path,
+                            "def validate_arguments(a):\n    return {'x': float('nan')}\n")
+    error = failure(tmp_path, digest)
+    assert error.kind == "result"
+    assert error.reason == f"TaskProtocolError: {error}"
+    assert str(error).startswith("result: ValueError: ")
 
 
 @pytest.mark.parametrize("value, message", [
@@ -120,7 +131,7 @@ def test_diagnostics_are_forwarded_when_the_protocol_raises(tmp_path, capsys):
         "    print('context before failure', file=sys.stderr)\n"
         "    raise ValueError('rejected')\n"))
     error = failure(tmp_path, digest)
-    assert str(error) == "protocol_exception: ValueError: rejected"
+    assert str(error) == "rejected" and error.reason == "ValueError: rejected"
     assert "context before failure" in capsys.readouterr().err
 
 
