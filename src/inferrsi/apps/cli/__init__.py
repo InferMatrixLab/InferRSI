@@ -349,6 +349,11 @@ def main(argv: list[str] | None = None) -> int:
                 result = getattr(agent_sessions, args.agent_action)(args.job)
             _print(result)
             return 0
+        if args.command == "search":
+            from ..speculative_search import command as search_command
+
+            _print(search_command(args))
+            return 0
         if args.command == "benchmarks":
             if args.benchmark_action == "session":
                 from ...harness.optimization_session import session_command
