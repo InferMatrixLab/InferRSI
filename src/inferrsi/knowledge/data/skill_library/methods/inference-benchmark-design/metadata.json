@@ -28,7 +28,10 @@
     "vla",
     "embodied",
     "action-chunks",
-    "closed-loop"
+    "closed-loop",
+    "gpu-timing",
+    "profiler-attribution",
+    "measurement-validity"
   ],
   "status": "candidate",
   "profile": "local-skill-v1",
@@ -414,14 +417,101 @@
       "readset": "references/embodied-cpp-source.json",
       "license": "CC-BY-4.0",
       "scope": "Independently normalized VLA metric semantics; predates the later SmolVLA experiment"
+    },
+    {
+      "type": "document",
+      "url": "https://docs.nvidia.com/nsight-compute/2025.3/ProfilingGuide/index.html",
+      "version": "Nsight Compute 2025.3",
+      "sha256": "c9f3b812ce50a46a751f2c92eff628177554f4f6678bb3381468b1dac91b607e",
+      "readset": "references/gpu-measurement-validity.md",
+      "scope": "Inspected Replay, Overhead, Hardware Model, Metrics Structure, Range and Precision, Reproducibility, Clock Control and Cache Control; source contracts only, no profiler execution."
+    },
+    {
+      "type": "document",
+      "url": "https://docs.nvidia.com/nsight-compute/2025.3/NsightComputeCli/index.html",
+      "version": "Nsight Compute 2025.3",
+      "sha256": "c5129a8afe2439c04906f19312393972ae123062d2ee0894b3ba2b11af43471e",
+      "readset": "references/gpu-measurement-validity.md",
+      "scope": "Inspected Metric Collection and Profiling option defaults for clock/cache control and metric queries; actual target support must be checked separately."
+    },
+    {
+      "type": "document",
+      "url": "https://docs.nvidia.com/nsight-systems/2025.3/UserGuide/index.html",
+      "version": "Nsight Systems 2025.3",
+      "sha256": "1d42e35005fa9a4cb21b2c65d0018e4b065c3756dbba308dc0c41f79746e751f",
+      "readset": "references/gpu-measurement-validity.md",
+      "scope": "Inspected CLI Profile options, CUDA graph/node tracing and CUDA API/kernel/launch/MemOps statistics reports; absence of NCU replay controls is an author inference, not a launcher guarantee."
+    },
+    {
+      "type": "document",
+      "url": "https://docs.nvidia.com/cuda/archive/12.9.1/cuda-c-best-practices-guide/index.html",
+      "version": "CUDA Toolkit 12.9.1 archive",
+      "sha256": "0fcaf0c361d00de56a9870ba96db871a0b880904121e1dfb215ab9882470120b",
+      "readset": "references/gpu-measurement-validity.md",
+      "scope": "Inspected Assess/Optimize, Application Profiling, Amdahl's Law, Timing and Instruction Throughput; normalization/adoption procedure is an unverified author synthesis."
+    },
+    {
+      "type": "document",
+      "url": "https://docs.nvidia.com/cuda/archive/12.9.1/cuda-c-programming-guide/index.html",
+      "version": "CUDA Toolkit 12.9.1 archive",
+      "sha256": "06499a0c6bfc6925cf54c76f6ba86a4986a081c44c602e10d4ef3b4f33a33865",
+      "readset": "references/gpu-measurement-validity.md",
+      "scope": "Inspected Concurrent Kernel Execution, CUDA Graphs (structure, definition/instantiation/execution) and Events; no constant launch/replay overhead or device test claimed."
+    },
+    {
+      "type": "document",
+      "url": "https://docs.nvidia.com/cuda/archive/10.2/nsight-compute/docs/NsightComputeCli/index.html",
+      "version": "CUDA Toolkit 10.2 archive, Nsight Compute CLI",
+      "readset": "references/gpu-measurement-validity.md",
+      "scope": "Inspected nvprof Metric Comparison for dram__bytes_read.sum, dram__bytes_write.sum and smsp__inst_executed.sum. Legacy names do not guarantee current chip/tool availability; no raw-byte digest retained for this browser read."
+    },
+    {
+      "type": "document",
+      "url": "https://docs.nvidia.com/deploy/nvidia-smi/index.html",
+      "version": "Unversioned NVIDIA System Management Interface page, retrieved 2026-11-15; content pinned by SHA-256",
+      "sha256": "94d1737cdff11b5ef89b121e97365706feeb8ccc18978fecec571bdbbe6ec9ed",
+      "readset": "references/gpu-measurement-validity.md",
+      "scope": "Inspected Performance State, Clocks Event Reasons, clocks, temperature and power reporting. Public page may change; digest identifies inspected HTML, which is not redistributed."
+    },
+    {
+      "type": "git",
+      "url": "https://github.com/triton-lang/triton",
+      "commit": "9641643da6c52000c807b5eeed05edaec4402a67",
+      "paths": [
+        "python/triton/testing.py"
+      ],
+      "readset": "references/gpu-measurement-validity.md",
+      "license": "MIT",
+      "scope": "v3.2.0 do_bench: write-based cache.zero_ flush, preliminary estimate and per-sample event boundaries; tag resolved with git ls-remote, source inspected in public browser. No flush comparison run."
+    },
+    {
+      "type": "document",
+      "url": "https://docs.pytorch.org/docs/2.7/cpp_extension.html",
+      "version": "PyTorch 2.7",
+      "readset": "references/gpu-measurement-validity.md",
+      "scope": "Inspected load/load_inline and the extension name, build-directory and pybind11 module contract. Distinct names for separately loaded variants are author advice, not a documented universal duplicate-name failure; no raw-byte digest retained for this browser read."
+    },
+    {
+      "type": "paper",
+      "url": "https://arxiv.org/html/2509.14279v1",
+      "id": "arxiv:2509.14279",
+      "version": "v1",
+      "sections": [
+        "3",
+        "Appendix A",
+        "Appendix C.3"
+      ],
+      "readset": "references/gpu-measurement-validity.md",
+      "license": "CC-BY-4.0",
+      "scope": "Lange et al., Towards Robust Agentic CUDA Kernel Benchmarking, Verification, and Optimization. Inspected benchmark loopholes, compromised-task filtering/examples and eager/compiled baseline comparisons; reports remain author-reported, not locally reproduced."
     }
   ],
   "empirical_validation": "not_run",
   "applicability": {
-    "scope": "Selecting task quality gates, reference parity checks and performance workloads for text, agentic coding, work agents, cache-aware ASR, TTS, full-duplex audio/video, image and video inference, and designing goodput-based multi-regime comparisons that fit InferRSI's evidence trail; interpreting treatment delivery, arm validity and stated-versus-observed protocol enforcement in supplied tuning reports; interpreting source-bound kernel trial origin, host evaluator outcomes, unresolved performance and measured-only versus manual candidate selection; designing and interpreting the selected NInfer hybrid speculative state-restoration and completion validation contract; designing or auditing VLA deployment comparisons with explicit observation-to-action boundaries, generated/replayed horizons, per-task quality and source/precision identity",
+    "scope": "Selecting task quality gates, reference parity checks and performance workloads for text, agentic coding, work agents, cache-aware ASR, TTS, full-duplex audio/video, image and video inference, and designing goodput-based multi-regime comparisons that fit InferRSI's evidence trail; interpreting treatment delivery, arm validity and stated-versus-observed protocol enforcement in supplied tuning reports; interpreting source-bound kernel trial origin, host evaluator outcomes, unresolved performance and measured-only versus manual candidate selection; designing and interpreting the selected NInfer hybrid speculative state-restoration and completion validation contract; designing or auditing VLA deployment comparisons with explicit observation-to-action boundaries, generated/replayed horizons, per-task quality and source/precision identity; assessing GPU timing validity and profiler-based attribution of kernel/inference gains",
     "prerequisites": "The primary objective, timing boundary, quality gates, sample/failure accounting, required regimes, repetitions, seeds and decision rule are frozen before optimization; baseline and candidate share hardware, software stack, input distribution, benchmark configuration, warmup and measurement protocol, and on a shared machine also one time window and dedicated devices; cache-aware ASR also requires the selected model/config and first/steady geometry, decoded clock and reset/EOU/EOF boundaries to be established; VLA comparisons also freeze generated/replayed horizons, initial-state/noise protocol and intended precision or quantization treatment",
     "input_contract": "The task family and deployment use case; candidate quality evaluators and reference parity; the declared SLO and the caller's policy on which regimes must improve or must not regress; for an audit, a supplied fixed-workload report with request-to-trial grouping, exclusion and failure counts and the declared aggregation rule; for a treatment audit, the frozen delivery/arm-validity rules, run/candidate identities, feedback and consumer-input evidence, and per-arm raw records; for a kernel trial audit, complete saved candidate bytes and IDs, baseline/spec/reference/variant identities, result-origin fields, raw host outcome and return code, named gate and persisted ratio, actual oracle and the selecting/delivering caller; for the NInfer slice, a complete checkpoint/frontier identity, physical verify-block/state oracle, final adopted extents and correlated execution/termination records; for VLA audits, the declared CPU input/output boundary, source/fixture/checkpoint/processor identities, per-task trial scope and available raw records or explicit artifact gaps",
-    "produced_artifact": "A frozen benchmark design with evaluators, reference parity, primary objective, timing boundary, quality gates, required regimes, repetition and seed rules and an explicit decision config, plus the evidence-tree layout a PASS claim must produce; for a supplied report, the computed threshold result and missing evidence. Candidate knowledge, not qualification of any model or backend; for a treatment audit, a contract-bound eligibility and interpretation report separating treatment exposure, observed checks, comparator identity, anomaly disposition and source conflicts; for a kernel trial audit, a source-bound interpretation separating artifact/cohort identity, origin, oracle, performance resolution and selected-versus-delivered eligibility, without promoting kernel parity into a gain or whole-model acceptance; for the NInfer slice, a source-bound validation plan or report interpretation that separates state-oracle evidence, final adoption, retirement and workload denominators; for VLA reports, a timing/denominator and precision reconciliation with per-task quality/completion accounting and source-artifact limits",
+    "produced_artifact": "A frozen benchmark design with evaluators, reference parity, primary objective, timing boundary, quality gates, required regimes, repetition and seed rules and an explicit decision config, plus the evidence-tree layout a PASS claim must produce; for a supplied report, the computed threshold result and missing evidence. Candidate knowledge, not qualification of any model or backend; for a treatment audit, a contract-bound eligibility and interpretation report separating treatment exposure, observed checks, comparator identity, anomaly disposition and source conflicts; for a kernel trial audit, a source-bound interpretation separating artifact/cohort identity, origin, oracle, performance resolution and selected-versus-delivered eligibility, without promoting kernel parity into a gain or whole-model acceptance; for the NInfer slice, a source-bound validation plan or report interpretation that separates state-oracle evidence, final adoption, retirement and workload denominators; for VLA reports, a timing/denominator and precision reconciliation with per-task quality/completion accounting and source-artifact limits; for GPU attribution, a source-grounded measurement plan or interpretation binding environment, paired timing, work counts, predicted signature and E2E decomposition with explicit assumptions and unresolved evidence",
     "failure_modes": [
       "Raw throughput is optimized in place of goodput, so requests served outside the SLO count toward a win",
       "One concurrency level or one undisclosed aggregate score stands in for all required regimes",
@@ -443,7 +533,9 @@
       "Matching structural pair fields are taken to certify matched effective compute precision or quality equivalence",
       "An aggregate VLA success rate conceals task-specific losses or missing/skipped episodes",
       "A public current script, recorded experiment revision or binary hash is treated as the exact measured dirty source patch",
-      "Whole-device fallback memory is relabelled as process-attributed memory or compared with simulator-inclusive/allocator quantities"
+      "Whole-device fallback memory is relabelled as process-attributed memory or compared with simulator-inclusive/allocator quantities",
+      "NCU replay durations are substituted for normal E2E evidence, or an untouched region is treated as a universal clock without checking common drift and critical-path assumptions",
+      "Unexplained gains, changed baseline modes or same-named JIT loads are adopted without binding actual work, module identity and predicted profiler signatures"
     ],
     "refusal_point": "Records missing coverage and high-variance results as INCONCLUSIVE rather than a win; a run without a frozen RunSpec, or whose validator changed after the plan was frozen, is INCONCLUSIVE regardless of metric values; sets no universal numeric gate or noise threshold; withholds causal treatment benefit/null conclusions when required delivery or arm eligibility is unverified, and preserves conflicts between stated protocol, exported code and source reports; withholds a kernel gain for unresolved performance or an unbound comparison and identifies missing independent semantic evidence when only baseline agreement is available; withholds native state-correctness and cancellation/reuse conclusions when the required same-block oracle, checkpoint identity or matching receipt is missing; withholds VLA quality-preservation, runtime-only attribution, control-rate or current-build conclusions when their required precision, per-task, timestamp or measured-source evidence is missing"
   },
@@ -455,7 +547,8 @@
     "Trace treatment to its eligible consumer and apply the frozen arm-validity precedence before attributing benefit, saturation or a null.",
     "Bind the complete saved candidate and comparator cohort; keep result origin, actual oracle, named gate/ratio and delivered eligibility separate.",
     "For hybrid speculative comparisons, freeze the coupled restore point, same-physical-block oracle, zero-draft/zero-adoption controls and complete-cohort versus steady-phase denominators before interpreting a result.",
-    "Separate complete VLA request cost, generated/replayed action denominators and actual control cadence; retain per-task quality and measured-source/precision limits."
+    "Separate complete VLA request cost, generated/replayed action denominators and actual control cadence; retain per-task quality and measured-source/precision limits.",
+    "For GPU comparisons, retain timestamped clocks/temperature/power, same-run region shares and work counts; test the predicted mechanism signature and paired E2E change before adopting a gain."
   ],
   "limitations": [
     "Source-derived candidate; no local efficacy validation.",
@@ -468,7 +561,8 @@
     "The Xe-Forge reference is source-only and limited to inspected host/manual/Claude trial paths; named-verdict update predicates and caller defaults remain explicit. Native tests, backend/model/quality/performance/service behavior and agent efficacy were not evaluated, and source/package checks do not promote whole-model support.",
     "The NInfer reference inspects selected Qwen3.5 GDN/MTP source contracts and unexecuted test definitions; its historical author measurements use a different engine revision. Native state/model/device/quality/performance and efficacy remain unvalidated.",
     "The Faster CosyVoice reference is source-only: server route credit and client simulated playback remain distinct, reported costs/quality retain their boundaries, overall source rights are UNKNOWN, and native/model/device/audio quality/service/performance are not_run with efficacy not_evaluated.",
-    "The Embodied.cpp reference is source-derived: its public latency arrays allow arithmetic audit, but raw episode recount, exact measured script/dirty patch, effective dispatch and current model/device/service or efficacy qualification remain unresolved."
+    "The Embodied.cpp reference is source-derived: its public latency arrays allow arithmetic audit, but raw episode recount, exact measured script/dirty patch, effective dispatch and current model/device/service or efficacy qualification remain unresolved.",
+    "The GPU measurement-validity reference is source-only. The within-run normalization and explanation-first adoption procedure is an unverified author proposal; four task-supplied numerical observations have no supplied raw evidence. GPU/profiler, model/quality, L1–L4 and efficacy validation were not run; legacy metric mappings require target-specific queries."
   ],
   "provenance_readsets": [
     "references/task-benchmark-selection.md",
@@ -485,7 +579,8 @@
     "references/dependency-aware-tts-playout.md",
     "references/faster-cosyvoice-source.json",
     "references/embodied-cpp-boundary-and-quality.md",
-    "references/embodied-cpp-source.json"
+    "references/embodied-cpp-source.json",
+    "references/gpu-measurement-validity.md"
   ],
   "references": [
     "../inference-optimization-casebook/cases/admission-drain-occupancy.md",

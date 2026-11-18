@@ -42,6 +42,12 @@ For treatment-enabled tuning comparisons or claimed protocol integrity, read
 Trace feedback to the eligible consumer input and apply the frozen arm-validity
 precedence before interpreting benefit, saturation or a null.
 
+For GPU timing comparisons, read
+[measurement validity and profiler attribution](references/gpu-measurement-validity.md).
+Separate normal E2E timing from profiler replay, test within-run attribution
+assumptions and retain work counts plus the predicted mechanism signature.
+This is candidate guidance; its task-supplied observations remain unverified.
+
 For hybrid speculative state-restoration or completion evidence, read the
 [NInfer validation contract](references/ninfer-state-and-completion-contracts.md).
 Freeze a coupled checkpoint and same-physical-block state oracle; distinguish
