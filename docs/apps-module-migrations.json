@@ -321,5 +321,143 @@
       "tests/test_apps_module_migrations.py",
       "tests/test_benchmark_compare.py"
     ]
+  },
+  {
+    "old": "inferrsi.apps.cannbot",
+    "canonical": "inferrsi.apps.integrations.cannbot",
+    "exports": [
+      "CannbotChannel",
+      "project"
+    ],
+    "consumers": [
+      "src/inferrsi/apps/cli/__init__.py",
+      "tests/check_installed.py",
+      "tests/test_apps_module_migrations.py"
+    ],
+    "package": true,
+    "module_exports": {
+      "project": {
+        "old": "inferrsi.apps.cannbot.project",
+        "canonical": "inferrsi.apps.integrations.cannbot.project"
+      }
+    }
+  },
+  {
+    "old": "inferrsi.apps.cannbot.project",
+    "canonical": "inferrsi.apps.integrations.cannbot.project",
+    "exports": [
+      "MAX_BYTES",
+      "PLATFORMS",
+      "ChannelFailure",
+      "project_root",
+      "load_grant",
+      "describe",
+      "search",
+      "read",
+      "enable",
+      "disable"
+    ],
+    "consumers": [
+      "src/inferrsi/apps/integrations/cannbot/__init__.py",
+      "tests/check_installed.py",
+      "tests/test_apps_module_migrations.py",
+      "tests/test_cannbot_boundaries.py"
+    ]
+  },
+  {
+    "old": "inferrsi.apps.cannbot.read_worker",
+    "canonical": "inferrsi.apps.integrations.cannbot.read_worker",
+    "exports": [
+      "OutputLimitError",
+      "capture",
+      "discover",
+      "search",
+      "read"
+    ],
+    "consumers": [
+      "src/inferrsi/apps/integrations/cannbot/project.py",
+      "tests/check_installed.py",
+      "tests/test_apps_module_migrations.py",
+      "tests/test_cannbot_boundaries.py"
+    ]
+  },
+  {
+    "old": "inferrsi.apps.mindie",
+    "canonical": "inferrsi.apps.integrations.mindie",
+    "exports": [],
+    "consumers": [
+      "docs/architecture.md",
+      "docs/external-channels.md",
+      "docs/module-layout.md",
+      "tests/check_installed.py",
+      "tests/test_apps_module_migrations.py"
+    ],
+    "package": true
+  },
+  {
+    "old": "inferrsi.apps.mindie.context",
+    "canonical": "inferrsi.apps.integrations.mindie.context",
+    "exports": [
+      "MAX_BYTES",
+      "export_context"
+    ],
+    "consumers": [
+      "docs/module-layout.md",
+      "src/inferrsi/apps/cli/__init__.py",
+      "src/inferrsi/apps/integrations/mindie/mcp.py",
+      "src/inferrsi/apps/integrations/mindie/project.py",
+      "tests/check_installed.py",
+      "tests/test_apps_module_migrations.py",
+      "tests/test_mindie_context.py",
+      "tests/test_mindie_runtime.py"
+    ]
+  },
+  {
+    "old": "inferrsi.apps.mindie.project",
+    "canonical": "inferrsi.apps.integrations.mindie.project",
+    "exports": [
+      "ReadFailure",
+      "project_root",
+      "enable",
+      "disable",
+      "describe",
+      "call",
+      "dispatch"
+    ],
+    "consumers": [
+      "docs/module-layout.md",
+      "src/inferrsi/apps/cli/__init__.py",
+      "src/inferrsi/apps/integrations/mindie/mcp.py",
+      "tests/check_installed.py",
+      "tests/test_apps_module_migrations.py",
+      "tests/test_mindie_project.py",
+      "tests/test_mindie_runtime.py"
+    ]
+  },
+  {
+    "old": "inferrsi.apps.mindie.mcp",
+    "canonical": "inferrsi.apps.integrations.mindie.mcp",
+    "exports": [
+      "serve"
+    ],
+    "consumers": [
+      "docs/module-layout.md",
+      "src/inferrsi/apps/integrations/mindie/project.py",
+      "tests/check_installed.py",
+      "tests/test_apps_module_migrations.py",
+      "tests/test_mindie_project.py"
+    ]
+  },
+  {
+    "old": "inferrsi.apps.mindie.read_worker",
+    "canonical": "inferrsi.apps.integrations.mindie.read_worker",
+    "exports": [
+      "read"
+    ],
+    "consumers": [
+      "docs/module-layout.md",
+      "tests/check_installed.py",
+      "tests/test_apps_module_migrations.py"
+    ]
   }
 ]

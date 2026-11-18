@@ -154,7 +154,7 @@ def _channels():
     dropping it from the list.
     """
     from ...knowledge.channels import ChannelRegistry
-    from ..cannbot import CannbotChannel
+    from ..integrations.cannbot import CannbotChannel
 
     channel = CannbotChannel()
     return ChannelRegistry([channel], declared_backend=channel.declared_backend)
@@ -302,14 +302,14 @@ def main(argv: list[str] | None = None) -> int:
             _print(delivery)
             return 0 if delivery["status"] == "published" else 2
         if args.command == "mindie":
-            from ..mindie.project import dispatch
+            from ..integrations.mindie.project import dispatch
 
             result = dispatch(args)
             if result is not None:
                 _print(result)
             return 0
         if args.command == "cannbot":
-            from .. import cannbot
+            from ..integrations import cannbot
 
             action = args.cannbot_action
             if action == "enable":
@@ -618,7 +618,7 @@ def main(argv: list[str] | None = None) -> int:
 
         if args.command == "campaign":
             if args.campaign_action == "import-mindie":
-                from ..mindie.context import export_context
+                from ..integrations.mindie.context import export_context
 
                 path = export_context(
                     args.directory, context_id=args.id, query_input=args.query_input,
