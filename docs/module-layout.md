@@ -41,8 +41,25 @@ through these exports; new pickles use the canonical definition. The retired
 root `inferrsi.evidence_paths` has no alias and remains unavailable.
 
 Shim removal requires a separate reviewed PR recording consumer migration,
-wheel and plugin validation, and the first removal version. Handoff, workflows
-and integrations remain subsequent #490 slices.
+wheel and plugin validation, and the first removal version. Workflows,
+integrations and integrated acceptance remain subsequent #490 slices.
+
+### Apps handoff migration
+
+`apps/handoff/bridge.py` binds fixed preparations to execution specifications
+and projects saved records into evidence. `context_provider.py` delivers actual
+Knowledge bytes and pins for Harness sealing. `candidate_provider.py` plans
+generation and collects candidates from fixed Harness records. These modules
+consume `apps/storage/`; storage never imports back into handoff.
+
+The three former Apps paths retain explicit public exports recorded in the
+[migration inventory](apps-module-migrations.json). `apps.api.CandidateProvider`
+and the former provider module export the one class defined in
+`apps/handoff/candidate_provider.py`. `EvaluationPort` remains defined in
+`apps/api.py`. The handoff initializer imports nothing, and importing either
+path performs no Knowledge reads, device probes, process launches or service
+registration. Harness owns the sealed context, original attempt and request
+digest; these ownership boundaries and DTOs remain unchanged.
 
 ### Core and technical packages
 

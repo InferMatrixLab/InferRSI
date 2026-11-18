@@ -134,6 +134,13 @@ deadline. OperationRecipe v1 has no per-step timeout, so the step timeout
 is null. The expected worker code digest comes from the fixed recipe.
 The bound spec is handed to the host-supplied Harness execution port.
 
+`inferrsi.apps.handoff.bridge` owns that binding and the fixed evidence
+projection. `handoff.context_provider` delivers Knowledge bytes for Harness to
+seal, and `handoff.candidate_provider` owns generation planning and candidate
+collection. `inferrsi.apps.api.CandidateProvider` exports the same canonical
+class. The three former Apps modules retain their registered public exports;
+the original attempt, public port signatures and fixed references are unchanged.
+
 ## Fixed artifact reader
 
 `inferrsi.apps.storage.artifact_reader.ArtifactReader(storage_config)` implements
