@@ -43,7 +43,7 @@ measured gain, compatible combined stack or new empirical coverage.
 | [Operator profiling](ascend/ascend-operator-profiling/SKILL.md) | Imported mirrored profiling procedure; named summary helper is not bundled |
 | [Operator tuning](ascend/ascend-operator-tuning/SKILL.md) | Mirrored PyPTO skill/playbook distillation; reported analyzer behavior and cases are not native validation |
 | [Optimization casebook](ascend/ascend-optimization-casebook/SKILL.md) | Upstream skill-derived cases and inferences; no independent local reruns |
-| [Performance analysis](ascend/ascend-performance-analysis/SKILL.md) | MindIE-SD guidance plus direct CannBot workflow/callback/helper reads; callback completion is not numerical evidence |
+| [Performance analysis](ascend/ascend-performance-analysis/SKILL.md) | MindIE-SD profiling and shared-machine measurement guidance |
 | [Video diffusion](ascend/ascend-video-diffusion-optimization/SKILL.md) | First-hand workflow/field notes, explicitly non-reproducible as published |
 | [AscendC tiling](ascend/ascendc-tiling-design/SKILL.md) | Mirrored skill/reference distillation; chip-specific formulas and unwritten operator classes retain their limits |
 | [CANN attribution and overlap](ascend/cann-attribution-overlap/SKILL.md) | Supplied skill/reference/script pack; import and later revisions remain separate, original lineage equivalence unknown |

@@ -258,22 +258,10 @@
           "evidence": [
             "SKILL.md"
           ]
-        },
-        {
-          "source": "cann/cannbot official model-infer-optimize plugin",
-          "channel": "direct repository read retained",
-          "depth": "Fixed-stage role/workflow instructions plus selected registered callback and archive-helper implementation; dependency skills/recipes not inspected.",
-          "identity": "c0e2ad23ee1a73e3c0f84c8df1cc459e2aae3110 (full Git commit)",
-          "inspection_date": "2026-10-23",
-          "license_note": "Selected official plugin CANN-2.0 with Huawei notices and retained agreement; purpose/distribution restrictions remain in its ledger. Not a license for historical cannbot-skills.",
-          "evidence": [
-            "references/cannbot-stage-evidence.md",
-            "references/cannbot-CANN-2.0-LICENSE.md"
-          ]
         }
       ],
       "limits": [
-        "Only the official fixed-stage increment is normalized. Lexical callback completion is not numerical validation; agent-host integration and NPU execution remain unverified."
+        "Inherited MindIE-SD profiling guidance has no local NPU validation."
       ]
     },
     {
