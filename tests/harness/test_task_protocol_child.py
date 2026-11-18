@@ -225,6 +225,7 @@ def test_campaign_deadline_bounds_the_protocol_timeout(tmp_path):
     started = time.monotonic()
     error = failure(tmp_path, digest, deadline=started + 1.0, arguments=[])
     assert error.kind == "timeout"
+    assert error.cleanup_verified is True
     assert time.monotonic() - started < 10
 
 
@@ -232,7 +233,18 @@ def test_expired_campaign_deadline_never_starts_protocol(tmp_path, monkeypatch):
     digest = write_protocol(tmp_path, "def validate_arguments(a):\n    return {}\n")
     monkeypatch.setattr(task_protocol.local_process, "_supervise",
                         lambda *a, **k: pytest.fail("expired protocol must not start"))
-    assert failure(tmp_path, digest, deadline=0, arguments=[]).kind == "timeout"
+    error = failure(tmp_path, digest, deadline=0, arguments=[])
+    assert error.kind == "timeout" and error.cleanup_verified is True
+
+
+@pytest.mark.parametrize("cleanup", [False, None])
+def test_protocol_timeout_retains_uncertain_cleanup(tmp_path, monkeypatch, cleanup):
+    digest = write_protocol(tmp_path, "def validate_arguments(a):\n    return {}\n")
+    monkeypatch.setattr(task_protocol.local_process, "_supervise", lambda *a, **k: {
+        "status": "timeout", "pid": 123, "domain_empty": cleanup,
+    })
+    error = failure(tmp_path, digest)
+    assert error.kind == "timeout" and error.cleanup_verified is cleanup
 
 
 @pytest.mark.parametrize("deadline", [float("nan"), float("inf"), -float("inf"), True, "soon"])

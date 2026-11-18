@@ -252,6 +252,9 @@ def finalize(control, campaign, adapter, selected, *, holdout_scope, accept_resu
     doc = control.read(campaign)
     if doc["final_result"] is not None:
         return doc["final_result"]
+    validate_final = getattr(adapter.evaluator, "validate_final", None)
+    if validate_final is not None:
+        validate_final(holdout_scope)
     required_scope = getattr(adapter.evaluator, "holdout_scope", None)
     if required_scope is not None and holdout_scope != required_scope:
         raise ValueError("Final scope must match the evaluator's frozen holdout data identity")

@@ -150,6 +150,36 @@ def test_resume_after_receipt_before_state_commit_never_executes_twice(runtime, 
     assert len(list((adapter.root / "candidates").iterdir())) == before
 
 
+def test_durable_accept_recovers_without_another_policy_decision(runtime, monkeypatch):
+    control, adapter, snapshot, settings, root = runtime
+    snapshot = replace(snapshot, policy=(0.0,) * 8)
+    root = replace(root, contract=replace(
+        root.contract, improver_snapshot=digest(snapshot.document())))
+    search = Search(control, "campaign", "search", snapshot, settings, adapter)
+    # This seed selects ACCEPT first, but would select DRAFT on a second decision.
+    search.start(root, seed=7, collect=True)
+
+    def crash(reason):
+        assert reason == "accept"
+        raise RuntimeError("crash after durable ACCEPT")
+
+    monkeypatch.setattr(search, "finish", crash)
+    with pytest.raises(RuntimeError, match="durable ACCEPT"):
+        search.run()
+    before = control.read("campaign")
+    reopened = WorkControl(RunStore(control.store.root, control.store.namespace))
+    resumed = Search(reopened, "campaign", "search", snapshot, settings, adapter)
+    record = resumed.run()
+    assert record["status"] == "complete" and record["stop_reason"] == "accept"
+    assert record["selected"] == root.root_id
+    assert record["trace"] == before["state"]["searches"]["search"]["trace"]
+    assert reopened.read("campaign")["operations"] == before["operations"]
+    assert reopened.read("campaign")["spent_ms"] == before["spent_ms"]
+    after = reopened.read("campaign")
+    assert resumed.run() == record
+    assert reopened.read("campaign") == after
+
+
 @pytest.mark.parametrize("kind", ["draft", "verify"])
 def test_expired_launch_recovers_unstarted_block_and_finishes_with_root(runtime, monkeypatch, kind):
     control, adapter, snapshot, settings, root = runtime
@@ -362,6 +392,57 @@ def test_paid_continuations_are_metered_matched_and_excluded_from_actors(runtime
         scorer_pairs=(suffixes,),
     )
     assert trained.scorer != snapshot.scorer
+
+
+def test_late_continuation_preserves_the_consumed_step_budget(runtime):
+    from inferrsi.harness.gvo import suffix_examples
+    from inferrsi.harness.search_continuations import continue_from
+    from inferrsi.harness.vats import Action
+
+    control, adapter, snapshot, settings, root = runtime
+    settings = replace(settings, max_steps=2)
+    source = Search(control, "campaign", "search", snapshot, settings, adapter)
+    source.start(root, seed=12, collect=False)
+    original = source.run()
+    assert [s["action"]["kind"] for s in original["trace"]] == ["draft", "verify"]
+    action = next(Action(**raw) for raw in original["trace"][1]["menu"]
+                  if raw["kind"] == "draft")
+    args = (source, 1, action.key, "late-suffix")
+    record = continue_from(*args, copy_cap_ms=3000, seed=91)
+    assert record["continuation"]["step"] == 1
+    assert [s["action"]["kind"] for s in record["trace"]] == ["draft"]
+    assert record["stop_reason"] == "limit" and record["selected"] == root.root_id
+    assert record["gain"] == record["initial_gain"] == 0
+    assert suffix_examples(record, expense_weight=0, elapsed_weight=0)[0][1] == 0
+    before = control.read("campaign")
+    assert continue_from(*args, copy_cap_ms=3000, seed=91) == record
+    assert control.read("campaign") == before
+
+
+def test_forced_accept_recovers_after_copy_without_dispatch(runtime, monkeypatch):
+    from inferrsi.harness.search_continuations import continue_from
+    from inferrsi.harness.vats import Action
+
+    control, adapter, snapshot, settings, root = runtime
+    source = Search(control, "campaign", "search", snapshot, settings, adapter)
+    source.start(root, seed=12, collect=False)
+    original = source.run()
+    action = next(Action(**raw) for raw in original["trace"][0]["menu"]
+                  if raw["kind"] == "accept")
+    args = (source, 0, action.key, "accept-suffix")
+    with monkeypatch.context() as patch:
+        def crash(*args):
+            raise RuntimeError("crash after continuation copy")
+
+        patch.setattr(Search, "finish", crash)
+        with pytest.raises(RuntimeError, match="continuation copy"):
+            continue_from(*args, copy_cap_ms=3000, seed=91)
+    before = control.read("campaign")
+    record = continue_from(*args, copy_cap_ms=3000, seed=91)
+    assert record["stop_reason"] == "forced_accept" and record["selected"] == root.root_id
+    assert len(record["trace"]) == 1
+    assert control.read("campaign")["operations"] == before["operations"]
+    assert control.read("campaign")["spent_ms"] == before["spent_ms"]
 
 
 def test_root_invalidation_is_persisted_and_cannot_return_an_invalid_root(runtime):

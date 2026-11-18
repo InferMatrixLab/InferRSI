@@ -86,6 +86,9 @@ parent artifact, without waiting for parent quality. Each check binds candidate,
 contract, attempt, execution, reservation and domain. Settlement commits elapsed
 time, cleanup facts and evidence/incumbent changes in one transaction. Recovery
 continues the retained block cursor before making another Policy decision.
+An ACCEPT already retained in the trace is terminal even if the controller
+stopped before writing the completed status. Recovery finishes that decision
+without sampling or charging another preparation, including forced ACCEPT.
 
 ACCEPT and limits return only complete admissible versions. Unstarted work stops
 when its conservative cap no longer fits. Unknown launched operations block
@@ -126,6 +129,9 @@ suffix is Scorer-only. `paired_targets` requires the same source state, settings
 snapshot, adapter and continuation seed with different first actions. Both
 absolute suffix targets and observed relative differences train the Scorer.
 Caller-authored unreceipted pair targets are rejected.
+The saved source step counts toward the continuation's original step limit and
+random-stream position; omitting the prefix from its training trace does not
+grant additional decision slots.
 
 These are real updates to a constrained CPU operator model. They are not LLM
 finetuning, prompt summarization or evidence of pretrained-model improvement.
@@ -148,6 +154,10 @@ blocks further claims immediately, even with unknown cleanup; the retained hold
 is at least the largest known usage. Later reconciliation releases the domain
 and charges the final usage once, never below that known lower bound. Absolute
 deadlines include queueing and cleanup.
+Engine protocol timeouts retain an INCONCLUSIVE adapter receipt with measured
+elapsed time. Confirmed cleanup of both task and protocol permits settlement
+and domain release; uncertain protocol cleanup keeps the reservation. A known
+overrun still blocks the campaign, even after its domain has been released.
 In-process bounded planning, editing and training are checked after return;
 they are not forcibly preempted like subprocesses. Preflight freezing and initial
 setup are outside this campaign meter, a remaining lifecycle-cost limitation.
@@ -171,6 +181,9 @@ original baseline. For Skill, supply a **holdout-bound adapter** and
 `Comparator.holdout_scope` (derived from the frozen data digest), never the
 development adapter or a replacement label. Exact bounded radix utility keeps
 quality before token use; reduced tokens cannot offset a quality regression.
+The Skill evaluator validates its holdout binding before the scope is claimed
+or data is accessed, rejecting development evaluators and missing/mismatched
+holdout identities.
 
 After interruption, final consumes existing receipts only. Even an unstarted
 remaining check cannot be newly dispatched by recovery. Existing final results
@@ -216,6 +229,50 @@ Git baseline, editable bundle paths and two split descriptors (`path`, `sha256`,
 executes the existing comparator under the shared process executor and revalidates
 its independent retained report. Construction does not load holdout bytes.
 Provider readiness/credentials/authorization remain existing explicit requirements.
+
+## Relation to the paper and reference implementation
+
+This is a constrained adaptation of the two-loop method, not a reproduction of
+the reference model or experiments. The comparison below uses
+[SpecRSI v2, section 3 and Algorithms S1-S3](https://arxiv.org/html/2610.16491v2#S3)
+and the authors' [reference source](https://github.com/SpecRSI-GPR/SpecRSI/tree/ff0f0bb607e53ba76eebb9960df3d6942c33027e).
+That source revision is research provenance, not an InferRSI campaign pin.
+
+| Mechanism | This implementation | Alignment and limits |
+| --- | --- | --- |
+| Frozen search and acceptance | Immutable descendants, separate real evidence, DRAFT/VERIFY/ACCEPT, complete-root fallback | Follows the central control contract; intermediate parents need not pass |
+| Natural group learning | Independent matched searches, leave-one-out advantage, recorded actor probabilities, clipped objective and fixed-reference KL | Same objective structure; updates a small CPU operator model |
+| Value supervision | Actual paid-state suffix returns and optional paid pair differences; forced trajectories excluded from actors | Same separation of targets; continuation recovery must preserve the original remaining work limits |
+| Drafter | Softmax over a caller-supplied exact-replacement vocabulary | The reference uses generated edit tokens with a trainable LoRA adapter on a frozen language model; this vocabulary cannot propose a new edit outside its supplied operators |
+| Policy and Scorer | Separate linear weights over eight aggregate features | The reference uses separate relation/message-passing and attention branches with semantic and observed-evidence inputs; these linear features omit those inputs |
+| Solver and refinement | Exhaustive unions of completion seeds, one job per candidate/check; optional pairwise seed-union scoring | The reference supports MILP covers, singleton check closures, shared setup and iterative job-closure extensions; this restricted planner is not a general substitute |
+| Training recipe | Caller-provided initial checkpoint; direct CPU gradient updates | No supervised warm-up pipeline or language-model training adapter; the reference's warm-up, role architecture and optimizer configuration are not reproduced |
+| Resources and evaluation | One worker, millisecond reservations, whole Engine/Skill checks | No equivalent campaign-wide token/currency cap, arbitrary setup execution, parallel-worker study or matched reference benchmark runs |
+
+The architecture and training distinction can be inspected in the reference
+[role model](https://github.com/SpecRSI-GPR/SpecRSI/blob/ff0f0bb607e53ba76eebb9960df3d6942c33027e/src/specrsi/learning/hf.py),
+[relation heads](https://github.com/SpecRSI-GPR/SpecRSI/blob/ff0f0bb607e53ba76eebb9960df3d6942c33027e/src/specrsi/learning/heads.py),
+[completion solver](https://github.com/SpecRSI-GPR/SpecRSI/blob/ff0f0bb607e53ba76eebb9960df3d6942c33027e/src/specrsi/planning/completion.py),
+[menu construction](https://github.com/SpecRSI-GPR/SpecRSI/blob/ff0f0bb607e53ba76eebb9960df3d6942c33027e/src/specrsi/core/vats.py)
+and [training recipe](https://github.com/SpecRSI-GPR/SpecRSI/blob/ff0f0bb607e53ba76eebb9960df3d6942c33027e/docs/REPRODUCIBILITY.md#training-the-reference-roles).
+These were inspected as source, not executed as a reproduction experiment.
+
+Two limits matter when interpreting learning results. First, at the same state,
+verification bundles with equal total cap and job count have identical features
+in `vats.features`, hence identical linear Scorer values and Policy preferences.
+Their candidate identity, observed failures and check interactions cannot affect
+that comparison. Parameter updates alone therefore do not demonstrate learning
+the paper's complementary-check value function. Second, `Settings.refine_queries`
+defaults to zero, and the Engine CLI exposes no override. Its search does not use
+the trained Scorer to refine the menu; the supplied Engine/Skill evaluators also
+expose one indivisible check per candidate. Python callers can enable the bounded
+refinement, but that does not add the missing semantic or relational inputs.
+
+Moving toward a reference reproduction requires explicit role/feature and menu
+contracts, a qualified generative/trainable adapter with warm-up, lifecycle cost
+accounting, and matched frozen-versus-trained search experiments on real tasks.
+The existing recovery, evidence and holdout controls remain useful foundations;
+passing them does not establish search efficacy or reproduce paper results.
 
 ## Validation and issue completion
 
