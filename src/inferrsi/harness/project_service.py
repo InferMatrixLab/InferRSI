@@ -727,12 +727,12 @@ def execute(root, directory, plan, pending, deadline):
                                     "binding": expected,
                                     "receipt": trace,
                                     "artifacts": [
-                                        str((directory / item).relative_to(root))
+                                        (directory / item).relative_to(root).as_posix()
                                         for item in artifacts
                                     ],
-                                    "result": str(
-                                        (output / "profile/result.json").relative_to(root)
-                                    ),
+                                    "result": (
+                                        output / "profile/result.json"
+                                    ).relative_to(root).as_posix(),
                                 }
                             else:
                                 skipped(

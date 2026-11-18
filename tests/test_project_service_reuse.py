@@ -223,6 +223,9 @@ def test_one_service_order_and_independent_final_ignores_workspace(campaign):
     ]
     assert len({row["service_id"] for row in log}) == 1
     assert attempt["execution"]["cleanup_verified"] is True
+    profile = attempt["execution"]["profile"]
+    for relative in [profile["result"], *profile["artifacts"]]:
+        assert project_service.safe_path(campaign["root"], relative).is_file()
     (campaign["repo"] / "engine.py").write_text("raise RuntimeError('unsubmitted workspace')")
     final = call(campaign, "final", "--reason", "Synthetic search complete")
     assert final["state"] == "completed"
