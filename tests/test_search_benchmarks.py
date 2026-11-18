@@ -78,6 +78,25 @@ def test_cli_requires_explicit_shared_store_and_read_commands_do_not_create_one(
         parser().parse_args(["search", "engine", "--session", str(tmp_path / "run")])
 
 
+def test_engine_rejects_frozen_resource_mutation_during_evaluation(tmp_path, monkeypatch):
+    evaluator = EngineEvaluator(
+        "qwen21-denoise-npu",
+        tmp_path / "frozen",
+        arguments=["--pairs", "1", "--samples", "1", "--warmups", "0"],
+    )
+    source = tmp_path / "candidate"
+    source.mkdir()
+    (source / "candidate.py").write_text("unchanged candidate")
+
+    def mutated_execution(*args, **kwargs):
+        (evaluator.frozen / "reference.py").write_text("changed reference")
+        return {"status": "completed", "returncode": 0, "cleanup_verified": True}
+
+    monkeypatch.setattr("inferrsi.apps.search_benchmarks.execute_trial", mutated_execution)
+    with pytest.raises(ValueError, match="resources changed during"):
+        evaluator.evaluate(source, "evaluation", tmp_path / "output", time.time() + 1)
+
+
 def test_skill_comparator_preparation_does_not_access_holdout(tmp_path):
     from tests.fixtures.harness_improvement_demo import configuration
     from tools.speculative_skill import Comparator
@@ -89,6 +108,7 @@ def test_skill_comparator_preparation_does_not_access_holdout(tmp_path):
         client={"explicit": "preparation-only-test"},
         snapshots={"baseline": {"git_revision": config["baseline"]}},
     )
+
     def descriptor(split):
         return {
             "path": str(tmp_path / (split + ".json")),
@@ -96,6 +116,7 @@ def test_skill_comparator_preparation_does_not_access_holdout(tmp_path):
             "scope": split,
             "task_count": 3,
         }
+
     bound = Comparator(
         repo,
         {

@@ -59,16 +59,23 @@ class Comparator:
         self.original = dict(bundle.content)
         if set(config["allowed_paths"]) - self.original.keys():
             raise ValueError("Allowed edits must belong to the original Skill bundle")
+        self._controllers = {
+            name: sha256(compare.ROOT / name)
+            for name in (
+                *compare.CONTROLLERS,
+                "tools/speculative_skill.py",
+                "tools/skill_eval_improve.py",
+            )
+        }
         self.identity = digest(
             {
                 "config": config,
                 "baseline": self.baseline,
                 "resources": {k: digest(v.hex()) for k, v in self.original.items()},
-                "controllers": {name: sha256(compare.ROOT / name) for name in compare.CONTROLLERS},
+                "controllers": self._controllers,
             }
         )
         self._config_digest = digest(self.config)
-        self._controllers = {name: sha256(compare.ROOT / name) for name in compare.CONTROLLERS}
         self.holdout_scope = "skill-data:" + final["sha256"]
 
     def export_root(self, destination):
