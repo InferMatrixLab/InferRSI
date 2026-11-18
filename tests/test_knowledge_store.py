@@ -111,6 +111,25 @@ def test_store_find_searches_the_delivered_revision(tmp_path):
     ]
 
 
+def test_package_only_store_find_respects_its_reserved_sources(tmp_path):
+    query = "cache per-step masks ran out of device memory"
+    options = {"kind": "case", "limit": 1}
+    ordinary = KnowledgeReader().collect(query, **options)
+    assert ordinary["items"][0]["authority"] == "checkout"
+
+    store = KnowledgeStore(tmp_path, skill_root=None)
+    result = store.collect(query, **options)
+    assert result["no_match"]
+    assert result["retrieval"]["request"]["sources"] == ["package", "store"]
+    assert result["retrieval"]["counts"]["considered"] == 0
+
+    reader = store.reader()
+    result = reader.collect("cgroupv2", kind="skill", limit=1)
+    item, = result["items"]
+    assert item["ref"] == "package:inferrsi.common.skills.cgroup_resource_controls"
+    assert reader.read(item["ref"], revision=item["revision"]).revision == item["revision"]
+
+
 def test_store_cannot_shadow_read_only_identities(tmp_path):
     store = store_at(tmp_path)
     for source in ("calibrate-serving-simulation", "case.admission-drain-occupancy"):

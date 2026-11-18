@@ -563,7 +563,11 @@ class KnowledgeReader:
         }
         root = None if package_only else self.skill_root
         records = self.records()
-        documents = load_documents(root, kinds=kinds[kind], records=records.values())
+        search_kinds = kinds[kind]
+        package_only_store = self.store is not None and self.skill_root is None
+        if package_only_store:
+            search_kinds = tuple(name for name in search_kinds if name != "case")
+        documents = load_documents(root, kinds=search_kinds, records=records.values())
         if root is not None and root != installed_skill_root() and kind is None:
             # A selected custom library owns its registered skills. The package
             # supplies missing skills and remains available for exact reads.
@@ -579,11 +583,15 @@ class KnowledgeReader:
 
         eligible, references = [], []
         excluded = {"filters": 0, "ranking_scope": 0}
+        considered = 0
         for document in documents:
             authority, _, identity = document.qualified.partition(":")
             projection = installed_skill_projection(document, records)
             if projection is not None:
                 authority, identity = "package", projection["id"]
+            if package_only_store and authority == "checkout":
+                continue
+            considered += 1
             if authority == "package":
                 material_kind = "skill" if kind == "skill" else "knowledge"
                 metadata = {**records[identity], "kind": material_kind}
@@ -609,7 +617,7 @@ class KnowledgeReader:
             for score, _, index, components in scored
         }
         excluded["zero_score"] = len(eligible) - len(results)
-        return results, len(documents), excluded
+        return results, considered, excluded
 
     def collect(
         self,
@@ -670,7 +678,7 @@ class KnowledgeReader:
             raise ValueError("Duplicate requested identity")
         checkout = self
         owners = self.owners()
-        if find_ranking and self.skill_root is None:
+        if find_ranking and self.skill_root is None and self.store is None:
             from .knowledge_find import installed_skill_root
 
             checkout = KnowledgeReader(skill_root=installed_skill_root())
