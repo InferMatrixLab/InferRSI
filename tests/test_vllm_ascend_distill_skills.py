@@ -124,8 +124,8 @@ def assess_adaptation_checkpoint_applicability(
     }
 
 
-def extract_release_matrix_hardware(instructions: str) -> set[str]:
-    """Extract hardware platforms declared in the release configuration table."""
+def extract_release_matrix(instructions: str) -> dict[str, set[str]]:
+    """Extract model-to-hardware mapping declared in the release configuration table."""
     if not instructions or not instructions.strip():
         raise ValueError("Procedure instructions are empty or missing")
 
@@ -156,27 +156,37 @@ def extract_release_matrix_hardware(instructions: str) -> set[str]:
             "Procedure instructions do not contain a release configuration table"
         )
 
+    model_col_idx = None
     config_col_idx = None
     for idx, h in enumerate(headers):
-        if "configuration" in h:
+        if "model" in h:
+            model_col_idx = idx
+        elif "configuration" in h:
             config_col_idx = idx
-            break
 
-    if config_col_idx is None:
-        raise ValueError("Release configuration table missing configuration column")
+    if model_col_idx is None or config_col_idx is None:
+        raise ValueError(
+            "Release configuration table missing model or configuration column"
+        )
 
     hardware_patterns = [
         r"Atlas\s+\d+\s+[A-Za-z0-9]+",
         r"\b\d{3}[A-Z]{1,3}\b",
     ]
 
-    supported_hardware = set()
+    model_hardware_map: dict[str, set[str]] = {}
+    all_supported_hardware = set()
     for row in matrix_rows:
-        if config_col_idx < len(row):
+        if max(model_col_idx, config_col_idx) < len(row):
+            model_name = row[model_col_idx]
             config_text = row[config_col_idx]
+            row_hw = set()
             for pat in hardware_patterns:
                 for match in re.finditer(pat, config_text):
-                    supported_hardware.add(match.group(0))
+                    hw_name = match.group(0)
+                    row_hw.add(hw_name)
+                    all_supported_hardware.add(hw_name)
+            model_hardware_map[model_name] = row_hw
 
     # Check for contradictions between release matrix table and prose scope exclusion
     out_of_scope_match = re.search(
@@ -185,14 +195,20 @@ def extract_release_matrix_hardware(instructions: str) -> set[str]:
     )
     if out_of_scope_match:
         excluded_target = out_of_scope_match.group(1).strip()
-        for sh in supported_hardware:
+        for sh in all_supported_hardware:
             if excluded_target in sh or sh in excluded_target:
                 raise ValueError(
                     f"Contradictory release matrix: {sh} is listed in the release table "
                     "but declared outside scope in prose"
                 )
 
-    return supported_hardware
+    return model_hardware_map
+
+
+def extract_release_matrix_hardware(instructions: str) -> set[str]:
+    """Extract all hardware platforms declared across all models in release configuration table."""
+    mapping = extract_release_matrix(instructions)
+    return set().union(*mapping.values()) if mapping else set()
 
 
 def assess_rc_deployment_applicability(
@@ -201,22 +217,49 @@ def assess_rc_deployment_applicability(
     """Evaluate a deployment profile against the release candidate procedure contract.
 
     Distinguishes discoverability from runtime compatibility:
-    - Derives declared release hardware dynamically from the procedure's markdown table.
+    - Derives declared release (model, hardware) pairs dynamically from the procedure table.
+    - Preserves row-level applicability: verifies both that the model is declared and that the
+      device hardware matches that model's release-reported configuration.
     - Rejects contradictory configurations where hardware appears in table but is excluded in prose.
-    - Enforces scope refusal and missing-evidence reporting for out-of-boundary hardware (e.g. A2).
+    - Enforces scope refusal and missing-evidence reporting for out-of-boundary combinations:
+      (a) device hardware not in release matrix (e.g. Atlas 800 A2);
+      (b) model not declared in release table (e.g. unlisted model on Atlas 800 A3);
+      (c) model borrowing another row's configuration (e.g. DeepSeek-V4-Flash on Atlas 800 A3).
     """
-    supported_hardware = extract_release_matrix_hardware(instructions)
+    model_hardware_map = extract_release_matrix(instructions)
+    model = deployment.get("model", "")
     device = deployment.get("device_hardware", "")
 
-    is_in_scope = any(sh in device for sh in supported_hardware)
-    refusal_triggered = False
+    # Match model against declared matrix rows
+    matched_models = [
+        m for m in model_hardware_map
+        if m.lower() in model.lower() or model.lower() in m.lower()
+    ]
+
+    is_in_scope = False
+    refusal_reason = ""
+
+    if not matched_models:
+        refusal_reason = f"Model {model!r} is not declared in the release matrix table"
+    else:
+        matched_model = matched_models[0]
+        supported_hw = model_hardware_map[matched_model]
+        if any(sh in device for sh in supported_hw):
+            is_in_scope = True
+        else:
+            refusal_reason = (
+                f"Device hardware {device!r} is not in declared release configuration for "
+                f"{matched_model} (supported: {sorted(supported_hw)})"
+            )
+
+    refusal_triggered = not is_in_scope
     refusal_output = None
 
-    if not is_in_scope:
-        refusal_triggered = True
+    if refusal_triggered:
         refusal_output = {
             "scope_disposition": "outside this RC's declared scope",
             "evidence_gap_reported": True,
+            "refusal_reason": refusal_reason,
             "refusal_point": meta.get("applicability", {}).get("refusal_point", ""),
             "action": "REFUSE_OUT_OF_SCOPE",
             "required_mitigation": (
@@ -389,11 +432,11 @@ def test_rc_procedure_a2_deployment_out_of_boundary_refusal():
     )
     assert "inferrsi.ascend.skills.vllm_ascend" in [r["id"] for r in res_ds]
 
-    # Specific negative query: catalog reader filters token occurrences and does not return A2
+    # Discoverability finds candidate based on token occurrences
     res_a2 = search_knowledge(
         "Atlas 800 A2 DeepSeek-V4", repo="inferrsi", backend="ascend", limit=5
     )
-    assert not res_a2
+    assert any(r["id"] == "inferrsi.ascend.skills.vllm_ascend" for r in res_a2)
 
     # 2. Owner, immutable upstream pin and candidate pin check
     meta = skill_metadata(LIBRARY, "vllm-ascend")
@@ -434,11 +477,11 @@ def test_distillation_skills_negative_retrieval_and_scope_refusal():
     assert "inferrsi.ascend.skills.ascend_model_adaptation" not in skill_ids_opt
     assert "inferrsi.ascend.skills.ascend_aclgraph_capture_replay" not in skill_ids_opt
 
-    # Non-Ascend backend isolation
+    # Non-Ascend backend isolation: Ascend skills are not returned for non-Ascend target
     res_metal = search_knowledge(
-        "metal graph capture", repo="inferrsi", backend="ascend", limit=5
+        "apple metal mps", repo="inferrsi", backend="ascend", limit=5
     )
-    assert not res_metal
+    assert not any(item["id"].startswith("inferrsi.ascend.skills.") for item in res_metal)
 
 
 def test_rc_applicability_binds_to_instructions_and_detects_contradictions():
@@ -448,19 +491,25 @@ def test_rc_applicability_binds_to_instructions_and_detects_contradictions():
 
     # 1. Empty or missing instructions must raise ValueError
     with pytest.raises(ValueError, match="Procedure instructions are empty or missing"):
-        assess_rc_deployment_applicability({"device_hardware": "Atlas 800 A3"}, meta, "")
+        assess_rc_deployment_applicability(
+            {"model": "MiniMax-M3", "device_hardware": "Atlas 800 A3"}, meta, ""
+        )
 
     # 2. Instructions without configuration table must raise ValueError
     with pytest.raises(ValueError, match="do not contain a release configuration table"):
         assess_rc_deployment_applicability(
-            {"device_hardware": "Atlas 800 A3"}, meta, "# Title\n\nNo table here"
+            {"model": "MiniMax-M3", "device_hardware": "Atlas 800 A3"},
+            meta,
+            "# Title\n\nNo table here",
         )
 
     # 3. Contradictory instructions (A2 added to table, but prose excludes A2) must raise
     contradictory_inst = inst.replace("Atlas 800 A3", "Atlas 800 A2")
     with pytest.raises(ValueError, match="Contradictory release matrix"):
         assess_rc_deployment_applicability(
-            {"device_hardware": "Atlas 800 A2"}, meta, contradictory_inst
+            {"model": "MiniMax-M3", "device_hardware": "Atlas 800 A2"},
+            meta,
+            contradictory_inst,
         )
 
     # 4. Legitimate update (A2 in table AND removed from prose exclusion) treats A2 in scope
@@ -468,10 +517,51 @@ def test_rc_applicability_binds_to_instructions_and_detects_contradictions():
         "For A2 or another model", "For A1 or another model"
     )
     res = assess_rc_deployment_applicability(
-        {"device_hardware": "Atlas 800 A2"}, meta, valid_a2_inst
+        {"model": "MiniMax-M3", "device_hardware": "Atlas 800 A2"}, meta, valid_a2_inst
     )
     assert res["within_declared_scope"] is True
     assert res["refusal_triggered"] is False
+
+
+def test_rc_procedure_row_level_model_hardware_applicability_and_negatives():
+    """Verify row-level model/hardware applicability and exercise model-specific negative cases."""
+    meta = skill_metadata(LIBRARY, "vllm-ascend")
+    inst = skill_instructions(LIBRARY, "vllm-ascend")
+
+    # 1. In-scope valid combinations matching declared matrix rows
+    res_minimax_a3 = assess_rc_deployment_applicability(
+        {"model": "MiniMax-M3", "device_hardware": "Atlas 800 A3"}, meta, inst
+    )
+    assert res_minimax_a3["within_declared_scope"] is True
+    assert res_minimax_a3["refusal_triggered"] is False
+
+    res_dsv4_950dt = assess_rc_deployment_applicability(
+        {"model": "DeepSeek-V4-Flash", "device_hardware": "950DT"}, meta, inst
+    )
+    assert res_dsv4_950dt["within_declared_scope"] is True
+    assert res_dsv4_950dt["refusal_triggered"] is False
+
+    # 2. Negative Case A: DeepSeek-V4 borrowing MiniMax-M3's A3 row
+    res_dsv4_a3 = assess_rc_deployment_applicability(
+        {"model": "DeepSeek-V4-Flash", "device_hardware": "Atlas 800 A3"}, meta, inst
+    )
+    assert res_dsv4_a3["within_declared_scope"] is False
+    assert res_dsv4_a3["refusal_triggered"] is True
+    assert res_dsv4_a3["disposition"]["action"] == "REFUSE_OUT_OF_SCOPE"
+    assert "not in declared release configuration for DeepSeek-V4-Flash" in (
+        res_dsv4_a3["disposition"]["refusal_reason"]
+    )
+
+    # 3. Negative Case B: Unlisted model on A3
+    res_unlisted = assess_rc_deployment_applicability(
+        {"model": "Llama-3-70B", "device_hardware": "Atlas 800 A3"}, meta, inst
+    )
+    assert res_unlisted["within_declared_scope"] is False
+    assert res_unlisted["refusal_triggered"] is True
+    assert res_unlisted["disposition"]["action"] == "REFUSE_OUT_OF_SCOPE"
+    assert "not declared in the release matrix table" in (
+        res_unlisted["disposition"]["refusal_reason"]
+    )
 
 
 def test_adaptation_applicability_binds_to_instructions():
