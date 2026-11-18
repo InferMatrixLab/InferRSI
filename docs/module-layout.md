@@ -11,18 +11,40 @@ package is dissolved. Its
 campaign records, traces, logs and profile captures are in `harness/records/`,
 its dashboard views and templates are in `apps/views/`, and the
 collected-context projection is in `knowledge/context_projection.py`.
-#371 remains the proposal for the Apps package path and is not accepted here.
+#371 owns the Apps composition. Its accepted directory follow-up
+[#490](https://github.com/InferMatrixLab/InferRSI/issues/490) starts with the
+`apps/storage/` slice described below.
 
 The old `run` chain is split by owner. Its gates are in
 `benchmark/legacy_run_v0.py`, its execution facts stay in `harness/`, and
-`apps/legacy/` composes them with the report. `apps/legacy/` is the path named
-by the confirmed split for this slice; that use does not accept #371.
+`apps/legacy/` composes them with the report. That path was established by
+the earlier confirmed split.
 `apps/cli/` imports the old run only inside its `run` command, so the other
 commands, including ordinary optimization, still load no Benchmark module.
 R1 deleted the three root forwarders of that chain (`evaluation.py`,
 `execution.py` and `reporting.py`), and the CLI imports `apps/legacy/` itself.
 
 ## Target modules
+
+### Apps storage migration
+
+`apps/storage/` owns `archive.py`, `artifact_reader.py`, `result.py` and
+`evidence_layout.py`. API, handoff, view and delivery consumers import these
+canonical implementations. Storage has no direct or transitive import back to
+handoff. The package initializer imports nothing.
+
+The four old Apps paths remain explicit static exports of the same public
+objects. [apps-module-migrations.json](apps-module-migrations.json) records the
+implemented paths, exports and consumers. Private-helper imports and test
+patches must target the canonical module. Old Apps pickle references load
+through these exports; new pickles use the canonical definition. The retired
+root `inferrsi.evidence_paths` has no alias and remains unavailable.
+
+Shim removal requires a separate reviewed PR recording consumer migration,
+wheel and plugin validation, and the first removal version. Handoff, workflows
+and integrations remain subsequent #490 slices.
+
+### Core and technical packages
 
 The four target modules are peers: `knowledge`, `harness`, `benchmark`, and
 `apps`. Knowledge, Harness, and Benchmark do not import one another. Apps is
@@ -33,7 +55,7 @@ business DTOs and performs no core or host initialization.
 
 `contracts/evidence.py` holds the evidence segment names and the per-campaign
 path rules. It only builds paths and does no filesystem I/O. Creating the
-directories is `apps/evidence_layout.py`, which reuses those rules, so `mkdir`
+directories is `apps/storage/evidence_layout.py`, which reuses those rules, so `mkdir`
 stays out of the contracts package. `resources/repository_packs.py` is the
 neutral repository-pack facade: the one `REPO_TYPES` tuple and the `pack.json`
 reader. It imports no `inferrsi` module, and `resources/__init__.py` imports
@@ -89,7 +111,7 @@ contract slice. Do not treat PR #338 as a reason to add a top-level
 `tests/architecture_closed_loop.py` is the handoff exercised by
 `tests/test_architecture_closed_loop.py`. The coordinator does not import
 Knowledge, Harness, or Benchmark. Refusal cases still inject outcomes. That
-file is not the Apps package, and #371 remains the proposal for that path.
+file is not the Apps implementation owned by #371.
 It does not change Bundle revision.
 
 `tests/architecture_real_ports.py` is the CPU/offline connection injected for
@@ -119,18 +141,19 @@ Several flat modules remain shared seams until their slice starts.
 | `apps/skill_evaluation.py`, `apps/skill_eval_engineering.py`, `apps/improvement.py` | Composed skill-evaluation entries | Join Knowledge reads, Harness execution and Benchmark rules behind the signatures that `harness/` held before the split |
 | `knowledge/knowledge_operations.py`, `knowledge/knowledge_store.py`, `knowledge/catalog.py`, `knowledge/research.py`, `knowledge/skill_catalog.py`, `knowledge/_skill_selection.py`, `knowledge/_source_snapshot.py` | The seven Knowledge implementations, moved by K01 | Interfaces unchanged; the same-named root shells were deleted by R1 |
 | `harness/records/` | Campaign manifests, traces, logs, profile captures and delivered-context captures | Imports no Knowledge or Apps module; `apps/campaign.py` supplies the backend names, the selection default and the context projection |
-| `apps/views/`, `apps/campaign.py` | Dashboard views, templates and the Knowledge-to-records connection | Apps path still follows the #371 proposal |
+| `apps/views/`, `apps/campaign.py` | Dashboard views, templates and the Knowledge-to-records connection | Apps composition under #371; campaign organization follows in #490 |
 | `apps/mindie/` (`project.py`, `context.py`, `mcp.py`, `read_worker.py`) | The local MindIE adapter: project grant, stdio MCP, context export and the read worker | M1 (#452) moved the four root MindIE files here; no Harness, Knowledge or Infra module names MindIE, and the initializer imports nothing |
 | `harness/` | Mixed legacy tree, not target isolation | Not redefined |
 | `harness/runner.py`, `harness/scenarios/external.py`, `harness/atomic_json.py` | Old run execution facts and Harness-owned JSON writes | Ports injected; no Model edge, and no Infra edge except the local process executor |
 | `benchmark/legacy_run_v0.py`, `benchmark/sampling.py` | Old run gates and metric validation; image/video sample collection | Imports only `model/protocols/metrics`; owns its rule inputs and verdict labels |
-| `apps/legacy/` | Old run composition, old `evaluate` entry and HTML report | Supplies the Git source snapshot from `infra/targets`; path follows the confirmed split, #371 still proposed |
+| `apps/legacy/` | Old run composition, old `evaluate` entry and HTML report | Supplies the Git source snapshot from `infra/targets`; remains in Apps |
 | `apps/inspection.py` | Prepared-environment inspection bound to this host | Binds the `infra/inspection.py` facts API to `infra.commands.probe_command` and `infra.targets.repository_identity`; replaces root `inspection.py`, which R1 deleted with the three old-run root forwarders |
 | `model/validators/` | Benchmark-leaning checks | Not moved |
 | `infra/` | Seams used by the current tree, including the `infra/inspection.py` facts API | Not a fourth core; reaches no Knowledge, Harness, Benchmark or Apps module |
 | `apps/views/summary_chart.py` | Stdlib SVG gain chart and report figure spec | A2 (#408) moved root `summary_chart.py` here; the renderer, its specification checks and its `main` are unchanged, and `tools/campaign_summary_chart.py` calls it |
 | `contracts/` (`runspec.py`, `json_v1.py`, `claim.py`, `evidence.py`) | Technical-only contracts: RunSpec, canonical JSON, verdict vocabulary, evidence segment and path rules | Exact module set; the initializer re-exports only `RunSpec`; not a fourth core |
-| `apps/evidence_layout.py` | Evidence directory creation over the `contracts/evidence.py` path rules | The `mkdir` half of former root `evidence_paths.py`; host I/O stays in Apps |
+| `apps/storage/evidence_layout.py` | Evidence directory creation over the `contracts/evidence.py` path rules | The `mkdir` half of former root `evidence_paths.py`; host I/O stays in Apps |
+| `apps/storage/` (`archive.py`, `artifact_reader.py`, `result.py`) | Fixed artifact publication and reads; normalized AppsResultV1 | #490 storage slice; the old Apps modules retain explicit public exports |
 | `resources/repository_packs.py` | Neutral `REPO_TYPES` and `repository_pack` facade | Former root `_repo_pack_data.py`, bytes unchanged; import-free initializer; not a fourth core |
 | `knowledge/data/`, `harness/data/` | Packaged resources, placed by owner since K02 | Corpus under Knowledge; pack descriptions under Harness |
 

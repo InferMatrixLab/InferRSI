@@ -350,6 +350,14 @@ normal scoped PR path.
 
 ## Experiments
 
+The public preparation, execution and assessment API remains
+`inferrsi.apps.api`. Its fixed artifact access and output publication use
+`inferrsi.apps.storage.archive`, `artifact_reader` and `result`; the directory
+creation helper is `inferrsi.apps.storage.evidence_layout.ensure_evidence_layout`.
+The CLI entry remains `inferrsi.apps.cli:main`. See the
+[output contract](apps-output.md) and [migration inventory](apps-module-migrations.json)
+for the retained old Apps imports and canonical storage paths.
+
 ### Inspect/prepare — `doctor`, `plan`, `--dry-run`
 
 - **Inputs:** repository/backend/device flags; `plan` takes the full experiment specification.

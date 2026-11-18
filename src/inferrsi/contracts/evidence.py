@@ -1,7 +1,7 @@
 """Evidence segment names and per-campaign path rules (portable; no campaign pins).
 
 Path construction only. Nothing here reads or writes the filesystem; creating the
-directories is ``inferrsi.apps.evidence_layout.ensure_evidence_layout``.
+directories is ``inferrsi.apps.storage.evidence_layout.ensure_evidence_layout``.
 """
 
 from __future__ import annotations

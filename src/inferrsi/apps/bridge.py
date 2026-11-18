@@ -7,8 +7,8 @@ from hashlib import sha256
 from inferrsi.contracts.json_v1 import decode, encode
 from inferrsi.harness.errors import PublicError
 
-from .archive import _logical_path
-from .result import validate_artifact_ref
+from .storage.archive import _logical_path
+from .storage.result import validate_artifact_ref
 
 _ATTEMPT_FIELDS = {
     "request_id", "run_id", "attempt_id", "owner", "target_request", "deadline_utc",

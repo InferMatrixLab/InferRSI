@@ -6,7 +6,7 @@ from dataclasses import fields
 import pytest
 
 from inferrsi.apps.api import execute
-from inferrsi.apps.archive import read_result
+from inferrsi.apps.storage.archive import read_result
 from inferrsi.harness.errors import PartialExecutionFacts, PublicError
 from inferrsi.harness.execution_spec import request_digest
 from inferrsi.harness.run_store import request_digest as legacy_digest
