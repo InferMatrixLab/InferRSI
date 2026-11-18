@@ -28,6 +28,7 @@ vm.runInNewContext(source,{document,window:{location:{hash:''},addEventListener(
   // Shared component behavior is covered by test_knowledge_navigation_browser.py.
   InferRSIVerdicts(){},
   InferRSIKnowledge:{create:()=>({render(){},trace(){},backLinks(){}})},
+  InferRSIRoundDecisions:{create:()=>({render(){}})},
   InferRSIExperiments:{create:()=>({render(){}})}},
                           localStorage:{getItem(){return 'en';},setItem(){}}});
 if(mode==='timing'){

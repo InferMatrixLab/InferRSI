@@ -354,7 +354,9 @@ def render_dashboard(snapshot: dict, *, live: bool = False) -> str:
     )
     if live:
         template = template.replace("img-src data:;", "img-src data:; connect-src 'self';")
-    replacements = {"__DASHBOARD_KNOWLEDGE__": files("inferrsi").joinpath(
+    replacements = {"__DASHBOARD_ROUND_DECISIONS__": files("inferrsi").joinpath(
+        "apps", "views", "round_decision_view.html").read_text(encoding="utf-8"),
+                    "__DASHBOARD_KNOWLEDGE__": files("inferrsi").joinpath(
         "apps", "views", "knowledge_view.html").read_text(encoding="utf-8"),
                     "__DASHBOARD_OVERVIEW__": files("inferrsi").joinpath(
                         "apps", "views", "overview_view.html").read_text(encoding="utf-8"),
@@ -363,7 +365,7 @@ def render_dashboard(snapshot: dict, *, live: bool = False) -> str:
                     "__DASHBOARD_EXPERIMENTS__": files("inferrsi").joinpath(
                         "apps", "views", "experiment_view.html").read_text(encoding="utf-8")}
     return re.sub(
-        r"__DASHBOARD_(?:DATA|CHART|TEMPORAL|EXPERIMENTS|KNOWLEDGE|OVERVIEW)__",
+        r"__DASHBOARD_(?:DATA|CHART|TEMPORAL|EXPERIMENTS|KNOWLEDGE|OVERVIEW|ROUND_DECISIONS)__",
         lambda match: replacements[match.group()],
         template,
     )
