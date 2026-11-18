@@ -5,10 +5,10 @@ from copy import deepcopy
 from inferrsi.contracts.json_v1 import decode
 from inferrsi.harness.errors import PublicError
 
-from ..archive import read_assessment
-from ..artifact_reader import ArtifactReader
 from ..bridge import check_assessment_identity
-from ..result import _check_ref
+from ..storage.archive import read_assessment
+from ..storage.artifact_reader import ArtifactReader
+from ..storage.result import _check_ref
 
 _EXECUTION_FIELDS = (
     "run_id", "attempt_id", "record_version", "phase", "started", "side_effect_unknown",

@@ -335,6 +335,80 @@ def test_assessor_exception_preserves_type_and_settles_failed_attempt(session, m
     assert (session / "calls.log").read_text().splitlines() == ["2"]
 
 
+def start_args(task, root):
+    return ["benchmarks", "session", "start", task.name, "--session", str(root),
+            "--rounds", "3", "--max-minutes", "5", "--evaluation-timeout-seconds", "15",
+            "--condition", "synthetic-current-agent", "--evaluation-args", ""]
+
+
+def test_child_assessor_exception_keeps_its_reason_through_a_real_round(task, tmp_path, capsys):
+    # #412 R3: the frozen protocol's assess runs in the protocol child. Its exception must
+    # settle the attempt with the same "<Type>: <message>" as the in-process call did.
+    path = task / "optimization.py"
+    path.write_text(path.read_text(encoding="utf-8").replace(
+        "def assess(directory, settings, execution):\n",
+        "def assess(directory, settings, execution):\n"
+        "    raise TypeError('invalid task assessment')\n"), encoding="utf-8")
+    root = tmp_path / "session"
+    assert main(start_args(task, root)) == 0
+    capsys.readouterr()
+    candidate = root / "work/candidate.py"
+    candidate.write_text("FACTOR = 2\n", encoding="utf-8")
+    assert main(["benchmarks", "session", "round", "--session", str(root),
+                 "--candidate", str(candidate), "--hypothesis", "Child assessor error"]) == 2
+    view = json.loads(capsys.readouterr().out)
+    assert view["state"] == "blocked" and view["pending"] is None
+    assessment = view["latest_observation"]["assessment"]
+    assert assessment["reason"] == "TypeError: invalid task assessment"
+    assert assessment["verdict"] == "INCONCLUSIVE" and assessment["score"] is None
+    retained = json.loads((root / view["latest_observation"]["path"] / "observation.json")
+                          .read_text())
+    assert retained["assessment"] == assessment
+    assert (root / "calls.log").read_text().splitlines() == ["2"]
+
+
+def test_child_arguments_exception_keeps_the_coordinator_record_through_a_real_round(
+    task, tmp_path, capsys,
+):
+    # #412 R3: a frozen protocol's `arguments` failure leaves the same coordinator record
+    # as the in-process call did: the protocol's own type and message, and the attempt
+    # settles through the existing coordinator path. The benchmark never starts.
+    path = task / "optimization.py"
+    path.write_text(path.read_text(encoding="utf-8").replace(
+        "def arguments(candidate, output, settings):\n",
+        "def arguments(candidate, output, settings):\n"
+        "    raise TypeError('bad arguments')\n"), encoding="utf-8")
+    root = tmp_path / "session"
+    assert main(start_args(task, root)) == 0
+    capsys.readouterr()
+    candidate = root / "work/candidate.py"
+    candidate.write_text("FACTOR = 2\n", encoding="utf-8")
+    assert main(["benchmarks", "session", "round", "--session", str(root),
+                 "--candidate", str(candidate), "--hypothesis", "Child arguments error"]) == 2
+    view = json.loads(capsys.readouterr().out)
+    directory = root / view["latest_observation"]["path"]
+    assert json.loads((directory / "coordinator-error.json").read_text()) == {
+        "type": "TypeError", "error": "bad arguments"}
+    assessment = view["latest_observation"]["assessment"]
+    assert assessment["reason"] == "ValueError: bad arguments"
+    assert assessment["verdict"] == "INCONCLUSIVE" and assessment["score"] is None
+    assert not (root / "calls.log").exists()
+
+
+def test_child_argument_error_keeps_its_cli_message_at_start(task, tmp_path, capsys):
+    path = task / "optimization.py"
+    path.write_text(path.read_text(encoding="utf-8").replace(
+        "def validate_arguments(args):\n",
+        "def validate_arguments(args):\n    raise ValueError('pairs must be positive')\n"),
+        encoding="utf-8")
+    with pytest.raises(SystemExit) as stop:
+        main(start_args(task, tmp_path / "session"))
+    assert stop.value.code == 2
+    error = capsys.readouterr().err
+    assert "error: pairs must be positive" in error and "protocol_exception" not in error
+    assert not (tmp_path / "session").exists()
+
+
 def test_task_runner_does_not_expose_harness_as_top_level_modules(task, tmp_path):
     from inferrsi.apps.benchmark_operations import run_task
 
@@ -384,6 +458,8 @@ def test_runtime_identity_covers_migrated_process_domain_and_not_removed_executo
     assert "harness/local_process.py" in identity
     # #412 R2: the Harness-owned primitives replace infra.artifacts in six modules.
     assert "harness/artifact_primitives.py" in identity
+    # #412 R3: the protocol child entry runs every task protocol operation.
+    assert "harness/protocol_child.py" in identity
     assert "infra/executors/local.py" not in identity
     for name in identity:
         assert (root / name).is_file(), name

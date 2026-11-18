@@ -10,7 +10,7 @@ from tempfile import TemporaryDirectory
 
 from ... import __version__
 from ...infra.artifacts import file_lock
-from .. import archive
+from ..storage import archive
 from . import adapters
 from .projection import iterative
 from .render import reports

@@ -196,6 +196,6 @@ window.InferRSIKnowledge={create({getData,getLanguage,openRun}){
     captures.forEach(c=>button(section,tr('Open retrieval · ','打开检索 · ')+c.context_id,()=>showCapture(c.context_id)));
     searches.forEach(s=>button(section,'R'+s.round+' · v'+s.schema_version,()=>{round=String(s.round);selected=null;opened.add('navigation');opened.add(s.path);render();const d=document.querySelector('#knowledge-navigation > details');d.open=true;d.querySelector('summary').focus();d.scrollIntoView({block:'start'});}));
   }
-  return {render,trace,backLinks};
+  return {render,trace,backLinks,openCapture:showCapture,openRun};
 }};
 </script>

@@ -280,14 +280,13 @@ def test_package_init_and_infra_inspection_load_no_knowledge_body():
     )
 
 
-def test_knowledge_closure_is_clean_while_overall_stays_false():
+def test_knowledge_closure_is_clean_and_the_final_tree_is_isolated():
     # K01-5: the Knowledge package exists and its closure is clean. R1 cleared the
-    # allowlist and the old-run forwarders, A1 the parser entry and R2 the twelve
-    # harness -> infra hits from six modules. The five runtime resource loaders (R3)
-    # remain, and they keep new_core_closure_isolated false.
+    # allowlist and the old-run forwarders, A1 the parser entry, R2 the twelve
+    # harness -> infra hits from six modules and R3 the five runtime resource loaders.
     report = first_wave_report()
     assert report.violations == ()
-    assert report.blockers == ("runtime resource loaders: 5",)
+    assert report.blockers == ()
     assert report.harness_model_infra == ()
-    assert not report.new_core_closure_isolated
-    assert not report.isolation_complete
+    assert report.new_core_closure_isolated
+    assert report.isolation_complete

@@ -25,35 +25,133 @@ from tests._gate_policy_support import (
     load_manifest,
 )
 
+# #412 R3: a by-path load, as in the MoE grader and the Qwen21 evaluator.
+LOADER = (
+    "import importlib.util\n"
+    "def load(path, name):\n"
+    "    spec = importlib.util.spec_from_file_location(name, path)\n"
+    "    module = importlib.util.module_from_spec(spec)\n"
+    "    spec.loader.exec_module(module)\n"
+    "    return module\n"
+)
+
+
+def _report(root, files):
+    for relative, source in files.items():
+        path = root / relative
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(source, encoding="utf-8")
+    return first_wave_report(root)
+
+
+def _module(relative):
+    return "inferrsi." + relative.removesuffix(".py").replace("/", ".")
+
+
+def test_retired_loader_tables_do_not_return():
+    # R3 admits by file location, so no table names a task, a function or a module.
+    for name in ("RESOURCE_LOADERS", "EVALUATOR_LOADERS"):
+        assert not hasattr(support, name), name
+
+
+@pytest.mark.parametrize("relative", [
+    "benchmark/tasks/moe-forward-npu/grader.py",
+    # Any bundle and any file name: nothing in the gate names a task.
+    "benchmark/tasks/a-new-task/evaluate.py",
+])
+def test_bundle_program_may_load_files_by_path_and_is_listed(tmp_path, relative):
+    module_scope = ("import importlib.util\n"
+                    "spec = importlib.util.spec_from_file_location('c', 'c.py')\n"
+                    "module = importlib.util.module_from_spec(spec)\n")
+    two_calls = LOADER + "\nload('a.py', 'a')\nother = importlib.util.module_from_spec(spec)\n"
+    for index, source in enumerate((LOADER, two_calls, module_scope)):
+        report = _report(tmp_path / str(index), {relative: source})
+        # The synthetic tree lacks the other cores, so only their "absent" blockers remain.
+        assert report.violations == ()
+        assert blocker_kinds(report) == {"absent"}
+        assert report.runtime_execution == (
+            f"{_module(relative)}: importlib.util.module_from_spec executes files loaded "
+            "by path in-process",)
+
 
 @pytest.mark.parametrize("extra", [
     "\nimport importlib\nimportlib.import_module('inferrsi.knowledge')\n",
-    "\nimportlib.util.module_from_spec(spec)\n",
-    "\ndef another():\n    return importlib.util.module_from_spec(spec)\n",
+    "\n__import__('json')\n",
+    "\nfrom importlib.util import module_from_spec\n",
+    "\nimport importlib.util as util\nutil.module_from_spec(spec)\n",
+    "\nimportlib.util.find_spec('inferrsi.knowledge')\n",
+    "\nfrom importlib.util import find_spec\nfind_spec('inferrsi.knowledge')\n",
+    # Review of 2d0fa29: aliases of find_spec are the same name-based lookup.
+    "\nfrom importlib.util import find_spec as resolve\n"
+    "spec = resolve('inferrsi.knowledge')\nmodule = importlib.util.module_from_spec(spec)\n",
+    "\nimport importlib.util as util\nutil.find_spec('inferrsi.knowledge')\n",
+    "\nimport importlib.machinery\nimportlib.machinery.PathFinder.find_spec('inferrsi')\n",
 ])
-def test_declared_resource_loader_does_not_allow_an_extra_dynamic_edge(tmp_path, extra):
-    task = tmp_path / "harness/task_protocol.py"
-    task.parent.mkdir()
-    source = ("import importlib.util\ndef protocol():\n"
-              "    return importlib.util.module_from_spec(spec)\n")
-    task.write_text(source, encoding="utf-8")
-    report = first_wave_report(tmp_path)
-    assert not report.violations
-    assert "runtime resource loaders" in blocker_kinds(report)
+def test_bundle_program_name_based_lookups_still_fail(tmp_path, extra):
+    report = _report(tmp_path, {"benchmark/tasks/moe-forward-npu/grader.py": LOADER + extra})
+    assert any("dynamic import" in item for item in report.violations)
     assert not report.isolation_complete
-    task.write_text(source + extra, encoding="utf-8")
-    assert any("dynamic import" in item for item in first_wave_report(tmp_path).violations)
 
 
-def test_resource_loader_declaration_does_not_cover_an_adjacent_module(tmp_path):
-    task = tmp_path / "harness/other_protocol.py"
-    task.parent.mkdir()
-    task.write_text(
-        "import importlib.util\ndef protocol():\n"
-        "    return importlib.util.module_from_spec(spec)\n",
-        encoding="utf-8",
-    )
-    assert any("dynamic import" in item for item in first_wave_report(tmp_path).violations)
+@pytest.mark.parametrize("importer, source", [
+    # Review of 2d0fa29: without __init__.py a bundle is still a namespace package, so
+    # an identifier-named bundle program is importable. The gate rejects that import.
+    ("benchmark/runner.py", "from inferrsi.benchmark.tasks.new_task import evaluate\n"),
+    ("benchmark/runner.py", "import inferrsi.benchmark.tasks.new_task.evaluate\n"),
+    ("benchmark/runner.py", "from .tasks.new_task import evaluate\n"),
+    ("apps/runner.py", "from inferrsi.benchmark.tasks.new_task import evaluate\n"),
+    ("benchmark/tasks/other_task/evaluate.py",
+     "from inferrsi.benchmark.tasks.new_task import evaluate\n"),
+])
+def test_package_code_may_not_import_a_bundle_program(tmp_path, importer, source):
+    target = "inferrsi.benchmark.tasks.new_task.evaluate"
+    report = _report(tmp_path, {"benchmark/tasks/new_task/evaluate.py": LOADER,
+                                importer: source})
+    assert f"{_module(importer)} imports task bundle program {target}" in report.violations
+    assert not report.isolation_complete
+
+
+def test_bundle_program_static_cross_core_import_still_fails(tmp_path):
+    report = _report(tmp_path, {
+        "knowledge/catalog.py": "VALUE = 1\n",
+        "benchmark/tasks/moe-forward-npu/grader.py": LOADER + "from inferrsi.knowledge "
+                                                     "import catalog\n"})
+    assert any("imports inferrsi.knowledge" in item for item in report.violations)
+
+
+def test_a_finder_class_in_a_bundle_program_is_not_a_lookup(tmp_path):
+    # The Qwen21 and TTS import guards define a find_spec method; defining it is not a call.
+    guard = ("import importlib.util\nclass Guard:\n"
+             "    def find_spec(self, fullname, path=None, target=None):\n"
+             "        return importlib.util.spec_from_loader(fullname, self)\n")
+    report = _report(tmp_path, {"benchmark/tasks/qwen3-tts-npu/baseline.py": guard})
+    assert report.violations == () and report.runtime_execution == ()
+
+
+@pytest.mark.parametrize("files", [
+    # The bundle directory becomes an importable package.
+    {"benchmark/tasks/moe-forward-npu/__init__.py": ""},
+    # tasks itself does not make a bundle program out of a deeper file.
+    {"benchmark/tasks/moe-forward-npu/sub/grader.py": LOADER},
+])
+def test_only_files_directly_in_a_non_package_bundle_are_bundle_programs(tmp_path, files):
+    report = _report(tmp_path, {"benchmark/tasks/moe-forward-npu/grader.py": LOADER, **files})
+    assert any("dynamic import" in item for item in report.violations)
+
+
+@pytest.mark.parametrize("relative", [
+    "benchmark/registry.py",
+    "benchmark/tasks.py",
+    # The Harness protocol loader that R3 retired, and its neighbours.
+    "harness/task_protocol.py",
+    "harness/other_protocol.py",
+    "apps/benchmark_operations.py",
+    "knowledge/data/skills/scripts/loader.py",
+])
+def test_by_path_loading_is_admitted_nowhere_else(tmp_path, relative):
+    report = _report(tmp_path, {relative: LOADER})
+    assert any("dynamic import" in item for item in report.violations)
+    assert report.runtime_execution == ()
 
 
 def _scan_tree(files: dict[str, str]) -> list[str]:
@@ -135,14 +233,11 @@ class TargetModuleImportGateTest(unittest.TestCase):
             ["__init__.py", "repository_packs.py"],
         )
         self.assertTrue((ROOT / "apps" / "evidence_layout.py").is_file())
-        # A01-4 staged model: packages may appear one at a time, but each
-        # remaining trigger keeps overall false.
+        # #412 R3: every staged trigger is gone, so the final tree is fully isolated in
+        # the static import-closure sense.
         report = first_wave_report()
-        self.assertFalse(report.isolation_complete)
         for name in NEW_CORES:
-            absent = not (ROOT / name).is_dir()
-            self.assertEqual(f"absent: {name}/" in report.blockers, absent)
-            self.assertNotIn(f"unscannable: {name}/", report.blockers)
+            self.assertTrue((ROOT / name).is_dir())
         kinds = blocker_kinds(report)
         # #412 R1: the allowlist is empty and no old-run forwarder is registered.
         self.assertNotIn("allowlist", kinds)
@@ -153,12 +248,21 @@ class TargetModuleImportGateTest(unittest.TestCase):
         self.assertFalse(hasattr(report, "residuals"))
         self.assertNotIn("residual", kinds)
         self.assertEqual(report.violations, ())
-        # #412 R2 closed the six Harness modules: no Harness module reaches the
-        # package-level ``inferrsi.infra``, ``inferrsi.infra.artifacts`` or
-        # ``inferrsi.model``. What keeps isolation false is the five loaders that R3 closes.
-        self.assertEqual(report.blockers, ("runtime resource loaders: 5",))
+        # R2 closed the Harness -> Infra/Model edges; R3 retired the five temporary
+        # resource loaders and their blocker.
+        self.assertFalse(hasattr(support, "RESOURCE_LOADERS"))
         self.assertEqual(report.harness_model_infra, ())
-        self.assertFalse(report.new_core_closure_isolated)
+        self.assertEqual(report.blockers, ())
+        self.assertTrue(report.new_core_closure_isolated)
+        self.assertTrue(report.isolation_complete)
+        # Static closure is not runtime isolation: the two evaluators that time submitted
+        # code still load frozen run files by path in-process, and the report says so.
+        self.assertEqual(report.runtime_execution, (
+            "inferrsi.benchmark.tasks.moe-forward-npu.grader: "
+            "importlib.util.module_from_spec executes files loaded by path in-process",
+            "inferrsi.benchmark.tasks.qwen21-denoise-npu.benchmark: "
+            "importlib.util.module_from_spec executes files loaded by path in-process",
+        ))
 
     def test_split_skill_eval_modules_reach_no_model_or_infra(self) -> None:
         # S01: the split Harness modules own their writes and digests. The

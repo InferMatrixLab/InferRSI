@@ -210,7 +210,7 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
   <span class="brand"><span class="logo" aria-hidden="true"></span>InferRSI</span>
   <nav aria-label="Dashboard sections">
     <a href="#overview">Overview</a><a href="#performance">Performance trends</a>
-    <a href="#candidate-section">Candidate details</a><a id="candidate-trace-link" href="#candidate-trace" hidden>Candidate trace</a><a href="#story">Optimization story</a>
+    <a href="#round-decisions">Round decisions</a><a href="#candidate-section">Candidate details</a><a id="candidate-trace-link" href="#candidate-trace" hidden>Candidate trace</a><a href="#story">Optimization story</a>
     <a id="knowledge-link" href="#knowledge-navigation" data-no-translate hidden>Knowledge trace</a>
   </nav>
   <span id="mode-badge" class="badge">READ ONLY · OFFLINE</span>
@@ -248,6 +248,7 @@ __DASHBOARD_OVERVIEW__
       <section class="panel"><div class="panel-head"><h2>Results and stages over time · all candidates</h2></div>
         <div class="chart" id="temporal-chart" tabindex="0" role="region" aria-label="Results and stages over time · all candidates">__DASHBOARD_TEMPORAL__</div>
         <p class="footnote panel-body" id="temporal-note"></p></section>
+      <section id="round-decisions" aria-label="Round decisions"></section>
       <div class="section-title">Optimization story <small id="story-note"></small></div>
       <section class="panel story" id="story" aria-label="Optimization story"></section>
       <section id="candidate-section" class="panel"><div class="panel-head"><h2 id="candidate-title">Candidate details</h2><small>Select a row to inspect its trace</small></div>
@@ -278,6 +279,7 @@ __DASHBOARD_OVERVIEW__
 </dialog>
 __DASHBOARD_EXPERIMENTS__
 __DASHBOARD_KNOWLEDGE__
+__DASHBOARD_ROUND_DECISIONS__
 <script id="dashboard-data" type="application/json">__DASHBOARD_DATA__</script>
 <script>
 (() => {
@@ -468,7 +470,7 @@ __DASHBOARD_KNOWLEDGE__
     'identity mismatch':'身份不匹配', 'unsafe path':'不安全的路径', 'invalid format':'格式无效',
     'assembly mismatch':'拼接内容不匹配', 'resource hash mismatch':'资源哈希不匹配', 'too large':'文件过大',
     'latest hash mismatch':'最新版本哈希不匹配', 'corrupt index':'日志索引损坏',
-    'Optimization story':'优化过程复盘', 'Goal':'目标', 'Metric':'指标', 'Target':'目标值', 'Constraints':'约束',
+    'Round decisions':'逐轮决策', 'Optimization story':'优化过程复盘', 'Goal':'目标', 'Metric':'指标', 'Target':'目标值', 'Constraints':'约束',
     'Optimization process':'优化过程', 'Knowledge context':'知识上下文', 'Search space':'搜索空间', 'Successes and failures':'成功与失败',
     'Hypothesis':'假设', 'Why this optimization':'为什么这样优化', 'Knowledge cited':'引用的知识', 'Observations':'观察',
     'Decision reason':'决策原因', 'Next step':'下一步', 'Measured':'实测', 'No recorded run':'没有记录的运行', 'no gain value':'未记录提升数值',
@@ -1300,9 +1302,11 @@ __DASHBOARD_KNOWLEDGE__
     }
   }
   const knowledgeView=window.InferRSIKnowledge.create({getData:()=>data,getLanguage:()=>language,
-    openRun:link=>{const index=data.candidates.findIndex(r=>r.experiment_id===link.experiment_id);
+    openRun:link=>{const matches=data.candidates.map((r,i)=>({r,i})).filter(({r})=>link.experiment_id?r.experiment_id===link.experiment_id:r.round===link.round&&r.candidate_id===link.candidate_id&&r.run_id===link.run_id);const index=matches.length===1?matches[0].i:-1;
       if(index<0)return;runSelect.value='';stageSelect.value='';candidateSelect.value='';selected=index;render();
       focusRunReview();}});
+  const roundDecisionView=window.InferRSIRoundDecisions.create({getData:()=>data,getLanguage:()=>language,
+    narrative:translatedNarrative,openCapture:knowledgeView.openCapture,openRun:knowledgeView.openRun});
   const experimentView=window.InferRSIExperiments.create({
     getData:()=>data,getLanguage:()=>language,narrative:translatedNarrative,
     openExperiment:id=>{
@@ -1406,7 +1410,7 @@ __DASHBOARD_KNOWLEDGE__
     byId('candidate-trace-link').hidden=!row;
     renderRunReview(row);renderCandidate(row || null);
     if(full){
-      renderOverview();renderStats();renderStory();renderExperiments();knowledgeView.render();
+      renderOverview();renderStats();renderStory();renderExperiments();knowledgeView.render();roundDecisionView.render();
     }
     knowledgeView.backLinks(byId('run-review'),row);
     knowledgeView.backLinks(byId('candidate-inspection'),row);localizePage();

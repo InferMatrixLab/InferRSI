@@ -17,7 +17,8 @@ from inferrsi.model.protocols.metrics import read_metric
 from tests.engineering_task_support import load_task_module
 
 moe = load_task_module("moe-forward-npu", "benchmark")
-_moe_processes = moe._processes
+# #412 R3: worker cleanup moved from the sibling processes.py into benchmark.py.
+_moe_processes = moe
 
 
 def _write(path, value):

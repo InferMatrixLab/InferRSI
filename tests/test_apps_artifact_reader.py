@@ -4,7 +4,7 @@ from hashlib import sha256
 
 import pytest
 
-from inferrsi.apps.artifact_reader import ArtifactReader
+from inferrsi.apps.storage.artifact_reader import ArtifactReader
 from inferrsi.harness.errors import PublicError
 from inferrsi.harness.run_store import RunStore, artifact_ref
 from tests.h01_run_store_child import make_attempt, make_digest, make_payload
