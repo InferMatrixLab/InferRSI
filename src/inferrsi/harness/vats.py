@@ -78,6 +78,11 @@ def depth(state, node):
     return result
 
 
+def decision_count(record):
+    """Include the natural prefix omitted from a forced continuation's trace."""
+    return record.get("continuation", {}).get("step", 0) + len(record["trace"])
+
+
 def features(state, action, available, settings):
     """Fixed public features; ACCEPT has a fixed zero Policy logit."""
     if action.kind == "accept":
@@ -475,7 +480,7 @@ class Search:
         # the only recovery route, including when writing the state below fails.
         if kind == "draft":
             rng = random.Random(
-                f"{search['seed']}:{len(current.candidates)}:{len(search['trace'])}"
+                f"{search['seed']}:{len(current.candidates)}:{decision_count(search)}"
             )
             result = self.adapter.draft(
                 node, current, self.snapshot, rng, operation, claim["deadline"]
@@ -510,6 +515,10 @@ class Search:
                 for op in doc["operations"].values()
             ):
                 raise ValueError("Unresolved claim: recover without relaunch")
+            if search["trace"] and search["trace"][-1]["action"]["kind"] == "accept":
+                # Preparation/copy already committed this terminal decision.
+                # A crash before finish must not sample or pay for another action.
+                return self.finish("forced_accept" if search["trace"][-1]["forced"] else "accept")
             if search["active_action"] is not None:
                 self._continue_action()
                 continue
@@ -520,7 +529,7 @@ class Search:
                 current.contract.max_attempts - len(current.attempts) - search["draft_attempts"]
             )
             if (
-                len(search["trace"]) >= self.settings.max_steps
+                decision_count(search) >= self.settings.max_steps
                 or attempts_left <= 0
                 or remaining <= self.settings.preparation_ms
                 or time.time() >= doc["deadline"]
@@ -558,7 +567,7 @@ class Search:
             vectors = tuple(
                 features(current, action, remaining, self.settings) for action in actions
             )
-            rng = random.Random(f"{search['seed']}:policy:{len(search['trace'])}")
+            rng = random.Random(f"{search['seed']}:policy:{decision_count(search)}")
             choice = self.snapshot.choose(
                 "policy",
                 [action.key for action in actions],

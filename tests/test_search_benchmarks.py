@@ -1,4 +1,5 @@
 import json
+import sys
 import time
 from types import SimpleNamespace
 
@@ -8,6 +9,13 @@ from inferrsi.apps.cli.arguments import parser
 from inferrsi.apps.search_benchmarks import EngineEvaluator, SkillEvaluator
 from inferrsi.apps.speculative_search import command
 from inferrsi.benchmark.improvement import SelectionPolicy
+from inferrsi.harness.run_store import RunStore
+from inferrsi.harness.scenarios.external import execute_trial
+from inferrsi.harness.search_adapter import ArtifactAdapter, Edit
+from inferrsi.harness.search_campaign import finalize, qualify_root
+from inferrsi.harness.task_protocol import TaskProtocolError
+from inferrsi.harness.work_control import WorkControl
+from tests.fixtures.speculative_search import contract
 
 
 def skill_report(base_tokens=100, tokens=80, *, verdict="PASS", outcome="unchanged"):
@@ -130,6 +138,122 @@ def test_engine_protocol_stages_share_the_original_deadline(tmp_path, monkeypatc
     evaluator.evaluate(source, "evaluation", tmp_path / "output", 110.0)
     assert observed == [("arguments", 1110.0, 10.0), ("execution", 1110.0, 8.0),
                         ("assess", 1110.0, 5.0)]
+
+
+def test_engine_known_timeout_settles_usage_and_releases_domain(tmp_path, monkeypatch):
+    evaluator = EngineEvaluator(
+        "qwen21-denoise-npu", tmp_path / "frozen",
+        arguments=["--pairs", "1", "--samples", "1", "--warmups", "0"],
+    )
+    executions = []
+
+    def timeout(command, cwd, output, deadline, *args, **kwargs):
+        # Exercise real process cleanup without model/device execution.
+        result = execute_trial((sys.executable, "-c", "import time; time.sleep(60)"),
+                               cwd, output, deadline, *args, **kwargs)
+        executions.append(result)
+        return result
+
+    monkeypatch.setattr("inferrsi.apps.search_benchmarks.execute_trial", timeout)
+    source = tmp_path / "source"
+    source.mkdir()
+    (source / "candidate.py").write_text("value = 1\n")
+    adapter = ArtifactAdapter(tmp_path / "artifacts", [Edit("edit", "candidate.py", "1", "2")],
+                              {"evaluation": 2000}, evaluator, domain="cpu-timeout-test")
+    root = adapter.import_root(source, snapshot="test-snapshot", context={})
+    control = WorkControl(RunStore(tmp_path / "store", "timeout-test"))
+    control.create("campaign", {}, {"searches": {}}, cap_ms=20000, final_reserve_ms=3000,
+                   deadline=time.time() + 20)
+    configuration = contract(checks=("evaluation",), objective_check="evaluation")
+    with pytest.raises(ValueError, match="Root lacks complete"):
+        qualify_root(control, "campaign", adapter, root, configuration)
+    assert executions[0]["status"] == "timeout" and executions[0]["cleanup_verified"] is True
+    reopened = WorkControl(RunStore(control.store.root, control.store.namespace))
+    doc = reopened.read("campaign")
+    operation, settled = next(iter(doc["operations"].items()))
+    assert settled["status"] == "settled" and settled["actual_ms"] > 0
+    assert doc["spent_ms"] == settled["actual_ms"]
+    assert settled["receipt"]["verdict"] == "INCONCLUSIVE"
+    assert settled["receipt"]["cleanup_verified"] is True
+    assert adapter.recover(operation, {"kind": "verify", "binding": settled["binding"]}) == (
+        settled["receipt"])
+    with reopened.store._connection() as db:
+        assert db.execute("SELECT 1 FROM work_domains").fetchone() is None
+    # Deadline overruns remain blocking; a clean timeout is not a free retry.
+    assert doc["blocked"]
+
+
+@pytest.mark.parametrize("stage", ["arguments", "assess"])
+@pytest.mark.parametrize("protocol_cleanup", [True, False, None])
+def test_engine_protocol_timeout_preserves_cleanup_facts(
+    tmp_path, monkeypatch, stage, protocol_cleanup
+):
+    evaluator = EngineEvaluator(
+        "qwen21-denoise-npu", tmp_path / "frozen",
+        arguments=["--pairs", "1", "--samples", "1", "--warmups", "0"],
+    )
+    source = tmp_path / "source"
+    source.mkdir()
+    (source / "candidate.py").write_text("candidate")
+
+    def protocol(root, digest, operation, **kwargs):
+        if operation == stage:
+            raise TaskProtocolError(
+                "timeout", "injected timeout", cleanup_verified=protocol_cleanup)
+        return []
+
+    def execute(command, cwd, output, *args, **kwargs):
+        output.mkdir(parents=True)
+        (output / "execution.json").write_text("{}")
+        return {"status": "completed", "returncode": 0, "cleanup_verified": True}
+
+    monkeypatch.setattr("inferrsi.apps.search_benchmarks.task_protocol.run", protocol)
+    monkeypatch.setattr("inferrsi.apps.search_benchmarks.execute_trial", execute)
+    result = evaluator.evaluate(source, "evaluation", tmp_path / "output", time.time() + 10)
+    assert result["verdict"] == "INCONCLUSIVE" and result["objective"] is None
+    assert result["cleanup_verified"] is (protocol_cleanup is True)
+    assert (result["execution_sha256"] is None) == (stage == "arguments")
+
+
+@pytest.mark.parametrize("split, declared_scope, supplied_scope, valid", [
+    ("development", "skill-data:holdout", "skill-data:holdout", False),
+    ("holdout", None, "skill-data:holdout", False),
+    ("holdout", "skill-data:holdout", "replacement-label", False),
+    ("holdout", "skill-data:holdout", "skill-data:holdout", True),
+])
+def test_skill_final_requires_holdout_before_claim_or_access(
+    tmp_path, split, declared_scope, supplied_scope, valid
+):
+    accesses = []
+
+    def compare(*args, split, **kwargs):
+        accesses.append(split)
+        return skill_report(tokens=100), True
+
+    comparator = SimpleNamespace(identity="test-comparator", run=compare,
+                                 holdout_scope=declared_scope)
+    evaluator = SkillEvaluator(comparator, split=split, policy=SelectionPolicy(1, 0),
+                               token_cap=1000, task_count=1)
+    adapter = ArtifactAdapter(tmp_path / "artifacts", [Edit("edit", "skill.txt", "old", "new")],
+                              {"evaluation": 3000}, evaluator, domain="skill-test")
+    source = tmp_path / "source"
+    source.mkdir()
+    (source / "skill.txt").write_text("old")
+    root = adapter.import_root(source, snapshot="test-snapshot", context={})
+    control = WorkControl(RunStore(tmp_path / "store", "skill-test"))
+    before = control.create("campaign", {}, {}, cap_ms=10000, final_reserve_ms=3000,
+                            deadline=time.time() + 10)
+    kwargs = dict(holdout_scope=supplied_scope, accept_result=lambda results: True)
+    if valid:
+        result = finalize(control, "campaign", adapter, root, **kwargs)
+        assert result["verdict"] == "PASS" and result["promoted"]
+        assert accesses == ["holdout"]
+        assert finalize(control, "campaign", adapter, root, **kwargs) == result
+        assert accesses == ["holdout"]
+    else:
+        with pytest.raises(ValueError, match="holdout-bound"):
+            finalize(control, "campaign", adapter, root, **kwargs)
+        assert control.read("campaign") == before and not accesses
 
 
 def test_skill_comparator_preparation_does_not_access_holdout(tmp_path):

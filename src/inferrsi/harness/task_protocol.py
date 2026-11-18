@@ -42,10 +42,14 @@ class TaskProtocolError(ValueError):
     starts with the kind, so transport, identity and result failures stay distinct.
     """
 
-    def __init__(self, kind: str, message: str, *, error_type: str | None = None):
+    def __init__(self, kind: str, message: str, *, error_type: str | None = None,
+                 cleanup_verified: bool | None = None):
         super().__init__(message if kind == "protocol_exception" else f"{kind}: {message}")
         self.kind = kind
         self.type_name = error_type if kind == "protocol_exception" else type(self).__name__
+        # Only the process supervisor (or conclusive refusal to launch) can
+        # establish this fact. Unknown cleanup must retain the caller's lease.
+        self.cleanup_verified = cleanup_verified
 
 
 def _tail(path: Path) -> str:
@@ -102,7 +106,8 @@ def run(root: Path, protocol_sha256: str, operation: str, *, deadline=None, **ar
             raise TaskProtocolError("request", "deadline must be finite monotonic time")
         timeout = min(timeout, deadline - time.monotonic())
         if timeout <= 0:
-            raise TaskProtocolError("timeout", "deadline expired before protocol execution")
+            raise TaskProtocolError("timeout", "deadline expired before protocol execution",
+                                    cleanup_verified=True)
     if sha256(path) != protocol_sha256:
         raise TaskProtocolError("identity", "protocol bytes differ from the frozen digest")
     request = {"schema_version": protocol_child.SCHEMA_VERSION, "operation": operation,
@@ -135,7 +140,8 @@ def run(root: Path, protocol_sha256: str, operation: str, *, deadline=None, **ar
             raise KeyboardInterrupt
         if record["status"] == "timeout":
             raise TaskProtocolError(
-                "timeout", f"{operation} exceeded {timeout:g} s; {stderr}")
+                "timeout", f"{operation} exceeded {timeout:g} s; {stderr}",
+                cleanup_verified=record["domain_empty"] if record["pid"] is not None else True)
         if record["status"] not in ("completed", "failed"):
             raise TaskProtocolError("launch", f"{record['status']}: {record['error']}")
         if record["returncode"] != 0:

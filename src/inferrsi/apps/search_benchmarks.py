@@ -37,71 +37,84 @@ class EngineEvaluator:
             }
         )
 
-    def evaluate(self, candidate, check, output, deadline):
-        if check != "evaluation":
-            raise ValueError("Packaged engine protocol requires one full evaluation job")
+    def _check_resources(self, *, during=False):
         actual = {
             p.relative_to(self.frozen).as_posix(): sha256(p)
             for p in self.frozen.rglob("*")
             if p.is_file()
         }
         if actual != self.plan["frozen_files"]:
-            raise ValueError("Frozen benchmark resources changed")
+            suffix = " during execution" if during else ""
+            raise ValueError("Frozen benchmark resources changed" + suffix)
+
+    def evaluate(self, candidate, check, output, deadline):
+        if check != "evaluation":
+            raise ValueError("Packaged engine protocol requires one full evaluation job")
+        self._check_resources()
         output.mkdir(parents=True)
         candidates.retain(candidate / "candidate.py", output / "candidate.py")
-        args = task_protocol.run(
-            self.frozen,
-            self.plan["frozen_files"]["optimization.py"],
-            "arguments",
-            deadline=time.monotonic() + max(0, deadline - time.time()),
-            candidate=output / "candidate.py",
-            output=output / "measurement",
-            settings=self.plan["evaluation_settings"],
-        )
         from inferrsi.harness import optimization_session
 
-        command = (
-            *self.prefix,
-            self.python,
-            str(Path(optimization_session.__file__).resolve()),
-            str(self.frozen / "benchmark.py"),
-            *args,
-        )
-        environment = runtime_environment()
-        environment["PYTHONDONTWRITEBYTECODE"] = "1"
-        execution = execute_trial(
-            command,
-            output,
-            output / "execution",
-            time.monotonic() + max(0, deadline - time.time()),
-            None,
-            environment=environment,
-            include_cleanup=True,
-        )
-        if {
-            p.relative_to(self.frozen).as_posix(): sha256(p)
-            for p in self.frozen.rglob("*")
-            if p.is_file()
-        } != self.plan["frozen_files"]:
-            raise ValueError("Frozen benchmark resources changed during execution")
-        assessed = task_protocol.run(
-            self.frozen,
-            self.plan["frozen_files"]["optimization.py"],
-            "assess",
-            deadline=time.monotonic() + max(0, deadline - time.time()),
-            directory=output,
-            settings=self.plan["evaluation_settings"],
-            execution=execution,
-        )
-        if execution["cleanup_verified"] is not True:
+        execution = None
+        cleanup = True
+        try:
+            args = task_protocol.run(
+                self.frozen,
+                self.plan["frozen_files"]["optimization.py"],
+                "arguments",
+                deadline=time.monotonic() + max(0, deadline - time.time()),
+                candidate=output / "candidate.py",
+                output=output / "measurement",
+                settings=self.plan["evaluation_settings"],
+            )
+            command = (
+                *self.prefix,
+                self.python,
+                str(Path(optimization_session.__file__).resolve()),
+                str(self.frozen / "benchmark.py"),
+                *args,
+            )
+            environment = runtime_environment()
+            environment["PYTHONDONTWRITEBYTECODE"] = "1"
+            execution = execute_trial(
+                command,
+                output,
+                output / "execution",
+                time.monotonic() + max(0, deadline - time.time()),
+                None,
+                environment=environment,
+                include_cleanup=True,
+            )
+            cleanup = execution["cleanup_verified"]
+            self._check_resources(during=True)
+            assessed = task_protocol.run(
+                self.frozen,
+                self.plan["frozen_files"]["optimization.py"],
+                "assess",
+                deadline=time.monotonic() + max(0, deadline - time.time()),
+                directory=output,
+                settings=self.plan["evaluation_settings"],
+                execution=execution,
+            )
+        except task_protocol.TaskProtocolError as error:
+            if error.kind != "timeout":
+                raise
+            # Retain a real timeout as INCONCLUSIVE even when no time remains
+            # for assessment. Cleanup covers both the task and protocol process;
+            # an unknown protocol exit cannot release the measurement domain.
+            cleanup = cleanup is True and error.cleanup_verified is True
+            assessed = {"verdict": "INCONCLUSIVE", "score": None, "reason": "protocol_timeout"}
+        self._check_resources(during=True)
+        if cleanup is not True:
             assessed = {"verdict": "INCONCLUSIVE", "score": None}
         atomic_write_json(output / "assessment.json", assessed)
         return {
             "verdict": assessed["verdict"],
             "objective": assessed.get("score"),
-            "cleanup_verified": execution["cleanup_verified"],
+            "cleanup_verified": cleanup,
             "assessment_sha256": sha256(output / "assessment.json"),
-            "execution_sha256": sha256(output / "execution/execution.json"),
+            "execution_sha256": sha256(output / "execution/execution.json")
+            if execution is not None else None,
         }
 
 
@@ -141,6 +154,10 @@ class SkillEvaluator:
                 "utility": "successes*(token_cap+1)-tokens",
             }
         )
+
+    def validate_final(self, scope):
+        if self.split != "holdout" or not self.holdout_scope or scope != self.holdout_scope:
+            raise ValueError("Skill final requires a holdout-bound evaluator and its frozen scope")
 
     def evaluate(self, candidate, check, output, deadline):
         if check != "evaluation":
