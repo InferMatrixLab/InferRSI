@@ -12,7 +12,7 @@ from pathlib import Path
 
 from inferrsi import __version__
 from inferrsi.harness.records import campaign_records, knowledge_capture
-from inferrsi.knowledge._skill_selection import FIND_RELEVANCE, TASK_RELEVANCE, single_query
+from inferrsi.knowledge._skill_selection import FIND_RELEVANCE, validate_relevance_method
 from inferrsi.knowledge.catalog import BACKENDS
 from inferrsi.knowledge.context_projection import (
     PROVENANCE_FIELDS,
@@ -47,18 +47,12 @@ def capture_context(root: Path, *, context_id: str, reader, query: str = "",
     """
     if revisions and not ids:
         raise ValueError("Revision pins require explicit IDs (--id-ref)")
+    validate_relevance_method(relevance_method)
     campaign = knowledge_capture.capture_campaign(root, context_id)
-    if relevance_method is None:
-        has_store = "store" in sources or getattr(reader, "store", None) is not None
-        if ids is None and not has_store and single_query(query, relevance):
-            relevance_method = FIND_RELEVANCE
-        elif ids is None and relevance:
-            # Preserve the exact query filter and separate cue for dual-input callers.
-            relevance_method = TASK_RELEVANCE
-        else:
-            relevance_method = "weighted-lexical-v1"
-    if relevance_method in (FIND_RELEVANCE, TASK_RELEVANCE) and ids is None and backend is None:
-        backend = campaign.get("backend")
+    if ids is None and (query.strip() or relevance):
+        relevance_method = FIND_RELEVANCE
+        if backend is None:
+            backend = campaign.get("backend")
     pins = {"revisions": revisions} if revisions else {}
     result = reader.collect(
         query, ids=ids, kind=kind, repo=repo, tier=tier, backend=backend,
@@ -67,13 +61,12 @@ def capture_context(root: Path, *, context_id: str, reader, query: str = "",
     )
     observation = result.get("retrieval")
     source_types = list(sources)
-    if relevance_method == FIND_RELEVANCE and isinstance(observation, dict):
+    if isinstance(observation, dict):
         source_types = observation.get("request", {}).get("sources", source_types)
+    selection = result.get("selection") or {}
     request = {
         "query": query, "relevance": relevance,
-        "relevance_method": (
-            relevance_method if relevance or relevance_method == FIND_RELEVANCE else None
-        ),
+        "relevance_method": selection.get("method") or relevance_method,
         "ids": ids, "kind": kind, "repo": repo, "tier": tier,
         "backend": backend, "scenario": scenario, "limit": limit,
         "context_bytes": context_bytes, "sources": source_types, **pins,

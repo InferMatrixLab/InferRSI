@@ -5,12 +5,9 @@ import posixpath
 import re
 
 from ._source_snapshot import source_entry
+from .catalog import packaged_skill_id
 
-TASK_RELEVANCE = "task-lexical-v1"
 FIND_RELEVANCE = "find-lexical-v1"
-RELEVANCE_METHODS = (
-    "weighted-lexical-v1", "weighted-raw-string-v1", TASK_RELEVANCE, FIND_RELEVANCE,
-)
 TASK_STOP_WORDS = frozenset({"a", "an", "and", "for", "in", "of", "on", "the", "to", "with"})
 
 _BACKEND_TERMS = {
@@ -23,40 +20,21 @@ class SkillIndexError(ValueError):
     pass
 
 
-def single_query(query: str | None, relevance: str | None) -> str | None:
-    """Find takes one question; the legacy selectors can also take a filter and cue."""
-    if query and query.strip():
-        return None if relevance else query
-    return relevance or None
-
-
-def words(cue: str) -> set[str]:
-    return set(re.findall(r"\w+", cue.casefold()))
+def validate_relevance_method(method: str | None) -> None:
+    if method not in (None, FIND_RELEVANCE):
+        raise ValueError(
+            f"Unsupported relevance_method {method!r}. "
+            f"Omit the method or use {FIND_RELEVANCE!r} with one query or relevance cue."
+        )
 
 
 def named_backends(terms: set[str]) -> set[str]:
     return {backend for backend, names in _BACKEND_TERMS.items() if names & terms}
 
 
-def lexical_score(cue: str, fields: list[tuple[int, object]]) -> int:
-    tokens = words(cue)
-    return sum(
-        weight * sum(token in json.dumps(value, ensure_ascii=False).casefold() for token in tokens)
-        for weight, value in fields
-    )
-
-
-def raw_string_lexical_score(cue: str, fields: list[tuple[int, object]]) -> int:
-    """Match original strings; retain legacy JSON matching for nonstring fields."""
-    tokens = words(cue)
-    score = 0
-    for weight, value in fields:
-        text = value if isinstance(value, str) else json.dumps(value, ensure_ascii=False)
-        score += weight * sum(token in text.casefold() for token in tokens)
-    return score
-
-
-def indexed_skill(record: dict, view: dict, content: dict[str, bytes]) -> tuple:
+def indexed_skill(
+    record: dict, view: dict, content: dict[str, bytes],
+) -> tuple[str, list[str], list[str]]:
     """Validate the existing projection against this exact canonical bundle."""
     registry_path = "data/skill_library/skill-index.json"
     registry = json.loads(content[registry_path])
@@ -64,7 +42,7 @@ def indexed_skill(record: dict, view: dict, content: dict[str, bytes]) -> tuple:
     entry = registry["skills"][name]
     prefix = f"data/skill_library/{entry['path']}/"
     core = prefix + "SKILL.md"
-    expected_id = f"inferrsi.{entry['backend']}.skills.{name.replace('-', '_')}"
+    expected_id = packaged_skill_id(name, entry["backend"])
     if (
         registry["schema_version"] != 1
         or view["authority"] != "package"
@@ -117,55 +95,6 @@ def indexed_skill(record: dict, view: dict, content: dict[str, bytes]) -> tuple:
     return core, required, optional
 
 
-def skill_score(
-    cue: str, record: dict, core: bytes, *, method: str = "weighted-lexical-v1",
-    explanation: dict | None = None,
-) -> int:
-    if method not in ("weighted-lexical-v1", "weighted-raw-string-v1"):
-        raise ValueError("Unknown relevance method for skill-only ranking")
-    scorer = raw_string_lexical_score if method == "weighted-raw-string-v1" else lexical_score
-    fields = [
-        (4, record["title"]),
-        (3, record["summary"]),
-        (2, [record.get("tags", []), record.get("applicability", {})]),
-        (1, core.decode("utf-8")),
-    ]
-    components = [scorer(cue, [field]) for field in fields]
-    score = sum(components)
-    if explanation is not None:
-        explanation.update(score=score, components=dict(zip(
-            ("title", "summary", "tags_applicability", "body"), components)), multiplier=1)
-    return score
-
-
-def task_score(cue: str, record: dict, core: bytes, backend: str | None,
-               *, explanation: dict | None = None) -> int:
-    """Rank whole task terms across both skill and repository knowledge owners."""
-    def terms(text: str) -> set[str]:
-        return set(re.findall(r"[^\W_]+", text.casefold()))
-
-    tokens = terms(cue) - TASK_STOP_WORDS
-    fields = (
-        (4, record["title"]),
-        (3, record["summary"]),
-        (2, " ".join(record.get("tags", []))),
-        (2, record["repo"] + " " + record["scenario"]),
-        (1, json.dumps(record.get("applicability", {}), ensure_ascii=False)),
-        (1, core.decode("utf-8")),
-    )
-    components = [weight * len(tokens & terms(text)) for weight, text in fields]
-    score = sum(components)
-    # With no platform in scope prefer portable procedures to a specialization
-    # that happens to repeat the same task words in its description.
-    in_scope = {backend} if backend else named_backends(tokens)
-    multiplier = 2 if record["backend"] == "common" or record["backend"] in in_scope else 1
-    if explanation is not None:
-        explanation.update(score=score * multiplier, components=dict(zip(
-            ("title", "summary", "tags", "repo_scenario", "applicability", "body"),
-            components)), multiplier=multiplier)
-    return score * multiplier
-
-
 def record_context(record: dict, view: dict, content: dict[str, bytes], available: int) -> tuple:
     """Deliver whole files, including the declared closure of a Case."""
     paths = {view["entrypoint"]: "record" if view["kind"] == "knowledge" else "core"}
@@ -202,9 +131,10 @@ def record_context(record: dict, view: dict, content: dict[str, bytes], availabl
 
 
 def context_view(
-    record: dict, view: dict, content: dict[str, bytes], cue: str, available: int
+    index: tuple[str, list[str], list[str]], view: dict, content: dict[str, bytes],
+    cue: str | None, available: int,
 ) -> tuple[dict | None, dict | None]:
-    core, required, optional = indexed_skill(record, view, content)
+    core, required, optional = index
     required_bytes = sum(len(content[path]) for path in required)
     if required_bytes > available:
         return None, {
@@ -226,7 +156,7 @@ def context_view(
 
     for path in required:
         include(path)
-    candidates = []
+    candidates = {}
     for path in optional:
         if (
             posixpath.basename(path) == "metadata.json"
@@ -235,16 +165,30 @@ def context_view(
             omissions.append({"path": path, "reason": "not_context_resource"})
             continue
         try:
-            text = content[path].decode("utf-8")
+            candidates[path] = content[path].decode("utf-8")
         except UnicodeDecodeError:
             omissions.append({"path": path, "reason": "not_utf8"})
             continue
-        score = lexical_score(cue, [(2, path.rpartition("/")[2]), (1, text)])
-        if words(cue) and score == 0:
-            omissions.append({"path": path, "reason": "not_relevant"})
-            continue
-        candidates.append((score, path))
-    for _, path in sorted(candidates, key=lambda item: (-item[0], item[1])):
+    paths = list(candidates)
+    if cue and candidates:
+        from .knowledge_find import Corpus, Document, rank
+
+        documents = [
+            Document(
+                identity=path, kind="record", state="unspecified", path=path,
+                title=posixpath.basename(path), summary="",
+                fields={"title": posixpath.basename(path), "body": text},
+            )
+            for path, text in candidates.items()
+        ]
+        _, _, ranked = rank(cue, Corpus(documents))
+        paths = [documents[index].identity for _, _, index, _ in ranked]
+        matched = set(paths)
+        omissions.extend(
+            {"path": path, "reason": "not_relevant"}
+            for path in candidates if path not in matched
+        )
+    for path in paths:
         if used + len(content[path]) > available:
             omissions.append({"path": path, "reason": "context_limit"})
             continue

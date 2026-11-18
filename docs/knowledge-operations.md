@@ -45,35 +45,35 @@ one authority is never resolved by precedence: `read` raises an ambiguous-identi
 error naming the qualified choices, explicit Collect reports it as an omission, and
 a full Collect returns each qualified item and lists the ID under `collisions`.
 
-Omit `skill_root` for installed package-only use, including full migrated
-procedures through IDs such as `inferrsi.ascend.skills.ascend_graph_mode`. A reader reads the installed
-catalog and complete skill library once, so one reader is one package snapshot. Query
-words are matched against normalized metadata and the entry content, not resource
-hashes. `repo`, `tier`, `backend`, `scenario`
-retain existing catalog filter semantics; those package-only filters exclude local
-skills/cases. `kind`, explicit `ids`, per-ID `revisions`, item `limit` and
-`max_bytes` are available. Filters apply before output limits; package metadata
-filters run before any resource bytes are loaded. `max_bytes` bounds
-returned item payloads, not the omission/control envelope. Each omission carries a
-`reason` code (`unknown_identity`, `ambiguous_identity`, `invalid_identity`,
-`duplicate_identity`, `unavailable_revision`, `invalid`, `filters`, `query`,
-`output_limit`, `index_unavailable`) and, for errors, a `detail` message. No-match
-is explicit.
-Per-item omission applies after identity discovery: a checkout skill or case
-record that cannot be parsed or validated during discovery (for example invalid
-frontmatter or JSON, a name/directory mismatch, conflicting metadata, a missing
-or duplicate case ID) fails the whole reader call explicitly, because
-identities cannot be trusted.
-Deterministic identity order is not a learned relevance ranking.
+Omitting `skill_root` gives exact inventory and reads over the installed
+package, including procedures such as
+`inferrsi.ascend.skills.ascend_graph_mode`. A reader loads the installed catalog
+and complete skill library once per snapshot. Inventory and exact selection apply
+the `repo`, `tier`, `backend` and `scenario` filters to package items.
+Filters apply before output limits. Package metadata filters run before loading
+resource bytes. Each item omission has a reason code such as
+`unknown_identity`, `ambiguous_identity`, `invalid_identity`,
+`duplicate_identity`, `unavailable_revision`, `invalid`, `filters`,
+`output_limit` or `index_unavailable`. Errors also include a `detail` message.
+An empty result reports `no_match`.
 
-## Optional packaged skill selection and context
+Per-item omissions apply after identity discovery. A checkout whose registered
+names or case identities cannot be trusted fails discovery explicitly. Examples
+include a skill registration whose path disagrees with its name and a missing
+or duplicate Case ID.
 
-Standalone Collect supports legacy query-based selection and budgeted
-assembly. The explicit-ID path can assemble context without a ranking query:
+## Ranked discovery and budgeted context
+
+Collect with one text input uses the local Find ranker.
+Pass a positional query or use `relevance` (`--relevance` on the CLI).
+Existing callers can explicitly pass `relevance_method="find-lexical-v1"`.
+For a retired method, omit the method argument and supply one question. If you
+used a positional filter and a relevance cue together, combine them into one
+question and pass scope constraints through the structured filters. [Operation guide](operations.md)
 
 ```python
 reader = KnowledgeReader()
-legacy = reader.collect("cpu.stat.local", material=True, limit=3)
+matches = reader.collect("cgroupv2 cpu.stat.local", material=True, limit=3)
 selected = reader.collect(
     ids=["package:inferrsi.ascend.skills.ascend_graph_mode",
          "package:inferrsi.ascend.skills.ascend_device_health"],
@@ -87,77 +87,42 @@ inferrsi collect --id package:inferrsi.ascend.skills.ascend_graph_mode \
   --context-bytes 65536 --json
 ```
 
-`relevance` is a separate lexical cue, not a replacement for `query`. Discovery
-with this cue considers generated `index_type=packaged-skill` package entries
-only; they retain `kind=knowledge`. Existing filters and the whitespace-token
-AND substring query run first. Each distinct case-folded word (`\w+`) contributes
-4 for substring presence in the title, 3 in the description, 2 in
-tags/applicability and 1 in the complete core. Repetition within a field adds nothing. Candidates with
-positive overlap sort by decreasing score, then qualified identity, before
-`limit` and `max_bytes`. This is deterministic lexical matching, not a learned
-ranking or a task-quality guarantee. Explicit `ids` retain membership and caller
-order regardless of the cue; `selection.ranking_applied` is false for those calls.
-Ordinary collection of other authorities and records remains available without
-the relevance opt-in. `KnowledgeStore.collect` delegates these same options.
+An empty query and no `relevance` give inventory in qualified identity order.
+Explicit `ids` retain caller order and are subject to filters, revision
+availability and output limits. `limit` caps the number of returned items.
+For explicit IDs, omit the positional query
+and optionally pass `relevance` to guide selection of optional context files.
+`selection.ranking_applied` records whether the items themselves were ranked.
 
-The default `relevance_method="weighted-lexical-v1"` searches the JSON
-representation of every field, including strings. Explicitly select
-`relevance_method="weighted-raw-string-v1"` (CLI:
-`--relevance-method weighted-raw-string-v1`) to match original string values
-instead: an actual newline or tab no longer creates a literal `n` or `t` match
-from its JSON escape. Literal backslash-letter text remains searchable.
-Nonstring fields, including the combined tags/applicability value, retain their
-legacy JSON representation. Both methods keep the same substring matching,
-distinct cue words, weights, positive-score admission and identity tie order.
-The raw-string method requires `relevance`. Unsupported methods are rejected.
-Explicit IDs still bypass ranking. This option changes only owner discovery
-ranking, not query matching or optional context-resource scoring. It is a
-lexical-presence contract option, not evidence of general retrieval quality.
-
-For a single question in `campaign knowledge`, `benchmarks session knowledge`
-or `campaign capture-context`, the default ranking method is `find-lexical-v1`.
-It uses the local `find` ranker to select Cases, Skills and Records before
-assembling the material with revisions and budget omissions. To use it in
-standalone Collect, pass `--relevance-method find-lexical-v1` with either a
-positional query or `--relevance`. The existing selectors support an exact
-query filter plus a separate relevance cue. Explicit IDs bypass discovery
-ranking. Store collection uses the existing store selection.
-
-The Find selector limits the scoring corpus to the requested `--kind`. Installed
-Skills can be selected with `--kind skill` and delivered through their package
-records, which have bundle kind `knowledge` and provide the original `SKILL.md`
-through assembled context or `read --resource`. This works on a base install.
-In a mixed search with a custom `--skill-root`, the custom library supplies its
-registered Skills and installed projections supply names absent from that root.
+Text discovery scores local Cases, Skills and Records within the requested kind
+and filters. Installed Skills selected with `--kind skill` can be delivered
+through package records with bundle kind `knowledge`. Their original `SKILL.md`
+is available through assembled context or `read --resource`. This works on a
+base install. In a mixed search using a custom `--skill-root`, that library
+provides its registered Skills. Installed projections supply missing names.
 Each version remains available by its qualified reference.
 
-`task-lexical-v1` remains available for package Skill and Record searches.
-Whole words in titles, summaries, tags, repository/scenario labels,
-applicability and body text contribute to rank. A portable owner or one
-matching the backend receives twice the lexical score of an unscoped
-specialization. Without an explicit backend, platform words in the cue
-can supply this preference. Qualification by identity breaks ties.
+Case applicability text stays searchable. For backend-scoped discovery, a Case's
+top-level `backend` names a supported backend or `common`. Discovery without a
+backend also includes Cases without that declaration. Scoped selection counts
+those Cases under `ranking_scope`. With a scenario, ranked discovery includes
+package Records matching that workload and packaged Skills tagged
+`skills.discovery`. Captured hits keep the scenario declared by their owner.
+Inventory and explicit IDs filter on that declared scenario.
 
-Use `campaign init --backend <backend>` to retain the runtime backend for
-later searches. An explicit capture backend takes precedence. Existing
-campaigns can pass `--backend` directly on the capture. For scoped Find selection,
-a Case's optional top-level `backend` can name a supported backend or `common`.
-Case applicability text stays searchable. Cases without a backend declaration
-remain in unscoped discovery and count toward `ranking_scope` exclusions in
-scoped selection. The search returns the best matches up to the requested limit
-and records the matched and returned counts. For engine Records it captures the
-complete `record.json`, including the source, applicable geometry and limitations. For Cases it can
-capture the complete entrypoint. Linked documents can be read at the returned
-revision. Indexed Skills keep the resource rules below. In Find and task
-discovery, `--scenario` admits package Records matching the workload and
-packaged Skill records tagged `skills.discovery`. Check each procedure's own
-conditions before using it. Captured hits retain the scenario declared by the
-owner. Explicit IDs and legacy catalog selectors filter on the declared scenario.
+Set `campaign init --backend <backend>` to retain the runtime backend for
+ranked campaign capture. A backend supplied on a capture takes precedence.
+Existing campaigns can also supply `--backend` directly on each capture.
 
-`context_bytes` requests a separate context view. It takes a positive integer
-byte budget. It can be used without `relevance`. For indexed Skills, optional
-resources then match the existing query, or use path order for an empty query.
-`material=True` on a package Skill record returns its `record.json` entrypoint.
+`KnowledgeStore.collect` delegates to the same selector. With a store attached,
+discovery includes its candidate bundles under qualified `store:<id>`
+references. See the [store read and revision rules](knowledge-store.md).
+
+`context_bytes` requests a separate context view with a positive byte budget.
+Ranked discovery can capture a complete engine `record.json` or Case entrypoint
+and its required resources. The assembled context for indexed Skills follows
+the resource rules below. `material=True` on a package Skill record returns its
+`record.json` entrypoint.
 
 | Additional result | Meaning |
 | --- | --- |
@@ -183,15 +148,12 @@ If that set does not fit, the owner's entire context is omitted, with required
 and available bytes, and a later smaller context can still fit. The owning item
 can still be returned. Mandatory instructions are never truncated.
 
-Remaining owner-local Markdown/JSON/text/CSV resources are optional. Their
-filename contributes 2 per matching word and their complete text contributes 1;
-ties use resource path. An empty cue includes them in path order. Nonmatching,
-oversized, non-UTF-8 and non-context resources (including owner `metadata.json`
-and scripts) are reported under the context's
-`omissions`, not silently discarded. Selected files retain their prerequisites
-and limitations; links to further material must still be followed through the
-owning revision. The context view is not a standalone export or proof that all
-linked dependencies have been read.
+Remaining owner-local Markdown, JSON, text and CSV resources are optional. With
+a cue, Find ranks their filenames and text within the owner and only positive
+matches are eligible. An empty cue uses resource path order. The context's
+`omissions` list nonmatching, oversized, non-UTF-8 and ineligible resources
+such as `metadata.json` and scripts. Follow links to further material through
+the owning revision. Use exact `read` for the complete Bundle.
 
 The context budget sums exact UTF-8 resource-body bytes across owners in selected
 item order, counting a shared resource again if returned for another owner.
@@ -201,14 +163,11 @@ adding context does not change those item payloads. Use `--json` for full
 provenance/accounting. CLI text mode prints complete context bodies in delimited
 blocks plus resource/owner omission codes.
 
-The source-pinned generated projection is validated against the packaged
-registry, owner mapping and resource hashes on each optimized read. Missing or
-stale bindings produce `index_unavailable` (a discovery item omission or a
-context omission); no ordinary-mode fallback occurs. Refresh projections with
-the existing `tools/build_skill_index.py` after committing their inputs. No new
-registry, persistent cache, service or optional parser dependency is introduced.
-Bundle resources, complete library dependency closure and revision calculations
-remain unchanged. Collection never executes a skill or its scripts.
+Collect validates a generated Skill projection against the packaged registry,
+owner mapping and resource hashes before returning a ranked hit or building an
+exact context view. Missing or stale bindings produce `index_unavailable` in
+the corresponding item or context omissions. Refresh projections with the
+existing `tools/build_skill_index.py` after committing their inputs.
 
 Offline fixtures establish compatibility and bounded deterministic selection.
 Task outcomes, tokens and latency require a separately authorized comparison

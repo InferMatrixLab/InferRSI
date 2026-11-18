@@ -5,14 +5,16 @@ import json
 import os
 import subprocess
 import sys
-from datetime import datetime, timezone
 
 import pytest
 
 from inferrsi import __version__
 from inferrsi.apps import campaign
+from inferrsi.apps.views.search_attribution import import_search
 from inferrsi.harness.records import campaign_records, knowledge_capture
+from inferrsi.knowledge._skill_selection import FIND_RELEVANCE
 from inferrsi.knowledge.context_projection import context_item
+from inferrsi.knowledge.knowledge_operations import KnowledgeReader
 from tests._gate_policy_support import (
     NEW_H_ENTRIES,
     REPO,
@@ -49,49 +51,55 @@ class Reader:
                 "contexts": [context], "context_bytes": context["content_bytes"]}
 
 
-# Each row: capture options, the method and backend stored in the record, and
-# the method handed to ``collect``. Include the legacy methods explicitly to
-# cover both current defaults and older callers.
+# Each row checks the options that are passed to the reader and retained in the capture.
 SELECTION = {
-    "cue": ({"relevance": "decode launch"}, "find-lexical-v1", "cuda", "find-lexical-v1"),
-    "cue-and-ids": ({"relevance": "decode launch", "ids": ["package:graphs"]},
-                    "weighted-lexical-v1", None, "weighted-lexical-v1"),
-    "query-only": ({"query": "decode"}, "find-lexical-v1", "cuda", "find-lexical-v1"),
-    "query-and-cue": ({"query": "decode", "relevance": "kernel launch"},
-                      "task-lexical-v1", "cuda", "task-lexical-v1"),
-    "explicit-raw": ({"relevance": "decode launch",
-                      "relevance_method": "weighted-raw-string-v1"},
-                     "weighted-raw-string-v1", None, "weighted-raw-string-v1"),
-    "task-without-cue": ({"relevance_method": "task-lexical-v1"}, None, "cuda",
-                         "task-lexical-v1"),
+    "cue": ({"relevance": "decode launch"}, FIND_RELEVANCE, "cuda"),
+    "cue-and-ids": ({"relevance": "decode launch", "ids": ["package:graphs"]}, None, None),
+    "query-only": ({"query": "decode"}, FIND_RELEVANCE, "cuda"),
+    "inventory": ({}, None, None),
     "explicit-backend": ({"relevance": "decode launch", "backend": "ascend"},
-                         "find-lexical-v1", "ascend", "find-lexical-v1"),
-    "explicit-legacy": ({"relevance": "decode launch",
-                         "relevance_method": "weighted-lexical-v1"},
-                        "weighted-lexical-v1", None, "weighted-lexical-v1"),
-    "task-and-ids": ({"relevance": "decode launch", "ids": ["package:graphs"],
-                      "relevance_method": "task-lexical-v1"},
-                     "task-lexical-v1", None, "task-lexical-v1"),
+                         FIND_RELEVANCE, "ascend"),
+    "explicit-find": ({"query": "decode", "relevance_method": FIND_RELEVANCE},
+                      FIND_RELEVANCE, "cuda"),
 }
 
 
 @pytest.mark.parametrize("name", SELECTION)
 def test_capture_record_keeps_its_relevance_method(tmp_path, name):
-    options, stored, backend, delivered = SELECTION[name]
+    options, method, backend = SELECTION[name]
     campaign.create_campaign(tmp_path, "selection", backend="cuda")
     reader = Reader()
     path, digest = campaign.capture_context(tmp_path, context_id=name, reader=reader, **options)
     raw = path.read_bytes()
     document = json.loads(raw)
 
-    assert document["request"]["relevance_method"] == stored
+    assert document["request"]["relevance_method"] == method
     assert document["request"]["backend"] == backend
-    assert reader.calls[0]["relevance_method"] == delivered
+    assert reader.calls[0]["relevance_method"] == method
     assert reader.calls[0]["query"] == options.get("query", "")
     assert reader.calls[0]["relevance"] == options.get("relevance")
     assert reader.calls[0]["backend"] == backend
     assert hashlib.sha256(raw).hexdigest() == digest
     assert campaign.verify_capture(raw)[1] == "verified"
+
+
+@pytest.mark.parametrize(
+    "method", ["weighted-lexical-v1", "weighted-raw-string-v1", "task-lexical-v1"],
+)
+def test_capture_rejects_legacy_ranking_methods_before_calling_reader(tmp_path, method):
+    campaign.create_campaign(tmp_path, "selection")
+    reader = Reader()
+    with pytest.raises(ValueError, match="Unsupported relevance_method"):
+        campaign.capture_context(tmp_path, context_id="r1", reader=reader,
+                                 relevance="decode launch", relevance_method=method)
+    assert reader.calls == []
+
+
+def test_capture_rejects_a_query_and_relevance_together(tmp_path):
+    campaign.create_campaign(tmp_path, "selection")
+    with pytest.raises(ValueError, match="Find takes one query or relevance cue"):
+        campaign.capture_context(tmp_path, context_id="r1", reader=KnowledgeReader(),
+                                 query="decode", relevance="launch")
 
 
 def test_capture_record_layout_is_unchanged(tmp_path):
@@ -117,14 +125,6 @@ def test_capture_record_layout_is_unchanged(tmp_path):
         + " skills/graphs/SKILL.md ---\n" + TEXT + "--- end context skills/graphs/SKILL.md ---\n"
         "skills/graphs/metadata.json\tcontext_omitted\tnot_context_resource\n"
     )
-
-
-class FixedClock(datetime):
-    """One capture instant, so stored bytes can be compared exactly."""
-
-    @classmethod
-    def now(cls, tz=None):
-        return datetime(2026, 1, 2, 3, 4, 5, tzinfo=timezone.utc)
 
 
 # The record ``capture_context`` wrote for ``Reader`` before retrieval observations
@@ -210,25 +210,44 @@ def legacy_record_bytes(version: str) -> bytes:
             ).encode("utf-8")
 
 
-def test_reader_without_observation_serializes_the_exact_earlier_bytes(tmp_path, monkeypatch):
-    monkeypatch.setattr(knowledge_capture, "datetime", FixedClock)
+def test_legacy_capture_bytes_are_verified_and_archived_without_search(tmp_path, monkeypatch):
+    def search_again(*args, **kwargs):
+        pytest.fail("verification and archival replay must use the original capture")
+
+    monkeypatch.setattr(KnowledgeReader, "collect", search_again)
+    monkeypatch.setattr("inferrsi.knowledge.knowledge_find.rank", search_again)
     campaign.create_campaign(tmp_path, "layout")
-    path, digest = campaign.capture_context(tmp_path, context_id="r1", reader=Reader(),
-                                            relevance="decode launch",
-                                            relevance_method="task-lexical-v1")
     expected = legacy_record_bytes(__version__)
+    path = tmp_path / "knowledge/r1.json"
+    path.parent.mkdir(exist_ok=True)
+    path.write_bytes(expected)
+    doc, state = campaign.verify_capture(expected)
+    assert state == "verified"
+    assert doc["request"]["relevance_method"] == "task-lexical-v1"
+
+    review = tmp_path / "review.json"
+    review.write_text(json.dumps({"task": "Synthetic historical capture",
+                                  "corpus": {"repository": "example/synthetic",
+                                             "revision": "a" * 40, "root": "."},
+                                  "decisions": []}), encoding="utf-8")
+    archive = import_search(tmp_path, number=1, context_ids=["r1"], archive_review=review)
+    event, = json.loads(archive.read_bytes())["events"]
 
     assert path.read_bytes() == expected
-    assert digest == hashlib.sha256(expected).hexdigest()
-    assert campaign.verify_capture(expected)[1] == "verified"
+    assert event["tool"] == "collect"
+    assert event["request"]["relevance_method"] == "task-lexical-v1"
+    assert event["capture"]["sha256"] == hashlib.sha256(expected).hexdigest()
+    assert event["materials"][0]["revision"] == doc["items"][0]["revision"]
 
 
 class ObservedReader(Reader):
     """The same context, with the retrieval observation a current reader adds."""
 
     def collect(self, query="", **options):
-        observation = {"schema_version": 1, "entrypoint": "collect", "calls": ["collect"],
-                       "request": {}, "selection": {}, "counts": {"matched": 1}, "items": []}
+        observation = {"schema_version": 1, "entrypoint": "collect", "calls": ["collect", "find"],
+                       "request": {"sources": ["package", "checkout"]},
+                       "selection": {"method": FIND_RELEVANCE, "state": "applied"},
+                       "counts": {"matched": 1}, "items": []}
         return {**super().collect(query, **options), "retrieval": observation}
 
 
@@ -246,9 +265,10 @@ def test_capture_with_an_observation_keeps_its_retrieval_and_item_provenance(tmp
     ]
     assert document["retrieval"]["schema_version"] == 1
     assert document["retrieval"]["entrypoint"] == "campaign capture-context"
-    assert document["retrieval"]["calls"] == ["campaign capture-context", "collect"]
+    assert document["retrieval"]["calls"] == ["campaign capture-context", "collect", "find"]
     assert document["captured_by"] == "inferrsi campaign capture-context " + __version__
     assert document["request"]["ids"] is None
+    assert document["request"]["sources"] == ["package", "checkout"]
     assert list(document["items"][0]) == [
         "ref", "revision", "title", "kind", "backend", "scenario", "authority", "sources",
         "entrypoint", "skill_documents",

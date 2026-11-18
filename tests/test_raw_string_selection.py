@@ -1,24 +1,12 @@
-"""Ordinary synthetic compatibility controls, not a retrieval-quality benchmark."""
+"""Collect migration checks for selectors and budgeted optional resources."""
 
-import copy
 import hashlib
-import json
 
 import pytest
 
-from inferrsi.apps.cli import main
-from inferrsi.knowledge._skill_selection import (
-    indexed_skill,
-    lexical_score,
-    raw_string_lexical_score,
-    skill_score,
-)
+from inferrsi.knowledge._skill_selection import indexed_skill
 from inferrsi.knowledge._source_snapshot import source_entry
 from inferrsi.knowledge.knowledge_operations import KnowledgeReader, _hash, _json
-from inferrsi.knowledge.knowledge_store import KnowledgeStore
-
-RAW = "weighted-raw-string-v1"
-LEGACY = "weighted-lexical-v1"
 
 
 def synthetic_reader(entries):
@@ -59,85 +47,29 @@ def synthetic_reader(entries):
     return reader
 
 
-def without_method(result):
-    value = copy.deepcopy(result)
-    value.get("selection", {}).pop("method", None)
-    value.pop("retrieval", None)  # Execution explanation is method-specific.
-    return value
-
-
-@pytest.mark.parametrize("value", [None, True, 13.5, ["\n\t", None], {"n": "\r"}])
-def test_nonstring_values_retain_exact_legacy_json_matching(value):
-    cue = "n t r null true 13 5"
-    assert raw_string_lexical_score(cue, [(2, value)]) == lexical_score(cue, [(2, value)])
-
-
-def test_raw_string_matching_does_not_change_the_legacy_helper():
-    assert raw_string_lexical_score("n t", [(4, "\n\t")]) == 0
-    assert lexical_score("n t", [(4, "\n\t")]) == 8
-    assert raw_string_lexical_score("n t", [(4, r"\n\t")]) == 8
-    assert raw_string_lexical_score("RUN run STRASSE", [(3, "running Straße")]) == 6
-
-
-def test_skill_adapter_keeps_field_weights_and_combined_nonstring_metadata():
-    record = {"title": "n", "summary": "n", "tags": ["\n"], "applicability": {}}
-    assert skill_score("n N", record, b"n", method=RAW) == 10
-    assert skill_score("n N", record, b"n") == 10
-    for method in ("unknown", "task-lexical-v1"):
-        with pytest.raises(ValueError, match="Unknown relevance method"):
-            skill_score("n", record, b"n", method=method)
-
-
-def test_opt_in_changes_only_raw_string_owner_ranking_and_positive_admission():
-    reader = synthetic_reader({
-        "a-phantom": {"title": "\n", "summary": "\n", "core": "\n"},
-        "b-hit": {"title": "n"}, "c-hit": {"title": "n"},
-    })
-    legacy = reader.collect(relevance="n")
-    assert legacy == reader.collect(relevance="n", relevance_method=LEGACY)
-    assert [r["title"] for r in legacy["items"]] == ["\n", "n", "n"]
-    raw = reader.collect(relevance="n", relevance_method=RAW)
-    expected = ["inferrsi.common.skills.b_hit", "inferrsi.common.skills.c_hit"]
-    assert [r["id"] for r in raw["items"]] == expected
-    assert raw["selection"] == {
-        "method": RAW, "cue": "n", "scope": "generated-packaged-skills", "ranking_applied": True,
-    }
-    assert reader.collect(relevance="n", relevance_method=RAW, limit=1)["items"] == raw["items"][:1]
-    assert reader.collect() == reader.collect(relevance_method=LEGACY)
-
-
-@pytest.mark.parametrize("options", [
-    {"query": "missing"}, {"query": "synthetic n"},
-    {"kind": "skill"}, {"repo": "vllm"}, {"backend": "cpu"},
-    {"tier": "peer"}, {"scenario": "diffusion.t2i"}, {"material": True},
+@pytest.mark.parametrize(("options", "message"), [
+    ({"relevance_method": "weighted-lexical-v1"}, "Omit the method or use 'find-lexical-v1'"),
+    ({"relevance_method": "weighted-raw-string-v1", "relevance": "cue"}, "find-lexical-v1"),
+    ({"relevance_method": "task-lexical-v1", "ids": ["owner"]}, "find-lexical-v1"),
+    ({"relevance_method": "unknown"}, "Unsupported relevance_method"),
+    ({"relevance_method": []}, "Unsupported relevance_method"),
+    ({"query": "filtered", "relevance": "cue"}, "Find takes one query or relevance cue"),
+    ({"query": "filtered", "ids": ["owner"]}, "Remove query when using explicit IDs"),
 ])
-def test_query_and_filters_preserve_ordinary_semantics(options):
-    reader = synthetic_reader({"item": {"title": "running", "core": "n"}})
-    legacy = reader.collect(relevance="n", **options)
-    raw = reader.collect(relevance="n", relevance_method=RAW, **options)
-    assert without_method(raw) == without_method(legacy)
+def test_retired_selectors_and_ambiguous_inputs_fail_before_reader_access(
+    monkeypatch, options, message,
+):
+    reader = KnowledgeReader()
+
+    def unexpected_access():
+        raise AssertionError("invalid request accessed owners")
+
+    monkeypatch.setattr(reader, "owners", unexpected_access)
+    with pytest.raises(ValueError, match=message):
+        reader.collect(**options)
 
 
-def test_explicit_ids_keep_membership_order_aliases_revisions_and_item_budgets():
-    reader = synthetic_reader({"a": {"title": "\n"}, "b": {"title": "n"}})
-    a, b = sorted(reader.records())
-    options = {"ids": [b, a, "package:" + a], "relevance": "absent", "material": True}
-    legacy = reader.collect(**options)
-    raw = reader.collect(**options, relevance_method=RAW)
-    assert without_method(raw) == without_method(legacy)
-    assert [r["id"] for r in raw["items"]] == [b, a]
-    assert raw["selection"]["ranking_applied"] is False
-    for extra in (
-        {"limit": 1}, {"max_bytes": len(_json(raw["items"][0]))},
-        {"revisions": {a: reader.read(a).revision}}, {"revisions": {a: "sha256:" + "0" * 64}},
-    ):
-        assert without_method(reader.collect(**options, **extra, relevance_method=RAW)) == (
-            without_method(reader.collect(**options, **extra))
-        )
-
-
-@pytest.mark.parametrize("explicit", [False, True])
-def test_context_required_hashes_atomic_budgets_and_optional_legacy_order(explicit):
+def test_optional_context_uses_find_and_required_files_keep_atomic_exact_bytes():
     reader = synthetic_reader({"owner": {
         "title": "n", "core": "Core é", "references": ["refs.md"],
         "resources": {"refs.md": "Required", "LICENSE": "Legal", "a.md": "\n", "b.md": "n"},
@@ -147,70 +79,32 @@ def test_context_required_hashes_atomic_budgets_and_optional_legacy_order(explic
     view = {**bundle.view(), "authority": "package"}
     _, required, _ = indexed_skill(reader.records()[identity], view, bundle.content)
     required_bytes = sum(len(bundle.content[path]) for path in required)
-    options = {"relevance": "n"}
-    if explicit:
-        options["ids"] = [identity]
-    for budget in (required_bytes - 1, required_bytes, required_bytes + 1, required_bytes + 2):
-        legacy = reader.collect(**options, context_bytes=budget)
-        raw = reader.collect(**options, context_bytes=budget, relevance_method=RAW)
-        assert without_method(raw) == without_method(legacy)
-        if budget < required_bytes:
-            assert not raw["contexts"]
-            assert raw["context_omissions"][0]["reason"] == "context_limit"
-            continue
-        context, = raw["contexts"]
+    too_small = reader.collect(ids=[identity], relevance="n", context_bytes=required_bytes - 1)
+    assert not too_small["contexts"]
+    assert too_small["context_omissions"][0]["reason"] == "context_limit"
+
+    no_cue = reader.collect(ids=[identity], context_bytes=required_bytes + 1)
+    assert no_cue["contexts"][0]["resources"][-1]["path"].endswith("/a.md")
+    for budget in (required_bytes, required_bytes + 1, required_bytes + 2):
+        result = reader.collect(
+            ids=[identity], revisions={identity: bundle.revision},
+            relevance="n", context_bytes=budget,
+        )
+        assert result["items"] == no_cue["items"]
+        assert result["selection"]["ranking_applied"] is False
+        context, = result["contexts"]
         assert context["revision"] == bundle.revision
-        assert context["content_bytes"] == budget
         resources = context["resources"]
         assert [r["path"] for r in resources[:len(required)]] == required
         for resource in resources:
             data = reader.resource(identity, resource["path"], revision=context["revision"])
             assert resource["content"].encode() == data
             assert resource["sha256"] == hashlib.sha256(data).hexdigest()
-        if budget > required_bytes:
-            # JSON's newline contribution must still admit the optional a.md first.
-            assert resources[len(required)]["path"].endswith("/a.md")
-
-
-@pytest.mark.parametrize("options", [
-    {"relevance_method": RAW}, {"relevance_method": "unknown"},
-    {"relevance": "n", "relevance_method": "unknown"},
-    {"relevance": "n", "relevance_method": None},
-    {"relevance": "n", "relevance_method": []},
-    {"relevance": "!!!", "relevance_method": RAW},
-])
-def test_method_validation_happens_before_reader_access(monkeypatch, options):
-    reader = KnowledgeReader()
-
-    def unexpected_access():
-        raise AssertionError("invalid request accessed owners")
-
-    monkeypatch.setattr(reader, "owners", unexpected_access)
-    with pytest.raises(ValueError):
-        reader.collect(**options)
-
-
-def test_raw_method_keeps_fail_closed_index_validation():
-    reader = synthetic_reader({"owner": {"title": "n"}})
-    identity, = reader.records()
-    reader.records()[identity]["source_files"] = {}
-    result = reader.collect(relevance="n", relevance_method=RAW)
-    assert result["no_match"]
-    assert result["omissions"][0]["reason"] == "index_unavailable"
-
-
-def test_cli_and_store_delegate_the_explicit_method(monkeypatch, capsys, tmp_path):
-    reader = synthetic_reader({"owner": {"title": "n"}})
-    monkeypatch.setattr("inferrsi.apps.cli._knowledge_reader", lambda args: reader)
-    assert main(["collect", "--relevance", "n", "--relevance-method", RAW, "--json"]) == 0
-    assert json.loads(capsys.readouterr().out)["selection"]["method"] == RAW
-    with pytest.raises(SystemExit):
-        main(["collect", "--relevance", "n", "--relevance-method", "unknown"])
-    with pytest.raises(SystemExit) as error:
-        main(["collect", "--relevance-method", RAW])
-    assert error.value.code == 2
-    store = KnowledgeStore(tmp_path, skill_root=None)
-    monkeypatch.setattr(store, "reader", lambda: reader)
-    assert store.collect(relevance="n", relevance_method=RAW) == reader.collect(
-        relevance="n", relevance_method=RAW
-    )
+        omissions = {r["path"].rsplit("/", 1)[-1]: r["reason"] for r in context["omissions"]}
+        assert omissions["a.md"] == "not_relevant"
+        if budget == required_bytes:
+            assert omissions["b.md"] == "context_limit"
+            assert context["content_bytes"] == required_bytes
+        else:
+            assert resources[-1]["path"].endswith("/b.md")
+            assert context["content_bytes"] == required_bytes + 1

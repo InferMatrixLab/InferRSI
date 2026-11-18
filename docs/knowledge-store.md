@@ -36,6 +36,13 @@ or `None` to declare package-only use. `store.reader()` / `store.collect` combin
 package, checkout and store items with qualified `store:<id>` refs. An ID owned by
 the store and a read-only adapter is reported as ambiguous, never shadowed.
 
+Pass a query or `relevance` to `store.collect` for local Find discovery.
+Store-owned candidates participate using their metadata and entrypoint text.
+An unpinned query ranks the current revision. A query with a revision pin ranks
+the retained entrypoint at that revision and returns that same revision if it
+matches. Use explicit IDs and revisions for exact collection of historical
+bundles and `resource` for their contents.
+
 ## Create and Update
 
 - Create registers a supplied **candidate** and rejects duplicate identity. It

@@ -201,7 +201,7 @@ def test_capture_packaged_skills_does_not_repeat_bundle_manifest(tmp_path):
     create_campaign(tmp_path, "camp", noise=1.5)
     reader = KnowledgeReader()
     options = {"relevance": "performance kernel optimization", "limit": 40,
-               "context_bytes": 65536, "relevance_method": "task-lexical-v1"}
+               "context_bytes": 65536, "kind": "knowledge"}
     expected = reader.collect(**options)
     path, _ = capture_context(tmp_path, context_id="many-skills", reader=reader, **options)
     document, state = verify_capture(path.read_bytes())

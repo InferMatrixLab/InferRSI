@@ -15,10 +15,9 @@ interfaces do not depend on unfinished general statistics or workflow proposals.
 
 `campaign capture-context` uses Find ranking for a single free-text question,
 then assembles selected material through Collect. The capture records both
-operations. Explicit IDs select material in caller order. The legacy form that
-supplies both a positional query and `--relevance` keeps the exact query filter
-and uses the separate cue for task ranking. Exact catalog search and explicit
-legacy ranking methods remain available for existing workflows.
+operations. Pass one question as a positional query or `--relevance`. Explicit
+IDs select material in caller order. See the [migration guide](operations.md#migrate-old-text-queries)
+for callers that previously passed a separate query filter and ranking cue.
 
 ```sh
 inferrsi find 'decode launch' --explain --json
@@ -55,17 +54,16 @@ budgeted item and resource payloads.
 | `assembly` | `performed` or `not_requested`; old missing evidence is `unknown` |
 | `candidate_details` | `not_recorded`: no reconstruction of a full rejected candidate set |
 
-Catalog scores count query-term occurrences in the searched JSON; repeated terms
-remain repeated components. Ties use ascending ID. A catalog observation's
-`catalog-sha256:` revision hashes the returned catalog record using sorted,
-UTF-8 JSON. It identifies that record, not a collect bundle or an upstream commit.
+A catalog text query records `knowledge search → find` and returns catalog
+records. Its `catalog-sha256:` revision hashes the returned record using sorted,
+UTF-8 JSON. It identifies those catalog bytes. A Collect revision identifies the
+normalized bundle used to deliver resources.
 
 Find records each matching term's contribution and uses recorded state,
-identity and qualified reference to break score ties. The two legacy weighted
-methods record title, summary, tags/applicability and body contributions. Task relevance records title, summary, tags, repo/scenario,
-applicability and body contributions plus its platform multiplier. Ties use
-ascending qualified ref. Explicit IDs preserve caller order and skip ranking.
-A plain inventory records `not_requested`. Filters use first-exclusion
+identity and qualified reference to break score ties. Explicit IDs preserve
+caller order and skip item ranking. A plain inventory records `not_requested`.
+Older captures retain the scores, components and method identifiers recorded in
+their original run. Filters use first-exclusion
 counts; these are not overlapping marginal totals. Per-item explanations cover
 returned items only. Existing omissions and resource hashes remain available.
 

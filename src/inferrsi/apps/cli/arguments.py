@@ -9,7 +9,6 @@ from pathlib import Path
 
 from ... import __version__
 from ...contracts import RunSpec
-from ...knowledge._skill_selection import RELEVANCE_METHODS
 from ...knowledge.catalog import BACKENDS, KNOWLEDGE_REPOS, KNOWLEDGE_SCOPES, REPO_TYPES
 
 
@@ -111,8 +110,8 @@ def _optimization_actions(stages, *, project=False):
             stage.add_argument("--usage-export", type=Path)
         if name == "knowledge":
             stage.add_argument("--query", required=True)
-            stage.add_argument("--relevance-method", choices=RELEVANCE_METHODS,
-                               help="Ranking method, defaults to find-lexical-v1")
+            stage.add_argument("--relevance-method", metavar="find-lexical-v1",
+                               help="Find is the default and only ranking method")
             stage.add_argument("--context-bytes", type=int, required=True)
             stage.add_argument("--limit", type=int, default=5)
 
@@ -363,9 +362,9 @@ def parser() -> argparse.ArgumentParser:
     capture.add_argument("--directory", type=Path, required=True)
     capture.add_argument("--id", required=True, help="New context id, e.g. r1-diagnosis")
     capture.add_argument("query", nargs="?", default="")
-    capture.add_argument("--relevance", help="Task cue for package knowledge and skill discovery")
-    capture.add_argument("--relevance-method", choices=RELEVANCE_METHODS,
-                         help="Defaults to Find for one query or cue without IDs or a store")
+    capture.add_argument("--relevance", help="Alternate spelling for one Find query")
+    capture.add_argument("--relevance-method", metavar="find-lexical-v1",
+                         help="Find is the default and only ranking method")
     capture.add_argument("--id-ref", action="append", dest="ids", metavar="ID",
                          help="Exact knowledge identity to include (repeatable)")
     capture.add_argument("--revision", action="append", metavar="ID=REV",
@@ -435,7 +434,7 @@ def parser() -> argparse.ArgumentParser:
     actions = knowledge.add_subparsers(dest="knowledge_action", required=True)
     search = actions.add_parser(
         "search",
-        help="Filter or search the installed record catalog. Use find for general discovery.",
+        help="List filtered package records, or search that catalog with Find ranking",
     )
     search.add_argument("query", nargs="?", default="")
     search.add_argument("--repo-type", choices=KNOWLEDGE_REPOS)
@@ -449,7 +448,7 @@ def parser() -> argparse.ArgumentParser:
     show = actions.add_parser("show")
     show.add_argument("id")
     research = actions.add_parser(
-        "research", help="Union model/framework/task/modality/mechanism queries for preparation"
+        "research", help="Combine model research dimensions with package-scoped Find queries"
     )
     research.add_argument("model")
     for dimension in ("framework", "task", "modality", "mechanism"):
@@ -510,13 +509,14 @@ def parser() -> argparse.ArgumentParser:
 
     collect = commands.add_parser(
         "collect",
-        help="Collect explicitly selected sources as a revision-pinned envelope; "
-        "package-only unless --skill-root or --store adds them",
+        help="Collect exact IDs, list material, or use Find to assemble context for a question",
     )
     collect.add_argument("query", nargs="?", default="")
     collect.add_argument("--kind", choices=("skill", "knowledge", "case"))
+    collect.add_argument("--repo-type", choices=KNOWLEDGE_REPOS)
+    collect.add_argument("--tier", choices=KNOWLEDGE_SCOPES)
     collect.add_argument("--backend", choices=BACKENDS, help="Include this backend and common")
-    collect.add_argument("--scenario", help="Workload scenario; task ranking also considers skills")
+    collect.add_argument("--scenario", help="Workload scenario (also admits packaged skills)")
     collect.add_argument(
         "--id", action="append", dest="ids", metavar="ID", help="Exact requested identity"
     )
@@ -530,11 +530,11 @@ def parser() -> argparse.ArgumentParser:
     collect.add_argument("--limit", type=int, default=10)
     collect.add_argument("--max-bytes", type=int)
     collect.add_argument("--material", action="store_true")
-    collect.add_argument("--relevance", help="Compatibility ranking for packaged knowledge")
     collect.add_argument(
-        "--relevance-method", choices=RELEVANCE_METHODS, default="weighted-lexical-v1",
-        help="Keep the packaged ranking or opt into Find with one question or cue",
+        "--relevance", help="Alternate spelling for a Find query, or a resource cue with --id",
     )
+    collect.add_argument("--relevance-method", metavar="find-lexical-v1",
+                         help="Find is the default and only ranking method")
     collect.add_argument(
         "--context-bytes", type=int,
         help="Opt-in context view; total UTF-8 resource-body byte budget",

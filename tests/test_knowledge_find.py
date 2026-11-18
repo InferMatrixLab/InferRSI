@@ -13,6 +13,7 @@ from pathlib import Path
 import pytest
 
 from inferrsi.apps.cli import main
+from inferrsi.knowledge.catalog import search_knowledge
 from inferrsi.knowledge.knowledge_find import (
     FINDING_OUTCOMES,
     FINDING_SCOPES,
@@ -23,6 +24,7 @@ from inferrsi.knowledge.knowledge_find import (
     expand,
     find,
     load_corpus,
+    rank,
     tokens,
 )
 
@@ -84,6 +86,32 @@ def test_partial_query_still_ranks_instead_of_filtering(corpus):
     result = find("why did the fused projection not help end to end service", corpus, limit=5)
     assert not result["no_match"]
     assert result["matched"] > 1
+
+
+@pytest.mark.parametrize(("query", "filters"), [
+    ("图模式 qxsearchtoken", {"repo": "inferrsi", "tier": "contribution", "backend": "ascend",
+                              "scenario": "skills.discovery"}),
+    ("CUDA-Graph capture capture qxsearchtoken", {"backend": "cuda"}),
+    ("offload graph qxsearchtoken", {"repo": "vllm_omni", "tier": "contribution",
+                                    "backend": "ascend", "scenario": "diffusion.t2v"}),
+])
+def test_catalog_ranks_find_documents_over_the_filtered_package_scope(corpus, query, filters):
+    inventory = search_knowledge(**filters, limit=1000)
+    by_find_ref = {record.get("checkout_ref", f"package:{record['id']}"): record
+                   for record in inventory}
+    eligible = [document for document in corpus.documents if document.qualified in by_find_ref]
+    assert len(eligible) == len(inventory)
+    _, _, scored = rank(query, Corpus(eligible))
+    assert scored
+
+    result = search_knowledge(query, **filters, limit=5, explain=True)
+    assert result["items"] == [
+        by_find_ref[eligible[index].qualified] for _, _, index, _ in scored[:5]
+    ]
+    assert [(item["score"], item["components"]) for item in result["retrieval"]["items"]] == [
+        (round(score, 2), detail) for score, _, _, detail in scored[:5]
+    ]
+    assert result["retrieval"]["counts"]["matched"] == len(scored)
 
 
 def test_repeated_query_terms_contribute_once(corpus):

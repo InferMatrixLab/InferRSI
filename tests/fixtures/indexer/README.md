@@ -2,7 +2,10 @@
 
 - `development.json`: 8 source-reviewed partial-positive queries, visible before the candidate.
 - `heldout.json`: 4 independently source-reviewed unseen queries/labels, released only after runtime candidate freeze.
-- Reproduce with `tools/evaluate_indexer.py`; issue-scoped gates, exact revisions, raw data and the efficiency/accuracy table live under `evidence/indexer-255-20261029/`.
+- Reproduce the historical comparison with the runner, source revisions and
+  protocol pinned in [the campaign evidence](../../../evidence/indexer-255-20261029/).
+  Current text retrieval uses Find. Use the pinned runtime to reproduce the
+  recorded ranking and output digests.
 
 These are not an exhaustive question bank or complete relevance ground truth. Partial-label Hit@5/MRR@5 measure whether a known positive appears, not full Recall/Precision or an agent's task success. Explicit-ID/resource-budget/no-match/stale-projection contracts are checked separately.
 

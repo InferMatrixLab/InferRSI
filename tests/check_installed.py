@@ -105,9 +105,6 @@ assert case_path in indexed.content
 assert indexed.dependencies
 assert json.loads(indexed.content["record.json"])["skill_metadata"]["license"] == "UNKNOWN"
 h3_identity = "inferrsi.common.skills.audit_h3_runtime_residency"
-assert any(item["id"] == h3_identity for item in search_knowledge(
-    "MiniMax-H3", repo="inferrsi", limit=100
-))
 h3_bundle = KnowledgeReader().read(h3_identity)
 h3_prefix = "data/skill_library/repositories/h3-c/audit-h3-runtime-residency/"
 h3_inventory = json.loads(h3_bundle.content[
@@ -148,18 +145,12 @@ h3_metal_audit = h3_metal_namespace["audit"](h3_metal_namespace["example"]())
 assert h3_metal_audit["layout"]["topk_double"] == 12
 assert h3_metal_audit["native_execution"] == "not_run"
 afd_identity = "inferrsi.cuda.skills.audit_afd_p2p_exchanges"
-assert any(item["id"] == afd_identity for item in search_knowledge(
-    "AFD", repo="inferrsi", backend="cuda", limit=100
-))
 afd_bundle = KnowledgeReader().read(afd_identity)
 afd_prefix = "data/skill_library/repositories/afd-plugin/audit-afd-p2p-exchanges/"
 for relative in ("SKILL.md", "metadata.json", "references/source-notes.md",
                  "references/afd-plugin-LICENSE.md"):
     assert afd_prefix + relative in afd_bundle.content
 hopper_identity = "inferrsi.cuda.skills.reason_hopper_kernels"
-assert any(item["id"] == hopper_identity for item in search_knowledge(
-    "WGMMA", repo="inferrsi", backend="cuda", limit=100
-))
 hopper_bundle = KnowledgeReader().read(hopper_identity)
 hopper_prefix = "data/skill_library/hardware/cuda/reason-hopper-kernels/"
 hopper_metadata = json.loads(hopper_bundle.content[hopper_prefix + "metadata.json"])
@@ -211,9 +202,18 @@ for relative in (
     assert lithos_owner + relative in lithos.content, relative
 assert json.loads(lithos.content["record.json"])["skill_metadata"]["status"] == "candidate"
 assert "monolith" not in sys.modules, "Skill reads must not import the source engine"
+
+# Text ranking uses Find's frontmatter reader when the optional parser is installed.
+for query, identity, backend in (
+    ("MiniMax-H3", h3_identity, None), ("AFD", afd_identity, "cuda"),
+    ("WGMMA", hopper_identity, "cuda"),
+):
+    assert any(item["id"] == identity for item in search_knowledge(
+        query, repo="inferrsi", backend=backend, limit=100,
+    ))
 selection_reader = KnowledgeReader()
 selection = selection_reader.collect(
-    "cpu.stat.local", relevance="cgroupv2", context_bytes=65536, limit=1,
+    "cgroupv2 cpu.stat.local", kind="knowledge", context_bytes=65536, limit=1,
 )
 assert selection["items"][0]["id"] == "inferrsi.common.skills.cgroup_resource_controls"
 assert not selection["context_omissions"]
@@ -224,7 +224,6 @@ assert selection_core["content"].encode() == selection_reader.resource(
     selection_context["ref"], selection_core["path"], revision=selection_context["revision"],
 )
 assert selection["context_bytes"] <= 65536
-assert "yaml" not in sys.modules, "Packaged selection must not require the skills extra"
 assert resource("data/knowledge_packs/README.md").is_file()
 for tier, count in (("dependency", 6), ("peer", 5)):
     imported = search_knowledge(tier=tier, limit=100)
@@ -329,9 +328,7 @@ assert not inference_modules & sys.modules.keys()
 ascend_image = search_knowledge(
     "Qwen-Image-2.1", repo="vllm_omni", backend="ascend", scenario="diffusion.image_generation"
 )
-assert [item["id"] for item in ascend_image] == [
-    "vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i"
-]
+assert ascend_image[0]["id"] == "vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i"
 assert resource(
     "data/repo_packs/vllm_omni/knowledge/ascend/diffusion/qwen-image-21-eager-t2i.json"
 ).is_file()

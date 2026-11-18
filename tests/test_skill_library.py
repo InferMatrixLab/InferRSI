@@ -49,6 +49,8 @@ def test_imported_repository_cli_and_scope_boundaries(repo, capsys, tmp_path):
                     "cpu",
                     "--scenario",
                     scenario,
+                    "--limit",
+                    "1",
                     "--output",
                     str(destination),
                 ]

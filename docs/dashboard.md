@@ -540,8 +540,9 @@ declared search space and how it was narrowed, each round's hypothesis and
 reason, the decision, and the success and failure summaries. It has two parts.
 
 **1. Capture the knowledge context while working.** Run the same retrieval the
-agent uses through `campaign capture-context`. It calls `collect` with a context
-budget and keeps the complete envelope: the request, everything search selected,
+agent uses through `campaign capture-context`. It calls `collect` to rank the
+question with Find and assemble resources within a context budget. The capture
+keeps the request, the selected items,
 everything left out and why, and every resource body with its SHA-256. The
 dashboard re-derives the assembled text from those resources and withholds a
 capture whose bytes or hashes no longer match.

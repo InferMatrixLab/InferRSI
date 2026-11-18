@@ -11,16 +11,15 @@ BASELINE_CUE = "reproducible diffusion baseline correctness fixed seed end to en
 
 
 def test_campaign_search_returns_portable_methods_and_records_counts(tmp_path):
-    create_campaign(tmp_path, "diffusion")
+    create_campaign(tmp_path, "diffusion", backend="cuda")
     path, _ = capture_context(tmp_path, context_id="first", reader=KnowledgeReader(),
-                              relevance=BASELINE_CUE, relevance_method="task-lexical-v1",
-                              limit=2, context_bytes=14000)
+                              relevance=BASELINE_CUE, limit=2, context_bytes=14000)
     document, state = verify_capture(path.read_bytes())
     assert state == "verified"
     assert [item["title"] for item in document["items"]] == [
         "inference-benchmark-design", "video-diffusion-optimization",
     ]
-    assert document["selection"]["method"] == "task-lexical-v1"
+    assert document["selection"]["method"] == "find-lexical-v1"
     assert document["selection"]["matched_count"] > document["selection"]["returned_count"] == 2
     assert document["context_omissions"][0]["reason"] == "context_limit"
     assert document["contexts"][0]["resources"][0]["path"].endswith(
@@ -53,8 +52,8 @@ def test_campaign_backend_routes_to_repository_evidence_and_can_be_overridden(tm
 
 def test_workload_scenario_discovers_skills_and_compatible_engine_records():
     reader = KnowledgeReader()
-    options = {"relevance": BASELINE_CUE, "relevance_method": "task-lexical-v1",
-               "backend": "cuda", "scenario": "diffusion.t2i", "limit": 8}
+    options = {"relevance": BASELINE_CUE, "backend": "cuda",
+               "scenario": "diffusion.t2i", "limit": 8}
     items = reader.collect(**options)["items"]
     ids = [i["id"] for i in items]
     portable = "inferrsi.common.skills.video_diffusion_optimization"

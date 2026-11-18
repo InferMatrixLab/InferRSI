@@ -112,10 +112,11 @@ are distinct from `knowledge search`, whose package catalog filters
 
 ### Search packaged records — `knowledge search` / `knowledge show`
 
-Use `find` for ordinary discovery. The package catalog retains its own exact
-query behavior for filtered inventory and existing scripts. Its
-`catalog-occurrences-v1` ranking requires every query token to match and orders
-hits by total occurrences. The `context` export shares this selector.
+Use `find` for ordinary discovery. With no query, `knowledge search` lists
+matching package records in ID order. With a query, it uses Find ranking over
+the filtered package catalog and still returns complete catalog records. The
+`context` export shares this selector. Text query results can change in both
+membership and order. Use `--explain` for the recorded ranking and counts.
 
 - **Inputs:** optional query words and `--tier`, `--repo-type`, `--backend`, `--scenario`, `--limit`, `--json`, `--explain`; `show` takes one record ID.
 - **Scope:** the installed package catalog (`repo_packs`, `knowledge_packs`) only.
@@ -138,7 +139,7 @@ result does not mean that no checkout or store knowledge exists. See the
 - **Example:** `inferrsi knowledge research MiniMax-H3 --framework mlx --target-backend metal --target-device "M5 Mac Studio" --target-memory-gib 64 --limit 12`
 - **Python:** `from inferrsi.knowledge.research import research_knowledge`; `research_knowledge("MiniMax-H3", frameworks=["mlx"], modalities=["video"], limit=12)`.
 
-Each research query uses the exact catalog selector described above. Querying
+Each research query uses Find over the same filtered package catalog. Querying
 separate dimensions broadens discovery while preserving the active package filters.
 Keep those filters explicit when transferring mechanisms from other backends;
 target intent does not qualify their applicability. Read the canonical
@@ -304,22 +305,36 @@ from this integration mechanism.
 
 Use Collect to take known material in caller-specified order. With
 `--context-bytes <N>`, it assembles complete files up to a UTF-8 body budget and
-reports unavailable or oversized context. Existing queries and ranking methods
-remain available for compatibility. See [selection and context](knowledge-operations.md#optional-packaged-skill-selection-and-context)
-for scoring, provenance and accounting.
-
-`campaign knowledge`, `benchmarks session knowledge` and `campaign capture-context`
-use Find for single questions by default. They then assemble and retain the
-selected context with its revisions and byte budget. Standalone Collect can
-opt in with `--relevance-method find-lexical-v1`. To capture an installed Case
-exactly, follow the `find` result to `read`, then pass its ref and revision to
+reports unavailable or oversized context. With no IDs and one question, Collect
+uses the same local Find ranking as `campaign knowledge`, `benchmarks session
+knowledge`, and `campaign capture-context`. See [selection and context](knowledge-operations.md#optional-packaged-skill-selection-and-context)
+for provenance and accounting. To capture an installed Case exactly, follow the
+`find` result to `read`, then pass its ref and revision to
 `campaign capture-context --installed-library --id-ref REF --revision REF=REV`.
 
+#### Migrate old text queries
+
+- `knowledge search QUERY` and `context QUERY` keep their package scope and
+  output format. Text queries now use Find and can match entries that contain
+  only part of the query. Omit `QUERY` for filtered inventory or use
+  `knowledge show ID` for one known record.
+- Pass one question as `collect QUERY` or `collect --relevance QUERY`. If an
+  old script combines a positional query and a separate cue, write one question
+  and express hard constraints with structured flags such as `--kind` and
+  `--backend`. Use `--kind knowledge` to search only the package catalog.
+- Remove old `--relevance-method` values from scripts and managed calls. Find
+  is the default and `find-lexical-v1` is the only accepted explicit value.
+  Check the new rank order before using it to select material in automation.
+- For exact collection and replay, use the retained IDs and revisions without
+  a positional query. With explicit IDs, `--relevance` can order optional
+  context resources while membership and caller order remain fixed. Read
+  historical captures for their original selected and delivered bytes.
+
 - **Inputs:** optional query, `--kind`, repeatable explicit `--id`, repeatable `--revision ID=REV`, `--limit`, `--max-bytes`, `--material`; `--skill-root` selects an explicit skills root, `--store` opens an existing store read-only (the store records its reserved skills root and rejects a mismatched or missing `--skill-root`).
-- **Scope:** installed package records plus (with `--skill-root`) skills and cases from the explicitly selected root, plus (with `--store`) store candidates; bounded output.
+- **Scope:** installed package records, the selected library, and any explicitly opened store. A text query without a custom library or store can discover bundled Cases and Skills. Exact inventory selects the bundled library with `--installed-library`.
 - **Output:** with `--json`, the complete **normalized** envelope — items carrying the bundle's normalized metadata, resources and dependencies, plus `no_match`, `omissions`, `collisions`, `material_bytes` and the recorded limitations; fields that exist only in a package record's original entrypoint document are not projected into the normalized metadata and are read via `--material` or `resource`. Without `--json`, the envelope's selection is projected line-wise: one tab-separated line per item (`ref`, `revision`, `kind`, `state`, recorded `applicability`; free-text fields are control-character-escaped so one item stays one line), `collision` lines for multi-authority IDs, `omitted` lines with reason codes, an explicit `no_match` line when nothing was selected (query, filters or limits; when items were skipped the `omitted` lines above it carry the per-item causes), and — with `--material` — the entrypoint content in delimited blocks. The text mode does not print `material_bytes` or the envelope limitations; use `--json` for the complete envelope. The recorded `state` and applicability are printed as recorded and no validation status is invented. Exit 0 covers a result envelope, including no-match and omissions.
 - **Side effects:** none; both adapters and the read-only store connection are read-only.
-- **Failure behavior:** discovery-wide invalid identities fail the call; per-item omissions are reported individually. Package repo/tier/backend/scenario filters exclude checkout items.
+- **Failure behavior:** discovery-wide invalid identities fail the call. Per-item omissions are reported individually. Repository, tier and scenario filters use the package catalog. A backend filter scopes ranked discovery to the requested backend and shared material.
 - **Example:** `inferrsi collect --id package:inferrsi.ascend.skills.ascend_graph_mode --id package:inferrsi.ascend.skills.ascend_device_health --context-bytes 65536 --json`
 
 ### Read exact material/resources — `read` / `resource` / `KnowledgeReader.read` / `.resource`

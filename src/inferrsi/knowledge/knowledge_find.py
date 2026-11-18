@@ -5,11 +5,11 @@ already known about this problem" and returns corpus-relative paths, so the
 caller can read, grep around, or stop. The audit half lives in ``read`` /
 ``resource``: exact identities, pinned revisions and content hashes.
 
-Three properties separate this from the existing ``collect`` selection path:
+Catalog search, model research and Collect reuse these documents and ranking
+over the corpus eligible for their operation.
 
-* Cases participate. A rejected direction is the material a retrieval system
-  can supply that re-reading the current source cannot, so it is ranked beside
-  skills rather than excluded until its owner is already chosen.
+* Standalone Find ranks cases beside skills, including rejected directions
+  and the conditions behind them.
 * Each distinct matching term contributes to the score. One match is enough
   to be eligible, and ``limit`` caps the ranked results.
 * Scoring reads the entries directly. Bundle closures may contain unrelated
@@ -27,6 +27,7 @@ import re
 import shlex
 import sys
 from collections import Counter
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from functools import lru_cache
 from importlib.resources import files
@@ -40,8 +41,7 @@ if TYPE_CHECKING:
 
 from ._knowledge_errors import MissingSkillsExtra
 from ._skill_selection import TASK_STOP_WORDS, indexed_skill, named_backends
-from ._source_snapshot import BUNDLE_LIBRARY
-from .catalog import BACKENDS
+from .catalog import BACKENDS, packaged_skill_id
 
 # Author-written intent outranks bulk prose: a term in a title is evidence the
 # document is about it, the same term in a long body often is not.
@@ -507,14 +507,12 @@ def _skill_documents(root: Path, *, source_location: str) -> list[Document]:
     return documents
 
 
-def _record_documents() -> list[Document]:
+def _record_documents(records: Iterable[dict]) -> list[Document]:
     """Imported engine records. Skill projections are skipped: the checkout
     documents above already cover them, and counting both double-ranks one
     owner under two identities."""
-    from .catalog import knowledge_records
-
     documents = []
-    for record in knowledge_records():
+    for record in records:
         if record.get("index_type") == "packaged-skill":
             continue
         identity = record["id"]
@@ -615,17 +613,24 @@ def installed_skill_root() -> Path:
     return Path(files("inferrsi").joinpath("knowledge", "data", "skill_library")).resolve()
 
 
-def packaged_skill_projection(document: Document, reader) -> dict | None:
-    """Find the generated record for this exact installed Skill path."""
-    if document.kind != "skill" or document.source_location != "installed" or not document.path:
+def installed_skill_projection(document: Document, records: Mapping[str, dict]) -> dict | None:
+    """Find the generated record for this registered installed Skill identity."""
+    if (
+        document.kind != "skill" or document.source_location != "installed"
+        or document.backend is None or document.root != installed_skill_root()
+    ):
         return None
-    if document.root != installed_skill_root():
+    record = records.get(packaged_skill_id(document.identity, document.backend))
+    if record is None or record.get("index_type") != "packaged-skill":
         return None
-    return reader.packaged_skill_records.get(f"{BUNDLE_LIBRARY}/{document.path}")
+    return record
 
 
 def load_documents(
-    skill_root: Path | None = None, *, kinds: tuple[str, ...] = ("case", "skill", "record")
+    skill_root: Path | None = None,
+    *,
+    kinds: tuple[str, ...] = ("case", "skill", "record"),
+    records: Iterable[dict] | None = None,
 ) -> list[Document]:
     documents: list[Document] = []
     if "case" in kinds or "skill" in kinds:
@@ -639,7 +644,9 @@ def load_documents(
         if "skill" in kinds:
             documents.extend(_skill_documents(root, source_location=source_location))
     if "record" in kinds:
-        documents.extend(_record_documents())
+        from .catalog import knowledge_records
+
+        documents.extend(_record_documents(knowledge_records() if records is None else records))
     identities = [document.qualified for document in documents]
     if len(set(identities)) != len(identities):
         duplicate = next(i for i, c in Counter(identities).items() if c > 1)
@@ -725,7 +732,9 @@ def _open_args(document: Document, readers: dict) -> tuple[str, ...]:
     try:
         reader.read(document.qualified).view(material=True)
     except MissingSkillsExtra:
-        record = packaged_skill_projection(document, reader)
+        if document.source_location != "installed":
+            raise
+        record = installed_skill_projection(document, reader.records())
         if record is None:
             raise
         package_reader = readers.get(None)

@@ -165,7 +165,7 @@ Follow the selected canonical procedure rather than inventing a parallel tuning
 recipe. Imported source material supplies evidence, not execution authority.
 The `skills` commands and direct checkout Skill reads use the optional PyYAML
 dependency. Use `collect --id` for a batch of known materials and
-`knowledge search` for package inventory queries.
+`knowledge search` without a query for filtered package inventory.
 
 ### Consult MindIE for unresolved Ascend questions
 

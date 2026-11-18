@@ -443,6 +443,9 @@ def main(argv: list[str] | None = None) -> int:
                     limit=args.limit,
                     explain=args.explain,
                 )
+                if args.query.strip():
+                    print("knowledge search text queries use Find ranking in the package catalog. "
+                          "Omit QUERY for filtered inventory.", file=sys.stderr)
                 if args.json or args.explain:
                     _print(records)
                 else:
@@ -477,6 +480,8 @@ def main(argv: list[str] | None = None) -> int:
                 ids=args.ids,
                 revisions=_revisions(args.revisions or []),
                 kind=args.kind,
+                repo=args.repo_type,
+                tier=args.tier,
                 backend=args.backend,
                 scenario=args.scenario,
                 limit=args.limit,
@@ -486,6 +491,9 @@ def main(argv: list[str] | None = None) -> int:
                 relevance_method=args.relevance_method,
                 context_bytes=args.context_bytes,
             )
+            if args.relevance_method is None and result.get("selection", {}).get("ranking_applied"):
+                print("collect text queries use Find ranking. "
+                      "Use --id and --revision for exact material.", file=sys.stderr)
             if args.json:
                 _print(result)
             else:
@@ -559,6 +567,9 @@ def main(argv: list[str] | None = None) -> int:
                 scenario=args.scenario,
                 limit=args.limit,
             )
+            if args.query.strip():
+                print("context text queries use Find ranking in the package catalog. "
+                      "Omit QUERY for filtered inventory.", file=sys.stderr)
             text = _context(records)
             if args.output:
                 destination = Path(args.output)

@@ -55,8 +55,9 @@ resource's text and identifies it in `content_resource`. Use `resource` with
 the same source flag and revision to extract the exact bytes.
 
 Use `collect --id` to assemble a batch of known materials. Use
-`knowledge search` for filtered package inventory and `knowledge research`
-when you need separate research dimensions for a model.
+`knowledge search` without a query for filtered package inventory. For a
+model with several research dimensions, `knowledge research` uses Find within
+the filtered package catalog for each dimension.
 
 Retain qualified identities, exact revisions, source attribution, applicability,
 candidate/verification state and omissions. Package search does not inspect live

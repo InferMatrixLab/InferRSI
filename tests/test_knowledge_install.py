@@ -58,6 +58,18 @@ def test_package_only_commands_work_without_pyyaml(without_yaml):
     assert result.returncode == 0, result.stderr
     assert json.loads(result.stdout)["id"] == items[0]["id"]
 
+    query = "ascend graph mode"
+    catalog = _run(["knowledge", "search", query, "--limit", "1", "--explain"], env)
+    assert catalog.returncode == 0, catalog.stderr
+    searched = json.loads(catalog.stdout)
+    target = "inferrsi.ascend.skills.ascend_graph_mode"
+    assert searched["items"][0]["id"] == target
+    assert searched["retrieval"]["selection"]["method"] == "find-lexical-v1"
+
+    research = _run(["knowledge", "research", query, "--limit", "1"], env)
+    assert research.returncode == 0, research.stderr
+    assert json.loads(research.stdout)["items"][0]["record"]["id"] == target
+
 
 def test_packaged_skill_search_and_resource_work_without_pyyaml(without_yaml, tmp_path):
     env = _cli_env(without_yaml)
