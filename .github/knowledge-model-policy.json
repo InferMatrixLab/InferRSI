@@ -28,29 +28,23 @@
       "suspended": false,
       "source": "https://platform.claude.com/docs/en/models/opus-5-5/overview"
     },
-    "gpt-6-astra": {
-      "aliases": [],
-      "efforts": ["xhigh", "max"],
-      "suspended": false,
-      "source": "https://developers.openai.com/api/docs/models/gpt-6-astra"
-    },
-    "gpt-6.1-sol": {
-      "aliases": [],
-      "efforts": ["xhigh", "max"],
-      "suspended": false,
-      "source": "https://developers.openai.com/api/docs/models/gpt-6.1-sol"
-    },
-    "gpt-6.1-terra": {
-      "aliases": [],
-      "efforts": ["xhigh", "max"],
-      "suspended": false,
-      "source": "https://developers.openai.com/api/docs/models/gpt-6.1-terra"
-    },
     "claude-fable-5-2": {
       "aliases": [],
       "efforts": ["xhigh", "max"],
       "suspended": false,
       "source": "https://platform.claude.com/docs/en/models/fable-5-2/whats-new-fable-5-2"
+    },
+    "gpt-6.2-astra": {
+      "aliases": [],
+      "efforts": ["xhigh", "max"],
+      "suspended": false,
+      "source": "https://developers.openai.com/api/docs/models/gpt-6.2-astra"
+    },
+    "gpt-6.2-sol": {
+      "aliases": [],
+      "efforts": ["xhigh", "max"],
+      "suspended": false,
+      "source": "https://developers.openai.com/api/docs/models/gpt-6.2-sol"
     }
   },
   "approval_owners": ["Dong1017"],
