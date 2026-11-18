@@ -305,6 +305,8 @@ def test_platform_override_and_cuda_gate(upstream):
 
 
 def test_public_find_displays_an_external_only_hit_and_managed_capture_stays_local(upstream):
+    from inferrsi.apps.views.codex_knowledge import decode, invocation
+
     _, script, card = upstream
     invoked = script.with_suffix(".invoked")
     script.write_text(
@@ -324,6 +326,10 @@ def test_public_find_displays_an_external_only_hit_and_managed_capture_stays_loc
     assert external["items"][0]["locator"] == "ops/card"
     rendered = cli("find", query, "--backend", "ascend")
     assert rendered.returncode == 0 and "ops/card" in rendered.stdout
+    for flags, output in ((["--json"], encoded.stdout), ([], rendered.stdout)):
+        call = invocation(["inferrsi", "find", query, "--backend", "ascend", *flags])
+        event, complete, _ = decode(call, 0, output)
+        assert complete and event["materials"] == [{"ref": "cannbot-knowledge:ops/card"}]
     assert invoked.exists()
     invoked.unlink()
 

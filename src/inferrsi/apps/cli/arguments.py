@@ -116,8 +116,8 @@ def _optimization_actions(stages, *, project=False):
             stage.add_argument("--limit", type=int, default=5)
 
 
-def parser() -> argparse.ArgumentParser:
-    root = argparse.ArgumentParser(
+def parser(*, parser_class=argparse.ArgumentParser) -> argparse.ArgumentParser:
+    root = parser_class(
         description="CLI-first reproducible experiments and tuning knowledge"
     )
     root.add_argument("--version", action="version", version=__version__)

@@ -542,14 +542,14 @@ def main(argv: list[str] | None = None) -> int:
                     )
             return 0
         if args.command == "read":
-            _, _, view = read_knowledge(
+            ref, _, view = read_knowledge(
                 _knowledge_reader(args), args.id, revision=args.revision, material=args.material,
                 resource=args.resource,
             )
             if args.omit_resources:
                 view.pop("resources")
                 view.pop("required_resources", None)
-            _print(view)
+            _print({**view, "ref": ref})
             return 0
         if args.command == "resource":
             data = _knowledge_reader(args).resource(args.id, args.path, revision=args.revision)

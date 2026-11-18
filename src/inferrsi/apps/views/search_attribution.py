@@ -234,7 +234,7 @@ def _round_candidates(root, number):
     return runs
 
 
-def _observations(events, *, archive=False):
+def _observations(events):
     """Count tool hits separately from what appeared in a model-facing return."""
     materials, hits = {}, set()
     counts = {"searches": 0, "hits": 0, "unique_hits": 0, "used": 0}
@@ -246,8 +246,7 @@ def _observations(events, *, archive=False):
             hits.update(refs)
         for ref in sorted(refs):
             materials.setdefault(ref, {"use": "unknown"})
-        if archive:
-            delivery = event["delivery"]
+        if delivery := event.get("delivery"):
             passages = {row["ref"] for row in delivery.get("passages", [])}
             visible_refs = set(delivery.get("visible_refs", []))
             resources = {row["ref"] for row in delivery.get("visible_resources", [])}
@@ -304,8 +303,6 @@ def import_search(root: Path, *, number: int, trace=None, lines=None, knowledge_
                 indexer_decisions[context_id].append(item)
             else:
                 command_decisions.append(item)
-                if "passage_path" in item:
-                    raise ValueError("passage_path is only valid for a verified Indexer return")
 
     window, events, decisions, uncertain = None, [], {}, []
     if trace:
@@ -355,7 +352,7 @@ def import_search(root: Path, *, number: int, trace=None, lines=None, knowledge_
             return_line=return_line,
             selected_passages=indexer_decisions[key])
     archive_events.extend(archive_captures.values())
-    archive_materials, archive_observed = _observations(archive_events, archive=True)
+    archive_materials, archive_observed = _observations(archive_events)
     declarations = _log_uses(root, campaign_id, number, archive_captures, archive_materials,
                              archive=True)
     for ref, material in record["materials"].items():

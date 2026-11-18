@@ -186,9 +186,10 @@ run the import from the agent's closing shell call:
 # Start of round 1. Save the printed value as FIRST for the closing call.
 awk 'END { print NR + 1 }' "$trace"
 
-# Separate agent shell calls with the skill library as the tool working directory.
-rg -Hn 'Operator tests passed' methods/inference-optimization-casebook/cases
-cat methods/inference-optimization-casebook/cases/qwen-b300-rejected-directions.md
+# Separate agent shell calls. Run the open command returned by Find.
+inferrsi find 'cache per-step masks ran out of device memory' --kinds case --limit 1
+inferrsi read checkout:case.qwen-ascend-rejected-directions \
+  --material --omit-resources --installed-library
 
 # End of round 1. FIRST is the value retained at the start of this round.
 LAST=$(wc -l < "$trace")
@@ -203,11 +204,28 @@ flushed. After an interruption the host can do the same handoff. Use
 These inputs can be combined with the rollout or used alone for an Indexer-only
 round. Each capture is verified and its returned refs, revisions, request and
 resource paths are recorded. Opening a resource and receiving a prepared context
-are distinct observations. A bare `collect` leaves no such capture.
+are distinct observations. For Collect results that must be retained, use
+`campaign capture-context` with the same query or exact IDs.
 
-The importer reads Desktop `CommandExecution` events. It supports direct text
-or filename-match searches with `rg`, literal `cat`, `nl -ba` and `sed -n N,Mp`
-reads. Use `rg -Hn` for unambiguous filenames and matching lines. File results
+The importer reads Desktop `CommandExecution` events. Run `find` and `read` in
+separate simple tool calls and retain both call/return pairs in the selected
+window. It accepts Find's default text and `--json` output. Find records result
+references in returned order, including separately qualified external hits.
+When an installed Skill links to its package projection, `read_ref` gives the
+identity in the open command. Read records the resolved reference and
+returned revision. Only `read --material` or `read --resource` can verify a
+returned body. A metadata-only read records a visible reference.
+
+The importer verifies direct CLI delivery against the agent-facing tool
+response. Missing, clipped or uncorrelated outputs leave coverage partial
+even with `--complete`. Compatibility queries through `collect`, `knowledge
+search`, `knowledge research` and `context` require separate capture evidence
+for their results. The importer marks these standalone calls unresolved.
+Remote tools and external card reads also require their own evidence.
+
+For file searches the importer supports text and filename matches with `rg`
+and literal `cat`, `nl -ba` and `sed -n N,Mp` reads. Use `rg -Hn` for
+unambiguous filenames and matching lines. File results
 are corpus-relative. `-H` / `--with-filename` establishes the filename prefix,
 including for numeric filenames. Without it, nonempty text output is attributed
 only when the recorded scopes establish directory search or multiple operands.
@@ -231,8 +249,8 @@ retrievals require separate evidence. Review query text and paths before sharing
 
 - `observed` counts recognized searches, distinct materials per search (hits),
   distinct hit refs across searches, and distinct refs with supported use.
-  A later file read is a separate event. File paths and versioned Indexer
-  entries keep their original identities, with no inferred cross-tool alias.
+  Later reads are separate events. File paths, qualified CLI refs and
+  versioned Indexer entries keep their recorded identities.
 - Supply `--complete` only when the selected inputs cover every in-scope
   retrieval for the round. Otherwise only observed counts are known and
   `counts` is null. A complete round without a search has zero searches.
@@ -294,6 +312,10 @@ agent's actual decision. The line numbers for the event and decision locate
 records in the private input. The `passage_line` field locates a line in the material.
 Use a verbatim, contiguous decision excerpt. The importer checks the cited
 event, passage and message before recording the reviewed relation.
+For a direct `read`, use its command event line as `event_line`, its returned
+qualified `ref`, and the entrypoint or `content_resource` as `passage_path`.
+Count `passage_line` from the first line of the decoded resource body. Find
+hits alone provide no passage for a reviewed decision.
 
 ```json
 {
