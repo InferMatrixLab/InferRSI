@@ -44,6 +44,20 @@ def test_cross_branch_completion_counts_shared_preparation_once():
     assert all(len(plan.job_ids) == 5 for plan in pairs)
 
 
+def test_one_seed_can_complete_another_candidate_through_its_prerequisites():
+    state, jobs = fixture()
+    jobs = tuple(
+        replace(job, prerequisites=("b-objective",)) if job.job_id == "a-quality" else job
+        for job in jobs
+    )
+    plans = menu(state, jobs, max_targets=1)
+    coupled = next(plan for plan in plans if "a-objective" in plan.job_ids)
+    assert coupled.candidate_ids == ("a", "b")
+    assert coupled.job_ids.index("b-objective") < coupled.job_ids.index("a-quality")
+    assert coupled.cost == 15 and coupled.job_ids.count("setup") == 1
+    assert len(coupled.job_ids) == 5
+
+
 def exhaustive_oracle(jobs, budget, job_limit, target_limit):
     # Independent oracle enumerates all job subsets, not candidate-completion unions.
     result = {}

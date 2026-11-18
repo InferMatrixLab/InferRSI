@@ -75,6 +75,12 @@ Optional refinement adds unions without removing base completions. An undersized
 menu cap fails explicitly. Collection samples Policy; deployment uses argmax.
 Drafter edits remain sampled from the supplied permitted vocabulary.
 
+Experimental records predating `initial_conditions` remain readable/exportable
+through WorkControl, but cannot resume or enter GVO training. Start fresh searches
+from qualified evidence; there is no migration that guesses a historical starting
+tree from a later tree. Receiving search/attempt IDs may differ after an explicit
+root import; actual execution identities, evidence and dependency epochs must agree.
+
 The chosen work block is persisted before execution. Each edit waits for its
 parent artifact, without waiting for parent quality. Each check binds candidate,
 contract, attempt, execution, reservation and domain. Settlement commits elapsed
@@ -138,7 +144,10 @@ use the **same shared store**.
 Launch intent is durable before dispatch; an ambiguous crash never authorizes a
 second launch. Known elapsed time and cleanup release unused reservation.
 Unknown usage/cleanup retains the entire reservation and domain. Over-cap work
-is charged and blocks promotion. Absolute deadlines include queueing and cleanup.
+blocks further claims immediately, even with unknown cleanup; the retained hold
+is at least the largest known usage. Later reconciliation releases the domain
+and charges the final usage once, never below that known lower bound. Absolute
+deadlines include queueing and cleanup.
 In-process bounded planning, editing and training are checked after return;
 they are not forcibly preempted like subprocesses. Preflight freezing and initial
 setup are outside this campaign meter, a remaining lifecycle-cost limitation.
@@ -148,6 +157,13 @@ accidental mutation under a trusted host, not malicious-host forgery. Recovery
 checks retained candidate bytes and never launches new work. Lost preparation,
 training or copy receipts remain unresolved; no guessed-cost retry is available.
 External process-liveness reconciliation needs a qualified authority.
+
+An expired launch recorded as `settled/not_started` is conclusive control evidence
+that dispatch never occurred. Search recovery clears its pending work and ends
+the current block; a registered verification attempt gets a control-only
+`INCONCLUSIVE` receipt, with no objective or evaluator PASS. No execution is
+charged. A search whose limit has expired can then return its qualified incumbent.
+This exception does not apply to ambiguous launch-intent crashes.
 
 `finalize` consumes a unique scope in the shared store before final data access,
 freezes selection and closes search/training. Engine compares again with the

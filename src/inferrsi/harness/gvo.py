@@ -6,7 +6,7 @@ import uuid
 from dataclasses import replace
 
 from .artifact_primitives import digest
-from .search_records import decode
+from .search_records import decode, initial_conditions
 
 
 def finite(value):
@@ -30,7 +30,7 @@ def examples(records, *, expense_weight=0.0, elapsed_weight=0.0):
         set(),
     )
     returns = []
-    initial_conditions = set()
+    starts = set()
     for record in records:
         if record["status"] != "complete" or record["pending"] is not None:
             raise ValueError("Incomplete searches cannot supply GVO returns")
@@ -45,7 +45,7 @@ def examples(records, *, expense_weight=0.0, elapsed_weight=0.0):
         snapshots.add(record["snapshot"])
         settings.add(record["settings"])
         adapters.add(record["adapter"])
-        initial_conditions.add(record["initial_conditions"])
+        starts.add(initial_conditions(record))
         returns.append(
             finite(
                 record["gain"]
@@ -56,7 +56,7 @@ def examples(records, *, expense_weight=0.0, elapsed_weight=0.0):
         )
     if len(set(identities)) != len(identities) or any(
         len(values) != 1
-        for values in (roots, contracts, snapshots, settings, adapters, initial_conditions)
+        for values in (roots, contracts, snapshots, settings, adapters, starts)
     ):
         raise ValueError("Search group must have distinct IDs and identical starting conditions")
     if any(record["forced"] for record in records):

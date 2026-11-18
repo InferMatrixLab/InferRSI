@@ -11,6 +11,14 @@ def encode(state):
     return asdict(state)
 
 
+def initial_conditions(record):
+    """Reject legacy records whose actual starting evidence was never retained."""
+    value = record.get("initial_conditions")
+    if not isinstance(value, str) or not value:
+        raise ValueError("Legacy search lacks initial evidence identity; start a fresh search")
+    return value
+
+
 def decode(raw):
     def dependencies(values):
         return tuple(tree.Dependency(**value) for value in values)

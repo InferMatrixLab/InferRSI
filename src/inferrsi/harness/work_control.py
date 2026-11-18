@@ -2,7 +2,8 @@
 
 This is a controller for trusted host operations, not an executor or sandbox.
 All cooperating controllers must share the same RunStore for resource domains
-and holdout scopes to be exclusive. Unknown work retains its entire reservation.
+and holdout scopes to be exclusive. Unknown work retains at least its entire
+reservation and any larger known usage lower bound.
 """
 
 import json
@@ -101,7 +102,11 @@ class WorkControl:
 
     @staticmethod
     def available(body, *, final=False):
-        held = sum(op["cap_ms"] for op in body["operations"].values() if op["status"] != "settled")
+        held = sum(
+            max(op["cap_ms"], op.get("known_ms", 0))
+            for op in body["operations"].values()
+            if op["status"] != "settled"
+        )
         return body["cap_ms"] - body["spent_ms"] - held - (0 if final else body["final_reserve_ms"])
 
     def update(self, campaign, revision, transition):
@@ -209,6 +214,16 @@ class WorkControl:
                 return
             if op["status"] not in ("launched", "unknown"):
                 raise ValueError("Cannot settle an unlaunched operation")
+            known_ms = max(op.get("known_ms", 0), actual_ms or 0)
+            if cleanup_verified is True and actual_ms is not None and actual_ms < known_ms:
+                raise ValueError("Final usage cannot be below previously known usage")
+            op["known_ms"] = known_ms
+            executable_ms = min(op["cap_ms"], (op["deadline"] - op["started_at"]) * 1000)
+            # Cleanup uncertainty cannot erase an observed overrun. Keep the
+            # domain and conservative hold until reconciliation, blocking any
+            # further work immediately, including work on other domains.
+            if known_ms > executable_ms:
+                body["blocked"] = True
             op["settlement"] = settlement
             if actual_ms is None or cleanup_verified is not True:
                 op["status"] = "unknown"
@@ -218,8 +233,7 @@ class WorkControl:
             else:
                 op.update(status="settled", actual_ms=actual_ms, receipt=receipt)
                 body["spent_ms"] += actual_ms
-                executable_ms = min(op["cap_ms"], (op["deadline"] - op["started_at"]) * 1000)
-                if actual_ms > executable_ms or body["spent_ms"] > body["cap_ms"]:
+                if body["spent_ms"] > body["cap_ms"]:
                     body["blocked"] = True
                 if transition is not None and not body["blocked"]:
                     body["state"] = transition(body["state"])

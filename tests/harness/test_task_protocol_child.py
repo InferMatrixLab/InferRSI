@@ -235,6 +235,14 @@ def test_expired_campaign_deadline_never_starts_protocol(tmp_path, monkeypatch):
     assert failure(tmp_path, digest, deadline=0, arguments=[]).kind == "timeout"
 
 
+@pytest.mark.parametrize("deadline", [float("nan"), float("inf"), -float("inf"), True, "soon"])
+def test_invalid_campaign_deadline_never_starts_protocol(tmp_path, monkeypatch, deadline):
+    digest = write_protocol(tmp_path, "def validate_arguments(a):\n    return {}\n")
+    monkeypatch.setattr(task_protocol.local_process, "_supervise",
+                        lambda *a, **k: pytest.fail("invalid deadline must not start"))
+    assert failure(tmp_path, digest, deadline=deadline, arguments=[]).kind == "request"
+
+
 @pytest.mark.parametrize("body, raises", [
     ("    return {}\n", False),
     ("    raise ValueError('rejected')\n", True),
