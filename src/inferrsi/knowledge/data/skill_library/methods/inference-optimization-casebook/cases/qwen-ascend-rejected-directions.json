@@ -1,6 +1,7 @@
 {
   "id": "case.qwen-ascend-rejected-directions",
   "kind": "case",
+  "backend": "ascend",
   "origin": ["external"],
   "state": "author_reported",
   "content": "qwen-ascend-rejected-directions.md",

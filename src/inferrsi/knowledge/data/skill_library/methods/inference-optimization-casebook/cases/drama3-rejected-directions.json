@@ -1,6 +1,7 @@
 {
   "id": "case.drama3-rejected-directions",
   "kind": "case",
+  "backend": "cuda",
   "origin": ["internal"],
   "state": "historical_observation",
   "content": "drama3-rejected-directions.md",

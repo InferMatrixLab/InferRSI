@@ -1,6 +1,7 @@
 {
   "id": "case.qwen-b300-rejected-directions",
   "kind": "case",
+  "backend": "cuda",
   "origin": ["internal"],
   "state": "historical_observation",
   "content": "qwen-b300-rejected-directions.md",
