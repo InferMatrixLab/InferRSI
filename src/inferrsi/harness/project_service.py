@@ -356,7 +356,7 @@ def revision(source, includes):
     tracked = set(git("ls-files", "-z").split("\0"))
     # Deleted tracked files are absent from members but still belong to the inputs.
     if any(name not in tracked for name in selected) or git(
-        "status", "--porcelain", "--", *(includes or ["."])
+        "status", "--porcelain", "--untracked-files=no", "--", *(includes or ["."])
     ):
         raise ValueError("Commit declared candidate inputs before service-reuse evaluation")
     return commit

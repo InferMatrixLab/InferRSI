@@ -1028,6 +1028,25 @@ def test_revision_rejects_deleted_files_inside_declared_directory(campaign, stag
     assert not (destination / "inputs/delete.txt").exists()
 
 
+def test_revision_ignores_untracked_cache_but_rejects_untracked_input(campaign):
+    repo = campaign["repo"]
+    inputs = repo / "inputs"
+    inputs.mkdir()
+    (inputs / "keep.txt").write_text("keep")
+    subprocess.run(["git", "-C", str(repo), "add", "inputs"], check=True)
+    commit(repo)
+    revision = project_service.revision(repo, ["inputs"])
+
+    cache = inputs / "__pycache__"
+    cache.mkdir()
+    (cache / "entry").touch()
+    assert project_service.revision(repo, ["inputs"]) == revision
+
+    (inputs / "new.txt").touch()
+    with pytest.raises(ValueError, match="Commit declared candidate inputs"):
+        project_service.revision(repo, ["inputs"])
+
+
 def test_revision_ignores_deletions_outside_declared_inputs(campaign):
     repo = campaign["repo"]
     inputs = repo / "inputs"
