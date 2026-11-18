@@ -5,23 +5,14 @@ import time
 import uuid
 from dataclasses import replace
 
-from inferrsi.model.search_roles import Choice, finite, update
-
 from .artifact_primitives import digest
 from .search_records import decode
 
 
-def choice_from_document(raw):
-    return Choice(
-        **(
-            raw
-            | {
-                "options": tuple(raw["options"]),
-                "features": tuple(tuple(row) for row in raw["features"]),
-                "probabilities": tuple(raw["probabilities"]),
-            }
-        )
-    )
+def finite(value):
+    if type(value) not in (int, float) or not math.isfinite(value):
+        raise ValueError("Search returns require finite recorded observations")
+    return value
 
 
 def examples(records, *, expense_weight=0.0, elapsed_weight=0.0):
@@ -85,9 +76,8 @@ def examples(records, *, expense_weight=0.0, elapsed_weight=0.0):
             if step["forced"]:
                 raise ValueError("Forced action leaked into a natural trajectory")
             for raw in (step["choice"], *step["draft_choices"]):
-                choice = choice_from_document(raw)
-                if choice.sampled:
-                    actors.append((choice, advantage))
+                if raw["sampled"]:
+                    actors.append((raw, advantage))
     return actors, values, {"search_ids": identities, "returns": returns, "advantages": advantages}
 
 
@@ -183,8 +173,7 @@ def train_group(
         values.extend(
             suffix_examples(record, expense_weight=expense_weight, elapsed_weight=elapsed_weight)
         )
-    trained = update(
-        snapshot,
+    trained = snapshot.train(
         reference,
         actors,
         values,

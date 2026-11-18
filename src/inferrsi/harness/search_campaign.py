@@ -4,7 +4,6 @@ import time
 from dataclasses import asdict, replace
 
 from inferrsi.contracts.claim import Verdict
-from inferrsi.model.search_roles import Snapshot
 
 from . import search_tree as tree
 from .artifact_primitives import digest
@@ -215,7 +214,7 @@ def learn(
                 or digest(op["binding"]["training"]) != digest(expected)
             ):
                 raise ValueError("Frozen outer-loop training configuration changed")
-            snapshot = Snapshot(**op["receipt"]["checkpoint"])
+            snapshot = snapshot.restore(op["receipt"]["checkpoint"])
         else:
             snapshot = train_group(
                 control,

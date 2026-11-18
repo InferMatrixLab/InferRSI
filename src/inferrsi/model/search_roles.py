@@ -61,6 +61,32 @@ class Snapshot:
             "scorer": list(self.scorer),
         }
 
+    def choose(self, *args, **kwargs):
+        """Injected role operation; Harness does not import this Model module."""
+        return choose(self, *args, **kwargs)
+
+    def predict(self, features):
+        return dot(self.scorer, features)
+
+    def restore(self, document):
+        return type(self)(**document)
+
+    def train(self, reference, actors, values, pairs, **settings):
+        restored = []
+        for raw, advantage in actors:
+            choice = Choice(
+                **(
+                    raw
+                    | {
+                        "options": tuple(raw["options"]),
+                        "features": tuple(tuple(row) for row in raw["features"]),
+                        "probabilities": tuple(raw["probabilities"]),
+                    }
+                )
+            )
+            restored.append((choice, advantage))
+        return update(self, reference, restored, values, pairs, **settings)
+
 
 @dataclass(frozen=True)
 class Choice:
