@@ -242,8 +242,9 @@ def test_rejection_cannot_resume_after_unknown_cleanup_or_interruption(
     assert result["round_consumed"]
 
 
-@pytest.mark.parametrize("damage", ["missing", "invalid_rank"])
-def test_missing_rank_cannot_make_a_resumable_rejection(transcript, damage):
+@pytest.mark.parametrize("damage", ["missing", "invalid_rank", "missing_phase", "null_phase",
+                                    "invalid_failure_kind"])
+def test_incomplete_rank_evidence_cannot_make_a_resumable_rejection(transcript, damage):
     rejection(transcript)
     directory, settings = transcript
     output = directory / "measurement"
@@ -251,7 +252,12 @@ def test_missing_rank_cannot_make_a_resumable_rejection(transcript, damage):
         (output / "results/rank-1.json").unlink()
     else:
         path, record = document(transcript, "results/rank-1.json")
-        record["rank"] = True
+        if damage == "missing_phase":
+            del record["phase"]
+        else:
+            field, invalid = {"invalid_rank": ("rank", True), "null_phase": ("phase", None),
+                              "invalid_failure_kind": ("failure_kind", [])}[damage]
+            record[field] = invalid
         write(path, record)
     _, value = document(transcript, "result.json")
     identity = json.loads((output / "identity.json").read_text(encoding="utf-8"))
@@ -259,8 +265,13 @@ def test_missing_rank_cannot_make_a_resumable_rejection(transcript, damage):
                                 identity, settings["pairs"])
     value.update(pairs=1, timeout_seconds=900.0)
     write(output / "result.json", value)
-    result = assess(transcript, status="failed", returncode=2)
-    assert result["status"] == "infrastructure_failure" and result["score"] is None
+    returncode = 2 if damage in ("missing", "invalid_rank") else 1
+    if returncode == 1:
+        assert value["status"] == "infrastructure_failure"
+        assert value["error"] == "Malformed rank phase or failure_kind"
+    result = assess(transcript, status="failed", returncode=returncode)
+    assert result["status"] == "infrastructure_failure" and result["verdict"] == "INCONCLUSIVE"
+    assert result["round_consumed"] and result["score"] is None
 
 
 def test_median_is_recomputed_from_both_rank_samples(transcript):

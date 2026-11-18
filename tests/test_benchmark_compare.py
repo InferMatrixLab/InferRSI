@@ -13,6 +13,7 @@ import pytest
 from inferrsi.apps import benchmark_compare as compare
 from inferrsi.apps.cli import main
 from inferrsi.benchmark import registry
+from inferrsi.harness import agent_sessions
 from inferrsi.harness.optimization_session import _runtime_identity
 
 
@@ -78,7 +79,7 @@ def operation(experiment, action, trial=None, *arguments):
 
 
 def finish(experiment, trial, *, factor=2, final=True, model="synthetic-model", usage=True,
-           final_score=None):
+           final_score=None, legacy_session_id=None, python=None, environment_digest="a" * 64):
     root, _, capsys = experiment
     dispatch = operation(experiment, "dispatch", trial)
     assert dispatch["may_create"]
@@ -86,8 +87,15 @@ def finish(experiment, trial, *, factor=2, final=True, model="synthetic-model", 
     command = json.loads(re.search(r"Start argv .*?: (\[.*\])\n", prompt).group(1))
     receipt = root / (trial + "-receipt.json")
     receipt.write_text('{"synthetic_host_creation":true}', encoding="utf-8")
-    operation(experiment, "bind", trial, "--host", "synthetic", "--session-id", trial,
-              "--receipt", str(receipt))
+    session_id = legacy_session_id or trial
+    if legacy_session_id:
+        agent_sessions.bind(root / "jobs" / trial, host="synthetic", session_id=session_id,
+                            receipt=receipt)
+    else:
+        operation(experiment, "bind", trial, "--host", "synthetic", "--session-id", session_id,
+                  "--receipt", str(receipt))
+    if python:
+        command[command.index("--python") + 1] = python
     assert main(command[4:]) == 0
     start = json.loads(capsys.readouterr().out)
     campaign = Path(start["session"])
@@ -102,10 +110,10 @@ def finish(experiment, trial, *, factor=2, final=True, model="synthetic-model", 
             (campaign / "final-score.json").write_text(json.dumps(final_score))
         assert main(["benchmarks", "session", "final", "--session", str(campaign)]) == 0
         capsys.readouterr()
-    observation = {"host": "synthetic", "host_id": None, "session_id": trial,
+    observation = {"host": "synthetic", "host_id": None, "session_id": session_id,
         "state": "completed", "native_receipt": {"synthetic_host_terminal": True},
         "benchmark_observation": {"model": model, "effort": "high",
-            "environment_id": "test-environment", "environment_fingerprint": "a" * 64,
+            "environment_id": "test-environment", "environment_fingerprint": environment_digest,
             "knowledge_policy_violation": False}}
     if usage:
         observation.update(usage_scope="session_total", usage={"input_tokens": 100,
@@ -203,6 +211,23 @@ def test_dispatch_once_and_serial_order(experiment):
     assert not operation(experiment, "dispatch", second, "--parallel")["may_create"]
 
 
+def test_binding_is_idempotent_for_one_trial_and_rejects_reuse(experiment):
+    root, initial, capsys = experiment
+    first, second = [trial["id"] for trial in initial["trials"]]
+    operation(experiment, "dispatch", first)
+    operation(experiment, "dispatch", second, "--parallel")
+    receipt = root / "receipt.json"
+    receipt.write_text('{"synthetic_host_creation":true}', encoding="utf-8")
+    arguments = ["--host", "synthetic", "--session-id", "shared", "--receipt", str(receipt)]
+    first_bind = operation(experiment, "bind", first, *arguments)
+    assert operation(experiment, "bind", first, *arguments) == first_bind
+    with pytest.raises(SystemExit) as error:
+        operation(experiment, "bind", second, *arguments, "--host-id", "local")
+    assert error.value.code == 2
+    assert f"already bound to trial {first}" in capsys.readouterr().err
+    assert operation(experiment, "status")["trials"][1]["host"]["native_session"] is None
+
+
 def test_full_pair_collects_independent_finals_trace_and_report(experiment):
     first, second = [trial["id"] for trial in experiment[1]["trials"]]
     _, on = finish(experiment, first)
@@ -210,13 +235,38 @@ def test_full_pair_collects_independent_finals_trace_and_report(experiment):
     assert on["trace"][0]["strategy"] == "Synthetic strategy"
     assert on["trace"][0]["knowledge_refs"] is None
     assert on["metrics"]["tokens"] == 120
-    _, off = finish(experiment, second, factor=1.5)
+    executable = Path(sys.executable)
+    python_alias = os.sep.join((str(executable.parent), ".", executable.name))
+    _, off = finish(experiment, second, factor=1.5, python=python_alias)
     assert off["eligible"] and off["knowledge_deliveries"] == []
     report = operation(experiment, "report")
     assert report["assessment"]["counts"]["eligible_pairs"] == 1
     assert all(Path(path).is_file() for path in report["reports"].values())
     assert report["next_action"]["operation"] == "completed"
     assert operation(experiment, "status")["next_action"]["operation"] == "completed"
+
+
+def test_report_excludes_legacy_duplicate_bindings(experiment):
+    first, second = [trial["id"] for trial in experiment[1]["trials"]]
+    finish(experiment, first)
+    finish(experiment, second, legacy_session_id=first)
+    report = operation(experiment, "report")
+    assert report["assessment"]["counts"]["eligible_pairs"] == 0
+    document = json.loads(Path(report["reports"]["json"]).read_text(encoding="utf-8"))
+    for trial in document["trials"]:
+        assert not trial["eligible"]
+        assert "Native session is bound to multiple comparison trials" in trial["gaps"]
+
+
+def test_report_excludes_different_observed_environments(experiment):
+    first, second = [trial["id"] for trial in experiment[1]["trials"]]
+    finish(experiment, first)
+    finish(experiment, second, environment_digest="b" * 64)
+    report = operation(experiment, "report")
+    assert report["assessment"]["counts"]["eligible_pairs"] == 0
+    document = json.loads(Path(report["reports"]["json"]).read_text(encoding="utf-8"))
+    assert all("Paired actual Agent/environment settings differ" in trial["gaps"]
+               for trial in document["trials"])
 
 
 def test_missing_final_is_not_replaced_by_best_round(experiment):

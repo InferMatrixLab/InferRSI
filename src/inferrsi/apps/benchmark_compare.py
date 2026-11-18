@@ -254,6 +254,11 @@ def _job(root, trial):
     return root / "jobs" / trial["id"]
 
 
+def _session_key(native):
+    # Optional routing metadata cannot establish that a reused ID is independent.
+    return native["host"], native["session_id"]
+
+
 def _select(plan, trial_id):
     found = [trial for trial in plan["trials"] if trial["id"] == trial_id]
     if len(found) != 1:
@@ -283,8 +288,9 @@ def _prompt(root, plan, trial):
         "Do not delegate or create another conversation.\n"
         f"Prepared execution environment: {config['environment_id']}.\n"
         f"{config['execution_instructions']}\n"
-        "Preflight before search; retain Python, device model, framework/runtime versions "
-        "and allocator profile in environment-observation.json. Preserve shared dependencies. "
+        "Preflight before search; retain Python implementation/version, device model, framework "
+        "and runtime versions, and allocator profile in environment-observation.json. "
+        "Preserve shared dependencies. "
         "Record actual model/effort from the host observation when available; "
         "requested settings alone do not establish actual settings.\n"
         "The permitted optimization knowledge source is this runtime's session knowledge operation "
@@ -351,8 +357,8 @@ def _status(root, plan, state):
                           "benchmark_observation": {
                               "model": "actually observed model", "effort": "observed effort",
                               "environment_id": plan["config"]["environment_id"],
-                              "environment_fingerprint": "digest of observed non-private runtime "
-                              "versions, device model and allocator profile",
+                              "environment_fingerprint": "digest of observed Python implementation "
+                              "and version, runtime versions, device model and allocator profile",
                               "knowledge_policy_violation": "false only when no violation observed",
                           },
                           "usage": "optional actual cumulative input/output/cached_input tokens",
@@ -500,6 +506,7 @@ def collect(root, trial_id):
 def report(root):
     plan, state = _load(root)
     trials = []
+    sessions = {}
     for trial in plan["trials"]:
         reference = state["collections"].get(trial["id"])
         if reference and sha256(root / reference["path"]) != reference["sha256"]:
@@ -507,7 +514,15 @@ def report(root):
         job = _job(root, trial)
         host = agent_sessions.status(job) if job.exists() else None
         # Reverify current evidence; a stale collection cannot hide later evidence loss.
-        trials.append(_trial_result(root, plan, trial, host))
+        result = _trial_result(root, plan, trial, host)
+        trials.append(result)
+        if host and host["native_session"]:
+            sessions.setdefault(_session_key(host["native_session"]), []).append(result)
+    for members in sessions.values():
+        if len(members) > 1:
+            for trial in members:
+                trial["eligible"] = False
+                trial["gaps"].append("Native session is bound to multiple comparison trials")
     for task in plan["config"]["tasks"]:
         for repeat in range(1, plan["config"]["repeats"] + 1):
             pair = [t for t in trials if t["task"] == task and t["repeat"] == repeat]
@@ -551,6 +566,13 @@ def compare_command(args):
         if args.action == "bind":
             if not args.host or not args.session_id or args.receipt is None:
                 raise ValueError("bind requires --host, --session-id and --receipt")
+            for other in plan["trials"]:
+                other_job = _job(root, other)
+                if other_job == job or not other_job.exists():
+                    continue
+                native = agent_sessions.status(other_job)["native_session"]
+                if native and _session_key(native) == (args.host, args.session_id):
+                    raise ValueError(f"Native session is already bound to trial {other['id']}")
             return agent_sessions.bind(job, host=args.host, session_id=args.session_id,
                                        host_id=args.host_id, receipt=args.receipt)
         if args.observation is None:

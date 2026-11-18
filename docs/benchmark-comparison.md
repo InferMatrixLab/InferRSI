@@ -65,6 +65,8 @@ The CLI neither starts a hidden Agent CLI nor invents a conversation identity.
 3. Send the exact returned prompt with the declared workspace, and supported
    requested model/effort. Bind the confirmed native ID using `--action bind`,
    `--host`, `--session-id`, optional `--host-id`, and `--receipt <host.json>`.
+   Each trial needs a distinct session ID within the host, including across
+   repeats. Report verification excludes trials that share a binding.
 4. Observe that same session. Retain actual host observations with
    `--action record --observation <observation.json>`. Uncertain creation stays
    `dispatching`; inspecting the original call takes precedence over relaunch.
@@ -122,8 +124,11 @@ arbitrary summaries cannot substitute for retained evidence.
 
 Collection verifies the frozen task/protocol, budget, knowledge condition,
 runtime identity, raw evidence and independent final candidate binding. Paired
-actual model/effort/environment must match. A stale collection cannot conceal
-later evidence loss: report generation reads and verifies the campaign again.
+actual model, effort and environment must match. Remote interpreter paths may
+differ. Compute the environment fingerprint from the observed Python
+implementation and version, framework and runtime versions, device model and
+allocator profile. `python` selects the executable in the launch command.
+Report generation verifies the campaign again to detect changes after collection.
 
 Each round can supply `--strategy <description>` and repeated
 `--knowledge-ref <delivered-context-path>` in addition to `--hypothesis`.

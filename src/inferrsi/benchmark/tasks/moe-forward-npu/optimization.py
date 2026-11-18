@@ -259,15 +259,16 @@ def _adjudicate(root: Path, execution: dict, guard: dict, identity: dict, pairs:
                     result["round_consumed"] = True
         result["rank_status"] = [{k: r.get(k) for k in (
             "rank", "phase", "completed", "correctness", "failure_kind", "error")} for r in ranks]
-        failed = any(isinstance(value, str) and value.startswith("candidate_")
-                     for r in ranks for value in (r.get("phase"), r.get("failure_kind")))
+        # Invalid evidence can still record spent work, but cannot establish rejection.
+        if any(not isinstance(r.get("phase"), str) or not r["phase"].strip()
+               or not isinstance(r.get("failure_kind", ""), str) for r in ranks):
+            raise ValueError("Malformed rank phase or failure_kind")
+        failed = any(r["phase"].startswith("candidate_")
+                     or r.get("failure_kind", "").startswith("candidate_") for r in ranks)
         # A later cleanup/integrity failure cannot erase observed candidate work
         # and turn a consumed attempt into a free infrastructure retry.
         if failed:
             result.update(status="candidate_failure", correctness="FAIL", round_consumed=True)
-        if any(not isinstance(r.get(key, ""), str)
-               for r in ranks for key in ("phase", "failure_kind")):
-            raise ValueError("Malformed rank phase or failure_kind")
         if malformed_ranks:
             raise ValueError("Incomplete or malformed rank records; no usable score")
         if not guard.get("verified"):
