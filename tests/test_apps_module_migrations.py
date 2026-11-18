@@ -6,6 +6,7 @@ import json
 import pickle
 from importlib import import_module
 from pathlib import Path
+from typing import get_origin
 
 import pytest
 
@@ -37,13 +38,25 @@ def test_shim_is_an_explicit_export_of_the_same_objects(entry):
     for name in entry["exports"]:
         value = getattr(canonical, name)
         assert getattr(old, name) is value
-        if inspect.isfunction(value) or inspect.isclass(value):
+        # Generic aliases retain stdlib metadata; only definitions move modules.
+        if get_origin(value) is None and (inspect.isfunction(value) or inspect.isclass(value)):
             assert value.__module__ == entry["canonical"]
             # Protocol 0 GLOBAL references mirror pre-migration function/class pickles.
             assert pickle.loads(f"c{entry['old']}\n{name}\n.".encode("ascii")) is value
             new_pickle = pickle.dumps(value, protocol=0)
             assert entry["canonical"].encode("ascii") in new_pickle
             assert pickle.loads(new_pickle) is value
+
+
+def test_generic_alias_identity_does_not_depend_on_inspect_isclass(monkeypatch):
+    from inferrsi.apps.storage.archive import ResourceReader
+
+    original = inspect.isclass
+    monkeypatch.setattr(
+        inspect, "isclass", lambda value: value is ResourceReader or original(value)
+    )
+    entry = next(entry for entry in MIGRATIONS if entry["old"] == "inferrsi.apps.archive")
+    test_shim_is_an_explicit_export_of_the_same_objects(entry)
 
 
 def test_old_run_output_instance_pickle_loads_and_preserves_its_data():
