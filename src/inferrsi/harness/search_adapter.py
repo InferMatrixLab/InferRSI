@@ -12,7 +12,6 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 
 from inferrsi.contracts.claim import Verdict
-from inferrsi.model.search_roles import choose
 
 from . import candidates
 from . import search_tree as tree
@@ -131,8 +130,7 @@ class ArtifactAdapter:
             vectors = [
                 tuple(float(i == index) for i in range(len(self.edits))) for index, _ in legal
             ]
-            choice = choose(
-                snapshot,
+            choice = snapshot.choose(
                 "drafter",
                 [edit.token for _, edit in legal],
                 vectors,

@@ -123,6 +123,9 @@ Caller-authored unreceipted pair targets are rejected.
 
 These are real updates to a constrained CPU operator model. They are not LLM
 finetuning, prompt summarization or evidence of pretrained-model improvement.
+Apps injects the role snapshot's `choose`, `predict`, `train`, `restore` and
+`document` operations. Harness retains traces and controls when they may run;
+it has no import dependency on Model.
 
 ## Accounting, recovery and final
 

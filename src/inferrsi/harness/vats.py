@@ -12,8 +12,6 @@ import uuid
 from dataclasses import asdict, dataclass, replace
 from itertools import combinations
 
-from inferrsi.model.search_roles import choose, dot
-
 from . import search_tree as tree
 from .artifact_primitives import digest
 from .search_records import decode, encode
@@ -140,8 +138,8 @@ def menu(state, jobs, available, settings, snapshot):
             continue
         trial = allowed[frozenset(union)]
         queries += 2
-        if dot(snapshot.scorer, features(state, trial, available, settings)) > dot(
-            snapshot.scorer, features(state, left, available, settings)
+        if snapshot.predict(features(state, trial, available, settings)) > snapshot.predict(
+            features(state, left, available, settings)
         ):
             extra.append(trial)
     if not settings.bundled:
@@ -526,8 +524,7 @@ class Search:
                 features(current, action, remaining, self.settings) for action in actions
             )
             rng = random.Random(f"{search['seed']}:policy:{len(search['trace'])}")
-            choice = choose(
-                self.snapshot,
+            choice = self.snapshot.choose(
                 "policy",
                 [action.key for action in actions],
                 vectors,
