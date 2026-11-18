@@ -120,6 +120,7 @@ pre{max-height:22rem;overflow:auto;white-space:pre-wrap;padding:9px 12px;backgro
 </div>
 <nav id="review-links" aria-label="实验记录">
   <a id="goal-link" href="#review-goal"></a>
+  <a id="round-decisions-link" href="#round-decision-panel"></a>
   <a id="knowledge-link" href="#knowledge-navigation" hidden></a>
   <a id="profiles-link" href="#profiles" hidden></a>
   <a id="trace-link" href="#trace" hidden></a>
@@ -137,6 +138,7 @@ pre{max-height:22rem;overflow:auto;white-space:pre-wrap;padding:9px 12px;backgro
     </details>
   </details>
 </section>
+<section aria-labelledby="round-decision-title"><h2 class="panel-heading" aria-labelledby="round-decision-title"></h2><details id="round-decision-panel" class="panel" data-key="round-decisions"><summary id="round-decision-title"></summary><div id="round-decisions" role="region" aria-label="Round decisions"></div></details></section>
 <section aria-labelledby="goal-title"><h2 class="panel-heading" aria-labelledby="goal-title"></h2><details id="review-goal" class="panel" data-key="goal"><summary><span id="goal-title"></span></summary><div id="goal"></div></details></section>
 <section id="story-checks" hidden aria-labelledby="checks-title"><h2 class="panel-heading" aria-labelledby="checks-title"></h2><details class="panel" data-key="checks"><summary><span id="checks-title"></span> <span id="checks-count"></span></summary><ul id="checks-list"></ul></details></section>
 <section aria-labelledby="baseline-title"><h2 class="panel-heading" aria-labelledby="baseline-title"></h2><details id="trace" class="panel" data-key="timings"><summary><span id="baseline-title"></span></summary><div id="baseline"></div></details></section>
@@ -150,6 +152,7 @@ pre{max-height:22rem;overflow:auto;white-space:pre-wrap;padding:9px 12px;backgro
 </main>
 __DASHBOARD_EXPERIMENTS__
 __DASHBOARD_KNOWLEDGE__
+__DASHBOARD_ROUND_DECISIONS__
 <script id="dashboard-data" type="application/json">__DASHBOARD_DATA__</script>
 <script>
 (() => {
@@ -635,6 +638,8 @@ const knowledgeView=window.InferRSIKnowledge.create({getData:()=>data,getLanguag
   openRun:link=>{const target=[...document.querySelectorAll('[data-experiment-id]')].find(n=>n.dataset.experimentId===link.experiment_id);
     if(target){for(let p=target;p;p=p.parentElement)if(p.tagName==='DETAILS')p.open=true;
       target.focus();target.scrollIntoView({block:'start'});}}});
+const roundDecisionView=window.InferRSIRoundDecisions.create({getData:()=>data,getLanguage:()=>language,
+  narrative:recorded,openCapture:knowledgeView.openCapture,openRun:knowledgeView.openRun});
 const experimentView=window.InferRSIExperiments.create({
   getData:()=>data,getLanguage:()=>language,narrative:recorded,
   openExperiment:id=>{const target=[...document.querySelectorAll('[data-experiment-id]')].find(n=>n.dataset.experimentId===id);if(target){for(let parent=target.parentElement;parent;parent=parent.parentElement){if(parent.tagName==='DETAILS')parent.open=true;}target.scrollIntoView({block:'start'});target.focus();}}
@@ -795,7 +800,7 @@ function renderCaptures(opened){
 }
 function render(){
   const opened=new Set([...document.querySelectorAll('details[open]')].map(f=>f.dataset.key));
-  const previousFocus=document.activeElement?.closest('details')?.dataset.key;
+  const previousFocus=document.activeElement?.closest('#round-decisions')?null:document.activeElement?.closest('details')?.dataset.key;
   document.documentElement.lang=language==='zh'?'zh-CN':'en';
   const reviewTitle=tr('实验复盘','Experiment review');
   document.title='InferRSI · '+reviewTitle;
@@ -808,6 +813,8 @@ function render(){
   const retrievals=data.knowledge_trace?.retrievals?.length;
   byId('goal-link').textContent=tr('目标与验收','Goal and criteria');
   byId('goal-link').dataset.caption=tr('任务','Campaign');
+  byId('round-decisions-link').textContent=tr('逐轮决策','Round decisions');
+  byId('round-decisions-link').dataset.caption=tr('检索到结果','Retrieval to results');
   byId('profiles-link').dataset.caption=captures?captures+tr(' 份采集',' captures'):tr('采集不可用','Capture unavailable');
   byId('trace-link').dataset.caption=steps+tr(' 个步骤',' steps');
   byId('knowledge-link').dataset.caption=retrievals?retrievals+tr(' 次检索',' retrievals'):tr('搜索记录','Search records');
@@ -935,7 +942,7 @@ function render(){
     for(const [key,zh,en] of [['lessons','经验','Lessons'],['limitations','限制','Limitations']]){summaryBox.append(el('h3',tr(zh,en)));for(const item of summary[key])p(summaryBox,recorded(item));}
   }
   experimentView.render([byId('chart'),byId('summary-experiments')]);
-  knowledgeView.render();
+  knowledgeView.render();roundDecisionView.render();
   if(previousFocus){for(const node of document.querySelectorAll('details'))if(node.dataset.key===previousFocus)node.querySelector('summary').focus({preventScroll:true});}
 }
 byId('language').addEventListener('click',()=>{
@@ -965,7 +972,7 @@ function openEvidenceLink(){
     const summary=details.querySelector(':scope > summary');
     summary.focus({preventScroll:true});summary.scrollIntoView({block:'start'});
   }
-  if(['#review-goal','#review-decisions'].includes(window.location.hash))reveal(byId(window.location.hash.slice(1)));
+  if(['#review-goal','#review-decisions','#round-decision-panel'].includes(window.location.hash))reveal(byId(window.location.hash.slice(1)));
   if(window.location.hash==='#trace' && !byId('trace-link').hidden){
     byId('trace').open=true;
     reveal(byId('baseline').querySelector('[data-key="experiment-all"]'));
@@ -981,7 +988,7 @@ function openEvidenceLink(){
     if(ready)reveal(ready);
   }
 }
-for(const link of ['goal-link','profiles-link','trace-link','decisions-link'].map(byId)){
+for(const link of ['goal-link','profiles-link','trace-link','decisions-link','round-decisions-link'].map(byId)){
   link.addEventListener('click',event=>{
     if(link.hash===window.location.hash && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey){
       event.preventDefault();openEvidenceLink();

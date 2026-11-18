@@ -1,0 +1,176 @@
+<style>
+.rd-view{container-type:inline-size;margin:18px 0;padding:18px;border:1px solid var(--line,#425368);border-radius:10px;background:var(--panel,#121c29);min-width:0;overflow-wrap:anywhere}
+.rd-view h2{margin:0 0 8px}.rd-view h3{font-size:17px;margin:0 0 8px}.rd-view h4{font-size:14px;margin:12px 0 5px}
+div.rd-view{margin:0;padding:0;border:0;background:transparent}
+.rd-view p{margin:6px 0}.rd-view .rd-note{color:var(--muted,#adbdce);font-size:13px}.rd-view .rd-warning{color:#efbd78}
+.rd-toolbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:14px 0}.rd-view select,.rd-view button{max-width:100%;font:inherit;color:var(--text,#edf3f8);background:var(--panel2,#172533);border:1px solid var(--line,#425368);border-radius:5px;padding:6px 10px}
+.rd-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.rd-stage{min-width:0;padding:14px;border:1px solid var(--line,#425368);border-radius:7px}
+.rd-item+.rd-item{margin-top:14px;padding-top:12px;border-top:1px solid var(--line,#425368)}.rd-view ul{padding-left:18px}.rd-view li{margin:8px 0}.rd-view button{cursor:pointer;margin:5px 0;text-align:left;overflow-wrap:anywhere}
+.rd-view :focus-visible{outline:3px solid #69e5cd;outline-offset:3px}.rd-view pre{white-space:pre-wrap;overflow:auto;max-height:22rem;font-size:12px}.rd-view summary{cursor:pointer;margin:8px 0}
+.rd-badge{display:inline-block;padding:2px 7px;border:1px solid currentColor;border-radius:4px;font-size:12px;margin-right:6px}.rd-number{color:var(--green,#69e5cd);margin-right:8px}
+@container(min-width:1050px){.rd-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@container(max-width:620px){.rd-grid{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:620px){.rd-view{padding:12px}}
+</style>
+<script>
+window.InferRSIRoundDecisions={create({getData,getLanguage,narrative,openCapture,openRun}){
+  const tr=(en,zh)=>getLanguage()==='zh'?zh:en;
+  const el=(tag,text,cls)=>{const n=document.createElement(tag);if(text!=null)n.textContent=String(text);if(cls)n.className=cls;return n;};
+  const unknown=()=>tr('Not recorded','未记录');
+  const raw=value=>value==null||value===''||value==='Not recorded'?unknown():String(value);
+  const text=value=>narrative(raw(value));
+  const p=(box,value,cls)=>{const n=el('p',value,cls);box.append(n);return n;};
+  const field=(box,name,value,authored=false)=>p(box,name+' · '+(authored?text(value):raw(value)));
+  const validRound=n=>Number.isInteger(n)&&n>0;
+  const identity=r=>JSON.stringify(r.experiment_id?['experiment',r.experiment_id]:[r.round,r.candidate_id,r.run_id]);
+  const words={adopted:['Adopted','采纳'],rejected:['Rejected','拒绝'],rolled_back:['Rolled back','回滚'],pending:['Pending','待定'],no_gain:['No gain','无收益'],noise:['Noise','噪声范围'],not_recorded:['Not recorded','未记录'],passed:['Passed','通过'],failed:['Failed','失败'],complete:['Complete','完整'],partial:['Partial','部分'],missing:['Missing','缺失'],tried:['Tried in campaign','Campaign 中已尝试'],untried:['Untried in campaign','Campaign 中未尝试'],pruned:['Pruned in campaign','Campaign 中已排除']};
+  const label=value=>words[value]?tr(...words[value]):raw(value);
+  let selected=null;
+  const expanded=new Set();
+  function button(box,title,key,action){const b=el('button',title);b.type='button';b.dataset.rdFocus=key;b.onclick=action;box.append(b);return b;}
+  function detail(box,title,key,draw){
+    const d=el('details'),s=el('summary',title),body=el('div');s.dataset.rdFocus=key;d.append(s,body);box.append(d);
+    let built=false;const fill=()=>{if(d.open&&!built){built=true;draw(body);}};
+    d.addEventListener('toggle',()=>{if(!d.isConnected)return;if(d.open)expanded.add(key);else expanded.delete(key);fill();});
+    if(expanded.has(key)){d.open=true;fill();}return d;
+  }
+  function item(box,title){const a=el('article',null,'rd-item');a.append(el('h4',title));box.append(a);return a;}
+  function stage(grid,index,en,zh){const section=el('section',null,'rd-stage');section.dataset.rdStage=String(index);const h=el('h3');h.append(el('span',String(index).padStart(2,'0'),'rd-number'),document.createTextNode(' '+tr(en,zh)));section.append(h);grid.append(section);return section;}
+  function render(){
+    const root=document.getElementById('round-decisions');if(!root)return;
+    const focus=root.contains(document.activeElement)?document.activeElement.dataset.rdFocus:null;
+    root.replaceChildren();root.className='rd-view';root.setAttribute('data-no-translate','');
+    const title=tr('Round decisions','逐轮决策');root.setAttribute('aria-label',title);
+    const heading=document.getElementById('round-decision-title');if(heading)heading.textContent=title;else root.append(el('h2',title));
+    p(root,tr('Retrieval results → Alternatives → Final selection → Execution results','检索结果 → 备选方案 → 最终选择 → 执行结果'),'rd-note');
+    const data=getData(),rows=data.candidates||[],story=data.story||{},knowledge=data.knowledge_trace||{};
+    const iterations=story.iterations||[],searches=knowledge.searches||[],captures=knowledge.retrievals||[];
+    const numbers=[...new Set([...rows.map(r=>r.round),...iterations.map(i=>i.round),...searches.map(s=>s.round)].filter(validRound))].sort((a,b)=>a-b);
+    const choices=numbers.map(String);if(rows.some(r=>!validRound(r.round)))choices.push('unassigned');
+    if(!choices.length)choices.push('unassigned');
+    if(!choices.includes(selected))selected=choices[0];
+    const toolbar=el('div',null,'rd-toolbar'),control=el('select'),controlLabel=el('label',tr('Round','轮次'));
+    control.id='decision-round';control.dataset.rdFocus='round';controlLabel.htmlFor=control.id;
+    choices.forEach(value=>control.append(new Option(value==='unassigned'?tr('Round not recorded','轮次未记录'):tr('Round '+value,'第 '+value+' 轮'),value)));
+    control.value=selected;control.onchange=()=>{selected=control.value;render();};toolbar.append(controlLabel,control);root.append(toolbar);
+    if(data.synthetic)p(toolbar,tr('SYNTHETIC DATA','示意数据'),'rd-warning');
+    const number=selected==='unassigned'?null:Number(selected),inRound=r=>number===null?!validRound(r.round):r.round===number;
+    const roundRows=rows.filter(inRound),roundIterations=iterations.filter(i=>i.round===number),roundSearches=searches.filter(s=>s.round===number);
+    if(number===null)p(root,tr('These records have no recorded round. Their order does not establish a first round.','这些记录没有轮次信息，列表顺序不代表第一轮。'),'rd-warning');
+    p(root,tr('Recorded associations only. Selecting an experiment is separate from adopting its measured result.','仅展示已记录的关联；选中尝试与验证后采纳是两个决定。'),'rd-note');
+    const grid=el('div',null,'rd-grid');root.append(grid);
+    const retrieved=stage(grid,1,'Retrieval results','检索结果'),alternatives=stage(grid,2,'Alternatives','备选方案'),selection=stage(grid,3,'Final selection','最终选择'),results=stage(grid,4,'Execution results','执行结果');
+    const contextIds=new Set(roundIterations.flatMap(i=>i.context_ids||[]));
+    roundSearches.filter(s=>s.state==='recorded').forEach(s=>(s.context_ids||[]).forEach(id=>contextIds.add(id)));
+    captures.filter(c=>number!==null&&c.links?.some(l=>l.round===number)).forEach(c=>contextIds.add(c.context_id));
+    if(!contextIds.size)p(retrieved,tr('No retrieval snapshot linked to this round. This does not mean no search occurred.','本轮未关联检索快照，不代表没有发生检索。'),'rd-note');
+    for(const id of contextIds){
+      const c=captures.find(c=>c.context_id===id),box=item(retrieved,id);
+      if(!c||c.state!=='verified'){p(box,label(c?.state),'rd-warning');continue;}
+      if(c.association_state)p(box,c.association_state,'rd-warning');
+      const request=c.trace?.request||c.request||{};
+      field(box,tr('Query','查询'),[request.query,request.relevance].filter(Boolean).join(' · ')||c.selection?.cue);
+      p(box,tr('Returned items','返回条目')+' · '+(c.items||[]).length);
+      const list=el('ul');box.append(list);
+      for(const entry of c.items||[]){
+        const li=el('li');li.append(el('strong',raw(entry.title||entry.ref)));p(li,entry.ref,'rd-note');
+        detail(li,tr('Version','版本'),'version:'+id+':'+entry.ref,b=>p(b,raw(entry.revision),'rd-note'));
+        const loaded=c.contexts?.some(x=>x.ref===entry.ref&&x.resources?.length),omitted=c.context_omissions?.find(x=>x.ref===entry.ref);
+        p(li,loaded?tr('Context assembled','正文已装配'):omitted?tr('Context omitted','正文被省略')+' · '+omitted.reason:tr('Assembly not recorded / not requested','正文装配未记录或未请求'),'rd-note');
+        const rejection=c.rejected_refs?.find(r=>r.ref===entry.ref),used=c.used_refs?.includes(entry.ref);
+        p(li,rejection?(used?tr('Caller declared both use and rejection','调用者同时声明采用和排除'):tr('Caller declared rejection','调用者声明排除'))+' · '+text(rejection.reason):used?tr('Caller declared use (not proof of consumption)','调用者声明采用（不证明实际读取）'):tr('Use not recorded','采用情况未记录'),used&&rejection?'rd-warning':'rd-note');
+        list.append(li);
+      }
+      button(box,tr('Open retrieval evidence','查看检索证据'),'capture:'+id,()=>openCapture(id));
+    }
+    for(const search of roundSearches){
+      const box=item(retrieved,search.path);field(box,tr('Coverage / state','覆盖 / 状态'),label(search.coverage||search.state));
+      if(search.issues?.length)p(box,search.issues.join(' · '),'rd-warning');
+      // File-search material can exist without a capture. Retain its own versioned evidence.
+      detail(box,tr('Search materials and use evidence','搜索材料及采用依据'),'search:'+search.path,b=>{
+        for(const m of search.materials||[]){const n=item(b,m.ref);field(n,tr('Recorded use','记录的采用'),label(m.use));n.append(el('pre',JSON.stringify({evidence:m.evidence,declarations:m.declarations,conflicts:m.conflicts},null,2)));}
+        if(!search.materials?.length)p(b,unknown());
+      });
+    }
+    for(const row of roundRows){
+      const context=row.optimization_trace?.context;if(!context)continue;
+      detail(retrieved,tr('Caller-recorded context','调用者记录的上下文')+' · '+row.candidate_id,'context:'+identity(row),box=>{
+        p(box,tr('A declaration, not a retained retrieval result snapshot.','调用者声明，不等同于留存的检索结果快照。'),'rd-note');
+        field(box,tr('Coverage','覆盖'),label(context.state));
+        for(const query of context.queries||[])field(box,tr('Query','查询'),query);
+        for(const source of context.sources||[])p(box,[source.ref,source.revision,source.locator].filter(Boolean).join(' · '));
+        p(box,text(context.missing_reason||context.text),'rd-note');
+      });
+    }
+    const options=(story.search_space?.dimensions||[]).flatMap(d=>d.options||[]);
+    let roundOptions=0,hasRoundSpace=false;
+    for(const row of roundRows){
+      const trace=row.optimization_trace,space=trace?.search_space;if(!space)continue;
+      hasRoundSpace=true;
+      const box=item(alternatives,[row.candidate_id,row.run_id].filter(Boolean).join(' · '));
+      field(box,tr('Alternative record coverage','备选记录完整性'),label(space.state));
+      if(space.missing_reason)p(box,text(space.missing_reason),'rd-note');
+      for(const option of space.items||[]){const o=item(box,option.id);p(o,text(option.description));roundOptions++;}
+      for(const rule of space.selection_rules||[])p(box,text(rule),'rd-note');
+    }
+    const linkedOptions=new Set(roundIterations.flatMap(i=>i.candidates.flatMap(c=>c.option_ids||[])));
+    for(const id of linkedOptions){
+      const option=options.find(o=>o.qualified_id===id),box=item(alternatives,id);roundOptions++;
+      p(box,text(option?.description));p(box,tr('Linked by this round’s candidate declaration','本轮候选声明引用的方案'),'rd-note');
+      if(option?.source_refs?.length)field(box,tr('Knowledge references','知识引用'),option.source_refs.join(' · '));
+    }
+    if(!roundOptions)p(alternatives,tr('No round-specific alternatives recorded.','本轮备选方案未记录。'),'rd-note');
+    else if(!hasRoundSpace)p(alternatives,tr('Only linked choices are recorded; other alternatives are unknown.','仅记录了候选引用的方案，其他备选方案未知。'),'rd-note');
+    if(options.length)detail(alternatives,tr('Campaign search space (not a round shortlist)','Campaign 搜索空间（非本轮备选清单）'),'campaign-options',box=>{
+      for(const option of options){const o=item(box,option.qualified_id);p(o,text(option.description));field(o,tr('Campaign status','Campaign 状态'),label(option.status));field(o,tr('Reason','理由'),option.reason,true);if(option.source_refs?.length)field(o,tr('Knowledge references','知识引用'),option.source_refs.join(' · '));}
+    });
+    p(selection,tr('Selected to try; not post-validation adoption.','本轮选中尝试，不代表验证后采纳。'),'rd-note');
+    let selections=0;
+    for(const it of roundIterations){
+      field(selection,tr('Hypothesis','假设'),it.hypothesis,true);
+      for(const candidate of it.candidates){
+        const box=item(selection,candidate.candidate_id);selections++;
+        p(box,tr('Caller-declared candidate selection','调用者记录的候选选择'),'rd-note');
+        field(box,tr('Selected options','选中方案'),candidate.option_ids?.join(' · '));
+        field(box,tr('Why this candidate','选择理由'),candidate.why,true);
+        field(box,tr('Round rationale','本轮依据'),it.rationale,true);
+        field(box,tr('Knowledge references','知识引用'),it.knowledge_refs?.join(' · '));
+      }
+    }
+    for(const row of roundRows){
+      for(const step of row.optimization_trace?.steps?.items||[]){
+        if(step.kind!=='attempt')continue;
+        const box=item(selection,[row.candidate_id,row.run_id,step.search_id].filter(Boolean).join(' · '));selections++;
+        p(box,tr('Caller-recorded attempt','调用者记录的尝试'),'rd-note');p(box,text(step.action));field(box,tr('Motivation','动机'),step.motivation,true);
+      }
+    }
+    if(!selections){
+      p(selection,tr('Choice and selection rationale not recorded.','选中方案及选择理由未记录。'),'rd-note');
+      for(const row of roundRows){const box=item(selection,row.candidate_id);p(box,tr('Registered candidate; registration alone is not selection evidence.','已登记候选；登记本身不证明选择依据。'),'rd-note');field(box,tr('Submitted hypothesis','提交的假设'),row.optimization?.hypothesis,true);}
+    }
+    if(!roundRows.length)p(results,tr('No candidate execution linked to this round.','本轮未关联候选执行记录。'),'rd-note');
+    for(const row of roundRows){
+      const key=identity(row),box=item(results,[row.candidate_id,row.run_id||unknown()].join(' · '));
+      p(box,label(row.verdict),'rd-badge');field(box,tr('Quality','质量'),label(row.quality));
+      const metric=v=>Number.isFinite(v)?String(v)+' '+(row.metric_unit||''):'—';
+      field(box,tr('Baseline → candidate','基线 → 候选'),metric(row.baseline_median)+' → '+metric(row.candidate_median));
+      field(box,tr('Recorded improvement','记录的改进幅度'),Number.isFinite(row.improvement_pct)?row.improvement_pct+'%':null);
+      field(box,tr('Post-validation decision (record)','验证后决定（记录）'),label(row.decision));
+      const matches=rows.filter(r=>identity(r)===key);
+      if(matches.length===1)button(box,tr('Open run evidence','查看执行证据'),'run:'+key,()=>openRun(row));
+      else p(box,tr('Ambiguous candidate/run identity','候选/运行身份不唯一'),'rd-warning');
+      detail(box,tr('Changes and evidence references','改动与证据引用'),'artifacts:'+key,b=>b.append(el('pre',JSON.stringify({changes:row.optimization?.code_locations,artifacts:row.artifacts},null,2))));
+    }
+    for(const it of roundIterations){
+      const d=it.decision||{},box=item(results,tr('Post-validation decision (caller)','验证后决定（调用者）'));
+      field(box,tr('Candidate','候选'),d.candidate_id);field(box,tr('Decision','决定'),label(d.outcome));field(box,tr('Reason','理由'),d.reason,true);
+      const records=roundRows.filter(r=>r.candidate_id===d.candidate_id&&r.decision&&r.decision!=='not_recorded');
+      if(records.some(r=>r.decision!==d.outcome))p(box,tr('Decision conflicts with the run record; inspect both sources.','决定与运行记录冲突，请核对两份来源。'),'rd-warning');
+    }
+    const checks=(story.checks||[]).filter(c=>c.where==='round '+number);
+    for(const check of checks)p(root,text(check.message),'rd-warning');
+    if(focus){const target=[...root.querySelectorAll('[data-rd-focus]')].find(n=>n.dataset.rdFocus===focus);(target||control).focus({preventScroll:true});}
+  }
+  return {render};
+}};
+</script>
