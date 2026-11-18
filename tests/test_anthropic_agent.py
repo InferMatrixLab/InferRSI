@@ -6,7 +6,7 @@ from urllib.error import HTTPError
 
 import pytest
 
-from inferrsi.apps import skill_evaluation as evaluation
+from inferrsi.apps.workflows import skill_evaluation as evaluation
 from inferrsi.harness import skill_evaluation as harness
 from inferrsi.infra.artifacts import sha256, write_json
 from inferrsi.model import anthropic_agent as agent

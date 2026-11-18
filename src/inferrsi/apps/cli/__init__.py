@@ -11,11 +11,11 @@ from pathlib import Path
 from ...knowledge.catalog import get_knowledge, search_knowledge
 from ...knowledge.knowledge_operations import KnowledgeReader
 from ...knowledge.research import research_knowledge
-from ..campaign import capture_context, create_campaign
 from ..inspection import inspect_environment
 from ..knowledge import knowledge_reader
 from ..knowledge import read as read_knowledge
 from ..legacy.reporting import write_report
+from ..workflows.campaign import capture_context, create_campaign
 from .arguments import device_ids, make_spec, parser
 
 
@@ -368,7 +368,7 @@ def main(argv: list[str] | None = None) -> int:
                 _print(after_final(args, result))
                 return 2 if result.get("state") == "blocked" else 0
             if args.benchmark_action == "run":
-                from ..benchmark_operations import run_task
+                from ..workflows.benchmark_operations import run_task
 
                 return run_task(args.task, args.arguments)
             from ...benchmark.registry import builtin_tasks, describe_task

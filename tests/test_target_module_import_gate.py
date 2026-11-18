@@ -146,6 +146,7 @@ def test_only_files_directly_in_a_non_package_bundle_are_bundle_programs(tmp_pat
     "harness/task_protocol.py",
     "harness/other_protocol.py",
     "apps/benchmark_operations.py",
+    "apps/workflows/benchmark_operations.py",
     "knowledge/data/skills/scripts/loader.py",
 ])
 def test_by_path_loading_is_admitted_nowhere_else(tmp_path, relative):
@@ -182,6 +183,7 @@ class TargetModuleImportGateTest(unittest.TestCase):
                         "_mindie_read_worker.py"):
             self.assertFalse((ROOT / retired).exists(), retired)
         for moved in ("cli/__init__.py", "cli/arguments.py", "benchmark_operations.py",
+                      "workflows/benchmark_operations.py",
                       "views/summary_chart.py", "mindie/project.py", "mindie/context.py",
                       "mindie/mcp.py", "mindie/read_worker.py"):
             self.assertTrue((ROOT / "apps" / moved).is_file(), moved)
@@ -308,7 +310,7 @@ class TargetModuleImportGateTest(unittest.TestCase):
                 "arguments_extra.py": "from inferrsi.knowledge import catalog\n",
                 # #408 A2: the task launcher is Apps by path too. The root file that held
                 # it is no longer an application entry and fails like the others.
-                "apps/benchmark_operations.py": "import inferrsi.benchmark\n",
+                "apps/workflows/benchmark_operations.py": "import inferrsi.benchmark\n",
                 "benchmark_operations.py": "import inferrsi.benchmark\n",
                 "unowned.py": "import inferrsi.benchmark\n",
             }

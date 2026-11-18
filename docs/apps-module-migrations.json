@@ -21,6 +21,7 @@
       "docs/module-layout.md",
       "docs/operations.md",
       "src/inferrsi/apps/api.py",
+      "src/inferrsi/apps/archive.py",
       "src/inferrsi/apps/delivery/__init__.py",
       "src/inferrsi/apps/handoff/bridge.py",
       "src/inferrsi/apps/handoff/candidate_provider.py",
@@ -50,6 +51,7 @@
       "docs/module-layout.md",
       "docs/operations.md",
       "src/inferrsi/apps/api.py",
+      "src/inferrsi/apps/artifact_reader.py",
       "src/inferrsi/apps/handoff/candidate_provider.py",
       "src/inferrsi/apps/views/attempt.py",
       "tests/check_installed.py",
@@ -80,6 +82,7 @@
       "src/inferrsi/apps/delivery/adapters.py",
       "src/inferrsi/apps/handoff/bridge.py",
       "src/inferrsi/apps/handoff/candidate_provider.py",
+      "src/inferrsi/apps/result.py",
       "src/inferrsi/apps/storage/archive.py",
       "src/inferrsi/apps/storage/artifact_reader.py",
       "src/inferrsi/apps/views/attempt.py",
@@ -100,6 +103,7 @@
       "docs/contracts/current-design.md",
       "docs/module-layout.md",
       "docs/operations.md",
+      "src/inferrsi/apps/evidence_layout.py",
       "src/inferrsi/contracts/evidence.py",
       "tests/_gate_policy_support.py",
       "tests/check_installed.py",
@@ -125,6 +129,7 @@
       "docs/module-layout.md",
       "docs/operations.md",
       "src/inferrsi/apps/api.py",
+      "src/inferrsi/apps/bridge.py",
       "src/inferrsi/apps/handoff/candidate_provider.py",
       "src/inferrsi/apps/views/attempt.py",
       "tests/check_installed.py",
@@ -146,6 +151,7 @@
       "docs/architecture.md",
       "docs/module-layout.md",
       "docs/operations.md",
+      "src/inferrsi/apps/context_provider.py",
       "tests/check_installed.py",
       "tests/test_apps_context_provider.py",
       "tests/test_apps_module_migrations.py",
@@ -164,8 +170,129 @@
       "docs/module-layout.md",
       "docs/operations.md",
       "src/inferrsi/apps/api.py",
+      "src/inferrsi/apps/candidate_provider.py",
       "tests/check_installed.py",
       "tests/test_apps_module_migrations.py"
     ]
+  },
+  {
+    "old": "inferrsi.apps.campaign",
+    "canonical": "inferrsi.apps.workflows.campaign",
+    "exports": [
+      "create_campaign",
+      "capture_context",
+      "save_retrieval",
+      "verify_capture"
+    ],
+    "consumers": [
+      "docs/architecture.md",
+      "docs/knowledge-retrieval-trace.md",
+      "docs/module-layout.md",
+      "docs/operations.md",
+      "docs/optimization-workflow-unification.md",
+      "src/inferrsi/apps/cli/__init__.py",
+      "src/inferrsi/apps/views/capture_delivery.py",
+      "src/inferrsi/apps/views/optimization_story.py",
+      "src/inferrsi/harness/optimization_session.py",
+      "tests/check_installed.py",
+      "tests/fixtures/dashboard_profile_review.py",
+      "tests/fixtures/knowledge_retrieval.py",
+      "tests/test_apps_module_migrations.py",
+      "tests/test_campaign_record_injection.py",
+      "tests/test_campaign_task_selection.py",
+      "tests/test_knowledge_navigation_browser.py",
+      "tests/test_optimization_session.py",
+      "tests/test_optimization_story.py",
+      "tests/test_search_archive.py",
+      "tests/test_search_attribution.py"
+    ]
+  },
+  {
+    "old": "inferrsi.apps.benchmark_operations",
+    "canonical": "inferrsi.apps.workflows.benchmark_operations",
+    "exports": [
+      "run_task"
+    ],
+    "consumers": [
+      "docs/architecture.md",
+      "docs/module-layout.md",
+      "src/inferrsi/apps/cli/__init__.py",
+      "tests/_gate_policy_support.py",
+      "tests/check_installed.py",
+      "tests/test_apps_module_migrations.py",
+      "tests/test_benchmark_operations.py",
+      "tests/test_optimization_session.py",
+      "tests/test_package_root_inventory.py",
+      "tests/test_project_optimization.py",
+      "tests/test_target_module_import_gate.py"
+    ]
+  },
+  {
+    "old": "inferrsi.apps.improvement",
+    "canonical": "inferrsi.apps.workflows.improvement",
+    "exports": [
+      "assessment",
+      "choose",
+      "holdout_accepts",
+      "rerun_assessment"
+    ],
+    "consumers": [
+      "docs/contracts/function-owners.md",
+      "docs/harness-improvement.md",
+      "docs/module-layout.md",
+      "tests/check_installed.py",
+      "tests/test_apps_module_migrations.py",
+      "tests/test_harness_improvement.py",
+      "tools/skill_eval_improve.py"
+    ]
+  },
+  {
+    "old": "inferrsi.apps.skill_evaluation",
+    "canonical": "inferrsi.apps.workflows.skill_evaluation",
+    "exports": [
+      "export_bundle",
+      "summarize",
+      "run_trial"
+    ],
+    "consumers": [
+      "docs/contracts/function-owners.md",
+      "docs/module-layout.md",
+      "docs/skill-evaluation.md",
+      "tests/check_installed.py",
+      "tests/test_anthropic_agent.py",
+      "tests/test_apps_module_migrations.py",
+      "tests/test_skill_eval_compare.py",
+      "tests/test_skill_eval_generation.py",
+      "tests/test_skill_eval_pipeline.py",
+      "tests/test_skill_evaluation.py",
+      "tools/skill_eval_compare.py",
+      "tools/skill_eval_pilot.py"
+    ]
+  },
+  {
+    "old": "inferrsi.apps.skill_eval_engineering",
+    "canonical": "inferrsi.apps.workflows.skill_eval_engineering",
+    "exports": [
+      "verify",
+      "main"
+    ],
+    "consumers": [
+      "docs/contracts/function-owners.md",
+      "docs/local-skill-evaluation.md",
+      "docs/module-layout.md",
+      "src/inferrsi/apps/workflows/skill_evaluation.py",
+      "tests/check_installed.py",
+      "tests/test_apps_module_migrations.py",
+      "tests/test_skill_eval_compare.py",
+      "tests/test_skill_eval_engineering.py",
+      "tests/test_skill_eval_generation.py",
+      "tests/test_skill_eval_local.py",
+      "tests/test_skill_eval_local_cli.py",
+      "tools/skill_eval_cloud_replay.py",
+      "tools/skill_eval_compare.py",
+      "tools/skill_eval_local.py",
+      "tools/skill_eval_qualify.py"
+    ],
+    "script_entry": "main"
   }
 ]

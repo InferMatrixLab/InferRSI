@@ -3,7 +3,7 @@
 import hashlib
 import json
 
-from inferrsi.apps.campaign import verify_capture
+from inferrsi.apps.workflows.campaign import verify_capture
 from inferrsi.harness.records.campaign_records import _identifier
 from inferrsi.harness.records.evidence import (
     inside as _inside,

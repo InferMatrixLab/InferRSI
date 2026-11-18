@@ -77,7 +77,7 @@ import importlib.abc, json, sys
 from pathlib import Path
 class NoBenchmark(importlib.abc.MetaPathFinder):
     def find_spec(self, fullname, path=None, target=None):
-        if fullname in ('inferrsi.benchmark', 'inferrsi.apps.benchmark_operations') or (
+        if fullname in ('inferrsi.benchmark', 'inferrsi.apps.workflows.benchmark_operations') or (
             fullname.startswith('inferrsi.benchmark.')
         ):
             raise AssertionError('Ordinary optimization imported ' + fullname)

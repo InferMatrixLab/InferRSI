@@ -9,8 +9,8 @@ from pathlib import Path
 
 import pytest
 
-from inferrsi.apps.campaign import capture_context, create_campaign
 from inferrsi.apps.views.search_attribution import import_search
+from inferrsi.apps.workflows.campaign import capture_context, create_campaign
 from inferrsi.knowledge.context_projection import assemble_context_text
 
 REVISION = "f6d200" + "a" * 34

@@ -22,10 +22,21 @@ MIGRATIONS = json.loads((REPO / "docs/apps-module-migrations.json").read_text(en
 def test_shim_is_an_explicit_export_of_the_same_objects(entry):
     path = REPO / "src" / (entry["old"].replace(".", "/") + ".py")
     tree = ast.parse(path.read_text(encoding="utf-8"))
-    docstring, imported, declared = tree.body
+    if entry.get("script_entry"):
+        docstring, imported, declared, guard = tree.body
+        assert ast.dump(guard) == ast.dump(ast.parse(
+            f'if __name__ == "__main__":\n    {entry["script_entry"]}()\n'
+        ).body[0])
+    else:
+        docstring, imported, declared = tree.body
     assert isinstance(docstring, ast.Expr) and isinstance(docstring.value, ast.Constant)
-    assert isinstance(imported, ast.ImportFrom) and imported.level == 1
-    assert "inferrsi.apps." + imported.module == entry["canonical"]
+    assert isinstance(imported, ast.ImportFrom)
+    if entry.get("script_entry"):
+        # This former file entry must also work without a package context.
+        assert imported.level == 0 and imported.module == entry["canonical"]
+    else:
+        assert imported.level == 1
+        assert "inferrsi.apps." + imported.module == entry["canonical"]
     assert sorted((name.name, name.asname) for name in imported.names) == sorted(
         (name, None) for name in entry["exports"]
     )
@@ -148,7 +159,7 @@ def test_storage_dependency_check_rejects_a_handoff_back_edge(tmp_path, indirect
 
 
 def test_migrated_initializers_import_nothing_and_module_bodies_do_no_io():
-    packages = ["inferrsi.apps.storage", "inferrsi.apps.handoff"]
+    packages = ["inferrsi.apps.storage", "inferrsi.apps.handoff", "inferrsi.apps.workflows"]
     for package in packages:
         path = REPO / "src" / package.replace(".", "/") / "__init__.py"
         tree = ast.parse(path.read_text(encoding="utf-8"))
@@ -212,13 +223,15 @@ def test_delivered_context_draft_loads_a_legacy_instance_pickle():
     assert type(restored) is DeliveredContextDraft and restored == value
 
 
-def test_cold_handoff_imports_do_not_read_data_probe_or_launch_services():
+@pytest.mark.parametrize("group", ["handoff", "workflows"])
+def test_cold_handoff_and_workflow_imports_do_not_read_data_probe_or_launch_services(group):
     script = """
 import builtins, importlib, importlib.abc, io, json, socket, sqlite3, subprocess, sys, warnings
 from unittest.mock import patch
-blocked = ('inferrsi.apps.api', 'inferrsi.infra', 'inferrsi.benchmark', 'inferrsi.model',
-           'inferrsi.harness.api', 'inferrsi.harness.run_store', 'inferrsi.harness.generation',
-           'torch', 'numpy', 'PIL', 'vllm')
+blocked = ('inferrsi.apps.api', 'inferrsi.harness.api', 'inferrsi.harness.run_store',
+           'inferrsi.harness.generation', 'torch', 'numpy', 'PIL', 'vllm')
+if sys.argv[2] == 'handoff':
+    blocked += ('inferrsi.infra', 'inferrsi.benchmark', 'inferrsi.model')
 class Block(importlib.abc.MetaPathFinder):
     def find_spec(self, name, path=None, target=None):
         if any(name == item or name.startswith(item + '.') for item in blocked):
@@ -228,7 +241,7 @@ def deny(*args, **kwargs):
     raise AssertionError('unexpected data read, device probe, process or service')
 with warnings.catch_warnings(record=True) as caught:
     warnings.simplefilter('always')
-    importlib.import_module('inferrsi.apps.handoff')
+    importlib.import_module('inferrsi.apps.' + sys.argv[2])
     parent_only = sorted(name for name in sys.modules if name.startswith('inferrsi.apps'))
     with patch.object(builtins, 'open', deny), patch.object(io, 'open', deny), \\
          patch.object(subprocess, 'Popen', deny), patch.object(sqlite3, 'connect', deny), \\
@@ -242,8 +255,8 @@ with warnings.catch_warnings(record=True) as caught:
 print(json.dumps({'parent_only': parent_only, 'warnings': [str(w.message) for w in caught],
                   'control': control}))
 """
-    modules = [entry[key] for entry in MIGRATIONS if ".handoff." in entry["canonical"]
+    modules = [entry[key] for entry in MIGRATIONS if f".{group}." in entry["canonical"]
                for key in ("old", "canonical")]
-    result = _fresh(script, json.dumps(modules))
-    assert result == {"parent_only": ["inferrsi.apps", "inferrsi.apps.handoff"],
+    result = _fresh(script, json.dumps(modules), group)
+    assert result == {"parent_only": ["inferrsi.apps", f"inferrsi.apps.{group}"],
                       "warnings": [], "control": True}
