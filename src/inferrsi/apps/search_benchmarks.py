@@ -49,9 +49,14 @@ class EngineEvaluator:
             raise ValueError("Frozen benchmark resources changed")
         output.mkdir(parents=True)
         candidates.retain(candidate / "candidate.py", output / "candidate.py")
-        protocol = task_protocol.protocol(self.frozen)
-        args = protocol.arguments(
-            output / "candidate.py", output / "measurement", self.plan["evaluation_settings"]
+        args = task_protocol.run(
+            self.frozen,
+            self.plan["frozen_files"]["optimization.py"],
+            "arguments",
+            deadline=time.monotonic() + max(0, deadline - time.time()),
+            candidate=output / "candidate.py",
+            output=output / "measurement",
+            settings=self.plan["evaluation_settings"],
         )
         from inferrsi.harness import optimization_session
 
@@ -79,7 +84,15 @@ class EngineEvaluator:
             if p.is_file()
         } != self.plan["frozen_files"]:
             raise ValueError("Frozen benchmark resources changed during execution")
-        assessed = protocol.assess(output, self.plan["evaluation_settings"], execution)
+        assessed = task_protocol.run(
+            self.frozen,
+            self.plan["frozen_files"]["optimization.py"],
+            "assess",
+            deadline=time.monotonic() + max(0, deadline - time.time()),
+            directory=output,
+            settings=self.plan["evaluation_settings"],
+            execution=execution,
+        )
         if execution["cleanup_verified"] is not True:
             assessed = {"verdict": "INCONCLUSIVE", "score": None}
         atomic_write_json(output / "assessment.json", assessed)

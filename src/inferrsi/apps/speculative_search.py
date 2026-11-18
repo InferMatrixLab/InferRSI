@@ -17,8 +17,6 @@ from inferrsi.harness.vats import Settings
 from inferrsi.harness.work_control import WorkControl
 from inferrsi.model.search_roles import Snapshot
 
-from .search_benchmarks import EngineEvaluator
-
 
 def add_arguments(commands):
     search = commands.add_parser("search", help="Bounded SpecRSI search and role training")
@@ -80,6 +78,8 @@ def command(args):
         if args.search_action == "export":
             atomic_write_json(args.output, result)
         return result
+    from .search_benchmarks import EngineEvaluator
+
     if root.exists():
         raise ValueError("Use a new session directory; status/export never restart work")
     if args.groups < 2 or args.rounds < 1:
