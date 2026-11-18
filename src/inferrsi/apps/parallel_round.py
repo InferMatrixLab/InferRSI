@@ -12,6 +12,7 @@ from inferrsi.apps.legacy.evaluation import run_rules
 from inferrsi.benchmark.legacy_run_v0 import evaluate as _evaluate
 from inferrsi.contracts import RunSpec
 from inferrsi.harness import parallel_round as harness
+from inferrsi.infra.platforms.cuda import qualify_devices
 
 
 def make_assess(spec: RunSpec) -> Callable:
@@ -42,6 +43,7 @@ def serve_ticket(
         incumbent,
         backend=backend,
         make_assess=make_assess,
+        qualify_devices=qualify_devices,
         now=now,
         clock=clock,
     )
@@ -61,6 +63,7 @@ def close_round(
         incumbent,
         backend=backend,
         make_assess=make_assess,
+        qualify_devices=qualify_devices,
         now=now,
         clock=clock,
     )

@@ -48,6 +48,13 @@ from fnmatch import fnmatch
 from pathlib import Path
 
 from inferrsi.contracts import RunSpec
+from inferrsi.harness.artifact_primitives import digest
+from inferrsi.harness.confinement import (
+    ConfinementUnavailable,
+    UnreapedCommand,
+    confined_execute,
+)
+from inferrsi.harness.device_lease import DeviceLease, LeaseError
 from inferrsi.harness.round_budget import (
     Binding,
     BudgetError,
@@ -62,17 +69,30 @@ from inferrsi.harness.round_budget import (
     seconds_remaining,
 )
 from inferrsi.harness.runner import run_experiment as run_experiment_loop
-from inferrsi.infra.artifacts import digest, write_json
-from inferrsi.infra.confinement import (
-    ConfinementUnavailable,
-    UnreapedCommand,
-    confined_execute,
-)
-from inferrsi.infra.device_lease import DeviceLease, LeaseError
-from inferrsi.infra.platforms.cuda import qualify_devices
-from inferrsi.model.protocols.metrics import read_metric
 
 _TERMINAL = frozenset({"measured", "rejected", "unsettled"})
+
+
+def write_json(path, value) -> None:
+    """Same bytes as ``infra.artifacts.write_json``. Harness does not import that module."""
+    Path(path).parent.mkdir(parents=True, exist_ok=True)
+    Path(path).write_text(
+        json.dumps(value, ensure_ascii=False, indent=2, allow_nan=False) + "\n", encoding="utf-8"
+    )
+
+
+def read_metric(result: dict, key: str) -> float:
+    """Same contract as ``model.protocols.metrics.read_metric``, without importing Model."""
+    value = result
+    for part in key.split("."):
+        if not isinstance(value, dict) or part not in value:
+            raise ValueError(f"missing metric: {key}")
+        value = value[part]
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        raise ValueError(f"metric {key} must be a number")
+    if not math.isfinite(value) or value <= 0:
+        raise ValueError(f"metric {key} must be finite and positive")
+    return float(value)
 
 PLANES = {"harness", "model", "infra"}
 DIRECTIONS = {"lower", "higher"}
@@ -703,7 +723,7 @@ def _run_experiment(
     )
 
 
-def _qualify(device_model: str, devices: list[str]) -> None:
+def _qualify(device_model: str, devices: list[str], qualify_devices) -> None:
     """``qualify_devices`` reads the caller's reservation from ``CUDA_VISIBLE_DEVICES``."""
     previous = os.environ.get("CUDA_VISIBLE_DEVICES")
     os.environ["CUDA_VISIBLE_DEVICES"] = ",".join(devices)
@@ -741,6 +761,7 @@ def serve_ticket(
     *,
     backend,
     make_assess: Callable[[RunSpec], Callable],
+    qualify_devices,
     now: datetime | None = None,
     clock=None,
 ) -> dict:
@@ -802,7 +823,11 @@ def serve_ticket(
         try:
             if plan.get("device_model"):
                 try:
-                    _qualify(plan["device_model"], [device for device, _lease in held])
+                    _qualify(
+                        plan["device_model"],
+                        [device for device, _lease in held],
+                        qualify_devices,
+                    )
                 except (ValueError, OSError, subprocess.SubprocessError) as exc:
                     return {"ticket": ticket, "status": "queued", "reason": str(exc)}
             return _measure(
@@ -959,6 +984,7 @@ def close_round(
     *,
     backend,
     make_assess: Callable[[RunSpec], Callable],
+    qualify_devices,
     now: datetime | None = None,
     clock=None,
 ) -> dict:
@@ -1054,7 +1080,7 @@ def close_round(
     try:
         if plan.get("device_model"):
             try:
-                _qualify(plan["device_model"], devices)
+                _qualify(plan["device_model"], devices, qualify_devices)
             except (ValueError, OSError, subprocess.SubprocessError) as exc:
                 return {
                     "status": "queued",

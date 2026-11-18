@@ -7,8 +7,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from inferrsi.apps.parallel_round import close_round, serve_ticket
+from inferrsi.harness.confinement import select_backend
 from inferrsi.harness.parallel_round import prepare, submit, ticket_status
-from inferrsi.infra.confinement import select_backend
 
 
 def _load(path: str) -> dict:
