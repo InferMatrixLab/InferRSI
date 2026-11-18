@@ -10,8 +10,8 @@ from pathlib import Path
 
 import pytest
 
-from inferrsi.infra import confinement
-from inferrsi.infra.confinement import (
+from inferrsi.harness import confinement
+from inferrsi.harness.confinement import (
     ConfinementUnavailable,
     FixtureBackend,
     UnavailableBackend,
@@ -68,7 +68,7 @@ def test_missing_backend_refuses_without_running(tmp_path):
 
 
 def test_select_backend_fails_closed_when_namespaces_are_disabled(monkeypatch):
-    monkeypatch.setattr("inferrsi.infra.confinement.namespaces_available", lambda: False)
+    monkeypatch.setattr("inferrsi.harness.confinement.namespaces_available", lambda: False)
     assert isinstance(select_backend(), UnavailableBackend)
 
 
@@ -93,7 +93,7 @@ def test_unshare_failure_does_not_fall_back(tmp_path, monkeypatch):
             return FailedUnshare(argv)
         return real_popen(argv, **kwargs)
 
-    monkeypatch.setattr("inferrsi.infra.confinement.subprocess.Popen", fake_popen)
+    monkeypatch.setattr("inferrsi.harness.confinement.subprocess.Popen", fake_popen)
     with pytest.raises(ConfinementUnavailable, match="unshare failed"):
         UnshareBackend().run(
             (sys.executable, "-c", "print('should-not-run')"),
@@ -130,7 +130,7 @@ def test_unshare_timeout_kills_the_whole_process_group(tmp_path, monkeypatch):
             argv = [sys.executable, "-c", payload]
         return real_popen(argv, **kwargs)
 
-    monkeypatch.setattr("inferrsi.infra.confinement.subprocess.Popen", fake_popen)
+    monkeypatch.setattr("inferrsi.harness.confinement.subprocess.Popen", fake_popen)
     with pytest.raises(ConfinementUnavailable, match="timed out"):
         UnshareBackend().run(
             (sys.executable, "-c", "print('unused')"),
@@ -159,7 +159,7 @@ def test_unshare_timeout_kills_a_direct_child_that_left_the_session(tmp_path, mo
             argv = [sys.executable, "-c", payload]
         return real_popen(argv, **kwargs)
 
-    monkeypatch.setattr("inferrsi.infra.confinement.subprocess.Popen", fake_popen)
+    monkeypatch.setattr("inferrsi.harness.confinement.subprocess.Popen", fake_popen)
     with pytest.raises(ConfinementUnavailable, match="timed out"):
         UnshareBackend().run(
             (sys.executable, "-c", "print('unused')"),
@@ -281,7 +281,7 @@ def test_runtime_roots_under_system_python_exclude_usr():
     script = (
         "import json, sys, sysconfig\n"
         "sys.path[:0] = %r\n"
-        "from inferrsi.infra.confinement import runtime_roots\n"
+        "from inferrsi.harness.confinement import runtime_roots\n"
         "print(json.dumps({\n"
         "  'roots': [str(p) for p in runtime_roots()],\n"
         "  'prefix': sys.prefix,\n"
@@ -408,7 +408,7 @@ def test_blocked_unshare_reports_namespaces_unavailable(monkeypatch):
         return subprocess.CompletedProcess(argv, 1, stderr=b"Operation not permitted")
 
     monkeypatch.setattr(Path, "read_text", fake_read)
-    monkeypatch.setattr("inferrsi.infra.confinement.subprocess.run", blocked)
+    monkeypatch.setattr("inferrsi.harness.confinement.subprocess.run", blocked)
     assert namespaces_available() is False
 
 
