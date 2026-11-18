@@ -35,21 +35,23 @@ CORE_NAMES = ("knowledge", "harness", "benchmark", "apps")
 MODULE_ENTRY = "__main__.py"
 MODULE_ENTRY_DELEGATION = ("inferrsi.apps.cli", "main")
 # #412 R3, permanent: task bundle programs. A bundle program is a file directly inside
-# ``benchmark/tasks/<bundle>/`` where that directory has no ``__init__.py``. No package
-# code imports such a file, and the directory name cannot be imported as a package;
-# Harness and Apps run it as its own process. Its evaluator may load a frozen run file
-# (a candidate, baseline or reference) by path with ``importlib.util.module_from_spec``
-# to call and time it in-process; the gate admits that call there and nowhere else, by
-# file location and without naming any task. Inside a bundle program every name-based
-# lookup still fails: ``__import__``, ``import_module``, a ``module_from_spec`` imported
-# by name, and a call to ``find_spec``. Static imports of other cores fail as before.
-# ``runtime_execution`` lists each bundle program that loads files by path, which the
-# static ``isolation_complete`` result does not cover. R3 retired the temporary
-# ``RESOURCE_LOADERS`` table and its blocker: the Harness task protocol runs in a child
-# interpreter and the two sibling loads were merged away.
+# ``benchmark/tasks/<bundle>/`` where that directory has no ``__init__.py``. Python could
+# still import such a file as part of a namespace package, so the gate itself rejects
+# every import of a bundle program from package code; Harness and Apps run it as its own
+# process. Its evaluator may load a frozen run file (a candidate, baseline or reference)
+# by path with ``importlib.util.module_from_spec`` to call and time it in-process; the
+# gate admits that call there and nowhere else, by file location and without naming any
+# task. Inside a bundle program every name-based lookup still fails: ``__import__``,
+# ``import_module``, a ``module_from_spec`` reached by another spelling, and ``find_spec``
+# in any spelling. Static imports of other cores fail as before. ``runtime_execution``
+# lists each bundle program that loads files by path, which the static
+# ``isolation_complete`` result does not cover. This is a location-based static policy,
+# not a process or sandbox guarantee. R3 retired the temporary ``RESOURCE_LOADERS`` table
+# and its blocker: the Harness task protocol runs in a child interpreter and the two
+# sibling loads were merged away.
 TASK_BUNDLES = "inferrsi.benchmark.tasks"
 BY_PATH_LOAD = "importlib.util.module_from_spec"
-NAME_LOOKUPS = frozenset({"importlib.util.find_spec", "find_spec"})
+BUNDLE_LOOKUP_NAMES = frozenset({"find_spec"})
 # #412 R1 deleted these eleven root modules: the seven Knowledge shells, the three
 # old-run forwarders and the root inspection binding. None is registered any more.
 # A file that returns under one of these names is a violation by itself, and every
@@ -382,18 +384,17 @@ def _has_dynamic_import(
 ) -> bool:
     bundle = trees is not None and _is_bundle_program(module, trees)
     admitted = {id(node) for node in _by_path_loads(tree, module, trees)} if bundle else set()
+    # A bundle program also may not look a module up by name with find_spec, in any
+    # spelling: a call, an attribute, an alias or an import of the name.
+    names = DYNAMIC_IMPORT_NAMES | BUNDLE_LOOKUP_NAMES if bundle else DYNAMIC_IMPORT_NAMES
     for node in ast.walk(tree):
         if id(node) in admitted:
             continue
-        if bundle and isinstance(node, ast.Call) and ast.unparse(node.func) in NAME_LOOKUPS:
+        if isinstance(node, ast.Name) and node.id in names:
             return True
-        if isinstance(node, ast.Name) and node.id in DYNAMIC_IMPORT_NAMES:
+        if isinstance(node, ast.Attribute) and node.attr in names:
             return True
-        if isinstance(node, ast.Attribute) and node.attr in DYNAMIC_IMPORT_NAMES:
-            return True
-        if isinstance(node, ast.ImportFrom) and any(
-            alias.name in DYNAMIC_IMPORT_NAMES for alias in node.names
-        ):
+        if isinstance(node, ast.ImportFrom) and any(alias.name in names for alias in node.names):
             return True
     return False
 
@@ -766,6 +767,14 @@ def first_wave_report(
     runtime_execution = [
         f"{name}: {BY_PATH_LOAD} executes files loaded by path in-process"
         for name in modules if _by_path_loads(graph.trees[name], name, graph.trees)
+    ]
+    # Package code never imports a bundle program, whatever the bundle's name, so an
+    # admitted by-path load cannot join another module's closure.
+    violations += [
+        f"{name} imports task bundle program {target}"
+        for name in modules
+        for target in sorted(graph.edges[name])
+        if target != name and _is_bundle_program(target, graph.trees)
     ]
     # Inside the contracts package a Knowledge module may name only the encoder. The
     # initializer and its RunSpec module load with that import and are never named.

@@ -201,13 +201,14 @@ An evaluator that times submitted code must call it in its own process, so it lo
 the frozen run file by path. The gate decides this by file location, not by task:
 
 - A **task bundle program** is a file directly inside `benchmark/tasks/<bundle>/`
-  where that directory has no `__init__.py`. No package code imports it, and the
-  hyphenated directory cannot be imported as a package; Harness and Apps run it as
-  its own process.
+  where that directory has no `__init__.py`. Python could still import such a file
+  through a namespace package, so the gate rejects every import of a bundle program
+  from package code; Harness and Apps run it as its own process.
 - In a bundle program, `importlib.util.module_from_spec` calls are admitted. Every
-  name-based lookup still fails there: `__import__`, `importlib.import_module`, a
-  `module_from_spec` imported by name and a call to `find_spec`. Static imports of
-  Knowledge, Harness or Apps fail as in any Benchmark module.
+  name-based lookup still fails there: `__import__`, `importlib.import_module`,
+  `module_from_spec` reached by another spelling, and `find_spec` in any spelling,
+  including an alias. Static imports of Knowledge, Harness or Apps fail as in any
+  Benchmark module.
 - Everywhere else, including a deeper file inside a bundle, a bundle directory with an
   `__init__.py`, `knowledge/data/**` scripts, Harness and Apps, the same call is a
   dynamic import and fails.
@@ -216,8 +217,8 @@ No table lists tasks or functions, so a new bundle needs no gate change. Today t
 MoE grader and the Qwen21 evaluator load this way. Their callers verify the file
 identities (`identity.json` in both tasks), and each load returns a fresh module that
 is not registered in `sys.modules`. The gate cannot see the path a bundle program
-loads, so the rule is a statement about where by-path loading is allowed, not a
-sandbox for candidate code. `first_wave_report().runtime_execution` lists every
+loads, so the rule is a location-based static policy about where by-path loading is
+allowed, not a process or sandbox guarantee for candidate code. `first_wave_report().runtime_execution` lists every
 bundle program that loads by path, so the static `isolation_complete` result never
 reads as runtime isolation.
 

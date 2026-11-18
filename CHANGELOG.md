@@ -35,8 +35,9 @@
     their own process, which timing requires. The gate admits
     `importlib.util.module_from_spec` only in task bundle programs, files directly
     inside a `benchmark/tasks/<bundle>/` directory without `__init__.py`, and names no
-    task, so a new bundle needs no gate change. Name-based lookups (`__import__`,
-    `import_module`, `find_spec`) still fail there. `first_wave_report().runtime_execution`
+    task, so a new bundle needs no gate change. Package code may not import a bundle
+    program. Name-based lookups (`__import__`, `import_module`, `find_spec` in any
+    spelling) still fail there. `first_wave_report().runtime_execution`
     lists each bundle program that loads by path, because static isolation does not
     cover what the loaded code does at run time.
   - The optimization session's runtime identity adds `harness/protocol_child.py`,

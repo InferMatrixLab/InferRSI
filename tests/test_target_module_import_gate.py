@@ -78,12 +78,36 @@ def test_bundle_program_may_load_files_by_path_and_is_listed(tmp_path, relative)
     "\nimport importlib\nimportlib.import_module('inferrsi.knowledge')\n",
     "\n__import__('json')\n",
     "\nfrom importlib.util import module_from_spec\n",
+    "\nimport importlib.util as util\nutil.module_from_spec(spec)\n",
     "\nimportlib.util.find_spec('inferrsi.knowledge')\n",
     "\nfrom importlib.util import find_spec\nfind_spec('inferrsi.knowledge')\n",
+    # Review of 2d0fa29: aliases of find_spec are the same name-based lookup.
+    "\nfrom importlib.util import find_spec as resolve\n"
+    "spec = resolve('inferrsi.knowledge')\nmodule = importlib.util.module_from_spec(spec)\n",
+    "\nimport importlib.util as util\nutil.find_spec('inferrsi.knowledge')\n",
+    "\nimport importlib.machinery\nimportlib.machinery.PathFinder.find_spec('inferrsi')\n",
 ])
 def test_bundle_program_name_based_lookups_still_fail(tmp_path, extra):
     report = _report(tmp_path, {"benchmark/tasks/moe-forward-npu/grader.py": LOADER + extra})
     assert any("dynamic import" in item for item in report.violations)
+    assert not report.isolation_complete
+
+
+@pytest.mark.parametrize("importer, source", [
+    # Review of 2d0fa29: without __init__.py a bundle is still a namespace package, so
+    # an identifier-named bundle program is importable. The gate rejects that import.
+    ("benchmark/runner.py", "from inferrsi.benchmark.tasks.new_task import evaluate\n"),
+    ("benchmark/runner.py", "import inferrsi.benchmark.tasks.new_task.evaluate\n"),
+    ("benchmark/runner.py", "from .tasks.new_task import evaluate\n"),
+    ("apps/runner.py", "from inferrsi.benchmark.tasks.new_task import evaluate\n"),
+    ("benchmark/tasks/other_task/evaluate.py",
+     "from inferrsi.benchmark.tasks.new_task import evaluate\n"),
+])
+def test_package_code_may_not_import_a_bundle_program(tmp_path, importer, source):
+    target = "inferrsi.benchmark.tasks.new_task.evaluate"
+    report = _report(tmp_path, {"benchmark/tasks/new_task/evaluate.py": LOADER,
+                                importer: source})
+    assert f"{_module(importer)} imports task bundle program {target}" in report.violations
     assert not report.isolation_complete
 
 
