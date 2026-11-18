@@ -161,6 +161,8 @@ def test_gvo_rejects_shared_tree_leaves_forced_and_changed_start_conditions(runt
         examples((records[0] | {"forced": True}, records[1]))
     with pytest.raises(ValueError, match="identical"):
         examples((records[0] | {"settings": "other"}, records[1]))
+    with pytest.raises(ValueError, match="identical"):
+        examples((records[0] | {"initial_conditions": "different-root-proof"}, records[1]))
 
 
 def test_snapshot_change_on_resume_is_rejected(runtime):

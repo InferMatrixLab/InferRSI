@@ -148,8 +148,9 @@ External process-liveness reconciliation needs a qualified authority.
 
 `finalize` consumes a unique scope in the shared store before final data access,
 freezes selection and closes search/training. Engine compares again with the
-original baseline. For Skill, supply a **holdout-bound adapter** and the declared
-holdout scope, never the development adapter. Exact bounded radix utility keeps
+original baseline. For Skill, supply a **holdout-bound adapter** and
+`Comparator.holdout_scope` (derived from the frozen data digest), never the
+development adapter or a replacement label. Exact bounded radix utility keeps
 quality before token use; reduced tokens cannot offset a quality regression.
 
 After interruption, final consumes existing receipts only. Even an unstarted

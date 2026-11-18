@@ -235,6 +235,24 @@ class Search:
         tree.accept(initial)
         if not forced and len(initial.candidates) != 1:
             raise ValueError("Independent natural searches must start from one qualified root")
+
+        def observation(attempt):
+            return {
+                key: value
+                for key, value in asdict(attempt).items()
+                if key not in ("attempt_id", "search_id")
+            }
+
+        initial_conditions = digest(
+            {
+                "candidates": [asdict(node) for node in initial.candidates],
+                "dependencies": [asdict(item) for item in initial.dependencies],
+                "attempts": [observation(a) for a in initial.attempts],
+                "receipts": [
+                    {**asdict(r), "attempt": observation(r.attempt)} for r in initial.receipts
+                ],
+            }
+        )
         doc = self.control.read(self.campaign)
 
         def transition(state):
@@ -257,6 +275,7 @@ class Search:
                 "draft_attempts": 0,
                 "active_action": None,
                 "initial_gain": tree.verified_gain(initial),
+                "initial_conditions": initial_conditions,
                 "selected": initial.root_id,
             }
             return state
