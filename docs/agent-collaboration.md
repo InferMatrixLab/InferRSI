@@ -93,18 +93,18 @@ maintainer's standing delegation in the governing Issue or PR. Identify the
 acting reviewer, account, scope and permitted review actions.
 
 The [main ruleset](https://github.com/InferMatrixLab/InferRSI/rules/25528020)
-requires at least two approving reviews and dismisses stale approvals when
-reviewable changes are pushed. Before merging, the integrator verifies two
-current approvals that meet the eligibility and body rules above, resolution
-of all blocking reviews, and passing required checks.
+uses `independent-approvals` to verify two distinct approvals for the current
+head after cutover. The check uses GitHub's latest formal vote per account,
+requires repository write access and `LGTM`, and excludes the PR author and
+accounts GitHub identifies as commit authors or committers. The integrator
+verifies the remaining independence and delegation requirements above and
+confirms that the required checks passed.
 
-To clear a blocking **Request changes** review, ask its reviewer to re-review
-the current revision and submit **Approve** once the blockers are resolved.
-If that reviewer is unavailable, an independent maintainer with authority and
-permission to dismiss reviews may dismiss it after verifying that each blocker
-is resolved. Record the reason and supporting evidence on the PR. The two
-valid approvals are still required after dismissal.
-[GitHub review dismissal](https://docs.github.com/en/pull-requests/how-tos/review-pull-requests/dismissing-a-pull-request-review)
+A **Request changes** review stays visible in the PR and replaces that
+reviewer's earlier approval. Once two other eligible approvals and the required
+checks are present, the outstanding review has no separate veto. Reviewers
+should give the reason for any remaining disagreement in the PR. During the
+rollout, GitHub's native review rule applies until the ruleset is switched.
 
 ### Agent–Agent: isolated work and conditional handoff
 

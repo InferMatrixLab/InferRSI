@@ -70,10 +70,12 @@ report the review URL.
 
 Each eligible GitHub account with write access counts once. The
 [main ruleset](https://github.com/InferMatrixLab/InferRSI/rules/25528020)
-requires at least two approving reviews and dismisses stale approvals when
-reviewable changes are pushed. The integrator also verifies the `LGTM` bodies,
-any blocking reviews and required checks. A PR review verdict applies to the
-reviewed change. Campaign verdicts follow their frozen validators and evidence.
+uses the `independent-approvals` check after cutover to require two eligible
+approvals for the current head. **Request changes** records the reviewer's
+verdict and replaces any earlier vote from that account. Two other eligible
+approvals can satisfy the check. The integrator verifies independence,
+delegation and required checks. A PR review verdict applies to the reviewed
+change. Campaign verdicts follow their frozen validators and evidence.
 
 The revision, diff and evidence workflow draws on the
 [vLLM-Omni review skill](https://github.com/vllm-project/vllm-omni/blob/670aa7ec6043571e0a8a16448685322e41d93828/.claude/skills/review-pr/SKILL.md#L118-L241).
