@@ -926,6 +926,15 @@ window.InferRSIRoundDecisions={create({getData,getLanguage,narrative,openCapture
       const box=item(retrieved,search.path);field(box,tr('Coverage / state','覆盖 / 状态'),label(search.coverage||search.state));
       if(search.issues?.length)p(box,search.issues.join(' · '),'rd-warning');
       // File-search material can exist without a capture. Retain its own versioned evidence.
+      for(const [index,event] of (search.events||[]).entries()){
+        if(event.action!=='search'&&!event.query&&!event.request)continue;
+        const request=event.request||{},terms=[event.query||request.query,request.relevance].filter(v=>typeof v==='string'&&v.trim());
+        const query=terms.join(' · ')||(Array.isArray(request.ids)?request.ids.join(', '):null);
+        const entry=item(box,[event.action,event.tool,event.context_id||event.id].filter(Boolean).join(' · '));
+        field(entry,tr('Query','查询'),query);
+        if(event.state&&event.state!=='recorded')p(entry,event.state,'rd-warning');
+        detail(entry,tr('Request and event evidence','请求与事件证据'),'search-event:'+search.path+':'+index,b=>b.append(el('pre',JSON.stringify(event,null,2))));
+      }
       detail(box,tr('Search materials and use evidence','搜索材料及采用依据'),'search:'+search.path,b=>{
         for(const m of search.materials||[]){const n=item(b,m.ref);field(n,tr('Recorded use','记录的采用'),label(m.use));n.append(el('pre',JSON.stringify({evidence:m.evidence,declarations:m.declarations,conflicts:m.conflicts},null,2)));}
         if(!search.materials?.length)p(b,unknown());
@@ -1496,7 +1505,9 @@ function timeline(box,c,baseline,opened){
   },opened);
 }
 const knowledgeView=window.InferRSIKnowledge.create({getData:()=>data,getLanguage:()=>language,
-  openRun:link=>{const target=[...document.querySelectorAll('[data-experiment-id]')].find(n=>n.dataset.experimentId===link.experiment_id);
+  openRun:link=>{const key=JSON.stringify([link.round,link.candidate_id,link.run_id]);
+    const matches=[...document.querySelectorAll('#rounds [data-run-identity]')].filter(n=>link.experiment_id?n.dataset.experimentId===link.experiment_id:n.dataset.runIdentity===key);
+    const target=matches.length===1?matches[0]:null;
     if(target){for(let p=target;p;p=p.parentElement)if(p.tagName==='DETAILS')p.open=true;
       target.focus();target.scrollIntoView({block:'start'});}}});
 const roundDecisionView=window.InferRSIRoundDecisions.create({getData:()=>data,getLanguage:()=>language,
@@ -1746,7 +1757,8 @@ function render(){
     outer.dataset.key='round:'+JSON.stringify([r.round,r.candidate_id,r.run_id]);outer.open=opened.has(outer.dataset.key);
     name.append(el('span',rowLabel(r),'tag'),document.createTextNode(recorded(r.title||r.candidate_id)));
     outer.append(name,a);rounds.append(outer);
-    name.dataset.experimentId=r.experiment_id;name.tabIndex=-1;
+    if(r.experiment_id)name.dataset.experimentId=r.experiment_id;
+    name.dataset.runIdentity=JSON.stringify([r.round,r.candidate_id,r.run_id]);name.tabIndex=-1;
     const jump=el('button'),gain=Number.isFinite(r.improvement_pct)?(r.improvement_pct>0?'+':'')+fmt(r.improvement_pct,2)+'%':dash;
     jump.type='button';
     jump.title=tr('查看本轮依据、改动和实测','Open round evidence, changes and results');

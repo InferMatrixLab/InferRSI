@@ -241,16 +241,79 @@ def test_shared_context_conflict_and_zero_hits_stay_distinct(browser, tmp_path, 
         expect(empty).not_to_contain_text("No retrieval snapshot")
 
 
-def test_run_navigation_without_experiment_ids_uses_exact_round_candidate_run(browser, tmp_path):
+@pytest.mark.parametrize("profile", [False, True])
+def test_run_navigation_without_experiment_ids_uses_exact_round_candidate_run(
+        browser, tmp_path, profile):
     campaign(tmp_path)
     snapshot = dashboard_snapshot(tmp_path)
     for row in snapshot["data"]["candidates"]:
         row.pop("experiment_id")
-    with dashboard(browser, tmp_path, False, snapshot=snapshot) as page:
+    with dashboard(browser, tmp_path, profile, snapshot=snapshot) as page:
         root = page.locator("#round-decisions")
         root.locator("select").select_option("2")
         root.get_by_role("button", name="Open run evidence").click()
-        expect(page.locator("#run-review")).to_contain_text("run-b")
+        if profile:
+            summary = page.locator('#rounds > details > summary').filter(has_text="B")
+            expect(summary).to_be_focused()
+            expect(summary.locator("..")).to_have_attribute("open", "")
+        else:
+            expect(page.locator("#run-review")).to_contain_text("run-b")
+
+
+@pytest.mark.parametrize("profile", [False, True])
+@pytest.mark.parametrize("experiment_ids", [False, True])
+def test_duplicate_run_identities_disable_navigation(browser, tmp_path, profile, experiment_ids):
+    campaign(tmp_path)
+    snapshot = dashboard_snapshot(tmp_path)
+    rows = snapshot["data"]["candidates"]
+    if not experiment_ids:
+        rows[0].pop("experiment_id")
+    rows.append(dict(rows[0]))
+    with dashboard(browser, tmp_path, profile, snapshot=snapshot) as page:
+        result = page.locator('#round-decisions [data-rd-stage="4"]')
+        expect(result.get_by_text("Ambiguous candidate/run identity", exact=True)).to_have_count(2)
+        expect(result.get_by_role("button", name="Open run evidence")).to_have_count(0)
+
+
+@pytest.mark.parametrize("profile", [False, True])
+@pytest.mark.parametrize("live", [False, True])
+def test_shared_search_only_round_preserves_queries_and_requests(browser, tmp_path, profile, live):
+    FIXTURE["build"](tmp_path)
+    path = tmp_path / "search/round-3.json"
+    search = json.loads(path.read_text())
+    assert search["context_ids"] == []
+    search["events"] = [
+        {"id": "shell:1", "action": "search", "tool": "rg", "query": "dense BF16",
+         "scope": ["cases"], "materials": [{"ref": "cases/launch.md"}]},
+        {"id": "catalog:1", "action": "search", "tool": "knowledge search",
+         "request": {"query": "<img src=x onerror=alert(1)>", "relevance": "decode launch",
+                     "limit": 7}, "materials": []},
+        {"id": "explicit:1", "action": "search", "tool": "collect",
+         "request": {"ids": ["package:graphs", "package:kv"]}, "materials": []},
+        {"id": "missing:1", "action": "search", "tool": "rg", "materials": []},
+    ]
+    path.write_text(json.dumps(search))
+    with dashboard(browser, tmp_path, profile, live) as page:
+        root = page.locator("#round-decisions")
+        root.locator("select").select_option("3")
+        retrieval = root.locator('[data-rd-stage="1"]')
+        expect(retrieval).to_contain_text("No retrieval snapshot linked to this round")
+        expect(retrieval).to_contain_text("Query · dense BF16")
+        expect(retrieval).to_contain_text("Query · <img src=x onerror=alert(1)> · decode launch")
+        expect(retrieval).to_contain_text("Query · package:graphs, package:kv")
+        expect(retrieval).to_contain_text("Query · Not recorded")
+        expect(retrieval).not_to_contain_text("Returned items")
+        expect(retrieval.locator("img")).to_have_count(0)
+        event = retrieval.locator("article").filter(
+            has=page.get_by_role("heading", name="search · rg · shell:1", exact=True)).last
+        event.get_by_text("Request and event evidence", exact=True).click()
+        evidence = json.loads(event.locator("pre").inner_text())
+        assert evidence["scope"] == ["cases"]
+        assert evidence["materials"] == [{"ref": "cases/launch.md"}]
+        page.locator("#language" if profile else "#language-zh").click()
+        expect(retrieval).to_contain_text("查询 · dense BF16")
+        expect(retrieval).to_contain_text("查询 · 未记录")
+        expect(root.locator("select")).to_have_value("3")
 
 
 @pytest.mark.parametrize("profile", [False, True])

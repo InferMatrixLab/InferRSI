@@ -635,7 +635,9 @@ function timeline(box,c,baseline,opened){
   },opened);
 }
 const knowledgeView=window.InferRSIKnowledge.create({getData:()=>data,getLanguage:()=>language,
-  openRun:link=>{const target=[...document.querySelectorAll('[data-experiment-id]')].find(n=>n.dataset.experimentId===link.experiment_id);
+  openRun:link=>{const key=JSON.stringify([link.round,link.candidate_id,link.run_id]);
+    const matches=[...document.querySelectorAll('#rounds [data-run-identity]')].filter(n=>link.experiment_id?n.dataset.experimentId===link.experiment_id:n.dataset.runIdentity===key);
+    const target=matches.length===1?matches[0]:null;
     if(target){for(let p=target;p;p=p.parentElement)if(p.tagName==='DETAILS')p.open=true;
       target.focus();target.scrollIntoView({block:'start'});}}});
 const roundDecisionView=window.InferRSIRoundDecisions.create({getData:()=>data,getLanguage:()=>language,
@@ -885,7 +887,8 @@ function render(){
     outer.dataset.key='round:'+JSON.stringify([r.round,r.candidate_id,r.run_id]);outer.open=opened.has(outer.dataset.key);
     name.append(el('span',rowLabel(r),'tag'),document.createTextNode(recorded(r.title||r.candidate_id)));
     outer.append(name,a);rounds.append(outer);
-    name.dataset.experimentId=r.experiment_id;name.tabIndex=-1;
+    if(r.experiment_id)name.dataset.experimentId=r.experiment_id;
+    name.dataset.runIdentity=JSON.stringify([r.round,r.candidate_id,r.run_id]);name.tabIndex=-1;
     const jump=el('button'),gain=Number.isFinite(r.improvement_pct)?(r.improvement_pct>0?'+':'')+fmt(r.improvement_pct,2)+'%':dash;
     jump.type='button';
     jump.title=tr('查看本轮依据、改动和实测','Open round evidence, changes and results');

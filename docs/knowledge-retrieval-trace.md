@@ -18,7 +18,7 @@ for the selected round, in both layouts and in offline/live views:
 
 | Stage | Recorded source and meaning |
 | --- | --- |
-| Retrieval results | Explicitly linked capture IDs and shared search records; returned entries, versions, assembly/omission state and caller-declared use or rejection. Open the capture for the full evidence. |
+| Retrieval results | Explicitly linked capture IDs and shared search records; returned entries, versions, assembly/omission state and caller-declared use or rejection. Shared search queries and expandable request/event evidence remain available even without a capture. Open the capture for its full evidence. |
 | Alternatives | That candidate/run's `optimization_trace.search_space`, plus option IDs explicitly referenced by the round's optimization-log candidates. The campaign-wide search space is a separate disclosure, not a reconstructed round shortlist. |
 | Final selection | Caller-declared candidate/option choices, reasons, knowledge references and trace attempts. This is selection **to try**, not adoption after validation. |
 | Execution results | Every recorded candidate/run in the round, its verdict, quality, measured values and post-validation decision. Caller decisions remain separate from run records; disagreements are visible. Open the exact run for change and execution evidence. |

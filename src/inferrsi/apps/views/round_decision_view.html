@@ -87,6 +87,15 @@ window.InferRSIRoundDecisions={create({getData,getLanguage,narrative,openCapture
       const box=item(retrieved,search.path);field(box,tr('Coverage / state','覆盖 / 状态'),label(search.coverage||search.state));
       if(search.issues?.length)p(box,search.issues.join(' · '),'rd-warning');
       // File-search material can exist without a capture. Retain its own versioned evidence.
+      for(const [index,event] of (search.events||[]).entries()){
+        if(event.action!=='search'&&!event.query&&!event.request)continue;
+        const request=event.request||{},terms=[event.query||request.query,request.relevance].filter(v=>typeof v==='string'&&v.trim());
+        const query=terms.join(' · ')||(Array.isArray(request.ids)?request.ids.join(', '):null);
+        const entry=item(box,[event.action,event.tool,event.context_id||event.id].filter(Boolean).join(' · '));
+        field(entry,tr('Query','查询'),query);
+        if(event.state&&event.state!=='recorded')p(entry,event.state,'rd-warning');
+        detail(entry,tr('Request and event evidence','请求与事件证据'),'search-event:'+search.path+':'+index,b=>b.append(el('pre',JSON.stringify(event,null,2))));
+      }
       detail(box,tr('Search materials and use evidence','搜索材料及采用依据'),'search:'+search.path,b=>{
         for(const m of search.materials||[]){const n=item(b,m.ref);field(n,tr('Recorded use','记录的采用'),label(m.use));n.append(el('pre',JSON.stringify({evidence:m.evidence,declarations:m.declarations,conflicts:m.conflicts},null,2)));}
         if(!search.materials?.length)p(b,unknown());
