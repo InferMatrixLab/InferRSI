@@ -79,6 +79,8 @@ conflicting declarations and stale coverage fail. PR text is never shell input.
 | GPT-6.1 Sol | `gpt-6.1-sol` | None | `xhigh`, `max` |
 | GPT-6.1 Terra | `gpt-6.1-terra` | None | `xhigh`, `max` |
 | Claude Fable 5.2 | `claude-fable-5-2` | None | `xhigh`, `max` |
+| GPT-6.2 Astra | `gpt-6.2-astra` | None | `xhigh`, `max` |
+| GPT-6.2 Sol | `gpt-6.2-sol` | None | `xhigh`, `max` |
 
 IDs and effort support were checked on 2026-10-21 against official
 [Claude IDs](https://platform.claude.com/docs/en/models/opus-5-5/overview),
@@ -100,6 +102,14 @@ Claude Fable 5.2's canonical ID and support for `xhigh` and `max` were checked o
 The policy admits only those two efforts for Fable 5.2; other documented efforts
 (`low`, `medium`, `high`) do not qualify for knowledge authorship. The drifting
 `fable` alias is not admitted.
+
+GPT-6.2 Astra's and GPT-6.2 Sol's canonical IDs were checked on 2026-11-18 against
+their official model documentation ([GPT-6.2 Astra](https://developers.openai.com/api/docs/models/gpt-6.2-astra),
+[GPT-6.2 Sol](https://developers.openai.com/api/docs/models/gpt-6.2-sol)), and their
+support for `xhigh` and `max` against the official [model catalog](https://developers.openai.com/api/docs/models).
+The policy admits only those two efforts for both models; their other documented
+efforts (`low`, `medium`, `high`) do not qualify for knowledge authorship. Neither
+model has an admitted alias: `gpt-6.2`, `astra` and `sol` are not admitted.
 
 ## Explicit exceptions and policy review
 
