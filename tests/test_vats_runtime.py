@@ -150,6 +150,83 @@ def test_resume_after_receipt_before_state_commit_never_executes_twice(runtime, 
     assert len(list((adapter.root / "candidates").iterdir())) == before
 
 
+@pytest.mark.parametrize("kind", ["draft", "verify"])
+def test_expired_launch_recovers_unstarted_block_and_finishes_with_root(runtime, monkeypatch, kind):
+    control, adapter, snapshot, settings, root = runtime
+    search = Search(control, "campaign", root.contract.search_id, snapshot, settings, adapter)
+    search.start(root, seed=2, collect=False)
+    launch = control.launch
+    interrupted = {}
+
+    def expire(campaign, operation):
+        doc = control.read(campaign)
+        if doc["operations"][operation]["category"] == kind:
+            interrupted.update(operation=operation, spent_ms=doc["spent_ms"])
+            monkeypatch.setattr(
+                "inferrsi.harness.work_control.time.time", lambda: doc["deadline"] + 1
+            )
+        return launch(campaign, operation)
+
+    monkeypatch.setattr(control, "launch", expire)
+    with pytest.raises(ValueError, match="expired before launch"):
+        search.run()
+    assert interrupted
+    operation = interrupted["operation"]
+    op = control.read("campaign")["operations"][operation]
+    assert op["receipt"] == {"not_started": "deadline"}
+    assert not (adapter.root / "executions" / operation).exists()
+
+    def no_adapter_recovery(*args):
+        pytest.fail("Conclusive no-launch recovery must use the durable control record")
+
+    monkeypatch.setattr(adapter, "recover", no_adapter_recovery)
+    reopened = WorkControl(RunStore(control.store.root, control.store.namespace))
+    resumed = Search(reopened, "campaign", root.contract.search_id, snapshot, settings, adapter)
+    resumed.recover()
+    after = reopened.read("campaign")
+    resumed.recover()
+    assert reopened.read("campaign") == after
+    record = resumed.run()
+    assert record["status"] == "complete" and record["stop_reason"] == "limit"
+    assert record["selected"] == root.root_id
+    assert record["pending"] is None and record["active_action"] is None
+    assert record["block_stop_reason"] == "launch_deadline"
+    assert reopened.read("campaign")["spent_ms"] == interrupted["spent_ms"]
+    if kind == "verify":
+        state = decode(record["tree"])
+        receipt = next(r for r in state.receipts if r.attempt.attempt_id == operation)
+        assert receipt.verdict.value == "INCONCLUSIVE" and receipt.objective is None
+        assert receipt.attempt.check_id in tree.missing_checks(state, receipt.attempt.candidate_id)
+    with reopened.store._connection() as db:
+        lease = db.execute("SELECT 1 FROM work_domains WHERE operation=?", (operation,)).fetchone()
+        assert lease is None
+
+
+@pytest.mark.parametrize("kind", ["draft", "verify"])
+def test_unknown_launch_is_not_treated_as_conclusively_unstarted(runtime, monkeypatch, kind):
+    control, adapter, snapshot, settings, root = runtime
+    search = Search(control, "campaign", root.contract.search_id, snapshot, settings, adapter)
+    search.start(root, seed=2, collect=False)
+    launch = control.launch
+
+    def crash_after_intent(campaign, operation):
+        result = launch(campaign, operation)
+        if result["category"] == kind:
+            raise RuntimeError("lost after launch intent")
+        return result
+
+    monkeypatch.setattr(control, "launch", crash_after_intent)
+    with pytest.raises(RuntimeError, match="lost after launch intent"):
+        search.run()
+    before = control.read("campaign")
+    with pytest.raises(ValueError, match="Unknown execution"):
+        search.recover()
+    assert control.read("campaign") == before
+    assert search.read()[1]["pending"] is not None
+    with pytest.raises(ValueError, match="unsettled"):
+        search.finish("limit")
+
+
 def test_gvo_rejects_shared_tree_leaves_forced_and_changed_start_conditions(runtime):
     control, adapter, snapshot, settings, root = runtime
     records = collect_group(
@@ -163,6 +240,64 @@ def test_gvo_rejects_shared_tree_leaves_forced_and_changed_start_conditions(runt
         examples((records[0] | {"settings": "other"}, records[1]))
     with pytest.raises(ValueError, match="identical"):
         examples((records[0] | {"initial_conditions": "different-root-proof"}, records[1]))
+    legacy = {k: v for k, v in records[0].items() if k != "initial_conditions"}
+    with pytest.raises(ValueError, match="Legacy search"):
+        examples((legacy, records[1]))
+
+
+def test_legacy_search_can_be_exported_but_cannot_resume_without_initial_evidence(runtime):
+    control, adapter, snapshot, settings, root = runtime
+    search = Search(control, "campaign", root.contract.search_id, snapshot, settings, adapter)
+    search.start(root, seed=0)
+
+    def legacy(state):
+        state["searches"][search.search_id].pop("initial_conditions")
+        return state
+
+    before = control.update("campaign", control.read("campaign")["revision"], legacy)
+    with pytest.raises(ValueError, match="Legacy search"):
+        search.run()
+    assert control.read("campaign") == before
+
+
+@pytest.mark.parametrize("change", ["receipt", "execution", "epoch"])
+def test_initial_evidence_digest_ignores_only_receiving_ids(runtime, change):
+    from inferrsi.harness.search_campaign import import_qualified_root
+
+    control, adapter, snapshot, settings, root = runtime
+    first = Search(control, "campaign", root.contract.search_id, snapshot, settings, adapter)
+    first.start(root, seed=0)
+    imported = import_qualified_root(root, replace(root.contract, search_id="same-proof"))
+    second = Search(control, "campaign", "same-proof", snapshot, settings, adapter)
+    second.start(imported, seed=1)
+    assert first.read()[1]["initial_conditions"] == second.read()[1]["initial_conditions"]
+    assert examples((first.finish("test"), second.finish("test")))[2]["returns"] == [0, 0]
+
+    changed = import_qualified_root(root, replace(root.contract, search_id="changed-proof"))
+    receipt = changed.receipts[0]
+    if change == "receipt":
+        receipt = replace(receipt, evidence_digest=digest("different real observation"))
+    elif change == "execution":
+        receipt = replace(receipt, attempt=replace(receipt.attempt, execution_key="another-run"))
+    else:
+        dependency = tree.Dependency("proof-epoch", 1)
+        receipt = replace(receipt, attempt=replace(receipt.attempt, dependencies=(dependency,)))
+        changed = replace(changed, dependencies=(dependency,))
+    changed = replace(
+        changed,
+        receipts=(receipt, *changed.receipts[1:]),
+        attempts=tuple(
+            receipt.attempt if a.attempt_id == receipt.attempt.attempt_id else a
+            for a in changed.attempts
+        ),
+    )
+    third = Search(control, "campaign", "changed-proof", snapshot, settings, adapter)
+    third.start(changed, seed=2)
+    changed_root = tree.candidate(changed, changed.root_id)
+    assert changed_root.artifact_digest == root.candidates[0].artifact_digest
+    assert third.read()[1]["initial_conditions"] != first.read()[1]["initial_conditions"]
+    with pytest.raises(ValueError, match="identical"):
+        examples((first.read()[1], third.finish("test")))
 
 
 def test_snapshot_change_on_resume_is_rejected(runtime):

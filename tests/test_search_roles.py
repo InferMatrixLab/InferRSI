@@ -1,4 +1,6 @@
+import json
 import random
+from dataclasses import asdict
 
 import pytest
 
@@ -69,3 +71,20 @@ def test_clipped_actor_does_not_reinforce_outside_positive_ratio_bound():
     )
     weights = (10.0, -10.0) if choice.selected == 0 else (-10.0, 10.0)
     assert actor_gradient(weights, model.policy, choice, 1.0, 0.2, 0.0) == (0.0, 0.0)
+
+
+def test_injected_roles_preserve_serialized_behavior_and_checkpoint_operations():
+    model = Snapshot((0.2, -0.1), (0.3, -0.2), (0.5, -0.25), "initial")
+    vectors = ((1.0, 0.0), (0.0, 1.0))
+    options = dict(context="observed", collect=True, temperature=0.8, exploration=0.1)
+    choice = model.choose("policy", ("a", "b"), vectors, rng=random.Random(7), **options)
+    assert choice == choose(model, "policy", ("a", "b"), vectors,
+                            rng=random.Random(7), **options)
+    actors = [(json.loads(json.dumps(asdict(choice))), 2.0)]
+    values = [(vectors[0], 4.0)]
+    trained = model.train(model, actors, values, (), learning_rate=0.1)
+    assert trained == update(model, model, [(choice, 2.0)], values, learning_rate=0.1)
+    restored = model.restore(json.loads(json.dumps(trained.document())))
+    assert restored == trained and restored != model
+    assert model.predict((2.0, 4.0)) == 0.0
+    assert restored.predict(vectors[0]) == trained.scorer[0]

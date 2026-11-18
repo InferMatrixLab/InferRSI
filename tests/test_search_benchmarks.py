@@ -97,6 +97,41 @@ def test_engine_rejects_frozen_resource_mutation_during_evaluation(tmp_path, mon
         evaluator.evaluate(source, "evaluation", tmp_path / "output", time.time() + 1)
 
 
+def test_engine_protocol_stages_share_the_original_deadline(tmp_path, monkeypatch):
+    evaluator = EngineEvaluator(
+        "qwen21-denoise-npu", tmp_path / "frozen",
+        arguments=["--pairs", "1", "--samples", "1", "--warmups", "0"],
+    )
+    source = tmp_path / "candidate"
+    source.mkdir()
+    (source / "candidate.py").write_text("candidate")
+    clock = [100.0]
+    observed = []
+    monkeypatch.setattr("inferrsi.apps.search_benchmarks.time.time", lambda: clock[0])
+    monkeypatch.setattr("inferrsi.apps.search_benchmarks.time.monotonic", lambda: clock[0] + 1000)
+
+    def protocol(root, digest, operation, *, deadline, **kwargs):
+        observed.append((operation, deadline, deadline - (clock[0] + 1000)))
+        if operation == "arguments":
+            clock[0] += 2
+            return []
+        clock[0] += 1
+        return {"verdict": "INCONCLUSIVE", "score": None}
+
+    def execute(command, cwd, output, deadline, *args, **kwargs):
+        observed.append(("execution", deadline, deadline - (clock[0] + 1000)))
+        output.mkdir(parents=True)
+        (output / "execution.json").write_text("{}")
+        clock[0] += 3
+        return {"status": "completed", "returncode": 0, "cleanup_verified": True}
+
+    monkeypatch.setattr("inferrsi.apps.search_benchmarks.task_protocol.run", protocol)
+    monkeypatch.setattr("inferrsi.apps.search_benchmarks.execute_trial", execute)
+    evaluator.evaluate(source, "evaluation", tmp_path / "output", 110.0)
+    assert observed == [("arguments", 1110.0, 10.0), ("execution", 1110.0, 8.0),
+                        ("assess", 1110.0, 5.0)]
+
+
 def test_skill_comparator_preparation_does_not_access_holdout(tmp_path):
     from tests.fixtures.harness_improvement_demo import configuration
     from tools.speculative_skill import Comparator

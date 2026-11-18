@@ -14,7 +14,7 @@ from itertools import combinations
 
 from . import search_tree as tree
 from .artifact_primitives import digest
-from .search_records import decode, encode
+from .search_records import decode, encode, initial_conditions
 from .verification_plans import completion_menu
 
 
@@ -216,6 +216,7 @@ class Search:
     def read(self):
         document = self.control.read(self.campaign)
         search = document["state"]["searches"][self.search_id]
+        initial_conditions(search)
         if (
             search["snapshot"] != self.snapshot_id
             or search["settings"] != self.settings_id
@@ -371,11 +372,45 @@ class Search:
         self.control.update(self.campaign, doc["revision"], transition)
 
     def recover(self):
-        _, search, _ = self.read()
+        doc, search, _ = self.read()
         pending = search["pending"]
         if pending is None:
             return
-        # Receipt-only recovery. Never call draft/verify from this path.
+        operation = doc["operations"][pending["operation"]]
+        if operation["status"] == "settled" and operation["receipt"] == {"not_started": "deadline"}:
+            # launch() conclusively refused dispatch. There can be no adapter
+            # receipt: settle the Attempt as control-only INCONCLUSIVE, and
+            # abandon the remaining block without inventing check evidence.
+            def not_started(state):
+                from inferrsi.contracts.claim import Verdict
+
+                record = state["searches"][self.search_id]
+                current = decode(record["tree"])
+                if pending["kind"] == "verify":
+                    bound = next(
+                        a for a in current.attempts if a.attempt_id == pending["operation"]
+                    )
+                    current = tree.record_receipt(
+                        current,
+                        tree.Receipt(bound, Verdict.INCONCLUSIVE, digest(operation)),
+                        expected_revision=current.revision,
+                    )
+                record.update(
+                    tree=encode(current),
+                    pending=None,
+                    active_action=None,
+                    block_stop_reason="launch_deadline",
+                )
+                try:
+                    record["selected"] = tree.accept(current).candidate_id
+                except ValueError:
+                    record.update(status="blocked", selected=None)
+                return state
+
+            self.control.update(self.campaign, doc["revision"], not_started)
+            return
+        # All uncertain launches still require an adapter receipt. Never call
+        # draft/verify from recovery, including after launch-intent crashes.
         result = self.adapter.recover(pending["operation"], pending)
         if result is None:
             raise ValueError("Unknown execution: retain reservation and do not relaunch")

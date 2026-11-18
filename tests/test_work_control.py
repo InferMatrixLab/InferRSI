@@ -58,6 +58,39 @@ def test_unknown_cleanup_or_usage_retains_reservation_and_never_relaunches(contr
     assert reopened.read("campaign")["operations"]["work"]["status"] == "unknown"
 
 
+def test_known_overrun_with_unknown_cleanup_blocks_other_domains_and_reconciles_once(control):
+    claim(control)
+    control.launch("campaign", "work")
+    control.settle(
+        "campaign", "work", {"result": "pending cleanup"}, actual_ms=950, cleanup_verified=False
+    )
+    reopened = WorkControl(RunStore(control.store.root, control.store.namespace))
+    result = reopened.read("campaign")
+    assert result["blocked"]
+    assert result["operations"]["work"]["status"] == "unknown"
+    assert reopened.available(result) == -50
+    with pytest.raises(ValueError, match="blocked"):
+        claim(reopened, "other-domain", cap_ms=700, domains=("other-device",))
+    reopened.create("other", {}, {}, cap_ms=1000, final_reserve_ms=100, deadline=time.time() + 60)
+    with pytest.raises(ValueError, match="leased"):
+        reopened.claim(
+            "other", 0, "work", category="verify", cap_ms=200, domains=("device",), binding={}
+        )
+    # A later unknown observation cannot erase the retained lower bound.
+    reopened.settle("campaign", "work", {}, actual_ms=None, cleanup_verified=False)
+    assert reopened.available(reopened.read("campaign")) == -50
+    with pytest.raises(ValueError, match="known usage"):
+        reopened.settle("campaign", "work", {}, actual_ms=50, cleanup_verified=True)
+    for _ in range(2):
+        reopened.settle("campaign", "work", {"done": True}, actual_ms=950, cleanup_verified=True)
+    result = reopened.read("campaign")
+    assert result["spent_ms"] == 950 and result["blocked"]
+    assert reopened.available(result) == -50
+    reopened.claim(
+        "other", 0, "work", category="verify", cap_ms=200, domains=("device",), binding={}
+    )
+
+
 def test_receipt_settlement_and_incumbent_are_atomic_and_idempotent(control):
     claim(control)
     control.launch("campaign", "work")
