@@ -63,6 +63,14 @@ def test_objective_prediction_partial_results_and_failed_quality_cannot_win():
     assert tree.verified_gain(state) == 0
 
 
+@pytest.mark.parametrize("direction,sign", [("maximize", 1), ("minimize", -1)])
+def test_finite_objectives_cannot_publish_an_infinite_gain(direction, sign):
+    state = start(configuration=contract(direction=direction), score=-sign * 1e308)
+    state = complete(add(state, "candidate"), "candidate", sign * 1e308)
+    with pytest.raises(ValueError, match="finite objective"):
+        tree.verified_gain(state)
+
+
 @pytest.mark.parametrize("direction", ["maximize", "minimize"])
 @pytest.mark.parametrize("order", [("z", "a"), ("a", "z")])
 def test_selection_is_independent_of_receipt_order_and_root_wins_ties(direction, order):

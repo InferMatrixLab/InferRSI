@@ -256,6 +256,8 @@ def verified_gain(state):
     check = state.contract.objective_check
     gain = (evidence(state, selected.candidate_id)[check].objective
             - evidence(state, state.root_id)[check].objective)
+    if not isfinite(gain):
+        raise ValueError("Verified gain exceeds the finite objective domain")
     return gain if state.contract.direction == "maximize" else -gain
 
 

@@ -32,11 +32,12 @@ The optional [service-reuse protocol](service-reuse-campaigns.md) adds project
 assessment and foreground service ownership within this same controller. Its
 protocol and result rules live in `harness.project_service`, with process
 lifetime managed by `local_process`.
-The [offline speculative-search primitives](speculative-search.md) add immutable
-candidate trees, scoped evidence transitions and bounded completion menus in
-Harness. They expose pure control operations for future VATS assembly; the
-existing session controller continues to own execution. Production adapter
-integration, learned role selection and GVO remain separate delivery work.
+The [experimental speculative search](speculative-search.md) composes immutable
+candidate trees, bounded completion menus, synchronous VATS and CPU GVO roles.
+Its work controller uses shared RunStore transactions and the existing local
+process executor. Apps supplies Engine/Skill grading; the support matrix identifies
+remaining production accounting and pilot evidence. Serial session commands keep
+their existing controller and behavior.
 The [native host handoff](native-agent-sessions.md) lets the initiating Agent
 resolve the task request before any campaign exists, use its host's new-session
 tool and retain the native identity and returned artifacts. The child owns the
