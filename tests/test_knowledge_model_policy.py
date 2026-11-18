@@ -92,9 +92,8 @@ def test_default_attribution_is_admitted(policy):
     assert assess(pr(), {KNOWLEDGE}, policy)["state"] == "success"
 
 
-@pytest.mark.parametrize("model", ["gpt-6-astra", "gpt-6.1-sol", "gpt-6.1-terra", "claude-opus-5-5",
-                                  "anthropic.claude-opus-5-5", "claude-fable-5-2",
-                                  "gpt-6.2-astra", "gpt-6.2-sol"])
+@pytest.mark.parametrize("model", ["claude-opus-5-5", "anthropic.claude-opus-5-5",
+                                   "claude-fable-5-2", "gpt-6.2-astra", "gpt-6.2-sol"])
 @pytest.mark.parametrize("effort", ["xhigh", "max"])
 def test_verified_models_and_explicit_aliases_qualify(policy, model, effort):
     result = assess(pr(declared([attribution(model, effort)])), {KNOWLEDGE}, policy)
@@ -102,10 +101,18 @@ def test_verified_models_and_explicit_aliases_qualify(policy, model, effort):
     assert result["description"] == "Declaration compliance only"
 
 
+@pytest.mark.parametrize("model", ["gpt-6-astra", "gpt-6.1-sol", "gpt-6.1-terra"])
+@pytest.mark.parametrize("effort", ["xhigh", "max"])
+def test_removed_models_are_rejected_at_every_effort(policy, model, effort):
+    authors = [attribution(model, effort)]
+    errors = model_errors(authors, policy)
+    assert errors == ["Material AI author 1: model is unapproved or suspended"]
+    assert assess(pr(declared(authors)), {KNOWLEDGE}, policy)["state"] == "failure"
+
+
 @pytest.mark.parametrize("effort", ["low", "medium", "high", "ultra", "maximum", "unknown",
                                    "XHIGH", "xhigh ", "none", "minimal", "MAX", " max"])
-@pytest.mark.parametrize("model", ["gpt-6.1-sol", "gpt-6.1-terra", "claude-fable-5-2",
-                                   "gpt-6.2-astra", "gpt-6.2-sol"])
+@pytest.mark.parametrize("model", ["claude-fable-5-2", "gpt-6.2-astra", "gpt-6.2-sol"])
 def test_effort_is_exact_set_membership(policy, model, effort):
     assert model_errors([attribution(model=model, effort=effort)], policy)
 
@@ -123,7 +130,6 @@ def test_unknown_models_and_inferred_aliases_fail(policy, model):
 
 @pytest.mark.parametrize("canonical, identities", [
     ("claude-opus-5-5", ("claude-opus-5-5", "anthropic.claude-opus-5-5")),
-    ("gpt-6.1-terra", ("gpt-6.1-terra",)),
     ("claude-fable-5-2", ("claude-fable-5-2",)),
     ("gpt-6.2-astra", ("gpt-6.2-astra",)),
     ("gpt-6.2-sol", ("gpt-6.2-sol",)),
@@ -134,8 +140,9 @@ def test_suspension_overrides_canonical_and_alias(policy, canonical, identities)
         assert model_errors([attribution(model)], policy)
 
 
-@pytest.mark.parametrize("bad", [attribution("unapproved-model"), attribution("sol"),
-                                 attribution("GPT-6.2-Sol"), attribution("gpt-6.2-astra", "high")])
+@pytest.mark.parametrize("bad", [attribution("unapproved-model"), attribution("gpt-6.1-sol"),
+                                 attribution("sol"), attribution("GPT-6.2-Sol"),
+                                 attribution("gpt-6.2-astra", "high")])
 def test_one_noncompliant_author_fails_a_mixed_declaration(policy, bad):
     good = attribution("gpt-6.2-astra", "max")
     assert model_errors([good], policy) == []

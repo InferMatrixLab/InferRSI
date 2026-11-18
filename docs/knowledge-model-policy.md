@@ -75,27 +75,17 @@ conflicting declarations and stale coverage fail. PR text is never shell input.
 | Owner label | Canonical ID | Explicit aliases | Allowed effort |
 | --- | --- | --- | --- |
 | Claude Opus 5.5 | `claude-opus-5-5` | `anthropic.claude-opus-5-5` (Bedrock) | `xhigh`, `max` |
-| GPT-6-Astra | `gpt-6-astra` | None | `xhigh`, `max` |
-| GPT-6.1 Sol | `gpt-6.1-sol` | None | `xhigh`, `max` |
-| GPT-6.1 Terra | `gpt-6.1-terra` | None | `xhigh`, `max` |
 | Claude Fable 5.2 | `claude-fable-5-2` | None | `xhigh`, `max` |
 | GPT-6.2 Astra | `gpt-6.2-astra` | None | `xhigh`, `max` |
 | GPT-6.2 Sol | `gpt-6.2-sol` | None | `xhigh`, `max` |
 
 IDs and effort support were checked on 2026-10-21 against official
-[Claude IDs](https://platform.claude.com/docs/en/models/opus-5-5/overview),
-[Claude effort](https://platform.claude.com/docs/en/build-with-claude/effort),
-[GPT-6 Astra](https://developers.openai.com/api/docs/models/gpt-6-astra) and
-[GPT-6.1 Sol](https://developers.openai.com/api/docs/models/gpt-6.1-sol) docs.
+[Claude IDs](https://platform.claude.com/docs/en/models/opus-5-5/overview) and
+[Claude effort](https://platform.claude.com/docs/en/build-with-claude/effort) docs.
 Actual client settings still need truthful declaration. OpenAI uses
 `reasoning.effort`; Claude uses `output_config.effort`. Identity is resolved first,
 then effort uses explicit set membership. Default, `high`, `ultra` and unknown
 settings do not qualify. Aliases are never inferred. Suspension also denies aliases.
-
-GPT-6.1 Terra's canonical ID and support for `xhigh` and `max` were checked on
-2026-11-01 against its [official model documentation](https://developers.openai.com/api/docs/models/gpt-6.1-terra).
-The policy admits only those two efforts for Terra; the model's other supported
-efforts do not qualify for knowledge authorship.
 
 Claude Fable 5.2's canonical ID and support for `xhigh` and `max` were checked on
 2026-11-14 against its [official model documentation](https://platform.claude.com/docs/en/models/fable-5-2/whats-new-fable-5-2).
@@ -110,6 +100,16 @@ support for `xhigh` and `max` against the official [model catalog](https://devel
 The policy admits only those two efforts for both models; their other documented
 efforts (`low`, `medium`, `high`) do not qualify for knowledge authorship. Neither
 model has an admitted alias: `gpt-6.2`, `astra` and `sol` are not admitted.
+
+Following [#487](https://github.com/InferMatrixLab/InferRSI/issues/487), the
+repository no longer admits GPT-6-Astra (`gpt-6-astra`), GPT-6.1 Sol
+(`gpt-6.1-sol`) or GPT-6.1 Terra (`gpt-6.1-terra`). This is a repository
+admission decision, not a claim about the vendor's support for those models. Their
+entries were removed, so a declaration naming them fails like any other unapproved
+model. Merged contributions are not re-evaluated. An open PR is assessed against
+the current list at its next refresh; if it still declares a removed model, its
+affected work must be re-authored with an admitted model and truthfully declared,
+or it needs an [explicit exception](#explicit-exceptions-and-policy-review).
 
 ## Explicit exceptions and policy review
 
