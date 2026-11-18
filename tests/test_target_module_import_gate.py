@@ -25,9 +25,7 @@ from tests._gate_policy_support import (
     load_manifest,
 )
 
-# #412 R3: the one admitted evaluator loader shape, as in the MoE grader.
-EVALUATOR = "benchmark/tasks/moe-forward-npu/grader.py"
-EVALUATOR_MODULE = "inferrsi.benchmark.tasks.moe-forward-npu.grader"
+# #412 R3: a by-path load, as in the MoE grader and the Qwen21 evaluator.
 LOADER = (
     "import importlib.util\n"
     "def load(path, name):\n"
@@ -36,7 +34,6 @@ LOADER = (
     "    spec.loader.exec_module(module)\n"
     "    return module\n"
 )
-MISSING = f"{EVALUATOR_MODULE} does not hold exactly its one declared evaluator loader"
 
 
 def _report(root, files):
@@ -47,67 +44,87 @@ def _report(root, files):
     return first_wave_report(root)
 
 
-def test_declared_evaluator_loader_is_admitted_listed_and_never_a_blocker(tmp_path):
-    report = _report(tmp_path, {EVALUATOR: LOADER})
-    assert report.violations == ()
-    assert "runtime resource loaders" not in blocker_kinds(report)
-    assert report.runtime_execution == (
-        f"{EVALUATOR_MODULE}.load: importlib.util.module_from_spec(spec) executes frozen "
-        "run files in-process",
-    )
+def _module(relative):
+    return "inferrsi." + relative.removesuffix(".py").replace("/", ".")
+
+
+def test_retired_loader_tables_do_not_return():
+    # R3 admits by file location, so no table names a task, a function or a module.
+    for name in ("RESOURCE_LOADERS", "EVALUATOR_LOADERS"):
+        assert not hasattr(support, name), name
+
+
+@pytest.mark.parametrize("relative", [
+    "benchmark/tasks/moe-forward-npu/grader.py",
+    # Any bundle and any file name: nothing in the gate names a task.
+    "benchmark/tasks/a-new-task/evaluate.py",
+])
+def test_bundle_program_may_load_files_by_path_and_is_listed(tmp_path, relative):
+    module_scope = ("import importlib.util\n"
+                    "spec = importlib.util.spec_from_file_location('c', 'c.py')\n"
+                    "module = importlib.util.module_from_spec(spec)\n")
+    two_calls = LOADER + "\nload('a.py', 'a')\nother = importlib.util.module_from_spec(spec)\n"
+    for index, source in enumerate((LOADER, two_calls, module_scope)):
+        report = _report(tmp_path / str(index), {relative: source})
+        # The synthetic tree lacks the other cores, so only their "absent" blockers remain.
+        assert report.violations == ()
+        assert blocker_kinds(report) == {"absent"}
+        assert report.runtime_execution == (
+            f"{_module(relative)}: importlib.util.module_from_spec executes files loaded "
+            "by path in-process",)
 
 
 @pytest.mark.parametrize("extra", [
     "\nimport importlib\nimportlib.import_module('inferrsi.knowledge')\n",
     "\n__import__('json')\n",
-    "\nimportlib.util.module_from_spec(spec)\n",
-    "\ndef another(spec):\n    return importlib.util.module_from_spec(spec)\n",
+    "\nfrom importlib.util import module_from_spec\n",
+    "\nimportlib.util.find_spec('inferrsi.knowledge')\n",
+    "\nfrom importlib.util import find_spec\nfind_spec('inferrsi.knowledge')\n",
 ])
-def test_declared_evaluator_loader_does_not_allow_an_extra_dynamic_edge(tmp_path, extra):
-    report = _report(tmp_path, {EVALUATOR: LOADER + extra})
+def test_bundle_program_name_based_lookups_still_fail(tmp_path, extra):
+    report = _report(tmp_path, {"benchmark/tasks/moe-forward-npu/grader.py": LOADER + extra})
     assert any("dynamic import" in item for item in report.violations)
     assert not report.isolation_complete
 
 
-@pytest.mark.parametrize("source", [
-    # A second call in the declared function voids the declaration for both calls.
-    LOADER.replace("    return module\n",
-                   "    importlib.util.module_from_spec(spec)\n    return module\n"),
-    # The call under another spec variable or in another function is not the declared one.
-    LOADER.replace("spec =", "other =").replace("(spec)", "(other)")
-          .replace("spec.loader", "other.loader"),
-    LOADER.replace("def load(", "def load_module("),
+def test_bundle_program_static_cross_core_import_still_fails(tmp_path):
+    report = _report(tmp_path, {
+        "knowledge/catalog.py": "VALUE = 1\n",
+        "benchmark/tasks/moe-forward-npu/grader.py": LOADER + "from inferrsi.knowledge "
+                                                     "import catalog\n"})
+    assert any("imports inferrsi.knowledge" in item for item in report.violations)
+
+
+def test_a_finder_class_in_a_bundle_program_is_not_a_lookup(tmp_path):
+    # The Qwen21 and TTS import guards define a find_spec method; defining it is not a call.
+    guard = ("import importlib.util\nclass Guard:\n"
+             "    def find_spec(self, fullname, path=None, target=None):\n"
+             "        return importlib.util.spec_from_loader(fullname, self)\n")
+    report = _report(tmp_path, {"benchmark/tasks/qwen3-tts-npu/baseline.py": guard})
+    assert report.violations == () and report.runtime_execution == ()
+
+
+@pytest.mark.parametrize("files", [
+    # The bundle directory becomes an importable package.
+    {"benchmark/tasks/moe-forward-npu/__init__.py": ""},
+    # tasks itself does not make a bundle program out of a deeper file.
+    {"benchmark/tasks/moe-forward-npu/sub/grader.py": LOADER},
 ])
-def test_declared_evaluator_loader_shape_is_exact(tmp_path, source):
-    report = _report(tmp_path, {EVALUATOR: source})
-    assert MISSING in report.violations
+def test_only_files_directly_in_a_non_package_bundle_are_bundle_programs(tmp_path, files):
+    report = _report(tmp_path, {"benchmark/tasks/moe-forward-npu/grader.py": LOADER, **files})
     assert any("dynamic import" in item for item in report.violations)
-    assert report.runtime_execution == ()
-
-
-def test_declared_evaluator_without_its_call_is_a_stale_declaration(tmp_path):
-    report = _report(tmp_path, {EVALUATOR: "def load(path, name):\n    return None\n"})
-    assert MISSING in report.violations
-    assert report.runtime_execution == ()
-
-
-def test_declared_evaluator_inside_an_importable_package_fails(tmp_path):
-    report = _report(tmp_path, {EVALUATOR: LOADER,
-                                "benchmark/tasks/moe-forward-npu/__init__.py": ""})
-    assert (f"{EVALUATOR_MODULE} declares an evaluator loader outside a task bundle program"
-            in report.violations)
 
 
 @pytest.mark.parametrize("relative", [
-    "benchmark/tasks/moe-forward-npu/workload.py",
-    "benchmark/tasks/qwen3-tts-npu/benchmark.py",
     "benchmark/registry.py",
+    "benchmark/tasks.py",
     # The Harness protocol loader that R3 retired, and its neighbours.
     "harness/task_protocol.py",
     "harness/other_protocol.py",
     "apps/benchmark_operations.py",
+    "knowledge/data/skills/scripts/loader.py",
 ])
-def test_the_evaluator_loader_shape_is_admitted_nowhere_else(tmp_path, relative):
+def test_by_path_loading_is_admitted_nowhere_else(tmp_path, relative):
     report = _report(tmp_path, {relative: LOADER})
     assert any("dynamic import" in item for item in report.violations)
     assert report.runtime_execution == ()
@@ -214,13 +231,13 @@ class TargetModuleImportGateTest(unittest.TestCase):
         self.assertEqual(report.blockers, ())
         self.assertTrue(report.new_core_closure_isolated)
         self.assertTrue(report.isolation_complete)
-        # Static closure is not runtime isolation: the two declared evaluators still
-        # execute frozen run files in-process, and the report says so.
+        # Static closure is not runtime isolation: the two evaluators that time submitted
+        # code still load frozen run files by path in-process, and the report says so.
         self.assertEqual(report.runtime_execution, (
-            "inferrsi.benchmark.tasks.moe-forward-npu.grader.load: "
-            "importlib.util.module_from_spec(spec) executes frozen run files in-process",
-            "inferrsi.benchmark.tasks.qwen21-denoise-npu.benchmark.load: "
-            "importlib.util.module_from_spec(spec) executes frozen run files in-process",
+            "inferrsi.benchmark.tasks.moe-forward-npu.grader: "
+            "importlib.util.module_from_spec executes files loaded by path in-process",
+            "inferrsi.benchmark.tasks.qwen21-denoise-npu.benchmark: "
+            "importlib.util.module_from_spec executes files loaded by path in-process",
         ))
 
     def test_split_skill_eval_modules_reach_no_model_or_infra(self) -> None:

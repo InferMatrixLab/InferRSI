@@ -1,4 +1,4 @@
-"""#412 R3: the two permanent evaluator loaders give fresh, unregistered modules.
+"""#412 R3: the two in-process evaluator loaders give fresh, unregistered modules.
 
 Frozen-file identity is checked by their callers (MoE ``_adjudicate`` and the Qwen21
 ``main``/protocol ``assess``); these tests pin the loaders' own contract.

@@ -175,7 +175,7 @@ directories have no `__init__.py`. They import only the standard library and
 external engines, so the Knowledge closure rule holds for them unchanged. K02
 did not change the gate's scan scope or any closure rule. A dynamic import (`__import__`, `importlib.import_module`, or
 `module_from_spec`) inside a checked closure is an undeclared edge and fails
-closed, except for the two permanent evaluator declarations below.
+closed, except for by-path loading in task bundle programs, described below.
 Other dynamic forms (`getattr`, `exec`, `eval`, `runpy`, `pkgutil`)
 are out of scope for this package. `tools/` and `tests/` are separate
 registered consumers; this gate does not scan them.
@@ -197,26 +197,29 @@ registered consumers; this gate does not scan them.
   bundles no longer load a sibling module by path, and a bundle prepared before
   R3 is refused by its frozen digests and must be prepared again.
 
-The two evaluators that must call submitted code in their own process to time it
-stay, under a permanent rule in `tests/_gate_policy_support.py`
-(`EVALUATOR_LOADERS`) that is independent of the Knowledge compatibility pairs.
-The rule permits exactly one `importlib.util.module_from_spec` call, with the
-listed local spec variable, in the named function of a task bundle program (a file
-in a directory without `__init__.py` under `benchmark/tasks/`). A second call, a
-call elsewhere, the same shape in any other module, a declared module that becomes
-importable or loses its call, other dynamic calls and static cross-core imports
-fail.
+An evaluator that times submitted code must call it in its own process, so it loads
+the frozen run file by path. The gate decides this by file location, not by task:
 
-| Relative module | Scope | Local spec |
-| --- | --- | --- |
-| `benchmark.tasks.moe-forward-npu.grader` | `load` | `spec` |
-| `benchmark.tasks.qwen21-denoise-npu.benchmark` | `load` | `spec` |
+- A **task bundle program** is a file directly inside `benchmark/tasks/<bundle>/`
+  where that directory has no `__init__.py`. No package code imports it, and the
+  hyphenated directory cannot be imported as a package; Harness and Apps run it as
+  its own process.
+- In a bundle program, `importlib.util.module_from_spec` calls are admitted. Every
+  name-based lookup still fails there: `__import__`, `importlib.import_module`, a
+  `module_from_spec` imported by name and a call to `find_spec`. Static imports of
+  Knowledge, Harness or Apps fail as in any Benchmark module.
+- Everywhere else, including a deeper file inside a bundle, a bundle directory with an
+  `__init__.py`, `knowledge/data/**` scripts, Harness and Apps, the same call is a
+  dynamic import and fails.
 
-These two loaders run frozen run files in their own child interpreter. The
-callers verify the file identities (`identity.json` in both tasks), and each load
-returns a fresh module that is not registered in `sys.modules`. They are not a
-sandbox for candidate code. `first_wave_report().runtime_execution` lists them, so
-the static `isolation_complete` result never reads as runtime isolation.
+No table lists tasks or functions, so a new bundle needs no gate change. Today the
+MoE grader and the Qwen21 evaluator load this way. Their callers verify the file
+identities (`identity.json` in both tasks), and each load returns a fresh module that
+is not registered in `sys.modules`. The gate cannot see the path a bundle program
+loads, so the rule is a statement about where by-path loading is allowed, not a
+sandbox for candidate code. `first_wave_report().runtime_execution` lists every
+bundle program that loads by path, so the static `isolation_complete` result never
+reads as runtime isolation.
 
 R1 (#412) deleted the three root forwarders of the old run chain and removed
 their `LEGACY_RUN_FORWARDERS` registration from `tests/_gate_policy_support.py`.
@@ -245,7 +248,7 @@ once it runs: that is `runtime_execution`.
 
 On the tree after R3 (#412), `first_wave_report()` has no violation and no
 blocker, `new_core_closure_isolated` and `isolation_complete` are both true, and
-`runtime_execution` lists the two permanent evaluator loaders.
+`runtime_execution` lists the two bundle programs that load files by path.
 
 R1 cleared the `allowlist` and `legacy run forwarders` blockers, and A1 cleared
 the `temporary leaf importers` blocker that R1 left for root `arguments.py`. R2

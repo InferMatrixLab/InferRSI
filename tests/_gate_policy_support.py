@@ -34,21 +34,22 @@ CORE_NAMES = ("knowledge", "harness", "benchmark", "apps")
 # file is covered, in the root or under a package.
 MODULE_ENTRY = "__main__.py"
 MODULE_ENTRY_DELEGATION = ("inferrsi.apps.cli", "main")
-# #412 R3, permanent: the two task evaluators that must call submitted code in their own
-# process to time it. Each entry is a task bundle program (a file in a directory without
-# ``__init__.py`` under ``benchmark/tasks/``), the owner function and the exact local
-# spec variable of its one admitted ``importlib.util.module_from_spec`` call. A second
-# call, a call elsewhere in the file, the same shape in any other module, a declared
-# module that becomes importable or loses its call, and every other dynamic import fail.
-# These loaders execute frozen run files; they are listed in ``runtime_execution``,
-# which ``isolation_complete`` (a static import-closure result) does not cover. R3
-# retired the temporary ``RESOURCE_LOADERS`` table and its blocker: the Harness task
-# protocol runs in a child interpreter and the two sibling loads were merged away.
-EVALUATOR_LOADERS = {
-    "inferrsi.benchmark.tasks.moe-forward-npu.grader": ("load", "spec"),
-    "inferrsi.benchmark.tasks.qwen21-denoise-npu.benchmark": ("load", "spec"),
-}
+# #412 R3, permanent: task bundle programs. A bundle program is a file directly inside
+# ``benchmark/tasks/<bundle>/`` where that directory has no ``__init__.py``. No package
+# code imports such a file, and the directory name cannot be imported as a package;
+# Harness and Apps run it as its own process. Its evaluator may load a frozen run file
+# (a candidate, baseline or reference) by path with ``importlib.util.module_from_spec``
+# to call and time it in-process; the gate admits that call there and nowhere else, by
+# file location and without naming any task. Inside a bundle program every name-based
+# lookup still fails: ``__import__``, ``import_module``, a ``module_from_spec`` imported
+# by name, and a call to ``find_spec``. Static imports of other cores fail as before.
+# ``runtime_execution`` lists each bundle program that loads files by path, which the
+# static ``isolation_complete`` result does not cover. R3 retired the temporary
+# ``RESOURCE_LOADERS`` table and its blocker: the Harness task protocol runs in a child
+# interpreter and the two sibling loads were merged away.
 TASK_BUNDLES = "inferrsi.benchmark.tasks"
+BY_PATH_LOAD = "importlib.util.module_from_spec"
+NAME_LOOKUPS = frozenset({"importlib.util.find_spec", "find_spec"})
 # #412 R1 deleted these eleven root modules: the seven Knowledge shells, the three
 # old-run forwarders and the root inspection binding. None is registered any more.
 # A file that returns under one of these names is a violation by itself, and every
@@ -362,35 +363,30 @@ def _scan(root: Path, pairs: frozenset[tuple[str, str]]) -> _Graph:
     return _Graph(trees, packages, edges)
 
 
-def _evaluator_loader(tree: ast.Module, module: str) -> ast.Attribute | None:
-    """The one declared evaluator call in ``module``; None unless exactly one exists."""
-    declaration = EVALUATOR_LOADERS.get(module)
-    if declaration is None:
-        return None
-    matches = []
-
-    def visit(node, owner="<module>"):
-        if isinstance(node, ast.ClassDef):
-            owner += ".<class>." + node.name
-        elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
-            owner = node.name if owner == "<module>" else owner + "." + node.name
-        if (isinstance(node, ast.Call) and owner == declaration[0]
-                and ast.unparse(node.func) == "importlib.util.module_from_spec"
-                and len(node.args) == 1 and not node.keywords
-                and isinstance(node.args[0], ast.Name) and node.args[0].id == declaration[1]):
-            matches.append(node.func)
-        for child in ast.iter_child_nodes(node):
-            visit(child, owner)
-
-    visit(tree)
-    return matches[0] if len(matches) == 1 else None
+def _is_bundle_program(module: str, trees: dict[str, Any]) -> bool:
+    """A file directly inside a task bundle directory that has no ``__init__.py``."""
+    bundle = module.rpartition(".")[0]
+    return bundle.rpartition(".")[0] == TASK_BUNDLES and bundle not in trees
 
 
-def _has_dynamic_import(tree: ast.Module, module: str = "") -> bool:
-    declared = _evaluator_loader(tree, module)
+def _by_path_loads(tree: ast.Module, module: str, trees: dict[str, Any]) -> list[ast.expr]:
+    """The admitted ``importlib.util.module_from_spec`` calls of a bundle program."""
+    if not _is_bundle_program(module, trees):
+        return []
+    return [node.func for node in ast.walk(tree)
+            if isinstance(node, ast.Call) and ast.unparse(node.func) == BY_PATH_LOAD]
+
+
+def _has_dynamic_import(
+    tree: ast.Module, module: str = "", trees: dict[str, Any] | None = None
+) -> bool:
+    bundle = trees is not None and _is_bundle_program(module, trees)
+    admitted = {id(node) for node in _by_path_loads(tree, module, trees)} if bundle else set()
     for node in ast.walk(tree):
-        if node is declared:
+        if id(node) in admitted:
             continue
+        if bundle and isinstance(node, ast.Call) and ast.unparse(node.func) in NAME_LOOKUPS:
+            return True
         if isinstance(node, ast.Name) and node.id in DYNAMIC_IMPORT_NAMES:
             return True
         if isinstance(node, ast.Attribute) and node.attr in DYNAMIC_IMPORT_NAMES:
@@ -433,7 +429,7 @@ def _closure_violations(
     found += [
         f"{start} reaches an undeclared dynamic import in {node}"
         for node in expanded
-        if node in graph.trees and _has_dynamic_import(graph.trees[node], node)
+        if node in graph.trees and _has_dynamic_import(graph.trees[node], node, graph.trees)
     ]
     return found
 
@@ -690,9 +686,9 @@ class IsolationReport:
 
     ``new_core_closure_isolated`` covers only the new-core closures present in
     the tree. It never stands in for ``isolation_complete``. Both are static
-    import-closure results. ``runtime_execution`` lists the declared sites that
-    execute frozen task or candidate files in-process at run time; neither flag
-    says anything about what that code does once it runs.
+    import-closure results. ``runtime_execution`` lists the task bundle programs that
+    load frozen run files by path and execute them in-process at run time; neither
+    flag says anything about what that code does once it runs.
     """
 
     violations: tuple[str, ...]
@@ -765,20 +761,12 @@ def first_wave_report(
     for parent in sorted(leaf_parents):
         violations += _initializer_errors(parent, graph.trees[parent], graph.packages[parent])
     violations += _contracts_errors(graph)
-    # #412 R3: a declared evaluator must stay a task bundle program and keep exactly its
-    # one call. A stale or widened declaration fails instead of passing silently.
-    runtime_execution = []
-    for name in sorted(set(EVALUATOR_LOADERS) & set(modules)):
-        bundle = name.rpartition(".")[0]
-        if bundle.rpartition(".")[0] != TASK_BUNDLES or bundle in graph.trees:
-            violations.append(f"{name} declares an evaluator loader outside a task bundle program")
-        if _evaluator_loader(graph.trees[name], name) is None:
-            violations.append(f"{name} does not hold exactly its one declared evaluator loader")
-        else:
-            function, spec = EVALUATOR_LOADERS[name]
-            runtime_execution.append(
-                f"{name}.{function}: importlib.util.module_from_spec({spec}) executes frozen "
-                "run files in-process")
+    # #412 R3: bundle programs that load frozen run files by path. They run as their own
+    # processes, so this is runtime execution, which the static closure does not cover.
+    runtime_execution = [
+        f"{name}: {BY_PATH_LOAD} executes files loaded by path in-process"
+        for name in modules if _by_path_loads(graph.trees[name], name, graph.trees)
+    ]
     # Inside the contracts package a Knowledge module may name only the encoder. The
     # initializer and its RunSpec module load with that import and are never named.
     violations += [

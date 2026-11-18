@@ -31,10 +31,14 @@
     prepared bundle no longer has `evaluation.py`. A bundle prepared before this
     change fails its frozen digests and must be prepared again. Retained results
     are not rewritten.
-  - The MoE grader and Qwen21 evaluator keep their in-process candidate loaders
-    under a permanent gate rule (`EVALUATOR_LOADERS`): one exact call each, only in
-    a task bundle program. `first_wave_report().runtime_execution` lists them,
-    because static isolation does not cover what the loaded code does at run time.
+  - The MoE grader and Qwen21 evaluator keep loading the frozen candidate by path in
+    their own process, which timing requires. The gate admits
+    `importlib.util.module_from_spec` only in task bundle programs, files directly
+    inside a `benchmark/tasks/<bundle>/` directory without `__init__.py`, and names no
+    task, so a new bundle needs no gate change. Name-based lookups (`__import__`,
+    `import_module`, `find_spec`) still fail there. `first_wave_report().runtime_execution`
+    lists each bundle program that loads by path, because static isolation does not
+    cover what the loaded code does at run time.
   - The optimization session's runtime identity adds `harness/protocol_child.py`,
     and `harness/task_protocol.py` changed, so a session started before this
     change does not resume after it.
