@@ -1,6 +1,6 @@
 # K01 moved the Knowledge implementations and left static root shells. #412 R1 deleted
-# those seven shells: the root names no longer import, the moved modules keep every
-# recorded name, and the data leaf keeps its locks and its one permanent importer.
+# those seven shells. Root imports still fail. The moved modules preserve the
+# surviving interface and the data leaf keeps its locks and one permanent importer.
 
 from __future__ import annotations
 
@@ -38,7 +38,7 @@ MOVED = [item for item in RETIRED["retired_compatibility_pairs"] if "exports" in
 
 
 @pytest.mark.parametrize("item", MOVED, ids=lambda item: item["importer"])
-def test_retired_root_name_fails_and_the_moved_module_keeps_every_name(item):
+def test_retired_root_name_fails_and_moved_exports_match_current_contract(item):
     retired = f"inferrsi.{item['importer']}"
     assert retired in RETIRED_ROOT_MODULES
     assert not (ROOT / f"{item['importer']}.py").exists()
@@ -47,13 +47,20 @@ def test_retired_root_name_fails_and_the_moved_module_keeps_every_name(item):
         importlib.import_module(retired)
     assert retired not in sys.modules
     assert not hasattr(sys.modules["inferrsi"], item["importer"])
-    # K01-1 carried identity through the shell. The same names are now read where
-    # they are defined, so nothing the shell exported was lost with it.
     moved = importlib.import_module(item["target"])
     names = [*item["exports"]["public"], *item["exports"]["private_used"]]
     assert len(names) == len(set(names))
+    # The manifest records the interface at the time of the move. The Find
+    # migration explicitly retires these scoring APIs and keeps the readers.
+    retired_rankers = set()
+    if item["importer"] == "_skill_selection":
+        retired_rankers = {
+            "RELEVANCE_METHODS", "TASK_RELEVANCE", "words", "lexical_score",
+            "raw_string_lexical_score", "skill_score", "task_score",
+        }
+    assert retired_rankers <= set(names)
     for name in names:
-        assert hasattr(moved, name), name
+        assert hasattr(moved, name) == (name not in retired_rankers), name
     # A pickle that names a class or function by the retired root path no longer loads.
     with pytest.raises(ModuleNotFoundError):
         pickle.loads(f"c{retired}\n{names[0]}\n.".encode("ascii"))
