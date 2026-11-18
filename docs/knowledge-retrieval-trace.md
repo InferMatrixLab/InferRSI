@@ -11,6 +11,45 @@ from PR #401, and the experiment identities and navigation from PR #405. The
 implementation PR records the exact main revision used for validation. These
 interfaces do not depend on unfinished general statistics or workflow proposals.
 
+## Round decisions
+
+The **Round decisions / 逐轮决策** panel places four stages next to each other
+for the selected round, in both layouts and in offline/live views:
+
+| Stage | Recorded source and meaning |
+| --- | --- |
+| Retrieval results | Explicitly linked capture IDs and shared search records; returned entries, versions, assembly/omission state and caller-declared use or rejection. Shared search queries and expandable request/event evidence remain available even without a capture. Open the capture for its full evidence. |
+| Alternatives | That candidate/run's `optimization_trace.search_space`, plus option IDs explicitly referenced by the round's optimization-log candidates. The campaign-wide search space is a separate disclosure, not a reconstructed round shortlist. |
+| Final selection | Caller-declared candidate/option choices, reasons, knowledge references and trace attempts. This is selection **to try**, not adoption after validation. |
+| Execution results | Every recorded candidate/run in the round, its verdict, quality, measured values and post-validation decision. Caller decisions remain separate from run records; disagreements are visible. Open the exact run for change and execution evidence. |
+
+The selector starts at the earliest explicitly recorded round. Records without
+a round appear under **Round not recorded**; their position never implies
+round 1. Missing snapshots, alternatives, selection reasons and results remain
+missing. A trace's caller-written context is labelled separately from a retained
+retrieval snapshot. Tampered captures cannot supply returned entries or assembled
+context, and cross-round association conflicts remain visible. Knowledge
+declarations do not establish consumption or causal performance improvement.
+
+Round selection, expanded details and keyboard focus survive live updates;
+language changes retain the selected round and expanded details. The columns
+adapt to the panel's available width, including the narrower profile layout.
+The profile layout keeps this panel collapsed initially; its **Round decisions**
+navigation link opens it, preserving the existing trend-first landing view.
+
+This is a read-only presentation of existing contracts. It does not collect
+missing history, create a second control record for managed campaigns, or
+complete the real-campaign workflow integration tracked by #491. Managed
+campaigns still use the shared Harness controller; do not use legacy record or
+decision operations to fill their missing associations.
+
+The following screenshots show the implemented panel using synthetic inputs
+and synthetic measurements; they are not real optimization results:
+
+- [Default layout, round 1 in Chinese](assets/dashboard-round-decisions-default-zh.png)
+- [Profile layout, round 1 in Chinese](assets/dashboard-round-decisions-profile-zh.png)
+- [Mobile profile layout in Chinese](assets/dashboard-round-decisions-mobile-zh.png)
+
 ## Execution observations
 
 `knowledge search` and `collect` remain separate operations. Neither calls the
@@ -159,6 +198,7 @@ the full assembled context.
 PYTHONPATH=src python tests/fixtures/knowledge_retrieval.py <OUTPUT_DIRECTORY>
 pytest tests/test_retrieval_projection.py
 pytest tests/test_knowledge_navigation_browser.py
+pytest tests/test_round_decisions_browser.py
 ```
 
 The browser tests require Playwright and Chromium. Open the generated
