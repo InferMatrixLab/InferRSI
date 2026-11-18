@@ -275,6 +275,8 @@ def _run_one(
             phase = "search"
             result = channel.search(query, platform=platform, limit=limit, request=request)
             request.remaining()
+            # The public cap must hold even when an adapter ignores its limit.
+            result = replace(result, items=result.items[:limit])
     except TimeoutError:
         result = _empty(channel.name, TIMEOUT, detail="external channel deadline expired")
     except Exception as exc:

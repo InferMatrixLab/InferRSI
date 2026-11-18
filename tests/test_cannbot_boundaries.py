@@ -98,6 +98,34 @@ def test_search_shape_is_rejected(upstream, mutation):
     assert error.value.state == "rejected"
 
 
+@pytest.mark.parametrize("args", [
+    ("cannbot", "search", "tiling", "--limit", "1"),
+    ("find", "tiling", "--external-limit", "1", "--json"),
+])
+def test_source_cap_precedes_card_reads(upstream, args):
+    _, script, card = upstream
+    payload = search_payload(card)
+    first = payload["results"][0]
+    # These extra rows are well-shaped, but their files do not exist. Reading
+    # either of them would reject the query instead of returning the first hit.
+    payload["results"].extend([
+        {**first, "path": "ops/not-requested-a"},
+        {**first, "path": "ops/not-requested-b"},
+    ])
+    script.write_text(
+        "import json, sys\n"
+        f"print(json.dumps({discovery()!r} if sys.argv[1] == 'discover' "
+        f"else {payload!r}))\n"
+    )
+    result = cli(*args)
+    assert result.returncode == 0, result.stderr
+    response = json.loads(result.stdout)
+    if args[0] == "find":
+        response = response["external"][0]
+    assert response["state"] == "ok"
+    assert [hit["locator"] for hit in response["items"]] == ["ops/card"]
+
+
 def test_unknown_schema_is_version_mismatch(upstream):
     _, script, _ = upstream
     set_source(script, json.dumps({**discovery(), "schema_version": "future"}).encode())
@@ -176,6 +204,9 @@ def test_native_fingerprint_and_raw_byte_digest_are_distinct(upstream):
 
 @pytest.mark.parametrize("backend", [[], ["--backend", "ascend"]])
 def test_outside_git_project_reports_not_enabled(tmp_path, monkeypatch, backend):
+    root = tmp_path.resolve()
+    if any((parent / ".git").exists() for parent in (root, *root.parents)):
+        pytest.skip("temporary directory is inside a Git project")
     monkeypatch.setenv("PYTHONPATH", str(REPO / "src"))
     result = cli("find", "tiling", *backend, "--json", cwd=tmp_path)
     assert result.returncode == 0, result.stderr

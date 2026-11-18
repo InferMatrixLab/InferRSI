@@ -231,6 +231,8 @@ def search(upstream, arguments, *, timeout=60):
     rows = payload.get("results")
     if not isinstance(rows, list):
         _fail("cannbot search needs a results list")
+    # Bound card verification too, rather than trimming only the final output.
+    rows = rows[:arguments["limit"]]
     hits = []
     if rows:
         fingerprint, split_frontmatter = _source_fingerprint(upstream)

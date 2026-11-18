@@ -168,6 +168,26 @@ def test_explicit_limit_overrides_per_channel_default():
     assert channel.limit_seen == 3
 
 
+@pytest.mark.parametrize("name,limit,expected", [
+    ("fake", 1, 1), ("cannbot-knowledge", None, 100), ("mindie-agent", None, 5),
+])
+def test_public_cap_holds_when_adapter_ignores_it(corpus, name, limit, expected):
+    hits = [_hit(f"ops/x/card-{i}") for i in range(expected + 2)]
+    channel = FakeChannel(name=name, items=hits)
+    local = find("tiling", corpus)
+    result = find(
+        "tiling", corpus, backend="ascend", registry=ChannelRegistry([channel]),
+        external_limit=limit,
+    )
+    assert result["items"] == local["items"]
+    entry = result["external"][0]
+    assert entry["state"] == OK
+    assert entry["count"] == expected
+    assert [hit["locator"] for hit in entry["items"]] == [
+        hit.locator for hit in hits[:expected]
+    ]
+
+
 def test_each_channel_gets_its_own_default_limit():
     cannbot = FakeChannel(name="cannbot-knowledge")
     mindie = FakeChannel(name="mindie-agent")
