@@ -1,7 +1,7 @@
 """Evidence path rules and directory creation are separate modules (#451 C2).
 
 ``inferrsi.contracts.evidence`` builds paths and never touches the filesystem.
-``inferrsi.apps.evidence_layout`` is the one place that calls ``mkdir``. Root
+``inferrsi.apps.storage.evidence_layout`` is the one place that calls ``mkdir``. Root
 ``inferrsi.evidence_paths`` is retired without an alias.
 """
 
@@ -19,8 +19,8 @@ from pathlib import Path, PurePosixPath, PureWindowsPath
 
 import pytest
 
-from inferrsi.apps import evidence_layout
-from inferrsi.apps.evidence_layout import ensure_evidence_layout
+from inferrsi.apps.storage import evidence_layout
+from inferrsi.apps.storage.evidence_layout import ensure_evidence_layout
 from inferrsi.contracts import evidence
 from inferrsi.contracts.evidence import (
     EVIDENCE_SEGMENTS,
@@ -36,7 +36,7 @@ RETIRED = "inferrsi.evidence_paths"
 AUDIT = """
 import json, sys
 from pathlib import Path
-from inferrsi.apps.evidence_layout import ensure_evidence_layout
+from inferrsi.apps.storage.evidence_layout import ensure_evidence_layout
 from inferrsi.contracts.evidence import campaign_evidence_root, evidence_subpaths
 IO_EVENTS = ("os.", "shutil.", "pathlib.", "tempfile.", "glob.", "subprocess.", "socket.")
 seen = {"rules": [], "layout": []}
@@ -190,7 +190,7 @@ def test_mkdir_lives_only_in_the_apps_module() -> None:
 
     for path in sorted((ROOT / "contracts").glob("*.py")):
         assert mkdir_calls(path) == [], path.name
-    calls = mkdir_calls(ROOT / "apps" / "evidence_layout.py")
+    calls = mkdir_calls(ROOT / "apps" / "storage" / "evidence_layout.py")
     assert len(calls) == 1 and calls[0].args == []
     assert {key.arg: key.value.value for key in calls[0].keywords} == {
         "parents": True, "exist_ok": True,
@@ -294,7 +294,9 @@ def test_retired_evidence_paths_module_has_no_alias() -> None:
     # New pickles name the canonical modules, and path values are plain data.
     assert b"inferrsi.contracts.evidence" in pickle.dumps(evidence_subpaths, protocol=0)
     assert pickle.loads(pickle.dumps(campaign_evidence_root)) is campaign_evidence_root
-    assert b"inferrsi.apps.evidence_layout" in pickle.dumps(ensure_evidence_layout, protocol=0)
+    assert b"inferrsi.apps.storage.evidence_layout" in pickle.dumps(
+        ensure_evidence_layout, protocol=0
+    )
     assert pickle.loads(pickle.dumps(ensure_evidence_layout)) is ensure_evidence_layout
     assert b"inferrsi" not in pickle.dumps(EVIDENCE_SEGMENTS, protocol=0)
     assert b"inferrsi" not in pickle.dumps(evidence_subpaths(Path("root")), protocol=0)

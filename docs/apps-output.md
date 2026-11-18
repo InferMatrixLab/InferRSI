@@ -109,7 +109,15 @@ error retains the committed PreparedRef.
 `read_prepared` verifies the fixed prepared bytes and identity using the same
 storage configuration. `read_archive_artifact` reads protocol or resource bytes
 from the archive mount and verifies the reference's size and digest. Both
-functions are under `inferrsi.apps.archive`.
+functions are under `inferrsi.apps.storage.archive`.
+
+Storage construction and validation live in `inferrsi.apps.storage.result`.
+The former `inferrsi.apps.archive`, `artifact_reader`, `result` and
+`evidence_layout` modules retain explicit public exports during the #490
+migration. New consumers and private-helper test patches use `apps.storage`.
+The [migration inventory](apps-module-migrations.json) lists the exact exports.
+Persisted namespace values, artifact references and schema versions retain
+their existing spelling.
 
 ## Execute binding
 
@@ -128,7 +136,7 @@ The bound spec is handed to the host-supplied Harness execution port.
 
 ## Fixed artifact reader
 
-`inferrsi.apps.artifact_reader.ArtifactReader(storage_config)` implements
+`inferrsi.apps.storage.artifact_reader.ArtifactReader(storage_config)` implements
 `open(ArtifactRef)` for hosts composing execution or offline assessment.
 Locations select one configured mount by its full prefix and slash boundary.
 Directory mounts verify the declared bytes and reject links or traversal.
@@ -151,5 +159,5 @@ code after a confirmed archive commit. Archive failure returns exit code 6 and
 keeps the assessment in the result with a null `assessment_ref`. If the archive
 commit succeeds and output publication fails, the result retains the committed
 `assessment_ref`.
-`inferrsi.apps.archive.read_assessment` resolves that fixed reference and checks
+`inferrsi.apps.storage.archive.read_assessment` resolves that fixed reference and checks
 the archived bytes, version and identity for reports and other read-only consumers.

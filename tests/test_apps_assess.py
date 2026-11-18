@@ -11,11 +11,11 @@ from urllib.request import urlopen
 
 import pytest
 
-from inferrsi.apps import archive
 from inferrsi.apps.api import EvaluationPort, read_attempt_view
 from inferrsi.apps.api import assess as run_assess
-from inferrsi.apps.artifact_reader import ArtifactReader
 from inferrsi.apps.cli import main
+from inferrsi.apps.storage import archive
+from inferrsi.apps.storage.artifact_reader import ArtifactReader
 from inferrsi.apps.views.dashboard_live import DashboardServer
 from inferrsi.contracts.json_v1 import decode, encode
 from inferrsi.harness.errors import PublicError
@@ -476,7 +476,7 @@ def test_new_process_reassesses_the_requested_sqlite_revision(tmp_path, offline)
 from pathlib import Path
 from inferrsi.contracts.json_v1 import decode, encode
 from inferrsi.apps.api import EvaluationPort, assess as run_assess, read_attempt_view
-from inferrsi.apps.archive import read_assessment
+from inferrsi.apps.storage.archive import read_assessment
 
 workspace = Path.cwd()
 request, config, decision, receipt = decode((workspace / 'offline.json').read_bytes())

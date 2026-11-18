@@ -896,6 +896,11 @@ class ContractsPackageTest(unittest.TestCase):
             ),
             (
                 "contracts/evidence.py",
+                "from inferrsi.apps.storage import evidence_layout\n",
+                "inferrsi.contracts.evidence imports inferrsi.apps.storage",
+            ),
+            (
+                "contracts/evidence.py",
                 "from ..harness import api\n",
                 "inferrsi.contracts.evidence imports inferrsi.harness.api",
             ),

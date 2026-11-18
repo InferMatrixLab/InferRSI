@@ -190,7 +190,11 @@ src/inferrsi/
     __init__.py             Import-free initializer
     repository_packs.py     Neutral REPO_TYPES and pack.json reader; imports no inferrsi module
   apps/
-    evidence_layout.py      Create the plan/results/patch/validator evidence directories
+    storage/
+      archive.py            Immutable preparations/assessments and manifest.json/result.json
+      artifact_reader.py    Read verified artifacts through authorized mounts
+      result.py             AppsResultV1 construction and validation
+      evidence_layout.py    Create plan/results/patch/validator evidence directories
     campaign.py             Knowledge values connected to Harness campaign records
     mindie/
       project.py            Opt-in per-checkout grant, the worker launch and the recorded read

@@ -7,8 +7,6 @@ from hashlib import sha256
 from inferrsi.contracts.json_v1 import decode, encode
 from inferrsi.harness.errors import PublicError
 
-from .archive import _logical_path
-from .artifact_reader import ArtifactReader
 from .bridge import (
     _ATTEMPT_FIELDS,
     _CANDIDATE_FIELDS,
@@ -19,7 +17,9 @@ from .bridge import (
     _output_paths,
     _require_disjoint_paths,
 )
-from .result import _RECORD_OBSERVATIONS, _check_ref, validate_artifact_ref
+from .storage.archive import _logical_path
+from .storage.artifact_reader import ArtifactReader
+from .storage.result import _RECORD_OBSERVATIONS, _check_ref, validate_artifact_ref
 
 _CONTEXT_FIELDS = {
     "campaign_id", "generation_id", "candidate", "parent", "task_materials",

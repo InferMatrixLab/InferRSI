@@ -119,7 +119,7 @@ CANONICAL_ENCODER = "inferrsi.contracts.json_v1"
 # import, so a module that may use the encoder also loads these two names, and no other.
 CONTRACTS_INIT_EXPORT = ("inferrsi.contracts.runspec", "RunSpec")
 # #451 C2 adds exactly one module: the evidence segment and path rules. Directory
-# creation is ``inferrsi.apps.evidence_layout`` and is not a contracts module.
+# creation is ``inferrsi.apps.storage.evidence_layout`` and is not a contracts module.
 CONTRACTS_EVIDENCE = "inferrsi.contracts.evidence"
 CONTRACTS_MODULES = frozenset(
     {

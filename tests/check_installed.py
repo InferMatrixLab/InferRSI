@@ -3,6 +3,7 @@ import hashlib
 import io
 import json
 import os
+import pickle
 import subprocess
 import sys
 import tempfile
@@ -613,7 +614,18 @@ except ValueError as error:
 else:
     raise AssertionError("an unknown repository type must be refused")
 assert evidence.EVIDENCE_SEGMENTS == ("plan", "results", "patch", "validator")
-assert find_spec("inferrsi.apps.evidence_layout") is not None
+# #490 storage: both installed import paths expose the same canonical objects.
+for name in ("archive", "artifact_reader", "result", "evidence_layout"):
+    old_name = f"inferrsi.apps.{name}"
+    canonical_name = f"inferrsi.apps.storage.{name}"
+    old, canonical = import_module(old_name), import_module(canonical_name)
+    assert find_spec(old_name) is not None and find_spec(canonical_name) is not None
+    for exported in old.__all__:
+        value = getattr(canonical, exported)
+        assert getattr(old, exported) is value, (old_name, exported)
+        if getattr(value, "__module__", None) == canonical_name:
+            assert pickle.loads(f"c{old_name}\n{exported}\n.".encode("ascii")) is value
+            assert canonical_name.encode("ascii") in pickle.dumps(value, protocol=0)
 for retired in ("_repo_pack_data", "evidence_paths"):
     assert find_spec(f"inferrsi.{retired}") is None, retired
 assert not installed_root & {"_repo_pack_data.py", "evidence_paths.py"}

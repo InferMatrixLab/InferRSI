@@ -7,7 +7,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from inferrsi.apps import archive
+from inferrsi.apps.storage import archive
 
 
 def _result():
