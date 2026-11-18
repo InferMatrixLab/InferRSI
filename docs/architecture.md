@@ -28,11 +28,12 @@ does not import Benchmark. Benchmark supplies task definitions and specialized
 rules, while Harness manages their execution and the complete optimization lifecycle.
 Neither infers quality criteria from a natural-language goal.
 Ordinary projects default to the current Agent conversation.
-The [offline speculative-search primitives](speculative-search.md) add immutable
-candidate trees, scoped evidence transitions and bounded completion menus in
-Harness. They expose pure control operations for future VATS assembly; the
-existing session controller continues to own execution. Production adapter
-integration, learned role selection and GVO remain separate delivery work.
+The [experimental speculative search](speculative-search.md) composes immutable
+candidate trees, bounded completion menus, synchronous VATS and CPU GVO roles.
+Its work controller uses shared RunStore transactions and the existing local
+process executor. Apps supplies Engine/Skill grading; the support matrix identifies
+remaining production accounting and pilot evidence. Serial session commands keep
+their existing controller and behavior.
 The [native host handoff](native-agent-sessions.md) lets the initiating Agent
 resolve the task request before any campaign exists, use its host's new-session
 tool and retain the native identity and returned artifacts. The child owns the
