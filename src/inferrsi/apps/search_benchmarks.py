@@ -73,6 +73,12 @@ class EngineEvaluator:
             environment=environment,
             include_cleanup=True,
         )
+        if {
+            p.relative_to(self.frozen).as_posix(): sha256(p)
+            for p in self.frozen.rglob("*")
+            if p.is_file()
+        } != self.plan["frozen_files"]:
+            raise ValueError("Frozen benchmark resources changed during execution")
         assessed = protocol.assess(output, self.plan["evaluation_settings"], execution)
         if execution["cleanup_verified"] is not True:
             assessed = {"verdict": "INCONCLUSIVE", "score": None}
