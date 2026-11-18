@@ -108,6 +108,12 @@ Portable operator guidance and candidate procedures live in [src/inferrsi/knowle
 
 ## Optimization requests
 
+For requests to use benchmarks to verify RSI knowledge efficiency, start with
+`inferrsi benchmarks compare --help` and follow its returned `next_action`.
+The default knowledge comparison runs Qwen denoising and MoE forward, each
+on/off in independent sessions. Configuration, native handoff, trace and report
+details are in [benchmark comparison](docs/benchmark-comparison.md).
+
 Ordinary project optimization stays in the current Agent conversation. Follow
 the [shared optimization workflow](docs/optimization-workflow-unification.md):
 prepare explicit workload, quality/measurement scripts, metric, gates, declared

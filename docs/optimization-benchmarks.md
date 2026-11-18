@@ -23,9 +23,13 @@ only observes and collects its results. Benchmark supplies task resources and
 task-specific rules. Harness freezes those inputs, runs the checks, assesses
 retained outputs and manages the lifecycle; it does not invent project acceptance.
 
-The first task with this session protocol is `qwen21-denoise-npu`. MoE and TTS
-currently expose their single-candidate task entries. New session tasks provide
+The iterative tasks are `qwen21-denoise-npu` and `moe-forward-npu`; TTS
+currently exposes its single-candidate task entry. New session tasks provide
 their own `optimization.py` alongside the task definition and evaluator.
+
+For paired knowledge on/off experiments over both tasks, use the Apps
+[`benchmarks compare` workflow](benchmark-comparison.md). It reuses this session
+lifecycle and collects complete optimization traces and independent finals.
 
 ## Start the complete workflow
 
