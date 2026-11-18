@@ -70,7 +70,12 @@ def _fixed_attempt_command(args) -> int:
 
 
 def _knowledge_reader(args) -> KnowledgeReader:
-    return knowledge_reader(skill_root=args.skill_root, store_root=args.store)
+    root = args.skill_root
+    if getattr(args, "installed_library", False):
+        from ...knowledge.knowledge_find import installed_skill_root
+
+        root = installed_skill_root()
+    return knowledge_reader(skill_root=root, store_root=args.store)
 
 
 def _revisions(pairs: list[str]) -> dict[str, str]:
@@ -531,6 +536,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "read":
             _, _, view = read_knowledge(
                 _knowledge_reader(args), args.id, revision=args.revision, material=args.material,
+                resource=args.resource,
             )
             if args.omit_resources:
                 view.pop("resources")

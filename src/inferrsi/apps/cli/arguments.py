@@ -13,6 +13,22 @@ from ...knowledge._skill_selection import RELEVANCE_METHODS
 from ...knowledge.catalog import BACKENDS, KNOWLEDGE_REPOS, KNOWLEDGE_SCOPES, REPO_TYPES
 
 
+def _read_sources(parser: argparse.ArgumentParser) -> None:
+    library = parser.add_mutually_exclusive_group()
+    library.add_argument(
+        "--skill-root", type=Path,
+        help="Select a skills root; reading checkout skills requires the 'skills' extra",
+    )
+    library.add_argument(
+        "--installed-library", action="store_true",
+        help="Select the library bundled with this InferRSI installation",
+    )
+    parser.add_argument(
+        "--store", type=Path,
+        help="Open an existing store read-only; its database must already exist",
+    )
+
+
 def _fixed_attempt_args(
     parser: argparse.ArgumentParser, *, legacy_flag: str | None = None,
 ) -> None:
@@ -96,7 +112,7 @@ def _optimization_actions(stages, *, project=False):
         if name == "knowledge":
             stage.add_argument("--query", required=True)
             stage.add_argument("--relevance-method", choices=RELEVANCE_METHODS,
-                               default="weighted-lexical-v1")
+                               help="Explicit ranking method; defaults to Find")
             stage.add_argument("--context-bytes", type=int, required=True)
             stage.add_argument("--limit", type=int, default=5)
 
@@ -342,14 +358,14 @@ def parser() -> argparse.ArgumentParser:
                         help="Caller-reviewed campaign-relative optimization trace JSON")
     capture = campaign_actions.add_parser(
         "capture-context",
-        help="Run collect and keep the exact knowledge context it assembled",
+        help="Save the exact knowledge context selected for a question or explicit IDs",
     )
     capture.add_argument("--directory", type=Path, required=True)
     capture.add_argument("--id", required=True, help="New context id, e.g. r1-diagnosis")
     capture.add_argument("query", nargs="?", default="")
     capture.add_argument("--relevance", help="Task cue for package knowledge and skill discovery")
     capture.add_argument("--relevance-method", choices=RELEVANCE_METHODS,
-                         help="Campaign discovery defaults to task-lexical-v1")
+                         help="Explicit ranking method; questions default to Find")
     capture.add_argument("--id-ref", action="append", dest="ids", metavar="ID",
                          help="Exact knowledge identity to include (repeatable)")
     capture.add_argument("--kind", choices=("skill", "knowledge", "case"))
@@ -418,8 +434,7 @@ def parser() -> argparse.ArgumentParser:
     actions = knowledge.add_subparsers(dest="knowledge_action", required=True)
     search = actions.add_parser(
         "search",
-        help="Search installed package records only; the repo/tier/backend/scenario "
-        "filters exclude checkout and store items",
+        help="Filter or search the installed record catalog. Use find for general discovery.",
     )
     search.add_argument("query", nargs="?", default="")
     search.add_argument("--repo-type", choices=KNOWLEDGE_REPOS)
@@ -514,7 +529,7 @@ def parser() -> argparse.ArgumentParser:
     collect.add_argument("--limit", type=int, default=10)
     collect.add_argument("--max-bytes", type=int)
     collect.add_argument("--material", action="store_true")
-    collect.add_argument("--relevance", help="Lexical cue for package knowledge discovery")
+    collect.add_argument("--relevance", help="Compatibility ranking for packaged knowledge")
     collect.add_argument(
         "--relevance-method", choices=RELEVANCE_METHODS, default="weighted-lexical-v1",
         help="Package ranking method; nondefault methods require --relevance",
@@ -523,21 +538,12 @@ def parser() -> argparse.ArgumentParser:
         "--context-bytes", type=int,
         help="Opt-in context view; total UTF-8 resource-body byte budget",
     )
-    collect.add_argument(
-        "--skill-root",
-        type=Path,
-        help="Select a skills root; reading checkout skills requires the 'skills' extra",
-    )
-    collect.add_argument(
-        "--store",
-        type=Path,
-        help="Open an existing store read-only; its database must already exist",
-    )
+    _read_sources(collect)
     collect.add_argument("--json", action="store_true")
 
     read = commands.add_parser(
         "read",
-        help="Read one bundle; select sources explicitly with --skill-root/--store",
+        help="Read one bundle from the package, a skill library, or a store",
     )
     read.add_argument("id")
     read.add_argument("--revision", help="Exact revision returned by collect or read")
@@ -546,16 +552,8 @@ def parser() -> argparse.ArgumentParser:
         "--omit-resources", action="store_true",
         help="Omit the resource inventory from output; the revision still covers the full bundle",
     )
-    read.add_argument(
-        "--skill-root",
-        type=Path,
-        help="Select a skills root; reading checkout skills requires the 'skills' extra",
-    )
-    read.add_argument(
-        "--store",
-        type=Path,
-        help="Open an existing store read-only; its database must already exist",
-    )
+    read.add_argument("--resource", help="Include the UTF-8 text at this bundle resource key")
+    _read_sources(read)
 
     resource = commands.add_parser(
         "resource",
@@ -566,16 +564,7 @@ def parser() -> argparse.ArgumentParser:
     resource.add_argument(
         "--revision", required=True, help="Exact revision returned by collect or read"
     )
-    resource.add_argument(
-        "--skill-root",
-        type=Path,
-        help="Select a skills root; reading checkout skills requires the 'skills' extra",
-    )
-    resource.add_argument(
-        "--store",
-        type=Path,
-        help="Open an existing store read-only; its database must already exist",
-    )
+    _read_sources(resource)
     resource.add_argument("--output", type=Path, required=True, help="File receiving the raw bytes")
 
     context = commands.add_parser(

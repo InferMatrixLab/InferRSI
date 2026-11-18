@@ -11,6 +11,7 @@ from pathlib import Path, PurePosixPath
 
 from ._knowledge_errors import MissingSkillsExtra
 from ._skill_selection import (
+    FIND_RELEVANCE,
     RELEVANCE_METHODS,
     TASK_RELEVANCE,
     context_view,
@@ -513,6 +514,48 @@ class KnowledgeReader:
             raise ValueError(f"Unknown resource: {path}")
         return bundle.content[path]
 
+    def _search_order(
+        self, cue: str, matches, *, kind: str | None, package_only: bool,
+    ) -> tuple[dict, int, int]:
+        from .knowledge_find import (
+            Corpus,
+            installed_skill_root,
+            load_documents,
+            packaged_skill_projection,
+            rank,
+            scoped_backend,
+        )
+
+        root = None if package_only else self.skill_root
+        documents = load_documents(root)
+        if root is not None and root != installed_skill_root() and kind not in ("case", "skill"):
+            # A custom library adds checkout sources to Collect. Installed
+            # projections remain available under their package authority.
+            documents.extend(
+                document for document in load_documents(kinds=("skill",))
+                if packaged_skill_projection(document, self) is not None
+            )
+        eligible = {}
+        for index, document in enumerate(documents):
+            authority, _, identity = document.qualified.partition(":")
+            # Keep built-in Skills under their package references for context
+            # delivery, including their indexed required and optional files.
+            projection = packaged_skill_projection(document, self) if kind != "skill" else None
+            if projection is not None:
+                authority, identity = "package", projection["id"]
+            if authority == "package":
+                metadata = {**self.records()[identity], "kind": "knowledge"}
+            else:
+                metadata = {"kind": document.kind, "backend": scoped_backend(document)}
+            if matches(metadata, authority):
+                eligible[index] = f"{authority}:{identity}"
+        _, _, scored = rank(cue, Corpus(documents))
+        results = {
+            eligible[index]: {"score": round(score, 2), "components": components}
+            for score, _, index, components in scored if index in eligible
+        }
+        return results, len(documents), len(eligible)
+
     def collect(
         self,
         query: str = "",
@@ -543,9 +586,14 @@ class KnowledgeReader:
             raise ValueError("Unknown content kind")
         if relevance is not None and (not isinstance(relevance, str) or not words(relevance)):
             raise ValueError("relevance requires at least one word")
-        if relevance_method not in RELEVANCE_METHODS:
+        use_find = relevance_method == FIND_RELEVANCE
+        find_ranking = use_find and ids is None
+        if not use_find and relevance_method not in RELEVANCE_METHODS:
             raise ValueError("Unknown relevance method")
-        if relevance is None and relevance_method != "weighted-lexical-v1":
+        if use_find:
+            if bool(query.strip()) == bool(relevance):
+                raise ValueError("Find selection requires one query or relevance cue")
+        elif relevance is None and relevance_method != "weighted-lexical-v1":
             raise ValueError("relevance_method requires relevance")
         if context_bytes is not None and (type(context_bytes) is not int or context_bytes < 1):
             raise ValueError("context_bytes must be a positive integer")
@@ -558,21 +606,31 @@ class KnowledgeReader:
             raise ValueError("revisions must map identity strings to revision strings")
         if ids is not None and len(set(ids)) != len(ids):
             raise ValueError("Duplicate requested identity")
-        owners = self.owners()
-        requested = ids if ids is not None else self.identities()
+        reader = self
+        if find_ranking:
+            if self.store is not None:
+                raise ValueError("Use explicit IDs or catalog collection for stores")
+            if self.skill_root is None:
+                from .knowledge_find import installed_skill_root
+
+                reader = KnowledgeReader(skill_root=installed_skill_root())
+        owners = reader.owners()
+        requested = ids if ids is not None else sorted(
+            f"{authority}:{identity}" for identity, values in owners.items() for authority in values
+        )
 
         def qualified(reference: str) -> str | None:
             # Revision keys may use any spelling the API accepts for an identity.
             try:
-                return self.resolve(reference, owners)
+                return reader.resolve(reference, owners)
             except IdentityError:
                 return None
 
-        selected = {identity for identity in map(qualified, requested) if identity is not None}
+        selected_refs = {qualified(reference) for reference in requested} if revisions else set()
         pinned: dict[str, str] = {}
         for reference, revision in revisions.items():
             target = qualified(reference)
-            if target is None or target not in selected:
+            if target is None or target not in selected_refs:
                 raise ValueError(
                     f"Revision requested for an unselected identity: {reference}"
                 )
@@ -583,8 +641,10 @@ class KnowledgeReader:
         if tier is not None and tier not in KNOWLEDGE_SCOPES:
             raise ValueError(f"Unknown knowledge tier: {tier}")
         scenario = SCENARIO_ALIASES.get(scenario, scenario)
-        package_filters = any(value is not None for value in (repo, tier, backend, scenario))
-        task_ranking = relevance_method == TASK_RELEVANCE
+        package_filters = any(
+            value is not None for value in (repo, tier, scenario)
+        ) or (backend is not None and not find_ranking)
+        task_ranking = relevance_method in (TASK_RELEVANCE, FIND_RELEVANCE)
 
         def matches(metadata: dict, authority: str) -> bool:
             declared = metadata.get("scenario")
@@ -595,7 +655,7 @@ class KnowledgeReader:
             discovery_skill = (
                 task_ranking and ids is None and authority == "package"
                 and declared == "skills.discovery"
-                and self.records()[metadata["id"]].get("index_type") == "packaged-skill"
+                and reader.records()[metadata["id"]].get("index_type") == "packaged-skill"
             )
             return not (
                 (kind and metadata.get("kind") != kind)
@@ -611,14 +671,25 @@ class KnowledgeReader:
                 )
             )
 
-        cases = self._cases() if kind else {}
+        if find_ranking:
+            found, considered, eligible = reader._search_order(
+                relevance or query, matches, kind=kind,
+                package_only=package_filters or kind == "knowledge",
+            )
+            requested = list(found)
+        else:
+            found, considered, eligible = {}, len(requested), len(requested)
+        cases = reader._cases() if kind and not find_ranking else {}
         selected, omitted, seen = [], [], set()
         used = 0
         ranked, contexts, context_omissions = [], [], []
         context_used = 0
-        explanations = {}
-        excluded = {"ranking_scope": 0, "filters": 0, "query": 0, "zero_score": 0,
-                    "item_limit": 0, "material_bytes": 0}
+        explanations = found
+        excluded = {
+            "ranking_scope": 0, "filters": considered - eligible, "query": 0,
+            "zero_score": eligible - len(found) if find_ranking else 0,
+            "item_limit": 0, "material_bytes": 0,
+        }
         matched_count = 0
 
         def select(reference: str, bundle: Bundle, view: dict) -> None:
@@ -639,9 +710,15 @@ class KnowledgeReader:
             used += size
             if context_bytes is None:
                 return
-            record = self.records().get(view["id"], {})
+            packaged = view["authority"] == "package"
+            record = reader.records().get(view["id"], {}) if packaged else {}
             is_skill = record.get("index_type") == "packaged-skill"
-            if view["authority"] != "package" or (not is_skill and not task_ranking):
+            pinned_item = ids is not None and view["ref"] in pinned
+            checkout_context = (
+                view["authority"] == "checkout" and view["kind"] in ("case", "skill")
+                and (use_find or pinned_item)
+            )
+            if not ((packaged and (is_skill or task_ranking or pinned_item)) or checkout_context):
                 context_omissions.append({"ref": view["ref"], "reason": "unsupported_context"})
                 return
             try:
@@ -664,34 +741,38 @@ class KnowledgeReader:
                 context_used += context["content_bytes"]
 
         for reference in requested:
+            if find_ranking and len(selected) >= limit:
+                excluded["item_limit"] += len(requested) - len(seen)
+                break
             try:
-                qualified = self.resolve(reference, owners)
+                qualified = reader.resolve(reference, owners)
                 if qualified in seen:
                     raise IdentityError("duplicate_identity", f"Already selected: {qualified}")
                 seen.add(qualified)
                 authority, _, identity = qualified.partition(":")
-                # Cheap metadata checks first, so filtered items never load resource bytes.
-                if authority == "package":
-                    early = {**self.records()[identity], "kind": "knowledge"}
-                elif authority == "checkout":
-                    early = {"kind": "case" if identity in cases else "skill"}
-                else:
-                    early = None
-                if relevance is not None and ids is None and (
-                    authority != "package"
-                    or (not task_ranking and early.get("index_type") != "packaged-skill")
-                ):
-                    excluded["ranking_scope"] += 1
-                    continue
-                if early is not None and not matches(early, authority):
-                    excluded["filters"] += 1
-                    if ids is not None:
-                        omitted.append({"id": reference, "reason": "filters"})
-                    continue
-                bundle = self._read(qualified, pinned.get(qualified))
+                if not find_ranking:
+                    # Cheap metadata checks first, before loading bundle resources.
+                    if authority == "package":
+                        early = {**reader.records()[identity], "kind": "knowledge"}
+                    elif authority == "checkout":
+                        early = {"kind": "case" if identity in cases else "skill"}
+                    else:
+                        early = None
+                    if relevance is not None and ids is None and (
+                        authority != "package"
+                        or (not task_ranking and early.get("index_type") != "packaged-skill")
+                    ):
+                        excluded["ranking_scope"] += 1
+                        continue
+                    if early is not None and not matches(early, authority):
+                        excluded["filters"] += 1
+                        if ids is not None:
+                            omitted.append({"id": reference, "reason": "filters"})
+                        continue
+                bundle = reader._read(qualified, pinned.get(qualified))
                 view = {**bundle.view(material=material), "authority": authority, "ref": qualified}
-                entry = bundle.content[bundle.metadata["entrypoint"]]
-                haystack = (_json(bundle.metadata) + entry).decode("utf-8", "replace").casefold()
+                if find_ranking and view["kind"] == "case":
+                    view.setdefault("title", identity.removeprefix("case."))
             except IdentityError as exc:
                 omitted.append({"id": reference, "reason": exc.code, "detail": str(exc)})
                 continue
@@ -700,7 +781,10 @@ class KnowledgeReader:
                     {"id": reference, "reason": "unavailable_revision", "detail": str(exc)}
                 )
                 continue
-            except MissingSkillsExtra:
+            except MissingSkillsExtra as exc:
+                if find_ranking:
+                    omitted.append({"id": reference, "reason": "invalid", "detail": str(exc)})
+                    continue
                 # The install cannot parse any checkout skill, not just this one.
                 # As an omission it would return `no_match`, which reads as
                 # "nothing found" rather than "install the skills extra".
@@ -708,18 +792,21 @@ class KnowledgeReader:
             except (ValueError, KeyError, TypeError, AttributeError, OSError, sqlite3.Error) as exc:
                 omitted.append({"id": reference, "reason": "invalid", "detail": str(exc)})
                 continue
-            if not matches(view, authority):
+            if not find_ranking and not matches(view, authority):
                 excluded["filters"] += 1
                 if ids is not None:
                     omitted.append({"id": reference, "reason": "filters"})
                 continue
-            if any(token not in haystack for token in query.casefold().split()):
-                excluded["query"] += 1
-                if ids is not None:
-                    omitted.append({"id": reference, "reason": "query"})
-                continue
-            if relevance is not None and ids is None:
-                record = self.records().get(identity, {})
+            entry = bundle.content[bundle.metadata["entrypoint"]]
+            if not find_ranking and query:
+                haystack = (_json(bundle.metadata) + entry).decode("utf-8", "replace").casefold()
+                if any(token not in haystack for token in query.casefold().split()):
+                    excluded["query"] += 1
+                    if ids is not None:
+                        omitted.append({"id": reference, "reason": "query"})
+                    continue
+            if not find_ranking and relevance is not None and ids is None:
+                record = reader.records().get(identity, {})
                 try:
                     is_skill = record.get("index_type") == "packaged-skill"
                     if is_skill:
@@ -762,7 +849,16 @@ class KnowledgeReader:
                 "Read references must be resolved with their returned exact revision.",
             ],
         }
-        if relevance is not None:
+        if find_ranking:
+            result["selection"] = {
+                "method": FIND_RELEVANCE, "cue": relevance or query,
+                "scope": "package-records-and-library", "ranking_applied": True,
+                "matched_count": len(found), "returned_count": len(selected),
+            }
+            result["limitations"][0] = (
+                "Find ranks textual matches; check each item's applicability and limitations."
+            )
+        elif relevance is not None:
             result["selection"] = {
                 "method": relevance_method, "cue": relevance,
                 "scope": ("package-skills-and-records" if task_ranking
@@ -785,28 +881,34 @@ class KnowledgeReader:
             })
         from .retrieval import observation
 
-        ranking = relevance is not None and ids is None
+        ranking = find_ranking or (relevance is not None and ids is None)
+        selection = result.get("selection", {})
         result["retrieval"] = observation(
             entrypoint="collect", request={
                 "query": query, "relevance": relevance, "relevance_method": relevance_method,
                 "ids": ids, "revisions": revisions, "kind": kind, "repo": repo, "tier": tier,
                 "backend": backend, "scenario": scenario, "limit": limit,
                 "max_bytes": max_bytes, "context_bytes": context_bytes,
-                "sources": ["package"] + (["checkout"] if self.skill_root else [])
-                           + (["store"] if self.store is not None else []),
+                "sources": ["package"] + (["checkout"] if reader.skill_root else [])
+                           + (["store"] if reader.store is not None else []),
             }, selection={
-                "method": relevance_method if relevance is not None else None,
-                "scope": (("package-skills-and-records" if task_ranking else
-                           "generated-packaged-skills") if relevance is not None else None),
+                "method": selection.get("method"),
+                "scope": selection.get("scope"),
                 "ranking_applied": ranking,
                 "state": "applied" if ranking else "explicit_ids" if ids is not None
                          else "not_requested",
-                "tie_break": "ref_ascending" if ranking else None,
+                "tie_break": (
+                    "state_then_id_then_ref" if find_ranking else "ref_ascending"
+                ) if ranking else None,
             }, items=[{"ref": item["ref"], "revision": item["revision"], "rank": n,
                        **explanations.get(item["ref"], {})}
                       for n, item in enumerate(selected, 1)],
-            counts={"considered": len(requested), "matched": matched_count,
-                    "returned": len(selected), "excluded": excluded},
+            counts={
+                "considered": considered, "matched": len(found) if find_ranking else matched_count,
+                "returned": len(selected), "excluded": excluded,
+            },
             assembly="not_requested" if context_bytes is None else "performed",
         )
+        if find_ranking:
+            result["retrieval"]["calls"].append("find")
         return result

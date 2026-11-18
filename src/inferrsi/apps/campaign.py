@@ -12,7 +12,7 @@ from pathlib import Path
 
 from inferrsi import __version__
 from inferrsi.harness.records import campaign_records, knowledge_capture
-from inferrsi.knowledge._skill_selection import TASK_RELEVANCE
+from inferrsi.knowledge._skill_selection import FIND_RELEVANCE, TASK_RELEVANCE
 from inferrsi.knowledge.catalog import BACKENDS
 from inferrsi.knowledge.context_projection import (
     PROVENANCE_FIELDS,
@@ -47,20 +47,32 @@ def capture_context(root: Path, *, context_id: str, reader, query: str = "",
     """
     campaign = knowledge_capture.capture_campaign(root, context_id)
     if relevance_method is None:
-        relevance_method = TASK_RELEVANCE if relevance and ids is None else "weighted-lexical-v1"
-    if relevance_method == TASK_RELEVANCE and ids is None and backend is None:
+        has_store = "store" in sources or getattr(reader, "store", None) is not None
+        if ids is None and not has_store and bool(relevance) != bool(query.strip()):
+            relevance_method = FIND_RELEVANCE
+        elif relevance and ids is None:
+            relevance_method = TASK_RELEVANCE
+        else:
+            relevance_method = "weighted-lexical-v1"
+    if relevance_method in (FIND_RELEVANCE, TASK_RELEVANCE) and ids is None and backend is None:
         backend = campaign.get("backend")
     result = reader.collect(
         query, ids=ids, kind=kind, repo=repo, tier=tier, backend=backend,
         scenario=scenario, limit=limit, relevance=relevance,
         relevance_method=relevance_method, context_bytes=context_bytes,
     )
+    observation = result.get("retrieval")
+    source_types = list(sources)
+    if relevance_method == FIND_RELEVANCE and isinstance(observation, dict):
+        source_types = observation.get("request", {}).get("sources", source_types)
     request = {
         "query": query, "relevance": relevance,
-        "relevance_method": relevance_method if relevance else None,
+        "relevance_method": (
+            relevance_method if relevance or relevance_method == FIND_RELEVANCE else None
+        ),
         "ids": ids, "kind": kind, "repo": repo, "tier": tier,
         "backend": backend, "scenario": scenario, "limit": limit,
-        "context_bytes": context_bytes, "sources": list(sources),
+        "context_bytes": context_bytes, "sources": source_types,
     }
     if _supplies_no_observation(result):
         # Such a reader gets the record this entry wrote before observations

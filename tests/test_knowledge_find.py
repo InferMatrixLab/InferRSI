@@ -241,7 +241,7 @@ def test_result_carries_a_reference_the_caller_can_open(corpus):
     assert item["source"].startswith("https://")
 
 
-def test_read_accepts_the_reference_find_reports(capsys):
+def test_read_accepts_the_reference_find_reports(capsys, tmp_path):
     """Run the reported command as given and check it returns the text.
 
     Metadata is not what a reader following a hit is after, and `read` reports
@@ -249,12 +249,20 @@ def test_read_accepts_the_reference_find_reports(capsys):
     """
     result = find("mask caching ran out of device memory", load_corpus(ROOT), limit=10)
     item = next(i for i in result["items"] if i["id"] == "case.qwen-ascend-rejected-directions")
+    assert "--installed-library" in item["read_args"]
+    assert "--skill-root" not in item["read_args"]
     assert main(item["read_args"]) == 0
     payload = json.loads(capsys.readouterr().out)
     assert payload["id"] == "case.qwen-ascend-rejected-directions"
     body = payload["content"]
     assert "rejected directions" in body.casefold()
     assert "910B1" in body
+    target = tmp_path / "case.md"
+    assert main([
+        "resource", item["read_args"][1], payload["entrypoint"], "--installed-library",
+        "--revision", payload["revision"], "--output", str(target),
+    ]) == 0
+    assert target.read_bytes() == body.encode("utf-8")
 
 
 def test_reference_survives_a_root_whose_path_has_spaces(tmp_path, capsys):
@@ -265,6 +273,7 @@ def test_reference_survives_a_root_whose_path_has_spaces(tmp_path, capsys):
     result = find("mask caching ran out of device memory", corpus, limit=10)
     item = next(i for i in result["items"] if i["id"] == "case.qwen-ascend-rejected-directions")
     assert item["source_location"] == "checkout"
+    assert item["read_args"][-2:] == ["--skill-root", str(root.resolve())]
     assert main(item["read_args"]) == 0
     assert "910B1" in json.loads(capsys.readouterr().out)["content"]
     if os.name != "nt":
@@ -730,6 +739,7 @@ def test_cli_json_mode_states_its_limits(capsys):
     assert item["id"] == "ascend-device-health"
     assert item["source_location"] == "installed"
     assert item["read_args"][:2] == ["read", "checkout:ascend-device-health"]
+    assert "--installed-library" in item["read_args"]
     assert payload["corpus_size"] == len(load_corpus(ROOT).documents)
     assert any("not a learned ranking" in line for line in payload["limitations"])
 

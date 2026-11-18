@@ -158,7 +158,8 @@ def capture_event(context_id, captured, *, archive=False, return_chunks=None,
         materials.append({"ref": ref, "revision": revision, "resources": resources.get(ref, [])})
     observation = doc.get("retrieval") or {}
     calls = observation.get("calls", [])
-    tool = calls[-1] if calls and calls[-1] in ("collect", "knowledge search") else "collect"
+    recorded_tool = calls[-1] if calls else None
+    tool = recorded_tool if recorded_tool in ("collect", "find", "knowledge search") else "collect"
     event = {"action": "search", "tool": tool, "context_id": context_id,
              "source": source, "sha256": digest, "request": doc["request"],
              "selection": doc.get("selection"), "materials": materials}

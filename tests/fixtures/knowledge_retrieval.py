@@ -69,8 +69,10 @@ def build(root, *, runs=DEFAULT_RUNS):
     source = reader()
     budget = 2 * len(b"Synthetic launch guidance.\n")
     captures = {}
-    path, captures["capture"] = capture_context(root, context_id="capture", reader=source,
-                                               relevance="launch", context_bytes=budget)
+    path, captures["capture"] = capture_context(
+        root, context_id="capture", reader=source, relevance="launch",
+        relevance_method="task-lexical-v1", context_bytes=budget,
+    )
     captured = json.loads(path.read_text())
     with patch("inferrsi.knowledge.catalog.knowledge_records",
                return_value=list(source.records().values())):

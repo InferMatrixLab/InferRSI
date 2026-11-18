@@ -50,20 +50,20 @@ class Reader:
 
 
 # Each row: capture options, the method and backend stored in the record, and
-# the method handed to ``collect``. These are the values recorded before the
-# capture moved out of the observability package.
+# the method handed to ``collect``. Include the legacy methods explicitly to
+# cover both current defaults and older callers.
 SELECTION = {
-    "cue": ({"relevance": "decode launch"}, "task-lexical-v1", "cuda", "task-lexical-v1"),
+    "cue": ({"relevance": "decode launch"}, "find-lexical-v1", "cuda", "find-lexical-v1"),
     "cue-and-ids": ({"relevance": "decode launch", "ids": ["package:graphs"]},
                     "weighted-lexical-v1", None, "weighted-lexical-v1"),
-    "query-only": ({"query": "decode"}, None, None, "weighted-lexical-v1"),
+    "query-only": ({"query": "decode"}, "find-lexical-v1", "cuda", "find-lexical-v1"),
     "explicit-raw": ({"relevance": "decode launch",
                       "relevance_method": "weighted-raw-string-v1"},
                      "weighted-raw-string-v1", None, "weighted-raw-string-v1"),
     "task-without-cue": ({"relevance_method": "task-lexical-v1"}, None, "cuda",
                          "task-lexical-v1"),
     "explicit-backend": ({"relevance": "decode launch", "backend": "ascend"},
-                         "task-lexical-v1", "ascend", "task-lexical-v1"),
+                         "find-lexical-v1", "ascend", "find-lexical-v1"),
     "explicit-legacy": ({"relevance": "decode launch",
                          "relevance_method": "weighted-lexical-v1"},
                         "weighted-lexical-v1", None, "weighted-lexical-v1"),
@@ -210,7 +210,8 @@ def test_reader_without_observation_serializes_the_exact_earlier_bytes(tmp_path,
     monkeypatch.setattr(knowledge_capture, "datetime", FixedClock)
     campaign.create_campaign(tmp_path, "layout")
     path, digest = campaign.capture_context(tmp_path, context_id="r1", reader=Reader(),
-                                            relevance="decode launch")
+                                            relevance="decode launch",
+                                            relevance_method="task-lexical-v1")
     expected = legacy_record_bytes(__version__)
 
     assert path.read_bytes() == expected

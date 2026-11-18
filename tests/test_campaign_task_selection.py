@@ -1,5 +1,7 @@
 import json
 
+import pytest
+
 from inferrsi.apps.campaign import capture_context, create_campaign, verify_capture
 from inferrsi.knowledge.knowledge_operations import KnowledgeReader
 
@@ -9,7 +11,8 @@ BASELINE_CUE = "reproducible diffusion baseline correctness fixed seed end to en
 def test_campaign_search_returns_portable_methods_and_records_counts(tmp_path):
     create_campaign(tmp_path, "diffusion")
     path, _ = capture_context(tmp_path, context_id="first", reader=KnowledgeReader(),
-                              relevance=BASELINE_CUE, limit=2, context_bytes=14000)
+                              relevance=BASELINE_CUE, relevance_method="task-lexical-v1",
+                              limit=2, context_bytes=14000)
     document, state = verify_capture(path.read_bytes())
     assert state == "verified"
     assert [item["title"] for item in document["items"]] == [
@@ -60,3 +63,58 @@ def test_workload_scenario_discovers_skills_and_compatible_engine_records():
     assert reader.collect(ids=[portable], **options)["omissions"] == [
         {"id": portable, "reason": "filters"}
     ]
+
+
+@pytest.mark.parametrize(("backend", "case"), [
+    ("cuda", "qwen-ascend-rejected-directions"),
+    ("ascend", "qwen-b300-rejected-directions"),
+])
+def test_find_filters_cases_to_the_campaign_backend(tmp_path, backend, case):
+    create_campaign(tmp_path, "target", backend=backend)
+    path, _ = capture_context(
+        tmp_path, context_id="r1", reader=KnowledgeReader(), kind="case",
+        relevance=case.replace("-", " "), limit=5,
+    )
+    capture, state = verify_capture(path.read_bytes())
+    assert state == "verified"
+    assert capture["items"]
+    assert all(item["ref"] != f"checkout:case.{case}" for item in capture["items"])
+    counts = capture["retrieval"]["counts"]
+    assert counts["excluded"]["filters"] > 0
+    assert counts["considered"] == (
+        counts["matched"] + counts["excluded"]["filters"] + counts["excluded"]["zero_score"]
+    )
+
+
+def test_find_with_custom_library_keeps_packaged_projections(tmp_path):
+    create_campaign(tmp_path, "target")
+    library = tmp_path / "custom"
+    library.mkdir()
+    path, _ = capture_context(
+        tmp_path, context_id="r1", reader=KnowledgeReader(skill_root=library),
+        relevance="cgroupv2", limit=1,
+    )
+    capture, state = verify_capture(path.read_bytes())
+    assert state == "verified"
+    item, = capture["items"]
+    assert item["ref"] == "package:inferrsi.common.skills.cgroup_resource_controls"
+
+
+def test_find_preserves_required_case_readset(tmp_path):
+    from inferrsi.knowledge.knowledge_find import installed_skill_root
+
+    create_campaign(tmp_path, "target")
+    path, _ = capture_context(
+        tmp_path, context_id="r1", reader=KnowledgeReader(), kind="case",
+        relevance="vllm gdn source contract", limit=1,
+    )
+    capture, state = verify_capture(path.read_bytes())
+    assert state == "verified"
+    context, = capture["contexts"]
+    assert context["ref"] == "checkout:case.vllm-gdn-source-contract"
+    resource = next(
+        item for item in context["resources"] if item["path"] == "vllm-gdn-causal-conv-contract.md"
+    )
+    assert resource["content"].encode("utf-8") == KnowledgeReader(
+        skill_root=installed_skill_root()
+    ).resource(context["ref"], resource["path"], revision=context["revision"])

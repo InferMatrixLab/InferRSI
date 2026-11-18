@@ -13,22 +13,22 @@ interfaces do not depend on unfinished general statistics or workflow proposals.
 
 ## Execution observations
 
-`knowledge search` and `collect` remain separate operations. Neither calls the
-other. `campaign capture-context` calls `collect`; its default task relevance
-policy is unchanged. There is no global listener or automatic capture.
+`campaign capture-context` uses Find ranking for a single free-text question,
+then assembles selected material through Collect. The capture records both
+operations. Explicit IDs select material in caller order. Exact catalog search
+and explicit legacy ranking methods remain available for existing workflows.
+Capture is explicit.
 
 ```sh
-inferrsi knowledge search 'decode launch' --explain
-inferrsi collect --relevance 'decode launch' --json
+inferrsi find 'decode launch' --explain --json
 inferrsi campaign capture-context --directory <CAMPAIGN_DIRECTORY> --id r1-context \
   --relevance 'decode launch' --context-bytes 65536
 ```
 
 `knowledge search --explain` returns a JSON envelope with `items` and `retrieval`.
-Without that flag, its list API, JSON and tabular output are unchanged. Python
-callers use `search_knowledge(..., explain=True)`. `collect` adds a `retrieval`
-member outside its budgeted item/resource payloads. Existing item revisions,
-return order, `material_bytes`, context assembly and byte budgets are unchanged.
+Python callers use `search_knowledge(..., explain=True)` for the same
+catalog envelope. `collect` includes a `retrieval` member outside its
+budgeted item and resource payloads.
 
 | `retrieval` field | Meaning |
 | --- | --- |
@@ -47,11 +47,12 @@ remain repeated components. Ties use ascending ID. A catalog observation's
 `catalog-sha256:` revision hashes the returned catalog record using sorted,
 UTF-8 JSON. It identifies that record, not a collect bundle or an upstream commit.
 
-The two weighted methods record title, summary, tags/applicability and body
-contributions. Task relevance records title, summary, tags, repo/scenario,
+Find records each matching term's contribution and uses recorded state,
+identity and qualified reference to break score ties. The two legacy weighted
+methods record title, summary, tags/applicability and body contributions. Task relevance records title, summary, tags, repo/scenario,
 applicability and body contributions plus its platform multiplier. Ties use
-ascending qualified ref. Explicit IDs preserve caller order and skip ranking;
-no relevance request records `not_requested`. Filters use first-exclusion
+ascending qualified ref. Explicit IDs preserve caller order and skip ranking.
+A plain inventory records `not_requested`. Filters use first-exclusion
 counts; these are not overlapping marginal totals. Per-item explanations cover
 returned items only. Existing omissions and resource hashes remain available.
 

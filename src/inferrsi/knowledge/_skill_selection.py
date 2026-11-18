@@ -7,6 +7,7 @@ import re
 from ._source_snapshot import source_entry
 
 TASK_RELEVANCE = "task-lexical-v1"
+FIND_RELEVANCE = "find-lexical-v1"
 RELEVANCE_METHODS = ("weighted-lexical-v1", "weighted-raw-string-v1", TASK_RELEVANCE)
 TASK_STOP_WORDS = frozenset({"a", "an", "and", "for", "in", "of", "on", "the", "to", "with"})
 
@@ -157,18 +158,35 @@ def task_score(cue: str, record: dict, core: bytes, backend: str | None,
 
 
 def record_context(record: dict, view: dict, content: dict[str, bytes], available: int) -> tuple:
-    """Keep the canonical package record including its sources and limits."""
-    path = view["entrypoint"]
-    body = content[path]
-    if len(body) > available:
+    """Deliver whole files, including the declared closure of a Case."""
+    paths = {view["entrypoint"]: "record" if view["kind"] == "knowledge" else "core"}
+    omissions = [
+        {"path": path, "reason": "linked_document"}
+        for path in dict.fromkeys(record.get("skill_documents", {}).values())
+    ]
+    if view["kind"] == "case":
+        for path in view.get("required_resources", ()):
+            paths.setdefault(path, "reference")
+        # The checkout Bundle exposes the case card both as case.json and, when
+        # declared, under its authored filename. Deliver the named copy once.
+        if "case.json" in paths and any(
+            path != "case.json" and path.endswith(".json")
+            and content[path] == content["case.json"] for path in paths
+        ):
+            del paths["case.json"]
+            omissions.append({"path": "case.json", "reason": "duplicate_resource"})
+    required_bytes = sum(len(content[path]) for path in paths)
+    if required_bytes > available:
         return None, {"ref": view["ref"], "reason": "context_limit",
-                      "required_bytes": len(body), "available_bytes": available}
+                      "required_bytes": required_bytes, "available_bytes": available}
     return {
-        "ref": view["ref"], "revision": view["revision"], "content_bytes": len(body),
-        "resources": [{"path": path, "sha256": view["resources"][path], "role": "record",
-                       "locator": "whole-resource", "content": body.decode("utf-8")}],
-        "omissions": [{"path": p, "reason": "linked_document"} for p in
-                      dict.fromkeys(record.get("skill_documents", {}).values())],
+        "ref": view["ref"], "revision": view["revision"], "content_bytes": required_bytes,
+        "resources": [
+            {"path": path, "sha256": view["resources"][path], "role": role,
+             "locator": "whole-resource", "content": content[path].decode("utf-8")}
+            for path, role in paths.items()
+        ],
+        "omissions": omissions,
         "sources": view["sources"], "attribution": view["attribution"],
         "limitations": view["limitations"],
     }, None

@@ -61,18 +61,25 @@ def test_package_only_commands_work_without_pyyaml(without_yaml):
 
 def test_packaged_skill_search_and_resource_work_without_pyyaml(without_yaml, tmp_path):
     env = _cli_env(without_yaml)
-    query = "cuda graph warmup"
+    query = "ascend graph mode"
     found = _run(["find", query, "--kinds", "skill", "--limit", "1", "--json"], env)
     assert found.returncode == 0, found.stderr
     hit, = json.loads(found.stdout)["items"]
-    assert "PyYAML" in hit["unreadable"]
-    assert "open_argv" not in hit
+    assert hit["id"] == "ascend-graph-mode"
+    opened = _run(hit["read_args"], env)
+    assert opened.returncode == 0, opened.stderr
+    read = json.loads(opened.stdout)
 
     collected = _run(["collect", "--relevance", query, "--limit", "1", "--material", "--json"], env)
     assert collected.returncode == 0, collected.stderr
     packaged, = json.loads(collected.stdout)["items"]
     assert packaged["authority"] == "package"
     original = packaged["skill_documents"]["original"]
+    expected = (SKILLS / Path(original).relative_to("data/skill_library")).read_bytes()
+    assert read["id"] == packaged["id"]
+    assert read["revision"] == packaged["revision"]
+    assert read["content_resource"] == original
+    assert read["content"].encode("utf-8") == expected
 
     output = tmp_path / "packaged-skill.md"
     fetched = _run([
@@ -80,8 +87,30 @@ def test_packaged_skill_search_and_resource_work_without_pyyaml(without_yaml, tm
         "--output", str(output),
     ], env)
     assert fetched.returncode == 0, fetched.stderr
-    expected = SKILLS / Path(original).relative_to("data/skill_library")
-    assert output.read_bytes() == expected.read_bytes()
+    assert output.read_bytes() == expected
+
+
+def test_custom_skill_does_not_open_the_installed_projection_without_pyyaml(without_yaml, tmp_path):
+    relative = "hardware/ascend/ascend-graph-mode"
+    directory = tmp_path / relative
+    directory.mkdir(parents=True)
+    (directory / "SKILL.md").write_text(
+        "---\nname: ascend-graph-mode\ndescription: Ascend graph mode experiment\n---\n"
+        "This is a private local observation.\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "skill-index.json").write_text(json.dumps({
+        "schema_version": 1,
+        "skills": {"ascend-graph-mode": {"path": relative, "backend": "ascend"}},
+    }), encoding="utf-8")
+    result = _run([
+        "find", "ascend graph mode", "--skill-root", str(tmp_path), "--kinds", "skill", "--json",
+    ], _cli_env(without_yaml))
+    assert result.returncode == 0, result.stderr
+    hit, = json.loads(result.stdout)["items"]
+    assert hit["source_location"] == "checkout"
+    assert "PyYAML" in hit["unreadable"]
+    assert "read_args" not in hit
 
 
 def test_skill_root_without_pyyaml_fails_with_install_hint(without_yaml):

@@ -19,22 +19,23 @@ source = reader.resource(item["ref"], "methods/calibrate-serving-simulation/refe
 
 ## CLI access
 
-The `collect`, `read` and `resource` commands expose these operations with the
-same rules (see the [operation guide](operations.md) for flags, boundaries and
-examples). Sources are selected explicitly: the installed package by default, a
-an explicit skills root via `--skill-root`, an existing store read-only via `--store`;
-the store records the skills root it reserves and rejects a mismatched or missing
-`--skill-root` on open. `resource` requires the exact revision returned by
-`collect`/`read` and writes bytes to `--output`.
+For discovery, use `find` and follow the relevant hit's `open` command. Use
+`collect` to take a batch of known materials, and `read` or `resource` for an
+exact bundle or resource. The [operation guide](operations.md) lists the flags.
+The package catalog is available by default. Select a custom library with
+`--skill-root` or select the bundled library with `--installed-library` on
+`collect`, `read` or `resource`. The read-only `--store` option requires the
+store's recorded skills root if one was configured. `resource` takes the
+revision returned by `collect` or `read` and writes bytes to `--output`.
 
 ```bash
-inferrsi collect 'Ascend OOM' --kind case --limit 3 --material --skill-root src/inferrsi/knowledge/data/skill_library
-inferrsi read calibrate-serving-simulation --skill-root src/inferrsi/knowledge/data/skill_library
+inferrsi find 'Ascend OOM after caching per-step masks' --kinds case
 ```
 
-Reading checkout skill bodies requires the `skills` extra (`python -m pip install
-'.[skills]'`). Package-only operations and checkout case reads work with the base
-install.
+Direct reads of checkout Skill bodies require the `skills` extra
+(`python -m pip install '.[skills]'`). On a base install, `find` opens a matching
+indexed installed Skill through its package projection. Package-only operations
+and direct Case reads also work with the base install.
 
 Every item has an owning `authority` (`package`, `checkout` or `store`) and a qualified
 `ref` of the form `<authority>:<id>`. Public IDs are unchanged and may be used
@@ -66,18 +67,23 @@ Deterministic identity order is not a learned relevance ranking.
 
 ## Optional packaged skill selection and context
 
-Two independent opt-ins extend the same `collect` operation:
+Standalone Collect supports legacy query-based selection and budgeted
+assembly. The explicit-ID path can assemble context without a ranking query:
 
 ```python
 reader = KnowledgeReader()
-# Existing query and material semantics are unchanged.
 legacy = reader.collect("cpu.stat.local", material=True, limit=3)
-selected = reader.collect("cpu.stat.local", relevance="cgroupv2",
-                          context_bytes=65536, limit=3)
+selected = reader.collect(
+    ids=["package:inferrsi.ascend.skills.ascend_graph_mode",
+         "package:inferrsi.ascend.skills.ascend_device_health"],
+    context_bytes=65536,
+)
 ```
 
 ```bash
-inferrsi collect 'cpu.stat.local' --relevance cgroupv2 --context-bytes 65536 --json
+inferrsi collect --id package:inferrsi.ascend.skills.ascend_graph_mode \
+  --id package:inferrsi.ascend.skills.ascend_device_health \
+  --context-bytes 65536 --json
 ```
 
 `relevance` is a separate lexical cue, not a replacement for `query`. Discovery
@@ -102,16 +108,21 @@ from its JSON escape. Literal backslash-letter text remains searchable.
 Nonstring fields, including the combined tags/applicability value, retain their
 legacy JSON representation. Both methods keep the same substring matching,
 distinct cue words, weights, positive-score admission and identity tie order.
-The nondefault method requires `relevance`; unsupported methods are rejected.
+The raw-string method requires `relevance`. Unsupported methods are rejected.
 Explicit IDs still bypass ranking. This option changes only owner discovery
 ranking, not query matching or optional context-resource scoring. It is a
 lexical-presence contract option, not evidence of general retrieval quality.
 
-Campaign discovery (`campaign capture-context --relevance ...`) defaults to
-`task-lexical-v1`. This method searches registered skills and package knowledge
-records, including GPU procedures under the engine's repository pack.
-`collect --relevance-method task-lexical-v1 --relevance ...` runs the same
-search. Whole words in titles, summaries, tags, repository/scenario labels,
+For questions in `campaign knowledge`, `benchmarks session knowledge` and
+`campaign capture-context`, the default ranking method is
+`find-lexical-v1`. It uses the same ranker as `find` to select Cases, Skills
+and Records, then assembles the selected material with its revisions and
+budget omissions. Explicit IDs bypass ranking. Captures using an explicit
+`--store` use the established store selection. To select a different ranking
+method, pass `--relevance-method` explicitly.
+
+`task-lexical-v1` remains available for package Skill and Record searches.
+Whole words in titles, summaries, tags, repository/scenario labels,
 applicability and body text contribute to rank. A portable owner or one
 matching the backend receives twice the lexical score of an unscoped
 specialization. Without an explicit backend, platform words in the cue
@@ -121,26 +132,24 @@ Use `campaign init --backend <backend>` to retain the runtime backend for
 later searches. An explicit capture backend takes precedence. Existing
 campaigns can pass `--backend` directly on the capture. The search returns
 the best matches up to the requested limit and records the matched and
-returned counts. For engine records it captures the complete `record.json`,
-including the source, applicable geometry and limitations. Linked skill
-documents can be read at the returned revision. Registered skills keep the
-resource rules below. In task discovery, `--scenario` admits records matching
-the workload and registered skills tagged `skills.discovery`. That tag describes
-the discovery operation. The task cue ranks these procedures, whose suitability
-must be checked against their own conditions. Captured hits retain their
-declared scenario. Explicit IDs and the older ranking methods still filter on
-the owner's declared catalog scenario.
+returned counts. For engine Records it captures the complete `record.json`,
+including the source, applicable geometry and limitations. For Cases it can
+capture the complete entrypoint. Linked documents can be read at the returned
+revision. Indexed Skills keep the resource rules below. In Find and task
+discovery, `--scenario` admits package Records matching the workload and
+packaged Skill records tagged `skills.discovery`. Check each procedure's own
+conditions before using it. Captured hits retain the scenario declared by the
+owner. Explicit IDs and legacy catalog selectors filter on the declared scenario.
 
-`context_bytes` requests a separate context view for returned generated packaged
-skills. It requires an explicit positive integer budget, with no token estimate
-or default. It can be used without `relevance`; optional resources then match the
-existing query, or use path order for an empty query. The existing `material=True`
-still returns `record.json` for these owners, not `SKILL.md`.
+`context_bytes` requests a separate context view. It takes a positive integer
+byte budget. It can be used without `relevance`. For indexed Skills, optional
+resources then match the existing query, or use path order for an empty query.
+`material=True` on a package Skill record returns its `record.json` entrypoint.
 
 | Additional result | Meaning |
 | --- | --- |
 | `retrieval` | Recorded entry, filters, ranking execution, returned-item scores and budget counts; outside budgeted item/resource payloads. See [retrieval observations](knowledge-retrieval-trace.md#execution-observations) |
-| `selection` | Method, cue, scope and whether discovery ranking was applied; only with `relevance` |
+| `selection` | Method, cue, scope and whether discovery ranking was applied |
 | `contexts` | Selected owner views, each with `ref`, exact Bundle `revision`, resources, `content_bytes`, resource omissions, sources, attribution and limitations |
 | `context_omissions` | Owner context unavailable: `unsupported_context`, `index_unavailable` or `context_limit` |
 | `context_bytes`, `context_budget` | Used body bytes, requested ceiling and accounting method |
@@ -204,8 +213,10 @@ or installation rejects an old revision; it never substitutes new bytes.
 This reader does not itself retain history or claim standalone exports.
 
 `read --material --omit-resources` returns the full entrypoint, provenance,
-applicability and revision. Remove `--omit-resources` to list resource paths and
-digests. Both forms use the same full-bundle revision.
+applicability and revision. Use `read --resource <key>` to display a specific
+UTF-8 resource in `content` and its key in `content_resource`. Remove
+`--omit-resources` to list resource paths and digests. These views use the same
+full-bundle revision.
 
 - Local skills include their complete owner folder (except incidental
   `__pycache__`, `*.pyc` and `.DS_Store`) and declared cross-skill references,
@@ -239,21 +250,18 @@ supplied code never runs it or grants permissions.
 
 ## Retrieve diagnostic options
 
-Rejected directions use the same checkout Case bundles as other observations:
+Use `find --kinds case` to locate rejected directions. Given the identity and
+revision of a hit, reopen the exact Case through the same library:
 
 ```python
 reader = KnowledgeReader(skill_root=Path("src/inferrsi/knowledge/data/skill_library"))
-options = reader.collect("Ascend OOM", kind="case", material=True, limit=3)
-item = options["items"][0]  # Inspect no_match/omissions first in a general client.
-case = reader.read(item["ref"], revision=item["revision"])
+case = reader.read("checkout:case.qwen-ascend-rejected-directions",
+                   revision="<revision from read>")
 ```
 
-Other example queries are `B300 RMSNorm` and `Drama3 prefix reuse`. Query terms
-match metadata and entry content as substrings; combine a mechanism and context
-to narrow results. An explicit ID such as
-`checkout:case.qwen-ascend-rejected-directions` selects exactly one record.
-Package repo/backend/scenario filters still exclude checkout cases; inspect the
-returned applicability rather than assuming those filters qualify a case.
+Other example queries are `B300 RMSNorm` and `Drama3 prefix reuse`. Include the
+mechanism and symptom to narrow the results. Read the Case's conditions and
+limitations before applying the observation.
 
 For explicit CLI resource-path resolution from the installed library (optional
 `skills` extra required), or a custom library selected with `--root`:

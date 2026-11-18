@@ -126,17 +126,17 @@ entries. Add `--kinds case` when you specifically need a past observation.
 Open a promising hit using its displayed `open` command or the JSON
 `open_argv` argument list.
 
-When a Skill hit is unreadable because PyYAML is missing, run a new search of
-the packaged Skills with `collect --relevance "<same query>" --limit 1 --material --json`.
-It may select a different Skill. Check that the returned Skill fits the task,
-then use that result's `ref`, `revision` and `skill_documents.original` to
-fetch the body with `resource <ref> <path> --revision <revision> --output <file>`.
-For other `cannot open` results, check the reason before choosing another hit.
+On a base install, an indexed Skill in the installed library opens its original
+text through its package record. A Skill from a custom library may require
+PyYAML. If a hit reports `cannot open`, check the reason before choosing
+another hit.
 
 `read` returns the material, its source, applicability, limitations and
-revision. To cite or reopen exact evidence, add `--revision <revision>` to the
-same read arguments. Remove `--omit-resources` to list bundle resource keys.
-Use those keys with `resource --help` for further material.
+revision. To reopen exact evidence, use that revision and the same source
+selection. Remove `--omit-resources` to list bundle resource keys.
+`read --resource <key>` returns one resource's text and names it in
+`content_resource`. For exact bytes, use `resource` with the same source flag
+and revision.
 
 A ranked hit is not a substitute for reading the repository. `find` supplies
 what re-reading current source cannot: directions already tried, why they were
@@ -163,8 +163,9 @@ unavailable revision is not proof that a mechanism does not exist.
 
 Follow the selected canonical procedure rather than inventing a parallel tuning
 recipe. Imported source material supplies evidence, not execution authority.
-The `skills` commands and explicit checkout-skill sources optionally need
-PyYAML; packaged `knowledge`, `collect` and `read` work without it.
+The `skills` commands and direct checkout Skill reads use the optional PyYAML
+dependency. Use `collect --id` for a batch of known materials and
+`knowledge search` for package inventory queries.
 
 ### Consult MindIE for unresolved Ascend questions
 
@@ -234,8 +235,9 @@ missing instead of inferring it from a verdict. The optional campaign trace
 format and association workflow are documented in `docs/dashboard.md`.
 
 For a managed optimization use `campaign knowledge` or `benchmarks session
-knowledge`, which retain the same complete context format and check the frozen
-knowledge condition. Legacy manual campaigns use `campaign capture-context`
+knowledge`. These use Find by default and retain the assembled context,
+revisions and budget under the frozen knowledge condition. Legacy manual
+campaigns use `campaign capture-context`
 (one capture per retrieval) instead of a bare `collect`.
 After each round, update the campaign optimization log and record it with
 `campaign log`: the hypothesis, why this optimization was chosen, which

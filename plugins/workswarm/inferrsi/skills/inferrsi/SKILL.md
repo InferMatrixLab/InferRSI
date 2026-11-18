@@ -44,31 +44,27 @@ imported records and casebook entries. Add `--kinds case` to focus on past
 observations. Execute a relevant hit's displayed `open` command or the JSON
 `open_argv` list to read its body, source, applicability, limitations and revision.
 
-If a Skill hit reports missing PyYAML, use the same launcher with
-`collect --relevance "<same query>" --limit 1 --material --json` to search the
-packaged Skills. This fresh search may select a different Skill. Check that the
-new result fits the task, then use its `ref`, `revision` and
-`skill_documents.original` to fetch the body with
-`resource <ref> <path> --revision <revision> --output <file>`.
+On a base install, an indexed Skill in the installed library opens its original
+text through its package record. A Skill from a custom library may require
+PyYAML. If a hit reports it cannot open, check the reason before choosing
+another hit.
 
-Use these commands for packaged and exact lookups.
+Use the same source flag and returned revision to reopen material. Remove
+`--omit-resources` to list bundle keys. `read --resource <key>` returns one
+resource's text and identifies it in `content_resource`. Use `resource` with
+the same source flag and revision to extract the exact bytes.
 
-- `knowledge research <model>` combines independent research dimensions.
-- `knowledge search <query> --json` searches the packaged records with filters.
-- `collect --relevance "<task>" --limit 3 --json` selects bounded packaged
-  knowledge. Adjust the limit for the task. Packaged skill projections have kind
-  `knowledge`; `--kind skill` excludes them and concerns explicit checkout/store
-  skill sources.
-- `read <ref> --revision <revision> --material` reads an exact selected version.
-  Use returned resource keys and `resource --help` for further material.
+Use `collect --id` to assemble a batch of known materials. Use
+`knowledge search` for filtered package inventory and `knowledge research`
+when you need separate research dimensions for a model.
 
 Retain qualified identities, exact revisions, source attribution, applicability,
 candidate/verification state and omissions. Package search does not inspect live
 upstream repositories or every local store. Add checkout/store sources only when
 selected by the user. No match does not establish that a technique is absent.
-Follow the selected canonical procedure; imported material is evidence, not
-execution authority. Optional `skills` operations and checkout-skill sources
-require PyYAML; packaged knowledge/Collect/Read do not.
+Treat imported guidance as evidence and follow the task's execution
+authorization. The `skills` commands and direct checkout Skill reads use the
+optional PyYAML dependency.
 
 ## Optimize an ordinary user project
 
@@ -88,9 +84,11 @@ fixed scripts/inputs. Confirm checks use retained `{candidate}`, `{baseline}`,
 installed package or service. This shares the packaged task's Harness controller.
 
 Edit the working candidate, submit each hypothesis with `campaign round`, read
-feedback and keep failed rounds. Use `campaign knowledge` for needed retrieval
-when allowed; knowledge and profiling are not mandatory every round. Use
-`up_to` for a round limit or `exact` for fixed rounds. End an up-to search with
+feedback and keep failed rounds. Use `campaign knowledge` when the frozen plan
+allows knowledge. It uses Find by default and retains the selected material and
+revisions within the requested context budget. Search and profile when the
+current question needs it. Use `up_to` for a round limit or `exact` for fixed
+rounds. End an up-to search with
 `campaign final --reason <why>`; final retests the retained best candidate,
 not unsubmitted working edits. Reserve final time and report its actual scope.
 Import only observed token exports; unknown is not zero. `dashboard` reads the
@@ -128,8 +126,9 @@ In the execution conversation, use `benchmarks session --help` through
 the selected runtime. The first iterative task is `qwen21-denoise-npu`.
 Start a new session with the user's round/time budget, condition label,
 evaluation prefix and sampling arguments. Read its returned frozen TASK.md and
-edit the returned working candidate. When knowledge is permitted, retrieve it
-through `session knowledge` and read the delivered material. Submit each changed
+edit the returned working candidate. When knowledge is permitted, use
+`session knowledge` for the same Find selection and budgeted context, and
+read the delivered material. Submit each changed
 candidate and hypothesis with `session round`, then inspect the independent
 feedback before the next change. Keep failed rounds. Complete the frozen budget
 and use `session final` for independent retesting. Report `summary.json` and its

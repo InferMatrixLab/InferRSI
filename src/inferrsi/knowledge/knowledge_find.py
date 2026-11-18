@@ -38,7 +38,9 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from .channels import ChannelRegistry
 
-from ._skill_selection import TASK_STOP_WORDS, named_backends
+from ._knowledge_errors import MissingSkillsExtra
+from ._skill_selection import TASK_STOP_WORDS, indexed_skill, named_backends
+from ._source_snapshot import BUNDLE_LIBRARY
 from .catalog import BACKENDS
 
 # Author-written intent outranks bulk prose: a term in a title is evidence the
@@ -258,7 +260,8 @@ class Document:
         return shown, max(0, len(self.findings) - len(shown))
 
     def view(
-        self, *, score: float, query_tokens: list[str] = (), unreadable: str | None = None
+        self, *, score: float, query_tokens: list[str] = (),
+        read_args: tuple[str, ...] = (), unreadable: str | None = None,
     ) -> dict:
         record = {
             "id": self.identity,
@@ -270,13 +273,12 @@ class Document:
         }
         if self.qualified:
             record["authority"] = self.qualified.partition(":")[0]
-            if unreadable is None:
-                read_args = _read_args(self.qualified, self.root)
+            if read_args:
                 argv = [*launcher(), *read_args]
                 record["read_args"] = list(read_args)
                 record["open_argv"] = argv
                 record["ref"] = shell_command(argv)
-            else:
+            elif unreadable is not None:
                 record["unreadable"] = unreadable
         if self.source_location:
             record["source_location"] = self.source_location
@@ -304,20 +306,6 @@ class Document:
         if self.unverified():
             record["locally_verified"] = False
         return record
-
-
-def _read_args(identity: str, root: Path | None = None) -> tuple[str, ...]:
-    """CLI arguments that return the entry's text, not just its metadata.
-
-    Without `--material`, `read` reports the entrypoint's filename in `content`
-    rather than the file; a caller following the reference lands on a name.
-    Kept as an argument list so a program can run it without re-parsing, and
-    so quoting is decided once, for the shell the command will be shown in.
-    """
-    parts = ["read", identity, "--material", "--omit-resources"]
-    if root is not None:
-        parts += ["--skill-root", str(root)]
-    return tuple(parts)
 
 
 def launcher() -> list[str]:
@@ -443,6 +431,7 @@ def _case_documents(root: Path, *, source_location: str) -> list[Document]:
             applicability=record.get("applicability"),
             limitations=tuple(record.get("limitations", [])),
             findings=findings,
+            backend=record.get("backend"),
         ))
     return documents
 
@@ -620,12 +609,42 @@ class Corpus:
         return total, detail
 
 
-def load_corpus(
+def scoped_backend(document: Document) -> str | None:
+    """Backend declared by a source, including the recorded cohorts of older Cases."""
+    if document.backend or document.kind != "case":
+        return document.backend
+    terms = set(tokens(_flatten(document.applicability)))
+    # Older observations record the hardware in their applicability list.
+    aliases = {**_BACKEND_NAME_ALIASES, "b300": "cuda"}
+    backends = named_backends({aliases.get(term, term) for term in terms})
+    return next(iter(backends)) if len(backends) == 1 else None
+
+
+def installed_skill_root() -> Path:
+    """Resolve the library from the current installation."""
+    return Path(files("inferrsi").joinpath("knowledge", "data", "skill_library")).resolve()
+
+
+def packaged_skill_projection(document: Document, reader) -> dict | None:
+    """Find the generated record for this exact installed Skill path."""
+    if document.kind != "skill" or document.source_location != "installed" or not document.path:
+        return None
+    if document.root != installed_skill_root():
+        return None
+    resource = f"{BUNDLE_LIBRARY}/{document.path}"
+    return next((
+        record for record in reader.records().values()
+        if record.get("index_type") == "packaged-skill"
+        and record.get("skill_documents", {}).get("original") == resource
+    ), None)
+
+
+def load_documents(
     skill_root: Path | None = None, *, kinds: tuple[str, ...] = ("case", "skill", "record")
-) -> Corpus:
+) -> list[Document]:
     documents: list[Document] = []
     if "case" in kinds or "skill" in kinds:
-        installed = Path(files("inferrsi").joinpath("knowledge", "data", "skill_library")).resolve()
+        installed = installed_skill_root()
         root = installed if skill_root is None else Path(skill_root).resolve()
         if not root.is_dir():
             raise ValueError(f"Skill root is not a directory: {root}")
@@ -640,7 +659,13 @@ def load_corpus(
     if len(set(identities)) != len(identities):
         duplicate = next(i for i, c in Counter(identities).items() if c > 1)
         raise ValueError(f"Duplicate identity in corpus: {duplicate}")
-    return Corpus(documents)
+    return documents
+
+
+def load_corpus(
+    skill_root: Path | None = None, *, kinds: tuple[str, ...] = ("case", "skill", "record")
+) -> Corpus:
+    return Corpus(load_documents(skill_root, kinds=kinds))
 
 
 @lru_cache(maxsize=1)
@@ -703,33 +728,59 @@ def expand(query: str) -> tuple[list[str], dict[str, tuple[str, ...]]]:
     return [token for token in dict.fromkeys(found) if token not in _QUERY_STOP_WORDS], applied
 
 
-def _why_unreadable(document: Document, readers: dict) -> str | None:
-    """Open the entry the way `read` would; return why not, or None if it opens.
-
-    Ranking reads files directly, which is what lets it skip Bundle closures,
-    but it means a hit can be indexed and still refused by `read`: a source
-    record missing the version `read` requires, or a case whose body file was
-    never copied. Offering a command known to fail is worse than offering
-    none, so only the hits actually returned are checked -- a handful of
-    reads, not the corpus -- and a failing one reports why instead.
-
-    A missing optional dependency is reported against the hit like any other
-    reason it cannot be opened here. Ranking itself needs no parser, so the
-    search must not fail for it; the caller learns which hits need PyYAML
-    to open, and can still open every case, which does not.
-    """
+def _open_args(document: Document, readers: dict) -> tuple[str, ...]:
+    """Validate material and build the read command for a returned hit."""
     from .knowledge_operations import KnowledgeReader
 
     if not document.qualified:
-        return None
+        return ()
     reader = readers.get(document.root)
     if reader is None:
         reader = readers[document.root] = KnowledgeReader(skill_root=document.root)
     try:
         reader.read(document.qualified).view(material=True)
-    except (ValueError, KeyError, OSError, TypeError) as exc:
-        return str(exc) or type(exc).__name__
-    return None
+    except MissingSkillsExtra:
+        record = packaged_skill_projection(document, reader)
+        if record is None:
+            raise
+        package_reader = readers.get(None)
+        if package_reader is None:
+            package_reader = readers[None] = KnowledgeReader()
+        ref = f"package:{record['id']}"
+        bundle = package_reader.read(ref)
+        view = bundle.view()
+        core, _, _ = indexed_skill(record, {**view, "authority": "package"}, bundle.content)
+        bundle.content[core].decode("utf-8")
+        return (
+            "read", ref, "--omit-resources", "--resource", core, "--revision", view["revision"],
+        )
+
+    parts = ("read", document.qualified, "--material", "--omit-resources")
+    if document.root is None:
+        return parts
+    if document.source_location == "installed":
+        return (*parts, "--installed-library")
+    return (*parts, "--skill-root", str(document.root))
+
+
+def rank(query: str, corpus: Corpus) -> tuple[
+    list[str], dict[str, tuple[str, ...]], list[tuple[float, int, int, dict]]
+]:
+    """Score matches without opening a Bundle or formatting a delivery."""
+    # A topic alias can add backend terms for matching, as 图模式 adds cuda graph.
+    explicit_terms = {_BACKEND_NAME_ALIASES.get(term, term) for term in tokens(query)}
+    backends = named_backends(explicit_terms)
+    query_backend = next(iter(backends)) if len(backends) == 1 else None
+    query_tokens, applied = expand(query)
+    scored = []
+    for index, document in enumerate(corpus.documents):
+        value, detail = corpus.score(index, query_tokens, query_backend=query_backend)
+        if value > 0:
+            scored.append((value, STATE_RANK.get(document.state, 0), index, detail))
+    scored.sort(key=lambda row: (
+        -row[0], -row[1], corpus.documents[row[2]].identity, corpus.documents[row[2]].qualified,
+    ))
+    return query_tokens, applied, scored
 
 
 def find(
@@ -746,25 +797,17 @@ def find(
 ) -> dict:
     if type(limit) is not int or limit < 1:
         raise ValueError("limit must be a positive integer")
-    # A topic alias can add backend terms for matching, as 图模式 adds cuda graph.
-    explicit_terms = {_BACKEND_NAME_ALIASES.get(term, term) for term in tokens(query)}
-    backends = named_backends(explicit_terms)
-    query_backend = next(iter(backends)) if len(backends) == 1 else None
-    query_tokens, applied = expand(query)
-    scored = []
-    for index, document in enumerate(corpus.documents):
-        value, detail = corpus.score(index, query_tokens, query_backend=query_backend)
-        if value > 0:
-            scored.append((value, STATE_RANK.get(document.state, 0), index, detail))
-    scored.sort(key=lambda row: (
-        -row[0], -row[1], corpus.documents[row[2]].identity, corpus.documents[row[2]].qualified,
-    ))
+    query_tokens, applied, scored = rank(query, corpus)
     items = []
     readers: dict = {}
     for value, _, index, detail in scored[:limit]:
         document = corpus.documents[index]
+        try:
+            read_args, unreadable = _open_args(document, readers), None
+        except (ValueError, KeyError, OSError, TypeError) as exc:
+            read_args, unreadable = (), str(exc) or type(exc).__name__
         view = document.view(
-            score=value, query_tokens=query_tokens, unreadable=_why_unreadable(document, readers)
+            score=value, query_tokens=query_tokens, read_args=read_args, unreadable=unreadable,
         )
         if explain:
             view["matched"] = detail

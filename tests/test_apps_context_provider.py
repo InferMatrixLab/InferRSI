@@ -85,7 +85,26 @@ def test_discovery_delegates_selection_to_knowledge():
     assert [item["pin"]["reference"] for item in draft.items] == [_CGROUP]
     assert draft.selection["ranking_applied"] is True
     assert draft.selection["state"] == "applied"
-    assert draft.selection["tie_break"] == "ref_ascending"
+    assert draft.selection["method"] == "find-lexical-v1"
+    assert draft.selection["tie_break"] == "state_then_id_then_ref"
+
+
+def test_discovered_installed_case_can_be_replayed_at_its_exact_revision():
+    provider = ContextProvider(knowledge_reader())
+    discovered = provider.collect(_request(
+        query="cache per-step masks ran out of device memory", ids=[],
+        selection_limits={"limit": 1}, max_bytes=8192,
+    ))
+    item, = discovered.items
+    pin = item["pin"]
+    assert pin["reference"] == "checkout:case.qwen-ascend-rejected-directions"
+    replay = provider.collect(_request(
+        ids=[pin["reference"]], pins=[{"name": pin["reference"], "revision": pin["revision"]}],
+        max_bytes=8192,
+    ))
+    assert replay.content and replay.content == discovered.content
+    assert replay.items == discovered.items
+    assert replay.selection["state"] == "explicit_ids"
 
 
 @pytest.mark.parametrize("overrides", [
