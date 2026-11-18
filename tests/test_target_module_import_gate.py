@@ -177,6 +177,22 @@ def test_retired_model_paths_fail_to_import(tmp_path, importer, source, target):
     assert "violations" in blocker_kinds(report)
 
 
+@pytest.mark.parametrize("importer, source, target", [
+    # Review of f8f1553: an initializer resolves relative imports from its own package.
+    ("benchmark/__init__.py", "from ..model.protocols import metrics\n",
+     "inferrsi.model.protocols.metrics"),
+    ("benchmark/sub/__init__.py", "from ...model.validators import flare\n",
+     "inferrsi.model.validators.flare"),
+    ("benchmark/sub/__init__.py", "from ...model import validators\n",
+     "inferrsi.model.validators"),
+])
+def test_retired_model_paths_fail_from_a_package_initializer(tmp_path, importer, source,
+                                                             target):
+    report = _report(tmp_path, {importer: source})
+    package = _module(importer).removesuffix(".__init__")
+    assert f"{package} imports retired module {target}" in report.violations
+
+
 @pytest.mark.parametrize("relative", [
     "model/protocols/metrics.py",
     "model/validators/__init__.py",
