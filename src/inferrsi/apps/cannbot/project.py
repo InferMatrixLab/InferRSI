@@ -208,6 +208,7 @@ def search(
 
 
 def read(locator: str, *, page: int = 1, expected_sha256: str | None = None,
+         expected_revision: str | None = None,
          root: Path | None = None, timeout: float = 15.0) -> dict:
     if not isinstance(locator, str) or not locator.strip():
         raise ChannelFailure("cannbot read needs a locator from a search result")
@@ -217,9 +218,16 @@ def read(locator: str, *, page: int = 1, expected_sha256: str | None = None,
         not isinstance(expected_sha256, str) or not re.fullmatch(r"[0-9a-f]{64}", expected_sha256)
     ):
         raise ChannelFailure("cannbot expected_sha256 must be a lowercase 64-hex digest")
+    if expected_revision is not None and (
+        not isinstance(expected_revision, str)
+        or not re.fullmatch(r"[0-9a-f]{40}", expected_revision)
+    ):
+        raise ChannelFailure("cannbot expected_revision must be a full lowercase Git revision")
     arguments = {"locator": locator, "page": page}
     if expected_sha256:
         arguments["expected_sha256"] = expected_sha256
+    if expected_revision:
+        arguments["expected_revision"] = expected_revision
     return _run(load_grant(root), "read", arguments, timeout=timeout)
 
 

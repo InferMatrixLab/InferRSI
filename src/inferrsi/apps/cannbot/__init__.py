@@ -97,9 +97,11 @@ class CannbotChannel:
             read_prefix="inferrsi cannbot read",
         )
 
-    def read(self, locator: str, *, expected_sha256: str | None = None) -> str:
+    def read(self, locator: str, *, expected_sha256: str | None = None,
+             expected_revision: str | None = None) -> str:
         payload = self._project.read(
             locator, expected_sha256=expected_sha256, root=self.root,
+            expected_revision=expected_revision,
             timeout=max(self.timeout, 15.0),
         )
         return str(payload.get("text") or "")

@@ -154,6 +154,9 @@ def parser() -> argparse.ArgumentParser:
         "card changed since then",
     )
     cannbot_read.add_argument("--page", type=int, default=1)
+    cannbot_read.add_argument(
+        "--revision", help="Expected full checkout revision from a search result",
+    )
     agents = commands.add_parser("agents", help="Record native host fresh-session handoffs")
     agent_actions = agents.add_subparsers(dest="agent_action", required=True)
     prepare = agent_actions.add_parser("prepare", help="Freeze a task for the current host")

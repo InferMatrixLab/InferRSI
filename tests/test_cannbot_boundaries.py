@@ -30,6 +30,17 @@ def discovery():
             "index": {"built_repository_state": {"commit": REVISION}}}
 
 
+def commit_revision(source):
+    subprocess.run(
+        ["git", "-C", str(source), "-c", "user.name=Synthetic Fixture",
+         "-c", "user.email=fixture@example.invalid", "-c", "commit.gpgsign=false",
+         "commit", "--allow-empty", "-qm", "synthetic revision"], check=True,
+    )
+    return subprocess.check_output(
+        ["git", "-C", str(source), "rev-parse", "HEAD"], text=True,
+    ).strip()
+
+
 @pytest.fixture
 def upstream(tmp_path, monkeypatch):
     home = tmp_path / "home"
@@ -42,7 +53,8 @@ def upstream(tmp_path, monkeypatch):
     (root / ".git").mkdir()
     monkeypatch.chdir(root)
     source = tmp_path / "upstream"
-    (source / ".git").mkdir(parents=True)
+    subprocess.run(["git", "init", "-q", str(source)], check=True)
+    monkeypatch.setattr(sys.modules[__name__], "REVISION", commit_revision(source))
     (source / "knowledge/ops").mkdir(parents=True)
     card = source / "knowledge/ops/card.md"
     card.write_text("\n".join(f"synthetic line {i}" for i in range(401)))
@@ -160,10 +172,12 @@ def test_read_binds_all_pages_to_search_digest(upstream):
     hit = json.loads(result.stdout)["external"][0]["items"][0]
     opened = cli(*shlex.split(hit["open"])[1:])
     body = json.loads(opened.stdout)
+    assert body["revision"] == REVISION
     assert body["card_sha256"] == hit["card_sha256"]
     assert body["has_more"]
     page = cli(*shlex.split(hit["open"])[1:], "--page", "2")
     assert json.loads(page.stdout)["card_sha256"] == hit["card_sha256"]
+    assert json.loads(page.stdout)["revision"] == REVISION
     card.write_text("changed")
     changed = cli(*shlex.split(hit["open"])[1:], "--page", "2")
     assert changed.returncode != 0
@@ -179,6 +193,63 @@ def test_read_refuses_path_escape(upstream):
     result = cli("cannbot", "read", "../private")
     assert result.returncode != 0
     assert "not knowledge" not in result.stdout + result.stderr
+
+
+@pytest.mark.parametrize("page", [1, 2])
+def test_read_rejects_revision_drift_with_unchanged_card(upstream, page):
+    source, script, card = upstream
+    script.write_text(
+        "import json, sys\n"
+        f"print(json.dumps({discovery()!r} if sys.argv[1] == 'discover' "
+        f"else {search_payload(card)!r}))\n"
+    )
+    found = json.loads(cli("find", "synthetic", "--json").stdout)["external"][0]
+    hit = found["items"][0]
+    assert f"--revision {found['revision']}" in hit["open"]
+    changed_revision = commit_revision(source)
+    assert changed_revision != found["revision"]
+    result = cli(*shlex.split(hit["open"])[1:], "--page", str(page))
+    assert result.returncode != 0
+    assert "revision changed since the search" in result.stderr
+    assert "synthetic line" not in result.stdout + result.stderr
+    current = project.read(hit["locator"], page=page)
+    assert current["revision"] == changed_revision
+    assert current["card_sha256"] == hit["card_sha256"]
+
+
+def test_read_rejects_revision_change_during_read(upstream, monkeypatch, capsys):
+    from inferrsi.apps.cannbot import read_worker
+
+    source, _, _ = upstream
+    original = read_worker._card_bytes
+
+    def changing_card(root, locator):
+        raw = original(root, locator)
+        commit_revision(source)
+        return raw
+
+    monkeypatch.setattr(read_worker, "_card_bytes", changing_card)
+    with pytest.raises(SystemExit):
+        read_worker.read(source, {"locator": "ops/card", "expected_revision": REVISION})
+    result = json.loads(capsys.readouterr().out)
+    assert result["state"] == "version_mismatch"
+    assert "text" not in result
+
+
+def test_read_uses_approved_checkout_not_inherited_git_directory(upstream, monkeypatch):
+    source, _, _ = upstream
+    monkeypatch.setenv("GIT_DIR", str(source / "nonexistent-git-directory"))
+    assert project.read("ops/card", expected_revision=REVISION)["revision"] == REVISION
+
+
+@pytest.mark.parametrize("revision", ["", "HEAD", "abc", "A" * 40, "a" * 39, 42])
+def test_read_rejects_invalid_expected_revision_before_worker(monkeypatch, revision):
+    def unexpected(*args, **kwargs):
+        pytest.fail("invalid revision started a worker")
+
+    monkeypatch.setattr(project, "_run", unexpected)
+    with pytest.raises(project.ChannelFailure, match="expected_revision"):
+        project.read("ops/card", expected_revision=revision)
 
 
 def test_native_fingerprint_and_raw_byte_digest_are_distinct(upstream):

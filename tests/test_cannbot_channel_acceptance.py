@@ -147,8 +147,10 @@ def test_read_returns_one_pinned_card():
     entry = next(item for item in result["external"] if item["channel"] == "cannbot-knowledge")
     hit = entry["items"][0]
     locator = hit["locator"]
-    card = _run("cannbot", "read", locator, "--sha256", hit["card_sha256"])
+    card = _run("cannbot", "read", locator, "--sha256", hit["card_sha256"],
+                "--revision", entry["revision"])
     assert card["card_sha256"] == hit["card_sha256"]
+    assert card["revision"] == entry["revision"]
     assert card["state"] == "ok"
     assert card["locator"] == locator
     assert card["text"].strip()

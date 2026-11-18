@@ -286,9 +286,36 @@ def search(upstream, arguments, *, timeout=60):
     }
 
 
-def read(upstream, arguments):
+def _revision(upstream, *, timeout):
+    # Inherited repository-selection variables must not redirect this check.
+    environment = {key: value for key, value in os.environ.items()
+                   if not key.startswith("GIT_")}
+    try:
+        result = capture(
+            ["git", "-C", str(upstream), "rev-parse", "--verify", "HEAD"],
+            cwd=str(upstream), timeout=timeout, environment=environment,
+        )
+    except OutputLimitError:
+        _fail("cannbot revision output exceeded 2 MiB")
+    revision = result.stdout.decode("ascii", "replace").strip()
+    if result.returncode or not re.fullmatch(r"[0-9a-f]{40}", revision):
+        _fail("Cannot determine the approved cannbot checkout revision",
+              state="version_mismatch")
+    return revision
+
+
+def read(upstream, arguments, *, timeout=15):
+    deadline = time.monotonic() + timeout
+    revision = _revision(upstream, timeout=max(0, deadline - time.monotonic()))
+    expected_revision = arguments.get("expected_revision")
+    if expected_revision and revision != expected_revision:
+        _fail("The cannbot revision changed since the search; search again",
+              state="version_mismatch")
     locator = arguments["locator"]
     body = _card_bytes(upstream, locator)
+    if _revision(upstream, timeout=max(0, deadline - time.monotonic())) != revision:
+        _fail("The cannbot revision changed during the read; search again",
+              state="version_mismatch")
     digest = hashlib.sha256(body).hexdigest()
     # Search reports what it matched; read reports what it actually returned.
     # Without both, a card edited between the two is served under the old
@@ -308,6 +335,7 @@ def read(upstream, arguments):
     return {
         "state": "ok",
         "locator": locator,
+        "revision": revision,
         "page": page,
         "pages": max(1, (len(lines) + size - 1) // size),
         "line_count": len(lines),
@@ -328,7 +356,7 @@ if __name__ == "__main__":
         elif action == "search":
             result = search(upstream, arguments, timeout=timeout)
         elif action == "read":
-            result = read(upstream, arguments)
+            result = read(upstream, arguments, timeout=timeout)
         else:
             _fail("Unknown cannbot read action")
     except SystemExit:

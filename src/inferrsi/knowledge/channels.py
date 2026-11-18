@@ -101,7 +101,7 @@ class ChannelHit:
     card_sha256: str = ""
     source_card_sha256: str = ""
 
-    def view(self, *, read_prefix: str) -> dict:
+    def view(self, *, read_prefix: str, revision: str | None = None) -> dict:
         record: dict[str, Any] = {
             "locator": self.locator,
             "title": self.title,
@@ -122,6 +122,8 @@ class ChannelHit:
             argv = [*shlex.split(read_prefix), self.locator]
             if self.card_sha256:
                 argv.extend(["--sha256", self.card_sha256])
+            if revision:
+                argv.extend(["--revision", revision])
             record["open"] = shlex.join(argv)
         return record
 
@@ -144,7 +146,10 @@ class ChannelResult:
             record["score_scale"] = self.score_scale
         record["count"] = len(self.items)
         if self.items:
-            record["items"] = [item.view(read_prefix=self.read_prefix) for item in self.items]
+            record["items"] = [
+                item.view(read_prefix=self.read_prefix, revision=self.status.revision)
+                for item in self.items
+            ]
         return record
 
 
@@ -166,7 +171,8 @@ class Channel(Protocol):
         self, query: str, *, platform: str | None, limit: int, request: ChannelRequest
     ) -> ChannelResult: ...
 
-    def read(self, locator: str, *, expected_sha256: str | None = None) -> str: ...
+    def read(self, locator: str, *, expected_sha256: str | None = None,
+             expected_revision: str | None = None) -> str: ...
 
 
 @dataclass

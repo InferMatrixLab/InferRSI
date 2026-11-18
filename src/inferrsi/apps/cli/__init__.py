@@ -317,6 +317,7 @@ def main(argv: list[str] | None = None) -> int:
             else:
                 result = cannbot.project.read(
                     args.locator, page=args.page, expected_sha256=args.sha256,
+                    expected_revision=args.revision,
                 )
             _print(result)
             return 0

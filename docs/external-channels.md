@@ -41,7 +41,8 @@ a wheel, or `evidence/`.
 
 ## Setting one up
 
-You supply a checkout, an interpreter, and the backend it serves:
+You supply a checkout, an interpreter, and the backend it serves. The `git`
+executable must be available for read-time revision checks:
 
 ```bash
 git clone https://gitcode.com/cann/cannbot-knowledge.git ~/src/cannbot-knowledge
@@ -102,16 +103,21 @@ inferrsi cannbot search "CeilDivision 向上取整" --platform a2 --limit 100
 inferrsi cannbot read ops/ascendc/apis/utils_api/cpp_stdlib/math_functions/ceil_division
 ```
 
-The generated `open` command includes `--sha256 <card_sha256>`. Use that command
-and retain the same digest with `--page 2` (and later pages): a changed card is
-rejected. Every successful read returns the digest of the full card bytes.
+The generated `open` command includes `--revision <revision>` and
+`--sha256 <card_sha256>`. Retain both with `--page 2` and later pages. A changed
+checkout revision returns `version_mismatch`, even if the card bytes did not
+change; changed bytes are rejected even if HEAD did not change. The worker
+checks HEAD before and after reading, within the read timeout, and refuses an
+observed revision change. This is a drift check on a mutable checkout, not an
+atomic snapshot or a service for retrieving old versions. Every successful read
+returns the observed checkout revision and digest of the full card bytes.
 The upstream CLI uses `card_sha256` for a parsed metadata/body fingerprint;
 this adapter preserves it as `source_card_sha256`. Before emitting a selected
 hit, it verifies the source fingerprint using the approved checkout's parser
 and computes `card_sha256` over those same raw bytes. It returns neither the
 bytes nor private filesystem paths in search results.
-A locator-only read returns the current card and its digest, without promising
-continuity with an earlier search or page. A card digest does not validate its
+A locator-only read returns the current card, revision and digest, without
+promising continuity with an earlier search or page. A card digest does not validate its
 cited resources or make it eligible as campaign evidence.
 
 `find --platform` overrides the grant's upstream platform. If neither supplies
@@ -151,7 +157,7 @@ silent.
              "status": "stable", "platforms": ["a2", "a3"],
              "card_sha256": "<raw-byte-sha256>",
              "source_card_sha256": "<upstream-card-fingerprint>",
-             "open": "inferrsi cannbot read ops/... --sha256 <card_sha256>"}]
+             "open": "inferrsi cannbot read ops/... --sha256 <card_sha256> --revision <revision>"}]
 }]
 ```
 

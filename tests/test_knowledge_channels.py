@@ -119,7 +119,9 @@ def test_hit_carries_score_scale_and_sha(corpus):
     hit = result["external"][0]["items"][0]
     assert hit["score_scale"] == "fake/v1"
     assert hit["card_sha256"] == "ab" * 32
-    assert hit["open"] == "fake read ops/x/card --sha256 " + "ab" * 32
+    assert hit["open"] == (
+        "fake read ops/x/card --sha256 " + "ab" * 32 + " --revision " + "deadbeef" * 5
+    )
 
 
 def test_failure_is_a_state_not_empty_list(corpus):
