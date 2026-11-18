@@ -513,7 +513,7 @@ def test_git_raw_posix_backslash_top_level_path_not_treated_as_evidence(tmp_path
     assert len(matching) == 1
     rel_path, cur_size, _ = matching[0]
     assert rel_path == "evidence\\raw_top_level.bin"
-    assert cur_size == 600 * 1024
+    assert cur_size == 0  # Filtered before object-size read because not under evidence/
 
     # Top-level file with literal backslash must NOT count as evidence/ directory
     violations, net_bytes = check.check_file_budgets(records)
@@ -568,5 +568,84 @@ def test_main_report_only_mode_does_not_hide_manifest_errors(tmp_path: Path, mon
     assert rc == 1
     assert "url format check failed" in captured.err
     assert "invalid sha256 hex digest" in captured.err
+
+
+def test_unrelated_gitlink_operations_do_not_fail_budget_checker(tmp_path: Path):
+    """Verify gitlink (mode 160000) add, update, and delete do not raise or count as evidence."""
+    repo = tmp_path / "gitlink_repo"
+    repo.mkdir()
+
+    def git(*args: str):
+        res = subprocess.run(["git", *args], cwd=repo, capture_output=True, check=True)
+        return res.stdout.decode("utf-8").strip()
+
+    git("init", "-b", "main")
+    git("config", "user.name", "Tester")
+    git("config", "user.email", "tester@example.com")
+    (repo / "README.md").write_text("# Repo")
+    git("add", ".")
+    git("commit", "-m", "init")
+    base = git("rev-parse", "HEAD")
+
+    # 1. Add unrelated gitlink vendor/example with absent commit SHA
+    fake_sha1 = "1234567890abcdef1234567890abcdef12345678"
+    git("update-index", "--add", "--cacheinfo", "160000", fake_sha1, "vendor/example")
+    git("commit", "-m", "add gitlink")
+
+    records_add = check.get_changed_files_with_net_sizes(base, repo_root=repo)
+    assert any(r[0] == "vendor/example" and r[1] == 0 and r[2] == 0 for r in records_add)
+    violations_add, total_add = check.check_file_budgets(records_add)
+    assert violations_add == []
+    assert total_add == 0
+
+    # 2. Update unrelated gitlink to another absent commit SHA
+    fake_sha2 = "9876543210fedcba9876543210fedcba98765432"
+    git("update-index", "--add", "--cacheinfo", "160000", fake_sha2, "vendor/example")
+    git("commit", "-m", "update gitlink")
+
+    records_upd = check.get_changed_files_with_net_sizes("HEAD~1", repo_root=repo)
+    assert any(r[0] == "vendor/example" and r[1] == 0 and r[2] == 0 for r in records_upd)
+    violations_upd, total_upd = check.check_file_budgets(records_upd)
+    assert violations_upd == []
+    assert total_upd == 0
+
+    # 3. Delete unrelated gitlink
+    git("update-index", "--force-remove", "vendor/example")
+    git("commit", "-m", "delete gitlink")
+
+    records_del = check.get_changed_files_with_net_sizes("HEAD~1", repo_root=repo)
+    assert any(r[0] == "vendor/example" and r[1] == 0 and r[2] == 0 for r in records_del)
+    violations_del, total_del = check.check_file_budgets(records_del)
+    assert violations_del == []
+    assert total_del == 0
+
+
+def test_missing_blob_under_evidence_still_raises_value_error(tmp_path: Path):
+    """Verify genuinely missing blob under evidence/ raises ValueError on diff sizing."""
+    repo = tmp_path / "missing_blob_repo"
+    repo.mkdir()
+
+    def git(*args: str):
+        res = subprocess.run(["git", *args], cwd=repo, capture_output=True, check=True)
+        return res.stdout.decode("utf-8").strip()
+
+    git("init", "-b", "main")
+    git("config", "user.name", "Tester")
+    git("config", "user.email", "tester@example.com")
+    (repo / "README.md").write_text("# Repo")
+    git("add", ".")
+    git("commit", "-m", "init")
+    base = git("rev-parse", "HEAD")
+
+    # Add missing blob under evidence/ with mode 100644
+    fake_blob = "00112233445566778899aabbccddeeff00112233"
+    git("update-index", "--add", "--cacheinfo", "100644", fake_blob, "evidence/missing.bin")
+    tree_sha = git("write-tree", "--missing-ok")
+    head = git("commit-tree", tree_sha, "-p", base, "-m", "missing blob in evidence")
+    git("update-ref", "refs/heads/main", head)
+
+    with pytest.raises(ValueError, match="Failed to read size for git object"):
+        check.get_changed_files_with_net_sizes(base, repo_root=repo)
+
 
 

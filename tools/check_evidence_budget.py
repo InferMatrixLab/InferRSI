@@ -104,7 +104,11 @@ def get_changed_files_with_net_sizes(
                 i += 1
                 continue
 
+            old_mode = parts[0].lstrip(":")
+            new_mode = parts[1]
             sha_src, sha_dst, status = parts[2], parts[3], parts[4]
+
+            is_gitlink = old_mode == "160000" or new_mode == "160000"
 
             is_rename_or_copy = status.startswith(("R", "C"))
             if is_rename_or_copy:
@@ -117,8 +121,17 @@ def get_changed_files_with_net_sizes(
                 src_is_ev = src_path.startswith("evidence/")
                 dst_is_ev = dst_path.startswith("evidence/")
 
-                src_size = get_git_object_size(root, sha_src)
-                dst_size = get_git_object_size(root, sha_dst)
+                # Filter before reading object sizes; gitlinks never count as evidence bytes
+                src_size = (
+                    get_git_object_size(root, sha_src)
+                    if (src_is_ev and old_mode != "160000")
+                    else 0
+                )
+                dst_size = (
+                    get_git_object_size(root, sha_dst)
+                    if (dst_is_ev and new_mode != "160000")
+                    else 0
+                )
 
                 if status.startswith("R"):
                     # Rename: src replaced by dst
@@ -132,7 +145,7 @@ def get_changed_files_with_net_sizes(
                         # Moved out of evidence
                         results.append((src_path, 0, -src_size))
                     else:
-                        results.append((dst_path, dst_size, 0))
+                        results.append((dst_path, 0, 0))
                 else:
                     # Copy: src still exists, dst is added
                     delta = dst_size if dst_is_ev else 0
@@ -146,23 +159,22 @@ def get_changed_files_with_net_sizes(
 
                 is_ev = path.startswith("evidence/")
 
-                if status.startswith("D"):
+                if not is_ev or is_gitlink:
+                    # Unrelated or gitlink: do not read object sizes or count evidence bytes
+                    results.append((path, 0, 0))
+                elif status.startswith("D"):
                     src_size = get_git_object_size(root, sha_src)
-                    delta = -src_size if is_ev else 0
-                    results.append((path, 0, delta))
+                    results.append((path, 0, -src_size))
                 elif status.startswith("A"):
                     cur_size = get_git_object_size(root, sha_dst)
-                    delta = cur_size if is_ev else 0
-                    results.append((path, cur_size, delta))
+                    results.append((path, cur_size, cur_size))
                 elif status.startswith("M") or status.startswith("T"):
                     src_size = get_git_object_size(root, sha_src)
                     cur_size = get_git_object_size(root, sha_dst)
-                    delta = (cur_size - src_size) if is_ev else 0
-                    results.append((path, cur_size, delta))
+                    results.append((path, cur_size, cur_size - src_size))
                 else:
                     cur_size = get_git_object_size(root, sha_dst)
-                    delta = cur_size if is_ev else 0
-                    results.append((path, cur_size, delta))
+                    results.append((path, cur_size, cur_size))
 
     else:
         # Local development fallback inspecting uncommitted changes with -z -uall
