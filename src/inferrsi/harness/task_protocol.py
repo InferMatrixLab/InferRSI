@@ -34,17 +34,17 @@ _RESULT_TYPES = {"validate_arguments": dict, "arguments": list, "assess": dict}
 class TaskProtocolError(ValueError):
     """A protocol operation gave no valid result. ``kind`` names the failure class.
 
-    For ``protocol_exception`` the protocol itself raised: ``str()`` is its own message
-    and ``reason`` its ``"<Type>: <message>"``, the text the in-process call gave before
-    #412 R3. For every other kind both name the transport failure, so the two stay
-    distinguishable.
+    ``type_name`` is the type a caller records for this failure. For
+    ``protocol_exception`` the protocol itself raised: ``str()`` is its own message and
+    ``type_name`` its own exception type, the record the in-process call left before
+    #412 R3. For every other kind ``type_name`` is ``TaskProtocolError`` and ``str()``
+    starts with the kind, so transport, identity and result failures stay distinct.
     """
 
     def __init__(self, kind: str, message: str, *, error_type: str | None = None):
         super().__init__(message if kind == "protocol_exception" else f"{kind}: {message}")
         self.kind = kind
-        self.reason = (f"{error_type}: {message}" if kind == "protocol_exception"
-                       else f"{type(self).__name__}: {self}")
+        self.type_name = error_type if kind == "protocol_exception" else type(self).__name__
 
 
 def _tail(path: Path) -> str:

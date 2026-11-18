@@ -13,9 +13,12 @@
     its own process group or Windows Job, and returns one strict JSON envelope.
     The child compiles only protocol bytes that match the frozen SHA-256, and a
     protocol `SystemExit` keeps its exit code (argparse usage errors still exit 2).
-    An exception the protocol raises keeps its own message and its
-    `"<Type>: <message>"` settlement reason, as before; transport, identity and
-    result failures are reported as `TaskProtocolError` with their kind.
+    An exception the protocol raises is recorded as before R3, under its own type and
+    message: an `assess` failure settles as `"<Type>: <message>"`, an `arguments`
+    failure keeps its type and message in `coordinator-error.json` and settles through
+    the existing coordinator path, and a `validate_arguments` failure prints its own
+    message at `session start`. Transport, identity and result failures are recorded
+    as `TaskProtocolError` with their kind.
     After every operation the last 4 KiB of the child's stderr, protocol prints
     included, is copied to the caller's stderr; the scratch directory is then
     deleted. The 16 MiB envelope limit and the stderr tail apply when Harness reads

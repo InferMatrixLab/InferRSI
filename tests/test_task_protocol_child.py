@@ -70,7 +70,7 @@ def test_protocol_exception_keeps_its_type_and_message(tmp_path):
     assert error.kind == "protocol_exception"
     # The protocol's own message and "<Type>: <message>" survive the child transport.
     assert str(error) == "bad settings"
-    assert error.reason == "TypeError: bad settings"
+    assert error.type_name == "TypeError"
 
 
 def test_transport_failures_stay_distinguishable_from_protocol_exceptions(tmp_path):
@@ -78,7 +78,7 @@ def test_transport_failures_stay_distinguishable_from_protocol_exceptions(tmp_pa
                             "def validate_arguments(a):\n    return {'x': float('nan')}\n")
     error = failure(tmp_path, digest)
     assert error.kind == "result"
-    assert error.reason == f"TaskProtocolError: {error}"
+    assert error.type_name == "TaskProtocolError"
     assert str(error).startswith("result: ValueError: ")
 
 
@@ -131,7 +131,7 @@ def test_diagnostics_are_forwarded_when_the_protocol_raises(tmp_path, capsys):
         "    print('context before failure', file=sys.stderr)\n"
         "    raise ValueError('rejected')\n"))
     error = failure(tmp_path, digest)
-    assert str(error) == "rejected" and error.reason == "ValueError: rejected"
+    assert str(error) == "rejected" and error.type_name == "ValueError"
     assert "context before failure" in capsys.readouterr().err
 
 

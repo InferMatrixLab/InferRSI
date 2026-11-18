@@ -337,6 +337,34 @@ def test_child_assessor_exception_keeps_its_reason_through_a_real_round(task, tm
     assert (root / "calls.log").read_text().splitlines() == ["2"]
 
 
+def test_child_arguments_exception_keeps_the_coordinator_record_through_a_real_round(
+    task, tmp_path, capsys,
+):
+    # #412 R3: a frozen protocol's `arguments` failure leaves the same coordinator record
+    # as the in-process call did: the protocol's own type and message, and the attempt
+    # settles through the existing coordinator path. The benchmark never starts.
+    path = task / "optimization.py"
+    path.write_text(path.read_text(encoding="utf-8").replace(
+        "def arguments(candidate, output, settings):\n",
+        "def arguments(candidate, output, settings):\n"
+        "    raise TypeError('bad arguments')\n"), encoding="utf-8")
+    root = tmp_path / "session"
+    assert main(start_args(task, root)) == 0
+    capsys.readouterr()
+    candidate = root / "work/candidate.py"
+    candidate.write_text("FACTOR = 2\n", encoding="utf-8")
+    assert main(["benchmarks", "session", "round", "--session", str(root),
+                 "--candidate", str(candidate), "--hypothesis", "Child arguments error"]) == 2
+    view = json.loads(capsys.readouterr().out)
+    directory = root / view["latest_observation"]["path"]
+    assert json.loads((directory / "coordinator-error.json").read_text()) == {
+        "type": "TypeError", "error": "bad arguments"}
+    assessment = view["latest_observation"]["assessment"]
+    assert assessment["reason"] == "ValueError: bad arguments"
+    assert assessment["verdict"] == "INCONCLUSIVE" and assessment["score"] is None
+    assert not (root / "calls.log").exists()
+
+
 def test_child_argument_error_keeps_its_cli_message_at_start(task, tmp_path, capsys):
     path = task / "optimization.py"
     path.write_text(path.read_text(encoding="utf-8").replace(
