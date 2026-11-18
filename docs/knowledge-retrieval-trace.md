@@ -35,7 +35,9 @@ inferrsi campaign capture-context --directory '<CAMPAIGN_DIRECTORY>' --id r1-cas
 ```
 
 The capture records the requested pin. A stale revision is recorded as
-`unavailable_revision`.
+`unavailable_revision`. A capture that records explicit IDs is a read. A capture
+of a queryless inventory is an inventory operation. Both retain their items and
+revisions in the round record. The search and hit totals count text discovery.
 
 `knowledge search --explain` returns a JSON envelope with `items` and `retrieval`.
 Python callers use `search_knowledge(..., explain=True)` for the same
@@ -123,6 +125,10 @@ assembly byte budget are retained independently.
 The legacy manual campaign operations above are for externally recorded
 campaigns. Managed optimization sessions retain their controller-owned state;
 this read-only dashboard extension does not create another controller.
+For a managed capture, `capture_returns` can cite the complete
+`campaign knowledge` or `benchmarks session knowledge` JSON tool return. The
+returned capture reference and contents must match the saved capture. Delivery
+is established for the matching resource blocks in that return.
 
 Multiple metadata records may explicitly identify the same candidate and
 round with different `run_id` values. The importer retains all of them, including

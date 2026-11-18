@@ -62,12 +62,19 @@ def capture_return_texts(trace, lines, references, context_ids):
     return {key: texts[number] for key, number in references.items()}
 
 
-def visible_capture_resources(doc, texts):
+def visible_capture_resources(doc, texts, *, reference=None):
     """Require matching owner, revision, resource path and body in the visible text."""
     visible = []
     if not texts:
         return visible
     chunks = ["\n" + text + "\n" for text in texts]
+    if reference is not None:
+        # The managed CLI prints the retained capture in its JSON response.
+        # Require the complete envelope, including the verified path and digest.
+        managed = json.dumps({"reference": reference, "context": doc},
+                             ensure_ascii=False, indent=2)
+        if any(f"\n{managed}\n" in chunk.replace("\r\n", "\n") for chunk in chunks):
+            chunks.append("\n" + doc["assembled_text"] + "\n")
     for context in doc["contexts"]:
         for resource in context["resources"]:
             block = assemble_context_text([{
@@ -163,7 +170,22 @@ def capture_event(context_id, captured, *, archive=False, return_chunks=None,
     else:
         recorded_tool = calls[-1] if calls else None
         tool = recorded_tool if recorded_tool in ("collect", "find") else "collect"
-    event = {"action": "search", "tool": tool, "context_id": context_id,
+    action = "search"
+    recorded_selection = observation.get("selection")
+    request = observation.get("request")
+    if observation.get("schema_version") == 1 and isinstance(recorded_selection, dict):
+        state = recorded_selection.get("state")
+        if state == "explicit_ids":
+            action = "read"
+        elif (
+            state == "not_requested" and isinstance(request, dict)
+            and "query" in request and not request.get("relevance")
+        ):
+            query = request["query"]
+            # Earlier Collect versions could filter by query without ranking.
+            if query is None or (isinstance(query, str) and not query.strip()):
+                action = "inventory"
+    event = {"action": action, "tool": tool, "context_id": context_id,
              "source": source, "sha256": digest, "request": doc["request"],
              "selection": doc.get("selection"), "materials": materials}
     if not archive:
@@ -172,7 +194,8 @@ def capture_event(context_id, captured, *, archive=False, return_chunks=None,
     omissions = {o["ref"]: o.get("reason") for o in
                  [*doc.get("omissions", []), *doc.get("context_omissions", [])]
                  if isinstance(o, dict) and isinstance(o.get("ref"), str)}
-    visible = [r for r in visible_capture_resources(doc, return_chunks)
+    reference = {"path": source, "sha256": digest, "kind": "delivered_context"}
+    visible = [r for r in visible_capture_resources(doc, return_chunks, reference=reference)
                if _relative_location(r["ref"]) == r["ref"]
                and _relative_location(r["path"]) == r["path"]]
     visible_keys = {(r["ref"], r["path"]) for r in visible}
