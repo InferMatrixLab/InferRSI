@@ -5,7 +5,7 @@ from copy import deepcopy
 from inferrsi.contracts.json_v1 import decode
 from inferrsi.harness.errors import PublicError
 
-from ..bridge import check_assessment_identity
+from ..handoff.bridge import check_assessment_identity
 from ..storage.archive import read_assessment
 from ..storage.artifact_reader import ArtifactReader
 from ..storage.result import _check_ref

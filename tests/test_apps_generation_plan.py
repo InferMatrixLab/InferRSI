@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 
 from inferrsi.apps.api import CandidateProvider
-from inferrsi.apps.bridge import bind_execution
+from inferrsi.apps.handoff.bridge import bind_execution
 from inferrsi.apps.storage.artifact_reader import ArtifactReader
 from inferrsi.contracts.json_v1 import decode, encode
 from inferrsi.harness.api import Harness

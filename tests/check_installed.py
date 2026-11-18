@@ -14,6 +14,7 @@ from pathlib import Path
 
 import inferrsi
 import inferrsi.harness
+from inferrsi.apps.api import CandidateProvider, EvaluationPort
 from inferrsi.apps.cli import main
 from inferrsi.benchmark.registry import builtin_tasks, describe_task, task_resources
 from inferrsi.contracts import RunSpec, claim, evidence, json_v1
@@ -614,10 +615,15 @@ except ValueError as error:
 else:
     raise AssertionError("an unknown repository type must be refused")
 assert evidence.EVIDENCE_SEGMENTS == ("plan", "results", "patch", "validator")
-# #490 storage: both installed import paths expose the same canonical objects.
-for name in ("archive", "artifact_reader", "result", "evidence_layout"):
+# #490: installed compatibility exports resolve to their canonical definitions.
+for name, group in (
+    ("archive", "storage"), ("artifact_reader", "storage"),
+    ("result", "storage"), ("evidence_layout", "storage"),
+    ("bridge", "handoff"), ("context_provider", "handoff"),
+    ("candidate_provider", "handoff"),
+):
     old_name = f"inferrsi.apps.{name}"
-    canonical_name = f"inferrsi.apps.storage.{name}"
+    canonical_name = f"inferrsi.apps.{group}.{name}"
     old, canonical = import_module(old_name), import_module(canonical_name)
     assert find_spec(old_name) is not None and find_spec(canonical_name) is not None
     for exported in old.__all__:
@@ -626,6 +632,11 @@ for name in ("archive", "artifact_reader", "result", "evidence_layout"):
         if getattr(value, "__module__", None) == canonical_name:
             assert pickle.loads(f"c{old_name}\n{exported}\n.".encode("ascii")) is value
             assert canonical_name.encode("ascii") in pickle.dumps(value, protocol=0)
+assert CandidateProvider is (
+    import_module("inferrsi.apps.handoff.candidate_provider").CandidateProvider
+)
+assert CandidateProvider is import_module("inferrsi.apps.candidate_provider").CandidateProvider
+assert EvaluationPort.__module__ == "inferrsi.apps.api"
 for retired in ("_repo_pack_data", "evidence_paths"):
     assert find_spec(f"inferrsi.{retired}") is None, retired
 assert not installed_root & {"_repo_pack_data.py", "evidence_paths.py"}

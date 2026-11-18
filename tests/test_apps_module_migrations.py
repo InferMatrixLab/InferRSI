@@ -109,7 +109,7 @@ def test_active_consumers_use_canonical_paths_and_are_registered():
 
 
 def _is_handoff(name):
-    # The root implementations remain here until the next #490 slice.
+    # Include retained shims as well as the canonical handoff implementations.
     return name in {
         "inferrsi.apps.api", "inferrsi.apps.bridge", "inferrsi.apps.context_provider",
         "inferrsi.apps.candidate_provider",
@@ -147,17 +147,20 @@ def test_storage_dependency_check_rejects_a_handoff_back_edge(tmp_path, indirect
         assert any("inferrsi.contracts.helper ->" in chain for _, chain in violations)
 
 
-def test_storage_initializer_imports_nothing_and_module_bodies_do_no_io():
-    tree = ast.parse((ROOT / "apps/storage/__init__.py").read_text(encoding="utf-8"))
-    assert len(tree.body) == 1 and ast.get_docstring(tree)
-    modules = ["inferrsi.apps.storage"] + [
+def test_migrated_initializers_import_nothing_and_module_bodies_do_no_io():
+    packages = ["inferrsi.apps.storage", "inferrsi.apps.handoff"]
+    for package in packages:
+        path = REPO / "src" / package.replace(".", "/") / "__init__.py"
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+        assert len(tree.body) == 1 and ast.get_docstring(tree)
+    modules = packages + [
         entry[key] for entry in MIGRATIONS for key in ("old", "canonical")
     ]
     result = _fresh(IO_PROBE, json.dumps(modules), IO_CONTROL)
     seen = result["seen"]
     assert {"os.listdir", "open"} <= set(seen.pop("control"))
     assert seen == {name: [] for name in modules}
-    assert result["defined"]["inferrsi.apps.storage"] == []
+    assert all(result["defined"][package] == [] for package in packages)
 
 
 def test_cold_storage_imports_do_not_load_handoff_or_probe_modules():
@@ -180,6 +183,67 @@ with warnings.catch_warnings(record=True) as caught:
         importlib.import_module(name)
 print(json.dumps({'parent_only': parent_only, 'warnings': [str(w.message) for w in caught]}))
 """
-    modules = [entry[key] for entry in MIGRATIONS for key in ("old", "canonical")]
+    modules = [entry[key] for entry in MIGRATIONS if ".storage." in entry["canonical"]
+               for key in ("old", "canonical")]
     result = _fresh(script, json.dumps(modules))
     assert result == {"parent_only": ["inferrsi.apps", "inferrsi.apps.storage"], "warnings": []}
+
+
+def test_public_candidate_provider_is_the_one_canonical_class():
+    from inferrsi.apps import api
+    from inferrsi.apps.handoff.candidate_provider import CandidateProvider
+
+    old = import_module("inferrsi.apps.candidate_provider")
+    assert api.CandidateProvider is old.CandidateProvider is CandidateProvider
+    assert CandidateProvider.__module__ == "inferrsi.apps.handoff.candidate_provider"
+    assert api.EvaluationPort.__module__ == "inferrsi.apps.api"
+
+
+def test_delivered_context_draft_loads_a_legacy_instance_pickle():
+    from inferrsi.apps.handoff.context_provider import DeliveredContextDraft
+
+    value = DeliveredContextDraft(b"context", "context/test/delivered.bin", "a" * 64,
+                                  [], {}, [], [])
+    data = pickle.dumps(value, protocol=0)
+    canonical = b"cinferrsi.apps.handoff.context_provider\nDeliveredContextDraft\n"
+    assert data.count(canonical) == 1
+    legacy = data.replace(canonical, b"cinferrsi.apps.context_provider\nDeliveredContextDraft\n")
+    restored = pickle.loads(legacy)
+    assert type(restored) is DeliveredContextDraft and restored == value
+
+
+def test_cold_handoff_imports_do_not_read_data_probe_or_launch_services():
+    script = """
+import builtins, importlib, importlib.abc, io, json, socket, sqlite3, subprocess, sys, warnings
+from unittest.mock import patch
+blocked = ('inferrsi.apps.api', 'inferrsi.infra', 'inferrsi.benchmark', 'inferrsi.model',
+           'inferrsi.harness.api', 'inferrsi.harness.run_store', 'inferrsi.harness.generation',
+           'torch', 'numpy', 'PIL', 'vllm')
+class Block(importlib.abc.MetaPathFinder):
+    def find_spec(self, name, path=None, target=None):
+        if any(name == item or name.startswith(item + '.') for item in blocked):
+            raise ImportError('unexpected import: ' + name)
+sys.meta_path.insert(0, Block())
+def deny(*args, **kwargs):
+    raise AssertionError('unexpected data read, device probe, process or service')
+with warnings.catch_warnings(record=True) as caught:
+    warnings.simplefilter('always')
+    importlib.import_module('inferrsi.apps.handoff')
+    parent_only = sorted(name for name in sys.modules if name.startswith('inferrsi.apps'))
+    with patch.object(builtins, 'open', deny), patch.object(io, 'open', deny), \\
+         patch.object(subprocess, 'Popen', deny), patch.object(sqlite3, 'connect', deny), \\
+         patch.object(socket, 'socket', deny):
+        for name in json.loads(sys.argv[1]):
+            importlib.import_module(name)
+        try:
+            io.open('control')
+        except AssertionError:
+            control = True
+print(json.dumps({'parent_only': parent_only, 'warnings': [str(w.message) for w in caught],
+                  'control': control}))
+"""
+    modules = [entry[key] for entry in MIGRATIONS if ".handoff." in entry["canonical"]
+               for key in ("old", "canonical")]
+    result = _fresh(script, json.dumps(modules))
+    assert result == {"parent_only": ["inferrsi.apps", "inferrsi.apps.handoff"],
+                      "warnings": [], "control": True}

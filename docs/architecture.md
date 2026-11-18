@@ -190,6 +190,10 @@ src/inferrsi/
     __init__.py             Import-free initializer
     repository_packs.py     Neutral REPO_TYPES and pack.json reader; imports no inferrsi module
   apps/
+    handoff/
+      bridge.py             Bind preparations to specs and fixed records to evidence
+      context_provider.py   Deliver Knowledge bytes and pins for Harness sealing
+      candidate_provider.py Plan generation and collect fixed candidate outputs
     storage/
       archive.py            Immutable preparations/assessments and manifest.json/result.json
       artifact_reader.py    Read verified artifacts through authorized mounts
