@@ -134,11 +134,60 @@ def _clip(value: str, limit: int = 160) -> str:
     return text if len(text) <= limit else text[: limit - 1].rstrip() + "…"
 
 
+def _channels():
+    """Build the external channel registry from whatever this checkout approved.
+
+    The grant is the second source of a declared backend, after an explicit
+    `--backend`. Reading it here is what makes `cannbot enable --backend ascend`
+    mean something: without it, an approved Ascend source would only ever run
+    when the caller repeated the flag, and the approval would silently do
+    nothing on the default path.
+
+    Constructing a channel reads its grant, which is a cheap local file read.
+    An unreadable or absent grant is not fatal: the channel still exists and
+    reports `not_enabled` with a fix when asked, which is more useful than
+    dropping it from the list.
+    """
+    from ...knowledge.channels import ChannelRegistry
+    from ..cannbot import CannbotChannel
+
+    channel = CannbotChannel()
+    return ChannelRegistry([channel], declared_backend=channel.declared_backend)
+
+
+def _print_external(result: dict) -> None:
+    """Print the external column under the local one, never mixed into it."""
+    entries = result.get("external") or []
+    if not entries:
+        return
+    print("\nexternal (not locally verified; scores are not comparable across channels)")
+    for entry in entries:
+        state = entry.get("state", "unknown")
+        if state != "ok":
+            line = f"  {entry['channel']}\t[{state}]"
+            if entry.get("detail"):
+                line += f"\t{_clip(entry['detail'], 100)}"
+            print(line)
+            if entry.get("fix"):
+                print(f"     fix: {_clip(entry['fix'], 120)}")
+            continue
+        revision = (entry.get("revision") or "")[:12] or "unpinned"
+        print(f"  {entry['channel']} @ {revision}\t[{entry['score_scale']}]"
+              f"\t{entry.get('count', 0)} hit(s)\t{entry.get('elapsed_ms', 0)} ms")
+        for item in entry.get("items", []):
+            print(f"     {item['score']}\t{_clip(item['title'], 60)}\t{item['locator']}")
+        if entry.get("items"):
+            print(f"     open: {entry['items'][0].get('open', '')}")
+    for note in result.get("external_notes", []):
+        print(f"  note: {_clip(note, 140)}")
+
+
 def _print_find(result: dict) -> None:
     """Lead with what was tried and how far the evidence goes, then the path."""
     if result["no_match"]:
         print(f"no_match\t{result['corpus_size']} entries searched; "
               f"rephrase, or search the corpus directly with rg")
+        _print_external(result)
         return
     for item in result["items"]:
         labels = [_FIND_KIND.get(item["kind"], item["kind"]), _tsv(item["state"])]
@@ -187,6 +236,7 @@ def _print_find(result: dict) -> None:
             print(f"     source: {item['source']}")
         for token, gain in item.get("matched", {}).items():
             print(f"     [{token}] {gain}")
+    _print_external(result)
 
 
 def _context(records: list[dict]) -> str:
@@ -252,6 +302,30 @@ def main(argv: list[str] | None = None) -> int:
             result = dispatch(args)
             if result is not None:
                 _print(result)
+            return 0
+        if args.command == "cannbot":
+            from .. import cannbot
+
+            action = args.cannbot_action
+            if action == "enable":
+                result = cannbot.project.enable(
+                    upstream=args.checkout, python=args.python,
+                    backend=args.backend, platforms=args.platform,
+                )
+            elif action == "disable":
+                result = cannbot.project.disable()
+            elif action == "describe":
+                result = cannbot.project.describe()
+            elif action == "search":
+                result = cannbot.project.search(
+                    args.query, platform=args.platform, limit=args.limit,
+                )
+            else:
+                result = cannbot.project.read(
+                    args.locator, page=args.page, expected_sha256=args.sha256,
+                    expected_revision=args.revision,
+                )
+            _print(result)
             return 0
         if args.command == "agents":
             from ...harness import agent_sessions
@@ -379,8 +453,14 @@ def main(argv: list[str] | None = None) -> int:
             unknown = [k for k in kinds if k not in ("case", "skill", "record")]
             if unknown or not kinds:
                 raise ValueError("--kinds takes a subset of case,skill,record")
-            result = find(args.query, load_corpus(args.skill_root, kinds=kinds),
-                          limit=args.limit, explain=args.explain)
+            result = find(
+                args.query, load_corpus(args.skill_root, kinds=kinds),
+                limit=args.limit, explain=args.explain,
+                registry=None if args.no_external else _channels(),
+                backend=args.backend, platform=args.platform,
+                external_limit=args.external_limit,
+                external_timeout=args.external_timeout,
+            )
             if args.json:
                 _print(result)
             else:

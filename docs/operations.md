@@ -263,6 +263,43 @@ question calls for prior evidence.
 - **Side effects:** none. No revision is pinned; use `read`/`resource` when a capture or evidence record needs exact bytes.
 - **Example:** `inferrsi find "NPU OOM after caching per-step masks" --limit 3` returns the casebook entry recording that attempt first. A vaguer phrasing ranks the procedural skills above it, which is the first limit below rather than a defect.
 
+#### External channels are not installed with this package
+
+`find` also queries external read-only channels when the task backend is
+declared. **A fresh install has none**, so a query that the packaged corpus
+cannot answer returns `no_match` with no external results. That is the default
+state, not a fault:
+
+```text
+no_match    135 entries searched; rephrase, or search the corpus directly with rg
+
+external (not locally verified; scores are not comparable across channels)
+  cannbot-knowledge  [not_enabled]  cannbot knowledge is not enabled for this project
+     fix: inferrsi cannbot enable --checkout <path> --python <interpreter>
+```
+
+Enabling a channel is a deliberate, per-checkout action by a person; see
+[external knowledge channels](external-channels.md). This repository does not
+clone, download or bundle the corpus automatically. Review the upstream terms
+for the intended use before granting access; source permissions remain separate
+from this integration mechanism.
+
+- **Inputs:** `--backend <name>` declares the task backend; **without it and
+  without an approved grant, no channel is searched** and each one reports
+  `backend_unknown`. `--no-external` skips all channels for CI and offline runs.
+  `--external-limit <N>` overrides the per-channel cap (`cannbot-knowledge` 100,
+  `mindie-agent` 5). `--external-timeout <S>` bounds discovery and search
+  together (8s default); `--platform` overrides the upstream platform in the grant.
+- **Output:** `external[]` sits beside `items`, never inside it. Each entry
+  carries `state`, `revision`, `elapsed_ms`, `score_scale` and `count`. A state
+  other than `ok` (`not_enabled`, `unreachable`, `index_stale`, `timeout`,
+  `version_mismatch`, `rejected`, `backend_unknown`) means the channel did not
+  answer — it is **not** the same as answering with no hits.
+- **Side effects:** none on this repository. A channel reads an external
+  checkout that the person approved; nothing is copied into the package, a
+  wheel or `evidence/`.
+- **Determinism:** `--no-external` reproduces the pre-channel output exactly.
+
 ### Collect — `collect` / `KnowledgeReader.collect`
 
 Optional `--relevance <CUE>` ranks generated packaged skills after the existing
