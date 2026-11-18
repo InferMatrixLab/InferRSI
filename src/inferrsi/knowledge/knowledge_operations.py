@@ -6,6 +6,7 @@ import re
 import sqlite3
 from dataclasses import dataclass
 from datetime import date, datetime
+from functools import cached_property
 from importlib.resources import files
 from pathlib import Path, PurePosixPath
 
@@ -17,6 +18,7 @@ from ._skill_selection import (
     context_view,
     indexed_skill,
     record_context,
+    single_query,
     skill_score,
     task_score,
     words,
@@ -279,6 +281,16 @@ class KnowledgeReader:
             self._records = {record["id"]: record for record in knowledge_records()}
         return self._records
 
+    @cached_property
+    def packaged_skill_records(self) -> dict[str, dict]:
+        """Index this catalog snapshot by the original library resource."""
+        return {
+            record["skill_documents"]["original"]: record
+            for record in self.records().values()
+            if record.get("index_type") == "packaged-skill"
+            and (record.get("skill_documents") or {}).get("original")
+        }
+
     def _skill_library(self) -> tuple[dict[str, bytes], str]:
         if self._library is None:
             # K02 moved the physical corpus under the Knowledge module. The bundle
@@ -515,46 +527,66 @@ class KnowledgeReader:
         return bundle.content[path]
 
     def _search_order(
-        self, cue: str, matches, *, kind: str | None, package_only: bool,
-    ) -> tuple[dict, int, int]:
+        self, cue: str, matches, *, kind: str | None, package_only: bool, backend: str | None,
+    ) -> tuple[dict, int, dict[str, int]]:
         from .knowledge_find import (
             Corpus,
             installed_skill_root,
             load_documents,
             packaged_skill_projection,
             rank,
-            scoped_backend,
         )
 
+        kinds = {
+            None: ("case", "skill", "record"),
+            "case": ("case",),
+            "skill": ("skill",),
+            "knowledge": ("skill", "record"),
+        }
         root = None if package_only else self.skill_root
-        documents = load_documents(root)
-        if root is not None and root != installed_skill_root() and kind not in ("case", "skill"):
-            # A custom library adds checkout sources to Collect. Installed
-            # projections remain available under their package authority.
+        documents = load_documents(root, kinds=kinds[kind])
+        if root is not None and root != installed_skill_root() and kind is None:
+            # A selected custom library owns its registered skills. The package
+            # supplies missing skills and remains available for exact reads.
+            custom_skills = {
+                document.identity for document in documents if document.kind == "skill"
+            }
             documents.extend(
                 document for document in load_documents(kinds=("skill",))
-                if packaged_skill_projection(document, self) is not None
+                if document.identity not in custom_skills
+                and packaged_skill_projection(document, self) is not None
             )
-        eligible = {}
-        for index, document in enumerate(documents):
+
+        eligible, references = [], []
+        excluded = {"filters": 0, "ranking_scope": 0}
+        for document in documents:
             authority, _, identity = document.qualified.partition(":")
-            # Keep built-in Skills under their package references for context
-            # delivery, including their indexed required and optional files.
-            projection = packaged_skill_projection(document, self) if kind != "skill" else None
+            projection = packaged_skill_projection(document, self)
             if projection is not None:
                 authority, identity = "package", projection["id"]
             if authority == "package":
-                metadata = {**self.records()[identity], "kind": "knowledge"}
+                material_kind = "skill" if kind == "skill" else "knowledge"
+                metadata = {**self.records()[identity], "kind": material_kind}
             else:
-                metadata = {"kind": document.kind, "backend": scoped_backend(document)}
-            if matches(metadata, authority):
-                eligible[index] = f"{authority}:{identity}"
-        _, _, scored = rank(cue, Corpus(documents))
+                metadata = {"kind": document.kind, "backend": document.backend}
+            if (
+                backend and not package_only and document.kind == "case"
+                and document.backend is None
+            ):
+                excluded["ranking_scope"] += 1
+            elif matches(metadata, authority):
+                eligible.append(document)
+                references.append(f"{authority}:{identity}")
+            else:
+                excluded["filters"] += 1
+
+        _, _, scored = rank(cue, Corpus(eligible))
         results = {
-            eligible[index]: {"score": round(score, 2), "components": components}
-            for score, _, index, components in scored if index in eligible
+            references[index]: {"score": round(score, 2), "components": components}
+            for score, _, index, components in scored
         }
-        return results, len(documents), len(eligible)
+        excluded["zero_score"] = len(eligible) - len(results)
+        return results, len(documents), excluded
 
     def collect(
         self,
@@ -586,12 +618,15 @@ class KnowledgeReader:
             raise ValueError("Unknown content kind")
         if relevance is not None and (not isinstance(relevance, str) or not words(relevance)):
             raise ValueError("relevance requires at least one word")
-        use_find = relevance_method == FIND_RELEVANCE
-        find_ranking = use_find and ids is None
-        if not use_find and relevance_method not in RELEVANCE_METHODS:
+        if relevance_method not in RELEVANCE_METHODS:
             raise ValueError("Unknown relevance method")
-        if use_find:
-            if bool(query.strip()) == bool(relevance):
+        find_ranking = relevance_method == FIND_RELEVANCE
+        cue = relevance or query
+        if find_ranking:
+            if ids is not None:
+                raise ValueError("Find ranking cannot be combined with explicit IDs")
+            cue = single_query(query, relevance)
+            if cue is None:
                 raise ValueError("Find selection requires one query or relevance cue")
         elif relevance is None and relevance_method != "weighted-lexical-v1":
             raise ValueError("relevance_method requires relevance")
@@ -671,25 +706,25 @@ class KnowledgeReader:
                 )
             )
 
+        excluded = {
+            "ranking_scope": 0, "filters": 0, "query": 0, "zero_score": 0,
+            "item_limit": 0, "material_bytes": 0,
+        }
+        considered = len(requested)
+        found = {}
         if find_ranking:
-            found, considered, eligible = reader._search_order(
-                relevance or query, matches, kind=kind,
+            found, considered, rank_excluded = reader._search_order(
+                cue, matches, kind=kind, backend=backend,
                 package_only=package_filters or kind == "knowledge",
             )
             requested = list(found)
-        else:
-            found, considered, eligible = {}, len(requested), len(requested)
+            excluded.update(rank_excluded)
         cases = reader._cases() if kind and not find_ranking else {}
         selected, omitted, seen = [], [], set()
         used = 0
         ranked, contexts, context_omissions = [], [], []
         context_used = 0
         explanations = found
-        excluded = {
-            "ranking_scope": 0, "filters": considered - eligible, "query": 0,
-            "zero_score": eligible - len(found) if find_ranking else 0,
-            "item_limit": 0, "material_bytes": 0,
-        }
         matched_count = 0
 
         def select(reference: str, bundle: Bundle, view: dict) -> None:
@@ -716,7 +751,7 @@ class KnowledgeReader:
             pinned_item = ids is not None and view["ref"] in pinned
             checkout_context = (
                 view["authority"] == "checkout" and view["kind"] in ("case", "skill")
-                and (use_find or pinned_item)
+                and (find_ranking or pinned_item)
             )
             if not ((packaged and (is_skill or task_ranking or pinned_item)) or checkout_context):
                 context_omissions.append({"ref": view["ref"], "reason": "unsupported_context"})
@@ -725,7 +760,7 @@ class KnowledgeReader:
                 available = context_bytes - context_used
                 if is_skill:
                     context, omission = context_view(
-                        record, view, bundle.content, relevance or query, available
+                        record, view, bundle.content, cue, available
                     )
                 else:
                     context, omission = record_context(record, view, bundle.content, available)
@@ -851,7 +886,7 @@ class KnowledgeReader:
         }
         if find_ranking:
             result["selection"] = {
-                "method": FIND_RELEVANCE, "cue": relevance or query,
+                "method": FIND_RELEVANCE, "cue": cue,
                 "scope": "package-records-and-library", "ranking_applied": True,
                 "matched_count": len(found), "returned_count": len(selected),
             }

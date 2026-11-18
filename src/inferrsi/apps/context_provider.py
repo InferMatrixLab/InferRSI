@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from hashlib import sha256
 
 from inferrsi.contracts.json_v1 import MAX_SAFE_INTEGER
-from inferrsi.knowledge._skill_selection import FIND_RELEVANCE
+from inferrsi.knowledge._skill_selection import FIND_RELEVANCE, single_query
 from inferrsi.knowledge.knowledge_find import installed_skill_root
 from inferrsi.knowledge.knowledge_operations import KnowledgeReader
 
@@ -59,9 +59,7 @@ class ContextProvider:
         ):
             raise ValueError("invalid Knowledge selection option value")
 
-        has_query = bool(query and query.strip())
-        has_cue = bool(limits.get("relevance"))
-        if not ids and self.reader.store is None and has_query != has_cue:
+        if not ids and self.reader.store is None and single_query(query, limits.get("relevance")):
             limits = {"relevance_method": FIND_RELEVANCE, **limits}
         reader = self.reader
         if reader.skill_root is None and reader.store is None and any(

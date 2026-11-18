@@ -112,8 +112,10 @@ are distinct from `knowledge search`, whose package catalog filters
 
 ### Search packaged records — `knowledge search` / `knowledge show`
 
-Use `find` for ordinary discovery. Use this catalog for filtered inventory and
-existing scripts that depend on its exact queries or record JSON.
+Use `find` for ordinary discovery. The package catalog retains its own exact
+query behavior for filtered inventory and existing scripts. Its
+`catalog-occurrences-v1` ranking requires every query token to match and orders
+hits by total occurrences. The `context` export shares this selector.
 
 - **Inputs:** optional query words and `--tier`, `--repo-type`, `--backend`, `--scenario`, `--limit`, `--json`, `--explain`; `show` takes one record ID.
 - **Scope:** the installed package catalog (`repo_packs`, `knowledge_packs`) only.
@@ -136,8 +138,8 @@ result does not mean that no checkout or store knowledge exists. See the
 - **Example:** `inferrsi knowledge research MiniMax-H3 --framework mlx --target-backend metal --target-device "M5 Mac Studio" --target-memory-gib 64 --limit 12`
 - **Python:** `from inferrsi.knowledge.research import research_knowledge`; `research_knowledge("MiniMax-H3", frameworks=["mlx"], modalities=["video"], limit=12)`.
 
-Exact `knowledge search` and `context` still AND query tokens. Independent
-research queries broaden discovery without relaxing the active package filters.
+Each research query uses the exact catalog selector described above. Querying
+separate dimensions broadens discovery while preserving the active package filters.
 Keep those filters explicit when transferring mechanisms from other backends;
 target intent does not qualify their applicability. Read the canonical
 [preparation procedure](../src/inferrsi/knowledge/data/skill_library/workflows/inference-engine-research/references/model-aware-preparation.md)
@@ -306,10 +308,12 @@ reports unavailable or oversized context. Existing queries and ranking methods
 remain available for compatibility. See [selection and context](knowledge-operations.md#optional-packaged-skill-selection-and-context)
 for scoring, provenance and accounting.
 
-`campaign knowledge` and `benchmarks session knowledge` use Find to select
-material by default, then assemble and retain the selected context with its
-revisions and byte budget. Explicit `--relevance-method` selects a named
-ranking method.
+`campaign knowledge`, `benchmarks session knowledge` and `campaign capture-context`
+use Find for single questions by default. They then assemble and retain the
+selected context with its revisions and byte budget. Standalone Collect can
+opt in with `--relevance-method find-lexical-v1`. To capture an installed Case
+exactly, follow the `find` result to `read`, then pass its ref and revision to
+`campaign capture-context --installed-library --id-ref REF --revision REF=REV`.
 
 - **Inputs:** optional query, `--kind`, repeatable explicit `--id`, repeatable `--revision ID=REV`, `--limit`, `--max-bytes`, `--material`; `--skill-root` selects an explicit skills root, `--store` opens an existing store read-only (the store records its reserved skills root and rejects a mismatched or missing `--skill-root`).
 - **Scope:** installed package records plus (with `--skill-root`) skills and cases from the explicitly selected root, plus (with `--store`) store candidates; bounded output.

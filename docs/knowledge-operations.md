@@ -24,8 +24,9 @@ For discovery, use `find` and follow the relevant hit's `open` command. Use
 exact bundle or resource. The [operation guide](operations.md) lists the flags.
 The package catalog is available by default. Select a custom library with
 `--skill-root` or select the bundled library with `--installed-library` on
-`collect`, `read` or `resource`. The read-only `--store` option requires the
-store's recorded skills root if one was configured. `resource` takes the
+`collect`, `read`, `resource` or `campaign capture-context`. The read-only
+`--store` option requires the store's recorded skills root if one was configured.
+`resource` takes the
 revision returned by `collect` or `read` and writes bytes to `--output`.
 
 ```bash
@@ -113,13 +114,22 @@ Explicit IDs still bypass ranking. This option changes only owner discovery
 ranking, not query matching or optional context-resource scoring. It is a
 lexical-presence contract option, not evidence of general retrieval quality.
 
-For questions in `campaign knowledge`, `benchmarks session knowledge` and
-`campaign capture-context`, the default ranking method is
-`find-lexical-v1`. It uses the same ranker as `find` to select Cases, Skills
-and Records, then assembles the selected material with its revisions and
-budget omissions. Explicit IDs bypass ranking. Captures using an explicit
-`--store` use the established store selection. To select a different ranking
-method, pass `--relevance-method` explicitly.
+For a single question in `campaign knowledge`, `benchmarks session knowledge`
+or `campaign capture-context`, the default ranking method is `find-lexical-v1`.
+It uses the local `find` ranker to select Cases, Skills and Records before
+assembling the material with revisions and budget omissions. To use it in
+standalone Collect, pass `--relevance-method find-lexical-v1` with either a
+positional query or `--relevance`. The existing selectors support an exact
+query filter plus a separate relevance cue. Explicit IDs bypass discovery
+ranking. Store collection uses the existing store selection.
+
+The Find selector limits the scoring corpus to the requested `--kind`. Installed
+Skills can be selected with `--kind skill` and delivered through their package
+records, which have bundle kind `knowledge` and provide the original `SKILL.md`
+through assembled context or `read --resource`. This works on a base install.
+In a mixed search with a custom `--skill-root`, the custom library supplies its
+registered Skills and installed projections supply names absent from that root.
+Each version remains available by its qualified reference.
 
 `task-lexical-v1` remains available for package Skill and Record searches.
 Whole words in titles, summaries, tags, repository/scenario labels,
@@ -130,10 +140,13 @@ can supply this preference. Qualification by identity breaks ties.
 
 Use `campaign init --backend <backend>` to retain the runtime backend for
 later searches. An explicit capture backend takes precedence. Existing
-campaigns can pass `--backend` directly on the capture. The search returns
-the best matches up to the requested limit and records the matched and
-returned counts. For engine Records it captures the complete `record.json`,
-including the source, applicable geometry and limitations. For Cases it can
+campaigns can pass `--backend` directly on the capture. For scoped Find selection,
+a Case's optional top-level `backend` can name a supported backend or `common`.
+Case applicability text stays searchable. Cases without a backend declaration
+remain in unscoped discovery and count toward `ranking_scope` exclusions in
+scoped selection. The search returns the best matches up to the requested limit
+and records the matched and returned counts. For engine Records it captures the
+complete `record.json`, including the source, applicable geometry and limitations. For Cases it can
 capture the complete entrypoint. Linked documents can be read at the returned
 revision. Indexed Skills keep the resource rules below. In Find and task
 discovery, `--scenario` admits package Records matching the workload and

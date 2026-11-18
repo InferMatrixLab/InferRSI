@@ -639,12 +639,16 @@ def main(argv: list[str] | None = None) -> int:
                 return 0
             if args.campaign_action == "capture-context":
                 require_manual_campaign(Path(args.directory).resolve())
-                sources = ("package",) + (("checkout",) if args.skill_root else ()) + (
-                    ("store",) if args.store else ())
+                sources = ("package",)
+                if args.skill_root is not None or args.installed_library:
+                    sources += ("checkout",)
+                if args.store is not None:
+                    sources += ("store",)
                 path, digest = capture_context(
                     args.directory, context_id=args.id, reader=_knowledge_reader(args),
                     query=args.query, relevance=args.relevance,
                     relevance_method=args.relevance_method, ids=args.ids, kind=args.kind,
+                    revisions=_revisions(args.revision or []),
                     repo=args.knowledge_repo, tier=args.tier, backend=args.backend,
                     scenario=args.scenario, limit=args.limit,
                     context_bytes=args.context_bytes, sources=sources,

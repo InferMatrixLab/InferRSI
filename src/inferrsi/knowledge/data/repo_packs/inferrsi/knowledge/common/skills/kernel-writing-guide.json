@@ -48,7 +48,7 @@
     "src/inferrsi/knowledge/data/skill_library/methods/kernel-writing-guide/cases/sglang-gdn-source-contract.json": "5237ac437eb76e910bb1d08bfcc364b87dea1b947de5e67eebce511ea1ef1d23",
     "src/inferrsi/knowledge/data/skill_library/methods/kernel-writing-guide/cases/sglang-gdn-source-contract.md": "8b093faf0ab775d5605ecdd9653fb3689c2b839cba2641c5d5cda17c721bb2ac",
     "src/inferrsi/knowledge/data/skill_library/methods/kernel-writing-guide/cases/vllm-gdn-causal-conv-contract.md": "2f3dcee66e2dfe7a98bee21a36b892538998de5de3caf1bc63257137f9984236",
-    "src/inferrsi/knowledge/data/skill_library/methods/kernel-writing-guide/cases/vllm-gdn-source-contract.json": "56af6b07bbb32cd6aad44e831404ec041e0450db9623fbe6b048fcbbca32e893",
+    "src/inferrsi/knowledge/data/skill_library/methods/kernel-writing-guide/cases/vllm-gdn-source-contract.json": "31cfac1e780113c8233b451af7a7562af983aa2f4209938017cc67347ee5dd66",
     "src/inferrsi/knowledge/data/skill_library/methods/kernel-writing-guide/cases/vllm-gdn-source-contract.md": "7f9ebe8de7e55d3db2a119b6a56e15c37448fd7d4e022a47122a143206d31687",
     "src/inferrsi/knowledge/data/skill_library/methods/kernel-writing-guide/metadata.json": "766aa688d573c790789e2836f952315e91c4e06806fca3d04523a8a748bf9c32",
     "src/inferrsi/knowledge/data/skill_library/methods/kernel-writing-guide/references/akg-affine-tail-guards.md": "113deb2db10b171db3425bb3f1792bee763706b794c8cc2e222b4cc0d0114118",

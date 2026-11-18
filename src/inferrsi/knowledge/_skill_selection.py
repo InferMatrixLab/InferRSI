@@ -8,7 +8,9 @@ from ._source_snapshot import source_entry
 
 TASK_RELEVANCE = "task-lexical-v1"
 FIND_RELEVANCE = "find-lexical-v1"
-RELEVANCE_METHODS = ("weighted-lexical-v1", "weighted-raw-string-v1", TASK_RELEVANCE)
+RELEVANCE_METHODS = (
+    "weighted-lexical-v1", "weighted-raw-string-v1", TASK_RELEVANCE, FIND_RELEVANCE,
+)
 TASK_STOP_WORDS = frozenset({"a", "an", "and", "for", "in", "of", "on", "the", "to", "with"})
 
 _BACKEND_TERMS = {
@@ -19,6 +21,13 @@ _BACKEND_TERMS = {
 
 class SkillIndexError(ValueError):
     pass
+
+
+def single_query(query: str | None, relevance: str | None) -> str | None:
+    """Find takes one question; the legacy selectors can also take a filter and cue."""
+    if query and query.strip():
+        return None if relevance else query
+    return relevance or None
 
 
 def words(cue: str) -> set[str]:

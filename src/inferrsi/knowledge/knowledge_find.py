@@ -408,6 +408,7 @@ def _case_documents(root: Path, *, source_location: str) -> list[Document]:
         except (ValueError, OSError):
             body_path = None
         findings = _findings(record, identity)
+        backend = record.get("backend")
         documents.append(Document(
             identity=identity,
             kind="case",
@@ -431,7 +432,7 @@ def _case_documents(root: Path, *, source_location: str) -> list[Document]:
             applicability=record.get("applicability"),
             limitations=tuple(record.get("limitations", [])),
             findings=findings,
-            backend=record.get("backend"),
+            backend=backend if backend in (*BACKENDS, "common") else None,
         ))
     return documents
 
@@ -609,17 +610,6 @@ class Corpus:
         return total, detail
 
 
-def scoped_backend(document: Document) -> str | None:
-    """Backend declared by a source, including the recorded cohorts of older Cases."""
-    if document.backend or document.kind != "case":
-        return document.backend
-    terms = set(tokens(_flatten(document.applicability)))
-    # Older observations record the hardware in their applicability list.
-    aliases = {**_BACKEND_NAME_ALIASES, "b300": "cuda"}
-    backends = named_backends({aliases.get(term, term) for term in terms})
-    return next(iter(backends)) if len(backends) == 1 else None
-
-
 def installed_skill_root() -> Path:
     """Resolve the library from the current installation."""
     return Path(files("inferrsi").joinpath("knowledge", "data", "skill_library")).resolve()
@@ -631,12 +621,7 @@ def packaged_skill_projection(document: Document, reader) -> dict | None:
         return None
     if document.root != installed_skill_root():
         return None
-    resource = f"{BUNDLE_LIBRARY}/{document.path}"
-    return next((
-        record for record in reader.records().values()
-        if record.get("index_type") == "packaged-skill"
-        and record.get("skill_documents", {}).get("original") == resource
-    ), None)
+    return reader.packaged_skill_records.get(f"{BUNDLE_LIBRARY}/{document.path}")
 
 
 def load_documents(

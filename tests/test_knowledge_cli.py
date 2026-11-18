@@ -55,6 +55,20 @@ def test_collect_defaults_to_package_with_query_and_limit():
     assert all(item["authority"] == "package" for item in envelope["items"])
 
 
+def test_collect_accepts_find_as_an_explicit_ranking_method():
+    query = "cache per-step masks ran out of device memory"
+    method = ("--relevance-method", "find-lexical-v1")
+    code, stdout, _ = run_cli("collect", query, *method, "--kind", "case", "--json")
+    assert code == 0
+    result = json.loads(stdout)
+    assert result["selection"]["method"] == "find-lexical-v1"
+    assert result["items"][0]["ref"] == "checkout:case.qwen-ascend-rejected-directions"
+    stderr = run_cli_error("collect", query, *method, "--id", f"package:{SOURCE}")
+    assert "explicit IDs" in stderr
+    stderr = run_cli_error("collect", query, *method, "--relevance", "cache")
+    assert "one query or relevance cue" in stderr
+
+
 def test_collect_reports_explicit_no_match_with_omission_reason():
     code, stdout, _ = run_cli("collect", "--id", "not-a-real-id", "--json")
     assert code == 0

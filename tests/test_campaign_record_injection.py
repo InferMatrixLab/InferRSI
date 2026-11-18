@@ -57,6 +57,8 @@ SELECTION = {
     "cue-and-ids": ({"relevance": "decode launch", "ids": ["package:graphs"]},
                     "weighted-lexical-v1", None, "weighted-lexical-v1"),
     "query-only": ({"query": "decode"}, "find-lexical-v1", "cuda", "find-lexical-v1"),
+    "query-and-cue": ({"query": "decode", "relevance": "kernel launch"},
+                      "task-lexical-v1", "cuda", "task-lexical-v1"),
     "explicit-raw": ({"relevance": "decode launch",
                       "relevance_method": "weighted-raw-string-v1"},
                      "weighted-raw-string-v1", None, "weighted-raw-string-v1"),
@@ -85,6 +87,8 @@ def test_capture_record_keeps_its_relevance_method(tmp_path, name):
     assert document["request"]["relevance_method"] == stored
     assert document["request"]["backend"] == backend
     assert reader.calls[0]["relevance_method"] == delivered
+    assert reader.calls[0]["query"] == options.get("query", "")
+    assert reader.calls[0]["relevance"] == options.get("relevance")
     assert reader.calls[0]["backend"] == backend
     assert hashlib.sha256(raw).hexdigest() == digest
     assert campaign.verify_capture(raw)[1] == "verified"

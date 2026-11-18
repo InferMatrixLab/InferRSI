@@ -15,15 +15,28 @@ interfaces do not depend on unfinished general statistics or workflow proposals.
 
 `campaign capture-context` uses Find ranking for a single free-text question,
 then assembles selected material through Collect. The capture records both
-operations. Explicit IDs select material in caller order. Exact catalog search
-and explicit legacy ranking methods remain available for existing workflows.
-Capture is explicit.
+operations. Explicit IDs select material in caller order. The legacy form that
+supplies both a positional query and `--relevance` keeps the exact query filter
+and uses the separate cue for task ranking. Exact catalog search and explicit
+legacy ranking methods remain available for existing workflows.
 
 ```sh
 inferrsi find 'decode launch' --explain --json
 inferrsi campaign capture-context --directory <CAMPAIGN_DIRECTORY> --id r1-context \
   --relevance 'decode launch' --context-bytes 65536
 ```
+
+To capture an installed Case at its observed revision, select the bundled
+library and use the ID and revision from the read:
+
+```sh
+inferrsi campaign capture-context --directory '<CAMPAIGN_DIRECTORY>' --id r1-case \
+  --installed-library --id-ref 'checkout:<CASE_ID>' \
+  --revision 'checkout:<CASE_ID>=<REVISION_FROM_READ>'
+```
+
+The capture records the requested pin. A stale revision is recorded as
+`unavailable_revision`.
 
 `knowledge search --explain` returns a JSON envelope with `items` and `retrieval`.
 Python callers use `search_knowledge(..., explain=True)` for the same
@@ -100,8 +113,11 @@ assembly byte budget are retained independently.
    with `campaign log`; do not edit a previously retained log or input.
 4. Import the round's captures and, when available, its explicitly bounded local
    trace with `campaign import-search`. Use `--archive-review` for the existing
-   portable v2 passage-to-decision contract. See [the import contract](dashboard.md#import-one-rounds-searches)
-   for its input fields. Mark complete coverage only when established.
+   portable v2 passage-to-decision contract. A decision citing a rendered
+   resource from a verified `find` or `collect` capture supplies `passage_path`
+   with the resource's bundle-relative key. Its `passage_line` counts from the
+   first line of that resource. See [the import contract](dashboard.md#import-one-rounds-searches)
+   for the input fields. Mark complete coverage only when established.
 5. Append results and decisions using existing campaign operations. A closing
    import may extend the same trace window/add captures and runs, subject to the
    importer's preservation, overlap and repeated-import rules.

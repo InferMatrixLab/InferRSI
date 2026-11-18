@@ -112,7 +112,7 @@ def _optimization_actions(stages, *, project=False):
         if name == "knowledge":
             stage.add_argument("--query", required=True)
             stage.add_argument("--relevance-method", choices=RELEVANCE_METHODS,
-                               help="Explicit ranking method; defaults to Find")
+                               help="Ranking method, defaults to find-lexical-v1")
             stage.add_argument("--context-bytes", type=int, required=True)
             stage.add_argument("--limit", type=int, default=5)
 
@@ -365,9 +365,11 @@ def parser() -> argparse.ArgumentParser:
     capture.add_argument("query", nargs="?", default="")
     capture.add_argument("--relevance", help="Task cue for package knowledge and skill discovery")
     capture.add_argument("--relevance-method", choices=RELEVANCE_METHODS,
-                         help="Explicit ranking method; questions default to Find")
+                         help="Defaults to Find for one query or cue without IDs or a store")
     capture.add_argument("--id-ref", action="append", dest="ids", metavar="ID",
                          help="Exact knowledge identity to include (repeatable)")
+    capture.add_argument("--revision", action="append", metavar="ID=REV",
+                         help="Require this revision of an explicit --id-ref (repeatable)")
     capture.add_argument("--kind", choices=("skill", "knowledge", "case"))
     capture.add_argument("--repo-type", dest="knowledge_repo", choices=KNOWLEDGE_REPOS)
     capture.add_argument("--tier", choices=KNOWLEDGE_SCOPES)
@@ -375,8 +377,7 @@ def parser() -> argparse.ArgumentParser:
     capture.add_argument("--scenario")
     capture.add_argument("--limit", type=int, default=5)
     capture.add_argument("--context-bytes", type=int, default=65536)
-    capture.add_argument("--skill-root", type=Path)
-    capture.add_argument("--store", type=Path)
+    _read_sources(capture)
     search = campaign_actions.add_parser(
         "import-search", help="Import the observed knowledge searches for one campaign round"
     )
@@ -532,7 +533,7 @@ def parser() -> argparse.ArgumentParser:
     collect.add_argument("--relevance", help="Compatibility ranking for packaged knowledge")
     collect.add_argument(
         "--relevance-method", choices=RELEVANCE_METHODS, default="weighted-lexical-v1",
-        help="Package ranking method; nondefault methods require --relevance",
+        help="Keep the packaged ranking or opt into Find with one question or cue",
     )
     collect.add_argument(
         "--context-bytes", type=int,

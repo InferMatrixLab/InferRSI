@@ -1,8 +1,10 @@
 import json
+import shutil
 
 import pytest
 
 from inferrsi.apps.campaign import capture_context, create_campaign, verify_capture
+from inferrsi.knowledge.knowledge_find import find, installed_skill_root, load_corpus
 from inferrsi.knowledge.knowledge_operations import KnowledgeReader
 
 BASELINE_CUE = "reproducible diffusion baseline correctness fixed seed end to end benchmark"
@@ -82,7 +84,9 @@ def test_find_filters_cases_to_the_campaign_backend(tmp_path, backend, case):
     counts = capture["retrieval"]["counts"]
     assert counts["excluded"]["filters"] > 0
     assert counts["considered"] == (
-        counts["matched"] + counts["excluded"]["filters"] + counts["excluded"]["zero_score"]
+        counts["matched"] + sum(
+            counts["excluded"][name] for name in ("filters", "ranking_scope", "zero_score")
+        )
     )
 
 
@@ -101,8 +105,6 @@ def test_find_with_custom_library_keeps_packaged_projections(tmp_path):
 
 
 def test_find_preserves_required_case_readset(tmp_path):
-    from inferrsi.knowledge.knowledge_find import installed_skill_root
-
     create_campaign(tmp_path, "target")
     path, _ = capture_context(
         tmp_path, context_id="r1", reader=KnowledgeReader(), kind="case",
@@ -118,3 +120,59 @@ def test_find_preserves_required_case_readset(tmp_path):
     assert resource["content"].encode("utf-8") == KnowledgeReader(
         skill_root=installed_skill_root()
     ).resource(context["ref"], resource["path"], revision=context["revision"])
+
+
+def test_find_collection_uses_the_case_only_corpus():
+    query = "cache per-step masks ran out of device memory"
+    discovery = find(query, load_corpus(kinds=("case",)), limit=3)
+    delivery = KnowledgeReader().collect(
+        query, kind="case", relevance_method="find-lexical-v1", limit=3,
+    )
+    observed = delivery["retrieval"]
+    assert [(item["ref"], item["score"]) for item in observed["items"]] == [
+        (f"checkout:{item['id']}", item["score"]) for item in discovery["items"]
+    ]
+    assert observed["counts"]["considered"] == discovery["corpus_size"]
+    assert observed["counts"]["excluded"]["filters"] == 0
+
+
+def test_find_collection_does_not_repeat_custom_skills_as_package_projections(tmp_path):
+    library = tmp_path / "copy"
+    shutil.copytree(installed_skill_root(), library)
+    reader = KnowledgeReader(skill_root=library)
+    result = reader.collect(
+        "weight loading optimization", relevance_method="find-lexical-v1", limit=6,
+    )
+    refs = {item["ref"] for item in result["items"]}
+    assert "checkout:weight-loading-optimization" in refs
+    assert "package:inferrsi.common.skills.weight_loading_optimization" not in refs
+
+
+def test_find_does_not_infer_case_backend_from_applicability(tmp_path):
+    owner = tmp_path / "owner"
+    cases = owner / "cases"
+    cases.mkdir(parents=True)
+    (owner / "SKILL.md").write_text(
+        "---\nname: owner\ndescription: Local test\n---\nCore", encoding="utf-8",
+    )
+    (cases / "body.md").write_text("B300 queue tuning.", encoding="utf-8")
+    (cases / "case.json").write_text(json.dumps({
+        "id": "case.legacy-b300",
+        "kind": "case",
+        "content": "body.md",
+        "state": "candidate",
+        "applicability": ["A B300 run"],
+        "sources": [{"type": "internal", "issue": "test", "artifact": "case"}],
+        "limitations": [],
+        "attribution": [],
+    }), encoding="utf-8")
+    reader = KnowledgeReader(skill_root=tmp_path)
+    options = {"kind": "case", "relevance_method": "find-lexical-v1"}
+    result = reader.collect("B300", **options)
+    assert [item["ref"] for item in result["items"]] == ["checkout:case.legacy-b300"]
+    scoped = reader.collect("B300", backend="cuda", **options)
+    assert scoped["no_match"]
+    counts = scoped["retrieval"]["counts"]
+    assert counts["considered"] == 1
+    assert counts["excluded"]["ranking_scope"] == 1
+    assert counts["excluded"]["filters"] == 0

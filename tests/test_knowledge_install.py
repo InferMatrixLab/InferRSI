@@ -90,6 +90,29 @@ def test_packaged_skill_search_and_resource_work_without_pyyaml(without_yaml, tm
     assert output.read_bytes() == expected
 
 
+def test_capture_scope_skill_delivers_packaged_text_without_pyyaml(without_yaml, tmp_path):
+    campaign = tmp_path / "campaign"
+    env = _cli_env(without_yaml)
+    created = _run(["campaign", "init", "--directory", str(campaign), "--id", "lean"], env)
+    assert created.returncode == 0, created.stderr
+    result = _run([
+        "campaign", "capture-context", "--directory", str(campaign), "--id", "r1",
+        "--kind", "skill", "--limit", "1", "ascend graph mode",
+    ], env)
+    assert result.returncode == 0, result.stderr
+    capture = json.loads((campaign / json.loads(result.stdout)["context"]).read_bytes())
+    item, = capture["items"]
+    context, = capture["contexts"]
+    assert item["ref"] == "package:inferrsi.ascend.skills.ascend_graph_mode"
+    assert context["revision"] == item["revision"]
+    original = context["resources"][0]
+    assert original["path"] == item["skill_documents"]["original"]
+    assert original["content"].encode() == (
+        SKILLS / Path(original["path"]).relative_to("data/skill_library")
+    ).read_bytes()
+    assert capture["omissions"] == []
+
+
 def test_custom_skill_does_not_open_the_installed_projection_without_pyyaml(without_yaml, tmp_path):
     relative = "hardware/ascend/ascend-graph-mode"
     directory = tmp_path / relative

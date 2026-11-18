@@ -12,7 +12,7 @@ from pathlib import Path
 
 from inferrsi import __version__
 from inferrsi.harness.records import campaign_records, knowledge_capture
-from inferrsi.knowledge._skill_selection import FIND_RELEVANCE, TASK_RELEVANCE
+from inferrsi.knowledge._skill_selection import FIND_RELEVANCE, TASK_RELEVANCE, single_query
 from inferrsi.knowledge.catalog import BACKENDS
 from inferrsi.knowledge.context_projection import (
     PROVENANCE_FIELDS,
@@ -34,8 +34,8 @@ def create_campaign(root: Path, campaign_id: str, *, target: float | None = None
 def capture_context(root: Path, *, context_id: str, reader, query: str = "",
                     relevance: str | None = None,
                     relevance_method: str | None = None,
-                    ids: list[str] | None = None, kind: str | None = None,
-                    repo: str | None = None, tier: str | None = None,
+                    ids: list[str] | None = None, revisions: dict[str, str] | None = None,
+                    kind: str | None = None, repo: str | None = None, tier: str | None = None,
                     backend: str | None = None, scenario: str | None = None,
                     limit: int = 5, context_bytes: int = 65536,
                     sources: tuple[str, ...] = ("package",)) -> tuple[Path, str]:
@@ -45,21 +45,25 @@ def capture_context(root: Path, *, context_id: str, reader, query: str = "",
     not by a caller narrative. Returns the new campaign-relative file and its
     SHA-256.
     """
+    if revisions and not ids:
+        raise ValueError("Revision pins require explicit IDs (--id-ref)")
     campaign = knowledge_capture.capture_campaign(root, context_id)
     if relevance_method is None:
         has_store = "store" in sources or getattr(reader, "store", None) is not None
-        if ids is None and not has_store and bool(relevance) != bool(query.strip()):
+        if ids is None and not has_store and single_query(query, relevance):
             relevance_method = FIND_RELEVANCE
-        elif relevance and ids is None:
+        elif ids is None and relevance:
+            # Preserve the exact query filter and separate cue for dual-input callers.
             relevance_method = TASK_RELEVANCE
         else:
             relevance_method = "weighted-lexical-v1"
     if relevance_method in (FIND_RELEVANCE, TASK_RELEVANCE) and ids is None and backend is None:
         backend = campaign.get("backend")
+    pins = {"revisions": revisions} if revisions else {}
     result = reader.collect(
         query, ids=ids, kind=kind, repo=repo, tier=tier, backend=backend,
         scenario=scenario, limit=limit, relevance=relevance,
-        relevance_method=relevance_method, context_bytes=context_bytes,
+        relevance_method=relevance_method, context_bytes=context_bytes, **pins,
     )
     observation = result.get("retrieval")
     source_types = list(sources)
@@ -72,7 +76,7 @@ def capture_context(root: Path, *, context_id: str, reader, query: str = "",
         ),
         "ids": ids, "kind": kind, "repo": repo, "tier": tier,
         "backend": backend, "scenario": scenario, "limit": limit,
-        "context_bytes": context_bytes, "sources": source_types,
+        "context_bytes": context_bytes, "sources": source_types, **pins,
     }
     if _supplies_no_observation(result):
         # Such a reader gets the record this entry wrote before observations
