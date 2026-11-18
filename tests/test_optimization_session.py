@@ -1,6 +1,10 @@
 """Run the current-Agent protocol using real child processes and synthetic work."""
 
 import json
+import os
+import subprocess
+import sys
+from pathlib import Path
 
 import pytest
 
@@ -410,7 +414,7 @@ def test_child_argument_error_keeps_its_cli_message_at_start(task, tmp_path, cap
 
 
 def test_task_runner_does_not_expose_harness_as_top_level_modules(task, tmp_path):
-    from inferrsi.apps.benchmark_operations import run_task
+    from inferrsi.apps.workflows.benchmark_operations import run_task
 
     output = tmp_path / "imports.json"
     (task / "benchmark.py").write_text(
@@ -460,6 +464,122 @@ def test_runtime_identity_covers_migrated_process_domain_and_not_removed_executo
     assert "harness/artifact_primitives.py" in identity
     # #412 R3: the protocol child entry runs every task protocol operation.
     assert "harness/protocol_child.py" in identity
+    assert "apps/workflows/campaign.py" in identity
+    assert "apps/campaign.py" not in identity
     assert "infra/executors/local.py" not in identity
     for name in identity:
         assert (root / name).is_file(), name
+    from inferrsi.harness.artifact_primitives import sha256
+
+    assert identity["apps/workflows/campaign.py"] == sha256(root / "apps/workflows/campaign.py")
+
+
+@pytest.mark.parametrize("action", ["status", "recover"])
+def test_pre_move_runtime_identity_is_rejected_without_rewriting_plan(session, action):
+    path = session / "plan.json"
+    plan = json.loads(path.read_text(encoding="utf-8"))
+    plan["runtime_identity"]["apps/campaign.py"] = plan["runtime_identity"].pop(
+        "apps/workflows/campaign.py"
+    )
+    # A prior release used the old key. Even equal bytes cannot admit that runtime map.
+    frozen = json.dumps(plan, indent=2).encode("utf-8")
+    path.write_bytes(frozen)
+    with pytest.raises(SystemExit):
+        main(["benchmarks", "session", action, "--session", str(session)])
+    assert path.read_bytes() == frozen
+    assert not (session / "calls.log").exists()
+
+
+@pytest.fixture
+def pre_move_python():
+    executable = os.environ.get("INFERRSI_PRE_MOVE_PYTHON")
+    if not executable:
+        pytest.skip("Set INFERRSI_PRE_MOVE_PYTHON to an isolated, pinned pre-move wheel runtime")
+    assert Path(executable).is_file()
+    return executable
+
+
+def test_pinned_pre_move_wheel_recovers_its_original_plan(
+    tmp_path, task, pre_move_python,
+):
+    """Two independent runtimes; no patched identity map or rewritten frozen plan."""
+    driver = """
+import json, sys
+from pathlib import Path
+if sys.argv[1]:
+    sys.path.insert(0, sys.argv[1])
+from inferrsi.apps.cli import main
+from inferrsi.benchmark import registry
+from inferrsi.harness import optimization_session
+registry._library_root = lambda: Path(sys.argv[2])
+arguments = sys.argv[3:]
+if arguments[0] == 'interrupt':
+    arguments.pop(0)
+    execute = optimization_session._session_execute
+    def interrupt(*args):
+        execute(*args)
+        raise KeyboardInterrupt('synthetic interruption after the retained execution')
+    optimization_session._session_execute = interrupt
+    try:
+        main(arguments)
+    except KeyboardInterrupt:
+        print(json.dumps({'interrupted': True}))
+    else:
+        raise AssertionError('execution was not interrupted')
+else:
+    raise SystemExit(main(arguments))
+"""
+    post_move_python = os.environ.get("INFERRSI_POST_MOVE_PYTHON", sys.executable)
+    current_source = "" if "INFERRSI_POST_MOVE_PYTHON" in os.environ else str(
+        Path(__file__).resolve().parents[1] / "src"
+    )
+
+    def run(python, source, arguments, expected=0):
+        result = subprocess.run(
+            [python, "-I", "-c", driver, source, str(task.parent), *arguments],
+            cwd=tmp_path, capture_output=True, text=True, timeout=60,
+        )
+        assert result.returncode == expected, result.stderr
+        return result
+
+    def start(root):
+        return ["benchmarks", "session", "start", task.name, "--session", str(root),
+                "--rounds", "3", "--max-minutes", "5", "--evaluation-timeout-seconds", "15",
+                "--condition", "synthetic-release-boundary", "--evaluation-args", ""]
+
+    old = tmp_path / "old-session"
+    run(pre_move_python, "", start(old))
+    frozen = (old / "plan.json").read_bytes()
+    old_identity = json.loads(frozen)["runtime_identity"]
+    assert "apps/campaign.py" in old_identity
+    assert "apps/workflows/campaign.py" not in old_identity
+    candidate = old / "work/candidate.py"
+    candidate.write_text("FACTOR = 2\n", encoding="utf-8")
+    interrupted = run(pre_move_python, "", [
+        "interrupt", "benchmarks", "session", "round", "--session", str(old),
+        "--candidate", str(candidate), "--hypothesis", "Synthetic release recovery control",
+    ])
+    assert json.loads(interrupted.stdout)["interrupted"]
+    retained = {p.relative_to(old): p.read_bytes() for p in old.rglob("*") if p.is_file()}
+    for action in ("status", "recover"):
+        rejected = run(post_move_python, current_source,
+                       ["benchmarks", "session", action, "--session", str(old)], expected=2)
+        assert "Optimization runtime changed" in rejected.stderr
+        after = {p.relative_to(old): p.read_bytes() for p in old.rglob("*") if p.is_file()}
+        assert after == retained
+    recovered = json.loads(run(pre_move_python, "", [
+        "benchmarks", "session", "recover", "--session", str(old),
+    ]).stdout)
+    assert recovered["completed_rounds"] == 1 and recovered["best"]["score"] == 2
+    run(pre_move_python, "", ["benchmarks", "session", "status", "--session", str(old)])
+    assert (old / "plan.json").read_bytes() == frozen
+    assert (old / "calls.log").read_text().splitlines() == ["2"]
+
+    new = tmp_path / "new-session"
+    run(post_move_python, current_source, start(new))
+    new_identity = json.loads((new / "plan.json").read_bytes())["runtime_identity"]
+    assert "apps/workflows/campaign.py" in new_identity and "apps/campaign.py" not in new_identity
+    from inferrsi.harness.artifact_primitives import sha256
+
+    canonical = Path(__file__).resolve().parents[1] / "src/inferrsi/apps/workflows/campaign.py"
+    assert new_identity["apps/workflows/campaign.py"] == sha256(canonical)

@@ -17,6 +17,7 @@ import inferrsi.harness
 from inferrsi.apps.api import CandidateProvider, EvaluationPort
 from inferrsi.apps.cli import main
 from inferrsi.benchmark.registry import builtin_tasks, describe_task, task_resources
+from inferrsi.benchmark.skill_eval_engineering import REQUEST
 from inferrsi.contracts import RunSpec, claim, evidence, json_v1
 from inferrsi.knowledge._source_snapshot import BUNDLE_LIBRARY, LIBRARY
 from inferrsi.knowledge.catalog import knowledge_records, search_knowledge
@@ -621,6 +622,9 @@ for name, group in (
     ("result", "storage"), ("evidence_layout", "storage"),
     ("bridge", "handoff"), ("context_provider", "handoff"),
     ("candidate_provider", "handoff"),
+    ("campaign", "workflows"), ("benchmark_operations", "workflows"),
+    ("improvement", "workflows"), ("skill_evaluation", "workflows"),
+    ("skill_eval_engineering", "workflows"),
 ):
     old_name = f"inferrsi.apps.{name}"
     canonical_name = f"inferrsi.apps.{group}.{name}"
@@ -637,6 +641,32 @@ assert CandidateProvider is (
 )
 assert CandidateProvider is import_module("inferrsi.apps.candidate_provider").CandidateProvider
 assert EvaluationPort.__module__ == "inferrsi.apps.api"
+# Both the former engineering verifier script and its canonical entry survive installation.
+with tempfile.TemporaryDirectory() as script_directory:
+    script_root = Path(script_directory)
+    script_task, script_output, script_result = (
+        script_root / name for name in ("task.json", "output.json", "result.json")
+    )
+    script_task.write_text(json.dumps({
+        "id": "synthetic-parser", "split": "development", "request": REQUEST,
+        "provenance": "Synthetic installed-entry control",
+    }), encoding="utf-8")
+    script_output.write_text("{}", encoding="utf-8")
+    for script_module in ("inferrsi.apps.skill_eval_engineering",
+                          "inferrsi.apps.workflows.skill_eval_engineering"):
+        for script_entry in (["-I", "-m", script_module],
+                             ["-I", import_module(script_module).__file__]):
+            script_result.unlink(missing_ok=True)
+            script_run = subprocess.run(
+                [sys.executable, *script_entry, str(script_task), str(script_output)],
+                env={**os.environ, "INFERRSI_RESULT_PATH": str(script_result)},
+                cwd=script_root, capture_output=True, text=True, timeout=30,
+            )
+            assert script_run.returncode == 1, script_run.stderr
+            assert script_run.stdout == script_run.stderr == ""
+            assert script_result.read_bytes() == (
+                b'{"passed": false, "assertions": {"artifact_schema": false}}'
+            )
 for retired in ("_repo_pack_data", "evidence_paths"):
     assert find_spec(f"inferrsi.{retired}") is None, retired
 assert not installed_root & {"_repo_pack_data.py", "evidence_paths.py"}
@@ -686,7 +716,8 @@ for a1_retired in ("cli", "arguments", "summary_chart", "benchmark_operations",
     else:
         raise AssertionError(f"retired module inferrsi.{a1_retired} must not import")
 assert main.__module__ == "inferrsi.apps.cli"
-for canonical in ("inferrsi.apps.views.summary_chart", "inferrsi.apps.benchmark_operations",
+for canonical in ("inferrsi.apps.views.summary_chart",
+                  "inferrsi.apps.workflows.benchmark_operations",
                   "inferrsi.apps.mindie.project", "inferrsi.apps.mindie.context",
                   "inferrsi.apps.mindie.mcp", "inferrsi.apps.mindie.read_worker"):
     assert find_spec(canonical) is not None, canonical

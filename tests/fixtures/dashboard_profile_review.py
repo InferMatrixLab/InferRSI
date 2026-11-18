@@ -24,7 +24,7 @@ def build(root: Path):
     start = datetime(2026, 1, 1, 12, tzinfo=timezone.utc)
     with (
         patch("inferrsi.__version__", "0+synthetic"),
-        patch("inferrsi.apps.campaign.__version__", "0+synthetic"),
+        patch("inferrsi.apps.workflows.campaign.__version__", "0+synthetic"),
         patch("inferrsi.harness.records.knowledge_capture.datetime", wraps=datetime) as clock,
         patch("inferrsi.harness.records.optimization_log.datetime", wraps=datetime) as log_clock,
     ):

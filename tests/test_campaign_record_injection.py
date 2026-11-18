@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 import pytest
 
 from inferrsi import __version__
-from inferrsi.apps import campaign
+from inferrsi.apps.workflows import campaign
 from inferrsi.harness.records import campaign_records, knowledge_capture
 from inferrsi.knowledge.context_projection import context_item
 from tests._gate_policy_support import (

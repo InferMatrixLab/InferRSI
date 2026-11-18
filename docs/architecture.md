@@ -7,7 +7,7 @@ packages. `inferrsi benchmarks run <package> ...` launches the package's
 `benchmark.py`. Task-specific orchestration, sampling and assessment live inside
 each package. The task library owns its `index.json` registration. The existing
 `benchmark/registry.py` discovers the resources. The CLI package `apps/cli/`
-and `apps/benchmark_operations.py` provide application assembly and launch.
+and `apps/workflows/benchmark_operations.py` provide application assembly and launch.
 Each task retains its own protocol and task-specific code.
 
 The [current-Agent optimization session](optimization-benchmarks.md) assembles
@@ -16,7 +16,7 @@ budget, attempts, feedback records, selection and independent final execution.
 `harness/task_protocol.py` freezes a supplied resource directory and loads its
 task-owned assessment protocol. `harness/optimization_session.py` assembles
 execution and assessment; the CLI resolves task resources and injects knowledge
-access and the capture callback from `apps/campaign.py`.
+access and the capture callback from `apps/workflows/campaign.py`.
 The external Agent chooses and edits candidates between round submissions.
 The same controller serves ordinary projects through `campaign start/round/final`
 and packaged tasks through `benchmarks session`. The
@@ -162,7 +162,6 @@ the comparator; the engine AB/BA path retains its independent acceptance contrac
 
 ```text
 src/inferrsi/
-  apps/cli/                  CLI entry `main` and its argument parser
   benchmark/
     registry.py             Generic task resource discovery
     tasks/                  Task-specific definitions, workloads and assessment
@@ -177,19 +176,6 @@ src/inferrsi/
     skill_eval_diagnostic.py   Synthetic KV admission diagnosis task and grader
     skill_eval_engineering.py  Serving-parser task, public vectors and vector judgment
     improvement.py          Improvement-step thresholds and acceptance rules
-  apps/
-    api.py                  Python entry points for assembling and publishing Apps operations
-    benchmark_operations.py Resolve a task entry and launch it through Harness
-    archive.py              Publish and read the standardized Apps output in a workspace
-    result.py               Assemble and check the AppsResultV1 output envelope
-    skill_evaluation.py     Composed bundle export, trial run and summary
-    skill_eval_engineering.py  Composed artifact check: task rules around sandbox replay
-    improvement.py          Composed assessment, selection, rerun and holdout acceptance
-    inspection.py           Environment inspection bound to the host probe and Git identity
-    legacy/
-      run.py                Old run composed from Harness, Benchmark and the report
-      evaluation.py         Old evaluate entry: RunSpec to the Benchmark gates
-      reporting.py          HTML evidence report
   contracts/
     runspec.py              Immutable experiment contract; the initializer re-exports only RunSpec
     json_v1.py              Canonical inferrsi-json-v1 encoder and decoder
@@ -199,6 +185,13 @@ src/inferrsi/
     __init__.py             Import-free initializer
     repository_packs.py     Neutral REPO_TYPES and pack.json reader; imports no inferrsi module
   apps/
+    api.py                  Python entry points for assembling and publishing Apps operations
+    cli/                    CLI entry `main` and its argument parser
+    inspection.py           Environment inspection bound to the host probe and Git identity
+    legacy/
+      run.py                Old run composed from Harness, Benchmark and the report
+      evaluation.py         Old evaluate entry: RunSpec to the Benchmark gates
+      reporting.py          HTML evidence report
     handoff/
       bridge.py             Bind preparations to specs and fixed records to evidence
       context_provider.py   Deliver Knowledge bytes and pins for Harness sealing
@@ -208,7 +201,12 @@ src/inferrsi/
       artifact_reader.py    Read verified artifacts through authorized mounts
       result.py             AppsResultV1 construction and validation
       evidence_layout.py    Create plan/results/patch/validator evidence directories
-    campaign.py             Knowledge values connected to Harness campaign records
+    workflows/
+      campaign.py           Knowledge values connected to Harness campaign records
+      benchmark_operations.py Resolve a task entry and launch it through Harness
+      skill_evaluation.py   Composed bundle export, trial run and summary
+      skill_eval_engineering.py Composed artifact check: task rules around sandbox replay
+      improvement.py        Composed assessment, selection, rerun and holdout acceptance
     mindie/
       project.py            Opt-in per-checkout grant, the worker launch and the recorded read
       context.py            Export supplied MindIE reads into a caller-reviewed campaign trace
@@ -295,7 +293,7 @@ The package root holds exactly two tracked files: `__init__.py` and `__main__.py
 `mcp.py` and the standalone `read_worker.py`) and deleted root `mindie_project.py`,
 `mindie_context.py`, `mindie_mcp.py` and `_mindie_read_worker.py` with no forwarding
 shell or alias. #408 A2 moved the chart renderer to
-`apps/views/summary_chart.py` and the task launcher to `apps/benchmark_operations.py`
+`apps/views/summary_chart.py` and the task launcher to `apps/workflows/benchmark_operations.py`
 and deleted root `summary_chart.py` and `benchmark_operations.py` the same way. #408 A1 moved the CLI and its parser to `apps/cli/`
 and deleted root `cli.py` and `arguments.py`;
 `__main__.py` and the console script call `inferrsi.apps.cli:main`. #412 R1 deleted eleven root modules with no

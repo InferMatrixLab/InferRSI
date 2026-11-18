@@ -4,8 +4,8 @@ import json
 
 import pytest
 
-from inferrsi.apps import benchmark_operations
 from inferrsi.apps.cli import main
+from inferrsi.apps.workflows import benchmark_operations
 from inferrsi.benchmark import registry
 
 

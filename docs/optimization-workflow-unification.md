@@ -32,7 +32,7 @@ CLI `final` 返回后自动生成 `delivery/<export-id>/report.md`、离线 `rep
 
 ## 时序图
 
-以下是普通项目默认 AB/BA 模式的完整流程。CLI 接入既有入口，调用 Harness 的 `optimization_session.session_command()`。初始化、执行、判定和结算均在 Harness 内；CLI 注入 KnowledgeReader 和已有知识记录回调。知识记录回调在 `apps/campaign.py`，展示在 `apps/views`，记录由 `harness/records` 写入；Harness 仍负责优化状态与预算。
+以下是普通项目默认 AB/BA 模式的完整流程。CLI 接入既有入口，调用 Harness 的 `optimization_session.session_command()`。初始化、执行、判定和结算均在 Harness 内；CLI 注入 KnowledgeReader 和已有知识记录回调。知识记录回调在 `apps/workflows/campaign.py`，展示在 `apps/views`，记录由 `harness/records` 写入；Harness 仍负责优化状态与预算。
 
 先准备任务条件，再调用 start。start 内复制任务、脚本和基线并写入计划/状态，不执行测量。Agent 逐次调用 round，最后调用 final 独立重测已保存的最佳版本。
 
@@ -151,7 +151,7 @@ Harness 没有常驻 Agent 驱动。Agent 逐次调用这些操作，代码在�
 
 两个优化入口都调用 `harness.optimization_session.session_command`，使用同一个 `harness.optimization` 控制器。AB/BA 与题包使用 `evaluate_round`；显式 service_reuse 使用该控制器内的 `service_command` 和模式分支，共用锁及单一控制记录。执行与评测适配也在 Harness 内；普通项目整个生命周期不导入 Benchmark。
 
-题库 `start` 由 CLI 经 `benchmark.registry` 定位资源目录，再交给 `harness.task_protocol.prepare` 固化；后续从冻结目录加载题包自己的 `optimization.py`，无需再次查询注册表。专用协议检查仍属于题包。两类 `assess` 都只读留存结果，不重新测量。KnowledgeReader 与 `apps/campaign.py` 的记录回调由 CLI 注入，Harness 不直接导入 Benchmark 或目标 Knowledge 模块，也不经记录模块间接引入知识实现。
+题库 `start` 由 CLI 经 `benchmark.registry` 定位资源目录，再交给 `harness.task_protocol.prepare` 固化；后续从冻结目录加载题包自己的 `optimization.py`，无需再次查询注册表。专用协议检查仍属于题包。两类 `assess` 都只读留存结果，不重新测量。KnowledgeReader 与 `apps/workflows/campaign.py` 的记录回调由 CLI 注入，Harness 不直接导入 Benchmark 或目标 Knowledge 模块，也不经记录模块间接引入知识实现。
 
 本次交付可以分成三块：**Benchmark 的优化题目、Harness 的优化管理与验收、Harness 与宿主协作的新会话派发和回收**。第三块不改变第二块的生命周期；新会话仍自行 start 到 final。
 
@@ -218,6 +218,40 @@ inferrsi dashboard --input <campaign-dir> --output <report.html>
 执行副本只包含 `--include` 声明的文件或目录，不是整个原项目工作区。脚本通过相对 cwd 路径读取的配置、数据或辅助源码也必须纳入声明范围；未声明文件不会自动从原目录补入。外部模型和服务仍需由调用方明确提供和验证。
 
 执行器抛出异常时，若已有完成记录则收集该记录，不重复启动；没有记录则标记 blocked，清理状态保持未知，不自动重试。进程被中断后的 `recover` 只接收已有结果，不重新启动命令；没有完成记录时，需确认原进程及资源清理。运行中的旧 session 应继续使用其冻结 runtime，不能直接换新代码恢复。
+
+### Release-boundary recovery
+
+Apps workflows 目录迁移会改变运行时摘要的路径和控制器源码。迁移前的
+`plan.json` 即使只是执行 `status` 或 `recover`，在新版本下也会被拒绝。
+保留原始计划、冻结输入和所有已留存结果，不要替换摘要、重新格式化计划或
+把旧运行当作新运行初始化。评测工具的冻结 controller 快照也遵循相同原则。
+
+恢复时，从运行准备记录取得创建该计划时的精确软件版本和 Python 环境。
+`runtime_identity` 是校验表，不是可安装的软件包；单靠摘要不能重建原始环境。
+优先使用先前留存的虚拟环境或 wheel。若只有精确源码版本，应在独立目录恢复
+该版本及原依赖，构建 wheel 并安装到独立环境；不要覆盖新版本环境。
+
+```text
+<pre-move-python> -I -m inferrsi benchmarks session status --session <session-directory>
+<pre-move-python> -I -m inferrsi benchmarks session recover --session <session-directory>
+```
+
+普通项目对应 `campaign status/recover --directory <campaign-directory>`。
+原环境的所有文件摘要与计划匹配后，Harness 才会接收已有 execution 记录；
+恢复不会再次执行已完成的候选。无法取得匹配的原始环境时保持拒绝，保留证据。
+需要在新版本继续实验，应另开新运行，明确新的版本和冻结输入。
+
+跨版本回归使用两个独立安装环境：迁移前 runtime 创建计划并在执行完成后
+中断；新 runtime 的 status/recover 必须拒绝且不改动计划和结果；原 runtime
+恢复同一运行并验证候选只执行一次。设置 `INFERRSI_PRE_MOVE_PYTHON` 指向
+固定旧 wheel 的解释器，`INFERRSI_POST_MOVE_PYTHON` 指向新 wheel 的解释器后运行：
+
+```text
+python -m pytest tests/test_optimization_session.py::test_pinned_pre_move_wheel_recovers_its_original_plan
+```
+
+未提供旧 runtime 时该安装集成用例明确跳过；默认回归仍检查旧路径的摘要表
+被拒绝、计划字节不变，以及新计划摘要读取 `apps/workflows/campaign.py` 的实际源码。
 
 判定器异常按基础设施失败结算，`assessment.reason` 保留异常类型和消息，避免普通编程错误被隐藏成无类型的失败描述。执行器异常的原始类型和消息保存在该次尝试的 `coordinator-error.json` 中。此处捕获异常用于保留失败状态，不代表候选通过；进程中断仍沿用上述恢复流程。
 
