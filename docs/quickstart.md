@@ -47,6 +47,11 @@ Its common catalog ID and the separate MLX-LM procedure remain unchanged.
 
 ## Discover knowledge and skills
 
+For Ascend tasks, first follow the [external knowledge preflight](external-channels.md#ascend-task-preflight).
+If cannbot is not installed or enabled for the project, the CLI recommends setup
+and links the [installation and verification guide](external-channels.md#setting-one-up).
+External knowledge is optional; an explicit `--no-external` keeps the search local.
+
 Start from the problem. `find` ranks packaged skills, imported records and
 casebook entries together and reports what each one's evidence covers, so a
 direction already tried and dropped surfaces beside the procedure for trying it:

@@ -169,7 +169,8 @@ def _print_external(result: dict) -> None:
                 line += f"\t{_clip(entry['detail'], 100)}"
             print(line)
             if entry.get("fix"):
-                print(f"     fix: {_clip(entry['fix'], 120)}")
+                # Keep setup URLs and recovery commands complete and copyable.
+                print(f"     fix: {_tsv(entry['fix']).strip()}")
             continue
         revision = (entry.get("revision") or "")[:12] or "unpinned"
         print(f"  {entry['channel']} @ {revision}\t[{entry['score_scale']}]"

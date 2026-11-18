@@ -14,7 +14,7 @@ no_match    135 entries searched; rephrase, or search the corpus directly with r
 
 external (not locally verified; scores are not comparable across channels)
   cannbot-knowledge  [not_enabled]  cannbot knowledge is not enabled for this project
-     fix: inferrsi cannbot enable --checkout <path> --python <interpreter>
+     fix: For Ascend tasks, install cannbot-knowledge if needed (checkout, Python environment and index), then enable it: inferrsi cannbot enable --checkout <path> --python <interpreter> --backend ascend --platform <platform>. Installation and verification: https://github.com/InferMatrixLab/InferRSI/blob/main/docs/external-channels.md#setting-one-up . For local-only search, use inferrsi find <query> --no-external.
 ```
 
 `no_match` there is honest: the packaged corpus really holds nothing for that
@@ -26,6 +26,41 @@ On `main` `6c7e2379`, the packaged corpus holds **6 Ascend content cards and 0
 per-API cards**. The external cannbot-knowledge corpus holds **10,550 cards,
 2,993 of them Ascend C API cards**. Ignoring that gap is what the channel exists
 to prevent.
+
+## Ascend task preflight
+
+When the user declares an Ascend task, check external knowledge availability
+before researching optimization directions. Confirm the actual platform (`a2`,
+`a3`, etc.); do not infer it from query text. If the task explicitly requires
+local-only or knowledge-off operation, honor that condition and skip this probe.
+
+1. From the target Git project, run `inferrsi cannbot describe` and inspect its
+   JSON `state`. Exit code 0 alone does not establish that the channel is ready.
+2. For `not_enabled`, proactively recommend cannbot-knowledge for Ascend API
+   and operator references and provide the [installation guide](#setting-one-up)
+   ([web link](https://github.com/InferMatrixLab/InferRSI/blob/main/docs/external-channels.md#setting-one-up)).
+   Explain that the missing project grant does not prove the source is absent:
+   an existing installation only needs project enablement. Offer
+   `inferrsi find <query> --no-external` for local-only work.
+3. For a missing checkout or reader (`unreachable`), use the same guide to
+   restore the installation or enable its new location. For `index_stale`,
+   rebuild the approved source's index using the returned guidance. Other
+   failure states require their stated repair; do not report them as zero hits.
+4. Apply existing installation/access authorization; if absent, obtain it before
+   installing or enabling a source. Then complete all three
+   [verification steps](#verify-the-installation) below before reporting that
+   external knowledge is usable. If setup is deferred, continue with the
+   permitted local knowledge and state that external coverage was unavailable.
+
+`find --backend ascend` also emits the installation recommendation, enable
+command and complete guide URL in text and JSON when the channel is not enabled,
+whether or not local hits exist. Explicit `--no-external` and nonmatching
+backends such as `cuda` omit this channel and its suggestion.
+
+This integration uses a local checkout and reader process. Registering an MCP
+server in an Agent host is not a prerequisite, and an installed host MCP does
+not create an InferRSI project grant. InferRSI's `cannbot serve` proxy is not
+implemented; the steps below configure the current CLI integration.
 
 ## Why it is not downloaded for you
 
@@ -42,9 +77,13 @@ a wheel, or `evidence/`.
 ## Setting one up
 
 You supply a checkout, an interpreter, and the backend it serves. The `git`
-executable must be available for read-time revision checks:
+executable must be available for read-time revision checks. Use Python 3.10+
+and an interpreter with PyYAML. The following POSIX shell example uses `a2`;
+replace it with the confirmed target platform. If the checkout, environment and
+index already exist, reuse them and proceed to `enable` in the target Git project.
 
 ```bash
+mkdir -p ~/src ~/venvs
 git clone https://gitcode.com/cann/cannbot-knowledge.git ~/src/cannbot-knowledge
 python3 -m venv ~/venvs/cannbot && ~/venvs/cannbot/bin/pip install pyyaml
 
@@ -72,14 +111,49 @@ already could have fixed.
 | `--backend` | Default task backend; explicit `find --backend` takes precedence. Cannbot serves Ascend only. |
 | `--platform` | Default upstream platform (`a2`, `a3`, `950`, `310p`, `910`, …) |
 
-Check it:
+### Verify the installation
+
+Run these checks from the same target Git project that was enabled. Choose a
+platform supported by the task; the example below uses `a2`.
+
+**1. Check discovery and configuration.**
 
 ```bash
 $ inferrsi cannbot describe
 {"state": "ok", "revision": "92dc2607...", "cards": 10550,
  "index": {"schema": "cannbot-knowledge-index.v1", "version": 3,
-           "content_fingerprint": "75ef3269..."}}
+           "content_fingerprint": "75ef3269..."}, "platforms": ["a2"]}
 ```
+
+Require `state: "ok"`, a source revision and the intended platform in
+`platforms`. A successful `enable` or process exit alone is insufficient.
+
+**2. Check integrated search.**
+
+```bash
+inferrsi find "CeilDivision" --backend ascend --platform a2 --external-limit 1 --json
+```
+
+Inspect the `cannbot-knowledge` entry in `external[]`: require `state: "ok"`,
+its revision and at least one result with an `open` command. Local `no_match`
+does not make this check fail. If the source answers with zero hits, discovery
+worked but search-to-read verification is still incomplete; use a term known to
+exist on the selected platform. A timeout or stale index needs repair first.
+
+**3. Open the returned card with its identity.**
+
+Run the exact `open` command returned by step 2. Its shape is:
+
+```bash
+inferrsi cannbot read <locator> --sha256 <card_sha256> --revision <revision>
+```
+
+Require `state: "ok"`, non-empty `text`, and a `card_sha256` and `revision`
+matching the search result. If another page is needed, append `--page 2` to the
+same command, preserving both identity flags. A drift rejection requires a new
+search; do not drop the flags to make verification succeed. This verifies the
+delivery path, not the card's technical claims or campaign evidence eligibility.
+Do not copy the returned body into shared logs or evidence.
 
 Revoke it with `inferrsi cannbot disable`. The grant lives at
 `~/.config/inferrsi/cannbot-projects/<sha256(checkout)>.json` and is bound to the
@@ -140,7 +214,7 @@ owned resources; Python cannot forcibly stop arbitrary in-process threads.
 | --- | --- |
 | `ascend` | `cannbot-knowledge`, plus any platform-neutral channel |
 | `cuda`, `mlx`, `rocm`, `cpu` | none — an Ascend source must not answer a CUDA task |
-| not declared, no grant | none; each channel reports `backend_unknown` |
+| not declared, no grant | none; cannbot reports `not_enabled` with setup guidance |
 
 The backend is never inferred from the query text. A query containing "asc" is
 not evidence that the task is an Ascend task, and a wrong inference would be

@@ -275,18 +275,24 @@ no_match    135 entries searched; rephrase, or search the corpus directly with r
 
 external (not locally verified; scores are not comparable across channels)
   cannbot-knowledge  [not_enabled]  cannbot knowledge is not enabled for this project
-     fix: inferrsi cannbot enable --checkout <path> --python <interpreter>
+     fix: For Ascend tasks, install cannbot-knowledge if needed (checkout, Python environment and index), then enable it: inferrsi cannbot enable --checkout <path> --python <interpreter> --backend ascend --platform <platform>. Installation and verification: https://github.com/InferMatrixLab/InferRSI/blob/main/docs/external-channels.md#setting-one-up . For local-only search, use inferrsi find <query> --no-external.
 ```
 
-Enabling a channel is a deliberate, per-checkout action by a person; see
-[external knowledge channels](external-channels.md). This repository does not
+For Ascend tasks, follow the [availability preflight](external-channels.md#ascend-task-preflight)
+and proactively present the [installation guide](external-channels.md#setting-one-up)
+when the source is missing or not enabled. After setup, verify discovery,
+integrated search and a revision/digest-bound read using the
+[verification steps](external-channels.md#verify-the-installation). Enabling a
+channel is a deliberate, per-checkout action. This repository does not
 clone, download or bundle the corpus automatically. Review the upstream terms
 for the intended use before granting access; source permissions remain separate
 from this integration mechanism.
 
 - **Inputs:** `--backend <name>` declares the task backend; **without it and
-  without an approved grant, no channel is searched** and each one reports
-  `backend_unknown`. `--no-external` skips all channels for CI and offline runs.
+  without an approved grant, no channel is searched**; cannbot reports
+  `not_enabled` with setup guidance. `backend_unknown` applies to a channel
+  without a task declaration and without a more specific availability hint.
+  `--no-external` skips all channels and setup suggestions for CI and offline runs.
   `--external-limit <N>` overrides the per-channel cap (`cannbot-knowledge` 100,
   `mindie-agent` 5). `--external-timeout <S>` bounds discovery and search
   together (8s default); `--platform` overrides the upstream platform in the grant.
