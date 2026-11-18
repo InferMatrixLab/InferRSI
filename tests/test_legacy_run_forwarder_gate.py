@@ -89,11 +89,11 @@ def test_forwarder_misuse_is_a_violation(changes, expected):
     assert not report.isolation_complete
 
 
-def test_real_tree_holds_no_forwarder_and_stays_incomplete():
+def test_real_tree_holds_no_forwarder_and_is_isolated():
     report = first_wave_report()
     assert report.violations == ()
     for name in RETIRED_FORWARDERS:
         assert not (support.ROOT / f"{name}.py").exists(), name
-    # What is left belongs to R3: R2 closed the harness -> infra hits.
-    assert support.blocker_kinds(report) == {"runtime resource loaders"}
-    assert not report.isolation_complete
+    # R2 closed the harness -> infra hits and R3 the runtime resource loaders.
+    assert report.blockers == ()
+    assert report.isolation_complete

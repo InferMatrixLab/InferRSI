@@ -407,7 +407,9 @@ def test_harness_records_closure_holds_as_declared_entries():
     # Declared entries are walked on the full graph, without the residual exemption.
     report = first_wave_report(h_entries=NEW_H_ENTRIES + records)
     assert report.violations == ()
-    assert not report.isolation_complete
+    # #412 R3 closed the last blocker, so walking the extra entries adds none.
+    assert report.blockers == ()
+    assert report.isolation_complete
 
 
 def test_observability_package_is_dissolved():

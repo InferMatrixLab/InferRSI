@@ -34,16 +34,24 @@ CORE_NAMES = ("knowledge", "harness", "benchmark", "apps")
 # file is covered, in the root or under a package.
 MODULE_ENTRY = "__main__.py"
 MODULE_ENTRY_DELEGATION = ("inferrsi.apps.cli", "main")
-# Reviewed execution boundaries: owner function (or module scope) and the exact
-# local spec variable. They execute task resources/candidate code, not a hidden
-# core compatibility import. Their presence keeps isolation incomplete.
-RESOURCE_LOADERS = {
-    "inferrsi.harness.task_protocol": ("protocol", "spec"),
-    "inferrsi.benchmark.tasks.moe-forward-npu.benchmark": ("<module>", "_process_spec"),
-    "inferrsi.benchmark.tasks.moe-forward-npu.grader": ("load", "spec"),
-    "inferrsi.benchmark.tasks.qwen21-denoise-npu.benchmark": ("load", "spec"),
-    "inferrsi.benchmark.tasks.qwen3-tts-npu.benchmark": ("<module>", "_evaluation_spec"),
-}
+# #412 R3, permanent: task bundle programs. A bundle program is a file directly inside
+# ``benchmark/tasks/<bundle>/`` where that directory has no ``__init__.py``. Python could
+# still import such a file as part of a namespace package, so the gate itself rejects
+# every import of a bundle program from package code; Harness and Apps run it as its own
+# process. Its evaluator may load a frozen run file (a candidate, baseline or reference)
+# by path with ``importlib.util.module_from_spec`` to call and time it in-process; the
+# gate admits that call there and nowhere else, by file location and without naming any
+# task. Inside a bundle program every name-based lookup still fails: ``__import__``,
+# ``import_module``, a ``module_from_spec`` reached by another spelling, and ``find_spec``
+# in any spelling. Static imports of other cores fail as before. ``runtime_execution``
+# lists each bundle program that loads files by path, which the static
+# ``isolation_complete`` result does not cover. This is a location-based static policy,
+# not a process or sandbox guarantee. R3 retired the temporary ``RESOURCE_LOADERS`` table
+# and its blocker: the Harness task protocol runs in a child interpreter and the two
+# sibling loads were merged away.
+TASK_BUNDLES = "inferrsi.benchmark.tasks"
+BY_PATH_LOAD = "importlib.util.module_from_spec"
+BUNDLE_LOOKUP_NAMES = frozenset({"find_spec"})
 # #412 R1 deleted these eleven root modules: the seven Knowledge shells, the three
 # old-run forwarders and the root inspection binding. None is registered any more.
 # A file that returns under one of these names is a violation by itself, and every
@@ -357,41 +365,36 @@ def _scan(root: Path, pairs: frozenset[tuple[str, str]]) -> _Graph:
     return _Graph(trees, packages, edges)
 
 
-def _resource_loader(tree: ast.Module, module: str) -> ast.Attribute | None:
-    declaration = RESOURCE_LOADERS.get(module)
-    if declaration is None:
-        return None
-    matches = []
-
-    def visit(node, owner="<module>"):
-        if isinstance(node, ast.ClassDef):
-            owner += ".<class>." + node.name
-        elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
-            owner = node.name if owner == "<module>" else owner + "." + node.name
-        if (isinstance(node, ast.Call) and owner == declaration[0]
-                and ast.unparse(node.func) == "importlib.util.module_from_spec"
-                and len(node.args) == 1 and not node.keywords
-                and isinstance(node.args[0], ast.Name) and node.args[0].id == declaration[1]):
-            matches.append(node.func)
-        for child in ast.iter_child_nodes(node):
-            visit(child, owner)
-
-    visit(tree)
-    return matches[0] if len(matches) == 1 else None
+def _is_bundle_program(module: str, trees: dict[str, Any]) -> bool:
+    """A file directly inside a task bundle directory that has no ``__init__.py``."""
+    bundle = module.rpartition(".")[0]
+    return bundle.rpartition(".")[0] == TASK_BUNDLES and bundle not in trees
 
 
-def _has_dynamic_import(tree: ast.Module, module: str = "") -> bool:
-    declared = _resource_loader(tree, module)
+def _by_path_loads(tree: ast.Module, module: str, trees: dict[str, Any]) -> list[ast.expr]:
+    """The admitted ``importlib.util.module_from_spec`` calls of a bundle program."""
+    if not _is_bundle_program(module, trees):
+        return []
+    return [node.func for node in ast.walk(tree)
+            if isinstance(node, ast.Call) and ast.unparse(node.func) == BY_PATH_LOAD]
+
+
+def _has_dynamic_import(
+    tree: ast.Module, module: str = "", trees: dict[str, Any] | None = None
+) -> bool:
+    bundle = trees is not None and _is_bundle_program(module, trees)
+    admitted = {id(node) for node in _by_path_loads(tree, module, trees)} if bundle else set()
+    # A bundle program also may not look a module up by name with find_spec, in any
+    # spelling: a call, an attribute, an alias or an import of the name.
+    names = DYNAMIC_IMPORT_NAMES | BUNDLE_LOOKUP_NAMES if bundle else DYNAMIC_IMPORT_NAMES
     for node in ast.walk(tree):
-        if node is declared:
+        if id(node) in admitted:
             continue
-        if isinstance(node, ast.Name) and node.id in DYNAMIC_IMPORT_NAMES:
+        if isinstance(node, ast.Name) and node.id in names:
             return True
-        if isinstance(node, ast.Attribute) and node.attr in DYNAMIC_IMPORT_NAMES:
+        if isinstance(node, ast.Attribute) and node.attr in names:
             return True
-        if isinstance(node, ast.ImportFrom) and any(
-            alias.name in DYNAMIC_IMPORT_NAMES for alias in node.names
-        ):
+        if isinstance(node, ast.ImportFrom) and any(alias.name in names for alias in node.names):
             return True
     return False
 
@@ -427,7 +430,7 @@ def _closure_violations(
     found += [
         f"{start} reaches an undeclared dynamic import in {node}"
         for node in expanded
-        if node in graph.trees and _has_dynamic_import(graph.trees[node], node)
+        if node in graph.trees and _has_dynamic_import(graph.trees[node], node, graph.trees)
     ]
     return found
 
@@ -683,7 +686,10 @@ class IsolationReport:
     """Staged first-wave result (A01-4).
 
     ``new_core_closure_isolated`` covers only the new-core closures present in
-    the tree. It never stands in for ``isolation_complete``.
+    the tree. It never stands in for ``isolation_complete``. Both are static
+    import-closure results. ``runtime_execution`` lists the task bundle programs that
+    load frozen run files by path and execute them in-process at run time; neither
+    flag says anything about what that code does once it runs.
     """
 
     violations: tuple[str, ...]
@@ -691,6 +697,7 @@ class IsolationReport:
     harness_model_infra: tuple[str, ...]
     blockers: tuple[str, ...]
     new_core_closure_isolated: bool
+    runtime_execution: tuple[str, ...] = ()
 
     @property
     def isolation_complete(self) -> bool:
@@ -755,6 +762,20 @@ def first_wave_report(
     for parent in sorted(leaf_parents):
         violations += _initializer_errors(parent, graph.trees[parent], graph.packages[parent])
     violations += _contracts_errors(graph)
+    # #412 R3: bundle programs that load frozen run files by path. They run as their own
+    # processes, so this is runtime execution, which the static closure does not cover.
+    runtime_execution = [
+        f"{name}: {BY_PATH_LOAD} executes files loaded by path in-process"
+        for name in modules if _by_path_loads(graph.trees[name], name, graph.trees)
+    ]
+    # Package code never imports a bundle program, whatever the bundle's name, so an
+    # admitted by-path load cannot join another module's closure.
+    violations += [
+        f"{name} imports task bundle program {target}"
+        for name in modules
+        for target in sorted(graph.edges[name])
+        if target != name and _is_bundle_program(target, graph.trees)
+    ]
     # Inside the contracts package a Knowledge module may name only the encoder. The
     # initializer and its RunSpec module load with that import and are never named.
     violations += [
@@ -833,12 +854,8 @@ def first_wave_report(
         blockers.append(f"harness reaches model/infra: {legacy[0]} ({len(legacy)} hits)")
     if violations:
         blockers.append(f"violations: {len(violations)}")
-    resource_loaders = [name for name in modules
-                        if _resource_loader(graph.trees[name], name) is not None]
-    if resource_loaders:
-        blockers.append(f"runtime resource loaders: {len(resource_loaders)}")
     return IsolationReport(
         tuple(violations), tuple(legacy), tuple(blockers),
-        bool(starts) and not new_core and not resource_loaders,
+        bool(starts) and not new_core, tuple(runtime_execution),
     )
 

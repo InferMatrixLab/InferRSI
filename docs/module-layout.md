@@ -175,29 +175,52 @@ directories have no `__init__.py`. They import only the standard library and
 external engines, so the Knowledge closure rule holds for them unchanged. K02
 did not change the gate's scan scope or any closure rule. A dynamic import (`__import__`, `importlib.import_module`, or
 `module_from_spec`) inside a checked closure is an undeclared edge and fails
-closed, except for the exact resource execution declarations below.
+closed, except for by-path loading in task bundle programs, described below.
 Other dynamic forms (`getattr`, `exec`, `eval`, `runpy`, `pkgutil`)
 are out of scope for this package. `tools/` and `tests/` are separate
 registered consumers; this gate does not scan them.
 
-The task integration declares these existing resource execution boundaries in
-`tests/_gate_policy_support.py`, independently of the Knowledge compatibility
-pairs. Each permits exactly one `importlib.util.module_from_spec` call, with the
-listed local spec variable, in the named function or module scope. Other dynamic
-calls, additional calls, adjacent modules and static cross-core imports remain
-checked. These declarations do not make arbitrary candidate code isolated.
+#412 R3 retired the five temporary resource-loader declarations and their
+`runtime resource loaders` blocker. Three of the five were removed:
 
-| Relative module | Scope | Local spec |
-| --- | --- | --- |
-| `harness.task_protocol` | `protocol` | `spec` |
-| `benchmark.tasks.moe-forward-npu.benchmark` | module | `_process_spec` |
-| `benchmark.tasks.moe-forward-npu.grader` | `load` | `spec` |
-| `benchmark.tasks.qwen21-denoise-npu.benchmark` | `load` | `spec` |
-| `benchmark.tasks.qwen3-tts-npu.benchmark` | module | `_evaluation_spec` |
+- `harness.task_protocol` no longer loads task code. Each protocol operation
+  (`validate_arguments`, `arguments`, `assess`) runs `harness/protocol_child.py`
+  as `python -I -B` in its own process group or Windows Job under a deadline, and
+  answers with one strict JSON envelope on a private copy of stdout. The child
+  imports only the standard library and compiles the exact protocol bytes it has
+  checked against the frozen SHA-256. After every operation the last 4 KiB of the
+  child's stderr is copied to the caller's stderr; size limits apply when Harness
+  reads the child's output files, and the deadline bounds the run. This is an
+  interpreter and process boundary, not a filesystem or network sandbox.
+- `moe-forward-npu` folded its sibling `processes.py` into `benchmark.py`, and
+  `qwen3-tts-npu` folded its sibling `evaluation.py` into `benchmark.py`. The
+  bundles no longer load a sibling module by path, and a bundle prepared before
+  R3 is refused by its frozen digests and must be prepared again.
 
-The report adds a `runtime resource loaders` blocker when these loaders are
-present and does not claim either complete isolation or new-core closure
-isolation. R1 changed none of these five declarations; closing them is R3 (#412).
+An evaluator that times submitted code must call it in its own process, so it loads
+the frozen run file by path. The gate decides this by file location, not by task:
+
+- A **task bundle program** is a file directly inside `benchmark/tasks/<bundle>/`
+  where that directory has no `__init__.py`. Python could still import such a file
+  through a namespace package, so the gate rejects every import of a bundle program
+  from package code; Harness and Apps run it as its own process.
+- In a bundle program, `importlib.util.module_from_spec` calls are admitted. Every
+  name-based lookup still fails there: `__import__`, `importlib.import_module`,
+  `module_from_spec` reached by another spelling, and `find_spec` in any spelling,
+  including an alias. Static imports of Knowledge, Harness or Apps fail as in any
+  Benchmark module.
+- Everywhere else, including a deeper file inside a bundle, a bundle directory with an
+  `__init__.py`, `knowledge/data/**` scripts, Harness and Apps, the same call is a
+  dynamic import and fails.
+
+No table lists tasks or functions, so a new bundle needs no gate change. Today the
+MoE grader and the Qwen21 evaluator load this way. Their callers verify the file
+identities (`identity.json` in both tasks), and each load returns a fresh module that
+is not registered in `sys.modules`. The gate cannot see the path a bundle program
+loads, so the rule is a location-based static policy about where by-path loading is
+allowed, not a process or sandbox guarantee for candidate code. `first_wave_report().runtime_execution` lists every
+bundle program that loads by path, so the static `isolation_complete` result never
+reads as runtime isolation.
 
 R1 (#412) deleted the three root forwarders of the old run chain and removed
 their `LEGACY_RUN_FORWARDERS` registration from `tests/_gate_policy_support.py`.
@@ -215,23 +238,18 @@ With the seven Knowledge shells and root `inspection`, their names are now
 No `legacy run forwarders` blocker exists any more.
 [Retired root modules](#retired-root-modules) gives each replacement.
 
-A clean result means no new cross-core import of those names. It does not mean
-the modules are isolated. Isolation stays false while any one of these holds:
-`knowledge/`, `benchmark/`, or `apps/` is absent or has no scannable
-module; the compatibility allowlist
-is non-empty;
-`harness/**` still imports Model or Infra,
-directly or through another module; a declared runtime resource loader is
-present; or the scan reports a violation. The three packages may appear in stages.
-A clean graph for the new cores is reported separately as "new core business
-closure isolated" and never sets overall `isolation_complete` to true.
+A clean result means no new cross-core import of those names. Isolation stays false
+(`isolation_complete`, a static import-closure result) while any one of
+these holds: `knowledge/`, `benchmark/`, or `apps/` is absent or has no scannable
+module; the compatibility allowlist is non-empty; `harness/**` still imports Model
+or Infra, directly or through another module; or the scan reports a violation. A
+clean graph for the new cores is reported separately as "new core business closure
+isolated". Neither flag says anything about what frozen task or candidate code does
+once it runs: that is `runtime_execution`.
 
-On the tree after R2 (#412), `first_wave_report()` has no violation and one
-blocker, so `isolation_complete` is false and R2 does not claim otherwise:
-
-| Blocker | Cause | Closed by |
-| --- | --- | --- |
-| `runtime resource loaders: 5` | The five declared loaders in the table above | R3 (#412) |
+On the tree after R3 (#412), `first_wave_report()` has no violation and no
+blocker, `new_core_closure_isolated` and `isolation_complete` are both true, and
+`runtime_execution` lists the two bundle programs that load files by path.
 
 R1 cleared the `allowlist` and `legacy run forwarders` blockers, and A1 cleared
 the `temporary leaf importers` blocker that R1 left for root `arguments.py`. R2
@@ -241,8 +259,7 @@ cleared `harness reaches model/infra` (12 hits): `agent_sessions`, `candidates`,
 and `file_lock` from `harness/artifact_primitives.py` and `atomic_write_json` from
 `harness/atomic_json.py`, whose function bodies equal those in `infra/artifacts.py`.
 `infra/artifacts.py` stays for its other users. No Harness module reaches
-`inferrsi.infra` or `inferrsi.model`. The loaders also keep
-`new_core_closure_isolated` false.
+`inferrsi.infra` or `inferrsi.model`. R3 cleared `runtime resource loaders: 5`.
 
 `knowledge-model-policy` stays the only required status. Until a separate
 process decision makes this import gate required, every migration PR attaches

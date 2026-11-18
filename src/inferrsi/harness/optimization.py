@@ -10,6 +10,7 @@ from pathlib import Path
 from . import candidates
 from .artifact_primitives import digest, file_lock, sha256
 from .atomic_json import atomic_write_json
+from .task_protocol import TaskProtocolError
 from .usage import normalize_usage, usage_totals
 
 
@@ -209,9 +210,15 @@ def _summary(root, plan, state):
     }
 
 
+def _type_name(error):
+    # A task protocol that raised is recorded under its own exception type across the
+    # child transport (#412 R3); any other error under its own Python type.
+    return error.type_name if isinstance(error, TaskProtocolError) else type(error).__name__
+
+
 def _failure(error):
     return {"status": "infrastructure_failure", "score": None,
-            "verdict": "INCONCLUSIVE", "reason": f"{type(error).__name__}: {error}"}
+            "verdict": "INCONCLUSIVE", "reason": f"{_type_name(error)}: {error}"}
 
 
 def _settle(root, plan, state, pending, execution, assess):
@@ -343,7 +350,7 @@ def evaluate_round(root: Path, *, candidate: Path | None, hypothesis: str,
             # failed. Collect it without launching the same candidate again.
             path = directory / "execution/execution.json"
             atomic_write_json(directory / "coordinator-error.json", {
-                "type": type(error).__name__, "error": str(error)})
+                "type": _type_name(error), "error": str(error)})
             if path.is_file():
                 execution = json.loads(path.read_text(encoding="utf-8"))
             else:

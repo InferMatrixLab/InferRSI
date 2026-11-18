@@ -15,8 +15,7 @@ SHA256；启动器阻止导入 vLLM、vLLM-Omni、SGLang 和历史独立引擎�
 
 | 文件 | 做什么 | 优化时的作用 |
 | --- | --- | --- |
-| `benchmark.py` | 解析 prepare/serve/collect/assess 参数 | 题包自身的可执行入口 |
-| `evaluation.py` | 冻结判据、采集音频和计时、离线判定 | 评测规则和结果复核 |
+| `benchmark.py` | 解析 prepare/serve/collect/assess 参数；冻结判据、采集音频和计时、离线判定 | 题包自身的可执行入口，也是评测规则和结果复核 |
 | `baseline.py` | 校验模型资产、启用引擎导入隔离、启动服务 | 固定参考入口，记录代码与权重身份 |
 | `inference.py` | 文本和指令编码 → Talker/code predictor → codec 解码 → PCM | 推理调度、缓存、算子、同步和解码优化的入口 |
 | `service.py` | HTTP/SSE、请求校验、有界队列、单模型线程 | 批处理、排队和增量音频交付的入口 |
@@ -39,7 +38,7 @@ SHA256；启动器阻止导入 vLLM、vLLM-Omni、SGLang 和历史独立引擎�
 → 独立 ASR／音色评分 → assess 核对 → 反馈下一轮 → 独立 final
 ```
 
-这里的 prepare、serve、collect、assess 由题包内 benchmark.py 和 evaluation.py 实现。RSI 的实验调用方
+这里的 prepare、serve、collect、assess 由题包内 benchmark.py 实现（#412 R3 把原来的 evaluation.py 并入它；此前准备好的 prepared 目录因冻结摘要不符会被拒绝，需要重新 prepare）。RSI 的实验调用方
 负责触发它们；描述任务的 Markdown 不会自动启动评测。task、运行入口和判据对应
 #362 的 Benchmark 职责，当前沿 scenario 入口提供，后续公共契约按 S1 对接。
 
