@@ -52,7 +52,7 @@ def _operation(cwd, argv, stdout, identity, *, received=True, script=None):
     return rows
 
 
-def _import(tmp_path, rows, *, decisions=()):
+def _import(tmp_path, rows, *, decisions=(), context_ids=()):
     trace, campaign = tmp_path / "rollout.jsonl", tmp_path / "campaign"
     meta = {"type": "session_meta", "payload": {"id": "synthetic-cli", "cwd": str(tmp_path)}}
     trace.write_text("".join(json.dumps(row) + "\n" for row in [meta, *rows]), encoding="utf-8")
@@ -67,7 +67,8 @@ def _import(tmp_path, rows, *, decisions=()):
     _, output = _cli(tmp_path, "campaign", "import-search", "--directory", str(campaign),
                      "--round", "1", "--trace", str(trace), "--lines", "2", str(len(rows) + 1),
                      "--knowledge-root", str(LIBRARY), "--complete",
-                     "--archive-review", str(review))
+                     "--archive-review", str(review),
+                     *(word for key in context_ids for word in ("--context-id", key)))
     return (json.loads((campaign / "search/round-1.json").read_text(encoding="utf-8")),
             json.loads((campaign / json.loads(output)["record"]).read_text(encoding="utf-8")))
 

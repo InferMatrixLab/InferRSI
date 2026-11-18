@@ -195,12 +195,11 @@ def _rg_hits(output, cwd, corpus, scopes, mode, with_filename):
     return [{"ref": ref, "match_line": line} for ref, line in hits.items()], complete
 
 
-def _command(item, corpus):
-    """Decode one retrieval command without replaying it."""
+def _recorded_argv(item):
     original_argv = item.get("command")
     if (not isinstance(original_argv, list) or not original_argv
             or not all(isinstance(arg, str) for arg in original_argv)):
-        return None, False, None
+        return None, False
     argv = original_argv
     multiline = False
     if (Path(argv[0]).name in _SHELLS and len(argv) == 3
@@ -208,11 +207,19 @@ def _command(item, corpus):
         try:
             argv, multiline = _shell_argv(argv[2])
         except ValueError:
-            return None, False, None
+            return None, False
+    compound = multiline or any(word in _SHELL_OPERATORS for word in argv)
+    return argv, compound
+
+
+def _command(item, corpus):
+    """Decode one retrieval command without replaying it."""
+    argv, compound = _recorded_argv(item)
+    if argv is None:
+        return None, False, None
     if not argv:
         return None, True, None
     tool = Path(argv[0]).name
-    compound = multiline or any(word in _SHELL_OPERATORS for word in argv)
     if compound:
         in_scope = any(Path(word).name in _TOOLS or knowledge_invocation(argv[index:])
                        for index, word in enumerate(argv))
@@ -314,8 +321,18 @@ def _archive_text(value, corpus, limit=_MAX_PASSAGE_CHARS):
     return fields
 
 
-def _passage(ref, line, text, corpus):
+def _passage(ref, line, text, corpus, quotes=()):
+    excerpt_only = False
+    if len(text) > _MAX_PASSAGE_CHARS and quotes:
+        spans = [(pos, pos + len(quote)) for quote in quotes if (pos := text.find(quote)) >= 0]
+        if spans:
+            first = min(start for start, _ in spans)
+            last = max(end for _, end in spans)
+            if last > _MAX_PASSAGE_CHARS and last - first <= _MAX_PASSAGE_CHARS:
+                text, excerpt_only = text[first:last], True
     safe = _archive_text(text, corpus)
+    if excerpt_only:
+        safe["truncated"] = True
     return {"ref": ref, "line": line, **safe}
 
 
@@ -329,7 +346,7 @@ def _unique_candidates(candidates):
     return result
 
 
-def _select_passages(candidates, event_line, selections):
+def _select_passages(candidates, event_line, selections, excerpts):
     candidates = _unique_candidates(candidates)
     requested = set(selections.get(event_line, ()))
     selected = []
@@ -338,13 +355,14 @@ def _select_passages(candidates, event_line, selections):
         locator = (candidate["ref"], candidate["line"])
         if locator in requested:
             found.add(locator)
-        if index < _MAX_PASSAGES or locator in requested:
+        if (index < _MAX_PASSAGES or locator in requested
+                or any(quote in candidate["text"] for quote in excerpts.get(candidate["ref"], ()))):
             selected.append(candidate)
     missing = [key for key in selections.get(event_line, ()) if key not in found]
     return selected, len(candidates) - len(selected), missing
 
 
-def _delivery(event, spec, join, corpus, event_line, selections):
+def _delivery(event, spec, join, corpus, event_line, selections, excerpts):
     base = {"state": "unknown", "runtime_truncated": join.get("runtime_truncated"),
             "archive_omitted": True, "passages": [], "visible_refs": []}
     issues = []
@@ -407,8 +425,10 @@ def _delivery(event, spec, join, corpus, event_line, selections):
             else:
                 line_number = spec["line_start"] + index
             candidates.append({"ref": ref, "line": line_number, "text": text})
-    passages, omitted, unmatched = _select_passages(candidates, event_line, selections)
-    safe_passages = [_passage(item["ref"], item["line"], item["text"], corpus)
+    excerpts = excerpts if event["action"] == "read" else {}
+    passages, omitted, unmatched = _select_passages(candidates, event_line, selections, excerpts)
+    safe_passages = [_passage(item["ref"], item["line"], item["text"], corpus,
+                             excerpts.get(item["ref"], ()))
                      | ({"path": item["path"]} if "path" in item else {}) for item in passages]
     visible_refs = refs[:_MAX_VISIBLE_REFS]
     omitted_refs = max(0, len(refs) - len(visible_refs))
@@ -592,7 +612,7 @@ def _detail(event_id, trace_line, action, reason, event=None, excerpt=None, sele
 
 
 def read_window(trace: Path, lines: tuple[int, int], corpus: Path, *, archive=False,
-                selections=None):
+                selections=None, excerpts=None):
     """Return window, events, full transient decisions, uncertainty and detail.
 
     In archive mode, selections maps a command event's trace line to
@@ -712,7 +732,7 @@ def read_window(trace: Path, lines: tuple[int, int], corpus: Path, *, archive=Fa
             join = joins.get(event_id, {"state": "unknown", "runtime_truncated": None,
                                         "reason": "outer_call_not_unique"})
             delivery, problem, selection_issues = _delivery(
-                public_event, spec, join, corpus, line, selected_passages
+                public_event, spec, join, corpus, line, selected_passages, excerpts or {}
             )
             if (delivery["state"] == "unknown" or not complete
                     or delivery["runtime_truncated"]):

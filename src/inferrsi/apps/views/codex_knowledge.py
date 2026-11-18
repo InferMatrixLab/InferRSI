@@ -41,7 +41,7 @@ def _parser():
     return parser(parser_class=_QuietParser)
 
 
-def invocation(argv):
+def cli_arguments(argv):
     """Recognize the installed command, module, and Codex/WorkSwarm launcher."""
     start = 1 if argv and Path(argv[0]).name == "env" else 0
     while start < len(argv) and re.match(r"[A-Za-z_][A-Za-z0-9_]*=", argv[start]):
@@ -61,6 +61,11 @@ def invocation(argv):
             return None
     elif program != "inferrsi":
         return None
+    return args
+
+
+def invocation(argv):
+    args = cli_arguments(argv)
     tool = " ".join(args[:2]) if args and args[0] in ("knowledge", "cannbot") else (
         args[0] if args else "")
     if tool in (*_SEARCHES, *_READS, "collect"):

@@ -129,6 +129,10 @@ For a managed capture, `capture_returns` can cite the complete
 `campaign knowledge` or `benchmarks session knowledge` JSON tool return. The
 returned capture reference and contents must match the saved capture. Delivery
 is established for the matching resource blocks in that return.
+Reasons in a submitted managed hypothesis or a manual optimization log can
+carry an explicit use citation. The importer aligns it with the verified
+delivered passage and later decision position without hand-entered evidence
+line numbers. See the [round reason workflow](dashboard.md#cite-a-passage-in-the-round-reason).
 
 Multiple metadata records may explicitly identify the same candidate and
 round with different `run_id` values. The importer retains all of them, including

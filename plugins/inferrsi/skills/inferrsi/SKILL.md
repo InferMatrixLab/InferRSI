@@ -64,6 +64,13 @@ This command uses the same Harness controller as the packaged task path below.
 Edit the returned working candidate. Submit each hypothesis and candidate with
 `campaign round`, read the feedback, and keep failed attempts. Retrieve needed
 knowledge through `campaign knowledge` when the frozen condition allows it.
+When a passage you read changes the candidate or check you choose, explain
+that choice in the existing `--hypothesis` and append
+`[use REF | EXACT SOURCE EXCERPT]`. Use the reference from the delivered
+resource. Leave the reason without a citation when reading did not affect it.
+For a Codex rollout, record the round boundary before retrieval and close
+with `campaign import-search --archive-review` after the round response is
+available. The archive resolves citation positions from the tool returns.
 Profiling and new knowledge queries are driven by the current problem, not
 mandatory every round. Use `up_to` for a declared round limit or `exact` for fixed
 rounds. End an up-to search with `campaign final --reason <why>`; it retests the
@@ -108,7 +115,9 @@ evaluation prefix and sampling arguments. Read its returned frozen TASK.md and
 edit the returned working candidate. When knowledge is permitted, retrieve it
 through `session knowledge` and read the delivered material. Submit each changed
 candidate and hypothesis with `session round`, then inspect the independent
-feedback before the next change. Keep failed rounds. Complete the frozen budget
+feedback before the next change. Use the same conditional `[use REF | EXACT SOURCE EXCERPT]`
+in the hypothesis and close the Codex search archive as in `campaign round`.
+Keep failed rounds. Complete the frozen budget
 and use `session final` for independent retesting. Report `summary.json` and its
 per-round curve data. Import actual usage exports when available and preserve
 unknown values. Use `session recover` to collect an interrupted existing attempt.
@@ -236,10 +245,10 @@ format and association workflow are documented in `docs/dashboard.md`.
 
 For a managed optimization use `campaign knowledge` or `benchmarks session
 knowledge`. These use Find by default and retain the assembled context,
-revisions and budget under the frozen knowledge condition. Legacy manual
-campaigns use `campaign capture-context`
-(one capture per retrieval) instead of a bare `collect`.
-After each round, update the campaign optimization log and record it with
+revisions and budget under the frozen knowledge condition. Managed rounds
+record reasons in their submitted hypotheses. In legacy manual campaigns,
+use `campaign capture-context` (one capture per retrieval). After each manual
+round, update the optimization log and record it with
 `campaign log`: the hypothesis, why this optimization was chosen, which
 knowledge it relied on, the search options tried, pruned or left untried and
 why, the decision and its reason. At the end, write success and failure
@@ -253,10 +262,10 @@ root and any capture IDs. If the rollout is available only after interruption,
 the host can import the same range later. Keep private raw traces outside the
 campaign. The round-import section of `docs/dashboard.md` describes how to
 distinguish observed reads, explicit use and missing capture.
-For a round intended for repository evidence, supply the reviewed corpus
-version and decision references with `--archive-review`. Check that the
-published passages, decision excerpts and linked campaign artifacts let a
-reader verify the claim without the private rollout.
+Supply the reviewed corpus version with `--archive-review`. Managed round
+citations resolve from the submitted hypothesis and tool returns. In a manual
+campaign, state the cited reason while deciding and retain it in the log.
+Check the saved passages and decision excerpts before sharing.
 
 For a bilingual dashboard, prepare and review a translation overlay for the
 recorded narrative, including the knowledge context, search space, decisions,

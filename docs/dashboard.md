@@ -297,6 +297,42 @@ retrievals require separate evidence. Review query text and paths before sharing
   reimport can establish adoption and clears the declaration's old reason.
   A newly supplied decision that precedes every observation is still rejected.
 
+#### Cite a passage in the round reason
+
+If a delivered passage changes a candidate or validation choice, explain that
+choice in the round's existing reason and append `[use REF | EXACT SOURCE EXCERPT]`.
+Use the qualified reference from `read` or the reference in the delivered
+context. Pick a short verbatim excerpt on one source line that identifies the
+passage. A round whose choice did not depend on a passage needs no citation.
+
+For managed project and benchmark rounds, use the existing `--hypothesis`.
+A local mask-memory experiment submitted this hypothesis.
+
+> Sum the visible interval for each row as it is scored. The reported mask-retention failure made me choose immediate scoring over a cache of mask rows [use checkout:case.qwen-ascend-rejected-directions | NPU OOM.].
+
+At round close, after the completed round response is in the rollout, run
+the existing `campaign import-search` over that round. Use the start boundary
+captured before retrieval and the end of the flushed rollout. A review file
+with `task`, `corpus` and `"decisions": []` is enough for automatic alignment.
+Include `--context-id` for any managed captures used in the round.
+The importer locates matching managed JSON returns within the window for those
+captures. It locates the submitted hypothesis from the round call and verifies
+the round receipt. The return containing the source passage must precede the
+round call.
+
+For a manual campaign, put the citation in the existing log's round
+`rationale` or `decision.reason`. State that same reason in the conversation
+when making the choice, then retain it with `campaign log` before closing the
+round. The log receipt binds the reason to the round and the assistant message
+establishes its position.
+
+The importer saves a verified match as the usual passage-to-decision
+association. It leaves unverifiable citations as declarations with a reason.
+A Find hit, a read without an explicit citation, an ambiguous excerpt or a
+missing or truncated return cannot establish this association. This evidence
+documents how a choice was explained. Evaluation evidence governs results and
+improvement claims separately.
+
 #### Archive evidence for readers outside the session
 
 Use `--archive-review review.json` on the same import when a campaign calls

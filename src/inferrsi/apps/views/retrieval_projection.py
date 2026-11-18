@@ -296,7 +296,9 @@ def read_searches(root: Path, campaign_id, rows, retrievals):
                                 or capture["expected_sha256"] != declaration.get("capture_sha256")
                                 or capture["path"] != declaration.get("capture_source")):
                             declaration_state = "source_mismatch"
-                elif declaration.get("basis") != "caller_flag_declaration":
+                elif declaration.get("basis") not in (
+                    "caller_flag_declaration", "round_reason_declaration",
+                ):
                     declaration_state = "unsupported_basis"
                 if declaration_state != "caller_declaration":
                     issues.append(declaration_state)

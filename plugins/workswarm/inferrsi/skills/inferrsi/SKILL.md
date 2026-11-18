@@ -88,7 +88,15 @@ Edit the working candidate, submit each hypothesis with `campaign round`, read
 feedback and keep failed rounds. Use `campaign knowledge` when the frozen plan
 allows knowledge. It uses Find by default and retains the selected material and
 revisions within the requested context budget. Search and profile when the
-current question needs it. Use `up_to` for a round limit or `exact` for fixed
+current question needs it.
+If a passage you read changes a concrete choice, explain the choice in the
+existing `--hypothesis` and append `[use REF | EXACT SOURCE EXCERPT]`. Cite the
+delivered reference and a short verbatim excerpt. Leave out citations when
+reading did not affect the choice. When the host supplies a Codex rollout,
+record the boundary before searching and close the round with
+`campaign import-search --archive-review` after the round returns. The importer
+resolves the passage and decision positions.
+Use `up_to` for a round limit or `exact` for fixed
 rounds. End an up-to search with
 `campaign final --reason <why>`; final retests the retained best candidate,
 not unsubmitted working edits. Reserve final time and report its actual scope.
@@ -131,7 +139,9 @@ edit the returned working candidate. When knowledge is permitted, use
 `session knowledge` for the same Find selection and budgeted context, and
 read the delivered material. Submit each changed
 candidate and hypothesis with `session round`, then inspect the independent
-feedback before the next change. Keep failed rounds. Complete the frozen budget
+feedback before the next change. Use the same conditional citations in the
+hypothesis and close any Codex search archive as in `campaign round`.
+Keep failed rounds. Complete the frozen budget
 and use `session final` for independent retesting. Report `summary.json` and its
 per-round curve data. Import actual usage exports when available and preserve
 unknown values. Use `session recover` to collect an interrupted existing attempt.

@@ -17,7 +17,7 @@ from inferrsi.harness.records.evidence import (
 from inferrsi.harness.records.knowledge_capture import MAX_CONTEXT_CAPTURE_BYTES
 from inferrsi.knowledge.context_projection import assemble_context_text
 
-from .codex_tool_returns import _output_lines
+from .codex_tool_returns import _output_lines, _response_text
 
 
 def capture_return_texts(trace, lines, references, context_ids):
@@ -62,6 +62,44 @@ def capture_return_texts(trace, lines, references, context_ids):
     return {key: texts[number] for key, number in references.items()}
 
 
+def _managed_envelope(doc, reference):
+    return json.dumps({"reference": reference, "context": doc}, ensure_ascii=False, indent=2)
+
+
+def managed_return_lines(trace, lines, captures, *, reserved):
+    """Locate exact tool returns for selected managed captures in the round."""
+    pending = {key: _managed_envelope(doc, {
+        "path": source, "sha256": digest, "kind": "delivered_context",
+    }) for key, (doc, source, digest) in captures.items()}
+    if not pending:
+        return {}
+    found = {}
+    first, last = lines
+    with trace.open("rb") as stream:
+        for number, raw in enumerate(stream, 1):
+            if number > last or not pending:
+                break
+            if number < first or number in reserved:
+                continue
+            row = json.loads(raw)
+            payload = row.get("payload", {})
+            if (row.get("type") != "response_item" or not isinstance(payload, dict)
+                    or payload.get("type") not in (
+                        "function_call_output", "custom_tool_call_output",
+                    )):
+                continue
+            text = _response_text(row)
+            if text is None:
+                continue
+            chunk = "\n" + text.replace("\r\n", "\n") + "\n"
+            keys = [key for key, body in pending.items() if f"\n{body}\n" in chunk]
+            if len(keys) == 1:
+                key = keys[0]
+                found[key] = number
+                del pending[key]
+    return found
+
+
 def visible_capture_resources(doc, texts, *, reference=None):
     """Require matching owner, revision, resource path and body in the visible text."""
     visible = []
@@ -71,8 +109,7 @@ def visible_capture_resources(doc, texts, *, reference=None):
     if reference is not None:
         # The managed CLI prints the retained capture in its JSON response.
         # Require the complete envelope, including the verified path and digest.
-        managed = json.dumps({"reference": reference, "context": doc},
-                             ensure_ascii=False, indent=2)
+        managed = _managed_envelope(doc, reference)
         if any(f"\n{managed}\n" in chunk.replace("\r\n", "\n") for chunk in chunks):
             chunks.append("\n" + doc["assembled_text"] + "\n")
     for context in doc["contexts"]:
@@ -130,7 +167,7 @@ def load_campaign_capture(root, campaign_id, context_id):
     return doc, path.relative_to(root).as_posix(), hashlib.sha256(raw).hexdigest()
 
 
-def _capture_passages(doc, selections, visible):
+def _capture_passages(doc, selections, visible, excerpts):
     locators = dict.fromkeys((item["ref"], item["passage_path"], item["passage_line"])
                              for item in selections)
     passages = []
@@ -150,11 +187,24 @@ def _capture_passages(doc, selections, visible):
         if _text(text, "", limit=len(text)) != text:
             raise ValueError("Indexer review source passage is not safe to publish verbatim")
         passages.append({"ref": ref, "path": path, "line": line, "text": text})
+    for context in doc["contexts"]:
+        ref = context["ref"]
+        if ref not in excerpts:
+            continue
+        for resource in context["resources"]:
+            path = resource["path"]
+            if (ref, path) not in visible:
+                continue
+            for line, text in enumerate(_output_lines(resource["content"]), 1):
+                if ((ref, path, line) not in locators
+                        and any(quote in text for quote in excerpts[ref])
+                        and _text(text, "", limit=len(text)) == text):
+                    passages.append({"ref": ref, "path": path, "line": line, "text": text})
     return passages
 
 
 def capture_event(context_id, captured, *, archive=False, return_chunks=None,
-                  return_line=None, selected_passages=()):
+                  return_line=None, selected_passages=(), excerpts=None):
     doc, source, digest = captured
     resources = {c["ref"]: [r["path"] for r in c["resources"]] for c in doc["contexts"]}
     materials = []
@@ -218,7 +268,8 @@ def capture_event(context_id, captured, *, archive=False, return_chunks=None,
     event["delivery"] = {"state": "visible" if visible else "unknown",
                          "output_state": "verified" if return_line is not None else "unknown",
                          "visible_resources": visible,
-                         "passages": _capture_passages(doc, selected_passages, visible_keys)}
+                         "passages": _capture_passages(
+                             doc, selected_passages, visible_keys, excerpts or {})}
     if return_line is not None:
         event["trace_line"] = return_line
         if visible:
