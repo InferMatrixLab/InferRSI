@@ -31,7 +31,7 @@ _WINDOWS_RG_PATH = r"(?:[A-Za-z]:[/\\])?[^:]+"
 
 
 def _shell_argv(source):
-    """Strip shell comments only at unquoted word boundaries before tokenizing."""
+    """Tokenize a shell command after removing comments and line continuations."""
     chars = []
     quote = None
     escaped = comment = False
@@ -43,8 +43,10 @@ def _shell_argv(source):
             comment, word_start = False, True
         elif escaped:
             escaped = False
-            if char != "\n":
-                word_start = False
+            if char == "\n":
+                chars.pop()  # A backslash-newline is removed before shell tokenization.
+                continue
+            word_start = False
         elif char == "\\" and quote != "'":
             escaped = True
         elif quote:
@@ -58,10 +60,11 @@ def _shell_argv(source):
         else:
             word_start = char in " \t\r\n;&|<>()"
         chars.append(char)
-    lexer = shlex.shlex("".join(chars), posix=True, punctuation_chars=";&|<>")
+    command = "".join(chars)
+    lexer = shlex.shlex(command, posix=True, punctuation_chars=";&|<>")
     lexer.whitespace_split = True
     lexer.commenters = ""
-    return list(lexer)
+    return list(lexer), "\n" in command.strip()
 
 
 def _material(cwd: Path, name: str, corpus: Path) -> str | None:
@@ -202,9 +205,8 @@ def _command(item, corpus):
     multiline = False
     if (Path(argv[0]).name in _SHELLS and len(argv) == 3
             and argv[1] in ("-c", "-lc", "-ic", "-ilc")):
-        multiline = "\n" in argv[2].strip()
         try:
-            argv = _shell_argv(argv[2])
+            argv, multiline = _shell_argv(argv[2])
         except ValueError:
             return None, False, None
     if not argv:
@@ -442,7 +444,7 @@ def _rough_action(item):
     if (isinstance(argv[0], str) and Path(argv[0]).name in _SHELLS
             and len(argv) == 3 and argv[1] in ("-c", "-lc", "-ic", "-ilc")):
         try:
-            tokens = _shell_argv(argv[2])
+            tokens, _ = _shell_argv(argv[2])
         except ValueError:
             return "unknown", False
     found = [Path(word).name for word in tokens if isinstance(word, str)
@@ -466,7 +468,7 @@ def _safe_file_list_pipeline(item, corpus, join):
             or "\n" in argv[2]):
         return None
     try:
-        tokens = _shell_argv(argv[2])
+        tokens, _ = _shell_argv(argv[2])
     except ValueError:
         return None
     if (len(tokens) == 6 and tokens[:2] == ["rg", "--files"]
@@ -543,7 +545,7 @@ def _operation_skeleton(item, action, event=None):
     if (isinstance(argv[0], str) and Path(argv[0]).name in _SHELLS
             and len(argv) == 3 and argv[1] in ("-c", "-lc", "-ic", "-ilc")):
         try:
-            tokens = _shell_argv(argv[2])
+            tokens, _ = _shell_argv(argv[2])
         except ValueError:
             return {"action": action}
     tools = list(dict.fromkeys(

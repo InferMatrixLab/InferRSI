@@ -204,7 +204,7 @@ flushed. After an interruption the host can do the same handoff. Use
 These inputs can be combined with the rollout or used alone for an Indexer-only
 round. Each capture is verified and its returned refs, revisions, request and
 resource paths are recorded. Opening a resource and receiving a prepared context
-are distinct observations. For Collect results that must be retained, use
+are distinct observations. For a new Collect retrieval that must be retained, use
 `campaign capture-context` with the same query or exact IDs.
 
 The importer reads Desktop `CommandExecution` events. Run `find` and `read` in

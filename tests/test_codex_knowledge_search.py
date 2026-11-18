@@ -32,8 +32,8 @@ def _run(cwd, argv):
     return result.stdout
 
 
-def _operation(cwd, argv, stdout, identity, *, received=True):
-    cmd = shlex.join(argv)
+def _operation(cwd, argv, stdout, identity, *, received=True, script=None):
+    cmd = script or shlex.join(argv)
     item = {"type": "CommandExecution", "id": identity, "cwd": cwd.as_uri(),
             "command": ["/bin/sh", "-lc", cmd] if os.name == "posix" else argv,
             "exit_code": 0, "aggregated_output": stdout}
@@ -82,11 +82,15 @@ def test_direct_find_and_read_import(tmp_path, json_output):
     else:
         encoded = found if json_output else _cli(tmp_path, *find_args, "--json")[1]
         read_argv = json.loads(encoded)["items"][0]["open_argv"]
-    opened = _run(tmp_path, read_argv)
+    read_script = None
+    if not json_output and os.name == "posix":
+        # Exercise the documented single command written across two lines.
+        read_script = shlex.join(read_argv).replace(" --material", " \\\n  --material", 1)
+    opened = _run(tmp_path, ["/bin/sh", "-c", read_script] if read_script else read_argv)
     view = json.loads(opened)
     assert view["content"].startswith(PASSAGE)
     rows = [*_operation(tmp_path, find_argv, found, "find"),
-            *_operation(tmp_path, read_argv, opened, "read"),
+            *_operation(tmp_path, read_argv, opened, "read", script=read_script),
             {"type": "response_item", "payload": {
                 "type": "message", "role": "assistant", "phase": "final_answer",
                 "content": [{"type": "output_text", "text": DECISION}],
