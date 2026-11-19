@@ -179,7 +179,8 @@ def session_command(args, *, task_source: Path | None = None, knowledge_reader=N
                         "Service reuse requires --evaluation-config without AB/BA options"
                     )
                 if args.decision != "point" or args.require_explanation:
-                    # Both switches read AB/BA pairs and profiles that this mode does not record.
+                    # Both switches read AB/BA pairs and per-measurement breakdown/counters;
+                    # this mode's own profiling stage does not produce those inputs.
                     raise ValueError(
                         "--decision paired and --require-explanation apply to AB/BA campaigns"
                     )
