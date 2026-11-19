@@ -95,8 +95,9 @@ the profile stage. Its project script owns actual profiling and validation.
 Harness retains the full receipt in `execution/profile/result.json` and checks
 that the listed artifacts exist and are nonempty. Round records store the receipt
 path, binding, capture interval and artifact locations. Collector-specific payloads
-stay in the receipt. If the retained profile metadata exceeds 32 KiB, the command
-reports a profiling error and the evaluation keeps its performance and quality verdict.
+stay in the receipt. The capture interval and artifact locations share a 32 KiB
+limit on their encoded JSON size. Exceeding it reports a profiling error and the
+evaluation keeps its performance and quality verdict.
 Performance samples exclude profiling requests and time. `stop` returns `cleanup_complete: true`;
 Harness also stops and verifies its owned process domain. Unknown cleanup blocks
 further execution until investigated.

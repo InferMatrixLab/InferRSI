@@ -517,19 +517,13 @@ def validated_profile(root, directory, attempt_id, conditions, binding, step, *,
         raise ValueError("profile: missing artifacts")
     legacy = "result" in step
     locations = []
-    profile = {
-        "attempt_id": attempt_id,
-        "conditions": conditions,
-        "binding": binding,
-        "artifacts": locations,
-        "result": result.relative_to(root).as_posix(),
-    }
+    metadata = {"artifacts": locations}
     if legacy:
         # Previously written profiles kept the full receipt in both the step and the profile.
-        profile["receipt"] = trace
+        metadata["receipt"] = trace
     else:
-        profile.update(capture_started_at=interval[1], capture_ended_at=interval[2])
-        metadata_bytes = len(json.dumps(profile, ensure_ascii=False).encode("utf-8"))
+        metadata.update(capture_started_at=interval[1], capture_ended_at=interval[2])
+        metadata_bytes = len(json.dumps(metadata, ensure_ascii=False).encode("utf-8"))
     for relative in artifacts:
         path = safe_path(directory, relative)
         location = path.relative_to(root).as_posix()
@@ -546,7 +540,13 @@ def validated_profile(root, directory, attempt_id, conditions, binding, step, *,
             if not artifact.read(1):
                 raise ValueError("profile: missing or empty artifact")
         locations.append(location)
-    return profile
+    return {
+        "attempt_id": attempt_id,
+        "conditions": conditions,
+        "binding": binding,
+        "result": result.relative_to(root).as_posix(),
+        **metadata,
+    }
 
 
 def _error_excerpt(message):

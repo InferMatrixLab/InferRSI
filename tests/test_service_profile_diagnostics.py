@@ -107,6 +107,24 @@ def test_large_collector_error_retains_round_and_backfill(campaign):
     assert call(campaign, "final", "--reason", "Done")["final"]["assessment"]["verdict"] == "PASS"
 
 
+def test_large_effective_config_allows_inline_and_backfill_profiles(campaign):
+    config = service.read(campaign["config"])
+    config["conditions"]["effective_config"].update(
+        {f"engine.option_{i:04d}": i for i in range(1500)}
+    )
+    campaign["config"].write_text(json.dumps(config))
+    begin(campaign)
+    attempt = submit(campaign, a=90)["latest_observation"]
+    inline = attempt["profiling"]
+    assert attempt["assessment"]["verdict"] == "PASS"
+    assert inline["available"]
+    assert call(campaign, "status")["rounds"][0]["profiling"] == inline
+
+    backfill = call(campaign, "profile", "--round", 1)["profiling"]
+    assert backfill["available"] and backfill["result"] != inline["result"]
+    assert call(campaign, "status")["rounds"][0]["profiling"] == backfill
+
+
 def test_backfill_with_oversized_artifact_list_retains_inline_capture(campaign):
     root = campaign["root"]
     protocol = root.parent / "protocol" / "protocol.py"
