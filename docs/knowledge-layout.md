@@ -2,6 +2,8 @@
 
 Start from the work an engineer needs to finish. The library has one physical root, one source location per registered skill and one authored file per engineering finding. Search and the catalog are two views over those sources. The migration manifest maps historical checkout paths and revisions. [Migration manifest](skill-layout-migration.csv)
 
+The [single-B300 H3 Image field validation](../evidence/h3-image-b300-kb-layout-516/README.md) follows both knowledge layouts from a real performance question to source reads, candidate patches, quality gates and measured latency.
+
 ## 1. Task layers and evidence
 
 ```mermaid

@@ -1,0 +1,17 @@
+diff --git a/vllm_omni/diffusion/models/minimax_h3/image_vae.py b/vllm_omni/diffusion/models/minimax_h3/image_vae.py
+index 93c2cf3b2..b764bfc78 100644
+--- a/vllm_omni/diffusion/models/minimax_h3/image_vae.py
++++ b/vllm_omni/diffusion/models/minimax_h3/image_vae.py
+@@ -623,7 +623,11 @@ class _TileGraphs:
+             return []
+         if any(tile.shape != tiles[0].shape for tile in tiles):
+             return [self.map([tile])[0] for tile in tiles]
+-        entries = self._replicas(tiles[0], min(self.replicas, len(tiles)))
++        replicas = self.replicas
++        device = tiles[0].device
++        if device.type == "cuda" and not torch.version.hip and torch.cuda.get_device_capability(device) == (10, 3):
++            replicas = 12
++        entries = self._replicas(tiles[0], min(replicas, len(tiles)))
+         current = torch.cuda.current_stream(tiles[0].device)
+         for *_, stream in entries:
+             stream.wait_stream(current)

@@ -1,6 +1,11 @@
 {
   "version": 1,
   "bundles": {
+    "h3-image-b300-kb-layout-516": {
+      "kind": "campaign",
+      "manifests": [{"path": "plan/integrity.json", "schema": "bundle-sha256"}],
+      "external": ["The remote workspace retains image PNGs and host logs. Public sessions include per-request timing, decoded RGB hashes, monitor outcomes and raw trial file SHA-256 digests."]
+    },
     "minicpm-vllm-seedtts": {
       "kind": "campaign",
       "manifests": [

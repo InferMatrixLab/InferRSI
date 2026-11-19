@@ -1,0 +1,57 @@
+--- a/vllm_omni/diffusion/models/minimax_h3/pipeline_minimax_h3_image.py
++++ b/vllm_omni/diffusion/models/minimax_h3/pipeline_minimax_h3_image.py
+@@ -694,6 +694,9 @@
+         tags[packed["text_pos"].view(-1)] = text_tags
+         branch = MiniMaxH3DenoiseBranch(packed=packed, text_embeddings=hidden, token_tags=tags, device=self.device)
+         branch.prepare_rope_table(self.transformer)
++        if not grids and self.device.type == "cuda" and not self.od_config.diffusion_attention_schedule:
++            # Scope the retained projection to this request's immutable prompt and attention settings.
++            branch.static_kwargs["text_refiner_cache"] = {}
+         n_cond = int(anchors.shape[0])
+         _require_reference_prefix(packed["update_mask"], n_cond)
+         anchors = anchors.to(self.device)
+--- a/vllm_omni/diffusion/models/minimax_h3/minimax_h3_transformer.py
++++ b/vllm_omni/diffusion/models/minimax_h3/minimax_h3_transformer.py
+@@ -1252,6 +1252,7 @@
+         local_span: tuple[int, int],
+         num_requests: int = 1,
+         global_positions: torch.Tensor | None = None,
++        text_refiner_cache: dict[str, torch.Tensor] | None = None,
+     ) -> tuple[torch.Tensor, torch.Tensor]:
+         """Build this rank's packed multimodal embedding rows.
+ 
+@@ -1308,14 +1309,18 @@
+         else:
+             audio_embed, _ = self.audio_patch_proj(audio_rows)
+ 
+-        text_rows = text_embeddings_selected.to(device=device, dtype=_BF16_DTYPE)
+-        text_embed, _ = self.condition_proj(text_rows)
+-        text_embed = self.token_refiner(
+-            text_embed,
+-            cu_seqlens=refiner_cu_seqlens,
+-            max_seqlen=refiner_max_seqlen,
+-            num_requests=num_requests,
+-        )
++        text_embed = text_refiner_cache.get("embedding") if text_refiner_cache is not None else None
++        if text_embed is None:
++            text_rows = text_embeddings_selected.to(device=device, dtype=_BF16_DTYPE)
++            text_embed, _ = self.condition_proj(text_rows)
++            text_embed = self.token_refiner(
++                text_embed,
++                cu_seqlens=refiner_cu_seqlens,
++                max_seqlen=refiner_max_seqlen,
++                num_requests=num_requests,
++            )
++            if text_refiner_cache is not None:
++                text_refiner_cache["embedding"] = text_embed
+         if text_local_indices is not None:
+             text_embed = text_embed.index_select(0, text_local_indices)
+ 
+@@ -1511,6 +1516,7 @@
+             device=device,
+             local_span=local_span,
+             global_positions=(compact_local_positions if compact_reference and local_len != seq_len else None),
++            text_refiner_cache=kwargs.get("text_refiner_cache"),
+         )
+ 
+         combined_indices = (inverse_indices * MINIMAX_H3_ADALN_MODALITY_NUM + token_tags.clamp(min=0)).to(device)

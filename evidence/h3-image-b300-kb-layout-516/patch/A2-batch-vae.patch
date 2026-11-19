@@ -1,0 +1,22 @@
+--- a/vllm_omni/diffusion/models/minimax_h3/image_vae.py
++++ b/vllm_omni/diffusion/models/minimax_h3/image_vae.py
+@@ -443,7 +443,18 @@
+             for top, tile_h in zip(y_idx, y_len)
+             for left, tile_w in zip(x_idx, x_len)
+         ]
+-        outputs = _run_tiles(tiles, fn, group)
++        # Batch four equal-shape tiles per graph. Keep release order for blending.
++        if (
++            latent_in and x.shape[0] == 1 and x.is_cuda and not torch.version.hip
++            and _group_world(group)[0] == 1 and isinstance(fn, _TileGraphs)
++            and len(tiles) >= 4 and all(tile.shape == tiles[0].shape for tile in tiles)
++        ):
++            full = len(tiles) // 4 * 4
++            batches = [torch.cat(tiles[i : i + 4], dim=0) for i in range(0, full, 4)]
++            outputs = [tile for batch in fn.map(batches) for tile in batch.split(1, dim=0)]
++            outputs.extend(fn.map(tiles[full:]))
++        else:
++            outputs = _run_tiles(tiles, fn, group)
+         columns = len(x_idx)
+         rows = [outputs[row * columns : (row + 1) * columns] for row in range(len(y_idx))]
+         if latent_in:

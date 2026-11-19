@@ -1,0 +1,61 @@
+--- a/vllm_omni/diffusion/models/minimax_h3/image_vae.py
++++ b/vllm_omni/diffusion/models/minimax_h3/image_vae.py
+@@ -368,6 +368,49 @@
+     return output
+ 
+ 
++def _assemble_decode_rows(rows: list[list[torch.Tensor]], y_overlap: Sequence[int], x_overlap: Sequence[int]):
++    """Batch the release's vertical-then-horizontal blending across equal-width tile spans."""
++    tile_h, tile_w = rows[0][0].shape[-2:]
++    cols = len(rows[0])
++    height = len(rows) * tile_h - sum(y_overlap)
++    width = cols * tile_w - sum(x_overlap)
++    output = rows[0][0].new_empty((*rows[0][0].shape[:-2], height, width))
++
++    # A span shares both its left blending width and its cropped output width.
++    left = [0, *x_overlap]
++    right = [*x_overlap, 0]
++    spans = []
++    start = 0
++    for stop in range(1, cols + 1):
++        if stop == cols or (left[stop], right[stop]) != (left[start], right[start]):
++            spans.append((start, stop, left[start], tile_w - right[start]))
++            start = stop
++
++    previous_raw = None
++    y = 0
++    for i, row in enumerate(rows):
++        # [..., tile_h, columns, tile_w]. Both neighbors in the release
++        # are raw tiles, including the left neighbor at four-tile corners.
++        raw = torch.stack(row, dim=-2)
++        vertical = raw if previous_raw is None else _blend(previous_raw, raw, y_overlap[i - 1], dim=-3)
++        used_h = tile_h - (y_overlap[i] if i < len(y_overlap) else 0)
++        raw_top = raw[..., :used_h, :, :]
++        vertical = vertical[..., :used_h, :, :]
++        x = 0
++        for start, stop, overlap, used_w in spans:
++            panel = vertical[..., start:stop, :]
++            if overlap:
++                panel = _blend(raw_top[..., start - 1 : stop - 1, :], panel, overlap, dim=-1)
++            count = stop - start
++            end = x + count * used_w
++            dest = output[..., y : y + used_h, x:end].unflatten(-1, (count, used_w))
++            dest.copy_(panel[..., :used_w])
++            x = end
++        previous_raw = raw
++        y += used_h
++    return output
++
++
+ # ---------------------------------------------------------------------------
+ # VAE
+ # ---------------------------------------------------------------------------
+@@ -447,6 +490,8 @@
+         columns = len(x_idx)
+         rows = [outputs[row * columns : (row + 1) * columns] for row in range(len(y_idx))]
+         if latent_in:
++            if x.device.type == "cuda" and torch.version.hip is None and columns >= 4:
++                return _assemble_decode_rows(rows, y_overlap, x_overlap)
+             return _assemble_tiles(rows, y_overlap, x_overlap)
+         return _assemble_tiles(rows, [o // ratio for o in y_overlap], [o // ratio for o in x_overlap])
+ 

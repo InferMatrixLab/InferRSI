@@ -1,0 +1,19 @@
+--- a/vllm_omni/diffusion/models/minimax_h3/image_vae.py
++++ b/vllm_omni/diffusion/models/minimax_h3/image_vae.py
+@@ -443,7 +443,15 @@
+             for top, tile_h in zip(y_idx, y_len)
+             for left, tile_w in zip(x_idx, x_len)
+         ]
+-        outputs = _run_tiles(tiles, fn, group)
++        if latent_in and group is None and x.device.type == "cuda" and torch.version.hip is None:
++            # Every spatial tile has the same extent, including edge tiles.
++            # Keep the original samples in each tile contiguous in the batch.
++            outputs = []
++            for offset in range(0, len(tiles), 4):
++                block = tiles[offset : offset + 4]
++                outputs.extend(fn(torch.cat(block, dim=0)).split(x.shape[0], dim=0))
++        else:
++            outputs = _run_tiles(tiles, fn, group)
+         columns = len(x_idx)
+         rows = [outputs[row * columns : (row + 1) * columns] for row in range(len(y_idx))]
+         if latent_in:

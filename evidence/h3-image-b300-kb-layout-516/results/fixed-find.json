@@ -1,0 +1,246 @@
+{
+  "pins": {
+    "old": "a3e33851981f1ecdc8b73d7b62633cc598e5d5ae",
+    "new": "c27a359d0ec5c11551b3d4c77ddfa3068cbf1c36"
+  },
+  "limit": 5,
+  "repeats_per_query_and_arm": 4,
+  "scope": "Exploratory fixed-query replay after independent discovery; references are navigation checks, not exhaustive relevance labels.",
+  "timing": "Fresh Python process to full JSON on the same host; two warmups excluded; AB and BA twice per query.",
+  "results": [
+    {
+      "query_id": "exact_target",
+      "query": "MiniMax H3 Image 4K BF16 single B300 six steps hot image latency",
+      "reference_id": null,
+      "old": {
+        "top5": [
+          "vllm_omni.cuda.diffusion.minimax_h3_qk_norm_rope",
+          "audit-h3-runtime-residency",
+          "vllm_omni.cuda.diffusion.minimax_h3_ref2va_teacache",
+          "case.qwen-b300-rejected-directions",
+          "vllm_omni.cuda.diffusion.minimax_h3_adaln_schedule_cache"
+        ],
+        "seconds": [
+          1.5858624000102282,
+          1.5186946999747306,
+          1.5406021000817418,
+          1.6588345000054687
+        ],
+        "median_seconds": 1.563232250045985,
+        "reference_rank": null
+      },
+      "new": {
+        "top5": [
+          "vllm_omni.cuda.diffusion.minimax_h3_qk_norm_rope",
+          "audit-h3-runtime-residency",
+          "vllm_omni.cuda.diffusion.minimax_h3_ref2va_teacache",
+          "case.qwen-b300-rejected-directions",
+          "vllm_omni.cuda.diffusion.minimax_h3_adaln_schedule_cache"
+        ],
+        "seconds": [
+          1.526534599950537,
+          1.4692739000311121,
+          1.4696676000021398,
+          1.4548819999909028
+        ],
+        "median_seconds": 1.469470750016626,
+        "reference_rank": null
+      }
+    },
+    {
+      "query_id": "vae",
+      "query": "MiniMax H3 B300 diffusion VAE tile decode batching overlap memory",
+      "reference_id": "vllm_omni.cuda.diffusion.minimax_h3_vae_stacked_tiling",
+      "new": {
+        "top5": [
+          "vllm_omni.cuda.diffusion.minimax_h3_vae_stacked_tiling",
+          "audit-h3-runtime-residency",
+          "vllm_omni.cuda.diffusion.minimax_h3_qk_norm_rope",
+          "vllm_omni.ascend.diffusion.minimax_h3_sp_head_buckets",
+          "vllm_omni.cuda.diffusion.minimax_h3_ref2va_teacache"
+        ],
+        "seconds": [
+          1.3577298999298364,
+          1.5195052000926808,
+          1.3095032999990508,
+          1.276754999998957
+        ],
+        "median_seconds": 1.3336165999644436,
+        "reference_rank": 1
+      },
+      "old": {
+        "top5": [
+          "vllm_omni.cuda.diffusion.minimax_h3_vae_stacked_tiling",
+          "audit-h3-runtime-residency",
+          "vllm_omni.cuda.diffusion.minimax_h3_qk_norm_rope",
+          "vllm_omni.ascend.diffusion.minimax_h3_sp_head_buckets",
+          "vllm_omni.cuda.diffusion.minimax_h3_ref2va_teacache"
+        ],
+        "seconds": [
+          1.3346148000564426,
+          1.34959150000941,
+          1.3628340000286698,
+          1.354890099959448
+        ],
+        "median_seconds": 1.352240799984429,
+        "reference_rank": 1
+      }
+    },
+    {
+      "query_id": "qk",
+      "query": "MiniMax H3 B300 packed queries keys RMS normalization rotary embeddings fusion",
+      "reference_id": "vllm_omni.cuda.diffusion.minimax_h3_qk_norm_rope",
+      "old": {
+        "top5": [
+          "vllm_omni.cuda.diffusion.minimax_h3_qk_norm_rope",
+          "vllm_omni.cuda.diffusion.minimax_h3_fp32_modulation",
+          "audit-h3-runtime-residency",
+          "audit-h3-metal-fasth3-semantics",
+          "vllm_omni.cuda.diffusion.minimax_h3_ref2va_teacache"
+        ],
+        "seconds": [
+          1.8208951000124216,
+          1.6238224999979138,
+          1.886833700002171,
+          1.6001734000165015
+        ],
+        "median_seconds": 1.7223588000051677,
+        "reference_rank": 1
+      },
+      "new": {
+        "top5": [
+          "vllm_omni.cuda.diffusion.minimax_h3_qk_norm_rope",
+          "vllm_omni.cuda.diffusion.minimax_h3_fp32_modulation",
+          "audit-h3-runtime-residency",
+          "audit-h3-metal-fasth3-semantics",
+          "vllm_omni.cuda.diffusion.minimax_h3_ref2va_teacache"
+        ],
+        "seconds": [
+          1.9907849999144673,
+          1.6732342999894172,
+          1.7159526000032201,
+          1.6900372999953106
+        ],
+        "median_seconds": 1.7029949499992654,
+        "reference_rank": 1
+      }
+    },
+    {
+      "query_id": "conditioning",
+      "query": "diffusion T2I redundant conditioning across denoising steps BF16 prompt reuse",
+      "reference_id": "vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i",
+      "new": {
+        "top5": [
+          "vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i",
+          "audit-h3-runtime-residency",
+          "ascend-video-diffusion-optimization",
+          "local-dream",
+          "vllm_omni.ascend.diffusion.minimax_h3_reference_kv_reuse"
+        ],
+        "seconds": [
+          2.2828291000332683,
+          2.1517519000917673,
+          2.245321700000204,
+          2.144092999980785
+        ],
+        "median_seconds": 2.1985368000459857,
+        "reference_rank": 1
+      },
+      "old": {
+        "top5": [
+          "vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i",
+          "audit-h3-runtime-residency",
+          "ascend-video-diffusion-optimization",
+          "local-dream",
+          "vllm_omni.ascend.diffusion.minimax_h3_reference_kv_reuse"
+        ],
+        "seconds": [
+          2.143809500033967,
+          2.395457800012082,
+          2.1160405999980867,
+          2.1991430000634864
+        ],
+        "median_seconds": 2.171476250048727,
+        "reference_rank": 1
+      }
+    },
+    {
+      "query_id": "adaln",
+      "query": "MiniMax H3 denoising time modulation projections cache timestep schedule",
+      "reference_id": "vllm_omni.cuda.diffusion.minimax_h3_adaln_schedule_cache",
+      "old": {
+        "top5": [
+          "vllm_omni.cuda.diffusion.minimax_h3_fp32_modulation",
+          "vllm_omni.cuda.diffusion.minimax_h3_adaln_schedule_cache",
+          "audit-h3-runtime-residency",
+          "vllm_omni.ascend.diffusion.minimax_h3_reference_kv_reuse",
+          "audit-h3-metal-fasth3-semantics"
+        ],
+        "seconds": [
+          1.6609422999899834,
+          1.674949900014326,
+          1.6628919999348,
+          1.6969622999895364
+        ],
+        "median_seconds": 1.668920949974563,
+        "reference_rank": 2
+      },
+      "new": {
+        "top5": [
+          "vllm_omni.cuda.diffusion.minimax_h3_fp32_modulation",
+          "vllm_omni.cuda.diffusion.minimax_h3_adaln_schedule_cache",
+          "audit-h3-runtime-residency",
+          "vllm_omni.ascend.diffusion.minimax_h3_reference_kv_reuse",
+          "audit-h3-metal-fasth3-semantics"
+        ],
+        "seconds": [
+          1.5781977999722585,
+          1.8343739999691024,
+          1.6206294000148773,
+          1.631974200019613
+        ],
+        "median_seconds": 1.6263018000172451,
+        "reference_rank": 2
+      }
+    },
+    {
+      "query_id": "benchmark",
+      "query": "inference benchmark design warm requests baseline latency quality control",
+      "reference_id": "inference-benchmark-design",
+      "new": {
+        "top5": [
+          "inference-benchmark-design",
+          "case.drama3-rejected-directions",
+          "sglang.common.llm.tuning_and_validation",
+          "case.sarathi-chunk-budget",
+          "ascendc-tiling-design"
+        ],
+        "seconds": [
+          8.116308399941772,
+          2.7423362000845373,
+          2.6933751000324264,
+          2.831224499968812
+        ],
+        "median_seconds": 2.7867803500266746,
+        "reference_rank": 1
+      },
+      "old": {
+        "top5": [
+          "inference-benchmark-design",
+          "case.drama3-rejected-directions",
+          "sglang.common.llm.tuning_and_validation",
+          "case.sarathi-chunk-budget",
+          "ascendc-tiling-design"
+        ],
+        "seconds": [
+          5.519689399981871,
+          2.6849101999541745,
+          2.7916377999354154,
+          2.7254148999927565
+        ],
+        "median_seconds": 2.758526349964086,
+        "reference_rank": 1
+      }
+    }
+  ]
+}
