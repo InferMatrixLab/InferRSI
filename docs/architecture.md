@@ -276,7 +276,6 @@ src/inferrsi/
     commands.py             Bounded read-only probes
     environment.py          Dependency versions and storage checks
     artifacts.py            Hashing and evidence writes
-    campaign.py             Legacy runner utility facade; transitive helper hashes
   data/
     repo_packs/             Contribution descriptors and versioned tuning knowledge
     knowledge_packs/        Dependency and peer knowledge, preserving existing tiers

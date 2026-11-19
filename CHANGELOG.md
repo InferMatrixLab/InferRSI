@@ -4,6 +4,16 @@
 
 ### Changed
 
+- The `inferrsi.infra.campaign` import facade is removed (Refs #498, slice 3c). It
+  only re-exported Infra helpers, and its one caller is the example campaign.
+  There is no forwarding module or alias, and the import gate fails any import of
+  the old path.
+  - `examples/qwen21_turbo_b300.py` imports `inferrsi.infra.artifacts`,
+    `inferrsi.infra.environment` and `inferrsi.infra.targets` directly.
+  - `helper_hashes` moves into that example unchanged. It hashes every Python file
+    of the installed package, so a record made after this change no longer lists
+    `inferrsi/infra/campaign.py`. Every other path it binds is unchanged, and
+    existing records are not rewritten.
 - The serving helpers move from `inferrsi.infra` and `inferrsi.model` to the new
   `inferrsi.harness.serving` package (Refs #498, slice 2). There is no forwarding
   module or alias, and the import gate fails any import of an old path.

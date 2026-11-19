@@ -813,8 +813,8 @@ with tempfile.TemporaryDirectory(prefix="inferrsi-flare-cli-") as cli_cwd:
         assert flare_cli.returncode == code, (module, flare_cli.returncode, flare_cli.stderr)
     assert "No module named 'inferrsi.model.validators'" in flare_cli.stderr, flare_cli.stderr
 # #498 slice 2: the serving helpers ship only under inferrsi.harness.serving, with no
-# forwarder for the old Infra and Model paths.
-for retired in ("inferrsi.infra.processes", "inferrsi.infra.http"):
+# forwarder for the old Infra and Model paths. Slice 3c deleted the infra.campaign facade.
+for retired in ("inferrsi.infra.processes", "inferrsi.infra.http", "inferrsi.infra.campaign"):
     assert find_spec(retired) is None, retired
     try:
         import_module(retired)
@@ -825,7 +825,6 @@ for retired in ("inferrsi.infra.processes", "inferrsi.infra.http"):
 for canonical in ("inferrsi.harness.serving", "inferrsi.harness.serving.server",
                   "inferrsi.harness.serving.http", "inferrsi.harness.serving.image"):
     assert find_spec(canonical) is not None, canonical
-assert not hasattr(import_module("inferrsi.infra.campaign"), "launch_server")
 # A fresh isolated interpreter imports the image client without loading the server
 # process helpers or any Infra or Model module: the package initializer imports nothing.
 serving_probe = (

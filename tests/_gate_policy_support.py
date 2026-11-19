@@ -98,6 +98,8 @@ RETIRED_ROOT_MODULES = RETIRED_BY_R1 | RETIRED_BY_A1 | RETIRED_BY_A2 | RETIRED_B
 RETIRED_MODULES = frozenset({
     "inferrsi.model.protocols", "inferrsi.model.validators",
     "inferrsi.infra.processes", "inferrsi.infra.http",
+    # Slice 3c deleted the campaign facade; the example imports the owning modules.
+    "inferrsi.infra.campaign",
 })
 # #412 R1, permanent: the one importer of the neutral data leaf outside
 # ``inferrsi.knowledge``, with the only name it may bind (D020: Infra reads one pack
