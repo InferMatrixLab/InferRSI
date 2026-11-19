@@ -111,8 +111,8 @@ Both project adapters resolve their sibling worker in the canonical directory.
 The registered launchers use those files with the approved interpreter and the
 existing `-I -B` flags. Each worker loads without InferRSI installed or a package
 context, and its top-level imports are standard-library-only. Legacy worker
-paths retain Python import compatibility; external interpreters are launched
-against the canonical files. Grant schemas, read-only access, limits, revocation
+files are importable compatibility shims, not runnable scripts. External
+interpreters are launched against the canonical files. Grant schemas, read-only access, limits, revocation
 and receipts are unchanged. MCP still starts through `inferrsi mindie serve`.
 
 ### Core and technical packages
