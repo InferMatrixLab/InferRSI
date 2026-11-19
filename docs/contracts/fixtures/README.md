@@ -9,6 +9,7 @@ This directory holds two different things and they must not be conflated:
 | `fixtures/t108-v4/` | **Historic BASELINE / HISTORICAL golden byte vectors**, copied unchanged from the reviewed t108-v4 handoff | Validated against the **baseline** 106-definition library. **Not** D023-current examples; several of them no longer validate as-is. |
 | `fixtures/execution-spec-d023.json` | Current D023 `ExecutionSpec` example | Written for the D023 library (`CommandStep.expected_code_sha256` required). |
 | `fixtures/d023-conformance-cases.json` | Document vectors for T36–T40 plus V32/SCHEMA spec-time cases | Current; fixed example digests, not computed values. |
+| `fixtures/pattern-boundary-cases.json` | Current paired vectors for every schema `pattern`: a valid value, then the same value with LF (trailing, leading, embedded), CRLF or CR inside | Validated against the current schema's named definitions by `tests/test_contract_schema_patterns.py`. |
 
 ## Why the baseline bytes are preserved, not rewritten
 
@@ -76,6 +77,7 @@ Local specification files:
 - [`d023-conformance-cases.json`](d023-conformance-cases.json) — T36–T40 document vectors plus V32/SCHEMA spec-time vectors (not T37 acceptance)
 - [`execution-spec-d023.json`](execution-spec-d023.json) — current D023 spec example
 - [`MANIFEST-d023.json`](MANIFEST-d023.json) — current-example byte and `request_digest` documentation anchor
+- [`pattern-boundary-cases.json`](pattern-boundary-cases.json) — current paired valid and CR/LF vectors for every schema `pattern`
 - [`t108-v4/MANIFEST.json`](t108-v4/MANIFEST.json) — historic baseline byte manifest (paths `fixtures/<name>` map to `fixtures/t108-v4/<name>`)
 
 Public sources:

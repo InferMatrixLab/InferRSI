@@ -29,13 +29,15 @@ SCHEMA = REPO / "docs" / "contracts" / "schemas" / "contract-v1.schema.json"
 # The new H closure: the H01/H02 modules, the canonical encoder, and the package init
 # residue (the mixed ``inferrsi.harness`` __init__ loads ``inferrsi.contracts.claim``).
 # execution_spec landed on main with the #397 squash 8150ee04, which also
-# added it to this H02 closure. The set matches current main.
+# added it to this H02 closure. Service ownership also uses the Harness-only
+# atomic JSON writer, whose dependencies are all in the standard library.
 # #451 C1: the encoder and the claim types live in the contracts package, so importing
 # either runs the ``inferrsi.contracts`` initializer, whose single import is the RunSpec
 # module. The last two names are that exact residue; a ``contracts`` prefix is never allowed.
 NEW_H_CLOSURE = {
     "inferrsi.harness.api", "inferrsi.harness.execution_service",
     "inferrsi.harness.input_binding", "inferrsi.harness.local_process",
+    "inferrsi.harness.atomic_json",
     "inferrsi.harness.run_store", "inferrsi.harness.errors", "inferrsi.harness.execution_spec",
     "inferrsi.contracts.json_v1",
     "inferrsi.harness", "inferrsi.contracts.claim",

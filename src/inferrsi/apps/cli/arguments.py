@@ -55,6 +55,10 @@ def _optimization_actions(stages, *, project=False):
     start = stages.add_parser("start", help="Freeze explicit task conditions and search budget")
     start.set_defaults(session_action="start", project_task=project)
     if project:
+        start.add_argument("--evaluation-mode", choices=("abba", "service_reuse"), default="abba",
+                           help="AB/BA (default), or one owned service per retained attempt")
+        start.add_argument("--evaluation-config", type=Path,
+                           help="Explicit service-reuse JSON protocol (required in that mode)")
         start.add_argument("--repo", type=Path, required=True)
         start.add_argument("--include", action="append", required=True,
                            help="Project-relative input file/directory; repeat for dependencies")
@@ -62,11 +66,11 @@ def _optimization_actions(stages, *, project=False):
         start.add_argument("--instructions", type=Path, required=True)
         for name in ("measure-command", "quality-command", "metric-key", "metric-unit",
                      "quality-key", "scope"):
-            start.add_argument("--" + name, required=True)
-        start.add_argument("--direction", choices=("minimize", "maximize"), required=True)
-        start.add_argument("--min-improvement-pct", type=float, required=True)
-        start.add_argument("--repetitions", type=int, required=True)
-        start.add_argument("--warmups", type=int, required=True)
+            start.add_argument("--" + name)
+        start.add_argument("--direction", choices=("minimize", "maximize"))
+        start.add_argument("--min-improvement-pct", type=float)
+        start.add_argument("--repetitions", type=int)
+        start.add_argument("--warmups", type=int)
         start.add_argument("--round-mode", choices=("exact", "up_to"), default="up_to")
     else:
         start.add_argument("task")
@@ -82,7 +86,10 @@ def _optimization_actions(stages, *, project=False):
     start.add_argument("--knowledge", choices=("on", "off"), default="on")
     start.add_argument("--evaluation-prefix", default="", help="Quoted allocator argv prefix")
     start.add_argument("--python", default=sys.executable)
-    for name in ("status", "round", "final", "recover", "knowledge"):
+    actions = ("status", "round", "final", "recover", "knowledge")
+    if project:
+        actions += ("baseline", "refresh-references", "resume")
+    for name in actions:
         stage = stages.add_parser(name)
         stage.set_defaults(session_action=name)
         stage.add_argument("--session", "--directory", dest="session", type=Path, required=True)
@@ -93,10 +100,32 @@ def _optimization_actions(stages, *, project=False):
             stage.add_argument("--reason", help="Why the caller stopped an up-to-budget search")
         if name in ("round", "final"):
             stage.add_argument("--usage-export", type=Path)
+        if project and name in ("round", "baseline", "refresh-references"):
+            stage.add_argument("--retry-of", help="Explicitly rerun this failed attempt in full")
+            stage.add_argument(
+                "--repair-protocol",
+                type=Path,
+                help="Retain repaired execution scripts for an explicit full retry",
+            )
+            stage.add_argument(
+                "--repair-reason", help="Investigation and repair before a new attempt"
+            )
+        if name == "refresh-references":
+            stage.add_argument("--conditions", type=Path, required=True)
+            stage.add_argument("--reason", required=True)
+        if name == "resume":
+            stage.add_argument("--reason", required=True)
+        if project and name in ("recover", "resume", "round", "baseline", "refresh-references"):
+            stage.add_argument(
+                "--cleanup-receipt",
+                type=Path,
+                help="Investigation receipt proving interrupted resources were cleaned",
+            )
         if name == "knowledge":
             stage.add_argument("--query", required=True)
-            stage.add_argument("--relevance-method", choices=RELEVANCE_METHODS,
-                               default="weighted-lexical-v1")
+            stage.add_argument(
+                "--relevance-method", choices=RELEVANCE_METHODS, default="weighted-lexical-v1"
+            )
             stage.add_argument("--context-bytes", type=int, required=True)
             stage.add_argument("--limit", type=int, default=5)
 

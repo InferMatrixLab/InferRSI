@@ -24,6 +24,26 @@
     planned it: install the wheel or source of the commit it was started from, and
     run the same `inferrsi benchmarks session` command there.
   - Pickled objects that name an old module path no longer load.
+- `docs/contracts/schemas/contract-v1.schema.json` validates more strictly
+  (Refs #497). Eleven `pattern` values ended with `$`, which in Python `re`, and so in
+  `jsonschema`, also matches before one trailing LF: `"att-1\n"` passed `Id`. They now
+  end with `(?![\s\S])`, which matches only at the end of input in Python `re` and in
+  ECMA-262. This is a bug fix inside the Proposed `contract-v1`.
+  - Changed: `Id`, `Sha256`, `SemanticId`, `Timestamp`, `Decimal`, the `JsonValue` and
+    `Parameters` `propertyNames`, `UsageObservation.currency`, `StorageMount.namespace`,
+    and `StorageConfig.archive_namespace` and `harness_namespace`. `Path` is unchanged:
+    its lookahead already rejects U+0000–U+001F and U+007F.
+  - Newly rejected: a value that is valid apart from one trailing LF. Every other value
+    keeps its result, and no value is trimmed. In ECMA-262, `$` already rejected the
+    trailing LF.
+  - The schema SHA-256 changes from `38a11bfe…b004` to `38bdae2a…027d`; no file pins
+    it. `dto-field-index.md` shows the new patterns. `fixtures/t108-v4/` is unchanged.
+  - New `docs/contracts/fixtures/pattern-boundary-cases.json` pairs a valid value with
+    LF, CRLF and CR variants for all twelve patterns.
+    `tests/test_contract_schema_patterns.py` validates them through the named
+    definitions and runs the patterns in Node.js. `jsonschema>=4.18` joins the `dev`
+    extra so these checks run in CI rather than skip. The existing `jsonschema` checks
+    in `tests/test_harness_execute.py` now run there too.
 - The metric contract and the quality validators move from `inferrsi.model` to
   Benchmark (Refs #498, slice 1). There is no forwarding module or alias, and the
   import gate fails any import of an old path, even when no file is behind it.

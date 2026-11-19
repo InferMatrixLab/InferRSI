@@ -151,6 +151,54 @@ def session_command(args, *, task_source: Path | None = None, knowledge_reader=N
             raise ValueError("Reserve time for final within the total budget")
         evaluation_prefix = shlex.split(args.evaluation_prefix)
         if args.project_task:
+            names = (
+                "metric_key",
+                "metric_unit",
+                "quality_key",
+                "scope",
+                "direction",
+                "min_improvement_pct",
+                "repetitions",
+                "warmups",
+                "measure_command",
+                "quality_command",
+            )
+            if args.evaluation_mode == "service_reuse":
+                from inferrsi.harness.project_service import prepare as prepare_service
+
+                if args.evaluation_config is None or any(
+                    getattr(args, key) is not None for key in names
+                ):
+                    raise ValueError(
+                        "Service reuse requires --evaluation-config without AB/BA options"
+                    )
+                settings = prepare_service(root, args)
+                plan = {
+                    "schema_version": 3,
+                    "condition": args.condition,
+                    "round_limit": args.rounds,
+                    "max_seconds": args.max_minutes * 60,
+                    "round_mode": args.round_mode,
+                    "final_reserve_seconds": reserve,
+                    "knowledge_allowed": args.knowledge == "on",
+                    "evaluation_timeout_seconds": args.evaluation_timeout_seconds,
+                    "evaluation_prefix": evaluation_prefix,
+                    "python": args.python,
+                    **settings,
+                }
+                result = optimization.initialize(root, plan)
+                result["instructions"] = (
+                    "Run campaign baseline before candidate search. Use campaign round for each "
+                    "committed candidate; investigate INCONCLUSIVE results before explicit retry. "
+                    "Finish with campaign final; final does not collect a profile."
+                )
+                return result
+            if args.evaluation_config is not None or any(
+                getattr(args, key) is None for key in names
+            ):
+                raise ValueError(
+                    "AB/BA requires its existing metric, quality, command and sampling options"
+                )
             from inferrsi.harness.project import prepare as prepare_project
 
             repo = args.repo.resolve()
@@ -205,6 +253,21 @@ def session_command(args, *, task_source: Path | None = None, knowledge_reader=N
     import json
 
     plan = json.loads((root / "plan.json").read_text(encoding="utf-8"))
+    manifest = json.loads((root / "campaign.json").read_text(encoding="utf-8"))
+    if (
+        plan.get("evaluation_mode") == "service_reuse"
+        or plan.get("schema_version") == 3
+        or manifest.get("evaluation_mode") == "service_reuse"
+    ):
+        return optimization.service_command(root, args, knowledge_reader=knowledge_reader)
+    if (
+        args.session_action in ("baseline", "refresh-references", "resume")
+        or getattr(args, "retry_of", None)
+        or getattr(args, "repair_reason", None)
+        or getattr(args, "cleanup_receipt", None)
+        or getattr(args, "repair_protocol", None)
+    ):
+        raise ValueError("Service lifecycle/retry operations require a service-reuse campaign")
     if plan["runtime_identity"] != _runtime_identity():
         raise ValueError("Optimization runtime changed, use its frozen runtime to resume")
     if args.session_action == "status":
@@ -212,9 +275,14 @@ def session_command(args, *, task_source: Path | None = None, knowledge_reader=N
     if args.session_action == "knowledge":
         if knowledge_reader is None or retain_context is None:
             raise ValueError("A knowledge reader and capture callback are required")
-        return optimization.capture_context(root, knowledge_reader, retain_context=retain_context,
-            query="", relevance=args.query,
-            relevance_method=args.relevance_method, context_bytes=args.context_bytes,
+        return optimization.capture_context(
+            root,
+            knowledge_reader,
+            retain_context=retain_context,
+            query="",
+            relevance=args.query,
+            relevance_method=args.relevance_method,
+            context_bytes=args.context_bytes,
             limit=args.limit,
         )
     if args.session_action == "recover":

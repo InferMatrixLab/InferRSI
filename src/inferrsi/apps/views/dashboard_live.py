@@ -56,7 +56,7 @@ class DashboardServer(ThreadingHTTPServer):
         self.source = Path(source).resolve() if source is not None else None
         self.translations = Path(translations).resolve() if translations else None
         self._fixed_attempt = deepcopy(fixed_attempt)
-        self.snapshot()
+        self._service_reuse = self.snapshot()["data"].get("evaluation_mode") == "service_reuse"
         super().__init__(("127.0.0.1", port), DashboardHandler)
 
     def snapshot(self) -> dict:
@@ -119,7 +119,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
             self._reply(403, b"Invalid host")
             return
         events = re.fullmatch(r"/api/profile-events/([0-9a-f]{64})", self.path)
-        if events and self.server.source is not None:
+        if events and self.server.source is not None and not self.server._service_reuse:
             from inferrsi.harness.records.profile_timeline import profile_event_table
 
             payload = profile_event_table(self.server.source, events.group(1))
@@ -143,6 +143,10 @@ class DashboardHandler(BaseHTTPRequestHandler):
             body, encoding = self._representation(
                 json.dumps(snapshot, ensure_ascii=False, allow_nan=False).encode("utf-8")
             )
+            if snapshot["data"].get("evaluation_mode") == "service_reuse":
+                self._reply(200, body, content_type="application/json; charset=utf-8",
+                            encoding=encoding)
+                return
             etag = '"' + hashlib.sha256(body).hexdigest() + '"'
             if self.headers.get("If-None-Match") == etag:
                 self._reply(304, etag=etag, encoding=encoding)

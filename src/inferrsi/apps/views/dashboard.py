@@ -310,6 +310,10 @@ def dashboard_snapshot(source: Path, translations: Path | None = None) -> dict:
     """Read one view and its charts from the currently recorded evidence."""
     source = Path(source).resolve()
     view = load_dashboard(source)
+    if view.get("evaluation_mode") == "service_reuse":
+        from .optimization_chart import render_service
+
+        return {"data": view, "chart": render_service(view["service_optimization"]), "temporal": ""}
     from .retrieval_projection import project_knowledge, public_value
 
     view["knowledge_trace"] = project_knowledge(source, view)
@@ -341,6 +345,11 @@ def render_dashboard(snapshot: dict, *, live: bool = False) -> str:
     """Render a snapshot; only the local live view enables same-origin requests."""
     if "fixed_attempt" in snapshot["data"]:
         return render_attempt(snapshot["data"]["fixed_attempt"], title="fixed attempt Dashboard")
+    if snapshot["data"].get("evaluation_mode") == "service_reuse":
+        refresh = '<meta http-equiv="refresh" content="3">' if live else ""
+        return ('<!doctype html><html lang="en"><meta charset="utf-8">' + refresh
+                + '<title>Service-reuse optimization</title><main>' + snapshot["chart"]
+                + '</main></html>')
     view = {**snapshot["data"], "live": live}
     payload = json.dumps(view, ensure_ascii=False, allow_nan=False)
     # The JSON data block cannot terminate its script element or create markup.
