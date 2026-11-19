@@ -1,14 +1,15 @@
 import copy
 import hashlib
+import inspect
 import json
 import subprocess
+from fnmatch import fnmatchcase
 from pathlib import Path
 
 import pytest
 
 from inferrsi.knowledge import _source_snapshot as snapshot
-from inferrsi.knowledge.catalog import INPUTS, skill_views
-from inferrsi.knowledge.catalog import search_knowledge
+from inferrsi.knowledge.catalog import INPUTS, recommendations, search_knowledge, skill_views
 from tools import build_skill_index as index_builder
 from tools.build_skill_index import DESTINATION
 
@@ -19,6 +20,13 @@ REVISION = "a" * 40
 # root and the pinned prefix are the same. After the K02 re-pin the repository
 # agrees on src/inferrsi/knowledge/data/skill_library as well.
 LIBRARY = index_builder.PINNED_LIBRARY
+
+
+def test_public_projection_implementation_is_a_protected_knowledge_path():
+    policy = json.loads((PROJECT / ".github/knowledge-model-policy.json").read_bytes())
+    for builder in (skill_views, recommendations):
+        path = Path(inspect.getfile(builder)).resolve().relative_to(PROJECT).as_posix()
+        assert any(fnmatchcase(path, pattern) for pattern in policy["protected_paths"]), path
 
 
 def test_compiled_inputs_expand_to_public_records():

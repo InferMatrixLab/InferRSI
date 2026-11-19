@@ -195,4 +195,5 @@ def test_task_router_is_explicitly_readable_but_never_ranked_into_campaign(tmp_p
     assert state == "verified"
     assert [item["ref"] for item in exact["items"]] == [ref]
     assert [item["ref"] for item in exact["contexts"]] == [ref]
-    assert reader.read(ref, revision=exact["items"][0]["revision"]).metadata["id"] == ref.split(":")[1]
+    pinned = reader.read(ref, revision=exact["items"][0]["revision"])
+    assert pinned.metadata["id"] == ref.split(":")[1]

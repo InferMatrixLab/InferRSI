@@ -44,13 +44,14 @@ flowchart LR
 
 ```mermaid
 flowchart TB
-    Q["Input"] -->|Known task| T["Open one route card → seed IDs + acceptance criteria"]
-    Q -->|Symptom or question| F["find → aliases + weighted lexical retrieval"]
-    Q -->|Stable ID| I["read / resource → open owner at revision"]
-    Q -->|Repo / backend / scenario / tier| C["knowledge search / show → schema-1 catalog"]
-    F --> A["80 skill owners + 48 findings + 7 cases<br/>task entry excluded before IDF"]
-    C --> B["48 authored records + 81 skill views built on request"]
-    T & A & I & B --> V["Check source revision, model, device, OS and workload"]
+    Q["Input"] -->|Known task| T["Open one route card → seed IDs and acceptance criteria"]
+    Q -->|Known ID| I["read / resource / exact capture → open owner at revision"]
+    Q -->|Symptoms or managed campaign cue| F["Find lexical ranker · collect / capture share the selector"]
+    Q -->|Filtered catalog| C["knowledge search → scope by repo, backend, scenario, tier"]
+    C -->|With query| F
+    C -->|No query| B["List by stable ID · 48 records + 81 views, including the router"]
+    F --> A["Rank eligible owners before applying limits<br/>default corpus: 80 skills + 48 records + 7 cases; router excluded before IDF"]
+    T & I & A & B --> V["Check source revision, model, device, OS and workload"]
     V --> X["Applicable → cite source / case and verification status"]
     V --> G["Partial match or gap → record unknown + smallest discriminating test"]
 ```
@@ -74,7 +75,7 @@ flowchart LR
         P["config/ · aliases + profiles"]
     end
     A -->|move 80 owners and add task entry| N
-    B -->|same bytes and IDs| R
+    B -->|retain IDs; migrate linked paths| R
     C -->|remove mirrored record files| V
     D --> P
 ```
@@ -97,7 +98,7 @@ src/inferrsi/knowledge/data/
     └── _compiled/                         inputs.json, _provenance.json
 ```
 
-The README documents the library. A procedure, including its resources, belongs in one registered directory. An engineering record carries its own sources, applicability and verification status. Its filename must match its stable ID. The registry locates each skill. Builds compile YAML headers and pinned Git fingerprints required by the base wheel. The catalog reads canonical sidecars and emits the public schema-1 record on demand. Publishing the same skill under multiple engine or accelerator trees would require synchronized edits. Represent these dimensions on the task card and in owner metadata. For a new environment with no applicable local evidence, retain the unknown and the first check that could resolve it. [Record authoring guide](../src/inferrsi/knowledge/data/skill_library/records/README.md)
+The README documents the library. A procedure, including its resources, belongs in one registered directory. An engineering record carries its own sources, applicability and verification status. Its filename must match its stable ID. The registry locates each skill. The existing protected `knowledge/catalog.py` owns the public view fields, including source links, recommendations and verification status. Builds compile YAML headers and pinned Git fingerprints required by the base wheel. The catalog reads canonical sidecars and emits the public schema-1 record on demand. Publishing the same skill under multiple engine or accelerator trees would require synchronized edits. Represent these dimensions on the task card and in owner metadata. For a new environment with no applicable local evidence, retain the unknown and the first check that could resolve it. [Record authoring guide](../src/inferrsi/knowledge/data/skill_library/records/README.md)
 
 ## Seven deliverables
 
@@ -122,7 +123,7 @@ inferrsi knowledge search --tier peer --repo-type qwen3_tts_engine --backend asc
 inferrsi knowledge show flashinfer.cuda.llm.paged_decode_dispatch
 ```
 
-Known task cards seed 20 distinct skill IDs across seven routes. Known IDs can skip routing. Free-text discovery ranks the owner once and returns a path, evidence state and explanation. Typed catalog search filters first and returns the public record. The caller checks applicability before applying a result. A finding or failed attempt can be proposed as a record with a source, a scoped conclusion and a retry condition. The program does not autonomously promote session notes.
+Known task cards seed 20 distinct skill IDs across seven routes. Known IDs can skip routing. Free-text discovery ranks the owner once and returns a path, evidence state and explanation. A catalog query applies scope filters and reuses Find to rank the eligible owners; the no-query listing returns complete records in ID order. Ranked Collect and campaign capture use the same selector. Explicit IDs can still capture a task card’s owner. The caller checks applicability before applying a result. A finding or failed attempt can be proposed as a record with a source, a scoped conclusion and a retry condition. The program does not autonomously promote session notes.
 
 ## Design choices and benefits
 
@@ -130,8 +131,10 @@ Agent V describes Git-backed shared memory with human guidance, hard-to-rediscov
 
 MindIE Agent separates agent capabilities, knowledge and execution plugins. KDA specializes in kernel development. Cannbot Skills packages Ascend procedures for reuse. InferRSI needs cross-engine, cross-model and cross-platform retrieval as well as evidence qualification. It combines a task front door, technical owners, stable IDs and scoped evidence. A claim that it retrieves better than any of these projects requires a common task benchmark. [MindIE Agent](https://github.com/mindie-agent/mindie-agent) · [KDA](https://github.com/NVlabs/kda) · [Cannbot Skills](https://github.com/hicann/cannbot-skills)
 
-Measure with three arms on the same corpus and tool budget: prior layout and search, unified layout with direct search, and unified layout with optional routing. Use held-out tasks across the seven types, blinded reviewers and paired cases with an applicable answer and a similar-looking incompatible target. Record top-five applicable-source recall, wrong transfers, justified abstentions, time to first cited evidence, files opened and maintenance time per accepted change. Approve broader rollout only when the team meets its predeclared quality and cost targets.
+Measure with three arms on the same corpus and tool budget: prior layout and search, unified layout with direct search, and unified layout with optional routing. Use held-out tasks across the seven types, blinded reviewers and paired cases with an applicable answer and a similar-looking incompatible target. Use four held-out tasks for each of the seven task types. Run each arm in an isolated session and balance the order. The primary metric is the fraction of answerable tasks with an applicable, cited owner in the top three. Report top-five applicable-source recall separately. For missing evidence, score unjustified transfer, correct abstention and mistaken abstention separately. Record time to first useful evidence, files opened and maintenance effort. Compare A→B and B→C separately using the gates in the acceptance issue. Approve broader rollout only when the team meets its predeclared quality and cost targets.
 
-The authoring benefit is directly inspectable: one finding file or one skill owner is edited; no per-pack navigation list or projected record is maintained. Two compiled files are reproducible build products. Their shared merge point is a cost: resolve source edits, then regenerate. The build-time Git pin identifies source provenance. Installed material selection checks the resource hashes. Whole-library dependency revisions, checkout revisions, and hashes of individual findings have different scopes. Historical checkout pins must be replayed on the corresponding snapshot. The full layout migration rejects 79 old checkout skill pins, retains seven case pins and preserves the pre-existing unavailable `husky` read. Direct callers that open old pack filenames must move to the record ID or new path.
+The authoring benefit is directly inspectable: one finding file or one skill owner is edited; no per-pack navigation list or projected record is maintained. Two compiled files are reproducible build products. Their shared merge point is a cost: resolve source edits, then regenerate. The build-time Git pin identifies source provenance. Installed material selection checks the resource hashes. Whole-library dependency revisions, checkout revisions, and hashes of individual findings have different scopes. Historical checkout pins must be replayed on the corresponding snapshot. Compared with main after #507, the full layout migration rejects 79 old checkout skill pins, retains the seven case pins from that baseline and preserves the pre-existing unavailable `husky` read. Direct callers that open old pack filenames must move to the record ID or new path.
 
-The 48 original record files retain their bytes. An installed package bundle for an authored record that declares linked skill documents also includes library dependencies. Editing a referenced library file can change that bundle revision. Archive a known-good snapshot for pinned replay.
+A provenance-only refresh preserves an authored record’s bundle pin when its linked skill resources stay identical. Each registered casebook is a skill package; the seven rankable cases are individual evidence items.
+
+The consolidation step moved all 48 files byte-for-byte from the preceding PR layout. Compared directly with main before the layout migration, 30 are byte-identical and 18 update only the path in `skill_documents`. All 48 retain their IDs, tiers, source pins and verification state. An installed package bundle for an authored record that declares linked skill documents also includes library dependencies. Editing a referenced library file can change that bundle revision. Archive a known-good snapshot for pinned replay.

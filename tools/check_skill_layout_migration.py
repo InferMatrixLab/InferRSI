@@ -61,7 +61,8 @@ def verify_snapshot(checkout, rows, side):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--before", type=Path, required=True, help="pre-layout checkout corresponding to the migration manifest")
+    parser.add_argument("--before", type=Path, required=True,
+                        help="pre-layout checkout corresponding to the migration manifest")
     parser.add_argument("--after", type=Path, default=PROJECT, help="cutover source checkout")
     args = parser.parse_args()
     with (PROJECT / "docs/skill-layout-migration.csv").open(encoding="utf-8", newline="") as stream:

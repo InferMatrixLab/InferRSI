@@ -115,7 +115,9 @@ def test_catalog_ranks_find_documents_over_the_filtered_package_scope(corpus, qu
     by_find_ref = {record.get("checkout_ref", f"package:{record['id']}"): record
                    for record in inventory}
     eligible = [document for document in corpus.documents if document.qualified in by_find_ref]
-    assert len(eligible) == len(inventory)
+    # Navigation is available in an unranked listing and by exact ID.
+    unranked = set(by_find_ref) - {doc.qualified for doc in eligible}
+    assert unranked == ({"checkout:inference-task-router"} & set(by_find_ref))
     _, _, scored = rank(query, Corpus(eligible))
     assert scored
 

@@ -643,13 +643,13 @@
     },
     "files": {
       "SKILL.md": "89a6a82c692f7f5192f4d7f4c3a5ff08a4df3b1c4bdaa0aafb7e04292d8aa5b4",
-      "cases/admission-drain-occupancy.json": "8cd0042edde7b1d74edec463cb901f689c3327fac0c34f70692ca10679dc8a1d",
+      "cases/admission-drain-occupancy.json": "4f8544292b2cc3391f4d4d75994cb81fdd295eff99e55b7e60374c6c122de09e",
       "cases/admission-drain-occupancy.md": "e88bbac5d253a8e7e3a3d5e21047f23f2970c11ac23887d4303ab94fca52dd27",
-      "cases/drama3-rejected-directions.json": "eba990c460265bab19a74093ea5a65196d7df1b17d99939e1b3fe28e5a066c28",
+      "cases/drama3-rejected-directions.json": "a2dc5db8aba62081c5743b12f854e74ae500c53bd57e2486260d0b5ae478638a",
       "cases/drama3-rejected-directions.md": "6f143bc363a3290fc008c08e57cb075f1776d1c8cca8a6a59297d5b1fbbf61bf",
-      "cases/qwen-ascend-rejected-directions.json": "7f0ca00b2e5d56f363a2eb8611d7e68778755aa133fa6f951151dc6e9b40b0a9",
+      "cases/qwen-ascend-rejected-directions.json": "b2c1808919ae525efb82148a24b465459799422fefc6d420891d7dbeb36cd31a",
       "cases/qwen-ascend-rejected-directions.md": "be396983812262515899a3e2ba4f01b23ff92e1b836881882c7580372b8ae552",
-      "cases/qwen-b300-rejected-directions.json": "52b5dd233f869e8836b6d2e3cf9bda1b0877a7bf72c1ab8ca3132cf1adc06d23",
+      "cases/qwen-b300-rejected-directions.json": "90e3cdca085e2d122e648aae527bd6a61de6d4fddb66c393ca25ac4541cd9122",
       "cases/qwen-b300-rejected-directions.md": "cce2930f544a0f78f21797fba4d8ded298e4a81f76c34d7977b0e31d361bc738",
       "metadata.json": "963488658f327d2379183d70357eabf832d70a6a70db2aa67f548493f4088d97"
     }
@@ -661,7 +661,7 @@
     },
     "files": {
       "SKILL.md": "95459dd8c6236b0831da1d1822788ed06aa43556b565c17213c1cff787616973",
-      "metadata.json": "e67f795e2270cc0b7dfe347342f02d6dda98a9afc4af0eb13f93a627a0e1d0f7",
+      "metadata.json": "9df56229d110c5c8a887129a90ed55b1116612fa7a42c29c2e23be1914191453",
       "references/routes/accuracy.json": "5a672842ec26262d8827f7ce8d92de9bd956859ff5244189c0519b8f0dd188e3",
       "references/routes/day0-model.json": "77b26d1300e5535d8b595cef95c6c803ea1322e92f38b68ae2905f69355a814f",
       "references/routes/debug.json": "75241e43d12fb961d3f48d1b683e4df321c0f18e683959aedca9722e78a8b78f",
@@ -683,7 +683,7 @@
       "cases/sglang-gdn-source-contract.json": "5237ac437eb76e910bb1d08bfcc364b87dea1b947de5e67eebce511ea1ef1d23",
       "cases/sglang-gdn-source-contract.md": "8b093faf0ab775d5605ecdd9653fb3689c2b839cba2641c5d5cda17c721bb2ac",
       "cases/vllm-gdn-causal-conv-contract.md": "2f3dcee66e2dfe7a98bee21a36b892538998de5de3caf1bc63257137f9984236",
-      "cases/vllm-gdn-source-contract.json": "56af6b07bbb32cd6aad44e831404ec041e0450db9623fbe6b048fcbbca32e893",
+      "cases/vllm-gdn-source-contract.json": "31cfac1e780113c8233b451af7a7562af983aa2f4209938017cc67347ee5dd66",
       "cases/vllm-gdn-source-contract.md": "7f9ebe8de7e55d3db2a119b6a56e15c37448fd7d4e022a47122a143206d31687",
       "metadata.json": "766aa688d573c790789e2836f952315e91c4e06806fca3d04523a8a748bf9c32",
       "references/akg-affine-tail-guards.md": "113deb2db10b171db3425bb3f1792bee763706b794c8cc2e222b4cc0d0114118",
