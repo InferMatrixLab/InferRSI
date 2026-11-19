@@ -231,9 +231,15 @@ assert not selection["context_omissions"]
 selection_context = selection["contexts"][0]
 selection_core = selection_context["resources"][0]
 assert selection_core["path"].endswith("/cgroup-resource-controls/SKILL.md")
-assert selection_core["content"].encode() == selection_reader.resource(
+selection_source = selection_reader.resource(
     selection_context["ref"], selection_core["path"], revision=selection_context["revision"],
 )
+assert selection_source == resource(selection_core["path"]).read_bytes()
+assert selection_core["locator"] == "skill-procedure"
+assert selection_core["source_sha256"] == hashlib.sha256(selection_source).hexdigest()
+delivered = b"".join(selection_source[start:end] for start, end in selection_core["source_byte_ranges"])
+assert delivered == selection_core["content"].encode()
+assert selection_core["sha256"] == hashlib.sha256(delivered).hexdigest()
 assert selection["context_bytes"] <= 65536
 assert resource("data/skill_library/_compiled/inputs.json").is_file()
 for tier, count in (("dependency", 6), ("peer", 5)):
@@ -525,10 +531,11 @@ assert dream_identity["license_resolution"]["pinned_license_identification"] == 
 assert hashlib.sha256(dream_bundle.content[
     dream_prefix + "references/upstream-license.md"
 ]).hexdigest() == dream_identity["sources"][0]["files"]["LICENSE"]
-assert len([name for name in dream_bundle.content if name.startswith(dream_prefix)]) == 9
-for relative in ("SKILL.md", "references/android-lifecycle.md", "references/native-contracts.md",
-                 "references/packaging-and-abi.md", "references/repo-provenance.md"):
-    assert dream_prefix + relative in dream_bundle.content
+assert {name.removeprefix(dream_prefix) for name in dream_bundle.content if name.startswith(dream_prefix)} == {
+    "SKILL.md", "references/android-lifecycle.md", "references/native-contracts.md",
+    "references/packaging-and-abi.md", "references/repo-provenance.md",
+    "references/source-identity.json", "references/upstream-license.md", "scripts/screen_declarations.py",
+}
 dream_namespace = {"__name__": "installed_local_dream_declarations"}
 exec(compile(dream_bundle.content[dream_prefix + "scripts/screen_declarations.py"],
              "screen_declarations.py", "exec"), dream_namespace)
@@ -562,7 +569,8 @@ inventory = {
     **_inventory(files("inferrsi").joinpath("knowledge", "data"), "knowledge/data"),
     **_inventory(files("inferrsi").joinpath("harness", "data"), "harness/data"),
 }
-assert len(inventory) == 868, f"installed resource count is {len(inventory)}, expected 868"
+assert len(inventory) == 761, f"installed resource count is {len(inventory)}, expected 761"
+assert not any(name.endswith("/metadata.json") for name in inventory if "/skill_library/" in name)
 assert sum(name.startswith("harness/data/") for name in inventory) == len(REPO_TYPES)
 # Every pinned record path and every registered skill body resolves inside that
 # same enumeration, so the inventory and the records describe one resource set.
