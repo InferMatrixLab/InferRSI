@@ -1,3 +1,4 @@
+import hashlib
 import json
 import shutil
 
@@ -200,6 +201,14 @@ def test_task_skills_are_explicitly_readable_but_never_ranked_into_campaign(tmp_
     assert state == "verified"
     assert {item["ref"] for item in exact["items"]} == task_refs
     assert {item["ref"] for item in exact["contexts"]} == task_refs
+    for context in exact["contexts"]:
+        core = next(resource for resource in context["resources"] if resource["role"] == "core")
+        assert core["locator"] == "skill-procedure"
+        source = reader.resource(context["ref"], core["path"], revision=context["revision"])
+        delivered = core["content"].encode("utf-8")
+        assert hashlib.sha256(source).hexdigest() == core["source_sha256"]
+        assert hashlib.sha256(delivered).hexdigest() == core["sha256"]
+        assert b"".join(source[a:b] for a, b in core["source_byte_ranges"]) == delivered
     for item in exact["items"]:
         pinned = reader.read(item["ref"], revision=item["revision"])
         assert pinned.metadata["id"] == item["ref"].split(":")[1]
