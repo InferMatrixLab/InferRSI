@@ -2,13 +2,13 @@ import json
 
 import pytest
 
-from inferrsi.apps.campaign import capture_context, create_campaign, save_retrieval
 from inferrsi.apps.views.capture_delivery import (
     capture_event,
     capture_return_texts,
     visible_capture_resources,
 )
 from inferrsi.apps.views.search_attribution import import_search
+from inferrsi.apps.workflows.campaign import capture_context, create_campaign, save_retrieval
 from inferrsi.knowledge.catalog import search_knowledge
 from inferrsi.knowledge.context_projection import assemble_context_text
 from inferrsi.knowledge.knowledge_operations import KnowledgeReader

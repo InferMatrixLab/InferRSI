@@ -5,7 +5,7 @@ from unittest.mock import patch
 
 import pytest
 
-from inferrsi.apps.improvement import assessment, choose, holdout_accepts
+from inferrsi.apps.workflows.improvement import assessment, choose, holdout_accepts
 from inferrsi.benchmark.improvement import SelectionPolicy
 from inferrsi.harness.skill_evaluation import CodexClient
 from inferrsi.harness.usage import usage_totals
@@ -265,7 +265,7 @@ def test_phase_schedule_cannot_hide_failed_pair_after_authorization(tmp_path):
 
 
 def test_rerun_with_unstable_baseline_is_rejected(tmp_path):
-    from inferrsi.apps.improvement import rerun_assessment
+    from inferrsi.apps.workflows.improvement import rerun_assessment
 
     _, _, output, _, _ = run(tmp_path)
     probe = compare.read_report(output / "results/inv")

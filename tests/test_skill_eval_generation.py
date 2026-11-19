@@ -6,8 +6,8 @@ from unittest import mock
 
 import pytest
 
-from inferrsi.apps import skill_eval_engineering as artifact_check
-from inferrsi.apps import skill_evaluation as evaluation
+from inferrsi.apps.workflows import skill_eval_engineering as artifact_check
+from inferrsi.apps.workflows import skill_evaluation as evaluation
 from inferrsi.benchmark import skill_eval_engineering as engineering
 from inferrsi.harness import artifact_sandbox as sandbox
 from inferrsi.harness import skill_evaluation as harness

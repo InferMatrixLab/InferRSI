@@ -46,7 +46,7 @@ flowchart TB
 
 `src/inferrsi/benchmark/improvement.py` owns the thresholds and acceptance rules,
 `src/inferrsi/harness/improvement.py` the search progression and
-`src/inferrsi/harness/usage.py` usage accounting; `src/inferrsi/apps/improvement.py`
+`src/inferrsi/harness/usage.py` usage accounting; `src/inferrsi/apps/workflows/improvement.py`
 composes them.
 `tools/skill_eval_improve.py` owns freezing, declarative snapshot materialization
 and orchestration through `tools/skill_eval_compare.py`. There is no second

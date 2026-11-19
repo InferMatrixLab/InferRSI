@@ -10,8 +10,8 @@ from pathlib import Path
 
 import pytest
 
-from inferrsi.apps import benchmark_compare as compare
 from inferrsi.apps.cli import main
+from inferrsi.apps.workflows import benchmark_compare as compare
 from inferrsi.benchmark import registry
 from inferrsi.harness import agent_sessions
 from inferrsi.harness.optimization_session import _runtime_identity

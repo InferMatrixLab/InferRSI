@@ -9,8 +9,8 @@ import sys
 import pytest
 
 from inferrsi import __version__
-from inferrsi.apps import campaign
 from inferrsi.apps.views.search_attribution import import_search
+from inferrsi.apps.workflows import campaign
 from inferrsi.harness.records import campaign_records, knowledge_capture
 from inferrsi.knowledge._skill_selection import FIND_RELEVANCE
 from inferrsi.knowledge.context_projection import context_item
