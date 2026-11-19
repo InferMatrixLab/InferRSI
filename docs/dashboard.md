@@ -191,9 +191,10 @@ run the import from the agent's closing shell call:
 # Start of round 1. Save the printed value as FIRST for the closing call.
 awk 'END { print NR + 1 }' "$trace"
 
-# Separate agent shell calls with the skill library as the tool working directory.
-rg -Hn 'Operator tests passed' methods/inference-optimization-casebook/cases
-cat methods/inference-optimization-casebook/cases/qwen-b300-rejected-directions.md
+# Separate agent shell calls. Run the open command returned by Find.
+inferrsi find 'cache per-step masks ran out of device memory' --kinds case --limit 1
+inferrsi read checkout:case.qwen-ascend-rejected-directions \
+  --material --omit-resources --installed-library
 
 # End of round 1. FIRST is the value retained at the start of this round.
 LAST=$(wc -l < "$trace")
@@ -208,11 +209,28 @@ flushed. After an interruption the host can do the same handoff. Use
 These inputs can be combined with the rollout or used alone for an Indexer-only
 round. Each capture is verified and its returned refs, revisions, request and
 resource paths are recorded. Opening a resource and receiving a prepared context
-are distinct observations. A bare `collect` leaves no such capture.
+are distinct observations. For a new Collect retrieval that must be retained, use
+`campaign capture-context` with the same query or exact IDs.
 
-The importer reads Desktop `CommandExecution` events. It supports direct text
-or filename-match searches with `rg`, literal `cat`, `nl -ba` and `sed -n N,Mp`
-reads. Use `rg -Hn` for unambiguous filenames and matching lines. File results
+The importer reads Desktop `CommandExecution` events. Run `find` and `read` in
+separate simple tool calls and retain both call/return pairs in the selected
+window. It accepts Find's default text and `--json` output. Find records result
+references in returned order, including separately qualified external hits.
+When an installed Skill links to its package projection, `read_ref` gives the
+identity in the open command. Read records the resolved reference and
+returned revision. Only `read --material` or `read --resource` can verify a
+returned body. A metadata-only read records a visible reference.
+
+The importer verifies direct CLI delivery against the agent-facing tool
+response. Missing, clipped or uncorrelated outputs leave coverage partial
+even with `--complete`. Compatibility queries through `collect`, `knowledge
+search`, `knowledge research` and `context` require separate capture evidence
+for their results. The importer marks these standalone calls unresolved.
+Remote tools and external card reads also require their own evidence.
+
+For file searches the importer supports text and filename matches with `rg`
+and literal `cat`, `nl -ba` and `sed -n N,Mp` reads. Use `rg -Hn` for
+unambiguous filenames and matching lines. File results
 are corpus-relative. `-H` / `--with-filename` establishes the filename prefix,
 including for numeric filenames. Without it, nonempty text output is attributed
 only when the recorded scopes establish directory search or multiple operands.
@@ -236,8 +254,8 @@ retrievals require separate evidence. Review query text and paths before sharing
 
 - `observed` counts recognized searches, distinct materials per search (hits),
   distinct hit refs across searches, and distinct refs with supported use.
-  A later file read is a separate event. File paths and versioned Indexer
-  entries keep their original identities, with no inferred cross-tool alias.
+  Later reads are separate events. File paths, qualified CLI refs and
+  versioned Indexer entries keep their recorded identities.
 - Supply `--complete` only when the selected inputs cover every in-scope
   retrieval for the round. Otherwise only observed counts are known and
   `counts` is null. A complete round without a search has zero searches.
@@ -284,6 +302,43 @@ retrievals require separate evidence. Review query text and paths before sharing
   reimport can establish adoption and clears the declaration's old reason.
   A newly supplied decision that precedes every observation is still rejected.
 
+#### Cite a passage in the round reason
+
+If a delivered passage changes a candidate or validation choice, explain that
+choice in the round's existing reason and append `[use REF | EXACT SOURCE EXCERPT]`.
+Use the qualified reference from `read` or the reference in the delivered
+context. Pick a short verbatim excerpt on one source line that identifies the
+passage. A round whose choice did not depend on a passage needs no citation.
+
+For managed project and benchmark rounds, use the existing `--hypothesis`.
+A local mask-memory experiment submitted this hypothesis.
+
+> Sum the visible interval for each row as it is scored. The reported mask-retention failure made me choose immediate scoring over a cache of mask rows [use checkout:case.qwen-ascend-rejected-directions | NPU OOM.].
+
+At round close, after the completed round response is in the rollout, run
+the existing `campaign import-search` over that round. Use the start boundary
+captured before retrieval and the end of the flushed rollout. A review file
+with `task`, `corpus` and `"decisions": []` is enough for automatic alignment.
+Include `--context-id` for AB/BA or benchmark captures used in the round.
+The importer locates matching managed JSON returns within the window for those
+captures. It locates the submitted hypothesis from the round call and verifies
+the round receipt. The return containing the source passage must precede the
+round call. Service-reuse sessions retain knowledge in their own records.
+See [service reuse](service-reuse-campaigns.md#records-compatibility-and-validation).
+
+For a manual campaign, put the citation in the existing log's round
+`rationale` or `decision.reason`. State that same reason in the conversation
+when making the choice, then retain it with `campaign log` before closing the
+round. The log receipt binds the reason to the round and the assistant message
+establishes its position.
+
+The importer saves a verified match as the usual passage-to-decision
+association. It leaves unverifiable citations as declarations with a reason.
+A Find hit, a read without an explicit citation, an ambiguous excerpt or a
+missing or truncated return cannot establish this association. This evidence
+documents how a choice was explained. Evaluation evidence governs results and
+improvement claims separately.
+
 #### Archive evidence for readers outside the session
 
 Use `--archive-review review.json` on the same import when a campaign calls
@@ -299,6 +354,10 @@ agent's actual decision. The line numbers for the event and decision locate
 records in the private input. The `passage_line` field locates a line in the material.
 Use a verbatim, contiguous decision excerpt. The importer checks the cited
 event, passage and message before recording the reviewed relation.
+For a direct `read`, use its command event line as `event_line`, its returned
+qualified `ref`, and the entrypoint or `content_resource` as `passage_path`.
+Count `passage_line` from the first line of the decoded resource body. Find
+hits alone provide no passage for a reviewed decision.
 
 ```json
 {
@@ -545,8 +604,9 @@ declared search space and how it was narrowed, each round's hypothesis and
 reason, the decision, and the success and failure summaries. It has two parts.
 
 **1. Capture the knowledge context while working.** Run the same retrieval the
-agent uses through `campaign capture-context`. It calls `collect` with a context
-budget and keeps the complete envelope: the request, everything search selected,
+agent uses through `campaign capture-context`. It calls `collect` to rank the
+question with Find and assemble resources within a context budget. The capture
+keeps the request, the selected items,
 everything left out and why, and every resource body with its SHA-256. The
 dashboard re-derives the assembled text from those resources and withholds a
 capture whose bytes or hashes no longer match.

@@ -204,8 +204,10 @@
       "tests/test_knowledge_navigation_browser.py",
       "tests/test_optimization_session.py",
       "tests/test_optimization_story.py",
+      "tests/test_round_citations.py",
       "tests/test_search_archive.py",
-      "tests/test_search_attribution.py"
+      "tests/test_search_attribution.py",
+      "tests/test_search_capture_delivery.py"
     ]
   },
   {

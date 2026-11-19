@@ -129,7 +129,7 @@ def test_navigation_keyboard_versions_and_refresh(browser, tmp_path, profile_fir
         root.get_by_role("button", name="capture", exact=True).click()
         capture = root.locator('details[data-kt-key="navigation:capture"]')
         playwright.expect(capture).to_have_attribute("open", "")
-        assert "campaign capture-context → collect" in capture.inner_text()
+        assert "campaign capture-context → collect → find" in capture.inner_text()
         assert "5" in capture.get_by_role("table").first.inner_text()
         assert "2" in capture.get_by_role("table").first.inner_text()
         rows = capture.get_by_role("table").nth(1)
@@ -197,7 +197,8 @@ def test_navigation_keyboard_versions_and_refresh(browser, tmp_path, profile_fir
         assert root.get_by_role("button", name="capture", exact=True).count() == 0
         root.get_by_role("button", name="collect", exact=True).click()
         collect = root.locator('details[data-kt-key="navigation:collect"]')
-        assert "collect" in collect.inner_text() and "weighted-lexical-v1" in collect.inner_text()
+        assert "collect → find" in collect.inner_text()
+        assert "find-lexical-v1" in collect.inner_text()
         assert "use not recorded in this field" in collect.inner_text()
         assert not errors
         if not live:

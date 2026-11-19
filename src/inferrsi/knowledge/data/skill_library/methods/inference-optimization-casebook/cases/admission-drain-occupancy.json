@@ -1,6 +1,7 @@
 {
   "id": "case.admission-drain-occupancy",
   "kind": "case",
+  "backend": "cuda",
   "origin": ["internal"],
   "state": "historical_observation",
   "content": "admission-drain-occupancy.md",

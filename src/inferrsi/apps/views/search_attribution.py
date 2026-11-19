@@ -16,8 +16,20 @@ from inferrsi.harness.records.evidence import (
 )
 from inferrsi.harness.records.optimization_log import STAGES, read_latest_log
 
-from .capture_delivery import capture_event, capture_return_texts, load_campaign_capture
+from .capture_delivery import (
+    capture_event,
+    capture_receipts,
+    capture_return_texts,
+    load_campaign_capture,
+    managed_envelopes,
+    managed_return_lines,
+)
 from .codex_search import read_window
+from .round_citations import (
+    decision_positions,
+    retained_round_citations,
+    round_reviews,
+)
 from .search_archive import read_archive_review, reviewed_uses
 
 
@@ -234,7 +246,7 @@ def _round_candidates(root, number):
     return runs
 
 
-def _observations(events, *, archive=False):
+def _observations(events):
     """Count tool hits separately from what appeared in a model-facing return."""
     materials, hits = {}, set()
     counts = {"searches": 0, "hits": 0, "unique_hits": 0, "used": 0}
@@ -246,8 +258,7 @@ def _observations(events, *, archive=False):
             hits.update(refs)
         for ref in sorted(refs):
             materials.setdefault(ref, {"use": "unknown"})
-        if archive:
-            delivery = event["delivery"]
+        if delivery := event.get("delivery"):
             passages = {row["ref"] for row in delivery.get("passages", [])}
             visible_refs = set(delivery.get("visible_refs", []))
             resources = {row["ref"] for row in delivery.get("visible_resources", [])}
@@ -304,15 +315,27 @@ def import_search(root: Path, *, number: int, trace=None, lines=None, knowledge_
                 indexer_decisions[context_id].append(item)
             else:
                 command_decisions.append(item)
-                if "passage_path" in item:
-                    raise ValueError("passage_path is only valid for a verified Indexer return")
 
+    capture_inputs = {key: load_campaign_capture(root, campaign_id, key) for key in capture_ids}
+    capture_returns = dict(review["capture_returns"]) if review else {}
+    options = {}
     window, events, decisions, uncertain = None, [], {}, []
     if trace:
+        if capture_inputs:
+            envelopes = managed_envelopes(capture_inputs)
+            outputs = dict.fromkeys(((None, body) for body in envelopes.values()), root)
+            outputs.update(dict.fromkeys(capture_receipts(capture_inputs).items(), root))
+            options["capture_outputs"] = outputs
+            capture_returns.update(managed_return_lines(
+                trace, lines,
+                {key: body for key, body in envelopes.items() if key not in capture_returns},
+                reserved=set(capture_returns.values()),
+            ))
         window, events, decisions, uncertain, _ = read_window(
-            trace, lines, knowledge_root, archive=False)
-    capture_inputs = {key: load_campaign_capture(root, campaign_id, key) for key in capture_ids}
-    captures = {key: capture_event(key, capture_inputs[key]) for key in capture_ids}
+            trace, lines, knowledge_root, archive=False, **options)
+    return_texts = capture_return_texts(trace, lines, capture_returns, capture_ids)
+    captures = {key: capture_event(key, capture_inputs[key], return_chunks=return_texts.get(key),
+                                   return_line=capture_returns.get(key)) for key in capture_ids}
     events.extend(captures.values())
     materials, observed = _observations(events)
     _log_uses(root, campaign_id, number, captures, materials)
@@ -336,26 +359,30 @@ def import_search(root: Path, *, number: int, trace=None, lines=None, knowledge_
         _atomic_json(target, record)
         return target
 
+    notes, note_line = retained_round_citations(root, campaign, number, trace, lines)
+    excerpts = {}
+    if note_line is not None:
+        for ref, quote, _ in notes["citations"]:
+            excerpts.setdefault(ref, set()).add(quote)
     selections = {}
     for item in command_decisions:
         selections.setdefault(item["event_line"], []).append((item["ref"], item["passage_line"]))
     archive_events, archive_decisions, archive_uncertain, unresolved_details = [], {}, [], []
     if trace:
+        if excerpts:
+            options["excerpts"] = excerpts
         _, archive_events, archive_decisions, archive_uncertain, unresolved_details = read_window(
-            trace, lines, knowledge_root, archive=True, selections=selections)
-    return_texts = {}
-    if review["capture_returns"]:
-        return_texts = capture_return_texts(trace, lines, review["capture_returns"], capture_ids)
+            trace, lines, knowledge_root, archive=True, selections=selections, **options)
     archive_captures = {}
     for key in capture_ids:
-        return_line = review["capture_returns"].get(key)
+        return_line = capture_returns.get(key)
         archive_captures[key] = capture_event(
             key, capture_inputs[key], archive=True,
             return_chunks=return_texts.get(key),
             return_line=return_line,
-            selected_passages=indexer_decisions[key])
+            selected_passages=indexer_decisions[key], excerpts=excerpts)
     archive_events.extend(archive_captures.values())
-    archive_materials, archive_observed = _observations(archive_events, archive=True)
+    archive_materials, archive_observed = _observations(archive_events)
     declarations = _log_uses(root, campaign_id, number, archive_captures, archive_materials,
                              archive=True)
     for ref, material in record["materials"].items():
@@ -374,6 +401,14 @@ def import_search(root: Path, *, number: int, trace=None, lines=None, knowledge_
             })
     for ref, status, evidence in reviewed_uses(review, archive_events, archive_decisions):
         _use(archive_materials, ref, status, evidence)
+    if notes:
+        positions = decision_positions(notes, note_line, archive_decisions)
+        matches, unverified = round_reviews(notes["citations"], positions, archive_events)
+        declarations.extend(unverified)
+        for ref, status, evidence in reviewed_uses(
+            {"decisions": matches}, archive_events, archive_decisions,
+        ):
+            _use(archive_materials, ref, status, evidence)
     archive_observed["used"] = _used_count(archive_materials)
     archive_coverage = ("complete" if complete and not archive_uncertain and not unresolved_details
                         else "partial")

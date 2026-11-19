@@ -17,7 +17,7 @@ from inferrsi.harness.records.evidence import (
 from inferrsi.harness.records.knowledge_capture import MAX_CONTEXT_CAPTURE_BYTES
 from inferrsi.knowledge.context_projection import assemble_context_text
 
-from .codex_tool_returns import _output_lines
+from .codex_tool_returns import _output_lines, _response_text
 
 
 def capture_return_texts(trace, lines, references, context_ids):
@@ -60,6 +60,54 @@ def capture_return_texts(trace, lines, references, context_ids):
     if wanted != texts.keys():
         raise ValueError("capture return line is missing from the trace")
     return {key: texts[number] for key, number in references.items()}
+
+
+def _managed_envelope(doc, reference):
+    return json.dumps({"reference": reference, "context": doc}, ensure_ascii=False, indent=2)
+
+
+def capture_receipts(captures):
+    """Render the manual CLI's capture receipts without material bodies."""
+    return {key: json.dumps({"context": source, "sha256": digest}, ensure_ascii=False, indent=2)
+            for key, (_, source, digest) in captures.items()}
+
+
+def managed_envelopes(captures):
+    return {key: _managed_envelope(doc, {
+        "path": source, "sha256": digest, "kind": "delivered_context",
+    }) for key, (doc, source, digest) in captures.items()}
+
+
+def _contains_envelope(chunk, body):
+    return f"\n{body}\n" in "\n" + chunk.replace("\r\n", "\n") + "\n"
+
+
+def managed_return_lines(trace, lines, envelopes, *, reserved):
+    """Locate exact tool returns for selected managed captures in the round."""
+    if not envelopes:
+        return {}
+    found = {}
+    first, last = lines
+    with trace.open("rb") as stream:
+        for number, raw in enumerate(stream, 1):
+            if number > last or len(found) == len(envelopes):
+                break
+            if number < first or number in reserved:
+                continue
+            row = json.loads(raw)
+            payload = row.get("payload", {})
+            if (row.get("type") != "response_item" or not isinstance(payload, dict)
+                    or payload.get("type") not in (
+                        "function_call_output", "custom_tool_call_output",
+                    )):
+                continue
+            text = _response_text(row)
+            if text is None:
+                continue
+            keys = [key for key, body in envelopes.items() if _contains_envelope(text, body)]
+            if len(keys) == 1:
+                found.setdefault(keys[0], number)
+    return found
 
 
 def visible_capture_resources(doc, texts):
@@ -123,7 +171,7 @@ def load_campaign_capture(root, campaign_id, context_id):
     return doc, path.relative_to(root).as_posix(), hashlib.sha256(raw).hexdigest()
 
 
-def _capture_passages(doc, selections, visible):
+def _capture_passages(doc, selections, visible, excerpts):
     locators = dict.fromkeys((item["ref"], item["passage_path"], item["passage_line"])
                              for item in selections)
     passages = []
@@ -143,11 +191,24 @@ def _capture_passages(doc, selections, visible):
         if _text(text, "", limit=len(text)) != text:
             raise ValueError("Indexer review source passage is not safe to publish verbatim")
         passages.append({"ref": ref, "path": path, "line": line, "text": text})
+    for context in doc["contexts"]:
+        ref = context["ref"]
+        if ref not in excerpts:
+            continue
+        for resource in context["resources"]:
+            path = resource["path"]
+            if (ref, path) not in visible:
+                continue
+            for line, text in enumerate(_output_lines(resource["content"]), 1):
+                if ((ref, path, line) not in locators
+                        and any(quote in text for quote in excerpts[ref])
+                        and _text(text, "", limit=len(text)) == text):
+                    passages.append({"ref": ref, "path": path, "line": line, "text": text})
     return passages
 
 
 def capture_event(context_id, captured, *, archive=False, return_chunks=None,
-                  return_line=None, selected_passages=()):
+                  return_line=None, selected_passages=(), excerpts=None):
     doc, source, digest = captured
     resources = {c["ref"]: [r["path"] for r in c["resources"]] for c in doc["contexts"]}
     materials = []
@@ -158,19 +219,45 @@ def capture_event(context_id, captured, *, archive=False, return_chunks=None,
         materials.append({"ref": ref, "revision": revision, "resources": resources.get(ref, [])})
     observation = doc.get("retrieval") or {}
     calls = observation.get("calls", [])
-    tool = calls[-1] if calls and calls[-1] in ("collect", "knowledge search") else "collect"
-    event = {"action": "search", "tool": tool, "context_id": context_id,
+    if "knowledge search" in calls:
+        tool = "knowledge search"
+    else:
+        recorded_tool = calls[-1] if calls else None
+        tool = recorded_tool if recorded_tool in ("collect", "find") else "collect"
+    action = "search"
+    recorded_selection = observation.get("selection")
+    request = observation.get("request")
+    if observation.get("schema_version") == 1 and isinstance(recorded_selection, dict):
+        state = recorded_selection.get("state")
+        if state == "explicit_ids":
+            action = "read"
+        elif (
+            state == "not_requested" and isinstance(request, dict)
+            and "query" in request and not request.get("relevance")
+        ):
+            query = request["query"]
+            # Earlier Collect versions could filter by query without ranking.
+            if query is None or (isinstance(query, str) and not query.strip()):
+                action = "inventory"
+    event = {"action": action, "tool": tool, "context_id": context_id,
              "source": source, "sha256": digest, "request": doc["request"],
              "selection": doc.get("selection"), "materials": materials}
+    exact_return = bool(return_chunks) and _contains_envelope(
+        "".join(return_chunks),
+        _managed_envelope(doc, {"path": source, "sha256": digest, "kind": "delivered_context"}),
+    )
+    visible = [r for r in visible_capture_resources(
+        doc, [doc["assembled_text"]] if exact_return else return_chunks,
+    ) if _relative_location(r["ref"]) == r["ref"] and _relative_location(r["path"]) == r["path"]]
     if not archive:
+        if visible:
+            event["delivery"] = {"state": "visible", "return_line": return_line,
+                                 "visible_resources": visible}
         return event
 
     omissions = {o["ref"]: o.get("reason") for o in
                  [*doc.get("omissions", []), *doc.get("context_omissions", [])]
                  if isinstance(o, dict) and isinstance(o.get("ref"), str)}
-    visible = [r for r in visible_capture_resources(doc, return_chunks)
-               if _relative_location(r["ref"]) == r["ref"]
-               and _relative_location(r["path"]) == r["path"]]
     visible_keys = {(r["ref"], r["path"]) for r in visible}
     for material in materials:
         ref, revision = material["ref"], material["revision"]
@@ -189,9 +276,10 @@ def capture_event(context_id, captured, *, archive=False, return_chunks=None,
     event["request"], event["selection"] = _archive_capture_metadata(doc)
     event["capture"] = {"state": "verified", "source": source, "sha256": digest}
     event["delivery"] = {"state": "visible" if visible else "unknown",
-                         "output_state": "verified" if return_line is not None else "unknown",
+                         "output_state": "verified" if exact_return or visible else "unknown",
                          "visible_resources": visible,
-                         "passages": _capture_passages(doc, selected_passages, visible_keys)}
+                         "passages": _capture_passages(
+                             doc, selected_passages, visible_keys, excerpts or {})}
     if return_line is not None:
         event["trace_line"] = return_line
         if visible:

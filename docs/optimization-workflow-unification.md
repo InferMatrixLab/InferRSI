@@ -203,7 +203,7 @@ inferrsi campaign final --directory <campaign-dir> --reason '<why-search-ended>'
 inferrsi dashboard --input <campaign-dir> --output <report.html>
 ```
 
-知识检索和 profiling 按当前问题需要进行，不要求每轮重查或每轮 profile。知识关闭时受管 `knowledge` 操作拒绝执行；这不是对宿主所有文件访问的隔离。
+两个受管 `knowledge` 入口都用 Find 为当前问题排序，再按预算装配选中的正文和需要的资料，留存引用、版本和省略原因。显式传入旧 `--relevance-method` 可以复用对应的排序。知识检索和 profiling 按当前问题需要进行。冻结条件为 `--knowledge off` 时，受管 `knowledge` 操作拒绝执行。
 
 ## 实际保留什么、保护什么
 

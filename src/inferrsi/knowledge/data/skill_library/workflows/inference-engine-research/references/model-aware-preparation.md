@@ -42,8 +42,8 @@ their linked repository skills own the detailed source map and inventories. The
 MiniMax-H3 profile points to the [h3.c residency audit](../../../repositories/h3-c/audit-h3-runtime-residency/SKILL.md).
 For an unknown model, supply `--task` and `--modality` after inspecting its sources;
 no architecture is guessed. Repeat dimensions to add queries.
-`knowledge search 'model mlx diffusion video'` retains token-AND semantics and
-can return less knowledge than the independent union.
+A text query to `knowledge search` and each research query use the same Find
+lexical ranking over the eligible package records.
 
 Tier/repository/backend/scenario flags remain hard catalog filters. An empty
 dimension can mean missing or filtered knowledge: report it, inspect the missing

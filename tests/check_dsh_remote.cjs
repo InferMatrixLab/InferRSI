@@ -305,6 +305,10 @@ async function main() {
     assert.equal(compilation.status, 0, 'Remote Python bootstrap did not compile');
     await manager.run(sessionId, id, { operation: 'cli', args: ['collect', 'synthetic', '--limit', '1'] });
     assert.equal(Buffer.from(payloads.at(-1).archive, 'base64').toString(), 'synthetic-runtime-archive');
+    const findArgs = ['find', 'synthetic question', '--limit', '1', '--json'];
+    const search = await manager.run(sessionId, id, { operation: 'cli', args: findArgs });
+    assert.equal(search.exitCode, 0);
+    assert.deepEqual(payloads.at(-1).args, findArgs);
     assert.ok(commands.every(command => command === 'uname -s' || command === commands.find(item => item !== 'uname -s')),
       'user data changed the SSH shell command');
     assert.ok(!JSON.stringify(payloads).includes(fakePassword));

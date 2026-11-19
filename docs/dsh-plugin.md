@@ -232,8 +232,14 @@ the launcher is `scripts/inferrsi.py`.
 - Use `--plugin-info` to check the selected interpreter, bundled runtime version,
   and content SHA-256. An unbuilt source checkout can report `0+unknown` as the
   runtime version.
-- Use `collect` to find relevant packaged knowledge and `read` to inspect a
-  selected revision and its resources.
+- Use `find "<question>"` to search Cases, Skills and Records. Follow the
+  emitted `read` command to inspect the selected material and its revision.
+  On a remote connection, use `inferrsi_remote` with `operation: "cli"` and
+  `args: ["find", "<question>", "--json"]`. Send the hit's `read_args` as
+  `args` in the next CLI call.
+  The base install supports reading bundled Cases and Skills that have a
+  packaged projection. Reading Skills from a custom `--skill-root` requires
+  PyYAML in the interpreter running InferRSI.
 - Use `plan` to preview a comparison. Running a comparison requires the
   accepted scope, frozen gates, and prepared target environment.
 - Use `status` and `report` to inspect an existing run and retain its recorded

@@ -6,10 +6,14 @@ import hashlib
 import json
 import re
 from importlib.resources import files
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from ..resources.repository_packs import REPO_TYPES
 from . import _source_snapshot
+from .retrieval import observation
+
+if TYPE_CHECKING:
+    from .knowledge_find import Corpus
 
 # Learning scope does not imply that a repository has a runnable target adapter.
 # Legacy repository-pack records retain their contribution tier; an independent
@@ -31,6 +35,11 @@ SCENARIO_ALIASES = {
     "diffusion.t2i": "diffusion.image_generation",
     "diffusion.t2v": "diffusion.video_generation",
 }
+
+
+def packaged_skill_id(name: str, backend: str) -> str:
+    """Return the stable catalog ID for a skill registered by name and backend."""
+    return f"inferrsi.{backend}.skills.{name.replace('-', '_')}"
 
 
 def _walk(root, prefix=()):
@@ -161,27 +170,19 @@ def without_file_fingerprints(value):
     return value
 
 
-def search_knowledge(
-    query: str = "",
+def _scoped_records(
     *,
     repo: str | None = None,
     tier: str | None = None,
     backend: str | None = None,
     scenario: str | None = None,
-    limit: int = 10,
-    explain: bool = False,
-) -> list[dict[str, Any]] | dict[str, Any]:
-    if limit < 1:
-        raise ValueError("limit must be positive")
+) -> tuple[list[dict[str, Any]], dict[str, int]]:
     if tier is not None and tier not in KNOWLEDGE_SCOPES:
         raise ValueError(f"Unknown knowledge tier: {tier}")
     scenario = SCENARIO_ALIASES.get(scenario, scenario)
-    tokens = re.findall(r"[\w.-]+", query.casefold())
-    scored = []
-    records = knowledge_records()
-    excluded = {"tier": 0, "repo": 0, "backend": 0, "scenario": 0, "query": 0}
-    explanations = {}
-    for record in records:
+    eligible = []
+    excluded = {"tier": 0, "repo": 0, "backend": 0, "scenario": 0}
+    for record in knowledge_records():
         if tier and record.get("tier", "contribution") != tier:
             excluded["tier"] += 1
             continue
@@ -198,36 +199,95 @@ def search_knowledge(
             ):
                 excluded["scenario"] += 1
                 continue
-        document = json.dumps(record, ensure_ascii=False).casefold()
-        if any(token not in document for token in tokens):
-            excluded["query"] += 1
-            continue
-        score = sum(document.count(token) for token in tokens)
-        if explain:
-            explanations[record["id"]] = [
-                {"term": token, "occurrences": document.count(token)} for token in tokens]
-        scored.append((score, record["id"], record))
-    scored.sort(key=lambda item: (-item[0], item[1]))
-    items = [item[2] for item in scored[:limit]]
+        eligible.append(record)
+    return eligible, excluded
+
+
+def _catalog_corpus(records: list[dict[str, Any]]) -> tuple[Corpus, list[dict[str, Any]]]:
+    from .knowledge_find import Corpus, installed_skill_projection, load_documents
+
+    by_id = {record["id"]: record for record in records}
+    kinds = ("record",)
+    if any(record.get("index_type") == "packaged-skill" for record in records):
+        kinds = ("skill", "record")
+    documents, document_records = [], []
+    for document in load_documents(kinds=kinds, records=records):
+        record = (
+            by_id[document.identity] if document.kind == "record"
+            else installed_skill_projection(document, by_id)
+        )
+        if record is not None:
+            # Keep the native identity and source state for Find's ties. The
+            # corresponding record supplies the exact package ID and payload.
+            documents.append(document)
+            document_records.append(record)
+    return Corpus(documents), document_records
+
+
+def search_knowledge(
+    query: str = "",
+    *,
+    repo: str | None = None,
+    tier: str | None = None,
+    backend: str | None = None,
+    scenario: str | None = None,
+    limit: int = 10,
+    explain: bool = False,
+) -> list[dict[str, Any]] | dict[str, Any]:
+    """List exact package records, using Find when a text query is supplied."""
+    if limit < 1:
+        raise ValueError("limit must be positive")
+    records, excluded = _scoped_records(repo=repo, tier=tier, backend=backend, scenario=scenario)
+    ranking = bool(query.strip())
+    if ranking:
+        from .knowledge_find import rank
+
+        corpus, document_records = _catalog_corpus(records)
+        _, _, scored = rank(query, corpus)
+        matches = [
+            (document_records[index], score, components) for score, _, index, components in scored
+        ]
+    else:
+        matches = [
+            (record, None, None) for record in sorted(records, key=lambda record: record["id"])
+        ]
+
+    returned = matches[:limit]
+    items = [record for record, _, _ in returned]
     if not explain:
         return items
-    from .retrieval import observation
+    from ._skill_selection import FIND_RELEVANCE
 
-    return {"items": items, "retrieval": observation(
+    observed = []
+    for position, (record, score, components) in enumerate(returned, 1):
+        data = json.dumps(record, sort_keys=True, ensure_ascii=False).encode()
+        item = {"ref": "package:" + record["id"], "rank": position,
+                "revision": "catalog-sha256:" + hashlib.sha256(data).hexdigest()}
+        if score is not None:
+            item.update(score=round(score, 2), components=components)
+        observed.append(item)
+    retrieval = observation(
         entrypoint="knowledge search",
         request={"query": query, "repo": repo, "tier": tier, "backend": backend,
-                 "scenario": scenario, "limit": limit, "sources": ["package"]},
-        selection={"method": "catalog-occurrences-v1", "scope": "package-records",
-                   "ranking_applied": True, "state": "applied", "tie_break": "id_ascending"},
-        items=[{"ref": "package:" + identity, "rank": rank, "score": score,
-                "revision": "catalog-sha256:" + hashlib.sha256(json.dumps(
-                    record, sort_keys=True, ensure_ascii=False).encode()).hexdigest(),
-                "components": explanations[identity]}
-               for rank, (score, identity, record) in enumerate(scored[:limit], 1)],
-        counts={"considered": len(records), "matched": len(scored), "returned": len(items),
-                "excluded": {**excluded, "item_limit": max(0, len(scored) - limit)}},
+                 "scenario": SCENARIO_ALIASES.get(scenario, scenario), "limit": limit,
+                 "sources": ["package"]},
+        selection={
+            "method": FIND_RELEVANCE if ranking else None, "scope": "package-records",
+            "ranking_applied": ranking, "state": "applied" if ranking else "not_requested",
+            "tie_break": "state_then_id_then_ref" if ranking else None,
+        },
+        items=observed,
+        counts={
+            "considered": len(records) + sum(excluded.values()),
+            "matched": len(matches), "returned": len(items),
+            "excluded": {**excluded, "query": len(records) - len(matches),
+                         "item_limit": len(matches) - len(items)},
+        },
         assembly="not_requested",
-    )}
+    )
+    if ranking:
+        retrieval["calls"].append("find")
+    return {"items": items, "retrieval": retrieval}
 
 
 def get_knowledge(record_id: str) -> dict[str, Any]:

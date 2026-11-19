@@ -215,8 +215,9 @@ tamper detection. Old AB/BA and other APIs retain their default checks.
 selection, repair history, reference epoch, reminders and final prerequisites.
 There is no summed multi-objective speedup. Service-mode knowledge capture retains
 source text and existing commit attribution without the old content-identity
-reader. It records package core documents and identifies unloaded references;
-checkout/store sources requiring content identity are explicitly unavailable.
+reader. It uses Find ranking over the package catalog and records core documents
+and unloaded references. Checkout and store sources require content identity
+and are unavailable in this mode.
 Captured material proves preparation, not model consumption.
 
 `summary.usage` covers caller-supplied round-attempt exports, including explicit

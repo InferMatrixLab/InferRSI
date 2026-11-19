@@ -568,7 +568,7 @@ function createRemoteManager({
     }
     if (request.operation === 'cli') {
       const args = checkedArgs(request.args);
-      if (!args.length || !['doctor', 'knowledge', 'collect', 'read', 'resource', 'context', 'skills',
+      if (!args.length || !['doctor', 'knowledge', 'find', 'collect', 'read', 'resource', 'context', 'skills',
         'plan', 'run', 'status', 'report', 'campaign', '--help', '-h', '--version'].includes(args[0])) fail('invalid_cli');
       return execute(entry, BOOTSTRAP_COMMAND, await runtimePayload(entry, args), signal, token);
     }

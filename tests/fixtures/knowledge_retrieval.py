@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import json
 import sys
+from contextlib import contextmanager
 from pathlib import Path
 from unittest.mock import patch
 
@@ -15,12 +16,15 @@ from inferrsi.apps.views.search_attribution import import_search
 from inferrsi.apps.workflows.campaign import capture_context, create_campaign, save_retrieval
 from inferrsi.harness.records.campaign_records import record_candidate
 from inferrsi.harness.records.optimization_log import record_log
+from inferrsi.knowledge import knowledge_find
 from inferrsi.knowledge._source_snapshot import source_entry
 from inferrsi.knowledge.catalog import search_knowledge
 from inferrsi.knowledge.knowledge_operations import KnowledgeReader, _hash, _json
 
 
-def reader():
+@contextmanager
+def reader(root):
+    """Use an isolated on-disk installed library and its matching catalog snapshot."""
     registry_path = "data/skill_library/skill-index.json"
     registry, library, records = {"schema_version": 1, "skills": {}}, {}, {}
     for name in ("a", "b", "c", "d", "e"):
@@ -39,6 +43,10 @@ def reader():
             "skill_metadata": {"name": "synthetic-" + name, "references": []},
         }
     library[registry_path] = _json(registry)
+    for path, content in library.items():
+        target = root / path.removeprefix("data/skill_library/")
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(content)
     for record in records.values():
         core = record["skill_documents"]["original"]
         record["source_files"] = {source_entry(p): _hash(library[p])
@@ -46,7 +54,8 @@ def reader():
     result = KnowledgeReader()
     result._records = records
     result._library = library, "sha256:" + _hash(_json({p: _hash(b) for p, b in library.items()}))
-    return result
+    with patch.object(knowledge_find, "installed_skill_root", return_value=root.resolve()):
+        yield result
 
 
 def write(path, value):
@@ -66,26 +75,33 @@ def build(root, *, runs=DEFAULT_RUNS):
     create_campaign(root, "synthetic-retrieval")
     manifest = json.loads((root / "campaign.json").read_text())
     write(root / "campaign.json", {**manifest, "synthetic": True})
-    source = reader()
     budget = 2 * len(b"Synthetic launch guidance.\n")
     captures = {}
-    path, captures["capture"] = capture_context(root, context_id="capture", reader=source,
-                                               relevance="launch", context_bytes=budget)
-    captured = json.loads(path.read_text())
-    with patch("inferrsi.knowledge.catalog.knowledge_records",
-               return_value=list(source.records().values())):
-        _, captures["catalog"] = save_retrieval(root, context_id="catalog",
-                                               result=search_knowledge("launch", explain=True))
-    for name, options in {
-        "collect": {"relevance": "launch", "context_bytes": budget},
-        "explicit": {"ids": list(reversed(source.records())), "relevance": "launch"},
-        "no-ranking": {}, "empty": {"query": "no-such-term"},
-        "legacy": {"relevance": "launch"},
-    }.items():
-        result = source.collect(**options)
-        if name == "legacy":
-            result.pop("retrieval")
-        _, captures[name] = save_retrieval(root, context_id=name, result=result)
+    with reader(root / "corpus") as source:
+        path, captures["capture"] = capture_context(
+            root, context_id="capture", reader=source, relevance="launch", context_bytes=budget,
+        )
+        captured = json.loads(path.read_text())
+        with patch("inferrsi.knowledge.catalog.knowledge_records",
+                   return_value=list(source.records().values())):
+            _, captures["catalog"] = save_retrieval(
+                root, context_id="catalog", result=search_knowledge("launch", explain=True),
+            )
+        for name, options in {
+            "collect": {"relevance": "launch", "context_bytes": budget},
+            "explicit": {"ids": list(reversed(source.records())), "relevance": "launch"},
+            "no-ranking": {}, "empty": {"query": "no-such-term"},
+        }.items():
+            result = source.collect(**options)
+            _, captures[name] = save_retrieval(root, context_id=name, result=result)
+
+        # Keep a synthetic pre-observation capture in the dashboard fixture. Its
+        # payload is fixed by ID and its recorded selection is historical metadata.
+        legacy = source.collect(ids=list(source.records()))
+        legacy.pop("retrieval")
+        legacy["selection"] = {"method": "weighted-lexical-v1", "cue": "launch",
+                               "scope": "generated-packaged-skills", "ranking_applied": True}
+        _, captures["legacy"] = save_retrieval(root, context_id="legacy", result=legacy)
     for candidate, run, number, verdict, gain, quality in runs:
         directory = root / "runs" / run
         write(directory / "run.lock.json", {"workload_id": "synthetic", "scenario": "http"})

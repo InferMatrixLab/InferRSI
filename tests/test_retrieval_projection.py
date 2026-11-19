@@ -25,44 +25,58 @@ def campaign(tmp_path):
     return tmp_path
 
 
-@pytest.mark.parametrize("method", ["weighted-lexical-v1", "weighted-raw-string-v1",
-                                   "task-lexical-v1"])
-def test_execution_scores_and_exact_budget_preserve_payloads(method):
-    reader = FIXTURE["reader"]()
-    result = reader.collect(relevance="launch", relevance_method=method, context_bytes=54)
+@pytest.mark.parametrize("question", [{"query": "launch"}, {"relevance": "launch"}])
+def test_execution_scores_and_exact_budget_preserve_payloads(tmp_path, question):
+    with FIXTURE["reader"](tmp_path) as reader:
+        result = reader.collect(**question, context_bytes=54)
+        # Observations cannot eject a result from the budgeted item bytes.
+        bounded = reader.collect(**question, context_bytes=54, max_bytes=result["material_bytes"])
+        fewer = reader.collect(**question, limit=2)
     assert len(result["items"]) == 5 and len(result["contexts"]) == 2
     assert len(result["context_omissions"]) == 3 and result["context_bytes"] == 54
     observation = result["retrieval"]
+    assert observation["calls"] == ["collect", "find"]
+    assert observation["selection"]["method"] == "find-lexical-v1"
     assert observation["counts"]["matched"] == 5
     assert observation["assembly"] == "performed"
     assert [m["ref"] for m in observation["items"]] == [m["ref"] for m in result["items"]]
     for item in observation["items"]:
-        assert item["score"] == sum(item["components"].values()) * item["multiplier"]
+        assert item["score"] == sum(item["components"].values())
     assert len({m["score"] for m in observation["items"]}) == 1
     assert [m["ref"] for m in observation["items"]] == sorted(m["ref"] for m in result["items"])
-    # Observations are outside the budgeted item bytes; adding them cannot eject a result.
-    budget = result["material_bytes"]
-    bounded = reader.collect(relevance="launch", relevance_method=method, context_bytes=54,
-                             max_bytes=budget)
     for field in ("items", "contexts", "context_omissions", "context_bytes", "material_bytes"):
         assert result[field] == bounded[field]
-    fewer = reader.collect(relevance="launch", relevance_method=method, limit=2)
     assert fewer["retrieval"]["counts"]["excluded"]["item_limit"] == 3
     assert fewer["retrieval"]["assembly"] == "not_requested"
 
 
-def test_catalog_observation_does_not_mutate_records_or_return_order(monkeypatch):
-    records = list(FIXTURE["reader"]().records().values())
-    original = copy.deepcopy(records)
-    monkeypatch.setattr("inferrsi.knowledge.catalog.knowledge_records", lambda: records)
-    for query in ("launch", "missing", "launch launch", ""):
-        result = search_knowledge(query, limit=2, explain=True)
-        assert result["items"] == search_knowledge(query, limit=2)
-        for item in result["retrieval"]["items"]:
-            assert item["score"] == sum(term["occurrences"] for term in item["components"])
+def test_catalog_observation_does_not_mutate_records_or_return_order(tmp_path, monkeypatch):
+    with FIXTURE["reader"](tmp_path) as reader:
+        records = list(reader.records().values())
+        original = copy.deepcopy(records)
+        monkeypatch.setattr("inferrsi.knowledge.catalog.knowledge_records", lambda: records)
+        observations = {}
+        for query in ("guidance missing", "missing", "guidance guidance", ""):
+            result = search_knowledge(query, limit=2, explain=True)
+            assert result["items"] == search_knowledge(query, limit=2)
+            observations[query] = result["retrieval"]
+        excluded = search_knowledge("guidance", repo="other", explain=True)
+
     assert records == original
-    result = search_knowledge("launch", repo="other", explain=True)
-    assert result["retrieval"]["counts"]["excluded"]["repo"] == 5
+    ranked = observations["guidance missing"]
+    assert ranked["calls"] == ["knowledge search", "find"]
+    assert ranked["selection"]["method"] == "find-lexical-v1"
+    assert ranked["counts"]["matched"] == 5  # "guidance" is only in the Skill bodies.
+    assert ranked["items"] == observations["guidance guidance"]["items"]
+    for item in ranked["items"]:
+        assert item["score"] == item["components"]["guidance"]
+    assert observations["missing"]["items"] == []
+    inventory = observations[""]
+    assert inventory["calls"] == ["knowledge search"]
+    assert inventory["selection"]["state"] == "not_requested"
+    assert inventory["selection"]["method"] is None
+    assert all("score" not in item for item in inventory["items"])
+    assert excluded["retrieval"]["counts"]["excluded"]["repo"] == 5
 
 
 def test_shell_search_keeps_its_recorded_query_scope_and_hits(campaign):
@@ -81,13 +95,16 @@ def test_actual_paths_ranking_states_and_multi_run_navigation(campaign):
     data = dashboard_snapshot(campaign)["data"]
     trace = data["knowledge_trace"]
     captures = {c["context_id"]: c for c in trace["retrievals"]}
-    assert captures["catalog"]["trace"]["calls"] == ["knowledge search"]
-    assert captures["collect"]["trace"]["calls"] == ["collect"]
-    assert captures["capture"]["trace"]["calls"] == ["campaign capture-context", "collect"]
+    assert captures["catalog"]["trace"]["calls"] == ["knowledge search", "find"]
+    assert captures["collect"]["trace"]["calls"] == ["collect", "find"]
+    assert captures["capture"]["trace"]["calls"] == ["campaign capture-context", "collect", "find"]
     assert captures["explicit"]["trace"]["selection"]["state"] == "explicit_ids"
+    assert captures["explicit"]["trace"]["calls"] == ["collect"]
+    assert all("score" not in item for item in captures["explicit"]["trace"]["items"])
     assert captures["no-ranking"]["trace"]["selection"]["state"] == "not_requested"
     assert captures["legacy"]["trace"]["entrypoint"] == "unknown"
     assert captures["legacy"]["trace"]["items"] == []
+    assert captures["legacy"]["trace"]["selection"]["method"] == "weighted-lexical-v1"
     assert captures["empty"]["trace"]["counts"]["matched"] == 0
     assert len(captures["capture"]["contexts"]) == 2
     assert len(captures["capture"]["context_omissions"]) == 3
@@ -99,8 +116,17 @@ def test_actual_paths_ranking_states_and_multi_run_navigation(campaign):
     assert len(trace["searches"]) == 4  # v1/v2 are kept distinct, never summed.
     archive = next(s for s in trace["searches"] if s["schema_version"] == 2)
     assert not archive["issues"]
+    events = {event["context_id"]: event for event in archive["events"]}
+    assert events["catalog"]["tool"] == "knowledge search"
+    assert events["catalog"]["delivery"]["state"] == "unknown"
+    assert events["capture"]["tool"] == "find"
+    assert events["capture"]["delivery"]["state"] == "visible"
     material = next(m for m in archive["materials"] if m["evidence"])
-    assert material["evidence"][0]["state"] == "archive_reviewed"
+    evidence, = material["evidence"]
+    assert evidence["state"] == "archive_reviewed"
+    assert evidence["event_id"] == events["capture"]["id"]
+    assert evidence["passage_path"] == captures["capture"]["contexts"][0]["resources"][0]["path"]
+    assert evidence["passage_text"] == "Synthetic launch guidance."
     assert any(d["preparation_state"] == "omitted" for d in archive["declarations"])
     assert archive["counts"]["used"] == 1
     for number in (2, 3):

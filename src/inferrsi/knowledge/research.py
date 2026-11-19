@@ -7,7 +7,8 @@ import math
 from collections.abc import Sequence
 from importlib.resources import files
 
-from .catalog import knowledge_records, search_knowledge
+from .catalog import _catalog_corpus, _scoped_records
+from .knowledge_find import rank
 
 PROCEDURE = (
     "data/skill_library/workflows/inference-engine-research/"
@@ -66,9 +67,10 @@ def research_knowledge(
     }
     filters = {"repo": repo, "tier": tier, "backend": backend, "scenario": scenario}
     queries, streams, matches = [], [], {}
-    # Retrieve every scoped match before applying the shared output limit; an
-    # early per-query limit would lose attribution for overlapping records.
-    catalog_size = max(1, len(knowledge_records()))
+    scoped, _ = _scoped_records(**filters)
+    corpus, document_records = _catalog_corpus(scoped)
+    # Retain every query's matches before capping the union so overlapping
+    # records keep all their query attributions.
     for group, terms in groups.items():
         seen = set()
         for term in terms:
@@ -79,16 +81,17 @@ def research_knowledge(
                 continue
             seen.add(term.casefold())
             query = {"group": group, "query": term}
-            records = search_knowledge(term, **filters, limit=catalog_size)
+            _, _, scored = rank(term, corpus)
+            records = [document_records[index] for _, _, index, _ in scored]
             queries.append({**query, "matches": len(records)})
             streams.append(records)
             for record in records:
                 matches.setdefault(record["id"], []).append(query)
     selected = {}
-    for rank in range(max((len(stream) for stream in streams), default=0)):
+    for position in range(max((len(stream) for stream in streams), default=0)):
         for stream in streams:
-            if rank < len(stream):
-                record = stream[rank]
+            if position < len(stream):
+                record = stream[position]
                 selected.setdefault(record["id"], record)
                 if len(selected) == limit:
                     break
@@ -116,8 +119,8 @@ def research_knowledge(
             "inventory from the selected checkpoint before judging feasibility."
         ],
         "limitations": [
-            "Queries search installed package records only; empty results do not rule out "
-            "external sources. Existing token-AND search and scope filters are unchanged.",
+            "Each query uses Find's lexical ranking over installed package records eligible "
+            "under the scope filters. Other sources require separate discovery.",
             "Mechanism queries are research leads, not claims of model/backend support. "
             "Retain each record's applicability, source revision and verification state.",
             "Target annotations do not inspect hardware or add a runtime backend. Full weight "
