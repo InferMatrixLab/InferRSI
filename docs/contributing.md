@@ -35,7 +35,7 @@ policy does not renormalize existing blobs or authorize edits to frozen files.
 Nightly checks cover Linux and Windows checkouts with `core.autocrlf` set to
 `false`, `true` and `input`.
 
-Use `harness/scenarios`, `model/protocols` and `benchmark/validators` for new models,
+Use `harness/scenarios`, `harness/serving` and `benchmark/validators` for new models,
 `infra/targets` with `data/repo_packs` for repositories, and `infra/platforms` for
 hardware. A backend is registered in `infra/platforms/__init__.py`; its probe
 command is defined in the implementing module under `infra/platforms/`. That

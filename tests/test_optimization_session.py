@@ -1,6 +1,7 @@
 """Run the current-Agent protocol using real child processes and synthetic work."""
 
 import json
+from pathlib import Path
 
 import pytest
 
@@ -451,7 +452,6 @@ def test_knowledge_delivery_is_retained_and_bound_to_round(session, monkeypatch,
 
 def test_runtime_identity_covers_migrated_process_domain_and_not_removed_executor() -> None:
     from importlib.resources import files
-    from pathlib import Path
 
     identity = optimization_session._runtime_identity()
     root = Path(str(files("inferrsi")))
@@ -463,3 +463,49 @@ def test_runtime_identity_covers_migrated_process_domain_and_not_removed_executo
     assert "infra/executors/local.py" not in identity
     for name in identity:
         assert (root / name).is_file(), name
+    # #498 slice 2: the server helpers moved to harness/serving/server.py. A new plan binds
+    # that canonical file by its installed bytes, and the old Infra path is gone.
+    import hashlib
+
+    assert "infra/processes.py" not in identity
+    server = (root / "harness/serving/server.py").read_bytes()
+    assert identity["harness/serving/server.py"] == hashlib.sha256(server).hexdigest()
+
+
+PRE_SERVING = (Path(__file__).resolve().parent / "fixtures" / "optimization-session"
+               / "pre-serving-runtime-identity.json")
+
+
+def _refused(session, capsys, action):
+    assert main(["benchmarks", "session", action, "--session", str(session)]) == 2
+    return capsys.readouterr()
+
+
+def test_a_plan_from_before_the_serving_move_is_refused_and_left_unchanged(session, capsys):
+    # #498 slice 2. The fixture holds the runtime identity that main at its source commit
+    # records, computed from that commit's own file bytes, so it names infra/processes.py.
+    # The new runtime refuses such a plan before status or recover dispatches, and keeps the
+    # plan bytes; resume it with the runtime that planned it (CHANGELOG).
+    pinned = json.loads(PRE_SERVING.read_text(encoding="utf-8"))["runtime_identity"]
+    assert "infra/processes.py" in pinned and "harness/serving/server.py" not in pinned
+    path = session / "plan.json"
+    plan = json.loads(path.read_text(encoding="utf-8"))
+    plan["runtime_identity"] = pinned
+    path.write_text(json.dumps(plan), encoding="utf-8")
+    before = path.read_bytes()
+    capsys.readouterr()
+    for action in ("status", "recover"):
+        output = _refused(session, capsys, action)
+        assert "Optimization runtime changed" in output.out + output.err, action
+    assert path.read_bytes() == before
+
+
+def test_changed_server_bytes_are_refused(session, capsys):
+    path = session / "plan.json"
+    plan = json.loads(path.read_text(encoding="utf-8"))
+    assert plan["runtime_identity"] == optimization_session._runtime_identity()
+    plan["runtime_identity"]["harness/serving/server.py"] = "0" * 64
+    path.write_text(json.dumps(plan), encoding="utf-8")
+    capsys.readouterr()
+    output = _refused(session, capsys, "status")
+    assert "Optimization runtime changed" in output.out + output.err

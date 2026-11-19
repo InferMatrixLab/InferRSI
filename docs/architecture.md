@@ -92,11 +92,11 @@ interfaces; existing CLI commands remain supported.
 | --- | --- | --- |
 | Entry and knowledge | CLI arguments, immutable RunSpec, cited knowledge/context export | Model execution or automatic source editing |
 | Harness | AB/BA order, deadlines, source checks, scenario composition, evidence, performance adjudication and reporting | Device-specific conditions, request schemas or kernel dispatch |
-| Model | Request payloads and output decoding | Scheduling, worker lifetime, hardware selection, metric contracts or quality checks |
-| Infra | Repository identity, device discovery/qualification, process ownership, HTTP transport, storage and artifacts | Model constants, campaign gates or performance verdicts |
+| Model | Anthropic provider adapters and their request authorization | Scheduling, worker lifetime, hardware selection, request payloads, metric contracts or quality checks |
+| Infra | Repository identity, device discovery/qualification, storage and artifacts | Model constants, campaign gates or performance verdicts |
 
-Dependencies flow from entrypoints to Harness, from scenarios to Model/Infra,
-and from Model to Infra utilities. Infra does not import Model or Harness. None
+Dependencies flow from entrypoints to Harness. Harness reaches no Infra or Model
+module, and Infra does not import Model or Harness. None
 of these shared packages imports a campaign from `examples/`.
 
 Environment inspection follows that direction. `infra/inspection.py` is the
@@ -265,11 +265,11 @@ src/inferrsi/
     runner.py               One AB/BA loop; execute/snapshot/assess/report ports injected
     scenarios/
       external.py           External command trials; metric validation injected
-  model/
-    protocols/
+    serving/
+      server.py             Supervised Linux serving workers and their group cleanup
+      http.py               Timed JSON POST transport
       image.py              OpenAI-style image payload and PNG response protocol
   infra/
-    processes.py            Supervised Linux serving workers and their group cleanup
     targets/git.py          Repository identity and source snapshots
     platforms/              Backend discovery registry; CUDA qualification
     inspection.py           Environment inspection facts API; command and snapshot ports
@@ -307,7 +307,7 @@ path to its replacement and lists what still keeps the isolation gate false.
 
 | Add | Main extension locations | Required qualification |
 | --- | --- | --- |
-| Model or scenario | `model/protocols`, `benchmark/metrics.py`, `benchmark/validators`, `harness/scenarios` | Frozen request and metric contract; model-specific quality coverage |
+| Model or scenario | `harness/serving`, `benchmark/metrics.py`, `benchmark/validators`, `harness/scenarios` | Frozen request and metric contract; model-specific quality coverage |
 | Repository | `infra/targets`, a composed scenario, `data/repo_packs` | Stable source identity; command/result contract; environment isolation |
 | Hardware | `infra/platforms` | Device selection, process exclusivity and independent backend/model evidence; a backend is registered in `infra/platforms/__init__.py` and its probe command is defined in the implementing module under `infra/platforms/`, not in package data |
 
@@ -403,7 +403,7 @@ change the AB/BA algorithm, process cleanup or evaluator.
 
 ## Compatibility and historical evidence
 
-The supervised server helpers (`infra.processes.launch_server` / `stop_server`)
+The supervised server helpers (`harness.serving.server.launch_server` / `stop_server`)
 require Linux with a readable `/proc` process table. They reject other platforms
 before launch; missing or inaccessible process enumeration raises an error rather
 than reporting successful cleanup. Workers must remain in their owned process

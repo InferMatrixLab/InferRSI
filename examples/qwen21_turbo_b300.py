@@ -17,7 +17,8 @@ import time
 import urllib.request
 
 from inferrsi.benchmark.sampling import collect_samples
-from inferrsi.model.protocols.image import ImageProtocol
+from inferrsi.harness.serving.image import ImageProtocol
+from inferrsi.harness.serving.server import launch_server, stop_server
 from inferrsi.infra import campaign as lifecycle
 from inferrsi.infra.platforms.cuda import qualify_devices
 
@@ -174,7 +175,7 @@ def run(args):
             env[key] = str(cache/folder)
         preparation_start = time.monotonic()
         with (output.parent/'server.log').open('wb') as log:
-            process, ownership = lifecycle.launch_server(argv,source,env,log)
+            process, ownership = launch_server(argv,source,env,log)
             record['server_process'] = ownership
             deadline = time.monotonic()+args.startup_timeout
             while True:
@@ -210,7 +211,7 @@ def run(args):
         try:
             if process is not None:
                 try:
-                    record['server_cleanup'] = lifecycle.stop_server(process, ownership, 20)
+                    record['server_cleanup'] = stop_server(process, ownership, 20)
                     if record['server_cleanup']['remaining_pids']:
                         final_errors.append('Owned processes remain')
                 except Exception as error:

@@ -168,8 +168,15 @@ def test_by_path_loading_is_admitted_nowhere_else(tmp_path, relative):
      "inferrsi.model.validators.image"),
     ("apps/runner.py", "from inferrsi.model.validators.flare import main\n",
      "inferrsi.model.validators.flare"),
-    ("model/protocols/image.py", "from .metrics import read_metric\n",
+    ("model/request_guard.py", "from .protocols.metrics import read_metric\n",
      "inferrsi.model.protocols.metrics"),
+    # #498 slice 2: the serving modules moved to inferrsi.harness.serving.
+    ("benchmark/runner.py", "from inferrsi.infra.processes import launch_server\n",
+     "inferrsi.infra.processes"),
+    ("apps/runner.py", "from inferrsi.infra import http\n", "inferrsi.infra.http"),
+    ("harness/runner.py", "from ..model.protocols.image import ImageProtocol\n",
+     "inferrsi.model.protocols.image"),
+    ("apps/runner.py", "import inferrsi.model.protocols\n", "inferrsi.model.protocols"),
 ])
 def test_retired_model_paths_fail_to_import(tmp_path, importer, source, target):
     report = _report(tmp_path, {importer: source})
@@ -197,6 +204,10 @@ def test_retired_model_paths_fail_from_a_package_initializer(tmp_path, importer,
     "model/protocols/metrics.py",
     "model/validators/__init__.py",
     "model/validators/flare.py",
+    "model/protocols/__init__.py",
+    "model/protocols/image.py",
+    "infra/processes.py",
+    "infra/http.py",
 ])
 def test_retired_model_files_fail_when_they_return(tmp_path, relative):
     report = _report(tmp_path, {relative: "VALUE = 1\n"})
@@ -206,8 +217,9 @@ def test_retired_model_files_fail_when_they_return(tmp_path, relative):
 
 def test_the_model_paths_that_remain_are_not_retired(tmp_path):
     report = _report(tmp_path, {
-        "benchmark/runner.py": "from inferrsi.model.protocols import image\n",
-        "apps/runner.py": "from inferrsi.model.protocols.image import ImageProtocol\n",
+        "benchmark/runner.py": "from inferrsi.model import request_guard\n",
+        "apps/runner.py": "from inferrsi.infra.artifacts import sha256\n",
+        "harness/runner.py": "from inferrsi.harness.serving.image import ImageProtocol\n",
     })
     assert not [item for item in report.violations if "retired module" in item]
 

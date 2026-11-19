@@ -89,11 +89,16 @@ RETIRED_BY_M1 = frozenset(
     }
 )
 RETIRED_ROOT_MODULES = RETIRED_BY_R1 | RETIRED_BY_A1 | RETIRED_BY_A2 | RETIRED_BY_M1
-# #498 slice 1 moved these packages and modules out of ``inferrsi.model``, with no
-# forwarder or alias: ``inferrsi.benchmark.metrics`` and ``inferrsi.benchmark.validators``.
+# #498 retired these paths with no forwarder or alias. Slice 1 moved the metric contract
+# and the validators to ``inferrsi.benchmark.metrics`` and ``inferrsi.benchmark.validators``.
+# Slice 2 moved the server helpers, the HTTP transport and the image request client to
+# ``inferrsi.harness.serving`` and removed the emptied ``inferrsi.model.protocols``.
 # Each name covers everything below it. A file under one fails, and so does any import
 # that names one, even when its target is absent.
-RETIRED_MODULES = frozenset({"inferrsi.model.protocols.metrics", "inferrsi.model.validators"})
+RETIRED_MODULES = frozenset({
+    "inferrsi.model.protocols", "inferrsi.model.validators",
+    "inferrsi.infra.processes", "inferrsi.infra.http",
+})
 # #412 R1, permanent: the one importer of the neutral data leaf outside
 # ``inferrsi.knowledge``, with the only name it may bind (D020: Infra reads one pack
 # description and reaches no Knowledge or Harness). This is not a manifest

@@ -4,6 +4,26 @@
 
 ### Changed
 
+- The serving helpers move from `inferrsi.infra` and `inferrsi.model` to the new
+  `inferrsi.harness.serving` package (Refs #498, slice 2). There is no forwarding
+  module or alias, and the import gate fails any import of an old path.
+  - `inferrsi.infra.processes` is now `inferrsi.harness.serving.server`,
+    `inferrsi.infra.http` is now `inferrsi.harness.serving.http`, and
+    `inferrsi.model.protocols.image` is now `inferrsi.harness.serving.image`.
+    The emptied `inferrsi.model.protocols` package is removed. The server helpers
+    keep their Linux-only process-group contract.
+  - The package initializer imports nothing, so importing the HTTP or image client
+    does not load the server helpers.
+  - `inferrsi.infra.campaign` no longer re-exports `launch_server` and
+    `stop_server`. The example campaign imports them from
+    `inferrsi.harness.serving.server`.
+  - The optimization session's runtime identity now hashes
+    `harness/serving/server.py` in place of `infra/processes.py`. A session planned
+    before this change is refused before `status`, `recover` or any other operation
+    runs, and its plan is not changed. Resume such a session with the runtime that
+    planned it: install the wheel or source of the commit it was started from, and
+    run the same `inferrsi benchmarks session` command there.
+  - Pickled objects that name an old module path no longer load.
 - The metric contract and the quality validators move from `inferrsi.model` to
   Benchmark (Refs #498, slice 1). There is no forwarding module or alias, and the
   import gate fails any import of an old path, even when no file is behind it.

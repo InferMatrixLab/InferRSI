@@ -28,7 +28,6 @@ GRAPH = _scan(ROOT, frozenset())
 # The local process domain that Harness still borrows until it owns that code.
 PROCESS_DOMAIN = {
     "inferrsi.infra", "inferrsi.infra.executors", "inferrsi.infra.executors.local",
-    "inferrsi.infra.processes",
 }
 
 
