@@ -23,7 +23,9 @@ from inferrsi.harness.device_lease import DeviceLease, LeaseError
 from inferrsi.harness.parallel_round import (
     RoundPlanError,
     _read_nofollow,
+    _ticket_metadata_path,
     hold_devices,
+    materialize,
     prepare,
     submit,
     ticket_status,
@@ -577,7 +579,7 @@ def test_in_scope_deletion_is_rejected_before_hashing_and_serve_does_not_run(tmp
     ticket = "crafted-ticket"
     overlay = round_dir / "outbox" / ticket
     overlay.mkdir(parents=True)
-    (overlay / "manifest.json").write_text(
+    _ticket_metadata_path(overlay).write_text(
         json.dumps({"ticket": ticket, "lane_id": "L1", "files": {}, "deleted": ["knobs/a.txt"]}),
         encoding="utf-8",
     )
@@ -585,6 +587,76 @@ def test_in_scope_deletion_is_rejected_before_hashing_and_serve_does_not_run(tmp
     assert served["status"] == "rejected"
     assert served["reason"] == "deletion"
     assert not (round_dir / "candidates").exists()
+
+
+def test_changed_root_manifest_is_the_project_file(tmp_path):
+    incumbent = tmp_path / "incumbent"
+    _tree(incumbent, "10")
+    (incumbent / "manifest.json").write_bytes(b'{"project":"incumbent"}\n')
+    round_dir = tmp_path / "round"
+    prepare(
+        _spec(
+            lanes=[
+                {
+                    "id": "L1",
+                    "entry": "D-01",
+                    "plane": "infra",
+                    "globs": ["manifest.json"],
+                    "cap": 1,
+                    "per_attempt_worst_case": 1,
+                    "deadline_utc": "2099-01-01T00:00:00+00:00",
+                }
+            ]
+        ),
+        incumbent,
+        round_dir,
+    )
+    work = tmp_path / "work"
+    _tree(work, "10")
+    payload = b'{"project":"candidate"}\n'
+    (work / "manifest.json").write_bytes(payload)
+    ticket = submit(round_dir, "L1", incumbent, work, now=WHEN)["ticket"]
+    overlay = round_dir / "outbox" / ticket
+    assert (overlay / "manifest.json").read_bytes() == payload
+    record = json.loads(_ticket_metadata_path(overlay).read_text(encoding="utf-8"))
+    assert record["ticket"] == ticket
+    assert record["files"].keys() == {"manifest.json"}
+    assert _ticket_metadata_path(overlay).read_bytes() != payload
+    destination = tmp_path / "materialized"
+    materialize(incumbent, [overlay], destination)
+    assert (destination / "manifest.json").read_bytes() == payload
+
+
+def test_unchanged_manifest_files_reach_the_successor(tmp_path):
+    incumbent = tmp_path / "incumbent"
+    _sum_tree(incumbent, "10", "10")
+    root_manifest = b'{"role":"root"}\n'
+    nested_manifest = b'{"role":"nested"}\n'
+    (incumbent / "manifest.json").write_bytes(root_manifest)
+    (incumbent / "pkg").mkdir()
+    (incumbent / "pkg" / "manifest.json").write_bytes(nested_manifest)
+    round_dir = tmp_path / "round"
+    prepare(_sum_spec(), incumbent, round_dir)
+    work = tmp_path / "work"
+    shutil.copytree(incumbent, work)
+    (work / "knobs" / "a.txt").write_text("8", encoding="utf-8")
+    ticket = submit(round_dir, "L1", incumbent, work, now=WHEN)["ticket"]
+    overlay = round_dir / "outbox" / ticket
+    materialized = tmp_path / "materialized"
+    materialize(incumbent, [overlay], materialized)
+    assert (materialized / "knobs" / "a.txt").read_text(encoding="utf-8") == "8"
+    assert (materialized / "manifest.json").read_bytes() == root_manifest
+    assert (materialized / "pkg" / "manifest.json").read_bytes() == nested_manifest
+    measured = serve_ticket(round_dir, ticket, incumbent, backend=FixtureBackend(), now=WHEN)
+    assert measured["status"] == "measured"
+    assert measured["verdict"] == "PASS"
+    closed = close_round(round_dir, incumbent, backend=FixtureBackend(), now=WHEN)
+    assert closed["accepted"] is True
+    successor = Path(closed["successor"])
+    assert (successor / "knobs" / "a.txt").read_text(encoding="utf-8") == "8"
+    assert (successor / "knobs" / "b.txt").read_text(encoding="utf-8") == "10"
+    assert (successor / "manifest.json").read_bytes() == root_manifest
+    assert (successor / "pkg" / "manifest.json").read_bytes() == nested_manifest
 
 
 def test_submit_after_deadline_is_refused_on_a_fresh_read(tmp_path):

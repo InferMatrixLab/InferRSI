@@ -439,10 +439,19 @@ def submit(
             shutil.rmtree(destination)
             return _refusal("symlink", rejected=list(changed))
         write_json(
-            destination / "manifest.json",
+            _ticket_metadata_path(destination),
             {"ticket": ticket, "lane_id": lane_id, "files": manifest, "deleted": []},
         )
     return {"submitted": True, "outside": [], "deleted": [], "rejected": [], "ticket": ticket}
+
+
+def _ticket_metadata_path(overlay: Path) -> Path:
+    """Coordinator record beside the payload directory.
+
+    The record must not live inside the overlay: a project file named
+    ``manifest.json`` (root or nested) is a legitimate payload.
+    """
+    return overlay.parent / f"{overlay.name}.json"
 
 
 def _ledger_path(round_dir: Path, lane_id: str) -> Path:
@@ -499,9 +508,9 @@ def materialize(incumbent: Path, overlays: list[Path], destination: Path) -> Non
     """Copy the incumbent, then apply each outbox overlay in order."""
     if destination.exists():
         shutil.rmtree(destination)
-    shutil.copytree(incumbent, destination, ignore=shutil.ignore_patterns("manifest.json"))
+    shutil.copytree(incumbent, destination)
     for overlay in overlays:
-        manifest = json.loads((overlay / "manifest.json").read_text(encoding="utf-8"))
+        manifest = json.loads(_ticket_metadata_path(overlay).read_text(encoding="utf-8"))
         for relative in manifest["files"]:
             target = destination / relative
             target.parent.mkdir(parents=True, exist_ok=True)
@@ -785,7 +794,7 @@ def serve_ticket(
     if result_path.exists():
         return json.loads(result_path.read_text(encoding="utf-8"))
     overlay = round_dir / "outbox" / ticket
-    manifest = json.loads((overlay / "manifest.json").read_text(encoding="utf-8"))
+    manifest = json.loads(_ticket_metadata_path(overlay).read_text(encoding="utf-8"))
     if manifest.get("deleted"):
         return _record(round_dir, ticket, status="rejected", reason="deletion")
     lane = _lane(plan, manifest["lane_id"])
