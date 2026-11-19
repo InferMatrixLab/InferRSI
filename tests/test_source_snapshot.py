@@ -38,6 +38,18 @@ def test_compiled_inputs_expand_to_public_records():
         assert list(record["source_files"]) == record["sources"][0]["paths"]
 
 
+def test_historical_schema_two_round_trip_preserves_public_field_order():
+    public = search_knowledge(repo="inferrsi", limit=1)[0]
+    manifest = json.loads((GENERATED / snapshot.MANIFEST).read_bytes())
+    stored = snapshot.compact(public)
+    assert stored["schema_version"] == snapshot.STORED_SCHEMA == 2
+    assert "sources" not in stored and snapshot.REGISTRY not in stored["source_files"]
+    assert json.dumps(snapshot.resolve(stored, manifest)) == json.dumps(public)
+    stored["source_files"].pop(snapshot.source_entry(public["skill_documents"]["original"]))
+    with pytest.raises(ValueError, match="lacks its entry hash"):
+        snapshot.resolve(stored, manifest)
+
+
 @pytest.mark.parametrize("mutation", [
     "extra", "missing_registry", "short_revision", "wrong_repository", "wrong_path",
     "bad_digest", "boolean_version", "list",

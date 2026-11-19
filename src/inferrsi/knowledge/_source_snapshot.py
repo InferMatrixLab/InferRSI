@@ -9,6 +9,8 @@ REPOSITORY = "https://github.com/InferMatrixLab/InferRSI"
 LIBRARY = "src/inferrsi/knowledge/data/skill_library"
 BUNDLE_LIBRARY = "data/skill_library"
 REGISTRY = f"{LIBRARY}/skill-index.json"
+# Historical schema for pre-unification snapshots read by existing callers.
+STORED_SCHEMA = 2
 
 
 def source_entry(original: str) -> str:
@@ -53,3 +55,47 @@ def _snapshot(value: Any) -> tuple[str, str]:
     ):
         raise ValueError("Invalid knowledge source snapshot registry")
     return value["source_revision"], registry["sha256"]
+
+
+def compact(record: dict[str, Any]) -> dict[str, Any]:
+    """Store a generated schema-v1 record without its snapshot-wide fields."""
+    stored = {key: value for key, value in record.items() if key != "sources"}
+    stored["schema_version"] = STORED_SCHEMA
+    stored["source_files"] = {
+        path: digest for path, digest in record["source_files"].items() if path != REGISTRY
+    }
+    return stored
+
+
+def resolve(stored: dict[str, Any], snapshot: Any) -> dict[str, Any]:
+    """Rebuild the public schema-v1 record from a stored record and the shared snapshot."""
+    revision, registry_sha256 = _snapshot(snapshot)
+    if stored.get("schema_version") != STORED_SCHEMA or "sources" in stored:
+        raise ValueError("Stored skill record is not a schema-v2 projection")
+    files = stored.get("source_files")
+    documents = stored.get("skill_documents")
+    if (
+        not isinstance(files, dict) or REGISTRY in files
+        or not isinstance(documents, dict) or not isinstance(documents.get("original"), str)
+    ):
+        raise ValueError(f"Invalid stored skill record: {stored.get('id')}")
+    entry = source_entry(documents["original"])
+    if entry not in files:
+        raise ValueError(f"Stored skill record lacks its entry hash: {stored.get('id')}")
+    hashes = dict(sorted({**files, REGISTRY: registry_sha256}.items()))
+    source = {
+        "type": "git",
+        "url": f"{REPOSITORY}/blob/{revision}/{entry}",
+        "commit": revision,
+        "paths": list(hashes),
+        "content_sha256": hashes[entry],
+    }
+    record = {}
+    for key, value in stored.items():
+        record[key] = 1 if key == "schema_version" else value
+        if key == "origin":
+            record["sources"] = [source]
+    if "sources" not in record:
+        raise ValueError(f"Stored skill record lacks origin: {stored.get('id')}")
+    record["source_files"] = hashes
+    return record

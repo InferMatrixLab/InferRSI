@@ -33,6 +33,15 @@ SCENARIO_ALIASES = {
 }
 
 
+def _walk(root, prefix=()):
+    for child in sorted(root.iterdir(), key=lambda item: item.name):
+        parts = (*prefix, child.name)
+        if child.is_dir():
+            yield from _walk(child, parts)
+        else:
+            yield parts, child
+
+
 def _validate_record(
     record: dict, repo: str, parts: tuple[str, ...], tier: str = "contribution"
 ) -> None:
