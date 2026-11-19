@@ -4,6 +4,12 @@
 
 ### Changed
 
+- Apps workflow implementations now live in `apps/workflows/`: campaign capture,
+  task launching, paired benchmark comparison, improvement and skill evaluation.
+  The previous Apps imports retain explicit compatibility exports. New optimization
+  plans fingerprint the canonical implementation; existing frozen sessions must use
+  their original pinned runtime for `status` and `recover`. See
+  [release-boundary recovery](docs/optimization-workflow-unification.md#release-boundary-recovery).
 - `docs/contracts/schemas/contract-v1.schema.json` validates more strictly
   (Refs #497). Eleven `pattern` values ended with `$`, which in Python `re`, and so in
   `jsonschema`, also matches before one trailing LF: `"att-1\n"` passed `Id`. They now
