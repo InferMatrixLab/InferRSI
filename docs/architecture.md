@@ -275,7 +275,6 @@ src/inferrsi/
     inspection.py           Environment inspection facts API; command and snapshot ports
     commands.py             Bounded read-only probes
     environment.py          Dependency versions and storage checks
-    http.py                 HTTP POST/download timing
     artifacts.py            Hashing and evidence writes
     campaign.py             Legacy runner utility facade; transitive helper hashes
   data/
