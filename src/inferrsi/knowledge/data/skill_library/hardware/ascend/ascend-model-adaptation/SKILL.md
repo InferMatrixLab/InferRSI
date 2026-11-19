@@ -111,14 +111,17 @@ Source: `multimodal-ep-aclgraph-lessons.md` § 5.
 
 ## Feature-status reporting
 
-Use exactly four categories in reports. Never use ambiguous phrases like
-"not tested" or "partially supported":
+Use explicit, well-defined categories in adaptation reports. Never use ambiguous phrases like
+"partially supported". When an applicable feature has not been fully executed, is blocked by test
+environment constraints, or encounters an unresolved diagnostic failure, record it explicitly as
+`unverified / blocked` with the specific blocker reason rather than forcing an unsupported categorical claim:
 
 | Status | Meaning |
 |--------|---------|
 | ✅ supported and verified | Feature ran and produced correct output on this checkpoint |
 | ❌ framework-level unsupported | Framework has no code path for this feature |
 | ⚠️ checkpoint missing | Weights/config do not provide the feature even if the framework supports it |
+| ⏳ unverified / blocked | Applicable feature with incomplete evidence, blocked test execution, or unresolved failure (must cite specific reason/evidence) |
 | N/A | Not applicable (e.g., EP/flashcomm1 on a non-MoE model) |
 
 Distinguish "theoretical max" (from model config `max_position_embeddings`) from
