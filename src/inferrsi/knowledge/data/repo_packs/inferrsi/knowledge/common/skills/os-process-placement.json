@@ -23,13 +23,13 @@
   ],
   "index_type": "packaged-skill",
   "skill_documents": {
-    "original": "data/skill_library/hardware/host/os-process-placement/SKILL.md"
+    "original": "data/skill_library/systems/platforms/host/os-process-placement/SKILL.md"
   },
   "checkout_ref": "checkout:os-process-placement",
   "source_files": {
-    "src/inferrsi/knowledge/data/skill_library/hardware/host/os-process-placement/SKILL.md": "2003492e4d89fde0443b180d74933e764bd1979435e109c8d26e20eb8f6e5053",
-    "src/inferrsi/knowledge/data/skill_library/hardware/host/os-process-placement/metadata.json": "d53e53f724c7b6f261cf6c9b579afd20b2279cb1ffd0af89f8ce9f475046fa76",
-    "src/inferrsi/knowledge/data/skill_library/hardware/host/os-process-placement/references/llama-numa-thread-readset.md": "748b254b3b043a5ddb0f480eb4a566854d27eedd7b111499863e9bf0a5a6951e"
+    "src/inferrsi/knowledge/data/skill_library/systems/platforms/host/os-process-placement/SKILL.md": "0b756b944b62c967da338b93ca93c121307ee4733a71ce876fec5a105f961225",
+    "src/inferrsi/knowledge/data/skill_library/systems/platforms/host/os-process-placement/metadata.json": "d53e53f724c7b6f261cf6c9b579afd20b2279cb1ffd0af89f8ce9f475046fa76",
+    "src/inferrsi/knowledge/data/skill_library/systems/platforms/host/os-process-placement/references/llama-numa-thread-readset.md": "748b254b3b043a5ddb0f480eb4a566854d27eedd7b111499863e9bf0a5a6951e"
   },
   "skill_metadata": {
     "name": "os-process-placement",

@@ -22,13 +22,13 @@
   ],
   "index_type": "packaged-skill",
   "skill_documents": {
-    "original": "data/skill_library/hardware/ascend/ascend-model-adaptation/SKILL.md"
+    "original": "data/skill_library/systems/platforms/ascend/ascend-model-adaptation/SKILL.md"
   },
   "checkout_ref": "checkout:ascend-model-adaptation",
   "source_files": {
-    "src/inferrsi/knowledge/data/skill_library/hardware/ascend/ascend-model-adaptation/SKILL.md": "ff1f0d941ac429041ca295871135e1b14e22c2819c404dd2435576c1d0cbc838",
-    "src/inferrsi/knowledge/data/skill_library/hardware/ascend/ascend-model-adaptation/metadata.json": "e5191f402b0ccf069a0aafc9873b990704426f652c0048ad027082f5e47537dc",
-    "src/inferrsi/knowledge/data/skill_library/hardware/ascend/ascend-model-adaptation/references/source-notes.md": "80df6181be3853190fd8fb35d4f853eb0056f4001071fe380dde0c3ef4ccde1b"
+    "src/inferrsi/knowledge/data/skill_library/systems/platforms/ascend/ascend-model-adaptation/SKILL.md": "82d5876a0a09b11c4e02c0ed49065b710617858cc77b6c66800ce9cc6e7e18e8",
+    "src/inferrsi/knowledge/data/skill_library/systems/platforms/ascend/ascend-model-adaptation/metadata.json": "e5191f402b0ccf069a0aafc9873b990704426f652c0048ad027082f5e47537dc",
+    "src/inferrsi/knowledge/data/skill_library/systems/platforms/ascend/ascend-model-adaptation/references/source-notes.md": "500966fe5ddd3b52bb8405b406ba9c707b5e68c0ec8317f8b1ac8c109d38936b"
   },
   "skill_metadata": {
     "name": "ascend-model-adaptation",

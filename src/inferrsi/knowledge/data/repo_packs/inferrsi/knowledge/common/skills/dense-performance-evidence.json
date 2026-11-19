@@ -20,12 +20,12 @@
   ],
   "index_type": "packaged-skill",
   "skill_documents": {
-    "original": "data/skill_library/methods/dense-performance-evidence/SKILL.md"
+    "original": "data/skill_library/playbooks/measurement/dense-performance-evidence/SKILL.md"
   },
   "checkout_ref": "checkout:dense-performance-evidence",
   "source_files": {
-    "src/inferrsi/knowledge/data/skill_library/methods/dense-performance-evidence/SKILL.md": "53cc1867a13f54d1006d50517dea8848869ca50df3f0cd610b2424cc8d18c933",
-    "src/inferrsi/knowledge/data/skill_library/methods/dense-performance-evidence/metadata.json": "041780985dcaf76809d29dc0d4e242359b17b6bcfaadab2d05674fa4699a5427"
+    "src/inferrsi/knowledge/data/skill_library/playbooks/measurement/dense-performance-evidence/SKILL.md": "ac2553051672bab7f44b67dd85cd0bfcbd7e2e266b9e657259d2dc742d3eb81f",
+    "src/inferrsi/knowledge/data/skill_library/playbooks/measurement/dense-performance-evidence/metadata.json": "3a4bf82d819344d36f5a06d3f65b132ba90dd92c31be447cda698c94aea66586"
   },
   "skill_metadata": {
     "name": "dense-performance-evidence",
@@ -70,8 +70,8 @@
     ],
     "provenance_readsets": [],
     "references": [
-      "../inference-optimization-casebook/cases/admission-drain-occupancy.md",
-      "../inference-optimization-casebook/cases/admission-drain-occupancy.json"
+      "../../../casebooks/inference/inference-optimization-casebook/cases/admission-drain-occupancy.md",
+      "../../../casebooks/inference/inference-optimization-casebook/cases/admission-drain-occupancy.json"
     ],
     "consumption_mode": "packaged"
   },

@@ -20,12 +20,12 @@
   ],
   "index_type": "packaged-skill",
   "skill_documents": {
-    "original": "data/skill_library/methods/skill-evolution-playbook/SKILL.md"
+    "original": "data/skill_library/workflows/maintenance/skill-evolution-playbook/SKILL.md"
   },
   "checkout_ref": "checkout:skill-evolution-playbook",
   "source_files": {
-    "src/inferrsi/knowledge/data/skill_library/methods/skill-evolution-playbook/SKILL.md": "9cd37f21fe0d862069e4798edca8a04d59f8b840e55d521901594a63dddd9ba3",
-    "src/inferrsi/knowledge/data/skill_library/methods/skill-evolution-playbook/metadata.json": "a5fe391d145eb5e7039f142fea7211135abbd8f3d8835bfbf83cc2b05d645da5"
+    "src/inferrsi/knowledge/data/skill_library/workflows/maintenance/skill-evolution-playbook/SKILL.md": "bf939d6fec4d42e9379fc886f2376f7058bcae5ce97d8c1265ebb7b44b433480",
+    "src/inferrsi/knowledge/data/skill_library/workflows/maintenance/skill-evolution-playbook/metadata.json": "a5fe391d145eb5e7039f142fea7211135abbd8f3d8835bfbf83cc2b05d645da5"
   },
   "skill_metadata": {
     "name": "skill-evolution-playbook",

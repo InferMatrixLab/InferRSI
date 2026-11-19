@@ -1,6 +1,6 @@
 # InferRSI skill discovery index
 
-Generated abstracts for all 80 registered skills in `data/skill_library/`.
+Generated abstracts for all 81 registered skills in `data/skill_library/`.
 Their complete procedures, references and cases ship in the same package.
 `skill-index.json` maps stable skill IDs to categorized directories. The
 reference and searchspace matrices
@@ -91,6 +91,7 @@ References and cases ship with their owning skill, not as duplicate knowledge ab
 | [husky](common/skills/husky.json) | common | candidate |
 | [inference-benchmark-design](common/skills/inference-benchmark-design.json) | common | candidate |
 | [inference-optimization-casebook](common/skills/inference-optimization-casebook.json) | common | candidate |
+| [inference-task-router](common/skills/inference-task-router.json) | common | candidate |
 | [kernel-writing-guide](common/skills/kernel-writing-guide.json) | common | candidate |
 | [kv-tier-management](common/skills/kv-tier-management.json) | common | candidate |
 | [lazy-evaluation-stream-lifetimes](common/skills/lazy-evaluation-stream-lifetimes.json) | common | candidate |

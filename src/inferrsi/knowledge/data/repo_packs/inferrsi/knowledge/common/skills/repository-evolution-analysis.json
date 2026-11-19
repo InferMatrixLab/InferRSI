@@ -20,14 +20,14 @@
   ],
   "index_type": "packaged-skill",
   "skill_documents": {
-    "original": "data/skill_library/methods/repository-evolution-analysis/SKILL.md"
+    "original": "data/skill_library/workflows/research/repository-evolution-analysis/SKILL.md"
   },
   "checkout_ref": "checkout:repository-evolution-analysis",
   "source_files": {
-    "src/inferrsi/knowledge/data/skill_library/methods/repository-evolution-analysis/SKILL.md": "61bc684d67d6c0876c4956057f11c88802cfc4b771553d00411634d8ea226b3d",
-    "src/inferrsi/knowledge/data/skill_library/methods/repository-evolution-analysis/metadata.json": "98ef753a0e74c46f59a69ae267bdc0a5d293761e6f27edc1822fa8bd4548c4d6",
-    "src/inferrsi/knowledge/data/skill_library/methods/repository-evolution-analysis/references/capability-presence-audit.md": "c21eb4a6aabe811a49a6540a34c54dbcfdcf7efae3052a79b54034c7838026a5",
-    "src/inferrsi/knowledge/data/skill_library/methods/repository-evolution-analysis/references/rtk-consumer-path-transition.md": "a70b1d128fb5e0ac12292a290d624f218a0831d7581fe8980b62661473e0f2b7"
+    "src/inferrsi/knowledge/data/skill_library/workflows/research/repository-evolution-analysis/SKILL.md": "a27a24f785f2624b1399ea4f1734a7a9bfe9b32cc154039dbd7046bb21163054",
+    "src/inferrsi/knowledge/data/skill_library/workflows/research/repository-evolution-analysis/metadata.json": "98ef753a0e74c46f59a69ae267bdc0a5d293761e6f27edc1822fa8bd4548c4d6",
+    "src/inferrsi/knowledge/data/skill_library/workflows/research/repository-evolution-analysis/references/capability-presence-audit.md": "c21eb4a6aabe811a49a6540a34c54dbcfdcf7efae3052a79b54034c7838026a5",
+    "src/inferrsi/knowledge/data/skill_library/workflows/research/repository-evolution-analysis/references/rtk-consumer-path-transition.md": "a70b1d128fb5e0ac12292a290d624f218a0831d7581fe8980b62661473e0f2b7"
   },
   "skill_metadata": {
     "name": "repository-evolution-analysis",

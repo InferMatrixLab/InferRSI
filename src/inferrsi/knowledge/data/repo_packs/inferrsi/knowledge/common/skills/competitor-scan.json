@@ -20,12 +20,12 @@
   ],
   "index_type": "packaged-skill",
   "skill_documents": {
-    "original": "data/skill_library/workflows/competitor-scan/SKILL.md"
+    "original": "data/skill_library/workflows/research/competitor-scan/SKILL.md"
   },
   "checkout_ref": "checkout:competitor-scan",
   "source_files": {
-    "src/inferrsi/knowledge/data/skill_library/workflows/competitor-scan/SKILL.md": "0ede58ace65a9324a538b4816add1684f230ba536d4364fe5a5dd2c0bbed3776",
-    "src/inferrsi/knowledge/data/skill_library/workflows/competitor-scan/metadata.json": "e1a279c0b730c80fa34ca985c004d4084dae5ee77685f7f2b642cf469bfffffc"
+    "src/inferrsi/knowledge/data/skill_library/workflows/research/competitor-scan/SKILL.md": "0ede58ace65a9324a538b4816add1684f230ba536d4364fe5a5dd2c0bbed3776",
+    "src/inferrsi/knowledge/data/skill_library/workflows/research/competitor-scan/metadata.json": "e1a279c0b730c80fa34ca985c004d4084dae5ee77685f7f2b642cf469bfffffc"
   },
   "skill_metadata": {
     "name": "competitor-scan",

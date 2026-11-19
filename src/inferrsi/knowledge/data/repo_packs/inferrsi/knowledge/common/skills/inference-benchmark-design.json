@@ -48,28 +48,28 @@
   ],
   "index_type": "packaged-skill",
   "skill_documents": {
-    "original": "data/skill_library/methods/inference-benchmark-design/SKILL.md"
+    "original": "data/skill_library/playbooks/measurement/inference-benchmark-design/SKILL.md"
   },
   "checkout_ref": "checkout:inference-benchmark-design",
   "source_files": {
-    "src/inferrsi/knowledge/data/skill_library/methods/inference-benchmark-design/SKILL.md": "7782936c8b43dc6d27f416da6aa7162a397e3321adc044e8e7515a14791b720b",
-    "src/inferrsi/knowledge/data/skill_library/methods/inference-benchmark-design/metadata.json": "bffa79dd93915986252728939f6cba16ee721164910c58ab1f78a2e69299db1d",
-    "src/inferrsi/knowledge/data/skill_library/methods/inference-benchmark-design/references/autotunebench-source.json": "bc343ece2bf40c4e8aa4bd8d84f32465d00633255557feda5fe7799ce24e8688",
-    "src/inferrsi/knowledge/data/skill_library/methods/inference-benchmark-design/references/autotunebench-trial-validity.md": "cb3a7a5d94d056f868af07f92a16a6fef31eafd3199ed07ae79e93798e320b1d",
-    "src/inferrsi/knowledge/data/skill_library/methods/inference-benchmark-design/references/benchmark-commands.md": "0898424e0bff3a6246e1eeeda6abd6c5bd974c047fe32f3bbd5ab9d31ce17cd3",
-    "src/inferrsi/knowledge/data/skill_library/methods/inference-benchmark-design/references/cache-aware-asr-stream-boundaries.md": "4e0ea9c1bf6b096a49a91ad5266e90b8a456f4f5aca15eba8ac270a53c2309b5",
-    "src/inferrsi/knowledge/data/skill_library/methods/inference-benchmark-design/references/dependency-aware-tts-playout.md": "e94866e718adc3bd7e272a4856e9a90b6f27cbc0ff3a44101e68e6995ed79e2c",
-    "src/inferrsi/knowledge/data/skill_library/methods/inference-benchmark-design/references/embodied-cpp-boundary-and-quality.md": "0bc3ca87159cce960c7b32f62b82c275f850b98077ae07da0481bd554a3cd71d",
-    "src/inferrsi/knowledge/data/skill_library/methods/inference-benchmark-design/references/embodied-cpp-source.json": "056985be689554570a9f12b8e228ce71bdca5be940f9a2d7f6e1963e15a48130",
-    "src/inferrsi/knowledge/data/skill_library/methods/inference-benchmark-design/references/faster-cosyvoice-source.json": "9efe8918208adddfb9a31d2abed080923a5ae0dfb6332438179af0de66f54e13",
-    "src/inferrsi/knowledge/data/skill_library/methods/inference-benchmark-design/references/gpu-measurement-validity.md": "96e273d8a193b62540962084cdca7cb4d93ef43473a38b1dcb7228088de793aa",
-    "src/inferrsi/knowledge/data/skill_library/methods/inference-benchmark-design/references/justgoal-evaluation-contracts.md": "d25df795fd301e8a1bb436e5f8122d0bac2441c43104e59a3b310fd5a64f2f3e",
-    "src/inferrsi/knowledge/data/skill_library/methods/inference-benchmark-design/references/justgoal-source.json": "60f2784384ea1a3b08a2ecafb60207d8e3707247dc7bc177b95b463d81f1cc16",
-    "src/inferrsi/knowledge/data/skill_library/methods/inference-benchmark-design/references/ninfer-source.json": "ccda0fc6781e3c4dceb41521ab952445840b4afcc9f5a7d968857f76e8db6272",
-    "src/inferrsi/knowledge/data/skill_library/methods/inference-benchmark-design/references/ninfer-state-and-completion-contracts.md": "2b3de210d1790eec92319addadf0e38fcd1529fa2f23b5cddf96a789b783f4ac",
-    "src/inferrsi/knowledge/data/skill_library/methods/inference-benchmark-design/references/task-benchmark-selection.md": "0d4bb080a754e26846e81680023db0dff5e6a4c96be4327c411c3b72ac4ef8e2",
-    "src/inferrsi/knowledge/data/skill_library/methods/inference-benchmark-design/references/xeforge-source.json": "6c21791b9c8ecbc9645c6deb659bd897e17f70525536ea25e884a62fc5fb6b25",
-    "src/inferrsi/knowledge/data/skill_library/methods/inference-benchmark-design/references/xeforge-trial-evidence.md": "802c4dfe83983cbd6740231d5d0e2b459792b685de8dfbefb6dc51a912e23604"
+    "src/inferrsi/knowledge/data/skill_library/playbooks/measurement/inference-benchmark-design/SKILL.md": "397662062c6833ca68bac99f759ba0ec9924e3b8646f288026ad0ac675e4dbb8",
+    "src/inferrsi/knowledge/data/skill_library/playbooks/measurement/inference-benchmark-design/metadata.json": "04cfbd4f164f5e6210e66740ea11141d2f6757e2ece3171aa734398750b5e122",
+    "src/inferrsi/knowledge/data/skill_library/playbooks/measurement/inference-benchmark-design/references/autotunebench-source.json": "bc343ece2bf40c4e8aa4bd8d84f32465d00633255557feda5fe7799ce24e8688",
+    "src/inferrsi/knowledge/data/skill_library/playbooks/measurement/inference-benchmark-design/references/autotunebench-trial-validity.md": "cb3a7a5d94d056f868af07f92a16a6fef31eafd3199ed07ae79e93798e320b1d",
+    "src/inferrsi/knowledge/data/skill_library/playbooks/measurement/inference-benchmark-design/references/benchmark-commands.md": "0898424e0bff3a6246e1eeeda6abd6c5bd974c047fe32f3bbd5ab9d31ce17cd3",
+    "src/inferrsi/knowledge/data/skill_library/playbooks/measurement/inference-benchmark-design/references/cache-aware-asr-stream-boundaries.md": "4e0ea9c1bf6b096a49a91ad5266e90b8a456f4f5aca15eba8ac270a53c2309b5",
+    "src/inferrsi/knowledge/data/skill_library/playbooks/measurement/inference-benchmark-design/references/dependency-aware-tts-playout.md": "e94866e718adc3bd7e272a4856e9a90b6f27cbc0ff3a44101e68e6995ed79e2c",
+    "src/inferrsi/knowledge/data/skill_library/playbooks/measurement/inference-benchmark-design/references/embodied-cpp-boundary-and-quality.md": "0bc3ca87159cce960c7b32f62b82c275f850b98077ae07da0481bd554a3cd71d",
+    "src/inferrsi/knowledge/data/skill_library/playbooks/measurement/inference-benchmark-design/references/embodied-cpp-source.json": "056985be689554570a9f12b8e228ce71bdca5be940f9a2d7f6e1963e15a48130",
+    "src/inferrsi/knowledge/data/skill_library/playbooks/measurement/inference-benchmark-design/references/faster-cosyvoice-source.json": "9efe8918208adddfb9a31d2abed080923a5ae0dfb6332438179af0de66f54e13",
+    "src/inferrsi/knowledge/data/skill_library/playbooks/measurement/inference-benchmark-design/references/gpu-measurement-validity.md": "96e273d8a193b62540962084cdca7cb4d93ef43473a38b1dcb7228088de793aa",
+    "src/inferrsi/knowledge/data/skill_library/playbooks/measurement/inference-benchmark-design/references/justgoal-evaluation-contracts.md": "d25df795fd301e8a1bb436e5f8122d0bac2441c43104e59a3b310fd5a64f2f3e",
+    "src/inferrsi/knowledge/data/skill_library/playbooks/measurement/inference-benchmark-design/references/justgoal-source.json": "60f2784384ea1a3b08a2ecafb60207d8e3707247dc7bc177b95b463d81f1cc16",
+    "src/inferrsi/knowledge/data/skill_library/playbooks/measurement/inference-benchmark-design/references/ninfer-source.json": "ccda0fc6781e3c4dceb41521ab952445840b4afcc9f5a7d968857f76e8db6272",
+    "src/inferrsi/knowledge/data/skill_library/playbooks/measurement/inference-benchmark-design/references/ninfer-state-and-completion-contracts.md": "3be946daf69d0b56f4fa56ccbc301dacb076473169f4921376a100dc64b57caf",
+    "src/inferrsi/knowledge/data/skill_library/playbooks/measurement/inference-benchmark-design/references/task-benchmark-selection.md": "0d4bb080a754e26846e81680023db0dff5e6a4c96be4327c411c3b72ac4ef8e2",
+    "src/inferrsi/knowledge/data/skill_library/playbooks/measurement/inference-benchmark-design/references/xeforge-source.json": "6c21791b9c8ecbc9645c6deb659bd897e17f70525536ea25e884a62fc5fb6b25",
+    "src/inferrsi/knowledge/data/skill_library/playbooks/measurement/inference-benchmark-design/references/xeforge-trial-evidence.md": "802c4dfe83983cbd6740231d5d0e2b459792b685de8dfbefb6dc51a912e23604"
   },
   "skill_metadata": {
     "name": "inference-benchmark-design",
@@ -658,10 +658,10 @@
       "references/gpu-measurement-validity.md"
     ],
     "references": [
-      "../inference-optimization-casebook/cases/admission-drain-occupancy.md",
-      "../inference-optimization-casebook/cases/admission-drain-occupancy.json",
-      "../../repositories/deepinfer/budget-speculative-verification/SKILL.md",
-      "../../repositories/vllm-rlt/audit-recurrent-kv-finalization/SKILL.md"
+      "../../../casebooks/inference/inference-optimization-casebook/cases/admission-drain-occupancy.md",
+      "../../../casebooks/inference/inference-optimization-casebook/cases/admission-drain-occupancy.json",
+      "../../../systems/engines/deepinfer/budget-speculative-verification/SKILL.md",
+      "../../../systems/engines/vllm-rlt/audit-recurrent-kv-finalization/SKILL.md"
     ],
     "consumption_mode": "packaged",
     "searchspace_not_applicable": "SKILL.md §§ Select the task and its evaluation contract, Statistical requirements, Shared-machine measurement discipline, and Search integrity and final-state verification design comparable evaluation; hardware identity and allocation isolation are comparison controls, not a hardware-resource mechanism."

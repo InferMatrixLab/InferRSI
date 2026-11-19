@@ -25,13 +25,13 @@
   ],
   "index_type": "packaged-skill",
   "skill_documents": {
-    "original": "data/skill_library/hardware/ascend/ascend-video-diffusion-optimization/SKILL.md"
+    "original": "data/skill_library/systems/platforms/ascend/ascend-video-diffusion-optimization/SKILL.md"
   },
   "checkout_ref": "checkout:ascend-video-diffusion-optimization",
   "source_files": {
-    "src/inferrsi/knowledge/data/skill_library/hardware/ascend/ascend-video-diffusion-optimization/SKILL.md": "53c21e64f0dd47f9510faef1f2c01e1283899787ba7ebfe70cdabd8e57a76f00",
-    "src/inferrsi/knowledge/data/skill_library/hardware/ascend/ascend-video-diffusion-optimization/metadata.json": "35f725c9d9e0a8638b234da798232d2ae49a37b70f0b0360710bce333f9265ca",
-    "src/inferrsi/knowledge/data/skill_library/hardware/ascend/ascend-video-diffusion-optimization/references/field-notes-video-diffusion.md": "dadac7b23462fdc325218c72ddf8a2ac553151761a5d3e45b854b53d2c8c6908"
+    "src/inferrsi/knowledge/data/skill_library/systems/platforms/ascend/ascend-video-diffusion-optimization/SKILL.md": "1f4b3e185679204e26fa441ecfb975154e8b39cc5480a7d843a206220141b7fa",
+    "src/inferrsi/knowledge/data/skill_library/systems/platforms/ascend/ascend-video-diffusion-optimization/metadata.json": "3d8f52ef7a2cb92d7e7b0187c05d22b3e1abf64268568c729bf997c217e15b20",
+    "src/inferrsi/knowledge/data/skill_library/systems/platforms/ascend/ascend-video-diffusion-optimization/references/field-notes-video-diffusion.md": "dadac7b23462fdc325218c72ddf8a2ac553151761a5d3e45b854b53d2c8c6908"
   },
   "skill_metadata": {
     "name": "ascend-video-diffusion-optimization",
@@ -62,14 +62,14 @@
     },
     "applicability": {
       "scope": "Ascend NPU video diffusion inference and serving optimization",
-      "hardware": "Ascend NPU; the measure-change-verify workflow skeleton is backend-agnostic and lives in methods/video-diffusion-optimization, while the operator, layout and profiler references here are Ascend-specific",
+      "hardware": "Ascend NPU; the measure-change-verify workflow skeleton is backend-agnostic and lives in playbooks/optimization/video-diffusion-optimization, while the operator, layout and profiler references here are Ascend-specific",
       "prerequisites": "A reproducible benchmark, a frozen quality check, and numeric gates defined in the governing acceptance issue",
       "input_contract": "Issue-scoped performance and quality gates, timing boundary, representative and held-out workloads, frozen model/runtime/input settings and an authorized optimization budget.",
       "produced_artifact": "An experiment ledger and final report of the frozen goal, baseline/final samples, quality/resource checks, accepted or reverted changes and remaining gap; verdicts require the acceptance issue evidence.",
       "failure_modes": "Packed-layout conversion from noncontiguous weights can corrupt outputs; missing side-stream lifetime/order handling or omitted layout-copy costs can invalidate an optimization comparison."
     },
     "limitations": [
-      "Ascend specialization of the backend-agnostic methods/video-diffusion-optimization skeleton; every operator, layout and profiler reference (TransData, FRACTAL_NZ, CANN) is Ascend-specific and must be re-derived per backend.",
+      "Ascend specialization of the backend-agnostic playbooks/optimization/video-diffusion-optimization skeleton; every operator, layout and profiler reference (TransData, FRACTAL_NZ, CANN) is Ascend-specific and must be re-derived per backend.",
       "Candidate workflow guidance; not independently validated beyond the field notes.",
       "Field notes are non-reproducible as published and must not be cited as evidence.",
       "Model identifiers, campaign revisions, and numeric gates are intentionally excluded and remain issue-scoped.",
@@ -79,9 +79,9 @@
       "references/field-notes-video-diffusion.md"
     ],
     "references": [
-      "../../../methods/video-diffusion-optimization/SKILL.md",
-      "../../../methods/video-diffusion-optimization/scripts/evaluate_target.py",
-      "../../../methods/video-diffusion-optimization/assets/campaign.template.json"
+      "../../../../playbooks/optimization/video-diffusion-optimization/SKILL.md",
+      "../../../../playbooks/optimization/video-diffusion-optimization/scripts/evaluate_target.py",
+      "../../../../playbooks/optimization/video-diffusion-optimization/assets/campaign.template.json"
     ],
     "consumption_mode": "packaged",
     "recommendations": [
@@ -92,7 +92,7 @@
   },
   "applicability": {
     "scope": "Ascend NPU video diffusion inference and serving optimization",
-    "hardware": "Ascend NPU; the measure-change-verify workflow skeleton is backend-agnostic and lives in methods/video-diffusion-optimization, while the operator, layout and profiler references here are Ascend-specific",
+    "hardware": "Ascend NPU; the measure-change-verify workflow skeleton is backend-agnostic and lives in playbooks/optimization/video-diffusion-optimization, while the operator, layout and profiler references here are Ascend-specific",
     "prerequisites": "A reproducible benchmark, a frozen quality check, and numeric gates defined in the governing acceptance issue",
     "input_contract": "Issue-scoped performance and quality gates, timing boundary, representative and held-out workloads, frozen model/runtime/input settings and an authorized optimization budget.",
     "produced_artifact": "An experiment ledger and final report of the frozen goal, baseline/final samples, quality/resource checks, accepted or reverted changes and remaining gap; verdicts require the acceptance issue evidence.",
@@ -108,7 +108,7 @@
     "The imported status describes this index, not the original skill; its declared status is candidate.",
     "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
     "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
-    "Ascend specialization of the backend-agnostic methods/video-diffusion-optimization skeleton; every operator, layout and profiler reference (TransData, FRACTAL_NZ, CANN) is Ascend-specific and must be re-derived per backend.",
+    "Ascend specialization of the backend-agnostic playbooks/optimization/video-diffusion-optimization skeleton; every operator, layout and profiler reference (TransData, FRACTAL_NZ, CANN) is Ascend-specific and must be re-derived per backend.",
     "Candidate workflow guidance; not independently validated beyond the field notes.",
     "Field notes are non-reproducible as published and must not be cited as evidence.",
     "Model identifiers, campaign revisions, and numeric gates are intentionally excluded and remain issue-scoped.",

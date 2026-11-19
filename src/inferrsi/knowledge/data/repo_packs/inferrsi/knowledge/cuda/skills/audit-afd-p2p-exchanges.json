@@ -22,14 +22,14 @@
   ],
   "index_type": "packaged-skill",
   "skill_documents": {
-    "original": "data/skill_library/repositories/afd-plugin/audit-afd-p2p-exchanges/SKILL.md"
+    "original": "data/skill_library/systems/engines/afd-plugin/audit-afd-p2p-exchanges/SKILL.md"
   },
   "checkout_ref": "checkout:audit-afd-p2p-exchanges",
   "source_files": {
-    "src/inferrsi/knowledge/data/skill_library/repositories/afd-plugin/audit-afd-p2p-exchanges/SKILL.md": "a46110891eca860915e314d6921a22856d631453b22b17837fe30262d6780535",
-    "src/inferrsi/knowledge/data/skill_library/repositories/afd-plugin/audit-afd-p2p-exchanges/metadata.json": "ae8c7582265dd6902cc4172293fc709244cc915df9390672fde25687b9e79b4b",
-    "src/inferrsi/knowledge/data/skill_library/repositories/afd-plugin/audit-afd-p2p-exchanges/references/afd-plugin-LICENSE.md": "0e8566ea362276878e1f38f97da49964dbea301c15d4aa9d727f97a4c39fd943",
-    "src/inferrsi/knowledge/data/skill_library/repositories/afd-plugin/audit-afd-p2p-exchanges/references/source-notes.md": "5073d87450cb60d1b245308dff8807e73749c07de976d50f2fa26694fad81a72"
+    "src/inferrsi/knowledge/data/skill_library/systems/engines/afd-plugin/audit-afd-p2p-exchanges/SKILL.md": "f84ae0d5f9c93a2156764b78d332b8e37763456b3d6ad091e8606f842b6db5d4",
+    "src/inferrsi/knowledge/data/skill_library/systems/engines/afd-plugin/audit-afd-p2p-exchanges/metadata.json": "9842bc1be0723ec3e5ff40f51dc549c9a44de1e609eb30f05fd1a1e974c0b040",
+    "src/inferrsi/knowledge/data/skill_library/systems/engines/afd-plugin/audit-afd-p2p-exchanges/references/afd-plugin-LICENSE.md": "0e8566ea362276878e1f38f97da49964dbea301c15d4aa9d727f97a4c39fd943",
+    "src/inferrsi/knowledge/data/skill_library/systems/engines/afd-plugin/audit-afd-p2p-exchanges/references/source-notes.md": "5073d87450cb60d1b245308dff8807e73749c07de976d50f2fa26694fad81a72"
   },
   "skill_metadata": {
     "name": "audit-afd-p2p-exchanges",
@@ -93,8 +93,8 @@
     ],
     "references": [
       "../../vllm/audit-vllm-kv-lifetimes/SKILL.md",
-      "../../../methods/inference-benchmark-design/SKILL.md",
-      "../../../methods/dense-performance-evidence/SKILL.md"
+      "../../../../playbooks/measurement/inference-benchmark-design/SKILL.md",
+      "../../../../playbooks/measurement/dense-performance-evidence/SKILL.md"
     ],
     "consumption_mode": "packaged",
     "recommendations": [
