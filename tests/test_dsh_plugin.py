@@ -1,5 +1,6 @@
 """Check the native bundle and its isolated launcher without requiring DSH in CI."""
 
+import base64
 import hashlib
 import io
 import json
@@ -91,6 +92,10 @@ def test_manual_bundle_runs_from_an_external_workspace(tmp_path):
     record = invoke("read", item["ref"], "--revision", item["revision"])
     assert record["revision"] == item["revision"]
 
+    # The remote bootstrap runs on Linux and installs POSIX signal handlers.
+    if os.name == "posix":
+        _check_remote_case_read(package, target)
+
     campaign = target / "campaign"
     campaign.mkdir()
     (campaign / "campaign.json").write_text(
@@ -103,6 +108,36 @@ def test_manual_bundle_runs_from_an_external_workspace(tmp_path):
 
     with pytest.raises(ValueError, match="already exists"):
         build_bundle(archive)
+
+
+def _check_remote_case_read(package, target):
+    # The remote bootstrap unpacks a fresh runtime for each command. A read
+    # that depends on the find invocation's temporary path fails here.
+    source = (package / "remote.cjs").read_text(encoding="utf-8")
+    bootstrap = source.split("const BOOTSTRAP = String.raw`", 1)[1].split("`;", 1)[0]
+    remote_payload = {
+        "mode": "cli",
+        "repository": str(target.resolve()),
+        "archive": base64.b64encode((package / "remote-runtime.zip").read_bytes()).decode("ascii"),
+    }
+
+    def invoke_remote(*args):
+        response = subprocess.run(
+            [sys.executable, "-I", "-S", "-u", "-c", bootstrap],
+            input=json.dumps({**remote_payload, "args": args}),
+            capture_output=True, text=True, encoding="utf-8", timeout=45,
+        )
+        assert response.returncode == 0, response.stderr
+        return json.loads(response.stdout)
+
+    found = invoke_remote("find", "Qwen Ascend", "--kinds", "case", "--limit", "1", "--json")
+    hit = found["items"][0]
+    assert hit["id"] == "case.qwen-ascend-rejected-directions"
+    opened = invoke_remote(*hit["read_args"])
+    assert opened["id"] == hit["id"]
+    assert opened["revision"].startswith("sha256:")
+    library = package / "runtime/inferrsi/knowledge/data/skill_library"
+    assert opened["content"] == (library / hit["path"]).read_bytes().decode("utf-8")
 
 
 @pytest.mark.skipif(shutil.which("node") is None, reason="Node.js is needed for native SSH checks")

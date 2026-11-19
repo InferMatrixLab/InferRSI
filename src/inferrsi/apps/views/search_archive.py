@@ -123,11 +123,11 @@ def reviewed_uses(review, events, decisions):
         return_line = delivery.get("return_line")
         if type(return_line) is not int or item["decision_line"] <= return_line:
             raise ValueError("archive review decision must follow the visible tool return")
-        indexer_event = event.get("tool") == "collect"
-        if indexer_event and not item.get("passage_path"):
-            raise ValueError("Indexer review must name the exact captured resource path")
-        if not indexer_event and "passage_path" in item:
-            raise ValueError("passage_path is only valid for a verified Indexer return")
+        resource_event = event.get("tool") in ("collect", "find", "read")
+        if resource_event and not item.get("passage_path"):
+            raise ValueError("archive review must name the exact returned resource path")
+        if not resource_event and "passage_path" in item:
+            raise ValueError("passage_path requires a verified resource return")
         passages = [entry for entry in delivery.get("passages", [])
                     if isinstance(entry, dict) and entry.get("ref") == item["ref"]
                     and entry.get("line") == item["passage_line"]

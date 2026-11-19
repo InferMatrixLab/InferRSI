@@ -24,7 +24,12 @@ Use this collection to prepare a dedicated engine, compare architectures or desi
 ## Comparison procedure
 
 1. Fix the model/checkpoint/tokenizer, tasks/modalities, component graph, target hardware/memory, software and quality contract. Ask only for missing facts that alter a decision; otherwise state reversible assumptions. Do not infer architecture from a family name.
-2. Search model, framework, task, modality and mechanism dimensions independently and union the results. Use `inferrsi knowledge research <model> --framework <framework>` with explicit `--task`, `--modality` or `--mechanism` additions as needed; known profiles supply grounded terms, unknown models require source inspection. Exact `knowledge search` still ANDs all tokens. Retain hard filters and record empty dimensions; broaden an over-restrictive scope only explicitly.
+2. Search model, framework, task, modality and mechanism dimensions independently and union the results.
+   Use `inferrsi knowledge research <model> --framework <framework>` with explicit `--task`,
+   `--modality` or `--mechanism` additions as needed. Known profiles supply grounded terms.
+   Inspect sources for unknown models. Each query uses Find's lexical ranking over the eligible
+   package records. Retain hard filters and record empty dimensions. Change the scope explicitly
+   if it is too restrictive.
 3. Compare eligible native implementations at pinned revisions. If the user requests the most-starred reference, record the candidate set, eligibility, observation date and counts; choose the largest count within that set, then check license and compatibility. Read that source directly or distill its relevant paths with an available repo-to-skill workflow before engine generation. Popularity is a reference-selection input, not a quality or hardware guarantee.
 4. Inventory every selected encoder, denoiser, VAE/decoder, conditioning path, adapter and auxiliary asset. Reconcile tensor shapes, dtypes, quantization metadata, files and actual execution paths. Separate full checkpoint weights, required subsets, phase and cold-start peaks, activations/workspace, unified/host memory and storage. Do not count alternative task checkpoints twice or equate a DiT-only quant with a complete pipeline. Follow the [preparation procedure](references/model-aware-preparation.md) before deciding target feasibility.
 5. Load the smallest relevant repository branches. Trace work units, state ownership, scheduling, memory, communication, output and cleanup. Produce supported settings, semantics-preserving implementation changes and research extensions as separate candidate classes, with explicit approximation budgets.

@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 
 from inferrsi.knowledge import _source_snapshot as snapshot
-from inferrsi.knowledge._skill_view import INPUTS, skill_views
+from inferrsi.knowledge.catalog import INPUTS, skill_views
 from inferrsi.knowledge.catalog import search_knowledge
 from tools import build_skill_index as index_builder
 from tools.build_skill_index import DESTINATION

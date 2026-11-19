@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from hashlib import sha256
 
 from inferrsi.contracts.json_v1 import MAX_SAFE_INTEGER
+from inferrsi.knowledge.knowledge_find import installed_skill_root
 from inferrsi.knowledge.knowledge_operations import KnowledgeReader
 
 _REQUEST_FIELDS = {"query", "ids", "pins", "selection_limits", "max_bytes", "round_id"}
@@ -57,7 +58,12 @@ class ContextProvider:
         ):
             raise ValueError("invalid Knowledge selection option value")
 
-        result = self.reader.collect(
+        reader = self.reader
+        if reader.skill_root is None and reader.store is None and any(
+            identity.startswith("checkout:") for identity in ids
+        ):
+            reader = KnowledgeReader(skill_root=installed_skill_root())
+        result = reader.collect(
             query or "", ids=ids or None, revisions=_revisions(pins),
             context_bytes=max_bytes or None, **limits,
         )

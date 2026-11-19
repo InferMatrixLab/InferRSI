@@ -14,7 +14,7 @@ import subprocess
 from pathlib import Path
 
 from inferrsi.knowledge import _source_snapshot
-from inferrsi.knowledge._skill_view import COMPILED, INPUTS
+from inferrsi.knowledge.catalog import COMPILED, INPUTS
 from inferrsi.knowledge.skill_catalog import _frontmatter, skill_records
 
 PROJECT = Path(__file__).resolve().parents[1]

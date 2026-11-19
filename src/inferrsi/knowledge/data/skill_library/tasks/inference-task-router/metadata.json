@@ -29,5 +29,6 @@
   },
   "limitations": [
     "The cards describe routes and acceptance evidence; hardware support and task success require separate validation."
-  ]
+  ],
+  "provenance_readsets": []
 }

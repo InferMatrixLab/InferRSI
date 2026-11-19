@@ -13,6 +13,7 @@ from pathlib import Path
 import pytest
 
 from inferrsi.apps.cli import main
+from inferrsi.knowledge.catalog import search_knowledge
 from inferrsi.knowledge.knowledge_find import (
     FINDING_OUTCOMES,
     FINDING_SCOPES,
@@ -23,6 +24,7 @@ from inferrsi.knowledge.knowledge_find import (
     expand,
     find,
     load_corpus,
+    rank,
     tokens,
 )
 
@@ -99,6 +101,32 @@ def test_partial_query_still_ranks_instead_of_filtering(corpus):
     result = find("why did the fused projection not help end to end service", corpus, limit=5)
     assert not result["no_match"]
     assert result["matched"] > 1
+
+
+@pytest.mark.parametrize(("query", "filters"), [
+    ("图模式 qxsearchtoken", {"repo": "inferrsi", "tier": "contribution", "backend": "ascend",
+                              "scenario": "skills.discovery"}),
+    ("CUDA-Graph capture capture qxsearchtoken", {"backend": "cuda"}),
+    ("offload graph qxsearchtoken", {"repo": "vllm_omni", "tier": "contribution",
+                                    "backend": "ascend", "scenario": "diffusion.t2v"}),
+])
+def test_catalog_ranks_find_documents_over_the_filtered_package_scope(corpus, query, filters):
+    inventory = search_knowledge(**filters, limit=1000)
+    by_find_ref = {record.get("checkout_ref", f"package:{record['id']}"): record
+                   for record in inventory}
+    eligible = [document for document in corpus.documents if document.qualified in by_find_ref]
+    assert len(eligible) == len(inventory)
+    _, _, scored = rank(query, Corpus(eligible))
+    assert scored
+
+    result = search_knowledge(query, **filters, limit=5, explain=True)
+    assert result["items"] == [
+        by_find_ref[eligible[index].qualified] for _, _, index, _ in scored[:5]
+    ]
+    assert [(item["score"], item["components"]) for item in result["retrieval"]["items"]] == [
+        (round(score, 2), detail) for score, _, _, detail in scored[:5]
+    ]
+    assert result["retrieval"]["counts"]["matched"] == len(scored)
 
 
 def test_repeated_query_terms_contribute_once(corpus):
@@ -256,7 +284,7 @@ def test_result_carries_a_reference_the_caller_can_open(corpus):
     assert item["source"].startswith("https://")
 
 
-def test_read_accepts_the_reference_find_reports(capsys):
+def test_read_accepts_the_reference_find_reports(capsys, tmp_path):
     """Run the reported command as given and check it returns the text.
 
     Metadata is not what a reader following a hit is after, and `read` reports
@@ -264,12 +292,20 @@ def test_read_accepts_the_reference_find_reports(capsys):
     """
     result = find("mask caching ran out of device memory", load_corpus(ROOT), limit=10)
     item = next(i for i in result["items"] if i["id"] == "case.qwen-ascend-rejected-directions")
+    assert "--installed-library" in item["read_args"]
+    assert "--skill-root" not in item["read_args"]
     assert main(item["read_args"]) == 0
     payload = json.loads(capsys.readouterr().out)
     assert payload["id"] == "case.qwen-ascend-rejected-directions"
     body = payload["content"]
     assert "rejected directions" in body.casefold()
     assert "910B1" in body
+    target = tmp_path / "case.md"
+    assert main([
+        "resource", item["read_args"][1], payload["entrypoint"], "--installed-library",
+        "--revision", payload["revision"], "--output", str(target),
+    ]) == 0
+    assert target.read_bytes() == body.encode("utf-8")
 
 
 def test_reference_survives_a_root_whose_path_has_spaces(tmp_path, capsys):
@@ -280,6 +316,7 @@ def test_reference_survives_a_root_whose_path_has_spaces(tmp_path, capsys):
     result = find("mask caching ran out of device memory", corpus, limit=10)
     item = next(i for i in result["items"] if i["id"] == "case.qwen-ascend-rejected-directions")
     assert item["source_location"] == "checkout"
+    assert item["read_args"][-2:] == ["--skill-root", str(root.resolve())]
     assert main(item["read_args"]) == 0
     assert "910B1" in json.loads(capsys.readouterr().out)["content"]
     if os.name != "nt":
@@ -745,6 +782,7 @@ def test_cli_json_mode_states_its_limits(capsys):
     assert item["id"] == "ascend-device-health"
     assert item["source_location"] == "installed"
     assert item["read_args"][:2] == ["read", "checkout:ascend-device-health"]
+    assert "--installed-library" in item["read_args"]
     assert payload["corpus_size"] == len(load_corpus(ROOT).documents)
     assert any("not a learned ranking" in line for line in payload["limitations"])
 

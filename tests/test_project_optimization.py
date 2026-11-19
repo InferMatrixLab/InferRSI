@@ -210,6 +210,23 @@ def test_fixed_rounds_and_frozen_protocol_are_not_bypassed(project, capsys):
         submit(project, capsys, 30)
 
 
+def test_project_knowledge_uses_find_and_records_budget_omission(project, capsys):
+    start(project, capsys)
+    root = project[3]
+    assert main([
+        "campaign", "knowledge", "--directory", str(root),
+        "--query", "cache per-step masks ran out of device memory",
+        "--limit", "1", "--context-bytes", "1",
+    ]) == 0
+    capture = json.loads(capsys.readouterr().out)["context"]
+    assert capture["selection"]["method"] == "find-lexical-v1"
+    item, = capture["items"]
+    assert item["ref"] == "checkout:case.qwen-ascend-rejected-directions"
+    omission, = capture["context_omissions"]
+    assert (omission["ref"], omission["reason"]) == (item["ref"], "context_limit")
+    assert capture["contexts"] == []
+
+
 def test_project_knowledge_off_and_manual_record_writes_are_rejected(project, capsys):
     start(project, capsys, extra=("--knowledge", "off"))
     root = project[3]

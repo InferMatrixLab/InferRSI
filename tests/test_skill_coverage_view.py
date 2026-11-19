@@ -264,7 +264,7 @@ def test_applicability_is_descriptive_and_never_promotes_validation():
 
 
 def test_recommendations_default_only_when_the_sidecar_is_silent():
-    from inferrsi.knowledge import _skill_view as index_builder
+    from inferrsi.knowledge import catalog as index_builder
 
     assert index_builder.recommendations({}) == index_builder.DEFAULT_RECOMMENDATIONS
     # An explicit empty list is a statement, so it must not fall back.
@@ -332,7 +332,7 @@ def test_resource_layer_decisions_preserve_unknown_na_and_conflicts(tmp_path):
         for path in library.rglob("*") if path.is_file()
     }
     outputs = index_builder.render_index(library, "0" * 40, hashes)
-    from inferrsi.knowledge._skill_view import COMPILED, skill_views
+    from inferrsi.knowledge.catalog import COMPILED, skill_views
 
     (library / COMPILED).mkdir()
     for name, content in outputs.items():

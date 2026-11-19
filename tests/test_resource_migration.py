@@ -18,7 +18,7 @@ from pathlib import Path
 
 import pytest
 
-from inferrsi.knowledge import _source_snapshot
+from inferrsi.knowledge import _source_snapshot, knowledge_operations
 from inferrsi.knowledge.knowledge_operations import KnowledgeReader
 from inferrsi.resources.repository_packs import REPO_TYPES, repository_pack
 
@@ -131,3 +131,28 @@ def test_bundle_keys_and_pinned_provenance_survive_the_physical_move():
     assert _source_snapshot.LIBRARY == "src/inferrsi/knowledge/data/skill_library"
     snapshot = KNOWLEDGE_DATA / "skill_library" / "_compiled" / _source_snapshot.MANIFEST
     assert f'"{_source_snapshot.REGISTRY}"' in snapshot.read_text(encoding="utf-8")
+
+
+def test_build_refresh_preserves_linked_record_pin_but_source_edits_invalidate_it(
+    tmp_path, monkeypatch,
+):
+    reader = KnowledgeReader()
+    ref = "package:sglang.common.llm.runtime_radix_hicache"
+    linked = reader.records()[ref.removeprefix("package:")]["skill_documents"]["en"]
+    target = tmp_path / "knowledge" / linked
+    target.parent.mkdir(parents=True)
+    target.write_bytes((CHECKOUT / "knowledge" / linked).read_bytes())
+    root = tmp_path / "knowledge/data/skill_library"
+    for group in ("_compiled", "records", "config"):
+        (root / group).mkdir()
+    monkeypatch.setattr(knowledge_operations, "files", lambda _: tmp_path)
+    original = reader.read(ref)
+    assert linked in original.content
+    (root / "_compiled/_provenance.json").write_text('{"source_revision":"refreshed"}')
+    (root / "config/other.json").write_text("{}")
+    (root / "records/other.json").write_text("{}")
+    replay = KnowledgeReader().read(ref, revision=original.revision)
+    assert replay.content == original.content and replay.dependencies == original.dependencies
+    target.write_bytes(target.read_bytes() + b"\nEdited guide\n")
+    with pytest.raises(knowledge_operations.RevisionConflict):
+        KnowledgeReader().read(ref, revision=original.revision)

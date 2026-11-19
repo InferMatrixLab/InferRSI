@@ -317,6 +317,20 @@ def test_service_mode_cli_does_not_require_legacy_metric_arguments(campaign):
         parser().parse_args(["benchmarks", "session", "baseline", "--session", "unused"])
 
 
+def test_service_knowledge_uses_find_without_file_fingerprints(campaign):
+    call(campaign, "start")
+    response = call(
+        campaign, "knowledge", "--query", "前缀缓存", "--context-bytes", "65536", "--limit", "1"
+    )
+    retained = response["context"]
+    assert retained["request"]["relevance_method"] == "find-lexical-v1"
+    context, = retained["contexts"]
+    assert context["ref"].startswith("package:")
+    path = campaign["root"] / response["reference"]["path"]
+    assert json.loads(path.read_bytes()) == retained
+    project_service.no_fingerprints(response)
+
+
 def test_knowledge_and_dashboard_never_enter_legacy_fingerprint_readers(campaign):
     begin(campaign)
     context = call(

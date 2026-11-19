@@ -1,0 +1,363 @@
+"""Offline comparison presentation over Apps' normalized, retained result projection."""
+
+import hashlib
+import json
+import math
+import os
+import tempfile
+from html import escape
+from pathlib import Path
+
+_LABELS = {
+    "efficiency_improved": "Efficiency improved / 效率提高",
+    "no_gain": "No observed gain / 未观察到收益",
+    "regression": "Regression / 效率退化",
+    "tradeoff": "Tradeoff / 存在权衡",
+    "insufficient_evidence": "Insufficient evidence / 证据不足",
+}
+_TRACE_HEADERS = (
+    "Round", "Strategy", "Hypothesis", "Knowledge references", "Round speedup",
+    "Best speedup", "Correctness", "Adopted",
+)
+_METRICS = {
+    "speedup": "Final speedup",
+    "wall_seconds": "Campaign time (s)",
+    "tokens": "Session tokens",
+}
+
+
+def _text(value):
+    if value is None:
+        return "unknown"
+    if type(value) is bool:
+        return "yes" if value else "no"
+    if type(value) is float:
+        return f"{value:.6g}"
+    if type(value) is int:
+        return f"{value:,}"
+    return str(value)
+
+
+def _md(value):
+    value = escape(_text(value), quote=False)
+    for char in "\\`*_{}[]()#+!|":
+        value = value.replace(char, "\\" + char)
+    return value.replace("\r\n", "\n").replace("\r", "\n").replace("\n", "<br>")
+
+
+def _markdown_table(headers, rows):
+    return ["| " + " | ".join(_md(value) for value in headers) + " |",
+            "| " + " | ".join("---" for _ in headers) + " |",
+            *["| " + " | ".join(_md(value) for value in row) + " |" for row in rows]]
+
+
+def _html_table(headers, rows):
+    return ("<div class=scroll><table><thead><tr>"
+            + "".join(f"<th scope=col>{escape(_text(value))}</th>" for value in headers)
+            + "</tr></thead><tbody>"
+            + "".join("<tr>" + "".join(f"<td>{escape(_text(value))}</td>" for value in row)
+                      + "</tr>" for row in rows) + "</tbody></table></div>")
+
+
+def _task_rows(assessment):
+    rows = []
+    for task in assessment["tasks"]:
+        for name, label in _METRICS.items():
+            metric = task["metrics"][name]
+            rows.append((task["task"], label, metric["selected"],
+                         _metric_value(name, metric["on_median"]),
+                         _metric_value(name, metric["off_median"]),
+                         _metric_value("speedup", metric["paired_factor"]), metric["pair_count"],
+                         _LABELS[task["conclusion"]["kind"]]))
+    return rows
+
+
+def _metric_value(name, value):
+    if value is None:
+        return None
+    if name == "speedup":
+        return f"{value:.3f}×"
+    if name == "wall_seconds":
+        return f"{value:,.2f}"
+    return f"{value:,}" if type(value) is int else f"{value:,.1f}".removesuffix(".0")
+
+
+def _trace_rows(trial):
+    rows = []
+    for row in trial.get("trace", []):
+        refs = row.get("knowledge_refs")
+        citations = None if refs is None else "\n".join(refs) or "None"
+        rows.append((row.get("round"), row.get("strategy"), row.get("hypothesis"),
+                     citations, _metric_value("speedup", row.get("speedup")),
+                     _metric_value("speedup", row.get("best_speedup")),
+                     row.get("quality"), row.get("adopted")))
+    return rows
+
+
+def _final_rows(final):
+    assessment = final.get("assessment") or final
+    binding = final.get("binding") or {}
+    candidate = final.get("selected_candidate") or {}
+    rows = [
+        ("Status", assessment.get("status")),
+        ("Quality verdict", assessment.get("verdict")),
+        ("Final speedup", _metric_value("speedup", final.get("speedup"))),
+        ("Selected candidate", candidate.get("candidate_id") or candidate.get("kind")),
+        ("Candidate binding verified", binding.get("verified")),
+        ("Delivery accepted", final.get("delivery_accepted")),
+    ]
+    if assessment.get("reason"):
+        rows.append(("Reason", assessment["reason"]))
+    return rows
+
+
+def _case_rows(final):
+    rows = []
+    for case in (final.get("assessment") or {}).get("case_metrics", []):
+        samples = case.get("samples_ms") or {}
+        rows.append((case.get("id"), case.get("baseline_median_ms"),
+                     case.get("candidate_median_ms"), _metric_value("speedup", case.get("speedup")),
+                     *(len(samples[side]) if side in samples else None
+                       for side in ("baseline", "candidate"))))
+    return rows
+
+
+def _token_rows(trial):
+    rows = []
+    for key, label in (("host_session_tokens", "Agent session"), ("session_tokens", "Campaign"),
+                       ("tokens", "Settled search rounds")):
+        record = trial.get("usage", {}).get(key, {})
+        value = record.get("value") or {}
+        total = (trial["metrics"].get("tokens") if key == "host_session_tokens"
+                 else value.get("total_tokens"))
+        rows.append((label, value.get("input_tokens"), value.get("output_tokens"),
+                     value.get("cached_input_tokens"), total, record.get("coverage")))
+    return rows
+
+
+def _positive(value):
+    try:
+        return type(value) in (int, float) and math.isfinite(value) and value > 0
+    except OverflowError:
+        return False
+
+
+def _curve(trials):
+    """Keep each actual trial separate; missing points break its recorded curve."""
+    if sum(len(trial.get("trace", [])) for trial in trials) > 1000:
+        return "<p>Curve omitted for size; all recorded rounds remain in the tables.</p>"
+    values = [row["best_speedup"] for trial in trials for row in trial.get("trace", [])
+              if _positive(row.get("best_speedup"))]
+    values += [trial["final"]["speedup"] for trial in trials
+               if isinstance(trial.get("final"), dict)
+               and _positive(trial["final"].get("speedup"))]
+    rounds = [row["round"] for trial in trials for row in trial.get("trace", [])
+              if type(row.get("round")) is int and row["round"] > 0]
+    if not values or not rounds:
+        return "<p>No recorded speedup curve is available.</p>"
+    low, high, last = min(values), max(values), max(rounds)
+    scale = max(high, 1)
+    lower, upper = low / scale, high / scale
+    span = upper - lower
+    if not span:
+        lower -= 0.05
+        span = 0.1
+
+    def xy(round_number, value):
+        return (70 + 720 * round_number / (last + 1),
+                45 + 210 * (1 - (value / scale - lower) / span))
+
+    chunks = ['<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 850 310" '
+              'role="img" aria-label="Best retained speedup and independent final">',
+              '<path d="M70 35 V255 H800" fill="none" stroke="#94a3b8"/>',
+              f'<text x="8" y="48">{high:.4g}x</text>',
+              f'<text x="8" y="255">{low:.4g}x</text>',
+              '<text x="70" y="295">Recorded rounds; diamond = independent final</text>']
+    colors = ("#2563eb", "#16a34a", "#9333ea", "#ea580c")
+    for index, trial in enumerate(trials):
+        color, previous = colors[index % len(colors)], None
+        label = _text(trial.get("id"))
+        for row in trial.get("trace", []):
+            position, value = row.get("round"), row.get("best_speedup")
+            if type(position) is not int or position <= 0 or not _positive(value):
+                previous = None
+                continue
+            x, y = xy(position, value)
+            if previous and previous[0] < x:
+                chunks.append(f'<path d="M{previous[0]:.2f} {previous[1]:.2f} '
+                              f'L{x:.2f} {y:.2f}" stroke="{color}" fill="none"/>')
+            chunks.append(f'<circle cx="{x:.2f}" cy="{y:.2f}" r="4" fill="{color}">'
+                          f'<title>{escape(label)}: round {position}, '
+                          f'{value:.6g}x</title></circle>')
+            previous = x, y
+        final = trial.get("final")
+        if isinstance(final, dict) and _positive(final.get("speedup")):
+            value = final["speedup"]
+            x, y = xy(last + 1, value)
+            chunks.append(f'<path d="M{x:.2f} {y-6:.2f} l6 6 -6 6 -6 -6 Z" '
+                          f'fill="{color}"><title>{escape(label)}: independent final, '
+                          f'{value:.6g}x</title></path>')
+    chunks.append("</svg>")
+    return "".join(chunks)
+
+
+def _documents(report, json_digest):
+    assessment = report["assessment"]
+    conclusion, counts = assessment["conclusion"], assessment["counts"]
+    label = _LABELS[conclusion["kind"]]
+    repeats = report["repeats"]
+    repeat_label = "repeat" if repeats == 1 else "repeats"
+    scope = ", ".join(report["tasks"]) + f" · {repeats} {repeat_label} per task"
+    md = ["# Knowledge comparison", "", "**" + label + "**", "",
+          _md(conclusion["text"]), "", _md(conclusion["limitation"]), "", _md(scope), ""]
+    html = ["<h1>Knowledge comparison</h1>", f"<p class=conclusion>{escape(label)}</p>",
+            f"<p>{escape(conclusion['text'])}</p>",
+            f"<p class=note>{escape(conclusion['limitation'])}</p>", f"<p>{escape(scope)}</p>"]
+
+    def heading(title, level=2):
+        md.extend(["#" * level + " " + _md(title), ""])
+        html.append(f"<h{level}>{escape(title)}</h{level}>")
+
+    def paragraph(value):
+        md.extend([_md(value), ""])
+        html.append(f"<p>{escape(value)}</p>")
+
+    def table(headers, rows):
+        md.extend([*_markdown_table(headers, rows), ""])
+        html.append(_html_table(headers, rows))
+
+    heading("Task comparisons")
+    table(("Task", "Metric", "Used in verdict", "On median", "Off median",
+           "Paired benefit factor", "Valid pairs", "Task conclusion"), _task_rows(assessment))
+    paragraph("A benefit factor above 1 favors knowledge on. Speedup uses on/off, while time "
+              "and tokens use off/on. Medians use eligible matched pairs.")
+    table(("Completed trials", "Eligible trials", "Eligible pairs", "Running", "Pending",
+           "Failed", "Blocked", "Missing"),
+          [(f"{counts['statuses']['completed']} / {counts['planned_trials']}",
+            counts["eligible_trials"], f"{counts['eligible_pairs']} / {counts['planned_pairs']}",
+            *(counts["statuses"][state] for state in ("running", "pending", "failed", "blocked")),
+            counts["missing_trials"])])
+
+    gaps = [(row["task"], gap) for row in assessment["tasks"] for gap in row["gaps"]]
+    if gaps:
+        heading("Evidence gaps")
+        table(("Task", "Gap"), gaps)
+
+    heading("Optimization trace")
+    html.append(_curve(report["trials"]))
+    paragraph("Strategies and hypotheses are recorded by the agent. Knowledge references show "
+              "which material was supplied. Actual model consumption is unverified.")
+    for index, trial in enumerate(report["trials"], 1):
+        html.append(f'<section id="trial-{index}">')
+        heading(f"{trial['task']} · {trial['condition'].upper()} · repeat {trial['repeat']}", 3)
+        status = trial["status"]
+        eligibility = "eligible for comparison" if trial["eligible"] else "excluded from comparison"
+        paragraph(f"{status.capitalize()} · {eligibility}")
+        rows = _trace_rows(trial)
+        if rows:
+            table(_TRACE_HEADERS, rows)
+        else:
+            paragraph("No rounds recorded.")
+        heading("Independent final", 4)
+        final = trial.get("final")
+        if final and (final.get("assessment") or final.get("verdict")):
+            fields = _final_rows(final)
+            table([label for label, _ in fields], [[value for _, value in fields]])
+            cases = _case_rows(final)
+            if cases:
+                table(("Case", "Baseline median (ms)", "Candidate median (ms)", "Speedup",
+                       "Baseline samples", "Candidate samples"), cases)
+        else:
+            paragraph("No independent final recorded.")
+        if trial.get("gaps"):
+            table(("Trial evidence gap",), [(gap,) for gap in trial["gaps"]])
+
+        html.append("<details><summary>Usage and evidence</summary>")
+        md.extend(["#### Usage and evidence", ""])
+        table(("Token scope", "Input", "Output", "Cached input", "Total", "Coverage"),
+              _token_rows(trial))
+        observed = trial.get("observed_settings") or {}
+        candidate = (final or {}).get("selected_candidate") or {}
+        evidence = [
+            ("Trial ID", trial["id"]),
+            ("Model", observed.get("model")),
+            ("Reasoning effort", observed.get("effort")),
+            ("Environment", observed.get("environment_id")),
+            ("Candidate path", candidate.get("path")),
+        ]
+        if isinstance(trial.get("evidence"), str):
+            evidence.append(("Evidence reference", trial["evidence"]))
+        table(("Evidence field", "Value"), evidence)
+        deliveries = trial.get("knowledge_deliveries") or []
+        if deliveries:
+            table(("Delivered knowledge",), [
+                (entry.get("path") if isinstance(entry, dict) else entry,) for entry in deliveries
+            ])
+        html.append("</details></section>")
+
+    heading("Comparison settings and source data")
+    policy = report["policy"]
+    table(("Metric", "Used in verdict", "Neutral tolerance"),
+          [(label, name in policy["metrics"], f"{policy['tolerances'][name]:.3g}")
+           for name, label in _METRICS.items()])
+    paragraph(f"Minimum eligible pairs per task: {policy['minimum_pairs']}. "
+              "Aggregation uses the median of paired log ratios.")
+    md += ["[Download raw comparison JSON](comparison-result.json)", "",
+           "JSON SHA-256: `" + json_digest + "`.", ""]
+    html += ['<p><a href="comparison-result.json" download>Download raw comparison JSON</a> · '
+             '<a href="report.md">Markdown report</a></p>',
+             f"<p>JSON SHA-256: <code>{json_digest}</code></p>"]
+    document = ('<!doctype html><html lang="en"><meta charset="utf-8">'
+                '<meta name="viewport" content="width=device-width,initial-scale=1">'
+                '<meta http-equiv="Content-Security-Policy" content="default-src \'none\'; '
+                'style-src \'unsafe-inline\'; base-uri \'none\'; form-action \'none\'">'
+                '<title>Knowledge comparison</title><style>'
+                'body{font:15px/1.55 system-ui,sans-serif;max-width:1200px;margin:32px auto;'
+                'padding:0 20px;color:#172033;background:#fff}h1,h2,h3{line-height:1.2}'
+                'h2{margin-top:32px}.conclusion{font-size:22px;font-weight:650}.note{color:#526078}'
+                'table{border-collapse:collapse;width:100%;font-size:13px}td,th{border:1px solid '
+                '#d4dbe5;text-align:left;padding:8px;white-space:pre-wrap;overflow-wrap:anywhere}'
+                'th{background:#eef3f9}.scroll{overflow:auto;margin-bottom:12px}'
+                'section{border-top:1px solid #d4dbe5;margin-top:24px;padding-top:8px}'
+                'details{margin:12px 0}summary{cursor:pointer;font-weight:600;padding:6px 0}'
+                'svg{max-width:100%;height:auto;font-size:12px}'
+                'p{overflow-wrap:anywhere}</style><main>' + "".join(html) + '</main></html>')
+    return "\n".join(md), document
+
+
+def write_comparison_report(report: dict, directory: Path) -> dict:
+    """Write JSON and escaped Markdown/HTML projections of the same derived snapshot.
+
+    Regeneration replaces only these three known derived files. Both human
+    documents identify the exact JSON digest; no source experiment is modified.
+    """
+    if (not isinstance(report, dict) or type(report.get("schema_version")) is not int
+            or report["schema_version"] != 1 or report.get("focus") != "knowledge"):
+        raise ValueError("Expected a version 1 knowledge comparison report")
+    raw = (json.dumps(report, ensure_ascii=False, sort_keys=True, indent=2, allow_nan=False)
+           + "\n").encode("utf-8")
+    markdown, html = _documents(report, hashlib.sha256(raw).hexdigest())
+    directory = Path(directory).absolute()
+    if any(parent.is_symlink() for parent in (directory, *directory.parents)):
+        raise ValueError("Comparison report output cannot traverse symbolic links")
+    directory.mkdir(parents=True, exist_ok=True)
+    outputs = {"json": ("comparison-result.json", raw),
+               "markdown": ("report.md", markdown.encode("utf-8")),
+               "html": ("report.html", html.encode("utf-8"))}
+    for name, _ in outputs.values():
+        destination = directory / name
+        if destination.is_symlink() or destination.exists() and not destination.is_file():
+            raise ValueError("Comparison report destination must be a regular file")
+    for name, data in outputs.values():
+        temporary = None
+        try:
+            with tempfile.NamedTemporaryFile(
+                dir=directory, prefix=".comparison-", delete=False,
+            ) as out:
+                temporary = Path(out.name)
+                out.write(data)
+            os.replace(temporary, directory / name)
+        finally:
+            if temporary is not None and temporary.exists():
+                temporary.unlink()
+    return {key: str(directory / name) for key, (name, _) in outputs.items()}

@@ -328,10 +328,12 @@ retained Apple feasibility/header-inventory research. Its source-derived
 candidate state and imported header observations remain separate from native
 execution, media quality, target memory and performance qualification.
 
-Use `inferrsi knowledge search --repo-type inferrsi --limit 100` in an ordinary
-installation. Catalog JSON and full package bundle reads need no YAML parser:
-`inferrsi read inferrsi.ascend.skills.ascend_graph_mode --material` reads the
-record with its retained library dependency resources. The optional `skills`
+Use `inferrsi knowledge search --repo-type inferrsi --limit 100` to list installed
+package records in stable ID order. A text query uses Find to rank eligible
+package records and returns the original catalog JSON. `knowledge show` reads
+that JSON by exact ID. Catalog JSON and full package bundle reads need no YAML
+parser. `inferrsi read inferrsi.ascend.skills.ascend_graph_mode --material` reads
+the record with its retained library dependency resources. The optional `skills`
 extra enables frontmatter-based `skills list`, `show`, `resource` and `reference`.
 An explicit `--skill-root src/inferrsi/knowledge/data/skill_library` exposes the checkout
 adapter's original skill and case identities for normalized reads.

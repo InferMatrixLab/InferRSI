@@ -30,10 +30,6 @@ def test_local_profiles_preserve_core_and_structured_ownership():
         assert "name" not in metadata and "description" not in metadata
         assert metadata["status"] == record["status"]
         assert metadata["kind"] == "skill"
-        if metadata.get("discovery_role") == "task-entry":
-            assert record["name"] == "inference-task-router"
-            assert len(list((sidecar.parent / "references/routes").glob("*.json"))) == 7
-            continue
         for readset in metadata["provenance_readsets"]:
             assert (sidecar.parent / readset).is_file()
     assert len(normalized) == 70

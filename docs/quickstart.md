@@ -14,11 +14,9 @@ inferrsi --help
 inferrsi doctor --repo . --repo-type vllm_omni --backend cpu
 ```
 
-Package-only knowledge commands (`knowledge`, `context`, package `collect`/`read`)
-work with this base install. Reading skill libraries — the `skills` command and
-any `--skill-root` selection — additionally requires
-`python -m pip install '.[skills]'` (PyYAML); without it those operations fail
-with that install hint instead of a traceback.
+This base install supports `find`, Case reads and package-only knowledge
+operations. The `skills` command and direct reads of checkout Skill bodies
+require `python -m pip install '.[skills]'` (PyYAML).
 
 For the maintained model examples, see [Qwen B300](qwen-image-2.1-turbo-b300.md)
 and [Qwen Ascend](qwen-image-2.1-turbo-ascend.md). Continue below for the generic
@@ -58,48 +56,55 @@ inferrsi find '算子测过了但整图质量没过' --limit 3
 
 Run the `open` command on a relevant hit to read the entry and its source,
 applicability, limitations and revision. Add `--kinds case` to focus the search
-on recorded observations and failed directions.
+on recorded observations and failed directions. On a base install, an indexed
+Skill in the installed library opens its original text through the corresponding
+package record.
 
 Unmatched query terms do not exclude results that match other terms. If no
 query terms match the index, `find` returns `no_match`. Read the reported state,
-`scope` and bounds before acting on a hit. The remaining commands are
-exact-lookup and export — the [operation guide](operations.md) maps every entry
-point, effect class and boundary:
+`scope` and bounds before acting on a hit. Use the package catalog to list
+records with exact filters and `context` to export a cited package selection.
+See the [operation guide](operations.md) for command boundaries.
 
 ```bash
-inferrsi knowledge search 'Qwen-Image-2.1' --repo-type vllm_omni --backend ascend
+inferrsi knowledge search --repo-type vllm_omni --backend ascend --json
 inferrsi context --repo-type vllm_omni --backend cuda --output context.md
 inferrsi skills list --json   # requires python -m pip install '.[skills]'
-inferrsi read inferrsi.ascend.skills.ascend_graph_mode --material
 ```
 
 Normalized Collect, exact-revision reads and resource access are available as
 CLI commands and as the Python `KnowledgeReader`
 ([contract](knowledge-operations.md)); authorized local candidate Create/Update
 remains a Python `KnowledgeStore` operation ([contract](knowledge-store.md)).
-The `--skill-root` examples below require the `skills` extra from above:
+Use `collect` with explicit IDs when you already know which material you want.
+For example, assemble the Ascend graph-mode and device-health Skills within
+a 65,536-byte context budget.
 
 ```bash
-inferrsi collect 'Ascend OOM' --kind case --limit 3 --material --skill-root src/inferrsi/knowledge/data/skill_library
-inferrsi read calibrate-serving-simulation --skill-root src/inferrsi/knowledge/data/skill_library --material
-inferrsi resource weight-loading-optimization playbooks/optimization/weight-loading-optimization/SKILL.md \
-  --revision <sha256-from-collect-or-read> --skill-root src/inferrsi/knowledge/data/skill_library --output SKILL.md
+inferrsi collect --id package:inferrsi.ascend.skills.ascend_graph_mode \
+  --id package:inferrsi.ascend.skills.ascend_device_health \
+  --context-bytes 65536 --json
+inferrsi read checkout:case.qwen-ascend-rejected-directions --installed-library --material
+inferrsi resource checkout:case.qwen-ascend-rejected-directions qwen-ascend-rejected-directions.md \
+  --revision '<revision from read>' --installed-library --output case.md
 ```
 
 The revision for `resource` is the second field of the `collect` text-mode line,
-or the `revision` field in `collect --json` / `read` output. The JSON mode returns
-the complete normalized envelope; fields kept only in a package record's original
-entrypoint document are read with `--material` or `resource`, not projected into
-the normalized metadata.
+or the `revision` field in `collect --json` / `read` output. For a known revision
+in a batch, pass `--revision 'ID=REV'` to `collect`. Use `read --material` for the
+entrypoint or `read --resource <key>` for a specific UTF-8 resource. The latter
+names the selected resource in `content_resource`.
 
-Sources are selected explicitly: the installed package by default, an explicit
-skills root via `--skill-root`, an existing store opened read-only via `--store`.
-A store records the skills root it reserves and rejects a mismatched or missing
-`--skill-root` on open.
+The installed package catalog is available by default. For Case and Skill
+bodies, `read` and `resource` accept `--installed-library` for the bundled
+library or `--skill-root` for a custom library. Reuse the source flag when
+following a result. An existing store opened read-only with `--store` requires
+its recorded skills root if one was configured.
 
-The `skills` command defaults to the installed library's registered skills;
-its full bodies and resources are packaged. `--skill-root` in the normalized
-examples above explicitly adds that root's skill and case IDs.
+During a managed optimization, `campaign knowledge` and
+`benchmarks session knowledge` use Find when the frozen plan permits knowledge.
+They assemble the selected Case, Skill or Record material within the requested
+budget and retain its revisions with the campaign.
 
 ## Establish acceptance criteria
 
@@ -130,7 +135,8 @@ plan/run: all doctor flags, plus
   --workload-id --model --model-revision --output-dir --dry-run
 status/report: --run-id --output-dir
 find: QUERY --limit --kinds --skill-root --explain --json
-knowledge search: QUERY --tier --repo-type --backend --scenario --limit --json
+read: ID --revision --material --resource --omit-resources --installed-library --skill-root --store
+knowledge search: [QUERY] --tier --repo-type --backend --scenario --limit --json
 knowledge show: ID
 context: QUERY --tier --repo-type --backend --scenario --limit --output
 ```
@@ -195,7 +201,6 @@ A trial script can read `INFERRSI_RESULT_PATH` when it constructs the native `--
 ```bash
 inferrsi status --run-id RUN_ID --output-dir /work/inferrsi-runs
 inferrsi report --run-id RUN_ID --output-dir /work/inferrsi-runs
-inferrsi knowledge search 'Qwen-Image-2.1' --repo-type vllm_omni --backend ascend
 inferrsi context --repo-type vllm_omni --backend cuda \
   --scenario diffusion.image_generation --output /work/image-context.md
 ```

@@ -47,12 +47,48 @@ def local_candidate(source: Bundle) -> Bundle:
     )
 
 
-def test_collect_defaults_to_package_with_query_and_limit():
-    code, stdout, _ = run_cli("collect", "Qwen", "--limit", "3", "--json")
-    assert code == 0
+def test_collect_inventory_defaults_to_package_with_limit():
+    code, stdout, stderr = run_cli("collect", "--limit", "3", "--json")
+    assert code == 0 and not stderr
     envelope = json.loads(stdout)
-    assert envelope["items"] and len(envelope["items"]) <= 3
+    assert len(envelope["items"]) == 3
     assert all(item["authority"] == "package" for item in envelope["items"])
+    assert not envelope["retrieval"]["selection"]["ranking_applied"]
+
+
+def test_catalog_and_collect_share_package_rank_with_the_same_filters():
+    query = "graph mode dynamic shapes"
+    filters = ("--repo-type", "inferrsi", "--backend", "ascend", "--limit", "4")
+    code, stdout, stderr = run_cli("knowledge", "search", query, *filters, "--explain")
+    assert code == 0 and "Find ranking" in stderr
+    catalog = json.loads(stdout)
+    code, stdout, stderr = run_cli("collect", "--kind", "knowledge", query, *filters, "--json")
+    assert code == 0 and "Find ranking" in stderr
+    collect = json.loads(stdout)
+    expected = [(item["ref"], item["score"]) for item in catalog["retrieval"]["items"]]
+    assert len(expected) == 4
+    assert [(item["ref"], item["score"]) for item in collect["retrieval"]["items"]] == expected
+    assert catalog["retrieval"]["calls"] == ["knowledge search", "find"]
+    assert collect["retrieval"]["calls"] == ["collect", "find"]
+
+
+def test_collect_accepts_find_as_an_explicit_ranking_method():
+    query = "cache per-step masks ran out of device memory"
+    method = ("--relevance-method", "find-lexical-v1")
+    code, stdout, _ = run_cli("collect", query, *method, "--kind", "case", "--json")
+    assert code == 0
+    result = json.loads(stdout)
+    assert result["selection"]["method"] == "find-lexical-v1"
+    assert result["items"][0]["ref"] == "checkout:case.qwen-ascend-rejected-directions"
+    code, stdout, stderr = run_cli("collect", "--relevance", query, "--kind", "case", "--json")
+    assert code == 0 and "Find ranking" in stderr
+    assert json.loads(stdout)["items"] == result["items"]
+    stderr = run_cli_error("collect", query, *method, "--id", f"package:{SOURCE}")
+    assert "explicit IDs" in stderr
+    stderr = run_cli_error("collect", query, *method, "--relevance", "cache")
+    assert "one" in stderr and "relevance" in stderr
+    stderr = run_cli_error("collect", query, "--relevance-method", "weighted-lexical-v1")
+    assert "find-lexical-v1" in stderr
 
 
 def test_collect_reports_explicit_no_match_with_omission_reason():
@@ -254,7 +290,7 @@ def test_collect_text_lines_match_the_json_envelope():
 
 
 def test_collect_reports_no_match_omissions_and_collisions_in_text_mode(tmp_path):
-    code, stdout, _ = run_cli("collect", "definitely-no-such-knowledge-anywhere")
+    code, stdout, _ = run_cli("collect", "zzcollectnomatchqvf")
     assert code == 0
     assert stdout.strip() == (
         "no_match\tnothing selected from the requested sources; "

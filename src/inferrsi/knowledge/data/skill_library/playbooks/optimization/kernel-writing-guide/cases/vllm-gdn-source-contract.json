@@ -1,6 +1,7 @@
 {
   "id": "case.vllm-gdn-source-contract",
   "kind": "case",
+  "backend": "cuda",
   "origin": [
     "external"
   ],

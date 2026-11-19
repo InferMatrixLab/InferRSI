@@ -75,10 +75,16 @@ def test_scoped_mlx_research_retains_the_lifecycle_resource():
     assert {"group": "mechanism", "query": "lazy evaluation"} in lifecycle["matched_queries"]
 
 
-def test_independent_queries_are_unioned_fairly_and_exact_search_is_unchanged(monkeypatch):
+def _synthetic_record(identity, summary):
+    return {
+        "id": identity, "repo": "vllm_omni", "backend": "common", "scenario": "diffusion.*",
+        "summary": summary, "status": "imported", "verification": {"locally_verified": False},
+    }
+
+
+def test_independent_find_queries_are_unioned_fairly(monkeypatch):
     records = [
-        {"id": name, "repo": "vllm_omni", "backend": "common", "scenario": "diffusion.*",
-         "summary": summary}
+        _synthetic_record(name, summary)
         for name, summary in (
             ("a-model", "ExampleModel"),
             ("b-framework", "mlx"),
@@ -89,8 +95,9 @@ def test_independent_queries_are_unioned_fairly_and_exact_search_is_unchanged(mo
         )
     ]
     monkeypatch.setattr(knowledge_catalog, "knowledge_records", lambda: records)
-    exact = search_knowledge("ExampleModel mlx diffusion video offload")
-    assert [record["id"] for record in exact] == ["f-overlap"]
+    compound = search_knowledge("ExampleModel mlx diffusion video offload")
+    assert compound[0]["id"] == "f-overlap"
+    assert {record["id"] for record in compound} == {record["id"] for record in records}
     result = research_knowledge(
         "ExampleModel", frameworks=["mlx", "MLX"], tasks=["diffusion"],
         modalities=["video"], mechanisms=["offload"], limit=6,
@@ -101,7 +108,6 @@ def test_independent_queries_are_unioned_fairly_and_exact_search_is_unchanged(mo
     }
     overlap = next(item for item in result["items"] if item["record"]["id"] == "f-overlap")
     assert len(overlap["matched_queries"]) == 5
-    assert search_knowledge("ExampleModel mlx diffusion video offload") == exact
     limited = research_knowledge(
         "ExampleModel", frameworks=["mlx"], tasks=["diffusion"],
         modalities=["video"], mechanisms=["offload"], limit=5,
@@ -114,8 +120,8 @@ def test_independent_queries_are_unioned_fairly_and_exact_search_is_unchanged(mo
 
 def test_query_attribution_survives_the_shared_output_limit(monkeypatch):
     records = [
-        {"id": "model", "summary": "SyntheticModel mlx"},
-        {"id": "framework", "summary": "mlx mlx"},
+        _synthetic_record("model", "SyntheticModel mlx"),
+        _synthetic_record("framework", "mlx mlx"),
     ]
     monkeypatch.setattr(knowledge_catalog, "knowledge_records", lambda: records)
     result = research_knowledge("SyntheticModel", frameworks=["mlx"], limit=1)

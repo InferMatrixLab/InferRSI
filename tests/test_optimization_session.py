@@ -424,29 +424,37 @@ def test_task_runner_does_not_expose_harness_as_top_level_modules(task, tmp_path
     assert json.loads(output.read_text())["isolated"]
 
 
-def test_knowledge_delivery_is_retained_and_bound_to_round(session, monkeypatch, capsys):
+def test_knowledge_delivery_is_retained_and_bound_to_round(session, capsys):
+    from inferrsi.apps.campaign import verify_capture
+    from inferrsi.knowledge.knowledge_find import installed_skill_root
     from inferrsi.knowledge.knowledge_operations import KnowledgeReader
 
-    def collect(self, query, **options):
-        import hashlib
-
-        assert query == "" and options["relevance"] == "normalization"
-        assert options["context_bytes"] == 2048
-        content = "source-grounded synthetic context"
-        return {"contexts": [{"ref": "package:test", "revision": "0" * 64,
-                              "content_bytes": len(content), "omissions": [],
-                              "resources": [{"path": "SKILL.md", "role": "body",
-                                             "content": content,
-                                             "sha256": hashlib.sha256(content.encode()).hexdigest()}
-                                            ]}]}
-
-    monkeypatch.setattr(KnowledgeReader, "collect", collect)
-    assert main(["benchmarks", "session", "knowledge", "--session", str(session),
-                 "--query", "normalization", "--context-bytes", "2048"]) == 0
+    assert main([
+        "benchmarks", "session", "knowledge", "--session", str(session),
+        "--query", "cache per-step masks ran out of device memory",
+        "--limit", "1", "--context-bytes", "8192",
+    ]) == 0
     delivered = json.loads(capsys.readouterr().out)
+    path = session / delivered["reference"]["path"]
+    capture, state = verify_capture(path.read_bytes())
+    assert state == "verified"
+    assert capture["selection"]["method"] == "find-lexical-v1"
+    assert capture["retrieval"]["calls"] == ["campaign capture-context", "collect", "find"]
+    item, = capture["items"]
+    assert item["ref"] == "checkout:case.qwen-ascend-rejected-directions"
+    context, = capture["contexts"]
+    assert context["revision"] == item["revision"]
+    assert context["content_bytes"] <= 8192
+    assert {resource["path"] for resource in context["resources"]} == {
+        "qwen-ascend-rejected-directions.md", "qwen-ascend-rejected-directions.json",
+    }
+    reader = KnowledgeReader(skill_root=installed_skill_root())
+    for resource in context["resources"]:
+        assert resource["content"].encode("utf-8") == reader.resource(
+            item["ref"], resource["path"], revision=item["revision"]
+        )
     result = submit(session, 2, capsys)
     assert result["latest_observation"]["contexts"] == [delivered["reference"]]
-    assert (session / delivered["reference"]["path"]).is_file()
 
 
 def test_runtime_identity_covers_migrated_process_domain_and_not_removed_executor() -> None:

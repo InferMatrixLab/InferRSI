@@ -66,9 +66,8 @@ def test_collect_limits_omissions_and_shared_resource_revision():
     assert limited["no_match"] and limited["omissions"]
     missing = reader.collect(ids=["not-a-real-id"])
     assert missing["no_match"] and missing["omissions"]
-    assert reader.collect(query="doesnotmatchanyrecord", ids=["calibrate-serving-simulation"])[
-        "no_match"
-    ]
+    with pytest.raises(ValueError, match="explicit IDs"):
+        reader.collect(query="doesnotmatchanyrecord", ids=["calibrate-serving-simulation"])
 
 
 def test_collect_filters_and_revision_conflicts():
@@ -154,7 +153,7 @@ def test_incidental_files_and_hashes_do_not_affect_reads(tmp_path):
     (directory / "__pycache__" / "x.pyc").write_bytes(b"\0")
     reader = KnowledgeReader(skill_root=tmp_path)
     assert reader.read("selected").revision == before
-    assert reader.collect("sha256", ids=["selected"])["omissions"][0]["reason"] == "query"
+    assert reader.collect("sha256", kind="skill")["no_match"]
 
 
 def test_qualified_identity_rules(tmp_path):
