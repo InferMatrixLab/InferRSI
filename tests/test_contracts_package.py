@@ -71,7 +71,7 @@ def hook(event, args):
 sys.addaudithook(hook)
 defined = {}
 for name, package, code in bodies:
-    namespace = {"__name__": name, "__package__": package}
+    namespace = {"__name__": name, "__package__": package, "__file__": code.co_filename}
     active[:] = [name]
     exec(code, namespace)
     active.clear()

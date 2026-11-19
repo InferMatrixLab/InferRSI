@@ -11,8 +11,8 @@ from pathlib import Path
 
 import pytest
 
-from inferrsi.apps.cannbot import project
-from inferrsi.apps.cannbot.read_worker import _MAX_UPSTREAM
+from inferrsi.apps.integrations.cannbot import project
+from inferrsi.apps.integrations.cannbot.read_worker import _MAX_UPSTREAM
 
 REPO = Path(__file__).resolve().parents[1]
 REVISION = "ab" * 20
@@ -218,7 +218,7 @@ def test_read_rejects_revision_drift_with_unchanged_card(upstream, page):
 
 
 def test_read_rejects_revision_change_during_read(upstream, monkeypatch, capsys):
-    from inferrsi.apps.cannbot import read_worker
+    from inferrsi.apps.integrations.cannbot import read_worker
 
     source, _, _ = upstream
     original = read_worker._card_bytes

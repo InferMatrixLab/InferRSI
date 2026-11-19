@@ -215,6 +215,11 @@ src/inferrsi/
       skill_evaluation.py   Composed bundle export, trial run and summary
       skill_eval_engineering.py Composed artifact check: task rules around sandbox replay
       improvement.py        Composed assessment, selection, rerun and holdout acceptance
+    integrations/
+      cannbot/
+        __init__.py         CannbotChannel implementation and channel result adaptation
+        project.py          Opt-in checkout/interpreter grant and read-only operations
+        read_worker.py      Standalone worker run by the approved Cannbot interpreter
     mindie/
       project.py            Opt-in per-checkout grant, the worker launch and the recorded read
       context.py            Export supplied MindIE reads into a caller-reviewed campaign trace

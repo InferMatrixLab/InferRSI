@@ -154,7 +154,7 @@ def _channels():
     dropping it from the list.
     """
     from ...knowledge.channels import ChannelRegistry
-    from ..cannbot import CannbotChannel
+    from ..integrations.cannbot import CannbotChannel
 
     channel = CannbotChannel()
     return ChannelRegistry([channel], declared_backend=channel.declared_backend)
@@ -309,7 +309,7 @@ def main(argv: list[str] | None = None) -> int:
                 _print(result)
             return 0
         if args.command == "cannbot":
-            from .. import cannbot
+            from ..integrations import cannbot
 
             action = args.cannbot_action
             if action == "enable":
