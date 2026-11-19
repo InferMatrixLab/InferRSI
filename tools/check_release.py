@@ -144,8 +144,7 @@ def check_plugin(path: Path, tag: str, host: str = "codex") -> None:
         plugin = "inferrsi"
         metadata_file = "plugin.json" if host == "codex" else "manifest.json"
         allowed = {metadata_file, "skills", "runtime", "LICENSE", "README.md"}
-        if host == "workswarm":
-            allowed.add("tools")
+        allowed.add("assets" if host == "codex" else "tools")
         if any(len(PurePosixPath(name).parts) > 1
                and PurePosixPath(name).parts[1] not in allowed for name in names):
             raise ValueError("Plugin ZIP includes a marketplace or unrelated wrapper")

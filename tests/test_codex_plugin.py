@@ -285,7 +285,16 @@ def test_archive_contains_only_one_standalone_plugin(tmp_path):
         assert not any("marketplace" in name or ".agents" in name for name in names)
         metadata = json.loads(archive.read("inferrsi/plugin.json"))
         assert metadata["$schema"] == "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json"
-        assert len(metadata["extensions"]["com.openai"]["interface"]["shortDescription"]) <= 30
+        interface = metadata["extensions"]["com.openai"]["interface"]
+        assert len(interface["shortDescription"]) <= 30
+        assert metadata["author"]["name"] == interface["developerName"] == "InferMatrixLab"
+        homepage = "https://github.com/InferMatrixLab/InferRSI"
+        assert metadata["homepage"] == interface["websiteURL"] == homepage
+        for field in ("logo", "composerIcon"):
+            icon = Path(interface[field])
+            assert archive.read(f"inferrsi/{icon.as_posix()}") == (
+                PROJECT / "plugins/inferrsi" / icon
+            ).read_bytes()
     info = invoke(output, tmp_path, "--plugin-info")
     assert info.returncode == 0, info.stderr
     manifest = json.loads((output / "runtime/manifest.json").read_text(encoding="utf-8"))
