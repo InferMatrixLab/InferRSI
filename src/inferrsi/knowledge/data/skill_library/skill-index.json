@@ -289,6 +289,34 @@
       "path": "systems/platforms/host/storage-io-measurement",
       "backend": "common"
     },
+    "task-accuracy": {
+      "path": "tasks/task-accuracy",
+      "backend": "common"
+    },
+    "task-day-0": {
+      "path": "tasks/task-day-0",
+      "backend": "common"
+    },
+    "task-debug": {
+      "path": "tasks/task-debug",
+      "backend": "common"
+    },
+    "task-derived-engine": {
+      "path": "tasks/task-derived-engine",
+      "backend": "common"
+    },
+    "task-independent-engine": {
+      "path": "tasks/task-independent-engine",
+      "backend": "common"
+    },
+    "task-performance": {
+      "path": "tasks/task-performance",
+      "backend": "common"
+    },
+    "task-version-alignment": {
+      "path": "tasks/task-version-alignment",
+      "backend": "common"
+    },
     "torch-npu": {
       "path": "systems/frameworks/torch-npu/torch-npu",
       "backend": "ascend"

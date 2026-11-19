@@ -5,19 +5,19 @@ description: Select the starting route for day-0 model support, inference perfor
 
 # Choose an inference task
 
-Choose one primary route by the requested deliverable. Record secondary routes for
-follow-up work. Read the selected route card, match target conditions, then open
-only the relevant candidate skill IDs through the registry.
+Choose one primary skill by the requested deliverable. Load its full procedure
+before the first supporting evidence search. Record secondary tasks for follow-up.
+The route cards remain available to callers that consume the JSON summaries.
 
-| Task | Choose it when | Route card |
+| Primary skill | Choose it when | Route card |
 | --- | --- | --- |
-| Integrate a newly released model | First usable support for a new checkpoint or model architecture in an existing engine. | [day0-model](references/routes/day0-model.json) |
-| Optimize inference performance | A correct baseline misses a specified latency, throughput, memory or cost objective. | [performance](references/routes/performance.json) |
-| Diagnose execution failures | A hang, crash, OOM or execution-path failure needs a reproducible cause. | [debug](references/routes/debug.json) |
-| Restore numerical or output quality | Inference completes but output violates a reference, quality metric or tolerance. | [accuracy](references/routes/accuracy.json) |
-| Align engine and plugin revisions | A dependency or engine upgrade must preserve API, ABI, operator or runtime behavior across a stack. | [version-align](references/routes/version-align.json) |
-| Build an engine derived from an existing runtime | The deliverable reuses the execution core of vLLM, vLLM-Omni or another pinned parent, as in a DeepInfer-like extension. | [derived-engine](references/routes/derived-engine.json) |
-| Build an independent inference engine | A new runtime must own execution, memory and device integration on a distinct OS, model or hardware stack. | [independent-engine](references/routes/independent-engine.json) |
+| `task-day-0` | First usable support for a new checkpoint or model architecture in an existing engine. | [day0-model](references/routes/day0-model.json) |
+| `task-performance` | A correct baseline misses a specified latency, throughput, memory or cost objective. | [performance](references/routes/performance.json) |
+| `task-debug` | A hang, crash, OOM or execution-path failure needs a reproducible cause. | [debug](references/routes/debug.json) |
+| `task-accuracy` | Inference completes but output violates a reference, quality metric or tolerance. | [accuracy](references/routes/accuracy.json) |
+| `task-version-alignment` | A dependency or engine upgrade must preserve API, ABI, operator or runtime behavior across a stack. | [version-align](references/routes/version-align.json) |
+| `task-derived-engine` | The deliverable reuses the execution core of vLLM, vLLM-Omni or another pinned parent, as in a DeepInfer-like extension. | [derived-engine](references/routes/derived-engine.json) |
+| `task-independent-engine` | A new runtime must own execution, memory and device integration on a distinct OS, model or hardware stack. | [independent-engine](references/routes/independent-engine.json) |
 
 ## Target conditions
 
@@ -47,9 +47,12 @@ If the delivery is unclear, state both routes and ask what must be accepted.
 
 ## Use and handoff
 
-1. Use the CLI to open one card, for example
+1. Load the selected primary procedure, for example
+   `inferrsi skills enter task-version-alignment`. The compatibility card for
+   machine readers is available through
    `inferrsi skills resource inference-task-router references/routes/version-align.json`.
-2. Fill the required inputs. Search for the named component or symptom with
+2. Capture the actual run as the primary skill directs. Use observed triggers
+   to choose supporting skills. Search for the named component or symptom with
    `inferrsi find`. Resolve candidate skill IDs via `skills show`, read their
    applicability, and retain only the source-backed matches. An exact owner
    or resource can also be opened directly. If only cross-platform methodology
