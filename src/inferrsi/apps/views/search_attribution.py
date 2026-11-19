@@ -18,6 +18,7 @@ from inferrsi.harness.records.optimization_log import STAGES, read_latest_log
 
 from .capture_delivery import (
     capture_event,
+    capture_receipts,
     capture_return_texts,
     load_campaign_capture,
     managed_envelopes,
@@ -322,7 +323,9 @@ def import_search(root: Path, *, number: int, trace=None, lines=None, knowledge_
     if trace:
         if capture_inputs:
             envelopes = managed_envelopes(capture_inputs)
-            options["capture_outputs"] = dict.fromkeys(envelopes.values(), root)
+            outputs = dict.fromkeys(((None, body) for body in envelopes.values()), root)
+            outputs.update(dict.fromkeys(capture_receipts(capture_inputs).items(), root))
+            options["capture_outputs"] = outputs
             capture_returns.update(managed_return_lines(
                 trace, lines,
                 {key: body for key, body in envelopes.items() if key not in capture_returns},

@@ -66,6 +66,12 @@ def _managed_envelope(doc, reference):
     return json.dumps({"reference": reference, "context": doc}, ensure_ascii=False, indent=2)
 
 
+def capture_receipts(captures):
+    """Render the manual CLI's capture receipts without material bodies."""
+    return {key: json.dumps({"context": source, "sha256": digest}, ensure_ascii=False, indent=2)
+            for key, (_, source, digest) in captures.items()}
+
+
 def managed_envelopes(captures):
     return {key: _managed_envelope(doc, {
         "path": source, "sha256": digest, "kind": "delivered_context",

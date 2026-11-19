@@ -319,11 +319,12 @@ At round close, after the completed round response is in the rollout, run
 the existing `campaign import-search` over that round. Use the start boundary
 captured before retrieval and the end of the flushed rollout. A review file
 with `task`, `corpus` and `"decisions": []` is enough for automatic alignment.
-Include `--context-id` for any managed captures used in the round.
+Include `--context-id` for AB/BA or benchmark captures used in the round.
 The importer locates matching managed JSON returns within the window for those
 captures. It locates the submitted hypothesis from the round call and verifies
 the round receipt. The return containing the source passage must precede the
-round call.
+round call. Service-reuse sessions retain knowledge in their own records.
+See [service reuse](service-reuse-campaigns.md#records-compatibility-and-validation).
 
 For a manual campaign, put the citation in the existing log's round
 `rationale` or `decision.reason`. State that same reason in the conversation

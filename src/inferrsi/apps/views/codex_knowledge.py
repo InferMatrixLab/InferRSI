@@ -15,7 +15,9 @@ from .codex_tool_returns import _output_lines
 
 _SEARCHES = ("find", "knowledge search", "knowledge research", "context", "cannbot search")
 _READS = ("read", "knowledge show", "cannbot read")
-_MANAGED_SEARCHES = ("campaign knowledge", "benchmarks session knowledge")
+_CAPTURE_SEARCHES = (
+    "campaign capture-context", "campaign knowledge", "benchmarks session knowledge",
+)
 _QUALIFIED = re.compile(r"(?:package|checkout|store):[A-Za-z0-9][A-Za-z0-9_.-]*")
 _REVISION = re.compile(r"sha256:[a-f0-9]{64}")
 _FIND_ROW = re.compile(r"([^\t]+)\t\[(case|skill|record) · [^\t]+\]\tscore [\d.]+")
@@ -71,7 +73,7 @@ def invocation(argv):
         return None
     length = {"knowledge": 2, "cannbot": 2, "campaign": 2, "benchmarks": 3}.get(args[0], 1)
     tool = " ".join(args[:length])
-    if tool in (*_SEARCHES, *_READS, *_MANAGED_SEARCHES, "collect"):
+    if tool in (*_SEARCHES, *_READS, *_CAPTURE_SEARCHES, "collect"):
         return tool, args
     return None
 
@@ -188,11 +190,19 @@ def decode(call, code, output):
     except _ArgumentError:
         args = None
 
-    if tool in _MANAGED_SEARCHES:
+    if tool in _CAPTURE_SEARCHES:
+        manual = tool == "campaign capture-context"
+        if (manual and args is not None
+                and (args.ids is not None or not (args.query.strip() or args.relevance))):
+            return None, True, None  # Inventory and exact assembly do not search.
+        directory = context_id = None
+        if args is not None and code == 0:
+            directory = args.directory if manual else args.session
+            context_id = args.id if manual else None
         # The retained capture supplies the event and counts. The trace join
         # determines whether this command is accounted for by that capture.
-        return None, False, {"kind": "managed_capture", "tool": tool,
-                             "session": args.session if args is not None and code == 0 else None}
+        return None, False, {"kind": "captured_search", "tool": tool,
+                             "directory": directory, "context_id": context_id}
 
     action = "search" if tool in _SEARCHES or tool == "collect" else "read"
     if args is not None:

@@ -164,3 +164,45 @@ def test_unarchived_compatibility_query_prevents_false_complete_coverage(tmp_pat
         assert record["coverage"] == "partial" and record["counts"] is None
         assert record["observed"]["searches"] == 1
         assert record["unresolved_command_lines"] == [3]
+
+
+@pytest.mark.parametrize("case", [
+    "omitted", "matched", "wrong_id", "clipped", "inventory", "exact",
+])
+def test_manual_capture_search_coverage_requires_the_matching_receipt(tmp_path, case):
+    campaign = tmp_path / "campaign"
+    _cli(tmp_path, "campaign", "init", "--directory", str(campaign), "--id", "capture-test")
+    command = ("campaign", "capture-context", "--directory", str(campaign), "--limit", "1")
+    if case == "inventory":
+        options = ()
+    elif case == "exact":
+        options = (
+            "--id-ref", "package:inferrsi.common.skills.cgroup_resource_controls",
+            "--relevance", "cgroupv2",
+        )
+    else:
+        options = ("--relevance", QUERY) if case == "omitted" else (QUERY,)
+    argv, output = _cli(tmp_path, *command, "--id", "capture", *options)
+    context_ids = []
+    if case in ("matched", "clipped"):
+        context_ids = ["capture"]
+    elif case == "wrong_id":
+        _cli(tmp_path, *command, "--id", "other", *options)
+        context_ids = ["other"]
+    rows = _operation(tmp_path, argv, output, "manual", received=(
+        "Warning: truncated output\n" + output[:45] if case == "clipped" else True
+    ))
+    complete = case in ("matched", "inventory", "exact")
+    for record in _import(tmp_path, rows, context_ids=context_ids):
+        assert record["coverage"] == ("complete" if complete else "partial")
+        assert record["counts"] == (record["observed"] if complete else None)
+        assert record["unresolved_command_lines"] == ([] if complete else [3])
+        assert record["observed"]["searches"] == len(context_ids)
+        assert record["observed"]["used"] == 0
+        if case == "matched":
+            event, = record["events"]
+            assert event["context_id"] == "capture" and record["observed"]["hits"] == 1
+            assert all(
+                item.get("delivery_state", "unknown") == item["use"] == "unknown"
+                for item in record["materials"].values()
+            )
