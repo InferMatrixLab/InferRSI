@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "inferrsi",
-  "version": "0.1.0",
+  "version": "0.0.0+source",
   "description": "Bring up models and engines, align inference stacks, diagnose performance, accuracy and runtime failures, and verify changes against evidence.",
   "author": {"name": "InferMatrixLab"},
   "homepage": "https://github.com/InferMatrixLab/InferRSI",

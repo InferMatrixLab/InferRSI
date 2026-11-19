@@ -205,6 +205,11 @@ Plain unbuilt source reports runtime version `0+unknown`; `--plugin-info`
 reports that development state explicitly. A versioned build can use
 `--release-version <version>` only when the already-built runtime agrees;
 this stamps generated host metadata without modifying canonical source bytes.
+A build without it is a source build, not a release: `manifest.json` `version`
+and `plugin_version` in `runtime/manifest.json` and `--plugin-info` are
+`0.0.0+source`, while `runtime_version` still reports the bundled runtime. The
+marker does not identify the source; compare builds by `content_sha256` and the
+source commit.
 
 Actual end-to-end desktop/LLM journeys,
 cancellation/reconnect, other host releases and Linux/macOS installation require

@@ -191,6 +191,12 @@ uploaded wheel/sdist or explicitly select the SCM build version. Development
 builds without a stable tag may
 have a development version and are not stable releases.
 
+Plugins built from a source checkout without `--release-version` report
+`0.0.0+source` as their own version (the Codex and WorkSwarm builders and the
+DSH bundle, which has no release mode). Only the release workflow's
+`--release-version` stamps the tag version. A clean tag checkout does not
+resolve to its tag version by itself.
+
 ## Failure and concurrency behavior
 
 Runs are serialized across schedule and manual dispatch. A failed build creates
