@@ -325,6 +325,21 @@ def commit_projection_fixture(repo, identity, executable=()):
     identity["head"] = git(repo, "rev-parse", "HEAD")
 
 
+def test_only_library_overview_readme_is_outside_projection_inputs(tmp_path):
+    repo, _, canonical, pin, identity, changes, _, _ = manifest_fixture(tmp_path)
+    commit_projection_fixture(repo, identity)
+    canonical.with_name("README.md").write_text("Updated library navigation\n")
+    commit_projection_fixture(repo, identity)
+    assert pr.projection_check(repo, identity, changes) == {
+        "status": "ready", "source_revision": pin,
+        "declared_in": pr.PROJECTION_PATH + "/_provenance.json"}
+    resource = canonical.parent / "example-skill" / "README.md"
+    resource.parent.mkdir()
+    resource.write_text("Updated skill resource\n")
+    commit_projection_fixture(repo, identity)
+    assert pr.projection_check(repo, identity, changes)["status"] == "unavailable"
+
+
 def test_manifest_projection_pin_is_authoritative_and_reads_raw_git(tmp_path):
     repo, readme, _, pin, identity, changes, manifest, _ = manifest_fixture(tmp_path)
     readme.write_text("README no longer carries a source pin.\n")

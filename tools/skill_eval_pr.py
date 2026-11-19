@@ -143,10 +143,13 @@ def projection_check(repo, identity, changes):
         library = git(repo, "ls-tree", identity["head"], "--", LIBRARY_PATH).decode().split()
         if len(library) != 4 or library[:2] != ["040000", "tree"]:
             return unavailable
+        # The library overview sits outside every registered skill directory.
+        # Nested READMEs are skill resources and must still invalidate a stale pin.
         changed = git(repo, "diff", "--no-ext-diff", "--no-textconv", "--no-renames",
                       "--name-only", pin, identity["head"], "--", LIBRARY_PATH,
                       ":(exclude)" + PROJECTION_PATH, ":(exclude)" + LIBRARY_PATH + "/records",
-                      ":(exclude)" + LIBRARY_PATH + "/config")
+                      ":(exclude)" + LIBRARY_PATH + "/config",
+                      ":(exclude,literal)" + LIBRARY_PATH + "/README.md")
         if changed.strip():
             return {"status": "unavailable", "reason":
                     "Declared projection source differs from current canonical library bytes"}
