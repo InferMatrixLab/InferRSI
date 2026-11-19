@@ -120,7 +120,7 @@ def recommendations(metadata: dict) -> list[str]:
     return list(DEFAULT_RECOMMENDATIONS)
 
 
-def skill_views(root, *, file_fingerprints=True):
+def skill_views(root, *, file_fingerprints=True, record_id: str | None = None):
     """The only compiled inputs are YAML headers and immutable source hashes."""
     built = root.joinpath(COMPILED)
     snapshot = json.loads(built.joinpath(_source_snapshot.MANIFEST).read_bytes())
@@ -133,16 +133,18 @@ def skill_views(root, *, file_fingerprints=True):
         raise ValueError("Invalid packaged skill registry")
     entries = registry["skills"]
     inputs = json.loads(built.joinpath(INPUTS).read_bytes())
-    if not isinstance(inputs, dict) or entries.keys() != inputs.keys():
+    if not isinstance(inputs, dict) or (record_id is None and entries.keys() != inputs.keys()):
         raise ValueError("Compiled skill IDs disagree with registry")
     for name, registration in entries.items():
+        if record_id is not None and packaged_skill_id(name, registration["backend"]) != record_id:
+            continue
         relative = registration["path"]
         path = PurePosixPath(relative)
         if path.is_absolute() or ".." in path.parts or path.name != name or "\\" in relative:
             raise ValueError(f"Invalid registered skill path: {relative}")
         directory = f"{_source_snapshot.LIBRARY}/{relative}"
         owner = root.joinpath(*path.parts)
-        data = inputs[name]
+        data = inputs.get(name)
         if (not isinstance(data, dict) or set(data) != {"header", "files"}
                 or not isinstance(data["header"], dict) or not isinstance(data["files"], dict)):
             raise ValueError(f"Invalid compiled inputs for {name}")
@@ -222,6 +224,25 @@ def skill_views(root, *, file_fingerprints=True):
         }
 
 
+def _authored_record(item) -> dict:
+    if not item.is_file() or not item.name.endswith(".json"):
+        raise ValueError(f"Unexpected authored knowledge resource: {item.name}")
+    parts = item.name[:-5].split(".", 3)
+    if len(parts) != 4:
+        raise ValueError(f"Invalid knowledge filename: {item.name}")
+    repo, backend, component, entry = parts
+    record = json.loads(item.read_bytes())
+    if not isinstance(record, dict) or record.get("index_type") == "packaged-skill":
+        raise ValueError(f"Invalid authored knowledge record: {item.name}")
+    tier = record.get("tier", "contribution")
+    if repo not in KNOWLEDGE_SCOPES.get(tier, ()):
+        raise ValueError(f"Knowledge tier disagrees with repository scope: {item.name}")
+    _validate_record(record, repo, (backend, component, entry + ".json"), tier)
+    if item.name != record["id"] + ".json":
+        raise ValueError(f"Knowledge ID disagrees with filename: {item.name}")
+    return record
+
+
 def knowledge_records(
     *, file_fingerprints: bool = True, include_skill_views: bool = True,
 ) -> list[dict[str, Any]]:
@@ -229,24 +250,12 @@ def knowledge_records(
     records = []
     authored = root.joinpath("records")
     for item in sorted(authored.iterdir(), key=lambda p: p.name):
-        if item.name == "README.md":
+        if item.is_file() and (
+            item.name in {"README.md", ".DS_Store"}
+            or item.name.casefold() in {"desktop.ini", "thumbs.db"}
+        ):
             continue
-        if not item.is_file() or not item.name.endswith(".json"):
-            raise ValueError(f"Unexpected authored knowledge resource: {item.name}")
-        parts = item.name[:-5].split(".", 3)
-        if len(parts) != 4:
-            raise ValueError(f"Invalid knowledge filename: {item.name}")
-        repo, backend, component, entry = parts
-        record = json.loads(item.read_bytes())
-        if not isinstance(record, dict) or record.get("index_type") == "packaged-skill":
-            raise ValueError(f"Invalid authored knowledge record: {item.name}")
-        tier = record.get("tier", "contribution")
-        if repo not in KNOWLEDGE_SCOPES.get(tier, ()):
-            raise ValueError(f"Knowledge tier disagrees with repository scope: {item.name}")
-        _validate_record(record, repo, (backend, component, entry + ".json"), tier)
-        if item.name != record["id"] + ".json":
-            raise ValueError(f"Knowledge ID disagrees with filename: {item.name}")
-        records.append(record)
+        records.append(_authored_record(item))
     if include_skill_views:
         for view in skill_views(root, file_fingerprints=file_fingerprints):
             parts = (view["backend"], "skills", view["title"] + ".json")
@@ -393,8 +402,24 @@ def search_knowledge(
     return {"items": items, "retrieval": retrieval}
 
 
+def lookup_record(record_id: str) -> dict | None:
+    """Validate a single package owner without parsing unrelated records or skill sidecars."""
+    if not re.fullmatch(r"[a-z0-9][a-z0-9._-]*", record_id):
+        return None
+    root = files("inferrsi").joinpath("knowledge", "data", "skill_library")
+    item = root.joinpath("records", record_id + ".json")
+    record = _authored_record(item) if item.is_file() else None
+    if re.fullmatch(r"inferrsi\.[a-z0-9]+\.skills\.[a-z0-9_]+", record_id):
+        for view in skill_views(root, record_id=record_id):
+            if record is not None:
+                raise ValueError(f"Duplicate knowledge ID: {record_id}")
+            _validate_record(view, "inferrsi", (view["backend"], "skills", view["title"] + ".json"))
+            record = view
+    return record
+
+
 def get_knowledge(record_id: str) -> dict[str, Any]:
-    for record in knowledge_records():
-        if record["id"] == record_id:
-            return record
-    raise ValueError(f"Unknown knowledge ID: {record_id}")
+    record = lookup_record(record_id)
+    if record is None:
+        raise ValueError(f"Unknown knowledge ID: {record_id}")
+    return record

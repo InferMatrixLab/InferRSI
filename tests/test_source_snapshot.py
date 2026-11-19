@@ -29,6 +29,54 @@ def test_public_projection_implementation_is_a_protected_knowledge_path():
         assert any(fnmatchcase(path, pattern) for pattern in policy["protected_paths"]), path
 
 
+def test_single_owner_reads_survive_an_unrelated_pending_metadata_edit(tmp_path, monkeypatch):
+    from inferrsi.knowledge import skill_catalog
+    from inferrsi.knowledge.catalog import get_knowledge, knowledge_records
+    from inferrsi.knowledge.knowledge_find import Corpus, find, load_documents
+    from inferrsi.knowledge.knowledge_operations import KnowledgeReader
+
+    library = GENERATED.parent
+    owner = "ascend-model-adaptation"
+    metadata = skill_catalog.skill_directory(library, owner) / "metadata.json"
+    edited = tmp_path / "metadata.json"
+    sidecar = json.loads(metadata.read_bytes())
+    sidecar["tags"].append("pending-edit")
+    edited.write_text(json.dumps(sidecar), encoding="utf-8")
+    original_open = Path.open
+
+    def open_with_edit(path, *args, **kwargs):
+        return original_open(edited if path == metadata else path, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "open", open_with_edit)
+    identity = "flashinfer.cuda.llm.paged_decode_dispatch"
+    expected = json.loads((library / "records" / f"{identity}.json").read_bytes())
+    for ref in (identity, f"package:{identity}"):
+        bundle = KnowledgeReader().read(ref)
+        assert json.loads(bundle.content["record.json"]) == expected
+        assert bundle.metadata["attribution"] == expected["sources"]
+    assert get_knowledge(identity) == expected
+    with pytest.raises(ValueError, match="Stale skill metadata for ascend-model-adaptation"):
+        KnowledgeReader().read("package:inferrsi.ascend.skills.ascend_model_adaptation")
+    with pytest.raises(ValueError, match="Stale skill metadata for ascend-model-adaptation"):
+        knowledge_records()
+
+    def no_yaml():
+        raise skill_catalog.MissingSkillsExtra("no PyYAML")
+
+    monkeypatch.setattr(skill_catalog, "_yaml", no_yaml)
+    corpus = Corpus(load_documents())
+    result = find("FlashInfer paged decode dispatch", corpus, limit=5)
+    record = next(row for row in result["items"] if row["id"] == identity)
+    assert record["read_args"][:2] == ["read", f"package:{identity}"]
+    assert "unreadable" not in record
+    result = find("weight-loading-optimization", corpus, limit=5)
+    skill = next(row for row in result["items"] if row["id"] == "weight-loading-optimization")
+    assert skill["read_args"][:2] == [
+        "read", "package:inferrsi.common.skills.weight_loading_optimization",
+    ]
+    assert "--resource" in skill["read_args"] and "--revision" in skill["read_args"]
+
+
 def test_compiled_inputs_expand_to_public_records():
     root = GENERATED.parent
     inputs = json.loads((GENERATED / INPUTS).read_bytes())

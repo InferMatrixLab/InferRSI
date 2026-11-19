@@ -54,7 +54,9 @@ flowchart TB
     C -->|Query| F
     C -->|No query| B["List 136 catalog records by ID · 48 findings + 88 skill views"]
     F --> A["Exclude 7 primary skills and legacy router before IDF and limits<br/>default 135 evidence owners · 80 skills + 48 findings + 7 cases"]
-    I & A & B --> V["Check revision, device, model, flags and measurement against this run"]
+    I -->|Authored finding| E["Validate selected record and its dependencies<br/>retain linked-library bundle and pin checks when skill documents are declared"]
+    I -->|Other exact owner| V["Check revision, device, model, flags and measurement against this run"]
+    E & A & B --> V
     V --> X["Meets gates → cite reproducible evidence and scope"]
     V --> G["Gap → name missing evidence; test the next distinction or record exhausted budget"]
     G -.->|budget remains| D
@@ -141,7 +143,9 @@ inferrsi knowledge show flashinfer.cuda.llm.paged_decode_dispatch
 
 For an inference task, run `inferrsi skills enter <task-id>` and read its returned `instructions` before choosing the first supporting query. Its decision points specify the observation that warrants opening a supporting skill, the evidence to retrieve and the next action. A direct evidence lookup outside the main agent workflow can still use an exact ID or free text. The compatibility router retains its historical resource paths.
 
-Find ranks each eligible evidence owner once. A scoped catalog query reuses Find; a catalog listing without a query includes the eight task entries. Ranked Collect and managed campaign capture use the same evidence selector, and explicit IDs can still capture a task owner. Check revision, applicability and verification before using a result. Propose a reusable finding for human review with its source, scoped conclusion and retry condition.
+For an exact read of an authored finding, the reader validates the selected record and the inputs of its bundle. A stale sidecar for an unrelated skill cannot block a standalone finding such as FlashInfer paged decode. A record that declares linked skill documents retains its library dependencies and bundle revision checks. Changes to those dependencies can invalidate a pinned read.
+
+Find skips incidental system files such as `.DS_Store` beside the records and still validates record JSON. It ranks each eligible evidence owner once. A scoped catalog query reuses Find; a catalog listing without a query includes the eight task entries. Ranked Collect and managed campaign capture use the same evidence selector, and explicit IDs can still capture a task owner. Check revision, applicability and verification before using a result. Propose a reusable finding for human review with its source, scoped conclusion and retry condition.
 
 ## Design choices and benefits
 

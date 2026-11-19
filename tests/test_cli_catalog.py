@@ -4,6 +4,7 @@ import contextlib
 import io
 import json
 import shlex
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -138,6 +139,39 @@ class CatalogTests(unittest.TestCase):
         self.assertNotIn("/pull/", text)
         self.assertNotIn("open_pr", text)
         self.assertNotIn("Backend: `cuda`", text)
+
+
+def test_default_find_skips_incidental_system_files(tmp_path, monkeypatch, capsys):
+    from tools.plugin_bundle import _io_path
+
+    library = Path("knowledge/data/skill_library")
+    package = _io_path(tmp_path)
+    installed = package / library
+    shutil.copytree(PROJECT / "src/inferrsi" / library, installed)
+    monkeypatch.setattr(knowledge_catalog, "files", lambda _: package)
+    identity = "flashinfer.cuda.llm.paged_decode_dispatch"
+    query = ["find", identity, "--no-external", "--limit", "1", "--json"]
+    assert main(query) == 0
+    previous = json.loads(capsys.readouterr().out)["items"]
+    assert previous[0]["id"] == identity and previous[0]["open_argv"]
+    for name in (".DS_Store", "Thumbs.db", "Desktop.ini"):
+        (installed / "records" / name).write_bytes(b"incidental system data")
+    assert main(query) == 0
+    assert json.loads(capsys.readouterr().out)["items"] == previous
+
+
+@pytest.mark.parametrize(("filename", "error"), [
+    ("unexpected.txt", "Unexpected authored knowledge resource"),
+    (".hidden.json", "Invalid knowledge filename"),
+    ("flashinfer.cuda.llm.invalid.json", "Expecting value"),
+])
+def test_records_still_reject_unrecognized_or_invalid_data(tmp_path, monkeypatch, filename, error):
+    records = tmp_path / "knowledge/data/skill_library/records"
+    records.mkdir(parents=True)
+    (records / filename).write_text("unrecognized data", encoding="utf-8")
+    monkeypatch.setattr(knowledge_catalog, "files", lambda _: tmp_path)
+    with pytest.raises(ValueError, match=error):
+        knowledge_records(include_skill_views=False)
 
 
 def test_knowledge_has_one_canonical_record_and_complete_navigation():

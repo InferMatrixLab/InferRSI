@@ -18,7 +18,7 @@ from ._skill_selection import (
     record_context,
     validate_relevance_method,
 )
-from .catalog import KNOWLEDGE_SCOPES, SCENARIO_ALIASES, knowledge_records
+from .catalog import KNOWLEDGE_SCOPES, SCENARIO_ALIASES, knowledge_records, lookup_record
 
 if TYPE_CHECKING:
     from .knowledge_find import Document
@@ -387,6 +387,7 @@ class KnowledgeReader:
             raise ValueError("Store must reserve identities from the same checkout")
         self.store = store
         self._records: dict[str, dict] | None = None
+        self._opened_records: dict[str, dict | None] = {}
         self._library: tuple[dict[str, bytes], str] | None = None
 
     def records(self) -> dict[str, dict]:
@@ -394,6 +395,14 @@ class KnowledgeReader:
         if self._records is None:
             self._records = {record["id"]: record for record in knowledge_records()}
         return self._records
+
+    def record(self, identity: str) -> dict | None:
+        """Read one validated owner, honoring an already-loaded or supplied catalog."""
+        if self._records is not None:
+            return self._records.get(identity)
+        if identity not in self._opened_records:
+            self._opened_records[identity] = lookup_record(identity)
+        return self._opened_records[identity]
 
     def _skill_library(self) -> tuple[dict[str, bytes], str]:
         if self._library is None:
@@ -437,7 +446,18 @@ class KnowledgeReader:
         authority, qualified, identity = reference.rpartition(":")
         if not re.fullmatch(IDENTITY, identity) or (qualified and authority not in AUTHORITIES):
             raise IdentityError("invalid_identity", f"Invalid identity: {reference}")
-        found = (self.owners() if owners is None else owners).get(identity, [])
+        if owners is not None:
+            found = owners.get(identity, [])
+        else:
+            found = []
+            if (not qualified or authority == "package") and self.record(identity) is not None:
+                found.append("package")
+            if ((not qualified or authority == "checkout")
+                    and identity in self._checkout_identities()):
+                found.append("checkout")
+            if (not qualified or authority == "store") and self.store is not None:
+                if identity in self.store.identities():
+                    found.append("store")
         if qualified:
             if authority not in found:
                 raise IdentityError("unknown_identity", f"Unknown identity: {reference}")
@@ -532,7 +552,7 @@ class KnowledgeReader:
         return self._skill(identity)
 
     def _knowledge(self, identity: str) -> Bundle:
-        record = self.records().get(identity)
+        record = self.record(identity)
         if record is None:
             raise IdentityError("unknown_identity", f"Unknown knowledge ID: {identity}")
         content = {"record.json": _json(record)}

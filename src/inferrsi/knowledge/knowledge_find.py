@@ -27,7 +27,7 @@ import re
 import shlex
 import sys
 from collections import Counter
-from collections.abc import Iterable, Mapping
+from collections.abc import Callable, Iterable, Mapping
 from dataclasses import dataclass
 from functools import lru_cache
 from importlib.resources import files
@@ -617,14 +617,17 @@ def installed_skill_root() -> Path:
     return Path(files("inferrsi").joinpath("knowledge", "data", "skill_library")).resolve()
 
 
-def installed_skill_projection(document: Document, records: Mapping[str, dict]) -> dict | None:
+def installed_skill_projection(
+    document: Document, records: Mapping[str, dict] | Callable[[str], dict | None],
+) -> dict | None:
     """Find the generated record for this registered installed Skill identity."""
     if (
         document.kind != "skill" or document.source_location != "installed"
         or document.backend is None or document.root != installed_skill_root()
     ):
         return None
-    record = records.get(packaged_skill_id(document.identity, document.backend))
+    lookup = records.get if isinstance(records, Mapping) else records
+    record = lookup(packaged_skill_id(document.identity, document.backend))
     if record is None or record.get("index_type") != "packaged-skill":
         return None
     return record
@@ -741,7 +744,7 @@ def _open_args(document: Document, readers: dict) -> tuple[str, ...]:
     except MissingSkillsExtra:
         if document.source_location != "installed":
             raise
-        record = installed_skill_projection(document, reader.records())
+        record = installed_skill_projection(document, reader.record)
         if record is None:
             raise
         package_reader = readers.get(None)
