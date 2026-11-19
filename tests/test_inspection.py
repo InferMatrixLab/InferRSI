@@ -16,10 +16,10 @@ from unittest.mock import patch
 import pytest
 
 from inferrsi.apps import inspection as host_inspection
+from inferrsi.apps.host import commands, targets
+from inferrsi.apps.host import inspection as facts
 from inferrsi.apps.inspection import inspect_environment
 from inferrsi.apps.legacy.reporting import write_report
-from inferrsi.infra import commands, targets
-from inferrsi.infra import inspection as facts
 from inferrsi.infra.artifacts import atomic_write_json
 
 ROCM_INFO = (
@@ -220,7 +220,7 @@ class PythonInspectionTests(unittest.TestCase):
 
 def test_hostname_is_not_captured_in_environment_or_report(tmp_path):
     hostname = "private-host.example.invalid"
-    with patch("inferrsi.infra.inspection.platform.node", return_value=hostname) as node:
+    with patch("inferrsi.apps.host.inspection.platform.node", return_value=hostname) as node:
         environment = InspectionTests().inspect_cuda("0, GPU-test, Synthetic GPU, 999.0\n")
     node.assert_not_called()
     assert "hostname" not in environment["host"]
@@ -321,7 +321,7 @@ def test_probe_results_are_recorded_as_the_port_returned_them(monkeypatch):
     assert result["compatibility"] == "unverified"
 
 
-def test_retired_root_inspection_is_gone_and_infra_loads_no_apps():
+def test_retired_root_inspection_is_gone_and_host_facts_load_no_core():
     assert importlib.util.find_spec("inferrsi.inspection") is None
     with pytest.raises(ModuleNotFoundError):
         importlib.import_module("inferrsi.inspection")
@@ -331,11 +331,15 @@ def test_retired_root_inspection_is_gone_and_infra_loads_no_apps():
     assert pickle.loads(pickle.dumps(inspect_environment)) is inspect_environment
     script = (
         "import sys\n"
-        "import inferrsi.infra.inspection\n"
-        "cores = ('inferrsi.apps', 'inferrsi.knowledge', 'inferrsi.harness',\n"
-        "         'inferrsi.benchmark')\n"
+        # #498 slice 3a: the facts API lives in apps/host and still loads no core module
+        # and no Apps module outside its own package.
+        "import inferrsi.apps.host.inspection\n"
+        "cores = ('inferrsi.knowledge', 'inferrsi.harness', 'inferrsi.benchmark')\n"
         "loaded = [name for name in sys.modules if name.startswith(cores)]\n"
         "assert not loaded, loaded\n"
+        "apps = [name for name in sys.modules if name.startswith('inferrsi.apps.')\n"
+        "        and not name.startswith('inferrsi.apps.host')]\n"
+        "assert not apps, apps\n"
         # The retired root binding reached the snapshot through the old run. The
         # canonical one loads no Benchmark module and no old-run composition.
         "import inferrsi.apps.inspection\n"

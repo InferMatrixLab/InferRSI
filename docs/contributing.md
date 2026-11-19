@@ -36,9 +36,10 @@ Nightly checks cover Linux and Windows checkouts with `core.autocrlf` set to
 `false`, `true` and `input`.
 
 Use `harness/scenarios`, `harness/serving` and `benchmark/validators` for new models,
-`infra/targets` with `data/repo_packs` for repositories, and `infra/platforms` for
-hardware. A backend is registered in `infra/platforms/__init__.py`; its probe
-command is defined in the implementing module under `infra/platforms/`. That
+`apps/host/targets` with `data/repo_packs` for repositories, and
+`apps/host/platforms` for hardware. A backend is registered in
+`apps/host/platforms/__init__.py`; its probe command is defined in the
+implementing module under `apps/host/platforms/`. That
 module owns the command name and the discovery boundary. Reuse the common AB/BA loop,
 cleanup and adjudication. See [extension contracts](architecture.md#where-to-extend).
 

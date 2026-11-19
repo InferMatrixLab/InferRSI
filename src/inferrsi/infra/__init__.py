@@ -1,1 +1,1 @@
-"""Infrastructure plane: source identity, devices, transport and owned processes."""
+"""Infrastructure plane: shared artifact digests and JSON evidence writes."""

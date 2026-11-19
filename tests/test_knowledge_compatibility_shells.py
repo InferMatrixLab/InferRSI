@@ -32,7 +32,8 @@ LEAF = MANIFEST["technical_leaf"]
 HISTORY = MANIFEST["revision_history"]
 RETIRED = next(item for item in HISTORY if "retired_compatibility_pairs" in item)
 # #408 A1 appended the R1 record, which holds the temporary parser entry it removed.
-R1_RECORD = HISTORY[-1]
+# #498 slice 3a appended the A1 record after it.
+R1_RECORD = next(item for item in HISTORY if item["stage"] == "R1")
 LEAF_NAMES = RETIRED["retired_catalog_two_routes"]["neutral_leaf_export"]["symbols"]
 MOVED = [item for item in RETIRED["retired_compatibility_pairs"] if "exports" in item]
 
@@ -64,7 +65,7 @@ def test_retired_record_is_the_seven_shells_and_the_manifest_stages_nothing():
     assert exact_pairs(MANIFEST) == frozenset()
     assert "catalog_two_routes" not in MANIFEST
     assert RETIRED["stage"] == "C2"
-    assert R1_RECORD["stage"] == "R1" and HISTORY[-2] is RETIRED
+    assert HISTORY.index(R1_RECORD) == HISTORY.index(RETIRED) + 1
     assert R1_RECORD["base_commit"] in RETIRED["superseded_by"]
     # Every record names the base commit of the revision that superseded it.
     bases = [item["base_commit"] for item in HISTORY[1:]] + [MANIFEST["base_commit"]]
@@ -186,18 +187,25 @@ def test_relocated_leaf_shape_matches_the_relocked_manifest_exactly():
     ]
 
 
-def test_infra_inspection_imports_the_leaf_by_the_recorded_line():
+def test_host_inspection_imports_the_leaf_by_the_recorded_line():
+    # The K01/C2 rewrite record is history: it names the Infra file that #498 slice 3a
+    # moved to apps/host. The moved file binds the same name one package level deeper.
     rewrite = MANIFEST["infra_inspection_rewrite"]
-    lines = (REPO / rewrite["module"]).read_text(encoding="utf-8").splitlines()
-    assert lines[9] == rewrite["canonical_import"]
+    assert rewrite["module"] == "src/inferrsi/infra/inspection.py"
+    assert not (REPO / rewrite["module"]).exists()
     assert rewrite["canonical_import"] == "from ..resources.repository_packs import repository_pack"
+    importer = LEAF["permanent_importers"]["importers"][0]
+    lines = (REPO / importer["file"]).read_text(encoding="utf-8").splitlines()
+    assert lines[9] == importer["import_line"] == "from ." + rewrite["canonical_import"][5:]
     assert not [line for line in lines if "_repo_pack_data" in line or "catalog" in line]
 
 
+def _section_importers(section: dict) -> dict[str, frozenset[str]]:
+    return {item["importer"]: frozenset(item["names"]) for item in section["importers"]}
+
+
 def _declared(section: str) -> dict[str, frozenset[str]]:
-    return {
-        item["importer"]: frozenset(item["names"]) for item in LEAF[section]["importers"]
-    }
+    return _section_importers(LEAF[section])
 
 
 def test_manifest_restates_the_exact_gate_importer_rules():
@@ -205,8 +213,24 @@ def test_manifest_restates_the_exact_gate_importer_rules():
     permanent = LEAF["permanent_importers"]
     temporary = R1_RECORD["retired_temporary_importers"]
     assert _declared("permanent_importers") == LEAF_IMPORTERS == {
+        "inferrsi.apps.host.inspection": frozenset({"repository_pack"}),
+    }
+    # #498 slice 3a moved the importer with its file. The A1 state is kept unchanged in
+    # the history, and the old module is retired, so it is not admitted beside the new one.
+    moved = HISTORY[-1]
+    assert moved["stage"] == "A1"
+    assert moved["base_commit"] == "aaa17a5dd333449d15fb052bb09b2012d55f2327"
+    assert MANIFEST["base_commit"] in moved["superseded_by"]
+    assert _section_importers(moved["retired_permanent_importers"]) == {
         "inferrsi.infra.inspection": frozenset({"repository_pack"}),
     }
+    assert moved["retired_permanent_importers"]["importers"][0]["import_line"] == (
+        MANIFEST["infra_inspection_rewrite"]["canonical_import"]
+    )
+    assert "inferrsi.infra.inspection" in support.RETIRED_MODULES
+    assert permanent["relocated"]["from"] == "inferrsi.infra.inspection"
+    assert permanent["relocated"]["to"] == "inferrsi.apps.host.inspection"
+    assert "requires the same formal architecture review" in permanent["relocated"]["review"]
     # #408 A1 removed the temporary parser entry from the manifest and from the gate.
     # The removed record is kept unchanged in the history, and nothing replaced it.
     assert "temporary_importers" not in LEAF
@@ -217,7 +241,7 @@ def test_manifest_restates_the_exact_gate_importer_rules():
     assert not (REPO / temporary["importers"][0]["file"]).exists()
     assert MANIFEST["compatibility_pairs"] == []
     assert permanent["importers"][0]["import_line"] == (
-        MANIFEST["infra_inspection_rewrite"]["canonical_import"]
+        "from ...resources.repository_packs import repository_pack"
     )
     # The review requirement is recorded for both, never an approval.
     for section in (permanent, temporary):
@@ -263,18 +287,18 @@ def _fresh(script: str) -> None:
     assert result.returncode == 0, result.stderr
 
 
-def test_package_init_and_infra_inspection_load_no_knowledge_body():
+def test_package_init_and_host_inspection_load_no_knowledge_body():
     _fresh(
         "import sys\n"
         "import inferrsi.knowledge\n"
         "assert not [m for m in sys.modules if m.startswith('inferrsi.knowledge.')]\n"
-        "import inferrsi.infra.inspection\n"
+        "import inferrsi.apps.host.inspection\n"
         "assert 'inferrsi.catalog' not in sys.modules\n"
         "assert not [m for m in sys.modules if m.startswith('inferrsi.knowledge.')]\n"
         "assert 'inferrsi.resources.repository_packs' in sys.modules\n"
         "assert 'inferrsi._repo_pack_data' not in sys.modules\n"
         # Reading a Harness-owned pack never loads Harness.
-        "from inferrsi.infra.inspection import repository_pack\n"
+        "from inferrsi.apps.host.inspection import repository_pack\n"
         "assert repository_pack('vllm')['id'] == 'vllm'\n"
         "assert not [m for m in sys.modules if m.startswith('inferrsi.harness')]\n"
     )

@@ -98,6 +98,11 @@ RETIRED_ROOT_MODULES = RETIRED_BY_R1 | RETIRED_BY_A1 | RETIRED_BY_A2 | RETIRED_B
 RETIRED_MODULES = frozenset({
     "inferrsi.model.protocols", "inferrsi.model.validators",
     "inferrsi.infra.processes", "inferrsi.infra.http",
+    # Slice 3c deleted the campaign facade; the example imports the owning modules.
+    "inferrsi.infra.campaign",
+    # Slice 3a moved the host bindings to ``inferrsi.apps.host``.
+    "inferrsi.infra.commands", "inferrsi.infra.inspection", "inferrsi.infra.environment",
+    "inferrsi.infra.platforms", "inferrsi.infra.targets",
 })
 # #412 R1, permanent: the one importer of the neutral data leaf outside
 # ``inferrsi.knowledge``, with the only name it may bind (D020: Infra reads one pack
@@ -109,8 +114,12 @@ RETIRED_MODULES = frozenset({
 # or a dynamic import fails. No ``inferrsi.resources.`` prefix is ever allowed.
 # ``technical_leaf.permanent_importers`` in the manifest restates this rule and
 # records that it needs formal architecture review.
+# #498 slice 3a moved that importer from ``inferrsi.infra.inspection`` to
+# ``inferrsi.apps.host.inspection`` with its file, in one change: the old name is retired
+# and is not admitted beside the new one. The host module still reaches no Knowledge or
+# Harness module.
 LEAF_IMPORTERS = {
-    "inferrsi.infra.inspection": frozenset({"repository_pack"}),
+    "inferrsi.apps.host.inspection": frozenset({"repository_pack"}),
 }
 # #408 A1 removed the temporary entry that let root ``arguments.py`` bind REPO_TYPES from
 # the leaf, together with its ``temporary leaf importers`` blocker. Nothing replaced it:
@@ -857,6 +866,21 @@ def first_wave_report(
         if _matches(name, "inferrsi.infra")
         for v in _closure_violations(name, graph, lambda node: _core_of(node) is not None)
     ]
+    # #498 slice 3a: the host bindings moved here from Infra keep its limit. They, and the
+    # permanent leaf importer among them, reach no Knowledge, Harness or Benchmark module
+    # and no Apps module outside the host package; the Apps rule already refuses an old
+    # root leaf.
+    host = [
+        v
+        for name in modules
+        if _matches(name, "inferrsi.apps.host")
+        for v in _closure_violations(
+            name, graph,
+            lambda node: _core_of(node) in ("knowledge", "harness", "benchmark")
+            or (_core_of(node) == "apps" and node != "inferrsi.apps"
+                and not _matches(node, "inferrsi.apps.host")),
+        )
+    ]
 
     # Non-entry harness modules follow the same rule on the same full graph.
     # They add violations without counting toward the new-core result.
@@ -867,7 +891,7 @@ def first_wave_report(
         if _core_of(name) == "harness" and name not in declared
         for message in _closure_violations(name, graph, h_entry_forbidden)
     ]
-    violations += new_core + infra + harness_extra
+    violations += new_core + infra + host + harness_extra
 
     blockers = []
     for name in (*NEW_CORES, "harness"):

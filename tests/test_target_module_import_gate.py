@@ -177,6 +177,19 @@ def test_by_path_loading_is_admitted_nowhere_else(tmp_path, relative):
     ("harness/runner.py", "from ..model.protocols.image import ImageProtocol\n",
      "inferrsi.model.protocols.image"),
     ("apps/runner.py", "import inferrsi.model.protocols\n", "inferrsi.model.protocols"),
+    # #498 slice 3c: the campaign facade is gone.
+    ("apps/runner.py", "from inferrsi.infra import campaign as lifecycle\n",
+     "inferrsi.infra.campaign"),
+    ("benchmark/runner.py", "from inferrsi.infra.campaign import helper_hashes\n",
+     "inferrsi.infra.campaign"),
+    # #498 slice 3a: the host bindings moved to inferrsi.apps.host.
+    ("apps/runner.py", "from inferrsi.infra.inspection import inspect_environment\n",
+     "inferrsi.infra.inspection"),
+    ("benchmark/runner.py", "from inferrsi.infra import targets\n", "inferrsi.infra.targets"),
+    ("apps/runner.py", "import inferrsi.infra.platforms.cuda\n", "inferrsi.infra.platforms.cuda"),
+    ("apps/runner.py", "from ..infra.environment import storage_locations\n",
+     "inferrsi.infra.environment"),
+    ("apps/runner.py", "from ..infra.commands import probe_command\n", "inferrsi.infra.commands"),
 ])
 def test_retired_model_paths_fail_to_import(tmp_path, importer, source, target):
     report = _report(tmp_path, {importer: source})
@@ -208,6 +221,10 @@ def test_retired_model_paths_fail_from_a_package_initializer(tmp_path, importer,
     "model/protocols/image.py",
     "infra/processes.py",
     "infra/http.py",
+    "infra/campaign.py",
+    "infra/inspection.py",
+    "infra/platforms/__init__.py",
+    "infra/targets/git.py",
 ])
 def test_retired_model_files_fail_when_they_return(tmp_path, relative):
     report = _report(tmp_path, {relative: "VALUE = 1\n"})

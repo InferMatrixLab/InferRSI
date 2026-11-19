@@ -1,13 +1,14 @@
 """Prepared-environment inspection bound to this host.
 
-``infra.inspection.inspect_environment`` is the facts API: it takes the command
-probe and the repository snapshot as ports. This composition supplies the real
-host probe and the Git repository identity. Infra imports nothing from here.
+``apps.host.inspection.inspect_environment`` is the facts API: it takes the
+command probe and the repository snapshot as ports. This composition supplies the
+real host probe and the Git repository identity. The host package imports nothing
+from here.
 """
 
-from ..infra.commands import probe_command as _command
-from ..infra.inspection import inspect_environment as _inspect_environment
-from ..infra.targets import repository_identity
+from .host.commands import probe_command as _command
+from .host.inspection import inspect_environment as _inspect_environment
+from .host.targets import repository_identity
 
 
 def inspect_environment(
