@@ -341,7 +341,7 @@ class ClosedLoopTest(unittest.TestCase):
         self.assertEqual(set(again.content), {"record.json"})
         self.assertEqual(again.metadata["id"], PACKAGE_READ)
         self.assertEqual(again.metadata["kind"], "knowledge")
-        self.assertRegex(knowledge.revision, r"^sha256:[0-9a-f]{64}$")
+        self.assertRegex(knowledge.revision, r"^sha256:[0-9a-f]{64}(?![\s\S])")
         self.assertEqual(prepared["knowledge_revision"], knowledge.revision)
         self.assertEqual(prepared["knowledge_id"], PACKAGE_READ)
         self.assertEqual(prepared["candidate"], "unbound")

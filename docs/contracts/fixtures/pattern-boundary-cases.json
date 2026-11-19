@@ -1,0 +1,264 @@
+{
+  "document": "pattern-boundary-cases.json",
+  "status": "Proposed",
+  "nature": "Current schema regression vectors for contract-v1.schema.json pattern boundaries. Each case is a valid instance of a named definition and the same instance with CR or LF placed inside one scalar value or object key; the control characters are JSON escapes inside the string, not bytes after the JSON document. These vectors do not modify or replace fixtures/t108-v4/.",
+  "path_base": "pattern values are JSON Pointers into schemas/contract-v1.schema.json",
+  "end_assertion": "(?![\\s\\S])",
+  "end_assertion_reason": "A pattern ends with (?![\\s\\S]), not $. In Python re, which jsonschema uses, $ also matches before one trailing LF; (?![\\s\\S]) matches only at the end of input in Python re and in ECMA-262 regular expressions with or without the u flag. Path keeps its $ ending as the control: its lookahead already rejects U+0000-U+001F and U+007F anywhere in the value.",
+  "slots": {
+    "value": "the instance is the scalar value itself",
+    "property": "the instance is a complete valid object; a variant changes only the named property",
+    "key": "the instance is an object with one key; a variant replaces only that key"
+  },
+  "variants": {
+    "trailing_lf": "valid value followed by U+000A",
+    "leading_lf": "U+000A followed by the valid value",
+    "embedded_lf": "U+000A after the first character; only for values of two or more characters",
+    "trailing_crlf": "valid value followed by U+000D U+000A",
+    "trailing_cr": "valid value followed by U+000D"
+  },
+  "expected": "Every valid instance is accepted by its named definition, and every invalid variant is rejected by a pattern check of that definition.",
+  "cases": [
+    {
+      "pattern": "/$defs/Id/pattern",
+      "definition": "Id",
+      "slot": "value",
+      "instance": "att-1",
+      "valid": "att-1",
+      "invalid": {
+        "trailing_lf": "att-1\n",
+        "leading_lf": "\natt-1",
+        "embedded_lf": "a\ntt-1",
+        "trailing_crlf": "att-1\r\n",
+        "trailing_cr": "att-1\r"
+      }
+    },
+    {
+      "pattern": "/$defs/Sha256/pattern",
+      "definition": "Sha256",
+      "slot": "value",
+      "instance": "e39494a6eed78161414f7afdef602f86ff19de6efa9ca9053407d548981fe01f",
+      "valid": "e39494a6eed78161414f7afdef602f86ff19de6efa9ca9053407d548981fe01f",
+      "invalid": {
+        "trailing_lf": "e39494a6eed78161414f7afdef602f86ff19de6efa9ca9053407d548981fe01f\n",
+        "leading_lf": "\ne39494a6eed78161414f7afdef602f86ff19de6efa9ca9053407d548981fe01f",
+        "embedded_lf": "e\n39494a6eed78161414f7afdef602f86ff19de6efa9ca9053407d548981fe01f",
+        "trailing_crlf": "e39494a6eed78161414f7afdef602f86ff19de6efa9ca9053407d548981fe01f\r\n",
+        "trailing_cr": "e39494a6eed78161414f7afdef602f86ff19de6efa9ca9053407d548981fe01f\r"
+      }
+    },
+    {
+      "pattern": "/$defs/SemanticId/pattern",
+      "definition": "SemanticId",
+      "slot": "value",
+      "instance": "sha256:497290081c4f3d3cab0c50c42a0be1c467e1a840dcf680eaace602311c46a80c",
+      "valid": "sha256:497290081c4f3d3cab0c50c42a0be1c467e1a840dcf680eaace602311c46a80c",
+      "invalid": {
+        "trailing_lf": "sha256:497290081c4f3d3cab0c50c42a0be1c467e1a840dcf680eaace602311c46a80c\n",
+        "leading_lf": "\nsha256:497290081c4f3d3cab0c50c42a0be1c467e1a840dcf680eaace602311c46a80c",
+        "embedded_lf": "s\nha256:497290081c4f3d3cab0c50c42a0be1c467e1a840dcf680eaace602311c46a80c",
+        "trailing_crlf": "sha256:497290081c4f3d3cab0c50c42a0be1c467e1a840dcf680eaace602311c46a80c\r\n",
+        "trailing_cr": "sha256:497290081c4f3d3cab0c50c42a0be1c467e1a840dcf680eaace602311c46a80c\r"
+      }
+    },
+    {
+      "pattern": "/$defs/Timestamp/pattern",
+      "definition": "Timestamp",
+      "slot": "value",
+      "instance": "2099-01-01T00:00:00Z",
+      "valid": "2099-01-01T00:00:00Z",
+      "invalid": {
+        "trailing_lf": "2099-01-01T00:00:00Z\n",
+        "leading_lf": "\n2099-01-01T00:00:00Z",
+        "embedded_lf": "2\n099-01-01T00:00:00Z",
+        "trailing_crlf": "2099-01-01T00:00:00Z\r\n",
+        "trailing_cr": "2099-01-01T00:00:00Z\r"
+      }
+    },
+    {
+      "pattern": "/$defs/Decimal/pattern",
+      "definition": "Decimal",
+      "slot": "value",
+      "instance": "1",
+      "valid": "1",
+      "invalid": {
+        "trailing_lf": "1\n",
+        "leading_lf": "\n1",
+        "trailing_crlf": "1\r\n",
+        "trailing_cr": "1\r"
+      }
+    },
+    {
+      "pattern": "/$defs/Decimal/pattern",
+      "definition": "Decimal",
+      "slot": "value",
+      "instance": "-12.5",
+      "valid": "-12.5",
+      "invalid": {
+        "trailing_lf": "-12.5\n",
+        "leading_lf": "\n-12.5",
+        "embedded_lf": "-\n12.5",
+        "trailing_crlf": "-12.5\r\n",
+        "trailing_cr": "-12.5\r"
+      }
+    },
+    {
+      "pattern": "/$defs/JsonValue/anyOf/6/propertyNames/pattern",
+      "definition": "JsonValue",
+      "slot": "key",
+      "instance": {
+        "seed": 1
+      },
+      "valid": "seed",
+      "invalid": {
+        "trailing_lf": "seed\n",
+        "leading_lf": "\nseed",
+        "embedded_lf": "s\need",
+        "trailing_crlf": "seed\r\n",
+        "trailing_cr": "seed\r"
+      }
+    },
+    {
+      "pattern": "/$defs/Parameters/propertyNames/pattern",
+      "definition": "Parameters",
+      "slot": "key",
+      "instance": {
+        "seed": 1
+      },
+      "valid": "seed",
+      "invalid": {
+        "trailing_lf": "seed\n",
+        "leading_lf": "\nseed",
+        "embedded_lf": "s\need",
+        "trailing_crlf": "seed\r\n",
+        "trailing_cr": "seed\r"
+      }
+    },
+    {
+      "pattern": "/$defs/UsageObservation/properties/currency/anyOf/0/pattern",
+      "definition": "UsageObservation",
+      "slot": "property",
+      "property": "currency",
+      "instance": {
+        "amount": "1",
+        "completeness": "complete",
+        "currency": "USD",
+        "dimension": "cost",
+        "observed_at": "2099-01-01T00:00:00Z",
+        "reasons": [],
+        "source": "fixture",
+        "unit": "usd"
+      },
+      "valid": "USD",
+      "invalid": {
+        "trailing_lf": "USD\n",
+        "leading_lf": "\nUSD",
+        "embedded_lf": "U\nSD",
+        "trailing_crlf": "USD\r\n",
+        "trailing_cr": "USD\r"
+      }
+    },
+    {
+      "pattern": "/$defs/StorageMount/properties/namespace/pattern",
+      "definition": "StorageMount",
+      "slot": "property",
+      "property": "namespace",
+      "instance": {
+        "kind": "directory",
+        "namespace": "fixtures",
+        "prefix": "fixtures",
+        "root": "/illustrative-only/fixtures"
+      },
+      "valid": "fixtures",
+      "invalid": {
+        "trailing_lf": "fixtures\n",
+        "leading_lf": "\nfixtures",
+        "embedded_lf": "f\nixtures",
+        "trailing_crlf": "fixtures\r\n",
+        "trailing_cr": "fixtures\r"
+      }
+    },
+    {
+      "pattern": "/$defs/StorageConfig/properties/archive_namespace/pattern",
+      "definition": "StorageConfig",
+      "slot": "property",
+      "property": "archive_namespace",
+      "instance": {
+        "archive_namespace": "fixtures",
+        "harness_namespace": "demo",
+        "mounts": [
+          {
+            "kind": "directory",
+            "namespace": "fixtures",
+            "prefix": "fixtures",
+            "root": "/illustrative-only/fixtures"
+          },
+          {
+            "kind": "harness_sqlite",
+            "namespace": "demo",
+            "prefix": "stores/demo",
+            "root": "/illustrative-only/run-store"
+          }
+        ],
+        "schema_version": 1
+      },
+      "valid": "fixtures",
+      "invalid": {
+        "trailing_lf": "fixtures\n",
+        "leading_lf": "\nfixtures",
+        "embedded_lf": "f\nixtures",
+        "trailing_crlf": "fixtures\r\n",
+        "trailing_cr": "fixtures\r"
+      }
+    },
+    {
+      "pattern": "/$defs/StorageConfig/properties/harness_namespace/pattern",
+      "definition": "StorageConfig",
+      "slot": "property",
+      "property": "harness_namespace",
+      "instance": {
+        "archive_namespace": "fixtures",
+        "harness_namespace": "demo",
+        "mounts": [
+          {
+            "kind": "directory",
+            "namespace": "fixtures",
+            "prefix": "fixtures",
+            "root": "/illustrative-only/fixtures"
+          },
+          {
+            "kind": "harness_sqlite",
+            "namespace": "demo",
+            "prefix": "stores/demo",
+            "root": "/illustrative-only/run-store"
+          }
+        ],
+        "schema_version": 1
+      },
+      "valid": "demo",
+      "invalid": {
+        "trailing_lf": "demo\n",
+        "leading_lf": "\ndemo",
+        "embedded_lf": "d\nemo",
+        "trailing_crlf": "demo\r\n",
+        "trailing_cr": "demo\r"
+      }
+    },
+    {
+      "pattern": "/$defs/Path/pattern",
+      "definition": "Path",
+      "slot": "value",
+      "instance": "inputs/candidate.txt",
+      "valid": "inputs/candidate.txt",
+      "control": true,
+      "pattern_text": "^(?!/)(?!.*(?:^|/)\\.{1,2}(?:/|$))(?!.*[\\\\:\\x00-\\x1f\\x7f])[^/]+(?:/[^/]+)*$",
+      "invalid": {
+        "trailing_lf": "inputs/candidate.txt\n",
+        "leading_lf": "\ninputs/candidate.txt",
+        "embedded_lf": "i\nnputs/candidate.txt",
+        "trailing_crlf": "inputs/candidate.txt\r\n",
+        "trailing_cr": "inputs/candidate.txt\r"
+      }
+    }
+  ]
+}
