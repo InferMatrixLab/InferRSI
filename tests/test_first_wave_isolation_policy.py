@@ -359,9 +359,11 @@ class PermanentLeafImporterTest(unittest.TestCase):
         self.assertFalse(hasattr(support, "TEMPORARY_LEAF_IMPORTERS"))
         self.assertNotIn("temporary_importers", MANIFEST["technical_leaf"])
         self.assertEqual(MANIFEST["compatibility_pairs"], [])
-        # No Knowledge, Harness, Benchmark or Apps module is declared, and no prefix.
+        # No Knowledge, Harness or Benchmark module is declared, and no prefix. #498 slice
+        # 3a moved the one importer into the Apps host package, which keeps Infra's limit.
         for importer in support.LEAF_IMPORTERS:
-            self.assertIsNone(support._core_of(importer), importer)
+            self.assertTrue(importer.startswith("inferrsi.apps.host."), importer)
+            self.assertNotIn(support._core_of(importer), ("knowledge", "harness", "benchmark"))
             self.assertNotIn("*", importer)
 
     def test_the_permanent_rule_alone_does_not_block(self) -> None:
@@ -882,7 +884,7 @@ class ContractsPackageTest(unittest.TestCase):
             (
                 "contracts/runspec.py",
                 "from inferrsi.infra import artifacts\n",
-                "inferrsi.contracts.runspec imports inferrsi.infra.artifacts",
+                "inferrsi.contracts.runspec imports inferrsi.infra",
             ),
             (
                 "contracts/claim.py",

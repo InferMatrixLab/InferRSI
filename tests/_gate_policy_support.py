@@ -868,7 +868,8 @@ def first_wave_report(
     ]
     # #498 slice 3a: the host bindings moved here from Infra keep its limit. They, and the
     # permanent leaf importer among them, reach no Knowledge, Harness or Benchmark module
-    # and no old root leaf.
+    # and no Apps module outside the host package; the Apps rule already refuses an old
+    # root leaf.
     host = [
         v
         for name in modules
@@ -876,7 +877,8 @@ def first_wave_report(
         for v in _closure_violations(
             name, graph,
             lambda node: _core_of(node) in ("knowledge", "harness", "benchmark")
-            or node in old_leaves,
+            or (_core_of(node) == "apps" and node != "inferrsi.apps"
+                and not _matches(node, "inferrsi.apps.host")),
         )
     ]
 
