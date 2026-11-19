@@ -96,6 +96,9 @@ def _optimization_actions(stages, *, project=False):
         if name == "round":
             stage.add_argument("--candidate", type=Path, required=True)
             stage.add_argument("--hypothesis", required=True)
+            stage.add_argument("--strategy", help="Agent-declared optimization strategy")
+            stage.add_argument("--knowledge-ref", action="append",
+                               help="Delivered context path cited by this round; repeatable")
         if name == "final":
             stage.add_argument("--reason", help="Why the caller stopped an up-to-budget search")
         if name in ("round", "final"):
@@ -211,6 +214,42 @@ def parser() -> argparse.ArgumentParser:
     benchmarks = commands.add_parser("benchmarks", help="Discover packaged engineering tasks")
     actions = benchmarks.add_subparsers(dest="benchmark_action", required=True)
     actions.add_parser("list")
+    compare = actions.add_parser(
+        "compare", help="Compare complete RSI optimization sessions (default: knowledge on/off)",
+        description=("Apps coordinates paired fresh-Agent optimizations and reports. Knowledge "
+                     "defaults to qwen21-denoise-npu and moe-forward-npu, each on/off. "
+                     "CLI values override .inferrsi/benchmarks.json, then built-ins. "
+                     "Python records handoffs; the initiating Agent calls native host tools "
+                     "using returned next_action/handoff data. Complete all declared rounds "
+                     "and independent finals, record actual host observations, collect every "
+                     "attempt, then report. No dedicated skill is required."),
+    )
+    compare.add_argument("--focus", choices=("knowledge",), default="knowledge")
+    compare.add_argument("--action", choices=("prepare", "status", "dispatch", "bind", "record",
+                                              "collect", "report"), default="prepare",
+                         help="Prepare a new experiment; use its --output for later operations")
+    compare.add_argument("--config", type=Path, help="Non-secret project configuration JSON")
+    compare.add_argument("--output", type=Path,
+                         help="New comparison directory, or existing to resume")
+    compare.add_argument("--task", action="append", help="Override default task set; repeatable")
+    for name in ("rounds", "repeats"):
+        compare.add_argument("--" + name, type=int)
+    for name in ("max-minutes", "evaluation-timeout-seconds", "final-reserve-seconds",
+                 "job-max-minutes"):
+        compare.add_argument("--" + name, type=float)
+    for name in ("model", "effort", "environment-id", "python"):
+        compare.add_argument("--" + name)
+    compare.add_argument("--evaluation-prefix", help="Allocator argv; task supplies {devices}")
+    compare.add_argument("--execution-instructions", help="Prepared target/transfer instructions")
+    compare.add_argument("--evaluation-args", action="append", help="Override TASK=ARGUMENTS")
+    compare.add_argument("--trial", help="Declared trial ID from status/next_action")
+    compare.add_argument("--parallel", action="store_true",
+                         help="Allow dispatch while other declared trials are active")
+    compare.add_argument("--host")
+    compare.add_argument("--host-id")
+    compare.add_argument("--session-id")
+    compare.add_argument("--receipt", type=Path, help="Original host creation receipt for bind")
+    compare.add_argument("--observation", type=Path, help="Native host observation JSON")
     show = actions.add_parser("show")
     show.add_argument("task", help="Packaged engineering task name")
     run = actions.add_parser("run", help="Run the selected task's benchmark.py")

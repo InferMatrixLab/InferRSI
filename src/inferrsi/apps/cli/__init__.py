@@ -350,6 +350,11 @@ def main(argv: list[str] | None = None) -> int:
             _print(result)
             return 0
         if args.command == "benchmarks":
+            if args.benchmark_action == "compare":
+                from ..benchmark_compare import compare_command
+
+                _print(compare_command(args))
+                return 0
             if args.benchmark_action == "session":
                 from ...harness.optimization_session import session_command
                 from ..delivery import after_final
