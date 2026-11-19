@@ -74,7 +74,7 @@ def _validated(root, target, capture_id):
         or binding["run_id"] == original["run_id"]
     ):
         return None
-    return optimization._service_profile(
+    return service.attempt_profile(
         root, {**target, "attempt_id": capture_id, "path": relative, "execution": execution}
     )
 

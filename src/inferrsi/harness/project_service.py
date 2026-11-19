@@ -549,6 +549,30 @@ def validated_profile(root, directory, attempt_id, conditions, binding, step, *,
     }
 
 
+def attempt_profile(root, attempt):
+    """Return the retained profile, or None if its evidence is missing or disagrees."""
+    execution = attempt["execution"]
+    profile = execution.get("profile")
+    if not isinstance(profile, dict):
+        return None
+    try:
+        binding = execution["binding"]
+        if binding["revision"] != attempt["revision"]:
+            return None
+        step = next((s for s in execution["steps"] if s.get("id") == "profile"), None)
+        validated = validated_profile(
+            root,
+            safe_path(root, attempt["path"]),
+            attempt["attempt_id"],
+            attempt["conditions"],
+            binding,
+            step,
+        )
+        return validated if validated == profile else None
+    except (OSError, ValueError, KeyError, TypeError, AttributeError, RecursionError):
+        return None
+
+
 def _error_excerpt(message):
     return message if len(message) <= 1024 else message[:1021] + "..."
 

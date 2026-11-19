@@ -35,6 +35,10 @@ def assert_round_blocked(campaign):
     [
         ("baseline", "measure-001", 90),
         ("candidate", "warmup-001", 90),
+        ("candidate", "measure-001", 90),
+        ("candidate", "quality", 90),
+        ("candidate", "precheck", 90),
+        ("candidate", "ready", 90),
         ("baseline", "quality", 110),
     ],
 )

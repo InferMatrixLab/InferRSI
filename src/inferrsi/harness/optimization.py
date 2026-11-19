@@ -525,35 +525,15 @@ def _service_load(root, plan, state, *, read_only=False):
     return plan, state
 
 
-def _service_profile(root, attempt):
-    from . import project_service as service
-
-    execution = attempt["execution"]
-    profile = execution.get("profile")
-    if not isinstance(profile, dict):
-        return None
-    try:
-        binding = execution["binding"]
-        if binding["revision"] != attempt["revision"]:
-            return None
-        step = next((s for s in execution["steps"] if s.get("id") == "profile"), None)
-        validated = service.validated_profile(
-            root,
-            service.safe_path(root, attempt["path"]),
-            attempt["attempt_id"],
-            attempt["conditions"],
-            binding,
-            step,
-        )
-        return validated if validated == profile else None
-    except (OSError, ValueError, KeyError, TypeError, AttributeError, RecursionError):
-        return None
-
-
 def _service_profiling(root, attempt, *, published=None):
+    from . import project_service as service
     from . import service_backfill
 
-    profile = published or service_backfill.latest(root, attempt) or _service_profile(root, attempt)
+    profile = (
+        published
+        or service_backfill.latest(root, attempt)
+        or service.attempt_profile(root, attempt)
+    )
     if not profile:
         return {"available": False}
     return {"available": True, "result": profile["result"], "artifacts": profile["artifacts"]}

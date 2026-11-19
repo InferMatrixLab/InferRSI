@@ -1523,30 +1523,16 @@ def test_effective_deadline_after_profiling_crosses_original_wall_deadline(campa
     assert reserve == 30
 
 
-@pytest.mark.parametrize("required_stage", ["measure-001", "quality", "precheck", "ready"])
-def test_only_lost_required_evidence_blocks_next_round(campaign, required_stage):
+def test_lost_profile_allows_next_round(campaign):
     begin(campaign)
     selected = submit(campaign, version="selected", a=90)["latest_observation"]
-    root = campaign["root"]
-    (root / selected["profiling"]["artifacts"][0]).unlink()
+    (campaign["root"] / selected["profiling"]["artifacts"][0]).unlink()
     status = call(campaign, "status")
     assert status["can_finalize"]
     assert status["latest_observation"]["profiling"] == {"available": False}
     result = submit(campaign, version="rejected", a=110)
     assert result["latest_observation"]["assessment"]["verdict"] == "FAIL"
     assert result["best"]["attempt_id"] == selected["attempt_id"]
-    required = root / selected["path"] / f"execution/{required_stage}/result.json"
-    required.unlink()
-    status = call(campaign, "status")
-    assert not status["can_finalize"]
-    assert rejected([
-        "campaign", "round", "--session", str(root), "--candidate", str(campaign["repo"]),
-        "--hypothesis", "Parent performance evidence is missing",
-    ]) == 2
-    campaign["capsys"].readouterr()
-    final = call(campaign, "final", "--reason", "Selected evidence missing")["final"]
-    assert final["assessment"]["verdict"] == "INCONCLUSIVE"
-    assert not (root / final["path"] / "service").exists()
 
 
 def test_standalone_capture_leaves_search_budget_and_reserve_intact(campaign, monkeypatch):
