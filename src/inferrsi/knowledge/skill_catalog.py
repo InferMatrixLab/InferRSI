@@ -305,6 +305,23 @@ def skill_instructions(root: Path, name: str) -> str:
         return stream.read().decode("utf-8").lstrip("\r\n")
 
 
+def primary_task_instructions(root: Path, name: str) -> str:
+    """Open the registered primary procedure before looking for supporting evidence."""
+    directory = skill_directory(root, name)
+    metadata = _sidecar(directory) or {}
+    tags = metadata.get("tags")
+    if (metadata.get("discovery_role") != "task-entry"
+            or not isinstance(tags, list) or "primary-task" not in tags):
+        raise ValueError(f"Not a primary inference task skill: {name}")
+    # Return the complete owner file. No frontmatter projection or YAML extra is
+    # needed by a base install, and the host can read the procedure immediately.
+    instructions = _entry(directory, "SKILL.md").read_text(encoding="utf-8")
+    sections = re.split(r"^---[ \t]*$", instructions, maxsplit=2, flags=re.MULTILINE)
+    if len(sections) != 3 or sections[0] or not sections[2].strip():
+        raise ValueError(f"Primary task skill requires frontmatter and instructions: {name}")
+    return instructions
+
+
 def skill_resource(root: Path, name: str, resource: str) -> Path:
     """Resolve one explicitly selected resource inside its skill directory."""
     directory = skill_directory(root, name)

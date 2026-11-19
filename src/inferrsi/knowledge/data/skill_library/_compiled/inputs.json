@@ -660,7 +660,7 @@
       "description": "Select the starting route for day-0 model support, inference performance optimization, debugging, accuracy repair, version alignment, derived-engine development or independent runtime bring-up."
     },
     "files": {
-      "SKILL.md": "95459dd8c6236b0831da1d1822788ed06aa43556b565c17213c1cff787616973",
+      "SKILL.md": "c2f974ebf301364e499bf124fa216054573a925772385b264528e37dfe031555",
       "metadata.json": "9df56229d110c5c8a887129a90ed55b1116612fa7a42c29c2e23be1914191453",
       "references/routes/accuracy.json": "5a672842ec26262d8827f7ce8d92de9bd956859ff5244189c0519b8f0dd188e3",
       "references/routes/day0-model.json": "77b26d1300e5535d8b595cef95c6c803ea1322e92f38b68ae2905f69355a814f",
@@ -1212,6 +1212,76 @@
     "files": {
       "SKILL.md": "63b883c10a8d3e7d918abfc7175b72e2b401ff1e02697f94b8382ec1c8f369b7",
       "metadata.json": "5017aa6c04b8cc45d8549b71bc283bfced8e7e1bdb29cf0b305a0447a3c12a9d"
+    }
+  },
+  "task-accuracy": {
+    "header": {
+      "name": "task-accuracy",
+      "description": "Use when inference completes but tokens, audio, frames, tensors or a quality metric diverge from a reference. Trace the first divergence and verify end-to-end tolerance."
+    },
+    "files": {
+      "SKILL.md": "684f9f5d106a8d5fc7b2c61e9409e9ade7b7490d435efb7c4844c005e096da00",
+      "metadata.json": "fd2ea245bc1227bed3f743c725ac7fcfca042b0c079bda389fd13e4f8889fa06"
+    }
+  },
+  "task-day-0": {
+    "header": {
+      "name": "task-day-0",
+      "description": "Use for Day-0 onboarding of a new checkpoint or architecture to a named inference engine. Produce a reproducible target run, stage parity evidence and a regression fixture."
+    },
+    "files": {
+      "SKILL.md": "ed376f482eab265de2b3883a97c6cc095f5376c457adb85446410805ae8c56b4",
+      "metadata.json": "fafe4dbb05bd3328a26fc203ad55f2fdaef3128ac9b86f5b118a8e275c6457cd"
+    }
+  },
+  "task-debug": {
+    "header": {
+      "name": "task-debug",
+      "description": "Use for inference crashes, hangs, out-of-memory failures or execution-path errors. Localize the first failing boundary and verify recovery with the original reproducer."
+    },
+    "files": {
+      "SKILL.md": "01707debe5adc0e5ffe8ad4f79acef5848544043f2aeede57f5b200a433326ba",
+      "metadata.json": "2d2c3e1969e0550c0615324c904b58febc4cbec0311dbe792a62f212e0f98110"
+    }
+  },
+  "task-derived-engine": {
+    "header": {
+      "name": "task-derived-engine",
+      "description": "Use for a fork or extension that retains an upstream inference execution core, including a vLLM or vLLM-Omni derivative. Verify inherited behavior and the intended delta separately."
+    },
+    "files": {
+      "SKILL.md": "757fb5644051e8aba790fcdb1265244fbd29f3007ba5970adc88b60e8567c09a",
+      "metadata.json": "1a4e47152fa589bb284d5664b3ed46aac816abde07940c652a30e12f374a23a5"
+    }
+  },
+  "task-independent-engine": {
+    "header": {
+      "name": "task-independent-engine",
+      "description": "Use when the deliverable owns its execution, memory and device integration on a target OS and hardware stack. Prove a native end-to-end path and measure its resource use."
+    },
+    "files": {
+      "SKILL.md": "6e698e4512a7934c7555d6e03c17035f808e892889f55320c5ba5be307d9a2f0",
+      "metadata.json": "56bc87bc405ffed6c7fcdb72430d6fc0df3ba490171f02572cdb1dfbd87a0b79"
+    }
+  },
+  "task-performance": {
+    "header": {
+      "name": "task-performance",
+      "description": "Use when a correct inference baseline misses a latency, throughput, memory or cost target. Compare compatible changes under the user's workload and quality gate."
+    },
+    "files": {
+      "SKILL.md": "f13b0a77f1263c372d007de8cdcb3ac28199eb23eed2bcc2200544f56d94fcc2",
+      "metadata.json": "5f7d500c1d6449a64b96ca0320eeda83a4adecf3f36088dc94f4d3b9bf73b56f"
+    }
+  },
+  "task-version-alignment": {
+    "header": {
+      "name": "task-version-alignment",
+      "description": "Use for upgrades spanning inference engines, plugins, drivers or operator libraries. Isolate the incompatible boundary and qualify the requested version combination on the same workload."
+    },
+    "files": {
+      "SKILL.md": "d0685657b7a7ce02130276284a0e68b6998cf3aab55ee96a40d979975a8e7924",
+      "metadata.json": "b8db64dedeed2c8b17113920a979f2c431da7b712adc485465b477eefa5b5862"
     }
   },
   "torch-npu": {

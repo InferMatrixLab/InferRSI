@@ -74,7 +74,7 @@ real-model gains remain unmeasured. [Flow, limits and reproduction →](docs/har
 
 | You want to… | Start at |
 | --- | --- |
-| Choose a starting point for a new model, performance, debug, accuracy, upgrade or engine task | Open the [inference task router](src/inferrsi/knowledge/data/skill_library/tasks/inference-task-router/SKILL.md) or run `inferrsi skills show inference-task-router`. Select a task card, then use `inferrsi find` for evidence. |
+| Choose a starting point for a new model, performance, debug, accuracy, upgrade or engine task | Choose the [primary skill for the requested outcome](docs/knowledge-layout.md#seven-deliverables) and read its procedure with `inferrsi skills enter <task-id>` before the first evidence search. Follow its decision points using the actual run and acceptance criteria. |
 | Modify InferRSI itself | [Contributor guide](docs/contributing.md) and [agent collaboration](docs/agent-collaboration.md), under an accepted Issue scope |
 | Use the Workbench to run experiments | [Quickstart](docs/quickstart.md): prepared target environment, benchmark/quality contracts, authorized experiment, recorded evidence |
 | Complete an optimization benchmark in the current Agent | [Iterative task sessions](docs/optimization-benchmarks.md), with frozen rounds, independent feedback and final retesting |

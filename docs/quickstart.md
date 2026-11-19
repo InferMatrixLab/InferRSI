@@ -14,9 +14,10 @@ inferrsi --help
 inferrsi doctor --repo . --repo-type vllm_omni --backend cpu
 ```
 
-This base install supports `find`, Case reads and package-only knowledge
-operations. The `skills` command and direct reads of checkout Skill bodies
-require `python -m pip install '.[skills]'` (PyYAML).
+The base install supports `skills enter <task-id>`, `find`, Case reads and
+package-only knowledge operations. Install the `skills` extra with
+`python -m pip install '.[skills]'` for commands that parse skill frontmatter,
+including direct reads from a checkout or a custom skill root.
 
 For the maintained model examples, see [Qwen B300](qwen-image-2.1-turbo-b300.md)
 and [Qwen Ascend](qwen-image-2.1-turbo-ascend.md). Continue below for the generic
@@ -45,9 +46,12 @@ Its common catalog ID and the separate MLX-LM procedure remain unchanged.
 
 ## Discover knowledge and skills
 
-Start from the problem. `find` ranks packaged skills, imported records and
-casebook entries together and reports what each one's evidence covers, so a
-direction already tried and dropped surfaces beside the procedure for trying it:
+For an inference engineering task, select the [primary skill for the user's
+goal](knowledge-layout.md#seven-deliverables), run `inferrsi skills enter <task-id>`
+and read the returned procedure before searching. For example, when inference
+succeeds but output quality regresses, load `inferrsi skills enter task-accuracy`.
+Use the observed run to choose supporting evidence. Standalone `find` ranks
+supporting skills, imported records and casebook entries together:
 
 ```bash
 inferrsi find 'cache per-step masks ran out of device memory'

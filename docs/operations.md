@@ -37,7 +37,7 @@ Effect classes used below:
 | Find relevant cases, skills and records | CLI `find` | Read-only | Default discovery across the registered library and package records. Follow the emitted command to read a hit and its revision |
 | Inspect the package catalog | CLI `knowledge search` / `knowledge show`; catalog API | Read-only | Filtered inventory and existing catalog scripts. Uses the installed package's tier/repo/backend/scenario filters and IDs |
 | Prepare model-aware engine research | CLI `knowledge research`; Python `research_knowledge` | Read-only | Independent model/framework/task/modality/mechanism queries over the same package catalog; source-grounded known profiles, deduplicated matches and explicit target annotations; no engine/hardware qualification |
-| Discover/read packaged or custom skills | CLI `skills list` / `show` / `resource` / `reference` | Read-only | Metadata-first listing; `show` loads one named instruction body; `resource`/`reference` resolve paths for your file reader without loading or executing them |
+| Enter an inference task or discover/read skills | CLI `skills enter` / `list` / `show` / `resource` / `reference` | Read-only | `enter` loads one primary owner's complete procedure before evidence search. `list`/ `show` inspect skill metadata and instructions. `resource`/`reference` resolve paths for your file reader. |
 | Collect selected knowledge | CLI `collect`; Python `KnowledgeReader.collect` | Read-only | Batch selection and budgeted assembly by query or exact IDs, with revisions and omissions. The only accepted explicit `--relevance-method` value is `find-lexical-v1` |
 | Read exact material/resources | CLI `read` / `resource`; Python `KnowledgeReader.read` / `KnowledgeReader.resource` | Read-only | Returns the requested revision or an explicit unavailable/stale error; never substitutes newer bytes |
 | Export legacy cited material | CLI `context` | Read-only | Cited package export for manual use with a coding agent; not a conversation store and not a full Collect equivalent |
@@ -153,9 +153,9 @@ paths are relative to `importlib.resources.files("inferrsi")` and ship in the wh
 The small model profile links that skill's full inventory and worked example;
 those resources retain their repository owner and source attribution.
 
-### Discover/read packaged or custom skills — `skills list` / `show` / `resource` / `reference`
+### Discover/read packaged or custom skills — `skills list` / `enter` / `show` / `resource` / `reference`
 
-- **Inputs:** `list` reads frontmatter and sidecar metadata; `show <skill>` selects one instruction body; `resource <skill> <relative-path>` and `reference <skill> <relative-path>` resolve one path. The default is the installed library's registered skills; an explicit `--root` selects a custom flat tree or a categorized library with `skill-index.json`. The optional `skills` extra supplies the YAML parser.
+- **Inputs:** The agent selects a primary skill by deliverable and runs `inferrsi skills enter task-accuracy`, for example. It returns that owner's full instructions before supporting evidence search and works on the base installation. An unknown, unavailable or non-primary owner is an error. `list` reads frontmatter and sidecar metadata; `show <skill>` selects one instruction body; `resource <skill> <relative-path>` and `reference <skill> <relative-path>` resolve one path. The default is the installed library's registered skills; an explicit `--root` selects a custom flat tree or a categorized library with `skill-index.json`. The optional `skills` extra supplies the YAML parser for frontmatter operations.
 - **Scope:** complete packaged skills under `data/skill_library/`, or the explicitly selected custom root. The 21 English engine and research-router skills remain accessible through catalog records and library navigation, separately from the registry.
 - **Output:** metadata listing, one instruction body, or a resolved path.
 - **Side effects:** none. `resource`/`reference` do not load or execute the target.

@@ -54,7 +54,7 @@ for benchmark_name in builtin_tasks():
     for resource_name in ("task.json", "TASK.md", "benchmark.py", "LICENSE"):
         assert root.joinpath(resource_name).is_file(), (benchmark_name, resource_name)
 records = knowledge_records()
-assert len(records) == 129, "Knowledge is missing from the installation"
+assert len(records) == 136, "Knowledge is missing from the installation"
 assert resource("data/skill_library/records/README.md").is_file()
 assert repository_pack("vllm_rlt")["id"] == "vllm_rlt"
 assert search_knowledge(repo="vllm_omni", backend="ascend")
@@ -75,7 +75,7 @@ for record in mlx_records:
         "package:" + record["id"], mlx_document, revision=bundle.revision
     ) == resource(mlx_document).read_bytes()
 skill_index = search_knowledge(repo="inferrsi", limit=100)
-assert len(skill_index) == 81, "Missing installed skill abstracts"
+assert len(skill_index) == 88, "Missing installed skill abstracts"
 assert all(record["index_type"] == "packaged-skill" for record in skill_index)
 ascend_rc = KnowledgeReader().read("inferrsi.ascend.skills.vllm_ascend")
 for note in ("plugin-registration", "minimax-cache", "dspark-pd", "sources",
@@ -254,9 +254,20 @@ for record in skill_index:
             digest = hashlib.sha256(data.replace(b"\r\n", b"\n")).hexdigest()
         assert digest == expected_hash, relative
 registry = json.loads(library.joinpath("skill-index.json").read_text(encoding="utf-8"))["skills"]
-assert len(registry) == 81
+assert len(registry) == 88
 for entry in registry.values():
     assert library.joinpath(*entry["path"].split("/"), "SKILL.md").is_file()
+# The default wheel opens every primary procedure before an agent searches for evidence.
+for task in ("day-0", "performance", "debug", "accuracy", "version-alignment",
+             "derived-engine", "independent-engine"):
+    name = f"task-{task}"
+    with contextlib.redirect_stdout(io.StringIO()) as stdout:
+        assert main(["skills", "enter", name]) == 0
+    entered = json.loads(stdout.getvalue())
+    assert entered["name"] == name
+    owner = library.joinpath(*registry[name]["path"].split("/"), "SKILL.md")
+    assert entered["instructions"] == owner.read_text(encoding="utf-8")
+
 for framework, backend in (("pytorch", "common"), ("torch-npu", "ascend")):
     identity = f"inferrsi.{backend}.skills.{framework.replace('-', '_')}"
     framework_reader = KnowledgeReader()
@@ -543,7 +554,7 @@ inventory = {
     **_inventory(files("inferrsi").joinpath("knowledge", "data"), "knowledge/data"),
     **_inventory(files("inferrsi").joinpath("harness", "data"), "harness/data"),
 }
-assert len(inventory) == 854, f"installed resource count is {len(inventory)}, expected 854"
+assert len(inventory) == 868, f"installed resource count is {len(inventory)}, expected 868"
 assert sum(name.startswith("harness/data/") for name in inventory) == len(REPO_TYPES)
 # Every pinned record path and every registered skill body resolves inside that
 # same enumeration, so the inventory and the records describe one resource set.

@@ -14,7 +14,7 @@ separate work, not an implemented capability of this knowledge base.
 The [illustrated layout and search guide](knowledge-layout.md) shows the task
 entry, physical directories, evidence lookup and old-to-new bundle counts.
 
-The [task router](../src/inferrsi/knowledge/data/skill_library/tasks/inference-task-router/SKILL.md) selects one of seven deliverables before opening supporting knowledge. For direct subject browsing, the first library directory answers the reader's question. The second
+The main agent selects one of the [seven primary skills](knowledge-layout.md#seven-deliverables) by the requested outcome and uses `inferrsi skills enter <task-id>` to load its procedure before evidence search. Its decision points use the observed run to choose supporting knowledge. For direct subject browsing, the first library directory answers the reader's question. The second
 identifies a subsystem, an engineering activity, a workflow stage group or
 the scope of a case collection. The registry maps each stable ID to a single
 bundle; backend and evidence state remain separate metadata.
@@ -43,10 +43,10 @@ For existing automation, resolve an ID through `skill-index.json` or use
 the new location. A reference pinned to an earlier commit uses that
 commit's original path; regenerate resource pins when adopting a new bundle.
 
-The router declares `discovery_role: task-entry` in its sidecar. Read it
-explicitly with `inferrsi skills show inference-task-router` and open the
-chosen resource. Default `find` ranks evidence owners and excludes task
-entrypoints before computing IDF. Unmarked skills retain ordinary discovery.
+The seven primaries and the compatibility router declare the task-entry discovery role.
+The [legacy router](../src/inferrsi/knowledge/data/skill_library/tasks/inference-task-router/SKILL.md)
+still supports explicit reads of historical route resources. Default Find excludes these
+eight entries before computing IDF and ranks the technical evidence owners.
 Use [the migration manifest](skill-layout-migration.csv) to resolve raw paths.
 Retained material can be replayed from its saved bytes or matching source
 snapshot. A digest-only reference requires its original package, checkout or
@@ -72,7 +72,8 @@ installation path reproduced a failed read of a nested reference on such a host.
 src/inferrsi/knowledge/data/skill_library/
   README.md                         Library navigation
   skill-index.json                    Stable IDs → current bundle path and backend
-  tasks/inference-task-router/          Entry skill and seven individually readable route cards
+  tasks/task-*/                       Seven registered primary procedures and their sidecars
+  tasks/inference-task-router/        Compatibility owner for historical route resources
   systems/platforms/{ascend,cuda,host}/   Device and host implementation guidance
   systems/frameworks/<framework>/     Framework-specific behavior and procedures
   systems/engines/<repo>/             Engine entry, sub-skills and resources
@@ -282,21 +283,20 @@ Complete procedures, sidecars, references and cases are packaged together. Brows
 system, engineering task, workflow or prior outcome. Backend is recorded independently. The 21 engine and research-router skills
 use the same ownership layout under `systems/engines/<engine>/` and
 `workflows/research/inference-engine-research/`, including their sub-skills and references.
-The library contains 144 `SKILL.md` files, all in English. The registered
+The library contains 151 `SKILL.md` files, all in English. The registered
 [Lithos Metal candidate](../src/inferrsi/knowledge/data/skill_library/systems/engines/lithos-metal/SKILL.md)
 adds three owner-local subskills for compiler/fusion, generation state and
 serving/cache contracts; it adds no executable repository target.
 The collection overview, import notes and source manifest belong to the research
-workflow's references; Strata design-space analysis belongs to Strata. The library
-root contains only navigation and the registry.
+workflow's references; Strata design-space analysis belongs to Strata. The library root holds the registry, configuration, compiled inputs, authored findings and skill directories.
 
 The [runtime catalog](../src/inferrsi/knowledge/data/skill_library/README.md)
-projects the 81 registered skills into the contribution catalog. Its records
+projects the 88 registered skills into the contribution catalog. Its records
 use `inferrsi.<backend>.skills.<name_with_underscores>` IDs, with `ascend` and
 `cuda` for scopes that depend on those backends and `common` for the remaining skills.
 Each `skill_documents.original` points to the full packaged procedure. The
 `skills` CLI retains the original hyphenated skill IDs and defaults to this
-81-ID registry; engine procedures remain available through library navigation
+88-ID registry; engine procedures remain available through library navigation
 and catalog document pointers.
 
 The registered [PyTorch](../src/inferrsi/knowledge/data/skill_library/systems/frameworks/pytorch/pytorch/SKILL.md)

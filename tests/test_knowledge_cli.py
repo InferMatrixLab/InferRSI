@@ -34,6 +34,19 @@ def run_cli_error(*argv):
     return stderr.getvalue()
 
 
+def test_enter_rejects_a_primary_with_no_instructions(tmp_path):
+    owner = tmp_path / "task-accuracy"
+    owner.mkdir()
+    (owner / "metadata.json").write_text(
+        '{"discovery_role":"task-entry","tags":["primary-task"]}', encoding="utf-8"
+    )
+    (owner / "SKILL.md").write_text(
+        "---\nname: task-accuracy\ndescription: Missing body\n---\n", encoding="utf-8"
+    )
+    error = run_cli_error("skills", "--root", str(tmp_path), "enter", "task-accuracy")
+    assert "requires frontmatter and instructions" in error
+
+
 def local_candidate(source: Bundle) -> Bundle:
     return Bundle(
         {

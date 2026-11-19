@@ -4,7 +4,7 @@ Generated from the registry, the skill sidecars and the two maintained
 matrices. **Do not edit by hand**; regenerate after any registry, skill,
 matrix or frozen-plan change.
 
-- Input digest: `sha256:5f6f51d0ca254d79218209aaaf3f7b68b3e6ceb4dc754dc6ba995e838bdea9de`
+- Input digest: `sha256:6be00573bdb637fb33f80378086f5aae53dd519d032cbfa1ded20cc9a73b09b9`
 - Regenerate: `python tools/build_skill_coverage.py`
 - Verify without writing: `python tools/build_skill_coverage.py --check`
 
@@ -33,18 +33,18 @@ matrix: every field is copied from an owner that already maintains it.
 
 | Measure | Value |
 |---|---|
-| Registered skill ids | 81 |
-| By category | casebooks 2, playbooks 17, systems 53, tasks 1, workflows 8 |
-| By backend | ascend 16, common 60, cuda 5 |
+| Registered skill ids | 88 |
+| By category | casebooks 2, playbooks 17, systems 53, tasks 8, workflows 8 |
+| By backend | ascend 16, common 67, cuda 5 |
 | Recorded on a numbered SearchSpace resource layer | 51 |
 | Recorded only in a supplementary guidance table (†) | 21 |
-| Resource layers explicitly not applicable | 8 |
+| Resource layers explicitly not applicable | 15 |
 | Conflicting resource-layer declarations | 0 |
 | Recorded on two or more resource layers | 24 |
 | Recorded in the Reference Matrix | 72 |
-| With a `metadata.json` sidecar | 81 |
+| With a `metadata.json` sidecar | 88 |
 | Selected by a frozen evaluation plan | 2 |
-| `SKILL.md` documents in the library | 144 |
+| `SKILL.md` documents in the library | 151 |
 | Unregistered documents (excluded from every count above) | 63 |
 
 A complete inventory is not a coverage claim. Every registered row below
@@ -138,11 +138,18 @@ optimization is fully covered or that any procedure has measured benefit.
 | [vllm-ascend](../src/inferrsi/knowledge/data/skill_library/systems/engines/vllm-ascend/SKILL.md) | ascend | Analyze vLLM Ascend v0.27.1rc1 performance and commit evolution for DeepSeek-V4, Kimi K3, MiniMax-M3 and GLM5+, fused ... | Release-pinned performance diagnosis and historical optimization analysis for ... | input_contract, produced_artifact, refusal_point<br>5 advice | 1 Accelerator † guidance: vLLM Ascend v0.27.1rc1 serving diagnosis<br>2 RAM/Host † guidance: vLLM Ascend v0.27.1rc1 serving diagnosis | vLLM Ascend v0.27.1rc1 serving scope (vllm-project/vllm-ascend at `3b31886237ed65c435e0965b10e8002ff5769766`) | candidate · not_run · 3 readset(s) | no-eval |
 | [vllm-metal](../src/inferrsi/knowledge/data/skill_library/systems/engines/vllm-metal/SKILL.md) | common | Investigate vllm-metal Apple inference through platform and native-ABI selection, paged KV/offload ownership ... | Selected plugin preparation, KV/offload ownership and speculative/deferred/dispatch ... | failure_modes, input_contract, produced_artifact<br>3 advice | 1 Accelerator † guidance: vLLM Metal selected source contracts<br>2 RAM/Host † guidance: vLLM Metal selected source contracts<br>3 SSD † guidance: vLLM Metal selected source contracts | vLLM Metal portable AREX source and CPU extraction (vllm-project/vllm-metal @ `e7df7a6ff215f99c7842552d230fdbc709835934` ...) | candidate · partial_cpu_only · 2 readset(s) | no-eval |
 
-## Registered: Task routing (1)
+## Registered: Task routing (8)
 
 | Skill | Backend | Declared task | Applicability | Conditions | SearchSpace layer / stage | Reference Matrix | State | Gaps |
 |---|---|---|---|---|---|---|---|---|
 | [inference-task-router](../src/inferrsi/knowledge/data/skill_library/tasks/inference-task-router/SKILL.md) | common | Select the starting route for day-0 model support, inference performance optimization, debugging, accuracy repair ... | Classifying an inference engineering request and identifying reusable procedures. | input_contract, produced_artifact, refusal_point | N/A: This entry selects a task and its evidence requirements before resource-layer analysis. | — | candidate · not_run · 0 readset(s) | no-Reference-Matrix-row, no-eval |
+| [task-accuracy](../src/inferrsi/knowledge/data/skill_library/tasks/task-accuracy/SKILL.md) | common | Use when inference completes but tokens, audio, frames, tensors or a quality metric diverge from a reference. Trace the ... | Modality-specific reference parity and accuracy regression repair. | input_contract, produced_artifact, refusal_point | N/A: The procedure selects supporting evidence and tests within the caller's declared search space. | — | candidate · not_run · 0 readset(s) | no-Reference-Matrix-row, no-eval |
+| [task-day-0](../src/inferrsi/knowledge/data/skill_library/tasks/task-day-0/SKILL.md) | common | Use for Day-0 onboarding of a new checkpoint or architecture to a named inference engine. Produce a reproducible target ... | New model support in an existing inference engine. | input_contract, produced_artifact, refusal_point | N/A: The procedure selects supporting evidence and tests within the caller's declared search space. | — | candidate · not_run · 0 readset(s) | no-Reference-Matrix-row, no-eval |
+| [task-debug](../src/inferrsi/knowledge/data/skill_library/tasks/task-debug/SKILL.md) | common | Use for inference crashes, hangs, out-of-memory failures or execution-path errors. Localize the first failing boundary ... | Run-specific failure reproduction, fault isolation and regression verification. | input_contract, produced_artifact, refusal_point | N/A: The procedure selects supporting evidence and tests within the caller's declared search space. | — | candidate · not_run · 0 readset(s) | no-Reference-Matrix-row, no-eval |
+| [task-derived-engine](../src/inferrsi/knowledge/data/skill_library/tasks/task-derived-engine/SKILL.md) | common | Use for a fork or extension that retains an upstream inference execution core, including a vLLM or vLLM-Omni ... | Development and qualification of an engine that retains an upstream execution core. | input_contract, produced_artifact, refusal_point | N/A: The procedure selects supporting evidence and tests within the caller's declared search space. | — | candidate · not_run · 0 readset(s) | no-Reference-Matrix-row, no-eval |
+| [task-independent-engine](../src/inferrsi/knowledge/data/skill_library/tasks/task-independent-engine/SKILL.md) | common | Use when the deliverable owns its execution, memory and device integration on a target OS and hardware stack. Prove a ... | Independent runtime bring-up across OS, model format, device and backend boundaries. | input_contract, produced_artifact, refusal_point | N/A: The procedure selects supporting evidence and tests within the caller's declared search space. | — | candidate · not_run · 0 readset(s) | no-Reference-Matrix-row, no-eval |
+| [task-performance](../src/inferrsi/knowledge/data/skill_library/tasks/task-performance/SKILL.md) | common | Use when a correct inference baseline misses a latency, throughput, memory or cost target. Compare compatible changes ... | Optimization of a specified metric under fixed workload, quality and resource constraints. | input_contract, produced_artifact, refusal_point | N/A: The procedure selects supporting evidence and tests within the caller's declared search space. | — | candidate · not_run · 0 readset(s) | no-Reference-Matrix-row, no-eval |
+| [task-version-alignment](../src/inferrsi/knowledge/data/skill_library/tasks/task-version-alignment/SKILL.md) | common | Use for upgrades spanning inference engines, plugins, drivers or operator libraries. Isolate the incompatible boundary ... | Compatibility of explicit working and target version combinations. | input_contract, produced_artifact, refusal_point | N/A: The procedure selects supporting evidence and tests within the caller's declared search space. | — | candidate · not_run · 0 readset(s) | no-Reference-Matrix-row, no-eval |
 
 ## Registered: Cross-stage workflows (8)
 
@@ -232,7 +239,7 @@ an entrypoint routes to procedures below it rather than adding one.
 
 ## Integrity checks
 
-- Registered ids resolve to an existing `SKILL.md`: 81 of 81.
+- Registered ids resolve to an existing `SKILL.md`: 88 of 88.
 - Duplicate ids or paths: none; `skill_catalog` rejects them before this view is built.
 - Skill links in the two matrices that do not resolve: 0.
 - Registered skills without a `metadata.json` sidecar: 0.
@@ -243,10 +250,10 @@ an entrypoint routes to procedures below it rather than adding one.
 |---|---|
 | `no-SearchSpace-layer` | 1: husky |
 | `conflicting-SearchSpace-layer` | 0: — |
-| `no-Reference-Matrix-row` | 9: ascend-video-diffusion-optimization, audit-fixed-workload-claim, cite-check-downstream-pr, claim-contract, competitor-scan, draft-acceptance-issue, inference-task-router, rsi-evidence, video-diffusion-optimization |
+| `no-Reference-Matrix-row` | 16: ascend-video-diffusion-optimization, audit-fixed-workload-claim, cite-check-downstream-pr, claim-contract, competitor-scan, draft-acceptance-issue, inference-task-router, rsi-evidence, task-accuracy, task-day-0, task-debug, task-derived-engine, task-independent-engine, task-performance, task-version-alignment, video-diffusion-optimization |
 | `no-sidecar` | 0: — |
 | `no-applicability` | 0: — |
-| `no-eval` | 79: as listed in the Gaps column above |
+| `no-eval` | 86: as listed in the Gaps column above |
 
 These are inventory gaps, not efficacy results. Missing layer mappings stay
 unknown unless the sidecar records a reasoned N/A. N/A is not coverage;

@@ -104,7 +104,9 @@ Agents and human reviewers **clear** work only with artifacts—not vibes. Green
 
 ## Skills
 
-Portable operator guidance and candidate procedures live in [src/inferrsi/knowledge/data/skill_library/](src/inferrsi/knowledge/data/skill_library/README.md), with a `tasks/` router over `systems/`, `playbooks/`, `workflows/` and `casebooks/`. The library owns complete procedures, metadata, references and cases. Keep library content in English; supporting documents stay in owner-local resource directories. The [knowledge-base contract](docs/knowledge-base.md) and two matrices define ownership and coverage. Keep **AGENTS.md** short; follow skill bodies for procedures—skills must remain free of campaign SHAs.
+For an inference task, first select one of the [seven required primary skills by deliverable](plugins/inferrsi/skills/inferrsi/SKILL.md#load-the-primary-inference-task). Run `inferrsi skills enter <primary-id>` and read the returned instructions before the first evidence search. For an accuracy regression, use `inferrsi skills enter task-accuracy`. If the required skill cannot load, report the blocker. Frozen evaluations follow their assigned entry and knowledge condition.
+
+Portable operator guidance and candidate procedures live in the [skill library](src/inferrsi/knowledge/data/skill_library/README.md). Keep complete English instructions, metadata, references and cases with the owner. The [knowledge-base contract](docs/knowledge-base.md) and two matrices define ownership and coverage. Keep campaign SHAs out of skill bodies.
 
 ## Optimization requests
 

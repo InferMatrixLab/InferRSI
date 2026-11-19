@@ -35,7 +35,7 @@ def test_compiled_inputs_expand_to_public_records():
     records = list(skill_views(root))
     manifest = json.loads((GENERATED / snapshot.MANIFEST).read_bytes())
     assert {p.name for p in GENERATED.iterdir()} == {INPUTS, snapshot.MANIFEST}
-    assert len(records) == len(inputs) == 81
+    assert len(records) == len(inputs) == 88
     public = search_knowledge(repo="inferrsi", limit=100)
     assert {r["id"] for r in records} == {r["id"] for r in public}
     for record in records:

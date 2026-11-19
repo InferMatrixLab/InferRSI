@@ -6,17 +6,18 @@ Start from the work an engineer needs to finish. The library has one physical ro
 
 ```mermaid
 flowchart TB
-    Q["Requested deliverable"] --> R["tasks / inference-task-router · 1 skill"]
-    R --> A["Day-0 model · performance · debugging · accuracy"]
-    R --> B["Version alignment · derived engine · independent engine"]
-    A --> C["Model family / stages + engine revision + backend / device + OS + workload / dtype"]
-    B --> C
-    C --> S["systems · 53<br/>platforms / frameworks / engines"]
-    C --> P["playbooks · 17<br/>measurement / planning / optimization"]
-    C --> W["workflows · 8<br/>research / governance / maintenance"]
-    C --> K["casebooks · 2<br/>previous outcomes and retry conditions"]
-    S & P & W & K --> E["Verify applicability against a case, an authored record or frozen evidence"]
-    E --> O["Cite revision, observation, limitations and next check"]
+    Q["Inference goal at the main agent entrypoint"] --> P["Select and load ONE primary SKILL.md before evidence search"]
+    P --> A["Day-0 model · performance · debugging · accuracy"]
+    P --> B["Version alignment · derived engine · independent engine"]
+    A & B --> R["Record actual vendor / device / backend / OS, model and stages, engine and revision,<br/>script and flags, benchmark and gates, diagnosis and allowed search space"]
+    R --> D["Primary routine: observation → supporting skill → evidence to collect → next test"]
+    D --> S["systems · 53<br/>platforms / frameworks / engines"]
+    D --> M["playbooks · 17<br/>measurement / planning / optimization"]
+    D --> W["workflows · 8<br/>research / governance / maintenance"]
+    D --> K["casebooks · 2<br/>previous outcomes and retry conditions"]
+    S & M & W & K --> V["Match the evidence to the actual run and test the goal"]
+    V --> O["Gates met: cite artifacts and scope"]
+    V --> N["Open question: run the smallest discriminating test or record the budget blocker"]
 ```
 
 ![Task layers and evidence (Chinese)](assets/knowledge-layout/01-task-layers.png)
@@ -26,16 +27,16 @@ flowchart TB
 ```mermaid
 flowchart LR
     D["src/inferrsi/knowledge/data/"] --> L["skill_library/ · sole child"]
-    L --> T["tasks/inference-task-router/references/routes/<br/>7 task cards"]
-    L --> S["systems/ · playbooks/<br/>workflows/ · casebooks/"]
-    T & S --> O["Registered owner<br/>SKILL.md + metadata + references / cases"]
-    L --> F["records/&lt;stable-id&gt;.json<br/>48 authored findings"]
-    L --> CFG["config/<br/>query_aliases.json + research_profiles/"]
-    L --> REG["skill-index.json<br/>stable skill ID → owner + backend"]
-    L --> BUILD["_compiled/<br/>inputs.json + _provenance.json"]
+    L --> T["tasks/"]
+    T --> P["7 primary owners: task-day-0, task-performance, task-debug, task-accuracy,<br/>task-version-alignment, task-derived-engine, task-independent-engine"]
+    T --> H["inference-task-router/ · legacy card paths"]
+    L --> S["80 supporting owners in systems/, playbooks/, workflows/, casebooks/"]
+    P & H & S --> O["One SKILL.md and sidecar per registered owner · 88 IDs"]
+    L --> F["records/&lt;stable-id&gt;.json · 48 authored findings"]
+    L --> CFG["config/ · aliases and research profiles"]
+    L --> REG["skill-index.json · stable ID → owner and backend"]
+    L --> BUILD["_compiled/ · inputs.json and _provenance.json"]
     O & REG -.->|generate from committed inputs| BUILD
-    H["harness/data/repo_packs/ · execution targets"]
-    E["evidence/ · frozen campaign artifacts"]
 ```
 
 ![One physical knowledge root (Chinese)](assets/knowledge-layout/02-physical-layout.png)
@@ -44,16 +45,19 @@ flowchart LR
 
 ```mermaid
 flowchart TB
-    Q["Input"] -->|Known task| T["Open one route card → seed IDs and acceptance criteria"]
-    Q -->|Known ID| I["read / resource / exact capture → open owner at revision"]
-    Q -->|Symptoms or managed campaign cue| F["Find lexical ranker · collect / capture share the selector"]
-    Q -->|Filtered catalog| C["knowledge search → scope by repo, backend, scenario, tier"]
-    C -->|With query| F
-    C -->|No query| B["List by stable ID · 48 records + 81 views, including the router"]
-    F --> A["Rank eligible owners before applying limits<br/>default corpus: 80 skills + 48 records + 7 cases; router excluded before IDF"]
-    T & I & A & B --> V["Check source revision, model, device, OS and workload"]
-    V --> X["Applicable → cite source / case and verification status"]
-    V --> G["Partial match or gap → record unknown + smallest discriminating test"]
+    Q["Main agent receives inference task"] --> P["Choose primary by outcome; skills enter loads its full procedure"]
+    P --> R["Capture actual run, acceptance gates and search budget"]
+    R --> D["Observation triggers a supporting question"]
+    D -->|Known owner| I["Explicit read / resource / capture by ID and revision"]
+    D -->|Unknown owner| F["Find lexical ranker · ranked Collect / campaign capture share selector"]
+    D -->|Need catalog scope| C["knowledge search · filter by repo, backend, scenario or tier"]
+    C -->|Query| F
+    C -->|No query| B["List 136 catalog records by ID · 48 findings + 88 skill views"]
+    F --> A["Exclude 7 primary skills and legacy router before IDF and limits<br/>default 135 evidence owners · 80 skills + 48 findings + 7 cases"]
+    I & A & B --> V["Check revision, device, model, flags and measurement against this run"]
+    V --> X["Meets gates → cite reproducible evidence and scope"]
+    V --> G["Gap → name missing evidence; test the next distinction or record exhausted budget"]
+    G -.->|budget remains| D
 ```
 
 ![Search paths and evidence delivery (Chinese)](assets/knowledge-layout/03-search-and-delivery.png)
@@ -64,19 +68,19 @@ flowchart TB
 flowchart LR
     subgraph OLD["main · before #516"]
         A["skill_library/<br/>hardware / frameworks / repositories / methods / workflows"]
-        B["repo_packs + knowledge_packs<br/>28 contribution + 9 dependency + 11 peer records"]
-        C["Generated packaged-skill JSON<br/>plus navigation and shared provenance"]
+        B["repo_packs + knowledge_packs<br/>28 contribution + 9 dependency + 11 peer findings"]
+        C["Generated per-skill JSON<br/>plus navigation and shared provenance"]
         D["data/query_aliases.json + research_profiles/"]
     end
     subgraph NEW["PR · knowledge/data/skill_library/"]
-        N["tasks / systems / playbooks / workflows / casebooks<br/>1 + 53 + 17 + 8 + 2"]
-        R["records/ · 48 originals<br/>tier stored or defaulted in each record"]
-        V["Runtime skill views<br/>one registry + two machine-generated build inputs"]
+        N["tasks/ · 7 first-class primary owners + 1 compatibility router<br/>systems / playbooks / workflows / casebooks · 53 + 17 + 8 + 2"]
+        R["records/ · 48 authored findings<br/>IDs, tiers, sources and verification retained"]
+        V["88 runtime skill views · 1 registry + 2 build inputs"]
         P["config/ · aliases + profiles"]
     end
-    A -->|move 80 owners and add task entry| N
-    B -->|retain IDs; migrate linked paths| R
-    C -->|remove mirrored record files| V
+    A -->|move 80 supporting owners and add primary skills| N
+    B -->|retain IDs and migrate linked paths| R
+    C -->|generate views on demand| V
     D --> P
 ```
 
@@ -87,7 +91,15 @@ flowchart LR
 ```text
 src/inferrsi/knowledge/data/
 └── skill_library/
-    ├── tasks/inference-task-router/        SKILL.md, metadata.json, references/routes/*.json
+    ├── tasks/
+    │   ├── task-day-0/                    SKILL.md + metadata.json for each primary
+    │   ├── task-performance/
+    │   ├── task-debug/
+    │   ├── task-accuracy/
+    │   ├── task-version-alignment/
+    │   ├── task-derived-engine/
+    │   ├── task-independent-engine/
+    │   └── inference-task-router/         compatibility entry and original route resources
     ├── systems/                           platforms/{ascend,cuda,host}, frameworks/, engines/
     ├── playbooks/                         measurement/, planning/, optimization/
     ├── workflows/                         research/, governance/, maintenance/
@@ -98,32 +110,38 @@ src/inferrsi/knowledge/data/
     └── _compiled/                         inputs.json, _provenance.json
 ```
 
-The README documents the library. A procedure, including its resources, belongs in one registered directory. An engineering record carries its own sources, applicability and verification status. Its filename must match its stable ID. The registry locates each skill. The existing protected `knowledge/catalog.py` owns the public view fields, including source links, recommendations and verification status. Builds compile YAML headers and pinned Git fingerprints required by the base wheel. The catalog reads canonical sidecars and emits the public schema-1 record on demand. Publishing the same skill under multiple engine or accelerator trees would require synchronized edits. Represent these dimensions on the task card and in owner metadata. For a new environment with no applicable local evidence, retain the unknown and the first check that could resolve it. [Record authoring guide](../src/inferrsi/knowledge/data/skill_library/records/README.md)
+The README documents the library. A procedure, including its resources, belongs in one registered directory. An engineering record carries its own sources, applicability and verification status. Its filename must match its stable ID. The registry locates each skill. The existing protected `knowledge/catalog.py` owns the public view fields, including source links, recommendations and verification status. Builds compile YAML headers and pinned Git fingerprints required by the base wheel. The catalog reads canonical sidecars and emits the public schema-1 record on demand. Publishing the same skill under multiple engine or accelerator trees would require synchronized edits. Capture these dimensions for the actual run and compare them with owner metadata. For a new environment with no applicable local evidence, retain the unknown and the first check that could resolve it. [Record authoring guide](../src/inferrsi/knowledge/data/skill_library/records/README.md)
 
 ## Seven deliverables
 
-| Task card | Inputs to distinguish | Acceptance evidence |
+| Required primary skill | Inputs to distinguish | Acceptance evidence |
 | --- | --- | --- |
-| Day-0 model | Model revision, stages, reference implementation, backend | Stage outputs, first end-to-end result, regression fixture |
-| Performance | Target metric, workload, bottleneck, quality floor | Paired baseline/candidate runs, quality check and variability |
-| Debug | Symptom, last-good configuration, first failing stage | Minimal reproduction, implicated boundary, regression check |
-| Accuracy | Reference outputs, dtype, preprocessing, seeds | First divergence, agreed tolerance and end-to-end result |
-| Version alignment | Versions of vLLM, vLLM-Omni, vLLM-Ascend and afd-plugin as applicable | Compatibility matrix, paired versions and rollback point |
-| Derived engine | Parent revision, inherited APIs and changed paths | Upstream behavior checks and tests of the fork delta |
-| Independent engine | Runtime, model format, device, OS and operator availability | Device-native first result, capability gaps and resource bounds |
+| [Day-0 model](../src/inferrsi/knowledge/data/skill_library/tasks/task-day-0/SKILL.md) | Model revision, stages, reference implementation, backend | Stage outputs, first end-to-end result, regression fixture |
+| [Performance](../src/inferrsi/knowledge/data/skill_library/tasks/task-performance/SKILL.md) | Target metric, workload, bottleneck, quality floor | Paired baseline/candidate runs, quality check and variability |
+| [Debug](../src/inferrsi/knowledge/data/skill_library/tasks/task-debug/SKILL.md) | Symptom, last-good configuration, first failing stage | Minimal reproduction, implicated boundary, regression check |
+| [Accuracy](../src/inferrsi/knowledge/data/skill_library/tasks/task-accuracy/SKILL.md) | Reference outputs, dtype, preprocessing, seeds | First divergence, agreed tolerance and end-to-end result |
+| [Version alignment](../src/inferrsi/knowledge/data/skill_library/tasks/task-version-alignment/SKILL.md) | Versions of vLLM, vLLM-Omni, vLLM-Ascend and afd-plugin as applicable | Compatibility matrix, paired versions and rollback point |
+| [Derived engine](../src/inferrsi/knowledge/data/skill_library/tasks/task-derived-engine/SKILL.md) | Parent revision, inherited APIs and changed paths | Upstream behavior checks and tests of the fork delta |
+| [Independent engine](../src/inferrsi/knowledge/data/skill_library/tasks/task-independent-engine/SKILL.md) | Runtime, model format, device, OS and operator availability | Device-native first result, capability gaps and resource bounds |
 
-A Windows TTS accuracy regression during an engine upgrade can start with accuracy and use version alignment as a secondary card. Establish the last-good input, wrapper, preprocessing and audio comparison. An Ascend 910B1 TTS report is an analogue until the caller supplies target-specific evidence. Conversely, an exact match to its documented model, fixed prompt, wrapper and device deserves consideration. LLM, Omni, TTS, Diffusion and RLT are workload conditions. CUDA, ROCm, Ascend, XPU, mobile and Windows are scoped explicitly. A route mentioning a target establishes a question to test. Use a supported CLI filter only where the reader implements it.
+The main entrypoint loads the primary that owns the user's acceptance criterion. Record hardware vendor, device, backend and OS, model specification and stages, engine and version, run script and flags, benchmark, acceptance criteria, current diagnosis and allowed search space. State unknowns and obtain the smallest missing input that affects the decision.
+
+For example, when a Windows TTS engine still runs after an upgrade but audio quality falls, load **task-accuracy** before the first search. Fix the prompt, reference audio or codec tokens, seed, preprocessing, dtype and tolerance. Compare the last-good and target stacks on that input. When only the target stack fails, consult version alignment to isolate the changed component. When both stacks diverge, trace the model's earliest mismatching stage. An Ascend 910B1 result can suggest what to measure; verifying a Windows repair requires the original target reproducer and held-out quality checks. If the reference is missing or the allowed budget runs out, record the missing comparison and its impact.
+
+LLM, Omni, TTS, Diffusion and RLT describe workload conditions. CUDA, ROCm, Ascend and XPU describe backends. Mobile devices and Windows add deployment constraints. Check these dimensions against evidence individually. Use only the filters supported by the chosen CLI reader.
 
 ## Search and read examples
 
 ```bash
-inferrsi skills resource inference-task-router references/routes/accuracy.json
+inferrsi skills enter task-accuracy
 inferrsi find "TTS quality regression after engine upgrade"
 inferrsi knowledge search --tier peer --repo-type qwen3_tts_engine --backend ascend --json
 inferrsi knowledge show flashinfer.cuda.llm.paged_decode_dispatch
 ```
 
-Known task cards seed 20 distinct skill IDs across seven routes. Known IDs can skip routing. Free-text discovery ranks the owner once and returns a path, evidence state and explanation. A catalog query applies scope filters and reuses Find to rank the eligible owners; the no-query listing returns complete records in ID order. Ranked Collect and campaign capture use the same selector. Explicit IDs can still capture a task card’s owner. The caller checks applicability before applying a result. A finding or failed attempt can be proposed as a record with a source, a scoped conclusion and a retry condition. The program does not autonomously promote session notes.
+For an inference task, run `inferrsi skills enter <task-id>` and read its returned `instructions` before choosing the first supporting query. Its decision points specify the observation that warrants opening a supporting skill, the evidence to retrieve and the next action. A direct evidence lookup outside the main agent workflow can still use an exact ID or free text. The compatibility router retains its historical resource paths.
+
+Find ranks each eligible evidence owner once. A scoped catalog query reuses Find; a catalog listing without a query includes the eight task entries. Ranked Collect and managed campaign capture use the same evidence selector, and explicit IDs can still capture a task owner. Check revision, applicability and verification before using a result. Propose a reusable finding for human review with its source, scoped conclusion and retry condition.
 
 ## Design choices and benefits
 
@@ -131,7 +149,7 @@ Agent V describes Git-backed shared memory with human guidance, hard-to-rediscov
 
 MindIE Agent separates agent capabilities, knowledge and execution plugins. KDA specializes in kernel development. Cannbot Skills packages Ascend procedures for reuse. InferRSI needs cross-engine, cross-model and cross-platform retrieval as well as evidence qualification. It combines a task front door, technical owners, stable IDs and scoped evidence. A claim that it retrieves better than any of these projects requires a common task benchmark. [MindIE Agent](https://github.com/mindie-agent/mindie-agent) · [KDA](https://github.com/NVlabs/kda) · [Cannbot Skills](https://github.com/hicann/cannbot-skills)
 
-Measure with three arms on the same corpus and tool budget: prior layout and search, unified layout with direct search, and unified layout with optional routing. Use held-out tasks across the seven types, blinded reviewers and paired cases with an applicable answer and a similar-looking incompatible target. Use four held-out tasks for each of the seven task types. Run each arm in an isolated session and balance the order. The primary metric is the fraction of answerable tasks with an applicable, cited owner in the top three. Report top-five applicable-source recall separately. For missing evidence, score unjustified transfer, correct abstention and mistaken abstention separately. Record time to first useful evidence, files opened and maintenance effort. Compare A→B and B→C separately using the gates in the acceptance issue. Approve broader rollout only when the team meets its predeclared quality and cost targets.
+Measure three arms on the same corpus and tool budget. A uses the prior layout and search. B runs direct search on the unified layout as an evaluation-only ablation. C uses the normal main entrypoint on that same layout and loads the selected primary before evidence search. Use held-out tasks across the seven types, blinded reviewers and paired cases with an applicable answer and a similar-looking incompatible target. Use four held-out tasks for each of the seven task types. Run each arm in an isolated session and balance the order. The primary metric is the fraction of answerable tasks with an applicable, cited owner in the top three. Report top-five applicable-source recall separately. For missing evidence, score unjustified transfer, correct abstention and mistaken abstention separately. Record time to first useful evidence, files opened and maintenance effort. Compare A→B and B→C separately using the gates in the acceptance issue. Approve broader rollout only when the team meets its predeclared quality and cost targets.
 
 The authoring benefit is directly inspectable: one finding file or one skill owner is edited; no per-pack navigation list or projected record is maintained. Two compiled files are reproducible build products. Their shared merge point is a cost: resolve source edits, then regenerate. The build-time Git pin identifies source provenance. Installed material selection checks the resource hashes. Whole-library dependency revisions, checkout revisions, and hashes of individual findings have different scopes. Historical checkout pins must be replayed on the corresponding snapshot. Compared with main after #507, the full layout migration rejects 79 old checkout skill pins, retains the seven case pins from that baseline and preserves the pre-existing unavailable `husky` read. Direct callers that open old pack filenames must move to the record ID or new path.
 

@@ -60,7 +60,10 @@ def test_corpus_covers_all_three_kinds_without_double_counting(corpus):
     for document in corpus.documents:
         kinds[document.kind] = kinds.get(document.kind, 0) + 1
     assert kinds["skill"] == 80
-    assert all(document.identity != "inference-task-router" for document in corpus.documents)
+    # All task procedures resolve by exact ID, outside the evidence corpus and its IDF.
+    navigation = {path.parent.name for path in (ROOT / "tasks").glob("*/SKILL.md")}
+    assert len(navigation) == 8
+    assert navigation.isdisjoint(document.identity for document in corpus.documents)
     day0 = find("day-0 model integration on Ascend", corpus, limit=3)
     assert day0["items"] and _ranked(day0, "inference-task-router") is None
     assert kinds["case"] == 7
@@ -117,7 +120,8 @@ def test_catalog_ranks_find_documents_over_the_filtered_package_scope(corpus, qu
     eligible = [document for document in corpus.documents if document.qualified in by_find_ref]
     # Navigation is available in an unranked listing and by exact ID.
     unranked = set(by_find_ref) - {doc.qualified for doc in eligible}
-    assert unranked == ({"checkout:inference-task-router"} & set(by_find_ref))
+    navigation = {f"checkout:{path.parent.name}" for path in (ROOT / "tasks").glob("*/SKILL.md")}
+    assert unranked == navigation & set(by_find_ref)
     _, _, scored = rank(query, Corpus(eligible))
     assert scored
 

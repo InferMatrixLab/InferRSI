@@ -459,20 +459,20 @@ guidance or reported measurements independently from a source's merge status.
 Imported skills are source material, not executable tool authority. CPU tests
 do not upgrade imported knowledge to a validated claim.
 
-The optional `skills` CLI defaults to the installed `data/skill_library/` and
-its `skill-index.json` registry of stable skill IDs. Hardware-specific content
-lives under `systems/platforms/ascend`, `systems/platforms/cuda` or `systems/platforms/host`; other skills
-are grouped by framework, repository, method or workflow. Full procedures,
-sidecars, references and cases ship with the package. Engine entry skills live
-under `repositories/<engine>/`, the collection router under
-`workflows/research/inference-engine-research/`. All library content is in English.
-Supporting documents are owner-local; only `README.md` and `skill-index.json`
-remain at the library root. An explicit
-`--root` can still select a custom flat skills tree or a registry-based library. The CLI uses PyYAML from the `skills` extra,
-lists metadata, reads a named body or resolves a named resource for an external
-file reader. It never executes, installs or promotes skills. Core knowledge
-commands read catalog JSON and packaged documents without the optional parser;
-the two matrices retain their authority.
+The bundled skill CLI uses `data/skill_library/` and its `skill-index.json` registry.
+The main agent selects one primary procedure from `tasks/` and reads it with
+`skills enter <task-id>` before searching for supporting evidence. The base
+runtime can load the complete packaged primary procedure without PyYAML.
+
+Supporting procedures live in `systems/`, `playbooks/`, `workflows/` and
+`casebooks/`. Engine owners live under `systems/engines/<engine>/`. Each owner
+packages its full English procedure, sidecar, references and cases. The library
+also owns authored findings in `records/`, search configuration in `config/`
+and generated build inputs in `_compiled/`. An explicit `--root` selects a
+custom flat or registry-based library. Readers that parse skill frontmatter use
+PyYAML from the `skills` extra. Core knowledge commands read catalog views and
+packaged documents with the base interpreter. The two matrices retain their
+authority. [Directory and search diagrams](knowledge-layout.md)
 
 Run evidence remains in the caller-selected run directory; frozen campaign
 plans/results/patches/validators remain under `evidence/`.

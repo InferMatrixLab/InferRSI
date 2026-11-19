@@ -393,6 +393,7 @@ def main(argv: list[str] | None = None) -> int:
             # CLI stays independent of them.
             from ...knowledge.skill_catalog import (
                 get_skill,
+                primary_task_instructions,
                 skill_instructions,
                 skill_records,
                 skill_reference,
@@ -409,6 +410,9 @@ def main(argv: list[str] | None = None) -> int:
                 else:
                     for record in records:
                         print(f"{record['name']}\t{record['description']}")
+            elif args.skills_action == "enter":
+                instructions = primary_task_instructions(root, args.name)
+                _print({"name": args.name, "instructions": instructions})
             elif args.skills_action == "show":
                 record = get_skill(root, args.name)
                 record["instructions"] = skill_instructions(root, args.name)

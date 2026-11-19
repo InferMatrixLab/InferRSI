@@ -136,6 +136,53 @@ def test_isolated_runtime_and_exact_knowledge_reads(distribution, tmp_path):
     assert "unavailable" in stale.stderr
 
 
+def test_entry_loads_the_required_primary_before_search(distribution, tmp_path):
+    entry = (distribution / "skills/inferrsi/SKILL.md").read_text(encoding="utf-8")
+    # Inspect the actual distributed entry, including the instructions before the
+    # task table. Moving a plain Find or Collect example above it must fail.
+    first_search = re.search(r'(?:^ *|`)(?:(?:python -X utf8 "<launcher>"|inferrsi) )?'
+                             r'(?:find|collect|knowledge search|campaign knowledge)\b',
+                             entry, flags=re.MULTILINE)
+    assert first_search
+    rows = dict(re.findall(r"^\| ([^|]+) \| `(skills enter [\w-]+)` \|$",
+                           entry[:first_search.start()], flags=re.MULTILINE))
+    required = {"task-day-0", "task-performance", "task-debug", "task-accuracy",
+                "task-version-alignment", "task-derived-engine", "task-independent-engine"}
+    assert len(rows) == len(required)
+    assert {command.split()[-1] for command in rows.values()} == required
+    before_search = " ".join(entry[:first_search.start()].split())
+    assert "before the first evidence search" in before_search
+    assert "If it fails, stop" in before_search
+    bundled = runtime_bytes(distribution)
+    library = "inferrsi/knowledge/data/skill_library/"
+    registered = json.loads(bundled[library + "skill-index.json"])["skills"]
+    for name in required:
+        owner = library + registered[name]["path"]
+        assert "primary-task" in json.loads(bundled[owner + "/metadata.json"])["tags"]
+        assert bundled[owner + "/SKILL.md"]
+
+    # The host makes the natural-language choice. Follow its published accuracy
+    # row and check the actual base-install CLI returns the owner before Find.
+    command = rows["Repair an accuracy or output-quality regression"].split()
+    assert command == ["skills", "enter", "task-accuracy"]
+    primary = invoke(distribution, tmp_path, *command)
+    assert primary.returncode == 0, primary.stderr
+    owner = PROJECT / "src/inferrsi/knowledge/data/skill_library/tasks/task-accuracy/SKILL.md"
+    assert json.loads(primary.stdout) == {
+        "name": "task-accuracy", "instructions": owner.read_text(encoding="utf-8")
+    }
+    hits = invoke(distribution, tmp_path, "find", "TTS quality regression",
+                  "--limit", "1", "--no-external", "--json")
+    assert hits.returncode == 0, hits.stderr
+    assert json.loads(hits.stdout)["items"]
+
+    # Substituting the old router does not satisfy the primary-load requirement.
+    wrong = invoke(distribution, tmp_path, "skills", "enter", "inference-task-router")
+    assert wrong.returncode == 2
+    assert "Not a primary inference task skill" in wrong.stderr
+    assert not wrong.stdout.strip()
+
+
 def test_entry_workflow_selects_packaged_skill_projections(distribution, tmp_path):
     result = invoke(
         distribution, tmp_path, "collect", "--relevance",

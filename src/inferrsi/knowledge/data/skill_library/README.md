@@ -1,11 +1,16 @@
 # InferRSI skill library
 
-The library contains 81 registered bundles and 144 English `SKILL.md` documents
-including nested and unregistered entries. Start with the [inference task router](tasks/inference-task-router/SKILL.md) to select one of seven deliverables and record model, hardware and OS conditions. For a known subject, choose a directory by the question
-you are trying to answer. The next level identifies the subsystem or activity.
+The main InferRSI agent selects one of the [seven primary inference skills](tasks/)
+by the requested outcome, runs `inferrsi skills enter <task-id>` and reads
+the returned procedure before the first supporting evidence search. Use the actual model, device, engine version, script, gates
+and diagnosis to decide which supporting skill to load next. The
+[compatibility router](tasks/inference-task-router/SKILL.md) retains older route
+resource paths. The library has 88 registered bundles and 151 English
+`SKILL.md` documents, including nested and unregistered entries.
 
 | Question | Directory | Choose a second-level category |
 | --- | --- | --- |
+| Which procedure owns the inference task? | [Tasks](tasks/) | Day-0, performance, debug, accuracy, version alignment, derived engine or independent engine |
 | How does this implementation work? | [Systems](systems/) | [Platforms](systems/platforms/README.md), [frameworks](systems/frameworks/) or [engines](systems/engines/) |
 | How should I perform this engineering task? | [Playbooks](playbooks/) | [Measurement](playbooks/measurement/), [planning](playbooks/planning/) or [optimization](playbooks/optimization/) |
 | How do several steps fit together? | [Workflows](workflows/) | [Research](workflows/research/), [governance](workflows/governance/) or [knowledge maintenance](workflows/maintenance/) |
@@ -16,13 +21,13 @@ Prior NPU optimization outcomes belong in `casebooks/ascend/`. Cross-platform
 benchmark design belongs in `playbooks/measurement/`. Put a bundle in one
 canonical location; link to it from other categories by its registered ID.
 
-Only this README and [`skill-index.json`](skill-index.json) live at the library
-root. Supporting material belongs to its owner's `references/`, `cases/` or
+The library also owns authored findings under `records/`, search configuration
+under `config/` and generated build inputs under `_compiled/`. Supporting material belongs to its owner's `references/`, `cases/` or
 existing resource directory.
 
 ## Read registered skills
 
-[`skill-index.json`](skill-index.json) maps 81 stable skill IDs to their canonical
+[`skill-index.json`](skill-index.json) maps 88 stable skill IDs to their canonical
 paths and backend scopes. Install the optional `skills` extra for these commands:
 
 ```bash
@@ -158,7 +163,7 @@ scheduling/placement proposals remain separate from both implementation pins.
 
 Five repository entry skills, 15 focused sub-skills and one research router
 provide source-grounded procedures. These 21 documents are available through
-the links and catalog records below, separately from the 81-ID registry.
+the links and catalog records below, separately from the 88-ID registry.
 The registered ComfyUI and stable-diffusion.cpp audits are listed alongside
 these imports and use generated abstracts rather than runtime repository packs.
 

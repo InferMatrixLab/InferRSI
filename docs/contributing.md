@@ -53,10 +53,12 @@ is a required status on `main`, so a failing declaration blocks merging; the
 check establishes declaration compliance only, not execution settings or results.
 
 The [skill library](../src/inferrsi/knowledge/data/skill_library/README.md) owns complete
-procedures, metadata, references and cases. The task router lives in `tasks/`. For supporting knowledge, choose the bundle’s primary purpose: system-specific implementation, engineering playbook,
-cross-stage workflow or casebook. Follow the library navigation for its subcategory. Maintain
+procedures, metadata, references and cases. The seven primary inference skills live in
+`tasks/`. The main agent loads one before searching for evidence. The historical router
+supports explicit reads. Categorize supporting knowledge by its primary purpose as
+system-specific implementation, engineering playbook, cross-stage workflow or casebook. Follow the library navigation for its subcategory. Maintain
 the registered stable IDs and their categorized paths in `skill-index.json`, then refresh
-their generated abstracts with `tools/build_skill_index.py`. Keep all skill
+the compiled build inputs with `tools/build_skill_index.py`. Keep all skill
 content in the canonical library. Preserve source state and
 `UNKNOWN` license declarations; moving content does not resolve licensing.
 

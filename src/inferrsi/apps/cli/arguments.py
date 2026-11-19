@@ -488,6 +488,10 @@ def parser(*, parser_class=argparse.ArgumentParser) -> argparse.ArgumentParser:
     actions = skills.add_subparsers(dest="skills_action", required=True)
     listing = actions.add_parser("list", help="List frontmatter and sidecar metadata only")
     listing.add_argument("--json", action="store_true")
+    enter = actions.add_parser(
+        "enter", help="Load the selected primary inference task before evidence search"
+    )
+    enter.add_argument("name", help="Registered primary task skill (for example, task-accuracy)")
     show = actions.add_parser("show", help="Load one skill's instructions and resource names")
     show.add_argument("name")
     resource = actions.add_parser("resource", help="Resolve one resource without executing it")
