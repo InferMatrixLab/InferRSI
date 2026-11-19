@@ -5,7 +5,7 @@ import json
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from ...infra.http import post_json
+from .http import post_json
 
 
 @dataclass(frozen=True)

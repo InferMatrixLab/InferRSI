@@ -96,19 +96,20 @@ interfaces; existing CLI commands remain supported.
 | --- | --- | --- |
 | Entry and knowledge | CLI arguments, immutable RunSpec, cited knowledge/context export | Model execution or automatic source editing |
 | Harness | AB/BA order, deadlines, source checks, scenario composition, evidence, performance adjudication and reporting | Device-specific conditions, request schemas or kernel dispatch |
-| Model | Request payloads and output decoding | Scheduling, worker lifetime, hardware selection, metric contracts or quality checks |
-| Infra | Repository identity, device discovery/qualification, process ownership, HTTP transport, storage and artifacts | Model constants, campaign gates or performance verdicts |
+| Model | Anthropic provider adapters and their request authorization | Scheduling, worker lifetime, hardware selection, request payloads, metric contracts or quality checks |
+| Infra | Repository identity, device discovery/qualification, storage and artifacts | Model constants, campaign gates or performance verdicts |
 
-Dependencies flow from entrypoints to Harness, from scenarios to Model/Infra,
-and from Model to Infra utilities. Infra does not import Model or Harness. None
+Dependencies flow from entrypoints to Harness. Harness reaches no Infra or Model
+module, and Infra does not import Model or Harness. None
 of these shared packages imports a campaign from `examples/`.
 
-Environment inspection follows that direction. `infra/inspection.py` is the
+Environment inspection follows that direction. `apps/host/inspection.py` is the
 facts API: it takes the command probe and the repository snapshot as ports.
 `apps/inspection.py` binds those ports to this host with
-`infra.commands.probe_command` and `infra.targets.repository_identity`, and the
-CLI calls that composition. Infra reaches no Apps, Knowledge, Harness or
-Benchmark module and is not a fourth core. `infra/inspection.py` reads a
+`apps.host.commands.probe_command` and `apps.host.targets.repository_identity`,
+and the CLI calls that composition. The `apps/host/` package moved from Infra in
+#498 slice 3a and keeps its limit: it reaches no Knowledge, Harness or Benchmark
+module. `apps/host/inspection.py` reads a
 repository-pack description through the neutral `resources.repository_packs`
 leaf, under the one permanent importer rule in
 [module-layout.md](module-layout.md#permanent-neutral-leaf-importer-rule-proposed).
@@ -188,6 +189,12 @@ src/inferrsi/
     api.py                  Python entry points for assembling and publishing Apps operations
     cli/                    CLI entry `main` and its argument parser
     inspection.py           Environment inspection bound to the host probe and Git identity
+    host/
+      inspection.py         Environment inspection facts API; command and snapshot ports
+      commands.py           Bounded read-only probes
+      environment.py        Dependency versions and storage checks
+      platforms/            Backend discovery registry; CUDA qualification
+      targets/git.py        Repository identity and source snapshots
     legacy/
       run.py                Old run composed from Harness, Benchmark and the report
       evaluation.py         Old evaluate entry: RunSpec to the Benchmark gates
@@ -268,19 +275,12 @@ src/inferrsi/
     runner.py               One AB/BA loop; execute/snapshot/assess/report ports injected
     scenarios/
       external.py           External command trials; metric validation injected
-  model/
-    protocols/
+    serving/
+      server.py             Supervised Linux serving workers and their group cleanup
+      http.py               Timed JSON POST transport
       image.py              OpenAI-style image payload and PNG response protocol
   infra/
-    processes.py            Supervised Linux serving workers and their group cleanup
-    targets/git.py          Repository identity and source snapshots
-    platforms/              Backend discovery registry; CUDA qualification
-    inspection.py           Environment inspection facts API; command and snapshot ports
-    commands.py             Bounded read-only probes
-    environment.py          Dependency versions and storage checks
-    http.py                 HTTP POST/download timing
     artifacts.py            Hashing and evidence writes
-    campaign.py             Legacy runner utility facade; transitive helper hashes
   data/
     repo_packs/             Contribution descriptors and versioned tuning knowledge
     knowledge_packs/        Dependency and peer knowledge, preserving existing tiers
@@ -310,9 +310,9 @@ path to its replacement and lists what still keeps the isolation gate false.
 
 | Add | Main extension locations | Required qualification |
 | --- | --- | --- |
-| Model or scenario | `model/protocols`, `benchmark/metrics.py`, `benchmark/validators`, `harness/scenarios` | Frozen request and metric contract; model-specific quality coverage |
-| Repository | `infra/targets`, a composed scenario, `data/repo_packs` | Stable source identity; command/result contract; environment isolation |
-| Hardware | `infra/platforms` | Device selection, process exclusivity and independent backend/model evidence; a backend is registered in `infra/platforms/__init__.py` and its probe command is defined in the implementing module under `infra/platforms/`, not in package data |
+| Model or scenario | `harness/serving`, `benchmark/metrics.py`, `benchmark/validators`, `harness/scenarios` | Frozen request and metric contract; model-specific quality coverage |
+| Repository | `apps/host/targets`, a composed scenario, `data/repo_packs` | Stable source identity; command/result contract; environment isolation |
+| Hardware | `apps/host/platforms` | Device selection, process exclusivity and independent backend/model evidence; a backend is registered in `apps/host/platforms/__init__.py` and its probe command is defined in the implementing module under `apps/host/platforms/`, not in package data |
 
 The acceptance rule is: **a new model or hardware adapter must reuse the common
 AB/BA loop, process cleanup and performance adjudication.** The extension
@@ -389,7 +389,7 @@ the default control package continues to require only the standard library.
 
 ### Add a platform or repository
 
-Register a device probe in `infra.platforms.PLATFORM_PROBES`; supply the selected
+Register a device probe in `apps.host.platforms.PLATFORM_PROBES`; supply the selected
 IDs, device model and bounded command runner. A new backend name additionally
 needs an entry in `knowledge.catalog.BACKENDS`, which supplies the CLI `--backend` choices
 and the accepted knowledge and skill backends; no package-data descriptor is
@@ -406,7 +406,7 @@ change the AB/BA algorithm, process cleanup or evaluator.
 
 ## Compatibility and historical evidence
 
-The supervised server helpers (`infra.processes.launch_server` / `stop_server`)
+The supervised server helpers (`harness.serving.server.launch_server` / `stop_server`)
 require Linux with a readable `/proc` process table. They reject other platforms
 before launch; missing or inaccessible process enumeration raises an error rather
 than reporting successful cleanup. Workers must remain in their owned process

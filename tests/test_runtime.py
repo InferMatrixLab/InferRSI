@@ -12,12 +12,12 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
 
+from inferrsi.apps.host.environment import storage_locations
 from inferrsi.apps.legacy.evaluation import _summary, evaluate
 from inferrsi.apps.legacy.reporting import write_report
 from inferrsi.apps.legacy.run import execute_trial, repository_identity, run_experiment
 from inferrsi.apps.legacy.run import run_experiment as run_with_adapters
 from inferrsi.contracts import RunSpec
-from inferrsi.infra.environment import storage_locations
 
 
 def benchmark(value: object) -> tuple[str, ...]:
@@ -426,7 +426,7 @@ class RuntimeTests(unittest.TestCase):
         # Two links to the same target must hash the same regardless of the order
         # the filesystem happens to enumerate them in. Unlinking and recreating a
         # link with an identical target is not a source change.
-        from inferrsi.infra.targets.git import _directory_digest
+        from inferrsi.apps.host.targets.git import _directory_digest
 
         nested = self.repo / "nested"
         nested.mkdir()
@@ -448,7 +448,7 @@ class RuntimeTests(unittest.TestCase):
     def test_directory_symlink_retarget_changes_directory_digest(self):
         # os.walk does not descend symlinked directories, so an unrecorded link
         # let a dependency swap leave the nested-repository hash unchanged.
-        from inferrsi.infra.targets.git import _directory_digest
+        from inferrsi.apps.host.targets.git import _directory_digest
 
         nested = self.repo / "nested"
         (nested / "package").mkdir(parents=True)

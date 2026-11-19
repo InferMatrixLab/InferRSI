@@ -1,0 +1,22 @@
+{
+  "runtime_identity": {
+    "apps/campaign.py": "070d9c57e9c0412e26d9b221d32ca5aba84cd4796cd76cba1ab8fcfac1f0c892",
+    "harness/agent_sessions.py": "491fbf71e03b0c2aef332765fe2c7d7d7d8cf67bd9b96b9a50a2816ccb741573",
+    "harness/artifact_primitives.py": "6208a775f484d6b3b233bb823b29ef569ff55f94297b176682300208b01c45b9",
+    "harness/atomic_json.py": "87d7b2c4ae881ee9bb64653fcea2fdad9abae5f1a50e6b9adead954a9b0799b0",
+    "harness/candidates.py": "42e74461b5a55f4b421895f5509668121833bbe0693430f1626a44db5d4f35f4",
+    "harness/local_process.py": "b955fc74b9bd6771c683f9e16827352cb3b9781110ca5713ea3ef63a228bade4",
+    "harness/optimization.py": "a98cd0c6216d650f292368edcd304d9b40d352a1ec3d31ba8b7ae5eaaa822283",
+    "harness/optimization_session.py": "27750dab8d1b01ac08e698485433f1d895bdcad2ab381dd7f2b56b0cc1578d50",
+    "harness/project.py": "48c1ee5f89bc5a95cedba23be91fb17ebce05f9f75ba954c4bbe3e2310d4f0dd",
+    "harness/protocol_child.py": "2cfd5848e711cedeef181981ec6fa2be453ee061f57c32f74954c82625528c95",
+    "harness/records/knowledge_capture.py": "4a1969bfaf412d08909fafe978a5e5e30d9e33cd63da80192ad9356ec2d1af7a",
+    "harness/scenarios/external.py": "94ab0dc77596961b8094d93a95cc4a4764178b324f6703c22ab0f78ed0497189",
+    "harness/task_protocol.py": "9c9ef100c264b5e596e29b322905f5442228bae711bd2249010e99fde58b6533",
+    "harness/usage.py": "bcb8a35f83e683c1e3343c2438214ad89f35eeb4dd940eccfd54b3489bb70855",
+    "infra/artifacts.py": "272f43056086078d05fe777cc08f73b85224468c1ede037ecd72c45747f25095",
+    "infra/processes.py": "2ca1984373423b190b13523fa76ce760e74cc851bbd29b0e532d8d7e92e62c8d",
+    "knowledge/context_projection.py": "ef89a0b2ecddbb0460573edc65a8b5ef704989e03d3d2fa615ca529ef0debe2a"
+  },
+  "source_commit": "25df4772e4e4a82033f5acd8d5e13e164f8467dd"
+}

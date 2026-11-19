@@ -10,6 +10,53 @@
   plans fingerprint the canonical implementation; existing frozen sessions must use
   their original pinned runtime for `status` and `recover`. See
   [release-boundary recovery](docs/optimization-workflow-unification.md#release-boundary-recovery).
+- The host bindings move from `inferrsi.infra` to the new `inferrsi.apps.host`
+  package (Refs #498, slice 3a). There is no forwarding module or alias, and the
+  import gate fails any import of an old path.
+  - `inferrsi.infra.commands`, `inspection`, `environment`, `platforms` and
+    `targets` are now `inferrsi.apps.host.commands`, `inspection`, `environment`,
+    `platforms` and `targets`. Only one import line changes, in `inspection.py`,
+    which reads the neutral data leaf one package level deeper.
+  - The permanent neutral-leaf importer rule now names
+    `inferrsi.apps.host.inspection`. It moved with its file in the same change,
+    and `inferrsi.infra.inspection` is retired, so no window admits two importers.
+    `technical_leaf.permanent_importers` in `docs/legacy-knowledge-manifest.json`
+    names the new module. The A1 state is kept unchanged in `revision_history`, and
+    every leaf lock is unchanged. The move needs the same formal architecture review
+    as the rule.
+  - The `apps/host/` package keeps Infra's limit: the gate fails any path from it to
+    a Knowledge, Harness or Benchmark module.
+  - `inferrsi.infra` now holds only `artifacts.py`.
+- The `inferrsi.infra.campaign` import facade is removed (Refs #498, slice 3c). It
+  only re-exported Infra helpers, and its one caller is the example campaign.
+  There is no forwarding module or alias, and the import gate fails any import of
+  the old path.
+  - `examples/qwen21_turbo_b300.py` imports `inferrsi.infra.artifacts`,
+    `inferrsi.infra.environment` and `inferrsi.infra.targets` directly.
+  - `helper_hashes` moves into that example unchanged. It hashes every Python file
+    of the installed package, so a record made after this change no longer lists
+    `inferrsi/infra/campaign.py`. Every other path it binds is unchanged, and
+    existing records are not rewritten.
+- The serving helpers move from `inferrsi.infra` and `inferrsi.model` to the new
+  `inferrsi.harness.serving` package (Refs #498, slice 2). There is no forwarding
+  module or alias, and the import gate fails any import of an old path.
+  - `inferrsi.infra.processes` is now `inferrsi.harness.serving.server`,
+    `inferrsi.infra.http` is now `inferrsi.harness.serving.http`, and
+    `inferrsi.model.protocols.image` is now `inferrsi.harness.serving.image`.
+    The emptied `inferrsi.model.protocols` package is removed. The server helpers
+    keep their Linux-only process-group contract.
+  - The package initializer imports nothing, so importing the HTTP or image client
+    does not load the server helpers.
+  - `inferrsi.infra.campaign` no longer re-exports `launch_server` and
+    `stop_server`. The example campaign imports them from
+    `inferrsi.harness.serving.server`.
+  - The optimization session's runtime identity now hashes
+    `harness/serving/server.py` in place of `infra/processes.py`. A session planned
+    before this change is refused before `status`, `recover` or any other operation
+    runs, and its plan is not changed. Resume such a session with the runtime that
+    planned it: install the wheel or source of the commit it was started from, and
+    run the same `inferrsi benchmarks session` command there.
+  - Pickled objects that name an old module path no longer load.
 - `docs/contracts/schemas/contract-v1.schema.json` validates more strictly
   (Refs #497). Eleven `pattern` values ended with `$`, which in Python `re`, and so in
   `jsonschema`, also matches before one trailing LF: `"att-1\n"` passed `Id`. They now
