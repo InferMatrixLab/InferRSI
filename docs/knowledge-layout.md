@@ -59,7 +59,8 @@ flowchart TB
     I -->|Authored finding| E["Validate selected record and its dependencies<br/>retain linked-library bundle and pin checks when skill documents are declared"]
     I -->|Other exact owner| V["Check revision, device, model, flags and measurement against this run"]
     E & A & B --> V
-    V --> X["Meets gates → cite reproducible evidence and scope"]
+    V --> Z["Budgeted Collect delivers procedure and required sources; exact read retains full bytes"]
+    Z --> X["Meets gates → cite reproducible evidence and scope"]
     V --> G["Gap → name missing evidence; test the next distinction or record exhausted budget"]
     G -.->|budget remains| D
 ```
@@ -115,6 +116,8 @@ src/inferrsi/knowledge/data/
 ```
 
 The README documents the library. A procedure, including its resources, belongs in one registered directory. An engineering record carries its own sources, applicability and verification status. Its filename must match its stable ID. The registry locates each skill. The existing protected `knowledge/catalog.py` owns the public view fields, including source links, recommendations and verification status. Builds compile YAML headers and pinned Git fingerprints required by the base wheel. Authors edit structured fields in the same SKILL.md as the procedure. The catalog combines that embedded object with the compiled host header and resource fingerprints to emit the public schema-1 record on demand. Publishing the same skill under multiple engine or accelerator trees would require synchronized edits. Capture these dimensions for the actual run and compare them with owner metadata. For a new environment with no applicable local evidence, retain the unknown and the first check that could resolve it. [Record authoring guide](../src/inferrsi/knowledge/data/skill_library/records/README.md)
+
+Budgeted Collect can deliver a `skill-procedure` view. Its `sha256` covers the delivered bytes. Its `source_sha256`, byte ranges and revision identify the full source and allow the receiver to reconstruct that view exactly. The full file is available through an exact resource read. [Context and byte ranges](knowledge-operations.md)
 
 ### What to edit
 

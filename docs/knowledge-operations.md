@@ -132,18 +132,21 @@ the resource rules below. `material=True` on a package Skill record returns its
 | `context_omissions` | Owner context unavailable: `unsupported_context`, `index_unavailable` or `context_limit` |
 | `context_bytes`, `context_budget` | Used body bytes, requested ceiling and accounting method |
 
-Each context resource carries its complete UTF-8 `content`, canonical resource
-`path`, exact-byte `sha256`, `role` (`core` or `reference`) and
-`locator=whole-resource`. The parent view supplies its owning ref and revision;
-`resource` can read exactly those bytes. The full canonical `SKILL.md`, declared
-references, provenance readsets and owner licenses (when present) are mandatory.
+Each context resource reports its canonical `path`, `role`, UTF-8 `content` and
+the SHA-256 of those delivered bytes. A `whole-resource` locator covers the
+entire file. A `skill-procedure` locator delivers the complete procedure and host
+frontmatter, omitting the structured `metadata.inferrsi` block from prompt
+context. Its `source_sha256` covers the entire file, and `source_byte_ranges`
+lists the half-open byte ranges whose concatenation reproduces the projection. Use the parent ref,
+revision and path with `resource` to reproduce the source bytes. The skill
+procedure, declared references, provenance readsets and owner licenses are mandatory.
 Licenses are retained along each required resource's skill/repository/framework
 directory ancestry inside the packaged library, including cross-skill prerequisites.
 Owner-local named license/notice files (including retained `*-LICENSE.md` and
 `THIRD_PARTY_NOTICES.md`) and explicit `skill_metadata.sources[].third_party_notices`
 paths are mandatory as well. Declared notice paths use the same boundary and
 existence checks as declared references. These resources never depend on a
-relevance match; their complete bytes count toward the mandatory set.
+relevance match; their delivered bytes count toward the mandatory set.
 If that set does not fit, the owner's entire context is omitted, with required
 and available bytes, and a later smaller context can still fit. The owning item
 can still be returned. Mandatory instructions are never truncated.

@@ -19,7 +19,7 @@ from inferrsi.apps.cli import main
 from inferrsi.benchmark.registry import builtin_tasks, describe_task, task_resources
 from inferrsi.contracts import RunSpec, claim, evidence, json_v1
 from inferrsi.knowledge._source_snapshot import BUNDLE_LIBRARY, LIBRARY
-from inferrsi.knowledge.catalog import knowledge_records, search_knowledge
+from inferrsi.knowledge.catalog import _split_skill_metadata, knowledge_records, search_knowledge
 from inferrsi.knowledge.knowledge_operations import KnowledgeReader
 from inferrsi.resources import repository_packs
 from inferrsi.resources.repository_packs import REPO_TYPES, repository_pack
@@ -41,8 +41,6 @@ def bundle_key(logical):
 
 
 def owner_fields(skill_bytes):
-    from inferrsi.knowledge.catalog import _split_skill_metadata
-
     _, fields = _split_skill_metadata(skill_bytes.decode("utf-8").split("---", 2)[1])
     assert isinstance(fields, dict)
     return fields
@@ -274,7 +272,10 @@ for task in ("day-0", "performance", "debug", "accuracy", "version-alignment",
     entered = json.loads(stdout.getvalue())
     assert entered["name"] == name
     owner = library.joinpath(*registry[name]["path"].split("/"), "SKILL.md")
-    assert entered["instructions"] == owner.read_text(encoding="utf-8")
+    raw = owner.read_text(encoding="utf-8")
+    native, fields = _split_skill_metadata(raw.split("---", 2)[1])
+    assert fields["discovery_role"] == "task-entry"
+    assert entered["instructions"] == "---" + native + "---" + raw.split("---", 2)[2]
 
 for framework, backend in (("pytorch", "common"), ("torch-npu", "ascend")):
     identity = f"inferrsi.{backend}.skills.{framework.replace('-', '_')}"

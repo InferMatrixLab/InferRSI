@@ -171,8 +171,11 @@ def test_entry_loads_the_required_primary_before_search(distribution, tmp_path):
     primary = invoke(distribution, tmp_path, *command)
     assert primary.returncode == 0, primary.stderr
     owner = PROJECT / "src/inferrsi/knowledge/data/skill_library/tasks/task-accuracy/SKILL.md"
+    _, header, body = owner.read_text(encoding="utf-8").split("---", 2)
+    native, fields = _split_skill_metadata(header)
+    assert fields["discovery_role"] == "task-entry"
     assert json.loads(primary.stdout) == {
-        "name": "task-accuracy", "instructions": owner.read_text(encoding="utf-8")
+        "name": "task-accuracy", "instructions": "---" + native + "---" + body
     }
     hits = invoke(distribution, tmp_path, "find", "TTS quality regression",
                   "--limit", "1", "--no-external", "--json")

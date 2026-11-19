@@ -462,7 +462,8 @@ do not upgrade imported knowledge to a validated claim.
 The bundled skill CLI uses `data/skill_library/` and its `skill-index.json` registry.
 The main agent selects one primary procedure from `tasks/` and reads it with
 `skills enter <task-id>` before searching for supporting evidence. The base
-runtime can load the complete packaged primary procedure without PyYAML.
+runtime loads the complete packaged primary procedure and its host header without PyYAML.
+The structured InferRSI annotation stays in the pinned source file.
 
 Supporting procedures live in `systems/`, `playbooks/`, `workflows/` and
 `casebooks/`. Engine owners live under `systems/engines/<engine>/`. Each owner

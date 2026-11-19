@@ -124,9 +124,27 @@ def test_context_keeps_complete_core_prerequisites_provenance_and_exact_bytes():
     assert any(path.endswith("/references/source-notes.md") for path in paths)
     for resource in context["resources"]:
         actual = reader.resource(context["ref"], resource["path"], revision=context["revision"])
-        assert resource["content"].encode() == actual
-        assert resource["sha256"] == hashlib.sha256(actual).hexdigest()
-        assert resource["locator"] == "whole-resource"
+        delivered = resource["content"].encode()
+        assert resource["sha256"] == hashlib.sha256(delivered).hexdigest()
+        if resource["path"].endswith("/SKILL.md") and b"  inferrsi: |" in actual:
+            import yaml
+
+            assert resource["locator"] == "skill-procedure"
+            assert resource["source_sha256"] == hashlib.sha256(actual).hexdigest()
+            first, second = resource["source_byte_ranges"]
+            assert first[0] == 0 < first[1] < second[0] < second[1] == len(actual)
+            assert actual[:first[1]] + actual[second[0]:] == delivered
+            original_header, original_body = actual.split(b"---", 2)[1:]
+            header, body = delivered.split(b"---", 2)[1:]
+            expected = yaml.safe_load(original_header)
+            del expected["metadata"]["inferrsi"]
+            if not expected["metadata"]:
+                del expected["metadata"]
+            assert yaml.safe_load(header) == expected
+            assert body == original_body
+        else:
+            assert resource["locator"] == "whole-resource"
+            assert delivered == actual
     assert context["content_bytes"] == result["context_bytes"] == sum(
         len(r["content"].encode()) for r in context["resources"]
     )
@@ -223,12 +241,15 @@ def test_parent_owner_license_is_mandatory_and_budgeted_for_cross_skill_referenc
         assert license_resource["sha256"] == hashlib.sha256(expected).hexdigest()
     bundle = reader.read(identity)
     core = bundle.metadata["skill_documents"]["original"]
-    limited = reader.collect(ids=[identity], context_bytes=len(bundle.content[core]))
+    context, = reader.collect(ids=[identity], context_bytes=100000)["contexts"]
+    core_resource, = (entry for entry in context["resources"] if entry["path"] == core)
+    core_size = len(core_resource["content"].encode())
+    limited = reader.collect(ids=[identity], context_bytes=core_size)
     assert not limited["contexts"]
     omission = limited["context_omissions"][0]
     assert omission["reason"] == "context_limit"
     assert omission["required_bytes"] >= (
-        len(bundle.content[core]) + len(bundle.content[license_path])
+        core_size + len(bundle.content[license_path])
     )
 
 

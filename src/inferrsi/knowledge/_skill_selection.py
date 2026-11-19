@@ -1,11 +1,12 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import posixpath
 import re
 
 from ._source_snapshot import source_entry
-from .catalog import packaged_skill_id
+from .catalog import _skill_search_source, packaged_skill_id
 
 FIND_RELEVANCE = "find-lexical-v1"
 TASK_STOP_WORDS = frozenset({"a", "an", "and", "for", "in", "of", "on", "the", "to", "with"})
@@ -130,12 +131,32 @@ def record_context(record: dict, view: dict, content: dict[str, bytes], availabl
     }, None
 
 
+def skill_procedure(path: str, raw: bytes) -> tuple[bytes, dict]:
+    """Select the instruction bytes of a single-file skill for a budgeted context."""
+    if posixpath.basename(path) != "SKILL.md":
+        return raw, {}
+    try:
+        text = raw.decode("utf-8")
+    except UnicodeDecodeError:
+        return raw, {}  # The caller handles non-UTF8 optional resources.
+    procedure, metadata = _skill_search_source(text)
+    if metadata is None:
+        return raw, {}
+    data = procedure.encode("utf-8")
+    # The projection removes one contiguous block. These half-open UTF-8 byte
+    # ranges reconstruct the delivered bytes from the exact pinned file.
+    start = next((i for i, (a, b) in enumerate(zip(raw, data)) if a != b), len(data))
+    end = start + len(raw) - len(data)
+    return data, {"locator": "skill-procedure", "source_byte_ranges": [[0, start], [end, len(raw)]]}
+
+
 def context_view(
     index: tuple[str, list[str], list[str]], view: dict, content: dict[str, bytes],
     cue: str | None, available: int,
 ) -> tuple[dict | None, dict | None]:
     core, required, optional = index
-    required_bytes = sum(len(content[path]) for path in required)
+    selected = {path: skill_procedure(path, content[path]) for path in [*required, *optional]}
+    required_bytes = sum(len(selected[path][0]) for path in required)
     if required_bytes > available:
         return None, {
             "ref": view["ref"], "reason": "context_limit",
@@ -147,12 +168,17 @@ def context_view(
 
     def include(path: str) -> None:
         nonlocal used
-        resources.append({
+        data, locator = selected[path]
+        resource = {
             "path": path, "sha256": view["resources"][path], "locator": "whole-resource",
             "role": "core" if path == core else "reference",
-            "content": content[path].decode("utf-8"),
-        })
-        used += len(content[path])
+            "content": data.decode("utf-8"),
+        }
+        if locator:
+            resource.update(**locator, source_sha256=view["resources"][path],
+                            sha256=hashlib.sha256(data).hexdigest())
+        resources.append(resource)
+        used += len(data)
 
     for path in required:
         include(path)
@@ -165,7 +191,7 @@ def context_view(
             omissions.append({"path": path, "reason": "not_context_resource"})
             continue
         try:
-            candidates[path] = content[path].decode("utf-8")
+            candidates[path] = selected[path][0].decode("utf-8")
         except UnicodeDecodeError:
             omissions.append({"path": path, "reason": "not_utf8"})
             continue
@@ -189,7 +215,7 @@ def context_view(
             for path in candidates if path not in matched
         )
     for path in paths:
-        if used + len(content[path]) > available:
+        if used + len(selected[path][0]) > available:
             omissions.append({"path": path, "reason": "context_limit"})
             continue
         include(path)
@@ -198,7 +224,7 @@ def context_view(
         "content_bytes": used, "omissions": omissions,
         "sources": view["sources"], "attribution": view["attribution"],
         "limitations": view["limitations"] + [
-            "Selected resources are complete files; this view is not a standalone Bundle.",
+            "For a skill-procedure, concatenate the reported half-open byte ranges of its source.",
             "Follow omitted or other linked resources through the exact owner revision.",
         ],
     }, None

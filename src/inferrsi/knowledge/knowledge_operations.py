@@ -16,6 +16,7 @@ from ._skill_selection import (
     context_view,
     indexed_skill,
     record_context,
+    skill_procedure,
     validate_relevance_method,
 )
 from .catalog import KNOWLEDGE_SCOPES, SCENARIO_ALIASES, knowledge_records, lookup_record
@@ -332,6 +333,7 @@ class KnowledgeReader:
             else:
                 body = _json(record)
                 path = "record.json"
+            body, locator = skill_procedure(path, body)
             if len(contexts) >= limit or used + len(body) > context_bytes:
                 omissions.append(
                     {
@@ -350,7 +352,8 @@ class KnowledgeReader:
                     "sources": sources,
                     "content_bytes": len(body),
                     "score": score,
-                    "resources": [{"path": path, "role": "core", "content": body.decode("utf-8")}],
+                    "resources": [{"path": path, "role": "core", "content": body.decode("utf-8"),
+                                   **locator}],
                     "omissions": [
                         {"path": target, "reason": "linked_document_not_loaded"}
                         for target in record.get("skill_metadata", {}).get("references", [])
