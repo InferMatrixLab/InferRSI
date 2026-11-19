@@ -351,7 +351,7 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command == "benchmarks":
             if args.benchmark_action == "compare":
-                from ..benchmark_compare import compare_command
+                from ..workflows.benchmark_compare import compare_command
 
                 _print(compare_command(args))
                 return 0

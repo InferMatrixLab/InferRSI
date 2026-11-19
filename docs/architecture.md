@@ -204,6 +204,7 @@ src/inferrsi/
     workflows/
       campaign.py           Knowledge values connected to Harness campaign records
       benchmark_operations.py Resolve a task entry and launch it through Harness
+      benchmark_compare.py  Paired benchmark plans, native handoff, collection and reports
       skill_evaluation.py   Composed bundle export, trial run and summary
       skill_eval_engineering.py Composed artifact check: task rules around sandbox replay
       improvement.py        Composed assessment, selection, rerun and holdout acceptance

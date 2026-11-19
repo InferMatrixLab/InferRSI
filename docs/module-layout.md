@@ -63,19 +63,25 @@ digest; these ownership boundaries and DTOs remain unchanged.
 
 ### Apps workflows migration
 
-`apps/workflows/` owns `campaign.py`, `benchmark_operations.py`, `improvement.py`,
-`skill_evaluation.py` and `skill_eval_engineering.py`. It joins Knowledge reads,
+`apps/workflows/` owns `campaign.py`, `benchmark_operations.py`, `benchmark_compare.py`,
+`improvement.py`, `skill_evaluation.py` and `skill_eval_engineering.py`. It joins Knowledge reads,
 Harness execution and Benchmark judgments. CLI commands, views and evaluation
 tools import these canonical implementations. Its initializer imports nothing;
 imports of either path perform no data reads, probes, process launches or service
 registration. Signatures, return values and retained-record schemas are unchanged.
 
-The five former Apps paths keep explicit exports from the same
+The six former Apps paths keep explicit exports from the same
 [migration inventory](apps-module-migrations.json). The engineering verifier also
 keeps its former file and `python -m` entry points through a static absolute import
 and a `__main__` guard, recorded as `script_entry` in the inventory. Other shims
 contain only their docstring, explicit import and literal `__all__`. New pickles
 use the canonical module; patches to helpers or imported dependencies target it.
+
+`benchmark_compare.py`, introduced by #501 while this migration was in progress,
+composes paired benchmark plans, native host handoffs, collection and reports.
+It returns host actions; the Agent performs the native calls. Its previous Apps
+path retains the same public functions and configuration objects. The comparison
+rules remain in Benchmark and the report view remains in `apps/views/`.
 
 New optimization plans and evaluation controller snapshots fingerprint the
 canonical source files, not the compatibility shims. A frozen pre-move runtime

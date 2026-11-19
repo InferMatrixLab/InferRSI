@@ -624,7 +624,7 @@ for name, group in (
     ("candidate_provider", "handoff"),
     ("campaign", "workflows"), ("benchmark_operations", "workflows"),
     ("improvement", "workflows"), ("skill_evaluation", "workflows"),
-    ("skill_eval_engineering", "workflows"),
+    ("skill_eval_engineering", "workflows"), ("benchmark_compare", "workflows"),
 ):
     old_name = f"inferrsi.apps.{name}"
     canonical_name = f"inferrsi.apps.{group}.{name}"

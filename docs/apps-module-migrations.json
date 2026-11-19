@@ -22,7 +22,7 @@
       "docs/operations.md",
       "src/inferrsi/apps/api.py",
       "src/inferrsi/apps/archive.py",
-      "src/inferrsi/apps/benchmark_compare.py",
+      "src/inferrsi/apps/workflows/benchmark_compare.py",
       "src/inferrsi/apps/delivery/__init__.py",
       "src/inferrsi/apps/handoff/bridge.py",
       "src/inferrsi/apps/handoff/candidate_provider.py",
@@ -295,5 +295,29 @@
       "tools/skill_eval_qualify.py"
     ],
     "script_entry": "main"
+  },
+  {
+    "old": "inferrsi.apps.benchmark_compare",
+    "canonical": "inferrsi.apps.workflows.benchmark_compare",
+    "exports": [
+      "DEFAULT_CONFIG",
+      "CONFIG_NAME",
+      "OBSERVED_FIELDS",
+      "resolve_config",
+      "prepare",
+      "status",
+      "dispatch",
+      "collect",
+      "report",
+      "compare_command"
+    ],
+    "consumers": [
+      "docs/architecture.md",
+      "docs/module-layout.md",
+      "src/inferrsi/apps/cli/__init__.py",
+      "tests/check_installed.py",
+      "tests/test_apps_module_migrations.py",
+      "tests/test_benchmark_compare.py"
+    ]
   }
 ]
