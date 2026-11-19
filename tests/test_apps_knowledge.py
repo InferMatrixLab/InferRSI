@@ -25,7 +25,7 @@ def test_knowledge_read_exposes_fixed_qualified_bundle_and_resource():
         read(reader, reference, revision="sha256:" + "0" * 64)
 
 
-def test_checkout_read_scans_owners_once_with_a_read_only_store(tmp_path, monkeypatch):
+def test_checkout_read_resolves_once_without_enumerating_all_owners(tmp_path, monkeypatch):
     skills = tmp_path / "checkout" / "skills"
     skill = skills / "checkout-example"
     skill.mkdir(parents=True)
@@ -38,19 +38,23 @@ def test_checkout_read_scans_owners_once_with_a_read_only_store(tmp_path, monkey
     reader = knowledge_reader(skill_root=skills, store_root=store_root)
     assert reader.store.read_only
     assert reader.store.database == store.database
-    owners = reader.owners
-    scans = []
+    resolve = reader.resolve
+    resolutions = []
 
-    def count_owners():
-        scans.append(None)
-        return owners()
+    def track_resolution(reference):
+        resolutions.append(reference)
+        return resolve(reference)
 
-    monkeypatch.setattr(reader, "owners", count_owners)
+    def reject_global_scan():
+        pytest.fail("An exact read loaded the global owner catalog")
+
+    monkeypatch.setattr(reader, "resolve", track_resolution)
+    monkeypatch.setattr(reader, "owners", reject_global_scan)
     reference, revision, view = read(reader, "checkout-example", material=True)
     assert reference == "checkout:checkout-example"
     assert revision == view["revision"]
     assert view["content"].endswith("Example\n")
-    assert len(scans) == 1
+    assert resolutions == ["checkout-example"]
 
 
 def test_apps_store_requires_explicit_write_and_retains_fixed_history(tmp_path):
