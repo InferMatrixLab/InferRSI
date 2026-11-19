@@ -1,9 +1,11 @@
 """Decision and mechanism switches through real campaign commands; values are synthetic."""
 
 import json
+from pathlib import Path
 
 import pytest
 
+from inferrsi.apps import delivery
 from inferrsi.apps.cli import main
 from inferrsi.apps.views.dashboard_data import load_dashboard
 from inferrsi.apps.views.optimization_chart import render_result
@@ -566,3 +568,60 @@ def test_point_decision_project_rounds_must_still_be_scored(project, capsys, mon
     assessment = state["rounds"][0]["assessment"]
     assert assessment["status"] == "infrastructure_failure" and assessment["score"] is None
     assert "finite positive score" in assessment["reason"]
+
+
+def test_scoreless_baseline_final_reports_no_speedup_in_the_delivery(project, capsys, tmp_path):
+    """A retained baseline whose final has no paired score delivers no invented 1.0."""
+    _, protocol, _, root = project
+    calls = tmp_path / "calls-scoreless.txt"
+    # One warmup then nine pairs per evaluation; the first pair underflows in both.
+    (protocol / "measure.py").write_text(
+        "import json, sys\nfrom pathlib import Path\n"
+        f"counter = Path({str(calls)!r})\n"
+        "k = int(counter.read_text()) if counter.exists() else 0\n"
+        "counter.write_text(str(k + 1))\n"
+        "v = 1e-200 if k % 20 == 2 else 1e200 if k % 20 == 3 else 10.0\n"
+        "Path(sys.argv[2]).write_text(json.dumps({'metric': v}))\n",
+        encoding="utf-8")
+    assert start(project, capsys, "--decision", "paired", repetitions=9) == 0
+    first = submit(project, capsys, {**BASELINE, "metric": 9})
+    assert first["paired_statistics"]["status"] == "unavailable" and first["score"] is None
+    assert main(["campaign", "final", "--directory", str(root),
+                 "--reason", "Synthetic unavailable statistics control"]) == 0
+    view = json.loads(capsys.readouterr().out)
+    _, state, summary = read_records(root)
+    assert state["best"]["kind"] == "baseline"
+    assert state["final"]["assessment"]["score"] is None
+    assert summary["optimization_speedup"] is None
+    bundle = delivery.read_bundle(Path(view["delivery"]["output"]))
+    assert bundle["outcome"]["kind"] == "baseline_retained"
+    assert bundle["outcome"]["optimization_speedup"] is None
+
+
+def test_strategy_knowledge_refs_and_mechanism_are_kept_together(project, capsys, tmp_path):
+    """#501's round declarations and the bound mechanism coexist on one round and final."""
+    repo, _, _, root = project
+    assert start(project, capsys, "--decision", "paired", "--require-explanation") == 0
+    assert main(["campaign", "knowledge", "--directory", str(root),
+                 "--query", "cache per-step masks ran out of device memory",
+                 "--limit", "1", "--context-bytes", "1"]) == 0
+    context = json.loads(capsys.readouterr().out)["reference"]["path"]
+    declaration = tmp_path / "mechanism.json"
+    declaration.write_text(json.dumps(FUSION), encoding="utf-8")
+    (repo / "config.json").write_text(json.dumps(FUSED), encoding="utf-8")
+    assert main(["campaign", "round", "--directory", str(root), "--candidate", str(repo),
+                 "--hypothesis", "Synthetic fusion", "--strategy", "Fuse kernels",
+                 "--knowledge-ref", context, "--mechanism-file", str(declaration)]) == 0
+    capsys.readouterr()
+    _, state, _ = read_records(root)
+    record = state["rounds"][0]
+    assert record["strategy"] == "Fuse kernels" and record["knowledge_refs"] == [context]
+    assert record["mechanism"] == FUSION and record["mechanism_sha256"]
+    assert record["assessment"]["explanation"]["status"] == "explained"
+    assert record["selection"]["outcome"] == "adopted"
+    assert main(["campaign", "final", "--directory", str(root),
+                 "--reason", "Synthetic search completed"]) == 0
+    capsys.readouterr()
+    _, state, _ = read_records(root)
+    assert state["final"]["mechanism"] == FUSION
+    assert state["final"]["assessment"]["explanation"]["status"] == "explained"
