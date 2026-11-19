@@ -170,7 +170,7 @@
       ]
     },
     "campaign-new-card1": {
-      "state": "active",
+      "state": "completed",
       "rounds": [
         {
           "hypothesis": "Repair the first new-arm request-local refinement cache allowlist and re-evaluate without changing weights or workload",
@@ -182,8 +182,37 @@
           "quality_passed": true,
           "improvement_pct": 0.34497596648652024,
           "statistical_significance": "not_established"
+        },
+        {
+          "hypothesis": "Reproduce independent new-arm batch-of-four VAE tiles with frozen exact-RGB gate",
+          "candidate_sha256": "299c51cdcfaf2097878aaa097a0582a44a7cabb8447c907e097e3c0d036b0d9b",
+          "status": "candidate_failure",
+          "score": null,
+          "verdict": "FAIL",
+          "reason": "candidate_check_rejected",
+          "quality_passed": false
+        },
+        {
+          "hypothesis": "Reproduce independent new-arm explicit cuDNN diffusion attention with frozen exact-RGB gate",
+          "candidate_sha256": "20a4716e9c5ff4504f104c0f52ad5e72c114b1cab5a62900332e876a995cc8e9",
+          "status": "candidate_failure",
+          "score": null,
+          "verdict": "FAIL",
+          "reason": "candidate_check_rejected",
+          "quality_passed": false
         }
-      ]
+      ],
+      "final": {
+        "status": "completed",
+        "score": 5.5493249544961145,
+        "verdict": "FAIL",
+        "reason": "performance_gate_not_met",
+        "quality_passed": true,
+        "improvement_pct": 0.07172729085023004
+      },
+      "selected": "baseline",
+      "optimization_speedup": 1.0,
+      "stop_reason": "fixed_round_budget_completed"
     }
   },
   "sessions": [
@@ -805,6 +834,374 @@
           "seed": 45,
           "prompt": "A copper lighthouse at sunrise",
           "latency_s": 5.6001657039741985,
+          "rgb_sha256": "8ea9a78fe01a915a359632f4cc4385c47e6e78752047fcde4452f36d2511f8d5",
+          "matches_reference": true
+        }
+      ],
+      "has_rgb_reference": true,
+      "resolved_attention": {
+        "minimax_h3.token_refiner": "TRTLLM_ATTN",
+        "self": "TRTLLM_ATTN"
+      }
+    },
+    {
+      "key": "campaign-new-card1/round-02/quality-candidate",
+      "card": 1,
+      "complete": true,
+      "passes_rgb": false,
+      "monitored_polls": 68,
+      "uncontaminated": true,
+      "raw_trial_sha256": "08a19ed69dd17a8bfcc99398356d271ce92149d4d1b0a8294d149a6781d1db5b",
+      "startup_s": 48.02641774699441,
+      "warmup_s": 5.854711248975946,
+      "latency_s": 5.526367638987722,
+      "samples": [
+        {
+          "seed": 43,
+          "prompt": "A mountain lake at dusk",
+          "latency_s": 5.4454378570080735,
+          "rgb_sha256": "f66c57b01083cd9ca3747d3e52e225c397f7e257e486b7f045f37f7bcd55c260",
+          "matches_reference": false
+        },
+        {
+          "seed": 44,
+          "prompt": "A blue ceramic teapot on a linen table",
+          "latency_s": 5.563874195009703,
+          "rgb_sha256": "88e158b3c107db9ee33372671e66dc68a594e92a919a65e4005ceeee4e0a6f85",
+          "matches_reference": false
+        },
+        {
+          "seed": 45,
+          "prompt": "A copper lighthouse at sunrise",
+          "latency_s": 5.526367638987722,
+          "rgb_sha256": "1fcd7cd41b2e38a8636f3c80e00f37033c206d4c9532ffdf7fb962954ae7cc01",
+          "matches_reference": false
+        }
+      ],
+      "quality_error": "decoded RGB differs from matching fixed-seed reference",
+      "has_rgb_reference": true,
+      "resolved_attention": {
+        "minimax_h3.token_refiner": "TRTLLM_ATTN",
+        "self": "TRTLLM_ATTN"
+      }
+    },
+    {
+      "key": "campaign-new-card1/round-03/quality-baseline",
+      "card": 1,
+      "complete": true,
+      "passes_rgb": true,
+      "monitored_polls": 131,
+      "uncontaminated": true,
+      "raw_trial_sha256": "c0c7d0a3e604d48a6b01be40566428117dce1321e806d49330c5673a99be65f7",
+      "startup_s": 114.06787713500671,
+      "warmup_s": 5.980128418013919,
+      "latency_s": 5.603267597995,
+      "samples": [
+        {
+          "seed": 43,
+          "prompt": "A mountain lake at dusk",
+          "latency_s": 5.581700929993531,
+          "rgb_sha256": "627240ade8c99a30fa448ca271b0f74fa87b858c3a10459d2c0bc1e7b12b534e",
+          "matches_reference": true
+        },
+        {
+          "seed": 44,
+          "prompt": "A blue ceramic teapot on a linen table",
+          "latency_s": 5.652706101012882,
+          "rgb_sha256": "20fd902922cfcdb4aedea7a217b73f2c03d7ddc16354067f9faa65512a26b0ed",
+          "matches_reference": true
+        },
+        {
+          "seed": 45,
+          "prompt": "A copper lighthouse at sunrise",
+          "latency_s": 5.603267597995,
+          "rgb_sha256": "8ea9a78fe01a915a359632f4cc4385c47e6e78752047fcde4452f36d2511f8d5",
+          "matches_reference": true
+        }
+      ],
+      "has_rgb_reference": true,
+      "resolved_attention": {
+        "minimax_h3.token_refiner": "TRTLLM_ATTN",
+        "self": "TRTLLM_ATTN"
+      }
+    },
+    {
+      "key": "campaign-new-card1/round-03/quality-candidate",
+      "card": 1,
+      "complete": true,
+      "passes_rgb": false,
+      "monitored_polls": 69,
+      "uncontaminated": true,
+      "raw_trial_sha256": "5f4a2674dc4833715f4eb38805a396a6ffb16953d1cba7da9fff6ebb97c1803e",
+      "startup_s": 48.029218228999525,
+      "warmup_s": 5.921655576006742,
+      "latency_s": 5.58399616801762,
+      "samples": [
+        {
+          "seed": 43,
+          "prompt": "A mountain lake at dusk",
+          "latency_s": 5.508916227990994,
+          "rgb_sha256": "41b52d129c2ab311e5fc1506733d2dc517801e3eff5dde6c6b4d74276b3ae3c0",
+          "matches_reference": false
+        },
+        {
+          "seed": 44,
+          "prompt": "A blue ceramic teapot on a linen table",
+          "latency_s": 5.58399616801762,
+          "rgb_sha256": "e2b31212558228b9832f786af34cf2b39820aeb3a5e47d21cfea62f96e2a5bee",
+          "matches_reference": false
+        },
+        {
+          "seed": 45,
+          "prompt": "A copper lighthouse at sunrise",
+          "latency_s": 5.632903980003903,
+          "rgb_sha256": "3d52abecb8b8e7eb32e9b6e6e0f7e451e9db3bdd505ea8b1727a939fba5bf326",
+          "matches_reference": false
+        }
+      ],
+      "quality_error": "decoded RGB differs from matching fixed-seed reference",
+      "has_rgb_reference": true,
+      "configuration": {
+        "args": [
+          "--diffusion-attention-config",
+          "{\"default\":{\"backend\":\"CUDNN_ATTN\"}}"
+        ]
+      },
+      "resolved_attention": {
+        "minimax_h3.token_refiner": "CUDNN_ATTN",
+        "self": "CUDNN_ATTN"
+      }
+    },
+    {
+      "key": "campaign-new-card1/final/measurement-001-baseline",
+      "card": 1,
+      "complete": true,
+      "passes_rgb": true,
+      "monitored_polls": 65,
+      "uncontaminated": true,
+      "raw_trial_sha256": "f53306ccd4c74715a7d2a8db5d6e1307918f190a28c5a7f8844c0ce6b37fe19c",
+      "startup_s": 44.02212732998305,
+      "warmup_s": 5.658450538991019,
+      "latency_s": 5.558005854021758,
+      "samples": [
+        {
+          "seed": 43,
+          "prompt": "A mountain lake at dusk",
+          "latency_s": 5.5516330540122,
+          "rgb_sha256": "627240ade8c99a30fa448ca271b0f74fa87b858c3a10459d2c0bc1e7b12b534e",
+          "matches_reference": true
+        },
+        {
+          "seed": 44,
+          "prompt": "A blue ceramic teapot on a linen table",
+          "latency_s": 5.5897684170049615,
+          "rgb_sha256": "20fd902922cfcdb4aedea7a217b73f2c03d7ddc16354067f9faa65512a26b0ed",
+          "matches_reference": true
+        },
+        {
+          "seed": 45,
+          "prompt": "A copper lighthouse at sunrise",
+          "latency_s": 5.558005854021758,
+          "rgb_sha256": "8ea9a78fe01a915a359632f4cc4385c47e6e78752047fcde4452f36d2511f8d5",
+          "matches_reference": true
+        }
+      ],
+      "has_rgb_reference": true,
+      "resolved_attention": {
+        "minimax_h3.token_refiner": "TRTLLM_ATTN",
+        "self": "TRTLLM_ATTN"
+      }
+    },
+    {
+      "key": "campaign-new-card1/final/measurement-001-candidate",
+      "card": 1,
+      "complete": true,
+      "passes_rgb": true,
+      "monitored_polls": 65,
+      "uncontaminated": true,
+      "raw_trial_sha256": "86c7d8e5cb46fe236a60a3868a236a635ab22b6f038e9e71c2cd2e19d3545d67",
+      "startup_s": 44.02391121600522,
+      "warmup_s": 5.634094607987208,
+      "latency_s": 5.546008759003598,
+      "samples": [
+        {
+          "seed": 43,
+          "prompt": "A mountain lake at dusk",
+          "latency_s": 5.5441604259831365,
+          "rgb_sha256": "627240ade8c99a30fa448ca271b0f74fa87b858c3a10459d2c0bc1e7b12b534e",
+          "matches_reference": true
+        },
+        {
+          "seed": 44,
+          "prompt": "A blue ceramic teapot on a linen table",
+          "latency_s": 5.572763547010254,
+          "rgb_sha256": "20fd902922cfcdb4aedea7a217b73f2c03d7ddc16354067f9faa65512a26b0ed",
+          "matches_reference": true
+        },
+        {
+          "seed": 45,
+          "prompt": "A copper lighthouse at sunrise",
+          "latency_s": 5.546008759003598,
+          "rgb_sha256": "8ea9a78fe01a915a359632f4cc4385c47e6e78752047fcde4452f36d2511f8d5",
+          "matches_reference": true
+        }
+      ],
+      "has_rgb_reference": true,
+      "resolved_attention": {
+        "minimax_h3.token_refiner": "TRTLLM_ATTN",
+        "self": "TRTLLM_ATTN"
+      }
+    },
+    {
+      "key": "campaign-new-card1/final/measurement-002-baseline",
+      "card": 1,
+      "complete": true,
+      "passes_rgb": true,
+      "monitored_polls": 65,
+      "uncontaminated": true,
+      "raw_trial_sha256": "26be162a7556a4dddea3602f36e6ed9a7987d9c8dfcc9bdcd9959cf947210273",
+      "startup_s": 44.01787272200454,
+      "warmup_s": 5.6474927419913,
+      "latency_s": 5.548610530007863,
+      "samples": [
+        {
+          "seed": 43,
+          "prompt": "A mountain lake at dusk",
+          "latency_s": 5.538398845994379,
+          "rgb_sha256": "627240ade8c99a30fa448ca271b0f74fa87b858c3a10459d2c0bc1e7b12b534e",
+          "matches_reference": true
+        },
+        {
+          "seed": 44,
+          "prompt": "A blue ceramic teapot on a linen table",
+          "latency_s": 5.58395184300025,
+          "rgb_sha256": "20fd902922cfcdb4aedea7a217b73f2c03d7ddc16354067f9faa65512a26b0ed",
+          "matches_reference": true
+        },
+        {
+          "seed": 45,
+          "prompt": "A copper lighthouse at sunrise",
+          "latency_s": 5.548610530007863,
+          "rgb_sha256": "8ea9a78fe01a915a359632f4cc4385c47e6e78752047fcde4452f36d2511f8d5",
+          "matches_reference": true
+        }
+      ],
+      "has_rgb_reference": true,
+      "resolved_attention": {
+        "minimax_h3.token_refiner": "TRTLLM_ATTN",
+        "self": "TRTLLM_ATTN"
+      }
+    },
+    {
+      "key": "campaign-new-card1/final/measurement-002-candidate",
+      "card": 1,
+      "complete": true,
+      "passes_rgb": true,
+      "monitored_polls": 63,
+      "uncontaminated": true,
+      "raw_trial_sha256": "49e2a23466c204e180b0c0258f0de64f896b626b898076bf10c362c624e0c88c",
+      "startup_s": 44.023169698019046,
+      "warmup_s": 5.656052419013577,
+      "latency_s": 5.552641149988631,
+      "samples": [
+        {
+          "seed": 43,
+          "prompt": "A mountain lake at dusk",
+          "latency_s": 5.546512286004145,
+          "rgb_sha256": "627240ade8c99a30fa448ca271b0f74fa87b858c3a10459d2c0bc1e7b12b534e",
+          "matches_reference": true
+        },
+        {
+          "seed": 44,
+          "prompt": "A blue ceramic teapot on a linen table",
+          "latency_s": 5.592408944998169,
+          "rgb_sha256": "20fd902922cfcdb4aedea7a217b73f2c03d7ddc16354067f9faa65512a26b0ed",
+          "matches_reference": true
+        },
+        {
+          "seed": 45,
+          "prompt": "A copper lighthouse at sunrise",
+          "latency_s": 5.552641149988631,
+          "rgb_sha256": "8ea9a78fe01a915a359632f4cc4385c47e6e78752047fcde4452f36d2511f8d5",
+          "matches_reference": true
+        }
+      ],
+      "has_rgb_reference": true,
+      "resolved_attention": {
+        "minimax_h3.token_refiner": "TRTLLM_ATTN",
+        "self": "TRTLLM_ATTN"
+      }
+    },
+    {
+      "key": "campaign-new-card1/final/quality-baseline",
+      "card": 1,
+      "complete": true,
+      "passes_rgb": true,
+      "monitored_polls": 108,
+      "uncontaminated": true,
+      "raw_trial_sha256": "5509aa5b0dfee40ebac3f4a96ae27cd190af205ac2c1bf2d84ebeb0e9b6fff85",
+      "startup_s": 90.04902925301576,
+      "warmup_s": 5.8557474759873,
+      "latency_s": 5.563786259997869,
+      "samples": [
+        {
+          "seed": 43,
+          "prompt": "A mountain lake at dusk",
+          "latency_s": 5.563786259997869,
+          "rgb_sha256": "627240ade8c99a30fa448ca271b0f74fa87b858c3a10459d2c0bc1e7b12b534e",
+          "matches_reference": true
+        },
+        {
+          "seed": 44,
+          "prompt": "A blue ceramic teapot on a linen table",
+          "latency_s": 5.607461442996282,
+          "rgb_sha256": "20fd902922cfcdb4aedea7a217b73f2c03d7ddc16354067f9faa65512a26b0ed",
+          "matches_reference": true
+        },
+        {
+          "seed": 45,
+          "prompt": "A copper lighthouse at sunrise",
+          "latency_s": 5.5599188820051495,
+          "rgb_sha256": "8ea9a78fe01a915a359632f4cc4385c47e6e78752047fcde4452f36d2511f8d5",
+          "matches_reference": true
+        }
+      ],
+      "has_rgb_reference": true,
+      "resolved_attention": {
+        "minimax_h3.token_refiner": "TRTLLM_ATTN",
+        "self": "TRTLLM_ATTN"
+      }
+    },
+    {
+      "key": "campaign-new-card1/final/quality-candidate",
+      "card": 1,
+      "complete": true,
+      "passes_rgb": true,
+      "monitored_polls": 67,
+      "uncontaminated": true,
+      "raw_trial_sha256": "9422e11446b6cf13f447e73bae6a0a121bdb62b8a5280104a00d54b1d0f48df6",
+      "startup_s": 46.02645548500004,
+      "warmup_s": 5.8353348879900295,
+      "latency_s": 5.5903509269992355,
+      "samples": [
+        {
+          "seed": 43,
+          "prompt": "A mountain lake at dusk",
+          "latency_s": 5.589578736980911,
+          "rgb_sha256": "627240ade8c99a30fa448ca271b0f74fa87b858c3a10459d2c0bc1e7b12b534e",
+          "matches_reference": true
+        },
+        {
+          "seed": 44,
+          "prompt": "A blue ceramic teapot on a linen table",
+          "latency_s": 5.618949380994309,
+          "rgb_sha256": "20fd902922cfcdb4aedea7a217b73f2c03d7ddc16354067f9faa65512a26b0ed",
+          "matches_reference": true
+        },
+        {
+          "seed": 45,
+          "prompt": "A copper lighthouse at sunrise",
+          "latency_s": 5.5903509269992355,
           "rgb_sha256": "8ea9a78fe01a915a359632f4cc4385c47e6e78752047fcde4452f36d2511f8d5",
           "matches_reference": true
         }

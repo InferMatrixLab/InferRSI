@@ -14,6 +14,8 @@
 | Gate | At least 20% lower latency, calculated as `1 − candidate / main`, with all three decoded RGB hashes equal to the matching same-card main reference. Detect device contention at admission and during execution. |
 | Investigation budget | Up to eight knowledge calls and three executable nominations per investigator. Source inspection and CPU checks are separate. Only the coordinator sees both arms before GPU measurements. |
 
+The shared Python environment retained older editable distribution metadata for vLLM-Omni and printed a version warning. Every server launch asserted that the imported `vllm_omni` package came from its assigned source tree. The pinned upstream [quickstart](https://github.com/vllm-project/vllm-omni/blob/51f54de16b08416182926b8f071034422561f99c/docs/getting_started/quickstart.md) specifies vLLM 0.34.0 and PyTorch 2.14.0, the runtime used in both arms.
+
 ## How to reproduce a pair
 
 Create two worktrees at the pinned engine revision. Leave one clean. For a source candidate, apply its file from [patch](../patch) to the other worktree. For an attention candidate, use the corresponding JSON as the trial configuration. Install the pinned model's native transformer, VAE, text encoder, tokenizer, processor and PDD files under a single snapshot directory.
