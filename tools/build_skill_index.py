@@ -15,7 +15,7 @@ from pathlib import Path
 
 from inferrsi.knowledge import _source_snapshot
 from inferrsi.knowledge.catalog import COMPILED, INPUTS
-from inferrsi.knowledge.skill_catalog import _frontmatter, skill_records
+from inferrsi.knowledge.skill_catalog import _frontmatter_parts, skill_records
 
 PROJECT = Path(__file__).resolve().parents[1]
 # The runtime reads these build products alongside the canonical owners.
@@ -108,7 +108,7 @@ def render_index(root: Path, revision: str, source_files: dict[str, str]) -> dic
         directory = registration["path"]
         prefix = f"{PINNED_LIBRARY.as_posix()}/{directory}/"
         with (root / directory / "SKILL.md").open("rb") as stream:
-            header = _frontmatter(stream)
+            header, _ = _frontmatter_parts(stream)
         owners[name] = {
             "header": header,
             "files": {p[len(prefix):]: digest for p, digest in sorted(source_files.items())

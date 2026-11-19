@@ -2,7 +2,7 @@
 
 Start from the work an engineer needs to finish. The library has one physical root, one source location per registered skill and one authored file per engineering finding. Search and the catalog are two views over those sources. The migration manifest maps historical checkout paths and revisions. [Migration manifest](skill-layout-migration.csv)
 
-The [single-B300 H3 Image field validation](../evidence/h3-image-b300-kb-layout-516/README.md) follows both knowledge layouts from a real performance question to source reads, candidate patches, quality gates and measured latency.
+To check the effect of this layout on search, compare unmodified main with the PR on the same machine. The [search comparison](../tools/compare_find_layouts.py) checks ordered results across both trees and times the end-to-end CLI. The [task queries and acceptance criteria](../tests/fixtures/find/layout-queries.json) define the workload.
 
 ## 1. Task layers and evidence
 
@@ -33,12 +33,12 @@ flowchart LR
     T --> P["7 primary owners: task-day-0, task-performance, task-debug, task-accuracy,<br/>task-version-alignment, task-derived-engine, task-independent-engine"]
     T --> H["inference-task-router/ · legacy card paths"]
     L --> S["80 supporting owners in systems/, playbooks/, workflows/, casebooks/"]
-    P & H & S --> O["One SKILL.md and sidecar per registered owner · 88 IDs"]
+    P & H & S --> O["One SKILL.md owns procedure and typed fields · 88 registered IDs"]
     L --> F["records/&lt;stable-id&gt;.json · 48 authored findings"]
     L --> CFG["config/ · aliases and research profiles"]
     L --> REG["skill-index.json · stable ID → owner and backend"]
     L --> BUILD["_compiled/ · inputs.json and _provenance.json"]
-    O & REG -.->|generate from committed inputs| BUILD
+    O & REG -.->|fingerprint resources and compile host headers at the source commit| BUILD
 ```
 
 ![One physical knowledge root (Chinese)](assets/knowledge-layout/02-physical-layout.png)
@@ -55,7 +55,7 @@ flowchart TB
     D -->|Need catalog scope| C["knowledge search · filter by repo, backend, scenario or tier"]
     C -->|Query| F
     C -->|No query| B["List 136 catalog records by ID · 48 findings + 88 skill views"]
-    F --> A["Exclude 7 primary skills and legacy router before IDF and limits<br/>default 135 evidence owners · 80 skills + 48 findings + 7 cases"]
+    F --> A["Rank the existing searchable fields and procedure text<br/>Exclude 7 primary skills and legacy router before IDF and limits<br/>default 135 evidence owners · 80 skills + 48 findings + 7 cases"]
     I -->|Authored finding| E["Validate selected record and its dependencies<br/>retain linked-library bundle and pin checks when skill documents are declared"]
     I -->|Other exact owner| V["Check revision, device, model, flags and measurement against this run"]
     E & A & B --> V
@@ -73,13 +73,13 @@ flowchart LR
     subgraph OLD["main · before #516"]
         A["skill_library/<br/>hardware / frameworks / repositories / methods / workflows"]
         B["repo_packs + knowledge_packs<br/>28 contribution + 9 dependency + 11 peer findings"]
-        C["Generated per-skill JSON<br/>plus navigation and shared provenance"]
+        C["A separate metadata.json beside skill procedures<br/>Generated per-skill JSON records, navigation and shared provenance"]
         D["data/query_aliases.json + research_profiles/"]
     end
     subgraph NEW["PR · knowledge/data/skill_library/"]
         N["tasks/ · 7 first-class primary owners + 1 compatibility router<br/>systems / playbooks / workflows / casebooks · 53 + 17 + 8 + 2"]
         R["records/ · 48 authored findings<br/>IDs, tiers, sources and verification retained"]
-        V["88 runtime skill views · 1 registry + 2 build inputs"]
+        V["Procedure and metadata in one SKILL.md<br/>88 runtime views · 1 registry + 2 generated inputs"]
         P["config/ · aliases + profiles"]
     end
     A -->|move 80 supporting owners and add primary skills| N
@@ -96,7 +96,7 @@ flowchart LR
 src/inferrsi/knowledge/data/
 └── skill_library/
     ├── tasks/
-    │   ├── task-day-0/                    SKILL.md + metadata.json for each primary
+    │   ├── task-day-0/                    SKILL.md contains the procedure and its structured fields
     │   ├── task-performance/
     │   ├── task-debug/
     │   ├── task-accuracy/
@@ -114,7 +114,18 @@ src/inferrsi/knowledge/data/
     └── _compiled/                         inputs.json, _provenance.json
 ```
 
-The README documents the library. A procedure, including its resources, belongs in one registered directory. An engineering record carries its own sources, applicability and verification status. Its filename must match its stable ID. The registry locates each skill. The existing protected `knowledge/catalog.py` owns the public view fields, including source links, recommendations and verification status. Builds compile YAML headers and pinned Git fingerprints required by the base wheel. The catalog reads canonical sidecars and emits the public schema-1 record on demand. Publishing the same skill under multiple engine or accelerator trees would require synchronized edits. Capture these dimensions for the actual run and compare them with owner metadata. For a new environment with no applicable local evidence, retain the unknown and the first check that could resolve it. [Record authoring guide](../src/inferrsi/knowledge/data/skill_library/records/README.md)
+The README documents the library. A procedure, including its resources, belongs in one registered directory. An engineering record carries its own sources, applicability and verification status. Its filename must match its stable ID. The registry locates each skill. The existing protected `knowledge/catalog.py` owns the public view fields, including source links, recommendations and verification status. Builds compile YAML headers and pinned Git fingerprints required by the base wheel. Authors edit structured fields in the same SKILL.md as the procedure. The catalog combines that embedded object with the compiled host header and resource fingerprints to emit the public schema-1 record on demand. Publishing the same skill under multiple engine or accelerator trees would require synchronized edits. Capture these dimensions for the actual run and compare them with owner metadata. For a new environment with no applicable local evidence, retain the unknown and the first check that could resolve it. [Record authoring guide](../src/inferrsi/knowledge/data/skill_library/records/README.md)
+
+### What to edit
+
+| When you change | Edit | How the change reaches readers |
+| --- | --- | --- |
+| A procedure, its applicability, provenance, tags or declared resources | The owner's `SKILL.md`. Ordinary agent fields such as `name` and `description` stay in the YAML header. `metadata.inferrsi` carries the structured InferRSI fields as a JSON string in a YAML block scalar. | The build compiles the header and resource hashes. Find uses the existing searchable fields and procedure text. |
+| A supporting example, script or case | Its owner-local resource under `references/`, `scripts/` or `cases/` | Open it through the owner's ID and revision. |
+| An independent engineering finding | `records/<stable-id>.json` | Its source, applicability and verification status travel with that evidence item. |
+| A new registered procedure | Add its owner directory and record the ID, path and backend in `skill-index.json` | Listing and exact reads resolve the new ID. Regenerate the two files under `_compiled/` from the committed sources. |
+
+This migration folds the fields from 107 paired files into their procedures, including 19 nested procedures. The 19 remain resources of their registered parents. The 48 JSON findings each represent independently addressable evidence. Query aliases, route cards, case records and test inputs retain their own file formats.
 
 ## Seven deliverables
 
@@ -145,7 +156,7 @@ inferrsi knowledge show flashinfer.cuda.llm.paged_decode_dispatch
 
 For an inference task, run `inferrsi skills enter <task-id>` and read its returned `instructions` before choosing the first supporting query. Its decision points specify the observation that warrants opening a supporting skill, the evidence to retrieve and the next action. A direct evidence lookup outside the main agent workflow can still use an exact ID or free text. The compatibility router retains its historical resource paths.
 
-For an exact read of an authored finding, the reader validates the selected record and the inputs of its bundle. A stale sidecar for an unrelated skill cannot block a standalone finding such as FlashInfer paged decode. A record that declares linked skill documents retains its library dependencies and bundle revision checks. Changes to those dependencies can invalidate a pinned read.
+For an exact read of an authored finding, the reader validates the selected record and the inputs of its bundle. A stale metadata edit in an unrelated skill cannot block a standalone finding such as FlashInfer paged decode. A record that declares linked skill documents retains its library dependencies and bundle revision checks. Changes to those dependencies can invalidate a pinned read.
 
 Find skips incidental system files such as `.DS_Store` beside the records and still validates record JSON. It ranks each eligible evidence owner once. A scoped catalog query reuses Find; a catalog listing without a query includes the eight task entries. Ranked Collect and managed campaign capture use the same evidence selector, and explicit IDs can still capture a task owner. Check revision, applicability and verification before using a result. Propose a reusable finding for human review with its source, scoped conclusion and retry condition.
 
@@ -155,7 +166,7 @@ Agent V describes Git-backed shared memory with human guidance, hard-to-rediscov
 
 MindIE Agent separates agent capabilities, knowledge and execution plugins. KDA specializes in kernel development. Cannbot Skills packages Ascend procedures for reuse. InferRSI needs cross-engine, cross-model and cross-platform retrieval as well as evidence qualification. It combines a task front door, technical owners, stable IDs and scoped evidence. A claim that it retrieves better than any of these projects requires a common task benchmark. [MindIE Agent](https://github.com/mindie-agent/mindie-agent) · [KDA](https://github.com/NVlabs/kda) · [Cannbot Skills](https://github.com/hicann/cannbot-skills)
 
-Measure three arms on the same corpus and tool budget. A uses the prior layout and search. B runs direct search on the unified layout as an evaluation-only ablation. C uses the normal main entrypoint on that same layout and loads the selected primary before evidence search. Use held-out tasks across the seven types, blinded reviewers and paired cases with an applicable answer and a similar-looking incompatible target. Use four held-out tasks for each of the seven task types. Run each arm in an isolated session and balance the order. The primary metric is the fraction of answerable tasks with an applicable, cited owner in the top three. Report top-five applicable-source recall separately. For missing evidence, score unjustified transfer, correct abstention and mistaken abstention separately. Record time to first useful evidence, files opened and maintenance effort. Compare A→B and B→C separately using the gates in the acceptance issue. Approve broader rollout only when the team meets its predeclared quality and cost targets.
+For the separate question of how much the task entry helps engineers, measure three arms on the same corpus and tool budget. A uses the prior layout and search. B runs direct search on the unified layout as an evaluation-only ablation. C uses the normal main entrypoint on that same layout and loads the selected primary before evidence search. Use held-out tasks across the seven types, blinded reviewers and paired cases with an applicable answer and a similar-looking incompatible target. Use four held-out tasks for each of the seven task types. Run each arm in an isolated session and balance the order. The primary metric is the fraction of answerable tasks with an applicable, cited owner in the top three. Report top-five applicable-source recall separately. For missing evidence, score unjustified transfer, correct abstention and mistaken abstention separately. Record time to first useful evidence, files opened and maintenance effort. Compare A→B and B→C separately using the gates in the acceptance issue. Approve broader rollout only when the team meets its predeclared quality and cost targets.
 
 The authoring benefit is directly inspectable: one finding file or one skill owner is edited; no per-pack navigation list or projected record is maintained. Two compiled files are reproducible build products. Their shared merge point is a cost: resolve source edits, then regenerate. The build-time Git pin identifies source provenance. Installed material selection checks the resource hashes. Whole-library dependency revisions, checkout revisions, and hashes of individual findings have different scopes. Historical checkout pins must be replayed on the corresponding snapshot. Compared with main after #507, the full layout migration rejects 79 old checkout skill pins, retains the seven case pins from that baseline and preserves the pre-existing unavailable `husky` read. Direct callers that open old pack filenames must move to the record ID or new path.
 

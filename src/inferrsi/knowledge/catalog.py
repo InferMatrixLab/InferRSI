@@ -120,6 +120,49 @@ def recommendations(metadata: dict) -> list[str]:
     return list(DEFAULT_RECOMMENDATIONS)
 
 
+def _split_skill_metadata(header: str) -> tuple[str, dict | None]:
+    """Separate the Agent Skills metadata.inferrsi block without importing YAML."""
+    # Only the canonical literal-block representation is read without PyYAML.
+    # The source builder checks its interpretation against the full YAML mapping.
+    section = re.search(r"^metadata:[ \t]*(?:#[^\n]*)?\r?\n", header, re.MULTILINE)
+    if section is None:
+        if re.search(r"""^metadata:.*\binferrsi['"]?\s*:""", header, re.MULTILINE):
+            raise ValueError("Use a metadata.inferrsi literal block of JSON with 2/4-space indents")
+        return header, None
+    rest = header[section.end():]
+    next_field = re.search(r"^[^ \t#\r\n]", rest, re.MULTILINE)
+    end = section.end() + next_field.start() if next_field else len(header)
+    children = header[section.end():end]
+    marker = re.search(
+        r"^  inferrsi:[ \t]+\|[+-]?[ \t]*(?:#[^\n]*)?\r?\n", children, re.MULTILINE,
+    )
+    if marker is None:
+        if re.search(r"""^ +['"]?inferrsi['"]?\s*:""", children, re.MULTILINE):
+            raise ValueError("Use a metadata.inferrsi literal block of JSON with 2/4-space indents")
+        return header, None
+    block = re.match(r"(?:    [^\n]*(?:\n|$)|\r?\n)+", children[marker.end():])
+    if block is None:
+        raise ValueError("Missing metadata.inferrsi JSON object")
+    data = json.loads(block.group())
+    if not isinstance(data, dict):
+        raise ValueError("Skill metadata.inferrsi must contain a JSON object")
+    siblings = children[:marker.start()] + children[marker.end()+block.end():]
+    if any(line.strip() and not line.lstrip().startswith("#") for line in siblings.splitlines()):
+        return header[:section.end()] + siblings + header[end:], data
+    return header[:section.start()] + header[end:], data
+
+
+def _skill_search_source(text: str) -> tuple[str, dict | None]:
+    """Preserve the original lexical fields. Structured metadata has its own weights."""
+    if "inferrsi" not in text:
+        return text, None
+    match = re.match(r"\A---[ \t]*\r?\n(.*?)^---[ \t]*\r?$", text, re.MULTILINE | re.DOTALL)
+    if match is None:
+        return text, None
+    header, metadata = _split_skill_metadata(match[1])
+    return text[:match.start(1)] + header + text[match.end(1):], metadata
+
+
 def skill_views(root, *, file_fingerprints=True, record_id: str | None = None):
     """The only compiled inputs are YAML headers and immutable source hashes."""
     built = root.joinpath(COMPILED)
@@ -159,15 +202,21 @@ def skill_views(root, *, file_fingerprints=True, record_id: str | None = None):
                     or any(p in {"", ".", ".."} for p in key.split("/"))
                     or not isinstance(digest, str) or not re.fullmatch(r"[0-9a-f]{64}", digest)):
                 raise ValueError(f"Invalid source fingerprint for {name}: {key}")
-        sidecar = owner.joinpath("metadata.json")
-        if sidecar.is_file() != ("metadata.json" in fingerprints):
-            raise ValueError(f"Skill metadata and snapshot disagree for {name}")
-        if sidecar.is_file():
-            raw = sidecar.read_bytes()
+        raw = owner.joinpath("SKILL.md").read_bytes()
+        if file_fingerprints and hashlib.sha256(raw).hexdigest() != fingerprints["SKILL.md"]:
+            raise ValueError(f"Stale skill metadata for {name}")
+        _, embedded = _skill_search_source(raw.decode("utf-8"))
+        if embedded is not None:
+            if "metadata.json" in fingerprints:
+                raise ValueError(f"Skill declares metadata in two files: {name}")
+            metadata.update(embedded)
+        elif "metadata.json" in fingerprints:
+            # A historical compiled snapshot can still be opened at its own pin.
+            legacy = owner.joinpath("metadata.json").read_bytes()
             if (file_fingerprints
-                    and hashlib.sha256(raw).hexdigest() != fingerprints["metadata.json"]):
+                    and hashlib.sha256(legacy).hexdigest() != fingerprints["metadata.json"]):
                 raise ValueError(f"Stale skill metadata for {name}")
-            metadata.update(json.loads(raw))
+            metadata.update(json.loads(legacy))
         backend = registration["backend"]
         state = metadata.get("status", "unspecified")
         entry = directory + "/SKILL.md"

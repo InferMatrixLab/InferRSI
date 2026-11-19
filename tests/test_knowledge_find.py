@@ -37,6 +37,17 @@ def corpus():
     return load_corpus(ROOT)
 
 
+def test_malformed_inline_metadata_never_becomes_searchable_body(tmp_path):
+    owner = tmp_path / "invalid"
+    owner.mkdir()
+    (owner / "SKILL.md").write_text(
+        "---\nname: invalid\ndescription: test\nmetadata:\n"
+        "  inferrsi: |\n    not-json-topsecret-token\n---\nordinary body\n",
+        encoding="utf-8",
+    )
+    assert not load_corpus(tmp_path, kinds=("skill",)).documents
+
+
 def _ranked(result, identity):
     for position, item in enumerate(result["items"], 1):
         if item["id"] == identity:

@@ -53,10 +53,7 @@ def test_existing_item_payload_and_material_accounting_are_unchanged():
     assert new["material_bytes"] == old["material_bytes"] == len(_json(old["items"][0]))
     assert json.loads(new["items"][0]["content"])["id"] == CGROUP
     assert new["contexts"][0]["resources"][0]["path"].endswith("/SKILL.md")
-    assert new["contexts"][0]["omissions"] == [{
-        "path": "data/skill_library/systems/platforms/host/cgroup-resource-controls/metadata.json",
-        "reason": "not_context_resource",
-    }]
+    assert new["contexts"][0]["omissions"] == []
     assert "contexts" not in reader.collect(ids=[CGROUP], relevance="unrelated")
 
 

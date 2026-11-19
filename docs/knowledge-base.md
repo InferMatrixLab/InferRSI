@@ -72,7 +72,7 @@ installation path reproduced a failed read of a nested reference on such a host.
 src/inferrsi/knowledge/data/skill_library/
   README.md                         Library navigation
   skill-index.json                    Stable IDs → current bundle path and backend
-  tasks/task-*/                       Seven registered primary procedures and their sidecars
+  tasks/task-*/                       Seven registered primary procedures
   tasks/inference-task-router/        Compatibility owner for historical route resources
   systems/platforms/{ascend,cuda,host}/   Device and host implementation guidance
   systems/frameworks/<framework>/     Framework-specific behavior and procedures
@@ -81,8 +81,7 @@ src/inferrsi/knowledge/data/skill_library/
   workflows/{research,governance,maintenance}/     Cross-stage processes
   casebooks/{inference,ascend}/       Prior decisions, outcomes and retry conditions
   <owner>/references/               Owner-local supporting documents and source inventory
-  <category>/<id>/SKILL.md           Name, description, substantive procedure
-  <category>/<id>/metadata.json      Provenance, state and relationships
+  <category>/<id>/SKILL.md           Procedure; frontmatter holds provenance, state and relationships
   <category>/<id>/references/        Owner's mechanisms, readsets and comparisons
   <category>/<id>/cases/             Owner's scoped cases (optional)
 src/inferrsi/knowledge/catalog.py    Installed knowledge reader
@@ -121,18 +120,18 @@ metadata authority or maintained matrix.
 
 | Item | Authority | Compatibility rule |
 |---|---|---|
-| New local-skill profile | `SKILL.md`: name, description and procedure; `metadata.json`: `profile: local-skill-v1`, kind, origin, state, provenance, applicability and relationships | Name stays the existing directory ID; listing combines metadata without reading procedure/resource bodies |
+| New local-skill profile | `SKILL.md` contains the procedure and frontmatter. The `metadata.inferrsi` string contains structured JSON for the local profile, kind, origin, state, provenance, applicability and relationships. | Name stays the existing directory ID; listing combines metadata without reading procedure/resource bodies |
 | Legacy local frontmatter | Existing frontmatter when no new profile is declared | Five inherited skills stay unchanged; no invented candidate state |
-| Legacy sidecars | Existing keys retained unless explicitly normalized | Conflicting duplicate fields fail visibly; matching historical fields can be read |
-| Catalog JSON | Existing record owns ID, tier, scope, recommendations, attribution and limitations | Do not migrate it into local sidecars or relabel imported records |
+| Historical/custom checkout sidecars | The reader still accepts adjacent `metadata.json` | Conflicting duplicate fields fail visibly; matching historical fields can be read |
+| Catalog JSON | Existing record owns ID, tier, scope, recommendations, attribution and limitations | Authored findings retain their own identity and attribution |
 | Engine procedures/resources | Imported English library and source manifest | Preserve licenses, source relationships and installed access; catalog abstracts link the complete English procedures |
 | Case | One owner-local case document plus structured identity/source record | Raw evidence stays frozen; case interpretation may evolve without rewriting results. Source identities and digests live only in the record; the document links it and cites the same source URLs. The record lists its own basename in `required_resources`, so that link resolves inside the read bundle |
 
 The 43 branch-added candidate headers were normalized without replacing their
 procedures. All structured frontmatter fields, including tags, synchronization
-lineage, unknown license and source-pack notes, are retained in sidecars. Existing
+lineage, unknown license and source-pack notes, are retained in their owner documents. Historical
 sidecar name/status duplication agreed with the frontmatter; normalization found
-no contradictory values. Sidecars omit fields equal to the reader defaults:
+no contradictory values. Local profiles omit fields equal to the reader defaults:
 empty `sources` and `references`, and the former shared placeholder
 `applicability`; absent sources still read as explicit unknown provenance.
 Abbreviated historical repository pins remain explicitly
@@ -165,13 +164,13 @@ has no specific advice and does not fall back; only an absent field produces the
 generic navigation defaults.
 
 `limitations` is not owner-only. The generator emits four sentences of its own and
-then appends the sidecar's `limitations` entries. `failure_modes` is therefore a
+then appends the skill's `limitations` entries. `failure_modes` is therefore a
 separate field rather than more `limitations` entries.
 
 No mechanical allowlist restricts `applicability` keys. The packaged library uses
 nine distinct keys: the seven above plus `architectures` and `excluded_mechanisms`,
 which appear only in `systems/platforms/cuda/reason-hopper-kernels`. A closed key set would
-reject that sidecar or have to grandfather it. Revisiting this is proposed for
+reject that metadata or have to grandfather it. Revisiting this is proposed for
 batch 4 of issue #91 and is not agreed.
 
 ## Sources and revisions
@@ -183,7 +182,7 @@ Its supplementary `Resource` tables describe guidance without claiming numbered
 layer coverage. A missing mapping means unknown, not that a procedure applies
 everywhere or nowhere.
 
-A sidecar may declare `searchspace_not_applicable` as a non-empty reason when its
+A skill may declare `searchspace_not_applicable` as a non-empty reason when its
 procedure does not address any of the five resource layers. The reason identifies
 the procedure's actual scope and its source section. Omit the field for positive
 or unanalyzed mappings; it is not a second mapping table. Device-independent
@@ -279,7 +278,7 @@ standalone export: retain the declared dependencies or the complete library.
 
 All 48 former root skills now have one canonical home under
 [`src/inferrsi/knowledge/data/skill_library/`](../src/inferrsi/knowledge/data/skill_library/README.md).
-Complete procedures, sidecars, references and cases are packaged together. Browse by
+Complete procedures, references and cases are packaged together. Browse by
 system, engineering task, workflow or prior outcome. Backend is recorded independently. The 21 engine and research-router skills
 use the same ownership layout under `systems/engines/<engine>/` and
 `workflows/research/inference-engine-research/`, including their sub-skills and references.
@@ -301,13 +300,13 @@ and catalog document pointers.
 
 The registered [PyTorch](../src/inferrsi/knowledge/data/skill_library/systems/frameworks/pytorch/pytorch/SKILL.md)
 and [TorchNPU](../src/inferrsi/knowledge/data/skill_library/systems/frameworks/torch-npu/torch-npu/SKILL.md)
-operating graphs each retain eight child procedures, their sidecars, references,
+operating graphs each retain eight child procedures with metadata, references,
 scripts and source notices under one root. The children are available through
 root resource reads and complete normalized bundles; they add no separate
 registry IDs or executable repository targets. Earlier compiler, DCP and
 TorchNPU allocator owners retain their independent source revisions.
 All new profiles use `local-skill-v1`: only name and description are in YAML;
-the AREX license, invocation and operating-role fields remain in sidecars.
+the AREX license, invocation and operating-role fields remain in the skill documents.
 An upstream AREX license check of a temporary frontmatter projection is distinct
 from final InferRSI format checks, backend execution and managed DisCo import.
 Required accelerator/distributed gaps remain `BLOCKED_REQUIRED_BACKEND`;

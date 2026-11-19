@@ -17,6 +17,8 @@ from urllib.parse import unquote, urlsplit
 import pytest
 import yaml
 
+from inferrsi.knowledge.skill_catalog import skill_metadata
+
 PROJECT = Path(__file__).resolve().parents[1]
 ROOT = PROJECT / "src/inferrsi/knowledge/data/skill_library/systems/engines/mlx-swift-lm"
 CASES = PROJECT / "tests/fixtures/repo_to_skill/mlx-swift-lm/test-cases"
@@ -71,7 +73,7 @@ def test_mlx_swift_graph_is_contained_candidate_with_exact_34_file_scope():
                 continue
             resolved = (path.parent / unquote(link.path)).resolve()
             assert resolved.is_relative_to(ROOT.resolve()) and resolved.is_file(), (path, target)
-    metadata = json.loads((ROOT / "metadata.json").read_text())
+    metadata = skill_metadata(ROOT.parent, ROOT.name)
     assert metadata["schema_version"] == 1 and metadata["kind"] == "skill"
     assert metadata["status"] == "candidate" and metadata["empirical_validation"] == "not_run"
     assert metadata["construction"]["native_import"] == "not-run"

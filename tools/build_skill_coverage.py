@@ -30,7 +30,7 @@ HEADING = re.compile(r"^## ([1-5]) · (.+)$")
 LINK = re.compile(r"\(([^()\s]*/skill_library/[^()\s]+/SKILL\.md)\)")
 BOLD = re.compile(r"\*\*(.+?)\*\*")
 
-# A sidecar states this for a dimension that genuinely does not apply, so the
+# An owner states this for a dimension that genuinely does not apply, so the
 # view can tell it apart from a field nobody has analyzed yet.
 NOT_APPLICABLE = "not-applicable"
 
@@ -231,9 +231,8 @@ def collect(root):
         metadata = skill_metadata(root / LIBRARY, name)
         relative = registry[name]["path"]
         directory = root / LIBRARY / relative
-        has_sidecar = (directory / "metadata.json").is_file()
         inputs.append(directory / "SKILL.md")
-        if has_sidecar:
+        if (directory / "metadata.json").is_file():  # Legacy custom checkout.
             inputs.append(directory / "metadata.json")
         declared = metadata.get("applicability")
         advice = metadata.get("recommendations")
@@ -246,7 +245,6 @@ def collect(root):
             "status": metadata.get("status", "unknown"),
             "validation": metadata.get("empirical_validation", "unknown"),
             "readsets": len(metadata.get("provenance_readsets") or []),
-            "sidecar": has_sidecar,
             "conditions": conditions(metadata),
             "typed_conditions": sorted(
                 key for key in (declared if isinstance(declared, dict) else {})
@@ -309,8 +307,6 @@ def gaps(row):
         found.append("conflicting-SearchSpace-layer")
     if not row["rm"]:
         found.append("no-Reference-Matrix-row")
-    if not row["sidecar"]:
-        found.append("no-sidecar")
     if not row["conditions"]["scope"] and not row["conditions"]["dimensions"]:
         found.append("no-applicability")
     if not row["eval"]:
@@ -344,13 +340,12 @@ def render(rows, unregistered, documents, dead, digest):
     guidance = [row for row in rows if guidance_only(row)]
     multi = [row for row in layered if len(row["layers"]) > 1]
     sourced = [row for row in rows if row["rm"]]
-    sided = [row for row in rows if row["sidecar"]]
     planned = [row for row in rows if row["eval"]]
 
     out = [
         "# Skill coverage view",
         "",
-        "Generated from the registry, the skill sidecars and the two maintained",
+        "Generated from the registry, SKILL.md frontmatter and the two maintained",
         "matrices. **Do not edit by hand**; regenerate after any registry, skill,",
         "matrix or frozen-plan change.",
         "",
@@ -373,11 +368,11 @@ def render(rows, unregistered, documents, dead, digest):
         "| Skill id, canonical path, backend | "
         "[`skill-index.json`](../src/inferrsi/knowledge/data/skill_library/skill-index.json) |",
         "| Declared task, status, validation state, provenance readsets | "
-        "the skill's `SKILL.md` frontmatter and `metadata.json` sidecar |",
+        "the skill's `SKILL.md` frontmatter |",
         "| Declared applicability conditions, workflow input/output/failure/refusal | "
-        "`applicability` in the same `metadata.json` sidecar; descriptive, not evidential |",
+        "`applicability` in the same frontmatter; descriptive, not evidential |",
         "| Resource layer, lifecycle stage | [SearchSpace Matrix](searchspace-matrix.md) |",
-        "| Reasoned resource-layer exclusion | `searchspace_not_applicable` in the sidecar |",
+        "| Reasoned resource-layer exclusion | `searchspace_not_applicable` in the frontmatter |",
         "| Source identity and inspected scope | [Reference Matrix](reference-matrix.md) |",
         "| Evaluation selection | frozen `evidence/<campaign>/plan/protocol-*.json` |",
         "| Delivery PR and issue | not derived here; see [issue #91]"
@@ -403,7 +398,6 @@ def render(rows, unregistered, documents, dead, digest):
         f"{sum(layer_state(row) == 'conflict' for row in rows)} |",
         f"| Recorded on two or more resource layers | {len(multi)} |",
         f"| Recorded in the Reference Matrix | {len(sourced)} |",
-        f"| With a `metadata.json` sidecar | {len(sided)} |",
         f"| Selected by a frozen evaluation plan | {len(planned)} |",
         f"| `SKILL.md` documents in the library | {documents} |",
         f"| Unregistered documents (excluded from every count above) | "
@@ -503,7 +497,6 @@ def render(rows, unregistered, documents, dead, digest):
         "- Duplicate ids or paths: none; `skill_catalog` rejects them before this "
         "view is built.",
         f"- Skill links in the two matrices that do not resolve: {len(dead)}.",
-        f"- Registered skills without a `metadata.json` sidecar: {len(rows) - len(sided)}.",
         "",
     ]
     if dead:
@@ -513,7 +506,7 @@ def render(rows, unregistered, documents, dead, digest):
 
     out += ["## Recorded gaps", "", "| Gap | Skills |", "|---|---|"]
     for token in ("no-SearchSpace-layer", "conflicting-SearchSpace-layer",
-                  "no-Reference-Matrix-row", "no-sidecar",
+                  "no-Reference-Matrix-row",
                   "no-applicability", "no-eval"):
         names = [row["id"] for row in rows if token in gaps(row)]
         listed = (", ".join(names) if len(names) <= 20
@@ -522,7 +515,7 @@ def render(rows, unregistered, documents, dead, digest):
     out += [
         "",
         "These are inventory gaps, not efficacy results. Missing layer mappings stay",
-        "unknown unless the sidecar records a reasoned N/A. N/A is not coverage;",
+        "unknown unless the owner records a reasoned N/A. N/A is not coverage;",
         "a conflicting matrix mapping remains visible and is excluded from coverage",
         "counts until reconciled. Supplementary guidance stays distinct from numbered",
         "layer coverage. A candidate may legitimately remain untested.",
@@ -557,7 +550,7 @@ def render(rows, unregistered, documents, dead, digest):
         "## Drift and maintenance",
         "",
         "The generator is the only writer of this file. After changing the registry,",
-        "a skill body, a sidecar, either matrix or a frozen plan, regenerate and",
+        "a skill document, either matrix or a frozen plan, regenerate and",
         "commit both files together. `--check` rebuilds in memory and diffs against",
         "the committed file, exiting non-zero on any difference, so CI can detect a",
         "view that drifted from its sources. Only the affected rows need review;",

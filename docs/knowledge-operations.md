@@ -152,7 +152,7 @@ Remaining owner-local Markdown, JSON, text and CSV resources are optional. With
 a cue, Find ranks their filenames and text within the owner and only positive
 matches are eligible. An empty cue uses resource path order. The context's
 `omissions` list nonmatching, oversized, non-UTF-8 and ineligible resources
-such as `metadata.json` and scripts. Follow links to further material through
+such as scripts. Follow links to further material through
 the owning revision. Use exact `read` for the complete Bundle.
 
 The context budget sums exact UTF-8 resource-body bytes across owners in selected
@@ -192,7 +192,7 @@ full-bundle revision.
 
 - Local skills include their complete owner folder (except incidental
   `__pycache__`, `*.pyc` and `.DS_Store`) and declared cross-skill references,
-  whether declared in the sidecar or in legacy frontmatter. Other links remain navigation in the required full checkout.
+  whether declared in skill frontmatter or a legacy checkout sidecar. Other links remain navigation in the required full checkout.
 - Local structured cases keep their own identity, observation and source limits.
   A case bundle holds its record, content and any `required_resources` declared
   relative to the record; missing, unsafe or escaping resources fail. Case

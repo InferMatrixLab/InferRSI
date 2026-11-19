@@ -486,7 +486,7 @@ def parser(*, parser_class=argparse.ArgumentParser) -> argparse.ArgumentParser:
         help="Skill library or flat skill directory (default: installed library)",
     )
     actions = skills.add_subparsers(dest="skills_action", required=True)
-    listing = actions.add_parser("list", help="List frontmatter and sidecar metadata only")
+    listing = actions.add_parser("list", help="List skill metadata without the instruction body")
     listing.add_argument("--json", action="store_true")
     enter = actions.add_parser(
         "enter", help="Load the selected primary inference task before evidence search"

@@ -35,23 +35,24 @@ def test_framework_roots_register_graphs_without_registering_children(name, back
     for document in [owner / "SKILL.md", *children]:
         frontmatter = document.read_text(encoding="utf-8").split("---", 2)[1]
         header = yaml.safe_load(frontmatter)
-        assert set(header) == {"name", "description"}
+        assert set(header) == {"name", "description", "metadata"}
         assert header["name"] == document.parent.name
         assert re.search(r'^description: ".+"$', frontmatter, re.MULTILINE)
-        sidecar = json.loads(document.with_name("metadata.json").read_text(encoding="utf-8"))
-        assert sidecar["profile"] == "local-skill-v1"
-        assert sidecar["status"] == "candidate"
-        assert sidecar["disable-model-invocation"] is True
-        assert sidecar["metadata"]["disco-role"] == "operating"
-        assert isinstance(sidecar["license"], str) and sidecar["license"].strip()
-        assert sidecar["license"] == repository_license
+        fields = json.loads(header["metadata"]["inferrsi"])
+        assert fields["profile"] == "local-skill-v1"
+        assert fields["status"] == "candidate"
+        assert fields["disable-model-invocation"] is True
+        assert fields["metadata"]["disco-role"] == "operating"
+        assert isinstance(fields["license"], str) and fields["license"].strip()
+        assert fields["license"] == repository_license
         # A child is still a valid local skill when selected from its flat parent.
         root = LIBRARY if document.parent == owner else owner / "sub-skills"
-        assert skill_metadata(root, header["name"]) == header | sidecar
+        native = {key: header[key] for key in ("name", "description")}
+        assert skill_metadata(root, header["name"]) == native | fields
 
 
 @pytest.mark.parametrize("name,backend", GRAPHS)
-def test_framework_graph_resources_and_sidecars_survive_checkout_bundle_reads(name, backend):
+def test_framework_graph_resources_survive_checkout_bundle_reads(name, backend):
     owner = LIBRARY / "systems/frameworks" / name / name
     reader = KnowledgeReader(skill_root=LIBRARY)
     identity = f"checkout:{name}"
@@ -87,7 +88,6 @@ def test_framework_catalog_preserves_owner_metadata_and_scope_without_promotion(
         # source_files names each input at the pinned source_revision, where the
         # corpus still sat directly under src/inferrsi/data.
         assert _pinned(document) in source_paths
-        assert _pinned(document.with_name("metadata.json")) in source_paths
 
 
 def test_pytorch_retained_license_and_notice_match_declared_immutable_blob_bytes():

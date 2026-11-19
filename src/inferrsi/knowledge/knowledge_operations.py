@@ -430,10 +430,11 @@ class KnowledgeReader:
     def _checkout_identities(self) -> list[str]:
         if self.skill_root is None:
             return []
-        # Enumeration reads registered names. Collect validates sidecars per item.
+        # Enumeration reads registered names. Collect validates metadata per item.
         from .skill_catalog import skill_directories
 
-        identities = [*skill_directories(self.skill_root), *self._cases()]
+        directories = skill_directories(self.skill_root)
+        identities = [*directories, *self._cases(directories)]
         if len(set(identities)) != len(identities):
             raise IdentityError("collision", "Duplicate identity inside the checkout")
         return identities
@@ -479,12 +480,14 @@ class KnowledgeReader:
         """
         return self._cases()
 
-    def _cases(self) -> dict[str, Path]:
+    def _cases(self, directories: dict[str, Path] | None = None) -> dict[str, Path]:
         result = {}
         if self.skill_root is not None:
             from .skill_catalog import skill_directories
 
-            for directory in skill_directories(self.skill_root).values():
+            if directories is None:
+                directories = skill_directories(self.skill_root)
+            for directory in directories.values():
                 for path in sorted(directory.glob("cases/*.json")):
                     if path.is_symlink() or not path.resolve().is_relative_to(self.skill_root):
                         raise ValueError("Case must stay inside the selected skills root")
@@ -599,17 +602,16 @@ class KnowledgeReader:
         )
 
     def _skill(self, identity: str) -> Bundle:
-        from .skill_catalog import get_skill, skill_directory, skill_metadata, skill_reference
+        from .skill_catalog import _effective, _reference_path, skill_directory
 
         root = self.skill_root
-        record = get_skill(root, identity)
         directory = skill_directory(root, identity)
+        metadata = _effective(directory)
         prefix = directory.relative_to(root).as_posix()
         content = _tree(directory, prefix, root=root)
-        metadata = skill_metadata(root, identity)
         dependencies = {}
         for reference in metadata.get("references", []):
-            path = skill_reference(root, identity, reference)
+            path = _reference_path(root, directory, reference)
             key = path.relative_to(root).as_posix()
             content[key] = path.read_bytes()
             dependencies[key] = "sha256:" + _hash(content[key])
@@ -618,7 +620,7 @@ class KnowledgeReader:
                 "id": identity,
                 "kind": "skill",
                 "entrypoint": f"{prefix}/SKILL.md",
-                "title": record["description"],
+                "title": metadata["description"],
                 "origin": metadata.get("origin", ["unknown"]),
                 "sources": _sources(metadata.get("sources", []))
                 or [
@@ -628,7 +630,7 @@ class KnowledgeReader:
                     }
                 ],
                 "applicability": metadata.get("applicability", {}),
-                "state": record.get("status", "unspecified"),
+                "state": metadata.get("status", "unspecified"),
                 "limitations": metadata.get("limitations", [])
                 + [
                     "Checkout-only local skill; no automatic execution or promotion.",

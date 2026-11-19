@@ -140,6 +140,12 @@ def test_requires_unique_label_and_expected_source_path(source_repo, change):
         check.verify_anchors(repo, text, pin)
 
 
+def test_tool_reads_the_current_owner_document():
+    pin = check.metadata_pin(check.DEFAULT_METADATA)
+    assert len(pin) == 40
+    assert pin in check.DEFAULT_DOC.read_text(encoding="utf-8")
+
+
 def test_metadata_requires_full_source_commit(tmp_path):
     path = tmp_path / "metadata.json"
     metadata(path, "main")

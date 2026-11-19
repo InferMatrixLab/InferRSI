@@ -1,5 +1,0 @@
-{
-  "env": {
-    "DIFFUSION_ATTENTION_BACKEND": "CUDNN_ATTN"
-  }
-}

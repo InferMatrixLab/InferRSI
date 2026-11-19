@@ -82,7 +82,7 @@ Reviewed paper comparisons, readsets and cases live under their owning skill's
 Paper knowledge does not supply repository-only schema fields such as a Git SHA,
 so it remains linked Markdown rather than a parallel registry or fabricated
 `repo_packs` record. The [knowledge-base contract](knowledge-base.md) defines
-local sidecar ownership, typed source examples, shared checkout references and
+skill-local metadata ownership, typed source examples, shared checkout references and
 legacy package compatibility. Normalized reads and bounded Collect
 ([knowledge-operations.md](knowledge-operations.md)) and the authorized local
 store ([knowledge-store.md](knowledge-store.md)) are implemented Python
@@ -466,7 +466,7 @@ runtime can load the complete packaged primary procedure without PyYAML.
 
 Supporting procedures live in `systems/`, `playbooks/`, `workflows/` and
 `casebooks/`. Engine owners live under `systems/engines/<engine>/`. Each owner
-packages its full English procedure, sidecar, references and cases. The library
+packages its full English procedure, embedded metadata, references and cases. The library
 also owns authored findings in `records/`, search configuration in `config/`
 and generated build inputs in `_compiled/`. An explicit `--root` selects a
 custom flat or registry-based library. Readers that parse skill frontmatter use

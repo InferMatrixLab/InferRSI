@@ -16,6 +16,7 @@ from urllib.parse import unquote, urlsplit
 
 import pytest
 
+from inferrsi.knowledge.catalog import _split_skill_metadata
 from tools.build_codex_plugin import build_plugin
 from tools.build_workswarm_plugin import build_plugin as build_workswarm_plugin
 from tools.check_release import check_plugin
@@ -158,8 +159,10 @@ def test_entry_loads_the_required_primary_before_search(distribution, tmp_path):
     registered = json.loads(bundled[library + "skill-index.json"])["skills"]
     for name in required:
         owner = library + registered[name]["path"]
-        assert "primary-task" in json.loads(bundled[owner + "/metadata.json"])["tags"]
-        assert bundled[owner + "/SKILL.md"]
+        header = bundled[owner + "/SKILL.md"].decode().split("---", 2)[1]
+        _, metadata = _split_skill_metadata(header)
+        assert "primary-task" in metadata["tags"]
+        assert owner + "/metadata.json" not in bundled
 
     # The host makes the natural-language choice. Follow its published accuracy
     # row and check the actual base-install CLI returns the owner before Find.
@@ -197,7 +200,7 @@ def test_entry_workflow_selects_packaged_skill_projections(distribution, tmp_pat
 
 @pytest.mark.parametrize(("action", "resource"), [
     ("reference", "../../../platforms/host/host-memory-management/SKILL.md"),
-    ("resource", "metadata.json"),
+    ("resource", "references/notices.md"),
 ])
 def test_returned_skill_paths_survive_process_exit_and_later_invocations(
     distribution, tmp_path, action, resource,

@@ -7,7 +7,7 @@ from pathlib import Path, PurePosixPath
 from typing import BinaryIO
 
 from ._knowledge_errors import MissingSkillsExtra
-from .catalog import BACKENDS
+from .catalog import BACKENDS, _skill_search_source, _split_skill_metadata
 
 _SKILLS_EXTRA = (
     "Reading checkout skills requires the 'skills' extra (PyYAML); install it "
@@ -43,7 +43,7 @@ def _yaml():
     return yaml
 
 
-def _frontmatter(stream: BinaryIO) -> dict:
+def _frontmatter_parts(stream: BinaryIO) -> tuple[dict, dict | None]:
     if stream.readline().strip() != b"---":
         raise ValueError("SKILL.md must start with YAML frontmatter")
     lines = []
@@ -53,13 +53,31 @@ def _frontmatter(stream: BinaryIO) -> dict:
         lines.append(line)
     else:
         raise ValueError("Unclosed SKILL.md frontmatter")
+    header = b"".join(lines).decode("utf-8")
+    _, metadata = _split_skill_metadata(header)
     yaml = _yaml()
     try:
-        record = yaml.safe_load(b"".join(lines).decode("utf-8"))
+        record = yaml.safe_load(header)
     except yaml.YAMLError as exc:
         raise ValueError(f"Invalid skill YAML: {exc}") from exc
     if not isinstance(record, dict):
         raise ValueError("Skill frontmatter must be a mapping")
+    host = record.get("metadata")
+    if isinstance(host, dict) and "inferrsi" in host:
+        literal = host.pop("inferrsi")
+        if not isinstance(literal, str) or metadata is None or json.loads(literal) != metadata:
+            raise ValueError("Use a metadata.inferrsi literal block of JSON with 2/4-space indents")
+        if not host:
+            del record["metadata"]
+    elif metadata is not None:
+        raise ValueError("Embedded metadata disagrees with YAML metadata.inferrsi")
+    return record, metadata
+
+
+def _frontmatter(stream: BinaryIO) -> dict:
+    record, metadata = _frontmatter_parts(stream)
+    if metadata is not None:
+        record.update(metadata)
     return record
 
 
@@ -230,13 +248,17 @@ def _applicability(record: dict, name: str) -> None:
 def _effective(directory: Path) -> dict:
     # Read bytes line by line; parse only the frontmatter, never decode the body.
     with _entry(directory, "SKILL.md").open("rb") as stream:
-        record = _frontmatter(stream)
+        record, embedded = _frontmatter_parts(stream)
     for key in ("name", "description"):
         if not isinstance(record.get(key), str) or not record[key].strip():
             raise ValueError(f"Skill requires {key}: {directory.name}")
     if record["name"] != directory.name:
         raise ValueError(f"Skill name disagrees with directory: {directory.name}")
     metadata = _sidecar(directory)
+    if embedded is not None:
+        if metadata is not None:
+            raise ValueError(f"Skill declares metadata in two files: {directory.name}")
+        metadata = embedded
     if metadata is not None:
         for key in record.keys() & metadata.keys():
             if record[key] != metadata[key]:
@@ -245,9 +267,9 @@ def _effective(directory: Path) -> dict:
             if any(key in metadata for key in ("name", "description")):
                 raise ValueError("Local skill name and description belong in SKILL.md")
             if set(record) != {"name", "description"}:
-                raise ValueError("Local skill structured fields belong in metadata.json")
-        # Only sidecars declare these fields, and JSON cannot express a container
-        # cycle; validating the sidecar leaves the bundle normalizer free to report
+                raise ValueError("Local skill structured fields belong in metadata.inferrsi")
+        # Structured JSON cannot express a container cycle.
+        # Validating these fields leaves the bundle normalizer free to report
         # a cyclic legacy frontmatter value against the field that contains it.
         _strings(metadata, "recommendations", directory.name)
         _applicability(metadata, directory.name)
@@ -275,7 +297,7 @@ def _metadata(directory: Path) -> dict:
 
 
 def skill_metadata(root: Path, name: str) -> dict:
-    """Effective legacy frontmatter plus sidecar fields, after conflict checks."""
+    """Effective frontmatter, with sidecar support for historical checkouts."""
     return _effective(skill_directory(root, name))
 
 
@@ -308,14 +330,16 @@ def skill_instructions(root: Path, name: str) -> str:
 def primary_task_instructions(root: Path, name: str) -> str:
     """Open the registered primary procedure before looking for supporting evidence."""
     directory = skill_directory(root, name)
-    metadata = _sidecar(directory) or {}
+    instructions = _entry(directory, "SKILL.md").read_text(encoding="utf-8")
+    _, metadata = _skill_search_source(instructions)
+    if metadata is None:
+        metadata = _sidecar(directory) or {}
     tags = metadata.get("tags")
     if (metadata.get("discovery_role") != "task-entry"
             or not isinstance(tags, list) or "primary-task" not in tags):
         raise ValueError(f"Not a primary inference task skill: {name}")
     # Return the complete owner file. No frontmatter projection or YAML extra is
     # needed by a base install, and the host can read the procedure immediately.
-    instructions = _entry(directory, "SKILL.md").read_text(encoding="utf-8")
     sections = re.split(r"^---[ \t]*$", instructions, maxsplit=2, flags=re.MULTILINE)
     if len(sections) != 3 or sections[0] or not sections[2].strip():
         raise ValueError(f"Primary task skill requires frontmatter and instructions: {name}")
@@ -338,6 +362,11 @@ def skill_reference(root: Path, name: str, reference: str) -> Path:
     directory = skill_directory(root, name)
     if reference not in _references(_effective(directory), directory.name):
         raise ValueError(f"Undeclared skill reference: {reference}")
+    return _reference_path(root, directory, reference)
+
+
+def _reference_path(root: Path, directory: Path, reference: str) -> Path:
+    """Resolve a reference already declared by this owner."""
     if "\\" in reference or Path(reference).is_absolute():
         raise ValueError("Reference must use a relative POSIX path")
     path = (directory / reference).resolve()

@@ -1,10 +1,10 @@
 # Skill coverage view
 
-Generated from the registry, the skill sidecars and the two maintained
+Generated from the registry, SKILL.md frontmatter and the two maintained
 matrices. **Do not edit by hand**; regenerate after any registry, skill,
 matrix or frozen-plan change.
 
-- Input digest: `sha256:6be00573bdb637fb33f80378086f5aae53dd519d032cbfa1ded20cc9a73b09b9`
+- Input digest: `sha256:93ad79f2b36af340d3c1c819dcb2f9b651d0f6078913aa726bd9ee1f01e9df54`
 - Regenerate: `python tools/build_skill_coverage.py`
 - Verify without writing: `python tools/build_skill_coverage.py --check`
 
@@ -21,10 +21,10 @@ matrix: every field is copied from an owner that already maintains it.
 | Field | Owner of the fact |
 |---|---|
 | Skill id, canonical path, backend | [`skill-index.json`](../src/inferrsi/knowledge/data/skill_library/skill-index.json) |
-| Declared task, status, validation state, provenance readsets | the skill's `SKILL.md` frontmatter and `metadata.json` sidecar |
-| Declared applicability conditions, workflow input/output/failure/refusal | `applicability` in the same `metadata.json` sidecar; descriptive, not evidential |
+| Declared task, status, validation state, provenance readsets | the skill's `SKILL.md` frontmatter |
+| Declared applicability conditions, workflow input/output/failure/refusal | `applicability` in the same frontmatter; descriptive, not evidential |
 | Resource layer, lifecycle stage | [SearchSpace Matrix](searchspace-matrix.md) |
-| Reasoned resource-layer exclusion | `searchspace_not_applicable` in the sidecar |
+| Reasoned resource-layer exclusion | `searchspace_not_applicable` in the frontmatter |
 | Source identity and inspected scope | [Reference Matrix](reference-matrix.md) |
 | Evaluation selection | frozen `evidence/<campaign>/plan/protocol-*.json` |
 | Delivery PR and issue | not derived here; see [issue #91](https://github.com/InferMatrixLab/InferRSI/issues/91) and `docs/reviews/issue91-*.md` |
@@ -42,7 +42,6 @@ matrix: every field is copied from an owner that already maintains it.
 | Conflicting resource-layer declarations | 0 |
 | Recorded on two or more resource layers | 24 |
 | Recorded in the Reference Matrix | 72 |
-| With a `metadata.json` sidecar | 88 |
 | Selected by a frozen evaluation plan | 2 |
 | `SKILL.md` documents in the library | 151 |
 | Unregistered documents (excluded from every count above) | 63 |
@@ -242,7 +241,6 @@ an entrypoint routes to procedures below it rather than adding one.
 - Registered ids resolve to an existing `SKILL.md`: 88 of 88.
 - Duplicate ids or paths: none; `skill_catalog` rejects them before this view is built.
 - Skill links in the two matrices that do not resolve: 0.
-- Registered skills without a `metadata.json` sidecar: 0.
 
 ## Recorded gaps
 
@@ -251,12 +249,11 @@ an entrypoint routes to procedures below it rather than adding one.
 | `no-SearchSpace-layer` | 1: husky |
 | `conflicting-SearchSpace-layer` | 0: — |
 | `no-Reference-Matrix-row` | 16: ascend-video-diffusion-optimization, audit-fixed-workload-claim, cite-check-downstream-pr, claim-contract, competitor-scan, draft-acceptance-issue, inference-task-router, rsi-evidence, task-accuracy, task-day-0, task-debug, task-derived-engine, task-independent-engine, task-performance, task-version-alignment, video-diffusion-optimization |
-| `no-sidecar` | 0: — |
 | `no-applicability` | 0: — |
 | `no-eval` | 86: as listed in the Gaps column above |
 
 These are inventory gaps, not efficacy results. Missing layer mappings stay
-unknown unless the sidecar records a reasoned N/A. N/A is not coverage;
+unknown unless the owner records a reasoned N/A. N/A is not coverage;
 a conflicting matrix mapping remains visible and is excluded from coverage
 counts until reconciled. Supplementary guidance stays distinct from numbered
 layer coverage. A candidate may legitimately remain untested.
@@ -286,7 +283,7 @@ read each campaign's own `README.md` for its verdict and limits.
 ## Drift and maintenance
 
 The generator is the only writer of this file. After changing the registry,
-a skill body, a sidecar, either matrix or a frozen plan, regenerate and
+a skill document, either matrix or a frozen plan, regenerate and
 commit both files together. `--check` rebuilds in memory and diffs against
 the committed file, exiting non-zero on any difference, so CI can detect a
 view that drifted from its sources. Only the affected rows need review;

@@ -8,12 +8,29 @@ It builds on the earlier projection format discussed in
 
 | You write | Tools derive |
 | --- | --- |
-| Skill body, references, cases, `metadata.json`, registry entry | Runtime catalog views, compiled YAML headers and resource hashes |
+| Skill document (including frontmatter), references, cases, registry entry | Runtime catalog views, compiled YAML headers and resource hashes |
 | Matrix rows in `docs/reference-matrix.md` and `docs/searchspace-matrix.md` | `docs/skill-coverage.md` |
 | The PR's knowledge authorship declaration: every material AI author's actual tool, model and effort, or `human_only` | The head SHA and the exact protected, policy and generated path lists |
 
 Tooling never infers authorship, model, effort, human contribution or an exception
 decision.
+
+A skill owner edits one `SKILL.md`. Put structured InferRSI fields in the
+`metadata.inferrsi` literal string. The host sees a string-valued annotation,
+and InferRSI reads its JSON object. For example, a candidate owner can declare:
+
+```yaml
+---
+name: example-skill
+description: "Inspect an inference configuration."
+metadata:
+  inferrsi: |
+    {"status": "candidate", "tags": ["configuration"]}
+---
+```
+
+Write the procedure after the closing delimiter. Add references or cases only
+when the procedure needs those resources.
 
 ## Steps
 

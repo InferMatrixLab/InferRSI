@@ -9,6 +9,7 @@ from inferrsi.knowledge.knowledge_operations import KnowledgeReader
 from inferrsi.knowledge.skill_catalog import (
     skill_directories,
     skill_directory,
+    skill_metadata,
     skill_records,
     skill_reference,
 )
@@ -20,30 +21,28 @@ def test_local_profiles_preserve_core_and_structured_ownership():
     records = skill_records(ROOT)
     normalized = []
     for record in records:
-        sidecar = skill_directory(ROOT, record["name"]) / "metadata.json"
-        if not sidecar.exists():
-            continue
-        metadata = json.loads(sidecar.read_text(encoding="utf-8"))
+        directory = skill_directory(ROOT, record["name"])
+        assert not (directory / "metadata.json").exists()
+        metadata = skill_metadata(ROOT, record["name"])
         if metadata.get("profile") != "local-skill-v1":
             continue
         normalized.append(record["name"])
-        assert "name" not in metadata and "description" not in metadata
+        assert metadata["name"] == record["name"] and metadata["description"]
         assert metadata["status"] == record["status"]
         assert metadata["kind"] == "skill"
         for readset in metadata["provenance_readsets"]:
-            assert (sidecar.parent / readset).is_file()
+            assert (directory / readset).is_file()
     assert len(normalized) == 77
 
 
-def test_local_sidecars_omit_fields_that_equal_reader_defaults():
+def test_local_profiles_omit_fields_that_equal_reader_defaults():
     # Readers default absent sources/references to [] and applicability to {};
     # a stored empty or placeholder value would only repeat that default.
     placeholder = {"scope": "See procedure prerequisites and counter-signals"}
     for record in skill_records(ROOT):
-        sidecar = skill_directory(ROOT, record["name"]) / "metadata.json"
-        if not sidecar.exists():
-            continue
-        metadata = json.loads(sidecar.read_text(encoding="utf-8"))
+        directory = skill_directory(ROOT, record["name"])
+        assert not (directory / "metadata.json").exists()
+        metadata = skill_metadata(ROOT, record["name"])
         assert metadata.get("sources") != [], record["name"]
         assert metadata.get("references") != [], record["name"]
         assert metadata.get("applicability") != placeholder, record["name"]

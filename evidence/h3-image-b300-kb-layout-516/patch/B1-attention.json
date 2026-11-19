@@ -1,6 +1,0 @@
-{
-  "args": [
-    "--diffusion-attention-config",
-    "{\"default\":{\"backend\":\"CUDNN_ATTN\"}}"
-  ]
-}

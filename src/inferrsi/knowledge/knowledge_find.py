@@ -467,20 +467,28 @@ def _skill_documents(root: Path, *, source_location: str) -> list[Document]:
     and carries no index, so the default search raised on a library whose cases
     `find` could already rank and `read` could already open.
     """
-    from .skill_catalog import _sidecar, skill_registrations
+    from .skill_catalog import _sidecar, _skill_search_source, skill_registrations
 
     documents = []
     for name, (directory, backend) in sorted(skill_registrations(root).items()):
+        core = directory / "SKILL.md"
+        body = _body_text(core)
         try:
-            metadata = _sidecar(directory) or {}
+            body, metadata = _skill_search_source(body)
+        except ValueError:
+            # Malformed structured data is neither evidence nor instruction text.
+            continue
+        if metadata is not None and (directory / "metadata.json").exists():
+            continue
+        try:
+            if metadata is None:
+                metadata = _sidecar(directory) or {}
         except (ValueError, OSError):
             metadata = {}
         # Task entrypoints remain addressable through the registry. Counting
         # an orientation page as evidence also changes IDF for every owner.
         if metadata.get("discovery_role") == "task-entry":
             continue
-        core = directory / "SKILL.md"
-        body = _body_text(core)
         description = _skill_description(body)
         applicability = metadata.get("applicability", {})
         scope = applicability.get("scope") if isinstance(applicability, dict) else applicability

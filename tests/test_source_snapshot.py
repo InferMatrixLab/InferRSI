@@ -37,11 +37,12 @@ def test_single_owner_reads_survive_an_unrelated_pending_metadata_edit(tmp_path,
 
     library = GENERATED.parent
     owner = "ascend-model-adaptation"
-    metadata = skill_catalog.skill_directory(library, owner) / "metadata.json"
-    edited = tmp_path / "metadata.json"
-    sidecar = json.loads(metadata.read_bytes())
-    sidecar["tags"].append("pending-edit")
-    edited.write_text(json.dumps(sidecar), encoding="utf-8")
+    metadata = skill_catalog.skill_directory(library, owner) / "SKILL.md"
+    edited = tmp_path / "SKILL.md"
+    original = metadata.read_text(encoding="utf-8")
+    assert '"tags": [' in original
+    modified = original.replace('"tags": [', '"tags": ["pending-edit",', 1)
+    edited.write_text(modified, encoding="utf-8")
     original_open = Path.open
 
     def open_with_edit(path, *args, **kwargs):

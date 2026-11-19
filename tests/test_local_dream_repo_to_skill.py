@@ -16,6 +16,8 @@ from urllib.parse import unquote, urlsplit
 import pytest
 import yaml
 
+from inferrsi.knowledge.skill_catalog import skill_metadata
+
 PROJECT = Path(__file__).resolve().parents[1]
 ROOT = PROJECT / "src/inferrsi/knowledge/data/skill_library/systems/engines/local-dream"
 CASES = PROJECT / "tests/fixtures/repo_to_skill/local-dream/test-cases"
@@ -30,7 +32,7 @@ def test_owner_source_identity_rights_and_containment():
     assert front["disable-model-invocation"] is True
     assert front["metadata"]["disco-role"] == "operating"
     assert re.search(r'^description: ".+"$', header, re.MULTILINE)
-    meta = json.loads((ROOT / "metadata.json").read_text())
+    meta = skill_metadata(ROOT.parent, ROOT.name)
     assert meta["status"] == "candidate" and meta["empirical_validation"] == "not_run"
     assert "BLOCKED_REQUIRED_BACKEND" in " ".join(meta["limitations"])
     ledger = json.loads((ROOT / "references/source-identity.json").read_text())

@@ -26,7 +26,6 @@ def test_skills_are_discoverable_and_resources_resolve():
     assert record["status"] == "candidate"
     assert {"ascend", "video-diffusion", "performance"} <= set(record["tags"])
     assert set(record["resources"]) == {
-        "metadata.json",
         "references/field-notes-video-diffusion.md",
     }
 
@@ -39,7 +38,6 @@ def test_skills_are_discoverable_and_resources_resolve():
     assert common["status"] == "candidate"
     assert set(common["resources"]) == {
         "assets/campaign.template.json",
-        "metadata.json",
         "scripts/evaluate_target.py",
     }
     assert common["description"]
