@@ -503,12 +503,27 @@ def test_a_plan_from_before_the_serving_move_is_refused_and_left_unchanged(sessi
     assert path.read_bytes() == before
 
 
-def test_changed_server_bytes_are_refused(session, capsys):
+def test_changed_installed_server_bytes_refuse_an_untouched_plan(
+    session, capsys, monkeypatch, tmp_path,
+):
+    # Review of bf65c76: change the installed server, not the plan. A disposable copy of
+    # the identity files stands in for the installation; the plan from start is untouched.
+    import shutil
+    from importlib.resources import files
+
+    installed = Path(str(files("inferrsi")))
+    copy = tmp_path / "install" / "inferrsi"
+    for name in optimization_session._runtime_identity():
+        (copy / name).parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(installed / name, copy / name)
+    monkeypatch.setattr(optimization_session, "files", lambda package: copy)
     path = session / "plan.json"
-    plan = json.loads(path.read_text(encoding="utf-8"))
-    assert plan["runtime_identity"] == optimization_session._runtime_identity()
-    plan["runtime_identity"]["harness/serving/server.py"] = "0" * 64
-    path.write_text(json.dumps(plan), encoding="utf-8")
+    before = path.read_bytes()
+    capsys.readouterr()
+    assert main(["benchmarks", "session", "status", "--session", str(session)]) == 0
+    server = copy / "harness/serving/server.py"
+    server.write_bytes(server.read_bytes() + b"\n# changed canonical bytes\n")
     capsys.readouterr()
     output = _refused(session, capsys, "status")
     assert "Optimization runtime changed" in output.out + output.err
+    assert path.read_bytes() == before
