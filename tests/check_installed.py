@@ -237,7 +237,9 @@ selection_source = selection_reader.resource(
 assert selection_source == resource(selection_core["path"]).read_bytes()
 assert selection_core["locator"] == "skill-procedure"
 assert selection_core["source_sha256"] == hashlib.sha256(selection_source).hexdigest()
-delivered = b"".join(selection_source[start:end] for start, end in selection_core["source_byte_ranges"])
+delivered = b"".join(
+    selection_source[start:end] for start, end in selection_core["source_byte_ranges"]
+)
 assert delivered == selection_core["content"].encode()
 assert selection_core["sha256"] == hashlib.sha256(delivered).hexdigest()
 assert selection["context_bytes"] <= 65536
@@ -531,10 +533,13 @@ assert dream_identity["license_resolution"]["pinned_license_identification"] == 
 assert hashlib.sha256(dream_bundle.content[
     dream_prefix + "references/upstream-license.md"
 ]).hexdigest() == dream_identity["sources"][0]["files"]["LICENSE"]
-assert {name.removeprefix(dream_prefix) for name in dream_bundle.content if name.startswith(dream_prefix)} == {
+dream_files = {name.removeprefix(dream_prefix) for name in dream_bundle.content
+               if name.startswith(dream_prefix)}
+assert dream_files == {
     "SKILL.md", "references/android-lifecycle.md", "references/native-contracts.md",
     "references/packaging-and-abi.md", "references/repo-provenance.md",
-    "references/source-identity.json", "references/upstream-license.md", "scripts/screen_declarations.py",
+    "references/source-identity.json", "references/upstream-license.md",
+    "scripts/screen_declarations.py",
 }
 dream_namespace = {"__name__": "installed_local_dream_declarations"}
 exec(compile(dream_bundle.content[dream_prefix + "scripts/screen_declarations.py"],
@@ -570,7 +575,9 @@ inventory = {
     **_inventory(files("inferrsi").joinpath("harness", "data"), "harness/data"),
 }
 assert len(inventory) == 761, f"installed resource count is {len(inventory)}, expected 761"
-assert not any(name.endswith("/metadata.json") for name in inventory if "/skill_library/" in name)
+for name in inventory:
+    if "/skill_library/" in name and name.endswith("/SKILL.md"):
+        assert name.removesuffix("SKILL.md") + "metadata.json" not in inventory, name
 assert sum(name.startswith("harness/data/") for name in inventory) == len(REPO_TYPES)
 # Every pinned record path and every registered skill body resolves inside that
 # same enumeration, so the inventory and the records describe one resource set.

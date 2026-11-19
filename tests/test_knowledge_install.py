@@ -1,5 +1,6 @@
 """Clean-install contracts: package-only commands without PyYAML and the real-CLI checkout chain."""
 
+import hashlib
 import json
 import os
 import subprocess
@@ -119,9 +120,14 @@ def test_capture_scope_skill_delivers_packaged_text_without_pyyaml(without_yaml,
     assert context["revision"] == item["revision"]
     original = context["resources"][0]
     assert original["path"] == item["skill_documents"]["original"]
-    assert original["content"].encode() == (
+    source = (
         SKILLS / Path(original["path"]).relative_to("data/skill_library")
     ).read_bytes()
+    assert original["locator"] == "skill-procedure"
+    assert hashlib.sha256(source).hexdigest() == original["source_sha256"]
+    procedure = b"".join(source[start:end] for start, end in original["source_byte_ranges"])
+    assert original["content"].encode() == procedure
+    assert hashlib.sha256(procedure).hexdigest() == original["sha256"]
     assert capture["omissions"] == []
 
 
