@@ -10,15 +10,15 @@
       "type": "string",
       "minLength": 1,
       "maxLength": 256,
-      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@+-]*$"
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@+-]*(?![\\s\\S])"
     },
     "Sha256": {
       "type": "string",
-      "pattern": "^[0-9a-f]{64}$"
+      "pattern": "^[0-9a-f]{64}(?![\\s\\S])"
     },
     "SemanticId": {
       "type": "string",
-      "pattern": "^sha256:[0-9a-f]{64}$"
+      "pattern": "^sha256:[0-9a-f]{64}(?![\\s\\S])"
     },
     "UInt": {
       "type": "integer",
@@ -32,11 +32,11 @@
     "Timestamp": {
       "type": "string",
       "format": "date-time",
-      "pattern": "^\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d(?:\\.\\d{1,9})?Z$"
+      "pattern": "^\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d(?:\\.\\d{1,9})?Z(?![\\s\\S])"
     },
     "Decimal": {
       "type": "string",
-      "pattern": "^(?:0|-?[1-9][0-9]*|-?(?:0|[1-9][0-9]*)\\.[0-9]*[1-9])$"
+      "pattern": "^(?:0|-?[1-9][0-9]*|-?(?:0|[1-9][0-9]*)\\.[0-9]*[1-9])(?![\\s\\S])"
     },
     "Path": {
       "type": "string",
@@ -94,7 +94,7 @@
         {
           "type": "object",
           "propertyNames": {
-            "pattern": "^[ -~]+$"
+            "pattern": "^[ -~]+(?![\\s\\S])"
           },
           "additionalProperties": {
             "$ref": "#/$defs/JsonValue"
@@ -105,7 +105,7 @@
     "Parameters": {
       "type": "object",
       "propertyNames": {
-        "pattern": "^[ -~]+$"
+        "pattern": "^[ -~]+(?![\\s\\S])"
       },
       "additionalProperties": {
         "$ref": "#/$defs/JsonValue"
@@ -2000,7 +2000,7 @@
           "anyOf": [
             {
               "type": "string",
-              "pattern": "^[A-Z]{3}$"
+              "pattern": "^[A-Z]{3}(?![\\s\\S])"
             },
             {
               "type": "null"
@@ -3842,7 +3842,7 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 128,
-          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*(?![\\s\\S])"
         }
       },
       "required": [
@@ -3870,13 +3870,13 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 128,
-          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*(?![\\s\\S])"
         },
         "harness_namespace": {
           "type": "string",
           "minLength": 1,
           "maxLength": 128,
-          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*(?![\\s\\S])"
         }
       },
       "required": [
