@@ -81,7 +81,7 @@ class QwenTurboTests(unittest.TestCase):
             )
             with (
                 patch.object(
-                    campaign.lifecycle,
+                    campaign.targets,
                     "source_snapshot",
                     side_effect=[{"snapshot_hash": "fixed"}, OSError("source probe unavailable")],
                 ),
@@ -145,7 +145,7 @@ class QwenTurboTests(unittest.TestCase):
             )
             with (
                 patch.object(
-                    campaign.lifecycle, "source_snapshot", return_value={"snapshot_hash": "fixed"}
+                    campaign.targets, "source_snapshot", return_value={"snapshot_hash": "fixed"}
                 ),
                 patch.object(campaign, "protected_sources", return_value={"method": "fixed"}),
                 patch.object(campaign, "guards", return_value={"guard": "fixed"}),
@@ -164,7 +164,7 @@ class QwenTurboTests(unittest.TestCase):
         short = campaign.protocol(True, 2)
         self.assertEqual(len(full["sigmas"]), 8)
         self.assertEqual(short["sigmas"], [1.0, 0.414568])
-        self.assertNotEqual(campaign.lifecycle.digest(full), campaign.lifecycle.digest(short))
+        self.assertNotEqual(campaign.artifacts.digest(full), campaign.artifacts.digest(short))
         self.assertEqual((full["width"], full["height"]), (1280, 704))
         self.assertEqual(full["true_cfg_scale"], 1.0)
         with self.assertRaises(ValueError):
@@ -209,7 +209,7 @@ class QwenTurboTests(unittest.TestCase):
             "diagnostic": False,
             "source_integrity": {"verified": True},
             "protocol": campaign.protocol(),
-            "protocol_sha256": campaign.lifecycle.digest(campaign.protocol()),
+            "protocol_sha256": campaign.artifacts.digest(campaign.protocol()),
         }
         with tempfile.TemporaryDirectory() as temp:
             path = Path(temp) / "result.json"
@@ -242,7 +242,7 @@ class QwenTurboTests(unittest.TestCase):
                         "path": "weight.bin",
                         "bytes": st.st_size,
                         "mtime_ns": st.st_mtime_ns,
-                        "sha256": campaign.lifecycle.sha256(weight),
+                        "sha256": campaign.artifacts.sha256(weight),
                     }
                 ],
             }

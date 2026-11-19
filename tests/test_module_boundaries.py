@@ -10,11 +10,11 @@ from unittest.mock import patch
 
 import pytest
 
+from inferrsi.apps.host.platforms import PLATFORM_PROBES, inspect_device
+from inferrsi.apps.host.platforms.cuda import qualify_devices
 from inferrsi.apps.legacy.run import execute_trial, run_experiment
 from inferrsi.benchmark.metrics import read_metric
 from inferrsi.contracts import RunSpec
-from inferrsi.infra.platforms import PLATFORM_PROBES, inspect_device
-from inferrsi.infra.platforms.cuda import qualify_devices
 
 
 def test_new_scenario_target_and_backend_share_abba_and_verdict(tmp_path):
@@ -90,11 +90,11 @@ def test_cuda_qualification_accepts_campaign_supplied_count_and_sku(monkeypatch)
     monkeypatch.setenv("CUDA_VISIBLE_DEVICES", "GPU-fixture")
     device = subprocess.CompletedProcess([], 0, "0, GPU-fixture, NVIDIA H100 SXM, driver\n", "")
     empty = subprocess.CompletedProcess([], 0, "", "")
-    with patch("inferrsi.infra.platforms.cuda.subprocess.run", side_effect=[device, empty]):
+    with patch("inferrsi.apps.host.platforms.cuda.subprocess.run", side_effect=[device, empty]):
         selected = qualify_devices(count=1, device_model="H100")
     assert selected[0]["uuid"] == "GPU-fixture"
     busy = subprocess.CompletedProcess([], 0, "GPU-fixture, 123, other-work\n", "")
-    with patch("inferrsi.infra.platforms.cuda.subprocess.run", side_effect=[device, busy]):
+    with patch("inferrsi.apps.host.platforms.cuda.subprocess.run", side_effect=[device, busy]):
         with pytest.raises(ValueError, match="already has a compute process"):
             qualify_devices(count=1, device_model="H100")
 

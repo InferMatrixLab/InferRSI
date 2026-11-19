@@ -691,9 +691,9 @@ assert import_module("inferrsi.apps.views.summary_chart").main.__module__ == (
     "inferrsi.apps.views.summary_chart"
 )
 host_inspection = import_module("inferrsi.apps.inspection")
-assert host_inspection._command is import_module("inferrsi.infra.commands").probe_command
+assert host_inspection._command is import_module("inferrsi.apps.host.commands").probe_command
 assert host_inspection.repository_identity is (
-    import_module("inferrsi.infra.targets").repository_identity
+    import_module("inferrsi.apps.host.targets").repository_identity
 )
 assert import_module("inferrsi.apps.cli.arguments").REPO_TYPES is REPO_TYPES
 # A fresh isolated interpreter reads all seven packs with only the facade and its
@@ -786,7 +786,9 @@ with tempfile.TemporaryDirectory(prefix="inferrsi-mindie-launch-") as launch_cwd
 assert launch.returncode == 0, launch.stderr
 # #498 slice 1: the metric contract and the quality validators ship only under
 # inferrsi.benchmark. The old inferrsi.model paths are not in the wheel and have no alias.
-for retired in ("inferrsi.model.protocols.metrics", "inferrsi.model.validators"):
+# Slice 2 removed the emptied inferrsi.model.protocols package, so it stands for
+# inferrsi.model.protocols.metrics here.
+for retired in ("inferrsi.model.protocols", "inferrsi.model.validators"):
     assert find_spec(retired) is None, retired
     try:
         import_module(retired)
@@ -807,3 +809,40 @@ with tempfile.TemporaryDirectory(prefix="inferrsi-flare-cli-") as cli_cwd:
         )
         assert flare_cli.returncode == code, (module, flare_cli.returncode, flare_cli.stderr)
     assert "No module named 'inferrsi.model.validators'" in flare_cli.stderr, flare_cli.stderr
+# #498 slice 2: the serving helpers ship only under inferrsi.harness.serving, with no
+# forwarder for the old Infra and Model paths. Slice 3c deleted the infra.campaign facade,
+# and slice 3a moved the host bindings to inferrsi.apps.host.
+for retired in ("inferrsi.infra.processes", "inferrsi.infra.http", "inferrsi.infra.campaign",
+                "inferrsi.infra.commands", "inferrsi.infra.inspection",
+                "inferrsi.infra.environment", "inferrsi.infra.platforms",
+                "inferrsi.infra.targets"):
+    assert find_spec(retired) is None, retired
+    try:
+        import_module(retired)
+    except ModuleNotFoundError:
+        pass
+    else:
+        raise AssertionError(f"retired module {retired} must not import")
+for canonical in ("inferrsi.harness.serving", "inferrsi.harness.serving.server",
+                  "inferrsi.harness.serving.http", "inferrsi.harness.serving.image",
+                  "inferrsi.apps.host.commands", "inferrsi.apps.host.inspection",
+                  "inferrsi.apps.host.environment", "inferrsi.apps.host.platforms",
+                  "inferrsi.apps.host.targets"):
+    assert find_spec(canonical) is not None, canonical
+# A fresh isolated interpreter imports the image client without loading the server
+# process helpers or any Infra or Model module: the package initializer imports nothing.
+serving_probe = (
+    "import sys\n"
+    "from inferrsi.harness.serving.image import ImageProtocol\n"
+    "loaded = {name for name in sys.modules if name.startswith('inferrsi.')}\n"
+    "serving = {name for name in loaded if name.startswith('inferrsi.harness.serving')}\n"
+    "assert serving == {'inferrsi.harness.serving', 'inferrsi.harness.serving.image',\n"
+    "                   'inferrsi.harness.serving.http'}, sorted(serving)\n"
+    "assert not [n for n in loaded if n.startswith(('inferrsi.infra', 'inferrsi.model'))]\n"
+)
+with tempfile.TemporaryDirectory(prefix="inferrsi-serving-") as serving_cwd:
+    serving = subprocess.run(
+        [sys.executable, "-I", "-B", "-c", serving_probe], capture_output=True, text=True,
+        check=False, cwd=serving_cwd,
+    )
+assert serving.returncode == 0, serving.stderr

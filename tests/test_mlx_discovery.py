@@ -6,10 +6,10 @@ from pathlib import Path
 import pytest
 
 from inferrsi.apps.cli import main
-from inferrsi.infra.commands import probe_command
-from inferrsi.infra.platforms import inspect_device
-from inferrsi.infra.platforms import mlx as mlx_platform
-from inferrsi.infra.platforms.mlx import _parse_sysctl_info
+from inferrsi.apps.host.commands import probe_command
+from inferrsi.apps.host.platforms import inspect_device
+from inferrsi.apps.host.platforms import mlx as mlx_platform
+from inferrsi.apps.host.platforms.mlx import _parse_sysctl_info
 from inferrsi.knowledge.catalog import get_knowledge, search_knowledge
 from inferrsi.knowledge.knowledge_operations import KnowledgeReader
 from inferrsi.resources.repository_packs import REPO_TYPES

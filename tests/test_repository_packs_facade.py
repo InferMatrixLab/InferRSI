@@ -24,7 +24,7 @@ import pytest
 
 import inferrsi.resources as resources
 from inferrsi.apps.cli import arguments
-from inferrsi.infra import inspection
+from inferrsi.apps.host import inspection
 from inferrsi.knowledge import catalog as knowledge_catalog
 from inferrsi.resources import repository_packs
 from tests.test_contracts_package import IO_CONTROL, IO_PROBE

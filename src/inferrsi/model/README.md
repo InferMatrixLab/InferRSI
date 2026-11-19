@@ -1,9 +1,9 @@
 # Model
 
-`protocols/` defines request contracts. The metric contract and the output
-quality checks moved to `inferrsi.benchmark.metrics` and
-`inferrsi.benchmark.validators` (#498 slice 1). The image validator's optional
-dependencies are available through `inferrsi[image]`.
+The metric contract and the output quality checks moved to
+`inferrsi.benchmark.metrics` and `inferrsi.benchmark.validators` (#498 slice 1).
+The image request protocol moved to `inferrsi.harness.serving.image` (#498 slice 2).
+The image validator's optional dependencies are available through `inferrsi[image]`.
 
 Model/revision pins and numeric acceptance gates stay in campaign plans. Frozen
 historical snapshots remain in `tests/fixtures/legacy/`; current examples and

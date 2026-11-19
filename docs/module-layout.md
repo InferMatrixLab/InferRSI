@@ -163,10 +163,12 @@ Several flat modules remain shared seams until their slice starts.
 | `harness/` | Mixed legacy tree, not target isolation | Not redefined |
 | `harness/runner.py`, `harness/scenarios/external.py`, `harness/atomic_json.py` | Old run execution facts and Harness-owned JSON writes | Ports injected; no Model edge, and no Infra edge except the local process executor |
 | `benchmark/legacy_run_v0.py`, `benchmark/sampling.py` | Old run gates and metric validation; image/video sample collection | Imports only `benchmark/metrics.py`; owns its rule inputs and verdict labels |
-| `apps/legacy/` | Old run composition, old `evaluate` entry and HTML report | Supplies the Git source snapshot from `infra/targets`; remains in Apps |
-| `apps/inspection.py` | Prepared-environment inspection bound to this host | Binds the `infra/inspection.py` facts API to `infra.commands.probe_command` and `infra.targets.repository_identity`; replaces root `inspection.py`, which R1 deleted with the three old-run root forwarders |
+| `apps/legacy/` | Old run composition, old `evaluate` entry and HTML report | Supplies the Git source snapshot from `apps/host/targets`; remains in Apps |
+| `apps/inspection.py` | Prepared-environment inspection bound to this host | Binds the `apps/host/inspection.py` facts API to `apps.host.commands.probe_command` and `apps.host.targets.repository_identity`; replaces root `inspection.py`, which R1 deleted with the three old-run root forwarders |
 | `benchmark/metrics.py`, `benchmark/validators/`, `benchmark/artifacts.py` | The metric contract, the Flare and image quality checks, and Benchmark's own file digests and JSON writes | #498 slice 1 moved the first two from `model/protocols/metrics.py` and `model/validators/`, with no forwarder or alias; the gate fails any import of the old paths |
-| `infra/` | Seams used by the current tree, including the `infra/inspection.py` facts API | Not a fourth core; reaches no Knowledge, Harness, Benchmark or Apps module |
+| `harness/serving/` (`server.py`, `http.py`, `image.py`) | Supervised serving processes, the timed JSON transport and the image request client | #498 slice 2 moved them from `infra/processes.py`, `infra/http.py` and `model/protocols/image.py` with no forwarder or alias; the initializer imports nothing, and the gate fails any import of the old paths |
+| `apps/host/` (`inspection.py`, `commands.py`, `environment.py`, `platforms/`, `targets/`) | The host environment facts API, bounded probes, dependency facts, device discovery and source identity | #498 slice 3a moved them from Infra with no forwarder or alias; the package keeps Infra's limit and reaches no Knowledge, Harness or Benchmark module; `inspection.py` is the permanent leaf importer |
+| `infra/` | `artifacts.py`, the shared file digests and JSON writes, until #498 slice 5 | Not a fourth core; reaches no Knowledge, Harness, Benchmark or Apps module |
 | `apps/views/summary_chart.py` | Stdlib SVG gain chart and report figure spec | A2 (#408) moved root `summary_chart.py` here; the renderer, its specification checks and its `main` are unchanged, and `tools/campaign_summary_chart.py` calls it |
 | `contracts/` (`runspec.py`, `json_v1.py`, `claim.py`, `evidence.py`) | Technical-only contracts: RunSpec, canonical JSON, verdict vocabulary, evidence segment and path rules | Exact module set; the initializer re-exports only `RunSpec`; not a fourth core |
 | `apps/storage/evidence_layout.py` | Evidence directory creation over the `contracts/evidence.py` path rules | The `mkdir` half of former root `evidence_paths.py`; host I/O stays in Apps |
@@ -457,10 +459,13 @@ Outside `inferrsi.knowledge`, exactly one module may import
 
 | Importer | Bound name | Exact import line |
 | --- | --- | --- |
-| `inferrsi.infra.inspection` | `repository_pack` | `from ..resources.repository_packs import repository_pack` |
+| `inferrsi.apps.host.inspection` | `repository_pack` | `from ...resources.repository_packs import repository_pack` |
 
-This is D020's direct read: Infra gets one pack description without reaching
-Knowledge or Harness. The rule is `LEAF_IMPORTERS` in
+This is D020's direct read: the host facts API gets one pack description
+without reaching Knowledge or Harness. #498 slice 3a moved the importer from
+`inferrsi.infra.inspection` with its file, in one change: the old name is
+retired and is never admitted beside the new one, and the move needs the same
+formal architecture review as the rule. The rule is `LEAF_IMPORTERS` in
 `tests/_gate_policy_support.py`, restated as
 `technical_leaf.permanent_importers` in the manifest.
 `tests/test_knowledge_compatibility_shells.py` requires the two to match, and
@@ -471,8 +476,8 @@ retire, because the importer is not a shell.
 The rule covers that one importer, target, name and shape, and nothing wider:
 
 - Any other module outside Knowledge that imports the leaf fails as a second
-  importer. That includes another `infra` module, `infra/__init__.py`, an Apps,
-  Harness or Benchmark module and any root file.
+  importer. That includes another `apps.host` module, `apps/host/__init__.py`,
+  another Apps module, a Harness, Benchmark or Infra module and any root file.
 - In the declared importer, another leaf name, an alias, a star import, the
   leaf imported as a module object, an import below module level, a
   `sys.modules` use and a dynamic import each fail.
@@ -488,7 +493,7 @@ The rule covers that one importer, target, name and shape, and nothing wider:
 
 `tests/test_first_wave_isolation_policy.py` holds these negative controls. One
 of them removes the declaration and shows that the scan then rejects the
-`infra.inspection` edge, so the edge passes by the rule and not by a relaxed
+`apps.host.inspection` edge, so the edge passes by the rule and not by a relaxed
 scan.
 
 One temporary entry sat beside the rule from R1 until A1 (#408) and was never
@@ -530,10 +535,10 @@ R1 (#412) deleted these eleven root modules with no forwarding shell,
 
 Root `inspection.py` was not an alias. It bound the Infra facts API to the
 host, and `apps/inspection.py` now holds that binding: `_command` is
-`infra.commands.probe_command` and `repository_identity` is
-`infra.targets.repository_identity`, both read from the module on each call,
-so a test replaces either name there. `infra/inspection.py` is unchanged and
-imports no Apps module. Root `execution.py` defined the two-argument
+`apps.host.commands.probe_command` and `repository_identity` is
+`apps.host.targets.repository_identity`, both read from the module on each call,
+so a test replaces either name there. `apps/host/inspection.py`, moved from
+Infra by #498 slice 3a, imports no Apps module outside `apps/host/`. Root `execution.py` defined the two-argument
 `run_experiment`; `apps.legacy.run.run_experiment` is that entry, and an
 omitted `execute` or `snapshot` port is read from the module when the run
 starts.
