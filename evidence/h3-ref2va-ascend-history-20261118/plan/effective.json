@@ -1,0 +1,14 @@
+{
+  "campaign_id": "h3-ref2va-ascend-history-20261118",
+  "kind": "external_experiment_record",
+  "backend": "ascend",
+  "hardware": "4-8 logical Ascend 950PR devices on Atlas 150/A5",
+  "model": "MiniMax-H3 Ref2VA",
+  "scenario": "diffusion.video_generation",
+  "collection_window": [
+    "2026-10-20",
+    "2026-11-18"
+  ],
+  "source_revision": "663f3b327998526a13aa31e72ad729025c18983c",
+  "verdict": "INCONCLUSIVE"
+}
