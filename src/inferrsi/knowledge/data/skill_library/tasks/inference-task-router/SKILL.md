@@ -1,0 +1,66 @@
+---
+name: inference-task-router
+description: Select the starting route for day-0 model support, inference performance optimization, debugging, accuracy repair, version alignment, derived-engine development or independent runtime bring-up.
+---
+
+# Choose an inference task
+
+Choose one primary route by the requested deliverable. Record secondary routes for
+follow-up work. Read the selected route card, match target conditions, then open
+only the relevant candidate skill IDs through the registry.
+
+| Task | Choose it when | Route card |
+| --- | --- | --- |
+| Integrate a newly released model | First usable support for a new checkpoint or model architecture in an existing engine. | [day0-model](references/routes/day0-model.json) |
+| Optimize inference performance | A correct baseline misses a specified latency, throughput, memory or cost objective. | [performance](references/routes/performance.json) |
+| Diagnose execution failures | A hang, crash, OOM or execution-path failure needs a reproducible cause. | [debug](references/routes/debug.json) |
+| Restore numerical or output quality | Inference completes but output violates a reference, quality metric or tolerance. | [accuracy](references/routes/accuracy.json) |
+| Align engine and plugin revisions | A dependency or engine upgrade must preserve API, ABI, operator or runtime behavior across a stack. | [version-align](references/routes/version-align.json) |
+| Build an engine derived from an existing runtime | The deliverable reuses the execution core of vLLM, vLLM-Omni or another pinned parent, as in a DeepInfer-like extension. | [derived-engine](references/routes/derived-engine.json) |
+| Build an independent inference engine | A new runtime must own execution, memory and device integration on a distinct OS, model or hardware stack. | [independent-engine](references/routes/independent-engine.json) |
+
+## Target conditions
+
+Record model family as a list (LLM, Omni, TTS, Diffusion, RLT or another
+specified family), model/checkpoint revision, hardware backend (CUDA, ROCm,
+Ascend NPU, XPU or another specified target), device SKU, OS (Linux, Windows,
+Android, iOS or another specified target), engine and revision, dtype, shape,
+concurrency and constraints. An Omni pipeline may additionally include its TTS
+or diffusion stages. Keep deployment form such as mobile/edge separate from OS.
+An absent field is unknown. A routing label or a common-backend registration
+does not establish device support. Check the selected owner's source and scope.
+
+Failures that interrupt execution begin in debug. Correct execution with
+unacceptable output begins in accuracy. A regression first observed after an
+upgrade may use version-align as the primary route and either as a secondary
+route. For engine work, decide who owns the execution core: an upstream fork
+uses derived-engine; a new runtime owning its own execution and memory model
+uses independent-engine, including on Windows or mobile. OS alone cannot
+decide between them.
+
+For a Windows vLLM fork with a TTS quality regression after an upgrade,
+choose accuracy if the requested delivery is restored speech quality, or
+version-align if the requested delivery is a validated upgrade matrix. Link
+the other route and pin both revisions, the same audio input, and reference
+output. Record fork lineage as context unless creating the fork is a deliverable.
+If the delivery is unclear, state both routes and ask what must be accepted.
+
+## Use and handoff
+
+1. Use the CLI to open one card, for example
+   `inferrsi skills resource inference-task-router references/routes/version-align.json`.
+2. Fill the required inputs. Search for the named component or symptom with
+   `inferrsi find`. Resolve candidate skill IDs via `skills show`, read their
+   applicability, and retain only the source-backed matches. An exact owner
+   or resource can also be opened directly. If only cross-platform methodology
+   matches, return it as such, and list the missing target-specific evidence.
+3. Record primary and secondary tasks, target conditions, fixed source references,
+   gaps and acceptance evidence. A candidate skill is a starting point for
+   inspection. Execution and promotion require the normal workbench contracts.
+
+The cards contain seed IDs. For each affected stage and component, search the
+full catalog as well. Report a target-validated owner, a methodological analogue
+with its limits, or a missing owner. For a missing Windows/TTS or XPU match,
+state the missing evidence and the smallest target check that would establish
+it. Keep a general benchmarking procedure available as methodology. A project
+policy or an unreviewed learning does not establish runtime compatibility.

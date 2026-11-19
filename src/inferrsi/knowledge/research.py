@@ -10,7 +10,7 @@ from importlib.resources import files
 from .catalog import knowledge_records, search_knowledge
 
 PROCEDURE = (
-    "data/skill_library/workflows/inference-engine-research/"
+    "data/skill_library/workflows/research/inference-engine-research/"
     "references/model-aware-preparation.md"
 )
 

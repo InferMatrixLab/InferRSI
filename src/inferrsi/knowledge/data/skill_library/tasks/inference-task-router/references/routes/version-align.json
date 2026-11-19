@@ -1,0 +1,23 @@
+{
+  "task": "version-align",
+  "title": "Align engine and plugin revisions",
+  "choose_when": "A dependency or engine upgrade must preserve API, ABI, operator or runtime behavior across a stack.",
+  "required_inputs": [
+    "current and target revisions for each component",
+    "compatibility or ABI contracts",
+    "known-good configuration",
+    "affected integration tests"
+  ],
+  "steps": [
+    "Build a before/after matrix for vLLM, vLLM-Omni, vLLM-Ascend and AFD Plugin as applicable.",
+    "Change one boundary at a time; record required pins or adaptations.",
+    "Run import, operator, integration and parity checks for the requested combination."
+  ],
+  "acceptance_evidence": "A pinned compatibility matrix, failing and passing combinations, and a rollback point.",
+  "candidate_skill_ids": [
+    "repository-evolution-analysis",
+    "vllm-ascend",
+    "audit-afd-p2p-exchanges",
+    "claim-contract"
+  ]
+}

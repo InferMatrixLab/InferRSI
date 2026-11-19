@@ -190,7 +190,8 @@ def test_rendered_view_shows_the_collected_contract_and_advice_summary():
     rendered = coverage.render(rows, [], 0, [], "digest")
     workflow = next(row for row in rows if row["id"] == "claim-contract")
     line = next(
-        text for text in rendered.splitlines() if "workflows/claim-contract/SKILL.md" in text
+        text for text in rendered.splitlines()
+        if "workflows/governance/claim-contract/SKILL.md" in text
     )
     assert "failure_modes, input_contract, produced_artifact, refusal_point" in line
     assert f"{workflow['advice']} advice" in line

@@ -481,13 +481,17 @@ def _skill_documents(root: Path, *, source_location: str) -> list[Document]:
 
     documents = []
     for name, (directory, backend) in sorted(skill_registrations(root).items()):
-        core = directory / "SKILL.md"
-        body = _body_text(core)
-        description = _skill_description(body)
         try:
             metadata = _sidecar(directory) or {}
         except (ValueError, OSError):
             metadata = {}
+        # Task entrypoints remain addressable through the registry. Counting
+        # an orientation page as evidence also changes IDF for every owner.
+        if metadata.get("discovery_role") == "task-entry":
+            continue
+        core = directory / "SKILL.md"
+        body = _body_text(core)
+        description = _skill_description(body)
         applicability = metadata.get("applicability", {})
         scope = applicability.get("scope") if isinstance(applicability, dict) else applicability
         documents.append(Document(

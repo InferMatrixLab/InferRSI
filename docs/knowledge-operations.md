@@ -13,7 +13,7 @@ from inferrsi.knowledge.knowledge_operations import KnowledgeReader
 reader = KnowledgeReader(skill_root=Path("src/inferrsi/knowledge/data/skill_library"))
 result = reader.collect(ids=["calibrate-serving-simulation"], material=True, limit=1)
 item = result["items"][0]
-source = reader.resource(item["ref"], "methods/calibrate-serving-simulation/references/source-notes.md",
+source = reader.resource(item["ref"], "playbooks/measurement/calibrate-serving-simulation/references/source-notes.md",
                          revision=item["revision"])
 ```
 

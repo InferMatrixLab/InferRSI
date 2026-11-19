@@ -74,6 +74,7 @@ real-model gains remain unmeasured. [Flow, limits and reproduction →](docs/har
 
 | You want to… | Start at |
 | --- | --- |
+| Choose a starting point for a new model, performance, debug, accuracy, upgrade or engine task | Open the [inference task router](src/inferrsi/knowledge/data/skill_library/tasks/inference-task-router/SKILL.md) or run `inferrsi skills show inference-task-router`. Select a task card, then use `inferrsi find` for evidence. |
 | Modify InferRSI itself | [Contributor guide](docs/contributing.md) and [agent collaboration](docs/agent-collaboration.md), under an accepted Issue scope |
 | Use the Workbench to run experiments | [Quickstart](docs/quickstart.md): prepared target environment, benchmark/quality contracts, authorized experiment, recorded evidence |
 | Complete an optimization benchmark in the current Agent | [Iterative task sessions](docs/optimization-benchmarks.md), with frozen rounds, independent feedback and final retesting |
@@ -302,7 +303,7 @@ performance evidence or an autonomous model-backed optimizer.
 | [Skill catalog](src/inferrsi/knowledge/data/repo_packs/inferrsi/knowledge/README.md) | Searchable records linking categorized skills to full packaged procedures and resources |
 | [Source audit](docs/reviews/source-audit-ac70272.md) | 34 review points with proposed remedies, qualifications and validation criteria |
 | [Daily learning prompt](docs/daily-learning-prompt.md) | 06:00 Asia/Shanghai L2C + performance workflow and prerequisites |
-| [Complete skill library](src/inferrsi/knowledge/data/skill_library/README.md) | Registered skills and English engine/workflow documents, organized by owner |
+| [Complete skill library](src/inferrsi/knowledge/data/skill_library/README.md) | Task entrypoint, system knowledge, playbooks, workflows and casebooks |
 | [vLLM-Omni experience records](src/inferrsi/knowledge/data/repo_packs/vllm_omni/knowledge/README.md) | Backend-scoped tuning methods, sources, and applicability |
 | [Contributor guide](docs/contributing.md) | Development workflow, evidence contracts, and CI |
 | [Engine delivery template](docs/template/README.md) | Copyable engine scaffold, branding, evidence and schema-v1 catalog recipe |

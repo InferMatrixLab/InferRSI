@@ -1,0 +1,25 @@
+{
+  "task": "accuracy",
+  "title": "Restore numerical or output quality",
+  "choose_when": "Inference completes but output violates a reference, quality metric or tolerance.",
+  "required_inputs": [
+    "fixed inputs, weights and reference implementation",
+    "quality metric and tolerance",
+    "seed, dtype and preprocessing",
+    "modality-specific outputs"
+  ],
+  "steps": [
+    "Confirm preprocessing, sampling and evaluation parity.",
+    "For a post-upgrade regression, compare the last-good and current revisions on identical inputs. If only the upgraded combination fails, add version-align and bisect the changed boundary. If both fail against the reference, keep tracing the quality divergence.",
+    "Find the first diverging stage, tensor, frame or token.",
+    "For TTS, collect reference audio or codec tokens at the target revision. Report target-matched evidence separately from observations on other devices. When target evidence is missing, record where you searched, the missing owner and the smallest target parity check.",
+    "Verify the correction on the reproducer and held-out inputs before rechecking speed."
+  ],
+  "acceptance_evidence": "A localized divergence, reproducible quality recovery and held-out results; include any latency cost.",
+  "candidate_skill_ids": [
+    "audit-fixed-workload-claim",
+    "diffusers-invocation-state",
+    "torch-npu",
+    "claim-contract"
+  ]
+}

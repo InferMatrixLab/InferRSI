@@ -83,7 +83,7 @@ def test_bundle_contains_all_declared_package_data(distribution):
         if path.is_file()
     }
     assert (
-        "knowledge/data/skill_library/repositories/splash/THIRD_PARTY_NOTICES" in expected
+        "knowledge/data/skill_library/systems/engines/splash/THIRD_PARTY_NOTICES" in expected
     )
     installed = {
         name.removeprefix("inferrsi/")
@@ -149,7 +149,7 @@ def test_entry_workflow_selects_packaged_skill_projections(distribution, tmp_pat
 
 
 @pytest.mark.parametrize(("action", "resource"), [
-    ("reference", "../../../hardware/host/host-memory-management/SKILL.md"),
+    ("reference", "../../../platforms/host/host-memory-management/SKILL.md"),
     ("resource", "metadata.json"),
 ])
 def test_returned_skill_paths_survive_process_exit_and_later_invocations(

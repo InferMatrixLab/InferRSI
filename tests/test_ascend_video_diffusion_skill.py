@@ -10,9 +10,9 @@ from inferrsi.knowledge.skill_catalog import get_skill, skill_instructions, skil
 ROOT = Path(__file__).resolve().parents[1]
 SKILL_ROOT = ROOT / "src/inferrsi/knowledge/data/skill_library"
 SKILL_NAME = "ascend-video-diffusion-optimization"
-SKILL = SKILL_ROOT / "hardware/ascend" / SKILL_NAME
+SKILL = SKILL_ROOT / "systems/platforms/ascend" / SKILL_NAME
 COMMON_NAME = "video-diffusion-optimization"
-COMMON = SKILL_ROOT / "methods" / COMMON_NAME
+COMMON = SKILL_ROOT / "playbooks/optimization" / COMMON_NAME
 TEMPLATE = COMMON / "assets/campaign.template.json"
 EVALUATOR = COMMON / "scripts/evaluate_target.py"
 
@@ -50,19 +50,25 @@ def test_skills_are_discoverable_and_resources_resolve():
     assert (SKILL / "references/field-notes-video-diffusion.md").is_file()
     # The Ascend skill delegates to the backend-agnostic common skeleton.
     for relative in (
-        "methods/video-diffusion-optimization/SKILL.md",
-        "methods/inference-benchmark-design/SKILL.md",
-        "workflows/rsi-evidence/SKILL.md",
+        "playbooks/optimization/video-diffusion-optimization/SKILL.md",
+        "playbooks/measurement/inference-benchmark-design/SKILL.md",
+        "workflows/governance/rsi-evidence/SKILL.md",
     ):
         assert relative in instructions
         assert (SKILL_ROOT / relative).is_file()
 
     common_instructions = skill_instructions(SKILL_ROOT, COMMON_NAME)
     # The common skeleton links its sibling method and workflow with relative
-    # paths from methods/video-diffusion-optimization/.
+    # paths from playbooks/optimization/video-diffusion-optimization/.
     for relative, target in (
-        ("../inference-benchmark-design/SKILL.md", "methods/inference-benchmark-design/SKILL.md"),
-        ("../../workflows/rsi-evidence/SKILL.md", "workflows/rsi-evidence/SKILL.md"),
+        (
+            "../../measurement/inference-benchmark-design/SKILL.md",
+            "playbooks/measurement/inference-benchmark-design/SKILL.md",
+        ),
+        (
+            "../../../workflows/governance/rsi-evidence/SKILL.md",
+            "workflows/governance/rsi-evidence/SKILL.md",
+        ),
     ):
         assert relative in common_instructions
         assert (SKILL_ROOT / target).is_file()

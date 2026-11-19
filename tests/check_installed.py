@@ -54,7 +54,7 @@ for benchmark_name in builtin_tasks():
     for resource_name in ("task.json", "TASK.md", "benchmark.py", "LICENSE"):
         assert root.joinpath(resource_name).is_file(), (benchmark_name, resource_name)
 records = knowledge_records()
-assert len(records) == 128, "Knowledge is missing from the installation"
+assert len(records) == 129, "Knowledge is missing from the installation"
 assert resource("data/repo_packs/vllm_omni/knowledge/README.md").is_file()
 assert repository_pack("vllm_rlt")["id"] == "vllm_rlt"
 assert search_knowledge(repo="vllm_omni", backend="ascend")
@@ -67,7 +67,7 @@ mlx_ids = {
 mlx_records = search_knowledge(repo="mlx", tier="dependency", backend="mlx", limit=100)
 assert {record["id"] for record in mlx_records} == mlx_ids
 assert all(record["backend"] == "mlx" for record in mlx_records)
-mlx_document = "data/skill_library/frameworks/mlx/lazy-evaluation-stream-lifetimes/SKILL.md"
+mlx_document = "data/skill_library/systems/frameworks/mlx/lazy-evaluation-stream-lifetimes/SKILL.md"
 mlx_reader = KnowledgeReader()
 for record in mlx_records:
     bundle = mlx_reader.read("package:" + record["id"])
@@ -75,32 +75,35 @@ for record in mlx_records:
         "package:" + record["id"], mlx_document, revision=bundle.revision
     ) == resource(mlx_document).read_bytes()
 skill_index = search_knowledge(repo="inferrsi", limit=100)
-assert len(skill_index) == 80, "Missing installed skill abstracts"
+assert len(skill_index) == 81, "Missing installed skill abstracts"
 assert all(record["index_type"] == "packaged-skill" for record in skill_index)
 ascend_rc = KnowledgeReader().read("inferrsi.ascend.skills.vllm_ascend")
 for note in ("plugin-registration", "minimax-cache", "dspark-pd", "sources",
              "deepseek-v4-evolution", "communication-config", "model-performance",
              "fused-operators", "history-scope"):
-    key = f"data/skill_library/repositories/vllm-ascend/references/{note}.md"
+    key = f"data/skill_library/systems/engines/vllm-ascend/references/{note}.md"
     assert ascend_rc.content[key] == resource(key).read_bytes()
 for relative in ("references/history-reviewed.json", "scripts/screen_history.py"):
-    key = f"data/skill_library/repositories/vllm-ascend/{relative}"
+    key = f"data/skill_library/systems/engines/vllm-ascend/{relative}"
     assert ascend_rc.content[key] == resource(key).read_bytes()
 assert all("history-inventory.json" not in key for key in ascend_rc.content)
 assert not resource(
-    "data/skill_library/repositories/vllm-ascend/references/history-inventory.json"
+    "data/skill_library/systems/engines/vllm-ascend/references/history-inventory.json"
 ).is_file()
 indexed = KnowledgeReader().read("inferrsi.ascend.skills.ascend_operator_profiling")
-assert "data/skill_library/hardware/ascend/ascend-operator-profiling/SKILL.md" in indexed.content
+assert (
+    "data/skill_library/systems/platforms/ascend/ascend-operator-profiling/SKILL.md"
+    in indexed.content
+)
 video_diffusion = KnowledgeReader().read(
     "inferrsi.ascend.skills.ascend_video_diffusion_optimization"
 )
 assert (
-    "data/skill_library/hardware/ascend/ascend-video-diffusion-optimization/SKILL.md"
+    "data/skill_library/systems/platforms/ascend/ascend-video-diffusion-optimization/SKILL.md"
     in video_diffusion.content
 )
 case_path = (
-    "data/skill_library/methods/inference-optimization-casebook/"
+    "data/skill_library/casebooks/inference/inference-optimization-casebook/"
     "cases/admission-drain-occupancy.md"
 )
 assert case_path in indexed.content
@@ -111,7 +114,7 @@ assert any(item["id"] == h3_identity for item in search_knowledge(
     "MiniMax-H3", repo="inferrsi", limit=100
 ))
 h3_bundle = KnowledgeReader().read(h3_identity)
-h3_prefix = "data/skill_library/repositories/h3-c/audit-h3-runtime-residency/"
+h3_prefix = "data/skill_library/systems/engines/h3-c/audit-h3-runtime-residency/"
 h3_inventory = json.loads(h3_bundle.content[
     h3_prefix + "references/minimax-h3-weight-inventory.json"
 ])
@@ -130,7 +133,7 @@ for relative in (
 h3_metal_identity = "inferrsi.common.skills.audit_h3_metal_fasth3_semantics"
 h3_metal_bundle = KnowledgeReader().read(h3_metal_identity)
 h3_metal_prefix = (
-    "data/skill_library/repositories/h3-metal/audit-h3-metal-fasth3-semantics/"
+    "data/skill_library/systems/engines/h3-metal/audit-h3-metal-fasth3-semantics/"
 )
 h3_metal_metadata = json.loads(h3_metal_bundle.content[h3_metal_prefix + "metadata.json"])
 assert h3_metal_metadata["status"] == "candidate"
@@ -154,7 +157,7 @@ assert any(item["id"] == afd_identity for item in search_knowledge(
     "AFD", repo="inferrsi", backend="cuda", limit=100
 ))
 afd_bundle = KnowledgeReader().read(afd_identity)
-afd_prefix = "data/skill_library/repositories/afd-plugin/audit-afd-p2p-exchanges/"
+afd_prefix = "data/skill_library/systems/engines/afd-plugin/audit-afd-p2p-exchanges/"
 for relative in ("SKILL.md", "metadata.json", "references/source-notes.md",
                  "references/afd-plugin-LICENSE.md"):
     assert afd_prefix + relative in afd_bundle.content
@@ -163,7 +166,7 @@ assert any(item["id"] == hopper_identity for item in search_knowledge(
     "WGMMA", repo="inferrsi", backend="cuda", limit=100
 ))
 hopper_bundle = KnowledgeReader().read(hopper_identity)
-hopper_prefix = "data/skill_library/hardware/cuda/reason-hopper-kernels/"
+hopper_prefix = "data/skill_library/systems/platforms/cuda/reason-hopper-kernels/"
 hopper_metadata = json.loads(hopper_bundle.content[hopper_prefix + "metadata.json"])
 assert hopper_metadata["status"] == "candidate"
 assert hopper_metadata["empirical_validation"] == "not_run"
@@ -185,7 +188,7 @@ for relative in (
 # Check installed RLT resources without importing the upstream backend.
 rlt_identity = "inferrsi.common.skills.audit_recurrent_kv_finalization"
 rlt_bundle = KnowledgeReader().read(rlt_identity)
-rlt_prefix = "data/skill_library/repositories/vllm-rlt/audit-recurrent-kv-finalization/"
+rlt_prefix = "data/skill_library/systems/engines/vllm-rlt/audit-recurrent-kv-finalization/"
 for relative in (
     "SKILL.md", "metadata.json", "LICENSE", "references/NOTICE.md",
     "references/source-notes.md", "references/source-identity.json",
@@ -203,7 +206,7 @@ for upstream, relative in (("LICENSE", "LICENSE"), ("NOTICE", "references/NOTICE
 
 assert "yaml" not in sys.modules, "Installed metadata reads must not require the skills extra"
 lithos = KnowledgeReader().read("inferrsi.common.skills.lithos_metal")
-lithos_owner = "data/skill_library/repositories/lithos-metal/"
+lithos_owner = "data/skill_library/systems/engines/lithos-metal/"
 for relative in (
     "LICENSE", "references/upstream-notice.md", "references/mlx-license.md",
     "references/source-notes.md", "scripts/inspect_contract.py",
@@ -252,14 +255,14 @@ for record in skill_index:
             digest = hashlib.sha256(data.replace(b"\r\n", b"\n")).hexdigest()
         assert digest == expected_hash, relative
 registry = json.loads(library.joinpath("skill-index.json").read_text(encoding="utf-8"))["skills"]
-assert len(registry) == 80
+assert len(registry) == 81
 for entry in registry.values():
     assert library.joinpath(*entry["path"].split("/"), "SKILL.md").is_file()
 for framework, backend in (("pytorch", "common"), ("torch-npu", "ascend")):
     identity = f"inferrsi.{backend}.skills.{framework.replace('-', '_')}"
     framework_reader = KnowledgeReader()
     graph = framework_reader.read(identity)
-    prefix = f"data/skill_library/frameworks/{framework}/{framework}/"
+    prefix = f"data/skill_library/systems/frameworks/{framework}/{framework}/"
     documents = [key for key in graph.content
                  if key.startswith(prefix) and key.endswith("/SKILL.md")]
     assert len(documents) == 9, f"Missing installed {framework} graph documents"
@@ -276,7 +279,7 @@ for framework, backend in (("pytorch", "common"), ("torch-npu", "ascend")):
     ) == graph.content[child_document]
     assert any(key.startswith(prefix + "scripts/") and key.endswith(".py")
                for key in graph.content), f"Missing installed {framework} helpers"
-router = library.joinpath("workflows", "inference-engine-research")
+router = library.joinpath("workflows", "research", "inference-engine-research")
 manifest = json.loads(
     router.joinpath("references", "source-manifest.json").read_text(encoding="utf-8")
 )
@@ -295,7 +298,7 @@ for source in manifest["sources"]:
         if "skill_documents" in item
     ]
     assert len(imported) == 3, f"Missing indexed knowledge for {repo}"
-    owner = library.joinpath("repositories", slug)
+    owner = library.joinpath("systems", "engines", slug)
     assert owner.joinpath("SKILL.md").is_file()
     assert owner.joinpath("LICENSE").is_file()
     assert not owner.joinpath("translations", "zh-CN").is_dir()
@@ -311,13 +314,13 @@ for source in manifest["sources"]:
 assert router.joinpath("SKILL.md").is_file()
 assert router.joinpath("references", "overview.md").is_file()
 assert not router.joinpath("translations", "zh-CN").is_dir()
-strata = library.joinpath("repositories", "strata")
+strata = library.joinpath("systems", "engines", "strata")
 assert strata.joinpath("references", "design-space-analysis.md").is_file()
 helper = strata.joinpath("scripts", "summarize_trials.py")
 assert helper.is_file()
 with as_file(helper) as path:
     compile(path.read_text(encoding="utf-8"), str(path), "exec")
-ceiling = library.joinpath("methods", "performance-ceiling-analysis")
+ceiling = library.joinpath("playbooks", "measurement", "performance-ceiling-analysis")
 ceiling_namespace = {}
 exec(compile(ceiling.joinpath("scripts", "roofline.py").read_text(encoding="utf-8"),
              "roofline.py", "exec"), ceiling_namespace)
@@ -391,24 +394,24 @@ assert {"group": "mechanism", "query": "lazy evaluation"} in mlx_lifecycle["matc
 assert not inference_modules & sys.modules.keys()
 print(f"Installed package: {inferrsi.__file__}; {len(records)} source-grounded records available.")
 
-splash_notices = resource("data/skill_library/repositories/splash/THIRD_PARTY_NOTICES")
+splash_notices = resource("data/skill_library/systems/engines/splash/THIRD_PARTY_NOTICES")
 assert splash_notices.is_file(), "Splash third-party notices are missing from the wheel"
 assert "The ggml authors" in splash_notices.read_text(encoding="utf-8")
 
 # Document-only candidate remains available without implying native verification.
-husky = library.joinpath("repositories", "husky")
+husky = library.joinpath("systems", "engines", "husky")
 assert husky.joinpath("references", "source-availability.json").is_file()
 assert husky.joinpath("scripts", "audit_evidence_card.py").is_file()
 assert json.loads(husky.joinpath("metadata.json").read_text())["status"] == "candidate"
 
 # Maya retains safe support and unverified-native candidate state in the wheel.
-maya = library.joinpath("repositories", "project-maya")
+maya = library.joinpath("systems", "engines", "project-maya")
 assert maya.joinpath("LICENSE").is_file()
 assert maya.joinpath("sub-skills", "model-runtime", "scripts", "audit_runtime_plan.py").is_file()
 assert json.loads(maya.joinpath("metadata.json").read_text())["status"] == "candidate"
 
 # vLLM Metal remains a source/CPU-only candidate with complete bundled helpers.
-vllm_metal_skill = library.joinpath("repositories", "vllm-metal")
+vllm_metal_skill = library.joinpath("systems", "engines", "vllm-metal")
 identity = json.loads(vllm_metal_skill.joinpath("references", "source-identity.json").read_text())
 assert hashlib.sha256(vllm_metal_skill.joinpath("LICENSE").read_bytes()).hexdigest() == (
     identity["files"]["LICENSE"]
@@ -425,7 +428,7 @@ assert any("screen_pool_budget.py" in name for name in vllm_metal_bundle.content
 assert not inference_modules & sys.modules.keys()
 
 # mistral.rs packages source evidence/support without an upstream Rust/Metal import.
-mistral = library.joinpath("repositories", "mistral-rs")
+mistral = library.joinpath("systems", "engines", "mistral-rs")
 mistral_meta = json.loads(mistral.joinpath("metadata.json").read_text())
 assert mistral_meta["status"] == "candidate"
 assert mistral_meta["empirical_validation"] == "not_run"
@@ -449,7 +452,7 @@ assert any("warmup_shape_inventory.py" in name for name in mistral_bundle.conten
 assert not inference_modules & sys.modules.keys()
 
 # Swift source/support candidate is packaged without a Swift/MLX runtime import.
-swift_lm = library.joinpath("repositories", "mlx-swift-lm")
+swift_lm = library.joinpath("systems", "engines", "mlx-swift-lm")
 swift_meta = json.loads(swift_lm.joinpath("metadata.json").read_text())
 assert swift_meta["status"] == "candidate"
 assert swift_meta["empirical_validation"] == "not_run"
@@ -468,7 +471,7 @@ assert any("audit_gated_delta_declarations.py" in name for name in swift_bundle.
 assert not inference_modules & sys.modules.keys()
 
 # MLC source contracts remain readable without native MLC/TVM imports.
-mlc = library.joinpath("repositories", "mlc-llm")
+mlc = library.joinpath("systems", "engines", "mlc-llm")
 mlc_meta = json.loads(mlc.joinpath("metadata.json").read_text())
 assert mlc_meta["status"] == "candidate" and mlc_meta["empirical_validation"] == "not_run"
 mlc_identity = json.loads(mlc.joinpath("references", "source-identity.json").read_text())
@@ -494,7 +497,7 @@ assert not (inference_modules | {"tvm", "tvm_ffi", "mlc_llm"}) & sys.modules.key
 
 # Local Dream is packaged source knowledge, not a native Android runtime.
 dream_bundle = KnowledgeReader().read("inferrsi.common.skills.local_dream")
-dream_prefix = "data/skill_library/repositories/local-dream/"
+dream_prefix = "data/skill_library/systems/engines/local-dream/"
 dream_metadata = json.loads(dream_bundle.content[dream_prefix + "metadata.json"])
 assert dream_metadata["status"] == "candidate"
 assert dream_metadata["empirical_validation"] == "not_run"
@@ -543,7 +546,7 @@ inventory = {
     **_inventory(files("inferrsi").joinpath("knowledge", "data"), "knowledge/data"),
     **_inventory(files("inferrsi").joinpath("harness", "data"), "harness/data"),
 }
-assert len(inventory) == 930, f"installed resource count is {len(inventory)}, expected 930"
+assert len(inventory) == 940, f"installed resource count is {len(inventory)}, expected 940"
 assert sum(name.startswith("harness/data/") for name in inventory) == len(REPO_TYPES)
 # Every pinned record path and every registered skill body resolves inside that
 # same enumeration, so the inventory and the records describe one resource set.

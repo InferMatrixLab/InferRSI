@@ -192,8 +192,8 @@ run the import from the agent's closing shell call:
 awk 'END { print NR + 1 }' "$trace"
 
 # Separate agent shell calls with the skill library as the tool working directory.
-rg -Hn 'Operator tests passed' methods/inference-optimization-casebook/cases
-cat methods/inference-optimization-casebook/cases/qwen-b300-rejected-directions.md
+rg -Hn 'Operator tests passed' casebooks/inference/inference-optimization-casebook/cases
+cat casebooks/inference/inference-optimization-casebook/cases/qwen-b300-rejected-directions.md
 
 # End of round 1. FIRST is the value retained at the start of this round.
 LAST=$(wc -l < "$trace")
@@ -310,7 +310,7 @@ event, passage and message before recording the reviewed relation.
   },
   "decisions": [{
     "use": "used",
-    "ref": "methods/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md",
+    "ref": "casebooks/inference/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md",
     "event_line": 73,
     "passage_line": 18,
     "decision_line": 108,
@@ -380,7 +380,7 @@ for the generated evidence and its interpretation. To follow one material across
 events and then see its reviewed uses, set `record` to the portable JSON:
 
 ```sh
-ref=methods/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md
+ref=casebooks/inference/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md
 jq --arg ref "$ref" '{
   returns: [.events[] | {event: .id, action, query,
     passages: [.delivery.passages[]? | select(.ref == $ref)]}

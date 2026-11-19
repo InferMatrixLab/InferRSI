@@ -82,7 +82,7 @@ The `--skill-root` examples below require the `skills` extra from above:
 ```bash
 inferrsi collect 'Ascend OOM' --kind case --limit 3 --material --skill-root src/inferrsi/knowledge/data/skill_library
 inferrsi read calibrate-serving-simulation --skill-root src/inferrsi/knowledge/data/skill_library --material
-inferrsi resource weight-loading-optimization methods/weight-loading-optimization/SKILL.md \
+inferrsi resource weight-loading-optimization playbooks/optimization/weight-loading-optimization/SKILL.md \
   --revision <sha256-from-collect-or-read> --skill-root src/inferrsi/knowledge/data/skill_library --output SKILL.md
 ```
 
@@ -110,7 +110,7 @@ the agent uses the packaged ceiling-analysis skill to formulate targets:
 inferrsi read inferrsi.common.skills.performance_ceiling_analysis --material
 ```
 
-Follow its [acceptance-criteria procedure](../src/inferrsi/knowledge/data/skill_library/methods/performance-ceiling-analysis/references/acceptance-criteria.md).
+Follow its [acceptance-criteria procedure](../src/inferrsi/knowledge/data/skill_library/playbooks/measurement/performance-ceiling-analysis/references/acceptance-criteria.md).
 Preserve partial requirements; record derived targets with their baseline,
 calibration, uncertainty and authority in the acceptance issue and frozen plan.
 Missing evidence requires calibration, not a guessed threshold. This is agent
@@ -212,5 +212,5 @@ include its dependencies or peers. See the
 [three-tier guide](../src/inferrsi/knowledge/data/knowledge_packs/README.md) for all sources.
 
 For per-trial completeness, lifecycle and graph qualification, see the
-[Omni experiment contract](../src/inferrsi/knowledge/data/skill_library/workflows/rsi-evidence/references/omni-experiments.md). These optional checks
+[Omni experiment contract](../src/inferrsi/knowledge/data/skill_library/workflows/governance/rsi-evidence/references/omni-experiments.md). These optional checks
 are frozen in RunSpec and do not replace the quality command.

@@ -10,7 +10,7 @@ than a second per-entry summary. Existing experience records retain their IDs
 and source history. New topic abstracts link to complete English procedures
 through `skill_documents`.
 
-Full library: [English skill](../../../skill_library/repositories/vllm-omni/SKILL.md).
+Full library: [English skill](../../../skill_library/systems/engines/vllm-omni/SKILL.md).
 
 ## Ownership and hierarchy
 

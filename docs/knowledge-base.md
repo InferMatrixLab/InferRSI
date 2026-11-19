@@ -11,15 +11,74 @@ separate work, not an implemented capability of this knowledge base.
 
 ## Directory and responsibility map
 
+The [illustrated layout and search guide](knowledge-layout.md) shows the task
+entry, physical directories, evidence lookup and old-to-new bundle counts.
+
+The [task router](../src/inferrsi/knowledge/data/skill_library/tasks/inference-task-router/SKILL.md) selects one of seven deliverables before opening supporting knowledge. For direct subject browsing, the first library directory answers the reader's question. The second
+identifies a subsystem, an engineering activity, a workflow stage group or
+the scope of a case collection. The registry maps each stable ID to a single
+bundle; backend and evidence state remain separate metadata.
+
+```mermaid
+flowchart LR
+    T["tasks · seven inference deliverables"] --> L["Supporting knowledge"]
+    L --> S["systems · How does it work?"]
+    L --> P["playbooks · How do I perform a task?"]
+    L --> W["workflows · How do the stages fit together?"]
+    L --> C["casebooks · What happened before?"]
+    S --> S1["platforms / frameworks / engines"]
+    P --> P1["measurement / planning / optimization"]
+    W --> W1["research / governance / maintenance"]
+    C --> C1["inference / ascend"]
+```
+
+A platform-specific operation such as Ascend graph capture belongs in
+`systems/platforms/ascend/`. The Ascend optimization casebook belongs in
+`casebooks/ascend/`. A cross-platform benchmarking method belongs in
+`playbooks/measurement/`. Engine-specific examples can still ship with their
+parent procedure. Frozen run artifacts remain under `evidence/<campaign>/`.
+
+For existing automation, resolve an ID through `skill-index.json` or use
+`inferrsi skills show <id>`. Raw paths containing the old category need
+the new location. A reference pinned to an earlier commit uses that
+commit's original path; regenerate resource pins when adopting a new bundle.
+
+The router declares `discovery_role: task-entry` in its sidecar. Read it
+explicitly with `inferrsi skills show inference-task-router` and open the
+chosen resource. Default `find` ranks evidence owners and excludes task
+entrypoints before computing IDF. Unmarked skills retain ordinary discovery.
+Use [the migration manifest](skill-layout-migration.csv) to resolve raw paths.
+Retained material can be replayed from its saved bytes or matching source
+snapshot. A digest-only reference requires its original package, checkout or
+retained store revision. Never resolve an old digest to the new bundle.
+
+The manifest records the cutover from main at `9b418d7` and is historical.
+All 79 readable original checkout skills changed bundle revision when moved.
+The seven case identities retained their previous checkout revisions even
+though their resource locations moved. The legacy `husky` skill failed the
+same source-identity validation on both snapshots, marked
+`unavailable_at_cutover`. Its registry path can still be resolved.
+Run `python tools/check_skill_layout_migration.py --before <old-checkout> --after <cutover-checkout>`
+against these snapshots to verify every path and pin and reject old skill
+digests at the new checkout. Validate privately retained campaign captures
+and store revisions against their own saved material before rollout.
+
+On Windows hosts enforcing the 260-character path limit, use a short checkout
+and virtual-environment root for this layout. A wheel under a long temporary
+installation path reproduced a failed read of a nested reference on such a host.
+
+
 ```text
 src/inferrsi/knowledge/data/skill_library/
   README.md                         Library navigation
-  skill-index.json                   Stable IDs → categorized paths/backend (79 skills)
-  hardware/{ascend,cuda,host}/<id>/   Hardware/platform-specific complete skills
-  frameworks/<framework>/<id>/      Framework-owned complete skills
-  repositories/<repo>/              Engine entry, sub-skills and focused complete skills
-  methods/<id>/                     General optimization/analysis complete skills
-  workflows/<id>/                   Cross-repository research, evidence and skill lifecycle
+  skill-index.json                    Stable IDs → current bundle path and backend
+  tasks/inference-task-router/          Entry skill and seven individually readable route cards
+  systems/platforms/{ascend,cuda,host}/   Device and host implementation guidance
+  systems/frameworks/<framework>/     Framework-specific behavior and procedures
+  systems/engines/<repo>/             Engine entry, sub-skills and resources
+  playbooks/{measurement,planning,optimization}/   Reusable engineering tasks
+  workflows/{research,governance,maintenance}/     Cross-stage processes
+  casebooks/{inference,ascend}/       Prior decisions, outcomes and retry conditions
   <owner>/references/               Owner-local supporting documents and source inventory
   <category>/<id>/SKILL.md           Name, description, substantive procedure
   <category>/<id>/metadata.json      Provenance, state and relationships
@@ -110,7 +169,7 @@ separate field rather than more `limitations` entries.
 
 No mechanical allowlist restricts `applicability` keys. The packaged library uses
 nine distinct keys: the seven above plus `architectures` and `excluded_mechanisms`,
-which appear only in `hardware/cuda/reason-hopper-kernels`. A closed key set would
+which appear only in `systems/platforms/cuda/reason-hopper-kernels`. A closed key set would
 reject that sidecar or have to grandfather it. Revisiting this is proposed for
 batch 4 of issue #91 and is not agreed.
 
@@ -187,16 +246,16 @@ the K0/K1 readers above do not enforce them by themselves.
 
 ## K1 integration and shared resources
 
-- [Repository-derived procedure](../src/inferrsi/knowledge/data/skill_library/repositories/vllm/audit-vllm-kv-lifetimes/SKILL.md): preserve
+- [Repository-derived procedure](../src/inferrsi/knowledge/data/skill_library/systems/engines/vllm/audit-vllm-kv-lifetimes/SKILL.md): preserve
   pinned scheduler/connector contracts and untested concrete-backend limits.
-- [Reviewed paper mechanism](../src/inferrsi/knowledge/data/skill_library/methods/calibrate-serving-simulation/SKILL.md):
+- [Reviewed paper mechanism](../src/inferrsi/knowledge/data/skill_library/playbooks/measurement/calibrate-serving-simulation/SKILL.md):
   empirical calibration, joint-SLO shortlist and near-capacity queueing risk;
   source paper is not reread or reproduced by this organization work.
-- [Internal admission/drain case](../src/inferrsi/knowledge/data/skill_library/methods/inference-optimization-casebook/cases/admission-drain-occupancy.md):
+- [Internal admission/drain case](../src/inferrsi/knowledge/data/skill_library/casebooks/inference/inference-optimization-casebook/cases/admission-drain-occupancy.md):
   observation, original action, interpretation, counter-signals and original
   evidence pointers remain separate. Campaign INCONCLUSIVE is retained.
-- [Benchmark design](../src/inferrsi/knowledge/data/skill_library/methods/inference-benchmark-design/SKILL.md) and
-  [evidence classification](../src/inferrsi/knowledge/data/skill_library/methods/dense-performance-evidence/SKILL.md) consume
+- [Benchmark design](../src/inferrsi/knowledge/data/skill_library/playbooks/measurement/inference-benchmark-design/SKILL.md) and
+  [evidence classification](../src/inferrsi/knowledge/data/skill_library/playbooks/measurement/dense-performance-evidence/SKILL.md) consume
   that same case. No `shared/` namespace or duplicate case database is necessary.
 
 Local `resource` access remains restricted to the selected skill. Declared
@@ -219,13 +278,12 @@ standalone export: retain the declared dependencies or the complete library.
 
 All 48 former root skills now have one canonical home under
 [`src/inferrsi/knowledge/data/skill_library/`](../src/inferrsi/knowledge/data/skill_library/README.md).
-Complete procedures, sidecars, references and cases are packaged, with 14 Ascend,
-3 CUDA and 5 host skills under `hardware/`; the rest are grouped as frameworks,
-repositories, methods or workflows. The 21 engine and research-router skills
-use the same ownership layout under `repositories/<engine>/` and
-`workflows/inference-engine-research/`, including their sub-skills and references.
-The library contains 142 `SKILL.md` files, all in English. The registered
-[Lithos Metal candidate](../src/inferrsi/knowledge/data/skill_library/repositories/lithos-metal/SKILL.md)
+Complete procedures, sidecars, references and cases are packaged together. Browse by
+system, engineering task, workflow or prior outcome. Backend is recorded independently. The 21 engine and research-router skills
+use the same ownership layout under `systems/engines/<engine>/` and
+`workflows/research/inference-engine-research/`, including their sub-skills and references.
+The library contains 144 `SKILL.md` files, all in English. The registered
+[Lithos Metal candidate](../src/inferrsi/knowledge/data/skill_library/systems/engines/lithos-metal/SKILL.md)
 adds three owner-local subskills for compiler/fusion, generation state and
 serving/cache contracts; it adds no executable repository target.
 The collection overview, import notes and source manifest belong to the research
@@ -233,16 +291,16 @@ workflow's references; Strata design-space analysis belongs to Strata. The libra
 root contains only navigation and the registry.
 
 The [generated catalog](../src/inferrsi/knowledge/data/repo_packs/inferrsi/knowledge/README.md)
-projects the 79 registered skills into the contribution catalog. Its records
+projects the 81 registered skills into the contribution catalog. Its records
 use `inferrsi.<backend>.skills.<name_with_underscores>` IDs, with `ascend` and
 `cuda` for scopes that depend on those backends and `common` for the remaining skills.
 Each `skill_documents.original` points to the full packaged procedure. The
 `skills` CLI retains the original hyphenated skill IDs and defaults to this
-79-ID registry; engine procedures remain available through library navigation
+81-ID registry; engine procedures remain available through library navigation
 and catalog document pointers.
 
-The registered [PyTorch](../src/inferrsi/knowledge/data/skill_library/frameworks/pytorch/pytorch/SKILL.md)
-and [TorchNPU](../src/inferrsi/knowledge/data/skill_library/frameworks/torch-npu/torch-npu/SKILL.md)
+The registered [PyTorch](../src/inferrsi/knowledge/data/skill_library/systems/frameworks/pytorch/pytorch/SKILL.md)
+and [TorchNPU](../src/inferrsi/knowledge/data/skill_library/systems/frameworks/torch-npu/torch-npu/SKILL.md)
 operating graphs each retain eight child procedures, their sidecars, references,
 scripts and source notices under one root. The children are available through
 root resource reads and complete normalized bundles; they add no separate
@@ -264,7 +322,7 @@ backend gaps and verification scope. Repackaging the unchanged runtime bytes
 does not rerun those checks or establish new backend, quality or performance
 results. The process fixture trees are not part of this delivery.
 
-The registered [h3.c runtime audit](../src/inferrsi/knowledge/data/skill_library/repositories/h3-c/audit-h3-runtime-residency/SKILL.md)
+The registered [h3.c runtime audit](../src/inferrsi/knowledge/data/skill_library/systems/engines/h3-c/audit-h3-runtime-residency/SKILL.md)
 owns MiniMax-H3 component/lifetime, AdaLN, precision/SSD mechanisms and the
 retained Apple feasibility/header-inventory research. Its source-derived
 candidate state and imported header observations remain separate from native
@@ -284,13 +342,13 @@ record, not promotion or verification of the source skill. Backend placement
 describes content scope; `common` and `skills.discovery` imply no cross-hardware
 qualification. `inferrsi` is a knowledge source, not an executable target.
 
-The CUDA-owned [Hopper kernel reasoning candidate](../src/inferrsi/knowledge/data/skill_library/hardware/cuda/reason-hopper-kernels/SKILL.md)
+The CUDA-owned [Hopper kernel reasoning candidate](../src/inferrsi/knowledge/data/skill_library/systems/platforms/cuda/reason-hopper-kernels/SKILL.md)
 adds pinned KDA/KernelWiki source screening, selected primary-code qualification
 and architecture-specific synchronization/resource/FP8 procedures. Its coverage
 inventory distinguishes inspected bodies from source headers and excluded SM100
 recipes; native execution and efficacy remain not_run.
 
-The complete library is the single content owner. Maintain stable paths and
+The complete library is the single content owner. Maintain stable IDs, current paths and
 backend classifications in `skill-index.json`, then refresh generated records
 and navigation with `tools/build_skill_index.py`; do not hand-edit generated
 cards. Stored cards keep only their own fields and resource hashes, and the shared
@@ -304,9 +362,9 @@ checks do not establish licensing, empirical verification or automatic execution
 ## Negative results as diagnostic options
 
 The existing Case authority now also holds scoped rejected directions for
-[Qwen B300](../src/inferrsi/knowledge/data/skill_library/methods/inference-optimization-casebook/cases/qwen-b300-rejected-directions.md),
-[Qwen Ascend](../src/inferrsi/knowledge/data/skill_library/methods/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md)
-and [Drama3 B300](../src/inferrsi/knowledge/data/skill_library/methods/inference-optimization-casebook/cases/drama3-rejected-directions.md).
+[Qwen B300](../src/inferrsi/knowledge/data/skill_library/casebooks/inference/inference-optimization-casebook/cases/qwen-b300-rejected-directions.md),
+[Qwen Ascend](../src/inferrsi/knowledge/data/skill_library/casebooks/inference/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md)
+and [Drama3 B300](../src/inferrsi/knowledge/data/skill_library/casebooks/inference/inference-optimization-casebook/cases/drama3-rejected-directions.md).
 The records cite exact source summaries; they add no hardware validation.
 Observation, original disposition and newly suggested revisit checks stay
 separate. Raw evidence remains at its existing frozen owner.
@@ -346,17 +404,17 @@ perf-loop, fixed skill count, global numeric policies and separate case registry
 are not imported. Exactly two primary matrices remain; HBM is not host RAM and
 H2D/IPC/team coordination do not establish Network coverage.
 
-The registered [vllm-metal candidate](../src/inferrsi/knowledge/data/skill_library/repositories/vllm-metal/SKILL.md) adds selected platform/ABI, KV/offload lifecycle and speculative/deferred/dispatch procedures. Installed pure API/parser evidence is partial; required Apple native/model/quality/service evidence remains blocked. It is portable AREX-informed repository integration, not DisCo CLI execution or managed import.
+The registered [vllm-metal candidate](../src/inferrsi/knowledge/data/skill_library/systems/engines/vllm-metal/SKILL.md) adds selected platform/ABI, KV/offload lifecycle and speculative/deferred/dispatch procedures. Installed pure API/parser evidence is partial; required Apple native/model/quality/service evidence remains blocked. It is portable AREX-informed repository integration, not DisCo CLI execution or managed import.
 
-The registered [mistral-rs candidate](../src/inferrsi/knowledge/data/skill_library/repositories/mistral-rs/SKILL.md) adds selected Metal paged-attention layout, metadata/workspace and preparation/evidence contracts. Rust tooling and required Apple native/model evidence are unavailable; offline helpers and source test definitions are not native execution or candidate promotion.
+The registered [mistral-rs candidate](../src/inferrsi/knowledge/data/skill_library/systems/engines/mistral-rs/SKILL.md) adds selected Metal paged-attention layout, metadata/workspace and preparation/evidence contracts. Rust tooling and required Apple native/model evidence are unavailable; offline helpers and source test definitions are not native execution or candidate promotion.
 
-The [mlx-swift-lm candidate](../src/inferrsi/knowledge/data/skill_library/repositories/mlx-swift-lm/SKILL.md) owns selected Swift generation-lifetime and recurrent native/ops contracts, with source/observation limits preserved. No Swift compile, original native/host-control test, actual Metal/model/quality/service run is implied by its helpers or packaged discovery.
+The [mlx-swift-lm candidate](../src/inferrsi/knowledge/data/skill_library/systems/engines/mlx-swift-lm/SKILL.md) owns selected Swift generation-lifetime and recurrent native/ops contracts, with source/observation limits preserved. No Swift compile, original native/host-control test, actual Metal/model/quality/service run is implied by its helpers or packaged discovery.
 
-The [mlc-llm candidate](../src/inferrsi/knowledge/data/skill_library/repositories/mlc-llm/SKILL.md) separates artifact metadata, supported consumers, Apple targets, pinned TVM runnable/runtime boundaries and compiled/runtime KV configuration. Canonical hashes, serializable fallback or estimated limits are not native/model/quality/fit/service evidence.
+The [mlc-llm candidate](../src/inferrsi/knowledge/data/skill_library/systems/engines/mlc-llm/SKILL.md) separates artifact metadata, supported consumers, Apple targets, pinned TVM runnable/runtime boundaries and compiled/runtime KV configuration. Canonical hashes, serializable fallback or estimated limits are not native/model/quality/fit/service evidence.
 
-The registered [h3-metal FastH3 audit](../src/inferrsi/knowledge/data/skill_library/repositories/h3-metal/audit-h3-metal-fasth3-semantics/SKILL.md) supplements earlier h3.c residency with fork-specific effective configuration, tensor/schedule semantics and VSA eligibility/fallback. Its offline declaration arithmetic and label probes do not qualify native conversion, sparse attention, media, memory fit or performance; required Apple/model evidence remains blocked/not_run.
+The registered [h3-metal FastH3 audit](../src/inferrsi/knowledge/data/skill_library/systems/engines/h3-metal/audit-h3-metal-fasth3-semantics/SKILL.md) supplements earlier h3.c residency with fork-specific effective configuration, tensor/schedule semantics and VSA eligibility/fallback. Its offline declaration arithmetic and label probes do not qualify native conversion, sparse attention, media, memory fit or performance; required Apple/model evidence remains blocked/not_run.
 
-The registered [local-dream candidate](../src/inferrsi/knowledge/data/skill_library/repositories/local-dream/SKILL.md)
+The registered [local-dream candidate](../src/inferrsi/knowledge/data/skill_library/systems/engines/local-dream/SKILL.md)
 owns selected Android desired/serving/readiness and unauthenticated-host
 boundaries, native diffusion dispatch/cancellation/cache and DiT/QNN packaging
 contracts. Its helper compares declarations only; required Android/Qualcomm,

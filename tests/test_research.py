@@ -69,7 +69,7 @@ def test_scoped_mlx_research_retains_the_lifecycle_resource():
         if item["record"]["id"] == "inferrsi.common.skills.lazy_evaluation_stream_lifetimes"
     )
     assert lifecycle["record"]["skill_documents"]["original"] == (
-        "data/skill_library/frameworks/mlx/lazy-evaluation-stream-lifetimes/SKILL.md"
+        "data/skill_library/systems/frameworks/mlx/lazy-evaluation-stream-lifetimes/SKILL.md"
     )
     assert {"group": "framework", "query": "mlx"} in lifecycle["matched_queries"]
     assert {"group": "mechanism", "query": "lazy evaluation"} in lifecycle["matched_queries"]
@@ -175,7 +175,7 @@ def test_model_profile_links_packaged_resources_at_the_repository_owner(alias):
     assert result["worked_example_resource"] == profile["worked_example_resource"]
     for key in ("skill_resource", "worked_example_resource", "inventory_resource"):
         resource = profile[key]
-        assert resource.startswith("data/skill_library/repositories/h3-c/")
+        assert resource.startswith("data/skill_library/systems/engines/h3-c/")
         assert package.joinpath(resource).read_text(encoding="utf-8")
     record = get_knowledge(profile["knowledge_ids"][0])
     assert record["skill_documents"]["original"] == profile["skill_resource"]

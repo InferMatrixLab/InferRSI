@@ -43,7 +43,7 @@
     }
   ],
   "skill_documents": {
-    "en": "data/skill_library/repositories/sglang-omni/sub-skills/sglang-omni-extension/SKILL.md"
+    "en": "data/skill_library/systems/engines/sglang-omni/sub-skills/sglang-omni-extension/SKILL.md"
   },
   "applicability": {
     "hardware": [],

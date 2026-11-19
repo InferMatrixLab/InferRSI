@@ -1,0 +1,22 @@
+{
+  "task": "day0-model",
+  "title": "Integrate a newly released model",
+  "choose_when": "First usable support for a new checkpoint or model architecture in an existing engine.",
+  "required_inputs": [
+    "checkpoint revision and tokenizer or processor",
+    "model family and supported modalities",
+    "upstream reference outputs",
+    "device, backend and engine revisions"
+  ],
+  "steps": [
+    "Map the model config and I/O contract to the host engine.",
+    "Run the smallest reference-parity test for each requested modality.",
+    "List missing operators or unsupported features before benchmarking."
+  ],
+  "acceptance_evidence": "A reproducible load and generation smoke, parity checks and a supported-feature matrix on the named target.",
+  "candidate_skill_ids": [
+    "ascend-model-adaptation",
+    "diffusers-invocation-state",
+    "claim-contract"
+  ]
+}

@@ -154,7 +154,7 @@ def test_mlx_cards_are_source_scoped_and_readable(capsys):
     ]) == 0
     assert {item["id"] for item in json.loads(capsys.readouterr().out)} == IDS
     reader = KnowledgeReader()
-    document = "data/skill_library/frameworks/mlx/lazy-evaluation-stream-lifetimes/SKILL.md"
+    document = "data/skill_library/systems/frameworks/mlx/lazy-evaluation-stream-lifetimes/SKILL.md"
     # The bundle key stays logical; K02 moved the physical corpus under Knowledge.
     expected = (PROJECT / "src/inferrsi/knowledge" / document).read_bytes()
     for record in records:

@@ -17,7 +17,7 @@ entry when the learning use case changes instead of duplicating its claims.
 
 For `pytorch/pytorch`, the [compiler/checkpoint scope map](../skill_library/README.md#pytorch-compiler-and-checkpoint-scope-routing)
 relates the [compiler dependency card](dependency/pytorch/cuda/compiler/cudagraph-shapes-and-lifetimes.json)
-to the existing [DCP async-save owner](../skill_library/frameworks/pytorch/dcp-async-save-performance/SKILL.md),
+to the existing [DCP async-save owner](../skill_library/systems/frameworks/pytorch/dcp-async-save-performance/SKILL.md),
 keeping its fixed implementation and live recipe separate from compiler
 documentation, with each owner's completion and version boundaries intact.
 
@@ -52,9 +52,7 @@ The [InferRSI skill catalog](../repo_packs/inferrsi/knowledge/README.md)
 provides generated contribution-tier records for registered skills. Their full
 procedures, sidecars, references and cases now live in the
 [packaged skill library](../skill_library/README.md); `skill_documents.original`
-links each record to its procedure. Hardware guidance lives under the matching
-`hardware/ascend`, `hardware/cuda` or `hardware/host` directory; other owners are
-frameworks, repositories, methods and workflows. Search with `--repo-type inferrsi`
+links each record to its procedure. The library groups bundles by system, engineering playbook, cross-stage workflow and casebook. Search with `--repo-type inferrsi`
 and optionally `--backend ascend` or `--backend cuda`. Original state, provenance
 and unknown licensing are preserved separately from the unverified catalog
 record. Backend classification and `skills.discovery` imply no qualification.
@@ -146,7 +144,7 @@ model, service or performance validation is claimed.
 ## MLX source cards
 
 Three dependency cards reuse the existing
-[MLX evaluation/stream/lifetime procedure](../skill_library/frameworks/mlx/lazy-evaluation-stream-lifetimes/SKILL.md)
+[MLX evaluation/stream/lifetime procedure](../skill_library/systems/frameworks/mlx/lazy-evaluation-stream-lifetimes/SKILL.md)
 and its original 2026-10-21 readset. Their selected implementation ranges were
 rechecked on 2026-10-23 at the same bff10220c742907f0c68e55ff174aaea56f74e3d pin.
 They retain MIT/Apple attribution and imported, locally unverified state.

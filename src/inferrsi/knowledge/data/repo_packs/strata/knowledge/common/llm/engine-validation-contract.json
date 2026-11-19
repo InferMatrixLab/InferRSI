@@ -42,7 +42,7 @@
     }
   ],
   "skill_documents": {
-    "en": "data/skill_library/repositories/strata/sub-skills/validate-engine/SKILL.md"
+    "en": "data/skill_library/systems/engines/strata/sub-skills/validate-engine/SKILL.md"
   },
   "applicability": {
     "hardware": [],

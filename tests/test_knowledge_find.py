@@ -47,6 +47,9 @@ def test_corpus_covers_all_three_kinds_without_double_counting(corpus):
     for document in corpus.documents:
         kinds[document.kind] = kinds.get(document.kind, 0) + 1
     assert kinds["skill"] == 80
+    assert all(document.identity != "inference-task-router" for document in corpus.documents)
+    day0 = find("day-0 model integration on Ascend", corpus, limit=3)
+    assert day0["items"] and _ranked(day0, "inference-task-router") is None
     assert kinds["case"] == 7
     # Packaged-skill projections are excluded so one owner is not ranked twice.
     assert all(
@@ -288,14 +291,14 @@ def test_finding_order_is_not_decided_by_corpus_common_terms(corpus):
 
 def _plant_case(root: Path, owner: str, *, registered: bool = True) -> None:
     """Copy one packaged case under `owner`, optionally leaving it unregistered."""
-    source = ROOT / "methods/inference-optimization-casebook/cases"
+    source = ROOT / "casebooks/inference/inference-optimization-casebook/cases"
     cases = root / owner / "cases"
     cases.mkdir(parents=True)
     for suffix in (".json", ".md"):
         shutil.copy(source / f"qwen-ascend-rejected-directions{suffix}", cases)
     if registered:
         skill = root / owner / "SKILL.md"
-        body = (ROOT / "methods/inference-optimization-casebook/SKILL.md").read_text(
+        body = (ROOT / "casebooks/inference/inference-optimization-casebook/SKILL.md").read_text(
             encoding="utf-8"
         )
         skill.write_text(

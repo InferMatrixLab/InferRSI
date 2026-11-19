@@ -138,8 +138,8 @@ Exact `knowledge search` and `context` still AND query tokens. Independent
 research queries broaden discovery without relaxing the active package filters.
 Keep those filters explicit when transferring mechanisms from other backends;
 target intent does not qualify their applicability. Read the canonical
-[preparation procedure](../src/inferrsi/knowledge/data/skill_library/workflows/inference-engine-research/references/model-aware-preparation.md)
-and the repository-owned [h3.c residency audit](../src/inferrsi/knowledge/data/skill_library/repositories/h3-c/audit-h3-runtime-residency/SKILL.md)
+[preparation procedure](../src/inferrsi/knowledge/data/skill_library/workflows/research/inference-engine-research/references/model-aware-preparation.md)
+and the repository-owned [h3.c residency audit](../src/inferrsi/knowledge/data/skill_library/systems/engines/h3-c/audit-h3-runtime-residency/SKILL.md)
 for native-engine reference selection, full encoder/DiT/VAE accounting,
 quantized-package compatibility and target hardware decisions. Returned resource
 paths are relative to `importlib.resources.files("inferrsi")` and ship in the wheel.

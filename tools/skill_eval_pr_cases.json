@@ -14,25 +14,25 @@
   "skills": [
     {
       "skill": "inference-benchmark-design",
-      "entrypoint": "methods/inference-benchmark-design/SKILL.md",
+      "entrypoint": "playbooks/measurement/inference-benchmark-design/SKILL.md",
       "paths": [
-        "src/inferrsi/knowledge/data/skill_library/methods/inference-benchmark-design"
+        "src/inferrsi/knowledge/data/skill_library/playbooks/measurement/inference-benchmark-design"
       ],
       "cases": "../tests/fixtures/skill-comparison/cases.json"
     },
     {
       "skill": "audit-fixed-workload-claim",
-      "entrypoint": "methods/audit-fixed-workload-claim/SKILL.md",
+      "entrypoint": "playbooks/measurement/audit-fixed-workload-claim/SKILL.md",
       "paths": [
-        "src/inferrsi/knowledge/data/skill_library/methods/audit-fixed-workload-claim"
+        "src/inferrsi/knowledge/data/skill_library/playbooks/measurement/audit-fixed-workload-claim"
       ],
       "cases": "../tests/fixtures/skill-comparison/cases.json"
     },
     {
       "skill": "optimization-search-policy",
-      "entrypoint": "methods/optimization-search-policy/SKILL.md",
+      "entrypoint": "playbooks/planning/optimization-search-policy/SKILL.md",
       "paths": [
-        "src/inferrsi/knowledge/data/skill_library/methods/optimization-search-policy"
+        "src/inferrsi/knowledge/data/skill_library/playbooks/planning/optimization-search-policy"
       ],
       "cases": "../tests/fixtures/skill-comparison/pr133-diagnostic-case05.json",
       "adapter": "kv-admission-diagnostic-v1"

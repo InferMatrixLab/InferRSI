@@ -28,7 +28,7 @@
   ],
   "skill_id": "audit-h3-runtime-residency",
   "knowledge_ids": ["inferrsi.common.skills.audit_h3_runtime_residency"],
-  "skill_resource": "data/skill_library/repositories/h3-c/audit-h3-runtime-residency/SKILL.md",
-  "worked_example_resource": "data/skill_library/repositories/h3-c/audit-h3-runtime-residency/references/minimax-h3-apple.md",
-  "inventory_resource": "data/skill_library/repositories/h3-c/audit-h3-runtime-residency/references/minimax-h3-weight-inventory.json"
+  "skill_resource": "data/skill_library/systems/engines/h3-c/audit-h3-runtime-residency/SKILL.md",
+  "worked_example_resource": "data/skill_library/systems/engines/h3-c/audit-h3-runtime-residency/references/minimax-h3-apple.md",
+  "inventory_resource": "data/skill_library/systems/engines/h3-c/audit-h3-runtime-residency/references/minimax-h3-weight-inventory.json"
 }

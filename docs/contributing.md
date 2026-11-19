@@ -69,17 +69,16 @@ is a required status on `main`, so a failing declaration blocks merging; the
 check establishes declaration compliance only, not execution settings or results.
 
 The [skill library](../src/inferrsi/knowledge/data/skill_library/README.md) owns complete
-procedures, metadata, references and cases. Place platform-specific skills under
-`hardware/ascend`, `hardware/cuda` or `hardware/host`; use `frameworks/<name>`,
-`repositories/<name>`, `methods` or `workflows` for other primary owners. Maintain
+procedures, metadata, references and cases. The task router lives in `tasks/`. For supporting knowledge, choose the bundle’s primary purpose: system-specific implementation, engineering playbook,
+cross-stage workflow or casebook. Follow the library navigation for its subcategory. Maintain
 the registered stable IDs and their categorized paths in `skill-index.json`, then refresh
 their generated abstracts with `tools/build_skill_index.py`. Keep all skill
 content in the canonical library. Preserve source state and
 `UNKNOWN` license declarations; moving content does not resolve licensing.
 
 Keep all library content in English. Engine procedures belong under
-`repositories/<engine>/` and the collection router under
-`workflows/inference-engine-research/`, with their sub-skills and references.
+`systems/engines/<engine>/` and the collection router under
+`workflows/research/inference-engine-research/`, with their sub-skills and references.
 Keep supporting Markdown and JSON with their owner; the library
 root contains only `README.md` and `skill-index.json`.
 Catalog abstracts link to packaged bodies via `skill_documents.original` for
@@ -92,7 +91,7 @@ licenses, local links and reads from a noneditable wheel installation.
 
 Use user-provided acceptance criteria, including those in a referenced accepted
 plan. When none are supplied, use
-[performance-ceiling-analysis](../src/inferrsi/knowledge/data/skill_library/methods/performance-ceiling-analysis/references/acceptance-criteria.md)
+[performance-ceiling-analysis](../src/inferrsi/knowledge/data/skill_library/playbooks/measurement/performance-ceiling-analysis/references/acceptance-criteria.md)
 to formulate evidence-backed targets. Retain partial requirements and label
 derived fields; record their source, calibration, uncertainty and freeze
 authority. Missing evidence stays unresolved, and estimates never lower an
@@ -301,5 +300,5 @@ verification remains explicit. Workbench experiments use the
 the four CI lanes retain their current roles.
 
 For feedback-coupled models, stochastic audio and streaming/graph experiments,
-use the [Omni experiment contract](../src/inferrsi/knowledge/data/skill_library/workflows/rsi-evidence/references/omni-experiments.md) to select
+use the [Omni experiment contract](../src/inferrsi/knowledge/data/skill_library/workflows/governance/rsi-evidence/references/omni-experiments.md) to select
 reference, preflight and executable per-trial qualification checks.

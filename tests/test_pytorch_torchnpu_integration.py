@@ -26,8 +26,8 @@ def _pinned(path: Path) -> str:
 @pytest.mark.parametrize("name,backend", GRAPHS)
 def test_framework_roots_register_graphs_without_registering_children(name, backend):
     registry = json.loads((LIBRARY / "skill-index.json").read_text(encoding="utf-8"))["skills"]
-    owner = LIBRARY / "frameworks" / name / name
-    assert registry[name] == {"path": f"frameworks/{name}/{name}", "backend": backend}
+    owner = LIBRARY / "systems/frameworks" / name / name
+    assert registry[name] == {"path": f"systems/frameworks/{name}/{name}", "backend": backend}
     children = sorted((owner / "sub-skills").glob("*/SKILL.md"))
     assert len(children) == 8
     assert not {path.parent.name for path in children} & set(registry)
@@ -52,7 +52,7 @@ def test_framework_roots_register_graphs_without_registering_children(name, back
 
 @pytest.mark.parametrize("name,backend", GRAPHS)
 def test_framework_graph_resources_and_sidecars_survive_checkout_bundle_reads(name, backend):
-    owner = LIBRARY / "frameworks" / name / name
+    owner = LIBRARY / "systems/frameworks" / name / name
     reader = KnowledgeReader(skill_root=LIBRARY)
     identity = f"checkout:{name}"
     bundle = reader.read(identity)
@@ -73,14 +73,14 @@ def test_framework_graph_resources_and_sidecars_survive_checkout_bundle_reads(na
 
 @pytest.mark.parametrize("name,backend", GRAPHS)
 def test_framework_catalog_preserves_owner_metadata_and_scope_without_promotion(name, backend):
-    owner = LIBRARY / "frameworks" / name / name
+    owner = LIBRARY / "systems/frameworks" / name / name
     record = get_knowledge(f"inferrsi.{backend}.skills.{name.replace('-', '_')}")
     assert record["backend"] == backend
     assert record["status"] == "imported"
     assert record["skill_metadata"] == skill_metadata(LIBRARY, name)
     assert not record["verification"]["locally_verified"]
     assert record["skill_documents"] == {
-        "original": f"data/skill_library/frameworks/{name}/{name}/SKILL.md",
+        "original": f"data/skill_library/systems/frameworks/{name}/{name}/SKILL.md",
     }
     source_paths = set(record["source_files"])
     for document in owner.rglob("SKILL.md"):
@@ -91,7 +91,7 @@ def test_framework_catalog_preserves_owner_metadata_and_scope_without_promotion(
 
 
 def test_pytorch_retained_license_and_notice_match_declared_immutable_blob_bytes():
-    owner = LIBRARY / "frameworks/pytorch/pytorch"
+    owner = LIBRARY / "systems/frameworks/pytorch/pytorch"
     ledger = json.loads((owner / "references/source-readset.json").read_text(encoding="utf-8"))
     metadata = skill_metadata(LIBRARY, "pytorch")
     assert ledger["commit"] in {source["commit"] for source in metadata["sources"]}
@@ -103,7 +103,7 @@ def test_pytorch_retained_license_and_notice_match_declared_immutable_blob_bytes
 
 
 def test_torchnpu_retained_source_documentation_and_third_party_notices_keep_blob_bytes():
-    owner = LIBRARY / "frameworks/torch-npu/torch-npu"
+    owner = LIBRARY / "systems/frameworks/torch-npu/torch-npu"
     ledger = json.loads(
         (owner / "references/licenses/source-identities.json").read_text(encoding="utf-8")
     )

@@ -43,7 +43,7 @@
     }
   ],
   "skill_documents": {
-    "en": "data/skill_library/repositories/strata/sub-skills/tune-execution/SKILL.md"
+    "en": "data/skill_library/systems/engines/strata/sub-skills/tune-execution/SKILL.md"
   },
   "applicability": {
     "hardware": [],

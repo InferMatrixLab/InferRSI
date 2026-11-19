@@ -8,7 +8,7 @@
   "license": "MIT",
   "attribution": "Copyright © 2023 Apple Inc. Source observations are paraphrased; no implementation code is copied.",
   "skill_documents": {
-    "original": "data/skill_library/frameworks/mlx/lazy-evaluation-stream-lifetimes/SKILL.md"
+    "original": "data/skill_library/systems/frameworks/mlx/lazy-evaluation-stream-lifetimes/SKILL.md"
   },
   "verification": {
     "locally_verified": false,

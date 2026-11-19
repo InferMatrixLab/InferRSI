@@ -415,13 +415,15 @@ def render(rows, unregistered, documents, dead, digest):
         "",
     ]
 
-    for key, title in (
-        ("hardware", "Hardware and platform"),
-        ("frameworks", "Frameworks"),
-        ("repositories", "Repositories"),
-        ("methods", "Methods"),
-        ("workflows", "Workflows"),
-    ):
+    category_titles = {
+        "tasks": "Task routing",
+        "systems": "Systems and implementations",
+        "playbooks": "Engineering playbooks",
+        "workflows": "Cross-stage workflows",
+        "casebooks": "Casebooks and prior outcomes",
+    }
+    for key in sorted(counts):
+        title = category_titles.get(key, key.title())
         group = [row for row in rows if row["category"] == key]
         if not group:
             continue

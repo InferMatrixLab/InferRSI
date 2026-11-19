@@ -10,7 +10,8 @@ import pytest
 from inferrsi.knowledge.knowledge_operations import KnowledgeReader
 
 ROOT = Path(__file__).resolve().parents[1]
-OWNER = ROOT / "src/inferrsi/knowledge/data/skill_library/methods/performance-ceiling-analysis"
+OWNER = (ROOT / "src/inferrsi/knowledge/data/skill_library/playbooks/measurement"
+         / "performance-ceiling-analysis")
 CODE = compile((OWNER / "scripts/roofline.py").read_text(encoding="utf-8"), "roofline.py", "exec")
 NAMESPACE = {}
 exec(CODE, NAMESPACE)
@@ -193,7 +194,9 @@ def test_owner_resources_are_readable_at_exact_checkout_revision(monkeypatch):
         "references/roofline-contract.md",
         "references/roofline-example.json",
     ):
-        resource = "methods/performance-ceiling-analysis/" + relative
+        resource = "playbooks/measurement/performance-ceiling-analysis/" + relative
         assert bundle.content[resource] == (OWNER / relative).read_bytes()
-    assert reader.resource(reference, "methods/performance-ceiling-analysis/scripts/roofline.py",
-                           revision=bundle.revision) == (OWNER / "scripts/roofline.py").read_bytes()
+    script = "playbooks/measurement/performance-ceiling-analysis/scripts/roofline.py"
+    assert reader.resource(reference, script, revision=bundle.revision) == (
+        OWNER / "scripts/roofline.py"
+    ).read_bytes()

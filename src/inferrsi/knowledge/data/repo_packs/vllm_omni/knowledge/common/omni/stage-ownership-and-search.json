@@ -42,7 +42,7 @@
     }
   ],
   "skill_documents": {
-    "en": "data/skill_library/repositories/vllm-omni/sub-skills/omni-architecture/SKILL.md"
+    "en": "data/skill_library/systems/engines/vllm-omni/sub-skills/omni-architecture/SKILL.md"
   },
   "applicability": {
     "hardware": [],

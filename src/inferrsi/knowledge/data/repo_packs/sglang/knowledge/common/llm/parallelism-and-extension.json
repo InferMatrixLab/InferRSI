@@ -43,7 +43,7 @@
     }
   ],
   "skill_documents": {
-    "en": "data/skill_library/repositories/sglang/sub-skills/sglang-parallel-extension/SKILL.md"
+    "en": "data/skill_library/systems/engines/sglang/sub-skills/sglang-parallel-extension/SKILL.md"
   },
   "applicability": {
     "hardware": [],

@@ -220,8 +220,15 @@ def prepare(repo, mapping_path, identity, output, *, provider=None, planning_blo
                        or entry["path"] == p for p in item["paths"]):
                     entry["coverage"] = "unsupported"
             continue
-        config = {"mode": "update" if blob_exists(repo, identity["base"], entrypoint)
-                  else "addition", "skill": item["skill"], "skill_root": mapping["skill_root"],
+        existing = blob_exists(repo, identity["base"], entrypoint)
+        registry_path = mapping["skill_root"] + "/skill-index.json"
+        if not existing and blob_exists(repo, identity["base"], registry_path):
+            # Snapshot loading resolves each arm by stable ID in its own registry.
+            registry = json.loads(projection_blob(repo, identity["base"], registry_path),
+                                  object_pairs_hook=projection_object)
+            existing = item["skill"] in registry["skills"]
+        config = {"mode": "update" if existing else "addition",
+                  "skill": item["skill"], "skill_root": mapping["skill_root"],
                   "cases": str((mapping_path.parent / item["cases"]).resolve()),
                   "snapshots": {"baseline": {"git_revision": identity["base"]},
                                 "candidate": {"git_revision": identity["head"]}},

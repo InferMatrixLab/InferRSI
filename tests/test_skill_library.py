@@ -109,7 +109,7 @@ def test_english_documents_are_packaged_local_and_repository_owned():
     assert {record["repo"] for record in records} == set(REPOSITORIES)
     for record in records:
         assert set(record["skill_documents"]) == {"en"}
-        expected = LIBRARY / "repositories" / record["repo"].replace("_", "-")
+        expected = LIBRARY / "systems/engines" / record["repo"].replace("_", "-")
         # skill_documents holds the logical "data/..." key; K02 moved the physical
         # corpus under the Knowledge module without changing that spelling.
         document = (PACKAGE / "knowledge" / record["skill_documents"]["en"]).resolve()
@@ -121,7 +121,7 @@ def test_english_documents_are_packaged_local_and_repository_owned():
 def test_portable_library_retains_english_resources_licenses_and_resolving_local_links():
     engine_nodes = 0
     for repo in REPOSITORIES:
-        owner = LIBRARY / "repositories" / repo.replace("_", "-")
+        owner = LIBRARY / "systems/engines" / repo.replace("_", "-")
         assert (owner / "SKILL.md").is_file()
         license_text = (owner / "LICENSE").read_text(encoding="utf-8")
         assert ("MIT License" if repo == "strata" else "Apache License") in license_text
@@ -131,7 +131,7 @@ def test_portable_library_retains_english_resources_licenses_and_resolving_local
         assert len(subskills) == 3
         engine_nodes += 1 + len(subskills)
     assert engine_nodes == 20
-    router = LIBRARY / "workflows/inference-engine-research"
+    router = LIBRARY / "workflows/research/inference-engine-research"
     assert (router / "SKILL.md").is_file()
     documents = list(LIBRARY.rglob("*.md")) + [
         PACKAGE / "knowledge/data/repo_packs" / repo / "knowledge/README.md"
@@ -145,24 +145,41 @@ def test_portable_library_retains_english_resources_licenses_and_resolving_local
             destination = (document.parent / unquote(link.path)).resolve()
             assert destination.is_relative_to(PACKAGE.resolve()), (document, target)
             assert destination.exists(), (document, target)
-    assert (LIBRARY / "repositories/strata/scripts/summarize_trials.py").is_file()
+    assert (LIBRARY / "systems/engines/strata/scripts/summarize_trials.py").is_file()
 
 
-def test_library_root_exposes_only_owner_categories_and_required_entrypoints():
+def test_task_router_cards_are_readable_and_point_to_registered_skills():
+    from inferrsi.knowledge.skill_catalog import skill_resource
+
+    registry = json.loads((LIBRARY / "skill-index.json").read_text(encoding="utf-8"))["skills"]
+    router = "inference-task-router"
+    root = LIBRARY / registry[router]["path"]
+    instructions = (root / "SKILL.md").read_text(encoding="utf-8")
+    tasks = {"day0-model", "performance", "debug", "accuracy", "version-align",
+             "derived-engine", "independent-engine"}
+    for task in tasks:
+        path = f"references/routes/{task}.json"
+        assert f"]({path})" in instructions
+        card = json.loads(skill_resource(LIBRARY, router, path).read_text(encoding="utf-8"))
+        assert card["task"] == task and card["required_inputs"] and card["acceptance_evidence"]
+        assert card["candidate_skill_ids"] and set(card["candidate_skill_ids"]) <= set(registry)
+
+
+def test_library_root_exposes_task_routing_and_supporting_categories():
     assert {path.name for path in LIBRARY.iterdir() if path.is_file()} == {
         "README.md", "skill-index.json",
     }
     assert {path.name for path in LIBRARY.iterdir() if path.is_dir()} == {
-        "hardware", "frameworks", "repositories", "methods", "workflows",
+        "tasks", "systems", "playbooks", "workflows", "casebooks",
     }
-    assert len(list(LIBRARY.rglob("SKILL.md"))) == 143
+    assert len(list(LIBRARY.rglob("SKILL.md"))) == 144
     assert not any(path.name == "zh-CN" for path in LIBRARY.rglob("*") if path.is_dir())
-    references = LIBRARY / "workflows/inference-engine-research/references"
+    references = LIBRARY / "workflows/research/inference-engine-research/references"
     assert (references / "import.md").is_file()
     manifest = json.loads((references / "source-manifest.json").read_text(encoding="utf-8"))
     assert len(manifest["sources"]) == 5
-    router = LIBRARY / "workflows/inference-engine-research"
-    strata = LIBRARY / "repositories/strata"
+    router = LIBRARY / "workflows/research/inference-engine-research"
+    strata = LIBRARY / "systems/engines/strata"
     assert (router / "references/overview.md").is_file()
     assert (strata / "references/design-space-analysis.md").is_file()
 
@@ -180,7 +197,9 @@ def test_bundled_trial_helper_excludes_failed_configs_and_rejects_mixed_context(
     )
     csv.write_text(header + rows, encoding="utf-8")
     command = [
-        sys.executable, str(LIBRARY / "repositories/strata/scripts/summarize_trials.py"), str(csv),
+        sys.executable,
+        str(LIBRARY / "systems/engines/strata/scripts/summarize_trials.py"),
+        str(csv),
     ]
     result = subprocess.run(command, capture_output=True, text=True, check=True)
     summary = json.loads(result.stdout)

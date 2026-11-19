@@ -29,7 +29,7 @@ def record_files():
 def test_packaged_records_store_schema_two_and_resolve_to_schema_one():
     manifest = json.loads((GENERATED / snapshot.MANIFEST).read_text(encoding="utf-8"))
     records = {r["id"]: r for r in search_knowledge(repo="inferrsi", limit=100)}
-    assert len(record_files()) == len(records) == 80
+    assert len(record_files()) == len(records) == 81
     for path in record_files():
         stored = json.loads(path.read_text(encoding="utf-8"))
         assert stored["schema_version"] == 2 and "sources" not in stored

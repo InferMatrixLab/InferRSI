@@ -58,7 +58,7 @@ def test_existing_item_payload_and_material_accounting_are_unchanged():
     assert json.loads(new["items"][0]["content"])["id"] == CGROUP
     assert new["contexts"][0]["resources"][0]["path"].endswith("/SKILL.md")
     assert new["contexts"][0]["omissions"] == [{
-        "path": "data/skill_library/hardware/host/cgroup-resource-controls/metadata.json",
+        "path": "data/skill_library/systems/platforms/host/cgroup-resource-controls/metadata.json",
         "reason": "not_context_resource",
     }]
     assert "contexts" not in reader.collect(ids=[CGROUP], relevance="unrelated")
@@ -128,8 +128,8 @@ def test_context_keeps_complete_core_prerequisites_provenance_and_exact_bytes():
     assert (context["ref"], context["revision"]) == (item["ref"], item["revision"])
     assert context["sources"] == item["sources"]
     paths = {r["path"] for r in context["resources"]}
-    assert "data/skill_library/repositories/vllm/audit-vllm-kv-lifetimes/SKILL.md" in paths
-    assert "data/skill_library/methods/inference-benchmark-design/SKILL.md" in paths
+    assert "data/skill_library/systems/engines/vllm/audit-vllm-kv-lifetimes/SKILL.md" in paths
+    assert "data/skill_library/playbooks/measurement/inference-benchmark-design/SKILL.md" in paths
     assert any(path.endswith("/references/source-notes.md") for path in paths)
     for resource in context["resources"]:
         actual = reader.resource(context["ref"], resource["path"], revision=context["revision"])
@@ -212,7 +212,7 @@ def test_h3_readsets_are_mandatory_even_without_lexical_overlap():
     result = KnowledgeReader().collect(ids=[H3], relevance="orchid", context_bytes=65536)
     assert not result["context_omissions"]
     paths = {r["path"] for r in result["contexts"][0]["resources"]}
-    prefix = "data/skill_library/repositories/h3-c/audit-h3-runtime-residency/"
+    prefix = "data/skill_library/systems/engines/h3-c/audit-h3-runtime-residency/"
     for path in ("SKILL.md", "LICENSE", "references/source-notes.md",
                  "references/source-identity.json", "references/minimax-h3-weight-inventory.json"):
         assert prefix + path in paths
@@ -220,7 +220,7 @@ def test_h3_readsets_are_mandatory_even_without_lexical_overlap():
 
 def test_parent_owner_license_is_mandatory_and_budgeted_for_cross_skill_references():
     identity = "inferrsi.common.skills.audit_vllm_kv_lifetimes"
-    license_path = "data/skill_library/repositories/vllm/LICENSE"
+    license_path = "data/skill_library/systems/engines/vllm/LICENSE"
     reader = KnowledgeReader()
     for owner in (identity, AFD):
         result = reader.collect(ids=[owner], context_bytes=100000)
@@ -242,9 +242,9 @@ def test_parent_owner_license_is_mandatory_and_budgeted_for_cross_skill_referenc
 
 
 @pytest.mark.parametrize(("identity", "cue", "path"), [
-    (AFD, "P2pNccl", "data/skill_library/repositories/afd-plugin/"
+    (AFD, "P2pNccl", "data/skill_library/systems/engines/afd-plugin/"
      "audit-afd-p2p-exchanges/references/afd-plugin-LICENSE.md"),
-    (H3, "orchid", "data/skill_library/repositories/h3-c/"
+    (H3, "orchid", "data/skill_library/systems/engines/h3-c/"
      "audit-h3-runtime-residency/references/THIRD_PARTY_NOTICES.md"),
 ])
 def test_retained_legal_resources_ignore_relevance_and_use_atomic_budget(identity, cue, path):
