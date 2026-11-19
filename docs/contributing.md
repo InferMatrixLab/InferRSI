@@ -247,6 +247,18 @@ helpers and CLI reads without installing any inference engine.
 The ready test and installed-package jobs cover the declared minimum Python
 3.10 alongside Python 3.11. This matrix does not certify later Python releases
 or accelerator runtime compatibility.
+
+The ready `host-compatibility` jobs on Windows and macOS are **advisory and
+non-blocking**. They continue to run the selected host tests and installed-wheel
+checks and retain available logs and artifacts, with job-level
+`continue-on-error: true`. Failure, cancellation, queued or not-run status does
+not block PR approval or merging; a successful rerun or equivalent host-validation
+artifact is not an approval prerequisite. Keep these jobs out of branch-protection
+and ruleset required checks, and do not make gating jobs depend on them. Reviewers
+and integrators assess required checks individually rather than treating the
+aggregate Ready workflow status as a merge gate. Preserve actual test outcomes:
+an advisory failure or missing run does not establish host compatibility.
+
 For non-draft PRs, the ready `dashboard-browser` job installs Playwright and
 Chromium on Python 3.11 and runs the dashboard navigation and experiment browser
 tests. Its verbose log identifies each executed case, and the
