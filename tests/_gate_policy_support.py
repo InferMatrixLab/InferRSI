@@ -80,7 +80,8 @@ RETIRED_BY_A1 = frozenset({"inferrsi.cli", "inferrsi.arguments"})
 # ``inferrsi.apps.workflows.benchmark_operations``.
 RETIRED_BY_A2 = frozenset({"inferrsi.summary_chart", "inferrsi.benchmark_operations"})
 # #452 M1 deleted the four root MindIE files the same way. The adapter is the
-# ``inferrsi.apps.mindie`` package: ``project``, ``context``, ``mcp`` and ``read_worker``.
+# ``inferrsi.apps.integrations.mindie`` package: ``project``, ``context``, ``mcp``
+# and ``read_worker``.
 RETIRED_BY_M1 = frozenset(
     {
         "inferrsi.mindie_project",

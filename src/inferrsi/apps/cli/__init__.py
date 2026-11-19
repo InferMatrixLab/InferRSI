@@ -297,7 +297,7 @@ def main(argv: list[str] | None = None) -> int:
             _print(delivery)
             return 0 if delivery["status"] == "published" else 2
         if args.command == "mindie":
-            from ..mindie.project import dispatch
+            from ..integrations.mindie.project import dispatch
 
             result = dispatch(args)
             if result is not None:
@@ -617,7 +617,7 @@ def main(argv: list[str] | None = None) -> int:
 
         if args.command == "campaign":
             if args.campaign_action == "import-mindie":
-                from ..mindie.context import export_context
+                from ..integrations.mindie.context import export_context
 
                 path = export_context(
                     args.directory, context_id=args.id, query_input=args.query_input,

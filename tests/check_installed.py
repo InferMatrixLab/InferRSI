@@ -661,7 +661,9 @@ for name, group in (
     ("improvement", "workflows"), ("skill_evaluation", "workflows"),
     ("skill_eval_engineering", "workflows"), ("benchmark_compare", "workflows"),
     ("cannbot", "integrations"), ("cannbot.project", "integrations"),
-    ("cannbot.read_worker", "integrations"),
+    ("cannbot.read_worker", "integrations"), ("mindie", "integrations"),
+    ("mindie.project", "integrations"), ("mindie.context", "integrations"),
+    ("mindie.mcp", "integrations"), ("mindie.read_worker", "integrations"),
 ):
     old_name = f"inferrsi.apps.{name}"
     canonical_name = f"inferrsi.apps.{group}.{name}"
@@ -745,7 +747,7 @@ assert not installed_root & {f"{name}.py" for name in r1_retired}
 assert installed_root - {"_version.py"} == {"__init__.py", "__main__.py"}, sorted(installed_root)
 # #408 A1: the CLI and its parser ship only as inferrsi.apps.cli; neither root name imports.
 # #408 A2: the chart renderer and the task launcher ship only under inferrsi.apps.
-# #452 M1: the MindIE adapter ships only as inferrsi.apps.mindie.
+# #452 M1: the MindIE adapter ships only as inferrsi.apps.integrations.mindie.
 for a1_retired in ("cli", "arguments", "summary_chart", "benchmark_operations",
                    "mindie_project", "mindie_context", "mindie_mcp", "_mindie_read_worker"):
     assert find_spec(f"inferrsi.{a1_retired}") is None, a1_retired
@@ -759,8 +761,10 @@ for a1_retired in ("cli", "arguments", "summary_chart", "benchmark_operations",
 assert main.__module__ == "inferrsi.apps.cli"
 for canonical in ("inferrsi.apps.views.summary_chart",
                   "inferrsi.apps.workflows.benchmark_operations",
-                  "inferrsi.apps.mindie.project", "inferrsi.apps.mindie.context",
-                  "inferrsi.apps.mindie.mcp", "inferrsi.apps.mindie.read_worker"):
+                  "inferrsi.apps.integrations.mindie.project",
+                  "inferrsi.apps.integrations.mindie.context",
+                  "inferrsi.apps.integrations.mindie.mcp",
+                  "inferrsi.apps.integrations.mindie.read_worker"):
     assert find_spec(canonical) is not None, canonical
 assert import_module("inferrsi.apps.views.summary_chart").main.__module__ == (
     "inferrsi.apps.views.summary_chart"
@@ -791,12 +795,13 @@ assert facade.returncode == 0, facade.stderr
 # the stdio MCP module through its absolute package path.
 mindie_probe = (
     "import sys\n"
-    "import inferrsi.apps.mindie as adapter\n"
+    "import inferrsi.apps.integrations.mindie as adapter\n"
     "loaded = {name for name in sys.modules if name.split('.')[0] == 'inferrsi'}\n"
-    "allowed = {'inferrsi', 'inferrsi._version', 'inferrsi.apps', 'inferrsi.apps.mindie'}\n"
+    "allowed = {'inferrsi', 'inferrsi._version', 'inferrsi.apps', 'inferrsi.apps.integrations',\n"
+    "           'inferrsi.apps.integrations.mindie'}\n"
     "assert loaded <= allowed, sorted(loaded - allowed)\n"
     "assert not hasattr(adapter, '__version__')\n"
-    "from inferrsi.apps.mindie import mcp\n"
+    "from inferrsi.apps.integrations.mindie import mcp\n"
     "import inferrsi\n"
     "reply = mcp._reply('initialize', {'protocolVersion': '2025-11-25'})\n"
     "assert reply['serverInfo']['version'] == inferrsi.__version__, reply\n"
@@ -808,27 +813,29 @@ mindie = subprocess.run(
 assert mindie.returncode == 0, mindie.stderr
 # The worker ships as a plain file beside the adapter. It is started by file path under
 # ``-I -B`` with no package context, so it must load without a package-relative import.
-worker_file = files("inferrsi").joinpath("apps", "mindie", "read_worker.py")
-assert worker_file.is_file()
-with as_file(worker_file) as worker_path:
-    worker_probe = (
-        "import ast, runpy, sys\n"
-        f"path = {str(worker_path)!r}\n"
-        "tree = ast.parse(open(path, encoding='utf-8').read())\n"
-        "top = [node for node in tree.body if isinstance(node, (ast.Import, ast.ImportFrom))]\n"
-        "assert all(not (isinstance(node, ast.ImportFrom) and node.level) for node in top)\n"
-        "assert all((node.module if isinstance(node, ast.ImportFrom) else node.names[0].name)\n"
-        "           .split('.')[0] in sys.stdlib_module_names for node in top)\n"
-        "namespace = runpy.run_path(path, run_name='not_main')\n"
-        "assert callable(namespace['read'])\n"
-        "assert not [name for name in sys.modules if name.split('.')[0] in\n"
-        "            ('inferrsi', 'mindie_knowledge')]\n"
-    )
-    worker = subprocess.run(
-        [sys.executable, "-I", "-B", "-c", worker_probe], capture_output=True, text=True,
-        check=False,
-    )
-assert worker.returncode == 0, worker.stderr
+for worker_system in ("cannbot", "mindie"):
+    worker_file = files("inferrsi").joinpath(
+        "apps", "integrations", worker_system, "read_worker.py")
+    assert worker_file.is_file()
+    with as_file(worker_file) as worker_path:
+        worker_probe = (
+            "import ast, runpy, sys\n"
+            f"path = {str(worker_path)!r}\n"
+            "tree = ast.parse(open(path, encoding='utf-8').read())\n"
+            "top = [node for node in tree.body if isinstance(node, (ast.Import, ast.ImportFrom))]\n"
+            "assert all(not (isinstance(node, ast.ImportFrom) and node.level) for node in top)\n"
+            "assert all((node.module if isinstance(node, ast.ImportFrom) else node.names[0].name)\n"
+            "           .split('.')[0] in sys.stdlib_module_names for node in top)\n"
+            "namespace = runpy.run_path(path, run_name='not_main')\n"
+            "assert callable(namespace['read'])\n"
+            "assert not [name for name in sys.modules if name.split('.')[0] in\n"
+            "            ('inferrsi', 'mindie_knowledge')]\n"
+        )
+        worker = subprocess.run(
+            [sys.executable, "-I", "-B", "-c", worker_probe], capture_output=True, text=True,
+            check=False,
+        )
+    assert worker.returncode == 0, worker.stderr
 # The installed adapter launches that worker through its own ``_WORKER`` lookup and the
 # real ``python -I -B <worker>`` entry. From a temporary cwd, with a synthetic grant whose
 # engine file does not exist and no MindIE library, the read must end in the worker's
@@ -836,8 +843,8 @@ assert worker.returncode == 0, worker.stderr
 launch_probe = (
     "import json, sys\n"
     "from pathlib import Path\n"
-    "import inferrsi.apps.mindie as adapter\n"
-    "from inferrsi.apps.mindie import project\n"
+    "import inferrsi.apps.integrations.mindie as adapter\n"
+    "from inferrsi.apps.integrations.mindie import project\n"
     "assert project._WORKER == Path(adapter.__path__[0]) / 'read_worker.py', project._WORKER\n"
     "assert project._WORKER.is_file()\n"
     "grant = {'python': sys.executable, 'engine': str(Path.cwd() / 'missing-engine.json'),\n"

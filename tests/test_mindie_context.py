@@ -9,7 +9,7 @@ import sys
 import pytest
 
 from inferrsi.apps.cli import main
-from inferrsi.apps.mindie.context import export_context
+from inferrsi.apps.integrations.mindie.context import export_context
 from inferrsi.apps.views.dashboard_data import load_dashboard
 from inferrsi.harness.records.campaign_records import create_campaign
 
