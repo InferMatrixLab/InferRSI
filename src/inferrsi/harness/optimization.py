@@ -342,7 +342,8 @@ def _settle(root, plan, state, pending, execution, assess):
 
 
 def evaluate_round(root: Path, *, candidate: Path | None, hypothesis: str,
-                   usage: Path | None, execute, assess, final=False, reason=None) -> dict:
+                   usage: Path | None, execute, assess, final=False, reason=None,
+                   strategy=None, knowledge_refs=None) -> dict:
     with _locked(root):
         plan, state = _load(root)
         _active(state, reserve=0 if final else plan["final_reserve_seconds"])
@@ -356,6 +357,15 @@ def evaluate_round(root: Path, *, candidate: Path | None, hypothesis: str,
             raise ValueError("Round budget consumed, run independent final evaluation")
         if not final and (not isinstance(hypothesis, str) or not hypothesis.strip()):
             raise ValueError("Declare the round hypothesis before execution")
+        if strategy is not None and (not isinstance(strategy, str) or not strategy.strip()):
+            raise ValueError("Strategy must be a nonempty declaration")
+        if knowledge_refs is not None:
+            available = {context["path"] for context in state["contexts"]}
+            if (not isinstance(knowledge_refs, list)
+                    or any(not isinstance(ref, str) or ref not in available
+                           for ref in knowledge_refs)
+                    or len(set(knowledge_refs)) != len(knowledge_refs)):
+                raise ValueError("Cite unique delivered context paths from this campaign")
         source = root / state["best"]["path"] if final else Path(candidate)
         if (source.is_symlink() or (plan["candidate_kind"] == "file"
                 and (not source.is_file() or source.suffix != ".py"))
@@ -373,7 +383,8 @@ def evaluate_round(root: Path, *, candidate: Path | None, hypothesis: str,
         pending = {"kind": "final" if final else "round", "path": relative,
                    "candidate_id": state["best"].get("candidate_id", "baseline") if final
                    else f"candidate-{count + 1:03d}",
-                   "hypothesis": hypothesis, "observations": observations,
+                   "hypothesis": hypothesis, "strategy": strategy,
+                   "knowledge_refs": knowledge_refs, "observations": observations,
                    "candidate_sha256": fingerprint,
                    "contexts": list(state["contexts"]), "started_at": time.time()}
         state["pending"] = pending

@@ -318,6 +318,8 @@ class TargetModuleImportGateTest(unittest.TestCase):
         # Static closure is not runtime isolation: the two evaluators that time submitted
         # code still load frozen run files by path in-process, and the report says so.
         self.assertEqual(report.runtime_execution, (
+            "inferrsi.benchmark.tasks.moe-forward-npu.benchmark: "
+            "importlib.util.module_from_spec executes files loaded by path in-process",
             "inferrsi.benchmark.tasks.moe-forward-npu.grader: "
             "importlib.util.module_from_spec executes files loaded by path in-process",
             "inferrsi.benchmark.tasks.qwen21-denoise-npu.benchmark: "

@@ -22,6 +22,7 @@
       "docs/operations.md",
       "src/inferrsi/apps/api.py",
       "src/inferrsi/apps/archive.py",
+      "src/inferrsi/apps/benchmark_compare.py",
       "src/inferrsi/apps/delivery/__init__.py",
       "src/inferrsi/apps/handoff/bridge.py",
       "src/inferrsi/apps/handoff/candidate_provider.py",

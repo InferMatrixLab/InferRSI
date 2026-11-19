@@ -293,6 +293,8 @@ def session_command(args, *, task_source: Path | None = None, knowledge_reader=N
         hypothesis="Independent final of the selected candidate" if final else args.hypothesis,
         usage=args.usage_export, execute=_session_execute, assess=_session_assess, final=final,
         reason=getattr(args, "reason", None),
+        strategy=getattr(args, "strategy", None),
+        knowledge_refs=getattr(args, "knowledge_ref", None),
     )
 
 
