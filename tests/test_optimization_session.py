@@ -983,26 +983,20 @@ def test_mechanism_checks_are_rejected_for_packaged_task_sessions(session, tmp_p
     assert not (session / "rounds").exists() or not any((session / "rounds").iterdir())
 
 
-def test_scoreless_ineligible_rounds_settle_and_final_reports_no_speedup(
-    session, monkeypatch, capsys,
-):
-    """A completed round marked ineligible may omit its score; it never blocks or adopts."""
+def test_packaged_task_assessment_without_a_score_still_blocks(session, monkeypatch, capsys):
+    """Only a project's paired decision may settle a scoreless round; tasks must score."""
     def scoreless(*args, **kwargs):
         return {"status": "completed", "verdict": "INCONCLUSIVE",
-                "reason": "synthetic_statistics_unavailable", "eligible": False}
+                "reason": "synthetic_missing_score", "eligible": False}
 
     monkeypatch.setattr(optimization_session, "_session_assess", scoreless)
-    for factor in (2, 3, 4):
-        view = submit(session, factor, capsys)
-        assert view["state"] == "active" and view["pending"] is None
-        record = view["latest_observation"]
-        assert record["assessment"]["score"] is None
-        assert record["selection"]["outcome"] == "not_eligible"
-        assert view["best"]["kind"] == "baseline"
-    assert main(["benchmarks", "session", "final", "--session", str(session)]) == 0
-    capsys.readouterr()
-    summary = json.loads((session / "summary.json").read_text(encoding="utf-8"))
-    assert summary["state"] == "completed"
-    assert summary["final_assessment"]["score"] is None
-    # The final measured nothing usable, so no speedup is reported even for the baseline.
-    assert summary["optimization_speedup"] is None
+    candidate = session / "work/candidate.py"
+    candidate.write_text("FACTOR = 2\n", encoding="utf-8")
+    assert main(["benchmarks", "session", "round", "--session", str(session),
+                 "--candidate", str(candidate), "--hypothesis", "Missing score control"]) == 2
+    view = json.loads(capsys.readouterr().out)
+    assert view["state"] == "blocked" and view["pending"] is None
+    assessment = view["latest_observation"]["assessment"]
+    assert assessment["status"] == "infrastructure_failure" and assessment["score"] is None
+    assert "finite positive score" in assessment["reason"]
+    assert view["best"]["kind"] == "baseline"

@@ -546,3 +546,23 @@ def test_overflowing_even_medians_leave_a_recorded_inconclusive_round(project, c
     assert assessment["verdict"] == "INCONCLUSIVE" and assessment["score"] is None
     _, state, _ = read_records(root)
     assert state["state"] == "active" and state["pending"] is None
+
+
+def test_point_decision_project_rounds_must_still_be_scored(project, capsys, monkeypatch):
+    """The scoreless exception belongs to the frozen paired decision, not to projects."""
+    from inferrsi.harness import optimization_session
+
+    assert start(project, capsys) == 0
+    monkeypatch.setattr(optimization_session, "_session_assess", lambda *args, **kwargs: {
+        "status": "completed", "verdict": "INCONCLUSIVE", "reason": "synthetic",
+        "eligible": False, "baseline_score": 10.0})  # only the score is missing
+    repo, _, _, root = project
+    (repo / "config.json").write_text(json.dumps(FUSED), encoding="utf-8")
+    assert main(["campaign", "round", "--directory", str(root), "--candidate", str(repo),
+                 "--hypothesis", "Scoreless point-mode control"]) == 2
+    capsys.readouterr()
+    _, state, _ = read_records(root)
+    assert state["state"] == "blocked" and state["pending"] is None
+    assessment = state["rounds"][0]["assessment"]
+    assert assessment["status"] == "infrastructure_failure" and assessment["score"] is None
+    assert "finite positive score" in assessment["reason"]

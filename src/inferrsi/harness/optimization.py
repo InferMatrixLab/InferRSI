@@ -556,8 +556,12 @@ def _settle(root, plan, state, pending, execution, assess):
         if assessment["status"] == "completed":
             if execution["status"] != "completed" or execution["returncode"] != 0:
                 raise ValueError("Completed assessment requires successful execution")
-            # A round the task marks ineligible may lack a score: it can never be adopted.
-            if not (score is None and assessment.get("eligible") is False) and (
+            # Only a project's frozen paired decision may leave an ineligible round scoreless
+            # (its paired statistics can be unavailable); every other assessor must score.
+            scoreless = (score is None and assessment.get("eligible") is False
+                         and plan.get("task_source") == "project"
+                         and plan["evaluation_settings"].get("decision") == "paired")
+            if not scoreless and (
                     type(score) not in (int, float) or not math.isfinite(score) or score <= 0):
                 raise ValueError("Completed assessment requires a finite positive score")
             if pending["kind"] == "round" and state["best"]["score"] is None:
