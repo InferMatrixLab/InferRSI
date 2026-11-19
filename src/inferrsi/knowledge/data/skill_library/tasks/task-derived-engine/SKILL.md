@@ -1,6 +1,33 @@
 ---
 name: task-derived-engine
 description: Use for a fork or extension that retains an upstream inference execution core, including a vLLM or vLLM-Omni derivative. Verify inherited behavior and the intended delta separately.
+metadata:
+  inferrsi: |
+    {
+      "schema_version": 1,
+      "profile": "local-skill-v1",
+      "kind": "skill",
+      "discovery_role": "task-entry",
+      "status": "candidate",
+      "origin": [
+        "first-party"
+      ],
+      "consumption_mode": "packaged",
+      "tags": [
+        "inference-task",
+        "primary-task",
+        "derived-engine"
+      ],
+      "empirical_validation": "not_run",
+      "searchspace_not_applicable": "The procedure selects supporting evidence and tests within the caller's declared search space.",
+      "applicability": {
+        "scope": "Development and qualification of an engine that retains an upstream execution core.",
+        "input_contract": "Actual hardware, model, engine, script and flags, benchmark, acceptance criteria, current diagnosis, permitted changes and budget.",
+        "produced_artifact": "Parent/fork behavior matrix, bounded extension and matched end-to-end results.",
+        "refusal_point": "Record missing evidence or an exhausted search budget and identify the smallest discriminating test before declaring success."
+      },
+      "provenance_readsets": []
+    }
 ---
 
 # Deliver an engine derived from a pinned parent

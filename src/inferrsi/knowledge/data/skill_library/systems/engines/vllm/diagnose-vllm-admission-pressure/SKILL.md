@@ -1,6 +1,58 @@
 ---
 name: diagnose-vllm-admission-pressure
 description: Diagnose vLLM V1 admission stalls and KV-pressure preemption by separating token, input, active-request, cache-allocation, and connector-wait constraints at a pinned scheduler revision.
+metadata:
+  inferrsi: |
+    {
+      "tags": [
+        "vllm",
+        "scheduler",
+        "admission",
+        "kv-cache"
+      ],
+      "status": "candidate",
+      "empirical_validation": "not_run",
+      "profile": "local-skill-v1",
+      "schema_version": 1,
+      "kind": "skill",
+      "origin": [
+        "external"
+      ],
+      "limitations": [
+        "Source-derived candidate; no local efficacy validation.",
+        "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+      ],
+      "provenance_readsets": [
+        "references/papers-20261015/cases/migration-is-not-free-memory.md",
+        "references/papers-20261015/cases/parallelism-change-with-state-cost.md",
+        "references/papers-20261015/cases/preemption-under-kv-pressure.md",
+        "references/papers-20261015/INTEGRATION_NOTES.md",
+        "references/papers-20261015/knowledge/scheduling-state-boundaries.md",
+        "references/papers-20261015/notes/fastserve.md",
+        "references/papers-20261015/notes/llumnix.md",
+        "references/papers-20261015/notes/loongserve.md",
+        "references/papers-20261015/notes/orca.md",
+        "references/papers-20261015/references/fastserve-readset.md",
+        "references/papers-20261015/references/llumnix-readset.md",
+        "references/papers-20261015/references/loongserve-readset.md",
+        "references/papers-20261015/references/orca-readset.md",
+        "references/source-notes.md"
+      ],
+      "consumption_mode": "packaged",
+      "applicability": {
+        "scope": "Pinned vLLM V1 branch-based diagnosis of queued requests, low scheduled-token counts and KV-pressure preemption, separating admission/token/input/allocation/connector-wait constraints.",
+        "prerequisites": "The deployed scheduler must be mapped to the pinned branches, with effective configuration and a bounded request/step trace; another revision requires re-establishing that correspondence.",
+        "input_contract": "Deployed revision, scheduler class/configuration, connector role, KV layout, policy and speculative/encoder/concurrent-batch features; per-step queues, tokens, both budgets, allocation results, victims, transfer/free state and timing.",
+        "produced_artifact": "A per-step accounting ledger, observed limiting branch and competing explanation, missing instrumentation and one conditional configuration/progress hypothesis with predicted effects and trade-offs.",
+        "failure_modes": "Inferring memory exhaustion from a queue or high KV usage, conflating token/input budgets, ignoring pending frees or reading async token accounting as load completion can attribute admission stalls to the wrong branch.",
+        "refusal_point": "When required state is missing, leave the diagnosis unresolved and request the smallest trace; escalate allocation or connector behavior outside the readset and stop before live mutation or performance claims."
+      },
+      "recommendations": [
+        "Trace the first actual blocking or skip branch and record running versus admission caps and token versus input budgets separately.",
+        "Inspect deferred frees and request-free eligibility before blaming preemption victim selection, then reconcile restored budgets for an already-scheduled victim.",
+        "Reconstruct waiting admission independently, including queue precedence and async prefix states; change no setting without a branch-specific hypothesis."
+      ]
+    }
 ---
 
 # Diagnose vLLM admission pressure

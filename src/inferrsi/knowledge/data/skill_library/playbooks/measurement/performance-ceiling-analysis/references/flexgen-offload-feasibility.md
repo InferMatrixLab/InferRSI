@@ -13,7 +13,7 @@ Sheng et al., *FlexGen: High-Throughput Generative Inference of Large Language
 Models with a Single GPU*, ICML 2023, PMLR 202:31094–31116
 ([proceedings](https://proceedings.mlr.press/v202/sheng23a.html),
 [paper](https://proceedings.mlr.press/v202/sheng23a/sheng23a.pdf)). The
-[owner's paper source](../metadata.json) records the fixed edition and digest:
+[owner's paper source](../SKILL.md) records the fixed edition and digest:
 the official ten-author edition, 23 PDF pages, SHA-256
 `7cd9673c37640011d38ef4b8595f5e1e09a85b1f803a3734f19c97ca66c75b9e`.
 The extended-author arXiv v2 edition is not the extraction source.

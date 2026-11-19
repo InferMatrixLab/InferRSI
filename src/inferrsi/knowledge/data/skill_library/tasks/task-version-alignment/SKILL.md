@@ -1,6 +1,33 @@
 ---
 name: task-version-alignment
 description: Use for upgrades spanning inference engines, plugins, drivers or operator libraries. Isolate the incompatible boundary and qualify the requested version combination on the same workload.
+metadata:
+  inferrsi: |
+    {
+      "schema_version": 1,
+      "profile": "local-skill-v1",
+      "kind": "skill",
+      "discovery_role": "task-entry",
+      "status": "candidate",
+      "origin": [
+        "first-party"
+      ],
+      "consumption_mode": "packaged",
+      "tags": [
+        "inference-task",
+        "primary-task",
+        "version-alignment"
+      ],
+      "empirical_validation": "not_run",
+      "searchspace_not_applicable": "The procedure selects supporting evidence and tests within the caller's declared search space.",
+      "applicability": {
+        "scope": "Compatibility of explicit working and target version combinations.",
+        "input_contract": "Actual hardware, model, engine, script and flags, benchmark, acceptance criteria, current diagnosis, permitted changes and budget.",
+        "produced_artifact": "Version matrix, first incompatible boundary, matched workload checks and rollback point.",
+        "refusal_point": "Record missing evidence or an exhausted search budget and identify the smallest discriminating test before declaring success."
+      },
+      "provenance_readsets": []
+    }
 ---
 
 # Validate an engine or plugin stack upgrade

@@ -3,6 +3,43 @@ name: host-overhead-profiling
 description: 'Detect and diagnose CPU/host overhead in inference serving from nsys traces. Answers: is host overhead the bottleneck? What specific work is causing it? Covers GPU idle ratio, host-prep exposed ratio, NVTX breakdown, inter-kernel gap analysis, and multi-rank straggler detection.
 
   '
+metadata:
+  inferrsi: |
+    {
+      "tags": [
+        "host",
+        "cpu",
+        "profiling",
+        "nsys",
+        "inference"
+      ],
+      "status": "candidate",
+      "profile": "local-skill-v1",
+      "schema_version": 1,
+      "kind": "skill",
+      "origin": [
+        "external"
+      ],
+      "empirical_validation": "not_run",
+      "limitations": [
+        "Source-derived candidate; no local efficacy validation.",
+        "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+      ],
+      "provenance_readsets": [],
+      "consumption_mode": "packaged",
+      "applicability": {
+        "scope": "Detect exposed host overhead and diagnose per-step host regressions in CUDA inference serving from existing nsys timelines.",
+        "prerequisites": "An existing serving nsys trace and Python with sqlite3; comparative root-cause analysis needs baseline and target traces, with nsys export available for report-format input.",
+        "input_contract": "One trace for detection/breakdown or two comparable traces for regression analysis, including the workload/phase context needed to isolate steady-state forward steps.",
+        "produced_artifact": "A detection verdict with metric/phase evidence, per-step NVTX/kernel/API breakdown and ranked host-operation deltas for a targeted optimization handoff.",
+        "failure_modes": "Warmup/loading or mismatched phase mixtures distort per-step comparisons; duplicated rank ranges, unresolved NVTX text IDs or overlapping rank end times can miscompute host gaps."
+      },
+      "recommendations": [
+        "Isolate comparable steady-state forward iterations and inspect context/generation separately; aggregate utilization can hide a phase-specific host bottleneck.",
+        "Confirm exposed preparation using both performance impact and idle attribution, retain communication as a confounder, and triage absolute NVTX time deltas before line-level optimization.",
+        "Resolve NVTX text IDs, account for TP rank duplication and use the maximum overlapping end time for gaps; do not compare full-trace totals as per-step overhead."
+      ]
+    }
 ---
 
 # Host Overhead Profiling

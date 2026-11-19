@@ -90,8 +90,7 @@ operator development, HCCL, precision and explicit compiler selection.
 Both are source-derived candidates; installed CPU observations do not qualify
 the pinned source build or the required accelerator and distributed backends.
 
-Their registered IDs are `pytorch` and `torch-npu`. Nested procedures and
-sidecars are packaged resources of those roots, rather than separate IDs:
+Their registered IDs are `pytorch` and `torch-npu`. Nested SKILL.md files carry their own procedure and metadata and are packaged resources of those roots:
 
 ```bash
 inferrsi skills resource pytorch sub-skills/compiler-and-export/SKILL.md
@@ -126,7 +125,7 @@ not a combined compiler/checkpoint calling protocol or compatibility result.
 
 TensorRT-LLM's retained methodology row covers **skill documents**, not an
 engine-runtime audit. It records prefix `f33e0e5fd`; procedures keep
-`f33e0e5f`, while the [ceiling sidecar](playbooks/measurement/performance-ceiling-analysis/metadata.json)
+`f33e0e5f`, while the [ceiling skill metadata](playbooks/measurement/performance-ceiling-analysis/SKILL.md)
 retains the longer **prefix** `f33e0e5fd55b`. An original inspection date for
 that methodology extraction is not individually recorded. These are partial
 source identities, not a verified common runtime version.

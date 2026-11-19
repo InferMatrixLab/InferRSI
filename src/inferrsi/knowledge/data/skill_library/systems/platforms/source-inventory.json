@@ -12,15 +12,15 @@
     },
     "registered_library_roots": 79,
     "library_skill_documents": 142,
-    "basis": "Local SKILL.md, metadata.json and retained owner references; library routing and the Reference Matrix only where the local entry omits historical provenance."
+    "basis": "Local SKILL.md frontmatter and retained owner references; library routing and the Reference Matrix only where the local entry omits historical provenance."
   },
   "conventions": {
-    "paths": "owner is relative to this hardware directory; evidence paths are relative to that owner. Every owner has SKILL.md and metadata.json.",
+    "paths": "owner is relative to this hardware directory; evidence paths are relative to that owner. Every owner has one SKILL.md.",
     "source_depth": "Channel and depth describe each retained source slice separately. A source repository, mirror or supplied pack can contain documents or implementation; none implies a whole-repository audit.",
     "dates": "inspection_date is the source reading date recorded in the cited evidence, not this inventory review, a commit date or a sync date. null means not recorded.",
     "identity": "Historical prefixes, release tags and rolling URLs remain distinct from full Git revisions; resolution alone is not a semantic reread.",
     "license": "License notes report the retained declarations and their scope, including UNKNOWN or absent declarations. They do not grant rights or relicense mixed-source owners.",
-    "validation": "All 22 owner sidecars remain candidate with empirical_validation=not_run. Static source, packaging and link checks do not establish hardware compatibility, numerical quality, performance or agent efficacy.",
+    "validation": "All 22 owners remain candidate with empirical_validation=not_run. Static source, packaging and link checks do not establish hardware compatibility, numerical quality, performance or agent efficacy.",
     "maintenance": "Update the affected row when its owner evidence changes; full source paths, ranges, hashes and notices stay with the linked owner. This file adds no skill ID or runtime interface."
   },
   "owners": [
@@ -184,8 +184,7 @@
           "inspection_date": null,
           "license_note": "UNKNOWN in metadata and procedure; the procedure calls awesome-ascend-skills its source while synced-from names cannbot-skills.",
           "evidence": [
-            "SKILL.md",
-            "metadata.json"
+            "SKILL.md"
           ]
         }
       ],
@@ -587,7 +586,7 @@
         }
       ],
       "limits": [
-        "metadata.provenance_readsets is empty despite the linked local DeepInfer case; this inventory does not normalize the sidecar. DeepInfer inspection date is not recorded in that case; preemption safety and service gains remain unresolved, not known defects/results."
+        "metadata.provenance_readsets is empty despite the linked local DeepInfer case; this inventory does not normalize the metadata. DeepInfer inspection date is not recorded in that case; preemption safety and service gains remain unresolved, not known defects/results."
       ]
     },
     {

@@ -3,6 +3,46 @@ name: cann-attribution-overlap
 description: 'Attribute NPU trace kernels to model source and plan bounded multistream overlap: select a representative step, map kernels to source owners via code_ref, build the module/operator dependency DAG (data, state, event, collective-order edges), classify serial/candidate/pending groups, choose minimal-first overlap with an explicit execution-mode synchronization contract, and accept only through correctness-first checks. Keeps the !302 import lineage distinct from later revisions, carries known formula/threshold conflicts as unresolved, and qualifies memory evidence by domain (device HBM/UB counters are not host RAM). Planning procedure only — no formula automation for disputed definitions.
 
   '
+metadata:
+  inferrsi: |
+    {
+      "tags": [
+        "cann",
+        "npu",
+        "attribution",
+        "dependency-dag",
+        "multistream",
+        "overlap",
+        "trace"
+      ],
+      "status": "candidate",
+      "profile": "local-skill-v1",
+      "schema_version": 1,
+      "kind": "skill",
+      "origin": [
+        "external"
+      ],
+      "empirical_validation": "not_run",
+      "limitations": [
+        "Source-derived candidate; no local efficacy validation.",
+        "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+      ],
+      "provenance_readsets": [],
+      "consumption_mode": "packaged",
+      "applicability": {
+        "scope": "Attribute representative CANN trace kernels to source owners and plan bounded multistream overlap using data, state, event and collective-order dependencies.",
+        "prerequisites": "Pin the installed CANN/TorchNPU/TorchAir versions before choosing one execution-mode synchronization API family; communication proposals require communication evidence.",
+        "input_contract": "Representative-step selection and shapes, kernel/stream inventory with code_ref, adjacent wait windows and dependency edges; communication analysis also needs rank/transport evidence.",
+        "produced_artifact": "An attribution map, serial/candidate/pending dependency groups and a minimal overlap plan with joins, enable/fallback path, resource tradeoffs and acceptance checks.",
+        "failure_modes": "Kernel names and mechanical coverage can misidentify ownership; logical independence can hide resource contention, and overlap ratios or summed durations can hide unchanged wall time or new tails."
+      },
+      "recommendations": [
+        "Join hotspots to source owners and adjacent wait windows before selecting a target; keep compute cost, waiting and host gaps separate.",
+        "Build explicit data/state/event/collective-order edges, then verify one correct overlap point before increasing overlap or partitioning resources.",
+        "Require observed overlap, preserved state/order and fallback behavior plus latency and outside-module checks; report wall time, interval unions and duration sums separately.",
+        "Carry disputed formulas and source-revision distinctions forward; device free time alone does not identify Python, GIL or OS causes without matching host evidence."
+      ]
+    }
 ---
 
 # CANN Attribution and Overlap Planning

@@ -4,7 +4,7 @@ The existing **22 registered owners** comprise 14 Ascend, 3 CUDA and 5 host
 skills in this source inventory. The Ascend optimization casebook now lives in
 [casebooks/ascend](../../casebooks/ascend/); the other 21 entries live here.
 Start with the question below, then read the selected procedure,
-`metadata.json` and its source references. All 22 remain **candidate** with
+its frontmatter and its source references. All 22 remain **candidate** with
 empirical validation **not_run**.
 
 The [source inventory](source-inventory.json) describes the evidence actually
@@ -66,7 +66,7 @@ measured gain, compatible combined stack or new empirical coverage.
 | --- | --- |
 | [Cgroup resource controls](host/cgroup-resource-controls/SKILL.md) | Supplied Linux interface-document research; rolling-page revision and target-system behavior remain unknown |
 | [Host memory and transfers](host/host-memory-management/SKILL.md) | Direct pinned PyTorch copy/allocator readset, CPython documentation and separate Ascend descriptor case; historical links retained only as lineage |
-| [Host-overhead optimization](host/host-overhead-optimization/SKILL.md) | TensorRT-LLM skill import plus bounded DeepInfer code case and method-owned paper guidance; local case is linked despite an empty sidecar readset list |
+| [Host-overhead optimization](host/host-overhead-optimization/SKILL.md) | TensorRT-LLM skill import plus bounded DeepInfer code case and method-owned paper guidance; local case is linked despite an empty metadata readset list |
 | [OS process placement](host/os-process-placement/SKILL.md) | Historical skill/configuration guidance plus a direct llama.cpp NUMA/thread readset; no optimal affinity or thread count demonstrated |
 | [Storage I/O measurement](host/storage-io-measurement/SKILL.md) | Supplied fio/sysstat documentation and job-example research; no tool-engine or loader implementation audit |
 

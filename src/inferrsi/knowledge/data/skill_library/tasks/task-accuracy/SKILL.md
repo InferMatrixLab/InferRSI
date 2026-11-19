@@ -1,6 +1,33 @@
 ---
 name: task-accuracy
 description: Use when inference completes but tokens, audio, frames, tensors or a quality metric diverge from a reference. Trace the first divergence and verify end-to-end tolerance.
+metadata:
+  inferrsi: |
+    {
+      "schema_version": 1,
+      "profile": "local-skill-v1",
+      "kind": "skill",
+      "discovery_role": "task-entry",
+      "status": "candidate",
+      "origin": [
+        "first-party"
+      ],
+      "consumption_mode": "packaged",
+      "tags": [
+        "inference-task",
+        "primary-task",
+        "accuracy"
+      ],
+      "empirical_validation": "not_run",
+      "searchspace_not_applicable": "The procedure selects supporting evidence and tests within the caller's declared search space.",
+      "applicability": {
+        "scope": "Modality-specific reference parity and accuracy regression repair.",
+        "input_contract": "Actual hardware, model, engine, script and flags, benchmark, acceptance criteria, current diagnosis, permitted changes and budget.",
+        "produced_artifact": "First-divergence trace, before/after oracle results and held-out end-to-end quality checks.",
+        "refusal_point": "Record missing evidence or an exhausted search budget and identify the smallest discriminating test before declaring success."
+      },
+      "provenance_readsets": []
+    }
 ---
 
 # Repair a numerical or output-quality regression

@@ -229,7 +229,7 @@ SGLang-Omni FDB guide and SGLang video backend. Other upstream details retain
 the report's attribution rather than claiming a new full audit. The current
 InferRSI contract was also checked against its source.
 
-The typed source inventory in `metadata.json` identifies the retained readset.
+The typed source inventory in the owner's [SKILL.md frontmatter](../SKILL.md) identifies the retained readset.
 The external VBench link is a locator with an unpinned revision; pin it before
 an experiment. This reference adds no hardware qualification or efficacy claim.
 Any accompanying local smoke validates only its recorded path, not all nine

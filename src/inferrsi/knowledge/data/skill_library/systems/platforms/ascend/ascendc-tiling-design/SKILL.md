@@ -3,6 +3,44 @@ name: ascendc-tiling-design
 description: 'Design tiling for a custom AscendC operator: normalize the shape first (axis-collapse or flatten), answer the fullload-vs-split question for UB, apply the universal four-element template (multi-core split, UB split, buffer plan, branch matrix), and route per operator class (reduction, broadcast, elementwise, matmul, conversion) using algorithm-selection and chip-generation tables (DAV_2201 vs DAV_3510). Use when writing or restructuring an AscendC operator''s tiling logic, before running any performance tuning campaign.
 
   '
+metadata:
+  inferrsi: |
+    {
+      "tags": [
+        "ascend",
+        "npu",
+        "ascendc",
+        "tiling",
+        "operator",
+        "kernel",
+        "ub"
+      ],
+      "status": "candidate",
+      "profile": "local-skill-v1",
+      "schema_version": 1,
+      "kind": "skill",
+      "origin": [
+        "external"
+      ],
+      "empirical_validation": "not_run",
+      "limitations": [
+        "Source-derived candidate; no local efficacy validation.",
+        "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+      ],
+      "provenance_readsets": [],
+      "consumption_mode": "packaged",
+      "applicability": {
+        "scope": "Design or restructure AscendC tiling for the covered reduction, broadcast and elementwise classes, plus the bounded mxfp8 fusion and small-channel transpose cases.",
+        "input_contract": "Operator class and semantics, normalized shapes/axes, dtype, target chip generation, valid/aligned lengths and intermediate-buffer requirements.",
+        "produced_artifact": "A multi-core split, UB chunk formula, buffer-size/total-usage plan and branch matrix with edge tests; these are design outputs, not benchmark results.",
+        "failure_modes": "Budgeting only inputs omits intermediate UB storage; mixing valid and aligned lengths or copy units corrupts boundaries, and choosing unsupported generation-specific primitives invalidates the design."
+      },
+      "recommendations": [
+        "Normalize axes first, then decide full-load versus chunking from the entire live working set; derive tile size from buffer, axis, API and load-balance constraints.",
+        "Keep valid compute/copy lengths separate from aligned storage offsets and sizes, and complete dtype, tail/alignment and boundary branches before tuning.",
+        "Select primitives by the target generation and preserve class-specific coverage limits; re-evaluate sample constants and API semantics instead of treating formulas as tested performance evidence."
+      ]
+    }
 ---
 
 # AscendC Tiling Design

@@ -19,6 +19,6 @@ license notices for upstream material are retained unmodified as blob bytes.
 
 AREX workflow contracts guided scope, evidence, construction and verification.
 InferRSI local-skill-v1 owns packaging: name/quoted description are frontmatter;
-license, disable-model-invocation and disco-role live in metadata.json. Literal
+license, disable-model-invocation and disco-role live in the SKILL.md metadata.inferrsi block. Literal
 AREX frontmatter validation therefore needs an explicitly labeled temporary
 projection; it cannot be described as a direct-final-tree validation pass.

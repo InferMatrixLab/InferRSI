@@ -6,7 +6,7 @@ adoption procedure is an author proposal derived from those sources, unverified
 as a complete method. The final section contains task-supplied author reports
 with unavailable evidence, not locally reproduced cases or efficacy evidence.
 Source versions, inspected sections and available document hashes are retained
-in the owning `metadata.json`; the unversioned SMI page is hash-pinned there.
+in the owning [SKILL.md frontmatter](../SKILL.md); the unversioned SMI page is hash-pinned there.
 
 ## Freeze the measurement and environment
 

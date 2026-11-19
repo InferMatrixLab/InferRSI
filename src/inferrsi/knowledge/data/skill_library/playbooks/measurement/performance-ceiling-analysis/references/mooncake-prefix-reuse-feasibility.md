@@ -4,7 +4,7 @@ Qin et al., *Mooncake: Trading More Storage for Less Computation — A
 KVCache-centric Architecture for Serving LLM Chatbot*, FAST '25 proceedings, pp. 155-170
 ([publisher](https://www.usenix.org/conference/fast25/presentation/qin),
 [paper](https://www.usenix.org/system/files/fast25-qin.pdf)). The fixed edition
-and PDF digest are recorded in [the owner's paper source](../metadata.json).
+and PDF digest are recorded in [the owner's paper source](../SKILL.md).
 This reference uses Section 2.2, Table 1 and Equations 1-2 (proceedings pp.
 157-158; PDF pages 4-5). It does not substitute the later arXiv v5 edition.
 

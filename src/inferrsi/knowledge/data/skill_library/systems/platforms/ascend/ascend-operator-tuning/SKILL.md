@@ -3,6 +3,46 @@ name: ascend-operator-tuning
 description: 'Run a staged, accuracy-gated tuning campaign on a single Ascend NPU operator: set a numeric target up front, block tuning until an on-device accuracy pass is logged, escalate code-level then scheduling then instruction-level tuning with per-stage stall counters and kill-switches, and route each change by the metric contract (core utilization, bubble rate, load balance). Use after ascend-operator-profiling has measured a baseline and the operator is confirmed as the bottleneck.
 
   '
+metadata:
+  inferrsi: |
+    {
+      "tags": [
+        "ascend",
+        "npu",
+        "operator",
+        "tuning",
+        "performance",
+        "pypto",
+        "tile"
+      ],
+      "status": "candidate",
+      "profile": "local-skill-v1",
+      "schema_version": 1,
+      "kind": "skill",
+      "origin": [
+        "external"
+      ],
+      "empirical_validation": "not_run",
+      "limitations": [
+        "Source-derived candidate; no local efficacy validation.",
+        "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+      ],
+      "provenance_readsets": [],
+      "consumption_mode": "packaged",
+      "applicability": {
+        "scope": "Run a bounded, accuracy-gated tuning campaign for a single Ascend operator already identified as the bottleneck, escalating from code-level to scheduling and instruction-level changes.",
+        "prerequisites": "A measured operator baseline, an explicit numeric target and a logged on-device accuracy pass before tuning; performance comparisons use real hardware.",
+        "input_contract": "Operator implementation, fixed shape/dtype/card and warmup policy, accuracy result, per-core work/wait measurements and round logs.",
+        "produced_artifact": "A bounded campaign record of each change, accuracy and measured timing delta, kept/reverted rounds, current stage and documented stop condition.",
+        "refusal_point": "Do not start without the baseline and accuracy gate; revert accuracy failures, and stop/escalate repeated failures, timeouts, exhausted stages or the campaign budget.",
+        "failure_modes": "Scheduler-idle and predecessor-wait bottlenecks need different fixes; output inplace-reshape can corrupt slice writes, and a changed analyzer log format can produce a misleading zero-core report."
+      },
+      "recommendations": [
+        "Change one parameter and recheck accuracy each round; keep the failure record when reverting and compare the final configuration against the same baseline workload and warmup policy.",
+        "Route scheduler bubbles separately from predecessor dependencies and enter instruction-level tuning only after isolating a specific long task.",
+        "Verify the analyzer parsed real cores before trusting its diagnosis, and rederive PyPTO tile/buffer/scheduling settings for the target SoC rather than copying numeric examples."
+      ]
+    }
 ---
 
 # Ascend Operator-Level Tuning

@@ -148,8 +148,7 @@ When an accepted skill is subsequently evolved, preserve the revision chain:
 
 ```
 skills/<name>/
-  SKILL.md           (current promoted version)
-  metadata.json      (includes revision.version and revision.parent)
+  SKILL.md           (current version, including revision.version and revision.parent)
   history/
     v0/SKILL.md      (initial promoted version)
     v1/SKILL.md      (first accepted evolution)
@@ -180,7 +179,7 @@ One evolution cycle:
    result is not an improvement. Preserve the incumbent and report regressions or
    inconclusive outcomes without excluding them silently from success estimates.
 5. **Revision lineage:** on accept, copy the current `SKILL.md` to `history/v0/`
-   and write the accepted edit as the new `SKILL.md`. Update `metadata.json`
+   and write the accepted edit as the new `SKILL.md`. Update its frontmatter
    with the new `revision.version`.
 
 This cycle does not require automatic trace harvesting in Phase 1. The trigger

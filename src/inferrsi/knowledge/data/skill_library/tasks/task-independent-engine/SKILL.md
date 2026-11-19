@@ -1,6 +1,33 @@
 ---
 name: task-independent-engine
 description: Use when the deliverable owns its execution, memory and device integration on a target OS and hardware stack. Prove a native end-to-end path and measure its resource use.
+metadata:
+  inferrsi: |
+    {
+      "schema_version": 1,
+      "profile": "local-skill-v1",
+      "kind": "skill",
+      "discovery_role": "task-entry",
+      "status": "candidate",
+      "origin": [
+        "first-party"
+      ],
+      "consumption_mode": "packaged",
+      "tags": [
+        "inference-task",
+        "primary-task",
+        "independent-engine"
+      ],
+      "empirical_validation": "not_run",
+      "searchspace_not_applicable": "The procedure selects supporting evidence and tests within the caller's declared search space.",
+      "applicability": {
+        "scope": "Independent runtime bring-up across OS, model format, device and backend boundaries.",
+        "input_contract": "Actual hardware, model, engine, script and flags, benchmark, acceptance criteria, current diagnosis, permitted changes and budget.",
+        "produced_artifact": "Operator/capability map, minimal native execution path, end-to-end parity and resource measurements.",
+        "refusal_point": "Record missing evidence or an exhausted search budget and identify the smallest discriminating test before declaring success."
+      },
+      "provenance_readsets": []
+    }
 ---
 
 # Bring up an independent inference engine

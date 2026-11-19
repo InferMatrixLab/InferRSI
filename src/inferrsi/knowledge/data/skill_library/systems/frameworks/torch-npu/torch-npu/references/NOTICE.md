@@ -24,8 +24,8 @@ adapted and reorganized rather than reproduced as a guide dump. Source URLs and
 revisions are in [repo provenance](repo-provenance.md).
 
 The AREX exact-commit GitHub license resolver returned `NOASSERTION` for
-Ascend/pytorch. Every native local-skill sidecar preserves that source value.
+Ascend/pytorch. Every native local-skill entry preserves that source value.
 This metadata result does not erase the retained licenses or make a legal
 conclusion about licensing. InferRSI's local profile owns structured fields in
-metadata sidecars; the external verification adapter restores AREX frontmatter
+SKILL.md metadata; the external verification adapter restores AREX frontmatter
 only in a scratch projection. No DisCo managed import is claimed.

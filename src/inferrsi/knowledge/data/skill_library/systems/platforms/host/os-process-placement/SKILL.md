@@ -3,6 +3,66 @@ name: os-process-placement
 description: 'Place and configure inference/training processes at the OS level before measuring or optimizing: check then pin CPU affinity to the accelerator-local NUMA node (taskset/numactl), keep affinity constant across measurement rounds, set thread-count environment variables (OMP_NUM_THREADS, OMP_PROC_BIND, CPU_AFFINITY_CONF) per scenario, run a device-busy preflight (npu-smi/nvidia-smi usages, graceful-then-force PID cleanup), and structure environment checks as ERROR vs WARNING with per-failure remediation. Use before any performance measurement on shared multi-socket or multi-tenant hosts. Does not cover cgroups, cpuset, isolcpus, or scheduler priorities — no source evidence for those.
 
   '
+metadata:
+  inferrsi: |
+    {
+      "tags": [
+        "os",
+        "numa",
+        "cpu-affinity",
+        "process-placement",
+        "threads",
+        "environment",
+        "preflight"
+      ],
+      "status": "candidate",
+      "profile": "local-skill-v1",
+      "schema_version": 1,
+      "kind": "skill",
+      "origin": [
+        "external"
+      ],
+      "sources": [
+        {
+          "type": "git",
+          "url": "https://github.com/ggml-org/llama.cpp",
+          "commit": "3e390af18de1131dda27913c00511725b4274c8a",
+          "paths": [
+            "common/arg.cpp",
+            "common/common.cpp",
+            "src/llama.cpp",
+            "src/llama-model-loader.cpp",
+            "src/llama-mmap.cpp",
+            "ggml/src/ggml-cpu/ggml-cpu.c",
+            "ggml/src/ggml-cpu/ggml-cpu.cpp",
+            "LICENSE"
+          ],
+          "readset": "references/llama-numa-thread-readset.md"
+        }
+      ],
+      "empirical_validation": "not_run",
+      "limitations": [
+        "Source-derived candidate; no local efficacy validation.",
+        "Only the existing llama.cpp NUMA/thread slice is normalized at 3e390af18de1131dda27913c00511725b4274c8a; other original sources remain unnormalized, with their identities and limits retained in the procedure/readsets.",
+        "Linux NUMA source paths and separate configuration controls do not establish universally optimal thread counts, affinity combinations or measured placement gains."
+      ],
+      "provenance_readsets": [
+        "references/llama-numa-thread-readset.md"
+      ],
+      "consumption_mode": "packaged",
+      "applicability": {
+        "scope": "Prepare and record CPU/NUMA process placement, phase-specific thread settings, device contention and environment prerequisites before shared-host performance measurements.",
+        "prerequisites": "No outstanding hard environment errors: required devices/driver, planned device count and any container prerequisites must be present before running.",
+        "input_contract": "Current affinity/NUMA policy, accelerator locality, workload phase/thread controls, device occupancy, runtime environment and relevant container/resource limits.",
+        "produced_artifact": "A recorded placement/thread/environment configuration and preflight outcome, with errors requiring remediation and warnings retained for the measurement campaign.",
+        "failure_modes": "Changing affinity or thread settings between rounds confounds timing; combining independent affinity mechanisms is order-sensitive, and small driver memory usage can be mistaken for device occupation."
+      },
+      "recommendations": [
+        "Inspect affinity and NUMA policy before placement and hold them constant across comparisons; document and requalify a round when placement changes.",
+        "Choose one affinity-mask authority and distinguish generation, batch and frontend thread controls; source template thread counts are starting points rather than tuned constants.",
+        "Record device occupancy and structured ERROR/WARNING results before measuring, using the official environment setup for derived CANN paths."
+      ]
+    }
 ---
 
 # OS-Level Process Placement and Runtime Configuration

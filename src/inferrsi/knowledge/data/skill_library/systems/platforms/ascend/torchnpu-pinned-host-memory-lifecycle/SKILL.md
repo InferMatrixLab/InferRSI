@@ -1,6 +1,44 @@
 ---
 name: torchnpu-pinned-host-memory-lifecycle
 description: Diagnose TorchNPU pinned-host RAM allocation, asynchronous-copy lifetime, reuse and cache controls, then propose version-gated host-allocator changes. Use for pin_memory pressure or host allocation stalls, not device HBM or network transport.
+metadata:
+  inferrsi: |
+    {
+      "tags": [
+        "ascend",
+        "torchnpu",
+        "host-memory",
+        "pinned-memory",
+        "lifecycle"
+      ],
+      "status": "candidate",
+      "empirical_validation": "not_run",
+      "profile": "local-skill-v1",
+      "schema_version": 1,
+      "kind": "skill",
+      "origin": [
+        "external"
+      ],
+      "limitations": [
+        "Source-derived candidate; no local efficacy validation.",
+        "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+      ],
+      "provenance_readsets": [
+        "references/source-notes.md"
+      ],
+      "consumption_mode": "packaged",
+      "applicability": {
+        "scope": "Diagnose TorchNPU pinned-host RAM allocation, asynchronous-copy ownership/readiness, reuse and path-specific cache controls.",
+        "input_contract": "Installed versions/settings, host pressure and allocation/reuse distribution, stream timeline, owned versus registered/pageable buffers, selected host allocator path and host statistics/allocation timings.",
+        "produced_artifact": "An ownership classification, source evidence IDs, one eligible allocator proposal, benefit/resource cost and rollback criteria for a later fresh-process comparison.",
+        "refusal_point": "Keep baseline settings for live-buffer growth, pageable copies, stable reuse, unverified versions or unsupported paths; stop tuning on event/runtime errors and escalate external ownership or gate conflicts."
+      },
+      "recommendations": [
+        "Do not mutate an H2D source or read a D2H destination before completion; non_blocking=True alone proves neither overlap nor external-buffer lifetime tracking.",
+        "Interpret host allocated/active bytes using the selected host path, and test round/cache controls only in supported default-path fresh processes; a per-buffer cache threshold is not a total-cache cap.",
+        "Keep host and device allocator options separate and use an explicit quiescent boundary for host cache release; cache clearing is not a copy-completion barrier."
+      ]
+    }
 ---
 
 # TorchNPU pinned-host memory lifecycle

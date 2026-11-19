@@ -35,5 +35,5 @@ independently inspected MIT/BSD texts. No authentication or credential changes
 were made. The check-only resolution record lives outside the runtime skill.
 
 InferRSI's `local-skill-v1` contract places name/description in frontmatter and
-structured fields, including license, in `metadata.json`; DisCo-only visibility
+structured fields, including license, in the SKILL.md metadata.inferrsi block; DisCo-only visibility
 and managed-import fields are not imposed on this packaged destination.

@@ -3,6 +3,44 @@ name: ascend-device-health
 description: 'Pre-run health checks and recovery procedures for Ascend NPU devices on shared machines: card-group topology validation, Health status checks, SIGKILL residual-state detection, 4-step smoke verification, process occupancy check, and DVFS warmup discipline. Use before any experiment that requires a trusted performance baseline.
 
   '
+metadata:
+  inferrsi: |
+    {
+      "tags": [
+        "ascend",
+        "npu",
+        "device-health",
+        "topology",
+        "shared-machine",
+        "os-system"
+      ],
+      "status": "candidate",
+      "profile": "local-skill-v1",
+      "schema_version": 1,
+      "kind": "skill",
+      "origin": [
+        "external"
+      ],
+      "empirical_validation": "not_run",
+      "limitations": [
+        "Source-derived candidate; no local efficacy validation.",
+        "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+      ],
+      "provenance_readsets": [],
+      "consumption_mode": "packaged",
+      "applicability": {
+        "scope": "Pre-run Ascend device-health, topology, occupancy and timing checks before a trusted baseline, multi-card run or graph capture, including after a killed job.",
+        "hardware": "Ascend NPU card groups with topology and health visible through npu-smi.",
+        "input_contract": "Intended card group, current topology/health and process occupancy, prior termination history and expected workload step timing.",
+        "produced_artifact": "A pre-run health/occupancy and step-timing record, with recovery observations and a baseline-remeasurement requirement after a card-group change.",
+        "failure_modes": "Health=OK can miss degraded post-kill timing; foreign processes, unwarmed clocks or comparing different card groups can contaminate the baseline."
+      },
+      "recommendations": [
+        "Read topology each session rather than hardcoding card numbers, then check health and foreign-process occupancy before the workload smoke check.",
+        "Use the short step-timing check to investigate post-kill degradation; record affected cards and timings instead of treating Health=OK as sufficient evidence.",
+        "Warm up operator measurements and remeasure the baseline after changing card groups; set only environment variables needed by the run."
+      ]
+    }
 ---
 
 # Ascend Device Health and Pre-Run Verification
