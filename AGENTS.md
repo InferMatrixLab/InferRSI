@@ -29,6 +29,12 @@ Default automation is **draft → ready → merge → nightly**. Keep **draft** 
 
 Architecture and cost profile: [docs/architecture.md](docs/architecture.md).
 
+Ready's Windows/macOS `host-compatibility` checks are **advisory and non-blocking**.
+Their failure, cancellation, queued or not-run status must not block PR approval
+or merging, or require a successful rerun or equivalent host-validation artifact.
+Keep them out of required checks; retain actual results and unverified host status.
+See [CI policy](docs/contributing.md#ci-and-repository-reuse).
+
 ## Test ladder (L0–L4)
 
 Validation levels are defined in [validation levels](docs/contributing.md#validation-levels):

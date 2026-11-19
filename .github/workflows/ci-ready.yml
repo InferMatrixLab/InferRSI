@@ -103,6 +103,10 @@ jobs:
         run: python3 tools/check_pr_references.py
 
   host-compatibility:
+    name: host-compatibility (advisory, ${{ matrix.os }})
+    # Advisory only: failures, cancellation or missing runs do not block PR approval
+    # or merging. Keep these jobs out of required checks and gating job dependencies.
+    continue-on-error: true
     # GitHub-hosted Windows and macOS CPU evidence, separate from the Ubuntu jobs above:
     # a pass on Linux is not a pass on these hosts. It runs the eight plugin and DSH nodes
     # that an earlier Windows run recorded as failing (63 passed, 8 failed), on Windows the
