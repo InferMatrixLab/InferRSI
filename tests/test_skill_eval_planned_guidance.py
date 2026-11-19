@@ -116,7 +116,7 @@ def test_unusable_projection_pin_never_yields_a_concrete_check(tmp_path, mutatio
     elif mutation == "mismatch":
         canonical.write_text("changed canonical input\n")
     elif mutation == "mode":
-        readme.chmod(0o755)
+        git(repo, "update-index", "--chmod=+x", readme.relative_to(repo).as_posix())
     elif mutation == "symlink":
         readme.unlink()
         readme.symlink_to(canonical)
@@ -126,7 +126,8 @@ def test_unusable_projection_pin_never_yields_a_concrete_check(tmp_path, mutatio
         readme.write_text(readme.read_text().replace(pin, "f" * 40))
     else:
         canonical.unlink()
-    git(repo, "add", "-A")
+    if mutation != "mode":
+        git(repo, "add", "-A")
     git(repo, "commit", "--quiet", "-m", "Synthetic unavailable source")
     identity["head"] = git(repo, "rev-parse", "HEAD")
     check = pr.projection_check(repo, identity, changes)

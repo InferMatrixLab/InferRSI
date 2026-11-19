@@ -528,9 +528,7 @@ def _record_documents() -> list[Document]:
     from .catalog import knowledge_records
 
     documents = []
-    for record in knowledge_records():
-        if record.get("index_type") == "packaged-skill":
-            continue
+    for record in knowledge_records(include_skill_views=False):
         identity = record["id"]
         body = _flatten({
             key: value for key, value in record.items()
@@ -656,7 +654,8 @@ def _aliases() -> tuple[tuple[str, tuple[str, ...]], ...]:
     differently -- a caller asking about "startup" should reach a finding that
     says "initialization". Both expand one way, at query time only.
     """
-    path = files("inferrsi").joinpath("knowledge", "data", "query_aliases.json")
+    config = files("inferrsi").joinpath("knowledge", "data", "skill_library", "config")
+    path = config.joinpath("query_aliases.json")
     record = json.loads(path.read_text(encoding="utf-8"))
     if record.get("schema_version") != 1:
         raise ValueError("Query alias map requires schema_version 1")

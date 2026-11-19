@@ -16,7 +16,8 @@ PROCEDURE = (
 
 
 def _profile(model: str) -> dict | None:
-    root = files("inferrsi").joinpath("knowledge", "data", "research_profiles")
+    config = files("inferrsi").joinpath("knowledge", "data", "skill_library", "config")
+    root = config.joinpath("research_profiles")
     for resource in sorted(root.iterdir(), key=lambda path: path.name):
         if resource.name.endswith(".json"):
             profile = json.loads(resource.read_text(encoding="utf-8"))

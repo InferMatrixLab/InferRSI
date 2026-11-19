@@ -31,7 +31,7 @@ inferrsi skills show ascend-graph-mode
 inferrsi skills resource inference-optimization-casebook cases/qwen-ascend-rejected-directions.md
 ```
 
-The [generated catalog](../repo_packs/inferrsi/knowledge/README.md) links each
+The runtime catalog links each
 registered procedure through `skill_documents.original`. Core catalog reads do
 not require the optional YAML parser:
 
@@ -101,7 +101,7 @@ completion contracts; their shared repository name does not make a tested stack.
 
 | Need | Existing entry | Retained evidence | Completion / applicability boundary |
 | --- | --- | --- | --- |
-| Inductor guards, capture shapes, replay addresses or live outputs | [Compiler dependency card](../knowledge_packs/dependency/pytorch/cuda/compiler/cudagraph-shapes-and-lifetimes.json) | Technical documents at `f15b476814ebc5eade36fb40512e379ebf79dd60`, accessed 2026-10-15; upstream-reported, imported/unverified | Compile/recompile guards, graph recording/replay and output lifetime are independent constraints; this is CUDA/compiler guidance |
+| Inductor guards, capture shapes, replay addresses or live outputs | [Compiler dependency card](records/pytorch.cuda.compiler.cudagraph_shapes_and_lifetimes.json) | Technical documents at `f15b476814ebc5eade36fb40512e379ebf79dd60`, accessed 2026-10-15; upstream-reported, imported/unverified | Compile/recompile guards, graph recording/replay and output lifetime are independent constraints; this is CUDA/compiler guidance |
 | Training-visible save pauses, snapshot buffers and cleanup | [DCP async-save procedure](systems/frameworks/pytorch/dcp-async-save-performance/SKILL.md) and [source ledger](systems/frameworks/pytorch/dcp-async-save-performance/references/sources.md) | Implementation at `7d239835e773c91689eb298692097f4a3340491f`, inspected 2026-10-15; candidate / empirical validation `not_run` | Preserve caller capture, staging, upload, cached-buffer reuse and caller-owned cleanup boundaries; writer completion is separate from backend durability and distributed recovery |
 | Tutorial examples and API/version differences | [DCP documentation/implementation reconciliation](systems/frameworks/pytorch/dcp-async-save-performance/references/sources.md#documentation-matched-against-implementation) | Live async recipe retrieved 2026-10-15, with its own retained HTML hash and page metadata | The recipe's 2.4+ / 2.9+ labels do not identify the inspected main commit or establish a matching wheel; source notices and recipe attribution remain in the ledger |
 
@@ -126,7 +126,7 @@ retains the longer **prefix** `f33e0e5fd55b`. An original inspection date for
 that methodology extraction is not individually recorded. These are partial
 source identities, not a verified common runtime version.
 
-The separate [PD/KV-transfer peer card](../knowledge_packs/peer/tensorrt_llm/cuda/llm/prefill-decode-disaggregation.json)
+The separate [PD/KV-transfer peer card](records/tensorrt_llm.cuda.llm.prefill_decode_disaggregation.json)
 records `c9b18eefa731dc59b0091bdfff6d890aa9d1e98e`, accessed 2026-10-15.
 Its upstream-reported technique remains imported/unverified. The methods below
 remain candidate / empirical validation `not_run`, with their other sources
@@ -139,7 +139,7 @@ guidance; it establishes no cross-pin implementation compatibility.
 | Accelerator | [Kernel verification](playbooks/optimization/kernel-writing-guide/SKILL.md#workflow-verify-before-benchmark) | A kernel change still needs reference parity over target shapes/dtypes and critical-path profiling | Kernel correctness does not establish reduced prefill/decode interference or end-to-end PD benefit |
 | RAM / Host | [Serving-trace prerequisites](systems/platforms/cuda/host-overhead-profiling/SKILL.md#prerequisites) and [confirmed host bottleneck](systems/platforms/host/host-overhead-optimization/SKILL.md#confirming-the-bottleneck) | Establish exposed host work from serving traces before attributing a PD regression to CPU preparation | A line profiler locates CPU time; it does not establish that CPU is limiting or measure the KV interconnect |
 | SSD / Storage | [Startup accounting](playbooks/optimization/weight-loading-optimization/SKILL.md#2-account-startup-fixed-overhead-separately) | Loading/warmup is once per process; request KV delivery needs its own per-request bytes and timing | Do not combine those denominators; disk-loading mechanics retain their separately attributed sources |
-| Communication / Network | [Disaggregation peer card](../knowledge_packs/peer/tensorrt_llm/cuda/llm/prefill-decode-disaggregation.json) | Consider PD with measured prefill/decode interference, compatible KV layouts and qualified NVIDIA GPU transport; include transfer, layout-conversion and queue costs, and verify backpressure, cancellation and failed-worker recovery | Host/device loading overlap and local H2D do not establish this interconnect path; diffusion-stage splitting does not inherit the autoregressive PD cost model |
+| Communication / Network | [Disaggregation peer card](records/tensorrt_llm.cuda.llm.prefill_decode_disaggregation.json) | Consider PD with measured prefill/decode interference, compatible KV layouts and qualified NVIDIA GPU transport; include transfer, layout-conversion and queue costs, and verify backpressure, cancellation and failed-worker recovery | Host/device loading overlap and local H2D do not establish this interconnect path; diffusion-stage splitting does not inherit the autoregressive PD cost model |
 | OS / System | [Placement discipline](systems/platforms/host/os-process-placement/SKILL.md#1-cpu-affinity-check-then-pin-then-keep-constant) | Record and control affinity, environment and device contention across matched pool comparisons | Placement methodology controls an experiment; it does not implement PD routing or OS-priority scheduling |
 
 ## vLLM version and responsibility routing
@@ -164,18 +164,18 @@ these imports and use generated abstracts rather than runtime repository packs.
 
 | Repository | Focus | Entry | Catalog |
 | --- | --- | --- | --- |
-| Lithos Metal source guide | Task compiler/fusion, GPU-resident generation/DSpark state and exact serving/cache ownership; candidate | [Skill](systems/engines/lithos-metal/SKILL.md) | [Record](../repo_packs/inferrsi/knowledge/common/skills/lithos-metal.json) |
-| ComfyUI source audit | Workflow-output cache validity and model-weight residency; source-derived candidate | [Skill](systems/engines/comfy-ui/SKILL.md) | [Record](../repo_packs/inferrsi/knowledge/common/skills/comfy-ui.json) |
-| stable-diffusion.cpp source audit | Native image weight/runtime capacity and protected segment prefetch; source-derived candidate | [Skill](systems/engines/stable-diffusion-cpp/audit-sd-cpp-residency/SKILL.md) | [Record](../repo_packs/inferrsi/knowledge/common/skills/audit-sd-cpp-residency.json) |
-| h3.c / MiniMax-H3 source audit | Conditioning, AdaLN precompute, phased/cached residency, precision and BF16 SSD streaming; source-derived candidate | [Skill](systems/engines/h3-c/audit-h3-runtime-residency/SKILL.md) | [Record](../repo_packs/inferrsi/knowledge/common/skills/audit-h3-runtime-residency.json) |
-| h3-metal / FastH3 semantic audit | Effective parameters and ambient overrides, tensor/schedule transformations, VSA prefix/partial tiles and fallback; source-derived candidate | [Skill](systems/engines/h3-metal/audit-h3-metal-fasth3-semantics/SKILL.md) | [Record](../repo_packs/inferrsi/knowledge/common/skills/audit-h3-metal-fasth3-semantics.json) |
+| Lithos Metal source guide | Task compiler/fusion, GPU-resident generation/DSpark state and exact serving/cache ownership; candidate | [Skill](systems/engines/lithos-metal/SKILL.md) | `inferrsi.common.skills.lithos_metal` |
+| ComfyUI source audit | Workflow-output cache validity and model-weight residency; source-derived candidate | [Skill](systems/engines/comfy-ui/SKILL.md) | `inferrsi.common.skills.comfy_ui` |
+| stable-diffusion.cpp source audit | Native image weight/runtime capacity and protected segment prefetch; source-derived candidate | [Skill](systems/engines/stable-diffusion-cpp/audit-sd-cpp-residency/SKILL.md) | `inferrsi.common.skills.audit_sd_cpp_residency` |
+| h3.c / MiniMax-H3 source audit | Conditioning, AdaLN precompute, phased/cached residency, precision and BF16 SSD streaming; source-derived candidate | [Skill](systems/engines/h3-c/audit-h3-runtime-residency/SKILL.md) | `inferrsi.common.skills.audit_h3_runtime_residency` |
+| h3-metal / FastH3 semantic audit | Effective parameters and ambient overrides, tensor/schedule transformations, VSA prefix/partial tiles and fallback; source-derived candidate | [Skill](systems/engines/h3-metal/audit-h3-metal-fasth3-semantics/SKILL.md) | `inferrsi.common.skills.audit_h3_metal_fasth3_semantics` |
 | AFD plugin P2pNccl audit | CUDA eager dense-FFN rank namespaces and per-stage/per-peer payload ownership; source-derived candidate | [Skill](systems/engines/afd-plugin/audit-afd-p2p-exchanges/SKILL.md) | `inferrsi.cuda.skills.audit_afd_p2p_exchanges` |
-| vLLM-RLT source audit | Synchronous early-exit KV propagation, later deeper attention and normal storage retirement; source-derived candidate | [Skill](systems/engines/vllm-rlt/audit-recurrent-kv-finalization/SKILL.md) | [Record](../repo_packs/inferrsi/knowledge/common/skills/audit-recurrent-kv-finalization.json) |
-| Strata | Heterogeneous MoE, placement, memory and speculative execution | [Skill](systems/engines/strata/SKILL.md) | [Records](../repo_packs/strata/knowledge/README.md) |
-| vLLM | Token scheduling, KV ownership and parallel execution | [Skill](systems/engines/vllm/SKILL.md) | [Records](../repo_packs/vllm/knowledge/README.md) |
-| SGLang | Radix/HiCache, prefill/decode, extensions and a separately pinned [diffusion lifetime candidate](systems/engines/sglang/audit-sglang-diffusion-lifetimes/SKILL.md) | [Skill](systems/engines/sglang/SKILL.md) | [Records](../repo_packs/sglang/knowledge/README.md) |
-| SGLang-Omni | Stage pipelines, streaming and transport | [Skill](systems/engines/sglang-omni/SKILL.md) | [Records](../repo_packs/sglang_omni/knowledge/README.md) |
-| vLLM-Omni | Model/deploy separation, AR/diffusion and output contracts | [Skill](systems/engines/vllm-omni/SKILL.md) | [Records](../repo_packs/vllm_omni/knowledge/README.md) |
+| vLLM-RLT source audit | Synchronous early-exit KV propagation, later deeper attention and normal storage retirement; source-derived candidate | [Skill](systems/engines/vllm-rlt/audit-recurrent-kv-finalization/SKILL.md) | `inferrsi.common.skills.audit_recurrent_kv_finalization` |
+| Strata | Heterogeneous MoE, placement, memory and speculative execution | [Skill](systems/engines/strata/SKILL.md) | [Records](records/README.md) |
+| vLLM | Token scheduling, KV ownership and parallel execution | [Skill](systems/engines/vllm/SKILL.md) | [Records](records/README.md) |
+| SGLang | Radix/HiCache, prefill/decode, extensions and a separately pinned [diffusion lifetime candidate](systems/engines/sglang/audit-sglang-diffusion-lifetimes/SKILL.md) | [Skill](systems/engines/sglang/SKILL.md) | [Records](records/README.md) |
+| SGLang-Omni | Stage pipelines, streaming and transport | [Skill](systems/engines/sglang-omni/SKILL.md) | [Records](records/README.md) |
+| vLLM-Omni | Model/deploy separation, AR/diffusion and output contracts | [Skill](systems/engines/vllm-omni/SKILL.md) | [Records](records/README.md) |
 | Research router | Constrained engine design and validation | [Skill](workflows/research/inference-engine-research/SKILL.md) | — |
 
 For vLLM-Omni, the

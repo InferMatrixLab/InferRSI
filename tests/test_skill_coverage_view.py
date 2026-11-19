@@ -264,7 +264,7 @@ def test_applicability_is_descriptive_and_never_promotes_validation():
 
 
 def test_recommendations_default_only_when_the_sidecar_is_silent():
-    from tools import build_skill_index as index_builder
+    from inferrsi.knowledge import _skill_view as index_builder
 
     assert index_builder.recommendations({}) == index_builder.DEFAULT_RECOMMENDATIONS
     # An explicit empty list is a statement, so it must not fall back.
@@ -332,7 +332,12 @@ def test_resource_layer_decisions_preserve_unknown_na_and_conflicts(tmp_path):
         for path in library.rglob("*") if path.is_file()
     }
     outputs = index_builder.render_index(library, "0" * 40, hashes)
-    record = json.loads(outputs["common/skills/process.json"])
+    from inferrsi.knowledge._skill_view import COMPILED, skill_views
+
+    (library / COMPILED).mkdir()
+    for name, content in outputs.items():
+        (library / COMPILED / name).write_text(content, encoding="utf-8")
+    record = next(r for r in skill_views(library) if r["title"] == "process")
     assert record["skill_metadata"]["searchspace_not_applicable"] == reason
     assert record["skill_metadata"]["status"] == "candidate"
     assert record["skill_metadata"]["empirical_validation"] == "not_run"

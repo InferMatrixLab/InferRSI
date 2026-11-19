@@ -282,10 +282,8 @@ src/inferrsi/
     http.py                 HTTP POST/download timing
     artifacts.py            Hashing and evidence writes
     campaign.py             Legacy runner utility facade; transitive helper hashes
-  data/
-    repo_packs/             Contribution descriptors and versioned tuning knowledge
-    knowledge_packs/        Dependency and peer knowledge, preserving existing tiers
-    skill_library/          Complete categorized English skills and resources
+  knowledge/data/skill_library/  Registered skills, engineering records, configuration and compiled inputs
+  harness/data/repo_packs/       Execution target descriptors
 examples/                   Current Qwen runner, image validator and v4 adapter
 tests/fixtures/legacy/      Frozen historical validation dependencies for regressions
 ```
@@ -438,26 +436,17 @@ operations or the control CLI to Linux.
 Package data is the canonical source for noneditable installations:
 
 ```text
-inferrsi/knowledge/data/repo_packs/REPO/knowledge/
-  README.md                       Organization and navigation only
-  BACKEND/COMPONENT/ENTRY.json     One canonical reusable experience
-inferrsi/knowledge/data/repo_packs/inferrsi/knowledge/
-                                  Generated from data/skill_library/, never hand-edited
-inferrsi/knowledge/data/knowledge_packs/
-  README.md                       Three-tier source navigation
-  dependency/REPO/BACKEND/COMPONENT/ENTRY.json
-  peer/REPO/BACKEND/COMPONENT/ENTRY.json
+inferrsi/knowledge/data/skill_library/
+  tasks/  systems/  playbooks/  workflows/  casebooks/  Registered owners
+  records/<stable-id>.json       One authored engineering finding
+  config/                        Aliases and research profiles
+  _compiled/                     Build-time YAML headers and Git fingerprints
+  skill-index.json               Stable ID, physical path and backend
 ```
 
 JSON owns applicability, claims, recommendations, validation and limitations;
 `knowledge search`, `knowledge show` and human-readable `context` use that same
-record. Per-entry duplicate READMEs are removed. The loader validates that
-repository, backend, component and stable ID agree with the path.
-The learning tier is an independent acquisition policy: contribution packs
-retain their paths, while external dependency/peer packs add source-owned
-candidates. Tier/source/backend/scenario filters intersect before ranking and
-limits; no downstream repository inherits external knowledge implicitly.
-Knowledge-only sources do not extend the executable repository registry.
+record. The tier identifies each source relationship. The reader validates the repository, backend and component encoded in the stable filename.
 
 A backend filter includes that backend and repository-local `common` methods;
 scenario filters select exact workloads or component wildcards. Model, SKU,
@@ -488,7 +477,7 @@ the two matrices retain their authority.
 Run evidence remains in the caller-selected run directory; frozen campaign
 plans/results/patches/validators remain under `evidence/`.
 
-See the [knowledge guide](../src/inferrsi/knowledge/data/knowledge_packs/README.md)
+See the [knowledge guide](../src/inferrsi/knowledge/data/skill_library/records/README.md)
 for all entries, retrieval rules and the maintenance workflow.
 
 The earlier [component design](assets/component-architecture-en.svg) and
@@ -504,8 +493,8 @@ automatic promotion into the knowledge catalog or RunSpec. The original diagram
 is preserved; the [source audit](reviews/source-audit-ac70272.md) tracks cleanup
 portability and other implementation gaps.
 
-The migrated skills have [generated catalog records](../src/inferrsi/knowledge/data/repo_packs/inferrsi/knowledge/README.md)
-in `data/repo_packs/inferrsi/knowledge/`, with backend-scoped IDs and
+The migrated skills have [generated catalog records](../src/inferrsi/knowledge/data/skill_library/README.md)
+assembled at read time, with backend-scoped IDs and
 `skill_documents.original` pointing to the complete packaged procedures.
 Normalized reads retain the library's dependency resources. The library is the
 single content owner.

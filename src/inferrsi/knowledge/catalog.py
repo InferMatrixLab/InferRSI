@@ -9,7 +9,7 @@ from importlib.resources import files
 from typing import Any
 
 from ..resources.repository_packs import REPO_TYPES
-from . import _source_snapshot
+from ._skill_view import skill_views
 
 # Learning scope does not imply that a repository has a runnable target adapter.
 # Legacy repository-pack records retain their contribution tier; an independent
@@ -31,15 +31,6 @@ SCENARIO_ALIASES = {
     "diffusion.t2i": "diffusion.image_generation",
     "diffusion.t2v": "diffusion.video_generation",
 }
-
-
-def _walk(root, prefix=()):
-    for child in sorted(root.iterdir(), key=lambda item: item.name):
-        parts = (*prefix, child.name)
-        if child.is_dir():
-            yield from _walk(child, parts)
-        else:
-            yield parts, child
 
 
 def _validate_record(
@@ -88,66 +79,44 @@ def _validate_record(
         raise ValueError(f"Imported knowledge must state locally_verified=false: {record['id']}")
 
 
-def knowledge_records(*, file_fingerprints: bool = True) -> list[dict[str, Any]]:
-    data = files("inferrsi").joinpath("knowledge", "data")
+def knowledge_records(
+    *, file_fingerprints: bool = True, include_skill_views: bool = True,
+) -> list[dict[str, Any]]:
+    root = files("inferrsi").joinpath("knowledge", "data", "skill_library")
     records = []
-    seen = set()
-    for tier, repos in KNOWLEDGE_SCOPES.items():
-        for repo in repos:
-            knowledge = (
-                data.joinpath("repo_packs", repo, "knowledge")
-                if tier == "contribution"
-                else data.joinpath("knowledge_packs", tier, repo)
-            )
-            if not knowledge.is_dir():
-                continue
-            snapshot = knowledge.joinpath(_source_snapshot.MANIFEST)
-            snapshot = (
-                json.loads(snapshot.read_text(encoding="utf-8")) if snapshot.is_file() else None
-            )
-            for parts, item in _walk(knowledge):
-                if not item.name.endswith(".json") or parts == (_source_snapshot.MANIFEST,):
-                    continue
-                record = json.loads(item.read_text(encoding="utf-8"))
-                # Generated skill records store schema v2; readers always receive schema v1.
-                # A pack with a snapshot holds only generated records.
-                if isinstance(record, dict) and record.get("schema_version") == (
-                    _source_snapshot.STORED_SCHEMA
-                ):
-                    if snapshot is None:
-                        raise ValueError(f"Knowledge record lacks its source snapshot: {repo}")
-                    if file_fingerprints:
-                        record = _source_snapshot.resolve(record, snapshot)
-                    else:
-                        revision = snapshot.get("source_revision")
-                        if not isinstance(revision, str) or not re.fullmatch(
-                            r"[0-9a-f]{40}", revision
-                        ):
-                            raise ValueError("Knowledge source commit is unavailable")
-                        record = {
-                            **record,
-                            "schema_version": 1,
-                            "sources": [
-                                {
-                                    "type": "git",
-                                    "commit": revision,
-                                    "url": _source_snapshot.REPOSITORY + "/tree/" + revision,
-                                }
-                            ],
-                        }
-                elif snapshot is not None:
-                    raise ValueError(
-                        f"Source-snapshot pack holds a record that is not schema "
-                        f"{_source_snapshot.STORED_SCHEMA}: {repo}/{'/'.join(parts)}"
-                    )
-                if not file_fingerprints:
-                    record = without_file_fingerprints(record)
-                _validate_record(record, repo, parts, tier)
-                if record["id"] in seen:
-                    raise ValueError(f"Duplicate knowledge ID: {record['id']}")
-                seen.add(record["id"])
-                records.append(record)
-    return records
+    authored = root.joinpath("records")
+    for item in sorted(authored.iterdir(), key=lambda p: p.name):
+        if item.name == "README.md":
+            continue
+        if not item.is_file() or not item.name.endswith(".json"):
+            raise ValueError(f"Unexpected authored knowledge resource: {item.name}")
+        parts = item.name[:-5].split(".", 3)
+        if len(parts) != 4:
+            raise ValueError(f"Invalid knowledge filename: {item.name}")
+        repo, backend, component, entry = parts
+        record = json.loads(item.read_bytes())
+        if not isinstance(record, dict) or record.get("index_type") == "packaged-skill":
+            raise ValueError(f"Invalid authored knowledge record: {item.name}")
+        tier = record.get("tier", "contribution")
+        if repo not in KNOWLEDGE_SCOPES.get(tier, ()):
+            raise ValueError(f"Knowledge tier disagrees with repository scope: {item.name}")
+        _validate_record(record, repo, (backend, component, entry + ".json"), tier)
+        if item.name != record["id"] + ".json":
+            raise ValueError(f"Knowledge ID disagrees with filename: {item.name}")
+        records.append(record)
+    if include_skill_views:
+        for view in skill_views(root, file_fingerprints=file_fingerprints):
+            parts = (view["backend"], "skills", view["title"] + ".json")
+            _validate_record(view, "inferrsi", parts)
+            records.append(view)
+    order = {(tier, repo): (t, r) for t, (tier, repos) in enumerate(KNOWLEDGE_SCOPES.items())
+             for r, repo in enumerate(repos)}
+    records.sort(key=lambda row: (
+        order[row.get("tier", "contribution"), row["repo"]], row["id"]
+    ))
+    if len({row["id"] for row in records}) != len(records):
+        raise ValueError("Duplicate knowledge ID")
+    return records if file_fingerprints else without_file_fingerprints(records)
 
 
 def without_file_fingerprints(value):

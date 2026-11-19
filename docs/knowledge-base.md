@@ -86,9 +86,9 @@ src/inferrsi/knowledge/data/skill_library/
   <category>/<id>/cases/             Owner's scoped cases (optional)
 src/inferrsi/knowledge/catalog.py    Installed knowledge reader
 src/inferrsi/knowledge/skill_catalog.py  Packaged or custom-root skill reader
-src/inferrsi/knowledge/data/repo_packs/        Contribution records and existing public IDs
-src/inferrsi/knowledge/data/repo_packs/inferrsi/ Generated records linking full packaged skills
-src/inferrsi/knowledge/data/knowledge_packs/   Dependency and peer records
+src/inferrsi/knowledge/data/skill_library/records/<stable-id>.json   Authored engineering findings
+src/inferrsi/knowledge/data/skill_library/config/                    Aliases and research profiles
+src/inferrsi/knowledge/data/skill_library/_compiled/                 Generated YAML headers and Git provenance
 src/inferrsi/harness/data/repo_packs/<repo>/pack.json  Target descriptor, read by repository_pack
 evidence/<campaign-id>/             Frozen plans, results, patches and validators
 docs/reference-matrix.md            Sources, inspected scope and extraction
@@ -290,7 +290,7 @@ The collection overview, import notes and source manifest belong to the research
 workflow's references; Strata design-space analysis belongs to Strata. The library
 root contains only navigation and the registry.
 
-The [generated catalog](../src/inferrsi/knowledge/data/repo_packs/inferrsi/knowledge/README.md)
+The [runtime catalog](../src/inferrsi/knowledge/data/skill_library/README.md)
 projects the 81 registered skills into the contribution catalog. Its records
 use `inferrsi.<backend>.skills.<name_with_underscores>` IDs, with `ascend` and
 `cuda` for scopes that depend on those backends and `common` for the remaining skills.

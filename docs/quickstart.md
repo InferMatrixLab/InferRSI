@@ -209,7 +209,7 @@ or `--tier peer`. Export one source explicitly, for example
 `inferrsi context --repo-type xdit --backend cuda --tier peer`.
 `--repo-type` names the source owner; vllm_omni queries do not automatically
 include its dependencies or peers. See the
-[three-tier guide](../src/inferrsi/knowledge/data/knowledge_packs/README.md) for all sources.
+[three-tier guide](../src/inferrsi/knowledge/data/skill_library/records/README.md) for all sources.
 
 For per-trial completeness, lifecycle and graph qualification, see the
 [Omni experiment contract](../src/inferrsi/knowledge/data/skill_library/workflows/governance/rsi-evidence/references/omni-experiments.md). These optional checks

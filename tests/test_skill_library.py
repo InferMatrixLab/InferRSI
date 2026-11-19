@@ -133,10 +133,7 @@ def test_portable_library_retains_english_resources_licenses_and_resolving_local
     assert engine_nodes == 20
     router = LIBRARY / "workflows/research/inference-engine-research"
     assert (router / "SKILL.md").is_file()
-    documents = list(LIBRARY.rglob("*.md")) + [
-        PACKAGE / "knowledge/data/repo_packs" / repo / "knowledge/README.md"
-        for repo in REPOSITORIES
-    ]
+    documents = list(LIBRARY.rglob("*.md"))
     for document in documents:
         for target in re.findall(r"\]\(([^)]+)\)", document.read_text(encoding="utf-8")):
             link = urlsplit(target)
@@ -170,7 +167,7 @@ def test_library_root_exposes_task_routing_and_supporting_categories():
         "README.md", "skill-index.json",
     }
     assert {path.name for path in LIBRARY.iterdir() if path.is_dir()} == {
-        "tasks", "systems", "playbooks", "workflows", "casebooks",
+        "tasks", "systems", "playbooks", "workflows", "casebooks", "records", "config", "_compiled",
     }
     assert len(list(LIBRARY.rglob("SKILL.md"))) == 144
     assert not any(path.name == "zh-CN" for path in LIBRARY.rglob("*") if path.is_dir())

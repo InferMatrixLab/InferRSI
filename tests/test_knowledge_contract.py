@@ -1,4 +1,5 @@
 import json
+import os
 import re
 from pathlib import Path
 
@@ -29,9 +30,13 @@ def test_local_profiles_preserve_core_and_structured_ownership():
         assert "name" not in metadata and "description" not in metadata
         assert metadata["status"] == record["status"]
         assert metadata["kind"] == "skill"
+        if metadata.get("discovery_role") == "task-entry":
+            assert record["name"] == "inference-task-router"
+            assert len(list((sidecar.parent / "references/routes").glob("*.json"))) == 7
+            continue
         for readset in metadata["provenance_readsets"]:
             assert (sidecar.parent / readset).is_file()
-    assert len(normalized) == 69
+    assert len(normalized) == 70
 
 
 def test_local_sidecars_omit_fields_that_equal_reader_defaults():
@@ -97,9 +102,14 @@ def test_contradictory_legacy_metadata_fails(tmp_path):
 
 
 def test_two_real_consumers_resolve_one_authoritative_case():
-    reference = "../inference-optimization-casebook/cases/admission-drain-occupancy.md"
-    first = skill_reference(ROOT, "inference-benchmark-design", reference)
-    second = skill_reference(ROOT, "dense-performance-evidence", reference)
+    def read_case(owner):
+        directory = skill_directory(ROOT, owner)
+        case = skill_directory(ROOT, "inference-optimization-casebook") / "cases"
+        relative = os.path.relpath(case / "admission-drain-occupancy.md", directory)
+        return skill_reference(ROOT, owner, Path(relative).as_posix())
+
+    first = read_case("inference-benchmark-design")
+    second = read_case("dense-performance-evidence")
     assert first == second
     assert "## Observation" in first.read_text(encoding="utf-8")
     assert "## Interpretation" in first.read_text(encoding="utf-8")

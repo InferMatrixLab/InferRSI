@@ -7,8 +7,7 @@ from pathlib import Path
 import pytest
 
 from inferrsi.knowledge import _source_snapshot as snapshot
-from inferrsi.knowledge import catalog
-from inferrsi.knowledge._source_snapshot import source_entry
+from inferrsi.knowledge._skill_view import INPUTS, skill_views
 from inferrsi.knowledge.catalog import search_knowledge
 from tools import build_skill_index as index_builder
 from tools.build_skill_index import DESTINATION
@@ -22,32 +21,21 @@ REVISION = "a" * 40
 LIBRARY = index_builder.PINNED_LIBRARY
 
 
-def record_files():
-    return sorted(p for p in GENERATED.glob("*/skills/*.json"))
-
-
-def test_packaged_records_store_schema_two_and_resolve_to_schema_one():
-    manifest = json.loads((GENERATED / snapshot.MANIFEST).read_text(encoding="utf-8"))
-    records = {r["id"]: r for r in search_knowledge(repo="inferrsi", limit=100)}
-    assert len(record_files()) == len(records) == 81
-    for path in record_files():
-        stored = json.loads(path.read_text(encoding="utf-8"))
-        assert stored["schema_version"] == 2 and "sources" not in stored
-        assert snapshot.REGISTRY not in stored["source_files"]
-        public = records[stored["id"]]
-        assert public == snapshot.resolve(stored, manifest)
-        assert public["schema_version"] == 1
-        assert public["sources"][0]["commit"] == manifest["source_revision"]
-        assert public["source_files"][snapshot.REGISTRY] == manifest["registry"]["sha256"]
-        assert set(public["source_files"]) == set(public["sources"][0]["paths"])
-        assert list(public)[list(public).index("origin") + 1] == "sources"
-
-
-def test_compact_round_trip_preserves_every_public_field_and_order():
-    public = search_knowledge(repo="inferrsi", limit=1)[0]
-    manifest = json.loads((GENERATED / snapshot.MANIFEST).read_text(encoding="utf-8"))
-    stored = snapshot.compact(public)
-    assert json.dumps(snapshot.resolve(stored, manifest)) == json.dumps(public)
+def test_compiled_inputs_expand_to_public_records():
+    root = GENERATED.parent
+    inputs = json.loads((GENERATED / INPUTS).read_bytes())
+    records = list(skill_views(root))
+    manifest = json.loads((GENERATED / snapshot.MANIFEST).read_bytes())
+    assert {p.name for p in GENERATED.iterdir()} == {INPUTS, snapshot.MANIFEST}
+    assert len(records) == len(inputs) == 81
+    public = search_knowledge(repo="inferrsi", limit=100)
+    assert {r["id"] for r in records} == {r["id"] for r in public}
+    for record in records:
+        assert set(inputs[record["title"]]) == {"files", "header"}
+        assert record["schema_version"] == 1
+        assert record["sources"][0]["commit"] == manifest["source_revision"]
+        assert record["source_files"][snapshot.REGISTRY] == manifest["registry"]["sha256"]
+        assert list(record["source_files"]) == record["sources"][0]["paths"]
 
 
 @pytest.mark.parametrize("mutation", [
@@ -56,7 +44,6 @@ def test_compact_round_trip_preserves_every_public_field_and_order():
 ])
 def test_invalid_snapshot_never_resolves(mutation):
     manifest = json.loads((GENERATED / snapshot.MANIFEST).read_text(encoding="utf-8"))
-    stored = json.loads(record_files()[0].read_text(encoding="utf-8"))
     bad = copy.deepcopy(manifest)
     if mutation == "extra":
         bad["unexpected"] = True
@@ -75,49 +62,32 @@ def test_invalid_snapshot_never_resolves(mutation):
     else:
         bad = []
     with pytest.raises(ValueError):
-        snapshot.resolve(stored, bad)
+        snapshot._snapshot(bad)
 
 
 @pytest.mark.parametrize(
-    "mutation", ["v1", "sources", "registry_hash", "missing_entry", "no_origin"])
-def test_invalid_stored_record_never_resolves(mutation):
-    manifest = json.loads((GENERATED / snapshot.MANIFEST).read_text(encoding="utf-8"))
-    stored = json.loads(record_files()[0].read_text(encoding="utf-8"))
-    if mutation == "v1":
-        stored["schema_version"] = 1
-    elif mutation == "sources":
-        stored["sources"] = []
-    elif mutation == "registry_hash":
-        stored["source_files"][snapshot.REGISTRY] = "0" * 64
+    "mutation",
+    ["missing_owner", "extra_owner", "missing_entry", "bad_header", "bad_hash", "escape"],
+)
+def test_invalid_compiled_owner_is_rejected(tmp_path, monkeypatch, mutation):
+    root = _seed(tmp_path, monkeypatch) / LIBRARY
+    inputs = root / "_compiled" / INPUTS
+    data = json.loads(inputs.read_bytes())
+    if mutation == "missing_owner":
+        del data["alpha"]
+    elif mutation == "extra_owner":
+        data["other"] = data["alpha"]
     elif mutation == "missing_entry":
-        stored["source_files"].pop(source_entry(stored["skill_documents"]["original"]))
+        del data["alpha"]["files"]["SKILL.md"]
+    elif mutation == "bad_hash":
+        data["alpha"]["files"]["SKILL.md"] = "invalid"
+    elif mutation == "escape":
+        data["alpha"]["files"]["../outside"] = "f" * 64
     else:
-        del stored["origin"]
+        data["alpha"]["header"]["name"] = "other"
+    inputs.write_text(json.dumps(data), encoding="utf-8")
     with pytest.raises(ValueError):
-        snapshot.resolve(stored, manifest)
-
-
-def test_snapshot_pack_reads_only_the_root_manifest_and_stored_records(tmp_path, monkeypatch):
-    pack = tmp_path / "knowledge/data/repo_packs/inferrsi/knowledge"
-    source = record_files()[0]
-    target = pack / source.relative_to(GENERATED)
-    target.parent.mkdir(parents=True)
-    target.write_bytes(source.read_bytes())
-    (pack / snapshot.MANIFEST).write_bytes((GENERATED / snapshot.MANIFEST).read_bytes())
-    monkeypatch.setattr(catalog, "files", lambda _: tmp_path)
-    assert len(catalog.knowledge_records()) == 1
-    # Only the root manifest is the snapshot; a nested copy is an invalid record.
-    nested = target.parent / snapshot.MANIFEST
-    nested.write_bytes((pack / snapshot.MANIFEST).read_bytes())
-    with pytest.raises(ValueError, match="not schema 2"):
-        catalog.knowledge_records()
-    nested.unlink()
-    # Schema-1 and schema-2 records never mix in one snapshot pack.
-    manifest = json.loads((pack / snapshot.MANIFEST).read_text(encoding="utf-8"))
-    public = snapshot.resolve(json.loads(target.read_text(encoding="utf-8")), manifest)
-    target.write_text(json.dumps(public), encoding="utf-8")
-    with pytest.raises(ValueError, match="not schema 2"):
-        catalog.knowledge_records()
+        list(skill_views(root))
 
 
 # Fixture identity and settings; hosted runners have no global Git identity.
@@ -158,10 +128,6 @@ def _generate(root, monkeypatch):
     _git(root, "commit", "-q", "-m", "Regenerate projections")
 
 
-def _changed(root, base):
-    return set(_git(root, "diff", "--name-only", base, "HEAD").splitlines())
-
-
 def _seed(tmp_path, monkeypatch):
     root = tmp_path / "repo"
     root.mkdir()
@@ -190,9 +156,11 @@ def test_single_owner_edit_rewrites_only_its_record_and_the_snapshot(tmp_path, m
     _generate(root, monkeypatch)
     generated = DESTINATION.as_posix()
     assert _git(root, "diff", "--name-only", edit, "HEAD").splitlines() == sorted([
-        f"{generated}/{snapshot.MANIFEST}", f"{generated}/common/skills/alpha.json",
+        f"{generated}/{snapshot.MANIFEST}", f"{generated}/{INPUTS}",
     ])
-    assert f"{generated}/common/skills/bravo.json" not in _changed(root, base)
+    def bravo(ref):
+        return json.loads(_git(root, "show", f"{ref}:{generated}/{INPUTS}"))["bravo"]
+    assert bravo(base) == bravo("HEAD")
     # Regeneration from the same source is byte-identical.
     assert index_builder.main(["--source-revision", edit, "--check"]) == 0
 
@@ -211,22 +179,20 @@ def test_parallel_owner_edits_integrate_in_either_order(tmp_path, monkeypatch, o
             # Only the shared snapshot may collide (the fixture has no coverage view);
             # take either side, then regenerate it from the merged source.
             conflicted = set(_git(root, "diff", "--name-only", "--diff-filter=U").splitlines())
-            assert conflicted == {f"{generated}/{snapshot.MANIFEST}"}
-            _git(root, "checkout", "--ours", "--", f"{generated}/{snapshot.MANIFEST}")
+            expected = {f"{generated}/{snapshot.MANIFEST}", f"{generated}/{INPUTS}"}
+            assert conflicted and conflicted <= expected
+            _git(root, "checkout", "--ours", "--", *sorted(conflicted))
             _git(root, "add", "-A")
             _git(root, "commit", "-q", "--no-edit")
         _generate(root, monkeypatch)
     for owner in ("alpha", "bravo"):
         body = (root / LIBRARY / "methods" / owner / "SKILL.md").read_text(encoding="utf-8")
         assert f"{owner} contribution" in body
-        stored = json.loads((root / generated / f"common/skills/{owner}.json").read_text(
-            encoding="utf-8"))
-        entry = f"{LIBRARY.as_posix()}/methods/{owner}/SKILL.md"
-        assert stored["source_files"][entry] == hashlib.sha256(body.encode("utf-8")).hexdigest()
-    # The untouched owner's stored record never changes.
-    charlie = f"{generated}/common/skills/charlie.json"
-    assert _git(root, "rev-parse", f"{seeded}:{charlie}") == _git(
-        root, "rev-parse", f"HEAD:{charlie}")
+        stored = json.loads((root / generated / INPUTS).read_bytes())[owner]
+        assert stored["files"]["SKILL.md"] == hashlib.sha256(body.encode("utf-8")).hexdigest()
+    def charlie(ref):
+        return json.loads(_git(root, "show", f"{ref}:{generated}/{INPUTS}"))["charlie"]
+    assert charlie(seeded) == charlie("HEAD")
 
 
 def test_same_owner_divergent_edits_remain_an_explicit_conflict(tmp_path, monkeypatch):
@@ -246,12 +212,14 @@ def test_check_detects_tampered_or_missing_snapshot(tmp_path, monkeypatch):
     revision = _git(root, "rev-parse", "HEAD~1")
     manifest = root / DESTINATION / snapshot.MANIFEST
     original = manifest.read_text(encoding="utf-8")
+    manifest.write_bytes(original.replace("\n", "\r\n").encode("utf-8"))
+    assert index_builder.main(["--source-revision", revision, "--check"]) == 1
     manifest.write_text(original.replace(revision, "b" * 40), encoding="utf-8")
     assert index_builder.main(["--source-revision", revision, "--check"]) == 1
     manifest.unlink()
     assert index_builder.main(["--source-revision", revision, "--check"]) == 1
-    manifest.write_text(original, encoding="utf-8")
-    record = root / DESTINATION / "common/skills/alpha.json"
+    manifest.write_text(original, encoding="utf-8", newline="\n")
+    record = root / DESTINATION / INPUTS
     stored = json.loads(record.read_text(encoding="utf-8"))
     stored["sources"] = []
     record.write_text(json.dumps(stored), encoding="utf-8")

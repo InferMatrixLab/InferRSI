@@ -55,7 +55,7 @@ for benchmark_name in builtin_tasks():
         assert root.joinpath(resource_name).is_file(), (benchmark_name, resource_name)
 records = knowledge_records()
 assert len(records) == 129, "Knowledge is missing from the installation"
-assert resource("data/repo_packs/vllm_omni/knowledge/README.md").is_file()
+assert resource("data/skill_library/records/README.md").is_file()
 assert repository_pack("vllm_rlt")["id"] == "vllm_rlt"
 assert search_knowledge(repo="vllm_omni", backend="ascend")
 assert all(not item["verification"]["locally_verified"] for item in records)
@@ -230,7 +230,7 @@ assert selection_core["content"].encode() == selection_reader.resource(
 )
 assert selection["context_bytes"] <= 65536
 assert "yaml" not in sys.modules, "Packaged selection must not require the skills extra"
-assert resource("data/knowledge_packs/README.md").is_file()
+assert resource("data/skill_library/_compiled/inputs.json").is_file()
 for tier, count in (("dependency", 6), ("peer", 5)):
     imported = search_knowledge(tier=tier, limit=100)
     assert len(imported) >= count, f"Missing installed {tier} records"
@@ -338,7 +338,7 @@ assert [item["id"] for item in ascend_image] == [
     "vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i"
 ]
 assert resource(
-    "data/repo_packs/vllm_omni/knowledge/ascend/diffusion/qwen-image-21-eager-t2i.json"
+    "data/skill_library/records/vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i.json"
 ).is_file()
 output = io.StringIO()
 with contextlib.redirect_stdout(output):
@@ -546,7 +546,7 @@ inventory = {
     **_inventory(files("inferrsi").joinpath("knowledge", "data"), "knowledge/data"),
     **_inventory(files("inferrsi").joinpath("harness", "data"), "harness/data"),
 }
-assert len(inventory) == 940, f"installed resource count is {len(inventory)}, expected 940"
+assert len(inventory) == 854, f"installed resource count is {len(inventory)}, expected 854"
 assert sum(name.startswith("harness/data/") for name in inventory) == len(REPO_TYPES)
 # Every pinned record path and every registered skill body resolves inside that
 # same enumeration, so the inventory and the records describe one resource set.

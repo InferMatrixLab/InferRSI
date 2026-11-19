@@ -1,87 +1,137 @@
 # Knowledge layout and retrieval
 
-Use the [task cards](../src/inferrsi/knowledge/data/skill_library/tasks/inference-task-router/SKILL.md) when the deliverable is known. Use `inferrsi find` for symptom-based discovery or open a known owner directly. [Knowledge base contract](knowledge-base.md) · [Migration manifest](skill-layout-migration.csv)
+Start from the work an engineer needs to finish. The library has one physical root, one source location per registered skill and one authored file per engineering finding. Search and the catalog are two views over those sources. The migration manifest maps historical checkout paths and revisions. [Migration manifest](skill-layout-migration.csv)
 
-## 1. Task entry, supporting knowledge and evidence
-
-The task entry is optional. It is registered alongside the 80 support packages, and its seven cards are packaged resources. A compound request can select secondary tasks. The 20 distinct seed IDs are starting points; direct search and reads remain available.
+## 1. Task layers and evidence
 
 ```mermaid
 flowchart TB
-    A["Requested deliverable"] --> T["tasks / inference-task-router · 1 registered entry"]
-    A -->|Known ID or symptom: bypass the entry| E["Read source at revision and check applicability"]
-    T --> R1["Day-0 model · performance · debug · accuracy"]
-    T --> R2["Version alignment · derived engine · independent engine"]
-    R1 --> C["Conditions: model stages, engine / revision, backend, device, OS, dtype, workload"]
-    R2 --> C
-    C --> S["systems · 53<br/>platform, framework, engine"]
-    C --> P["playbooks · 17<br/>measurement, planning, optimization"]
-    C --> W["workflows · 8<br/>research, governance, maintenance"]
-    C --> B["casebooks · 2<br/>prior outcomes and retry conditions"]
-    S --> E
-    P --> E
-    W --> E
-    B --> E
+    Q["Requested deliverable"] --> R["tasks / inference-task-router · 1 skill"]
+    R --> A["Day-0 model · performance · debugging · accuracy"]
+    R --> B["Version alignment · derived engine · independent engine"]
+    A --> C["Model family / stages + engine revision + backend / device + OS + workload / dtype"]
+    B --> C
+    C --> S["systems · 53<br/>platforms / frameworks / engines"]
+    C --> P["playbooks · 17<br/>measurement / planning / optimization"]
+    C --> W["workflows · 8<br/>research / governance / maintenance"]
+    C --> K["casebooks · 2<br/>previous outcomes and retry conditions"]
+    S & P & W & K --> E["Verify applicability against a case, an authored record or frozen evidence"]
+    E --> O["Cite revision, observation, limitations and next check"]
 ```
 
-[Chinese diagram (PNG)](assets/knowledge-layout/01-task-layers.png)
+![Task layers and evidence (Chinese)](assets/knowledge-layout/01-task-layers.png)
 
-## 2. Physical directory and provenance
-
-Counts refer to registered bundles. Each ID has one source location. Individual bundles may carry references or cases. Contribution records, dependency and peer records, and frozen experiments have separate owners.
+## 2. One physical knowledge root
 
 ```mermaid
 flowchart LR
-    ROOT["InferRSI"] --> DATA["src/inferrsi/knowledge/data/"]
-    ROOT --> EV["evidence / campaign<br/>frozen plans, results, validators"]
-    DATA --> REG["skill_library / skill-index.json<br/>stable ID → path + declared backend"]
-    DATA --> SRC["repo_packs/ and knowledge_packs/<br/>contribution, dependency, peer records"]
-    DATA --> L["skill_library/"]
-    L --> T["tasks/inference-task-router/<br/>SKILL.md · metadata.json · references/routes/*.json"]
-    L --> S["systems/<br/>platforms/{ascend,cuda,host} · frameworks · engines"]
-    L --> P["playbooks/<br/>measurement · planning · optimization"]
-    L --> W["workflows/<br/>research · governance · maintenance"]
-    L --> C["casebooks/<br/>inference · ascend"]
+    D["src/inferrsi/knowledge/data/"] --> L["skill_library/ · sole child"]
+    L --> T["tasks/inference-task-router/references/routes/<br/>7 task cards"]
+    L --> S["systems/ · playbooks/<br/>workflows/ · casebooks/"]
+    T & S --> O["Registered owner<br/>SKILL.md + metadata + references / cases"]
+    L --> F["records/&lt;stable-id&gt;.json<br/>48 authored findings"]
+    L --> CFG["config/<br/>query_aliases.json + research_profiles/"]
+    L --> REG["skill-index.json<br/>stable skill ID → owner + backend"]
+    L --> BUILD["_compiled/<br/>inputs.json + _provenance.json"]
+    O & REG -.->|generate from committed inputs| BUILD
+    H["harness/data/repo_packs/ · execution targets"]
+    E["evidence/ · frozen campaign artifacts"]
 ```
 
-[Chinese diagram (PNG)](assets/knowledge-layout/02-physical-layout.png)
+![One physical knowledge root (Chinese)](assets/knowledge-layout/02-physical-layout.png)
 
-## 3. Search, direct reads and delivery
-
-Default `find` ranks 135 evidence entries: 80 skills, 48 records and 7 cases. It excludes the task entry before computing IDF. Applicability checks belong to the reader or agent. Scores apply within their own retrieval method. The dashed box is an unimplemented proposal.
+## 3. Search paths and evidence delivery
 
 ```mermaid
 flowchart TB
-    Q["Engineer or agent"] --> T["Known task: skills show → read one route card"]
-    Q --> F["Symptom: find → ranked evidence owners"]
-    Q --> I["Known ID / resource: direct read"]
-    T --> SE["Candidate IDs + required inputs + acceptance checks"]
-    SE --> V["Reader / caller verifies revision, device, version and workload"]
-    F --> V
-    I --> V
-    V --> OK["Applicable evidence → cite owner, revision and resource"]
-    V --> GAP["Analogue or gap → name missing evidence and smallest target check"]
-    F -.-> NEXT["Proposed: exact symbol / finding lookup and automatic condition matching"]
+    Q["Input"] -->|Known task| T["Open one route card → seed IDs + acceptance criteria"]
+    Q -->|Symptom or question| F["find → aliases + weighted lexical retrieval"]
+    Q -->|Stable ID| I["read / resource → open owner at revision"]
+    Q -->|Repo / backend / scenario / tier| C["knowledge search / show → schema-1 catalog"]
+    F --> A["80 skill owners + 48 findings + 7 cases<br/>task entry excluded before IDF"]
+    C --> B["48 authored records + 81 skill views built on request"]
+    T & A & I & B --> V["Check source revision, model, device, OS and workload"]
+    V --> X["Applicable → cite source / case and verification status"]
+    V --> G["Partial match or gap → record unknown + smallest discriminating test"]
 ```
 
-[Chinese diagram (PNG)](assets/knowledge-layout/03-search-and-delivery.png)
+![Search paths and evidence delivery (Chinese)](assets/knowledge-layout/03-search-and-delivery.png)
 
-## 4. Mapping the 80 original registered bundles
-
-Arrows count physical bundle moves by stable ID. They do not redirect old paths or digests. **79 readable skills:** old checkout pins are rejected at the new snapshot. **7 cases:** the old pins still resolve. **`husky`:** source validation fails on both snapshots. The new entry adds one registered skill.
+## 4. Before and after
 
 ```mermaid
 flowchart LR
-    H["hardware · 22"] -->|21| S["systems · 53"]
-    H -->|1| C["casebooks · 2"]
-    FW["frameworks · 5"] -->|5| S
-    RE["repositories · 27"] -->|27| S
-    M["methods · 20"] -->|17| P["playbooks · 17"]
-    M -->|2| W["workflows · 8"]
-    M -->|1| C
-    OW["workflows · 6"] -->|6| W
-    NEW["New entry"] -->|1| T["tasks · 1"]
-    NOTE["Cutover check: 79 old skill pins rejected<br/>7 case pins retained<br/>husky unavailable on both snapshots"]
+    subgraph OLD["main · before #516"]
+        A["skill_library/<br/>hardware / frameworks / repositories / methods / workflows"]
+        B["repo_packs + knowledge_packs<br/>28 contribution + 9 dependency + 11 peer records"]
+        C["Generated packaged-skill JSON<br/>plus navigation and shared provenance"]
+        D["data/query_aliases.json + research_profiles/"]
+    end
+    subgraph NEW["PR · knowledge/data/skill_library/"]
+        N["tasks / systems / playbooks / workflows / casebooks<br/>1 + 53 + 17 + 8 + 2"]
+        R["records/ · 48 originals<br/>tier stored or defaulted in each record"]
+        V["Runtime skill views<br/>one registry + two machine-generated build inputs"]
+        P["config/ · aliases + profiles"]
+    end
+    A -->|move 80 owners and add task entry| N
+    B -->|same bytes and IDs| R
+    C -->|remove mirrored record files| V
+    D --> P
 ```
 
-[Chinese diagram (PNG)](assets/knowledge-layout/04-before-after.png)
+![Before and after (Chinese)](assets/knowledge-layout/04-before-after.png)
+
+## Directory contract
+
+```text
+src/inferrsi/knowledge/data/
+└── skill_library/
+    ├── tasks/inference-task-router/        SKILL.md, metadata.json, references/routes/*.json
+    ├── systems/                           platforms/{ascend,cuda,host}, frameworks/, engines/
+    ├── playbooks/                         measurement/, planning/, optimization/
+    ├── workflows/                         research/, governance/, maintenance/
+    ├── casebooks/                         inference/, ascend/
+    ├── records/<stable-id>.json            28 contribution + 9 dependency + 11 peer
+    ├── config/                            query_aliases.json, research_profiles/
+    ├── skill-index.json                   stable ID → directory and backend
+    └── _compiled/                         inputs.json, _provenance.json
+```
+
+The README documents the library. A procedure, including its resources, belongs in one registered directory. An engineering record carries its own sources, applicability and verification status. Its filename must match its stable ID. The registry locates each skill. Builds compile YAML headers and pinned Git fingerprints required by the base wheel. The catalog reads canonical sidecars and emits the public schema-1 record on demand. Publishing the same skill under multiple engine or accelerator trees would require synchronized edits. Represent these dimensions on the task card and in owner metadata. [Record authoring guide](../src/inferrsi/knowledge/data/skill_library/records/README.md)
+
+## Seven deliverables
+
+| Task card | Inputs to distinguish | Acceptance evidence |
+| --- | --- | --- |
+| Day-0 model | Model revision, stages, reference implementation, backend | Stage outputs, first end-to-end result, regression fixture |
+| Performance | Target metric, workload, bottleneck, quality floor | Paired baseline/candidate runs, quality check and variability |
+| Debug | Symptom, last-good configuration, first failing stage | Minimal reproduction, implicated boundary, regression check |
+| Accuracy | Reference outputs, dtype, preprocessing, seeds | First divergence, agreed tolerance and end-to-end result |
+| Version alignment | Versions of vLLM, vLLM-Omni, vLLM-Ascend and afd-plugin as applicable | Compatibility matrix, paired versions and rollback point |
+| Derived engine | Parent revision, inherited APIs and changed paths | Upstream behavior checks and tests of the fork delta |
+| Independent engine | Runtime, model format, device, OS and operator availability | Device-native first result, capability gaps and resource bounds |
+
+A Windows TTS accuracy regression during an engine upgrade can start with accuracy and use version alignment as a secondary card. Establish the last-good input, wrapper, preprocessing and audio comparison. An Ascend 910B1 TTS report is an analogue until the caller supplies target-specific evidence. Conversely, an exact match to its documented model, fixed prompt, wrapper and device deserves consideration. LLM, Omni, TTS, Diffusion and RLT are workload conditions. CUDA, ROCm, Ascend, XPU, mobile and Windows are scoped explicitly. A route mentioning a target establishes a question to test. Use a supported CLI filter only where the reader implements it.
+
+## Search and read examples
+
+```bash
+inferrsi skills resource inference-task-router references/routes/accuracy.json
+inferrsi find "TTS quality regression after engine upgrade"
+inferrsi knowledge search --tier peer --repo-type qwen3_tts_engine --backend ascend --json
+inferrsi knowledge show flashinfer.cuda.llm.paged_decode_dispatch
+```
+
+Known task cards seed 20 distinct skill IDs across seven routes. Known IDs can skip routing. Free-text discovery ranks the owner once and returns a path, evidence state and explanation. Typed catalog search filters first and returns the public record. The caller checks applicability before applying a result. A finding or failed attempt can be proposed as a record with a source, a scoped conclusion and a retry condition. The program does not autonomously promote session notes.
+
+## Design choices and benefits
+
+Agent V describes Git-backed shared memory with human guidance, hard-to-rediscover facts, indexed workflows and session experience. InferRSI adopts the distinction between a procedure, a scoped finding and a run. Accepted findings enter through review. Frozen experiment materials stay in `evidence/`. [Agent V](https://inferact.ai/news/agent-v-connecting-people-and-agents-for-autonomous-inference)
+
+MindIE Agent separates agent capabilities, knowledge and execution plugins. KDA specializes in kernel development. Cannbot Skills packages Ascend procedures for reuse. InferRSI needs cross-engine, cross-model and cross-platform retrieval as well as evidence qualification. It combines a task front door, technical owners, stable IDs and scoped evidence. A claim that it retrieves better than any of these projects requires a common task benchmark. [MindIE Agent](https://github.com/mindie-agent/mindie-agent) · [KDA](https://github.com/NVlabs/kda) · [Cannbot Skills](https://github.com/hicann/cannbot-skills)
+
+Measure with three arms on the same corpus and tool budget: prior layout and search, unified layout with direct search, and unified layout with optional routing. Use held-out tasks across the seven types, blinded reviewers and paired cases with an applicable answer and a similar-looking incompatible target. Record top-five applicable-source recall, wrong transfers, justified abstentions, time to first cited evidence, files opened and maintenance time per accepted change. Approve broader rollout only when the team meets its predeclared quality and cost targets.
+
+The authoring benefit is directly inspectable: one finding file or one skill owner is edited; no per-pack navigation list or projected record is maintained. Two compiled files are reproducible build products. Their shared merge point is a cost: resolve source edits, then regenerate. The build-time Git pin identifies source provenance. Installed material selection checks the resource hashes. Whole-library dependency revisions, checkout revisions, and hashes of individual findings have different scopes. Historical checkout pins must be replayed on the corresponding snapshot. The full layout migration rejects 79 old checkout skill pins, retains seven case pins and preserves the pre-existing unavailable `husky` read. Direct callers that open old pack filenames must move to the record ID or new path.
+
+The 48 original record files retain their bytes. An installed package bundle for an authored record that declares linked skill documents also includes library dependencies. Editing a referenced library file can change that bundle revision. Archive a known-good snapshot for pinned replay.

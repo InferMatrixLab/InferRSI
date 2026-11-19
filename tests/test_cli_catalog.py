@@ -3,7 +3,6 @@
 import contextlib
 import io
 import json
-import re
 import shlex
 import subprocess
 import sys
@@ -142,18 +141,14 @@ class CatalogTests(unittest.TestCase):
 
 
 def test_knowledge_has_one_canonical_record_and_complete_navigation():
-    packs = PROJECT / "src/inferrsi/knowledge/data/repo_packs"
-    canonical_paths = list(packs.glob("*/knowledge/*/*/*.json"))
-    records = search_knowledge(tier="contribution", limit=len(canonical_paths))
-    assert len(records) == len(canonical_paths)
-    for repo in {record["repo"] for record in records}:
-        root = packs / repo / "knowledge"
-        paths = list(root.glob("*/*/*.json"))
-        assert len(paths) == len([record for record in records if record["repo"] == repo])
-        assert list(root.rglob("*.md")) == [root / "README.md"]
-        index = (root / "README.md").read_text(encoding="utf-8")
-        targets = set(re.findall(r"\]\(([^)]+\.json)\)", index))
-        assert targets == {path.relative_to(root).as_posix() for path in paths}
+    root = PROJECT / "src/inferrsi/knowledge/data/skill_library/records"
+    records = search_knowledge(tier="contribution", limit=200)
+    authored = [r for r in records if r.get("index_type") != "packaged-skill"]
+    assert {r["id"] for r in authored} == {
+        path.stem for path in root.glob("*.json")
+        if json.loads(path.read_bytes()).get("tier", "contribution") == "contribution"
+    }
+    assert sum(r.get("index_type") == "packaged-skill" for r in records) == 81
     for record in records:
         assert "/pull/" not in json.dumps(record)
         assert record["verification"]["evidence_level"] in ("guidance", "upstream_reported")
@@ -183,8 +178,8 @@ def test_misfiled_or_overstated_record_cannot_leak_into_context(
     record[field] = value
     destination = (
         tmp_path
-        / "knowledge/data/repo_packs/vllm_omni/knowledge/ascend/diffusion"
-        / "qwen-image-21-eager-t2i.json"
+        / "knowledge/data/skill_library/records"
+        / "vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i.json"
     )
     destination.parent.mkdir(parents=True)
     destination.write_text(json.dumps(record))

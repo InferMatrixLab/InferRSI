@@ -247,6 +247,9 @@ def _tree(
         ancestors = ancestors | {directory}
     result = {}
     for child in sorted(node.iterdir(), key=lambda p: p.name):
+        # Auxiliary library entries are outside the historical skill resource closure.
+        if prefix == "data/skill_library" and child.name in {"records", "config", "_compiled"}:
+            continue
         if child.name in INCIDENTAL or child.name.endswith(".pyc"):
             continue
         path = safe_path(f"{prefix}/{child.name}")

@@ -42,6 +42,17 @@ def _ranked(result, identity):
     return None
 
 
+def test_find_loads_canonical_owners_without_compiled_catalog(monkeypatch):
+    from inferrsi.knowledge import catalog
+
+    def unexpected_view(*args, **kwargs):
+        pytest.fail("find materialized a duplicate packaged-skill view")
+
+    monkeypatch.setattr(catalog, "skill_views", unexpected_view)
+    corpus = load_corpus(ROOT)
+    assert len(corpus.documents) == len({doc.identity for doc in corpus.documents}) == 135
+
+
 def test_corpus_covers_all_three_kinds_without_double_counting(corpus):
     kinds = {}
     for document in corpus.documents:
@@ -51,6 +62,7 @@ def test_corpus_covers_all_three_kinds_without_double_counting(corpus):
     day0 = find("day-0 model integration on Ascend", corpus, limit=3)
     assert day0["items"] and _ranked(day0, "inference-task-router") is None
     assert kinds["case"] == 7
+    assert kinds["record"] == 48
     # Packaged-skill projections are excluded so one owner is not ranked twice.
     assert all(
         document.kind != "record" or "skills." not in document.identity

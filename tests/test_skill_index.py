@@ -177,7 +177,7 @@ def test_index_checks_drift_and_rejects_changed_or_added_source_inputs(tmp_path,
     monkeypatch.setattr(index_builder, "LIBRARY", fixture_library)
     assert index_builder.main(["--source-revision", "HEAD"]) == 0
     assert index_builder.main(["--source-revision", "HEAD", "--check"]) == 0
-    generated = tmp_path / DESTINATION / "common/skills/example.json"
+    generated = tmp_path / DESTINATION / "inputs.json"
     generated.write_text("changed projection", encoding="utf-8")
     assert index_builder.main(["--source-revision", "HEAD", "--check"]) == 1
     assert generated.read_text(encoding="utf-8") == "changed projection"
@@ -227,22 +227,18 @@ def test_repinned_corpus_accepts_a_new_source_revision_at_the_checkout_path(tmp_
     monkeypatch.setattr(index_builder, "LIBRARY", LIBRARY)
 
     first = build_index(tmp_path, "HEAD")
-    record = json.loads(first["common/skills/example.json"])
-    recorded = set(record["source_files"])
-    assert recorded
-    prefix = LIBRARY.as_posix()
-    assert all(path.startswith(prefix + "/") for path in recorded), recorded
-    entry = f"{prefix}/methods/example/SKILL.md"
-    assert record["source_files"][entry] == hashlib.sha256(original.encode("utf-8")).hexdigest()
+    record = json.loads(first["inputs.json"])["example"]
+    assert set(record["files"]) == {"SKILL.md"}
+    assert record["files"]["SKILL.md"] == hashlib.sha256(original.encode("utf-8")).hexdigest()
 
     changed = original + "Changed body\n"
     (root / "SKILL.md").write_text(changed, encoding="utf-8", newline="\n")
     git("add", LIBRARY.as_posix())
     commit("Edit the skill")
     second = build_index(tmp_path, "HEAD")
-    updated = json.loads(second["common/skills/example.json"])
-    assert updated["source_files"][entry] == hashlib.sha256(changed.encode("utf-8")).hexdigest()
-    assert updated["source_files"][entry] != record["source_files"][entry]
+    updated = json.loads(second["inputs.json"])["example"]
+    assert updated["files"]["SKILL.md"] == hashlib.sha256(changed.encode("utf-8")).hexdigest()
+    assert updated["files"]["SKILL.md"] != record["files"]["SKILL.md"]
 
 
 def test_package_index_and_checkout_skill_have_distinct_read_boundaries():

@@ -77,8 +77,7 @@ def test_old_resource_tier_is_gone_and_the_two_roots_hold_every_resource(checkou
     assert sorted(harness) == sorted(
         f"harness/data/repo_packs/{repo}/pack.json" for repo in REPO_TYPES
     )
-    for group in ("skill_library", "knowledge_packs", "research_profiles", "repo_packs"):
-        assert any(name.startswith(f"knowledge/data/{group}/") for name in knowledge), group
+    assert {name.split("/")[2] for name in knowledge} == {"skill_library"}
 
 
 def test_importlib_and_checkout_loaders_resolve_the_same_files_and_bytes(checkout_inventory):
@@ -130,5 +129,5 @@ def test_bundle_keys_and_pinned_provenance_survive_the_physical_move():
     assert "data/skill_library" in bundle.dependencies
     # After the explicit re-pin, LIBRARY agrees with today's checkout path.
     assert _source_snapshot.LIBRARY == "src/inferrsi/knowledge/data/skill_library"
-    snapshot = KNOWLEDGE_DATA / "repo_packs" / "inferrsi" / "knowledge" / _source_snapshot.MANIFEST
+    snapshot = KNOWLEDGE_DATA / "skill_library" / "_compiled" / _source_snapshot.MANIFEST
     assert f'"{_source_snapshot.REGISTRY}"' in snapshot.read_text(encoding="utf-8")

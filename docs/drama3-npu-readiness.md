@@ -31,7 +31,7 @@ These records describe the same GPU design family. They share lineage and do
 | Source | Pin | Role here | Status |
 |---|---|---|---|
 | [david6666666/drama-3-single-b300-inference](https://github.com/david6666666/drama-3-single-b300-inference/tree/58a1882a4d941f8d21bfce6be37d3d5e7c9fde80) | `58a1882a` (RFC-pinned) | GPU reference engine motivating the NPU questions; Python engine with persistent request state, CUDA Graphs, incremental audio decoding, native FP8 routed experts | external source; inspected only at the RFC-selected commits below |
-| [`vllm_omni.cuda.audio.concurrency_scaling_state_and_overlap`](../src/inferrsi/knowledge/data/repo_packs/vllm_omni/knowledge/cuda/audio/concurrency-scaling-state-and-overlap.json) | vllm-omni `fish_omni@d6ed4f4` | Existing imported record for the same audio design family (stage/state ownership, mixed prefill, codec overlap, workspace isolation, prefix reuse, FP8 MoE) | `imported`, `locally_verified=false`, CUDA |
+| [`vllm_omni.cuda.audio.concurrency_scaling_state_and_overlap`](../src/inferrsi/knowledge/data/skill_library/records/vllm_omni.cuda.audio.concurrency_scaling_state_and_overlap.json) | vllm-omni `fish_omni@d6ed4f4` | Existing imported record for the same audio design family (stage/state ownership, mixed prefill, codec overlap, workspace isolation, prefix reuse, FP8 MoE) | `imported`, `locally_verified=false`, CUDA |
 | [`evidence/drama3-b300-scale150/`](../evidence/drama3-b300-scale150/) | issue #10 campaign | Frozen GPU plan + validator + diagnostic lessons from the GPU campaign | campaign **INCONCLUSIVE**; GPU-only |
 | [`case.drama3-rejected-directions`](../src/inferrsi/knowledge/data/skill_library/casebooks/inference/inference-optimization-casebook/cases/drama3-rejected-directions.md) | InferRSI `d51c941` diagnostic ledger | Authoritative casebook entry for the campaign's rejected directions and invalid controls (async overlap/shared capture workspace, production prefix reuse, padding-history harness mismatch); reused here, not restated | `historical_observation`; derived from the campaign above, so same lineage |
 
@@ -54,8 +54,8 @@ TorchNPU allocator skills (`torchnpu-device-memory-lifecycle`,
 `torchnpu-pinned-host-memory-lifecycle`), measurement/evidence skills
 (`inference-benchmark-design`, `dense-performance-evidence`, `rsi-evidence`),
 and the omni/audio records
-([`stage_ownership_and_search`](../src/inferrsi/knowledge/data/repo_packs/vllm_omni/knowledge/common/omni/stage-ownership-and-search.json),
-[`streaming_serving_measurement`](../src/inferrsi/knowledge/data/repo_packs/vllm_omni/knowledge/common/audio/streaming-serving-measurement.json)).
+([`stage_ownership_and_search`](../src/inferrsi/knowledge/data/skill_library/records/vllm_omni.common.omni.stage_ownership_and_search.json),
+[`streaming_serving_measurement`](../src/inferrsi/knowledge/data/skill_library/records/vllm_omni.common.audio.streaming_serving_measurement.json)).
 
 ---
 

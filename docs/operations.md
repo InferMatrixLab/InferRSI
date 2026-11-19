@@ -114,7 +114,7 @@ are distinct from `knowledge search`, whose package catalog filters
 ### Search packaged records — `knowledge search` / `knowledge show`
 
 - **Inputs:** query words plus optional `--tier`, `--repo-type`, `--backend`, `--scenario`, `--limit`, `--json`, `--explain`; `show` takes one record ID.
-- **Scope:** the installed package catalog (`repo_packs`, `knowledge_packs`) only.
+- **Scope:** the installed package catalog (authored records and registered skill views under `skill_library/`) only.
 - **Output:** tab-separated record lines (id, status, backend, title), or a JSON list with `--json`; `--explain` returns a JSON envelope with `items` and `retrieval` (entry, ranking, scores and counts). Python uses `search_knowledge(..., explain=True)` for that envelope. `show` prints one full record as JSON.
 - **Side effects:** none.
 - **Failure behavior:** no match prints nothing and exits 0 — an empty result is not an error (an empty JSON list with `--json`, or empty `items` in the `--explain` envelope); an unknown `show` ID and unsupported filter values exit 2.
@@ -122,7 +122,7 @@ are distinct from `knowledge search`, whose package catalog filters
 
 The tier/repo/backend/scenario filters are package-only: an empty filtered
 result does not mean that no checkout or store knowledge exists. See the
-[three-tier guide](../src/inferrsi/knowledge/data/knowledge_packs/README.md) for all sources.
+[three-tier guide](../src/inferrsi/knowledge/data/skill_library/records/README.md) for all sources.
 
 ### Prepare model-aware research — `knowledge research`
 
@@ -207,7 +207,7 @@ including `昇腾` for Ascend. When the query names exactly one supported backen
 results declared for a different backend receive half their lexical score.
 `--explain` reports the adjusted contribution of each matched term.
 
-Chinese query terms expand through `data/query_aliases.json` before ranking.
+Chinese query terms expand through `data/skill_library/config/query_aliases.json` before ranking.
 The packaged library is English by policy while its readers work in Chinese, and
 the corpus holds too few Chinese characters for a Chinese query to score on its
 subject. Expansion is one-way and query-side: 显存 reaches `device memory`, not
