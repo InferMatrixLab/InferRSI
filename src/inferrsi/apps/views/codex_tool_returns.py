@@ -244,7 +244,7 @@ def correlate_window(trace, commands, meta_cwd, window_lines):
                         and _command_key(candidate) == signature[1]):
                     covered.append(line)
             if len(covered) == 1 and covered[0] == event_line:
-                matching.append((return_line, output_row))
+                matching.append((call["line"], return_line, output_row))
             elif event_line in covered:
                 ambiguous_command = True
         if len(matching) != 1:
@@ -252,20 +252,22 @@ def correlate_window(trace, commands, meta_cwd, window_lines):
             joins[event_id] = {"state": "unknown", "runtime_truncated": None,
                                "reason": reason}
             continue
-        return_line, output_row = matching[0]
+        call_line, return_line, output_row = matching[0]
         response = _response_text(output_row)
         if response is None:
             joins[event_id] = {"state": "unknown", "runtime_truncated": None,
+                               "call_line": call_line,
                                "reason": "outer_result_has_no_text"}
             continue
         indexes, truncated, reason = _match_output_lines(signature[3], response)
         if reason is not None:
             joins[event_id] = {"state": "unknown", "runtime_truncated": truncated,
+                               "call_line": call_line,
                                "reason": reason}
             continue
         joins[event_id] = {
             "state": "visible", "runtime_truncated": truncated,
             "line_indexes": indexes, "aggregate_lines": _output_lines(signature[3], keepends=True),
-            "return_line": return_line,
+            "call_line": call_line, "return_line": return_line,
         }
     return joins

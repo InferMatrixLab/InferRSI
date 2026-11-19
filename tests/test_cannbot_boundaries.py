@@ -304,6 +304,47 @@ def test_platform_override_and_cuda_gate(upstream):
         assert "external" not in json.loads(result.stdout)
 
 
+def test_public_find_displays_an_external_only_hit_and_managed_capture_stays_local(upstream):
+    from inferrsi.apps.views.codex_knowledge import decode, invocation
+
+    _, script, card = upstream
+    invoked = script.with_suffix(".invoked")
+    script.write_text(
+        "import json, sys\n"
+        "from pathlib import Path\n"
+        "Path(__file__).with_suffix('.invoked').touch()\n"
+        f"print(json.dumps({discovery()!r} if sys.argv[1] == 'discover' "
+        f"else {search_payload(card)!r}))\n"
+    )
+    query = "zzcanaryexternalonlyqv"
+    encoded = cli("find", query, "--backend", "ascend", "--json")
+    assert encoded.returncode == 0, encoded.stderr
+    result = json.loads(encoded.stdout)
+    assert result["no_match"] and result["items"] == []
+    external, = result["external"]
+    assert external["state"] == "ok" and external["count"] == 1
+    assert external["items"][0]["locator"] == "ops/card"
+    rendered = cli("find", query, "--backend", "ascend")
+    assert rendered.returncode == 0 and "ops/card" in rendered.stdout
+    for flags, output in ((["--json"], encoded.stdout), ([], rendered.stdout)):
+        call = invocation(["inferrsi", "find", query, "--backend", "ascend", *flags])
+        event, complete, _ = decode(call, 0, output)
+        assert complete and event["materials"] == [{"ref": "cannbot-knowledge:ops/card"}]
+    assert invoked.exists()
+    invoked.unlink()
+
+    campaign = Path.cwd() / "campaign"
+    created = cli("campaign", "init", "--directory", str(campaign), "--id", "local-lookup")
+    assert created.returncode == 0, created.stderr
+    captured = cli("campaign", "capture-context", "--directory", str(campaign),
+                   "--id", "lookup", "--backend", "ascend", query)
+    assert captured.returncode == 0, captured.stderr
+    doc = json.loads((campaign / json.loads(captured.stdout)["context"]).read_text())
+    assert doc["retrieval"]["calls"] == ["campaign capture-context", "collect", "find"]
+    assert doc["items"] == [] and doc["contexts"] == []
+    assert not invoked.exists()
+
+
 @pytest.mark.skipif(os.name != "posix", reason="POSIX process-group cleanup")
 @pytest.mark.parametrize("phase", ["discover", "search"])
 def test_cli_deadline_kills_upstream_descendants(upstream, phase):

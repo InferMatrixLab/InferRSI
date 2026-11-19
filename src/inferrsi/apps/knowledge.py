@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from inferrsi.knowledge.knowledge_operations import KnowledgeReader
+from inferrsi.knowledge.knowledge_operations import KnowledgeReader, safe_path
 from inferrsi.knowledge.knowledge_store import KnowledgeStore
 
 
@@ -28,9 +28,15 @@ def knowledge_reader(
 
 
 def read(
-    reader: KnowledgeReader, reference: str, *, revision: str | None = None, material: bool = False,
+    reader: KnowledgeReader, reference: str, *, revision: str | None = None,
+    material: bool = False, resource: str | None = None,
 ) -> tuple[str, str, dict]:
     """Return the qualified reference, actual revision, and public Bundle view."""
     qualified, bundle = reader.read_resolved(reference, revision=revision)
-    view = bundle.view(material=material)
+    view = bundle.view(material=material and resource is None)
+    if resource is not None:
+        path = safe_path(resource)
+        if path not in bundle.content:
+            raise ValueError(f"Unknown resource: {path}")
+        view.update(content=bundle.content[path].decode("utf-8"), content_resource=path)
     return qualified, view["revision"], view

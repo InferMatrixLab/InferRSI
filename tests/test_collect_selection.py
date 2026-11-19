@@ -4,8 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from inferrsi.apps.cli import main
-from inferrsi.knowledge._skill_selection import lexical_score
+from inferrsi.knowledge._skill_selection import FIND_RELEVANCE
 from inferrsi.knowledge.knowledge_operations import Bundle, KnowledgeReader, _hash, _json
 from inferrsi.knowledge.knowledge_store import KnowledgeStore
 
@@ -15,34 +14,31 @@ H3 = "inferrsi.common.skills.audit_h3_runtime_residency"
 AFD = "inferrsi.cuda.skills.audit_afd_p2p_exchanges"
 
 
-@pytest.mark.parametrize(("cue", "query", "identity", "first"), [
-    ("cgroupv2", "", CGROUP, True),
-    ("MiniMax-H3 AdaLN SSD", "", H3, False),
-    ("P2pNccl", "", AFD, True),
-    ("DLRover replica recovery", "",
-     "inferrsi.common.skills.checkpoint_recovery_consistency", False),
-    ("cgroupv2", "cpu.stat.local", CGROUP, False),
+@pytest.mark.parametrize(("cue", "identity"), [
+    ("cgroupv2", CGROUP),
+    ("MiniMax-H3 AdaLN SSD", H3),
+    ("P2pNccl", AFD),
+    ("DLRover replica recovery", "inferrsi.common.skills.checkpoint_recovery_consistency"),
+    ("cgroupv2 cpu.stat.local", CGROUP),
 ])
-def test_frozen_offline_pilot(cue, query, identity, first):
-    result = KnowledgeReader().collect(query, relevance=cue, context_bytes=65536, limit=3)
-    identities = [item["id"] for item in result["items"]]
-    assert identity in identities
-    if first:
-        assert identities[0] == identity
+def test_find_discovery_returns_known_material_with_a_context_budget(cue, identity):
+    result = KnowledgeReader().collect(relevance=cue, context_bytes=65536, limit=3)
+    assert result["items"][0]["id"] == identity
     assert not [o for o in result["omissions"] if o["reason"] == "index_unavailable"]
     assert result["context_bytes"] <= 65536
 
 
-def test_no_match_and_query_remains_token_and_substring_matching():
+def test_default_query_and_relevance_use_the_same_find_ranking():
     reader = KnowledgeReader()
     assert reader.collect(relevance="floristry orchid")["no_match"]
-    item = reader.read(CGROUP)
-    assert "cpu.stat.local" not in json.dumps(item.metadata).casefold()
-    assert "cpu.stat.local" in item.content["record.json"].decode()
-    result = reader.collect("cpu.stat.local", relevance="cgroupv2")
-    assert result["items"][0]["id"] == CGROUP
-    assert reader.collect("cpu.stat.local impossibleword", relevance="cgroupv2")["no_match"]
-    assert reader.collect("stat.loc", relevance="cgroupv2")["items"][0]["id"] == CGROUP
+    cue = "前缀缓存"
+    result = reader.collect(cue, limit=3)
+    explicit = reader.collect(relevance=cue, relevance_method=FIND_RELEVANCE, limit=3)
+    assert result["items"] == explicit["items"]
+    assert result["selection"] == explicit["selection"]
+    assert result["items"][0]["id"] == "sglang.cuda.llm.hierarchical_prefix_cache"
+    assert result["retrieval"]["calls"] == ["collect", "find"]
+    assert result["retrieval"]["items"] == explicit["retrieval"]["items"]
 
 
 def test_existing_item_payload_and_material_accounting_are_unchanged():
@@ -88,9 +84,14 @@ def test_filters_stay_package_only_and_precede_ranking():
     reader = KnowledgeReader(skill_root=ROOT)
     assert reader.collect(relevance="P2pNccl", backend="ascend")["no_match"]
     assert reader.collect(relevance="P2pNccl", tier="peer")["no_match"]
-    assert reader.collect(relevance="cgroupv2", kind="skill")["no_match"]
     assert reader.collect(relevance="cgroupv2", repo="vllm")["no_match"]
-    assert reader.collect(relevance="cgroupv2", scenario="diffusion.t2i")["no_match"]
+    assert reader.collect(relevance="cgroupv2", kind="skill")["items"][0]["id"] == CGROUP
+    assert reader.collect(relevance="cgroupv2", scenario="diffusion.t2i")[
+        "items"
+    ][0]["scenario"] == "skills.discovery"
+    assert reader.collect(ids=[CGROUP], scenario="diffusion.t2i")["omissions"] == [
+        {"id": CGROUP, "reason": "filters"},
+    ]
     result = reader.collect(
         relevance="cgroupv2", kind="knowledge", repo="inferrsi", tier="contribution",
         backend="cpu", scenario="skills.discovery",
@@ -98,20 +99,13 @@ def test_filters_stay_package_only_and_precede_ranking():
     assert result["items"][0]["id"] == CGROUP
 
 
-def test_weighted_presence_and_identity_ties_are_deterministic():
-    assert lexical_score("MATCH match", [(4, "match match"), (1, "match")]) == 5
+def test_inventory_without_a_cue_uses_identity_order():
     reader = KnowledgeReader()
-    all_items = reader.collect(relevance="candidate", limit=100)["items"]
-    # With no title/description/tag occurrence, these owners share the core-only score.
-    tied = []
-    for item in all_items:
-        record = reader.records()[item["id"]]
-        if "candidate" not in json.dumps([
-            record["title"], record["summary"], record["tags"], record["applicability"],
-        ]).casefold():
-            tied.append(item["ref"])
-    assert len(tied) > 1 and tied == sorted(tied)
-    assert reader.collect(relevance="candidate", limit=1)["items"] == all_items[:1]
+    result = reader.collect(limit=3)
+    assert [item["ref"] for item in result["items"]] == reader.identities()[:3]
+    assert result["retrieval"]["calls"] == ["collect"]
+    assert not result["retrieval"]["selection"]["ranking_applied"]
+    assert reader.collect(limit=3, relevance_method=FIND_RELEVANCE)["items"] == result["items"]
 
 
 def test_context_keeps_complete_core_prerequisites_provenance_and_exact_bytes():
@@ -182,7 +176,7 @@ def test_source_drift_and_cross_owner_mapping_never_fall_back():
                 del library["data/skill_library/skill-index.json"]
             digest = _hash(_json({p: _hash(data) for p, data in sorted(library.items())}))
             reader._library = library, "sha256:" + digest
-        result = reader.collect("cpu.stat.local", relevance="cgroupv2")
+        result = reader.collect("cgroupv2")
         assert result["no_match"]
         assert any(o["reason"] == "index_unavailable" for o in result["omissions"])
         explicit = reader.collect(ids=[CGROUP], context_bytes=65536)
@@ -309,6 +303,8 @@ def test_invalid_opt_ins_fail_at_request_boundary(options):
 
 
 def test_cli_exposes_context_in_json_and_text(capsys):
+    from inferrsi.apps.cli import main
+
     args = ["collect", "--id", CGROUP, "--relevance", "cgroupv2", "--context-bytes", "65536"]
     assert main([*args, "--json"]) == 0
     result = json.loads(capsys.readouterr().out)

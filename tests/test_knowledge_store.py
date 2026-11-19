@@ -70,6 +70,66 @@ def test_duplicate_stale_update_and_immutable_resources(tmp_path):
     assert item["ref"] == f"store:{LOCAL}"
 
 
+def test_store_find_searches_the_delivered_revision(tmp_path):
+    store = KnowledgeStore(tmp_path, skill_root=None)
+    ref = "store:local-budget-notes"
+    metadata = {
+        "id": "local-budget-notes",
+        "kind": "knowledge",
+        "entrypoint": "note.md",
+        "state": "candidate",
+        "title": "Local capacity experiment",
+        "sources": [{"type": "unknown"}],
+        "applicability": {},
+        "limitations": [],
+        "attribution": [],
+    }
+    original = Bundle(metadata, {"note.md": b"borealcapacitymarker"}, {})
+    successor = Bundle(metadata, {"note.md": b"alpinecapacitymarker"}, {})
+    old_revision = store.create(original)
+    new_revision = store.update(successor, expected=old_revision, reason="amend", evidence=[])
+    options = {"kind": "knowledge", "material": True}
+
+    assert store.collect("borealcapacitymarker", **options)["no_match"]
+    current = store.collect("alpinecapacitymarker", **options)
+    item, = current["items"]
+    assert (item["ref"], item["revision"], item["content"]) == (
+        ref, new_revision, "alpinecapacitymarker",
+    )
+    assert current["retrieval"]["calls"] == ["collect", "find"]
+
+    retained = store.collect(
+        relevance="borealcapacitymarker", revisions={ref: old_revision}, **options,
+    )
+    item, = retained["items"]
+    assert (item["ref"], item["revision"], item["content"]) == (
+        ref, old_revision, "borealcapacitymarker",
+    )
+    assert not retained["omissions"]
+    assert store.collect("alpinecapacitymarker", revisions={ref: old_revision}, **options)[
+        "no_match"
+    ]
+
+
+def test_package_only_store_find_respects_its_reserved_sources(tmp_path):
+    query = "cache per-step masks ran out of device memory"
+    options = {"kind": "case", "limit": 1}
+    ordinary = KnowledgeReader().collect(query, **options)
+    assert ordinary["items"][0]["authority"] == "checkout"
+
+    store = KnowledgeStore(tmp_path, skill_root=None)
+    result = store.collect(query, **options)
+    assert result["no_match"]
+    assert result["retrieval"]["request"]["sources"] == ["package", "store"]
+    assert result["retrieval"]["counts"]["considered"] == 0
+
+    reader = store.reader()
+    result = reader.collect("cgroupv2", kind="skill", limit=1)
+    item, = result["items"]
+    assert item["ref"] == "package:inferrsi.common.skills.cgroup_resource_controls"
+    assert reader.read(item["ref"], revision=item["revision"]).revision == item["revision"]
+
+
 def test_store_cannot_shadow_read_only_identities(tmp_path):
     store = store_at(tmp_path)
     for source in ("calibrate-serving-simulation", "case.admission-drain-occupancy"):

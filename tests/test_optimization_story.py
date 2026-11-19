@@ -19,6 +19,7 @@ from inferrsi.harness.records.campaign_records import (
     record_decision,
 )
 from inferrsi.harness.records.optimization_log import LogError, parse_optimization_log, record_log
+from inferrsi.knowledge._skill_selection import FIND_RELEVANCE
 from inferrsi.knowledge.knowledge_operations import KnowledgeReader
 
 
@@ -149,19 +150,58 @@ def test_capture_keeps_exact_context_and_detects_tampering(tmp_path):
 
 def test_capture_matches_real_collect_output(tmp_path):
     create_campaign(tmp_path, "camp")
-    path, _ = capture_context(tmp_path, context_id="real", reader=KnowledgeReader(),
-                              relevance="kv cache block size", context_bytes=40000, limit=2)
+    reader = KnowledgeReader()
+    options = {"relevance": "kv cache block size", "context_bytes": 40000, "limit": 2}
+    direct = reader.collect(**options, relevance_method=FIND_RELEVANCE)
+    path, _ = capture_context(tmp_path, context_id="real", reader=reader, **options)
     document, state = verify_capture(path.read_bytes())
+
     assert state == "verified"
-    assert document["contexts"], "the packaged library should supply a context"
-    assert document["request"]["sources"] == ["package"]
+    assert document["contexts"], "the installed library should supply a context"
+    assert document["request"]["sources"] == direct["retrieval"]["request"]["sources"]
+    assert document["request"]["sources"] == ["package", "checkout"]
+    assert document["retrieval"]["calls"] == ["campaign capture-context", "collect", "find"]
+    assert document["selection"] == direct["selection"]
+    assert [(item["ref"], item["revision"]) for item in document["items"]] == [
+        (item["ref"], item["revision"]) for item in direct["items"]
+    ]
+
+
+def test_capture_installed_case_at_exact_revision(tmp_path, capsys):
+    create_campaign(tmp_path, "camp")
+    ref = "checkout:case.qwen-ascend-rejected-directions"
+    assert main(["read", ref, "--installed-library", "--material", "--omit-resources"]) == 0
+    live = json.loads(capsys.readouterr().out)
+    revision = live["revision"]
+    args = ["campaign", "capture-context", "--directory", str(tmp_path),
+            "--installed-library", "--id-ref", ref]
+
+    def capture(context_id, pin):
+        assert main([*args, "--id", context_id, "--revision", f"{ref}={pin}"]) == 0
+        output = json.loads(capsys.readouterr().out)
+        document, state = verify_capture((tmp_path / output["context"]).read_bytes())
+        assert state == "verified"
+        assert document["request"]["sources"] == ["package", "checkout"]
+        assert document["request"]["revisions"] == {ref: pin}
+        return document
+
+    exact = capture("exact", revision)
+    context, = exact["contexts"]
+    assert (context["ref"], context["revision"]) == (ref, revision)
+    assert any(resource["content"] == live["content"] for resource in context["resources"])
+
+    stale = capture("stale", "sha256:" + "0" * 64)
+    assert stale["items"] == stale["contexts"] == []
+    assert [(item["id"], item["reason"]) for item in stale["omissions"]] == [
+        (ref, "unavailable_revision")
+    ]
 
 
 def test_capture_packaged_skills_does_not_repeat_bundle_manifest(tmp_path):
     create_campaign(tmp_path, "camp", noise=1.5)
     reader = KnowledgeReader()
     options = {"relevance": "performance kernel optimization", "limit": 40,
-               "context_bytes": 65536, "relevance_method": "task-lexical-v1"}
+               "context_bytes": 65536, "kind": "knowledge"}
     expected = reader.collect(**options)
     path, _ = capture_context(tmp_path, context_id="many-skills", reader=reader, **options)
     document, state = verify_capture(path.read_bytes())

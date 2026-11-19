@@ -1,4 +1,4 @@
-"""Extract bounded, attributable file-search evidence from Codex rollouts."""
+"""Extract bounded, attributable retrieval evidence from Codex rollouts."""
 
 from __future__ import annotations
 
@@ -16,10 +16,13 @@ from inferrsi.harness.records.evidence import (
     sanitized_text as _text,
 )
 
+from .codex_knowledge import decode as decode_knowledge
+from .codex_knowledge import invocation as knowledge_invocation
 from .codex_tool_returns import _output_lines, _path, correlate_window
 
 _SHELLS = ("sh", "bash", "zsh", "dash")
 _TOOLS = ("rg", "cat", "sed", "nl")
+_SHELL_OPERATORS = {"|", "||", "&&", ";", ">", ">>", "<"}
 _MAX_PASSAGES = 12
 _MAX_PASSAGE_CHARS = 400
 _MAX_VISIBLE_REFS = 64
@@ -28,7 +31,7 @@ _WINDOWS_RG_PATH = r"(?:[A-Za-z]:[/\\])?[^:]+"
 
 
 def _shell_argv(source):
-    """Strip shell comments only at unquoted word boundaries before tokenizing."""
+    """Tokenize a shell command after removing comments and line continuations."""
     chars = []
     quote = None
     escaped = comment = False
@@ -40,8 +43,10 @@ def _shell_argv(source):
             comment, word_start = False, True
         elif escaped:
             escaped = False
-            if char != "\n":
-                word_start = False
+            if char == "\n":
+                chars.pop()  # A backslash-newline is removed before shell tokenization.
+                continue
+            word_start = False
         elif char == "\\" and quote != "'":
             escaped = True
         elif quote:
@@ -55,10 +60,11 @@ def _shell_argv(source):
         else:
             word_start = char in " \t\r\n;&|<>()"
         chars.append(char)
-    lexer = shlex.shlex("".join(chars), posix=True, punctuation_chars=";&|<>")
+    command = "".join(chars)
+    lexer = shlex.shlex(command, posix=True, punctuation_chars=";&|<>")
     lexer.whitespace_split = True
     lexer.commenters = ""
-    return list(lexer)
+    return list(lexer), "\n" in command.strip()
 
 
 def _material(cwd: Path, name: str, corpus: Path) -> str | None:
@@ -189,33 +195,43 @@ def _rg_hits(output, cwd, corpus, scopes, mode, with_filename):
     return [{"ref": ref, "match_line": line} for ref, line in hits.items()], complete
 
 
-def _command(item, corpus):
-    """Decode one simple file command without changing its legacy event fields."""
+def _recorded_argv(item):
     original_argv = item.get("command")
     if (not isinstance(original_argv, list) or not original_argv
             or not all(isinstance(arg, str) for arg in original_argv)):
-        return None, False, None
+        return None, False
     argv = original_argv
     multiline = False
     if (Path(argv[0]).name in _SHELLS and len(argv) == 3
             and argv[1] in ("-c", "-lc", "-ic", "-ilc")):
-        multiline = "\n" in argv[2].strip()
         try:
-            argv = _shell_argv(argv[2])
+            argv, multiline = _shell_argv(argv[2])
         except ValueError:
-            return None, False, None
+            return None, False
+    compound = multiline or any(word in _SHELL_OPERATORS for word in argv)
+    return argv, compound
+
+
+def _command(item, corpus):
+    """Decode one retrieval command without replaying it."""
+    argv, compound = _recorded_argv(item)
+    if argv is None:
+        return None, False, None
     if not argv:
         return None, True, None
     tool = Path(argv[0]).name
-    if multiline or tool not in _TOOLS:
-        # A compound script can run several tools against one shared stdout.
+    if compound:
+        in_scope = any(Path(word).name in _TOOLS or knowledge_invocation(argv[index:])
+                       for index, word in enumerate(argv))
+        return None, not in_scope, None
+    code, output = item.get("exit_code"), item.get("aggregated_output")
+    if call := knowledge_invocation(argv):
+        return decode_knowledge(call, code, output)
+    if tool not in _TOOLS:
         return None, not any(Path(word).name in _TOOLS for word in argv), None
     cwd = _path(item.get("cwd"))
     if cwd is None:
         return None, False, None
-    if any(word in {"|", "||", "&&", ";", ">", ">>", "<"} for word in argv):
-        return None, False, None
-    code, output = item.get("exit_code"), item.get("aggregated_output")
     if not isinstance(output, str) or type(code) is not int:
         return None, False, None
     if tool == "rg":
@@ -305,8 +321,18 @@ def _archive_text(value, corpus, limit=_MAX_PASSAGE_CHARS):
     return fields
 
 
-def _passage(ref, line, text, corpus):
+def _passage(ref, line, text, corpus, quotes=()):
+    excerpt_only = False
+    if len(text) > _MAX_PASSAGE_CHARS and quotes:
+        spans = [(pos, pos + len(quote)) for quote in quotes if (pos := text.find(quote)) >= 0]
+        if spans:
+            first = min(start for start, _ in spans)
+            last = max(end for _, end in spans)
+            if last > _MAX_PASSAGE_CHARS and last - first <= _MAX_PASSAGE_CHARS:
+                text, excerpt_only = text[first:last], True
     safe = _archive_text(text, corpus)
+    if excerpt_only:
+        safe["truncated"] = True
     return {"ref": ref, "line": line, **safe}
 
 
@@ -320,7 +346,7 @@ def _unique_candidates(candidates):
     return result
 
 
-def _select_passages(candidates, event_line, selections):
+def _select_passages(candidates, event_line, selections, excerpts):
     candidates = _unique_candidates(candidates)
     requested = set(selections.get(event_line, ()))
     selected = []
@@ -329,13 +355,14 @@ def _select_passages(candidates, event_line, selections):
         locator = (candidate["ref"], candidate["line"])
         if locator in requested:
             found.add(locator)
-        if index < _MAX_PASSAGES or locator in requested:
+        if (index < _MAX_PASSAGES or locator in requested
+                or any(quote in candidate["text"] for quote in excerpts.get(candidate["ref"], ()))):
             selected.append(candidate)
     missing = [key for key in selections.get(event_line, ()) if key not in found]
     return selected, len(candidates) - len(selected), missing
 
 
-def _delivery(event, spec, join, corpus, event_line, selections):
+def _delivery(event, spec, join, corpus, event_line, selections, excerpts):
     base = {"state": "unknown", "runtime_truncated": join.get("runtime_truncated"),
             "archive_omitted": True, "passages": [], "visible_refs": []}
     issues = []
@@ -347,7 +374,19 @@ def _delivery(event, spec, join, corpus, event_line, selections):
     aggregate_lines = join["aggregate_lines"]
     visible_indexes = set(join["line_indexes"])
     candidates, refs = [], []
-    if spec["kind"] == "search":
+    if spec["kind"] == "knowledge":
+        if not spec["decoded"] or join["runtime_truncated"]:
+            return base, "command_output_incomplete", issues
+        # JSON strings and result rows need their enclosing response to be
+        # complete. Partial line correlation is only used for file operations.
+        refs = [material["ref"] for material in event["materials"]]
+        if resource := spec.get("resource"):
+            path, body = resource
+            ref, = refs
+            base["visible_resources"] = [{"ref": ref, "path": path}]
+            candidates = [{"ref": ref, "path": path, "line": index, "text": line}
+                          for index, line in enumerate(_output_lines(body), 1) if line.strip()]
+    elif spec["kind"] == "search":
         observations, _ = _rg_observations(
             "".join(aggregate_lines), spec["cwd"], corpus, spec["scopes"], spec["mode"],
             spec["with_filename"],
@@ -386,9 +425,11 @@ def _delivery(event, spec, join, corpus, event_line, selections):
             else:
                 line_number = spec["line_start"] + index
             candidates.append({"ref": ref, "line": line_number, "text": text})
-    passages, omitted, unmatched = _select_passages(candidates, event_line, selections)
-    safe_passages = [_passage(item["ref"], item["line"], item["text"], corpus)
-                     for item in passages]
+    excerpts = excerpts if event["action"] == "read" else {}
+    passages, omitted, unmatched = _select_passages(candidates, event_line, selections, excerpts)
+    safe_passages = [_passage(item["ref"], item["line"], item["text"], corpus,
+                             excerpts.get(item["ref"], ()))
+                     | ({"path": item["path"]} if "path" in item else {}) for item in passages]
     visible_refs = refs[:_MAX_VISIBLE_REFS]
     omitted_refs = max(0, len(refs) - len(visible_refs))
     truncated_passages = sum(item.get("truncated", False) for item in safe_passages)
@@ -423,12 +464,12 @@ def _rough_action(item):
     if (isinstance(argv[0], str) and Path(argv[0]).name in _SHELLS
             and len(argv) == 3 and argv[1] in ("-c", "-lc", "-ic", "-ilc")):
         try:
-            tokens = _shell_argv(argv[2])
+            tokens, _ = _shell_argv(argv[2])
         except ValueError:
             return "unknown", False
     found = [Path(word).name for word in tokens if isinstance(word, str)
              and Path(word).name in _TOOLS]
-    compound = any(word in {"|", "||", "&&", ";", ">", ">>", "<"} for word in tokens)
+    compound = any(word in _SHELL_OPERATORS for word in tokens)
     if compound:
         return "unknown", True
     if found:
@@ -447,7 +488,7 @@ def _safe_file_list_pipeline(item, corpus, join):
             or "\n" in argv[2]):
         return None
     try:
-        tokens = _shell_argv(argv[2])
+        tokens, _ = _shell_argv(argv[2])
     except ValueError:
         return None
     if (len(tokens) == 6 and tokens[:2] == ["rg", "--files"]
@@ -524,14 +565,14 @@ def _operation_skeleton(item, action, event=None):
     if (isinstance(argv[0], str) and Path(argv[0]).name in _SHELLS
             and len(argv) == 3 and argv[1] in ("-c", "-lc", "-ic", "-ilc")):
         try:
-            tokens = _shell_argv(argv[2])
+            tokens, _ = _shell_argv(argv[2])
         except ValueError:
             return {"action": action}
     tools = list(dict.fromkeys(
         Path(word).name for word in tokens
         if isinstance(word, str) and Path(word).name in _TOOLS
     ))
-    compound = any(word in {"|", "||", "&&", ";", ">", ">>", "<"} for word in tokens)
+    compound = any(word in _SHELL_OPERATORS for word in tokens)
     if compound:
         return {"tools": tools, "action": "unknown", "compound": True}
     if tools:
@@ -555,6 +596,7 @@ def _detail(event_id, trace_line, action, reason, event=None, excerpt=None, sele
         "requested_passage_not_visible": "Requested line is absent; choose a returned passage.",
         "unsupported_or_compound_command": "Inspect the operation and return rows before citing.",
         "command_output_incomplete": "Output is incomplete; cite only retained lines.",
+        "capture_unverified": "Select the matching capture and verify its tool return.",
     }
     detail = {"trace_line": trace_line, "reason": reason,
               "action": action, "description": descriptions.get(
@@ -570,8 +612,18 @@ def _detail(event_id, trace_line, action, reason, event=None, excerpt=None, sele
     return detail
 
 
+def _matched_capture(spec, item, join, capture_outputs):
+    if not capture_outputs or join.get("state") != "visible" or join["runtime_truncated"]:
+        return False
+    output = "".join(join["aggregate_lines"]).replace("\r\n", "\n").rstrip("\n")
+    root = capture_outputs.get((spec["context_id"], output))
+    cwd = _path(item.get("cwd"))
+    return (root is not None and cwd is not None and spec["directory"] is not None
+            and (cwd / spec["directory"]).resolve() == root)
+
+
 def read_window(trace: Path, lines: tuple[int, int], corpus: Path, *, archive=False,
-                selections=None):
+                selections=None, excerpts=None, capture_outputs=None):
     """Return window, events, full transient decisions, uncertainty and detail.
 
     In archive mode, selections maps a command event's trace line to
@@ -635,10 +687,25 @@ def read_window(trace: Path, lines: tuple[int, int], corpus: Path, *, archive=Fa
     window = {"session": session, "lines": [first, last]}
     if archive:
         window["archive"] = True
-        joinable = [(line, item, event_id) for line, item, event_id, _, _, _ in commands]
+    # Verify direct CLI delivery for local coverage too, without retaining
+    # source passages in the local ledger. Historical file events stay v1.
+    reviewed_commands = (commands if archive else [
+        row for row in commands if row[-1] and row[-1]["kind"] in ("knowledge", "captured_search")
+    ])
+    if reviewed_commands:
+        joinable = [(line, item, event_id) for line, item, event_id, _, _, _ in reviewed_commands]
         joins = correlate_window(trace, joinable, meta_cwd, (first, last))
         event_by_line = {event["trace_line"]: event for event in events}
-        for line, item, event_id, event, complete, spec in commands:
+        for line, item, event_id, event, complete, spec in reviewed_commands:
+            if spec and spec["kind"] == "captured_search":
+                if _matched_capture(spec, item, joins.get(event_id, {}), capture_outputs):
+                    uncertain.remove(line)
+                elif archive:
+                    unresolved_details.append(_detail(
+                        f"file-{line}", line, "search", "capture_unverified",
+                        {"tool": spec["tool"]},
+                    ))
+                continue
             if event is None:
                 if not complete:
                     action, compound = _rough_action(item)
@@ -679,13 +746,26 @@ def read_window(trace: Path, lines: tuple[int, int], corpus: Path, *, archive=Fa
                 continue
             public_event = event_by_line[line]
             public_id = f"file-{line}"
-            public_event["id"] = public_id
-            public_event["event_id"] = public_id
+            if archive:
+                public_event["id"] = public_id
+                public_event["event_id"] = public_id
             join = joins.get(event_id, {"state": "unknown", "runtime_truncated": None,
                                         "reason": "outer_call_not_unique"})
             delivery, problem, selection_issues = _delivery(
-                public_event, spec, join, corpus, line, selected_passages
+                public_event, spec, join, corpus, line, selected_passages, excerpts or {}
             )
+            if (delivery["state"] == "unknown" or not complete
+                    or delivery["runtime_truncated"]):
+                if line not in uncertain:
+                    uncertain.append(line)
+            if not archive:
+                # A local record retains only observed locators and states.
+                public_event["delivery"] = {
+                    key: delivery[key] for key in ("state", "return_line", "runtime_truncated",
+                                                   "visible_refs", "visible_resources")
+                    if key in delivery
+                }
+                continue
             public_event["delivery"] = delivery
             for issue in selection_issues:
                 unresolved_details.append(_detail(
@@ -701,19 +781,16 @@ def read_window(trace: Path, lines: tuple[int, int], corpus: Path, *, archive=Fa
                 reason = "command_output_incomplete"
             elif delivery["state"] == "unknown":
                 reason = join.get("reason", "output_missing_or_too_large")
-            if (delivery["state"] == "unknown" or not complete
-                    or delivery["runtime_truncated"]):
-                if line not in uncertain:
-                    uncertain.append(line)
             if reason:
                 excerpt = delivery["passages"][0] if delivery["passages"] else None
                 unresolved_details.append(_detail(
                     public_id, line, public_event["action"], reason, public_event, excerpt
                 ))
-        event_lines = set(event_by_line)
+    if archive:
+        event_lines = {event["trace_line"] for event in events}
         for event_line, requested in selected_passages.items():
             if event_line not in event_lines and requested:
                 unresolved_details.append(_detail(
                     None, event_line, "unknown", "requested_passage_not_visible"
                 ))
-    return window, events, decisions, uncertain, unresolved_details
+    return window, events, decisions, sorted(uncertain), unresolved_details

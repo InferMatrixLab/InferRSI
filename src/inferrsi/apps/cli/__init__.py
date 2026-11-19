@@ -70,7 +70,12 @@ def _fixed_attempt_command(args) -> int:
 
 
 def _knowledge_reader(args) -> KnowledgeReader:
-    return knowledge_reader(skill_root=args.skill_root, store_root=args.store)
+    root = args.skill_root
+    if getattr(args, "installed_library", False):
+        from ...knowledge.knowledge_find import installed_skill_root
+
+        root = installed_skill_root()
+    return knowledge_reader(skill_root=root, store_root=args.store)
 
 
 def _revisions(pairs: list[str]) -> dict[str, str]:
@@ -443,6 +448,9 @@ def main(argv: list[str] | None = None) -> int:
                     limit=args.limit,
                     explain=args.explain,
                 )
+                if args.query.strip():
+                    print("knowledge search text queries use Find ranking in the package catalog. "
+                          "Omit QUERY for filtered inventory.", file=sys.stderr)
                 if args.json or args.explain:
                     _print(records)
                 else:
@@ -477,6 +485,8 @@ def main(argv: list[str] | None = None) -> int:
                 ids=args.ids,
                 revisions=_revisions(args.revisions or []),
                 kind=args.kind,
+                repo=args.repo_type,
+                tier=args.tier,
                 backend=args.backend,
                 scenario=args.scenario,
                 limit=args.limit,
@@ -486,6 +496,9 @@ def main(argv: list[str] | None = None) -> int:
                 relevance_method=args.relevance_method,
                 context_bytes=args.context_bytes,
             )
+            if args.relevance_method is None and result.get("selection", {}).get("ranking_applied"):
+                print("collect text queries use Find ranking. "
+                      "Use --id and --revision for exact material.", file=sys.stderr)
             if args.json:
                 _print(result)
             else:
@@ -534,13 +547,14 @@ def main(argv: list[str] | None = None) -> int:
                     )
             return 0
         if args.command == "read":
-            _, _, view = read_knowledge(
+            ref, _, view = read_knowledge(
                 _knowledge_reader(args), args.id, revision=args.revision, material=args.material,
+                resource=args.resource,
             )
             if args.omit_resources:
                 view.pop("resources")
                 view.pop("required_resources", None)
-            _print(view)
+            _print({**view, "ref": ref})
             return 0
         if args.command == "resource":
             data = _knowledge_reader(args).resource(args.id, args.path, revision=args.revision)
@@ -558,6 +572,9 @@ def main(argv: list[str] | None = None) -> int:
                 scenario=args.scenario,
                 limit=args.limit,
             )
+            if args.query.strip():
+                print("context text queries use Find ranking in the package catalog. "
+                      "Omit QUERY for filtered inventory.", file=sys.stderr)
             text = _context(records)
             if args.output:
                 destination = Path(args.output)
@@ -638,12 +655,16 @@ def main(argv: list[str] | None = None) -> int:
                 return 0
             if args.campaign_action == "capture-context":
                 require_manual_campaign(Path(args.directory).resolve())
-                sources = ("package",) + (("checkout",) if args.skill_root else ()) + (
-                    ("store",) if args.store else ())
+                sources = ("package",)
+                if args.skill_root is not None or args.installed_library:
+                    sources += ("checkout",)
+                if args.store is not None:
+                    sources += ("store",)
                 path, digest = capture_context(
                     args.directory, context_id=args.id, reader=_knowledge_reader(args),
                     query=args.query, relevance=args.relevance,
                     relevance_method=args.relevance_method, ids=args.ids, kind=args.kind,
+                    revisions=_revisions(args.revision or []),
                     repo=args.knowledge_repo, tier=args.tier, backend=args.backend,
                     scenario=args.scenario, limit=args.limit,
                     context_bytes=args.context_bytes, sources=sources,

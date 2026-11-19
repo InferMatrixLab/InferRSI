@@ -52,22 +52,36 @@ and synthetic measurements; they are not real optimization results:
 
 ## Execution observations
 
-`knowledge search` and `collect` remain separate operations. Neither calls the
-other. `campaign capture-context` calls `collect`; its default task relevance
-policy is unchanged. There is no global listener or automatic capture.
+`campaign capture-context` uses Find ranking for a single free-text question,
+then assembles selected material through Collect. The capture records both
+operations. Pass one question as a positional query or `--relevance`. Explicit
+IDs select material in caller order. See the [migration guide](operations.md#migrate-old-text-queries)
+for callers that previously passed a separate query filter and ranking cue.
 
 ```sh
-inferrsi knowledge search 'decode launch' --explain
-inferrsi collect --relevance 'decode launch' --json
+inferrsi find 'decode launch' --explain --json
 inferrsi campaign capture-context --directory <CAMPAIGN_DIRECTORY> --id r1-context \
   --relevance 'decode launch' --context-bytes 65536
 ```
 
+To capture an installed Case at its observed revision, select the bundled
+library and use the ID and revision from the read:
+
+```sh
+inferrsi campaign capture-context --directory '<CAMPAIGN_DIRECTORY>' --id r1-case \
+  --installed-library --id-ref 'checkout:<CASE_ID>' \
+  --revision 'checkout:<CASE_ID>=<REVISION_FROM_READ>'
+```
+
+The capture records the requested pin. A stale revision is recorded as
+`unavailable_revision`. A capture that records explicit IDs is a read. A capture
+of a queryless inventory is an inventory operation. Both retain their items and
+revisions in the round record. The search and hit totals count text discovery.
+
 `knowledge search --explain` returns a JSON envelope with `items` and `retrieval`.
-Without that flag, its list API, JSON and tabular output are unchanged. Python
-callers use `search_knowledge(..., explain=True)`. `collect` adds a `retrieval`
-member outside its budgeted item/resource payloads. Existing item revisions,
-return order, `material_bytes`, context assembly and byte budgets are unchanged.
+Python callers use `search_knowledge(..., explain=True)` for the same
+catalog envelope. `collect` includes a `retrieval` member outside its
+budgeted item and resource payloads.
 
 | `retrieval` field | Meaning |
 | --- | --- |
@@ -81,16 +95,16 @@ return order, `material_bytes`, context assembly and byte budgets are unchanged.
 | `assembly` | `performed` or `not_requested`; old missing evidence is `unknown` |
 | `candidate_details` | `not_recorded`: no reconstruction of a full rejected candidate set |
 
-Catalog scores count query-term occurrences in the searched JSON; repeated terms
-remain repeated components. Ties use ascending ID. A catalog observation's
-`catalog-sha256:` revision hashes the returned catalog record using sorted,
-UTF-8 JSON. It identifies that record, not a collect bundle or an upstream commit.
+A catalog text query records `knowledge search → find` and returns catalog
+records. Its `catalog-sha256:` revision hashes the returned record using sorted,
+UTF-8 JSON. It identifies those catalog bytes. A Collect revision identifies the
+normalized bundle used to deliver resources.
 
-The two weighted methods record title, summary, tags/applicability and body
-contributions. Task relevance records title, summary, tags, repo/scenario,
-applicability and body contributions plus its platform multiplier. Ties use
-ascending qualified ref. Explicit IDs preserve caller order and skip ranking;
-no relevance request records `not_requested`. Filters use first-exclusion
+Find records each matching term's contribution and uses recorded state,
+identity and qualified reference to break score ties. Explicit IDs preserve
+caller order and skip item ranking. A plain inventory records `not_requested`.
+Older captures retain the scores, components and method identifiers recorded in
+their original run. Filters use first-exclusion
 counts; these are not overlapping marginal totals. Per-item explanations cover
 returned items only. Existing omissions and resource hashes remain available.
 
@@ -138,8 +152,11 @@ assembly byte budget are retained independently.
    with `campaign log`; do not edit a previously retained log or input.
 4. Import the round's captures and, when available, its explicitly bounded local
    trace with `campaign import-search`. Use `--archive-review` for the existing
-   portable v2 passage-to-decision contract. See [the import contract](dashboard.md#import-one-rounds-searches)
-   for its input fields. Mark complete coverage only when established.
+   portable v2 passage-to-decision contract. A decision citing a rendered
+   resource from a verified `find` or `collect` capture supplies `passage_path`
+   with the resource's bundle-relative key. Its `passage_line` counts from the
+   first line of that resource. See [the import contract](dashboard.md#import-one-rounds-searches)
+   for the input fields. Mark complete coverage only when established.
 5. Append results and decisions using existing campaign operations. A closing
    import may extend the same trace window/add captures and runs, subject to the
    importer's preservation, overlap and repeated-import rules.
@@ -147,6 +164,26 @@ assembly byte budget are retained independently.
 The legacy manual campaign operations above are for externally recorded
 campaigns. Managed optimization sessions retain their controller-owned state;
 this read-only dashboard extension does not create another controller.
+For a managed AB/BA or benchmark capture selected with `--context-id`, the
+importer looks for the complete `campaign knowledge` or
+`benchmarks session knowledge` JSON tool return in the trace window. The returned
+capture reference and contents must match the saved capture. Delivery is recorded
+for matching resource blocks even when the round has no use citation. Reviewers
+can also supply the return line in `capture_returns`. A managed query without a
+verified matching capture keeps coverage partial and complete counts unavailable.
+[Service-reuse campaigns](service-reuse-campaigns.md#records-compatibility-and-validation)
+retain knowledge in their own fingerprint-free format, outside this importer.
+
+A manual `campaign capture-context` text query likewise needs its selected
+`--context-id` and a matching tool receipt to establish complete coverage.
+The receipt records preparation. A matching resource body in a tool return
+establishes delivery separately. Queryless inventory and explicit ID assembly
+can be retained with zero searches.
+
+Reasons in a submitted managed hypothesis or a manual optimization log can
+carry an explicit use citation. The importer aligns it with the verified
+delivered passage and later decision position without hand-entered evidence
+line numbers. See the [round reason workflow](dashboard.md#cite-a-passage-in-the-round-reason).
 
 Multiple metadata records may explicitly identify the same candidate and
 round with different `run_id` values. The importer retains all of them, including
