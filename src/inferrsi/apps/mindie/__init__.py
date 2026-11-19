@@ -1,3 +1,3 @@
-"""Compatibility exports for :mod:`inferrsi.apps.integrations.mindie`."""
+"""Compatibility package marker for legacy MindIE submodule imports."""
 
 __all__ = []
