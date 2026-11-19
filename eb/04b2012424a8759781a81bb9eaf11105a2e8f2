@@ -1,0 +1,58 @@
+src/inferrsi/apps/views/round_decision_view.html
+  s_f6d80fa4c53ea7::t_14fd09048df9ff 64-79,90-91,205-209,216
+  s_f6d80fa4c53ea7::t_f6af806de5f037 39-63,89,109-111,215
+docs/optimization-benchmarks.md
+  s_f6d80fa4c53ea7::t_02a4c6d8c03995 76-110
+tests/test_optimization_session.py
+  s_f6d80fa4c53ea7::t_cd980a28503ecf 505-515,556-564,573
+  s_f6d80fa4c53ea7::t_02a4c6d8c03995 535-537,550-555,568-570
+  s_f6d80fa4c53ea7::t_3b34c1750a3a84 460-504,516-534,538-549,565-567,571-572,574-602
+src/inferrsi/apps/cli/__init__.py
+  s_f6d80fa4c53ea7::t_bbb8398b69a7b6 26-44,390,647
+tests/test_round_decisions_browser.py
+  s_f6d80fa4c53ea7::t_cd980a28503ecf 358
+  s_f6d80fa4c53ea7::t_619889cba7a86f 375-377
+  s_f6d80fa4c53ea7::t_a4d70593c780f3 335-357,359-374,378-381
+src/inferrsi/harness/optimization.py
+  s_f6d80fa4c53ea7::t_14fd09048df9ff 167-168
+  s_f6d80fa4c53ea7::t_77f64378f2a5df 13,181-185,187-205,208-210,213-215,223-265,267-286,459
+  s_f6d80fa4c53ea7::t_dddb8d9c87778e 186,211-212,220-221
+src/inferrsi/harness/optimization_session.py
+  s_f6d80fa4c53ea7::t_14fd09048df9ff 157,259-263,275
+  s_f6d80fa4c53ea7::t_bbb8398b69a7b6 130,153-156,247-248,274,296,303-306
+  s_f6d80fa4c53ea7::t_73b99f66e779c8 307
+src/inferrsi/apps/cannbot/round_knowledge.py
+  s_f6d80fa4c53ea7::t_77f64378f2a5df 1-7,9,11,13-35,37-45,48-58
+  s_f6d80fa4c53ea7::t_02a4c6d8c03995 8,10,12,36
+  s_f6d80fa4c53ea7::t_619889cba7a86f 46-47
+src/inferrsi/apps/cli/arguments.py
+  s_f6d80fa4c53ea7::t_619889cba7a86f 120
+  s_f6d80fa4c53ea7::t_bbb8398b69a7b6 102-105,108,146-149
+docs/operations.md
+  s_f6d80fa4c53ea7::t_75ad88f8866573 41
+tests/test_project_optimization.py
+  s_f6d80fa4c53ea7::t_75ad88f8866573 213-226,233-238
+docs/external-channels.md
+  s_f6d80fa4c53ea7::t_02a4c6d8c03995 201-206,218
+src/inferrsi/apps/views/dashboard_data.py
+  s_f6d80fa4c53ea7::t_14fd09048df9ff 744-751,760
+  s_f6d80fa4c53ea7::t_f6af806de5f037 697,700,735-737
+src/inferrsi/apps/views/retrieval_projection.py
+  s_f6d80fa4c53ea7::t_f6af806de5f037 314-358
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "eb04b2012424a8759781a81bb9eaf11105a2e8f2",
+  "prompts": {},
+  "sessions": {
+    "s_f6d80fa4c53ea7": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1f2c4-4190-7173-b643-904978a40768",
+        "model": "gpt-6.2-sol"
+      },
+      "human_author": "jiangkuaixue123 <jiangxiaozhou111@163.com>"
+    }
+  }
+}
