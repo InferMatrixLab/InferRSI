@@ -348,14 +348,9 @@ and architecture-specific synchronization/resource/FP8 procedures. Its coverage
 inventory distinguishes inspected bodies from source headers and excluded SM100
 recipes; native execution and efficacy remain not_run.
 
-The complete library is the single content owner. Maintain stable IDs, current paths and
-backend classifications in `skill-index.json`, then refresh generated records
-and navigation with `tools/build_skill_index.py`; do not hand-edit generated
-cards. Stored cards keep only their own fields and resource hashes, and the shared
-`_provenance.json` snapshot holds the source revision and registry hash; the
-catalog resolves them into the public records
-([contribution workflow](knowledge-contribution-workflow.md)). Its source-revision and consistency checks prevent attributing edited
-metadata to an older snapshot. Preserve existing states, provenance, notices,
+Maintain stable skill IDs, paths and backends in `skill-index.json`. After committing changed skill sources, run `tools/build_skill_index.py` to refresh the two compiled inputs. The catalog assembles public records from the registry, canonical metadata, YAML headers and source fingerprints. Indexed material selection verifies the recorded hashes against the resources it reads. [Contribution workflow](knowledge-contribution-workflow.md)
+
+Preserve existing states, provenance, notices,
 `UNKNOWN` licenses and the two matrices' authority. Migration and installed-package
 checks do not establish licensing, empirical verification or automatic execution.
 

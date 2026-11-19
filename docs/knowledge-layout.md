@@ -97,7 +97,7 @@ src/inferrsi/knowledge/data/
     └── _compiled/                         inputs.json, _provenance.json
 ```
 
-The README documents the library. A procedure, including its resources, belongs in one registered directory. An engineering record carries its own sources, applicability and verification status. Its filename must match its stable ID. The registry locates each skill. Builds compile YAML headers and pinned Git fingerprints required by the base wheel. The catalog reads canonical sidecars and emits the public schema-1 record on demand. Publishing the same skill under multiple engine or accelerator trees would require synchronized edits. Represent these dimensions on the task card and in owner metadata. [Record authoring guide](../src/inferrsi/knowledge/data/skill_library/records/README.md)
+The README documents the library. A procedure, including its resources, belongs in one registered directory. An engineering record carries its own sources, applicability and verification status. Its filename must match its stable ID. The registry locates each skill. Builds compile YAML headers and pinned Git fingerprints required by the base wheel. The catalog reads canonical sidecars and emits the public schema-1 record on demand. Publishing the same skill under multiple engine or accelerator trees would require synchronized edits. Represent these dimensions on the task card and in owner metadata. For a new environment with no applicable local evidence, retain the unknown and the first check that could resolve it. [Record authoring guide](../src/inferrsi/knowledge/data/skill_library/records/README.md)
 
 ## Seven deliverables
 
