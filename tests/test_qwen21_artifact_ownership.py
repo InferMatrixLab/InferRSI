@@ -46,7 +46,7 @@ class ArtifactOwnershipTests(unittest.TestCase):
                     "id": prompt["id"],
                     "group": 1,
                     "path": str(path),
-                    "sha256": campaign.lifecycle.sha256(path),
+                    "sha256": campaign.artifacts.sha256(path),
                 }
             )
         first = directory / "first.png"
@@ -56,7 +56,7 @@ class ArtifactOwnershipTests(unittest.TestCase):
             "diagnostic": False,
             "source_integrity": {"verified": True},
             "protocol": protocol,
-            "protocol_sha256": campaign.lifecycle.digest(protocol),
+            "protocol_sha256": campaign.artifacts.digest(protocol),
             "protected_sources": {},
             "guard_hashes": {},
             "dependency_versions": {},
@@ -66,7 +66,7 @@ class ArtifactOwnershipTests(unittest.TestCase):
             "artifacts": artifacts,
             "first_request": {
                 "path": str(first),
-                "sha256": campaign.lifecycle.sha256(first),
+                "sha256": campaign.artifacts.sha256(first),
                 "seed": 10042,
             },
         }

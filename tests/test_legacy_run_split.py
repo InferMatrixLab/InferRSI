@@ -13,6 +13,7 @@ from dataclasses import fields
 
 import pytest
 
+from inferrsi.apps.host import targets
 from inferrsi.apps.legacy import evaluation as legacy_evaluation
 from inferrsi.apps.legacy import reporting as legacy_reporting
 from inferrsi.apps.legacy import run as legacy_run
@@ -21,14 +22,13 @@ from inferrsi.contracts import RunSpec, claim
 from inferrsi.harness import atomic_json
 from inferrsi.harness.runner import run_experiment
 from inferrsi.harness.scenarios.external import execute_trial
-from inferrsi.infra import artifacts, targets
+from inferrsi.infra import artifacts
 from tests._gate_policy_support import ROOT, _scan, _walk
 
 GRAPH = _scan(ROOT, frozenset())
 # The local process domain that Harness still borrows until it owns that code.
 PROCESS_DOMAIN = {
     "inferrsi.infra", "inferrsi.infra.executors", "inferrsi.infra.executors.local",
-    "inferrsi.infra.processes",
 }
 
 
