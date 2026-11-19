@@ -354,6 +354,29 @@ def test_release_archive_is_installable_and_all_versions_match(release_distribut
         check_plugin(Path(result["archive"]), "v0.2.1", host)
 
 
+@pytest.mark.parametrize("release_distribution", ["codex"], indirect=True)
+@pytest.mark.parametrize(("missing", "retained"), [
+    ("logo", "composerIcon"), ("composerIcon", "logo"),
+])
+def test_release_archive_rejects_missing_icon(release_distribution, tmp_path, missing, retained):
+    original = release_distribution[2]["archive"]
+    changed = tmp_path / "missing-icon.zip"
+    manifest_name = "inferrsi/plugin.json"
+    with zipfile.ZipFile(original) as source, zipfile.ZipFile(changed, "w") as destination:
+        metadata = json.loads(source.read(manifest_name))
+        interface = metadata["extensions"]["com.openai"]["interface"]
+        removed = "inferrsi/" + interface[missing].removeprefix("./")
+        # Both fields normally share one PNG. Keep the other reference valid.
+        interface[retained] = "./assets/retained.png"
+        destination.writestr("inferrsi/assets/retained.png", source.read(removed))
+        destination.writestr(manifest_name, json.dumps(metadata))
+        for entry in source.infolist():
+            if entry.filename not in (removed, manifest_name):
+                destination.writestr(entry, source.read(entry))
+    with pytest.raises(ValueError, match=missing):
+        check_plugin(changed, "v0.2.0", "codex")
+
+
 def test_release_archive_rejects_changed_runtime_bytes(release_distribution, tmp_path):
     original = release_distribution[2]["archive"]
     changed = tmp_path / "changed.zip"

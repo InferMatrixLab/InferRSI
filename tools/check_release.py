@@ -153,6 +153,12 @@ def check_plugin(path: Path, tag: str, host: str = "codex") -> None:
         if host == "codex":
             if metadata.get("$schema") != "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json":
                 raise ValueError("Plugin manifest must use the portable plugin schema")
+            interface = metadata.get("extensions", {}).get("com.openai", {}).get("interface", {})
+            files = {name for name in names if not name.endswith("/")}
+            for field in ("logo", "composerIcon"):
+                icon = interface.get(field)
+                if not isinstance(icon, str) or f"{plugin}/{icon.removeprefix('./')}" not in files:
+                    raise ValueError(f"Codex {field} must reference a file in the plugin ZIP")
             identity = metadata["name"]
         else:
             if (metadata.get("package_type") != "plugin"
