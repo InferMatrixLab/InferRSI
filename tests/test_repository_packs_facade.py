@@ -203,14 +203,14 @@ def test_facade_and_parent_load_under_a_hook_that_blocks_every_other_inferrsi_im
 
 def test_module_bodies_do_no_io_on_import() -> None:
     modules = ("inferrsi.resources", "inferrsi.resources.repository_packs",
-               "inferrsi.apps.evidence_layout")
+               "inferrsi.apps.storage.evidence_layout")
     result = _fresh(IO_PROBE, json.dumps(modules), IO_CONTROL)
     seen, defined = result["seen"], result["defined"]
     assert {"os.listdir", "open"} <= set(seen.pop("control"))
     assert seen == {name: [] for name in modules}
     assert defined["inferrsi.resources"] == []
     assert {"REPO_TYPES", "repository_pack"} <= set(defined["inferrsi.resources.repository_packs"])
-    assert "ensure_evidence_layout" in defined["inferrsi.apps.evidence_layout"]
+    assert "ensure_evidence_layout" in defined["inferrsi.apps.storage.evidence_layout"]
     assert sorted(name for name in vars(resources) if not name.startswith("_")) == [
         "repository_packs"
     ]

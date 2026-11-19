@@ -18,7 +18,7 @@ import pytest
 
 from tests.engineering_task_support import load_task_module
 
-tts = load_task_module("qwen3-tts-npu", "evaluation")
+tts = load_task_module("qwen3-tts-npu", "benchmark")
 
 
 def module(name):
@@ -264,7 +264,7 @@ def test_invalid_request_never_reaches_model(payload):
 
 
 def test_serve_cli_execs_verified_bundle(tmp_path, monkeypatch):
-    main = load_task_module("qwen3-tts-npu", "benchmark").main
+    main = tts.main
 
     prepared = tmp_path / "prepared"
     tts.prepare(

@@ -4,8 +4,8 @@ import math
 from collections.abc import Callable
 from dataclasses import dataclass
 
-from ..model.protocols.metrics import read_metric as read_metric
-from ..model.protocols.metrics import validate_metric
+from .metrics import read_metric as read_metric
+from .metrics import validate_metric
 
 # The v0 protocol's own labels. Benchmark shares no verdict type with another module.
 PASS, FAIL, INCONCLUSIVE = "PASS", "FAIL", "INCONCLUSIVE"

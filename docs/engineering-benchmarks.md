@@ -47,10 +47,10 @@ inferrsi benchmarks run qwen21-denoise-npu --help
 inferrsi benchmarks run qwen3-tts-npu --help
 ```
 
-MoE owns `benchmark.py`, `grader.py` and its torchrun cleanup helper. The application
-adapter injects the generic Harness executor into its entry. Python callers
-provide the `execute_trial` argument explicitly. TTS owns `benchmark.py` and
-`evaluation.py`, alongside its inference and service implementation. The image
+MoE owns `benchmark.py` (which holds its torchrun cleanup helper) and `grader.py`. The
+application adapter injects the generic Harness executor into its entry. Python callers
+provide the `execute_trial` argument explicitly. TTS owns one `benchmark.py` with its
+CLI and evaluation, alongside its inference and service implementation. The image
 and TTS entries also run directly by file path.
 
 ## Directory ownership

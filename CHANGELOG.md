@@ -4,6 +4,71 @@
 
 ### Changed
 
+- The metric contract and the quality validators move from `inferrsi.model` to
+  Benchmark (Refs #498, slice 1). There is no forwarding module or alias, and the
+  import gate fails any import of an old path, even when no file is behind it.
+  - `inferrsi.model.protocols.metrics` is now `inferrsi.benchmark.metrics`.
+    `inferrsi.model.validators` (`flare`, `image`) is now
+    `inferrsi.benchmark.validators`.
+  - The Flare adapter command is now
+    `python -m inferrsi.benchmark.validators.flare`, with the same arguments,
+    outputs and exit codes. The old `python -m inferrsi.model.validators.flare`
+    fails with `ModuleNotFoundError`.
+  - New `inferrsi.benchmark.artifacts` holds Benchmark's own `sha256`,
+    `write_json` and `atomic_write_json`. Their code equals the copies in
+    `inferrsi.infra.artifacts` and Harness, and
+    `tests/test_artifact_helper_copies.py` keeps the copies equal.
+    `inferrsi.infra.artifacts` stays for its other users.
+  - A new Flare receipt keeps its schema and keys. Its `adapter` digests are those
+    of `benchmark/validators/flare.py` and `benchmark/artifacts.py`. Existing
+    receipts are not rewritten.
+  - The MoE task's `benchmark.py` imports the Benchmark modules. Each MoE
+    `evaluate` call prepares its own copy of the task files and launches that copy
+    in the same call, so a new run binds the changed `benchmark.py` bytes and no
+    directory prepared before this change is launched again.
+  - Pickled objects that name an old module path no longer load. The Knowledge
+    records that cite `src/inferrsi/model/protocols/metrics.py` at commit
+    `b3ef95a` keep that pinned path.
+- The five runtime resource loaders are closed and the combined tree is isolated
+  (Refs #412, R3). `first_wave_report()` now has no violation and no blocker, and
+  `new_core_closure_isolated` and `isolation_complete` are both true.
+  - The Harness task protocol no longer runs in the Harness process. Each
+    `validate_arguments`, `arguments` and `assess` call runs the new
+    `harness/protocol_child.py` as `python -I -B` under a 120 second deadline, in
+    its own process group or Windows Job, and returns one strict JSON envelope.
+    The child compiles only protocol bytes that match the frozen SHA-256, and a
+    protocol `SystemExit` keeps its exit code (argparse usage errors still exit 2).
+    An exception the protocol raises is recorded as before R3, under its own type and
+    message: an `assess` failure settles as `"<Type>: <message>"`, an `arguments`
+    failure keeps its type and message in `coordinator-error.json` and settles through
+    the existing coordinator path, and a `validate_arguments` failure prints its own
+    message at `session start`. Transport, identity and result failures are recorded
+    as `TaskProtocolError` with their kind.
+    After every operation the last 4 KiB of the child's stderr, protocol prints
+    included, is copied to the caller's stderr; the scratch directory is then
+    deleted. The 16 MiB envelope limit and the stderr tail apply when Harness reads
+    the files, and the deadline bounds the run.
+    `task_protocol.protocol()` is removed; callers use `task_protocol.run()`. A
+    task `optimization.py` must take and return JSON values.
+  - `moe-forward-npu`: `processes.py` is folded into `benchmark.py`
+    (`MARKER`, `cleanup` and `_members` unchanged) and leaves `TASK_FILES`.
+  - `qwen3-tts-npu`: `evaluation.py` and the CLI are one `benchmark.py`; the
+    prepared bundle no longer has `evaluation.py`. A bundle prepared before this
+    change fails its frozen digests and must be prepared again. Retained results
+    are not rewritten.
+  - The MoE grader and Qwen21 evaluator keep loading the frozen candidate by path in
+    their own process, which timing requires. The gate admits
+    `importlib.util.module_from_spec` only in task bundle programs, files directly
+    inside a `benchmark/tasks/<bundle>/` directory without `__init__.py`, and names no
+    task, so a new bundle needs no gate change. Package code may not import a bundle
+    program. Name-based lookups (`__import__`, `import_module`, `find_spec` in any
+    spelling) still fail there. `first_wave_report().runtime_execution`
+    lists each bundle program that loads by path, because static isolation does not
+    cover what the loaded code does at run time.
+  - The optimization session's runtime identity adds `harness/protocol_child.py`,
+    and `harness/task_protocol.py` changed, so a session started before this
+    change does not resume after it.
+
 - Six Harness modules stop importing Infra (Refs #412, R2). `agent_sessions`,
   `candidates`, `optimization`, `optimization_session`, `project` and
   `task_protocol` take `digest`, `sha256` and `file_lock` from the new

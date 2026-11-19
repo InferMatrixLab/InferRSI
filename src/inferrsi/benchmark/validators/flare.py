@@ -6,7 +6,7 @@ import struct
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
 
-from ...infra import artifacts
+from .. import artifacts
 
 SOURCE = {
     "repository": "https://github.com/NVIDIA/flare-local-inference",

@@ -1,0 +1,171 @@
+[
+  {
+    "old": "inferrsi.apps.archive",
+    "canonical": "inferrsi.apps.storage.archive",
+    "exports": [
+      "ResourceReader",
+      "RunOutput",
+      "archive_mount",
+      "archive_prepared",
+      "read_archive_artifact",
+      "read_prepared",
+      "archive_assessment",
+      "read_assessment",
+      "validate_output_id",
+      "read_result",
+      "publish_result"
+    ],
+    "consumers": [
+      "docs/apps-output.md",
+      "docs/architecture.md",
+      "docs/module-layout.md",
+      "docs/operations.md",
+      "src/inferrsi/apps/api.py",
+      "src/inferrsi/apps/delivery/__init__.py",
+      "src/inferrsi/apps/handoff/bridge.py",
+      "src/inferrsi/apps/handoff/candidate_provider.py",
+      "src/inferrsi/apps/storage/artifact_reader.py",
+      "src/inferrsi/apps/views/attempt.py",
+      "tests/check_installed.py",
+      "tests/test_apps_assess.py",
+      "tests/test_apps_module_migrations.py",
+      "tests/test_apps_output.py",
+      "tests/test_apps_port_validation.py",
+      "tests/test_apps_prepare.py",
+      "tests/test_apps_publication.py",
+      "tests/test_apps_replay.py",
+      "tests/test_result_delivery.py"
+    ]
+  },
+  {
+    "old": "inferrsi.apps.artifact_reader",
+    "canonical": "inferrsi.apps.storage.artifact_reader",
+    "exports": [
+      "ArtifactReader",
+      "AssessmentArtifacts"
+    ],
+    "consumers": [
+      "docs/apps-output.md",
+      "docs/architecture.md",
+      "docs/module-layout.md",
+      "docs/operations.md",
+      "src/inferrsi/apps/api.py",
+      "src/inferrsi/apps/handoff/candidate_provider.py",
+      "src/inferrsi/apps/views/attempt.py",
+      "tests/check_installed.py",
+      "tests/test_apps_artifact_reader.py",
+      "tests/test_apps_assess.py",
+      "tests/test_apps_generation_plan.py",
+      "tests/test_apps_module_migrations.py"
+    ]
+  },
+  {
+    "old": "inferrsi.apps.result",
+    "canonical": "inferrsi.apps.storage.result",
+    "exports": [
+      "is_public_error",
+      "execution_result",
+      "preparation_result",
+      "assessment_result",
+      "publication_error",
+      "validate_artifact_ref",
+      "validate_result"
+    ],
+    "consumers": [
+      "docs/apps-output.md",
+      "docs/architecture.md",
+      "docs/module-layout.md",
+      "docs/operations.md",
+      "src/inferrsi/apps/api.py",
+      "src/inferrsi/apps/delivery/adapters.py",
+      "src/inferrsi/apps/handoff/bridge.py",
+      "src/inferrsi/apps/handoff/candidate_provider.py",
+      "src/inferrsi/apps/storage/archive.py",
+      "src/inferrsi/apps/storage/artifact_reader.py",
+      "src/inferrsi/apps/views/attempt.py",
+      "tests/check_installed.py",
+      "tests/test_apps_module_migrations.py",
+      "tests/test_result_delivery.py"
+    ]
+  },
+  {
+    "old": "inferrsi.apps.evidence_layout",
+    "canonical": "inferrsi.apps.storage.evidence_layout",
+    "exports": [
+      "ensure_evidence_layout"
+    ],
+    "consumers": [
+      "docs/apps-output.md",
+      "docs/architecture.md",
+      "docs/contracts/current-design.md",
+      "docs/module-layout.md",
+      "docs/operations.md",
+      "src/inferrsi/contracts/evidence.py",
+      "tests/_gate_policy_support.py",
+      "tests/check_installed.py",
+      "tests/test_apps_module_migrations.py",
+      "tests/test_evidence_paths.py",
+      "tests/test_first_wave_isolation_policy.py",
+      "tests/test_repository_packs_facade.py"
+    ]
+  },
+  {
+    "old": "inferrsi.apps.bridge",
+    "canonical": "inferrsi.apps.handoff.bridge",
+    "exports": [
+      "execution_fields",
+      "verify_protocol",
+      "check_assessment_identity",
+      "bind_execution",
+      "to_evidence"
+    ],
+    "consumers": [
+      "docs/apps-output.md",
+      "docs/architecture.md",
+      "docs/module-layout.md",
+      "docs/operations.md",
+      "src/inferrsi/apps/api.py",
+      "src/inferrsi/apps/handoff/candidate_provider.py",
+      "src/inferrsi/apps/views/attempt.py",
+      "tests/check_installed.py",
+      "tests/test_apps_evidence.py",
+      "tests/test_apps_execution_binding.py",
+      "tests/test_apps_generation_plan.py",
+      "tests/test_apps_module_migrations.py"
+    ]
+  },
+  {
+    "old": "inferrsi.apps.context_provider",
+    "canonical": "inferrsi.apps.handoff.context_provider",
+    "exports": [
+      "DeliveredContextDraft",
+      "ContextProvider"
+    ],
+    "consumers": [
+      "docs/apps-output.md",
+      "docs/architecture.md",
+      "docs/module-layout.md",
+      "docs/operations.md",
+      "tests/check_installed.py",
+      "tests/test_apps_context_provider.py",
+      "tests/test_apps_module_migrations.py",
+      "tests/test_harness_generation_seal.py"
+    ]
+  },
+  {
+    "old": "inferrsi.apps.candidate_provider",
+    "canonical": "inferrsi.apps.handoff.candidate_provider",
+    "exports": [
+      "CandidateProvider"
+    ],
+    "consumers": [
+      "docs/apps-output.md",
+      "docs/architecture.md",
+      "docs/module-layout.md",
+      "docs/operations.md",
+      "src/inferrsi/apps/api.py",
+      "tests/check_installed.py",
+      "tests/test_apps_module_migrations.py"
+    ]
+  }
+]

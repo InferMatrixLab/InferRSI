@@ -1,7 +1,7 @@
 """Historical adapters keep their original scope and explicitly disclose mapping gaps."""
 
-from ..result import _selected_verdict
-from ..result import validate_result as validate_apps_result
+from ..storage.result import _selected_verdict
+from ..storage.result import validate_result as validate_apps_result
 from .projection import assessment, metric
 from .schema import gap, timestamp
 

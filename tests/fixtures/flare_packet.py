@@ -4,7 +4,7 @@ import json
 import struct
 from pathlib import Path
 
-from inferrsi.model.validators.flare import METRIC, SCHEMA, SOURCE, UPSTREAM_CLOCK
+from inferrsi.benchmark.validators.flare import METRIC, SCHEMA, SOURCE, UPSTREAM_CLOCK
 
 
 def encoded(value):

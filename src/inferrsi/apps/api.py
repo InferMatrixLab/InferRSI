@@ -9,7 +9,15 @@ from inferrsi.contracts.json_v1 import decode, encode
 from inferrsi.harness.errors import PublicError
 from inferrsi.harness.execution_spec import request_digest
 
-from .archive import (
+from .handoff.bridge import bind_execution as _bind_prepared_execution
+from .handoff.bridge import (
+    check_assessment_identity,
+    execution_fields,
+    to_evidence,
+    verify_protocol,
+)
+from .handoff.candidate_provider import CandidateProvider as CandidateProvider
+from .storage.archive import (
     ResourceReader,
     RunOutput,
     archive_assessment,
@@ -20,11 +28,8 @@ from .archive import (
     read_prepared,
     validate_output_id,
 )
-from .artifact_reader import ArtifactReader, AssessmentArtifacts
-from .bridge import bind_execution as _bind_prepared_execution
-from .bridge import check_assessment_identity, execution_fields, to_evidence, verify_protocol
-from .candidate_provider import CandidateProvider as CandidateProvider
-from .result import (
+from .storage.artifact_reader import ArtifactReader, AssessmentArtifacts
+from .storage.result import (
     assessment_result,
     execution_result,
     is_public_error,

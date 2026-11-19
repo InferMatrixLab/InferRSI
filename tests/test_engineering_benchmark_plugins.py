@@ -30,7 +30,8 @@ def test_isolated_tts_entry_prepares_its_bundled_workload(distribution, tmp_path
     )
     assert result.returncode == 0, result.stderr
     assert len((prepared / "workload.jsonl").read_text(encoding="utf-8").splitlines()) == 12
-    assert (prepared / "benchmark.py").is_file() and (prepared / "evaluation.py").is_file()
+    # #412 R3: the evaluation lives in benchmark.py; no sibling evaluation.py is frozen.
+    assert (prepared / "benchmark.py").is_file() and not (prepared / "evaluation.py").exists()
     assert json.loads((prepared / "policy.json").read_text())["quality_scorer_id"] == (
         "synthetic-software-control"
     )

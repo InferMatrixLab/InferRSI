@@ -5,7 +5,7 @@ from pathlib import PurePosixPath
 
 import pytest
 
-from inferrsi.apps.context_provider import ContextProvider
+from inferrsi.apps.handoff.context_provider import ContextProvider
 from inferrsi.apps.knowledge import knowledge_reader
 
 _CGROUP = "package:inferrsi.common.skills.cgroup_resource_controls"

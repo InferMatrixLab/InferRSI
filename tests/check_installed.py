@@ -3,6 +3,7 @@ import hashlib
 import io
 import json
 import os
+import pickle
 import subprocess
 import sys
 import tempfile
@@ -13,6 +14,7 @@ from pathlib import Path
 
 import inferrsi
 import inferrsi.harness
+from inferrsi.apps.api import CandidateProvider, EvaluationPort
 from inferrsi.apps.cli import main
 from inferrsi.benchmark.registry import builtin_tasks, describe_task, task_resources
 from inferrsi.contracts import RunSpec, claim, evidence, json_v1
@@ -610,7 +612,28 @@ except ValueError as error:
 else:
     raise AssertionError("an unknown repository type must be refused")
 assert evidence.EVIDENCE_SEGMENTS == ("plan", "results", "patch", "validator")
-assert find_spec("inferrsi.apps.evidence_layout") is not None
+# #490: installed compatibility exports resolve to their canonical definitions.
+for name, group in (
+    ("archive", "storage"), ("artifact_reader", "storage"),
+    ("result", "storage"), ("evidence_layout", "storage"),
+    ("bridge", "handoff"), ("context_provider", "handoff"),
+    ("candidate_provider", "handoff"),
+):
+    old_name = f"inferrsi.apps.{name}"
+    canonical_name = f"inferrsi.apps.{group}.{name}"
+    old, canonical = import_module(old_name), import_module(canonical_name)
+    assert find_spec(old_name) is not None and find_spec(canonical_name) is not None
+    for exported in old.__all__:
+        value = getattr(canonical, exported)
+        assert getattr(old, exported) is value, (old_name, exported)
+        if getattr(value, "__module__", None) == canonical_name:
+            assert pickle.loads(f"c{old_name}\n{exported}\n.".encode("ascii")) is value
+            assert canonical_name.encode("ascii") in pickle.dumps(value, protocol=0)
+assert CandidateProvider is (
+    import_module("inferrsi.apps.handoff.candidate_provider").CandidateProvider
+)
+assert CandidateProvider is import_module("inferrsi.apps.candidate_provider").CandidateProvider
+assert EvaluationPort.__module__ == "inferrsi.apps.api"
 for retired in ("_repo_pack_data", "evidence_paths"):
     assert find_spec(f"inferrsi.{retired}") is None, retired
 assert not installed_root & {"_repo_pack_data.py", "evidence_paths.py"}
@@ -761,3 +784,26 @@ with tempfile.TemporaryDirectory(prefix="inferrsi-mindie-launch-") as launch_cwd
         check=False, cwd=launch_cwd,
     )
 assert launch.returncode == 0, launch.stderr
+# #498 slice 1: the metric contract and the quality validators ship only under
+# inferrsi.benchmark. The old inferrsi.model paths are not in the wheel and have no alias.
+for retired in ("inferrsi.model.protocols.metrics", "inferrsi.model.validators"):
+    assert find_spec(retired) is None, retired
+    try:
+        import_module(retired)
+    except ModuleNotFoundError:
+        pass
+    else:
+        raise AssertionError(f"retired module {retired} must not import")
+for canonical in ("inferrsi.benchmark.metrics", "inferrsi.benchmark.artifacts",
+                  "inferrsi.benchmark.validators.flare", "inferrsi.benchmark.validators.image"):
+    assert find_spec(canonical) is not None, canonical
+# The flare CLI runs from the installed wheel only under its new path.
+with tempfile.TemporaryDirectory(prefix="inferrsi-flare-cli-") as cli_cwd:
+    for module, code in (("inferrsi.benchmark.validators.flare", 0),
+                         ("inferrsi.model.validators.flare", 1)):
+        flare_cli = subprocess.run(
+            [sys.executable, "-I", "-B", "-m", module, "--help"], capture_output=True,
+            text=True, check=False, cwd=cli_cwd,
+        )
+        assert flare_cli.returncode == code, (module, flare_cli.returncode, flare_cli.stderr)
+    assert "No module named 'inferrsi.model.validators'" in flare_cli.stderr, flare_cli.stderr

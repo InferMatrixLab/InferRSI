@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from inferrsi.apps.bridge import to_evidence
+from inferrsi.apps.handoff.bridge import to_evidence
 from inferrsi.contracts.json_v1 import decode, encode
 from inferrsi.harness.errors import PublicError
 
