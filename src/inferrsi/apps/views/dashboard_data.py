@@ -762,6 +762,38 @@ def load_dashboard(source: Path) -> dict:
     root = Path(source).resolve()
     if not root.is_dir():
         raise ValueError("dashboard input must be an existing directory")
+    manifest = root / "campaign.json"
+    if manifest.is_symlink():
+        raise ValueError("Campaign manifest must not be symbolic")
+    if (
+        manifest.is_file()
+        and not manifest.is_symlink()
+        and manifest.stat().st_size <= 4 * 1024 * 1024
+    ):
+        try:
+            header = json.loads(manifest.read_text(encoding="utf-8"))
+        except ValueError:
+            raise ValueError("Invalid campaign manifest") from None
+        if not isinstance(header, dict):
+            raise ValueError("Campaign manifest must be an object")
+        service_mode = header.get("evaluation_mode") == "service_reuse"
+        if header.get("managed_optimization") and (root / "plan.json").is_file():
+            plan_header = json.loads((root / "plan.json").read_text(encoding="utf-8"))
+            service_mode |= (
+                plan_header.get("evaluation_mode") == "service_reuse"
+                or plan_header.get("schema_version") == 3
+            )
+        if service_mode:
+            from inferrsi.harness.optimization import read_records
+
+            from .retrieval_projection import public_value
+
+            _, _, summary = read_records(root)
+            return {
+                "campaign_id": sanitized_text(header["campaign_id"]),
+                "evaluation_mode": "service_reuse",
+                "service_optimization": public_value(summary),
+            }
     single = (root / "run.lock.json").is_file()
     campaign, campaign_state = read_object(root / "campaign.json", root)
     if not single and campaign_state != "present":

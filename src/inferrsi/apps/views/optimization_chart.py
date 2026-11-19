@@ -1,7 +1,66 @@
 """Render shared Harness optimization records without filling missing measurements."""
 
+import json
 import math
 from html import escape
+
+
+def render_service(summary):
+    final = summary["final_assessment"]
+    chunks = [
+        "<h1>Service-reuse optimization</h1>",
+        "<p>Independent final: " + escape(final["verdict"] if final else "Not recorded") + "</p>",
+        "<p>Final prerequisite: " + escape(summary["final_block_reason"] or "satisfied") + "</p>",
+        "<p>Reference epoch: "
+        + str(summary["reference_epoch"])
+        + "; accepted attempts: "
+        + str(len(summary["accepted_attempt_ids"]))
+        + "</p>",
+    ]
+    for attempt in summary["attempts"]:
+        execution = attempt["execution"]
+        chunks.extend(
+            [
+                "<section><h2>" + escape(attempt["kind"] + ": " + attempt["attempt_id"]) + "</h2>",
+                "<p>"
+                + escape(attempt["assessment"]["verdict"] + ": " + attempt["assessment"]["reason"])
+                + "</p>",
+                "<p>Retained revision: " + escape(attempt["revision"]) + "</p>",
+                "<table><caption>Objective values in their declared units</caption>"
+                "<tr><th>Objective</th><th>Value</th><th>Unit</th>"
+                "<th>Parent change</th><th>Initial change</th></tr>",
+            ]
+        )
+        metrics = (attempt["assessment"].get("performance") or {}).get("metrics", {})
+        for name, metric in metrics.items():
+            chunks.append(
+                "<tr>"
+                + "".join(
+                    "<td>" + escape(str(field)) + "</td>"
+                    for field in (
+                        name,
+                        metric["value"],
+                        metric["unit"],
+                        metric["parent_change"],
+                        metric["initial_change"],
+                    )
+                )
+                + "</tr>"
+            )
+        chunks.append("</table><ul>")
+        for stage in execution.get("steps", []):
+            chunks.append(
+                "<li>"
+                + escape(stage["id"] + ": " + stage["status"] + ": " + stage.get("reason", ""))
+                + "</li>"
+            )
+        chunks.append("</ul></section>")
+    chunks.append(
+        "<details><summary>Recorded selection, references, repairs, reminders and knowledge"
+        "</summary>"
+        "<pre>" + escape(json.dumps(summary, ensure_ascii=False, indent=2)) + "</pre></details>"
+    )
+    return "".join(chunks)
 
 
 def render_result(summary: dict) -> str:

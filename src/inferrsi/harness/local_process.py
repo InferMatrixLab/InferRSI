@@ -2,8 +2,11 @@ import os
 import signal
 import subprocess
 import time
+from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
+
+from .atomic_json import atomic_write_json
 
 # H local process control domain (moved from infra in H02): one command inside its
 # Windows Job or POSIX process group, deadline and cancellation, and tree cleanup.
@@ -206,6 +209,42 @@ def _wait(process: subprocess.Popen, deadline: float, cancellation) -> None:
         except subprocess.TimeoutExpired:
             if remaining <= _POLL_SECONDS:
                 raise
+
+
+@contextmanager
+def supervised_service(argv, cwd, environment, directory, owner):
+    """Own a foreground service until every client stage has finished."""
+    directory.mkdir(parents=True)
+    receipt = {**owner, "argv": argv, "cwd": str(cwd), "pid": None,
+               "process_group_id": None, "started_at": None, "ended_at": None,
+               "domain_empty": None, "returncode": None}
+    path = directory / "owner.json"
+    atomic_write_json(path, receipt)
+    process, job = None, None
+    try:
+        if os.name == "nt":
+            job = _WindowsJob()
+        options = ({"creationflags": subprocess.CREATE_NEW_PROCESS_GROUP} if os.name == "nt"
+                   else {"start_new_session": True})
+        with (directory / "stdout.log").open("wb") as stdout, (
+            directory / "stderr.log"
+        ).open("wb") as stderr:
+            process = subprocess.Popen(argv, cwd=cwd, env=environment, stdin=subprocess.DEVNULL,
+                                       stdout=stdout, stderr=stderr, shell=False, **options)
+            if job is not None:
+                job.attach(process)
+            receipt.update(pid=process.pid, started_at=_utc_now(),
+                           process_group_id=process.pid if os.name != "nt" else None)
+            atomic_write_json(path, receipt)
+            yield process, receipt
+    finally:
+        if process is not None:
+            _stop_tree(process, job)
+            receipt.update(returncode=process.poll(), ended_at=_utc_now(),
+                           domain_empty=job.emptied if job else _group_empty(process.pid))
+        elif job is not None:
+            job.close()
+        atomic_write_json(path, receipt)
 
 
 def _supervise(
