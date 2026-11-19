@@ -25,6 +25,17 @@ _BACKEND = re.compile(r"[a-z][a-z0-9]{0,31}")
 # refused rather than forwarded: the upstream CLI is fail-closed about platform
 # and a typo there would silently change which cards answer.
 PLATFORMS = ("a2", "a3", "950", "310p", "910", "kirin_x90", "kirin_9030", "agnostic")
+SETUP_GUIDE = (
+    "https://github.com/InferMatrixLab/InferRSI/blob/main/docs/external-channels.md"
+    "#setting-one-up"
+)
+_SETUP_FIX = (
+    "For Ascend tasks, install cannbot-knowledge if needed (checkout, Python "
+    "environment and index), then enable it: inferrsi cannbot enable "
+    "--checkout <path> --python <interpreter> --backend ascend --platform <platform>. "
+    f"Installation and verification: {SETUP_GUIDE} . "
+    "For local-only search, use inferrsi find <query> --no-external."
+)
 
 
 class ChannelFailure(ValueError):
@@ -44,7 +55,7 @@ def project_root() -> Path:
             return folder
     raise ChannelFailure(
         "Open a Git project to use project-scoped cannbot knowledge",
-        state="not_enabled", fix="Open a Git project, then enable cannbot knowledge",
+        state="not_enabled", fix="Open a Git project first. " + _SETUP_FIX,
     )
 
 
@@ -105,10 +116,11 @@ def load_grant(root: Path | None = None) -> dict:
     except FileNotFoundError:
         raise ChannelFailure(
             "cannbot knowledge is not enabled for this project", state="not_enabled",
-            fix="inferrsi cannbot enable --checkout <path> --python <interpreter>",
+            fix=_SETUP_FIX,
         ) from None
     except OSError:
-        raise ChannelFailure("The cannbot project grant could not be read", state="not_enabled") \
+        raise ChannelFailure("The cannbot project grant could not be read", state="not_enabled",
+                             fix=_SETUP_FIX) \
             from None
     if (grant.get("schema") != _SCHEMA or grant.get("project_root") != str(root)
             or grant.get("checkout_identity") != checkout
@@ -126,6 +138,13 @@ def load_grant(root: Path | None = None) -> dict:
 
 
 def _run(grant: dict, action: str, arguments: dict, *, timeout: float, request=None) -> dict:
+    upstream = Path(grant["upstream"])
+    query_script = upstream / ".agents/skills/knowledge-query/scripts/knowledge_query.py"
+    if not (upstream / "knowledge").is_dir() or not query_script.is_file():
+        raise ChannelFailure(
+            "The approved cannbot checkout is missing or incomplete", state="unreachable",
+            fix=_SETUP_FIX,
+        )
     environment = os.environ.copy()
     for key in ("CANNBOT_MCP_TOKENS", "CANNBOT_KNOWLEDGE_PLATFORM"):
         environment.pop(key, None)
@@ -147,7 +166,8 @@ def _run(grant: dict, action: str, arguments: dict, *, timeout: float, request=N
         raise ChannelFailure("cannbot output exceeded 2 MiB", state="rejected") from None
     except OSError:
         raise ChannelFailure(
-            "The approved cannbot reader could not be started", state="unreachable"
+            "The approved cannbot reader could not be started", state="unreachable",
+            fix=_SETUP_FIX,
         ) from None
     if len(result.stdout) > MAX_BYTES:
         raise ChannelFailure("cannbot returned more than 2 MiB", state="rejected")

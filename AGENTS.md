@@ -102,6 +102,11 @@ Portable operator guidance and candidate procedures live in [src/inferrsi/knowle
 
 ## Optimization requests
 
+For Ascend tasks, follow the [external knowledge preflight](docs/external-channels.md#ascend-task-preflight).
+If cannbot is unavailable or not enabled, proactively provide the installation
+recommendation and guide link, then verify discovery, search and a pinned card
+read after setup. Respect explicit local-only or knowledge-off conditions.
+
 Ordinary project optimization stays in the current Agent conversation. Follow
 the [shared optimization workflow](docs/optimization-workflow-unification.md):
 prepare explicit workload, quality/measurement scripts, metric, gates, declared

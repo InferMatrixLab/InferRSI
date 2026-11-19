@@ -4,6 +4,7 @@ import hashlib
 import json
 import os
 import shlex
+import shutil
 import subprocess
 import sys
 import time
@@ -285,6 +286,80 @@ def test_outside_git_project_reports_not_enabled(tmp_path, monkeypatch, backend)
     assert payload["items"]
     assert payload["external"][0]["state"] == "not_enabled"
     assert "Git project" in payload["external"][0]["fix"]
+    assert project.SETUP_GUIDE in payload["external"][0]["fix"]
+
+
+@pytest.mark.parametrize("query, no_match", [("tiling", False), ("qzxvjkqzxvjk", True)])
+@pytest.mark.parametrize("json_output", [False, True])
+def test_uninstalled_channel_suggests_setup_with_complete_link(
+    tmp_path, monkeypatch, query, no_match, json_output,
+):
+    home, root = tmp_path / "home", tmp_path / "project"
+    home.mkdir()
+    (root / ".git").mkdir(parents=True)
+    monkeypatch.setenv("HOME", str(home))
+    monkeypatch.setenv("USERPROFILE", str(home))
+    monkeypatch.setenv("PYTHONPATH", str(REPO / "src"))
+    output_flags = ["--json"] if json_output else []
+    result = cli("find", query, "--backend", "ascend", *output_flags, cwd=root)
+    assert result.returncode == 0, result.stderr
+    if json_output:
+        payload = json.loads(result.stdout)
+        assert payload["no_match"] is no_match
+        entry = payload["external"][0]
+        assert entry["state"] == "not_enabled"
+        guidance = entry["fix"]
+    else:
+        assert ("no_match\t" in result.stdout) is no_match
+        assert "[not_enabled]" in result.stdout
+        guidance = result.stdout
+    assert "install cannbot-knowledge if needed" in guidance
+    assert project.SETUP_GUIDE in guidance
+    assert "--platform <platform>" in guidance
+    assert "--no-external" in guidance
+    # A suggestion must not silently install or authorize an external source.
+    assert not (home / ".config/inferrsi/cannbot-projects").exists()
+
+
+@pytest.mark.parametrize("args", [("--backend", "cuda"), ("--backend", "ascend", "--no-external")])
+def test_explicit_local_only_conditions_omit_setup_suggestion(upstream, args):
+    _, script, _ = upstream
+    project.disable()
+    script.write_text("raise RuntimeError('source must not be probed')\n")
+    result = cli("find", "tiling", *args, "--json")
+    assert result.returncode == 0, result.stderr
+    assert "external" not in json.loads(result.stdout)
+    assert project.SETUP_GUIDE not in result.stdout + result.stderr
+
+
+def test_installed_but_disabled_source_suggests_setup_without_probing(upstream):
+    source, script, _ = upstream
+    project.disable()
+    marker = source / "unexpected-probe"
+    script.write_text("from pathlib import Path\nPath('unexpected-probe').touch()\n")
+    info = json.loads(cli("cannbot", "describe").stdout)
+    assert info["state"] == "not_enabled"
+    assert project.SETUP_GUIDE in info["fix"]
+    assert "if needed" in info["fix"]
+    assert not marker.exists()
+
+
+@pytest.mark.parametrize("missing", ["checkout", "interpreter"])
+def test_missing_approved_dependency_includes_installation_guidance(upstream, missing):
+    source, _, _ = upstream
+    if missing == "checkout":
+        shutil.rmtree(source)
+    else:
+        path = project._grant_path(project.project_root())
+        grant = project.load_grant()
+        grant["python"] = str(source / "missing-python")
+        path.write_text(json.dumps(grant))
+    result = cli("find", "tiling", "--backend", "ascend", "--json")
+    assert result.returncode == 0, result.stderr
+    payload = json.loads(result.stdout)
+    assert payload["items"]
+    assert payload["external"][0]["state"] == "unreachable"
+    assert project.SETUP_GUIDE in payload["external"][0]["fix"]
 
 
 def test_platform_override_and_cuda_gate(upstream):
