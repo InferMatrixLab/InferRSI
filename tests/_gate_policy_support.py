@@ -89,6 +89,11 @@ RETIRED_BY_M1 = frozenset(
     }
 )
 RETIRED_ROOT_MODULES = RETIRED_BY_R1 | RETIRED_BY_A1 | RETIRED_BY_A2 | RETIRED_BY_M1
+# #498 slice 1 moved these packages and modules out of ``inferrsi.model``, with no
+# forwarder or alias: ``inferrsi.benchmark.metrics`` and ``inferrsi.benchmark.validators``.
+# Each name covers everything below it. A file under one fails, and so does any import
+# that names one, even when its target is absent.
+RETIRED_MODULES = frozenset({"inferrsi.model.protocols.metrics", "inferrsi.model.validators"})
 # #412 R1, permanent: the one importer of the neutral data leaf outside
 # ``inferrsi.knowledge``, with the only name it may bind (D020: Infra reads one pack
 # description and reaches no Knowledge or Harness). This is not a manifest
@@ -151,6 +156,22 @@ def _from_base(node: ast.ImportFrom, package: str) -> str:
     parts = package.split(".")
     keep = parts[: len(parts) - node.level + 1]
     return ".".join(keep + ([node.module] if node.module else []))
+
+
+def _retired_imports(tree: ast.Module, package: str) -> set[str]:
+    """Every name under ``RETIRED_MODULES`` that an import statement in ``tree`` spells."""
+    found: set[str] = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            names = [alias.name for alias in node.names]
+        elif isinstance(node, ast.ImportFrom):
+            base = _from_base(node, package)
+            names = [base, *(f"{base}.{alias.name}" for alias in node.names)]
+        else:
+            continue
+        found.update(
+            name for name in names if any(_matches(name, old) for old in RETIRED_MODULES))
+    return found
 
 
 def _is_entry_delegation(node: ast.stmt, package: str) -> bool:
@@ -728,6 +749,16 @@ def first_wave_report(
         f"{name} is a retired root module"
         for name in modules
         if name in RETIRED_ROOT_MODULES and name not in sources
+    ]
+    violations += [
+        f"{name} is a retired module"
+        for name in modules
+        if any(_matches(name, old) for old in RETIRED_MODULES)
+    ]
+    violations += [
+        f"{name} imports retired module {target}"
+        for name in modules
+        for target in sorted(_retired_imports(graph.trees[name], graph.packages[name]))
     ]
     # Outside Knowledge the leaf has its one permanent importer and any staged pair
     # that names it. Every other importer fails.

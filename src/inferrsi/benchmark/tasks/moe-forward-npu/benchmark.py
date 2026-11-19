@@ -16,8 +16,8 @@ import time
 import uuid
 from pathlib import Path
 
-from inferrsi.infra.artifacts import atomic_write_json
-from inferrsi.model.protocols.metrics import read_metric
+from inferrsi.benchmark.artifacts import atomic_write_json
+from inferrsi.benchmark.metrics import read_metric
 
 # Worker cleanup for this MoE invocation, including detached torchrun sessions.
 # torchrun workers may create their own sessions, outside the executor's process

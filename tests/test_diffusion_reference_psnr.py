@@ -21,7 +21,7 @@ from __future__ import annotations
 import math
 import unittest
 
-from inferrsi.model.validators.image import ImageQualityGate
+from inferrsi.benchmark.validators.image import ImageQualityGate
 
 HEIGHT = 64
 WIDTH = 64

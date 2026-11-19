@@ -11,10 +11,10 @@ from unittest.mock import patch
 import pytest
 
 from inferrsi.apps.legacy.run import execute_trial, run_experiment
+from inferrsi.benchmark.metrics import read_metric
 from inferrsi.contracts import RunSpec
 from inferrsi.infra.platforms import PLATFORM_PROBES, inspect_device
 from inferrsi.infra.platforms.cuda import qualify_devices
-from inferrsi.model.protocols.metrics import read_metric
 
 
 def test_new_scenario_target_and_backend_share_abba_and_verdict(tmp_path):
@@ -134,7 +134,7 @@ def test_control_imports_need_no_inference_or_image_dependencies():
             sys.executable,
             "-c",
             "import sys; import inferrsi.apps.cli; "
-            "import inferrsi.model.validators.image; "
+            "import inferrsi.benchmark.validators.image; "
             "assert not {'torch', 'vllm', 'numpy', 'PIL', 'skimage'}.intersection(sys.modules)",
         ],
         check=False,

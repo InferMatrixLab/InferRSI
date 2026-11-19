@@ -2,7 +2,7 @@
 
 The adapter reads existing Flare qualification artifacts and writes a separate
 receipt. It never launches Flare, downloads a model or executes imported code.
-Run it with `python -m inferrsi.model.validators.flare`. The existing
+Run it with `python -m inferrsi.benchmark.validators.flare`. The existing
 `external_benchmark` scenario, `validation_command` and evaluator own execution
 and verdicts.
 
@@ -92,11 +92,11 @@ synthetic status, package bytes, corpus bytes and prepared capacity. This keeps
 an incomplete or incomparable pair out of the evaluator's performance inputs.
 
 ```text
-python -m inferrsi.model.validators.flare measure \
+python -m inferrsi.benchmark.validators.flare measure \
   --packet <baseline>/packet.json --peer <candidate>/packet.json \
   --output <receipts>/baseline.json
 
-python -m inferrsi.model.validators.flare validate-pair \
+python -m inferrsi.benchmark.validators.flare validate-pair \
   --baseline <baseline>/packet.json --candidate <candidate>/packet.json \
   --output <receipts>/pair.json
 ```
@@ -104,7 +104,7 @@ python -m inferrsi.model.validators.flare validate-pair \
 For `RunSpec`, use these argv sequences:
 
 ```python
-cli = (python, "-m", "inferrsi.model.validators.flare")
+cli = (python, "-m", "inferrsi.benchmark.validators.flare")
 baseline_command = cli + (
     "measure", "--packet", baseline, "--peer", candidate, "--output", "{result}",
 )
@@ -145,7 +145,7 @@ From a development checkout with InferRSI installed:
 
 ```text
 python tests/fixtures/flare_packet.py <sample-directory>
-python -m inferrsi.model.validators.flare measure \
+python -m inferrsi.benchmark.validators.flare measure \
   --packet <sample-directory>/packet.json --peer <sample-directory>/packet.json \
   --output <outside-sample-directory>/receipt.json
 pytest tests/test_flare_adapter.py

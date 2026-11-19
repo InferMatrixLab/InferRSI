@@ -16,13 +16,12 @@ import pytest
 from inferrsi.apps.legacy import evaluation as legacy_evaluation
 from inferrsi.apps.legacy import reporting as legacy_reporting
 from inferrsi.apps.legacy import run as legacy_run
-from inferrsi.benchmark import legacy_run_v0, sampling
+from inferrsi.benchmark import legacy_run_v0, metrics, sampling
 from inferrsi.contracts import RunSpec, claim
 from inferrsi.harness import atomic_json
 from inferrsi.harness.runner import run_experiment
 from inferrsi.harness.scenarios.external import execute_trial
 from inferrsi.infra import artifacts, targets
-from inferrsi.model.protocols import metrics
 from tests._gate_policy_support import ROOT, _scan, _walk
 
 GRAPH = _scan(ROOT, frozenset())
@@ -62,9 +61,9 @@ def test_runner_and_external_lost_their_model_artifact_and_target_edges():
 
 
 def test_benchmark_rules_import_only_the_metric_contract():
+    # #498 slice 1 moved the metric contract into Benchmark.
     assert _outside("inferrsi.benchmark.legacy_run_v0", "inferrsi.") == {
-        "inferrsi.benchmark", "inferrsi.model", "inferrsi.model.protocols",
-        "inferrsi.model.protocols.metrics",
+        "inferrsi.benchmark", "inferrsi.benchmark.metrics",
     }
     assert _outside("inferrsi.benchmark.sampling", "inferrsi.") == {"inferrsi.benchmark"}
     # The v0 labels are Benchmark's own and equal the legacy vocabulary.

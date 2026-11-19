@@ -787,3 +787,26 @@ with tempfile.TemporaryDirectory(prefix="inferrsi-mindie-launch-") as launch_cwd
         check=False, cwd=launch_cwd,
     )
 assert launch.returncode == 0, launch.stderr
+# #498 slice 1: the metric contract and the quality validators ship only under
+# inferrsi.benchmark. The old inferrsi.model paths are not in the wheel and have no alias.
+for retired in ("inferrsi.model.protocols.metrics", "inferrsi.model.validators"):
+    assert find_spec(retired) is None, retired
+    try:
+        import_module(retired)
+    except ModuleNotFoundError:
+        pass
+    else:
+        raise AssertionError(f"retired module {retired} must not import")
+for canonical in ("inferrsi.benchmark.metrics", "inferrsi.benchmark.artifacts",
+                  "inferrsi.benchmark.validators.flare", "inferrsi.benchmark.validators.image"):
+    assert find_spec(canonical) is not None, canonical
+# The flare CLI runs from the installed wheel only under its new path.
+with tempfile.TemporaryDirectory(prefix="inferrsi-flare-cli-") as cli_cwd:
+    for module, code in (("inferrsi.benchmark.validators.flare", 0),
+                         ("inferrsi.model.validators.flare", 1)):
+        flare_cli = subprocess.run(
+            [sys.executable, "-I", "-B", "-m", module, "--help"], capture_output=True,
+            text=True, check=False, cwd=cli_cwd,
+        )
+        assert flare_cli.returncode == code, (module, flare_cli.returncode, flare_cli.stderr)
+    assert "No module named 'inferrsi.model.validators'" in flare_cli.stderr, flare_cli.stderr
