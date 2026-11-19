@@ -477,7 +477,10 @@ PRE_SERVING = (Path(__file__).resolve().parent / "fixtures" / "optimization-sess
 
 
 def _refused(session, capsys, action):
-    assert main(["benchmarks", "session", action, "--session", str(session)]) == 2
+    # The CLI reports the refusal as a usage error: argparse exits with status 2.
+    with pytest.raises(SystemExit) as stopped:
+        main(["benchmarks", "session", action, "--session", str(session)])
+    assert stopped.value.code == 2
     return capsys.readouterr()
 
 

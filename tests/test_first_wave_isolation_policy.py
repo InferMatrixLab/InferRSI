@@ -1232,7 +1232,7 @@ class HarnessEntryTest(unittest.TestCase):
         # relative or absolute, top-level or inside a function, reports both the package
         # and the module edge; reaching another infra module or model also counts.
         infra = {"infra/__init__.py": "", "infra/artifacts.py": "VALUE = 1\n",
-                 "infra/processes.py": "VALUE = 1\n", "model/__init__.py": "",
+                 "infra/commands.py": "VALUE = 1\n", "model/__init__.py": "",
                  "model/metrics.py": "VALUE = 1\n"}
         primitives = {"harness/artifact_primitives.py": "VALUE = 1\n",
                       "harness/atomic_json.py": "VALUE = 1\n"}
@@ -1248,7 +1248,8 @@ class HarnessEntryTest(unittest.TestCase):
             ("from ..infra.artifacts import VALUE\n", "inferrsi.infra.artifacts"),
             ("def late():\n    from inferrsi.infra.artifacts import VALUE\n",
              "inferrsi.infra.artifacts"),
-            ("from ..infra import processes\n", "inferrsi.infra.processes"),
+            # #498 slice 2 retired infra.processes; commands is another live Infra module.
+            ("from ..infra import commands\n", "inferrsi.infra.commands"),
             ("from inferrsi.model import metrics\n", "inferrsi.model.metrics"),
         )
         for name in modules:
