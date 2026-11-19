@@ -251,6 +251,8 @@ assessment 的 `profile_evidence` 按重复配对比较每个区域和计数，`
 
 两个开关同时打开时按固定顺序判定：先由 `--decision` 得到性能结论，`--require-explanation` 只作用于性能结论为 PASS 的轮次，把它降为 FAIL 或 INCONCLUSIVE，不会提升或改写非 PASS 的结论。因此性能结论已是 FAIL 或 INCONCLUSIVE（包括 `within_noise`）时，无论 `explanation.status` 是什么，最终 verdict 和 `reason` 都保持性能结论；`explanation` 仍完整写入报告。
 
+两个开关和 `--mechanism-file` 只适用于默认的 AB/BA 评估：`--evaluation-mode service_reuse` 不记录逐对样本和 profile，因此该模式下 `campaign start` 拒绝这两个开关，`campaign round` 拒绝 `--mechanism-file`，不会悄悄忽略。
+
 提交未修改的候选可以作为 A/A 对照，`paired_statistics` 的区间即给出该环境的噪声范围；`--require-explanation` 下的 A/A 轮次在声明的变化项上应为 `not_shown`。
 
 ## 实际保留什么、保护什么

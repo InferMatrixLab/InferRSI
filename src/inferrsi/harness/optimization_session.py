@@ -178,6 +178,11 @@ def session_command(args, *, task_source: Path | None = None, knowledge_reader=N
                     raise ValueError(
                         "Service reuse requires --evaluation-config without AB/BA options"
                     )
+                if args.decision != "point" or args.require_explanation:
+                    # Both switches read AB/BA pairs and profiles that this mode does not record.
+                    raise ValueError(
+                        "--decision paired and --require-explanation apply to AB/BA campaigns"
+                    )
                 settings = prepare_service(root, args)
                 plan = {
                     "schema_version": 3,
@@ -294,6 +299,8 @@ def session_command(args, *, task_source: Path | None = None, knowledge_reader=N
                 }
         if args.session_action == "knowledge-read":
             raise ValueError("External round knowledge requires a benchmark or AB/BA campaign")
+        if getattr(args, "mechanism_file", None) is not None:
+            raise ValueError("Mechanism checks apply to AB/BA project campaign rounds only")
         return optimization.service_command(root, args, knowledge_reader=knowledge_reader)
     if (
         args.session_action in ("baseline", "refresh-references", "resume", "profile")
