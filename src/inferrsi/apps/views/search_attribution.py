@@ -20,6 +20,7 @@ from .capture_delivery import (
     capture_event,
     capture_return_texts,
     load_campaign_capture,
+    managed_envelopes,
     managed_return_lines,
 )
 from .codex_search import read_window
@@ -314,12 +315,24 @@ def import_search(root: Path, *, number: int, trace=None, lines=None, knowledge_
             else:
                 command_decisions.append(item)
 
+    capture_inputs = {key: load_campaign_capture(root, campaign_id, key) for key in capture_ids}
+    capture_returns = dict(review["capture_returns"]) if review else {}
+    options = {}
     window, events, decisions, uncertain = None, [], {}, []
     if trace:
+        if capture_inputs:
+            envelopes = managed_envelopes(capture_inputs)
+            options["capture_outputs"] = dict.fromkeys(envelopes.values(), root)
+            capture_returns.update(managed_return_lines(
+                trace, lines,
+                {key: body for key, body in envelopes.items() if key not in capture_returns},
+                reserved=set(capture_returns.values()),
+            ))
         window, events, decisions, uncertain, _ = read_window(
-            trace, lines, knowledge_root, archive=False)
-    capture_inputs = {key: load_campaign_capture(root, campaign_id, key) for key in capture_ids}
-    captures = {key: capture_event(key, capture_inputs[key]) for key in capture_ids}
+            trace, lines, knowledge_root, archive=False, **options)
+    return_texts = capture_return_texts(trace, lines, capture_returns, capture_ids)
+    captures = {key: capture_event(key, capture_inputs[key], return_chunks=return_texts.get(key),
+                                   return_line=capture_returns.get(key)) for key in capture_ids}
     events.extend(captures.values())
     materials, observed = _observations(events)
     _log_uses(root, campaign_id, number, captures, materials)
@@ -353,19 +366,10 @@ def import_search(root: Path, *, number: int, trace=None, lines=None, knowledge_
         selections.setdefault(item["event_line"], []).append((item["ref"], item["passage_line"]))
     archive_events, archive_decisions, archive_uncertain, unresolved_details = [], {}, [], []
     if trace:
-        options = {"excerpts": excerpts} if excerpts else {}
+        if excerpts:
+            options["excerpts"] = excerpts
         _, archive_events, archive_decisions, archive_uncertain, unresolved_details = read_window(
             trace, lines, knowledge_root, archive=True, selections=selections, **options)
-    capture_returns = dict(review["capture_returns"])
-    if note_line is not None:
-        capture_returns.update(managed_return_lines(
-            trace, lines,
-            {key: value for key, value in capture_inputs.items() if key not in capture_returns},
-            reserved=set(capture_returns.values()),
-        ))
-    return_texts = {}
-    if capture_returns:
-        return_texts = capture_return_texts(trace, lines, capture_returns, capture_ids)
     archive_captures = {}
     for key in capture_ids:
         return_line = capture_returns.get(key)

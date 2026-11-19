@@ -159,11 +159,11 @@ def decision_positions(notes, submitted_at, decisions):
     reasons = dict.fromkeys(reason for _, _, reason in notes["citations"])
     if "hypothesis" in notes:
         decisions[submitted_at] = notes["hypothesis"]
-        return dict.fromkeys(reasons, submitted_at)
+        return dict.fromkeys(reasons, (submitted_at,))
     # The log command proves which bytes were saved, but its argument
-    # does not carry the reason. The agent must have stated it while deciding.
-    return {reason: next((line for line, text in sorted(decisions.items())
-                          if line < submitted_at and reason in text), None)
+    # does not carry the reason. Keep each statement before the saved log.
+    statements = [(line, text) for line, text in sorted(decisions.items()) if line < submitted_at]
+    return {reason: tuple(line for line, text in statements if reason in text)
             for reason in reasons}
 
 
@@ -171,14 +171,16 @@ def round_reviews(citations, positions, events):
     """Return regular archive-review decisions and any unverified declarations."""
     reviews, declarations = [], []
     for ref, quote, reason in dict.fromkeys(citations):
-        line = positions.get(reason)
+        decision_lines = positions.get(reason, ())
         matches = {}
-        if line is not None and sanitized_text(reason, "", len(reason)) == reason:
+        if decision_lines and sanitized_text(reason, "", len(reason)) == reason:
             for event in events:
                 delivery = event["delivery"]
                 if (event["action"] != "read" and "context_id" not in event
-                        or delivery["state"] != "visible" or delivery.get("runtime_truncated")
-                        or delivery["return_line"] >= line):
+                        or delivery["state"] != "visible" or delivery.get("runtime_truncated")):
+                    continue
+                line = next((at for at in decision_lines if delivery["return_line"] < at), None)
+                if line is None:
                     continue
                 for p in delivery["passages"]:
                     if (p["ref"] != ref or quote not in p["text"]
@@ -197,8 +199,9 @@ def round_reviews(citations, positions, events):
         if len(matches) == 1:
             reviews.append(next(iter(matches.values())))
         else:
-            reason_code = ("round_submission_unverified" if line is None else
+            reason_code = ("round_submission_unverified" if not decision_lines else
                            "ambiguous_read_excerpt" if matches else "read_excerpt_unverified")
             declarations.append({"ref": ref, "use": "used", "basis": "round_reason_declaration",
-                                 "reason": reason_code, "decision_line": line})
+                                 "reason": reason_code,
+                                 "decision_line": decision_lines[0] if decision_lines else None})
     return reviews, declarations

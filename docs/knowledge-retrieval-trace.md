@@ -164,10 +164,13 @@ assembly byte budget are retained independently.
 The legacy manual campaign operations above are for externally recorded
 campaigns. Managed optimization sessions retain their controller-owned state;
 this read-only dashboard extension does not create another controller.
-For a managed capture, `capture_returns` can cite the complete
-`campaign knowledge` or `benchmarks session knowledge` JSON tool return. The
-returned capture reference and contents must match the saved capture. Delivery
-is established for the matching resource blocks in that return.
+For a managed capture selected with `--context-id`, the importer looks for the
+complete `campaign knowledge` or `benchmarks session knowledge` JSON tool
+return in the trace window. The returned capture reference and contents must
+match the saved capture. Delivery is recorded for the matching resource blocks
+even when the round has no use citation. Reviewers can also supply the return
+line in `capture_returns`. A managed query without a verified matching capture
+keeps trace coverage partial and complete counts unavailable.
 Reasons in a submitted managed hypothesis or a manual optimization log can
 carry an explicit use citation. The importer aligns it with the verified
 delivered passage and later decision position without hand-entered evidence

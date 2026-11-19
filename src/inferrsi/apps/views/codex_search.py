@@ -596,6 +596,7 @@ def _detail(event_id, trace_line, action, reason, event=None, excerpt=None, sele
         "requested_passage_not_visible": "Requested line is absent; choose a returned passage.",
         "unsupported_or_compound_command": "Inspect the operation and return rows before citing.",
         "command_output_incomplete": "Output is incomplete; cite only retained lines.",
+        "managed_capture_unverified": "Select the matching capture and verify its tool return.",
     }
     detail = {"trace_line": trace_line, "reason": reason,
               "action": action, "description": descriptions.get(
@@ -611,8 +612,18 @@ def _detail(event_id, trace_line, action, reason, event=None, excerpt=None, sele
     return detail
 
 
+def _matched_managed_capture(spec, item, join, capture_outputs):
+    if not capture_outputs or join.get("state") != "visible" or join["runtime_truncated"]:
+        return False
+    output = "".join(join["aggregate_lines"]).replace("\r\n", "\n").rstrip("\n")
+    root = capture_outputs.get(output)
+    cwd = _path(item.get("cwd"))
+    return (root is not None and cwd is not None and spec["session"] is not None
+            and (cwd / spec["session"]).resolve() == root)
+
+
 def read_window(trace: Path, lines: tuple[int, int], corpus: Path, *, archive=False,
-                selections=None, excerpts=None):
+                selections=None, excerpts=None, capture_outputs=None):
     """Return window, events, full transient decisions, uncertainty and detail.
 
     In archive mode, selections maps a command event's trace line to
@@ -679,13 +690,22 @@ def read_window(trace: Path, lines: tuple[int, int], corpus: Path, *, archive=Fa
     # Verify direct CLI delivery for local coverage too, without retaining
     # source passages in the local ledger. Historical file events stay v1.
     reviewed_commands = (commands if archive else [
-        row for row in commands if row[-1] and row[-1]["kind"] == "knowledge"
+        row for row in commands if row[-1] and row[-1]["kind"] in ("knowledge", "managed_capture")
     ])
     if reviewed_commands:
         joinable = [(line, item, event_id) for line, item, event_id, _, _, _ in reviewed_commands]
         joins = correlate_window(trace, joinable, meta_cwd, (first, last))
         event_by_line = {event["trace_line"]: event for event in events}
         for line, item, event_id, event, complete, spec in reviewed_commands:
+            if spec and spec["kind"] == "managed_capture":
+                if _matched_managed_capture(spec, item, joins.get(event_id, {}), capture_outputs):
+                    uncertain.remove(line)
+                elif archive:
+                    unresolved_details.append(_detail(
+                        f"file-{line}", line, "search", "managed_capture_unverified",
+                        {"tool": spec["tool"]},
+                    ))
+                continue
             if event is None:
                 if not complete:
                     action, compound = _rough_action(item)

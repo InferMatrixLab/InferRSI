@@ -15,6 +15,7 @@ from .codex_tool_returns import _output_lines
 
 _SEARCHES = ("find", "knowledge search", "knowledge research", "context", "cannbot search")
 _READS = ("read", "knowledge show", "cannbot read")
+_MANAGED_SEARCHES = ("campaign knowledge", "benchmarks session knowledge")
 _QUALIFIED = re.compile(r"(?:package|checkout|store):[A-Za-z0-9][A-Za-z0-9_.-]*")
 _REVISION = re.compile(r"sha256:[a-f0-9]{64}")
 _FIND_ROW = re.compile(r"([^\t]+)\t\[(case|skill|record) · [^\t]+\]\tscore [\d.]+")
@@ -66,9 +67,11 @@ def cli_arguments(argv):
 
 def invocation(argv):
     args = cli_arguments(argv)
-    tool = " ".join(args[:2]) if args and args[0] in ("knowledge", "cannbot") else (
-        args[0] if args else "")
-    if tool in (*_SEARCHES, *_READS, "collect"):
+    if not args:
+        return None
+    length = {"knowledge": 2, "cannbot": 2, "campaign": 2, "benchmarks": 3}.get(args[0], 1)
+    tool = " ".join(args[:length])
+    if tool in (*_SEARCHES, *_READS, *_MANAGED_SEARCHES, "collect"):
         return tool, args
     return None
 
@@ -184,6 +187,12 @@ def decode(call, code, output):
         args = _parser().parse_args(argv)
     except _ArgumentError:
         args = None
+
+    if tool in _MANAGED_SEARCHES:
+        # The retained capture supplies the event and counts. The trace join
+        # determines whether this command is accounted for by that capture.
+        return None, False, {"kind": "managed_capture", "tool": tool,
+                             "session": args.session if args is not None and code == 0 else None}
 
     action = "search" if tool in _SEARCHES or tool == "collect" else "read"
     if args is not None:

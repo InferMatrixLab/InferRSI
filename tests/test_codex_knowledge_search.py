@@ -52,8 +52,9 @@ def _operation(cwd, argv, stdout, identity, *, received=True, script=None):
     return rows
 
 
-def _import(tmp_path, rows, *, decisions=(), context_ids=()):
-    trace, campaign = tmp_path / "rollout.jsonl", tmp_path / "campaign"
+def _import(tmp_path, rows, *, decisions=(), context_ids=(), campaign=None):
+    trace = tmp_path / "rollout.jsonl"
+    campaign = campaign or tmp_path / "campaign"
     meta = {"type": "session_meta", "payload": {"id": "synthetic-cli", "cwd": str(tmp_path)}}
     trace.write_text("".join(json.dumps(row) + "\n" for row in [meta, *rows]), encoding="utf-8")
     review = tmp_path / "review.json"

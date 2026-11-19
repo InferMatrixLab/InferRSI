@@ -66,18 +66,25 @@ def _managed_envelope(doc, reference):
     return json.dumps({"reference": reference, "context": doc}, ensure_ascii=False, indent=2)
 
 
-def managed_return_lines(trace, lines, captures, *, reserved):
-    """Locate exact tool returns for selected managed captures in the round."""
-    pending = {key: _managed_envelope(doc, {
+def managed_envelopes(captures):
+    return {key: _managed_envelope(doc, {
         "path": source, "sha256": digest, "kind": "delivered_context",
     }) for key, (doc, source, digest) in captures.items()}
-    if not pending:
+
+
+def _contains_envelope(chunk, body):
+    return f"\n{body}\n" in "\n" + chunk.replace("\r\n", "\n") + "\n"
+
+
+def managed_return_lines(trace, lines, envelopes, *, reserved):
+    """Locate exact tool returns for selected managed captures in the round."""
+    if not envelopes:
         return {}
     found = {}
     first, last = lines
     with trace.open("rb") as stream:
         for number, raw in enumerate(stream, 1):
-            if number > last or not pending:
+            if number > last or len(found) == len(envelopes):
                 break
             if number < first or number in reserved:
                 continue
@@ -91,27 +98,18 @@ def managed_return_lines(trace, lines, captures, *, reserved):
             text = _response_text(row)
             if text is None:
                 continue
-            chunk = "\n" + text.replace("\r\n", "\n") + "\n"
-            keys = [key for key, body in pending.items() if f"\n{body}\n" in chunk]
+            keys = [key for key, body in envelopes.items() if _contains_envelope(text, body)]
             if len(keys) == 1:
-                key = keys[0]
-                found[key] = number
-                del pending[key]
+                found.setdefault(keys[0], number)
     return found
 
 
-def visible_capture_resources(doc, texts, *, reference=None):
+def visible_capture_resources(doc, texts):
     """Require matching owner, revision, resource path and body in the visible text."""
     visible = []
     if not texts:
         return visible
     chunks = ["\n" + text + "\n" for text in texts]
-    if reference is not None:
-        # The managed CLI prints the retained capture in its JSON response.
-        # Require the complete envelope, including the verified path and digest.
-        managed = _managed_envelope(doc, reference)
-        if any(f"\n{managed}\n" in chunk.replace("\r\n", "\n") for chunk in chunks):
-            chunks.append("\n" + doc["assembled_text"] + "\n")
     for context in doc["contexts"]:
         for resource in context["resources"]:
             block = assemble_context_text([{
@@ -238,16 +236,22 @@ def capture_event(context_id, captured, *, archive=False, return_chunks=None,
     event = {"action": action, "tool": tool, "context_id": context_id,
              "source": source, "sha256": digest, "request": doc["request"],
              "selection": doc.get("selection"), "materials": materials}
+    exact_return = bool(return_chunks) and _contains_envelope(
+        "".join(return_chunks),
+        _managed_envelope(doc, {"path": source, "sha256": digest, "kind": "delivered_context"}),
+    )
+    visible = [r for r in visible_capture_resources(
+        doc, [doc["assembled_text"]] if exact_return else return_chunks,
+    ) if _relative_location(r["ref"]) == r["ref"] and _relative_location(r["path"]) == r["path"]]
     if not archive:
+        if visible:
+            event["delivery"] = {"state": "visible", "return_line": return_line,
+                                 "visible_resources": visible}
         return event
 
     omissions = {o["ref"]: o.get("reason") for o in
                  [*doc.get("omissions", []), *doc.get("context_omissions", [])]
                  if isinstance(o, dict) and isinstance(o.get("ref"), str)}
-    reference = {"path": source, "sha256": digest, "kind": "delivered_context"}
-    visible = [r for r in visible_capture_resources(doc, return_chunks, reference=reference)
-               if _relative_location(r["ref"]) == r["ref"]
-               and _relative_location(r["path"]) == r["path"]]
     visible_keys = {(r["ref"], r["path"]) for r in visible}
     for material in materials:
         ref, revision = material["ref"], material["revision"]
@@ -266,7 +270,7 @@ def capture_event(context_id, captured, *, archive=False, return_chunks=None,
     event["request"], event["selection"] = _archive_capture_metadata(doc)
     event["capture"] = {"state": "verified", "source": source, "sha256": digest}
     event["delivery"] = {"state": "visible" if visible else "unknown",
-                         "output_state": "verified" if return_line is not None else "unknown",
+                         "output_state": "verified" if exact_return or visible else "unknown",
                          "visible_resources": visible,
                          "passages": _capture_passages(
                              doc, selected_passages, visible_keys, excerpts or {})}
