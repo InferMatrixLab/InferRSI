@@ -98,6 +98,13 @@ reviewable changes are pushed. Before merging, the integrator verifies two
 current approvals that meet the eligibility and body rules above, resolution
 of all blocking reviews, and passing required checks.
 
+Windows/macOS `host-compatibility` checks are advisory under the
+[CI policy](contributing.md#ci-and-repository-reuse). Reviewers and integrators
+must not block approval or merging on their failure, cancellation, queued or
+not-run status, or demand a successful rerun or equivalent host-validation artifact
+to clear them. Record the actual host result without treating missing evidence
+as a pass.
+
 To clear a blocking **Request changes** review, ask its reviewer to re-review
 the current revision and submit **Approve** once the blockers are resolved.
 If that reviewer is unavailable, an independent maintainer with authority and

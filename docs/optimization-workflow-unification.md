@@ -32,7 +32,7 @@ CLI `final` 返回后自动生成 `delivery/<export-id>/report.md`、离线 `rep
 
 ## 时序图
 
-以下是普通项目的完整流程。CLI 接入既有入口，调用 Harness 的 `optimization_session.session_command()`。初始化、执行、判定和结算均在 Harness 内；CLI 注入 KnowledgeReader 和已有知识记录回调。知识记录回调在 `apps/campaign.py`，展示在 `apps/views`，记录由 `harness/records` 写入；Harness 仍负责优化状态与预算。
+以下是普通项目默认 AB/BA 模式的完整流程。CLI 接入既有入口，调用 Harness 的 `optimization_session.session_command()`。初始化、执行、判定和结算均在 Harness 内；CLI 注入 KnowledgeReader 和已有知识记录回调。知识记录回调在 `apps/campaign.py`，展示在 `apps/views`，记录由 `harness/records` 写入；Harness 仍负责优化状态与预算。
 
 先准备任务条件，再调用 start。start 内复制任务、脚本和基线并写入计划/状态，不执行测量。Agent 逐次调用 round，最后调用 final 独立重测已保存的最佳版本。
 
@@ -149,7 +149,7 @@ Harness 没有常驻 Agent 驱动。Agent 逐次调用这些操作，代码在�
 | 一次测量 | 原有 `run` 或 `benchmarks run` | 保留独立使用方式；不会自动生成多轮候选 |
 | 旧式手动 campaign | 原有 `campaign init/record/decide` | 兼容已有记录；不允许写进新控制器管理的 campaign 形成第二套状态 |
 
-两个优化入口都调用 `harness.optimization_session.session_command`，再调用 **同一个** `harness.optimization.evaluate_round`。执行与评测适配也在 Harness 内。普通项目由 `harness.project` 固化调用方协议并判定留存结果，整个生命周期不导入 Benchmark。
+两个优化入口都调用 `harness.optimization_session.session_command`，使用同一个 `harness.optimization` 控制器。AB/BA 与题包使用 `evaluate_round`；显式 service_reuse 使用该控制器内的 `service_command` 和模式分支，共用锁及单一控制记录。执行与评测适配也在 Harness 内；普通项目整个生命周期不导入 Benchmark。
 
 题库 `start` 由 CLI 经 `benchmark.registry` 定位资源目录，再交给 `harness.task_protocol.prepare` 固化；后续从冻结目录加载题包自己的 `optimization.py`，无需再次查询注册表。专用协议检查仍属于题包。两类 `assess` 都只读留存结果，不重新测量。KnowledgeReader 与 `apps/campaign.py` 的记录回调由 CLI 注入，Harness 不直接导入 Benchmark 或目标 Knowledge 模块，也不经记录模块间接引入知识实现。
 
@@ -160,6 +160,10 @@ Harness 没有常驻 Agent 驱动。Agent 逐次调用这些操作，代码在�
 当前完整题库迭代适配为 Qwen。MoE/TTS 仍是自己的单候选测量入口，尚未因此自动支持 `benchmarks session`。
 
 ## 普通项目怎么接入
+
+普通项目默认使用下面的 AB/BA 流程。需要复用服务时，可显式选择
+[service_reuse 模式](service-reuse-campaigns.md)，按该协议准备初始 baseline、
+多场景指标、同服务质量与 profile 脚本，以及恢复和 final 所需条件。
 
 无需先登记成题库任务。Agent 准备一个协议目录，包含测量、质量脚本以及要固定的输入/配置，再调用 `campaign start --help` 按实际项目填写参数。
 

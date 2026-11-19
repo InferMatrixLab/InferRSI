@@ -97,7 +97,7 @@ def _validate_record(
         raise ValueError(f"Imported knowledge must state locally_verified=false: {record['id']}")
 
 
-def knowledge_records() -> list[dict[str, Any]]:
+def knowledge_records(*, file_fingerprints: bool = True) -> list[dict[str, Any]]:
     data = files("inferrsi").joinpath("knowledge", "data")
     records = []
     seen = set()
@@ -125,18 +125,49 @@ def knowledge_records() -> list[dict[str, Any]]:
                 ):
                     if snapshot is None:
                         raise ValueError(f"Knowledge record lacks its source snapshot: {repo}")
-                    record = _source_snapshot.resolve(record, snapshot)
+                    if file_fingerprints:
+                        record = _source_snapshot.resolve(record, snapshot)
+                    else:
+                        revision = snapshot.get("source_revision")
+                        if not isinstance(revision, str) or not re.fullmatch(
+                            r"[0-9a-f]{40}", revision
+                        ):
+                            raise ValueError("Knowledge source commit is unavailable")
+                        record = {
+                            **record,
+                            "schema_version": 1,
+                            "sources": [
+                                {
+                                    "type": "git",
+                                    "commit": revision,
+                                    "url": _source_snapshot.REPOSITORY + "/tree/" + revision,
+                                }
+                            ],
+                        }
                 elif snapshot is not None:
                     raise ValueError(
                         f"Source-snapshot pack holds a record that is not schema "
                         f"{_source_snapshot.STORED_SCHEMA}: {repo}/{'/'.join(parts)}"
                     )
+                if not file_fingerprints:
+                    record = without_file_fingerprints(record)
                 _validate_record(record, repo, parts, tier)
                 if record["id"] in seen:
                     raise ValueError(f"Duplicate knowledge ID: {record['id']}")
                 seen.add(record["id"])
                 records.append(record)
     return records
+
+
+def without_file_fingerprints(value):
+    """Project source attribution without computing or validating file identities."""
+    if isinstance(value, dict):
+        return {key: without_file_fingerprints(item) for key, item in value.items()
+                if key != "source_files" and not any(
+                    part in key.lower() for part in ("sha256", "fingerprint", "digest"))}
+    if isinstance(value, list):
+        return [without_file_fingerprints(item) for item in value]
+    return value
 
 
 def _scoped_records(
