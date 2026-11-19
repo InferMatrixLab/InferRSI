@@ -4,6 +4,23 @@
 
 ### Changed
 
+- The host bindings move from `inferrsi.infra` to the new `inferrsi.apps.host`
+  package (Refs #498, slice 3a). There is no forwarding module or alias, and the
+  import gate fails any import of an old path.
+  - `inferrsi.infra.commands`, `inspection`, `environment`, `platforms` and
+    `targets` are now `inferrsi.apps.host.commands`, `inspection`, `environment`,
+    `platforms` and `targets`. Only one import line changes, in `inspection.py`,
+    which reads the neutral data leaf one package level deeper.
+  - The permanent neutral-leaf importer rule now names
+    `inferrsi.apps.host.inspection`. It moved with its file in the same change,
+    and `inferrsi.infra.inspection` is retired, so no window admits two importers.
+    `technical_leaf.permanent_importers` in `docs/legacy-knowledge-manifest.json`
+    names the new module. The A1 state is kept unchanged in `revision_history`, and
+    every leaf lock is unchanged. The move needs the same formal architecture review
+    as the rule.
+  - The `apps/host/` package keeps Infra's limit: the gate fails any path from it to
+    a Knowledge, Harness or Benchmark module.
+  - `inferrsi.infra` now holds only `artifacts.py`.
 - The `inferrsi.infra.campaign` import facade is removed (Refs #498, slice 3c). It
   only re-exported Infra helpers, and its one caller is the example campaign.
   There is no forwarding module or alias, and the import gate fails any import of

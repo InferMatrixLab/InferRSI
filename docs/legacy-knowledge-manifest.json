@@ -1,7 +1,7 @@
 {
   "$schema": "urn:inferrsi:docs:legacy-knowledge-manifest:v1",
-  "description": "First-wave Knowledge compatibility record and the neutral technical data leaf's locks. P0b froze the first revision at 0da7e2f960cd4ec994ae8eddea5b71023c5379ca, K01 re-recorded every leaf hash before the code move, K02 changed only the data leaf's locked file hash, and C2 (#451) moved that leaf byte for byte to inferrsi.resources.repository_packs. The R1 revision (#412) deleted the seven root Knowledge shells with their eight pairs, so compatibility_pairs is empty and the allowlist blocker is gone. The former ninth pair, infra.inspection -> the data leaf, is now the permanent exact rule in technical_leaf.permanent_importers, outside the allowlist. The nine retired pair records, with the old root leaf hashes and export lists, are kept unchanged under the C2 revision_history entry, the record that R1 appended; it is no longer the last entry. The leaf's bytes and locked file hash are unchanged. Nothing here is a wildcard approval, and it changes only through formal review. Line references are at the base_commit recorded by the revision that wrote them; no later revision re-records them. This A1 revision (#408) removes technical_leaf.temporary_importers with root arguments.py: the moved Apps parser reads the same REPO_TYPES object through inferrsi.knowledge.catalog, no Apps importer of the leaf is declared, and the removed entry is kept unchanged as retired_temporary_importers under the last revision_history entry, the R1 record.",
-  "base_commit": "aaa17a5dd333449d15fb052bb09b2012d55f2327",
+  "description": "First-wave Knowledge compatibility record and the neutral technical data leaf's locks. P0b froze the first revision at 0da7e2f960cd4ec994ae8eddea5b71023c5379ca, K01 re-recorded every leaf hash before the code move, K02 changed only the data leaf's locked file hash, and C2 (#451) moved that leaf byte for byte to inferrsi.resources.repository_packs. The R1 revision (#412) deleted the seven root Knowledge shells with their eight pairs, so compatibility_pairs is empty and the allowlist blocker is gone. The former ninth pair, infra.inspection -> the data leaf, is now the permanent exact rule (its importer moved to apps.host.inspection in #498 slice 3a) in technical_leaf.permanent_importers, outside the allowlist. The nine retired pair records, with the old root leaf hashes and export lists, are kept unchanged under the C2 revision_history entry, the record that R1 appended; it is no longer the last entry. The leaf's bytes and locked file hash are unchanged. Nothing here is a wildcard approval, and it changes only through formal review. Line references are at the base_commit recorded by the revision that wrote them; no later revision re-records them. This A1 revision (#408) removes technical_leaf.temporary_importers with root arguments.py: the moved Apps parser reads the same REPO_TYPES object through inferrsi.knowledge.catalog, no Apps importer of the leaf is declared, and the removed entry is kept unchanged as retired_temporary_importers under the last revision_history entry, the R1 record.",
+  "base_commit": "9b418d7fe16f3979b67f74f290949629ef103e8f",
   "revision_history": [
     {
       "base_commit": "0da7e2f960cd4ec994ae8eddea5b71023c5379ca",
@@ -287,6 +287,31 @@
         "gate": "tests/_gate_policy_support.py TEMPORARY_LEAF_IMPORTERS holds the same importer and name.",
         "review": "This entry requires formal architecture review. The implementer does not self-approve it, and passing tests are not that review."
       }
+    },
+    {
+      "base_commit": "aaa17a5dd333449d15fb052bb09b2012d55f2327",
+      "stage": "A1",
+      "superseded_by": "#498 slice 3a host-move revision at 9b418d7fe16f3979b67f74f290949629ef103e8f",
+      "reason": "#498 slice 3a moves src/inferrsi/infra/inspection.py to src/inferrsi/apps/host/inspection.py together with commands.py, environment.py, platforms/ and targets/, with no forwarding module or alias. The permanent leaf importer moves with its file in the same change: the gate admits exactly inferrsi.apps.host.inspection with the same one name, and inferrsi.infra.inspection is retired, so no window admits two importers. The import line gains one relative level for the deeper package. The host modules keep Infra's limit and reach no Knowledge, Harness or Benchmark module. Every leaf lock is unchanged.",
+      "retired_permanent_importers": {
+        "stage": "R1",
+        "issue": "#412",
+        "rule": "Outside inferrsi.knowledge, exactly the listed module may import the leaf. It binds only its listed name, with the plain module-level from-import recorded as import_line. Any other importer, any other name, an alias, the leaf imported as a module object, an import below module level, a sys.modules use or a dynamic import fails the gate. An inferrsi.resources prefix allows nothing, and the leaf's one parent initializer stays import-free.",
+        "importers": [
+          {
+            "importer": "inferrsi.infra.inspection",
+            "file": "src/inferrsi/infra/inspection.py",
+            "names": [
+              "repository_pack"
+            ],
+            "import_line": "from ..resources.repository_packs import repository_pack",
+            "note": "D020. Infra reads one pack description directly, never through Knowledge or Harness. This is the edge that was the ninth compatibility pair."
+          }
+        ],
+        "not_a_compatibility_pair": "The entry is not in compatibility_pairs and is never counted by the allowlist blocker. It does not retire with a shell, because the importer is not a shell.",
+        "gate": "tests/_gate_policy_support.py LEAF_IMPORTERS holds the same importer and name. tests/test_knowledge_compatibility_shells.py requires the two to match exactly.",
+        "review": "This rule requires formal architecture review. The implementer does not self-approve it, and passing tests are not that review."
+      }
     }
   ],
   "compatibility_pairs": [],
@@ -349,18 +374,24 @@
       "rule": "Outside inferrsi.knowledge, exactly the listed module may import the leaf. It binds only its listed name, with the plain module-level from-import recorded as import_line. Any other importer, any other name, an alias, the leaf imported as a module object, an import below module level, a sys.modules use or a dynamic import fails the gate. An inferrsi.resources prefix allows nothing, and the leaf's one parent initializer stays import-free.",
       "importers": [
         {
-          "importer": "inferrsi.infra.inspection",
-          "file": "src/inferrsi/infra/inspection.py",
+          "importer": "inferrsi.apps.host.inspection",
+          "file": "src/inferrsi/apps/host/inspection.py",
           "names": [
             "repository_pack"
           ],
-          "import_line": "from ..resources.repository_packs import repository_pack",
-          "note": "D020. Infra reads one pack description directly, never through Knowledge or Harness. This is the edge that was the ninth compatibility pair."
+          "import_line": "from ...resources.repository_packs import repository_pack",
+          "note": "D020. The host inspection facts API reads one pack description directly, never through Knowledge or Harness. This is the edge that was the ninth compatibility pair. #498 slice 3a moved it from inferrsi.infra.inspection with its file."
         }
       ],
       "not_a_compatibility_pair": "The entry is not in compatibility_pairs and is never counted by the allowlist blocker. It does not retire with a shell, because the importer is not a shell.",
       "gate": "tests/_gate_policy_support.py LEAF_IMPORTERS holds the same importer and name. tests/test_knowledge_compatibility_shells.py requires the two to match exactly.",
-      "review": "This rule requires formal architecture review. The implementer does not self-approve it, and passing tests are not that review."
+      "review": "This rule requires formal architecture review. The implementer does not self-approve it, and passing tests are not that review.",
+      "relocated": {
+        "stage": "#498 slice 3a",
+        "from": "inferrsi.infra.inspection",
+        "to": "inferrsi.apps.host.inspection",
+        "review": "The move changes which module the rule names, so it requires the same formal architecture review as the rule itself. Passing tests are not that review."
+      }
     }
   },
   "infra_inspection_rewrite": {

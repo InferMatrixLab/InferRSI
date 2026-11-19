@@ -1,13 +1,10 @@
 # Infrastructure
 
-`processes.py` owns supervised Linux serving workers and their cleanup. Local
-command execution, deadlines and process-tree cleanup live in
-`harness.local_process`.
-`targets/` fingerprints source; `platforms/` discovers and qualifies devices.
-Transport, artifact writes and environment probes are shared utilities.
+`artifacts.py` holds the shared file digests and JSON evidence writes until #498
+slice 5 retires this package. The serving helpers moved to
+`inferrsi.harness.serving` (slice 2). The host probes, platform discovery, source
+identity and environment facts moved to `inferrsi.apps.host` (slice 3a).
 
-Infra does not import Harness, Model or campaign examples. Device counts, SKUs
-and campaign settings are supplied by callers. Discovery does not establish
-backend/model compatibility; qualification requires independent evidence.
+Infra does not import Harness, Model, Apps or campaign examples.
 
 See [the architecture and extension contracts](../../../docs/architecture.md).

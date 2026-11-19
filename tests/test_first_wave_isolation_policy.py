@@ -102,7 +102,8 @@ def _k01_tree() -> dict[str, str]:
         ),
         "knowledge/knowledge_operations.py": "from inferrsi.contracts import json_v1\n",
         "infra/__init__.py": "",
-        "infra/inspection.py": "from ..resources.repository_packs import repository_pack\n",
+        "apps/host/__init__.py": "",
+        "apps/host/inspection.py": "from ...resources.repository_packs import repository_pack\n",
         "harness/__init__.py": "",
         "harness/api.py": "VALUE = 1\n",
         "benchmark/__init__.py": "",
@@ -116,8 +117,9 @@ def _k01_tree() -> dict[str, str]:
     return files
 
 
-# The one declared importer of the data leaf, as the real tree writes it.
-INSPECTION = "from ..resources.repository_packs import repository_pack\n"
+# The one declared importer of the data leaf, as the real tree writes it. #498 slice 3a
+# moved it from infra/inspection.py to apps/host/inspection.py.
+INSPECTION = "from ...resources.repository_packs import repository_pack\n"
 # #408 A1: the moved CLI parser reads the tuple through Knowledge and names no leaf.
 PARSER = "from ...knowledge.catalog import BACKENDS, REPO_TYPES\n"
 # The root parser that A1 deleted, as R1 left it. It is refused if it returns.
@@ -250,9 +252,9 @@ class AllowlistTest(unittest.TestCase):
                 "evaluation.py imports inferrsi.knowledge",
             ),
             (
-                "infra/inspection.py",
+                "apps/host/inspection.py",
                 "from inferrsi.knowledge.catalog import REPO_TYPES\n",
-                "infra/inspection.py imports inferrsi.knowledge",
+                "inferrsi.apps.host.inspection reaches inferrsi.knowledge",
             ),
             (
                 "evaluation.py",
@@ -279,24 +281,24 @@ class AllowlistTest(unittest.TestCase):
                     report = _report({path: source}, manifest=manifest, base=base)
                     self.assertTrue(_violated(report, expected), report.violations)
 
-    def test_only_declared_infra_importer_may_use_the_leaf(self) -> None:
-        # D020: infra -> the data leaf passes, and only infra.inspection is
-        # the declared infra importer of that leaf.
+    def test_only_declared_host_importer_may_use_the_leaf(self) -> None:
+        # D020: host inspection -> the data leaf passes, and only apps.host.inspection is
+        # the declared importer of that leaf (#498 slice 3a moved it from Infra).
         report = _report({})
         self.assertEqual(report.violations, ())
-        infra_leaf = {
+        host_leaf = {
             importer
             for importer in support.LEAF_IMPORTERS
-            if importer.startswith("inferrsi.infra")
+            if importer.startswith("inferrsi.apps.host")
         }
-        self.assertEqual(infra_leaf, {"inferrsi.infra.inspection"})
+        self.assertEqual(host_leaf, {"inferrsi.apps.host.inspection"})
         report = _report(
-            {"infra/other.py": "from ..resources.repository_packs import REPO_TYPES\n"}
+            {"apps/host/other.py": "from ...resources.repository_packs import REPO_TYPES\n"}
         )
         self.assertTrue(
             _violated(
                 report,
-                "inferrsi.infra.other is a second importer of "
+                "inferrsi.apps.host.other is a second importer of "
                 "inferrsi.resources.repository_packs",
             ),
             report.violations,
@@ -351,7 +353,7 @@ class PermanentLeafImporterTest(unittest.TestCase):
     def test_the_rule_is_one_importer_and_one_name_and_not_a_pair(self) -> None:
         self.assertEqual(
             support.LEAF_IMPORTERS,
-            {"inferrsi.infra.inspection": frozenset({"repository_pack"})},
+            {"inferrsi.apps.host.inspection": frozenset({"repository_pack"})},
         )
         # #408 A1 removed the temporary parser entry; the gate declares nothing else.
         self.assertFalse(hasattr(support, "TEMPORARY_LEAF_IMPORTERS"))
@@ -389,7 +391,7 @@ class PermanentLeafImporterTest(unittest.TestCase):
         with mock.patch.dict(support.LEAF_IMPORTERS, clear=True):
             report = _report({})
         self.assertTrue(
-            _violated(report, f"inferrsi.infra.inspection is a second importer of {LEAF}"),
+            _violated(report, f"inferrsi.apps.host.inspection is a second importer of {LEAF}"),
             report.violations,
         )
         # The root parser that A1 deleted is refused on every count if it returns, and
@@ -438,7 +440,7 @@ class PermanentLeafImporterTest(unittest.TestCase):
 
     def test_declared_importer_shape_is_exact(self) -> None:
         declared = (
-            ("infra/inspection.py", "inferrsi.infra.inspection", INSPECTION,
+            ("apps/host/inspection.py", "inferrsi.apps.host.inspection", INSPECTION,
              "repository_pack", "REPO_TYPES"),
         )
         for path, module, line, name, other in declared:
@@ -589,12 +591,12 @@ class ShellShapeTest(unittest.TestCase):
         report = _staged(
             {
                 "catalog.py": "def search_knowledge():\n    return []\n",
-                "infra/inspection.py": "from ..catalog import search_knowledge\n",
+                "apps/host/inspection.py": "from ...catalog import search_knowledge\n",
             }
         )
         self.assertTrue(_violated(report, "inferrsi.catalog has a function or class body"))
         self.assertTrue(
-            _violated(report, "inferrsi.infra.inspection reaches inferrsi.knowledge.catalog")
+            _violated(report, "inferrsi.apps.host.inspection reaches inferrsi.knowledge.catalog")
         )
 
 
@@ -686,7 +688,7 @@ class TransferGraphTest(unittest.TestCase):
 
     def test_core_import_in_the_leaf_parent_fails_every_closure_that_loads_it(self) -> None:
         report = _report({"resources/__init__.py": "from ..harness import api\n"})
-        for importer in ("inferrsi.infra.inspection", "inferrsi.knowledge.catalog"):
+        for importer in ("inferrsi.apps.host.inspection", "inferrsi.knowledge.catalog"):
             with self.subTest(importer=importer):
                 self.assertTrue(
                     _violated(report, f"{importer} reaches inferrsi.harness"), report.violations
@@ -720,16 +722,16 @@ class TransferGraphTest(unittest.TestCase):
             report.violations,
         )
 
-    def test_infra_through_root_catalog_fails(self) -> None:
+    def test_host_inspection_through_root_catalog_fails(self) -> None:
         report = _report(
             {
                 "catalog.py": _shell("inferrsi.catalog"),
-                "infra/inspection.py": "from ..catalog import repository_pack\n",
+                "apps/host/inspection.py": "from ...catalog import repository_pack\n",
             }
         )
         self.assertIn(
-            "inferrsi.infra.inspection reaches inferrsi.knowledge.catalog: "
-            "inferrsi.infra.inspection -> inferrsi.catalog -> inferrsi.knowledge.catalog",
+            "inferrsi.apps.host.inspection reaches inferrsi.knowledge.catalog: "
+            "inferrsi.apps.host.inspection -> inferrsi.catalog -> inferrsi.knowledge.catalog",
             report.violations,
         )
 
@@ -748,7 +750,7 @@ class TransferGraphTest(unittest.TestCase):
         source = "import importlib\n\n\ndef load():\n    return importlib.import_module('x')\n"
         for path, module in (
             ("knowledge/research.py", "inferrsi.knowledge.research"),
-            ("infra/inspection.py", "inferrsi.infra.inspection"),
+            ("apps/host/inspection.py", "inferrsi.apps.host.inspection"),
         ):
             with self.subTest(path=path):
                 report = _report({path: source})
@@ -879,8 +881,8 @@ class ContractsPackageTest(unittest.TestCase):
             ),
             (
                 "contracts/runspec.py",
-                "from inferrsi.infra import inspection\n",
-                "inferrsi.contracts.runspec imports inferrsi.infra.inspection",
+                "from inferrsi.infra import artifacts\n",
+                "inferrsi.contracts.runspec imports inferrsi.infra.artifacts",
             ),
             (
                 "contracts/claim.py",
@@ -1232,7 +1234,7 @@ class HarnessEntryTest(unittest.TestCase):
         # relative or absolute, top-level or inside a function, reports both the package
         # and the module edge; reaching another infra module or model also counts.
         infra = {"infra/__init__.py": "", "infra/artifacts.py": "VALUE = 1\n",
-                 "infra/commands.py": "VALUE = 1\n", "model/__init__.py": "",
+                 "infra/other.py": "VALUE = 1\n", "model/__init__.py": "",
                  "model/metrics.py": "VALUE = 1\n"}
         primitives = {"harness/artifact_primitives.py": "VALUE = 1\n",
                       "harness/atomic_json.py": "VALUE = 1\n"}
@@ -1248,8 +1250,8 @@ class HarnessEntryTest(unittest.TestCase):
             ("from ..infra.artifacts import VALUE\n", "inferrsi.infra.artifacts"),
             ("def late():\n    from inferrsi.infra.artifacts import VALUE\n",
              "inferrsi.infra.artifacts"),
-            # #498 slice 2 retired infra.processes; commands is another live Infra module.
-            ("from ..infra import commands\n", "inferrsi.infra.commands"),
+            # #498 retired infra.processes and infra.commands; other is a synthetic Infra module.
+            ("from ..infra import other\n", "inferrsi.infra.other"),
             ("from inferrsi.model import metrics\n", "inferrsi.model.metrics"),
         )
         for name in modules:

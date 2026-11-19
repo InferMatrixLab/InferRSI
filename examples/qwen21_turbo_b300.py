@@ -20,8 +20,9 @@ import inferrsi
 from inferrsi.benchmark.sampling import collect_samples
 from inferrsi.harness.serving.image import ImageProtocol
 from inferrsi.harness.serving.server import launch_server, stop_server
-from inferrsi.infra import artifacts, environment, targets
-from inferrsi.infra.platforms.cuda import qualify_devices
+from inferrsi.apps.host import environment, targets
+from inferrsi.apps.host.platforms.cuda import qualify_devices
+from inferrsi.infra import artifacts
 
 MODEL = "Qwen/Qwen-Image-2.1-Turbo"
 REVISION = "d65dbc9a7e8f6b5479e33dee6030eaab2a906509"
