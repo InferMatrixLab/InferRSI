@@ -92,9 +92,12 @@ rejection; crashes, absent evidence and incompatible results are INCONCLUSIVE.
 A candidate profile returns `validated: true`, nonempty attempt-relative
 `artifacts`, and numeric host-clock `capture_started_at`/`capture_ended_at` within
 the profile stage. Its project script owns actual profiling and validation.
-Harness retains the receipt, checks nonempty artifacts, and associates them with
-the same instance; it does not invent an integrated profiler. Performance samples
-exclude profiling requests and time. `stop` returns `cleanup_complete: true`;
+Harness retains the full receipt in `execution/profile/result.json` and checks
+that the listed artifacts exist and are nonempty. Round records store the receipt
+path, binding, capture interval and artifact locations. Collector-specific payloads
+stay in the receipt. If the retained profile metadata exceeds 32 KiB, the command
+reports a profiling error and the evaluation keeps its performance and quality verdict.
+Performance samples exclude profiling requests and time. `stop` returns `cleanup_complete: true`;
 Harness also stops and verifies its owned process domain. Unknown cleanup blocks
 further execution until investigated.
 
@@ -248,8 +251,10 @@ round, including after finalization. The CLI and dashboard show `"profiling": {"
 without a usable capture. When available, `result` and `artifacts` contain
 campaign-relative paths. The latest usable backfill takes precedence over inline
 evidence. Older records use the same validation at read time and retain their
-original verdict. Previously settled rounds with oversized collector errors
-display a short diagnostic after verification against the retained observation.
+original verdict. For previously settled rounds with oversized embedded profiler
+output, the reader verifies the observation against the campaign control record.
+Subsequent attempts reference the old capture by its receipt path.
+Oversized collector errors display a short diagnostic.
 A different runtime can display these records. In an active
 campaign, `status` reports `can_finalize: false` and
 `final_block_reason: runtime_version_mismatch` until the operator uses the

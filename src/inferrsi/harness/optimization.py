@@ -543,7 +543,6 @@ def _service_profile(root, attempt):
             attempt["attempt_id"],
             attempt["conditions"],
             binding,
-            profile["receipt"],
             step,
         )
         return validated if validated == profile else None
@@ -800,7 +799,9 @@ def _service_settle(root, plan, state, pending, execution):
                 state["best"]["measurements"]["values"],
             )
         )
-        record["best_after"] = choice if record["selected"] else state["best"]
+        record["best_after"] = (
+            choice if record["selected"] else service_evidence.reference_snapshot(state["best"])
+        )
     atomic_write_json(path, record)
     if kind == "baseline":
         if verdict == "PASS":
@@ -1013,6 +1014,7 @@ def _service_cleanup_receipt(root, state, path):
 def service_command(root, args, *, knowledge_reader=None):
     """Service-mode operations inside the shared controller's lock and control record."""
     from . import project_service as service
+    from . import service_evidence
 
     with _locked(root):
         action = args.session_action
@@ -1272,6 +1274,8 @@ def service_command(root, args, *, knowledge_reader=None):
             source_repo = selected.get("source_repo")
         else:
             source_repo = plan["working_candidate"]
+        initial = service_evidence.reference_snapshot(initial)
+        parent = service_evidence.reference_snapshot(parent)
         pending = {
             "attempt_id": attempt_id,
             "protocol_path": protocol_path,

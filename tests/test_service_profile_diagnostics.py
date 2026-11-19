@@ -46,6 +46,49 @@ def test_nonzero_exit_links_process_receipt_even_when_script_wrote_a_result(tmp_
     assert (tmp_path / diagnostic["details_path"]) == stage / "execution.json"
 
 
+@pytest.mark.parametrize("backfill", [False, True], ids=["inline", "backfill"])
+def test_large_successful_profile_leaves_round_readable(campaign, backfill):
+    root = campaign["root"]
+    protocol = root.parent / "protocol" / "protocol.py"
+    payload_size = 2560 * 1024
+    encode = "            encoded = json.dumps(body).encode()"
+    source = protocol.read_text().replace(
+        encode,
+        f'''            if stage == "profile" and config.get("large_profile"):
+                if ("backfills" in attempt.parts) == {backfill!r}:
+                    body["collector_metadata"] = "x" * {payload_size}
+{encode}''',
+    )
+    protocol.write_text(source)
+    begin(campaign)
+    attempt = submit(campaign, a=90, large_profile=True)["latest_observation"]
+    assert attempt["assessment"]["verdict"] == "PASS"
+    profile = attempt["profiling"]
+    if backfill:
+        profile = call(campaign, "profile", "--round", 1)["profiling"]
+        assert profile["result"] != attempt["profiling"]["result"]
+
+    assert profile["available"]
+    receipt = root / profile["result"]
+    trace = service.read(receipt)
+    assert trace["collector_metadata"] == "x" * payload_size
+    for record in (
+        receipt.parents[1] / "execution.json",
+        root / attempt["path"] / "observation.json",
+    ):
+        assert len(json.dumps(service.read(record))) < payload_size
+    status = call(campaign, "status")
+    assert status["can_finalize"] and status["rounds"][0]["profiling"] == profile
+    assert status["best"]["attempt_id"] == attempt["attempt_id"]
+    assert submit(campaign, a=80)["latest_observation"]["assessment"]["verdict"] == "PASS"
+    assert call(campaign, "final", "--reason", "Done")["final"]["assessment"]["verdict"] == "PASS"
+
+    trace["binding"]["service_id"] = "another-service"
+    receipt.write_text(json.dumps(trace))
+    after = call(campaign, "status")["rounds"][0]
+    assert after["profiling"] == (attempt["profiling"] if backfill else {"available": False})
+
+
 def test_large_collector_error_retains_round_and_backfill(campaign):
     protocol = campaign["root"].parent / "protocol" / "protocol.py"
     source = protocol.read_text().replace('"synthetic collector failed"', ERROR_EXPRESSION)
@@ -62,6 +105,30 @@ def test_large_collector_error_retains_round_and_backfill(campaign):
     assert_retained_error(campaign["root"], backfill, "profile")
     assert call(campaign, "recover")["profiling_error"] == backfill["profiling_error"]
     assert call(campaign, "final", "--reason", "Done")["final"]["assessment"]["verdict"] == "PASS"
+
+
+def test_backfill_with_oversized_artifact_list_retains_inline_capture(campaign):
+    root = campaign["root"]
+    protocol = root.parent / "protocol" / "protocol.py"
+    encode = "            encoded = json.dumps(body).encode()"
+    protocol.write_text(protocol.read_text().replace(
+        encode,
+        '''            if stage == "profile" and "backfills" in attempt.parts:
+                body["artifacts"] = [f"trace-{i:04d}.json" for i in range(512)]
+                for name in body["artifacts"]:
+                    (attempt / name).write_text("trace")
+''' + encode,
+    ))
+    begin(campaign)
+    attempt = submit(campaign, a=90)["latest_observation"]
+    inline = attempt["profiling"]
+    assert inline["available"]
+    result = call(campaign, "profile", "--round", 1, expected=2)
+    assert "metadata exceeds" in result["profiling_error"]["message"]
+    assert result["profiling"] == inline
+    status = call(campaign, "status")
+    assert status["can_finalize"] and status["best"]["attempt_id"] == attempt["attempt_id"]
+    assert status["rounds"][0]["verdict"] == "PASS" and status["rounds"][0]["profiling"] == inline
 
 
 @pytest.mark.parametrize("failed", ["precheck", "ready"])
@@ -134,5 +201,61 @@ def test_settled_legacy_large_error_is_readable_through_next_round_and_final(cam
 
     with observation.open("ab") as stream:
         stream.write(b" ")
+    with pytest.raises(ValueError, match="control record disagree"):
+        optimization.read_records(root)
+
+
+def test_settled_legacy_large_profile_is_readable_through_next_round_and_final(campaign):
+    from inferrsi.harness import optimization
+    from inferrsi.harness.atomic_json import atomic_write_json
+
+    begin(campaign)
+    submit(campaign, a=90)
+    root = campaign["root"]
+    state = json.loads((root / "state.json").read_text())
+    old = state["attempts"][-1]
+    execution = old["execution"]
+    profile = execution["profile"]
+    receipt = root / profile["result"]
+    trace = {**service.read(receipt), "collector_metadata": "x" * (2560 * 1024)}
+    atomic_write_json(receipt, trace)
+
+    # The old writer embedded the same receipt in the profile step and in every selected reference.
+    step = next(s for s in execution["steps"] if s["id"] == "profile")
+    step["result"] = trace
+    profile.pop("capture_started_at", None)
+    profile.pop("capture_ended_at", None)
+    profile["receipt"] = trace
+    for choice in (old["best_after"], state["best"], state["comparison_parent"]):
+        choice["profile"] = profile
+    directory = root / old["path"]
+    observation = directory / "observation.json"
+    atomic_write_json(directory / "execution/execution.json", execution)
+    atomic_write_json(observation, old)
+    atomic_write_json(root / "state.json", state)
+    assert observation.stat().st_size > service.JSON_SIZE_LIMIT
+    status = call(campaign, "status")
+    assert status["can_finalize"] and status["rounds"][0]["profiling"] == old["profiling"]
+    assert status["best"]["attempt_id"] == old["attempt_id"]
+
+    rejected = submit(campaign, a=70, b=120)["latest_observation"]
+    retained = service.read(root / rejected["path"] / "observation.json")
+    assert retained["assessment"]["verdict"] == "FAIL"
+    assert retained["best_after"]["attempt_id"] == old["attempt_id"]
+    assert retained["best_after"]["profile"]["result"] == old["profiling"]["result"]
+    accepted = submit(campaign, a=80)["latest_observation"]
+    selected = service.read(root / accepted["path"] / "observation.json")
+    assert selected["assessment"]["verdict"] == "PASS"
+    assert selected["parent"]["attempt_id"] == old["attempt_id"]
+    assert selected["best_after"]["attempt_id"] == accepted["attempt_id"]
+    final = call(campaign, "final", "--reason", "Done")["final"]
+    completed = service.read(root / final["path"] / "observation.json")
+    assert completed["assessment"]["verdict"] == "PASS"
+    assert completed["revision"] == accepted["revision"]
+    for record in (retained, selected, completed):
+        assert "collector_metadata" not in json.dumps(record)
+
+    old["selected"] = False
+    atomic_write_json(observation, old)
     with pytest.raises(ValueError, match="control record disagree"):
         optimization.read_records(root)

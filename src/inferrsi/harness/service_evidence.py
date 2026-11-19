@@ -5,6 +5,21 @@ from pathlib import Path
 from . import project_service as service
 
 
+def reference_snapshot(reference):
+    """Carry the original receipt path into a new attempt instead of a legacy embedded trace."""
+    if not reference:
+        return reference
+    snapshot = dict(reference)
+    profile = snapshot.get("profile")
+    if isinstance(profile, dict) and "receipt" in profile:
+        snapshot["profile"] = {"result": profile.get("result")}
+    if snapshot.get("parent_reference_at_acceptance"):
+        snapshot["parent_reference_at_acceptance"] = reference_snapshot(
+            snapshot["parent_reference_at_acceptance"]
+        )
+    return snapshot
+
+
 def choice(pending, execution):
     return {
         "kind": "candidate" if pending["role"] == "candidate" else "baseline",

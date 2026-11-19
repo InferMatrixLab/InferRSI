@@ -50,6 +50,8 @@ def no_fingerprints(value):
 
 
 JSON_SIZE_LIMIT = 4 * 1024 * 1024
+# Round and reference records repeat this metadata. The collector's raw receipt stays on disk.
+PROFILE_METADATA_LIMIT = 32 * 1024
 
 
 def read(path):
@@ -476,7 +478,7 @@ def ready_for_service(ready, *, revision, pid):
     )
 
 
-def validated_profile(root, directory, attempt_id, conditions, binding, trace, step):
+def validated_profile(root, directory, attempt_id, conditions, binding, step, *, captured=None):
     """Reconstruct a usable profile only from the capture's own bound on-disk evidence."""
     directory = safe_path(root, directory.relative_to(root).as_posix())
     result = safe_path(directory, "execution/profile/result.json")
@@ -490,16 +492,16 @@ def validated_profile(root, directory, attempt_id, conditions, binding, trace, s
         or read(safe_path(directory, "effective-config.json")) != conditions["effective_config"]
     ):
         raise ValueError("profile: incompatible capture binding")
+    trace = read(result)
     if (
-        not isinstance(trace, dict)
-        or trace.get("binding") != binding
+        trace.get("binding") != binding
         or trace.get("status") != "completed"
         or trace.get("validated") is not True
-        or read(result) != trace
+        or (captured is not None and captured != trace)
         or not isinstance(step, dict)
         or step.get("id") != "profile"
         or step.get("status") != "completed"
-        or step.get("result") != trace
+        or ("result" in step and step["result"] != trace)
     ):
         raise ValueError("profile: missing or incompatible validated receipt")
     interval = (
@@ -513,23 +515,38 @@ def validated_profile(root, directory, attempt_id, conditions, binding, trace, s
     artifacts = trace.get("artifacts")
     if not isinstance(artifacts, list) or not artifacts:
         raise ValueError("profile: missing artifacts")
+    legacy = "result" in step
     locations = []
+    profile = {
+        "attempt_id": attempt_id,
+        "conditions": conditions,
+        "binding": binding,
+        "artifacts": locations,
+        "result": result.relative_to(root).as_posix(),
+    }
+    if legacy:
+        # Previously written profiles kept the full receipt in both the step and the profile.
+        profile["receipt"] = trace
+    else:
+        profile.update(capture_started_at=interval[1], capture_ended_at=interval[2])
+        metadata_bytes = len(json.dumps(profile, ensure_ascii=False).encode("utf-8"))
     for relative in artifacts:
         path = safe_path(directory, relative)
+        location = path.relative_to(root).as_posix()
+        if not legacy:
+            # Account for the encoded path and the JSON list separator between locations.
+            metadata_bytes += len(json.dumps(location, ensure_ascii=False).encode("utf-8"))
+            if locations:
+                metadata_bytes += 2
+            if metadata_bytes > PROFILE_METADATA_LIMIT:
+                raise ValueError(f"profile: metadata exceeds {PROFILE_METADATA_LIMIT} bytes")
         if not path.is_file():
             raise ValueError("profile: missing or empty artifact")
         with path.open("rb") as artifact:
             if not artifact.read(1):
                 raise ValueError("profile: missing or empty artifact")
-        locations.append(path.relative_to(root).as_posix())
-    return {
-        "attempt_id": attempt_id,
-        "conditions": conditions,
-        "binding": binding,
-        "receipt": trace,
-        "artifacts": locations,
-        "result": result.relative_to(root).as_posix(),
-    }
+        locations.append(location)
+    return profile
 
 
 def _error_excerpt(message):
@@ -751,10 +768,7 @@ def execute(root, directory, plan, pending, deadline):
             if not detail:
                 detail = f"expected completed stage evidence, got {document.get('status')!r}"
             raise ValueError(_error_excerpt(f"{name}: {detail}"))
-        # A backfill's prerequisite results already have their own durable stage receipts.
-        if name == "profile":
-            definition["result"] = document  # Persist with the outcome after validation.
-        elif not standalone:
+        if name != "profile" and not standalone:
             definition["result"] = document
             save()
         return document
@@ -940,8 +954,8 @@ def execute(root, directory, plan, pending, deadline):
                 begin_capture()
             trace = stage("profile")
             validated = validated_profile(
-                root, directory, pending["attempt_id"], conditions, expected, trace,
-                record["steps"][-1],
+                root, directory, pending["attempt_id"], conditions, expected, record["steps"][-1],
+                captured=trace,
             )
             if time.monotonic() >= capture_started + profile_timeout:
                 raise TimeoutError("Profiling timeout during capture validation")

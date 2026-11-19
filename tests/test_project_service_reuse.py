@@ -582,8 +582,10 @@ def test_recover_commits_existing_observation_once_without_remeasurement(
         (campaign["root"] / profile["result"]).write_text('{"status":"incomplete"}')
     elif damage == "binding":
         profile["binding"]["service_id"] = "another-service"
-        profile["receipt"]["binding"] = profile["binding"]
-        (campaign["root"] / profile["result"]).write_text(json.dumps(profile["receipt"]))
+        receipt_path = campaign["root"] / profile["result"]
+        receipt = project_service.read(receipt_path)
+        receipt["binding"] = profile["binding"]
+        receipt_path.write_text(json.dumps(receipt))
         observation_path.write_text(json.dumps(observation))
     elif damage == "artifacts":
         profile["artifacts"] = []
@@ -1299,6 +1301,12 @@ def test_legacy_round_availability_is_derived_without_changing_history(campaign,
     historical = next(a for a in state["attempts"] if a["attempt_id"] == attempt["attempt_id"])
     historical.pop("profiling", None)
     profile = historical["execution"]["profile"]
+    trace = project_service.read(root / profile["result"])
+    profile.pop("capture_started_at")
+    profile.pop("capture_ended_at")
+    profile["receipt"] = trace
+    step = next(s for s in historical["execution"]["steps"] if s["id"] == "profile")
+    step["result"] = trace
     if damage == "partial":
         profile.pop("binding")
     if damage == "unreadable":

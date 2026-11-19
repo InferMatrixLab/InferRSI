@@ -1,4 +1,4 @@
-"""Read settled service observations with diagnostics from before the excerpt limit."""
+"""Read settled service observations, including older records with embedded profiler output."""
 
 import json
 
@@ -19,7 +19,7 @@ def _large_profile_error(attempt):
 
 def matches_control(root, attempt):
     path = service.safe_path(root, attempt["path"] + "/observation.json")
-    if not _large_profile_error(attempt) or path.stat().st_size <= service.JSON_SIZE_LIMIT:
+    if path.stat().st_size <= service.JSON_SIZE_LIMIT:
         return service.read(path) == attempt
     if not path.is_file():
         return False
