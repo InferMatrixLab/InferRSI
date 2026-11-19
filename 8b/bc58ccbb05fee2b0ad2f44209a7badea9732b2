@@ -1,0 +1,22 @@
+src/inferrsi/harness/optimization.py
+  s_cc9bdcd373887f::t_251044fb165299 107,111,114-115,117-125,232-234
+tests/test_optimization_session.py
+  s_cc9bdcd373887f::t_251044fb165299 440,460,576-583,592-593,595,615-631,633,646-656
+  s_cc9bdcd373887f::t_72d08e05d21b75 657
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "8bbc58ccbb05fee2b0ad2f44209a7badea9732b2",
+  "prompts": {},
+  "sessions": {
+    "s_cc9bdcd373887f": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1f3ad-93b8-7481-8cc6-616fde3b76fe",
+        "model": "gpt-6.2-sol"
+      },
+      "human_author": "jiangkuaixue123 <jiangxiaozhou111@163.com>"
+    }
+  }
+}
