@@ -259,9 +259,21 @@ def session_command(args, *, task_source: Path | None = None, knowledge_reader=N
         or plan.get("schema_version") == 3
         or manifest.get("evaluation_mode") == "service_reuse"
     ):
+        if args.session_action == "profile":
+            try:
+                return optimization.service_command(root, args)
+            except (ValueError, OSError) as exc:
+                message = "Campaign lock is busy" if isinstance(exc, BlockingIOError) else str(exc)
+                return {
+                    "exit_code": 2,
+                    "round": args.round,
+                    "profiling_error": {
+                        "status": "failed", "stage": "campaign", "message": message,
+                    },
+                }
         return optimization.service_command(root, args, knowledge_reader=knowledge_reader)
     if (
-        args.session_action in ("baseline", "refresh-references", "resume")
+        args.session_action in ("baseline", "refresh-references", "resume", "profile")
         or getattr(args, "retry_of", None)
         or getattr(args, "repair_reason", None)
         or getattr(args, "cleanup_receipt", None)

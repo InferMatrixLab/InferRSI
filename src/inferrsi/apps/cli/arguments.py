@@ -103,11 +103,14 @@ def _optimization_actions(stages, *, project=False):
     start.add_argument("--python", default=sys.executable)
     actions = ("status", "round", "final", "recover", "knowledge")
     if project:
-        actions += ("baseline", "refresh-references", "resume")
+        actions += ("baseline", "refresh-references", "resume", "profile")
     for name in actions:
         stage = stages.add_parser(name)
         stage.set_defaults(session_action=name)
         stage.add_argument("--session", "--directory", dest="session", type=Path, required=True)
+        if name == "profile":
+            stage.add_argument("--round", type=int, required=True,
+                               help="Capture profiling for the last settled attempt of this round")
         if name == "round":
             stage.add_argument("--candidate", type=Path, required=True)
             stage.add_argument("--hypothesis", required=True)

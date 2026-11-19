@@ -2,10 +2,9 @@
 
 Ordinary projects can explicitly choose `--evaluation-mode service_reuse`.
 AB/BA remains the default, and packaged `benchmarks session` tasks keep their
-existing protocol. This mode does not choose a model, workload, quality task,
-profiler or numerical acceptance thresholds. The caller supplies them before
-search. Local implementation does not settle pending repository-owner decisions
-in issue #467 or qualify a real model.
+existing protocol. Before search, supply the model, workload, quality task and
+numerical acceptance thresholds. To collect supplementary profiling evidence,
+include a profiler in the same protocol.
 
 The existing `optimization_session` entry assembles the mode inside the shared
 `harness.optimization` controller. There is one campaign lock, plan and state;
@@ -32,8 +31,8 @@ Supply a JSON file with these fields; every threshold and workload is explicit:
 | --- | --- |
 | `schema_version`, `protocol_id` | Integer 1 and a nonempty caller-owned protocol ID |
 | `conditions` | `id`, `workload`, `model`, `precision`, `topology`, `runtime`, `timing_scope`, and an `effective_config` object |
-| `commands` | Explicit argv arrays for `precheck`, `service`, `ready`, `warmup`, `measure`, `quality`, `profile`, `stop`; all use a retained `{protocol}` script |
-| `sampling` | Positive `stage_timeout_seconds`; `baseline`, `candidate`, `final` objects each declare positive integer `repetitions` and nonnegative integer `warmups`; zero warmups also require `warmup_reason` |
+| `commands` | Argv arrays for `precheck`, `service`, `ready`, `warmup`, `measure`, `quality` and `stop`, each using a retained `{protocol}` script. Add `profile` to enable capture |
+| `sampling` | Positive `stage_timeout_seconds` and optional positive `profile_timeout_seconds`. Each of `baseline`, `candidate` and `final` declares positive integer `repetitions` and nonnegative integer `warmups`. Zero warmups require `warmup_reason` |
 | `scenarios` | Objects declaring unique string `id`, `workload`, positive integer `requests`, and positive integer `required_successes` no greater than requests |
 | `objectives` | Objects described below; at least one participates in gain assessment |
 | `ranking` | Unique objective IDs in priority order |
@@ -118,16 +117,25 @@ inferrsi campaign start --evaluation-mode service_reuse --evaluation-config <pro
 inferrsi campaign baseline --session <campaign>
 inferrsi campaign knowledge --session <campaign> --query <cue> --context-bytes <bytes>
 inferrsi campaign round --session <campaign> --candidate <committed-project> --hypothesis <text>
+inferrsi campaign profile --session <campaign> --round <round-number>
 inferrsi campaign status --session <campaign>
 inferrsi campaign final --session <campaign> --reason <stop-reason>
 ```
 
-`start` prepares records without measuring. Baseline has no profile requirement.
-A candidate performs functional checks, startup/readiness, necessary warmup,
-performance repetitions, quality, then profile, all on one instance. Performance
-or quality rejection skips the dependent stages. Screening can schedule formal
-validation for a bounded actual improvement below an estimated target; its
-samples do not enter formal aggregates.
+`start` prepares the campaign records. The baseline establishes reference
+measurements. A candidate first passes functional checks and service readiness,
+then completes its warmup. While that service remains usable and evaluation time
+remains, the harness runs all formal scenarios and repetitions, including after
+a screening rejection or screening command error. Only formal performance
+samples enter the aggregates.
+
+| Formal performance | Quality | Candidate verdict | Inline capture on the same service |
+| --- | --- | --- | --- |
+| Failed | Skipped | FAIL | Attempt when configured |
+| Passed | Passed | PASS | Attempt when configured |
+| Passed | Failed | FAIL | Skipped |
+| Missing, invalid or interrupted | Skipped | INCONCLUSIVE | Skipped |
+| Passed | Missing, invalid or interrupted | INCONCLUSIVE | Skipped |
 
 Every constrained metric must satisfy both parent-relative and initial-baseline
 cumulative regression limits, and at least one designated metric must improve
@@ -140,10 +148,11 @@ before search when zero-capable metrics need those transitions.
 
 ## Failure and recovery
 
-Profile failure, interruption, invalid binding or missing output leaves the
-candidate attempt INCONCLUSIVE and stops campaign execution. It cannot become a
-parent or selection. Keep the completed performance/quality evidence and inspect
-the exact stage and cleanup result before proceeding.
+Before inline capture, the harness saves the candidate's formal evidence, quality
+result or skip, gate assessment and attempt binding. A failed capture returns a
+diagnostic to the agent with its stage, available error details and log location
+when recorded. Round acceptance, ranking, progression and final eligibility
+follow the required evaluation evidence.
 
 ```text
 inferrsi campaign recover --session <campaign>
@@ -151,22 +160,24 @@ inferrsi campaign round --session <campaign> --candidate <committed-project> \
   --hypothesis <text> --retry-of <attempt-id> --repair-reason <investigation>
 ```
 
-`recover` collects existing records without launching anything. An explicit retry
-creates a new attempt in the same logical round, with new service/samples and the
-complete performance/quality/profile sequence. It never inherits a failed
-attempt's measurements or overwrites a previous selection. Use optional
-`--repair-protocol <directory>` on that retry to retain repaired execution
-scripts; the numeric gates and quality declaration remain frozen. Later rounds
-use the retained repair, while final uses its selected attempt's own scripts,
-revision and effective configuration. Policy changes require a new approved
-protocol rather than an execution-script repair.
+`recover` collects existing records. After verified cleanup, it settles a
+checkpointed PASS or FAIL without rerunning performance or quality. A crash
+during capture makes the recorded diagnostic available on recovery. An explicit
+retry of an inconclusive round starts a fresh evaluation in the same logical
+round. Use optional `--repair-protocol <directory>` on that retry to retain
+repaired execution scripts. Later rounds use the retained repair, while final
+uses its selected attempt's scripts, revision and effective configuration.
+Changes to the numeric gates or quality declaration require a new protocol.
 
-Before committing a recovered candidate or a final verdict, Harness rechecks the
-required retained profile and its attempt/service binding; final also rechecks
-the selected revision and effective configuration. Missing or incompatible
-evidence leaves the attempt INCONCLUSIVE and preserves the previous selection.
-The execution results and any assessment made before settlement remain recorded.
-These checks use structured records and artifact presence, without file fingerprints.
+Inline capture has its own `sampling.profile_timeout_seconds`, which defaults
+to `sampling.stage_timeout_seconds`. The campaign lock remains held during
+capture. The campaign clock credits proven profiling-only time once per capture,
+and uses the adjusted time for status, evaluation deadlines, admission and
+final. The configured final reserve stays fixed. If capture was interrupted,
+a durable end or progress record establishes the credit. A start record alone
+earns zero seconds, and downtime before recovery counts against the campaign.
+Round `elapsed_seconds` and campaign `wall_elapsed_seconds` show actual wall
+time. External job and agent deadlines still apply.
 
 After an interrupted process with unverified cleanup, `recover`, `resume` or an
 explicit retry can take `--cleanup-receipt <inspection.json>`. The receipt names
@@ -187,19 +198,62 @@ not collect another parent profile. This restores comparison references only.
 The original baseline uses or collects compatible quality evidence as declared
 by the quality protocol. A distinct parent's refresh runs performance only; it
 does not consume the baseline quality cache or require another quality test.
-At least one new candidate attempt must complete performance, quality and profile
-and be accepted under the current conditions before final can be conclusive.
-An incompatible old profile and successful reference refreshes do not satisfy
-that requirement. Returning to earlier conditions also requires a fresh acceptance.
+Final requires a new candidate to pass performance and quality under the current
+conditions. This also applies when returning to earlier conditions. Captures from
+earlier rounds remain associated with their original conditions.
 
 Final selects only from current-condition acceptances after a condition change.
 Without them it records INCONCLUSIVE and the missing-acceptance reason without
 starting a final service or collecting a profile. Otherwise it independently
 retests the retained selection against its acceptance parent and initial baseline,
 not against itself. If baseline remains selected without a condition change,
-it validates baseline evidence without requiring a gain over itself. Final never
-collects another profile and requires the selected candidate's compatible retained
-profile and effective configuration.
+it validates baseline evidence without requiring a gain over itself. Final
+rechecks the selected revision and effective configuration. It verifies the
+required warmup and measurement receipts for the selection and its reference
+runs under the applicable conditions, then collects performance and quality on
+its own service.
+
+## Profiling a settled round
+
+Run `inferrsi campaign profile --session <campaign> --round <round-number>` to
+capture the last settled PASS or FAIL attempt of that round. This also works
+after the evaluation deadline or a completed final. The retained revision,
+protocol, effective configuration and conditions must be reproducible, the
+protocol must include a profiler, and prior cleanup must be verified. A busy
+campaign lock makes the command return immediately.
+
+The command starts a fresh service with its own service ID and run ID. Startup,
+readiness, required warmup and capture share the profiling timeout. Cleanup
+uses its separate bounded window. Each capture has its own directory linked
+to the original attempt. After validation and verified cleanup, the harness
+publishes the new paths through the attempt's backfill index. Earlier evidence,
+including the inline receipt, remains available. A failed backfill keeps the
+previous usable capture in the round summary. The campaign credits time spent
+validating and publishing the backfill as well as time spent collecting it.
+Recovery credits recorded progress and the work performed during recovery
+under the same capture ID. Time spent offline remains on the campaign clock.
+
+The command exits with 0 for a newly published capture, 2 for ineligible input,
+busy or unresolved cleanup, or capture failure (including timeout), and 130 for
+operator interruption after cleanup is attempted. Failure details appear in the
+command diagnostic and capture logs. An interruption before index publication
+preserves the previous capture. Once the new index entry is durable it remains
+available, including if the caller is interrupted before receiving the result.
+Large errors have a bounded summary.
+When available, `details_path` locates the full error or stage receipt relative
+to the campaign directory.
+
+The `rounds` list in `campaign status` shows the latest recorded attempt of every
+round, including after finalization. The CLI and dashboard show `"profiling": {"available": false}` for a round
+without a usable capture. When available, `result` and `artifacts` contain
+campaign-relative paths. The latest usable backfill takes precedence over inline
+evidence. Older records use the same validation at read time and retain their
+original verdict. Previously settled rounds with oversized collector errors
+display a short diagnostic after verification against the retained observation.
+A different runtime can display these records. In an active
+campaign, `status` reports `can_finalize: false` and
+`final_block_reason: runtime_version_mismatch` until the operator uses the
+version shown in `recorded_runtime_version`.
 
 ## Records, compatibility and validation
 
@@ -231,10 +285,10 @@ flag while retaining earlier events. Infrastructure/cancelled/incomplete attempt
 do not count; recovery does not double-count. Advisory does not pause execution;
 explicit pause is resumed with a reason.
 
-The synthetic CPU controls are `tests/test_project_objectives.py` and
-`tests/test_project_service_reuse.py`. The latter guards fingerprint helpers from
-before campaign creation and uses a temporary loopback service. Run it only where
-loopback sockets are authorized; it does not require GPU/NPU resources. In a
-workspace forbidding fingerprints, do not run conflicting legacy tests. Run
-unchanged-default AB/BA/packaged-task regression in a separately authorized
+The synthetic CPU controls are `tests/test_project_objectives.py`,
+`tests/test_project_service_reuse.py` and `tests/test_service_backfill_recovery.py`.
+The service tests use temporary loopback services and guard fingerprint helpers
+from before campaign creation. Run them where loopback sockets are available.
+They require only CPU resources. In a workspace forbidding fingerprints, run
+unchanged-default AB/BA and packaged-task regressions in a separately authorized
 environment. CPU controls cannot establish real-model quality or service gains.
