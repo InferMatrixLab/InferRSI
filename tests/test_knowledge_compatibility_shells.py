@@ -234,7 +234,8 @@ def test_manifest_restates_the_exact_gate_importer_rules():
     assert moved["retired_permanent_importers"]["importers"][0]["import_line"] == (
         MANIFEST["infra_inspection_rewrite"]["canonical_import"]
     )
-    assert "inferrsi.infra.inspection" in support.RETIRED_MODULES
+    assert any(support._matches("inferrsi.infra.inspection", name)
+               for name in support.RETIRED_MODULES)
     assert permanent["relocated"]["from"] == "inferrsi.infra.inspection"
     assert permanent["relocated"]["to"] == "inferrsi.apps.host.inspection"
     assert "requires the same formal architecture review" in permanent["relocated"]["review"]

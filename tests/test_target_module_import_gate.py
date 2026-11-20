@@ -233,11 +233,20 @@ def test_retired_model_files_fail_when_they_return(tmp_path, relative):
         report.violations)
 
 
-def test_the_model_paths_that_remain_are_not_retired(tmp_path):
+def test_the_modules_that_replaced_the_retired_packages_are_not_retired(tmp_path):
+    # #498 retired the whole Infra and Model packages. Every module that took over from
+    # them must stay importable by name under the new owner.
     report = _report(tmp_path, {
-        "benchmark/runner.py": "from inferrsi.model import request_guard\n",
-        "apps/runner.py": "from inferrsi.infra.artifacts import sha256\n",
+        "apps/artifacts.py": "VALUE = 1\n",
+        "apps/integrations/__init__.py": "",
+        "apps/integrations/anthropic/__init__.py": "",
+        "apps/integrations/anthropic/request_guard.py": "VALUE = 1\n",
+        "apps/runner.py": (
+            "from inferrsi.apps.artifacts import sha256\n"
+            "from inferrsi.apps.integrations.anthropic import request_guard\n"
+        ),
         "harness/runner.py": "from inferrsi.harness.serving.image import ImageProtocol\n",
+        "benchmark/runner.py": "from inferrsi.benchmark.metrics import read_metric\n",
     })
     assert not [item for item in report.violations if "retired module" in item]
 

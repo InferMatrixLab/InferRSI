@@ -101,7 +101,6 @@ def _k01_tree() -> dict[str, str]:
             "from ..resources import repository_packs\nfrom . import _source_snapshot\n"
         ),
         "knowledge/knowledge_operations.py": "from inferrsi.contracts import json_v1\n",
-        "infra/__init__.py": "",
         "apps/host/__init__.py": "",
         "apps/host/inspection.py": "from ...resources.repository_packs import repository_pack\n",
         "harness/__init__.py": "",
@@ -1198,6 +1197,10 @@ class HarnessEntryTest(unittest.TestCase):
                 report = _report({"catalog.py": _shell("inferrsi.catalog"), **changes})
                 self.assertIn(expected, report.violations, report.violations)
 
+    # This test is about the Harness edge rule. The synthetic Infra and Model packages it
+    # builds are retired names since #498, which test_target_module_import_gate.py covers, so
+    # the retirement rule is switched off here and nothing else changes.
+    @mock.patch.object(support, "RETIRED_MODULES", frozenset())
     def test_returning_skill_evaluation_infra_edge_fails(self) -> None:
         # #410 counterexample: S01 removed skill_evaluation -> infra.artifacts.
         # Adding it back is reported hit by hit and keeps isolation false.
@@ -1231,6 +1234,10 @@ class HarnessEntryTest(unittest.TestCase):
         )
         self.assertFalse(report.isolation_complete)
 
+    # This test is about the Harness edge rule. The synthetic Infra and Model packages it
+    # builds are retired names since #498, which test_target_module_import_gate.py covers, so
+    # the retirement rule is switched off here and nothing else changes.
+    @mock.patch.object(support, "RETIRED_MODULES", frozenset())
     def test_returning_r2_harness_infra_edges_fail(self) -> None:
         # #412 R2 removed infra.artifacts from six Harness modules. Putting one edge back,
         # relative or absolute, top-level or inside a function, reports both the package
