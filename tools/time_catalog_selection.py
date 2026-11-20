@@ -74,7 +74,8 @@ semantics = {
     'snapshot_id': result.get('snapshot_id'), 'chosen': chosen,
     'contexts': result.get('contexts', []), 'judgments': result.get('judgments', []),
     'omissions': result.get('omissions', []) + result.get('context_omissions', []),
-    'paths': result.get('retrieval', {}).get('assembly', {}).get('paths', []),
+    'paths': (result['retrieval']['assembly']['paths']
+              if request['method'] != 'find' else []),
 }
 fingerprint = hashlib.sha256(json.dumps(
     semantics, sort_keys=True, ensure_ascii=False, separators=(',', ':')
