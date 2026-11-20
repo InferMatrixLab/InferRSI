@@ -332,3 +332,50 @@ def test_external_experiment_ids_disambiguate_missing_round_run(browser, tmp_pat
             expect(page.locator(f'[data-experiment-id="{experiment_id}"]')).to_be_focused()
         else:
             expect(page.locator("#run-review strong").first).to_have_text("B")
+
+
+def test_managed_round_knowledge_and_measured_score(browser, tmp_path):
+    campaign(tmp_path)
+    snapshot = dashboard_snapshot(tmp_path)
+    data = snapshot["data"]
+    card, unused = "ops/example/tiling", "ops/example/unused"
+    external = {
+        "channel": "cannbot-knowledge", "platform": "a3", "state": "ok",
+        "revision": "a" * 40, "score_scale": "knowledge-search.v5", "count": 2,
+        "path": "knowledge/search.json",
+        "items": [{"locator": ref, "score": 5, "card_sha256": "b" * 64}
+                  for ref in (card, unused)],
+        "reads": [{"locator": card, "page": 1}, {"locator": unused, "page": 1}],
+    }
+    data["managed_retrievals"] = [
+        {"round": 1, "query": "tile sizes", "items": [
+            {"ref": "package:tile", "title": "Tiling", "delivered": True},
+        ], "external": external},
+        {"round": 2, "query": "empty query", "items": [],
+         "external": {**external, "count": 0, "items": [], "reads": []}},
+    ]
+    row = {
+        **data["candidates"][0],
+        "round": 1, "candidate_id": "candidate-001", "run_id": "attempt-one",
+        "metric_key": "speedup", "measured_score": 2, "verdict": "PASS",
+        "knowledge_uses": [{"source": "cannbot-knowledge", "ref": card,
+                            "retrieval_round": 1, "page": 1}],
+    }
+    data["candidates"] = [row]
+    with dashboard(browser, tmp_path, False, snapshot=snapshot) as page:
+        root = page.locator("#round-decisions")
+        retrieval, result = (root.locator(f'[data-rd-stage="{i}"]') for i in (1, 4))
+        expect(retrieval).to_contain_text("Query · tile sizes")
+        expect(retrieval).to_contain_text("Local knowledge")
+        expect(retrieval).to_contain_text("CANNBot · a3")
+        expect(retrieval).to_contain_text("Read receipts · Pages 1")
+        expect(retrieval).to_contain_text(unused)
+        expect(result).to_contain_text("candidate-001")
+        expect(result).to_contain_text("Measured score · 2 · speedup")
+        expect(result).to_contain_text(
+            "Agent-declared knowledge use · cannbot-knowledge · " + card,
+        )
+        expect(result).not_to_contain_text(unused)
+        root.locator("select").select_option("2")
+        expect(retrieval).to_contain_text("Channel state · No hits")
+        expect(result).not_to_contain_text("candidate-001")

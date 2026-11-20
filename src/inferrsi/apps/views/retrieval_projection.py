@@ -11,6 +11,8 @@ from pathlib import Path
 from inferrsi.harness.records.evidence import inside, relative_location, sanitized_text
 from inferrsi.harness.records.optimization_log import _IDENTIFIER, _unique
 
+from ..integrations.cannbot.round_knowledge import read_metadata, search_metadata
+
 _MAX_BYTES = 4 * 1024 * 1024
 
 
@@ -309,6 +311,72 @@ def read_searches(root: Path, campaign_id, rows, retrievals):
                                 "unresolved_details")}), "declarations": declarations,
                             "materials": materials, "events": events, "links": links})
     return results
+
+
+def managed_knowledge(root, contexts):
+    """Project managed deliveries and explicit citation targets without card bodies."""
+    queries, external, citations = {}, {}, {}
+    for reference in contexts:
+        path, kind = reference["path"], reference["kind"]
+        number = reference.get("round")
+        if kind == "delivered_context":
+            record = json.loads((root / path).read_text("utf-8"))
+            delivered = {item["ref"] for item in record["contexts"] if item["resources"]}
+            items = [
+                {**{key: item.get(key) for key in ("ref", "title", "revision")},
+                 "delivered": item["ref"] in delivered}
+                for item in record["items"]
+            ]
+            if number is not None:
+                request = record["request"]
+                queries[path] = {
+                    "round": number, "path": path,
+                    "query": request.get("relevance") or request.get("query"),
+                    "items": items,
+                }
+            citation = {"source": "local", "retrieval_round": number}
+            citations[path] = {**citation, "ref": path}
+            for item in items:
+                if item["delivered"]:
+                    citations[path + "#" + item["ref"]] = {
+                        **citation, "ref": item["ref"], "revision": item["revision"],
+                    }
+        elif kind in ("external_search", "external_read"):
+            if (type(number) is not int or number < 1
+                    or not re.fullmatch(rf"knowledge/{kind}-[0-9a-f]{{32}}\.json", path)):
+                continue
+            record, state, digest = _read(root, root / path)
+            if state != "present" or digest != reference["sha256"]:
+                continue
+            if kind == "external_search":
+                metadata = search_metadata(record)
+                parent = record.get("context_ref")
+                query = queries.get(parent) if isinstance(parent, str) else None
+                if metadata is not None and query is not None and number == query["round"]:
+                    search = {**metadata, "path": path, "reads": []}
+                    query["external"] = search
+                    external[path] = (number, search)
+            else:
+                receipt = read_metadata(record)
+                parent = record.get("search_ref")
+                source = external.get(parent) if isinstance(parent, str) else None
+                if receipt is None or source is None or source[0] != number:
+                    continue
+                search = source[1]
+                if search["revision"] != receipt["revision"] or not any(
+                    hit["locator"] == receipt["locator"]
+                    and hit["card_sha256"] == receipt["card_sha256"] for hit in search["items"]
+                ):
+                    continue
+                search["reads"].append({key: receipt[key] for key in ("locator", "page")})
+                citations[path] = {
+                    "source": receipt["channel"], "retrieval_round": number,
+                    "ref": receipt["locator"], "revision": receipt["revision"],
+                    "card_sha256": receipt["card_sha256"], "page": receipt["page"],
+                }
+    return public_value(list(queries.values())), {
+        path: public_value(citation) for path, citation in citations.items()
+    }
 
 
 def project_knowledge(root, data):

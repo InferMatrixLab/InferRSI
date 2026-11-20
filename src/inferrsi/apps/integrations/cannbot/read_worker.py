@@ -78,6 +78,10 @@ class OutputLimitError(ValueError):
     """A pipe exceeded the bounded capture size."""
 
 
+_PROCESS_WAIT_SECONDS = 2.0
+_WORKER_CLEANUP_SECONDS = _PROCESS_WAIT_SECONDS * (2 if os.name == "nt" else 1)
+
+
 def _stop(process, *, own_group):
     if own_group and os.name == "posix":
         try:
@@ -87,11 +91,12 @@ def _stop(process, *, own_group):
     elif own_group and os.name == "nt" and process.poll() is None:
         subprocess.run(
             ["taskkill", "/PID", str(process.pid), "/T", "/F"],
-            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=2, check=False,
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=_PROCESS_WAIT_SECONDS,
+            check=False,
         )
     if process.poll() is None:
         process.kill()
-    process.wait(timeout=2)
+    process.wait(timeout=_PROCESS_WAIT_SECONDS)
 
 
 def capture(argv, *, cwd, timeout, environment=None, request=None, own_group=False):
