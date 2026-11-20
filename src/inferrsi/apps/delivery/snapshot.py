@@ -6,7 +6,7 @@ import stat
 from pathlib import Path, PurePosixPath
 
 from ...harness import candidates
-from ...infra.artifacts import sha256
+from ..artifacts import sha256
 from .schema import decode
 
 MAX_DOCUMENT_BYTES = 8 * 1024 * 1024

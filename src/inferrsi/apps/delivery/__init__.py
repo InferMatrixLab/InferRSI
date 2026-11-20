@@ -9,7 +9,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 from ... import __version__
-from ...infra.artifacts import file_lock
+from ..artifacts import file_lock
 from ..storage import archive
 from . import adapters
 from .projection import iterative

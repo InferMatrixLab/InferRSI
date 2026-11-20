@@ -4,6 +4,29 @@
 
 ### Changed
 
+- The `inferrsi.infra` and `inferrsi.model` packages are removed (Refs #498, slices 3b, 4
+  and 5). There is no forwarding module or alias, and the import gate fails any import of
+  either package name, with or without a file behind it.
+  - `inferrsi.infra.artifacts` is now `inferrsi.apps.artifacts`. Apps owns this copy with
+    the same function source as the Harness and Benchmark copies, and
+    `tests/test_artifact_helper_copies.py` keeps the three equal. `apps/delivery/`, the
+    tools, the examples and the tests import it. The Apps copy and `harness/artifact_primitives.py`
+    use the same `.session.lock` file lock, so a Harness writer and an Apps export exclude
+    each other across processes.
+  - `inferrsi.model.anthropic_agent`, `anthropic_edit_agent` and `request_guard` are now
+    `inferrsi.apps.integrations.anthropic.*`. Only the two path-valued `SOURCE` constants
+    changed. `tools/skill_eval_compare.py` hashes the new files as controllers, so a new
+    comparison plan binds them; an existing plan keeps its recorded identities. The
+    Messages worker still loads its adjacent `request_guard.py` by file location.
+  - The optimization session's runtime identity no longer hashes `infra/artifacts.py`.
+    A session planned before this change is refused before `status`, `recover` or any other
+    operation runs, and its plan is not changed. Resume such a session with the runtime that
+    planned it, as for the serving move.
+  - The package now holds exactly `apps`, `benchmark`, `contracts`, `harness`, `knowledge`
+    and `resources`. `tests/test_package_root_inventory.py` fails a returning `infra/` or
+    `model/`, a new sibling package and a missing one.
+  - The Windows host job now compares the Harness copy with the Apps copy and runs the
+    cross-process lock test.
 - Plugins built from a source checkout without `--release-version` now report
   `0.0.0+source` as their own version instead of `0.1.0` (Codex, WorkSwarm) or
   `0.0.0` (DSH) (Refs #511). This covers the template version, `plugin_version` in

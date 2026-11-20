@@ -33,7 +33,7 @@ jobs:
           "$RUNNER_TEMP/wheel-env/bin/python" -m pip install "${wheels[0]}[skills]"
           cp tests/check_installed.py "$RUNNER_TEMP/check_installed.py"
           cd "$RUNNER_TEMP"
-          env -u PYTHONPATH INFERRSI_CHECKOUT_RESOURCES="$GITHUB_WORKSPACE/src/inferrsi" "$RUNNER_TEMP/wheel-env/bin/python" -I check_installed.py
+          env -u PYTHONPATH INFERRSI_CHECKOUT_RESOURCES="$GITHUB_WORKSPACE/src/inferrsi" INFERRSI_SESSION_LOCK_PROBE="$GITHUB_WORKSPACE/tests/session_lock_probe.py" INFERRSI_PRE_INFRA_SESSION="$GITHUB_WORKSPACE/tests/fixtures/optimization-session/pre-infra-removal-session" "$RUNNER_TEMP/wheel-env/bin/python" -I check_installed.py
 
   full-check:
     strategy:
@@ -180,11 +180,13 @@ jobs:
           if counts != {"tests": len(nodes), "errors": 0, "failures": 0, "skipped": 0}:
               raise SystemExit("every selected host node must run and pass")
       - name: Test the Harness artifact-primitive and writer nodes on Windows
-        # #412 R2: Harness owns copies of the Infra digest, hash, file lock and atomic
-        # writer. On Windows the lock is an msvcrt byte range that even denies a read of
-        # the locked byte, which no Linux job can show. macOS uses the same fcntl lock as
-        # the Linux jobs, so only Windows runs these nodes. Runs even if the step above
-        # failed, so both results are recorded.
+        # #412 R2: Harness owns copies of the digest, hash, file lock and atomic writer.
+        # #498 slices 3b and 5 gave Apps and Benchmark their own copies and removed Infra,
+        # so these nodes now compare the Harness copy with the Apps copy. On Windows the
+        # lock is an msvcrt byte range that even denies a read of the locked byte, which no
+        # Linux job can show. macOS uses the same fcntl lock as the Linux jobs, so only
+        # Windows runs these nodes. Runs even if the step above failed, so both results are
+        # recorded.
         if: ${{ !cancelled() && runner.os == 'Windows' }}
         shell: python
         env:
@@ -196,12 +198,13 @@ jobs:
           import xml.etree.ElementTree as ET
 
           nodes = [
-              "tests/test_skill_evaluation.py::test_harness_artifact_primitives_match_infra_bytes_and_semantics",
-              "tests/test_skill_evaluation.py::test_harness_owned_writes_and_digests_match_infra_bytes",
-              "tests/test_legacy_run_split.py::test_harness_writer_bytes_equal_the_infra_writer",
+              "tests/test_skill_evaluation.py::test_harness_artifact_primitives_match_apps_bytes_and_semantics",
+              "tests/test_skill_evaluation.py::test_harness_owned_writes_and_digests_match_apps_bytes",
+              "tests/test_legacy_run_split.py::test_harness_writer_bytes_equal_the_apps_writer",
               "tests/test_legacy_run_split.py::test_harness_writer_rejects_nan_and_leaves_no_file",
-              "tests/test_legacy_run_split.py::test_sampling_sha256_matches_the_infra_hasher",
+              "tests/test_legacy_run_split.py::test_sampling_sha256_matches_the_apps_hasher",
               "tests/test_optimization_session.py::test_runtime_identity_covers_migrated_process_domain_and_not_removed_executor",
+              "tests/test_session_lock_across_processes.py",
               "tests/test_agent_sessions.py",
           ]
           results = os.environ["RESULTS"]
@@ -239,7 +242,16 @@ jobs:
           # Children never see PYTHONPATH, and the checker compares with this absolute path.
           environment = {key: value for key, value in os.environ.items() if key != "PYTHONPATH"}
           environment["INFERRSI_CHECKOUT_RESOURCES"] = str(workspace / "src" / "inferrsi")
-
+          # #498: the installed-wheel check drives a real session lock from this probe, on
+          # Windows and macOS as well as Linux.
+          environment["INFERRSI_SESSION_LOCK_PROBE"] = str(
+              workspace / "tests" / "session_lock_probe.py"
+          )
+          # #498 slice 5: a session that main planned before infra/artifacts.py left the
+          # runtime identity must be refused by the installed wheel without any change.
+          environment["INFERRSI_PRE_INFRA_SESSION"] = str(
+              workspace / "tests/fixtures/optimization-session/pre-infra-removal-session"
+          )
 
           def run(*command, cwd=work):
               command = [str(part) for part in command]

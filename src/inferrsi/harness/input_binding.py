@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import BinaryIO
 
 # H input capture and byte-equivalent copies. H owns these digests and writes and never
-# imports infra.artifacts. A source is read once into a snapshot; every later copy comes
+# imports inferrsi.apps.artifacts. A source is read once into a snapshot; every later copy comes
 # from that snapshot, never again from the mutable source.
 _CHUNK = 1024 * 1024
 # Schema ``Path``: relative and slash-separated; no '.'/'..' segment, backslash, colon,

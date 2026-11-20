@@ -91,17 +91,15 @@ interfaces; existing CLI commands remain supported.
 
 ![Implemented modules and their dependencies](assets/modular-components-en.svg)
 
-| Package | Responsibilities in this checkout |
-| --- | --- |
-| Apps | Parses CLI arguments, inspects the target repository and hardware, connects workflows, stores results and renders reports. |
-| Knowledge | Searches packaged procedures, cases and records, and exports cited context. |
-| Harness | Runs AB/BA trials, enforces deadlines, manages worker lifetimes and records execution evidence. |
-| Benchmark | Supplies packaged workloads, sampling policies, metric and quality validators, and acceptance rules. |
-| Model | Provides Anthropic adapters and their request authorization. |
-| Infra | Provides file digests and JSON artifact writes. |
+| Layer | Owns | Does not own |
+| --- | --- | --- |
+| Entry and knowledge | CLI arguments, immutable RunSpec, cited knowledge/context export | Model execution or automatic source editing |
+| Harness | AB/BA order, deadlines, source checks, scenario composition, evidence, performance adjudication and reporting | Device-specific conditions, request schemas or kernel dispatch |
+| Model | Anthropic provider adapters and their request authorization | Scheduling, worker lifetime, hardware selection, request payloads, metric contracts or quality checks |
+| Apps | CLI, host bindings (source identity, device discovery/qualification, environment facts), artifact digests and JSON writes, provider integrations | Model constants, campaign gates or performance verdicts |
 
-Dependencies flow from entrypoints to Harness. Harness reaches no Infra or Model
-module, and Infra does not import Model or Harness. None
+Dependencies flow from entrypoints to Harness. #498 removed the Infra and Model
+packages, so Harness reaches neither. None
 of these shared packages imports a campaign from `examples/`.
 
 Environment inspection follows that direction. `apps/host/inspection.py` is the
@@ -218,6 +216,11 @@ src/inferrsi/
         __init__.py         CannbotChannel implementation and channel result adaptation
         project.py          Opt-in checkout/interpreter grant and read-only operations
         read_worker.py      Standalone worker run by the approved Cannbot interpreter
+      anthropic/
+        anthropic_agent.py  Bounded direct Messages agent with frozen cost reservations
+        anthropic_edit_agent.py  Bounded edit-and-check protocol
+        request_guard.py    Request authorization broker, loaded by file location
+    artifacts.py            Apps-owned hashing, file lock and evidence writes
     mindie/
       project.py            Opt-in per-checkout grant, the worker launch and the recorded read
       context.py            Export supplied MindIE reads into a caller-reviewed campaign trace
@@ -282,8 +285,6 @@ src/inferrsi/
       server.py             Supervised Linux serving workers and their group cleanup
       http.py               Timed JSON POST transport
       image.py              OpenAI-style image payload and PNG response protocol
-  infra/
-    artifacts.py            Hashing and evidence writes
   knowledge/data/skill_library/  Registered skills, engineering records, configuration and compiled inputs
   harness/data/repo_packs/       Execution target descriptors
 examples/                   Current Qwen runner, image validator and v4 adapter

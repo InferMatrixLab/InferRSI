@@ -62,8 +62,12 @@ addopts = "-q"
 [tool.ruff]
 line-length = 100
 target-version = "py310"
-# Immutable historical snapshots retain their original formatting.
-extend-exclude = ["tests/fixtures/legacy"]
+# Immutable historical snapshots retain their original formatting. The pre-removal session
+# is a whole session written by an older runtime; its plan pins the hashes of these files.
+extend-exclude = [
+    "tests/fixtures/legacy",
+    "tests/fixtures/optimization-session/pre-infra-removal-session",
+]
 
 [tool.ruff.lint]
 select = ["E", "F", "I"]

@@ -122,7 +122,8 @@ def test_the_old_flare_cli_path_is_gone(packet, tmp_path):
         env={**os.environ, "PYTHONPATH": str(source)},
     )
     assert result.returncode == 1
-    assert "No module named 'inferrsi.model.validators'" in result.stderr
+    # Since #498 the whole inferrsi.model package is gone, so Python stops at its parent.
+    assert "No module named 'inferrsi.model'" in result.stderr
     assert not (tmp_path / "receipt.json").exists()
 
 

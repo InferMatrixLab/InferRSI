@@ -1,5 +1,5 @@
 # Harness-owned atomic JSON evidence writes. The bytes equal those written by
-# infra.artifacts.atomic_write_json; Harness does not import that module here.
+# inferrsi.apps.artifacts.atomic_write_json; Harness does not import that module here.
 
 import json
 import os
