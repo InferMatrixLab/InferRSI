@@ -1,0 +1,349 @@
+{
+  "schema_version": 1,
+  "subject": "HuggingArch model-level speed-of-light method: phase binding, fused-graph pricing, per-rank geometry, communication, KV accounting, publication gates and measured envelope",
+  "consumed_by": "huggingarch-model-sol.md",
+  "required_resources": [
+    "huggingarch-source-identity.json",
+    "huggingarch-model-sol.md"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "repository": "https://github.com/shenh10/HuggingArch",
+      "commit": "e69d20a028e5b17524aa48b53bddf8b9aad5d15b",
+      "revision_precision": "full",
+      "commit_date": "2026-11-10T04:13:16Z",
+      "license": "MIT",
+      "observed_at": "2026-11-10",
+      "method": "GitHub API tree listing at the pinned commit for blob identity and size; raw file retrieval at the same commit, hashed locally; every git blob and size matched the tree listing. A complete file hash does not imply complete semantic inspection; per-file scope is stated below. Code was read, never executed.",
+      "repository_history": {
+        "default_branch_head_at_observation": "e69d20a028e5b17524aa48b53bddf8b9aad5d15b",
+        "commits_on_default_branch": 41,
+        "root_commit": "facbbbc96856e558b9084a94a5070b2e2c86cf0b",
+        "note": "The root commit is the pin used by performance-ceiling-analysis's checkpoint anchor. At this pin, the files that anchor relied on are byte-identical except docs/measured_calibration.md and docs/parallelism.md."
+      },
+      "files": [
+        {
+          "path": "docs/inference_cost_model.md",
+          "git_blob": "ebaed29491d49efbfa15c61a4cd6a3bd61f8d726",
+          "bytes": 45984,
+          "sha256": "1bdf615083e620ea22899fed41baa698fbb89cedf55db5b5e8d6fbcac9568372",
+          "inspection": "Read in full. Cited for the per-op sum and its no-overlap statement, the rejected model-level maximum, fusion and dispatch-condition rules, placement, headline figures and calibration."
+        },
+        {
+          "path": "docs/evaluation_model.md",
+          "git_blob": "304eb9c8cd8ff7c27587bbe7042246f373d5f5e7",
+          "bytes": 13653,
+          "sha256": "a62578fbf17302e0bf6a85a7692d881ea6cd1ee19beed59202a80be1d330b53a",
+          "inspection": "Read in full. Cited for re-deriving traffic from the rewritten graph."
+        },
+        {
+          "path": "docs/symbolic_evaluation.md",
+          "git_blob": "8d5a1736aa9569e087610b1ee5b4035df3d7da2a",
+          "bytes": 10391,
+          "sha256": "cc0fe9eb50c9824f444354ca18be2d5cd36a662413dceb16f4e6f097d6c41e84",
+          "inspection": "Read in full. Workload counts as symbols; not cited directly."
+        },
+        {
+          "path": "docs/design.md",
+          "git_blob": "769d8245df93ec6fa324c1dd120e3043d17079da",
+          "bytes": 69617,
+          "sha256": "e6bc05cf505eef17d2d8130b621adf918c3dd941be9286798155f99a56990111",
+          "inspection": "Read in full except sections 6, 7.1, 7.3 and 8, which were skimmed (spec generation pipeline, UI pages, naming contract). Cited for scope (1.4) and the limit of shape checks (2.3)."
+        },
+        {
+          "path": "docs/parallelism.md",
+          "git_blob": "f53b8d6982b231e407dc550cc7d4f24f0062efbd",
+          "bytes": 24272,
+          "sha256": "e0e2e2f6e9e7166be64c565adf035e92b575fc38e830d2132fc9f90b91bf7758",
+          "inspection": "Read in full; the terminology table was skimmed. Cited for per-rank cost, sharding states, injected communication and the MLA case."
+        },
+        {
+          "path": "docs/kv_cache_storage.md",
+          "git_blob": "79f410488e5f8a01eaef2e05d60a8d5b16803d5c",
+          "bytes": 17413,
+          "sha256": "efa62049ab4705fcdea33092533e99010062c2cf3cb6daf29f57d512995de368",
+          "inspection": "Read in full. Cited for the per-node unit of accounting and the storage laws."
+        },
+        {
+          "path": "docs/attention_families.md",
+          "git_blob": "49483e5a0ffe72d42315d9f95a94c7b144c190df",
+          "bytes": 10122,
+          "sha256": "092cb4acd70381f73ec7cb9c93b69ca81d5ffa4a629ae5a8150f64c07dd2a190",
+          "inspection": "Read in full. Cited for per-family KV layouts and the MLA replication case."
+        },
+        {
+          "path": "docs/moe_expert_axis.md",
+          "git_blob": "4ec71306f07d309ee5670cb38d4d032b54322cb7",
+          "bytes": 10291,
+          "sha256": "f24b07f5aa26dbbc15745389b5b47eda469ca41cd8ce2cfa629c0e8aa83e2018",
+          "inspection": "Read in full. Background for the expert axis; claims cited from code instead."
+        },
+        {
+          "path": "docs/quantization.md",
+          "git_blob": "26237b2933c25297ef17ead845fcef5ca39f78d6",
+          "bytes": 21028,
+          "sha256": "3a920b9ad281605a9d9fc3be5fd1dedf3ced5d03cbf648c9a508ddcc61e3a434",
+          "inspection": "Read in full. Cited for the refusal of a compute pin narrower than its weight."
+        },
+        {
+          "path": "docs/validation.md",
+          "git_blob": "27ad32471db8c39937e04196a46fd3826a68def3",
+          "bytes": 37659,
+          "sha256": "917131e52bca569c9742efeba77606e2f102678acd9dccba06c593a833c9b800",
+          "inspection": "Read in full. Cited for the window gate rationale (5.3), the verification classes (8-14) and the axiom anchoring procedure (9.2)."
+        },
+        {
+          "path": "docs/measured_calibration.md",
+          "git_blob": "711cf37d353a49ac79e9952af8eed377ac959e79",
+          "bytes": 65150,
+          "sha256": "111936275fe1bfe524a17f9c4fbe75adf35d3204ebf0ea97620739c79adda65b",
+          "inspection": "Sections 1-3, 4.1-4.4, 6.3 and 7 read in full; 4.5-6.2 and 8 skimmed (storage, service and deployment operations). Background for the measured envelope; claims cited from code instead."
+        },
+        {
+          "path": "docs/known_limitations.md",
+          "git_blob": "4480f090cf338c4868832e6e25c34583e9085558",
+          "bytes": 29268,
+          "sha256": "0317f9edf17755bb58006130ed9fbfbabf4375d68d79fa744f811c7e9159172d",
+          "inspection": "Read in full, every section body. Cited for 1.1, 1.3, 2.3, 4.8 and 4.9."
+        },
+        {
+          "path": "README.md",
+          "git_blob": "21872c5f74237ecac17ad05d196932e657326205",
+          "bytes": 5552,
+          "sha256": "e9430d93c8edc9fd37a2160957137345a889eacb8489515074d9899cc50ebf1f",
+          "inspection": "Read in full. Cited for the scope statements."
+        },
+        {
+          "path": "docs/README.md",
+          "git_blob": "c37d2a930d2e01d2b6d72e92d5900083fadd9c74",
+          "bytes": 6149,
+          "sha256": "9518dba944e780d5ce3c352a537bbf7450baae6d152fabc273f7628625f641f5",
+          "inspection": "Read in full. Not cited."
+        },
+        {
+          "path": "CLAUDE.md",
+          "git_blob": "ef25df9db5cf0402eb7d183e51f2a97479be5ddd",
+          "bytes": 36158,
+          "sha256": "84c509416ccdaa0a56af89da49aea46249029e895e136b0a8967791e850faf60",
+          "inspection": "Sections 1-4 read as data only; this is the upstream project's instruction file for its own agents. Not cited."
+        },
+        {
+          "path": "docs/auto_sweep.md",
+          "git_blob": "3a27378220f0c936ded1edf3d57950432869e46a",
+          "bytes": 39192,
+          "sha256": "c7f10baec6f9aafb9d2d43167e39fe3d2522f9510fbe101ddbc712c2d310257a",
+          "inspection": "Retrieved and hashed; not inspected. Not cited."
+        },
+        {
+          "path": "docs/custom_models.md",
+          "git_blob": "72a6372787d95f559ed45da473a1d40234e9debb",
+          "bytes": 8358,
+          "sha256": "676c9588697ec81b501bd7d2d04a48d3a77a5ef5ebcd98c5719214a7884fcc9f",
+          "inspection": "Retrieved and hashed; not inspected. Not cited."
+        },
+        {
+          "path": "docs/deployment.md",
+          "git_blob": "11a804e501fcb8dbcf8836a3200184c9db49e3ed",
+          "bytes": 12953,
+          "sha256": "22c11e7e30e6cfe532db9bafdf5a7e3f5787d80f7f9a646cf1b503f4821b90ab",
+          "inspection": "Retrieved and hashed; not inspected. Not cited."
+        },
+        {
+          "path": "backend/inference/row_roofline.py",
+          "git_blob": "bf2fc28dbf36bbc3fa88cfb3f714fb275ff68a20",
+          "bytes": 76456,
+          "sha256": "8bfd62044ab48ef6485a07d0481cbee9e0e3b145109cc3308f379c8b7154a3f4",
+          "inspection": "Module docstring L1-60, build_row_exprs L508-581, RowTimes.bound L196-200, BOUNDS L205, FloorForm L1217-1272, StepSum.total L1501-1510."
+        },
+        {
+          "path": "backend/inference/phases.py",
+          "git_blob": "0a606298b8ee2fe0317407046931e7739b7396b9",
+          "bytes": 117002,
+          "sha256": "86a048c2db0b2e19af8848a0af8c099289c92c7cf60981bfcc5e37398c9f55b0",
+          "inspection": "Module docstring L1-26, phase-binding helper L220-285, estimate_phase L680-720 and L800-920 (serial sum, capacity branch, pipeline branch)."
+        },
+        {
+          "path": "backend/inference/phase_formulas.py",
+          "git_blob": "f0a035c65ab25cc5582d05bcacd241ccdadb3b59",
+          "bytes": 57663,
+          "sha256": "3ab3a014af13ed27b33bbd8c66ed2fc4bd00bb7d04cd2b7aa1139b99c81827f7",
+          "inspection": "STEP_SOL_LAW (L964) only."
+        },
+        {
+          "path": "backend/inference/defaults.py",
+          "git_blob": "a0499fe13d5cf018c7e1ae05861d43853da7ea9e",
+          "bytes": 2943,
+          "sha256": "302e9b412dc5832c4852db5d3f30ecaf67fe03ea4ba412c3468999371a0672e1",
+          "inspection": "L48-63: the launch floor and link latency defaults and their comments."
+        },
+        {
+          "path": "backend/arch/eval/binding.py",
+          "git_blob": "bf4e40ecabda1875dc47864779ac80845383252b",
+          "bytes": 17961,
+          "sha256": "e8b89421e9753f70a075469f326b305af38e82d34b77bb673dd8811021d16767",
+          "inspection": "STEP_LAWS (L284-287) only."
+        },
+        {
+          "path": "backend/arch/eval/transforms.py",
+          "git_blob": "3ca1ece24a69ce27950e74ec8237e361106302fb",
+          "bytes": 113479,
+          "sha256": "22ef87a5522026ac86f377d6f392966b389d9e44f049a218fdeddcf7939f8307",
+          "inspection": "Phase class and docstrings L340-432 (including substitute), Phase.resolve L434-486."
+        },
+        {
+          "path": "backend/arch/eval/fusion.py",
+          "git_blob": "fccbc9e03f7a88cdcf39616c49f93368ec3e6f49",
+          "bytes": 107459,
+          "sha256": "0d7b005791b343f60e71aa921bd9f01352664e84baf63e4577857b1389ebee46",
+          "inspection": "rewrite L1224-1300, Framework L1464-1509, rebase_shapes docstring L2047-2066."
+        },
+        {
+          "path": "backend/inference/framework_bindings/__init__.py",
+          "git_blob": "76ee283d0f50fb37e897927502574e2cea363387",
+          "bytes": 109043,
+          "sha256": "c89edac5f79bebd5a669fde6ee412fac34635cddf35167789d627895e109a127",
+          "inspection": "Module docstring L1-40, _pattern_specificity L108-140, SourceAnchor.parse L953-981, _audited_at L1700-1708, load sort L2076-2088, _append_op_implementation L2109-2136."
+        },
+        {
+          "path": "backend/arch/layout/weight_endpoints.py",
+          "git_blob": "1c8a9bb176ca0ac6d61e27d1f0c60aa472e66b9f",
+          "bytes": 33260,
+          "sha256": "6c4bc967a53939b6278a151c33b28fe57718b8cbe2f7a7be195071a4a8a2c15d",
+          "inspection": "PlacementContext._placement_layout L564-707 and imports L18-32."
+        },
+        {
+          "path": "backend/arch/layout/layout.py",
+          "git_blob": "ef3f17a140bd9009cd207a95375dc0c6c6e99cdd",
+          "bytes": 37430,
+          "sha256": "046a9b5a914fd8f5140dc8416b3ec088652cd04cca235391756cbe6a3a983ffe",
+          "inspection": "_exact_div and _divided L93-110, Block L182-270, block and sharded L539-560, local extents L621-634."
+        },
+        {
+          "path": "backend/arch/layout/workload.py",
+          "git_blob": "1511a784d8873ecf8019d488f518085a72d8848f",
+          "bytes": 7972,
+          "sha256": "6c10bda338277a2ce659e28fdd2c555b8e740a72876d7793abb2a49d5e8fe958",
+          "inspection": "Read in full."
+        },
+        {
+          "path": "backend/arch/layout/physical.py",
+          "git_blob": "8115295d17fbeccd62e3556db0316be28caf7ae5",
+          "bytes": 44863,
+          "sha256": "92de2d362331e9a1c981c25e761db34a5a8894628f67c0041c6c8446bf3b4261",
+          "inspection": "local_dims L417-450, pairs_share L752-786."
+        },
+        {
+          "path": "backend/arch/layout/comm_volume.py",
+          "git_blob": "3b740bff597511343c87fc0242dbf1d1ad065412",
+          "bytes": 7439,
+          "sha256": "58d70e04249a3b9dea0c0742247450662bb2a15b625b5d66455f4d5a45b470c9",
+          "inspection": "Read in full."
+        },
+        {
+          "path": "backend/inference/comm_cost.py",
+          "git_blob": "ad775f1d0e2eddd7ec7e66010484db0149e406e1",
+          "bytes": 20878,
+          "sha256": "647937f0e927385220eb342631ba0c970ef520867bacaa61b72d298a07b79d33",
+          "inspection": "Module docstring L1-34, Fabric L89-119, CollectiveRung L137-198, collective_ladder through collective_phases L201-478."
+        },
+        {
+          "path": "backend/arch/eval/cache.py",
+          "git_blob": "23edad37781b65f50fddb2a636b863016a4ae116",
+          "bytes": 106145,
+          "sha256": "7b384cf8a9b47ebcc1ad7826f5d9c1adbcb264eca83730b8e0080fd2bb658a60",
+          "inspection": "positions_at L97-112, CacheGeometry L115-140, CachedTensor L143-339, Cache L342-405, derive through bind_format L410-502, _declared_formats through _sequence_shard L753-811, _per_position_elements and _law_for L1898-1961."
+        },
+        {
+          "path": "backend/arch/eval/precision.py",
+          "git_blob": "90562db0b03f3913e29632ac9bf21f9176bc5cd4",
+          "bytes": 36774,
+          "sha256": "fda944ce91ba58109da49ef6bfa93c31260d72cbcf88237b88ebe6fd713aa258",
+          "inspection": "__init__ excerpt L55-76, cache_format and shipped_cache_format L556-576."
+        },
+        {
+          "path": "backend/arch/dtypes.py",
+          "git_blob": "bc9e5b60c9466685cfc4f856d9c3a4e006593003",
+          "bytes": 22958,
+          "sha256": "b7a87bca6768c11280e7aa4d7cbc04306f58b27119af206c36ab3de6131802e7",
+          "inspection": "served_dtype L310-400."
+        },
+        {
+          "path": "backend/arch/eval/formats.py",
+          "git_blob": "040073501f6cb3e7c02406d78fd7855a3564b18c",
+          "bytes": 65349,
+          "sha256": "55b0ea1038a9dfede3f9838164f5dd015e18c8a2c21f58c2865dc3df15d5f72e",
+          "inspection": "TensorFormat byte methods L293-331, FormatPolicy.for_node L889-952, _from_scheme head L954-1000."
+        },
+        {
+          "path": "backend/arch/quant_schemes/__init__.py",
+          "git_blob": "e509411a1b197c4fbb481a61ea3db50eec80ad93",
+          "bytes": 41493,
+          "sha256": "cbaffb911b39842459e029fcb79030bbe847562b760eaa403b911e9362735840",
+          "inspection": "Searched only: _ALLOWED_PACKING_FACTORS (L46) and its check (L335-347). Not cited."
+        },
+        {
+          "path": "backend/inference/op_calibration.py",
+          "git_blob": "7541b32972959443873694a619f07d5428546d47",
+          "bytes": 52795,
+          "sha256": "32576110c9724ad09d8afa7b2c19e24471b7c18e02870b859b0e638d6f8a3ff5",
+          "inspection": "Module docstring L1-31, ANOMALY_THRESHOLD L59, PhysicalKey L159-197, _Row and measured_utilization L307-392, _index_row and _resolve_physical_duplicate L474-625, L745-1180 (drift scaling, test-time roofline, measured timing, latest_time_for, physical_time_for, select_time)."
+        },
+        {
+          "path": "backend/arch/validate/_orchestrator.py",
+          "git_blob": "f90e694a1f21499dfca90f4d08fb3838c548df03",
+          "bytes": 44081,
+          "sha256": "7ac96a0d4554b68948d7bd2b79e2277c053ef395d78161dcd7ffb7adfc8a080e",
+          "inspection": "L1-60, _guarded L217-232, _Checks L240-458, _gating_errors L506-608, validate L734-782, _downstream L785-800, _evaluate_spec L803-873."
+        },
+        {
+          "path": "backend/arch/validate/_axioms.py",
+          "git_blob": "ad21ff3de8419c2c53a3bb98ebc77555361c6795",
+          "bytes": 25016,
+          "sha256": "be953f0c0f0fdc1da518d2fdd203c8f329ac18ff0ac6f2092f05a505f3575976",
+          "inspection": "Read in full."
+        },
+        {
+          "path": "backend/arch/validate/_type_contracts.py",
+          "git_blob": "ecea3a7b3220ec93b11edc330daa589c4c5e4914",
+          "bytes": 5839,
+          "sha256": "cb02a1a17d4b47391834a747570ccc9449f96015df13fd6dbbe941bf76312e83",
+          "inspection": "Read in full."
+        },
+        {
+          "path": "backend/measure/lookup.py",
+          "git_blob": "24136e0456497f2240d685b104acc74747627592",
+          "bytes": 14058,
+          "sha256": "59d57156b9c465ef912e6f92049a51164314a1a01c26f1dd118272045698c925",
+          "inspection": "L96-310: request, scope resolution and lookup outcomes."
+        },
+        {
+          "path": "backend/inference/sol_closure.py",
+          "git_blob": "af38540c1d5b967cb1b33e22971bcf847cc14d2f",
+          "bytes": 4436,
+          "sha256": "1fdce0abf73697edc16601aab02e0c131bc62268da0c5f2545e8cdce30cb9047",
+          "inspection": "Read in full."
+        },
+        {
+          "path": "backend/inference/calibration_overlay.py",
+          "git_blob": "4368103f2c2c18534da4b17be5237bf1251d5ad0",
+          "bytes": 54891,
+          "sha256": "cb5d4689e3d600edb34fe10e70b202a0c2f62b59b0b07e70db1596f67dfc9852",
+          "inspection": "CalibrationOverlay.apply L150-306 only."
+        }
+      ],
+      "not_inspected": [
+        "backend/ beyond the files above, including the collective materializer, sharding propagation, parallel configuration, pipeline stages, traffic derivation, capacity, step evaluation and the invariant battery",
+        "kernel_bench/, tests/, web/, supabase/, tools/, scripts/",
+        "docs/auto_sweep.md, docs/custom_models.md, docs/deployment.md (hashed only)"
+      ]
+    }
+  ],
+  "verification": {
+    "locally_verified": false,
+    "empirical_validation": "not_run",
+    "native_execution": "not_run",
+    "evidence_level": "source_grounded",
+    "note": "The consuming document separates claims read from executable code ([code]) from claims stated only in the project's prose, docstrings included ([doc]). No accelerator was used, the source project was not run, and its measured corpus is neither reproduced nor cited as fact."
+  }
+}
