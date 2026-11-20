@@ -17,6 +17,11 @@ from inferrsi.knowledge import _source_snapshot
 from inferrsi.knowledge.catalog import COMPILED, INPUTS
 from inferrsi.knowledge.skill_catalog import _frontmatter_parts, skill_records
 
+if __package__:
+    from .git_read import GIT_READ, GitVersionError, check_git_version
+else:  # Direct invocation: python tools/build_skill_index.py
+    from git_read import GIT_READ, GitVersionError, check_git_version
+
 PROJECT = Path(__file__).resolve().parents[1]
 # The runtime reads these build products alongside the canonical owners.
 LIBRARY = Path("src/inferrsi/knowledge/data/skill_library")
@@ -25,9 +30,6 @@ DESTINATION = LIBRARY / COMPILED
 # K02 re-pin this agrees with LIBRARY, the current checkout path.
 PINNED_LIBRARY = Path(_source_snapshot.LIBRARY)
 REPOSITORY = _source_snapshot.REPOSITORY
-# Match the comparison tool: replacement refs and lazy promisor fetches must not
-# change the bytes hashed for a pinned revision.
-GIT_READ = ("git", "--no-replace-objects", "--no-lazy-fetch")
 
 
 def _git(project: Path, *args: str) -> bytes:
@@ -57,6 +59,7 @@ def _source_hashes(project: Path, revision: str, paths: set[str]) -> dict[str, s
 
 
 def build_index(project: Path, source_revision: str) -> dict[str, str]:
+    check_git_version("Skill index generation")
     revision = _git(project, "rev-parse", "--verify", f"{source_revision}^{{commit}}")
     revision = revision.decode().strip()
     root = project / LIBRARY
@@ -125,7 +128,10 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--source-revision", required=True)
     parser.add_argument("--check", action="store_true")
     args = parser.parse_args(argv)
-    outputs = build_index(PROJECT, args.source_revision)
+    try:
+        outputs = build_index(PROJECT, args.source_revision)
+    except GitVersionError as error:
+        parser.error(str(error))
     destination = PROJECT / DESTINATION
     existing = {
         path.relative_to(destination).as_posix()

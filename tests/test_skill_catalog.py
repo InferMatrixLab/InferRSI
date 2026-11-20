@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 
 import pytest
+import yaml
 
 from inferrsi.apps.cli import main
 from inferrsi.knowledge.catalog import _skill_search_source
@@ -16,6 +17,37 @@ from inferrsi.knowledge.skill_catalog import (
 )
 
 PROJECT = Path(__file__).resolve().parents[1]
+
+
+@pytest.mark.parametrize(("relative", "children"), [
+    ("frameworks/pytorch/pytorch", (
+        "compiler-and-export", "custom-operators-and-extension", "distributed-and-checkpoint",
+        "installation-and-build", "memory-streams-and-graphs", "profiling-and-debugging",
+        "tensor-dispatch-autograd", "training-and-data",
+    )),
+    ("frameworks/torch-npu/torch-npu", (
+        "distributed-and-hccl", "graph-and-compile", "installation-and-compatibility",
+        "memory-streams-and-events", "operator-development", "privateuse1-and-dispatch",
+        "profiling-and-debugging", "training-and-precision",
+    )),
+    ("engines/lithos-metal", ("compile-fusion", "generation-state", "serving-cache")),
+])
+def test_imported_invocation_flags_retain_their_pre_layout_visibility(relative, children):
+    # At the pre-layout base these 22 flags were data in metadata.json. Promoting
+    # them into a host's YAML would newly disable automatic Claude invocation.
+    library = PROJECT / "src/inferrsi/knowledge/data/skill_library"
+    owner = library / "systems" / relative
+    for directory in (owner, *(owner / "sub-skills" / child for child in children)):
+        text = (directory / "SKILL.md").read_text(encoding="utf-8")
+        host = yaml.safe_load(text.split("---", 2)[1])
+        assert "disable-model-invocation" not in host
+        assert "disco-role" not in host["metadata"]
+        assert isinstance(host["metadata"]["inferrsi"], str)
+        annotation = json.loads(host["metadata"]["inferrsi"])
+        root = library if directory == owner else directory.parent
+        for fields in (annotation, skill_metadata(root, directory.name)):
+            assert fields["disable-model-invocation"] is True
+            assert fields["metadata"]["disco-role"] == "operating"
 
 
 def _symlink(target: Path, link: Path) -> None:

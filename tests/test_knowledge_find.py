@@ -478,6 +478,7 @@ def test_a_hit_read_refuses_gets_a_reason_not_a_command(tmp_path):
                 load_corpus(tmp_path, kinds=("case",)), limit=1)["items"][0]
     assert not {"ref", "read_args", "open_argv"} & item.keys()
     assert "Missing case resource" in item["unreadable"]
+    assert "next_read_content_bytes" not in item
 
 
 @pytest.mark.parametrize("problem, reason", [
@@ -616,6 +617,9 @@ def test_find_opens_both_authorities_when_ids_overlap(tmp_path, capsys):
         assert args[:2] == ["read", f"{authority}:{identity}"]
         assert main(args) == 0
         opened = json.loads(capsys.readouterr().out)
+        assert by_authority[authority]["next_read_content_bytes"] == len(
+            opened["content"].encode("utf-8")
+        )
         assert opened["kind"] == kind
         assert opened["revision"].startswith("sha256:")
         if authority == "checkout":
@@ -637,6 +641,37 @@ def test_find_preserves_a_structured_verification_limitation(tmp_path, capsys):
     assert item["limitations"] == [limitation]
     assert main(args) == 0
     assert "not locally verified" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize("limitations, shown", [
+    (["short limit", "界" * 150, {"locally_verified": False}], ["short limit"]),
+    (["界" * 150, {"locally_verified": False}], []),
+    (["a", "b", "c", "d", {"locally_verified": False}], ["a", "b", "c"]),
+])
+def test_find_bounds_caveats_and_sizes_the_opened_content(tmp_path, capsys, limitations, shown):
+    _plant_custom_case(tmp_path, {
+        "id": "case.demo", "kind": "case", "content": "demo.md",
+        "state": "historical_observation", "applicability": [],
+        "limitations": limitations, "attribution": "Local demo",
+        "sources": [{"type": "internal", "issue": "local", "artifact": "fixture"}],
+    })
+    body = "精度\n".encode("utf-8")
+    (tmp_path / "demo/cases/demo.md").write_bytes(body)
+    args = ["find", "demo", "--kinds", "case", "--skill-root", str(tmp_path)]
+    assert main([*args, "--json"]) == 0
+    item, = json.loads(capsys.readouterr().out)["items"]
+    assert item["next_read_content_bytes"] == len(body)
+    assert item["locally_verified"] is False
+    assert item["limitations"] == shown
+    assert item["limitations_withheld"] == len(limitations) - len(shown)
+    assert main(item["read_args"]) == 0
+    material = json.loads(capsys.readouterr().out)
+    assert material["content"].encode("utf-8") == body
+    assert material["limitations"] == limitations
+    assert main(args) == 0
+    out = capsys.readouterr().out
+    assert f"{len(body)} UTF-8 bytes" in out
+    assert f"{len(limitations) - len(shown)} more recorded limitation(s)" in out
 
 
 def test_unknown_outcome_is_rejected(tmp_path):

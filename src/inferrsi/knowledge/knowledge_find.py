@@ -84,6 +84,8 @@ _QUERY_STOP_WORDS = TASK_STOP_WORDS | {
 }
 _BACKEND_NAME_ALIASES = {"昇腾": "ascend"}
 _MAX_SNIPPET = 400
+_MAX_LIMITATION_BYTES = 400
+_MAX_SHOWN_LIMITATIONS = 3
 # A case can record a dozen directions; listing all of them buries the one the
 # caller asked about. The rest stay available through the cited file.
 _MAX_SHOWN_FINDINGS = 3
@@ -302,7 +304,16 @@ class Document:
         if scope:
             record["applicability"] = str(scope).strip()[:_MAX_SNIPPET]
         if self.limitations:
-            record["limitations"] = list(self.limitations)
+            shown = []
+            for limitation in self.limitations[:_MAX_SHOWN_LIMITATIONS]:
+                preview = [*shown, limitation]
+                preview_bytes = json.dumps(preview, ensure_ascii=False).encode("utf-8")
+                if len(preview_bytes) > _MAX_LIMITATION_BYTES:
+                    break
+                shown = preview
+            record["limitations"] = shown
+            if len(shown) < len(self.limitations):
+                record["limitations_withheld"] = len(self.limitations) - len(shown)
         if self.unverified():
             record["locally_verified"] = False
         return record
@@ -738,17 +749,17 @@ def expand(query: str) -> tuple[list[str], dict[str, tuple[str, ...]]]:
     return [token for token in dict.fromkeys(found) if token not in _QUERY_STOP_WORDS], applied
 
 
-def _open_args(document: Document, readers: dict) -> tuple[str, ...]:
-    """Validate material and build the read command for a returned hit."""
+def _read_preview(document: Document, readers: dict) -> tuple[tuple[str, ...], int | None]:
+    """Validate a hit, returning its command and UTF-8 content size without extra reads."""
     from .knowledge_operations import KnowledgeReader
 
     if not document.qualified:
-        return ()
+        return (), None
     reader = readers.get(document.root)
     if reader is None:
         reader = readers[document.root] = KnowledgeReader(skill_root=document.root)
     try:
-        reader.read(document.qualified).view(material=True)
+        material = reader.read(document.qualified).view(material=True)
     except MissingSkillsExtra:
         if document.source_location != "installed":
             raise
@@ -763,16 +774,18 @@ def _open_args(document: Document, readers: dict) -> tuple[str, ...]:
         view = bundle.view()
         core, _, _ = indexed_skill(record, {**view, "authority": "package"}, bundle.content)
         bundle.content[core].decode("utf-8")
-        return (
+        args = (
             "read", ref, "--omit-resources", "--resource", core, "--revision", view["revision"],
         )
+        return args, len(bundle.content[core])
 
     parts = ("read", document.qualified, "--material", "--omit-resources")
-    if document.root is None:
-        return parts
-    if document.source_location == "installed":
-        return (*parts, "--installed-library")
-    return (*parts, "--skill-root", str(document.root))
+    if document.root is not None:
+        if document.source_location == "installed":
+            parts += ("--installed-library",)
+        else:
+            parts += ("--skill-root", str(document.root))
+    return parts, len(material["content"].encode("utf-8"))
 
 
 def rank(query: str, corpus: Corpus) -> tuple[
@@ -815,12 +828,15 @@ def find(
     for value, _, index, detail in scored[:limit]:
         document = corpus.documents[index]
         try:
-            read_args, unreadable = _open_args(document, readers), None
+            read_args, size = _read_preview(document, readers)
+            unreadable = None
         except (ValueError, KeyError, OSError, TypeError) as exc:
-            read_args, unreadable = (), str(exc) or type(exc).__name__
+            read_args, size, unreadable = (), None, str(exc) or type(exc).__name__
         view = document.view(
             score=value, query_tokens=query_tokens, read_args=read_args, unreadable=unreadable,
         )
+        if size is not None:
+            view["next_read_content_bytes"] = size
         if explain:
             view["matched"] = detail
         items.append(view)

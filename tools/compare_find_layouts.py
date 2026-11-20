@@ -18,12 +18,17 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
+if __package__:
+    from .git_read import GIT_READ, GitVersionError, check_git_version
+else:
+    from git_read import GIT_READ, GitVersionError, check_git_version
+
 FIXTURES = Path(__file__).resolve().parents[1] / "tests" / "fixtures" / "find"
 
 
 def validate_worktree(root, sha):
     def git(*args):
-        return subprocess.check_output(["git", *args], cwd=root).decode().strip()
+        return subprocess.check_output([*GIT_READ, *args], cwd=root).decode().strip()
 
     if Path(git("rev-parse", "--show-toplevel")).resolve() != root:
         raise ValueError("Expected a worktree root")
@@ -95,6 +100,10 @@ def main():
     parser.add_argument("--candidate-sha", required=True)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
+    try:
+        check_git_version("Find layout comparison")
+    except GitVersionError as error:
+        parser.error(str(error))
     protocol = json.loads((FIXTURES / "layout-queries.json").read_bytes())
     roots = {"base": args.base.resolve(), "candidate": args.candidate.resolve()}
     revisions = {"base": protocol["base_sha"], "candidate": args.candidate_sha}
@@ -111,6 +120,8 @@ def main():
             PYTHONDONTWRITEBYTECODE="1",
             PYTHONNOUSERSITE="1",
             PYTHONHASHSEED="0",
+            GIT_NO_REPLACE_OBJECTS="1",
+            GIT_NO_LAZY_FETCH="1",
         )
         for arm, root in roots.items()
     }

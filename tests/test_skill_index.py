@@ -18,6 +18,21 @@ PROJECT = Path(__file__).resolve().parents[1]
 ROOT = PROJECT / LIBRARY
 
 
+def test_index_cli_reports_unsupported_git_before_reading_objects(monkeypatch, capsys):
+    def old_git(command, **kwargs):
+        assert command == ["git", "--version"]
+        return "git version 2.43.0\n"
+
+    monkeypatch.setattr(subprocess, "check_output", old_git)
+    monkeypatch.setattr(index_builder, "_git", lambda *args: pytest.fail("read before preflight"))
+    with pytest.raises(SystemExit) as exit_info:
+        index_builder.main(["--source-revision", "HEAD", "--check"])
+    assert exit_info.value.code == 2
+    message = capsys.readouterr().err
+    assert "requires Git >= 2.45 for --no-lazy-fetch" in message
+    assert "git version 2.43.0. Upgrade Git and retry." in message
+
+
 def _physical(relative: str) -> Path:
     """Map a pinned input name to today's checkout location.
 

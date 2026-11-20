@@ -187,8 +187,13 @@ Selected resource reads require the exact returned revision. A changed checkout
 or installation rejects an old revision; it never substitutes new bytes.
 This reader does not itself retain history or claim standalone exports.
 
-`read --material --omit-resources` returns the full entrypoint, provenance,
-applicability and revision. Use `read --resource <key>` to display a specific
+`read --material --omit-resources` returns the entrypoint, provenance,
+applicability and revision. For skills with embedded InferRSI metadata,
+`content` carries the procedure and its host header. `content_view` supplies
+the delivered SHA-256, source SHA-256 and half-open byte ranges in the source.
+The explicit resource read at the same revision returns the original bytes,
+including the annotation. Older sidecar-backed procedures retain their
+original entrypoint content. Use `read --resource <key>` to display a specific
 UTF-8 resource in `content` and its key in `content_resource`. Remove
 `--omit-resources` to list resource paths and digests. These views use the same
 full-bundle revision.

@@ -1,4 +1,4 @@
-"""Validate the published cutover against two local InferRSI source snapshots."""
+"""Validate two materialized source trees. This filesystem-only check does not invoke Git."""
 
 import argparse
 import csv

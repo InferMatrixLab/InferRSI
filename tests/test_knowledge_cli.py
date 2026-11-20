@@ -1,6 +1,7 @@
 """CLI contracts for the collect / read / resource knowledge commands."""
 
 import contextlib
+import hashlib
 import io
 import json
 import tempfile
@@ -135,13 +136,46 @@ def test_read_returns_bundle_view_and_rejects_wrong_revision():
     assert "unavailable" in stderr
 
 
-def test_read_can_omit_inventory_without_changing_material_or_revision():
-    args = ("read", "package:vllm_omni.common.diffusion.step_state_and_output_validation",
-            "--material")
+@pytest.mark.parametrize("authority", ["checkout", "store"])
+def test_material_delivers_procedure_and_exact_resource_preserves_raw_source(authority, tmp_path):
+    identity = f"checkout:{SOURCE}"
+    source_args = ["--skill-root", str(SKILLS)]
+    if authority == "store":
+        source = KnowledgeReader(skill_root=SKILLS).read(identity)
+        KnowledgeStore(tmp_path, skill_root=SKILLS).create(local_candidate(source))
+        identity = f"store:{LOCAL}"
+        source_args += ["--store", str(tmp_path)]
+    code, stdout, stderr = run_cli("read", identity, "--material", "--omit-resources", *source_args)
+    assert code == 0, stderr
+    view = json.loads(stdout)
+    code, stdout, stderr = run_cli(
+        "read", identity, "--revision", view["revision"], "--resource", view["entrypoint"],
+        "--omit-resources", *source_args,
+    )
+    assert code == 0, stderr
+    raw = json.loads(stdout)["content"].encode("utf-8")
+    delivered = view["content"].encode("utf-8")
+    assert b"  inferrsi: |" in raw and b"  inferrsi: |" not in delivered
+    assert raw.split(b"---", 2)[2] == delivered.split(b"---", 2)[2]
+    proof = view["content_view"]
+    assert proof["locator"] == "skill-procedure"
+    assert proof["source_sha256"] == hashlib.sha256(raw).hexdigest()
+    assert proof["sha256"] == hashlib.sha256(delivered).hexdigest()
+    assert delivered == b"".join(raw[start:end] for start, end in proof["source_byte_ranges"])
+
+
+@pytest.mark.parametrize("identity", [
+    "package:vllm_omni.common.diffusion.step_state_and_output_validation",
+    "package:inferrsi.common.skills.calibrate_serving_simulation",
+])
+def test_read_can_omit_inventory_without_changing_material_or_revision(identity):
+    args = ("read", identity, "--material")
     code, stdout, stderr = run_cli(*args)
     assert code == 0, stderr
     full = json.loads(stdout)
     assert "record.json" in full["resources"]
+    assert "content_view" not in full
+    assert full["resources"]["record.json"] == hashlib.sha256(full["content"].encode()).hexdigest()
     assert full["required_resources"]
 
     code, stdout, stderr = run_cli(*args, "--omit-resources", "--revision", full["revision"])

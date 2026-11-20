@@ -93,6 +93,7 @@ def test_packaged_skill_search_and_resource_work_without_pyyaml(without_yaml, tm
     assert read["revision"] == packaged["revision"]
     assert read["content_resource"] == original
     assert read["content"].encode("utf-8") == expected
+    assert hit["next_read_content_bytes"] == len(expected)
 
     output = tmp_path / "packaged-skill.md"
     fetched = _run([

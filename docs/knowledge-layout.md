@@ -54,12 +54,13 @@ flowchart TB
     D -->|Unknown owner| F["Find lexical ranker · ranked Collect / campaign capture share selector"]
     D -->|Need catalog scope| C["knowledge search · filter by repo, backend, scenario or tier"]
     C -->|Query| F
-    C -->|No query| B["List 136 catalog records by ID · 48 findings + 88 skill views"]
+    C -->|No query| B["Catalog by ID · 48 findings + 88 skill views<br/>default limit 10 · use --limit 136 for all"]
     F --> A["Rank the existing searchable fields and procedure text<br/>Exclude 7 primary skills and legacy router before IDF and limits<br/>default 135 evidence owners · 80 skills + 48 findings + 7 cases"]
     I -->|Authored finding| E["Validate selected record and its dependencies<br/>retain linked-library bundle and pin checks when skill documents are declared"]
     I -->|Other exact owner| V["Check revision, device, model, flags and measurement against this run"]
-    E & A & B --> V
-    V --> Z["Budgeted Collect delivers procedure and required sources; exact read retains full bytes"]
+    A --> H["Find card · limited caveats and withheld count<br/>next_read_content_bytes sizes the next read's content"]
+    E & H & B --> V
+    V --> Z["Read the procedure and structured metadata, or Collect within budget<br/>Pinned resource read returns original SKILL.md bytes"]
     Z --> X["Meets gates → cite reproducible evidence and scope"]
     V --> G["Gap → name missing evidence; test the next distinction or record exhausted budget"]
     G -.->|budget remains| D
@@ -118,6 +119,10 @@ src/inferrsi/knowledge/data/
 The README documents the library. A procedure, including its resources, belongs in one registered directory. An engineering record carries its own sources, applicability and verification status. Its filename must match its stable ID. The registry locates each skill. The existing protected `knowledge/catalog.py` owns the public view fields, including source links, recommendations and verification status. Builds compile YAML headers and pinned Git fingerprints required by the base wheel. Authors edit structured fields in the same SKILL.md as the procedure. The catalog combines that embedded object with the compiled host header and resource fingerprints to emit the public schema-1 record on demand. Publishing the same skill under multiple engine or accelerator trees would require synchronized edits. Capture these dimensions for the actual run and compare them with owner metadata. For a new environment with no applicable local evidence, retain the unknown and the first check that could resolve it. [Record authoring guide](../src/inferrsi/knowledge/data/skill_library/records/README.md)
 
 Budgeted Collect can deliver a `skill-procedure` view. Its `sha256` covers the delivered bytes. Its `source_sha256`, byte ranges and revision identify the full source and allow the receiver to reconstruct that view exactly. The full file is available through an exact resource read. [Context and byte ranges](knowledge-operations.md)
+
+For a readable Find hit, `next_read_content_bytes` counts the UTF-8 bytes in the advertised read command's `content` field. The envelope and other resources have separate costs. A skill material read returns its procedure and host header with the embedded InferRSI machine annotation removed. A raw resource read retains that annotation. The Find preview shows up to three complete limitations within a 400-byte UTF-8 JSON list. `limitations_withheld` counts the rest. Open the owner to inspect its qualifications in full.
+
+Claude reads `disable-model-invocation` from the native YAML header. Across this migration, the 33 procedures that previously exposed that flag and `metadata.disco-role` still expose them. For 22 other procedures (nine PyTorch, nine TorchNPU and four Lithos), the old sidecar alone contained those values. Readers of imported metadata can decode the same Boolean and role from `metadata.inferrsi`; promoting them into the native header would change host invocation behavior. [Claude skill invocation](https://code.claude.com/docs/en/skills#control-who-invokes-a-skill)
 
 ### What to edit
 

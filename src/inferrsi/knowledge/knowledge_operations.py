@@ -228,7 +228,16 @@ class Bundle:
             "dependencies": manifest["dependencies"],
         }
         if material:
-            result["content"] = self.content[self.metadata["entrypoint"]].decode("utf-8")
+            path = self.metadata["entrypoint"]
+            data = self.content[path]
+            if self.metadata["kind"] == "skill":
+                data, locator = skill_procedure(path, data)
+                if locator:
+                    result["content_view"] = {
+                        **locator, "sha256": _hash(data),
+                        "source_sha256": manifest["resources"][path],
+                    }
+            result["content"] = data.decode("utf-8")
         return result
 
 

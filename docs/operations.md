@@ -244,7 +244,10 @@ question calls for prior evidence.
   `checkout:` read reference uses `--installed-library` to resolve the source
   from the reader's installation. A custom root uses `--skill-root`.
   Where recorded, items carry source, summary, applicability, limitations and
-  local verification status. Case findings are ordered by query overlap,
+  local verification status. The limitations preview contains up to three
+  complete entries within a 400-byte UTF-8 JSON list. `limitations_withheld`
+  counts omitted entries. Open the owner for the complete list.
+  Case findings are ordered by query overlap,
   with `findings_total` and `findings_withheld` describing the available preview.
   Each finding carries its outcome, reason, revisit condition and any assessed
   scope and bounds. `bounds_source` identifies whether bounds apply to the
@@ -255,7 +258,10 @@ question calls for prior evidence.
   full subprocess arguments as `open_argv` and InferRSI CLI arguments as
   `read_args`. The arguments include the source-qualified ID and any needed
   source flag. Most hits use `read --material --omit-resources` to return the
-  full entrypoint, provenance and revision. Remove
+  entrypoint content, provenance and revision. For a skill, the procedure
+  omits the embedded machine annotation. A readable hit's
+  `next_read_content_bytes` counts its next command's UTF-8 `content` bytes,
+  excluding the JSON envelope and additional resources. Remove
   `--omit-resources` to list the bundle's resources. Hits that fail the reader's
   material check carry `unreadable` with the reason.
 - **Base installation.** When PyYAML is absent, an installed Skill with a
