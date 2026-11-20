@@ -495,6 +495,8 @@ def _trial_result(root, plan, trial, host):
                 "value": host["usage"], "source": receipt["sha256"],
                 "scope": coverage.get("scope"), "coverage": "complete" if complete else "partial",
             })
+            if result["benchmark_metrics"]["token_usage"]["total_tokens"] is not None:
+                result["benchmark_metrics"]["missing_reasons"].pop("token_usage", None)
         if delivery["acceptance"]["delivery_accepted"] and control["final"]:
             final_assessment = control["final"]["assessment"]
             result["metrics"]["speedup"] = (

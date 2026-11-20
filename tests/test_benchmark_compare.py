@@ -163,6 +163,7 @@ def test_metrics_summary_is_first_and_complete_token_ratio_has_explicit_directio
     assert basic["step_acceptance_rate"] == 1
     assert basic["accepted_steps"] == basic["assessed_steps"] == 1
     assert basic["token_usage"]["total_tokens"] == 100
+    assert "token_usage" not in basic["missing_reasons"]
     report = operation(experiment, "report")
     metrics = report["benchmark_metrics"]["tasks"][0]["metrics"]
     assert metrics["performance_benefit_ratio"]["value"] == pytest.approx(2 / 1.5)
