@@ -1,0 +1,27 @@
+tests/test_optimization_session.py
+  s_193a19cfa4c668::t_830e94ffb056e9 486-556
+src/inferrsi/apps/views/retrieval_projection.py
+  s_193a19cfa4c668::t_992a4a53e1c0d7 11-17,80-82,84-86,92,325-326,335-337
+  s_193a19cfa4c668::t_f71006d17d5deb 327-334,359
+src/inferrsi/harness/records/evidence.py
+  s_193a19cfa4c668::t_992a4a53e1c0d7 14-15,160-183
+  s_193a19cfa4c668::t_9fa8cf12ee2bc6 184-185
+src/inferrsi/harness/optimization.py
+  s_193a19cfa4c668::t_992a4a53e1c0d7 13-14,96-110,129,131,379,408,431,435-436,439
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "cc552e47bc5a707f715fcb36da91b7d42525e42f",
+  "prompts": {},
+  "sessions": {
+    "s_193a19cfa4c668": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1f82d-ce84-73f2-8edb-1003ff87b6c0",
+        "model": "gpt-6.2-sol"
+      },
+      "human_author": "jiangkuaixue123 <jiangxiaozhou111@163.com>"
+    }
+  }
+}
