@@ -4,7 +4,7 @@ import shutil
 
 import pytest
 
-from inferrsi.apps.campaign import capture_context, create_campaign, verify_capture
+from inferrsi.apps.workflows.campaign import capture_context, create_campaign, verify_capture
 from inferrsi.knowledge.knowledge_find import find, installed_skill_root, load_corpus
 from inferrsi.knowledge.knowledge_operations import KnowledgeReader
 

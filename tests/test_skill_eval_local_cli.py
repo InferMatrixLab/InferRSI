@@ -11,7 +11,7 @@ import sys
 
 import pytest
 
-from inferrsi.apps import skill_eval_engineering as artifact_check
+from inferrsi.apps.workflows import skill_eval_engineering as artifact_check
 from inferrsi.benchmark import skill_eval_engineering as engineering
 from inferrsi.harness import artifact_sandbox as sandbox
 from inferrsi.infra.artifacts import sha256, write_json

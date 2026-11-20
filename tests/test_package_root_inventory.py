@@ -120,6 +120,7 @@ def test_inventory_is_the_exact_final_two_file_root() -> None:
                 if isinstance(node, (ast.Import, ast.ImportFrom))]
     # A2 moved its two files into Apps.
     assert (REPO / PACKAGE / "apps" / "benchmark_operations.py").is_file()
+    assert (REPO / PACKAGE / "apps" / "workflows" / "benchmark_operations.py").is_file()
     assert (REPO / PACKAGE / "apps" / "views" / "summary_chart.py").is_file()
     # A1 moved its two files; the implementation is the apps/cli package.
     for name in ("__init__.py", "arguments.py"):

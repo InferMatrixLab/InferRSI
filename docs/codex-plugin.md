@@ -17,6 +17,7 @@ contains exactly one plugin directory:
 ```text
 inferrsi/
   plugin.json
+  assets/infermatrix-icon.png
   skills/inferrsi/SKILL.md
   skills/inferrsi/scripts/inferrsi.py
   runtime/manifest.json
@@ -24,6 +25,10 @@ inferrsi/
   LICENSE
   README.md
 ```
+
+The plugin icon uses the symbol from the
+[official InferMatrix logo](https://github.com/InferMatrixLab/infermatrix.github.io/blob/b3903bdaffd4e9550263bf42791995b83f514480/assets/infermatrix-logo.png)
+on its original white background.
 
 The downloaded archive bundles the same-version InferRSI runtime and knowledge;
 installation requires no source checkout, package build or separate pip install.

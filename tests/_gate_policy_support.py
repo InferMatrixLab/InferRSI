@@ -18,7 +18,8 @@ MANIFEST = REPO / "docs" / "legacy-knowledge-manifest.json"
 NEW_CORES = ("knowledge", "benchmark", "apps")
 CORE_NAMES = ("knowledge", "harness", "benchmark", "apps")
 # No root file is application assembly. A1 (#408) moved the CLI and its parser into
-# ``apps/cli/``, and A2 (#408) moved the task launcher to ``apps/benchmark_operations.py``.
+# ``apps/cli/``, and A2 (#408) moved the task launcher into Apps. The #490 workflows
+# slice groups it at ``apps/workflows/benchmark_operations.py``.
 # With that last move the ``APPLICATION_ENTRIES`` listing is gone: Apps is the
 # ``inferrsi.apps`` package by its first path segment and nothing else, so a root
 # ``cli.py``, ``arguments.py`` or ``benchmark_operations.py`` that returns is an unlisted
@@ -76,7 +77,7 @@ RETIRED_BY_R1 = frozenset(
 RETIRED_BY_A1 = frozenset({"inferrsi.cli", "inferrsi.arguments"})
 # #408 A2 deleted the root chart renderer and task launcher the same way. The
 # implementations are ``inferrsi.apps.views.summary_chart`` and
-# ``inferrsi.apps.benchmark_operations``.
+# ``inferrsi.apps.workflows.benchmark_operations``.
 RETIRED_BY_A2 = frozenset({"inferrsi.summary_chart", "inferrsi.benchmark_operations"})
 # #452 M1 deleted the four root MindIE files the same way. The adapter is the
 # ``inferrsi.apps.mindie`` package: ``project``, ``context``, ``mcp`` and ``read_worker``.

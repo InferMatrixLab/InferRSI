@@ -23,7 +23,7 @@ snapshots. `tools/skill_eval_local.py` adds manual stage/capture, without launch
 an agent. `src/inferrsi/benchmark/skill_eval_engineering.py` owns the one task, its
 19 public behavior probes and their judgment. `src/inferrsi/harness/artifact_sandbox.py`
 replays the retained artifact under bubblewrap and separates the single writable
-artifact from frozen inputs; `src/inferrsi/apps/skill_eval_engineering.py` composes the two.
+artifact from frozen inputs; `src/inferrsi/apps/workflows/skill_eval_engineering.py` composes the two.
 The existing cloud read/submit route is unchanged;
 it cannot perform this artifact-editing task and is rejected for this adapter.
 

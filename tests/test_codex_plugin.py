@@ -338,7 +338,16 @@ def test_archive_contains_only_one_standalone_plugin(tmp_path):
         assert not any("marketplace" in name or ".agents" in name for name in names)
         metadata = json.loads(archive.read("inferrsi/plugin.json"))
         assert metadata["$schema"] == "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json"
-        assert len(metadata["extensions"]["com.openai"]["interface"]["shortDescription"]) <= 30
+        interface = metadata["extensions"]["com.openai"]["interface"]
+        assert len(interface["shortDescription"]) <= 30
+        assert metadata["author"]["name"] == interface["developerName"] == "InferMatrixLab"
+        homepage = "https://github.com/InferMatrixLab/InferRSI"
+        assert metadata["homepage"] == interface["websiteURL"] == homepage
+        for field in ("logo", "composerIcon"):
+            icon = Path(interface[field])
+            assert archive.read(f"inferrsi/{icon.as_posix()}") == (
+                PROJECT / "plugins/inferrsi" / icon
+            ).read_bytes()
     info = invoke(output, tmp_path, "--plugin-info")
     assert info.returncode == 0, info.stderr
     manifest = json.loads((output / "runtime/manifest.json").read_text(encoding="utf-8"))
@@ -396,6 +405,29 @@ def test_release_archive_is_installable_and_all_versions_match(release_distribut
         assert archive.read("inferrsi/README.md") == expected_readme
     with pytest.raises(ValueError, match="agree exactly"):
         check_plugin(Path(result["archive"]), "v0.2.1", host)
+
+
+@pytest.mark.parametrize("release_distribution", ["codex"], indirect=True)
+@pytest.mark.parametrize(("missing", "retained"), [
+    ("logo", "composerIcon"), ("composerIcon", "logo"),
+])
+def test_release_archive_rejects_missing_icon(release_distribution, tmp_path, missing, retained):
+    original = release_distribution[2]["archive"]
+    changed = tmp_path / "missing-icon.zip"
+    manifest_name = "inferrsi/plugin.json"
+    with zipfile.ZipFile(original) as source, zipfile.ZipFile(changed, "w") as destination:
+        metadata = json.loads(source.read(manifest_name))
+        interface = metadata["extensions"]["com.openai"]["interface"]
+        removed = "inferrsi/" + interface[missing].removeprefix("./")
+        # Both fields normally share one PNG. Keep the other reference valid.
+        interface[retained] = "./assets/retained.png"
+        destination.writestr("inferrsi/assets/retained.png", source.read(removed))
+        destination.writestr(manifest_name, json.dumps(metadata))
+        for entry in source.infolist():
+            if entry.filename not in (removed, manifest_name):
+                destination.writestr(entry, source.read(entry))
+    with pytest.raises(ValueError, match=missing):
+        check_plugin(changed, "v0.2.0", "codex")
 
 
 def test_release_archive_rejects_changed_runtime_bytes(release_distribution, tmp_path):

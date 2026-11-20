@@ -11,9 +11,9 @@ from contextlib import contextmanager
 from pathlib import Path
 from unittest.mock import patch
 
-from inferrsi.apps.campaign import capture_context, create_campaign, save_retrieval
 from inferrsi.apps.views.dashboard import write_dashboard
 from inferrsi.apps.views.search_attribution import import_search
+from inferrsi.apps.workflows.campaign import capture_context, create_campaign, save_retrieval
 from inferrsi.harness.records.campaign_records import record_candidate
 from inferrsi.harness.records.optimization_log import record_log
 from inferrsi.knowledge import knowledge_find

@@ -4,6 +4,12 @@
 
 ### Changed
 
+- Apps workflow implementations now live in `apps/workflows/`: campaign capture,
+  task launching, paired benchmark comparison, improvement and skill evaluation.
+  The previous Apps imports retain explicit compatibility exports. New optimization
+  plans fingerprint the canonical implementation; existing frozen sessions must use
+  their original pinned runtime for `status` and `recover`. See
+  [release-boundary recovery](docs/optimization-workflow-unification.md#release-boundary-recovery).
 - The host bindings move from `inferrsi.infra` to the new `inferrsi.apps.host`
   package (Refs #498, slice 3a). There is no forwarding module or alias, and the
   import gate fails any import of an old path.

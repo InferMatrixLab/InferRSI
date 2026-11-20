@@ -11,9 +11,9 @@ from test_optimization_story import log_document
 from test_project_optimization import project as project
 from test_project_optimization import start
 
-from inferrsi.apps.campaign import create_campaign
 from inferrsi.apps.cli import main
 from inferrsi.apps.views.dashboard import dashboard_snapshot
+from inferrsi.apps.workflows.campaign import create_campaign
 
 QUOTE = "NPU OOM."
 REASON = f"Score each row immediately to avoid retaining all masks [use {REF} | {QUOTE}]."
