@@ -99,9 +99,13 @@ def _optimization_actions(stages, *, project=False):
     start.add_argument("--condition", default="current-agent" if project else None,
                        required=not project)
     start.add_argument("--knowledge", choices=("on", "off"), default="on")
+    from ..integrations.cannbot.project import PLATFORMS
+
+    start.add_argument("--cannbot-platform", choices=PLATFORMS,
+                       help="Opt into CANNBot retrieval on the declared Ascend platform")
     start.add_argument("--evaluation-prefix", default="", help="Quoted allocator argv prefix")
     start.add_argument("--python", default=sys.executable)
-    actions = ("status", "diagnose", "round", "final", "recover", "knowledge")
+    actions = ("status", "diagnose", "round", "final", "recover", "knowledge", "knowledge-read")
     if project:
         actions += ("baseline", "refresh-references", "resume", "profile")
     for name in actions:
@@ -120,7 +124,7 @@ def _optimization_actions(stages, *, project=False):
             stage.add_argument("--hypothesis", required=True)
             stage.add_argument("--strategy", help="Agent-declared optimization strategy")
             stage.add_argument("--knowledge-ref", action="append",
-                               help="Delivered context path cited by this round; repeatable")
+                               help="Delivered path, path#item-ref, or CANNBot receipt; repeatable")
         if name == "final":
             stage.add_argument("--reason", help="Why the caller stopped an up-to-budget search")
         if name in ("round", "final"):
@@ -146,6 +150,10 @@ def _optimization_actions(stages, *, project=False):
                 type=Path,
                 help="Investigation receipt proving interrupted resources were cleaned",
             )
+        if name == "knowledge-read":
+            stage.add_argument("--search-ref", required=True, help="Recorded CANNBot search path")
+            stage.add_argument("--locator", required=True)
+            stage.add_argument("--page", type=int, default=1)
         if name == "knowledge":
             stage.add_argument("--query", required=True)
             stage.add_argument(

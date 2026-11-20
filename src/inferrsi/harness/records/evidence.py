@@ -11,6 +11,8 @@ import json
 import re
 from pathlib import Path, PurePosixPath, PureWindowsPath
 
+from .optimization_log import read_regular
+
 STAGES = ("diagnosis", "knowledge", "search", "execution", "validation", "review")
 
 
@@ -153,6 +155,32 @@ def inside(root: Path, path: Path) -> bool:
         return True
     except (OSError, ValueError):
         return False
+
+
+def bounded_record_bytes(root: Path, relative: object, limit: int) -> tuple[bytes | None, str]:
+    """Read a bounded regular file under the campaign, rejecting symbolic paths."""
+    if not isinstance(relative, str) or not relative or "\\" in relative or ":" in relative:
+        return None, "unsafe_path"
+    location = Path(relative)
+    if not location.parts or location.is_absolute() or ".." in location.parts:
+        return None, "unsafe_path"
+    try:
+        root = root.resolve()
+        path = root
+        for part in location.parts:
+            path = path / part
+            if path.is_symlink():
+                return None, "unsafe_path"
+        if not inside(root, path):
+            return None, "unsafe_path"
+        raw = read_regular(path, limit)
+    except FileNotFoundError:
+        return None, "file_absent"
+    except (OSError, ValueError, RuntimeError):
+        return None, "invalid_format"
+    if len(raw) > limit:
+        return None, "too_large"
+    return raw, "present"
 
 
 def read_snapshot(root: Path, path: Path, kind: str) -> tuple[bytes | None, dict]:

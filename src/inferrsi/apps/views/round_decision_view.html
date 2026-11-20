@@ -36,6 +36,47 @@ window.InferRSIRoundDecisions={create({getData,getLanguage,narrative,openCapture
   }
   function item(box,title){const a=el('article',null,'rd-item');a.append(el('h4',title));box.append(a);return a;}
   function stage(grid,index,en,zh){const section=el('section',null,'rd-stage');section.dataset.rdStage=String(index);const h=el('h3');h.append(el('span',String(index).padStart(2,'0'),'rd-number'),document.createTextNode(' '+tr(en,zh)));section.append(h);grid.append(section);return section;}
+  function managedRetrieval(stage, record){
+    const box=item(stage,tr('Round knowledge query','本轮知识查询'));
+    field(box,tr('Query','查询'),record.query);
+    const local=item(box,tr('Local knowledge','本地知识'));
+    field(local,tr('Returned items','返回条目'),record.items.length);
+    for(const entry of record.items){
+      const card=item(local,entry.title||entry.ref);
+      field(card,tr('Reference','引用'),entry.ref);
+      field(card,tr('Delivery','交付'),entry.delivered?tr('Context prepared','已装配上下文'):tr('Context omitted','未装配上下文'));
+    }
+    const result=record.external;
+    if(!result)return;
+    const external=item(box,'CANNBot · '+result.platform);
+    field(external,tr('Channel state','通道状态'),result.state==='ok'&&result.count===0?tr('No hits','无命中'):result.state);
+    field(external,tr('Returned items','返回条目'),result.count);
+    if(result.count>result.items.length)p(external,tr('Some hits lack retainable identifiers.','部分命中缺少可留存的标识。'),'rd-note');
+    if(result.revision)field(external,tr('Source revision','来源版本'),result.revision);
+    if(result.score_scale)field(external,tr('Score scale','打分体系'),result.score_scale);
+    for(const hit of result.items){
+      const card=item(external,hit.locator),pages=result.reads.filter(r=>r.locator===hit.locator).map(r=>r.page);
+      field(card,tr('Search score','检索分数'),hit.score);
+      field(card,tr('Read receipts','读取凭据'),pages.length?tr('Pages ','页码 ')+[...new Set(pages)].join(', '):null);
+      detail(card,tr('Card identity','知识卡标识'),'managed:'+result.path+':'+hit.locator,b=>field(b,'SHA-256',hit.card_sha256));
+    }
+  }
+  function knowledgeUses(box,candidate,hasQueries){
+    const citations=candidate.knowledge_uses;
+    if(!citations||(!citations.length&&!hasQueries))return;
+    const name=tr('Agent-declared knowledge use','Agent 声明采用的知识');
+    if(!citations.length)field(box,name,null);
+    for(const [index,citation] of citations.entries()){
+      const source=citation.source==='local'?tr('Local','本地'):citation.source;
+      const origin=citation.retrieval_round?tr('Round ','第 ')+citation.retrieval_round+tr('',' 轮'):null;
+      const page=citation.page?tr('Page ','页码 ')+citation.page:null;
+      field(box,name,[source,citation.ref,origin,page].filter(Boolean).join(' · '));
+      if(citation.revision)detail(box,tr('Source identity','来源标识'),'citation:'+identity(candidate)+':'+index,b=>{
+        field(b,tr('Source revision','来源版本'),citation.revision);
+        if(citation.card_sha256)field(b,'SHA-256',citation.card_sha256);
+      });
+    }
+  }
   function render(){
     const root=document.getElementById('round-decisions');if(!root)return;
     const focus=root.contains(document.activeElement)?document.activeElement.dataset.rdFocus:null;
@@ -45,7 +86,9 @@ window.InferRSIRoundDecisions={create({getData,getLanguage,narrative,openCapture
     p(root,tr('Retrieval results → Alternatives → Final selection → Execution results','检索结果 → 备选方案 → 最终选择 → 执行结果'),'rd-note');
     const data=getData(),rows=data.candidates||[],story=data.story||{},knowledge=data.knowledge_trace||{};
     const iterations=story.iterations||[],searches=knowledge.searches||[],captures=knowledge.retrievals||[];
-    const numbers=[...new Set([...rows.map(r=>r.round),...iterations.map(i=>i.round),...searches.map(s=>s.round)].filter(validRound))].sort((a,b)=>a-b);
+    const managed=data.managed_retrievals||[];
+    const pending=data.pending_candidate;
+    const numbers=[...new Set([...rows,...iterations,...searches,...managed,...(pending?[pending]:[])].map(r=>r.round).filter(validRound))].sort((a,b)=>a-b);
     const choices=numbers.map(String);if(rows.some(r=>!validRound(r.round)))choices.push('unassigned');
     if(!choices.length)choices.push('unassigned');
     if(!choices.includes(selected))selected=choices[0];
@@ -63,7 +106,9 @@ window.InferRSIRoundDecisions={create({getData,getLanguage,narrative,openCapture
     const contextIds=new Set(roundIterations.flatMap(i=>i.context_ids||[]));
     roundSearches.filter(s=>s.state==='recorded').forEach(s=>(s.context_ids||[]).forEach(id=>contextIds.add(id)));
     captures.filter(c=>number!==null&&c.links?.some(l=>l.round===number)).forEach(c=>contextIds.add(c.context_id));
-    if(!contextIds.size)p(retrieved,tr('No retrieval snapshot linked to this round. This does not mean no search occurred.','本轮未关联检索快照，不代表没有发生检索。'),'rd-note');
+    const managedQueries=managed.filter(inRound);
+    for(const query of managedQueries)managedRetrieval(retrieved,query);
+    if(!contextIds.size&&!managedQueries.length)p(retrieved,tr('No retrieval snapshot linked to this round. This does not mean no search occurred.','本轮未关联检索快照，不代表没有发生检索。'),'rd-note');
     for(const id of contextIds){
       const c=captures.find(c=>c.context_id===id),box=item(retrieved,id);
       if(!c||c.state!=='verified'){p(box,label(c?.state),'rd-warning');continue;}
@@ -157,12 +202,18 @@ window.InferRSIRoundDecisions={create({getData,getLanguage,narrative,openCapture
       p(selection,tr('Choice and selection rationale not recorded.','选中方案及选择理由未记录。'),'rd-note');
       for(const row of roundRows){const box=item(selection,row.candidate_id);p(box,tr('Registered candidate; registration alone is not selection evidence.','已登记候选；登记本身不证明选择依据。'),'rd-note');field(box,tr('Submitted hypothesis','提交的假设'),row.optimization?.hypothesis,true);}
     }
-    if(!roundRows.length)p(results,tr('No candidate execution linked to this round.','本轮未关联候选执行记录。'),'rd-note');
+    if(pending&&inRound(pending)){
+      const box=item(results,pending.candidate_id);
+      p(box,tr('Awaiting assessment','等待评测结果'),'rd-note');
+      knowledgeUses(box,pending,managedQueries.length);
+    }else if(!roundRows.length)p(results,tr('No candidate execution linked to this round.','本轮未关联候选执行记录。'),'rd-note');
     for(const row of roundRows){
       const key=identity(row),box=item(results,[row.candidate_id,row.run_id||unknown()].join(' · '));
       p(box,label(row.verdict),'rd-badge');field(box,tr('Quality','质量'),label(row.quality));
       const metric=v=>Number.isFinite(v)?String(v)+' '+(row.metric_unit||''):'—';
       field(box,tr('Baseline → candidate','基线 → 候选'),metric(row.baseline_median)+' → '+metric(row.candidate_median));
+      if(Number.isFinite(row.measured_score))field(box,tr('Measured score','实测成绩'),row.measured_score+' · '+row.metric_key);
+      knowledgeUses(box,row,managedQueries.length);
       field(box,tr('Recorded improvement','记录的改进幅度'),Number.isFinite(row.improvement_pct)?row.improvement_pct+'%':null);
       field(box,tr('Post-validation decision (record)','验证后决定（记录）'),label(row.decision));
       const matches=rows.filter(r=>identity(r)===key);

@@ -15,9 +15,12 @@ from inferrsi.harness.records.evidence import (
     sanitized_text as _text,
 )
 from inferrsi.harness.records.knowledge_capture import MAX_CONTEXT_CAPTURE_BYTES
+from inferrsi.harness.records.optimization_log import _unique
 from inferrsi.knowledge.context_projection import assemble_context_text
 
 from .codex_tool_returns import _output_lines, _response_text
+
+_EXTERNAL_SUFFIX = ',\n  "external": '
 
 
 def capture_return_texts(trace, lines, references, context_ids):
@@ -78,8 +81,35 @@ def managed_envelopes(captures):
     }) for key, (doc, source, digest) in captures.items()}
 
 
+def _joint_output_end(chunk, start):
+    try:
+        external, end = json.JSONDecoder(object_pairs_hook=_unique).raw_decode(chunk, start)
+    except (ValueError, RecursionError):
+        return None
+    if (isinstance(external, dict) and external.get("channel") == "cannbot-knowledge"
+            and chunk.startswith("\n}", end)):
+        return end + 2
+    return None
+
+
+def managed_local_output(output):
+    """Return the exact local envelope from a complete joint CLI response."""
+    prefix, separator, _ = output.rpartition(_EXTERNAL_SUFFIX)
+    if separator and _joint_output_end(output, len(prefix) + len(separator)) == len(output):
+        return prefix + "\n}"
+    return output
+
+
 def _contains_envelope(chunk, body):
-    return f"\n{body}\n" in "\n" + chunk.replace("\r\n", "\n") + "\n"
+    chunk = "\n" + chunk.replace("\r\n", "\n") + "\n"
+    if f"\n{body}\n" in chunk:
+        return True
+    prefix = f"\n{body[:-2]}{_EXTERNAL_SUFFIX}"
+    start = chunk.find(prefix)
+    if start < 0:
+        return False
+    end = _joint_output_end(chunk, start + len(prefix))
+    return end is not None and chunk[end:end + 1] == "\n"
 
 
 def managed_return_lines(trace, lines, envelopes, *, reserved):

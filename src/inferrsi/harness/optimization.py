@@ -10,6 +10,8 @@ from pathlib import Path
 from . import candidates
 from .artifact_primitives import digest, file_lock, sha256
 from .atomic_json import atomic_write_json
+from .records.evidence import bounded_record_bytes, sanitized_text
+from .records.knowledge_capture import MAX_CONTEXT_CAPTURE_BYTES
 from .task_protocol import TaskProtocolError
 from .usage import normalize_usage, usage_totals
 
@@ -91,6 +93,21 @@ def _control(root):
     return plan, state
 
 
+def _read_context(root, reference):
+    raw, state = bounded_record_bytes(root, reference.get("path"), MAX_CONTEXT_CAPTURE_BYTES)
+    if raw is None:
+        raise ValueError(f"Invalid delivered knowledge context ({state})")
+    if hashlib.sha256(raw).hexdigest() != reference.get("sha256"):
+        raise ValueError("Delivered knowledge context changed")
+    try:
+        record = json.loads(raw)
+    except (ValueError, RecursionError):
+        raise ValueError("Invalid delivered knowledge context (invalid_format)") from None
+    if not isinstance(record, dict):
+        raise ValueError("Invalid delivered knowledge context (invalid_format)")
+    return record
+
+
 def _load(root, *, read_only=False):
     plan, state = _control(root)
     if plan.get("evaluation_mode") == "service_reuse":
@@ -107,23 +124,32 @@ def _load(root, *, read_only=False):
     if candidates.identity(root / state["best"]["path"]) != state["best"]["sha256"]:
         raise ValueError("Selected candidate changed")
     diagnoses = _diagnosis_index(state)
+    contexts = {}
     for context in state["contexts"]:
-        raw = (root / context["path"]).read_bytes()
-        if hashlib.sha256(raw).hexdigest() != context["sha256"]:
-            raise ValueError("Delivered knowledge context changed")
-        _check_context_diagnosis(plan, diagnoses, context, json.loads(raw))
+        retained = _read_context(root, context)
+        if context.get("kind") not in ("external_search", "external_read"):
+            _check_context_diagnosis(plan, diagnoses, context, retained)
+        contexts[context["path"]] = context
     for record in [*state["rounds"], *([state["final"]] if state["final"] else [])]:
         directory = root / record["path"]
-        observation = directory / "observation.json"
-        if sha256(observation) != record["observation_sha256"]:
+        raw = (directory / "observation.json").read_bytes()
+        if hashlib.sha256(raw).hexdigest() != record["observation_sha256"]:
             raise ValueError("Retained assessment record changed")
+        observation = json.loads(raw)
+        if any(observation.get(key) != record.get(key) for key in ("knowledge_refs", "contexts")):
+            raise ValueError("Round knowledge attribution differs from the retained observation")
+        if observation.get("knowledge_refs"):
+            submitted = {ref["path"]: ref for ref in observation["contexts"]}
+            for ref in observation["knowledge_refs"]:
+                path = ref.partition("#")[0]
+                if path not in submitted or submitted[path] != contexts.get(path):
+                    raise ValueError("Cited knowledge context differs from the submitted snapshot")
         if record is not state["final"] and (
             plan.get("diagnosis_required") or diagnoses or record.get("diagnosis_id")
         ):
-            retained = json.loads(observation.read_text(encoding="utf-8"))
-            if retained.get("diagnosis_id") != record.get("diagnosis_id"):
+            if observation.get("diagnosis_id") != record.get("diagnosis_id"):
                 raise ValueError("Round diagnosis differs from the retained observation")
-            _check_activity_diagnosis(plan, diagnoses, retained)
+            _check_activity_diagnosis(plan, diagnoses, observation)
         if candidates.identity(directory / plan["candidate_name"]) != record["candidate_sha256"]:
             raise ValueError("Retained round candidate changed")
         if sha256(directory / "execution/execution.json") != record["execution_sha256"]:
@@ -180,6 +206,8 @@ def status(root: Path) -> dict:
         "task_instructions": str(root / "frozen/TASK.md"),
         "working_candidate": str(root / plan["working_candidate"]),
         "best": state["best"], "pending": state["pending"],
+        **({"external_knowledge": plan["external_knowledge"]} if "external_knowledge" in plan
+           else {}),
         "latest_observation": state["rounds"][-1] if state["rounds"] else None,
         "diagnosis": _diagnosis(state),
         "summary": str(root / "summary.json") if state["final"] is not None else None,
@@ -303,21 +331,115 @@ def record_diagnosis(root: Path, bottleneck: str, evidence: Path) -> dict:
         return _retain_diagnosis(root, plan, state, bottleneck, evidence)
 
 
-def capture_context(root: Path, reader, *, retain_context, **request) -> dict:
+def _knowledge_round(plan, state):
+    _active(state, reserve=plan["final_reserve_seconds"])
+    if plan.get("knowledge_allowed") is False:
+        raise ValueError("Knowledge delivery is disabled by the frozen condition")
+    number = len(state["rounds"]) + 1
+    return number if number <= plan["round_limit"] else None
+
+
+def _knowledge_time(plan, state):
+    return state["deadline"] - time.time() - plan["final_reserve_seconds"]
+
+
+def _store_knowledge(root, kind, number, record):
+    directory = root / "knowledge"
+    if directory.is_symlink():
+        raise ValueError("Knowledge directory must not be a symbolic link")
+    directory.mkdir(exist_ok=True)
+    path = directory / f"{kind}-{uuid.uuid4().hex}.json"
+    atomic_write_json(path, record)
+    return {"path": path.relative_to(root).as_posix(), "sha256": sha256(path),
+            "kind": kind, "round": number}
+
+
+def capture_context(root: Path, reader, *, retain_context, external_provider=None,
+                    **request) -> dict:
     with _locked(root):
         plan, state = _load(root)
-        _active(state, reserve=plan["final_reserve_seconds"])
-        if plan.get("knowledge_allowed") is False:
-            raise ValueError("Knowledge delivery is disabled by the frozen condition")
+        number = _knowledge_round(plan, state)
+        settings = plan.get("external_knowledge")
+        if settings:
+            if number is None:
+                raise ValueError("Round budget consumed, run independent final evaluation")
+            if external_provider is None:
+                raise ValueError("The frozen external knowledge provider is unavailable")
+            request["relevance"] = sanitized_text(request["relevance"], "", limit=None)
         binding = _context_diagnosis(plan, state)
         path, fingerprint = retain_context(root, context_id="context-" + uuid.uuid4().hex,
                                            reader=reader, diagnosis_binding=binding, **request)
         reference = {"path": path.relative_to(root).as_posix(), "sha256": fingerprint,
                      "kind": "delivered_context"}
-        state["contexts"].append(
-            {**reference, "diagnosis_id": binding["diagnosis_id"]} if binding else reference)
+        # Keep the local tool response compatible with stored Codex trace verification.
+        retained = {**reference, "round": number} if number is not None else reference
+        if binding:
+            retained = {**retained, "diagnosis_id": binding["diagnosis_id"]}
+        state["contexts"].append(retained)
+        response = {"reference": reference, "context": _read_context(root, reference)}
+        if settings:
+            remaining = _knowledge_time(plan, state)
+            result = (
+                external_provider.search(request["relevance"], settings=settings,
+                                         limit=request["limit"], timeout=remaining)
+                if remaining > 0 else {"state": "timeout", "items": [], "count": 0}
+            )
+            search = {**result, **settings, "context_ref": reference["path"]}
+            search_ref = _store_knowledge(root, "external_search", number, search)
+            state["contexts"].append(search_ref)
+            response["external"] = {**search, "reference": search_ref}
         atomic_write_json(root / "state.json", state)
-    return {"reference": reference, "context": json.loads(path.read_text(encoding="utf-8"))}
+        return response
+
+
+def read_external_context(root: Path, provider, *, search_ref, locator, page):
+    with _locked(root):
+        plan, state = _load(root)
+        number = _knowledge_round(plan, state)
+        if not plan.get("external_knowledge") or provider is None:
+            raise ValueError("External knowledge is disabled or unavailable for this session")
+        if type(page) is not int or page < 1:
+            raise ValueError("CANNBot page must be a positive integer")
+        reference = next((entry for entry in state["contexts"]
+                          if entry["path"] == search_ref and entry["kind"] == "external_search"
+                          and entry["round"] == number), None)
+        if reference is None:
+            raise ValueError("Supply a CANNBot search reference from the current round")
+        search = _read_context(root, reference)
+        hit = next((item for item in search["items"] if item["locator"] == locator), None)
+        if search["state"] != "ok" or not search["revision"] or hit is None:
+            raise ValueError("Supply a versioned CANNBot hit from the recorded search")
+        remaining = _knowledge_time(plan, state)
+        if remaining <= 0:
+            raise ValueError("Optimization deadline exhausted, final evaluation time is reserved")
+        revision, card_sha256 = search["revision"], hit["card_sha256"]
+        body = provider.read(locator, revision=revision, card_sha256=card_sha256,
+                             page=page, timeout=remaining)
+        receipt = {"search_ref": search_ref, "channel": search["channel"], "locator": locator,
+                   "revision": revision, "card_sha256": card_sha256, "page": page}
+        delivered = _store_knowledge(root, "external_read", number, receipt)
+        state["contexts"].append(delivered)
+        atomic_write_json(root / "state.json", state)
+        return {"reference": delivered, "receipt": receipt, "context": body}
+
+
+def _validate_knowledge_refs(root, contexts, refs):
+    if not isinstance(refs, list) or any(not isinstance(ref, str) for ref in refs):
+        raise ValueError("Knowledge references must be a list of delivered references")
+    if len(set(refs)) != len(refs):
+        raise ValueError("Cite unique delivered knowledge references")
+    delivered = {entry["path"]: entry for entry in contexts
+                 if entry["kind"] != "external_search"}
+    for ref in refs:
+        path, separator, item = ref.partition("#")
+        reference = delivered.get(path)
+        if reference is None or (separator and reference["kind"] != "delivered_context"):
+            raise ValueError("Cite a delivered context or CANNBot read receipt from this session")
+        if separator:
+            capture = _read_context(root, reference)
+            if not any(entry["ref"] == item and entry["resources"]
+                       for entry in capture["contexts"]):
+                raise ValueError("Cite an item with delivered resources from this context")
 
 
 def _usage_record(source, *, fingerprint=True):
@@ -491,12 +613,7 @@ def evaluate_round(root: Path, *, candidate: Path | None, hypothesis: str,
         if strategy is not None and (not isinstance(strategy, str) or not strategy.strip()):
             raise ValueError("Strategy must be a nonempty declaration")
         if knowledge_refs is not None:
-            available = {context["path"] for context in state["contexts"]}
-            if (not isinstance(knowledge_refs, list)
-                    or any(not isinstance(ref, str) or ref not in available
-                           for ref in knowledge_refs)
-                    or len(set(knowledge_refs)) != len(knowledge_refs)):
-                raise ValueError("Cite unique delivered context paths from this campaign")
+            _validate_knowledge_refs(root, state["contexts"], knowledge_refs)
         source = root / state["best"]["path"] if final else Path(candidate)
         if (source.is_symlink() or (plan["candidate_kind"] == "file"
                 and (not source.is_file() or source.suffix != ".py"))
