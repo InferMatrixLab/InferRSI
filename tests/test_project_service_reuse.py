@@ -252,6 +252,7 @@ def test_profile_failure_preserves_acceptance_and_final_selection(campaign, fail
         assert "synthetic collector failed" in diagnostic["message"]
     selected = result["best"]
     assert selected["attempt_id"] == attempt["attempt_id"]
+    assert selected["profile"] is None
     rejected = submit(campaign, version="regression", a=70, b=120)
     assert rejected["latest_observation"]["assessment"]["verdict"] == "FAIL"
     assert rejected["best"] == selected
@@ -276,6 +277,10 @@ def test_conditions_refresh_cannot_finalize_without_new_acceptance(campaign):
     assert refreshed["can_finalize"] is False
     assert refreshed["accepted_attempt_ids"] == []
     assert refreshed["best"] is None
+    refresh = refreshed["latest_observation"]["execution"]
+    assert refresh["parent_profile_applicability"] == "not_applicable"
+    assert refresh["retained_parent_profile"] == selected["profile"]
+    assert refresh["retained_parent_profile"]["conditions"] == selected["conditions"]
     rejected = call(campaign, "final", "--reason", "References alone are insufficient")
     assert rejected["final"]["assessment"]["verdict"] == "INCONCLUSIVE"
     assert rejected["final"]["assessment"]["reason"] == "missing_current_conditions_acceptance"
@@ -290,10 +295,14 @@ def test_conditions_refresh_cannot_finalize_without_new_acceptance(campaign):
 
 def test_stagnation_is_advisory_and_recover_does_not_retrigger(campaign):
     begin(campaign)
+    best = submit(campaign, version="accepted", a=95)["best"]
     submit(campaign, version="reject1", a=110)
     result = submit(campaign, version="reject2", a=111)
     assert result["state"] == "active"
-    assert len(result["stagnation"]["events"]) == 1
+    event, = result["stagnation"]["events"]
+    assert event["best"]["profile"] == best["profile"]
+    stored, = project_service.read(campaign["root"] / "state.json")["stagnation"]["events"]
+    assert stored["best"]["attempt_id"] == best["attempt_id"] and "profile" not in stored["best"]
     recovered = call(campaign, "recover")
     assert recovered["stagnation"] == result["stagnation"]
     improved = submit(campaign, version="gain", a=90)
@@ -795,6 +804,8 @@ def test_reference_refresh_uses_baseline_cache_without_testing_parent_quality(
     assert "incompatible baseline reference" in (
         failed["execution"]["runs"][0]["assessment"]["reason"]
     )
+    failed_path = campaign["root"] / failed["path"] / "observation.json"
+    before_retry = failed_path.read_bytes()
     repaired = campaign["root"].parent / "repaired-protocol"
     shutil.copytree(protocol, repaired)
     reference.update(conditions=conditions, service_id="new-service", run_id="new-run")
@@ -827,7 +838,7 @@ def test_reference_refresh_uses_baseline_cache_without_testing_parent_quality(
         stages = [json.loads(line)["stage"] for line in log_path.read_text().splitlines()]
         assert stages == ["ready", "warmup", "measure", "measure", "stop"]
     assert result["best"] is None and result["can_finalize"] is False
-    assert project_service.read(campaign["root"] / failed["path"] / "observation.json") == failed
+    assert failed_path.read_bytes() == before_retry
     accepted = submit(campaign, version="current-conditions", a=80)
     assert accepted["latest_observation"]["assessment"]["verdict"] == "PASS"
     assert accepted["best"]["conditions"] == conditions
@@ -1191,10 +1202,21 @@ def test_backfill_after_final_preserves_original_evidence_and_selection(campaign
     from inferrsi.apps.views.dashboard import dashboard_snapshot, render_dashboard
     from inferrsi.harness.scenarios import external
 
-    begin(campaign)
+    baseline = begin(campaign)["best"]
     attempt = submit(campaign, version="selected", a=90)["latest_observation"]
     inline = attempt["execution"]["profile"]
     root = campaign["root"]
+    state = project_service.read(root / "state.json")
+    observation = project_service.read(root / attempt["path"] / "observation.json")
+    for choice in (state["best"], state["comparison_parent"], observation["best_after"]):
+        assert choice["attempt_id"] == attempt["attempt_id"]
+        assert "profile" not in choice
+    for choice in (
+        state["initial_reference"], observation["initial"], observation["parent"],
+        observation["best_after"]["parent_reference_at_acceptance"],
+    ):
+        assert choice["attempt_id"] == baseline["attempt_id"]
+        assert "profile" not in choice
     original_files = [
         root / attempt["path"] / "observation.json",
         root / inline["result"], root / inline["artifacts"][0],
@@ -1221,9 +1243,13 @@ def test_backfill_after_final_preserves_original_evidence_and_selection(campaign
     assert [row["stage"] for row in backfill_events] == ["ready", "warmup", "profile", "stop"]
     assert {row["service_id"] for row in backfill_events} == {binding["service_id"]}
     snapshot = dashboard_snapshot(root)
-    reported = snapshot["data"]["service_optimization"]["attempts"]
-    reported_round = next(r for r in reported if r["attempt_id"] == attempt["attempt_id"])
+    reported = snapshot["data"]["service_optimization"]
+    assert reported["selected_candidate"]["profile"] == inline
+    reported_round = next(
+        r for r in reported["attempts"] if r["attempt_id"] == attempt["attempt_id"]
+    )
     assert reported_round["profiling"] == profile
+    assert reported_round["best_after"]["profile"] == inline
     report = render_dashboard(snapshot)
     assert "Profiling available: yes" in report and profile["result"] in report
     execute = external.execute_trial
@@ -1256,8 +1282,10 @@ def test_backfill_after_final_preserves_original_evidence_and_selection(campaign
         }
     ]
     assert status["best"] == final["best"] and status["final"] == final["final"]
+    assert status["best"]["profile"] == inline
     assert status["allocated_rounds"] == final["allocated_rounds"]
-    summary = optimization.read_records(root)[2]
+    _, state_view, summary = optimization.read_records(root)
+    assert state_view["best"] == status["best"]
     assert summary["usage"] == usage
     current = next(r for r in summary["attempts"] if r["attempt_id"] == attempt["attempt_id"])
     assert current["profiling"] == profile

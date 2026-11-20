@@ -6,13 +6,11 @@ from . import project_service as service
 
 
 def reference_snapshot(reference):
-    """Carry the original receipt path into a new attempt instead of a legacy embedded trace."""
+    """Retain selection evidence. The source attempt owns its optional inline profile."""
     if not reference:
         return reference
     snapshot = dict(reference)
-    profile = snapshot.get("profile")
-    if isinstance(profile, dict) and "receipt" in profile:
-        snapshot["profile"] = {"result": profile.get("result")}
+    snapshot.pop("profile", None)
     if snapshot.get("parent_reference_at_acceptance"):
         snapshot["parent_reference_at_acceptance"] = reference_snapshot(
             snapshot["parent_reference_at_acceptance"]
@@ -33,14 +31,13 @@ def choice(pending, execution):
         "effective_config_path": pending["path"] + "/effective-config.json",
         "measurements": execution["measurements"],
         "quality_score": execution["quality_score"],
-        "profile": execution.get("profile"),
         "protocol_path": pending["protocol_path"],
         "binding": execution["binding"],
         "parent_reference_at_acceptance": (
             {
                 key: value
                 for key, value in pending["parent"].items()
-                if key != "parent_reference_at_acceptance"
+                if key not in ("profile", "parent_reference_at_acceptance")
             }
             if pending.get("parent")
             else None
@@ -187,7 +184,7 @@ def references_reason(root, plan, state, *references):
             return "unverifiable_selected_attempt_binding"
         expected = choice(record, record["execution"])
         for key, value in expected.items():
-            if key not in ("profile", "parent_reference_at_acceptance") and ref.get(key) != value:
+            if key != "parent_reference_at_acceptance" and ref.get(key) != value:
                 return "unverifiable_selected_attempt_binding"
         # The parent snapshot used by final omits its own ancestry.
         if "parent_reference_at_acceptance" in ref:

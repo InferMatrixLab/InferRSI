@@ -251,10 +251,13 @@ The `rounds` list in `campaign status` shows the latest recorded attempt of ever
 round, including after finalization. The CLI and dashboard show `"profiling": {"available": false}` for a round
 without a usable capture. When available, `result` and `artifacts` contain
 campaign-relative paths. The latest usable backfill takes precedence over inline
-evidence. Older records use the same validation at read time and retain their
-original verdict. For previously settled rounds with oversized embedded profiler
+evidence in this field. Selection records identify the original attempt.
+The CLI's `best.profile` and the summary's `selected_candidate.profile` show
+the inline profile recorded at selection time. Older records use the same
+availability validation at read time and retain their original verdict.
+For previously settled rounds with oversized embedded profiler
 output, the reader verifies the observation against the campaign control record.
-Subsequent attempts reference the old capture by its receipt path.
+New snapshots of these attempts display the old capture's receipt path.
 Oversized collector errors display a short diagnostic.
 A different runtime can display these records. In an active
 campaign, `status` reports `can_finalize: false` and

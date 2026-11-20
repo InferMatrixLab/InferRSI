@@ -415,7 +415,12 @@ def evaluate_round(root: Path, *, candidate: Path | None, hypothesis: str,
 def read_records(root: Path) -> tuple[dict, dict, dict]:
     """Read one validated state for status, dashboard and reconstructable summaries."""
     plan, state = _load(root, read_only=True)
-    return plan, state, _summary(root, plan, state)
+    summary = _summary(root, plan, state)
+    if plan.get("evaluation_mode") == "service_reuse":
+        from . import service_observations
+
+        state = service_observations.selection_view(state, state["attempts"])
+    return plan, state, summary
 
 
 def recover(root: Path, assess) -> dict:
@@ -616,6 +621,8 @@ def _service_final_reason(root, plan, state, *, budget_time=None):
 
 
 def _service_status(root, plan, state):
+    from . import service_observations
+
     reason = _service_final_reason(root, plan, state)
     remaining = max(0, _service_deadline(state) - time.time())
     if state["state"] == "completed" and not state["pending"]:
@@ -636,6 +643,8 @@ def _service_status(root, plan, state):
         next_action = "independently_retest_selected_candidate_with_final"
     else:
         next_action = "edit_candidate_and_submit_round"
+    latest = [_service_round_view(root, attempt) for attempt in state["attempts"][-1:]]
+    state = service_observations.selection_view(state, latest)
     return {
         "session": str(root),
         "evaluation_mode": "service_reuse",
@@ -659,16 +668,21 @@ def _service_status(root, plan, state):
         "accepted_attempt_ids": state["accepted_attempt_ids"],
         "stagnation": state["stagnation"],
         "final": state["final"],
-        "latest_observation": _service_round_view(root, state["attempts"][-1])
-        if state["attempts"]
-        else None,
+        "latest_observation": state["attempts"][-1] if state["attempts"] else None,
         "summary": str(root / "summary.json"),
     }
 
 
 def _service_summary(root, plan, state, *, attempts=None, budget_time=None):
+    from . import service_observations
+
     if attempts is None:
         attempts = [_service_round_view(root, attempt) for attempt in state["attempts"]]
+    reason = (
+        None if state["state"] == "completed"
+        else _service_final_reason(root, plan, state, budget_time=budget_time)
+    )
+    state = service_observations.selection_view(state, attempts)
     return {
         "schema_version": 2,
         "evaluation_mode": "service_reuse",
@@ -680,17 +694,14 @@ def _service_summary(root, plan, state, *, attempts=None, budget_time=None):
         "selected_candidate": state["best"],
         "selection": plan["selection"],
         "final_assessment": state["final"]["assessment"] if state["final"] else None,
-        "final_block_reason": (
-            None if state["state"] == "completed"
-            else _service_final_reason(root, plan, state, budget_time=budget_time)
-        ),
+        "final_block_reason": reason,
         "optimization_speedup": None,
         "reference_epoch": state["reference_epoch"],
         "conditions": state["conditions"],
         "initial_reference": state["initial_reference"],
         "comparison_parent": state["comparison_parent"],
         "accepted_attempt_ids": state["accepted_attempt_ids"],
-        "attempts": attempts,
+        "attempts": state["attempts"],
         "knowledge_deliveries": state["contexts"],
         "stagnation": state["stagnation"],
         "usage": _token_totals([item for item in state["attempts"] if item["kind"] == "round"]),
@@ -827,7 +838,7 @@ def _service_settle(root, plan, state, pending, execution):
                     "id": record["attempt_id"] + "-stagnation",
                     "round": record["round_number"],
                     "consecutive": stagnation["consecutive"],
-                    "best": state["best"],
+                    "best": service_evidence.reference_snapshot(state["best"]),
                     "attempt_path": record["path"],
                     "action": policy["action"],
                     "message": "Reassess system-wide critical paths, compute, communication, "
@@ -864,12 +875,13 @@ def _service_command_result(root, plan, state, execution):
     return result
 
 
-def _service_execute(root, directory, plan, pending, deadline):
+def _service_execute(root, directory, plan, state, deadline):
     from . import project_service as service
 
+    pending = state["pending"]
     if pending["kind"] != "refresh":
         return service.execute(root, directory, plan, pending, deadline)
-    from . import service_evidence
+    from . import service_evidence, service_observations
 
     references, runs = [], []
     started = time.monotonic()
@@ -913,14 +925,15 @@ def _service_execute(root, directory, plan, pending, deadline):
                 "elapsed_seconds": time.monotonic() - started,
             }
         references.append(service_evidence.choice(job, result))
+    parent_profile = service_observations.reference_view(
+        pending["refresh_parent"], service_observations.inline_profiles(state["attempts"])
+    )["profile"]
     return {
         "assessment": service.assessment(
             "PASS", "references_refreshed_not_candidate_acceptance", eligible=False
         ),
-        "retained_parent_profile": pending["refresh_parent"].get("profile"),
-        "parent_profile_applicability": "not_applicable"
-        if pending["refresh_parent"].get("profile")
-        else "not_available",
+        "retained_parent_profile": parent_profile,
+        "parent_profile_applicability": "not_applicable" if parent_profile else "not_available",
         "references": references,
         "runs": runs,
         "cleanup_verified": True,
@@ -1293,7 +1306,7 @@ def service_command(root, args, *, knowledge_reader=None):
                 }
             else:
                 result = _service_execute(
-                    root, directory, plan, pending, _service_deadline(state) - reserve
+                    root, directory, plan, state, _service_deadline(state) - reserve
                 )
         except (Exception, KeyboardInterrupt) as error:
             receipt = directory / "execution/execution.json"

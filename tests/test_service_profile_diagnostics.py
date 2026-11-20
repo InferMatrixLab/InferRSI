@@ -255,16 +255,20 @@ def test_settled_legacy_large_profile_is_readable_through_next_round_and_final(c
     status = call(campaign, "status")
     assert status["can_finalize"] and status["rounds"][0]["profiling"] == old["profiling"]
     assert status["best"]["attempt_id"] == old["attempt_id"]
+    assert status["best"]["profile"] == profile
 
     rejected = submit(campaign, a=70, b=120)["latest_observation"]
     retained = service.read(root / rejected["path"] / "observation.json")
     assert retained["assessment"]["verdict"] == "FAIL"
     assert retained["best_after"]["attempt_id"] == old["attempt_id"]
-    assert retained["best_after"]["profile"]["result"] == old["profiling"]["result"]
+    assert "profile" not in retained["best_after"]
+    assert rejected["best_after"]["profile"] == {"result": old["profiling"]["result"]}
     accepted = submit(campaign, a=80)["latest_observation"]
     selected = service.read(root / accepted["path"] / "observation.json")
     assert selected["assessment"]["verdict"] == "PASS"
     assert selected["parent"]["attempt_id"] == old["attempt_id"]
+    assert "profile" not in selected["parent"]
+    assert accepted["parent"]["profile"] == rejected["best_after"]["profile"]
     assert selected["best_after"]["attempt_id"] == accepted["attempt_id"]
     final = call(campaign, "final", "--reason", "Done")["final"]
     completed = service.read(root / final["path"] / "observation.json")
