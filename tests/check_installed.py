@@ -370,9 +370,9 @@ assert (model_sol_decode["conditional_bound_s"], model_sol_decode["serial_estima
 assert model_sol_namespace["join_checkpoint"](
     model_sol_example["header"], model_sol_example["inventory"]
 )["join_clean"]
-for resource in ("model-sol-contract.md", "huggingarch-model-sol.md",
-                 "huggingarch-source-identity.json"):
-    assert model_sol.joinpath("references", resource).is_file()
+for name in ("model-sol-contract.md", "huggingarch-model-sol.md",
+             "huggingarch-source-identity.json"):
+    assert model_sol.joinpath("references", name).is_file()
 inference_modules = {"torch", "vllm", "sglang", "sglang_omni", "vllm_omni", "transformers", "mlx"}
 assert not inference_modules & sys.modules.keys()
 ascend_image = search_knowledge(
