@@ -20,6 +20,11 @@
     "description": "Harness module: profile, A/B loop, quality gates, evidence reports"
   },
   {
+    "name": "area:benchmark",
+    "group": "area",
+    "description": "Benchmark line: preparation ports, metric contracts, validators, and isolated workers"
+  },
+  {
     "name": "help:wanted",
     "group": "help",
     "description": "Needs an owner or contributor"
