@@ -25,7 +25,7 @@ def _safe_root(path):
     return path
 
 
-def _project(source, export_id, observed_at):
+def _project(source, export_id, observed_at, agent_job=None):
     root = source if source.is_dir() else source.parent
     snapshot = Snapshot(root, timestamp(observed_at))
     result = empty_result(export_id, observed_at, __version__)
@@ -55,6 +55,10 @@ def _project(source, export_id, observed_at):
             adapters.summary(snapshot, result, name)
         else:
             raise ValueError("Unsupported source record schema")
+    if agent_job is not None:
+        from .benchmark_usage import attach_native_usage
+
+        attach_native_usage(snapshot, result, _safe_root(agent_job))
     # The archive authority stays opaque and canonical. The bundle points to it;
     # it does not fork archive URLs, sizes, ownership or availability observations.
     authority = snapshot.path("results/artifacts.json")
@@ -103,7 +107,7 @@ def _project(source, export_id, observed_at):
     return snapshot, result, authority_ref
 
 
-def project(source: Path, *, export_id: str, observed_at=None):
+def project(source: Path, *, export_id: str, observed_at=None, agent_job=None):
     """Read a committed snapshot or fail explicitly; no live summary is authoritative.
 
     Harness writers hold .session.lock across their operation. A busy writer
@@ -121,7 +125,10 @@ def project(source: Path, *, export_id: str, observed_at=None):
     for _ in range(3):
         try:
             with file_lock(lock) if managed else nullcontext():
-                snapshot, result, authority_ref = _project(source, export_id, observed_at)
+                snapshot, result, authority_ref = (
+                    _project(source, export_id, observed_at, agent_job) if agent_job is not None
+                    else _project(source, export_id, observed_at)
+                )
                 if snapshot.stable():
                     return snapshot, result, authority_ref
         except SnapshotChanged:
@@ -170,7 +177,7 @@ def read_bundle(directory: Path):
     return result
 
 
-def export_bundle(source: Path, output: Path, *, export_id=None):
+def export_bundle(source: Path, output: Path, *, export_id=None, agent_job=None):
     """Publish a new four-file bundle atomically, preserving existing destinations."""
     export_id = export_id or uuid.uuid4().hex
     archive.validate_output_id(export_id)
@@ -180,7 +187,7 @@ def export_bundle(source: Path, output: Path, *, export_id=None):
     try:
         if output.exists():
             raise FileExistsError(errno.EEXIST, "Delivery destination already exists")
-        snapshot, result, authority_ref = project(source, export_id=export_id)
+        snapshot, result, authority_ref = project(source, export_id=export_id, agent_job=agent_job)
         data = encode(result)
         markdown, html = reports(result, hashlib.sha256(data).hexdigest())
         files = {"campaign-result.json": data, "report.md": markdown, "report.html": html}

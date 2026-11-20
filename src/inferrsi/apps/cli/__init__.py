@@ -313,7 +313,8 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "export":
             from ..delivery import export_bundle
 
-            delivery = export_bundle(args.input, args.output, export_id=args.export_id)
+            delivery = export_bundle(args.input, args.output, export_id=args.export_id,
+                                     agent_job=args.agent_job)
             _print(delivery)
             return 0 if delivery["status"] == "published" else 2
         if args.command == "mindie":

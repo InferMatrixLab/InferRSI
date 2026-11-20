@@ -78,7 +78,10 @@ def single(policy, rounds, final, selected, *, final_verified=False, usage=None,
         if row.get("phase") == "final":
             continue
         result["submitted_steps"] += 1
-        if not row.get("record_verified"):
+        if (not row.get("record_verified")
+                or row.get("execution_state") not in ("completed", "failed")
+                or type(row.get("execution_returncode")) is not int
+                or row["execution_returncode"] < 0):
             result["unresolved_steps"] += 1
         elif row.get("assessment_status") == "infrastructure_failure":
             result["infrastructure_failures"] += 1

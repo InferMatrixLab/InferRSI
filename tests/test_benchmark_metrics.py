@@ -11,6 +11,7 @@ SELECTION = {"metric": "speedup", "direction": "maximize"}
 
 def step(identity="r1", status="completed", *, accepted=False, verified=True):
     return {"candidate_id": identity, "assessment_status": status, "record_verified": verified,
+            "execution_state": "completed", "execution_returncode": 0,
             "selection_decision": "retained" if accepted else "not_retained",
             "best_candidate": {"candidate_id": identity if accepted else "older"}}
 

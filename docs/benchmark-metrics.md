@@ -16,6 +16,11 @@ Infrastructure failures and unresolved evidence are separate counts. Pending
 finals are not new candidate steps; recovery settles the original attempt once.
 Incomplete evidence remains visible. A high acceptance rate does not by itself
 establish a large final performance gain.
+Timeouts, unknown execution states, missing return codes and signal termination
+remain unresolved even when the historical assessment calls them infrastructure
+failures. `step_coverage: complete` means every submitted step is classified;
+confirmed infrastructure failures remain separate and do not enter the denominator.
+It does not establish campaign completion or final acceptance.
 
 Comparison reports first show the basic metrics separately for every arm and
 repeat, then the paired performance benefit (on speedup / off speedup), token
@@ -47,12 +52,28 @@ as the same speedup ratio. Report generation never reruns or reselects candidate
 ## Token scope and producer
 
 Campaign round exports and an export submitted before final are observations;
-they do not establish complete whole-session cost. Standalone reports preserve
-their observed subtotal with partial/unknown coverage, leaving the complete total
-unknown. Missing counters are never estimated from text length or filled with zero.
+they do not establish complete whole-session cost. Reports without a verified
+terminal receipt preserve their observed subtotal with partial/unknown coverage,
+leaving the complete total unknown. Missing counters are never estimated from
+text length or filled with zero.
 
-For comparison, Apps reads the retained, identity-bound terminal native receipt
-already collected by `agents record`. In addition to `usage_scope: session_total`
+Apps uses the same terminal-usage verifier for standalone and comparison reports.
+For comparison it reads the receipt already collected by `agents record`.
+For a standalone Benchmark, the initiating Agent records the terminal observation
+with `agents record`, then exports with an explicit retained native job:
+
+```bash
+inferrsi export --input <campaign> --output <new-report> --agent-job <native-job>
+```
+
+The campaign must be inside that job's declared workspace. Its coverage declaration
+also needs `campaign_plan_digest`, equal to `state.json`'s retained `plan_digest`,
+to distinguish campaigns sharing a workspace. The trial ID matches the frozen
+campaign condition. Without the option, no native job is inferred. The export
+indexes the original job request, prompt, state and receipts, and checks both
+campaign and native-job snapshot stability without changing the frozen records.
+
+In addition to `usage_scope: session_total`
 and actual input/output counters, a receipt can declare `benchmark_token_coverage`:
 
 ```json
@@ -60,6 +81,7 @@ and actual input/output counters, a receipt can declare `benchmark_token_coverag
   "trial_id": "<DECLARED_TRIAL_ID>",
   "session_id": "<BOUND_NATIVE_SESSION_ID>",
   "scope": "trial_agent_session",
+  "campaign_plan_digest": "<RETAINED_PLAN_DIGEST_FOR_STANDALONE>",
   "started_at": 0,
   "ended_at": 0,
   "includes": {

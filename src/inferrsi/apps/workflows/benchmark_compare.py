@@ -18,7 +18,7 @@ from tempfile import TemporaryDirectory
 
 from inferrsi.benchmark.comparison import DEFAULT_POLICY, DEFAULT_TASKS, summarize, validate_policy
 from inferrsi.benchmark.registry import task_resources
-from inferrsi.benchmark.summary import POLICY, supported_policy, token_usage
+from inferrsi.benchmark.summary import POLICY, supported_policy
 from inferrsi.benchmark.summary import comparison as metrics_comparison
 from inferrsi.harness import agent_sessions, optimization
 from inferrsi.harness.artifact_primitives import digest, file_lock, sha256
@@ -27,7 +27,8 @@ from inferrsi.harness.optimization_session import _runtime_identity
 from inferrsi.harness.task_protocol import run as protocol_operation
 
 from ..delivery import project
-from ..delivery.schema import decode, number
+from ..delivery.benchmark_usage import terminal_token_usage, update_metrics
+from ..delivery.schema import decode
 from ..storage.archive import _publish_directory
 from ..views.comparison_report import write_comparison_report
 
@@ -470,33 +471,11 @@ def _trial_result(root, plan, trial, host):
         result["metrics_comparable"] = (not result["gaps"]
                                         and supported_policy(plan.get("metrics_policy"))
                                         and supported_policy(child_metrics_policy))
-        coverage = (payload.get("benchmark_token_coverage") or {}) if receipt else {}
-        if not isinstance(coverage, dict):
-            coverage = {}
-        coverage_start, coverage_end = (number(coverage.get(key))
-                                        for key in ("started_at", "ended_at"))
         if (result["benchmark_metrics"] is not None and host["usage"] is not None
                 and supported_policy(plan.get("metrics_policy"))
                 and supported_policy(child_metrics_policy)):
-            complete = (
-                host["state"] == "completed"
-                and coverage.get("trial_id") == trial["id"]
-                and coverage.get("session_id") == host["native_session"]["session_id"]
-                and coverage.get("scope") == POLICY["token_scope"]
-                and isinstance(coverage.get("includes"), dict)
-                and all(coverage["includes"].get(key) is True for key in (
-                    "pre_start", "retrieval", "failures_retries", "final"))
-                and coverage_start is not None and coverage_end is not None
-                and coverage_start <= control["started_at"]
-                and control.get("settled_at") is not None
-                and coverage_end >= control["settled_at"]
-            )
-            result["benchmark_metrics"]["token_usage"] = token_usage({
-                "value": host["usage"], "source": receipt["sha256"],
-                "scope": coverage.get("scope"), "coverage": "complete" if complete else "partial",
-            })
-            if result["benchmark_metrics"]["token_usage"]["total_tokens"] is not None:
-                result["benchmark_metrics"]["missing_reasons"].pop("token_usage", None)
+            update_metrics(result["benchmark_metrics"], terminal_token_usage(
+                host, payload, trial_id=trial["id"], control=control, source=receipt["sha256"]))
         if delivery["acceptance"]["delivery_accepted"] and control["final"]:
             final_assessment = control["final"]["assessment"]
             result["metrics"]["speedup"] = (

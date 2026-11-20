@@ -395,6 +395,7 @@ def iterative(snapshot, result):
                     "knowledge_attribution": "agent_declared",
                     "change_summary": record.get("change_summary"),
                     "execution_state": historical.get("execution", {}).get("status"),
+                    "execution_returncode": historical.get("execution", {}).get("returncode"),
                     "assessment_ref": assessment_ref,
                     "assessment_provenance": provenance if value else None,
                     "verdict": (value or {}).get("verdict"),

@@ -37,6 +37,20 @@ class Snapshot:
         self.document_names = set()
         self.observations = {}
         self.trees = {}
+        self.included = []
+
+    def include(self, other, prefix):
+        """Retain references and stability checks for an explicit external input."""
+        refs = {}
+        for identity, entry in other.entries.items():
+            ref = prefix + identity
+            if ref in self.entries:
+                raise ValueError("Duplicate delivery source identity")
+            self.entries[ref] = {**entry, "id": ref,
+                                 "location": str(other.path(entry["location"]))}
+            refs[identity] = ref
+        self.included.append(other)
+        return refs
 
     def path(self, name):
         relative_path(name)
@@ -178,7 +192,7 @@ class Snapshot:
                 actual = None
             if actual != expected:
                 return False
-        return True
+        return all(snapshot.stable() for snapshot in self.included)
 
 
 class SnapshotChanged(ValueError):

@@ -16,7 +16,8 @@ from inferrsi.infra.artifacts import atomic_write_json, sha256
 from tests.diagnosis_support import diagnosis_evidence
 
 
-def make_campaign(tmp_path, *, scores=(5,), final=True, final_verdict="PASS", usage=False):
+def make_campaign(tmp_path, *, scores=(5,), final=True, final_verdict="PASS", usage=False,
+                  benchmark=False, execution_state="completed", returncode=0):
     root = tmp_path / "campaign"
     frozen = root / "frozen"
     frozen.mkdir(parents=True)
@@ -45,12 +46,16 @@ def make_campaign(tmp_path, *, scores=(5,), final=True, final_verdict="PASS", us
         },
         "frozen_files": {p.name: sha256(p) for p in frozen.iterdir()},
     }
+    if benchmark:
+        from inferrsi.benchmark.summary import POLICY
+
+        plan.update(task_source="benchmark", report_metadata={"benchmark_metrics": POLICY})
     optimization.initialize(root, plan)
     optimization.record_diagnosis(root, "Reference operation", diagnosis_evidence(root))
 
     def execute(root, directory, plan, deadline):
         (directory / "execution").mkdir()
-        execution = {"status": "completed", "returncode": 0, "elapsed_seconds": 1}
+        execution = {"status": execution_state, "returncode": returncode, "elapsed_seconds": 1}
         atomic_write_json(directory / "execution/execution.json", execution)
         value = float((directory / "candidate.py").read_text())
         atomic_write_json(directory / "measurement.json", {"synthetic_value": value})
@@ -768,3 +773,145 @@ def test_offline_html_remains_readable_without_scripts_or_network(tmp_path, miss
         )
         assert not [url for url in requests if url.startswith(("http:", "https:"))]
         browser.close()
+
+
+@pytest.fixture
+def standalone_native_usage(tmp_path):
+    from inferrsi.harness import agent_sessions
+
+    job = tmp_path / "agent-job"
+    agent_sessions.prepare(job, prompt="Synthetic Benchmark task", workspace=tmp_path,
+                           title="Synthetic", max_seconds=600)
+    agent_sessions.dispatch(job)
+    creation = tmp_path / "creation.json"
+    atomic_write_json(creation, {"synthetic_creation": True})
+    agent_sessions.bind(job, host="synthetic", session_id="native-session", receipt=creation)
+    root = make_campaign(tmp_path, benchmark=True, usage=True)
+    control = state(root)
+    observation = {
+        "host": "synthetic", "host_id": None, "session_id": "native-session",
+        "state": "completed", "native_receipt": {"synthetic_terminal": True},
+        "usage_scope": "session_total",
+        "usage": {"input_tokens": 1000, "output_tokens": 200, "cached_input_tokens": 500},
+        "benchmark_token_coverage": {
+            "trial_id": "test", "session_id": "native-session", "scope": "trial_agent_session",
+            "campaign_plan_digest": control["plan_digest"],
+            "started_at": control["started_at"], "ended_at": control["settled_at"],
+            "includes": dict.fromkeys(
+                ("pre_start", "retrieval", "failures_retries", "final"), True),
+        },
+    }
+    return root, job, observation
+
+
+def record_native_usage(job, observation):
+    from inferrsi.harness import agent_sessions
+
+    path = job.parent / "terminal.json"
+    atomic_write_json(path, observation)
+    agent_sessions.record(job, observation=path)
+
+
+def test_single_benchmark_complete_native_usage_through_export_cli(
+    standalone_native_usage, tmp_path, capsys,
+):
+    root, job, observation = standalone_native_usage
+    record_native_usage(job, observation)
+    output = tmp_path / "complete-native-report"
+    assert main(["export", "--input", str(root), "--output", str(output),
+                 "--agent-job", str(job)]) == 0
+    capsys.readouterr()
+    result = delivery.read_bundle(output)
+    tokens = result["benchmark_metrics"]["token_usage"]
+    assert tokens["coverage"] == "complete" and tokens["total_tokens"] == 1200
+    assert tokens["cached_input_tokens"] == 500
+    assert result["usage"]["tokens"]["value"]["total_tokens"] == 120  # Never add round subtotal.
+    assert result["usage"]["session_tokens"]["coverage"] == "complete"
+    assert "token_usage" not in result["benchmark_metrics"]["missing_reasons"]
+    assert not any(g["affects"] == "usage.session_tokens" for g in result["gaps"])
+    index = decode((output / "artifacts.json").read_bytes())
+    source = next(a for a in index["artifacts"] if a["id"] == tokens["source"])
+    assert source["integrity"] == "verified" and source["role"] == "native_usage"
+    for name in ("report.md", "report.html"):
+        text = (output / name).read_text(encoding="utf-8")
+        assert text.index("Benchmark metrics") < text.index("Token consumption")
+        assert "1,200" in text
+
+
+@pytest.mark.parametrize("fault", [
+    "trial", "session", "start", "end", "scope", "includes", "plan", "running", "workspace",
+])
+def test_single_benchmark_incomplete_or_mismatched_receipt_stays_unknown(
+    standalone_native_usage, tmp_path, fault,
+):
+    root, job, observation = standalone_native_usage
+    coverage = observation["benchmark_token_coverage"]
+    if fault == "trial":
+        coverage["trial_id"] = "another-trial"
+    elif fault == "session":
+        coverage["session_id"] = "another-session"
+    elif fault == "start":
+        coverage["started_at"] += 1
+    elif fault == "end":
+        coverage["ended_at"] -= 1
+    elif fault == "scope":
+        coverage["scope"] = "round_only"
+    elif fault == "includes":
+        coverage["includes"]["failures_retries"] = False
+    elif fault == "plan":
+        coverage["campaign_plan_digest"] = "0" * 64
+    elif fault == "running":
+        observation["state"] = "running"
+    elif fault == "workspace":
+        # A different valid job cannot lend its counters to this campaign.
+        from inferrsi.harness import agent_sessions
+
+        other = tmp_path / "other"
+        other.mkdir()
+        job = tmp_path / "other-job"
+        agent_sessions.prepare(job, prompt="Other", workspace=other, title="Other", max_seconds=600)
+        agent_sessions.dispatch(job)
+        agent_sessions.bind(job, host="synthetic", session_id="native-session",
+                            receipt=tmp_path / "creation.json")
+    record_native_usage(job, observation)
+    _, result, _ = delivery.project(root, export_id="incomplete-usage", agent_job=job)
+    tokens = result["benchmark_metrics"]["token_usage"]
+    assert tokens["total_tokens"] is None
+    assert tokens["coverage"] != "complete"
+    assert result["benchmark_metrics"]["missing_reasons"]["token_usage"]
+
+
+def test_single_benchmark_missing_terminal_receipt_preserves_observed_subtotal(
+    standalone_native_usage,
+):
+    root, job, _ = standalone_native_usage
+    _, result, _ = delivery.project(root, export_id="missing-native", agent_job=job)
+    tokens = result["benchmark_metrics"]["token_usage"]
+    assert tokens["total_tokens"] is None and tokens["observed_tokens"] == 1200
+
+
+@pytest.mark.parametrize("execution_state,returncode", [
+    ("timeout", None), ("unknown", None), ("failed", -9), ("completed", None),
+])
+def test_benchmark_abnormal_execution_is_unresolved_through_retained_projection(
+    tmp_path, execution_state, returncode,
+):
+    root = make_campaign(tmp_path, benchmark=True, final=False,
+                         execution_state=execution_state, returncode=returncode)
+    _, result, _ = delivery.project(root, export_id="abnormal-execution")
+    # Preserve the Harness's historical classification and verdict.
+    assert result["rounds"][0]["assessment_status"] == "infrastructure_failure"
+    assert result["rounds"][0]["execution_state"] == execution_state
+    metrics = result["benchmark_metrics"]
+    assert metrics["infrastructure_failures"] == 0
+    assert metrics["unresolved_steps"] == 1 and metrics["step_coverage"] == "partial"
+    assert metrics["assessed_steps"] == metrics["accepted_steps"] == 0
+
+
+def test_benchmark_confirmed_infrastructure_failure_keeps_separate_count(tmp_path):
+    root = make_campaign(tmp_path, benchmark=True, final=False,
+                         execution_state="failed", returncode=1)
+    _, result, _ = delivery.project(root, export_id="confirmed-infra")
+    metrics = result["benchmark_metrics"]
+    assert metrics["infrastructure_failures"] == 1 and metrics["unresolved_steps"] == 0
+    assert metrics["assessed_steps"] == 0 and metrics["step_coverage"] == "complete"
