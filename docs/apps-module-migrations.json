@@ -36,6 +36,7 @@
       "tests/test_apps_prepare.py",
       "tests/test_apps_publication.py",
       "tests/test_apps_replay.py",
+      "tests/test_benchmark_preparation.py",
       "tests/test_result_delivery.py"
     ]
   },
@@ -137,7 +138,8 @@
       "tests/test_apps_evidence.py",
       "tests/test_apps_execution_binding.py",
       "tests/test_apps_generation_plan.py",
-      "tests/test_apps_module_migrations.py"
+      "tests/test_apps_module_migrations.py",
+      "tests/test_benchmark_preparation.py"
     ]
   },
   {
