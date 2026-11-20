@@ -736,7 +736,9 @@ def _managed_dashboard(root: Path, campaign: dict) -> dict:
             artifacts={**row["artifacts"], "execution": facts, "assessment": judged,
                        "status": facts, "evaluation": judged},
             usage=record["observations"]["usage"],
+            # The score is in the frozen selection metric, not necessarily metric_key.
             measured_score=_number(assessment.get("score")),
+            score_key=sanitized_text(plan["selection"]["metric"]),
             knowledge_uses=[citations[ref] for ref in record.get("knowledge_refs") or []
                             if ref in citations],
         )

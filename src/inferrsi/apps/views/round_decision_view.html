@@ -212,7 +212,7 @@ window.InferRSIRoundDecisions={create({getData,getLanguage,narrative,openCapture
       p(box,label(row.verdict),'rd-badge');field(box,tr('Quality','质量'),label(row.quality));
       const metric=v=>Number.isFinite(v)?String(v)+' '+(row.metric_unit||''):'—';
       field(box,tr('Baseline → candidate','基线 → 候选'),metric(row.baseline_median)+' → '+metric(row.candidate_median));
-      if(Number.isFinite(row.measured_score))field(box,tr('Measured score','实测成绩'),row.measured_score+' · '+row.metric_key);
+      if(Number.isFinite(row.measured_score))field(box,tr('Measured score','实测成绩'),row.measured_score+' · '+(row.score_key||row.metric_key));
       knowledgeUses(box,row,managedQueries.length);
       field(box,tr('Recorded improvement','记录的改进幅度'),Number.isFinite(row.improvement_pct)?row.improvement_pct+'%':null);
       field(box,tr('Post-validation decision (record)','验证后决定（记录）'),label(row.decision));

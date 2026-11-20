@@ -180,7 +180,7 @@ def session_command(args, *, task_source: Path | None = None, knowledge_reader=N
                     )
                 if args.decision != "point" or args.require_explanation:
                     # Both switches read AB/BA pairs and per-measurement breakdown/counters;
-                    # this mode's own profiling stage does not produce those inputs.
+                    # this mode's optional profiling stage does not produce those inputs.
                     raise ValueError(
                         "--decision paired and --require-explanation apply to AB/BA campaigns"
                     )

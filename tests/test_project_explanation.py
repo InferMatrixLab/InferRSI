@@ -10,6 +10,7 @@ from inferrsi.apps.cli import main
 from inferrsi.apps.views.dashboard_data import load_dashboard
 from inferrsi.apps.views.optimization_chart import render_result
 from inferrsi.harness.optimization import read_records
+from tests.diagnosis_support import diagnosis_args
 
 # Device-wide factor applied to every timed value of one measurement call, cycling per
 # call. It scales all regions together, as clocks or temperature would.
@@ -66,6 +67,8 @@ def start(project, capsys, *extra, repetitions=8):
         "--rounds", "4", "--round-mode", "up_to", "--max-minutes", "5",
         "--evaluation-timeout-seconds", "20", *extra,
     ])
+    if code == 0:  # Rounds require a retained bottleneck diagnosis (#519).
+        assert main(diagnosis_args(root, "campaign")) == 0
     capsys.readouterr()
     return code
 
@@ -293,6 +296,9 @@ def test_paired_decision_also_selects_the_candidate_that_final_retests(project, 
     assert (row["baseline_median"], row["candidate_median"]) == (6.0, 9.0)
     assert row["decision"] == "adopted"
     assert row["improvement_pct"] == pytest.approx(10)
+    # #523's measured score is the selection score, labeled by the selection metric.
+    assert row["measured_score"] == pytest.approx(1 / 0.9)
+    assert row["score_key"] == "paired_median_speedup"
 
 
 def test_unavailable_paired_statistics_neither_block_nor_borrow_a_point_score(
@@ -599,26 +605,36 @@ def test_scoreless_baseline_final_reports_no_speedup_in_the_delivery(project, ca
 
 
 def test_strategy_knowledge_refs_and_mechanism_are_kept_together(project, capsys, tmp_path):
-    """#501's round declarations and the bound mechanism coexist on one round and final."""
+    """#501/#523 round declarations and the bound mechanism coexist on one round and final."""
     repo, _, _, root = project
     assert start(project, capsys, "--decision", "paired", "--require-explanation") == 0
     assert main(["campaign", "knowledge", "--directory", str(root),
                  "--query", "cache per-step masks ran out of device memory",
-                 "--limit", "1", "--context-bytes", "1"]) == 0
-    context = json.loads(capsys.readouterr().out)["reference"]["path"]
+                 "--limit", "1", "--context-bytes", "8192"]) == 0
+    delivered = json.loads(capsys.readouterr().out)
+    context = delivered["reference"]["path"]
+    # Both citation forms: the whole delivered context and one delivered item (#523).
+    refs = [context, f"{context}#{delivered['context']['contexts'][0]['ref']}"]
     declaration = tmp_path / "mechanism.json"
     declaration.write_text(json.dumps(FUSION), encoding="utf-8")
     (repo / "config.json").write_text(json.dumps(FUSED), encoding="utf-8")
     assert main(["campaign", "round", "--directory", str(root), "--candidate", str(repo),
                  "--hypothesis", "Synthetic fusion", "--strategy", "Fuse kernels",
-                 "--knowledge-ref", context, "--mechanism-file", str(declaration)]) == 0
+                 "--knowledge-ref", refs[0], "--knowledge-ref", refs[1],
+                 "--mechanism-file", str(declaration)]) == 0
     capsys.readouterr()
-    _, state, _ = read_records(root)
+    _, state, _ = read_records(root)  # Revalidates the round against its observation.
     record = state["rounds"][0]
-    assert record["strategy"] == "Fuse kernels" and record["knowledge_refs"] == [context]
+    assert record["strategy"] == "Fuse kernels" and record["knowledge_refs"] == refs
+    assert record["diagnosis_id"] == state["diagnoses"][0]["id"]
     assert record["mechanism"] == FUSION and record["mechanism_sha256"]
+    observation = json.loads((root / record["path"] / "observation.json").read_text())
+    for key in ("knowledge_refs", "mechanism", "mechanism_sha256", "diagnosis_id"):
+        assert observation[key] == record[key]
     assert record["assessment"]["explanation"]["status"] == "explained"
     assert record["selection"]["outcome"] == "adopted"
+    [row] = load_dashboard(root)["candidates"]
+    assert [use["ref"] for use in row["knowledge_uses"]] == [context, refs[1].partition("#")[2]]
     assert main(["campaign", "final", "--directory", str(root),
                  "--reason", "Synthetic search completed"]) == 0
     capsys.readouterr()
