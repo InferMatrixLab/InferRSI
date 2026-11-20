@@ -1,0 +1,99 @@
+tests/test_project_optimization.py
+  s_f6d80fa4c53ea7::t_75ad88f8866573 218-231,238-243
+  s_193a19cfa4c668::t_7bd69a7fed053d 252-314
+docs/optimization-benchmarks.md
+  s_f6d80fa4c53ea7::t_02a4c6d8c03995 80-114
+  s_193a19cfa4c668::t_3e3dde26922c05 115-116
+docs/external-channels.md
+  s_f6d80fa4c53ea7::t_02a4c6d8c03995 201-206,218
+src/inferrsi/apps/integrations/cannbot/round_knowledge.py
+  s_f6d80fa4c53ea7::t_619889cba7a86f 104
+  s_f6d80fa4c53ea7::t_02a4c6d8c03995 8,11,14
+  s_f6d80fa4c53ea7::t_77f64378f2a5df 1-5,10,13,70-71,76-78,80-83,88,91-92,96-98,100-101,105-107,110-116
+  s_193a19cfa4c668::t_7b87711a268744 7,9,12,15-69,72-75,79,84-87,89-90,93-95,99,102-103,108-109
+  s_193a19cfa4c668::t_4f179133236352 6
+src/inferrsi/apps/cli/__init__.py
+  s_193a19cfa4c668::t_f2a3bfc6c703c7 35
+  s_f6d80fa4c53ea7::t_bbb8398b69a7b6 26-34,36-44,385,646
+src/inferrsi/apps/views/round_decision_view.html
+  s_f6d80fa4c53ea7::t_f6af806de5f037 39-63,89,109-111,215
+  s_f6d80fa4c53ea7::t_14fd09048df9ff 64-79,90-91,205-209,216
+docs/operations.md
+  s_f6d80fa4c53ea7::t_75ad88f8866573 41
+src/inferrsi/harness/optimization_session.py
+  s_f6d80fa4c53ea7::t_14fd09048df9ff 157,262-266,290
+  s_f6d80fa4c53ea7::t_bbb8398b69a7b6 130,153-156,249-250,289,313,320-323
+  s_f6d80fa4c53ea7::t_73b99f66e779c8 324
+tests/test_round_decisions_browser.py
+  s_f6d80fa4c53ea7::t_cd980a28503ecf 358
+  s_f6d80fa4c53ea7::t_619889cba7a86f 375-377
+  s_f6d80fa4c53ea7::t_a4d70593c780f3 335-357,359-374,378-381
+src/inferrsi/apps/cli/arguments.py
+  s_193a19cfa4c668::t_f2a3bfc6c703c7 102,108
+  s_f6d80fa4c53ea7::t_bbb8398b69a7b6 103-105,153-156
+  s_f6d80fa4c53ea7::t_619889cba7a86f 127
+tests/test_optimization_session.py
+  s_f6d80fa4c53ea7::t_cd980a28503ecf 523-533,574-582,591
+  s_cc9bdcd373887f::t_72d08e05d21b75 673
+  s_f6d80fa4c53ea7::t_4482d624a5aca6 3,630,648,650-660
+  s_f6d80fa4c53ea7::t_fb13eba27b75fe 661
+  s_f6d80fa4c53ea7::t_02a4c6d8c03995 553-555,568-573,586-588
+  s_cc9bdcd373887f::t_251044fb165299 453,592-599,608-609,611,631-647,649,662-672
+  s_f6d80fa4c53ea7::t_3b34c1750a3a84 478-522,534-552,556-567,583-585,589-590,600-607,610,612-629
+  s_193a19cfa4c668::t_e6b2697bee7f4c 475
+  s_193a19cfa4c668::t_13b032fc23b48d 674-707
+src/inferrsi/harness/optimization.py
+  s_193a19cfa4c668::t_f2a3bfc6c703c7 362-363
+  s_f6d80fa4c53ea7::t_dddb8d9c87778e 325,350-351
+  s_cc9bdcd373887f::t_251044fb165299 111,116-118,121-122,124-132,360-361,364
+  s_f6d80fa4c53ea7::t_14fd09048df9ff 195-196
+  s_f6d80fa4c53ea7::t_77f64378f2a5df 13,320-324,326-344,347-349,352-354,365-407,409-428,602
+  s_193a19cfa4c668::t_2fd5a7d420a204 136,138
+src/inferrsi/apps/views/dashboard_data.py
+  s_f6d80fa4c53ea7::t_14fd09048df9ff 744-751,760
+  s_f6d80fa4c53ea7::t_f6af806de5f037 697,700,735-737
+docs/examples/dashboard-profile-review.html
+  s_193a19cfa4c668::t_091574ab6c6592 878-918,928-930,948-950,1044-1048,1054-1055
+src/inferrsi/apps/integrations/cannbot/read_worker.py
+  s_193a19cfa4c668::t_747caaede8a20d 81-84,94-95,99
+src/inferrsi/apps/views/capture_delivery.py
+  s_193a19cfa4c668::t_4dad3c439484a5 18,23-24,84-102,104-112
+src/inferrsi/apps/views/codex_search.py
+  s_193a19cfa4c668::t_61279426173336 19,621-622
+src/inferrsi/apps/views/retrieval_projection.py
+  s_193a19cfa4c668::t_7baef2020d1346 14-15,316-381
+tests/test_round_citations.py
+  s_193a19cfa4c668::t_fc2fc742f0781a 24,30-31,34,38-41,55-60,79-80,82
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "fb6250b250ddd8163cf5f1f7f44b5bd0116e1ef0",
+  "prompts": {},
+  "sessions": {
+    "s_193a19cfa4c668": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1f82d-ce84-73f2-8edb-1003ff87b6c0",
+        "model": "gpt-6.2-sol"
+      },
+      "human_author": "jiangkuaixue123 <jiangxiaozhou111@163.com>"
+    },
+    "s_cc9bdcd373887f": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1f3ad-93b8-7481-8cc6-616fde3b76fe",
+        "model": "gpt-6.2-sol"
+      },
+      "human_author": "jiangkuaixue123 <jiangxiaozhou111@163.com>"
+    },
+    "s_f6d80fa4c53ea7": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1f2c4-4190-7173-b643-904978a40768",
+        "model": "gpt-6.2-sol"
+      },
+      "human_author": "jiangkuaixue123 <jiangxiaozhou111@163.com>"
+    }
+  }
+}
