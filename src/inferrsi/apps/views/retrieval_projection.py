@@ -8,12 +8,16 @@ import math
 import re
 from pathlib import Path
 
-from inferrsi.harness.records.evidence import inside, relative_location, sanitized_text
+from inferrsi.harness.records.evidence import (
+    bounded_record_bytes,
+    inside,
+    relative_location,
+    sanitized_text,
+)
+from inferrsi.harness.records.knowledge_capture import MAX_CONTEXT_CAPTURE_BYTES
 from inferrsi.harness.records.optimization_log import _IDENTIFIER, _unique
 
 from ..integrations.cannbot.round_knowledge import read_metadata, search_metadata
-
-_MAX_BYTES = 4 * 1024 * 1024
 
 
 def public_value(value):
@@ -73,20 +77,19 @@ def retrieval_view(capture):
 
 
 def _read(root, path):
-    if not inside(root, path) or path.is_symlink():
-        return None, "unsafe_path", None
     try:
-        with path.open("rb") as stream:
-            raw = stream.read(_MAX_BYTES + 1)
-        if len(raw) > _MAX_BYTES:
-            return None, "too_large", None
+        relative = path.relative_to(root).as_posix()
+    except ValueError:
+        return None, "unsafe_path", None
+    raw, state = bounded_record_bytes(root, relative, MAX_CONTEXT_CAPTURE_BYTES)
+    if raw is None:
+        return None, state, None
+    try:
         document = json.loads(raw, object_pairs_hook=_unique)
         if not isinstance(document, dict):
             return None, "invalid_format", None
         return document, "present", hashlib.sha256(raw).hexdigest()
-    except FileNotFoundError:
-        return None, "file_absent", None
-    except (OSError, ValueError, RecursionError):
+    except (ValueError, RecursionError):
         return None, "invalid_format", None
 
 
@@ -319,8 +322,20 @@ def managed_knowledge(root, contexts):
     for reference in contexts:
         path, kind = reference["path"], reference["kind"]
         number = reference.get("round")
+        if not isinstance(path, str) or Path(path).is_absolute():
+            continue
+        external_record = kind in ("external_search", "external_read")
+        if kind != "delivered_context" and not external_record:
+            continue
+        if external_record and (
+            type(number) is not int or number < 1
+            or not re.fullmatch(rf"knowledge/{kind}-[0-9a-f]{{32}}\.json", path)
+        ):
+            continue
+        record, state, digest = _read(root, root / path)
+        if state != "present" or digest != reference.get("sha256"):
+            continue
         if kind == "delivered_context":
-            record = json.loads((root / path).read_text("utf-8"))
             delivered = {item["ref"] for item in record["contexts"] if item["resources"]}
             items = [
                 {**{key: item.get(key) for key in ("ref", "title", "revision")},
@@ -341,13 +356,7 @@ def managed_knowledge(root, contexts):
                     citations[path + "#" + item["ref"]] = {
                         **citation, "ref": item["ref"], "revision": item["revision"],
                     }
-        elif kind in ("external_search", "external_read"):
-            if (type(number) is not int or number < 1
-                    or not re.fullmatch(rf"knowledge/{kind}-[0-9a-f]{{32}}\.json", path)):
-                continue
-            record, state, digest = _read(root, root / path)
-            if state != "present" or digest != reference["sha256"]:
-                continue
+        else:
             if kind == "external_search":
                 metadata = search_metadata(record)
                 parent = record.get("context_ref")

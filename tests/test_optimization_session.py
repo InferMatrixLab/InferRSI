@@ -483,6 +483,77 @@ def test_knowledge_delivery_is_retained_and_bound_to_round(session, capsys):
     assert data["candidates"][0]["knowledge_uses"] == []
 
 
+@pytest.mark.parametrize("mutation", [
+    "absolute", "outside", "symlink", "ancestor_symlink", "oversized", "hash_mismatch",
+])
+def test_managed_knowledge_rejects_unverified_capture(
+    session, capsys, monkeypatch, mutation,
+):
+    from inferrsi.apps.views.dashboard import dashboard_snapshot
+    from inferrsi.apps.views.retrieval_projection import managed_knowledge
+    from inferrsi.harness.records import evidence
+    from inferrsi.harness.records.knowledge_capture import MAX_CONTEXT_CAPTURE_BYTES
+
+    assert main([
+        "benchmarks", "session", "knowledge", "--session", str(session),
+        "--query", "cache per-step masks ran out of device memory",
+        "--limit", "1", "--context-bytes", "8192",
+    ]) == 0
+    capsys.readouterr()
+    state_path = session / "state.json"
+    state = json.loads(state_path.read_bytes())
+    reference, = state["contexts"]
+    path = session / reference["path"]
+    raw = path.read_bytes()
+    expected = "unsafe_path"
+    if mutation in ("absolute", "outside", "symlink"):
+        outside = session.parent / "other-capture.json"
+        outside.write_bytes(raw)
+        if mutation == "absolute":
+            reference["path"] = outside.as_posix()
+        elif mutation == "outside":
+            reference["path"] = "../other-capture.json"
+        else:
+            path.unlink()
+            try:
+                path.symlink_to(outside)
+            except OSError:
+                pytest.skip("test requires permission to create symlinks")
+    elif mutation == "ancestor_symlink":
+        alias = session / "alias"
+        try:
+            alias.symlink_to(path.parent, target_is_directory=True)
+        except OSError:
+            pytest.skip("test requires permission to create symlinks")
+        reference["path"] = f"alias/{path.name}"
+    elif mutation == "oversized":
+        raw += b" " * MAX_CONTEXT_CAPTURE_BYTES
+        path.write_bytes(raw)
+        reference["sha256"] = hashlib.sha256(raw).hexdigest()
+        expected = "too_large"
+    else:
+        path.write_bytes(raw + b" ")
+        expected = "Delivered knowledge context changed"
+    state_path.write_text(json.dumps(state), encoding="utf-8")
+
+    reads = []
+    read_regular = evidence.read_regular
+
+    def track_read(path, limit):
+        data = read_regular(path, limit)
+        reads.append(len(data))
+        return data
+
+    monkeypatch.setattr(evidence, "read_regular", track_read)
+    assert managed_knowledge(session, [reference]) == ([], {})
+    with pytest.raises(ValueError, match=expected):
+        dashboard_snapshot(session)
+    if expected == "unsafe_path":
+        assert not reads
+    elif expected == "too_large":
+        assert reads == [MAX_CONTEXT_CAPTURE_BYTES + 1] * 2
+
+
 def test_cannbot_query_and_read_trace_to_candidate(tmp_path, task, capsys, monkeypatch):
     from inferrsi.apps.integrations.cannbot import project
     from inferrsi.apps.views.dashboard import dashboard_snapshot

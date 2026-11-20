@@ -10,7 +10,8 @@ from pathlib import Path
 from . import candidates
 from .artifact_primitives import digest, file_lock, sha256
 from .atomic_json import atomic_write_json
-from .records.evidence import sanitized_text
+from .records.evidence import bounded_record_bytes, sanitized_text
+from .records.knowledge_capture import MAX_CONTEXT_CAPTURE_BYTES
 from .task_protocol import TaskProtocolError
 from .usage import normalize_usage, usage_totals
 
@@ -92,6 +93,21 @@ def _control(root):
     return plan, state
 
 
+def _read_context(root, reference):
+    raw, state = bounded_record_bytes(root, reference.get("path"), MAX_CONTEXT_CAPTURE_BYTES)
+    if raw is None:
+        raise ValueError(f"Invalid delivered knowledge context ({state})")
+    if hashlib.sha256(raw).hexdigest() != reference.get("sha256"):
+        raise ValueError("Delivered knowledge context changed")
+    try:
+        record = json.loads(raw)
+    except (ValueError, RecursionError):
+        raise ValueError("Invalid delivered knowledge context (invalid_format)") from None
+    if not isinstance(record, dict):
+        raise ValueError("Invalid delivered knowledge context (invalid_format)")
+    return record
+
+
 def _load(root, *, read_only=False):
     plan, state = _control(root)
     if plan.get("evaluation_mode") == "service_reuse":
@@ -110,11 +126,9 @@ def _load(root, *, read_only=False):
     diagnoses = _diagnosis_index(state)
     contexts = {}
     for context in state["contexts"]:
-        raw = (root / context["path"]).read_bytes()
-        if hashlib.sha256(raw).hexdigest() != context["sha256"]:
-            raise ValueError("Delivered knowledge context changed")
+        retained = _read_context(root, context)
         if context.get("kind") not in ("external_search", "external_read"):
-            _check_context_diagnosis(plan, diagnoses, context, json.loads(raw))
+            _check_context_diagnosis(plan, diagnoses, context, retained)
         contexts[context["path"]] = context
     for record in [*state["rounds"], *([state["final"]] if state["final"] else [])]:
         directory = root / record["path"]
@@ -362,7 +376,7 @@ def capture_context(root: Path, reader, *, retain_context, external_provider=Non
         if binding:
             retained = {**retained, "diagnosis_id": binding["diagnosis_id"]}
         state["contexts"].append(retained)
-        response = {"reference": reference, "context": json.loads(path.read_text("utf-8"))}
+        response = {"reference": reference, "context": _read_context(root, reference)}
         if settings:
             remaining = _knowledge_time(plan, state)
             result = (
@@ -391,7 +405,7 @@ def read_external_context(root: Path, provider, *, search_ref, locator, page):
                           and entry["round"] == number), None)
         if reference is None:
             raise ValueError("Supply a CANNBot search reference from the current round")
-        search = json.loads((root / reference["path"]).read_text("utf-8"))
+        search = _read_context(root, reference)
         hit = next((item for item in search["items"] if item["locator"] == locator), None)
         if search["state"] != "ok" or not search["revision"] or hit is None:
             raise ValueError("Supply a versioned CANNBot hit from the recorded search")
@@ -414,15 +428,15 @@ def _validate_knowledge_refs(root, contexts, refs):
         raise ValueError("Knowledge references must be a list of delivered references")
     if len(set(refs)) != len(refs):
         raise ValueError("Cite unique delivered knowledge references")
-    delivered = {entry["path"]: entry["kind"] for entry in contexts
+    delivered = {entry["path"]: entry for entry in contexts
                  if entry["kind"] != "external_search"}
     for ref in refs:
         path, separator, item = ref.partition("#")
-        kind = delivered.get(path)
-        if kind is None or (separator and kind != "delivered_context"):
+        reference = delivered.get(path)
+        if reference is None or (separator and reference["kind"] != "delivered_context"):
             raise ValueError("Cite a delivered context or CANNBot read receipt from this session")
         if separator:
-            capture = json.loads((root / path).read_text("utf-8"))
+            capture = _read_context(root, reference)
             if not any(entry["ref"] == item and entry["resources"]
                        for entry in capture["contexts"]):
                 raise ValueError("Cite an item with delivered resources from this context")
