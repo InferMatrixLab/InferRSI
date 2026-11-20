@@ -77,3 +77,38 @@ python tools/compare_catalog_selection.py --baseline <baseline-checkout> \
 脚本重放已保存的 Agent 选择，不会再调用模型。知识来源变化后旧 snapshot 会拒绝读取。
 使用 [文件校验和](sha256.json) 验证共享摘要和实现文件；完整原文 payload 与早期运行
 保留在本地结果目录，未上传私有路径、完整会话或原始环境日志。
+
+## 2026-11-20：检索接口性能修正
+
+针对重复构建全目录和共享资源重复校验，新增按文件内容与成员清单检查的目录复用，
+以及 reader 内共享资源摘要。读取前后仍检查来源变化；恢复时间戳的修改、未选中资源变化、
+store 更新均会使旧快照失效。符号链接或目录重定向会禁用目录复用，回退到完整构建。
+目录返回值独立复制，完成或出错后释放缓存；metadata 与依赖版本继续逐次校验。
+
+同一主机、相同知识与预算、每次新进程，交替运行原 Find、优化前 catalog-select 和优化后
+catalog-select。复用先前 Agent 选择，没有重新筛选。下表为**接口构建至原文递送**的平均秒数：
+
+| 查询组 | 原 Find | 优化前 catalog-select | 优化后 catalog-select | 新模式耗时减少 |
+| --- | ---: | ---: | ---: | ---: |
+| `qwen2.1-image 优化到1.35x加速`，各 5 次 | 1.075 | 6.923 | 1.598 | 76.9% |
+| 原来的 10 个固定查询，每题每臂 1 次 | 0.985 | 6.613 | 1.599 | 75.8% |
+
+Qwen 查询的目录准备均值为 2.238 → 1.284 秒，校验/读取为 4.685 → 0.314 秒。
+所有查询优化前后的 snapshot ID、递送原文字节、版本、判断、遗漏和展开路径摘要一致。
+完整输入和所有计时样本、阶段均值、精确版本及失败尝试说明见
+[性能记录](performance-20261120.json)。原先的结果文件保持不变。
+
+计时排除进程启动、import、tokenizer 初始化、输出序列化和 Agent 选材；操作系统页缓存未控制。
+两边都没有外部知识调用。这些数字不代表模型选择提速、Qwen 达到 1.35x 或推理服务收益。
+相关回归测试 236 passed、2 skipped、2 subtests passed；Ruff 和独立内部代码检查通过。
+未重新运行全仓测试，前述环境限制仍然适用。
+
+复现时使用干净、固定版本的三个 checkout，以及原先保留的选择文件：
+10 题使用本目录 `selections.json`；Qwen 单题的完整选择保存在性能记录的
+`qwen_five_repeats.retained_selections` 数组中，可导出为独立 JSON 文件。
+
+```bash
+python tools/time_catalog_selection.py --baseline <original-find-checkout> \
+  --before <catalog-before-checkout> --after <catalog-after-checkout> \
+  --selections <retained-selections.json> --repetitions <count> --output <new-output-directory>
+```

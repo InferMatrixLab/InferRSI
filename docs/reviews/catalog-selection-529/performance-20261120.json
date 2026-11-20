@@ -1,0 +1,1495 @@
+{
+  "scope": "Observed CPU retrieval interface cost; no model-choice or inference-serving performance claim",
+  "task_benefit": "INCONCLUSIVE",
+  "implementation_revision": "fc6c144a60c56781a04eadf92a530ec9a557defb",
+  "knowledge_bytes_changed": false,
+  "snapshot_and_payload_semantics_equal": true,
+  "equivalence_check": "Exact snapshot ID plus SHA-256 of chosen refs, contexts (including original content bytes and revisions), judgments, omissions and expansion paths; timing fields excluded",
+  "qwen_five_repeats": {
+    "protocol": {
+      "revisions": {
+        "baseline": "1b826b5f9666a8b734000e1eb2990e582cdef876",
+        "before": "3f6d5d32ff42e5fbab1644988d28f02fd0d499c0",
+        "after": "fc6c144a60c56781a04eadf92a530ec9a557defb"
+      },
+      "queries": 1,
+      "repetitions": 5,
+      "python": "3.12.13",
+      "architecture": "aarch64",
+      "order": "odd baseline/before/after; even after/before/baseline",
+      "boundary": "fresh reader/corpus/catalog through source delivery; excludes imports, tokenizer startup, process startup, serialization and Agent decisions",
+      "cache": "fresh interpreter per arm/sample; OS page cache uncontrolled",
+      "selection": "replay retained Agent choices; no model calls or new decisions",
+      "external_channels": "no registry attached; no cann-bot or external calls",
+      "context_bytes": 131072,
+      "expansion_depth": 1,
+      "expansion_items": 5,
+      "expansion_bytes": 32768,
+      "token_budget": 128000,
+      "reserved_tokens": 4096,
+      "tokenizer": "tiktoken:o200k_base",
+      "task_benefit": "INCONCLUSIVE",
+      "worker_sha256": "83bda7485b40ef88fb1842a15bf444017ae6c400f02fdaaef5d56b026b5c7b70"
+    },
+    "aggregate": {
+      "mean_seconds": {
+        "baseline": 1.075319977174513,
+        "before": 6.92300173076801,
+        "after": 1.5978898899629712
+      },
+      "reduction_percent": 76.91911757205774,
+      "before_over_after": 4.332589982735569
+    },
+    "queries": [
+      {
+        "id": "qwen21-135x",
+        "query": "qwen2.1-image 优化到1.35x加速",
+        "semantics_equal": true,
+        "arms": {
+          "baseline": {
+            "seconds": [
+              1.0787547889631242,
+              1.087460356997326,
+              1.0690190349705517,
+              1.0687455569859594,
+              1.072620147955604
+            ],
+            "mean_seconds": 1.075319977174513,
+            "median_seconds": 1.072620147955604,
+            "min_seconds": 1.0687455569859594,
+            "max_seconds": 1.087460356997326,
+            "chosen": [
+              "vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i",
+              "case.qwen-b300-rejected-directions",
+              "audit-sd-cpp-residency",
+              "inference-benchmark-design",
+              "case.qwen-ascend-rejected-directions"
+            ],
+            "delivered": [
+              "package:vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i",
+              "checkout:case.qwen-b300-rejected-directions",
+              "package:inferrsi.common.skills.audit_sd_cpp_residency",
+              "checkout:case.qwen-ascend-rejected-directions"
+            ],
+            "omissions": [
+              {
+                "ref": "package:inferrsi.common.skills.inference_benchmark_design",
+                "reason": "context_limit",
+                "required_bytes": 320040,
+                "available_bytes": 71644
+              }
+            ],
+            "semantic_sha256": "fe62d09ad57fc309eea8adb11ecd8ff1118fb362910bf6271165e4784e7918b7",
+            "phase_mean_seconds": {
+              "corpus": 0.2812449993798509,
+              "find": 0.3136437152279541,
+              "read": 0.48043126256670804
+            }
+          },
+          "before": {
+            "seconds": [
+              7.043376266956329,
+              6.952032661065459,
+              6.921732739894651,
+              6.898644965956919,
+              6.799222019966692
+            ],
+            "mean_seconds": 6.92300173076801,
+            "median_seconds": 6.921732739894651,
+            "min_seconds": 6.799222019966692,
+            "max_seconds": 7.043376266956329,
+            "chosen": [
+              "package:vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i",
+              "package:vllm_omni.common.diffusion.measurement_and_profiling",
+              "package:inferrsi.common.skills.performance_ceiling_analysis",
+              "checkout:case.qwen-ascend-rejected-directions",
+              "checkout:case.qwen-b300-rejected-directions"
+            ],
+            "delivered": [
+              "package:vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i",
+              "package:vllm_omni.common.diffusion.measurement_and_profiling",
+              "checkout:case.qwen-ascend-rejected-directions",
+              "checkout:case.qwen-b300-rejected-directions"
+            ],
+            "omissions": [
+              {
+                "ref": "package:inferrsi.common.skills.performance_ceiling_analysis",
+                "reason": "context_limit",
+                "required_bytes": 213952,
+                "available_bytes": 122345
+              }
+            ],
+            "semantic_sha256": "d2ab80e0a77b0b159ad5f629168cddf1094a6ea884c8cabbfdb7395cf66bd11d",
+            "phase_mean_seconds": {
+              "prepare": 2.2375190347898752,
+              "complete": 4.685482695978135
+            }
+          },
+          "after": {
+            "seconds": [
+              1.5981138059869409,
+              1.5807141918921843,
+              1.592669713892974,
+              1.6335378210060298,
+              1.584413917036727
+            ],
+            "mean_seconds": 1.5978898899629712,
+            "median_seconds": 1.592669713892974,
+            "min_seconds": 1.5807141918921843,
+            "max_seconds": 1.6335378210060298,
+            "chosen": [
+              "package:vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i",
+              "package:vllm_omni.common.diffusion.measurement_and_profiling",
+              "package:inferrsi.common.skills.performance_ceiling_analysis",
+              "checkout:case.qwen-ascend-rejected-directions",
+              "checkout:case.qwen-b300-rejected-directions"
+            ],
+            "delivered": [
+              "package:vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i",
+              "package:vllm_omni.common.diffusion.measurement_and_profiling",
+              "checkout:case.qwen-ascend-rejected-directions",
+              "checkout:case.qwen-b300-rejected-directions"
+            ],
+            "omissions": [
+              {
+                "ref": "package:inferrsi.common.skills.performance_ceiling_analysis",
+                "reason": "context_limit",
+                "required_bytes": 213952,
+                "available_bytes": 122345
+              }
+            ],
+            "semantic_sha256": "d2ab80e0a77b0b159ad5f629168cddf1094a6ea884c8cabbfdb7395cf66bd11d",
+            "phase_mean_seconds": {
+              "prepare": 1.2843412867980077,
+              "complete": 0.3135486031649634
+            }
+          }
+        }
+      }
+    ],
+    "retained_selections": [
+      {
+        "id": "qwen21-135x",
+        "query": "qwen2.1-image 优化到1.35x加速",
+        "primary": "task-performance",
+        "snapshot_id": "sha256:9f61007d34961ddc78162e4d8da95f82d70683e4bcbd50045a81e9723bbd3ccc",
+        "conditions": {
+          "model": "Qwen-Image-2.1",
+          "backend": null,
+          "hardware": null,
+          "engine": null
+        },
+        "selector": "current Agent; all 135 IDs and summaries reviewed once",
+        "selections": [
+          {
+            "ref": "package:vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i",
+            "reason": "Direct Qwen-Image-2.1 optimization measurements and quality limits; use as a platform-specific prior, since the target backend is unknown.",
+            "questions": [
+              "What exact workload and hardware produced the latency gains, and did they reach a 1.35x speedup?"
+            ],
+            "purpose": "method"
+          },
+          {
+            "ref": "package:vllm_omni.common.diffusion.measurement_and_profiling",
+            "reason": "Establish a matched diffusion latency boundary and use profiling to select the next change toward the stated target.",
+            "questions": [
+              "How should baseline, warmup, measurement and diagnostic profiling be separated?"
+            ],
+            "purpose": "method"
+          },
+          {
+            "ref": "package:inferrsi.common.skills.performance_ceiling_analysis",
+            "reason": "Assess the headroom required for 1.35x speedup before choosing an optimization.",
+            "questions": [
+              "Which stage share and empirical ceiling could support a 1.35x end-to-end target?"
+            ],
+            "purpose": "method"
+          },
+          {
+            "ref": "checkout:case.qwen-ascend-rejected-directions",
+            "reason": "Same model family negative experiments help avoid repeating slower or quality-sensitive directions on Ascend; target platform remains unknown.",
+            "questions": [
+              "Which apparent shortcuts were slower or failed a gate, and what would justify a retry?"
+            ],
+            "purpose": "method"
+          },
+          {
+            "ref": "checkout:case.qwen-b300-rejected-directions",
+            "reason": "Same model family B300 negative experiments provide a second platform-specific prior without assuming the target hardware.",
+            "questions": [
+              "Which fusion attempts failed full-image quality despite operator-level evidence?"
+            ],
+            "purpose": "method"
+          }
+        ]
+      }
+    ]
+  },
+  "ten_queries_one_repeat": {
+    "protocol": {
+      "revisions": {
+        "baseline": "1b826b5f9666a8b734000e1eb2990e582cdef876",
+        "before": "3f6d5d32ff42e5fbab1644988d28f02fd0d499c0",
+        "after": "fc6c144a60c56781a04eadf92a530ec9a557defb"
+      },
+      "queries": 10,
+      "repetitions": 1,
+      "python": "3.12.13",
+      "architecture": "aarch64",
+      "order": "odd baseline/before/after; even after/before/baseline",
+      "boundary": "fresh reader/corpus/catalog through source delivery; excludes imports, tokenizer startup, process startup, serialization and Agent decisions",
+      "cache": "fresh interpreter per arm/sample; OS page cache uncontrolled",
+      "selection": "replay retained Agent choices; no model calls or new decisions",
+      "external_channels": "no registry attached; no cann-bot or external calls",
+      "context_bytes": 131072,
+      "expansion_depth": 1,
+      "expansion_items": 5,
+      "expansion_bytes": 32768,
+      "token_budget": 128000,
+      "reserved_tokens": 4096,
+      "tokenizer": "tiktoken:o200k_base",
+      "task_benefit": "INCONCLUSIVE",
+      "worker_sha256": "83bda7485b40ef88fb1842a15bf444017ae6c400f02fdaaef5d56b026b5c7b70"
+    },
+    "aggregate": {
+      "mean_seconds": {
+        "baseline": 0.9845547806588002,
+        "before": 6.613206958689261,
+        "after": 1.5985849303076975
+      },
+      "reduction_percent": 75.8273869199379,
+      "before_over_after": 4.136913111908507
+    },
+    "queries": [
+      {
+        "id": "day-0",
+        "query": "Day zero port of an omni model with text and audio stages to vLLM Ascend NPU",
+        "semantics_equal": true,
+        "arms": {
+          "baseline": {
+            "seconds": [
+              0.9836205809842795
+            ],
+            "mean_seconds": 0.9836205809842795,
+            "median_seconds": 0.9836205809842795,
+            "min_seconds": 0.9836205809842795,
+            "max_seconds": 0.9836205809842795,
+            "chosen": [
+              "ascend-model-adaptation",
+              "vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i",
+              "sglang_omni.common.audio.serving_and_streaming_quality",
+              "vllm_omni.common.audio.streaming_serving_measurement",
+              "ascend-video-diffusion-optimization"
+            ],
+            "delivered": [
+              "package:inferrsi.ascend.skills.ascend_model_adaptation",
+              "package:vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i",
+              "package:sglang_omni.common.audio.serving_and_streaming_quality",
+              "package:vllm_omni.common.audio.streaming_serving_measurement",
+              "package:inferrsi.ascend.skills.ascend_video_diffusion_optimization"
+            ],
+            "omissions": [],
+            "semantic_sha256": "d5b451a537054cadb12bbdfd39f597fa16dfd6b5bbf696eb9aefa65c6ace2946",
+            "phase_mean_seconds": {
+              "corpus": 0.27983551600482315,
+              "find": 0.34975295199546963,
+              "read": 0.35403211298398674
+            }
+          },
+          "before": {
+            "seconds": [
+              6.784758865949698
+            ],
+            "mean_seconds": 6.784758865949698,
+            "median_seconds": 6.784758865949698,
+            "min_seconds": 6.784758865949698,
+            "max_seconds": 6.784758865949698,
+            "chosen": [
+              "package:inferrsi.ascend.skills.ascend_model_adaptation",
+              "package:vllm_omni.common.omni.stage_ownership_and_search",
+              "package:vllm_omni.common.diffusion.production_integration_gates"
+            ],
+            "delivered": [
+              "package:inferrsi.ascend.skills.ascend_model_adaptation",
+              "package:vllm_omni.common.omni.stage_ownership_and_search",
+              "package:vllm_omni.common.diffusion.production_integration_gates"
+            ],
+            "omissions": [
+              {
+                "ref": "package:vllm_omni.common.omni.stage_ownership_and_search",
+                "reason": "context_limit",
+                "required_bytes": 18293,
+                "available_bytes": 5223
+              },
+              {
+                "ref": "package:inferrsi.ascend.skills.ascend_aclgraph_capture_replay",
+                "reason": "context_limit",
+                "required_bytes": 21720,
+                "available_bytes": 5223
+              },
+              {
+                "ref": "package:inferrsi.ascend.skills.ascend_graph_mode",
+                "reason": "context_limit",
+                "required_bytes": 40736,
+                "available_bytes": 5223
+              },
+              {
+                "ref": "package:inferrsi.common.skills.host_memory_management",
+                "reason": "context_limit",
+                "required_bytes": 69776,
+                "available_bytes": 5223
+              }
+            ],
+            "semantic_sha256": "debbe5eccba8f3d43abc6d089c745c9846324594a7133c0d17b3998203c18d60",
+            "phase_mean_seconds": {
+              "prepare": 2.187507474911399,
+              "complete": 4.597251391038299
+            }
+          },
+          "after": {
+            "seconds": [
+              1.6090797819197178
+            ],
+            "mean_seconds": 1.6090797819197178,
+            "median_seconds": 1.6090797819197178,
+            "min_seconds": 1.6090797819197178,
+            "max_seconds": 1.6090797819197178,
+            "chosen": [
+              "package:inferrsi.ascend.skills.ascend_model_adaptation",
+              "package:vllm_omni.common.omni.stage_ownership_and_search",
+              "package:vllm_omni.common.diffusion.production_integration_gates"
+            ],
+            "delivered": [
+              "package:inferrsi.ascend.skills.ascend_model_adaptation",
+              "package:vllm_omni.common.omni.stage_ownership_and_search",
+              "package:vllm_omni.common.diffusion.production_integration_gates"
+            ],
+            "omissions": [
+              {
+                "ref": "package:vllm_omni.common.omni.stage_ownership_and_search",
+                "reason": "context_limit",
+                "required_bytes": 18293,
+                "available_bytes": 5223
+              },
+              {
+                "ref": "package:inferrsi.ascend.skills.ascend_aclgraph_capture_replay",
+                "reason": "context_limit",
+                "required_bytes": 21720,
+                "available_bytes": 5223
+              },
+              {
+                "ref": "package:inferrsi.ascend.skills.ascend_graph_mode",
+                "reason": "context_limit",
+                "required_bytes": 40736,
+                "available_bytes": 5223
+              },
+              {
+                "ref": "package:inferrsi.common.skills.host_memory_management",
+                "reason": "context_limit",
+                "required_bytes": 69776,
+                "available_bytes": 5223
+              }
+            ],
+            "semantic_sha256": "debbe5eccba8f3d43abc6d089c745c9846324594a7133c0d17b3998203c18d60",
+            "phase_mean_seconds": {
+              "prepare": 1.2508672589901835,
+              "complete": 0.3582125229295343
+            }
+          }
+        }
+      },
+      {
+        "id": "performance",
+        "query": "Single GPU diffusion denoising latency baseline warm requests profiler",
+        "semantics_equal": true,
+        "arms": {
+          "baseline": {
+            "seconds": [
+              1.02975842601154
+            ],
+            "mean_seconds": 1.02975842601154,
+            "median_seconds": 1.02975842601154,
+            "min_seconds": 1.02975842601154,
+            "max_seconds": 1.02975842601154,
+            "chosen": [
+              "ascend-video-diffusion-optimization",
+              "vllm_omni.common.diffusion.measurement_and_profiling",
+              "inference-benchmark-design",
+              "video-diffusion-optimization",
+              "host-overhead-optimization"
+            ],
+            "delivered": [
+              "package:inferrsi.ascend.skills.ascend_video_diffusion_optimization",
+              "package:vllm_omni.common.diffusion.measurement_and_profiling",
+              "package:inferrsi.common.skills.video_diffusion_optimization",
+              "package:inferrsi.common.skills.host_overhead_optimization"
+            ],
+            "omissions": [
+              {
+                "ref": "package:inferrsi.common.skills.inference_benchmark_design",
+                "reason": "context_limit",
+                "required_bytes": 320040,
+                "available_bytes": 93799
+              }
+            ],
+            "semantic_sha256": "09cb1ef264a0f787475d913c9d96badebb8a78526aaaaa7e88173d9a18dd86e7",
+            "phase_mean_seconds": {
+              "corpus": 0.27979253500234336,
+              "find": 0.36680687696207315,
+              "read": 0.3831590140471235
+            }
+          },
+          "before": {
+            "seconds": [
+              6.4483291420619935
+            ],
+            "mean_seconds": 6.4483291420619935,
+            "median_seconds": 6.4483291420619935,
+            "min_seconds": 6.4483291420619935,
+            "max_seconds": 6.4483291420619935,
+            "chosen": [
+              "package:vllm_omni.common.diffusion.measurement_and_profiling",
+              "package:inferrsi.common.skills.performance_ceiling_analysis",
+              "package:inferrsi.cuda.skills.host_overhead_profiling"
+            ],
+            "delivered": [
+              "package:vllm_omni.common.diffusion.measurement_and_profiling",
+              "package:inferrsi.cuda.skills.host_overhead_profiling"
+            ],
+            "omissions": [
+              {
+                "ref": "package:inferrsi.common.skills.performance_ceiling_analysis",
+                "reason": "context_limit",
+                "required_bytes": 213952,
+                "available_bytes": 127041
+              }
+            ],
+            "semantic_sha256": "b47429de92c9fac1aa0521c2068b38e89797158756db960e3bbc2ca655763ebf",
+            "phase_mean_seconds": {
+              "prepare": 2.1805985040264204,
+              "complete": 4.267730638035573
+            }
+          },
+          "after": {
+            "seconds": [
+              1.5576717199292034
+            ],
+            "mean_seconds": 1.5576717199292034,
+            "median_seconds": 1.5576717199292034,
+            "min_seconds": 1.5576717199292034,
+            "max_seconds": 1.5576717199292034,
+            "chosen": [
+              "package:vllm_omni.common.diffusion.measurement_and_profiling",
+              "package:inferrsi.common.skills.performance_ceiling_analysis",
+              "package:inferrsi.cuda.skills.host_overhead_profiling"
+            ],
+            "delivered": [
+              "package:vllm_omni.common.diffusion.measurement_and_profiling",
+              "package:inferrsi.cuda.skills.host_overhead_profiling"
+            ],
+            "omissions": [
+              {
+                "ref": "package:inferrsi.common.skills.performance_ceiling_analysis",
+                "reason": "context_limit",
+                "required_bytes": 213952,
+                "available_bytes": 127041
+              }
+            ],
+            "semantic_sha256": "b47429de92c9fac1aa0521c2068b38e89797158756db960e3bbc2ca655763ebf",
+            "phase_mean_seconds": {
+              "prepare": 1.2540859929285944,
+              "complete": 0.30358572700060904
+            }
+          }
+        }
+      },
+      {
+        "id": "debug",
+        "query": "ROCm GPU hang during CUDA graph capture first failing operator minimal reproduction",
+        "semantics_equal": true,
+        "arms": {
+          "baseline": {
+            "seconds": [
+              0.9010682669468224
+            ],
+            "mean_seconds": 0.9010682669468224,
+            "median_seconds": 0.9010682669468224,
+            "min_seconds": 0.9010682669468224,
+            "max_seconds": 0.9010682669468224,
+            "chosen": [
+              "case.qwen-b300-rejected-directions",
+              "ascend-graph-mode",
+              "pytorch.cuda.compiler.cudagraph_shapes_and_lifetimes",
+              "flashinfer.cuda.llm.paged_decode_dispatch",
+              "ascend-aclgraph-capture-replay"
+            ],
+            "delivered": [
+              "checkout:case.qwen-b300-rejected-directions",
+              "package:inferrsi.ascend.skills.ascend_graph_mode",
+              "package:pytorch.cuda.compiler.cudagraph_shapes_and_lifetimes",
+              "package:flashinfer.cuda.llm.paged_decode_dispatch",
+              "package:inferrsi.ascend.skills.ascend_aclgraph_capture_replay"
+            ],
+            "omissions": [],
+            "semantic_sha256": "d246262cb46be5de692c134f168d45f1d1b7e7b7a0e276a2c7698811d7797f70",
+            "phase_mean_seconds": {
+              "corpus": 0.2802837579511106,
+              "find": 0.23205035901628435,
+              "read": 0.38873414997942746
+            }
+          },
+          "before": {
+            "seconds": [
+              6.813527515041642
+            ],
+            "mean_seconds": 6.813527515041642,
+            "median_seconds": 6.813527515041642,
+            "min_seconds": 6.813527515041642,
+            "max_seconds": 6.813527515041642,
+            "chosen": [
+              "package:inferrsi.common.skills.pytorch",
+              "package:pytorch.cuda.compiler.cudagraph_shapes_and_lifetimes"
+            ],
+            "delivered": [
+              "package:inferrsi.common.skills.pytorch"
+            ],
+            "omissions": [
+              {
+                "ref": "package:inferrsi.common.skills.pytorch",
+                "reason": "context_limit",
+                "required_bytes": 17226,
+                "available_bytes": 4554
+              },
+              {
+                "ref": "package:inferrsi.common.skills.pytorch",
+                "reason": "context_limit",
+                "required_bytes": 15301,
+                "available_bytes": 4554
+              },
+              {
+                "ref": "package:inferrsi.common.skills.pytorch",
+                "reason": "context_limit",
+                "required_bytes": 15206,
+                "available_bytes": 4554
+              },
+              {
+                "ref": "package:pytorch.cuda.compiler.cudagraph_shapes_and_lifetimes",
+                "reason": "context_limit",
+                "required_bytes": 3228,
+                "available_bytes": 1240
+              },
+              {
+                "ref": "package:inferrsi.common.skills.host_memory_management",
+                "reason": "context_limit",
+                "required_bytes": 69776,
+                "available_bytes": 2606
+              },
+              {
+                "ref": "package:inferrsi.common.skills.dcp_async_save_performance",
+                "reason": "context_limit",
+                "required_bytes": 12636,
+                "available_bytes": 2606
+              }
+            ],
+            "semantic_sha256": "f02a90bec2dca13a96fac7e3539980009c8ada8ce5795758a1830087683984e8",
+            "phase_mean_seconds": {
+              "prepare": 2.175605943077244,
+              "complete": 4.637921571964398
+            }
+          },
+          "after": {
+            "seconds": [
+              1.7074921519961208
+            ],
+            "mean_seconds": 1.7074921519961208,
+            "median_seconds": 1.7074921519961208,
+            "min_seconds": 1.7074921519961208,
+            "max_seconds": 1.7074921519961208,
+            "chosen": [
+              "package:inferrsi.common.skills.pytorch",
+              "package:pytorch.cuda.compiler.cudagraph_shapes_and_lifetimes"
+            ],
+            "delivered": [
+              "package:inferrsi.common.skills.pytorch"
+            ],
+            "omissions": [
+              {
+                "ref": "package:inferrsi.common.skills.pytorch",
+                "reason": "context_limit",
+                "required_bytes": 17226,
+                "available_bytes": 4554
+              },
+              {
+                "ref": "package:inferrsi.common.skills.pytorch",
+                "reason": "context_limit",
+                "required_bytes": 15301,
+                "available_bytes": 4554
+              },
+              {
+                "ref": "package:inferrsi.common.skills.pytorch",
+                "reason": "context_limit",
+                "required_bytes": 15206,
+                "available_bytes": 4554
+              },
+              {
+                "ref": "package:pytorch.cuda.compiler.cudagraph_shapes_and_lifetimes",
+                "reason": "context_limit",
+                "required_bytes": 3228,
+                "available_bytes": 1240
+              },
+              {
+                "ref": "package:inferrsi.common.skills.host_memory_management",
+                "reason": "context_limit",
+                "required_bytes": 69776,
+                "available_bytes": 2606
+              },
+              {
+                "ref": "package:inferrsi.common.skills.dcp_async_save_performance",
+                "reason": "context_limit",
+                "required_bytes": 12636,
+                "available_bytes": 2606
+              }
+            ],
+            "semantic_sha256": "f02a90bec2dca13a96fac7e3539980009c8ada8ce5795758a1830087683984e8",
+            "phase_mean_seconds": {
+              "prepare": 1.2585058689583093,
+              "complete": 0.4489862830378115
+            }
+          }
+        }
+      },
+      {
+        "id": "accuracy",
+        "query": "TTS 新版本音质下降 对齐参考实现 逐层精度回归",
+        "semantics_equal": true,
+        "arms": {
+          "baseline": {
+            "seconds": [
+              0.8123974310001358
+            ],
+            "mean_seconds": 0.8123974310001358,
+            "median_seconds": 0.8123974310001358,
+            "min_seconds": 0.8123974310001358,
+            "max_seconds": 0.8123974310001358,
+            "chosen": [
+              "inference-benchmark-design",
+              "qwen3_tts_engine.ascend.audio.fixed_customvoice_prompt",
+              "qwen3_tts_engine.ascend.audio.codec_constants_and_state",
+              "qwen3_tts_engine.ascend.audio.graph_batching_state_ownership",
+              "torch-npu"
+            ],
+            "delivered": [
+              "package:qwen3_tts_engine.ascend.audio.fixed_customvoice_prompt",
+              "package:qwen3_tts_engine.ascend.audio.codec_constants_and_state",
+              "package:qwen3_tts_engine.ascend.audio.graph_batching_state_ownership",
+              "package:inferrsi.ascend.skills.torch_npu"
+            ],
+            "omissions": [
+              {
+                "ref": "package:inferrsi.common.skills.inference_benchmark_design",
+                "reason": "context_limit",
+                "required_bytes": 320040,
+                "available_bytes": 131072
+              }
+            ],
+            "semantic_sha256": "83b9da0018d7e3a2da7f026f186ac30ea44955998e9311082fd575e28fd87b43",
+            "phase_mean_seconds": {
+              "corpus": 0.2821766579290852,
+              "find": 0.21421525301411748,
+              "read": 0.31600552005693316
+            }
+          },
+          "before": {
+            "seconds": [
+              6.571420093998313
+            ],
+            "mean_seconds": 6.571420093998313,
+            "median_seconds": 6.571420093998313,
+            "min_seconds": 6.571420093998313,
+            "max_seconds": 6.571420093998313,
+            "chosen": [
+              "package:inferrsi.common.skills.inference_benchmark_design",
+              "package:sglang_omni.common.audio.serving_and_streaming_quality",
+              "package:vllm_omni.common.audio.streaming_serving_measurement"
+            ],
+            "delivered": [
+              "package:sglang_omni.common.audio.serving_and_streaming_quality",
+              "package:vllm_omni.common.audio.streaming_serving_measurement"
+            ],
+            "omissions": [
+              {
+                "ref": "package:inferrsi.common.skills.inference_benchmark_design",
+                "reason": "context_limit",
+                "required_bytes": 320040,
+                "available_bytes": 131072
+              },
+              {
+                "ref": "package:vllm_omni.common.audio.streaming_serving_measurement",
+                "reason": "context_limit",
+                "required_bytes": 17749,
+                "available_bytes": 10163
+              }
+            ],
+            "semantic_sha256": "485aeede678a918a7805641bc8eb047bac9f097987f9f5846a96e209a0555861",
+            "phase_mean_seconds": {
+              "prepare": 2.191702233045362,
+              "complete": 4.379717860952951
+            }
+          },
+          "after": {
+            "seconds": [
+              1.5982201480073854
+            ],
+            "mean_seconds": 1.5982201480073854,
+            "median_seconds": 1.5982201480073854,
+            "min_seconds": 1.5982201480073854,
+            "max_seconds": 1.5982201480073854,
+            "chosen": [
+              "package:inferrsi.common.skills.inference_benchmark_design",
+              "package:sglang_omni.common.audio.serving_and_streaming_quality",
+              "package:vllm_omni.common.audio.streaming_serving_measurement"
+            ],
+            "delivered": [
+              "package:sglang_omni.common.audio.serving_and_streaming_quality",
+              "package:vllm_omni.common.audio.streaming_serving_measurement"
+            ],
+            "omissions": [
+              {
+                "ref": "package:inferrsi.common.skills.inference_benchmark_design",
+                "reason": "context_limit",
+                "required_bytes": 320040,
+                "available_bytes": 131072
+              },
+              {
+                "ref": "package:vllm_omni.common.audio.streaming_serving_measurement",
+                "reason": "context_limit",
+                "required_bytes": 17749,
+                "available_bytes": 10163
+              }
+            ],
+            "semantic_sha256": "485aeede678a918a7805641bc8eb047bac9f097987f9f5846a96e209a0555861",
+            "phase_mean_seconds": {
+              "prepare": 1.2524414700455964,
+              "complete": 0.34577867796178907
+            }
+          }
+        }
+      },
+      {
+        "id": "version-alignment",
+        "query": "Align vllm-omni vllm-ascend and afd-plugin versions after upgrading vLLM",
+        "semantics_equal": true,
+        "arms": {
+          "baseline": {
+            "seconds": [
+              1.0129107459215447
+            ],
+            "mean_seconds": 1.0129107459215447,
+            "median_seconds": 1.0129107459215447,
+            "min_seconds": 1.0129107459215447,
+            "max_seconds": 1.0129107459215447,
+            "chosen": [
+              "vllm-ascend",
+              "vllm-metal",
+              "vllm_omni.ascend.diffusion.minimax_h3_reference_kv_reuse",
+              "ascend-model-adaptation",
+              "audit-afd-p2p-exchanges"
+            ],
+            "delivered": [
+              "package:inferrsi.ascend.skills.vllm_ascend"
+            ],
+            "omissions": [
+              {
+                "ref": "package:inferrsi.common.skills.vllm_metal",
+                "reason": "context_limit",
+                "required_bytes": 28273,
+                "available_bytes": 822
+              },
+              {
+                "ref": "package:vllm_omni.ascend.diffusion.minimax_h3_reference_kv_reuse",
+                "reason": "context_limit",
+                "required_bytes": 3601,
+                "available_bytes": 822
+              },
+              {
+                "ref": "package:inferrsi.ascend.skills.ascend_model_adaptation",
+                "reason": "context_limit",
+                "required_bytes": 12461,
+                "available_bytes": 822
+              },
+              {
+                "ref": "package:inferrsi.cuda.skills.audit_afd_p2p_exchanges",
+                "reason": "context_limit",
+                "required_bytes": 77206,
+                "available_bytes": 822
+              }
+            ],
+            "semantic_sha256": "ba231cbfa43bc2ff062dd42ecdfb32b4921a2885cb95938cedd5ade1cb9423eb",
+            "phase_mean_seconds": {
+              "corpus": 0.281235622940585,
+              "find": 0.35323416301980615,
+              "read": 0.37844095996115357
+            }
+          },
+          "before": {
+            "seconds": [
+              6.67022472305689
+            ],
+            "mean_seconds": 6.67022472305689,
+            "median_seconds": 6.67022472305689,
+            "min_seconds": 6.67022472305689,
+            "max_seconds": 6.67022472305689,
+            "chosen": [
+              "package:inferrsi.common.skills.repository_evolution_analysis",
+              "package:inferrsi.ascend.skills.vllm_ascend",
+              "package:inferrsi.ascend.skills.torch_npu"
+            ],
+            "delivered": [
+              "package:inferrsi.common.skills.repository_evolution_analysis",
+              "package:inferrsi.ascend.skills.vllm_ascend"
+            ],
+            "omissions": [
+              {
+                "ref": "package:inferrsi.ascend.skills.vllm_ascend",
+                "reason": "context_limit",
+                "required_bytes": 21756,
+                "available_bytes": 9828
+              },
+              {
+                "ref": "package:inferrsi.ascend.skills.torch_npu",
+                "reason": "context_limit",
+                "required_bytes": 89293,
+                "available_bytes": 436
+              }
+            ],
+            "semantic_sha256": "86d7011f9c659c594a91a2b5c8048d2e75e0b3e292f63d5723aca1419067f965",
+            "phase_mean_seconds": {
+              "prepare": 2.184484635014087,
+              "complete": 4.485740088042803
+            }
+          },
+          "after": {
+            "seconds": [
+              1.6182610710384324
+            ],
+            "mean_seconds": 1.6182610710384324,
+            "median_seconds": 1.6182610710384324,
+            "min_seconds": 1.6182610710384324,
+            "max_seconds": 1.6182610710384324,
+            "chosen": [
+              "package:inferrsi.common.skills.repository_evolution_analysis",
+              "package:inferrsi.ascend.skills.vllm_ascend",
+              "package:inferrsi.ascend.skills.torch_npu"
+            ],
+            "delivered": [
+              "package:inferrsi.common.skills.repository_evolution_analysis",
+              "package:inferrsi.ascend.skills.vllm_ascend"
+            ],
+            "omissions": [
+              {
+                "ref": "package:inferrsi.ascend.skills.vllm_ascend",
+                "reason": "context_limit",
+                "required_bytes": 21756,
+                "available_bytes": 9828
+              },
+              {
+                "ref": "package:inferrsi.ascend.skills.torch_npu",
+                "reason": "context_limit",
+                "required_bytes": 89293,
+                "available_bytes": 436
+              }
+            ],
+            "semantic_sha256": "86d7011f9c659c594a91a2b5c8048d2e75e0b3e292f63d5723aca1419067f965",
+            "phase_mean_seconds": {
+              "prepare": 1.2610979260643944,
+              "complete": 0.357163144974038
+            }
+          }
+        }
+      },
+      {
+        "id": "derived-engine",
+        "query": "Bring a vLLM forked inference engine up on DeepInfer and reuse scheduling components",
+        "semantics_equal": true,
+        "arms": {
+          "baseline": {
+            "seconds": [
+              0.7677416449878365
+            ],
+            "mean_seconds": 0.7677416449878365,
+            "median_seconds": 0.7677416449878365,
+            "min_seconds": 0.7677416449878365,
+            "max_seconds": 0.7677416449878365,
+            "chosen": [
+              "deepinfer.common.llm.zero_overhead_deferred_scheduling",
+              "deepinfer.common.llm.bounded_windowed_replay",
+              "vllm-metal",
+              "host-overhead-optimization",
+              "deepinfer.common.llm.speculative_verification_budget"
+            ],
+            "delivered": [
+              "package:deepinfer.common.llm.zero_overhead_deferred_scheduling",
+              "package:deepinfer.common.llm.bounded_windowed_replay",
+              "package:inferrsi.common.skills.vllm_metal",
+              "package:inferrsi.common.skills.host_overhead_optimization"
+            ],
+            "omissions": [
+              {
+                "ref": "package:deepinfer.common.llm.speculative_verification_budget",
+                "reason": "context_limit",
+                "required_bytes": 9235,
+                "available_bytes": 829
+              }
+            ],
+            "semantic_sha256": "6d8507dc5f5d454c700168881ceba034b487dc9c14f0eee479a4e6e22c4a243e",
+            "phase_mean_seconds": {
+              "corpus": 0.28137710702139884,
+              "find": 0.1806154060177505,
+              "read": 0.30574913194868714
+            }
+          },
+          "before": {
+            "seconds": [
+              6.684431963018142
+            ],
+            "mean_seconds": 6.684431963018142,
+            "median_seconds": 6.684431963018142,
+            "min_seconds": 6.684431963018142,
+            "max_seconds": 6.684431963018142,
+            "chosen": [
+              "package:deepinfer.common.llm.zero_overhead_deferred_scheduling",
+              "package:vllm.common.llm.runtime_and_kv_ownership",
+              "package:vllm.common.llm.extension_correctness_gates",
+              "package:inferrsi.common.skills.repository_evolution_analysis"
+            ],
+            "delivered": [
+              "package:deepinfer.common.llm.zero_overhead_deferred_scheduling",
+              "package:vllm.common.llm.runtime_and_kv_ownership",
+              "package:vllm.common.llm.extension_correctness_gates",
+              "package:inferrsi.common.skills.repository_evolution_analysis"
+            ],
+            "omissions": [
+              {
+                "ref": "package:vllm.common.llm.extension_correctness_gates",
+                "reason": "context_limit",
+                "required_bytes": 20679,
+                "available_bytes": 4784
+              },
+              {
+                "ref": "package:inferrsi.common.skills.repository_evolution_analysis",
+                "reason": "context_limit",
+                "required_bytes": 5213,
+                "available_bytes": 1937
+              }
+            ],
+            "semantic_sha256": "4cfbdd6dd5f7c725b1abe03f4ec5fba11c0392d936b09bfdcfdc89500656bde9",
+            "phase_mean_seconds": {
+              "prepare": 2.1758137680590153,
+              "complete": 4.508618194959126
+            }
+          },
+          "after": {
+            "seconds": [
+              1.6188758669886738
+            ],
+            "mean_seconds": 1.6188758669886738,
+            "median_seconds": 1.6188758669886738,
+            "min_seconds": 1.6188758669886738,
+            "max_seconds": 1.6188758669886738,
+            "chosen": [
+              "package:deepinfer.common.llm.zero_overhead_deferred_scheduling",
+              "package:vllm.common.llm.runtime_and_kv_ownership",
+              "package:vllm.common.llm.extension_correctness_gates",
+              "package:inferrsi.common.skills.repository_evolution_analysis"
+            ],
+            "delivered": [
+              "package:deepinfer.common.llm.zero_overhead_deferred_scheduling",
+              "package:vllm.common.llm.runtime_and_kv_ownership",
+              "package:vllm.common.llm.extension_correctness_gates",
+              "package:inferrsi.common.skills.repository_evolution_analysis"
+            ],
+            "omissions": [
+              {
+                "ref": "package:vllm.common.llm.extension_correctness_gates",
+                "reason": "context_limit",
+                "required_bytes": 20679,
+                "available_bytes": 4784
+              },
+              {
+                "ref": "package:inferrsi.common.skills.repository_evolution_analysis",
+                "reason": "context_limit",
+                "required_bytes": 5213,
+                "available_bytes": 1937
+              }
+            ],
+            "semantic_sha256": "4cfbdd6dd5f7c725b1abe03f4ec5fba11c0392d936b09bfdcfdc89500656bde9",
+            "phase_mean_seconds": {
+              "prepare": 1.2538786170771345,
+              "complete": 0.36499724991153926
+            }
+          }
+        }
+      },
+      {
+        "id": "independent-engine",
+        "query": "Build an independent inference engine for an on-device model on Windows XPU",
+        "semantics_equal": true,
+        "arms": {
+          "baseline": {
+            "seconds": [
+              1.2324017669307068
+            ],
+            "mean_seconds": 1.2324017669307068,
+            "median_seconds": 1.2324017669307068,
+            "min_seconds": 1.2324017669307068,
+            "max_seconds": 1.2324017669307068,
+            "chosen": [
+              "inference-benchmark-design",
+              "project-maya",
+              "weight-loading-optimization",
+              "strata.common.llm.engine_validation_contract",
+              "cann-attribution-overlap"
+            ],
+            "delivered": [
+              "package:inferrsi.common.skills.project_maya",
+              "package:strata.common.llm.engine_validation_contract",
+              "package:inferrsi.ascend.skills.cann_attribution_overlap"
+            ],
+            "omissions": [
+              {
+                "ref": "package:inferrsi.common.skills.inference_benchmark_design",
+                "reason": "context_limit",
+                "required_bytes": 320040,
+                "available_bytes": 131072
+              },
+              {
+                "ref": "package:inferrsi.common.skills.weight_loading_optimization",
+                "reason": "context_limit",
+                "required_bytes": 74132,
+                "available_bytes": 28085
+              }
+            ],
+            "semantic_sha256": "8757818fe9b6ae69ca601102e3946696dd235de3f4fba99cec17955d61cfdd5f",
+            "phase_mean_seconds": {
+              "corpus": 0.2800436819670722,
+              "find": 0.5482033430598676,
+              "read": 0.404154741903767
+            }
+          },
+          "before": {
+            "seconds": [
+              6.856842723907903
+            ],
+            "mean_seconds": 6.856842723907903,
+            "median_seconds": 6.856842723907903,
+            "min_seconds": 6.856842723907903,
+            "max_seconds": 6.856842723907903,
+            "chosen": [
+              "package:inferrsi.common.skills.inference_benchmark_design",
+              "package:inferrsi.common.skills.kernel_writing_guide",
+              "package:inferrsi.common.skills.claim_contract"
+            ],
+            "delivered": [
+              "package:inferrsi.common.skills.kernel_writing_guide",
+              "package:inferrsi.common.skills.claim_contract"
+            ],
+            "omissions": [
+              {
+                "ref": "package:inferrsi.common.skills.inference_benchmark_design",
+                "reason": "context_limit",
+                "required_bytes": 320040,
+                "available_bytes": 131072
+              },
+              {
+                "ref": "package:inferrsi.common.skills.kernel_writing_guide",
+                "reason": "context_limit",
+                "required_bytes": 3692,
+                "available_bytes": 2564
+              },
+              {
+                "ref": "checkout:case.vllm-gdn-source-contract",
+                "reason": "context_limit",
+                "required_bytes": 27471,
+                "available_bytes": 2564
+              },
+              {
+                "ref": "checkout:case.sglang-gdn-source-contract",
+                "reason": "context_limit",
+                "required_bytes": 13047,
+                "available_bytes": 2564
+              },
+              {
+                "ref": "package:inferrsi.cuda.skills.diagnose_attention_bottlenecks",
+                "reason": "context_limit",
+                "required_bytes": 56835,
+                "available_bytes": 2564
+              }
+            ],
+            "semantic_sha256": "84fc03fa5aeb2ae33da85751b7d9d16ab65d93bddba3e21631a59ead7ba8207b",
+            "phase_mean_seconds": {
+              "prepare": 2.157200802001171,
+              "complete": 4.699641921906732
+            }
+          },
+          "after": {
+            "seconds": [
+              1.653599693090655
+            ],
+            "mean_seconds": 1.653599693090655,
+            "median_seconds": 1.653599693090655,
+            "min_seconds": 1.653599693090655,
+            "max_seconds": 1.653599693090655,
+            "chosen": [
+              "package:inferrsi.common.skills.inference_benchmark_design",
+              "package:inferrsi.common.skills.kernel_writing_guide",
+              "package:inferrsi.common.skills.claim_contract"
+            ],
+            "delivered": [
+              "package:inferrsi.common.skills.kernel_writing_guide",
+              "package:inferrsi.common.skills.claim_contract"
+            ],
+            "omissions": [
+              {
+                "ref": "package:inferrsi.common.skills.inference_benchmark_design",
+                "reason": "context_limit",
+                "required_bytes": 320040,
+                "available_bytes": 131072
+              },
+              {
+                "ref": "package:inferrsi.common.skills.kernel_writing_guide",
+                "reason": "context_limit",
+                "required_bytes": 3692,
+                "available_bytes": 2564
+              },
+              {
+                "ref": "checkout:case.vllm-gdn-source-contract",
+                "reason": "context_limit",
+                "required_bytes": 27471,
+                "available_bytes": 2564
+              },
+              {
+                "ref": "checkout:case.sglang-gdn-source-contract",
+                "reason": "context_limit",
+                "required_bytes": 13047,
+                "available_bytes": 2564
+              },
+              {
+                "ref": "package:inferrsi.cuda.skills.diagnose_attention_bottlenecks",
+                "reason": "context_limit",
+                "required_bytes": 56835,
+                "available_bytes": 2564
+              }
+            ],
+            "semantic_sha256": "84fc03fa5aeb2ae33da85751b7d9d16ab65d93bddba3e21631a59ead7ba8207b",
+            "phase_mean_seconds": {
+              "prepare": 1.2647524010390043,
+              "complete": 0.3888472920516506
+            }
+          }
+        }
+      },
+      {
+        "id": "round1:qwen_b300_applicable",
+        "query": "Has Qwen Image QK normalization and complex RoPE fusion been tried on four B300s, and what happened to speed and full-image quality?",
+        "semantics_equal": true,
+        "arms": {
+          "baseline": {
+            "seconds": [
+              0.9587633719202131
+            ],
+            "mean_seconds": 0.9587633719202131,
+            "median_seconds": 0.9587633719202131,
+            "min_seconds": 0.9587633719202131,
+            "max_seconds": 0.9587633719202131,
+            "chosen": [
+              "case.qwen-b300-rejected-directions",
+              "vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i",
+              "case.qwen-ascend-rejected-directions",
+              "vllm_omni.cuda.diffusion.minimax_h3_qk_norm_rope",
+              "inference-benchmark-design"
+            ],
+            "delivered": [
+              "checkout:case.qwen-b300-rejected-directions",
+              "package:vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i",
+              "checkout:case.qwen-ascend-rejected-directions",
+              "package:vllm_omni.cuda.diffusion.minimax_h3_qk_norm_rope"
+            ],
+            "omissions": [
+              {
+                "ref": "package:inferrsi.common.skills.inference_benchmark_design",
+                "reason": "context_limit",
+                "required_bytes": 320040,
+                "available_bytes": 107546
+              }
+            ],
+            "semantic_sha256": "7dbfc4e9d770007a3427b80ec973400474f1af840b480b2df9a9ceb950e13efb",
+            "phase_mean_seconds": {
+              "corpus": 0.2812198529718444,
+              "find": 0.23374610301107168,
+              "read": 0.44379741593729705
+            }
+          },
+          "before": {
+            "seconds": [
+              6.463378289947286
+            ],
+            "mean_seconds": 6.463378289947286,
+            "median_seconds": 6.463378289947286,
+            "min_seconds": 6.463378289947286,
+            "max_seconds": 6.463378289947286,
+            "chosen": [
+              "checkout:case.qwen-b300-rejected-directions",
+              "package:inferrsi.common.skills.inference_benchmark_design"
+            ],
+            "delivered": [
+              "checkout:case.qwen-b300-rejected-directions"
+            ],
+            "omissions": [
+              {
+                "ref": "package:inferrsi.common.skills.inference_benchmark_design",
+                "reason": "context_limit",
+                "required_bytes": 320040,
+                "available_bytes": 123393
+              }
+            ],
+            "semantic_sha256": "2feff923899c3a2c3d7f2ca262a51805cb84f7c6f8cab66dfc8baa2dc45881ff",
+            "phase_mean_seconds": {
+              "prepare": 2.1768688750453293,
+              "complete": 4.286509414901957
+            }
+          },
+          "after": {
+            "seconds": [
+              1.5533228950807825
+            ],
+            "mean_seconds": 1.5533228950807825,
+            "median_seconds": 1.5533228950807825,
+            "min_seconds": 1.5533228950807825,
+            "max_seconds": 1.5533228950807825,
+            "chosen": [
+              "checkout:case.qwen-b300-rejected-directions",
+              "package:inferrsi.common.skills.inference_benchmark_design"
+            ],
+            "delivered": [
+              "checkout:case.qwen-b300-rejected-directions"
+            ],
+            "omissions": [
+              {
+                "ref": "package:inferrsi.common.skills.inference_benchmark_design",
+                "reason": "context_limit",
+                "required_bytes": 320040,
+                "available_bytes": 123393
+              }
+            ],
+            "semantic_sha256": "2feff923899c3a2c3d7f2ca262a51805cb84f7c6f8cab66dfc8baa2dc45881ff",
+            "phase_mean_seconds": {
+              "prepare": 1.2551462600240484,
+              "complete": 0.2981766350567341
+            }
+          }
+        }
+      },
+      {
+        "id": "round1:qwen_ascend_mismatch",
+        "query": "Has RoPE cosine and sine caching been tried for Qwen Image on one Ascend 910B1 with BF16 eager execution, and what happened?",
+        "semantics_equal": true,
+        "arms": {
+          "baseline": {
+            "seconds": [
+              1.067768657929264
+            ],
+            "mean_seconds": 1.067768657929264,
+            "median_seconds": 1.067768657929264,
+            "min_seconds": 1.067768657929264,
+            "max_seconds": 1.067768657929264,
+            "chosen": [
+              "vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i",
+              "case.qwen-ascend-rejected-directions",
+              "case.qwen-b300-rejected-directions",
+              "ascend-graph-mode",
+              "ascend-model-adaptation"
+            ],
+            "delivered": [
+              "package:vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i",
+              "checkout:case.qwen-ascend-rejected-directions",
+              "checkout:case.qwen-b300-rejected-directions",
+              "package:inferrsi.ascend.skills.ascend_graph_mode",
+              "package:inferrsi.ascend.skills.ascend_model_adaptation"
+            ],
+            "omissions": [],
+            "semantic_sha256": "029adce57a12c2ada8ef21b30c506d83d0b675ee77e4ab92cdf5dd5c97541938",
+            "phase_mean_seconds": {
+              "corpus": 0.28179831802845,
+              "find": 0.29075646097771823,
+              "read": 0.49521387892309576
+            }
+          },
+          "before": {
+            "seconds": [
+              6.501931084902026
+            ],
+            "mean_seconds": 6.501931084902026,
+            "median_seconds": 6.501931084902026,
+            "min_seconds": 6.501931084902026,
+            "max_seconds": 6.501931084902026,
+            "chosen": [
+              "checkout:case.qwen-ascend-rejected-directions",
+              "package:vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i"
+            ],
+            "delivered": [
+              "checkout:case.qwen-ascend-rejected-directions",
+              "package:vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i"
+            ],
+            "omissions": [],
+            "semantic_sha256": "34061c44a7e4775e990ba580efe76adeb10c27af710db3b95d7629dc68064655",
+            "phase_mean_seconds": {
+              "prepare": 2.2025540649192408,
+              "complete": 4.299377019982785
+            }
+          },
+          "after": {
+            "seconds": [
+              1.5689905140316114
+            ],
+            "mean_seconds": 1.5689905140316114,
+            "median_seconds": 1.5689905140316114,
+            "min_seconds": 1.5689905140316114,
+            "max_seconds": 1.5689905140316114,
+            "chosen": [
+              "checkout:case.qwen-ascend-rejected-directions",
+              "package:vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i"
+            ],
+            "delivered": [
+              "checkout:case.qwen-ascend-rejected-directions",
+              "package:vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i"
+            ],
+            "omissions": [],
+            "semantic_sha256": "34061c44a7e4775e990ba580efe76adeb10c27af710db3b95d7629dc68064655",
+            "phase_mean_seconds": {
+              "prepare": 1.2866432419978082,
+              "complete": 0.28234727203380316
+            }
+          }
+        }
+      },
+      {
+        "id": "round1:qwen_gate_sufficient",
+        "query": "Can a candidate that failed the confirmed full-image quality gate be accepted because its operator test passed?",
+        "semantics_equal": true,
+        "arms": {
+          "baseline": {
+            "seconds": [
+              1.0791169139556587
+            ],
+            "mean_seconds": 1.0791169139556587,
+            "median_seconds": 1.0791169139556587,
+            "min_seconds": 1.0791169139556587,
+            "max_seconds": 1.0791169139556587,
+            "chosen": [
+              "case.qwen-b300-rejected-directions",
+              "inference-benchmark-design",
+              "case.drama3-rejected-directions",
+              "vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i",
+              "ascend-operator-tuning"
+            ],
+            "delivered": [
+              "checkout:case.qwen-b300-rejected-directions",
+              "checkout:case.drama3-rejected-directions",
+              "package:vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i",
+              "package:inferrsi.ascend.skills.ascend_operator_tuning"
+            ],
+            "omissions": [
+              {
+                "ref": "package:inferrsi.common.skills.inference_benchmark_design",
+                "reason": "context_limit",
+                "required_bytes": 320040,
+                "available_bytes": 123393
+              }
+            ],
+            "semantic_sha256": "6e804e5e7a215b4b1b1a43e63e137f3d2d0f3c774404789c4110538253f81a7d",
+            "phase_mean_seconds": {
+              "corpus": 0.28047299198806286,
+              "find": 0.31205200706608593,
+              "read": 0.4865919149015099
+            }
+          },
+          "before": {
+            "seconds": [
+              6.33722518500872
+            ],
+            "mean_seconds": 6.33722518500872,
+            "median_seconds": 6.33722518500872,
+            "min_seconds": 6.33722518500872,
+            "max_seconds": 6.33722518500872,
+            "chosen": [],
+            "delivered": [],
+            "omissions": [],
+            "semantic_sha256": "831de9e784451815a3d3f9ea99966a2f1f68175fc2c52384f7fda7dc4f9c4c43",
+            "phase_mean_seconds": {
+              "prepare": 2.2035818620352075,
+              "complete": 4.133643322973512
+            }
+          },
+          "after": {
+            "seconds": [
+              1.5003354609943926
+            ],
+            "mean_seconds": 1.5003354609943926,
+            "median_seconds": 1.5003354609943926,
+            "min_seconds": 1.5003354609943926,
+            "max_seconds": 1.5003354609943926,
+            "chosen": [],
+            "delivered": [],
+            "omissions": [],
+            "semantic_sha256": "831de9e784451815a3d3f9ea99966a2f1f68175fc2c52384f7fda7dc4f9c4c43",
+            "phase_mean_seconds": {
+              "prepare": 1.2593720000004396,
+              "complete": 0.24096346099395305
+            }
+          }
+        }
+      }
+    ],
+    "retained_selections_file": "selections.json",
+    "retained_selections_sha256": "8f816151faccbac09f4533b036517425319777fdb75f62863178cf9f4144aa89"
+  },
+  "validation": {
+    "pytest": "236 passed, 2 skipped, 2 subtests passed",
+    "ruff": "src tests tools passed",
+    "diff_check": "passed",
+    "review": {
+      "verdict": "PASS",
+      "scope": "Internal independent read-only code review; not a formal GitHub approval",
+      "base": "3f6d5d32ff42e5fbab1644988d28f02fd0d499c0",
+      "reviewed_diff_sha256": "fd61754686866ae7cadd45be7da2cbc79b4f8c36acaf99d1ed56d7818881743a",
+      "independent_tests": "13 passed, 66 deselected",
+      "files_sha256": {
+        "src/inferrsi/knowledge/catalog_selection.py": "c9a5f0fef8cd086ec2b0ec091598441e6c8ab2338921a36a2833fd4503ad8784",
+        "src/inferrsi/knowledge/knowledge_operations.py": "1eb84a8721e762a3e1db51aedc17f78ad5fa3e482817c110f235371304242afe",
+        "tests/test_catalog_selection.py": "931720c80a74a0d3fa1e7c6d80ee9883ed9f1d6413fcf9d20467f71813b9ad6e",
+        "tests/test_knowledge_operations.py": "6d59727756db2c2952c9065d48616b2af16938429c949eee6580880c87e84003"
+      }
+    }
+  },
+  "attempts": [
+    {
+      "revision": "73ec67d766758dbf56f2dfcbca5b86f23b501755",
+      "status": "serialization_error",
+      "detail": "The first timing attempt stopped while serializing the legacy Find assembly string; no comparable measurement was emitted. The raw failure is retained locally. The timing adapter was corrected without changing retrieval code or Agent choices."
+    },
+    {
+      "revision": "fc6c144a60c56781a04eadf92a530ec9a557defb",
+      "status": "completed",
+      "qwen_samples_per_arm": 5,
+      "fixed_queries_per_arm": 10
+    }
+  ],
+  "limitations": [
+    "Fresh interpreter per sample; OS page cache uncontrolled; one host",
+    "Retained Agent choices replayed without new model calls; no independent history-isolated selection",
+    "Imports, tokenizer initialization, process startup, output serialization and Agent selection excluded",
+    "No external registry/cann-bot calls; no device optimization or achieved Qwen 1.35x claim",
+    "Raw per-sample timing files and manifests retained locally; all latency samples and reproducible runner are included in this report/repository",
+    "Full repository suite was not rerun; previously reproduced baseline environment failures remain documented in README.md"
+  ]
+}
