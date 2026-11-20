@@ -551,7 +551,8 @@
       "tests/apps/test_apps_knowledge.py",
       "tests/harness/test_harness_generation_seal.py",
       "tests/knowledge/test_catalog_selection.py",
-      "tools/compare_catalog_selection.py"
+      "tools/compare_catalog_selection.py",
+      "tools/time_catalog_selection.py"
     ],
     "status": "retired",
     "first_removal_version": "0.3.4"
