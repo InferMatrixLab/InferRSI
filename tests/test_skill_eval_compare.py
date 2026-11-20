@@ -1014,9 +1014,9 @@ def test_changed_runtime_controllers_reject_execution_and_report_without_calls(t
     assert "src/inferrsi/apps/integrations/anthropic/request_guard.py" in module.CONTROLLERS
     assert "tools/skill_eval_artifact_guidance.py" in module.CONTROLLERS
     # Each owner of the split trial path is frozen: composed entry, rules and host.
-    for owner in ("apps", "benchmark", "harness"):
+    for owner in ("apps/workflows", "benchmark", "harness"):
         assert f"src/inferrsi/{owner}/skill_evaluation.py" in module.CONTROLLERS
-    for name in ("apps/skill_eval_engineering.py", "benchmark/skill_eval_engineering.py",
+    for name in ("apps/workflows/skill_eval_engineering.py", "benchmark/skill_eval_engineering.py",
                  "benchmark/skill_eval_diagnostic.py", "harness/artifact_sandbox.py",
                  "harness/atomic_json.py", "harness/input_binding.py"):
         assert "src/inferrsi/" + name in module.CONTROLLERS

@@ -13,7 +13,12 @@ import time
 from pathlib import Path
 
 from inferrsi.apps.artifacts import sha256, write_json
-from inferrsi.apps.improvement import assessment, choose, holdout_accepts, rerun_assessment
+from inferrsi.apps.workflows.improvement import (
+    assessment,
+    choose,
+    holdout_accepts,
+    rerun_assessment,
+)
 from inferrsi.benchmark.improvement import SelectionPolicy
 from inferrsi.harness.skill_evaluation import CodexClient
 from inferrsi.harness.usage import usage_totals
@@ -21,7 +26,8 @@ from inferrsi.knowledge.knowledge_operations import KnowledgeReader, safe_path
 from tools import skill_eval_compare as compare
 
 CONTROLLERS = (*compare.CONTROLLERS, "tools/skill_eval_improve.py",
-               "src/inferrsi/apps/improvement.py", "src/inferrsi/benchmark/improvement.py",
+               "src/inferrsi/apps/workflows/improvement.py",
+               "src/inferrsi/benchmark/improvement.py",
                "src/inferrsi/harness/improvement.py")
 
 

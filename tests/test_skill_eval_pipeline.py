@@ -9,7 +9,7 @@ from pathlib import Path
 import pytest
 
 from inferrsi.apps.artifacts import atomic_write_json, sha256
-from inferrsi.apps.skill_evaluation import run_trial, summarize
+from inferrsi.apps.workflows.skill_evaluation import run_trial, summarize
 from tools import skill_eval_pilot
 
 ROOT = Path(__file__).resolve().parents[1]

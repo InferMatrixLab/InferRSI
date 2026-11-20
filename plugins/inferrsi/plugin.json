@@ -4,6 +4,7 @@
   "version": "0.1.0",
   "description": "Research inference optimizations and prepare, run and inspect evidence-based comparisons.",
   "author": {"name": "InferMatrixLab"},
+  "homepage": "https://github.com/InferMatrixLab/InferRSI",
   "repository": "https://github.com/InferMatrixLab/InferRSI",
   "license": "Apache-2.0",
   "extensions": {
@@ -14,6 +15,9 @@
         "displayName": "InferRSI",
         "shortDescription": "Inference research and checks",
         "developerName": "InferMatrixLab",
+        "websiteURL": "https://github.com/InferMatrixLab/InferRSI",
+        "logo": "./assets/infermatrix-icon.png",
+        "composerIcon": "./assets/infermatrix-icon.png",
         "category": "Productivity",
         "defaultPrompt": [
           "Use InferRSI to research an inference bottleneck in this repository.",

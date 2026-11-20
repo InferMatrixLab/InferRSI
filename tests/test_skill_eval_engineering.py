@@ -1,5 +1,6 @@
 import copy
 import json
+import os
 import signal
 import subprocess
 import sys
@@ -8,13 +9,33 @@ from unittest import mock
 
 import pytest
 
-from inferrsi.apps import skill_eval_engineering as artifact_check
+from inferrsi.apps.workflows import skill_eval_engineering as artifact_check
 from inferrsi.benchmark import skill_eval_engineering as engineering
 from inferrsi.harness import artifact_sandbox as sandbox
 
 TASK = {"id": "serving-parser", "split": "development", "request": engineering.REQUEST,
         "provenance": "Reconstructed public regression fixture"}
 ANSWER = {"artifact": "parser.py", "summary": "Repair", "artifact_source": engineering.STARTER}
+
+
+@pytest.mark.parametrize("module", [
+    "inferrsi.apps.skill_eval_engineering", "inferrsi.apps.workflows.skill_eval_engineering",
+])
+@pytest.mark.parametrize("by_file", [False, True])
+def test_old_and_canonical_script_entries_write_the_same_result(tmp_path, module, by_file):
+    task, output, result = (tmp_path / name for name in ("task.json", "output.json", "result.json"))
+    task.write_text(json.dumps(TASK), encoding="utf-8")
+    output.write_text("{}", encoding="utf-8")
+    source = Path(__file__).resolve().parents[1] / "src"
+    arguments = [str(source / (module.replace(".", "/") + ".py"))] if by_file else ["-m", module]
+    environment = {**os.environ, "PYTHONPATH": str(source), "INFERRSI_RESULT_PATH": str(result)}
+    executed = subprocess.run(
+        [sys.executable, *arguments, str(task), str(output)], cwd=tmp_path,
+        env=environment, capture_output=True, text=True, timeout=30,
+    )
+    assert executed.returncode == 1, executed.stderr
+    assert executed.stdout == executed.stderr == ""
+    assert result.read_bytes() == b'{"passed": false, "assertions": {"artifact_schema": false}}'
 
 
 def test_starter_matches_frozen_fixture():

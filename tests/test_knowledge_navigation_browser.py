@@ -8,9 +8,9 @@ from test_optimization_story import FakeReader, context, log_document, write_log
 from test_optimization_story import campaign as make_campaign
 from test_retrieval_projection import FIXTURE
 
-from inferrsi.apps.campaign import capture_context
 from inferrsi.apps.views.dashboard import dashboard_snapshot, render_dashboard
 from inferrsi.apps.views.dashboard_live import DashboardServer
+from inferrsi.apps.workflows.campaign import capture_context
 
 playwright = pytest.importorskip("playwright.sync_api")
 

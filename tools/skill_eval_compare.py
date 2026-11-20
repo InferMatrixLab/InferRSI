@@ -12,7 +12,6 @@ import time
 from dataclasses import replace
 from pathlib import Path
 
-from inferrsi.apps import skill_eval_engineering as artifact_check
 from inferrsi.apps.artifacts import atomic_write_json, sha256, write_json
 from inferrsi.apps.integrations.anthropic.anthropic_agent import (
     FULL_CONTEXT_KIND,
@@ -22,7 +21,8 @@ from inferrsi.apps.integrations.anthropic.anthropic_agent import (
 )
 from inferrsi.apps.integrations.anthropic.anthropic_agent import SOURCE as AGENT_SOURCE
 from inferrsi.apps.integrations.anthropic.request_guard import SOURCE as GUARD_SOURCE
-from inferrsi.apps.skill_evaluation import export_bundle, run_trial, summarize
+from inferrsi.apps.workflows import skill_eval_engineering as artifact_check
+from inferrsi.apps.workflows.skill_evaluation import export_bundle, run_trial, summarize
 from inferrsi.benchmark import skill_eval_diagnostic as diagnostic
 from inferrsi.benchmark import skill_eval_engineering as engineering
 from inferrsi.harness import artifact_sandbox
@@ -39,8 +39,8 @@ ROLES = ("baseline", "candidate")
 GIT_READ = ("git", "--no-replace-objects", "--no-lazy-fetch")
 CONTROLLERS = (GUARD_SOURCE, "tools/skill_eval_compare.py", "tools/skill_eval_pilot.py",
                "tools/skill_eval_artifact_guidance.py",
-               "src/inferrsi/apps/skill_evaluation.py",
-               "src/inferrsi/apps/skill_eval_engineering.py",
+               "src/inferrsi/apps/workflows/skill_evaluation.py",
+               "src/inferrsi/apps/workflows/skill_eval_engineering.py",
                "src/inferrsi/benchmark/skill_evaluation.py",
                "src/inferrsi/benchmark/skill_eval_diagnostic.py",
                "src/inferrsi/benchmark/skill_eval_engineering.py",
