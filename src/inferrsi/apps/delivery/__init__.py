@@ -125,10 +125,8 @@ def project(source: Path, *, export_id: str, observed_at=None, agent_job=None):
     for _ in range(3):
         try:
             with file_lock(lock) if managed else nullcontext():
-                snapshot, result, authority_ref = (
-                    _project(source, export_id, observed_at, agent_job) if agent_job is not None
-                    else _project(source, export_id, observed_at)
-                )
+                snapshot, result, authority_ref = _project(
+                    source, export_id, observed_at, agent_job)
                 if snapshot.stable():
                     return snapshot, result, authority_ref
         except SnapshotChanged:

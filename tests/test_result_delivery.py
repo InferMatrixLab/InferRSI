@@ -17,7 +17,7 @@ from tests.diagnosis_support import diagnosis_evidence
 
 
 def make_campaign(tmp_path, *, scores=(5,), final=True, final_verdict="PASS", usage=False,
-                  benchmark=False, execution_state="completed", returncode=0):
+                  benchmark=False, execution_state="completed", returncode=0, metrics_policy=None):
     root = tmp_path / "campaign"
     frozen = root / "frozen"
     frozen.mkdir(parents=True)
@@ -49,7 +49,8 @@ def make_campaign(tmp_path, *, scores=(5,), final=True, final_verdict="PASS", us
     if benchmark:
         from inferrsi.benchmark.summary import POLICY
 
-        plan.update(task_source="benchmark", report_metadata={"benchmark_metrics": POLICY})
+        plan.update(task_source="benchmark", report_metadata={
+            "benchmark_metrics": POLICY if metrics_policy is None else metrics_policy})
     optimization.initialize(root, plan)
     optimization.record_diagnosis(root, "Reference operation", diagnosis_evidence(root))
 
@@ -776,7 +777,7 @@ def test_offline_html_remains_readable_without_scripts_or_network(tmp_path, miss
 
 
 @pytest.fixture
-def standalone_native_usage(tmp_path):
+def standalone_native_usage(tmp_path, request):
     from inferrsi.harness import agent_sessions
 
     job = tmp_path / "agent-job"
@@ -788,7 +789,8 @@ def standalone_native_usage(tmp_path):
     creation = tmp_path / "creation.json"
     atomic_write_json(creation, {"synthetic_creation": True})
     agent_sessions.bind(job, host="synthetic", session_id="native-session", receipt=creation)
-    root = make_campaign(tmp_path, benchmark=True, usage=True)
+    root = make_campaign(tmp_path, benchmark=True, usage=True,
+                         metrics_policy=getattr(request, "param", None))
     control = state(root)
     observation = {
         "host": "synthetic", "host_id": None, "session_id": "native-session",
@@ -892,6 +894,18 @@ def test_single_benchmark_missing_terminal_receipt_preserves_observed_subtotal(
     _, result, _ = delivery.project(root, export_id="missing-native", agent_job=job)
     tokens = result["benchmark_metrics"]["token_usage"]
     assert tokens["total_tokens"] is None and tokens["observed_tokens"] == 1200
+
+
+@pytest.mark.parametrize(
+    "standalone_native_usage", [{}, {"metrics_schema_version": 2}], indirect=True)
+def test_native_job_preserves_unsupported_policy_reason(standalone_native_usage):
+    root, job, observation = standalone_native_usage
+    record_native_usage(job, observation)
+    _, original, _ = delivery.project(root, export_id="unsupported-original")
+    _, result, _ = delivery.project(root, export_id="unsupported-native", agent_job=job)
+    assert result["benchmark_metrics"] == original["benchmark_metrics"]
+    assert result["benchmark_metrics"]["missing_reasons"]["token_usage"] == [
+        "unsupported_or_legacy_metrics_policy"]
 
 
 def test_native_frozen_input_change_after_status_prevents_complete_export(

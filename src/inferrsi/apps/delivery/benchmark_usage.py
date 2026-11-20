@@ -96,6 +96,6 @@ def attach_native_usage(snapshot, result, job):
                 "input_tokens", "output_tokens", "cached_input_tokens")},
             "coverage": usage["coverage"], "scope": usage["scope"], "source": usage["source"],
         }
-    update_metrics(result["benchmark_metrics"], usage)
+        update_metrics(result["benchmark_metrics"], usage)
     result["sources"].append({"artifact_ref": refs[ref], "type": "native_agent_usage",
                               "revision": native.entries[ref]["source_revision"]})
