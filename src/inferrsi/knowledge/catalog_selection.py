@@ -13,9 +13,14 @@ from pathlib import Path
 from time import perf_counter
 from urllib.parse import unquote, urlsplit
 
-from ._skill_selection import context_view, skill_procedure
+from ._skill_selection import (
+    context_view,
+    declared_skill_resources,
+    is_license_or_notice,
+    skill_procedure,
+)
 from .knowledge_find import installed_skill_projection, installed_skill_root, load_documents
-from .knowledge_operations import KnowledgeReader, _store_document
+from .knowledge_operations import KnowledgeReader, RevisionConflict, _store_document
 from .retrieval import observation
 
 CONDITION_FIELDS = (
@@ -55,7 +60,22 @@ def _preview(value, size=400):
     return raw[:size].decode("utf-8", errors="ignore"), len(raw) > size
 
 
-def compare_conditions(declared, task, *, purpose="conclusion"):
+def _comparable_value(field, value):
+    if not isinstance(value, str) or value.casefold() in {
+        "unknown", "unspecified", "common", "any", "none"
+    }:
+        return False
+    if field in ("engine_version", "dependency_version"):
+        # Compare literal releases only. Wildcards, ranges and floating labels
+        # require interpretation that an equality comparison cannot supply.
+        return bool(re.fullmatch(
+            r"v?\d+(?:\.\d+)*(?:[.-]?(?:a|b|alpha|beta|rc|post|dev)\.?\d+)?"
+            r"(?:\+[a-z0-9]+(?:[.-][a-z0-9]+)*)?", value, re.IGNORECASE
+        ))
+    return bool(re.fullmatch(r"[\w.+:/-]+", value))
+
+
+def compare_conditions(declared, task, *, purpose="conclusion", locators=None):
     """Exact scalar/list membership only. Prose, ranges and missing values stay unknown.
 
     A method can transfer as an analogy, but a mismatched bounded conclusion
@@ -72,12 +92,7 @@ def compare_conditions(declared, task, *, purpose="conclusion"):
         values = expected if isinstance(expected, list) else [expected]
         # Whitespace prose is not an enumerated condition. Versions must be exact;
         # source commits are deliberately not interpreted as engine versions.
-        comparable = bool(values) and all(
-            isinstance(v, str)
-            and re.fullmatch(r"[\w.+:/-]+", v)
-            and v.casefold() not in ("unknown", "unspecified", "common", "any", "none")
-            for v in [actual, *values]
-        )
+        comparable = bool(values) and all(_comparable_value(field, v) for v in [actual, *values])
         result = (
             ("match" if actual.casefold() in [v.casefold() for v in values] else "conflict")
             if comparable
@@ -89,7 +104,7 @@ def compare_conditions(declared, task, *, purpose="conclusion"):
                 "task": actual,
                 "source": expected,
                 "result": result,
-                "locator": f"applicability.{field}",
+                "locator": (locators or {}).get(field, f"applicability.{field}"),
             }
         )
     states = {c["result"] for c in comparisons}
@@ -166,7 +181,12 @@ def _tree_version(root):
                 else:
                     entries.append((path, "other"))
 
-    visit(root)
+    try:
+        visit(root)
+    except OSError:
+        # The cache scans a superset of the files that the reader needs.
+        # Let normal discovery/read report errors only for effective inputs.
+        return None, False
     return digest(entries), reusable
 
 
@@ -189,6 +209,8 @@ class CatalogSelection:
     def _source_version(self):
         roots = {installed_skill_root(), self.skill_root or installed_skill_root()}
         libraries = [(str(root), *_tree_version(root)) for root in sorted(roots)]
+        if any(version is None for _, version, _ in libraries):
+            return None, False
         stored = ([] if self.store is None else [
             (identity, self.store.read(identity).revision)
             for identity in sorted(self.store.identities())
@@ -226,9 +248,10 @@ class CatalogSelection:
             return self._prepared[2]
         self._prepared = None
         result = self._build(kinds=kinds, backend=backend)
-        if self._source_version() != (version, reusable):
+        checked_version, checked_reusable = self._source_version()
+        if version is not None and checked_version is not None and checked_version != version:
             raise SelectionError("stale_snapshot", "Sources changed while building the catalog")
-        if reusable:
+        if reusable and checked_reusable:
             self._prepared = (scope, version, result)
         return result
 
@@ -252,7 +275,6 @@ class CatalogSelection:
             summary, clipped = _preview(doc.summary)
             applicability, app_clipped = _preview(doc.applicability)
             limitations, lim_clipped = _preview(list(doc.limitations))
-            conditions = doc.applicability if isinstance(doc.applicability, dict) else {}
             card = {
                 "ref": ref,
                 "id": doc.identity,
@@ -261,8 +283,6 @@ class CatalogSelection:
                 "summary": summary,
                 "keywords": _preview(doc.fields.get("tags", ""))[0],
                 "applicability": applicability,
-                "conditions": {k: v for k, v in conditions.items() if k in CONDITION_FIELDS},
-                "missing_conditions": [k for k in CONDITION_FIELDS if not conditions.get(k)],
                 "state": doc.state,
                 "locally_verified": doc.locally_verified,
                 "limitations": limitations,
@@ -298,6 +318,18 @@ class CatalogSelection:
                     "reason": getattr(exc, "code", type(exc).__name__),
                     "detail": str(exc),
                 }
+            # Use the same normalized conditions for selection and post-read
+            # judgment. Legacy checkout frontmatter is resolved by the reader.
+            declared = (bundles[ref].metadata["applicability"] if ref in bundles
+                        else doc.applicability)
+            conditions = ({k: v for k, v in declared.items() if k in CONDITION_FIELDS}
+                          if isinstance(declared, dict) else {})
+            locators = {}
+            if not conditions.get("backend") and doc.backend:
+                conditions["backend"] = doc.backend
+                locators["backend"] = doc.backend_locator
+            card.update(conditions=conditions, condition_locators=locators,
+                        missing_conditions=[k for k in CONDITION_FIELDS if not conditions.get(k)])
             cards.append(card)
         paths = {}
         for ref, doc in docs.items():
@@ -311,8 +343,14 @@ class CatalogSelection:
                 r"\[[^\]]*\]\(([^\s)]+)(?:\s+[^)]*)?\)", doc.fields.get("body", "")
             ):
                 target = match.group(1)
-                parsed = urlsplit(target)
                 edge = {"source_path": doc.path, "reference": target}
+                try:
+                    parsed = urlsplit(target)
+                except ValueError:
+                    edge.update(kind="unresolved", reason="invalid_url")
+                    if edge not in refs:
+                        refs.append(edge)
+                    continue
                 if parsed.query:
                     edge["kind"] = "unsupported_version_or_query"
                 elif parsed.scheme or parsed.netloc:
@@ -473,10 +511,7 @@ class CatalogSelection:
             if metadata is None and sidecar in bundle.content:
                 metadata = json.loads(bundle.content[sidecar])
             metadata = metadata or {}
-            notices = [source["third_party_notices"] for source in metadata.get("sources", [])
-                       if "third_party_notices" in source]
-            for relative in [*metadata.get("references", []),
-                             *metadata.get("provenance_readsets", []), *notices]:
+            for relative in declared_skill_resources(metadata):
                 target = posixpath.normpath(prefix + relative)
                 if target not in bundle.content or "\\" in relative:
                     return None, {"ref": ref, "path": relative,
@@ -485,13 +520,14 @@ class CatalogSelection:
                     required.append(target)
             for resource in list(required):
                 directory = posixpath.dirname(resource)
-                while directory:
+                while True:
                     for source in bundle.content:
-                        if posixpath.dirname(source) == directory and re.search(
-                            r"(?:^|[-_])(?:LICENSE|NOTICES?)(?:\.[^.]+)?$",
-                            posixpath.basename(source), re.IGNORECASE,
-                        ) and source not in required:
+                        if (posixpath.dirname(source) == directory
+                                and is_license_or_notice(posixpath.basename(source))
+                                and source not in required):
                             required.append(source)
+                    if not directory:
+                        break
                     directory = posixpath.dirname(directory)
         view = {**bundle.view(), "ref": ref}
         return context_view((path, required, []), view, bundle.content, None, available)
@@ -499,6 +535,10 @@ class CatalogSelection:
     def complete(self, snapshot_id, selections, **options):
         try:
             return self._complete(snapshot_id, selections, **options)
+        except RevisionConflict as exc:
+            raise SelectionError(
+                "stale_snapshot", "Source revision changed; refresh and reselect"
+            ) from exc
         finally:
             # Returned source metadata must not become mutable input to a later call.
             self._prepared = None
@@ -570,15 +610,18 @@ class CatalogSelection:
                 paths.append({"ref": ref, "via": via, "stop": "item_budget"})
                 continue
             if ref not in bundles:
-                omissions.append({"ref": ref, "reason": "unreadable", "detail": card["unreadable"]})
+                omissions.append({"ref": ref, "scope": "entry", "reason": "unreadable",
+                                  "detail": card["unreadable"]})
                 continue
             available = context_bytes - used if not depth else expansion_bytes - optional_used
             if available <= 0:
-                omissions.append({"ref": ref, "reason": "context_limit", "via": via})
+                omissions.append({"ref": ref, "scope": "entry", "reason": "context_limit",
+                                  "via": via})
                 continue
             result = self._context(readers[ref], ref, card["revision"], available)
             delivered = result.get("contexts", [])
-            omissions.extend(result["omissions"] + result.get("context_omissions", []))
+            omissions.extend({**item, "scope": "entry"} for item in
+                             result["omissions"] + result.get("context_omissions", []))
             if not delivered:
                 paths.append({"ref": ref, "via": via, "stop": "context_unavailable"})
                 continue
@@ -592,9 +635,10 @@ class CatalogSelection:
             contexts.append(context)
             selection = selected.get(ref, {})
             judgment = compare_conditions(
-                bundles[ref].metadata["applicability"],
+                card["conditions"],
                 conditions,
                 purpose=selection.get("purpose", "conclusion"),
+                locators=card["condition_locators"],
             )
             judgment.update(
                 ref=ref,
@@ -640,7 +684,8 @@ class CatalogSelection:
                     )
                     if omission:
                         paths.append({"via": trail, "stop": omission["reason"]})
-                        omissions.append(omission)
+                        omissions.append({"path": path, **omission, "scope": "resource",
+                                          "via": trail})
                         continue
                     amount = extra["content_bytes"]
                     optional_used += amount

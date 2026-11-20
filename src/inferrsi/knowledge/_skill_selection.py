@@ -21,6 +21,26 @@ class SkillIndexError(ValueError):
     pass
 
 
+def declared_skill_resources(metadata):
+    """Owner-declared paths needed for the procedure, attribution and provenance."""
+    paths = []
+    for field in ("references", "provenance_readsets"):
+        values = metadata.get(field, [])
+        if not isinstance(values, list):
+            raise SkillIndexError(f"Invalid skill {field}: expected a list")
+        paths.extend(values)
+    for source in metadata.get("sources", []):
+        if isinstance(source, dict) and "third_party_notices" in source:
+            paths.append(source["third_party_notices"])
+    if any(not isinstance(path, str) or not path for path in paths):
+        raise SkillIndexError("Declared skill resources must be nonempty paths")
+    return list(dict.fromkeys(paths))
+
+
+def is_license_or_notice(name):
+    return bool(re.search(r"(?:^|[-_])(?:LICENSE|NOTICES?)(?:\.[^.]+)?$", name, re.IGNORECASE))
+
+
 def validate_relevance_method(method: str | None) -> None:
     if method not in (None, FIND_RELEVANCE):
         raise ValueError(
@@ -64,23 +84,15 @@ def indexed_skill(
 
     required = [core]
     metadata = record["skill_metadata"]
-    notices = [
-        source["third_party_notices"]
-        for source in metadata.get("sources", []) if "third_party_notices" in source
-    ]
-    for relative in [
-        *metadata.get("references", []), *metadata.get("provenance_readsets", []), *notices,
-    ]:
+    for relative in declared_skill_resources(metadata):
         path = posixpath.normpath(prefix + relative)
         if "\\" in relative or not path.startswith("data/skill_library/") or path not in content:
             raise SkillIndexError(f"Unavailable declared skill reference: {relative}")
         if path not in required:
             required.append(path)
     for path in sorted(content):
-        if path.startswith(prefix) and re.search(
-            r"(?:^|[-_])(?:LICENSE|NOTICES?)(?:\.[^.]+)?$",
-            posixpath.basename(path), re.IGNORECASE,
-        ) and path not in required:
+        if (path.startswith(prefix) and is_license_or_notice(posixpath.basename(path))
+                and path not in required):
             required.append(path)
     for resource in list(required):
         directory = posixpath.dirname(resource)

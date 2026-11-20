@@ -15,7 +15,9 @@ from ._knowledge_errors import MissingSkillsExtra
 from ._skill_selection import (
     FIND_RELEVANCE,
     context_view,
+    declared_skill_resources,
     indexed_skill,
+    is_license_or_notice,
     record_context,
     skill_procedure,
     validate_relevance_method,
@@ -682,11 +684,25 @@ class KnowledgeReader:
         prefix = directory.relative_to(root).as_posix()
         content = _tree(directory, prefix, root=root)
         dependencies = {}
-        for reference in metadata.get("references", []):
+        for reference in declared_skill_resources(metadata):
             path = _reference_path(root, directory, reference)
             key = path.relative_to(root).as_posix()
-            content[key] = path.read_bytes()
-            dependencies[key] = "sha256:" + _hash(content[key])
+            external = key not in content
+            if external:
+                content[key] = path.read_bytes()
+            # Owner-local provenance already participates in the resource manifest.
+            # Preserve the store's editable owner files and existing reference pins.
+            if external or reference in metadata.get("references", []):
+                dependencies[key] = "sha256:" + _hash(content[key])
+        # The owner's own licenses are already in the tree. Also include notices
+        # alongside cross-owner dependencies and in ancestors through the library root.
+        ancestors = {parent for key in content for parent in PurePosixPath(key).parents}
+        for parent in ancestors:
+            for notice in (root / parent).iterdir():
+                if is_license_or_notice(notice.name) and notice.is_file():
+                    key = notice.relative_to(root).as_posix()
+                    if key not in content:
+                        content[key] = _reference_path(root, root, key).read_bytes()
         return Bundle(
             {
                 "id": identity,
@@ -701,6 +717,7 @@ class KnowledgeReader:
                         "note": "Legacy provenance remains in procedure/readsets",
                     }
                 ],
+                **({"backend": metadata["backend"]} if "backend" in metadata else {}),
                 "applicability": metadata.get("applicability", {}),
                 "state": metadata.get("status", "unspecified"),
                 "limitations": metadata.get("limitations", [])
