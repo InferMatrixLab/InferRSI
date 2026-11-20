@@ -23,8 +23,10 @@ prepared, protocol_bytes, open_resource = service.prepare(request)
 ```
 
 `open_fixed_resource(role)` is a host-supplied capability returning bytes or a
-fresh binary stream for an authorized role. The caller owns closing each returned
-stream. It does not interpret a request-provided location as a filesystem path.
+fresh binary stream for an authorized role. Preparation closes each stream it
+opens for verification; after prepare, the closure's consumer (normally Apps)
+owns closing each stream it opens. The opener does not interpret a
+request-provided location as a filesystem path.
 The frozen resource metadata is verified during preparation. The returned
 `open_resource` accepts only roles in that preparation's closure and reopens the
 resource through the same capability. It does not write or archive bytes.
@@ -36,6 +38,8 @@ The first task keeps the P1 candidate, claims, evidence rules, worker recipe
 shape and sampling conditions. PrepareRequest can bind its candidate expectation,
 P1 task parameters, budget references and additional resource pins. A supplied
 pin cannot replace a frozen role's hash, format or required use. The first task
+does allow that pin to replace the role's provisional source location; this
+changes the frozen protocol bytes, with identity effects described below. The first task
 accepts an empty `comparison_conditions`: comparison conditions are configured
 in the frozen task definition, rather than silently accepting unknown overrides.
 Unknown task, grader, worker or claim-rule revisions are refused.

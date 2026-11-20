@@ -360,7 +360,8 @@ class PreparationService:
     """The supported P1 prepare port bound to frozen rules and read capabilities.
 
     ``worker_role`` identifies the retained code bytes for recipe.code_sha256.
-    Each opener call gives its stream to the caller, which owns closing it.
+    Preparation closes every stream it opens for verification. After prepare,
+    the consumer of the returned resource reader owns each stream it opens.
     The returned closure reopens resources: deletion fails at the Apps archive
     boundary and changed bytes are independently rejected by Apps' verifier.
     """

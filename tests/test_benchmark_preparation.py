@@ -201,15 +201,22 @@ def test_wrong_resource_bytes_are_not_frozen_as_a_different_pin(preparation):
     lambda value: value.update(created_at=True),
     lambda value: value.update(created_at="2026-11-20T00:00:00.1234567890Z"),
     lambda value: value["resources"].append(deepcopy(value["resources"][0])),
-    lambda value: value["protocol"].update(location="../escape"),
     lambda value: value["required_evidence"][0].update(matching_rule_revision="other"),
 ])
 def test_closed_prepared_shape_rejected_even_with_recomputed_identity(preparation, change):
     service, request, _, _, _, _, _ = preparation
     prepared, _, _ = service.prepare(request)
     change(prepared)
+    prepared["prepared_id"] = benchmark.prepared_id(prepared)
     with pytest.raises(ValueError):
-        prepared["prepared_id"] = benchmark.prepared_id(prepared)
+        benchmark.encode(prepared)
+
+
+def test_unsafe_location_is_rejected_by_the_encoder_itself(preparation):
+    service, request, _, _, _, _, _ = preparation
+    prepared, _, _ = service.prepare(request)
+    prepared["protocol"]["location"] = "../escape"
+    with pytest.raises(benchmark.PreparationError, match="logical artifact location"):
         benchmark.encode(prepared)
 
 
