@@ -116,6 +116,19 @@ def test_missing_required_pair_keeps_observed_only_but_no_official_total():
     assert any("off" in reason for reason in metric["missing_reasons"])
 
 
+def test_three_pair_counterexample_preserves_pairing_and_reciprocity():
+    # Synthetic example: https://github.com/InferMatrixLab/InferRSI/issues/536#issuecomment-7034821517
+    reference, treatment = [1, 100, 100], [2, 3, 200]
+    trials = [item for repeat, (off, on) in enumerate(zip(reference, treatment), 1)
+              for item in (trial("on", repeat, speedup=on), trial("off", repeat, speedup=off))]
+    assert comparison(trials, ["task"], 3, POLICY)["performance_benefit_ratio"] == pytest.approx(2)
+    reversed_trials = deepcopy(trials)
+    for item in reversed_trials:
+        item["condition"] = "off" if item["condition"] == "on" else "on"
+    assert comparison(reversed_trials, ["task"], 3, POLICY)[
+        "performance_benefit_ratio"] == pytest.approx(0.5)
+
+
 @pytest.mark.parametrize("on,off,expected", [(60, 120, 0.5), (0, 120, 0), (0, 0, None)])
 def test_token_consumption_direction_and_zero_denominator(on, off, expected):
     trials = [trial("on", tokens=usage(on, 0, 0)), trial("off", tokens=usage(off, 0, 0))]
