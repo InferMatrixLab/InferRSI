@@ -1,0 +1,22 @@
+src/inferrsi/apps/views/retrieval_projection.py
+  s_f6d80fa4c53ea7::t_4482d624a5aca6 343-353,357
+tests/test_optimization_session.py
+  s_f6d80fa4c53ea7::t_4482d624a5aca6 3,620-635
+  s_f6d80fa4c53ea7::t_fb13eba27b75fe 636
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "4047f394ff5f0e287dd4251c3a8deaa04c9b949a",
+  "prompts": {},
+  "sessions": {
+    "s_f6d80fa4c53ea7": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1f2c4-4190-7173-b643-904978a40768",
+        "model": "gpt-6.2-sol"
+      },
+      "human_author": "jiangkuaixue123 <jiangxiaozhou111@163.com>"
+    }
+  }
+}
