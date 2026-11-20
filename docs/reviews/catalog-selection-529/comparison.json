@@ -1,0 +1,2893 @@
+[
+  {
+    "id": "day-0",
+    "query": "Day zero port of an omni model with text and audio stages to vLLM Ascend NPU",
+    "snapshot_id": "sha256:9f61007d34961ddc78162e4d8da95f82d70683e4bcbd50045a81e9723bbd3ccc",
+    "baseline_ids": [
+      "ascend-model-adaptation",
+      "vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i",
+      "sglang_omni.common.audio.serving_and_streaming_quality",
+      "vllm_omni.common.audio.streaming_serving_measurement",
+      "ascend-video-diffusion-optimization"
+    ],
+    "baseline_delivered": [
+      "package:inferrsi.ascend.skills.ascend_model_adaptation",
+      "package:vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i",
+      "package:sglang_omni.common.audio.serving_and_streaming_quality",
+      "package:vllm_omni.common.audio.streaming_serving_measurement",
+      "package:inferrsi.ascend.skills.ascend_video_diffusion_optimization"
+    ],
+    "baseline_omissions": [],
+    "candidate_selected": [
+      "package:inferrsi.ascend.skills.ascend_model_adaptation",
+      "package:vllm_omni.common.omni.stage_ownership_and_search",
+      "package:vllm_omni.common.diffusion.production_integration_gates"
+    ],
+    "candidate_delivered": [
+      "package:inferrsi.ascend.skills.ascend_model_adaptation",
+      "package:vllm_omni.common.omni.stage_ownership_and_search",
+      "package:vllm_omni.common.diffusion.production_integration_gates"
+    ],
+    "expansion_added_entries": [],
+    "candidate_omissions": [
+      {
+        "ref": "package:vllm_omni.common.omni.stage_ownership_and_search",
+        "reason": "context_limit",
+        "required_bytes": 18293,
+        "available_bytes": 5223
+      },
+      {
+        "ref": "package:inferrsi.ascend.skills.ascend_aclgraph_capture_replay",
+        "reason": "context_limit",
+        "required_bytes": 21720,
+        "available_bytes": 5223
+      },
+      {
+        "ref": "package:inferrsi.ascend.skills.ascend_graph_mode",
+        "reason": "context_limit",
+        "required_bytes": 40736,
+        "available_bytes": 5223
+      },
+      {
+        "ref": "package:inferrsi.common.skills.host_memory_management",
+        "reason": "context_limit",
+        "required_bytes": 69776,
+        "available_bytes": 5223
+      }
+    ],
+    "judgments": [
+      {
+        "verdict": "unknown",
+        "purpose": "method",
+        "comparisons": [
+          {
+            "field": "backend",
+            "task": "ascend",
+            "source": null,
+            "result": "unknown",
+            "locator": "applicability.backend"
+          },
+          {
+            "field": "engine_version",
+            "task": null,
+            "source": null,
+            "result": "unknown",
+            "locator": "applicability.engine_version"
+          }
+        ],
+        "missing": [
+          "backend",
+          "engine_version"
+        ],
+        "scope": "declared fields only; prose and unrequested conditions require source review",
+        "next_step": "Check original bounds and task-required validation before using a claim.",
+        "ref": "package:inferrsi.ascend.skills.ascend_model_adaptation",
+        "revision": "sha256:d73054cc69977aa2bc54df7324daa694843f69f0e146f3b5f80a06dad5e78e43",
+        "source_state": "candidate",
+        "verification": {
+          "locally_verified": false,
+          "evidence_level": "guidance"
+        },
+        "evidence_resources": [
+          "data/skill_library/systems/platforms/ascend/ascend-model-adaptation/SKILL.md",
+          "data/skill_library/systems/platforms/ascend/ascend-model-adaptation/references/source-notes.md",
+          "data/skill_library/README.md"
+        ],
+        "confirmation": "structured_only; Agent must confirm prose bounds",
+        "questions": [
+          "Check original source boundaries and missing task versions before transfer."
+        ]
+      },
+      {
+        "ref": "package:inferrsi.ascend.skills.ascend_model_adaptation",
+        "revision": "sha256:d73054cc69977aa2bc54df7324daa694843f69f0e146f3b5f80a06dad5e78e43",
+        "resource": "data/skill_library/README.md",
+        "verdict": "unknown",
+        "source_state": "candidate",
+        "reason": "Resource prose bounds require Agent confirmation",
+        "evidence_resources": [
+          "data/skill_library/README.md"
+        ]
+      },
+      {
+        "verdict": "unknown",
+        "purpose": "method",
+        "comparisons": [
+          {
+            "field": "backend",
+            "task": "ascend",
+            "source": null,
+            "result": "unknown",
+            "locator": "applicability.backend"
+          },
+          {
+            "field": "engine_version",
+            "task": null,
+            "source": null,
+            "result": "unknown",
+            "locator": "applicability.engine_version"
+          }
+        ],
+        "missing": [
+          "backend",
+          "engine_version"
+        ],
+        "scope": "declared fields only; prose and unrequested conditions require source review",
+        "next_step": "Check original bounds and task-required validation before using a claim.",
+        "ref": "package:vllm_omni.common.omni.stage_ownership_and_search",
+        "revision": "sha256:c1a08b92cb4e3e9f6ba1bba6355fef3c348c9dd8830bb4fe4dfbe429a0bda9be",
+        "source_state": "imported",
+        "verification": {
+          "locally_verified": false,
+          "evidence_level": "guidance"
+        },
+        "evidence_resources": [
+          "record.json"
+        ],
+        "confirmation": "structured_only; Agent must confirm prose bounds",
+        "questions": [
+          "Check original source boundaries and missing task versions before transfer."
+        ]
+      },
+      {
+        "verdict": "unknown",
+        "purpose": "method",
+        "comparisons": [
+          {
+            "field": "backend",
+            "task": "ascend",
+            "source": null,
+            "result": "unknown",
+            "locator": "applicability.backend"
+          },
+          {
+            "field": "engine_version",
+            "task": null,
+            "source": null,
+            "result": "unknown",
+            "locator": "applicability.engine_version"
+          }
+        ],
+        "missing": [
+          "backend",
+          "engine_version"
+        ],
+        "scope": "declared fields only; prose and unrequested conditions require source review",
+        "next_step": "Check original bounds and task-required validation before using a claim.",
+        "ref": "package:vllm_omni.common.diffusion.production_integration_gates",
+        "revision": "sha256:b0d4b1c1e4c6e3d7a3d4951cef56d881c19432c67de04e551dc51b101b3db1ca",
+        "source_state": "imported",
+        "verification": {
+          "locally_verified": false,
+          "evidence_level": "guidance"
+        },
+        "evidence_resources": [
+          "record.json"
+        ],
+        "confirmation": "structured_only; Agent must confirm prose bounds",
+        "questions": [
+          "Check original source boundaries and missing task versions before transfer."
+        ]
+      }
+    ],
+    "expansion_paths": [
+      {
+        "ref": "package:inferrsi.ascend.skills.ascend_model_adaptation",
+        "revision": "sha256:d73054cc69977aa2bc54df7324daa694843f69f0e146f3b5f80a06dad5e78e43",
+        "via": null,
+        "depth": 0,
+        "status": "delivered",
+        "bytes": 12461
+      },
+      {
+        "via": {
+          "from": "package:inferrsi.ascend.skills.ascend_model_adaptation",
+          "source_path": "systems/platforms/ascend/ascend-model-adaptation/SKILL.md",
+          "reference": "references/source-notes.md",
+          "kind": "resource",
+          "path": "data/skill_library/systems/platforms/ascend/ascend-model-adaptation/references/source-notes.md"
+        },
+        "stop": "reader_resource_delivered"
+      },
+      {
+        "via": {
+          "from": "package:inferrsi.ascend.skills.ascend_model_adaptation",
+          "source_path": "systems/platforms/ascend/ascend-model-adaptation/SKILL.md",
+          "reference": "../../../../README.md#vllm-ascend-version-and-responsibility-routing",
+          "kind": "resource",
+          "path": "data/skill_library/README.md"
+        },
+        "status": "delivered",
+        "bytes": 27545
+      },
+      {
+        "ref": "package:vllm_omni.common.omni.stage_ownership_and_search",
+        "revision": "sha256:c1a08b92cb4e3e9f6ba1bba6355fef3c348c9dd8830bb4fe4dfbe429a0bda9be",
+        "via": null,
+        "depth": 0,
+        "status": "delivered",
+        "bytes": 3044
+      },
+      {
+        "via": {
+          "from": "package:vllm_omni.common.omni.stage_ownership_and_search",
+          "kind": "resource",
+          "path": "data/skill_library/systems/engines/vllm-omni/sub-skills/omni-architecture/SKILL.md",
+          "reference": "data/skill_library/systems/engines/vllm-omni/sub-skills/omni-architecture/SKILL.md",
+          "source_path": "record.json#skill_documents.en"
+        },
+        "stop": "context_limit"
+      },
+      {
+        "via": {
+          "from": "package:vllm_omni.common.omni.stage_ownership_and_search",
+          "kind": "external_pointer",
+          "reference": "https://github.com/vllm-project/vllm-omni/blob/52194f24fa42e14d1c5e096f4bea4dc7f95cffa1/vllm_omni/config/stage_config.py#L229-L399",
+          "source_path": null
+        },
+        "stop": "external_pointer"
+      },
+      {
+        "ref": "package:vllm_omni.common.diffusion.production_integration_gates",
+        "revision": "sha256:b0d4b1c1e4c6e3d7a3d4951cef56d881c19432c67de04e551dc51b101b3db1ca",
+        "via": null,
+        "depth": 0,
+        "status": "delivered",
+        "bytes": 5504
+      },
+      {
+        "via": {
+          "from": "package:vllm_omni.common.diffusion.production_integration_gates",
+          "kind": "external_pointer",
+          "reference": "https://github.com/vllm-project/vllm-omni/blob/ee81f33001922f8d91dd09da0a57ee1531a8df82/.claude/skills/production-add-diffusion-model/SKILL.md",
+          "source_path": null
+        },
+        "stop": "external_pointer"
+      },
+      {
+        "ref": "package:inferrsi.ascend.skills.ascend_aclgraph_capture_replay",
+        "via": {
+          "from": "package:inferrsi.ascend.skills.ascend_model_adaptation",
+          "source_path": "systems/platforms/ascend/ascend-model-adaptation/SKILL.md",
+          "reference": "../ascend-aclgraph-capture-replay/SKILL.md",
+          "kind": "entry",
+          "ref": "package:inferrsi.ascend.skills.ascend_aclgraph_capture_replay"
+        },
+        "stop": "context_unavailable"
+      },
+      {
+        "ref": "package:inferrsi.ascend.skills.ascend_graph_mode",
+        "via": {
+          "from": "package:inferrsi.ascend.skills.ascend_model_adaptation",
+          "source_path": "systems/platforms/ascend/ascend-model-adaptation/SKILL.md",
+          "reference": "../ascend-graph-mode/SKILL.md",
+          "kind": "entry",
+          "ref": "package:inferrsi.ascend.skills.ascend_graph_mode"
+        },
+        "stop": "context_unavailable"
+      },
+      {
+        "ref": "package:inferrsi.common.skills.host_memory_management",
+        "via": {
+          "from": "package:inferrsi.ascend.skills.ascend_model_adaptation",
+          "source_path": "systems/platforms/ascend/ascend-model-adaptation/SKILL.md",
+          "reference": "../../host/host-memory-management/SKILL.md",
+          "kind": "entry",
+          "ref": "package:inferrsi.common.skills.host_memory_management"
+        },
+        "stop": "context_unavailable"
+      }
+    ],
+    "accounting": {
+      "input_tokens": 77096,
+      "reserved_tokens": 4096,
+      "token_budget": 128000,
+      "input_bytes": 316368,
+      "tokenizer": "tiktoken:o200k_base",
+      "measured": true,
+      "serialization": "compact sorted UTF-8 JSON; includes control envelope"
+    },
+    "interface_seconds": 7.1570965340361,
+    "model_selection_seconds": null,
+    "actual_model_usage": null,
+    "selector": "retained current-Agent choices; no new model call during replay"
+  },
+  {
+    "id": "performance",
+    "query": "Single GPU diffusion denoising latency baseline warm requests profiler",
+    "snapshot_id": "sha256:9f61007d34961ddc78162e4d8da95f82d70683e4bcbd50045a81e9723bbd3ccc",
+    "baseline_ids": [
+      "ascend-video-diffusion-optimization",
+      "vllm_omni.common.diffusion.measurement_and_profiling",
+      "inference-benchmark-design",
+      "video-diffusion-optimization",
+      "host-overhead-optimization"
+    ],
+    "baseline_delivered": [
+      "package:inferrsi.ascend.skills.ascend_video_diffusion_optimization",
+      "package:vllm_omni.common.diffusion.measurement_and_profiling",
+      "package:inferrsi.common.skills.video_diffusion_optimization",
+      "package:inferrsi.common.skills.host_overhead_optimization"
+    ],
+    "baseline_omissions": [
+      {
+        "ref": "package:inferrsi.common.skills.inference_benchmark_design",
+        "reason": "context_limit",
+        "required_bytes": 320040,
+        "available_bytes": 93799
+      }
+    ],
+    "candidate_selected": [
+      "package:vllm_omni.common.diffusion.measurement_and_profiling",
+      "package:inferrsi.common.skills.performance_ceiling_analysis",
+      "package:inferrsi.cuda.skills.host_overhead_profiling"
+    ],
+    "candidate_delivered": [
+      "package:vllm_omni.common.diffusion.measurement_and_profiling",
+      "package:inferrsi.cuda.skills.host_overhead_profiling"
+    ],
+    "expansion_added_entries": [],
+    "candidate_omissions": [
+      {
+        "ref": "package:inferrsi.common.skills.performance_ceiling_analysis",
+        "reason": "context_limit",
+        "required_bytes": 213952,
+        "available_bytes": 127041
+      }
+    ],
+    "judgments": [
+      {
+        "verdict": "unknown",
+        "purpose": "method",
+        "comparisons": [
+          {
+            "field": "backend",
+            "task": null,
+            "source": null,
+            "result": "unknown",
+            "locator": "applicability.backend"
+          },
+          {
+            "field": "model",
+            "task": null,
+            "source": null,
+            "result": "unknown",
+            "locator": "applicability.model"
+          }
+        ],
+        "missing": [
+          "backend",
+          "model"
+        ],
+        "scope": "declared fields only; prose and unrequested conditions require source review",
+        "next_step": "Check original bounds and task-required validation before using a claim.",
+        "ref": "package:vllm_omni.common.diffusion.measurement_and_profiling",
+        "revision": "sha256:321e798065884868b0809d44faca82b1d69a52e512c250d24c30712fc10e932a",
+        "source_state": "imported",
+        "verification": {
+          "locally_verified": false,
+          "evidence_level": "guidance"
+        },
+        "evidence_resources": [
+          "record.json"
+        ],
+        "confirmation": "structured_only; Agent must confirm prose bounds",
+        "questions": [
+          "Check original source boundaries and missing task versions before transfer."
+        ]
+      },
+      {
+        "verdict": "unknown",
+        "purpose": "method",
+        "comparisons": [
+          {
+            "field": "backend",
+            "task": null,
+            "source": null,
+            "result": "unknown",
+            "locator": "applicability.backend"
+          },
+          {
+            "field": "model",
+            "task": null,
+            "source": null,
+            "result": "unknown",
+            "locator": "applicability.model"
+          }
+        ],
+        "missing": [
+          "backend",
+          "model"
+        ],
+        "scope": "declared fields only; prose and unrequested conditions require source review",
+        "next_step": "Check original bounds and task-required validation before using a claim.",
+        "ref": "package:inferrsi.cuda.skills.host_overhead_profiling",
+        "revision": "sha256:1abd4bf0bd1d243fca7c2d33a4a6e83304acbd4241bd1324264b2851e9d698d8",
+        "source_state": "candidate",
+        "verification": {
+          "locally_verified": false,
+          "evidence_level": "guidance"
+        },
+        "evidence_resources": [
+          "data/skill_library/systems/platforms/cuda/host-overhead-profiling/SKILL.md"
+        ],
+        "confirmation": "structured_only; Agent must confirm prose bounds",
+        "questions": [
+          "Check original source boundaries and missing task versions before transfer."
+        ]
+      }
+    ],
+    "expansion_paths": [
+      {
+        "ref": "package:vllm_omni.common.diffusion.measurement_and_profiling",
+        "revision": "sha256:321e798065884868b0809d44faca82b1d69a52e512c250d24c30712fc10e932a",
+        "via": null,
+        "depth": 0,
+        "status": "delivered",
+        "bytes": 4031
+      },
+      {
+        "via": {
+          "from": "package:vllm_omni.common.diffusion.measurement_and_profiling",
+          "kind": "external_pointer",
+          "reference": "https://github.com/vllm-project/vllm-omni/blob/ee81f33001922f8d91dd09da0a57ee1531a8df82/.claude/skills/diffusion-perf-opt/SKILL.md",
+          "source_path": null
+        },
+        "stop": "external_pointer"
+      },
+      {
+        "ref": "package:inferrsi.common.skills.performance_ceiling_analysis",
+        "via": null,
+        "stop": "context_unavailable"
+      },
+      {
+        "ref": "package:inferrsi.cuda.skills.host_overhead_profiling",
+        "revision": "sha256:1abd4bf0bd1d243fca7c2d33a4a6e83304acbd4241bd1324264b2851e9d698d8",
+        "via": null,
+        "depth": 0,
+        "status": "delivered",
+        "bytes": 11199
+      },
+      {
+        "ref": "package:inferrsi.cuda.skills.host_overhead_profiling",
+        "stop": "no_explicit_references"
+      }
+    ],
+    "accounting": {
+      "input_tokens": 77086,
+      "reserved_tokens": 4096,
+      "token_budget": 128000,
+      "input_bytes": 316351,
+      "tokenizer": "tiktoken:o200k_base",
+      "measured": true,
+      "serialization": "compact sorted UTF-8 JSON; includes control envelope"
+    },
+    "interface_seconds": 6.770844224025495,
+    "model_selection_seconds": null,
+    "actual_model_usage": null,
+    "selector": "retained current-Agent choices; no new model call during replay"
+  },
+  {
+    "id": "debug",
+    "query": "ROCm GPU hang during CUDA graph capture first failing operator minimal reproduction",
+    "snapshot_id": "sha256:9f61007d34961ddc78162e4d8da95f82d70683e4bcbd50045a81e9723bbd3ccc",
+    "baseline_ids": [
+      "case.qwen-b300-rejected-directions",
+      "ascend-graph-mode",
+      "pytorch.cuda.compiler.cudagraph_shapes_and_lifetimes",
+      "flashinfer.cuda.llm.paged_decode_dispatch",
+      "ascend-aclgraph-capture-replay"
+    ],
+    "baseline_delivered": [
+      "checkout:case.qwen-b300-rejected-directions",
+      "package:inferrsi.ascend.skills.ascend_graph_mode",
+      "package:pytorch.cuda.compiler.cudagraph_shapes_and_lifetimes",
+      "package:flashinfer.cuda.llm.paged_decode_dispatch",
+      "package:inferrsi.ascend.skills.ascend_aclgraph_capture_replay"
+    ],
+    "baseline_omissions": [],
+    "candidate_selected": [
+      "package:inferrsi.common.skills.pytorch",
+      "package:pytorch.cuda.compiler.cudagraph_shapes_and_lifetimes"
+    ],
+    "candidate_delivered": [
+      "package:inferrsi.common.skills.pytorch"
+    ],
+    "expansion_added_entries": [],
+    "candidate_omissions": [
+      {
+        "ref": "package:inferrsi.common.skills.pytorch",
+        "reason": "context_limit",
+        "required_bytes": 17226,
+        "available_bytes": 4554
+      },
+      {
+        "ref": "package:inferrsi.common.skills.pytorch",
+        "reason": "context_limit",
+        "required_bytes": 15301,
+        "available_bytes": 4554
+      },
+      {
+        "ref": "package:inferrsi.common.skills.pytorch",
+        "reason": "context_limit",
+        "required_bytes": 15206,
+        "available_bytes": 4554
+      },
+      {
+        "ref": "package:pytorch.cuda.compiler.cudagraph_shapes_and_lifetimes",
+        "reason": "context_limit",
+        "required_bytes": 3228,
+        "available_bytes": 1240
+      },
+      {
+        "ref": "package:inferrsi.common.skills.host_memory_management",
+        "reason": "context_limit",
+        "required_bytes": 69776,
+        "available_bytes": 2606
+      },
+      {
+        "ref": "package:inferrsi.common.skills.dcp_async_save_performance",
+        "reason": "context_limit",
+        "required_bytes": 12636,
+        "available_bytes": 2606
+      }
+    ],
+    "judgments": [
+      {
+        "verdict": "unknown",
+        "purpose": "method",
+        "comparisons": [
+          {
+            "field": "backend",
+            "task": "rocm",
+            "source": null,
+            "result": "unknown",
+            "locator": "applicability.backend"
+          }
+        ],
+        "missing": [
+          "backend"
+        ],
+        "scope": "declared fields only; prose and unrequested conditions require source review",
+        "next_step": "Check original bounds and task-required validation before using a claim.",
+        "ref": "package:inferrsi.common.skills.pytorch",
+        "revision": "sha256:77bae89709e7037fe0deafa2a92ff511fd8f3f77ae4c3ab36ef5d01820af2ab7",
+        "source_state": "candidate",
+        "verification": {
+          "locally_verified": false,
+          "evidence_level": "guidance"
+        },
+        "evidence_resources": [
+          "data/skill_library/systems/frameworks/pytorch/pytorch/SKILL.md",
+          "data/skill_library/systems/platforms/host/host-memory-management/SKILL.md",
+          "data/skill_library/systems/frameworks/pytorch/dcp-async-save-performance/SKILL.md",
+          "data/skill_library/systems/frameworks/pytorch/pytorch/references/source-readset.json",
+          "data/skill_library/systems/frameworks/pytorch/pytorch/LICENSE",
+          "data/skill_library/systems/frameworks/pytorch/pytorch/references/notices.md",
+          "data/skill_library/systems/frameworks/pytorch/pytorch/references/upstream-NOTICE",
+          "data/skill_library/systems/frameworks/pytorch/pytorch/references/repo-provenance.md",
+          "data/skill_library/systems/frameworks/pytorch/pytorch/references/repo-routing-metadata.json",
+          "data/skill_library/systems/frameworks/pytorch/pytorch/references/source-directory-coverage.md",
+          "data/skill_library/systems/frameworks/pytorch/pytorch/references/source-script-map.md",
+          "data/skill_library/systems/frameworks/pytorch/pytorch/references/troubleshooting.md",
+          "data/skill_library/systems/frameworks/pytorch/pytorch/sub-skills/compiler-and-export/SKILL.md",
+          "data/skill_library/systems/frameworks/pytorch/pytorch/sub-skills/compiler-and-export/references/troubleshooting.md",
+          "data/skill_library/systems/frameworks/pytorch/pytorch/sub-skills/compiler-and-export/references/workflows.md",
+          "data/skill_library/systems/frameworks/pytorch/pytorch/sub-skills/custom-operators-and-extension/SKILL.md",
+          "data/skill_library/systems/frameworks/pytorch/pytorch/sub-skills/custom-operators-and-extension/references/troubleshooting.md",
+          "data/skill_library/systems/frameworks/pytorch/pytorch/sub-skills/distributed-and-checkpoint/SKILL.md",
+          "data/skill_library/systems/frameworks/pytorch/pytorch/sub-skills/installation-and-build/SKILL.md",
+          "data/skill_library/systems/frameworks/pytorch/pytorch/sub-skills/installation-and-build/references/troubleshooting.md",
+          "data/skill_library/systems/frameworks/pytorch/pytorch/sub-skills/installation-and-build/references/workflows.md",
+          "data/skill_library/systems/frameworks/pytorch/pytorch/LICENSE",
+          "data/skill_library/systems/frameworks/pytorch/pytorch/sub-skills/tensor-dispatch-autograd/SKILL.md",
+          "data/skill_library/systems/frameworks/pytorch/pytorch/sub-skills/tensor-dispatch-autograd/references/troubleshooting.md",
+          "data/skill_library/systems/frameworks/pytorch/pytorch/sub-skills/tensor-dispatch-autograd/references/workflows.md",
+          "data/skill_library/systems/frameworks/pytorch/pytorch/sub-skills/tensor-dispatch-autograd/scripts/tensor_contracts.py",
+          "data/skill_library/systems/frameworks/pytorch/pytorch/LICENSE",
+          "data/skill_library/systems/frameworks/pytorch/pytorch/scripts/inspect_environment.py"
+        ],
+        "confirmation": "structured_only; Agent must confirm prose bounds",
+        "questions": [
+          "Check original source boundaries and missing task versions before transfer."
+        ]
+      },
+      {
+        "ref": "package:inferrsi.common.skills.pytorch",
+        "revision": "sha256:77bae89709e7037fe0deafa2a92ff511fd8f3f77ae4c3ab36ef5d01820af2ab7",
+        "resource": "data/skill_library/systems/frameworks/pytorch/pytorch/sub-skills/installation-and-build/SKILL.md",
+        "verdict": "unknown",
+        "source_state": "candidate",
+        "reason": "Resource prose bounds require Agent confirmation",
+        "evidence_resources": [
+          "data/skill_library/systems/frameworks/pytorch/pytorch/sub-skills/installation-and-build/SKILL.md",
+          "data/skill_library/systems/frameworks/pytorch/pytorch/sub-skills/installation-and-build/references/troubleshooting.md",
+          "data/skill_library/systems/frameworks/pytorch/pytorch/sub-skills/installation-and-build/references/workflows.md",
+          "data/skill_library/systems/frameworks/pytorch/pytorch/LICENSE"
+        ]
+      },
+      {
+        "ref": "package:inferrsi.common.skills.pytorch",
+        "revision": "sha256:77bae89709e7037fe0deafa2a92ff511fd8f3f77ae4c3ab36ef5d01820af2ab7",
+        "resource": "data/skill_library/systems/frameworks/pytorch/pytorch/sub-skills/tensor-dispatch-autograd/SKILL.md",
+        "verdict": "unknown",
+        "source_state": "candidate",
+        "reason": "Resource prose bounds require Agent confirmation",
+        "evidence_resources": [
+          "data/skill_library/systems/frameworks/pytorch/pytorch/sub-skills/tensor-dispatch-autograd/SKILL.md",
+          "data/skill_library/systems/frameworks/pytorch/pytorch/sub-skills/tensor-dispatch-autograd/references/troubleshooting.md",
+          "data/skill_library/systems/frameworks/pytorch/pytorch/sub-skills/tensor-dispatch-autograd/references/workflows.md",
+          "data/skill_library/systems/frameworks/pytorch/pytorch/sub-skills/tensor-dispatch-autograd/scripts/tensor_contracts.py",
+          "data/skill_library/systems/frameworks/pytorch/pytorch/LICENSE"
+        ]
+      },
+      {
+        "ref": "package:inferrsi.common.skills.pytorch",
+        "revision": "sha256:77bae89709e7037fe0deafa2a92ff511fd8f3f77ae4c3ab36ef5d01820af2ab7",
+        "resource": "data/skill_library/systems/frameworks/pytorch/pytorch/scripts/inspect_environment.py",
+        "verdict": "unknown",
+        "source_state": "candidate",
+        "reason": "Resource prose bounds require Agent confirmation",
+        "evidence_resources": [
+          "data/skill_library/systems/frameworks/pytorch/pytorch/scripts/inspect_environment.py"
+        ]
+      }
+    ],
+    "expansion_paths": [
+      {
+        "ref": "package:inferrsi.common.skills.pytorch",
+        "revision": "sha256:77bae89709e7037fe0deafa2a92ff511fd8f3f77ae4c3ab36ef5d01820af2ab7",
+        "via": null,
+        "depth": 0,
+        "status": "delivered",
+        "bytes": 129832
+      },
+      {
+        "via": {
+          "from": "package:inferrsi.common.skills.pytorch",
+          "source_path": "systems/frameworks/pytorch/pytorch/SKILL.md",
+          "reference": "references/repo-provenance.md",
+          "kind": "resource",
+          "path": "data/skill_library/systems/frameworks/pytorch/pytorch/references/repo-provenance.md"
+        },
+        "stop": "reader_resource_delivered"
+      },
+      {
+        "via": {
+          "from": "package:inferrsi.common.skills.pytorch",
+          "source_path": "systems/frameworks/pytorch/pytorch/SKILL.md",
+          "reference": "sub-skills/installation-and-build/SKILL.md",
+          "kind": "resource",
+          "path": "data/skill_library/systems/frameworks/pytorch/pytorch/sub-skills/installation-and-build/SKILL.md"
+        },
+        "status": "delivered",
+        "bytes": 12725
+      },
+      {
+        "via": {
+          "from": "package:inferrsi.common.skills.pytorch",
+          "source_path": "systems/frameworks/pytorch/pytorch/SKILL.md",
+          "reference": "sub-skills/tensor-dispatch-autograd/SKILL.md",
+          "kind": "resource",
+          "path": "data/skill_library/systems/frameworks/pytorch/pytorch/sub-skills/tensor-dispatch-autograd/SKILL.md"
+        },
+        "status": "delivered",
+        "bytes": 15489
+      },
+      {
+        "via": {
+          "from": "package:inferrsi.common.skills.pytorch",
+          "source_path": "systems/frameworks/pytorch/pytorch/SKILL.md",
+          "reference": "sub-skills/training-and-data/SKILL.md",
+          "kind": "resource",
+          "path": "data/skill_library/systems/frameworks/pytorch/pytorch/sub-skills/training-and-data/SKILL.md"
+        },
+        "stop": "context_limit"
+      },
+      {
+        "via": {
+          "from": "package:inferrsi.common.skills.pytorch",
+          "source_path": "systems/frameworks/pytorch/pytorch/SKILL.md",
+          "reference": "sub-skills/compiler-and-export/SKILL.md",
+          "kind": "resource",
+          "path": "data/skill_library/systems/frameworks/pytorch/pytorch/sub-skills/compiler-and-export/SKILL.md"
+        },
+        "stop": "reader_resource_delivered"
+      },
+      {
+        "via": {
+          "from": "package:inferrsi.common.skills.pytorch",
+          "source_path": "systems/frameworks/pytorch/pytorch/SKILL.md",
+          "reference": "sub-skills/memory-streams-and-graphs/SKILL.md",
+          "kind": "resource",
+          "path": "data/skill_library/systems/frameworks/pytorch/pytorch/sub-skills/memory-streams-and-graphs/SKILL.md"
+        },
+        "stop": "context_limit"
+      },
+      {
+        "via": {
+          "from": "package:inferrsi.common.skills.pytorch",
+          "source_path": "systems/frameworks/pytorch/pytorch/SKILL.md",
+          "reference": "sub-skills/distributed-and-checkpoint/SKILL.md",
+          "kind": "resource",
+          "path": "data/skill_library/systems/frameworks/pytorch/pytorch/sub-skills/distributed-and-checkpoint/SKILL.md"
+        },
+        "stop": "reader_resource_delivered"
+      },
+      {
+        "via": {
+          "from": "package:inferrsi.common.skills.pytorch",
+          "source_path": "systems/frameworks/pytorch/pytorch/SKILL.md",
+          "reference": "sub-skills/profiling-and-debugging/SKILL.md",
+          "kind": "resource",
+          "path": "data/skill_library/systems/frameworks/pytorch/pytorch/sub-skills/profiling-and-debugging/SKILL.md"
+        },
+        "stop": "context_limit"
+      },
+      {
+        "via": {
+          "from": "package:inferrsi.common.skills.pytorch",
+          "source_path": "systems/frameworks/pytorch/pytorch/SKILL.md",
+          "reference": "sub-skills/custom-operators-and-extension/SKILL.md",
+          "kind": "resource",
+          "path": "data/skill_library/systems/frameworks/pytorch/pytorch/sub-skills/custom-operators-and-extension/SKILL.md"
+        },
+        "stop": "reader_resource_delivered"
+      },
+      {
+        "via": {
+          "from": "package:inferrsi.common.skills.pytorch",
+          "source_path": "systems/frameworks/pytorch/pytorch/SKILL.md",
+          "reference": "scripts/inspect_environment.py",
+          "kind": "resource",
+          "path": "data/skill_library/systems/frameworks/pytorch/pytorch/scripts/inspect_environment.py"
+        },
+        "status": "delivered",
+        "bytes": 1948
+      },
+      {
+        "via": {
+          "from": "package:inferrsi.common.skills.pytorch",
+          "source_path": "systems/frameworks/pytorch/pytorch/SKILL.md",
+          "reference": "references/troubleshooting.md",
+          "kind": "resource",
+          "path": "data/skill_library/systems/frameworks/pytorch/pytorch/references/troubleshooting.md"
+        },
+        "stop": "reader_resource_delivered"
+      },
+      {
+        "via": {
+          "from": "package:inferrsi.common.skills.pytorch",
+          "source_path": "systems/frameworks/pytorch/pytorch/SKILL.md",
+          "reference": "references/source-directory-coverage.md",
+          "kind": "resource",
+          "path": "data/skill_library/systems/frameworks/pytorch/pytorch/references/source-directory-coverage.md"
+        },
+        "stop": "reader_resource_delivered"
+      },
+      {
+        "via": {
+          "from": "package:inferrsi.common.skills.pytorch",
+          "source_path": "systems/frameworks/pytorch/pytorch/SKILL.md",
+          "reference": "references/source-readset.json",
+          "kind": "resource",
+          "path": "data/skill_library/systems/frameworks/pytorch/pytorch/references/source-readset.json"
+        },
+        "stop": "reader_resource_delivered"
+      },
+      {
+        "via": {
+          "from": "package:inferrsi.common.skills.pytorch",
+          "source_path": "systems/frameworks/pytorch/pytorch/SKILL.md",
+          "reference": "references/source-script-map.md",
+          "kind": "resource",
+          "path": "data/skill_library/systems/frameworks/pytorch/pytorch/references/source-script-map.md"
+        },
+        "stop": "reader_resource_delivered"
+      },
+      {
+        "via": {
+          "from": "package:inferrsi.common.skills.pytorch",
+          "source_path": "systems/frameworks/pytorch/pytorch/SKILL.md",
+          "reference": "references/notices.md",
+          "kind": "resource",
+          "path": "data/skill_library/systems/frameworks/pytorch/pytorch/references/notices.md"
+        },
+        "stop": "reader_resource_delivered"
+      },
+      {
+        "via": {
+          "from": "package:inferrsi.common.skills.pytorch",
+          "kind": "external_pointer",
+          "reference": "https://github.com/pytorch/pytorch",
+          "source_path": "systems/frameworks/pytorch/pytorch/SKILL.md"
+        },
+        "stop": "external_pointer"
+      },
+      {
+        "ref": "package:pytorch.cuda.compiler.cudagraph_shapes_and_lifetimes",
+        "via": null,
+        "stop": "context_unavailable"
+      },
+      {
+        "ref": "package:inferrsi.common.skills.host_memory_management",
+        "via": {
+          "from": "package:inferrsi.common.skills.pytorch",
+          "source_path": "systems/frameworks/pytorch/pytorch/SKILL.md",
+          "reference": "../../../platforms/host/host-memory-management/SKILL.md",
+          "kind": "entry",
+          "ref": "package:inferrsi.common.skills.host_memory_management"
+        },
+        "stop": "context_unavailable"
+      },
+      {
+        "ref": "package:inferrsi.common.skills.dcp_async_save_performance",
+        "via": {
+          "from": "package:inferrsi.common.skills.pytorch",
+          "source_path": "systems/frameworks/pytorch/pytorch/SKILL.md",
+          "reference": "../dcp-async-save-performance/SKILL.md",
+          "kind": "entry",
+          "ref": "package:inferrsi.common.skills.dcp_async_save_performance"
+        },
+        "stop": "context_unavailable"
+      }
+    ],
+    "accounting": {
+      "input_tokens": 77086,
+      "reserved_tokens": 4096,
+      "token_budget": 128000,
+      "input_bytes": 316353,
+      "tokenizer": "tiktoken:o200k_base",
+      "measured": true,
+      "serialization": "compact sorted UTF-8 JSON; includes control envelope"
+    },
+    "interface_seconds": 7.449354256968945,
+    "model_selection_seconds": null,
+    "actual_model_usage": null,
+    "selector": "retained current-Agent choices; no new model call during replay"
+  },
+  {
+    "id": "accuracy",
+    "query": "TTS 新版本音质下降 对齐参考实现 逐层精度回归",
+    "snapshot_id": "sha256:9f61007d34961ddc78162e4d8da95f82d70683e4bcbd50045a81e9723bbd3ccc",
+    "baseline_ids": [
+      "inference-benchmark-design",
+      "qwen3_tts_engine.ascend.audio.fixed_customvoice_prompt",
+      "qwen3_tts_engine.ascend.audio.codec_constants_and_state",
+      "qwen3_tts_engine.ascend.audio.graph_batching_state_ownership",
+      "torch-npu"
+    ],
+    "baseline_delivered": [
+      "package:qwen3_tts_engine.ascend.audio.fixed_customvoice_prompt",
+      "package:qwen3_tts_engine.ascend.audio.codec_constants_and_state",
+      "package:qwen3_tts_engine.ascend.audio.graph_batching_state_ownership",
+      "package:inferrsi.ascend.skills.torch_npu"
+    ],
+    "baseline_omissions": [
+      {
+        "ref": "package:inferrsi.common.skills.inference_benchmark_design",
+        "reason": "context_limit",
+        "required_bytes": 320040,
+        "available_bytes": 131072
+      }
+    ],
+    "candidate_selected": [
+      "package:inferrsi.common.skills.inference_benchmark_design",
+      "package:sglang_omni.common.audio.serving_and_streaming_quality",
+      "package:vllm_omni.common.audio.streaming_serving_measurement"
+    ],
+    "candidate_delivered": [
+      "package:sglang_omni.common.audio.serving_and_streaming_quality",
+      "package:vllm_omni.common.audio.streaming_serving_measurement"
+    ],
+    "expansion_added_entries": [],
+    "candidate_omissions": [
+      {
+        "ref": "package:inferrsi.common.skills.inference_benchmark_design",
+        "reason": "context_limit",
+        "required_bytes": 320040,
+        "available_bytes": 131072
+      },
+      {
+        "ref": "package:vllm_omni.common.audio.streaming_serving_measurement",
+        "reason": "context_limit",
+        "required_bytes": 17749,
+        "available_bytes": 10163
+      }
+    ],
+    "judgments": [
+      {
+        "verdict": "unknown",
+        "purpose": "method",
+        "comparisons": [
+          {
+            "field": "model",
+            "task": null,
+            "source": null,
+            "result": "unknown",
+            "locator": "applicability.model"
+          },
+          {
+            "field": "engine_version",
+            "task": null,
+            "source": null,
+            "result": "unknown",
+            "locator": "applicability.engine_version"
+          }
+        ],
+        "missing": [
+          "model",
+          "engine_version"
+        ],
+        "scope": "declared fields only; prose and unrequested conditions require source review",
+        "next_step": "Check original bounds and task-required validation before using a claim.",
+        "ref": "package:sglang_omni.common.audio.serving_and_streaming_quality",
+        "revision": "sha256:c82bbe408d13022b04e557ffff240225293f97f498996bb7ee9c3909a0a881cb",
+        "source_state": "imported",
+        "verification": {
+          "locally_verified": false,
+          "evidence_level": "guidance"
+        },
+        "evidence_resources": [
+          "record.json",
+          "data/skill_library/systems/engines/sglang-omni/sub-skills/sglang-omni-serving/SKILL.md",
+          "data/skill_library/systems/engines/sglang-omni/sub-skills/sglang-omni-serving/references/recipes-and-tuning.md",
+          "data/skill_library/systems/engines/sglang-omni/LICENSE"
+        ],
+        "confirmation": "structured_only; Agent must confirm prose bounds",
+        "questions": [
+          "Check original source boundaries and missing task versions before transfer."
+        ]
+      },
+      {
+        "ref": "package:sglang_omni.common.audio.serving_and_streaming_quality",
+        "revision": "sha256:c82bbe408d13022b04e557ffff240225293f97f498996bb7ee9c3909a0a881cb",
+        "resource": "data/skill_library/systems/engines/sglang-omni/sub-skills/sglang-omni-serving/SKILL.md",
+        "verdict": "unknown",
+        "source_state": "imported",
+        "reason": "Resource prose bounds require Agent confirmation",
+        "evidence_resources": [
+          "data/skill_library/systems/engines/sglang-omni/sub-skills/sglang-omni-serving/SKILL.md",
+          "data/skill_library/systems/engines/sglang-omni/sub-skills/sglang-omni-serving/references/recipes-and-tuning.md",
+          "data/skill_library/systems/engines/sglang-omni/LICENSE"
+        ]
+      },
+      {
+        "verdict": "unknown",
+        "purpose": "method",
+        "comparisons": [
+          {
+            "field": "model",
+            "task": null,
+            "source": null,
+            "result": "unknown",
+            "locator": "applicability.model"
+          },
+          {
+            "field": "engine_version",
+            "task": null,
+            "source": null,
+            "result": "unknown",
+            "locator": "applicability.engine_version"
+          }
+        ],
+        "missing": [
+          "model",
+          "engine_version"
+        ],
+        "scope": "declared fields only; prose and unrequested conditions require source review",
+        "next_step": "Check original bounds and task-required validation before using a claim.",
+        "ref": "package:vllm_omni.common.audio.streaming_serving_measurement",
+        "revision": "sha256:18bf1bfc3766216a66cb2229a98a5f71622bd34b0b53f5e1b0963466d66a3c08",
+        "source_state": "imported",
+        "verification": {
+          "locally_verified": false,
+          "evidence_level": "guidance"
+        },
+        "evidence_resources": [
+          "record.json"
+        ],
+        "confirmation": "structured_only; Agent must confirm prose bounds",
+        "questions": [
+          "Check original source boundaries and missing task versions before transfer."
+        ]
+      }
+    ],
+    "expansion_paths": [
+      {
+        "ref": "package:inferrsi.common.skills.inference_benchmark_design",
+        "via": null,
+        "stop": "context_unavailable"
+      },
+      {
+        "ref": "package:sglang_omni.common.audio.serving_and_streaming_quality",
+        "revision": "sha256:c82bbe408d13022b04e557ffff240225293f97f498996bb7ee9c3909a0a881cb",
+        "via": null,
+        "depth": 0,
+        "status": "delivered",
+        "bytes": 3052
+      },
+      {
+        "via": {
+          "from": "package:sglang_omni.common.audio.serving_and_streaming_quality",
+          "kind": "resource",
+          "path": "data/skill_library/systems/engines/sglang-omni/sub-skills/sglang-omni-serving/SKILL.md",
+          "reference": "data/skill_library/systems/engines/sglang-omni/sub-skills/sglang-omni-serving/SKILL.md",
+          "source_path": "record.json#skill_documents.en"
+        },
+        "status": "delivered",
+        "bytes": 22605
+      },
+      {
+        "via": {
+          "from": "package:sglang_omni.common.audio.serving_and_streaming_quality",
+          "kind": "external_pointer",
+          "reference": "https://github.com/sgl-project/sglang-omni/blob/2cfb3b67becb437b70751defe37e63d3af4eedb0/benchmarks/eval/benchmark_omni_streaming_ttft.py",
+          "source_path": null
+        },
+        "stop": "external_pointer"
+      },
+      {
+        "ref": "package:vllm_omni.common.audio.streaming_serving_measurement",
+        "revision": "sha256:18bf1bfc3766216a66cb2229a98a5f71622bd34b0b53f5e1b0963466d66a3c08",
+        "via": null,
+        "depth": 0,
+        "status": "delivered",
+        "bytes": 3001
+      },
+      {
+        "via": {
+          "from": "package:vllm_omni.common.audio.streaming_serving_measurement",
+          "kind": "resource",
+          "path": "data/skill_library/systems/engines/vllm-omni/sub-skills/omni-serving/SKILL.md",
+          "reference": "data/skill_library/systems/engines/vllm-omni/sub-skills/omni-serving/SKILL.md",
+          "source_path": "record.json#skill_documents.en"
+        },
+        "stop": "context_limit"
+      },
+      {
+        "via": {
+          "from": "package:vllm_omni.common.audio.streaming_serving_measurement",
+          "kind": "external_pointer",
+          "reference": "https://github.com/vllm-project/vllm-omni/blob/52194f24fa42e14d1c5e096f4bea4dc7f95cffa1/vllm_omni/deploy/qwen3_omni_moe.yaml#L1-L102",
+          "source_path": null
+        },
+        "stop": "external_pointer"
+      }
+    ],
+    "accounting": {
+      "input_tokens": 77094,
+      "reserved_tokens": 4096,
+      "token_budget": 128000,
+      "input_bytes": 316351,
+      "tokenizer": "tiktoken:o200k_base",
+      "measured": true,
+      "serialization": "compact sorted UTF-8 JSON; includes control envelope"
+    },
+    "interface_seconds": 7.321616634028032,
+    "model_selection_seconds": null,
+    "actual_model_usage": null,
+    "selector": "retained current-Agent choices; no new model call during replay"
+  },
+  {
+    "id": "version-alignment",
+    "query": "Align vllm-omni vllm-ascend and afd-plugin versions after upgrading vLLM",
+    "snapshot_id": "sha256:9f61007d34961ddc78162e4d8da95f82d70683e4bcbd50045a81e9723bbd3ccc",
+    "baseline_ids": [
+      "vllm-ascend",
+      "vllm-metal",
+      "vllm_omni.ascend.diffusion.minimax_h3_reference_kv_reuse",
+      "ascend-model-adaptation",
+      "audit-afd-p2p-exchanges"
+    ],
+    "baseline_delivered": [
+      "package:inferrsi.ascend.skills.vllm_ascend"
+    ],
+    "baseline_omissions": [
+      {
+        "ref": "package:inferrsi.common.skills.vllm_metal",
+        "reason": "context_limit",
+        "required_bytes": 28273,
+        "available_bytes": 822
+      },
+      {
+        "ref": "package:vllm_omni.ascend.diffusion.minimax_h3_reference_kv_reuse",
+        "reason": "context_limit",
+        "required_bytes": 3601,
+        "available_bytes": 822
+      },
+      {
+        "ref": "package:inferrsi.ascend.skills.ascend_model_adaptation",
+        "reason": "context_limit",
+        "required_bytes": 12461,
+        "available_bytes": 822
+      },
+      {
+        "ref": "package:inferrsi.cuda.skills.audit_afd_p2p_exchanges",
+        "reason": "context_limit",
+        "required_bytes": 77206,
+        "available_bytes": 822
+      }
+    ],
+    "candidate_selected": [
+      "package:inferrsi.common.skills.repository_evolution_analysis",
+      "package:inferrsi.ascend.skills.vllm_ascend",
+      "package:inferrsi.ascend.skills.torch_npu"
+    ],
+    "candidate_delivered": [
+      "package:inferrsi.common.skills.repository_evolution_analysis",
+      "package:inferrsi.ascend.skills.vllm_ascend"
+    ],
+    "expansion_added_entries": [],
+    "candidate_omissions": [
+      {
+        "ref": "package:inferrsi.ascend.skills.vllm_ascend",
+        "reason": "context_limit",
+        "required_bytes": 21756,
+        "available_bytes": 9828
+      },
+      {
+        "ref": "package:inferrsi.ascend.skills.torch_npu",
+        "reason": "context_limit",
+        "required_bytes": 89293,
+        "available_bytes": 436
+      }
+    ],
+    "judgments": [
+      {
+        "verdict": "unknown",
+        "purpose": "method",
+        "comparisons": [
+          {
+            "field": "backend",
+            "task": "ascend",
+            "source": null,
+            "result": "unknown",
+            "locator": "applicability.backend"
+          },
+          {
+            "field": "engine_version",
+            "task": null,
+            "source": null,
+            "result": "unknown",
+            "locator": "applicability.engine_version"
+          }
+        ],
+        "missing": [
+          "backend",
+          "engine_version"
+        ],
+        "scope": "declared fields only; prose and unrequested conditions require source review",
+        "next_step": "Check original bounds and task-required validation before using a claim.",
+        "ref": "package:inferrsi.common.skills.repository_evolution_analysis",
+        "revision": "sha256:f123860e646dea0eaa83cf7dfc3c5c2b069114ff57014b979b6887b02c154f39",
+        "source_state": "candidate",
+        "verification": {
+          "locally_verified": false,
+          "evidence_level": "guidance"
+        },
+        "evidence_resources": [
+          "data/skill_library/workflows/research/repository-evolution-analysis/SKILL.md",
+          "data/skill_library/workflows/research/repository-evolution-analysis/references/rtk-consumer-path-transition.md",
+          "data/skill_library/workflows/research/repository-evolution-analysis/references/capability-presence-audit.md",
+          "data/skill_library/workflows/maintenance/npu-skill-factory/references/papers-20261015/references/learning-to-commit.md",
+          "data/skill_library/workflows/maintenance/npu-skill-factory/references/papers-20261015/cases/methodology-counterexamples.md"
+        ],
+        "confirmation": "structured_only; Agent must confirm prose bounds",
+        "questions": [
+          "Check original source boundaries and missing task versions before transfer."
+        ]
+      },
+      {
+        "ref": "package:inferrsi.common.skills.repository_evolution_analysis",
+        "revision": "sha256:f123860e646dea0eaa83cf7dfc3c5c2b069114ff57014b979b6887b02c154f39",
+        "resource": "data/skill_library/workflows/maintenance/npu-skill-factory/references/papers-20261015/references/learning-to-commit.md",
+        "verdict": "unknown",
+        "source_state": "candidate",
+        "reason": "Resource prose bounds require Agent confirmation",
+        "evidence_resources": [
+          "data/skill_library/workflows/maintenance/npu-skill-factory/references/papers-20261015/references/learning-to-commit.md"
+        ]
+      },
+      {
+        "ref": "package:inferrsi.common.skills.repository_evolution_analysis",
+        "revision": "sha256:f123860e646dea0eaa83cf7dfc3c5c2b069114ff57014b979b6887b02c154f39",
+        "resource": "data/skill_library/workflows/maintenance/npu-skill-factory/references/papers-20261015/cases/methodology-counterexamples.md",
+        "verdict": "unknown",
+        "source_state": "candidate",
+        "reason": "Resource prose bounds require Agent confirmation",
+        "evidence_resources": [
+          "data/skill_library/workflows/maintenance/npu-skill-factory/references/papers-20261015/cases/methodology-counterexamples.md"
+        ]
+      },
+      {
+        "verdict": "unknown",
+        "purpose": "method",
+        "comparisons": [
+          {
+            "field": "backend",
+            "task": "ascend",
+            "source": null,
+            "result": "unknown",
+            "locator": "applicability.backend"
+          },
+          {
+            "field": "engine_version",
+            "task": null,
+            "source": null,
+            "result": "unknown",
+            "locator": "applicability.engine_version"
+          }
+        ],
+        "missing": [
+          "backend",
+          "engine_version"
+        ],
+        "scope": "declared fields only; prose and unrequested conditions require source review",
+        "next_step": "Check original bounds and task-required validation before using a claim.",
+        "ref": "package:inferrsi.ascend.skills.vllm_ascend",
+        "revision": "sha256:ffbcc9d3d22ae33e9fcb246f02fdaed0339d274343fa4b47dbcb9b2c17e81f6e",
+        "source_state": "candidate",
+        "verification": {
+          "locally_verified": false,
+          "evidence_level": "guidance"
+        },
+        "evidence_resources": [
+          "data/skill_library/systems/engines/vllm-ascend/SKILL.md",
+          "data/skill_library/systems/engines/vllm-ascend/references/sources.md",
+          "data/skill_library/systems/engines/vllm-ascend/references/history-scope.md",
+          "data/skill_library/systems/engines/vllm-ascend/references/history-reviewed.json",
+          "data/skill_library/systems/engines/vllm-ascend/references/communication-config.md",
+          "data/skill_library/systems/engines/vllm-ascend/references/deepseek-v4-evolution.md",
+          "data/skill_library/systems/engines/vllm-ascend/references/fused-operators.md",
+          "data/skill_library/systems/engines/vllm-ascend/references/plugin-registration.md",
+          "data/skill_library/systems/engines/vllm-ascend/references/minimax-cache.md"
+        ],
+        "confirmation": "structured_only; Agent must confirm prose bounds",
+        "questions": [
+          "Check original source boundaries and missing task versions before transfer."
+        ]
+      },
+      {
+        "ref": "package:inferrsi.ascend.skills.vllm_ascend",
+        "revision": "sha256:ffbcc9d3d22ae33e9fcb246f02fdaed0339d274343fa4b47dbcb9b2c17e81f6e",
+        "resource": "data/skill_library/systems/engines/vllm-ascend/references/fused-operators.md",
+        "verdict": "unknown",
+        "source_state": "candidate",
+        "reason": "Resource prose bounds require Agent confirmation",
+        "evidence_resources": [
+          "data/skill_library/systems/engines/vllm-ascend/references/fused-operators.md"
+        ]
+      },
+      {
+        "ref": "package:inferrsi.ascend.skills.vllm_ascend",
+        "revision": "sha256:ffbcc9d3d22ae33e9fcb246f02fdaed0339d274343fa4b47dbcb9b2c17e81f6e",
+        "resource": "data/skill_library/systems/engines/vllm-ascend/references/plugin-registration.md",
+        "verdict": "unknown",
+        "source_state": "candidate",
+        "reason": "Resource prose bounds require Agent confirmation",
+        "evidence_resources": [
+          "data/skill_library/systems/engines/vllm-ascend/references/plugin-registration.md"
+        ]
+      },
+      {
+        "ref": "package:inferrsi.ascend.skills.vllm_ascend",
+        "revision": "sha256:ffbcc9d3d22ae33e9fcb246f02fdaed0339d274343fa4b47dbcb9b2c17e81f6e",
+        "resource": "data/skill_library/systems/engines/vllm-ascend/references/minimax-cache.md",
+        "verdict": "unknown",
+        "source_state": "candidate",
+        "reason": "Resource prose bounds require Agent confirmation",
+        "evidence_resources": [
+          "data/skill_library/systems/engines/vllm-ascend/references/minimax-cache.md"
+        ]
+      }
+    ],
+    "expansion_paths": [
+      {
+        "ref": "package:inferrsi.common.skills.repository_evolution_analysis",
+        "revision": "sha256:f123860e646dea0eaa83cf7dfc3c5c2b069114ff57014b979b6887b02c154f39",
+        "via": null,
+        "depth": 0,
+        "status": "delivered",
+        "bytes": 43968
+      },
+      {
+        "via": {
+          "from": "package:inferrsi.common.skills.repository_evolution_analysis",
+          "source_path": "workflows/research/repository-evolution-analysis/SKILL.md",
+          "reference": "references/capability-presence-audit.md",
+          "kind": "resource",
+          "path": "data/skill_library/workflows/research/repository-evolution-analysis/references/capability-presence-audit.md"
+        },
+        "stop": "reader_resource_delivered"
+      },
+      {
+        "via": {
+          "from": "package:inferrsi.common.skills.repository_evolution_analysis",
+          "source_path": "workflows/research/repository-evolution-analysis/SKILL.md",
+          "reference": "https://github.com/LearningToCommit/LearningToCommit/tree/7e5a1d770eb9eb58e614db45f40b1b911529c6e7",
+          "kind": "external_pointer"
+        },
+        "stop": "external_pointer"
+      },
+      {
+        "via": {
+          "from": "package:inferrsi.common.skills.repository_evolution_analysis",
+          "source_path": "workflows/research/repository-evolution-analysis/SKILL.md",
+          "reference": "https://github.com/LearningToCommit/LearningToCommit/blob/7e5a1d770eb9eb58e614db45f40b1b911529c6e7/data_construction/s1_scan_commits.py",
+          "kind": "external_pointer"
+        },
+        "stop": "external_pointer"
+      },
+      {
+        "via": {
+          "from": "package:inferrsi.common.skills.repository_evolution_analysis",
+          "source_path": "workflows/research/repository-evolution-analysis/SKILL.md",
+          "reference": "https://github.com/LearningToCommit/LearningToCommit/blob/7e5a1d770eb9eb58e614db45f40b1b911529c6e7/data_construction/utils.py",
+          "kind": "external_pointer"
+        },
+        "stop": "external_pointer"
+      },
+      {
+        "via": {
+          "from": "package:inferrsi.common.skills.repository_evolution_analysis",
+          "source_path": "workflows/research/repository-evolution-analysis/SKILL.md",
+          "reference": "https://github.com/LearningToCommit/LearningToCommit/blob/7e5a1d770eb9eb58e614db45f40b1b911529c6e7/data_construction/s2_cluster.py",
+          "kind": "external_pointer"
+        },
+        "stop": "external_pointer"
+      },
+      {
+        "via": {
+          "from": "package:inferrsi.common.skills.repository_evolution_analysis",
+          "source_path": "workflows/research/repository-evolution-analysis/SKILL.md",
+          "reference": "https://github.com/LearningToCommit/LearningToCommit/blob/7e5a1d770eb9eb58e614db45f40b1b911529c6e7/data_construction/s3_tag.py",
+          "kind": "external_pointer"
+        },
+        "stop": "external_pointer"
+      },
+      {
+        "via": {
+          "from": "package:inferrsi.common.skills.repository_evolution_analysis",
+          "source_path": "workflows/research/repository-evolution-analysis/SKILL.md",
+          "reference": "https://github.com/LearningToCommit/LearningToCommit/blob/7e5a1d770eb9eb58e614db45f40b1b911529c6e7/data_construction/s4_sample.py",
+          "kind": "external_pointer"
+        },
+        "stop": "external_pointer"
+      },
+      {
+        "via": {
+          "from": "package:inferrsi.common.skills.repository_evolution_analysis",
+          "source_path": "workflows/research/repository-evolution-analysis/SKILL.md",
+          "reference": "https://github.com/LearningToCommit/LearningToCommit/blob/7e5a1d770eb9eb58e614db45f40b1b911529c6e7/data_construction/s5_build.py",
+          "kind": "external_pointer"
+        },
+        "stop": "external_pointer"
+      },
+      {
+        "via": {
+          "from": "package:inferrsi.common.skills.repository_evolution_analysis",
+          "source_path": "workflows/research/repository-evolution-analysis/SKILL.md",
+          "reference": "https://github.com/LearningToCommit/LearningToCommit/blob/7e5a1d770eb9eb58e614db45f40b1b911529c6e7/modules/sandbox.py",
+          "kind": "external_pointer"
+        },
+        "stop": "external_pointer"
+      },
+      {
+        "via": {
+          "from": "package:inferrsi.common.skills.repository_evolution_analysis",
+          "source_path": "workflows/research/repository-evolution-analysis/SKILL.md",
+          "reference": "https://github.com/LearningToCommit/LearningToCommit/blob/7e5a1d770eb9eb58e614db45f40b1b911529c6e7/workflow/phases.py",
+          "kind": "external_pointer"
+        },
+        "stop": "external_pointer"
+      },
+      {
+        "via": {
+          "from": "package:inferrsi.common.skills.repository_evolution_analysis",
+          "source_path": "workflows/research/repository-evolution-analysis/SKILL.md",
+          "reference": "https://github.com/LearningToCommit/LearningToCommit/blob/7e5a1d770eb9eb58e614db45f40b1b911529c6e7/modules/prompt_builder.py",
+          "kind": "external_pointer"
+        },
+        "stop": "external_pointer"
+      },
+      {
+        "via": {
+          "from": "package:inferrsi.common.skills.repository_evolution_analysis",
+          "source_path": "workflows/research/repository-evolution-analysis/SKILL.md",
+          "reference": "https://github.com/LearningToCommit/LearningToCommit/blob/7e5a1d770eb9eb58e614db45f40b1b911529c6e7/system_prompts/solve_with_skill.txt",
+          "kind": "external_pointer"
+        },
+        "stop": "external_pointer"
+      },
+      {
+        "via": {
+          "from": "package:inferrsi.common.skills.repository_evolution_analysis",
+          "source_path": "workflows/research/repository-evolution-analysis/SKILL.md",
+          "reference": "https://github.com/LearningToCommit/LearningToCommit/blob/7e5a1d770eb9eb58e614db45f40b1b911529c6e7/evaluation/programmatic_metrics.py",
+          "kind": "external_pointer"
+        },
+        "stop": "external_pointer"
+      },
+      {
+        "via": {
+          "from": "package:inferrsi.common.skills.repository_evolution_analysis",
+          "source_path": "workflows/research/repository-evolution-analysis/SKILL.md",
+          "reference": "https://github.com/LearningToCommit/LearningToCommit/blob/7e5a1d770eb9eb58e614db45f40b1b911529c6e7/evaluation/pairwise_judge.py",
+          "kind": "external_pointer"
+        },
+        "stop": "external_pointer"
+      },
+      {
+        "via": {
+          "from": "package:inferrsi.common.skills.repository_evolution_analysis",
+          "source_path": "workflows/research/repository-evolution-analysis/SKILL.md",
+          "reference": "../../maintenance/npu-skill-factory/references/papers-20261015/references/learning-to-commit.md",
+          "kind": "resource",
+          "path": "data/skill_library/workflows/maintenance/npu-skill-factory/references/papers-20261015/references/learning-to-commit.md"
+        },
+        "status": "delivered",
+        "bytes": 2847
+      },
+      {
+        "via": {
+          "from": "package:inferrsi.common.skills.repository_evolution_analysis",
+          "source_path": "workflows/research/repository-evolution-analysis/SKILL.md",
+          "reference": "../../maintenance/npu-skill-factory/references/papers-20261015/cases/methodology-counterexamples.md#e-c2--better-repository-familiarity-can-produce-unnecessary-caution",
+          "kind": "resource",
+          "path": "data/skill_library/workflows/maintenance/npu-skill-factory/references/papers-20261015/cases/methodology-counterexamples.md"
+        },
+        "status": "delivered",
+        "bytes": 5213
+      },
+      {
+        "via": {
+          "from": "package:inferrsi.common.skills.repository_evolution_analysis",
+          "source_path": "workflows/research/repository-evolution-analysis/SKILL.md",
+          "reference": "references/rtk-consumer-path-transition.md",
+          "kind": "resource",
+          "path": "data/skill_library/workflows/research/repository-evolution-analysis/references/rtk-consumer-path-transition.md"
+        },
+        "stop": "reader_resource_delivered"
+      },
+      {
+        "via": {
+          "from": "package:inferrsi.common.skills.repository_evolution_analysis",
+          "kind": "external_pointer",
+          "reference": "https://github.com/LearningToCommit/LearningToCommit",
+          "source_path": "workflows/research/repository-evolution-analysis/SKILL.md"
+        },
+        "stop": "external_pointer"
+      },
+      {
+        "ref": "package:inferrsi.ascend.skills.vllm_ascend",
+        "revision": "sha256:ffbcc9d3d22ae33e9fcb246f02fdaed0339d274343fa4b47dbcb9b2c17e81f6e",
+        "via": null,
+        "depth": 0,
+        "status": "delivered",
+        "bytes": 86668
+      },
+      {
+        "via": {
+          "from": "package:inferrsi.ascend.skills.vllm_ascend",
+          "source_path": "systems/engines/vllm-ascend/SKILL.md",
+          "reference": "references/deepseek-v4-evolution.md",
+          "kind": "resource",
+          "path": "data/skill_library/systems/engines/vllm-ascend/references/deepseek-v4-evolution.md"
+        },
+        "stop": "reader_resource_delivered"
+      },
+      {
+        "via": {
+          "from": "package:inferrsi.ascend.skills.vllm_ascend",
+          "source_path": "systems/engines/vllm-ascend/SKILL.md",
+          "reference": "references/communication-config.md",
+          "kind": "resource",
+          "path": "data/skill_library/systems/engines/vllm-ascend/references/communication-config.md"
+        },
+        "stop": "reader_resource_delivered"
+      },
+      {
+        "via": {
+          "from": "package:inferrsi.ascend.skills.vllm_ascend",
+          "source_path": "systems/engines/vllm-ascend/SKILL.md",
+          "reference": "references/fused-operators.md",
+          "kind": "resource",
+          "path": "data/skill_library/systems/engines/vllm-ascend/references/fused-operators.md"
+        },
+        "status": "delivered",
+        "bytes": 14880
+      },
+      {
+        "via": {
+          "from": "package:inferrsi.ascend.skills.vllm_ascend",
+          "source_path": "systems/engines/vllm-ascend/SKILL.md",
+          "reference": "references/model-performance.md",
+          "kind": "resource",
+          "path": "data/skill_library/systems/engines/vllm-ascend/references/model-performance.md"
+        },
+        "stop": "context_limit"
+      },
+      {
+        "via": {
+          "from": "package:inferrsi.ascend.skills.vllm_ascend",
+          "source_path": "systems/engines/vllm-ascend/SKILL.md",
+          "reference": "references/history-scope.md",
+          "kind": "resource",
+          "path": "data/skill_library/systems/engines/vllm-ascend/references/history-scope.md"
+        },
+        "stop": "reader_resource_delivered"
+      },
+      {
+        "via": {
+          "from": "package:inferrsi.ascend.skills.vllm_ascend",
+          "source_path": "systems/engines/vllm-ascend/SKILL.md",
+          "reference": "references/plugin-registration.md",
+          "kind": "resource",
+          "path": "data/skill_library/systems/engines/vllm-ascend/references/plugin-registration.md"
+        },
+        "status": "delivered",
+        "bytes": 2059
+      },
+      {
+        "via": {
+          "from": "package:inferrsi.ascend.skills.vllm_ascend",
+          "source_path": "systems/engines/vllm-ascend/SKILL.md",
+          "reference": "references/minimax-cache.md",
+          "kind": "resource",
+          "path": "data/skill_library/systems/engines/vllm-ascend/references/minimax-cache.md"
+        },
+        "status": "delivered",
+        "bytes": 2453
+      },
+      {
+        "via": {
+          "from": "package:inferrsi.ascend.skills.vllm_ascend",
+          "source_path": "systems/engines/vllm-ascend/SKILL.md",
+          "reference": "references/dspark-pd.md",
+          "kind": "resource",
+          "path": "data/skill_library/systems/engines/vllm-ascend/references/dspark-pd.md"
+        },
+        "stop": "depth_or_item_budget"
+      },
+      {
+        "via": {
+          "from": "package:inferrsi.ascend.skills.vllm_ascend",
+          "source_path": "systems/engines/vllm-ascend/SKILL.md",
+          "reference": "references/sources.md",
+          "kind": "resource",
+          "path": "data/skill_library/systems/engines/vllm-ascend/references/sources.md"
+        },
+        "stop": "reader_resource_delivered"
+      },
+      {
+        "via": {
+          "from": "package:inferrsi.ascend.skills.vllm_ascend",
+          "kind": "external_pointer",
+          "reference": "https://github.com/vllm-project/vllm-ascend",
+          "source_path": "systems/engines/vllm-ascend/SKILL.md"
+        },
+        "stop": "external_pointer"
+      },
+      {
+        "ref": "package:inferrsi.ascend.skills.torch_npu",
+        "via": null,
+        "stop": "context_unavailable"
+      }
+    ],
+    "accounting": {
+      "input_tokens": 77098,
+      "reserved_tokens": 4096,
+      "token_budget": 128000,
+      "input_bytes": 316365,
+      "tokenizer": "tiktoken:o200k_base",
+      "measured": true,
+      "serialization": "compact sorted UTF-8 JSON; includes control envelope"
+    },
+    "interface_seconds": 7.1671154629439116,
+    "model_selection_seconds": null,
+    "actual_model_usage": null,
+    "selector": "retained current-Agent choices; no new model call during replay"
+  },
+  {
+    "id": "derived-engine",
+    "query": "Bring a vLLM forked inference engine up on DeepInfer and reuse scheduling components",
+    "snapshot_id": "sha256:9f61007d34961ddc78162e4d8da95f82d70683e4bcbd50045a81e9723bbd3ccc",
+    "baseline_ids": [
+      "deepinfer.common.llm.zero_overhead_deferred_scheduling",
+      "deepinfer.common.llm.bounded_windowed_replay",
+      "vllm-metal",
+      "host-overhead-optimization",
+      "deepinfer.common.llm.speculative_verification_budget"
+    ],
+    "baseline_delivered": [
+      "package:deepinfer.common.llm.zero_overhead_deferred_scheduling",
+      "package:deepinfer.common.llm.bounded_windowed_replay",
+      "package:inferrsi.common.skills.vllm_metal",
+      "package:inferrsi.common.skills.host_overhead_optimization"
+    ],
+    "baseline_omissions": [
+      {
+        "ref": "package:deepinfer.common.llm.speculative_verification_budget",
+        "reason": "context_limit",
+        "required_bytes": 9235,
+        "available_bytes": 829
+      }
+    ],
+    "candidate_selected": [
+      "package:deepinfer.common.llm.zero_overhead_deferred_scheduling",
+      "package:vllm.common.llm.runtime_and_kv_ownership",
+      "package:vllm.common.llm.extension_correctness_gates",
+      "package:inferrsi.common.skills.repository_evolution_analysis"
+    ],
+    "candidate_delivered": [
+      "package:deepinfer.common.llm.zero_overhead_deferred_scheduling",
+      "package:vllm.common.llm.runtime_and_kv_ownership",
+      "package:vllm.common.llm.extension_correctness_gates",
+      "package:inferrsi.common.skills.repository_evolution_analysis"
+    ],
+    "expansion_added_entries": [],
+    "candidate_omissions": [
+      {
+        "ref": "package:vllm.common.llm.extension_correctness_gates",
+        "reason": "context_limit",
+        "required_bytes": 20679,
+        "available_bytes": 4784
+      },
+      {
+        "ref": "package:inferrsi.common.skills.repository_evolution_analysis",
+        "reason": "context_limit",
+        "required_bytes": 5213,
+        "available_bytes": 1937
+      }
+    ],
+    "judgments": [
+      {
+        "verdict": "unknown",
+        "purpose": "method",
+        "comparisons": [
+          {
+            "field": "engine",
+            "task": "vllm",
+            "source": null,
+            "result": "unknown",
+            "locator": "applicability.engine"
+          },
+          {
+            "field": "engine_version",
+            "task": null,
+            "source": null,
+            "result": "unknown",
+            "locator": "applicability.engine_version"
+          }
+        ],
+        "missing": [
+          "engine",
+          "engine_version"
+        ],
+        "scope": "declared fields only; prose and unrequested conditions require source review",
+        "next_step": "Check original bounds and task-required validation before using a claim.",
+        "ref": "package:deepinfer.common.llm.zero_overhead_deferred_scheduling",
+        "revision": "sha256:7029d6dde8ef502020dd98fb48a489fd7abe8bd2152f5177eb5ad7dbe2f7c700",
+        "source_state": "imported",
+        "verification": {
+          "locally_verified": false,
+          "evidence_level": "source_observed"
+        },
+        "evidence_resources": [
+          "record.json"
+        ],
+        "confirmation": "structured_only; Agent must confirm prose bounds",
+        "questions": [
+          "Check original source boundaries and missing task versions before transfer."
+        ]
+      },
+      {
+        "verdict": "unknown",
+        "purpose": "method",
+        "comparisons": [
+          {
+            "field": "engine",
+            "task": "vllm",
+            "source": null,
+            "result": "unknown",
+            "locator": "applicability.engine"
+          },
+          {
+            "field": "engine_version",
+            "task": null,
+            "source": null,
+            "result": "unknown",
+            "locator": "applicability.engine_version"
+          }
+        ],
+        "missing": [
+          "engine",
+          "engine_version"
+        ],
+        "scope": "declared fields only; prose and unrequested conditions require source review",
+        "next_step": "Check original bounds and task-required validation before using a claim.",
+        "ref": "package:vllm.common.llm.runtime_and_kv_ownership",
+        "revision": "sha256:99f6a8ee379464f9d885ff644c52cd06a0230d7d1a8cdd54d72069ca1fca144d",
+        "source_state": "imported",
+        "verification": {
+          "locally_verified": false,
+          "evidence_level": "guidance"
+        },
+        "evidence_resources": [
+          "record.json",
+          "data/skill_library/systems/engines/vllm/sub-skills/architecture-search-space/SKILL.md",
+          "data/skill_library/systems/engines/vllm/sub-skills/architecture-search-space/references/capability-boundaries.md",
+          "data/skill_library/systems/engines/vllm/sub-skills/architecture-search-space/references/runtime-and-invariants.md",
+          "data/skill_library/systems/engines/vllm/LICENSE"
+        ],
+        "confirmation": "structured_only; Agent must confirm prose bounds",
+        "questions": [
+          "Check original source boundaries and missing task versions before transfer."
+        ]
+      },
+      {
+        "ref": "package:vllm.common.llm.runtime_and_kv_ownership",
+        "revision": "sha256:99f6a8ee379464f9d885ff644c52cd06a0230d7d1a8cdd54d72069ca1fca144d",
+        "resource": "data/skill_library/systems/engines/vllm/sub-skills/architecture-search-space/SKILL.md",
+        "verdict": "unknown",
+        "source_state": "imported",
+        "reason": "Resource prose bounds require Agent confirmation",
+        "evidence_resources": [
+          "data/skill_library/systems/engines/vllm/sub-skills/architecture-search-space/SKILL.md",
+          "data/skill_library/systems/engines/vllm/sub-skills/architecture-search-space/references/capability-boundaries.md",
+          "data/skill_library/systems/engines/vllm/sub-skills/architecture-search-space/references/runtime-and-invariants.md",
+          "data/skill_library/systems/engines/vllm/LICENSE"
+        ]
+      },
+      {
+        "verdict": "unknown",
+        "purpose": "method",
+        "comparisons": [
+          {
+            "field": "engine",
+            "task": "vllm",
+            "source": null,
+            "result": "unknown",
+            "locator": "applicability.engine"
+          },
+          {
+            "field": "engine_version",
+            "task": null,
+            "source": null,
+            "result": "unknown",
+            "locator": "applicability.engine_version"
+          }
+        ],
+        "missing": [
+          "engine",
+          "engine_version"
+        ],
+        "scope": "declared fields only; prose and unrequested conditions require source review",
+        "next_step": "Check original bounds and task-required validation before using a claim.",
+        "ref": "package:vllm.common.llm.extension_correctness_gates",
+        "revision": "sha256:22d0f23d9b611f8358691a8e99c23e2bc55e966fdcc89d5cd062a1253ce2ad8b",
+        "source_state": "imported",
+        "verification": {
+          "locally_verified": false,
+          "evidence_level": "guidance"
+        },
+        "evidence_resources": [
+          "record.json"
+        ],
+        "confirmation": "structured_only; Agent must confirm prose bounds",
+        "questions": [
+          "Check original source boundaries and missing task versions before transfer."
+        ]
+      },
+      {
+        "verdict": "unknown",
+        "purpose": "method",
+        "comparisons": [
+          {
+            "field": "engine",
+            "task": "vllm",
+            "source": null,
+            "result": "unknown",
+            "locator": "applicability.engine"
+          },
+          {
+            "field": "engine_version",
+            "task": null,
+            "source": null,
+            "result": "unknown",
+            "locator": "applicability.engine_version"
+          }
+        ],
+        "missing": [
+          "engine",
+          "engine_version"
+        ],
+        "scope": "declared fields only; prose and unrequested conditions require source review",
+        "next_step": "Check original bounds and task-required validation before using a claim.",
+        "ref": "package:inferrsi.common.skills.repository_evolution_analysis",
+        "revision": "sha256:f123860e646dea0eaa83cf7dfc3c5c2b069114ff57014b979b6887b02c154f39",
+        "source_state": "candidate",
+        "verification": {
+          "locally_verified": false,
+          "evidence_level": "guidance"
+        },
+        "evidence_resources": [
+          "data/skill_library/workflows/research/repository-evolution-analysis/SKILL.md",
+          "data/skill_library/workflows/research/repository-evolution-analysis/references/rtk-consumer-path-transition.md",
+          "data/skill_library/workflows/research/repository-evolution-analysis/references/capability-presence-audit.md",
+          "data/skill_library/workflows/maintenance/npu-skill-factory/references/papers-20261015/references/learning-to-commit.md"
+        ],
+        "confirmation": "structured_only; Agent must confirm prose bounds",
+        "questions": [
+          "Check original source boundaries and missing task versions before transfer."
+        ]
+      },
+      {
+        "ref": "package:inferrsi.common.skills.repository_evolution_analysis",
+        "revision": "sha256:f123860e646dea0eaa83cf7dfc3c5c2b069114ff57014b979b6887b02c154f39",
+        "resource": "data/skill_library/workflows/maintenance/npu-skill-factory/references/papers-20261015/references/learning-to-commit.md",
+        "verdict": "unknown",
+        "source_state": "candidate",
+        "reason": "Resource prose bounds require Agent confirmation",
+        "evidence_resources": [
+          "data/skill_library/workflows/maintenance/npu-skill-factory/references/papers-20261015/references/learning-to-commit.md"
+        ]
+      }
+    ],
+    "expansion_paths": [
+      {
+        "ref": "package:deepinfer.common.llm.zero_overhead_deferred_scheduling",
+        "revision": "sha256:7029d6dde8ef502020dd98fb48a489fd7abe8bd2152f5177eb5ad7dbe2f7c700",
+        "via": null,
+        "depth": 0,
+        "status": "delivered",
+        "bytes": 7369
+      },
+      {
+        "via": {
+          "from": "package:deepinfer.common.llm.zero_overhead_deferred_scheduling",
+          "kind": "external_pointer",
+          "reference": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/engine/llm_engine.py#L307-L314",
+          "source_path": null
+        },
+        "stop": "external_pointer"
+      },
+      {
+        "ref": "package:vllm.common.llm.runtime_and_kv_ownership",
+        "revision": "sha256:99f6a8ee379464f9d885ff644c52cd06a0230d7d1a8cdd54d72069ca1fca144d",
+        "via": null,
+        "depth": 0,
+        "status": "delivered",
+        "bytes": 2892
+      },
+      {
+        "via": {
+          "from": "package:vllm.common.llm.runtime_and_kv_ownership",
+          "kind": "resource",
+          "path": "data/skill_library/systems/engines/vllm/sub-skills/architecture-search-space/SKILL.md",
+          "reference": "data/skill_library/systems/engines/vllm/sub-skills/architecture-search-space/SKILL.md",
+          "source_path": "record.json#skill_documents.en"
+        },
+        "status": "delivered",
+        "bytes": 27984
+      },
+      {
+        "via": {
+          "from": "package:vllm.common.llm.runtime_and_kv_ownership",
+          "kind": "external_pointer",
+          "reference": "https://github.com/vllm-project/vllm/blob/2521446ac8c92937b5a32b7dc2a84ef7fa8e99c5/vllm/v1/core/sched/scheduler.py#L1403-L1415",
+          "source_path": null
+        },
+        "stop": "external_pointer"
+      },
+      {
+        "ref": "package:vllm.common.llm.extension_correctness_gates",
+        "revision": "sha256:22d0f23d9b611f8358691a8e99c23e2bc55e966fdcc89d5cd062a1253ce2ad8b",
+        "via": null,
+        "depth": 0,
+        "status": "delivered",
+        "bytes": 2955
+      },
+      {
+        "via": {
+          "from": "package:vllm.common.llm.extension_correctness_gates",
+          "kind": "resource",
+          "path": "data/skill_library/systems/engines/vllm/sub-skills/extend-validate/SKILL.md",
+          "reference": "data/skill_library/systems/engines/vllm/sub-skills/extend-validate/SKILL.md",
+          "source_path": "record.json#skill_documents.en"
+        },
+        "stop": "context_limit"
+      },
+      {
+        "via": {
+          "from": "package:vllm.common.llm.extension_correctness_gates",
+          "kind": "external_pointer",
+          "reference": "https://github.com/vllm-project/vllm/blob/2521446ac8c92937b5a32b7dc2a84ef7fa8e99c5/vllm/v1/attention/selector.py#L105-L225",
+          "source_path": null
+        },
+        "stop": "external_pointer"
+      },
+      {
+        "ref": "package:inferrsi.common.skills.repository_evolution_analysis",
+        "revision": "sha256:f123860e646dea0eaa83cf7dfc3c5c2b069114ff57014b979b6887b02c154f39",
+        "via": null,
+        "depth": 0,
+        "status": "delivered",
+        "bytes": 43968
+      },
+      {
+        "via": {
+          "from": "package:inferrsi.common.skills.repository_evolution_analysis",
+          "source_path": "workflows/research/repository-evolution-analysis/SKILL.md",
+          "reference": "references/capability-presence-audit.md",
+          "kind": "resource",
+          "path": "data/skill_library/workflows/research/repository-evolution-analysis/references/capability-presence-audit.md"
+        },
+        "stop": "reader_resource_delivered"
+      },
+      {
+        "via": {
+          "from": "package:inferrsi.common.skills.repository_evolution_analysis",
+          "source_path": "workflows/research/repository-evolution-analysis/SKILL.md",
+          "reference": "https://github.com/LearningToCommit/LearningToCommit/tree/7e5a1d770eb9eb58e614db45f40b1b911529c6e7",
+          "kind": "external_pointer"
+        },
+        "stop": "external_pointer"
+      },
+      {
+        "via": {
+          "from": "package:inferrsi.common.skills.repository_evolution_analysis",
+          "source_path": "workflows/research/repository-evolution-analysis/SKILL.md",
+          "reference": "https://github.com/LearningToCommit/LearningToCommit/blob/7e5a1d770eb9eb58e614db45f40b1b911529c6e7/data_construction/s1_scan_commits.py",
+          "kind": "external_pointer"
+        },
+        "stop": "external_pointer"
+      },
+      {
+        "via": {
+          "from": "package:inferrsi.common.skills.repository_evolution_analysis",
+          "source_path": "workflows/research/repository-evolution-analysis/SKILL.md",
+          "reference": "https://github.com/LearningToCommit/LearningToCommit/blob/7e5a1d770eb9eb58e614db45f40b1b911529c6e7/data_construction/utils.py",
+          "kind": "external_pointer"
+        },
+        "stop": "external_pointer"
+      },
+      {
+        "via": {
+          "from": "package:inferrsi.common.skills.repository_evolution_analysis",
+          "source_path": "workflows/research/repository-evolution-analysis/SKILL.md",
+          "reference": "https://github.com/LearningToCommit/LearningToCommit/blob/7e5a1d770eb9eb58e614db45f40b1b911529c6e7/data_construction/s2_cluster.py",
+          "kind": "external_pointer"
+        },
+        "stop": "external_pointer"
+      },
+      {
+        "via": {
+          "from": "package:inferrsi.common.skills.repository_evolution_analysis",
+          "source_path": "workflows/research/repository-evolution-analysis/SKILL.md",
+          "reference": "https://github.com/LearningToCommit/LearningToCommit/blob/7e5a1d770eb9eb58e614db45f40b1b911529c6e7/data_construction/s3_tag.py",
+          "kind": "external_pointer"
+        },
+        "stop": "external_pointer"
+      },
+      {
+        "via": {
+          "from": "package:inferrsi.common.skills.repository_evolution_analysis",
+          "source_path": "workflows/research/repository-evolution-analysis/SKILL.md",
+          "reference": "https://github.com/LearningToCommit/LearningToCommit/blob/7e5a1d770eb9eb58e614db45f40b1b911529c6e7/data_construction/s4_sample.py",
+          "kind": "external_pointer"
+        },
+        "stop": "external_pointer"
+      },
+      {
+        "via": {
+          "from": "package:inferrsi.common.skills.repository_evolution_analysis",
+          "source_path": "workflows/research/repository-evolution-analysis/SKILL.md",
+          "reference": "https://github.com/LearningToCommit/LearningToCommit/blob/7e5a1d770eb9eb58e614db45f40b1b911529c6e7/data_construction/s5_build.py",
+          "kind": "external_pointer"
+        },
+        "stop": "external_pointer"
+      },
+      {
+        "via": {
+          "from": "package:inferrsi.common.skills.repository_evolution_analysis",
+          "source_path": "workflows/research/repository-evolution-analysis/SKILL.md",
+          "reference": "https://github.com/LearningToCommit/LearningToCommit/blob/7e5a1d770eb9eb58e614db45f40b1b911529c6e7/modules/sandbox.py",
+          "kind": "external_pointer"
+        },
+        "stop": "external_pointer"
+      },
+      {
+        "via": {
+          "from": "package:inferrsi.common.skills.repository_evolution_analysis",
+          "source_path": "workflows/research/repository-evolution-analysis/SKILL.md",
+          "reference": "https://github.com/LearningToCommit/LearningToCommit/blob/7e5a1d770eb9eb58e614db45f40b1b911529c6e7/workflow/phases.py",
+          "kind": "external_pointer"
+        },
+        "stop": "external_pointer"
+      },
+      {
+        "via": {
+          "from": "package:inferrsi.common.skills.repository_evolution_analysis",
+          "source_path": "workflows/research/repository-evolution-analysis/SKILL.md",
+          "reference": "https://github.com/LearningToCommit/LearningToCommit/blob/7e5a1d770eb9eb58e614db45f40b1b911529c6e7/modules/prompt_builder.py",
+          "kind": "external_pointer"
+        },
+        "stop": "external_pointer"
+      },
+      {
+        "via": {
+          "from": "package:inferrsi.common.skills.repository_evolution_analysis",
+          "source_path": "workflows/research/repository-evolution-analysis/SKILL.md",
+          "reference": "https://github.com/LearningToCommit/LearningToCommit/blob/7e5a1d770eb9eb58e614db45f40b1b911529c6e7/system_prompts/solve_with_skill.txt",
+          "kind": "external_pointer"
+        },
+        "stop": "external_pointer"
+      },
+      {
+        "via": {
+          "from": "package:inferrsi.common.skills.repository_evolution_analysis",
+          "source_path": "workflows/research/repository-evolution-analysis/SKILL.md",
+          "reference": "https://github.com/LearningToCommit/LearningToCommit/blob/7e5a1d770eb9eb58e614db45f40b1b911529c6e7/evaluation/programmatic_metrics.py",
+          "kind": "external_pointer"
+        },
+        "stop": "external_pointer"
+      },
+      {
+        "via": {
+          "from": "package:inferrsi.common.skills.repository_evolution_analysis",
+          "source_path": "workflows/research/repository-evolution-analysis/SKILL.md",
+          "reference": "https://github.com/LearningToCommit/LearningToCommit/blob/7e5a1d770eb9eb58e614db45f40b1b911529c6e7/evaluation/pairwise_judge.py",
+          "kind": "external_pointer"
+        },
+        "stop": "external_pointer"
+      },
+      {
+        "via": {
+          "from": "package:inferrsi.common.skills.repository_evolution_analysis",
+          "source_path": "workflows/research/repository-evolution-analysis/SKILL.md",
+          "reference": "../../maintenance/npu-skill-factory/references/papers-20261015/references/learning-to-commit.md",
+          "kind": "resource",
+          "path": "data/skill_library/workflows/maintenance/npu-skill-factory/references/papers-20261015/references/learning-to-commit.md"
+        },
+        "status": "delivered",
+        "bytes": 2847
+      },
+      {
+        "via": {
+          "from": "package:inferrsi.common.skills.repository_evolution_analysis",
+          "source_path": "workflows/research/repository-evolution-analysis/SKILL.md",
+          "reference": "../../maintenance/npu-skill-factory/references/papers-20261015/cases/methodology-counterexamples.md#e-c2--better-repository-familiarity-can-produce-unnecessary-caution",
+          "kind": "resource",
+          "path": "data/skill_library/workflows/maintenance/npu-skill-factory/references/papers-20261015/cases/methodology-counterexamples.md"
+        },
+        "stop": "context_limit"
+      },
+      {
+        "via": {
+          "from": "package:inferrsi.common.skills.repository_evolution_analysis",
+          "source_path": "workflows/research/repository-evolution-analysis/SKILL.md",
+          "reference": "references/rtk-consumer-path-transition.md",
+          "kind": "resource",
+          "path": "data/skill_library/workflows/research/repository-evolution-analysis/references/rtk-consumer-path-transition.md"
+        },
+        "stop": "reader_resource_delivered"
+      },
+      {
+        "via": {
+          "from": "package:inferrsi.common.skills.repository_evolution_analysis",
+          "kind": "external_pointer",
+          "reference": "https://github.com/LearningToCommit/LearningToCommit",
+          "source_path": "workflows/research/repository-evolution-analysis/SKILL.md"
+        },
+        "stop": "external_pointer"
+      }
+    ],
+    "accounting": {
+      "input_tokens": 77095,
+      "reserved_tokens": 4096,
+      "token_budget": 128000,
+      "input_bytes": 316375,
+      "tokenizer": "tiktoken:o200k_base",
+      "measured": true,
+      "serialization": "compact sorted UTF-8 JSON; includes control envelope"
+    },
+    "interface_seconds": 6.6932735448936,
+    "model_selection_seconds": null,
+    "actual_model_usage": null,
+    "selector": "retained current-Agent choices; no new model call during replay"
+  },
+  {
+    "id": "independent-engine",
+    "query": "Build an independent inference engine for an on-device model on Windows XPU",
+    "snapshot_id": "sha256:9f61007d34961ddc78162e4d8da95f82d70683e4bcbd50045a81e9723bbd3ccc",
+    "baseline_ids": [
+      "inference-benchmark-design",
+      "project-maya",
+      "weight-loading-optimization",
+      "strata.common.llm.engine_validation_contract",
+      "cann-attribution-overlap"
+    ],
+    "baseline_delivered": [
+      "package:inferrsi.common.skills.project_maya",
+      "package:strata.common.llm.engine_validation_contract",
+      "package:inferrsi.ascend.skills.cann_attribution_overlap"
+    ],
+    "baseline_omissions": [
+      {
+        "ref": "package:inferrsi.common.skills.inference_benchmark_design",
+        "reason": "context_limit",
+        "required_bytes": 320040,
+        "available_bytes": 131072
+      },
+      {
+        "ref": "package:inferrsi.common.skills.weight_loading_optimization",
+        "reason": "context_limit",
+        "required_bytes": 74132,
+        "available_bytes": 28085
+      }
+    ],
+    "candidate_selected": [
+      "package:inferrsi.common.skills.inference_benchmark_design",
+      "package:inferrsi.common.skills.kernel_writing_guide",
+      "package:inferrsi.common.skills.claim_contract"
+    ],
+    "candidate_delivered": [
+      "package:inferrsi.common.skills.kernel_writing_guide",
+      "package:inferrsi.common.skills.claim_contract"
+    ],
+    "expansion_added_entries": [],
+    "candidate_omissions": [
+      {
+        "ref": "package:inferrsi.common.skills.inference_benchmark_design",
+        "reason": "context_limit",
+        "required_bytes": 320040,
+        "available_bytes": 131072
+      },
+      {
+        "ref": "package:inferrsi.common.skills.kernel_writing_guide",
+        "reason": "context_limit",
+        "required_bytes": 3692,
+        "available_bytes": 2564
+      },
+      {
+        "ref": "checkout:case.vllm-gdn-source-contract",
+        "reason": "context_limit",
+        "required_bytes": 27471,
+        "available_bytes": 2564
+      },
+      {
+        "ref": "checkout:case.sglang-gdn-source-contract",
+        "reason": "context_limit",
+        "required_bytes": 13047,
+        "available_bytes": 2564
+      },
+      {
+        "ref": "package:inferrsi.cuda.skills.diagnose_attention_bottlenecks",
+        "reason": "context_limit",
+        "required_bytes": 56835,
+        "available_bytes": 2564
+      }
+    ],
+    "judgments": [
+      {
+        "verdict": "unknown",
+        "purpose": "method",
+        "comparisons": [
+          {
+            "field": "os",
+            "task": "Windows",
+            "source": null,
+            "result": "unknown",
+            "locator": "applicability.os"
+          },
+          {
+            "field": "backend",
+            "task": "xpu",
+            "source": null,
+            "result": "unknown",
+            "locator": "applicability.backend"
+          }
+        ],
+        "missing": [
+          "os",
+          "backend"
+        ],
+        "scope": "declared fields only; prose and unrequested conditions require source review",
+        "next_step": "Check original bounds and task-required validation before using a claim.",
+        "ref": "package:inferrsi.common.skills.kernel_writing_guide",
+        "revision": "sha256:7db4beb773b2083aeca6d3a245bf1023101947ca145c8f96e9c675e0b6c5b9ef",
+        "source_state": "candidate",
+        "verification": {
+          "locally_verified": false,
+          "evidence_level": "guidance"
+        },
+        "evidence_resources": [
+          "data/skill_library/playbooks/optimization/kernel-writing-guide/SKILL.md",
+          "data/skill_library/playbooks/optimization/kernel-writing-guide/references/akg-affine-tail-guards.md",
+          "data/skill_library/playbooks/optimization/kernel-writing-guide/references/causal-conv1d-contract.md",
+          "data/skill_library/playbooks/optimization/kernel-writing-guide/references/vllm-gdn-causal-conv-contract.md",
+          "data/skill_library/playbooks/optimization/kernel-writing-guide/references/hf-qwen35-gdn-binding.md",
+          "data/skill_library/playbooks/optimization/kernel-writing-guide/references/hf-qwen35-gdn-source.json",
+          "data/skill_library/playbooks/optimization/kernel-writing-guide/references/sglang-gdn-causal-conv-contract.md",
+          "data/skill_library/playbooks/optimization/kernel-writing-guide/references/pplx-gdn-caller-context.json",
+          "data/skill_library/playbooks/optimization/kernel-writing-guide/references/licenses/sglang-LICENSE.md",
+          "data/skill_library/playbooks/optimization/kernel-writing-guide/cases/causal-conv1d-dispatch-state.md",
+          "data/skill_library/playbooks/optimization/kernel-writing-guide/cases/hf-qwen35-gdn-binding.md",
+          "data/skill_library/systems/platforms/cuda/diagnose-attention-bottlenecks/references/mechanisms.md"
+        ],
+        "confirmation": "structured_only; Agent must confirm prose bounds",
+        "questions": [
+          "Check original source boundaries and missing task versions before transfer."
+        ]
+      },
+      {
+        "ref": "package:inferrsi.common.skills.kernel_writing_guide",
+        "revision": "sha256:7db4beb773b2083aeca6d3a245bf1023101947ca145c8f96e9c675e0b6c5b9ef",
+        "resource": "data/skill_library/playbooks/optimization/kernel-writing-guide/cases/causal-conv1d-dispatch-state.md",
+        "verdict": "unknown",
+        "source_state": "candidate",
+        "reason": "Resource prose bounds require Agent confirmation",
+        "evidence_resources": [
+          "data/skill_library/playbooks/optimization/kernel-writing-guide/cases/causal-conv1d-dispatch-state.md"
+        ]
+      },
+      {
+        "ref": "package:inferrsi.common.skills.kernel_writing_guide",
+        "revision": "sha256:7db4beb773b2083aeca6d3a245bf1023101947ca145c8f96e9c675e0b6c5b9ef",
+        "resource": "data/skill_library/playbooks/optimization/kernel-writing-guide/cases/hf-qwen35-gdn-binding.md",
+        "verdict": "unknown",
+        "source_state": "candidate",
+        "reason": "Resource prose bounds require Agent confirmation",
+        "evidence_resources": [
+          "data/skill_library/playbooks/optimization/kernel-writing-guide/cases/hf-qwen35-gdn-binding.md"
+        ]
+      },
+      {
+        "ref": "package:inferrsi.common.skills.kernel_writing_guide",
+        "revision": "sha256:7db4beb773b2083aeca6d3a245bf1023101947ca145c8f96e9c675e0b6c5b9ef",
+        "resource": "data/skill_library/systems/platforms/cuda/diagnose-attention-bottlenecks/references/mechanisms.md",
+        "verdict": "unknown",
+        "source_state": "candidate",
+        "reason": "Resource prose bounds require Agent confirmation",
+        "evidence_resources": [
+          "data/skill_library/systems/platforms/cuda/diagnose-attention-bottlenecks/references/mechanisms.md"
+        ]
+      },
+      {
+        "verdict": "unknown",
+        "purpose": "method",
+        "comparisons": [
+          {
+            "field": "os",
+            "task": "Windows",
+            "source": null,
+            "result": "unknown",
+            "locator": "applicability.os"
+          },
+          {
+            "field": "backend",
+            "task": "xpu",
+            "source": null,
+            "result": "unknown",
+            "locator": "applicability.backend"
+          }
+        ],
+        "missing": [
+          "os",
+          "backend"
+        ],
+        "scope": "declared fields only; prose and unrequested conditions require source review",
+        "next_step": "Check original bounds and task-required validation before using a claim.",
+        "ref": "package:inferrsi.common.skills.claim_contract",
+        "revision": "sha256:be7a58df8fe8fdcf5f75822a2b7556a32eda26ba77002a3db2638dfecc748b93",
+        "source_state": "candidate",
+        "verification": {
+          "locally_verified": false,
+          "evidence_level": "guidance"
+        },
+        "evidence_resources": [
+          "data/skill_library/workflows/governance/claim-contract/SKILL.md"
+        ],
+        "confirmation": "structured_only; Agent must confirm prose bounds",
+        "questions": [
+          "Check original source boundaries and missing task versions before transfer."
+        ]
+      }
+    ],
+    "expansion_paths": [
+      {
+        "ref": "package:inferrsi.common.skills.inference_benchmark_design",
+        "via": null,
+        "stop": "context_unavailable"
+      },
+      {
+        "ref": "package:inferrsi.common.skills.kernel_writing_guide",
+        "revision": "sha256:7db4beb773b2083aeca6d3a245bf1023101947ca145c8f96e9c675e0b6c5b9ef",
+        "via": null,
+        "depth": 0,
+        "status": "delivered",
+        "bytes": 126457
+      },
+      {
+        "via": {
+          "from": "package:inferrsi.common.skills.kernel_writing_guide",
+          "source_path": "playbooks/optimization/kernel-writing-guide/SKILL.md",
+          "reference": "references/causal-conv1d-contract.md",
+          "kind": "resource",
+          "path": "data/skill_library/playbooks/optimization/kernel-writing-guide/references/causal-conv1d-contract.md"
+        },
+        "stop": "reader_resource_delivered"
+      },
+      {
+        "via": {
+          "from": "package:inferrsi.common.skills.kernel_writing_guide",
+          "source_path": "playbooks/optimization/kernel-writing-guide/SKILL.md",
+          "reference": "cases/causal-conv1d-dispatch-state.md",
+          "kind": "resource",
+          "path": "data/skill_library/playbooks/optimization/kernel-writing-guide/cases/causal-conv1d-dispatch-state.md"
+        },
+        "status": "delivered",
+        "bytes": 7875
+      },
+      {
+        "via": {
+          "from": "package:inferrsi.common.skills.kernel_writing_guide",
+          "source_path": "playbooks/optimization/kernel-writing-guide/SKILL.md",
+          "reference": "references/hf-qwen35-gdn-binding.md",
+          "kind": "resource",
+          "path": "data/skill_library/playbooks/optimization/kernel-writing-guide/references/hf-qwen35-gdn-binding.md"
+        },
+        "stop": "reader_resource_delivered"
+      },
+      {
+        "via": {
+          "from": "package:inferrsi.common.skills.kernel_writing_guide",
+          "source_path": "playbooks/optimization/kernel-writing-guide/SKILL.md",
+          "reference": "cases/hf-qwen35-gdn-binding.md",
+          "kind": "resource",
+          "path": "data/skill_library/playbooks/optimization/kernel-writing-guide/cases/hf-qwen35-gdn-binding.md"
+        },
+        "status": "delivered",
+        "bytes": 4953
+      },
+      {
+        "via": {
+          "from": "package:inferrsi.common.skills.kernel_writing_guide",
+          "source_path": "playbooks/optimization/kernel-writing-guide/SKILL.md",
+          "reference": "references/akg-affine-tail-guards.md",
+          "kind": "resource",
+          "path": "data/skill_library/playbooks/optimization/kernel-writing-guide/references/akg-affine-tail-guards.md"
+        },
+        "stop": "reader_resource_delivered"
+      },
+      {
+        "via": {
+          "from": "package:inferrsi.common.skills.kernel_writing_guide",
+          "source_path": "playbooks/optimization/kernel-writing-guide/SKILL.md",
+          "reference": "references/vllm-gdn-causal-conv-contract.md",
+          "kind": "resource",
+          "path": "data/skill_library/playbooks/optimization/kernel-writing-guide/references/vllm-gdn-causal-conv-contract.md"
+        },
+        "stop": "reader_resource_delivered"
+      },
+      {
+        "via": {
+          "from": "package:inferrsi.common.skills.kernel_writing_guide",
+          "source_path": "playbooks/optimization/kernel-writing-guide/SKILL.md",
+          "reference": "references/sglang-gdn-causal-conv-contract.md",
+          "kind": "resource",
+          "path": "data/skill_library/playbooks/optimization/kernel-writing-guide/references/sglang-gdn-causal-conv-contract.md"
+        },
+        "stop": "reader_resource_delivered"
+      },
+      {
+        "via": {
+          "from": "package:inferrsi.common.skills.kernel_writing_guide",
+          "source_path": "playbooks/optimization/kernel-writing-guide/SKILL.md",
+          "reference": "references/sglang-gdn-causal-conv-contract.md#map-the-inspected-hf-workers-to-vllm-and-sglang",
+          "kind": "resource",
+          "path": "data/skill_library/playbooks/optimization/kernel-writing-guide/references/sglang-gdn-causal-conv-contract.md"
+        },
+        "stop": "reader_resource_delivered"
+      },
+      {
+        "via": {
+          "from": "package:inferrsi.common.skills.kernel_writing_guide",
+          "source_path": "playbooks/optimization/kernel-writing-guide/SKILL.md",
+          "reference": "../../../systems/platforms/cuda/diagnose-attention-bottlenecks/references/mechanisms.md",
+          "kind": "resource",
+          "path": "data/skill_library/systems/platforms/cuda/diagnose-attention-bottlenecks/references/mechanisms.md"
+        },
+        "status": "delivered",
+        "bytes": 17376
+      },
+      {
+        "via": {
+          "from": "package:inferrsi.common.skills.kernel_writing_guide",
+          "source_path": "playbooks/optimization/kernel-writing-guide/SKILL.md",
+          "reference": "../../../systems/platforms/cuda/diagnose-attention-bottlenecks/references/papers-20261015/cases/overlap-and-fp8-counter-signals.md",
+          "kind": "resource",
+          "path": "data/skill_library/systems/platforms/cuda/diagnose-attention-bottlenecks/references/papers-20261015/cases/overlap-and-fp8-counter-signals.md"
+        },
+        "stop": "context_limit"
+      },
+      {
+        "via": {
+          "from": "package:inferrsi.common.skills.kernel_writing_guide",
+          "kind": "external_pointer",
+          "reference": "https://github.com/Dao-AILab/causal-conv1d",
+          "source_path": "playbooks/optimization/kernel-writing-guide/SKILL.md"
+        },
+        "stop": "external_pointer"
+      },
+      {
+        "ref": "package:inferrsi.common.skills.claim_contract",
+        "revision": "sha256:be7a58df8fe8fdcf5f75822a2b7556a32eda26ba77002a3db2638dfecc748b93",
+        "via": null,
+        "depth": 0,
+        "status": "delivered",
+        "bytes": 1075
+      },
+      {
+        "ref": "package:inferrsi.common.skills.claim_contract",
+        "stop": "no_explicit_references"
+      },
+      {
+        "ref": "checkout:case.vllm-gdn-source-contract",
+        "via": {
+          "from": "package:inferrsi.common.skills.kernel_writing_guide",
+          "source_path": "playbooks/optimization/kernel-writing-guide/SKILL.md",
+          "reference": "cases/vllm-gdn-source-contract.md",
+          "kind": "entry",
+          "ref": "checkout:case.vllm-gdn-source-contract"
+        },
+        "stop": "context_unavailable"
+      },
+      {
+        "ref": "checkout:case.sglang-gdn-source-contract",
+        "via": {
+          "from": "package:inferrsi.common.skills.kernel_writing_guide",
+          "source_path": "playbooks/optimization/kernel-writing-guide/SKILL.md",
+          "reference": "cases/sglang-gdn-source-contract.md",
+          "kind": "entry",
+          "ref": "checkout:case.sglang-gdn-source-contract"
+        },
+        "stop": "context_unavailable"
+      },
+      {
+        "ref": "package:inferrsi.cuda.skills.diagnose_attention_bottlenecks",
+        "via": {
+          "from": "package:inferrsi.common.skills.kernel_writing_guide",
+          "source_path": "playbooks/optimization/kernel-writing-guide/SKILL.md",
+          "reference": "../../../systems/platforms/cuda/diagnose-attention-bottlenecks/SKILL.md",
+          "kind": "entry",
+          "ref": "package:inferrsi.cuda.skills.diagnose_attention_bottlenecks"
+        },
+        "stop": "context_unavailable"
+      }
+    ],
+    "accounting": {
+      "input_tokens": 77091,
+      "reserved_tokens": 4096,
+      "token_budget": 128000,
+      "input_bytes": 316359,
+      "tokenizer": "tiktoken:o200k_base",
+      "measured": true,
+      "serialization": "compact sorted UTF-8 JSON; includes control envelope"
+    },
+    "interface_seconds": 6.937170000048354,
+    "model_selection_seconds": null,
+    "actual_model_usage": null,
+    "selector": "retained current-Agent choices; no new model call during replay"
+  },
+  {
+    "id": "round1:qwen_b300_applicable",
+    "query": "Has Qwen Image QK normalization and complex RoPE fusion been tried on four B300s, and what happened to speed and full-image quality?",
+    "snapshot_id": "sha256:9f61007d34961ddc78162e4d8da95f82d70683e4bcbd50045a81e9723bbd3ccc",
+    "baseline_ids": [
+      "case.qwen-b300-rejected-directions",
+      "vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i",
+      "case.qwen-ascend-rejected-directions",
+      "vllm_omni.cuda.diffusion.minimax_h3_qk_norm_rope",
+      "inference-benchmark-design"
+    ],
+    "baseline_delivered": [
+      "checkout:case.qwen-b300-rejected-directions",
+      "package:vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i",
+      "checkout:case.qwen-ascend-rejected-directions",
+      "package:vllm_omni.cuda.diffusion.minimax_h3_qk_norm_rope"
+    ],
+    "baseline_omissions": [
+      {
+        "ref": "package:inferrsi.common.skills.inference_benchmark_design",
+        "reason": "context_limit",
+        "required_bytes": 320040,
+        "available_bytes": 107546
+      }
+    ],
+    "candidate_selected": [
+      "checkout:case.qwen-b300-rejected-directions",
+      "package:inferrsi.common.skills.inference_benchmark_design"
+    ],
+    "candidate_delivered": [
+      "checkout:case.qwen-b300-rejected-directions"
+    ],
+    "expansion_added_entries": [],
+    "candidate_omissions": [
+      {
+        "ref": "package:inferrsi.common.skills.inference_benchmark_design",
+        "reason": "context_limit",
+        "required_bytes": 320040,
+        "available_bytes": 123393
+      }
+    ],
+    "judgments": [
+      {
+        "verdict": "unknown",
+        "purpose": "conclusion",
+        "comparisons": [
+          {
+            "field": "hardware",
+            "task": "B300",
+            "source": null,
+            "result": "unknown",
+            "locator": "applicability.hardware"
+          },
+          {
+            "field": "dtype",
+            "task": "bf16",
+            "source": null,
+            "result": "unknown",
+            "locator": "applicability.dtype"
+          }
+        ],
+        "missing": [
+          "hardware",
+          "dtype"
+        ],
+        "scope": "declared fields only; prose and unrequested conditions require source review",
+        "next_step": "Check original bounds and task-required validation before using a claim.",
+        "ref": "checkout:case.qwen-b300-rejected-directions",
+        "revision": "sha256:c6fbc3bc68158a174b687d360d6c74fb19b33204029e3c791690376b193752fe",
+        "source_state": "historical_observation",
+        "verification": null,
+        "evidence_resources": [
+          "qwen-b300-rejected-directions.md",
+          "qwen-b300-rejected-directions.json"
+        ],
+        "confirmation": "structured_only; Agent must confirm prose bounds",
+        "questions": [
+          "Check original source boundaries and missing task versions before transfer."
+        ]
+      }
+    ],
+    "expansion_paths": [
+      {
+        "ref": "checkout:case.qwen-b300-rejected-directions",
+        "revision": "sha256:c6fbc3bc68158a174b687d360d6c74fb19b33204029e3c791690376b193752fe",
+        "via": null,
+        "depth": 0,
+        "status": "delivered",
+        "bytes": 7679
+      },
+      {
+        "via": {
+          "from": "checkout:case.qwen-b300-rejected-directions",
+          "source_path": "casebooks/inference/inference-optimization-casebook/cases/qwen-b300-rejected-directions.md",
+          "reference": "https://github.com/InferMatrixLab/InferRSI/blob/d51c941dc57807c1e16ea698cd9291f414110c45/docs/qwen-image-2.1-turbo-b300.md#optimization-ledger",
+          "kind": "external_pointer"
+        },
+        "stop": "external_pointer"
+      },
+      {
+        "via": {
+          "from": "checkout:case.qwen-b300-rejected-directions",
+          "source_path": "casebooks/inference/inference-optimization-casebook/cases/qwen-b300-rejected-directions.md",
+          "reference": "https://github.com/InferMatrixLab/InferRSI/issues/3",
+          "kind": "external_pointer"
+        },
+        "stop": "external_pointer"
+      },
+      {
+        "via": {
+          "from": "checkout:case.qwen-b300-rejected-directions",
+          "source_path": "casebooks/inference/inference-optimization-casebook/cases/qwen-b300-rejected-directions.md",
+          "reference": "qwen-b300-rejected-directions.json",
+          "kind": "resource",
+          "path": "qwen-b300-rejected-directions.json"
+        },
+        "stop": "reader_resource_delivered"
+      },
+      {
+        "via": {
+          "from": "checkout:case.qwen-b300-rejected-directions",
+          "kind": "external_pointer",
+          "reference": "https://github.com/InferMatrixLab/InferRSI/blob/d51c941dc57807c1e16ea698cd9291f414110c45/docs/qwen-image-2.1-turbo-b300.md#optimization-ledger",
+          "source_path": "casebooks/inference/inference-optimization-casebook/cases/qwen-b300-rejected-directions.md"
+        },
+        "stop": "external_pointer"
+      },
+      {
+        "ref": "package:inferrsi.common.skills.inference_benchmark_design",
+        "via": null,
+        "stop": "context_unavailable"
+      }
+    ],
+    "accounting": {
+      "input_tokens": 77106,
+      "reserved_tokens": 4096,
+      "token_budget": 128000,
+      "input_bytes": 316417,
+      "tokenizer": "tiktoken:o200k_base",
+      "measured": true,
+      "serialization": "compact sorted UTF-8 JSON; includes control envelope"
+    },
+    "interface_seconds": 6.558891907916404,
+    "model_selection_seconds": null,
+    "actual_model_usage": null,
+    "selector": "retained current-Agent choices; no new model call during replay"
+  },
+  {
+    "id": "round1:qwen_ascend_mismatch",
+    "query": "Has RoPE cosine and sine caching been tried for Qwen Image on one Ascend 910B1 with BF16 eager execution, and what happened?",
+    "snapshot_id": "sha256:9f61007d34961ddc78162e4d8da95f82d70683e4bcbd50045a81e9723bbd3ccc",
+    "baseline_ids": [
+      "vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i",
+      "case.qwen-ascend-rejected-directions",
+      "case.qwen-b300-rejected-directions",
+      "ascend-graph-mode",
+      "ascend-model-adaptation"
+    ],
+    "baseline_delivered": [
+      "package:vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i",
+      "checkout:case.qwen-ascend-rejected-directions",
+      "checkout:case.qwen-b300-rejected-directions",
+      "package:inferrsi.ascend.skills.ascend_graph_mode",
+      "package:inferrsi.ascend.skills.ascend_model_adaptation"
+    ],
+    "baseline_omissions": [],
+    "candidate_selected": [
+      "checkout:case.qwen-ascend-rejected-directions",
+      "package:vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i"
+    ],
+    "candidate_delivered": [
+      "checkout:case.qwen-ascend-rejected-directions",
+      "package:vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i"
+    ],
+    "expansion_added_entries": [],
+    "candidate_omissions": [],
+    "judgments": [
+      {
+        "verdict": "unknown",
+        "purpose": "conclusion",
+        "comparisons": [
+          {
+            "field": "hardware",
+            "task": "910B1",
+            "source": null,
+            "result": "unknown",
+            "locator": "applicability.hardware"
+          },
+          {
+            "field": "dtype",
+            "task": "bf16",
+            "source": null,
+            "result": "unknown",
+            "locator": "applicability.dtype"
+          },
+          {
+            "field": "backend",
+            "task": "ascend",
+            "source": null,
+            "result": "unknown",
+            "locator": "applicability.backend"
+          }
+        ],
+        "missing": [
+          "hardware",
+          "dtype",
+          "backend"
+        ],
+        "scope": "declared fields only; prose and unrequested conditions require source review",
+        "next_step": "Check original bounds and task-required validation before using a claim.",
+        "ref": "checkout:case.qwen-ascend-rejected-directions",
+        "revision": "sha256:86209f049d3f7bc7f5e09e6262a93ede238e14923cd411c9d2130eb83c0277e1",
+        "source_state": "author_reported",
+        "verification": null,
+        "evidence_resources": [
+          "qwen-ascend-rejected-directions.md",
+          "qwen-ascend-rejected-directions.json"
+        ],
+        "confirmation": "structured_only; Agent must confirm prose bounds",
+        "questions": [
+          "Check original source boundaries and missing task versions before transfer."
+        ]
+      },
+      {
+        "verdict": "unknown",
+        "purpose": "conclusion",
+        "comparisons": [
+          {
+            "field": "hardware",
+            "task": "910B1",
+            "source": [
+              "1× Ascend 910B1, 64 GiB HBM"
+            ],
+            "result": "unknown",
+            "locator": "applicability.hardware"
+          },
+          {
+            "field": "dtype",
+            "task": "bf16",
+            "source": null,
+            "result": "unknown",
+            "locator": "applicability.dtype"
+          },
+          {
+            "field": "backend",
+            "task": "ascend",
+            "source": null,
+            "result": "unknown",
+            "locator": "applicability.backend"
+          }
+        ],
+        "missing": [
+          "hardware",
+          "dtype",
+          "backend"
+        ],
+        "scope": "declared fields only; prose and unrequested conditions require source review",
+        "next_step": "Check original bounds and task-required validation before using a claim.",
+        "ref": "package:vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i",
+        "revision": "sha256:b1740d8dd28f3c2f7ec2e4fbb9233a7ce311f52210fa3c6365bb320ad191e142",
+        "source_state": "imported",
+        "verification": {
+          "locally_verified": false,
+          "evidence_level": "upstream_reported"
+        },
+        "evidence_resources": [
+          "record.json"
+        ],
+        "confirmation": "structured_only; Agent must confirm prose bounds",
+        "questions": [
+          "Check original source boundaries and missing task versions before transfer."
+        ]
+      }
+    ],
+    "expansion_paths": [
+      {
+        "ref": "checkout:case.qwen-ascend-rejected-directions",
+        "revision": "sha256:86209f049d3f7bc7f5e09e6262a93ede238e14923cd411c9d2130eb83c0277e1",
+        "via": null,
+        "depth": 0,
+        "status": "delivered",
+        "bytes": 7863
+      },
+      {
+        "via": {
+          "from": "checkout:case.qwen-ascend-rejected-directions",
+          "source_path": "casebooks/inference/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md",
+          "reference": "https://github.com/InferMatrixLab/InferRSI/blob/d51c941dc57807c1e16ea698cd9291f414110c45/docs/qwen-image-2.1-turbo-ascend.md",
+          "kind": "external_pointer"
+        },
+        "stop": "external_pointer"
+      },
+      {
+        "via": {
+          "from": "checkout:case.qwen-ascend-rejected-directions",
+          "source_path": "casebooks/inference/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md",
+          "reference": "qwen-ascend-rejected-directions.json",
+          "kind": "resource",
+          "path": "qwen-ascend-rejected-directions.json"
+        },
+        "stop": "reader_resource_delivered"
+      },
+      {
+        "via": {
+          "from": "checkout:case.qwen-ascend-rejected-directions",
+          "kind": "external_pointer",
+          "reference": "https://github.com/InferMatrixLab/InferRSI/blob/d51c941dc57807c1e16ea698cd9291f414110c45/docs/qwen-image-2.1-turbo-ascend.md",
+          "source_path": "casebooks/inference/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md"
+        },
+        "stop": "external_pointer"
+      },
+      {
+        "ref": "package:vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i",
+        "revision": "sha256:b1740d8dd28f3c2f7ec2e4fbb9233a7ce311f52210fa3c6365bb320ad191e142",
+        "via": null,
+        "depth": 0,
+        "status": "delivered",
+        "bytes": 4696
+      },
+      {
+        "via": {
+          "from": "package:vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i",
+          "kind": "external_pointer",
+          "reference": "https://github.com/vllm-project/vllm-omni/",
+          "source_path": null
+        },
+        "stop": "external_pointer"
+      }
+    ],
+    "accounting": {
+      "input_tokens": 77113,
+      "reserved_tokens": 4096,
+      "token_budget": 128000,
+      "input_bytes": 316429,
+      "tokenizer": "tiktoken:o200k_base",
+      "measured": true,
+      "serialization": "compact sorted UTF-8 JSON; includes control envelope"
+    },
+    "interface_seconds": 6.560896379989572,
+    "model_selection_seconds": null,
+    "actual_model_usage": null,
+    "selector": "retained current-Agent choices; no new model call during replay"
+  },
+  {
+    "id": "round1:qwen_gate_sufficient",
+    "query": "Can a candidate that failed the confirmed full-image quality gate be accepted because its operator test passed?",
+    "snapshot_id": "sha256:9f61007d34961ddc78162e4d8da95f82d70683e4bcbd50045a81e9723bbd3ccc",
+    "baseline_ids": [
+      "case.qwen-b300-rejected-directions",
+      "inference-benchmark-design",
+      "case.drama3-rejected-directions",
+      "vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i",
+      "ascend-operator-tuning"
+    ],
+    "baseline_delivered": [
+      "checkout:case.qwen-b300-rejected-directions",
+      "checkout:case.drama3-rejected-directions",
+      "package:vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i",
+      "package:inferrsi.ascend.skills.ascend_operator_tuning"
+    ],
+    "baseline_omissions": [
+      {
+        "ref": "package:inferrsi.common.skills.inference_benchmark_design",
+        "reason": "context_limit",
+        "required_bytes": 320040,
+        "available_bytes": 123393
+      }
+    ],
+    "candidate_selected": [],
+    "candidate_delivered": [],
+    "expansion_added_entries": [],
+    "candidate_omissions": [],
+    "judgments": [],
+    "expansion_paths": [],
+    "accounting": {
+      "input_tokens": 77086,
+      "reserved_tokens": 4096,
+      "token_budget": 128000,
+      "input_bytes": 316362,
+      "tokenizer": "tiktoken:o200k_base",
+      "measured": true,
+      "serialization": "compact sorted UTF-8 JSON; includes control envelope"
+    },
+    "interface_seconds": 6.3772111209109426,
+    "model_selection_seconds": null,
+    "actual_model_usage": null,
+    "selector": "retained current-Agent choices; no new model call during replay"
+  }
+]

@@ -1,0 +1,167 @@
+[
+  {
+    "query_id": "day-0",
+    "ref": "package:inferrsi.ascend.skills.ascend_model_adaptation",
+    "revision": "sha256:d73054cc69977aa2bc54df7324daa694843f69f0e146f3b5f80a06dad5e78e43",
+    "path": "data/skill_library/systems/platforms/ascend/ascend-model-adaptation/SKILL.md",
+    "quote": "historical model-adapter documentation pin",
+    "verdict": "analogue",
+    "claim": "Ascend adaptation procedure is relevant; model/stack parity remains unverified.",
+    "reason": "Ascend adaptation procedure is relevant; model/stack parity remains unverified.",
+    "missing": [
+      "model",
+      "engine_version"
+    ],
+    "validation_step": "Pin the target stack and replay the smallest relevant boundary, then the task quality gate.",
+    "resource_sha256": "82d5876a0a09b11c4e02c0ed49065b710617858cc77b6c66800ce9cc6e7e18e8",
+    "provenance": "Agent judgment; exact source quote verified",
+    "source_verification_upgraded": false
+  },
+  {
+    "query_id": "performance",
+    "ref": "package:vllm_omni.common.diffusion.measurement_and_profiling",
+    "revision": "sha256:321e798065884868b0809d44faca82b1d69a52e512c250d24c30712fc10e932a",
+    "path": "record.json",
+    "quote": "measure performance without diagnostic profiler overhead",
+    "verdict": "analogue",
+    "claim": "Methodological measurement guidance; no GPU model or engine revision was supplied.",
+    "reason": "Methodological measurement guidance; no GPU model or engine revision was supplied.",
+    "missing": [
+      "hardware",
+      "engine_version"
+    ],
+    "validation_step": "Pin the target stack and replay the smallest relevant boundary, then the task quality gate.",
+    "resource_sha256": "85b07238fd216a798ba5ca1954535fc2607a0ded5d806af9c77a82a6b3f691da",
+    "provenance": "Agent judgment; exact source quote verified",
+    "source_verification_upgraded": false
+  },
+  {
+    "query_id": "debug",
+    "ref": "package:inferrsi.common.skills.pytorch",
+    "revision": "sha256:77bae89709e7037fe0deafa2a92ff511fd8f3f77ae4c3ab36ef5d01820af2ab7",
+    "path": "data/skill_library/systems/frameworks/pytorch/pytorch/SKILL.md",
+    "quote": "Use this graph to plan a PyTorch workflow or isolate a source, API, numerical,",
+    "verdict": "unknown",
+    "claim": "Generic graph/runtime diagnosis does not establish a ROCm-specific root cause.",
+    "reason": "Generic graph/runtime diagnosis does not establish a ROCm-specific root cause.",
+    "missing": [
+      "ROCm_version",
+      "failing_operator"
+    ],
+    "validation_step": "Pin the target stack and replay the smallest relevant boundary, then the task quality gate.",
+    "resource_sha256": "6d396207eace5436991d0b5f4b884b68f4ae49cbd2248abc8b37d17794bc2e33",
+    "provenance": "Agent judgment; exact source quote verified",
+    "source_verification_upgraded": false
+  },
+  {
+    "query_id": "accuracy",
+    "ref": "package:sglang_omni.common.audio.serving_and_streaming_quality",
+    "revision": "sha256:c82bbe408d13022b04e557ffff240225293f97f498996bb7ee9c3909a0a881cb",
+    "path": "record.json",
+    "quote": "Resolve the model-specific config and endpoint",
+    "verdict": "analogue",
+    "claim": "Audio validation method only; the target engine and last-good version are unknown.",
+    "reason": "Audio validation method only; the target engine and last-good version are unknown.",
+    "missing": [
+      "engine",
+      "model",
+      "last_good_version"
+    ],
+    "validation_step": "Pin the target stack and replay the smallest relevant boundary, then the task quality gate.",
+    "resource_sha256": "38cc0272aecb19b4851534c4fd399418592b51d74934b624162f7ec587a451ca",
+    "provenance": "Agent judgment; exact source quote verified",
+    "source_verification_upgraded": false
+  },
+  {
+    "query_id": "version-alignment",
+    "ref": "package:inferrsi.ascend.skills.vllm_ascend",
+    "revision": "sha256:ffbcc9d3d22ae33e9fcb246f02fdaed0339d274343fa4b47dbcb9b2c17e81f6e",
+    "path": "data/skill_library/systems/engines/vllm-ascend/SKILL.md",
+    "quote": "Start with the plugin revision, upstream vLLM version, actual device profile",
+    "verdict": "unknown",
+    "claim": "The source is release-scoped; requested installed versions were not supplied.",
+    "reason": "The source is release-scoped; requested installed versions were not supplied.",
+    "missing": [
+      "vllm_version",
+      "vllm_omni_version",
+      "afd_plugin_version"
+    ],
+    "validation_step": "Pin the target stack and replay the smallest relevant boundary, then the task quality gate.",
+    "resource_sha256": "0e8611f404a947613669ae024ac853eeadc02619e3a218c65b2583a3476a2452",
+    "provenance": "Agent judgment; exact source quote verified",
+    "source_verification_upgraded": false
+  },
+  {
+    "query_id": "derived-engine",
+    "ref": "package:deepinfer.common.llm.zero_overhead_deferred_scheduling",
+    "revision": "sha256:7029d6dde8ef502020dd98fb48a489fd7abe8bd2152f5177eb5ad7dbe2f7c700",
+    "path": "record.json",
+    "quote": "The reusable part is the staleness enumeration and the on-device repair, not the scheduler itself.",
+    "verdict": "analogue",
+    "claim": "Transfer mechanisms with explicit state-lifetime tests, not the offline scheduler verbatim.",
+    "reason": "Transfer mechanisms with explicit state-lifetime tests, not the offline scheduler verbatim.",
+    "missing": [
+      "fork_revision",
+      "hardware",
+      "continuous_batching_tests"
+    ],
+    "validation_step": "Pin the target stack and replay the smallest relevant boundary, then the task quality gate.",
+    "resource_sha256": "ee5ea4858b1e82f88767ac1486017973d98dbf9e58ee565aea3a7ca325a8a256",
+    "provenance": "Agent judgment; exact source quote verified",
+    "source_verification_upgraded": false
+  },
+  {
+    "query_id": "independent-engine",
+    "ref": "package:inferrsi.common.skills.kernel_writing_guide",
+    "revision": "sha256:7db4beb773b2083aeca6d3a245bf1023101947ca145c8f96e9c675e0b6c5b9ef",
+    "path": "data/skill_library/playbooks/optimization/kernel-writing-guide/SKILL.md",
+    "quote": "Writing a kernel is expensive. Verify the bottleneck before starting.",
+    "verdict": "unknown",
+    "claim": "Generic correctness procedure; no Windows/XPU-native implementation evidence was found.",
+    "reason": "Generic correctness procedure; no Windows/XPU-native implementation evidence was found.",
+    "missing": [
+      "XPU_device",
+      "runtime",
+      "native_dispatch_evidence"
+    ],
+    "validation_step": "Pin the target stack and replay the smallest relevant boundary, then the task quality gate.",
+    "resource_sha256": "a8ccbc377cb79cc4f88eae32f47452ee8ee1b2f17288fbba86252c2512ab5b6f",
+    "provenance": "Agent judgment; exact source quote verified",
+    "source_verification_upgraded": false
+  },
+  {
+    "query_id": "round1:qwen_b300_applicable",
+    "ref": "checkout:case.qwen-b300-rejected-directions",
+    "revision": "sha256:c6fbc3bc68158a174b687d360d6c74fb19b33204029e3c791690376b193752fe",
+    "path": "qwen-b300-rejected-directions.md",
+    "quote": "Operator tests passed; complete images failed; reverted.",
+    "verdict": "match",
+    "claim": "The historical initial fusion failed full-image quality on the stated B300 cohort; later implementations differ.",
+    "reason": "The historical initial fusion failed full-image quality on the stated B300 cohort; later implementations differ.",
+    "missing": [
+      "current_target_reproduction"
+    ],
+    "validation_step": "Pin the target stack and replay the smallest relevant boundary, then the task quality gate.",
+    "resource_sha256": "cce2930f544a0f78f21797fba4d8ded298e4a81f76c34d7977b0e31d361bc738",
+    "provenance": "Agent judgment; exact source quote verified",
+    "source_verification_upgraded": false
+  },
+  {
+    "query_id": "round1:qwen_ascend_mismatch",
+    "ref": "checkout:case.qwen-ascend-rejected-directions",
+    "revision": "sha256:86209f049d3f7bc7f5e09e6262a93ede238e14923cd411c9d2130eb83c0277e1",
+    "path": "qwen-ascend-rejected-directions.md",
+    "quote": "Pixel-identical, but discarded as slower in the source trials.",
+    "verdict": "match",
+    "claim": "The 910B1 source reports cached cos/sin slower with pixel-identical output; this remains author-reported.",
+    "reason": "The 910B1 source reports cached cos/sin slower with pixel-identical output; this remains author-reported.",
+    "missing": [
+      "raw_timing",
+      "local_reproduction"
+    ],
+    "validation_step": "Pin the target stack and replay the smallest relevant boundary, then the task quality gate.",
+    "resource_sha256": "be396983812262515899a3e2ba4f01b23ff92e1b836881882c7580372b8ae552",
+    "provenance": "Agent judgment; exact source quote verified",
+    "source_verification_upgraded": false
+  }
+]

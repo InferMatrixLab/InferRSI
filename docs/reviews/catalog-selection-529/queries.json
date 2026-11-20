@@ -1,0 +1,52 @@
+[
+  {
+    "id": "day-0",
+    "query": "Day zero port of an omni model with text and audio stages to vLLM Ascend NPU",
+    "primary": "task-day-0"
+  },
+  {
+    "id": "performance",
+    "query": "Single GPU diffusion denoising latency baseline warm requests profiler",
+    "primary": "task-performance"
+  },
+  {
+    "id": "debug",
+    "query": "ROCm GPU hang during CUDA graph capture first failing operator minimal reproduction",
+    "primary": "task-debug"
+  },
+  {
+    "id": "accuracy",
+    "query": "TTS 新版本音质下降 对齐参考实现 逐层精度回归",
+    "primary": "task-accuracy"
+  },
+  {
+    "id": "version-alignment",
+    "query": "Align vllm-omni vllm-ascend and afd-plugin versions after upgrading vLLM",
+    "primary": "task-version-alignment"
+  },
+  {
+    "id": "derived-engine",
+    "query": "Bring a vLLM forked inference engine up on DeepInfer and reuse scheduling components",
+    "primary": "task-derived-engine"
+  },
+  {
+    "id": "independent-engine",
+    "query": "Build an independent inference engine for an on-device model on Windows XPU",
+    "primary": "task-independent-engine"
+  },
+  {
+    "id": "round1:qwen_b300_applicable",
+    "query": "Has Qwen Image QK normalization and complex RoPE fusion been tried on four B300s, and what happened to speed and full-image quality?",
+    "primary": "task-performance"
+  },
+  {
+    "id": "round1:qwen_ascend_mismatch",
+    "query": "Has RoPE cosine and sine caching been tried for Qwen Image on one Ascend 910B1 with BF16 eager execution, and what happened?",
+    "primary": "task-performance"
+  },
+  {
+    "id": "round1:qwen_gate_sufficient",
+    "query": "Can a candidate that failed the confirmed full-image quality gate be accepted because its operator test passed?",
+    "primary": "task-performance"
+  }
+]
