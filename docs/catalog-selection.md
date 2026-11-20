@@ -47,6 +47,9 @@ store revisions; matching sizes or timestamps alone do not authorize reuse. A ch
 invalidates the prepared view, and changes detected during construction are rejected.
 Sources containing symlinks or directory redirects use fresh full snapshots rather
 than reusing a prepared view, leaving target access to the existing readers.
+An I/O error during the optional fingerprint scan also disables reuse. Normal
+discovery and reading then determine which entries can be delivered. Completing
+a selection still checks the current snapshot before and after assembly.
 Completion releases the retained view, including on errors. Returned prompt dictionaries
 are independent copies. Reader-local resource digest reuse is keyed by path and
 immutable bytes; metadata and dependency validation still run for every manifest.
@@ -98,6 +101,10 @@ Source scalar/list values compare by case-insensitive exact membership. Prose,
 version ranges, unknowns and missing fields are **unknown**; no guessed SemVer
 ordering or alias normalization is applied. Source content revisions never stand
 in for tested engine/dependency versions. Field coverage is reported in the view.
+Cards and post-read judgments use the same resolved conditions. If applicability
+omits the backend, the entry's declared backend or skill registry supplies it.
+The comparison locator identifies the field used. A generic `common` backend
+stays unknown. Version wildcards such as `1.4.x` also stay unknown.
 
 A mismatch is **conflict** for a bounded conclusion and **analogue** for a method.
 All comparable fields matching yields **match** for those fields only. No supplied
@@ -116,6 +123,24 @@ stops and actual resource deliveries are recorded. Deduplication includes revisi
 The selected material has its own byte budget. Required skill procedures/resources,
 source attribution and license closure are atomic: insufficient space produces an
 omission, never a partial procedure marked complete. No imported code is executed.
+
+Checkout skill revisions include declared references, provenance readsets,
+third-party notices and applicable ancestor license/notice files up to the
+declared root. A change to any required byte changes its revision. Malformed
+optional URLs produce an unresolved edge and allow other entries to be read.
+
+`context_bytes` and `expansion_bytes` count the UTF-8 bytes in delivered
+resource `content`. For a typed `SKILL.md`, the reader delivers the procedure
+with its embedded `metadata.inferrsi` block removed, records the original file
+hash and byte ranges, and charges the resulting procedure bytes. A separately
+delivered `metadata.json` or `record.json` counts in full. JSON keys, hashes,
+the output envelope and trace are outside these two resource budgets. The
+selection prompt has its own serialized-input token budget.
+
+Top-level omissions use `scope: entry` when a whole entry could not be
+delivered. A failed optional resource expansion uses `scope: resource` and
+records its path and originating edge in `via`. The owner can already have
+delivered other resources. The failed expansion contributes zero bytes.
 
 Results reuse the retrieval observation envelope: snapshot/coverage, selections,
 reasons, comparisons, expansion paths, exact resource hashes, omissions, byte

@@ -199,6 +199,7 @@ class Document:
     source_location: str = ""
     locally_verified: bool | None = None
     backend: str | None = None
+    backend_locator: str = "backend"
 
     def unverified(self) -> bool:
         return self.locally_verified is False or any(
@@ -456,18 +457,19 @@ def _body_text(path: Path) -> str:
         return ""
 
 
-def _skill_description(body: str) -> str:
+def _skill_header(body: str) -> tuple[str, str | None]:
     from .skill_catalog import _frontmatter
 
     try:
-        description = _frontmatter(BytesIO(body.encode("utf-8"))).get("description")
+        header = _frontmatter(BytesIO(body.encode("utf-8")))
     except ValueError:
         # Keep simple descriptions searchable in base installs. The reader
         # reports missing PyYAML or invalid frontmatter for a returned hit.
         frontmatter = body.split("\n---", 1)[0] if body.startswith("---\n") else ""
         match = re.search(r"^description:[ \t]*(.+)$", frontmatter, re.MULTILINE)
-        return match.group(1).strip().strip("'\"") if match else ""
-    return description.strip() if isinstance(description, str) else ""
+        return (match.group(1).strip().strip("'\"") if match else ""), None
+    description = header.get("description")
+    return (description.strip() if isinstance(description, str) else ""), header.get("backend")
 
 
 def _skill_documents(root: Path, *, source_location: str) -> list[Document]:
@@ -489,7 +491,8 @@ def _skill_documents(root: Path, *, source_location: str) -> list[Document]:
         except ValueError:
             # Malformed structured data is neither evidence nor instruction text.
             continue
-        if metadata is not None and (directory / "metadata.json").exists():
+        embedded = metadata is not None
+        if embedded and (directory / "metadata.json").exists():
             continue
         try:
             if metadata is None:
@@ -500,7 +503,17 @@ def _skill_documents(root: Path, *, source_location: str) -> list[Document]:
         # an orientation page as evidence also changes IDF for every owner.
         if metadata.get("discovery_role") == "task-entry":
             continue
-        description = _skill_description(body)
+        description, header_backend = _skill_header(body)
+        backend_locator = f"skill-index.json#skills.{name}.backend"
+        if backend is None:
+            declared = metadata.get("backend", header_backend)
+            backend = declared if declared in (*BACKENDS, "common") else None
+            if "backend" not in metadata:
+                backend_locator = "SKILL.md#backend"
+            elif embedded:
+                backend_locator = "SKILL.md#metadata.inferrsi.backend"
+            else:
+                backend_locator = "metadata.json#backend"
         applicability = metadata.get("applicability", {})
         scope = applicability.get("scope") if isinstance(applicability, dict) else applicability
         documents.append(Document(
@@ -516,6 +529,7 @@ def _skill_documents(root: Path, *, source_location: str) -> list[Document]:
             source_url=_source_url(metadata),
             source_location=source_location,
             backend=backend,
+            backend_locator=backend_locator,
             fields={
                 "title": name.replace("-", " "),
                 "summary": description,

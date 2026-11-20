@@ -271,6 +271,121 @@ def test_condition_rules(declared, task, purpose, verdict):
     assert compare_conditions(declared, task, purpose=purpose)["verdict"] == verdict
 
 
+@pytest.mark.parametrize("field", ["engine_version", "dependency_version"])
+def test_only_literal_release_versions_produce_match_or_conflict(field):
+    for ambiguous in ("1.4.x", "1.X", "1.*", ">=1.4", "latest", "1.0-2.0"):
+        for source, task in [(ambiguous, "1.4.2"), ("1.4.2", ambiguous)]:
+            assert compare_conditions({field: source}, {field: task})["verdict"] == "unknown"
+    assert compare_conditions({field: "1.4.2"}, {field: "1.4.3"})["verdict"] == "conflict"
+    for exact in ("1.4.2", "v1.4.2-rc.1", "2.6.0+cu124"):
+        assert compare_conditions({field: exact}, {field: exact})["verdict"] == "match"
+
+
+def test_record_backend_agrees_in_card_and_judgment():
+    catalog = CatalogSelection()
+    ref = "package:vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i"
+    scope = {"kinds": ("record",)}
+    snapshot = catalog.snapshot(**scope)
+    card = next(card for card in snapshot["cards"] if card["ref"] == ref)
+    assert card["conditions"]["backend"] == "ascend"
+    for backend, purpose, verdict in (("cuda", "conclusion", "conflict"),
+                                      ("cuda", "method", "analogue"),
+                                      ("ascend", "conclusion", "match")):
+        result = catalog.complete(snapshot["snapshot_id"], [selection(ref, purpose=purpose)],
+                                  conditions={"backend": backend}, expansion_depth=0, **scope)
+        judgment, = result["judgments"]
+        assert judgment["verdict"] == verdict
+        assert judgment["comparisons"][0]["locator"] == "backend"
+        assert judgment["verification"]["locally_verified"] is False
+
+
+@pytest.mark.parametrize("sidecar", [False, True])
+def test_flat_skill_backend_in_scope_and_judgment(tmp_path, sidecar):
+    folder = skill(tmp_path, "alpha", metadata={"backend": "ascend"} if sidecar else None)
+    if not sidecar:
+        core = folder / "SKILL.md"
+        core.write_text(core.read_text().replace("name: alpha", "name: alpha\nbackend: ascend"))
+    scope = {"kinds": ("skill",), "backend": "ascend"}
+    catalog = CatalogSelection(skill_root=tmp_path)
+    snapshot = catalog.snapshot(**scope)
+    card, = snapshot["cards"]
+    assert card["conditions"]["backend"] == "ascend"
+    result = catalog.complete(snapshot["snapshot_id"], [selection(card["ref"])],
+                              conditions={"backend": "cuda"}, **scope)
+    judgment, = result["judgments"]
+    assert judgment["verdict"] == "conflict"
+    locator = "metadata.json#backend" if sidecar else "SKILL.md#backend"
+    assert judgment["comparisons"][0]["locator"] == locator
+
+
+def test_cache_scan_error_uses_current_reader_inputs(catalog, monkeypatch):
+    from pathlib import Path
+
+    unrelated = catalog.skill_root / "scratch.log"
+    unrelated.write_bytes(b"unregistered")
+    scope = {"kinds": ("skill",)}
+    old = catalog.snapshot(**scope)
+    read_bytes = Path.read_bytes
+
+    def denied(path):
+        if path == unrelated:
+            raise PermissionError("unreadable unregistered file")
+        return read_bytes(path)
+
+    monkeypatch.setattr(Path, "read_bytes", denied)
+    assert catalog.complete(old["snapshot_id"], [selection("checkout:alpha")],
+                            expansion_depth=0, **scope)["contexts"]
+    note = catalog.skill_root / "alpha" / "amendment.md"
+    note.write_text("updated material")
+    with pytest.raises(SelectionError) as err:
+        catalog.complete(old["snapshot_id"], [selection("checkout:alpha")], **scope)
+    assert err.value.code == "stale_snapshot"
+
+
+def test_optional_link_parse_failure_preserves_neighbors_and_fallback(catalog):
+    path = catalog.skill_root / "alpha" / "SKILL.md"
+    path.write_text(path.read_text() + "\n[unfinished link](https://[draft)")
+    scope = {"kinds": ("skill",)}
+    snapshot = catalog.snapshot(**scope)
+    result = catalog.complete(snapshot["snapshot_id"], [selection("checkout:alpha")], **scope)
+    assert {item["ref"] for item in result["contexts"]} == {"checkout:alpha", "checkout:beta"}
+    assert any(p.get("stop") == "unresolved" and p["via"].get("reason") == "invalid_url"
+               for p in result["retrieval"]["assembly"]["paths"])
+    fallback = prepare_catalog_selection(catalog, "Beta", token_budget=1, **scope)
+    assert fallback["status"] == "fallback" and fallback["fallback"]["items"]
+
+
+def test_direct_checkout_closure_budget_and_revision(tmp_path):
+    metadata = {"sources": [{"type": "unknown", "third_party_notices": "../NOTICE.txt"}],
+                "provenance_readsets": ["../evidence/notes.md"]}
+    skill(tmp_path, "demo", "Procedure", metadata)
+    (tmp_path / "evidence").mkdir()
+    for path in ("NOTICE.txt", "LICENSE", "evidence/notes.md", "evidence/LICENSE"):
+        (tmp_path / path).write_text("source " + path)
+    catalog = CatalogSelection(skill_root=tmp_path)
+    scope = {"kinds": ("skill",)}
+    ref = "checkout:demo"
+    snapshot = catalog.snapshot(**scope)
+    result = catalog.complete(snapshot["snapshot_id"], [selection(ref)], expansion_depth=0, **scope)
+    context, = result["contexts"]
+    assert {r["path"] for r in context["resources"]} == {
+        "demo/SKILL.md", "demo/metadata.json", "NOTICE.txt", "LICENSE",
+        "evidence/notes.md", "evidence/LICENSE",
+    }
+    size = sum(len(r["content"].encode()) for r in context["resources"])
+    limited = catalog.complete(snapshot["snapshot_id"], [selection(ref)], context_bytes=size - 1,
+                               expansion_depth=0, **scope)
+    assert limited["contexts"] == []
+    assert limited["omissions"][0]["scope"] == "entry"
+    assert limited["omissions"][0]["required_bytes"] == size
+    (tmp_path / "NOTICE.txt").write_text("changed notice")
+    with pytest.raises(SelectionError, match="Sources changed"):
+        catalog.complete(snapshot["snapshot_id"], [selection(ref)], **scope)
+    (tmp_path / "NOTICE.txt").unlink()
+    fresh = catalog.snapshot(**scope)
+    assert fresh["cards"][0]["unreadable"]
+
+
 def test_model_seam_and_budget_fallback(catalog):
     calls = []
 
@@ -392,6 +507,11 @@ def test_record_declared_skill_link_reads_complete_resources():
     assert any(p.endswith("operation-performance/SKILL.md") for p in paths)
     assert any(p.endswith("commands-and-measurements.md") for p in paths)
     assert any(p.endswith("LICENSE") for p in paths)
+    limited = catalog.complete(snapshot["snapshot_id"], [selection(ref)], expansion_bytes=1)
+    assert limited["contexts"][0]["ref"] == ref
+    omission = next(o for o in limited["omissions"] if o["reason"] == "context_limit")
+    assert omission["scope"] == "resource" and omission["ref"] == ref
+    assert omission["path"] == omission["via"]["path"]
 
 
 def test_post_read_assessment_rejects_invented_quotes(catalog):
@@ -412,6 +532,8 @@ def test_post_read_assessment_rejects_invented_quotes(catalog):
         missing=["hardware"],
     )
     confirmed = confirm_catalog_evidence(result, [assessment])
+    assert confirmed["assessments"][0]["claim"] == "A method"
+    assert confirmed["assessments"][0]["reason"] == "Source analogy only"
     assert confirmed["assessments"][0]["source_verification_upgraded"] is False
     with pytest.raises(ValueError, match="quote"):
         confirm_catalog_evidence(result, [{**assessment, "quote": "invented passage"}])
