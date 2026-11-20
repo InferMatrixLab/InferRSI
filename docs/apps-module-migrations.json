@@ -544,11 +544,14 @@
       "read"
     ],
     "consumers": [
+      "docs/catalog-selection.md",
       "docs/operations.md",
       "src/inferrsi/apps/cli/__init__.py",
       "tests/apps/test_apps_context_provider.py",
       "tests/apps/test_apps_knowledge.py",
-      "tests/harness/test_harness_generation_seal.py"
+      "tests/harness/test_harness_generation_seal.py",
+      "tests/knowledge/test_catalog_selection.py",
+      "tools/compare_catalog_selection.py"
     ],
     "status": "retired",
     "first_removal_version": "0.3.4"

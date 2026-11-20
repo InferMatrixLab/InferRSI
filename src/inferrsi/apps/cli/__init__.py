@@ -670,6 +670,52 @@ def main(argv: list[str] | None = None) -> int:
             else:
                 _print_find(result)
             return 0
+        if args.command == "catalog-select":
+            from ...knowledge.catalog_selection import CatalogSelection, encoded
+            from ..workflows.knowledge import confirm_catalog_evidence, prepare_catalog_selection
+
+            reader = _knowledge_reader(args)
+            catalog = CatalogSelection(skill_root=reader.skill_root, store=reader.store)
+            conditions = (json.loads(args.conditions.read_text(encoding="utf-8"))
+                          if args.conditions else {})
+            scope = {"backend": args.backend, "kinds": tuple(args.kinds.split(","))}
+            token_counter = None
+            if args.tokenizer:
+                try:
+                    import tiktoken
+                except ImportError as exc:
+                    raise ValueError("--tokenizer requires the optional tiktoken package") from exc
+                encoding = tiktoken.get_encoding(args.tokenizer)
+                def token_counter(text):
+                    return len(encoding.encode(text, disallowed_special=()))
+            prepared = prepare_catalog_selection(
+                catalog, args.query, token_budget=args.token_budget,
+                reserved_tokens=args.reserved_tokens, conditions=conditions,
+                token_counter=token_counter, tokenizer=args.tokenizer, **scope,
+            )
+            if args.selection and prepared["status"] != "fallback":
+                selection = json.loads(args.selection.read_text(encoding="utf-8"))
+                if (not isinstance(selection, dict)
+                        or not {"snapshot_id", "selections"} <= selection.keys()):
+                    raise ValueError("Selection requires snapshot_id and selections")
+                result = catalog.complete(
+                    selection["snapshot_id"], selection["selections"], conditions=conditions,
+                    context_bytes=args.context_bytes, expansion_depth=args.expansion_depth,
+                    expansion_items=args.expansion_items, expansion_bytes=args.expansion_bytes,
+                    **scope,
+                )
+                result["retrieval"]["model"] = {
+                    "id": selection.get("model", "unknown"), "calls": None,
+                    "usage": selection.get("usage"), "provenance": "caller-reported",
+                    "prompt_version": prepared["prompt_version"],
+                    "accounting": prepared["accounting"],
+                }
+                if "assessments" in selection:
+                    result = confirm_catalog_evidence(result, selection["assessments"])
+                _print(result)
+            else:
+                print(encoded(prepared).decode())
+            return 0
         if args.command == "collect":
             result = _knowledge_reader(args).collect(
                 args.query,
