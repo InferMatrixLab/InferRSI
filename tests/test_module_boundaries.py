@@ -101,7 +101,9 @@ def test_cuda_qualification_accepts_campaign_supplied_count_and_sku(monkeypatch)
 
 def test_shared_layers_do_not_import_campaigns_or_reverse_dependencies():
     root = Path(__file__).resolve().parents[1] / "src/inferrsi"
-    for plane in ("apps/host", "apps/integrations", "harness"):
+    # The Anthropic providers came from the retired model/ package and keep its rule: no
+    # Harness import. Other integrations, such as Cannbot, are Apps code and may use Harness.
+    for plane in ("apps/host", "apps/integrations/anthropic", "harness"):
         for path in (root / plane).rglob("*.py"):
             package = ".".join(("inferrsi", *path.relative_to(root).parts[:-1]))
             for node in ast.walk(ast.parse(path.read_text(encoding="utf-8"))):
@@ -123,7 +125,7 @@ def test_shared_layers_do_not_import_campaigns_or_reverse_dependencies():
                         assert not name.startswith(
                             ("inferrsi.harness", "inferrsi.knowledge", "inferrsi.benchmark")), (
                             path, name)
-                    if plane == "apps/integrations":
+                    if plane == "apps/integrations/anthropic":
                         assert not name.startswith("inferrsi.harness"), (path, name)
 
 

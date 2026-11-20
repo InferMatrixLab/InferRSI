@@ -55,6 +55,11 @@ def make_session(root: Path) -> None:
         "frozen_files": {p.name: sha256(p) for p in frozen.iterdir()},
     }
     optimization.initialize(root, plan)
+    # A round needs recorded bottleneck evidence first. The file sits beside the session
+    # root, as in tests/diagnosis_support.py, which an installed wheel does not ship.
+    evidence = root.with_name(root.name + "-measurement.txt")
+    evidence.write_text("Synthetic workload: reference operation took 4 ms.", encoding="utf-8")
+    optimization.record_diagnosis(root, "Reference operation", evidence)
 
     def execute(root, directory, plan, deadline):
         (directory / "execution").mkdir()
