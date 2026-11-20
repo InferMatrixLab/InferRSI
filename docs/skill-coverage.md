@@ -4,7 +4,7 @@ Generated from the registry, SKILL.md frontmatter and the two maintained
 matrices. **Do not edit by hand**; regenerate after any registry, skill,
 matrix or frozen-plan change.
 
-- Input digest: `sha256:a418dc94741cfa20a4feab44764c1e99e135308a2611a322851a17dca26e8e2f`
+- Input digest: `sha256:e4ab7ddc989d9922cca4fd5b8a562cea3a88264918ffe156dfc2456f8eb8c960`
 - Regenerate: `python tools/build_skill_coverage.py`
 - Verify without writing: `python tools/build_skill_coverage.py --check`
 
