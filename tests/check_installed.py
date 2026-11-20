@@ -11,6 +11,7 @@ from importlib import import_module
 from importlib.resources import as_file, files
 from importlib.util import find_spec
 from pathlib import Path
+from types import ModuleType
 
 import inferrsi
 import inferrsi.harness
@@ -659,6 +660,8 @@ for name, group in (
     ("campaign", "workflows"), ("benchmark_operations", "workflows"),
     ("improvement", "workflows"), ("skill_evaluation", "workflows"),
     ("skill_eval_engineering", "workflows"), ("benchmark_compare", "workflows"),
+    ("cannbot", "integrations"), ("cannbot.project", "integrations"),
+    ("cannbot.read_worker", "integrations"),
 ):
     old_name = f"inferrsi.apps.{name}"
     canonical_name = f"inferrsi.apps.{group}.{name}"
@@ -666,6 +669,10 @@ for name, group in (
     assert find_spec(old_name) is not None and find_spec(canonical_name) is not None
     for exported in old.__all__:
         value = getattr(canonical, exported)
+        if isinstance(value, ModuleType):
+            assert getattr(old, exported) is import_module(old_name + "." + exported)
+            assert value is import_module(canonical_name + "." + exported)
+            continue
         assert getattr(old, exported) is value, (old_name, exported)
         if getattr(value, "__module__", None) == canonical_name:
             assert pickle.loads(f"c{old_name}\n{exported}\n.".encode("ascii")) is value
@@ -914,3 +921,27 @@ with tempfile.TemporaryDirectory(prefix="inferrsi-serving-") as serving_cwd:
         check=False, cwd=serving_cwd,
     )
 assert serving.returncode == 0, serving.stderr
+
+launch_probe = (
+    "import sys\n"
+    "from pathlib import Path\n"
+    "import inferrsi.apps.integrations.cannbot as adapter\n"
+    "from inferrsi.apps.integrations.cannbot import project\n"
+    "assert project._WORKER == Path(adapter.__path__[0]) / 'read_worker.py'\n"
+    "assert project._WORKER.is_file()\n"
+    "grant = {'python': sys.executable, 'upstream': str(Path.cwd() / 'missing-cannbot')}\n"
+    "try:\n"
+    "    project._run(grant, 'discover', {}, timeout=5)\n"
+    "except project.ChannelFailure as exc:\n"
+    "    failure = exc\n"
+    "else:\n"
+    "    raise AssertionError('the synthetic read must be rejected')\n"
+    "assert str(failure) == 'The local cannbot checkout is unavailable', str(failure)\n"
+    "assert failure.state == 'unreachable' and failure.exit_code == 1\n"
+)
+with tempfile.TemporaryDirectory(prefix="inferrsi-cannbot-launch-") as launch_cwd:
+    launch = subprocess.run(
+        [sys.executable, "-I", "-B", "-c", launch_probe], capture_output=True, text=True,
+        check=False, cwd=launch_cwd,
+    )
+assert launch.returncode == 0, launch.stderr

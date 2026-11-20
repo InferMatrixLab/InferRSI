@@ -23,6 +23,25 @@ def _print(value: object) -> None:
     print(json.dumps(value, ensure_ascii=False, indent=2, allow_nan=False))
 
 
+def _optimization_session(args, *, task_source=None):
+    from ...harness.optimization_session import session_command
+
+    settings = None
+    provider = None
+    if getattr(args, "cannbot_platform", None):
+        settings = {"channel": "cannbot-knowledge", "backend": "ascend",
+                    "platform": args.cannbot_platform}
+    if args.session_action in ("knowledge", "knowledge-read"):
+        from ..integrations.cannbot.round_knowledge import CannbotRoundKnowledge
+
+        provider = CannbotRoundKnowledge()
+    return session_command(
+        args, task_source=task_source, retain_context=capture_context,
+        knowledge_reader=KnowledgeReader() if args.session_action == "knowledge" else None,
+        external_knowledge=settings, external_provider=provider,
+    )
+
+
 def _fixed_attempt_command(args) -> int:
     from ...harness.errors import PublicError
     from ..api import read_attempt_view
@@ -149,7 +168,7 @@ def _channels():
     dropping it from the list.
     """
     from ...knowledge.channels import ChannelRegistry
-    from ..cannbot import CannbotChannel
+    from ..integrations.cannbot import CannbotChannel
 
     channel = CannbotChannel()
     return ChannelRegistry([channel], declared_backend=channel.declared_backend)
@@ -304,7 +323,7 @@ def main(argv: list[str] | None = None) -> int:
                 _print(result)
             return 0
         if args.command == "cannbot":
-            from .. import cannbot
+            from ..integrations import cannbot
 
             action = args.cannbot_action
             if action == "enable":
@@ -356,7 +375,6 @@ def main(argv: list[str] | None = None) -> int:
                 _print(compare_command(args))
                 return 0
             if args.benchmark_action == "session":
-                from ...harness.optimization_session import session_command
                 from ..delivery import after_final
 
                 task_source = None
@@ -364,12 +382,7 @@ def main(argv: list[str] | None = None) -> int:
                     from ...benchmark.registry import task_resources
 
                     task_source = Path(str(task_resources(args.task)))
-                result = session_command(
-                    args, task_source=task_source,
-                    retain_context=capture_context,
-                    knowledge_reader=(KnowledgeReader()
-                                      if args.session_action == "knowledge" else None),
-                )
+                result = _optimization_session(args, task_source=task_source)
                 _print(after_final(args, result))
                 return 2 if result.get("state") == "blocked" else 0
             if args.benchmark_action == "run":
@@ -628,15 +641,9 @@ def main(argv: list[str] | None = None) -> int:
                 _print({"context_directory": str(path), "reviewed_by_caller": False})
                 return 0
             if getattr(args, "session_action", None) is not None:
-                from ...harness.optimization_session import session_command
                 from ..delivery import after_final
 
-                result = session_command(
-                    args,
-                    retain_context=capture_context,
-                    knowledge_reader=(KnowledgeReader()
-                                      if args.session_action == "knowledge" else None),
-                )
+                result = _optimization_session(args)
                 _print(after_final(args, result))
                 if "exit_code" in result:
                     return result["exit_code"]

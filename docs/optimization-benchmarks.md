@@ -56,13 +56,17 @@ Final evaluation reserves one evaluation timeout from the total budget by
 default; `--final-reserve-seconds` changes that explicit reservation. Use
 `--knowledge off` for a condition that disables managed knowledge retrieval.
 
-## Retrieve knowledge and propose a change
+## Diagnose the bottleneck and propose a change
 
-When the chosen experimental condition permits RSI knowledge, retrieve it through
-the session. This calls the existing KnowledgeReader and retains the exact
-delivered context with its hash.
+Use profile data or existing measurements for the same workload and environment.
+Record the bottleneck and a UTF-8 summary of its measured evidence before
+the first candidate round. When the condition allows knowledge retrieval, use
+it after diagnosis for a specific implementation question. The session retains
+the exact delivered context with its hash.
 
 ```bash
+inferrsi benchmarks session diagnose --session ./outputs/qwen-rsi \
+  --bottleneck '<measured-bottleneck>' --evidence ./measurement-summary.txt
 inferrsi benchmarks session knowledge --session ./outputs/qwen-rsi \
   --query 'Ascend denoising conditioning reuse normalization fusion' \
   --context-bytes 16384
@@ -72,6 +76,43 @@ Read the returned content. Make one justified candidate change. Knowledge
 selection method and the external Agent configuration are caller-controlled
 variables. A retained delivery establishes what was supplied. Model consumption
 and access to material outside this session require their own observation.
+
+### Include CANNBot in the round
+
+Run from the project with an [approved CANNBot grant](external-channels.md).
+Add `--cannbot-platform <platform>` at `benchmarks session start` or AB/BA
+`campaign start` to freeze the external source and an explicit Ascend
+platform. Omit the option for a local-only session. The paired
+`benchmarks compare` conditions keep their existing behavior.
+
+`knowledge` queries both sources for the next round. It returns the local
+context and a separate `external` result, with its own ranking, channel state
+and `reference.path`. A CANNBot timeout still returns the local result. The
+external request and worker cleanup use the remaining search budget before the
+final reserve. Use task keywords and keep private details out.
+InferRSI applies its standard evidence redaction to the combined query before
+searching and retaining it. Use a locator from this round's external result:
+
+```bash
+inferrsi benchmarks session knowledge-read --session <session-dir> \
+  --search-ref <external.reference.path> --locator <card-locator> --page 1
+```
+
+The read verifies the revision and digest recorded by the search. Card text
+returns to the authorized CLI caller. The session retains only the source,
+locator, revision, digest, page and search reference. Read additional pages
+with `--page`. Use the equivalent `campaign knowledge-read` command for AB/BA.
+
+At candidate submission, repeat `--knowledge-ref` for each delivery you used.
+Pass the read's `reference.path` for an external card page, or
+`<local-reference.path>#<item-ref>` for a local item with delivered resources.
+A local capture path alone cites the whole delivery. You can cite an earlier
+delivery from the same session. Search result paths are ineligible for citation.
+
+Open [Dashboard](dashboard.md) → **Round decisions** to see the queries and
+channel states before submitting a candidate. Completed attempts show the
+agent's explicit citations alongside the candidate ID, verdict and measured
+score. A search hit or read receipt alone does not record a citation.
 
 ## Submit a round and use its feedback
 
@@ -95,7 +136,7 @@ attempt prevents a second launch after an interrupted coordinator.
 Repeat this operation until the declared round budget is consumed. Use
 `session status --session ./outputs/qwen-rsi` to inspect progress. Each call
 evaluates a newly retained candidate snapshot and returns independent feedback.
-Profiling is available to the Agent as an optional diagnostic.
+Refresh the diagnosis when new measurements identify a different bottleneck.
 
 ### A failed experiment can leave a usable best candidate
 

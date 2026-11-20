@@ -1,6 +1,6 @@
 {
   "name": "inferrsi-dsh",
-  "version": "0.0.0",
+  "version": "0.0.0+source",
   "description": "InferRSI inference-engine research and evidence workflows for DeepSeek Harness",
   "license": "Apache-2.0",
   "type": "module",

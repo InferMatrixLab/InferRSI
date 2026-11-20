@@ -4,6 +4,14 @@
 
 ### Changed
 
+- Plugins built from a source checkout without `--release-version` now report
+  `0.0.0+source` as their own version instead of `0.1.0` (Codex, WorkSwarm) or
+  `0.0.0` (DSH) (Refs #511). This covers the template version, `plugin_version` in
+  `runtime/manifest.json` and `--plugin-info`. `runtime_version` still reports the
+  bundled runtime, so the two differ in a source build. Release builds are
+  unchanged: `--release-version` still accepts only `MAJOR.MINOR.PATCH`, must match
+  the built runtime and is rejected before any output is written. The DSH bundle
+  has no release mode.
 - Apps workflow implementations now live in `apps/workflows/`: campaign capture,
   task launching, paired benchmark comparison, improvement and skill evaluation.
   The previous Apps imports retain explicit compatibility exports. New optimization

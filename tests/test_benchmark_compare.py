@@ -79,7 +79,8 @@ def operation(experiment, action, trial=None, *arguments):
 
 
 def finish(experiment, trial, *, factor=2, final=True, model="synthetic-model", usage=True,
-           final_score=None, legacy_session_id=None, python=None, environment_digest="a" * 64):
+           final_score=None, legacy_session_id=None, python=None, environment_digest="a" * 64,
+           knowledge=False):
     root, _, capsys = experiment
     dispatch = operation(experiment, "dispatch", trial)
     assert dispatch["may_create"]
@@ -99,6 +100,22 @@ def finish(experiment, trial, *, factor=2, final=True, model="synthetic-model", 
     assert main(command[4:]) == 0
     start = json.loads(capsys.readouterr().out)
     campaign = Path(start["session"])
+    assert start["next_action"] == "record_bottleneck_diagnosis"
+    evidence = campaign.parent / "baseline-profile.txt"
+    evidence.write_text("Synthetic workload: reference operation accounts for 80% of runtime.",
+                        encoding="utf-8")
+    assert main(["benchmarks", "session", "diagnose", "--session", str(campaign),
+                 "--bottleneck", "Dominant reference operation", "--evidence", str(evidence)]) == 0
+    diagnosis = json.loads(capsys.readouterr().out)["diagnosis"]
+    if knowledge:
+        assert main(["benchmarks", "session", "knowledge", "--session", str(campaign),
+                     "--query", "cache per-step masks ran out of device memory",
+                     "--context-bytes", "8192", "--limit", "1"]) == 0
+        capture = json.loads(capsys.readouterr().out)["context"]
+        assert capture["contexts"]
+        binding = capture["diagnosis_binding"]
+        assert binding["diagnosis_id"] == diagnosis["id"]
+        assert binding["started_at"] >= diagnosis["recorded_at"]
     candidate = Path(start["working_candidate"])
     (campaign / candidate).write_text(f"FACTOR = {factor}\n", encoding="utf-8")
     assert main(["benchmarks", "session", "round", "--session", str(campaign),
@@ -120,7 +137,9 @@ def finish(experiment, trial, *, factor=2, final=True, model="synthetic-model", 
                                                                "output_tokens": 20})
     receipt.write_text(json.dumps(observation), encoding="utf-8")
     operation(experiment, "record", trial, "--observation", str(receipt))
-    return campaign, operation(experiment, "collect", trial)["trial"]
+    trial_result = operation(experiment, "collect", trial)["trial"]
+    assert trial_result["trace"][0]["diagnosis_id"] == diagnosis["id"]
+    return campaign, trial_result
 
 
 def test_default_cli_requires_environment_and_discovers_both_tasks(capsys, monkeypatch, tmp_path):
@@ -304,6 +323,34 @@ def test_changed_evidence_after_collection_invalidates_report(experiment):
     assert result["assessment"]["conclusion"]["kind"] == "insufficient_evidence"
 
 
+@pytest.mark.parametrize("damage", ["missing-summary", "blank-summary", "later-reference",
+                                    "later-recorded-at", "knowledge-rebound"])
+def test_report_rejects_incomplete_or_rebound_diagnosis(experiment, damage):
+    first = experiment[1]["trials"][0]["id"]
+    campaign, collected = finish(experiment, first, knowledge=damage == "knowledge-rebound")
+    assert collected["eligible"]
+    path = campaign / "state.json"
+    state = json.loads(path.read_text(encoding="utf-8"))
+    diagnosis = state["diagnoses"][0]
+    round_record = state["rounds"][0]
+    later = round_record["started_at"] + 1
+    if damage == "missing-summary":
+        diagnosis.pop("measurement_summary")
+    elif damage == "blank-summary":
+        diagnosis["measurement_summary"] = " "
+    elif damage in ("later-reference", "knowledge-rebound"):
+        state["diagnoses"].append({**diagnosis, "id": "diagnosis-later", "recorded_at": later})
+        record = state["contexts"][0] if damage == "knowledge-rebound" else round_record
+        record["diagnosis_id"] = "diagnosis-later"
+    else:
+        diagnosis["recorded_at"] = later
+    path.write_text(json.dumps(state), encoding="utf-8")
+    result = operation(experiment, "report")
+    document = json.loads(Path(result["reports"]["json"]).read_text(encoding="utf-8"))
+    assert not document["trials"][0]["eligible"]
+    assert result["assessment"]["conclusion"]["kind"] == "insufficient_evidence"
+
+
 def test_actual_model_mismatch_cannot_pass(experiment):
     trial = experiment[1]["trials"][0]["id"]
     _, result = finish(experiment, trial, model="other-model")
@@ -327,10 +374,22 @@ def test_round_cannot_cite_undelivered_knowledge(experiment):
                  "--rounds", "1", "--max-minutes", "5", "--evaluation-timeout-seconds", "15",
                  "--condition", "citation-control", "--evaluation-args", ""]) == 0
     capsys.readouterr()
+    round_args = ["benchmarks", "session", "round", "--session", str(campaign),
+                  "--candidate", str(campaign / "work/candidate.py"), "--hypothesis", "Test"]
+    knowledge_args = ["benchmarks", "session", "knowledge", "--session", str(campaign),
+                      "--query", "implementation option", "--context-bytes", "1024"]
+    for arguments in (knowledge_args, round_args):
+        with pytest.raises(SystemExit) as error:
+            main(arguments)
+        assert error.value.code == 2
+        assert "Record measured bottleneck evidence" in capsys.readouterr().err
+    evidence = root / "control-profile.txt"
+    evidence.write_text("Synthetic measurement: reference operation took 4 ms.", encoding="utf-8")
+    assert main(["benchmarks", "session", "diagnose", "--session", str(campaign),
+                 "--bottleneck", "Reference operation", "--evidence", str(evidence)]) == 0
+    capsys.readouterr()
     with pytest.raises(SystemExit) as error:
-        main(["benchmarks", "session", "round", "--session", str(campaign),
-              "--candidate", str(campaign / "work/candidate.py"), "--hypothesis", "Test",
-              "--knowledge-ref", "knowledge/missing.json"])
+        main([*round_args, "--knowledge-ref", "knowledge/missing.json"])
     assert error.value.code == 2
     assert "delivered context" in capsys.readouterr().err
     assert json.loads((campaign / "state.json").read_text())["rounds"] == []

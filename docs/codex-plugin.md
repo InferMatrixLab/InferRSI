@@ -208,6 +208,14 @@ plugin manifest and pins the bundled README's video link to the release tag.
 The tracked source template remains unchanged.
 Unbuilt source previews use the runtime's explicit `0+unknown` fallback.
 
+A build without `--release-version` is a source build, not a release. Its
+`plugin.json` `version` and the `plugin_version` in `runtime/manifest.json` and
+`--plugin-info` are `0.0.0+source`; the `+source` suffix is SemVer build
+metadata that marks the package as not released. `runtime_version` still reports
+the bundled runtime (`0+unknown`, or the generated version), so in a source
+build the two fields differ on purpose. The marker does not identify the source:
+use `content_sha256` and the source commit to compare builds.
+
 Only the ZIP is attached to Releases. The raw `plugins/inferrsi/` source template
 does not contain the bundled runtime and is not an installation package.
 

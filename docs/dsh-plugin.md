@@ -231,7 +231,9 @@ the launcher is `scripts/inferrsi.py`.
 
 - Use `--plugin-info` to check the selected interpreter, bundled runtime version,
   and content SHA-256. An unbuilt source checkout can report `0+unknown` as the
-  runtime version.
+  runtime version. The bundle is always a source build with no release mode, so
+  `package.json` `version` and `plugin_version` are `0.0.0+source`, which marks
+  it as not a release.
 - For an inference engineering task, select the primary skill by the requested
   outcome. For example, load `skills enter task-performance` for a performance
   goal and read its returned procedure. Record the actual workload, device,

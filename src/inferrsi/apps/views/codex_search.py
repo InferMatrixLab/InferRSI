@@ -16,6 +16,7 @@ from inferrsi.harness.records.evidence import (
     sanitized_text as _text,
 )
 
+from .capture_delivery import managed_local_output
 from .codex_knowledge import decode as decode_knowledge
 from .codex_knowledge import invocation as knowledge_invocation
 from .codex_tool_returns import _output_lines, _path, correlate_window
@@ -617,6 +618,8 @@ def _matched_capture(spec, item, join, capture_outputs):
         return False
     output = "".join(join["aggregate_lines"]).replace("\r\n", "\n").rstrip("\n")
     root = capture_outputs.get((spec["context_id"], output))
+    if root is None and spec["context_id"] is None:
+        root = capture_outputs.get((None, managed_local_output(output)))
     cwd = _path(item.get("cwd"))
     return (root is not None and cwd is not None and spec["directory"] is not None
             and (cwd / spec["directory"]).resolve() == root)
