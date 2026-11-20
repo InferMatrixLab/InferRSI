@@ -2,7 +2,7 @@
 
 ![InferRSI — an agent app to onboard and optimize models. The outer loop improves the engine and the inner loop improves the optimizer.](docs/assets/inferrsi-banner.svg)
 
-[Quickstart](#quickstart) · [How It Works](#how-it-works) · [Selected Results](#selected-results) · [Docs](#documentation) · [Contributing](#contributing)
+[🚀 Quickstart](#quickstart) · [🔁 How It Works](#how-it-works) · [📊 Selected Results](#selected-results) · [📚 Docs](#documentation) · [🤝 Contributing](#contributing)
 
 </div>
 
