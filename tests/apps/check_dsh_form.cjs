@@ -91,6 +91,8 @@ async function main() {
   assert.equal(task.maxMinutes, 20);
   assert.equal(task.acceptance, null);
   assert.equal(task.execution, 'local');
+  const musa = taskFromForm({ ...form, backend: 'musa' });
+  assert.equal(musa.backend, 'musa');
   const remote = { ...form, backend: 'npu', execution: 'remote', host: '192.0.2.1',
     password: 'fake-test-password', privateKey: 'fake-test-key' };
   assert.throws(() => buildPrompt(remote));

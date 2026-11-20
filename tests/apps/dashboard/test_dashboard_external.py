@@ -142,6 +142,48 @@ def test_ascend_identity_requires_runtime_and_firmware():
     assert _environment_signature(env, ["0"], "ascend") != first
 
 
+def test_musa_identity_requires_a_mask_that_binds_the_selected_card():
+    def environment(mask, index="0"):
+        return {
+            "host": {"platform": "synthetic"},
+            "visible_devices": {"MUSA_VISIBLE_DEVICES": mask},
+            "target_python": {
+                "environment": {
+                    "python": "3.11",
+                    "packages": {
+                        "torch": "example",
+                        "vllm": "example",
+                        "torch_musa": "example",
+                        "vllm-musa": "example",
+                    },
+                }
+            },
+            "device": {
+                "status": "available",
+                "selection_verified": True,
+                "devices": [
+                    {"index": index, "uuid": "example", "name": "MTT S5000",
+                     "driver_version": "example"}
+                ],
+            },
+        }
+
+    # Card 0 is the runtime's implicit device 0, so an unset mask still binds it.
+    assert _environment_signature(environment(None), ["0"], "musa") is not None
+    # Card 1 with no mask: logical musa:0 is card 0, so the recorded UUID would
+    # name a card the workload never had to use.
+    assert _environment_signature(environment(None, "1"), ["1"], "musa") is None
+    # The explicit mask creates the binding, and it must still be an identity.
+    assert _environment_signature(environment("1", "1"), ["1"], "musa") is not None
+    assert _environment_signature(environment("1,0", "1"), ["1"], "musa") is None
+    # A record that never captured the key cannot prove the binding either.
+    missing = environment(None)
+    del missing["visible_devices"]["MUSA_VISIBLE_DEVICES"]
+    assert _environment_signature(missing, ["0"], "musa") is None
+    del missing["visible_devices"]
+    assert _environment_signature(missing, ["0"], "musa") is None
+
+
 @pytest.mark.parametrize("change", ["missing_source", "changed_source", "wrong_candidate",
                                     "bad_quality", "too_many_samples", "negative_metric"])
 def test_external_contract_rejects_invalid_provenance_or_values(tmp_path, change):
@@ -276,3 +318,38 @@ def test_empty_campaign_snapshot_has_no_gain_or_plot(tmp_path):
     assert snapshot['chart'] == ''
     assert snapshot['data']['chart_note'] == 'No measured candidate results recorded.'
     assert snapshot['temporal'] == ''
+
+
+def test_musa_identity_requires_the_compat_layer_and_plugin():
+    env = {
+        "host": {"platform": "synthetic"},
+        # The recorded mask is what binds the verified card to the executed one.
+        "visible_devices": {"MUSA_VISIBLE_DEVICES": "0"},
+        "target_python": {
+            "environment": {
+                "python": "3.10",
+                "packages": {"torch": "example", "vllm": "example"},
+            }
+        },
+        "device": {
+            "status": "available",
+            "selection_verified": True,
+            "devices": [
+                {
+                    "index": "0",
+                    "uuid": "GPU-example",
+                    "name": "MTT example",
+                    "driver_version": "example",
+                }
+            ],
+        },
+    }
+    # torch/vllm alone cannot identify a MUSA runtime.
+    assert _environment_signature(env, ["0"], "musa") is None
+    env["target_python"]["environment"]["packages"].update(
+        {"torch_musa": "example", "vllm-musa": "example"}
+    )
+    first = _environment_signature(env, ["0"], "musa")
+    assert first is not None and first[0] == "musa"
+    env["target_python"]["environment"]["packages"]["vllm-musa"] = "changed"
+    assert _environment_signature(env, ["0"], "musa") != first

@@ -30,7 +30,8 @@ def inspect_environment(
         "import json,sys,importlib.metadata as m\n"
         "names=['torch','vllm','vllm-omni','vllm-afd-plugin','vllm-rlt','torch-npu',"
         "'nvidia-nccl-cu12','nvidia-nccl-cu13','nvidia-cuda-runtime-cu12',"
-        "'nvidia-cuda-runtime-cu13','mlx']\n"
+        "'nvidia-cuda-runtime-cu13','mlx','torch_musa','vllm-musa','mthreads-ml-py',"
+        "'torchada','mate']\n"
         "packages={}\n"
         "for name in names:\n"
         "    try:\n"
@@ -47,7 +48,11 @@ def inspect_environment(
             python_info["parse_error"] = "Target Python did not emit a JSON environment"
 
     device = inspect_device(
-        backend, device_ids=device_ids, device_model=device_model, command=command
+        backend,
+        device_ids=device_ids,
+        device_model=device_model,
+        command=command,
+        python=python,
     )
 
     report = {
@@ -63,6 +68,7 @@ def inspect_environment(
                 "HIP_VISIBLE_DEVICES",
                 "ROCR_VISIBLE_DEVICES",
                 "ASCEND_RT_VISIBLE_DEVICES",
+                "MUSA_VISIBLE_DEVICES",
             )
         },
         "target_python": python_info,

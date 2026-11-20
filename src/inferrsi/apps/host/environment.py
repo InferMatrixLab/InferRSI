@@ -40,6 +40,11 @@ def dependency_versions():
         "nvidia-nccl-cu12",
         "nvidia-nccl-cu13",
         "flashinfer-python",
+        "torch_musa",
+        "vllm-musa",
+        "mthreads-ml-py",
+        "torchada",
+        "mate",
     )
     code = (
         "import importlib.metadata as metadata,json,sys\n"

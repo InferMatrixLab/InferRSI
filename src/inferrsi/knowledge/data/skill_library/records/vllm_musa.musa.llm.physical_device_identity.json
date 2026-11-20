@@ -1,0 +1,83 @@
+{
+  "id": "vllm_musa.musa.llm.physical_device_identity",
+  "title": "MUSA device identity: pymtml reports physical ids, MUSA_VISIBLE_DEVICES remaps only torch",
+  "backend": "musa",
+  "scenario": "llm.serving",
+  "summary": "The plugin's MTML/pymtml path answers with physical device ids and is explicitly documented as unaffected by MUSA_VISIBLE_DEVICES, while torch.musa applies logical ids. A campaign that pins cards only through MUSA_VISIBLE_DEVICES can therefore measure a different physical device than the one it names, and two arms can land on different cards.",
+  "tags": [
+    "device_selection",
+    "pymtml",
+    "mtml",
+    "musa_visible_devices",
+    "measurement_identity",
+    "trap"
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/MooreThreads/vllm-musa/blob/7d5371a5ecfd1e04ea303f847e75cf3747e92fcd/vllm_musa/platform.py",
+      "type": "source_code",
+      "commit": "7d5371a5ecfd1e04ea303f847e75cf3747e92fcd",
+      "accessed_at": "2026-11-18"
+    },
+    {
+      "url": "https://github.com/MooreThreads/vllm-musa/commit/7d5371a5ecfd1e04ea303f847e75cf3747e92fcd",
+      "type": "commit",
+      "commit": "7d5371a5ecfd1e04ea303f847e75cf3747e92fcd",
+      "status": "merged",
+      "accessed_at": "2026-11-18"
+    }
+  ],
+  "applicability": {
+    "hardware": [
+      "Moore Threads MUSA GPU; the SKU and driver are not stated by the cited source"
+    ],
+    "software": [
+      "MooreThreads/vllm-musa at 7d5371a5ecfd1e04ea303f847e75cf3747e92fcd",
+      "torch_musa plus mthreads-ml-py (pymtml); torchada is imported by the plugin"
+    ],
+    "models": [
+      "Any model served through the vllm-musa platform plugin"
+    ],
+    "conditions": [
+      "Applies whenever MUSA_VISIBLE_DEVICES is set to a subset or a reordering",
+      "The cited commit also removed a baked MUSA_VISIBLE_DEVICES=all default from the image"
+    ]
+  },
+  "claims": [
+    {
+      "kind": "source_code",
+      "description": "platform.py states that MTML is not affected by MUSA_VISIBLE_DEVICES and that its functions work on real physical device ids."
+    },
+    {
+      "kind": "source_code",
+      "description": "The MtmlMUSAPlatform device-capability path carries an explicit note that torch.musa uses logical ids while pymtml does not remap, so it queries the handle by the caller-supplied id."
+    },
+    {
+      "kind": "review_finding",
+      "description": "Because only torch applies the remapping, an experiment that selects devices solely through MUSA_VISIBLE_DEVICES has no guarantee that a vendor-tool reading of card N and a torch reading of device N refer to the same physical card."
+    }
+  ],
+  "recommendations": [
+    "Record the physical id, UUID and name read through pymtml for every campaign arm, not only the MUSA_VISIBLE_DEVICES string.",
+    "Prefer selecting devices by UUID when the harness supports it; otherwise pin both the physical ids and the env remapping and state the mapping in the evidence.",
+    "Before comparing arms, assert the same physical UUID set on both sides; a differing UUID set invalidates the comparison even when the env string is identical."
+  ],
+  "validation_plan": [
+    "On the target host, print pymtml index/UUID/name and torch.musa device properties with and without MUSA_VISIBLE_DEVICES set, and record both.",
+    "Run one pair of arms with the identical physical UUID set and confirm the harness reports the same device identity for both.",
+    "Repeat with a reordered MUSA_VISIBLE_DEVICES to confirm the trap and to show the identity check catches it."
+  ],
+  "limitations": [
+    "Source-derived reading of the plugin; it was not exercised on MUSA hardware while this record was written.",
+    "The exact remapping semantics belong to torch_musa and may change independently of the plugin.",
+    "A UUID check proves identity, not performance; it is a precondition for a valid A/B comparison only."
+  ],
+  "schema_version": 1,
+  "repo": "vllm_musa",
+  "component": "llm",
+  "status": "imported",
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}

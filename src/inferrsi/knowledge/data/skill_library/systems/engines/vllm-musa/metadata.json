@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "kind": "skill",
+  "origin": [
+    "external"
+  ],
+  "status": "candidate",
+  "empirical_validation": "not_run",
+  "license": "Apache-2.0",
+  "tags": [
+    "vllm-musa",
+    "musa",
+    "moore-threads",
+    "torchada",
+    "pymtml",
+    "mtml",
+    "musa-visible-devices",
+    "vllm-omni",
+    "dispatch",
+    "measurement"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/MooreThreads/vllm-musa",
+      "commit": "7d5371a5ecfd1e04ea303f847e75cf3747e92fcd",
+      "license": "Apache-2.0",
+      "paths": [
+        "LICENSE",
+        "docker/vllm-omni.Dockerfile",
+        "vllm_musa/__init__.py",
+        "vllm_musa/platform.py"
+      ],
+      "readset": "references/sources.md"
+    }
+  ],
+  "provenance_readsets": [
+    "references/sources.md"
+  ],
+  "consumption_mode": "packaged",
+  "applicability": {
+    "scope": "Device identity, compat-layer dispatch and pinned-image constraints for text-LLM and Omni serving on the vllm-musa plugin, plus the measurement rules that keep a CUDA-derived result separate from a MUSA one.",
+    "prerequisites": "A prepared MUSA host or the vllm-omni MUSA image, the plugin and compat-layer revisions, and a frozen benchmark plus quality command.",
+    "input_contract": "Plugin revision, upstream vLLM version, MUSA toolkit and driver, torchada/torch_musa revisions, model checkpoint, physical device UUID set and the workload.",
+    "produced_artifact": "An identity/dispatch/measurement report: physical device mapping, the named mechanism and its kernel evidence, and an AB/BA pair with its quality verdict.",
+    "refusal_point": "Report an evidence gap when the physical device set, the compat-layer revisions or the image constraint list cannot be established."
+  },
+  "recommendations": [
+    "Resolve the pymtml-physical versus torch-logical device mapping before any A/B.",
+    "Prove the mechanism is selected on MUSA from a profile instead of assuming a CUDA fast path ran.",
+    "Treat the Omni image's constraint list as the boundary of what can cause a change.",
+    "Keep the text-LLM and Omni lanes as separate claims."
+  ],
+  "limitations": [
+    "Authored from source reading only: no MUSA hardware run, no quality or performance measurement.",
+    "Covers the plugin's contract at one revision; MATE, torchada and MUSA toolkit tuning are out of scope.",
+    "Contains no expected speedup and no statement that any CUDA or Ascend record transfers to MUSA."
+  ],
+  "construction": {
+    "anchor_kind": "source",
+    "distillation_form": "repository-operating-graph",
+    "method": "Source-read authoring against the plugin revision recorded in references/sources.md. No MUSA host was available, so no native import, build, service start or measurement was performed.",
+    "native_import": "not-run",
+    "status": "candidate"
+  }
+}

@@ -96,7 +96,12 @@ def test_data_leaf_holds_the_recorded_fragment_and_locked_hash():
     assert LEAF["file"] == "src/inferrsi/resources/repository_packs.py"
     data = (REPO / LEAF["file"]).read_bytes()
     assert data == (ROOT / "resources" / "repository_packs.py").read_bytes()
-    assert hashlib.sha256(data).hexdigest() == LEAF["file_sha256"]
+    # K02 and C2 are historical pins: they describe the bytes that existed at
+    # those revisions and are not relocked when the registry grows. The current
+    # leaf is recorded by its own revision, which names the hash it superseded.
+    registry = LEAF["registry_revision"]
+    assert registry["previous_file_sha256"] == LEAF["file_sha256"]
+    assert hashlib.sha256(data).hexdigest() == registry["file_sha256"]
     # The body in the file today, and the P0b provenance text it came from.
     current = LEAF["current_fragment"]
     assert current["source"] + "\n" in data.decode("utf-8")
@@ -105,11 +110,20 @@ def test_data_leaf_holds_the_recorded_fragment_and_locked_hash():
     )
     revision = LEAF["resource_path_revision"]
     original = LEAF["original_fragment"]["source"]
+    # K02 moved the reader path; #712 then relocated the descriptor files. The
+    # registry the reader sits under grows as packs are added, so the chain is
+    # checked on the reader body and the file hashes, not on the whole text.
+    def reader_body(text: str) -> str:
+        return text[text.index("def repository_pack("):]
+
     k02 = original.replace(revision["old_line"], revision["new_line"])
     relocation = LEAF["descriptor_relocation"]
-    assert k02.replace(relocation["old_line"], relocation["new_line"]) == current["source"]
+    relocated = k02.replace(relocation["old_line"], relocation["new_line"])
+    registry = LEAF["registry_revision"]
+    assert reader_body(relocated) == reader_body(current["source"])
     assert revision["new_file_sha256"] == relocation["old_file_sha256"]
-    assert relocation["new_file_sha256"] == LEAF["file_sha256"]
+    assert relocation["new_file_sha256"] == registry["previous_file_sha256"]
+    assert registry["previous_file_sha256"] == LEAF["file_sha256"]
 
 
 def test_c2_relock_moves_the_leaf_without_changing_a_byte():

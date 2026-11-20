@@ -117,7 +117,8 @@ def _common(parser: argparse.ArgumentParser) -> None:
     )
     parser.add_argument(
         "--device-model",
-        help="Expected CUDA device model or Apple Silicon chip (case-insensitive match)",
+        help="Expected device model for the selected backend, e.g. a CUDA SKU, an "
+        "Apple Silicon chip or a MUSA SKU (case-insensitive match)",
     )
     parser.add_argument(
         "--python", default=sys.executable, help="Python used for target package inspection"

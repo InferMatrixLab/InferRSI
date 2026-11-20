@@ -6,7 +6,9 @@ import json
 from importlib.resources import files
 from typing import Any
 
-REPO_TYPES = ("vllm", "vllm_omni", "afd_plugin", "vllm_rlt", "strata", "sglang", "sglang_omni")
+REPO_TYPES = (
+    "vllm", "vllm_omni", "vllm_musa", "afd_plugin", "vllm_rlt", "strata", "sglang", "sglang_omni"
+)
 
 
 def repository_pack(repo_type: str) -> dict[str, Any]:

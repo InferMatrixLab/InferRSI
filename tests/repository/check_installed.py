@@ -135,7 +135,7 @@ for benchmark_name in builtin_tasks():
     for resource_name in ("task.json", "TASK.md", "benchmark.py", "LICENSE"):
         assert root.joinpath(resource_name).is_file(), (benchmark_name, resource_name)
 records = knowledge_records()
-assert len(records) == 137, "Knowledge is missing from the installation"
+assert len(records) == 140, "Knowledge is missing from the installation"
 assert resource("data/skill_library/records/README.md").is_file()
 assert repository_pack("vllm_rlt")["id"] == "vllm_rlt"
 assert search_knowledge(repo="vllm_omni", backend="ascend")

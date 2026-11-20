@@ -12,7 +12,7 @@ def _names_model(name: str, device_model: str) -> bool:
     return re.search(rf"\b{re.escape(device_model)}\b", name, re.IGNORECASE) is not None
 
 
-def inspect_devices(*, device_ids, device_model, command):
+def inspect_devices(*, device_ids, device_model, command, python=None):
     from . import tool_facts
 
     device = tool_facts(

@@ -1,0 +1,81 @@
+{
+  "id": "vllm_musa.musa.llm.torchada_dispatch_boundary",
+  "title": "torchada makes CUDA source run on MUSA, so verify the dispatched kernel instead of assuming a CUDA tuning result carries over",
+  "backend": "musa",
+  "scenario": "llm.serving",
+  "summary": "The plugin imports torchada before torch so that torch.cuda/torch.device are redirected to MUSA, and the platform plugin treats torchada.is_musa_platform() as its primary signal. A CUDA-shaped fast path can therefore be present in the source and still be executed by a different implementation on MUSA; an optimization must be attributed to the kernel that actually ran.",
+  "tags": [
+    "torchada",
+    "dispatch",
+    "porting",
+    "measurement",
+    "cuda_compat"
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/MooreThreads/vllm-musa/blob/7d5371a5ecfd1e04ea303f847e75cf3747e92fcd/vllm_musa/__init__.py",
+      "type": "source_code",
+      "commit": "7d5371a5ecfd1e04ea303f847e75cf3747e92fcd",
+      "accessed_at": "2026-11-18"
+    },
+    {
+      "url": "https://github.com/MooreThreads/vllm-musa/blob/7d5371a5ecfd1e04ea303f847e75cf3747e92fcd/vllm_musa/platform.py",
+      "type": "source_code",
+      "commit": "7d5371a5ecfd1e04ea303f847e75cf3747e92fcd",
+      "accessed_at": "2026-11-18"
+    }
+  ],
+  "applicability": {
+    "hardware": [
+      "Moore Threads MUSA GPU; no SKU-specific claim is made here"
+    ],
+    "software": [
+      "MooreThreads/vllm-musa at 7d5371a5ecfd1e04ea303f847e75cf3747e92fcd",
+      "torchada, torch_musa and the pinned MUSA toolchain of that revision"
+    ],
+    "models": [
+      "Any model whose kernels were tuned on CUDA and then run unchanged on MUSA"
+    ],
+    "conditions": [
+      "Relevant to any port of a CUDA-only optimization, including fused ops, graph capture and attention backends",
+      "Not a claim that a specific CUDA optimization is unavailable on MUSA"
+    ]
+  },
+  "claims": [
+    {
+      "kind": "source_code",
+      "description": "__init__.py imports torchada before torch, with a comment that this must happen before any torch.device(\"cuda:X\") call because it patches torch.cuda to redirect to MUSA."
+    },
+    {
+      "kind": "source_code",
+      "description": "musa_platform_plugin() returns the MUSA platform when torchada.is_musa_platform() is true and otherwise falls back to importing torch_musa, so availability of the compat layer is itself part of the runtime identity."
+    },
+    {
+      "kind": "review_finding",
+      "description": "A CUDA-specific optimization can compile and run through the compatibility layer without exercising the kernel its CUDA result was measured on; a gain measured on CUDA is therefore a hypothesis about MUSA, not evidence for it."
+    }
+  ],
+  "recommendations": [
+    "Record torchada, torch_musa, torch and the MUSA toolkit versions next to every measurement; a different compat-layer revision is a different runtime.",
+    "Attribute a gain to a named kernel or graph from a profile, and keep the profile beside the engine-level number.",
+    "When porting a CUDA fast path, first prove the target backend is selected (dispatch check), then measure; a fallback path that silently wins is the common false positive."
+  ],
+  "validation_plan": [
+    "Profile one steady-state step on MUSA and list the top kernels; confirm the intended kernel names appear rather than generic or fallback ones.",
+    "Compare against the same step with the candidate disabled, holding device, dtype, shapes and warmup identical.",
+    "Re-run the A/B after pinning the compat-layer versions to show the result is not version drift."
+  ],
+  "limitations": [
+    "Source-derived reading; no MUSA hardware measurement backed this record.",
+    "Kernel names and dispatch rules depend on the exact torchada/torch_musa/plugin tuple.",
+    "This record does not name which CUDA optimizations do or do not exist on MUSA."
+  ],
+  "schema_version": 1,
+  "repo": "vllm_musa",
+  "component": "llm",
+  "status": "imported",
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}
