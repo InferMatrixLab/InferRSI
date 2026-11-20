@@ -155,7 +155,7 @@ those resources retain their repository owner and source attribution.
 
 ### Discover/read packaged or custom skills — `skills list` / `enter` / `show` / `resource` / `reference`
 
-- **Inputs:** The agent selects a primary skill by deliverable and runs `inferrsi skills enter task-accuracy`, for example. It returns the primary's complete procedure and host header before supporting evidence search. The base installation can omit the embedded search metadata from this delivery. An exact pinned read exposes the complete source file, including its metadata. An unknown, unavailable or non-primary owner is an error. `list` reads skill frontmatter (and legacy sidecars in historical/custom checkouts); `show <skill>` selects one instruction body; `resource <skill> <relative-path>` and `reference <skill> <relative-path>` resolve one path. The default is the installed library's registered skills; an explicit `--root` selects a custom flat tree or a categorized library with `skill-index.json`. The optional `skills` extra supplies the YAML parser for frontmatter operations.
+- **Inputs:** The agent selects a primary skill by deliverable and runs `inferrsi skills enter task-accuracy`, for example. It returns the primary's complete procedure and host header before supporting evidence search. The base installation can omit the embedded search metadata from this delivery. A pinned `read --resource` exposes the complete source file, including its metadata. An unknown, unavailable or non-primary owner is an error. `list` reads skill frontmatter (and legacy sidecars in historical/custom checkouts); `show <skill>` selects one instruction body; `resource <skill> <relative-path>` and `reference <skill> <relative-path>` resolve one path. The default is the installed library's registered skills; an explicit `--root` selects a custom flat tree or a categorized library with `skill-index.json`. The optional `skills` extra supplies the YAML parser for frontmatter operations.
 - **Scope:** complete packaged skills under `data/skill_library/`, or the explicitly selected custom root. The 21 English engine and research-router skills remain accessible through catalog records and library navigation, separately from the registry.
 - **Output:** metadata listing, one instruction body, or a resolved path.
 - **Side effects:** none. `resource`/`reference` do not load or execute the target.
@@ -260,8 +260,9 @@ question calls for prior evidence.
   source flag. Most hits use `read --material --omit-resources` to return the
   entrypoint content, provenance and revision. For a skill, the procedure
   omits the embedded machine annotation. A readable hit's
-  `next_read_content_bytes` counts its next command's UTF-8 `content` bytes,
-  excluding the JSON envelope and additional resources. Remove
+  `next_read_content_bytes` counts the UTF-8 bytes in that command's `content`
+  on the snapshot inspected by Find. A later edit can change an unpinned
+  material read. The count excludes the envelope and additional resources. Remove
   `--omit-resources` to list the bundle's resources. Hits that fail the reader's
   material check carry `unreadable` with the reason.
 - **Base installation.** When PyYAML is absent, an installed Skill with a
