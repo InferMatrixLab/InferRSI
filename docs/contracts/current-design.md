@@ -98,7 +98,7 @@ Acceptance: T01–T14, T22–T24, including the same-key conflict, finished repl
 
 ## D007 — target resource tree
 
-Decision: `knowledge/data/{repo_packs/<pack>/knowledge,skill_library,knowledge_packs,research_profiles}`; `pack.json` separately at `harness/data/repo_packs/<pack>/pack.json`; the dashboard template at `Apps/views/templates/dashboard.html`. K01 migrates seven code modules only and moves no resources; K02 performs the three precise migration classes (importlib, checkout `Path`, plugin physical layout) with old logical pins/hashes preserved and without assuming a single loader.
+Decision: `knowledge/data/skill_library (records, configuration, compiled provenance and skill owners)`; `pack.json` separately at `harness/data/repo_packs/<pack>/pack.json`; the dashboard template at `Apps/views/templates/dashboard.html`. K01 migrates seven code modules only and moves no resources; K02 performs the three precise migration classes (importlib, checkout `Path`, plugin physical layout) with old logical pins/hashes preserved and without assuming a single loader.
 
 ## D008 — function ownership
 

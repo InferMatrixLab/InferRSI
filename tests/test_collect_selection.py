@@ -53,10 +53,7 @@ def test_existing_item_payload_and_material_accounting_are_unchanged():
     assert new["material_bytes"] == old["material_bytes"] == len(_json(old["items"][0]))
     assert json.loads(new["items"][0]["content"])["id"] == CGROUP
     assert new["contexts"][0]["resources"][0]["path"].endswith("/SKILL.md")
-    assert new["contexts"][0]["omissions"] == [{
-        "path": "data/skill_library/hardware/host/cgroup-resource-controls/metadata.json",
-        "reason": "not_context_resource",
-    }]
+    assert new["contexts"][0]["omissions"] == []
     assert "contexts" not in reader.collect(ids=[CGROUP], relevance="unrelated")
 
 
@@ -122,14 +119,32 @@ def test_context_keeps_complete_core_prerequisites_provenance_and_exact_bytes():
     assert (context["ref"], context["revision"]) == (item["ref"], item["revision"])
     assert context["sources"] == item["sources"]
     paths = {r["path"] for r in context["resources"]}
-    assert "data/skill_library/repositories/vllm/audit-vllm-kv-lifetimes/SKILL.md" in paths
-    assert "data/skill_library/methods/inference-benchmark-design/SKILL.md" in paths
+    assert "data/skill_library/systems/engines/vllm/audit-vllm-kv-lifetimes/SKILL.md" in paths
+    assert "data/skill_library/playbooks/measurement/inference-benchmark-design/SKILL.md" in paths
     assert any(path.endswith("/references/source-notes.md") for path in paths)
     for resource in context["resources"]:
         actual = reader.resource(context["ref"], resource["path"], revision=context["revision"])
-        assert resource["content"].encode() == actual
-        assert resource["sha256"] == hashlib.sha256(actual).hexdigest()
-        assert resource["locator"] == "whole-resource"
+        delivered = resource["content"].encode()
+        assert resource["sha256"] == hashlib.sha256(delivered).hexdigest()
+        if resource["path"].endswith("/SKILL.md") and b"  inferrsi: |" in actual:
+            import yaml
+
+            assert resource["locator"] == "skill-procedure"
+            assert resource["source_sha256"] == hashlib.sha256(actual).hexdigest()
+            first, second = resource["source_byte_ranges"]
+            assert first[0] == 0 < first[1] < second[0] < second[1] == len(actual)
+            assert actual[:first[1]] + actual[second[0]:] == delivered
+            original_header, original_body = actual.split(b"---", 2)[1:]
+            header, body = delivered.split(b"---", 2)[1:]
+            expected = yaml.safe_load(original_header)
+            del expected["metadata"]["inferrsi"]
+            if not expected["metadata"]:
+                del expected["metadata"]
+            assert yaml.safe_load(header) == expected
+            assert body == original_body
+        else:
+            assert resource["locator"] == "whole-resource"
+            assert delivered == actual
     assert context["content_bytes"] == result["context_bytes"] == sum(
         len(r["content"].encode()) for r in context["resources"]
     )
@@ -206,7 +221,7 @@ def test_h3_readsets_are_mandatory_even_without_lexical_overlap():
     result = KnowledgeReader().collect(ids=[H3], relevance="orchid", context_bytes=65536)
     assert not result["context_omissions"]
     paths = {r["path"] for r in result["contexts"][0]["resources"]}
-    prefix = "data/skill_library/repositories/h3-c/audit-h3-runtime-residency/"
+    prefix = "data/skill_library/systems/engines/h3-c/audit-h3-runtime-residency/"
     for path in ("SKILL.md", "LICENSE", "references/source-notes.md",
                  "references/source-identity.json", "references/minimax-h3-weight-inventory.json"):
         assert prefix + path in paths
@@ -214,7 +229,7 @@ def test_h3_readsets_are_mandatory_even_without_lexical_overlap():
 
 def test_parent_owner_license_is_mandatory_and_budgeted_for_cross_skill_references():
     identity = "inferrsi.common.skills.audit_vllm_kv_lifetimes"
-    license_path = "data/skill_library/repositories/vllm/LICENSE"
+    license_path = "data/skill_library/systems/engines/vllm/LICENSE"
     reader = KnowledgeReader()
     for owner in (identity, AFD):
         result = reader.collect(ids=[owner], context_bytes=100000)
@@ -226,19 +241,22 @@ def test_parent_owner_license_is_mandatory_and_budgeted_for_cross_skill_referenc
         assert license_resource["sha256"] == hashlib.sha256(expected).hexdigest()
     bundle = reader.read(identity)
     core = bundle.metadata["skill_documents"]["original"]
-    limited = reader.collect(ids=[identity], context_bytes=len(bundle.content[core]))
+    context, = reader.collect(ids=[identity], context_bytes=100000)["contexts"]
+    core_resource, = (entry for entry in context["resources"] if entry["path"] == core)
+    core_size = len(core_resource["content"].encode())
+    limited = reader.collect(ids=[identity], context_bytes=core_size)
     assert not limited["contexts"]
     omission = limited["context_omissions"][0]
     assert omission["reason"] == "context_limit"
     assert omission["required_bytes"] >= (
-        len(bundle.content[core]) + len(bundle.content[license_path])
+        core_size + len(bundle.content[license_path])
     )
 
 
 @pytest.mark.parametrize(("identity", "cue", "path"), [
-    (AFD, "P2pNccl", "data/skill_library/repositories/afd-plugin/"
+    (AFD, "P2pNccl", "data/skill_library/systems/engines/afd-plugin/"
      "audit-afd-p2p-exchanges/references/afd-plugin-LICENSE.md"),
-    (H3, "orchid", "data/skill_library/repositories/h3-c/"
+    (H3, "orchid", "data/skill_library/systems/engines/h3-c/"
      "audit-h3-runtime-residency/references/THIRD_PARTY_NOTICES.md"),
 ])
 def test_retained_legal_resources_ignore_relevance_and_use_atomic_budget(identity, cue, path):

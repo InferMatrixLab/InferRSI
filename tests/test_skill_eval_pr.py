@@ -48,6 +48,7 @@ def test_plan_selects_addition_update_resources_without_execution(tmp_path, mode
 @pytest.mark.parametrize("skill,mode", [
     ("audit-fixed-workload-claim", "addition"),
     ("inference-benchmark-design", "update"),
+    ("inference-benchmark-design", "moved"),
 ])
 def test_maintained_mapping_selects_real_acceptance_paths(tmp_path, skill, mode):
     repo = tmp_path / "repo"
@@ -61,14 +62,19 @@ def test_maintained_mapping_selects_real_acceptance_paths(tmp_path, skill, mode)
     registration = {"schema_version": 1, "skills": {
         skill: {"path": path.parent.relative_to(index.parent).as_posix(), "backend": "common"}}}
     body = f"---\nname: {skill}\ndescription: Fixed-workload audit fixture\n---\n"
-    if mode == "update":
-        path.parent.mkdir(parents=True)
-        path.write_text(body + "Old audit guidance\n", encoding="utf-8")
-        write_json(index, registration)
+    if mode != "addition":
+        previous = (index.parent / "old-category" / skill / "SKILL.md"
+                    if mode == "moved" else path)
+        previous.parent.mkdir(parents=True)
+        previous.write_text(body + "Old audit guidance\n", encoding="utf-8")
+        write_json(index, {"schema_version": 1, "skills": {skill: {
+            "path": previous.parent.relative_to(index.parent).as_posix(), "backend": "common"}}})
         git(repo, "add", mapping["skill_root"])
     git(repo, "add", "seed.txt")
     git(repo, "commit", "--quiet", "-m", "Fixture acceptance baseline")
     before = git(repo, "rev-parse", "HEAD")
+    if mode == "moved":
+        previous.unlink()
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(body + "Audit every request and retain late outliers\n", encoding="utf-8")
     write_json(index, registration)
@@ -80,14 +86,19 @@ def test_maintained_mapping_selects_real_acceptance_paths(tmp_path, skill, mode)
          "head": head, "version": head}, tmp_path / "planned")
     assert len(plan["comparisons"]) == 1 and plan["estimated_calls"] == 2
     selected = plan["comparisons"][0]
-    assert selected["skill"] == skill and selected["mode"] == mode
+    assert selected["skill"] == skill
+    assert selected["mode"] == ("update" if mode == "moved" else mode)
     assert selected["cases"] == [{"id": "audit-threshold", "split": "holdout"}]
     assert selected["exam"]["grader"] == sha256(ROOT / "tools/skill_eval_verifier.py")
-    assert {"status": "A" if mode == "addition" else "M",
+    assert {"status": "M" if mode == "update" else "A",
         "path": path.relative_to(repo).as_posix(), "coverage": "covered"} in plan["coverage"]
-    assert [change for change in plan["coverage"] if change["coverage"] != "covered"] == (
-        [{"status": "A", "path": index.relative_to(repo).as_posix(), "coverage": "uncovered"}]
-        if mode == "addition" else [])
+    if mode == "moved":
+        frozen = compare.load_plan(tmp_path / "planned" / skill)
+        assert frozen["arms"]["baseline"]["bundle"] is not None
+    else:
+        assert [change for change in plan["coverage"] if change["coverage"] != "covered"] == (
+            [{"status": "A", "path": index.relative_to(repo).as_posix(), "coverage": "uncovered"}]
+            if mode == "addition" else [])
     assert plan["model"] == {"name": "gpt-6.1-sol", "effort": "xhigh"}
     assert integration.budget(plan)["comparisons"] == 1
     assert not (tmp_path / "planned/execution-claim.json").exists()

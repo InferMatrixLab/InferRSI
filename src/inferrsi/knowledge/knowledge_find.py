@@ -27,7 +27,7 @@ import re
 import shlex
 import sys
 from collections import Counter
-from collections.abc import Iterable, Mapping
+from collections.abc import Callable, Iterable, Mapping
 from dataclasses import dataclass
 from functools import lru_cache
 from importlib.resources import files
@@ -84,6 +84,8 @@ _QUERY_STOP_WORDS = TASK_STOP_WORDS | {
 }
 _BACKEND_NAME_ALIASES = {"昇腾": "ascend"}
 _MAX_SNIPPET = 400
+_MAX_LIMITATION_BYTES = 400
+_MAX_SHOWN_LIMITATIONS = 3
 # A case can record a dozen directions; listing all of them buries the one the
 # caller asked about. The rest stay available through the cited file.
 _MAX_SHOWN_FINDINGS = 3
@@ -302,7 +304,16 @@ class Document:
         if scope:
             record["applicability"] = str(scope).strip()[:_MAX_SNIPPET]
         if self.limitations:
-            record["limitations"] = list(self.limitations)
+            shown = []
+            for limitation in self.limitations[:_MAX_SHOWN_LIMITATIONS]:
+                preview = [*shown, limitation]
+                preview_bytes = json.dumps(preview, ensure_ascii=False).encode("utf-8")
+                if len(preview_bytes) > _MAX_LIMITATION_BYTES:
+                    break
+                shown = preview
+            record["limitations"] = shown
+            if len(shown) < len(self.limitations):
+                record["limitations_withheld"] = len(self.limitations) - len(shown)
         if self.unverified():
             record["locally_verified"] = False
         return record
@@ -467,17 +478,29 @@ def _skill_documents(root: Path, *, source_location: str) -> list[Document]:
     and carries no index, so the default search raised on a library whose cases
     `find` could already rank and `read` could already open.
     """
-    from .skill_catalog import _sidecar, skill_registrations
+    from .skill_catalog import _sidecar, _skill_search_source, skill_registrations
 
     documents = []
     for name, (directory, backend) in sorted(skill_registrations(root).items()):
         core = directory / "SKILL.md"
         body = _body_text(core)
-        description = _skill_description(body)
         try:
-            metadata = _sidecar(directory) or {}
+            body, metadata = _skill_search_source(body)
+        except ValueError:
+            # Malformed structured data is neither evidence nor instruction text.
+            continue
+        if metadata is not None and (directory / "metadata.json").exists():
+            continue
+        try:
+            if metadata is None:
+                metadata = _sidecar(directory) or {}
         except (ValueError, OSError):
             metadata = {}
+        # Task entrypoints remain addressable through the registry. Counting
+        # an orientation page as evidence also changes IDF for every owner.
+        if metadata.get("discovery_role") == "task-entry":
+            continue
+        description = _skill_description(body)
         applicability = metadata.get("applicability", {})
         scope = applicability.get("scope") if isinstance(applicability, dict) else applicability
         documents.append(Document(
@@ -613,14 +636,17 @@ def installed_skill_root() -> Path:
     return Path(files("inferrsi").joinpath("knowledge", "data", "skill_library")).resolve()
 
 
-def installed_skill_projection(document: Document, records: Mapping[str, dict]) -> dict | None:
+def installed_skill_projection(
+    document: Document, records: Mapping[str, dict] | Callable[[str], dict | None],
+) -> dict | None:
     """Find the generated record for this registered installed Skill identity."""
     if (
         document.kind != "skill" or document.source_location != "installed"
         or document.backend is None or document.root != installed_skill_root()
     ):
         return None
-    record = records.get(packaged_skill_id(document.identity, document.backend))
+    lookup = records.get if isinstance(records, Mapping) else records
+    record = lookup(packaged_skill_id(document.identity, document.backend))
     if record is None or record.get("index_type") != "packaged-skill":
         return None
     return record
@@ -646,7 +672,9 @@ def load_documents(
     if "record" in kinds:
         from .catalog import knowledge_records
 
-        documents.extend(_record_documents(knowledge_records() if records is None else records))
+        if records is None:
+            records = knowledge_records(include_skill_views=False)
+        documents.extend(_record_documents(records))
     identities = [document.qualified for document in documents]
     if len(set(identities)) != len(identities):
         duplicate = next(i for i, c in Counter(identities).items() if c > 1)
@@ -669,7 +697,8 @@ def _aliases() -> tuple[tuple[str, tuple[str, ...]], ...]:
     differently -- a caller asking about "startup" should reach a finding that
     says "initialization". Both expand one way, at query time only.
     """
-    path = files("inferrsi").joinpath("knowledge", "data", "query_aliases.json")
+    config = files("inferrsi").joinpath("knowledge", "data", "skill_library", "config")
+    path = config.joinpath("query_aliases.json")
     record = json.loads(path.read_text(encoding="utf-8"))
     if record.get("schema_version") != 1:
         raise ValueError("Query alias map requires schema_version 1")
@@ -720,21 +749,21 @@ def expand(query: str) -> tuple[list[str], dict[str, tuple[str, ...]]]:
     return [token for token in dict.fromkeys(found) if token not in _QUERY_STOP_WORDS], applied
 
 
-def _open_args(document: Document, readers: dict) -> tuple[str, ...]:
-    """Validate material and build the read command for a returned hit."""
+def _read_preview(document: Document, readers: dict) -> tuple[tuple[str, ...], int | None]:
+    """Validate a hit, returning its command and UTF-8 content size without extra reads."""
     from .knowledge_operations import KnowledgeReader
 
     if not document.qualified:
-        return ()
+        return (), None
     reader = readers.get(document.root)
     if reader is None:
         reader = readers[document.root] = KnowledgeReader(skill_root=document.root)
     try:
-        reader.read(document.qualified).view(material=True)
+        material = reader.read(document.qualified).view(material=True)
     except MissingSkillsExtra:
         if document.source_location != "installed":
             raise
-        record = installed_skill_projection(document, reader.records())
+        record = installed_skill_projection(document, reader.record)
         if record is None:
             raise
         package_reader = readers.get(None)
@@ -745,16 +774,18 @@ def _open_args(document: Document, readers: dict) -> tuple[str, ...]:
         view = bundle.view()
         core, _, _ = indexed_skill(record, {**view, "authority": "package"}, bundle.content)
         bundle.content[core].decode("utf-8")
-        return (
+        args = (
             "read", ref, "--omit-resources", "--resource", core, "--revision", view["revision"],
         )
+        return args, len(bundle.content[core])
 
     parts = ("read", document.qualified, "--material", "--omit-resources")
-    if document.root is None:
-        return parts
-    if document.source_location == "installed":
-        return (*parts, "--installed-library")
-    return (*parts, "--skill-root", str(document.root))
+    if document.root is not None:
+        if document.source_location == "installed":
+            parts += ("--installed-library",)
+        else:
+            parts += ("--skill-root", str(document.root))
+    return parts, len(material["content"].encode("utf-8"))
 
 
 def rank(query: str, corpus: Corpus) -> tuple[
@@ -797,12 +828,15 @@ def find(
     for value, _, index, detail in scored[:limit]:
         document = corpus.documents[index]
         try:
-            read_args, unreadable = _open_args(document, readers), None
+            read_args, size = _read_preview(document, readers)
+            unreadable = None
         except (ValueError, KeyError, OSError, TypeError) as exc:
-            read_args, unreadable = (), str(exc) or type(exc).__name__
+            read_args, size, unreadable = (), None, str(exc) or type(exc).__name__
         view = document.view(
             score=value, query_tokens=query_tokens, read_args=read_args, unreadable=unreadable,
         )
+        if size is not None:
+            view["next_read_content_bytes"] = size
         if explain:
             view["matched"] = detail
         items.append(view)

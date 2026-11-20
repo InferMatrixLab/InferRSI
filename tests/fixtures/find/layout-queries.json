@@ -1,0 +1,22 @@
+{
+  "base_sha": "a3e33851981f1ecdc8b73d7b62633cc598e5d5ae",
+  "gate": {"match_all_ordered_top5": true, "max_lost_readable_hits": 0, "max_candidate_to_base_median_cli_latency_ratio": 1.0},
+  "pairs_per_task": 4,
+  "tasks": {
+    "day-0": "Day zero port of an omni model with text and audio stages to vLLM Ascend NPU",
+    "performance": "Single GPU diffusion denoising latency baseline warm requests profiler",
+    "debug": "ROCm GPU hang during CUDA graph capture first failing operator minimal reproduction",
+    "accuracy": "TTS 新版本音质下降 对齐参考实现 逐层精度回归",
+    "version-alignment": "Align vllm-omni vllm-ascend and afd-plugin versions after upgrading vLLM",
+    "derived-engine": "Bring a vLLM forked inference engine up on DeepInfer and reuse scheduling components",
+    "independent-engine": "Build an independent inference engine for an on-device model on Windows XPU"
+  },
+  "previous_fixed_queries": [
+    "MiniMax H3 Image 4K BF16 single B300 six steps hot image latency",
+    "MiniMax H3 B300 diffusion VAE tile decode batching overlap memory",
+    "MiniMax H3 B300 packed queries keys RMS normalization rotary embeddings fusion",
+    "diffusion T2I redundant conditioning across denoising steps BF16 prompt reuse",
+    "MiniMax H3 denoising time modulation projections cache timestep schedule",
+    "inference benchmark design warm requests baseline latency quality control"
+  ]
+}

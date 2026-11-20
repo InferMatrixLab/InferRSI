@@ -11,13 +11,14 @@ from .catalog import _catalog_corpus, _scoped_records
 from .knowledge_find import rank
 
 PROCEDURE = (
-    "data/skill_library/workflows/inference-engine-research/"
+    "data/skill_library/workflows/research/inference-engine-research/"
     "references/model-aware-preparation.md"
 )
 
 
 def _profile(model: str) -> dict | None:
-    root = files("inferrsi").joinpath("knowledge", "data", "research_profiles")
+    config = files("inferrsi").joinpath("knowledge", "data", "skill_library", "config")
+    root = config.joinpath("research_profiles")
     for resource in sorted(root.iterdir(), key=lambda path: path.name):
         if resource.name.endswith(".json"):
             profile = json.loads(resource.read_text(encoding="utf-8"))

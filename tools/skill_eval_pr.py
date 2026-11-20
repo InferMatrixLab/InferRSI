@@ -36,7 +36,7 @@ RETENTION_DAYS = 30
 MAX_ARCHIVE = 100 * 1024 * 1024
 SHA = r"[0-9a-f]{40}"
 LIBRARY_PATH = "src/inferrsi/knowledge/data/skill_library"
-PROJECTION_PATH = "src/inferrsi/knowledge/data/repo_packs/inferrsi/knowledge"
+PROJECTION_PATH = LIBRARY_PATH + "/_compiled"
 
 
 def canonical(value):
@@ -143,8 +143,13 @@ def projection_check(repo, identity, changes):
         library = git(repo, "ls-tree", identity["head"], "--", LIBRARY_PATH).decode().split()
         if len(library) != 4 or library[:2] != ["040000", "tree"]:
             return unavailable
+        # The library overview sits outside every registered skill directory.
+        # Nested READMEs are skill resources and must still invalidate a stale pin.
         changed = git(repo, "diff", "--no-ext-diff", "--no-textconv", "--no-renames",
-                      "--name-only", pin, identity["head"], "--", LIBRARY_PATH)
+                      "--name-only", pin, identity["head"], "--", LIBRARY_PATH,
+                      ":(exclude)" + PROJECTION_PATH, ":(exclude)" + LIBRARY_PATH + "/records",
+                      ":(exclude)" + LIBRARY_PATH + "/config",
+                      ":(exclude,literal)" + LIBRARY_PATH + "/README.md")
         if changed.strip():
             return {"status": "unavailable", "reason":
                     "Declared projection source differs from current canonical library bytes"}
@@ -220,8 +225,15 @@ def prepare(repo, mapping_path, identity, output, *, provider=None, planning_blo
                        or entry["path"] == p for p in item["paths"]):
                     entry["coverage"] = "unsupported"
             continue
-        config = {"mode": "update" if blob_exists(repo, identity["base"], entrypoint)
-                  else "addition", "skill": item["skill"], "skill_root": mapping["skill_root"],
+        existing = blob_exists(repo, identity["base"], entrypoint)
+        registry_path = mapping["skill_root"] + "/skill-index.json"
+        if not existing and blob_exists(repo, identity["base"], registry_path):
+            # Snapshot loading resolves each arm by stable ID in its own registry.
+            registry = json.loads(projection_blob(repo, identity["base"], registry_path),
+                                  object_pairs_hook=projection_object)
+            existing = item["skill"] in registry["skills"]
+        config = {"mode": "update" if existing else "addition",
+                  "skill": item["skill"], "skill_root": mapping["skill_root"],
                   "cases": str((mapping_path.parent / item["cases"]).resolve()),
                   "snapshots": {"baseline": {"git_revision": identity["base"]},
                                 "candidate": {"git_revision": identity["head"]}},
@@ -634,8 +646,8 @@ def public_preparation_reason(reason):
 def path_groups(paths):
     groups = {"Canonical library paths": [], "Generated projection paths": [], "Other paths": []}
     for path in paths:
-        key = ("Canonical library paths" if matches_path(path, (LIBRARY_PATH,)) else
-               "Generated projection paths" if matches_path(path, (PROJECTION_PATH,)) else
+        key = ("Generated projection paths" if matches_path(path, (PROJECTION_PATH,)) else
+               "Canonical library paths" if matches_path(path, (LIBRARY_PATH,)) else
                "Other paths")
         groups[key].append(path)
     return groups

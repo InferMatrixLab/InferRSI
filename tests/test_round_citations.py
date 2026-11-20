@@ -42,7 +42,7 @@ def test_managed_round_resolves_citations_from_original_tool_outputs(
             "rather than a launch-overhead guess."
         )
         reason = f"Use host/device timing for the next measurement [use {ref} | {quote}]."
-        path = "data/skill_library/hardware/ascend/ascend-aclgraph-capture-replay/SKILL.md"
+        path = "data/skill_library/systems/platforms/ascend/ascend-aclgraph-capture-replay/SKILL.md"
         read_argv, read_output = _cli(tmp_path, "read", ref, "--resource", path,
                                      "--omit-resources")
     else:

@@ -16,10 +16,10 @@ from inferrsi.knowledge.skill_catalog import (
 
 ROOT = Path(__file__).resolve().parents[1] / "src/inferrsi/knowledge/data/skill_library"
 NAME = "reason-hopper-kernels"
-OWNER = ROOT / "hardware/cuda" / NAME
+OWNER = ROOT / "systems/platforms/cuda" / NAME
 IDENTITY = "inferrsi.cuda.skills.reason_hopper_kernels"
-PREFIX = f"data/skill_library/hardware/cuda/{NAME}/"
-CHECKOUT_PREFIX = f"hardware/cuda/{NAME}/"
+PREFIX = f"data/skill_library/systems/platforms/cuda/{NAME}/"
+CHECKOUT_PREFIX = f"systems/platforms/cuda/{NAME}/"
 
 
 def test_hopper_discovery_keeps_cuda_scope_and_unverified_candidate_state():

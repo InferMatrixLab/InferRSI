@@ -7,7 +7,7 @@ from inferrsi.knowledge.skill_catalog import get_skill, skill_metadata, skill_re
 
 ROOT = Path(__file__).resolve().parents[1] / "src/inferrsi/knowledge/data/skill_library"
 NAME = "audit-flare-session-lifecycle"
-RELATIVE = f"repositories/flare-local-inference/{NAME}"
+RELATIVE = f"systems/engines/flare-local-inference/{NAME}"
 IDENTITY = "inferrsi.cuda.skills.audit_flare_session_lifecycle"
 PIN = "bce032c014bae34502ba22d3304fa084d5b40afe"
 
@@ -44,6 +44,6 @@ def test_flare_package_and_checkout_reads_retain_the_complete_owner():
     assert (owner / "LICENSE").read_bytes() in package.content.values()
     preparation = "references/flare-preparation-boundary.md"
     weight = reader.read("weight-loading-optimization")
-    assert weight.content[f"methods/weight-loading-optimization/{preparation}"] == (
+    assert weight.content[f"playbooks/optimization/weight-loading-optimization/{preparation}"] == (
         skill_resource(ROOT, "weight-loading-optimization", preparation).read_bytes()
     )

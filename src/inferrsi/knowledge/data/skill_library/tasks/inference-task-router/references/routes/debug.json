@@ -1,0 +1,23 @@
+{
+  "task": "debug",
+  "title": "Diagnose execution failures",
+  "choose_when": "A hang, crash, OOM or execution-path failure needs a reproducible cause.",
+  "required_inputs": [
+    "symptom, phase and logs",
+    "minimal reproducer",
+    "last working version or configuration",
+    "hardware and system context"
+  ],
+  "steps": [
+    "Reduce to a failing and a working control.",
+    "Localize the first failing boundary and test competing causes.",
+    "Verify the fix against the reproducer and an unaffected control."
+  ],
+  "acceptance_evidence": "A minimal reproducer, cause with evidence and regression check.",
+  "candidate_skill_ids": [
+    "inference-optimization-casebook",
+    "ascend-device-health",
+    "audit-vllm-kv-lifetimes",
+    "audit-afd-p2p-exchanges"
+  ]
+}

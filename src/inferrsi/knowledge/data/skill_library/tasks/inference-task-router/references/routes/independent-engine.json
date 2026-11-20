@@ -1,0 +1,24 @@
+{
+  "task": "independent-engine",
+  "title": "Build an independent inference engine",
+  "choose_when": "A new runtime must own execution, memory and device integration on a distinct OS, model or hardware stack.",
+  "required_inputs": [
+    "target OS and device",
+    "runtime API and driver/toolchain availability",
+    "model format and memory budget",
+    "reference inputs and expected outputs"
+  ],
+  "steps": [
+    "Prove model loading and one operation on the target device.",
+    "Complete one end-to-end output, including fallback and lifecycle checks.",
+    "Measure resident memory, correctness and cold/warm behavior on the actual OS and hardware."
+  ],
+  "acceptance_evidence": "An independently runnable target-native engine, adapter boundaries and target-device validation results.",
+  "candidate_skill_ids": [
+    "mlc-llm",
+    "local-dream",
+    "audit-llama-runtime-state",
+    "os-process-placement",
+    "inference-benchmark-design"
+  ]
+}

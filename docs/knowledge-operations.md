@@ -13,7 +13,7 @@ from inferrsi.knowledge.knowledge_operations import KnowledgeReader
 reader = KnowledgeReader(skill_root=Path("src/inferrsi/knowledge/data/skill_library"))
 result = reader.collect(ids=["calibrate-serving-simulation"], material=True, limit=1)
 item = result["items"][0]
-source = reader.resource(item["ref"], "methods/calibrate-serving-simulation/references/source-notes.md",
+source = reader.resource(item["ref"], "playbooks/measurement/calibrate-serving-simulation/references/source-notes.md",
                          revision=item["revision"])
 ```
 
@@ -132,18 +132,21 @@ the resource rules below. `material=True` on a package Skill record returns its
 | `context_omissions` | Owner context unavailable: `unsupported_context`, `index_unavailable` or `context_limit` |
 | `context_bytes`, `context_budget` | Used body bytes, requested ceiling and accounting method |
 
-Each context resource carries its complete UTF-8 `content`, canonical resource
-`path`, exact-byte `sha256`, `role` (`core` or `reference`) and
-`locator=whole-resource`. The parent view supplies its owning ref and revision;
-`resource` can read exactly those bytes. The full canonical `SKILL.md`, declared
-references, provenance readsets and owner licenses (when present) are mandatory.
+Each context resource reports its canonical `path`, `role`, UTF-8 `content` and
+the SHA-256 of those delivered bytes. A `whole-resource` locator covers the
+entire file. A `skill-procedure` locator delivers the complete procedure and host
+frontmatter, omitting the structured `metadata.inferrsi` block from prompt
+context. Its `source_sha256` covers the entire file, and `source_byte_ranges`
+lists the half-open byte ranges whose concatenation reproduces the projection. Use the parent ref,
+revision and path with `resource` to reproduce the source bytes. The skill
+procedure, declared references, provenance readsets and owner licenses are mandatory.
 Licenses are retained along each required resource's skill/repository/framework
 directory ancestry inside the packaged library, including cross-skill prerequisites.
 Owner-local named license/notice files (including retained `*-LICENSE.md` and
 `THIRD_PARTY_NOTICES.md`) and explicit `skill_metadata.sources[].third_party_notices`
 paths are mandatory as well. Declared notice paths use the same boundary and
 existence checks as declared references. These resources never depend on a
-relevance match; their complete bytes count toward the mandatory set.
+relevance match; their delivered bytes count toward the mandatory set.
 If that set does not fit, the owner's entire context is omitted, with required
 and available bytes, and a later smaller context can still fit. The owning item
 can still be returned. Mandatory instructions are never truncated.
@@ -152,7 +155,7 @@ Remaining owner-local Markdown, JSON, text and CSV resources are optional. With
 a cue, Find ranks their filenames and text within the owner and only positive
 matches are eligible. An empty cue uses resource path order. The context's
 `omissions` list nonmatching, oversized, non-UTF-8 and ineligible resources
-such as `metadata.json` and scripts. Follow links to further material through
+such as scripts. Follow links to further material through
 the owning revision. Use exact `read` for the complete Bundle.
 
 The context budget sums exact UTF-8 resource-body bytes across owners in selected
@@ -184,15 +187,20 @@ Selected resource reads require the exact returned revision. A changed checkout
 or installation rejects an old revision; it never substitutes new bytes.
 This reader does not itself retain history or claim standalone exports.
 
-`read --material --omit-resources` returns the full entrypoint, provenance,
-applicability and revision. Use `read --resource <key>` to display a specific
+`read --material --omit-resources` returns the entrypoint, provenance,
+applicability and revision. For skills with embedded InferRSI metadata,
+`content` carries the procedure and its host header. `content_view` supplies
+the delivered SHA-256, source SHA-256 and half-open byte ranges in the source.
+The explicit resource read at the same revision returns the original bytes,
+including the annotation. Older sidecar-backed procedures retain their
+original entrypoint content. Use `read --resource <key>` to display a specific
 UTF-8 resource in `content` and its key in `content_resource`. Remove
 `--omit-resources` to list resource paths and digests. These views use the same
 full-bundle revision.
 
 - Local skills include their complete owner folder (except incidental
   `__pycache__`, `*.pyc` and `.DS_Store`) and declared cross-skill references,
-  whether declared in the sidecar or in legacy frontmatter. Other links remain navigation in the required full checkout.
+  whether declared in skill frontmatter or a legacy checkout sidecar. Other links remain navigation in the required full checkout.
 - Local structured cases keep their own identity, observation and source limits.
   A case bundle holds its record, content and any `required_resources` declared
   relative to the record; missing, unsafe or escaping resources fail. Case

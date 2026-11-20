@@ -17,8 +17,10 @@ from urllib.parse import unquote, urlsplit
 import pytest
 import yaml
 
+from inferrsi.knowledge.skill_catalog import skill_metadata
+
 PROJECT = Path(__file__).resolve().parents[1]
-ROOT = PROJECT / "src/inferrsi/knowledge/data/skill_library/repositories/mlc-llm"
+ROOT = PROJECT / "src/inferrsi/knowledge/data/skill_library/systems/engines/mlc-llm"
 CASES = PROJECT / "tests/fixtures/repo_to_skill/mlc-llm/test-cases"
 SCRIPTS = {
     "artifact-contract": "audit_artifact_declarations.py",
@@ -52,7 +54,7 @@ def test_mlc_graph_source_owners_rights_and_containment():
                 continue
             resolved = (path.parent / unquote(link.path)).resolve()
             assert resolved.is_relative_to(ROOT.resolve()) and resolved.is_file(), (path, target)
-    meta = json.loads((ROOT / "metadata.json").read_text())
+    meta = skill_metadata(ROOT.parent, ROOT.name)
     assert meta["status"] == "candidate" and meta["empirical_validation"] == "not_run"
     assert "BLOCKED_REQUIRED_BACKEND" in " ".join(meta["limitations"])
     identity = json.loads((ROOT / "references/source-identity.json").read_text())

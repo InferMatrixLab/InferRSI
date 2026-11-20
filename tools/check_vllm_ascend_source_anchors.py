@@ -10,10 +10,14 @@ import sys
 from collections.abc import Mapping
 from pathlib import Path
 
-OWNER = (Path(__file__).resolve().parents[1]
-         / "src/inferrsi/knowledge/data/skill_library/repositories/vllm-ascend")
+PROJECT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(PROJECT / "src"))
+
+from inferrsi.knowledge.catalog import _skill_search_source  # noqa: E402
+
+OWNER = (PROJECT / "src/inferrsi/knowledge/data/skill_library/systems/engines/vllm-ascend")
 DEFAULT_DOC = OWNER / "references/communication-config.md"
-DEFAULT_METADATA = OWNER / "metadata.json"
+DEFAULT_METADATA = OWNER / "SKILL.md"
 SOURCE_URL = "https://github.com/vllm-project/vllm-ascend"
 MAX_ANCHOR_LINES = 5
 EXPECTED = {
@@ -23,7 +27,13 @@ EXPECTED = {
 
 
 def metadata_pin(metadata: Path, source_url: str = SOURCE_URL) -> str:
-    sources = json.loads(metadata.read_text(encoding="utf-8"))["sources"]
+    if metadata.name == "SKILL.md":
+        _, record = _skill_search_source(metadata.read_text(encoding="utf-8"))
+        if record is None:
+            raise ValueError("Skill document must declare its source metadata")
+    else:
+        record = json.loads(metadata.read_text(encoding="utf-8"))
+    sources = record["sources"]
     matches = [source for source in sources
                if source.get("type") == "git" and source.get("url") == source_url]
     if len(matches) != 1:

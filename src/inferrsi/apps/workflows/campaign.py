@@ -98,12 +98,18 @@ def _supplies_no_observation(result: dict) -> bool:
         key in view for view in result.get("items", []) for key in PROVENANCE_FIELDS)
 
 
+def _captured_resource(resource: dict) -> dict:
+    keys = ("path", "role", "sha256", "content")
+    if resource.get("locator") == "skill-procedure":
+        keys += ("locator", "source_sha256", "source_byte_ranges")
+    return {key: resource[key] for key in keys}
+
+
 def _contexts(result: dict) -> list[dict]:
     return [{
         "ref": context["ref"], "revision": context["revision"],
         "content_bytes": context["content_bytes"],
-        "resources": [{key: resource[key] for key in ("path", "role", "sha256", "content")}
-                      for resource in context["resources"]],
+        "resources": [_captured_resource(resource) for resource in context["resources"]],
         "omissions": context["omissions"],
         "sources": context.get("sources", []),
     } for context in result.get("contexts", [])]

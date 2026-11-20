@@ -2,8 +2,10 @@ import json
 from pathlib import Path
 
 import pytest
+import yaml
 
 from inferrsi.apps.cli import main
+from inferrsi.knowledge.catalog import _skill_search_source
 from inferrsi.knowledge.skill_catalog import (
     get_skill,
     skill_directories,
@@ -15,6 +17,37 @@ from inferrsi.knowledge.skill_catalog import (
 )
 
 PROJECT = Path(__file__).resolve().parents[1]
+
+
+@pytest.mark.parametrize(("relative", "children"), [
+    ("frameworks/pytorch/pytorch", (
+        "compiler-and-export", "custom-operators-and-extension", "distributed-and-checkpoint",
+        "installation-and-build", "memory-streams-and-graphs", "profiling-and-debugging",
+        "tensor-dispatch-autograd", "training-and-data",
+    )),
+    ("frameworks/torch-npu/torch-npu", (
+        "distributed-and-hccl", "graph-and-compile", "installation-and-compatibility",
+        "memory-streams-and-events", "operator-development", "privateuse1-and-dispatch",
+        "profiling-and-debugging", "training-and-precision",
+    )),
+    ("engines/lithos-metal", ("compile-fusion", "generation-state", "serving-cache")),
+])
+def test_imported_invocation_flags_retain_their_pre_layout_visibility(relative, children):
+    # At the pre-layout base these 22 flags were data in metadata.json. Promoting
+    # them into a host's YAML would newly disable automatic Claude invocation.
+    library = PROJECT / "src/inferrsi/knowledge/data/skill_library"
+    owner = library / "systems" / relative
+    for directory in (owner, *(owner / "sub-skills" / child for child in children)):
+        text = (directory / "SKILL.md").read_text(encoding="utf-8")
+        host = yaml.safe_load(text.split("---", 2)[1])
+        assert "disable-model-invocation" not in host
+        assert "disco-role" not in host["metadata"]
+        assert isinstance(host["metadata"]["inferrsi"], str)
+        annotation = json.loads(host["metadata"]["inferrsi"])
+        root = library if directory == owner else directory.parent
+        for fields in (annotation, skill_metadata(root, directory.name)):
+            assert fields["disable-model-invocation"] is True
+            assert fields["metadata"]["disco-role"] == "operating"
 
 
 def _symlink(target: Path, link: Path) -> None:
@@ -206,3 +239,45 @@ def test_explicit_empty_recommendations_is_a_statement_not_a_shape_error(tmp_pat
     assert skill_metadata(tmp_path, "selected")["applicability"] == {
         "hardware": "not-applicable"
     }
+
+
+@pytest.mark.parametrize("style", ["|", "|-", "|+"])
+def test_compact_metadata_is_identical_for_packaged_and_checkout_readers(tmp_path, style):
+    directory = tmp_path / "selected"
+    directory.mkdir()
+    text = (
+        "---\nname: selected\ndescription: test\nmetadata:\n"
+        "  disco-role: operating\n"
+        f"  inferrsi: {style}\n"
+        '    {"status": "candidate", "tags": ["unique-tag"]}\n'
+        "  scope: local\n---\nUse the procedure here.\n"
+    )
+    (directory / "SKILL.md").write_text(text, encoding="utf-8")
+    lexical, fields = _skill_search_source(text)
+    assert fields == {"status": "candidate", "tags": ["unique-tag"]}
+    assert "unique-tag" not in lexical
+    assert "disco-role: operating" in lexical and "scope: local" in lexical
+    metadata = skill_metadata(tmp_path, "selected")
+    assert metadata == {
+        "name": "selected", "description": "test",
+        "metadata": {"disco-role": "operating", "scope": "local"}, **fields,
+    }
+    (directory / "metadata.json").write_text(json.dumps(fields), encoding="utf-8")
+    with pytest.raises(ValueError):
+        skill_metadata(tmp_path, "selected")
+
+
+@pytest.mark.parametrize("declaration", [
+    """  inferrsi: '{"status":"candidate"}'""",
+    """  'inferrsi': '{"status":"candidate"}'""",
+    """  inferrsi: |\n    broken JSON""",
+])
+def test_checkout_rejects_unreadable_embedded_declarations(tmp_path, declaration):
+    directory = tmp_path / "selected"
+    directory.mkdir()
+    (directory / "SKILL.md").write_text(
+        "---\nname: selected\ndescription: test\nmetadata:\n" + declaration + "\n---\n",
+        encoding="utf-8",
+    )
+    with pytest.raises(ValueError):
+        skill_metadata(tmp_path, "selected")

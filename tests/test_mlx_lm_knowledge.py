@@ -17,7 +17,7 @@ def test_mlx_lm_candidate_preserves_source_and_application_owner():
         "ab7f7048dc341ced2d84b1887eeb17d60b0d1b02"
     )
     resource = skill_resource(LIBRARY, SKILL, "references/cache-stop.md")
-    assert resource.is_relative_to(LIBRARY / "repositories/mlx-lm" / SKILL)
+    assert resource.is_relative_to(LIBRARY / "systems/engines/mlx-lm" / SKILL)
     assert "LRUPromptCache" in resource.read_text(encoding="utf-8")
 
 

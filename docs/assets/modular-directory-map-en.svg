@@ -37,8 +37,8 @@
 <text x="700" y="601" font-family="ui-monospace,SFMono-Regular,Consolas,monospace" font-size="18" font-weight="400" fill="#c1cee1">cli.py, arguments.py CLI entry</text>
 <text x="700" y="630" font-family="ui-monospace,SFMono-Regular,Consolas,monospace" font-size="18" font-weight="400" fill="#c1cee1">runspec.py           Immutable RunSpec</text>
 <text x="700" y="659" font-family="ui-monospace,SFMono-Regular,Consolas,monospace" font-size="18" font-weight="400" fill="#c1cee1">catalog.py           Search + cited context</text>
-<text x="700" y="688" font-family="ui-monospace,SFMono-Regular,Consolas,monospace" font-size="18" font-weight="400" fill="#c1cee1">data/repo_packs/     Repository knowledge</text>
-<text x="700" y="717" font-family="ui-monospace,SFMono-Regular,Consolas,monospace" font-size="18" font-weight="400" fill="#c1cee1">data/knowledge_packs/ Dependency + peer</text>
+<text x="700" y="688" font-family="ui-monospace,SFMono-Regular,Consolas,monospace" font-size="18" font-weight="400" fill="#c1cee1">skill_library/records/   Findings</text>
+<text x="700" y="717" font-family="ui-monospace,SFMono-Regular,Consolas,monospace" font-size="18" font-weight="400" fill="#c1cee1">skill_library/config/    Discovery config</text>
 <text x="700" y="746" font-family="ui-monospace,SFMono-Regular,Consolas,monospace" font-size="18" font-weight="400" fill="#c1cee1"></text>
 <text x="700" y="775" font-family="ui-monospace,SFMono-Regular,Consolas,monospace" font-size="18" font-weight="400" fill="#c1cee1">examples/           Campaign composition</text>
 <text x="700" y="804" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" fill="#91a8c4">tests/fixtures/legacy/  Frozen compatibility tests</text>

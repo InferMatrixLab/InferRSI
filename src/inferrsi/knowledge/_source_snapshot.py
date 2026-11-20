@@ -3,17 +3,13 @@ from __future__ import annotations
 import re
 from typing import Any
 
-# One shared snapshot keeps the repository-wide source revision and registry digest out of
-# per-owner records, so a one-owner edit regenerates only that owner's record.
-# LIBRARY is the repository path of the corpus at the pinned source_revision.
-# After the K02 move and the explicit re-pin, this agrees with the current checkout
-# path src/inferrsi/knowledge/data/skill_library. skill_documents.original and
-# wheel bundle keys stay at the package-relative prefix data/skill_library/.
+# The build pin names the source corpus; installed bundle keys remain package-relative.
 MANIFEST = "_provenance.json"
 REPOSITORY = "https://github.com/InferMatrixLab/InferRSI"
 LIBRARY = "src/inferrsi/knowledge/data/skill_library"
 BUNDLE_LIBRARY = "data/skill_library"
 REGISTRY = f"{LIBRARY}/skill-index.json"
+# Historical schema for pre-unification snapshots read by existing callers.
 STORED_SCHEMA = 2
 
 

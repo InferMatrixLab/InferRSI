@@ -16,6 +16,7 @@ from urllib.parse import unquote, urlsplit
 
 import pytest
 
+from inferrsi.knowledge.catalog import _split_skill_metadata
 from tools.build_codex_plugin import build_plugin
 from tools.build_workswarm_plugin import build_plugin as build_workswarm_plugin
 from tools.check_release import check_plugin
@@ -83,7 +84,7 @@ def test_bundle_contains_all_declared_package_data(distribution):
         if path.is_file()
     }
     assert (
-        "knowledge/data/skill_library/repositories/splash/THIRD_PARTY_NOTICES" in expected
+        "knowledge/data/skill_library/systems/engines/splash/THIRD_PARTY_NOTICES" in expected
     )
     installed = {
         name.removeprefix("inferrsi/")
@@ -136,6 +137,58 @@ def test_isolated_runtime_and_exact_knowledge_reads(distribution, tmp_path):
     assert "unavailable" in stale.stderr
 
 
+def test_entry_loads_the_required_primary_before_search(distribution, tmp_path):
+    entry = (distribution / "skills/inferrsi/SKILL.md").read_text(encoding="utf-8")
+    # Inspect the actual distributed entry, including the instructions before the
+    # task table. Moving a plain Find or Collect example above it must fail.
+    first_search = re.search(r'(?:^ *|`)(?:(?:python -X utf8 "<launcher>"|inferrsi) )?'
+                             r'(?:find|collect|knowledge search|campaign knowledge)\b',
+                             entry, flags=re.MULTILINE)
+    assert first_search
+    rows = dict(re.findall(r"^\| ([^|]+) \| `(skills enter [\w-]+)` \|$",
+                           entry[:first_search.start()], flags=re.MULTILINE))
+    required = {"task-day-0", "task-performance", "task-debug", "task-accuracy",
+                "task-version-alignment", "task-derived-engine", "task-independent-engine"}
+    assert len(rows) == len(required)
+    assert {command.split()[-1] for command in rows.values()} == required
+    before_search = " ".join(entry[:first_search.start()].split())
+    assert "before the first evidence search" in before_search
+    assert "If it fails, stop" in before_search
+    bundled = runtime_bytes(distribution)
+    library = "inferrsi/knowledge/data/skill_library/"
+    registered = json.loads(bundled[library + "skill-index.json"])["skills"]
+    for name in required:
+        owner = library + registered[name]["path"]
+        header = bundled[owner + "/SKILL.md"].decode().split("---", 2)[1]
+        _, metadata = _split_skill_metadata(header)
+        assert "primary-task" in metadata["tags"]
+        assert owner + "/metadata.json" not in bundled
+
+    # The host makes the natural-language choice. Follow its published accuracy
+    # row and check the actual base-install CLI returns the owner before Find.
+    command = rows["Repair an accuracy or output-quality regression"].split()
+    assert command == ["skills", "enter", "task-accuracy"]
+    primary = invoke(distribution, tmp_path, *command)
+    assert primary.returncode == 0, primary.stderr
+    owner = PROJECT / "src/inferrsi/knowledge/data/skill_library/tasks/task-accuracy/SKILL.md"
+    _, header, body = owner.read_text(encoding="utf-8").split("---", 2)
+    native, fields = _split_skill_metadata(header)
+    assert fields["discovery_role"] == "task-entry"
+    assert json.loads(primary.stdout) == {
+        "name": "task-accuracy", "instructions": "---" + native + "---" + body
+    }
+    hits = invoke(distribution, tmp_path, "find", "TTS quality regression",
+                  "--limit", "1", "--no-external", "--json")
+    assert hits.returncode == 0, hits.stderr
+    assert json.loads(hits.stdout)["items"]
+
+    # Substituting the old router does not satisfy the primary-load requirement.
+    wrong = invoke(distribution, tmp_path, "skills", "enter", "inference-task-router")
+    assert wrong.returncode == 2
+    assert "Not a primary inference task skill" in wrong.stderr
+    assert not wrong.stdout.strip()
+
+
 def test_entry_workflow_selects_packaged_skill_projections(distribution, tmp_path):
     result = invoke(
         distribution, tmp_path, "collect", "--relevance",
@@ -149,8 +202,8 @@ def test_entry_workflow_selects_packaged_skill_projections(distribution, tmp_pat
 
 
 @pytest.mark.parametrize(("action", "resource"), [
-    ("reference", "../../../hardware/host/host-memory-management/SKILL.md"),
-    ("resource", "metadata.json"),
+    ("reference", "../../../platforms/host/host-memory-management/SKILL.md"),
+    ("resource", "references/notices.md"),
 ])
 def test_returned_skill_paths_survive_process_exit_and_later_invocations(
     distribution, tmp_path, action, resource,

@@ -37,7 +37,7 @@ Effect classes used below:
 | Find relevant cases, skills and records | CLI `find` | Read-only | Default discovery across the registered library and package records. Follow the emitted command to read a hit and its revision |
 | Inspect the package catalog | CLI `knowledge search` / `knowledge show`; catalog API | Read-only | Filtered inventory and existing catalog scripts. Uses the installed package's tier/repo/backend/scenario filters and IDs |
 | Prepare model-aware engine research | CLI `knowledge research`; Python `research_knowledge` | Read-only | Independent model/framework/task/modality/mechanism queries over the same package catalog; source-grounded known profiles, deduplicated matches and explicit target annotations; no engine/hardware qualification |
-| Discover/read packaged or custom skills | CLI `skills list` / `show` / `resource` / `reference` | Read-only | Metadata-first listing; `show` loads one named instruction body; `resource`/`reference` resolve paths for your file reader without loading or executing them |
+| Enter an inference task or discover/read skills | CLI `skills enter` / `list` / `show` / `resource` / `reference` | Read-only | `enter` loads one primary owner's complete procedure before evidence search. `list`/ `show` inspect skill metadata and instructions. `resource`/`reference` resolve paths for your file reader. |
 | Collect selected knowledge | CLI `collect`; Python `KnowledgeReader.collect` | Read-only | Batch selection and budgeted assembly by query or exact IDs, with revisions and omissions. The only accepted explicit `--relevance-method` value is `find-lexical-v1` |
 | Read exact material/resources | CLI `read` / `resource`; Python `KnowledgeReader.read` / `KnowledgeReader.resource` | Read-only | Returns the requested revision or an explicit unavailable/stale error; never substitutes newer bytes |
 | Export legacy cited material | CLI `context` | Read-only | Cited package export for manual use with a coding agent; not a conversation store and not a full Collect equivalent |
@@ -121,7 +121,7 @@ the filtered package catalog and still returns complete catalog records. The
 membership and order. Use `--explain` for the recorded ranking and counts.
 
 - **Inputs:** optional query words and `--tier`, `--repo-type`, `--backend`, `--scenario`, `--limit`, `--json`, `--explain`; `show` takes one record ID.
-- **Scope:** the installed package catalog (`repo_packs`, `knowledge_packs`) only.
+- **Scope:** the installed package catalog (authored records and registered skill views in `skill_library/`) only.
 - **Output:** tab-separated record lines (id, status, backend, title), or a JSON list with `--json`; `--explain` returns a JSON envelope with `items` and `retrieval` (entry, ranking, scores and counts). Python uses `search_knowledge(..., explain=True)` for that envelope. `show` prints one full record as JSON.
 - **Side effects:** none.
 - **Failure behavior:** no match prints nothing and exits 0 — an empty result is not an error (an empty JSON list with `--json`, or empty `items` in the `--explain` envelope); an unknown `show` ID and unsupported filter values exit 2.
@@ -129,7 +129,7 @@ membership and order. Use `--explain` for the recorded ranking and counts.
 
 The tier/repo/backend/scenario filters are package-only: an empty filtered
 result does not mean that no checkout or store knowledge exists. See the
-[three-tier guide](../src/inferrsi/knowledge/data/knowledge_packs/README.md) for all sources.
+[three-tier guide](../src/inferrsi/knowledge/data/skill_library/records/README.md) for all sources.
 
 ### Prepare model-aware research — `knowledge research`
 
@@ -145,17 +145,17 @@ Each research query uses Find over the same filtered package catalog. Querying
 separate dimensions broadens discovery while preserving the active package filters.
 Keep those filters explicit when transferring mechanisms from other backends;
 target intent does not qualify their applicability. Read the canonical
-[preparation procedure](../src/inferrsi/knowledge/data/skill_library/workflows/inference-engine-research/references/model-aware-preparation.md)
-and the repository-owned [h3.c residency audit](../src/inferrsi/knowledge/data/skill_library/repositories/h3-c/audit-h3-runtime-residency/SKILL.md)
+[preparation procedure](../src/inferrsi/knowledge/data/skill_library/workflows/research/inference-engine-research/references/model-aware-preparation.md)
+and the repository-owned [h3.c residency audit](../src/inferrsi/knowledge/data/skill_library/systems/engines/h3-c/audit-h3-runtime-residency/SKILL.md)
 for native-engine reference selection, full encoder/DiT/VAE accounting,
 quantized-package compatibility and target hardware decisions. Returned resource
 paths are relative to `importlib.resources.files("inferrsi")` and ship in the wheel.
 The small model profile links that skill's full inventory and worked example;
 those resources retain their repository owner and source attribution.
 
-### Discover/read packaged or custom skills — `skills list` / `show` / `resource` / `reference`
+### Discover/read packaged or custom skills — `skills list` / `enter` / `show` / `resource` / `reference`
 
-- **Inputs:** `list` reads frontmatter and sidecar metadata; `show <skill>` selects one instruction body; `resource <skill> <relative-path>` and `reference <skill> <relative-path>` resolve one path. The default is the installed library's registered skills; an explicit `--root` selects a custom flat tree or a categorized library with `skill-index.json`. The optional `skills` extra supplies the YAML parser.
+- **Inputs:** The agent selects a primary skill by deliverable and runs `inferrsi skills enter task-accuracy`, for example. It returns the primary's complete procedure and host header before supporting evidence search. The base installation can omit the embedded search metadata from this delivery. A pinned `read --resource` exposes the complete source file, including its metadata. An unknown, unavailable or non-primary owner is an error. `list` reads skill frontmatter (and legacy sidecars in historical/custom checkouts); `show <skill>` selects one instruction body; `resource <skill> <relative-path>` and `reference <skill> <relative-path>` resolve one path. The default is the installed library's registered skills; an explicit `--root` selects a custom flat tree or a categorized library with `skill-index.json`. The optional `skills` extra supplies the YAML parser for frontmatter operations.
 - **Scope:** complete packaged skills under `data/skill_library/`, or the explicitly selected custom root. The 21 English engine and research-router skills remain accessible through catalog records and library navigation, separately from the registry.
 - **Output:** metadata listing, one instruction body, or a resolved path.
 - **Side effects:** none. `resource`/`reference` do not load or execute the target.
@@ -210,7 +210,7 @@ including `昇腾` for Ascend. When the query names exactly one supported backen
 results declared for a different backend receive half their lexical score.
 `--explain` reports the adjusted contribution of each matched term.
 
-Chinese query terms expand through `data/query_aliases.json` before ranking.
+Chinese query terms expand through `data/skill_library/config/query_aliases.json` before ranking.
 The packaged library is English by policy while its readers work in Chinese, and
 the corpus holds too few Chinese characters for a Chinese query to score on its
 subject. Expansion is one-way and query-side: 显存 reaches `device memory`, not
@@ -244,7 +244,10 @@ question calls for prior evidence.
   `checkout:` read reference uses `--installed-library` to resolve the source
   from the reader's installation. A custom root uses `--skill-root`.
   Where recorded, items carry source, summary, applicability, limitations and
-  local verification status. Case findings are ordered by query overlap,
+  local verification status. The limitations preview contains up to three
+  complete entries within a 400-byte UTF-8 JSON list. `limitations_withheld`
+  counts omitted entries. Open the owner for the complete list.
+  Case findings are ordered by query overlap,
   with `findings_total` and `findings_withheld` describing the available preview.
   Each finding carries its outcome, reason, revisit condition and any assessed
   scope and bounds. `bounds_source` identifies whether bounds apply to the
@@ -255,7 +258,13 @@ question calls for prior evidence.
   full subprocess arguments as `open_argv` and InferRSI CLI arguments as
   `read_args`. The arguments include the source-qualified ID and any needed
   source flag. Most hits use `read --material --omit-resources` to return the
-  full entrypoint, provenance and revision. Remove
+  entrypoint content, provenance and revision. For a skill, the procedure
+  omits the embedded machine annotation. A readable hit's
+  `next_read_content_bytes` counts the UTF-8 bytes in that command's `content`
+  on the snapshot inspected by Find. For a future unpinned read this field
+  is a size estimate. A later edit can change the content and its size.
+  Use Collect's context budget for bounded delivery. The count excludes the
+  envelope and additional resources. Remove
   `--omit-resources` to list the bundle's resources. Hits that fail the reader's
   material check carry `unreadable` with the reason.
 - **Base installation.** When PyYAML is absent, an installed Skill with a

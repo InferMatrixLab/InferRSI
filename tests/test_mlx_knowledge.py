@@ -17,7 +17,7 @@ def test_mlx_candidate_preserves_source_state_and_owner_resources():
         "bff10220c742907f0c68e55ff174aaea56f74e3d"
     )
     resource = skill_resource(LIBRARY, SKILL, "references/source-map.md")
-    assert resource.is_relative_to(LIBRARY / "frameworks/mlx" / SKILL)
+    assert resource.is_relative_to(LIBRARY / "systems/frameworks/mlx" / SKILL)
     assert "TEST-SOURCE" in resource.read_text(encoding="utf-8")
 
 

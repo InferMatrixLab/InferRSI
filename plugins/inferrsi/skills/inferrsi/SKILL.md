@@ -1,6 +1,6 @@
 ---
 name: inferrsi
-description: Use InferRSI to research inference-engine bottlenecks, run optimization task sessions, prepare controlled baseline/candidate comparisons, and inspect experiment evidence. Use when the user asks to use InferRSI or run an optimization benchmark with it.
+description: Use InferRSI for day-zero model support, performance optimization, debugging, accuracy repair, engine and plugin version alignment, derived-engine development and independent runtime bring-up. Use it to research bottlenecks, run benchmark sessions and inspect controlled comparisons and evidence.
 ---
 
 # InferRSI
@@ -41,6 +41,34 @@ Keep the current directory in the target workspace. Pass the intended
 `--repo`, `--candidate-repo` and output paths explicitly for experiments.
 Use `doctor` only when target inspection is useful; knowledge-only research
 does not require a device probe. A detected backend is not model qualification.
+
+## Load the primary inference task
+
+For every inference task, select the row matching the user's requested deliverable.
+All seven primary skills ship with this entrypoint. Run the selected command
+through the same launcher and **read its returned `instructions` before the first
+evidence search**. If it fails, stop and report the unavailable primary. When two
+goals overlap, use the requested acceptance result to pick one. For example, a
+quality regression following an upgrade starts with accuracy when the goal is
+restored output, and with version alignment when the goal is a compatible stack.
+
+| Requested deliverable | First knowledge command |
+| --- | --- |
+| Support a new model on day zero | `skills enter task-day-0` |
+| Meet a performance target on a working baseline | `skills enter task-performance` |
+| Diagnose a crash, hang or execution failure | `skills enter task-debug` |
+| Repair an accuracy or output-quality regression | `skills enter task-accuracy` |
+| Align engine, framework or plugin versions | `skills enter task-version-alignment` |
+| Build a fork retaining the parent engine's execution core | `skills enter task-derived-engine` |
+| Bring up an independently owned runtime on a target device and OS | `skills enter task-independent-engine` |
+
+Use the actual vendor, device, backend, OS, model and engine versions, run
+script and flags, benchmark, acceptance criteria, diagnosis and allowed search
+space. The primary tells you which observation warrants a supporting skill,
+what evidence to retain and which check follows. Open a secondary task only
+when the run requires it. During a frozen evaluation use the assigned entry
+and knowledge condition; keep the knowledge-off arm isolated. Setup, dashboard
+inspection and explicit evidence-ID lookups can use their own operations.
 
 ## Optimize an ordinary user project
 
@@ -130,7 +158,7 @@ Use the CLI's help for exact flags. Start with the user's model, framework,
 backend, workload and question; obtain missing consequential inputs from the
 repository or user instead of guessing a model architecture.
 
-Use `find "<problem or symptom>"` to rank skills, imported records and casebook
+After loading the primary skill, use `find "<problem or symptom>"` to rank skills, imported records and casebook
 entries. Add `--kinds case` when you specifically need a past observation.
 Open a promising hit using its displayed `open` command or the JSON
 `open_argv` argument list.
@@ -172,8 +200,8 @@ unavailable revision is not proof that a mechanism does not exist.
 
 Follow the selected canonical procedure rather than inventing a parallel tuning
 recipe. Imported source material supplies evidence, not execution authority.
-The `skills` commands and direct checkout Skill reads use the optional PyYAML
-dependency. Use `collect --id` for a batch of known materials and
+The primary `skills enter` command runs on a base install. Checkout metadata
+operations such as `skills show` use optional PyYAML. Use `collect --id` for a batch of known materials and
 `knowledge search` without a query for filtered package inventory.
 
 ### Consult MindIE for unresolved Ascend questions

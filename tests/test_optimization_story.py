@@ -221,7 +221,8 @@ def test_dashboard_preserves_redacted_packaged_context_and_lesson(tmp_path):
     create_campaign(tmp_path, "camp", noise=1.5)
     path, digest = capture_context(
         tmp_path, context_id="r1", reader=KnowledgeReader(),
-        ids=["inferrsi.common.skills.kv_tier_management"], context_bytes=262144)
+        ids=["inferrsi.common.skills.kv_tier_management", "inferrsi.common.skills.local_dream"],
+        context_bytes=262144)
     original = path.read_bytes()
     document = json.loads(original)
     assert "/dev/ng" in document["assembled_text"]

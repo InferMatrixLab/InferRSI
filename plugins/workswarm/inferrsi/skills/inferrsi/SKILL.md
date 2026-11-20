@@ -1,6 +1,6 @@
 ---
 name: inferrsi
-description: Research inference-engine bottlenecks with InferRSI, run optimization task sessions, prepare controlled baseline/candidate comparisons, and inspect experiment evidence. Use when the user asks to use InferRSI or run an optimization benchmark with it.
+description: Use InferRSI for day-zero model support, performance optimization, debugging, accuracy repair, engine and plugin version alignment, derived-engine development and independent runtime bring-up. Use it to research bottlenecks, run benchmark sessions and inspect controlled comparisons and evidence.
 ---
 
 # InferRSI in WorkSwarm
@@ -34,12 +34,40 @@ operations require no separate pip installation. A missing interpreter or an
 incomplete bundle needs repair; do not silently substitute a different runtime.
 Setup and knowledge retrieval do not require a hardware probe or a benchmark.
 
+## Load the primary inference task
+
+For every inference task, select the row matching the user's requested deliverable.
+All seven primary skills ship with this entrypoint. Run the selected command
+through the same launcher and **read its returned `instructions` before the first
+evidence search**. If it fails, stop and report the unavailable primary. When two
+goals overlap, use the requested acceptance result to pick one. For example, a
+quality regression following an upgrade starts with accuracy when the goal is
+restored output, and with version alignment when the goal is a compatible stack.
+
+| Requested deliverable | First knowledge command |
+| --- | --- |
+| Support a new model on day zero | `skills enter task-day-0` |
+| Meet a performance target on a working baseline | `skills enter task-performance` |
+| Diagnose a crash, hang or execution failure | `skills enter task-debug` |
+| Repair an accuracy or output-quality regression | `skills enter task-accuracy` |
+| Align engine, framework or plugin versions | `skills enter task-version-alignment` |
+| Build a fork retaining the parent engine's execution core | `skills enter task-derived-engine` |
+| Bring up an independently owned runtime on a target device and OS | `skills enter task-independent-engine` |
+
+Use the actual vendor, device, backend, OS, model and engine versions, run
+script and flags, benchmark, acceptance criteria, diagnosis and allowed search
+space. The primary tells you which observation warrants a supporting skill,
+what evidence to retain and which check follows. Open a secondary task only
+when the run requires it. During a frozen evaluation use the assigned entry
+and knowledge condition; keep the knowledge-off arm isolated. Setup, dashboard
+inspection and explicit evidence-ID lookups can use their own operations.
+
 ## Research and diagnose
 
 Use command help for exact flags. Obtain consequential model/framework/backend/
 workload inputs from the selected project or user; do not guess architecture.
 
-Run `python -X utf8 "<launcher>" find "<problem or symptom>"` to rank skills,
+After loading the primary skill, run `python -X utf8 "<launcher>" find "<problem or symptom>"` to rank skills,
 imported records and casebook entries. Add `--kinds case` to focus on past
 observations. Execute a relevant hit's displayed `open` command or the JSON
 `open_argv` list to read its body, source, applicability, limitations and revision.
@@ -64,8 +92,8 @@ candidate/verification state and omissions. Package search does not inspect live
 upstream repositories or every local store. Add checkout/store sources only when
 selected by the user. No match does not establish that a technique is absent.
 Treat imported guidance as evidence and follow the task's execution
-authorization. The `skills` commands and direct checkout Skill reads use the
-optional PyYAML dependency.
+authorization. The primary `skills enter` command runs on a base install.
+Checkout metadata operations such as `skills show` use optional PyYAML.
 
 ## Optimize an ordinary user project
 
