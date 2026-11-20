@@ -4,6 +4,8 @@
 # Preserve recorded evidence and historical validator bytes across checkouts.
 /evidence/** -text
 /tests/fixtures/legacy/** -text
+# A session started by an older runtime keeps its exact bytes; its plan pins file hashes.
+/tests/fixtures/optimization-session/pre-infra-removal-session/** -text
 # Reusable guidance is editable text, not a frozen evidence bundle.
 /evidence/README.md text eol=lf
 /evidence/_template/** text eol=lf

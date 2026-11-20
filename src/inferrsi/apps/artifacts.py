@@ -1,4 +1,6 @@
-"""Deterministic digests and JSON evidence, without model dependencies."""
+# Apps-owned file digests, file locks and JSON evidence writes. The function bodies equal
+# those in the other cores' copies; tests/test_artifact_helper_copies.py keeps them equal.
+# Apps imports no other inferrsi module here.
 
 import hashlib
 import json

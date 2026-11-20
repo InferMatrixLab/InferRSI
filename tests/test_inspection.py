@@ -16,11 +16,11 @@ from unittest.mock import patch
 import pytest
 
 from inferrsi.apps import inspection as host_inspection
+from inferrsi.apps.artifacts import atomic_write_json
 from inferrsi.apps.host import commands, targets
 from inferrsi.apps.host import inspection as facts
 from inferrsi.apps.inspection import inspect_environment
 from inferrsi.apps.legacy.reporting import write_report
-from inferrsi.infra.artifacts import atomic_write_json
 
 ROCM_INFO = (
     "=====================\n"

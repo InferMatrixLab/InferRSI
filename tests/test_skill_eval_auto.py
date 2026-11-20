@@ -6,7 +6,7 @@ from unittest.mock import Mock
 import pytest
 import yaml
 
-from inferrsi.model import anthropic_agent as agent
+from inferrsi.apps.integrations.anthropic import anthropic_agent as agent
 from tools import skill_eval_auto as auto
 from tools import skill_eval_pr as pr
 from tools.skill_eval_budget import BudgetError
@@ -228,7 +228,7 @@ def test_claim_once_launch_scrubs_tokens_and_rechecks_every_request(
         checks.append(check)
         yield {"SKILL_EVAL_GUARD_TEST": "offline-only"}
 
-    monkeypatch.setitem(sys.modules, "inferrsi.model.request_guard",
+    monkeypatch.setitem(sys.modules, "inferrsi.apps.integrations.anthropic.request_guard",
                         types.SimpleNamespace(authorization_broker=broker))
 
     def launch(command, *, env, cwd, check):

@@ -6,8 +6,8 @@ import socketserver
 import unittest
 from unittest.mock import patch
 
-from inferrsi.model import anthropic_agent as agent
-from inferrsi.model import request_guard as guard
+from inferrsi.apps.integrations.anthropic import anthropic_agent as agent
+from inferrsi.apps.integrations.anthropic import request_guard as guard
 
 
 class AuthorizationDeadlineTests(unittest.TestCase):

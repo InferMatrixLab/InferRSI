@@ -7,7 +7,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from inferrsi.model import anthropic_agent as agent
+from inferrsi.apps.integrations.anthropic import anthropic_agent as agent
 from tools import skill_eval_auto as auto
 from tools import skill_eval_pr as pr
 from tools.skill_eval_budget import Binding, BudgetError, Genesis, Ledger, reserve

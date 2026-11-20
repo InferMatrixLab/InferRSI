@@ -13,6 +13,7 @@ from dataclasses import fields
 
 import pytest
 
+from inferrsi.apps import artifacts
 from inferrsi.apps.host import targets
 from inferrsi.apps.legacy import evaluation as legacy_evaluation
 from inferrsi.apps.legacy import reporting as legacy_reporting
@@ -22,14 +23,11 @@ from inferrsi.contracts import RunSpec, claim
 from inferrsi.harness import atomic_json
 from inferrsi.harness.runner import run_experiment
 from inferrsi.harness.scenarios.external import execute_trial
-from inferrsi.infra import artifacts
 from tests._gate_policy_support import ROOT, _scan, _walk
 
 GRAPH = _scan(ROOT, frozenset())
-# The local process domain that Harness still borrows until it owns that code.
-PROCESS_DOMAIN = {
-    "inferrsi.infra", "inferrsi.infra.executors", "inferrsi.infra.executors.local",
-}
+# Harness reaches no Infra or Model module any more: #498 removed both packages.
+PROCESS_DOMAIN: set[str] = set()
 
 
 def _outside(module: str, *prefixes: str) -> set[str]:
@@ -154,14 +152,14 @@ def test_harness_trial_records_what_the_injected_validation_returns(tmp_path):
     {"文本": "未转义 ✓", "nested": {"path": "C:\\runs\\a", "quote": "\"", "line": "a\nb"}},
     {"float": 1e-308, "large": 1e308, "negative": -0.0},
 ])
-def test_harness_writer_bytes_equal_the_infra_writer(tmp_path, value):
+def test_harness_writer_bytes_equal_the_apps_writer(tmp_path, value):
     atomic_json.atomic_write_json(tmp_path / "harness.json", value)
     artifacts.atomic_write_json(tmp_path / "infra.json", value)
     assert (tmp_path / "harness.json").read_bytes() == (tmp_path / "infra.json").read_bytes()
     assert sorted(path.name for path in tmp_path.iterdir()) == ["harness.json", "infra.json"]
 
 
-def test_sampling_sha256_matches_the_infra_hasher(tmp_path):
+def test_sampling_sha256_matches_the_apps_hasher(tmp_path):
     path = tmp_path / "artifact.bin"
     path.write_bytes(b"inferrsi-b01-sampling-pin")
     assert sampling._sha256(path) == artifacts.sha256(path)

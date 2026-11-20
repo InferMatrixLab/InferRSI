@@ -7,8 +7,8 @@ import json
 
 import pytest
 
-from inferrsi.model import anthropic_agent as agent
-from inferrsi.model import request_guard as guard
+from inferrsi.apps.integrations.anthropic import anthropic_agent as agent
+from inferrsi.apps.integrations.anthropic import request_guard as guard
 
 
 def request(env, *, token=None, context=None, identity="a" * 64):

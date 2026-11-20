@@ -3,7 +3,7 @@
 import re
 
 from ...harness.usage import normalize_usage
-from ...infra.artifacts import digest
+from ..artifacts import digest
 from .schema import gap, number, timestamp
 
 

@@ -7,7 +7,7 @@ import sys
 import tempfile
 from pathlib import Path
 
-from inferrsi.infra.artifacts import write_json
+from inferrsi.apps.artifacts import write_json
 from tests.fixtures.skill_eval_compare_support import DATA, ROOT, source_repo
 from tools import skill_eval_compare as compare
 from tools import skill_eval_improve as improve

@@ -20,7 +20,7 @@ FULL_CONTEXT_KIND = "anthropic-messages-full-context-v1"
 EDIT_KIND = "anthropic-messages-edit-check-v1"
 FULL_CONTEXT_MAX_REQUEST = 262144
 ENDPOINT = "https://yibuapi.com/v1/messages"
-SOURCE = "src/inferrsi/model/anthropic_agent.py"
+SOURCE = "src/inferrsi/apps/integrations/anthropic/anthropic_agent.py"
 MAX_RESPONSE = 1024 * 1024
 # Full context bound from https://platform.claude.com/docs/en/models/opus-5-5/overview
 MODEL_CONTEXT = {"claude-opus-5-5": 1000000}
