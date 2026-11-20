@@ -66,8 +66,12 @@ content in the canonical library. Preserve source state and
 Keep all library content in English. Engine procedures belong under
 `systems/engines/<engine>/` and the collection router under
 `workflows/research/inference-engine-research/`, with their sub-skills and references.
-Keep supporting Markdown and JSON with their owner; the library
-root contains only `README.md` and `skill-index.json`.
+Keep a skill's supporting Markdown and JSON in its owner directory. At the
+library root, `README.md` describes the library and `skill-index.json` maps
+stable skill IDs to their owners. Place independent findings in `records/`
+and shared search configuration in `config/`. The index builder writes the
+two generated catalog inputs to `_compiled/`. See the
+[directory contract](knowledge-layout.md#directory-contract).
 Catalog abstracts link to packaged bodies via `skill_documents.original` for
 migrated skills or `skill_documents.en` for engine procedures. Update
 affected source content and catalog records together. Source snapshot revisions
