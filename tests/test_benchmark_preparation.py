@@ -147,6 +147,12 @@ def test_two_layer_locations_and_ref_shaped_parameters(preparation):
     (lambda value: value.update(operation="other"), "UnsupportedOperation"),
     (lambda value: value.update(unrecognized=True), "InvalidRequest"),
     (lambda value: value["task_parameters"].update(decimal_fixture="1.0"), "InvalidRequest"),
+    (lambda value: value.update(expected_candidate={"candidate_id": "incomplete"}),
+     "InvalidRequest"),
+    (lambda value: value.update(expected_candidate={
+        "candidate_id": "candidate", "sha256": "a" * 64,
+        "format_schema": {"name": "other", "revision": "1"},
+    }), "InvalidRequest"),
 ])
 def test_request_rejections_are_wire_errors_before_any_archive(preparation, change, code):
     service, request, _, _, opened, _, archive = preparation

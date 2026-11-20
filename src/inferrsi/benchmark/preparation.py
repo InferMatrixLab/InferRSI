@@ -257,6 +257,18 @@ def _protocol(protocol: dict) -> None:
         _definition(ref)
 
 
+def _expectation(candidate, contract: dict) -> None:
+    if candidate is None:
+        return
+    _object(candidate, {"candidate_id", "sha256", "format_schema"})
+    _require(_id(candidate["candidate_id"]) and isinstance(candidate["sha256"], str)
+             and _SHA.fullmatch(candidate["sha256"]) is not None,
+             "Invalid expected candidate.")
+    _definition(candidate["format_schema"])
+    _require(candidate["format_schema"] == contract["format_schema"],
+             "Expected candidate format differs from the frozen contract.")
+
+
 def _prepared(prepared: dict) -> None:
     canonical_encode(prepared)
     _object(prepared, _PREPARED)
@@ -289,15 +301,7 @@ def _prepared(prepared: dict) -> None:
         _resource(resource)
     roles = [resource["role"] for resource in prepared["resources"]]
     _require(roles == sorted(set(roles)), "Prepared closure must be sorted by unique role.")
-    candidate = prepared["expected_candidate"]
-    if candidate is not None:
-        _object(candidate, {"candidate_id", "sha256", "format_schema"})
-        _require(_id(candidate["candidate_id"]) and isinstance(candidate["sha256"], str)
-                 and _SHA.fullmatch(candidate["sha256"]) is not None,
-                 "Invalid expected candidate.")
-        _definition(candidate["format_schema"])
-        _require(candidate["format_schema"] == prepared["candidate_contract"]["format_schema"],
-                 "Expected candidate format differs from the frozen contract.")
+    _expectation(prepared["expected_candidate"], prepared["candidate_contract"])
     _require(prepared["prepared_id"] == prepared_id(prepared),
              "Prepared identity does not match its content.", "IdentityMismatch")
 
@@ -394,6 +398,7 @@ class PreparationService:
         _parameters(request["task_parameters"])
         _require(request["comparison_conditions"] == {},
                  "The first P1 task uses the configured frozen comparison conditions.")
+        _expectation(request["expected_candidate"], protocol["candidate_contract"])
         protocol["task_parameters"] = deepcopy(request["task_parameters"])
         protocol["budget_policy_refs"] = deepcopy(request["budget_policy_refs"])
         direct = {item["role"]: item for item in protocol["resources"]}
