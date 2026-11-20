@@ -815,18 +815,33 @@ with tempfile.TemporaryDirectory(prefix="inferrsi-mindie-launch-") as launch_cwd
         check=False, cwd=launch_cwd,
     )
 assert launch.returncode == 0, launch.stderr
+def assert_not_importable(name):
+    """A retired module has no spec and does not import.
+
+    ``find_spec`` on a submodule of a missing package raises ``ModuleNotFoundError`` about the
+    parent instead of returning ``None``. Both outcomes mean the module is absent, and the
+    raised error must name the missing top part of the path, never some other module.
+    """
+    try:
+        spec = find_spec(name)
+    except ModuleNotFoundError as error:
+        assert error.name is not None and name.startswith(error.name), (name, error)
+    else:
+        assert spec is None, name
+    try:
+        import_module(name)
+    except ModuleNotFoundError as error:
+        assert error.name is not None and name.startswith(error.name), (name, error)
+    else:
+        raise AssertionError(f"retired module {name} must not import")
+
+
 # #498 slice 1: the metric contract and the quality validators ship only under
 # inferrsi.benchmark. The old inferrsi.model paths are not in the wheel and have no alias.
 # Slice 2 removed the emptied inferrsi.model.protocols package, so it stands for
 # inferrsi.model.protocols.metrics here.
 for retired in ("inferrsi.model.protocols", "inferrsi.model.validators"):
-    assert find_spec(retired) is None, retired
-    try:
-        import_module(retired)
-    except ModuleNotFoundError:
-        pass
-    else:
-        raise AssertionError(f"retired module {retired} must not import")
+    assert_not_importable(retired)
 for canonical in ("inferrsi.benchmark.metrics", "inferrsi.benchmark.artifacts",
                   "inferrsi.benchmark.validators.flare", "inferrsi.benchmark.validators.image"):
     assert find_spec(canonical) is not None, canonical
@@ -839,7 +854,8 @@ with tempfile.TemporaryDirectory(prefix="inferrsi-flare-cli-") as cli_cwd:
             text=True, check=False, cwd=cli_cwd,
         )
         assert flare_cli.returncode == code, (module, flare_cli.returncode, flare_cli.stderr)
-    assert "No module named 'inferrsi.model.validators'" in flare_cli.stderr, flare_cli.stderr
+    # Since #498 the whole inferrsi.model package is gone, so Python stops at its parent.
+    assert "No module named 'inferrsi.model'" in flare_cli.stderr, flare_cli.stderr
 # #498 slice 2: the serving helpers ship only under inferrsi.harness.serving, with no
 # forwarder for the old Infra and Model paths. Slice 3c deleted the infra.campaign facade,
 # slice 3a moved the host bindings to inferrsi.apps.host, and slices 3b, 4 and 5 moved the
@@ -851,13 +867,7 @@ for retired in ("inferrsi.infra", "inferrsi.infra.artifacts", "inferrsi.infra.pr
                 "inferrsi.infra.platforms", "inferrsi.infra.targets", "inferrsi.model",
                 "inferrsi.model.anthropic_agent", "inferrsi.model.anthropic_edit_agent",
                 "inferrsi.model.request_guard"):
-    assert find_spec(retired) is None, retired
-    try:
-        import_module(retired)
-    except ModuleNotFoundError:
-        pass
-    else:
-        raise AssertionError(f"retired module {retired} must not import")
+    assert_not_importable(retired)
 assert not {child.name for child in files("inferrsi").iterdir()} & {"infra", "model"}
 for canonical in ("inferrsi.harness.serving", "inferrsi.harness.serving.server",
                   "inferrsi.harness.serving.http", "inferrsi.harness.serving.image",
@@ -868,6 +878,26 @@ for canonical in ("inferrsi.harness.serving", "inferrsi.harness.serving.server",
                   "inferrsi.apps.integrations.anthropic.anthropic_edit_agent",
                   "inferrsi.apps.integrations.anthropic.request_guard"):
     assert find_spec(canonical) is not None, canonical
+# #498 slice 3b: a Harness process holds a real session's lock while the Apps export of that
+# session runs from the installed wheel. The export must be refused, and the same export must
+# publish after the holder releases. The probe source is the one the test suite runs against
+# the checkout (tests/session_lock_probe.py); the wheel check receives it through the
+# environment so this file still copies on its own.
+# #498: every caller passes the checkout probe, so a missing variable fails here.
+lock_probe = os.environ["INFERRSI_SESSION_LOCK_PROBE"]
+with tempfile.TemporaryDirectory(prefix="inferrsi-session-lock-") as lock_cwd:
+    script = Path(lock_cwd) / "session_lock_probe.py"
+    script.write_text(Path(lock_probe).read_text(encoding="utf-8"), encoding="utf-8")
+    work = Path(lock_cwd) / "work"
+    work.mkdir()
+    locked = subprocess.run(
+        [sys.executable, "-I", "-B", str(script), str(work)], capture_output=True,
+        text=True, check=False, cwd=lock_cwd,
+    )
+assert locked.returncode == 0, locked.stderr
+observed = json.loads(locked.stdout.strip().splitlines()[-1])
+assert observed["busy_status"] != "published" and observed["busy_published"] is False, observed
+assert observed["released_status"] == "published" and observed["released_readable"], observed
 # The Messages worker runs under ``python -I`` and loads its adjacent trusted guard by file
 # location, not through the package, so the guard must ship next to the agent. This offline
 # probe loads the agent from the wheel the way the worker does, with no provider call.

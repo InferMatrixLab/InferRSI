@@ -33,7 +33,7 @@ jobs:
           "$RUNNER_TEMP/wheel-env/bin/python" -m pip install "${wheels[0]}[skills]"
           cp tests/check_installed.py "$RUNNER_TEMP/check_installed.py"
           cd "$RUNNER_TEMP"
-          env -u PYTHONPATH INFERRSI_CHECKOUT_RESOURCES="$GITHUB_WORKSPACE/src/inferrsi" "$RUNNER_TEMP/wheel-env/bin/python" -I check_installed.py
+          env -u PYTHONPATH INFERRSI_CHECKOUT_RESOURCES="$GITHUB_WORKSPACE/src/inferrsi" INFERRSI_SESSION_LOCK_PROBE="$GITHUB_WORKSPACE/tests/session_lock_probe.py" "$RUNNER_TEMP/wheel-env/bin/python" -I check_installed.py
 
   full-check:
     strategy:
@@ -242,7 +242,11 @@ jobs:
           # Children never see PYTHONPATH, and the checker compares with this absolute path.
           environment = {key: value for key, value in os.environ.items() if key != "PYTHONPATH"}
           environment["INFERRSI_CHECKOUT_RESOURCES"] = str(workspace / "src" / "inferrsi")
-
+          # #498: the installed-wheel check drives a real session lock from this probe, on
+          # Windows and macOS as well as Linux.
+          environment["INFERRSI_SESSION_LOCK_PROBE"] = str(
+              workspace / "tests" / "session_lock_probe.py"
+          )
 
           def run(*command, cwd=work):
               command = [str(part) for part in command]

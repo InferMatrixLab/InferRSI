@@ -4,11 +4,17 @@ Harness writers hold ``<session>/.session.lock`` through ``harness.artifact_prim
 An Apps export holds it through ``apps.artifacts``. Each side has its own copy of the lock
 code, so per-copy parity tests can pass while the pair fails to exclude. These tests start a
 separate process for each holder, so they cover the actual writer and reader on Windows
-(msvcrt byte range) and POSIX (flock) alike. #498 slice 3b; the busy-writer mapping of #494
-stays a separate assertion in tests/test_result_delivery.py.
+(msvcrt byte range) and POSIX (flock) alike. #498 slice 3b.
+
+``tests/session_lock_probe.py`` drives the real pair with a valid managed session: a Harness
+process holds the lock and the Apps ``export_bundle`` of that session is refused, then the
+same export publishes after release. The probe runs here against the checkout and in
+``tests/check_installed.py`` against the installed wheel. The exception type that Windows
+raises for contention is #494 and stays a separate assertion in tests/test_result_delivery.py.
 """
 
 import json
+import os
 import subprocess
 import sys
 import time
@@ -16,11 +22,8 @@ from pathlib import Path
 
 import pytest
 
-from inferrsi.apps import artifacts as apps_artifacts
-from inferrsi.apps import delivery
-from inferrsi.harness import artifact_primitives as harness_artifacts
-
 SRC = str(Path(__file__).resolve().parents[1] / "src")
+PROBE_SCRIPT = Path(__file__).with_name("session_lock_probe.py")
 
 # A child process takes the named lock, reports it, then waits for a release file.
 HOLDER = """
@@ -116,33 +119,16 @@ def test_a_held_lock_excludes_the_other_copy_in_another_process(tmp_path, hold, 
     assert outcome == {"acquired": True}
 
 
-def _campaign(root: Path) -> Path:
-    root.mkdir()
-    (root / "state.json").write_text(json.dumps({"started_at": 1.0}), encoding="utf-8")
-    return root
-
-
-def test_an_apps_reader_is_refused_while_a_harness_process_holds_the_session(tmp_path, hold):
-    # The actual writer and reader pair: a Harness process holds the session lock, and the
-    # Apps copy of the lock, which `delivery.project` takes, cannot be taken by another
-    # process until it is released. The retryable `SnapshotBusy` mapping of that refusal is
-    # #494 and stays a separate assertion in tests/test_result_delivery.py; this test needs
-    # only the contention itself, which is a PermissionError on Windows (msvcrt) and a
-    # BlockingIOError on POSIX (flock).
-    root = _campaign(tmp_path / "campaign")
-    lock = root / ".session.lock"
-    release = hold("harness", lock)
-    assert _probe("apps", lock)["acquired"] is False
-    release.write_text("done", encoding="utf-8")
-    deadline = time.monotonic() + 30
-    while not _probe("apps", lock)["acquired"]:
-        assert time.monotonic() < deadline, "the Harness holder never released"
-        time.sleep(0.05)
-    # Released: the whole export now succeeds against a managed session or fails for a
-    # reason other than the lock, never as a busy writer.
-    with pytest.raises(ValueError) as outcome:
-        delivery.project(root, export_id="released")
-    assert "writer is active" not in str(outcome.value)
-    with apps_artifacts.file_lock(lock), pytest.raises(OSError):
-        with harness_artifacts.file_lock(lock):
-            pass
+def test_an_apps_export_of_a_valid_session_is_refused_while_a_harness_process_holds_it(tmp_path):
+    # The actual writer and reader pair on a real session, run from the checkout.
+    (tmp_path / "work").mkdir()
+    # Not -I: the probe imports inferrsi from the checkout through PYTHONPATH.
+    result = subprocess.run(
+        [sys.executable, "-B", str(PROBE_SCRIPT), str(tmp_path / "work")],
+        capture_output=True, text=True, check=False, timeout=300,
+        env={**os.environ, "PYTHONPATH": SRC, "PYTHONIOENCODING": "utf-8"},
+    )
+    assert result.returncode == 0, result.stderr
+    outcome = json.loads(result.stdout.strip().splitlines()[-1])
+    assert outcome["busy_status"] != "published" and outcome["busy_published"] is False, outcome
+    assert outcome["released_status"] == "published" and outcome["released_readable"], outcome
