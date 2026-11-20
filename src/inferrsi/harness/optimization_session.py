@@ -188,7 +188,9 @@ def session_command(args, *, task_source: Path | None = None, knowledge_reader=N
                 }
                 result = optimization.initialize(root, plan)
                 result["instructions"] = (
-                    "Run campaign baseline before candidate search. Use campaign round for each "
+                    "Run campaign baseline before candidate search. Record the measured "
+                    "bottleneck with campaign diagnose before knowledge or rounds. "
+                    "Use campaign round for each "
                     "committed candidate; investigate INCONCLUSIVE results before explicit retry. "
                     "Finish with campaign final; final does not collect a profile."
                 )
@@ -242,7 +244,8 @@ def session_command(args, *, task_source: Path | None = None, knowledge_reader=N
         result = optimization.initialize(root, plan)
         operation = "campaign" if args.project_task else "benchmarks session"
         result["instructions"] = (
-            f"Read the frozen TASK.md. Use {operation} knowledge when the condition allows it. "
+            f"Read the frozen TASK.md. Record the measured bottleneck with {operation} "
+            f"diagnose first. Use {operation} knowledge when needed and permitted. "
             "Edit the returned working_candidate within its declared input scope. "
             f"Before each {operation} round, declare its hypothesis. "
             "Read the observation, keep failures and use feedback for the next change. "
@@ -284,6 +287,8 @@ def session_command(args, *, task_source: Path | None = None, knowledge_reader=N
         raise ValueError("Optimization runtime changed, use its frozen runtime to resume")
     if args.session_action == "status":
         return optimization.status(root)
+    if args.session_action == "diagnose":
+        return optimization.record_diagnosis(root, args.bottleneck, args.evidence)
     if args.session_action == "knowledge":
         if knowledge_reader is None or retain_context is None:
             raise ValueError("A knowledge reader and capture callback are required")

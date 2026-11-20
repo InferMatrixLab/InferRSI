@@ -119,6 +119,7 @@ quality-command and sampling flags. Mixing both parameter sets is an error.
 ```text
 inferrsi campaign start --evaluation-mode service_reuse --evaluation-config <protocol.json> ...
 inferrsi campaign baseline --session <campaign>
+inferrsi campaign diagnose --session <campaign> --bottleneck <description> --evidence <summary.txt>
 inferrsi campaign knowledge --session <campaign> --query <cue> --context-bytes <bytes>
 inferrsi campaign round --session <campaign> --candidate <committed-project> --hypothesis <text>
 inferrsi campaign profile --session <campaign> --round <round-number>
@@ -127,7 +128,11 @@ inferrsi campaign final --session <campaign> --reason <stop-reason>
 ```
 
 `start` prepares the campaign records. The baseline establishes reference
-measurements. A candidate first passes functional checks and service readiness,
+measurements. Record measured bottleneck evidence before knowledge retrieval
+or candidate search, and again after a reference refresh. This summary can use
+existing measurements. Managed profiling remains optional.
+
+A candidate first passes functional checks and service readiness,
 then completes its warmup. While that service remains usable and evaluation time
 remains, the harness runs all formal scenarios and repetitions, including after
 a screening rejection or screening command error. Only formal performance

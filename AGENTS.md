@@ -119,7 +119,8 @@ details are in [benchmark comparison](docs/benchmark-comparison.md).
 Ordinary project optimization stays in the current Agent conversation. Follow
 the [shared optimization workflow](docs/optimization-workflow-unification.md):
 prepare explicit workload, quality/measurement scripts, metric, gates, declared
-project inputs and budget, then use `campaign start/knowledge/round/status/final`.
+project inputs and budget, then use `campaign start/diagnose/knowledge/round/status/final`.
+Record the measured bottleneck before optional knowledge retrieval or candidate search.
 Harness freezes those supplied conditions and assesses the retained results;
 it does not infer acceptance from the user's goal. Ordinary optimization does
 not depend on Benchmark. Use `up_to` with a recorded stop reason or declare exact rounds.
@@ -129,7 +130,8 @@ campaigns generate dashboard views from that control record; do not use legacy
 
 For a request to run an optimization task through RSI, follow the
 [current-Agent benchmark workflow](docs/optimization-benchmarks.md).
-Use `benchmarks session` to freeze the budget, submit each changed candidate,
+Use `benchmarks session` to freeze the budget, record the measured bottleneck,
+submit each changed candidate,
 read its feedback, and independently retest the selected candidate with `final`.
 Report the session summary after the declared rounds and final are complete.
 `benchmarks run` is the single-candidate measurement operation inside that workflow.

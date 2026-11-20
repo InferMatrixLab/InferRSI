@@ -16,6 +16,7 @@ from inferrsi.harness import artifact_primitives, optimization, project_service
 from inferrsi.harness.records import evidence, knowledge_capture
 from inferrsi.infra import artifacts
 from inferrsi.knowledge import knowledge_operations
+from tests.diagnosis_support import diagnosis_args
 
 
 @pytest.fixture(autouse=True)
@@ -185,12 +186,61 @@ def call(campaign, action, *extra, expected=0):
     return json.loads(campaign["capsys"].readouterr().out)
 
 
+def test_diagnosis_gate_applies_to_service_knowledge(campaign, tmp_path):
+    assert call(campaign, "start")["next_action"] == "campaign_baseline"
+    lookup = ("--query", "前缀缓存", "--context-bytes", "65536", "--limit", "1")
+    with pytest.raises(SystemExit) as error:
+        call(campaign, "knowledge", *lookup)
+    assert error.value.code == 2
+    assert "Record measured bottleneck evidence" in campaign["capsys"].readouterr().err
+    evidence = tmp_path / "measurement.txt"
+    evidence.write_text("Synthetic measurement: the service spends 4 ms in one operation.")
+    result = call(campaign, "diagnose", "--bottleneck", "Service operation", "--evidence", evidence)
+    assert result["diagnosis"]["reference_epoch"] == 0
+    assert call(campaign, "status")["diagnosis"] == result["diagnosis"]
+    delivery = call(campaign, "knowledge", *lookup)
+    assert delivery["context"]["contexts"]
+    assert delivery["context"]["request"]["relevance_method"] == "find-lexical-v1"
+    binding = delivery["context"]["diagnosis_binding"]
+    assert binding["diagnosis_id"] == result["diagnosis"]["id"]
+    assert binding["reference_epoch"] == 0
+    assert binding["started_at"] >= result["diagnosis"]["recorded_at"]
+    call(campaign, "baseline")
+    conditions = tmp_path / "conditions.json"
+    conditions.write_text(json.dumps({**settings()["conditions"], "id": "c1", "runtime": "changed"}))
+    refreshed = call(campaign, "refresh-references", "--conditions", conditions,
+                     "--reason", "Changed test runtime")
+    assert refreshed["next_action"] == "record_bottleneck_diagnosis"
+    with pytest.raises(SystemExit) as error:
+        call(campaign, "knowledge", *lookup)
+    assert error.value.code == 2
+    assert "Record measured bottleneck evidence" in campaign["capsys"].readouterr().err
+    new = call(campaign, "diagnose", "--bottleneck", "Different operation", "--evidence", evidence)
+    assert new["diagnosis"]["reference_epoch"] == 1
+    recent = call(campaign, "knowledge", *lookup)["context"]["diagnosis_binding"]
+    assert recent["diagnosis_id"] == new["diagnosis"]["id"]
+    assert recent["reference_epoch"] == 1
+
+    state_path = campaign["root"] / "state.json"
+    state = json.loads(state_path.read_text(encoding="utf-8"))
+    state["contexts"][0]["diagnosis_id"] = new["diagnosis"]["id"]
+    state_path.write_text(json.dumps(state), encoding="utf-8")
+    with pytest.raises(ValueError, match="Knowledge diagnosis differs from the retained capture"):
+        optimization.read_records(campaign["root"])
+
+
+def diagnose(campaign):
+    assert main(diagnosis_args(campaign["root"], "campaign")) == 0
+    campaign["capsys"].readouterr()
+
+
 def begin(campaign):
     result = call(campaign, "start")
     assert result["next_action"] == "campaign_baseline"
     assert not (campaign["root"] / "baseline").exists()
     result = call(campaign, "baseline")
     assert result["best"]["kind"] == "baseline"
+    diagnose(campaign)
     return result
 
 
@@ -274,6 +324,8 @@ def test_conditions_refresh_cannot_finalize_without_new_acceptance(campaign):
     refreshed = call(
         campaign, "refresh-references", "--conditions", path, "--reason", "New test conditions"
     )
+    assert refreshed["diagnosis"] is None
+    diagnose(campaign)
     assert refreshed["can_finalize"] is False
     assert refreshed["accepted_attempt_ids"] == []
     assert refreshed["best"] is None
@@ -335,6 +387,7 @@ def test_service_mode_cli_does_not_require_legacy_metric_arguments(campaign):
 
 def test_service_knowledge_uses_find_without_file_fingerprints(campaign):
     call(campaign, "start")
+    diagnose(campaign)
     response = call(
         campaign, "knowledge", "--query", "前缀缓存", "--context-bytes", "65536", "--limit", "1"
     )
@@ -839,6 +892,7 @@ def test_reference_refresh_uses_baseline_cache_without_testing_parent_quality(
         assert stages == ["ready", "warmup", "measure", "measure", "stop"]
     assert result["best"] is None and result["can_finalize"] is False
     assert failed_path.read_bytes() == before_retry
+    diagnose(campaign)
     accepted = submit(campaign, version="current-conditions", a=80)
     assert accepted["latest_observation"]["assessment"]["verdict"] == "PASS"
     assert accepted["best"]["conditions"] == conditions
@@ -954,6 +1008,7 @@ def test_current_epoch_candidate_can_seed_selection_below_old_parent_rank(campai
     path = campaign["root"].parent / "conditions.json"
     path.write_text(json.dumps(conditions))
     call(campaign, "refresh-references", "--conditions", path, "--reason", "New runtime")
+    diagnose(campaign)
     result = submit(campaign, version="c1-accepted", a=92, b=90)
     assert result["best"]["revision"] != old["revision"]
     assert result["best"]["measurements"]["values"]["a"] > old["measurements"]["values"]["a"]
@@ -1167,6 +1222,7 @@ def test_refresh_resets_stagnation_without_erasing_history(campaign, rejections)
     refreshed = call(
         campaign, "refresh-references", "--conditions", path, "--reason", "Changed workload"
     )
+    diagnose(campaign)
     assert refreshed["stagnation"]["consecutive"] == 0
     assert refreshed["stagnation"]["notified"] is False
     assert refreshed["stagnation"]["events"] == before["stagnation"]["events"]

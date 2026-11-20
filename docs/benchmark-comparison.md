@@ -79,6 +79,16 @@ The CLI neither starts a hidden Agent CLI nor invents a conversation identity.
 6. Generate a progress or final comparison with `--action report`. Read
    `--action status` to resume. Reporting never executes missing rounds/finals.
 
+New comparisons freeze the same diagnosis requirement for both arms. Before
+search, each session profiles the frozen baseline or uses measurements from the
+same workload and environment. It records the measured bottleneck with
+`benchmarks session diagnose --session <campaign> --bottleneck '<observed-bottleneck>'
+--evidence <measurement-summary.txt>`. The UTF-8 input should contain the
+measured values and scope. Knowledge retrieval is optional when enabled and
+follows the diagnosis. The comparison JSON includes diagnosis IDs for each round.
+Collection verifies the retained summaries and the round-to-diagnosis links
+against the original round observations.
+
 All non-prepare actions require `--output`. Dispatch/bind/record/collect also
 require `--trial`. Jobs are created just before dispatch so waiting for earlier
 trials does not consume their host deadlines. Native deadline cancellation

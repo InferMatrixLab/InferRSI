@@ -12,6 +12,7 @@ from inferrsi.apps.cli import main
 from inferrsi.benchmark import registry
 from inferrsi.harness import optimization_session
 from inferrsi.harness.optimization import _locked
+from tests.diagnosis_support import diagnosis_args
 
 
 @pytest.fixture
@@ -56,9 +57,15 @@ def session(tmp_path, task, capsys):
         "--condition", "synthetic-current-agent", "--evaluation-args", "",
     ]) == 0
     view = json.loads(capsys.readouterr().out)
-    assert view["next_action"] == "edit_candidate_and_submit_round"
+    assert view["next_action"] == "record_bottleneck_diagnosis"
     assert "session final" in view["instructions"]
+    diagnose(root, capsys)
     return root
+
+
+def diagnose(root, capsys):
+    assert main(diagnosis_args(root, "benchmarks", "session")) == 0
+    capsys.readouterr()
 
 
 def submit(root, factor, capsys, usage=None):
@@ -117,6 +124,7 @@ def test_generic_job_precedes_child_start_and_collects_child_final(tmp_path, tas
         "--condition", "synthetic-child", "--evaluation-args", "",
     ]) == 0
     capsys.readouterr()
+    diagnose(root, capsys)
     submit(root, 2, capsys)
     assert main(["benchmarks", "session", "final", "--session", str(root)]) == 0
     assert json.loads(capsys.readouterr().out)["state"] == "completed"
@@ -356,6 +364,7 @@ def test_child_assessor_exception_keeps_its_reason_through_a_real_round(task, tm
     root = tmp_path / "session"
     assert main(start_args(task, root)) == 0
     capsys.readouterr()
+    diagnose(root, capsys)
     candidate = root / "work/candidate.py"
     candidate.write_text("FACTOR = 2\n", encoding="utf-8")
     assert main(["benchmarks", "session", "round", "--session", str(root),
@@ -385,6 +394,7 @@ def test_child_arguments_exception_keeps_the_coordinator_record_through_a_real_r
     root = tmp_path / "session"
     assert main(start_args(task, root)) == 0
     capsys.readouterr()
+    diagnose(root, capsys)
     candidate = root / "work/candidate.py"
     candidate.write_text("FACTOR = 2\n", encoding="utf-8")
     assert main(["benchmarks", "session", "round", "--session", str(root),
@@ -458,7 +468,10 @@ def test_knowledge_delivery_is_retained_and_bound_to_round(session, capsys):
             item["ref"], resource["path"], revision=item["revision"]
         )
     result = submit(session, 2, capsys)
-    assert result["latest_observation"]["contexts"] == [delivered["reference"]]
+    observation = result["latest_observation"]
+    assert observation["contexts"] == [
+        {**delivered["reference"], "diagnosis_id": observation["diagnosis_id"]}
+    ]
 
 
 def test_runtime_identity_covers_migrated_process_domain_and_not_removed_executor() -> None:

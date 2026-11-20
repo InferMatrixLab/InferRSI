@@ -10,6 +10,7 @@ import pytest
 from inferrsi.apps.cli import main
 from inferrsi.apps.views.dashboard import dashboard_snapshot, render_dashboard
 from inferrsi.harness.optimization import read_records
+from tests.diagnosis_support import diagnosis_args
 
 
 @pytest.fixture
@@ -58,6 +59,9 @@ def start(project, capsys, *, direction="maximize", mode="up_to", extra=()):
     assert main(start_arguments(project, direction=direction, mode=mode, extra=extra)) == 0
     result = json.loads(capsys.readouterr().out)
     assert result["working_candidate"] == str(project[0])
+    assert result["next_action"] == "record_bottleneck_diagnosis"
+    assert main(diagnosis_args(project[3], "campaign")) == 0
+    capsys.readouterr()
     return result
 
 
@@ -96,6 +100,7 @@ assert summary['optimization_speedup'] == 2
 assert summary['completed_rounds'] == 1
 """
     commands = [
+        diagnosis_args(root, "campaign"),
         ["campaign", "knowledge", "--directory", str(root), "--query", "cgroupv2",
          "--context-bytes", "2048"],
         ["campaign", "round", "--directory", str(root), "--candidate", str(repo),
