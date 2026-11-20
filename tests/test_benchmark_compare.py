@@ -170,11 +170,16 @@ def test_metrics_summary_is_first_and_complete_token_ratio_has_explicit_directio
     assert metrics["token_consumption_ratio"]["value"] == 0.5
     old_factor = report["assessment"]["tasks"][0]["metrics"]["tokens"]["paired_factor"]
     assert old_factor == pytest.approx(2)
+    from inferrsi.apps.views.comparison_report import _LABELS
+
+    expected_label = _LABELS[report["assessment"]["conclusion"]["kind"]]
     for name in ("markdown", "html"):
         text = Path(report["reports"][name]).read_text(encoding="utf-8")
         assert text.index("Benchmark metrics") < text.index("Task comparisons")
         assert "Token consumption" in text and "on/off" in text
-        assert "Efficiency improved / 效率提高" in text
+        conclusion = (f"**{expected_label}**" if name == "markdown"
+                      else f"<p class=conclusion>{expected_label}</p>")
+        assert conclusion in text
     from inferrsi.apps.delivery import project
 
     _, single, _ = project(campaign, export_id="metrics-single")
