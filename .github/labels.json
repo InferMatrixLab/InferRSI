@@ -25,6 +25,11 @@
     "description": "Benchmark line: preparation ports, metric contracts, validators, and isolated workers"
   },
   {
+    "name": "area:apps",
+    "group": "area",
+    "description": "Apps line: CLI, Python entrypoints, host inspection, workflows, views, and adapters"
+  },
+  {
     "name": "help:wanted",
     "group": "help",
     "description": "Needs an owner or contributor"
