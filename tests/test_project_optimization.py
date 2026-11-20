@@ -10,6 +10,7 @@ import pytest
 from inferrsi.apps.cli import main
 from inferrsi.apps.views.dashboard import dashboard_snapshot, render_dashboard
 from inferrsi.harness.optimization import read_records
+from tests.diagnosis_support import diagnosis_args
 
 
 @pytest.fixture
@@ -58,6 +59,9 @@ def start(project, capsys, *, direction="maximize", mode="up_to", extra=()):
     assert main(start_arguments(project, direction=direction, mode=mode, extra=extra)) == 0
     result = json.loads(capsys.readouterr().out)
     assert result["working_candidate"] == str(project[0])
+    assert result["next_action"] == "record_bottleneck_diagnosis"
+    assert main(diagnosis_args(project[3], "campaign")) == 0
+    capsys.readouterr()
     return result
 
 
@@ -96,6 +100,7 @@ assert summary['optimization_speedup'] == 2
 assert summary['completed_rounds'] == 1
 """
     commands = [
+        diagnosis_args(root, "campaign"),
         ["campaign", "knowledge", "--directory", str(root), "--query", "cgroupv2",
          "--context-bytes", "2048"],
         ["campaign", "round", "--directory", str(root), "--candidate", str(repo),
@@ -210,21 +215,101 @@ def test_fixed_rounds_and_frozen_protocol_are_not_bypassed(project, capsys):
         submit(project, capsys, 30)
 
 
-def test_project_knowledge_uses_find_and_records_budget_omission(project, capsys):
-    start(project, capsys)
+@pytest.mark.parametrize("cannbot", [False, True])
+def test_project_knowledge_uses_find_and_records_budget_omission(
+    project, capsys, monkeypatch, cannbot,
+):
+    from inferrsi.apps.integrations.cannbot import project as channel
+
+    def unavailable(*args, **kwargs):
+        if not cannbot:
+            pytest.fail("local-only retrieval called the external channel")
+        raise channel.ChannelFailure("synthetic missing grant", state="not_enabled")
+
+    monkeypatch.setattr(channel, "describe", unavailable)
+    extra = ("--cannbot-platform", "a3") if cannbot else ()
+    start(project, capsys, extra=extra)
     root = project[3]
     assert main([
         "campaign", "knowledge", "--directory", str(root),
         "--query", "cache per-step masks ran out of device memory",
         "--limit", "1", "--context-bytes", "1",
     ]) == 0
-    capture = json.loads(capsys.readouterr().out)["context"]
+    answer = json.loads(capsys.readouterr().out)
+    if cannbot:
+        assert answer["external"]["state"] == "not_enabled"
+    else:
+        assert "external" not in answer
+    capture = answer["context"]
     assert capture["selection"]["method"] == "find-lexical-v1"
     item, = capture["items"]
     assert item["ref"] == "checkout:case.qwen-ascend-rejected-directions"
     omission, = capture["context_omissions"]
     assert (omission["ref"], omission["reason"]) == (item["ref"], "context_limit")
     assert capture["contexts"] == []
+
+
+def test_cannbot_timeout_keeps_local_ranking_and_final_budget(project, capsys, monkeypatch):
+    from inferrsi.apps.integrations.cannbot import project as channel
+    from inferrsi.apps.integrations.cannbot.read_worker import _WORKER_CLEANUP_SECONDS
+    from inferrsi.harness import optimization
+
+    source, protocol, instructions, root = project
+    local_only = source, protocol, instructions, root.with_name("local-only")
+    query = "cache per-step masks ran out of device memory"
+    budgets = []
+
+    def timeout_worker(*args, timeout, **kwargs):
+        budgets.append(timeout)
+        raise channel.ChannelFailure("synthetic worker timeout", state="timeout")
+
+    def search(session):
+        assert main([
+            "campaign", "knowledge", "--directory", str(session), "--query", query,
+            "--limit", "2", "--context-bytes", "8192",
+        ]) == 0
+        return json.loads(capsys.readouterr().out)
+
+    monkeypatch.setattr(channel, "describe", lambda *a, **kw: {"state": "ok"})
+    monkeypatch.setattr(channel, "search", timeout_worker)
+    start(local_only, capsys)
+    local = search(local_only[-1])
+    assert not budgets and "external" not in local
+
+    start(project, capsys, extra=("--cannbot-platform", "a3"))
+    state_path = root / "state.json"
+    deadline = json.loads(state_path.read_bytes())["deadline"]
+    with monkeypatch.context() as short_search:
+        # Exercise a channel call close enough to final that the channel's
+        # ordinary command timeout would consume the reserved time.
+        short_search.setattr(optimization, "_knowledge_time", lambda plan, state: 6.0)
+        opted_in = search(root)
+    timeout, = budgets
+    assert 0 < timeout <= 6 - _WORKER_CLEANUP_SECONDS
+    assert json.loads(state_path.read_bytes())["deadline"] == deadline
+    assert opted_in["external"]["state"] == "timeout"
+    assert [item["ref"] for item in opted_in["context"]["items"]] == [
+        item["ref"] for item in local["context"]["items"]
+    ]
+
+    capture = opted_in["reference"]["path"]
+    ref = opted_in["context"]["contexts"][0]["ref"]
+    (source / "config.json").write_text('{"metric": 20}', encoding="utf-8")
+    assert main([
+        "campaign", "round", "--directory", str(root), "--candidate", str(source),
+        "--hypothesis", "Improve the synthetic configuration",
+        "--knowledge-ref", f"{capture}#{ref}",
+    ]) == 0
+    capsys.readouterr()
+    snapshot = dashboard_snapshot(root)["data"]
+    retrieval, = snapshot["managed_retrievals"]
+    candidate, = snapshot["candidates"]
+    assert retrieval["external"]["state"] == "timeout"
+    assert [use["ref"] for use in candidate["knowledge_uses"]] == [ref]
+    assert main([
+        "campaign", "final", "--directory", str(root), "--reason", "Synthetic timeout check",
+    ]) == 0
+    assert json.loads(capsys.readouterr().out)["state"] == "completed"
 
 
 def test_project_knowledge_off_and_manual_record_writes_are_rejected(project, capsys):

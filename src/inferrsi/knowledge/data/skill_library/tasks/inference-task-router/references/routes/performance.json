@@ -1,0 +1,23 @@
+{
+  "task": "performance",
+  "title": "Optimize inference performance",
+  "choose_when": "A correct baseline misses a specified latency, throughput, memory or cost objective.",
+  "required_inputs": [
+    "fixed workload, quality oracle and baseline",
+    "target metric and budget",
+    "device and concurrency",
+    "phase timings or profile"
+  ],
+  "steps": [
+    "Pin the workload and verify baseline quality.",
+    "Locate the limiting stage and estimate headroom.",
+    "Measure candidates against the same control and report end-to-end trade-offs."
+  ],
+  "acceptance_evidence": "Paired measurements with the quality gate, uncertainty and workload conditions.",
+  "candidate_skill_ids": [
+    "inference-benchmark-design",
+    "performance-ceiling-analysis",
+    "optimization-search-policy",
+    "inference-optimization-casebook"
+  ]
+}

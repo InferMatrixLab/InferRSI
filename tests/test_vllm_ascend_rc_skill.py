@@ -102,7 +102,7 @@ def test_history_screen_rejects_incomplete_history(monkeypatch, tmp_path):
 def test_runtime_reader_keeps_full_history_outside_the_bundle():
     bundle = KnowledgeReader().read("inferrsi.ascend.skills.vllm_ascend")
     assert all("history-inventory.json" not in key for key in bundle.content)
-    prefix = "data/skill_library/repositories/vllm-ascend/"
+    prefix = "data/skill_library/systems/engines/vllm-ascend/"
     for relative in ("references/history-reviewed.json", "scripts/screen_history.py"):
         assert bundle.content[prefix + relative] == skill_resource(
             LIBRARY, NAME, relative

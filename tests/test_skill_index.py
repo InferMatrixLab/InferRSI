@@ -18,6 +18,21 @@ PROJECT = Path(__file__).resolve().parents[1]
 ROOT = PROJECT / LIBRARY
 
 
+def test_index_cli_reports_unsupported_git_before_reading_objects(monkeypatch, capsys):
+    def old_git(command, **kwargs):
+        assert command == ["git", "--version"]
+        return "git version 2.43.0\n"
+
+    monkeypatch.setattr(subprocess, "check_output", old_git)
+    monkeypatch.setattr(index_builder, "_git", lambda *args: pytest.fail("read before preflight"))
+    with pytest.raises(SystemExit) as exit_info:
+        index_builder.main(["--source-revision", "HEAD", "--check"])
+    assert exit_info.value.code == 2
+    message = capsys.readouterr().err
+    assert "requires Git >= 2.45 for --no-lazy-fetch" in message
+    assert "git version 2.43.0. Upgrade Git and retry." in message
+
+
 def _physical(relative: str) -> Path:
     """Map a pinned input name to today's checkout location.
 
@@ -33,7 +48,7 @@ def test_complete_index_retains_metadata_states_and_unknown_license():
     records = search_knowledge(repo="inferrsi", limit=100)
     names = {record["name"] for record in skill_records(ROOT)}
     registry = json.loads((ROOT / "skill-index.json").read_text(encoding="utf-8"))["skills"]
-    assert len(records) == len(names) == 80
+    assert len(records) == len(names) == 88
     assert {record["skill_metadata"]["name"] for record in records} == names
     states = []
     for record in records:
@@ -51,7 +66,7 @@ def test_complete_index_retains_metadata_states_and_unknown_license():
         }
         assert set(record["source_files"]) == set(record["sources"][0]["paths"])
         states.append(metadata.get("status"))
-    assert states.count("candidate") == 80
+    assert states.count("candidate") == 88
     profiling = next(r for r in records if r["title"] == "ascend-operator-profiling")
     assert profiling["skill_metadata"]["license"] == "UNKNOWN"
     assert profiling["skill_metadata"]["synced-commit"] == (
@@ -177,7 +192,7 @@ def test_index_checks_drift_and_rejects_changed_or_added_source_inputs(tmp_path,
     monkeypatch.setattr(index_builder, "LIBRARY", fixture_library)
     assert index_builder.main(["--source-revision", "HEAD"]) == 0
     assert index_builder.main(["--source-revision", "HEAD", "--check"]) == 0
-    generated = tmp_path / DESTINATION / "common/skills/example.json"
+    generated = tmp_path / DESTINATION / "inputs.json"
     generated.write_text("changed projection", encoding="utf-8")
     assert index_builder.main(["--source-revision", "HEAD", "--check"]) == 1
     assert generated.read_text(encoding="utf-8") == "changed projection"
@@ -227,22 +242,18 @@ def test_repinned_corpus_accepts_a_new_source_revision_at_the_checkout_path(tmp_
     monkeypatch.setattr(index_builder, "LIBRARY", LIBRARY)
 
     first = build_index(tmp_path, "HEAD")
-    record = json.loads(first["common/skills/example.json"])
-    recorded = set(record["source_files"])
-    assert recorded
-    prefix = LIBRARY.as_posix()
-    assert all(path.startswith(prefix + "/") for path in recorded), recorded
-    entry = f"{prefix}/methods/example/SKILL.md"
-    assert record["source_files"][entry] == hashlib.sha256(original.encode("utf-8")).hexdigest()
+    record = json.loads(first["inputs.json"])["example"]
+    assert set(record["files"]) == {"SKILL.md"}
+    assert record["files"]["SKILL.md"] == hashlib.sha256(original.encode("utf-8")).hexdigest()
 
     changed = original + "Changed body\n"
     (root / "SKILL.md").write_text(changed, encoding="utf-8", newline="\n")
     git("add", LIBRARY.as_posix())
     commit("Edit the skill")
     second = build_index(tmp_path, "HEAD")
-    updated = json.loads(second["common/skills/example.json"])
-    assert updated["source_files"][entry] == hashlib.sha256(changed.encode("utf-8")).hexdigest()
-    assert updated["source_files"][entry] != record["source_files"][entry]
+    updated = json.loads(second["inputs.json"])["example"]
+    assert updated["files"]["SKILL.md"] == hashlib.sha256(changed.encode("utf-8")).hexdigest()
+    assert updated["files"]["SKILL.md"] != record["files"]["SKILL.md"]
 
 
 def test_package_index_and_checkout_skill_have_distinct_read_boundaries():
@@ -250,7 +261,7 @@ def test_package_index_and_checkout_skill_have_distinct_read_boundaries():
     identity = "inferrsi.common.skills.claim_contract"
     bundle = reader.read(identity)
     assert "record.json" in bundle.content
-    assert "data/skill_library/workflows/claim-contract/SKILL.md" in bundle.content
+    assert "data/skill_library/workflows/governance/claim-contract/SKILL.md" in bundle.content
     assert bundle.dependencies
     assert bundle.metadata["kind"] == "knowledge"
     # The sidecar now declares an origin, so the package record stops falling
@@ -260,7 +271,7 @@ def test_package_index_and_checkout_skill_have_distinct_read_boundaries():
     assert reader.resolve("claim-contract") == "checkout:claim-contract"
     assert reader.read("claim-contract").metadata["kind"] == "skill"
     collected = reader.collect(repo="inferrsi", kind="knowledge", limit=100, material=True)
-    assert len(collected["items"]) == 80
+    assert len(collected["items"]) == 88
     assert not collected["collisions"] and not collected["omissions"]
     assert all(item["authority"] == "package" for item in collected["items"])
     assert all("record.json" in item["resources"] for item in collected["items"])
@@ -290,9 +301,9 @@ def test_index_cli_search_show_context_and_execution_boundary(capsys):
 
 
 def test_hardware_filters_include_only_matching_and_shared_skills():
-    for backend, count in (("ascend", 75), ("cuda", 64), ("cpu", 59)):
+    for backend, count in (("ascend", 83), ("cuda", 72), ("cpu", 67)):
         records = search_knowledge(repo="inferrsi", backend=backend, limit=100)
         assert len(records) == count
         assert all(record["backend"] in (backend, "common") for record in records)
     assert not (PROJECT / "skills").exists()
-    assert len(list(ROOT.rglob("SKILL.md"))) == 143
+    assert len(list(ROOT.rglob("SKILL.md"))) == 151

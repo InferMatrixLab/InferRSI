@@ -127,7 +127,7 @@ def _runtime_identity():
 
 
 def session_command(args, *, task_source: Path | None = None, knowledge_reader=None,
-                    retain_context=None) -> dict:
+                    retain_context=None, external_knowledge=None, external_provider=None) -> dict:
     """Run one operation; discovery and knowledge access are supplied by the caller."""
     from inferrsi.harness import optimization
 
@@ -150,6 +150,11 @@ def session_command(args, *, task_source: Path | None = None, knowledge_reader=N
         if not math.isfinite(reserve) or not 0 < reserve < args.max_minutes * 60:
             raise ValueError("Reserve time for final within the total budget")
         evaluation_prefix = shlex.split(args.evaluation_prefix)
+        if external_knowledge and args.knowledge != "on":
+            raise ValueError("External knowledge requires --knowledge on")
+        if (external_knowledge and args.project_task
+                and args.evaluation_mode == "service_reuse"):
+            raise ValueError("External round knowledge requires a benchmark or AB/BA campaign")
         if args.project_task:
             names = (
                 "metric_key",
@@ -188,7 +193,9 @@ def session_command(args, *, task_source: Path | None = None, knowledge_reader=N
                 }
                 result = optimization.initialize(root, plan)
                 result["instructions"] = (
-                    "Run campaign baseline before candidate search. Use campaign round for each "
+                    "Run campaign baseline before candidate search. Record the measured "
+                    "bottleneck with campaign diagnose before knowledge or rounds. "
+                    "Use campaign round for each "
                     "committed candidate; investigate INCONCLUSIVE results before explicit retry. "
                     "Finish with campaign final; final does not collect a profile."
                 )
@@ -239,16 +246,24 @@ def session_command(args, *, task_source: Path | None = None, knowledge_reader=N
                 "evaluation_timeout_seconds": args.evaluation_timeout_seconds,
                 "evaluation_prefix": evaluation_prefix, "python": args.python,
                 "runtime_identity": _runtime_identity(), **candidate, **settings}
+        if external_knowledge:
+            plan["external_knowledge"] = external_knowledge
         result = optimization.initialize(root, plan)
         operation = "campaign" if args.project_task else "benchmarks session"
         result["instructions"] = (
-            f"Read the frozen TASK.md. Use {operation} knowledge when the condition allows it. "
+            f"Read the frozen TASK.md. Record the measured bottleneck with {operation} "
+            f"diagnose first. Use {operation} knowledge when needed and permitted. "
             "Edit the returned working_candidate within its declared input scope. "
             f"Before each {operation} round, declare its hypothesis. "
             "Read the observation, keep failures and use feedback for the next change. "
             f"Follow the frozen round policy, then run {operation} final to retest independently. "
             "Report summary.json and its curve. Import actual usage exports when available."
         )
+        if external_knowledge:
+            result["instructions"] += (
+                f" Read external hits with {operation} knowledge-read. Cite the delivered "
+                "item or read receipt with --knowledge-ref when submitting a candidate."
+            )
         return result
     import json
 
@@ -259,9 +274,23 @@ def session_command(args, *, task_source: Path | None = None, knowledge_reader=N
         or plan.get("schema_version") == 3
         or manifest.get("evaluation_mode") == "service_reuse"
     ):
+        if args.session_action == "profile":
+            try:
+                return optimization.service_command(root, args)
+            except (ValueError, OSError) as exc:
+                message = "Campaign lock is busy" if isinstance(exc, BlockingIOError) else str(exc)
+                return {
+                    "exit_code": 2,
+                    "round": args.round,
+                    "profiling_error": {
+                        "status": "failed", "stage": "campaign", "message": message,
+                    },
+                }
+        if args.session_action == "knowledge-read":
+            raise ValueError("External round knowledge requires a benchmark or AB/BA campaign")
         return optimization.service_command(root, args, knowledge_reader=knowledge_reader)
     if (
-        args.session_action in ("baseline", "refresh-references", "resume")
+        args.session_action in ("baseline", "refresh-references", "resume", "profile")
         or getattr(args, "retry_of", None)
         or getattr(args, "repair_reason", None)
         or getattr(args, "cleanup_receipt", None)
@@ -272,6 +301,8 @@ def session_command(args, *, task_source: Path | None = None, knowledge_reader=N
         raise ValueError("Optimization runtime changed, use its frozen runtime to resume")
     if args.session_action == "status":
         return optimization.status(root)
+    if args.session_action == "diagnose":
+        return optimization.record_diagnosis(root, args.bottleneck, args.evidence)
     if args.session_action == "knowledge":
         if knowledge_reader is None or retain_context is None:
             raise ValueError("A knowledge reader and capture callback are required")
@@ -279,11 +310,17 @@ def session_command(args, *, task_source: Path | None = None, knowledge_reader=N
             root,
             knowledge_reader,
             retain_context=retain_context,
+            external_provider=external_provider,
             query="",
             relevance=args.query,
             relevance_method=args.relevance_method,
             context_bytes=args.context_bytes,
             limit=args.limit,
+        )
+    if args.session_action == "knowledge-read":
+        return optimization.read_external_context(
+            root, external_provider, search_ref=args.search_ref, locator=args.locator,
+            page=args.page,
         )
     if args.session_action == "recover":
         return optimization.recover(root, _session_assess)

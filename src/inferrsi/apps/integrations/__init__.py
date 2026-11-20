@@ -1,1 +1,1 @@
-"""Apps integrations with external systems. The initializer imports nothing."""
+"""Application adapters for explicitly authorized external systems."""

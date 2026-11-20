@@ -30,14 +30,15 @@ Effect classes used below:
 | Verify whether RSI knowledge improves optimization efficiency | CLI `benchmarks compare`; [comparison workflow](benchmark-comparison.md) | Local experiment records / explicit native handoff / report-generating | Apps freezes two-task on/off plans, returns host actions, verifies retained finals and reports Benchmark comparisons; no hidden Agent launch |
 | Complete a task optimization in the current Agent | CLI `benchmarks session start/knowledge/round/status/final/recover` | Experiment-executing / local records | Frozen budget, actual candidates and independent task outcomes. The current Agent drives edits. Real usage is imported explicitly. Recovery collects an existing execution using its [pinned runtime](optimization-workflow-unification.md#release-boundary-recovery) |
 | Optimize an ordinary project in the current Agent | CLI `campaign start/knowledge/round/status/final/recover` | Experiment-executing / local records | Harness freezes explicit caller-provided checks, manages multi-file candidates, executes and assesses retained results. This path does not depend on Benchmark or infer acceptance from the goal. See [shared workflow](optimization-workflow-unification.md) |
-| Reuse one project service across multi-scenario checks | CLI `campaign start --evaluation-mode service_reuse`, then `baseline/round/status/recover/final` | Experiment-executing / local records | Caller supplies the protocol, service and profiler scripts; `resume`, `refresh-references` and explicit retry retain recovery decisions. See [service reuse](service-reuse-campaigns.md) |
+| Reuse one project service across multi-scenario checks | CLI `campaign start --evaluation-mode service_reuse`, then `baseline/round/profile/status/recover/final` | Experiment-executing / local records | Caller supplies protocol and service scripts. An optional profiler can run inline or on a settled round. `resume`, `refresh-references` and explicit retry retain recovery decisions. See [service reuse](service-reuse-campaigns.md) |
 | Prepare and record a fresh native Agent | CLI `agents prepare/dispatch/bind/record/status` | Local records / explicit host handoff | The initiating Agent calls native host tools. Records prevent repeated dispatch; exported host observations do not establish task acceptance. See [native sessions](native-agent-sessions.md) |
 | Discover packaged tasks | CLI `benchmarks list` / `benchmarks show`; Python `benchmark.registry.builtin_tasks` / `describe_task` | Read-only | Reads the task library's registry and opaque manifests from installed resources |
 | Execute one packaged task | CLI `benchmarks run`; Python `apps.workflows.benchmark_operations.run_task` | Experiment-executing | Application launches the task entry, supplies the execution callback and preserves arguments and exit status. The task owns its device, measurement and assessment protocol |
 | Find relevant cases, skills and records | CLI `find` | Read-only | Default discovery across the registered library and package records. Follow the emitted command to read a hit and its revision |
 | Inspect the package catalog | CLI `knowledge search` / `knowledge show`; catalog API | Read-only | Filtered inventory and existing catalog scripts. Uses the installed package's tier/repo/backend/scenario filters and IDs |
 | Prepare model-aware engine research | CLI `knowledge research`; Python `research_knowledge` | Read-only | Independent model/framework/task/modality/mechanism queries over the same package catalog; source-grounded known profiles, deduplicated matches and explicit target annotations; no engine/hardware qualification |
-| Discover/read packaged or custom skills | CLI `skills list` / `show` / `resource` / `reference` | Read-only | Metadata-first listing; `show` loads one named instruction body; `resource`/`reference` resolve paths for your file reader without loading or executing them |
+| Enter an inference task or discover/read skills | CLI `skills enter` / `list` / `show` / `resource` / `reference` | Read-only | `enter` loads one primary owner's complete procedure before evidence search. `list`/ `show` inspect skill metadata and instructions. `resource`/`reference` resolve paths for your file reader. |
+| Retrieve and cite external round knowledge | CLI `benchmarks session knowledge / knowledge-read`, AB/BA `campaign knowledge / knowledge-read` | Local evidence-writing | Requires an explicit `--cannbot-platform` at start and an approved project grant. Retains search and read metadata. Cite a delivered receipt with `round --knowledge-ref`. See [round retrieval](optimization-benchmarks.md#include-cannbot-in-the-round) |
 | Collect selected knowledge | CLI `collect`; Python `KnowledgeReader.collect` | Read-only | Batch selection and budgeted assembly by query or exact IDs, with revisions and omissions. The only accepted explicit `--relevance-method` value is `find-lexical-v1` |
 | Read exact material/resources | CLI `read` / `resource`; Python `KnowledgeReader.read` / `KnowledgeReader.resource` | Read-only | Returns the requested revision or an explicit unavailable/stale error; never substitutes newer bytes |
 | Export legacy cited material | CLI `context` | Read-only | Cited package export for manual use with a coding agent; not a conversation store and not a full Collect equivalent |
@@ -51,6 +52,7 @@ Effect classes used below:
 | Rebuild scoped legacy evidence views | `python tools/rebuild_model_evidence.py <manifest> --archive <path> --output <new-directory>` | CPU-only; creates a new output directory | Authenticates original bytes and pinned projection/code; no extraction, network, archived-code execution or campaign qualification |
 | Inspect evidence inventory / generate budget input | `python tools/validate_evidence.py [--budget-assets]` | Read-only | Offline layout/hash/schema checks; optional disposable #328 metadata view derived from campaign authority; no downloads |
 | Execute one ordinary local CPU command with a fixed record | Python `inferrsi.harness.api.Harness.allocate` / `execute` / `read` | Experiment-executing / record-writing | One explicit RunStore root and one trusted local CPU target; ordinary command mode only; a record holds execution facts, so exit 0 is not a verdict; no device, model or network fallback |
+| Freeze a configured P1 preparation | Python `benchmark.preparation.PreparationService.prepare`; [production prepare](contracts/production-prepare.md) | Read-only resource access / pure encoding | Verifies supplied frozen worker/resource bytes and returns a preparation, protocol and role-keyed closure; Apps separately archives them before publishing a Ref |
 | Visualize a recorded run or campaign | CLI `dashboard`; [dashboard](dashboard.md) | Report-generating / local read-only serving | Writes an offline HTML snapshot or serves an optional live view on loopback; does not run an agent or validate a claim |
 | Capture a knowledge context | CLI `campaign capture-context`; [offline dashboard](dashboard.md#record-the-optimization-story-campaign-trace) | Local evidence-writing | Saves assembled context and resource hashes in a new `knowledge/<id>.json`. Supports ordinary questions and explicit IDs. The only accepted explicit `--relevance-method` value is `find-lexical-v1` |
 | Retain an executed retrieval | Python `apps.workflows.campaign.save_retrieval`; [capture contract](knowledge-retrieval-trace.md#retain-a-standalone-result) | Local evidence-writing | Saves an existing catalog/collect result under a fresh campaign capture ID; no new search or automatic publication |
@@ -121,7 +123,7 @@ the filtered package catalog and still returns complete catalog records. The
 membership and order. Use `--explain` for the recorded ranking and counts.
 
 - **Inputs:** optional query words and `--tier`, `--repo-type`, `--backend`, `--scenario`, `--limit`, `--json`, `--explain`; `show` takes one record ID.
-- **Scope:** the installed package catalog (`repo_packs`, `knowledge_packs`) only.
+- **Scope:** the installed package catalog (authored records and registered skill views in `skill_library/`) only.
 - **Output:** tab-separated record lines (id, status, backend, title), or a JSON list with `--json`; `--explain` returns a JSON envelope with `items` and `retrieval` (entry, ranking, scores and counts). Python uses `search_knowledge(..., explain=True)` for that envelope. `show` prints one full record as JSON.
 - **Side effects:** none.
 - **Failure behavior:** no match prints nothing and exits 0 — an empty result is not an error (an empty JSON list with `--json`, or empty `items` in the `--explain` envelope); an unknown `show` ID and unsupported filter values exit 2.
@@ -129,7 +131,7 @@ membership and order. Use `--explain` for the recorded ranking and counts.
 
 The tier/repo/backend/scenario filters are package-only: an empty filtered
 result does not mean that no checkout or store knowledge exists. See the
-[three-tier guide](../src/inferrsi/knowledge/data/knowledge_packs/README.md) for all sources.
+[three-tier guide](../src/inferrsi/knowledge/data/skill_library/records/README.md) for all sources.
 
 ### Prepare model-aware research — `knowledge research`
 
@@ -145,17 +147,17 @@ Each research query uses Find over the same filtered package catalog. Querying
 separate dimensions broadens discovery while preserving the active package filters.
 Keep those filters explicit when transferring mechanisms from other backends;
 target intent does not qualify their applicability. Read the canonical
-[preparation procedure](../src/inferrsi/knowledge/data/skill_library/workflows/inference-engine-research/references/model-aware-preparation.md)
-and the repository-owned [h3.c residency audit](../src/inferrsi/knowledge/data/skill_library/repositories/h3-c/audit-h3-runtime-residency/SKILL.md)
+[preparation procedure](../src/inferrsi/knowledge/data/skill_library/workflows/research/inference-engine-research/references/model-aware-preparation.md)
+and the repository-owned [h3.c residency audit](../src/inferrsi/knowledge/data/skill_library/systems/engines/h3-c/audit-h3-runtime-residency/SKILL.md)
 for native-engine reference selection, full encoder/DiT/VAE accounting,
 quantized-package compatibility and target hardware decisions. Returned resource
 paths are relative to `importlib.resources.files("inferrsi")` and ship in the wheel.
 The small model profile links that skill's full inventory and worked example;
 those resources retain their repository owner and source attribution.
 
-### Discover/read packaged or custom skills — `skills list` / `show` / `resource` / `reference`
+### Discover/read packaged or custom skills — `skills list` / `enter` / `show` / `resource` / `reference`
 
-- **Inputs:** `list` reads frontmatter and sidecar metadata; `show <skill>` selects one instruction body; `resource <skill> <relative-path>` and `reference <skill> <relative-path>` resolve one path. The default is the installed library's registered skills; an explicit `--root` selects a custom flat tree or a categorized library with `skill-index.json`. The optional `skills` extra supplies the YAML parser.
+- **Inputs:** The agent selects a primary skill by deliverable and runs `inferrsi skills enter task-accuracy`, for example. It returns the primary's complete procedure and host header before supporting evidence search. The base installation can omit the embedded search metadata from this delivery. A pinned `read --resource` exposes the complete source file, including its metadata. An unknown, unavailable or non-primary owner is an error. `list` reads skill frontmatter (and legacy sidecars in historical/custom checkouts); `show <skill>` selects one instruction body; `resource <skill> <relative-path>` and `reference <skill> <relative-path>` resolve one path. The default is the installed library's registered skills; an explicit `--root` selects a custom flat tree or a categorized library with `skill-index.json`. The optional `skills` extra supplies the YAML parser for frontmatter operations.
 - **Scope:** complete packaged skills under `data/skill_library/`, or the explicitly selected custom root. The 21 English engine and research-router skills remain accessible through catalog records and library navigation, separately from the registry.
 - **Output:** metadata listing, one instruction body, or a resolved path.
 - **Side effects:** none. `resource`/`reference` do not load or execute the target.
@@ -210,7 +212,7 @@ including `昇腾` for Ascend. When the query names exactly one supported backen
 results declared for a different backend receive half their lexical score.
 `--explain` reports the adjusted contribution of each matched term.
 
-Chinese query terms expand through `data/query_aliases.json` before ranking.
+Chinese query terms expand through `data/skill_library/config/query_aliases.json` before ranking.
 The packaged library is English by policy while its readers work in Chinese, and
 the corpus holds too few Chinese characters for a Chinese query to score on its
 subject. Expansion is one-way and query-side: 显存 reaches `device memory`, not
@@ -244,7 +246,10 @@ question calls for prior evidence.
   `checkout:` read reference uses `--installed-library` to resolve the source
   from the reader's installation. A custom root uses `--skill-root`.
   Where recorded, items carry source, summary, applicability, limitations and
-  local verification status. Case findings are ordered by query overlap,
+  local verification status. The limitations preview contains up to three
+  complete entries within a 400-byte UTF-8 JSON list. `limitations_withheld`
+  counts omitted entries. Open the owner for the complete list.
+  Case findings are ordered by query overlap,
   with `findings_total` and `findings_withheld` describing the available preview.
   Each finding carries its outcome, reason, revisit condition and any assessed
   scope and bounds. `bounds_source` identifies whether bounds apply to the
@@ -255,7 +260,13 @@ question calls for prior evidence.
   full subprocess arguments as `open_argv` and InferRSI CLI arguments as
   `read_args`. The arguments include the source-qualified ID and any needed
   source flag. Most hits use `read --material --omit-resources` to return the
-  full entrypoint, provenance and revision. Remove
+  entrypoint content, provenance and revision. For a skill, the procedure
+  omits the embedded machine annotation. A readable hit's
+  `next_read_content_bytes` counts the UTF-8 bytes in that command's `content`
+  on the snapshot inspected by Find. For a future unpinned read this field
+  is a size estimate. A later edit can change the content and its size.
+  Use Collect's context budget for bounded delivery. The count excludes the
+  envelope and additional resources. Remove
   `--omit-resources` to list the bundle's resources. Hits that fail the reader's
   material check carry `unreadable` with the reason.
 - **Base installation.** When PyYAML is absent, an installed Skill with a

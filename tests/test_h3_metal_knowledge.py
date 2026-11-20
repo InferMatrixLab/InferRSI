@@ -25,9 +25,9 @@ from inferrsi.knowledge.skill_catalog import get_skill, skill_metadata
 PROJECT = Path(__file__).resolve().parents[1]
 LIBRARY = PROJECT / "src/inferrsi/knowledge/data/skill_library"
 NAME = "audit-h3-metal-fasth3-semantics"
-OWNER = LIBRARY / "repositories/h3-metal" / NAME
+OWNER = LIBRARY / "systems/engines/h3-metal" / NAME
 IDENTITY = "inferrsi.common.skills.audit_h3_metal_fasth3_semantics"
-PREFIX = f"data/skill_library/repositories/h3-metal/{NAME}/"
+PREFIX = f"data/skill_library/systems/engines/h3-metal/{NAME}/"
 CASES = PROJECT / "tests/fixtures/repo_to_skill/h3-metal/test-cases"
 COMMIT = "4ba47a3eabdbebf801ac6664b31f8ec168bc57a8"
 SOURCE_MAP_SHA256 = "e53bca079cfc318ae82d35c9cb5e70c61bb2f84a67edcb0af5efffe8b2f407d2"
@@ -79,7 +79,7 @@ def test_discovery_and_complete_checkout_package_resources():
     for relative in set(get_skill(LIBRARY, NAME)["resources"]) | {"SKILL.md"}:
         expected = (OWNER / relative).read_bytes()
         assert packaged.content[PREFIX + relative] == expected
-        assert local.content[f"repositories/h3-metal/{NAME}/{relative}"] == expected
+        assert local.content[f"systems/engines/h3-metal/{NAME}/{relative}"] == expected
         assert reader.resource(IDENTITY, PREFIX + relative, revision=packaged.revision) == expected
 
 

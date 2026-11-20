@@ -38,7 +38,8 @@ def capture_context(root: Path, *, context_id: str, reader, query: str = "",
                     kind: str | None = None, repo: str | None = None, tier: str | None = None,
                     backend: str | None = None, scenario: str | None = None,
                     limit: int = 5, context_bytes: int = 65536,
-                    sources: tuple[str, ...] = ("package",)) -> tuple[Path, str]:
+                    sources: tuple[str, ...] = ("package",),
+                    diagnosis_binding: dict | None = None) -> tuple[Path, str]:
     """Run ``collect`` with a context budget and keep its complete envelope.
 
     The capture is produced by the same ``collect`` operation the agent uses,
@@ -87,9 +88,10 @@ def capture_context(root: Path, *, context_id: str, reader, query: str = "",
             context_bytes_used=result.get("context_bytes"),
             contexts=contexts,
             assembled_text=assemble_context_text(contexts),
+            diagnosis_binding=diagnosis_binding,
         )
     return save_retrieval(root, context_id=context_id, result=result, request=request,
-                          wrapper="campaign capture-context")
+                          wrapper="campaign capture-context", diagnosis_binding=diagnosis_binding)
 
 
 def _supplies_no_observation(result: dict) -> bool:
@@ -98,19 +100,26 @@ def _supplies_no_observation(result: dict) -> bool:
         key in view for view in result.get("items", []) for key in PROVENANCE_FIELDS)
 
 
+def _captured_resource(resource: dict) -> dict:
+    keys = ("path", "role", "sha256", "content")
+    if resource.get("locator") == "skill-procedure":
+        keys += ("locator", "source_sha256", "source_byte_ranges")
+    return {key: resource[key] for key in keys}
+
+
 def _contexts(result: dict) -> list[dict]:
     return [{
         "ref": context["ref"], "revision": context["revision"],
         "content_bytes": context["content_bytes"],
-        "resources": [{key: resource[key] for key in ("path", "role", "sha256", "content")}
-                      for resource in context["resources"]],
+        "resources": [_captured_resource(resource) for resource in context["resources"]],
         "omissions": context["omissions"],
         "sources": context.get("sources", []),
     } for context in result.get("contexts", [])]
 
 
 def save_retrieval(root: Path, *, context_id: str, result: dict,
-                   request: dict | None = None, wrapper: str | None = None) -> tuple[Path, str]:
+                   request: dict | None = None, wrapper: str | None = None,
+                   diagnosis_binding: dict | None = None) -> tuple[Path, str]:
     """Explicitly retain a search/collect result without executing another search.
 
     The caller owns this local capture. Review/redact the bundle before sharing;
@@ -144,6 +153,7 @@ def save_retrieval(root: Path, *, context_id: str, result: dict,
         contexts=contexts,
         assembled_text=assemble_context_text(contexts),
         retrieval=retrieval,
+        diagnosis_binding=diagnosis_binding,
         # A result without an observation has no recorded entry point. It is
         # labelled unknown; a plausible current default is not evidence.
         captured_by=f"inferrsi {(retrieval or {}).get('entrypoint', 'unknown')} {__version__}",

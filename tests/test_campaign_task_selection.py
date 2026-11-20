@@ -1,3 +1,4 @@
+import hashlib
 import json
 import shutil
 
@@ -175,3 +176,39 @@ def test_find_does_not_infer_case_backend_from_applicability(tmp_path):
     assert counts["considered"] == 1
     assert counts["excluded"]["ranking_scope"] == 1
     assert counts["excluded"]["filters"] == 0
+
+
+def test_task_skills_are_explicitly_readable_but_never_ranked_into_campaign(tmp_path):
+    create_campaign(tmp_path, "routing")
+    reader = KnowledgeReader()
+    tasks = ("inference_task_router", "task_day_0", "task_performance", "task_debug",
+             "task_accuracy", "task_version_alignment", "task_derived_engine",
+             "task_independent_engine")
+    task_refs = {f"package:inferrsi.common.skills.{task}" for task in tasks}
+    cue = "inference-task-router day-0 model onboarding performance accuracy"
+    options = {"context_bytes": 65536, "limit": 135, "repo": "inferrsi", "kind": "knowledge"}
+    path, _ = capture_context(tmp_path, context_id="ranked", reader=reader,
+                              relevance=cue, **options)
+    ranked, state = verify_capture(path.read_bytes())
+    assert state == "verified" and ranked["items"]
+    assert ranked["retrieval"]["counts"]["considered"] == 128
+    for group in ("items", "contexts", "context_omissions"):
+        assert task_refs.isdisjoint(item.get("ref") for item in ranked[group])
+    refs = sorted(task_refs)
+    path, _ = capture_context(tmp_path, context_id="explicit", reader=reader, ids=refs,
+                              **{**options, "context_bytes": 1024 * 1024})
+    exact, state = verify_capture(path.read_bytes())
+    assert state == "verified"
+    assert {item["ref"] for item in exact["items"]} == task_refs
+    assert {item["ref"] for item in exact["contexts"]} == task_refs
+    for context in exact["contexts"]:
+        core = next(resource for resource in context["resources"] if resource["role"] == "core")
+        assert core["locator"] == "skill-procedure"
+        source = reader.resource(context["ref"], core["path"], revision=context["revision"])
+        delivered = core["content"].encode("utf-8")
+        assert hashlib.sha256(source).hexdigest() == core["source_sha256"]
+        assert hashlib.sha256(delivered).hexdigest() == core["sha256"]
+        assert b"".join(source[a:b] for a, b in core["source_byte_ranges"]) == delivered
+    for item in exact["items"]:
+        pinned = reader.read(item["ref"], revision=item["revision"])
+        assert pinned.metadata["id"] == item["ref"].split(":")[1]

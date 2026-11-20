@@ -60,6 +60,7 @@ sequenceDiagram
     loop 每次命令独立进入相同的执行与判定链路
         alt 继续搜索：准备一轮候选
             A->>A: 分析反馈，按需 profiling，明确本轮问题
+            A->>C: campaign diagnose：记录瓶颈及其测量依据
             opt 需要资料且知识开关允许
                 A->>C: campaign knowledge：提交查询、检索方式和上下文预算
                 C->>H: session_command：传入查询、KnowledgeReader 和记录回调
@@ -143,8 +144,8 @@ Harness 没有常驻 Agent 驱动。Agent 逐次调用这些操作，代码在�
 
 | 场景 | 入口 | 候选与停止规则 |
 | --- | --- | --- |
-| 普通项目优化 | `campaign start/knowledge/round/status/final/recover` | 声明多个文件或目录；默认 `up_to` 轮次上限，final 必须说明结束原因；也支持 `exact` |
-| 题库优化 | `benchmarks session start/knowledge/round/status/final/recover` | 题包定义候选和评测；当前 Qwen 是单个 Python 文件、固定轮数 |
+| 普通项目优化 | `campaign start/diagnose/knowledge/round/status/final/recover` | 声明多个文件或目录；默认 `up_to` 轮次上限，final 必须说明结束原因；也支持 `exact` |
+| 题库优化 | `benchmarks session start/diagnose/knowledge/round/status/final/recover` | 题包定义候选和评测；当前 Qwen 是单个 Python 文件、固定轮数 |
 | 题库默认新会话 | `agents prepare/dispatch/bind/record` + 宿主工具 | 先派发任务；新会话创建 campaign 并执行到 final，父会话回收结果 |
 | 一次测量 | 原有 `run` 或 `benchmarks run` | 保留独立使用方式；不会自动生成多轮候选 |
 | 旧式手动 campaign | 原有 `campaign init/record/decide` | 兼容已有记录；不允许写进新控制器管理的 campaign 形成第二套状态 |
@@ -196,6 +197,7 @@ inferrsi campaign start --directory <campaign-dir-outside-project> \
 准备后，Agent 在当前会话循环：
 
 ```bash
+inferrsi campaign diagnose --directory <campaign-dir> --bottleneck '<observed-bottleneck>' --evidence <measurement-summary.txt>
 inferrsi campaign knowledge --directory <campaign-dir> --query '<current-question>' --context-bytes <budget>
 inferrsi campaign round --directory <campaign-dir> --candidate <editable-project> --hypothesis '<what-and-why>'
 inferrsi campaign status --directory <campaign-dir>
@@ -204,6 +206,12 @@ inferrsi dashboard --input <campaign-dir> --output <report.html>
 ```
 
 两个受管 `knowledge` 入口都用 Find 为当前问题排序，再按预算装配选中的正文和需要的资料，留存引用、版本和省略原因。显式传入旧 `--relevance-method` 可以复用对应的排序。知识检索和 profiling 按当前问题需要进行。冻结条件为 `--knowledge off` 时，受管 `knowledge` 操作拒绝执行。
+
+Harness 将证据优先的顺序默认写入新会话计划，适用于知识开启和关闭。Agent 先用同条件的
+profile 或测量确定瓶颈，提交包含 workload 和观测值的 UTF-8 摘要，再按需检索和
+提交候选。Harness 保留摘要，并把检索和候选轮次关联到诊断记录。已有记录可以
+继续使用，瓶颈变化时重新运行 `diagnose`。service-reuse 的 reference epoch 改变后
+需要记录新诊断。已有会话按其冻结计划继续。
 
 ## 实际保留什么、保护什么
 

@@ -223,6 +223,7 @@ def _prepare_at(config, sources, runtime, task_settings, root):
                                "condition": condition,
                                "workspace": workspace.relative_to(root).as_posix()})
     plan = {"schema_version": 1, "focus": "knowledge", "config": config,
+            "diagnosis_required": True,
             "parameter_sources": sources, "task_settings": task_settings,
             "runtime_files": {key: value for key, value in runtime_files.items()
                               if key not in knowledge_files},
@@ -280,6 +281,14 @@ def _prompt(root, plan, trial):
              "--evaluation-prefix", plan["task_settings"][trial["task"]]["evaluation_prefix"],
              "--evaluation-args", config["task_arguments"][trial["task"]],
              "--python", config["python"]]
+    diagnosis = ""
+    if plan.get("diagnosis_required"):
+        diagnosis = (
+            "Before searching, profile the frozen baseline or inspect existing measurements "
+            "for the same workload and environment. Record the bottleneck, workload scope and "
+            "observed measurements with benchmarks session diagnose --session <campaign> "
+            "--bottleneck <description> --evidence <UTF-8-measurement-summary>. "
+        )
     return (
         f"Run complete RSI optimization: {trial['task']}, condition {trial['condition']}.\n"
         f"Work only in {workspace}. Set PYTHONPATH to {runtime}; disable bytecode. "
@@ -302,10 +311,12 @@ def _prompt(root, plan, trial):
         "For remote execution, copy this exact runtime to the prepared target. Use a private "
         "campaign directory there; return its entire unchanged tree to workspace/campaign above. "
         "Preserve bytes and relative paths. Exclude other trials and runtimes.\n"
-        "Read frozen TASK.md. Analyze feedback and choose a justified optimization each round. "
+        f"Read frozen TASK.md. {diagnosis}"
+        "Analyze feedback and choose a justified optimization each round. "
         "Submit candidate, --strategy and --hypothesis; cite delivered --knowledge-ref paths when "
-        "used and retain failures. When enabled, retrieve/read relevant material with session "
-        "knowledge. Complete frozen rounds and independently retest the selected candidate "
+        "used and retain failures. When knowledge is enabled, use session knowledge for a "
+        "specific implementation question after diagnosing the bottleneck. Complete frozen "
+        "rounds and independently retest the selected candidate "
         "using session final. Never replace final with a search score.\n"
         "Return campaign, selected code, final delivery and environment observation. Report "
         "blocked/failed execution honestly. The initiator collects host receipts and actual usage."
@@ -440,6 +451,8 @@ def _trial_result(root, plan, trial, host):
                   "frozen_files": settings["files"]}
         if any(campaign_plan.get(key) != value for key, value in wanted.items()):
             result["gaps"].append("Campaign task, condition, protocol or budget differs from plan")
+        if plan.get("diagnosis_required") and campaign_plan.get("diagnosis_required") is not True:
+            result["gaps"].append("Campaign did not require measured bottleneck evidence")
         if campaign_plan.get("runtime_identity") != plan["session_runtime_identity"]:
             result["gaps"].append("Campaign runtime identity differs from the frozen runtime")
         result["knowledge_deliveries"] = control["contexts"]
@@ -465,6 +478,7 @@ def _trial_result(root, plan, trial, host):
             assessment = record["assessment"]
             result["trace"].append({
                 "round": index, "strategy": record.get("strategy") or record["hypothesis"],
+                "diagnosis_id": record.get("diagnosis_id"),
                 "hypothesis": record["hypothesis"],
                 "knowledge_refs": record.get("knowledge_refs"),
                 "available_contexts": record["contexts"],

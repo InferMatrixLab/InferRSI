@@ -12,8 +12,10 @@ from urllib.parse import unquote, urlsplit
 import pytest
 import yaml
 
+from inferrsi.knowledge.skill_catalog import skill_metadata
+
 PROJECT = Path(__file__).resolve().parents[1]
-ROOT = PROJECT / 'src/inferrsi/knowledge/data/skill_library/repositories/husky'
+ROOT = PROJECT / 'src/inferrsi/knowledge/data/skill_library/systems/engines/husky'
 FIXTURES = PROJECT / 'tests/fixtures/repo_to_skill/husky'
 
 
@@ -39,7 +41,7 @@ def test_husky_document_links_and_unknowns_remain_explicit():
                 continue
             selected = (path.parent / unquote(link.path)).resolve()
             assert selected.is_relative_to(ROOT.resolve()) and selected.is_file()
-    metadata = json.loads((ROOT / 'metadata.json').read_text())
+    metadata = skill_metadata(ROOT.parent, ROOT.name)
     assert metadata['status'] == 'candidate' and metadata['empirical_validation'] == 'not_run'
     assert metadata['construction']['native_import'] == 'not-run'
     availability = json.loads((ROOT / 'references/source-availability.json').read_text())

@@ -37,9 +37,9 @@ Put `pnpm` on `PATH` for plugin management. For DSH and Node.js setup, see the
 [DeepSeek Harness bundle guide](https://github.com/deepseek-ai/deepseek-harness/blob/master/docs/user/develop/basic/publish.md).
 
 Python 3.10+ must be available to the session's terminal. Core InferRSI
-operations run from the bundled runtime. The optional
-`skills` CLI and explicit checkout-skill sources require PyYAML. Git and the
-prepared target environment are needed for comparisons.
+operations and `skills enter <task-id>` run from the bundled runtime with the base
+interpreter. Install PyYAML for commands that parse skill frontmatter, including
+explicit checkout-skill sources. Comparisons also require Git and a prepared target.
 
 ## Start an iteration from the form
 
@@ -231,8 +231,14 @@ the launcher is `scripts/inferrsi.py`.
 
 - Use `--plugin-info` to check the selected interpreter, bundled runtime version,
   and content SHA-256. An unbuilt source checkout can report `0+unknown` as the
-  runtime version.
-- Use `find "<question>"` to search Cases, Skills and Records. Follow the
+  runtime version. The bundle is always a source build with no release mode, so
+  `package.json` `version` and `plugin_version` are `0.0.0+source`, which marks
+  it as not a release.
+- For an inference engineering task, select the primary skill by the requested
+  outcome. For example, load `skills enter task-performance` for a performance
+  goal and read its returned procedure. Record the actual workload, device,
+  engine and benchmark before choosing a supporting query.
+- Use `find "<question>"` to search supporting Cases, Skills and Records. Follow the
   emitted `read` command to inspect the selected material and its revision.
   On a remote connection, use `inferrsi_remote` with `operation: "cli"` and
   `args: ["find", "<question>", "--json"]`. Send the hit's `read_args` as

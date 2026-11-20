@@ -2,323 +2,355 @@
   "schema_version": 1,
   "skills": {
     "ascend-aclgraph-capture-replay": {
-      "path": "hardware/ascend/ascend-aclgraph-capture-replay",
+      "path": "systems/platforms/ascend/ascend-aclgraph-capture-replay",
       "backend": "ascend"
     },
     "ascend-device-health": {
-      "path": "hardware/ascend/ascend-device-health",
+      "path": "systems/platforms/ascend/ascend-device-health",
       "backend": "ascend"
     },
     "ascend-distributed-parallel": {
-      "path": "hardware/ascend/ascend-distributed-parallel",
+      "path": "systems/platforms/ascend/ascend-distributed-parallel",
       "backend": "ascend"
     },
     "ascend-graph-mode": {
-      "path": "hardware/ascend/ascend-graph-mode",
+      "path": "systems/platforms/ascend/ascend-graph-mode",
       "backend": "ascend"
     },
     "ascend-model-adaptation": {
-      "path": "hardware/ascend/ascend-model-adaptation",
+      "path": "systems/platforms/ascend/ascend-model-adaptation",
       "backend": "ascend"
     },
     "ascend-operator-profiling": {
-      "path": "hardware/ascend/ascend-operator-profiling",
+      "path": "systems/platforms/ascend/ascend-operator-profiling",
       "backend": "ascend"
     },
     "ascend-operator-tuning": {
-      "path": "hardware/ascend/ascend-operator-tuning",
+      "path": "systems/platforms/ascend/ascend-operator-tuning",
       "backend": "ascend"
     },
     "ascend-optimization-casebook": {
-      "path": "hardware/ascend/ascend-optimization-casebook",
+      "path": "casebooks/ascend/ascend-optimization-casebook",
       "backend": "ascend"
     },
     "ascend-performance-analysis": {
-      "path": "hardware/ascend/ascend-performance-analysis",
+      "path": "systems/platforms/ascend/ascend-performance-analysis",
       "backend": "ascend"
     },
     "ascend-video-diffusion-optimization": {
-      "path": "hardware/ascend/ascend-video-diffusion-optimization",
+      "path": "systems/platforms/ascend/ascend-video-diffusion-optimization",
       "backend": "ascend"
     },
     "ascendc-tiling-design": {
-      "path": "hardware/ascend/ascendc-tiling-design",
+      "path": "systems/platforms/ascend/ascendc-tiling-design",
       "backend": "ascend"
     },
     "assess-serving-preemption": {
-      "path": "methods/assess-serving-preemption",
+      "path": "playbooks/planning/assess-serving-preemption",
       "backend": "common"
     },
     "assess-split-backward-schedule": {
-      "path": "methods/assess-split-backward-schedule",
+      "path": "playbooks/planning/assess-split-backward-schedule",
       "backend": "common"
     },
     "audit-afd-p2p-exchanges": {
-      "path": "repositories/afd-plugin/audit-afd-p2p-exchanges",
+      "path": "systems/engines/afd-plugin/audit-afd-p2p-exchanges",
       "backend": "cuda"
     },
     "audit-fixed-workload-claim": {
-      "path": "methods/audit-fixed-workload-claim",
+      "path": "playbooks/measurement/audit-fixed-workload-claim",
       "backend": "common"
     },
     "audit-flare-session-lifecycle": {
-      "path": "repositories/flare-local-inference/audit-flare-session-lifecycle",
+      "path": "systems/engines/flare-local-inference/audit-flare-session-lifecycle",
       "backend": "cuda"
     },
     "audit-h3-metal-fasth3-semantics": {
-      "path": "repositories/h3-metal/audit-h3-metal-fasth3-semantics",
+      "path": "systems/engines/h3-metal/audit-h3-metal-fasth3-semantics",
       "backend": "common"
     },
     "audit-h3-runtime-residency": {
-      "path": "repositories/h3-c/audit-h3-runtime-residency",
+      "path": "systems/engines/h3-c/audit-h3-runtime-residency",
       "backend": "common"
     },
     "audit-llama-runtime-state": {
-      "path": "repositories/llama-cpp/audit-llama-runtime-state",
+      "path": "systems/engines/llama-cpp/audit-llama-runtime-state",
       "backend": "common"
     },
     "audit-recurrent-kv-finalization": {
-      "path": "repositories/vllm-rlt/audit-recurrent-kv-finalization",
+      "path": "systems/engines/vllm-rlt/audit-recurrent-kv-finalization",
       "backend": "common"
     },
     "audit-sd-cpp-residency": {
-      "path": "repositories/stable-diffusion-cpp/audit-sd-cpp-residency",
+      "path": "systems/engines/stable-diffusion-cpp/audit-sd-cpp-residency",
       "backend": "common"
     },
     "audit-sglang-diffusion-lifetimes": {
-      "path": "repositories/sglang/audit-sglang-diffusion-lifetimes",
+      "path": "systems/engines/sglang/audit-sglang-diffusion-lifetimes",
       "backend": "common"
     },
     "audit-vllm-kv-lifetimes": {
-      "path": "repositories/vllm/audit-vllm-kv-lifetimes",
+      "path": "systems/engines/vllm/audit-vllm-kv-lifetimes",
       "backend": "common"
     },
     "bound-windowed-attention-replay": {
-      "path": "repositories/deepinfer/bound-windowed-attention-replay",
+      "path": "systems/engines/deepinfer/bound-windowed-attention-replay",
       "backend": "common"
     },
     "budget-speculative-verification": {
-      "path": "repositories/deepinfer/budget-speculative-verification",
+      "path": "systems/engines/deepinfer/budget-speculative-verification",
       "backend": "common"
     },
     "calibrate-serving-simulation": {
-      "path": "methods/calibrate-serving-simulation",
+      "path": "playbooks/measurement/calibrate-serving-simulation",
       "backend": "common"
     },
     "cann-attribution-overlap": {
-      "path": "hardware/ascend/cann-attribution-overlap",
+      "path": "systems/platforms/ascend/cann-attribution-overlap",
       "backend": "ascend"
     },
     "cgroup-resource-controls": {
-      "path": "hardware/host/cgroup-resource-controls",
+      "path": "systems/platforms/host/cgroup-resource-controls",
       "backend": "common"
     },
     "checkpoint-recovery-consistency": {
-      "path": "methods/checkpoint-recovery-consistency",
+      "path": "playbooks/planning/checkpoint-recovery-consistency",
       "backend": "common"
     },
     "choose-parallel-training-plan": {
-      "path": "methods/choose-parallel-training-plan",
+      "path": "playbooks/planning/choose-parallel-training-plan",
       "backend": "common"
     },
     "cite-check-downstream-pr": {
-      "path": "workflows/cite-check-downstream-pr",
+      "path": "workflows/governance/cite-check-downstream-pr",
       "backend": "common"
     },
     "claim-contract": {
-      "path": "workflows/claim-contract",
+      "path": "workflows/governance/claim-contract",
       "backend": "common"
     },
     "comfy-ui": {
-      "path": "repositories/comfy-ui",
+      "path": "systems/engines/comfy-ui",
       "backend": "common"
     },
     "competitor-scan": {
-      "path": "workflows/competitor-scan",
+      "path": "workflows/research/competitor-scan",
       "backend": "common"
     },
     "dcp-async-save-performance": {
-      "path": "frameworks/pytorch/dcp-async-save-performance",
+      "path": "systems/frameworks/pytorch/dcp-async-save-performance",
       "backend": "common"
     },
     "dense-performance-evidence": {
-      "path": "methods/dense-performance-evidence",
+      "path": "playbooks/measurement/dense-performance-evidence",
       "backend": "common"
     },
     "diagnose-attention-bottlenecks": {
-      "path": "hardware/cuda/diagnose-attention-bottlenecks",
+      "path": "systems/platforms/cuda/diagnose-attention-bottlenecks",
       "backend": "cuda"
     },
     "diagnose-vllm-admission-pressure": {
-      "path": "repositories/vllm/diagnose-vllm-admission-pressure",
+      "path": "systems/engines/vllm/diagnose-vllm-admission-pressure",
       "backend": "common"
     },
     "diffusers-invocation-state": {
-      "path": "frameworks/diffusers/diffusers-invocation-state",
+      "path": "systems/frameworks/diffusers/diffusers-invocation-state",
       "backend": "common"
     },
     "draft-acceptance-issue": {
-      "path": "workflows/draft-acceptance-issue",
+      "path": "workflows/governance/draft-acceptance-issue",
       "backend": "common"
     },
     "dwarfstar": {
-      "path": "repositories/dwarfstar",
+      "path": "systems/engines/dwarfstar",
       "backend": "common"
     },
     "evaluate-elastic-serving-placement": {
-      "path": "methods/evaluate-elastic-serving-placement",
+      "path": "playbooks/planning/evaluate-elastic-serving-placement",
       "backend": "common"
     },
     "generation-cache-lifecycle": {
-      "path": "repositories/mlx-lm/generation-cache-lifecycle",
+      "path": "systems/engines/mlx-lm/generation-cache-lifecycle",
       "backend": "common"
     },
     "host-memory-management": {
-      "path": "hardware/host/host-memory-management",
+      "path": "systems/platforms/host/host-memory-management",
       "backend": "common"
     },
     "host-overhead-optimization": {
-      "path": "hardware/host/host-overhead-optimization",
+      "path": "systems/platforms/host/host-overhead-optimization",
       "backend": "common"
     },
     "host-overhead-profiling": {
-      "path": "hardware/cuda/host-overhead-profiling",
+      "path": "systems/platforms/cuda/host-overhead-profiling",
       "backend": "cuda"
     },
     "husky": {
-      "path": "repositories/husky",
+      "path": "systems/engines/husky",
       "backend": "common"
     },
     "inference-benchmark-design": {
-      "path": "methods/inference-benchmark-design",
+      "path": "playbooks/measurement/inference-benchmark-design",
       "backend": "common"
     },
     "inference-optimization-casebook": {
-      "path": "methods/inference-optimization-casebook",
+      "path": "casebooks/inference/inference-optimization-casebook",
+      "backend": "common"
+    },
+    "inference-task-router": {
+      "path": "tasks/inference-task-router",
       "backend": "common"
     },
     "kernel-writing-guide": {
-      "path": "methods/kernel-writing-guide",
+      "path": "playbooks/optimization/kernel-writing-guide",
       "backend": "common"
     },
     "kv-tier-management": {
-      "path": "repositories/lmcache/kv-tier-management",
+      "path": "systems/engines/lmcache/kv-tier-management",
       "backend": "common"
     },
     "lazy-evaluation-stream-lifetimes": {
-      "path": "frameworks/mlx/lazy-evaluation-stream-lifetimes",
+      "path": "systems/frameworks/mlx/lazy-evaluation-stream-lifetimes",
       "backend": "common"
     },
     "lily": {
-      "path": "repositories/lily",
-      "backend": "common"
-    },
-    "local-dream": {
-      "path": "repositories/local-dream",
-      "backend": "common"
-    },
-    "mistral-rs": {
-      "path": "repositories/mistral-rs",
-      "backend": "common"
-    },
-    "mlc-llm": {
-      "path": "repositories/mlc-llm",
-      "backend": "common"
-    },
-    "mlx-swift-lm": {
-      "path": "repositories/mlx-swift-lm",
-      "backend": "common"
-    },
-    "npu-skill-factory": {
-      "path": "workflows/npu-skill-factory",
-      "backend": "common"
-    },
-    "optimization-search-policy": {
-      "path": "methods/optimization-search-policy",
-      "backend": "common"
-    },
-    "os-process-placement": {
-      "path": "hardware/host/os-process-placement",
-      "backend": "common"
-    },
-    "performance-ceiling-analysis": {
-      "path": "methods/performance-ceiling-analysis",
-      "backend": "common"
-    },
-    "plan-activation-residency": {
-      "path": "methods/plan-activation-residency",
-      "backend": "common"
-    },
-    "project-maya": {
-      "path": "repositories/project-maya",
-      "backend": "common"
-    },
-    "pytorch": {
-      "path": "frameworks/pytorch/pytorch",
-      "backend": "common"
-    },
-    "reason-hopper-kernels": {
-      "path": "hardware/cuda/reason-hopper-kernels",
-      "backend": "cuda"
-    },
-    "repository-evolution-analysis": {
-      "path": "methods/repository-evolution-analysis",
-      "backend": "common"
-    },
-    "rsi-evidence": {
-      "path": "workflows/rsi-evidence",
-      "backend": "common"
-    },
-    "skill-evolution-playbook": {
-      "path": "methods/skill-evolution-playbook",
-      "backend": "common"
-    },
-    "splash": {
-      "path": "repositories/splash",
-      "backend": "common"
-    },
-    "storage-io-measurement": {
-      "path": "hardware/host/storage-io-measurement",
-      "backend": "common"
-    },
-    "torch-npu": {
-      "path": "frameworks/torch-npu/torch-npu",
-      "backend": "ascend"
-    },
-    "torchnpu-device-memory-lifecycle": {
-      "path": "hardware/ascend/torchnpu-device-memory-lifecycle",
-      "backend": "ascend"
-    },
-    "torchnpu-pinned-host-memory-lifecycle": {
-      "path": "hardware/ascend/torchnpu-pinned-host-memory-lifecycle",
-      "backend": "ascend"
-    },
-    "training-input-pipeline": {
-      "path": "methods/training-input-pipeline",
-      "backend": "common"
-    },
-    "training-resource-budget": {
-      "path": "methods/training-resource-budget",
-      "backend": "common"
-    },
-    "video-diffusion-optimization": {
-      "path": "methods/video-diffusion-optimization",
-      "backend": "common"
-    },
-    "vllm-ascend": {
-      "path": "repositories/vllm-ascend",
-      "backend": "ascend"
-    },
-    "vllm-metal": {
-      "path": "repositories/vllm-metal",
-      "backend": "common"
-    },
-    "weight-loading-optimization": {
-      "path": "methods/weight-loading-optimization",
+      "path": "systems/engines/lily",
       "backend": "common"
     },
     "lithos-metal": {
-      "path": "repositories/lithos-metal",
+      "path": "systems/engines/lithos-metal",
+      "backend": "common"
+    },
+    "local-dream": {
+      "path": "systems/engines/local-dream",
+      "backend": "common"
+    },
+    "mistral-rs": {
+      "path": "systems/engines/mistral-rs",
+      "backend": "common"
+    },
+    "mlc-llm": {
+      "path": "systems/engines/mlc-llm",
+      "backend": "common"
+    },
+    "mlx-swift-lm": {
+      "path": "systems/engines/mlx-swift-lm",
+      "backend": "common"
+    },
+    "npu-skill-factory": {
+      "path": "workflows/maintenance/npu-skill-factory",
+      "backend": "common"
+    },
+    "optimization-search-policy": {
+      "path": "playbooks/planning/optimization-search-policy",
+      "backend": "common"
+    },
+    "os-process-placement": {
+      "path": "systems/platforms/host/os-process-placement",
+      "backend": "common"
+    },
+    "performance-ceiling-analysis": {
+      "path": "playbooks/measurement/performance-ceiling-analysis",
+      "backend": "common"
+    },
+    "plan-activation-residency": {
+      "path": "playbooks/planning/plan-activation-residency",
+      "backend": "common"
+    },
+    "project-maya": {
+      "path": "systems/engines/project-maya",
+      "backend": "common"
+    },
+    "pytorch": {
+      "path": "systems/frameworks/pytorch/pytorch",
+      "backend": "common"
+    },
+    "reason-hopper-kernels": {
+      "path": "systems/platforms/cuda/reason-hopper-kernels",
+      "backend": "cuda"
+    },
+    "repository-evolution-analysis": {
+      "path": "workflows/research/repository-evolution-analysis",
+      "backend": "common"
+    },
+    "rsi-evidence": {
+      "path": "workflows/governance/rsi-evidence",
+      "backend": "common"
+    },
+    "skill-evolution-playbook": {
+      "path": "workflows/maintenance/skill-evolution-playbook",
+      "backend": "common"
+    },
+    "splash": {
+      "path": "systems/engines/splash",
+      "backend": "common"
+    },
+    "storage-io-measurement": {
+      "path": "systems/platforms/host/storage-io-measurement",
+      "backend": "common"
+    },
+    "task-accuracy": {
+      "path": "tasks/task-accuracy",
+      "backend": "common"
+    },
+    "task-day-0": {
+      "path": "tasks/task-day-0",
+      "backend": "common"
+    },
+    "task-debug": {
+      "path": "tasks/task-debug",
+      "backend": "common"
+    },
+    "task-derived-engine": {
+      "path": "tasks/task-derived-engine",
+      "backend": "common"
+    },
+    "task-independent-engine": {
+      "path": "tasks/task-independent-engine",
+      "backend": "common"
+    },
+    "task-performance": {
+      "path": "tasks/task-performance",
+      "backend": "common"
+    },
+    "task-version-alignment": {
+      "path": "tasks/task-version-alignment",
+      "backend": "common"
+    },
+    "torch-npu": {
+      "path": "systems/frameworks/torch-npu/torch-npu",
+      "backend": "ascend"
+    },
+    "torchnpu-device-memory-lifecycle": {
+      "path": "systems/platforms/ascend/torchnpu-device-memory-lifecycle",
+      "backend": "ascend"
+    },
+    "torchnpu-pinned-host-memory-lifecycle": {
+      "path": "systems/platforms/ascend/torchnpu-pinned-host-memory-lifecycle",
+      "backend": "ascend"
+    },
+    "training-input-pipeline": {
+      "path": "playbooks/optimization/training-input-pipeline",
+      "backend": "common"
+    },
+    "training-resource-budget": {
+      "path": "playbooks/planning/training-resource-budget",
+      "backend": "common"
+    },
+    "video-diffusion-optimization": {
+      "path": "playbooks/optimization/video-diffusion-optimization",
+      "backend": "common"
+    },
+    "vllm-ascend": {
+      "path": "systems/engines/vllm-ascend",
+      "backend": "ascend"
+    },
+    "vllm-metal": {
+      "path": "systems/engines/vllm-metal",
+      "backend": "common"
+    },
+    "weight-loading-optimization": {
+      "path": "playbooks/optimization/weight-loading-optimization",
       "backend": "common"
     }
   }

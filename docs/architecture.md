@@ -82,7 +82,7 @@ Reviewed paper comparisons, readsets and cases live under their owning skill's
 Paper knowledge does not supply repository-only schema fields such as a Git SHA,
 so it remains linked Markdown rather than a parallel registry or fabricated
 `repo_packs` record. The [knowledge-base contract](knowledge-base.md) defines
-local sidecar ownership, typed source examples, shared checkout references and
+skill-local metadata ownership, typed source examples, shared checkout references and
 legacy package compatibility. Normalized reads and bounded Collect
 ([knowledge-operations.md](knowledge-operations.md)) and the authorized local
 store ([knowledge-store.md](knowledge-store.md)) are implemented Python
@@ -215,6 +215,16 @@ src/inferrsi/
       skill_evaluation.py   Composed bundle export, trial run and summary
       skill_eval_engineering.py Composed artifact check: task rules around sandbox replay
       improvement.py        Composed assessment, selection, rerun and holdout acceptance
+    integrations/
+      cannbot/
+        __init__.py         CannbotChannel implementation and channel result adaptation
+        project.py          Opt-in checkout/interpreter grant and read-only operations
+        read_worker.py      Standalone worker run by the approved Cannbot interpreter
+      anthropic/
+        anthropic_agent.py  Bounded direct Messages agent with frozen cost reservations
+        anthropic_edit_agent.py  Bounded edit-and-check protocol
+        request_guard.py    Request authorization broker, loaded by file location
+    artifacts.py            Apps-owned hashing, file lock and evidence writes
     mindie/
       project.py            Opt-in per-checkout grant, the worker launch and the recorded read
       context.py            Export supplied MindIE reads into a caller-reviewed campaign trace
@@ -279,15 +289,8 @@ src/inferrsi/
       server.py             Supervised Linux serving workers and their group cleanup
       http.py               Timed JSON POST transport
       image.py              OpenAI-style image payload and PNG response protocol
-    artifacts.py            Apps-owned hashing, file lock and evidence writes
-    integrations/anthropic/
-      anthropic_agent.py    Bounded direct Messages agent with frozen cost reservations
-      anthropic_edit_agent.py  Bounded edit-and-check protocol
-      request_guard.py      Request authorization broker, loaded by file location
-  data/
-    repo_packs/             Contribution descriptors and versioned tuning knowledge
-    knowledge_packs/        Dependency and peer knowledge, preserving existing tiers
-    skill_library/          Complete categorized English skills and resources
+  knowledge/data/skill_library/  Registered skills, engineering records, configuration and compiled inputs
+  harness/data/repo_packs/       Execution target descriptors
 examples/                   Current Qwen runner, image validator and v4 adapter
 tests/fixtures/legacy/      Frozen historical validation dependencies for regressions
 ```
@@ -440,26 +443,17 @@ operations or the control CLI to Linux.
 Package data is the canonical source for noneditable installations:
 
 ```text
-inferrsi/knowledge/data/repo_packs/REPO/knowledge/
-  README.md                       Organization and navigation only
-  BACKEND/COMPONENT/ENTRY.json     One canonical reusable experience
-inferrsi/knowledge/data/repo_packs/inferrsi/knowledge/
-                                  Generated from data/skill_library/, never hand-edited
-inferrsi/knowledge/data/knowledge_packs/
-  README.md                       Three-tier source navigation
-  dependency/REPO/BACKEND/COMPONENT/ENTRY.json
-  peer/REPO/BACKEND/COMPONENT/ENTRY.json
+inferrsi/knowledge/data/skill_library/
+  tasks/  systems/  playbooks/  workflows/  casebooks/  Registered owners
+  records/<stable-id>.json       One authored engineering finding
+  config/                        Aliases and research profiles
+  _compiled/                     Build-time YAML headers and Git fingerprints
+  skill-index.json               Stable ID, physical path and backend
 ```
 
 JSON owns applicability, claims, recommendations, validation and limitations;
 `knowledge search`, `knowledge show` and human-readable `context` use that same
-record. Per-entry duplicate READMEs are removed. The loader validates that
-repository, backend, component and stable ID agree with the path.
-The learning tier is an independent acquisition policy: contribution packs
-retain their paths, while external dependency/peer packs add source-owned
-candidates. Tier/source/backend/scenario filters intersect before ranking and
-limits; no downstream repository inherits external knowledge implicitly.
-Knowledge-only sources do not extend the executable repository registry.
+record. The tier identifies each source relationship. The reader validates the repository, backend and component encoded in the stable filename.
 
 A backend filter includes that backend and repository-local `common` methods;
 scenario filters select exact workloads or component wildcards. Model, SKU,
@@ -472,25 +466,26 @@ guidance or reported measurements independently from a source's merge status.
 Imported skills are source material, not executable tool authority. CPU tests
 do not upgrade imported knowledge to a validated claim.
 
-The optional `skills` CLI defaults to the installed `data/skill_library/` and
-its `skill-index.json` registry of stable skill IDs. Hardware-specific content
-lives under `hardware/ascend`, `hardware/cuda` or `hardware/host`; other skills
-are grouped by framework, repository, method or workflow. Full procedures,
-sidecars, references and cases ship with the package. Engine entry skills live
-under `repositories/<engine>/`, the collection router under
-`workflows/inference-engine-research/`. All library content is in English.
-Supporting documents are owner-local; only `README.md` and `skill-index.json`
-remain at the library root. An explicit
-`--root` can still select a custom flat skills tree or a registry-based library. The CLI uses PyYAML from the `skills` extra,
-lists metadata, reads a named body or resolves a named resource for an external
-file reader. It never executes, installs or promotes skills. Core knowledge
-commands read catalog JSON and packaged documents without the optional parser;
-the two matrices retain their authority.
+The bundled skill CLI uses `data/skill_library/` and its `skill-index.json` registry.
+The main agent selects one primary procedure from `tasks/` and reads it with
+`skills enter <task-id>` before searching for supporting evidence. The base
+runtime loads the complete packaged primary procedure and its host header without PyYAML.
+The structured InferRSI annotation stays in the pinned source file.
+
+Supporting procedures live in `systems/`, `playbooks/`, `workflows/` and
+`casebooks/`. Engine owners live under `systems/engines/<engine>/`. Each owner
+packages its full English procedure, embedded metadata, references and cases. The library
+also owns authored findings in `records/`, search configuration in `config/`
+and generated build inputs in `_compiled/`. An explicit `--root` selects a
+custom flat or registry-based library. Readers that parse skill frontmatter use
+PyYAML from the `skills` extra. Core knowledge commands read catalog views and
+packaged documents with the base interpreter. The two matrices retain their
+authority. [Directory and search diagrams](knowledge-layout.md)
 
 Run evidence remains in the caller-selected run directory; frozen campaign
 plans/results/patches/validators remain under `evidence/`.
 
-See the [knowledge guide](../src/inferrsi/knowledge/data/knowledge_packs/README.md)
+See the [knowledge guide](../src/inferrsi/knowledge/data/skill_library/records/README.md)
 for all entries, retrieval rules and the maintenance workflow.
 
 The earlier [component design](assets/component-architecture-en.svg) and
@@ -506,8 +501,8 @@ automatic promotion into the knowledge catalog or RunSpec. The original diagram
 is preserved; the [source audit](reviews/source-audit-ac70272.md) tracks cleanup
 portability and other implementation gaps.
 
-The migrated skills have [generated catalog records](../src/inferrsi/knowledge/data/repo_packs/inferrsi/knowledge/README.md)
-in `data/repo_packs/inferrsi/knowledge/`, with backend-scoped IDs and
+The migrated skills have [generated catalog records](../src/inferrsi/knowledge/data/skill_library/README.md)
+assembled at read time, with backend-scoped IDs and
 `skill_documents.original` pointing to the complete packaged procedures.
 Normalized reads retain the library's dependency resources. The library is the
 single content owner.

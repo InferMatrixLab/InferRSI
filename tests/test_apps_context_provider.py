@@ -21,7 +21,9 @@ def _request(**overrides):
 
 def test_delivery_uses_exact_fixed_resource_bytes_in_knowledge_order():
     reader = knowledge_reader()
-    revisions = {ref: reader.read(ref).revision for ref in (_H3, _CGROUP)}
+    # local-dream includes a Python helper that must remain a reported omission.
+    refs = (_H3, _CGROUP, "package:inferrsi.common.skills.local_dream")
+    revisions = {ref: reader.read(ref).revision for ref in refs}
     pins = [{"name": ref, "revision": revision} for ref, revision in revisions.items()]
     request = _request(ids=list(revisions), pins=pins, max_bytes=262144)
     provider = ContextProvider(reader)
@@ -35,10 +37,15 @@ def test_delivery_uses_exact_fixed_resource_bytes_in_knowledge_order():
     expected = []
     for context, item in zip(contexts, draft.items, strict=True):
         resources = context["resources"]
-        body = b"".join(
-            reader.resource(context["ref"], r["path"], revision=context["revision"])
-            for r in resources
-        )
+        pieces = []
+        for resource in resources:
+            raw = reader.resource(context["ref"], resource["path"], revision=context["revision"])
+            if resource["locator"] == "skill-procedure":
+                assert sha256(raw).hexdigest() == resource["source_sha256"]
+                raw = b"".join(raw[start:end] for start, end in resource["source_byte_ranges"])
+            assert sha256(raw).hexdigest() == resource["sha256"]
+            pieces.append(raw)
+        body = b"".join(pieces)
         expected.append(body)
         assert item["delivered_roles"] == list(dict.fromkeys(r["role"] for r in resources))
         assert item["delivered_bytes"] == len(body)

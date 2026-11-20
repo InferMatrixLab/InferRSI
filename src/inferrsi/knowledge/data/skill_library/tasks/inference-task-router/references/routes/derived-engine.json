@@ -1,0 +1,23 @@
+{
+  "task": "derived-engine",
+  "title": "Build an engine derived from an existing runtime",
+  "choose_when": "The deliverable reuses the execution core of vLLM, vLLM-Omni or another pinned parent, as in a DeepInfer-like extension.",
+  "required_inputs": [
+    "parent repository, revision and retained modules",
+    "delta in model or scheduling contract",
+    "target hardware and workload",
+    "reference parent behavior"
+  ],
+  "steps": [
+    "Identify inherited execution paths and replacement seams.",
+    "Define compatibility for configuration, responses and state ownership.",
+    "Compare outputs and performance to the pinned parent on the same inputs."
+  ],
+  "acceptance_evidence": "A runnable derived-engine slice, a parent-versus-fork delta and reproducible parity/benchmark results.",
+  "candidate_skill_ids": [
+    "repository-evolution-analysis",
+    "bound-windowed-attention-replay",
+    "budget-speculative-verification",
+    "inference-benchmark-design"
+  ]
+}

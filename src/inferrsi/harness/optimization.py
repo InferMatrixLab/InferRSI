@@ -10,6 +10,8 @@ from pathlib import Path
 from . import candidates
 from .artifact_primitives import digest, file_lock, sha256
 from .atomic_json import atomic_write_json
+from .records.evidence import bounded_record_bytes, sanitized_text
+from .records.knowledge_capture import MAX_CONTEXT_CAPTURE_BYTES
 from .task_protocol import TaskProtocolError
 from .usage import normalize_usage, usage_totals
 
@@ -19,6 +21,7 @@ def _locked(root):
 
 
 def initialize(root: Path, plan: dict) -> dict:
+    plan["diagnosis_required"] = True
     if plan.get("evaluation_mode") == "service_reuse":
         return _service_initialize(root, plan)
     if type(plan["round_limit"]) is not int or plan["round_limit"] < 1:
@@ -74,6 +77,8 @@ def _control(root):
                 manifest.get("evaluation_mode") != "service_reuse"
                 or manifest.get("protocol_id") != plan["evaluation_settings"]["protocol_id"]
                 or state.get("protocol_id") != manifest["protocol_id"]
+                or manifest.get("diagnosis_required", False)
+                != plan.get("diagnosis_required", False)
             )
         ):
             raise ValueError("Incompatible service campaign records")
@@ -88,10 +93,25 @@ def _control(root):
     return plan, state
 
 
-def _load(root):
+def _read_context(root, reference):
+    raw, state = bounded_record_bytes(root, reference.get("path"), MAX_CONTEXT_CAPTURE_BYTES)
+    if raw is None:
+        raise ValueError(f"Invalid delivered knowledge context ({state})")
+    if hashlib.sha256(raw).hexdigest() != reference.get("sha256"):
+        raise ValueError("Delivered knowledge context changed")
+    try:
+        record = json.loads(raw)
+    except (ValueError, RecursionError):
+        raise ValueError("Invalid delivered knowledge context (invalid_format)") from None
+    if not isinstance(record, dict):
+        raise ValueError("Invalid delivered knowledge context (invalid_format)")
+    return record
+
+
+def _load(root, *, read_only=False):
     plan, state = _control(root)
     if plan.get("evaluation_mode") == "service_reuse":
-        return _service_load(root, plan, state)
+        return _service_load(root, plan, state, read_only=read_only)
     frozen = root / "frozen"
     paths = list(frozen.rglob("*"))
     if frozen.is_symlink() or any(path.is_symlink() for path in paths):
@@ -103,13 +123,33 @@ def _load(root):
         raise ValueError("Frozen baseline changed")
     if candidates.identity(root / state["best"]["path"]) != state["best"]["sha256"]:
         raise ValueError("Selected candidate changed")
+    diagnoses = _diagnosis_index(state)
+    contexts = {}
     for context in state["contexts"]:
-        if sha256(root / context["path"]) != context["sha256"]:
-            raise ValueError("Delivered knowledge context changed")
+        retained = _read_context(root, context)
+        if context.get("kind") not in ("external_search", "external_read"):
+            _check_context_diagnosis(plan, diagnoses, context, retained)
+        contexts[context["path"]] = context
     for record in [*state["rounds"], *([state["final"]] if state["final"] else [])]:
         directory = root / record["path"]
-        if sha256(directory / "observation.json") != record["observation_sha256"]:
+        raw = (directory / "observation.json").read_bytes()
+        if hashlib.sha256(raw).hexdigest() != record["observation_sha256"]:
             raise ValueError("Retained assessment record changed")
+        observation = json.loads(raw)
+        if any(observation.get(key) != record.get(key) for key in ("knowledge_refs", "contexts")):
+            raise ValueError("Round knowledge attribution differs from the retained observation")
+        if observation.get("knowledge_refs"):
+            submitted = {ref["path"]: ref for ref in observation["contexts"]}
+            for ref in observation["knowledge_refs"]:
+                path = ref.partition("#")[0]
+                if path not in submitted or submitted[path] != contexts.get(path):
+                    raise ValueError("Cited knowledge context differs from the submitted snapshot")
+        if record is not state["final"] and (
+            plan.get("diagnosis_required") or diagnoses or record.get("diagnosis_id")
+        ):
+            if observation.get("diagnosis_id") != record.get("diagnosis_id"):
+                raise ValueError("Round diagnosis differs from the retained observation")
+            _check_activity_diagnosis(plan, diagnoses, observation)
         if candidates.identity(directory / plan["candidate_name"]) != record["candidate_sha256"]:
             raise ValueError("Retained round candidate changed")
         if sha256(directory / "execution/execution.json") != record["execution_sha256"]:
@@ -126,7 +166,7 @@ def _load(root):
 def status(root: Path) -> dict:
     plan, control = _control(root)
     if plan.get("evaluation_mode") == "service_reuse":
-        plan, control = _load(root)
+        plan, control = _service_load(root, plan, control, read_only=True)
         return _service_status(root, plan, control)
     _, control = _control(root)
     if control["state"] == "blocked" and control.get("integrity_error"):
@@ -136,7 +176,10 @@ def status(root: Path) -> dict:
                 "can_finalize": False, "pending": control["pending"],
                 "integrity_error": control["integrity_error"], "summary": None}
     plan, state = _load(root)
-    next_action = "edit_candidate_and_submit_round"
+    next_action = (
+        "record_bottleneck_diagnosis" if plan.get("diagnosis_required") and not _diagnosis(state)
+        else "edit_candidate_and_submit_round"
+    )
     if len(state["rounds"]) == plan["round_limit"]:
         next_action = "independently_retest_selected_candidate_with_final"
     search_remaining = state["deadline"] - time.time() - plan["final_reserve_seconds"]
@@ -163,7 +206,10 @@ def status(root: Path) -> dict:
         "task_instructions": str(root / "frozen/TASK.md"),
         "working_candidate": str(root / plan["working_candidate"]),
         "best": state["best"], "pending": state["pending"],
+        **({"external_knowledge": plan["external_knowledge"]} if "external_knowledge" in plan
+           else {}),
         "latest_observation": state["rounds"][-1] if state["rounds"] else None,
+        "diagnosis": _diagnosis(state),
         "summary": str(root / "summary.json") if state["final"] is not None else None,
     }
 
@@ -175,19 +221,225 @@ def _active(state, *, reserve=0):
         raise ValueError("Optimization deadline exhausted, final evaluation is incomplete")
 
 
-def capture_context(root: Path, reader, *, retain_context, **request) -> dict:
+def _diagnosis(state):
+    records = state.get("diagnoses", [])
+    if records and records[-1]["reference_epoch"] == state.get("reference_epoch"):
+        return records[-1]
+    return None
+
+
+def _diagnosis_index(state):
+    index = {}
+    records = state.get("diagnoses", [])
+    if not isinstance(records, list):
+        raise ValueError("Invalid retained bottleneck diagnoses")
+    for record in records:
+        if (
+            not isinstance(record, dict)
+            or any(not isinstance(record.get(key), str) or not record[key].strip()
+                   for key in ("id", "bottleneck", "measurement_summary"))
+            or record["id"] in index
+            or "reference_epoch" not in record
+            or type(record.get("recorded_at")) not in (int, float)
+            or not 0 <= record["recorded_at"] < math.inf
+        ):
+            raise ValueError("Incomplete or duplicate retained bottleneck diagnosis")
+        index[record["id"]] = record
+    return index
+
+
+def _check_activity_diagnosis(plan, diagnoses, activity):
+    reference = activity.get("diagnosis_id")
+    if reference is None and not plan.get("diagnosis_required"):
+        return
+    if not isinstance(reference, str) or reference not in diagnoses:
+        raise ValueError("Campaign activity lacks a retained bottleneck diagnosis")
+    diagnosis = diagnoses[reference]
+    if (
+        type(activity.get("started_at")) not in (int, float)
+        or not 0 <= activity["started_at"] < math.inf
+        or diagnosis["recorded_at"] > activity["started_at"]
+        or diagnosis["reference_epoch"] != activity.get("reference_epoch")
+    ):
+        raise ValueError("Diagnosis must precede the activity under the same conditions")
+
+
+def _check_context_diagnosis(plan, diagnoses, reference, capture):
+    if not isinstance(capture, dict):
+        raise ValueError("Invalid retained knowledge capture")
+    binding = capture.get("diagnosis_binding")
+    if binding is None and not plan.get("diagnosis_required") and not reference.get("diagnosis_id"):
+        return
+    if (
+        not isinstance(binding, dict)
+        or not isinstance(binding.get("diagnosis_id"), str)
+        or binding["diagnosis_id"] != reference.get("diagnosis_id")
+        or "reference_epoch" not in binding
+    ):
+        raise ValueError("Knowledge diagnosis differs from the retained capture")
+    _check_activity_diagnosis(plan, diagnoses, binding)
+
+
+def _context_diagnosis(plan, state):
+    reference = _diagnosis_reference(plan, state)
+    if reference:
+        return {**reference, "reference_epoch": state.get("reference_epoch"),
+                "started_at": time.time()}
+    return None
+
+
+def _diagnosis_reference(plan, state):
+    diagnosis = _diagnosis(state)
+    if diagnosis:
+        return {"diagnosis_id": diagnosis["id"]}
+    if plan.get("diagnosis_required"):
+        raise ValueError("Record measured bottleneck evidence with diagnose first")
+    return {}
+
+
+def _retain_diagnosis(root, plan, state, bottleneck, evidence):
+    deadline = (_service_deadline(state) if plan.get("evaluation_mode") == "service_reuse"
+                else state["deadline"])
+    _active(
+        {**state, "deadline": deadline,
+         "state": "active" if state["state"] == "needs_baseline" else state["state"]},
+        reserve=plan["final_reserve_seconds"],
+    )
+    bottleneck = bottleneck.strip()
+    if not bottleneck or len(bottleneck) > 4096:
+        raise ValueError("Bottleneck must be a nonempty description of at most 4096 characters")
+    if evidence.is_symlink() or not evidence.is_file():
+        raise ValueError("Diagnosis evidence must be a regular UTF-8 measurement summary")
+    with evidence.open("rb") as stream:
+        raw = stream.read(65537)
+    if len(raw) > 65536:
+        raise ValueError("Diagnosis evidence exceeds 64 KiB; provide a measurement summary")
+    summary = raw.decode("utf-8").strip()
+    if not summary or "\x00" in summary:
+        raise ValueError("Diagnosis evidence must contain a nonempty UTF-8 measurement summary")
+    diagnosis = {"id": "diagnosis-" + uuid.uuid4().hex, "bottleneck": bottleneck,
+                 "measurement_summary": summary, "reference_epoch": state.get("reference_epoch"),
+                 "recorded_at": time.time()}
+    state.setdefault("diagnoses", []).append(diagnosis)
+    atomic_write_json(root / "state.json", state)
+    return {"diagnosis": diagnosis}
+
+
+def record_diagnosis(root: Path, bottleneck: str, evidence: Path) -> dict:
     with _locked(root):
         plan, state = _load(root)
-        _active(state, reserve=plan["final_reserve_seconds"])
-        if plan.get("knowledge_allowed") is False:
-            raise ValueError("Knowledge delivery is disabled by the frozen condition")
+        return _retain_diagnosis(root, plan, state, bottleneck, evidence)
+
+
+def _knowledge_round(plan, state):
+    _active(state, reserve=plan["final_reserve_seconds"])
+    if plan.get("knowledge_allowed") is False:
+        raise ValueError("Knowledge delivery is disabled by the frozen condition")
+    number = len(state["rounds"]) + 1
+    return number if number <= plan["round_limit"] else None
+
+
+def _knowledge_time(plan, state):
+    return state["deadline"] - time.time() - plan["final_reserve_seconds"]
+
+
+def _store_knowledge(root, kind, number, record):
+    directory = root / "knowledge"
+    if directory.is_symlink():
+        raise ValueError("Knowledge directory must not be a symbolic link")
+    directory.mkdir(exist_ok=True)
+    path = directory / f"{kind}-{uuid.uuid4().hex}.json"
+    atomic_write_json(path, record)
+    return {"path": path.relative_to(root).as_posix(), "sha256": sha256(path),
+            "kind": kind, "round": number}
+
+
+def capture_context(root: Path, reader, *, retain_context, external_provider=None,
+                    **request) -> dict:
+    with _locked(root):
+        plan, state = _load(root)
+        number = _knowledge_round(plan, state)
+        settings = plan.get("external_knowledge")
+        if settings:
+            if number is None:
+                raise ValueError("Round budget consumed, run independent final evaluation")
+            if external_provider is None:
+                raise ValueError("The frozen external knowledge provider is unavailable")
+            request["relevance"] = sanitized_text(request["relevance"], "", limit=None)
+        binding = _context_diagnosis(plan, state)
         path, fingerprint = retain_context(root, context_id="context-" + uuid.uuid4().hex,
-                                           reader=reader, **request)
+                                           reader=reader, diagnosis_binding=binding, **request)
         reference = {"path": path.relative_to(root).as_posix(), "sha256": fingerprint,
                      "kind": "delivered_context"}
-        state["contexts"].append(reference)
+        # Keep the local tool response compatible with stored Codex trace verification.
+        retained = {**reference, "round": number} if number is not None else reference
+        if binding:
+            retained = {**retained, "diagnosis_id": binding["diagnosis_id"]}
+        state["contexts"].append(retained)
+        response = {"reference": reference, "context": _read_context(root, reference)}
+        if settings:
+            remaining = _knowledge_time(plan, state)
+            result = (
+                external_provider.search(request["relevance"], settings=settings,
+                                         limit=request["limit"], timeout=remaining)
+                if remaining > 0 else {"state": "timeout", "items": [], "count": 0}
+            )
+            search = {**result, **settings, "context_ref": reference["path"]}
+            search_ref = _store_knowledge(root, "external_search", number, search)
+            state["contexts"].append(search_ref)
+            response["external"] = {**search, "reference": search_ref}
         atomic_write_json(root / "state.json", state)
-    return {"reference": reference, "context": json.loads(path.read_text(encoding="utf-8"))}
+        return response
+
+
+def read_external_context(root: Path, provider, *, search_ref, locator, page):
+    with _locked(root):
+        plan, state = _load(root)
+        number = _knowledge_round(plan, state)
+        if not plan.get("external_knowledge") or provider is None:
+            raise ValueError("External knowledge is disabled or unavailable for this session")
+        if type(page) is not int or page < 1:
+            raise ValueError("CANNBot page must be a positive integer")
+        reference = next((entry for entry in state["contexts"]
+                          if entry["path"] == search_ref and entry["kind"] == "external_search"
+                          and entry["round"] == number), None)
+        if reference is None:
+            raise ValueError("Supply a CANNBot search reference from the current round")
+        search = _read_context(root, reference)
+        hit = next((item for item in search["items"] if item["locator"] == locator), None)
+        if search["state"] != "ok" or not search["revision"] or hit is None:
+            raise ValueError("Supply a versioned CANNBot hit from the recorded search")
+        remaining = _knowledge_time(plan, state)
+        if remaining <= 0:
+            raise ValueError("Optimization deadline exhausted, final evaluation time is reserved")
+        revision, card_sha256 = search["revision"], hit["card_sha256"]
+        body = provider.read(locator, revision=revision, card_sha256=card_sha256,
+                             page=page, timeout=remaining)
+        receipt = {"search_ref": search_ref, "channel": search["channel"], "locator": locator,
+                   "revision": revision, "card_sha256": card_sha256, "page": page}
+        delivered = _store_knowledge(root, "external_read", number, receipt)
+        state["contexts"].append(delivered)
+        atomic_write_json(root / "state.json", state)
+        return {"reference": delivered, "receipt": receipt, "context": body}
+
+
+def _validate_knowledge_refs(root, contexts, refs):
+    if not isinstance(refs, list) or any(not isinstance(ref, str) for ref in refs):
+        raise ValueError("Knowledge references must be a list of delivered references")
+    if len(set(refs)) != len(refs):
+        raise ValueError("Cite unique delivered knowledge references")
+    delivered = {entry["path"]: entry for entry in contexts
+                 if entry["kind"] != "external_search"}
+    for ref in refs:
+        path, separator, item = ref.partition("#")
+        reference = delivered.get(path)
+        if reference is None or (separator and reference["kind"] != "delivered_context"):
+            raise ValueError("Cite a delivered context or CANNBot read receipt from this session")
+        if separator:
+            capture = _read_context(root, reference)
+            if not any(entry["ref"] == item and entry["resources"]
+                       for entry in capture["contexts"]):
+                raise ValueError("Cite an item with delivered resources from this context")
 
 
 def _usage_record(source, *, fingerprint=True):
@@ -355,17 +607,13 @@ def evaluate_round(root: Path, *, candidate: Path | None, hypothesis: str,
             raise ValueError("Record why search stopped before final evaluation")
         if not final and count >= plan["round_limit"]:
             raise ValueError("Round budget consumed, run independent final evaluation")
+        diagnosis = {} if final else _diagnosis_reference(plan, state)
         if not final and (not isinstance(hypothesis, str) or not hypothesis.strip()):
             raise ValueError("Declare the round hypothesis before execution")
         if strategy is not None and (not isinstance(strategy, str) or not strategy.strip()):
             raise ValueError("Strategy must be a nonempty declaration")
         if knowledge_refs is not None:
-            available = {context["path"] for context in state["contexts"]}
-            if (not isinstance(knowledge_refs, list)
-                    or any(not isinstance(ref, str) or ref not in available
-                           for ref in knowledge_refs)
-                    or len(set(knowledge_refs)) != len(knowledge_refs)):
-                raise ValueError("Cite unique delivered context paths from this campaign")
+            _validate_knowledge_refs(root, state["contexts"], knowledge_refs)
         source = root / state["best"]["path"] if final else Path(candidate)
         if (source.is_symlink() or (plan["candidate_kind"] == "file"
                 and (not source.is_file() or source.suffix != ".py"))
@@ -385,6 +633,7 @@ def evaluate_round(root: Path, *, candidate: Path | None, hypothesis: str,
                    else f"candidate-{count + 1:03d}",
                    "hypothesis": hypothesis, "strategy": strategy,
                    "knowledge_refs": knowledge_refs, "observations": observations,
+                   **diagnosis,
                    "candidate_sha256": fingerprint,
                    "contexts": list(state["contexts"]), "started_at": time.time()}
         state["pending"] = pending
@@ -414,8 +663,13 @@ def evaluate_round(root: Path, *, candidate: Path | None, hypothesis: str,
 
 def read_records(root: Path) -> tuple[dict, dict, dict]:
     """Read one validated state for status, dashboard and reconstructable summaries."""
-    plan, state = _load(root)
-    return plan, state, _summary(root, plan, state)
+    plan, state = _load(root, read_only=True)
+    summary = _summary(root, plan, state)
+    if plan.get("evaluation_mode") == "service_reuse":
+        from . import service_observations
+
+        state = service_observations.selection_view(state, state["attempts"])
+    return plan, state, summary
 
 
 def recover(root: Path, assess) -> dict:
@@ -483,18 +737,24 @@ def _service_initialize(root, plan):
             "managed_optimization": True,
             "evaluation_mode": "service_reuse",
             "protocol_id": state["protocol_id"],
+            "diagnosis_required": plan.get("diagnosis_required", False),
         },
     )
     atomic_write_json(root / "state.json", state)
     return _service_status(root, plan, state)
 
 
-def _service_load(root, plan, state):
+def _service_runtime_matches(plan):
     from inferrsi import __version__
 
-    from . import project_service as service
+    return plan.get("runtime_version") == __version__
 
-    if plan.get("runtime_version") != __version__:
+
+def _service_load(root, plan, state, *, read_only=False):
+    from . import project_service as service
+    from . import service_observations
+
+    if not read_only and not _service_runtime_matches(plan):
         raise ValueError("Runtime package version changed; use the recorded version to resume")
     service.validate(plan["evaluation_settings"])
     if service.read(root / "frozen/evaluation.json") != plan["evaluation_settings"]:
@@ -502,12 +762,15 @@ def _service_load(root, plan, state):
     service.validate_conditions(state["conditions"])
     candidates.members(service.safe_path(root, state["protocol_path"]))
     candidates.members(service.safe_path(root, plan["baseline_path"]))
+    diagnoses = _diagnosis_index(state)
     for attempt in state["attempts"]:
-        directory = service.safe_path(root, attempt["path"])
-        if service.read(directory / "observation.json") != attempt:
+        if not service_observations.matches_control(root, attempt):
             raise ValueError("Retained attempt and control record disagree")
+        if attempt["kind"] == "round":
+            _check_activity_diagnosis(plan, diagnoses, attempt)
     for context in state["contexts"]:
-        service.read(service.safe_path(root, context["path"]))
+        retained = service.read(service.safe_path(root, context["path"]))
+        _check_context_diagnosis(plan, diagnoses, context, retained)
     for event in state["recovery_events"]:
         if event["kind"] == "cleanup_inspection":
             proof = service.read(service.safe_path(root, event["path"]))
@@ -521,78 +784,74 @@ def _service_load(root, plan, state):
     return plan, state
 
 
-def _service_profile(root, selected, conditions):
+def _service_profiling(root, attempt, *, published=None):
     from . import project_service as service
+    from . import service_backfill
 
-    if selected is None:
-        return False
-    profile = selected.get("profile")
-    try:
-        if (
-            not profile
-            or not isinstance(selected.get("binding"), dict)
-            or profile["conditions"] != conditions
-            or (profile["attempt_id"] != selected["attempt_id"])
-            or profile["binding"] != selected["binding"]
-            or any(
-                selected["binding"].get(key) != selected[key]
-                for key in ("attempt_id", "revision", "conditions")
-            )
-            or selected["binding"].get("effective_config") != conditions["effective_config"]
-            or not selected["binding"].get("service_id")
-            or not selected["binding"].get("run_id")
-            or not isinstance(profile["artifacts"], list)
-            or not profile["artifacts"]
-        ):
-            return False
-        trace = service.read(service.safe_path(root, profile["result"]))
-        if (
-            trace.get("status") != "completed"
-            or trace.get("validated") is not True
-            or (trace.get("binding") != profile["binding"])
-            or trace != profile.get("receipt")
-        ):
-            return False
-        return all(
-            service.safe_path(root, path).is_file()
-            and service.safe_path(root, path).stat().st_size > 0
-            for path in profile["artifacts"]
-        )
-    except (OSError, ValueError, KeyError, TypeError):
-        return False
-
-
-def _service_selected_evidence_reason(root, state):
-    from . import project_service as service
-
-    if not state["initial_reference"] or state["best"] is None:
-        return "missing_baseline_reference"
-    retained = next(
-        (item for item in state["attempts"] if item["attempt_id"] == state["best"]["attempt_id"]),
-        None,
+    profile = (
+        published
+        or service_backfill.latest(root, attempt)
+        or service.attempt_profile(root, attempt)
     )
+    if not profile:
+        return {"available": False}
+    return {"available": True, "result": profile["result"], "artifacts": profile["artifacts"]}
+
+
+def _service_round_view(root, attempt, *, profiling=None):
+    from . import service_observations
+
+    if attempt["kind"] == "round":
+        if profiling is None:
+            profiling = _service_profiling(root, attempt)
+        return {**service_observations.display(root, attempt), "profiling": profiling}
+    return attempt
+
+
+def _service_account_capture(root, state, pending, execution):
+    from . import project_service as service
+
+    capture = execution.get("capture")
+    attempt_id = pending["attempt_id"]
     if (
-        retained is None
-        or retained["assessment"]["verdict"] != "PASS"
-        or (_service_choice(retained, retained["execution"]) != state["best"])
+        not isinstance(capture, dict)
+        or capture.get("id") != attempt_id
+        or not isinstance(execution.get("binding"), dict)
+        or execution["binding"].get("attempt_id") != attempt_id
+        or not service.number(capture.get("started_at"))
     ):
+        return
+    ledger = state.setdefault("profiling_accounting", {})
+    if attempt_id not in ledger:
+        ledger[attempt_id] = {
+            "started_at": capture["started_at"],
+            "elapsed_seconds": service.proven_capture_elapsed(root, pending, execution),
+        }
+
+
+def _service_deadline(state):
+    entries = state.get("profiling_accounting", {}).values()
+    return state["deadline"] + sum(entry["elapsed_seconds"] for entry in entries)
+
+
+def _service_selected_evidence_reason(root, plan, state, *, starting_epoch=False):
+    from . import service_evidence
+
+    if (
+        state["initial_reference"] is None or state["comparison_parent"] is None
+        or state["best"] is None and not starting_epoch
+    ):
+        return "missing_baseline_reference"
+    if state["best"] is not None and "parent_reference_at_acceptance" not in state["best"]:
         return "unverifiable_selected_attempt_binding"
-    if state["best"]["conditions"] != state["conditions"]:
-        return "incompatible_selected_conditions"
-    try:
-        config = service.read(service.safe_path(root, state["best"]["effective_config_path"]))
-        if config != state["best"]["conditions"]["effective_config"]:
-            return "unverifiable_selected_configuration"
-    except (OSError, ValueError, KeyError):
-        return "unverifiable_selected_configuration"
-    if state["best"]["kind"] == "candidate" and not _service_profile(
-        root, state["best"], state["conditions"]
-    ):
-        return "missing_or_incompatible_selected_profile"
-    return None
+    return service_evidence.references_reason(
+        root, plan, state, state["initial_reference"], state["comparison_parent"], state["best"]
+    )
 
 
-def _service_final_reason(root, plan, state):
+def _service_final_reason(root, plan, state, *, budget_time=None):
+    if not _service_runtime_matches(plan):
+        return "runtime_version_mismatch"
     if state["requires_current_conditions_acceptance"] or (
         state["reference_epoch"] > 0
         and (
@@ -602,7 +861,7 @@ def _service_final_reason(root, plan, state):
         )
     ):
         return "missing_current_conditions_acceptance"
-    reason = _service_selected_evidence_reason(root, state)
+    reason = _service_selected_evidence_reason(root, plan, state)
     if reason:
         return reason
     if state["pending"] is not None or state["state"] != "active":
@@ -610,36 +869,45 @@ def _service_final_reason(root, plan, state):
     completed = sum(item["terminal"] for item in state["rounds"])
     if not completed or plan["round_mode"] == "exact" and completed != plan["round_limit"]:
         return "incomplete_round_policy"
-    if time.time() >= state["deadline"]:
+    if (time.time() if budget_time is None else budget_time) >= _service_deadline(state):
         return "deadline_exhausted"
     return None
 
 
 def _service_status(root, plan, state):
+    from . import service_observations
+
     reason = _service_final_reason(root, plan, state)
-    remaining = max(0, state["deadline"] - time.time())
-    next_action = (
-        "campaign_baseline"
-        if state["state"] == "needs_baseline"
-        else "recover_existing_attempt_without_relaunch"
-        if state["pending"]
-        else "investigate_then_explicit_retry_or_resume"
-        if state["state"] == "blocked"
-        else "resume_after_recorded_analysis"
-        if state["state"] == "paused"
-        else "submit_current_conditions_candidate"
-        if state["requires_current_conditions_acceptance"]
-        else "independently_retest_selected_candidate_with_final"
-        if len(state["rounds"]) >= plan["round_limit"]
-        else "edit_candidate_and_submit_round"
-    )
-    if state["state"] == "completed":
+    remaining = max(0, _service_deadline(state) - time.time())
+    if state["state"] == "completed" and not state["pending"]:
         next_action = "completed"
+    elif reason == "runtime_version_mismatch":
+        next_action = "use_recorded_runtime_version"
+    elif state["state"] == "needs_baseline":
+        next_action = "campaign_baseline"
+    elif state["pending"]:
+        next_action = "recover_existing_attempt_without_relaunch"
+    elif state["state"] == "blocked":
+        next_action = "investigate_then_explicit_retry_or_resume"
+    elif state["state"] == "paused":
+        next_action = "resume_after_recorded_analysis"
+    elif (plan.get("diagnosis_required") and not _diagnosis(state)
+          and len(state["rounds"]) < plan["round_limit"]):
+        next_action = "record_bottleneck_diagnosis"
+    elif state["requires_current_conditions_acceptance"]:
+        next_action = "submit_current_conditions_candidate"
+    elif len(state["rounds"]) >= plan["round_limit"]:
+        next_action = "independently_retest_selected_candidate_with_final"
+    else:
+        next_action = "edit_candidate_and_submit_round"
+    latest = [_service_round_view(root, attempt) for attempt in state["attempts"][-1:]]
+    state = service_observations.selection_view(state, latest)
     return {
         "session": str(root),
         "evaluation_mode": "service_reuse",
         "state": state["state"],
         "next_action": next_action,
+        "recorded_runtime_version": plan.get("runtime_version"),
         "can_finalize": reason is None,
         "final_block_reason": reason,
         "completed_rounds": sum(item["terminal"] for item in state["rounds"]),
@@ -658,11 +926,21 @@ def _service_status(root, plan, state):
         "stagnation": state["stagnation"],
         "final": state["final"],
         "latest_observation": state["attempts"][-1] if state["attempts"] else None,
+        "diagnosis": _diagnosis(state),
         "summary": str(root / "summary.json"),
     }
 
 
-def _service_summary(root, plan, state):
+def _service_summary(root, plan, state, *, attempts=None, budget_time=None):
+    from . import service_observations
+
+    if attempts is None:
+        attempts = [_service_round_view(root, attempt) for attempt in state["attempts"]]
+    reason = (
+        None if state["state"] == "completed"
+        else _service_final_reason(root, plan, state, budget_time=budget_time)
+    )
+    state = service_observations.selection_view(state, attempts)
     return {
         "schema_version": 2,
         "evaluation_mode": "service_reuse",
@@ -674,9 +952,7 @@ def _service_summary(root, plan, state):
         "selected_candidate": state["best"],
         "selection": plan["selection"],
         "final_assessment": state["final"]["assessment"] if state["final"] else None,
-        "final_block_reason": (
-            None if state["state"] == "completed" else _service_final_reason(root, plan, state)
-        ),
+        "final_block_reason": reason,
         "optimization_speedup": None,
         "reference_epoch": state["reference_epoch"],
         "conditions": state["conditions"],
@@ -696,38 +972,46 @@ def _service_summary(root, plan, state):
     }
 
 
-def _service_choice(pending, execution):
-    return {
-        "kind": "candidate" if pending["role"] == "candidate" else "baseline",
-        "attempt_id": pending["attempt_id"],
-        "candidate_id": pending["candidate_id"],
-        "path": pending["path"] + "/candidate",
-        "revision": pending["revision"],
-        "source_repo": pending.get("source_repo"),
-        "conditions": pending["conditions"],
-        "reference_epoch": pending["reference_epoch"],
-        "effective_config_path": pending["path"] + "/effective-config.json",
-        "measurements": execution["measurements"],
-        "quality_score": execution["quality_score"],
-        "profile": execution.get("profile"),
-        "protocol_path": pending["protocol_path"],
-        "binding": execution["binding"],
-        "parent_reference_at_acceptance": (
-            {
-                key: value
-                for key, value in pending["parent"].items()
-                if key != "parent_reference_at_acceptance"
-            }
-            if pending.get("parent")
-            else None
-        ),
-    }
-
-
 def _service_settle(root, plan, state, pending, execution):
     from . import project_service as service
+    from . import service_evidence
 
-    path = service.safe_path(root, pending["path"]) / "observation.json"
+    directory = service.safe_path(root, pending["path"])
+    checkpoint = execution.get("checkpoint")
+    if checkpoint:
+        if not _service_cleanup_confirmed(state, {**pending, "execution": execution}):
+            state["state"] = "blocked"
+            atomic_write_json(root / "state.json", state)
+            return _service_command_result(root, plan, state, execution)
+        if (
+            execution.get("status") != "completed"
+            or execution.get("assessment") != checkpoint["assessment"]
+            or execution.get("cleanup_verified") is not True
+        ):
+            execution.update(
+                assessment=checkpoint["assessment"],
+                measurements=checkpoint["measurements"],
+                quality_score=checkpoint["quality_score"],
+                binding=checkpoint["binding"],
+                cleanup_verified=True,
+                status="interrupted",
+            )
+            execution.setdefault("elapsed_seconds", time.time() - pending["started_at"])
+            if (
+                not execution.get("profile")
+                and not execution.get("profiling_error")
+                and "profile" in plan["evaluation_settings"]["commands"]
+                and checkpoint["assessment"]["reason"] in service.INLINE_PROFILE_REASONS
+            ):
+                execution["profiling_error"] = service.capture_diagnostic(
+                    root,
+                    directory,
+                    "profile",
+                    "interrupted",
+                    "Capture interrupted before completion; no further error receipt was recorded",
+                )
+            atomic_write_json(directory / "execution/execution.json", execution)
+    path = directory / "observation.json"
     if path.exists():
         record = service.read(path)
         if record["attempt_id"] != pending["attempt_id"]:
@@ -742,15 +1026,8 @@ def _service_settle(root, plan, state, pending, execution):
     if any(item["attempt_id"] == record["attempt_id"] for item in state["attempts"]):
         state["pending"] = None
         return _service_status(root, plan, state)
-    reason, choice = None, None
-    if record["kind"] == "round" and record["assessment"]["verdict"] == "PASS":
-        choice = _service_choice(record, record["execution"])
-        if not _service_profile(root, choice, record["conditions"]):
-            reason = "profile: incomplete_or_unverifiable_after_cleanup"
-    elif record["kind"] == "final" and record["assessment"]["verdict"] != "INCONCLUSIVE":
-        reason = _service_selected_evidence_reason(root, state)
+    reason = service_evidence.settlement_reason(root, plan, state, record)
     if reason:
-        choice = None
         record["assessment_before_settlement"] = record["assessment"]
         record["assessment"] = service.assessment(
             "INCONCLUSIVE",
@@ -758,7 +1035,11 @@ def _service_settle(root, plan, state, pending, execution):
             performance=record["assessment"].get("performance"),
             quality_passed=record["assessment"].get("quality_passed"),
         )
-    if record["kind"] == "round":
+    kind = record["kind"]
+    verdict = record["assessment"]["verdict"]
+    if kind == "round":
+        choice = service_evidence.choice(record, record["execution"]) if verdict == "PASS" else None
+        record["profiling"] = _service_profiling(root, record)
         record["selected"] = choice is not None and (
             state["best"] is None
             or service.better(
@@ -767,13 +1048,13 @@ def _service_settle(root, plan, state, pending, execution):
                 state["best"]["measurements"]["values"],
             )
         )
-        record["best_after"] = choice if record["selected"] else state["best"]
+        record["best_after"] = (
+            choice if record["selected"] else service_evidence.reference_snapshot(state["best"])
+        )
     atomic_write_json(path, record)
-    judged = record["assessment"]
-    verdict, kind = judged["verdict"], record["kind"]
     if kind == "baseline":
         if verdict == "PASS":
-            choice = _service_choice(record, record["execution"])
+            choice = service_evidence.choice(record, record["execution"])
             state.update(
                 initial_reference=choice, comparison_parent=choice, best=choice, state="active"
             )
@@ -815,7 +1096,7 @@ def _service_settle(root, plan, state, pending, execution):
                     "id": record["attempt_id"] + "-stagnation",
                     "round": record["round_number"],
                     "consecutive": stagnation["consecutive"],
-                    "best": state["best"],
+                    "best": service_evidence.reference_snapshot(state["best"]),
                     "attempt_path": record["path"],
                     "action": policy["action"],
                     "message": "Reassess system-wide critical paths, compute, communication, "
@@ -833,18 +1114,33 @@ def _service_settle(root, plan, state, pending, execution):
             state["state"] = "completed"
         elif not record.get("admission_failure"):
             state["state"] = "blocked"
+    _service_account_capture(root, state, pending, record["execution"])
+    state["last_profiling_error"] = record["execution"].get("profiling_error")
     state["attempts"].append(record)
     state["pending"] = None
     atomic_write_json(root / "state.json", state)
     atomic_write_json(root / "summary.json", _service_summary(root, plan, state))
-    return _service_status(root, plan, state)
+    return _service_command_result(root, plan, state, record["execution"])
 
 
-def _service_execute(root, directory, plan, pending, deadline):
+def _service_command_result(root, plan, state, execution):
+    result = _service_status(root, plan, state)
+    error = execution.get("profiling_error")
+    if error:
+        if state["attempts"] and error == state["attempts"][-1]["execution"].get("profiling_error"):
+            error = result["latest_observation"]["execution"]["profiling_error"]
+        result["profiling_error"] = error
+    return result
+
+
+def _service_execute(root, directory, plan, state, deadline):
     from . import project_service as service
 
+    pending = state["pending"]
     if pending["kind"] != "refresh":
         return service.execute(root, directory, plan, pending, deadline)
+    from . import service_evidence, service_observations
+
     references, runs = [], []
     started = time.monotonic()
     initial = pending["refresh_initial"]
@@ -886,15 +1182,16 @@ def _service_execute(root, directory, plan, pending, deadline):
                 "cleanup_verified": result["cleanup_verified"],
                 "elapsed_seconds": time.monotonic() - started,
             }
-        references.append(_service_choice(job, result))
+        references.append(service_evidence.choice(job, result))
+    parent_profile = service_observations.reference_view(
+        pending["refresh_parent"], service_observations.inline_profiles(state["attempts"])
+    )["profile"]
     return {
         "assessment": service.assessment(
             "PASS", "references_refreshed_not_candidate_acceptance", eligible=False
         ),
-        "retained_parent_profile": pending["refresh_parent"].get("profile"),
-        "parent_profile_applicability": "not_applicable"
-        if pending["refresh_parent"].get("profile")
-        else "not_available",
+        "retained_parent_profile": parent_profile,
+        "parent_profile_applicability": "not_applicable" if parent_profile else "not_available",
         "references": references,
         "runs": runs,
         "cleanup_verified": True,
@@ -968,17 +1265,44 @@ def _service_cleanup_receipt(root, state, path):
 def service_command(root, args, *, knowledge_reader=None):
     """Service-mode operations inside the shared controller's lock and control record."""
     from . import project_service as service
+    from . import service_evidence
 
     with _locked(root):
-        plan, state = _load(root)
         action = args.session_action
+        if action == "profile":
+            from . import service_backfill
+
+            return service_backfill.run(root, args)
+        plan, state = _load(root, read_only=action == "status")
         if getattr(args, "cleanup_receipt", None) is not None:
             _service_cleanup_receipt(root, state, args.cleanup_receipt)
         if action == "status":
-            return _service_status(root, plan, state)
+            result = _service_status(root, plan, state)
+            latest_by_round = {
+                a["round_number"]: a for a in state["attempts"] if a["kind"] == "round"
+            }
+            result["rounds"] = [
+                {
+                    "round_number": number,
+                    "attempt_id": attempt["attempt_id"],
+                    "verdict": attempt["assessment"]["verdict"],
+                    "profiling": _service_profiling(root, attempt),
+                }
+                for number, attempt in latest_by_round.items()
+            ]
+            return result
+        if action == "diagnose":
+            return _retain_diagnosis(root, plan, state, args.bottleneck, args.evidence)
         if action == "recover":
+            if state["pending"] and state["pending"]["kind"] == "profile":
+                from . import service_backfill
+
+                return service_backfill.recover(root, plan, state, args)
             if state["pending"] is None:
-                return _service_status(root, plan, state)
+                atomic_write_json(root / "summary.json", _service_summary(root, plan, state))
+                return _service_command_result(
+                    root, plan, state, {"profiling_error": state.get("last_profiling_error")}
+                )
             pending = state["pending"]
             directory = service.safe_path(root, pending["path"])
             observation = directory / "observation.json"
@@ -994,34 +1318,39 @@ def service_command(root, args, *, knowledge_reader=None):
                         ) from None
                     result = {"status": "interrupted", "available_evidence_path": pending["path"]}
                 if result.get("status") == "running" or result.get("assessment") is None:
-                    if not _service_cleanup_confirmed(state, pending):
+                    if not _service_cleanup_confirmed(state, {**pending, "execution": result}):
                         raise ValueError(
                             "Execution incomplete; inspect cleanup and supply --cleanup-receipt"
                         )
-                    result.update(
-                        status="interrupted",
-                        cleanup_verified=True,
-                        assessment=service.assessment(
-                            "INCONCLUSIVE", "interrupted_execution_requires_full_retry"
-                        ),
-                    )
+                    if not result.get("checkpoint"):
+                        result.update(
+                            status="interrupted",
+                            cleanup_verified=True,
+                            assessment=service.assessment(
+                                "INCONCLUSIVE", "interrupted_execution_requires_full_retry"
+                            ),
+                        )
             return _service_settle(root, plan, state, pending, result)
         if action == "knowledge":
             _active(
                 {
                     **state,
                     "state": "active" if state["state"] == "needs_baseline" else state["state"],
+                    "deadline": _service_deadline(state),
                 },
                 reserve=plan["final_reserve_seconds"],
             )
             if not plan["knowledge_allowed"] or knowledge_reader is None:
                 raise ValueError("Knowledge delivery is disabled or unavailable")
+            binding = _context_diagnosis(plan, state)
             context = knowledge_reader.collect_service_context(
                 args.query,
                 relevance_method=args.relevance_method,
                 limit=args.limit,
                 context_bytes=args.context_bytes,
             )
+            if binding:
+                context["diagnosis_binding"] = binding
             service.no_fingerprints(context)
             relative = "knowledge/context-" + uuid.uuid4().hex + ".json"
             (root / "knowledge").mkdir(exist_ok=True)
@@ -1031,7 +1360,8 @@ def service_command(root, args, *, knowledge_reader=None):
                 "kind": "delivered_context",
                 "prepared_not_consumed": True,
             }
-            state["contexts"].append(reference)
+            state["contexts"].append(
+                {**reference, "diagnosis_id": binding["diagnosis_id"]} if binding else reference)
             atomic_write_json(root / "state.json", state)
             return {"reference": reference, "context": context}
         if action == "resume":
@@ -1095,7 +1425,7 @@ def service_command(root, args, *, knowledge_reader=None):
         if state["pending"] is not None or state["state"] == "completed":
             raise ValueError("Campaign completed or attempt unresolved")
         reserve = 0 if action == "final" else plan["final_reserve_seconds"]
-        if time.time() >= state["deadline"] - reserve:
+        if time.time() >= _service_deadline(state) - reserve:
             raise ValueError("Campaign budget exhausted; no automatic retry or reduced sampling")
         kind = {
             "round": "round",
@@ -1115,19 +1445,17 @@ def service_command(root, args, *, knowledge_reader=None):
         elif kind == "round":
             if initial is None or parent is None:
                 raise ValueError("Complete baseline and compatible reference refresh first")
-            if (
-                state["best"] is not None
-                and state["best"]["kind"] == "candidate"
-                and not _service_profile(root, state["best"], state["conditions"])
-            ):
-                raise ValueError(
-                    "Selected parent profile is missing or incompatible; investigate first"
-                )
+            reason = _service_selected_evidence_reason(
+                root, plan, state, starting_epoch=state["requires_current_conditions_acceptance"]
+            )
+            if reason:
+                raise ValueError(f"Cannot establish selected parent: {reason}")
             if (
                 initial["conditions"] != state["conditions"]
                 or parent["conditions"] != state["conditions"]
             ):
                 raise ValueError("Refresh both incompatible performance references first")
+            diagnosis = _diagnosis_reference(plan, state)
             number = old["round_number"] if old else len(state["rounds"]) + 1
             if number > plan["round_limit"] or not args.hypothesis.strip():
                 raise ValueError("Round budget exhausted or hypothesis missing")
@@ -1204,6 +1532,8 @@ def service_command(root, args, *, knowledge_reader=None):
             source_repo = selected.get("source_repo")
         else:
             source_repo = plan["working_candidate"]
+        initial = service_evidence.reference_snapshot(initial)
+        parent = service_evidence.reference_snapshot(parent)
         pending = {
             "attempt_id": attempt_id,
             "protocol_path": protocol_path,
@@ -1230,6 +1560,8 @@ def service_command(root, args, *, knowledge_reader=None):
         }
         if kind == "refresh":
             pending.update(refresh_initial=initial, refresh_parent=parent)
+        if kind == "round":
+            pending.update(diagnosis)
         state["pending"] = pending
         atomic_write_json(root / "state.json", state)
         try:
@@ -1241,7 +1573,7 @@ def service_command(root, args, *, knowledge_reader=None):
                 }
             else:
                 result = _service_execute(
-                    root, directory, plan, pending, state["deadline"] - reserve
+                    root, directory, plan, state, _service_deadline(state) - reserve
                 )
         except (Exception, KeyboardInterrupt) as error:
             receipt = directory / "execution/execution.json"

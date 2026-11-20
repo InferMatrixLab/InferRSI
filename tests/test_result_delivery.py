@@ -13,6 +13,7 @@ from inferrsi.apps.delivery.snapshot import MAX_DOCUMENT_BYTES, Snapshot
 from inferrsi.apps.storage import archive
 from inferrsi.apps.storage.result import preparation_result
 from inferrsi.harness import optimization
+from tests.diagnosis_support import diagnosis_evidence
 
 
 def make_campaign(tmp_path, *, scores=(5,), final=True, final_verdict="PASS", usage=False):
@@ -45,6 +46,7 @@ def make_campaign(tmp_path, *, scores=(5,), final=True, final_verdict="PASS", us
         "frozen_files": {p.name: sha256(p) for p in frozen.iterdir()},
     }
     optimization.initialize(root, plan)
+    optimization.record_diagnosis(root, "Reference operation", diagnosis_evidence(root))
 
     def execute(root, directory, plan, deadline):
         (directory / "execution").mkdir()

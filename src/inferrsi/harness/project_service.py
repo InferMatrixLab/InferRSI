@@ -17,6 +17,8 @@ from statistics import mean, median
 from .atomic_json import atomic_write_json
 from .candidates import members, retain
 
+INLINE_PROFILE_REASONS = ("fixed_checks_satisfied", "performance_gate_not_met")
+
 
 def safe_path(root, relative):
     if not isinstance(relative, str) or not relative or "\\" in relative or ":" in relative:
@@ -25,9 +27,9 @@ def safe_path(root, relative):
     if part.is_absolute() or ".." in part.parts:
         raise ValueError("Path must stay inside the campaign")
     target = root / part
-    if not target.resolve().is_relative_to(root.resolve()) or any(
+    if any(
         p.is_symlink() for p in (target, *target.parents) if p.is_relative_to(root)
-    ):
+    ) or not target.resolve().is_relative_to(root.resolve()):
         raise ValueError("Symbolic or escaping campaign path")
     return target
 
@@ -47,18 +49,29 @@ def no_fingerprints(value):
         raise ValueError("Nonfinite JSON value")
 
 
+JSON_SIZE_LIMIT = 4 * 1024 * 1024
+# Round and reference records repeat this metadata. The collector's raw receipt stays on disk.
+PROFILE_METADATA_LIMIT = 32 * 1024
+
+
 def read(path):
-    if path.is_symlink() or not path.is_file() or path.stat().st_size > 4 * 1024 * 1024:
+    if path.is_symlink() or not path.is_file() or path.stat().st_size > JSON_SIZE_LIMIT:
         raise ValueError(f"Missing, symbolic or oversized JSON: {path.name}")
-    value = json.loads(path.read_text(encoding="utf-8"))
-    if not isinstance(value, dict):
-        raise ValueError("Result must be a JSON object")
-    no_fingerprints(value)
+    try:
+        value = json.loads(path.read_text(encoding="utf-8"))
+        if not isinstance(value, dict):
+            raise ValueError("Result must be a JSON object")
+        no_fingerprints(value)
+    except RecursionError as error:
+        raise ValueError(f"JSON nesting exceeds the supported depth: {path.name}") from error
     return value
 
 
 def number(value):
-    return type(value) in (int, float) and math.isfinite(value)
+    try:
+        return type(value) in (int, float) and math.isfinite(value)
+    except OverflowError:
+        return False
 
 
 def positive(value):
@@ -89,7 +102,10 @@ def validate(settings):
         raise ValueError("Explicit protocol_id required")
     validate_conditions(settings.get("conditions"))
     commands = settings.get("commands", {})
-    for name in ("precheck", "service", "ready", "warmup", "measure", "quality", "profile", "stop"):
+    stages = ("precheck", "service", "ready", "warmup", "measure", "quality", "stop")
+    if "profile" in commands:
+        stages += ("profile",)
+    for name in stages:
         command = commands.get(name)
         if (
             not isinstance(command, list)
@@ -104,6 +120,8 @@ def validate(settings):
     sampling = settings.get("sampling", {})
     if not positive(sampling.get("stage_timeout_seconds")):
         raise ValueError("Positive stage timeout required")
+    if "profile_timeout_seconds" in sampling and not positive(sampling["profile_timeout_seconds"]):
+        raise ValueError("Positive profiling timeout required")
     for role in ("baseline", "candidate", "final"):
         config = sampling.get(role, {})
         if not isinstance(config, dict):
@@ -362,18 +380,27 @@ def revision(source, includes):
     return commit
 
 
-def retain_revision(source, destination, includes, commit):
+def retain_revision(source, destination, includes, commit, *, deadline=None):
     if not isinstance(commit, str) or not re.fullmatch(r"[a-f0-9]{40,64}", commit):
         raise ValueError("Candidate requires an existing Git commit")
+
+    def git(*args):
+        timeout = None if deadline is None else deadline - time.monotonic()
+        if timeout is not None and timeout <= 0:
+            raise TimeoutError("Profiling timeout while restoring the recorded revision")
+        try:
+            return subprocess.check_output(["git", "-C", str(source), *args], timeout=timeout)
+        except subprocess.TimeoutExpired as error:
+            raise TimeoutError("Profiling timeout while restoring the recorded revision") from error
+
     entries = {}
     for name in includes or ["."]:
         relative = Path(name)
         if relative.is_absolute() or ".." in relative.parts:
             raise ValueError("Candidate includes must be relative paths inside the project")
-        listing = subprocess.check_output(
-            ["git", "-C", str(source), "ls-tree", "-rz", "--full-tree",
-             "--format=%(objectmode) %(objecttype)%x09%(path)", commit, "--",
-             relative.as_posix()]
+        listing = git(
+            "ls-tree", "-rz", "--full-tree", "--format=%(objectmode) %(objecttype)%x09%(path)",
+            commit, "--", relative.as_posix(),
         )
         if not listing:
             raise ValueError("Declared candidate files are missing from the retained commit")
@@ -388,9 +415,7 @@ def retain_revision(source, destination, includes, commit):
         target = safe_path(destination, name)
         target.parent.mkdir(parents=True, exist_ok=True)
         # Read raw tree content; archive export attributes can omit or rewrite inputs.
-        target.write_bytes(subprocess.check_output(
-            ["git", "-C", str(source), "cat-file", "blob", f"{commit}:{name}"]
-        ))
+        target.write_bytes(git("cat-file", "blob", f"{commit}:{name}"))
         target.chmod(mode)
 
 
@@ -444,6 +469,194 @@ def assessment(verdict, reason, **fields):
     }
 
 
+def ready_for_service(ready, *, revision, pid):
+    return (
+        ready.get("ready") is True
+        and ready.get("ownership") == "local_process_domain"
+        and ready.get("owner_pid") == pid
+        and ready.get("loaded_revision") == revision
+    )
+
+
+def validated_profile(root, directory, attempt_id, conditions, binding, step, *, captured=None):
+    """Reconstruct a usable profile only from the capture's own bound on-disk evidence."""
+    directory = safe_path(root, directory.relative_to(root).as_posix())
+    result = safe_path(directory, "execution/profile/result.json")
+    if (
+        not isinstance(binding, dict)
+        or binding.get("attempt_id") != attempt_id
+        or binding.get("conditions") != conditions
+        or binding.get("effective_config") != conditions["effective_config"]
+        or not all(binding.get(key) for key in ("revision", "service_id", "run_id"))
+        or read(safe_path(directory, "request.json")) != binding
+        or read(safe_path(directory, "effective-config.json")) != conditions["effective_config"]
+    ):
+        raise ValueError("profile: incompatible capture binding")
+    trace = read(result)
+    if (
+        trace.get("binding") != binding
+        or trace.get("status") != "completed"
+        or trace.get("validated") is not True
+        or (captured is not None and captured != trace)
+        or not isinstance(step, dict)
+        or step.get("id") != "profile"
+        or step.get("status") != "completed"
+        or ("result" in step and step["result"] != trace)
+    ):
+        raise ValueError("profile: missing or incompatible validated receipt")
+    interval = (
+        step.get("started_at"), trace.get("capture_started_at"),
+        trace.get("capture_ended_at"), step.get("ended_at"),
+    )
+    if not all(number(t) for t in interval) or not (
+        interval[0] <= interval[1] <= interval[2] <= interval[3]
+    ):
+        raise ValueError("profile: missing or incompatible capture interval")
+    artifacts = trace.get("artifacts")
+    if not isinstance(artifacts, list) or not artifacts:
+        raise ValueError("profile: missing artifacts")
+    legacy = "result" in step
+    locations = []
+    metadata = {"artifacts": locations}
+    if legacy:
+        # Previously written profiles kept the full receipt in both the step and the profile.
+        metadata["receipt"] = trace
+    else:
+        metadata.update(capture_started_at=interval[1], capture_ended_at=interval[2])
+        metadata_bytes = len(json.dumps(metadata, ensure_ascii=False).encode("utf-8"))
+    for relative in artifacts:
+        path = safe_path(directory, relative)
+        location = path.relative_to(root).as_posix()
+        if not legacy:
+            # Account for the encoded path and the JSON list separator between locations.
+            metadata_bytes += len(json.dumps(location, ensure_ascii=False).encode("utf-8"))
+            if locations:
+                metadata_bytes += 2
+            if metadata_bytes > PROFILE_METADATA_LIMIT:
+                raise ValueError(f"profile: metadata exceeds {PROFILE_METADATA_LIMIT} bytes")
+        if not path.is_file():
+            raise ValueError("profile: missing or empty artifact")
+        with path.open("rb") as artifact:
+            if not artifact.read(1):
+                raise ValueError("profile: missing or empty artifact")
+        locations.append(location)
+    return {
+        "attempt_id": attempt_id,
+        "conditions": conditions,
+        "binding": binding,
+        "result": result.relative_to(root).as_posix(),
+        **metadata,
+    }
+
+
+def attempt_profile(root, attempt):
+    """Return the retained profile, or None if its evidence is missing or disagrees."""
+    execution = attempt["execution"]
+    profile = execution.get("profile")
+    if not isinstance(profile, dict):
+        return None
+    try:
+        binding = execution["binding"]
+        if binding["revision"] != attempt["revision"]:
+            return None
+        step = next((s for s in execution["steps"] if s.get("id") == "profile"), None)
+        validated = validated_profile(
+            root,
+            safe_path(root, attempt["path"]),
+            attempt["attempt_id"],
+            attempt["conditions"],
+            binding,
+            step,
+        )
+        return validated if validated == profile else None
+    except (OSError, ValueError, KeyError, TypeError, AttributeError, RecursionError):
+        return None
+
+
+def _error_excerpt(message):
+    return message if len(message) <= 1024 else message[:1021] + "..."
+
+
+def capture_diagnostic(root, directory, stage, status, message, *, process_failed=False):
+    if not isinstance(stage, str) or not re.fullmatch(r"[a-z][a-z0-9_-]*", stage):
+        stage = "startup"
+    diagnostic = {"stage": stage, "status": status, "message": _error_excerpt(message)}
+    stage_dir = directory / ("service" if stage == "service" else "execution/" + stage)
+    try:
+        receipts = ("execution.json", "result.json") if process_failed else (
+            "result.json", "execution.json"
+        )
+        for name in receipts:
+            receipt = safe_path(root, (stage_dir / name).relative_to(root).as_posix())
+            if receipt.is_file():
+                diagnostic["details_path"] = receipt.relative_to(root).as_posix()
+                break
+        if diagnostic["message"] != message:
+            # Unexpected coordinator exceptions can lack a stage receipt with the original detail.
+            relative = (directory / f"{stage}-error.txt").relative_to(root).as_posix()
+            safe_path(root, relative).write_text(message, encoding="utf-8", errors="replace")
+            diagnostic["details_path"] = relative
+        log = safe_path(root, (stage_dir / "stderr.log").relative_to(root).as_posix())
+        if log.is_file():
+            diagnostic["log"] = log.relative_to(root).as_posix()
+            with log.open("rb") as stream:
+                stream.seek(max(0, log.stat().st_size - 1024))
+                detail = stream.read(1024).decode("utf-8", errors="replace").strip()
+            if detail:
+                diagnostic["message"] += f"\n{detail}"
+    except (OSError, ValueError):
+        pass  # The stage error remains available even if its log cannot be read.
+    return diagnostic
+
+
+def proven_capture_elapsed(root, pending, execution):
+    """Recover monotonic capture progress without charging a crash-to-recovery interval."""
+    capture = execution.get("capture")
+    if not isinstance(capture, dict) or capture.get("id") != pending.get("attempt_id"):
+        return 0.0
+    elapsed = capture.get("elapsed_seconds")
+    if not number(elapsed) or elapsed < 0:
+        return 0.0
+    steps = execution.get("steps")
+    if number(capture.get("ended_at")) or not isinstance(steps, list) or not steps:
+        return elapsed
+    step = steps[-1]
+    if not isinstance(step, dict):
+        return elapsed
+    try:
+        offset = step["capture_offset_seconds"]
+        stage = step["id"]
+        if (
+            step.get("status") != "running"
+            or not number(offset)
+            or offset != elapsed
+            or capture["id"] != execution["binding"]["attempt_id"]
+            or not re.fullmatch(r"precheck|ready|warmup-[0-9]+|profile|stop", stage)
+            or (pending["kind"] != "profile" and stage != "profile")
+        ):
+            return elapsed
+        directory = safe_path(root, pending["path"])
+        if read(safe_path(directory, "request.json")) != execution["binding"]:
+            return elapsed
+        stage_dir = safe_path(directory, f"execution/{stage}")
+        receipt = read(safe_path(stage_dir, "execution.json"))
+        duration = receipt["elapsed_seconds"]
+        if (
+            receipt.get("status") not in ("completed", "failed", "cancelled", "timeout", "error")
+            or receipt.get("cwd") != str(directory / "workspace")
+            or receipt.get("result_path") != str(stage_dir / "result.json")
+            or type(receipt.get("pid")) is not int
+            or receipt["pid"] <= 0
+            or not number(duration)
+            or duration < 0
+            or not number(offset + duration)
+        ):
+            return elapsed
+        return offset + duration
+    except (KeyError, TypeError, OSError, ValueError):
+        return elapsed
+
+
 def execute(root, directory, plan, pending, deadline):
     """One retained attempt, one owned service, ordered client stages, no silent retry."""
     from .local_process import supervised_service
@@ -468,7 +681,6 @@ def execute(root, directory, plan, pending, deadline):
     receipt = directory / "service.json"
     values = {
         "python": plan["python"],
-        "protocol": str(safe_path(root, pending.get("protocol_path", "frozen/protocol"))),
         "candidate": str(workspace),
         "baseline": str(root / plan["baseline_path"]),
         "service_receipt": str(receipt),
@@ -493,9 +705,29 @@ def execute(root, directory, plan, pending, deadline):
     output = directory / "execution"
     output.mkdir()
     started, process, owner = time.monotonic(), None, None
+    standalone = pending.get("kind") == "profile"
+    sampling = settings["sampling"]
+    profile_timeout = sampling.get("profile_timeout_seconds", sampling["stage_timeout_seconds"])
+    capture_started = None
 
     def save():
         atomic_write_json(output / "execution.json", record)
+
+    def begin_capture():
+        nonlocal capture_started
+        capture_started = time.monotonic()
+        record["capture"] = {
+            "id": pending["attempt_id"], "started_at": time.time(), "elapsed_seconds": 0.0,
+        }
+        save()
+
+    def finish_capture():
+        nonlocal capture_started
+        record["capture"].update(
+            elapsed_seconds=time.monotonic() - capture_started, ended_at=time.time()
+        )
+        capture_started = None
+        save()
 
     def command(argv):
         for key, val in values.items():
@@ -513,13 +745,21 @@ def execute(root, directory, plan, pending, deadline):
             "started_at": time.time(),
             "execution_status": "not_started",
         }
+        if capture_started is not None:
+            offset = time.monotonic() - capture_started
+            definition["capture_offset_seconds"] = offset
+            record["capture"]["elapsed_seconds"] = offset
         record["steps"].append(definition)
         save()
         if bound and (process is None or process.poll() is not None):
             raise ValueError(f"Service unavailable before {name}")
-        stage_end = time.monotonic() + settings["sampling"]["stage_timeout_seconds"]
+        stage_end = time.monotonic() + sampling["stage_timeout_seconds"]
         if name != "stop":
-            stage_end = min(end, stage_end)
+            if capture_started is None:
+                stage_end = min(end, stage_end)
+            else:
+                capture_end = capture_started + profile_timeout
+                stage_end = capture_end if name == "profile" else min(stage_end, capture_end)
         executed = execute_trial(
             tuple(command(argv or settings["commands"][name.split("-")[0]])),
             workspace,
@@ -529,22 +769,32 @@ def execute(root, directory, plan, pending, deadline):
             environment=environment,
         )
         definition.update(executed, execution_status=executed["status"], ended_at=time.time())
+        if isinstance(definition.get("error"), str):
+            definition["error"] = _error_excerpt(definition["error"])
+        if capture_started is not None:
+            record["capture"]["elapsed_seconds"] = time.monotonic() - capture_started
         save()
         if executed["status"] != "completed":
-            raise ValueError(f"{name}: {executed['status']}: {executed.get('error', '')}")
+            detail = definition.get("error") or f"exit {executed.get('returncode')}"
+            if executed["status"] == "cancelled":
+                raise KeyboardInterrupt(_error_excerpt(f"{name}: {detail}"))
+            raise ValueError(_error_excerpt(f"{name}: {executed['status']}: {detail}"))
         document = read(output / name / "result.json")
         if bound:
             binding(document)
             if process.poll() is not None:
                 raise ValueError(f"Service exited during {name}")
-        if document.get("status") == "candidate_failure" and name.startswith(
+        candidate_failure = document.get("status") == "candidate_failure" and name.startswith(
             ("precheck", "quality")
-        ):
-            return document
-        if document.get("status") != "completed":
-            raise ValueError(f"{name}: missing completed stage evidence")
-        definition["result"] = document
-        save()
+        )
+        if not candidate_failure and document.get("status") != "completed":
+            detail = document.get("error") or document.get("message")
+            if not detail:
+                detail = f"expected completed stage evidence, got {document.get('status')!r}"
+            raise ValueError(_error_excerpt(f"{name}: {detail}"))
+        if name != "profile" and not standalone:
+            definition["result"] = document
+            save()
         return document
 
     def skipped(names, reason):
@@ -554,22 +804,228 @@ def execute(root, directory, plan, pending, deadline):
         save()
 
     measured, gate, score, profile, quality_ok = None, None, None, None, None
+
+    def evaluate(role):
+        nonlocal measured, gate, score, quality_ok
+        parent, initial = pending.get("parent"), pending.get("initial")
+        screen = settings.get("screening")
+        if role == "candidate" and screen:
+            try:
+                docs = [
+                    stage(f"screening-{i + 1:03d}", argv=screen["command"])
+                    for i in range(settings["sampling"][role]["repetitions"])
+                ]
+                preview = aggregate(settings, docs, role)
+                record["screening"] = performance(
+                    settings,
+                    preview,
+                    parent["measurements"],
+                    initial["measurements"],
+                    screening=True,
+                )
+                record["screening"].update(
+                    measurements=preview, estimated_gain=screen["estimated_gain"]
+                )
+            except Exception as error:
+                # A malformed screening receipt is diagnostic; formal measurements follow.
+                record["screening"] = {"error": str(error)}
+                record["steps"][-1].update(status="failed", reason=str(error))
+                save()
+        docs = []
+        first_failure = None
+        for i in range(sampling[role]["repetitions"]):
+            name = f"measure-{i + 1:03d}"
+            try:
+                docs.append(stage(name))
+            except (ValueError, TypeError, KeyError, OSError) as error:
+                if first_failure is None:
+                    first_failure = (name, error)
+                step = record["steps"][-1]
+                if step["status"] in ("running", "completed"):
+                    step["status"] = "failed"
+                step["reason"] = str(error)
+                save()
+                if process.poll() is not None or time.monotonic() >= end:
+                    break
+        if first_failure is not None:
+            record["failed_stage"], error = first_failure
+            raise error
+        measured = aggregate(settings, docs, role)
+        gate = (
+            performance(
+                settings, measured, parent["measurements"], initial["measurements"]
+            )
+            if parent is not None
+            else {"passed": True, "metrics": {}}
+        )
+        if not gate["passed"]:
+            skipped(("quality",), "performance_gate_not_met")
+            if role != "candidate":
+                skipped(("profile",), "not_required")
+            record["assessment"] = assessment(
+                "FAIL", "performance_gate_not_met", performance=gate
+            )
+        elif pending.get("reference_kind") == "parent":
+            skipped(("quality", "profile"), "performance_reference_only")
+            record["assessment"] = assessment(
+                "PASS", "performance_reference_refreshed", performance=gate,
+                eligible=False,
+            )
+        else:
+            reference_path = settings["quality"].get("reference_path")
+            if role == "baseline" and reference_path:
+                reference_step = {
+                    "id": "quality",
+                    "status": "running",
+                    "source": "retained_baseline_reference",
+                    "path": reference_path,
+                    "started_at": time.time(),
+                }
+                record["steps"].append(reference_step)
+                save()
+                quality = read(
+                    safe_path(
+                        safe_path(
+                            root, pending.get("protocol_path", "frozen/protocol")
+                        ),
+                        reference_path,
+                    )
+                )
+                if (
+                    quality.get("revision") != pending["revision"]
+                    or quality.get("conditions") != conditions
+                    or not quality.get("service_id")
+                    or not quality.get("run_id")
+                ):
+                    raise ValueError(
+                        "quality: missing/stale/incompatible baseline reference"
+                    )
+                quality_score(settings, quality)
+                reference_step.update(
+                    status="completed", ended_at=time.time(), result=quality
+                )
+                save()
+            else:
+                quality = stage("quality")
+            if quality.get("status") == "candidate_failure":
+                quality_ok = False
+            else:
+                score = quality_score(settings, quality)
+                quality_ok = quality_passed(
+                    settings,
+                    score,
+                    (initial.get("quality_score") if initial else score),
+                )
+            if not quality_ok:
+                skipped(("profile",), "quality_gate_not_met")
+                record["assessment"] = assessment(
+                    "FAIL",
+                    "quality_gate_not_met",
+                    quality_passed=False,
+                    performance=gate,
+                )
+            else:
+                if role != "candidate":
+                    skipped(("profile",), "not_required")
+                record["assessment"] = assessment(
+                    "PASS",
+                    "fixed_checks_satisfied",
+                    quality_passed=True,
+                    performance=gate,
+                )
+
+    def checkpoint_candidate():
+        quality_step = next(step for step in record["steps"] if step["id"] == "quality")
+        record["checkpoint"] = {
+            "assessment": record["assessment"],
+            "binding": expected,
+            "measurements": measured,
+            "measurement_results": [
+                (output / step["id"] / "result.json").relative_to(root).as_posix()
+                for step in record["steps"] if step["id"].startswith("measure-")
+            ],
+            "quality": quality_step,
+            "quality_score": score,
+        }
+        save()
+
+    def profile_error(name, error):
+        step = next((s for s in reversed(record["steps"]) if s["id"] == name), {})
+        execution_status = step.get("execution_status")
+        if isinstance(error, KeyboardInterrupt) or execution_status == "cancelled":
+            status = "interrupted"
+        elif isinstance(error, TimeoutError) or execution_status == "timeout":
+            status = "timed_out"
+        else:
+            status = "failed"
+        diagnostic = capture_diagnostic(
+            root, directory, name, status, str(error) or status,
+            process_failed=execution_status not in (None, "not_started", "completed"),
+        )
+        record["profiling_error"] = diagnostic
+        step.pop("result", None)
+        if step.get("status") in ("running", "completed"):
+            step.update(status="failed", reason=diagnostic["message"])
+        save()
+
+    def capture_profile():
+        nonlocal profile
+        if "profile" not in settings["commands"]:
+            skipped(("profile",), "not_configured")
+            return
+        try:
+            if not standalone:
+                begin_capture()
+            trace = stage("profile")
+            validated = validated_profile(
+                root, directory, pending["attempt_id"], conditions, expected, record["steps"][-1],
+                captured=trace,
+            )
+            if time.monotonic() >= capture_started + profile_timeout:
+                raise TimeoutError("Profiling timeout during capture validation")
+            profile = validated
+            record["profile"] = profile
+        except (Exception, KeyboardInterrupt) as error:
+            profile_error("profile", error)
+        finally:
+            if not standalone and capture_started is not None:
+                finish_capture()
+
     try:
+        if standalone:
+            begin_capture()
+        protocol = safe_path(root, pending.get("protocol_path", "frozen/protocol"))
+        values["protocol"] = str(protocol)
+        if standalone:
+            members(protocol)
+            if "profile" not in settings["commands"]:
+                raise ValueError("No profiler configured in the retained protocol")
         # Rebuild from Git objects; retained directories can be replaced after acceptance.
         repository = pending.get("source_repo")
         if not repository:
             raise ValueError("Authoritative source repository is unavailable")
-        retain_revision(repository, workspace, plan["candidate_includes"], pending["revision"])
-        if not source.exists():
+        retain_revision(
+            repository, workspace, plan["candidate_includes"], pending["revision"],
+            deadline=capture_started + profile_timeout if standalone else None,
+        )
+        if not standalone and not source.exists():
             retain(workspace, source, fingerprint=False)
         precheck = stage("precheck", bound=False)
         if precheck.get("status") == "candidate_failure" or precheck.get("passed") is False:
             skipped(("service", "measurement", "quality", "profile"), "precheck_rejected")
             record["assessment"] = assessment("FAIL", "functional_check_rejected")
+            if standalone:
+                detail = precheck.get("error") or precheck.get("message")
+                profile_error("precheck", ValueError(_error_excerpt(
+                    str(detail or "Functional check rejected")
+                )))
             record["cleanup_verified"] = True
         elif precheck.get("passed") is not True:
             raise ValueError("Missing functional/numerical check evidence")
         else:
+            if standalone and time.monotonic() >= capture_started + profile_timeout:
+                record["failed_stage"] = "service"
+                raise TimeoutError("Profiling timeout before service startup")
             service_step = {"id": "service", "status": "running", "started_at": time.time()}
             record["steps"].append(service_step)
             save()
@@ -585,170 +1041,26 @@ def execute(root, directory, plan, pending, deadline):
                 try:
                     ready = stage("ready")
                     if (
-                        ready.get("ready") is not True
-                        or ready.get("ownership") != "local_process_domain"
-                        or ready.get("owner_pid") != process.pid
-                        or ready.get("loaded_revision") != expected["revision"]
+                        not ready_for_service(ready, revision=expected["revision"], pid=process.pid)
                         or ready.get("loaded_root") != str(workspace.resolve())
                     ):
                         raise ValueError("Service readiness/ownership unverified")
                     role = pending["role"]
-                    for index in range(settings["sampling"][role]["warmups"]):
+                    for index in range(sampling[role]["warmups"]):
                         stage(f"warmup-{index + 1:03d}")
-                    parent, initial = pending.get("parent"), pending.get("initial")
-                    screen = settings.get("screening")
-                    screened = True
-                    if role == "candidate" and screen:
-                        docs = [
-                            stage(f"screening-{i + 1:03d}", argv=screen["command"])
-                            for i in range(settings["sampling"][role]["repetitions"])
-                        ]
-                        preview = aggregate(settings, docs, role)
-                        record["screening"] = performance(
-                            settings,
-                            preview,
-                            parent["measurements"],
-                            initial["measurements"],
-                            screening=True,
-                        )
-                        record["screening"].update(
-                            measurements=preview, estimated_gain=screen["estimated_gain"]
-                        )
-                        screened = record["screening"]["passed"]
-                    if screened:
-                        docs = [
-                            stage(f"measure-{i + 1:03d}")
-                            for i in range(settings["sampling"][role]["repetitions"])
-                        ]
-                        measured = aggregate(settings, docs, role)
-                        gate = (
-                            performance(
-                                settings, measured, parent["measurements"], initial["measurements"]
-                            )
-                            if parent is not None
-                            else {"passed": True, "metrics": {}}
-                        )
-                    if not screened or not gate["passed"]:
-                        skipped(("quality", "profile"), "performance_gate_not_met")
+                    if standalone:
+                        capture_profile()
                         record["assessment"] = assessment(
-                            "FAIL", "performance_gate_not_met", performance=gate
-                        )
-                    elif pending.get("reference_kind") == "parent":
-                        skipped(("quality", "profile"), "performance_reference_only")
-                        record["assessment"] = assessment(
-                            "PASS", "performance_reference_refreshed", performance=gate,
-                            eligible=False,
+                            "PASS" if profile else "INCONCLUSIVE", "profile_only", eligible=False
                         )
                     else:
-                        reference_path = settings["quality"].get("reference_path")
-                        if role == "baseline" and reference_path:
-                            reference_step = {
-                                "id": "quality",
-                                "status": "running",
-                                "source": "retained_baseline_reference",
-                                "path": reference_path,
-                                "started_at": time.time(),
-                            }
-                            record["steps"].append(reference_step)
-                            save()
-                            quality = read(
-                                safe_path(
-                                    safe_path(
-                                        root, pending.get("protocol_path", "frozen/protocol")
-                                    ),
-                                    reference_path,
-                                )
-                            )
-                            if (
-                                quality.get("revision") != pending["revision"]
-                                or quality.get("conditions") != conditions
-                                or not quality.get("service_id")
-                                or not quality.get("run_id")
-                            ):
-                                raise ValueError(
-                                    "quality: missing/stale/incompatible baseline reference"
-                                )
-                            quality_score(settings, quality)
-                            reference_step.update(
-                                status="completed", ended_at=time.time(), result=quality
-                            )
-                            save()
-                        else:
-                            quality = stage("quality")
-                        if quality.get("status") == "candidate_failure":
-                            quality_ok = False
-                        else:
-                            score = quality_score(settings, quality)
-                            quality_ok = quality_passed(
-                                settings,
-                                score,
-                                (initial.get("quality_score") if initial else score),
-                            )
-                        if not quality_ok:
-                            skipped(("profile",), "quality_gate_not_met")
-                            record["assessment"] = assessment(
-                                "FAIL",
-                                "quality_gate_not_met",
-                                quality_passed=False,
-                                performance=gate,
-                            )
-                        else:
-                            if role == "candidate":
-                                trace = stage("profile")
-                                artifacts = trace.get("artifacts")
-                                if not isinstance(artifacts, list) or not artifacts:
-                                    raise ValueError("profile: missing artifacts")
-                                for relative in artifacts:
-                                    path = safe_path(directory, relative)
-                                    if not path.is_file() or path.stat().st_size == 0:
-                                        raise ValueError("profile: missing or empty artifact")
-                                if trace.get("validated") is not True:
-                                    raise ValueError("profile: project validation missing")
-                                start, finish = (
-                                    trace.get("capture_started_at"),
-                                    trace.get("capture_ended_at"),
-                                )
-                                if (
-                                    not number(start)
-                                    or not number(finish)
-                                    or not (
-                                        record["steps"][-1]["started_at"]
-                                        <= start
-                                        <= finish
-                                        <= record["steps"][-1]["ended_at"]
-                                    )
-                                ):
-                                    raise ValueError(
-                                        "profile: missing or incompatible capture interval"
-                                    )
-                                profile = {
-                                    "attempt_id": pending["attempt_id"],
-                                    "conditions": conditions,
-                                    "binding": expected,
-                                    "receipt": trace,
-                                    "artifacts": [
-                                        (directory / item).relative_to(root).as_posix()
-                                        for item in artifacts
-                                    ],
-                                    "result": (
-                                        output / "profile/result.json"
-                                    ).relative_to(root).as_posix(),
-                                }
-                            else:
-                                skipped(
-                                    ("profile",),
-                                    "not_required"
-                                    if role == "baseline"
-                                    else "reuse_selected_candidate_profile",
-                                )
-                            record["assessment"] = assessment(
-                                "PASS",
-                                "fixed_checks_satisfied",
-                                quality_passed=True,
-                                performance=gate,
-                            )
+                        evaluate(role)
+                        if role == "candidate":
+                            checkpoint_candidate()
+                            if record["assessment"]["reason"] in INLINE_PROFILE_REASONS:
+                                capture_profile()
                 except BaseException:
-                    record["failed_stage"] = record["steps"][-1]["id"]
+                    record.setdefault("failed_stage", record["steps"][-1]["id"])
                     raise
                 finally:
                     try:
@@ -759,35 +1071,41 @@ def execute(root, directory, plan, pending, deadline):
                         )
                     except (OSError, ValueError, KeyError) as error:
                         record["external_cleanup_verified"] = False
-                        record["cleanup_error"] = str(error)
+                        record["cleanup_error"] = _error_excerpt(str(error))
             record["cleanup_verified"] = (
                 owner["domain_empty"] is True and record.get("external_cleanup_verified") is True
             )
             if not record["cleanup_verified"]:
-                raise ValueError("Service cleanup is unverified")
+                raise ValueError(record.get("cleanup_error") or "Service cleanup is unverified")
     except (Exception, KeyboardInterrupt) as error:
         failed = record.get(
             "failed_stage", record["steps"][-1]["id"] if record["steps"] else "startup"
         )
         record["assessment"] = assessment(
             "INCONCLUSIVE",
-            f"{failed}: {type(error).__name__}: {error}",
+            _error_excerpt(f"{failed}: {type(error).__name__}: {error}"),
             performance=gate,
             quality_passed=quality_ok,
         )
+        if standalone and ("profiling_error" not in record or isinstance(error, KeyboardInterrupt)):
+            profile_error(failed, error)
         for definition in record["steps"]:
             if definition["id"] == failed:
                 definition.setdefault("execution_status", definition["status"])
                 if definition["status"] in ("running", "completed"):
                     definition["status"] = "failed"
-                definition["reason"] = str(error)
+                definition["reason"] = _error_excerpt(str(error))
         if owner is not None:
             record["cleanup_verified"] = (
                 owner["domain_empty"] is True and record.get("external_cleanup_verified") is True
             )
+        elif standalone and not any(step["id"] == "service" for step in record["steps"]):
+            record["cleanup_verified"] = True
         for name in ("quality", "profile"):
             if not any(step["id"] == name for step in record["steps"]):
                 skipped((name,), "prerequisite_incomplete")
+    if capture_started is not None:
+        finish_capture()
     if owner is not None:
         service_step.update(
             status="completed" if owner["domain_empty"] is True else "failed",

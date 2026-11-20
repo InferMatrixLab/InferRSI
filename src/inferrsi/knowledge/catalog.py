@@ -6,6 +6,7 @@ import hashlib
 import json
 import re
 from importlib.resources import files
+from pathlib import PurePosixPath
 from typing import TYPE_CHECKING, Any
 
 from ..resources.repository_packs import REPO_TYPES
@@ -97,66 +98,226 @@ def _validate_record(
         raise ValueError(f"Imported knowledge must state locally_verified=false: {record['id']}")
 
 
-def knowledge_records(*, file_fingerprints: bool = True) -> list[dict[str, Any]]:
-    data = files("inferrsi").joinpath("knowledge", "data")
+REPOSITORY = _source_snapshot.REPOSITORY
+COMPILED = "_compiled"
+INPUTS = "inputs.json"
+
+
+DEFAULT_RECOMMENDATIONS = [
+    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
+    "Read the packaged references and owner-local cases alongside the procedure.",
+]
+
+
+def recommendations(metadata: dict) -> list[str]:
+    """Owner-supplied procedure advice, or generic navigation when absent.
+
+    A declared empty list means the owner states there is no procedure-specific
+    advice; it is not the same as an absent field and does not fall back.
+    """
+    if "recommendations" in metadata:
+        return list(metadata["recommendations"])
+    return list(DEFAULT_RECOMMENDATIONS)
+
+
+def _split_skill_metadata(header: str) -> tuple[str, dict | None]:
+    """Separate the Agent Skills metadata.inferrsi block without importing YAML."""
+    # Only the canonical literal-block representation is read without PyYAML.
+    # The source builder checks its interpretation against the full YAML mapping.
+    section = re.search(r"^metadata:[ \t]*(?:#[^\n]*)?\r?\n", header, re.MULTILINE)
+    if section is None:
+        if re.search(r"""^metadata:.*\binferrsi['"]?\s*:""", header, re.MULTILINE):
+            raise ValueError("Use a metadata.inferrsi literal block of JSON with 2/4-space indents")
+        return header, None
+    rest = header[section.end():]
+    next_field = re.search(r"^[^ \t#\r\n]", rest, re.MULTILINE)
+    end = section.end() + next_field.start() if next_field else len(header)
+    children = header[section.end():end]
+    marker = re.search(
+        r"^  inferrsi:[ \t]+\|[+-]?[ \t]*(?:#[^\n]*)?\r?\n", children, re.MULTILINE,
+    )
+    if marker is None:
+        if re.search(r"""^ +['"]?inferrsi['"]?\s*:""", children, re.MULTILINE):
+            raise ValueError("Use a metadata.inferrsi literal block of JSON with 2/4-space indents")
+        return header, None
+    block = re.match(r"(?:    [^\n]*(?:\n|$)|\r?\n)+", children[marker.end():])
+    if block is None:
+        raise ValueError("Missing metadata.inferrsi JSON object")
+    data = json.loads(block.group())
+    if not isinstance(data, dict):
+        raise ValueError("Skill metadata.inferrsi must contain a JSON object")
+    siblings = children[:marker.start()] + children[marker.end()+block.end():]
+    if any(line.strip() and not line.lstrip().startswith("#") for line in siblings.splitlines()):
+        return header[:section.end()] + siblings + header[end:], data
+    return header[:section.start()] + header[end:], data
+
+
+def _skill_search_source(text: str) -> tuple[str, dict | None]:
+    """Preserve the original lexical fields. Structured metadata has its own weights."""
+    if "inferrsi" not in text:
+        return text, None
+    match = re.match(r"\A---[ \t]*\r?\n(.*?)^---[ \t]*\r?$", text, re.MULTILINE | re.DOTALL)
+    if match is None:
+        return text, None
+    header, metadata = _split_skill_metadata(match[1])
+    return text[:match.start(1)] + header + text[match.end(1):], metadata
+
+
+def skill_views(root, *, file_fingerprints=True, record_id: str | None = None):
+    """The only compiled inputs are YAML headers and immutable source hashes."""
+    built = root.joinpath(COMPILED)
+    snapshot = json.loads(built.joinpath(_source_snapshot.MANIFEST).read_bytes())
+    revision, registry_hash = _source_snapshot._snapshot(snapshot)
+    raw = root.joinpath("skill-index.json").read_bytes()
+    if file_fingerprints and hashlib.sha256(raw).hexdigest() != registry_hash:
+        raise ValueError("Skill registry disagrees with its pinned snapshot")
+    registry = json.loads(raw)
+    if registry.get("schema_version") != 1 or not isinstance(registry.get("skills"), dict):
+        raise ValueError("Invalid packaged skill registry")
+    entries = registry["skills"]
+    inputs = json.loads(built.joinpath(INPUTS).read_bytes())
+    if not isinstance(inputs, dict) or (record_id is None and entries.keys() != inputs.keys()):
+        raise ValueError("Compiled skill IDs disagree with registry")
+    for name, registration in entries.items():
+        if record_id is not None and packaged_skill_id(name, registration["backend"]) != record_id:
+            continue
+        relative = registration["path"]
+        path = PurePosixPath(relative)
+        if path.is_absolute() or ".." in path.parts or path.name != name or "\\" in relative:
+            raise ValueError(f"Invalid registered skill path: {relative}")
+        directory = f"{_source_snapshot.LIBRARY}/{relative}"
+        owner = root.joinpath(*path.parts)
+        data = inputs.get(name)
+        if (not isinstance(data, dict) or set(data) != {"header", "files"}
+                or not isinstance(data["header"], dict) or not isinstance(data["files"], dict)):
+            raise ValueError(f"Invalid compiled inputs for {name}")
+        metadata = dict(data["header"])
+        if metadata.get("name") != name or not metadata.get("description"):
+            raise ValueError(f"Invalid compiled header for {name}")
+        fingerprints = data["files"]
+        if "SKILL.md" not in fingerprints:
+            raise ValueError(f"Missing entry fingerprint for {name}")
+        for key, digest in fingerprints.items():
+            if (not key or key.startswith("/") or "\\" in key
+                    or any(p in {"", ".", ".."} for p in key.split("/"))
+                    or not isinstance(digest, str) or not re.fullmatch(r"[0-9a-f]{64}", digest)):
+                raise ValueError(f"Invalid source fingerprint for {name}: {key}")
+        raw = owner.joinpath("SKILL.md").read_bytes()
+        if file_fingerprints and hashlib.sha256(raw).hexdigest() != fingerprints["SKILL.md"]:
+            raise ValueError(f"Stale skill metadata for {name}")
+        _, embedded = _skill_search_source(raw.decode("utf-8"))
+        if embedded is not None:
+            if "metadata.json" in fingerprints:
+                raise ValueError(f"Skill declares metadata in two files: {name}")
+            metadata.update(embedded)
+        elif "metadata.json" in fingerprints:
+            # A historical compiled snapshot can still be opened at its own pin.
+            legacy = owner.joinpath("metadata.json").read_bytes()
+            if (file_fingerprints
+                    and hashlib.sha256(legacy).hexdigest() != fingerprints["metadata.json"]):
+                raise ValueError(f"Stale skill metadata for {name}")
+            metadata.update(json.loads(legacy))
+        backend = registration["backend"]
+        state = metadata.get("status", "unspecified")
+        entry = directory + "/SKILL.md"
+        hashes = {}
+        if file_fingerprints:
+            hashes = dict(sorted({
+                _source_snapshot.REGISTRY: registry_hash,
+                **{f"{directory}/{k}": v for k, v in fingerprints.items()},
+            }.items()))
+        paths = list(hashes)
+        yield {
+            "schema_version": 1,
+            "id": packaged_skill_id(name, backend),
+            "title": name,
+            "repo": "inferrsi",
+            "tier": "contribution",
+            "backend": backend,
+            "component": "skills",
+            "scenario": "skills.discovery",
+            "status": "imported",
+            "summary": metadata["description"],
+            "tags": metadata.get("tags", []),
+            "origin": metadata.get("origin", ["unknown"]),
+            "sources": ([{
+                "type": "git",
+                "url": f"{REPOSITORY}/blob/{revision}/{entry}",
+                "commit": revision,
+                "paths": paths,
+                "content_sha256": hashes[entry],
+            }] if file_fingerprints else [{
+                "type": "git", "commit": revision, "url": f"{REPOSITORY}/tree/{revision}",
+            }]),
+            "index_type": "packaged-skill",
+            "skill_documents": {
+                "original": f"data/skill_library/{relative}/SKILL.md",
+            },
+            "checkout_ref": f"checkout:{name}",
+            "source_files": hashes,
+            "skill_metadata": metadata,
+            "applicability": metadata.get("applicability", {}),
+            "recommendations": recommendations(metadata),
+            "limitations": [
+                "This generated abstract points to the complete packaged skill; "
+                "external evidence and upstream repositories remain source links.",
+                "The imported status describes this index, not the original skill; "
+                f"its declared status is {state}.",
+                "Reading or indexing does not authorize execution, validate efficacy, "
+                "promote a candidate or grant a license.",
+                "The backend categorizes the procedure's hardware dependency; it does not "
+                "certify compatibility, and skills.discovery is a discovery scenario.",
+                *metadata.get("limitations", []),
+            ],
+            "verification": {"locally_verified": False, "evidence_level": "guidance"},
+        }
+
+
+def _authored_record(item) -> dict:
+    if not item.is_file() or not item.name.endswith(".json"):
+        raise ValueError(f"Unexpected authored knowledge resource: {item.name}")
+    parts = item.name[:-5].split(".", 3)
+    if len(parts) != 4:
+        raise ValueError(f"Invalid knowledge filename: {item.name}")
+    repo, backend, component, entry = parts
+    record = json.loads(item.read_bytes())
+    if not isinstance(record, dict) or record.get("index_type") == "packaged-skill":
+        raise ValueError(f"Invalid authored knowledge record: {item.name}")
+    tier = record.get("tier", "contribution")
+    if repo not in KNOWLEDGE_SCOPES.get(tier, ()):
+        raise ValueError(f"Knowledge tier disagrees with repository scope: {item.name}")
+    _validate_record(record, repo, (backend, component, entry + ".json"), tier)
+    if item.name != record["id"] + ".json":
+        raise ValueError(f"Knowledge ID disagrees with filename: {item.name}")
+    return record
+
+
+def knowledge_records(
+    *, file_fingerprints: bool = True, include_skill_views: bool = True,
+) -> list[dict[str, Any]]:
+    root = files("inferrsi").joinpath("knowledge", "data", "skill_library")
     records = []
-    seen = set()
-    for tier, repos in KNOWLEDGE_SCOPES.items():
-        for repo in repos:
-            knowledge = (
-                data.joinpath("repo_packs", repo, "knowledge")
-                if tier == "contribution"
-                else data.joinpath("knowledge_packs", tier, repo)
-            )
-            if not knowledge.is_dir():
-                continue
-            snapshot = knowledge.joinpath(_source_snapshot.MANIFEST)
-            snapshot = (
-                json.loads(snapshot.read_text(encoding="utf-8")) if snapshot.is_file() else None
-            )
-            for parts, item in _walk(knowledge):
-                if not item.name.endswith(".json") or parts == (_source_snapshot.MANIFEST,):
-                    continue
-                record = json.loads(item.read_text(encoding="utf-8"))
-                # Generated skill records store schema v2; readers always receive schema v1.
-                # A pack with a snapshot holds only generated records.
-                if isinstance(record, dict) and record.get("schema_version") == (
-                    _source_snapshot.STORED_SCHEMA
-                ):
-                    if snapshot is None:
-                        raise ValueError(f"Knowledge record lacks its source snapshot: {repo}")
-                    if file_fingerprints:
-                        record = _source_snapshot.resolve(record, snapshot)
-                    else:
-                        revision = snapshot.get("source_revision")
-                        if not isinstance(revision, str) or not re.fullmatch(
-                            r"[0-9a-f]{40}", revision
-                        ):
-                            raise ValueError("Knowledge source commit is unavailable")
-                        record = {
-                            **record,
-                            "schema_version": 1,
-                            "sources": [
-                                {
-                                    "type": "git",
-                                    "commit": revision,
-                                    "url": _source_snapshot.REPOSITORY + "/tree/" + revision,
-                                }
-                            ],
-                        }
-                elif snapshot is not None:
-                    raise ValueError(
-                        f"Source-snapshot pack holds a record that is not schema "
-                        f"{_source_snapshot.STORED_SCHEMA}: {repo}/{'/'.join(parts)}"
-                    )
-                if not file_fingerprints:
-                    record = without_file_fingerprints(record)
-                _validate_record(record, repo, parts, tier)
-                if record["id"] in seen:
-                    raise ValueError(f"Duplicate knowledge ID: {record['id']}")
-                seen.add(record["id"])
-                records.append(record)
-    return records
+    authored = root.joinpath("records")
+    for item in sorted(authored.iterdir(), key=lambda p: p.name):
+        if item.is_file() and (
+            item.name in {"README.md", ".DS_Store"}
+            or item.name.casefold() in {"desktop.ini", "thumbs.db"}
+        ):
+            continue
+        records.append(_authored_record(item))
+    if include_skill_views:
+        for view in skill_views(root, file_fingerprints=file_fingerprints):
+            parts = (view["backend"], "skills", view["title"] + ".json")
+            _validate_record(view, "inferrsi", parts)
+            records.append(view)
+    order = {(tier, repo): (t, r) for t, (tier, repos) in enumerate(KNOWLEDGE_SCOPES.items())
+             for r, repo in enumerate(repos)}
+    records.sort(key=lambda row: (
+        order[row.get("tier", "contribution"), row["repo"]], row["id"]
+    ))
+    if len({row["id"] for row in records}) != len(records):
+        raise ValueError("Duplicate knowledge ID")
+    return records if file_fingerprints else without_file_fingerprints(records)
 
 
 def without_file_fingerprints(value):
@@ -290,8 +451,24 @@ def search_knowledge(
     return {"items": items, "retrieval": retrieval}
 
 
+def lookup_record(record_id: str) -> dict | None:
+    """Validate a single package owner without parsing unrelated records or skill sidecars."""
+    if not re.fullmatch(r"[a-z0-9][a-z0-9._-]*", record_id):
+        return None
+    root = files("inferrsi").joinpath("knowledge", "data", "skill_library")
+    item = root.joinpath("records", record_id + ".json")
+    record = _authored_record(item) if item.is_file() else None
+    if re.fullmatch(r"inferrsi\.[a-z0-9]+\.skills\.[a-z0-9_]+", record_id):
+        for view in skill_views(root, record_id=record_id):
+            if record is not None:
+                raise ValueError(f"Duplicate knowledge ID: {record_id}")
+            _validate_record(view, "inferrsi", (view["backend"], "skills", view["title"] + ".json"))
+            record = view
+    return record
+
+
 def get_knowledge(record_id: str) -> dict[str, Any]:
-    for record in knowledge_records():
-        if record["id"] == record_id:
-            return record
-    raise ValueError(f"Unknown knowledge ID: {record_id}")
+    record = lookup_record(record_id)
+    if record is None:
+        raise ValueError(f"Unknown knowledge ID: {record_id}")
+    return record

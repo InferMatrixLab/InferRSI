@@ -16,9 +16,10 @@ from ._skill_selection import (
     context_view,
     indexed_skill,
     record_context,
+    skill_procedure,
     validate_relevance_method,
 )
-from .catalog import KNOWLEDGE_SCOPES, SCENARIO_ALIASES, knowledge_records
+from .catalog import KNOWLEDGE_SCOPES, SCENARIO_ALIASES, knowledge_records, lookup_record
 
 if TYPE_CHECKING:
     from .knowledge_find import Document
@@ -227,7 +228,16 @@ class Bundle:
             "dependencies": manifest["dependencies"],
         }
         if material:
-            result["content"] = self.content[self.metadata["entrypoint"]].decode("utf-8")
+            path = self.metadata["entrypoint"]
+            data = self.content[path]
+            if self.metadata["kind"] == "skill":
+                data, locator = skill_procedure(path, data)
+                if locator:
+                    result["content_view"] = {
+                        **locator, "sha256": _hash(data),
+                        "source_sha256": manifest["resources"][path],
+                    }
+            result["content"] = data.decode("utf-8")
         return result
 
 
@@ -276,6 +286,9 @@ def _tree(
         ancestors = ancestors | {directory}
     result = {}
     for child in sorted(node.iterdir(), key=lambda p: p.name):
+        # Record/config/build inputs have independent owners. Only skill resources enter this pin.
+        if prefix == "data/skill_library" and child.name in {"records", "config", "_compiled"}:
+            continue
         if child.name in INCIDENTAL or child.name.endswith(".pyc"):
             continue
         path = safe_path(f"{prefix}/{child.name}")
@@ -329,6 +342,7 @@ class KnowledgeReader:
             else:
                 body = _json(record)
                 path = "record.json"
+            body, locator = skill_procedure(path, body)
             if len(contexts) >= limit or used + len(body) > context_bytes:
                 omissions.append(
                     {
@@ -347,7 +361,8 @@ class KnowledgeReader:
                     "sources": sources,
                     "content_bytes": len(body),
                     "score": score,
-                    "resources": [{"path": path, "role": "core", "content": body.decode("utf-8")}],
+                    "resources": [{"path": path, "role": "core", "content": body.decode("utf-8"),
+                                   **locator}],
                     "omissions": [
                         {"path": target, "reason": "linked_document_not_loaded"}
                         for target in record.get("skill_metadata", {}).get("references", [])
@@ -384,6 +399,7 @@ class KnowledgeReader:
             raise ValueError("Store must reserve identities from the same checkout")
         self.store = store
         self._records: dict[str, dict] | None = None
+        self._opened_records: dict[str, dict | None] = {}
         self._library: tuple[dict[str, bytes], str] | None = None
 
     def records(self) -> dict[str, dict]:
@@ -391,6 +407,14 @@ class KnowledgeReader:
         if self._records is None:
             self._records = {record["id"]: record for record in knowledge_records()}
         return self._records
+
+    def record(self, identity: str) -> dict | None:
+        """Read one validated owner, honoring an already-loaded or supplied catalog."""
+        if self._records is not None:
+            return self._records.get(identity)
+        if identity not in self._opened_records:
+            self._opened_records[identity] = lookup_record(identity)
+        return self._opened_records[identity]
 
     def _skill_library(self) -> tuple[dict[str, bytes], str]:
         if self._library is None:
@@ -418,10 +442,11 @@ class KnowledgeReader:
     def _checkout_identities(self) -> list[str]:
         if self.skill_root is None:
             return []
-        # Enumeration reads registered names. Collect validates sidecars per item.
+        # Enumeration reads registered names. Collect validates metadata per item.
         from .skill_catalog import skill_directories
 
-        identities = [*skill_directories(self.skill_root), *self._cases()]
+        directories = skill_directories(self.skill_root)
+        identities = [*directories, *self._cases(directories)]
         if len(set(identities)) != len(identities):
             raise IdentityError("collision", "Duplicate identity inside the checkout")
         return identities
@@ -434,7 +459,18 @@ class KnowledgeReader:
         authority, qualified, identity = reference.rpartition(":")
         if not re.fullmatch(IDENTITY, identity) or (qualified and authority not in AUTHORITIES):
             raise IdentityError("invalid_identity", f"Invalid identity: {reference}")
-        found = (self.owners() if owners is None else owners).get(identity, [])
+        if owners is not None:
+            found = owners.get(identity, [])
+        else:
+            found = []
+            if (not qualified or authority == "package") and self.record(identity) is not None:
+                found.append("package")
+            if ((not qualified or authority == "checkout")
+                    and identity in self._checkout_identities()):
+                found.append("checkout")
+            if (not qualified or authority == "store") and self.store is not None:
+                if identity in self.store.identities():
+                    found.append("store")
         if qualified:
             if authority not in found:
                 raise IdentityError("unknown_identity", f"Unknown identity: {reference}")
@@ -456,12 +492,14 @@ class KnowledgeReader:
         """
         return self._cases()
 
-    def _cases(self) -> dict[str, Path]:
+    def _cases(self, directories: dict[str, Path] | None = None) -> dict[str, Path]:
         result = {}
         if self.skill_root is not None:
             from .skill_catalog import skill_directories
 
-            for directory in skill_directories(self.skill_root).values():
+            if directories is None:
+                directories = skill_directories(self.skill_root)
+            for directory in directories.values():
                 for path in sorted(directory.glob("cases/*.json")):
                     if path.is_symlink() or not path.resolve().is_relative_to(self.skill_root):
                         raise ValueError("Case must stay inside the selected skills root")
@@ -529,7 +567,7 @@ class KnowledgeReader:
         return self._skill(identity)
 
     def _knowledge(self, identity: str) -> Bundle:
-        record = self.records().get(identity)
+        record = self.record(identity)
         if record is None:
             raise IdentityError("unknown_identity", f"Unknown knowledge ID: {identity}")
         content = {"record.json": _json(record)}
@@ -576,17 +614,16 @@ class KnowledgeReader:
         )
 
     def _skill(self, identity: str) -> Bundle:
-        from .skill_catalog import get_skill, skill_directory, skill_metadata, skill_reference
+        from .skill_catalog import _effective, _reference_path, skill_directory
 
         root = self.skill_root
-        record = get_skill(root, identity)
         directory = skill_directory(root, identity)
+        metadata = _effective(directory)
         prefix = directory.relative_to(root).as_posix()
         content = _tree(directory, prefix, root=root)
-        metadata = skill_metadata(root, identity)
         dependencies = {}
         for reference in metadata.get("references", []):
-            path = skill_reference(root, identity, reference)
+            path = _reference_path(root, directory, reference)
             key = path.relative_to(root).as_posix()
             content[key] = path.read_bytes()
             dependencies[key] = "sha256:" + _hash(content[key])
@@ -595,7 +632,7 @@ class KnowledgeReader:
                 "id": identity,
                 "kind": "skill",
                 "entrypoint": f"{prefix}/SKILL.md",
-                "title": record["description"],
+                "title": metadata["description"],
                 "origin": metadata.get("origin", ["unknown"]),
                 "sources": _sources(metadata.get("sources", []))
                 or [
@@ -605,7 +642,7 @@ class KnowledgeReader:
                     }
                 ],
                 "applicability": metadata.get("applicability", {}),
-                "state": record.get("status", "unspecified"),
+                "state": metadata.get("status", "unspecified"),
                 "limitations": metadata.get("limitations", [])
                 + [
                     "Checkout-only local skill; no automatic execution or promotion.",

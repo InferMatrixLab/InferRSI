@@ -122,7 +122,7 @@ E. 检查、候选 PR 与晋升
     - src/inferrsi/knowledge/data/skill_library/ 下按主要归属放置的候选技能：
       hardware/<backend>/、frameworks/<framework>/、repositories/<repo>/、methods/ 或 workflows/；
       技能库内容统一使用英文，参考资料放所属技能的 references/；
-    - src/inferrsi/knowledge/data/repo_packs/<repo>/knowledge/ 的知识记录和导航；
+    - src/inferrsi/knowledge/data/skill_library/records/ 的知识记录和导航；
     - 本次 acquisition/learning manifest、评测摘要与性能候选队列的可追溯归档。
     新增 vllm 或 vllm_ascend 记录时创建该 pack 的知识导航；知识身份不表示运行支持。
     仓库级通用 SKILL.md 保持索引性质；细节进支持文件，体积预算读冻结配置。

@@ -67,7 +67,7 @@ Parameterized or manual acceptance runs are issue-scoped; they are not the defau
 
 ## RSI contract
 
-- **Resolve acceptance criteria** — preserve user-supplied criteria; when absent, use [performance-ceiling-analysis](src/inferrsi/knowledge/data/skill_library/methods/performance-ceiling-analysis/references/acceptance-criteria.md) to derive evidence-backed campaign targets. Retain partial requirements and derive only missing fields; unresolved evidence stays explicit.
+- **Resolve acceptance criteria** — preserve user-supplied criteria; when absent, use [performance-ceiling-analysis](src/inferrsi/knowledge/data/skill_library/playbooks/measurement/performance-ceiling-analysis/references/acceptance-criteria.md) to derive evidence-backed campaign targets. Retain partial requirements and derive only missing fields; unresolved evidence stays explicit.
 - **Freeze gates before search** — checklist and `validator/` locked in `plan/` before Phase 3 candidate experiments ([validation levels](docs/contributing.md#validation-levels)).
 - **One plane per campaign step** — change only the declared SIAS plane per step: `harness` | `model` | `infra` (under `src/inferrsi/`).
 - **Emit RunSpec snapshots** — record repo × revision × backend × device × model × scenario (`contracts/runspec.py`, campaign `plan/`).
@@ -83,7 +83,7 @@ Parameterized or manual acceptance runs are issue-scoped; they are not the defau
 
 - Cite **acceptance issues + pinned SHAs** in downstream text; do not invent gain or quality bars.
 - **Public wording only after `PASS`** — follow [evidence and claim rules](docs/contributing.md#evidence-and-claims); until then, label unverified or `INCONCLUSIVE`.
-- Use [cite-check-downstream-pr](src/inferrsi/knowledge/data/skill_library/workflows/cite-check-downstream-pr/SKILL.md) and [competitor-scan](src/inferrsi/knowledge/data/skill_library/workflows/competitor-scan/SKILL.md) as **operators**, not campaign scripts (no pins in skill bodies).
+- Use [cite-check-downstream-pr](src/inferrsi/knowledge/data/skill_library/workflows/governance/cite-check-downstream-pr/SKILL.md) and [competitor-scan](src/inferrsi/knowledge/data/skill_library/workflows/research/competitor-scan/SKILL.md) as **operators**, not campaign scripts (no pins in skill bodies).
 
 ## Evidence and clearing the bar
 
@@ -104,7 +104,9 @@ Agents and human reviewers **clear** work only with artifacts—not vibes. Green
 
 ## Skills
 
-Portable operator guidance and candidate procedures live in [src/inferrsi/knowledge/data/skill_library/](src/inferrsi/knowledge/data/skill_library/README.md), with hardware-specific guidance under `hardware/<backend-or-host>/`, framework/repository guidance under its owner, and generic `methods/` and `workflows/`. The library owns complete procedures, metadata, references and cases. Keep library content in English; supporting documents stay in owner-local resource directories. The [knowledge-base contract](docs/knowledge-base.md) and two matrices define ownership and coverage. Keep **AGENTS.md** short; follow skill bodies for procedures—skills must remain free of campaign SHAs.
+For an inference task, first select one of the [seven required primary skills by deliverable](plugins/inferrsi/skills/inferrsi/SKILL.md#load-the-primary-inference-task). Run `inferrsi skills enter <primary-id>` and read the returned instructions before the first evidence search. For an accuracy regression, use `inferrsi skills enter task-accuracy`. If the required skill cannot load, report the blocker. Frozen evaluations follow their assigned entry and knowledge condition.
+
+Portable operator guidance and candidate procedures live in the [skill library](src/inferrsi/knowledge/data/skill_library/README.md). Keep complete English instructions, metadata, references and cases with the owner. The [knowledge-base contract](docs/knowledge-base.md) and two matrices define ownership and coverage. Keep campaign SHAs out of skill bodies.
 
 ## Optimization requests
 
@@ -117,7 +119,8 @@ details are in [benchmark comparison](docs/benchmark-comparison.md).
 Ordinary project optimization stays in the current Agent conversation. Follow
 the [shared optimization workflow](docs/optimization-workflow-unification.md):
 prepare explicit workload, quality/measurement scripts, metric, gates, declared
-project inputs and budget, then use `campaign start/knowledge/round/status/final`.
+project inputs and budget, then use `campaign start/diagnose/knowledge/round/status/final`.
+Record the measured bottleneck before optional knowledge retrieval or candidate search.
 Harness freezes those supplied conditions and assesses the retained results;
 it does not infer acceptance from the user's goal. Ordinary optimization does
 not depend on Benchmark. Use `up_to` with a recorded stop reason or declare exact rounds.
@@ -127,7 +130,8 @@ campaigns generate dashboard views from that control record; do not use legacy
 
 For a request to run an optimization task through RSI, follow the
 [current-Agent benchmark workflow](docs/optimization-benchmarks.md).
-Use `benchmarks session` to freeze the budget, submit each changed candidate,
+Use `benchmarks session` to freeze the budget, record the measured bottleneck,
+submit each changed candidate,
 read its feedback, and independently retest the selected candidate with `final`.
 Report the session summary after the declared rounds and final are complete.
 `benchmarks run` is the single-candidate measurement operation inside that workflow.

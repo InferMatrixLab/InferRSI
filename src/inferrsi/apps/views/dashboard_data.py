@@ -694,8 +694,10 @@ def _managed_dashboard(root: Path, campaign: dict) -> dict:
     from inferrsi.harness.optimization import read_records
 
     from .optimization_story import build_story
+    from .retrieval_projection import managed_knowledge
 
     plan, state, summary = read_records(root)
+    retrievals, citations = managed_knowledge(root, state["contexts"])
     rows, rounds, decisions = [], [], {}
     for index, record in enumerate(state["rounds"], 1):
         candidate_id = record["candidate_id"]
@@ -730,12 +732,23 @@ def _managed_dashboard(root: Path, campaign: dict) -> dict:
             artifacts={**row["artifacts"], "execution": facts, "assessment": judged,
                        "status": facts, "evaluation": judged},
             usage=record["observations"]["usage"],
+            measured_score=_number(assessment.get("score")),
+            knowledge_uses=[citations[ref] for ref in record.get("knowledge_refs") or []
+                            if ref in citations],
         )
         row.pop("_comparison_signature")
         rows.append(row)
         rounds.append({"round": index, "candidates": [candidate_id],
                        "decision": {"candidate_id": candidate_id, "outcome": decision}})
         decisions[(index, candidate_id)] = decision
+    pending = state["pending"]
+    pending_candidate = None
+    if pending and pending["kind"] == "round":
+        pending_candidate = {
+            "round": len(rows) + 1, "candidate_id": pending["candidate_id"],
+            "knowledge_uses": [citations[ref] for ref in pending.get("knowledge_refs") or []
+                               if ref in citations],
+        }
     displayed_summary = _managed_summary(summary)
     displayed_summary["final_reference"] = (
         file_ref(root, root / state["final"]["path"] / "observation.json", "final_assessment")
@@ -744,6 +757,7 @@ def _managed_dashboard(root: Path, campaign: dict) -> dict:
         "campaign_id": sanitized_text(campaign["campaign_id"]), "synthetic": False,
         "rounds": rounds, "rounds_state": "present", "corrupt_round_lines": [],
         "candidates": rows, "optimization_session": displayed_summary,
+        "managed_retrievals": retrievals, "pending_candidate": pending_candidate,
         "integration": {"state": "connected" if rows else "not_connected",
                         "stage_declaration": "missing", "external_records": 0,
                         "collection": {"state": "", "observed_at": ""}},

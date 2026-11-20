@@ -39,7 +39,7 @@ All source links use the full revision above. Blob identities cover retrieved by
 
 ## Ownership, applicability and follow-up
 
-Reuse the existing `vllm_rlt` identity. A future accepted repository capability should own the recurrent-depth KV contract rather than extending the [vLLM connector KV-lifetime procedure](../../src/inferrsi/knowledge/data/skill_library/repositories/vllm/audit-vllm-kv-lifetimes/SKILL.md): that procedure covers remote-KV completion and retention at a separate vLLM pin. [vLLM admission guidance](../../src/inferrsi/knowledge/data/skill_library/repositories/vllm/diagnose-vllm-admission-pressure/SKILL.md) addresses resource admission, not early-exit history propagation. Neither existing owner establishes this engine's semantics. No new owner, alias or registry is created here.
+Reuse the existing `vllm_rlt` identity. A future accepted repository capability should own the recurrent-depth KV contract rather than extending the [vLLM connector KV-lifetime procedure](../../src/inferrsi/knowledge/data/skill_library/systems/engines/vllm/audit-vllm-kv-lifetimes/SKILL.md): that procedure covers remote-KV completion and retention at a separate vLLM pin. [vLLM admission guidance](../../src/inferrsi/knowledge/data/skill_library/systems/engines/vllm/diagnose-vllm-admission-pressure/SKILL.md) addresses resource admission, not early-exit history propagation. Neither existing owner establishes this engine's semantics. No new owner, alias or registry is created here.
 
 A later authorized extraction should:
 

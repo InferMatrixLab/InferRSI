@@ -36,6 +36,7 @@
       "tests/test_apps_prepare.py",
       "tests/test_apps_publication.py",
       "tests/test_apps_replay.py",
+      "tests/test_benchmark_preparation.py",
       "tests/test_result_delivery.py"
     ]
   },
@@ -137,7 +138,8 @@
       "tests/test_apps_evidence.py",
       "tests/test_apps_execution_binding.py",
       "tests/test_apps_generation_plan.py",
-      "tests/test_apps_module_migrations.py"
+      "tests/test_apps_module_migrations.py",
+      "tests/test_benchmark_preparation.py"
     ]
   },
   {
@@ -320,6 +322,72 @@
       "tests/check_installed.py",
       "tests/test_apps_module_migrations.py",
       "tests/test_benchmark_compare.py"
+    ]
+  },
+  {
+    "old": "inferrsi.apps.cannbot",
+    "canonical": "inferrsi.apps.integrations.cannbot",
+    "exports": [
+      "CannbotChannel",
+      "project"
+    ],
+    "consumers": [
+      "src/inferrsi/apps/cli/__init__.py",
+      "src/inferrsi/apps/integrations/cannbot/round_knowledge.py",
+      "tests/check_installed.py",
+      "tests/test_apps_module_migrations.py"
+    ],
+    "package": true,
+    "module_exports": {
+      "project": {
+        "old": "inferrsi.apps.cannbot.project",
+        "canonical": "inferrsi.apps.integrations.cannbot.project"
+      }
+    }
+  },
+  {
+    "old": "inferrsi.apps.cannbot.project",
+    "canonical": "inferrsi.apps.integrations.cannbot.project",
+    "exports": [
+      "MAX_BYTES",
+      "PLATFORMS",
+      "ChannelFailure",
+      "project_root",
+      "load_grant",
+      "describe",
+      "search",
+      "read",
+      "enable",
+      "disable"
+    ],
+    "consumers": [
+      "src/inferrsi/apps/cli/arguments.py",
+      "src/inferrsi/apps/integrations/cannbot/__init__.py",
+      "src/inferrsi/apps/integrations/cannbot/round_knowledge.py",
+      "tests/check_installed.py",
+      "tests/test_apps_module_migrations.py",
+      "tests/test_cannbot_boundaries.py",
+      "tests/test_optimization_session.py",
+      "tests/test_project_optimization.py"
+    ]
+  },
+  {
+    "old": "inferrsi.apps.cannbot.read_worker",
+    "canonical": "inferrsi.apps.integrations.cannbot.read_worker",
+    "exports": [
+      "OutputLimitError",
+      "capture",
+      "discover",
+      "search",
+      "read"
+    ],
+    "consumers": [
+      "src/inferrsi/apps/integrations/cannbot/project.py",
+      "src/inferrsi/apps/integrations/cannbot/round_knowledge.py",
+      "tests/check_installed.py",
+      "tests/test_apps_module_migrations.py",
+      "tests/test_cannbot_boundaries.py",
+      "tests/test_project_optimization.py"
     ]
   }
 ]

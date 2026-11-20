@@ -369,7 +369,7 @@ hits alone provide no passage for a reviewed decision.
   },
   "decisions": [{
     "use": "used",
-    "ref": "methods/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md",
+    "ref": "casebooks/inference/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md",
     "event_line": 73,
     "passage_line": 18,
     "decision_line": 108,
@@ -439,7 +439,7 @@ for the generated evidence and its interpretation. To follow one material across
 events and then see its reviewed uses, set `record` to the portable JSON:
 
 ```sh
-ref=methods/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md
+ref=casebooks/inference/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md
 jq --arg ref "$ref" '{
   returns: [.events[] | {event: .id, action, query,
     passages: [.delivery.passages[]? | select(.ref == $ref)]}

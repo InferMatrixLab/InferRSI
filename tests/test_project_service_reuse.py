@@ -4,6 +4,7 @@ import copy
 import json
 import shutil
 import subprocess
+import time
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -15,6 +16,7 @@ from inferrsi.apps.cli.arguments import parser
 from inferrsi.harness import artifact_primitives, optimization, project_service
 from inferrsi.harness.records import evidence, knowledge_capture
 from inferrsi.knowledge import knowledge_operations
+from tests.diagnosis_support import diagnosis_args
 
 
 @pytest.fixture(autouse=True)
@@ -184,12 +186,62 @@ def call(campaign, action, *extra, expected=0):
     return json.loads(campaign["capsys"].readouterr().out)
 
 
+def test_diagnosis_gate_applies_to_service_knowledge(campaign, tmp_path):
+    assert call(campaign, "start")["next_action"] == "campaign_baseline"
+    lookup = ("--query", "前缀缓存", "--context-bytes", "65536", "--limit", "1")
+    with pytest.raises(SystemExit) as error:
+        call(campaign, "knowledge", *lookup)
+    assert error.value.code == 2
+    assert "Record measured bottleneck evidence" in campaign["capsys"].readouterr().err
+    evidence = tmp_path / "measurement.txt"
+    evidence.write_text("Synthetic measurement: the service spends 4 ms in one operation.")
+    result = call(campaign, "diagnose", "--bottleneck", "Service operation", "--evidence", evidence)
+    assert result["diagnosis"]["reference_epoch"] == 0
+    assert call(campaign, "status")["diagnosis"] == result["diagnosis"]
+    delivery = call(campaign, "knowledge", *lookup)
+    assert delivery["context"]["contexts"]
+    assert delivery["context"]["request"]["relevance_method"] == "find-lexical-v1"
+    binding = delivery["context"]["diagnosis_binding"]
+    assert binding["diagnosis_id"] == result["diagnosis"]["id"]
+    assert binding["reference_epoch"] == 0
+    assert binding["started_at"] >= result["diagnosis"]["recorded_at"]
+    call(campaign, "baseline")
+    conditions = tmp_path / "conditions.json"
+    changed = {**settings()["conditions"], "id": "c1", "runtime": "changed"}
+    conditions.write_text(json.dumps(changed))
+    refreshed = call(campaign, "refresh-references", "--conditions", conditions,
+                     "--reason", "Changed test runtime")
+    assert refreshed["next_action"] == "record_bottleneck_diagnosis"
+    with pytest.raises(SystemExit) as error:
+        call(campaign, "knowledge", *lookup)
+    assert error.value.code == 2
+    assert "Record measured bottleneck evidence" in campaign["capsys"].readouterr().err
+    new = call(campaign, "diagnose", "--bottleneck", "Different operation", "--evidence", evidence)
+    assert new["diagnosis"]["reference_epoch"] == 1
+    recent = call(campaign, "knowledge", *lookup)["context"]["diagnosis_binding"]
+    assert recent["diagnosis_id"] == new["diagnosis"]["id"]
+    assert recent["reference_epoch"] == 1
+
+    state_path = campaign["root"] / "state.json"
+    state = json.loads(state_path.read_text(encoding="utf-8"))
+    state["contexts"][0]["diagnosis_id"] = new["diagnosis"]["id"]
+    state_path.write_text(json.dumps(state), encoding="utf-8")
+    with pytest.raises(ValueError, match="Knowledge diagnosis differs from the retained capture"):
+        optimization.read_records(campaign["root"])
+
+
+def diagnose(campaign):
+    assert main(diagnosis_args(campaign["root"], "campaign")) == 0
+    campaign["capsys"].readouterr()
+
+
 def begin(campaign):
     result = call(campaign, "start")
     assert result["next_action"] == "campaign_baseline"
     assert not (campaign["root"] / "baseline").exists()
     result = call(campaign, "baseline")
     assert result["best"]["kind"] == "baseline"
+    diagnose(campaign)
     return result
 
 
@@ -235,31 +287,37 @@ def test_one_service_order_and_independent_final_ignores_workspace(campaign):
     project_service.no_fingerprints(optimization.read_records(campaign["root"])[2])
 
 
-@pytest.mark.parametrize("failure", ["failed", "missing"])
-def test_profile_failure_and_failed_repair_preserve_prior_selection(campaign, failure):
+@pytest.mark.parametrize("failure", ["failed", "missing", "empty"])
+def test_profile_failure_preserves_acceptance_and_final_selection(campaign, failure):
     begin(campaign)
-    selected = submit(campaign, version="selected", a=90, b=100)["best"]
-    broken = submit(
-        campaign, version="profile-broken", a=80, b=100, profile_mode=failure, expected=2
-    )
-    old = broken["latest_observation"]
-    assert old["assessment"]["verdict"] == "INCONCLUSIVE"
-    assert old["assessment"]["quality_passed"] is True
-    assert "profile" in old["assessment"]["reason"]
-    assert broken["best"] == selected
-    assert len(events(campaign, old)) == 7
-    repaired = submit(campaign, version="repair-failed", a=70, b=120, retry=old["attempt_id"])
-    assert repaired["latest_observation"]["assessment"]["verdict"] == "FAIL"
-    assert repaired["best"] == selected
-    assert project_service.read(campaign["root"] / old["path"] / "observation.json") == old
-    final = call(campaign, "final", "--reason", "Repair rejected")
+    result = submit(campaign, version="profile-unavailable", a=80, profile_mode=failure)
+    attempt = result["latest_observation"]
+    assert attempt["assessment"]["verdict"] == "PASS"
+    assert attempt["assessment"]["quality_passed"] is True
+    assert attempt["profiling"] == {"available": False}
+    assert attempt["execution"]["profiling_error"]["stage"] == "profile"
+    diagnostic = result["profiling_error"]
+    assert call(campaign, "recover")["profiling_error"] == diagnostic
+    assert diagnostic["message"] and (campaign["root"] / diagnostic["log"]).is_file()
+    if failure == "failed":
+        assert "synthetic collector failed" in diagnostic["message"]
+    selected = result["best"]
+    assert selected["attempt_id"] == attempt["attempt_id"]
+    assert selected["profile"] is None
+    rejected = submit(campaign, version="regression", a=70, b=120)
+    assert rejected["latest_observation"]["assessment"]["verdict"] == "FAIL"
+    assert rejected["best"] == selected
+    final = call(campaign, "final", "--reason", "Regression rejected")
     assert final["final"]["revision"] == selected["revision"]
-    assert {row["version"] for row in events(campaign, final["final"])} == {"selected"}
+    assert {row["version"] for row in events(campaign, final["final"])} == {"profile-unavailable"}
 
 
 def test_conditions_refresh_cannot_finalize_without_new_acceptance(campaign):
     begin(campaign)
     selected = submit(campaign, version="old-selected", a=90)["best"]
+    previous_profile = call(campaign, "profile", "--round", "1")["profiling"]
+    assert previous_profile["available"]
+    assert previous_profile["result"] != selected["profile"]["result"]
     new = copy.deepcopy(settings()["conditions"])
     new.update(id="c1", runtime="changed-stdlib")
     path = campaign["root"].parent / "conditions.json"
@@ -267,14 +325,21 @@ def test_conditions_refresh_cannot_finalize_without_new_acceptance(campaign):
     refreshed = call(
         campaign, "refresh-references", "--conditions", path, "--reason", "New test conditions"
     )
+    assert refreshed["diagnosis"] is None
+    diagnose(campaign)
     assert refreshed["can_finalize"] is False
     assert refreshed["accepted_attempt_ids"] == []
     assert refreshed["best"] is None
+    refresh = refreshed["latest_observation"]["execution"]
+    assert refresh["parent_profile_applicability"] == "not_applicable"
+    assert refresh["retained_parent_profile"] == selected["profile"]
+    assert refresh["retained_parent_profile"]["conditions"] == selected["conditions"]
     rejected = call(campaign, "final", "--reason", "References alone are insufficient")
     assert rejected["final"]["assessment"]["verdict"] == "INCONCLUSIVE"
     assert rejected["final"]["assessment"]["reason"] == "missing_current_conditions_acceptance"
     assert not (campaign["root"] / rejected["final"]["path"] / "service").exists()
-    accepted = submit(campaign, version="new-selected", a=80)
+    accepted = submit(campaign, version="new-selected", a=80, profile_mode="failed")
+    assert accepted["latest_observation"]["profiling"] == {"available": False}
     assert accepted["best"]["conditions"] == new
     assert accepted["best"]["revision"] != selected["revision"]
     final = call(campaign, "final", "--reason", "New conditions accepted")
@@ -283,10 +348,14 @@ def test_conditions_refresh_cannot_finalize_without_new_acceptance(campaign):
 
 def test_stagnation_is_advisory_and_recover_does_not_retrigger(campaign):
     begin(campaign)
+    best = submit(campaign, version="accepted", a=95)["best"]
     submit(campaign, version="reject1", a=110)
     result = submit(campaign, version="reject2", a=111)
     assert result["state"] == "active"
-    assert len(result["stagnation"]["events"]) == 1
+    event, = result["stagnation"]["events"]
+    assert event["best"]["profile"] == best["profile"]
+    stored, = project_service.read(campaign["root"] / "state.json")["stagnation"]["events"]
+    assert stored["best"]["attempt_id"] == best["attempt_id"] and "profile" not in stored["best"]
     recovered = call(campaign, "recover")
     assert recovered["stagnation"] == result["stagnation"]
     improved = submit(campaign, version="gain", a=90)
@@ -319,6 +388,7 @@ def test_service_mode_cli_does_not_require_legacy_metric_arguments(campaign):
 
 def test_service_knowledge_uses_find_without_file_fingerprints(campaign):
     call(campaign, "start")
+    diagnose(campaign)
     response = call(
         campaign, "knowledge", "--query", "前缀缓存", "--context-bytes", "65536", "--limit", "1"
     )
@@ -355,7 +425,6 @@ def test_knowledge_and_dashboard_never_enter_legacy_fingerprint_readers(campaign
         ({"quality_rejected": True}, 0),
         ({"quality_missing": True}, 2),
         ({"functional_failure": True}, 0),
-        ({"profile_mode": "empty"}, 2),
         ({"foreign_stage": "quality"}, 2),
     ],
 )
@@ -365,29 +434,31 @@ def test_rejections_and_missing_stage_evidence_are_distinct(campaign, changes, e
     attempt = result["latest_observation"]
     assert attempt["assessment"]["verdict"] == ("FAIL" if expected == 0 else "INCONCLUSIVE")
     assert result["best"]["kind"] == "baseline"
-    if not changes.get("profile_mode"):
-        assert not any(
-            row["id"] == "profile" and row["status"] == "completed"
-            for row in attempt["execution"]["steps"]
-        )
+    assert attempt["profiling"] == {"available": False}
+    assert not any(
+        row["id"] == "profile" and row["status"] == "completed"
+        for row in attempt["execution"]["steps"]
+    )
 
 
 def test_profile_timeout_retains_quality_and_stops_without_silent_retry(campaign):
     config = settings()
-    config["sampling"]["stage_timeout_seconds"] = 1
+    config["sampling"]["profile_timeout_seconds"] = 1
     campaign["config"].write_text(json.dumps(config))
     begin(campaign)
-    result = submit(campaign, version="timeout", a=90, profile_mode="timeout", expected=2)
+    result = submit(campaign, version="timeout", a=90, profile_mode="timeout")
     attempt = result["latest_observation"]
     stage = next(row for row in attempt["execution"]["steps"] if row["id"] == "profile")
     assert stage["status"] == "timeout"
     assert attempt["assessment"]["quality_passed"] is True
     assert attempt["execution"]["cleanup_verified"] is True
-    recovered = call(campaign, "recover", expected=2)
+    assert attempt["assessment"]["verdict"] == "PASS"
+    assert attempt["execution"]["profiling_error"]["status"] == "timed_out"
+    recovered = call(campaign, "recover")
     assert recovered["latest_observation"] == attempt
 
 
-def test_profile_interruption_is_inconclusive_with_verified_cleanup(campaign, monkeypatch):
+def test_profile_interruption_retains_verdict_with_verified_cleanup(campaign, monkeypatch):
     from inferrsi.harness.scenarios import external
 
     begin(campaign)
@@ -399,8 +470,9 @@ def test_profile_interruption_is_inconclusive_with_verified_cleanup(campaign, mo
         return original(command, *args, **kwargs)
 
     monkeypatch.setattr(external, "execute_trial", interrupted)
-    result = submit(campaign, version="interrupted", a=90, expected=2)
-    assert result["latest_observation"]["assessment"]["verdict"] == "INCONCLUSIVE"
+    result = submit(campaign, version="interrupted", a=90)
+    assert result["latest_observation"]["execution"]["profiling_error"]["status"] == "interrupted"
+    assert result["latest_observation"]["assessment"]["verdict"] == "PASS"
     assert result["latest_observation"]["assessment"]["quality_passed"] is True
     assert result["latest_observation"]["execution"]["cleanup_verified"] is True
 
@@ -478,6 +550,52 @@ def test_screening_below_estimate_runs_formal_quality_and_profile_on_same_servic
     assert len({r["service_id"] for r in log}) == 1
 
 
+@pytest.mark.parametrize("screen", ["screen_reject", "screen_error"])
+@pytest.mark.parametrize("latency,verdict", [(90, "PASS"), (110, "FAIL")])
+def test_unsuccessful_screening_collects_all_formal_results(campaign, screen, latency, verdict):
+    config = settings()
+    config["screening"] = {
+        "command": [arg.replace("measure", "screening") for arg in config["commands"]["measure"]],
+        "estimated_gain": 50,
+    }
+    campaign["config"].write_text(json.dumps(config))
+    begin(campaign)
+    result = submit(campaign, version="screened", a=latency, **{screen: True})
+    attempt = result["latest_observation"]
+    assert attempt["assessment"]["verdict"] == verdict
+    execution = attempt["execution"]
+    if screen == "screen_reject":
+        assert execution["screening"]["passed"] is False
+    else:
+        assert execution["screening"]["error"]
+    formal = [s["result"] for s in execution["steps"] if s["id"].startswith("measure-")]
+    assert [set(sample["scenarios"]) for sample in formal] == [{"a", "b"}, {"a", "b"}]
+    assert all(sample["scenarios"]["a"]["latency"] == latency for sample in formal)
+    log = events(campaign, attempt)
+    stages = [row["stage"] for row in log]
+    assert stages[-2:] == ["profile", "stop"]
+    assert stages.count("quality") == (verdict == "PASS")
+    assert len({row["service_id"] for row in log}) == 1
+
+
+def test_optional_profile_command_and_timeout_configuration(campaign):
+    config = settings()
+    del config["commands"]["profile"]
+    config["sampling"]["profile_timeout_seconds"] = 0
+    campaign["config"].write_text(json.dumps(config))
+    assert rejected(campaign["start"]) == 2
+    assert not campaign["root"].exists()
+    config["sampling"]["profile_timeout_seconds"] = 2
+    campaign["config"].write_text(json.dumps(config))
+    begin(campaign)
+    attempt = submit(campaign, version="no-profiler", a=90)["latest_observation"]
+    assert attempt["assessment"]["verdict"] == "PASS"
+    assert attempt["profiling"] == {"available": False}
+    assert "profile" not in [e["stage"] for e in events(campaign, attempt)]
+    failure = call(campaign, "profile", "--round", "1", expected=2)
+    assert failure["profiling_error"]["message"]
+
+
 @pytest.mark.parametrize("damage", [None, "missing", "empty", "receipt", "binding", "artifacts"])
 def test_recover_commits_existing_observation_once_without_remeasurement(
     campaign, monkeypatch, damage
@@ -527,32 +645,29 @@ def test_recover_commits_existing_observation_once_without_remeasurement(
         (campaign["root"] / profile["result"]).write_text('{"status":"incomplete"}')
     elif damage == "binding":
         profile["binding"]["service_id"] = "another-service"
-        profile["receipt"]["binding"] = profile["binding"]
-        (campaign["root"] / profile["result"]).write_text(json.dumps(profile["receipt"]))
+        receipt_path = campaign["root"] / profile["result"]
+        receipt = project_service.read(receipt_path)
+        receipt["binding"] = profile["binding"]
+        receipt_path.write_text(json.dumps(receipt))
         observation_path.write_text(json.dumps(observation))
     elif damage == "artifacts":
         profile["artifacts"] = []
         observation_path.write_text(json.dumps(observation))
-    result = call(campaign, "recover", expected=2 if damage else 0)
+    result = call(campaign, "recover")
     attempt = result["latest_observation"]
     log = events(campaign, attempt)
-    assert result["completed_rounds"] == (1 if damage else 2)
+    assert result["completed_rounds"] == 2
     assert len(log) == 7
+    assert attempt["assessment"]["verdict"] == "PASS"
+    assert result["best"]["attempt_id"] == attempt["attempt_id"]
+    assert result["accepted_attempt_ids"] == [selected["attempt_id"], attempt["attempt_id"]]
+    assert attempt["profiling"]["available"] is (damage is None)
     if damage:
-        assert result["state"] == "blocked"
-        assert attempt["assessment"]["verdict"] == "INCONCLUSIVE"
-        assert attempt["assessment_before_settlement"]["verdict"] == "PASS"
-        assert attempt["execution"]["assessment"]["verdict"] == "PASS"
-        assert attempt["selected"] is False
-        assert result["best"] == selected
-        assert result["accepted_attempt_ids"] == [selected["attempt_id"]]
-    else:
-        assert attempt["assessment"]["verdict"] == "PASS"
-        assert result["best"]["attempt_id"] == attempt["attempt_id"]
+        assert attempt["profiling"] == {"available": False}
     assert project_service.read(
         campaign["root"] / previous["path"] / "observation.json"
     ) == previous
-    again = call(campaign, "recover", expected=2 if damage else 0)
+    again = call(campaign, "recover")
     assert again["latest_observation"] == attempt
     assert len(events(campaign, attempt)) == len(log)
 
@@ -567,6 +682,7 @@ def test_final_rechecks_selected_evidence_before_settlement(
     selected_attempt = project_service.read(
         campaign["root"] / selected["path"].removesuffix("/candidate") / "observation.json"
     )
+    expected = 2 if damage == "configuration" else 0
     execute, write = optimization._service_execute, optimization.atomic_write_json
 
     def execute_then_damage(*args):
@@ -600,18 +716,19 @@ def test_final_rechecks_selected_evidence_before_settlement(
             campaign["root"] / pending["path"] / "observation.json"
         )["assessment"]["verdict"] == "PASS"
         damage_evidence()
-        result = call(campaign, "recover", expected=2)
+        result = call(campaign, "recover", expected=expected)
     else:
-        result = call(campaign, "final", "--reason", "Stop search", expected=2)
+        result = call(campaign, "final", "--reason", "Stop search", expected=expected)
     final = result["final"]
-    assert result["state"] == "blocked"
     assert result["best"] == selected
-    assert final["assessment"]["verdict"] == "INCONCLUSIVE"
-    assert final["assessment"]["reason"] == (
-        "missing_or_incompatible_selected_profile" if damage == "profile"
-        else "unverifiable_selected_configuration"
-    )
-    assert final["assessment_before_settlement"]["verdict"] == "PASS"
+    if damage == "configuration":
+        assert result["state"] == "blocked"
+        assert final["assessment"]["verdict"] == "INCONCLUSIVE"
+        assert final["assessment"]["reason"] == "unverifiable_selected_configuration"
+        assert final["assessment_before_settlement"]["verdict"] == "PASS"
+    else:
+        assert result["state"] == "completed"
+        assert final["assessment"]["verdict"] == "PASS"
     assert final["execution"]["assessment"]["verdict"] == "PASS"
     assert project_service.read(
         campaign["root"] / selected_attempt["path"] / "observation.json"
@@ -620,12 +737,12 @@ def test_final_rechecks_selected_evidence_before_settlement(
     assert [row["stage"] for row in log] == [
         "ready", "warmup", "measure", "measure", "quality", "stop"
     ]
-    again = call(campaign, "recover", expected=2)
+    again = call(campaign, "recover", expected=expected)
     assert again["final"] == final
     assert events(campaign, final) == log
 
 
-def test_final_cannot_use_deleted_profile_or_changed_retained_configuration(campaign):
+def test_final_requires_retained_configuration_even_when_profile_is_unavailable(campaign):
     begin(campaign)
     selected = submit(campaign, version="selected", a=90)["best"]
     config_path = campaign["root"] / selected["effective_config_path"]
@@ -634,8 +751,8 @@ def test_final_cannot_use_deleted_profile_or_changed_retained_configuration(camp
     assert result["final"]["assessment"]["reason"] == "unverifiable_selected_configuration"
     config_path.write_text(json.dumps(settings()["conditions"]["effective_config"]))
     (campaign["root"] / selected["profile"]["artifacts"][0]).unlink()
-    result = call(campaign, "final", "--reason", "Cannot establish selected profile")
-    assert result["final"]["assessment"]["reason"] == "missing_or_incompatible_selected_profile"
+    result = call(campaign, "final", "--reason", "Retest selected candidate")
+    assert result["final"]["assessment"]["verdict"] == "PASS"
 
 
 @pytest.mark.parametrize("block", ["commands", "sampling", "conditions", "quality", "stagnation"])
@@ -741,6 +858,8 @@ def test_reference_refresh_uses_baseline_cache_without_testing_parent_quality(
     assert "incompatible baseline reference" in (
         failed["execution"]["runs"][0]["assessment"]["reason"]
     )
+    failed_path = campaign["root"] / failed["path"] / "observation.json"
+    before_retry = failed_path.read_bytes()
     repaired = campaign["root"].parent / "repaired-protocol"
     shutil.copytree(protocol, repaired)
     reference.update(conditions=conditions, service_id="new-service", run_id="new-run")
@@ -773,7 +892,8 @@ def test_reference_refresh_uses_baseline_cache_without_testing_parent_quality(
         stages = [json.loads(line)["stage"] for line in log_path.read_text().splitlines()]
         assert stages == ["ready", "warmup", "measure", "measure", "stop"]
     assert result["best"] is None and result["can_finalize"] is False
-    assert project_service.read(campaign["root"] / failed["path"] / "observation.json") == failed
+    assert failed_path.read_bytes() == before_retry
+    diagnose(campaign)
     accepted = submit(campaign, version="current-conditions", a=80)
     assert accepted["latest_observation"]["assessment"]["verdict"] == "PASS"
     assert accepted["best"]["conditions"] == conditions
@@ -782,7 +902,7 @@ def test_reference_refresh_uses_baseline_cache_without_testing_parent_quality(
 def test_execution_script_repair_is_retained_and_final_uses_selected_scripts(campaign):
     begin(campaign)
     selected = submit(campaign, version="selected", a=90)["best"]
-    broken = submit(campaign, version="broken-profile", a=80, profile_mode="failed", expected=2)
+    broken = submit(campaign, version="missing-measurement", a=80, missing_metric=True, expected=2)
     old = broken["latest_observation"]
     protocol = Path(campaign["start"][campaign["start"].index("--protocol") + 1])
     repaired = campaign["root"].parent / "repaired-protocol"
@@ -889,6 +1009,7 @@ def test_current_epoch_candidate_can_seed_selection_below_old_parent_rank(campai
     path = campaign["root"].parent / "conditions.json"
     path.write_text(json.dumps(conditions))
     call(campaign, "refresh-references", "--conditions", path, "--reason", "New runtime")
+    diagnose(campaign)
     result = submit(campaign, version="c1-accepted", a=92, b=90)
     assert result["best"]["revision"] != old["revision"]
     assert result["best"]["measurements"]["values"]["a"] > old["measurements"]["values"]["a"]
@@ -957,14 +1078,14 @@ def test_missing_authoritative_repository_cannot_run_retained_selection(campaign
     assert not (campaign["root"] / final["path"] / "service").exists()
 
 
-def test_whole_attempt_timeout_still_runs_bounded_stop(campaign):
+def test_independent_profile_deadline_still_runs_bounded_stop(campaign):
     config = settings()
     config["sampling"]["stage_timeout_seconds"] = 8
     campaign["config"].write_text(json.dumps(config))
     index = campaign["start"].index("--evaluation-timeout-seconds")
     campaign["start"][index + 1] = "6"
     begin(campaign)
-    result = submit(campaign, version="deadline", a=90, profile_mode="timeout", expected=2)
+    result = submit(campaign, version="deadline", a=90, profile_mode="timeout")
     attempt = result["latest_observation"]
     execution = attempt["execution"]
     steps = {row["id"]: row for row in execution["steps"]}
@@ -973,9 +1094,24 @@ def test_whole_attempt_timeout_still_runs_bounded_stop(campaign):
     assert execution["cleanup_timeout_seconds"] == 8
     assert execution["cleanup_budget_scope"] == "separate_from_evaluation"
     assert execution["cleanup_verified"] is True
-    assert attempt["assessment"]["verdict"] == "INCONCLUSIVE"
+    assert attempt["assessment"]["verdict"] == "PASS"
     assert attempt["assessment"]["quality_passed"] is True
     assert [row["stage"] for row in events(campaign, attempt)][-1] == "stop"
+
+
+def test_required_measurement_timeout_still_uses_bounded_cleanup(campaign):
+    campaign["start"][campaign["start"].index("--evaluation-timeout-seconds") + 1] = "6"
+    begin(campaign)
+    result = submit(campaign, version="deadline", a=90, measure_timeout=True, expected=2)
+    attempt = result["latest_observation"]
+    execution = attempt["execution"]
+    steps = {item["id"]: item for item in execution["steps"]}
+    assert steps["measure-001"]["status"] == "timeout"
+    assert steps["stop"]["status"] == "completed"
+    assert execution["cleanup_verified"] is True
+    assert attempt["assessment"]["verdict"] == "INCONCLUSIVE"
+    assert attempt["profiling"] == {"available": False}
+    assert "capture" not in execution
 
 
 @pytest.mark.parametrize("attribute", ["export-ignore", "export-subst"])
@@ -1087,6 +1223,7 @@ def test_refresh_resets_stagnation_without_erasing_history(campaign, rejections)
     refreshed = call(
         campaign, "refresh-references", "--conditions", path, "--reason", "Changed workload"
     )
+    diagnose(campaign)
     assert refreshed["stagnation"]["consecutive"] == 0
     assert refreshed["stagnation"]["notified"] is False
     assert refreshed["stagnation"]["events"] == before["stagnation"]["events"]
@@ -1116,3 +1253,396 @@ def test_refresh_without_round_capacity_preserves_finalizable_state(campaign, ro
     assert not (campaign["root"] / "references").exists()
     result = call(campaign, "final", "--reason", "Complete original conditions")
     assert result["final"]["assessment"]["verdict"] == "PASS"
+
+
+def test_backfill_after_final_preserves_original_evidence_and_selection(campaign, monkeypatch):
+    from inferrsi.apps.views.dashboard import dashboard_snapshot, render_dashboard
+    from inferrsi.harness.scenarios import external
+
+    baseline = begin(campaign)["best"]
+    attempt = submit(campaign, version="selected", a=90)["latest_observation"]
+    inline = attempt["execution"]["profile"]
+    root = campaign["root"]
+    state = project_service.read(root / "state.json")
+    observation = project_service.read(root / attempt["path"] / "observation.json")
+    for choice in (state["best"], state["comparison_parent"], observation["best_after"]):
+        assert choice["attempt_id"] == attempt["attempt_id"]
+        assert "profile" not in choice
+    for choice in (
+        state["initial_reference"], observation["initial"], observation["parent"],
+        observation["best_after"]["parent_reference_at_acceptance"],
+    ):
+        assert choice["attempt_id"] == baseline["attempt_id"]
+        assert "profile" not in choice
+    original_files = [
+        root / attempt["path"] / "observation.json",
+        root / inline["result"], root / inline["artifacts"][0],
+    ]
+    final = call(campaign, "final", "--reason", "Search complete")
+    original_files.append(root / final["final"]["path"] / "observation.json")
+    originals = {p: p.read_bytes() for p in original_files}
+    usage = optimization.read_records(root)[2]["usage"]
+
+    published = call(campaign, "profile", "--round", "1")
+    assert published["target_attempt_id"] == attempt["attempt_id"]
+    profile = published["profiling"]
+    assert profile["available"] and profile["result"] != inline["result"]
+    assert all((root / path).is_file() for path in [profile["result"], *profile["artifacts"]])
+    binding = project_service.read(root / profile["result"])["binding"]
+    for key in ("revision", "conditions", "effective_config"):
+        assert binding[key] == inline["binding"][key]
+    for key in ("service_id", "run_id"):
+        assert binding[key] != inline["binding"][key]
+    evidence_root = (root / profile["result"]).parents[2]
+    backfill_events = [
+        json.loads(line) for line in (evidence_root / "events.jsonl").read_text().splitlines()
+    ]
+    assert [row["stage"] for row in backfill_events] == ["ready", "warmup", "profile", "stop"]
+    assert {row["service_id"] for row in backfill_events} == {binding["service_id"]}
+    snapshot = dashboard_snapshot(root)
+    reported = snapshot["data"]["service_optimization"]
+    assert reported["selected_candidate"]["profile"] == inline
+    reported_round = next(
+        r for r in reported["attempts"] if r["attempt_id"] == attempt["attempt_id"]
+    )
+    assert reported_round["profiling"] == profile
+    assert reported_round["best_after"]["profile"] == inline
+    report = render_dashboard(snapshot)
+    assert "Profiling available: yes" in report and profile["result"] in report
+    execute = external.execute_trial
+
+    def fail_capture(command, *args, **kwargs):
+        if "profile" in command:
+            return {"status": "failed", "error": "backfill collector failed", "returncode": 9}
+        return execute(command, *args, **kwargs)
+
+    monkeypatch.setattr(external, "execute_trial", fail_capture)
+    failed = call(campaign, "profile", "--round", "1", expected=2)
+    assert "backfill collector failed" in failed["profiling_error"]["message"]
+    assert call(campaign, "recover")["profiling_error"] == failed["profiling_error"]
+
+    def interrupt_capture(command, *args, **kwargs):
+        if "profile" in command:
+            raise KeyboardInterrupt()
+        return execute(command, *args, **kwargs)
+
+    monkeypatch.setattr(external, "execute_trial", interrupt_capture)
+    interrupted = call(campaign, "profile", "--round", "1", expected=130)
+    assert interrupted["profiling_error"]["status"] == "interrupted"
+    status = call(campaign, "status")
+    assert status["rounds"] == [
+        {
+            "round_number": 1,
+            "attempt_id": attempt["attempt_id"],
+            "verdict": "PASS",
+            "profiling": profile,
+        }
+    ]
+    assert status["best"] == final["best"] and status["final"] == final["final"]
+    assert status["best"]["profile"] == inline
+    assert status["allocated_rounds"] == final["allocated_rounds"]
+    _, state_view, summary = optimization.read_records(root)
+    assert state_view["best"] == status["best"]
+    assert summary["usage"] == usage
+    current = next(r for r in summary["attempts"] if r["attempt_id"] == attempt["attempt_id"])
+    assert current["profiling"] == profile
+    assert all(path.read_bytes() == content for path, content in originals.items())
+
+
+def test_backfill_targets_last_terminal_retry_after_deadline(campaign, monkeypatch):
+    begin(campaign)
+    old = submit(campaign, version="missing", missing_metric=True, expected=2)["latest_observation"]
+    root = campaign["root"]
+    old_path = root / old["path"] / "observation.json"
+    old_bytes = old_path.read_bytes()
+    ineligible = call(campaign, "profile", "--round", "1", expected=2)
+    assert ineligible["profiling_error"]["message"]
+    result = submit(campaign, version="rejected", a=110, retry=old["attempt_id"])
+    settled = result["latest_observation"]
+    assert settled["assessment"]["verdict"] == "FAIL"
+    state = project_service.read(root / "state.json")
+    monkeypatch.setattr(optimization, "time", SimpleNamespace(time=lambda: state["deadline"] + 300))
+    assert call(campaign, "status")["remaining_seconds"] == 0
+    with optimization._locked(root):
+        locked = call(campaign, "profile", "--round", "1", expected=2)
+        assert locked["profiling_error"]["message"]
+    published = call(campaign, "profile", "--round", "1")
+    assert published["target_attempt_id"] == settled["attempt_id"]
+    assert published["profiling"]["available"] is True
+    assert (root / published["profiling"]["result"]).is_file()
+    assert old_path.read_bytes() == old_bytes
+    assert call(campaign, "status")["latest_observation"]["profiling"] == published["profiling"]
+
+
+@pytest.mark.parametrize("damage", [None, "partial", "unreadable"])
+def test_legacy_round_availability_is_derived_without_changing_history(campaign, damage):
+    from inferrsi.apps.views.dashboard import dashboard_snapshot, render_dashboard
+
+    begin(campaign)
+    attempt = submit(campaign, version="old", a=90)["latest_observation"]
+    root = campaign["root"]
+    state_path = root / "state.json"
+    state = project_service.read(state_path)
+    historical = next(a for a in state["attempts"] if a["attempt_id"] == attempt["attempt_id"])
+    historical.pop("profiling", None)
+    profile = historical["execution"]["profile"]
+    trace = project_service.read(root / profile["result"])
+    profile.pop("capture_started_at")
+    profile.pop("capture_ended_at")
+    profile["receipt"] = trace
+    step = next(s for s in historical["execution"]["steps"] if s["id"] == "profile")
+    step["result"] = trace
+    if damage == "partial":
+        profile.pop("binding")
+    if damage == "unreadable":
+        receipt = root / profile["result"]
+        receipt.unlink()
+        receipt.mkdir()
+    state_path.write_text(json.dumps(state))
+    obs = root / attempt["path"] / "observation.json"
+    obs.write_text(json.dumps(historical))
+    old_bytes = obs.read_bytes()
+    plan = project_service.read(root / "plan.json")
+    plan["runtime_version"] = "older-release"
+    (root / "plan.json").write_text(json.dumps(plan))
+    status = call(campaign, "status")
+    assert not status["can_finalize"]
+    assert status["final_block_reason"] == "runtime_version_mismatch"
+    assert status["next_action"] == "use_recorded_runtime_version"
+    assert status["recorded_runtime_version"] == "older-release"
+    actual = status["latest_observation"]
+    assert actual["assessment"] == attempt["assessment"]
+    expected = {"available": False} if damage else {
+        "available": True, "result": profile["result"], "artifacts": profile["artifacts"]
+    }
+    assert actual["profiling"] == expected
+    snapshot = dashboard_snapshot(root)
+    report = snapshot["data"]["service_optimization"]
+    assert report["final_block_reason"] == "runtime_version_mismatch"
+    assert report["attempts"][-1]["profiling"] == expected
+    assert ("Profiling available: no" if damage else "Profiling available: yes") in (
+        render_dashboard(snapshot)
+    )
+    assert obs.read_bytes() == old_bytes
+    if damage is None:
+        final = SimpleNamespace(session_action="final", reason="done")
+        with pytest.raises(ValueError, match="Runtime package version changed"):
+            optimization.service_command(root, final)
+
+
+def test_damaged_optional_evidence_falls_back_and_allows_final(campaign):
+    from inferrsi.apps.views.dashboard import dashboard_snapshot
+
+    begin(campaign)
+    attempt = submit(campaign, version="selected", a=90)["latest_observation"]
+    root = campaign["root"]
+    inline = attempt["profiling"]
+    backfill = call(campaign, "profile", "--round", 1)["profiling"]
+    assert backfill["available"] and backfill != inline
+    index = root / attempt["path"] / "backfills/index.json"
+    index.write_text('{"captures":' + "[" * 1500 + "]" * 1500 + "}")
+    status = call(campaign, "status")
+    assert status["rounds"][0]["profiling"] == inline
+    assert status["can_finalize"]
+
+    artifact = root / inline["artifacts"][0]
+    artifact.unlink()
+    artifact.symlink_to(artifact.name)
+    status = call(campaign, "status")
+    assert status["rounds"][0]["profiling"] == {"available": False}
+    assert status["can_finalize"]
+    report = dashboard_snapshot(root)["data"]["service_optimization"]
+    assert report["attempts"][-1]["profiling"] == {"available": False}
+    final = call(campaign, "final", "--reason", "Retest selected candidate")["final"]
+    assert final["assessment"]["verdict"] == "PASS"
+
+
+@pytest.mark.parametrize("boundary", ["checkpoint", "start", "progress"])
+@pytest.mark.parametrize("latency,verdict", [(90, "PASS"), (110, "FAIL")])
+def test_delayed_double_recovery_settles_checkpoint_and_only_proven_time(
+    campaign, monkeypatch, boundary, latency, verdict
+):
+    class CoordinatorCrash(BaseException):
+        pass
+
+    begin(campaign)
+    root = campaign["root"]
+    initial = project_service.read(root / "state.json")
+    plan = project_service.read(root / "plan.json")
+    original_write = project_service.atomic_write_json
+    frozen = {}
+
+    def stop_after_durable_boundary(path, document):
+        if frozen and path == frozen["path"]:
+            return  # Model termination: no subsequent execution receipt survives.
+        original_write(path, document)
+        if path.name != "execution.json" or not document.get("checkpoint"):
+            return
+        capture = document.get("capture")
+        reached = (
+            boundary == "checkpoint" and capture is None
+            or boundary == "start" and capture is not None and not capture["elapsed_seconds"]
+            or boundary == "progress" and capture is not None
+            and capture["elapsed_seconds"] > 0 and "ended_at" not in capture
+        )
+        if reached:
+            frozen["path"] = path
+            raise CoordinatorCrash()
+
+    with monkeypatch.context() as m:
+        m.setattr(project_service, "atomic_write_json", stop_after_durable_boundary)
+        with pytest.raises(CoordinatorCrash):
+            submit(campaign, version="interrupted", a=latency)
+
+    state = project_service.read(root / "state.json")
+    pending = state["pending"]
+    retained = project_service.read(frozen["path"])
+    checkpoint = retained["checkpoint"]
+    assert checkpoint["assessment"]["verdict"] == verdict
+    assert checkpoint["binding"] == project_service.read(root / pending["path"] / "request.json")
+    assert checkpoint["measurements"]["values"]["a"] == latency
+    assert checkpoint["quality_score"] == (1 if verdict == "PASS" else None)
+    before_events = events(campaign, pending)
+    assert [e["stage"] for e in before_events].count("measure") == 2
+    assert [e["stage"] for e in before_events].count("quality") == (verdict == "PASS")
+    assert not (root / pending["path"] / "observation.json").exists()
+
+    # The test leaves the managed service context so a real process never leaks.
+    # Recovery must still require the operator's proof for the interrupted receipt.
+    assert rejected(["campaign", "recover", "--session", str(root)]) == 2
+    campaign["capsys"].readouterr()
+    if boundary == "start":
+        denied = call(campaign, "profile", "--round", "1", expected=2)
+        assert "cleanup" in denied["profiling_error"]["message"].lower()
+        assert rejected([
+            "campaign", "round", "--session", str(root), "--candidate", str(campaign["repo"]),
+            "--hypothesis", "Unresolved prior cleanup",
+        ]) == 2
+        campaign["capsys"].readouterr()
+        assert project_service.read(root / "state.json")["pending"] == pending
+    owner = project_service.read(root / pending["path"] / "service/owner.json")
+    now = time.time() + 120
+    monkeypatch.setattr(optimization, "time", SimpleNamespace(time=lambda: now))
+    inspection = root.parent / "cleanup.json"
+    inspection.write_text(json.dumps({
+        "attempt_id": pending["attempt_id"], "observed_at": now, "reason": "Inspected owner",
+        "cleanup_complete": True, "services": [{
+            "service_id": owner["service_id"], "pid": owner["pid"], "domain_empty": True,
+        }],
+    }))
+    first = call(campaign, "recover", "--cleanup-receipt", inspection)
+    assert first["profiling_error"]["status"] == "interrupted"
+    attempt = first["latest_observation"]
+    assert attempt["assessment"] == checkpoint["assessment"]
+    assert attempt["profiling"] == {"available": False}
+    assert first["completed_rounds"] == 1
+    assert (first["best"]["attempt_id"] == attempt["attempt_id"]) is (verdict == "PASS")
+    credited = retained.get("capture", {}).get("elapsed_seconds", 0)
+    for result in (first, call(campaign, "recover")):
+        assert result["remaining_seconds"] == pytest.approx(initial["deadline"] + credited - now)
+        assert result["remaining_search_seconds"] == pytest.approx(
+            result["remaining_seconds"] - plan["final_reserve_seconds"]
+        )
+        assert result["latest_observation"]["assessment"] == checkpoint["assessment"]
+    ledger = project_service.read(root / "state.json").get("profiling_accounting", {})
+    if boundary == "checkpoint":
+        assert ledger == {}
+    else:
+        assert set(ledger) == {retained["capture"]["id"]}
+        assert ledger[retained["capture"]["id"]]["elapsed_seconds"] == credited
+        assert (credited > 0) is (boundary == "progress")
+    assert project_service.read(root / "plan.json")["final_reserve_seconds"] == 30
+    assert events(campaign, pending) == before_events
+
+
+def advance_clock_during_profile(monkeypatch, seconds):
+    from inferrsi.harness.scenarios import external
+
+    wall_offset = 0
+    clock = SimpleNamespace(
+        time=lambda: time.time() + wall_offset, monotonic=lambda: time.monotonic() + wall_offset,
+    )
+    monkeypatch.setattr(project_service, "time", clock)
+    monkeypatch.setattr(optimization, "time", clock)
+    original = external.execute_trial
+    evaluation_limits = []
+
+    def simulate_capture(command, work, destination, deadline, *args, **kwargs):
+        nonlocal wall_offset
+        if wall_offset and "measure" in command:
+            evaluation_limits.append(deadline - clock.monotonic())
+        executed = original(command, work, destination, deadline - wall_offset, *args, **kwargs)
+        if "profile" in command and not wall_offset:
+            wall_offset = seconds
+        return executed
+
+    monkeypatch.setattr(external, "execute_trial", simulate_capture)
+    return clock, evaluation_limits
+
+
+def test_effective_deadline_after_profiling_crosses_original_wall_deadline(campaign, monkeypatch):
+    config = settings()
+    config["sampling"]["profile_timeout_seconds"] = 700
+    campaign["config"].write_text(json.dumps(config))
+    begin(campaign)
+    root = campaign["root"]
+    clock, evaluation_limits = advance_clock_during_profile(monkeypatch, 620)
+    first = submit(campaign, version="slow-profile", a=90)
+    assert first["latest_observation"]["assessment"]["verdict"] == "PASS"
+    assert first["latest_observation"]["profiling"]["available"]
+    assert first["latest_observation"]["elapsed_seconds"] >= 620
+    state = project_service.read(root / "state.json")
+    assert clock.time() > state["deadline"]
+    assert optimization.read_records(root)[2]["wall_elapsed_seconds"] >= 620
+    status = call(campaign, "status")
+    assert 0 < status["remaining_search_seconds"] < status["remaining_seconds"]
+    assert status["remaining_seconds"] - status["remaining_search_seconds"] == pytest.approx(30)
+    assert status["can_finalize"] is True
+    second = submit(campaign, version="quality-rejected", a=80, quality=0)
+    assert second["latest_observation"]["assessment"]["verdict"] == "FAIL"
+    final = call(campaign, "final", "--reason", "Independent final")
+    assert final["final"]["assessment"]["verdict"] == "PASS"
+    # Both repetitions of the new candidate and both repetitions of final have a live stage budget.
+    assert len(evaluation_limits) == 4 and all(0 < limit <= 8 for limit in evaluation_limits)
+    reserve = project_service.read(root / "plan.json")["final_reserve_seconds"]
+    assert reserve == 30
+
+
+def test_lost_profile_allows_next_round(campaign):
+    begin(campaign)
+    selected = submit(campaign, version="selected", a=90)["latest_observation"]
+    (campaign["root"] / selected["profiling"]["artifacts"][0]).unlink()
+    status = call(campaign, "status")
+    assert status["can_finalize"]
+    assert status["latest_observation"]["profiling"] == {"available": False}
+    result = submit(campaign, version="rejected", a=110)
+    assert result["latest_observation"]["assessment"]["verdict"] == "FAIL"
+    assert result["best"]["attempt_id"] == selected["attempt_id"]
+
+
+def test_standalone_capture_leaves_search_budget_and_reserve_intact(campaign, monkeypatch):
+    config = settings()
+    config["sampling"]["profile_timeout_seconds"] = 120
+    campaign["config"].write_text(json.dumps(config))
+    begin(campaign)
+    attempt = submit(campaign, version="quality-rejected", a=90, quality=0)["latest_observation"]
+    assert attempt["profiling"] == {"available": False}
+    root = campaign["root"]
+    before = call(campaign, "status")
+    original = project_service.read(root / "state.json")
+    clock, measurements = advance_clock_during_profile(monkeypatch, 60)
+    result = call(campaign, "profile", "--round", "1")
+    assert result["profiling"]["available"] and measurements == []
+    state = project_service.read(root / "state.json")
+    capture = state["profiling_accounting"][result["capture_id"]]
+    assert capture["elapsed_seconds"] >= 60
+    assert state["deadline"] == original["deadline"]
+    after = call(campaign, "status")
+    assert after["remaining_seconds"] == pytest.approx(
+        state["deadline"] + capture["elapsed_seconds"] - clock.time(), abs=0.5
+    )
+    assert before["remaining_seconds"] - after["remaining_seconds"] < 5
+    assert after["remaining_seconds"] - after["remaining_search_seconds"] == pytest.approx(30)
+    assert after["allocated_rounds"] == before["allocated_rounds"]
+    assert after["best"] == before["best"] and after["can_finalize"]
+    assert project_service.read(root / "plan.json")["final_reserve_seconds"] == 30

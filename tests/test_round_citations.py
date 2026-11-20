@@ -21,20 +21,24 @@ REASON = f"Score each row immediately to avoid retaining all masks [use {REF} | 
 
 @pytest.mark.parametrize("case", [
     "read", "managed_context", "late_body", "clipped", "wrong_quote",
-    "long_line", "grouped_context",
+    "long_line", "grouped_context", "joint_context", "joint_context_clipped",
 ])
 def test_managed_round_resolves_citations_from_original_tool_outputs(
     project, tmp_path, capsys, case,
 ):
     repo, _, _, root = project
-    start(project, capsys)
+    joint = case.startswith("joint_context")
+    start(project, capsys, extra=("--cannbot-platform", "a3") if joint else ())
     context_ids = []
     ref, quote, reason = REF, QUOTE, REASON
-    if case in ("managed_context", "grouped_context"):
+    if joint or case in ("managed_context", "grouped_context"):
         read_args = ["campaign", "knowledge", "--directory", str(root), "--query", QUERY,
                      "--context-bytes", "8192", "--limit", "1"]
         read_argv, read_output = _cli(tmp_path, *read_args)
-        context_ids = [json.loads(read_output)["context"]["context_id"]]
+        answer = json.loads(read_output)
+        context_ids = [answer["context"]["context_id"]]
+        if joint:
+            assert answer["external"]["state"] == "not_enabled"
     elif case == "long_line":
         ref = "package:inferrsi.ascend.skills.ascend_aclgraph_capture_replay"
         quote = (
@@ -42,14 +46,18 @@ def test_managed_round_resolves_citations_from_original_tool_outputs(
             "rather than a launch-overhead guess."
         )
         reason = f"Use host/device timing for the next measurement [use {ref} | {quote}]."
-        path = "data/skill_library/hardware/ascend/ascend-aclgraph-capture-replay/SKILL.md"
+        path = "data/skill_library/systems/platforms/ascend/ascend-aclgraph-capture-replay/SKILL.md"
         read_argv, read_output = _cli(tmp_path, "read", ref, "--resource", path,
                                      "--omit-resources")
     else:
         read_argv, read_output = _cli(tmp_path, "read", REF, "--material", "--omit-resources",
                                      "--installed-library")
-    read = _operation(tmp_path, read_argv, read_output, "read",
-                      received="Warning: truncated output\n" if case == "clipped" else True)
+    received = True
+    if case == "clipped":
+        received = "Warning: truncated output\n"
+    elif case == "joint_context_clipped":
+        received = read_output.split('\n  "external":', 1)[0] + '\n  "external": {\n'
+    read = _operation(tmp_path, read_argv, read_output, "read", received=received)
     if case == "grouped_context":
         _, second = _cli(tmp_path, "campaign", "knowledge", "--directory", str(root),
                          "--query", "zzunmatchedcaptureqv", "--context-bytes", "8192")
@@ -68,9 +76,10 @@ def test_managed_round_resolves_citations_from_original_tool_outputs(
     rows = ([round_op[0], *read, *round_op[1:]] if case == "late_body"
             else [*read, *round_op])
     _, archive = _import(tmp_path, rows, context_ids=context_ids)
-    coverage = "partial" if case in ("clipped", "grouped_context") else "complete"
+    coverage = ("partial" if case in ("clipped", "grouped_context", "joint_context_clipped")
+                else "complete")
     assert archive["coverage"] == coverage
-    matched = case in ("read", "managed_context", "long_line")
+    matched = case in ("read", "managed_context", "long_line", "joint_context")
     assert archive["observed"]["used"] == int(matched)
     assert archive["observed"]["searches"] == len(context_ids)
     [projected] = [record for record in dashboard_snapshot(root)["data"]["knowledge_trace"][

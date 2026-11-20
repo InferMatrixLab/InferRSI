@@ -37,6 +37,17 @@ def corpus():
     return load_corpus(ROOT)
 
 
+def test_malformed_inline_metadata_never_becomes_searchable_body(tmp_path):
+    owner = tmp_path / "invalid"
+    owner.mkdir()
+    (owner / "SKILL.md").write_text(
+        "---\nname: invalid\ndescription: test\nmetadata:\n"
+        "  inferrsi: |\n    not-json-topsecret-token\n---\nordinary body\n",
+        encoding="utf-8",
+    )
+    assert not load_corpus(tmp_path, kinds=("skill",)).documents
+
+
 def _ranked(result, identity):
     for position, item in enumerate(result["items"], 1):
         if item["id"] == identity:
@@ -44,12 +55,30 @@ def _ranked(result, identity):
     return None
 
 
+def test_find_loads_canonical_owners_without_compiled_catalog(monkeypatch):
+    from inferrsi.knowledge import catalog
+
+    def unexpected_view(*args, **kwargs):
+        pytest.fail("find materialized a duplicate packaged-skill view")
+
+    monkeypatch.setattr(catalog, "skill_views", unexpected_view)
+    corpus = load_corpus(ROOT)
+    assert len(corpus.documents) == len({doc.identity for doc in corpus.documents}) == 135
+
+
 def test_corpus_covers_all_three_kinds_without_double_counting(corpus):
     kinds = {}
     for document in corpus.documents:
         kinds[document.kind] = kinds.get(document.kind, 0) + 1
     assert kinds["skill"] == 80
+    # All task procedures resolve by exact ID, outside the evidence corpus and its IDF.
+    navigation = {path.parent.name for path in (ROOT / "tasks").glob("*/SKILL.md")}
+    assert len(navigation) == 8
+    assert navigation.isdisjoint(document.identity for document in corpus.documents)
+    day0 = find("day-0 model integration on Ascend", corpus, limit=3)
+    assert day0["items"] and _ranked(day0, "inference-task-router") is None
     assert kinds["case"] == 7
+    assert kinds["record"] == 48
     # Packaged-skill projections are excluded so one owner is not ranked twice.
     assert all(
         document.kind != "record" or "skills." not in document.identity
@@ -100,7 +129,10 @@ def test_catalog_ranks_find_documents_over_the_filtered_package_scope(corpus, qu
     by_find_ref = {record.get("checkout_ref", f"package:{record['id']}"): record
                    for record in inventory}
     eligible = [document for document in corpus.documents if document.qualified in by_find_ref]
-    assert len(eligible) == len(inventory)
+    # Navigation is available in an unranked listing and by exact ID.
+    unranked = set(by_find_ref) - {doc.qualified for doc in eligible}
+    navigation = {f"checkout:{path.parent.name}" for path in (ROOT / "tasks").glob("*/SKILL.md")}
+    assert unranked == navigation & set(by_find_ref)
     _, _, scored = rank(query, Corpus(eligible))
     assert scored
 
@@ -325,14 +357,14 @@ def test_finding_order_is_not_decided_by_corpus_common_terms(corpus):
 
 def _plant_case(root: Path, owner: str, *, registered: bool = True) -> None:
     """Copy one packaged case under `owner`, optionally leaving it unregistered."""
-    source = ROOT / "methods/inference-optimization-casebook/cases"
+    source = ROOT / "casebooks/inference/inference-optimization-casebook/cases"
     cases = root / owner / "cases"
     cases.mkdir(parents=True)
     for suffix in (".json", ".md"):
         shutil.copy(source / f"qwen-ascend-rejected-directions{suffix}", cases)
     if registered:
         skill = root / owner / "SKILL.md"
-        body = (ROOT / "methods/inference-optimization-casebook/SKILL.md").read_text(
+        body = (ROOT / "casebooks/inference/inference-optimization-casebook/SKILL.md").read_text(
             encoding="utf-8"
         )
         skill.write_text(
@@ -446,6 +478,7 @@ def test_a_hit_read_refuses_gets_a_reason_not_a_command(tmp_path):
                 load_corpus(tmp_path, kinds=("case",)), limit=1)["items"][0]
     assert not {"ref", "read_args", "open_argv"} & item.keys()
     assert "Missing case resource" in item["unreadable"]
+    assert "next_read_content_bytes" not in item
 
 
 @pytest.mark.parametrize("problem, reason", [
@@ -584,6 +617,9 @@ def test_find_opens_both_authorities_when_ids_overlap(tmp_path, capsys):
         assert args[:2] == ["read", f"{authority}:{identity}"]
         assert main(args) == 0
         opened = json.loads(capsys.readouterr().out)
+        assert by_authority[authority]["next_read_content_bytes"] == len(
+            opened["content"].encode("utf-8")
+        )
         assert opened["kind"] == kind
         assert opened["revision"].startswith("sha256:")
         if authority == "checkout":
@@ -605,6 +641,56 @@ def test_find_preserves_a_structured_verification_limitation(tmp_path, capsys):
     assert item["limitations"] == [limitation]
     assert main(args) == 0
     assert "not locally verified" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize("limitations, shown", [
+    (["short limit", "界" * 150, {"locally_verified": False}], ["short limit"]),
+    (["界" * 150, {"locally_verified": False}], []),
+    (["a", "b", "c", "d", {"locally_verified": False}], ["a", "b", "c"]),
+])
+def test_find_bounds_caveats_and_sizes_the_opened_content(tmp_path, capsys, limitations, shown):
+    _plant_custom_case(tmp_path, {
+        "id": "case.demo", "kind": "case", "content": "demo.md",
+        "state": "historical_observation", "applicability": [],
+        "limitations": limitations, "attribution": "Local demo",
+        "sources": [{"type": "internal", "issue": "local", "artifact": "fixture"}],
+    })
+    body = "精度\n".encode("utf-8")
+    (tmp_path / "demo/cases/demo.md").write_bytes(body)
+    args = ["find", "demo", "--kinds", "case", "--skill-root", str(tmp_path)]
+    assert main([*args, "--json"]) == 0
+    item, = json.loads(capsys.readouterr().out)["items"]
+    assert item["next_read_content_bytes"] == len(body)
+    assert item["locally_verified"] is False
+    assert item["limitations"] == shown
+    assert item["limitations_withheld"] == len(limitations) - len(shown)
+    assert main(item["read_args"]) == 0
+    material = json.loads(capsys.readouterr().out)
+    assert material["content"].encode("utf-8") == body
+    assert material["limitations"] == limitations
+    assert main(args) == 0
+    out = capsys.readouterr().out
+    assert f"{len(body)} UTF-8 bytes" in out
+    assert f"{len(limitations) - len(shown)} more recorded limitation(s)" in out
+
+
+def test_find_size_hint_allows_a_later_unpinned_checkout_edit(tmp_path, capsys):
+    _plant_custom_case(tmp_path, {
+        "id": "case.demo", "kind": "case", "content": "demo.md",
+        "state": "historical_observation", "attribution": "Local demo",
+        "applicability": [], "limitations": [],
+        "sources": [{"type": "internal", "issue": "local", "artifact": "fixture"}],
+    })
+    assert main(["find", "demo", "--kinds", "case", "--skill-root", str(tmp_path), "--json"]) == 0
+    hit, = json.loads(capsys.readouterr().out)["items"]
+    assert "unreadable" not in hit, hit.get("unreadable")
+    path = tmp_path / "demo/cases/demo.md"
+    assert hit["next_read_content_bytes"] == path.stat().st_size
+    revised = "新修订的较长证据。\n".encode("utf-8")
+    path.write_bytes(revised)
+    assert main(hit["read_args"]) == 0
+    assert json.loads(capsys.readouterr().out)["content"].encode("utf-8") == revised
+    assert len(revised) > hit["next_read_content_bytes"]
 
 
 def test_unknown_outcome_is_rejected(tmp_path):
