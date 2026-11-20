@@ -108,7 +108,7 @@ listed baseline. The evidence column gives the scope and validation status.
 
 | Model | Measured change and baseline | Metric and hardware | Validation and evidence |
 | --- | --- | --- | --- |
-| **DeepSeek V4.1 Flash** | **+54.45% / +36.12% / +20.80%**<br>Baseline: 68,239 / 1,711.98 / 1,132.9 tokens/s per card | Per-card throughput, prefill / decode / end-to-end · Ascend A3, W4A8, 1P1D | ✅ Rechecked at each scenario's latency limit; decode rechecked once. [Workloads and evidence](https://github.com/jiaran-king/dsv4.1-optimize) |
+| **DeepSeek V4.1 Flash** | **+54.45% / +36.12% / +20.80%**<br>Baseline: 68,239 / 1,711.98 / 1,132.9 tokens/s per card | Per-card throughput, prefill / decode / end-to-end · Ascend A3, W4A8, 1P1D | Throughput and latency rechecked at each scenario's latency limit; decode rechecked once. Long-output accuracy not verified. [Workloads and evidence](https://github.com/jiaran-king/dsv4.1-optimize) |
 
 <a id="image-and-video-generation"></a>
 
