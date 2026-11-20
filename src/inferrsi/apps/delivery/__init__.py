@@ -256,6 +256,7 @@ def export_bundle(source: Path, output: Path, *, export_id=None):
         "result": str(output / "campaign-result.json"),
         "artifacts": str(output / "artifacts.json"),
         "selected_code": result["selected_candidate"],
+        "benchmark_metrics": result.get("benchmark_metrics"),
     }
 
 

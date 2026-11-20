@@ -384,6 +384,11 @@ def iterative(snapshot, result):
                     "round": index + 1,
                     "attempt_id": directory.rsplit("/", 1)[-1],
                     "candidate_fingerprint": record.get("candidate_sha256"),
+                    "candidate_id": record.get("candidate_id"),
+                    "assessment_status": (value or {}).get("status"),
+                    "record_verified": bool(observation is not None and candidate
+                                            and candidate.get("verified")
+                                            and snapshot.verified([ref, *evidence_refs])),
                     "hypothesis": record.get("hypothesis"),
                     "strategy": record.get("strategy"),
                     "knowledge_refs": record.get("knowledge_refs"),
@@ -545,6 +550,18 @@ def iterative(snapshot, result):
             parsed[-1:], final_refs[0], "caller_session_export"
         )
         result["usage"]["session_tokens"]["coverage"] = "unknown"
+    if plan.get("task_source") == "benchmark":
+        from ...benchmark.summary import single
+
+        result["benchmark_metrics"] = single(
+            plan.get("report_metadata", {}).get("benchmark_metrics"),
+            result["rounds"], final_value, best or {}, selection=plan.get("selection"),
+            final_verified=bool(finished and current and final_value
+                                and final_value.get("status") == "completed"
+                                and (final_value.get("quality_passed") is True
+                                     or final_value.get("verdict") == "PASS")),
+            usage=result["usage"].get("session_tokens", result["usage"].get("tokens")),
+        )
     start = number(state.get("started_at"))
     end = number(state.get("settled_at"))
     if end is None:

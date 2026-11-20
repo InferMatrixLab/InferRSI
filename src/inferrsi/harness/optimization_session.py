@@ -127,7 +127,8 @@ def _runtime_identity():
 
 
 def session_command(args, *, task_source: Path | None = None, knowledge_reader=None,
-                    retain_context=None, external_knowledge=None, external_provider=None) -> dict:
+                    retain_context=None, external_knowledge=None, external_provider=None,
+                    report_metadata=None) -> dict:
     """Run one operation; discovery and knowledge access are supplied by the caller."""
     from inferrsi.harness import optimization
 
@@ -248,6 +249,8 @@ def session_command(args, *, task_source: Path | None = None, knowledge_reader=N
                 "runtime_identity": _runtime_identity(), **candidate, **settings}
         if external_knowledge:
             plan["external_knowledge"] = external_knowledge
+        if report_metadata is not None:
+            plan["report_metadata"] = report_metadata
         result = optimization.initialize(root, plan)
         operation = "campaign" if args.project_task else "benchmarks session"
         result["instructions"] = (

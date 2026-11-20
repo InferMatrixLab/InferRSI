@@ -149,6 +149,11 @@ as knowledge used by every round.
 
 ## Read the report
 
+The report leads with [Benchmark metrics](benchmark-metrics.md): each arm's
+independent final speedup, accepted/assessed steps and token coverage, followed
+by paired performance benefit and token consumption ratios. This versioned
+summary preserves the existing comparison conclusion and old factor directions.
+
 Apps writes a new JSON/Markdown/offline-HTML report snapshot under `reports/`.
 Start with the conclusion and per-task comparison, then inspect complete traces
 (strategy, hypothesis, knowledge citations, round/best speedup, correctness and

@@ -18,6 +18,8 @@ from tempfile import TemporaryDirectory
 
 from inferrsi.benchmark.comparison import DEFAULT_POLICY, DEFAULT_TASKS, summarize, validate_policy
 from inferrsi.benchmark.registry import task_resources
+from inferrsi.benchmark.summary import POLICY, token_usage
+from inferrsi.benchmark.summary import comparison as metrics_comparison
 from inferrsi.harness import agent_sessions, optimization
 from inferrsi.harness.artifact_primitives import digest, file_lock, sha256
 from inferrsi.harness.atomic_json import atomic_write_json
@@ -25,7 +27,7 @@ from inferrsi.harness.optimization_session import _runtime_identity
 from inferrsi.harness.task_protocol import run as protocol_operation
 
 from ..delivery import project
-from ..delivery.schema import decode
+from ..delivery.schema import decode, number
 from ..storage.archive import _publish_directory
 from ..views.comparison_report import write_comparison_report
 
@@ -223,6 +225,7 @@ def _prepare_at(config, sources, runtime, task_settings, root):
                                "condition": condition,
                                "workspace": workspace.relative_to(root).as_posix()})
     plan = {"schema_version": 1, "focus": "knowledge", "config": config,
+            "metrics_policy": POLICY,
             "diagnosis_required": True,
             "parameter_sources": sources, "task_settings": task_settings,
             "runtime_files": {key: value for key, value in runtime_files.items()
@@ -405,7 +408,8 @@ def _trial_result(root, plan, trial, host):
               "condition": trial["condition"], "status": "blocked", "eligible": False,
               "gaps": [], "metrics": {"speedup": None, "wall_seconds": None, "tokens": None},
               "trace": [], "final": None, "usage": {}, "knowledge_deliveries": [],
-              "observed_settings": None}
+              "observed_settings": None, "metrics_comparable": False,
+              "benchmark_metrics": None}
     campaign = root / trial["workspace"] / "campaign"
     if host is None or host["state"] not in agent_sessions.TERMINAL:
         result["status"] = "pending" if host is None else "running"
@@ -449,6 +453,8 @@ def _trial_result(root, plan, trial, host):
                   "evaluation_settings": settings["settings"],
                   "evaluation_prefix": shlex.split(settings["evaluation_prefix"]),
                   "frozen_files": settings["files"]}
+        if "metrics_policy" in plan:
+            wanted["report_metadata"] = {"benchmark_metrics": plan["metrics_policy"]}
         if any(campaign_plan.get(key) != value for key, value in wanted.items()):
             result["gaps"].append("Campaign task, condition, protocol or budget differs from plan")
         if plan.get("diagnosis_required") and campaign_plan.get("diagnosis_required") is not True:
@@ -459,6 +465,33 @@ def _trial_result(root, plan, trial, host):
         if trial["condition"] == "off" and control["contexts"]:
             result["gaps"].append("Knowledge was delivered in the off condition")
         result["usage"].update(delivery["usage"])
+        result["benchmark_metrics"] = delivery.get("benchmark_metrics")
+        result["metrics_comparable"] = not result["gaps"]
+        coverage = (payload.get("benchmark_token_coverage") or {}) if receipt else {}
+        if not isinstance(coverage, dict):
+            coverage = {}
+        coverage_start, coverage_end = (number(coverage.get(key))
+                                        for key in ("started_at", "ended_at"))
+        if (result["benchmark_metrics"] is not None and host["usage"] is not None
+                and plan.get("metrics_policy") == POLICY
+                and campaign_plan.get("report_metadata", {}).get("benchmark_metrics") == POLICY):
+            complete = (
+                host["state"] == "completed"
+                and coverage.get("trial_id") == trial["id"]
+                and coverage.get("session_id") == host["native_session"]["session_id"]
+                and coverage.get("scope") == POLICY["token_scope"]
+                and isinstance(coverage.get("includes"), dict)
+                and all(coverage["includes"].get(key) is True for key in (
+                    "pre_start", "retrieval", "failures_retries", "final"))
+                and coverage_start is not None and coverage_end is not None
+                and coverage_start <= control["started_at"]
+                and control.get("settled_at") is not None
+                and coverage_end >= control["settled_at"]
+            )
+            result["benchmark_metrics"]["token_usage"] = token_usage({
+                "value": host["usage"], "source": receipt["sha256"],
+                "scope": coverage.get("scope"), "coverage": "complete" if complete else "partial",
+            })
         if delivery["acceptance"]["delivery_accepted"] and control["final"]:
             final_assessment = control["final"]["assessment"]
             result["metrics"]["speedup"] = (
@@ -492,8 +525,10 @@ def _trial_result(root, plan, trial, host):
             result["gaps"].append("A completed, verified independent final is required")
         if not snapshot.stable():
             result["gaps"].append("Campaign changed while collecting")
+            result["metrics_comparable"] = False
         result["status"] = "completed" if control["state"] == "completed" else "blocked"
     except (OSError, ValueError, TypeError, KeyError) as error:
+        result["metrics_comparable"] = False
         result["gaps"].append(f"Campaign evidence could not be verified: {type(error).__name__}")
     result["eligible"] = not result["gaps"]
     return result
@@ -536,6 +571,7 @@ def report(root):
         if len(members) > 1:
             for trial in members:
                 trial["eligible"] = False
+                trial["metrics_comparable"] = False
                 trial["gaps"].append("Native session is bound to multiple comparison trials")
     for task in plan["config"]["tasks"]:
         for repeat in range(1, plan["config"]["repeats"] + 1):
@@ -546,16 +582,24 @@ def report(root):
                 for trial in pair:
                     trial["eligible"] = False
                     trial["gaps"].append("Paired actual Agent/environment settings differ")
+            if (len(pair) == 2 and all(t.get("observed_settings") for t in pair)
+                    and any(pair[0]["observed_settings"].get(key)
+                            != pair[1]["observed_settings"].get(key) for key in OBSERVED_FIELDS)):
+                for trial in pair:
+                    trial["metrics_comparable"] = False
     result = {"schema_version": 1, "focus": "knowledge", "tasks": plan["config"]["tasks"],
               "repeats": plan["config"]["repeats"], "policy": plan["config"]["policy"],
               "knowledge_boundary": plan["knowledge_boundary"], "plan_digest": digest(plan),
               "trials": trials, "assessment": summarize(trials, plan["config"]["tasks"],
                   plan["config"]["repeats"], plan["config"]["policy"])}
+    result["benchmark_metrics"] = metrics_comparison(
+        trials, plan["config"]["tasks"], plan["config"]["repeats"], plan.get("metrics_policy"))
     destination = root / "reports" / uuid.uuid4().hex
     paths = write_comparison_report(result, destination)
     state["report"] = {"collection_digest": digest(state["collections"]), "paths": paths}
     atomic_write_json(root / "state.json", state)
-    return {"assessment": result["assessment"], "reports": paths,
+    return {"assessment": result["assessment"], "benchmark_metrics": result["benchmark_metrics"],
+            "reports": paths,
             "next_action": _status(root, plan, state)["next_action"]}
 
 
