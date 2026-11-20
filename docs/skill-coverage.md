@@ -4,7 +4,7 @@ Generated from the registry, SKILL.md frontmatter and the two maintained
 matrices. **Do not edit by hand**; regenerate after any registry, skill,
 matrix or frozen-plan change.
 
-- Input digest: `sha256:93ad79f2b36af340d3c1c819dcb2f9b651d0f6078913aa726bd9ee1f01e9df54`
+- Input digest: `sha256:a418dc94741cfa20a4feab44764c1e99e135308a2611a322851a17dca26e8e2f`
 - Regenerate: `python tools/build_skill_coverage.py`
 - Verify without writing: `python tools/build_skill_coverage.py --check`
 
@@ -33,9 +33,9 @@ matrix: every field is copied from an owner that already maintains it.
 
 | Measure | Value |
 |---|---|
-| Registered skill ids | 88 |
-| By category | casebooks 2, playbooks 17, systems 53, tasks 8, workflows 8 |
-| By backend | ascend 16, common 67, cuda 5 |
+| Registered skill ids | 89 |
+| By category | casebooks 2, playbooks 17, systems 54, tasks 8, workflows 8 |
+| By backend | ascend 16, common 67, cuda 5, musa 1 |
 | Recorded on a numbered SearchSpace resource layer | 51 |
 | Recorded only in a supplementary guidance table (†) | 21 |
 | Resource layers explicitly not applicable | 15 |
@@ -43,7 +43,7 @@ matrix: every field is copied from an owner that already maintains it.
 | Recorded on two or more resource layers | 24 |
 | Recorded in the Reference Matrix | 72 |
 | Selected by a frozen evaluation plan | 2 |
-| `SKILL.md` documents in the library | 151 |
+| `SKILL.md` documents in the library | 152 |
 | Unregistered documents (excluded from every count above) | 63 |
 
 A complete inventory is not a coverage claim. Every registered row below
@@ -79,7 +79,7 @@ optimization is fully covered or that any procedure has measured benefit.
 | [video-diffusion-optimization](../src/inferrsi/knowledge/data/skill_library/playbooks/optimization/video-diffusion-optimization/SKILL.md) | common | Run and verify goal-driven video diffusion optimization, backend-agnostic. Use when the user asks for latency, RTF ... | Backend-agnostic video diffusion inference and serving optimization | — | 1 Accelerator † guidance: Video diffusion campaign guidance (unvalidated) | — | candidate · not_run · 0 readset(s) | no-Reference-Matrix-row, no-eval |
 | [weight-loading-optimization](../src/inferrsi/knowledge/data/skill_library/playbooks/optimization/weight-loading-optimization/SKILL.md) | common | Optimize the serving-level weight load path from storage to device: judge the load path on four dimensions (source ... | Diagnosing the serving-level weight load path from storage to device and choosing changes ... | failure_modes, input_contract, produced_artifact, refusal_point<br>6 advice | 1 Accelerator † guidance: Flare preparation and complete-session source contracts<br>2 RAM/Host † guidance: Flare preparation and complete-session source contracts; DeepSeek streamed expert-cache verification<br>3 SSD · Observe / Profile / Diagnose / Optimize / Verify † guidance: Flare preparation and complete-session source contracts; DeepSeek streamed expert-cache verification<br>4 Network · Configure / Optimize / Verify | 1 · Systems sources (Ascend/MindIE-SD @ 8481d39)<br>1 · Systems sources (NVIDIA/TensorRT-LLM @ f33e0e5fd)<br>1 · Systems sources (ascend-ai-coding/awesome-ascend-skills @ 75ec89c)<br>1 · Systems sources (foundation-model-stack/fastsafetensors @ 219e256)<br>1 · Systems sources (ggml-org/llama.cpp @ `3e390af18de1131dda27913c00511725b4274c8a` (MIT ...)<br>1 · Systems sources (mindie-agent/mindie-agent @ 6a81b41)<br>DeepSeek streamed expert-cache oracle contracts ([ronak-create/deepseek-v4-in-c](https://github.com/ronak-create/deepse ...) | candidate · not_run · 5 readset(s) | no-eval |
 
-## Registered: Systems and implementations (53)
+## Registered: Systems and implementations (54)
 
 | Skill | Backend | Declared task | Applicability | Conditions | SearchSpace layer / stage | Reference Matrix | State | Gaps |
 |---|---|---|---|---|---|---|---|---|
@@ -136,6 +136,7 @@ optimization is fully covered or that any procedure has measured benefit.
 | [torchnpu-pinned-host-memory-lifecycle](../src/inferrsi/knowledge/data/skill_library/systems/platforms/ascend/torchnpu-pinned-host-memory-lifecycle/SKILL.md) | ascend | Diagnose TorchNPU pinned-host RAM allocation, asynchronous-copy lifetime, reuse and cache controls, then propose ... | Diagnose TorchNPU pinned-host RAM allocation, asynchronous-copy ownership/readiness ... | input_contract, produced_artifact, refusal_point<br>3 advice | 2 RAM/Host · Diagnose / Configure / Optimize / Verify | 1 · Systems sources (Ascend/pytorch (TorchNPU) @ `67511c53cd4c88014f6123de7097677e60e85faa` ...) | candidate · not_run · 1 readset(s) | no-eval |
 | [vllm-ascend](../src/inferrsi/knowledge/data/skill_library/systems/engines/vllm-ascend/SKILL.md) | ascend | Analyze vLLM Ascend v0.27.1rc1 performance and commit evolution for DeepSeek-V4, Kimi K3, MiniMax-M3 and GLM5+, fused ... | Release-pinned performance diagnosis and historical optimization analysis for ... | input_contract, produced_artifact, refusal_point<br>5 advice | 1 Accelerator † guidance: vLLM Ascend v0.27.1rc1 serving diagnosis<br>2 RAM/Host † guidance: vLLM Ascend v0.27.1rc1 serving diagnosis | vLLM Ascend v0.27.1rc1 serving scope (vllm-project/vllm-ascend at `3b31886237ed65c435e0965b10e8002ff5769766`) | candidate · not_run · 3 readset(s) | no-eval |
 | [vllm-metal](../src/inferrsi/knowledge/data/skill_library/systems/engines/vllm-metal/SKILL.md) | common | Investigate vllm-metal Apple inference through platform and native-ABI selection, paged KV/offload ownership ... | Selected plugin preparation, KV/offload ownership and speculative/deferred/dispatch ... | failure_modes, input_contract, produced_artifact<br>3 advice | 1 Accelerator † guidance: vLLM Metal selected source contracts<br>2 RAM/Host † guidance: vLLM Metal selected source contracts<br>3 SSD † guidance: vLLM Metal selected source contracts | vLLM Metal portable AREX source and CPU extraction (vllm-project/vllm-metal @ `e7df7a6ff215f99c7842552d230fdbc709835934` ...) | candidate · partial_cpu_only · 2 readset(s) | no-eval |
+| [vllm-musa](../src/inferrsi/knowledge/data/skill_library/systems/engines/vllm-musa/SKILL.md) | musa | Investigate text-LLM and Omni serving performance on Moore Threads MUSA through the vllm-musa plugin: device identity ... | Device identity, compat-layer dispatch and pinned-image constraints for text-LLM and Omni ... | input_contract, produced_artifact, refusal_point<br>4 advice | **unknown** | — | candidate · not_run · 1 readset(s) | no-SearchSpace-layer, no-Reference-Matrix-row, no-eval |
 
 ## Registered: Task routing (8)
 
@@ -238,7 +239,7 @@ an entrypoint routes to procedures below it rather than adding one.
 
 ## Integrity checks
 
-- Registered ids resolve to an existing `SKILL.md`: 88 of 88.
+- Registered ids resolve to an existing `SKILL.md`: 89 of 89.
 - Duplicate ids or paths: none; `skill_catalog` rejects them before this view is built.
 - Skill links in the two matrices that do not resolve: 0.
 
@@ -246,11 +247,11 @@ an entrypoint routes to procedures below it rather than adding one.
 
 | Gap | Skills |
 |---|---|
-| `no-SearchSpace-layer` | 1: husky |
+| `no-SearchSpace-layer` | 2: husky, vllm-musa |
 | `conflicting-SearchSpace-layer` | 0: — |
-| `no-Reference-Matrix-row` | 16: ascend-video-diffusion-optimization, audit-fixed-workload-claim, cite-check-downstream-pr, claim-contract, competitor-scan, draft-acceptance-issue, inference-task-router, rsi-evidence, task-accuracy, task-day-0, task-debug, task-derived-engine, task-independent-engine, task-performance, task-version-alignment, video-diffusion-optimization |
+| `no-Reference-Matrix-row` | 17: ascend-video-diffusion-optimization, audit-fixed-workload-claim, cite-check-downstream-pr, claim-contract, competitor-scan, draft-acceptance-issue, inference-task-router, rsi-evidence, task-accuracy, task-day-0, task-debug, task-derived-engine, task-independent-engine, task-performance, task-version-alignment, video-diffusion-optimization, vllm-musa |
 | `no-applicability` | 0: — |
-| `no-eval` | 86: as listed in the Gaps column above |
+| `no-eval` | 87: as listed in the Gaps column above |
 
 These are inventory gaps, not efficacy results. Missing layer mappings stay
 unknown unless the owner records a reasoned N/A. N/A is not coverage;
