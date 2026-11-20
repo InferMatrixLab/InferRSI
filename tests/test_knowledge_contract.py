@@ -1,6 +1,7 @@
 import json
 import os
 import re
+import shutil
 from pathlib import Path
 
 import pytest
@@ -58,7 +59,7 @@ def _case_records():
 
 def test_case_documents_cite_their_record_without_copying_digests():
     cases = list(_case_records())
-    assert len(cases) == 7
+    assert len(cases) == 8
     for path, record in cases:
         body = (path.parent / record["content"]).read_text(encoding="utf-8")
         # The JSON record is the single home for source identities and digests;
@@ -83,6 +84,43 @@ def test_case_document_links_resolve_inside_the_delivered_bundle():
         for link in local:
             data = reader.resource(record["id"], link, revision=bundle.revision)
             assert data == (path.parent / link).read_bytes(), (path.name, link)
+
+
+def test_epd_case_closure_identity_and_revision(tmp_path):
+    casebook = "inference-optimization-casebook"
+    source = skill_directory(ROOT, casebook) / "cases"
+    case_body = skill_reference(ROOT, casebook, "cases/epd-cold-provisioning.md")
+    assert case_body == source / "epd-cold-provisioning.md"
+    owner = tmp_path / "owner"
+    cases = owner / "cases"
+    cases.mkdir(parents=True)
+    (owner / "SKILL.md").write_text(
+        "---\nname: owner\ndescription: Test owner\n---\n", encoding="utf-8"
+    )
+    for name in ("epd-cold-provisioning.md", "epd-cold-provisioning.json"):
+        shutil.copyfile(source / name, cases / name)
+    reader = KnowledgeReader(skill_root=tmp_path)
+    identity = "case.epd-cold-provisioning"
+    original = reader.read(identity)
+    record_path = cases / "epd-cold-provisioning.json"
+    record = json.loads(record_path.read_text(encoding="utf-8"))
+    assert original.metadata["id"] == identity
+    assert original.metadata["sources"] == [
+        {**source, "revision_precision": "full"} for source in record["sources"]
+    ]
+    assert original.content["epd-cold-provisioning.json"] == record_path.read_bytes()
+    assert original.content["case.json"] == record_path.read_bytes()
+    content_path = cases / record["content"]
+    content_path.write_bytes(content_path.read_bytes() + b"\n")
+    assert reader.read(identity).revision != original.revision
+    with pytest.raises(ValueError):
+        reader.resource(identity, record_path.name, revision=original.revision)
+    record_path.unlink()
+    # Keep the authority record discoverable, while removing its declared copy.
+    authority = cases / "authority.json"
+    authority.write_text(json.dumps(record), encoding="utf-8")
+    with pytest.raises(ValueError, match="Missing case resource"):
+        reader.read(identity)
 
 
 def test_contradictory_legacy_metadata_fails(tmp_path):

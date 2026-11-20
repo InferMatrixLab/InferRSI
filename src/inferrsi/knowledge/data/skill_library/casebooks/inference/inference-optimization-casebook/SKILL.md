@@ -45,6 +45,7 @@ metadata:
         "Source-derived candidate; no local efficacy validation.",
         "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
       ],
+      "references": ["cases/epd-cold-provisioning.md"],
       "provenance_readsets": [],
       "consumption_mode": "packaged"
     }
@@ -122,6 +123,11 @@ would be missed by a structured-field-only query.
 Source: perf-optimization-casebook @ f33e0e5f, §how-to-use.
 
 ## Recorded diagnostic options
+
+The [EPD cold-provisioning case](cases/epd-cold-provisioning.md) records
+integer E:PD GPU allocation, applicability and matched cold MMMU comparisons
+on four H800 GPUs, including a position-balanced follow-up. Its source record retains external author-reported scope,
+published artifact hashes and INCONCLUSIVE formal acceptance.
 
 Current owner-local records retain rejected directions alongside their limits:
 
