@@ -59,6 +59,14 @@ def attach_native_usage(snapshot, result, job):
     # Validate paths before the Harness reader opens them. Keep all original receipts.
     for record in [*state.get("receipts", []), *state.get("artifacts", [])]:
         native.file(record["path"], "native_evidence", record["sha256"])
+    for index, record in enumerate(request.get("frozen_inputs", [])):
+        path = Path(record["path"]).absolute()
+        if any(parent.is_symlink() for parent in (path, *path.parents)):
+            raise ValueError("Symbolic native frozen input")
+        dependency = Snapshot(path.parent, snapshot.observed_at)
+        dependency.file(path.name, "native_frozen_input", record["sha256"])
+        # Include alongside the job: each source keeps its own root and stability probe.
+        snapshot.include(dependency, f"agent-input-{index}:")
     host = agent_sessions.status(job)
     if (host["request"] != request or host["last_observation"] != state["last_observation"]
             or host["usage"] != state["usage"] or host["state"] != state["state"]
@@ -73,13 +81,15 @@ def attach_native_usage(snapshot, result, job):
     workspace_bound = snapshot.root.resolve().is_relative_to(Path(request["workspace"]).resolve())
     policy = plan.get("report_metadata", {}).get("benchmark_metrics")
     usage = result["benchmark_metrics"]["token_usage"]
+    selected_native_usage = False
     # A standalone job can contain several campaigns: bind the exact frozen plan too.
     if (supported_policy(policy) and workspace_bound and isinstance(coverage, dict)
             and coverage.get("campaign_plan_digest") == control["plan_digest"]):
         usage = terminal_token_usage(host, payload, trial_id=plan.get("condition"),
                                      control=control, source=ref)
+        selected_native_usage = True
     refs = snapshot.include(native, "agent-job:")
-    if usage["source"] == ref:
+    if selected_native_usage:
         usage["source"] = refs[ref]
         result["usage"]["session_tokens"] = {
             "value": {key: usage[key] for key in (

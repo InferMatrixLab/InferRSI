@@ -780,8 +780,10 @@ def standalone_native_usage(tmp_path):
     from inferrsi.harness import agent_sessions
 
     job = tmp_path / "agent-job"
+    frozen_input = tmp_path / "native-task.txt"
+    frozen_input.write_text("Frozen synthetic task", encoding="utf-8")
     agent_sessions.prepare(job, prompt="Synthetic Benchmark task", workspace=tmp_path,
-                           title="Synthetic", max_seconds=600)
+                           title="Synthetic", max_seconds=600, frozen_inputs=(frozen_input,))
     agent_sessions.dispatch(job)
     creation = tmp_path / "creation.json"
     atomic_write_json(creation, {"synthetic_creation": True})
@@ -832,6 +834,8 @@ def test_single_benchmark_complete_native_usage_through_export_cli(
     index = decode((output / "artifacts.json").read_bytes())
     source = next(a for a in index["artifacts"] if a["id"] == tokens["source"])
     assert source["integrity"] == "verified" and source["role"] == "native_usage"
+    inputs = [a for a in index["artifacts"] if a["role"] == "native_frozen_input"]
+    assert len(inputs) == 1 and inputs[0]["integrity"] == "verified"
     for name in ("report.md", "report.html"):
         text = (output / name).read_text(encoding="utf-8")
         assert text.index("Benchmark metrics") < text.index("Token consumption")
@@ -888,6 +892,56 @@ def test_single_benchmark_missing_terminal_receipt_preserves_observed_subtotal(
     _, result, _ = delivery.project(root, export_id="missing-native", agent_job=job)
     tokens = result["benchmark_metrics"]["token_usage"]
     assert tokens["total_tokens"] is None and tokens["observed_tokens"] == 1200
+
+
+def test_native_frozen_input_change_after_status_prevents_complete_export(
+    standalone_native_usage, tmp_path, monkeypatch,
+):
+    from inferrsi.harness import agent_sessions
+
+    root, job, observation = standalone_native_usage
+    record_native_usage(job, observation)
+    original = agent_sessions.status
+
+    def changed_after_read(path):
+        host = original(path)
+        (tmp_path / "native-task.txt").write_text("Changed after status", encoding="utf-8")
+        return host
+
+    monkeypatch.setattr(agent_sessions, "status", changed_after_read)
+    output = tmp_path / "changed-native-input"
+    result = delivery.export_bundle(root, output, agent_job=job)
+    assert result["status"] == "error" and not output.exists()
+
+
+def test_progress_without_native_observation_preserves_campaign_usage_source(tmp_path):
+    from inferrsi.harness import agent_sessions
+
+    job = tmp_path / "job"
+    agent_sessions.prepare(job, prompt="Synthetic", workspace=tmp_path,
+                           title="Synthetic", max_seconds=600)
+    agent_sessions.dispatch(job)
+    receipt = tmp_path / "creation.json"
+    atomic_write_json(receipt, {"synthetic_creation": True})
+    agent_sessions.bind(job, host="synthetic", session_id="native-session", receipt=receipt)
+    root = make_campaign(tmp_path, benchmark=True, usage=True, final=False)
+    _, original, _ = delivery.project(root, export_id="progress-original")
+    _, result, _ = delivery.project(root, export_id="progress-native", agent_job=job)
+    usage = result["benchmark_metrics"]["token_usage"]
+    assert usage == original["benchmark_metrics"]["token_usage"]
+    assert usage["source"] == "source:state.json" and usage["observed_tokens"] == 120
+    assert "session_tokens" not in result["usage"]
+
+
+def test_retained_native_receipt_change_invalidates_the_delivery_snapshot(standalone_native_usage):
+    root, job, observation = standalone_native_usage
+    record_native_usage(job, observation)
+    snapshot, result, _ = delivery.project(root, export_id="native-snapshot", agent_job=job)
+    assert result["benchmark_metrics"]["token_usage"]["total_tokens"] == 1200
+    native_state = decode((job / "state.json").read_bytes())
+    receipt = job / native_state["last_observation"]["path"]
+    receipt.write_bytes(receipt.read_bytes() + b"\n")
+    assert not snapshot.stable()
 
 
 @pytest.mark.parametrize("execution_state,returncode", [
