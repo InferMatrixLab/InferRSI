@@ -1,5 +1,6 @@
 """Run the current-Agent protocol using real child processes and synthetic work."""
 
+import hashlib
 import json
 import os
 import subprocess
@@ -449,6 +450,7 @@ def test_knowledge_delivery_is_retained_and_bound_to_round(session, capsys):
         "--limit", "1", "--context-bytes", "8192",
     ]) == 0
     delivered = json.loads(capsys.readouterr().out)
+    assert set(delivered["reference"]) == {"path", "sha256", "kind"}
     path = session / delivered["reference"]["path"]
     capture, state = verify_capture(path.read_bytes())
     assert state == "verified"
@@ -470,8 +472,309 @@ def test_knowledge_delivery_is_retained_and_bound_to_round(session, capsys):
     result = submit(session, 2, capsys)
     observation = result["latest_observation"]
     assert observation["contexts"] == [
-        {**delivered["reference"], "diagnosis_id": observation["diagnosis_id"]}
+        {**delivered["reference"], "round": 1, "diagnosis_id": observation["diagnosis_id"]}
     ]
+
+    from inferrsi.apps.views.dashboard import dashboard_snapshot
+
+    data = dashboard_snapshot(session)["data"]
+    retrieval, = data["managed_retrievals"]
+    assert retrieval["round"] == 1 and "external" not in retrieval
+    assert data["candidates"][0]["knowledge_uses"] == []
+
+
+@pytest.mark.parametrize("mutation", [
+    "absolute", "outside", "symlink", "ancestor_symlink", "oversized", "hash_mismatch",
+])
+def test_managed_knowledge_rejects_unverified_capture(
+    session, capsys, monkeypatch, mutation,
+):
+    from inferrsi.apps.views.dashboard import dashboard_snapshot
+    from inferrsi.apps.views.retrieval_projection import managed_knowledge
+    from inferrsi.harness.records import evidence
+    from inferrsi.harness.records.knowledge_capture import MAX_CONTEXT_CAPTURE_BYTES
+
+    assert main([
+        "benchmarks", "session", "knowledge", "--session", str(session),
+        "--query", "cache per-step masks ran out of device memory",
+        "--limit", "1", "--context-bytes", "8192",
+    ]) == 0
+    capsys.readouterr()
+    state_path = session / "state.json"
+    state = json.loads(state_path.read_bytes())
+    reference, = state["contexts"]
+    path = session / reference["path"]
+    raw = path.read_bytes()
+    expected = "unsafe_path"
+    if mutation in ("absolute", "outside", "symlink"):
+        outside = session.parent / "other-capture.json"
+        outside.write_bytes(raw)
+        if mutation == "absolute":
+            reference["path"] = outside.as_posix()
+        elif mutation == "outside":
+            reference["path"] = "../other-capture.json"
+        else:
+            path.unlink()
+            try:
+                path.symlink_to(outside)
+            except OSError:
+                pytest.skip("test requires permission to create symlinks")
+    elif mutation == "ancestor_symlink":
+        alias = session / "alias"
+        try:
+            alias.symlink_to(path.parent, target_is_directory=True)
+        except OSError:
+            pytest.skip("test requires permission to create symlinks")
+        reference["path"] = f"alias/{path.name}"
+    elif mutation == "oversized":
+        raw += b" " * MAX_CONTEXT_CAPTURE_BYTES
+        path.write_bytes(raw)
+        reference["sha256"] = hashlib.sha256(raw).hexdigest()
+        expected = "too_large"
+    else:
+        path.write_bytes(raw + b" ")
+        expected = "Delivered knowledge context changed"
+    state_path.write_text(json.dumps(state), encoding="utf-8")
+
+    reads = []
+    read_regular = evidence.read_regular
+
+    def track_read(path, limit):
+        data = read_regular(path, limit)
+        reads.append(len(data))
+        return data
+
+    monkeypatch.setattr(evidence, "read_regular", track_read)
+    assert managed_knowledge(session, [reference]) == ([], {})
+    with pytest.raises(ValueError, match=expected):
+        dashboard_snapshot(session)
+    if expected == "unsafe_path":
+        assert not reads
+    elif expected == "too_large":
+        assert reads == [MAX_CONTEXT_CAPTURE_BYTES + 1] * 2
+
+
+def test_cannbot_query_and_read_trace_to_candidate(tmp_path, task, capsys, monkeypatch):
+    from inferrsi.apps.integrations.cannbot import project
+    from inferrsi.apps.views.dashboard import dashboard_snapshot
+
+    revision, digest = "a" * 40, "b" * 64
+    locator = "ops/ascendc/apis/synthetic"
+    uncited = "ops/ascendc/apis/uncited"
+    card_text = "synthetic external body"
+    search_query = "cache per-step masks ran out of device memory"
+    phase = {"state": "ok", "items": [locator, uncited]}
+    monkeypatch.setattr(project, "describe", lambda *a, **kw: {
+        "state": "ok", "revision": revision,
+    })
+
+    def search(query, *, platform, limit, **kwargs):
+        assert (query, platform, limit) == (search_query, "a3", 2)
+        if phase["state"] != "ok":
+            raise project.ChannelFailure("private worker diagnostics", state=phase["state"])
+        return {
+            "revision": revision,
+            "items": [
+                {"locator": ref, "card_sha256": digest, "score": 7, "summary": card_text}
+                for ref in phase["items"]
+            ],
+        }
+
+    def read(ref, *, expected_revision, expected_sha256, page, timeout):
+        assert ref in (locator, uncited)
+        assert (expected_revision, expected_sha256, page) == (revision, digest, 1)
+        return {"state": "ok", "locator": ref, "revision": revision, "card_sha256": digest,
+                "page": 1, "pages": 1, "text": card_text}
+
+    monkeypatch.setattr(project, "search", search)
+    monkeypatch.setattr(project, "read", read)
+    root = tmp_path / "with-cannbot"
+    operation = ["benchmarks", "session"]
+    session_args = ["--session", str(root)]
+    start_args = [*operation, "start", task.name, *session_args, "--rounds", "3",
+                  "--max-minutes", "5", "--evaluation-timeout-seconds", "15",
+                  "--condition", "synthetic-combined", "--evaluation-args", "",
+                  "--cannbot-platform", "a3"]
+    with pytest.raises(SystemExit):
+        main([*start_args, "--knowledge", "off"])
+    assert "requires --knowledge on" in capsys.readouterr().err
+    assert not root.exists()
+    assert main(start_args) == 0
+    started = json.loads(capsys.readouterr().out)
+    assert started["external_knowledge"]["platform"] == "a3"
+
+    query_args = [*operation, "knowledge", *session_args, "--query", search_query,
+                  "--context-bytes", "8192", "--limit", "2"]
+    with pytest.raises(SystemExit):
+        main(query_args)
+    assert "Record measured bottleneck evidence" in capsys.readouterr().err
+    diagnose(root, capsys)
+    assert main(query_args) == 0
+    answer = json.loads(capsys.readouterr().out)
+    search_path = answer["external"]["reference"]["path"]
+    local_path = answer["reference"]["path"]
+    local_item = answer["context"]["contexts"][0]["ref"]
+    before = dashboard_snapshot(root)["data"]
+    query, = before["managed_retrievals"]
+    assert query["query"] == search_query and query["round"] == 1
+    assert any(x["ref"] == local_item and x["delivered"] for x in query["items"])
+    assert query["external"]["state"] == "ok"
+    assert query["external"]["count"] == 2
+    assert query["external"]["reads"] == []
+    assert not before["candidates"]
+
+    read_args = [*operation, "knowledge-read", *session_args, "--search-ref", search_path,
+                 "--locator"]
+    with pytest.raises(SystemExit):
+        main([*read_args, "ops/ascendc/not-from-search"])
+    assert "from the recorded search" in capsys.readouterr().err
+    capsys.readouterr()
+    assert main([*read_args, uncited]) == 0
+    capsys.readouterr()
+    assert main([*read_args, locator]) == 0
+    delivery = json.loads(capsys.readouterr().out)
+    assert delivery["context"]["text"] == card_text
+    receipt_path = delivery["reference"]["path"]
+
+    candidate = root / "work/candidate.py"
+    candidate.write_text("FACTOR = 2\n")
+    round_args = [*operation, "round", *session_args, "--candidate", str(candidate),
+                  "--hypothesis", "Apply selected knowledge"]
+    with pytest.raises(SystemExit):
+        main([*round_args, "--knowledge-ref", search_path])
+    assert "read receipt from this session" in capsys.readouterr().err
+    with pytest.raises(SystemExit):
+        main([*round_args, "--knowledge-ref", local_path + "#unknown"])
+    assert "delivered resources" in capsys.readouterr().err
+    execute = optimization_session._session_execute
+
+    def observe_pending(root, directory, plan, deadline):
+        current = dashboard_snapshot(root)["data"]["pending_candidate"]
+        assert current["candidate_id"] == "candidate-001" and current["round"] == 1
+        assert [use["ref"] for use in current["knowledge_uses"]] == [locator, local_item]
+        return execute(root, directory, plan, deadline)
+
+    monkeypatch.setattr(optimization_session, "_session_execute", observe_pending)
+    assert main([*round_args, "--knowledge-ref", receipt_path,
+                 "--knowledge-ref", local_path + "#" + local_item]) == 0
+    capsys.readouterr()
+    with pytest.raises(SystemExit):
+        main([*read_args, locator])
+    assert "from the current round" in capsys.readouterr().err
+    capsys.readouterr()
+
+    monkeypatch.setattr(optimization_session, "_session_execute", execute)
+    phase["items"] = [uncited]
+    assert main(query_args) == 0
+    later_search = json.loads(capsys.readouterr().out)["external"]["reference"]["path"]
+    assert main([*operation, "knowledge-read", *session_args, "--search-ref", later_search,
+                 "--locator", uncited]) == 0
+    later_reference = json.loads(capsys.readouterr().out)["reference"]
+    later_path = later_reference["path"]
+
+    phase["items"] = []
+    assert main(query_args) == 0
+    capsys.readouterr()
+    assert submit(root, -1, capsys)["latest_observation"]["assessment"]["score"] is None
+    phase["state"] = "unreachable"
+    assert main(query_args) == 0
+    capsys.readouterr()
+    data = dashboard_snapshot(root)["data"]
+    first, later, empty, unavailable = data["managed_retrievals"]
+    assert [first["round"], later["round"], empty["round"], unavailable["round"]] == [1, 2, 2, 3]
+    assert {entry["locator"] for entry in first["external"]["reads"]} == {locator, uncited}
+    assert later["external"]["reads"] == [{"locator": uncited, "page": 1}]
+    assert empty["external"]["state"] == "ok" and empty["external"]["count"] == 0
+    assert unavailable["external"]["state"] == "unreachable"
+    row, failed = data["candidates"]
+    assert (row["candidate_id"], row["round"], row["measured_score"], row["verdict"]) == (
+        "candidate-001", 1, 2, "PASS",
+    )
+    assert [(use["source"], use["ref"]) for use in row["knowledge_uses"]] == [
+        ("cannbot-knowledge", locator), ("local", local_item),
+    ]
+    assert row["knowledge_uses"][0]["card_sha256"] == digest
+    assert failed["knowledge_uses"] == [] and failed["measured_score"] is None
+    assert card_text not in json.dumps(data)
+    assert "private worker diagnostics" not in json.dumps(data)
+    for path in root.rglob("*.json"):
+        retained = path.read_text(encoding="utf-8")
+        assert card_text not in retained
+        assert "private worker diagnostics" not in retained
+
+    state_path = root / "state.json"
+    original_state = state_path.read_bytes()
+    state = json.loads(original_state)
+    first_round = state["rounds"][0]
+    original_refs = first_round["knowledge_refs"]
+    original_contexts = first_round["contexts"]
+    first_round["knowledge_refs"] = [later_path]
+    state_path.write_text(json.dumps(state))
+    with pytest.raises(ValueError, match="Round knowledge attribution"):
+        dashboard_snapshot(root)
+    first_round["knowledge_refs"] = original_refs
+    first_round["contexts"] = [*original_contexts, later_reference]
+    state_path.write_text(json.dumps(state))
+    with pytest.raises(ValueError, match="Round knowledge attribution"):
+        dashboard_snapshot(root)
+    first_round["contexts"] = original_contexts
+
+    # Even an imported record with a matching digest must not widen the view.
+    for reference in state["contexts"]:
+        if reference["path"] not in (search_path, later_path):
+            continue
+        path = root / reference["path"]
+        record = json.loads(path.read_text())
+        record["text"] = card_text
+        if "items" in record:
+            record["items"][0]["summary"] = card_text
+        raw = json.dumps(record).encode()
+        path.write_bytes(raw)
+        reference["sha256"] = hashlib.sha256(raw).hexdigest()
+    state_path.write_text(json.dumps(state))
+    assert card_text not in json.dumps(dashboard_snapshot(root))
+
+    # Allowlisted keys can still carry card material or private worker details.
+    for reference in state["contexts"]:
+        if reference["path"] not in (search_path, later_path):
+            continue
+        path = root / reference["path"]
+        record = json.loads(path.read_text())
+        nested = {"nested": [card_text, "private worker diagnostics"]}
+        if reference["path"] == search_path:
+            record.update(revision=nested, score_scale=nested, count=True, elapsed_ms="1")
+            record["items"][0]["locator"] = "/private/worker/details"
+            record["items"][1]["score"] = nested
+            record["items"].append({"locator": nested, "card_sha256": digest})
+        else:
+            record["page"] = [nested]
+        raw = json.dumps(record).encode()
+        path.write_bytes(raw)
+        reference["sha256"] = hashlib.sha256(raw).hexdigest()
+    state_path.write_text(json.dumps(state))
+    projection = dashboard_snapshot(root)["data"]
+    first_query, later_query, *_ = projection["managed_retrievals"]
+    external = first_query["external"]
+    assert set(external) == {"channel", "backend", "platform", "state", "revision",
+                             "score_scale", "count", "elapsed_ms", "items", "path", "reads"}
+    assert all(external[key] is None for key in ("revision", "score_scale", "count", "elapsed_ms"))
+    assert external["items"] == [{"locator": uncited, "card_sha256": digest, "score": None}]
+    assert external["reads"] == later_query["external"]["reads"] == []
+    assert [use["ref"] for use in projection["candidates"][0]["knowledge_uses"]] == [local_item]
+    for secret in (card_text, "private worker diagnostics", "/private/worker/details"):
+        assert secret not in json.dumps(projection)
+
+    # Updating the session-wide receipt and its hash cannot rebind the citation.
+    path = root / receipt_path
+    receipt = json.loads(path.read_text())
+    receipt["locator"] = uncited
+    raw = json.dumps(receipt).encode()
+    path.write_bytes(raw)
+    cited = next(entry for entry in state["contexts"] if entry["path"] == receipt_path)
+    cited["sha256"] = hashlib.sha256(raw).hexdigest()
+    state_path.write_text(json.dumps(state))
+    with pytest.raises(ValueError, match="Cited knowledge context differs"):
+        dashboard_snapshot(root)
 
 
 def test_runtime_identity_covers_migrated_process_domain_and_not_removed_executor() -> None:

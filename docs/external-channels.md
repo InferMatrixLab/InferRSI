@@ -198,10 +198,12 @@ An external result is **not locally verified**. Cite it as
 `cannbot-knowledge @ <revision>` and say so. It does not participate in a `PASS`
 verdict.
 
-When a receipt is added (not in this release), it will hold the locator, the
-card's `card_sha256` and the index revision — never card text, never
-`frontmatter`, never a `local_path`. A digest proves which card was cited without
-redistributing it.
+[Managed round retrieval](optimization-benchmarks.md#include-cannbot-in-the-round)
+records CANNBot search metadata and pinned read receipts. A receipt identifies
+the search, locator, index revision, card SHA-256 and requested page. The
+authorized read returns text directly to the caller. The campaign retains
+metadata only. Candidate attribution requires an explicit citation when
+submitting a round.
 
 Whether CANN OSL v2.0 permits even a local read-only copy is an open question for
 the organisation; see #476 Q1. This page documents the mechanism, not a legal
@@ -213,6 +215,7 @@ conclusion.
 | --- | --- |
 | `cannbot enable / disable / describe / search / read` | implemented |
 | `find` integration with gating, budgets, per-channel states | implemented |
+| Managed benchmark and AB/BA round query, read and Dashboard attribution | implemented |
 | MindIE as a second channel | not yet; `apps/mindie/` has the reader, not the adapter |
 | `cannbot serve` (stdio MCP proxying `discover` / `search` / `read_card`) | not yet |
 | `campaign import-cannbot` (receipts into evidence) | not yet |

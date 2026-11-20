@@ -127,7 +127,7 @@ def _runtime_identity():
 
 
 def session_command(args, *, task_source: Path | None = None, knowledge_reader=None,
-                    retain_context=None) -> dict:
+                    retain_context=None, external_knowledge=None, external_provider=None) -> dict:
     """Run one operation; discovery and knowledge access are supplied by the caller."""
     from inferrsi.harness import optimization
 
@@ -150,6 +150,11 @@ def session_command(args, *, task_source: Path | None = None, knowledge_reader=N
         if not math.isfinite(reserve) or not 0 < reserve < args.max_minutes * 60:
             raise ValueError("Reserve time for final within the total budget")
         evaluation_prefix = shlex.split(args.evaluation_prefix)
+        if external_knowledge and args.knowledge != "on":
+            raise ValueError("External knowledge requires --knowledge on")
+        if (external_knowledge and args.project_task
+                and args.evaluation_mode == "service_reuse"):
+            raise ValueError("External round knowledge requires a benchmark or AB/BA campaign")
         if args.project_task:
             names = (
                 "metric_key",
@@ -241,6 +246,8 @@ def session_command(args, *, task_source: Path | None = None, knowledge_reader=N
                 "evaluation_timeout_seconds": args.evaluation_timeout_seconds,
                 "evaluation_prefix": evaluation_prefix, "python": args.python,
                 "runtime_identity": _runtime_identity(), **candidate, **settings}
+        if external_knowledge:
+            plan["external_knowledge"] = external_knowledge
         result = optimization.initialize(root, plan)
         operation = "campaign" if args.project_task else "benchmarks session"
         result["instructions"] = (
@@ -252,6 +259,11 @@ def session_command(args, *, task_source: Path | None = None, knowledge_reader=N
             f"Follow the frozen round policy, then run {operation} final to retest independently. "
             "Report summary.json and its curve. Import actual usage exports when available."
         )
+        if external_knowledge:
+            result["instructions"] += (
+                f" Read external hits with {operation} knowledge-read. Cite the delivered "
+                "item or read receipt with --knowledge-ref when submitting a candidate."
+            )
         return result
     import json
 
@@ -274,6 +286,8 @@ def session_command(args, *, task_source: Path | None = None, knowledge_reader=N
                         "status": "failed", "stage": "campaign", "message": message,
                     },
                 }
+        if args.session_action == "knowledge-read":
+            raise ValueError("External round knowledge requires a benchmark or AB/BA campaign")
         return optimization.service_command(root, args, knowledge_reader=knowledge_reader)
     if (
         args.session_action in ("baseline", "refresh-references", "resume", "profile")
@@ -296,11 +310,17 @@ def session_command(args, *, task_source: Path | None = None, knowledge_reader=N
             root,
             knowledge_reader,
             retain_context=retain_context,
+            external_provider=external_provider,
             query="",
             relevance=args.query,
             relevance_method=args.relevance_method,
             context_bytes=args.context_bytes,
             limit=args.limit,
+        )
+    if args.session_action == "knowledge-read":
+        return optimization.read_external_context(
+            root, external_provider, search_ref=args.search_ref, locator=args.locator,
+            page=args.page,
         )
     if args.session_action == "recover":
         return optimization.recover(root, _session_assess)
