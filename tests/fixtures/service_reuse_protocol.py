@@ -60,6 +60,8 @@ if phase == "service":
                     }
                     for name in ("a", "b")
                 }
+                if stage == "screening" and config.get("screen_reject"):
+                    body["scenarios"]["a"]["latency"] = 130
                 if config.get("missing_metric"):
                     del body["scenarios"]["b"]["latency"]
             elif stage == "quality":
@@ -75,7 +77,7 @@ if phase == "service":
                     del body["quality"]
             elif stage == "profile":
                 if config.get("profile_mode") == "failed":
-                    body["status"] = "error"
+                    body.update(status="error", error="synthetic collector failed")
                 elif config.get("profile_mode") == "missing":
                     body.update(validated=True, artifacts=["absent.trace"])
                 else:
@@ -110,6 +112,10 @@ elif phase == "precheck":
         result_path, {"status": "completed", "passed": not config.get("functional_failure", False)}
     )
 else:
+    if phase == "screening" and config.get("screen_error"):
+        sys.exit("synthetic screening error")
+    if phase == "measure" and config.get("measure_timeout"):
+        time.sleep(30)
     if phase == "profile" and config.get("profile_mode") == "timeout":
         time.sleep(30)
     if phase == "ready":

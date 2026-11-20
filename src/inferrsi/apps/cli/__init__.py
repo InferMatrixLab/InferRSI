@@ -639,6 +639,8 @@ def main(argv: list[str] | None = None) -> int:
                                       if args.session_action == "knowledge" else None),
                 )
                 _print(after_final(args, result))
+                if "exit_code" in result:
+                    return result["exit_code"]
                 return 2 if result.get("state") == "blocked" else 0
             from ...harness.records.campaign_records import (
                 assemble_trace,

@@ -19,6 +19,15 @@ def render_service(summary):
     ]
     for attempt in summary["attempts"]:
         execution = attempt["execution"]
+        profiling = attempt.get("profiling")
+        profile_summary = ""
+        if profiling is not None:
+            profile_summary = "<p>Profiling available: no</p>"
+            if profiling["available"]:
+                paths = [profiling["result"], *profiling["artifacts"]]
+                profile_summary = "<p>Profiling available: yes</p><ul>" + "".join(
+                    "<li>" + escape(path) + "</li>" for path in paths
+                ) + "</ul>"
         chunks.extend(
             [
                 "<section><h2>" + escape(attempt["kind"] + ": " + attempt["attempt_id"]) + "</h2>",
@@ -26,6 +35,7 @@ def render_service(summary):
                 + escape(attempt["assessment"]["verdict"] + ": " + attempt["assessment"]["reason"])
                 + "</p>",
                 "<p>Retained revision: " + escape(attempt["revision"]) + "</p>",
+                profile_summary,
                 "<table><caption>Objective values in their declared units</caption>"
                 "<tr><th>Objective</th><th>Value</th><th>Unit</th>"
                 "<th>Parent change</th><th>Initial change</th></tr>",
