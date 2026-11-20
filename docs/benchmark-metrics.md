@@ -72,6 +72,11 @@ to distinguish campaigns sharing a workspace. The trial ID matches the frozen
 campaign condition. Without the option, no native job is inferred. The export
 indexes the original job request, prompt, state and receipts, and checks both
 campaign and native-job snapshot stability without changing the frozen records.
+The index uses logical `source_root` IDs with relative locators for additional
+inputs; local absolute directory names are not copied into it. Indexed inputs
+remain available for audit even when not selected for token accounting. Verified
+integrity describes their retained bytes; the metric's own source and coverage
+determine whether any usage is counted as complete.
 
 In addition to `usage_scope: session_total`
 and actual input/output counters, a receipt can declare `benchmark_token_coverage`:

@@ -15,7 +15,7 @@ from . import adapters
 from .projection import iterative
 from .render import reports
 from .schema import INDEX_ID, decode, empty_result, encode, gap, timestamp, validate_result
-from .snapshot import Snapshot, SnapshotBusy, SnapshotChanged
+from .snapshot import Snapshot, SnapshotBusy, SnapshotChanged, relative_path
 
 
 def _safe_root(path):
@@ -153,6 +153,10 @@ def read_bundle(directory: Path):
         raise ValueError("Duplicate delivery artifact ID")
     bundled = {}
     for entry in entries:
+        if entry["location_kind"] == "source":
+            relative_path(entry["location"])
+            if entry.get("source_root") is not None:
+                archive.validate_output_id(entry["source_root"])
         if entry["location_kind"] != "bundle":
             continue
         name = entry["location"]

@@ -1,6 +1,7 @@
 """Delivery acceptance fixtures use synthetic measurements, never a performance claim."""
 
 import json
+from pathlib import PurePosixPath, PureWindowsPath
 
 import pytest
 
@@ -836,12 +837,37 @@ def test_single_benchmark_complete_native_usage_through_export_cli(
     index = decode((output / "artifacts.json").read_bytes())
     source = next(a for a in index["artifacts"] if a["id"] == tokens["source"])
     assert source["integrity"] == "verified" and source["role"] == "native_usage"
+    for entry in index["artifacts"]:
+        assert not PurePosixPath(entry["location"]).is_absolute()
+        assert not PureWindowsPath(entry["location"]).drive
+        assert ".." not in PurePosixPath(entry["location"]).parts
+    assert source["source_root"] == "agent-job"
+    native_state = next(a for a in index["artifacts"] if a["role"] == "native_state")
+    assert (native_state["source_root"], native_state["location"]) == ("agent-job", "state.json")
+    campaign_state = next(a for a in index["artifacts"] if a["id"] == "source:state.json")
+    assert campaign_state.get("source_root") is None and campaign_state["location"] == "state.json"
     inputs = [a for a in index["artifacts"] if a["role"] == "native_frozen_input"]
     assert len(inputs) == 1 and inputs[0]["integrity"] == "verified"
+    assert (inputs[0]["source_root"], inputs[0]["location"]) == (
+        "agent-input-0", "native-task.txt")
     for name in ("report.md", "report.html"):
         text = (output / name).read_text(encoding="utf-8")
         assert text.index("Benchmark metrics") < text.index("Token consumption")
         assert "1,200" in text
+
+
+@pytest.mark.parametrize(
+    "location", ["/external/state.json", "C:/external/state.json", "../escape"])
+def test_reader_rejects_nonrelative_source_locations(tmp_path, location):
+    root = make_campaign(tmp_path)
+    _, output = export(root, tmp_path)
+    index_path = output / "artifacts.json"
+    index = decode(index_path.read_bytes())
+    source = next(a for a in index["artifacts"] if a["location_kind"] == "source")
+    source["location"] = location
+    atomic_write_json(index_path, index)
+    with pytest.raises(ValueError, match="Unsafe delivery source path"):
+        delivery.read_bundle(output)
 
 
 @pytest.mark.parametrize("fault", [

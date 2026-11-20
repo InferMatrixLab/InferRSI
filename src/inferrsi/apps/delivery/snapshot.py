@@ -47,7 +47,8 @@ class Snapshot:
             if ref in self.entries:
                 raise ValueError("Duplicate delivery source identity")
             self.entries[ref] = {**entry, "id": ref,
-                                 "location": str(other.path(entry["location"]))}
+                                 "location": relative_path(entry["location"]).as_posix(),
+                                 "source_root": prefix.removesuffix(":")}
             refs[identity] = ref
         self.included.append(other)
         return refs
