@@ -13,7 +13,7 @@ its dashboard views and templates are in `apps/views/`, and the
 collected-context projection is in `knowledge/context_projection.py`.
 #371 owns the Apps composition. Its accepted directory follow-up
 [#490](https://github.com/InferMatrixLab/InferRSI/issues/490) groups the implemented
-storage, handoff and workflows slices described below.
+storage, handoff, workflows and Cannbot integrations slices described below.
 
 The old `run` chain is split by owner. Its gates are in
 `benchmark/legacy_run_v0.py`, its execution facts stay in `harness/`, and
@@ -41,8 +41,8 @@ through these exports; new pickles use the canonical definition. The retired
 root `inferrsi.evidence_paths` has no alias and remains unavailable.
 
 Shim removal requires a separate reviewed PR recording consumer migration,
-wheel and plugin validation, and the first removal version. Integrations and
-integrated acceptance remain subsequent #490 slices.
+wheel and plugin validation, and the first removal version. MindIE integration
+and integrated acceptance remain subsequent #490 slices.
 
 ### Apps handoff migration
 
@@ -88,6 +88,32 @@ canonical source files, not the compatibility shims. A frozen pre-move runtime
 map remains incompatible with a new runtime, including for `status` and `recover`.
 Do not edit a frozen plan to bypass this check. Use the original pinned runtime
 to resume, following [release-boundary recovery](optimization-workflow-unification.md#release-boundary-recovery).
+
+### Apps Cannbot integration migration
+
+`apps/integrations/cannbot/` owns the Cannbot channel, project grant and reader
+worker. Its CLI commands import the canonical implementation on demand. The new
+`integrations` initializer imports nothing. Cannbot retains its existing
+`CannbotChannel` definition in the package initializer; importing it does not
+read grants or start workers. MindIE remains in `apps/mindie/` until its separate
+integration slice.
+
+The [migration inventory](apps-module-migrations.json) records packages with
+`package: true`. Compatibility packages and modules use explicit static imports
+and literal `__all__`. Cannbot historically exports a `project` module, so
+`module_exports` records its two-level mapping: the old package exports its old
+project shim, whose public functions and classes are the canonical objects.
+The shim and implementation retain their own module identities; no module alias
+is installed. Both parent-first and child-first imports preserve that binding.
+Private helper patches use the canonical modules.
+
+The Cannbot project adapter resolves its sibling worker in the canonical
+directory. Registered launchers use that file with the approved interpreter and
+the existing `-I -B` flags. The worker loads without InferRSI installed or a
+package context, and its top-level imports are standard-library-only. The legacy
+worker path retains Python import compatibility; external interpreters use the
+canonical file. Grant schemas, read-only access, limits, revocation and receipts
+are unchanged.
 
 ### Core and technical packages
 
