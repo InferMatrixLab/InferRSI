@@ -68,8 +68,9 @@ Commands are executed as `argv` (no shell). Wrap pipelines in a script and pass
   `diffusion.image_generation`, `diffusion.video_generation`, `audio.tts`. Build
   from the MUSA Omni image so the pinned dependency set is part of the record.
 
-Knowledge: `repo_packs/vllm_musa/knowledge/`. Operating procedure:
-[`skill_library/repositories/vllm-musa/SKILL.md`](../src/inferrsi/knowledge/data/skill_library/repositories/vllm-musa/SKILL.md).
+Knowledge: `skill_library/records/` for the three `vllm_musa.*` records and
+`systems/engines/vllm-musa/` for the operating procedure
+([`SKILL.md`](../src/inferrsi/knowledge/data/skill_library/systems/engines/vllm-musa/SKILL.md)).
 
 ## Bounds
 
@@ -77,6 +78,6 @@ Knowledge: `repo_packs/vllm_musa/knowledge/`. Operating procedure:
   fixtures; it has not been executed against MUSA hardware in this repository.
 - A `musa` descriptor is deliberately `unverified` in `pack.json`; device
   discovery is not a compatibility or performance certification.
-- Records under `repo_packs/vllm_musa/knowledge/` are source-derived
+- Records under `skill_library/records/` are source-derived
   (`locally_verified: false`). CUDA and Ascend records remain scoped to their own
   hardware.
