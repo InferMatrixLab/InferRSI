@@ -207,7 +207,8 @@ def test_diagnosis_gate_applies_to_service_knowledge(campaign, tmp_path):
     assert binding["started_at"] >= result["diagnosis"]["recorded_at"]
     call(campaign, "baseline")
     conditions = tmp_path / "conditions.json"
-    conditions.write_text(json.dumps({**settings()["conditions"], "id": "c1", "runtime": "changed"}))
+    changed = {**settings()["conditions"], "id": "c1", "runtime": "changed"}
+    conditions.write_text(json.dumps(changed))
     refreshed = call(campaign, "refresh-references", "--conditions", conditions,
                      "--reason", "Changed test runtime")
     assert refreshed["next_action"] == "record_bottleneck_diagnosis"
