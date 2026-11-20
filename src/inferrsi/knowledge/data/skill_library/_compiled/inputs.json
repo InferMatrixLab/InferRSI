@@ -1383,16 +1383,10 @@
   "vllm-musa": {
     "header": {
       "name": "vllm-musa",
-      "description": "Investigate text-LLM and Omni serving performance on Moore Threads MUSA through the vllm-musa plugin: device identity, torchada dispatch boundaries, the pinned Omni image, and measurement rules that keep a CUDA-derived result from being reported as a MUSA result.",
-      "license": "Apache-2.0",
-      "disable-model-invocation": true,
-      "metadata": {
-        "disco-role": "operating"
-      }
+      "description": "Investigate text-LLM and Omni serving performance on Moore Threads MUSA through the vllm-musa plugin: device identity, torchada dispatch boundaries, the pinned Omni image, and measurement rules that keep a CUDA-derived result from being reported as a MUSA result."
     },
     "files": {
-      "SKILL.md": "97fdd670fb4f18e7814c0e119fadbd508ac1d1d0a7ed622e2ed75d4e9cbe3340",
-      "metadata.json": "e01090d15044c54012f6a036ec73ca734239ba5fb4c84097fa55de64898fb62d",
+      "SKILL.md": "ab657e8255e4ceedd105c3ee0f511878ade03d685f869075d38de7e5606dca00",
       "references/device-identity.md": "f525f40717f51e34b2e89721c8e5208c37d7e1237dc04247bc779b775bb79904",
       "references/dispatch.md": "3c2eff36d76e9feedac5d9c54390391bffc191a23f853e00098c13df2f67a0b4",
       "references/measurement.md": "980a9054fe5a80944f2cd698d31970ea8bf90eb4ab3b6eee8e591a68907bc031",
