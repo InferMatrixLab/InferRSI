@@ -1328,7 +1328,6 @@ def service_command(root, args, *, knowledge_reader=None):
         elif kind == "round":
             if initial is None or parent is None:
                 raise ValueError("Complete baseline and compatible reference refresh first")
-            diagnosis = _diagnosis_reference(plan, state)
             reason = _service_selected_evidence_reason(
                 root, plan, state, starting_epoch=state["requires_current_conditions_acceptance"]
             )
@@ -1339,6 +1338,7 @@ def service_command(root, args, *, knowledge_reader=None):
                 or parent["conditions"] != state["conditions"]
             ):
                 raise ValueError("Refresh both incompatible performance references first")
+            diagnosis = _diagnosis_reference(plan, state)
             number = old["round_number"] if old else len(state["rounds"]) + 1
             if number > plan["round_limit"] or not args.hypothesis.strip():
                 raise ValueError("Round budget exhausted or hypothesis missing")
