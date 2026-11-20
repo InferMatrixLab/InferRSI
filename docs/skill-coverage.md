@@ -4,7 +4,7 @@ Generated from the registry, SKILL.md frontmatter and the two maintained
 matrices. **Do not edit by hand**; regenerate after any registry, skill,
 matrix or frozen-plan change.
 
-- Input digest: `sha256:dcd03c030ec4773d50e2a348f3da2a68a04bb31fc0109ff0b3ffc971dd61073a`
+- Input digest: `sha256:464574816c940b8b0a365b70e029e57e30ed234b34bdef6769f908b39bee0522`
 - Regenerate: `python tools/build_skill_coverage.py`
 - Verify without writing: `python tools/build_skill_coverage.py --check`
 
@@ -33,17 +33,17 @@ matrix: every field is copied from an owner that already maintains it.
 
 | Measure | Value |
 |---|---|
-| Registered skill ids | 88 |
-| By category | casebooks 2, playbooks 17, systems 53, tasks 8, workflows 8 |
-| By backend | ascend 16, common 67, cuda 5 |
-| Recorded on a numbered SearchSpace resource layer | 51 |
+| Registered skill ids | 89 |
+| By category | casebooks 2, playbooks 18, systems 53, tasks 8, workflows 8 |
+| By backend | ascend 16, common 68, cuda 5 |
+| Recorded on a numbered SearchSpace resource layer | 52 |
 | Recorded only in a supplementary guidance table (†) | 21 |
 | Resource layers explicitly not applicable | 15 |
 | Conflicting resource-layer declarations | 0 |
-| Recorded on two or more resource layers | 24 |
-| Recorded in the Reference Matrix | 72 |
+| Recorded on two or more resource layers | 25 |
+| Recorded in the Reference Matrix | 73 |
 | Selected by a frozen evaluation plan | 2 |
-| `SKILL.md` documents in the library | 151 |
+| `SKILL.md` documents in the library | 152 |
 | Unregistered documents (excluded from every count above) | 63 |
 
 A complete inventory is not a coverage claim. Every registered row below
@@ -57,7 +57,7 @@ optimization is fully covered or that any procedure has measured benefit.
 | [ascend-optimization-casebook](../src/inferrsi/knowledge/data/skill_library/casebooks/ascend/ascend-optimization-casebook/SKILL.md) | ascend | Casebook of NPU optimization cases for Ascend inference systems: symptom → diagnosis → action → evidence records for ... | Find source-derived prior cases for an already classified Ascend inference bottleneck ... | input_contract, produced_artifact, refusal_point<br>2 advice | 1 Accelerator · Optimize / Verify | 1 · Systems sources (Ascend/MindIE-SD @ 8481d39) | candidate · not_run · 0 readset(s) | no-eval |
 | [inference-optimization-casebook](../src/inferrsi/knowledge/data/skill_library/casebooks/inference/inference-optimization-casebook/SKILL.md) | common | How to structure and use a casebook of past optimization decisions as a decision-support tool. Extracts the casebook ... | Structuring and querying a casebook of past optimization decisions as decision support ... | failure_modes, input_contract, produced_artifact, refusal_point<br>4 advice | 1 Accelerator · Optimize | 1 · Systems sources (NVIDIA/TensorRT-LLM @ f33e0e5fd) | candidate · not_run · 0 readset(s) | no-eval |
 
-## Registered: Engineering playbooks (17)
+## Registered: Engineering playbooks (18)
 
 | Skill | Backend | Declared task | Applicability | Conditions | SearchSpace layer / stage | Reference Matrix | State | Gaps |
 |---|---|---|---|---|---|---|---|---|
@@ -71,8 +71,9 @@ optimization is fully covered or that any procedure has measured benefit.
 | [evaluate-elastic-serving-placement](../src/inferrsi/knowledge/data/skill_library/playbooks/planning/evaluate-elastic-serving-placement/SKILL.md) | common | Compare migrating an LLM request between model replicas with changing its sequence-parallel execution group, including ... | Comparing migration of a running LLM request between compatible model replicas with ... | failure_modes, input_contract, produced_artifact, refusal_point<br>3 advice | 1 Accelerator · Diagnose / Configure / Optimize / Verify<br>2 RAM/Host · Diagnose / Configure / Optimize / Verify<br>4 Network · Diagnose / Configure / Optimize / Verify | 1 · Systems sources (Llumnix — [2406.03243v1](https://arxiv.org/abs/2406.03243v1)) | candidate · not_run · 1 readset(s) | no-eval |
 | [inference-benchmark-design](../src/inferrsi/knowledge/data/skill_library/playbooks/measurement/inference-benchmark-design/SKILL.md) | common | Select task quality gates, reference parity checks and performance workloads for text, agentic coding, work agents ... | Selecting task quality gates, reference parity checks and performance workloads for text ... | failure_modes, input_contract, produced_artifact, refusal_point<br>9 advice | N/A: SKILL.md §§ Select the task and its evaluation contract, Statistical requirements, Shared-machine measurement discipline, and Search integrity and final-state verification design comparable evaluation; hardware identity and allocation isolation are comparison controls, not a hardware-resource mechanism. | 2 · Methodology and corpus references (JiusiServe/vllm-evolve @ 43cc82c)<br>2 · Methodology and corpus references ([Neroued/ninfer](https://github.com/Neroued/ninfer/tree/1882c6adbc9804 ...)<br>2 · Methodology and corpus references ([Xe-Forge repo + paper v1](https://github.com/IntelLabs/Xe-Forge/tree/ ...)<br>GPU measurement validity and profiler attribution (NVIDIA NCU 2025.3, Nsight Systems 2025.3, CUDA 12.9.1/10.2 archives ...)<br>Task-specific benchmark selection (issue #60) ([Embodied.cpp repo](https://github.com/SEU-PAISys/Embodied.cpp/tree/15 ...)<br>Task-specific benchmark selection (issue #60) ([Issue #60 report](https://github.com/InferMatrixLab/InferRSI/issues/6 ...)<br>Task-specific benchmark selection (issue #60) ([NVIDIA/NeMo-Speech.cpp @ 20999cc9](https://github.com/NVIDIA/NeMo-Spe ...)<br>Task-specific benchmark selection (issue #60) ([yuekaizhang/faster-cosyvoice @ f1049c59](https://github.com/yuekaizha ...) | candidate · not_run · 16 readset(s) | — |
 | [kernel-writing-guide](../src/inferrsi/knowledge/data/skill_library/playbooks/optimization/kernel-writing-guide/SKILL.md) | common | Decision guide for writing custom inference kernels: when to write one, which framework to choose (Triton, CuTe DSL ... | Deciding whether to write a custom inference kernel, routing a kernel pattern to Triton ... | failure_modes, input_contract, produced_artifact, refusal_point<br>6 advice | 1 Accelerator · Optimize / Diagnose / Configure / Verify | 1 · Systems sources (Dao-AILab/causal-conv1d @ `cd81f0413cad2fc1e6f17e785ac39f59aae690cd` ...)<br>1 · Systems sources (NVIDIA/TensorRT-LLM @ f33e0e5fd)<br>1 · Systems sources (huggingface/transformers @ `0dad7b822255a0ae261ec45ae937371e859ffd1a` ...)<br>1 · Systems sources (mindspore-ai/akg @ `5aa15f3fe4d856eb60cd3b27447e04f5f1fb4dff` ...)<br>1 · Systems sources (sgl-project/sglang @ `16176278d0180f1a1a578e53e6eef432577876c2` ...)<br>1 · Systems sources (vllm-project/vllm @ `537a79f0fc5ba564d2bef43d54915b2f80f9f77d` (root ...) | candidate · not_run · 7 readset(s) | no-eval |
+| [model-sol-analysis](../src/inferrsi/knowledge/data/skill_library/playbooks/measurement/model-sol-analysis/SKILL.md) | common | Walk a whole model to per-phase (prefill, decode) speed-of-light figures under a declared parallel layout - anchored ... | Model-level prefill and decode speed-of-light analysis for decoder-only (optionally ... | failure_modes, input_contract, produced_artifact, refusal_point<br>5 advice | 1 Accelerator · Diagnose / Verify<br>4 Network · Diagnose / Verify | 2 · Methodology and corpus references (shenh10/HuggingArch @ `e69d20a028e5b17524aa48b53bddf8b9aad5d15b` ...) | candidate · not_run · 4 readset(s) | no-eval |
 | [optimization-search-policy](../src/inferrsi/knowledge/data/skill_library/playbooks/planning/optimization-search-policy/SKILL.md) | common | Policy for how an optimization agent should select, order, and stop optimization experiments. Covers candidate ... | Selecting, ordering and stopping optimization experiments: candidate generation ... | failure_modes, input_contract, produced_artifact, refusal_point<br>5 advice | 1 Accelerator · Optimize | 2 · Methodology and corpus references (JiusiServe/vllm-evolve @ 43cc82c)<br>2 · Methodology and corpus references (RRSI — arXiv 2609.24972v3)<br>2 · Methodology and corpus references (arXiv 2608.01867 (CRISP))<br>2 · Methodology and corpus references (microsoft/SkillOpt @ 343db22) | candidate · not_run · 9 readset(s) | no-eval |
-| [performance-ceiling-analysis](../src/inferrsi/knowledge/data/skill_library/playbooks/measurement/performance-ceiling-analysis/SKILL.md) | common | Estimate optimization headroom before modifying an inference system. Produces a three-level ceiling model (analytical ... | inference serving systems (LLM, diffusion, audio) | 2 advice | 1 Accelerator · Diagnose / Verify<br>5 OS · Configure | 1 · Systems sources (FlexGen — [ICML 2023 / PMLR 202:31094–31116](https://proceedings.mlr.p ...)<br>1 · Systems sources (Mooncake — FAST '25 proceedings, pp. 155-170)<br>1 · Systems sources (NVIDIA/TensorRT-LLM @ f33e0e5fd)<br>1 · Systems sources (ebugger/Empirical-Roofline-Toolkit @ 0771fa9)<br>1 · Systems sources (hahnyuan/LLM-Viewer @ 1893e4b)<br>2 · Methodology and corpus references ([shenh10/HuggingArch](https://github.com/shenh10/HuggingArch/tree/facb ...) | candidate · not_run · 20 readset(s) | no-eval |
+| [performance-ceiling-analysis](../src/inferrsi/knowledge/data/skill_library/playbooks/measurement/performance-ceiling-analysis/SKILL.md) | common | Estimate optimization headroom before modifying an inference system. Produces a three-level ceiling model (analytical ... | inference serving systems (LLM, diffusion, audio) | 2 advice | 1 Accelerator · Diagnose / Verify<br>5 OS · Configure | 1 · Systems sources (FlexGen — [ICML 2023 / PMLR 202:31094–31116](https://proceedings.mlr.p ...)<br>1 · Systems sources (Mooncake — FAST '25 proceedings, pp. 155-170)<br>1 · Systems sources (NVIDIA/TensorRT-LLM @ f33e0e5fd)<br>1 · Systems sources (ebugger/Empirical-Roofline-Toolkit @ 0771fa9)<br>1 · Systems sources (hahnyuan/LLM-Viewer @ 1893e4b)<br>2 · Methodology and corpus references ([shenh10/HuggingArch](https://github.com/shenh10/HuggingArch/tree/facb ...)<br>2 · Methodology and corpus references (shenh10/HuggingArch @ `e69d20a028e5b17524aa48b53bddf8b9aad5d15b` ...) | candidate · not_run · 20 readset(s) | no-eval |
 | [plan-activation-residency](../src/inferrsi/knowledge/data/skill_library/playbooks/planning/plan-activation-residency/SKILL.md) | common | Propose training activation and gradient memory reductions by distinguishing lifetime reordering, address packing and ... | Proposing training activation and gradient memory reductions when pressure appears to ... | failure_modes, input_contract, produced_artifact, refusal_point<br>3 advice | 1 Accelerator · Diagnose / Optimize / Verify | 1 · Systems sources (Checkmate — [1910.02653v3](https://arxiv.org/abs/1910.02653v3)) | candidate · not_run · 1 readset(s) | no-eval |
 | [training-input-pipeline](../src/inferrsi/knowledge/data/skill_library/playbooks/optimization/training-input-pipeline/SKILL.md) | common | Diagnose training input stalls and choose bounded queue, shard-cache and cache-ownership changes from DALI, Mosaic ... | Diagnosing training input stalls and choosing bounded queue, shard-cache and ... | failure_modes, input_contract, produced_artifact, refusal_point<br>4 advice | 1 Accelerator · Observe / Configure / Optimize<br>2 RAM/Host · Observe / Diagnose / Configure / Optimize<br>3 SSD · Diagnose / Configure / Optimize<br>4 Network · Configure / Optimize<br>5 OS · Configure / Optimize | 1 · Systems sources (B1 / NVIDIA DALI @ `6fe47c48d3b0ca335f5e1afd3c77c750b2c7e041` ...)<br>1 · Systems sources (B2 / Mosaic Streaming @ `d99bf9c7cdf2dd4ed62a4960ed35270b93337a5f` ...)<br>1 · Systems sources (B3 / FFCV @ `3a12966b3afe3a81733a732e633317d747bfaac7` ...) | candidate · not_run · 1 readset(s) | no-eval |
 | [training-resource-budget](../src/inferrsi/knowledge/data/skill_library/playbooks/planning/training-resource-budget/SKILL.md) | common | Choose training offload and resource-budget changes using pinned DeepSpeed configuration, attributed expert diagnosis ... | Choosing training offload and resource-budget changes from pinned DeepSpeed ... | failure_modes, input_contract, produced_artifact, refusal_point<br>4 advice | 1 Accelerator · Diagnose / Configure / Optimize<br>2 RAM/Host · Observe / Diagnose / Configure / Optimize / Verify<br>3 SSD · Configure / Optimize<br>4 Network · Observe / Diagnose / Verify<br>5 OS · Diagnose / Configure | 1 · Systems sources (CR1 / DeepSpeed ZeRO-Infinity @ `5f266e26d216a705d9c64cac88fb813ce ...)<br>1 · Systems sources (CR5 / Ascend MindSpeed adaptive memory — historical `core_r0.8.0` ...)<br>1 · Systems sources (ZeRO-Offload — [2101.06840v1](https://arxiv.org/abs/2101.06840v1))<br>2 · Methodology and corpus references (CR6 / Stas Bekman ML Engineering Open Book @ ...) | candidate · not_run · 9 readset(s) | no-eval |
@@ -238,7 +239,7 @@ an entrypoint routes to procedures below it rather than adding one.
 
 ## Integrity checks
 
-- Registered ids resolve to an existing `SKILL.md`: 88 of 88.
+- Registered ids resolve to an existing `SKILL.md`: 89 of 89.
 - Duplicate ids or paths: none; `skill_catalog` rejects them before this view is built.
 - Skill links in the two matrices that do not resolve: 0.
 
@@ -250,7 +251,7 @@ an entrypoint routes to procedures below it rather than adding one.
 | `conflicting-SearchSpace-layer` | 0: — |
 | `no-Reference-Matrix-row` | 16: ascend-video-diffusion-optimization, audit-fixed-workload-claim, cite-check-downstream-pr, claim-contract, competitor-scan, draft-acceptance-issue, inference-task-router, rsi-evidence, task-accuracy, task-day-0, task-debug, task-derived-engine, task-independent-engine, task-performance, task-version-alignment, video-diffusion-optimization |
 | `no-applicability` | 0: — |
-| `no-eval` | 86: as listed in the Gaps column above |
+| `no-eval` | 87: as listed in the Gaps column above |
 
 These are inventory gaps, not efficacy results. Missing layer mappings stay
 unknown unless the owner records a reasoned N/A. N/A is not coverage;

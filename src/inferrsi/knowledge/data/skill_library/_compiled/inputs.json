@@ -854,6 +854,20 @@
       "sub-skills/generation-lifecycle/scripts/audit_generation_evidence.py": "2aba6caf42ca1b3fc55299fd96419af8681c37750c21a7ba75205a43baa9c7b1"
     }
   },
+  "model-sol-analysis": {
+    "header": {
+      "name": "model-sol-analysis",
+      "description": "Walk a whole model to per-phase (prefill, decode) speed-of-light figures under a declared parallel layout - anchored counts, the fused graph the framework runs, per-rank geometry, explicit communication and KV growth laws - and report a resource-total bound apart from a serial per-op estimate."
+    },
+    "files": {
+      "SKILL.md": "4c4acc03741ff28f9f2efc07c89753b4b3dea4881ddf445f26ef5488d78986a8",
+      "references/huggingarch-model-sol.md": "fa2139a7967861070dc37e5ea27807c00259b36a07dac8b049249e9fe433dd7e",
+      "references/huggingarch-source-identity.json": "2ee77b8324e0c8afd1cbacf7ccce915976121586addc29ab49669e60a14b5e20",
+      "references/model-sol-contract.md": "5315357c78da9ea4e30eafeb1665ce893fed9fdb1d442ec20e17f0bb2dcf2805",
+      "references/model-sol-example.json": "ab5579cff6579b047b57f6ae697801fccf345a4be0f8246b6e042ec5505b8cf2",
+      "scripts/model_sol.py": "2f0e01d550f6890a62b0c2fc42e2f6fbaa0a9ccee827019e807ad32db7abbf50"
+    }
+  },
   "npu-skill-factory": {
     "header": {
       "name": "npu-skill-factory",
@@ -914,7 +928,7 @@
       "description": "Estimate optimization headroom before modifying an inference system. Produces a three-level ceiling model (analytical, empirical component, end-to-end) and a prioritized measurement plan. Use to formulate acceptance targets when the user has not supplied them, assess a requested speedup, or identify the binding bottleneck.\n"
     },
     "files": {
-      "SKILL.md": "02aced272537cb47bd45739c4944371834cfcbbb275b3807875b200c426c609c",
+      "SKILL.md": "9827a346ee26c500e886f9c051e914b97b8ffd25ac5533ef26b377b1817f5aa5",
       "references/acceptance-criteria.md": "e96efc42005af591a87b57dd6f1e9bffa8e351bcd023bd093ac37239a0486638",
       "references/flexgen-offload-feasibility.md": "5c72ae959c6cc72aa9e96a17a2934d6bfcfb055b25fda3221c99382dc09910d9",
       "references/huggingarch-checkpoint-anchor.md": "ca03747be29a93b579849ee361b67632e541218a68310e0f3369868c6a45da7e",
