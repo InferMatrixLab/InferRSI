@@ -1,1 +1,1 @@
-FACTOR = 1
+FACTOR = 2
