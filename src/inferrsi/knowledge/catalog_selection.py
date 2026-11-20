@@ -1,0 +1,611 @@
+"""Snapshot-bound evidence selection; no model calls or external fetching here."""
+
+from __future__ import annotations
+
+import hashlib
+import json
+import posixpath
+import re
+from collections import Counter, deque
+from pathlib import Path
+from time import perf_counter
+from urllib.parse import unquote, urlsplit
+
+from ._skill_selection import context_view, skill_procedure
+from .knowledge_find import installed_skill_projection, installed_skill_root, load_documents
+from .knowledge_operations import KnowledgeReader, _store_document
+from .retrieval import observation
+
+CONDITION_FIELDS = (
+    "backend",
+    "hardware",
+    "os",
+    "model",
+    "phase",
+    "engine",
+    "engine_version",
+    "dependency_version",
+    "dtype",
+    "workload",
+    "quality",
+    "measurement",
+)
+METHOD = "full-catalog-v1"
+
+
+def encoded(value):
+    return json.dumps(value, sort_keys=True, ensure_ascii=False, separators=(",", ":")).encode()
+
+
+def digest(value):
+    return "sha256:" + hashlib.sha256(encoded(value)).hexdigest()
+
+
+class SelectionError(ValueError):
+    def __init__(self, code, detail):
+        super().__init__(detail)
+        self.code = code
+
+
+def _preview(value, size=400):
+    text = value if isinstance(value, str) else encoded(value).decode()
+    raw = text.encode()
+    return raw[:size].decode("utf-8", errors="ignore"), len(raw) > size
+
+
+def compare_conditions(declared, task, *, purpose="conclusion"):
+    """Exact scalar/list membership only. Prose, ranges and missing values stay unknown.
+
+    A method can transfer as an analogy, but a mismatched bounded conclusion
+    cannot. This verdict never modifies the source's validation state.
+    """
+    if purpose not in ("conclusion", "method"):
+        raise ValueError("purpose must be conclusion or method")
+    if not isinstance(task, dict) or set(task) - set(CONDITION_FIELDS):
+        raise ValueError("conditions must use the documented condition fields")
+    source = declared if isinstance(declared, dict) else {}
+    comparisons = []
+    for field, actual in task.items():
+        expected = source.get(field)
+        values = expected if isinstance(expected, list) else [expected]
+        # Whitespace prose is not an enumerated condition. Versions must be exact;
+        # source commits are deliberately not interpreted as engine versions.
+        comparable = bool(values) and all(
+            isinstance(v, str)
+            and re.fullmatch(r"[\w.+:/-]+", v)
+            and v.casefold() not in ("unknown", "unspecified", "common", "any", "none")
+            for v in [actual, *values]
+        )
+        result = (
+            ("match" if actual.casefold() in [v.casefold() for v in values] else "conflict")
+            if comparable
+            else "unknown"
+        )
+        comparisons.append(
+            {
+                "field": field,
+                "task": actual,
+                "source": expected,
+                "result": result,
+                "locator": f"applicability.{field}",
+            }
+        )
+    states = {c["result"] for c in comparisons}
+    verdict = (
+        ("analogue" if purpose == "method" else "conflict")
+        if "conflict" in states
+        else ("match" if states == {"match"} else "unknown")
+    )
+    return {
+        "verdict": verdict,
+        "purpose": purpose,
+        "comparisons": comparisons,
+        "missing": [c["field"] for c in comparisons if c["result"] == "unknown"],
+        "scope": "declared fields only; prose and unrequested conditions require source review",
+        "next_step": (
+            "Validate the method on a minimal target workload before transfer."
+            if verdict == "analogue"
+            else "Check original bounds and task-required validation before using a claim."
+        ),
+    }
+
+
+class CatalogSelection:
+    """A declared library plus package records and, optionally, a read-only store.
+
+    Each operation creates fresh readers. Cached package bytes from an earlier
+    snapshot must not make a changed dependency appear current.
+    """
+
+    def __init__(self, *, skill_root: Path | None = None, store=None):
+        self.skill_root = Path(skill_root).resolve() if skill_root is not None else None
+        self.store = store
+
+    def _reader(self):
+        # Cases have checkout identities even in an installed library.
+        return KnowledgeReader(skill_root=self.skill_root or installed_skill_root())
+
+    def documents(self):
+        documents = load_documents(self.skill_root)
+        if self.store is not None:
+            for identity in self.store.identities():
+                bundle = self.store.read(identity)
+                doc = _store_document(f"store:{identity}", bundle)
+                doc.applicability = bundle.metadata["applicability"]
+                doc.limitations = tuple(bundle.metadata["limitations"])
+                documents.append(doc)
+        return documents
+
+    @staticmethod
+    def _namespace(doc):
+        # Store entrypoints are bundle-local, never paths in a checkout library.
+        return (
+            ("store", doc.qualified)
+            if doc.qualified.startswith("store:")
+            else (doc.source_location, str(doc.root))
+        )
+
+    def _load(self, *, kinds=("case", "skill", "record"), backend=None):
+        if not kinds or set(kinds) - {"case", "skill", "record"}:
+            raise ValueError("kinds must be a nonempty subset of case,skill,record")
+        reader = self._reader()
+        documents = self.documents()
+        cards, bundles, readers, docs = [], {}, {}, {}
+        excluded = Counter()
+        for doc in sorted(documents, key=lambda d: d.qualified):
+            if doc.kind not in kinds:
+                excluded["kind"] += 1
+                continue
+            if backend is not None and doc.backend not in (backend, "common"):
+                excluded["backend_or_missing_backend"] += 1
+                continue
+            projection = installed_skill_projection(doc, reader.record)
+            ref = f"package:{projection['id']}" if projection is not None else doc.qualified
+            if ref in docs:
+                raise SelectionError("ambiguous_identity", f"Duplicate catalog reference: {ref}")
+            docs[ref] = doc
+            summary, clipped = _preview(doc.summary)
+            applicability, app_clipped = _preview(doc.applicability)
+            limitations, lim_clipped = _preview(list(doc.limitations))
+            conditions = doc.applicability if isinstance(doc.applicability, dict) else {}
+            card = {
+                "ref": ref,
+                "id": doc.identity,
+                "kind": doc.kind,
+                "title": doc.title,
+                "summary": summary,
+                "keywords": _preview(doc.fields.get("tags", ""))[0],
+                "applicability": applicability,
+                "conditions": {k: v for k, v in conditions.items() if k in CONDITION_FIELDS},
+                "missing_conditions": [k for k in CONDITION_FIELDS if not conditions.get(k)],
+                "state": doc.state,
+                "locally_verified": doc.locally_verified,
+                "limitations": limitations,
+                "preview_truncated": {
+                    "summary": clipped,
+                    "applicability": app_clipped,
+                    "limitations": lim_clipped,
+                },
+                "source": {
+                    "path": doc.path,
+                    "location": doc.source_location,
+                    "content_digest": digest(doc.fields),
+                },
+                "revision": None,
+                "read_bytes": None,
+                "references": [],
+            }
+            try:
+                if ref.startswith("store:"):
+                    bundle = self.store.read(ref.partition(":")[2])
+                    selected_reader = KnowledgeReader(skill_root=self.skill_root, store=self.store)
+                else:
+                    selected_reader = reader
+                    bundle = reader.read(ref)
+                card.update(
+                    revision=bundle.revision,
+                    read_bytes=sum(map(len, bundle.content.values())),
+                    entrypoint=bundle.metadata["entrypoint"],
+                )
+                bundles[ref], readers[ref] = bundle, selected_reader
+            except (ValueError, OSError, KeyError) as exc:
+                card["unreadable"] = {
+                    "reason": getattr(exc, "code", type(exc).__name__),
+                    "detail": str(exc),
+                }
+            cards.append(card)
+        paths = {}
+        for ref, doc in docs.items():
+            if doc.path:
+                paths.setdefault((self._namespace(doc), doc.path), []).append(ref)
+        references = {}
+        for card in cards:
+            doc = docs[card["ref"]]
+            refs = []
+            for match in re.finditer(
+                r"\[[^\]]*\]\(([^\s)]+)(?:\s+[^)]*)?\)", doc.fields.get("body", "")
+            ):
+                target = match.group(1)
+                parsed = urlsplit(target)
+                edge = {"source_path": doc.path, "reference": target}
+                if parsed.query:
+                    edge["kind"] = "unsupported_version_or_query"
+                elif parsed.scheme or parsed.netloc:
+                    edge["kind"] = "external_pointer"
+                elif not parsed.path:
+                    continue
+                else:
+                    path = posixpath.normpath(
+                        posixpath.join(posixpath.dirname(doc.path or ""), unquote(parsed.path))
+                    )
+                    key = (self._namespace(doc), path)
+                    if key in paths:
+                        if len(paths[key]) == 1:
+                            edge.update(kind="entry", ref=paths[key][0])
+                        else:
+                            edge.update(kind="ambiguous_reference", refs=paths[key])
+                    else:
+                        bundle = bundles.get(card["ref"])
+                        choices = [path, "data/skill_library/" + path, unquote(parsed.path)]
+                        resource = next(
+                            (p for p in choices if bundle and p in bundle.content), None
+                        )
+                        edge.update(kind="resource" if resource else "unresolved", path=resource)
+                if edge not in refs:
+                    refs.append(edge)
+            if doc.kind == "record" and card["ref"].startswith("package:"):
+                record = reader.record(doc.identity)
+                for edition, path in record.get("skill_documents", {}).items():
+                    refs.append(
+                        {
+                            "kind": "resource",
+                            "path": path,
+                            "reference": path,
+                            "source_path": f"record.json#skill_documents.{edition}",
+                        }
+                    )
+            if doc.source_url:
+                refs.append(
+                    {
+                        "kind": "external_pointer",
+                        "reference": doc.source_url,
+                        "source_path": doc.path,
+                    }
+                )
+            references[card["ref"]] = refs
+            card["references"] = refs[:3]
+            card["references_withheld"] = max(0, len(refs) - 3)
+        scope = {
+            "sources": ["declared-library", "package-records"]
+            + (["store"] if self.store is not None else []),
+            "library": "installed" if self.skill_root is None else "checkout",
+            "kinds": sorted(kinds),
+            "backend": backend,
+            "excluded": dict(excluded),
+            "considered": len(documents),
+        }
+        identity = digest({"scope": scope, "cards": cards, "references": references})
+        counts = dict(Counter(c["kind"] for c in cards))
+        return (
+            {
+                "schema_version": 1,
+                "method": METHOD,
+                "snapshot_id": identity,
+                "scope": scope,
+                "counts": counts,
+                "cards": cards,
+                "references": references,
+                "card_bytes": len(encoded(cards)),
+                "condition_coverage": {
+                    k: sum(k in c["conditions"] for c in cards) for k in CONDITION_FIELDS
+                },
+            },
+            bundles,
+            readers,
+        )
+
+    def snapshot(self, **scope):
+        return self._load(**scope)[0]
+
+    @staticmethod
+    def _context(reader, ref, revision, available):
+        bundle = reader.read(ref, revision=revision)
+        if bundle.metadata["kind"] != "skill" and not ref.startswith("store:"):
+            return reader.collect(
+                ids=[ref], revisions={ref: revision}, context_bytes=available, limit=1
+            )
+        # Direct skills and store bundles need their complete declared closure.
+        # Collect's generic record context intentionally only opens an entrypoint.
+        resources = []
+        for path, raw in sorted(bundle.content.items()):
+            content, locator = skill_procedure(path, raw)
+            try:
+                text = content.decode("utf-8")
+            except UnicodeDecodeError:
+                return {
+                    "omissions": [
+                        {"ref": ref, "reason": "required_resource_not_utf8", "path": path}
+                    ],
+                    "contexts": [],
+                }
+            resources.append(
+                {
+                    "path": path,
+                    "content": text,
+                    "role": "required",
+                    "sha256": hashlib.sha256(content).hexdigest(),
+                    "source_sha256": hashlib.sha256(raw).hexdigest(),
+                    "locator": "whole-resource",
+                    **locator,
+                }
+            )
+        size = sum(len(r["content"].encode()) for r in resources)
+        if size > available:
+            return {
+                "omissions": [
+                    {
+                        "ref": ref,
+                        "reason": "context_limit",
+                        "required_bytes": size,
+                        "available_bytes": available,
+                    }
+                ],
+                "contexts": [],
+            }
+        return {
+            "omissions": [],
+            "contexts": [
+                {
+                    "ref": ref,
+                    "revision": revision,
+                    "resources": resources,
+                    "content_bytes": size,
+                    "sources": bundle.metadata["sources"],
+                    "attribution": bundle.metadata["attribution"],
+                    "limitations": bundle.metadata["limitations"],
+                    "omissions": [],
+                }
+            ],
+        }
+
+    @staticmethod
+    def _reference_context(reader, ref, path, revision, available):
+        bundle = reader.read(ref, revision=revision)
+        if path not in bundle.content:
+            return None, {"ref": ref, "path": path, "reason": "required_resource_unavailable"}
+        required = [path]
+        if path.endswith("SKILL.md"):
+            from .catalog import _skill_search_source
+
+            prefix = posixpath.dirname(path) + "/"
+            # Same conservative owner closure as direct reader._skill. Markdown
+            # cross-owner navigation is optional and must not become a dependency.
+            required = [path, *(p for p in sorted(bundle.content)
+                                if p.startswith(prefix) and p != path)]
+            _, metadata = _skill_search_source(bundle.content[path].decode("utf-8"))
+            sidecar = prefix + "metadata.json"
+            if metadata is None and sidecar in bundle.content:
+                metadata = json.loads(bundle.content[sidecar])
+            metadata = metadata or {}
+            notices = [source["third_party_notices"] for source in metadata.get("sources", [])
+                       if "third_party_notices" in source]
+            for relative in [*metadata.get("references", []),
+                             *metadata.get("provenance_readsets", []), *notices]:
+                target = posixpath.normpath(prefix + relative)
+                if target not in bundle.content or "\\" in relative:
+                    return None, {"ref": ref, "path": relative,
+                                  "reason": "required_resource_unavailable"}
+                if target not in required:
+                    required.append(target)
+            for resource in list(required):
+                directory = posixpath.dirname(resource)
+                while directory:
+                    for source in bundle.content:
+                        if posixpath.dirname(source) == directory and re.search(
+                            r"(?:^|[-_])(?:LICENSE|NOTICES?)(?:\.[^.]+)?$",
+                            posixpath.basename(source), re.IGNORECASE,
+                        ) and source not in required:
+                            required.append(source)
+                    directory = posixpath.dirname(directory)
+        view = {**bundle.view(), "ref": ref}
+        return context_view((path, required, []), view, bundle.content, None, available)
+
+    def complete(
+        self,
+        snapshot_id,
+        selections,
+        *,
+        conditions=None,
+        context_bytes=65536,
+        expansion_depth=1,
+        expansion_items=5,
+        expansion_bytes=32768,
+        **scope,
+    ):
+        started = perf_counter()
+        for name, value, minimum in (
+            ("context_bytes", context_bytes, 1),
+            ("expansion_depth", expansion_depth, 0),
+            ("expansion_items", expansion_items, 0),
+            ("expansion_bytes", expansion_bytes, 0),
+        ):
+            if type(value) is not int or value < minimum:
+                raise ValueError(f"{name} must be an integer >= {minimum}")
+        conditions = {} if conditions is None else conditions
+        compare_conditions({}, conditions)
+        snapshot, bundles, readers = self._load(**scope)
+        if snapshot_id != snapshot["snapshot_id"]:
+            raise SelectionError(
+                "stale_snapshot", "Sources changed; fetch a new snapshot and reselect"
+            )
+        cards = {c["ref"]: c for c in snapshot["cards"]}
+        if not isinstance(selections, list):
+            raise ValueError("selections must be a list")
+        selected = {}
+        for selection in selections:
+            if not isinstance(selection, dict):
+                raise ValueError("Each selection must be an object")
+            ref = selection.get("ref")
+            if not isinstance(ref, str) or ref not in cards:
+                raise SelectionError(
+                    "outside_snapshot", "Select a qualified ref from this snapshot"
+                )
+            if ref in selected:
+                raise SelectionError("duplicate_identity", f"Repeated selection: {ref}")
+            if not isinstance(selection.get("reason"), str) or not selection["reason"].strip():
+                raise ValueError("Each selection needs a reason")
+            if not isinstance(selection.get("questions"), list) or any(
+                not isinstance(q, str) for q in selection["questions"]
+            ):
+                raise ValueError("Each selection needs a questions list (possibly empty)")
+            compare_conditions({}, conditions, purpose=selection.get("purpose", "conclusion"))
+            selected[ref] = selection
+        queue = deque((ref, 0, None) for ref in selected)
+        seen = set()
+        seen_resources = set()
+        contexts, judgments, omissions, paths = [], [], [], []
+        used = optional_used = optional_count = 0
+        while queue:
+            ref, depth, via = queue.popleft()
+            card = cards[ref]
+            identity = (ref, card["revision"])
+            if identity in seen:
+                paths.append({"ref": ref, "via": via, "stop": "cycle_or_duplicate"})
+                continue
+            seen.add(identity)
+            if depth and optional_count >= expansion_items:
+                paths.append({"ref": ref, "via": via, "stop": "item_budget"})
+                continue
+            if ref not in bundles:
+                omissions.append({"ref": ref, "reason": "unreadable", "detail": card["unreadable"]})
+                continue
+            available = context_bytes - used if not depth else expansion_bytes - optional_used
+            if available <= 0:
+                omissions.append({"ref": ref, "reason": "context_limit", "via": via})
+                continue
+            result = self._context(readers[ref], ref, card["revision"], available)
+            delivered = result.get("contexts", [])
+            omissions.extend(result["omissions"] + result.get("context_omissions", []))
+            if not delivered:
+                paths.append({"ref": ref, "via": via, "stop": "context_unavailable"})
+                continue
+            context = delivered[0]
+            amount = context["content_bytes"]
+            if depth:
+                optional_used += amount
+                optional_count += 1
+            else:
+                used += amount
+            contexts.append(context)
+            selection = selected.get(ref, {})
+            judgment = compare_conditions(
+                bundles[ref].metadata["applicability"],
+                conditions,
+                purpose=selection.get("purpose", "conclusion"),
+            )
+            judgment.update(
+                ref=ref,
+                revision=card["revision"],
+                source_state=card["state"],
+                verification=bundles[ref].metadata.get("verification"),
+                evidence_resources=[r["path"] for r in context["resources"]],
+                confirmation="structured_only; Agent must confirm prose bounds",
+                questions=selection.get("questions", []),
+            )
+            judgments.append(judgment)
+            paths.append(
+                {
+                    "ref": ref,
+                    "revision": card["revision"],
+                    "via": via,
+                    "depth": depth,
+                    "status": "delivered",
+                    "bytes": amount,
+                }
+            )
+            if not snapshot["references"][ref]:
+                paths.append({"ref": ref, "stop": "no_explicit_references"})
+            for edge in snapshot["references"][ref]:
+                trail = {"from": ref, **edge}
+                if edge["kind"] == "entry":
+                    if depth >= expansion_depth:
+                        paths.append({"via": trail, "stop": "depth_budget"})
+                    else:
+                        queue.append((edge["ref"], depth + 1, trail))
+                elif edge["kind"] == "resource":
+                    path = edge["path"]
+                    key = (ref, card["revision"], path)
+                    delivered_paths = {r["path"] for r in context["resources"]}
+                    if path in delivered_paths or key in seen_resources:
+                        paths.append({"via": trail, "stop": "reader_resource_delivered"})
+                        continue
+                    if depth >= expansion_depth or optional_count >= expansion_items:
+                        paths.append({"via": trail, "stop": "depth_or_item_budget"})
+                        continue
+                    extra, omission = self._reference_context(
+                        readers[ref], ref, path, card["revision"], expansion_bytes - optional_used
+                    )
+                    if omission:
+                        paths.append({"via": trail, "stop": omission["reason"]})
+                        omissions.append(omission)
+                        continue
+                    amount = extra["content_bytes"]
+                    optional_used += amount
+                    optional_count += 1
+                    seen_resources.add(key)
+                    context["resources"].extend(extra["resources"])
+                    context["content_bytes"] += amount
+                    judgment["evidence_resources"].extend(r["path"] for r in extra["resources"])
+                    judgments.append(
+                        {
+                            "ref": ref,
+                            "revision": card["revision"],
+                            "resource": path,
+                            "verdict": "unknown",
+                            "source_state": card["state"],
+                            "reason": "Resource prose bounds require Agent confirmation",
+                            "evidence_resources": [r["path"] for r in extra["resources"]],
+                        }
+                    )
+                    paths.append({"via": trail, "status": "delivered", "bytes": amount})
+                else:
+                    paths.append({"via": trail, "stop": edge["kind"]})
+        # Detect mutations during assembly as well as before it; return no stale payload.
+        if self.snapshot(**scope)["snapshot_id"] != snapshot_id:
+            raise SelectionError(
+                "stale_snapshot", "Sources changed during read; refresh and reselect"
+            )
+        trace = observation(
+            entrypoint="catalog-select",
+            request={"conditions": conditions},
+            selection={"method": METHOD, "snapshot_id": snapshot_id, "selections": selections},
+            items=[
+                {
+                    "ref": c["ref"],
+                    "revision": c["revision"],
+                    "delivered": True,
+                    "agent_read": "unknown",
+                    "adopted": "unknown",
+                }
+                for c in contexts
+            ],
+            counts={
+                "candidates": len(cards),
+                "selected": len(selected),
+                "delivered": len(contexts),
+            },
+            assembly={
+                "paths": paths,
+                "omissions": omissions,
+                "content_bytes": used,
+                "expansion_bytes": optional_used,
+                "elapsed_seconds": perf_counter() - started,
+            },
+        )
+        return {
+            "snapshot_id": snapshot_id,
+            "contexts": contexts,
+            "judgments": judgments,
+            "omissions": omissions,
+            "retrieval": trace,
+        }
