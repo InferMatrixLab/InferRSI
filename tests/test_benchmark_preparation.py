@@ -6,13 +6,14 @@ import subprocess
 import sys
 from copy import deepcopy
 from hashlib import sha256
+from io import StringIO
 from pathlib import Path
 
 import pytest
 
 from inferrsi.apps.api import prepare as apps_prepare
 from inferrsi.apps.handoff.bridge import verify_protocol
-from inferrsi.apps.storage.archive import read_prepared
+from inferrsi.apps.storage.archive import read_archive_artifact, read_prepared
 from inferrsi.benchmark import preparation as benchmark
 from inferrsi.contracts.json_v1 import CanonicalError, decode, encode
 
@@ -248,6 +249,41 @@ def test_programming_error_in_a_host_capability_is_not_a_port_rejection(preparat
     with pytest.raises(ValueError) as error:
         service.prepare(request)
     assert error.value is failure
+
+
+def test_text_stream_is_a_closed_host_capability_error(preparation):
+    _, request, _, protocol, _, _, _ = preparation
+    stream = StringIO("a text capability is not a binary resource")
+    service = benchmark.PreparationService(
+        protocol, resources=lambda role: stream, worker_role="worker-code",
+    )
+    with pytest.raises(TypeError, match="binary bytes"):
+        service.prepare(request)
+    assert stream.closed
+
+
+def test_provisional_locations_do_not_replace_role_authority_or_archive_paths(
+    preparation, tmp_path,
+):
+    service, request, sources, protocol, _, config, _ = preparation
+    pin = deepcopy(protocol["resources"][0])
+    assert pin["role"] == "input-data"
+    pin["artifact"]["location"] = protocol["resources"][1]["artifact"]["location"]
+    request["input_pins"] = [pin]
+    result = apps_prepare(
+        {"schema_version": 1, "request": request}, workspace=tmp_path,
+        storage_config=config, prepare_benchmark=service.prepare,
+        encode_prepared=benchmark.encode, validate_prepared=benchmark.validate_prepared,
+    )
+    assert result.result["exit_code"] == 0, result.result
+    prepared = read_prepared(config, result.result["prepared_ref"])
+    assert len({item["artifact"]["location"] for item in prepared["resources"]}) == 2
+    assert {item["role"]: read_archive_artifact(config, item["artifact"])
+            for item in prepared["resources"]} == {
+                role: path.read_bytes() for role, path in sources.items()
+            }
+    frozen = decode(read_archive_artifact(config, prepared["protocol"]))
+    assert len({item["artifact"]["location"] for item in frozen["resources"]}) == 1
 
 
 def test_t36_real_port_archive_and_cross_process_fixed_readback(preparation, tmp_path):

@@ -28,6 +28,9 @@ stream. It does not interpret a request-provided location as a filesystem path.
 The frozen resource metadata is verified during preparation. The returned
 `open_resource` accepts only roles in that preparation's closure and reopens the
 resource through the same capability. It does not write or archive bytes.
+Provisional source locations may alias: byte authority is the configured role,
+not a lookup or de-duplication by that location. Apps assigns a distinct final
+archive path to each role and verifies the bytes against that role's metadata.
 
 The first task keeps the P1 candidate, claims, evidence rules, worker recipe
 shape and sampling conditions. PrepareRequest can bind its candidate expectation,

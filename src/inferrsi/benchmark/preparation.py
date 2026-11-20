@@ -347,7 +347,8 @@ def _measure(source) -> tuple[int, str]:
     with closing(source):
         while True:
             chunk = source.read(1024 * 1024)
-            _require(isinstance(chunk, bytes), "Resource stream must return bytes.")
+            if not isinstance(chunk, bytes):
+                raise TypeError("A host resource capability must return binary bytes.")
             if not chunk:
                 break
             size += len(chunk)
