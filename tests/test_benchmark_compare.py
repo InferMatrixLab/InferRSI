@@ -193,6 +193,26 @@ def test_new_metrics_missing_tokens_does_not_remove_valid_performance(experiment
     assert metrics["token_consumption_ratio"]["missing_reasons"]
 
 
+def test_boolean_child_schema_cannot_upgrade_unknown_tokens(experiment, monkeypatch):
+    from inferrsi.harness import optimization_session
+
+    original = optimization_session.session_command
+
+    def boolean_policy(args, **kwargs):
+        if args.session_action == "start":
+            metadata = kwargs["report_metadata"]["benchmark_metrics"]
+            kwargs["report_metadata"] = {"benchmark_metrics": {
+                **metadata, "metrics_schema_version": True}}
+        return original(args, **kwargs)
+
+    monkeypatch.setattr(optimization_session, "session_command", boolean_policy)
+    trial = experiment[1]["trials"][0]["id"]
+    _, result = finish(experiment, trial, token_coverage=True)
+    assert result["benchmark_metrics"]["token_usage"]["total_tokens"] is None
+    assert result["benchmark_metrics"]["assessed_steps"] is None
+    assert result["metrics_comparable"] is False
+
+
 def test_default_cli_requires_environment_and_discovers_both_tasks(capsys, monkeypatch, tmp_path):
     monkeypatch.chdir(tmp_path)
     assert main(["benchmarks", "compare"]) == 0

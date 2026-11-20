@@ -18,7 +18,7 @@ from tempfile import TemporaryDirectory
 
 from inferrsi.benchmark.comparison import DEFAULT_POLICY, DEFAULT_TASKS, summarize, validate_policy
 from inferrsi.benchmark.registry import task_resources
-from inferrsi.benchmark.summary import POLICY, token_usage
+from inferrsi.benchmark.summary import POLICY, supported_policy, token_usage
 from inferrsi.benchmark.summary import comparison as metrics_comparison
 from inferrsi.harness import agent_sessions, optimization
 from inferrsi.harness.artifact_primitives import digest, file_lock, sha256
@@ -466,15 +466,18 @@ def _trial_result(root, plan, trial, host):
             result["gaps"].append("Knowledge was delivered in the off condition")
         result["usage"].update(delivery["usage"])
         result["benchmark_metrics"] = delivery.get("benchmark_metrics")
-        result["metrics_comparable"] = not result["gaps"]
+        child_metrics_policy = campaign_plan.get("report_metadata", {}).get("benchmark_metrics")
+        result["metrics_comparable"] = (not result["gaps"]
+                                        and supported_policy(plan.get("metrics_policy"))
+                                        and supported_policy(child_metrics_policy))
         coverage = (payload.get("benchmark_token_coverage") or {}) if receipt else {}
         if not isinstance(coverage, dict):
             coverage = {}
         coverage_start, coverage_end = (number(coverage.get(key))
                                         for key in ("started_at", "ended_at"))
         if (result["benchmark_metrics"] is not None and host["usage"] is not None
-                and plan.get("metrics_policy") == POLICY
-                and campaign_plan.get("report_metadata", {}).get("benchmark_metrics") == POLICY):
+                and supported_policy(plan.get("metrics_policy"))
+                and supported_policy(child_metrics_policy)):
             complete = (
                 host["state"] == "completed"
                 and coverage.get("trial_id") == trial["id"]

@@ -11,6 +11,12 @@ POLICY = {
 }
 
 
+def supported_policy(policy):
+    """Keep schema types strict: JSON true must never be treated as version one."""
+    return (isinstance(policy, dict)
+            and type(policy.get("metrics_schema_version")) is int and policy == POLICY)
+
+
 def _number(value, *, zero=False):
     try:
         return (type(value) in (int, float) and math.isfinite(value)
@@ -41,8 +47,7 @@ def token_usage(record=None):
 
 def single(policy, rounds, final, selected, *, final_verified=False, usage=None, selection=None):
     """Project actual promotions, including rejected candidates and unresolved attempts."""
-    supported = (isinstance(policy, dict)
-                 and type(policy.get("metrics_schema_version")) is int and policy == POLICY)
+    supported = supported_policy(policy)
     result = {"metrics_schema_version": (policy.get("metrics_schema_version")
                                          if isinstance(policy, dict) else None),
               "final_speedup": None, "final_kind": None, "step_acceptance_rate": None,
@@ -109,8 +114,7 @@ def _median_ratio(values):
 def comparison(trials, tasks, repeats, policy):
     """Each metric has its own required paired observations, independent of old verdicts."""
     rows = []
-    supported = (isinstance(policy, dict)
-                 and type(policy.get("metrics_schema_version")) is int and policy == POLICY)
+    supported = supported_policy(policy)
     for task in tasks:
         metrics = {}
         for field in ("performance_benefit_ratio", "token_consumption_ratio",
