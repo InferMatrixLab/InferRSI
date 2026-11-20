@@ -32,7 +32,10 @@ from tests.test_contracts_package import IO_CONTROL, IO_PROBE
 SRC = Path(__file__).resolve().parents[1] / "src"
 ROOT = SRC / "inferrsi"
 PACKS = ROOT / "harness" / "data" / "repo_packs"
-SEVEN = ("vllm", "vllm_omni", "afd_plugin", "vllm_rlt", "strata", "sglang", "sglang_omni")
+EIGHT = (
+    "vllm", "vllm_omni", "vllm_musa", "afd_plugin", "vllm_rlt", "strata",
+    "sglang", "sglang_omni",
+)
 RETIRED = "inferrsi._repo_pack_data"
 FACADE_CLOSURE = {"inferrsi", "inferrsi.resources", "inferrsi.resources.repository_packs"}
 # The facade needs none of these. #412 R1 retired root catalog, so the CLI parser that
@@ -109,7 +112,7 @@ def _without_version(names) -> set[str]:
 
 def test_one_repo_types_object_reaches_every_consumer() -> None:
     canonical = repository_packs.REPO_TYPES
-    assert canonical == SEVEN and type(canonical) is tuple and len(canonical) == 7
+    assert canonical == EIGHT and type(canonical) is tuple and len(canonical) == 8
     assert knowledge_catalog.REPO_TYPES is canonical
     # #412 R1: root catalog is retired, so the parser binds the tuple from the facade
     # itself. It is the same object, read directly and never copied.
@@ -152,7 +155,7 @@ def test_only_the_facade_defines_the_tuple_and_the_reader() -> None:
     assert readers == ["resources/repository_packs.py"]
 
 
-@pytest.mark.parametrize("repo_type", SEVEN)
+@pytest.mark.parametrize("repo_type", EIGHT)
 def test_each_pack_parses_to_its_packaged_bytes(repo_type: str) -> None:
     data = (PACKS / repo_type / "pack.json").read_bytes()
     anchored = files("inferrsi").joinpath("harness", "data", "repo_packs", repo_type, "pack.json")
@@ -166,11 +169,11 @@ def test_each_pack_parses_to_its_packaged_bytes(repo_type: str) -> None:
     assert inspection.repository_pack(repo_type) == pack
 
 
-def test_the_seven_packs_are_the_whole_harness_resource_root() -> None:
+def test_the_eight_packs_are_the_whole_harness_resource_root() -> None:
     found = sorted(
         path.relative_to(PACKS).as_posix() for path in PACKS.rglob("*") if path.is_file()
     )
-    assert found == sorted(f"{name}/pack.json" for name in SEVEN)
+    assert found == sorted(f"{name}/pack.json" for name in EIGHT)
 
 
 @pytest.mark.parametrize(
@@ -191,10 +194,10 @@ def test_facade_and_parent_load_under_a_hook_that_blocks_every_other_inferrsi_im
     # The initializer alone loads nothing and binds no public name.
     assert _without_version(result["parent_only"]) == {"inferrsi", "inferrsi.resources"}
     assert result["parent_public"] == []
-    # All seven packs were read with only the facade and its parent loaded.
+    # All eight packs were read with only the facade and its parent loaded.
     assert _without_version(result["loaded"]) == FACADE_CLOSURE
-    assert tuple(result["types"]) == SEVEN
-    for name in SEVEN:
+    assert tuple(result["types"]) == EIGHT
+    for name in EIGHT:
         expected = json.loads((PACKS / name / "pack.json").read_bytes().decode("utf-8"))
         assert result["packs"][name] == expected, name
     # Positive control: the hook is live and refuses every core, Harness included.
@@ -216,7 +219,7 @@ def test_module_bodies_do_no_io_on_import() -> None:
     ]
 
 
-@pytest.mark.parametrize("repo_type", SEVEN)
+@pytest.mark.parametrize("repo_type", EIGHT)
 def test_a_read_opens_only_the_requested_pack_and_loads_no_module(repo_type: str) -> None:
     result = _fresh(READ, repo_type)
     package = os.path.normcase(str(ROOT))

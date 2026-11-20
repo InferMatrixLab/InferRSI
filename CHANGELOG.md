@@ -2,6 +2,24 @@
 
 ## [Unreleased]
 
+### Added
+
+- A `musa` platform backend and a `vllm_musa` repository pack cover Moore
+  Threads MUSA text-LLM and Omni serving. `doctor --backend musa` runs a
+  `pymtml` probe inside the target Python, because MUSA publishes no discovery
+  CLI to require, and records `MUSA_VISIBLE_DEVICES`, `torch_musa`, `torchada`,
+  `mate`, `mthreads-ml-py` and `vllm-musa` with the run. `--repo-type vllm_musa`
+  admits `llm.decode`, `llm.serving`, `diffusion.image_generation`,
+  `diffusion.video_generation` and `audio.tts`. Three source-derived records and
+  one skill state the device-identity boundary (MTML answers with physical ids
+  and is unaffected by `MUSA_VISIBLE_DEVICES` while `torch.musa` remaps), the
+  `torchada` dispatch boundary, and the Omni image's pinned dependency set.
+  Every descriptor stays unverified, the records carry
+  `locally_verified: false`, and this change claims no MUSA result.
+- The DeepSeek Harness plugin's test-environment form offers `MUSA` beside GPU
+  and NPU, so a session can start a campaign on the backend the CLI now accepts
+  instead of only naming a generic GPU.
+
 ### Changed
 
 - Apps workflow implementations now live in `apps/workflows/`: campaign capture,

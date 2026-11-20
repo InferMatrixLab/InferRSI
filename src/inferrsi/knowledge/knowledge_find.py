@@ -82,7 +82,7 @@ _QUERY_STOP_WORDS = TASK_STOP_WORDS | {
     "how", "what", "why", "which", "where", "who", "can", "could", "should", "would",
     "i", "you", "we", "do", "does", "did", "is", "are", "was", "were",
 }
-_BACKEND_NAME_ALIASES = {"昇腾": "ascend"}
+_BACKEND_NAME_ALIASES = {"昇腾": "ascend", "摩尔线程": "musa"}
 _MAX_SNIPPET = 400
 _MAX_LIMITATION_BYTES = 400
 _MAX_SHOWN_LIMITATIONS = 3
@@ -794,6 +794,7 @@ def rank(query: str, corpus: Corpus) -> tuple[
     """Score matches without opening a Bundle or formatting a delivery."""
     # A topic alias can add backend terms for matching, as 图模式 adds cuda graph.
     explicit_terms = {_BACKEND_NAME_ALIASES.get(term, term) for term in tokens(query)}
+    explicit_terms |= _vendor_backends(query)
     backends = named_backends(explicit_terms)
     query_backend = next(iter(backends)) if len(backends) == 1 else None
     query_tokens, applied = expand(query)
@@ -806,6 +807,16 @@ def rank(query: str, corpus: Corpus) -> tuple[
         -row[0], -row[1], corpus.documents[row[2]].identity, corpus.documents[row[2]].qualified,
     ))
     return query_tokens, applied, scored
+
+
+def _vendor_backends(query: str) -> set[str]:
+    """Name a backend from a vendor name the tokenizer would cut into bigrams.
+
+    昇腾 survives tokenization as one token, so the term map alone reaches it;
+    摩尔线程 splits into 摩尔/尔线/线程 and would never match a map key. Test the
+    raw query for the alias so both vendor names resolve.
+    """
+    return {backend for name, backend in _BACKEND_NAME_ALIASES.items() if name in query}
 
 
 def find(

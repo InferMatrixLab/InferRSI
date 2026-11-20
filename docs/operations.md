@@ -112,6 +112,27 @@ are distinct from `knowledge search`, whose package catalog filters
   backend, engine or kernel path is compatible. compatibility stays unverified.
 - **Example:** inferrsi doctor --repo . --repo-type vllm_omni --backend ascend --device-ids 0 --device-model 910B3
 
+### Discover Moore Threads MUSA devices — `doctor --backend musa`
+
+- **Inputs:** a prepared Git checkout and its existing repo type, target Python
+  (`--python`), optional repeatable `--device-ids` and one case-insensitive
+  `--device-model`.
+- **Effect:** read-only. The bounded command runner starts a probe in the target
+  Python, imports `pymtml` (the pynvml-compatible MTML binding) and reads the
+  index, UUID, name, driver version and total memory of every device. MUSA
+  publishes no discovery CLI to require, and the probe creates no MUSA context.
+- **Output:** those device records, plus `MUSA_VISIBLE_DEVICES` and the
+  `torch_musa`, `vllm-musa`, `mthreads-ml-py`, `torchada` and `mate` versions in
+  the environment snapshot. A requested ID and the requested model must match the
+  same record. A reached probe whose selection or record list is unusable is
+  reported `unavailable`, not `tool_available`.
+- **Boundary:** the probe answers with physical ids. MTML is unaffected by
+  `MUSA_VISIBLE_DEVICES` while `torch.musa` applies the logical remapping, so a
+  matched record does not prove which logical device a trial measured; record the
+  mapping with the evidence. Discovery is not compatibility or performance
+  qualification, and the descriptor stays unverified.
+- **Example:** `inferrsi doctor --repo . --repo-type vllm_musa --backend musa --python /opt/musa/bin/python --device-ids 0 --device-model S5000`
+
 ### Search packaged records — `knowledge search` / `knowledge show`
 
 Use `find` for ordinary discovery. With no query, `knowledge search` lists

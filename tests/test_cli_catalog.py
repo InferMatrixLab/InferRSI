@@ -26,6 +26,7 @@ SOURCE_REPOSITORIES = {
     "sglang": "sgl-project/sglang",
     "sglang_omni": "sgl-project/sglang-omni",
     "vllm_omni": "vllm-project/vllm-omni",
+    "vllm_musa": "MooreThreads/vllm-musa",
 }
 
 

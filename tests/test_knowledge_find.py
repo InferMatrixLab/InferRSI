@@ -70,7 +70,7 @@ def test_corpus_covers_all_three_kinds_without_double_counting(corpus):
     kinds = {}
     for document in corpus.documents:
         kinds[document.kind] = kinds.get(document.kind, 0) + 1
-    assert kinds["skill"] == 80
+    assert kinds["skill"] == 81
     # All task procedures resolve by exact ID, outside the evidence corpus and its IDF.
     navigation = {path.parent.name for path in (ROOT / "tasks").glob("*/SKILL.md")}
     assert len(navigation) == 8

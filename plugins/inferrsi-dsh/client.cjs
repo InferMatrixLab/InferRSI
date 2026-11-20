@@ -440,7 +440,7 @@ function IterationForm({ sessionId, useSession, useSessions, useAccess, submitPr
       h('fieldset', { className: 'irsi-section' },
         h('legend', null, '测试环境'),
         h('div', { className: 'irsi-fields' },
-          field('backend', '硬件后端 *', { required: true, options: [['', '请选择'], ['gpu', 'GPU'], ['npu', 'NPU']] }),
+          field('backend', '硬件后端 *', { required: true, options: [['', '请选择'], ['gpu', 'GPU'], ['npu', 'NPU'], ['musa', 'MUSA']] }),
           field('execution', '运行位置', { options: [['local', '本机运行'], ['remote', '远程机器']] }),
           field('device', '设备与运行环境', { wide: true, maxLength: 1024, placeholder: '设备型号、卡数或已准备好的环境' }),
           field('benchmark', '已有基准脚本', { maxLength: 1024, placeholder: '仓库中的脚本路径' }),
