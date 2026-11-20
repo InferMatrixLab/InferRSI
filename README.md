@@ -18,9 +18,13 @@ InferRSI is a **CLI workbench for inference optimization with coding agents**. B
 
 ## 📰 News
 
-Selected release milestones; see [all releases](https://github.com/InferMatrixLab/InferRSI/releases)
-for packages, checksums and the complete changelog.
+Milestones below highlight changes to how you run or evaluate an experiment.
+The [daily release bot](docs/releases.md) publishes a preview when the default
+branch's source tree changes. [All releases and checksums](https://github.com/InferMatrixLab/InferRSI/releases).
 
+- **2026-11-20 — [v0.2.6](https://github.com/InferMatrixLab/InferRSI/releases/tag/v0.2.6)** added
+  paired optimization reports for runs with knowledge on and off, and a
+  service-reuse evaluation mode for project campaigns.
 - **2026-11-14 — [v0.2.0](https://github.com/InferMatrixLab/InferRSI/releases/tag/v0.2.0):**
   Formal release. Highlights since
   v0.1.1 include three packaged optimization tasks (MoE forward, Qwen-Image
@@ -74,10 +78,10 @@ real-model gains remain unmeasured. [Flow, limits and reproduction →](docs/har
 
 | You want to… | Start at |
 | --- | --- |
-| Choose a starting point for a new model, performance, debug, accuracy, upgrade or engine task | Choose the [primary skill for the requested outcome](docs/knowledge-layout.md#seven-deliverables) and read its procedure with `inferrsi skills enter <task-id>` before the first evidence search. Follow its decision points using the actual run and acceptance criteria. |
+| Choose a procedure for a model, performance, debug, accuracy, upgrade or engine task | Read the [primary skill for your deliverable](docs/knowledge-layout.md#seven-deliverables) before searching for evidence. To open it from the CLI, use `inferrsi skills enter <task-id>` (introduced after v0.2.6). |
 | Modify InferRSI itself | [Contributor guide](docs/contributing.md) and [agent collaboration](docs/agent-collaboration.md), under an accepted Issue scope |
 | Use the Workbench to run experiments | [Quickstart](docs/quickstart.md): prepared target environment, benchmark/quality contracts, authorized experiment, recorded evidence |
-| Complete an optimization benchmark in the current Agent | [Iterative task sessions](docs/optimization-benchmarks.md), with frozen rounds, independent feedback and final retesting |
+| Run a packaged optimization benchmark | [Iterative task sessions](docs/optimization-benchmarks.md) default to a fresh agent conversation on the same host. Each session uses a frozen budget and independently retests its selected candidate. |
 | Deliver an independent inference engine | [Engine delivery template](docs/template/README.md): copyable scaffold and recipe handoff; no InferRSI runtime dependency |
 
 For every CLI/Python operation — discovery, normalized reads, store candidates, experiments — see the [operation guide](docs/operations.md).
@@ -99,7 +103,7 @@ are reported directly by upstream contributors, with validation scoped to their 
 | **Qwen-Image-2.1-Turbo** | 1× Ascend 910B1 | <ul><li>Conditioning cache for repeated prompts</li><li>Shared modulation once per denoising step</li><li>Native interleaved NPU RoPE with frequency-table reuse</li></ul> | **−22.20%** offline generation latency<br>Warm repeated prompts | Upstream parent-to-merge comparison. 18/18 RGBA images were pixel-identical. The 30% target was unmet. Both arms aborted during teardown, leaving lifecycle `INCONCLUSIVE`. | [Final-merge measurements](https://github.com/vllm-project/vllm-omni/pull/8729#:~:text=Final%2Dmerge%20performance%20and%20image%20comparison) · [Earlier Ascend cohorts](docs/qwen-image-2.1-turbo-ascend.md) | [#8729](https://github.com/vllm-project/vllm-omni/pull/8729) (merged) |
 | **MiniMax-H3 Ref2VA** | 8× Ascend 910B1 | <ul><li>Lossy Cache-DiT profile tuning</li></ul> | **407.27 → 108.12 s (−73.45%)**<br>5 s video, HTTP end-to-end vs. dense inference | All 14 frozen quality comparisons passed. | [Campaign #293](https://github.com/InferMatrixLab/InferRSI/issues/293) · [Pinned results](evidence/h3-ref2va-ascend-293/results/final-5s/README.md) | [#9698](https://github.com/vllm-project/vllm-omni/pull/9698) (draft) |
 | **MiniMax-H3 Ref2VA** | 4 logical Ascend 910C devices | <ul><li>Ref2VA migration changes</li><li>Opt-in BF16 prefix attention</li></ul> | **291.25 → 286.67 s (−1.57%)**<br>5 s video, HTTP end-to-end | One lossless screening pair. Strict quality checks passed for the screened candidate. Overall campaign `INCONCLUSIVE`. | [Campaign #297](https://github.com/InferMatrixLab/InferRSI/issues/297) · [Evidence PR #317](https://github.com/InferMatrixLab/InferRSI/pull/317) | [#9745](https://github.com/vllm-project/vllm-omni/pull/9745) (draft) |
-| **MiniMax-H3-Image** | 4× Ascend 910B1 | <ul><li>Opt-in VAE tile graphs</li><li>Approximate encoder/decoder tile batching</li></ul> | **16.89 → 10.82 s** · 4736×3552 generation<br>**4.18 → 2.67 s** · 1024×1024 generation<br>**5.68 → 4.57 s** · 1024×1024 editing | Single-launch HTTP medians vs. the same-layout SP4 control. All 30 numerical image screens passed. Latency targets were unmet and final qualification remains `INCONCLUSIVE`. | [Campaign #390](https://github.com/InferMatrixLab/InferRSI/issues/390) · [Evidence PR #394](https://github.com/InferMatrixLab/InferRSI/pull/394) | [#10184](https://github.com/vllm-project/vllm-omni/pull/10184) (open) |
+| **MiniMax-H3-Image** | 4× Ascend 910B1 | <ul><li>Opt-in VAE tile graphs</li><li>Approximate encoder/decoder tile batching</li></ul> | **16.89 → 10.82 s** · 4736×3552 generation<br>**4.18 → 2.67 s** · 1024×1024 generation<br>**5.68 → 4.57 s** · 1024×1024 editing | Single-launch HTTP medians vs. the same-layout SP4 control. All 30 numerical image screens passed. Latency targets were unmet and final qualification remains `INCONCLUSIVE`. | [Campaign #390](https://github.com/InferMatrixLab/InferRSI/issues/390) · [Evidence PR #394](https://github.com/InferMatrixLab/InferRSI/pull/394) | [#10184](https://github.com/vllm-project/vllm-omni/pull/10184) (merged) |
 | **MiniMax-H3-Image** | 2× RTX 3090 | <ul><li>Rank-local layerwise offload</li><li>Selected DiT weights kept resident</li><li>AdaLN caching</li><li>Request-local text refinement reuse</li></ul> | **36.62 → 14.59 s (−60.16%)**<br>Warm mean HTTP delivery latency | One upstream A/B of complete deployment profiles. All nine image pairs had identical decoded RGB pixels, including warmups. Repeated qualification remains incomplete. | [Paired deployment benchmark](https://github.com/vllm-project/vllm-omni/pull/10243#:~:text=One%20paired%20deployment%20comparison) | [#10243](https://github.com/vllm-project/vllm-omni/pull/10243) (open) |
 | **MiniCPM-o 4.5** | 1× L20X | <ul><li>Packed conditioning on a tuned configuration</li><li>TensorRT speaker extraction + CUDA MPS (separate comparison)</li></ul> | **+15.55%** throughput · **−27.69%** median TTFA<br>Packed conditioning, C32, same 50-frame window<br>**+20.5%** at C16 · **+25.4%** at C32<br>TensorRT + MPS throughput | The packed-conditioning candidate missed the exploratory WER margin against the tuning reference at the 50-frame setting. The separate TensorRT + MPS comparison had speech-quality verdict `FAIL`. | [Campaign #49](https://github.com/InferMatrixLab/InferRSI/issues/49) | [#9218](https://github.com/vllm-project/vllm-omni/pull/9218), [#9188](https://github.com/vllm-project/vllm-omni/pull/9188) (both merged) |
 | **Qwen3-Omni** | 2× L20X | <ul><li>cuDNN codec autotuning in the MRv2 deployment</li></ul> | **+7.79%** throughput · **−6.06%** mean RTF<br>One C64 pilot | Median time to first audio **regressed by 7.12%**. Campaign `INCONCLUSIVE`. | [Campaign #112](https://github.com/InferMatrixLab/InferRSI/issues/112) · [Pinned pilot](https://github.com/InferMatrixLab/InferRSI/tree/e1ae256fc075ea9ab64aec68da749cf4a8c22ac7/evidence/qwen3-omni-2gpu-20261023/results/pr9283-cudnn-performance) | [#9283](https://github.com/vllm-project/vllm-omni/pull/9283) (draft) |
@@ -118,7 +122,8 @@ campaign and this cohort used different hardware and measurement protocols.
 
 TTFA is time to first audio. RTF is real-time factor. WER is word error rate.
 
-Upstream PR statuses checked on 2026-11-12.
+Upstream PR statuses checked on 2026-11-20. To refresh a row, substitute its PR
+number in `gh pr view 10184 --repo vllm-project/vllm-omni --json state,isDraft`.
 
 </details>
 
@@ -164,8 +169,6 @@ MiniCPM's SGLang baseline returns a complete waveform, so its TTFA equals end-to
 Requires **Python 3.10+**. Licensed under [Apache-2.0](LICENSE).
 
 **InferRSI is a Developer Preview (pre-release), with no API stability promise.**
-The [daily release bot](docs/releases.md) publishes a version when the default
-branch changes.
 
 ### Use InferRSI in Codex
 
@@ -218,22 +221,55 @@ then install the downloaded wheel:
 python -m pip install "<download-directory>/inferrsi-<version>-py3-none-any.whl"
 ```
 
-For CLI development from this checkout:
+For a source install, run these commands from the InferRSI checkout.
 
 ```bash
 python -m venv .venv
 source .venv/bin/activate
 python -m pip install .
-
-# Find relevant tuning knowledge and follow the printed open command.
-inferrsi find 'Qwen-Image-2.1 Ascend memory bottleneck'
-# Export a context bundle for an agent that needs one.
-inferrsi context --repo-type vllm_omni --backend cuda --output context.md
 ```
 
-For Ascend image-generation context:
+From your target engine checkout, inspect the environment and list the packaged
+benchmarks. This example uses a vLLM-Omni checkout and the CPU probe.
 
 ```bash
+inferrsi --help
+inferrsi doctor --repo . --repo-type vllm_omni --backend cpu
+inferrsi benchmarks list
+```
+
+For a standalone lookup, search the packaged knowledge and follow a result's
+printed `open` command to read its sources and limitations.
+
+```bash
+inferrsi find 'Qwen-Image-2.1 Ascend memory bottleneck'
+```
+
+`find` has one external channel, `cannbot-knowledge`, disabled by default.
+From the target checkout, `inferrsi cannbot enable --checkout <path> --python <interpreter>`
+authorizes local reads using that source checkout and interpreter. The source is
+distributed separately, and its CANN Open Software License Agreement v2.0 governs
+redistribution. MindIE has its own reader under
+`inferrsi mindie`. [External channel setup](docs/external-channels.md).
+
+<details>
+<summary>Local grants and revocation</summary>
+
+Run `inferrsi cannbot disable` or `inferrsi mindie disable` from the same
+target checkout to remove its grant. The files are
+`~/.config/inferrsi/cannbot-projects/<project-hash>.json` and
+`~/.config/inferrsi/mindie-projects/<project-hash>.json`, respectively.
+The hash identifies the target checkout path. MindIE reads its adapter
+settings from `~/.config/mindie-agent/codex.json` by default.
+[MindIE setup](docs/codex-plugin.md#mindie-knowledge).
+
+</details>
+
+Export cited context for an agent. Both `doctor` and `context` accept
+`--backend` values `cpu`, `cuda`, `rocm`, `ascend` and `mlx`.
+
+```bash
+inferrsi context --repo-type vllm_omni --backend cuda --output context.md
 inferrsi context --repo-type vllm_omni --backend ascend \
   --scenario diffusion.image_generation --output ascend-context.md
 ```
@@ -244,9 +280,10 @@ Ready to measure your own model? [Connect your benchmark and quality checks →]
 
 ## 🧩 Architecture
 
-**One experiment loop. Independent model, repository and hardware adapters.**
-The implemented [Harness × Model × Infra boundary](docs/architecture.md) keeps new
-campaigns out of the common AB/BA scheduler, process cleanup and evaluator.
+Apps connects the CLI to host inspection, knowledge retrieval and experiment
+workflows. Harness runs trials and manages process lifetimes. Packaged
+benchmarks supply their workloads and assessment rules.
+[Module responsibilities and dependencies](docs/architecture.md#module-responsibilities-and-dependencies).
 
 ![InferRSI system architecture: inputs, experiment loop and evidence](docs/assets/system-architecture-en.svg)
 
@@ -260,13 +297,11 @@ not implemented. Process-cleanup behavior still needs platform-specific validati
 See the [source audit and proposed remedies](docs/reviews/source-audit-ac70272.md)
 for the 34 review points, qualifications and suggested acceptance checks.
 
-Alongside the engine loop, the [offline improvement controller](docs/harness-improvement.md)
-composes the existing Skill Eval comparator and independent verifier. Its acceptance
-rules live in `benchmark/improvement.py` and its search progression in
-`harness/improvement.py`; the tool adapter freezes snapshots and
-carries the total budget across probes, rerun and holdout. The engine diagrams above
-continue to describe the engine path; this additional lane does not provide engine
-performance evidence or an autonomous model-backed optimizer.
+For offline Skill Eval, the [Apps workflow](src/inferrsi/apps/workflows/improvement.py)
+combines [Benchmark acceptance rules](src/inferrsi/benchmark/improvement.py) with
+[Harness candidate selection](src/inferrsi/harness/improvement.py). The tool adapter
+freezes snapshots and carries one budget across probes, a rerun and an independent
+holdout. [Controller protocol and limits](docs/harness-improvement.md).
 
 <details>
 <summary><strong>See the implemented modules</strong></summary>
@@ -275,6 +310,11 @@ performance evidence or an autonomous model-backed optimizer.
 
 </details>
 
+Existing CLI flags, external JSON metrics, run artifacts and reports are retained.
+Python callers using retired module paths must update their imports.
+[Compatibility and historical evidence](docs/architecture.md#compatibility-and-historical-evidence)
+· [Import migration list](CHANGELOG.md).
+
 <details>
 <summary><strong>Find the right directory to extend</strong></summary>
 
@@ -282,7 +322,8 @@ performance evidence or an autonomous model-backed optimizer.
 
 </details>
 
-[Extension guide and compatibility boundary →](docs/architecture.md#where-to-extend) ·
+[Directory map](docs/architecture.md#directory-map) ·
+[Extension guide](docs/architecture.md#where-to-extend) ·
 [Original design diagrams (English / Chinese) →](docs/architecture.md#knowledge-and-evidence-ownership)
 
 <a id="docs"></a>
@@ -299,12 +340,10 @@ performance evidence or an autonomous model-backed optimizer.
 | [Qwen Ascend](docs/qwen-image-2.1-turbo-ascend.md) | NPU results, rejected rounds and verification scope |
 | [h3-metal lessons](docs/h3-metal-apple-silicon-lessons.md) | MiniMax-H3 on Apple silicon: measurement pitfalls, gains, rejected directions and search-loop lessons |
 | [Apple silicon playbook](docs/apple-silicon-playbook.md) | Measured, engine-agnostic lessons for Metal/MLX engines: unified memory, Metal execution and benchmarking a shared Mac |
-| [Knowledge base](src/inferrsi/knowledge/data/skill_library/records/README.md) | Three learning tiers: contribution, dependency impact and peer techniques |
-| [Skill catalog](src/inferrsi/knowledge/data/skill_library/README.md) | Searchable records linking categorized skills to full packaged procedures and resources |
+| [Engineering records](src/inferrsi/knowledge/data/skill_library/records/README.md) | Source revisions, backend applicability and validation limits for contribution, dependency and peer findings |
+| [Skill library](src/inferrsi/knowledge/data/skill_library/README.md) | Primary task procedures, systems, playbooks, workflows and casebooks |
 | [Source audit](docs/reviews/source-audit-ac70272.md) | 34 review points with proposed remedies, qualifications and validation criteria |
 | [Daily learning prompt](docs/daily-learning-prompt.md) | 06:00 Asia/Shanghai L2C + performance workflow and prerequisites |
-| [Complete skill library](src/inferrsi/knowledge/data/skill_library/README.md) | Task entrypoint, system knowledge, playbooks, workflows and casebooks |
-| [vLLM-Omni experience records](src/inferrsi/knowledge/data/skill_library/records/README.md) | Backend-scoped tuning methods, sources, and applicability |
 | [Contributor guide](docs/contributing.md) | Development workflow, evidence contracts, and CI |
 | [Engine delivery template](docs/template/README.md) | Copyable engine scaffold, branding, evidence and schema-v1 catalog recipe |
 
