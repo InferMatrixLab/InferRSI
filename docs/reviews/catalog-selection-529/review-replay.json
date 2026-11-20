@@ -1,0 +1,171 @@
+{
+  "implementation_commit": "15b3459cdb5e718be753bf8b9c3858d217b0f568",
+  "original_retrieval_implementation": "c457c85b3784a8e54b0ff668091ee9b0edd6d616",
+  "source_revisions_sha256": "a563f69c55a0e8eded690eb3c9f053bfa7fec3fd74dea1db0c4f49214aff9888",
+  "digest_encoding": "SHA-256 of compact sorted-key UTF-8 JSON, ensure_ascii=false. Source revisions map qualified refs to revisions. Delivery rows are [ref,revision,content_bytes,[[path,resource sha256,SHA-256 of delivered UTF-8 content],...]] in delivery order.",
+  "method": "Fixed refs applied to fresh snapshots after verifying all original card ref/revision pairs. No new Agent selection, model call, device run or latency measurement.",
+  "old_snapshot": "sha256:9f61007d34961ddc78162e4d8da95f82d70683e4bcbd50045a81e9723bbd3ccc",
+  "selection_input_budget_tokens": 128000,
+  "reserved_tokens": 4096,
+  "selected_bytes_budget": 131072,
+  "expansion": {
+    "depth": 1,
+    "items": 5,
+    "bytes": 32768
+  },
+  "queries": [
+    {
+      "id": "day-0",
+      "selections": 3,
+      "delivered": 3,
+      "delivered_content_bytes": 48554,
+      "matching_delivery_sha256": "7b1c2e312c94e44257d7ec749bbdd1781f6c40843722f563b971f4c48977d267",
+      "confirmed_quotes": 1,
+      "entry_omissions": 3,
+      "resource_omissions": 1,
+      "verdict_changes": {},
+      "reviewed_delivery": {
+        "ref": "package:vllm_omni.common.omni.stage_ownership_and_search",
+        "initial_content_bytes": 3044,
+        "required_resources_verified_against_pinned_bytes": 1,
+        "optional_expansions_omitted": [
+          {
+            "path": "data/skill_library/systems/engines/vllm-omni/sub-skills/omni-architecture/SKILL.md",
+            "scope": "resource",
+            "required_bytes": 18293,
+            "available_bytes": 5223
+          }
+        ]
+      }
+    },
+    {
+      "id": "performance",
+      "selections": 3,
+      "delivered": 2,
+      "delivered_content_bytes": 15230,
+      "matching_delivery_sha256": "d463e8cc200556b1be0894907c13db91c2badf23129780185de8ecc1adaa27cf",
+      "confirmed_quotes": 1,
+      "entry_omissions": 1,
+      "resource_omissions": 0,
+      "verdict_changes": {}
+    },
+    {
+      "id": "debug",
+      "selections": 2,
+      "delivered": 1,
+      "delivered_content_bytes": 159994,
+      "matching_delivery_sha256": "eacbd8f95324ec38f7a168858acff1964cbc1e49b077d3e1f7fe5c411cc8e8bd",
+      "confirmed_quotes": 1,
+      "entry_omissions": 3,
+      "resource_omissions": 3,
+      "verdict_changes": {}
+    },
+    {
+      "id": "accuracy",
+      "selections": 3,
+      "delivered": 2,
+      "delivered_content_bytes": 28658,
+      "matching_delivery_sha256": "05009f2ae500dbc1a2a816547cf53ae8cb6c3da3cfc1bf4dcc925f875bccb2d9",
+      "confirmed_quotes": 1,
+      "entry_omissions": 1,
+      "resource_omissions": 1,
+      "verdict_changes": {}
+    },
+    {
+      "id": "version-alignment",
+      "selections": 3,
+      "delivered": 2,
+      "delivered_content_bytes": 158088,
+      "matching_delivery_sha256": "3bee5ed8752cb983ba920960c971d9fb1a6060b2bba23a2d2203e8588a5548c8",
+      "confirmed_quotes": 1,
+      "entry_omissions": 1,
+      "resource_omissions": 1,
+      "verdict_changes": {},
+      "reviewed_delivery": {
+        "ref": "package:inferrsi.ascend.skills.vllm_ascend",
+        "initial_content_bytes": 86668,
+        "required_resources_verified_against_pinned_bytes": 4,
+        "optional_expansions_omitted": [
+          {
+            "path": "data/skill_library/systems/engines/vllm-ascend/references/model-performance.md",
+            "scope": "resource",
+            "required_bytes": 21756,
+            "available_bytes": 9828
+          }
+        ]
+      }
+    },
+    {
+      "id": "derived-engine",
+      "selections": 4,
+      "delivered": 4,
+      "delivered_content_bytes": 88015,
+      "matching_delivery_sha256": "14e05ec97cb7defdbbaf9cf32db18f0c3246d160c0826d10ba1d020a319317cf",
+      "confirmed_quotes": 1,
+      "entry_omissions": 0,
+      "resource_omissions": 2,
+      "verdict_changes": {}
+    },
+    {
+      "id": "independent-engine",
+      "selections": 3,
+      "delivered": 2,
+      "delivered_content_bytes": 157736,
+      "matching_delivery_sha256": "2a05636c53949f6787bcc9ca49241f79eb9f7a4155b5f6348cf63dfd3c7de32a",
+      "confirmed_quotes": 1,
+      "entry_omissions": 4,
+      "resource_omissions": 1,
+      "verdict_changes": {}
+    },
+    {
+      "id": "round1:qwen_b300_applicable",
+      "selections": 2,
+      "delivered": 1,
+      "delivered_content_bytes": 7679,
+      "matching_delivery_sha256": "ea107c699d51200c0f64ac7f6da24f81fe045628c5803cc960b19e7c3503b5c5",
+      "confirmed_quotes": 1,
+      "entry_omissions": 1,
+      "resource_omissions": 0,
+      "verdict_changes": {}
+    },
+    {
+      "id": "round1:qwen_ascend_mismatch",
+      "selections": 2,
+      "delivered": 2,
+      "delivered_content_bytes": 12559,
+      "matching_delivery_sha256": "ca26bb82c68a7025a6cca612672fbf6c12d6c5ddc6000f2c49a240d523685096",
+      "confirmed_quotes": 1,
+      "entry_omissions": 0,
+      "resource_omissions": 0,
+      "verdict_changes": {}
+    },
+    {
+      "id": "round1:qwen_gate_sufficient",
+      "selections": 0,
+      "delivered": 0,
+      "delivered_content_bytes": 0,
+      "matching_delivery_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "confirmed_quotes": 0,
+      "entry_omissions": 0,
+      "resource_omissions": 0,
+      "verdict_changes": {}
+    },
+    {
+      "id": "qwen21-135x",
+      "selections": 5,
+      "delivered": 4,
+      "delivered_content_bytes": 24269,
+      "matching_delivery_sha256": "38a91776b9862a26429d2d1a9130d906287e5109151efb46f0730ec8ed0c28f5",
+      "confirmed_quotes": 4,
+      "entry_omissions": 1,
+      "resource_omissions": 0,
+      "verdict_changes": {}
+    }
+  ],
+  "current_snapshot": "sha256:6d61c34af6ecbf37fd0b716e90489eb0ed758fa10c05fc83ae65616cf3165f57",
+  "catalog_counts": {
+    "skill": 80,
+    "case": 7,
+    "record": 48
+  }
+}

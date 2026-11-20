@@ -112,3 +112,37 @@ python tools/time_catalog_selection.py --baseline <original-find-checkout> \
   --before <catalog-before-checkout> --after <catalog-after-checkout> \
   --selections <retained-selections.json> --repetitions <count> --output <new-output-directory>
 ```
+
+## PR 检视后的固定选材复验
+
+最初评估的代码为 `c457c85`。从该提交到首次被检视的 `3f6d5d3`，改动的七个文件均在本报告目录，`src/`、`tests/` 和 `tools/` 内容相同。上表计时针对 `fc6c144`。本轮用 `15b3459` 重放固定选择，沿用相同查询、预算与 tokenizer，单独保存[逐题结果](review-replay.json)。
+
+逐个比对新旧目录的 135 对 ref/revision 后，在新快照提交冻结的 refs。10 题合计选择 25 个条目、递送 19 个。每题递送的条目顺序、版本、资源路径、原文哈希和字节数均与先前结果相同，9 条历史引文全部通过校验。另一个 Qwen 1.35x 查询选 5 个、递送 4 个，4 条引文通过。两组查询的条目级结构化 verdict 均与先前一致。此次复验只覆盖确定性读取；选材、设备和耗时没有重新评测。
+
+检视点中的两个条目都完整递送了必需资源。对比历史原文与固定版本里的必需文件后，`vllm-ascend` 首次递送的 86,668 字节包含全部 4 份必需材料，超限的是后续可选的 `references/model-performance.md`（需 21,756 字节，剩余 9,828）。Day-0 的阶段所有权 Record 完整递送 3,044 字节的 `record.json`；其后的可选 `omni-architecture/SKILL.md` 展开需 18,293 字节，剩余 5,223。新记录给出被跳过的路径、来源链接与作用范围。
+
+最初 9 条评估各自提交的 `claim` 和 `reason` 文本恰好相同。两个字段由调用方分别填写；回归测试用不同文本检查它们能够独立保留。对本轮代码运行目录、Find、读取、存储、CLI、Apps 和 smoke/claim 相关测试，244 项通过，2 项跳过，另有 2 个子测试通过。
+
+如需重放本轮 10 题，可在包含本报告的 PR 提交中使用与 `15b3459` 相同的代码，读取本目录的检视结果，将冻结选择复制到临时文件。先确认整个知识库的版本映射，再绑定新的目录快照，随后把临时文件作为上文 `tools/compare_catalog_selection.py` 的 `--selections` 输入。
+
+```python
+import hashlib
+import json
+from pathlib import Path
+
+from inferrsi.knowledge.catalog_selection import CatalogSelection
+
+report_dir = Path("docs/reviews/catalog-selection-529")
+checks = json.loads((report_dir / "review-replay.json").read_text())
+snapshot = CatalogSelection().snapshot()
+versions = {card["ref"]: card["revision"] for card in snapshot["cards"]}
+data = json.dumps(versions, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()
+assert hashlib.sha256(data).hexdigest() == checks["source_revisions_sha256"]
+assert snapshot["snapshot_id"] == checks["current_snapshot"]
+rows = json.loads((report_dir / "selections.json").read_text())
+for row in rows:
+    assert row["snapshot_id"] == checks["old_snapshot"]
+    row["snapshot_id"] = snapshot["snapshot_id"]
+with Path("review-replay-input.json").open("x", encoding="utf-8") as out:
+    json.dump(rows, out, ensure_ascii=False)
+```
