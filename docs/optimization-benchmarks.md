@@ -56,13 +56,17 @@ Final evaluation reserves one evaluation timeout from the total budget by
 default; `--final-reserve-seconds` changes that explicit reservation. Use
 `--knowledge off` for a condition that disables managed knowledge retrieval.
 
-## Retrieve knowledge and propose a change
+## Diagnose the bottleneck and propose a change
 
-When the chosen experimental condition permits RSI knowledge, retrieve it through
-the session. This calls the existing KnowledgeReader and retains the exact
-delivered context with its hash.
+Use profile data or existing measurements for the same workload and environment.
+Record the bottleneck and a UTF-8 summary of its measured evidence before
+the first candidate round. When the condition allows knowledge retrieval, use
+it after diagnosis for a specific implementation question. The session retains
+the exact delivered context with its hash.
 
 ```bash
+inferrsi benchmarks session diagnose --session ./outputs/qwen-rsi \
+  --bottleneck '<measured-bottleneck>' --evidence ./measurement-summary.txt
 inferrsi benchmarks session knowledge --session ./outputs/qwen-rsi \
   --query 'Ascend denoising conditioning reuse normalization fusion' \
   --context-bytes 16384
@@ -95,7 +99,7 @@ attempt prevents a second launch after an interrupted coordinator.
 Repeat this operation until the declared round budget is consumed. Use
 `session status --session ./outputs/qwen-rsi` to inspect progress. Each call
 evaluates a newly retained candidate snapshot and returns independent feedback.
-Profiling is available to the Agent as an optional diagnostic.
+Refresh the diagnosis when new measurements identify a different bottleneck.
 
 ### A failed experiment can leave a usable best candidate
 

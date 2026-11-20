@@ -101,7 +101,7 @@ def _optimization_actions(stages, *, project=False):
     start.add_argument("--knowledge", choices=("on", "off"), default="on")
     start.add_argument("--evaluation-prefix", default="", help="Quoted allocator argv prefix")
     start.add_argument("--python", default=sys.executable)
-    actions = ("status", "round", "final", "recover", "knowledge")
+    actions = ("status", "diagnose", "round", "final", "recover", "knowledge")
     if project:
         actions += ("baseline", "refresh-references", "resume", "profile")
     for name in actions:
@@ -111,6 +111,10 @@ def _optimization_actions(stages, *, project=False):
         if name == "profile":
             stage.add_argument("--round", type=int, required=True,
                                help="Capture profiling for the last settled attempt of this round")
+        if name == "diagnose":
+            stage.add_argument("--bottleneck", required=True)
+            stage.add_argument("--evidence", type=Path, required=True,
+                               help="UTF-8 profile or measurement summary from this workload")
         if name == "round":
             stage.add_argument("--candidate", type=Path, required=True)
             stage.add_argument("--hypothesis", required=True)
