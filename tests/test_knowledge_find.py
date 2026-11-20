@@ -674,6 +674,25 @@ def test_find_bounds_caveats_and_sizes_the_opened_content(tmp_path, capsys, limi
     assert f"{len(limitations) - len(shown)} more recorded limitation(s)" in out
 
 
+def test_find_size_hint_allows_a_later_unpinned_checkout_edit(tmp_path, capsys):
+    _plant_custom_case(tmp_path, {
+        "id": "case.demo", "kind": "case", "content": "demo.md",
+        "state": "historical_observation", "attribution": "Local demo",
+        "applicability": [], "limitations": [],
+        "sources": [{"type": "internal", "issue": "local", "artifact": "fixture"}],
+    })
+    assert main(["find", "demo", "--kinds", "case", "--skill-root", str(tmp_path), "--json"]) == 0
+    hit, = json.loads(capsys.readouterr().out)["items"]
+    assert "unreadable" not in hit, hit.get("unreadable")
+    path = tmp_path / "demo/cases/demo.md"
+    assert hit["next_read_content_bytes"] == path.stat().st_size
+    revised = "新修订的较长证据。\n".encode("utf-8")
+    path.write_bytes(revised)
+    assert main(hit["read_args"]) == 0
+    assert json.loads(capsys.readouterr().out)["content"].encode("utf-8") == revised
+    assert len(revised) > hit["next_read_content_bytes"]
+
+
 def test_unknown_outcome_is_rejected(tmp_path):
     _plant_custom_case(tmp_path, {
         "id": "case.demo", "kind": "case", "content": "demo.md",

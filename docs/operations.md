@@ -261,8 +261,10 @@ question calls for prior evidence.
   entrypoint content, provenance and revision. For a skill, the procedure
   omits the embedded machine annotation. A readable hit's
   `next_read_content_bytes` counts the UTF-8 bytes in that command's `content`
-  on the snapshot inspected by Find. A later edit can change an unpinned
-  material read. The count excludes the envelope and additional resources. Remove
+  on the snapshot inspected by Find. For a future unpinned read this field
+  is a size estimate. A later edit can change the content and its size.
+  Use Collect's context budget for bounded delivery. The count excludes the
+  envelope and additional resources. Remove
   `--omit-resources` to list the bundle's resources. Hits that fail the reader's
   material check carry `unreadable` with the reason.
 - **Base installation.** When PyYAML is absent, an installed Skill with a

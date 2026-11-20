@@ -58,7 +58,7 @@ flowchart TB
     F --> A["Rank the existing searchable fields and procedure text<br/>Exclude 7 primary skills and legacy router before IDF and limits<br/>default 135 evidence owners · 80 skills + 48 findings + 7 cases"]
     I -->|Authored finding| E["Validate selected record and its dependencies<br/>retain linked-library bundle and pin checks when skill documents are declared"]
     I -->|Other exact owner| V["Check revision, device, model, flags and measurement against this run"]
-    A --> H["Find card · limited caveats and withheld count<br/>next_read_content_bytes sizes the next read's content"]
+    A --> H["Find card · limited caveats and withheld count<br/>next_read_content_bytes measures content at Find time"]
     E & H & B --> V
     V --> Z["Read the procedure and structured metadata, or Collect within budget<br/>Pinned resource read returns original SKILL.md bytes"]
     Z --> X["Meets gates → cite reproducible evidence and scope"]
