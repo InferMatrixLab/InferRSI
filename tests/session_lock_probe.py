@@ -92,6 +92,9 @@ def make_session(root: Path) -> None:
 
 
 def main(work: Path) -> dict:
+    # The Apps export refuses a path that crosses a symbolic link, and macOS temporary
+    # directories sit under /var, a link to /private/var, so use the resolved path.
+    work = work.resolve()
     root = work / "campaign"
     make_session(root)
     ready, release = work / "held", work / "release"
