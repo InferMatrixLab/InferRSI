@@ -1294,6 +1294,10 @@ class StagedIsolationTest(unittest.TestCase):
         self.assertTrue(report.new_core_closure_isolated)
         self.assertTrue(report.isolation_complete)
 
+    # Three triggers build synthetic Infra and Model packages. Those are retired names since
+    # #498, which test_target_module_import_gate.py covers, so the retirement rule is
+    # switched off here and the trigger counts stay about the Harness edge and the others.
+    @mock.patch.object(support, "RETIRED_MODULES", frozenset())
     def test_each_trigger_alone_keeps_overall_false(self) -> None:
         triggers = (
             ("absent: knowledge/", {"knowledge/__init__.py": None, "knowledge/catalog.py": None},

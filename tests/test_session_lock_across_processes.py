@@ -131,4 +131,5 @@ def test_an_apps_export_of_a_valid_session_is_refused_while_a_harness_process_ho
     assert result.returncode == 0, result.stderr
     outcome = json.loads(result.stdout.strip().splitlines()[-1])
     assert outcome["busy_status"] != "published" and outcome["busy_published"] is False, outcome
-    assert outcome["released_status"] == "published" and outcome["released_readable"], outcome
+    assert outcome["released_status"] == "published", outcome
+    assert outcome["released_kind"] == "progress", outcome

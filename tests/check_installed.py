@@ -4,6 +4,7 @@ import io
 import json
 import os
 import pickle
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -941,7 +942,30 @@ with tempfile.TemporaryDirectory(prefix="inferrsi-session-lock-") as lock_cwd:
 assert locked.returncode == 0, locked.stderr
 observed = json.loads(locked.stdout.strip().splitlines()[-1])
 assert observed["busy_status"] != "published" and observed["busy_published"] is False, observed
-assert observed["released_status"] == "published" and observed["released_readable"], observed
+assert observed["released_status"] == "published", observed
+assert observed["released_kind"] == "progress", observed
+# #498 slice 5: a real session that main planned before infra/artifacts.py left the runtime
+# identity. The installed wheel must refuse it before status or recover dispatches and leave
+# every file of the session as it was.
+with tempfile.TemporaryDirectory(prefix="inferrsi-pre-infra-") as pre_work:
+    pre_session = Path(pre_work) / "session"
+    shutil.copytree(os.environ["INFERRSI_PRE_INFRA_SESSION"], pre_session)
+
+    def session_bytes():
+        return {path.relative_to(pre_session).as_posix(): path.read_bytes()
+                for path in sorted(pre_session.rglob("*")) if path.is_file()}
+
+    pre_before = session_bytes()
+    assert "infra/artifacts.py" in json.loads(pre_before["plan.json"])["runtime_identity"]
+    for action in ("status", "recover"):
+        refused = subprocess.run(
+            [sys.executable, "-I", "-m", "inferrsi", "benchmarks", "session", action,
+             "--session", str(pre_session)],
+            capture_output=True, text=True, check=False, cwd=pre_work,
+        )
+        assert refused.returncode == 2, (action, refused.returncode, refused.stderr)
+        assert "Optimization runtime changed" in refused.stderr, (action, refused.stderr)
+    assert session_bytes() == pre_before
 # The Messages worker runs under ``python -I`` and loads its adjacent trusted guard by file
 # location, not through the package, so the guard must ship next to the agent. This offline
 # probe loads the agent from the wheel the way the worker does, with no provider call.

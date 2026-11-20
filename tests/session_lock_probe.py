@@ -2,10 +2,11 @@
 
 Run by tests/test_session_lock_across_processes.py once per interpreter: against the
 checkout in the test run, and against an installed wheel in tests/check_installed.py. It
-builds a valid managed session with the Harness round machinery, starts a child process that
+builds a valid managed session that is not final, starts a child process that
 holds ``<session>/.session.lock`` through ``harness.optimization``'s own lock, and exports the
 session through the Apps ``export_bundle`` from this process. While the child holds the lock
-the export must be refused; after it releases, the same export must publish.
+the export must be refused and publish nothing; after it releases, the same export must
+publish a bundle whose ``export.kind`` is ``progress``.
 
 Usage: session_lock_probe.py <workdir>. Prints one JSON line with the observed outcomes.
 """
@@ -48,7 +49,7 @@ def make_session(root: Path) -> None:
         "schema_version": 2, "task": "synthetic", "task_source": "project", "condition": "test",
         "candidate_kind": "file", "candidate_name": "candidate.py",
         "baseline_path": "frozen/baseline.py", "working_candidate": "candidate.py",
-        "round_mode": "exact", "round_limit": 1, "max_seconds": 600, "final_reserve_seconds": 60,
+        "round_mode": "exact", "round_limit": 2, "max_seconds": 600, "final_reserve_seconds": 60,
         "selection": {"direction": "minimize", "metric": "latency", "initial_score": 10},
         "evaluation_settings": {"metric_key": "latency", "metric_unit": "ms",
                                 "scope": "synthetic", "direction": "minimize", "repetitions": 2},
@@ -87,8 +88,7 @@ def make_session(root: Path) -> None:
     candidate.write_text("5", encoding="utf-8")
     optimization.evaluate_round(root, candidate=candidate, hypothesis="Synthetic score 5",
                                 usage=None, execute=execute, assess=assess)
-    optimization.evaluate_round(root, candidate=None, hypothesis="Independent final", usage=None,
-                                execute=execute, assess=assess, final=True)
+    # No final round: the session stays active, so its export is a progress export.
 
 
 def main(work: Path) -> dict:
@@ -120,11 +120,12 @@ def main(work: Path) -> dict:
         if released["status"] == "published" or time.monotonic() > deadline:
             break
         time.sleep(0.1)
+    published = released["status"] == "published"
     return {
         "busy_status": busy["status"], "busy_published": busy_published,
         "released_status": released["status"],
-        "released_readable": bool(delivery.read_bundle(work / "released"))
-        if released["status"] == "published" else False,
+        "released_kind": delivery.read_bundle(work / "released")["export"]["kind"]
+        if published else None,
     }
 
 

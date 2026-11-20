@@ -33,7 +33,7 @@ jobs:
           "$RUNNER_TEMP/wheel-env/bin/python" -m pip install "${wheels[0]}[skills]"
           cp tests/check_installed.py "$RUNNER_TEMP/check_installed.py"
           cd "$RUNNER_TEMP"
-          env -u PYTHONPATH INFERRSI_CHECKOUT_RESOURCES="$GITHUB_WORKSPACE/src/inferrsi" INFERRSI_SESSION_LOCK_PROBE="$GITHUB_WORKSPACE/tests/session_lock_probe.py" "$RUNNER_TEMP/wheel-env/bin/python" -I check_installed.py
+          env -u PYTHONPATH INFERRSI_CHECKOUT_RESOURCES="$GITHUB_WORKSPACE/src/inferrsi" INFERRSI_SESSION_LOCK_PROBE="$GITHUB_WORKSPACE/tests/session_lock_probe.py" INFERRSI_PRE_INFRA_SESSION="$GITHUB_WORKSPACE/tests/fixtures/optimization-session/pre-infra-removal-session" "$RUNNER_TEMP/wheel-env/bin/python" -I check_installed.py
 
   full-check:
     strategy:
@@ -246,6 +246,11 @@ jobs:
           # Windows and macOS as well as Linux.
           environment["INFERRSI_SESSION_LOCK_PROBE"] = str(
               workspace / "tests" / "session_lock_probe.py"
+          )
+          # #498 slice 5: a session that main planned before infra/artifacts.py left the
+          # runtime identity must be refused by the installed wheel without any change.
+          environment["INFERRSI_PRE_INFRA_SESSION"] = str(
+              workspace / "tests/fixtures/optimization-session/pre-infra-removal-session"
           )
 
           def run(*command, cwd=work):
