@@ -12,7 +12,20 @@
 
 </div>
 
-InferRSI is a **CLI workbench for inference optimization with coding agents**. Bring your benchmark and quality checks; compare implementations, trace every gain to its source, and carry useful tuning lessons into the next experiment.
+InferRSI is a **CLI workbench for engineers who optimize inference**. Point it at your target engine, benchmark and quality checks, and it runs repeated A/B comparisons, gives every gain a sourced verdict, and keeps the proof in a report you can hand to a reviewer — instead of an untraceable screenshot.
+
+**Try it now.** From a fresh shell, this clones the repo, installs it into a virtual environment, and lists the packaged tasks:
+
+```bash
+git clone https://github.com/InferMatrixLab/InferRSI.git && cd InferRSI
+python -m venv .venv && source .venv/bin/activate && pip install .
+inferrsi benchmarks list
+# → ["moe-forward-npu", "qwen21-denoise-npu", "qwen3-tts-npu"]
+```
+
+Prefer a coding agent? Install the [Codex plugin](docs/codex-plugin.md#install-from-the-release-zip) from [Releases](https://github.com/InferMatrixLab/InferRSI/releases) and ask a question in your repo. Every recorded run also produces a local evidence dashboard:
+
+![Run-review dashboard: for each round, the knowledge retrieved, the evidence selected or left out, and what was used](docs/assets/dashboard-knowledge-default-run-review.png)
 
 <a id="news"></a>
 
