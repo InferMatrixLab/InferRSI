@@ -4,9 +4,11 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import posixpath
 import re
 from collections import Counter, deque
+from copy import deepcopy
 from pathlib import Path
 from time import perf_counter
 from urllib.parse import unquote, urlsplit
@@ -110,20 +112,90 @@ def compare_conditions(declared, task, *, purpose="conclusion"):
     }
 
 
+class _CatalogReader(KnowledgeReader):
+    """Discovery cache confined to a content-checked catalog snapshot."""
+
+    def __init__(self, **options):
+        super().__init__(**options)
+        self._case_paths = None
+        self._checkout_ids = None
+
+    def _cases(self, directories=None):
+        if self._case_paths is None:
+            self._case_paths = super()._cases(directories)
+        return self._case_paths
+
+    def _checkout_identities(self):
+        if self._checkout_ids is None:
+            self._checkout_ids = super()._checkout_identities()
+        return self._checkout_ids
+
+
+def _tree_version(root):
+    """Hash current bytes and membership, without following directory symlinks.
+
+    Stat/mtime shortcuts cannot detect same-size edits with restored timestamps.
+    Links/redirects disable reuse: some record loaders can read their targets.
+    Leave target access and validation to the existing readers, not this scan.
+    """
+    entries = []
+    reusable = True
+
+    def visit(directory, prefix="", ancestors=frozenset()):
+        nonlocal reusable
+        resolved = Path(directory).resolve()
+        if resolved != Path(directory):
+            reusable = False
+        if not resolved.is_relative_to(root) or resolved in ancestors:
+            reusable = False
+            entries.append((prefix, "redirect", str(resolved)))
+            return
+        ancestors = ancestors | {resolved}
+        with os.scandir(directory) as children:
+            for child in sorted(children, key=lambda item: item.name):
+                path = prefix + child.name
+                if child.is_symlink():
+                    reusable = False
+                    entries.append((path, "symlink", os.readlink(child.path)))
+                elif child.is_dir(follow_symlinks=False):
+                    entries.append((path, "directory"))
+                    visit(child.path, path + "/", ancestors)
+                elif child.is_file(follow_symlinks=False):
+                    entries.append((path, "file", hashlib.sha256(
+                        Path(child.path).read_bytes()).hexdigest()))
+                else:
+                    entries.append((path, "other"))
+
+    visit(root)
+    return digest(entries), reusable
+
+
 class CatalogSelection:
     """A declared library plus package records and, optionally, a read-only store.
 
-    Each operation creates fresh readers. Cached package bytes from an earlier
-    snapshot must not make a changed dependency appear current.
+    Reuse a prepared view only while all source bytes and membership agree.
+    Readers are discarded after completion or when any source changes.
     """
 
     def __init__(self, *, skill_root: Path | None = None, store=None):
         self.skill_root = Path(skill_root).resolve() if skill_root is not None else None
         self.store = store
+        self._prepared = None
 
     def _reader(self):
         # Cases have checkout identities even in an installed library.
-        return KnowledgeReader(skill_root=self.skill_root or installed_skill_root())
+        return _CatalogReader(skill_root=self.skill_root or installed_skill_root())
+
+    def _source_version(self):
+        roots = {installed_skill_root(), self.skill_root or installed_skill_root()}
+        libraries = [(str(root), *_tree_version(root)) for root in sorted(roots)]
+        stored = ([] if self.store is None else [
+            (identity, self.store.read(identity).revision)
+            for identity in sorted(self.store.identities())
+        ])
+        return (digest({"libraries": libraries, "declared_root": str(self.skill_root),
+                        "store": stored, "store_reader": id(self.store)}),
+                all(reusable for _, _, reusable in libraries))
 
     def documents(self):
         documents = load_documents(self.skill_root)
@@ -148,6 +220,19 @@ class CatalogSelection:
     def _load(self, *, kinds=("case", "skill", "record"), backend=None):
         if not kinds or set(kinds) - {"case", "skill", "record"}:
             raise ValueError("kinds must be a nonempty subset of case,skill,record")
+        scope = (tuple(sorted(kinds)), backend)
+        version, reusable = self._source_version()
+        if reusable and self._prepared is not None and self._prepared[:2] == (scope, version):
+            return self._prepared[2]
+        self._prepared = None
+        result = self._build(kinds=kinds, backend=backend)
+        if self._source_version() != (version, reusable):
+            raise SelectionError("stale_snapshot", "Sources changed while building the catalog")
+        if reusable:
+            self._prepared = (scope, version, result)
+        return result
+
+    def _build(self, *, kinds, backend):
         reader = self._reader()
         documents = self.documents()
         cards, bundles, readers, docs = [], {}, {}, {}
@@ -305,7 +390,8 @@ class CatalogSelection:
         )
 
     def snapshot(self, **scope):
-        return self._load(**scope)[0]
+        # Callers can edit prompt dictionaries without corrupting the retained view.
+        return deepcopy(self._load(**scope)[0])
 
     @staticmethod
     def _context(reader, ref, revision, available):
@@ -410,7 +496,14 @@ class CatalogSelection:
         view = {**bundle.view(), "ref": ref}
         return context_view((path, required, []), view, bundle.content, None, available)
 
-    def complete(
+    def complete(self, snapshot_id, selections, **options):
+        try:
+            return self._complete(snapshot_id, selections, **options)
+        finally:
+            # Returned source metadata must not become mutable input to a later call.
+            self._prepared = None
+
+    def _complete(
         self,
         snapshot_id,
         selections,

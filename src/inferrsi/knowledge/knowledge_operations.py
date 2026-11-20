@@ -5,6 +5,7 @@ import json
 import re
 import sqlite3
 from dataclasses import dataclass
+from dataclasses import field as dataclass_field
 from datetime import date, datetime
 from importlib.resources import files
 from pathlib import Path, PurePosixPath
@@ -145,11 +146,32 @@ def _sources(records: list[dict]) -> list[dict]:
     return result
 
 
+class _ResourceHashes:
+    """Reader-local validation/digests, keyed by path and immutable content bytes."""
+
+    def __init__(self):
+        self.entries: dict[str, tuple[bytes, str]] = {}
+
+    def digest(self, path, data):
+        if not isinstance(data, bytes):
+            raise ValueError("Bundle content must be bytes")
+        previous = self.entries.get(path)
+        if previous is not None and (previous[0] is data or previous[0] == data):
+            return previous[1]
+        safe_path(path)
+        value = _hash(data)
+        self.entries[path] = (data, value)
+        return value
+
+
 @dataclass(frozen=True)
 class Bundle:
     metadata: dict
     content: dict[str, bytes]
     dependencies: dict[str, str]
+    _resource_hashes: _ResourceHashes | None = dataclass_field(
+        default=None, repr=False, compare=False
+    )
 
     def __post_init__(self) -> None:
         # Normalize once at ingestion so manifest, revision and views agree.
@@ -179,10 +201,15 @@ class Bundle:
         if not isinstance(record["sources"], list) or not record["sources"]:
             raise ValueError("Bundle requires sources, including explicit unknown provenance")
         _sources(record["sources"])
-        for path, data in self.content.items():
-            safe_path(path)
-            if not isinstance(data, bytes):
-                raise ValueError("Bundle content must be bytes")
+        resources = {}
+        for path, data in sorted(self.content.items()):
+            if self._resource_hashes is None:
+                safe_path(path)
+                if not isinstance(data, bytes):
+                    raise ValueError("Bundle content must be bytes")
+                resources[path] = _hash(data)
+            else:
+                resources[path] = self._resource_hashes.digest(path, data)
         if record["entrypoint"] not in self.content:
             raise ValueError("Missing entrypoint in complete bundle")
         for required in record.get("required_resources", []):
@@ -191,7 +218,6 @@ class Bundle:
                 continue
             if safe_path(required) not in self.content:
                 raise ValueError(f"Missing required resource: {required}")
-        resources = {path: _hash(data) for path, data in sorted(self.content.items())}
         for dependency, revision in self.dependencies.items():
             safe_path(dependency)
             if not re.fullmatch(r"sha256:[0-9a-f]{64}", revision):
@@ -401,6 +427,7 @@ class KnowledgeReader:
         self._records: dict[str, dict] | None = None
         self._opened_records: dict[str, dict | None] = {}
         self._library: tuple[dict[str, bytes], str] | None = None
+        self._resource_hashes = _ResourceHashes()
 
     def records(self) -> dict[str, dict]:
         """Installed catalog records, read once per reader (one package snapshot)."""
@@ -423,7 +450,8 @@ class KnowledgeReader:
             # keys and pinned record hashes keep their existing values.
             root = files("inferrsi").joinpath("knowledge", "data", "skill_library")
             library = _tree(root, "data/skill_library")
-            digest = _hash(_json({path: _hash(data) for path, data in sorted(library.items())}))
+            digest = _hash(_json({path: self._resource_hashes.digest(path, data)
+                                 for path, data in sorted(library.items())}))
             self._library = (library, "sha256:" + digest)
         return self._library
 
@@ -611,6 +639,7 @@ class KnowledgeReader:
             },
             content,
             dependencies,
+            _resource_hashes=self._resource_hashes,
         )
 
     def _skill(self, identity: str) -> Bundle:

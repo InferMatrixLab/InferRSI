@@ -38,8 +38,18 @@ An Agent response has this shape (copy the exact snapshot and qualified refs):
 
 Empty selections are valid. Every selected ref must appear in that snapshot;
 unqualified, outside-snapshot and duplicate identities fail. Refresh and reselect
-after `stale_snapshot`; there is no silent substitution. Snapshots are regenerated
-before reads and checked again after assembly, including dependency changes.
+after `stale_snapshot`; there is no silent substitution. Source content and file
+membership are checked before reads and again after assembly, including dependency
+changes. Within one `CatalogSelection` instance, an unchanged prepared snapshot
+reuses its directory, reference graph and readers. Checks hash actual file bytes,
+including package records/build inputs and the declared checkout, and verify current
+store revisions; matching sizes or timestamps alone do not authorize reuse. A change
+invalidates the prepared view, and changes detected during construction are rejected.
+Sources containing symlinks or directory redirects use fresh full snapshots rather
+than reusing a prepared view, leaving target access to the existing readers.
+Completion releases the retained view, including on errors. Returned prompt dictionaries
+are independent copies. Reader-local resource digest reuse is keyed by path and
+immutable bytes; metadata and dependency validation still run for every manifest.
 Snapshots are content identities, not an authorization credential.
 
 Python uses the same implementation:

@@ -1,4 +1,5 @@
 import json
+import os
 
 import pytest
 
@@ -77,6 +78,154 @@ def test_stale_required_resource_and_selection(catalog):
     with pytest.raises(SelectionError) as error:
         catalog.complete(snapshot["snapshot_id"], [selection("checkout:alpha")])
     assert error.value.code == "stale_snapshot"
+
+
+@pytest.mark.parametrize("change", ["same_stat", "add", "remove"])
+def test_cached_snapshot_detects_unselected_resource_changes(catalog, change):
+    resource = catalog.skill_root / "beta" / "LICENSE"
+    resource.write_text("first")
+    snapshot = catalog.snapshot(kinds=("skill",))
+    if change == "same_stat":
+        before = resource.stat()
+        resource.write_text("other")
+        os.utime(resource, ns=(before.st_atime_ns, before.st_mtime_ns))
+    elif change == "add":
+        (resource.parent / "new.md").write_text("new dependency")
+    else:
+        resource.unlink()
+    with pytest.raises(SelectionError) as error:
+        catalog.complete(snapshot["snapshot_id"], [selection("checkout:alpha")],
+                         kinds=("skill",), expansion_depth=0)
+    assert error.value.code == "stale_snapshot"
+
+
+def test_cached_snapshot_detects_new_owner_and_scope_changes(catalog):
+    old = catalog.snapshot(kinds=("skill",))
+    skill(catalog.skill_root, "gamma", "New owner")
+    current = catalog.snapshot(kinds=("skill",))
+    assert current["snapshot_id"] != old["snapshot_id"]
+    assert "checkout:gamma" in {c["ref"] for c in current["cards"]}
+    assert catalog.snapshot(kinds=("case",))["cards"] == []
+
+
+@pytest.mark.parametrize("name", ["observation.pyc", ".DS_Store", "__pycache__/notes.txt"])
+def test_explicit_case_resources_are_checked_even_with_incidental_names(catalog, name):
+    cases = catalog.skill_root / "beta" / "cases"
+    resource = cases / name
+    resource.parent.mkdir(parents=True)
+    resource.write_text("first observation")
+    record = {
+        "id": "case.explicit", "kind": "case", "state": "historical_observation",
+        "content": name, "sources": [{"type": "unknown"}], "applicability": [],
+        "limitations": [], "attribution": "fixture",
+    }
+    (cases / "explicit.json").write_text(json.dumps(record))
+    snapshot = catalog.snapshot()
+    card = next(c for c in snapshot["cards"] if c["ref"] == "checkout:case.explicit")
+    assert "unreadable" not in card
+    resource.write_text("other observation")
+    with pytest.raises(SelectionError) as error:
+        catalog.complete(snapshot["snapshot_id"], [selection("checkout:alpha")],
+                         expansion_depth=0)
+    assert error.value.code == "stale_snapshot"
+
+
+def test_authored_record_symlink_target_changes_are_not_cached(tmp_path, monkeypatch):
+    import shutil
+
+    from inferrsi.knowledge import catalog as records
+    from inferrsi.knowledge import knowledge_find, knowledge_operations
+
+    package = tmp_path / "package"
+    library = package / "knowledge" / "data" / "skill_library"
+    shutil.copytree(knowledge_find.installed_skill_root(), library)
+    path = library / "records" / "xdit.cuda.diffusion.parallelism_freshness_and_topology.json"
+    target = tmp_path / "external-record.json"
+    target.write_bytes(path.read_bytes())
+    path.unlink()
+    try:
+        path.symlink_to(target)
+    except OSError:
+        pytest.skip("symlinks unavailable")
+    for module in (records, knowledge_find, knowledge_operations):
+        monkeypatch.setattr(module, "files", lambda _: package)
+    catalog = CatalogSelection()
+    snapshot = catalog.snapshot(kinds=("record",))
+    record = json.loads(target.read_text())
+    record["summary"] += " Changed external source."
+    target.write_text(json.dumps(record))
+    current = catalog.snapshot(kinds=("record",))
+    assert current["snapshot_id"] != snapshot["snapshot_id"]
+    assert current == CatalogSelection().snapshot(kinds=("record",))
+    with pytest.raises(SelectionError) as error:
+        catalog.complete(snapshot["snapshot_id"], [], kinds=("record",))
+    assert error.value.code == "stale_snapshot"
+
+
+def test_source_changes_during_delivery_reject_cached_snapshot(catalog, monkeypatch):
+    snapshot = catalog.snapshot(kinds=("skill",))
+    original = catalog._context
+
+    def changing_read(*args):
+        result = original(*args)
+        (catalog.skill_root / "beta" / "NOTICE").write_text("changed during read")
+        return result
+
+    monkeypatch.setattr(catalog, "_context", changing_read)
+    with pytest.raises(SelectionError) as error:
+        catalog.complete(snapshot["snapshot_id"], [selection("checkout:alpha")],
+                         kinds=("skill",), expansion_depth=0)
+    assert error.value.code == "stale_snapshot"
+
+
+def test_source_changes_during_build_are_not_published(catalog, monkeypatch):
+    original = catalog._build
+
+    def changing_build(**scope):
+        result = original(**scope)
+        skill(catalog.skill_root, "gamma", "Added during build")
+        return result
+
+    monkeypatch.setattr(catalog, "_build", changing_build)
+    with pytest.raises(SelectionError) as error:
+        catalog.snapshot(kinds=("skill",))
+    assert error.value.code == "stale_snapshot"
+
+
+def test_cached_snapshot_checks_store_revisions(catalog):
+    import tempfile
+    from pathlib import Path
+
+    from inferrsi.knowledge.knowledge_operations import Bundle
+    from inferrsi.knowledge.knowledge_store import KnowledgeStore
+
+    source = catalog._reader().read("checkout:beta")
+    metadata = {**source.metadata, "id": "stored-beta", "state": "candidate"}
+    with tempfile.TemporaryDirectory() as directory:
+        catalog.store = KnowledgeStore(Path(directory), skill_root=catalog.skill_root)
+        initial = catalog.snapshot(kinds=("skill",))
+        revision = catalog.store.create(Bundle(metadata, source.content, source.dependencies))
+        snapshot = catalog.snapshot(kinds=("skill",))
+        assert snapshot["snapshot_id"] != initial["snapshot_id"]
+        content = {**source.content, "beta/SKILL.md": source.content["beta/SKILL.md"] + b" new"}
+        catalog.store.update(Bundle(metadata, content, source.dependencies), expected=revision,
+                             reason="updated source", evidence=[])
+        with pytest.raises(SelectionError) as error:
+            catalog.complete(snapshot["snapshot_id"], [selection("store:stored-beta")],
+                             kinds=("skill",))
+        assert error.value.code == "stale_snapshot"
+
+
+def test_returned_prompt_and_context_do_not_poison_later_reads(catalog):
+    snapshot = catalog.snapshot(kinds=("skill",))
+    expected = snapshot["snapshot_id"]
+    snapshot["cards"][0]["revision"] = "caller-modified"
+    snapshot["references"].clear()
+    result = catalog.complete(expected, [selection("checkout:alpha")], kinds=("skill",))
+    result["contexts"][0]["sources"][0]["note"] = "caller-modified"
+    assert catalog.snapshot(kinds=("skill",))["snapshot_id"] == expected
+    again = catalog.complete(expected, [selection("checkout:alpha")], kinds=("skill",))
+    assert "caller-modified" not in json.dumps(again)
 
 
 def test_expansion_cycles_limits_and_required_budget(catalog):
