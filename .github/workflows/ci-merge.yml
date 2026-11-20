@@ -18,8 +18,10 @@ jobs:
           test -f docs/contributing.md
           test -f README.md
           test -d src/inferrsi/harness
-          test -d src/inferrsi/model
-          test -d src/inferrsi/infra
+          test -d src/inferrsi/apps/host
+          test -d src/inferrsi/apps/integrations/anthropic
+          test ! -e src/inferrsi/model
+          test ! -e src/inferrsi/infra
           test -d evidence/_template/plan
       - uses: actions/setup-python@v5
         with:

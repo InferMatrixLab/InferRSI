@@ -180,11 +180,13 @@ jobs:
           if counts != {"tests": len(nodes), "errors": 0, "failures": 0, "skipped": 0}:
               raise SystemExit("every selected host node must run and pass")
       - name: Test the Harness artifact-primitive and writer nodes on Windows
-        # #412 R2: Harness owns copies of the Infra digest, hash, file lock and atomic
-        # writer. On Windows the lock is an msvcrt byte range that even denies a read of
-        # the locked byte, which no Linux job can show. macOS uses the same fcntl lock as
-        # the Linux jobs, so only Windows runs these nodes. Runs even if the step above
-        # failed, so both results are recorded.
+        # #412 R2: Harness owns copies of the digest, hash, file lock and atomic writer.
+        # #498 slices 3b and 5 gave Apps and Benchmark their own copies and removed Infra,
+        # so these nodes now compare the Harness copy with the Apps copy. On Windows the
+        # lock is an msvcrt byte range that even denies a read of the locked byte, which no
+        # Linux job can show. macOS uses the same fcntl lock as the Linux jobs, so only
+        # Windows runs these nodes. Runs even if the step above failed, so both results are
+        # recorded.
         if: ${{ !cancelled() && runner.os == 'Windows' }}
         shell: python
         env:
@@ -196,12 +198,13 @@ jobs:
           import xml.etree.ElementTree as ET
 
           nodes = [
-              "tests/test_skill_evaluation.py::test_harness_artifact_primitives_match_infra_bytes_and_semantics",
-              "tests/test_skill_evaluation.py::test_harness_owned_writes_and_digests_match_infra_bytes",
-              "tests/test_legacy_run_split.py::test_harness_writer_bytes_equal_the_infra_writer",
+              "tests/test_skill_evaluation.py::test_harness_artifact_primitives_match_apps_bytes_and_semantics",
+              "tests/test_skill_evaluation.py::test_harness_owned_writes_and_digests_match_apps_bytes",
+              "tests/test_legacy_run_split.py::test_harness_writer_bytes_equal_the_apps_writer",
               "tests/test_legacy_run_split.py::test_harness_writer_rejects_nan_and_leaves_no_file",
-              "tests/test_legacy_run_split.py::test_sampling_sha256_matches_the_infra_hasher",
+              "tests/test_legacy_run_split.py::test_sampling_sha256_matches_the_apps_hasher",
               "tests/test_optimization_session.py::test_runtime_identity_covers_migrated_process_domain_and_not_removed_executor",
+              "tests/test_session_lock_across_processes.py",
               "tests/test_agent_sessions.py",
           ]
           results = os.environ["RESULTS"]

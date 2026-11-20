@@ -10,14 +10,16 @@ import json
 
 import pytest
 
-# Each helper name and the modules that hold a copy. #498 slice 5 drops ``infra`` here
-# when it deletes the package; a later slice adds the Apps copy.
+# Each helper name and the modules that hold a copy. #498 slice 3b added the Apps copy
+# and slice 5 deleted the Infra one, so Harness, Benchmark and Apps hold the three.
 COPIES = {
-    "sha256": ("inferrsi.infra.artifacts", "inferrsi.harness.artifact_primitives",
+    "sha256": ("inferrsi.apps.artifacts", "inferrsi.harness.artifact_primitives",
                "inferrsi.benchmark.artifacts"),
-    "write_json": ("inferrsi.infra.artifacts", "inferrsi.benchmark.artifacts"),
-    "atomic_write_json": ("inferrsi.infra.artifacts", "inferrsi.harness.atomic_json",
+    "write_json": ("inferrsi.apps.artifacts", "inferrsi.benchmark.artifacts"),
+    "atomic_write_json": ("inferrsi.apps.artifacts", "inferrsi.harness.atomic_json",
                           "inferrsi.benchmark.artifacts"),
+    "digest": ("inferrsi.apps.artifacts", "inferrsi.harness.artifact_primitives"),
+    "file_lock": ("inferrsi.apps.artifacts", "inferrsi.harness.artifact_primitives"),
 }
 CONSTANTS = ("REPLACE_ATTEMPTS", "REPLACE_DELAY_SECONDS")
 VALUE = {"b": [1.5, None, True, 1e-07, 1e16], "a": "非 ASCII", "nested": {"z": 0.1 + 0.2}}

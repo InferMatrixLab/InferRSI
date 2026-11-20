@@ -101,7 +101,7 @@ def test_cuda_qualification_accepts_campaign_supplied_count_and_sku(monkeypatch)
 
 def test_shared_layers_do_not_import_campaigns_or_reverse_dependencies():
     root = Path(__file__).resolve().parents[1] / "src/inferrsi"
-    for plane in ("infra", "model", "harness"):
+    for plane in ("apps/host", "apps/integrations", "harness"):
         for path in (root / plane).rglob("*.py"):
             package = ".".join(("inferrsi", *path.relative_to(root).parts[:-1]))
             for node in ast.walk(ast.parse(path.read_text(encoding="utf-8"))):
@@ -119,12 +119,11 @@ def test_shared_layers_do_not_import_campaigns_or_reverse_dependencies():
                 for name in names:
                     assert "examples" not in name.split("."), (path, name)
                     assert "ltx25" not in name and "qwen21" not in name, (path, name)
-                    if plane == "infra":
-                        assert not name.startswith(("inferrsi.harness", "inferrsi.model")), (
-                            path,
-                            name,
-                        )
-                    if plane == "model":
+                    if plane == "apps/host":
+                        assert not name.startswith(
+                            ("inferrsi.harness", "inferrsi.knowledge", "inferrsi.benchmark")), (
+                            path, name)
+                    if plane == "apps/integrations":
                         assert not name.startswith("inferrsi.harness"), (path, name)
 
 

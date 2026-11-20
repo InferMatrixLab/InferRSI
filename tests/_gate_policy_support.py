@@ -95,15 +95,10 @@ RETIRED_ROOT_MODULES = RETIRED_BY_R1 | RETIRED_BY_A1 | RETIRED_BY_A2 | RETIRED_B
 # ``inferrsi.harness.serving`` and removed the emptied ``inferrsi.model.protocols``.
 # Each name covers everything below it. A file under one fails, and so does any import
 # that names one, even when its target is absent.
-RETIRED_MODULES = frozenset({
-    "inferrsi.model.protocols", "inferrsi.model.validators",
-    "inferrsi.infra.processes", "inferrsi.infra.http",
-    # Slice 3c deleted the campaign facade; the example imports the owning modules.
-    "inferrsi.infra.campaign",
-    # Slice 3a moved the host bindings to ``inferrsi.apps.host``.
-    "inferrsi.infra.commands", "inferrsi.infra.inspection", "inferrsi.infra.environment",
-    "inferrsi.infra.platforms", "inferrsi.infra.targets",
-})
+# Slices 3b, 4 and 5 moved the artifact helpers to ``inferrsi.apps.artifacts`` and the
+# provider modules to ``inferrsi.apps.integrations.anthropic``, and deleted both packages,
+# so the two package names are retired as a whole.
+RETIRED_MODULES = frozenset({"inferrsi.infra", "inferrsi.model"})
 # #412 R1, permanent: the one importer of the neutral data leaf outside
 # ``inferrsi.knowledge``, with the only name it may bind (D020: Infra reads one pack
 # description and reaches no Knowledge or Harness). This is not a manifest

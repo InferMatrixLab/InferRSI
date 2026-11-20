@@ -13,22 +13,22 @@ from dataclasses import replace
 from pathlib import Path
 
 from inferrsi.apps import skill_eval_engineering as artifact_check
+from inferrsi.apps.artifacts import atomic_write_json, sha256, write_json
+from inferrsi.apps.integrations.anthropic.anthropic_agent import (
+    FULL_CONTEXT_KIND,
+    AnthropicAgentClient,
+    validate_schema,
+    validate_spec,
+)
+from inferrsi.apps.integrations.anthropic.anthropic_agent import SOURCE as AGENT_SOURCE
+from inferrsi.apps.integrations.anthropic.request_guard import SOURCE as GUARD_SOURCE
 from inferrsi.apps.skill_evaluation import export_bundle, run_trial, summarize
 from inferrsi.benchmark import skill_eval_diagnostic as diagnostic
 from inferrsi.benchmark import skill_eval_engineering as engineering
 from inferrsi.harness import artifact_sandbox
 from inferrsi.harness.skill_evaluation import CodexClient
 from inferrsi.harness.usage import normalize_usage
-from inferrsi.infra.artifacts import atomic_write_json, sha256, write_json
 from inferrsi.knowledge.knowledge_operations import KnowledgeReader, safe_path
-from inferrsi.model.anthropic_agent import (
-    FULL_CONTEXT_KIND,
-    AnthropicAgentClient,
-    validate_schema,
-    validate_spec,
-)
-from inferrsi.model.anthropic_agent import SOURCE as AGENT_SOURCE
-from inferrsi.model.request_guard import SOURCE as GUARD_SOURCE
 from tools import skill_eval_artifact_guidance as artifact_guidance
 from tools.skill_eval_pilot import PROMPT, SCHEMA, observed_tokens
 from tools.skill_eval_snapshot import selected_snapshot
@@ -47,7 +47,7 @@ CONTROLLERS = (GUARD_SOURCE, "tools/skill_eval_compare.py", "tools/skill_eval_pi
                "src/inferrsi/harness/skill_evaluation.py",
                "src/inferrsi/harness/artifact_sandbox.py", "tools/skill_eval_snapshot.py",
                "src/inferrsi/harness/local_process.py", "src/inferrsi/harness/atomic_json.py",
-               "src/inferrsi/harness/input_binding.py", "src/inferrsi/infra/artifacts.py")
+               "src/inferrsi/harness/input_binding.py", "src/inferrsi/apps/artifacts.py")
 EVIDENCE = ("execution.json", "agent/stdout.log", "agent/stderr.log",
             "verification/result.json", "verification/stdout.log", "verification/stderr.log")
 NUMBER = (int, float)

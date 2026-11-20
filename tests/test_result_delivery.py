@@ -5,6 +5,7 @@ import json
 import pytest
 
 from inferrsi.apps import delivery
+from inferrsi.apps.artifacts import atomic_write_json, sha256
 from inferrsi.apps.cli import main
 from inferrsi.apps.delivery.projection import metric
 from inferrsi.apps.delivery.schema import decode, validate_result
@@ -12,7 +13,6 @@ from inferrsi.apps.delivery.snapshot import MAX_DOCUMENT_BYTES, Snapshot
 from inferrsi.apps.storage import archive
 from inferrsi.apps.storage.result import preparation_result
 from inferrsi.harness import optimization
-from inferrsi.infra.artifacts import atomic_write_json, sha256
 
 
 def make_campaign(tmp_path, *, scores=(5,), final=True, final_verdict="PASS", usage=False):

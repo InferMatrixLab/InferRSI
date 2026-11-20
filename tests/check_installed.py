@@ -811,11 +811,15 @@ with tempfile.TemporaryDirectory(prefix="inferrsi-flare-cli-") as cli_cwd:
     assert "No module named 'inferrsi.model.validators'" in flare_cli.stderr, flare_cli.stderr
 # #498 slice 2: the serving helpers ship only under inferrsi.harness.serving, with no
 # forwarder for the old Infra and Model paths. Slice 3c deleted the infra.campaign facade,
-# and slice 3a moved the host bindings to inferrsi.apps.host.
-for retired in ("inferrsi.infra.processes", "inferrsi.infra.http", "inferrsi.infra.campaign",
-                "inferrsi.infra.commands", "inferrsi.infra.inspection",
-                "inferrsi.infra.environment", "inferrsi.infra.platforms",
-                "inferrsi.infra.targets"):
+# slice 3a moved the host bindings to inferrsi.apps.host, and slices 3b, 4 and 5 moved the
+# artifact helpers to inferrsi.apps.artifacts and the provider modules to
+# inferrsi.apps.integrations.anthropic. Both packages are gone from the wheel.
+for retired in ("inferrsi.infra", "inferrsi.infra.artifacts", "inferrsi.infra.processes",
+                "inferrsi.infra.http", "inferrsi.infra.campaign", "inferrsi.infra.commands",
+                "inferrsi.infra.inspection", "inferrsi.infra.environment",
+                "inferrsi.infra.platforms", "inferrsi.infra.targets", "inferrsi.model",
+                "inferrsi.model.anthropic_agent", "inferrsi.model.anthropic_edit_agent",
+                "inferrsi.model.request_guard"):
     assert find_spec(retired) is None, retired
     try:
         import_module(retired)
@@ -823,12 +827,35 @@ for retired in ("inferrsi.infra.processes", "inferrsi.infra.http", "inferrsi.inf
         pass
     else:
         raise AssertionError(f"retired module {retired} must not import")
+assert not {child.name for child in files("inferrsi").iterdir()} & {"infra", "model"}
 for canonical in ("inferrsi.harness.serving", "inferrsi.harness.serving.server",
                   "inferrsi.harness.serving.http", "inferrsi.harness.serving.image",
                   "inferrsi.apps.host.commands", "inferrsi.apps.host.inspection",
                   "inferrsi.apps.host.environment", "inferrsi.apps.host.platforms",
-                  "inferrsi.apps.host.targets"):
+                  "inferrsi.apps.host.targets", "inferrsi.apps.artifacts",
+                  "inferrsi.apps.integrations.anthropic.anthropic_agent",
+                  "inferrsi.apps.integrations.anthropic.anthropic_edit_agent",
+                  "inferrsi.apps.integrations.anthropic.request_guard"):
     assert find_spec(canonical) is not None, canonical
+# The Messages worker runs under ``python -I`` and loads its adjacent trusted guard by file
+# location, not through the package, so the guard must ship next to the agent. This offline
+# probe loads the agent from the wheel the way the worker does, with no provider call.
+guard_probe = (
+    "import sys\n"
+    "from pathlib import Path\n"
+    "import inferrsi.apps.integrations.anthropic.anthropic_agent as agent\n"
+    "guard = Path(agent.__file__).with_name('request_guard.py')\n"
+    "assert guard.is_file(), guard\n"
+    "assert agent._guard['authorize_request'] and agent._guard['gate_environment']\n"
+    "assert agent.SOURCE.endswith('apps/integrations/anthropic/anthropic_agent.py'), agent.SOURCE\n"
+    "assert not [n for n in sys.modules if n.startswith(('inferrsi.infra', 'inferrsi.model'))]\n"
+)
+with tempfile.TemporaryDirectory(prefix="inferrsi-provider-") as provider_cwd:
+    provider = subprocess.run(
+        [sys.executable, "-I", "-B", "-c", guard_probe], capture_output=True, text=True,
+        check=False, cwd=provider_cwd,
+    )
+assert provider.returncode == 0, provider.stderr
 # A fresh isolated interpreter imports the image client without loading the server
 # process helpers or any Infra or Model module: the package initializer imports nothing.
 serving_probe = (
