@@ -233,6 +233,9 @@ class _RetainedBytes:
 
 def _binding(prepared, evidence):
     preparation.encode(prepared)
+    _artifact(prepared["protocol"])
+    for resource in prepared["resources"]:
+        _artifact(resource["artifact"])
     _object(evidence, {"schema_version", "record_ref", "record_digest", "task", "task_source",
                        "record", "artifact_checks"})
     record, ref = evidence["record"], evidence["record_ref"]
@@ -313,7 +316,9 @@ def _trusted(check, required, prepared, record):
         recipe = prepared["recipe"]
         step_ids = {step["step_id"] for step in record["steps"] if isinstance(step, dict)
                     and preparation._id(step.get("step_id"))
-                    and step.get("started_at") is not None and step.get("status") != "not_started"}
+                    and step.get("status") != "not_started"
+                    and (step.get("started_at") is not None or step.get("status")
+                         in {"running", "exited", "timed_out", "cancelled"})}
         input_steps = {step for item in record["bound_inputs"] if isinstance(item, dict)
                        and item.get("role") == record["candidate"]["input_role"]
                        and item.get("attempt_id") == record["attempt_id"]
@@ -510,6 +515,8 @@ class AssessmentService:
                      reason if reason in _ITEM_ERRORS else "InvalidRequest")
             preparation.validate_prepared(prepared, data)
             protocol = canonical_decode(data)
+            for resource in preparation._closure(protocol):
+                _artifact(resource["artifact"])
             actual = _captured_candidate(prepared, record, reader)
             claims = [_claim(item, protocol, prepared, record, actual, reader)
                       for item in protocol["claim_definitions"]]

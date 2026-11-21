@@ -537,3 +537,21 @@ def test_host_reader_cannot_change_the_snapshotted_input_during_assessment(retai
     )
     assert result["protocol_digest"] == digest
     assert all(c["verdict"] == "PASS" for c in result["claims"])
+
+
+def test_confirmed_execution_does_not_require_fabricating_unknown_clock_facts(retained):
+    retained["record"]["steps"][0].update(started_at=None, ended_at=None)
+    assert all(c["verdict"] == "PASS" for c in run(retained)["claims"])
+    assert retained["record"]["steps"][0]["started_at"] is None
+
+
+def test_invalid_prepared_resource_path_is_rejected_without_reading(retained):
+    _, evidence = retained["seal"]()
+    retained["prepared"]["resources"][0]["artifact"]["location"] = "invalid/\x00/resource"
+
+    class Never:
+        def open(self, ref):
+            pytest.fail("invalid input reached artifact IO")
+
+    result = assessment.assess(retained["prepared"], evidence, artifacts=Never())
+    assert result["code"] == "InvalidRequest"
