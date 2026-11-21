@@ -9,6 +9,7 @@ from inferrsi.apps import delivery
 from inferrsi.apps.cli import main
 from inferrsi.apps.views.dashboard_data import load_dashboard
 from inferrsi.apps.views.optimization_chart import render_result
+from inferrsi.harness.artifact_primitives import digest
 from inferrsi.harness.optimization import read_records
 from tests.diagnosis_support import diagnosis_args
 
@@ -494,7 +495,6 @@ def test_recovered_attempt_does_not_trust_a_rewritable_declaration(project, caps
         original(root, directory, plan, deadline)
         forged = {"mechanism": "forged", "expect": [
             {"counter": "dram_bytes", "direction": "decrease"}]}
-        from inferrsi.infra.artifacts import digest
         state = json.loads((root / "state.json").read_text())
         state["pending"].update(mechanism=forged, mechanism_sha256=digest(forged))
         (root / "state.json").write_text(json.dumps(state))
