@@ -132,6 +132,25 @@ def test_unknown_or_mixed_task_versions_are_not_guessed(kind):
     assert rejected.value.code == "UnsupportedRuleVersion"
 
 
+@pytest.mark.parametrize("kind", ["task-version", "grader-version", "mixed-pair", "assessor"])
+def test_result_validator_rejects_unregistered_task_grader_or_assessor(kind):
+    result = decode((ROOT / "docs/contracts/fixtures/t108-v4/assessment.json").read_bytes())
+    result.update(task={"name": "p1-cpu-smoke", "revision": "1"},
+                  grader={"name": "p1-cpu-smoke-rules", "revision": "1"})
+    if kind == "task-version":
+        result["task"]["revision"] = "2"
+    elif kind == "grader-version":
+        result["grader"]["revision"] = "2"
+    elif kind == "mixed-pair":
+        result["grader"] = {"name": "p1-rules", "revision": "1"}
+    else:
+        result["assessor"]["revision"] = "2"
+    result["assessment_id"] = assessment.assessment_id(result)
+    with pytest.raises(assessment.AssessmentError) as rejected:
+        assessment.validate_assessment(result)
+    assert rejected.value.code == "UnsupportedRuleVersion"
+
+
 @pytest.mark.parametrize("kind,publish_failure,missing", [
     ("correct", False, False), ("wrong", False, False), ("invalid-utf8", False, False),
     ("correct", True, False), ("correct", False, True),
