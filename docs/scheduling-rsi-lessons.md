@@ -1,11 +1,14 @@
 # Scheduling RSI lessons: Ascend queue ordering and agent KV eviction
 
-**An LLM-proposed waiting-queue order (prefix-cache hit share of the prompt,
-highest first) raised simulated capacity at a 10 s mean TTFT bound from about
-3.3 to 15.3 req/s (4.61×, repeats 4.2–4.8×) over the Ascend shortest-job-first
-baseline.** This is a virtual-clock simulation result from the maintainers'
-campaign ledger. It has no acceptance issue, was not run on NPU hardware and is
-not an InferRSI PASS.
+This is an unverified exploration record. The quantitative findings below come
+from the maintainers' unpublished campaign ledger or from replays whose
+outputs are not published here. They have no acceptance issue, are not
+reproducible from this page and are not InferRSI PASS results; Campaign 1 is a
+simulation and was not run on NPU hardware. They are kept as lessons about method, not
+as established performance gains. For example, the best waiting-queue order
+in Campaign 1 (prefix-cache hit share of the prompt, highest first) was
+recorded in the ledger at 4.61× simulated capacity over the Ascend
+shortest-job-first baseline; that figure is unverified.
 
 This page records two earlier campaigns of the same RSI line (model proposes a
 policy → a frozen scorer measures it → keep the better, drop the worse) so that
@@ -19,7 +22,7 @@ the headline. Apple-silicon lessons from later work are in the
 | Label | Meaning |
 | --- | --- |
 | **public** | In a public repository or dataset at the link given in the row. |
-| **ledger** | From the maintainers' unpublished campaign report or run log; not reproducible from this page. |
+| **ledger** | From the maintainers' unpublished campaign report or run log; not reproducible from this page; unverified. |
 | **inferred** | Analysis made during the work and not measured. |
 
 ## Campaign 1: vLLM-Ascend waiting-queue order (simulation)

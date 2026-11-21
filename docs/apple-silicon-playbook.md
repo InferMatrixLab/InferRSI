@@ -60,14 +60,14 @@ acceptance result.
 
 ## Bringing up a new model
 
-From [Inkling 2 Mini on Apple silicon](inkling2-mini-apple-silicon.md) (measured on the same M5 Max).
+From [Inkling 2 Mini on Apple silicon](inkling2-mini-apple-silicon.md) (measured on the same M5 Max; exploratory record without an acceptance issue, unverified).
 
 | Observation | Cause | Action | Source |
 | --- | --- | --- | --- |
 | The release checkpoint (ModelOpt NVFP4/MXFP8) loads in neither MLX nor llama.cpp. | Apple runtimes need their own quantized formats. | Start from a community conversion; pin repository, revision and file SHA-256. | measured |
 | Shards arrived larger than published after a segmented download. | curl `--retry` inside a ranged, appending segment resends from the range start. | Verify each file against the Hub `lfs.oid` before the first load. | measured |
 | A 512-token cap ended inside the thinking block although reasoning effort was set to `none`. | The template value only adds a system line. | Size generation caps for thinking plus answer; count both. | measured |
-| A looped MoE model decoded at about 48 tok/s on MLX while weight traffic allowed far more. | 48 layer visits per token, each with many small ops: launch- and graph-building-bound. | Profile one layer visit at decode shape before compiling. Per-module compiles gave 1–3% and a fused layer half 6.4%; two compiled graphs per layer visit around the cache write, a one-kernel mask, fused projections and one-kernel short convs gave 1.49× on held-out prompts (ops per step 7,624 → 3,664). | measured |
+| A looped MoE model decoded at about 48 tok/s on MLX while weight traffic allowed far more. | 48 layer visits per token, each with many small ops: launch- and graph-building-bound. | Profile one layer visit at decode shape before compiling. Per-module compiles gave 1–3% and a fused layer half 6.4%; two compiled graphs per layer visit around the cache write, a one-kernel mask, fused projections and one-kernel short convs measured 1.49× (paired median, two prompts, exploratory) with ops per step 7,624 → 3,664. | measured, unverified |
 | During a search round the default path drifted from 47.4 to 48.9 tok/s. | Warm-up/thermal drift over minutes. | Pair each candidate run with the adjacent default run; an all-runs median inflated one candidate from 1.048 to 1.053. | measured |
 
 ## Benchmarking a shared Mac

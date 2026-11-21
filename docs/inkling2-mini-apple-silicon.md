@@ -1,15 +1,14 @@
-# Inkling 2 Mini on Apple silicon: local adaptation and four RSI rounds
+# Inkling 2 Mini on Apple silicon: local adaptation and four exploratory RSI rounds
 
-**On one M5 Max, MLX ran Inkling 2 Mini at 47.0 tok/s decode and 1,677 tok/s
-prefill (512-token prompt), ahead of llama.cpp at 41.7 and 998. Four search
-rounds then raised MLX decode 1.491× (paired median, held-out prompts,
-run-to-run noise 9.2%) with token-identical greedy output: about 47 → 70
-tok/s. Rounds 1–2 compiled sub-blocks (1.064×); rounds 3–4 rebuilt the
-single-token layer path (two compiled graphs per layer visit around the cache
-write, a one-kernel attention mask, fused projections, one-kernel short
-convolutions) and halved the ops per step.** The patch is published as
-[zuiho-kai/inkling2-mlx-fastpath](https://github.com/zuiho-kai/inkling2-mlx-fastpath). These are maintainer measurements without an acceptance issue; they
-are not an InferRSI PASS.
+This is an unverified exploration record, not a performance claim. It has no
+acceptance issue and is not an InferRSI PASS. It describes how Inkling 2 Mini
+was brought up on one M5 Max with MLX and llama.cpp, and four InferRSI-style
+search rounds on MLX. Every number below holds only for the stated machine,
+versions, settings and prompts. The round numbers can be recomputed from the
+committed records in
+[examples/inkling2_mini_mlx](../examples/inkling2_mini_mlx/README.md); the
+route comparison links its raw outputs; other measured rows rest on
+unpublished maintainer logs.
 
 [Inkling 2 Mini](https://huggingface.co/thinkingmachines/Inkling-2-Mini) is a
 26B-total, MoE, looped transformer from Thinking Machines Lab (24 layers; the
@@ -26,9 +25,9 @@ InferRSI acceptance result.
 ## Machine and sources
 
 - Apple M5 Max, 128 GB unified memory, macOS 27.0 (26A425).
-- Labels: **measured** = run on this machine, raw logs in the maintainers'
-  run directory (not published); **public** = model card or repository at the
-  link given.
+- Labels: **measured** = run on this machine; unless a row links raw outputs,
+  the logs are in the maintainers' run directory (not published), so treat it
+  as unverified; **public** = model card or repository at the link given.
 
 | Route | Weights | Runtime | Source |
 | --- | --- | --- | --- |
@@ -55,7 +54,11 @@ GGUF conversion at the time).
 
 Same machine, one runtime at a time (a lock file kept them apart), greedy
 decoding, fresh process per route. Idle ComfyUI and a small mlx-lm server were
-resident but not working during the runs.
+resident but not working during the runs. Raw outputs (benchmark logs,
+llama-bench JSON, per-run chat timings) are in
+[examples/inkling2_mini_mlx/route](../examples/inkling2_mini_mlx/route/).
+Both runtimes ran with default settings; this is one exploratory
+default-against-default comparison, not a runtime ranking.
 
 | Metric | MLX 4-bit | llama.cpp Q4_K_M | Command |
 | --- | ---: | ---: | --- |
@@ -65,7 +68,8 @@ resident but not working during the runs.
 | Time to first token, 61-token chat prompt, warm (s) | 0.24 | 0.29–0.31 | same |
 | Peak memory | 17.6 GB (`mx.get_peak_memory`), 19.0 GB in the benchmark | 17.6 GB resident, of which weights are file-mapped | |
 
-MLX was faster on both prefill and decode, so the RSI round below uses MLX.
+In this comparison MLX measured faster on both prefill and decode, so the
+search rounds below used MLX.
 The first MLX request of a process took 2.17 s to first token because Metal
 kernels compile on first use; warm numbers exclude it.
 
@@ -94,14 +98,31 @@ its output.
 - below 5% difference: no conclusion;
 - candidates are selected on two "evolve" prompts and reported on two
   different "holdout" prompts (TypeScript and Rust code generation);
-- a "better" verdict needs a mechanism signal.
+- a "better" verdict needs a mechanism signal. `rsi_mlx.py` performs only the
+  speed screen and prints "speed screen passed, pending mechanism check";
+  the mechanism is measured separately with `mechanism.py` and `count_ops2.py`
+  (reported per round below). A candidate with an error, fewer pairs than
+  `--reps` or a failed revert is INCONCLUSIVE.
+
+The verdict strings stored in the committed `score-*.json` records ("keep",
+and "留" in round 1) were written by earlier versions of the scorer and are
+superseded by the rules above; the paired ratios in the records are what this
+page uses.
+
+**Selection and holdout.** Within each round, every candidate was run on the
+evolve and the holdout prompts in the same session. There is no record that
+the shipped candidate was fixed from the evolve scores and the 5% rule before
+the holdout results were read, so both splits are reported as exploratory
+data, not as a held-out confirmation.
 
 **Round 1** (evolve, 256 generated tokens, noise 2.9%). Paired medians:
 gates 1.031, MoE 1.015, depth residual 1.012, gates + MoE 1.048. All
 token-identical, all below 5%: no conclusion. The first version of the scorer
 compared with the median of all default runs; the default path drifted from
 47.4 to 48.9 tok/s during the round, which inflated gates + MoE to 1.053. The
-scorer was changed to adjacent pairing before round 2.
+scorer was changed to adjacent pairing before round 2. The "留" verdict and
+1.053 still stored in `rounds/r1/score-evolve.json` come from that superseded
+scorer; the paired figures above replace them.
 
 **Round 2** (proposed from round 1: combine the compile points; fuse the whole
 MLP half of each layer).
@@ -169,6 +190,8 @@ per-module profile and an op count of one decode step.
 
 ## What we did not establish
 
+- No acceptance issue, frozen campaign evidence bundle or independent rerun;
+  all speed figures are exploratory observations under the setup above.
 - One machine, one macOS build, 128 GB; nothing on 32–64 GB Macs, which the
   model card lists as supported.
 - Single stream only; no batching, concurrency or long-context runs (the

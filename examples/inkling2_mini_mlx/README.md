@@ -12,6 +12,7 @@ Apple-silicon Mac with mlx-lm from ml-explore/mlx-lm#2086 (`0c4c991`).
 | `rsi_mlx.py` | One search round: load once, alternate each candidate with the default path, paired scoring, token-identity gate, evolve/holdout split |
 | `mechanism.py` | Per-step graph-building and step time, default vs one candidate |
 | `count_ops2.py` | Ops in one decode step's graph (total and non-view), default or one candidate |
+| `route/` | Raw outputs of the MLX / llama.cpp route comparison (`mlx_lm.benchmark` log, `llama-bench` JSON, per-run chat timings) |
 | `rounds/r1` … `rounds/r4` | Candidates (`cands/*.py`) and the JSONL/JSON records each round wrote |
 
 ```bash
@@ -21,9 +22,14 @@ python mechanism.py <mlx-model-dir> rounds/r4/cands/r4a_conv_kernel.py
 python count_ops2.py <mlx-model-dir> rounds/r4/cands/r4a_conv_kernel.py
 ```
 
-Round 1 records predate adjacent pairing; its paired ratios in the doc were
+`rsi_mlx.py` prints "speed screen passed, pending mechanism check" for a
+complete, token-identical candidate at least 5% faster, and INCONCLUSIVE for
+one with an error, fewer pairs than `--reps` or a failed revert. The verdict
+strings in the committed `score-*.json` files ("keep", "留") come from earlier
+scorer versions and are superseded. Round 1 records predate adjacent pairing; its paired ratios in the doc were
 recomputed from the logged run order (default run `1 + 3k + i` precedes
 repetition `i` of candidate `k`). Workload prompts are kept verbatim,
 including the Chinese ones. Run one runtime at a time; another GPU job on the
-machine invalidates the round. The round-4 winner is packaged as
+machine invalidates the round. These records are exploratory and
+unverified (no acceptance issue). The round-4 candidate is packaged as
 [zuiho-kai/inkling2-mlx-fastpath](https://github.com/zuiho-kai/inkling2-mlx-fastpath).
