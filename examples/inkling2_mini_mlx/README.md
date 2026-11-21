@@ -12,7 +12,7 @@ Apple-silicon Mac with mlx-lm from ml-explore/mlx-lm#2086 (`0c4c991`).
 | `rsi_mlx.py` | One search round: load once, alternate each candidate with the default path, paired scoring, token-identity gate, evolve/holdout split |
 | `mechanism.py` | Per-step graph-building and step time, default vs one candidate |
 | `count_ops2.py` | Ops in one decode step's graph (total and non-view), default or one candidate |
-| `route/` | Raw outputs of the MLX / llama.cpp route comparison (`mlx_lm.benchmark` log, `llama-bench` JSON, per-run chat timings) |
+| `route/` | Raw outputs of the MLX / llama.cpp route comparison (`mlx_lm.benchmark` log, `llama-bench` JSON, per-run chat timings in `mlx-chat.jsonl` / `llama-chat.jsonl`, the MLX model output in `mlx-chat-output.txt`) |
 | `rounds/r1` … `rounds/r4` | Candidates (`cands/*.py`) and the JSONL/JSON records each round wrote |
 
 ```bash

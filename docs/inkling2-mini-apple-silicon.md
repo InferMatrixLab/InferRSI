@@ -55,7 +55,7 @@ GGUF conversion at the time).
 Same machine, one runtime at a time (a lock file kept them apart), greedy
 decoding, fresh process per route. Idle ComfyUI and a small mlx-lm server were
 resident but not working during the runs. Raw outputs (benchmark logs,
-llama-bench JSON, per-run chat timings) are in
+llama-bench JSON, per-run chat timings as JSONL, the model output as a separate text file) are in
 [examples/inkling2_mini_mlx/route](../examples/inkling2_mini_mlx/route/).
 Both runtimes ran with default settings; this is one exploratory
 default-against-default comparison, not a runtime ranking.

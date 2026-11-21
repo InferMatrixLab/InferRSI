@@ -63,3 +63,42 @@ def test_shorter_output_with_equal_prefix_fails_token_gate():
     r = rsi.pair_candidate(cand, None, runner(cand), [sample(40.0)], REF, reps=3)
     assert not r["same_output"]
     assert rsi.score(r, reps=3)["verdict"] == "output changed: rejected"
+
+
+class ApplyRaises(Cand):
+    """apply() changes the model, then raises."""
+
+    def apply(self, model):
+        self.applied += 1
+        raise RuntimeError("apply half done")
+
+
+class RevertFails(Cand):
+    def revert(self, model):
+        self.reverted += 1
+        raise RuntimeError("revert failed")
+
+
+def test_apply_that_raises_after_changing_the_model_is_reverted():
+    cand = ApplyRaises()
+    r = rsi.pair_candidate(cand, None, runner(cand), [sample(40.0)], REF, reps=3)
+    assert "apply half done" in r["err"]
+    assert cand.reverted == 1 and r["reverted"]
+    assert rsi.score(r, reps=3) == {"verdict": "INCONCLUSIVE"}
+
+
+def test_unconfirmed_revert_stops_the_round():
+    bad, good = RevertFails(), Cand()
+    calls = []
+
+    def run_once(kw):
+        calls.append(kw)
+        return sample(44.0 if kw else 40.0)
+
+    events = []
+    results = rsi.run_round([("bad", bad), ("good", good)], None, run_once, [sample(40.0)], REF, 3, events.append)
+    assert list(results) == ["bad"] and not results["bad"]["reverted"]
+    assert "revert failed" in results["bad"]["err"]
+    assert good.applied == 0 and len(calls) == 2  # no default run after the failed revert
+    assert "round stopped" in events[-1]["stopped"]
+    assert rsi.score(results["bad"], reps=3) == {"verdict": "INCONCLUSIVE"}

@@ -41,7 +41,8 @@ def pair_candidate(mod, model, run_once, base_runs, ref_ids, reps):
     try:
         for i in range(reps):
             base_runs.append(run_once({}))           # default path, alternated with the candidate
-            kw = mod.apply(model); reverted = False
+            reverted = False                          # apply() may change the model before it raises
+            kw = mod.apply(model)
             r = run_once(kw); runs.append(r)
             pairs.append(summary([r])["dec_med"] / summary([base_runs[-1]])["dec_med"])  # paired with the adjacent default run, cancelling thermal drift
             mod.revert(model); reverted = True
@@ -55,6 +56,19 @@ def pair_candidate(mod, model, run_once, base_runs, ref_ids, reps):
                 err += f"; revert failed: {e2!r}"
     s = summary(runs) if runs else {}
     return dict(s, paired=pairs, same_output=same, err=err, reverted=reverted, doc=(mod.__doc__ or "").strip())
+
+
+def run_round(cands, model, run_once, base_runs, ref_ids, reps, emit):
+    """Pair each (name, module) in turn. If a candidate could not be reverted, the model may no longer be
+    the default path, so later default runs would be a polluted baseline: stop the round there."""
+    results = {}
+    for name, mod in cands:
+        results[name] = pair_candidate(mod, model, run_once, base_runs, ref_ids, reps)
+        emit(dict(cand=name, **results[name]))
+        if not results[name]["reverted"]:
+            emit(dict(stopped=f"{name}: revert not confirmed; round stopped, reload the model before continuing"))
+            break
+    return results
 
 
 def score(r, reps):
@@ -105,15 +119,14 @@ def main():
     run_once({})  # warm-up: the first pass compiles Metal kernels; not scored
     base_runs = [run_once({})]
     ref_ids = [x["ids"] for x in base_runs[0]]
-    results = {}
     cands = sorted(p for p in glob.glob(os.path.join(a.round_dir, "cands", "*.py")) if not os.path.basename(p).startswith("_"))
     if a.only: cands = [c for c in cands if a.only in c]
-    for path in cands:
+    def load_cand(path):
         name = os.path.basename(path)[:-3]
         spec = importlib.util.spec_from_file_location(name, path); mod = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(mod)
-        results[name] = pair_candidate(mod, model, run_once, base_runs, ref_ids, a.reps)
-        emit(dict(cand=name, **results[name]))
+        return name, mod
+    results = run_round((load_cand(p) for p in cands), model, run_once, base_runs, ref_ids, a.reps, emit)
 
     b = summary(base_runs)
     noise = (max(b["dec_all"]) - min(b["dec_all"])) / b["dec_med"]
