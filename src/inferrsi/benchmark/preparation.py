@@ -338,22 +338,28 @@ def validate_prepared(prepared: dict, protocol_bytes: bytes) -> None:
              "Prepared object disagrees with its frozen protocol.", "IdentityMismatch")
 
 
-def _measure(source) -> tuple[int, str]:
+def _verify_resource(source, ref: dict) -> None:
     if source is None:
         raise FileNotFoundError("A required resource is unavailable.")
+    expected_size = ref["size_bytes"]
+    digest = sha256()
     if isinstance(source, bytes):
-        return len(source), sha256(source).hexdigest()
-    size, digest = 0, sha256()
-    with closing(source):
-        while True:
-            chunk = source.read(1024 * 1024)
-            if not isinstance(chunk, bytes):
-                raise TypeError("A host resource capability must return binary bytes.")
-            if not chunk:
-                break
-            size += len(chunk)
-            digest.update(chunk)
-    return size, digest.hexdigest()
+        size = len(source)
+        if size == expected_size:
+            digest.update(source)
+    else:
+        size = 0
+        with closing(source):
+            while True:
+                chunk = source.read(min(1024 * 1024, expected_size - size + 1))
+                if not isinstance(chunk, bytes):
+                    raise TypeError("A host resource capability must return binary bytes.")
+                size += len(chunk)
+                if not chunk or size > expected_size:
+                    break
+                digest.update(chunk)
+    _require(size == expected_size and digest.hexdigest() == ref["sha256"],
+             "Resource bytes disagree with their fixed metadata.", "ArtifactIntegrityError")
 
 
 class PreparationService:
@@ -422,12 +428,9 @@ class PreparationService:
         closure = _closure(protocol)
         for resource in closure:
             try:
-                size, digest = _measure(self._resources(resource["role"]))
+                _verify_resource(self._resources(resource["role"]), resource["artifact"])
             except (KeyError, OSError):
                 raise PreparationError("ArtifactUnavailable", "A required resource is unavailable.")
-            ref = resource["artifact"]
-            _require((size, digest) == (ref["size_bytes"], ref["sha256"]),
-                     "Resource bytes disagree with their fixed metadata.", "ArtifactIntegrityError")
         data = canonical_encode(protocol)
         prepared = {
             "schema_version": 1, "prepared_id": "", **{key: deepcopy(protocol[key])

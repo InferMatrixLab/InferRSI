@@ -6,7 +6,7 @@ import subprocess
 import sys
 from copy import deepcopy
 from hashlib import sha256
-from io import StringIO
+from io import BytesIO, StringIO
 from pathlib import Path
 
 import pytest
@@ -191,6 +191,37 @@ def test_wrong_resource_bytes_are_not_frozen_as_a_different_pin(preparation):
     service, request, sources, _, _, _, _ = preparation
     sources["worker-code"].write_bytes(b"unexpected replacement worker")
     assert service.prepare(request)["code"] == "ArtifactIntegrityError"
+
+
+def test_t36_oversized_resource_stops_at_the_first_extra_byte(preparation, tmp_path):
+    _, request, sources, protocol, _, config, archive = preparation
+    fixed_bytes = sources["input-data"].read_bytes()
+    read_sizes = []
+
+    class OversizedResource(BytesIO):
+        def read(self, size=-1):
+            read_sizes.append(size)
+            if len(read_sizes) > 1:
+                raise OSError("resource read failed")
+            return super().read(size)
+
+    stream = OversizedResource(fixed_bytes + b"x")
+    service = benchmark.PreparationService(
+        protocol,
+        resources=lambda role: stream if role == "input-data" else sources[role].read_bytes(),
+        worker_role="worker-code",
+    )
+    result = apps_prepare(
+        {"schema_version": 1, "request": request}, workspace=tmp_path,
+        storage_config=config, prepare_benchmark=service.prepare,
+        encode_prepared=benchmark.encode, validate_prepared=benchmark.validate_prepared,
+    )
+    assert result.result["reason_code"] == "ArtifactIntegrityError"
+    assert result.result["error"]["stage"] == "prepare"
+    assert result.result["prepared_ref"] is None
+    assert list(archive.iterdir()) == []
+    assert read_sizes == [len(fixed_bytes) + 1]
+    assert stream.closed
 
 
 @pytest.mark.parametrize("change", [
