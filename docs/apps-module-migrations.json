@@ -22,12 +22,12 @@
       "docs/operations.md",
       "src/inferrsi/apps/api.py",
       "src/inferrsi/apps/archive.py",
-      "src/inferrsi/apps/workflows/benchmark_compare.py",
       "src/inferrsi/apps/delivery/__init__.py",
       "src/inferrsi/apps/handoff/bridge.py",
       "src/inferrsi/apps/handoff/candidate_provider.py",
       "src/inferrsi/apps/storage/artifact_reader.py",
       "src/inferrsi/apps/views/attempt.py",
+      "src/inferrsi/apps/workflows/benchmark_compare.py",
       "tests/check_installed.py",
       "tests/test_apps_assess.py",
       "tests/test_apps_module_migrations.py",
@@ -37,6 +37,7 @@
       "tests/test_apps_publication.py",
       "tests/test_apps_replay.py",
       "tests/test_benchmark_preparation.py",
+      "tests/test_harness_entry_verification.py",
       "tests/test_result_delivery.py"
     ]
   },
@@ -60,7 +61,8 @@
       "tests/test_apps_artifact_reader.py",
       "tests/test_apps_assess.py",
       "tests/test_apps_generation_plan.py",
-      "tests/test_apps_module_migrations.py"
+      "tests/test_apps_module_migrations.py",
+      "tests/test_harness_entry_verification.py"
     ]
   },
   {
@@ -127,7 +129,6 @@
     ],
     "consumers": [
       "docs/apps-output.md",
-      "tests/test_harness_prepared_binding.py",
       "docs/architecture.md",
       "docs/module-layout.md",
       "docs/operations.md",
@@ -140,7 +141,9 @@
       "tests/test_apps_execution_binding.py",
       "tests/test_apps_generation_plan.py",
       "tests/test_apps_module_migrations.py",
-      "tests/test_benchmark_preparation.py"
+      "tests/test_benchmark_preparation.py",
+      "tests/test_harness_entry_verification.py",
+      "tests/test_harness_prepared_binding.py"
     ]
   },
   {
