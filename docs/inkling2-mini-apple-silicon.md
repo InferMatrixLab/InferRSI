@@ -1,14 +1,13 @@
 # Inkling 2 Mini on Apple silicon: local adaptation and four exploratory RSI rounds
 
 This is an unverified exploration record, not a performance claim. It has no
-acceptance issue and is not an InferRSI PASS. It describes how Inkling 2 Mini
-was brought up on one M5 Max with MLX and llama.cpp, and four InferRSI-style
-search rounds on MLX. Every number below holds only for the stated machine,
-versions, settings and prompts. The round numbers can be recomputed from the
-committed records in
-[examples/inkling2_mini_mlx](../examples/inkling2_mini_mlx/README.md); the
-route comparison links its raw outputs; other measured rows rest on
-unpublished maintainer logs.
+acceptance issue and is not an InferRSI PASS, so it publishes no speed,
+latency or memory figures and no speedup ratios. It records how Inkling 2
+Mini was brought up on one M5 Max with MLX and llama.cpp, how four
+InferRSI-style search rounds on MLX were run, and the method and failure
+lessons from them. The raw measurements stay as unverified records in
+[examples/inkling2_mini_mlx](../examples/inkling2_mini_mlx/README.md)
+(`route/` and `rounds/r*/`).
 
 [Inkling 2 Mini](https://huggingface.co/thinkingmachines/Inkling-2-Mini) is a
 26B-total, MoE, looped transformer from Thinking Machines Lab (24 layers; the
@@ -16,8 +15,8 @@ first and last 6 run once, the middle 12 run three times; about 3.4B active
 parameters, 5.4B effective with the loop). The release checkpoint is ModelOpt
 NVFP4 experts with MXFP8 tail layers (about 20 GB) and does not load in Apple
 runtimes directly. This page records how it was brought up on one Mac with
-community conversions, which runtime was faster, and one InferRSI-style search
-round on that runtime. Measurement rules follow the
+community conversions, how the two runtimes were compared, and how
+InferRSI-style search rounds were run on MLX. Measurement rules follow the
 [scheduling RSI lessons](scheduling-rsi-lessons.md) and the
 [Apple silicon playbook](apple-silicon-playbook.md). Nothing here is an
 InferRSI acceptance result.
@@ -60,18 +59,14 @@ llama-bench JSON, per-run chat timings as JSONL, the model output as a separate 
 Both runtimes ran with default settings; this is one exploratory
 default-against-default comparison, not a runtime ranking.
 
-| Metric | MLX 4-bit | llama.cpp Q4_K_M | Command |
-| --- | ---: | ---: | --- |
-| Prefill, 512-token prompt (tok/s, mean of 3) | 1,677 | 998 | `mlx_lm.benchmark -p 512 -g 128 -n 3`; `llama-bench -p 512 -n 128 -r 3` |
-| Decode, 128 tokens (tok/s, mean of 3) | 47.0 | 41.7 | same |
-| Decode in a 512-token chat answer (tok/s, 3 runs) | 45.3–47.6 | 41.5–43.4 | `stream_generate`; llama-server `/v1/chat/completions` |
-| Time to first token, 61-token chat prompt, warm (s) | 0.24 | 0.29–0.31 | same |
-| Peak memory | 17.6 GB (`mx.get_peak_memory`), 19.0 GB in the benchmark | 17.6 GB resident, of which weights are file-mapped | |
+Commands: `mlx_lm.benchmark -p 512 -g 128 -n 3` and
+`llama-bench -p 512 -n 128 -r 3`, then three 512-token chat answers through
+`stream_generate` and llama-server `/v1/chat/completions`.
 
-In this comparison MLX measured faster on both prefill and decode, so the
-search rounds below used MLX.
-The first MLX request of a process took 2.17 s to first token because Metal
-kernels compile on first use; warm numbers exclude it.
+The search rounds below used MLX, which was ahead of llama.cpp on both
+prefill and decode in this one comparison. The first MLX request of a process
+is slow to first token because Metal kernels compile on first use; time warm
+requests separately from the first one.
 
 ## RSI round
 
@@ -106,8 +101,8 @@ its output.
 
 The verdict strings stored in the committed `score-*.json` records ("keep",
 and "留" in round 1) were written by earlier versions of the scorer and are
-superseded by the rules above; the paired ratios in the records are what this
-page uses.
+superseded by the rules above; the raw paired ratios in the records are kept
+unchanged.
 
 **Selection and holdout.** Within each round, every candidate was run on the
 evolve and the holdout prompts in the same session. There is no record that
@@ -115,72 +110,38 @@ the shipped candidate was fixed from the evolve scores and the 5% rule before
 the holdout results were read, so both splits are reported as exploratory
 data, not as a held-out confirmation.
 
-**Round 1** (evolve, 256 generated tokens, noise 2.9%). Paired medians:
-gates 1.031, MoE 1.015, depth residual 1.012, gates + MoE 1.048. All
-token-identical, all below 5%: no conclusion. The first version of the scorer
-compared with the median of all default runs; the default path drifted from
-47.4 to 48.9 tok/s during the round, which inflated gates + MoE to 1.053. The
-scorer was changed to adjacent pairing before round 2. The "留" verdict and
-1.053 still stored in `rounds/r1/score-evolve.json` come from that superseded
-scorer; the paired figures above replace them.
+**What each round tried and learned.** The per-candidate paired ratios,
+noise ranges and mechanism timings are in the committed `rounds/r*/`
+records; they are not summarised here.
 
-**Round 2** (proposed from round 1: combine the compile points; fuse the whole
-MLP half of each layer).
-
-| Candidate | Evolve (noise 2.3%) | Holdout (noise 3.9%) | Output |
-| --- | ---: | ---: | --- |
-| gates + MoE (round-1 best, re-run) | 1.043 | 1.054 | identical |
-| gates + MoE + depth residual | 1.057 | 1.056 | identical |
-| fused MLP half per layer | 1.044 | 1.039 | identical |
-| **fused MLP half + q/k/v gates** | **1.068** | **1.064** (1.068, 1.064, 1.060) | identical |
-
-Mechanism (one decode step, synchronous, median of 50 steps, two alternating
-processes each): 22.07 → 20.94 ms per step; Python graph building
-3.89 → 3.34 ms. About half of the saving is CPU graph construction and the
-rest is GPU time from fewer, fused kernels. The winning patch is
-`rounds/r2/cands/r2d_fused_half_gates.py`; it changes no weights and no
-numerics outside the compiled regions.
-
-**Round 3** (proposed from a per-module profile: at decode shape the
-attention half of a layer visit cost ~240 µs against ~90 µs for the MoE,
-nearly all in small ops). Each layer visit for B = 1, L = 1 is split into
-three parts: everything before the KV-cache write as one compiled graph, the
-cache write and attention eager (their length changes every step), everything
-after as a second compiled graph; conv states become explicit inputs and
-outputs. Options on top: the attention mask/bias (arange, compare, gather,
-where, cast) as one Metal kernel; q/r/gate/sink projections concatenated into
-one quantized matmul (all six in sliding layers without loop messages);
-message-gate forget/message projections as one matmul.
-
-| Candidate | Evolve (noise 9.1%) | Holdout (noise 6.8%) | Output |
-| --- | ---: | ---: | --- |
-| three-part layer path | 1.290 | 1.290 | identical |
-| + mask kernel | 1.354 | 1.353 | identical |
-| + fused q/r/gate/sink | 1.430 | **1.419** | identical |
-| + all six projections in one | 1.424 | 1.396 | identical |
-| + fused message-gate projections | 1.375 | 1.392 | identical |
-
-The last two are within 5% of the third: no conclusion.
-
-**Round 4** (proposed from the op count after round 3: the 4-tap short
-convolutions, four per layer visit, were each a concatenate, two casts, a
-generic convolution, an add/divide and a state slice).
-
-| Candidate | Evolve (noise 12.2%) | Holdout (noise 9.2%) | Output |
-| --- | ---: | ---: | --- |
-| **round-3 options + one-kernel short convs** | **1.486** | **1.491** (1.462, 1.491, 1.515) | identical |
-| round-3 options, re-run as reference | 1.327 | 1.409 | identical |
-| + q/k/v message gates as one batched matmul | 1.516 | 1.501 | identical |
-
-Batched gates are within 5% of the shipped candidate: no conclusion, not
-shipped. Default-path tok/s varied 43–48 across rounds (thermal); only the
-adjacent-paired ratios are compared.
-
-Mechanism, round 4 candidate against default (one decode step, median of 50
-steps, two alternating processes each; non-view ops counted from the step
-graph): step 22.1 → 15.3 ms, Python graph building 3.9 → 1.8 ms, non-view
-ops per step 7,624 → 3,664. The weights read per token (~2.5 GB) would take
-about 5 ms at the machine's bandwidth, so the step remains launch-bound.
+- Round 1: `mx.compile` around single sub-blocks (message gates, MoE, depth
+  residual, gates + MoE). Every candidate was token-identical and below the
+  5% rule: no conclusion. The default path drifted upward during the round;
+  the first scorer compared each candidate with the median of all default
+  runs, which inflated one candidate, so the scorer was changed to adjacent
+  pairing before round 2. The "留" verdict and ratio stored in
+  `rounds/r1/score-evolve.json` come from that superseded scorer.
+- Round 2 (proposed from round 1): combined compile points and a fused MLP
+  half per layer. Lesson: per-module compiles move little on a launch-bound
+  model; the mechanism probe attributed part of the saving to CPU graph
+  construction and part to fewer GPU kernels.
+- Round 3 (proposed from a per-module profile at decode shape, where the
+  attention half of a layer visit was dominated by small ops): each layer
+  visit for B = 1, L = 1 split into a compiled graph before the KV-cache write,
+  the cache write and attention eager (their length changes every step), and a
+  compiled graph after; conv states become explicit inputs and outputs.
+  Options on top: the attention mask/bias as one Metal kernel; q/r/gate/sink
+  projections in one quantized matmul; message-gate projections in one
+  matmul. Several options were within 5% of each other: no conclusion between
+  them.
+- Round 4 (proposed from the op count after round 3: each 4-tap short
+  convolution was a chain of small ops): one-kernel short convolutions on top
+  of the round-3 options. The mechanism probe showed fewer non-view ops and
+  less Python graph building per step, and the step stayed launch-bound
+  rather than bandwidth-bound. A batched message-gate variant was within 5%
+  of it: no conclusion, not shipped.
+- Across rounds the default path's own speed moved with temperature, so only
+  adjacent-paired ratios are compared, never absolute speeds across rounds.
 
 **How candidates were produced.** The candidates were written by the
 assistant running the campaign (Claude Code, `claude-opus-5-5`) from reading
@@ -191,7 +152,7 @@ per-module profile and an op count of one decode step.
 ## What we did not establish
 
 - No acceptance issue, frozen campaign evidence bundle or independent rerun;
-  all speed figures are exploratory observations under the setup above.
+  no performance figure is established, and none is published here.
 - One machine, one macOS build, 128 GB; nothing on 32–64 GB Macs, which the
   model card lists as supported.
 - Single stream only; no batching, concurrency or long-context runs (the

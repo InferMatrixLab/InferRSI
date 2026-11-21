@@ -1,14 +1,11 @@
 # Scheduling RSI lessons: Ascend queue ordering and agent KV eviction
 
-This is an unverified exploration record. The quantitative findings below come
-from the maintainers' unpublished campaign ledger or from replays whose
-outputs are not published here. They have no acceptance issue, are not
-reproducible from this page and are not InferRSI PASS results; Campaign 1 is a
-simulation and was not run on NPU hardware. They are kept as lessons about method, not
-as established performance gains. For example, the best waiting-queue order
-in Campaign 1 (prefix-cache hit share of the prompt, highest first) was
-recorded in the ledger at 4.61× simulated capacity over the Ascend
-shortest-job-first baseline; that figure is unverified.
+This is an unverified exploration record. The two campaigns below have no
+acceptance issue, their measurements are in the maintainers' unpublished
+campaign ledger, Campaign 1 is a simulation that was not run on NPU hardware,
+and nothing here is an InferRSI PASS. The page therefore publishes no
+capacity, latency, hit-rate or speedup figures; it keeps only the method and
+the failure modes.
 
 This page records two earlier campaigns of the same RSI line (model proposes a
 policy → a frozen scorer measures it → keep the better, drop the worse) so that
@@ -29,24 +26,23 @@ the headline. Apple-silicon lessons from later work are in the
 
 Setup (ledger): real vLLM engine with only the device operators replaced by
 stand-ins; a virtual clock calibrated from another team's operator timing
-table, step time ≈ 1.313 ms + 0.00468 ms × tokens in the step, error ≤ 3%;
-393 multi-turn sessions in which 98.7% of requests contain the whole previous
-request; baseline prefix reuse about 14%. Eight candidates ran in parallel;
-more saturated the CPU. Wall time of the simulator was 5–45× faster than the
-device and was never used as the metric.
+table (step time as a linear function of tokens in the step); multi-turn
+sessions in which almost every request contains the whole previous request.
+Several candidates ran in parallel until the CPU saturated. Simulator wall time
+was never used as the metric.
 
 | Observation | Cause | Action | Source |
 | --- | --- | --- | --- |
-| Ordering by *absolute* tokens saved, fewest first: 1.75×; most first: 2.47×; by *share* of the prompt already cached, highest first: 4.61×. | Share favours requests whose remaining prefill is small relative to what is already resident, so cache pages are reused before eviction. | Try the normalised form of a key as well as the absolute one. | ledger |
-| 4.61× is the load at which the *mean* TTFT equals 10 s. Requiring every run to stay under the bound gives about 3.9×. | Mean-at-bound and every-run-under-bound are different operating points. | Publish the conservative point next to the headline and name which one is quoted. | ledger |
-| At the same 10 s mean, median TTFT moved 1.5 → 5.7 s and the shortest quarter of prompts 1.8 → 9.5 s; the longest-to-mean ratio fell 1.80 → 1.28. | The policy equalises latency: long prompts gain, short cold prompts wait. | Report latency by prompt-length band, not only capacity. State the precondition: prefill-dominated load and no hard sub-second SLO for short requests. | ledger |
-| Run-to-run noise was about 4%. Four successive "guaranteed floor" values were each inside the noise and were all withdrawn. | Single-seed differences below the noise are not results. | Below 5% difference: no conclusion. A "better" verdict also needs a mechanism signal (hit rate up, recompute down, queue shorter). | ledger |
-| Split validation: sessions halved into an evolution half and an exam half gave 2.06× and 2.01× at the baseline's bound load. | Checks the policy is not fitted to the sessions it was found on. | Always hold out sessions. Note that this split used a larger cache pool than the 4.61× figure; the two numbers must not be combined. | ledger |
-| Parameter-level search: −11.2% mean TTFT in 4 generations, then 30 generations without change; the last 80-generation round produced 1 new candidate and 79 duplicates. | The parameter plane was exhausted; the proposer kept regenerating known candidates. | De-duplicate before scoring. When a plane stops moving, switch planes rather than spend generations. | ledger |
-| Structure-level search, first round of 5 candidates: only gate tuning helped (10.5%). Later: place by free slots 33.2%, add a starvation quota (1 slot in 8 for the longest waiter) 38.1%, reserve one quarter of slots 28.2%, order by waiting time only 23.6%. | Structural changes reach gains the parameter plane cannot. | Expect most first-round structural ideas to fail; keep the failures in the trial index. | ledger |
+| Ordering by the *share* of the prompt already cached, highest first, ranked above ordering by *absolute* tokens saved (either direction). | Share favours requests whose remaining prefill is small relative to what is already resident, so cache pages are reused before eviction. | Try the normalised form of a key as well as the absolute one. | ledger |
+| The capacity at which the *mean* TTFT meets the bound was clearly higher than the capacity at which *every* run stays under it. | Mean-at-bound and every-run-under-bound are different operating points. | Publish the conservative point next to any headline and name which one is quoted. | ledger |
+| At the same mean TTFT, median TTFT and the shortest prompts' TTFT got worse while the longest-to-mean ratio fell. | The policy equalises latency: long prompts gain, short cold prompts wait. | Report latency by prompt-length band, not only capacity. State the precondition: prefill-dominated load and no hard sub-second SLO for short requests. | ledger |
+| Several successive "guaranteed floor" values were each inside the run-to-run noise and were all withdrawn. | Single-seed differences below the noise are not results. | Below 5% difference: no conclusion. A "better" verdict also needs a mechanism signal (hit rate up, recompute down, queue shorter). | ledger |
+| Split validation (sessions halved into an evolution half and an exam half) gave similar results on both halves, but under a larger cache pool than the headline run. | Checks the policy is not fitted to the sessions it was found on. | Always hold out sessions, and never combine figures measured under different cache pools. | ledger |
+| Parameter-level search improved for a few generations and then stopped moving; a late round produced almost only duplicates of known candidates. | The parameter plane was exhausted; the proposer kept regenerating known candidates. | De-duplicate before scoring. When a plane stops moving, switch planes rather than spend generations. | ledger |
+| In the first structure-level round only gate tuning helped; later structural ideas (placing by free slots, a starvation quota for the longest waiter, reserving slots, ordering by waiting time) varied widely. | Structural changes reach gains the parameter plane cannot. | Expect most first-round structural ideas to fail; keep the failures in the trial index. | ledger |
 | The champion came from a human-written requirement route, not from the automatic mutation chain. | — | Attribute candidates to their actual origin; write "measured on the same scorer", not "found by the model", unless the chain produced it. | ledger |
 | Most human effort went into making candidates run on both the NPU path and the simulator (interfaces, parameter adaptation, debugging). | Two execution targets. | Budget the adaptation work explicitly; it is the cost driver, not proposal generation. | ledger |
-| At the highest load, recompute was only ten-odd percentage points from perfect reuse with ordering alone, and cold short requests remained slower. | The ordering plane is close to its ceiling. | Next plane: cache residency and admission. | ledger, inferred |
+| At the highest load, ordering alone came close to perfect reuse, and cold short requests remained slower. | The ordering plane is close to its ceiling. | Next plane: cache residency and admission. | ledger, inferred |
 
 Not established: NPU hardware confirmation of the simulated ranking; paired
 per-session statistics instead of the 5% rule; a separate held-out audit split
@@ -59,15 +55,15 @@ hit rate. Code was contributed to
 [JiusiServe/vllm-evolve#1](https://github.com/JiusiServe/vllm-evolve/pull/1)
 (public). Primary trace: Weka cc-traces with sub-agents
 ([HF dataset](https://huggingface.co/datasets/semianalysisai/cc-traces-weka-with-subagents-051926), public);
-219 traces, about 78,000 requests.
+219 traces.
 
 | Observation | Cause | Action | Source |
 | --- | --- | --- | --- |
-| Trace chains are idle 91% of the time; root agents idle p50 2.0 s / p90 35 s, sub-agents p50 0.54 s. | Tool calls and model turns alternate. | Expected return time is a usable eviction feature; sub-agent KV should stay resident before root-agent KV. | ledger, inferred |
-| With 32 sessions and device memory at 10% of the active working set, LRU hit rate 51% against an upper bound of 83% (Belady 78%, prefetch-only 53%); at 25%: 88% against 97%. | The headroom comes from eviction order by expected return, not from prefetch. | Agent-aware eviction is worth searching only when memory is tight; measure the gap to Belady before searching. | ledger |
-| After pinning the blocks of running requests, LRU and Belady differed by only 0.7 points (10%) and 3.3 points (25%); without pinning, by 26 points. | The unpinned replay credited evictions a real engine cannot make. | Model engine constraints (pinning, admission queueing) in the scorer before quoting headroom. | ledger |
-| A 30-generation exploratory search cost 5.15 USD and moved mean hit rate 60.93% → 61.13%. | Small remaining headroom after pinning; the gain is inside noise. | Compute the reachable headroom first; do not spend search budget on a plane with < 1 point to gain. | ledger |
-| On a real vLLM 0.20 engine with Qwen2.5-7B, the evolved eviction function loaded through `--scheduler-cls`, evicted by score, and produced 192/192 identical outputs under batch-invariant mode. | — | The hardware test proves the plug-in runs and keeps outputs; it does not score the policy. Gains come from the RSI scorer only. | ledger |
+| Trace chains are idle most of the time; sub-agents return sooner than root agents. | Tool calls and model turns alternate. | Expected return time is a usable eviction feature; sub-agent KV should stay resident before root-agent KV. | ledger, inferred |
+| With device memory small relative to the active working set, LRU left a large gap to the offline upper bound, and the gap came from eviction order, not prefetch; with more memory the gap shrank. | The headroom comes from eviction order by expected return, not from prefetch. | Agent-aware eviction is worth searching only when memory is tight; measure the gap to Belady before searching. | ledger |
+| After pinning the blocks of running requests, the gap between LRU and Belady almost disappeared; without pinning it looked large. | The unpinned replay credited evictions a real engine cannot make. | Model engine constraints (pinning, admission queueing) in the scorer before quoting headroom. | ledger |
+| An exploratory search after pinning moved mean hit rate only inside the noise. | Small remaining headroom after pinning. | Compute the reachable headroom first; do not spend search budget on a plane with almost nothing to gain. | ledger |
+| On a real vLLM 0.20 engine with Qwen2.5-7B, the evolved eviction function loaded through `--scheduler-cls`, evicted by score, and kept outputs identical under batch-invariant mode. | — | The hardware test proves the plug-in runs and keeps outputs; it does not score the policy. Gains come from the RSI scorer only. | ledger |
 | Locally collected agent sessions were rejected as a dataset. | They have no external standing. | Use public traces already used by papers or benchmarks (Weka cc-traces, FreeInference, TraceLab). | ledger |
 
 ## Campaign gates inherited from both
@@ -87,7 +83,7 @@ harness):
 5. **Daily split.** Record how much of the day went to the hypothesis and how
    much to the harness.
 6. **Kernel gain is not end-to-end gain.** In a sibling InferMatrixLab engine
-   a kernel that was 13% faster in isolation moved end-to-end time by 0.4%
+   a kernel that was clearly faster in isolation barely moved end-to-end time
    (public, `InferMatrixLab/system1-omni`). Score candidates on the full
    generation path only.
 7. **Freeze the rival.** Thresholds written before the run, rival

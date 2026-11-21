@@ -96,7 +96,9 @@ def test_unconfirmed_revert_stops_the_round():
         return sample(44.0 if kw else 40.0)
 
     events = []
-    results = rsi.run_round([("bad", bad), ("good", good)], None, run_once, [sample(40.0)], REF, 3, events.append)
+    results = rsi.run_round(
+        [("bad", bad), ("good", good)], None, run_once, [sample(40.0)], REF, 3, events.append
+    )
     assert list(results) == ["bad"] and not results["bad"]["reverted"]
     assert "revert failed" in results["bad"]["err"]
     assert good.applied == 0 and len(calls) == 2  # no default run after the failed revert
