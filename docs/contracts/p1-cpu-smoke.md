@@ -14,7 +14,9 @@ worker compares them exactly: equality gives C passed, otherwise C failed with
 `response_mismatch`. A missing candidate read gives no C proof rather than a
 mathematical failure. Candidate text cannot supply grader status or provenance.
 
-M measures four real operations A1/B1/B2/A2 (AB, BA), using monotonic nanoseconds
+M measures four real operations A1/B1/B2/A2 (AB, BA), using `perf_counter_ns`
+monotonic nanoseconds under the accepted
+[clock implementation revision](https://github.com/InferMatrixLab/InferRSI/pull/569#issuecomment-7065967644),
 converted by integer arithmetic to canonical Decimal milliseconds. Sampling runs
 regardless of C's result. There is no fill, clamp, minimum, warmup, retry or
 re-measurement. A failed/non-positive/missing sample makes that family incomplete.

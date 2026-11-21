@@ -48,7 +48,7 @@ def evaluate(candidate_path, *, clock=None):
         matched = candidate == baseline()
         grader = {"status": "passed" if matched else "failed",
                   "reasons": [] if matched else ["response_mismatch"]}
-    samples = _samples(candidate_path, time.monotonic_ns if clock is None else clock)
+    samples = _samples(candidate_path, time.perf_counter_ns if clock is None else clock)
     return {"schema_version": 1, "grader": grader, "samples": samples}
 
 
