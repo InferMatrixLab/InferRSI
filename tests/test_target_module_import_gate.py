@@ -191,6 +191,13 @@ def test_by_path_loading_is_admitted_nowhere_else(tmp_path, relative):
     ("apps/runner.py", "from ..infra.environment import storage_locations\n",
      "inferrsi.infra.environment"),
     ("apps/runner.py", "from ..infra.commands import probe_command\n", "inferrsi.infra.commands"),
+    # #558: the trial runner moved to inferrsi.harness.trials.
+    ("apps/runner.py", "from inferrsi.harness.scenarios.external import execute_trial\n",
+     "inferrsi.harness.scenarios.external"),
+    ("harness/runner.py", "from .scenarios.external import collect_trial_checks\n",
+     "inferrsi.harness.scenarios.external"),
+    ("harness/runner.py", "from .scenarios import external\n",
+     "inferrsi.harness.scenarios.external"),
 ])
 def test_retired_model_paths_fail_to_import(tmp_path, importer, source, target):
     report = _report(tmp_path, {importer: source})
@@ -226,6 +233,8 @@ def test_retired_model_paths_fail_from_a_package_initializer(tmp_path, importer,
     "infra/inspection.py",
     "infra/platforms/__init__.py",
     "infra/targets/git.py",
+    "harness/scenarios/__init__.py",
+    "harness/scenarios/external.py",
 ])
 def test_retired_model_files_fail_when_they_return(tmp_path, relative):
     report = _report(tmp_path, {relative: "VALUE = 1\n"})
@@ -245,7 +254,12 @@ def test_the_modules_that_replaced_the_retired_packages_are_not_retired(tmp_path
             "from inferrsi.apps.artifacts import sha256\n"
             "from inferrsi.apps.integrations.anthropic import request_guard\n"
         ),
-        "harness/runner.py": "from inferrsi.harness.serving.image import ImageProtocol\n",
+        "harness/runner.py": (
+            "from inferrsi.harness.serving.image import ImageProtocol\n"
+            "from .trials.external import collect_trial_checks\n"
+        ),
+        "harness/trials/__init__.py": "",
+        "harness/trials/external.py": "def collect_trial_checks():\n    return []\n",
         "benchmark/runner.py": "from inferrsi.benchmark.metrics import read_metric\n",
     })
     assert not [item for item in report.violations if "retired module" in item]

@@ -38,7 +38,7 @@ tool and retain the native identity and returned artifacts. The child owns the
 complete start/knowledge/round/final lifecycle; the parent observes and collects. This path records the handoff; it
 does not implement a background Agent CLI driver or a native-host deadline.
 
-The application injects `harness.scenarios.external.execute_trial` into the
+The application injects `harness.trials.external.execute_trial` into the
 [two-rank MoE entry](moe-forward-benchmark.md). The standalone image benchmark
 and [TTS service protocol](tts-benchmark.md) expose their documented execution
 boundaries. Apps and Harness callers assemble these operations into optimization
@@ -317,7 +317,7 @@ src/inferrsi/
     artifact_sandbox.py     Artifact capture and bubblewrap replay; no vectors or verdicts
     atomic_json.py          Harness-owned atomic JSON evidence writes
     runner.py               One AB/BA loop; execute/snapshot/assess/report ports injected
-    scenarios/
+    trials/
       external.py           External command trials; metric validation injected
     serving/
       server.py             Supervised Linux serving workers and their group cleanup
@@ -352,7 +352,7 @@ the dependency checks.
 
 | Add | Main extension locations | Required qualification |
 | --- | --- | --- |
-| Model or scenario | `harness/serving`, `benchmark/metrics.py`, `benchmark/validators`; trials run through the model-independent `harness/scenarios/external.py` | Frozen request and metric contract; model-specific quality coverage |
+| Model or scenario | `harness/serving`, `benchmark/metrics.py`, `benchmark/validators`; trials run through the model-independent `harness/trials/external.py` | Frozen request and metric contract; model-specific quality coverage |
 | Repository | `apps/host/targets`, a composed scenario, `harness/data/repo_packs` | Stable source identity; command/result contract; environment isolation |
 | Hardware | `apps/host/platforms` | Device selection, process exclusivity and independent backend/model evidence; a backend is registered in `apps/host/platforms/__init__.py` and its probe command is defined in the implementing module under `apps/host/platforms/`, not in package data |
 
@@ -400,7 +400,7 @@ float; `benchmark.legacy_run_v0.trial_metric` then applies the one finite, posit
 metric contract (`benchmark.metrics.validate_metric`) to whatever the reader
 returns, so a reader that yields `0.0`, a `bool` or a non-finite value records a
 metric error rather than entering the evaluation. The Harness executor
-`harness.scenarios.external.execute_trial` holds no metric rule: a caller that
+`harness.trials.external.execute_trial` holds no metric rule: a caller that
 passes a metric key also passes `metric=`, its validation function.
 
 Run state is written by the termination path, never assumed. `status.json`

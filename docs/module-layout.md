@@ -217,7 +217,7 @@ Several flat modules remain shared seams until their slice starts.
 | `apps/views/`, `apps/workflows/campaign.py` | Dashboard views, templates and the Knowledge-to-records connection | Apps composition under #371; campaign composition is grouped under workflows by #490 |
 | `apps/integrations/mindie/` (`project.py`, `context.py`, `mcp.py`, `read_worker.py`) | The local MindIE adapter: project grant, stdio MCP, context export and the read worker | M1 (#452) moved the four root MindIE files here; no Harness, Knowledge or Infra module names MindIE, and the initializer imports nothing |
 | `harness/` | Mixed legacy tree, not target isolation | Not redefined |
-| `harness/runner.py`, `harness/scenarios/external.py`, `harness/atomic_json.py` | Old run execution facts and Harness-owned JSON writes | Ports injected; no Model edge, and no Infra edge except the local process executor |
+| `harness/runner.py`, `harness/trials/external.py`, `harness/atomic_json.py` | Old run execution facts and Harness-owned JSON writes | Ports injected; no Model edge, and no Infra edge except the local process executor |
 | `benchmark/legacy_run_v0.py`, `benchmark/sampling.py` | Old run gates and metric validation; image/video sample collection | Imports only `benchmark/metrics.py`; owns its rule inputs and verdict labels |
 | `apps/legacy/` | Old run composition, old `evaluate` entry and HTML report | Supplies the Git source snapshot from `apps/host/targets`; remains in Apps |
 | `apps/inspection.py` | Prepared-environment inspection bound to this host | Binds the `apps/host/inspection.py` facts API to `apps.host.commands.probe_command` and `apps.host.targets.repository_identity`; replaces root `inspection.py`, which R1 deleted with the three old-run root forwarders |
