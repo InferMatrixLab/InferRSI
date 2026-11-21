@@ -42,6 +42,22 @@
         "Final ABBA, full visual acceptance and cross-hardware reference quality remain incomplete; all latency targets remain unmet."
       ]
     },
+    "h3-ref2va-ascend-history-20261118": {
+      "kind": "campaign",
+      "manifests": [
+        {
+          "path": "results/artifacts.json",
+          "schema": "archive-sha256",
+          "field": "archive",
+          "artifact": "results/h3-ref2va-ascend-history-20261118-v2.tar.gz"
+        }
+      ],
+      "external": [
+        "Historical record tracked in Issue #520; performance and quality remain INCONCLUSIVE.",
+        "The versioned archive contains privacy-reviewed text and structured evidence but excludes generated media, controlled originals, model/cache payloads, the complete VBench workspace, and deleted container state.",
+        "Archive integrity and arithmetic recomputation do not establish model-quality equivalence, service gains, or campaign acceptance."
+      ]
+    },
     "h3-ref2va-910c-4logical-20261101-297": {
       "kind": "campaign",
       "manifests": [

@@ -1,0 +1,58 @@
+{
+  "schema_version": 2,
+  "archive": {
+    "id": "h3-ref2va-ascend-history-20261118-v2",
+    "file": "h3-ref2va-ascend-history-20261118-v2.tar.gz",
+    "url": "https://github.com/InferMatrixLab/InferRSI/releases/download/evidence-h3-ref2va-ascend-history-20261118-v2/h3-ref2va-ascend-history-20261118-v2.tar.gz",
+    "sha256": "778f5c7c73cea6ee0f545a59fa91f9a40c79818545f86d49f001d2b36585a0cd",
+    "bytes": 5454990,
+    "format": "tar+gzip",
+    "source_revision": "663f3b327998526a13aa31e72ad729025c18983c",
+    "root": "h3-ref2va-ascend-history-20261118",
+    "files": 2684,
+    "uncompressed_bytes": 40740727,
+    "key_files": {
+      "configuration": "h3-ref2va-ascend-history-20261118/plan/effective.json",
+      "trials": "h3-ref2va-ascend-history-20261118/results/trials.jsonl",
+      "summary": "h3-ref2va-ascend-history-20261118/results/summary.json",
+      "record": "h3-ref2va-ascend-history-20261118/records/external_optimization_record.json",
+      "validator": "h3-ref2va-ascend-history-20261118/validator/recompute.py",
+      "redaction_inventory": "h3-ref2va-ascend-history-20261118/results/redactions.json"
+    },
+    "retention_owner": "JingjingWu6"
+  },
+  "verification": {
+    "inputs": [
+      {
+        "path": "h3-ref2va-ascend-history-20261118/results/summary.json",
+        "sha256": "40186cf06b23026b9e8ff5fd102d5e40a60c78c81d601002651d6b1ed844dcab",
+        "role": "control"
+      },
+      {
+        "path": "h3-ref2va-ascend-history-20261118/plan/effective.json",
+        "sha256": "50165f47ae6e2ca959c5480047aad5de4a554df9c68a4996ddf4d9110dadb35c",
+        "role": "configuration"
+      },
+      {
+        "path": "h3-ref2va-ascend-history-20261118/validator/recompute.py",
+        "sha256": "eacd63f7c0f37a06c11e3d9a6b1020159a5a558c52b5236d811fc230678a82f0",
+        "role": "validator"
+      }
+    ],
+    "command": ["python", "validator/recompute.py"],
+    "trials": "results/trials.jsonl",
+    "summary": "results/summary.json",
+    "absolute_tolerance": 1e-12,
+    "relative_tolerance": 0.0
+  },
+  "availability": {
+    "verdict": "INCONCLUSIVE",
+    "included": "Redacted text logs, JSON/JSONL results, configurations, selected profiler outputs, source references, trial index, summary, and arithmetic recomputation.",
+    "excluded": [
+      "Generated media and controlled original inputs",
+      "Model weights, caches, and the complete VBench workspace",
+      "Deleted container state and incompletely retained runtime/source identities"
+    ],
+    "limit": "Archive integrity and arithmetic replay do not establish model quality, service gains, or campaign acceptance."
+  }
+}

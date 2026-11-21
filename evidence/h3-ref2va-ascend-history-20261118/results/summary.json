@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "campaign_id": "h3-ref2va-ascend-history-20261118",
+  "verdict": "INCONCLUSIVE",
+  "trial_rows": 448,
+  "status_counts": {
+    "FAILED": 7,
+    "RECORDED": 404,
+    "RECORDED_VALUE": 4,
+    "COMPLETED": 27,
+    "INCONCLUSIVE": 6
+  },
+  "failed_or_regressing": 7,
+  "interrupted_or_incomplete": 0,
+  "duplicates": 0,
+  "performance": {
+    "opus_50_step_recorded_speedup": 4.224246364867411,
+    "opus_derivation": "701.954369 / 166.172687 from the retained InferRSI evaluation and trial result JSONs.",
+    "deepseek_10step_cachedit_recorded_speedup": 7.374744339646142,
+    "deepseek_seed_group_speedups": [
+      7.71175565987307,
+      7.2540855539449725,
+      7.158391805120384
+    ],
+    "deepseek_range": [
+      7.158391805120384,
+      7.71175565987307
+    ],
+    "deepseek_note": "Arithmetic mean of the three retained per-seed paired speedups; each seed has 11 paired requests."
+  },
+  "quality": {
+    "verdict": "INCONCLUSIVE",
+    "note": "Performance and quality are kept separate. Historical thresholds were not frozen in an acceptance issue and some VBench dimensions have n=1 per seed."
+  },
+  "limitations": [
+    "No pre-existing acceptance issue or frozen current-main validators.",
+    "Historical PASS labels are retained only as source observations.",
+    "Containers were deleted; only retained files were collected.",
+    "<VBENCH_ROOT> was sampled for structured/text evidence, not mirrored in full.",
+    "Media files and large caches are not included in this archive."
+  ]
+}
