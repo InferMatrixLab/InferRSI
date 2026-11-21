@@ -268,6 +268,12 @@ def _binding(prepared, evidence):
                  and record["candidate"]["candidate_id"]
                  == prepared["expected_candidate"]["candidate_id"],
                  "Declared candidate identity differs.", "IdentityMismatch")
+        for item in record["bound_inputs"]:
+            if (isinstance(item, dict) and item.get("role") == record["candidate"]["input_role"]
+                    and item.get("attempt_id") == record["attempt_id"]
+                    and item.get("expected_sha256") is not None):
+                _require(item["expected_sha256"] == prepared["expected_candidate"]["sha256"],
+                         "Declared candidate expectation differs.", "IdentityMismatch")
     return record
 
 
@@ -505,6 +511,11 @@ class AssessmentService:
         try:
             prepared = canonical_decode(canonical_encode(prepared))
             evidence = canonical_decode(canonical_encode(evidence))
+        except CanonicalError:
+            return AssessmentError(
+                "InvalidRequest", "Malformed canonical assessment input.",
+            ).to_json()
+        try:
             try:
                 record = _binding(prepared, evidence)
             except (KeyError, TypeError):
@@ -513,8 +524,11 @@ class AssessmentService:
             data, reason = reader.read(prepared["protocol"])
             _require(data is not None, "Frozen protocol unavailable.",
                      reason if reason in _ITEM_ERRORS else "InvalidRequest")
-            preparation.validate_prepared(prepared, data)
-            protocol = canonical_decode(data)
+            try:
+                preparation.validate_prepared(prepared, data)
+                protocol = canonical_decode(data)
+            except CanonicalError:
+                raise AssessmentError("InvalidRequest", "Invalid frozen protocol bytes.") from None
             for resource in preparation._closure(protocol):
                 _artifact(resource["artifact"])
             actual = _captured_candidate(prepared, record, reader)
@@ -547,10 +561,6 @@ class AssessmentService:
             return result
         except (AssessmentError, preparation.PreparationError) as error:
             return AssessmentError(error.code, str(error)).to_json()
-        except CanonicalError:
-            return AssessmentError(
-                "InvalidRequest", "Malformed canonical assessment input.",
-            ).to_json()
 
 
 def assess(prepared: dict, evidence: dict, *, artifacts) -> dict:

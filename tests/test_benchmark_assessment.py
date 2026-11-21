@@ -18,7 +18,7 @@ from inferrsi.apps.storage.archive import read_prepared
 from inferrsi.apps.storage.artifact_reader import ArtifactReader
 from inferrsi.benchmark import assessment
 from inferrsi.benchmark import preparation as preparation_port
-from inferrsi.contracts.json_v1 import decode, encode
+from inferrsi.contracts.json_v1 import CanonicalError, decode, encode
 from inferrsi.harness.errors import PublicError
 from tests.test_benchmark_preparation import preparation as preparation
 
@@ -153,7 +153,9 @@ def test_all_positive_proofs_are_validated_against_captured_bytes(retained):
     assessment.validate_assessment(result)
     check_assessment_identity(result)
     assert assessment.decode(assessment.encode(result)) == result
-    schema = json.loads((ROOT / "docs/contracts/schemas/contract-v1.schema.json").read_text())
+    schema = json.loads((ROOT / "docs/contracts/schemas/contract-v1.schema.json").read_text(
+        encoding="utf-8",
+    ))
     Draft202012Validator({**schema, "$ref": "#/$defs/EvaluationResult"}).validate(result)
     _, evidence = retained["seal"]()
     Draft202012Validator({**schema, "$ref": "#/$defs/EvidenceInput"}).validate(evidence)
@@ -200,12 +202,15 @@ def test_each_read_failure_is_only_a_claim_gap(retained, kind):
     assert result["claims"][0]["missing_evidence"] == ["format"]
 
 
-def test_host_programming_errors_are_not_disguised_as_missing_evidence(retained):
+@pytest.mark.parametrize("error", [TypeError("broken host adapter"),
+                                  CanonicalError("host_adapter", "broken host adapter")],
+                         ids=["type", "canonical"])
+def test_host_programming_errors_are_not_disguised_as_missing_evidence(retained, error):
     class Broken:
         def open(self, ref):
-            raise TypeError("broken host adapter")
+            raise error
 
-    with pytest.raises(TypeError, match="broken host"):
+    with pytest.raises(type(error), match="broken host"):
         run(retained, reader=Broken())
 
 
@@ -555,3 +560,16 @@ def test_invalid_prepared_resource_path_is_rejected_without_reading(retained):
 
     result = assessment.assess(retained["prepared"], evidence, artifacts=Never())
     assert result["code"] == "InvalidRequest"
+
+
+def test_conflicting_declared_candidate_expectation_is_a_binding_error(retained):
+    prepared, record = retained["prepared"], retained["record"]
+    prepared["expected_candidate"] = {
+        "candidate_id": record["candidate"]["candidate_id"], "sha256": "0" * 64,
+        "format_schema": deepcopy(prepared["candidate_contract"]["format_schema"]),
+    }
+    prepared["prepared_id"] = preparation_port.prepared_id(prepared)
+    record["prepared_ref"].update(prepared_id=prepared["prepared_id"], artifact=retained["put"](
+        "different-expectation.json", preparation_port.encode(prepared),
+    ))
+    assert run(retained)["code"] == "IdentityMismatch"
