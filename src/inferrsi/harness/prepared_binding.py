@@ -3,7 +3,7 @@
 An evaluation-mode ExecutionSpec names its preparation by PreparedRef. Before any
 registration, H reads the fixed bytes through the read-only artifact port, verifies them
 against the Ref and compares the fields it needs with the spec: ids, digests, operation and
-scope, the candidate declaration and the frozen worker code digest. The projection is defined
+scope, the candidate declaration and the frozen worker declarations. The projection is defined
 here. It imports nothing from Benchmark or Apps, and it never interprets task rules, formats
 or scores.
 
@@ -20,7 +20,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 
 from inferrsi.contracts import json_v1
-from inferrsi.harness import run_store
+from inferrsi.harness import input_binding, run_store
 from inferrsi.harness.errors import PublicError
 
 STAGE = "prepared_binding"
@@ -53,6 +53,9 @@ _RECIPE_FIELDS = frozenset(
 )
 _EXPECTED_FIELDS = frozenset({"candidate_id", "sha256", "format_schema"})
 _DEFINITION_FIELDS = frozenset({"name", "revision"})
+_OUTPUT_FIELDS = frozenset({"role", "path", "required", "media_type", "format_schema"})
+_ARTIFACT_FIELDS = frozenset({"location", "sha256", "size_bytes", "media_type"})
+_PLACEHOLDER = re.compile(r"\{(input|output):([^{}]+)\}")
 _SEMANTIC_ID = re.compile(r"sha256:[0-9a-f]{64}", re.ASCII)
 _SHA256 = re.compile(r"[0-9a-f]{64}", re.ASCII)
 _READ_CHUNK = 1024 * 1024
@@ -60,7 +63,7 @@ _READ_CHUNK = 1024 * 1024
 
 @dataclass(frozen=True)
 class FixedPreparation:
-    """The identity fields H reads from a fixed preparation; nothing else is retained."""
+    """H's mechanical identity/binding projection; task rules and scores are not retained."""
 
     prepared_id: str
     operation: str
@@ -72,6 +75,7 @@ class FixedPreparation:
     identity_rule: dict
     expected_candidate: dict | None
     code_sha256: str
+    recipe: dict
 
 
 def _refuse(code: str, message: str, field_errors: list[str] | None = None) -> PublicError:
@@ -92,6 +96,60 @@ def _is_semantic_id(value: object) -> bool:
     return isinstance(value, str) and _SEMANTIC_ID.fullmatch(value) is not None
 
 
+def _is_ids(value: object) -> bool:
+    return (isinstance(value, list) and all(run_store._is_id(item) for item in value)
+            and len(set(value)) == len(value))
+
+
+def _is_path(value: object) -> bool:
+    return isinstance(value, str) and input_binding.RELATIVE_PATH.fullmatch(value) is not None
+
+
+def _recipe_errors(recipe: object) -> list[str]:
+    """Validate only mechanical worker declarations, without interpreting formats or rules."""
+    if not run_store._has_fields(recipe, _RECIPE_FIELDS):
+        return ["prepared.recipe: not the OperationRecipe fields"]
+    errors = []
+    for name in ("recipe_revision", "runtime_role", "entrypoint_revision"):
+        if not run_store._is_id(recipe[name]):
+            errors.append(f"prepared.recipe.{name}: not an Id")
+    if recipe["entrypoint_kind"] not in ("python_module", "executable"):
+        errors.append("prepared.recipe.entrypoint_kind: not a supported entry kind")
+    if not isinstance(recipe["entrypoint"], str) or not recipe["entrypoint"]:
+        errors.append("prepared.recipe.entrypoint: not a non-empty Text")
+    if not _is_sha256(recipe["code_sha256"]):
+        errors.append("prepared.recipe.code_sha256: not a Sha256")
+    for name in ("input_roles", "required_capabilities"):
+        if not _is_ids(recipe[name]):
+            errors.append(f"prepared.recipe.{name}: not a list of unique Ids")
+    outputs = recipe["outputs"]
+    if not isinstance(outputs, list) or not all(
+        run_store._has_fields(item, _OUTPUT_FIELDS)
+        and run_store._is_id(item["role"]) and _is_path(item["path"])
+        and type(item["required"]) is bool
+        and isinstance(item["media_type"], str) and bool(item["media_type"])
+        and _is_definition(item["format_schema"]) for item in outputs
+    ):
+        errors.append("prepared.recipe.outputs: not a list of OutputSpec")
+    elif (len({item["role"] for item in outputs}) != len(outputs)
+          or len({item["path"] for item in outputs}) != len(outputs)):
+        errors.append("prepared.recipe.outputs: roles and paths must be unique")
+    args = recipe["args"]
+    if not isinstance(args, list) or not all(isinstance(arg, str) for arg in args):
+        errors.append("prepared.recipe.args: not a list of Text")
+    elif not errors:
+        roles = {"input": set(recipe["input_roles"]),
+                 "output": {item["role"] for item in outputs}}
+        for arg in args:
+            match = _PLACEHOLDER.fullmatch(arg)
+            if match:
+                if match[2] not in roles[match[1]]:
+                    errors.append("prepared.recipe.args: unknown placeholder role")
+            elif "{input:" in arg or "{output:" in arg:
+                errors.append("prepared.recipe.args: placeholders must occupy a whole argument")
+    return errors
+
+
 def read(ref: Mapping, reader) -> bytes:
     """The fixed bytes of ``ref`` from the read-only port, verified against the Ref.
 
@@ -99,17 +157,23 @@ def read(ref: Mapping, reader) -> bytes:
     (V06). At most ``size_bytes + 1`` bytes are read, so a wrong Ref cannot make this
     allocate more than the stream actually holds.
     """
+    if not (run_store._has_fields(ref, _ARTIFACT_FIELDS) and _is_path(ref["location"])
+            and _is_sha256(ref["sha256"]) and type(ref["size_bytes"]) is int
+            and 0 <= ref["size_bytes"] <= json_v1.MAX_SAFE_INTEGER
+            and ref["media_type"] == PREPARED_MEDIA_TYPE):
+        raise _refuse("InvalidExecutionSpec", "illegal fixed preparation ArtifactRef")
     if reader is None:
         raise _refuse(
             "ArtifactUnavailable", "no read-only artifact reader is configured for the "
             "fixed preparation",
         )
     size = ref["size_bytes"]
+    expected_sha256 = ref["sha256"]
     digest = hashlib.sha256()
     parts: list[bytes] = []
     total = 0
     try:
-        stream = reader.open(ref)
+        stream = reader.open(dict(ref))
         with stream:
             while total <= size:
                 chunk = stream.read(min(_READ_CHUNK, size + 1 - total))
@@ -125,7 +189,7 @@ def read(ref: Mapping, reader) -> bytes:
             "ArtifactUnavailable",
             f"the fixed preparation could not be read: {run_store._describe(exc)}",
         ) from exc
-    if total != size or digest.hexdigest() != ref["sha256"]:
+    if total != size or digest.hexdigest() != expected_sha256:
         raise _refuse(
             "ArtifactIntegrityError", "the fixed preparation bytes differ from their ArtifactRef"
         )
@@ -170,10 +234,7 @@ def project(data: bytes) -> FixedPreparation:
         for name in ("format_schema", "identity_rule"):
             if not _is_definition(contract[name]):
                 errors.append(f"prepared.candidate_contract.{name}: not a DefinitionRef")
-    if not run_store._has_fields(recipe, _RECIPE_FIELDS):
-        errors.append("prepared.recipe: not the OperationRecipe fields")
-    elif not _is_sha256(recipe["code_sha256"]):
-        errors.append("prepared.recipe.code_sha256: not a Sha256")
+    errors.extend(_recipe_errors(recipe))
     if expected is not None:
         if not run_store._has_fields(expected, _EXPECTED_FIELDS):
             errors.append(
@@ -199,6 +260,7 @@ def project(data: bytes) -> FixedPreparation:
         identity_rule=contract["identity_rule"],
         expected_candidate=expected,
         code_sha256=recipe["code_sha256"],
+        recipe=recipe,
     )
 
 
@@ -224,6 +286,7 @@ def _check_declarations(spec: Mapping, fixed: FixedPreparation) -> None:
         for index, step in enumerate(spec["steps"])
         if step["expected_code_sha256"] != fixed.code_sha256
     ]
+    errors.extend(_worker_errors(spec, fixed.recipe))
     candidate = spec["candidate"]
     if candidate["input_role"] != fixed.candidate_input_role:
         errors.append("candidate.input_role: differs from the frozen candidate contract")
@@ -251,6 +314,37 @@ def _check_declarations(spec: Mapping, fixed: FixedPreparation) -> None:
             "InvalidExecutionSpec", "the execution spec conflicts with its fixed preparation",
             errors,
         )
+
+
+def _worker_errors(spec: Mapping, recipe: dict) -> list[str]:
+    """Preserve the frozen worker's entry, paths and placeholder-expanded arguments."""
+    errors = []
+    if len(spec["steps"]) != 1:
+        return ["steps: the frozen recipe binds exactly one worker step"]
+    step = spec["steps"][0]
+    for name in ("runtime_role", "entrypoint_kind", "entrypoint", "entrypoint_revision", "outputs"):
+        if step[name] != recipe[name]:
+            errors.append(f"steps[0].{name}: differs from the frozen worker declaration")
+    if step["cwd"] != ".":
+        errors.append("steps[0].cwd: frozen recipe paths are relative to the attempt directory")
+    if not set(recipe["required_capabilities"]) <= set(spec["required_capabilities"]):
+        errors.append("required_capabilities: missing a frozen worker requirement")
+    inputs = {item["role"]: item["materialized_path"] for item in spec["inputs"]}
+    if not set(recipe["input_roles"]) <= inputs.keys():
+        errors.append("inputs: missing a frozen worker input role")
+    else:
+        outputs = {item["role"]: item["path"] for item in recipe["outputs"]}
+        paths = {"input": inputs, "output": outputs}
+        args = []
+        for arg in recipe["args"]:
+            match = _PLACEHOLDER.fullmatch(arg)
+            args.append(paths[match[1]][match[2]] if match else arg)
+        if step["args"] != args:
+            errors.append("steps[0].args: differs from the frozen recipe binding")
+        ordered = sorted(tuple(path.split("/")) for path in [*inputs.values(), *outputs.values()])
+        if any(b[:len(a)] == a for a, b in zip(ordered, ordered[1:])):
+            errors.append("inputs/outputs: materialized paths must not overlap")
+    return errors
 
 
 def verify(spec: Mapping, reader) -> FixedPreparation:
