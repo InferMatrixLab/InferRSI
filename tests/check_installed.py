@@ -918,10 +918,12 @@ for retired in ("inferrsi.infra", "inferrsi.infra.artifacts", "inferrsi.infra.pr
                 "inferrsi.infra.inspection", "inferrsi.infra.environment",
                 "inferrsi.infra.platforms", "inferrsi.infra.targets", "inferrsi.model",
                 "inferrsi.model.anthropic_agent", "inferrsi.model.anthropic_edit_agent",
-                "inferrsi.model.request_guard"):
+                "inferrsi.model.request_guard", "inferrsi.harness.scenarios",
+                "inferrsi.harness.scenarios.external"):
     assert_not_importable(retired)
 assert not {child.name for child in files("inferrsi").iterdir()} & {"infra", "model"}
-for canonical in ("inferrsi.harness.serving", "inferrsi.harness.serving.server",
+for canonical in ("inferrsi.harness.trials", "inferrsi.harness.trials.external",
+                  "inferrsi.harness.serving", "inferrsi.harness.serving.server",
                   "inferrsi.harness.serving.http", "inferrsi.harness.serving.image",
                   "inferrsi.apps.host.commands", "inferrsi.apps.host.inspection",
                   "inferrsi.apps.host.environment", "inferrsi.apps.host.platforms",

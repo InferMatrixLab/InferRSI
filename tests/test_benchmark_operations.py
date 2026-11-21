@@ -84,7 +84,7 @@ def test_application_injects_executor_and_preserves_script_imports(library):
     (package / "benchmark.py").write_text(
         "from helper import VALUE\n"
         "assert VALUE == 42\n"
-        "assert execute_trial.__module__ == 'inferrsi.harness.scenarios.external'\n",
+        "assert execute_trial.__module__ == 'inferrsi.harness.trials.external'\n",
         encoding="utf-8",
     )
     assert main(["benchmarks", "run", package.name]) == 0
