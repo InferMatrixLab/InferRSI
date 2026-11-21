@@ -1,10 +1,14 @@
-# Inkling 2 Mini on Apple silicon: local adaptation and one RSI round
+# Inkling 2 Mini on Apple silicon: local adaptation and four RSI rounds
 
 **On one M5 Max, MLX ran Inkling 2 Mini at 47.0 tok/s decode and 1,677 tok/s
-prefill (512-token prompt), ahead of llama.cpp at 41.7 and 998. Two search
-rounds then found a compile patch that raised MLX decode by 6.4% (paired
-median, held-out prompts, run-to-run noise 3.9%) with token-identical greedy
-output.** These are maintainer measurements without an acceptance issue; they
+prefill (512-token prompt), ahead of llama.cpp at 41.7 and 998. Four search
+rounds then raised MLX decode 1.491× (paired median, held-out prompts,
+run-to-run noise 9.2%) with token-identical greedy output: about 47 → 70
+tok/s. Rounds 1–2 compiled sub-blocks (1.064×); rounds 3–4 rebuilt the
+single-token layer path (two compiled graphs per layer visit around the cache
+write, a one-kernel attention mask, fused projections, one-kernel short
+convolutions) and halved the ops per step.** The patch is published as
+[zuiho-kai/inkling2-mlx-fastpath](https://github.com/zuiho-kai/inkling2-mlx-fastpath). These are maintainer measurements without an acceptance issue; they
 are not an InferRSI PASS.
 
 [Inkling 2 Mini](https://huggingface.co/thinkingmachines/Inkling-2-Mini) is a
@@ -116,10 +120,52 @@ rest is GPU time from fewer, fused kernels. The winning patch is
 `rounds/r2/cands/r2d_fused_half_gates.py`; it changes no weights and no
 numerics outside the compiled regions.
 
+**Round 3** (proposed from a per-module profile: at decode shape the
+attention half of a layer visit cost ~240 µs against ~90 µs for the MoE,
+nearly all in small ops). Each layer visit for B = 1, L = 1 is split into
+three parts: everything before the KV-cache write as one compiled graph, the
+cache write and attention eager (their length changes every step), everything
+after as a second compiled graph; conv states become explicit inputs and
+outputs. Options on top: the attention mask/bias (arange, compare, gather,
+where, cast) as one Metal kernel; q/r/gate/sink projections concatenated into
+one quantized matmul (all six in sliding layers without loop messages);
+message-gate forget/message projections as one matmul.
+
+| Candidate | Evolve (noise 9.1%) | Holdout (noise 6.8%) | Output |
+| --- | ---: | ---: | --- |
+| three-part layer path | 1.290 | 1.290 | identical |
+| + mask kernel | 1.354 | 1.353 | identical |
+| + fused q/r/gate/sink | 1.430 | **1.419** | identical |
+| + all six projections in one | 1.424 | 1.396 | identical |
+| + fused message-gate projections | 1.375 | 1.392 | identical |
+
+The last two are within 5% of the third: no conclusion.
+
+**Round 4** (proposed from the op count after round 3: the 4-tap short
+convolutions, four per layer visit, were each a concatenate, two casts, a
+generic convolution, an add/divide and a state slice).
+
+| Candidate | Evolve (noise 12.2%) | Holdout (noise 9.2%) | Output |
+| --- | ---: | ---: | --- |
+| **round-3 options + one-kernel short convs** | **1.486** | **1.491** (1.462, 1.491, 1.515) | identical |
+| round-3 options, re-run as reference | 1.327 | 1.409 | identical |
+| + q/k/v message gates as one batched matmul | 1.516 | 1.501 | identical |
+
+Batched gates are within 5% of the shipped candidate: no conclusion, not
+shipped. Default-path tok/s varied 43–48 across rounds (thermal); only the
+adjacent-paired ratios are compared.
+
+Mechanism, round 4 candidate against default (one decode step, median of 50
+steps, two alternating processes each; non-view ops counted from the step
+graph): step 22.1 → 15.3 ms, Python graph building 3.9 → 1.8 ms, non-view
+ops per step 7,624 → 3,664. The weights read per token (~2.5 GB) would take
+about 5 ms at the machine's bandwidth, so the step remains launch-bound.
+
 **How candidates were produced.** The candidates were written by the
 assistant running the campaign (Claude Code, `claude-opus-5-5`) from reading
-the model source; no automatic mutation chain was used. Round 2 was proposed
-after reading round 1's scores.
+the model source; no automatic mutation chain was used. Each round was
+proposed after reading the previous round's scores and, for rounds 3–4, a
+per-module profile and an op count of one decode step.
 
 ## What we did not establish
 
@@ -130,7 +176,8 @@ after reading round 1's scores.
   prefill-heavy work was measured only by the 512-token benchmark.
 - Quality was checked only as greedy-token identity on four prompts and one
   passing generated test file; no benchmark accuracy.
-- The compile patch was not measured inside `mlx_lm.server` and was not
-  proposed upstream.
+- The patch was not measured inside `mlx_lm.server` and was not proposed to
+  mlx-lm. "Identical" means identical greedy tokens on the prompts tested; the
+  compiled graphs are not proven bit-exact for every input.
 - llama.cpp was run with default settings; its flags were not searched, so
   the route comparison is default against default.
