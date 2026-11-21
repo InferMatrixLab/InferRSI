@@ -80,16 +80,14 @@ def attach_native_usage(snapshot, result, job):
     coverage = payload.get("benchmark_token_coverage") or {}
     workspace_bound = snapshot.root.resolve().is_relative_to(Path(request["workspace"]).resolve())
     policy = plan.get("report_metadata", {}).get("benchmark_metrics")
-    usage = result["benchmark_metrics"]["token_usage"]
-    selected_native_usage = False
+    usage = None
     # A standalone job can contain several campaigns: bind the exact frozen plan too.
     if (supported_policy(policy) and workspace_bound and isinstance(coverage, dict)
             and coverage.get("campaign_plan_digest") == control["plan_digest"]):
         usage = terminal_token_usage(host, payload, trial_id=plan.get("condition"),
                                      control=control, source=ref)
-        selected_native_usage = True
     refs = snapshot.include(native, "agent-job:")
-    if selected_native_usage:
+    if usage is not None and usage["observed_tokens"] is not None:
         usage["source"] = refs[ref]
         result["usage"]["session_tokens"] = {
             "value": {key: usage[key] for key in (
