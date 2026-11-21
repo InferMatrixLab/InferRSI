@@ -11,8 +11,8 @@ from pathlib import Path
 
 import pytest
 
-from inferrsi.apps.mindie import project as mindie_project
-from inferrsi.apps.mindie.context import MAX_BYTES
+from inferrsi.apps.integrations.mindie import project as mindie_project
+from inferrsi.apps.integrations.mindie.context import MAX_BYTES
 
 
 @pytest.fixture
@@ -236,7 +236,7 @@ def test_mcp_stdio_round_trip(reader, tmp_path, monkeypatch, oversized_line):
             wire += "\n"
     if oversized_line != "eof":
         wire += '{"jsonrpc":"2.0","id":7,"method":"ping"}\n'
-    source = str(Path(mindie_project.__file__).resolve().parents[3])
+    source = str(Path(__file__).resolve().parents[1] / "src")
     process = subprocess.run(
         [sys.executable, "-I", "-B", "-c", f"import sys; sys.path.insert(0, {source!r}); "
          "from inferrsi.apps.cli import main; raise SystemExit(main(['mindie', 'serve']))"],

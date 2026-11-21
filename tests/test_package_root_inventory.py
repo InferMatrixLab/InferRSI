@@ -20,7 +20,7 @@ PACKAGE = "src/inferrsi"
 # retired: seven Knowledge shells, three old-run forwarders and the root inspection
 # binding, whose implementations are in knowledge/ and apps/, the two that A1 moved
 # into apps/cli/, the two that A2 moved into apps/ and the four that M1 moved into
-# apps/mindie/.
+# apps/integrations/mindie/.
 RETIRED_BY_C1 = frozenset({"_json_v1.py", "claim.py", "contracts.py", "runspec.py"})
 RETIRED_BY_C2 = frozenset({"_repo_pack_data.py", "evidence_paths.py"})
 RETIRED_BY_R1 = frozenset(
@@ -43,7 +43,7 @@ RETIRED_BY_A1 = frozenset({"arguments.py", "cli.py"})
 # A2 (#408) moved the chart renderer to apps/views/ and the task launcher to apps/, and
 # deleted both root files.
 RETIRED_BY_A2 = frozenset({"benchmark_operations.py", "summary_chart.py"})
-# M1 (#452) moved the MindIE adapter to apps/mindie/ and deleted the four root files.
+# M1 (#452) moved the MindIE adapter to apps/integrations/mindie/ and deleted the four root files.
 RETIRED_BY_M1 = frozenset(
     {"_mindie_read_worker.py", "mindie_context.py", "mindie_mcp.py", "mindie_project.py"}
 )
@@ -109,12 +109,12 @@ def test_inventory_is_the_exact_final_two_file_root() -> None:
     assert len(ROOT_FILES | RETIRED_BY_M1) == 6
     assert GENERATED not in ROOT_FILES
     assert ROOT_FILES == {"__init__.py", "__main__.py"}
-    # M1 moved its four files; the implementation is the apps/mindie package.
+    # M1 moved its four files into Apps; #490 groups the implementation in integrations.
     for name in ("project.py", "context.py", "mcp.py", "read_worker.py"):
-        assert (REPO / PACKAGE / "apps" / "mindie" / name).is_file(), name
+        assert (REPO / PACKAGE / "apps" / "integrations" / "mindie" / name).is_file(), name
     # The package initializer stays import-free, so importing it loads no core and
     # does not re-export the package version.
-    initializer = ast.parse((REPO / PACKAGE / "apps" / "mindie" / "__init__.py").read_text(
+    initializer = ast.parse((REPO / PACKAGE / "apps/integrations/mindie/__init__.py").read_text(
         encoding="utf-8"))
     assert not [node for node in ast.walk(initializer)
                 if isinstance(node, (ast.Import, ast.ImportFrom))]
