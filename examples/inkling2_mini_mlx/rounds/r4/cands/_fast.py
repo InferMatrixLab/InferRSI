@@ -1,8 +1,8 @@
-# 第 3 轮共用：解码一步（B=1, L=1）的每层走「前段合图 → 写缓存+注意力 → 后段合图」三段。
-# 前段：残差取输入、消息门、归一化、q/k/v/r/门/汇点投影、短卷积、裁剪、相对位置偏置，一张编译图；
-# 中段：KV 缓存写入和注意力（长度每步变，不编译）；
-# 后段：门控、输出投影、卷积、残差、MoE、卷积，一张编译图。卷积状态当作显式输入输出。
-# 选项：mask_kernel 把注意力遮罩的十几个小算子换成一个 Metal 内核；fuse_proj 把共享输入的投影拼成一次量化矩阵乘。
+# Shared by rounds 3-4: each layer visit of a decode step (B=1, L=1) runs as pre graph -> cache write + attention -> post graph.
+# pre : residual read-in, message gates, norms, q/k/v/r/gate/sink projections, short convs, clips, relative bias; one compiled graph;
+# mid : KV-cache write and attention (length changes every step, not compiled);
+# post: output gate, o_proj, convs, residual, MoE, convs; one compiled graph. Conv states are explicit inputs/outputs.
+# Options: mask_kernel = attention mask in one Metal kernel; fuse_proj = projections sharing an input in one quantized matmul.
 import mlx.core as mx
 from mlx import nn
 from mlx_lm.models.inkling2 import layers as L
@@ -25,7 +25,7 @@ def _proj(self, attn, qi, ki, vi, same_kv):
         if f is not None:
             outs = f["qrgs"](qi)
             qp, rp, gate, sinks = mx.split(outs, f["qrgs_split"], axis=-1)
-            if same_kv and OPTS["fuse_all6"]:  # 滑窗层无消息：q/k/v 同一输入，六个投影一次
+            if same_kv and OPTS["fuse_all6"]:  # sliding layer, no messages: q/k/v share the input, six projections at once
                 qp, kp, vp, rp, gate, sinks = mx.split(f["all6"](qi), f["all6_split"], axis=-1)
                 return qp, kp, vp, rp, gate, sinks
             kp = attn.k_proj(ki); vp = attn.v_proj(vi)
@@ -33,7 +33,7 @@ def _proj(self, attn, qi, ki, vi, same_kv):
     return attn.q_proj(qi), attn.k_proj(ki), attn.v_proj(vi), attn.r_proj(qi), attn.gate_proj(qi), attn.sink_proj(qi)
 
 
-# ---- 短卷积内核（第 4 轮）：拼窗口、转权重精度、4 抽头深度卷积、加残差、除 sqrt(K+1)、出新状态，一个内核 ----
+# ---- short conv kernel (round 4): window, cast to weight dtype, 4-tap depthwise conv, residual, / sqrt(K+1), new state: one kernel ----
 _CONV_SRC = """
     uint c = thread_position_in_grid.x;
     if (c >= (uint)C) return;
@@ -52,7 +52,7 @@ _conv_k = None
 
 
 def _sconv(conv, x, st):
-    """返回 (输出, 新卷积状态)。"""
+    """Return (output, new conv state)."""
     global _conv_k
     if OPTS["conv_kernel"] and conv.kernel_size == 4:
         if _conv_k is None:
@@ -66,7 +66,7 @@ def _sconv(conv, x, st):
     return o, win[:, 1:]
 
 
-# ---- q/k/v 三个消息门批成一次批量矩阵乘（第 4 轮）----
+# ---- q/k/v message gates as one batched matmul (round 4) ----
 _bw = {}
 
 
@@ -180,7 +180,7 @@ def _get(kind, self, has_bs, has_msg):
     return f
 
 
-# ---- 遮罩内核：mask[h, s] = 可见 ? (距离<R ? pb[h, 距离] : 0) : -inf，与原版逐元素同值 ----
+# ---- mask kernel: mask[h, s] = visible ? (dist < R ? pb[h, dist] : 0) : -inf, same values as stock ----
 _MASK_SRC = """
     uint s = thread_position_in_grid.x;
     uint h = thread_position_in_grid.y;
@@ -258,7 +258,7 @@ def _fuse(model):
         d["all6"], d["all6_split"] = _cat_q([a.q_proj, a.k_proj, a.v_proj, a.r_proj, a.gate_proj, a.sink_proj])
 
 
-# ---- 消息门：遗忘门和消息门两个投影共享输入，拼成一次矩阵乘 ----
+# ---- message gate: forget/message projections share the input -> one matmul ----
 _orig_msg = L.MessageGate.__call__
 _msgw = {}
 
@@ -284,7 +284,7 @@ def _msg_call(self, hidden_states, message):
     return (1 - forget_gate) * hidden_states + message_gate * message
 
 
-# ---- 短卷积：深度卷积核 4 抽头，L=1 时写成逐元素乘加，免掉通用卷积内核 ----
+# ---- short conv as elementwise multiply-add for L=1 ----
 _orig_conv = L.ShortConvolution.__call__
 
 
