@@ -2,6 +2,7 @@
 # those in the other cores' copies; tests/test_artifact_helper_copies.py keeps them equal.
 # Apps imports no other inferrsi module here.
 
+import errno
 import hashlib
 import json
 import os
@@ -27,7 +28,13 @@ def file_lock(path: Path):
         if os.name == "nt":
             import msvcrt
 
-            msvcrt.locking(stream.fileno(), msvcrt.LK_NBLCK, 1)
+            try:
+                msvcrt.locking(stream.fileno(), msvcrt.LK_NBLCK, 1)
+            except PermissionError as error:
+                if error.errno != errno.EACCES:
+                    raise
+                # LK_NBLCK reports a lock violation as EACCES.
+                raise BlockingIOError(errno.EAGAIN, "File lock is held", path) from error
         else:
             import fcntl
 
