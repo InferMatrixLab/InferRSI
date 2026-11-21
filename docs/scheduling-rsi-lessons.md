@@ -83,3 +83,9 @@ harness):
    work back to step 1, not to more seeds.
 5. **Daily split.** Record how much of the day went to the hypothesis and how
    much to the harness.
+6. **Kernel gain is not end-to-end gain.** In a sibling InferMatrixLab engine
+   a kernel that was 13% faster in isolation moved end-to-end time by 0.4%
+   (public, `InferMatrixLab/system1-omni`). Score candidates on the full
+   generation path only.
+7. **Freeze the rival.** Thresholds written before the run, rival
+   configuration frozen, inputs byte-identical, failed candidates kept.
