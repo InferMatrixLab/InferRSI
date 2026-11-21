@@ -27,6 +27,7 @@ Effect classes used below:
 
 | Intent | Entry | Effect class | Boundary |
 | --- | --- | --- | --- |
+| Select from the full evidence directory | CLI `catalog-select`; [catalog selection](catalog-selection.md) | Read-only | Current Agent selects snapshot-bound refs; condition checks, bounded explicit references and real reads; Find remains the default and over-budget fallback |
 | Verify whether RSI knowledge improves optimization efficiency | CLI `benchmarks compare`; [comparison workflow](benchmark-comparison.md) | Local experiment records / explicit native handoff / report-generating | Apps freezes two-task on/off plans, returns host actions, verifies retained finals and reports Benchmark comparisons; no hidden Agent launch |
 | Complete a task optimization in the current Agent | CLI `benchmarks session start/knowledge/round/status/final/recover` | Experiment-executing / local records | Frozen budget, actual candidates and independent task outcomes. The current Agent drives edits. Real usage is imported explicitly. Recovery collects an existing execution using its [pinned runtime](optimization-workflow-unification.md#release-boundary-recovery) |
 | Optimize an ordinary project in the current Agent | CLI `campaign start/knowledge/round/status/final/recover` | Experiment-executing / local records | Harness freezes explicit caller-provided checks, manages multi-file candidates, executes and assesses retained results. This path does not depend on Benchmark or infer acceptance from the goal. See [shared workflow](optimization-workflow-unification.md) |

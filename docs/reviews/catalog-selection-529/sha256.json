@@ -1,0 +1,12 @@
+{
+  "queries.json": "13e6906c553d63e0cba672d572215e291b449d03d62e1c5c416cf73ac6189795",
+  "protocol.json": "984a951af76a4c60ae0dec58827681f23f4b8d0e4c3c6b4d76e87050cf446f0b",
+  "selections.json": "8f816151faccbac09f4533b036517425319777fdb75f62863178cf9f4144aa89",
+  "assessments.json": "de86776bdac56fbfbc2e181609cc6bfc896aa34104cedbcf5ac4b246706173b3",
+  "comparison.json": "d20ee40ba9f59723476d4b981a699c8ba141a79d76685b554138d2f73a845230",
+  "implementation": {
+    "src/inferrsi/knowledge/catalog_selection.py": "125841525b6489833dd40cdbdb0e0f076ebaa4f28f91cf2ce49ce81245251798",
+    "src/inferrsi/apps/knowledge.py": "db6466defef07321eea0a551b3ff15f24df34056b8c8b5d4227dc2750a58e6fa",
+    "tools/compare_catalog_selection.py": "b134f6c0ab34432c8b1985cb446bbd208350506e5d970c34d8e33d0682cd355b"
+  }
+}

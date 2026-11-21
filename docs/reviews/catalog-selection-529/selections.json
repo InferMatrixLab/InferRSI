@@ -1,0 +1,328 @@
+[
+  {
+    "id": "day-0",
+    "query": "Day zero port of an omni model with text and audio stages to vLLM Ascend NPU",
+    "primary": "task-day-0",
+    "snapshot_id": "sha256:9f61007d34961ddc78162e4d8da95f82d70683e4bcbd50045a81e9723bbd3ccc",
+    "conditions": {
+      "backend": "ascend",
+      "engine_version": null
+    },
+    "model": "GPT-6 (exact runtime model ID unavailable)",
+    "selections": [
+      {
+        "ref": "package:inferrsi.ascend.skills.ascend_model_adaptation",
+        "reason": "Ascend model bring-up",
+        "questions": [
+          "Check original source boundaries and missing task versions before transfer."
+        ],
+        "purpose": "method"
+      },
+      {
+        "ref": "package:vllm_omni.common.omni.stage_ownership_and_search",
+        "reason": "Text/audio stage ownership",
+        "questions": [
+          "Check original source boundaries and missing task versions before transfer."
+        ],
+        "purpose": "method"
+      },
+      {
+        "ref": "package:vllm_omni.common.diffusion.production_integration_gates",
+        "reason": "Separate loading from production readiness",
+        "questions": [
+          "Check original source boundaries and missing task versions before transfer."
+        ],
+        "purpose": "method"
+      }
+    ]
+  },
+  {
+    "id": "performance",
+    "query": "Single GPU diffusion denoising latency baseline warm requests profiler",
+    "primary": "task-performance",
+    "snapshot_id": "sha256:9f61007d34961ddc78162e4d8da95f82d70683e4bcbd50045a81e9723bbd3ccc",
+    "conditions": {
+      "backend": null,
+      "model": null
+    },
+    "model": "GPT-6 (exact runtime model ID unavailable)",
+    "selections": [
+      {
+        "ref": "package:vllm_omni.common.diffusion.measurement_and_profiling",
+        "reason": "Matched warm latency and profiler boundary",
+        "questions": [
+          "Check original source boundaries and missing task versions before transfer."
+        ],
+        "purpose": "method"
+      },
+      {
+        "ref": "package:inferrsi.common.skills.performance_ceiling_analysis",
+        "reason": "Identify the binding stage",
+        "questions": [
+          "Check original source boundaries and missing task versions before transfer."
+        ],
+        "purpose": "method"
+      },
+      {
+        "ref": "package:inferrsi.cuda.skills.host_overhead_profiling",
+        "reason": "Distinguish launch gaps from device work",
+        "questions": [
+          "Check original source boundaries and missing task versions before transfer."
+        ],
+        "purpose": "method"
+      }
+    ]
+  },
+  {
+    "id": "debug",
+    "query": "ROCm GPU hang during CUDA graph capture first failing operator minimal reproduction",
+    "primary": "task-debug",
+    "snapshot_id": "sha256:9f61007d34961ddc78162e4d8da95f82d70683e4bcbd50045a81e9723bbd3ccc",
+    "conditions": {
+      "backend": "rocm"
+    },
+    "model": "GPT-6 (exact runtime model ID unavailable)",
+    "selections": [
+      {
+        "ref": "package:inferrsi.common.skills.pytorch",
+        "reason": "Minimize first failing dispatch and graph boundary",
+        "questions": [
+          "Check original source boundaries and missing task versions before transfer."
+        ],
+        "purpose": "method"
+      },
+      {
+        "ref": "package:pytorch.cuda.compiler.cudagraph_shapes_and_lifetimes",
+        "reason": "CUDA graph mechanism analogy only; ROCm support is unverified",
+        "questions": [
+          "Check original source boundaries and missing task versions before transfer."
+        ],
+        "purpose": "method"
+      }
+    ]
+  },
+  {
+    "id": "accuracy",
+    "query": "TTS 新版本音质下降 对齐参考实现 逐层精度回归",
+    "primary": "task-accuracy",
+    "snapshot_id": "sha256:9f61007d34961ddc78162e4d8da95f82d70683e4bcbd50045a81e9723bbd3ccc",
+    "conditions": {
+      "model": null,
+      "engine_version": null
+    },
+    "model": "GPT-6 (exact runtime model ID unavailable)",
+    "selections": [
+      {
+        "ref": "package:inferrsi.common.skills.inference_benchmark_design",
+        "reason": "TTS quality oracle and aligned reference",
+        "questions": [
+          "Check original source boundaries and missing task versions before transfer."
+        ],
+        "purpose": "method"
+      },
+      {
+        "ref": "package:sglang_omni.common.audio.serving_and_streaming_quality",
+        "reason": "Audio quality and streaming output checks",
+        "questions": [
+          "Check original source boundaries and missing task versions before transfer."
+        ],
+        "purpose": "method"
+      },
+      {
+        "ref": "package:vllm_omni.common.audio.streaming_serving_measurement",
+        "reason": "Complete audio and stage measurements",
+        "questions": [
+          "Check original source boundaries and missing task versions before transfer."
+        ],
+        "purpose": "method"
+      }
+    ]
+  },
+  {
+    "id": "version-alignment",
+    "query": "Align vllm-omni vllm-ascend and afd-plugin versions after upgrading vLLM",
+    "primary": "task-version-alignment",
+    "snapshot_id": "sha256:9f61007d34961ddc78162e4d8da95f82d70683e4bcbd50045a81e9723bbd3ccc",
+    "conditions": {
+      "backend": "ascend",
+      "engine_version": null
+    },
+    "model": "GPT-6 (exact runtime model ID unavailable)",
+    "selections": [
+      {
+        "ref": "package:inferrsi.common.skills.repository_evolution_analysis",
+        "reason": "Identify changed dependency boundaries",
+        "questions": [
+          "Check original source boundaries and missing task versions before transfer."
+        ],
+        "purpose": "method"
+      },
+      {
+        "ref": "package:inferrsi.ascend.skills.vllm_ascend",
+        "reason": "Version-scoped Ascend dispatch",
+        "questions": [
+          "Check original source boundaries and missing task versions before transfer."
+        ],
+        "purpose": "method"
+      },
+      {
+        "ref": "package:inferrsi.ascend.skills.torch_npu",
+        "reason": "Framework and backend ABI/dispatch boundary",
+        "questions": [
+          "Check original source boundaries and missing task versions before transfer."
+        ],
+        "purpose": "method"
+      }
+    ]
+  },
+  {
+    "id": "derived-engine",
+    "query": "Bring a vLLM forked inference engine up on DeepInfer and reuse scheduling components",
+    "primary": "task-derived-engine",
+    "snapshot_id": "sha256:9f61007d34961ddc78162e4d8da95f82d70683e4bcbd50045a81e9723bbd3ccc",
+    "conditions": {
+      "engine": "vllm",
+      "engine_version": null
+    },
+    "model": "GPT-6 (exact runtime model ID unavailable)",
+    "selections": [
+      {
+        "ref": "package:deepinfer.common.llm.zero_overhead_deferred_scheduling",
+        "reason": "DeepInfer deferred scheduling mechanisms",
+        "questions": [
+          "Check original source boundaries and missing task versions before transfer."
+        ],
+        "purpose": "method"
+      },
+      {
+        "ref": "package:vllm.common.llm.runtime_and_kv_ownership",
+        "reason": "Inherited vLLM state ownership",
+        "questions": [
+          "Check original source boundaries and missing task versions before transfer."
+        ],
+        "purpose": "method"
+      },
+      {
+        "ref": "package:vllm.common.llm.extension_correctness_gates",
+        "reason": "Fork seam correctness obligations",
+        "questions": [
+          "Check original source boundaries and missing task versions before transfer."
+        ],
+        "purpose": "method"
+      },
+      {
+        "ref": "package:inferrsi.common.skills.repository_evolution_analysis",
+        "reason": "Parent/fork divergence",
+        "questions": [
+          "Check original source boundaries and missing task versions before transfer."
+        ],
+        "purpose": "method"
+      }
+    ]
+  },
+  {
+    "id": "independent-engine",
+    "query": "Build an independent inference engine for an on-device model on Windows XPU",
+    "primary": "task-independent-engine",
+    "snapshot_id": "sha256:9f61007d34961ddc78162e4d8da95f82d70683e4bcbd50045a81e9723bbd3ccc",
+    "conditions": {
+      "os": "Windows",
+      "backend": "xpu"
+    },
+    "model": "GPT-6 (exact runtime model ID unavailable)",
+    "selections": [
+      {
+        "ref": "package:inferrsi.common.skills.inference_benchmark_design",
+        "reason": "Generic native correctness/workload protocol",
+        "questions": [
+          "Check original source boundaries and missing task versions before transfer."
+        ],
+        "purpose": "method"
+      },
+      {
+        "ref": "package:inferrsi.common.skills.kernel_writing_guide",
+        "reason": "Generic operator qualification methods",
+        "questions": [
+          "Check original source boundaries and missing task versions before transfer."
+        ],
+        "purpose": "method"
+      },
+      {
+        "ref": "package:inferrsi.common.skills.claim_contract",
+        "reason": "Explicit Windows/XPU evidence gap",
+        "questions": [
+          "Check original source boundaries and missing task versions before transfer."
+        ],
+        "purpose": "method"
+      }
+    ]
+  },
+  {
+    "id": "round1:qwen_b300_applicable",
+    "query": "Has Qwen Image QK normalization and complex RoPE fusion been tried on four B300s, and what happened to speed and full-image quality?",
+    "primary": "task-performance",
+    "snapshot_id": "sha256:9f61007d34961ddc78162e4d8da95f82d70683e4bcbd50045a81e9723bbd3ccc",
+    "conditions": {
+      "hardware": "B300",
+      "dtype": "bf16"
+    },
+    "model": "GPT-6 (exact runtime model ID unavailable)",
+    "selections": [
+      {
+        "ref": "checkout:case.qwen-b300-rejected-directions",
+        "reason": "Prior Qwen B300 fusion attempts and rejected directions",
+        "questions": [
+          "Check original source boundaries and missing task versions before transfer."
+        ],
+        "purpose": "conclusion"
+      },
+      {
+        "ref": "package:inferrsi.common.skills.inference_benchmark_design",
+        "reason": "Distinguish operator and full-image quality",
+        "questions": [
+          "Check original source boundaries and missing task versions before transfer."
+        ],
+        "purpose": "conclusion"
+      }
+    ]
+  },
+  {
+    "id": "round1:qwen_ascend_mismatch",
+    "query": "Has RoPE cosine and sine caching been tried for Qwen Image on one Ascend 910B1 with BF16 eager execution, and what happened?",
+    "primary": "task-performance",
+    "snapshot_id": "sha256:9f61007d34961ddc78162e4d8da95f82d70683e4bcbd50045a81e9723bbd3ccc",
+    "conditions": {
+      "hardware": "910B1",
+      "dtype": "bf16",
+      "backend": "ascend"
+    },
+    "model": "GPT-6 (exact runtime model ID unavailable)",
+    "selections": [
+      {
+        "ref": "checkout:case.qwen-ascend-rejected-directions",
+        "reason": "Same named accelerator and cache attempt ledger",
+        "questions": [
+          "Check original source boundaries and missing task versions before transfer."
+        ],
+        "purpose": "conclusion"
+      },
+      {
+        "ref": "package:vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i",
+        "reason": "Related Ascend eager measurement with bounded source report",
+        "questions": [
+          "Check original source boundaries and missing task versions before transfer."
+        ],
+        "purpose": "conclusion"
+      }
+    ]
+  },
+  {
+    "id": "round1:qwen_gate_sufficient",
+    "query": "Can a candidate that failed the confirmed full-image quality gate be accepted because its operator test passed?",
+    "primary": "task-performance",
+    "snapshot_id": "sha256:9f61007d34961ddc78162e4d8da95f82d70683e4bcbd50045a81e9723bbd3ccc",
+    "conditions": {},
+    "model": "GPT-6 (exact runtime model ID unavailable)",
+    "selections": []
+  }
+]

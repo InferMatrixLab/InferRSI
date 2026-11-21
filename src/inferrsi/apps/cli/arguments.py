@@ -607,6 +607,24 @@ def parser(*, parser_class=argparse.ArgumentParser) -> argparse.ArgumentParser:
     )
     find.add_argument("--json", action="store_true")
 
+    catalog_select = commands.add_parser(
+        "catalog-select", help="Opt-in full catalog selection by the current Agent",
+    )
+    catalog_select.add_argument("query")
+    catalog_select.add_argument("--selection", type=Path,
+                                help="Agent JSON with snapshot_id and selections")
+    catalog_select.add_argument("--conditions", type=Path, help="Known/unknown conditions JSON")
+    catalog_select.add_argument("--token-budget", type=int, default=262144)
+    catalog_select.add_argument("--tokenizer", help="Optional tiktoken encoding, e.g. o200k_base")
+    catalog_select.add_argument("--reserved-tokens", type=int, default=4096)
+    catalog_select.add_argument("--context-bytes", type=int, default=65536)
+    catalog_select.add_argument("--expansion-depth", type=int, default=1)
+    catalog_select.add_argument("--expansion-items", type=int, default=5)
+    catalog_select.add_argument("--expansion-bytes", type=int, default=32768)
+    catalog_select.add_argument("--backend", choices=BACKENDS)
+    catalog_select.add_argument("--kinds", default="case,skill,record")
+    _read_sources(catalog_select)
+
     collect = commands.add_parser(
         "collect",
         help="Collect exact IDs, list material, or use Find to assemble context for a question",

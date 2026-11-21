@@ -50,6 +50,33 @@ def test_resource_only_change_invalidates_old_snapshot_revision(tmp_path):
         reader.resource("selected", "selected/notes.md", revision=original.revision)
 
 
+def test_shared_resource_digest_cache_preserves_mutation_validation():
+    reader = KnowledgeReader()
+    first = reader.read("package:vllm.common.llm.runtime_and_kv_ownership")
+    second = reader.read("package:vllm.common.llm.bounded_serving_measurement")
+    for bundle in (first, second):
+        uncached = Bundle(bundle.metadata, bundle.content, bundle.dependencies)
+        assert bundle.manifest() == uncached.manifest()
+        assert bundle.revision == uncached.revision
+    before = first.revision
+    first.content["record.json"] += b" "
+    assert first.revision != before
+    assert first.revision == Bundle(first.metadata, first.content, first.dependencies).revision
+    before = first.revision
+    first.metadata["limitations"].append("New limitation")
+    assert first.revision != before
+    first.content["../unsafe"] = b"not allowed"
+    with pytest.raises(ValueError, match="Unsafe"):
+        first.manifest()
+    del first.content["../unsafe"]
+    first.content["record.json"] = bytearray(b"mutable")
+    with pytest.raises(ValueError, match="must be bytes"):
+        first.manifest()
+    second.dependencies["data/skill_library"] = "sha256:" + "0" * 64
+    with pytest.raises(RevisionConflict, match="Dependency bytes disagree"):
+        second.manifest()
+
+
 def test_collect_limits_omissions_and_shared_resource_revision():
     reader = KnowledgeReader(skill_root=ROOT)
     selected = reader.read("inference-benchmark-design")
