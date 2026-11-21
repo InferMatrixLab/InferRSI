@@ -1,5 +1,11 @@
 # InferRSI SearchSpace Matrix
 
+## EPD cold-serving configuration precedent
+
+| Resource layer | Lifecycle use | Owner | Qualification |
+| --- | --- | --- | --- |
+| Accelerator / Host | Diagnose / Configure / Verify stage instance counts using independent capacity estimates and matched serving windows | [EPD cold-provisioning case](../src/inferrsi/knowledge/data/skill_library/casebooks/inference/inference-optimization-casebook/cases/epd-cold-provisioning.md) | External author-reported four-H800 cold MMMU observation. Formal acceptance INCONCLUSIVE. Transfer and queue behavior remain deployment-specific. |
+
 **Branch:** `opus/meta-skill-bootstrap` | **Integration date:** 2026-10-16 | **Comparison anchor:** `d96ff8d3`
 
 Current skill links resolve to the complete categorized

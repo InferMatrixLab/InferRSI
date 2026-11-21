@@ -594,11 +594,13 @@
       "description": "How to structure and use a casebook of past optimization decisions as a decision-support tool. Extracts the casebook pattern from TensorRT-LLM's perf-optimization-casebook skill. Use when building a record of optimization experiments or when deciding which optimization to try next based on prior art.\n"
     },
     "files": {
-      "SKILL.md": "cec75f3a721dd13e6913b597d5373833a14c39d9048951a30c4864dd2c49aac8",
+      "SKILL.md": "2f6061305991384727d6d0d4519ad9b230e19c49bb784e0bdc2ae5306d66e27d",
       "cases/admission-drain-occupancy.json": "4f8544292b2cc3391f4d4d75994cb81fdd295eff99e55b7e60374c6c122de09e",
       "cases/admission-drain-occupancy.md": "e88bbac5d253a8e7e3a3d5e21047f23f2970c11ac23887d4303ab94fca52dd27",
       "cases/drama3-rejected-directions.json": "a2dc5db8aba62081c5743b12f854e74ae500c53bd57e2486260d0b5ae478638a",
       "cases/drama3-rejected-directions.md": "6f143bc363a3290fc008c08e57cb075f1776d1c8cca8a6a59297d5b1fbbf61bf",
+      "cases/epd-cold-provisioning.json": "68e471335193e2027779e1377ee22e3384f6c3c66034f0a7b7631e1b67d2e245",
+      "cases/epd-cold-provisioning.md": "9d1931e74585a57d824f9c48003aa1ad155d9d7c7d0d605f17c7d807e81233c4",
       "cases/qwen-ascend-rejected-directions.json": "b2c1808919ae525efb82148a24b465459799422fefc6d420891d7dbeb36cd31a",
       "cases/qwen-ascend-rejected-directions.md": "be396983812262515899a3e2ba4f01b23ff92e1b836881882c7580372b8ae552",
       "cases/qwen-b300-rejected-directions.json": "90e3cdca085e2d122e648aae527bd6a61de6d4fddb66c393ca25ac4541cd9122",

@@ -1,0 +1,116 @@
+{
+  "id": "case.epd-cold-provisioning",
+  "kind": "case",
+  "origin": [
+    "external"
+  ],
+  "state": "author_reported",
+  "content": "epd-cold-provisioning.md",
+  "required_resources": [
+    "epd-cold-provisioning.json"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/Kelvin-Al/epd-provisioning/blob/3ed184e3a83229806a9fa1adb2bc75f1744c6518/planner.py",
+      "commit": "3ed184e3a83229806a9fa1adb2bc75f1744c6518",
+      "paths": [
+        "planner.py",
+        "experiments/ec-cache/cold_sweep.py",
+        "experiments/ec-cache/audit.py",
+        "experiments/ec-cache/results/cold/plan.json",
+        "experiments/ec-cache/results/cold/results.json",
+        "experiments/ec-cache/results/failed-cold-attempt/status.json",
+        "experiments/four-gpu/results/mmmu/plan.json"
+      ],
+      "sha256": {
+        "planner.py": "6bf4ea101fc12da1ca9166121a09f362b22feff3bf45ccf94b037dec1d93ce68",
+        "experiments/ec-cache/cold_sweep.py": "fcffb83d0351bf36387a971622edd92667838112fc737f68f1c6acff46082853",
+        "experiments/ec-cache/audit.py": "56be9d553ba04ac1a279035cea95eabe4892b5225eaabb9d604b20d057350816",
+        "experiments/ec-cache/results/cold/plan.json": "88941e0f5969ce25f94774a0a4c95c6204b9bc0d48669c4d18547017104c2542",
+        "experiments/ec-cache/results/cold/results.json": "dc5c1ecb7d3f92708a3ea7078d65ab575854a350235d5d14d7257bda956f4f2b",
+        "experiments/ec-cache/results/failed-cold-attempt/status.json": "33f44ead48d151e3b2b4527e12c2f89085651ed332ddf5ffd8aac7223c538806",
+        "experiments/four-gpu/results/mmmu/plan.json": "93a5b729357464f9ae2d0b62c120e5e5f22ff2e82db92a3a6afa10eae773c7d5"
+      },
+      "integrity_status": "published_bytes_retrieved_and_rehashed",
+      "issue": "https://github.com/Kelvin-Al/epd-provisioning/issues/1",
+      "evidence_url": "https://github.com/Kelvin-Al/epd-provisioning/blob/3ed184e3a83229806a9fa1adb2bc75f1744c6518/experiments/ec-cache/results/cold/results.json"
+    },
+    {
+      "type": "git",
+      "url": "https://github.com/Kelvin-Al/epd-provisioning/blob/a0037f7ddc4b1af5f59fbef0a86b2a5627b69feb/experiments/ec-cache/results/cold-order-followup/plan.json",
+      "commit": "a0037f7ddc4b1af5f59fbef0a86b2a5627b69feb",
+      "paths": [
+        "experiments/ec-cache/order_followup/cold_sweep.py",
+        "experiments/ec-cache/order_followup/audit.sbatch",
+        "experiments/ec-cache/results/cold-order-followup/plan.json",
+        "experiments/ec-cache/results/cold-order-followup/results.json",
+        "experiments/ec-cache/results/cold-order-followup/interrupted-results.json"
+      ],
+      "sha256": {
+        "experiments/ec-cache/order_followup/cold_sweep.py": "f031d7c6f354461310eecdf8a74798c31615c4f1aad806187671ac3ba147e32f",
+        "experiments/ec-cache/order_followup/audit.sbatch": "40c3064acd59f1255c62ed53effb4a7be834d1dbc32546eff59387133288d128",
+        "experiments/ec-cache/results/cold-order-followup/plan.json": "c7fe3d8cbd2cf4cabccfe38bf9a7428ab980af591ed76e423128a2031b42fb95",
+        "experiments/ec-cache/results/cold-order-followup/results.json": "dc4f3d4f492f60171a5124e0d97a1a52c8dd6134072251666f55b7ff157a9c24",
+        "experiments/ec-cache/results/cold-order-followup/interrupted-results.json": "834d616d8b1dbd04bb08a28a8e4b19a9128692b342b8714062d26a9c8a248456"
+      },
+      "integrity_status": "published_bytes_retrieved_and_rehashed",
+      "issue": "https://github.com/Kelvin-Al/epd-provisioning/issues/1",
+      "evidence_url": "https://github.com/Kelvin-Al/epd-provisioning/blob/a0037f7ddc4b1af5f59fbef0a86b2a5627b69feb/experiments/ec-cache/results/cold-order-followup/results.json"
+    }
+  ],
+  "applicability": [
+    "Cold E+PD serving with one GPU per effective stage instance",
+    "Four H800, Qwen2.5-VL-3B-Instruct, prepared vLLM 0.33.0 overlay, filesystem EC connector",
+    "720 single-image preprocessed MMMU validation requests, fixed 64 output tokens, zero embedding reuse"
+  ],
+  "tags": [
+    "EPD",
+    "GPU-allocation",
+    "capacity-planning",
+    "cold-serving",
+    "MMMU",
+    "H800",
+    "prefill-decode",
+    "queueing"
+  ],
+  "limitations": [
+    "External author report. InferRSI campaign acceptance INCONCLUSIVE.",
+    "Published JSON and code hashes checked. Raw worker traces, image bytes, model weights and container were not independently replayed or verified.",
+    "Model weight revision absent. Overlay identity is partly represented by recorded script digests.",
+    "Original reverse-order rounds fixed 2E:2PD in the middle. The nine-wave follow-up balances all positions with one observation per split and position, with limited predecessor and variability coverage.",
+    "One offered rate in each single-node comparison, with a central arrival window of about 12.5 seconds. The interrupted six-wave follow-up is retained separately from the complete rerun.",
+    "700 of 720 images resized into calibration range. Fixed-length completion does not evaluate MMMU answer accuracy.",
+    "First cold attempt failed on inconsistent media keys. Complete rerun uses corrected keys and explicitly forwards seed 9197."
+  ],
+  "attribution": "Kelvin-Al/epd-provisioning, Apache-2.0 source and published cold-serving observations.",
+  "findings": [
+    {
+      "direction": "Choose integer E:PD counts using independently estimated stage capacity",
+      "outcome": "inconclusive",
+      "reason": "The minimum of E-pool and PD-pool capacity selected 2E:2PD. It ranked first in the two original cold rounds and all three position-balanced follow-up rounds, with 26.04, 26.44 and 26.67 completions/s at the first, second and third positions.",
+      "revisit_when": "Re-estimate stage rates and test alternatives when model, workload, hardware, transfer path or worker configuration changes.",
+      "keywords": [
+        "EPD",
+        "integer allocation",
+        "stage capacity",
+        "2E:2PD"
+      ],
+      "scope": "regime_bound"
+    },
+    {
+      "direction": "Use actual visual work and paired queue observations to diagnose the limiting stage",
+      "outcome": "caveat",
+      "reason": "Each wave encoded 720 images with zero EC and resident hits. One E completed about 23 requests/s with queueing, while two E workers kept up with arrivals and two PD workers completed about 26 requests/s.",
+      "revisit_when": "Align encoder, decoder and client counters to the same arrival interval before inferring bottlenecks.",
+      "keywords": [
+        "visual forward",
+        "EC",
+        "cold cache",
+        "encoder queue",
+        "PD queue"
+      ],
+      "scope": "regime_bound"
+    }
+  ]
+}
