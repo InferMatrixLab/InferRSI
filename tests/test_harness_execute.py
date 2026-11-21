@@ -7,7 +7,9 @@ import subprocess
 import sys
 import threading
 import time
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
@@ -217,6 +219,45 @@ def test_h02_2_timeout_cancel_and_cleanup_are_recorded_separately(h: Harness) ->
     assert (late["process_outcome"], late["started"]) == ("not_started", False)
     assert late["cleanup"]["status"] == "not_needed"
     assert late["steps"][0]["reasons"] == ["deadline_exhausted"]
+
+
+@pytest.mark.parametrize("cancelled", [True, False], ids=["cancelled", "deadline"])
+def test_prelaunch_limits_are_rechecked_after_opening_logs(h, monkeypatch, cancelled):
+    cancellation = threading.Event()
+    open_path = Path.open
+    offset = 0
+
+    def open_log(path, *args, **kwargs):
+        nonlocal offset
+        stream = open_path(path, *args, **kwargs)
+        if path.name == "step-0.stderr":
+            if cancelled:
+                cancellation.set()
+            else:
+                offset = 120
+        return stream
+
+    monkeypatch.setattr(Path, "open", open_log)
+    monkeypatch.setattr(local_process, "time", SimpleNamespace(
+        monotonic=lambda: time.monotonic() + offset, sleep=time.sleep,
+    ))
+    deadline = (datetime.now(timezone.utc) + timedelta(minutes=1)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    spec = make_spec(h, [step("import time; time.sleep(10)"),
+                         step("print('second')", step_id="second")], deadline=deadline)
+    record = h.execute(spec, cancellation=cancellation)
+
+    schema_check(record)
+    assert record["started"] is False
+    assert record["phase"] == "finished"
+    assert record["process_outcome"] == ("cancelled" if cancelled else "not_started")
+    assert record["target_binding"]["runtime_bindings_by_step"] == []
+    assert record["cleanup"]["status"] == "not_needed"
+    assert record["cancellation"]["requested"] is cancelled
+    assert record["cancellation"]["source"] == ("caller" if cancelled else None)
+    reason = "cancelled" if cancelled else "deadline_exhausted"
+    assert [(s["status"], s["reasons"]) for s in record["steps"]] == [
+        ("not_started", [reason]), ("not_started", [reason]),
+    ]
 
 
 def test_h02_3_actual_input_mismatch_commits_a_fixed_not_started(h: Harness, tmp_path) -> None:

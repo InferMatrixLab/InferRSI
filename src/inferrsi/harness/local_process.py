@@ -293,6 +293,14 @@ def _supervise(
             if os.name == "nt":
                 windows_job = _WindowsJob()
             with stdout_path.open("wb") as stdout, stderr_path.open("wb") as stderr:
+                if cancellation is not None and cancellation.is_set():
+                    run.update(status="cancelled", error="cancellation requested",
+                               cancellation_requested_at=_utc_now(), cancellation_source="caller")
+                    return run
+                if time.monotonic() >= deadline:
+                    run.update(status="timeout",
+                               error="whole-run deadline exhausted before command start")
+                    return run
                 process = subprocess.Popen(
                     argv,
                     cwd=cwd,
