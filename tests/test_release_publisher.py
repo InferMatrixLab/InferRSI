@@ -138,10 +138,12 @@ def publisher(tmp_path, request):
     mock_bin.mkdir()
     gh = mock_bin / "gh"
     mock = MOCK_GH.replace("1.2.3", release_tag[1:]).replace("v1.2.2", previous_tag)
-    if release_tag == "v0.2.0":
-        mock = mock.replace("## AI-generated summary", "## Reviewed v0.2.0 highlights")
+    reviewed = release_tag in {"v0.2.0", "v0.3.0"}
+    notes_start = {"v0.2.0": "v0.1.1", "v0.3.0": "v0.2.0"}.get(release_tag, previous_tag)
+    if reviewed:
+        mock = mock.replace("## AI-generated summary", f"## Reviewed {release_tag} highlights")
         mock = mock.replace('record("create_release")',
-                            'assert args[args.index("--notes-start-tag") + 1] == "v0.1.1"\n'
+                            f'assert args[args.index("--notes-start-tag") + 1] == "{notes_start}"\n'
                             '    record("create_release")')
     gh.write_text(mock, encoding="utf-8", newline="\n")
     gh.chmod(0o755)
@@ -182,6 +184,7 @@ def publisher(tmp_path, request):
                    RUNNER_TEMP=str(tmp_path),
                    GH_TOKEN="fake-no-access", GH_REPO="example/release", DEFAULT_BRANCH="main",
                    RELEASE_TAG=release_tag, RELEASE_COMMIT=COMMIT, PREVIOUS_TAG=previous_tag,
+                   NOTES_START_TAG=notes_start, REVIEWED_NOTES=str(reviewed).lower(),
                    PRERELEASE="true")
         env.update(inputs)
         env["AI_NOTES_DOWNLOADED"] = (
@@ -265,9 +268,9 @@ def test_incomplete_or_retargeted_release_cannot_be_published(publisher, state):
     ]
 
 
-@pytest.mark.parametrize("publisher", ["v0.2.0"], indirect=True)
-def test_one_off_publishes_reviewed_notes_with_historical_baseline(publisher, tmp_path):
-    result, mutations = publisher({"ai_summary": "Reviewed highlights since v0.1.1"},
+@pytest.mark.parametrize("publisher", ["v0.2.0", "v0.3.0"], indirect=True)
+def test_stable_publishes_reviewed_notes_with_stable_baseline(publisher, tmp_path):
+    result, mutations = publisher({"ai_summary": "Reviewed highlights"},
                                   PRERELEASE="false")
     assert result.returncode == 0, result.stderr
     assert mutations[-1] == {"operation": "publish_release"}
@@ -277,7 +280,7 @@ def test_one_off_publishes_reviewed_notes_with_historical_baseline(publisher, tm
     assert "--prerelease=false" in edits[-1] and "--latest" in edits[-1]
 
 
-@pytest.mark.parametrize("publisher", ["v0.2.0"], indirect=True)
+@pytest.mark.parametrize("publisher", ["v0.2.0", "v0.3.0"], indirect=True)
 @pytest.mark.parametrize("state", [None, {"ai_summary": "x", "failed_notes_download": True},
                                    {"ai_summary": "x" * 20001}])
 def test_one_off_missing_reviewed_notes_blocks_before_tag(publisher, state):
@@ -294,3 +297,20 @@ def test_one_off_dispatch_is_opt_in_and_schedule_cannot_select_it():
     assert "github.event_name == 'workflow_dispatch' && inputs.release_v020" in (
         step["env"]["RELEASE_V020"])
     assert '"${options[@]}"' in step["run"]
+
+
+def test_weekly_and_daily_channels_use_the_same_serialized_publisher():
+    config = workflow()
+    triggers = config.get("on", config.get(True))
+    assert triggers["schedule"] == [{"cron": "0 18 * * *"}, {"cron": "0 2 * * 6"}]
+    assert triggers["workflow_dispatch"]["inputs"]["weekly"]["default"] is False
+    job = config["jobs"]["plan"]
+    step = next(step for step in job["steps"] if step.get("id") == "plan")
+    assert "github.event.schedule == '0 2 * * 6'" in step["env"]["WEEKLY"]
+    assert 'if [[ "$WEEKLY" == true ]]; then options+=(--weekly); fi' in step["run"]
+    assert config["concurrency"] == {"group": "release-bot", "cancel-in-progress": False}
+    notes = next(s for s in config["jobs"]["notes"]["steps"] if s.get("id") == "notes")
+    assert notes["env"]["PREVIOUS_TAG"] == "${{ needs.plan.outputs.notes_start_tag }}"
+    publisher = config["jobs"]["publish"]["env"]
+    assert publisher["PREVIOUS_TAG"] == "${{ needs.plan.outputs.previous_tag }}"
+    assert publisher["NOTES_START_TAG"] == notes["env"]["PREVIOUS_TAG"]

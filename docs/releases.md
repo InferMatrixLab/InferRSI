@@ -1,22 +1,23 @@
-# Automatic daily releases
+# Daily previews and weekly stable releases
 
-The [release bot](../.github/workflows/release.yml) runs every day at **02:00
-Asia/Shanghai** (18:00 UTC). GitHub schedules can be delayed. If the default
-branch's source tree is unchanged from the highest successfully published numeric
-version, it skips the release. Empty commits do not cause a release.
+The [release bot](../.github/workflows/release.yml) runs on the default branch.
+Both schedules use Asia/Shanghai time. GitHub may delay a scheduled run.
 
-When changed, the bot chooses a version, builds and checks the packages, creates
-the tag and publishes the GitHub Release as `github-actions[bot]`. There is no
-manual version bump, tag push or draft publication step. The first release uses
-`tool.inferrsi.release.initial_version` in `pyproject.toml` (initially `0.1.0`);
-subsequent releases allocate the next unused numeric patch version. Major/minor
-releases need a separately reviewed change to that initial-version floor.
+| Schedule | Version | Changes since | GitHub designation |
+| --- | --- | --- | --- |
+| Every day at 02:00 (18:00 UTC the previous day) | Next patch, e.g. v0.3.1 | Latest published numeric release | Pre-release |
+| Saturday at 10:00 (02:00 UTC Saturday) | Next minor, e.g. v0.3.0, then v0.4.0 | Latest published numeric stable release | Latest |
 
-The existing **Developer Preview** classification is preserved:
-`tool.inferrsi.release.prerelease = true` marks automatic releases as GitHub
-prereleases and does not mark them Latest. Changing to a stable channel is a
-separately reviewed configuration decision. Published previews count as
-successful releases for no-change detection; private drafts do not.
+Saturday runs both channels. Each skips an unchanged source tree against its own
+baseline. A preview can therefore become stable on the same commit. A published
+stable release also satisfies the current Saturday-to-Friday window on retries.
+Drafts and reserved tags consume version numbers. Evidence archive tags are
+outside the numeric sequence. Both channels build and validate packages before
+publication. A stable release uses reviewed highlights from
+`docs/release-notes/<tag>.md` when present. Otherwise the notes job generates a
+summary from the channel baseline. GitHub's generated changelog covers that
+same range. The publisher checks for races against the latest publication
+across both channels.
 
 ## Authority boundary
 
@@ -81,7 +82,7 @@ configuration does not silently change their access or existing branch rules.
 All source-tree changes, including documentation, are eligible. The
 [notes configuration](../.github/release.yml) groups existing `enhancement`,
 `bug` and `documentation` labels and includes other merged PRs. Notes use the
-previous published tag rather than incomplete reserved tags. A release describes
+channel's previous published tag. A release describes
 software changes; CPU/package checks do not establish campaign `PASS`, model
 quality or service performance. Such claims retain the acceptance and evidence
 requirements in [contributing](contributing.md#evidence-and-claims).
@@ -173,7 +174,9 @@ guard.
 
 Under **Actions → Release bot → Run workflow**, select the default branch and
 leave **dry_run** checked. It plans and builds the next release without creating
-a remote tag or Release; unchanged trees skip here too. With `DS_API_KEY`
+a remote tag or Release. Select **weekly** to exercise the stable path. Both
+channels apply their normal skip rules.
+With `DS_API_KEY`
 configured, a changed-source dry run also makes the AI request and uploads the
 summary artifact for inspection, consuming API usage. Clearing **dry_run**
 runs the same automatic publication immediately. It takes no version/tag input.
@@ -226,7 +229,7 @@ and [publication CLI](https://cli.github.com/manual/gh_release_edit), plus the
 Remote scheduled execution, repository policy and actual publication remain
 unverified until observed in an actual release run.
 
-## One-off formal v0.2.0
+## Historical one-off formal v0.2.0
 
 The existing workflow accepts `release_v020=true` only through manual dispatch.
 It plans exactly v0.2.0 with `prerelease=false`, rejects any already reserved
@@ -242,8 +245,5 @@ check still uses the actual latest release, not that historical notes baseline.
 This one-off notes path does not call the model API. Wheel, sdist, Codex ZIP,
 WorkSwarm ZIP and SHA256SUMS remain bound to the planned source commit.
 
-Scheduled dispatch and ordinary manual runs keep the existing pyproject defaults.
-After v0.2.0 is published, the unchanged semantic patch planner naturally selects
-v0.2.1 as a preview when source changes; this does not retain the v0.1.x numbering
-line or turn future releases stable. A failed reserved v0.2.0 is not overwritten
-or silently replaced: investigate and obtain a new release decision.
+The daily patch planner continued with v0.2.1 after this promotion.
+The recurring Saturday channel now handles subsequent minor releases.

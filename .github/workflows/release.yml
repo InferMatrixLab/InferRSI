@@ -4,8 +4,14 @@ on:
   schedule:
     # 02:00 Asia/Shanghai every day. GitHub schedules can be delayed.
     - cron: "0 18 * * *"
+    # 10:00 Asia/Shanghai every Saturday.
+    - cron: "0 2 * * 6"
   workflow_dispatch:
     inputs:
+      weekly:
+        description: Plan the weekly stable minor release (default is a patch preview)
+        default: false
+        type: boolean
       release_v020:
         description: One-off formal v0.2.0 release (daily preview policy is unchanged)
         default: false
@@ -37,6 +43,8 @@ jobs:
       prerelease: ${{ steps.plan.outputs.prerelease }}
       commit: ${{ steps.plan.outputs.commit }}
       previous_tag: ${{ steps.plan.outputs.previous_tag }}
+      notes_start_tag: ${{ steps.plan.outputs.notes_start_tag }}
+      reviewed_notes: ${{ steps.plan.outputs.reviewed_notes }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -46,18 +54,20 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - name: Plan only when the source tree changed since the last published release
+      - name: Plan the release for the triggering channel
         id: plan
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
           RELEASE_V020: ${{ github.event_name == 'workflow_dispatch' && inputs.release_v020 }}
+          WEEKLY: ${{ github.event.schedule == '0 2 * * 6' || (github.event_name == 'workflow_dispatch' && inputs.weekly) }}
         shell: bash
         run: |
           gh api --paginate --slurp "repos/$GH_REPO/releases?per_page=100" > "$RUNNER_TEMP/releases.json"
           options=()
           if [[ "$RELEASE_V020" == true ]]; then options+=(--release-v020); fi
+          if [[ "$WEEKLY" == true ]]; then options+=(--weekly); fi
           python tools/check_release.py plan --default-branch "$DEFAULT_BRANCH" \
             --releases "$RUNNER_TEMP/releases.json" "${options[@]}" >> "$GITHUB_OUTPUT"
 
@@ -161,12 +171,13 @@ jobs:
           GH_REPO: ${{ github.repository }}
           RELEASE_TAG: ${{ needs.plan.outputs.tag }}
           RELEASE_COMMIT: ${{ needs.plan.outputs.commit }}
-          PREVIOUS_TAG: ${{ needs.plan.outputs.previous_tag }}
+          PREVIOUS_TAG: ${{ needs.plan.outputs.notes_start_tag }}
+          REVIEWED_NOTES: ${{ needs.plan.outputs.reviewed_notes }}
         shell: bash
         run: |
-          if [[ "$RELEASE_TAG" == v0.2.0 ]]; then
+          if [[ "$REVIEWED_NOTES" == true ]]; then
             mkdir -p "$RUNNER_TEMP/release-notes"
-            cp docs/release-notes/v0.2.0.md "$RUNNER_TEMP/release-notes/ai-notes.md"
+            cp "docs/release-notes/$RELEASE_TAG.md" "$RUNNER_TEMP/release-notes/ai-notes.md"
           else
             python tools/generate_release_notes.py --tag "$RELEASE_TAG" \
             --commit "$RELEASE_COMMIT" --previous-tag "$PREVIOUS_TAG" \
@@ -205,6 +216,8 @@ jobs:
       RELEASE_TAG: ${{ needs.plan.outputs.tag }}
       RELEASE_COMMIT: ${{ needs.plan.outputs.commit }}
       PREVIOUS_TAG: ${{ needs.plan.outputs.previous_tag }}
+      NOTES_START_TAG: ${{ needs.plan.outputs.notes_start_tag }}
+      REVIEWED_NOTES: ${{ needs.plan.outputs.reviewed_notes }}
       PRERELEASE: ${{ needs.plan.outputs.prerelease }}
       DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
     steps:
@@ -216,6 +229,8 @@ jobs:
           [[ "$RELEASE_TAG" =~ $version_tag ]]
           [[ "$RELEASE_COMMIT" =~ ^[0-9a-f]{40}$ ]]
           [[ -z "$PREVIOUS_TAG" || "$PREVIOUS_TAG" =~ $version_tag ]]
+          [[ -z "$NOTES_START_TAG" || "$NOTES_START_TAG" =~ $version_tag ]]
+          [[ "$REVIEWED_NOTES" == true || "$REVIEWED_NOTES" == false ]]
           [[ "$PRERELEASE" == true || "$PRERELEASE" == false ]]
       - uses: actions/download-artifact@v4
         with:
@@ -252,7 +267,7 @@ jobs:
         env:
           AI_NOTES_DOWNLOADED: ${{ steps.download_notes.outcome }}
         run: |
-          if [[ "$RELEASE_TAG" == v0.2.0 ]]; then
+          if [[ "$REVIEWED_NOTES" == true ]]; then
             [[ "${AI_NOTES_DOWNLOADED:-}" == success && -f notes/ai-notes.md && ! -L notes/ai-notes.md ]]
             [[ "$(wc -c < notes/ai-notes.md)" -gt 0 && "$(wc -c < notes/ai-notes.md)" -le 20000 ]]
           fi
@@ -264,8 +279,8 @@ jobs:
             printf '\nThese notes describe software changes. Release builds and scaffold checks do not establish campaign PASS, model quality or service performance. Any such claim requires its acceptance issue and complete frozen evidence.\n'
             if [[ "${AI_NOTES_DOWNLOADED:-}" == success && -f notes/ai-notes.md && ! -L notes/ai-notes.md ]] &&
               [[ "$(wc -c < notes/ai-notes.md)" -gt 0 && "$(wc -c < notes/ai-notes.md)" -le 20000 ]]; then
-              if [[ "$RELEASE_TAG" == v0.2.0 ]]; then
-                printf '\n## Reviewed v0.2.0 highlights\n\n'
+              if [[ "$REVIEWED_NOTES" == true ]]; then
+                printf '\n## Reviewed %s highlights\n\n' "$RELEASE_TAG"
               else
                 printf '\n## AI-generated summary\n\n'
               fi
@@ -274,8 +289,7 @@ jobs:
             fi
           } > "$notes_file"
           options=()
-          if [[ "$RELEASE_TAG" == v0.2.0 ]]; then PREVIOUS_TAG=v0.1.1; fi
-          if [[ -n "$PREVIOUS_TAG" ]]; then options+=(--notes-start-tag "$PREVIOUS_TAG"); fi
+          if [[ -n "$NOTES_START_TAG" ]]; then options+=(--notes-start-tag "$NOTES_START_TAG"); fi
           gh release create "$RELEASE_TAG" dist/*.whl dist/*.tar.gz dist/*.zip dist/SHA256SUMS \
             --verify-tag --draft --title "InferRSI $RELEASE_TAG" \
             --generate-notes --notes-file "$notes_file" "${options[@]}"
