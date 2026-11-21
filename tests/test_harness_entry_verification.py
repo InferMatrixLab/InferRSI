@@ -5,6 +5,7 @@ import sqlite3
 import subprocess
 import sys
 from copy import deepcopy
+from datetime import datetime, timedelta, timezone
 from hashlib import sha256
 from pathlib import Path
 
@@ -26,10 +27,22 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 @pytest.fixture
-def evaluation(preparation, tmp_path):
-    service, request, sources, _, _, config, _ = preparation
+def evaluation(preparation, tmp_path, request):
+    service, prepare_request, sources, protocol, _, config, _ = preparation
+    settings = getattr(request, "param", {})
+    if "worker_code" in settings:
+        source = settings["worker_code"]
+        sources["worker-code"].write_bytes(source)
+        protocol = deepcopy(protocol)
+        digest = sha256(source).hexdigest()
+        protocol["worker_recipe"]["code_sha256"] = digest
+        resource = next(item for item in protocol["resources"] if item["role"] == "worker-code")
+        resource["artifact"].update(sha256=digest, size_bytes=len(source))
+        service = benchmark.PreparationService(
+            protocol, resources=lambda role: sources[role].open("rb"), worker_role="worker-code",
+        )
     output = api.prepare(
-        {"schema_version": 1, "request": request}, workspace=tmp_path,
+        {"schema_version": 1, "request": prepare_request}, workspace=tmp_path,
         storage_config=config, prepare_benchmark=service.prepare,
         encode_prepared=benchmark.encode, validate_prepared=benchmark.validate_prepared,
     )
@@ -38,6 +51,10 @@ def evaluation(preparation, tmp_path):
     prepared = read_prepared(config, ref)
     vector = decode((ROOT / "tests/fixtures/harness-prepared-binding/d023-null-timeout.json")
                     .read_bytes())
+    if "deadline_seconds" in settings:
+        vector["deadline_utc"] = (
+            datetime.now(timezone.utc) + timedelta(seconds=settings["deadline_seconds"])
+        ).isoformat().replace("+00:00", "Z")
     controller, modules = tmp_path / "controller", tmp_path / "modules"
     controller.mkdir()
     modules.mkdir()
@@ -108,7 +125,7 @@ def test_t37_entry_failure_commits_a_not_started_record(evaluation, monkeypatch,
     def forbidden(*args, **kwargs):
         pytest.fail("T37-N1/N2 launched a process")
 
-    monkeypatch.setattr(execution_service.local_process, "execute_command", forbidden)
+    monkeypatch.setattr(execution_service.local_process, "_supervise", forbidden)
     record = case["harness"].execute(case["spec"])
     assert_fixed_refusal(
         case, record, "failed" if failure == "mismatch" else "not_performed", actual,
@@ -128,6 +145,15 @@ def test_matching_entry_executes_its_snapshot_and_retains_the_observed_digest(
     evaluation, monkeypatch, interference,
 ):
     case = evaluation
+    supervise = execution_service.local_process._supervise
+    observed_pids = []
+
+    def counted(*args, **kwargs):
+        result = supervise(*args, **kwargs)
+        observed_pids.append(result["pid"])
+        return result
+
+    monkeypatch.setattr(execution_service.local_process, "_supervise", counted)
     if interference == "workspace-shadow":
         case["spec"]["inputs"][0]["materialized_path"] = "fixture_worker.py"
         case["spec"]["steps"][0]["args"][0] = "fixture_worker.py"
@@ -145,6 +171,7 @@ def test_matching_entry_executes_its_snapshot_and_retains_the_observed_digest(
     record = case["harness"].execute(case["spec"])
     assert record["started"] is True and record["process_outcome"] == "exited"
     assert record["exit_code"] == 0
+    assert len(observed_pids) == 1 and observed_pids[0] is not None
     check = record["checks"][0]
     assert check["status"] == "passed"
     actual = sha256(case["source"]).hexdigest()
@@ -170,7 +197,7 @@ def test_t37_commit_failure_preserves_not_started_and_no_committed_record(
         raise sqlite3.OperationalError("fixture commit failure")
 
     monkeypatch.setattr(case["store"], "_append", fail_commit)
-    monkeypatch.setattr(execution_service.local_process, "execute_command",
+    monkeypatch.setattr(execution_service.local_process, "_supervise",
                         lambda *a, **k: pytest.fail("failed T37 commit started a process"))
     with pytest.raises(PublicError) as caught:
         case["harness"].execute(case["spec"])
@@ -191,7 +218,7 @@ def test_t37_fixed_mismatch_and_source_bytes_can_be_read_in_a_fresh_process(
     changed = b"raise RuntimeError('mismatching worker never executes')\n"
     source = case["modules"] / "fixture_worker.py"
     source.write_bytes(changed)
-    monkeypatch.setattr(execution_service.local_process, "execute_command",
+    monkeypatch.setattr(execution_service.local_process, "_supervise",
                         lambda *a, **k: pytest.fail("mismatching worker started"))
     record = case["harness"].execute(case["spec"])
     source.unlink()
@@ -219,7 +246,7 @@ def test_entry_capture_write_failure_is_not_an_unresolvable_entry(evaluation, mo
         raise execution_service.entry_code.EntryCaptureError("fixture capture failure")
 
     monkeypatch.setattr(execution_service.entry_code, "capture_module", fail_capture)
-    monkeypatch.setattr(execution_service.local_process, "execute_command",
+    monkeypatch.setattr(execution_service.local_process, "_supervise",
                         lambda *a, **k: pytest.fail("failed capture started a worker"))
     with pytest.raises(PublicError) as caught:
         case["harness"].execute(case["spec"])

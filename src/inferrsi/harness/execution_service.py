@@ -946,7 +946,7 @@ def _refusal(ctx, digest, binding, admission, bound, checks, errors, reason) -> 
         ctx, request_digest=digest, target_binding=binding, bound_inputs=bound,
         phase="finished", started=False, process_outcome="not_started", exit_code=None,
         steps=[_not_started_step(step, reason) for step in ctx.spec["steps"]],
-        cancellation={"requested": False, "requested_at": None, "source": None},
+        cancellation=_cancellation(ctx, []),
         cleanup=cleanup, checks=checks, budget_admission=admission, usage=_usage([]),
         resource_leases=leases, errors=errors,
     )
@@ -960,6 +960,16 @@ def _run_claimed(ctx, target, digest, reader, deadline, cancellation) -> dict:
     if errors:
         return _refusal(ctx, digest, binding, admission, [], [], errors, "admission_rejected")
     evaluation = ctx.spec["prepared_ref"] is not None
+    if evaluation:
+        if cancellation is not None and cancellation.is_set():
+            ctx.cancel_seen_at = run_store.utc_now()
+            return _refusal(ctx, digest, binding, admission, [], [], [], "cancelled")
+        if time.monotonic() >= deadline:
+            return _refusal(
+                ctx, digest, binding, admission, [], [],
+                [_error("deadline_exhausted", "binding", "original attempt deadline exhausted")],
+                "deadline_exhausted",
+            )
     entry_checks = []
     if evaluation:
         entries = [_bind_entry(ctx, step, target) for step in ctx.spec["steps"]]

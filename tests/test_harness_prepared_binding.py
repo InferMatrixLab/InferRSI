@@ -62,7 +62,7 @@ def binding(tmp_path, monkeypatch):
         pytest.fail("a PR-1 refusal reached registration or process execution")
 
     monkeypatch.setattr(store, "claim", forbidden)
-    monkeypatch.setattr(execution_service.local_process, "execute_command", forbidden)
+    monkeypatch.setattr(execution_service.local_process, "_supervise", forbidden)
     monkeypatch.setattr(execution_service, "_argv", forbidden)
     return spec, reader, store, harness
 
