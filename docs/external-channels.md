@@ -216,7 +216,7 @@ conclusion.
 | `cannbot enable / disable / describe / search / read` | implemented |
 | `find` integration with gating, budgets, per-channel states | implemented |
 | Managed benchmark and AB/BA round query, read and Dashboard attribution | implemented |
-| MindIE as a second channel | not yet; `apps/mindie/` has the reader, not the adapter |
+| MindIE as a second channel | not yet; `apps/integrations/mindie/` has the reader, not the adapter |
 | `cannbot serve` (stdio MCP proxying `discover` / `search` / `read_card`) | not yet |
 | `campaign import-cannbot` (receipts into evidence) | not yet |
 | Automatic clone, index build or deployment | deliberately absent |

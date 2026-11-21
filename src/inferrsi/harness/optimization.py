@@ -480,6 +480,7 @@ def _summary(root, plan, state):
         "final_assessment": final["assessment"] if final else None,
         "optimization_speedup": (
             1.0 if final and final["assessment"]["status"] == "completed"
+            and final["assessment"].get("score") is not None
             and state["best"]["kind"] == "baseline"
             else (final["assessment"].get("speedup")
                   if final["assessment"].get("speedup") is not None
@@ -519,6 +520,15 @@ def _settle(root, plan, state, pending, execution, assess):
         _load(root)
         if candidates.identity(directory / plan["candidate_name"]) != pending["candidate_sha256"]:
             raise ValueError("Submitted candidate changed during evaluation")
+        bound = pending.get("mechanism_sha256")
+        if bound is not None and not (
+            digest(pending.get("mechanism")) == bound
+            and (directory / "mechanism.json").is_file()
+            and not (directory / "mechanism.json").is_symlink()
+            and digest(json.loads((directory / "mechanism.json").read_text(encoding="utf-8")))
+            == bound
+        ):
+            raise ValueError("Declared mechanism changed during evaluation")
     except (OSError, ValueError, TypeError, KeyError) as error:
         state["integrity_error"] = str(error)
     try:
@@ -533,7 +543,11 @@ def _settle(root, plan, state, pending, execution, assess):
                 or execution["returncode"] < 0):
             raise ValueError(
                 "Execution did not finish normally; candidate result cannot resume search")
-        assessment = assess(root, directory, plan, execution)
+        # Pass the declaration held in memory since before execution; the candidate
+        # can write files during execution, including state.json and attempt copies.
+        assessment = (assess(root, directory, plan, execution, mechanism=pending["mechanism"])
+                      if pending.get("mechanism") is not None
+                      else assess(root, directory, plan, execution))
         if not isinstance(assessment, dict) or assessment.get("status") not in (
             "completed", "candidate_failure", "infrastructure_failure"
         ):
@@ -542,7 +556,13 @@ def _settle(root, plan, state, pending, execution, assess):
         if assessment["status"] == "completed":
             if execution["status"] != "completed" or execution["returncode"] != 0:
                 raise ValueError("Completed assessment requires successful execution")
-            if type(score) not in (int, float) or not math.isfinite(score) or score <= 0:
+            # Only a project's frozen paired decision may leave an ineligible round scoreless
+            # (its paired statistics can be unavailable); every other assessor must score.
+            scoreless = (score is None and assessment.get("eligible") is False
+                         and plan.get("task_source") == "project"
+                         and plan["evaluation_settings"].get("decision") == "paired")
+            if not scoreless and (
+                    type(score) not in (int, float) or not math.isfinite(score) or score <= 0):
                 raise ValueError("Completed assessment requires a finite positive score")
             if pending["kind"] == "round" and state["best"]["score"] is None:
                 baseline_score = assessment.get("baseline_score")
@@ -552,8 +572,8 @@ def _settle(root, plan, state, pending, execution, assess):
     except Exception as error:
         assessment = _failure(error)
     score = assessment.get("score")
-    if assessment["status"] != "completed":
-        assessment["score"] = None
+    # Normalized so every record carries the key, even for a scoreless ineligible round.
+    assessment["score"] = score if assessment["status"] == "completed" else None
     record = {**pending, "assessment": assessment, "execution": execution,
               "execution_sha256": sha256(directory / "execution/execution.json"),
               "elapsed_seconds": execution.get("elapsed_seconds")}
@@ -565,13 +585,20 @@ def _settle(root, plan, state, pending, execution, assess):
         improved = (score is not None and best_score is not None and (
             score < best_score if plan["selection"]["direction"] == "minimize"
             else score > best_score))
-        if (assessment["status"] == "completed" and assessment.get("eligible", True)
-                and improved and pending["candidate_sha256"] != candidates.identity(
-                    root / plan["baseline_path"])):
+        eligible = assessment["status"] == "completed" and assessment.get("eligible", True)
+        outcome = ("not_eligible" if not eligible
+                   else "not_better_than_best" if not improved
+                   else "baseline_identity" if pending["candidate_sha256"] == candidates.identity(
+                       root / plan["baseline_path"])
+                   else "adopted")
+        if outcome == "adopted":
             state["best"] = {"kind": "candidate",
                              "candidate_id": pending["candidate_id"],
                              "path": pending["path"] + "/" + plan["candidate_name"],
                              "sha256": pending["candidate_sha256"], "score": score}
+        # Why this round was or was not selected, compared on the frozen selection metric.
+        record["selection"] = {"outcome": outcome, "metric": plan["selection"]["metric"],
+                               "score": assessment["score"], "best_score_before": best_score}
         record["best_after"] = dict(state["best"])
         state["rounds"].append(record)
     else:
@@ -595,7 +622,8 @@ def _settle(root, plan, state, pending, execution, assess):
 
 def evaluate_round(root: Path, *, candidate: Path | None, hypothesis: str,
                    usage: Path | None, execute, assess, final=False, reason=None,
-                   strategy=None, knowledge_refs=None) -> dict:
+                   strategy=None, knowledge_refs=None,
+                   mechanism: dict | None = None) -> dict:
     with _locked(root):
         plan, state = _load(root)
         _active(state, reserve=0 if final else plan["final_reserve_seconds"])
@@ -628,12 +656,21 @@ def evaluate_round(root: Path, *, candidate: Path | None, hypothesis: str,
             (directory / "agent-usage.json").write_bytes(usage_bytes)
         fingerprint = candidates.retain(source, directory / plan["candidate_name"],
                                         plan.get("candidate_includes"))
+        if final and state["best"]["kind"] == "candidate":
+            # The independent final rechecks the mechanism bound to the selected round.
+            mechanism = next((r.get("mechanism") for r in state["rounds"]
+                              if r["candidate_id"] == state["best"]["candidate_id"]), None)
+        mechanism_sha256 = None
+        if mechanism is not None:
+            atomic_write_json(directory / "mechanism.json", mechanism)
+            mechanism_sha256 = digest(mechanism)
         pending = {"kind": "final" if final else "round", "path": relative,
                    "candidate_id": state["best"].get("candidate_id", "baseline") if final
                    else f"candidate-{count + 1:03d}",
                    "hypothesis": hypothesis, "strategy": strategy,
                    "knowledge_refs": knowledge_refs, "observations": observations,
                    **diagnosis,
+                   "mechanism": mechanism, "mechanism_sha256": mechanism_sha256,
                    "candidate_sha256": fingerprint,
                    "contexts": list(state["contexts"]), "started_at": time.time()}
         state["pending"] = pending
@@ -686,6 +723,13 @@ def recover(root: Path, assess) -> dict:
         if not path.is_file():
             raise ValueError("Execution record unavailable, inspect cleanup before recovery")
         execution = json.loads(path.read_text(encoding="utf-8"))
+        if pending.get("mechanism") is not None or pending.get("mechanism_sha256") is not None:
+            # The candidate ran with write access to every file that could hold the
+            # declaration after submission, so an interrupted attempt cannot prove which
+            # declaration was bound. Settle it without one: the explanation is reported as
+            # not declared and, under require_explanation, the round is not adopted.
+            pending = {**pending, "mechanism": None, "mechanism_sha256": None,
+                       "mechanism_unverified_after_recovery": True}
         return _settle(root, plan, state, pending, execution, assess)
 
 

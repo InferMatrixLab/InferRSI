@@ -1,0 +1,7 @@
+[transformers] You are using a model of type `inkling2_loop` to instantiate a model of type ``. This may be expected if you are loading a checkpoint that shares a subset of the architecture (e.g., loading a `sam2_video` checkpoint into `Sam2Model`), but is otherwise not supported and can yield errors. Please verify that the checkpoint is compatible with the model you are instantiating.
+Running warmup..
+Timing with prompt_tokens=512, generation_tokens=128, batch_size=1.
+Trial 1:  prompt_tps=1701.590, generation_tps=47.270, peak_memory=19.044, total_time=3.011
+Trial 2:  prompt_tps=1704.370, generation_tps=46.170, peak_memory=19.044, total_time=3.075
+Trial 3:  prompt_tps=1625.348, generation_tps=47.467, peak_memory=19.045, total_time=3.014
+Averages: prompt_tps=1677.103, generation_tps=46.969, peak_memory=19.044

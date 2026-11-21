@@ -164,6 +164,11 @@ def _sections(result):
             ],
         ),
     ]
+    if result.get("benchmark_metrics") is not None:
+        from ..views.comparison_report import benchmark_metric_rows
+
+        sections.insert(0, ("Benchmark metrics", ["Metric", "Value", "Coverage / source"],
+                            benchmark_metric_rows(result["benchmark_metrics"])))
     return sections
 
 
@@ -257,6 +262,10 @@ def reports(result, result_digest):
         warning = "; ".join(g["reason"] for g in result["gaps"])
         md += ["**Current gaps:** " + _markdown(warning), ""]
         body += [f'<p class="gaps"><strong>Current gaps:</strong> {html.escape(warning)}</p>']
+    preamble = None
+    if result.get("benchmark_metrics") is not None:
+        preamble = (md[2:], body[1:])
+        md, body = md[:2], body[:1]
     for title, headers, rows in _sections(result):
         md += [
             "## " + title,
@@ -280,6 +289,10 @@ def reports(result, result_digest):
             for row in rows
         )
         body += ["</tbody></table></div></section>"]
+        if preamble is not None:
+            md.extend(preamble[0])
+            body.extend(preamble[1])
+            preamble = None
     # Native details supplies offline interaction without executable imported data.
     body += [
         "<details><summary>Full structured snapshot</summary><pre>",

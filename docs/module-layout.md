@@ -13,7 +13,7 @@ its dashboard views and templates are in `apps/views/`, and the
 collected-context projection is in `knowledge/context_projection.py`.
 #371 owns the Apps composition. Its accepted directory follow-up
 [#490](https://github.com/InferMatrixLab/InferRSI/issues/490) groups the implemented
-storage, handoff, workflows and Cannbot integrations slices described below.
+storage, handoff, workflows and integrations slices described below.
 
 The old `run` chain is split by owner. Its gates are in
 `benchmark/legacy_run_v0.py`, its execution facts stay in `harness/`, and
@@ -41,8 +41,8 @@ through these exports; new pickles use the canonical definition. The retired
 root `inferrsi.evidence_paths` has no alias and remains unavailable.
 
 Shim removal requires a separate reviewed PR recording consumer migration,
-wheel and plugin validation, and the first removal version. MindIE integration
-and integrated acceptance remain subsequent #490 slices.
+wheel and plugin validation, and the first removal version. Integrated acceptance
+remains the final #490 slice.
 
 ### Apps handoff migration
 
@@ -89,14 +89,14 @@ map remains incompatible with a new runtime, including for `status` and `recover
 Do not edit a frozen plan to bypass this check. Use the original pinned runtime
 to resume, following [release-boundary recovery](optimization-workflow-unification.md#release-boundary-recovery).
 
-### Apps Cannbot integration migration
+### Apps integrations migration
 
-`apps/integrations/cannbot/` owns the Cannbot channel, project grant and reader
-worker. Its CLI commands import the canonical implementation on demand. The new
-`integrations` initializer imports nothing. Cannbot retains its existing
-`CannbotChannel` definition in the package initializer; importing it does not
-read grants or start workers. MindIE remains in `apps/mindie/` until its separate
-integration slice.
+`apps/integrations/cannbot/` owns the Cannbot channel, its project grant and its
+reader worker. `apps/integrations/mindie/` owns the MindIE grant, context export,
+stdio MCP and reader worker. CLI commands import these canonical packages on
+demand. The new `integrations` initializer and the MindIE initializer import
+nothing. Cannbot retains its existing `CannbotChannel` definition in its package
+initializer; importing it does not read grants or start workers.
 
 The [migration inventory](apps-module-migrations.json) records packages with
 `package: true`. Compatibility packages and modules use explicit static imports
@@ -107,13 +107,13 @@ The shim and implementation retain their own module identities; no module alias
 is installed. Both parent-first and child-first imports preserve that binding.
 Private helper patches use the canonical modules.
 
-The Cannbot project adapter resolves its sibling worker in the canonical
-directory. Registered launchers use that file with the approved interpreter and
-the existing `-I -B` flags. The worker loads without InferRSI installed or a
-package context, and its top-level imports are standard-library-only. The legacy
-worker path retains Python import compatibility; external interpreters use the
-canonical file. Grant schemas, read-only access, limits, revocation and receipts
-are unchanged.
+Both project adapters resolve their sibling worker in the canonical directory.
+The registered launchers use those files with the approved interpreter and the
+existing `-I -B` flags. Each worker loads without InferRSI installed or a package
+context, and its top-level imports are standard-library-only. Legacy worker
+files are importable compatibility shims, not runnable scripts. External
+interpreters are launched against the canonical files. Grant schemas, read-only access, limits, revocation
+and receipts are unchanged. MCP still starts through `inferrsi mindie serve`.
 
 ### Core and technical packages
 
@@ -140,7 +140,8 @@ root to an exact file set: 23 tracked files after C1, 21 after C2, 10 after R1
 The two are `__init__.py` and `__main__.py`. M1 moved root `mindie_project.py`,
 `mindie_context.py`, `mindie_mcp.py` and `_mindie_read_worker.py` to
 `apps/mindie/project.py`, `context.py`, `mcp.py` and `read_worker.py` and deleted
-the four root files with no forwarding shell or alias. A2 moved root
+the four root files with no forwarding shell or alias. The integrations slice
+later moved that Apps package into `apps/integrations/`. A2 moved root
 `summary_chart.py` to
 `apps/views/summary_chart.py` and root `benchmark_operations.py` to
 `apps/benchmark_operations.py` and deleted both root files the same way. The workflows
@@ -214,7 +215,7 @@ Several flat modules remain shared seams until their slice starts.
 | `knowledge/knowledge_operations.py`, `knowledge/knowledge_store.py`, `knowledge/catalog.py`, `knowledge/research.py`, `knowledge/skill_catalog.py`, `knowledge/_skill_selection.py`, `knowledge/_source_snapshot.py` | The seven Knowledge implementations, moved by K01 | Interfaces unchanged; the same-named root shells were deleted by R1 |
 | `harness/records/` | Campaign manifests, traces, logs, profile captures and delivered-context captures | Imports no Knowledge or Apps module; `apps/workflows/campaign.py` supplies the backend names, the selection default and the context projection |
 | `apps/views/`, `apps/workflows/campaign.py` | Dashboard views, templates and the Knowledge-to-records connection | Apps composition under #371; campaign composition is grouped under workflows by #490 |
-| `apps/mindie/` (`project.py`, `context.py`, `mcp.py`, `read_worker.py`) | The local MindIE adapter: project grant, stdio MCP, context export and the read worker | M1 (#452) moved the four root MindIE files here; no Harness, Knowledge or Infra module names MindIE, and the initializer imports nothing |
+| `apps/integrations/mindie/` (`project.py`, `context.py`, `mcp.py`, `read_worker.py`) | The local MindIE adapter: project grant, stdio MCP, context export and the read worker | M1 (#452) moved the four root MindIE files here; no Harness, Knowledge or Infra module names MindIE, and the initializer imports nothing |
 | `harness/` | Mixed legacy tree, not target isolation | Not redefined |
 | `harness/runner.py`, `harness/scenarios/external.py`, `harness/atomic_json.py` | Old run execution facts and Harness-owned JSON writes | Ports injected; no Model edge, and no Infra edge except the local process executor |
 | `benchmark/legacy_run_v0.py`, `benchmark/sampling.py` | Old run gates and metric validation; image/video sample collection | Imports only `benchmark/metrics.py`; owns its rule inputs and verdict labels |
@@ -633,15 +634,15 @@ M1 (#452) deleted the four root MindIE files the same way:
 
 | Retired root module | Canonical module or file |
 | --- | --- |
-| `inferrsi.mindie_project` | `inferrsi.apps.mindie.project` |
-| `inferrsi.mindie_context` | `inferrsi.apps.mindie.context` |
-| `inferrsi.mindie_mcp` | `inferrsi.apps.mindie.mcp` |
-| `inferrsi._mindie_read_worker` | `src/inferrsi/apps/mindie/read_worker.py`, a file run by path and not imported |
+| `inferrsi.mindie_project` | `inferrsi.apps.integrations.mindie.project` |
+| `inferrsi.mindie_context` | `inferrsi.apps.integrations.mindie.context` |
+| `inferrsi.mindie_mcp` | `inferrsi.apps.integrations.mindie.mcp` |
+| `inferrsi._mindie_read_worker` | `src/inferrsi/apps/integrations/mindie/read_worker.py`, a file run by path and not imported |
 
 The four files moved with their code unchanged except the imports that name
-their neighbours and the package version. `apps/mindie/__init__.py` imports
+their neighbours and the package version. `apps/integrations/mindie/__init__.py` imports
 nothing and does not re-export `__version__`; `mcp.py` reads it with
-`from ... import __version__`. The worker is still started as
+`from .... import __version__` after the integrations move. The worker is still started as
 `python -I -B read_worker.py` with a private working directory, a 20 second limit
 and a 2 MiB cap, opens SQLite read-only, imports only the standard library at
 the top level and takes `mindie_knowledge` inside `read()`. It is not described

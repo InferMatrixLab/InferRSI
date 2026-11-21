@@ -426,6 +426,7 @@ class PermanentLeafImporterTest(unittest.TestCase):
             "benchmark_operations.py", "apps/benchmark_operations.py", "summary_chart.py",
             "apps/views/summary_chart.py", "mindie_project.py", "apps/mindie/project.py",
             "_mindie_read_worker.py", "apps/mindie/read_worker.py", "helper.py", "catalog.py",
+            "apps/integrations/mindie/project.py", "apps/integrations/mindie/read_worker.py",
             "_repo_pack_data.py",
         )
         for path in paths:

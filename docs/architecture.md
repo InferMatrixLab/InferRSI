@@ -220,12 +220,12 @@ src/inferrsi/
         anthropic_agent.py  Bounded direct Messages agent with frozen cost reservations
         anthropic_edit_agent.py  Bounded edit-and-check protocol
         request_guard.py    Request authorization broker, loaded by file location
+      mindie/
+        project.py          Opt-in per-checkout grant, worker launch and recorded read
+        context.py          Export supplied MindIE reads into a reviewed campaign trace
+        mcp.py              Stdio MCP for the two approved local MindIE reads
+        read_worker.py      Standalone worker run by the approved MindIE interpreter
     artifacts.py            Apps-owned hashing, file lock and evidence writes
-    mindie/
-      project.py            Opt-in per-checkout grant, the worker launch and the recorded read
-      context.py            Export supplied MindIE reads into a caller-reviewed campaign trace
-      mcp.py                Stdio MCP for the two approved local MindIE reads
-      read_worker.py        Standalone worker run by the approved MindIE interpreter
     views/
       summary_chart.py      Stdlib SVG gain chart (chain/branch) and report figure spec
       optimization_chart.py Managed optimization objective/token curves and final result
@@ -292,8 +292,9 @@ tests/fixtures/legacy/      Frozen historical validation dependencies for regres
 ```
 
 The package root holds exactly two tracked files: `__init__.py` and `__main__.py`.
-#452 M1 moved the MindIE adapter to `apps/mindie/` (`project.py`, `context.py`,
-`mcp.py` and the standalone `read_worker.py`) and deleted root `mindie_project.py`,
+#452 M1 moved the MindIE adapter into Apps; #490 groups it at
+`apps/integrations/mindie/` (`project.py`, `context.py`, `mcp.py` and the standalone
+`read_worker.py`). M1 deleted root `mindie_project.py`,
 `mindie_context.py`, `mindie_mcp.py` and `_mindie_read_worker.py` with no forwarding
 shell or alias. #408 A2 moved the chart renderer to
 `apps/views/summary_chart.py` and the task launcher to `apps/workflows/benchmark_operations.py`

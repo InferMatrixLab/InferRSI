@@ -281,7 +281,9 @@ class TargetModuleImportGateTest(unittest.TestCase):
         for moved in ("cli/__init__.py", "cli/arguments.py", "benchmark_operations.py",
                       "workflows/benchmark_operations.py",
                       "views/summary_chart.py", "mindie/project.py", "mindie/context.py",
-                      "mindie/mcp.py", "mindie/read_worker.py"):
+                      "mindie/mcp.py", "mindie/read_worker.py",
+                      "integrations/mindie/project.py", "integrations/mindie/context.py",
+                      "integrations/mindie/mcp.py", "integrations/mindie/read_worker.py"):
             self.assertTrue((ROOT / "apps" / moved).is_file(), moved)
 
     def test_first_wave_policy_holds_on_current_tree(self) -> None:

@@ -162,6 +162,7 @@ request per engine and measure audio frames per second and median time to first 
 
 - **▶️ Run and review.** [Operations](docs/operations.md) · [Packaged optimization benchmarks](docs/optimization-benchmarks.md) · [Result delivery](docs/result-delivery.md)
 - **🧠 Use knowledge.** [Skill library](src/inferrsi/knowledge/data/skill_library/README.md) · [CANNbot setup and revocation](docs/external-channels.md#setting-one-up) · [MindIE setup and revocation](docs/codex-plugin.md#enable-and-revoke)
+- **📓 Field lessons.** [Apple silicon playbook](docs/apple-silicon-playbook.md) · [Inkling 2 Mini on Apple silicon](docs/inkling2-mini-apple-silicon.md) (exploratory, unverified) · [Scheduling RSI lessons](docs/scheduling-rsi-lessons.md) (exploratory, unverified) · [h3-metal lessons](docs/h3-metal-apple-silicon-lessons.md)
 - **🧭 Understand and extend.** [Module layout and import migration](docs/module-layout.md) · [Architecture and directory map](docs/architecture.md) · [Standalone engine template](docs/template/README.md)
 - **📌 Follow changes.** [Releases](https://github.com/InferMatrixLab/InferRSI/releases) · [Changelog](CHANGELOG.md)
 

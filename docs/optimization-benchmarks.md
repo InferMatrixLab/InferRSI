@@ -1,5 +1,9 @@
 # Optimize a task through RSI in its execution Agent session
 
+The final report starts with [Benchmark metrics](benchmark-metrics.md): final
+speedup, accepted/assessed optimization steps and token consumption/coverage.
+Comparison-only ratios appear in paired reports rather than single-run reports.
+
 The CLI `final` operation automatically publishes a [result delivery](result-delivery.md)
 under `delivery/<export-id>/`: lead the response with the conclusion and `report.md`,
 then `report.html` (**Open in a browser**), `campaign-result.json`, and retained code.

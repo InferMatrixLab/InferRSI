@@ -110,7 +110,7 @@ print(json.dumps({'compatible': True}))
     assert _fresh(script, str(child_first)) == {"compatible": True}
 
 
-@pytest.mark.parametrize("system", ["cannbot"])
+@pytest.mark.parametrize("system", ["cannbot", "mindie"])
 def test_project_launchers_reference_the_canonical_standalone_worker(system):
     project = import_module(f"inferrsi.apps.integrations.{system}.project")
     legacy = import_module(f"inferrsi.apps.{system}.project")
@@ -229,7 +229,7 @@ def test_storage_dependency_check_rejects_a_handoff_back_edge(tmp_path, indirect
 
 def test_migrated_initializers_import_nothing_and_module_bodies_do_no_io():
     packages = ["inferrsi.apps.storage", "inferrsi.apps.handoff", "inferrsi.apps.workflows",
-                "inferrsi.apps.integrations"]
+                "inferrsi.apps.integrations", "inferrsi.apps.integrations.mindie"]
     for package in packages:
         path = REPO / "src" / package.replace(".", "/") / "__init__.py"
         tree = ast.parse(path.read_text(encoding="utf-8"))
