@@ -628,9 +628,9 @@ def _run_steps(ctx: _Context, argvs: list[list[str]], deadline: float, cancellat
             cancellation=cancellation,
         )
         runs.append((step, run))
-        if run["pid"] is None and run["status"] == "timeout":
-            records.append(_not_started_step(step, "deadline_exhausted"))
-            stop = "deadline_exhausted"
+        if run["pid"] is None and run["status"] in ("timeout", "cancelled"):
+            stop = "cancelled" if run["status"] == "cancelled" else "deadline_exhausted"
+            records.append(_not_started_step(step, stop))
             continue
         status = _STEP_STATUS[run["status"]]
         exited = status == "exited"
