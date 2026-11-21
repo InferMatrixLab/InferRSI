@@ -2,7 +2,7 @@
 
 ![InferRSI — an agent app to onboard and optimize models. The outer loop improves the engine and the inner loop improves the optimizer.](docs/assets/inferrsi-banner.svg)
 
-[🚀 Quickstart](#quickstart) · [🔁 How It Works](#how-it-works) · [📊 Selected Results](#selected-results) · [📚 Docs](#documentation) · [🤝 Contributing](#contributing)
+[🚀 Quickstart](#quickstart) · [🔁 How It Works](#how-it-works) · [📊 Selected Results](#selected-results) · [📚 Docs](#documentation) · [🤝 Contributing](#contributing) · [👀 DeepWiki](https://deepwiki.com/InferMatrixLab/InferRSI)
 
 </div>
 
@@ -68,8 +68,7 @@ result views.
 [Module responsibilities](docs/architecture.md#module-responsibilities-and-dependencies) · [Workflow diagram](docs/optimization-workflow-unification.md#时序图) · [Architecture decision #362](https://github.com/InferMatrixLab/InferRSI/issues/362#issuecomment-6722325612) · [Apps migration #371](https://github.com/InferMatrixLab/InferRSI/issues/371)
 
 **Review a run in the dashboard.** Compare baseline and candidate profiles and
-trace each experiment back to its evidence. From a recorded run directory,
-open it with `inferrsi dashboard --input .`, which writes `dashboard.html` beside the run.
+trace each experiment back to its evidence. From the recorded run directory, run `inferrsi dashboard --input .` to generate `dashboard.html` in that directory. Then open the file in your browser.  
 [Dashboard guide](docs/dashboard.md#generate-and-open) · [Download the interactive example](docs/examples/dashboard-profile-review.html)
 
 <p align="center">
@@ -98,7 +97,7 @@ listed baseline. The evidence column gives the scope and validation status.
 
 | Model | Engine and hardware | Milestone | Evidence |
 | --- | --- | --- | --- |
-| **DeepSeek V4.1 Flash** | vLLM-Ascend · 8× Ascend 910C | W8A8 service on the 8K-input / 1K-output workload. Six independent runs gave **39.28 / 44.07 / 56.86 ms/token** at C1 / C4 / C16; the 25 ms/token target remains unmet. | [Bring-up and baseline](https://github.com/InferMatrixLab/InferRSI/issues/353#issuecomment-6641425447) |
+| **DeepSeek V4.1 Flash** | vLLM-Ascend · 8× Ascend 910C | The W8A8 service ran with 8K input tokens and 1K output tokens. At concurrency levels of 1, 4, and 16, the medians of the six run-level mean times per output token were 39.28, 44.07, and 56.86 ms/token, respectively. All three exceeded the 25 ms/token target. | [Bring-up and baseline](https://github.com/InferMatrixLab/InferRSI/issues/353#issuecomment-6641425447) |
 | **Qwen3.8-27B** | Standalone nano-vLLM-derived engine · 1× H20 | FP8 service passed scoped HTTP/SSE lifecycle checks; quality and performance qualification incomplete. | [Service bring-up](https://github.com/InferMatrixLab/InferRSI/issues/57) · [Performance campaign](https://github.com/InferMatrixLab/InferRSI/issues/67) |
 | **LFM3-Omni-2B** | vLLM-Omni · 1× Ascend 910B1 | ✅ Two real-weight serving tests passed; a functional eager adapter served as the offline audio baseline. | [Serving checks and A/B benchmark](https://github.com/vllm-project/vllm-omni/pull/9827) |
 
@@ -129,7 +128,7 @@ listed baseline. The evidence column gives the scope and validation status.
 
 | Model | Measured change and baseline | Metric and hardware | Validation and evidence |
 | --- | --- | --- | --- |
-| **LFM3-Omni-2B** | **+108.1%**<br>Baseline: Functional eager adapter · 0.285 req/s | Offline greedy request throughput · 1× Ascend 910B1, C4 | ✅ Retained audio bit-identical at every tested temperature. [Upstream results](https://github.com/vllm-project/vllm-omni/pull/9827#:~:text=Performance%20results) |
+| **LFM3-Omni-2B** | **+108.1%**<br>Baseline: Functional eager adapter · 0.285 req/s | Offline greedy request throughput · 1× Ascend 910B1, C4 | ✅ At each tested temperature, the retained waveforms from the baseline and candidate were bit-for-bit identical. [Upstream results](https://github.com/vllm-project/vllm-omni/pull/9827#:~:text=Performance%20results) |
 | **MiniCPM-o 4.5** | **+100.6% / −50.72%**<br>Baseline: Pinned upstream main · 11.46 req/s / 0.65548 RTF | Request throughput / mean real-time factor · 1× L20X, C32 | ⚠️ Five matched runs per arm; speech-quality non-inferiority unestablished. [Campaign](https://github.com/InferMatrixLab/InferRSI/issues/431) · [Benchmark](https://github.com/vllm-project/vllm-omni/pull/10331) |
 | **MiniCPM-o 4.5** | **−27.69%**<br>Baseline: Tuned 50-frame deployment before packed conditioning | Median time to first audio · 1× L20X, C32 | ⚠️ Missed the exploratory word-error-rate margin. [Benchmark](https://github.com/vllm-project/vllm-omni/pull/9218) |
 | **MiniCPM-o 4.5** | **+20.5% / +25.4%**<br>Baseline: Pinned upstream main before TensorRT + MPS | Throughput at C16 / C32 · 1× L20X | ⚠️ Speech quality check failed. [Benchmark](https://github.com/vllm-project/vllm-omni/pull/9188) |
@@ -148,7 +147,7 @@ request per engine and measure audio frames per second and median time to first 
 | Engine | Measured change and baseline | Metric and hardware | Benchmark scope and evidence |
 | --- | --- | --- | --- |
 | **Qwen3-TTS** | **+381% / −81%**<br>Baseline: vLLM-Omni · 12.71 frames/s / 263.51 ms | Audio throughput / time to first audio · 1× Ascend 910B1 | **🔥** ✅ Three runs per engine; audio and contract checks passed. [Same-card benchmark](https://github.com/InferMatrixLab/qwen3-tts-rsi-npu-engine/blob/a29f8193b557c415175d70919bdfb9bd3dcd51fc/evidence/campaign-20261017/same-card-performance.md) |
-| **MiniCPM-o 4.5** | **+112% / −57%**<br>Baseline: vLLM-Omni · 187.52 frames/s / 295.3 ms | Audio throughput / time to first audio · 1× L20X | ⚠️ Target unmet; quality unqualified. [Same-card benchmark](https://github.com/InferMatrixLab/minicpm-o-4.5-single-gpu-engine/blob/a4f4778f312791c2d190b48e521141887ed160c8/docs/current-results.md) |
+| **MiniCPM-o 4.5** | **+112% / −57%**<br>Baseline: vLLM-Omni · 187.52 frames/s / 295.3 ms | Audio throughput / time to first audio · 1× L20X | ⚠️ The overall throughput and latency target was not met. The formal speech quality checks were not run for the tested configuration. [Same-card benchmark](https://github.com/InferMatrixLab/minicpm-o-4.5-single-gpu-engine/blob/a4f4778f312791c2d190b48e521141887ed160c8/docs/current-results.md) |
 | **Drama 3** | **+58% / −31%**<br>Baseline: vLLM-Omni · 195.89 frames/s / 47.29 ms | Audio throughput / time to first audio · 1× B300 | Three-run medians; overall target unmet. [Same-card benchmark](https://github.com/InferMatrixLab/drama-3-single-b300-engine/blob/58a1882a4d941f8d21bfce6be37d3d5e7c9fde80/docs/current-results.md) |
 | **h3-metal** | **−59%**<br>Baseline: h3.c · 73.3 s | Warm video generation latency · Apple M5 Max | Both engines used the original MiniMax-H3 at 20 steps. [Author benchmark](https://github.com/zuiho-kai/h3-metal/blob/53b7fa5d88e2497ab427ab9c7155535f7e6e6817/README.md#performance) |
 
@@ -173,8 +172,7 @@ request per engine and measure audio frames per second and median time to first 
 
 People agree on the scope, resources, and acceptance criteria in the issue.
 Agents implement the agreed scope, run tests, and submit PRs with evidence.
-To merge, a PR must pass the required checks and receive two independent
-approvals. The issue owner uses the evidence to accept the work or reopen it.
+**Before a pull request can be merged**, it must pass the required checks and receive approval from at least two independent reviewers. The issue owner reviews the evidence to decide whether to accept the work or reopen the issue.
 
 Start with a reproducible workload, a baseline, and evidence of the bottleneck.
 Sign off commits with `git commit -s`.
