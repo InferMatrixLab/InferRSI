@@ -11,7 +11,7 @@ from decimal import ROUND_CEILING, Decimal
 from pathlib import Path
 from urllib.parse import quote
 
-from inferrsi.infra.artifacts import write_json
+from inferrsi.apps.artifacts import write_json
 from tools import skill_eval_pr as pr
 from tools.skill_eval_budget import (
     Binding,
@@ -208,7 +208,7 @@ def status(api, plan, config):
 
 
 def controlled_execute(api, output, *, config_path=CONFIG, run_id, attempt, launch=None):
-    from inferrsi.model.request_guard import authorization_broker
+    from inferrsi.apps.integrations.anthropic.request_guard import authorization_broker
 
     plan = pr.compare.read_json(output / "pr-plan.json")
     config = configuration(config_path)

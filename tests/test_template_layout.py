@@ -13,8 +13,9 @@ def test_evidence_template_segments() -> None:
 
 def test_sias_readmes() -> None:
     pkg = REPO_ROOT / "src" / "inferrsi"
-    for plane in ("harness", "model", "infra"):
-        assert (pkg / plane / "README.md").is_file()
+    # #498 removed the model and infra planes; harness keeps its README.
+    assert (pkg / "harness" / "README.md").is_file()
+    assert not (pkg / "model").exists() and not (pkg / "infra").exists()
 
 
 def test_maintained_documentation_links_resolve() -> None:

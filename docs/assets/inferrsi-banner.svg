@@ -1,38 +1,70 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="320" viewBox="0 0 1200 320" role="img" aria-labelledby="banner-title banner-desc" xml:lang="en">
-  <title id="banner-title">InferRSI — Faster inference. Verifiable progress.</title>
-  <desc id="banner-desc">InferMatrixLab's inference optimization workbench. A loop connects profiling, optimization, validation, and reuse of knowledge.</desc>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="336" viewBox="0 0 1200 336" role="img" aria-labelledby="title desc" xml:lang="en">
+  <title id="title">InferRSI — an agent app to onboard and optimize models</title>
+  <desc id="desc">The outer loop improves the engine within one task. The agent proposes changes, InferRSI checks quality and performance, and each round guides the next until InferRSI retests the best candidate in a fresh process. The inner loop improves the optimizer across tasks. Paired runs with knowledge on and off evaluate the value of reuse, and reviewed pull requests can add findings to the library for future tasks.</desc>
   <defs>
-    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#0B1224"/>
-      <stop offset="1" stop-color="#172342"/>
-    </linearGradient>
-    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#5EEAD4"/>
-      <stop offset="1" stop-color="#A5B4FC"/>
-    </linearGradient>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#8095B7"/>
+    <marker id="engine-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M1 1 8 5 1 9" fill="none" stroke="#087b70" stroke-width="1.6"/>
     </marker>
+    <marker id="knowledge-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M1 1 8 5 1 9" fill="none" stroke="#6c4da0" stroke-width="1.6"/>
+    </marker>
+    <style>
+      text { font-family: Inter, "Segoe UI", Arial, sans-serif; }
+      .lane-title { font-size: 17px; font-weight: 700; letter-spacing: 1px; }
+      .lane-scope { fill: #48606d; font-size: 16px; }
+      .step { fill: #17353d; font-size: 19px; font-weight: 650; text-anchor: middle; }
+      .repeat-count { fill: #17645e; font-size: 15px; }
+      .optimizer-step { font-size: 17px; }
+      .step-note { fill: #53446d; font-size: 14px; text-anchor: middle; }
+      .edge-note { font-size: 15px; text-anchor: middle; }
+      .edges { fill: none; stroke-width: 2.3; stroke-linecap: round; stroke-linejoin: round; }
+    </style>
   </defs>
-  <rect width="1200" height="320" rx="20" fill="url(#background)"/>
-  <path d="M 650 0 L 520 320 M 850 0 L 720 320 M 1050 0 L 920 320" stroke="#233352" stroke-width="1" opacity="0.65"/>
-  <rect x="52" y="43" width="44" height="4" rx="2" fill="url(#accent)"/>
-  <g font-family="DejaVu Sans, Arial, sans-serif">
-    <text x="52" y="81" font-size="14" font-weight="700" letter-spacing="2" fill="#A9BBD4">INFERMATRIXLAB / INFERENCE SYSTEMS</text>
-    <text x="48" y="177" font-size="86" font-weight="700" letter-spacing="-3" fill="#F8FAFC">Infer<tspan fill="#5EEAD4">RSI</tspan></text>
-    <text x="52" y="224" font-size="25" fill="#DBE6F4">Faster inference. Verifiable progress.</text>
-    <text x="52" y="276" font-size="14" letter-spacing="1" fill="#9CADC7">BENCHMARKS · QUALITY GATES · REUSABLE KNOWLEDGE</text>
-    <path d="M 880 105 H 964 M 1050 137 V 181 M 966 215 H 882 M 795 181 V 137" fill="none" stroke="#8095B7" stroke-width="2" marker-end="url(#arrow)"/>
-    <rect x="706" y="73" width="174" height="64" rx="12" fill="#16343E" stroke="#4FD1C5"/>
-    <rect x="966" y="73" width="174" height="64" rx="12" fill="#283054" stroke="#A5B4FC"/>
-    <rect x="966" y="183" width="174" height="64" rx="12" fill="#173444" stroke="#7DD3FC"/>
-    <rect x="706" y="183" width="174" height="64" rx="12" fill="#283054" stroke="#C4B5FD"/>
-    <g font-size="19" font-weight="700" text-anchor="middle" fill="#F1F5F9">
-      <text x="793" y="112">Profile</text>
-      <text x="1053" y="112">Optimize</text>
-      <text x="1053" y="222">Validate</text>
-      <text x="793" y="222">Reuse</text>
-    </g>
-    <text x="923" y="281" text-anchor="middle" font-size="14" fill="#A9BBD4">Every experiment feeds the next.</text>
+
+  <rect x="0.5" y="0.5" width="1199" height="335" rx="18" fill="#ffffff" stroke="#d7e3e7"/>
+  <text x="52" y="91" fill="#356465" font-size="17" font-weight="650" letter-spacing="2">INFERMATRIXLAB</text>
+  <text x="47" y="184" font-size="88" font-weight="700" letter-spacing="-4" fill="#10202d">Infer<tspan fill="#087b70">RSI</tspan></text>
+  <text x="52" y="238" fill="#3d5362" font-size="23">An agent app to onboard and optimize models</text>
+
+  <rect x="574" y="22" width="602" height="150" rx="16" fill="#f0f7f4" stroke="#d6e8e0"/>
+  <rect x="574" y="183" width="602" height="131" rx="16" fill="#f6f2fa" stroke="#e3d9ee"/>
+  <text x="600" y="54" class="lane-title" fill="#17645e">OUTER LOOP</text>
+  <text x="737" y="54" class="lane-scope">Improve the engine within one task</text>
+  <text x="600" y="210" class="lane-title" fill="#63438f">INNER LOOP</text>
+  <text x="737" y="210" class="lane-scope">Improve the optimizer across tasks</text>
+
+  <g class="edges" stroke="#087b70" marker-end="url(#engine-arrow)">
+    <path d="M714 95 H731"/>
+    <path d="M877 95 H894"/>
+    <path d="M1009 95 H1026"/>
+    <path d="M952 120 V136 Q952 148 940 148 H702 Q690 148 690 136 V125"/>
   </g>
+  <text x="821" y="139" class="edge-note" fill="#17645e">Evidence for the next round</text>
+
+  <g class="edges" stroke="#6c4da0" marker-end="url(#knowledge-arrow)">
+    <path d="M1092 120 V225"/>
+    <path d="M977 254 H964"/>
+    <path d="M790 254 H771" stroke-dasharray="4 3"/>
+    <path d="M597 254 H590 Q582 254 582 246 V103 Q582 95 590 95 H598" stroke-dasharray="4 4"/>
+  </g>
+
+  <rect x="599" y="72" width="113" height="47" rx="9" fill="#d4eae3" stroke="#8db8a9"/>
+  <rect x="735" y="72" width="140" height="47" rx="9" fill="#ffffff" stroke="#b6d3ca"/>
+  <rect x="898" y="72" width="109" height="47" rx="9" fill="#ffffff" stroke="#b6d3ca"/>
+  <rect x="1030" y="72" width="124" height="47" rx="9" fill="#ffffff" stroke="#b6d3ca"/>
+  <text x="655.5" y="102" class="step">Propose</text>
+  <text x="805" y="93" class="step">Run &amp; check<tspan x="805" y="111" class="repeat-count">N×</tspan></text>
+  <text x="952.5" y="102" class="step">Keep best</text>
+  <text x="1092" y="102" class="step">Final retest</text>
+
+  <rect x="599" y="230" width="168" height="48" rx="9" fill="#ece3f6" stroke="#bca9d6"/>
+  <rect x="794" y="230" width="166" height="48" rx="9" fill="#ffffff" stroke="#cfc0e1"/>
+  <rect x="979" y="230" width="175" height="48" rx="9" fill="#ffffff" stroke="#cfc0e1"/>
+  <text x="683" y="252" class="step optimizer-step">Knowledge library</text>
+  <text x="683" y="270" class="step-note">Skills · cases · records</text>
+  <text x="877" y="252" class="step optimizer-step">Evaluate reuse</text>
+  <text x="877" y="270" class="step-note">Knowledge on vs. off</text>
+  <text x="1066.5" y="252" class="step optimizer-step">Run evidence</text>
+  <text x="1066.5" y="270" class="step-note">Patch · verdict · report</text>
+  <text x="783" y="300" class="edge-note" fill="#63438f">Library updates via reviewed PRs</text>
 </svg>

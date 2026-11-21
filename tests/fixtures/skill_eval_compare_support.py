@@ -4,7 +4,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from inferrsi.infra.artifacts import sha256, write_json
+from inferrsi.apps.artifacts import sha256, write_json
 
 ROOT = Path(__file__).resolve().parents[2]
 DATA = json.loads((ROOT / "tests/fixtures/skill_eval_grading.json").read_text(encoding="utf-8"))

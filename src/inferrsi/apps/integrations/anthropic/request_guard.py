@@ -19,7 +19,7 @@ import time
 from contextlib import contextmanager
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
-SOURCE = "src/inferrsi/model/request_guard.py"
+SOURCE = "src/inferrsi/apps/integrations/anthropic/request_guard.py"
 ENV_KEYS = ("SKILL_EVAL_GATE_PORT", "SKILL_EVAL_GATE_TOKEN", "SKILL_EVAL_GATE_CONTEXT")
 
 

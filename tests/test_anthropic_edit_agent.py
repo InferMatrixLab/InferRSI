@@ -6,8 +6,8 @@ from dataclasses import replace
 
 import pytest
 
-from inferrsi.model import anthropic_agent as provider
-from inferrsi.model import anthropic_edit_agent as edit
+from inferrsi.apps.integrations.anthropic import anthropic_agent as provider
+from inferrsi.apps.integrations.anthropic import anthropic_edit_agent as edit
 
 MODEL = "claude-opus-5-5"
 PLAN_HASH = "a" * 64

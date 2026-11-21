@@ -44,10 +44,9 @@ and [TTS service protocol](tts-benchmark.md) expose their documented execution
 boundaries. Apps and Harness callers assemble these operations into optimization
 rounds under the #362 target architecture. Each task records its qualification.
 
-The local experiment path now has concrete Harness, Model and Infra modules. The
-CLI, RunSpec, knowledge retrieval and existing command contracts remain stable.
-The diagrams below describe implemented code, with the historical compatibility
-boundary called out separately.
+The diagrams below show where the CLI assembles an experiment, which package
+owns each step and where to extend it. The [compatibility notes](#compatibility-and-historical-evidence)
+cover retained interfaces and imports that moved.
 
 ## Three-objective delivery framing
 
@@ -97,10 +96,10 @@ interfaces; existing CLI commands remain supported.
 | Entry and knowledge | CLI arguments, immutable RunSpec, cited knowledge/context export | Model execution or automatic source editing |
 | Harness | AB/BA order, deadlines, source checks, scenario composition, evidence, performance adjudication and reporting | Device-specific conditions, request schemas or kernel dispatch |
 | Model | Anthropic provider adapters and their request authorization | Scheduling, worker lifetime, hardware selection, request payloads, metric contracts or quality checks |
-| Infra | Repository identity, device discovery/qualification, storage and artifacts | Model constants, campaign gates or performance verdicts |
+| Apps | CLI, host bindings (source identity, device discovery/qualification, environment facts), artifact digests and JSON writes, provider integrations | Model constants, campaign gates or performance verdicts |
 
-Dependencies flow from entrypoints to Harness. Harness reaches no Infra or Model
-module, and Infra does not import Model or Harness. None
+Dependencies flow from entrypoints to Harness. #498 removed the Infra and Model
+packages, so Harness reaches neither. None
 of these shared packages imports a campaign from `examples/`.
 
 Environment inspection follows that direction. `apps/host/inspection.py` is the
@@ -114,12 +113,9 @@ repository-pack description through the neutral `resources.repository_packs`
 leaf, under the one permanent importer rule in
 [module-layout.md](module-layout.md#permanent-neutral-leaf-importer-rule-proposed).
 
-The implemented table above is not the target four-module layout. The
-suggested rule, including what the import gate does not prove, is
-[module-layout.md](module-layout.md). That page does not move code. It also
-records the first-wave compatibility pairs that #412 R1 retired and the
-permanent neutral-leaf importer rule, both held in
-[legacy-knowledge-manifest.json](legacy-knowledge-manifest.json).
+The [target module layout](module-layout.md) describes the migration and the
+scope of the static import checks. The [migration manifest](legacy-knowledge-manifest.json)
+records the retired compatibility pairs and the permanent neutral-leaf importer rule.
 
 The caller still prepares the benchmark runtime and baseline/candidate source
 checkouts. Separate working directories alone do not isolate Python imports,
@@ -220,11 +216,16 @@ src/inferrsi/
         __init__.py         CannbotChannel implementation and channel result adaptation
         project.py          Opt-in checkout/interpreter grant and read-only operations
         read_worker.py      Standalone worker run by the approved Cannbot interpreter
+      anthropic/
+        anthropic_agent.py  Bounded direct Messages agent with frozen cost reservations
+        anthropic_edit_agent.py  Bounded edit-and-check protocol
+        request_guard.py    Request authorization broker, loaded by file location
       mindie/
         project.py          Opt-in per-checkout grant, worker launch and recorded read
         context.py          Export supplied MindIE reads into a reviewed campaign trace
         mcp.py              Stdio MCP for the two approved local MindIE reads
         read_worker.py      Standalone worker run by the approved MindIE interpreter
+    artifacts.py            Apps-owned hashing, file lock and evidence writes
     views/
       summary_chart.py      Stdlib SVG gain chart (chain/branch) and report figure spec
       optimization_chart.py Managed optimization objective/token curves and final result
@@ -284,8 +285,6 @@ src/inferrsi/
       server.py             Supervised Linux serving workers and their group cleanup
       http.py               Timed JSON POST transport
       image.py              OpenAI-style image payload and PNG response protocol
-  infra/
-    artifacts.py            Hashing and evidence writes
   knowledge/data/skill_library/  Registered skills, engineering records, configuration and compiled inputs
   harness/data/repo_packs/       Execution target descriptors
 examples/                   Current Qwen runner, image validator and v4 adapter
@@ -307,15 +306,16 @@ forwarding shell or alias: the seven Knowledge shells, whose code is in
 `reporting.py`, whose code is in `apps/legacy/`; and `inspection.py`, whose
 host binding is `apps/inspection.py`. The build-generated `_version.py` is ignored
 wheel metadata, not a tracked root file.
-[module-layout.md](module-layout.md#retired-root-modules) maps each retired
-path to its replacement and lists what still keeps the isolation gate false.
+The [migration list](module-layout.md#retired-root-modules) maps each retired
+path to its replacement. The [import gate](module-layout.md#import-gate) defines
+the dependency checks.
 
 ## Where to extend
 
 | Add | Main extension locations | Required qualification |
 | --- | --- | --- |
 | Model or scenario | `harness/serving`, `benchmark/metrics.py`, `benchmark/validators`, `harness/scenarios` | Frozen request and metric contract; model-specific quality coverage |
-| Repository | `apps/host/targets`, a composed scenario, `data/repo_packs` | Stable source identity; command/result contract; environment isolation |
+| Repository | `apps/host/targets`, a composed scenario, `harness/data/repo_packs` | Stable source identity; command/result contract; environment isolation |
 | Hardware | `apps/host/platforms` | Device selection, process exclusivity and independent backend/model evidence; a backend is registered in `apps/host/platforms/__init__.py` and its probe command is defined in the implementing module under `apps/host/platforms/`, not in package data |
 
 The acceptance rule is: **a new model or hardware adapter must reuse the common

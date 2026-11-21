@@ -249,7 +249,7 @@ def test_cold_storage_imports_do_not_load_handoff_or_probe_modules():
 import importlib, importlib.abc, json, sys, warnings
 blocked = ('inferrsi.apps.handoff', 'inferrsi.apps.api', 'inferrsi.apps.bridge',
            'inferrsi.apps.context_provider', 'inferrsi.apps.candidate_provider',
-           'inferrsi.infra', 'inferrsi.knowledge', 'inferrsi.benchmark',
+           'inferrsi.apps.host', 'inferrsi.knowledge', 'inferrsi.benchmark',
            'inferrsi.harness.api', 'inferrsi.harness.run_store')
 class Block(importlib.abc.MetaPathFinder):
     def find_spec(self, name, path=None, target=None):
@@ -301,7 +301,7 @@ from unittest.mock import patch
 blocked = ('inferrsi.apps.api', 'inferrsi.harness.api', 'inferrsi.harness.run_store',
            'inferrsi.harness.generation', 'torch', 'numpy', 'PIL', 'vllm')
 if sys.argv[2] == 'handoff':
-    blocked += ('inferrsi.infra', 'inferrsi.benchmark', 'inferrsi.model')
+    blocked += ('inferrsi.apps.host', 'inferrsi.benchmark', 'inferrsi.apps.integrations')
 class Block(importlib.abc.MetaPathFinder):
     def find_spec(self, name, path=None, target=None):
         if any(name == item or name.startswith(item + '.') for item in blocked):

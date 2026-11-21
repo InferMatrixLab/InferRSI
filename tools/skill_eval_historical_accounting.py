@@ -15,7 +15,7 @@ import time
 from decimal import Decimal
 from pathlib import Path
 
-from inferrsi.model.request_guard import authorization_broker
+from inferrsi.apps.integrations.anthropic.request_guard import authorization_broker
 from tools import skill_eval_auto as auto
 from tools import skill_eval_compare as compare
 from tools import skill_eval_pr as pr

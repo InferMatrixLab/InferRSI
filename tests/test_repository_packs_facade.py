@@ -37,7 +37,7 @@ RETIRED = "inferrsi._repo_pack_data"
 FACADE_CLOSURE = {"inferrsi", "inferrsi.resources", "inferrsi.resources.repository_packs"}
 # The facade needs none of these. #412 R1 retired root catalog, so the CLI parser that
 # now reads the tuple directly stands in its place.
-CORES = ("inferrsi.harness", "inferrsi.knowledge", "inferrsi.infra", "inferrsi.apps",
+CORES = ("inferrsi.harness", "inferrsi.knowledge", "inferrsi.apps",
          "inferrsi.benchmark", "inferrsi.contracts")
 # Every other inferrsi import is refused, so the facade works only if it needs none.
 BLOCKED = """

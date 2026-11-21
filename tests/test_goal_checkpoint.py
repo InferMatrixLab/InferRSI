@@ -5,7 +5,7 @@ import subprocess
 
 import pytest
 
-from inferrsi.infra.artifacts import sha256, write_json
+from inferrsi.apps.artifacts import sha256, write_json
 from tests.fixtures.skill_eval_compare_support import FixedOutputClient, configuration
 from tools import goal_checkpoint as checkpoint
 from tools import skill_eval_compare as compare
