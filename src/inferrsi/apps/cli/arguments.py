@@ -86,6 +86,14 @@ def _optimization_actions(stages, *, project=False):
         start.add_argument("--min-improvement-pct", type=float)
         start.add_argument("--repetitions", type=int)
         start.add_argument("--warmups", type=int)
+        start.add_argument("--decision", choices=("point", "paired"), default="point",
+                           help="point: independent medians (default); paired: the paired "
+                                "interval must clear the gate (>= 6 repetitions) and "
+                                "candidates are ranked by median paired speedup; "
+                                "within-noise rounds are INCONCLUSIVE")
+        start.add_argument("--require-explanation", action="store_true",
+                           help="Adopt a candidate only when its declared mechanism is "
+                                "confirmed by measured breakdown/counters")
         start.add_argument("--round-mode", choices=("exact", "up_to"), default="up_to")
     else:
         start.add_argument("task")
@@ -125,6 +133,8 @@ def _optimization_actions(stages, *, project=False):
             stage.add_argument("--strategy", help="Agent-declared optimization strategy")
             stage.add_argument("--knowledge-ref", action="append",
                                help="Delivered path, path#item-ref, or CANNBot receipt; repeatable")
+            stage.add_argument("--mechanism-file", type=Path,
+                               help="JSON mechanism with expected region/counter directions")
         if name == "final":
             stage.add_argument("--reason", help="Why the caller stopped an up-to-budget search")
         if name in ("round", "final"):

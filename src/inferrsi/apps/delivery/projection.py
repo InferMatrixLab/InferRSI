@@ -520,7 +520,9 @@ def iterative(snapshot, result):
             "kind": "baseline_retained",
             "reason": "Controller retained the baseline",
         }
-        if finished and current and final_value.get("status") == "completed":
+        # A final without a usable score (paired statistics unavailable) shows no speedup.
+        if (finished and current and final_value.get("status") == "completed"
+                and number(final_value.get("score")) is not None):
             optimization_speedup = 1.0
     elif result["acceptance"]["delivery_accepted"]:
         selection = plan.get("selection", {})

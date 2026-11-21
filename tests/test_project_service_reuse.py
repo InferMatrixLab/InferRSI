@@ -1646,3 +1646,27 @@ def test_standalone_capture_leaves_search_budget_and_reserve_intact(campaign, mo
     assert after["allocated_rounds"] == before["allocated_rounds"]
     assert after["best"] == before["best"] and after["can_finalize"]
     assert project_service.read(root / "plan.json")["final_reserve_seconds"] == 30
+
+
+@pytest.mark.parametrize("switch", [["--decision", "paired"], ["--require-explanation"]])
+def test_paired_and_explanation_switches_are_refused_in_service_mode(campaign, switch):
+    # Both switches read AB/BA pairs and profiles; service reuse must not silently drop them.
+    with pytest.raises(SystemExit):
+        main([*campaign["start"], *switch])
+    campaign["capsys"].readouterr()
+    assert not (campaign["root"] / "plan.json").exists()
+
+
+def test_mechanism_declaration_is_refused_in_service_mode(campaign, tmp_path):
+    begin(campaign)
+    commit(campaign["repo"], version="declared", a=90)
+    declaration = tmp_path / "mechanism.json"
+    declaration.write_text(json.dumps({"mechanism": "Synthetic", "expect": [
+        {"region": "norm", "direction": "decrease"}]}))
+    with pytest.raises(SystemExit):
+        main(["campaign", "round", "--session", str(campaign["root"]),
+              "--candidate", str(campaign["repo"]), "--hypothesis", "Declared candidate",
+              "--mechanism-file", str(declaration)])
+    campaign["capsys"].readouterr()
+    state = json.loads((campaign["root"] / "state.json").read_text())
+    assert state["pending"] is None and not state.get("attempts", [])[1:]

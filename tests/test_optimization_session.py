@@ -1004,3 +1004,33 @@ else:
 
     canonical = Path(__file__).resolve().parents[1] / "src/inferrsi/apps/workflows/campaign.py"
     assert new_identity["apps/workflows/campaign.py"] == sha256(canonical)
+
+
+def test_mechanism_checks_are_rejected_for_packaged_task_sessions(session, tmp_path):
+    mechanism = tmp_path / "mechanism.json"
+    mechanism.write_text(json.dumps({"mechanism": "m", "expect": [
+        {"region": "a", "direction": "decrease"}]}), encoding="utf-8")
+    with pytest.raises(SystemExit):
+        main(["benchmarks", "session", "round", "--session", str(session),
+              "--candidate", str(session / "work/candidate.py"), "--hypothesis", "h",
+              "--mechanism-file", str(mechanism)])
+    assert not (session / "rounds").exists() or not any((session / "rounds").iterdir())
+
+
+def test_packaged_task_assessment_without_a_score_still_blocks(session, monkeypatch, capsys):
+    """Only a project's paired decision may settle a scoreless round; tasks must score."""
+    def scoreless(*args, **kwargs):
+        return {"status": "completed", "verdict": "INCONCLUSIVE",
+                "reason": "synthetic_missing_score", "eligible": False}
+
+    monkeypatch.setattr(optimization_session, "_session_assess", scoreless)
+    candidate = session / "work/candidate.py"
+    candidate.write_text("FACTOR = 2\n", encoding="utf-8")
+    assert main(["benchmarks", "session", "round", "--session", str(session),
+                 "--candidate", str(candidate), "--hypothesis", "Missing score control"]) == 2
+    view = json.loads(capsys.readouterr().out)
+    assert view["state"] == "blocked" and view["pending"] is None
+    assessment = view["latest_observation"]["assessment"]
+    assert assessment["status"] == "infrastructure_failure" and assessment["score"] is None
+    assert "finite positive score" in assessment["reason"]
+    assert view["best"]["kind"] == "baseline"

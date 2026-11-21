@@ -724,15 +724,21 @@ def _managed_dashboard(root: Path, campaign: dict) -> dict:
             source_verified=True, improvement_pct=_number(gain),
             baseline_median=_number(metrics.get("baseline")),
             candidate_median=_number(metrics.get("candidate")),
-            metric_key=sanitized_text(plan["selection"]["metric"]),
+            # The medians are in the measured metric, which can differ from the
+            # selection metric (a paired decision selects by paired speedup).
+            metric_key=sanitized_text(metrics.get("name") or plan["selection"]["metric"]),
             metric_unit=sanitized_text(metrics.get("unit", "ratio")),
-            direction=plan["selection"]["direction"], decision=decision,
+            direction=(metrics["direction"] if metrics.get("direction") in (
+                "minimize", "maximize") else plan["selection"]["direction"]),
+            decision=decision,
             outcome="quality_failed" if assessment.get("quality_passed") is False else
                     "unverified",  # No synthetic environment qualification or noise estimate.
             artifacts={**row["artifacts"], "execution": facts, "assessment": judged,
                        "status": facts, "evaluation": judged},
             usage=record["observations"]["usage"],
+            # The score is in the frozen selection metric, not necessarily metric_key.
             measured_score=_number(assessment.get("score")),
+            score_key=sanitized_text(plan["selection"]["metric"]),
             knowledge_uses=[citations[ref] for ref in record.get("knowledge_refs") or []
                             if ref in citations],
         )
