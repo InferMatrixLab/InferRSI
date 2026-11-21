@@ -254,7 +254,11 @@ def parser(*, parser_class=argparse.ArgumentParser) -> argparse.ArgumentParser:
             action.add_argument("--artifact", type=Path, action="append", default=[])
     benchmarks = commands.add_parser("benchmarks", help="Discover packaged engineering tasks")
     actions = benchmarks.add_subparsers(dest="benchmark_action", required=True)
-    actions.add_parser("list")
+    listing = actions.add_parser("list")
+    listing.add_argument(
+        "--iterative", action="store_true",
+        help="List only tasks with a packaged optimization.py file for iterative sessions",
+    )
     compare = actions.add_parser(
         "compare", help="Compare complete RSI optimization sessions (default: knowledge on/off)",
         description=("Apps coordinates paired fresh-Agent optimizations and reports. Knowledge "

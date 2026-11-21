@@ -19,6 +19,24 @@ def write_registry(library, value):
     (library / "index.json").write_text(json.dumps(value), encoding="utf-8")
 
 
+def test_iterative_listing_uses_packaged_files_without_executing_them(library, capsys):
+    names = ["z-task", "directory-task", "a-task"]
+    write_registry(library, {"schema_version": 1, "packages": names})
+    for name in names:
+        (library / name).mkdir()
+    (library / "directory-task" / "optimization.py").mkdir()
+
+    assert main(["benchmarks", "list", "--iterative"]) == 0
+    assert json.loads(capsys.readouterr().out) == []
+
+    for name in ("z-task", "a-task"):
+        (library / name / "optimization.py").write_text(
+            'raise AssertionError("Discovery executed the task protocol")\n', encoding="utf-8",
+        )
+    assert main(["benchmarks", "list", "--iterative"]) == 0
+    assert json.loads(capsys.readouterr().out) == ["a-task", "z-task"]
+
+
 @pytest.mark.parametrize("exit_code", [0, 1, 2])
 def test_new_task_needs_only_package_and_registry(library, capsys, exit_code):
     package = library / "new-workload"
