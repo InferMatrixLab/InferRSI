@@ -161,6 +161,7 @@ ruff check src tests
 2. Prefer minimal diffs; match existing layout and naming.
 3. Do not reopen closed campaign work or add pins to shared automation without explicit human direction.
 4. Work Issue-first: confirm the governing Issue's accepted scope before changing code, keep each change a bounded delegated slice with independent review, and report PR readiness and Issue completion separately — see [agent collaboration](docs/agent-collaboration.md).
+5. Agents may carry work end to end; humans set direction through Issues, approve high-risk changes (CI, releases, secrets, permissions) and stop work with `agent:stop`. Identify yourself on every comment and review, never approve your own PR, claim work on the Issue before starting, keep comments short, and revert a merge that turns `main` red before fixing forward — see [identity and authority](docs/agent-collaboration.md#identity-and-authority) and working rules 7–8 in [agent collaboration](docs/agent-collaboration.md#working-rules).
 
 ## Privacy and security
 

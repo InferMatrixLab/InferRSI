@@ -1,5 +1,10 @@
 [
   {
+    "name": "agent:stop",
+    "group": "agent",
+    "description": "Human stop switch: agents make no changes, reviews or merges here until a human removes it"
+  },
+  {
     "name": "area:knowledge",
     "group": "area",
     "description": "Knowledge line: packs, skill library, knowledge admission"

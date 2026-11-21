@@ -11,9 +11,13 @@ Campaign acceptance, DCO, CI lanes and evidence rules stay in
 
 - Humans and agents may propose Issues. Proposal origin, assignment and labels do not grant authority.
 - A GitHub account may represent a human and their authorized agent team. Assignment identifies accountability, not necessarily the executor. Record the acting person/agent and role when relevant; retain unknown identity rather than guessing.
-- Work follows accepted scope and explicit or standing delegation. Record or link that authority. Material scope changes and exceptions return to the authorized owner.
+- Work follows accepted scope and explicit or standing delegation. Record or link that authority. Material scope changes and exceptions are decided by the accountable agent and recorded with their reason on the Issue; a human may override any such decision.
 - Routine PR review and integration may be delegated without fresh human approval per PR. Existing repository permissions and acceptance policies still apply.
 - Completion is accepted by the named person or authorized agent. Acceptance/closure authority must be clear before those actions; it need not block already-authorized implementation.
+- Agents carry work end to end: they claim, delegate slices, set accepted scope and acceptance criteria within the Issue's direction, apply repository rules to a case, grant exceptions, review and merge. Each such decision is recorded on the Issue or PR with its reason.
+- Humans do three things: open Issues that set direction, approve high-risk changes, and stop work at any time. A human adds `agent:stop` to an Issue or PR to stop it; agents then make no further changes, reviews or merges there and resume only after a human removes the label.
+- High-risk changes need an **Approve** from a human maintainer as one of the two approvals: CI workflows and required checks, releases (release workflow, version, tags, publishing), secrets and credentials, and permissions (workflow `permissions`, repository access, rulesets).
+- Each account carries at most one agent team, or the agent uses its own account. Every agent comment and every formal review (including **Approve** and **Request changes**) starts with one line naming the acting agent and the human it acts for, so humans, integrators and other agents can tell who acted.
 
 ## Roles
 
@@ -73,7 +77,7 @@ flowchart TB
 
 The integrator uses attributable, independent review records. Blocked
 integration or incomplete goals remain open, and material scope exceptions
-return to the authorized owner.
+are recorded by the accountable agent for any human to override.
 
 ### PR review and merge
 
@@ -84,7 +88,10 @@ spelling `LGTM` qualifies. For DO NOT PASS, submit **Request changes** with
 the blockers and the expected corrections or evidence.
 
 An eligible approval comes from an independent reviewer using a GitHub account
-with repository write access or higher. The PR author, material contributors,
+with repository write access or higher; an agent's **Approve** is a formal
+approval and counts toward the two. The authoring agent never approves its own
+PR, and at least one approval comes from a different agent or a human.
+The PR author, material contributors,
 and the accountable parent for the delivery slice cannot supply an independent
 approval, including through another agent acting under their account. Each
 eligible account counts once.
@@ -113,6 +120,14 @@ is resolved. Record the reason and supporting evidence on the PR. The two
 valid approvals are still required after dismissal.
 [GitHub review dismissal](https://docs.github.com/en/pull-requests/how-tos/review-pull-requests/dismissing-a-pull-request-review)
 
+Two PRs that each pass their checks can still break `main` together once both
+are merged. A GitHub merge queue, with the required checks, is the last gate:
+it runs the checks on the merged result without dismissing existing approvals,
+so a PR branch need not be up to date with `main` before merging. Enabling it
+is a repository setting for maintainers. If `main` still turns red after a
+merge, an agent first reverts the merge that broke it, then fixes forward in a
+new PR.
+
 ### Agent–Agent: isolated work and conditional handoff
 
 ```mermaid
@@ -140,6 +155,8 @@ sequenceDiagram
 4. **Refresh:** reassess affected evidence after relevant head/base/content/environment/check changes. Refresh checks or explain continued applicability. Neither blanket reuse nor full hardware reruns is the default; changed hashes alone prove neither content change nor equivalence.
 5. **Handoff:** only for an actual transfer or accepted decision change, record the delta, recipient and next action. Keep acceptance status/link, communication status and application status separate. "Applied" needs artifact/evidence; otherwise retain pending or unknown. No full conversation traces or new ledger.
 6. **Completion:** merged PR ≠ accepted goal ≠ campaign `PASS` ≠ release. Use non-closing `Refs #N` until closure is authorized. GitHub treats a closing keyword followed by an Issue reference as closing syntax even inside a negated sentence, so never write one in PR text; for an authorized closure, put `Closes #N` alone on its own line. The ready lane's `pr-references` job reports any other use. Subtasks cannot implicitly close a parent goal. Knowledge proposals to [#17](https://github.com/InferMatrixLab/InferRSI/issues/17) are optional; no automatic promotion. Before an authorized closure, publish a closure summary card ([closure summaries](#closure-summaries)).
+7. **Claims:** before starting a fix or opening a PR, search open Issues and PRs for the same work and claim it with a comment on the governing Issue; if someone already holds a live claim, coordinate there instead of starting a parallel fix. An agent's claim states when it will next show an artifact (draft PR, branch or findings). If nothing appears by then, the claim lapses: the agent posts one comment releasing it and leaves the work to others.
+8. **Comments:** agent comments start with a one-line conclusion; put details in a collapsible `<details>` section. Post in a thread only for a new head, new evidence or a new question; do not post status-only updates. Do not post, or else minimize, agent comments that only report the agent's own failure or exhausted quota.
 
 ## Closure summaries
 
@@ -234,6 +251,7 @@ lists every repository label with its group and description, and every name has 
 | Status | `status:accepted` or `status:deferred`, replacing `status:proposed` | the acting agent | only after the decision owner records that decision in a comment |
 | Priority | at most one `priority:P0/P1/P2`, only with `status:proposed` or `status:accepted` | the acting agent; the decision owner may change it | with `status:proposed`, how soon the owner should decide; with `status:accepted`, how soon work should start; removed at `status:deferred` |
 | Help | `help:wanted` | the creator or a maintainer | an Issue needs an owner or contributor |
+| Stop switch | `agent:stop` | only a human adds or removes it | adding stops agent changes, reviews and merges on that Issue or PR; removing lets them resume |
 | Protected switch | `skill-eval:execute` | only the owner adds it; the owner or an agent may remove it | adding authorizes paid Skill Eval for one PR; removing revokes it |
 
 An Issue carries at most one `status:*` label. When the owner rejects a proposal, or its
