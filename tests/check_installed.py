@@ -802,6 +802,27 @@ facade = subprocess.run(
     [sys.executable, "-I", "-c", facade_probe], capture_output=True, text=True, check=False,
 )
 assert facade.returncode == 0, facade.stderr
+# The offline Benchmark port must ship in the wheel and remain independently importable.
+assessment_probe = (
+    "import sys\n"
+    "from inferrsi.benchmark.assessment import (\n"
+    "    AssessmentService, assess, decode, encode, validate_assessment,\n"
+    ")\n"
+    "from inferrsi.benchmark.proofs import (\n"
+    "    ProofProjector, decode_report, encode_report, project, validate_report,\n"
+    ")\n"
+    "assert all(callable(port) for port in\n"
+    "           (AssessmentService, assess, decode, encode, validate_assessment,\n"
+    "            ProofProjector, decode_report, encode_report, project, validate_report))\n"
+    "for prefix in ('inferrsi.apps', 'inferrsi.harness', 'inferrsi.knowledge'):\n"
+    "    assert not [name for name in sys.modules if name == prefix\n"
+    "                or name.startswith(prefix + '.')], prefix\n"
+)
+assessment_port = subprocess.run(
+    [sys.executable, "-I", "-B", "-c", assessment_probe],
+    capture_output=True, text=True, check=False,
+)
+assert assessment_port.returncode == 0, assessment_port.stderr
 # #452 M1: the MindIE adapter ships in the wheel. A fresh isolated interpreter imports the
 # package initializer with no core loaded and without a re-exported version, then imports
 # the stdio MCP module through its absolute package path.
