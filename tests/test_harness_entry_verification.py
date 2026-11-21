@@ -81,6 +81,9 @@ def assert_fixed_refusal(case, record, status, actual):
     assert check["operation"] == "evaluate" and check["validation_scope"] == "p1"
     runtime = record["target_binding"]["runtime_bindings_by_step"][0]
     assert runtime["code_sha256"] == actual
+    assert all(step["status"] == "not_started" for step in record["steps"])
+    if actual is not None:
+        assert runtime["argv"][1:3] == ["-I", "-B"]
     assert record["resource_leases"]["leases"] == []
     saved = case["store"].read(record["attempt_id"], record["record_version"])
     assert saved["record_ref"] == record["record_ref"]

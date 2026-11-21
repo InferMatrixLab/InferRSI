@@ -31,7 +31,14 @@ is attempted. Ordinary-command module/executable resolution is unchanged.
    current Python interpreter with `-I -B`. The workspace and `PYTHONPATH` cannot
    replace the bound entry, and subsequent changes to its original source file
    do not change the bytes being executed. Package execution is outside this
-   target's supported range. The runtime binding records the actual command.
+   target's supported range. The runtime binding records the resolved command.
+
+Runtime bindings describe resolution, not proof of a process launch. On an N1
+mismatch, `argv` is the would-be command over the captured source and the step
+remains `not_started`; `started` and step facts determine whether anything ran.
+On N2 it is empty because the source command could not be resolved. This target
+intentionally binds the frozen recipe's single worker step; declaration checks
+reject multiple steps, so each private entry directory holds one snapshot.
 
 Both refusal cases launch zero worker processes, acquire no process lease, and
 retain the preparation/protocol/candidate identity in the fixed record. The
