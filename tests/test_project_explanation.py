@@ -494,7 +494,7 @@ def test_recovered_attempt_does_not_trust_a_rewritable_declaration(project, caps
         original(root, directory, plan, deadline)
         forged = {"mechanism": "forged", "expect": [
             {"counter": "dram_bytes", "direction": "decrease"}]}
-        from inferrsi.infra.artifacts import digest
+        from inferrsi.harness.artifact_primitives import digest
         state = json.loads((root / "state.json").read_text())
         state["pending"].update(mechanism=forged, mechanism_sha256=digest(forged))
         (root / "state.json").write_text(json.dumps(state))
