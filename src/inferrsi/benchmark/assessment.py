@@ -104,7 +104,12 @@ def _projection(result):
 def assessment_id(result: dict) -> str:
     """Pure v1 identity; only assessed_at, the self ID and typed locations are excluded."""
     _object(result, _RESULT)
-    return "sha256:" + sha256(canonical_encode(_projection(result))).hexdigest()
+    try:
+        return "sha256:" + sha256(canonical_encode(_projection(result))).hexdigest()
+    except (KeyError, TypeError, CanonicalError, preparation.PreparationError):
+        raise AssessmentError(
+            "InvalidRequest", "Malformed assessment identity projection.",
+        ) from None
 
 
 def validate_assessment(result: dict) -> None:
@@ -409,7 +414,8 @@ def _observations(required, prepared, record, actual, reader):
             continue
         if (not _trusted(check, required, prepared, record)
                 or check.get("status") not in {"passed", "failed"}
-                or not isinstance(check.get("evidence_refs"), list)):
+                or not isinstance(check.get("evidence_refs"), list)
+                or not check["evidence_refs"]):
             problems.append("untrusted_or_incomplete_check")
             continue
         for ref in check["evidence_refs"]:
@@ -467,7 +473,7 @@ def _claim(definition, protocol, prepared, record, actual, reader):
         )
         refs.extend(used)
         conflict |= contradicted
-        if not proofs:
+        if not proofs or problems:
             missing.append(required["check_id"])
             reasons.extend(problems)
         elif required["check_id"] == "cleanup" and not all(p["confirmed"] for p in proofs):

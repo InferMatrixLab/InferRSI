@@ -202,6 +202,63 @@ def test_each_read_failure_is_only_a_claim_gap(retained, kind):
     assert result["claims"][0]["missing_evidence"] == ["format"]
 
 
+@pytest.mark.parametrize("reverse", [False, True], ids=["valid-first", "gap-first"])
+@pytest.mark.parametrize("kind,separate_check", [
+    (kind, separate) for kind in ("UnsafeArtifactPath", "ArtifactUnavailable",
+                                  "ArtifactIntegrityError", "bad_bytes", "invalid_json")
+    for separate in (False, True)
+] + [("empty", True)])
+def test_good_proof_cannot_hide_another_declared_evidence_gap(
+    retained, separate_check, reverse, kind,
+):
+    good = retained["record"]["checks"][0]
+    good_refs = deepcopy(good["evidence_refs"])
+    other, _ = retained["add"]("format", "failed")
+    target = other["evidence_refs"][0]
+    if kind == "invalid_json":
+        target = retained["put"]("invalid-proof.json", b"{}")
+        other["evidence_refs"] = [target]
+    if kind == "empty":
+        other["evidence_refs"] = []
+    if not separate_check:
+        good["evidence_refs"].extend(other["evidence_refs"])
+        retained["record"]["checks"].remove(other)
+        if reverse:
+            good["evidence_refs"].reverse()
+    elif reverse:
+        retained["record"]["checks"].reverse()
+    reader = ArtifactReader(retained["config"])
+
+    class Fault:
+        def open(self, ref):
+            if ref == target:
+                if kind in {"UnsafeArtifactPath", "ArtifactUnavailable", "ArtifactIntegrityError"}:
+                    raise PublicError(kind, stage="open", message="fixture rejection")
+                if kind == "bad_bytes":
+                    return BytesIO(b"not the retained failed proof")
+            return reader.open(ref)
+
+    result = run(retained, reader=Fault())
+    assert [c["verdict"] for c in result["claims"]] == ["INCONCLUSIVE", "PASS", "PASS"]
+    assert result["claims"][0]["missing_evidence"] == ["format"]
+    assert result["claims"][0]["evidence"] == good_refs
+    assert result["eligibility"][0]["status"] == "unknown"
+
+
+@pytest.mark.parametrize("field,value", [
+    ("record_ref", {}), ("claims", [{}]), ("comparison", [None]),
+    ("candidate", {"context_refs": None}), ("metrics", None),
+])
+def test_public_identity_reports_malformed_nested_projection_as_declared_error(
+    retained, field, value,
+):
+    result = run(retained)
+    result[field] = value
+    with pytest.raises(assessment.AssessmentError) as error:
+        assessment.assessment_id(result)
+    assert error.value.code == "InvalidRequest"
+
+
 @pytest.mark.parametrize("error", [TypeError("broken host adapter"),
                                   CanonicalError("host_adapter", "broken host adapter")],
                          ids=["type", "canonical"])

@@ -40,6 +40,10 @@ streams it opens. Portable `UnsafeArtifactPath`, `ArtifactUnavailable` and
 `ArtifactIntegrityError` exceptions are recognized by their exact `code`, without
 depending on another module's exception class. An affected proof becomes a
 claim-level evidence gap. Unknown host programming exceptions propagate.
+Every declared proof for a matching check must be usable: a good proof does not
+hide an unreadable, corrupt or invalid second proof, or another matching check
+with no evidence. That claim remains INCONCLUSIVE, preserving the verified refs
+and the gap reason, regardless of proof/check order. Other claims are independent.
 Failure to obtain the protocol itself is a port error: missing rules cannot be
 replaced by a guessed assessment.
 
