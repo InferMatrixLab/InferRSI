@@ -9,8 +9,7 @@ separate process for each holder, so they cover the actual writer and reader on 
 ``tests/session_lock_probe.py`` drives the real pair with a valid managed session: a Harness
 process holds the lock and the Apps ``export_bundle`` of that session is refused, then the
 same export publishes after release. The probe runs here against the checkout and in
-``tests/check_installed.py`` against the installed wheel. The exception type that Windows
-raises for contention is #494 and stays a separate assertion in tests/test_result_delivery.py.
+``tests/check_installed.py`` against the installed wheel.
 """
 
 import json
@@ -107,7 +106,7 @@ def test_a_held_lock_excludes_the_other_copy_in_another_process(tmp_path, hold, 
     lock = tmp_path / ".session.lock"
     release = hold(holder, lock)
     blocked = _probe(contender, lock)
-    assert blocked["acquired"] is False, blocked
+    assert blocked == {"acquired": False, "error": "BlockingIOError"}
     release.write_text("done", encoding="utf-8")
     deadline = time.monotonic() + 30
     while True:
