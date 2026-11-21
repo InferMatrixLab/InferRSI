@@ -58,6 +58,18 @@ acceptance result.
 | A candidate kernel used 42,240 bytes of threadgroup memory and failed only at run time. | The limit is 32 KB. | Build every Metal pipeline before timing so the failure is a build failure. | ledger |
 | PyTorch/diffusers could not run the model on MPS. | `aten::_int_mm` is not implemented for MPS. | Check the int8 operator set before choosing PyTorch MPS as a baseline. | ledger (2026-10-24) |
 
+## Bringing up a new model
+
+From [Inkling 2 Mini on Apple silicon](inkling2-mini-apple-silicon.md) (measured on the same M5 Max).
+
+| Observation | Cause | Action | Source |
+| --- | --- | --- | --- |
+| The release checkpoint (ModelOpt NVFP4/MXFP8) loads in neither MLX nor llama.cpp. | Apple runtimes need their own quantized formats. | Start from a community conversion; pin repository, revision and file SHA-256. | measured |
+| Shards arrived larger than published after a segmented download. | curl `--retry` inside a ranged, appending segment resends from the range start. | Verify each file against the Hub `lfs.oid` before the first load. | measured |
+| A 512-token cap ended inside the thinking block although reasoning effort was set to `none`. | The template value only adds a system line. | Size generation caps for thinking plus answer; count both. | measured |
+| A looped MoE model decoded at about 48 tok/s on MLX while weight traffic allowed far more. | 48 layer visits per token, each with many small ops: launch- and graph-building-bound. | Search compilation of pure sub-blocks first; per-module compiles gave 1–3%, a fused per-layer half plus gates 6.4% on held-out prompts. | measured |
+| During a search round the default path drifted from 47.4 to 48.9 tok/s. | Warm-up/thermal drift over minutes. | Pair each candidate run with the adjacent default run; an all-runs median inflated one candidate from 1.048 to 1.053. | measured |
+
 ## Benchmarking a shared Mac
 
 | Observation | Cause | Action | Source |

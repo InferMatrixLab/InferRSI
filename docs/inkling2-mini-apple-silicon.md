@@ -1,6 +1,11 @@
 # Inkling 2 Mini on Apple silicon: local adaptation and one RSI round
 
-**RESULTS_HEADLINE**
+**On one M5 Max, MLX ran Inkling 2 Mini at 47.0 tok/s decode and 1,677 tok/s
+prefill (512-token prompt), ahead of llama.cpp at 41.7 and 998. Two search
+rounds then found a compile patch that raised MLX decode by 6.4% (paired
+median, held-out prompts, run-to-run noise 3.9%) with token-identical greedy
+output.** These are maintainer measurements without an acceptance issue; they
+are not an InferRSI PASS.
 
 [Inkling 2 Mini](https://huggingface.co/thinkingmachines/Inkling-2-Mini) is a
 26B-total, MoE, looped transformer from Thinking Machines Lab (24 layers; the
@@ -62,8 +67,70 @@ kernels compile on first use; warm numbers exclude it.
 
 ## RSI round
 
-RSI_SECTION
+Scripts, candidates and per-round records:
+[examples/inkling2_mini_mlx](../examples/inkling2_mini_mlx/README.md).
+
+**Plane and why.** Decode on this model is launch-bound rather than
+bandwidth-bound: a token visits 48 layers (6 + 12 × 3 + 6), each with a MoE
+block, two depth-attention residuals and, in loop passes 2 and 3, four
+message gates, so many small kernels and Python graph-building per step.
+The searched plane is therefore *model-side graph compilation* (`mx.compile`
+around pure sub-blocks), not scheduling: one user, one stream, no queue to
+order. Loop count was not searched because the variable-loop model has no
+Apple-format weights and changing `num_passes` on the released model changes
+its output.
+
+**Gates frozen before the run** (inherited from the
+[scheduling RSI lessons](scheduling-rsi-lessons.md)):
+
+- greedy decoding; a candidate whose token ids differ from the default path on
+  any prompt is rejected;
+- each candidate run is paired with the default run immediately before it, 3
+  pairs per candidate, score = median paired ratio of decode tok/s;
+- below 5% difference: no conclusion;
+- candidates are selected on two "evolve" prompts and reported on two
+  different "holdout" prompts (TypeScript and Rust code generation);
+- a "better" verdict needs a mechanism signal.
+
+**Round 1** (evolve, 256 generated tokens, noise 2.9%). Paired medians:
+gates 1.031, MoE 1.015, depth residual 1.012, gates + MoE 1.048. All
+token-identical, all below 5%: no conclusion. The first version of the scorer
+compared with the median of all default runs; the default path drifted from
+47.4 to 48.9 tok/s during the round, which inflated gates + MoE to 1.053. The
+scorer was changed to adjacent pairing before round 2.
+
+**Round 2** (proposed from round 1: combine the compile points; fuse the whole
+MLP half of each layer).
+
+| Candidate | Evolve (noise 2.3%) | Holdout (noise 3.9%) | Output |
+| --- | ---: | ---: | --- |
+| gates + MoE (round-1 best, re-run) | 1.043 | 1.054 | identical |
+| gates + MoE + depth residual | 1.057 | 1.056 | identical |
+| fused MLP half per layer | 1.044 | 1.039 | identical |
+| **fused MLP half + q/k/v gates** | **1.068** | **1.064** (1.068, 1.064, 1.060) | identical |
+
+Mechanism (one decode step, synchronous, median of 50 steps, two alternating
+processes each): 22.07 → 20.94 ms per step; Python graph building
+3.89 → 3.34 ms. About half of the saving is CPU graph construction and the
+rest is GPU time from fewer, fused kernels. The winning patch is
+`rounds/r2/cands/r2d_fused_half_gates.py`; it changes no weights and no
+numerics outside the compiled regions.
+
+**How candidates were produced.** The candidates were written by the
+assistant running the campaign (Claude Code, `claude-opus-5-5`) from reading
+the model source; no automatic mutation chain was used. Round 2 was proposed
+after reading round 1's scores.
 
 ## What we did not establish
 
-LIMITS
+- One machine, one macOS build, 128 GB; nothing on 32–64 GB Macs, which the
+  model card lists as supported.
+- Single stream only; no batching, concurrency or long-context runs (the
+  advertised 1M context was not exercised). Prompts are short (61 tokens);
+  prefill-heavy work was measured only by the 512-token benchmark.
+- Quality was checked only as greedy-token identity on four prompts and one
+  passing generated test file; no benchmark accuracy.
+- The compile patch was not measured inside `mlx_lm.server` and was not
+  proposed upstream.
+- llama.cpp was run with default settings; its flags were not searched, so
+  the route comparison is default against default.
