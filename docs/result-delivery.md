@@ -181,15 +181,21 @@ Git revisions, or claim local code-byte verification for a revision binding.
 The index identity is `inferrsi.delivery-artifacts`, version 1, with `export_id`.
 Entries include ID, role, location/kind (`bundle` or `source`), media type, size,
 SHA-256, source revision, availability, integrity, check time and access explanation.
-Source locations are relative to the original input; bundle locations are relative
-to this export. Known digests survive missing/corrupt bytes; `observed_sha256`
+Source locations are relative to the original input unless an optional logical
+`source_root` identifies an explicitly supplied additional input. For Benchmark
+`--agent-job`, `agent-job` identifies that native job directory and `agent-input-N`
+identifies the parent directory of its Nth declared frozen input (zero-based).
+These are logical IDs, not filesystem paths; callers bind them to their retained
+inputs outside the shared index. Their locators stay relative, and the index never
+copies the local absolute roots. Bundle locations are relative to this export.
+Known digests survive missing/corrupt bytes; `observed_sha256`
 separately records the current bytes. The index hashes JSON and both reports, not
 itself. Both reports display the JSON digest and export ID.
 
 Reports escape imported text and use only fixed local navigation links. There is
 no executable embedded data or arbitrary URL fetching. V1 does not bundle arbitrary
-attachments, follow symlinks or traverse outside input paths. Documents have an
-8 MiB read limit. Oversized optional documents are indexed as `unreadable` with
+attachments, follow symlinks or traverse outside each declared input root.
+Documents have an 8 MiB read limit. Oversized optional documents are indexed as `unreadable` with
 integrity `not_checked`, retaining the expected digest without reading or hashing
 their bytes, including during snapshot rechecks. They allow labelled cached history;
 oversized required control documents still prevent export. Larger raw evidence is
@@ -200,6 +206,8 @@ Generation fixes the snapshot, creates JSON, renders reports, builds the index,
 validates the bundle and uses the existing Apps no-replace directory publisher.
 The reader rejects duplicate artifact IDs and duplicate bundled locations before
 checking file digests, so a later entry cannot hide an earlier invalid checksum.
+The reader also rejects absolute or escaping source locators; it does not open
+additional source roots while validating an offline bundle.
 Existing destinations survive every failure. Post-rename directory-sync failure
 returns `uncertain` with the same export ID and visible output path: inspect it with
 `read_bundle` before retrying. Atomic visibility and durability retain the platform

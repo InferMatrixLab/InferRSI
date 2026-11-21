@@ -80,7 +80,7 @@ def operation(experiment, action, trial=None, *arguments):
 
 def finish(experiment, trial, *, factor=2, final=True, model="synthetic-model", usage=True,
            final_score=None, legacy_session_id=None, python=None, environment_digest="a" * 64,
-           knowledge=False):
+           knowledge=False, token_coverage=False, usage_counts=None):
     root, _, capsys = experiment
     dispatch = operation(experiment, "dispatch", trial)
     assert dispatch["may_create"]
@@ -133,13 +133,90 @@ def finish(experiment, trial, *, factor=2, final=True, model="synthetic-model", 
             "environment_id": "test-environment", "environment_fingerprint": environment_digest,
             "knowledge_policy_violation": False}}
     if usage:
-        observation.update(usage_scope="session_total", usage={"input_tokens": 100,
-                                                               "output_tokens": 20})
+        observation.update(usage_scope="session_total", usage=usage_counts or {
+            "input_tokens": 100, "output_tokens": 20})
+    if token_coverage:
+        control = json.loads((campaign / "state.json").read_text(encoding="utf-8"))
+        observation["benchmark_token_coverage"] = {
+            "trial_id": trial, "session_id": session_id, "scope": "trial_agent_session",
+            "started_at": control["started_at"], "ended_at": control["settled_at"],
+            "includes": dict.fromkeys(
+                ("pre_start", "retrieval", "failures_retries", "final"), True),
+        }
     receipt.write_text(json.dumps(observation), encoding="utf-8")
     operation(experiment, "record", trial, "--observation", str(receipt))
     trial_result = operation(experiment, "collect", trial)["trial"]
     assert trial_result["trace"][0]["diagnosis_id"] == diagnosis["id"]
     return campaign, trial_result
+
+
+def test_metrics_summary_is_first_and_complete_token_ratio_has_explicit_direction(experiment):
+    root, initial, _ = experiment
+    on, off = [trial["id"] for trial in initial["trials"]]
+    campaign, retained = finish(experiment, on, factor=2, token_coverage=True,
+                                usage_counts={"input_tokens": 80, "output_tokens": 20,
+                                              "cached_input_tokens": 60})
+    finish(experiment, off, factor=1.5, token_coverage=True,
+           usage_counts={"input_tokens": 180, "output_tokens": 20})
+    basic = retained["benchmark_metrics"]
+    assert basic["final_speedup"] == 2
+    assert basic["step_acceptance_rate"] == 1
+    assert basic["accepted_steps"] == basic["assessed_steps"] == 1
+    assert basic["token_usage"]["total_tokens"] == 100
+    assert "token_usage" not in basic["missing_reasons"]
+    report = operation(experiment, "report")
+    metrics = report["benchmark_metrics"]["tasks"][0]["metrics"]
+    assert metrics["performance_benefit_ratio"]["value"] == pytest.approx(2 / 1.5)
+    assert metrics["token_consumption_ratio"]["value"] == 0.5
+    old_factor = report["assessment"]["tasks"][0]["metrics"]["tokens"]["paired_factor"]
+    assert old_factor == pytest.approx(2)
+    from inferrsi.apps.views.comparison_report import _LABELS
+
+    expected_label = _LABELS[report["assessment"]["conclusion"]["kind"]]
+    for name in ("markdown", "html"):
+        text = Path(report["reports"][name]).read_text(encoding="utf-8")
+        assert text.index("Benchmark metrics") < text.index("Task comparisons")
+        assert "Token consumption" in text and "on/off" in text
+        conclusion = (f"**{expected_label}**" if name == "markdown"
+                      else f"<p class=conclusion>{expected_label}</p>")
+        assert conclusion in text
+    from inferrsi.apps.delivery import project
+
+    _, single, _ = project(campaign, export_id="metrics-single")
+    assert single["benchmark_metrics"]["final_speedup"] == 2
+    assert single["benchmark_metrics"]["token_usage"]["total_tokens"] is None
+    assert (root / "experiment.json").exists()
+
+
+def test_new_metrics_missing_tokens_does_not_remove_valid_performance(experiment):
+    _, initial, _ = experiment
+    for trial in initial["trials"]:
+        finish(experiment, trial["id"], usage=False)
+    report = operation(experiment, "report")
+    metrics = report["benchmark_metrics"]["tasks"][0]["metrics"]
+    assert metrics["performance_benefit_ratio"]["value"] == 1
+    assert metrics["token_consumption_ratio"]["value"] is None
+    assert metrics["token_consumption_ratio"]["missing_reasons"]
+
+
+def test_boolean_child_schema_cannot_upgrade_unknown_tokens(experiment, monkeypatch):
+    from inferrsi.harness import optimization_session
+
+    original = optimization_session.session_command
+
+    def boolean_policy(args, **kwargs):
+        if args.session_action == "start":
+            metadata = kwargs["report_metadata"]["benchmark_metrics"]
+            kwargs["report_metadata"] = {"benchmark_metrics": {
+                **metadata, "metrics_schema_version": True}}
+        return original(args, **kwargs)
+
+    monkeypatch.setattr(optimization_session, "session_command", boolean_policy)
+    trial = experiment[1]["trials"][0]["id"]
+    _, result = finish(experiment, trial, token_coverage=True)
+    assert result["benchmark_metrics"]["token_usage"]["total_tokens"] is None
+    assert result["benchmark_metrics"]["assessed_steps"] is None
+    assert result["metrics_comparable"] is False
 
 
 def test_default_cli_requires_environment_and_discovers_both_tasks(capsys, monkeypatch, tmp_path):

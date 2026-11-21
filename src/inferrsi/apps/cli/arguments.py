@@ -376,6 +376,8 @@ def parser(*, parser_class=argparse.ArgumentParser) -> argparse.ArgumentParser:
     delivery.add_argument("--input", type=Path, required=True, help="Campaign, run or record JSON")
     delivery.add_argument("--output", type=Path, required=True, help="New delivery directory")
     delivery.add_argument("--export-id", help="Optional identity for publication reconciliation")
+    delivery.add_argument("--agent-job", type=Path,
+                          help="Retained native Agent job supplying Benchmark terminal usage")
 
     dashboard = commands.add_parser(
         "dashboard", help="Export an offline dashboard for one run or recorded campaign"

@@ -23,7 +23,7 @@ def _print(value: object) -> None:
     print(json.dumps(value, ensure_ascii=False, indent=2, allow_nan=False))
 
 
-def _optimization_session(args, *, task_source=None):
+def _optimization_session(args, *, task_source=None, report_metadata=None):
     from ...harness.optimization_session import session_command
 
     settings = None
@@ -39,6 +39,7 @@ def _optimization_session(args, *, task_source=None):
         args, task_source=task_source, retain_context=capture_context,
         knowledge_reader=KnowledgeReader() if args.session_action == "knowledge" else None,
         external_knowledge=settings, external_provider=provider,
+        report_metadata=report_metadata,
     )
 
 
@@ -312,7 +313,8 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "export":
             from ..delivery import export_bundle
 
-            delivery = export_bundle(args.input, args.output, export_id=args.export_id)
+            delivery = export_bundle(args.input, args.output, export_id=args.export_id,
+                                     agent_job=args.agent_job)
             _print(delivery)
             return 0 if delivery["status"] == "published" else 2
         if args.command == "mindie":
@@ -375,6 +377,7 @@ def main(argv: list[str] | None = None) -> int:
                 _print(compare_command(args))
                 return 0
             if args.benchmark_action == "session":
+                from ...benchmark.summary import POLICY
                 from ..delivery import after_final
 
                 task_source = None
@@ -382,7 +385,10 @@ def main(argv: list[str] | None = None) -> int:
                     from ...benchmark.registry import task_resources
 
                     task_source = Path(str(task_resources(args.task)))
-                result = _optimization_session(args, task_source=task_source)
+                result = _optimization_session(
+                    args, task_source=task_source,
+                    report_metadata={"benchmark_metrics": POLICY},
+                )
                 _print(after_final(args, result))
                 return 2 if result.get("state") == "blocked" else 0
             if args.benchmark_action == "run":

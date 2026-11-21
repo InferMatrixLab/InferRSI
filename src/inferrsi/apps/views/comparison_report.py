@@ -82,6 +82,28 @@ def _metric_value(name, value):
     return f"{value:,}" if type(value) is int else f"{value:,.1f}".removesuffix(".0")
 
 
+def benchmark_metric_rows(summary):
+    """Compact rows shared by single-run and paired reports; JSON owns the numbers."""
+    usage = summary["token_usage"]
+    rate = summary["step_acceptance_rate"]
+    acceptance = (f"{summary['accepted_steps']}/{summary['assessed_steps']} ({rate:.1%})"
+                  if rate is not None else None)
+    reasons = summary.get("missing_reasons", {})
+    return [
+        ("Final speedup", _metric_value("speedup", summary["final_speedup"]),
+         summary["final_kind"] or "; ".join(reasons.get("final_speedup", []))),
+        ("Step acceptance", acceptance,
+         f"{summary['step_coverage']}; submitted {_text(summary['submitted_steps'])}; "
+         f"infra {_text(summary['infrastructure_failures'])}; "
+         f"unresolved {_text(summary['unresolved_steps'])}"),
+        ("Token consumption", _metric_value("tokens", usage["total_tokens"]),
+         f"{usage['coverage']}; input {_text(usage['input_tokens'])}, "
+         f"output {_text(usage['output_tokens'])}, "
+         f"cached input {_text(usage['cached_input_tokens'])}; "
+         f"observed subtotal {_text(usage['observed_tokens'])}"),
+    ]
+
+
 def _trace_rows(trial):
     rows = []
     for row in trial.get("trace", []):
@@ -208,11 +230,8 @@ def _documents(report, json_digest):
     repeats = report["repeats"]
     repeat_label = "repeat" if repeats == 1 else "repeats"
     scope = ", ".join(report["tasks"]) + f" · {repeats} {repeat_label} per task"
-    md = ["# Knowledge comparison", "", "**" + label + "**", "",
-          _md(conclusion["text"]), "", _md(conclusion["limitation"]), "", _md(scope), ""]
-    html = ["<h1>Knowledge comparison</h1>", f"<p class=conclusion>{escape(label)}</p>",
-            f"<p>{escape(conclusion['text'])}</p>",
-            f"<p class=note>{escape(conclusion['limitation'])}</p>", f"<p>{escape(scope)}</p>"]
+    md = ["# Knowledge comparison", ""]
+    html = ["<h1>Knowledge comparison</h1>"]
 
     def heading(title, level=2):
         md.extend(["#" * level + " " + _md(title), ""])
@@ -225,6 +244,49 @@ def _documents(report, json_digest):
     def table(headers, rows):
         md.extend([*_markdown_table(headers, rows), ""])
         html.append(_html_table(headers, rows))
+
+    if report.get("benchmark_metrics") is not None:
+        heading("Benchmark metrics")
+        basic = []
+        for trial in report["trials"]:
+            summary = trial.get("benchmark_metrics")
+            if summary:
+                rows = benchmark_metric_rows(summary)
+                coverage = (f"final: {_text(summary['final_kind'])}; "
+                            f"steps: {summary['step_coverage']}; "
+                            f"tokens: {summary['token_usage']['coverage']}")
+                basic.append((trial["task"], trial["condition"], trial["repeat"],
+                              rows[0][1], rows[1][1], rows[2][1], coverage))
+            else:
+                basic.append((trial["task"], trial["condition"], trial["repeat"],
+                              None, None, None, "No retained metrics available"))
+        table(("Task", "Arm", "Repeat", "Final speedup", "Step acceptance",
+               "Token consumption", "Coverage / source"), basic)
+        derived = []
+        labels = {"performance_benefit_ratio": "Performance benefit (on/off)",
+                  "token_consumption_ratio": "Token consumption (on/off)",
+                  "acceptance_rate_delta_pp": "Acceptance difference (pp)"}
+        for task in report["benchmark_metrics"]["tasks"]:
+            for field, metric_label in labels.items():
+                metric = task["metrics"][field]
+                value = (_metric_value("speedup", metric["value"])
+                         if metric["unit"] == "ratio" else metric["value"])
+                derived.append((task["task"], metric_label, value,
+                                metric["observed_only"] if metric["value"] is None else None,
+                                f"{metric['eligible_pairs']}/{metric['planned_pairs']}",
+                                "; ".join(metric["missing_reasons"])))
+        table(("Task", "Comparison metric", "Value", "Observed only", "Valid pairs",
+               "Missing reasons"), derived)
+        paragraph("Final speedup uses an independent final; acceptance counts actual best "
+                  "promotions. Token consumption below 1 favors on. Unknown costs remain unknown; "
+                  "these metrics do not change the frozen comparison verdict below.")
+
+    md.extend(["**" + label + "**", "", _md(conclusion["text"]), "",
+               _md(conclusion["limitation"]), "", _md(scope), ""])
+    html.extend([f"<p class=conclusion>{escape(label)}</p>",
+                 f"<p>{escape(conclusion['text'])}</p>",
+                 f"<p class=note>{escape(conclusion['limitation'])}</p>",
+                 f"<p>{escape(scope)}</p>"])
 
     heading("Task comparisons")
     table(("Task", "Metric", "Used in verdict", "On median", "Off median",
