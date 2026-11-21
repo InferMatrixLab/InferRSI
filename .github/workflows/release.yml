@@ -4,8 +4,8 @@ on:
   schedule:
     # 02:00 Asia/Shanghai every day. GitHub schedules can be delayed.
     - cron: "0 18 * * *"
-    # 10:00 Asia/Shanghai every Saturday.
-    - cron: "0 2 * * 6"
+    # 08:00 Asia/Shanghai every Sunday (00:00 UTC).
+    - cron: "0 0 * * 0"
   workflow_dispatch:
     inputs:
       weekly:
@@ -61,7 +61,7 @@ jobs:
           GH_REPO: ${{ github.repository }}
           DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
           RELEASE_V020: ${{ github.event_name == 'workflow_dispatch' && inputs.release_v020 }}
-          WEEKLY: ${{ github.event.schedule == '0 2 * * 6' || (github.event_name == 'workflow_dispatch' && inputs.weekly) }}
+          WEEKLY: ${{ github.event.schedule == '0 0 * * 0' || (github.event_name == 'workflow_dispatch' && inputs.weekly) }}
         shell: bash
         run: |
           gh api --paginate --slurp "repos/$GH_REPO/releases?per_page=100" > "$RUNNER_TEMP/releases.json"

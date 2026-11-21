@@ -6,11 +6,11 @@ Both schedules use Asia/Shanghai time. GitHub may delay a scheduled run.
 | Schedule | Version | Changes since | GitHub designation |
 | --- | --- | --- | --- |
 | Every day at 02:00 (18:00 UTC the previous day) | Next patch, e.g. v0.3.1 | Latest published numeric release | Pre-release |
-| Saturday at 10:00 (02:00 UTC Saturday) | Next minor, e.g. v0.3.0, then v0.4.0 | Latest published numeric stable release | Latest |
+| Sunday at 08:00 (00:00 UTC Sunday) | Next minor, e.g. v0.3.0, then v0.4.0 | Latest published numeric stable release | Latest |
 
-Saturday runs both channels. Each skips an unchanged source tree against its own
+Sunday runs both channels. Each skips an unchanged source tree against its own
 baseline. A preview can therefore become stable on the same commit. A published
-stable release also satisfies the current Saturday-to-Friday window on retries.
+stable release also satisfies the current Sunday-to-Saturday window on retries.
 Drafts and reserved tags consume version numbers. Evidence archive tags are
 outside the numeric sequence. Both channels build and validate packages before
 publication. A stable release uses reviewed highlights from
@@ -246,4 +246,4 @@ This one-off notes path does not call the model API. Wheel, sdist, Codex ZIP,
 WorkSwarm ZIP and SHA256SUMS remain bound to the planned source commit.
 
 The daily patch planner continued with v0.2.1 after this promotion.
-The recurring Saturday channel now handles subsequent minor releases.
+The recurring Sunday channel now handles subsequent minor releases.

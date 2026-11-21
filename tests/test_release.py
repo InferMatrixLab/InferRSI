@@ -214,36 +214,40 @@ def test_one_off_requires_notes_baseline(release_repo):
         plan_release("main", [], "0.1.0", release_v020=True)
 
 
-def test_saturday_promotes_daily_preview_and_next_day_continues(release_repo):
+def test_sunday_promotes_daily_preview_and_next_day_continues(release_repo):
     git = release_repo
     git("tag", "v0.2.0")
     change_source(git)
     git("tag", "v0.2.6")
     releases = [
-        dict(published("v0.2.0"), published_at="2026-11-13T02:00:00Z"),
+        dict(published("v0.2.0"), published_at="2026-11-21T15:59:00Z"),
         published("v0.2.6", prerelease=True),
         published("evidence-v1"),
     ]
-    saturday = datetime(2026, 11, 21, 2, tzinfo=timezone.utc)
+    sunday = datetime(2026, 11, 22, 0, tzinfo=timezone.utc)
     assert plan_release("main", releases, "0.1.0") == {"release": "false"}
-    weekly = plan_release("main", releases, "0.1.0", weekly=True, now=saturday)
+    weekly = plan_release("main", releases, "0.1.0", weekly=True, now=sunday)
     assert (weekly["tag"], weekly["prerelease"]) == ("v0.3.0", "false")
     assert (weekly["previous_tag"], weekly["notes_start_tag"]) == ("v0.2.6", "v0.2.0")
     git("tag", "v0.3.0")
-    releases.append(dict(published("v0.3.0"), published_at="2026-11-21T02:25:00Z"))
-    next_saturday = datetime(2026, 11, 28, 2, tzinfo=timezone.utc)
-    assert plan_release("main", releases, "0.1.0", weekly=True, now=next_saturday) == {
+    releases.append(dict(published("v0.3.0"), published_at="2026-11-22T00:25:00Z"))
+    next_sunday = datetime(2026, 11, 29, 0, tzinfo=timezone.utc)
+    assert plan_release("main", releases, "0.1.0", weekly=True, now=next_sunday) == {
         "release": "false"}
     Path("next").write_text("new source")
     git("add", "next")
     git("commit", "-m", "further change")
     git("update-ref", "refs/remotes/origin/main", "HEAD")
-    assert plan_release("main", releases, "0.1.0", weekly=True, now=saturday) == {
+    assert plan_release("main", releases, "0.1.0", weekly=True, now=sunday) == {
+        "release": "false"}
+    # Saturday 23:59 in Shanghai is still in the same release week.
+    end_of_week = datetime(2026, 11, 28, 15, 59, tzinfo=timezone.utc)
+    assert plan_release("main", releases, "0.1.0", weekly=True, now=end_of_week) == {
         "release": "false"}
     daily = plan_release("main", releases, "0.1.0")
     assert (daily["tag"], daily["prerelease"], daily["notes_start_tag"]) == (
         "v0.3.1", "true", "v0.3.0")
-    assert plan_release("main", releases, "0.1.0", weekly=True, now=next_saturday)["tag"] == (
+    assert plan_release("main", releases, "0.1.0", weekly=True, now=next_sunday)["tag"] == (
         "v0.4.0")
 
 

@@ -302,11 +302,11 @@ def test_one_off_dispatch_is_opt_in_and_schedule_cannot_select_it():
 def test_weekly_and_daily_channels_use_the_same_serialized_publisher():
     config = workflow()
     triggers = config.get("on", config.get(True))
-    assert triggers["schedule"] == [{"cron": "0 18 * * *"}, {"cron": "0 2 * * 6"}]
+    assert triggers["schedule"] == [{"cron": "0 18 * * *"}, {"cron": "0 0 * * 0"}]
     assert triggers["workflow_dispatch"]["inputs"]["weekly"]["default"] is False
     job = config["jobs"]["plan"]
     step = next(step for step in job["steps"] if step.get("id") == "plan")
-    assert "github.event.schedule == '0 2 * * 6'" in step["env"]["WEEKLY"]
+    assert "github.event.schedule == '0 0 * * 0'" in step["env"]["WEEKLY"]
     assert 'if [[ "$WEEKLY" == true ]]; then options+=(--weekly); fi' in step["run"]
     assert config["concurrency"] == {"group": "release-bot", "cancel-in-progress": False}
     notes = next(s for s in config["jobs"]["notes"]["steps"] if s.get("id") == "notes")

@@ -52,7 +52,7 @@ def plan_release(default_branch: str, releases: list[dict], initial_version: str
     if weekly:
         shanghai = timezone(timedelta(hours=8))
         today = (now or datetime.now(shanghai)).astimezone(shanghai).date()
-        saturday = today - timedelta(days=(today.weekday() - 5) % 7)
+        sunday = today - timedelta(days=today.isoweekday() % 7)
     reserved = []
     for release in releases:
         tag = release["tag_name"]
@@ -67,7 +67,7 @@ def plan_release(default_branch: str, releases: list[dict], initial_version: str
                 published_stable.append((value, tag))
                 if weekly:
                     stamp = datetime.fromisoformat(release["published_at"].replace("Z", "+00:00"))
-                    if stamp.astimezone(shanghai).date() >= saturday:
+                    if stamp.astimezone(shanghai).date() >= sunday:
                         return {"release": "false"}
     if release_v020:
         baseline = git("rev-parse", "--verify", "refs/tags/v0.1.1^{commit}")
