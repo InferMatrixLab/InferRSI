@@ -52,6 +52,11 @@ Knowledge bytes and pins for Harness sealing. `candidate_provider.py` plans
 generation and collects candidates from fixed Harness records. These modules
 consume `apps/storage/`; storage never imports back into handoff.
 
+`evidence_capture.py` defines the new `apps.api.EvidenceCapture` host adapter.
+It reads H-authorized candidate/report bytes by configured role and passes them
+to an injected pure projector; H owns proof sealing and the one record commit.
+There is no former flat-path alias for this new capability.
+
 The three former Apps paths retain explicit public exports recorded in the
 [migration inventory](apps-module-migrations.json). `apps.api.CandidateProvider`
 and the former provider module export the one class defined in

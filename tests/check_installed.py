@@ -16,7 +16,7 @@ from types import ModuleType
 
 import inferrsi
 import inferrsi.harness
-from inferrsi.apps.api import CandidateProvider, EvaluationPort
+from inferrsi.apps.api import CandidateProvider, EvaluationPort, EvidenceCapture
 from inferrsi.apps.cli import main
 from inferrsi.benchmark.registry import builtin_tasks, describe_task, task_resources
 from inferrsi.benchmark.skill_eval_engineering import REQUEST
@@ -26,6 +26,8 @@ from inferrsi.knowledge.catalog import _split_skill_metadata, knowledge_records,
 from inferrsi.knowledge.knowledge_operations import KnowledgeReader
 from inferrsi.resources import repository_packs
 from inferrsi.resources.repository_packs import REPO_TYPES, repository_pack
+
+assert callable(EvidenceCapture)
 
 # The new Harness binding port ships independently of Apps and Benchmark.
 subprocess.run([
