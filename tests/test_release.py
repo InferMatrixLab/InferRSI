@@ -218,17 +218,20 @@ def test_sunday_promotes_daily_preview_and_next_day_continues(release_repo):
     git = release_repo
     git("tag", "v0.2.0")
     change_source(git)
-    git("tag", "v0.2.6")
     releases = [
         dict(published("v0.2.0"), published_at="2026-11-21T15:59:00Z"),
-        published("v0.2.6", prerelease=True),
         published("evidence-v1"),
     ]
+    # Sunday 02:00 publishes the patch before Sunday's 08:00 promotion.
+    preview = plan_release("main", releases, "0.1.0")
+    assert (preview["tag"], preview["prerelease"]) == ("v0.2.1", "true")
+    git("tag", preview["tag"])
+    releases.append(published(preview["tag"], prerelease=True))
     sunday = datetime(2026, 11, 22, 0, tzinfo=timezone.utc)
     assert plan_release("main", releases, "0.1.0") == {"release": "false"}
     weekly = plan_release("main", releases, "0.1.0", weekly=True, now=sunday)
     assert (weekly["tag"], weekly["prerelease"]) == ("v0.3.0", "false")
-    assert (weekly["previous_tag"], weekly["notes_start_tag"]) == ("v0.2.6", "v0.2.0")
+    assert (weekly["previous_tag"], weekly["notes_start_tag"]) == (preview["tag"], "v0.2.0")
     git("tag", "v0.3.0")
     releases.append(dict(published("v0.3.0"), published_at="2026-11-22T00:25:00Z"))
     next_sunday = datetime(2026, 11, 29, 0, tzinfo=timezone.utc)

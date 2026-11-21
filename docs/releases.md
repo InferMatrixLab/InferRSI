@@ -8,7 +8,7 @@ Both schedules use Asia/Shanghai time. GitHub may delay a scheduled run.
 | Every day at 02:00 (18:00 UTC the previous day) | Next patch, e.g. v0.3.1 | Latest published numeric release | Pre-release |
 | Sunday at 08:00 (00:00 UTC Sunday) | Next minor, e.g. v0.3.0, then v0.4.0 | Latest published numeric stable release | Latest |
 
-Sunday runs both channels. Each skips an unchanged source tree against its own
+After weekly activation, Sunday runs both channels. Each skips an unchanged source tree against its own
 baseline. A preview can therefore become stable on the same commit. A published
 stable release also satisfies the current Sunday-to-Saturday window on retries.
 Drafts and reserved tags consume version numbers. Evidence archive tags are
@@ -16,8 +16,11 @@ outside the numeric sequence. Both channels build and validate packages before
 publication. A stable release uses reviewed highlights from
 `docs/release-notes/<tag>.md` when present. Otherwise the notes job generates a
 summary from the channel baseline. GitHub's generated changelog covers that
-same range. The publisher checks for races against the latest publication
-across both channels.
+same range. The daily publisher checks that the latest numeric release still
+matches its plan. The weekly publisher checks that its stable baseline is
+current and that its target is still the newest eligible version. An intervening
+preview below that target can still precede the weekly release. A mid-week
+hotfix reaches preview first and is eligible for stable on Sunday.
 
 ## Authority boundary
 
@@ -173,17 +176,22 @@ repository and default branch; copies must deliberately update that repository
 guard.
 
 Under **Actions → Release bot → Run workflow**, select the default branch and
-leave **dry_run** checked. It plans and builds the next release without creating
-a remote tag or Release. Select **weekly** to exercise the stable path. Both
-channels apply their normal skip rules.
-With `DS_API_KEY`
-configured, a changed-source dry run also makes the AI request and uploads the
-summary artifact for inspection, consuming API usage. Clearing **dry_run**
-runs the same automatic publication immediately. It takes no version/tag input.
+leave **dry_run** checked. Select **weekly** to rehearse the stable path.
+If a stable release already exists in the current Sunday-to-Saturday window,
+the dry run reports a skip before building, even if new commits have landed.
+When a build uses generated notes and `DS_API_KEY` is configured, the dry run
+also requests a summary and uploads it for inspection.
+
+Before the first weekly publication, run the following command after the
+workflow reaches the default branch. The release owner records the successful
+build, notes and skipped publisher in [the activation issue](https://github.com/InferMatrixLab/InferRSI/issues/554),
+then enables the Actions repository variable `INFERRSI_WEEKLY_RELEASE_ENABLED=true`.
+While the variable is unset or false, both scheduled and manually requested
+live weekly runs report a skip. Daily previews and manual dry runs remain available.
 
 ```bash
 gh workflow run release.yml --repo InferMatrixLab/InferRSI --ref <default-branch> \
-  -F dry_run=true
+  -F weekly=true -F dry_run=true
 ```
 
 Actions artifacts are retained for seven days. Package versions come from Git
@@ -206,7 +214,7 @@ Runs are serialized across schedule and manual dispatch. A failed build creates
 no remote tag or Release. A later tag/upload/publication failure can leave an
 unused tag or private incomplete draft. The bot never moves tags, overwrites
 notes/assets or uses `--clobber`. On a later eligible run it allocates the next
-unused patch version, so failures may leave gaps in version numbers. Failed
+unused version for the selected channel, so failures may leave gaps in version numbers. Failed
 attempts do not advance the successful-release baseline or suppress retry of
 unreleased source. Old drafts remain for an authorized maintainer to inspect.
 
@@ -246,4 +254,6 @@ This one-off notes path does not call the model API. Wheel, sdist, Codex ZIP,
 WorkSwarm ZIP and SHA256SUMS remain bound to the planned source commit.
 
 The daily patch planner continued with v0.2.1 after this promotion.
+If a failed one-off attempt has reserved v0.2.0, the planner stops. Inspect the
+reservation and obtain a new release decision from the maintainer before retrying.
 The recurring Sunday channel now handles subsequent minor releases.

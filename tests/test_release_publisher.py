@@ -44,6 +44,10 @@ if args == ["api", f"{repo}/compare/{commit}...main"]:
                       "base_commit": {"sha": state.get("resolved", commit)}}))
 elif args == ["api", "--paginate", "--slurp", f"{repo}/releases?per_page=100"]:
     releases = [{"tag_name": "v1.2.2", "draft": False, "prerelease": True}]
+    if os.environ["WEEKLY"] == "true":
+        releases.append({"tag_name": os.environ["NOTES_START_TAG"], "draft": False,
+                         "prerelease": False})
+    releases.extend(state.get("new_releases", []))
     if state.get("existing"):
         releases.append({"tag_name": tag, "draft": False, "prerelease": True})
     print(json.dumps([releases]))
@@ -127,7 +131,7 @@ def test_optional_notes_failure_cannot_skip_an_otherwise_valid_publication():
 @pytest.fixture
 def publisher(tmp_path, request):
     release_tag = getattr(request, "param", "v1.2.3")
-    previous_tag = "v0.1.10" if release_tag == "v0.2.0" else "v1.2.2"
+    previous_tag = {"v0.2.0": "v0.1.10", "v0.3.0": "v0.2.7"}.get(release_tag, "v1.2.2")
     bash = shutil.which("bash")
     if os.name == "nt":
         candidate = Path(os.environ.get("ProgramFiles", "")) / "Git/bin/bash.exe"
@@ -185,7 +189,7 @@ def publisher(tmp_path, request):
                    GH_TOKEN="fake-no-access", GH_REPO="example/release", DEFAULT_BRANCH="main",
                    RELEASE_TAG=release_tag, RELEASE_COMMIT=COMMIT, PREVIOUS_TAG=previous_tag,
                    NOTES_START_TAG=notes_start, REVIEWED_NOTES=str(reviewed).lower(),
-                   PRERELEASE="true")
+                   PRERELEASE="true", WEEKLY=str(release_tag == "v0.3.0").lower())
         env.update(inputs)
         env["AI_NOTES_DOWNLOADED"] = (
             "failure" if state and state.get("failed_notes_download") else
@@ -314,3 +318,50 @@ def test_weekly_and_daily_channels_use_the_same_serialized_publisher():
     publisher = config["jobs"]["publish"]["env"]
     assert publisher["PREVIOUS_TAG"] == "${{ needs.plan.outputs.previous_tag }}"
     assert publisher["NOTES_START_TAG"] == notes["env"]["PREVIOUS_TAG"]
+    assert publisher["WEEKLY"] == "${{ needs.plan.outputs.weekly }}"
+    assert step["env"]["WEEKLY_ENABLED"] == "${{ vars.INFERRSI_WEEKLY_RELEASE_ENABLED }}"
+    assert step["env"]["DRY_RUN"] == (
+        "${{ github.event_name == 'workflow_dispatch' && inputs.dry_run }}")
+
+
+@pytest.mark.parametrize("weekly,enabled,dry_run,skip", [
+    ("true", "", "false", True), ("true", "false", "false", True),
+    ("true", "", "true", False), ("true", "true", "false", False),
+    ("false", "", "false", False),
+])
+def test_weekly_rollout_gate(tmp_path, weekly, enabled, dry_run, skip):
+    step = next(s for s in workflow()["jobs"]["plan"]["steps"] if s.get("id") == "plan")
+    bash = shutil.which("bash") if os.name != "nt" else str(
+        Path(os.environ["ProgramFiles"]) / "Git/bin/bash.exe")
+    if not bash or not Path(bash).is_file():
+        pytest.skip("Workflow plan runs in Bash")
+    # Stop at the first GitHub read to distinguish skipped runs from eligible plans.
+    result = subprocess.run([bash, "-ec", 'gh() { return 37; }\n' + step["run"]],
+                            cwd=tmp_path, capture_output=True, text=True,
+                            env=dict(os.environ, WEEKLY=weekly, WEEKLY_ENABLED=enabled,
+                                     DRY_RUN=dry_run, GITHUB_OUTPUT="outputs", RUNNER_TEMP=".",
+                                     GH_REPO="example/release"))
+    assert result.returncode == (0 if skip else 37), result.stderr
+    assert ("release=false" in (tmp_path / "outputs").read_text().splitlines()) == skip
+    assert ("::notice::" in result.stdout) == skip
+
+
+@pytest.mark.parametrize("publisher", ["v0.3.0"], indirect=True)
+@pytest.mark.parametrize("tag,preview,permitted", [
+    ("v0.2.8", True, True), ("v0.2.8", False, False), ("v0.3.1", True, False),
+])
+def test_weekly_publish_race_uses_stable_baseline_and_target(publisher, tag, preview, permitted):
+    release = {"tag_name": tag, "draft": False, "prerelease": preview}
+    result, mutations = publisher({"new_releases": [release], "ai_summary": "Highlights"},
+                                  PRERELEASE="false")
+    assert (result.returncode == 0) == permitted, result.stderr
+    if permitted:
+        assert mutations[-1] == {"operation": "publish_release"}
+    else:
+        assert mutations == []
+
+
+def test_daily_publish_race_rejects_newer_preview(publisher):
+    release = {"tag_name": "v1.2.4", "draft": False, "prerelease": True}
+    result, mutations = publisher({"new_releases": [release]})
+    assert result.returncode != 0 and mutations == []
