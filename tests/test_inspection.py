@@ -205,6 +205,11 @@ class PythonInspectionTests(unittest.TestCase):
             "nvidia-cuda-runtime-cu12",
             "nvidia-cuda-runtime-cu13",
             "mlx",
+            "torch_musa",
+            "vllm-musa",
+            "mthreads-ml-py",
+            "torchada",
+            "mate",
         )
         self.assertEqual(set(environment["packages"]), set(names))
         for name in names:

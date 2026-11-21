@@ -333,7 +333,7 @@ def _events(path: Path, root: Path, expected: dict | None = None, unique_candida
 
 def _environment_signature(environment: dict, devices: object, backend: object) -> tuple | None:
     """Compare verified device/runtime identity privately; never expose it in the view."""
-    if backend not in ("cuda", "ascend") or not isinstance(devices, list) or not devices:
+    if backend not in ("cuda", "ascend", "musa") or not isinstance(devices, list) or not devices:
         return None
     device = environment.get("device")
     host = environment.get("host")
@@ -363,6 +363,31 @@ def _environment_signature(environment: dict, devices: object, backend: object) 
                      for k in ("torch_npu", "vllm_ascend")):
             return None
         runtime_identity = (ascend["cann_version"], ascend["firmware_version"])
+    elif backend == "musa":
+        # The plugin and the compat layer decide what a MUSA run measured. Their
+        # versions already ride in the package tuple, so nothing extra is
+        # appended here; a matching torch/vllm pair alone is not a MUSA run, and
+        # the per-device driver version is part of the selected device fields.
+        if not all(isinstance(packages.get(k), str) and packages[k]
+                   for k in ("torch_musa", "vllm-musa")):
+            return None
+        # MUSA_VISIBLE_DEVICES is positional, so the same declared physical ids
+        # can drive different cards. Only an identity mask binds the verified
+        # card to the executed one; anything else stays unverified instead of
+        # joining a comparable group on a borrowed identity.
+        from inferrsi.apps.host.platforms import logical_binding
+
+        visible = environment.get("visible_devices")
+        if not isinstance(visible, dict) or "MUSA_VISIBLE_DEVICES" not in visible:
+            return None
+        mask = visible["MUSA_VISIBLE_DEVICES"]
+        if mask is not None and not isinstance(mask, str):
+            return None
+        # Only a mask that pins logical index L to the declared card L proves
+        # which physical device produced the tokens; an unset mask is the
+        # runtime's implicit identity view, which binds [0] but not [1].
+        if not logical_binding(devices, mask):
+            return None
     selected = []
     for identity in devices:
         matches = [row for row in device["devices"] if isinstance(row, dict)

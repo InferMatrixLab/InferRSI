@@ -110,7 +110,12 @@ def test_data_leaf_holds_the_recorded_fragment_and_locked_hash():
     assert LEAF["file"] == "src/inferrsi/resources/repository_packs.py"
     data = (REPO / LEAF["file"]).read_bytes()
     assert data == (ROOT / "resources" / "repository_packs.py").read_bytes()
-    assert hashlib.sha256(data).hexdigest() == LEAF["file_sha256"]
+    # K02 and C2 are historical pins: they describe the bytes that existed at
+    # those revisions and are not relocked when the registry grows. The current
+    # leaf is recorded by its own revision, which names the hash it superseded.
+    registry = LEAF["registry_revision"]
+    assert registry["previous_file_sha256"] == LEAF["file_sha256"]
+    assert hashlib.sha256(data).hexdigest() == registry["file_sha256"]
     # The body in the file today, and the P0b provenance text it came from.
     current = LEAF["current_fragment"]
     assert current["source"] + "\n" in data.decode("utf-8")
@@ -119,7 +124,14 @@ def test_data_leaf_holds_the_recorded_fragment_and_locked_hash():
     )
     revision = LEAF["resource_path_revision"]
     original = LEAF["original_fragment"]["source"]
-    assert original.replace(revision["old_line"], revision["new_line"]) == current["source"]
+    # K02 moved one path expression. The registry above the reader grows as packs
+    # are added, so the reader body is what the revision must still reproduce.
+    def reader_body(text: str) -> str:
+        return text[text.index("def repository_pack("):]
+
+    assert reader_body(original).replace(revision["old_line"], revision["new_line"]) == (
+        reader_body(current["source"])
+    )
     assert revision["new_file_sha256"] == LEAF["file_sha256"]
 
 
@@ -136,9 +148,9 @@ def test_c2_relock_moves_the_leaf_without_changing_a_byte():
     assert moved["old_file_sha256"] == LEAF["resource_path_revision"]["new_file_sha256"]
     assert moved["old_file_sha256"] == moved["new_file_sha256"] == LEAF["file_sha256"]
     assert not (REPO / moved["old_file"]).exists()
-    assert hashlib.sha256((REPO / moved["new_file"]).read_bytes()).hexdigest() == (
-        moved["new_file_sha256"]
-    )
+    # The relocation identity is a statement about the C2 bytes, so it is checked
+    # against the hash C2 recorded, not against today's registry-edited file.
+    assert moved["new_file_sha256"] == LEAF["registry_revision"]["previous_file_sha256"]
     # The review requirement is recorded, never an approval.
     assert "requires formal architecture review" in moved["review"]
     assert "does not self-approve" in moved["review"]

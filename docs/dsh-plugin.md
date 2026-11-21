@@ -49,7 +49,7 @@ In DSH Web, open a target repository and its conversation, then click
 1. **Optimization target (优化对象).** Enter the repository, model, framework,
    SIAS plane and objective. The form fills the local repository path from the
    current session when available.
-2. **Test environment (测试环境).** Choose GPU or NPU and local or remote
+2. **Test environment (测试环境).** Choose GPU, NPU or MUSA and local or remote
    execution. After selecting remote execution, enter the remote repository path
    in the first section, then return here to test the SSH connection. Set the
    maximum optimization rounds and total time budget in minutes. The prepared
@@ -119,7 +119,7 @@ Click **Test connection**. For a new server, compare the displayed SHA-256 host
 key fingerprint against a trusted value, then choose **Trust this fingerprint
 and test**. A supplied fingerprint must match exactly. Successful testing checks
 SSH authentication, Linux command execution and access to the selected repository.
-GPU/NPU availability and benchmark readiness are checked by the Agent afterward.
+GPU/NPU/MUSA availability and benchmark readiness are checked by the Agent afterward.
 
 After a successful test, **Start iteration** becomes available. Changing the
 host, authentication, repository, designated scripts or execution location
@@ -201,7 +201,7 @@ flowchart LR
 
 | Owner | Responsibility |
 | --- | --- |
-| Form and prompt builder | Collect GPU/NPU, execution location, goal, SIAS plane, user budgets and optional acceptance inputs |
+| Form and prompt builder | Collect GPU/NPU/MUSA, execution location, goal, SIAS plane, user budgets and optional acceptance inputs |
 | DSH conversation | Deliver the prompt once to the selected session, preserving its model and permissions |
 | SSH connection bridge | Authenticate the owner request, verify host key and login, retain a session-bound connection and return an opaque ID |
 | `inferrsi_remote` | Carry explicit repository operations and cancellation through DSH tools without including authentication material |

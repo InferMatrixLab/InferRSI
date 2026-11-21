@@ -338,10 +338,10 @@
       "source": "REPO_TYPES = (\"vllm\", \"vllm_omni\", \"afd_plugin\", \"vllm_rlt\", \"strata\", \"sglang\", \"sglang_omni\")\n\n\ndef repository_pack(repo_type: str) -> dict[str, Any]:\n    if repo_type not in REPO_TYPES:\n        raise ValueError(f\"Unknown repository type: {repo_type}\")\n    path = files(\"inferrsi\").joinpath(\"data\", \"repo_packs\", repo_type, \"pack.json\")\n    return json.loads(path.read_text(encoding=\"utf-8\"))"
     },
     "current_fragment": {
-      "description": "REPO_TYPES and repository_pack as they stand after the K02 resource-path revision",
+      "description": "REPO_TYPES and repository_pack as they stand after the MUSA registry revision",
       "hash_convention": "fragment_sha256 is the SHA-256 of source plus one trailing newline",
-      "fragment_sha256": "b6e49fdd67f7029e080e5e224cf3bf417c7dbc1e337644c3e1cb2b783cae2e4c",
-      "source": "REPO_TYPES = (\"vllm\", \"vllm_omni\", \"afd_plugin\", \"vllm_rlt\", \"strata\", \"sglang\", \"sglang_omni\")\n\n\ndef repository_pack(repo_type: str) -> dict[str, Any]:\n    if repo_type not in REPO_TYPES:\n        raise ValueError(f\"Unknown repository type: {repo_type}\")\n    path = files(\"inferrsi\").joinpath(\"harness\", \"data\", \"repo_packs\", repo_type, \"pack.json\")\n    return json.loads(path.read_text(encoding=\"utf-8\"))"
+      "fragment_sha256": "bddf8d146d14db887fcbc81d650a2101785303b3ea6f398d7f63af1cbd9c9371",
+      "source": "# Neutral raw repository-pack data leaf (D020). It holds only the original\n# REPO_TYPES tuple and pack.json reader, and imports no inferrsi module.\n# K02 moved pack.json to the Harness resource root (D007). The anchor stays the\n# root package and joins the physical path, so reading a Harness-owned resource\n# never imports inferrsi.harness and never gives infra an edge into Harness.\nfrom __future__ import annotations\n\nimport json\nfrom importlib.resources import files\nfrom typing import Any\n\nREPO_TYPES = (\n    \"vllm\", \"vllm_omni\", \"vllm_musa\", \"afd_plugin\", \"vllm_rlt\", \"strata\", \"sglang\", \"sglang_omni\"\n)\n\n\ndef repository_pack(repo_type: str) -> dict[str, Any]:\n    if repo_type not in REPO_TYPES:\n        raise ValueError(f\"Unknown repository type: {repo_type}\")\n    path = files(\"inferrsi\").joinpath(\"harness\", \"data\", \"repo_packs\", repo_type, \"pack.json\")\n    return json.loads(path.read_text(encoding=\"utf-8\"))"
     },
     "resource_path_revision": {
       "stage": "K02",
@@ -392,6 +392,19 @@
         "to": "inferrsi.apps.host.inspection",
         "review": "The move changes which module the rule names, so it requires the same formal architecture review as the rule itself. Passing tests are not that review."
       }
+    },
+    "registry_revision": {
+      "stage": "MUSA-R1",
+      "issue": null,
+      "pull_request": "MUSA backend and vllm_musa repository pack",
+      "reason": "The vllm_musa repository pack needs a REPO_TYPES entry, so the leaf's registry grew while the reader body stayed byte-identical.",
+      "previous_file_sha256": "751d7bf663318962a2e73cf9d75369e0f8f8c2bda27964c56e44021b9f86c992",
+      "file_sha256": "bddf8d146d14db887fcbc81d650a2101785303b3ea6f398d7f63af1cbd9c9371",
+      "added_repo_types": [
+        "vllm_musa"
+      ],
+      "unchanged": "repository_pack(), allowed_imports, two_symbols, top_level_shape and both permitted importers are untouched; the K02 path expression and the C2 relocation identity remain historical records of the bytes that existed then and are not rewritten by this revision.",
+      "review": "Reviewable as an additive registry entry; unlike the K02 path revision it changes no expression inside the reader and self-approves nothing."
     }
   },
   "infra_inspection_rewrite": {

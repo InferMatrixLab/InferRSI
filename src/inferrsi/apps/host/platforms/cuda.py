@@ -7,7 +7,7 @@ import re
 import subprocess
 
 
-def inspect_devices(*, device_ids, device_model, command):
+def inspect_devices(*, device_ids, device_model, command, python=None):
     from . import tool_facts
 
     device = tool_facts(

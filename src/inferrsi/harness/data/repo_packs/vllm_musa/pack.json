@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "id": "vllm_musa",
+  "source_repository": "MooreThreads/vllm-musa",
+  "execution_support": "caller_supplied_external_commands",
+  "scenarios": [
+    "llm.decode",
+    "llm.serving",
+    "diffusion.image_generation",
+    "diffusion.video_generation",
+    "audio.tts"
+  ],
+  "backend_compatibility": {
+    "cuda": "unverified",
+    "rocm": "unverified",
+    "ascend": "unverified",
+    "musa": "unverified"
+  },
+  "notes": [
+    "This descriptor does not claim a built-in model launcher or a validated accelerator matrix.",
+    "The MUSA plugin runs CUDA-oriented source through torchada and dispatches tuned kernels through MATE, so a CUDA or Ascend result is not a MUSA result.",
+    "Freeze the plugin revision, the upstream vLLM version, the MUSA toolkit and the model checkpoint before measuring."
+  ]
+}
