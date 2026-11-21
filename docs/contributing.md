@@ -36,7 +36,7 @@ Nightly checks cover Linux and Windows checkouts with `core.autocrlf` set to
 `false`, `true` and `input`.
 
 Use `harness/scenarios`, `harness/serving` and `benchmark/validators` for new models,
-`apps/host/targets` with `data/repo_packs` for repositories, and
+`apps/host/targets` with `harness/data/repo_packs` for repositories, and
 `apps/host/platforms` for hardware. A backend is registered in
 `apps/host/platforms/__init__.py`; its probe command is defined in the
 implementing module under `apps/host/platforms/`. That
