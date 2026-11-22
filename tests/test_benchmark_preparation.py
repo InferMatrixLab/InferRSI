@@ -193,7 +193,8 @@ def test_wrong_resource_bytes_are_not_frozen_as_a_different_pin(preparation):
     assert service.prepare(request)["code"] == "ArtifactIntegrityError"
 
 
-def test_t36_oversized_resource_stops_at_the_first_extra_byte(preparation, tmp_path):
+@pytest.mark.parametrize("close_fails", [False, True], ids=["closes", "close-error"])
+def test_t36_oversized_resource_stops_at_the_first_extra_byte(preparation, tmp_path, close_fails):
     _, request, sources, protocol, _, config, archive = preparation
     fixed_bytes = sources["input-data"].read_bytes()
     read_sizes = []
@@ -204,6 +205,11 @@ def test_t36_oversized_resource_stops_at_the_first_extra_byte(preparation, tmp_p
             if len(read_sizes) > 1:
                 raise OSError("resource read failed")
             return super().read(size)
+
+        def close(self):
+            super().close()
+            if close_fails:
+                raise OSError("resource close failed")
 
     stream = OversizedResource(fixed_bytes + b"x")
     service = benchmark.PreparationService(
