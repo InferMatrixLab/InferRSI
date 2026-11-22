@@ -187,8 +187,10 @@ inferrsi run --task task.yaml                    # explicit execution
     `acceptance.baseline_revision`. A hexadecimal prefix of at least 7 characters is
     also accepted.
   - The declared baseline is also carried in the existing `RunSpec.revision` field.
-    Harness checks it against the initial execution snapshot and each fresh snapshot
-    of the baseline source before a trial. A checkout switched after inspection
+    The source identity observed during inspection binds `RunSpec.snapshot_id`,
+    including tracked/untracked changes and submodules. Harness checks both pins
+    against the initial execution snapshot and each fresh snapshot of the baseline
+    source before a trial. A checkout or working tree changed after inspection
     cannot run from a mismatching snapshot. This later refusal retains a failed
     diagnostic run with `INCONCLUSIVE`; it does not discard already recorded facts.
 

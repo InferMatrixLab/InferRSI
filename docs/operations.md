@@ -434,8 +434,9 @@ compatibility.
 
 Task-mode RunSpec validation, including local candidate-directory checks, runs before
 environment probes. The frozen baseline also binds the execution through the existing
-`RunSpec.revision` field: Harness compares the actual initial and pre-trial baseline
-snapshots, rather than relying only on the earlier environment observation. A later
+`RunSpec.revision` field, while the observed source identity binds the existing
+`RunSpec.snapshot_id`: Harness compares the actual initial and pre-trial baseline
+snapshots, including working-tree changes, with those pins. A later
 checkout mismatch starts no trial from that snapshot and leaves the failed diagnostic
 run as `INCONCLUSIVE` with its source/error facts retained.
 - **Example:** see [quickstart: real remote experiment](quickstart.md#real-remote-experiment)

@@ -82,7 +82,7 @@ def caller(tmp_path, monkeypatch) -> Path:
 
 def _environment(head: str = HEAD) -> dict:
     return {
-        "repository": {"available": True, "head": head},
+        "repository": {"available": True, "head": head, "snapshot_hash": "f" * 64},
         "device": {"status": "available", "selection_verified": True},
         "target_python": {"environment": {"python": "stub"}},
     }
@@ -426,7 +426,8 @@ def test_run_with_an_agreeing_task_reaches_the_experiment_and_records_the_task(
     out = json.loads(capsys.readouterr().out)
     directory = Path(out["run_dir"])
     assert [json.loads(json.dumps(spec.to_dict())) for spec in specs] == [
-        _expected_spec(task_file.parent, caller, repetitions=7, revision=revision)
+        _expected_spec(task_file.parent, caller, repetitions=7, revision=revision,
+                       snapshot_id="f" * 64)
     ]
     recorded = json.loads((directory / "task.json").read_text(encoding="utf-8"))
     assert recorded == task_input.preview(task_file, {"repetitions": 7}, cwd=str(caller))
@@ -537,8 +538,9 @@ def test_missing_candidate_directory_refuses_before_any_probe(
 
 @pytest.mark.parametrize("switch_at", ["after_inspection", "before_trial"])
 @pytest.mark.parametrize("short_revision", [False, True])
+@pytest.mark.parametrize("source_change", ["checkout", "working-tree"])
 def test_task_revision_is_bound_to_real_execution_snapshots(
-    tmp_path, caller, monkeypatch, capsys, switch_at, short_revision,
+    tmp_path, caller, monkeypatch, capsys, switch_at, short_revision, source_change,
 ):
     """Only the race is scheduled; Git, inspection, snapshots and runner are real."""
     repo = tmp_path / "repo"
@@ -581,13 +583,20 @@ def test_task_revision_is_bound_to_real_execution_snapshots(
                         "repetitions": 1, "max_minutes": 1},
         "acceptance": {"reference": "gate.yaml", **gate},
     }), encoding="utf-8")
+
+    def change_source():
+        if source_change == "checkout":
+            _git(repo, "checkout", "--quiet", changed)
+        else:
+            (repo / "metric.txt").write_text("200\n", encoding="utf-8")
+
     if switch_at == "after_inspection":
         inspect = cli.inspect_environment
 
         def inspection(*args, **kwargs):
             environment = inspect(*args, **kwargs)
             assert environment["repository"]["head"] == accepted
-            _git(repo, "checkout", "--quiet", changed)
+            change_source()
             return environment
 
         monkeypatch.setattr(cli, "inspect_environment", inspection)
@@ -599,7 +608,7 @@ def test_task_revision_is_bound_to_real_execution_snapshots(
             identity = snapshot(path, exclude)
             calls.append(identity)
             if len(calls) == 2:  # Both initial identities were captured, before the first trial.
-                _git(repo, "checkout", "--quiet", changed)
+                change_source()
             return identity
 
         monkeypatch.setattr(legacy_run, "repository_identity", capture)
@@ -609,10 +618,13 @@ def test_task_revision_is_bound_to_real_execution_snapshots(
     assert not launches.exists()
     assert output["status"]["state"] == "failed"
     assert output["status"]["verdict"] == "INCONCLUSIVE"
-    assert "RunSpec.revision" in output["status"]["error"]
+    pin = "revision" if source_change == "checkout" else "snapshot_id"
+    assert f"RunSpec.{pin}" in output["status"]["error"]
     directory = Path(output["run_dir"])
     locked = json.loads((directory / "run.lock.json").read_text(encoding="utf-8"))
     assert locked["revision"] == revision
+    inspected = json.loads((directory / "environment.json").read_text(encoding="utf-8"))
+    assert locked["snapshot_id"] == inspected["repository"]["snapshot_hash"]
     assert not list(directory.glob("*/trial-*/execution.json"))
 
 

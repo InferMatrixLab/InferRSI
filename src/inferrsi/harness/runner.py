@@ -78,6 +78,13 @@ def run_experiment(
                 f"Baseline snapshot does not match RunSpec.revision {spec.revision!r}: "
                 f"HEAD={identity.get('head')!r}, available={identity.get('available')!r}"
             )
+        if spec.snapshot_id and (
+            not identity.get("available") or identity.get("snapshot_hash") != spec.snapshot_id
+        ):
+            raise ValueError(
+                f"Baseline snapshot does not match RunSpec.snapshot_id {spec.snapshot_id!r}: "
+                f"snapshot_hash={identity.get('snapshot_hash')!r}"
+            )
 
     def execute_checked(
         command: tuple[str, ...], label: str, trial_dir: Path, metric_key: str | None

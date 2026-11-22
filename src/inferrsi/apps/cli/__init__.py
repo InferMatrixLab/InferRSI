@@ -6,6 +6,7 @@ import json
 import os
 import sqlite3
 import sys
+from dataclasses import replace
 from importlib.resources import files
 from pathlib import Path
 
@@ -883,6 +884,10 @@ def main(argv: list[str] | None = None) -> int:
             raise ValueError("Target Python inspection failed")
         if task is not None:
             _check_baseline_revision(task, environment)
+            snapshot_id = environment["repository"].get("snapshot_hash")
+            if not isinstance(snapshot_id, str) or not snapshot_id:
+                raise ValueError("Baseline inspection did not yield a source snapshot identity")
+            spec = replace(spec, snapshot_id=snapshot_id)
 
         # The old run loads its Benchmark gates. Import it here so that the
         # other commands, including ordinary optimization, never load Benchmark.
