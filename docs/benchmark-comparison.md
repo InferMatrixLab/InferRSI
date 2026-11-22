@@ -202,15 +202,18 @@ unknown, and the observed subtotal is shown with `partial` coverage. Trials with
 more than one attempt also get a per-attempt table.
 
 A collected attempt keeps the status, eligibility and gaps it was collected
-with, so a lost or changed job cannot turn a recorded failure into "not run".
-Report still re-reads every attempt. Anything the re-read adds is shown
-separately, as *current evidence not re-verified*, with the re-read status and
-the new gaps. A re-read can only remove eligibility, never grant it. Costs
-(tokens, attempt window, campaign wall) come only from evidence that re-reads
-now. An attempt whose evidence cannot be re-read has unknown cost, not its
-recorded cost. This accounting is descriptive. The frozen verdict still uses
-each arm's selected (latest) attempt, re-verified live, including its campaign
-`wall_seconds`, and is unchanged.
+with. Failed attempts count only this recorded classification. A lost or changed
+job therefore cannot turn a recorded failure into "not run", or a recorded
+eligible completion into a failure. Report still re-reads every attempt. The
+re-read is kept apart under `reverification`, with its own status, eligibility
+and new gaps, and is shown as *current evidence not re-verified*. Current
+evidence that does not re-verify withholds the successful campaign wall, and
+the selected attempt's verdict is still re-verified live. Costs (tokens, attempt
+window, campaign wall) come only from evidence that re-reads now. An attempt
+whose evidence cannot be re-read has unknown cost, not its recorded cost. This
+accounting is descriptive. The frozen verdict still uses each arm's selected
+(latest) attempt, re-verified live, including its campaign `wall_seconds`, and
+is unchanged.
 
 Apps writes a new JSON/Markdown/offline-HTML report snapshot under `reports/`.
 Start with the conclusion and per-task comparison, then inspect complete traces

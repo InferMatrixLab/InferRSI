@@ -145,6 +145,7 @@ def _current_evidence(row):
     if check.get("verified") is True:
         return "matches collection"
     return "\n".join([f"re-read status: {_text(check.get('status'))}",
+                      f"re-read eligible: {_text(check.get('eligible'))}",
                       *(check.get("added_gaps") or [])])
 
 
@@ -362,7 +363,9 @@ def _documents(report, json_digest):
               "retries, wrap-up and the gaps between them. Campaign start/end and receipt "
               "arrival times are not attempt boundaries; without an exported, bound session "
               "window the total stays unknown with its reason. Collected attempts keep their "
-              "recorded status; evidence that no longer re-reads is marked, never dropped. "
+              "recorded status and eligibility, and failed attempts count only those; "
+              "evidence that no longer re-reads is marked, never dropped, and withholds the "
+              "successful wall. "
               "The frozen verdict above still uses the selected attempt's campaign wall and "
               "is unchanged. Tokens across attempts are known only when every attempt has a "
               "complete session export; unknown tokens stay unknown.")

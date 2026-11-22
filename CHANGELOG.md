@@ -13,8 +13,10 @@
   from the first attempt's start to the last attempt's end. An attempt's start and end come from
   the optional `native_session_window` in its terminal host observation, never from campaign or
   receipt times; without it the total wall is unknown with a reason. A collected attempt keeps its
-  recorded status and gaps when its job or campaign no longer re-reads; the report marks it as
-  not re-verified and treats its cost as unknown. Tokens across attempts stay unknown unless every
+  recorded status, eligibility and gaps when its job or campaign no longer re-reads. Failed attempts
+  count only that recorded classification. The report marks the attempt as not re-verified,
+  shows the re-read status and eligibility separately, and treats its cost as unknown. Such an
+  attempt also has no successful campaign wall. Tokens across attempts stay unknown unless every
   attempt has a complete session export. The pure rule is
   `benchmark.comparison.attempt_accounting`. The verdict still reads each arm's latest attempt,
   including its campaign `wall_seconds`, and is unchanged. So is Harness failure classification.

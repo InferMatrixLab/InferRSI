@@ -361,6 +361,17 @@ def test_report_excludes_legacy_duplicate_bindings(experiment):
     for trial in document["trials"]:
         assert not trial["eligible"]
         assert "Native session is bound to multiple comparison trials" in trial["gaps"]
+        # Each recorded success stays one; the shared session is a current-evidence gap
+        # that withholds the successful wall without inventing a historical failure.
+        row, accounting = trial["attempts"][0], trial["attempt_accounting"]
+        assert (row["status"], row["eligible"]) == ("completed", True)
+        assert row["reverification"] == {
+            "verified": False, "status": "completed", "eligible": False,
+            "added_gaps": ["Native session is bound to multiple comparison trials"]}
+        assert accounting["failed_attempts"] == 0
+        assert accounting["success_wall_seconds"] is None
+        assert accounting["missing_reasons"]["success_wall_seconds"] == [
+            "selected_attempt_current_evidence_not_verified"]
 
 
 def test_report_excludes_different_observed_environments(experiment):
@@ -696,7 +707,8 @@ def test_unreadable_retained_attempt_keeps_recorded_failure(experiment, damage):
     arm = _document(before)["trials"][0]
     assert arm["attempt_accounting"]["failed_attempts"] == 1
     first = arm["attempts"][0]
-    assert first["reverification"] == {"verified": True, "status": "failed", "added_gaps": []}
+    assert first["reverification"] == {"verified": True, "status": "failed", "eligible": False,
+                                       "added_gaps": []}
     assert arm["attempt_accounting"]["total_wall_seconds"] == (
         arm["attempts"][1]["attempt_window"]["ended_at"] - early["attempt_window"]["started_at"])
     assert arm["attempt_accounting"]["tokens"] == 155
@@ -717,7 +729,7 @@ def test_unreadable_retained_attempt_keeps_recorded_failure(experiment, damage):
     assert (first["status"], first["eligible"], first["gaps"]) == (
         "failed", False, early["gaps"])
     assert first["reverification"] == {
-        "verified": False, "status": "blocked",
+        "verified": False, "status": "blocked", "eligible": False,
         "added_gaps": [f"Native job evidence could not be verified ({error})"]}
     assert accounting["failed_attempts"] == 1
     assert accounting["statuses"][0] == {"attempt": 1, "status": "failed", "eligible": False,
@@ -746,17 +758,29 @@ def test_collected_selected_attempt_cannot_pass_from_its_record(experiment):
     _, collected = finish(experiment, on)
     assert collected["eligible"]
     shutil.rmtree(root / "jobs" / on)
-    arm = _document(operation(experiment, "report"))["trials"][0]
+    report = operation(experiment, "report")
+    arm = _document(report)["trials"][0]
     # A lost job is unverifiable, not "pending", and the record cannot keep it eligible.
     assert arm["status"] == "blocked" and not arm["eligible"]
     assert arm["gaps"] == ["Native job evidence could not be verified (FileNotFoundError)"]
+    assert report["assessment"]["counts"]["eligible_trials"] == 0
     row, accounting = arm["attempts"][0], arm["attempt_accounting"]
-    assert row["status"] == "completed" and not row["eligible"]
-    assert row["reverification"]["verified"] is False
-    assert accounting["failed_attempts"] == 1
+    # The recorded success stays a recorded success; only the current re-read fails.
+    assert (row["status"], row["eligible"], row["gaps"]) == ("completed", True, [])
+    assert row["reverification"] == {
+        "verified": False, "status": "blocked", "eligible": False,
+        "added_gaps": ["Native job evidence could not be verified (FileNotFoundError)"]}
+    # It never ran unsuccessfully, so it is not a historical failure.
+    assert accounting["failed_attempts"] == 0
+    assert accounting["statuses"] == [{"attempt": 1, "status": "completed", "eligible": True,
+                                       "reverified": False}]
+    # Current evidence still withholds the successful campaign wall.
     assert accounting["success_wall_seconds"] is None
     assert accounting["missing_reasons"]["success_wall_seconds"] == [
         "selected_attempt_not_reverified_as_completed"]
+    html = Path(report["reports"]["html"]).read_text(encoding="utf-8")
+    assert ("<td>1</td><td>0</td><td>1: completed (current evidence not re-verified)</td>"
+            in html)
 
 
 @pytest.mark.parametrize(("window", "reason"), [

@@ -190,17 +190,18 @@ def test_attempts_section_separates_recorded_status_from_current_evidence(tmp_pa
     value = report()
     attempts = [
         _attempt(1, "failed", missing="native_job_evidence_not_verifiable", reverification={
-            "verified": False, "status": "blocked",
+            "verified": False, "status": "blocked", "eligible": False,
             "added_gaps": ["Native job evidence could not be verified (FileNotFoundError)"]}),
         _attempt(2, "completed", started_at=200.0, ended_at=215.0, wall_seconds=10.0,
                  tokens=50, reverification={"verified": True, "status": "completed",
-                                            "added_gaps": []})]
+                                            "eligible": True, "added_gaps": []})]
     value["trials"][0].update(attempts=attempts, attempt_accounting=attempt_accounting(attempts))
     html = Path(write_comparison_report(value, tmp_path)["html"]).read_text(encoding="utf-8")
     assert "1: failed (current evidence not re-verified); 2: completed" in html
     assert "total wall: attempt 1: native_job_evidence_not_verifiable" in html
     assert "unknown: native_job_evidence_not_verifiable" in html
     assert "re-read status: blocked" in html and "matches collection" in html
+    assert "re-read eligible: no" in html
     assert "<td>15.00</td>" in html
 
 
@@ -236,14 +237,35 @@ def test_attempt_accounting_keeps_unknown_bounds_and_partial_tokens():
     assert campaign_only["total_wall_seconds"] is None
     assert campaign_only["missing_reasons"]["total_wall_seconds"] == [
         "attempt 1: attempt_window_unknown", "attempt 2: native_execution_not_terminated"]
-    # A recorded completion whose evidence no longer re-reads keeps no successful wall.
+    # A recorded completion whose evidence no longer re-reads keeps no successful wall,
+    # but it is still not a historical failure.
     unverified = attempt_accounting([_attempt(
         1, "completed", started_at=0.0, ended_at=5.0, wall_seconds=4.0,
-        reverification={"verified": False, "status": "blocked", "added_gaps": ["lost"]})])
+        reverification={"verified": False, "status": "blocked", "eligible": False,
+                        "added_gaps": ["lost"]})])
     assert unverified["success_wall_seconds"] is None
     assert unverified["missing_reasons"]["success_wall_seconds"] == [
         "selected_attempt_not_reverified_as_completed"]
-    assert unverified["statuses"][0]["reverified"] is False
+    assert unverified["failed_attempts"] == 0
+    assert unverified["statuses"][0] == {"attempt": 1, "status": "completed",
+                                         "eligible": True, "reverified": False}
+    # A re-read that stays completed but gains gaps also withholds the wall.
+    gained = attempt_accounting([_attempt(
+        1, "completed", started_at=0.0, ended_at=5.0, wall_seconds=4.0,
+        reverification={"verified": False, "status": "completed", "eligible": False,
+                        "added_gaps": ["shared session"]})])
+    assert gained["success_wall_seconds"] is None and gained["failed_attempts"] == 0
+    assert gained["missing_reasons"]["success_wall_seconds"] == [
+        "selected_attempt_current_evidence_not_verified"]
+    # Recorded failures stay failures when their evidence no longer re-reads, including
+    # a completed attempt that was recorded without an eligible result.
+    lost = {"verified": False, "status": "blocked", "eligible": False, "added_gaps": ["lost"]}
+    history = attempt_accounting([
+        _attempt(1, "failed", reverification=lost),
+        _attempt(2, "completed", eligible=False, reverification=lost),
+        _attempt(3, "completed", wall_seconds=4.0, reverification={
+            "verified": True, "status": "completed", "eligible": True, "added_gaps": []})])
+    assert history["failed_attempts"] == 2 and history["success_wall_seconds"] == 4.0
     with pytest.raises(ValueError):
         attempt_accounting([_attempt(2, "completed")])
     with pytest.raises(ValueError):

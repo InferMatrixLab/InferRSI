@@ -242,10 +242,13 @@ def attempt_accounting(attempts: list[dict]) -> dict:
     failed attempts, retries and the gaps between them. Each attempt's start and
     end are its own evidenced ``attempt_window``; a campaign window never
     substitutes, so a missing boundary leaves the total unknown with a reason.
-    A collected attempt whose current evidence no longer re-reads as completed
-    has no successful campaign wall. A token subtotal never becomes a complete
-    arm total: tokens are known only when every attempt has a complete session
-    export.
+    Failed attempts count each attempt's own ``status`` and ``eligible``, which for
+    a collected attempt are its recorded classification: current evidence that no
+    longer re-reads never adds or removes a historical failure. It does withhold
+    the successful campaign wall: the selected attempt has one only when its
+    campaign completed and, if collected, its ``reverification`` still verifies.
+    A token subtotal never becomes a complete arm total: tokens are known only
+    when every attempt has a complete session export.
     """
     if not isinstance(attempts, list) or not attempts:
         raise ValueError("Attempt accounting requires at least one retained attempt")
@@ -260,13 +263,17 @@ def attempt_accounting(attempts: list[dict]) -> dict:
     current = last.get("reverification")
     reread = current is None or (isinstance(current, dict)
                                  and current.get("status") == "completed")
-    success = (last["wall_seconds"] if last["status"] == "completed" and reread
+    supported = current is None or (isinstance(current, dict)
+                                    and current.get("verified") is True)
+    success = (last["wall_seconds"] if last["status"] == "completed" and reread and supported
                and _number(last.get("wall_seconds")) and last["wall_seconds"] >= 0 else None)
     if success is None:
         reasons["success_wall_seconds"] = ["selected_attempt_campaign_not_completed"
                                            if last["status"] != "completed"
                                            else "selected_attempt_not_reverified_as_completed"
                                            if not reread
+                                           else "selected_attempt_current_evidence_not_verified"
+                                           if not supported
                                            else "selected_attempt_wall_unavailable"]
     start = (first.get("attempt_window") or {}).get("started_at")
     end = (last.get("attempt_window") or {}).get("ended_at")

@@ -746,10 +746,13 @@ def _reverify(root, plan, trial, number, *, collected=False):
 
 
 def _attempt_row(number, result, host, recorded=None):
-    """One attempt for accounting; a collected attempt keeps its recorded classification.
+    """One attempt for accounting; recorded classification and current re-read stay apart.
 
-    Re-reading can only add gaps or remove eligibility, shown under
-    ``reverification``; it never turns a recorded failure into "not run". Costs
+    A collected attempt's ``status``, ``eligible`` and ``gaps`` are exactly those of
+    its digest-checked collection, so a later re-read can neither turn a recorded
+    failure into "not run" nor a recorded success into a failure. The current
+    re-read is shown only under ``reverification`` (status, eligibility, added
+    gaps); it, not the record, decides the verdict and the successful wall. Costs
     and attempt boundaries come only from evidence that re-reads now, so an
     unreadable attempt has unknown cost rather than a stale one.
     """
@@ -766,11 +769,12 @@ def _attempt_row(number, result, host, recorded=None):
                 or any(not isinstance(gap, str) for gap in recorded["gaps"])):
             raise ValueError("Malformed retained comparison collection")
         added = [gap for gap in result["gaps"] if gap not in recorded["gaps"]]
-        row.update(status=recorded["status"], gaps=list(recorded["gaps"]),
-                   eligible=recorded["eligible"] and result["eligible"])
-        row["reverification"] = {"verified": result["status"] == recorded["status"]
-                                 and not added, "status": result["status"],
-                                 "added_gaps": added}
+        row.update(status=recorded["status"], eligible=recorded["eligible"],
+                   gaps=list(recorded["gaps"]))
+        row["reverification"] = {
+            "verified": (result["status"] == recorded["status"] and not added
+                         and (result["eligible"] or not recorded["eligible"])),
+            "status": result["status"], "eligible": result["eligible"], "added_gaps": added}
     return row
 
 
