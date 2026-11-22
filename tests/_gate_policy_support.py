@@ -100,7 +100,9 @@ RETIRED_ROOT_MODULES = RETIRED_BY_R1 | RETIRED_BY_A1 | RETIRED_BY_A2 | RETIRED_B
 # Slices 3b, 4 and 5 moved the artifact helpers to ``inferrsi.apps.artifacts`` and the
 # provider modules to ``inferrsi.apps.integrations.anthropic``, and deleted both packages,
 # so the two package names are retired as a whole.
-RETIRED_MODULES = frozenset({"inferrsi.infra", "inferrsi.model"})
+# #558 moved ``inferrsi.harness.scenarios`` to ``inferrsi.harness.trials``, with no
+# forwarder, so the old package name is retired as a whole too.
+RETIRED_MODULES = frozenset({"inferrsi.infra", "inferrsi.model", "inferrsi.harness.scenarios"})
 # #412 R1, permanent: the one importer of the neutral data leaf outside
 # ``inferrsi.knowledge``, with the only name it may bind (D020: Infra reads one pack
 # description and reaches no Knowledge or Harness). This is not a manifest

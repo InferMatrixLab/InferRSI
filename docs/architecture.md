@@ -38,7 +38,7 @@ tool and retain the native identity and returned artifacts. The child owns the
 complete start/knowledge/round/final lifecycle; the parent observes and collects. This path records the handoff; it
 does not implement a background Agent CLI driver or a native-host deadline.
 
-The application injects `harness.scenarios.external.execute_trial` into the
+The application injects `harness.trials.external.execute_trial` into the
 [two-rank MoE entry](moe-forward-benchmark.md). The standalone image benchmark
 and [TTS service protocol](tts-benchmark.md) expose their documented execution
 boundaries. Apps and Harness callers assemble these operations into optimization
@@ -173,6 +173,9 @@ src/inferrsi/
     skill_eval_diagnostic.py   Synthetic KV admission diagnosis task and grader
     skill_eval_engineering.py  Serving-parser task, public vectors and vector judgment
     improvement.py          Improvement-step thresholds and acceptance rules
+    preparation.py          Frozen D023/P1 preparations over a Benchmark-owned task
+    summary.py              Versioned benchmark metrics over retained facts; no execution or I/O
+    comparison.py           Knowledge-comparison rules over normalized retained facts
   contracts/
     runspec.py              Immutable experiment contract; the initializer re-exports only RunSpec
     json_v1.py              Canonical inferrsi-json-v1 encoder and decoder
@@ -183,6 +186,7 @@ src/inferrsi/
     repository_packs.py     Neutral REPO_TYPES and pack.json reader; imports no inferrsi module
   apps/
     api.py                  Python entry points for assembling and publishing Apps operations
+    knowledge.py            Standalone knowledge operations composed through Knowledge ports
     cli/                    CLI entry `main` and its argument parser
     inspection.py           Environment inspection bound to the host probe and Git identity
     host/
@@ -217,6 +221,7 @@ src/inferrsi/
         __init__.py         CannbotChannel implementation and channel result adaptation
         project.py          Opt-in checkout/interpreter grant and read-only operations
         read_worker.py      Standalone worker run by the approved Cannbot interpreter
+        round_knowledge.py  Managed round knowledge through the read-only CANNBot worker
       anthropic/
         anthropic_agent.py  Bounded direct Messages agent with frozen cost reservations
         anthropic_edit_agent.py  Bounded edit-and-check protocol
@@ -227,7 +232,20 @@ src/inferrsi/
         mcp.py              Stdio MCP for the two approved local MindIE reads
         read_worker.py      Standalone worker run by the approved MindIE interpreter
     artifacts.py            Apps-owned hashing, file lock and evidence writes
+    delivery/
+      projection.py         Project retained records without execution or assessment
+      schema.py             Versioned delivery projection
+      snapshot.py           Read-only bounded snapshots with availability and integrity facts
+      render.py             Offline Markdown and HTML reports from one projection
+      adapters.py           Historical record adapters that disclose mapping gaps
+      benchmark_usage.py    Identity-bound native usage for Benchmark reports
+    archive.py ... skill_evaluation.py, cannbot/, mindie/
+                            Static compatibility exports of the canonical modules above
+                            (#490); a separate reviewed PR removes them
     views/
+      attempt.py            Read a fixed Harness revision and its archived assessment
+      attempt_html.py       Render a fixed attempt for the report and Dashboard
+      comparison_report.py  Offline comparison report over the retained result projection
       summary_chart.py      Stdlib SVG gain chart (chain/branch) and report figure spec
       optimization_chart.py Managed optimization objective/token curves and final result
       dashboard.py          Offline snapshot and HTML rendering
@@ -236,7 +254,10 @@ src/inferrsi/
       dashboard_timeline.py Stage/result timeline SVG
       dashboard_workflow.py Paired command events into reviewable work units
       dashboard_external.py Protocol-specific external measurements
-      template.html         Dashboard view template
+      dashboard_experiments.py Evidence-linked experiment projection for both layouts
+      retrieval_projection.py  Read-only retrieval and round-search projection
+      *.html                Dashboard, overview, experiment, knowledge, review and
+                            round-decision templates
       optimization_story.py Caller narrative resolved against captures and runs
       profile_searches.py  Pre-profile search presentation
       experiment_timing.py Experiment timing presentation
@@ -245,8 +266,14 @@ src/inferrsi/
       capture_delivery.py  Visible capture resources in a reviewed tool return
       codex_search.py      Bounded attributable file-search evidence from Codex rollouts
       codex_tool_returns.py Correlate Codex tool-return windows
+      codex_knowledge.py    Decode recorded InferRSI CLI results from a rollout
+      round_citations.py    Bind citations in a retained round reason to the rollout
   knowledge/
     catalog.py              Knowledge search and cited context
+    knowledge_find.py       One ranked lookup across packaged skills, records and checkout cases
+    channels.py             Read-only external knowledge channels ranked beside the corpus
+    retrieval.py            Execution observations, separate from item and resource payloads
+    _knowledge_errors.py    Errors shared by knowledge readers and optional dependencies
     skill_catalog.py        Packaged/default or custom skill metadata/body/resource resolution
     knowledge_operations.py Normalized reads and bounded Collect (KnowledgeReader)
     knowledge_store.py      Authorized local store Create/Update (KnowledgeStore)
@@ -261,6 +288,9 @@ src/inferrsi/
     local_process.py        Windows Job / POSIX process group; deadline, cancel, cleanup
     run_store.py            Local SQLite RunStore: claim, owner lock, fixed records
     errors.py               H PublicError codes and partial execution facts
+    execution_spec.py       Pure ExecutionSpec encoding helpers
+    generation.py           Seal one generation attempt's inputs before registration
+    artifact_primitives.py  Harness-owned digest, file hash and file lock
     records/
       evidence.py           Bounded evidence reads and record text rules
       optimization_log.py   Campaign log write/read and reference checks
@@ -273,6 +303,14 @@ src/inferrsi/
     optimization_session.py Shared start/knowledge/round/final operation assembly
     project.py              Freeze supplied project checks and assess retained results
     task_protocol.py        Freeze supplied task resources and load their protocol
+    protocol_child.py       Child entry for one operation of a frozen task protocol
+    candidates.py           Retain declared candidate inputs only
+    agent_sessions.py       Recorded handoff to a host's native fresh-session tools
+    project_service.py      Project-owned service protocols and their retained evidence
+    service_evidence.py     Validate retained receipts behind service-reuse decisions
+    service_observations.py Read settled service observations
+    service_backfill.py     Publish supplemental profiles under a settled round
+    measurement.py          Paired statistics for alternating baseline/candidate samples
     optimization.py         Current-Agent round budget, records and recovery
     usage.py                Shared observed-token normalization and totals
     improvement.py          Offline search progression over injected assessments
@@ -280,7 +318,7 @@ src/inferrsi/
     artifact_sandbox.py     Artifact capture and bubblewrap replay; no vectors or verdicts
     atomic_json.py          Harness-owned atomic JSON evidence writes
     runner.py               One AB/BA loop; execute/snapshot/assess/report ports injected
-    scenarios/
+    trials/
       external.py           External command trials; metric validation injected
     serving/
       server.py             Supervised Linux serving workers and their group cleanup
@@ -315,7 +353,7 @@ the dependency checks.
 
 | Add | Main extension locations | Required qualification |
 | --- | --- | --- |
-| Model or scenario | `harness/serving`, `benchmark/metrics.py`, `benchmark/validators`, `harness/scenarios` | Frozen request and metric contract; model-specific quality coverage |
+| Model or scenario | `harness/serving`, `benchmark/metrics.py`, `benchmark/validators`; trials run through the model-independent `harness/trials/external.py` | Frozen request and metric contract; model-specific quality coverage |
 | Repository | `apps/host/targets`, a composed scenario, `harness/data/repo_packs` | Stable source identity; command/result contract; environment isolation |
 | Hardware | `apps/host/platforms` | Device selection, process exclusivity and independent backend/model evidence; a backend is registered in `apps/host/platforms/__init__.py` and its probe command is defined in the implementing module under `apps/host/platforms/`, not in package data |
 
@@ -363,7 +401,7 @@ float; `benchmark.legacy_run_v0.trial_metric` then applies the one finite, posit
 metric contract (`benchmark.metrics.validate_metric`) to whatever the reader
 returns, so a reader that yields `0.0`, a `bool` or a non-finite value records a
 metric error rather than entering the evaluation. The Harness executor
-`harness.scenarios.external.execute_trial` holds no metric rule: a caller that
+`harness.trials.external.execute_trial` holds no metric rule: a caller that
 passes a metric key also passes `metric=`, its validation function.
 
 Run state is written by the termination path, never assumed. `status.json`
@@ -477,7 +515,7 @@ packages its full English procedure, embedded metadata, references and cases. Th
 also owns authored findings in `records/`, search configuration in `config/`
 and generated build inputs in `_compiled/`. An explicit `--root` selects a
 custom flat or registry-based library. Readers that parse skill frontmatter use
-PyYAML from the `skills` extra. Core knowledge commands read catalog views and
+PyYAML, a core dependency; the `skills` extra is a compatibility alias. Core knowledge commands read catalog views and
 packaged documents with the base interpreter. The two matrices retain their
 authority. [Directory and search diagrams](knowledge-layout.md)
 
