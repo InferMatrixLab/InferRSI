@@ -22,7 +22,7 @@ from inferrsi.benchmark import legacy_run_v0, metrics, sampling
 from inferrsi.contracts import RunSpec, claim
 from inferrsi.harness import atomic_json
 from inferrsi.harness.runner import run_experiment
-from inferrsi.harness.scenarios.external import execute_trial
+from inferrsi.harness.trials.external import execute_trial
 from tests._gate_policy_support import ROOT, _scan, _walk
 
 GRAPH = _scan(ROOT, frozenset())
@@ -45,11 +45,11 @@ def test_moved_harness_modules_are_gone_without_shells():
 
 def test_runner_and_external_lost_their_model_artifact_and_target_edges():
     assert _outside("inferrsi.harness.runner", "inferrsi.model", "inferrsi.infra") == set()
-    assert _outside("inferrsi.harness.scenarios.external", "inferrsi.model") == set()
-    assert _outside("inferrsi.harness.scenarios.external", "inferrsi.infra") <= PROCESS_DOMAIN
+    assert _outside("inferrsi.harness.trials.external", "inferrsi.model") == set()
+    assert _outside("inferrsi.harness.trials.external", "inferrsi.infra") <= PROCESS_DOMAIN
     assert _outside("inferrsi.harness.atomic_json", "inferrsi.") == {"inferrsi.harness"}
     # Transitively the old chain keeps only the process domain, and no new core.
-    for module in ("inferrsi.harness.runner", "inferrsi.harness.scenarios.external"):
+    for module in ("inferrsi.harness.runner", "inferrsi.harness.trials.external"):
         reached = _reached(module)
         assert {n for n in reached if n.startswith(("inferrsi.model", "inferrsi.infra"))} <= (
             PROCESS_DOMAIN

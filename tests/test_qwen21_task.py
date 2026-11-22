@@ -71,8 +71,13 @@ def test_standalone_import_guard_blocks_engine_names():
     assert guard.find_spec("torch_npu") is None
 
 
-@pytest.mark.parametrize("source", ["def compute(:\n", "VALUE = 1\n",
-                                        "def compute(x):\n    return x\n"])
+@pytest.mark.parametrize("source", [
+    "def compute(:\n",
+    "VALUE = 1\n",
+    "def compute(x):\n    return x\n",
+    "compute = iter\n",
+    "def compute(*args, **kwargs):\n    pass\ncompute.__wrapped__ = compute\n",
+])
 def test_candidate_entry_contract_errors_consume_round_without_blocking(
     tmp_path, monkeypatch, source,
 ):
@@ -98,6 +103,7 @@ def test_candidate_entry_contract_errors_consume_round_without_blocking(
 
 
 @pytest.mark.parametrize("phase,explicit_check,expected", [
+    ("candidate_import", False, "infrastructure_failure"),
     ("candidate_measurement", False, "infrastructure_failure"),
     ("candidate_correctness", True, "candidate_failure"),
     ("baseline_correctness", True, "infrastructure_failure"),

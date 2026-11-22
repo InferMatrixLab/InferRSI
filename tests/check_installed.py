@@ -9,6 +9,7 @@ import subprocess
 import sys
 import tempfile
 from importlib import import_module
+from importlib.metadata import requires
 from importlib.resources import as_file, files
 from importlib.util import find_spec
 from pathlib import Path
@@ -802,6 +803,23 @@ facade = subprocess.run(
     [sys.executable, "-I", "-c", facade_probe], capture_output=True, text=True, check=False,
 )
 assert facade.returncode == 0, facade.stderr
+# The offline Benchmark port must ship in the wheel and remain independently importable.
+assessment_probe = (
+    "import sys\n"
+    "from inferrsi.benchmark.assessment import (\n"
+    "    AssessmentService, assess, decode, encode, validate_assessment,\n"
+    ")\n"
+    "assert all(callable(port) for port in\n"
+    "           (AssessmentService, assess, decode, encode, validate_assessment))\n"
+    "for prefix in ('inferrsi.apps', 'inferrsi.harness', 'inferrsi.knowledge'):\n"
+    "    assert not [name for name in sys.modules if name == prefix\n"
+    "                or name.startswith(prefix + '.')], prefix\n"
+)
+assessment_port = subprocess.run(
+    [sys.executable, "-I", "-B", "-c", assessment_probe],
+    capture_output=True, text=True, check=False,
+)
+assert assessment_port.returncode == 0, assessment_port.stderr
 # #452 M1: the MindIE adapter ships in the wheel. A fresh isolated interpreter imports the
 # package initializer with no core loaded and without a re-exported version, then imports
 # the stdio MCP module through its absolute package path.
@@ -929,10 +947,12 @@ for retired in ("inferrsi.infra", "inferrsi.infra.artifacts", "inferrsi.infra.pr
                 "inferrsi.infra.inspection", "inferrsi.infra.environment",
                 "inferrsi.infra.platforms", "inferrsi.infra.targets", "inferrsi.model",
                 "inferrsi.model.anthropic_agent", "inferrsi.model.anthropic_edit_agent",
-                "inferrsi.model.request_guard"):
+                "inferrsi.model.request_guard", "inferrsi.harness.scenarios",
+                "inferrsi.harness.scenarios.external"):
     assert_not_importable(retired)
 assert not {child.name for child in files("inferrsi").iterdir()} & {"infra", "model"}
-for canonical in ("inferrsi.harness.serving", "inferrsi.harness.serving.server",
+for canonical in ("inferrsi.harness.trials", "inferrsi.harness.trials.external",
+                  "inferrsi.harness.serving", "inferrsi.harness.serving.server",
                   "inferrsi.harness.serving.http", "inferrsi.harness.serving.image",
                   "inferrsi.apps.host.commands", "inferrsi.apps.host.inspection",
                   "inferrsi.apps.host.environment", "inferrsi.apps.host.platforms",
@@ -962,28 +982,36 @@ observed = json.loads(locked.stdout.strip().splitlines()[-1])
 assert observed["busy_status"] != "published" and observed["busy_published"] is False, observed
 assert observed["released_status"] == "published", observed
 assert observed["released_kind"] == "progress", observed
-# #498 slice 5: a real session that main planned before infra/artifacts.py left the runtime
-# identity. The installed wheel must refuse it before status or recover dispatches and leave
-# every file of the session as it was.
-with tempfile.TemporaryDirectory(prefix="inferrsi-pre-infra-") as pre_work:
-    pre_session = Path(pre_work) / "session"
-    shutil.copytree(os.environ["INFERRSI_PRE_INFRA_SESSION"], pre_session)
+# #498 slice 5 and #558: real sessions that main planned before a change to the runtime
+# identity, each with the identity file that change removed. The installed wheel must refuse
+# every one before status or recover dispatches and leave every file of it as it was.
+PRE_CHANGE_SESSIONS = {
+    "pre-infra-removal-session": "infra/artifacts.py",
+    "pre-trials-rename-session": "harness/scenarios/external.py",
+}
+sessions_root = Path(os.environ["INFERRSI_PRE_CHANGE_SESSIONS"])
+assert sorted(path.name for path in sessions_root.iterdir() if path.name.endswith("-session")) == (
+    sorted(PRE_CHANGE_SESSIONS))
+for fixture, removed_file in PRE_CHANGE_SESSIONS.items():
+    with tempfile.TemporaryDirectory(prefix="inferrsi-pre-change-") as pre_work:
+        pre_session = Path(pre_work) / "session"
+        shutil.copytree(sessions_root / fixture, pre_session)
 
-    def session_bytes():
-        return {path.relative_to(pre_session).as_posix(): path.read_bytes()
-                for path in sorted(pre_session.rglob("*")) if path.is_file()}
+        def session_bytes():
+            return {path.relative_to(pre_session).as_posix(): path.read_bytes()
+                    for path in sorted(pre_session.rglob("*")) if path.is_file()}
 
-    pre_before = session_bytes()
-    assert "infra/artifacts.py" in json.loads(pre_before["plan.json"])["runtime_identity"]
-    for action in ("status", "recover"):
-        refused = subprocess.run(
-            [sys.executable, "-I", "-m", "inferrsi", "benchmarks", "session", action,
-             "--session", str(pre_session)],
-            capture_output=True, text=True, check=False, cwd=pre_work,
-        )
-        assert refused.returncode == 2, (action, refused.returncode, refused.stderr)
-        assert "Optimization runtime changed" in refused.stderr, (action, refused.stderr)
-    assert session_bytes() == pre_before
+        pre_before = session_bytes()
+        assert removed_file in json.loads(pre_before["plan.json"])["runtime_identity"], fixture
+        for action in ("status", "recover"):
+            refused = subprocess.run(
+                [sys.executable, "-I", "-m", "inferrsi", "benchmarks", "session", action,
+                 "--session", str(pre_session)],
+                capture_output=True, text=True, check=False, cwd=pre_work,
+            )
+            assert refused.returncode == 2, (fixture, action, refused.returncode, refused.stderr)
+            assert "Optimization runtime changed" in refused.stderr, (fixture, action)
+        assert session_bytes() == pre_before, fixture
 # The Messages worker runs under ``python -I`` and loads its adjacent trusted guard by file
 # location, not through the package, so the guard must ship next to the agent. This offline
 # probe loads the agent from the wheel the way the worker does, with no provider call.
@@ -1044,3 +1072,79 @@ with tempfile.TemporaryDirectory(prefix="inferrsi-cannbot-launch-") as launch_cw
         check=False, cwd=launch_cwd,
     )
 assert launch.returncode == 0, launch.stderr
+
+# The shared YAML task contract v1 ships in the ordinary wheel: PyYAML is a core
+# dependency, the schema and template are package data, and ``task validate|preview``
+# reads a task file outside the checkout without writing anything. The complete
+# fixture comes from INFERRSI_TASK_FIXTURES or the checkout next to the resources.
+assert any(
+    requirement.replace(" ", "").lower().startswith("pyyaml>=")
+    for requirement in requires("inferrsi") or ()
+    if "extra ==" not in requirement
+), requires("inferrsi")
+task_resources_root = files("inferrsi.apps.cli").joinpath("task-input", "v1")
+for name in ("schema.json", "template.yaml"):
+    assert task_resources_root.joinpath(name).is_file(), name
+task_schema = json.loads(task_resources_root.joinpath("schema.json").read_text(encoding="utf-8"))
+assert task_schema["properties"]["schema_version"]["const"] == 1
+task_fixtures = os.environ.get("INFERRSI_TASK_FIXTURES")
+if not task_fixtures and checkout:
+    task_fixtures = str(Path(checkout).resolve().parents[1] / "tests" / "fixtures" / "task-input")
+complete_fixture = Path(task_fixtures) / "complete.yaml" if task_fixtures else None
+if complete_fixture is None or not complete_fixture.is_file():
+    print("Task fixtures unavailable: checked the packaged template only")
+    complete_fixture = None
+
+
+def task_cli(cwd, *arguments):
+    return subprocess.run(
+        [sys.executable, "-I", "-m", "inferrsi", "task", *arguments],
+        capture_output=True, text=True, encoding="utf-8", check=False, cwd=cwd,
+    )
+
+
+with tempfile.TemporaryDirectory(prefix="inferrsi-task-cwd-") as task_cwd, \
+        tempfile.TemporaryDirectory(prefix="inferrsi-task-files-") as task_files:
+    template_file = Path(task_files) / "template.yaml"
+    template_file.write_text(
+        task_resources_root.joinpath("template.yaml").read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+    printed = task_cli(task_cwd, "template")
+    assert printed.returncode == 0, printed.stderr
+    assert printed.stdout == template_file.read_text(encoding="utf-8")
+    checked = task_cli(task_cwd, "validate", str(template_file), "--json")
+    assert checked.returncode == 0, checked.stderr
+    assert json.loads(checked.stdout)["valid"] is True
+    previewed = task_cli(task_cwd, "preview", str(template_file), "--json")
+    assert previewed.returncode == 0, previewed.stderr
+    template_preview = json.loads(previewed.stdout)
+    assert template_preview["valid"] and not template_preview["complete"]
+    assert template_preview["blockers"] and template_preview["execution"] == "not started"
+    if complete_fixture is not None:
+        task_file = Path(task_files) / "complete.yaml"
+        shutil.copyfile(complete_fixture, task_file)
+        checked = task_cli(task_cwd, "validate", str(task_file), "--json")
+        assert checked.returncode == 0, checked.stderr
+        previewed = task_cli(task_cwd, "preview", str(task_file), "--json",
+                             "--repetitions", "7")
+        assert previewed.returncode == 0, previewed.stderr
+        complete_preview = json.loads(previewed.stdout)
+        assert complete_preview["valid"] and complete_preview["complete"], complete_preview
+        effective = complete_preview["task"]
+        assert effective["environment"]["backend"] == "cuda"
+        assert effective["environment"]["repetitions"] == 7
+        assert complete_preview["sources"]["environment.repetitions"] == "cli"
+        assert effective["acceptance"]["min_improvement_pct"] == 2.5
+        assert effective["optimization"]["repository"] == os.path.join(
+            os.path.abspath(task_files), "repo")
+        conflict = task_cli(task_cwd, "preview", str(task_file), "--json",
+                            "--min-improvement-pct", "5")
+        assert conflict.returncode == 1, conflict.stderr
+        assert [error["field"] for error in json.loads(conflict.stdout)["errors"]] == [
+            "acceptance.min_improvement_pct"
+        ]
+        assert sorted(path.name for path in Path(task_files).iterdir()) == [
+            "complete.yaml", "template.yaml",
+        ]
+    assert list(Path(task_cwd).iterdir()) == []

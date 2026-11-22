@@ -28,8 +28,8 @@ def runtime_environment() -> dict:
 
 
 def _session_execute(root, directory, plan, deadline):
-    from inferrsi.harness.scenarios.external import execute_trial
     from inferrsi.harness.task_protocol import run as run_protocol
+    from inferrsi.harness.trials.external import execute_trial
 
     if plan["task_source"] == "project":
         return _project_execute(root, directory, plan, deadline)
@@ -63,7 +63,7 @@ def _project_execute(root, directory, plan, deadline):
     from inferrsi.harness.atomic_json import atomic_write_json
     from inferrsi.harness.candidates import identity, members, retain
     from inferrsi.harness.project import inspect_step, steps
-    from inferrsi.harness.scenarios.external import execute_trial
+    from inferrsi.harness.trials.external import execute_trial
 
     output = directory / "execution"
     output.mkdir()
@@ -117,7 +117,7 @@ def _runtime_identity():
     root = Path(str(files("inferrsi")))
     names = ("harness/optimization_session.py", "harness/optimization.py",
              "harness/local_process.py",
-             "harness/serving/server.py", "harness/scenarios/external.py",
+             "harness/serving/server.py", "harness/trials/external.py",
              "harness/atomic_json.py", "harness/artifact_primitives.py",
              "harness/usage.py", "harness/agent_sessions.py", "harness/task_protocol.py",
              "harness/protocol_child.py",
@@ -375,7 +375,7 @@ def _run_entry(entry: str, arguments: list[str]) -> None:
     # resolve generic names such as project or candidates from Harness.
     runner = Path(__file__).resolve().parent
     sys.path[:] = [path for path in sys.path if Path(path).resolve() != runner]
-    from inferrsi.harness.scenarios.external import execute_trial
+    from inferrsi.harness.trials.external import execute_trial
 
     sys.argv = [entry, *arguments]
     sys.path.insert(0, str(Path(entry).parent))

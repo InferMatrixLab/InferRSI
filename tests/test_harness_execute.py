@@ -7,7 +7,9 @@ import subprocess
 import sys
 import threading
 import time
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
@@ -220,6 +222,65 @@ def test_h02_2_timeout_cancel_and_cleanup_are_recorded_separately(h: Harness) ->
     assert (late["process_outcome"], late["started"]) == ("not_started", False)
     assert late["cleanup"]["status"] == "not_needed"
     assert late["steps"][0]["reasons"] == ["deadline_exhausted"]
+
+
+@pytest.mark.parametrize("reason", ["cancelled", "deadline_exhausted", "step_timeout"])
+def test_prelaunch_limits_are_rechecked_after_opening_logs(h, monkeypatch, reason):
+    cancelled = reason == "cancelled"
+    step_limited = reason == "step_timeout"
+    cancellation = threading.Event()
+    open_path = Path.open
+    supervise = local_process._supervise
+    runs = []
+    offset = 0
+
+    def open_log(path, *args, **kwargs):
+        nonlocal offset
+        stream = open_path(path, *args, **kwargs)
+        if path.name == "step-0.stderr":
+            if cancelled:
+                cancellation.set()
+            else:
+                offset = 7 if step_limited else 120
+        return stream
+
+    def observe_supervision(*args, **kwargs):
+        run = supervise(*args, **kwargs)
+        runs.append(run)
+        return run
+
+    def unexpected_launch(*args, **kwargs):
+        pytest.fail("A worker started after the launch limit")
+
+    monkeypatch.setattr(Path, "open", open_log)
+    monkeypatch.setattr(local_process, "time", SimpleNamespace(
+        monotonic=lambda: time.monotonic() + offset, sleep=time.sleep,
+    ))
+    monkeypatch.setattr(local_process, "_supervise", observe_supervision)
+    monkeypatch.setattr(local_process.subprocess, "Popen", unexpected_launch)
+    deadline = (datetime.now(timezone.utc) + timedelta(minutes=1)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    spec = make_spec(h, [step("print('first')", timeout="5" if step_limited else None),
+                         step("print('second')", step_id="second")], deadline=deadline)
+    record = h.execute(spec, cancellation=cancellation)
+
+    schema_check(record)
+    assert record["started"] is False
+    assert record["phase"] == "finished"
+    assert record["process_outcome"] == ("cancelled" if cancelled else "not_started")
+    assert record["target_binding"]["runtime_bindings_by_step"] == []
+    assert record["resource_leases"]["leases"] == []
+    assert record["cleanup"]["status"] == "not_needed"
+    assert record["cancellation"]["requested"] is cancelled
+    assert record["cancellation"]["source"] == ("caller" if cancelled else None)
+    later_reason = "previous_step_failed" if step_limited else reason
+    assert [(s["status"], s["reasons"]) for s in record["steps"]] == [
+        ("not_started", [reason]), ("not_started", [later_reason]),
+    ]
+    assert [run["error"] for run in runs] == [{
+        "cancelled": "cancellation requested",
+        "deadline_exhausted": "whole-run deadline exhausted before command start",
+        "step_timeout": "step timeout expired before command start",
+    }[reason]]
 
 
 def test_h02_3_actual_input_mismatch_commits_a_fixed_not_started(h: Harness, tmp_path) -> None:
@@ -464,7 +525,8 @@ def test_steps_run_in_fixed_order_and_fail_fast(h: Harness, tmp_path) -> None:
 def _supervise_with_domain(domain_empty, calls: list[list[str]]):
     """Stub supervisor: first step uses the injected domain_empty fact; later steps are empty."""
 
-    def fake(argv, cwd, environment, stdout_path, stderr_path, deadline, *, cancellation=None):
+    def fake(argv, cwd, environment, stdout_path, stderr_path, deadline, *,
+             cancellation=None, step_limited=False):
         calls.append(list(argv))
         stdout_path.write_bytes(b"")
         stderr_path.write_bytes(b"")

@@ -11,7 +11,7 @@ from inferrsi.apps.cli.arguments import make_spec, parser
 from inferrsi.apps.legacy.evaluation import evaluate
 from inferrsi.apps.legacy.run import run_experiment
 from inferrsi.contracts import RunSpec
-from inferrsi.harness.scenarios.external import collect_trial_checks
+from inferrsi.harness.trials.external import collect_trial_checks
 
 
 @pytest.mark.parametrize("value", [None, False, "true", 1, {}, []])
