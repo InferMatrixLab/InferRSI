@@ -8,6 +8,7 @@ import inspect
 import json
 import math
 import os
+import re
 import shutil
 import statistics
 import sys
@@ -62,23 +63,73 @@ class CandidateComputeContractError(CandidateRecheckedError):
         return {"diagnostic": self.diagnostic, **super().details()}
 
 
-# Host-side PyTorch shape checks that an operator raises before launching its own
-# kernel. Only these fragments are attributed to the candidate. A shape message that also carries a
-# device, runtime or synchronization marker stays unattributed on purpose: the
-# device may have reported it, so it cannot be told apart from a device fault.
-CANDIDATE_CONTRACT_DIAGNOSTICS = (
-    "shapes cannot be multiplied",
-    "must match the size of tensor",
-    "is invalid for input of size",
-    "Sizes of tensors must match",
-)
-# Substring markers, chosen so none occurs in the PyTorch messages above: a bare
-# "npu" is part of "input" and a lowercase "cann" is part of "cannot".
-DEVICE_DIAGNOSTIC_MARKERS = (
-    "ACL", "Acl", "acl::", "aclrt", "aclnn", "NPU", "_npu", ".npu", "npu:", "npu_",
-    "CANN", "HCCL", "hccl", "Ascend", "AICore", "aicore", "synchroniz", "Synchroniz",
-    "EZ9999", "EI9999", "EE9999", "EC00", "ERR", "device-side",
-)
+def view_size_conflict(match):
+    dims = [int(size) for size in match[1].split(", ")] if match[1] else []
+    if any(size < -1 for size in dims) or dims.count(-1) > 1:
+        return False
+    known, elements = math.prod(size for size in dims if size != -1), int(match[2])
+    # The same acceptance condition as PyTorch's view/reshape size inference.
+    return not (known == elements or (-1 in dims and known > 0 and elements % known == 0))
+
+
+# Complete messages of PyTorch's host-side shape checks, which run during operator
+# dispatch before device work is queued, each with a host recheck of its reported
+# sizes. Containing such text is no evidence: any other wording, prefix or suffix,
+# or sizes that do not actually conflict, leave the error unattributed.
+HOST_SHAPE_DIAGNOSTICS = {
+    "shapes cannot be multiplied": (
+        re.compile(r"(?:mm: |addmm: )?mat1 and mat2 shapes cannot be multiplied "
+                   r"\((\d+)x(\d+) and (\d+)x(\d+)\)"),
+        lambda match: int(match[2]) != int(match[3])),
+    "must match the size of tensor": (
+        re.compile(r"The size of tensor a \((\d+)\) must match the size of tensor b "
+                   r"\((\d+)\) at non-singleton dimension \d+"),
+        lambda match: len({int(match[1]), int(match[2])} - {1}) == 2),
+    "is invalid for input of size": (
+        re.compile(r"shape '\[(-?\d+(?:, -?\d+)*)?\]' is invalid for input of size (\d+)"),
+        view_size_conflict),
+    "Sizes of tensors must match": (
+        re.compile(r"Sizes of tensors must match except in dimension \d+\. Expected size "
+                   r"(\d+) but got size (\d+) for tensor number \d+ in the list\."),
+        lambda match: int(match[1]) != int(match[2])),
+}
+
+
+def raised_by_submitted_source(error, function):
+    # The raising operator may sit below core PyTorch Python frames. The nearest
+    # frame outside the torch package must be the submitted source itself, not a
+    # device runtime wrapper, another library or the evaluator.
+    try:
+        source = os.path.realpath(inspect.unwrap(function).__code__.co_filename)
+    except (AttributeError, ValueError):
+        return False
+    torch_file = getattr(sys.modules.get("torch"), "__file__", None)
+    library = (os.path.join(os.path.dirname(os.path.realpath(torch_file)), "")
+               if torch_file else None)
+    frame, caller = error.__traceback__, None
+    while frame is not None:
+        filename = os.path.realpath(frame.tb_frame.f_code.co_filename)
+        if library is None or not filename.startswith(library):
+            caller = filename
+        frame = frame.tb_next
+    return caller == source
+
+
+def host_shape_diagnostic(error, function):
+    """Name the host shape check this error proves, or None when evidence is missing."""
+    # Positive evidence only: a plain, unchained RuntimeError, so no subclass such
+    # as a device or memory error and no earlier failure; one complete host-check
+    # message whose sizes conflict; raised through core PyTorch from the submission.
+    if type(error) is not RuntimeError or error.__cause__ is not None or (
+            error.__context__ is not None):
+        return None
+    message = str(error)
+    for diagnostic, (pattern, conflict) in HOST_SHAPE_DIAGNOSTICS.items():
+        match = pattern.fullmatch(message)
+        if match:
+            return diagnostic if conflict(match) and raised_by_submitted_source(
+                error, function) else None
+    return None
 
 
 def invoke_compute(function, inputs, params, config, *, candidate, baseline_verified):
@@ -102,13 +153,13 @@ def invoke_compute(function, inputs, params, config, *, candidate, baseline_veri
             "Failed to import Python module ModuleNotFoundError: No module named 'tbe'.",
         )):
             raise CandidateDependencyError("tbe") from error
-        # A recognized host-side shape/contract diagnostic, raised by the submitted
-        # call after this case's baseline passed, is still only a recheck request.
-        if candidate and baseline_verified and not any(
-                marker in message for marker in DEVICE_DIAGNOSTIC_MARKERS):
-            for diagnostic in CANDIDATE_CONTRACT_DIAGNOSTICS:
-                if diagnostic in message:
-                    raise CandidateComputeContractError(diagnostic) from error
+        # A proven host-side shape check, raised by the submitted call after this
+        # case's baseline passed, is still only a recheck request. Unproven source,
+        # including any device or backend wording, stays an infrastructure failure.
+        if candidate and baseline_verified:
+            diagnostic = host_shape_diagnostic(error, function)
+            if diagnostic:
+                raise CandidateComputeContractError(diagnostic) from error
         raise
 
 

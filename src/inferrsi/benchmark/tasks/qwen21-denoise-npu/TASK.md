@@ -127,12 +127,15 @@ The recheck includes synchronization and reference quality; it produces no score
 The missing module and traceback remain in the result and log. A failed baseline
 recheck remains an infrastructure failure.
 
-A recognized host-side PyTorch shape/contract diagnostic raised by the submitted
-compute call follows the same rule. It is rejected and consumes the attempt only
-after the same case's baseline has passed and passes again on pristine inputs in
-the same worker; the diagnostic, original error and traceback stay retained. A
-shape message carrying a device, runtime or synchronization marker, a failed
-recheck, and any unrecognized runtime error remain infrastructure failures.
+A proven host-side PyTorch shape check raised by the submitted compute call
+follows the same rule. Proof requires a plain, unchained `RuntimeError` whose
+complete message is one recognized PyTorch shape-check message with conflicting
+sizes, raised through core PyTorch from the submitted file. It is rejected and
+consumes the attempt only after the same case's baseline has passed and passes
+again on pristine inputs in the same worker; the diagnostic, original error and
+traceback stay retained. A shape message with any other wording, such as a device
+or backend report, a failed recheck and any unproven runtime error remain
+infrastructure failures.
 
 A normally finished rejection preserves the earlier best implementation. Repair
 the candidate or complete independent final when the frozen budget permits.

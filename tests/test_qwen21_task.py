@@ -360,10 +360,41 @@ DEVICE_SHAPE_ERROR = (
     "EZ9999: Inner Error! The size of tensor a (4) must match the size of tensor b (5) "
     "at non-singleton dimension 0 [ERROR] NPU function error"
 )
+# Device/backend reports that carry a complete shape message inside other wording,
+# without a known device marker. Their source is unproven: never attributed.
+DEVICE_LOST_SHAPE_ERROR = "device lost: " + SHAPE_ERRORS["must match the size of tensor"]
+BACKEND_SHAPE_ERROR = "backend device unavailable: " + SHAPE_ERRORS["shapes cannot be multiplied"]
 
 
 @pytest.mark.parametrize("exception,message,candidate,verified,diagnostic", [
     *[(RuntimeError, message, True, True, fragment) for fragment, message in SHAPE_ERRORS.items()],
+    # Older PyTorch omits the operator prefix; inferred and empty view shapes.
+    (RuntimeError, "mat1 and mat2 shapes cannot be multiplied (4x8 and 16x16)", True, True,
+     "shapes cannot be multiplied"),
+    (RuntimeError, "shape '[-1, 5]' is invalid for input of size 16", True, True,
+     "is invalid for input of size"),
+    (RuntimeError, "shape '[0, -1]' is invalid for input of size 16", True, True,
+     "is invalid for input of size"),
+    (RuntimeError, "shape '[]' is invalid for input of size 2", True, True,
+     "is invalid for input of size"),
+    # A shape message inside other wording has no host-check provenance.
+    (RuntimeError, DEVICE_LOST_SHAPE_ERROR, True, True, None),
+    (RuntimeError, BACKEND_SHAPE_ERROR, True, True, None),
+    (RuntimeError, SHAPE_ERRORS["is invalid for input of size"] + " (device lost)", True, True,
+     None),
+    (RuntimeError, SHAPE_ERRORS["Sizes of tensors must match"] + "\nbackend unavailable", True,
+     True, None),
+    (RuntimeError, "aten: " + SHAPE_ERRORS["shapes cannot be multiplied"], True, True, None),
+    # Complete messages whose reported sizes do not actually conflict.
+    (RuntimeError, "mm: mat1 and mat2 shapes cannot be multiplied (4x8 and 8x16)", True, True,
+     None),
+    (RuntimeError, "The size of tensor a (1) must match the size of tensor b (5) "
+     "at non-singleton dimension 0", True, True, None),
+    (RuntimeError, "shape '[3, 5]' is invalid for input of size 15", True, True, None),
+    (RuntimeError, "shape '[-1, 5]' is invalid for input of size 15", True, True, None),
+    (RuntimeError, "shape '[-1, -1]' is invalid for input of size 16", True, True, None),
+    (RuntimeError, "Sizes of tensors must match except in dimension 1. Expected size 4 "
+     "but got size 4 for tensor number 1 in the list.", True, True, None),
     (RuntimeError, SHAPE_ERRORS["shapes cannot be multiplied"], False, True, None),
     (RuntimeError, SHAPE_ERRORS["shapes cannot be multiplied"], True, False, None),
     (RuntimeError, DEVICE_SHAPE_ERROR, True, True, None),
@@ -400,7 +431,7 @@ def test_candidate_contract_diagnostic_requires_recognized_message_and_verified_
         assert caught.value is original
 
 
-def test_contract_fragments_match_installed_torch_shape_diagnostics():
+def test_host_shape_templates_match_installed_torch_shape_diagnostics():
     torch = pytest.importorskip("torch")
     worker = load("benchmark")
     failures = {
@@ -409,13 +440,68 @@ def test_contract_fragments_match_installed_torch_shape_diagnostics():
         "is invalid for input of size": lambda: torch.ones(16).view(3, 5),
         "Sizes of tensors must match": lambda: torch.cat([torch.ones(4, 2), torch.ones(5, 3)], 1),
     }
-    assert set(failures) == set(worker.CANDIDATE_CONTRACT_DIAGNOSTICS)
+    assert set(failures) == set(worker.HOST_SHAPE_DIAGNOSTICS)
     for fragment, failure in failures.items():
         with pytest.raises(worker.CandidateComputeContractError) as caught:
             worker.invoke_compute(lambda *args, **kwargs: failure(), (), {}, {},
                                   candidate=True, baseline_verified=True)
         assert caught.value.diagnostic == fragment
         assert type(caught.value.__cause__) is RuntimeError
+
+    # Core PyTorch Python frames below the submitted call and a decorated entry
+    # keep the submitted file as the nearest non-torch caller.
+    @torch.inference_mode()
+    def decorated(*args, **kwargs):
+        return torch.broadcast_tensors(torch.ones(4), torch.ones(5))
+
+    with pytest.raises(worker.CandidateComputeContractError) as caught:
+        worker.invoke_compute(decorated, (), {}, {}, candidate=True, baseline_verified=True)
+    assert caught.value.diagnostic == "must match the size of tensor"
+    frames = []
+    trace = caught.value.__cause__.__traceback__
+    while trace is not None:
+        frames.append(trace.tb_frame.f_code.co_filename)
+        trace = trace.tb_next
+    assert frames[-1].endswith("functional.py")
+
+
+def test_contract_attribution_requires_plain_error_raised_by_submitted_source(tmp_path):
+    """The complete message alone is not enough; the error itself must be attributable."""
+    worker = load("benchmark")
+    message = SHAPE_ERRORS["must match the size of tensor"]
+
+    class BackendError(RuntimeError):
+        pass
+
+    def subclass(*args, **kwargs):
+        raise BackendError(message)
+
+    def chained(*args, **kwargs):
+        raise RuntimeError(message) from OSError("device lost")
+
+    def during_other_failure(*args, **kwargs):
+        try:
+            raise OSError("backend device unavailable")
+        except OSError:
+            raise RuntimeError(message)
+
+    # A runtime wrapper outside the submission and outside core PyTorch raises it.
+    runtime = {}
+    exec(compile(f"def launch():\n    raise RuntimeError({message!r})\n",
+                 str(tmp_path / "torch_npu" / "runtime.py"), "exec"), runtime)
+
+    def foreign(*args, **kwargs):
+        runtime["launch"]()
+
+    def direct(*args, **kwargs):
+        raise RuntimeError(message)
+
+    for compute in (subclass, chained, during_other_failure, foreign):
+        with pytest.raises(RuntimeError) as caught:
+            worker.invoke_compute(compute, (), {}, {}, candidate=True, baseline_verified=True)
+        assert not isinstance(caught.value, worker.CandidateRecheckedError), compute.__name__
+    with pytest.raises(worker.CandidateComputeContractError):
+        worker.invoke_compute(direct, (), {}, {}, candidate=True, baseline_verified=True)
 
 
 CANDIDATE_HEADER = (
@@ -496,6 +582,14 @@ BLOCKING_COMPUTE_FAILURES = {
         + CANDIDATE_SHAPE_BUGS["shapes cannot be multiplied"]),
     "device_synchronize_failure": f"    raise RuntimeError({DEVICE_SYNC_ERROR!r})\n",
     "device_reported_shape_error": f"    raise RuntimeError({DEVICE_SHAPE_ERROR!r})\n",
+    "device_lost_shape_error": f"    raise RuntimeError({DEVICE_LOST_SHAPE_ERROR!r})\n",
+    "backend_unavailable_shape_error": f"    raise RuntimeError({BACKEND_SHAPE_ERROR!r})\n",
+}
+BLOCKING_LOG_TEXT = {
+    "device_synchronize_failure": "EZ9999",
+    "device_reported_shape_error": "EZ9999",
+    "device_lost_shape_error": "device lost",
+    "backend_unavailable_shape_error": "backend device unavailable",
 }
 
 
@@ -515,10 +609,13 @@ def test_device_sync_or_recheck_failure_in_candidate_compute_stays_inconclusive(
         assert "Synthetic unhealthy baseline" in (output / "error.log").read_text()
         assert [call["phase"] for call in result["calls"]] == ["correctness"]
     else:
+        # The baseline was healthy, so a wrongly attributed error would have passed
+        # the recheck and consumed the round; unproven source never starts the recheck.
         assert result["phase"] == "candidate_correctness"
         assert "contract_failure" not in result
-        assert "EZ9999" in (output / "error.log").read_text()
-        assert [call["phase"] for call in result["calls"]] == ["correctness"]
+        assert BLOCKING_LOG_TEXT[failure] in (output / "error.log").read_text()
+        assert [(call["label"], call["phase"], call["correctness"])
+                for call in result["calls"]] == [("baseline", "correctness", "PASS")]
     assessment = load("optimization").assess(
         tmp_path, {}, {"status": "failed", "returncode": execution.returncode})
     assert assessment["status"] == "infrastructure_failure"
@@ -543,7 +640,10 @@ def test_contract_rejection_requires_retained_baseline_recheck(contract_failure,
     assert assessment["reason"] == "missing_baseline_recheck"
 
 
-@pytest.mark.parametrize("failure", ["candidate_contract", "device_synchronize"])
+@pytest.mark.parametrize("failure", [
+    "candidate_contract", "device_synchronize_failure", "device_lost_shape_error",
+    "backend_unavailable_shape_error",
+])
 def test_harness_continues_only_after_attributed_contract_rejection(tmp_path, failure):
     """Round 1 is the real CPU worker and Qwen assessor; later rows are synthetic stand-ins."""
     pytest.importorskip("torch")
@@ -567,8 +667,7 @@ def test_harness_continues_only_after_attributed_contract_rejection(tmp_path, fa
     optimization.record_diagnosis(root, "Synthetic attribution control",
                                   diagnosis_evidence(root))
     worker_body = (CANDIDATE_SHAPE_BUGS["shapes cannot be multiplied"]
-                   if failure == "candidate_contract"
-                   else BLOCKING_COMPUTE_FAILURES["device_synchronize_failure"])
+                   if failure == "candidate_contract" else BLOCKING_COMPUTE_FAILURES[failure])
 
     def execute(root, directory, plan, deadline):
         (directory / "execution").mkdir()
@@ -602,7 +701,8 @@ def test_harness_continues_only_after_attributed_contract_rejection(tmp_path, fa
     first = state["rounds"][0]
     assert len(state["rounds"]) == 1 and state["best"]["kind"] == "baseline"
     assert first["assessment"]["score"] is None
-    if failure == "device_synchronize":
+    if failure != "candidate_contract":
+        # Never charged as a candidate FAIL: the session blocks before any next round or final.
         assert first["assessment"]["status"] == "infrastructure_failure"
         assert first["assessment"]["verdict"] == "INCONCLUSIVE"
         assert state["state"] == "blocked"
