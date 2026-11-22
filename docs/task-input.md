@@ -5,10 +5,10 @@ file from the CLI or hand it to an Agent. Both entry points read it through one
 shared contract, `inferrsi.apps.cli.task_input`, so the same file gives the same
 normalized task fields either way.
 
-`inferrsi task validate` and `inferrsi task preview` are available now. They are
-read-only. Using a complete task file directly with `inferrsi plan --task` and
-`inferrsi run --task` is not implemented yet. Until it is, pass the previewed values
-to `plan` and `run` as their existing flags (see the [field table](#fields)).
+`inferrsi task validate` and `inferrsi task preview` check a draft or complete file
+without side effects. `inferrsi plan --task` and `inferrsi run --task` use a complete
+file with the existing plan and run operations (see
+[use with plan and run](#use-with-plan-and-run)).
 
 | Resource | Location | Print from an installed CLI |
 | --- | --- | --- |
@@ -88,8 +88,8 @@ not invent them.
 
 ## Merge order
 
-`task preview` accepts the mapped flags from the table as overrides. The effective
-value of each field is:
+`task preview`, `plan --task` and `run --task` accept the mapped flags from the table
+as overrides. The effective value of each field is:
 
 1. an explicit CLI flag, then
 2. the YAML value, then
@@ -142,6 +142,54 @@ is present. It does not authorize execution. Running an experiment still require
 explicit `run` under the existing acceptance, frozen-gate and evidence rules
 (see [operations](operations.md#validatepreview-a-task-file--task-validate-task-preview)).
 
+## Use with plan and run
+
+`plan` and `run` take a complete task file with `--task`:
+
+```bash
+inferrsi plan --task task.yaml                   # preview the RunSpec and the task
+inferrsi plan --task task.yaml --repetitions 7   # explicit override
+inferrsi run --task task.yaml                    # explicit execution
+```
+
+- **Merge order.** `--task` uses the [merge order](#merge-order) of `task preview`.
+  `plan` and `run` keep their parser defaults, such as `--backend cpu` and
+  `--repetitions 3`, for flag-only use. In task mode only the mapped flags you supply
+  are overrides, and a supplied flag wins even when its value equals the parser
+  default. An acceptance flag must equal the file's value. Flags with no task field,
+  such as `--agent`, `--output-dir` and `--dry-run`, keep their existing meaning.
+- **Field errors first.** `plan` and `run` need a valid, complete task. Errors and
+  blockers print to stderr, one line per field, for example
+  `error acceptance.metric_key (cli): ...` or
+  `blocker environment.repetitions: missing; required for plan/run`. The command
+  then exits with 2 before any environment probe, task command or file write.
+- **Defaults for omitted optional fields.** An omitted `environment.python` uses the
+  interpreter running InferRSI. An omitted `optimization.candidate_repository` uses
+  the baseline checkout. An omitted `environment.quality_command` leaves the run
+  without quality evidence, which gives the existing `INCONCLUSIVE` outcome.
+- **`plan` and `run --dry-run`.** They inspect the environment and print the RunSpec
+  built from the task, as in flag-only use. Their output adds a `task` block, the
+  same object that `task preview --json` prints for the same file and flags. Without
+  `--task` the output is unchanged.
+- **`run`.** Execution checks that the task agrees with its accepted inputs.
+  Each check fails with exit 2 before any benchmark command starts or any run
+  directory is written.
+  - A local `acceptance.reference` must be an existing file. InferRSI checks this
+    before the environment probe. An HTTP(S) issue URL is recorded as written.
+  - After inspection, the baseline checkout's `HEAD` must equal
+    `acceptance.baseline_revision`. A hexadecimal prefix of at least 7 characters is
+    also accepted.
+
+  The run directory then holds `task.json`, the task preview, next to `args.json`.
+  `args.json` records the effective values and the absolute `task_file`.
+
+RunSpec carries the experiment fields. `optimization.objective`,
+`optimization.plane`, `environment.rounds`, `acceptance.reference`,
+`acceptance.baseline_revision` and `acceptance.constraints` have no RunSpec field.
+They are recorded in the `task` block and in `task.json`. Without `--task`,
+`--baseline-command` and `--candidate-command` remain required, with the same
+argparse error and exit 2.
+
 ## CLI workflow
 
 ```bash
@@ -191,11 +239,15 @@ An Agent uses the same installed CLI and the same machine-readable preview:
 4. Review the effective values, their sources and the remaining blockers with the
    user. Ask for the blocking fields instead of guessing them.
 5. Use the reviewed task with the existing InferRSI operation the user authorizes,
-   under the operation's own boundary in [operations](operations.md).
+   under the operation's own boundary in [operations](operations.md). For example,
+   run `inferrsi plan --task <task.yaml>`, then `inferrsi run --task <task.yaml>`
+   only after explicit authorization.
 
 The CLI and the Agent produce the same normalized task for the same file and flags.
 `tests/test_task_input.py` checks this by comparing `inferrsi task preview --json`
 with the Python `task_input.preview` on the shared complete fixture.
+`tests/test_task_plan_run.py` checks that `plan --task` gives the same `task` block,
+and the expected RunSpec, for that fixture.
 
 ## Compatibility with other task formats
 

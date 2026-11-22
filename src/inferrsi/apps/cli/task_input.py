@@ -6,6 +6,10 @@ directory, merges explicit CLI values over YAML values and built-in defaults, an
 the fields a full plan or run still needs. It reads one file and writes nothing: no
 subprocess, probe, install or workspace file. PyYAML is a core dependency and is imported
 only when a task file is parsed, so importing the CLI never loads it.
+
+``plan --task`` and ``run --task`` call ``preview`` with ``supplied_overrides`` before any
+probe, then copy a complete task onto their arguments with ``arguments_from``. Both
+helpers are pure.
 """
 
 from __future__ import annotations
@@ -550,6 +554,43 @@ def overrides_from(namespace: object) -> dict[str, Any]:
     values = vars(namespace)
     return {field.dest: values[field.dest] for field in FIELDS
             if field.dest is not None and field.dest in values}
+
+
+def supplied_overrides(namespace: object, supplied: object) -> dict[str, Any]:
+    """Return the mapped flags whose dest is in ``supplied``, the dests the caller gave.
+
+    ``plan``/``run`` keep parser defaults on their namespace, so a dest missing from
+    ``supplied`` holds a default and never becomes an override.
+    """
+    values = vars(namespace)
+    names = set(supplied)
+    return {field.dest: values[field.dest] for field in FIELDS
+            if field.dest is not None and field.dest in names and field.dest in values}
+
+
+def arguments_from(task: dict) -> dict[str, Any]:
+    """Return {argparse dest: value} for every mapped field of a complete preview task.
+
+    Device IDs are joined with ``,`` (a task ID cannot contain one); commands and trial
+    checks are copied as lists. A missing optional value stays None, including
+    ``environment.python``, which the caller replaces with its own interpreter.
+    """
+    values: dict[str, Any] = {}
+    for field in FIELDS:
+        if field.dest is None:
+            continue
+        value = task[field.section][field.name]
+        if field.kind == "ids":
+            value = ",".join(value or ())
+        elif isinstance(value, list):
+            value = list(value)
+        values[field.dest] = value
+    return values
+
+
+def is_url(reference: str) -> bool:
+    """Whether a valid ``acceptance.reference`` is an HTTP(S) URL, not a local plan path."""
+    return bool(_URL_SCHEME.match(reference))
 
 
 def _resource(name: str) -> str:

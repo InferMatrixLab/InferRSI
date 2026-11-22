@@ -408,15 +408,16 @@ delivery and generation handoff. The API still exports the one canonical
 
 Explicit flags override YAML values, YAML values override built-in defaults, and an
 omitted flag never replaces a YAML value. Acceptance fields come from the file. See
-[task input](task-input.md). Using a task file with `plan` and `run` is not implemented yet.
+[task input](task-input.md). `plan --task` and `run --task` use a complete file with
+the same merge (see [use with plan and run](task-input.md#use-with-plan-and-run)).
 
 ### Inspect/prepare — `doctor`, `plan`, `--dry-run`
 
-- **Inputs:** repository/backend/device flags; `plan` takes the full experiment specification.
+- **Inputs:** repository/backend/device flags; `plan` takes the full experiment specification as flags, or a complete YAML task file with `--task <task.yaml>` plus explicit mapped overrides.
 - **Scope:** environment inspection and specification preview.
-- **Output:** environment facts, or a preview of the RunSpec.
+- **Output:** environment facts, or a preview of the RunSpec. With `--task`, the preview adds a `task` block equal to `task preview --json` for the same file and flags.
 - **Side effects:** `doctor` may invoke bounded read-only probes; `plan`/`--dry-run` persist nothing.
-- **Failure behavior:** unavailable devices or invalid flags are reported explicitly.
+- **Failure behavior:** unavailable devices or invalid flags are reported explicitly. With `--task`, task field errors, conflicting acceptance flags and blockers are printed by field to stderr, exit 2, before any probe. Without `--task`, `--baseline-command` and `--candidate-command` are required.
 - **Example:** `inferrsi doctor --repo . --repo-type vllm_omni --backend cpu`
 
 `plan` previews a specification. That preview alone does not persist a frozen
@@ -425,11 +426,11 @@ compatibility.
 
 ### Execute/inspect — `run`, `status`, `report`
 
-- **Inputs:** the full experiment specification (`run`); a run ID and output directory (`status`/`report`).
+- **Inputs:** the full experiment specification as flags or as a complete `--task <task.yaml>` (`run`); a run ID and output directory (`status`/`report`).
 - **Scope:** caller-supplied benchmark, candidate and validation commands under the experiment contract.
-- **Output:** a run ID and evidence directory; recorded progress; an HTML report.
+- **Output:** a run ID and evidence directory; recorded progress; an HTML report. With `--task`, the run directory also holds `task.json`, the task preview.
 - **Side effects:** `run` executes the supplied commands and owns child-process cleanup; `report` writes HTML into the run directory.
-- **Failure behavior:** exit codes 0 PASS, 1 FAIL, 2 INCONCLUSIVE/input errors; cancellation is recorded.
+- **Failure behavior:** exit codes 0 PASS, 1 FAIL, 2 INCONCLUSIVE/input errors; cancellation is recorded. With `--task`, task field errors and blockers exit 2 before any probe. A missing local `acceptance.reference` file also exits 2 before any probe. A baseline checkout `HEAD` that differs from `acceptance.baseline_revision` exits 2 after inspection. In all three cases no command starts and nothing is written.
 - **Example:** see [quickstart: real remote experiment](quickstart.md#real-remote-experiment)
 
 Operation success, recorded execution state and the experiment verdict are

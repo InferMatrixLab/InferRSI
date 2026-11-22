@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import json
+import os
+import re
 import sqlite3
 import sys
 from importlib.resources import files
@@ -16,7 +18,7 @@ from ..knowledge import knowledge_reader
 from ..knowledge import read as read_knowledge
 from ..legacy.reporting import write_report
 from ..workflows.campaign import capture_context, create_campaign
-from .arguments import device_ids, make_spec, parser
+from .arguments import SUPPLIED, command_parser, device_ids, make_spec, parser
 
 
 def _print(value: object) -> None:
@@ -339,9 +341,79 @@ def _task_command(args) -> int:
     return 0 if result["valid"] else 1
 
 
+_REQUIRED_COMMANDS = (("--baseline-command", "baseline_command"),
+                      ("--candidate-command", "candidate_command"))
+
+
+def _plan_run_task(command, args, supplied) -> dict | None:
+    """Apply ``--task`` to plan/run args before any probe; return its preview or None.
+
+    Without ``--task`` the two commands stay required, with argparse's own message. With
+    it, field errors and blockers exit 2 here, before inspection, commands or writes.
+    """
+    task_file = getattr(args, "task_file", None)
+    if task_file is None:
+        missing = [flag for flag, dest in _REQUIRED_COMMANDS if getattr(args, dest) is None]
+        if missing:
+            command.error("the following arguments are required: " + ", ".join(missing))
+        return None
+    from . import task_input
+
+    result = task_input.preview(
+        task_file, task_input.supplied_overrides(args, supplied), cwd=os.getcwd()
+    )
+    if result["errors"] or result["blockers"]:
+        lines = [f"task file {result['task_file']} is not ready for {args.command}:"]
+        lines += [f"error {item['field']} ({item['source']}): {item['message']}"
+                  for item in result["errors"]]
+        lines += [f"blocker {item['field']}: {item['message']}" for item in result["blockers"]]
+        command.error("\n".join(lines))
+    for dest, value in task_input.arguments_from(result["task"]).items():
+        setattr(args, dest, value)
+    if args.python is None:
+        args.python = sys.executable
+    args.task_file = result["task_file"]
+    return result
+
+
+def _revision_matches(head: str, revision: str) -> bool:
+    if head == revision:
+        return True
+    return bool(head) and re.fullmatch(r"[0-9a-fA-F]{7,}", revision) is not None and (
+        head.lower().startswith(revision.lower())
+    )
+
+
+def _check_task_reference(task: dict) -> None:
+    """Require a run's local acceptance plan to exist; an HTTP(S) URL is kept verbatim."""
+    from .task_input import is_url
+
+    reference = task["task"]["acceptance"]["reference"]
+    if not is_url(reference) and not os.path.isfile(reference):
+        raise ValueError(
+            "acceptance.reference must be an existing local plan file or an HTTP(S) "
+            f"issue URL: {reference}"
+        )
+
+
+def _check_baseline_revision(task: dict, environment: dict) -> None:
+    """Require the inspected baseline checkout to be the accepted baseline revision."""
+    revision = task["task"]["acceptance"]["baseline_revision"]
+    head = environment["repository"].get("head", "")
+    if not _revision_matches(head, revision):
+        raise ValueError(
+            f"acceptance.baseline_revision {revision!r} does not match the baseline "
+            f"checkout HEAD {head}; check out the accepted baseline or fix the task file"
+        )
+
+
 def main(argv: list[str] | None = None) -> int:
     argument_parser = parser()
     args = argument_parser.parse_args(argv)
+    task = None
+    if args.command in ("plan", "run"):
+        supplied = vars(args).pop(SUPPLIED, ())
+        task = _plan_run_task(command_parser(argument_parser, args.command), args, supplied)
     try:
         if args.command == "task":
             return _task_command(args)
@@ -771,6 +843,8 @@ def main(argv: list[str] | None = None) -> int:
             _print({"record": str(path)})
             return 0
 
+        if task is not None and args.command == "run" and not args.dry_run:
+            _check_task_reference(task)
         environment = inspect_environment(
             args.repo,
             args.repo_type,
@@ -791,14 +865,15 @@ def main(argv: list[str] | None = None) -> int:
 
         spec = make_spec(args)
         if args.command == "plan" or args.dry_run:
-            _print(
-                {
-                    "run_spec": spec.to_dict(),
-                    "environment": environment,
-                    "execution": "not started",
-                    "validation": "unverified",
-                }
-            )
+            preview = {
+                "run_spec": spec.to_dict(),
+                "environment": environment,
+                "execution": "not started",
+                "validation": "unverified",
+            }
+            if task is not None:
+                preview["task"] = task
+            _print(preview)
             return 0
         if not environment["repository"].get("available"):
             raise ValueError("The baseline must be a readable Git checkout for source provenance")
@@ -808,6 +883,8 @@ def main(argv: list[str] | None = None) -> int:
             raise ValueError("Requested device selection is not verified by platform discovery")
         if not environment["target_python"].get("environment"):
             raise ValueError("Target Python inspection failed")
+        if task is not None:
+            _check_baseline_revision(task, environment)
 
         # The old run loads its Benchmark gates. Import it here so that the
         # other commands, including ordinary optimization, never load Benchmark.
@@ -817,6 +894,10 @@ def main(argv: list[str] | None = None) -> int:
         (directory / "args.json").write_text(
             json.dumps(vars(args), ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
         )
+        if task is not None:
+            (directory / "task.json").write_text(
+                json.dumps(task, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+            )
         write_report(directory)
         status = json.loads((directory / "status.json").read_text(encoding="utf-8"))
         _print(

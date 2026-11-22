@@ -3,6 +3,12 @@
 ``task validate`` and ``task preview`` read a schema v1 task file (``task_input``).
 Preview accepts the mapped plan/run flags as explicit overrides; only flags the caller
 supplies reach its namespace, so a parser default never replaces a YAML value.
+
+``plan`` and ``run`` keep their flag defaults and also accept ``--task``. Their value
+options record each dest the caller supplied in the namespace tuple ``_supplied``, so
+task mode passes only those flags as overrides. ``--baseline-command`` and
+``--candidate-command`` are required without ``--task``; ``main`` enforces that, because
+a complete task file may supply them instead.
 """
 
 from __future__ import annotations
@@ -50,6 +56,35 @@ def _fixed_attempt_args(
     )
     parser.add_argument("--storage-config", type=Path, help="Trusted storage config JSON")
     parser.add_argument("--assessment-ref", type=Path, help="Optional AssessmentRef JSON")
+
+
+SUPPLIED = "_supplied"
+
+
+class _Supplied:
+    """Store as usual and record the dest, telling an explicit flag from its default."""
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        super().__call__(parser, namespace, values, option_string)
+        supplied = getattr(namespace, SUPPLIED, ())
+        if self.dest not in supplied:
+            setattr(namespace, SUPPLIED, (*supplied, self.dest))
+
+
+class _SuppliedStore(_Supplied, argparse._StoreAction):
+    pass
+
+
+class _SuppliedAppend(_Supplied, argparse._AppendAction):
+    pass
+
+
+def command_parser(root: argparse.ArgumentParser, name: str) -> argparse.ArgumentParser:
+    """Return a subcommand's parser, so its errors keep that command's usage line."""
+    for action in root._actions:
+        if isinstance(action, argparse._SubParsersAction):
+            return action.choices[name]
+    raise KeyError(name)
 
 
 def _common(parser: argparse.ArgumentParser) -> None:
@@ -342,7 +377,15 @@ def parser(*, parser_class=argparse.ArgumentParser) -> argparse.ArgumentParser:
             if name == "plan"
             else "Measure baseline and candidate commands",
         )
+        for action in (None, "store"):
+            child.register("action", action, _SuppliedStore)
+        child.register("action", "append", _SuppliedAppend)
         _common(child)
+        child.add_argument(
+            "--task", dest="task_file", default=argparse.SUPPRESS, metavar="TASK_YAML",
+            help="Complete schema v1 task file; supplied mapped flags override it, "
+            "acceptance flags must match it (docs/task-input.md)",
+        )
         child.add_argument(
             "--candidate-repo", help="Candidate checkout; defaults to the baseline checkout"
         )
@@ -364,10 +407,10 @@ def parser(*, parser_class=argparse.ArgumentParser) -> argparse.ArgumentParser:
         )
         child.add_argument(
             "--baseline-command",
-            required=True,
-            help="Quoted argv command; {result} is replaced with a fresh output path",
+            help="Quoted argv command; {result} is replaced with a fresh output path; "
+            "required without --task",
         )
-        child.add_argument("--candidate-command", required=True)
+        child.add_argument("--candidate-command", help="Required without --task")
         child.add_argument(
             "--validation-command",
             help="Explicit quality/correctness command; missing evidence is INCONCLUSIVE",
@@ -734,10 +777,14 @@ def device_ids(args: argparse.Namespace) -> tuple[str, ...]:
 
 
 def make_spec(args: argparse.Namespace) -> RunSpec:
-    def command(value: str | None) -> tuple[str, ...] | None:
+    def command(value: str | list[str] | tuple[str, ...] | None) -> tuple[str, ...] | None:
         if value is None:
             return None
-        parsed = tuple(shlex.split(value, posix=True))
+        # A task file supplies an already-normalized argv list; a flag gives quoted text.
+        if isinstance(value, (list, tuple)):
+            parsed = tuple(value)
+        else:
+            parsed = tuple(shlex.split(value, posix=True))
         if not parsed:
             raise ValueError("Commands cannot be empty")
         return parsed
