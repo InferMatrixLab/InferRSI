@@ -4,6 +4,7 @@ import json
 import sqlite3
 import subprocess
 import sys
+from contextlib import nullcontext
 from copy import deepcopy
 from hashlib import sha256
 from html.parser import HTMLParser
@@ -56,7 +57,8 @@ class TableRows(HTMLParser):
 
 @pytest.fixture(params=["correct", "wrong", "invalid-utf8", "missing"])
 def production_attempt(tmp_path, request):
-    kind = request.param
+    retain_history = request.param == "correct-with-history"
+    kind = "correct" if retain_history else request.param
     directory = tmp_path / "archive"
     directory.mkdir()
     config = {
@@ -117,10 +119,23 @@ def production_attempt(tmp_path, request):
     # Persist the complete request before handing it to Apps, as a host must.
     request_file = tmp_path / "execute-request.json"
     request_file.write_bytes(encode(execute_request))
-    executed = api.execute(
-        decode(request_file.read_bytes()), workspace=tmp_path, storage_config=config,
-        execute_harness=harness.execute, output_id="execute",
-    )
+    commit = Claim.commit
+
+    def retain_preterminal_snapshot(claim, payload, artifacts=()):
+        # Controlled record-history injection: worker, capture and grading stay real.
+        # Append the captured finalizing facts before the normal terminal commit.
+        assert payload["phase"] == "finished"
+        artifacts = tuple(artifacts)
+        commit(claim, {**payload, "phase": "finalizing"}, artifacts)
+        return commit(claim, {**payload, "record_version": claim.next_record_version}, artifacts)
+
+    history = (patch.object(Claim, "commit", retain_preterminal_snapshot)
+               if retain_history else nullcontext())
+    with history:
+        executed = api.execute(
+            decode(request_file.read_bytes()), workspace=tmp_path, storage_config=config,
+            execute_harness=harness.execute, output_id="execute",
+        )
     assert executed.result["exit_code"] == (3 if kind == "missing" else 0)
     record_ref = executed.result["record_ref"]
     assessed = api.assess(
@@ -423,3 +438,101 @@ def test_unknown_production_claim_refuses_before_assessor_or_assessment_archive(
     assert output.result["assessment"] is output.result["assessment_ref"] is None
     after = store.committed(record_ref["attempt_id"])
     assert after.record_ref == before.record_ref and after.payload_bytes == before.payload_bytes
+
+
+@pytest.mark.parametrize("production_attempt", ["correct"], indirect=True)
+def test_wrong_production_attempt_refuses_before_offline_assessment(
+    production_attempt, tmp_path,
+):
+    config, store, _, executed, _, _ = production_attempt
+    record_ref = executed.result["record_ref"]
+    before = store.committed(record_ref["attempt_id"])
+    wrong = {**record_ref, "attempt_id": "foreign-attempt"}
+
+    def forbidden(*args, **kwargs):
+        raise AssertionError("wrong attempt reached grading, execution or assessment archive")
+
+    with (
+        patch.object(api, "archive_assessment", forbidden),
+        patch.object(subprocess, "Popen", forbidden),
+        patch.object(RunStore, "claim", forbidden), patch.object(Claim, "commit", forbidden),
+    ):
+        output = api.assess(
+            {"schema_version": 1, "record_ref": wrong, "primary_scope": "p1",
+             "primary_claim_id": "C"}, workspace=tmp_path, storage_config=config,
+            assess_benchmark=forbidden, encode_assessment=forbidden,
+            validate_assessment=forbidden, output_id="wrong-attempt",
+        )
+    assert output.result["exit_code"] == 2
+    assert output.result["error"]["code"] == "IdentityMismatch"
+    assert output.result["assessment"] is output.result["assessment_ref"] is None
+    after = store.committed(record_ref["attempt_id"])
+    assert after.record_ref == before.record_ref and after.payload_bytes == before.payload_bytes
+
+
+@pytest.mark.parametrize("production_attempt", ["correct-with-history"], indirect=True)
+def test_new_process_reassesses_fixed_production_revision_after_current_advances(
+    production_attempt, tmp_path,
+):
+    config, store, _, executed, _, _ = production_attempt
+    latest = store.committed(executed.result["attempt_id"])
+    older = store.committed(executed.result["attempt_id"], 1)
+    assert latest.record_ref == executed.result["record_ref"]
+    assert latest.record_ref["record_version"] == 2
+    assert older.payload["phase"] == "finalizing" and latest.payload["phase"] == "finished"
+    assert {key: value for key, value in older.payload.items()
+            if key not in ("phase", "record_version")} == {
+                key: value for key, value in latest.payload.items()
+                if key not in ("phase", "record_version")
+            }
+    (tmp_path / "fixed-history.json").write_bytes(encode({
+        "config": config, "old": older.record_ref, "latest": latest.record_ref,
+    }))
+    child = """
+import json, subprocess, sys
+from pathlib import Path
+from unittest.mock import patch
+sys.path.insert(0, sys.argv[1])
+from inferrsi.apps import api
+from inferrsi.apps.storage import archive
+from inferrsi.benchmark import assessment
+from inferrsi.harness.api import Harness
+from inferrsi.harness.run_store import Claim, RunStore, RunStoreReader
+root = Path(sys.argv[2])
+data = json.loads((root / 'fixed-history.json').read_text(encoding='utf-8'))
+def forbidden(*args, **kwargs):
+    raise AssertionError('offline fixed revision attempted execution or a Harness write')
+with patch.object(subprocess, 'Popen', forbidden), patch.object(Harness, 'execute', forbidden), \
+     patch.object(Harness, 'allocate', forbidden), patch.object(RunStore, 'claim', forbidden), \
+     patch.object(Claim, 'commit', forbidden):
+    output = api.assess(
+        {'schema_version': 1, 'record_ref': data['old'], 'primary_scope': 'p1',
+         'primary_claim_id': 'C'}, workspace=root, storage_config=data['config'],
+        assess_benchmark=assessment.assess, encode_assessment=assessment.encode,
+        validate_assessment=assessment.validate_assessment, output_id='old-revision')
+    assert output.result['assessment_ref'] is not None
+    assert output.result['record_ref'] == data['old']
+    assert output.result['assessment']['record_ref'] == data['old']
+    view = api.read_attempt_view(data['old'], storage_config=data['config'],
+                                assessment_ref=output.result['assessment_ref'], include_trace=True)
+    assert view['execution']['record_version'] == 1
+    assert view['execution']['phase'] == 'finalizing'
+    assert view['record_ref'] == data['old']
+    assert view['assessment_ref'] == output.result['assessment_ref']
+    for projected, claim in zip(view['assessment']['claims'],
+                                output.result['assessment']['claims'], strict=True):
+        assert projected == {key: claim[key] for key in projected}
+    assert archive.read_result(root, 'old-revision').result == output.result
+    store = RunStoreReader(root / 'store', 'test')
+    assert store.read(data['latest']['attempt_id'])['record_ref'] == data['latest']
+print(json.dumps(output.result))
+"""
+    result = subprocess.run(
+        [sys.executable, "-I", "-B", "-c", child, str(ROOT / "src"), str(tmp_path)],
+        cwd=tmp_path, capture_output=True, text=True, encoding="utf-8", timeout=30,
+    )
+    assert result.returncode == 0, result.stderr
+    output = json.loads(result.stdout)
+    assert output["assessment"]["record_ref"] == older.record_ref
+    assert store.committed(latest.record_ref["attempt_id"]).record_ref == latest.record_ref
+    assert store.committed(older.record_ref["attempt_id"], 1).payload_bytes == older.payload_bytes
