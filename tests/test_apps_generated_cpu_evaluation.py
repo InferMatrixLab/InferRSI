@@ -15,7 +15,9 @@ from tests.test_apps_generation_plan import generation as generation
 from tests.test_harness_generation_seal import cpu_generation as cpu_generation
 
 
-def test_generated_candidate_uses_a_separate_production_evaluation_attempt(cpu_generation, tmp_path):
+def test_generated_candidate_uses_a_separate_production_evaluation_attempt(
+    cpu_generation, tmp_path,
+):
     store, target, generation_harness, draft, inputs = cpu_generation
     generation_spec = prepare_generation(store, target, **inputs)
     generated = generation_harness.execute(generation_spec)
