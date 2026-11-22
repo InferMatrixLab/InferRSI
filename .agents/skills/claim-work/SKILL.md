@@ -12,7 +12,8 @@ rules and working rules 1, 7 and 8 in
 ## Check before claiming
 
 1. Confirm the governing Issue and its accepted scope before changing code. If
-   the Issue or the PR you would touch carries `bot:stop`, do not claim it.
+   the Issue or the PR you would touch carries `bot:stop` or has a human's
+   stop comment that has not been lifted there, do not claim it.
 2. Confirm the Issue has an accountable owner (recorded on the Issue, or else
    its assignee) and carries `status:accepted`:
 

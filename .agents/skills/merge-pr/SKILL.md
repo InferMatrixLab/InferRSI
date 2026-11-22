@@ -27,9 +27,11 @@ that pair only.
 2. **Authorized to integrate:** the governing Issue has an accountable owner
    (recorded on the Issue, or else its assignee) and carries `status:accepted`, and you are its deciding agent, were delegated
    integration on the Issue, or are a human maintainer.
-3. **No stop:** neither the PR nor its governing Issue carries `bot:stop`;
-   a stop on the Issue also covers its linked PRs. If you
-   cannot read the labels, do not merge.
+3. **No stop:** neither the PR nor its governing Issue carries `bot:stop`
+   or has a human's stop comment that has not been lifted there; a stop
+   comment holds even after the label exists, until a human lifts it or adds
+   `bot:stop` to that Issue or PR. A stop on the Issue also covers its linked
+   PRs. If you cannot read the labels and comments, do not merge.
 4. **Base and dependencies:** the PR's base is its intended target: `main`,
    or for a stacked PR its lower PR's branch until that PR merges, after which
    the base is changed back to `main` and the checks run again. Every PR it
@@ -54,7 +56,7 @@ that pair only.
    with at least one from a human maintainer.
 
 Right before merging, read the PR and the governing Issue again. Recheck the
-stop labels; `headRefOid`, `baseRefName` and `baseRefOid` against the pair you
+stop labels and stop comments; `headRefOid`, `baseRefName` and `baseRefOid` against the pair you
 noted; the Issue's `status:accepted` and your authorization; and the approvals
 on the current head. If anything changed or no longer holds, start over.
 
