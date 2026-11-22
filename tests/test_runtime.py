@@ -328,14 +328,18 @@ class RuntimeTests(unittest.TestCase):
         # inside a submodule must not share one snapshot hash.
         superproject = self.make_superproject()
         vendor = superproject / "sub" / "vendor.py"
+        original = vendor.read_bytes()  # Preserve Git's checkout line endings.
+        original_snapshot = repository_identity(superproject)["snapshot_hash"]
         vendor.write_bytes(b"first edit\n")
         first = repository_identity(superproject)["snapshot_hash"]
         vendor.write_bytes(b"second edit\n")
         second = repository_identity(superproject)["snapshot_hash"]
         self.assertNotEqual(first, second)
         self.assertTrue(repository_identity(superproject)["dirty"])
-        vendor.write_bytes(b"original\n")
-        self.assertFalse(repository_identity(superproject)["dirty"])
+        vendor.write_bytes(original)
+        restored = repository_identity(superproject)
+        self.assertFalse(restored["dirty"])
+        self.assertEqual(restored["snapshot_hash"], original_snapshot)
 
     def test_untracked_nested_repository_is_hashed_not_unavailable(self):
         # Git reports an untracked nested repository as one directory entry;
