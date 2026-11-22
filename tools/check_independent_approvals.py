@@ -1,4 +1,4 @@
-"""Evaluate current-head GitHub approvals using the trusted base checkout."""
+"""Evaluate current-head approvals; advisory until the status-source cutover is accepted."""
 
 import argparse
 import json
@@ -20,7 +20,7 @@ query($owner: String!, $repo: String!, $number: Int!, $endCursor: String) {
       headRefOid
       latestOpinionatedReviews(first: 100, after: $endCursor) {
         pageInfo { hasNextPage endCursor }
-        nodes { author { login } authorCanPushToRepository state commit { oid } body }
+        nodes { author { __typename login } authorCanPushToRepository state commit { oid } body }
       }
     }
   }
@@ -39,6 +39,8 @@ def review_candidates(reviews, head, contributors):
                 or not review["author"] or not review["commit"] or review["commit"]["oid"] != head):
             continue
         login = review["author"]["login"].casefold()
+        if review["author"].get("__typename") != "User" or login.endswith("[bot]"):
+            continue
         lines = review["body"].strip().splitlines()
         first_line = lines[0].strip() if lines else ""
         if login not in contributors and first_line == "LGTM":
@@ -63,6 +65,7 @@ def read_reviews(repository, number, head):
 
 
 def evaluate(api, pr):
+    # Fetch permissions and reviews every time: a prior status does not freeze eligibility.
     number = pr["number"]
     head = pr["head"]["sha"]
     reviews = read_reviews(pr["base"]["repo"]["full_name"], number, head)
@@ -101,6 +104,9 @@ def targets(prs, event_name, event):
 
 def publish(api, head, state, description):
     # Reconcile missed events without consuming one status per unchanged sweep.
+    # Matching github-actions[bot] is only deduplication, not authentication: another
+    # workflow can use that identity. This status must stay advisory until the cutover
+    # verifies an exclusive source and rejects an independently published forged success.
     statuses = api.get(f"commits/{head}/statuses?per_page=100")
     for status in statuses:
         if status["context"].casefold() == CONTEXT:

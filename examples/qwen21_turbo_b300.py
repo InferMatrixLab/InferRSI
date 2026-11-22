@@ -1,6 +1,6 @@
 """Frozen 720p-class Qwen-Image-2.1-Turbo online B300 campaign.
 
-Uses the stdlib InferRSI infrastructure package for source/device/process
+Uses the stdlib InferRSI host, serving and artifact modules for source/device/process
 ownership. New campaigns must freeze fresh helper hashes and references.
 """
 import argparse
@@ -16,10 +16,13 @@ import sys
 import time
 import urllib.request
 
-from inferrsi.harness.scenarios.media import collect_samples
-from inferrsi.model.protocols.image import ImageProtocol
-from inferrsi.infra import campaign as lifecycle
-from inferrsi.infra.platforms.cuda import qualify_devices
+import inferrsi
+from inferrsi.benchmark.sampling import collect_samples
+from inferrsi.harness.serving.image import ImageProtocol
+from inferrsi.harness.serving.server import launch_server, stop_server
+from inferrsi.apps.host import environment, targets
+from inferrsi.apps.host.platforms.cuda import qualify_devices
+from inferrsi.apps import artifacts
 
 MODEL = "Qwen/Qwen-Image-2.1-Turbo"
 REVISION = "d65dbc9a7e8f6b5479e33dee6030eaab2a906509"
@@ -44,6 +47,17 @@ PROTECTED_FILES = [
 PROTECTED_METHODS = {'__init__', 'prepare_timesteps', 'prepare_latents', '_pack_latents', '_unpack_latents'}
 
 
+def helper_hashes():
+    """Freeze transitive package implementation for new campaign references."""
+    # Moved from the retired inferrsi.infra.campaign; this example is its only caller. The
+    # root is the same installed package directory, so the hashed file set is unchanged.
+    root = Path(inferrsi.__file__).resolve().parent
+    return {
+        "inferrsi/" + str(path.relative_to(root)): artifacts.sha256(path)
+        for path in sorted(root.rglob("*.py"))
+    }
+
+
 def protocol(diagnostic=False, profile_steps=2, held_out=False):
     if not 1 <= profile_steps <= 8:
         raise ValueError('Profile steps must be 1..8')
@@ -62,18 +76,18 @@ def protocol(diagnostic=False, profile_steps=2, held_out=False):
 
 
 def protected_sources(source):
-    result = {p: lifecycle.sha256(source / p) for p in PROTECTED_FILES}
+    result = {p: artifacts.sha256(source / p) for p in PROTECTED_FILES}
     relative = 'vllm_omni/diffusion/models/qwen_image_21/pipeline_qwen_image_21.py'
     tree = ast.parse((source / relative).read_text())
     for node in tree.body:
         if isinstance(node, ast.FunctionDef) and node.name in {'get_qwen_image_21_pre_process_func', 'get_qwen_image_21_post_process_func'}:
-            result[relative + ':' + node.name] = lifecycle.digest(ast.dump(node, include_attributes=False))
+            result[relative + ':' + node.name] = artifacts.digest(ast.dump(node, include_attributes=False))
     for node in tree.body:
         if isinstance(node, ast.ClassDef) and node.name == 'QwenImage21Pipeline':
             found = set()
             for method in node.body:
                 if isinstance(method, (ast.FunctionDef, ast.AsyncFunctionDef)) and method.name in PROTECTED_METHODS:
-                    result[relative + ':' + method.name] = lifecycle.digest(ast.dump(method, include_attributes=False))
+                    result[relative + ':' + method.name] = artifacts.digest(ast.dump(method, include_attributes=False))
                     found.add(method.name)
             if found != PROTECTED_METHODS:
                 raise ValueError('Protected pipeline method missing')
@@ -84,7 +98,7 @@ def protected_sources(source):
 
 
 def dependencies():
-    versions = lifecycle.semantic_dependency_versions(lifecycle.dependency_versions())
+    versions = environment.semantic_dependency_versions(environment.dependency_versions())
     for name in ['Pillow', 'numpy', 'scikit-image', 'flash-attn-4', 'nvidia-cutlass-dsl', 'kernels']:
         versions[name] = importlib.metadata.version(name)
     return versions
@@ -102,14 +116,14 @@ def model_assets(model, cache):
         stat = (model/item['path']).stat()
         if (stat.st_size, stat.st_mtime_ns) != (item['bytes'], item['mtime_ns']):
             raise ValueError('Model asset changed after SHA256 freeze')
-        if lifecycle.sha256(model/item['path']) != item.get('sha256'):
+        if artifacts.sha256(model/item['path']) != item.get('sha256'):
             raise ValueError(f"Model asset SHA256 mismatch: {item['path']}")
-    return lifecycle.sha256(manifest)
+    return artifacts.sha256(manifest)
 
 
 def guards():
     paths = [Path(__file__), Path(__file__).with_name('qwen21_turbo_quality.py')]
-    return {**lifecycle.helper_hashes(), **{p.name: lifecycle.sha256(p) for p in paths}}
+    return {**helper_hashes(), **{p.name: artifacts.sha256(p) for p in paths}}
 
 
 def preflight():
@@ -137,7 +151,7 @@ def run(args):
     media = output.parent/'media'
     media.mkdir()
     settings = protocol(args.diagnostic, args.profile_steps, args.held_out)
-    before = lifecycle.source_snapshot(source)
+    before = targets.source_snapshot(source)
     frozen = protected_sources(source)
     frozen_guards = guards()
     versions = dependencies()
@@ -152,7 +166,7 @@ def run(args):
         argv += ['--profiler-config', json.dumps({'profiler':'torch','torch_profiler_dir':str(output.parent/'torch-profile'),
                   'torch_profiler_record_shapes':True,'torch_profiler_with_stack':True}),
                  '--enable-diffusion-pipeline-profiler']
-    record = {'status':'running','protocol':settings,'protocol_sha256':lifecycle.digest(settings),
+    record = {'status':'running','protocol':settings,'protocol_sha256':artifacts.digest(settings),
               'diagnostic':args.diagnostic,'parallel':{'tp':args.tp,'ulysses':args.ulysses,'vae':1,'cfg':1,'ring':1},
               'source_before':before,'protected_sources':frozen,'guard_hashes':frozen_guards,
               'dependency_versions':versions,'model_assets_sha256':asset_hash,
@@ -174,7 +188,7 @@ def run(args):
             env[key] = str(cache/folder)
         preparation_start = time.monotonic()
         with (output.parent/'server.log').open('wb') as log:
-            process, ownership = lifecycle.launch_server(argv,source,env,log)
+            process, ownership = launch_server(argv,source,env,log)
             record['server_process'] = ownership
             deadline = time.monotonic()+args.startup_timeout
             while True:
@@ -210,7 +224,7 @@ def run(args):
         try:
             if process is not None:
                 try:
-                    record['server_cleanup'] = lifecycle.stop_server(process, ownership, 20)
+                    record['server_cleanup'] = stop_server(process, ownership, 20)
                     if record['server_cleanup']['remaining_pids']:
                         final_errors.append('Owned processes remain')
                 except Exception as error:
@@ -218,7 +232,7 @@ def run(args):
                     final_errors.append(f'Cleanup failed: {error}')
             record['source_integrity'] = {'verified': False}
             probes = [
-                ('source', lambda: lifecycle.source_snapshot(source), before),
+                ('source', lambda: targets.source_snapshot(source), before),
                 ('protected_sources', lambda: protected_sources(source), frozen),
                 ('guards', guards, frozen_guards),
                 ('dependencies', dependencies, versions),
@@ -245,7 +259,7 @@ def run(args):
                 record.update(status='failed', error='; '.join(final_errors))
         finally:
             # Failed cleanup or verification must never erase the trial record.
-            lifecycle.write_json(output, record)
+            artifacts.write_json(output, record)
     return record
 
 

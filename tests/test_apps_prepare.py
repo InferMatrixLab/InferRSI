@@ -11,10 +11,10 @@ from pathlib import Path
 
 import pytest
 
-from inferrsi._json_v1 import decode, encode
-from inferrsi.apps import archive
 from inferrsi.apps.api import prepare
-from inferrsi.apps.archive import read_archive_artifact, read_prepared, read_result
+from inferrsi.apps.storage import archive
+from inferrsi.apps.storage.archive import read_archive_artifact, read_prepared, read_result
+from inferrsi.contracts.json_v1 import decode, encode
 from inferrsi.harness.errors import PublicError
 
 _ROOT = Path(__file__).resolve().parents[1]
@@ -165,8 +165,8 @@ def test_t36_commit_closure_and_read_from_new_process(tmp_path, preparation):
     script = """
 import json
 import sys
-from inferrsi._json_v1 import encode
-from inferrsi.apps.archive import read_archive_artifact, read_prepared
+from inferrsi.contracts.json_v1 import encode
+from inferrsi.apps.storage.archive import read_archive_artifact, read_prepared
 
 config, ref = json.load(sys.stdin)
 prepared = read_prepared(config, ref)

@@ -5,18 +5,18 @@ import json
 import re
 from pathlib import Path
 
-from inferrsi.catalog import get_knowledge, search_knowledge
-from inferrsi.cli import main
-from inferrsi.knowledge_operations import KnowledgeReader
-from inferrsi.skill_catalog import get_skill, skill_metadata, skill_resource
+from inferrsi.apps.cli import main
+from inferrsi.knowledge.catalog import get_knowledge, search_knowledge
+from inferrsi.knowledge.knowledge_operations import KnowledgeReader
+from inferrsi.knowledge.skill_catalog import get_skill, skill_metadata, skill_resource
 
-ROOT = Path(__file__).resolve().parents[1] / "src/inferrsi/data/skill_library"
+ROOT = Path(__file__).resolve().parents[1] / "src/inferrsi/knowledge/data/skill_library"
 NAME = "audit-h3-runtime-residency"
-OWNER = ROOT / "repositories/h3-c" / NAME
+OWNER = ROOT / "systems/engines/h3-c" / NAME
 IDENTITY = "inferrsi.common.skills.audit_h3_runtime_residency"
 COMMIT = "8974cc055ea9c02fcd14cc27dfda3e1027c05153"
-PREFIX = f"data/skill_library/repositories/h3-c/{NAME}/"
-CHECKOUT_PREFIX = f"repositories/h3-c/{NAME}/"
+PREFIX = f"data/skill_library/systems/engines/h3-c/{NAME}/"
+CHECKOUT_PREFIX = f"systems/engines/h3-c/{NAME}/"
 INVENTORY = "references/minimax-h3-weight-inventory.json"
 INVENTORY_SHA256 = "fbaacaeec340d3ce893556ee864405a0746af4d13530a38cb3d5aa9d60929271"
 

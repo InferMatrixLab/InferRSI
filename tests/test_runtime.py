@@ -12,13 +12,12 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
 
+from inferrsi.apps.host.environment import storage_locations
+from inferrsi.apps.legacy.evaluation import _summary, evaluate
+from inferrsi.apps.legacy.reporting import write_report
+from inferrsi.apps.legacy.run import execute_trial, repository_identity, run_experiment
+from inferrsi.apps.legacy.run import run_experiment as run_with_adapters
 from inferrsi.contracts import RunSpec
-from inferrsi.execution import repository_identity, run_experiment
-from inferrsi.harness.evaluation import _summary, evaluate
-from inferrsi.harness.runner import run_experiment as run_with_adapters
-from inferrsi.harness.scenarios.external import execute_trial
-from inferrsi.infra.environment import storage_locations
-from inferrsi.reporting import write_report
 
 
 def benchmark(value: object) -> tuple[str, ...]:
@@ -427,7 +426,7 @@ class RuntimeTests(unittest.TestCase):
         # Two links to the same target must hash the same regardless of the order
         # the filesystem happens to enumerate them in. Unlinking and recreating a
         # link with an identical target is not a source change.
-        from inferrsi.infra.targets.git import _directory_digest
+        from inferrsi.apps.host.targets.git import _directory_digest
 
         nested = self.repo / "nested"
         nested.mkdir()
@@ -449,7 +448,7 @@ class RuntimeTests(unittest.TestCase):
     def test_directory_symlink_retarget_changes_directory_digest(self):
         # os.walk does not descend symlinked directories, so an unrecorded link
         # let a dependency swap leave the nested-repository hash unchanged.
-        from inferrsi.infra.targets.git import _directory_digest
+        from inferrsi.apps.host.targets.git import _directory_digest
 
         nested = self.repo / "nested"
         (nested / "package").mkdir(parents=True)
@@ -534,14 +533,16 @@ class RuntimeTests(unittest.TestCase):
         )
 
     def test_keyboard_interrupt_preserves_cancelled_run(self):
-        with patch("inferrsi.execution._execute", side_effect=KeyboardInterrupt):
+        with patch("inferrsi.apps.legacy.run.execute_trial", side_effect=KeyboardInterrupt):
             path, evaluation = self.run_spec()
         self.assertEqual(json.loads((path / "status.json").read_text())["state"], "cancelled")
         self.assertEqual(evaluation["verdict"], "INCONCLUSIVE")
         self.assertTrue((path / "report.html").exists())
 
     def test_execution_exception_preserves_failed_status_and_inconclusive_verdict(self):
-        with patch("inferrsi.execution._execute", side_effect=OSError("executor unavailable")):
+        with patch(
+            "inferrsi.apps.legacy.run.execute_trial", side_effect=OSError("executor unavailable")
+        ):
             path, evaluation = self.run_spec()
         status = json.loads((path / "status.json").read_text())
         self.assertEqual(status["state"], "failed")
@@ -724,7 +725,7 @@ class TerminationTests(unittest.TestCase):
         # OSError/ValueError contract, after `completed` was already written.
         # That failure must be persisted as the terminal state instead of
         # escaping while `completed` remains the last recorded status.
-        with patch("inferrsi.harness.runner.write_report",
+        with patch("inferrsi.apps.legacy.run.write_report",
                    side_effect=RuntimeError("report backend crashed")):
             with self.assertRaises(RuntimeError):
                 run_with_adapters(self.spec, {"backend": "cpu", "test": True})
@@ -739,7 +740,7 @@ class TerminationTests(unittest.TestCase):
         # Ctrl-C inside terminate() is outside the caller's own KeyboardInterrupt
         # handler. `completed` was already written, so the interruption must be
         # persisted as a termination failure rather than left looking finished.
-        with patch("inferrsi.harness.runner.write_report", side_effect=KeyboardInterrupt):
+        with patch("inferrsi.apps.legacy.run.write_report", side_effect=KeyboardInterrupt):
             with self.assertRaises(KeyboardInterrupt):
                 run_with_adapters(self.spec, {"backend": "cpu", "test": True})
         run = sorted((self.root / "runs").iterdir())[-1]

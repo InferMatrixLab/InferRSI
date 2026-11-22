@@ -1,4 +1,4 @@
-"""First-wave Knowledge compatibility gate helpers (P0b).
+"""First-wave isolation gate helpers (P0b, revised through #408 A2).
 
 Imported by the import-gate and isolation-policy tests. This is a test
 support module, not a runtime package.
@@ -17,27 +17,116 @@ ROOT = REPO / "src" / "inferrsi"
 MANIFEST = REPO / "docs" / "legacy-knowledge-manifest.json"
 NEW_CORES = ("knowledge", "benchmark", "apps")
 CORE_NAMES = ("knowledge", "harness", "benchmark", "apps")
-# Current application seams, until the Apps package migration. These are not
-# Knowledge compatibility shells and do not grant access to other flat modules.
-APPLICATION_ENTRIES = ("cli.py", "benchmark_operations.py")
-# Reviewed execution boundaries: owner function (or module scope) and the exact
-# local spec variable. They execute task resources/candidate code, not a hidden
-# core compatibility import. Their presence keeps isolation incomplete.
-RESOURCE_LOADERS = {
-    "inferrsi.harness.task_protocol": ("protocol", "spec"),
-    "inferrsi.benchmark.tasks.moe-forward-npu.benchmark": ("<module>", "_process_spec"),
-    "inferrsi.benchmark.tasks.moe-forward-npu.grader": ("load", "spec"),
-    "inferrsi.benchmark.tasks.qwen21-denoise-npu.benchmark": ("load", "spec"),
-    "inferrsi.benchmark.tasks.qwen3-tts-npu.benchmark": ("<module>", "_evaluation_spec"),
-}
-# D018 B2.4: the one registered residual legacy edge. It keeps overall false
-# and is not available to a new H entry.
-REGISTERED_RESIDUALS = (
-    ("inferrsi.harness.skill_evaluation", "inferrsi.knowledge_operations"),
+# No root file is application assembly. A1 (#408) moved the CLI and its parser into
+# ``apps/cli/``, and A2 (#408) moved the task launcher into Apps. The #490 workflows
+# slice groups it at ``apps/workflows/benchmark_operations.py``.
+# With that last move the ``APPLICATION_ENTRIES`` listing is gone: Apps is the
+# ``inferrsi.apps`` package by its first path segment and nothing else, so a root
+# ``cli.py``, ``arguments.py`` or ``benchmark_operations.py`` that returns is an unlisted
+# flat module.
+# #408 A1, permanent: ``python -m inferrsi`` runs root ``__main__.py``, which stays in
+# the package root and hands over to the canonical Apps CLI. The gate admits that one
+# statement and nothing wider: this exact root file, this exact target module and this
+# exact name, bound by a plain module-level ``from <target> import <name>`` line. It is
+# not an application entry, so the file is never treated as Apps. Every
+# other import in it of Apps, Knowledge or Benchmark fails as in any flat module. So do
+# an alias, a second name, a star import, the target imported as a module object, a
+# module beside or below the target, and the same line below module level. No other
+# file is covered, in the root or under a package.
+MODULE_ENTRY = "__main__.py"
+MODULE_ENTRY_DELEGATION = ("inferrsi.apps.cli", "main")
+# #412 R3, permanent: task bundle programs. A bundle program is a file directly inside
+# ``benchmark/tasks/<bundle>/`` where that directory has no ``__init__.py``. Python could
+# still import such a file as part of a namespace package, so the gate itself rejects
+# every import of a bundle program from package code; Harness and Apps run it as its own
+# process. Its evaluator may load a frozen run file (a candidate, baseline or reference)
+# by path with ``importlib.util.module_from_spec`` to call and time it in-process; the
+# gate admits that call there and nowhere else, by file location and without naming any
+# task. Inside a bundle program every name-based lookup still fails: ``__import__``,
+# ``import_module``, a ``module_from_spec`` reached by another spelling, and ``find_spec``
+# in any spelling. Static imports of other cores fail as before. ``runtime_execution``
+# lists each bundle program that loads files by path, which the static
+# ``isolation_complete`` result does not cover. This is a location-based static policy,
+# not a process or sandbox guarantee. R3 retired the temporary ``RESOURCE_LOADERS`` table
+# and its blocker: the Harness task protocol runs in a child interpreter and the two
+# sibling loads were merged away.
+TASK_BUNDLES = "inferrsi.benchmark.tasks"
+BY_PATH_LOAD = "importlib.util.module_from_spec"
+BUNDLE_LOOKUP_NAMES = frozenset({"find_spec"})
+# #412 R1 deleted these eleven root modules: the seven Knowledge shells, the three
+# old-run forwarders and the root inspection binding. None is registered any more.
+# A file that returns under one of these names is a violation by itself, and every
+# checked closure still treats the name as an old root leaf it may not reach.
+RETIRED_BY_R1 = frozenset(
+    {
+        "inferrsi._skill_selection",
+        "inferrsi._source_snapshot",
+        "inferrsi.catalog",
+        "inferrsi.knowledge_operations",
+        "inferrsi.knowledge_store",
+        "inferrsi.research",
+        "inferrsi.skill_catalog",
+        "inferrsi.evaluation",
+        "inferrsi.execution",
+        "inferrsi.reporting",
+        "inferrsi.inspection",
+    }
 )
-# New H entries: module paths walked on the full graph, without the residual
-# exemption. H01 added ``run_store`` and ``errors``; H02 added the public
-# ``api`` with ``execution_service``, ``input_binding`` and ``local_process``.
+# #408 A1 deleted the root CLI and its parser the same way, with no forwarder or alias.
+# The implementation is ``inferrsi.apps.cli`` and ``inferrsi.apps.cli.arguments``.
+RETIRED_BY_A1 = frozenset({"inferrsi.cli", "inferrsi.arguments"})
+# #408 A2 deleted the root chart renderer and task launcher the same way. The
+# implementations are ``inferrsi.apps.views.summary_chart`` and
+# ``inferrsi.apps.workflows.benchmark_operations``.
+RETIRED_BY_A2 = frozenset({"inferrsi.summary_chart", "inferrsi.benchmark_operations"})
+# #452 M1 deleted the four root MindIE files the same way. The adapter is the
+# ``inferrsi.apps.integrations.mindie`` package: ``project``, ``context``, ``mcp``
+# and ``read_worker``.
+RETIRED_BY_M1 = frozenset(
+    {
+        "inferrsi.mindie_project",
+        "inferrsi.mindie_context",
+        "inferrsi.mindie_mcp",
+        "inferrsi._mindie_read_worker",
+    }
+)
+RETIRED_ROOT_MODULES = RETIRED_BY_R1 | RETIRED_BY_A1 | RETIRED_BY_A2 | RETIRED_BY_M1
+# #498 retired these paths with no forwarder or alias. Slice 1 moved the metric contract
+# and the validators to ``inferrsi.benchmark.metrics`` and ``inferrsi.benchmark.validators``.
+# Slice 2 moved the server helpers, the HTTP transport and the image request client to
+# ``inferrsi.harness.serving`` and removed the emptied ``inferrsi.model.protocols``.
+# Each name covers everything below it. A file under one fails, and so does any import
+# that names one, even when its target is absent.
+# Slices 3b, 4 and 5 moved the artifact helpers to ``inferrsi.apps.artifacts`` and the
+# provider modules to ``inferrsi.apps.integrations.anthropic``, and deleted both packages,
+# so the two package names are retired as a whole.
+# #558 moved ``inferrsi.harness.scenarios`` to ``inferrsi.harness.trials``, with no
+# forwarder, so the old package name is retired as a whole too.
+RETIRED_MODULES = frozenset({"inferrsi.infra", "inferrsi.model", "inferrsi.harness.scenarios"})
+# #412 R1, permanent: the one importer of the neutral data leaf outside
+# ``inferrsi.knowledge``, with the only name it may bind (D020: Infra reads one pack
+# description and reaches no Knowledge or Harness). This is not a manifest
+# ``compatibility_pairs`` entry: it never counts toward the allowlist blocker and it
+# does not retire. It covers this one module and this one name, bound by a plain
+# module-level ``from <leaf> import <name>`` line. Another importer, another name, an
+# alias, the leaf imported as a module object, a nested import, a ``sys.modules`` use
+# or a dynamic import fails. No ``inferrsi.resources.`` prefix is ever allowed.
+# ``technical_leaf.permanent_importers`` in the manifest restates this rule and
+# records that it needs formal architecture review.
+# #498 slice 3a moved that importer from ``inferrsi.infra.inspection`` to
+# ``inferrsi.apps.host.inspection`` with its file, in one change: the old name is retired
+# and is not admitted beside the new one. The host module still reaches no Knowledge or
+# Harness module.
+LEAF_IMPORTERS = {
+    "inferrsi.apps.host.inspection": frozenset({"repository_pack"}),
+}
+# #408 A1 removed the temporary entry that let root ``arguments.py`` bind REPO_TYPES from
+# the leaf, together with its ``temporary leaf importers`` blocker. Nothing replaced it:
+# the moved parser reads the same tuple object through ``inferrsi.knowledge.catalog``,
+# and an Apps module that names the leaf fails as a second importer like any other.
+# New H entries: module paths whose closures count toward the new-core result.
+# H01 added ``run_store`` and ``errors``; H02 added the public ``api`` with
+# ``execution_service``, ``input_binding`` and ``local_process``.
 NEW_H_ENTRIES = (
     "inferrsi.harness.api",
     "inferrsi.harness.errors",
@@ -46,8 +135,27 @@ NEW_H_ENTRIES = (
     "inferrsi.harness.local_process",
     "inferrsi.harness.run_store",
 )
+# Shared data/byte contracts (#451 C1). This exact module list is the whole package. A
+# new module is a reviewed change to this list; an ``inferrsi.contracts.`` prefix never
+# exempts anything.
+CONTRACTS_PACKAGE = "inferrsi.contracts"
 # The P0a canonical encoder; the new K closure may use it and the data leaf.
-CANONICAL_ENCODER = "inferrsi._json_v1"
+CANONICAL_ENCODER = "inferrsi.contracts.json_v1"
+# The initializer's single import. Python runs the initializer for every contracts
+# import, so a module that may use the encoder also loads these two names, and no other.
+CONTRACTS_INIT_EXPORT = ("inferrsi.contracts.runspec", "RunSpec")
+# #451 C2 adds exactly one module: the evidence segment and path rules. Directory
+# creation is ``inferrsi.apps.storage.evidence_layout`` and is not a contracts module.
+CONTRACTS_EVIDENCE = "inferrsi.contracts.evidence"
+CONTRACTS_MODULES = frozenset(
+    {
+        CONTRACTS_PACKAGE,
+        CANONICAL_ENCODER,
+        CONTRACTS_INIT_EXPORT[0],
+        "inferrsi.contracts.claim",
+        CONTRACTS_EVIDENCE,
+    }
+)
 # Names that load or build modules at run time. Any use fails closed.
 # P0b scans only these three spellings; getattr, exec, eval, runpy, and
 # pkgutil are intentionally out of scope here.
@@ -63,11 +171,51 @@ def _from_base(node: ast.ImportFrom, package: str) -> str:
     return ".".join(keep + ([node.module] if node.module else []))
 
 
-def _modules_in_source(source: str, package_parts: list[str]) -> list[str]:
-    """Resolve import targets, including ``from package import name`` forms."""
+def _retired_imports(tree: ast.Module, package: str) -> set[str]:
+    """Every name under ``RETIRED_MODULES`` that an import statement in ``tree`` spells."""
+    found: set[str] = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            names = [alias.name for alias in node.names]
+        elif isinstance(node, ast.ImportFrom):
+            base = _from_base(node, package)
+            names = [base, *(f"{base}.{alias.name}" for alias in node.names)]
+        else:
+            continue
+        found.update(
+            name for name in names if any(_matches(name, old) for old in RETIRED_MODULES))
+    return found
+
+
+def _is_entry_delegation(node: ast.stmt, package: str) -> bool:
+    """The module entry's one admitted statement, in its exact plain shape."""
+    module, name = MODULE_ENTRY_DELEGATION
+    return (
+        isinstance(node, ast.ImportFrom)
+        and _from_base(node, package) == module
+        and [(alias.name, alias.asname) for alias in node.names] == [(name, None)]
+    )
+
+
+def _modules_in_source(
+    source: str, package_parts: list[str], module_entry: bool = False
+) -> list[str]:
+    """Resolve import targets, including ``from package import name`` forms.
+
+    For the module entry only, its admitted delegation statement is left out where it
+    stands at module level. Every other import in that file is resolved as usual.
+    """
     package = ".".join(package_parts)
+    tree = ast.parse(source)
+    admitted = {
+        id(node)
+        for node in tree.body
+        if module_entry and _is_entry_delegation(node, package)
+    }
     names: list[str] = []
-    for node in ast.walk(ast.parse(source)):
+    for node in ast.walk(tree):
+        if id(node) in admitted:
+            continue
         if isinstance(node, ast.Import):
             names.extend(alias.name for alias in node.names)
         elif isinstance(node, ast.ImportFrom):
@@ -98,6 +246,7 @@ def _imported_modules(path: Path, root: Path) -> list[str]:
     return _modules_in_source(
         path.read_text(encoding="utf-8"),
         ["inferrsi", *relative.parts[:-1]],
+        module_entry=relative.as_posix() == MODULE_ENTRY,
     )
 
 
@@ -130,14 +279,14 @@ def cross_core_violations(
     of ``inferrsi.knowledge``, ``inferrsi.benchmark``, or ``inferrsi.apps``
     is forbidden, as is Knowledge or Benchmark importing Harness. ``allowed``
     holds exact (importer module, target module) pairs; a prefix never counts.
+    The one other admission is the ``MODULE_ENTRY`` delegation statement: that
+    exact statement in that exact root file, and no other import in it.
     """
     modules = _module_index(root)
     found: set[tuple[str, str]] = set()
     for path in sorted(root.rglob("*.py")):
         relative = path.relative_to(root)
         importer = relative.parts[0] if len(relative.parts) > 1 else ""
-        if relative.as_posix() in APPLICATION_ENTRIES:
-            importer = "apps"
         importer_module = _module_name(relative)
         for module in _imported_modules(path, root):
             target = _core_of(module)
@@ -164,9 +313,13 @@ def exact_pairs(manifest: dict[str, Any]) -> frozenset[tuple[str, str]]:
 
 
 def shell_sources(manifest: dict[str, Any]) -> dict[str, dict[str, set[str]]]:
-    """Old root leaf -> {exact target: names that leaf may re-export}."""
+    """Staged root shell -> {exact target: names that shell may re-export}.
+
+    Empty since #412 R1 emptied ``compatibility_pairs``. A pair that review stages
+    again is held to the same shell shape as before.
+    """
     leaf = manifest["technical_leaf"]["module"]
-    leaf_names = set(manifest["catalog_two_routes"]["neutral_leaf_export"]["symbols"])
+    leaf_names = set(manifest["technical_leaf"]["two_symbols"])
     sources: dict[str, dict[str, set[str]]] = {}
     for item in manifest["compatibility_pairs"]:
         if _core_of(item["target"]) == "knowledge":
@@ -203,8 +356,8 @@ def _package_ancestors(name: str, modules: dict[str, Path]) -> set[str]:
     return found
 
 
-def _edges(tree: ast.Module, package: str, modules: dict[str, Path]) -> set[str]:
-    """Resolved ``inferrsi.*`` targets of every import in one module."""
+def _direct_targets(tree: ast.Module, package: str, modules: dict[str, Any]) -> set[str]:
+    """Resolved ``inferrsi.*`` targets written in one module, without parent inits."""
     found: set[str] = set()
     for node in ast.walk(tree):
         if isinstance(node, ast.Import):
@@ -214,7 +367,12 @@ def _edges(tree: ast.Module, package: str, modules: dict[str, Path]) -> set[str]
             for alias in node.names:
                 candidate = f"{base}.{alias.name}"
                 found.add(candidate if candidate in modules else base)
-    resolved = {name for name in found if name.startswith("inferrsi.")}
+    return {name for name in found if name.startswith("inferrsi.")}
+
+
+def _edges(tree: ast.Module, package: str, modules: dict[str, Path]) -> set[str]:
+    """Resolved ``inferrsi.*`` targets of every import in one module."""
+    resolved = _direct_targets(tree, package, modules)
     ancestors: set[str] = set()
     for name in resolved:
         ancestors.update(_package_ancestors(name, modules))
@@ -241,41 +399,36 @@ def _scan(root: Path, pairs: frozenset[tuple[str, str]]) -> _Graph:
     return _Graph(trees, packages, edges)
 
 
-def _resource_loader(tree: ast.Module, module: str) -> ast.Attribute | None:
-    declaration = RESOURCE_LOADERS.get(module)
-    if declaration is None:
-        return None
-    matches = []
-
-    def visit(node, owner="<module>"):
-        if isinstance(node, ast.ClassDef):
-            owner += ".<class>." + node.name
-        elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
-            owner = node.name if owner == "<module>" else owner + "." + node.name
-        if (isinstance(node, ast.Call) and owner == declaration[0]
-                and ast.unparse(node.func) == "importlib.util.module_from_spec"
-                and len(node.args) == 1 and not node.keywords
-                and isinstance(node.args[0], ast.Name) and node.args[0].id == declaration[1]):
-            matches.append(node.func)
-        for child in ast.iter_child_nodes(node):
-            visit(child, owner)
-
-    visit(tree)
-    return matches[0] if len(matches) == 1 else None
+def _is_bundle_program(module: str, trees: dict[str, Any]) -> bool:
+    """A file directly inside a task bundle directory that has no ``__init__.py``."""
+    bundle = module.rpartition(".")[0]
+    return bundle.rpartition(".")[0] == TASK_BUNDLES and bundle not in trees
 
 
-def _has_dynamic_import(tree: ast.Module, module: str = "") -> bool:
-    declared = _resource_loader(tree, module)
+def _by_path_loads(tree: ast.Module, module: str, trees: dict[str, Any]) -> list[ast.expr]:
+    """The admitted ``importlib.util.module_from_spec`` calls of a bundle program."""
+    if not _is_bundle_program(module, trees):
+        return []
+    return [node.func for node in ast.walk(tree)
+            if isinstance(node, ast.Call) and ast.unparse(node.func) == BY_PATH_LOAD]
+
+
+def _has_dynamic_import(
+    tree: ast.Module, module: str = "", trees: dict[str, Any] | None = None
+) -> bool:
+    bundle = trees is not None and _is_bundle_program(module, trees)
+    admitted = {id(node) for node in _by_path_loads(tree, module, trees)} if bundle else set()
+    # A bundle program also may not look a module up by name with find_spec, in any
+    # spelling: a call, an attribute, an alias or an import of the name.
+    names = DYNAMIC_IMPORT_NAMES | BUNDLE_LOOKUP_NAMES if bundle else DYNAMIC_IMPORT_NAMES
     for node in ast.walk(tree):
-        if node is declared:
+        if id(node) in admitted:
             continue
-        if isinstance(node, ast.Name) and node.id in DYNAMIC_IMPORT_NAMES:
+        if isinstance(node, ast.Name) and node.id in names:
             return True
-        if isinstance(node, ast.Attribute) and node.attr in DYNAMIC_IMPORT_NAMES:
+        if isinstance(node, ast.Attribute) and node.attr in names:
             return True
-        if isinstance(node, ast.ImportFrom) and any(
-            alias.name in DYNAMIC_IMPORT_NAMES for alias in node.names
-        ):
+        if isinstance(node, ast.ImportFrom) and any(alias.name in names for alias in node.names):
             return True
     return False
 
@@ -311,7 +464,7 @@ def _closure_violations(
     found += [
         f"{start} reaches an undeclared dynamic import in {node}"
         for node in expanded
-        if node in graph.trees and _has_dynamic_import(graph.trees[node], node)
+        if node in graph.trees and _has_dynamic_import(graph.trees[node], node, graph.trees)
     ]
     return found
 
@@ -404,8 +557,14 @@ def _allowed_key(entry: str) -> str:
     return f"{node.module}.{node.names[0].name}"
 
 
-def _leaf_errors(tree: ast.Module, technical_leaf: dict[str, Any]) -> list[str]:
-    """The neutral data leaf: listed stdlib imports anywhere, two symbols only."""
+def _leaf_errors(
+    tree: ast.Module, technical_leaf: dict[str, Any], package: str = "inferrsi"
+) -> list[str]:
+    """The neutral data leaf: listed stdlib imports anywhere, two symbols only.
+
+    ``package`` is the leaf's own package, so a relative import is reported by the
+    module it really names.
+    """
     module = technical_leaf["module"]
     allowed = {_allowed_key(entry) for entry in technical_leaf["allowed_imports"]}
     symbols = set(technical_leaf["two_symbols"])
@@ -414,7 +573,7 @@ def _leaf_errors(tree: ast.Module, technical_leaf: dict[str, Any]) -> list[str]:
         if isinstance(node, ast.Import):
             names = [alias.name for alias in node.names]
         elif isinstance(node, ast.ImportFrom):
-            base = _from_base(node, "inferrsi")
+            base = _from_base(node, package)
             names = [base if base in allowed else f"{base}.{alias.name}" for alias in node.names]
         else:
             continue
@@ -438,6 +597,120 @@ def _leaf_errors(tree: ast.Module, technical_leaf: dict[str, Any]) -> list[str]:
     return errors
 
 
+def _leaf_importer_errors(
+    module: str, tree: ast.Module, package: str, leaf: str, names: frozenset[str]
+) -> list[str]:
+    """A declared leaf importer: listed names, plain module-level from-imports only.
+
+    Nothing else under the leaf's package is covered: the leaf as a module object, the
+    package itself and a module beside the leaf all fail.
+    """
+    parent = leaf.rpartition(".")[0]
+    top_level = {id(node) for node in tree.body}
+    errors: list[str] = []
+
+    def outside(target: str) -> list[str]:
+        if target == leaf:
+            return [f"{module} imports {leaf} as a module object"]
+        if _matches(target, parent):
+            return [f"{module} imports {target} beside {leaf}"]
+        return []
+
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            for alias in node.names:
+                errors += outside(alias.name)
+        elif isinstance(node, ast.ImportFrom):
+            base = _from_base(node, package)
+            if base != leaf:
+                for alias in node.names:
+                    errors += outside(f"{base}.{alias.name}")
+                continue
+            if id(node) not in top_level:
+                errors.append(f"{module} imports {leaf} below module level")
+            for alias in node.names:
+                if alias.name == "*":
+                    errors.append(f"{module} has a star import from {leaf}")
+                elif alias.name not in names:
+                    errors.append(f"{module} imports unlisted name {leaf}.{alias.name}")
+                elif alias.asname not in (None, alias.name):
+                    errors.append(f"{module} aliases {alias.name} as {alias.asname}")
+    for node in ast.walk(tree):
+        if (
+            isinstance(node, ast.Attribute)
+            and node.attr == "modules"
+            and isinstance(node.value, ast.Name)
+            and node.value.id == "sys"
+        ):
+            errors.append(f"{module} touches sys.modules")
+            break
+    if _has_dynamic_import(tree):
+        errors.append(f"{module} has a dynamic import")
+    return errors
+
+
+def _initializer_errors(module: str, tree: ast.Module, package: str) -> list[str]:
+    """A parent initializer of the data leaf: a docstring and no other statement.
+
+    Python runs it on every import of the leaf, so it may import nothing at all, not
+    even a standard-library module, and may define nothing.
+    """
+    errors: list[str] = []
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            errors += [f"{module} imports {alias.name}" for alias in node.names]
+        elif isinstance(node, ast.ImportFrom):
+            base = _from_base(node, package)
+            errors += [f"{module} imports {base}.{alias.name}" for alias in node.names]
+    if _has_dynamic_import(tree):
+        errors.append(f"{module} has a dynamic import")
+    for index, node in enumerate(tree.body):
+        if (index == 0 and _is_docstring(node)) or isinstance(node, (ast.Import, ast.ImportFrom)):
+            continue
+        errors.append(f"{module} has a {type(node).__name__} statement")
+    return errors
+
+
+def _contracts_errors(graph: _Graph) -> list[str]:
+    """The bounded contracts package: declared modules, one initializer export, no core.
+
+    The initializer is a static shell that re-exports ``RunSpec`` from its own
+    ``runspec`` module and nothing else. Every other declared module imports no
+    ``inferrsi.*`` module at all, so loading the package cannot load a core, Apps,
+    Infra or Model module. An undeclared module under the package fails outright.
+    """
+    export_module, export_name = CONTRACTS_INIT_EXPORT
+    errors: list[str] = []
+    for name in sorted(name for name in graph.trees if _matches(name, CONTRACTS_PACKAGE)):
+        tree, package = graph.trees[name], graph.packages[name]
+        if name not in CONTRACTS_MODULES:
+            errors.append(f"{name} is not a declared contracts module")
+        elif name == CONTRACTS_PACKAGE:
+            errors += _shell_errors(name, tree, package, {export_module: {export_name}})
+            imported = [
+                alias.name
+                for node in tree.body
+                if isinstance(node, ast.ImportFrom) and _from_base(node, package) == export_module
+                for alias in node.names
+            ]
+            exported = [
+                item.value
+                for node in tree.body
+                if "__all__" in _assigned_names(node) and _literal_all(node)
+                for item in node.value.elts
+            ]
+            if imported != [export_name] or exported != [export_name]:
+                errors.append(f"{name} must re-export exactly {export_name}")
+        else:
+            errors += [
+                f"{name} imports {target}"
+                for target in sorted(_direct_targets(tree, package, graph.trees))
+            ]
+            if _has_dynamic_import(tree):
+                errors.append(f"{name} has a dynamic import")
+    return errors
+
+
 def _model_or_infra(module: str) -> bool:
     return _matches(module, "inferrsi.model") or _matches(module, "inferrsi.infra")
 
@@ -447,13 +720,18 @@ class IsolationReport:
     """Staged first-wave result (A01-4).
 
     ``new_core_closure_isolated`` covers only the new-core closures present in
-    the tree. It never stands in for ``isolation_complete``.
+    the tree. It never stands in for ``isolation_complete``. Both are static
+    import-closure results. ``runtime_execution`` lists the task bundle programs that
+    load frozen run files by path and execute them in-process at run time; neither
+    flag says anything about what that code does once it runs.
     """
 
     violations: tuple[str, ...]
-    residuals: tuple[str, ...]
+    # Every remaining ``harness`` path into Model or Infra, one per hit.
+    harness_model_infra: tuple[str, ...]
     blockers: tuple[str, ...]
     new_core_closure_isolated: bool
+    runtime_execution: tuple[str, ...] = ()
 
     @property
     def isolation_complete(self) -> bool:
@@ -474,12 +752,32 @@ def first_wave_report(
     pairs = exact_pairs(manifest)
     leaf = manifest["technical_leaf"]["module"]
     sources = shell_sources(manifest)
-    old_leaves = set(sources)
+    # A retired root module stays an old root leaf for every closure rule below.
+    old_leaves = set(sources) | RETIRED_ROOT_MODULES
     graph = _scan(root, pairs)
     modules = sorted(graph.trees)
 
     violations = cross_core_violations(root, pairs)
+    violations += [
+        f"{name} is a retired root module"
+        for name in modules
+        if name in RETIRED_ROOT_MODULES and name not in sources
+    ]
+    violations += [
+        f"{name} is a retired module"
+        for name in modules
+        if any(_matches(name, old) for old in RETIRED_MODULES)
+    ]
+    violations += [
+        f"{name} imports retired module {target}"
+        for name in modules
+        for target in sorted(_retired_imports(graph.trees[name], graph.packages[name]))
+    ]
+    # Outside Knowledge the leaf has its one permanent importer and any staged pair
+    # that names it. Every other importer fails.
+    declared_importers = dict(LEAF_IMPORTERS)
     leaf_importers = {importer for importer, target in pairs if target == leaf}
+    leaf_importers |= set(declared_importers)
     violations += [
         f"{name} is a second importer of {leaf}"
         for name in modules
@@ -487,31 +785,75 @@ def first_wave_report(
         and name not in leaf_importers
         and _core_of(name) != "knowledge"
     ]
-    for name in sorted(old_leaves & set(modules)):
-        # An old leaf that reaches into K or the data leaf is a shell.
+    for name in sorted(set(declared_importers) & set(modules)):
+        violations += _leaf_importer_errors(
+            name, graph.trees[name], graph.packages[name], leaf, declared_importers[name]
+        )
+    for name in sorted(set(sources) & set(modules)):
+        # A staged root leaf that reaches into K or the data leaf is a shell.
         if any(_core_of(t) == "knowledge" or t == leaf for t in graph.edges[name]):
             violations += _shell_errors(
                 name, graph.trees[name], graph.packages[name], sources[name]
             )
     if leaf in graph.trees:
-        violations += _leaf_errors(graph.trees[leaf], manifest["technical_leaf"])
+        violations += _leaf_errors(
+            graph.trees[leaf], manifest["technical_leaf"], graph.packages[leaf]
+        )
+    # #451 C2: the leaf sits in a package, so Python runs that package's initializer
+    # with it. Only those exact parent initializers join the leaf, and each must stay
+    # import-free. A sibling module under the same package gains nothing.
+    leaf_parents = _package_ancestors(leaf, graph.trees)
+    for parent in sorted(leaf_parents):
+        violations += _initializer_errors(parent, graph.trees[parent], graph.packages[parent])
+    violations += _contracts_errors(graph)
+    # #412 R3: bundle programs that load frozen run files by path. They run as their own
+    # processes, so this is runtime execution, which the static closure does not cover.
+    runtime_execution = [
+        f"{name}: {BY_PATH_LOAD} executes files loaded by path in-process"
+        for name in modules if _by_path_loads(graph.trees[name], name, graph.trees)
+    ]
+    # Package code never imports a bundle program, whatever the bundle's name, so an
+    # admitted by-path load cannot join another module's closure.
+    violations += [
+        f"{name} imports task bundle program {target}"
+        for name in modules
+        for target in sorted(graph.edges[name])
+        if target != name and _is_bundle_program(target, graph.trees)
+    ]
+    # Inside the contracts package a Knowledge module may name only the encoder. The
+    # initializer and its RunSpec module load with that import and are never named.
+    violations += [
+        f"{name} imports {target}; Knowledge may import only {CANONICAL_ENCODER} there"
+        for name in modules
+        if _core_of(name) == "knowledge"
+        for target in sorted(
+            _direct_targets(graph.trees[name], graph.packages[name], graph.trees)
+        )
+        if _matches(target, CONTRACTS_PACKAGE) and target != CANONICAL_ENCODER
+    ]
+    encoder_closure = (CANONICAL_ENCODER, CONTRACTS_PACKAGE, CONTRACTS_INIT_EXPORT[0])
 
     def outside_knowledge(node: str) -> bool:
-        return _core_of(node) != "knowledge" and node not in (leaf, CANONICAL_ENCODER)
+        return (
+            _core_of(node) != "knowledge"
+            and node != leaf
+            and node not in leaf_parents
+            and node not in encoder_closure
+        )
 
     def benchmark_forbidden(node: str) -> bool:
         return _core_of(node) in ("knowledge", "harness", "apps") or node in old_leaves
 
     def h_entry_forbidden(node: str) -> bool:
         # Every harness module, including a new H entry, may not reach a new
-        # core, an old root leaf, or the data leaf. The registered residual
-        # is exempted only for its exact importer, below.
+        # core, an old root leaf, or the data leaf. No importer is exempt.
         return _core_of(node) in NEW_CORES or node in old_leaves or node == leaf
 
     rules: dict[str, Callable[[str], bool]] = {
         "knowledge": outside_knowledge,
         "benchmark": benchmark_forbidden,
-        # Apps calls core public APIs and never passes through an old root leaf.
+        # Apps calls core public APIs and never passes through an old root leaf,
+        # which since #412 R1 includes the three retired old-run forwarders.
         "apps": lambda node: node in old_leaves,
     }
     starts = [(name, rules[_core_of(name)]) for name in modules if _core_of(name) in rules]
@@ -523,34 +865,33 @@ def first_wave_report(
         if _matches(name, "inferrsi.infra")
         for v in _closure_violations(name, graph, lambda node: _core_of(node) is not None)
     ]
+    # #498 slice 3a: the host bindings moved here from Infra keep its limit. They, and the
+    # permanent leaf importer among them, reach no Knowledge, Harness or Benchmark module
+    # and no Apps module outside the host package; the Apps rule already refuses an old
+    # root leaf.
+    host = [
+        v
+        for name in modules
+        if _matches(name, "inferrsi.apps.host")
+        for v in _closure_violations(
+            name, graph,
+            lambda node: _core_of(node) in ("knowledge", "harness", "benchmark")
+            or (_core_of(node) == "apps" and node != "inferrsi.apps"
+                and not _matches(node, "inferrsi.apps.host")),
+        )
+    ]
 
-    def _without_residual(edges: dict[str, set[str]]) -> dict[str, set[str]]:
-        """Copy the graph with only the exact registered residual edges removed."""
-        trimmed = {name: set(targets) for name, targets in edges.items()}
-        for importer, target in REGISTERED_RESIDUALS:
-            if importer in trimmed:
-                trimmed[importer].discard(target)
-        return trimmed
-
-    # Non-entry harness modules are gated the same way as entries, but the
-    # exemption is reachability after removing only the exact residual edge.
-    # A second path to the residual target is still a violation. New H entries
-    # are walked on the full graph above and are not exempted.
-    residual_free = _Graph(graph.trees, graph.packages, _without_residual(graph.edges))
+    # Non-entry harness modules follow the same rule on the same full graph.
+    # They add violations without counting toward the new-core result.
     declared = set(h_entries)
     harness_extra = [
         message
         for name in modules
         if _core_of(name) == "harness" and name not in declared
-        for message in _closure_violations(name, residual_free, h_entry_forbidden)
+        for message in _closure_violations(name, graph, h_entry_forbidden)
     ]
-    violations += new_core + infra + harness_extra
+    violations += new_core + infra + host + harness_extra
 
-    residuals = tuple(
-        f"{importer} -> {target}"
-        for importer, target in REGISTERED_RESIDUALS
-        if target in graph.edges.get(importer, ())
-    )
     blockers = []
     for name in (*NEW_CORES, "harness"):
         package = root / name
@@ -559,9 +900,9 @@ def first_wave_report(
         elif not any(package.rglob("*.py")):
             # An empty directory is not a present, scannable package (A01-4).
             blockers.append(f"unscannable: {name}/")
+    # #412 R1 left the manifest with no pair. One that review stages again blocks.
     if pairs:
         blockers.append(f"allowlist: {len(pairs)} compatibility pairs")
-    blockers += [f"residual: {item}" for item in residuals]
     legacy = [
         path
         for name in modules
@@ -572,12 +913,8 @@ def first_wave_report(
         blockers.append(f"harness reaches model/infra: {legacy[0]} ({len(legacy)} hits)")
     if violations:
         blockers.append(f"violations: {len(violations)}")
-    resource_loaders = [name for name in modules
-                        if _resource_loader(graph.trees[name], name) is not None]
-    if resource_loaders:
-        blockers.append(f"runtime resource loaders: {len(resource_loaders)}")
     return IsolationReport(
-        tuple(violations), residuals, tuple(blockers),
-        bool(starts) and not new_core and not resource_loaders,
+        tuple(violations), tuple(legacy), tuple(blockers),
+        bool(starts) and not new_core, tuple(runtime_execution),
     )
 

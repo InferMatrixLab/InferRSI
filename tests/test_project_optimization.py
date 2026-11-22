@@ -7,9 +7,10 @@ import sys
 
 import pytest
 
-from inferrsi.cli import main
+from inferrsi.apps.cli import main
+from inferrsi.apps.views.dashboard import dashboard_snapshot, render_dashboard
 from inferrsi.harness.optimization import read_records
-from inferrsi.observability.dashboard import dashboard_snapshot, render_dashboard
+from tests.diagnosis_support import diagnosis_args
 
 
 @pytest.fixture
@@ -58,6 +59,9 @@ def start(project, capsys, *, direction="maximize", mode="up_to", extra=()):
     assert main(start_arguments(project, direction=direction, mode=mode, extra=extra)) == 0
     result = json.loads(capsys.readouterr().out)
     assert result["working_candidate"] == str(project[0])
+    assert result["next_action"] == "record_bottleneck_diagnosis"
+    assert main(diagnosis_args(project[3], "campaign")) == 0
+    capsys.readouterr()
     return result
 
 
@@ -77,12 +81,12 @@ import importlib.abc, json, sys
 from pathlib import Path
 class NoBenchmark(importlib.abc.MetaPathFinder):
     def find_spec(self, fullname, path=None, target=None):
-        if fullname in ('inferrsi.benchmark', 'inferrsi.benchmark_operations') or (
+        if fullname in ('inferrsi.benchmark', 'inferrsi.apps.workflows.benchmark_operations') or (
             fullname.startswith('inferrsi.benchmark.')
         ):
             raise AssertionError('Ordinary optimization imported ' + fullname)
 sys.meta_path.insert(0, NoBenchmark())
-from inferrsi.cli import main
+from inferrsi.apps.cli import main
 from inferrsi.harness.optimization import read_records
 config = json.loads(sys.stdin.read())
 assert main(config['start']) == 0
@@ -96,6 +100,7 @@ assert summary['optimization_speedup'] == 2
 assert summary['completed_rounds'] == 1
 """
     commands = [
+        diagnosis_args(root, "campaign"),
         ["campaign", "knowledge", "--directory", str(root), "--query", "cgroupv2",
          "--context-bytes", "2048"],
         ["campaign", "round", "--directory", str(root), "--candidate", str(repo),
@@ -128,7 +133,14 @@ def test_project_runs_shared_rounds_and_final_from_retained_multifile_candidate(
     (repo / "engine.py").write_text("raise RuntimeError('unsubmitted edit')", encoding="utf-8")
     assert main(["campaign", "final", "--directory", str(root),
                  "--reason", "Caller ended the up-to-budget search"]) == 0
-    capsys.readouterr()
+    receipt = json.loads(capsys.readouterr().out)
+    from inferrsi.apps.delivery import read_bundle
+
+    assert receipt["delivery"]["status"] == "published"
+    delivery = read_bundle(root / "delivery" / receipt["delivery"]["export_id"])
+    assert delivery["completion"]["status"] == "completed"
+    assert delivery["outcome"]["kind"] == "improved"
+    assert delivery["acceptance"]["delivery_accepted"] is True
     plan, state, summary = read_records(root)
     assert plan["round_mode"] == "up_to" and summary["completed_rounds"] == 1
     assert state["final"]["assessment"]["verdict"] == "PASS"
@@ -201,6 +213,103 @@ def test_fixed_rounds_and_frozen_protocol_are_not_bypassed(project, capsys):
     (project[3] / "frozen/protocol/quality.py").write_text("# modified", encoding="utf-8")
     with pytest.raises(SystemExit):
         submit(project, capsys, 30)
+
+
+@pytest.mark.parametrize("cannbot", [False, True])
+def test_project_knowledge_uses_find_and_records_budget_omission(
+    project, capsys, monkeypatch, cannbot,
+):
+    from inferrsi.apps.integrations.cannbot import project as channel
+
+    def unavailable(*args, **kwargs):
+        if not cannbot:
+            pytest.fail("local-only retrieval called the external channel")
+        raise channel.ChannelFailure("synthetic missing grant", state="not_enabled")
+
+    monkeypatch.setattr(channel, "describe", unavailable)
+    extra = ("--cannbot-platform", "a3") if cannbot else ()
+    start(project, capsys, extra=extra)
+    root = project[3]
+    assert main([
+        "campaign", "knowledge", "--directory", str(root),
+        "--query", "cache per-step masks ran out of device memory",
+        "--limit", "1", "--context-bytes", "1",
+    ]) == 0
+    answer = json.loads(capsys.readouterr().out)
+    if cannbot:
+        assert answer["external"]["state"] == "not_enabled"
+    else:
+        assert "external" not in answer
+    capture = answer["context"]
+    assert capture["selection"]["method"] == "find-lexical-v1"
+    item, = capture["items"]
+    assert item["ref"] == "checkout:case.qwen-ascend-rejected-directions"
+    omission, = capture["context_omissions"]
+    assert (omission["ref"], omission["reason"]) == (item["ref"], "context_limit")
+    assert capture["contexts"] == []
+
+
+def test_cannbot_timeout_keeps_local_ranking_and_final_budget(project, capsys, monkeypatch):
+    from inferrsi.apps.integrations.cannbot import project as channel
+    from inferrsi.apps.integrations.cannbot.read_worker import _WORKER_CLEANUP_SECONDS
+    from inferrsi.harness import optimization
+
+    source, protocol, instructions, root = project
+    local_only = source, protocol, instructions, root.with_name("local-only")
+    query = "cache per-step masks ran out of device memory"
+    budgets = []
+
+    def timeout_worker(*args, timeout, **kwargs):
+        budgets.append(timeout)
+        raise channel.ChannelFailure("synthetic worker timeout", state="timeout")
+
+    def search(session):
+        assert main([
+            "campaign", "knowledge", "--directory", str(session), "--query", query,
+            "--limit", "2", "--context-bytes", "8192",
+        ]) == 0
+        return json.loads(capsys.readouterr().out)
+
+    monkeypatch.setattr(channel, "describe", lambda *a, **kw: {"state": "ok"})
+    monkeypatch.setattr(channel, "search", timeout_worker)
+    start(local_only, capsys)
+    local = search(local_only[-1])
+    assert not budgets and "external" not in local
+
+    start(project, capsys, extra=("--cannbot-platform", "a3"))
+    state_path = root / "state.json"
+    deadline = json.loads(state_path.read_bytes())["deadline"]
+    with monkeypatch.context() as short_search:
+        # Exercise a channel call close enough to final that the channel's
+        # ordinary command timeout would consume the reserved time.
+        short_search.setattr(optimization, "_knowledge_time", lambda plan, state: 6.0)
+        opted_in = search(root)
+    timeout, = budgets
+    assert 0 < timeout <= 6 - _WORKER_CLEANUP_SECONDS
+    assert json.loads(state_path.read_bytes())["deadline"] == deadline
+    assert opted_in["external"]["state"] == "timeout"
+    assert [item["ref"] for item in opted_in["context"]["items"]] == [
+        item["ref"] for item in local["context"]["items"]
+    ]
+
+    capture = opted_in["reference"]["path"]
+    ref = opted_in["context"]["contexts"][0]["ref"]
+    (source / "config.json").write_text('{"metric": 20}', encoding="utf-8")
+    assert main([
+        "campaign", "round", "--directory", str(root), "--candidate", str(source),
+        "--hypothesis", "Improve the synthetic configuration",
+        "--knowledge-ref", f"{capture}#{ref}",
+    ]) == 0
+    capsys.readouterr()
+    snapshot = dashboard_snapshot(root)["data"]
+    retrieval, = snapshot["managed_retrievals"]
+    candidate, = snapshot["candidates"]
+    assert retrieval["external"]["state"] == "timeout"
+    assert [use["ref"] for use in candidate["knowledge_uses"]] == [ref]
+    assert main([
+        "campaign", "final", "--directory", str(root), "--reason", "Synthetic timeout check",
+    ]) == 0
+    assert json.loads(capsys.readouterr().out)["state"] == "completed"
 
 
 def test_project_knowledge_off_and_manual_record_writes_are_rejected(project, capsys):
@@ -280,14 +389,25 @@ def test_bad_candidate_exception_is_classified_by_frozen_wrapper(project, capsys
         "    result = {'status':'candidate_failure', 'reason':'compute raised RuntimeError'}\n"
         "Path(sys.argv[2]).write_text(json.dumps(result))\n", encoding="utf-8")
     start(project, capsys)
+    code, before = submit(project, capsys, 20)
+    assert code == 0 and before["best"]["kind"] == "candidate"
     (project[0] / "engine.py").write_text(
         "def compute(x):\n    raise RuntimeError('bad candidate')\n", encoding="utf-8")
     code, view = submit(project, capsys, 20)
-    assert code == 0 and view["state"] == "active" and view["completed_rounds"] == 1
+    assert code == 0 and view["state"] == "active" and view["completed_rounds"] == 2
+    assert view["best"] == before["best"]
     assert view["latest_observation"]["assessment"]["verdict"] == "FAIL"
     assert len(view["latest_observation"]["execution"]["steps"]) == 2  # No wasted measurement.
-    (project[0] / "engine.py").write_text("def compute(x):\n    return x*2\n", encoding="utf-8")
-    assert submit(project, capsys, 20)[1]["best"]["kind"] == "candidate"
+    failed_record = project[3] / view["latest_observation"]["path"] / "observation.json"
+    failed_bytes = failed_record.read_bytes()
+    assert main(["campaign", "final", "--directory", str(project[3]),
+                 "--reason", "Keep the measured best after a rejected experiment"]) == 0
+    capsys.readouterr()
+    _, state, summary = read_records(project[3])
+    assert state["final"]["candidate_sha256"] == before["best"]["sha256"]
+    assert summary["final_assessment"]["verdict"] == "PASS"
+    assert failed_record.read_bytes() == failed_bytes
+    assert "raise RuntimeError" in (project[0] / "engine.py").read_text()
 
 
 def test_unclassified_process_crash_does_not_claim_candidate_failure(project, capsys):
@@ -423,3 +543,63 @@ def test_final_reserve_blocks_search_but_allows_final(project, capsys, monkeypat
     assert main(["campaign", "final", "--directory", str(project[3]),
                  "--reason", "Search time exhausted"]) == 0
     capsys.readouterr()
+
+
+@pytest.mark.parametrize("direction,value", [("maximize", 20), ("minimize", 5)])
+def test_assessment_reports_paired_statistics_without_changing_the_verdict(
+    project, capsys, direction, value,
+):
+    start(project, capsys, direction=direction, extra=("--repetitions", "6"))
+    code, result = submit(project, capsys, value)
+    assert code == 0 and result["best"]["kind"] == "candidate"
+    assessment = result["latest_observation"]["assessment"]
+    assert assessment["verdict"] == "PASS" and assessment["speedup"] == 2
+    assert assessment["statistical_significance"] == "not_established"
+    paired = assessment["paired_statistics"]
+    assert paired["report_only"] is True and paired["pairs"] == 6
+    assert paired["status"] == "available"
+    assert paired["interval"] == pytest.approx([2.0, 2.0])
+    assert paired["gate_relation"] == "above_gate"
+    assert paired["agrees_with_point_gate"] is True
+    assert main(["campaign", "final", "--directory", str(project[3]),
+                 "--reason", "Synthetic search done"]) == 0
+    capsys.readouterr()
+    _, state, summary = read_records(project[3])
+    final = state["final"]["assessment"]
+    assert final["verdict"] == "PASS" and summary["optimization_speedup"] == 2
+    assert final["paired_statistics"]["gate_relation"] == "above_gate"
+
+
+def test_unreachable_gate_keeps_the_original_fail_and_strict_json_records(project, capsys):
+    # A minimize gate of 100% has no finite speedup; the report must not block the FAIL.
+    start(project, capsys, direction="minimize",
+          extra=("--repetitions", "6", "--min-improvement-pct", "100"))
+    code, result = submit(project, capsys, 5)
+    assert code == 0 and result["best"]["kind"] == "baseline"
+    assessment = result["latest_observation"]["assessment"]
+    assert assessment["verdict"] == "FAIL" and assessment["eligible"] is False
+    paired = assessment["paired_statistics"]
+    assert paired["gate_speedup"] is None and paired["gate_relation"] == "gate_unreachable"
+    json.dumps(read_records(project[3])[1], allow_nan=False)
+
+
+def test_records_without_paired_statistics_remain_readable(project, capsys, monkeypatch):
+    """Assessments retained before this field existed still load in records and dashboard."""
+    from inferrsi.harness import project as project_protocol
+
+    original = project_protocol.assess
+
+    def legacy_assess(*args, **kwargs):
+        result = original(*args, **kwargs)
+        result.pop("paired_statistics", None)
+        return result
+
+    monkeypatch.setattr(project_protocol, "assess", legacy_assess)
+    start(project, capsys)
+    code, result = submit(project, capsys, 20)
+    assert code == 0 and "paired_statistics" not in result["latest_observation"]["assessment"]
+    _, state, _ = read_records(project[3])
+    assert state["best"]["kind"] == "candidate"
+    snapshot = dashboard_snapshot(project[3])
+    assert snapshot["data"]["candidates"][0]["verdict"] == "PASS"
+    assert "Synthetic candidate" in render_dashboard(snapshot)

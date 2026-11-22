@@ -7,9 +7,9 @@ complete canonical spec; storage implementations must use the same function.
 import hashlib
 from collections.abc import Mapping
 
-from inferrsi import _json_v1
+from inferrsi.contracts import json_v1
 
 
 def request_digest(spec: Mapping) -> str:
     """Return the D017 semantic identifier of a complete ExecutionSpec."""
-    return "sha256:" + hashlib.sha256(_json_v1.encode(spec)).hexdigest()
+    return "sha256:" + hashlib.sha256(json_v1.encode(spec)).hexdigest()

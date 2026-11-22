@@ -16,8 +16,8 @@ def pr(number=10, head=HEAD, branch="main"):
             "user": {"login": "author"}, "commits": 1}
 
 
-def vote(login, state="APPROVED", body="LGTM", head=HEAD, can_push=True):
-    return {"author": {"login": login}, "state": state, "body": body,
+def vote(login, state="APPROVED", body="LGTM", head=HEAD, can_push=True, actor_type="User"):
+    return {"author": {"login": login, "__typename": actor_type}, "state": state, "body": body,
             "commit": {"oid": head}, "authorCanPushToRepository": can_push}
 
 
@@ -27,6 +27,27 @@ def test_only_current_eligible_approvals_count():
                vote("old", head=OLD), vote("reader", can_push=False), vote("author"),
                vote("commit-author"), vote("case", body="lgtm"), vote("late", body="PASS\nLGTM")]
     assert gate.review_candidates(reviews, HEAD, {"author", "commit-author"}) == {"a", "b"}
+
+
+@pytest.mark.parametrize(("login", "actor_type"), [
+    ("integration[bot]", "Bot"), ("integration", "Bot"),
+    ("integration[bot]", "User"), ("unresolved", "Mannequin"), ("unknown", None),
+])
+def test_apps_bots_and_unknown_actor_types_cannot_supply_an_approval(login, actor_type):
+    reviews = [vote("independent"), vote(login, actor_type=actor_type)]
+    assert gate.review_candidates(reviews, HEAD, set()) == {"independent"}
+
+
+def test_rechecking_the_same_head_does_not_cache_a_revoked_permission(monkeypatch):
+    item, api = pr(), Mock()
+    api.pages.return_value = [{"sha": HEAD, "author": None, "committer": None}]
+    permission = {"can_push": True}
+    monkeypatch.setattr(gate, "read_reviews", lambda *args: [
+        vote("first"), vote("second", can_push=permission["can_push"]),
+    ])
+    assert gate.evaluate(api, item) == 2
+    permission["can_push"] = False
+    assert gate.evaluate(api, item) == 1
 
 
 @pytest.mark.parametrize(("second_vote", "expected"), [

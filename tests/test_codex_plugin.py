@@ -9,12 +9,14 @@ import re
 import shutil
 import subprocess
 import sys
+import venv
 import zipfile
 from pathlib import Path
 from urllib.parse import unquote, urlsplit
 
 import pytest
 
+from inferrsi.knowledge.catalog import _split_skill_metadata
 from tools.build_codex_plugin import build_plugin
 from tools.build_workswarm_plugin import build_plugin as build_workswarm_plugin
 from tools.check_release import check_plugin
@@ -81,13 +83,17 @@ def test_bundle_contains_all_declared_package_data(distribution):
         for path in _io_path(PROJECT / "src" / Path(*package.split("."))).glob(pattern)
         if path.is_file()
     }
-    assert "data/skill_library/repositories/splash/THIRD_PARTY_NOTICES" in expected
+    assert (
+        "knowledge/data/skill_library/systems/engines/splash/THIRD_PARTY_NOTICES" in expected
+    )
     installed = {
         name.removeprefix("inferrsi/")
         for name in runtime_bytes(distribution)
-        if name.startswith(("inferrsi/data/", "inferrsi/benchmark/tasks/")) or (
-            name.startswith("inferrsi/observability/") and name.endswith(".html")
-        )
+        if name.startswith((
+            "inferrsi/knowledge/data/", "inferrsi/harness/data/", "inferrsi/benchmark/tasks/",
+        )) or (
+            name.startswith("inferrsi/apps/views/") and name.endswith(".html")
+        ) or name.startswith("inferrsi/apps/cli/task-input/")
     }
     assert expected == installed
     manifest = json.loads((distribution / "runtime/manifest.json").read_text(encoding="utf-8"))
@@ -131,6 +137,58 @@ def test_isolated_runtime_and_exact_knowledge_reads(distribution, tmp_path):
     assert "unavailable" in stale.stderr
 
 
+def test_entry_loads_the_required_primary_before_search(distribution, tmp_path):
+    entry = (distribution / "skills/inferrsi/SKILL.md").read_text(encoding="utf-8")
+    # Inspect the actual distributed entry, including the instructions before the
+    # task table. Moving a plain Find or Collect example above it must fail.
+    first_search = re.search(r'(?:^ *|`)(?:(?:python -X utf8 "<launcher>"|inferrsi) )?'
+                             r'(?:find|collect|knowledge search|campaign knowledge)\b',
+                             entry, flags=re.MULTILINE)
+    assert first_search
+    rows = dict(re.findall(r"^\| ([^|]+) \| `(skills enter [\w-]+)` \|$",
+                           entry[:first_search.start()], flags=re.MULTILINE))
+    required = {"task-day-0", "task-performance", "task-debug", "task-accuracy",
+                "task-version-alignment", "task-derived-engine", "task-independent-engine"}
+    assert len(rows) == len(required)
+    assert {command.split()[-1] for command in rows.values()} == required
+    before_search = " ".join(entry[:first_search.start()].split())
+    assert "before the first evidence search" in before_search
+    assert "If it fails, stop" in before_search
+    bundled = runtime_bytes(distribution)
+    library = "inferrsi/knowledge/data/skill_library/"
+    registered = json.loads(bundled[library + "skill-index.json"])["skills"]
+    for name in required:
+        owner = library + registered[name]["path"]
+        header = bundled[owner + "/SKILL.md"].decode().split("---", 2)[1]
+        _, metadata = _split_skill_metadata(header)
+        assert "primary-task" in metadata["tags"]
+        assert owner + "/metadata.json" not in bundled
+
+    # The host makes the natural-language choice. Follow its published accuracy
+    # row and check the actual base-install CLI returns the owner before Find.
+    command = rows["Repair an accuracy or output-quality regression"].split()
+    assert command == ["skills", "enter", "task-accuracy"]
+    primary = invoke(distribution, tmp_path, *command)
+    assert primary.returncode == 0, primary.stderr
+    owner = PROJECT / "src/inferrsi/knowledge/data/skill_library/tasks/task-accuracy/SKILL.md"
+    _, header, body = owner.read_text(encoding="utf-8").split("---", 2)
+    native, fields = _split_skill_metadata(header)
+    assert fields["discovery_role"] == "task-entry"
+    assert json.loads(primary.stdout) == {
+        "name": "task-accuracy", "instructions": "---" + native + "---" + body
+    }
+    hits = invoke(distribution, tmp_path, "find", "TTS quality regression",
+                  "--limit", "1", "--no-external", "--json")
+    assert hits.returncode == 0, hits.stderr
+    assert json.loads(hits.stdout)["items"]
+
+    # Substituting the old router does not satisfy the primary-load requirement.
+    wrong = invoke(distribution, tmp_path, "skills", "enter", "inference-task-router")
+    assert wrong.returncode == 2
+    assert "Not a primary inference task skill" in wrong.stderr
+    assert not wrong.stdout.strip()
+
+
 def test_entry_workflow_selects_packaged_skill_projections(distribution, tmp_path):
     result = invoke(
         distribution, tmp_path, "collect", "--relevance",
@@ -144,8 +202,8 @@ def test_entry_workflow_selects_packaged_skill_projections(distribution, tmp_pat
 
 
 @pytest.mark.parametrize(("action", "resource"), [
-    ("reference", "../../../hardware/host/host-memory-management/SKILL.md"),
-    ("resource", "metadata.json"),
+    ("reference", "../../../platforms/host/host-memory-management/SKILL.md"),
+    ("resource", "references/notices.md"),
 ])
 def test_returned_skill_paths_survive_process_exit_and_later_invocations(
     distribution, tmp_path, action, resource,
@@ -177,16 +235,79 @@ def test_missing_runtime_has_repair_guidance(tmp_path):
 
 @pytest.mark.parametrize("args", [
     ("skills", "list", "--json"),
-    ("collect", "--skill-root", "."),
-    ("read", "example", "--skill-root=."),
+    ("read", "calibrate-serving-simulation", "--skill-root", "{skills}"),
 ])
 def test_optional_dependency_guidance_does_not_require_a_checkout(distribution, tmp_path, args):
+    """Operations that parse skill frontmatter explain the missing dependency.
+
+    The hint comes from the runtime, at the call that needs the parser, rather
+    than from the launcher guessing from argument names -- see the next test
+    for what that guess used to refuse.
+    """
+    # Any registered root will do; the point is the parser, not this library.
+    skills = PROJECT / "src" / "inferrsi" / "knowledge" / "data" / "skill_library"
+    args = tuple(str(skills) if arg == "{skills}" else arg for arg in args)
     result = invoke(distribution, tmp_path, *args)
     assert result.returncode == 2
     assert "PyYAML" in result.stderr
     assert "<inferrsi-checkout>" not in result.stderr
     help_result = invoke(distribution, tmp_path, "skills", "list", "--help")
     assert help_result.returncode == 0
+
+
+def test_find_reference_opens_from_a_bare_plugin_host(distribution, tmp_path):
+    """Use the returned command unchanged in a bare plugin environment."""
+    bare = tmp_path / "bare python"
+    venv.EnvBuilder().create(bare)
+    python = bare / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
+    launcher = distribution / "skills/inferrsi/scripts/inferrsi.py"
+    cache = tmp_path / "runtime cache"
+    env = {
+        **os.environ, "PATH": os.pathsep.join((str(python.parent), os.defpath)),
+        "LOCALAPPDATA": str(cache),
+    }
+    env.pop("PYTHONHOME", None)
+    env.pop("PYTHONPATH", None)
+    assert shutil.which("inferrsi", path=env["PATH"]) is None
+
+    def run(*command):
+        return subprocess.run(
+            command, cwd=tmp_path, capture_output=True, text=True, encoding="utf-8",
+            timeout=45, env=env,
+        )
+
+    prefix = (str(python), "-X", "utf8", str(launcher))
+    info = run(*prefix, "--plugin-info")
+    assert info.returncode == 0, info.stderr
+    assert not json.loads(info.stdout)["optional_skills_dependency"]
+    search = ("find", "mask caching ran out of device memory", "--kinds", "case", "--limit", "1")
+    found = run(*prefix, *search, "--json")
+    assert found.returncode == 0, found.stderr
+    item, = json.loads(found.stdout)["items"]
+    assert item["id"] == "case.qwen-ascend-rejected-directions"
+    assert item["open_argv"] == [*prefix[:-1], str(launcher.resolve()), *item["read_args"]]
+    if cache.is_dir():
+        # WorkSwarm's installed launcher recreates its private cache.
+        shutil.rmtree(_io_path(cache))
+    opened = run(*item["open_argv"])
+    assert opened.returncode == 0, opened.stderr
+    material = json.loads(opened.stdout)
+    assert "910B1" in material["content"]
+    assert material["sources"] and material["applicability"] and material["limitations"]
+
+    plain = run(*prefix, *search)
+    assert plain.returncode == 0, plain.stderr
+    label = "open (PowerShell)" if os.name == "nt" else "open"
+    assert f"     {label}: {item['ref']}" in plain.stdout.splitlines()
+    if os.name == "nt":
+        powershell = shutil.which("powershell.exe")
+        shell = (powershell, "-NoProfile", "-Command") if powershell else ()
+    else:
+        shell = ("/bin/sh", "-c")
+    if shell:
+        pasted = run(*shell, item["ref"])
+        assert pasted.returncode == 0, pasted.stderr
+        assert json.loads(pasted.stdout) == material
 
 
 def test_builder_refuses_to_replace_existing_files(tmp_path):
@@ -217,7 +338,16 @@ def test_archive_contains_only_one_standalone_plugin(tmp_path):
         assert not any("marketplace" in name or ".agents" in name for name in names)
         metadata = json.loads(archive.read("inferrsi/plugin.json"))
         assert metadata["$schema"] == "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json"
-        assert len(metadata["extensions"]["com.openai"]["interface"]["shortDescription"]) <= 30
+        interface = metadata["extensions"]["com.openai"]["interface"]
+        assert len(interface["shortDescription"]) <= 30
+        assert metadata["author"]["name"] == interface["developerName"] == "InferMatrixLab"
+        homepage = "https://github.com/InferMatrixLab/InferRSI"
+        assert metadata["homepage"] == interface["websiteURL"] == homepage
+        for field in ("logo", "composerIcon"):
+            icon = Path(interface[field])
+            assert archive.read(f"inferrsi/{icon.as_posix()}") == (
+                PROJECT / "plugins/inferrsi" / icon
+            ).read_bytes()
     info = invoke(output, tmp_path, "--plugin-info")
     assert info.returncode == 0, info.stderr
     manifest = json.loads((output / "runtime/manifest.json").read_text(encoding="utf-8"))
@@ -275,6 +405,29 @@ def test_release_archive_is_installable_and_all_versions_match(release_distribut
         assert archive.read("inferrsi/README.md") == expected_readme
     with pytest.raises(ValueError, match="agree exactly"):
         check_plugin(Path(result["archive"]), "v0.2.1", host)
+
+
+@pytest.mark.parametrize("release_distribution", ["codex"], indirect=True)
+@pytest.mark.parametrize(("missing", "retained"), [
+    ("logo", "composerIcon"), ("composerIcon", "logo"),
+])
+def test_release_archive_rejects_missing_icon(release_distribution, tmp_path, missing, retained):
+    original = release_distribution[2]["archive"]
+    changed = tmp_path / "missing-icon.zip"
+    manifest_name = "inferrsi/plugin.json"
+    with zipfile.ZipFile(original) as source, zipfile.ZipFile(changed, "w") as destination:
+        metadata = json.loads(source.read(manifest_name))
+        interface = metadata["extensions"]["com.openai"]["interface"]
+        removed = "inferrsi/" + interface[missing].removeprefix("./")
+        # Both fields normally share one PNG. Keep the other reference valid.
+        interface[retained] = "./assets/retained.png"
+        destination.writestr("inferrsi/assets/retained.png", source.read(removed))
+        destination.writestr(manifest_name, json.dumps(metadata))
+        for entry in source.infolist():
+            if entry.filename not in (removed, manifest_name):
+                destination.writestr(entry, source.read(entry))
+    with pytest.raises(ValueError, match=missing):
+        check_plugin(changed, "v0.2.0", "codex")
 
 
 def test_release_archive_rejects_changed_runtime_bytes(release_distribution, tmp_path):

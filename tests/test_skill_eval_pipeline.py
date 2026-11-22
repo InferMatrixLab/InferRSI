@@ -8,8 +8,8 @@ from pathlib import Path
 
 import pytest
 
-from inferrsi.harness.skill_evaluation import run_trial, summarize
-from inferrsi.infra.artifacts import atomic_write_json, sha256
+from inferrsi.apps.artifacts import atomic_write_json, sha256
+from inferrsi.apps.workflows.skill_evaluation import run_trial, summarize
 from tools import skill_eval_pilot
 
 ROOT = Path(__file__).resolve().parents[1]

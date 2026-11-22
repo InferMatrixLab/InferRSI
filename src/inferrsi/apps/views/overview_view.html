@@ -1,0 +1,68 @@
+<style>
+.brand { display:flex; align-items:center; gap:12px; font:700 21px/1.1 "Segoe UI",sans-serif; letter-spacing:-.04em; }
+.logo { display:grid; place-items:center; width:30px; height:30px; border-radius:8px; background:var(--green); }
+.logo::before { content:""; inline-size:16px; block-size:17px; transform:skewX(-16deg);
+  background:linear-gradient(90deg,#0d2f33 0 22%,transparent 22% 39%,#0d2f33 39% 61%,transparent 61% 78%,#0d2f33 78%); }
+.hero { position:relative; isolation:isolate; overflow:hidden; display:flex; justify-content:space-between;
+  gap:16px 30px; align-items:center; flex-wrap:wrap; padding:clamp(18px,2.4vw,36px);
+  border:1px solid #355454; border-radius:14px; background:linear-gradient(110deg,#172d32,#142637 62%,#142031); }
+.hero::before { content:""; position:absolute; inset:0; z-index:-1; pointer-events:none;
+  background:radial-gradient(circle,#a5e6df25 .9px,transparent 1px) 0 0/12px 12px; }
+.hero::after { content:""; position:absolute; z-index:-1; pointer-events:none; width:58%; height:240%;
+  left:20%; top:-77%; transform:rotate(-24deg); border-radius:50%; opacity:.56;
+  background:repeating-radial-gradient(ellipse at 50% 100%,transparent 0 10px,#6fd2ba3a 11px,transparent 12px 18px);
+  mask-image:linear-gradient(90deg,transparent,#000 40%,transparent); }
+.hero-copy { min-width:0; }
+.hero h1 { margin:7px 0; font-size:clamp(30px,3.8vw,58px); font-weight:620; line-height:1.14; letter-spacing:-.045em; text-wrap:balance; }
+.campaign-line { display:flex; flex-wrap:wrap; align-items:baseline; gap:4px 10px; color:#c0d9d9; }
+.campaign-line code { font-size:13px; }
+.coverage { display:flex; flex-wrap:wrap; gap:6px 18px; color:var(--muted); margin-top:10px; }
+.coverage:empty { display:none; }
+.coverage span { font-size:12px; }
+.coverage b { color:var(--green); font:600 15px/1.2 Consolas,monospace; margin-inline-end:5px; }
+.verdict-summary { display:flex; align-items:center; gap:clamp(15px,2vw,30px); padding:12px 18px;
+  border:1px solid #47626d; background:#101d28ec; border-radius:12px; }
+.verdict-summary h2 { margin:0 0 6px; font-size:15px; }
+.verdict-ring { flex:none; width:clamp(68px,7vw,110px); aspect-ratio:1; border-radius:50%; display:grid; place-items:center; background:var(--line); }
+.verdict-ring strong { display:grid; place-items:center; width:78%; aspect-ratio:1; border-radius:50%; background:#101d28;
+  font:600 clamp(22px,2.4vw,38px)/1 Consolas,monospace; }
+.verdict-legend { display:grid; grid-template-columns:repeat(2,minmax(0,auto)); gap:4px 14px; margin:0; }
+.verdict-legend div { display:flex; align-items:baseline; gap:8px; justify-content:space-between; }
+.verdict-legend dt { color:var(--muted); font-size:12px; }
+.verdict-legend dt::before { content:""; display:inline-block; background:var(--swatch); width:7px; height:7px; border-radius:50%; margin-inline-end:5px; }
+.verdict-legend dd { margin:0; font-variant-numeric:tabular-nums; font-size:13px; font-weight:650; }
+@media (max-width:690px) {
+  .verdict-summary { width:100%; padding:10px; }
+  .verdict-legend { gap:3px 12px; }
+}
+@media (max-width:380px) { .verdict-summary { flex-wrap:wrap; } .verdict-legend { grid-template-columns:1fr; } }
+</style>
+<section class="verdict-summary" data-no-translate aria-labelledby="verdict-title">
+    <div id="verdict-ring" class="verdict-ring" aria-hidden="true"><strong id="verdict-total"></strong></div>
+    <div><h2 id="verdict-title">Candidate verdicts</h2><dl class="verdict-legend" id="verdict-legend"></dl></div>
+  </section>
+<script>
+window.InferRSIVerdicts = (rows, translate, node) => {
+    const byId=id=>document.getElementById(id);
+    byId('verdict-title').textContent=translate('Candidate verdicts');
+    const legend=byId('verdict-legend'), stops=[];
+    const counts={PASS:0,FAIL:0,INCONCLUSIVE:0,'Not recorded':0};
+    for(const row of rows){
+      const verdict=row.verdict;
+      counts[Object.hasOwn(counts,verdict)?verdict:'Not recorded']++;
+    }
+    let offset=0;
+    legend.replaceChildren();
+    for(const [label,colour] of [['PASS','var(--green)'],['FAIL','var(--red)'],['INCONCLUSIVE','var(--violet)'],['Not recorded','var(--dim)']]){
+      const count=counts[label], part=node('div');
+      part.style.setProperty('--swatch',colour);
+      part.append(node('dt',translate(label)),node('dd',rows.length?String(count):'—'));legend.append(part);
+      if(count){
+        const end=offset+100*count/rows.length;
+        stops.push(`${colour} ${offset}% ${end}%`);offset=end;
+      }
+    }
+    byId('verdict-total').textContent=rows.length?String(rows.length):'—';
+    byId('verdict-ring').style.background=stops.length?`conic-gradient(from -90deg,${stops.join(',')})`:'';
+};
+</script>

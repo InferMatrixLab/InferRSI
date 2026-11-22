@@ -1,5 +1,6 @@
 import hashlib
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -7,9 +8,9 @@ from pathlib import Path
 import pytest
 from fixtures.flare_packet import build_packet, write_json
 
-from inferrsi.harness.runner import run_experiment
-from inferrsi.model.validators.flare import adapt, main, validate_pair
-from inferrsi.runspec import RunSpec
+from inferrsi.apps.legacy.run import run_experiment
+from inferrsi.benchmark.validators.flare import adapt, main, validate_pair
+from inferrsi.contracts import RunSpec
 
 
 @pytest.fixture
@@ -93,6 +94,37 @@ def test_complete_raw_packet_recomputes_metric_and_preserves_originals(packet, t
         == 0
     )
     assert json.loads(output.read_bytes())["identities"]["manifest_sha256"]
+
+
+def test_new_receipts_bind_the_benchmark_adapter_files(packet, tmp_path):
+    # #498 slice 1: same schema and keys; the digests are those of the moved files.
+    from inferrsi.benchmark import artifacts
+    from inferrsi.benchmark.validators import flare
+
+    output = tmp_path / "receipt.json"
+    assert main(["measure", "--packet", str(packet), "--peer", str(packet),
+                 "--output", str(output)]) == 0
+    receipt = json.loads(output.read_bytes())
+    assert receipt["schema"] == "inferrsi-flare-delivery-receipt-v1"
+    assert receipt["adapter"] == {
+        "flare.py": hashlib.sha256(Path(flare.__file__).read_bytes()).hexdigest(),
+        "artifacts.py": hashlib.sha256(Path(artifacts.__file__).read_bytes()).hexdigest(),
+    }
+
+
+def test_the_old_flare_cli_path_is_gone(packet, tmp_path):
+    # The command moved to inferrsi.benchmark.validators.flare with no forwarder.
+    source = Path(__file__).resolve().parents[1] / "src"
+    result = subprocess.run(
+        [sys.executable, "-m", "inferrsi.model.validators.flare", "measure", "--packet",
+         str(packet), "--peer", str(packet), "--output", str(tmp_path / "receipt.json")],
+        capture_output=True, text=True, check=False, cwd=tmp_path,
+        env={**os.environ, "PYTHONPATH": str(source)},
+    )
+    assert result.returncode == 1
+    # Since #498 the whole inferrsi.model package is gone, so Python stops at its parent.
+    assert "No module named 'inferrsi.model'" in result.stderr
+    assert not (tmp_path / "receipt.json").exists()
 
 
 def test_identical_unaugmented_observations_remain_supported(packet):
@@ -276,7 +308,7 @@ def test_real_runner_uses_existing_validation_command_and_rejection_is_inconclus
     ):
         subprocess.run(command, cwd=repo, check=True, capture_output=True)
     candidate = build_packet(tmp_path / "candidate", ttft_ns=80_000_000)
-    cli = (sys.executable, "-m", "inferrsi.model.validators.flare")
+    cli = (sys.executable, "-m", "inferrsi.benchmark.validators.flare")
     spec = RunSpec(
         repo=str(repo),
         repetitions=1,

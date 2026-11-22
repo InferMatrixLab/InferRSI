@@ -1,47 +1,110 @@
 import copy
 import hashlib
+import inspect
 import json
 import subprocess
+from fnmatch import fnmatchcase
 from pathlib import Path
 
 import pytest
 
-from inferrsi import _source_snapshot as snapshot
-from inferrsi.catalog import search_knowledge
+from inferrsi.knowledge import _source_snapshot as snapshot
+from inferrsi.knowledge.catalog import INPUTS, recommendations, search_knowledge, skill_views
 from tools import build_skill_index as index_builder
-from tools.build_skill_index import DESTINATION, LIBRARY
+from tools.build_skill_index import DESTINATION
 
 PROJECT = Path(__file__).resolve().parents[1]
 GENERATED = PROJECT / DESTINATION
 REVISION = "a" * 40
+# These fixtures hold their corpus at the recorded location, where the physical
+# root and the pinned prefix are the same. After the K02 re-pin the repository
+# agrees on src/inferrsi/knowledge/data/skill_library as well.
+LIBRARY = index_builder.PINNED_LIBRARY
 
 
-def record_files():
-    return sorted(p for p in GENERATED.glob("*/skills/*.json"))
+def test_public_projection_implementation_is_a_protected_knowledge_path():
+    policy = json.loads((PROJECT / ".github/knowledge-model-policy.json").read_bytes())
+    for builder in (skill_views, recommendations):
+        path = Path(inspect.getfile(builder)).resolve().relative_to(PROJECT).as_posix()
+        assert any(fnmatchcase(path, pattern) for pattern in policy["protected_paths"]), path
 
 
-def test_packaged_records_store_schema_two_and_resolve_to_schema_one():
-    manifest = json.loads((GENERATED / snapshot.MANIFEST).read_text(encoding="utf-8"))
-    records = {r["id"]: r for r in search_knowledge(repo="inferrsi", limit=100)}
-    assert len(record_files()) == len(records) == 80
-    for path in record_files():
-        stored = json.loads(path.read_text(encoding="utf-8"))
-        assert stored["schema_version"] == 2 and "sources" not in stored
-        assert snapshot.REGISTRY not in stored["source_files"]
-        public = records[stored["id"]]
-        assert public == snapshot.resolve(stored, manifest)
-        assert public["schema_version"] == 1
-        assert public["sources"][0]["commit"] == manifest["source_revision"]
-        assert public["source_files"][snapshot.REGISTRY] == manifest["registry"]["sha256"]
-        assert set(public["source_files"]) == set(public["sources"][0]["paths"])
-        assert list(public)[list(public).index("origin") + 1] == "sources"
+def test_single_owner_reads_survive_an_unrelated_pending_metadata_edit(tmp_path, monkeypatch):
+    from inferrsi.knowledge import skill_catalog
+    from inferrsi.knowledge.catalog import get_knowledge, knowledge_records
+    from inferrsi.knowledge.knowledge_find import Corpus, find, load_documents
+    from inferrsi.knowledge.knowledge_operations import KnowledgeReader
+
+    library = GENERATED.parent
+    owner = "ascend-model-adaptation"
+    metadata = skill_catalog.skill_directory(library, owner) / "SKILL.md"
+    edited = tmp_path / "SKILL.md"
+    original = metadata.read_text(encoding="utf-8")
+    assert '"tags": [' in original
+    modified = original.replace('"tags": [', '"tags": ["pending-edit",', 1)
+    edited.write_text(modified, encoding="utf-8")
+    original_open = Path.open
+
+    def open_with_edit(path, *args, **kwargs):
+        return original_open(edited if path == metadata else path, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "open", open_with_edit)
+    identity = "flashinfer.cuda.llm.paged_decode_dispatch"
+    expected = json.loads((library / "records" / f"{identity}.json").read_bytes())
+    for ref in (identity, f"package:{identity}"):
+        bundle = KnowledgeReader().read(ref)
+        assert json.loads(bundle.content["record.json"]) == expected
+        assert bundle.metadata["attribution"] == expected["sources"]
+    assert get_knowledge(identity) == expected
+    with pytest.raises(ValueError, match="Stale skill metadata for ascend-model-adaptation"):
+        KnowledgeReader().read("package:inferrsi.ascend.skills.ascend_model_adaptation")
+    with pytest.raises(ValueError, match="Stale skill metadata for ascend-model-adaptation"):
+        knowledge_records()
+
+    def no_yaml():
+        raise skill_catalog.MissingSkillsExtra("no PyYAML")
+
+    monkeypatch.setattr(skill_catalog, "_yaml", no_yaml)
+    corpus = Corpus(load_documents())
+    result = find("FlashInfer paged decode dispatch", corpus, limit=5)
+    record = next(row for row in result["items"] if row["id"] == identity)
+    assert record["read_args"][:2] == ["read", f"package:{identity}"]
+    assert "unreadable" not in record
+    result = find("weight-loading-optimization", corpus, limit=5)
+    skill = next(row for row in result["items"] if row["id"] == "weight-loading-optimization")
+    assert skill["read_args"][:2] == [
+        "read", "package:inferrsi.common.skills.weight_loading_optimization",
+    ]
+    assert "--resource" in skill["read_args"] and "--revision" in skill["read_args"]
 
 
-def test_compact_round_trip_preserves_every_public_field_and_order():
+def test_compiled_inputs_expand_to_public_records():
+    root = GENERATED.parent
+    inputs = json.loads((GENERATED / INPUTS).read_bytes())
+    records = list(skill_views(root))
+    manifest = json.loads((GENERATED / snapshot.MANIFEST).read_bytes())
+    assert {p.name for p in GENERATED.iterdir()} == {INPUTS, snapshot.MANIFEST}
+    assert len(records) == len(inputs) == 88
+    public = search_knowledge(repo="inferrsi", limit=100)
+    assert {r["id"] for r in records} == {r["id"] for r in public}
+    for record in records:
+        assert set(inputs[record["title"]]) == {"files", "header"}
+        assert record["schema_version"] == 1
+        assert record["sources"][0]["commit"] == manifest["source_revision"]
+        assert record["source_files"][snapshot.REGISTRY] == manifest["registry"]["sha256"]
+        assert list(record["source_files"]) == record["sources"][0]["paths"]
+
+
+def test_historical_schema_two_round_trip_preserves_public_field_order():
     public = search_knowledge(repo="inferrsi", limit=1)[0]
-    manifest = json.loads((GENERATED / snapshot.MANIFEST).read_text(encoding="utf-8"))
+    manifest = json.loads((GENERATED / snapshot.MANIFEST).read_bytes())
     stored = snapshot.compact(public)
+    assert stored["schema_version"] == snapshot.STORED_SCHEMA == 2
+    assert "sources" not in stored and snapshot.REGISTRY not in stored["source_files"]
     assert json.dumps(snapshot.resolve(stored, manifest)) == json.dumps(public)
+    stored["source_files"].pop(snapshot.source_entry(public["skill_documents"]["original"]))
+    with pytest.raises(ValueError, match="lacks its entry hash"):
+        snapshot.resolve(stored, manifest)
 
 
 @pytest.mark.parametrize("mutation", [
@@ -50,7 +113,6 @@ def test_compact_round_trip_preserves_every_public_field_and_order():
 ])
 def test_invalid_snapshot_never_resolves(mutation):
     manifest = json.loads((GENERATED / snapshot.MANIFEST).read_text(encoding="utf-8"))
-    stored = json.loads(record_files()[0].read_text(encoding="utf-8"))
     bad = copy.deepcopy(manifest)
     if mutation == "extra":
         bad["unexpected"] = True
@@ -69,26 +131,32 @@ def test_invalid_snapshot_never_resolves(mutation):
     else:
         bad = []
     with pytest.raises(ValueError):
-        snapshot.resolve(stored, bad)
+        snapshot._snapshot(bad)
 
 
 @pytest.mark.parametrize(
-    "mutation", ["v1", "sources", "registry_hash", "missing_entry", "no_origin"])
-def test_invalid_stored_record_never_resolves(mutation):
-    manifest = json.loads((GENERATED / snapshot.MANIFEST).read_text(encoding="utf-8"))
-    stored = json.loads(record_files()[0].read_text(encoding="utf-8"))
-    if mutation == "v1":
-        stored["schema_version"] = 1
-    elif mutation == "sources":
-        stored["sources"] = []
-    elif mutation == "registry_hash":
-        stored["source_files"][snapshot.REGISTRY] = "0" * 64
+    "mutation",
+    ["missing_owner", "extra_owner", "missing_entry", "bad_header", "bad_hash", "escape"],
+)
+def test_invalid_compiled_owner_is_rejected(tmp_path, monkeypatch, mutation):
+    root = _seed(tmp_path, monkeypatch) / LIBRARY
+    inputs = root / "_compiled" / INPUTS
+    data = json.loads(inputs.read_bytes())
+    if mutation == "missing_owner":
+        del data["alpha"]
+    elif mutation == "extra_owner":
+        data["other"] = data["alpha"]
     elif mutation == "missing_entry":
-        stored["source_files"].pop("src/inferrsi/" + stored["skill_documents"]["original"])
+        del data["alpha"]["files"]["SKILL.md"]
+    elif mutation == "bad_hash":
+        data["alpha"]["files"]["SKILL.md"] = "invalid"
+    elif mutation == "escape":
+        data["alpha"]["files"]["../outside"] = "f" * 64
     else:
-        del stored["origin"]
+        data["alpha"]["header"]["name"] = "other"
+    inputs.write_text(json.dumps(data), encoding="utf-8")
     with pytest.raises(ValueError):
-        snapshot.resolve(stored, manifest)
+        list(skill_views(root))
 
 
 # Fixture identity and settings; hosted runners have no global Git identity.
@@ -122,14 +190,11 @@ def _write_skill(root, name, body):
 def _generate(root, monkeypatch):
     revision = _git(root, "rev-parse", "HEAD")
     monkeypatch.setattr(index_builder, "PROJECT", root)
+    monkeypatch.setattr(index_builder, "LIBRARY", LIBRARY)
     assert index_builder.main(["--source-revision", revision]) == 0
     assert index_builder.main(["--source-revision", revision, "--check"]) == 0
     _git(root, "add", "-A")
     _git(root, "commit", "-q", "-m", "Regenerate projections")
-
-
-def _changed(root, base):
-    return set(_git(root, "diff", "--name-only", base, "HEAD").splitlines())
 
 
 def _seed(tmp_path, monkeypatch):
@@ -160,9 +225,11 @@ def test_single_owner_edit_rewrites_only_its_record_and_the_snapshot(tmp_path, m
     _generate(root, monkeypatch)
     generated = DESTINATION.as_posix()
     assert _git(root, "diff", "--name-only", edit, "HEAD").splitlines() == sorted([
-        f"{generated}/{snapshot.MANIFEST}", f"{generated}/common/skills/alpha.json",
+        f"{generated}/{snapshot.MANIFEST}", f"{generated}/{INPUTS}",
     ])
-    assert f"{generated}/common/skills/bravo.json" not in _changed(root, base)
+    def bravo(ref):
+        return json.loads(_git(root, "show", f"{ref}:{generated}/{INPUTS}"))["bravo"]
+    assert bravo(base) == bravo("HEAD")
     # Regeneration from the same source is byte-identical.
     assert index_builder.main(["--source-revision", edit, "--check"]) == 0
 
@@ -181,22 +248,20 @@ def test_parallel_owner_edits_integrate_in_either_order(tmp_path, monkeypatch, o
             # Only the shared snapshot may collide (the fixture has no coverage view);
             # take either side, then regenerate it from the merged source.
             conflicted = set(_git(root, "diff", "--name-only", "--diff-filter=U").splitlines())
-            assert conflicted == {f"{generated}/{snapshot.MANIFEST}"}
-            _git(root, "checkout", "--ours", "--", f"{generated}/{snapshot.MANIFEST}")
+            expected = {f"{generated}/{snapshot.MANIFEST}", f"{generated}/{INPUTS}"}
+            assert conflicted and conflicted <= expected
+            _git(root, "checkout", "--ours", "--", *sorted(conflicted))
             _git(root, "add", "-A")
             _git(root, "commit", "-q", "--no-edit")
         _generate(root, monkeypatch)
     for owner in ("alpha", "bravo"):
         body = (root / LIBRARY / "methods" / owner / "SKILL.md").read_text(encoding="utf-8")
         assert f"{owner} contribution" in body
-        stored = json.loads((root / generated / f"common/skills/{owner}.json").read_text(
-            encoding="utf-8"))
-        entry = f"{LIBRARY.as_posix()}/methods/{owner}/SKILL.md"
-        assert stored["source_files"][entry] == hashlib.sha256(body.encode("utf-8")).hexdigest()
-    # The untouched owner's stored record never changes.
-    charlie = f"{generated}/common/skills/charlie.json"
-    assert _git(root, "rev-parse", f"{seeded}:{charlie}") == _git(
-        root, "rev-parse", f"HEAD:{charlie}")
+        stored = json.loads((root / generated / INPUTS).read_bytes())[owner]
+        assert stored["files"]["SKILL.md"] == hashlib.sha256(body.encode("utf-8")).hexdigest()
+    def charlie(ref):
+        return json.loads(_git(root, "show", f"{ref}:{generated}/{INPUTS}"))["charlie"]
+    assert charlie(seeded) == charlie("HEAD")
 
 
 def test_same_owner_divergent_edits_remain_an_explicit_conflict(tmp_path, monkeypatch):
@@ -216,12 +281,14 @@ def test_check_detects_tampered_or_missing_snapshot(tmp_path, monkeypatch):
     revision = _git(root, "rev-parse", "HEAD~1")
     manifest = root / DESTINATION / snapshot.MANIFEST
     original = manifest.read_text(encoding="utf-8")
+    manifest.write_bytes(original.replace("\n", "\r\n").encode("utf-8"))
+    assert index_builder.main(["--source-revision", revision, "--check"]) == 1
     manifest.write_text(original.replace(revision, "b" * 40), encoding="utf-8")
     assert index_builder.main(["--source-revision", revision, "--check"]) == 1
     manifest.unlink()
     assert index_builder.main(["--source-revision", revision, "--check"]) == 1
-    manifest.write_text(original, encoding="utf-8")
-    record = root / DESTINATION / "common/skills/alpha.json"
+    manifest.write_text(original, encoding="utf-8", newline="\n")
+    record = root / DESTINATION / INPUTS
     stored = json.loads(record.read_text(encoding="utf-8"))
     stored["sources"] = []
     record.write_text(json.dumps(stored), encoding="utf-8")

@@ -11,8 +11,8 @@ from test_optimization_session import session as session
 from test_optimization_session import submit
 from test_optimization_session import task as task
 
-from inferrsi.observability.dashboard import dashboard_snapshot, render_dashboard
-from inferrsi.observability.dashboard_live import DashboardServer
+from inferrsi.apps.views.dashboard import dashboard_snapshot, render_dashboard
+from inferrsi.apps.views.dashboard_live import DashboardServer
 
 playwright = pytest.importorskip("playwright.sync_api")
 FIXTURE = runpy.run_path(str(Path(__file__).parent / "fixtures/dashboard_experiments.py"))
@@ -38,6 +38,17 @@ def test_offline_axes_keyboard_exact_run_and_shared_selection(browser, campaign)
     page.on("pageerror", lambda e: errors.append(str(e)))
     page.on("request", lambda r: requests.append(r.url))
     page.goto((campaign / "dashboard.html").as_uri())
+    assert page.locator("#verdict-total").inner_text() == "16"
+    legend = page.locator("#verdict-legend")
+    assert dict(zip(legend.locator("dt").all_text_contents(),
+                    legend.locator("dd").all_text_contents(), strict=True)) == {
+        "PASS": "0", "FAIL": "3", "INCONCLUSIVE": "12", "Not recorded": "1",
+    }
+    # The unavailable measurement for the missing artifact is excluded.
+    coverage = page.locator("#coverage")
+    for label, count in [("Measurements", "20"), ("Recorded events", "22")]:
+        fact = coverage.get_by_text(label, exact=True).locator("..")
+        assert fact.locator("b").inner_text() == count
     root = page.locator("#summary-experiments")
     root.locator('[data-xp-control="workload"]').select_option("W1")
     assert page.locator('#chart [data-xp-control="workload"]').input_value() == "W1"
@@ -69,8 +80,10 @@ def test_offline_axes_keyboard_exact_run_and_shared_selection(browser, campaign)
     point.focus()
     page.keyboard.press("Space")
     assert "native-run-b" in detail.inner_text() and "110 tokens/s" in detail.inner_text()
-    detail.get_by_role("button", name="Open experiment · native-run-b").click()
-    assert "native-run-b" in page.locator("#run-review").inner_text()
+    detail.get_by_role("button", name="Open experiment · native-run-b").press("Enter")
+    review = page.get_by_role("region", name="Run review", exact=True)
+    playwright.expect(review).to_be_focused()
+    assert "native-run-b" in review.inner_text()
     # A legacy candidate-only link offers both runs rather than opening the first.
     page.locator('[data-live-key="summary-records"] summary').click()
     page.locator('button.chip').filter(has_text="native-repeat · Ambiguous").click()
@@ -109,6 +122,60 @@ def test_time_axis_chinese_narrow_screen_and_accessible_table(browser, campaign)
     assert "2026-01-01T12:02:00.000Z" in root.locator(".xp-detail").inner_text()
     assert "数值" in root.locator(".xp-detail").inner_text()
     assert not errors
+    page.close()
+
+
+def test_story_tabs_keep_keyboard_focus_and_label_the_active_panel(browser, campaign):
+    page = browser.new_page()
+    page.goto((campaign / "dashboard.html").as_uri())
+    story = page.locator("#story")
+    tabs = story.get_by_role("tablist").get_by_role("tab")
+    story.get_by_role("tab", selected=True).focus()
+    last = tabs.count() - 1
+    assert last > 0
+    for key, index in [("Home", 0), ("ArrowRight", 1), ("End", last),
+                       ("ArrowRight", 0), ("ArrowLeft", last)]:
+        page.keyboard.press(key)
+        active = tabs.nth(index)
+        playwright.expect(active).to_be_focused()
+        assert active.get_attribute("aria-selected") == "true"
+        assert [tab.evaluate("el => el.tabIndex") for tab in tabs.all()] == [
+            0 if i == index else -1 for i in range(last + 1)]
+        panel = story.get_by_role("tabpanel")
+        assert panel.is_visible()
+        tab_id, panel_id = active.get_attribute("id"), panel.get_attribute("id")
+        assert tab_id and panel_id
+        assert active.get_attribute("aria-controls") == panel_id
+        assert panel.get_attribute("aria-labelledby") == tab_id
+    page.close()
+
+
+@pytest.mark.parametrize("profile_first", [False, True])
+def test_narrow_viewport_contains_data_in_both_languages(browser, campaign, profile_first):
+    path = campaign / "dashboard.html"
+    if profile_first:
+        snapshot = dashboard_snapshot(campaign)
+        snapshot["data"]["review_layout"] = "profile_first"
+        path.write_text(render_dashboard(snapshot), encoding="utf-8")
+    page = browser.new_page(viewport={"width": 320, "height": 740})
+    page.goto(path.as_uri())
+    for language in ["en", "zh-CN"]:
+        if page.locator("html").get_attribute("lang") != language:
+            page.locator("#language" if profile_first else "#language-zh").click()
+        assert page.locator("html").get_attribute("lang") == language
+        assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
+        if not profile_first:
+            region = page.locator('#candidate-rows').locator('xpath=ancestor::*[@role="region"][1]')
+            heading_id = region.get_attribute("aria-labelledby")
+            assert heading_id
+            heading = page.locator(f"#{heading_id}")
+            assert heading.evaluate("el => /^H[1-6]$/.test(el.tagName)")
+            playwright.expect(region).to_have_accessible_name(heading.inner_text())
+            assert region.evaluate("el => el.tabIndex") == 0
+            region.evaluate("el => { el.scrollLeft = 0 }")
+            region.focus()
+            page.keyboard.press("ArrowRight")
+            page.wait_for_function("el => el.scrollLeft > 0", arg=region.element_handle())
     page.close()
 
 
@@ -186,6 +253,64 @@ def test_profile_layout_preserves_partial_summary_and_keyboard_drilldown(browser
     page.close()
 
 
+def test_profile_home_shows_absolute_trend_and_links_exact_round(browser, tmp_path):
+    from test_dashboard_data import candidate, run, write_json
+
+    write_json(tmp_path / "campaign.json", {
+        "campaign_id": "paired", "review_layout": "profile_first",
+        "goal": {"target_improvement_pct": 50},
+    })
+    for number, gain in enumerate((10, 15), start=1):
+        name = f"run-{number}"
+        run(tmp_path, name, gain, quality="completed", verified=True)
+        candidate(tmp_path, name, name, round=number)
+    path = tmp_path / "dashboard.html"
+    path.write_text(render_dashboard(dashboard_snapshot(tmp_path)), encoding="utf-8")
+    page = browser.new_page(viewport={"width": 320, "height": 800})
+    page.goto(path.as_uri())
+    chart = page.locator("#chart")
+    assert chart.locator(".xp-chart").is_visible()
+    assert chart.locator(".xp-point").count() == 2
+    assert chart.locator(".xp-reference").count() == 0
+    assert not chart.locator(".xp-detail").is_visible()
+    chart.locator(".xp-point").last.press("Enter")
+    playwright.expect(chart.locator(".xp-detail")).to_be_visible()
+    playwright.expect(chart.locator(".xp-detail")).to_contain_text("115 tokens/s")
+    assert not page.locator("#paired-chart").is_visible()
+    page.locator("#paired-title").click()
+    assert page.locator("#paired-chart svg").is_visible()
+    assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
+    page.locator("#trend-rounds button").last.press("Enter")
+    playwright.expect(page.locator("#rounds summary:focus")).to_contain_text("run-2")
+    page.close()
+
+
+def test_mixed_profile_keeps_native_paired_reference(browser, tmp_path):
+    from test_dashboard_data import candidate, run, write_json
+
+    write_json(tmp_path / "campaign.json", {
+        "campaign_id": "mixed", "review_layout": "profile_first",
+        "goal": {"target_improvement_pct": 50},
+    })
+    run(tmp_path, "native", 15, quality="completed", verified=True)
+    candidate(tmp_path, "native", "native", round=1)
+    native_chart = dashboard_snapshot(tmp_path)["chart"]
+    FIXTURE["external"](tmp_path, "external-latency", 2, [FIXTURE["metric"]()])
+    snapshot = dashboard_snapshot(tmp_path)
+    path = tmp_path / "dashboard.html"
+    path.write_text(render_dashboard(snapshot), encoding="utf-8")
+    page = browser.new_page()
+    page.goto(path.as_uri())
+    playwright.expect(page.locator("#paired-title")).to_be_visible()
+    page.locator("#paired-title").click()
+    playwright.expect(page.locator("#paired-chart svg")).to_be_visible()
+    assert "Target" in native_chart and snapshot["chart"] == native_chart
+    chart = page.locator("#chart")
+    chart.locator('[data-xp-control="workload"]').select_option("W1")
+    playwright.expect(chart.locator('.xp-point[aria-label^="external-latency"]')).to_be_visible()
+    page.close()
+
+
 @pytest.mark.parametrize("field", ["hardware", "protocol", "server_profile"])
 @pytest.mark.parametrize("profile_first", [False, True])
 def test_blank_configuration_renders_isolated_points_and_reason(
@@ -209,6 +334,7 @@ def test_blank_configuration_renders_isolated_points_and_reason(
     try:
         page.goto(path.as_uri())
         if profile_first:
+            assert page.locator("#paired-reference").is_hidden()  # External-only campaign.
             page.locator("#language").click()
             page.locator('[data-key="summary"] > summary').click()
         root = page.locator("#summary-experiments")
@@ -251,6 +377,7 @@ def test_managed_session_preserves_objective_and_token_chart(browser, session, c
             path.write_text(render_dashboard(snapshot), encoding="utf-8")
             page.goto(path.as_uri())
         chart = page.locator("#chart")
+        assert page.locator("#coverage").inner_text() == ""
         curve = chart.get_by_role("img", name="Optimization objective and cumulative tokens")
         playwright.expect(curve).to_be_visible()
         assert "Independent final" in chart.inner_text()
@@ -283,7 +410,7 @@ def test_managed_session_preserves_objective_and_token_chart(browser, session, c
 @pytest.mark.parametrize(
     "panel_key,root_id", [("summary", "summary-experiments"), ("trend", "chart")],
 )
-def test_profile_panels_collapsed_and_state_survives_render(
+def test_profile_opens_with_trend_and_keeps_reader_panel_state(
     browser, campaign, live, panel_key, root_id,
 ):
     path = campaign / "campaign.json"
@@ -302,14 +429,16 @@ def test_profile_panels_collapsed_and_state_survives_render(
             path = campaign / "profile.html"
             path.write_text(render_dashboard(dashboard_snapshot(campaign)))
             page.goto(path.as_uri())
-        assert not page.locator("#chart .xp-chart").first.is_visible()
+        assert page.locator("#chart .xp-chart").first.is_visible()
         assert page.locator("main > section").evaluate_all(
             "nodes => nodes.every(n => n.querySelector(':scope > details.panel'))")
-        assert page.locator("details.panel[open]").count() == 0
+        assert page.locator("details.panel[open]").evaluate_all(
+            "nodes => nodes.map(n => n.dataset.key)") == ["trend"]
         panel = page.locator(f'[data-key="{panel_key}"]')
         root = page.locator(f"#{root_id}")
-        assert not root.is_visible()
-        panel.locator(":scope > summary").click()
+        if panel_key == "summary":
+            assert not root.is_visible()
+            panel.locator(":scope > summary").click()
         playwright.expect(root).to_be_visible()
         page.locator("#language").click()
         assert panel.evaluate("node => node.open")
@@ -369,8 +498,8 @@ def test_dense_round_titles_do_not_overlap(browser, tmp_path, profile_first, wid
     try:
         page.goto(path.as_uri())
         if profile_first:
-            for key in ("trend", "summary"):
-                page.locator(f'[data-key="{key}"] > summary').click()
+            playwright.expect(page.locator("#chart")).to_be_visible()
+            page.locator('[data-key="summary"] > summary').click()
         for panel in (page.locator("#chart"), page.locator("#summary-experiments")):
             labels = panel.locator(".xp-axis-name")
             assert labels.count() == len(titles)

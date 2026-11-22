@@ -1,13 +1,13 @@
 {
-  "version": "0.1.0",
+  "version": "0.0.0+source",
   "package_type": "plugin",
   "id": "inferrsi",
   "name": "InferRSI",
-  "description": "Research inference optimizations and prepare, run and inspect evidence-based comparisons.",
+  "description": "Bring up models and engines, align inference stacks, diagnose performance, accuracy and runtime failures, and verify changes against evidence.",
   "display_name": {"en": "InferRSI", "zh": "InferRSI"},
   "display_description": {
-    "en": "Find cited inference knowledge, prepare controlled comparisons and inspect experiment evidence.",
-    "zh": "检索有来源的推理优化知识，准备受控基线与候选对比，并解读实验进度、证据和验证结论。"
+    "en": "Bring up models and engines, align versions, investigate performance, failures and accuracy, and inspect benchmark evidence.",
+    "zh": "接入模型、开发推理引擎、对齐版本、诊断性能与运行故障、修复精度问题，并核对基准测试证据。"
   },
   "category": "Engineering",
   "source": "local",

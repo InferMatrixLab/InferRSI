@@ -1,0 +1,362 @@
+"""Exact inventory of the files directly under ``src/inferrsi/``.
+
+Set by #451 C1, C2, #412 R1 and #408 A1, A2 and #452 M1. The flat package root is
+retired. This guard pins the root to the exact two files that remain, ``__init__.py``
+and ``__main__.py``, and rejects any other root file.
+"""
+
+from __future__ import annotations
+
+import ast
+import subprocess
+from pathlib import Path
+
+import pytest
+
+REPO = Path(__file__).resolve().parents[1]
+PACKAGE = "src/inferrsi"
+# The 27 tracked root files before C1, minus the four that C1 moved into contracts/,
+# the two that C2 moved into resources/, contracts/ and apps/, the eleven that R1
+# retired: seven Knowledge shells, three old-run forwarders and the root inspection
+# binding, whose implementations are in knowledge/ and apps/, the two that A1 moved
+# into apps/cli/, the two that A2 moved into apps/ and the four that M1 moved into
+# apps/integrations/mindie/.
+RETIRED_BY_C1 = frozenset({"_json_v1.py", "claim.py", "contracts.py", "runspec.py"})
+RETIRED_BY_C2 = frozenset({"_repo_pack_data.py", "evidence_paths.py"})
+RETIRED_BY_R1 = frozenset(
+    {
+        "_skill_selection.py",
+        "_source_snapshot.py",
+        "catalog.py",
+        "knowledge_operations.py",
+        "knowledge_store.py",
+        "research.py",
+        "skill_catalog.py",
+        "evaluation.py",
+        "execution.py",
+        "reporting.py",
+        "inspection.py",
+    }
+)
+# A1 (#408) moved the CLI and its parser to apps/cli/ and deleted both root files.
+RETIRED_BY_A1 = frozenset({"arguments.py", "cli.py"})
+# A2 (#408) moved the chart renderer to apps/views/ and the task launcher to apps/, and
+# deleted both root files.
+RETIRED_BY_A2 = frozenset({"benchmark_operations.py", "summary_chart.py"})
+# M1 (#452) moved the MindIE adapter to apps/integrations/mindie/ and deleted the four root files.
+RETIRED_BY_M1 = frozenset(
+    {"_mindie_read_worker.py", "mindie_context.py", "mindie_mcp.py", "mindie_project.py"}
+)
+RETIRED = (
+    RETIRED_BY_C1 | RETIRED_BY_C2 | RETIRED_BY_R1 | RETIRED_BY_A1 | RETIRED_BY_A2 | RETIRED_BY_M1
+)
+ROOT_FILES = frozenset({"__init__.py", "__main__.py"})
+# setuptools-scm writes this file at build time. It is gitignored wheel metadata and is
+# never a tracked root file.
+GENERATED = "_version.py"
+
+
+def inventory_errors(found: set[str], expected: frozenset[str] = ROOT_FILES) -> list[str]:
+    errors = [
+        f"unexpected root file {PACKAGE}/{name}: a new module belongs in a subpackage"
+        for name in sorted(found - expected)
+    ]
+    errors += [
+        f"missing root file {PACKAGE}/{name}: shrink ROOT_FILES in the PR that removes it"
+        for name in sorted(expected - found)
+    ]
+    return errors
+
+
+def _listed(repo: Path, *options: str) -> set[str]:
+    output = subprocess.run(
+        ["git", "-C", str(repo), "ls-files", "-z", *options, "--", f":(glob){PACKAGE}/*"],
+        check=True, capture_output=True,
+    ).stdout
+    return {name.rsplit("/", 1)[1] for name in output.decode("utf-8").split("\0") if name}
+
+
+def root_files(repo: Path) -> set[str]:
+    """Root files that the next commit of ``repo`` tracks.
+
+    These are the tracked files still on disk plus the untracked files Git does not
+    ignore. In a clean checkout that is exactly the tracked set. A new root file is
+    therefore reported before and after it is staged, and the ignored generated
+    ``_version.py`` never counts.
+    """
+    present = _listed(repo, "--cached", "--others", "--exclude-standard")
+    return present - _listed(repo, "--deleted")
+
+
+def test_inventory_is_the_exact_final_two_file_root() -> None:
+    assert len(ROOT_FILES) == 2
+    assert len(RETIRED_BY_C1) == 4 and len(RETIRED_BY_C2) == 2 and len(RETIRED_BY_R1) == 11
+    assert RETIRED_BY_A1 == {"arguments.py", "cli.py"}
+    assert RETIRED_BY_A2 == {"benchmark_operations.py", "summary_chart.py"}
+    assert RETIRED_BY_M1 == {
+        "_mindie_read_worker.py", "mindie_context.py", "mindie_mcp.py", "mindie_project.py",
+    }
+    assert not ROOT_FILES & RETIRED
+    assert len(RETIRED) == 25
+    # 27 before C1, 23 after C1, 21 after C2, 10 after R1, 8 after A1, 6 after A2, 2 after M1.
+    assert len(ROOT_FILES | RETIRED) == 27
+    assert len(
+        ROOT_FILES | RETIRED_BY_C2 | RETIRED_BY_R1 | RETIRED_BY_A1 | RETIRED_BY_A2 | RETIRED_BY_M1
+    ) == 23
+    assert len(ROOT_FILES | RETIRED_BY_R1 | RETIRED_BY_A1 | RETIRED_BY_A2 | RETIRED_BY_M1) == 21
+    assert len(ROOT_FILES | RETIRED_BY_A1 | RETIRED_BY_A2 | RETIRED_BY_M1) == 10
+    assert len(ROOT_FILES | RETIRED_BY_A2 | RETIRED_BY_M1) == 8
+    assert len(ROOT_FILES | RETIRED_BY_M1) == 6
+    assert GENERATED not in ROOT_FILES
+    assert ROOT_FILES == {"__init__.py", "__main__.py"}
+    # M1 moved its four files into Apps; #490 groups the implementation in integrations.
+    for name in ("project.py", "context.py", "mcp.py", "read_worker.py"):
+        assert (REPO / PACKAGE / "apps" / "integrations" / "mindie" / name).is_file(), name
+    # The package initializer stays import-free, so importing it loads no core and
+    # does not re-export the package version.
+    initializer = ast.parse((REPO / PACKAGE / "apps/integrations/mindie/__init__.py").read_text(
+        encoding="utf-8"))
+    assert not [node for node in ast.walk(initializer)
+                if isinstance(node, (ast.Import, ast.ImportFrom))]
+    # A2 moved its two files into Apps.
+    assert (REPO / PACKAGE / "apps" / "benchmark_operations.py").is_file()
+    assert (REPO / PACKAGE / "apps" / "workflows" / "benchmark_operations.py").is_file()
+    assert (REPO / PACKAGE / "apps" / "views" / "summary_chart.py").is_file()
+    # A1 moved its two files; the implementation is the apps/cli package.
+    for name in ("__init__.py", "arguments.py"):
+        assert (REPO / PACKAGE / "apps" / "cli" / name).is_file(), name
+    # C2 moved its two files; it left nothing behind under either old name.
+    assert (REPO / PACKAGE / "resources" / "repository_packs.py").is_file()
+    assert (REPO / PACKAGE / "contracts" / "evidence.py").is_file()
+    assert (REPO / PACKAGE / "apps" / "evidence_layout.py").is_file()
+    # R1 deleted its eleven files. Each implementation is at its canonical path.
+    for name in RETIRED_BY_R1 - {"evaluation.py", "execution.py", "reporting.py",
+                                 "inspection.py"}:
+        assert (REPO / PACKAGE / "knowledge" / name).is_file(), name
+    for name in ("legacy/evaluation.py", "legacy/run.py", "legacy/reporting.py",
+                 "inspection.py"):
+        assert (REPO / PACKAGE / "apps" / name).is_file(), name
+    for name in RETIRED:
+        assert not (REPO / PACKAGE / name).exists(), name
+        # No package directory stands in for a retired module either.
+        assert not (REPO / PACKAGE / name.removesuffix(".py") / "__init__.py").exists() or (
+            name == "contracts.py"
+        ), name
+
+
+def test_on_disk_root_matches_the_inventory() -> None:
+    on_disk = {path.name for path in (REPO / PACKAGE).iterdir() if path.is_file()}
+    assert inventory_errors(on_disk - {GENERATED}) == []
+
+
+def test_tracked_root_matches_the_inventory() -> None:
+    if not (REPO / ".git").exists():
+        pytest.skip("Git metadata is required for the tracked-file inventory")
+    assert inventory_errors(root_files(REPO)) == []
+    # The generated version file is ignored, so a build cannot add it to the inventory.
+    ignored = subprocess.run(
+        ["git", "-C", str(REPO), "check-ignore", "-q", f"{PACKAGE}/{GENERATED}"], check=False
+    )
+    assert ignored.returncode == 0
+
+
+@pytest.mark.parametrize("name", ["helper.py", "py.typed", GENERATED, *sorted(RETIRED)])
+def test_an_added_root_file_is_rejected(name: str) -> None:
+    assert inventory_errors(set(ROOT_FILES) | {name}) == [
+        f"unexpected root file {PACKAGE}/{name}: a new module belongs in a subpackage"
+    ]
+
+
+def test_a_removed_root_file_must_shrink_the_inventory() -> None:
+    # M1 itself: the 6-file set it started from no longer matches the 2-file root, and
+    # keeping any of the four old files beside the apps/mindie package is rejected.
+    after_a2 = ROOT_FILES | RETIRED_BY_M1
+    assert inventory_errors(set(ROOT_FILES), after_a2) == [
+        f"missing root file {PACKAGE}/{name}: shrink ROOT_FILES in the PR that removes it"
+        for name in sorted(RETIRED_BY_M1)
+    ]
+    assert inventory_errors(set(after_a2)) == [
+        f"unexpected root file {PACKAGE}/{name}: a new module belongs in a subpackage"
+        for name in sorted(RETIRED_BY_M1)
+    ]
+    for name in sorted(RETIRED_BY_M1):
+        assert inventory_errors(set(ROOT_FILES) | {name}) == [
+            f"unexpected root file {PACKAGE}/{name}: a new module belongs in a subpackage"
+        ]
+    # A2 itself: the 8-file set it started from no longer matched its 6-file root, and
+    # keeping either old file beside its moved module was rejected.
+    after_a1 = after_a2 | RETIRED_BY_A2
+    assert inventory_errors(set(after_a2), after_a1) == [
+        f"missing root file {PACKAGE}/{name}: shrink ROOT_FILES in the PR that removes it"
+        for name in sorted(RETIRED_BY_A2)
+    ]
+    assert inventory_errors(set(after_a1), after_a2) == [
+        f"unexpected root file {PACKAGE}/{name}: a new module belongs in a subpackage"
+        for name in sorted(RETIRED_BY_A2)
+    ]
+    # A1 itself: the 10-file set it started from no longer matched its 8-file root, and
+    # keeping either old file beside the moved package was rejected.
+    after_r1 = after_a1 | RETIRED_BY_A1
+    assert inventory_errors(set(after_a1), after_r1) == [
+        f"missing root file {PACKAGE}/{name}: shrink ROOT_FILES in the PR that removes it"
+        for name in sorted(RETIRED_BY_A1)
+    ]
+    assert inventory_errors(set(after_r1), after_a1) == [
+        f"unexpected root file {PACKAGE}/{name}: a new module belongs in a subpackage"
+        for name in sorted(RETIRED_BY_A1)
+    ]
+    # C2 itself: the 23-file set it started from no longer matched its 21-file root.
+    after_c2 = after_r1 | RETIRED_BY_R1
+    before_c2 = after_c2 | RETIRED_BY_C2
+    assert inventory_errors(set(after_c2), before_c2) == [
+        f"missing root file {PACKAGE}/{name}: shrink ROOT_FILES in the PR that removes it"
+        for name in sorted(RETIRED_BY_C2)
+    ]
+    # R1 itself: the 21-file set it started from no longer matches the 10-file root.
+    assert inventory_errors(set(after_r1), after_c2) == [
+        f"missing root file {PACKAGE}/{name}: shrink ROOT_FILES in the PR that removes it"
+        for name in sorted(RETIRED_BY_R1)
+    ]
+    # Keeping any old file beside its moved implementation is rejected, one by one
+    # and all together.
+    assert inventory_errors(set(after_c2), after_r1) == [
+        f"unexpected root file {PACKAGE}/{name}: a new module belongs in a subpackage"
+        for name in sorted(RETIRED_BY_R1)
+    ]
+    assert inventory_errors(set(ROOT_FILES) | RETIRED_BY_C2) == [
+        f"unexpected root file {PACKAGE}/{name}: a new module belongs in a subpackage"
+        for name in sorted(RETIRED_BY_C2)
+    ]
+    # Deleting only ten of the eleven, or one file too many, is not the R1 root.
+    for name in sorted(RETIRED_BY_R1):
+        assert inventory_errors(set(ROOT_FILES) | {name}) == [
+            f"unexpected root file {PACKAGE}/{name}: a new module belongs in a subpackage"
+        ]
+    for name in sorted(ROOT_FILES):
+        assert inventory_errors(set(ROOT_FILES) - {name}) == [
+            f"missing root file {PACKAGE}/{name}: shrink ROOT_FILES in the PR that removes it"
+        ]
+
+
+def test_git_view_reports_root_changes_before_and_after_staging(tmp_path: Path) -> None:
+    def git(*args: str) -> None:
+        subprocess.run(["git", "-C", str(tmp_path), *args], check=True, capture_output=True)
+
+    def unexpected(name: str) -> str:
+        return f"unexpected root file {PACKAGE}/{name}: a new module belongs in a subpackage"
+
+    git("init", "-q")
+    (tmp_path / ".gitignore").write_bytes((REPO / ".gitignore").read_bytes())
+    root = tmp_path / PACKAGE
+    (root / "contracts").mkdir(parents=True)
+    for name in ROOT_FILES:
+        (root / name).write_text("", encoding="utf-8")
+    # A subpackage file is not a root file, and the ignored build output never counts.
+    (root / "contracts" / "extra.py").write_text("", encoding="utf-8")
+    (root / GENERATED).write_text("", encoding="utf-8")
+    assert root_files(tmp_path) == ROOT_FILES
+    git("add", ".")
+    assert root_files(tmp_path) == ROOT_FILES
+
+    (root / "helper.py").write_text("", encoding="utf-8")
+    assert inventory_errors(root_files(tmp_path)) == [unexpected("helper.py")]
+    git("add", ".")
+    assert inventory_errors(root_files(tmp_path)) == [unexpected("helper.py")]
+    (root / "helper.py").unlink()
+    assert inventory_errors(root_files(tmp_path)) == []
+
+    # Tracking the generated file by force is a root addition like any other.
+    git("add", "--force", f"{PACKAGE}/{GENERATED}")
+    assert inventory_errors(root_files(tmp_path)) == [unexpected(GENERATED)]
+    git("rm", "--cached", "-q", f"{PACKAGE}/{GENERATED}")
+    (root / "runspec.py").write_text("", encoding="utf-8")
+    assert inventory_errors(root_files(tmp_path)) == [unexpected("runspec.py")]
+    (root / "runspec.py").unlink()
+    (root / "__main__.py").unlink()
+    assert inventory_errors(root_files(tmp_path)) == [
+        f"missing root file {PACKAGE}/__main__.py: shrink ROOT_FILES in the PR that removes it"
+    ]
+
+
+# #498 slice 5: the package holds exactly these six directories. Infra and Model are gone,
+# and a new sibling package or a returning old one fails here, with or without a file in it.
+PACKAGE_DIRECTORIES = frozenset(
+    {"apps", "benchmark", "contracts", "harness", "knowledge", "resources"}
+)
+RETIRED_DIRECTORIES = frozenset({"infra", "model"})
+
+
+def directory_errors(found: set[str], expected: frozenset[str] = PACKAGE_DIRECTORIES) -> list[str]:
+    errors = [
+        f"unexpected package directory {PACKAGE}/{name}: a new package needs its own review"
+        for name in sorted(found - expected)
+    ]
+    errors += [f"missing package directory {PACKAGE}/{name}" for name in sorted(expected - found)]
+    errors += [
+        f"retired package directory {PACKAGE}/{name} returned: it was removed by #498"
+        for name in sorted(found & RETIRED_DIRECTORIES)
+    ]
+    return errors
+
+
+def package_directories(repo: Path) -> set[str]:
+    """Top-level package directories that hold a tracked or non-ignored Python file."""
+    output = subprocess.run(
+        ["git", "-C", str(repo), "ls-files", "-z", "--cached", "--others",
+         "--exclude-standard", "--", f":(glob){PACKAGE}/*/**"],
+        check=True, capture_output=True,
+    ).stdout
+    names = {name.split("/")[2] for name in output.decode("utf-8").split("\0") if name}
+    return names
+
+
+def test_the_package_holds_exactly_the_six_directories() -> None:
+    assert len(PACKAGE_DIRECTORIES) == 6
+    assert not PACKAGE_DIRECTORIES & RETIRED_DIRECTORIES
+    on_disk = {
+        path.name for path in (REPO / PACKAGE).iterdir()
+        if path.is_dir() and any(path.rglob("*.py"))
+    }
+    assert directory_errors(on_disk) == []
+
+
+def test_tracked_directories_match_the_inventory() -> None:
+    if not (REPO / ".git").exists():
+        pytest.skip("Git metadata is required for the tracked-file inventory")
+    assert directory_errors(package_directories(REPO)) == []
+
+
+@pytest.mark.parametrize("name", sorted(RETIRED_DIRECTORIES))
+def test_a_retired_directory_is_rejected_even_when_it_is_empty_of_modules(name: str) -> None:
+    found = set(PACKAGE_DIRECTORIES) | {name}
+    assert any(f"{name} returned" in error for error in directory_errors(found))
+
+
+@pytest.mark.parametrize("name", ["tools", "plugins", "model_zoo", "infra_extra"])
+def test_a_new_sibling_package_is_rejected(name: str) -> None:
+    errors = directory_errors(set(PACKAGE_DIRECTORIES) | {name})
+    assert errors == [
+        f"unexpected package directory {PACKAGE}/{name}: a new package needs its own review"
+    ]
+
+
+def test_a_missing_directory_is_reported() -> None:
+    errors = directory_errors(set(PACKAGE_DIRECTORIES) - {"resources"})
+    assert errors == [f"missing package directory {PACKAGE}/resources"]
+
+
+def test_the_directory_view_reports_a_new_package_before_it_is_staged(tmp_path: Path) -> None:
+    repo = tmp_path / "repo"
+    (repo / PACKAGE / "apps").mkdir(parents=True)
+    (repo / PACKAGE / "apps" / "a.py").write_text("", encoding="utf-8")
+    subprocess.run(["git", "init", "-q", str(repo)], check=True)
+    assert package_directories(repo) == {"apps"}
+    (repo / PACKAGE / "model").mkdir()
+    (repo / PACKAGE / "model" / "__init__.py").write_text("", encoding="utf-8")
+    assert package_directories(repo) == {"apps", "model"}
+    # Generated bytecode never counts, ignored or not tracked.
+    (repo / ".gitignore").write_text("__pycache__/\n", encoding="utf-8")
+    cache = repo / PACKAGE / "cache_only" / "__pycache__"
+    cache.mkdir(parents=True)
+    (cache / "x.pyc").write_bytes(b"")
+    assert "cache_only" not in package_directories(repo)

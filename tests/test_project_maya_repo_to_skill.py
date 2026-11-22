@@ -11,8 +11,10 @@ from urllib.parse import unquote, urlsplit
 import pytest
 import yaml
 
+from inferrsi.knowledge.skill_catalog import skill_metadata
+
 PROJECT = Path(__file__).resolve().parents[1]
-ROOT = PROJECT / "src/inferrsi/data/skill_library/repositories/project-maya"
+ROOT = PROJECT / "src/inferrsi/knowledge/data/skill_library/systems/engines/project-maya"
 CASES = PROJECT / "tests/fixtures/repo_to_skill/project-maya/test-cases"
 
 
@@ -34,7 +36,7 @@ def test_maya_graph_links_frontmatter_source_and_unverified_state():
                 continue
             selected = (path.parent / unquote(link.path)).resolve()
             assert selected.is_relative_to(ROOT.resolve()) and selected.is_file(), (path, target)
-    metadata = json.loads((ROOT / "metadata.json").read_text())
+    metadata = skill_metadata(ROOT.parent, ROOT.name)
     assert metadata["status"] == "candidate"
     assert metadata["empirical_validation"] == "partial_cpu_only"
     assert metadata["construction"]["native_import"] == "not-run"

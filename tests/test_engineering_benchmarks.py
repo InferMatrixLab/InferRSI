@@ -8,8 +8,8 @@ from pathlib import Path
 
 import pytest
 
+from inferrsi.apps.cli import main
 from inferrsi.benchmark.registry import builtin_tasks, describe_task, task_resources
-from inferrsi.cli import main
 from inferrsi.harness import optimization_session
 
 EXPECTED = {
@@ -23,6 +23,18 @@ def test_cli_lists_the_three_packaged_workloads(capsys):
     assert main(["benchmarks", "list"]) == 0
     assert json.loads(capsys.readouterr().out) == sorted(EXPECTED)
     assert builtin_tasks() == sorted(EXPECTED)
+
+
+def test_cli_lists_packaged_iterative_workloads(capsys):
+    assert main(["benchmarks", "list", "--iterative"]) == 0
+    assert json.loads(capsys.readouterr().out) == ["moe-forward-npu", "qwen21-denoise-npu"]
+
+
+def test_benchmark_list_help_documents_iterative(capsys):
+    with pytest.raises(SystemExit) as result:
+        main(["benchmarks", "list", "--help"])
+    assert result.value.code == 0
+    assert "--iterative" in capsys.readouterr().out
 
 
 @pytest.mark.parametrize("name,task_id", EXPECTED.items())
@@ -55,9 +67,11 @@ def test_unknown_packages_are_rejected(name):
 def test_discovery_does_not_import_device_libraries():
     script = """
 import sys
+from inferrsi.apps.cli import main
 from inferrsi.benchmark.registry import builtin_tasks, describe_task
 for name in builtin_tasks():
     describe_task(name)
+assert main(["benchmarks", "list", "--iterative"]) == 0
 assert not {'torch', 'torch_npu', 'qwen_tts', 'vllm', 'vllm_omni'} & sys.modules.keys()
 """
     subprocess.run([sys.executable, "-c", script], check=True, timeout=15)
@@ -90,7 +104,9 @@ def test_generic_launcher_preserves_task_arguments_and_status(name, exit_code, m
             sys.executable, str(Path(optimization_session.__file__).resolve()),
             str(task_resources(name).joinpath("benchmark.py")), *arguments
         ]
-        assert (Path(env["PYTHONPATH"].split(os.pathsep)[0]) / "inferrsi" / "cli.py").is_file()
+        package = Path(env["PYTHONPATH"].split(os.pathsep)[0]) / "inferrsi"
+        assert (package / "apps" / "cli" / "__init__.py").is_file()
+        assert not (package / "cli.py").exists()
         assert env["PYTHONDONTWRITEBYTECODE"] == "1"
         return exit_code
 

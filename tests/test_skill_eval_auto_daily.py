@@ -77,7 +77,7 @@ class ControllerTests(unittest.TestCase):
             stack.enter_context(patch.object(auto.pr, "execution_id", return_value="offline"))
             stack.enter_context(patch.dict(auto.os.environ,
                                           {"SKILL_EVAL_YIBUAPI_KEY": "offline-fixture"}))
-            stack.enter_context(patch("inferrsi.model.request_guard.authorization_broker",
+            stack.enter_context(patch("inferrsi.apps.integrations.anthropic.request_guard.authorization_broker",
                                       self.broker))
             auto.controlled_execute(Mock(), self.output, run_id=run, attempt=1,
                                     launch=self.launch)

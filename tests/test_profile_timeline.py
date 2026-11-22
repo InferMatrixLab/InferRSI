@@ -8,10 +8,11 @@ from urllib.request import urlopen
 
 import pytest
 
-from inferrsi.observability import profile_timeline
-from inferrsi.observability.dashboard import dashboard_snapshot
-from inferrsi.observability.dashboard_live import DashboardServer
-from inferrsi.observability.profile_timeline import attach_profile, read_profiles
+from inferrsi.apps.views.dashboard import dashboard_snapshot
+from inferrsi.apps.views.dashboard_live import DashboardServer
+from inferrsi.apps.views.profile_searches import pre_profile_searches
+from inferrsi.harness.records import profile_timeline
+from inferrsi.harness.records.profile_timeline import attach_profile, read_profiles
 
 
 def event(cat, name, ts, dur):
@@ -65,7 +66,7 @@ def test_only_verified_local_projection_served_and_modified_raw_is_withheld(tmp_
     source, review = fixture(tmp_path)
     attach_profile(tmp_path, capture_id="baseline", source="profiles/baseline.json.gz",
                    review=review)
-    cap = read_profiles(tmp_path)[0][0]
+    cap = dashboard_snapshot(tmp_path)["data"]["profile_captures"][0]
     with DashboardServer(tmp_path, None, 0) as server:
         thread = threading.Thread(target=server.serve_forever, daemon=True)
         thread.start()
@@ -86,6 +87,28 @@ def test_only_verified_local_projection_served_and_modified_raw_is_withheld(tmp_
         finally:
             server.shutdown()
             thread.join()
+
+
+def test_profile_route_is_an_apps_projection_without_changing_record_bytes(tmp_path):
+    _, review = fixture(tmp_path)
+    attach_profile(tmp_path, capture_id="baseline", source="profiles/baseline.json.gz",
+                   review=review)
+    paths = [tmp_path / "profile-captures.jsonl", *(tmp_path / "profiles").iterdir()]
+    stored = {path: path.read_bytes() for path in paths}
+    records, missing = read_profiles(tmp_path)
+    capture, = records
+    assert not missing
+    assert "events_url" not in capture["source"]
+    ref = capture["source"]
+    view_capture, = dashboard_snapshot(tmp_path)["data"]["profile_captures"]
+    assert view_capture["source"] == {
+        **ref, "events_url": "/api/profile-events/" + ref["events_sha256"],
+    }
+    assert profile_timeline.profile_event_table(tmp_path, ref["events_sha256"]) == stored[
+        tmp_path / ref["events_path"]
+    ]
+    assert {path: path.read_bytes() for path in paths} == stored
+    assert "events_url" not in capture["source"]
 
 
 def test_unsupported_capture_is_not_attached(tmp_path):
@@ -196,11 +219,11 @@ def test_profile_history_uses_verified_preceding_search_not_round_number(tmp_pat
         ("before", "2026-11-11T16:41:43+08:00"), ("same", meta["started_at"]),
         ("later", "2026-11-11T08:41:44Z"), ("untimed", "2026-11-11T08:41:40")]}
     searches["bad"] = {"state": "hash_mismatch"}
-    links = profile_timeline.pre_profile_searches(cap, searches)
+    links = pre_profile_searches(cap, searches)
     assert [(x["context_id"], x["state"]) for x in links] == [
         ("before", "verified"), ("same", "not_before"), ("later", "not_before"),
         ("untimed", "unknown_time"), ("bad", "unverified"), ("missing", "unverified")]
-    assert profile_timeline.pre_profile_searches({}, searches) == []
+    assert pre_profile_searches({}, searches) == []
 
 
 @pytest.mark.parametrize("extra", [
@@ -226,7 +249,7 @@ def test_profile_and_search_parse_equivalent_stamps_at_attach_and_read(tmp_path,
     attach_profile(tmp_path, capture_id="test", source=f"profiles/{source.name}", review=review)
     cap, = read_profiles(tmp_path)[0]
     searches = {"same": {"state": "verified", "captured_at": "2026-01-20T10:00:00.500Z"}}
-    assert profile_timeline.pre_profile_searches(cap, searches)[0]["state"] == "not_before"
+    assert pre_profile_searches(cap, searches)[0]["state"] == "not_before"
 
 
 def test_snapshot_joins_verified_search_to_registered_profile(tmp_path):

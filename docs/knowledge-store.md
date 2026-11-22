@@ -9,10 +9,10 @@ PR path.
 
 ```python
 from pathlib import Path
-from inferrsi.knowledge_operations import Bundle, KnowledgeReader
-from inferrsi.knowledge_store import KnowledgeStore
+from inferrsi.knowledge.knowledge_operations import Bundle, KnowledgeReader
+from inferrsi.knowledge.knowledge_store import KnowledgeStore
 
-skills = Path("src/inferrsi/data/skill_library")
+skills = Path("src/inferrsi/knowledge/data/skill_library")
 store = KnowledgeStore(Path("/authorized/local/knowledge-workspace"), skill_root=skills)
 source = KnowledgeReader(skill_root=skills).read("calibrate-serving-simulation")
 draft = Bundle(
@@ -35,6 +35,15 @@ collected = store.collect(ids=["store:calibrate-serving-simulation-local"],
 or `None` to declare package-only use. `store.reader()` / `store.collect` combine
 package, checkout and store items with qualified `store:<id>` refs. An ID owned by
 the store and a read-only adapter is reported as ambiguous, never shadowed.
+
+Pass a query or `relevance` to `store.collect` for local Find discovery.
+Discovery follows the store's reserved sources. With `skill_root=None` it
+searches package Records, projected Skills and store-owned candidates.
+Store-owned candidates participate using their metadata and entrypoint text.
+An unpinned query ranks the current revision. A query with a revision pin ranks
+the retained entrypoint at that revision and returns that same revision if it
+matches. Use explicit IDs and revisions for exact collection of historical
+bundles and `resource` for their contents.
 
 ## Create and Update
 

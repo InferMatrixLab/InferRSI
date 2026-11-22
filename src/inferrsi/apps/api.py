@@ -3,14 +3,24 @@
 from collections.abc import Callable
 from copy import deepcopy
 from pathlib import Path
+from typing import Protocol
 
-from inferrsi._json_v1 import encode
+from inferrsi.contracts.json_v1 import decode, encode
 from inferrsi.harness.errors import PublicError
 from inferrsi.harness.execution_spec import request_digest
 
-from .archive import (
+from .handoff.bridge import bind_execution as _bind_prepared_execution
+from .handoff.bridge import (
+    check_assessment_identity,
+    execution_fields,
+    to_evidence,
+    verify_protocol,
+)
+from .handoff.candidate_provider import CandidateProvider as CandidateProvider
+from .storage.archive import (
     ResourceReader,
     RunOutput,
+    archive_assessment,
     archive_mount,
     archive_prepared,
     publish_result,
@@ -18,9 +28,15 @@ from .archive import (
     read_prepared,
     validate_output_id,
 )
-from .bridge import bind_execution as _bind_prepared_execution
-from .bridge import execution_fields, verify_protocol
-from .result import execution_result, is_public_error, preparation_result, validate_result
+from .storage.artifact_reader import ArtifactReader, AssessmentArtifacts
+from .storage.result import (
+    assessment_result,
+    execution_result,
+    is_public_error,
+    preparation_result,
+    validate_result,
+)
+from .views.attempt import read_attempt_view as read_attempt_view
 
 _PREPARE_FIELDS = {"schema_version", "request"}
 _BENCHMARK_REQUEST_FIELDS = {
@@ -255,17 +271,255 @@ def execute(
 
     binder = bind_execution
     if binder is None:
-        def bind_from_archive(saved: dict) -> dict:
-            prepared = read_prepared(storage_config, saved["prepared_ref"])
-            if "protocol" not in prepared:
-                raise PublicError(
-                    "InvalidExecutionSpec", stage="binder_validation",
-                    message="The fixed preparation has no protocol reference.",
-                )
-            protocol = read_archive_artifact(storage_config, prepared["protocol"])
-            verify_protocol(prepared, protocol)
-            return _bind_prepared_execution(saved, prepared)
+        def binder(saved: dict) -> dict:
+            return _bind_archived_execution(saved, storage_config)
 
-        binder = bind_from_archive
     result = _execute_saved(request, fields, binder, execute_harness)
     return publish_result(workspace, result, output_id=output_id)
+
+
+def _bind_archived_execution(
+    request: dict, storage_config: dict, *, scope: str | None = None,
+) -> dict:
+    prepared = read_prepared(storage_config, request["prepared_ref"])
+    if "protocol" not in prepared:
+        raise PublicError(
+            "InvalidExecutionSpec", stage="binder_validation",
+            message="The fixed preparation has no protocol reference.",
+        )
+    protocol = read_archive_artifact(storage_config, prepared["protocol"])
+    verify_protocol(prepared, protocol)
+    if scope is not None and scope != prepared["validation_scope"]:
+        raise PublicError(
+            "IdentityMismatch", stage="binder_validation",
+            message="The requested scope differs from the fixed preparation.",
+        )
+    return _bind_prepared_execution(request, prepared)
+
+
+_ASSESS_FIELDS = {"schema_version", "record_ref", "primary_scope", "primary_claim_id"}
+_ASSESSMENT_FIELDS = {
+    "schema_version", "assessment_id", "task", "grader", "assessor", "prepared_ref",
+    "record_ref", "protocol_digest", "candidate", "attempt_id", "claims", "metrics",
+    "eligibility", "comparison", "evidence_artifacts", "assessed_at", "supersedes",
+    "derived_from", "limitations",
+}
+
+
+class Assessor(Protocol):
+    """Benchmark's offline evaluation port."""
+
+    def __call__(
+        self, prepared: dict, evidence: dict, /, *, artifacts: AssessmentArtifacts,
+    ) -> dict: ...
+
+
+def _assessment_request(request: dict) -> tuple[str, str]:
+    if (
+        not isinstance(request, dict) or request.keys() != _ASSESS_FIELDS
+        or type(request["schema_version"]) is not int
+    ):
+        raise ValueError("expected AppsAssessRequest fields")
+    if request["schema_version"] != 1:
+        raise PublicError(
+            "UnsupportedSchema", stage="validation", message="Unknown assess version."
+        )
+    claim, scope = request["primary_claim_id"], request["primary_scope"]
+    ref = request["record_ref"]
+    if (
+        not isinstance(claim, str) or not claim or not isinstance(scope, str) or not scope
+        or not isinstance(ref, dict) or ref.keys() != {"attempt_id", "record_version", "artifact"}
+    ):
+        raise ValueError("expected an exact primary claim key and RecordRef")
+    return claim, scope
+
+
+def _assess_record(
+    record_ref: dict, storage_config: dict, assess_benchmark: Assessor,
+    validate_assessment: Callable[[dict], None], encode_assessment: Callable[[dict], bytes],
+    *, primary: tuple[str, str] | None = None, receipt: dict | None = None,
+) -> tuple[dict | None, dict | None, dict | None]:
+    """Return the assessment, its committed reference, and any port error."""
+    try:
+        mount = archive_mount(storage_config, for_write=True)
+        artifacts = ArtifactReader(storage_config)
+        with artifacts.open(record_ref["artifact"]) as record_bytes:
+            data = record_bytes.read()
+        record = decode(data)
+        if receipt is not None and encode({
+            key: value for key, value in receipt.items()
+            if key not in ("record_ref", "observed_at", "controller_observation")
+        }) != data:
+            raise PublicError(
+                "IdentityMismatch", stage="assessment_binding",
+                message="The record receipt differs from the committed revision.",
+            )
+        prepared_ref = record["prepared_ref"]
+        prepared = read_prepared(storage_config, prepared_ref)
+        protocol = read_archive_artifact(storage_config, prepared["protocol"])
+        verify_protocol(prepared, protocol)
+        evidence = to_evidence(prepared, prepared_ref, record_ref, record)
+        claim_keys = [
+            (claim["claim_id"], claim["validation_scope"])
+            for claim in decode(protocol)["claim_definitions"]
+        ]
+        if primary is not None and primary not in claim_keys:
+            raise PublicError(
+                "InvalidRequest", stage="primary_claim", message="Unknown primary claim key."
+            )
+        allowed_artifacts = AssessmentArtifacts(artifacts, prepared, record)
+    except (KeyError, TypeError, ValueError):
+        raise PublicError(
+            "InvalidRequest", stage="assessment_binding",
+            message="Expected a fixed assessment request and record.",
+        ) from None
+    try:
+        assessment = assess_benchmark(
+            deepcopy(prepared), deepcopy(evidence), artifacts=allowed_artifacts,
+        )
+    except PublicError as error:
+        assessment = error.to_json()
+    try:
+        if is_public_error(assessment):
+            if (
+                assessment["attempt_id"] not in (None, record_ref["attempt_id"])
+                or any(assessment[key] is not None
+                       for key in ("started", "latest_record_ref", "partial_record"))
+                or assessment["retained_refs"]
+            ):
+                raise ValueError("unexpected execution facts in Benchmark error")
+            result = assessment_result(error=assessment)
+            validate_result(result)
+            return None, None, assessment
+        expected = {
+            "task": prepared["task"], "grader": prepared["grader"],
+            "prepared_ref": prepared_ref, "record_ref": record_ref,
+            **{field: record[field] for field in ("protocol_digest", "candidate", "attempt_id")},
+        }
+        if (
+            not isinstance(assessment, dict) or assessment.keys() != _ASSESSMENT_FIELDS
+            or type(assessment["schema_version"]) is not int or assessment["schema_version"] != 1
+            or any(encode(assessment[key]) != encode(value) for key, value in expected.items())
+        ):
+            raise ValueError("assessor returned a different evaluation")
+        returned_keys = [
+            (claim["claim_id"], claim["validation_scope"]) for claim in assessment["claims"]
+        ]
+        if returned_keys != claim_keys:
+            raise ValueError("assessor claim keys must follow the frozen protocol")
+        validate_assessment(deepcopy(assessment))
+        check_assessment_identity(assessment)
+        data = encode_assessment(deepcopy(assessment))
+        if not isinstance(data, bytes) or data != encode(assessment):
+            raise ValueError("Benchmark encoder returned different assessment bytes")
+        # Check the selected claim before making the assessment durable.
+        if primary is not None:
+            assessment_result(primary=primary, assessment=assessment)
+    except (KeyError, TypeError, ValueError, AttributeError, PublicError):
+        raise PublicError(
+            "AssessorError", stage="assessor_response_validation",
+            message="Benchmark returned an invalid assessment or omitted the selected claim.",
+        ) from None
+    try:
+        ref = archive_assessment(assessment["assessment_id"], data, mount=mount)
+    except PublicError as error:
+        return assessment, None, error.to_json()
+    return assessment, ref, None
+
+
+def assess(
+    request: dict,
+    *,
+    workspace: Path,
+    storage_config: dict,
+    assess_benchmark: Assessor,
+    validate_assessment: Callable[[dict], None],
+    encode_assessment: Callable[[dict], bytes],
+    output_id: str | None = None,
+) -> RunOutput:
+    """Assess one fixed record with the supplied offline Benchmark port.
+
+    The port receives the frozen preparation, EvidenceInput and a reader scoped
+    to those inputs. It can return or raise a structured public rejection.
+    The pure Benchmark validator and encoder check and serialize the result.
+    """
+    if output_id is not None:
+        validate_output_id(output_id)
+    try:
+        try:
+            encode(request)
+            primary = _assessment_request(request)
+        except ValueError:
+            raise PublicError(
+                "InvalidRequest", stage="assessment_binding",
+                message="Expected a fixed assessment request and record.",
+            ) from None
+        assessment, ref, error = _assess_record(
+            request["record_ref"], storage_config, assess_benchmark,
+            validate_assessment, encode_assessment, primary=primary,
+        )
+        result = assessment_result(
+            primary=primary if assessment is not None else None,
+            assessment=assessment, assessment_ref=ref, error=error,
+        )
+    except PublicError as error:
+        result = assessment_result(error=error.to_json())
+    return publish_result(workspace, result, output_id=output_id)
+
+
+class EvaluationPort:
+    """Apps adapter for the evaluation leg of a Harness generation loop."""
+
+    def __init__(
+        self, *, storage_config: dict, output_root_for: Callable[[str], str],
+        assess_benchmark: Assessor, validate_assessment: Callable[[dict], None],
+        encode_assessment: Callable[[dict], bytes],
+    ):
+        self._storage_config = deepcopy(storage_config)
+        self._output_root_for = output_root_for
+        self._assess_benchmark = assess_benchmark
+        self._validate_assessment = validate_assessment
+        self._encode_assessment = encode_assessment
+
+    def execution_for(
+        self, prepared_ref: dict, proposal: dict, attempt: dict, *, scope: str,
+    ) -> dict:
+        """Bind the frozen worker using Harness's original attempt and scope."""
+        attempt_id = attempt.get("attempt_id") if isinstance(attempt, dict) else None
+        if (
+            not isinstance(scope, str) or not scope
+            or not isinstance(attempt_id, str) or not attempt_id
+        ):
+            raise PublicError(
+                "InvalidExecutionSpec", stage="binder_validation",
+                message="Expected an evaluation scope and an allocated attempt.",
+            )
+        request = {
+            "schema_version": 1, "prepared_ref": prepared_ref, "proposal": proposal,
+            "attempt": attempt, "output_root": self._output_root_for(attempt_id),
+        }
+        return _bind_archived_execution(request, self._storage_config, scope=scope)
+
+    def assess(self, record: dict) -> dict:
+        """Return all archived claim results to Harness for its feedback policy."""
+        if not isinstance(record, dict) or "record_ref" not in record:
+            raise PublicError(
+                "InvalidRequest", stage="assessment_binding",
+                message="Expected a Harness record with its fixed RecordRef.",
+            )
+        assessment, ref, error = _assess_record(
+            record["record_ref"], self._storage_config, self._assess_benchmark,
+            self._validate_assessment, self._encode_assessment, receipt=record,
+        )
+        if error is not None:
+            raise PublicError(
+                error["code"], stage=error["stage"], message=error["message"],
+                attempt_id=error["attempt_id"], field_errors=error["field_errors"],
+            )
+        return {
+            "assessment_ref": ref, "evidence": assessment["evidence_artifacts"],
+            **{field: assessment[field] for field in (
+                "candidate", "attempt_id", "protocol_digest", "claims", "metrics",
+                "eligibility", "comparison",
+            )},
+        }

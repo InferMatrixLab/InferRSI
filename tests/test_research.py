@@ -6,11 +6,10 @@ from importlib.resources import files
 
 import pytest
 
-from inferrsi import catalog
-from inferrsi.catalog import get_knowledge, search_knowledge
-from inferrsi.cli import main
+from inferrsi.apps.cli import main
 from inferrsi.knowledge import catalog as knowledge_catalog
-from inferrsi.research import research_knowledge
+from inferrsi.knowledge.catalog import get_knowledge, search_knowledge
+from inferrsi.knowledge.research import research_knowledge
 
 
 def test_h3_retrieves_framework_and_task_knowledge_with_source_boundaries():
@@ -52,7 +51,7 @@ def test_h3_retrieves_framework_and_task_knowledge_with_source_boundaries():
     assert result["target"]["memory_gib"] == 64
     assert result["target"]["backend"] == "metal"
     assert result["target_validation"] == "unverified"
-    assert "metal" not in catalog.BACKENDS
+    assert "metal" not in knowledge_catalog.BACKENDS
     assert {part["role"] for part in result["components"]} == {
         "denoiser", "text_encoder", "video_vae", "audio_vae",
     }
@@ -70,16 +69,22 @@ def test_scoped_mlx_research_retains_the_lifecycle_resource():
         if item["record"]["id"] == "inferrsi.common.skills.lazy_evaluation_stream_lifetimes"
     )
     assert lifecycle["record"]["skill_documents"]["original"] == (
-        "data/skill_library/frameworks/mlx/lazy-evaluation-stream-lifetimes/SKILL.md"
+        "data/skill_library/systems/frameworks/mlx/lazy-evaluation-stream-lifetimes/SKILL.md"
     )
     assert {"group": "framework", "query": "mlx"} in lifecycle["matched_queries"]
     assert {"group": "mechanism", "query": "lazy evaluation"} in lifecycle["matched_queries"]
 
 
-def test_independent_queries_are_unioned_fairly_and_exact_search_is_unchanged(monkeypatch):
+def _synthetic_record(identity, summary):
+    return {
+        "id": identity, "repo": "vllm_omni", "backend": "common", "scenario": "diffusion.*",
+        "summary": summary, "status": "imported", "verification": {"locally_verified": False},
+    }
+
+
+def test_independent_find_queries_are_unioned_fairly(monkeypatch):
     records = [
-        {"id": name, "repo": "vllm_omni", "backend": "common", "scenario": "diffusion.*",
-         "summary": summary}
+        _synthetic_record(name, summary)
         for name, summary in (
             ("a-model", "ExampleModel"),
             ("b-framework", "mlx"),
@@ -90,8 +95,9 @@ def test_independent_queries_are_unioned_fairly_and_exact_search_is_unchanged(mo
         )
     ]
     monkeypatch.setattr(knowledge_catalog, "knowledge_records", lambda: records)
-    exact = search_knowledge("ExampleModel mlx diffusion video offload")
-    assert [record["id"] for record in exact] == ["f-overlap"]
+    compound = search_knowledge("ExampleModel mlx diffusion video offload")
+    assert compound[0]["id"] == "f-overlap"
+    assert {record["id"] for record in compound} == {record["id"] for record in records}
     result = research_knowledge(
         "ExampleModel", frameworks=["mlx", "MLX"], tasks=["diffusion"],
         modalities=["video"], mechanisms=["offload"], limit=6,
@@ -102,7 +108,6 @@ def test_independent_queries_are_unioned_fairly_and_exact_search_is_unchanged(mo
     }
     overlap = next(item for item in result["items"] if item["record"]["id"] == "f-overlap")
     assert len(overlap["matched_queries"]) == 5
-    assert search_knowledge("ExampleModel mlx diffusion video offload") == exact
     limited = research_knowledge(
         "ExampleModel", frameworks=["mlx"], tasks=["diffusion"],
         modalities=["video"], mechanisms=["offload"], limit=5,
@@ -115,8 +120,8 @@ def test_independent_queries_are_unioned_fairly_and_exact_search_is_unchanged(mo
 
 def test_query_attribution_survives_the_shared_output_limit(monkeypatch):
     records = [
-        {"id": "model", "summary": "SyntheticModel mlx"},
-        {"id": "framework", "summary": "mlx mlx"},
+        _synthetic_record("model", "SyntheticModel mlx"),
+        _synthetic_record("framework", "mlx mlx"),
     ]
     monkeypatch.setattr(knowledge_catalog, "knowledge_records", lambda: records)
     result = research_knowledge("SyntheticModel", frameworks=["mlx"], limit=1)
@@ -167,14 +172,16 @@ def test_unknown_model_never_invents_tasks_or_components():
 @pytest.mark.parametrize("alias", ["MiniMax-H3", "minimax h3", "MiniMax_H3"])
 def test_model_profile_links_packaged_resources_at_the_repository_owner(alias):
     result = research_knowledge(alias)
-    package = files("inferrsi")
+    # Returned resource keys stay logical "data/..."; K02 moved the physical
+    # corpus under the Knowledge module without changing that spelling.
+    package = files("inferrsi").joinpath("knowledge")
     profile = result["profile"]
     assert profile["model"] == "MiniMax-H3"
     assert package.joinpath(result["procedure_resource"]).read_text(encoding="utf-8")
     assert result["worked_example_resource"] == profile["worked_example_resource"]
     for key in ("skill_resource", "worked_example_resource", "inventory_resource"):
         resource = profile[key]
-        assert resource.startswith("data/skill_library/repositories/h3-c/")
+        assert resource.startswith("data/skill_library/systems/engines/h3-c/")
         assert package.joinpath(resource).read_text(encoding="utf-8")
     record = get_knowledge(profile["knowledge_ids"][0])
     assert record["skill_documents"]["original"] == profile["skill_resource"]

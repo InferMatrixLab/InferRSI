@@ -2,6 +2,9 @@ const fs=require('node:fs'), vm=require('node:vm'), assert=require('node:assert/
 const html=fs.readFileSync(process.argv[2],'utf8'), mode=process.argv[3], conflicts=mode==='conflicts';
 class Element {
   constructor(){this.children=[];this.dataset={};this.hidden=false;this.textContent='';}
+  get classList(){return {contains:name=>(this.className||'').split(' ').includes(name)};}
+  closest(){return null;}
+  setAttribute(name,value){this[name]=value;}
   append(...children){this.children.push(...children);}
   replaceChildren(){this.children=[];}
   addEventListener(event,listener){this[event]=listener;}
@@ -21,10 +24,16 @@ id('dashboard-data').textContent=payload[1];
 const document={documentElement:make(),createElement:make,createTextNode:String,
                 getElementById:id,querySelectorAll:()=>[]};
 const source=[...html.matchAll(/<script>\s*([\s\S]*?)<\/script>/g)].at(-1)[1];
-vm.runInNewContext(source,{document,window:{addEventListener(){},
+vm.runInNewContext(source,{document,window:{location:{hash:''},addEventListener(){},
+  // Shared component behavior is covered by test_knowledge_navigation_browser.py.
+  InferRSIVerdicts(){},
+  InferRSIKnowledge:{create:()=>({render(){},trace(){},backLinks(){}})},
+  InferRSIRoundDecisions:{create:()=>({render(){}})},
   InferRSIExperiments:{create:()=>({render(){}})}},
                           localStorage:{getItem(){return 'en';},setItem(){}}});
 if(mode==='timing'){
+  assert.equal(id('profiles-link').hidden,false);
+  assert.equal(id('trace-link').hidden,false);
   function expand(root,key){
     const item=[...root.walk()].find(el=>el.dataset.key===key);
     assert.ok(item,key);item.open=true;item.toggle();return item;

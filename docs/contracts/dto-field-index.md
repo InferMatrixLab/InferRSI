@@ -7,19 +7,19 @@ D023 changes one field set: `CommandStep` gains a required, nullable `expected_c
 | Definition | Fields or syntax |
 |---|---|
 | Text | {"type":"string"} |
-| Id | {"type":"string","minLength":1,"maxLength":256,"pattern":"^[A-Za-z0-9][A-Za-z0-9._:/@+-]*$"} |
-| Sha256 | {"type":"string","pattern":"^[0-9a-f]{64}$"} |
-| SemanticId | {"type":"string","pattern":"^sha256:[0-9a-f]{64}$"} |
+| Id | {"type":"string","minLength":1,"maxLength":256,"pattern":"^[A-Za-z0-9][A-Za-z0-9._:/@+-]*(?![\\s\\S])"} |
+| Sha256 | {"type":"string","pattern":"^[0-9a-f]{64}(?![\\s\\S])"} |
+| SemanticId | {"type":"string","pattern":"^sha256:[0-9a-f]{64}(?![\\s\\S])"} |
 | UInt | {"type":"integer","minimum":0,"maximum":9007199254740991} |
 | Version | {"type":"integer","const":1} |
-| Timestamp | {"type":"string","format":"date-time","pattern":"^\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d(?:\\.\\d{1,9})?Z$"} |
-| Decimal | {"type":"string","pattern":"^(?:0\|-?[1-9][0-9]*\|-?(?:0\|[1-9][0-9]*)\\.[0-9]*[1-9])$"} |
+| Timestamp | {"type":"string","format":"date-time","pattern":"^\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d(?:\\.\\d{1,9})?Z(?![\\s\\S])"} |
+| Decimal | {"type":"string","pattern":"^(?:0\|-?[1-9][0-9]*\|-?(?:0\|[1-9][0-9]*)\\.[0-9]*[1-9])(?![\\s\\S])"} |
 | Path | {"type":"string","minLength":1,"pattern":"^(?!/)(?!.*(?:^\|/)\\.{1,2}(?:/\|$))(?!.*[\\\\:\\x00-\\x1f\\x7f])[^/]+(?:/[^/]+)*$"} |
 | WorkPath | {"anyOf":[{"const":"."},{"$ref":"#/$defs/Path"}]} |
 | Strings | {"type":"array","items":{"$ref":"#/$defs/Text"}} |
 | Ids | {"type":"array","items":{"$ref":"#/$defs/Id"},"uniqueItems":true} |
-| JsonValue | {"anyOf":[{"$ref":"#/$defs/Text"},{"$ref":"#/$defs/UInt"},{"type":"integer","minimum":-9007199254740991,"maximum":-1},{"type":"boolean"},{"type":"null"},{"type":"array","items":{"$ref":"#/$defs/JsonValue"}},{"type":"object","propertyNames":{"pattern":"^[ -~]+$"},"additionalProperties":{"$ref":"#/$defs/JsonValue"}}]} |
-| Parameters | {"type":"object","propertyNames":{"pattern":"^[ -~]+$"},"additionalProperties":{"$ref":"#/$defs/JsonValue"}} |
+| JsonValue | {"anyOf":[{"$ref":"#/$defs/Text"},{"$ref":"#/$defs/UInt"},{"type":"integer","minimum":-9007199254740991,"maximum":-1},{"type":"boolean"},{"type":"null"},{"type":"array","items":{"$ref":"#/$defs/JsonValue"}},{"type":"object","propertyNames":{"pattern":"^[ -~]+(?![\\s\\S])"},"additionalProperties":{"$ref":"#/$defs/JsonValue"}}]} |
+| Parameters | {"type":"object","propertyNames":{"pattern":"^[ -~]+(?![\\s\\S])"},"additionalProperties":{"$ref":"#/$defs/JsonValue"}} |
 | DefinitionRef | name, revision |
 | ArtifactRef | location, sha256, size_bytes, media_type |
 | PreparedRef | prepared_id, schema_version, artifact |

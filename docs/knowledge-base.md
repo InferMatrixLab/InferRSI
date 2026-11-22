@@ -11,25 +11,85 @@ separate work, not an implemented capability of this knowledge base.
 
 ## Directory and responsibility map
 
+The [illustrated layout and search guide](knowledge-layout.md) shows the task
+entry, physical directories, evidence lookup and old-to-new bundle counts.
+
+The main agent selects one of the [seven primary skills](knowledge-layout.md#seven-deliverables) by the requested outcome and uses `inferrsi skills enter <task-id>` to load its procedure before evidence search. Its decision points use the observed run to choose supporting knowledge. For direct subject browsing, the first library directory answers the reader's question. The second
+identifies a subsystem, an engineering activity, a workflow stage group or
+the scope of a case collection. The registry maps each stable ID to a single
+bundle; backend and evidence state remain separate metadata.
+
+```mermaid
+flowchart LR
+    T["tasks · seven inference deliverables"] --> L["Supporting knowledge"]
+    L --> S["systems · How does it work?"]
+    L --> P["playbooks · How do I perform a task?"]
+    L --> W["workflows · How do the stages fit together?"]
+    L --> C["casebooks · What happened before?"]
+    S --> S1["platforms / frameworks / engines"]
+    P --> P1["measurement / planning / optimization"]
+    W --> W1["research / governance / maintenance"]
+    C --> C1["inference / ascend"]
+```
+
+A platform-specific operation such as Ascend graph capture belongs in
+`systems/platforms/ascend/`. The Ascend optimization casebook belongs in
+`casebooks/ascend/`. A cross-platform benchmarking method belongs in
+`playbooks/measurement/`. Engine-specific examples can still ship with their
+parent procedure. Frozen run artifacts remain under `evidence/<campaign>/`.
+
+For existing automation, resolve an ID through `skill-index.json` or use
+`inferrsi skills show <id>`. Raw paths containing the old category need
+the new location. A reference pinned to an earlier commit uses that
+commit's original path; regenerate resource pins when adopting a new bundle.
+
+The seven primaries and the compatibility router declare the task-entry discovery role.
+The [legacy router](../src/inferrsi/knowledge/data/skill_library/tasks/inference-task-router/SKILL.md)
+still supports explicit reads of historical route resources. Default Find excludes these
+eight entries before computing IDF and ranks the technical evidence owners.
+Use [the migration manifest](skill-layout-migration.csv) to resolve raw paths.
+Retained material can be replayed from its saved bytes or matching source
+snapshot. A digest-only reference requires its original package, checkout or
+retained store revision. Never resolve an old digest to the new bundle.
+
+The manifest records the cutover from main at `9b418d7` and is historical.
+All 79 readable original checkout skills changed bundle revision when moved.
+The seven case identities retained their previous checkout revisions even
+though their resource locations moved. The legacy `husky` skill failed the
+same source-identity validation on both snapshots, marked
+`unavailable_at_cutover`. Its registry path can still be resolved.
+Run `python tools/check_skill_layout_migration.py --before <old-checkout> --after <cutover-checkout>`
+against these snapshots to verify every path and pin and reject old skill
+digests at the new checkout. Validate privately retained campaign captures
+and store revisions against their own saved material before rollout.
+
+On Windows hosts enforcing the 260-character path limit, use a short checkout
+and virtual-environment root for this layout. A wheel under a long temporary
+installation path reproduced a failed read of a nested reference on such a host.
+
+
 ```text
-src/inferrsi/data/skill_library/
+src/inferrsi/knowledge/data/skill_library/
   README.md                         Library navigation
-  skill-index.json                   Stable IDs → categorized paths/backend (79 skills)
-  hardware/{ascend,cuda,host}/<id>/   Hardware/platform-specific complete skills
-  frameworks/<framework>/<id>/      Framework-owned complete skills
-  repositories/<repo>/              Engine entry, sub-skills and focused complete skills
-  methods/<id>/                     General optimization/analysis complete skills
-  workflows/<id>/                   Cross-repository research, evidence and skill lifecycle
+  skill-index.json                    Stable IDs → current bundle path and backend
+  tasks/task-*/                       Seven registered primary procedures
+  tasks/inference-task-router/        Compatibility owner for historical route resources
+  systems/platforms/{ascend,cuda,host}/   Device and host implementation guidance
+  systems/frameworks/<framework>/     Framework-specific behavior and procedures
+  systems/engines/<repo>/             Engine entry, sub-skills and resources
+  playbooks/{measurement,planning,optimization}/   Reusable engineering tasks
+  workflows/{research,governance,maintenance}/     Cross-stage processes
+  casebooks/{inference,ascend}/       Prior decisions, outcomes and retry conditions
   <owner>/references/               Owner-local supporting documents and source inventory
-  <category>/<id>/SKILL.md           Name, description, substantive procedure
-  <category>/<id>/metadata.json      Provenance, state and relationships
+  <category>/<id>/SKILL.md           Procedure; frontmatter holds provenance, state and relationships
   <category>/<id>/references/        Owner's mechanisms, readsets and comparisons
   <category>/<id>/cases/             Owner's scoped cases (optional)
-src/inferrsi/catalog.py              Installed knowledge reader
-src/inferrsi/skill_catalog.py        Packaged or custom-root skill reader
-src/inferrsi/data/repo_packs/        Contribution records and existing public IDs
-src/inferrsi/data/repo_packs/inferrsi/ Generated records linking full packaged skills
-src/inferrsi/data/knowledge_packs/   Dependency and peer records
+src/inferrsi/knowledge/catalog.py    Installed knowledge reader
+src/inferrsi/knowledge/skill_catalog.py  Packaged or custom-root skill reader
+src/inferrsi/knowledge/data/skill_library/records/<stable-id>.json   Authored engineering findings
+src/inferrsi/knowledge/data/skill_library/config/                    Aliases and research profiles
+src/inferrsi/knowledge/data/skill_library/_compiled/                 Generated YAML headers and Git provenance
+src/inferrsi/harness/data/repo_packs/<repo>/pack.json  Target descriptor, read by repository_pack
 evidence/<campaign-id>/             Frozen plans, results, patches and validators
 docs/reference-matrix.md            Sources, inspected scope and extraction
 docs/searchspace-matrix.md          Resource × optimization-stage coverage
@@ -60,18 +120,18 @@ metadata authority or maintained matrix.
 
 | Item | Authority | Compatibility rule |
 |---|---|---|
-| New local-skill profile | `SKILL.md`: name, description and procedure; `metadata.json`: `profile: local-skill-v1`, kind, origin, state, provenance, applicability and relationships | Name stays the existing directory ID; listing combines metadata without reading procedure/resource bodies |
+| New local-skill profile | `SKILL.md` contains the procedure and frontmatter. The `metadata.inferrsi` string contains structured JSON for the local profile, kind, origin, state, provenance, applicability and relationships. | Name stays the existing directory ID; listing combines metadata without reading procedure/resource bodies |
 | Legacy local frontmatter | Existing frontmatter when no new profile is declared | Five inherited skills stay unchanged; no invented candidate state |
-| Legacy sidecars | Existing keys retained unless explicitly normalized | Conflicting duplicate fields fail visibly; matching historical fields can be read |
-| Catalog JSON | Existing record owns ID, tier, scope, recommendations, attribution and limitations | Do not migrate it into local sidecars or relabel imported records |
+| Historical/custom checkout sidecars | The reader still accepts adjacent `metadata.json` | Conflicting duplicate fields fail visibly; matching historical fields can be read |
+| Catalog JSON | Existing record owns ID, tier, scope, recommendations, attribution and limitations | Authored findings retain their own identity and attribution |
 | Engine procedures/resources | Imported English library and source manifest | Preserve licenses, source relationships and installed access; catalog abstracts link the complete English procedures |
 | Case | One owner-local case document plus structured identity/source record | Raw evidence stays frozen; case interpretation may evolve without rewriting results. Source identities and digests live only in the record; the document links it and cites the same source URLs. The record lists its own basename in `required_resources`, so that link resolves inside the read bundle |
 
 The 43 branch-added candidate headers were normalized without replacing their
 procedures. All structured frontmatter fields, including tags, synchronization
-lineage, unknown license and source-pack notes, are retained in sidecars. Existing
+lineage, unknown license and source-pack notes, are retained in their owner documents. Historical
 sidecar name/status duplication agreed with the frontmatter; normalization found
-no contradictory values. Sidecars omit fields equal to the reader defaults:
+no contradictory values. Local profiles omit fields equal to the reader defaults:
 empty `sources` and `references`, and the former shared placeholder
 `applicability`; absent sources still read as explicit unknown provenance.
 Abbreviated historical repository pins remain explicitly
@@ -104,13 +164,13 @@ has no specific advice and does not fall back; only an absent field produces the
 generic navigation defaults.
 
 `limitations` is not owner-only. The generator emits four sentences of its own and
-then appends the sidecar's `limitations` entries. `failure_modes` is therefore a
+then appends the skill's `limitations` entries. `failure_modes` is therefore a
 separate field rather than more `limitations` entries.
 
 No mechanical allowlist restricts `applicability` keys. The packaged library uses
 nine distinct keys: the seven above plus `architectures` and `excluded_mechanisms`,
-which appear only in `hardware/cuda/reason-hopper-kernels`. A closed key set would
-reject that sidecar or have to grandfather it. Revisiting this is proposed for
+which appear only in `systems/platforms/cuda/reason-hopper-kernels`. A closed key set would
+reject that metadata or have to grandfather it. Revisiting this is proposed for
 batch 4 of issue #91 and is not agreed.
 
 ## Sources and revisions
@@ -122,7 +182,7 @@ Its supplementary `Resource` tables describe guidance without claiming numbered
 layer coverage. A missing mapping means unknown, not that a procedure applies
 everywhere or nowhere.
 
-A sidecar may declare `searchspace_not_applicable` as a non-empty reason when its
+A skill may declare `searchspace_not_applicable` as a non-empty reason when its
 procedure does not address any of the five resource layers. The reason identifies
 the procedure's actual scope and its source section. Omit the field for positive
 or unanalyzed mappings; it is not a second mapping table. Device-independent
@@ -186,16 +246,16 @@ the K0/K1 readers above do not enforce them by themselves.
 
 ## K1 integration and shared resources
 
-- [Repository-derived procedure](../src/inferrsi/data/skill_library/repositories/vllm/audit-vllm-kv-lifetimes/SKILL.md): preserve
+- [Repository-derived procedure](../src/inferrsi/knowledge/data/skill_library/systems/engines/vllm/audit-vllm-kv-lifetimes/SKILL.md): preserve
   pinned scheduler/connector contracts and untested concrete-backend limits.
-- [Reviewed paper mechanism](../src/inferrsi/data/skill_library/methods/calibrate-serving-simulation/SKILL.md):
+- [Reviewed paper mechanism](../src/inferrsi/knowledge/data/skill_library/playbooks/measurement/calibrate-serving-simulation/SKILL.md):
   empirical calibration, joint-SLO shortlist and near-capacity queueing risk;
   source paper is not reread or reproduced by this organization work.
-- [Internal admission/drain case](../src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/admission-drain-occupancy.md):
+- [Internal admission/drain case](../src/inferrsi/knowledge/data/skill_library/casebooks/inference/inference-optimization-casebook/cases/admission-drain-occupancy.md):
   observation, original action, interpretation, counter-signals and original
   evidence pointers remain separate. Campaign INCONCLUSIVE is retained.
-- [Benchmark design](../src/inferrsi/data/skill_library/methods/inference-benchmark-design/SKILL.md) and
-  [evidence classification](../src/inferrsi/data/skill_library/methods/dense-performance-evidence/SKILL.md) consume
+- [Benchmark design](../src/inferrsi/knowledge/data/skill_library/playbooks/measurement/inference-benchmark-design/SKILL.md) and
+  [evidence classification](../src/inferrsi/knowledge/data/skill_library/playbooks/measurement/dense-performance-evidence/SKILL.md) consume
   that same case. No `shared/` namespace or duplicate case database is necessary.
 
 Local `resource` access remains restricted to the selected skill. Declared
@@ -205,7 +265,7 @@ cross-skill `reference` access is restricted to the complete selected skills roo
 inferrsi skills reference inference-benchmark-design \
   ../inference-optimization-casebook/cases/admission-drain-occupancy.md
 # To select a source checkout explicitly, add before the subcommand:
-# --root src/inferrsi/data/skill_library
+# --root src/inferrsi/knowledge/data/skill_library
 ```
 
 Missing dependencies, undeclared references and escapes are errors. Migrated
@@ -217,38 +277,36 @@ standalone export: retain the declared dependencies or the complete library.
 ### Complete packaged skills and catalog discovery
 
 All 48 former root skills now have one canonical home under
-[`src/inferrsi/data/skill_library/`](../src/inferrsi/data/skill_library/README.md).
-Complete procedures, sidecars, references and cases are packaged, with 14 Ascend,
-3 CUDA and 5 host skills under `hardware/`; the rest are grouped as frameworks,
-repositories, methods or workflows. The 21 engine and research-router skills
-use the same ownership layout under `repositories/<engine>/` and
-`workflows/inference-engine-research/`, including their sub-skills and references.
-The library contains 142 `SKILL.md` files, all in English. The registered
-[Lithos Metal candidate](../src/inferrsi/data/skill_library/repositories/lithos-metal/SKILL.md)
+[`src/inferrsi/knowledge/data/skill_library/`](../src/inferrsi/knowledge/data/skill_library/README.md).
+Complete procedures, references and cases are packaged together. Browse by
+system, engineering task, workflow or prior outcome. Backend is recorded independently. The 21 engine and research-router skills
+use the same ownership layout under `systems/engines/<engine>/` and
+`workflows/research/inference-engine-research/`, including their sub-skills and references.
+The library contains 151 `SKILL.md` files, all in English. The registered
+[Lithos Metal candidate](../src/inferrsi/knowledge/data/skill_library/systems/engines/lithos-metal/SKILL.md)
 adds three owner-local subskills for compiler/fusion, generation state and
 serving/cache contracts; it adds no executable repository target.
 The collection overview, import notes and source manifest belong to the research
-workflow's references; Strata design-space analysis belongs to Strata. The library
-root contains only navigation and the registry.
+workflow's references; Strata design-space analysis belongs to Strata. The library root holds the registry, configuration, compiled inputs, authored findings and skill directories.
 
-The [generated catalog](../src/inferrsi/data/repo_packs/inferrsi/knowledge/README.md)
-projects the 79 registered skills into the contribution catalog. Its records
+The [runtime catalog](../src/inferrsi/knowledge/data/skill_library/README.md)
+projects the 88 registered skills into the contribution catalog. Its records
 use `inferrsi.<backend>.skills.<name_with_underscores>` IDs, with `ascend` and
 `cuda` for scopes that depend on those backends and `common` for the remaining skills.
 Each `skill_documents.original` points to the full packaged procedure. The
 `skills` CLI retains the original hyphenated skill IDs and defaults to this
-79-ID registry; engine procedures remain available through library navigation
+88-ID registry; engine procedures remain available through library navigation
 and catalog document pointers.
 
-The registered [PyTorch](../src/inferrsi/data/skill_library/frameworks/pytorch/pytorch/SKILL.md)
-and [TorchNPU](../src/inferrsi/data/skill_library/frameworks/torch-npu/torch-npu/SKILL.md)
-operating graphs each retain eight child procedures, their sidecars, references,
+The registered [PyTorch](../src/inferrsi/knowledge/data/skill_library/systems/frameworks/pytorch/pytorch/SKILL.md)
+and [TorchNPU](../src/inferrsi/knowledge/data/skill_library/systems/frameworks/torch-npu/torch-npu/SKILL.md)
+operating graphs each retain eight child procedures with metadata, references,
 scripts and source notices under one root. The children are available through
 root resource reads and complete normalized bundles; they add no separate
 registry IDs or executable repository targets. Earlier compiler, DCP and
 TorchNPU allocator owners retain their independent source revisions.
 All new profiles use `local-skill-v1`: only name and description are in YAML;
-the AREX license, invocation and operating-role fields remain in sidecars.
+the AREX license, invocation and operating-role fields remain in the skill documents.
 An upstream AREX license check of a temporary frontmatter projection is distinct
 from final InferRSI format checks, backend execution and managed DisCo import.
 Required accelerator/distributed gaps remain `BLOCKED_REQUIRED_BACKEND`;
@@ -263,18 +321,20 @@ backend gaps and verification scope. Repackaging the unchanged runtime bytes
 does not rerun those checks or establish new backend, quality or performance
 results. The process fixture trees are not part of this delivery.
 
-The registered [h3.c runtime audit](../src/inferrsi/data/skill_library/repositories/h3-c/audit-h3-runtime-residency/SKILL.md)
+The registered [h3.c runtime audit](../src/inferrsi/knowledge/data/skill_library/systems/engines/h3-c/audit-h3-runtime-residency/SKILL.md)
 owns MiniMax-H3 component/lifetime, AdaLN, precision/SSD mechanisms and the
 retained Apple feasibility/header-inventory research. Its source-derived
 candidate state and imported header observations remain separate from native
 execution, media quality, target memory and performance qualification.
 
-Use `inferrsi knowledge search --repo-type inferrsi --limit 100` in an ordinary
-installation. Catalog JSON and full package bundle reads need no YAML parser:
-`inferrsi read inferrsi.ascend.skills.ascend_graph_mode --material` reads the
-record with its retained library dependency resources. The optional `skills`
+Use `inferrsi knowledge search --repo-type inferrsi --limit 100` to list installed
+package records in stable ID order. A text query uses Find to rank eligible
+package records and returns the original catalog JSON. `knowledge show` reads
+that JSON by exact ID. Catalog JSON and full package bundle reads need no YAML
+parser. `inferrsi read inferrsi.ascend.skills.ascend_graph_mode --material` reads
+the record with its retained library dependency resources. The optional `skills`
 extra enables frontmatter-based `skills list`, `show`, `resource` and `reference`.
-An explicit `--skill-root src/inferrsi/data/skill_library` exposes the checkout
+An explicit `--skill-root src/inferrsi/knowledge/data/skill_library` exposes the checkout
 adapter's original skill and case identities for normalized reads.
 
 Each record retains source metadata, including candidate state, unnormalized
@@ -283,29 +343,24 @@ record, not promotion or verification of the source skill. Backend placement
 describes content scope; `common` and `skills.discovery` imply no cross-hardware
 qualification. `inferrsi` is a knowledge source, not an executable target.
 
-The CUDA-owned [Hopper kernel reasoning candidate](../src/inferrsi/data/skill_library/hardware/cuda/reason-hopper-kernels/SKILL.md)
+The CUDA-owned [Hopper kernel reasoning candidate](../src/inferrsi/knowledge/data/skill_library/systems/platforms/cuda/reason-hopper-kernels/SKILL.md)
 adds pinned KDA/KernelWiki source screening, selected primary-code qualification
 and architecture-specific synchronization/resource/FP8 procedures. Its coverage
 inventory distinguishes inspected bodies from source headers and excluded SM100
 recipes; native execution and efficacy remain not_run.
 
-The complete library is the single content owner. Maintain stable paths and
-backend classifications in `skill-index.json`, then refresh generated records
-and navigation with `tools/build_skill_index.py`; do not hand-edit generated
-cards. Stored cards keep only their own fields and resource hashes, and the shared
-`_provenance.json` snapshot holds the source revision and registry hash; the
-catalog resolves them into the public records
-([contribution workflow](knowledge-contribution-workflow.md)). Its source-revision and consistency checks prevent attributing edited
-metadata to an older snapshot. Preserve existing states, provenance, notices,
+Maintain stable skill IDs, paths and backends in `skill-index.json`. After committing changed skill sources, run `tools/build_skill_index.py` to refresh the two compiled inputs. The catalog assembles public records from the registry, canonical metadata, YAML headers and source fingerprints. Indexed material selection verifies the recorded hashes against the resources it reads. [Contribution workflow](knowledge-contribution-workflow.md)
+
+Preserve existing states, provenance, notices,
 `UNKNOWN` licenses and the two matrices' authority. Migration and installed-package
 checks do not establish licensing, empirical verification or automatic execution.
 
 ## Negative results as diagnostic options
 
 The existing Case authority now also holds scoped rejected directions for
-[Qwen B300](../src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen-b300-rejected-directions.md),
-[Qwen Ascend](../src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md)
-and [Drama3 B300](../src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/drama3-rejected-directions.md).
+[Qwen B300](../src/inferrsi/knowledge/data/skill_library/casebooks/inference/inference-optimization-casebook/cases/qwen-b300-rejected-directions.md),
+[Qwen Ascend](../src/inferrsi/knowledge/data/skill_library/casebooks/inference/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md)
+and [Drama3 B300](../src/inferrsi/knowledge/data/skill_library/casebooks/inference/inference-optimization-casebook/cases/drama3-rejected-directions.md).
 The records cite exact source summaries; they add no hardware validation.
 Observation, original disposition and newly suggested revisit checks stay
 separate. Raw evidence remains at its existing frozen owner.
@@ -345,17 +400,17 @@ perf-loop, fixed skill count, global numeric policies and separate case registry
 are not imported. Exactly two primary matrices remain; HBM is not host RAM and
 H2D/IPC/team coordination do not establish Network coverage.
 
-The registered [vllm-metal candidate](../src/inferrsi/data/skill_library/repositories/vllm-metal/SKILL.md) adds selected platform/ABI, KV/offload lifecycle and speculative/deferred/dispatch procedures. Installed pure API/parser evidence is partial; required Apple native/model/quality/service evidence remains blocked. It is portable AREX-informed repository integration, not DisCo CLI execution or managed import.
+The registered [vllm-metal candidate](../src/inferrsi/knowledge/data/skill_library/systems/engines/vllm-metal/SKILL.md) adds selected platform/ABI, KV/offload lifecycle and speculative/deferred/dispatch procedures. Installed pure API/parser evidence is partial; required Apple native/model/quality/service evidence remains blocked. It is portable AREX-informed repository integration, not DisCo CLI execution or managed import.
 
-The registered [mistral-rs candidate](../src/inferrsi/data/skill_library/repositories/mistral-rs/SKILL.md) adds selected Metal paged-attention layout, metadata/workspace and preparation/evidence contracts. Rust tooling and required Apple native/model evidence are unavailable; offline helpers and source test definitions are not native execution or candidate promotion.
+The registered [mistral-rs candidate](../src/inferrsi/knowledge/data/skill_library/systems/engines/mistral-rs/SKILL.md) adds selected Metal paged-attention layout, metadata/workspace and preparation/evidence contracts. Rust tooling and required Apple native/model evidence are unavailable; offline helpers and source test definitions are not native execution or candidate promotion.
 
-The [mlx-swift-lm candidate](../src/inferrsi/data/skill_library/repositories/mlx-swift-lm/SKILL.md) owns selected Swift generation-lifetime and recurrent native/ops contracts, with source/observation limits preserved. No Swift compile, original native/host-control test, actual Metal/model/quality/service run is implied by its helpers or packaged discovery.
+The [mlx-swift-lm candidate](../src/inferrsi/knowledge/data/skill_library/systems/engines/mlx-swift-lm/SKILL.md) owns selected Swift generation-lifetime and recurrent native/ops contracts, with source/observation limits preserved. No Swift compile, original native/host-control test, actual Metal/model/quality/service run is implied by its helpers or packaged discovery.
 
-The [mlc-llm candidate](../src/inferrsi/data/skill_library/repositories/mlc-llm/SKILL.md) separates artifact metadata, supported consumers, Apple targets, pinned TVM runnable/runtime boundaries and compiled/runtime KV configuration. Canonical hashes, serializable fallback or estimated limits are not native/model/quality/fit/service evidence.
+The [mlc-llm candidate](../src/inferrsi/knowledge/data/skill_library/systems/engines/mlc-llm/SKILL.md) separates artifact metadata, supported consumers, Apple targets, pinned TVM runnable/runtime boundaries and compiled/runtime KV configuration. Canonical hashes, serializable fallback or estimated limits are not native/model/quality/fit/service evidence.
 
-The registered [h3-metal FastH3 audit](../src/inferrsi/data/skill_library/repositories/h3-metal/audit-h3-metal-fasth3-semantics/SKILL.md) supplements earlier h3.c residency with fork-specific effective configuration, tensor/schedule semantics and VSA eligibility/fallback. Its offline declaration arithmetic and label probes do not qualify native conversion, sparse attention, media, memory fit or performance; required Apple/model evidence remains blocked/not_run.
+The registered [h3-metal FastH3 audit](../src/inferrsi/knowledge/data/skill_library/systems/engines/h3-metal/audit-h3-metal-fasth3-semantics/SKILL.md) supplements earlier h3.c residency with fork-specific effective configuration, tensor/schedule semantics and VSA eligibility/fallback. Its offline declaration arithmetic and label probes do not qualify native conversion, sparse attention, media, memory fit or performance; required Apple/model evidence remains blocked/not_run.
 
-The registered [local-dream candidate](../src/inferrsi/data/skill_library/repositories/local-dream/SKILL.md)
+The registered [local-dream candidate](../src/inferrsi/knowledge/data/skill_library/systems/engines/local-dream/SKILL.md)
 owns selected Android desired/serving/readiness and unauthenticated-host
 boundaries, native diffusion dispatch/cancellation/cache and DiT/QNN packaging
 contracts. Its helper compares declarations only; required Android/Qualcomm,

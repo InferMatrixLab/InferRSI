@@ -34,22 +34,17 @@ def assess(directory: Path, settings, execution):
                 "verdict": "INCONCLUSIVE", "reason": "missing_task_result"}
     result = json.loads(result_path.read_text(encoding="utf-8"))
     evidence = {"measurement/result.json": hashlib.sha256(result_path.read_bytes()).hexdigest()}
-    if result.get("status") == "candidate_failure":
-        return {"status": "candidate_failure", "score": None, "verdict": "FAIL",
-                "reason": result.get("error"), "evidence_files": evidence,
-                "quality_passed": False if result.get("correctness") == "FAIL" else None}
-    if (execution.get("status") != "completed" or execution.get("returncode") != 0
-            or result.get("status") != "completed" or result.get("correctness") != "PASS"):
+    rejected = result.get("status") == "candidate_failure"
+    expected_exit = ("failed", 2) if rejected else ("completed", 0)
+    if (type(execution.get("returncode")) is not int
+            or (execution.get("status"), execution.get("returncode")) != expected_exit
+            or (not rejected and (result.get("status") != "completed"
+                                  or result.get("correctness") != "PASS"))):
         return {"status": "infrastructure_failure", "score": None,
                 "verdict": "INCONCLUSIVE", "reason": "incomplete_execution_or_task",
                 "evidence_files": evidence}
-    task = json.loads((Path(__file__).parent / "task.json").read_text(encoding="utf-8"))
-    expected_cases = {case["id"] for case in task["cases"]}
-    measured_cases = {case["id"] for case in task["cases"] if case["measured"]}
-    if (result.get("score_scope") != "complete_task"
-            or set(result.get("selected_cases", [])) != expected_cases
-            or result.get("protocol") != {**settings, "check_only": False}):
-        raise ValueError("Full-task scope or frozen sampling protocol changed")
+    # A rejection also needs source binding: it must not authorize continuation
+    # with a changed candidate or evaluator snapshot.
     identity = json.loads((output / "identity.json").read_text(encoding="utf-8"))
     required = {"candidate.py", "baseline.py", "reference.py", "workload.py", "task.json",
                 "TASK.md", "benchmark.py", "LICENSE", "NOTICE.md"}
@@ -71,6 +66,32 @@ def assess(directory: Path, settings, execution):
         evidence["measurement/snapshot/" + name] = expected
     evidence["measurement/identity.json"] = hashlib.sha256(
         (output / "identity.json").read_bytes()).hexdigest()
+    if rejected:
+        if result.get("failure_kind") == "unsupported_candidate_dependency":
+            case = result.get("dependency_failure", {}).get("case")
+            rechecks = [call for call in result.get("calls", [])
+                        if call.get("label") == "baseline"
+                        and call.get("phase") == "recovery_check" and call.get("case") == case]
+            if (not case or result.get("baseline_recheck") != {"case": case, "correctness": "PASS"}
+                    or len(rechecks) != 1 or rechecks[0].get("correctness") != "PASS"):
+                return {"status": "infrastructure_failure", "score": None,
+                        "verdict": "INCONCLUSIVE", "reason": "missing_baseline_recheck",
+                        "evidence_files": evidence}
+        error_log = output / "error.log"
+        if error_log.is_file():
+            evidence["measurement/error.log"] = hashlib.sha256(error_log.read_bytes()).hexdigest()
+        return {"status": "candidate_failure", "score": None, "verdict": "FAIL",
+                "reason": result.get("error"), "evidence_files": evidence,
+                "failure_kind": result.get("failure_kind"),
+                "missing_module": result.get("missing_module"),
+                "quality_passed": False if result.get("correctness") == "FAIL" else None}
+    task = json.loads((Path(__file__).parent / "task.json").read_text(encoding="utf-8"))
+    expected_cases = {case["id"] for case in task["cases"]}
+    measured_cases = {case["id"] for case in task["cases"] if case["measured"]}
+    if (result.get("score_scope") != "complete_task"
+            or set(result.get("selected_cases", [])) != expected_cases
+            or result.get("protocol") != {**settings, "check_only": False}):
+        raise ValueError("Full-task scope or frozen sampling protocol changed")
     cases = result.get("cases", [])
     if len(cases) != len(measured_cases) or {case["id"] for case in cases} != measured_cases:
         raise ValueError("Missing or duplicated performance cases")

@@ -23,9 +23,9 @@ acceptance result.
 
 | Existing source-derived guidance | What it leaves open | Measured observation here |
 | --- | --- | --- |
-| [h3.c runtime audit](../src/inferrsi/data/skill_library/repositories/h3-c/audit-h3-runtime-residency/SKILL.md), [64 GiB worked preparation](../src/inferrsi/data/skill_library/repositories/h3-c/audit-h3-runtime-residency/references/minimax-h3-apple.md) | Target execution and peak memory unverified; tensor counters are not physical footprint | Process peaks for three configurations, the component that sets the memory floor, and cold-load cost ([Unified memory](#unified-memory)) |
-| [MLX lazy evaluation and stream lifetimes](../src/inferrsi/data/skill_library/frameworks/mlx/lazy-evaluation-stream-lifetimes/SKILL.md) | Submission versus completion stated from source; no device timing | CPU encoding and GPU wait measured separately; a large encode cost that did not move wall time ([Metal execution](#metal-execution)) |
-| [vLLM Metal cache lifecycle](../src/inferrsi/data/skill_library/repositories/vllm-metal/sub-skills/cache-lifecycle/SKILL.md) | One physical unified pool stated from source; memory pressure not measured | Resident weights evicting other weights from the page cache, with the cold-start cost |
+| [h3.c runtime audit](../src/inferrsi/knowledge/data/skill_library/systems/engines/h3-c/audit-h3-runtime-residency/SKILL.md), [64 GiB worked preparation](../src/inferrsi/knowledge/data/skill_library/systems/engines/h3-c/audit-h3-runtime-residency/references/minimax-h3-apple.md) | Target execution and peak memory unverified; tensor counters are not physical footprint | Process peaks for three configurations, the component that sets the memory floor, and cold-load cost ([Unified memory](#unified-memory)) |
+| [MLX lazy evaluation and stream lifetimes](../src/inferrsi/knowledge/data/skill_library/systems/frameworks/mlx/lazy-evaluation-stream-lifetimes/SKILL.md) | Submission versus completion stated from source; no device timing | CPU encoding and GPU wait measured separately; a large encode cost that did not move wall time ([Metal execution](#metal-execution)) |
+| [vLLM Metal cache lifecycle](../src/inferrsi/knowledge/data/skill_library/systems/engines/vllm-metal/sub-skills/cache-lifecycle/SKILL.md) | One physical unified pool stated from source; memory pressure not measured | Resident weights evicting other weights from the page cache, with the cold-start cost |
 | [Quickstart A/B experiments](quickstart.md) | Generic; no Apple-specific interference sources | Interference seen on a shared Mac and how each was detected ([Benchmarking a shared Mac](#benchmarking-a-shared-mac)) |
 
 ## Unified memory
@@ -57,6 +57,18 @@ acceptance result.
 | Several switches are on by default on one chip and off on the other (for example a command-buffer wrapper reuse: +1.0–1.6% on M3 Max, neutral on M5). | Different GPU generations reward different scheduling. | Do not carry a tuning decision across chip generations without re-measuring. | upstream |
 | A candidate kernel used 42,240 bytes of threadgroup memory and failed only at run time. | The limit is 32 KB. | Build every Metal pipeline before timing so the failure is a build failure. | ledger |
 | PyTorch/diffusers could not run the model on MPS. | `aten::_int_mm` is not implemented for MPS. | Check the int8 operator set before choosing PyTorch MPS as a baseline. | ledger (2026-10-24) |
+
+## Bringing up a new model
+
+From [Inkling 2 Mini on Apple silicon](inkling2-mini-apple-silicon.md) (measured on the same M5 Max; exploratory record without an acceptance issue, unverified).
+
+| Observation | Cause | Action | Source |
+| --- | --- | --- | --- |
+| The release checkpoint (ModelOpt NVFP4/MXFP8) loads in neither MLX nor llama.cpp. | Apple runtimes need their own quantized formats. | Start from a community conversion; pin repository, revision and file SHA-256. | measured |
+| Shards arrived larger than published after a segmented download. | curl `--retry` inside a ranged, appending segment resends from the range start. | Verify each file against the Hub `lfs.oid` before the first load. | measured |
+| A 512-token cap ended inside the thinking block although reasoning effort was set to `none`. | The template value only adds a system line. | Size generation caps for thinking plus answer; count both. | measured |
+| A looped MoE model was far below what its weight traffic would allow at decode. | Many layer visits per token, each with many small ops: launch- and graph-building-bound. | Profile one layer visit at decode shape before compiling. Per-module compiles moved little; rebuilding the single-token layer path (compiled graphs around the cache write, a one-kernel mask, fused projections, one-kernel short convs) cut ops per step. No speedup is claimed. | measured, unverified |
+| During a search round the default path drifted upward. | Warm-up/thermal drift over minutes. | Pair each candidate run with the adjacent default run; an all-runs median inflated one candidate. | measured, unverified |
 
 ## Benchmarking a shared Mac
 

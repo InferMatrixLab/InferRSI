@@ -8,7 +8,7 @@ from unittest.mock import Mock
 import pytest
 import yaml
 
-from inferrsi.infra.artifacts import sha256, write_json
+from inferrsi.apps.artifacts import sha256, write_json
 from tools import skill_eval_historical_job as job
 
 

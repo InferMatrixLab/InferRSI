@@ -1,5 +1,15 @@
 # Optimize a task through RSI in its execution Agent session
 
+The final report starts with [Benchmark metrics](benchmark-metrics.md): final
+speedup, accepted/assessed optimization steps and token consumption/coverage.
+Comparison-only ratios appear in paired reports rather than single-run reports.
+
+The CLI `final` operation automatically publishes a [result delivery](result-delivery.md)
+under `delivery/<export-id>/`: lead the response with the conclusion and `report.md`,
+then `report.html` (**Open in a browser**), `campaign-result.json`, and retained code.
+Execution and export outcomes are separate. Use `inferrsi export --input <session>
+--output <new-directory>` for progress or a delivery retry without remeasurement.
+
 An optimization benchmark covers the Agent's complete search under a frozen
 task and budget. The execution Agent proposes changes, uses permitted knowledge,
 submits candidates, reads independent feedback and completes the declared rounds.
@@ -17,9 +27,14 @@ only observes and collects its results. Benchmark supplies task resources and
 task-specific rules. Harness freezes those inputs, runs the checks, assesses
 retained outputs and manages the lifecycle; it does not invent project acceptance.
 
-The first task with this session protocol is `qwen21-denoise-npu`. MoE and TTS
-currently expose their single-candidate task entries. New session tasks provide
-their own `optimization.py` alongside the task definition and evaluator.
+Before starting a session, use `inferrsi benchmarks list --iterative` to list
+installed tasks with an `optimization.py` file at the task package root.
+The current list contains `moe-forward-npu` and `qwen21-denoise-npu`.
+TTS currently exposes its single-candidate task entry.
+
+For paired knowledge on/off experiments over both tasks, use the Apps
+[`benchmarks compare` workflow](benchmark-comparison.md). It reuses this session
+lifecycle and collects complete optimization traces and independent finals.
 
 ## Start the complete workflow
 
@@ -46,13 +61,17 @@ Final evaluation reserves one evaluation timeout from the total budget by
 default; `--final-reserve-seconds` changes that explicit reservation. Use
 `--knowledge off` for a condition that disables managed knowledge retrieval.
 
-## Retrieve knowledge and propose a change
+## Diagnose the bottleneck and propose a change
 
-When the chosen experimental condition permits RSI knowledge, retrieve it through
-the session. This calls the existing KnowledgeReader and retains the exact
-delivered context with its hash.
+Use profile data or existing measurements for the same workload and environment.
+Record the bottleneck and a UTF-8 summary of its measured evidence before
+the first candidate round. When the condition allows knowledge retrieval, use
+it after diagnosis for a specific implementation question. The session retains
+the exact delivered context with its hash.
 
 ```bash
+inferrsi benchmarks session diagnose --session ./outputs/qwen-rsi \
+  --bottleneck '<measured-bottleneck>' --evidence ./measurement-summary.txt
 inferrsi benchmarks session knowledge --session ./outputs/qwen-rsi \
   --query 'Ascend denoising conditioning reuse normalization fusion' \
   --context-bytes 16384
@@ -62,6 +81,43 @@ Read the returned content. Make one justified candidate change. Knowledge
 selection method and the external Agent configuration are caller-controlled
 variables. A retained delivery establishes what was supplied. Model consumption
 and access to material outside this session require their own observation.
+
+### Include CANNBot in the round
+
+Run from the project with an [approved CANNBot grant](external-channels.md).
+Add `--cannbot-platform <platform>` at `benchmarks session start` or AB/BA
+`campaign start` to freeze the external source and an explicit Ascend
+platform. Omit the option for a local-only session. The paired
+`benchmarks compare` conditions keep their existing behavior.
+
+`knowledge` queries both sources for the next round. It returns the local
+context and a separate `external` result, with its own ranking, channel state
+and `reference.path`. A CANNBot timeout still returns the local result. The
+external request and worker cleanup use the remaining search budget before the
+final reserve. Use task keywords and keep private details out.
+InferRSI applies its standard evidence redaction to the combined query before
+searching and retaining it. Use a locator from this round's external result:
+
+```bash
+inferrsi benchmarks session knowledge-read --session <session-dir> \
+  --search-ref <external.reference.path> --locator <card-locator> --page 1
+```
+
+The read verifies the revision and digest recorded by the search. Card text
+returns to the authorized CLI caller. The session retains only the source,
+locator, revision, digest, page and search reference. Read additional pages
+with `--page`. Use the equivalent `campaign knowledge-read` command for AB/BA.
+
+At candidate submission, repeat `--knowledge-ref` for each delivery you used.
+Pass the read's `reference.path` for an external card page, or
+`<local-reference.path>#<item-ref>` for a local item with delivered resources.
+A local capture path alone cites the whole delivery. You can cite an earlier
+delivery from the same session. Search result paths are ineligible for citation.
+
+Open [Dashboard](dashboard.md) → **Round decisions** to see the queries and
+channel states before submitting a candidate. Completed attempts show the
+agent's explicit citations alongside the candidate ID, verdict and measured
+score. A search hit or read receipt alone does not record a citation.
 
 ## Submit a round and use its feedback
 
@@ -85,7 +141,37 @@ attempt prevents a second launch after an interrupted coordinator.
 Repeat this operation until the declared round budget is consumed. Use
 `session status --session ./outputs/qwen-rsi` to inspect progress. Each call
 evaluates a newly retained candidate snapshot and returns independent feedback.
-Profiling is available to the Agent as an optional diagnostic.
+Refresh the diagnosis when new measurements identify a different bottleneck.
+
+### A failed experiment can leave a usable best candidate
+
+A normally finished evaluation may explicitly reject a candidate. Harness keeps
+that round and its evidence, assigns no score to it, and preserves the selected
+best snapshot. The Agent can repair the candidate or, when the frozen round and
+time rules permit, run `final` on the retained best without repairing the working
+copy. Final still executes the full frozen protocol in a new process.
+
+For Qwen, a missing optional `tbe` module is a candidate dependency rejection only
+when it is raised inside the candidate function and the same case's baseline
+has already passed. This includes CANN's specific EC0010 TBE import failure at
+`AclSetCompileopt`, which wraps the missing dependency in a `RuntimeError`.
+Before rejecting the candidate, the worker reruns the same case's baseline
+against the independent reference using pristine inputs and baseline parameters;
+execution, synchronization and quality must all pass again. That check produces
+no optimization score. A failed recheck remains an infrastructure failure and
+retains both errors. Setup/import failures, failed baselines, other missing
+modules and unknown device errors remain infrastructure failures. The task
+assessor binds rejected results to the evaluated source snapshots and requires
+the worker's normal rejection exit. A written rejection cannot override a
+timeout, cancellation, signal or unknown execution state in the shared controller.
+
+This prevents a known candidate dependency failure from unnecessarily blocking
+the campaign. It does not unlock existing `blocked` campaigns, bypass a failed
+final or waive `exact` rounds. `recover` still only settles an existing attempt;
+it is not an environment repair operation. Normal process exit does not certify
+remote allocation release. Interruptions and unknown resource state remain
+blocked and require external investigation. Historical frozen experiments and
+their verdicts must not be rewritten with the new task protocol.
 
 ## Independently retest and report
 

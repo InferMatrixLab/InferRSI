@@ -6,9 +6,9 @@ from pathlib import Path
 
 import pytest
 
-from inferrsi.cli import main
-from inferrsi.knowledge_operations import IdentityError, KnowledgeReader, RevisionConflict
-from inferrsi.skill_catalog import (
+from inferrsi.apps.cli import main
+from inferrsi.knowledge.knowledge_operations import IdentityError, KnowledgeReader, RevisionConflict
+from inferrsi.knowledge.skill_catalog import (
     get_skill,
     skill_directories,
     skill_directory,
@@ -194,12 +194,12 @@ def test_nested_checkout_bundle_preserves_references_cases_and_revision(tmp_path
 
 def test_cli_defaults_to_installed_library_and_allows_custom_root(tmp_path, monkeypatch, capsys):
     package = tmp_path / "package"
-    library = package / "data/skill_library"
+    library = package / "knowledge/data/skill_library"
     _skill(library, "hardware/cuda/installed")
     _index(library, {"installed": "hardware/cuda/installed"})
     custom = tmp_path / "custom"
     _skill(custom, "local")
-    monkeypatch.setattr("inferrsi.cli.files", lambda name: package)
+    monkeypatch.setattr("inferrsi.apps.cli.files", lambda name: package)
     monkeypatch.chdir(tmp_path)
     assert main(["skills", "show", "installed"]) == 0
     assert json.loads(capsys.readouterr().out)["name"] == "installed"
@@ -215,12 +215,12 @@ def test_package_catalog_and_reader_do_not_require_yaml():
             sys.executable,
             "-c",
             "import sys; sys.modules['yaml'] = None\n"
-            "from inferrsi.catalog import knowledge_records\n"
-            "from inferrsi.knowledge_operations import KnowledgeReader\n"
+            "from inferrsi.knowledge.catalog import knowledge_records\n"
+            "from inferrsi.knowledge.knowledge_operations import KnowledgeReader\n"
             "records = knowledge_records()\n"
             "identity = next(r['id'] for r in records if r.get('skill_documents'))\n"
             "assert KnowledgeReader().read(identity).content\n"
-            "assert 'inferrsi.skill_catalog' not in sys.modules\n"
+            "assert 'inferrsi.knowledge.skill_catalog' not in sys.modules\n"
             "assert 'inferrsi.knowledge.skill_catalog' not in sys.modules\n",
         ],
         capture_output=True,

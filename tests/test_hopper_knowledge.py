@@ -5,16 +5,21 @@ import re
 from collections import Counter
 from pathlib import Path
 
-from inferrsi.catalog import get_knowledge, search_knowledge
-from inferrsi.knowledge_operations import KnowledgeReader
-from inferrsi.skill_catalog import get_skill, skill_metadata, skill_reference, skill_resource
+from inferrsi.knowledge.catalog import get_knowledge, search_knowledge
+from inferrsi.knowledge.knowledge_operations import KnowledgeReader
+from inferrsi.knowledge.skill_catalog import (
+    get_skill,
+    skill_metadata,
+    skill_reference,
+    skill_resource,
+)
 
-ROOT = Path(__file__).resolve().parents[1] / "src/inferrsi/data/skill_library"
+ROOT = Path(__file__).resolve().parents[1] / "src/inferrsi/knowledge/data/skill_library"
 NAME = "reason-hopper-kernels"
-OWNER = ROOT / "hardware/cuda" / NAME
+OWNER = ROOT / "systems/platforms/cuda" / NAME
 IDENTITY = "inferrsi.cuda.skills.reason_hopper_kernels"
-PREFIX = f"data/skill_library/hardware/cuda/{NAME}/"
-CHECKOUT_PREFIX = f"hardware/cuda/{NAME}/"
+PREFIX = f"data/skill_library/systems/platforms/cuda/{NAME}/"
+CHECKOUT_PREFIX = f"systems/platforms/cuda/{NAME}/"
 
 
 def test_hopper_discovery_keeps_cuda_scope_and_unverified_candidate_state():

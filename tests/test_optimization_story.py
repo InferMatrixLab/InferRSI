@@ -9,17 +9,18 @@ from pathlib import Path
 
 import pytest
 
-from inferrsi.cli import main
-from inferrsi.knowledge_operations import KnowledgeReader
-from inferrsi.observability.campaign_records import (
+from inferrsi.apps.cli import main
+from inferrsi.apps.views.dashboard import dashboard_snapshot, render_dashboard, write_dashboard
+from inferrsi.apps.views.dashboard_data import load_dashboard
+from inferrsi.apps.workflows.campaign import capture_context, verify_capture
+from inferrsi.harness.records.campaign_records import (
     create_campaign,
     record_candidate,
     record_decision,
 )
-from inferrsi.observability.dashboard import write_dashboard
-from inferrsi.observability.dashboard_data import load_dashboard
-from inferrsi.observability.knowledge_capture import capture_context, verify_capture
-from inferrsi.observability.optimization_log import LogError, parse_optimization_log, record_log
+from inferrsi.harness.records.optimization_log import LogError, parse_optimization_log, record_log
+from inferrsi.knowledge._skill_selection import FIND_RELEVANCE
+from inferrsi.knowledge.knowledge_operations import KnowledgeReader
 
 
 class FakeReader:
@@ -149,12 +150,100 @@ def test_capture_keeps_exact_context_and_detects_tampering(tmp_path):
 
 def test_capture_matches_real_collect_output(tmp_path):
     create_campaign(tmp_path, "camp")
-    path, _ = capture_context(tmp_path, context_id="real", reader=KnowledgeReader(),
-                              relevance="kv cache block size", context_bytes=40000, limit=2)
+    reader = KnowledgeReader()
+    options = {"relevance": "kv cache block size", "context_bytes": 40000, "limit": 2}
+    direct = reader.collect(**options, relevance_method=FIND_RELEVANCE)
+    path, _ = capture_context(tmp_path, context_id="real", reader=reader, **options)
+    document, state = verify_capture(path.read_bytes())
+
+    assert state == "verified"
+    assert document["contexts"], "the installed library should supply a context"
+    assert document["request"]["sources"] == direct["retrieval"]["request"]["sources"]
+    assert document["request"]["sources"] == ["package", "checkout"]
+    assert document["retrieval"]["calls"] == ["campaign capture-context", "collect", "find"]
+    assert document["selection"] == direct["selection"]
+    assert [(item["ref"], item["revision"]) for item in document["items"]] == [
+        (item["ref"], item["revision"]) for item in direct["items"]
+    ]
+
+
+def test_capture_installed_case_at_exact_revision(tmp_path, capsys):
+    create_campaign(tmp_path, "camp")
+    ref = "checkout:case.qwen-ascend-rejected-directions"
+    assert main(["read", ref, "--installed-library", "--material", "--omit-resources"]) == 0
+    live = json.loads(capsys.readouterr().out)
+    revision = live["revision"]
+    args = ["campaign", "capture-context", "--directory", str(tmp_path),
+            "--installed-library", "--id-ref", ref]
+
+    def capture(context_id, pin):
+        assert main([*args, "--id", context_id, "--revision", f"{ref}={pin}"]) == 0
+        output = json.loads(capsys.readouterr().out)
+        document, state = verify_capture((tmp_path / output["context"]).read_bytes())
+        assert state == "verified"
+        assert document["request"]["sources"] == ["package", "checkout"]
+        assert document["request"]["revisions"] == {ref: pin}
+        return document
+
+    exact = capture("exact", revision)
+    context, = exact["contexts"]
+    assert (context["ref"], context["revision"]) == (ref, revision)
+    assert any(resource["content"] == live["content"] for resource in context["resources"])
+
+    stale = capture("stale", "sha256:" + "0" * 64)
+    assert stale["items"] == stale["contexts"] == []
+    assert [(item["id"], item["reason"]) for item in stale["omissions"]] == [
+        (ref, "unavailable_revision")
+    ]
+
+
+def test_capture_packaged_skills_does_not_repeat_bundle_manifest(tmp_path):
+    create_campaign(tmp_path, "camp", noise=1.5)
+    reader = KnowledgeReader()
+    options = {"relevance": "performance kernel optimization", "limit": 40,
+               "context_bytes": 65536, "kind": "knowledge"}
+    expected = reader.collect(**options)
+    path, _ = capture_context(tmp_path, context_id="many-skills", reader=reader, **options)
     document, state = verify_capture(path.read_bytes())
     assert state == "verified"
-    assert document["contexts"], "the packaged library should supply a context"
-    assert document["request"]["sources"] == ["package"]
+    assert len(document["items"]) == 40
+    assert [item["ref"] for item in document["items"]] == [
+        item["ref"] for item in expected["items"]]
+    for item, source in zip(document["items"], expected["items"]):
+        assert "resources" not in item
+        assert item["skill_documents"] == source.get("skill_documents")
+    assert document["context_bytes_used"] == expected["context_bytes"]
+    assert document["context_budget"] == expected["context_budget"]
+    assert document["context_omissions"] == expected["context_omissions"]
+
+
+def test_dashboard_preserves_redacted_packaged_context_and_lesson(tmp_path):
+    create_campaign(tmp_path, "camp", noise=1.5)
+    path, digest = capture_context(
+        tmp_path, context_id="r1", reader=KnowledgeReader(),
+        ids=["inferrsi.common.skills.kv_tier_management", "inferrsi.common.skills.local_dream"],
+        context_bytes=262144)
+    original = path.read_bytes()
+    document = json.loads(original)
+    assert "/dev/ng" in document["assembled_text"]
+    assert document["assembled_text"].endswith("not_context_resource\n")
+    log = log_document(digest)
+    log["summary"]["lessons"] = ["Mount /dev/shm before launch. Then run the step."]
+    write_log(tmp_path, log)
+    snapshot = dashboard_snapshot(tmp_path)
+    for key in ("story", "knowledge_trace"):
+        capture = snapshot["data"][key]["retrievals"][0]
+        assert capture["display_redacted"]
+        assert capture["assembled_text"].endswith("not_context_resource\n")
+        assert capture["assembled_sha256"] == document["assembled_sha256"]
+        assert "/dev/ng" not in capture["assembled_text"]
+    lesson = "Mount [redacted-path] before launch. Then run the step."
+    assert snapshot["data"]["story"]["summary"]["lessons"] == [lesson]
+    for layout in ("default", "profile_first"):
+        snapshot["data"]["review_layout"] = layout
+        html = render_dashboard(snapshot)
+        assert lesson in html and "not_context_resource" in html
+    assert path.read_bytes() == original
 
 
 def test_story_joins_log_with_captures_and_runs_without_conflicts(tmp_path):
@@ -249,12 +338,12 @@ def test_summary_navigates_to_run_without_outcome_but_not_missing_runs(tmp_path)
         {"ref": "candidate:duplicate", "state": "ambiguous"},
     ])
 
-    template = Path(__file__).parents[1] / "src/inferrsi/observability/template.html"
+    template = Path(__file__).parents[1] / "src/inferrsi/apps/views/template.html"
     script = r"""
 const fs = require('node:fs'), assert = require('node:assert/strict');
 const data = JSON.parse(fs.readFileSync(0, 'utf8'));
 const html = fs.readFileSync(process.argv[1], 'utf8');
-const selectStart = html.indexOf('  function selectCandidate(');
+const selectStart = html.indexOf('  function focusRunReview(');
 const selectEnd = html.indexOf('  function renderIterations(', selectStart);
 const summaryStart = html.indexOf('  function renderSummary(');
 const summaryEnd = html.indexOf('  function renderStory(', summaryStart);
@@ -292,7 +381,8 @@ button('b').click();
 assert.equal(data.candidates[api.selected()].candidate_id, 'b');
 assert.equal(runSelect.value, ''); assert.equal(stageSelect.value, '');
 assert.equal(candidateSelect.value, '');
-assert.equal(target.tabindex, '-1'); assert(target.focused && target.scrolled);
+assert.match(html, /<section\b(?=[^>]*\bid="run-review")(?=[^>]*\btabindex="-1")[^>]*>/);
+assert(target.focused && target.scrolled);
 assert.equal(button('duplicate').disabled, false); // Ambiguous references offer a run chooser.
 for (const id of ['missing', 'corrupt']) {
   assert.equal(button(id).disabled, true); button(id).click();
@@ -300,7 +390,7 @@ for (const id of ['missing', 'corrupt']) {
 }
 """
     subprocess.run([shutil.which("node"), "-e", script, str(template)], input=json.dumps(data),
-                   check=True, capture_output=True, text=True)
+                   check=True, text=True)
 
 
 def test_story_retains_a_recorded_failure_when_other_run_files_are_corrupt(tmp_path):
@@ -606,7 +696,7 @@ def test_malformed_capture_envelope_is_withheld(tmp_path):
 
 
 def test_search_import_joins_capture_use_with_failed_run(tmp_path):
-    from inferrsi.observability.search_attribution import import_search
+    from inferrsi.apps.views.search_attribution import import_search
 
     digest = campaign(tmp_path)
     write_log(tmp_path, log_document(digest))
@@ -626,7 +716,7 @@ def test_search_import_joins_capture_use_with_failed_run(tmp_path):
 
 @pytest.mark.parametrize("expected", ["corrupt", "missing"])
 def test_search_import_reports_unavailable_evaluation(tmp_path, expected):
-    from inferrsi.observability.search_attribution import import_search
+    from inferrsi.apps.views.search_attribution import import_search
 
     campaign(tmp_path)
     evaluation = tmp_path / "runs/run-a/evaluation.json"
@@ -641,7 +731,7 @@ def test_search_import_reports_unavailable_evaluation(tmp_path, expected):
 
 
 def test_search_import_keeps_omitted_use_claim_without_counting_it(tmp_path):
-    from inferrsi.observability.search_attribution import import_search
+    from inferrsi.apps.views.search_attribution import import_search
 
     create_campaign(tmp_path, "camp")
     capture, digest = capture_context(tmp_path, context_id="r1", reader=KnowledgeReader(),

@@ -1,9 +1,0 @@
-{
-  "schema_version": 1,
-  "purpose": "diagnostic_prefix_only_not_installable",
-  "url": "https://files.pythonhosted.org/packages/88/e4/9cd356d906e71bd79b0c3fc5c9a54e01a0020dcf14c152ccfbcb503c7298/pyarrow-26.0.0-cp312-cp312-manylinux_2_28_x86_64.whl",
-  "whole_wheel_bytes": 53931932,
-  "whole_wheel_sha256": "6a628922ba20705fa964ca73e4ef959c2fb2f14b9bbec5589a6a1e68e6257c85",
-  "pypi_metadata_sha256": "820e0086a99265aeb261219e687d72eae106dba6290a66683315b4fe85276be5",
-  "prefix_bytes": 8388608
-}

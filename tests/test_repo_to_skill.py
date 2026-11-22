@@ -9,8 +9,10 @@ from urllib.parse import unquote, urlsplit
 
 import yaml
 
+from inferrsi.knowledge.skill_catalog import skill_metadata
+
 PROJECT = Path(__file__).resolve().parents[1]
-LIBRARY = PROJECT / "src/inferrsi/data/skill_library/repositories"
+LIBRARY = PROJECT / "src/inferrsi/knowledge/data/skill_library/systems/engines"
 FIXTURES = PROJECT / "tests/fixtures/repo_to_skill"
 GRAPHS = ("dwarfstar",)
 
@@ -47,7 +49,7 @@ def test_arex_runtime_graph_links_frontmatter_and_source_boundaries():
                 assert selected.exists(), (path, target)
         assert not list(root.rglob("__pycache__"))
         assert not list(root.rglob("*.pyc"))
-        metadata = json.loads((root / "metadata.json").read_text(encoding="utf-8"))
+        metadata = skill_metadata(root.parent, root.name)
         assert metadata["status"] == "candidate"
         assert metadata["construction"]["native_import"] == "not-run"
         assert "BLOCKED_REQUIRED_BACKEND" in " ".join(metadata["limitations"])

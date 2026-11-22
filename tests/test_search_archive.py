@@ -2,14 +2,17 @@
 
 import hashlib
 import json
+import os
 import shutil
 import subprocess
+from pathlib import Path
 
 import pytest
 
-from inferrsi.observability.campaign_records import create_campaign
-from inferrsi.observability.knowledge_capture import assemble_context_text, capture_context
-from inferrsi.observability.search_attribution import import_search
+from inferrsi.apps.views.search_attribution import import_search
+from inferrsi.apps.workflows.campaign import capture_context, create_campaign
+from inferrsi.knowledge._skill_selection import FIND_RELEVANCE
+from inferrsi.knowledge.context_projection import assemble_context_text
 
 REVISION = "f6d200" + "a" * 34
 CORPUS = {"repository": "InferMatrixLab/InferRSI", "revision": REVISION,
@@ -45,7 +48,7 @@ def _reader(monkeypatch, event):
                 4: "I will use the stable RoPE case for validation."}, [], []
         return window, [], {4: "I will use the stable RoPE case for validation."}, [], []
 
-    monkeypatch.setattr("inferrsi.observability.search_attribution.read_window", read_window)
+    monkeypatch.setattr("inferrsi.apps.views.search_attribution.read_window", read_window)
 
 
 def _decision(**changes):
@@ -78,6 +81,37 @@ def _real_read_trace(path, corpus, *, command="cat case.md", output="Use the sta
     path.write_text("".join(json.dumps(row) + "\n" for row in rows), encoding="utf-8")
 
 
+
+def _usable_bash() -> str | None:
+    """Return a native POSIX bash, not the Windows WSL/WindowsApps stub.
+
+    ``shutil.which("bash")`` on this host finds ``C:\\Windows\\System32\\bash.exe``.
+    That stub can hang indefinitely on a Windows pytest cwd when running
+    ``cat`` of names that contain ``#``. Git Bash can evaluate the same
+    commands. Skip the WSL stubs and require a timeout at the call site.
+    """
+    seen: list[str] = []
+    for candidate in (
+        shutil.which("bash"),
+        r"C:\Program Files\Git\usr\bin\bash.exe",
+        r"C:\Program Files (x86)\Git\usr\bin\bash.exe",
+    ):
+        if not candidate:
+            continue
+        path = Path(candidate)
+        if not path.is_file():
+            continue
+        resolved = str(path.resolve())
+        if resolved in seen:
+            continue
+        seen.append(resolved)
+        parts = {part.lower() for part in path.resolve().parts}
+        if "system32" in parts or "windowsapps" in parts:
+            continue
+        return resolved
+    return None
+
+
 @pytest.mark.parametrize(("command", "ref"), [
     ("cat guide#v2.md", "guide#v2.md"),
     ("cat guide#v2.md # ignored 'quote", "guide#v2.md"),
@@ -88,15 +122,20 @@ def _real_read_trace(path, corpus, *, command="cat case.md", output="Use the sta
     ("cat guide #v2.md", "guide"),
 ])
 def test_shell_hash_filenames_and_comments_match_real_bash(tmp_path, command, ref):
-    bash = shutil.which("bash")
+    bash = _usable_bash()
     if not bash:
-        pytest.skip("bash is needed to check shell comment boundaries")
+        pytest.skip("a non-WSL bash is needed to check shell comment boundaries")
     campaign, corpus = tmp_path / "campaign", tmp_path / "corpus"
     create_campaign(campaign, "example")
     corpus.mkdir()
     (corpus / "guide").write_text("Unversioned guide.\n", encoding="utf-8")
     (corpus / ref).write_text("Use the stable RoPE case.\n", encoding="utf-8")
-    result = subprocess.run([bash, "-c", command], cwd=corpus, capture_output=True, check=True)
+    env = os.environ.copy()
+    env["PATH"] = "/usr/bin:/bin" + os.pathsep + env.get("PATH", "")
+    result = subprocess.run(
+        [bash, "-c", command], cwd=corpus, capture_output=True, check=True,
+        timeout=15, env=env,
+    )
     trace = tmp_path / "rollout.jsonl"
     _real_read_trace(trace, corpus, command=command, output=result.stdout.decode())
     review = _review(tmp_path / "review.json", decisions=[_decision(
@@ -399,13 +438,19 @@ class _Reader:
         self.text = text
 
     def collect(self, query="", **options):
+        selection = {"method": options.get("relevance_method"),
+                     "cue": options.get("relevance") or query,
+                     "scope": "package-records-and-library", "ranking_applied": True}
         return {
             "items": [{"ref": "package:manual", "revision": "sha256:" + "a" * 64,
                        "title": "manual", "kind": "knowledge"}],
             "omissions": [], "context_omissions": [],
-            "selection": {"method": options.get("relevance_method"),
-                          "cue": options.get("relevance") or query,
-                          "scope": "generated-packaged-skills", "ranking_applied": True},
+            "selection": selection,
+            "retrieval": {"schema_version": 1, "entrypoint": "collect",
+                          "calls": ["collect", "find"],
+                          "request": {"sources": ["package", "checkout"]},
+                          "selection": {**selection, "state": "applied"},
+                          "counts": {"matched": 1}, "items": [], "assembly": "performed"},
             "context_bytes": len(self.text.encode()), "context_budget": {"max_bytes": 4096},
             "contexts": [{"ref": "package:manual", "revision": "sha256:" + "a" * 64,
                           "content_bytes": len(self.text.encode()), "resources": [{
@@ -429,10 +474,8 @@ def _capture_trace(path, output, assistant_text="No adoption decision."):
 def _make_capture(tmp_path):
     campaign = tmp_path / "campaign"
     create_campaign(campaign, "example")
-    # Keep this recorder fixture independent of the default retrieval policy.
     capture, _ = capture_context(campaign, context_id="r1", reader=_Reader("Manual line.\n"),
-                                 relevance="manual", relevance_method="weighted-lexical-v1",
-                                 context_bytes=4096)
+                                 relevance="manual", context_bytes=4096)
     document = json.loads(capture.read_text(encoding="utf-8"))
     output = assemble_context_text(document["contexts"])
     return campaign, output
@@ -471,11 +514,12 @@ def test_indexer_capture_is_prepared_and_unknown_without_return(tmp_path):
     record = json.loads(path.read_text(encoding="utf-8"))
     event, = record["events"]
     material, = event["materials"]
+    assert event["tool"] == "find"
     assert event["capture"] == {"state": "verified", "source": "knowledge/r1.json",
                                 "sha256": event["sha256"]}
     assert event["request"]["relevance"] == "manual"
-    assert event["selection"] == {"method": "weighted-lexical-v1", "cue": "manual",
-                                   "scope": "generated-packaged-skills",
+    assert event["selection"] == {"method": FIND_RELEVANCE, "cue": "manual",
+                                   "scope": "package-records-and-library",
                                    "ranking_applied": True}
     assert material["preparation_state"] == "prepared"
     assert event["delivery"]["state"] == "unknown"
@@ -536,7 +580,7 @@ def test_extended_window_preserves_old_unknown_declaration_with_later_observatio
     assert (read["tool"], read["trace_line"], read["materials"]) == (
         "cat", 6, [{"ref": "package:manual"}],
     )
-    capture, = [event for event in expanded["events"] if event["tool"] == "collect"]
+    capture, = [event for event in expanded["events"] if event["tool"] == "find"]
     assert capture.get("trace_line") is None
     assert expanded["materials"]["package:manual"]["use"] == "unknown"
     assert expanded["materials"]["package:manual"]["declarations"] == [
@@ -597,14 +641,20 @@ def test_indexer_archive_review_matches_exact_visible_resource_and_return(tmp_pa
         "passage_path": "skills/manual/SKILL.md", "decision_line": 3,
         "decision_quote": "I will use Manual line",
     }
-    review = _review(tmp_path / "review.json", decisions=[use, use], capture_returns={"r1": 2})
+    inputs = {"number": 1, "trace": trace, "lines": [2, 3],
+              "knowledge_root": tmp_path / "corpus", "context_ids": ["r1"]}
+    missing_path = {key: value for key, value in use.items() if key != "passage_path"}
+    review = _review(tmp_path / "review.json", decisions=[missing_path], capture_returns={"r1": 2})
+    with pytest.raises(ValueError, match="exact captured resource path"):
+        import_search(campaign, archive_review=review, **inputs)
+    assert not (campaign / "search/archive/round-1.json").exists()
 
-    path = import_search(campaign, number=1, trace=trace, lines=[2, 3],
-                         knowledge_root=tmp_path / "corpus", context_ids=["r1"],
-                         archive_review=review)
+    review = _review(review, decisions=[use, use], capture_returns={"r1": 2})
+    path = import_search(campaign, archive_review=review, **inputs)
     record = json.loads(path.read_text(encoding="utf-8"))
     event, = record["events"]
     material, = event["materials"]
+    assert event["tool"] == "find"
     assert event["delivery"]["state"] == "visible"
     assert material["delivery_state"] == "visible"
     assert event["delivery"]["visible_resources"] == [
@@ -614,7 +664,10 @@ def test_indexer_archive_review_matches_exact_visible_resource_and_return(tmp_pa
         "text": "Manual line.",
     }]
     assert record["materials"]["package:manual"]["use"] == "used"
-    assert record["materials"]["package:manual"]["evidence"][0]["basis"] == "archive_reviewed"
+    evidence, = record["materials"]["package:manual"]["evidence"]
+    assert evidence["basis"] == "archive_reviewed"
+    assert (evidence["passage_path"], evidence["passage_line"], evidence["passage_text"]) == (
+        "skills/manual/SKILL.md", 1, "Manual line.")
     assert str(tmp_path) not in path.read_text(encoding="utf-8")
 
 

@@ -9,7 +9,7 @@ import pytest
 
 @pytest.mark.skipif(shutil.which("node") is None, reason="Node.js is needed for the UI regression")
 def test_round_outcome_and_stage_strip_follow_recorded_evidence():
-    template = Path(__file__).parents[1] / "src/inferrsi/observability/template.html"
+    template = Path(__file__).parents[1] / "src/inferrsi/apps/views/template.html"
     script = r"""
 const fs=require('node:fs'),assert=require('node:assert/strict');
 const html=fs.readFileSync(process.argv[1],'utf8');
@@ -74,7 +74,7 @@ assert.equal(ended.validation.failed,true);assert.equal(ended.diagnosis.failed,f
 
 @pytest.mark.skipif(shutil.which("node") is None, reason="Node.js is needed for the UI regression")
 def test_profile_reader_matches_baseline_and_keeps_unavailable_capture_ids():
-    template = Path(__file__).parents[1] / "src/inferrsi/observability/review_template.html"
+    template = Path(__file__).parents[1] / "src/inferrsi/apps/views/review_template.html"
     script = r"""
 const fs=require('node:fs'),assert=require('node:assert/strict');
 const html=fs.readFileSync(process.argv[1],'utf8');
@@ -103,7 +103,7 @@ run(new Set());assert.deepEqual(calls.at(-1),['test',undefined]);
 
 @pytest.mark.skipif(shutil.which("node") is None, reason="Node.js is needed for trace decoding")
 def test_full_profile_reader_checks_original_bytes_and_tracks_overlapping_events():
-    template = Path(__file__).parents[1] / "src/inferrsi/observability/review_template.html"
+    template = Path(__file__).parents[1] / "src/inferrsi/apps/views/review_template.html"
     script = r"""
 const fs=require('node:fs'),assert=require('node:assert/strict');
 const {gzipSync}=require('node:zlib'),{createHash,webcrypto}=require('node:crypto');
@@ -146,7 +146,7 @@ const blob=new Blob([bytes]);
 
 @pytest.mark.skipif(shutil.which("node") is None, reason="Node.js is needed for the UI regression")
 def test_round_review_shows_only_linked_retrievals_in_declared_order():
-    template = Path(__file__).parents[1] / "src/inferrsi/observability/template.html"
+    template = Path(__file__).parents[1] / "src/inferrsi/apps/views/template.html"
     script = r"""
 const fs=require('node:fs'), assert=require('node:assert/strict');
 const html=fs.readFileSync(process.argv[1],'utf8');
@@ -175,7 +175,7 @@ assert.deepEqual(captures(1,'a',{state:'not_recorded'}),[]);
 
 @pytest.mark.skipif(shutil.which("node") is None, reason="Node.js is needed for the UI regression")
 def test_translation_overlay_cannot_relabel_verdicts_or_evidence():
-    template = Path(__file__).parents[1] / "src/inferrsi/observability/template.html"
+    template = Path(__file__).parents[1] / "src/inferrsi/apps/views/template.html"
     script = r"""
 const fs = require('node:fs');
 const assert = require('node:assert/strict');
@@ -287,7 +287,7 @@ assert.equal(narrative.nodeValue, 'English explanation');
 
 @pytest.mark.skipif(shutil.which("node") is None, reason="Node.js is needed for the UI regression")
 def test_mixed_campaign_counts_native_and_external_failures_separately():
-    template = Path(__file__).parents[1] / "src/inferrsi/observability/template.html"
+    template = Path(__file__).parents[1] / "src/inferrsi/apps/views/template.html"
     script = r"""
 const fs=require('node:fs'), assert=require('node:assert/strict');
 const html=fs.readFileSync(process.argv[1],'utf8');
@@ -340,7 +340,7 @@ assert.equal(cards['Failed / regressed'].value,'Not recorded');
 
 @pytest.mark.skipif(shutil.which("node") is None, reason="Node.js runs the exported dashboard")
 def test_profile_history_partitions_clocks_and_preserves_missing_measurements():
-    template = Path(__file__).parents[1] / "src/inferrsi/observability/review_template.html"
+    template = Path(__file__).parents[1] / "src/inferrsi/apps/views/review_template.html"
     script = r"""
 const fs=require('node:fs'), assert=require('node:assert/strict');
 const html=fs.readFileSync(process.argv[1],'utf8');

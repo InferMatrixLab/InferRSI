@@ -6,7 +6,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from inferrsi.model import anthropic_agent as agent
+from inferrsi.apps.integrations.anthropic import anthropic_agent as agent
 
 
 class FullContextTests(unittest.TestCase):

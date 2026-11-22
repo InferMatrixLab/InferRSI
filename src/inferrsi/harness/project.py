@@ -10,7 +10,10 @@ import shutil
 from pathlib import Path
 from statistics import median
 
-from ..infra.artifacts import sha256
+from .artifact_primitives import sha256
+from .measurement import MIN_PAIRS, explain, paired_statistics, profile_evidence, validate_mechanism
+
+DECISIONS = ("point", "paired")
 
 
 def validate(settings: dict) -> None:
@@ -34,6 +37,16 @@ def validate(settings: dict) -> None:
     value = settings["min_improvement_pct"]
     if type(value) not in (int, float) or not math.isfinite(value) or value < 0:
         raise ValueError("An explicit finite nonnegative improvement gate is required")
+    if settings.get("decision", "point") not in DECISIONS:
+        raise ValueError("Decision must be point or paired")
+    if settings.get("decision") == "paired" and settings["repetitions"] < MIN_PAIRS:
+        raise ValueError(f"A paired decision needs at least {MIN_PAIRS} repetitions")
+    if type(settings.get("require_explanation", False)) is not bool:
+        raise ValueError("require_explanation must be a boolean")
+    if settings.get("require_explanation") and settings["repetitions"] < MIN_PAIRS:
+        # Fewer pairs give no interval for any expectation, so every round would be
+        # unverifiable and no candidate could ever be adopted.
+        raise ValueError(f"--require-explanation needs at least {MIN_PAIRS} repetitions")
 
 
 def prepare(destination: Path, protocol: Path, instructions: Path, settings: dict) -> dict:
@@ -116,10 +129,16 @@ def inspect_step(directory: Path, settings: dict, definition: dict, execution: d
         type(value) not in (int, float) or not math.isfinite(value) or value <= 0
     ):
         return {**failure, "reason": "invalid_metric", "evidence_files": evidence}
-    return {"status": "completed", "value": value, "evidence_files": evidence}
+    profile = {key: document[key] for key in ("breakdown", "counters") if key in document}
+    return {"status": "completed", "value": value, "profile": profile,
+            "evidence_files": evidence}
 
 
-def assess(directory: Path, settings: dict, execution: dict) -> dict:
+
+
+def assess(directory: Path, settings: dict, execution: dict, *,
+           mechanism: dict | None = None) -> dict:
+    """Judge one attempt; ``mechanism`` is the declaration bound before execution."""
     evidence = {}
 
     def result(status, reason, **fields):
@@ -134,6 +153,7 @@ def assess(directory: Path, settings: dict, execution: dict) -> dict:
             or any(c.get("verified") is not True for c in checks)):
         return result("infrastructure_failure", "incomplete_execution")
     samples = {"baseline": [], "candidate": []}
+    profiles = {"baseline": [], "candidate": []}
     candidate_quality = None
     for definition, record in zip(expected, actual):
         if record.get("id") != definition["id"]:
@@ -149,6 +169,7 @@ def assess(directory: Path, settings: dict, execution: dict) -> dict:
             candidate_quality = True
         if definition["phase"] == "measurement":
             samples[definition["side"]].append(checked["value"])
+            profiles[definition["side"]].append(checked["profile"])
     if execution.get("status") != "completed" or len(actual) != len(expected):
         return result("infrastructure_failure", "incomplete_execution")
     before, after = median(samples["baseline"]), median(samples["candidate"])
@@ -156,17 +177,88 @@ def assess(directory: Path, settings: dict, execution: dict) -> dict:
     if settings["direction"] == "minimize":
         improvement = -improvement
     speedup = before / after if settings["direction"] == "minimize" else after / before
-    if not all(math.isfinite(value) for value in (improvement, speedup)):
-        return result("infrastructure_failure", "nonfinite_derived_metric")
-    accepted = improvement > 0 and improvement >= settings["min_improvement_pct"]
+    decision = settings.get("decision", "point")
+    point_finite = all(math.isfinite(value) for value in (before, after, improvement, speedup))
+    if not point_finite:
+        if decision != "paired":
+            return result("infrastructure_failure", "nonfinite_derived_metric")
+        # The paired decision does not read the point estimate; keep the record JSON.
+        before, after, improvement, speedup = (
+            value if math.isfinite(value) else None
+            for value in (before, after, improvement, speedup))
+    point_accepted = (point_finite and improvement > 0
+                      and improvement >= settings["min_improvement_pct"])
+    paired = paired_statistics(samples["baseline"], samples["candidate"],
+                               direction=settings["direction"],
+                               min_improvement_pct=settings["min_improvement_pct"],
+                               point_gate_passed=point_accepted,
+                               decides=decision == "paired")
+    verdict, reason = (("PASS", "fixed_checks_satisfied") if point_accepted
+                       else ("FAIL", "performance_gate_not_met"))
+    if decision == "paired":
+        relation = paired.get("gate_relation")
+        if paired.get("status") != "available":
+            verdict, reason = "INCONCLUSIVE", "paired_statistics_unavailable"
+        elif relation == "above_gate":
+            verdict, reason = "PASS", "paired_interval_above_gate"
+        elif relation == "straddles_gate":
+            # Not shown to pass is not evidence that the gate was missed.
+            verdict, reason = "INCONCLUSIVE", "within_noise"
+        else:
+            verdict, reason = "FAIL", "performance_gate_not_met"
+    try:
+        mechanism = None if mechanism is None else validate_mechanism(mechanism)
+        mechanism_error = None
+    except ValueError as error:
+        mechanism, mechanism_error = None, str(error)
+    reference = [item["region"] for item in (mechanism or {}).get("expect", [])
+                 if "region" in item and item["direction"] == "unchanged"]
+    try:
+        observed = profile_evidence(profiles["baseline"], profiles["candidate"],
+                                    reference_regions=reference,
+                                    family_size=len((mechanism or {}).get("expect", [])) or 1)
+    except (ArithmeticError, TypeError, ValueError) as error:
+        # Profile evidence is a report: a failure here must not change the verdict.
+        observed = {"status": "unavailable", "reason": f"Profile evidence failed: {error}"}
+    explanation = explain(mechanism, observed)
+    if mechanism_error:
+        explanation = {"status": "unverifiable", "reason": mechanism_error}
+    if settings.get("require_explanation", False) and verdict == "PASS":
+        # Only evidence against the prediction fails; missing evidence is INCONCLUSIVE.
+        if explanation["status"] == "contradicted":
+            verdict, reason = "FAIL", "explanation_" + explanation["status"]
+        elif explanation["status"] != "explained":
+            verdict, reason = "INCONCLUSIVE", "explanation_" + explanation["status"]
+    accepted = verdict == "PASS"
+    point = {"improvement_pct": improvement, "speedup": speedup}
+    score, baseline_score, basis = after, before, "candidate_median"
+    if decision == "paired":
+        # The paired decision ranks candidates too: the score is the median paired
+        # speedup against the frozen baseline (1.0), measured within this round, so
+        # independent medians cannot outrank or veto a paired PASS.
+        speedup = paired.get("median_speedup") if paired.get("status") != "unavailable" else None
+        if speedup is None:
+            # INCONCLUSIVE and never adopted; no point value is relabelled as paired.
+            basis = improvement = None
+        else:
+            basis = "paired_median_speedup"
+            improvement = ((1 - 1 / speedup) if settings["direction"] == "minimize"
+                           else (speedup - 1)) * 100
+            if not math.isfinite(improvement):  # an extreme ratio; the record stays JSON
+                improvement = None
+        score, baseline_score = speedup, 1.0
     return result(
-        "completed", "fixed_checks_satisfied" if accepted else "performance_gate_not_met",
-        verdict="PASS" if accepted else "FAIL", score=after, baseline_score=before,
+        "completed", reason,
+        verdict=verdict, score=score, baseline_score=baseline_score, score_basis=basis,
         eligible=accepted, quality_passed=True, improvement_pct=improvement, speedup=speedup,
+        point_estimate=point,
         metrics={"name": settings["metric_key"], "unit": settings["metric_unit"],
                  "direction": settings["direction"], "baseline": before, "candidate": after,
                  "samples": samples},
         scope=settings["scope"], statistical_significance="not_established",
+        paired_statistics=paired, decision=decision,
+        require_explanation=settings.get("require_explanation", False),
+        profile_evidence=observed, explanation=explanation,
         quality_contract="Only the supplied frozen quality script and its boolean result",
         environment_qualification="Caller-managed; no automatic hardware isolation claim",
     )

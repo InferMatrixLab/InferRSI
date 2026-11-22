@@ -11,10 +11,10 @@ from threading import Barrier
 
 import pytest
 
-from inferrsi._json_v1 import decode, encode
-from inferrsi.apps import archive
 from inferrsi.apps.api import execute
-from inferrsi.apps.archive import publish_result, read_result
+from inferrsi.apps.storage import archive
+from inferrsi.apps.storage.archive import publish_result, read_result
+from inferrsi.contracts.json_v1 import decode, encode
 from inferrsi.harness.errors import PublicError
 from inferrsi.harness.run_store import Claim, RunStore, flatten, request_digest, utc_now
 

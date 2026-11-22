@@ -35,6 +35,11 @@ def task_resources(name: str):
     return root
 
 
+def has_iterative_protocol(name: str) -> bool:
+    """Check for the packaged protocol file without loading task code."""
+    return task_resources(name).joinpath("optimization.py").is_file()
+
+
 def describe_task(name: str) -> dict:
     root = task_resources(name)
     return {

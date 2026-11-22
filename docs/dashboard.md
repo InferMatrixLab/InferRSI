@@ -21,6 +21,14 @@ Omit `--output` to write `dashboard.html` in the input directory. Open the file
 in a browser. Filters and review export work locally. A generated snapshot does
 not update as an experiment runs; regenerate it to show new records.
 
+The overview groups candidate/run records by their recorded performance verdict.
+The ring total includes records without a verdict. Expand the overview statistics
+for gain, target gap and missing evidence. The performance chart has its own
+workload and metric filters. When more than two measurement axes are available
+across all workloads, expand **More measurement axes** to see the rest.
+Select a workflow stage and follow **View matching candidates** to its rows.
+Open a candidate or measurement to inspect its run and source evidence.
+
 ### Live observation
 
 To observe a run or campaign while its records are being written, start the
@@ -133,6 +141,11 @@ metric is replaced with zero.
 
 ## Campaign integration
 
+For managed [service-reuse campaigns](service-reuse-campaigns.md), the dashboard
+reads the control record and displays per-objective values, stage verdicts,
+selections, repairs, references, reminders and final prerequisites. The compact
+live view refreshes the full page.
+
 The following optional layout associates multiple runs with candidate and round
 records. Create the manifest and supply your own campaign ID and optional target:
 
@@ -178,9 +191,10 @@ run the import from the agent's closing shell call:
 # Start of round 1. Save the printed value as FIRST for the closing call.
 awk 'END { print NR + 1 }' "$trace"
 
-# Separate agent shell calls with the skill library as the tool working directory.
-rg -Hn 'Operator tests passed' methods/inference-optimization-casebook/cases
-cat methods/inference-optimization-casebook/cases/qwen-b300-rejected-directions.md
+# Separate agent shell calls. Run the open command returned by Find.
+inferrsi find 'cache per-step masks ran out of device memory' --kinds case --limit 1
+inferrsi read checkout:case.qwen-ascend-rejected-directions \
+  --material --omit-resources --installed-library
 
 # End of round 1. FIRST is the value retained at the start of this round.
 LAST=$(wc -l < "$trace")
@@ -195,11 +209,28 @@ flushed. After an interruption the host can do the same handoff. Use
 These inputs can be combined with the rollout or used alone for an Indexer-only
 round. Each capture is verified and its returned refs, revisions, request and
 resource paths are recorded. Opening a resource and receiving a prepared context
-are distinct observations. A bare `collect` leaves no such capture.
+are distinct observations. For a new Collect retrieval that must be retained, use
+`campaign capture-context` with the same query or exact IDs.
 
-The importer reads Desktop `CommandExecution` events. It supports direct text
-or filename-match searches with `rg`, literal `cat`, `nl -ba` and `sed -n N,Mp`
-reads. Use `rg -Hn` for unambiguous filenames and matching lines. File results
+The importer reads Desktop `CommandExecution` events. Run `find` and `read` in
+separate simple tool calls and retain both call/return pairs in the selected
+window. It accepts Find's default text and `--json` output. Find records result
+references in returned order, including separately qualified external hits.
+When an installed Skill links to its package projection, `read_ref` gives the
+identity in the open command. Read records the resolved reference and
+returned revision. Only `read --material` or `read --resource` can verify a
+returned body. A metadata-only read records a visible reference.
+
+The importer verifies direct CLI delivery against the agent-facing tool
+response. Missing, clipped or uncorrelated outputs leave coverage partial
+even with `--complete`. Compatibility queries through `collect`, `knowledge
+search`, `knowledge research` and `context` require separate capture evidence
+for their results. The importer marks these standalone calls unresolved.
+Remote tools and external card reads also require their own evidence.
+
+For file searches the importer supports text and filename matches with `rg`
+and literal `cat`, `nl -ba` and `sed -n N,Mp` reads. Use `rg -Hn` for
+unambiguous filenames and matching lines. File results
 are corpus-relative. `-H` / `--with-filename` establishes the filename prefix,
 including for numeric filenames. Without it, nonempty text output is attributed
 only when the recorded scopes establish directory search or multiple operands.
@@ -223,8 +254,8 @@ retrievals require separate evidence. Review query text and paths before sharing
 
 - `observed` counts recognized searches, distinct materials per search (hits),
   distinct hit refs across searches, and distinct refs with supported use.
-  A later file read is a separate event. File paths and versioned Indexer
-  entries keep their original identities, with no inferred cross-tool alias.
+  Later reads are separate events. File paths, qualified CLI refs and
+  versioned Indexer entries keep their recorded identities.
 - Supply `--complete` only when the selected inputs cover every in-scope
   retrieval for the round. Otherwise only observed counts are known and
   `counts` is null. A complete round without a search has zero searches.
@@ -271,6 +302,43 @@ retrievals require separate evidence. Review query text and paths before sharing
   reimport can establish adoption and clears the declaration's old reason.
   A newly supplied decision that precedes every observation is still rejected.
 
+#### Cite a passage in the round reason
+
+If a delivered passage changes a candidate or validation choice, explain that
+choice in the round's existing reason and append `[use REF | EXACT SOURCE EXCERPT]`.
+Use the qualified reference from `read` or the reference in the delivered
+context. Pick a short verbatim excerpt on one source line that identifies the
+passage. A round whose choice did not depend on a passage needs no citation.
+
+For managed project and benchmark rounds, use the existing `--hypothesis`.
+A local mask-memory experiment submitted this hypothesis.
+
+> Sum the visible interval for each row as it is scored. The reported mask-retention failure made me choose immediate scoring over a cache of mask rows [use checkout:case.qwen-ascend-rejected-directions | NPU OOM.].
+
+At round close, after the completed round response is in the rollout, run
+the existing `campaign import-search` over that round. Use the start boundary
+captured before retrieval and the end of the flushed rollout. A review file
+with `task`, `corpus` and `"decisions": []` is enough for automatic alignment.
+Include `--context-id` for AB/BA or benchmark captures used in the round.
+The importer locates matching managed JSON returns within the window for those
+captures. It locates the submitted hypothesis from the round call and verifies
+the round receipt. The return containing the source passage must precede the
+round call. Service-reuse sessions retain knowledge in their own records.
+See [service reuse](service-reuse-campaigns.md#records-compatibility-and-validation).
+
+For a manual campaign, put the citation in the existing log's round
+`rationale` or `decision.reason`. State that same reason in the conversation
+when making the choice, then retain it with `campaign log` before closing the
+round. The log receipt binds the reason to the round and the assistant message
+establishes its position.
+
+The importer saves a verified match as the usual passage-to-decision
+association. It leaves unverifiable citations as declarations with a reason.
+A Find hit, a read without an explicit citation, an ambiguous excerpt or a
+missing or truncated return cannot establish this association. This evidence
+documents how a choice was explained. Evaluation evidence governs results and
+improvement claims separately.
+
 #### Archive evidence for readers outside the session
 
 Use `--archive-review review.json` on the same import when a campaign calls
@@ -286,6 +354,10 @@ agent's actual decision. The line numbers for the event and decision locate
 records in the private input. The `passage_line` field locates a line in the material.
 Use a verbatim, contiguous decision excerpt. The importer checks the cited
 event, passage and message before recording the reviewed relation.
+For a direct `read`, use its command event line as `event_line`, its returned
+qualified `ref`, and the entrypoint or `content_resource` as `passage_path`.
+Count `passage_line` from the first line of the decoded resource body. Find
+hits alone provide no passage for a reviewed decision.
 
 ```json
 {
@@ -297,7 +369,7 @@ event, passage and message before recording the reviewed relation.
   },
   "decisions": [{
     "use": "used",
-    "ref": "methods/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md",
+    "ref": "casebooks/inference/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md",
     "event_line": 73,
     "passage_line": 18,
     "decision_line": 108,
@@ -305,6 +377,13 @@ event, passage and message before recording the reviewed relation.
   }]
 }
 ```
+
+
+The `root` in this example is the path that existed at the pinned revision
+`f6d200775d554d08fb73673833611dd6ac02d14b`. A post-K02 revision of the same
+repository uses `src/inferrsi/knowledge/data/skill_library`. The importer
+still takes the readable corpus from `--knowledge-root`, not by opening that
+recorded path.
 
 ```sh
 inferrsi campaign import-search --directory "$campaign" --round 1 \
@@ -360,7 +439,7 @@ for the generated evidence and its interpretation. To follow one material across
 events and then see its reviewed uses, set `record` to the portable JSON:
 
 ```sh
-ref=methods/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md
+ref=casebooks/inference/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md
 jq --arg ref "$ref" '{
   returns: [.events[] | {event: .id, action, query,
     passages: [.delivery.passages[]? | select(.ref == $ref)]}
@@ -373,15 +452,26 @@ jq --arg ref "$ref" '{
 
 Use `campaign init --profile-first` for a new profiled campaign, or set
 `"review_layout": "profile_first"` in an existing `campaign.json`.
-The live view and HTML export keep the performance trend visible. Other sections
-start collapsed. Each capture has separate disclosures for its prior searches
-and timeline. Below the trend are
-acceptance criteria, recorded request profiles, the baseline breakdown and
-target gap, each round's measurements, and adoption decisions. The trend uses each
-candidate's paired medians. For example, a target latency reduction of 50%
+To revisit an optimization, pass its original campaign directory to
+`inferrsi dashboard --input`. In both the live page and the offline export,
+**Profile captures** (`#profiles`) opens the request timeline, **Experiment
+trace** (`#trace`) opens the timestamped steps, and **Knowledge trace**
+(`#knowledge-navigation`) opens the retrieval history. Select a capture to see
+its query, returned items and recorded use. The experiment trace includes model
+calls when their boundaries were recorded.
+
+The review opens with absolute candidate measurements grouped by workload, metric, scope
+and statistic. The axis follows the observed candidate values. Baseline and target values
+are available in the point evidence. Select a round beside the chart to open that run’s
+changes and measurements. Each profile has separate disclosures for its prior searches
+and timeline. Open the review sections for the acceptance criteria, baseline
+breakdown, target gap, per-round measurements, and adoption decisions. The expandable paired
+reference chart uses native runs with paired medians. Adding external candidates leaves this
+chart in place; their protocol-specific measurements appear in the absolute measurement view.
+For example, a target latency reduction of 50%
 is a 2× speedup. When there is one verified baseline profile, only runs
-with its measurement signature share the trend line and compete for its best
-result. Pairs from different conditions appear separately beside the chart.
+with its measurement signature share the speedup line and compete for its best
+result. The round list identifies runs with different measurement conditions.
 Cancelled runs retain their records in the round list.
 
 Attach a complete, reviewed worker trace before the first trial. Store a
@@ -501,14 +591,22 @@ open under round details. A `diagnosis` with scope `baseline_request` or
 `denoiser_step` supplies the profile table when its `source_sha256` matches
 the attached profile artifact. The gap uses the acceptance baseline measurement.
 
+The shared **Knowledge retrieval and evidence navigation** panel explains actual
+entry points, recorded ranking and assembly, and local v1/portable v2 search
+records. It links explicit round/candidate/run identities in both layouts and
+preserves active selections during live refresh. See the [retrieval contract and
+integration guide](knowledge-retrieval-trace.md) for standalone captures,
+compatibility, historical gaps and the offline synthetic example.
+
 The **Optimization story** section is the campaign-level trace a reviewer reads
 to understand the whole optimization: what knowledge was retrieved and why, the
 declared search space and how it was narrowed, each round's hypothesis and
 reason, the decision, and the success and failure summaries. It has two parts.
 
 **1. Capture the knowledge context while working.** Run the same retrieval the
-agent uses through `campaign capture-context`. It calls `collect` with a context
-budget and keeps the complete envelope: the request, everything search selected,
+agent uses through `campaign capture-context`. It calls `collect` to rank the
+question with Find and assemble resources within a context budget. The capture
+keeps the request, the selected items,
 everything left out and why, and every resource body with its SHA-256. The
 dashboard re-derives the assembled text from those resources and withholds a
 capture whose bytes or hashes no longer match.
@@ -753,7 +851,7 @@ may include a `decision` object with `candidate_id` and `outcome` (including
 Agent trace JSONL can contain the existing `agent.*` event types and the
 optional `stage` field (`diagnosis`, `knowledge`, `search`, `execution`,
 `validation`, or `review`). An agent integration can pass an opt-in
-`inferrsi.observability.campaign_trace.CampaignTrace` instance as its existing event
+`inferrsi.harness.records.campaign_trace.CampaignTrace` instance as its existing event
 callback; it appends the original event with time and caller-supplied IDs. The
 caller associates the completed trace with `agent_trace_ref` using its SHA-256.
 The dashboard links a pre-run event when its campaign and uniquely identified

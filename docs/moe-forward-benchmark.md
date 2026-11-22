@@ -47,7 +47,9 @@ inferrsi benchmarks run moe-forward-npu \
 `--timeout-seconds` 都必须显式指定；两组配对为每实现每性能 case 16 个计时样本，
 四组为 32 个。超时包括入口准备和执行，之后最多有额外的有界进程清理等待。
 入口先冻结题目、候选和 grader 的副本及 SHA256，再通过现有
-由应用入口注入的 `harness.scenarios.external.execute_trial` 执行。
+由应用入口注入的 `harness.trials.external.execute_trial` 执行。
+该执行器不含 metric 规则，入口在传 metric key 的同时传入自己的校验函数
+（`metric=read_metric`）。
 Python 调用 `evaluate` 时须显式传入 `execute_trial`。它额外清理本次唯一环境标记的
 torchrun 子进程，覆盖子进程创建独立 session 的情况；不会按宽泛进程名杀进程。
 
@@ -86,37 +88,56 @@ CPU 输入/oracle 准备、计时前 barrier、验收、形状预热不在 forwa
 
 ## 在 RSI 优化循环里如何使用
 
-```text
-用户目标与题目约束 → Agent 改候选 → 本入口验算并测量 → Agent 看证据再修改
-                                              ↓
-                              调用方保留每轮结果、选最佳版本、独立复测
+MoE 题包提供 `optimization.py`，可以使用与 Qwen 相同的 Harness 完整迭代流程。
+它复用单候选入口的同一份双 rank 原始证据规则，不根据 rank 0 汇总或 Agent 自报分数选优。
+
+执行 Agent 在已经准备好的环境中启动：
+
+```bash
+inferrsi benchmarks session start moe-forward-npu \
+  --session ./outputs/moe-session \
+  --rounds <rounds> --max-minutes <budget-minutes> \
+  --evaluation-timeout-seconds 1500 --final-reserve-seconds 1500 \
+  --condition <condition-label> --knowledge <on-or-off> \
+  --evaluation-prefix 'npu run --gpus 2 --timeout 20m --wait 1m --' \
+  --evaluation-args '--pairs 2 --timeout-seconds 900'
 ```
 
-调用一次评测一个候选。`inferrsi benchmarks list` 和
-`inferrsi benchmarks show moe-forward-npu` 可以读取题包信息，执行使用本页的 MoE 入口。
-调用方负责启动 Agent、推进轮次、统计模型 tokens 和选择搜索策略，
-并将每次 `result.json` 作为下一轮反馈。
-知识库 ON/OFF 或不同 Agent 的差异由调用方控制，测量协议保持一致。
-profiling 可作为 Agent 诊断工具，评测入口不要求先 profiling。
+轮数与总预算由本次实验声明；总预算需要容纳 final 预留。这里的采样和超时是可覆盖的
+命令示例。每轮和 final 使用同一份冻结的配对数与完整 case 集合，评测器内部超时、
+分配器运行/等待超时和外层评测超时应逐层留出启动与清理余量。
 
-可给新 Agent 的简短任务指令：
+Agent 阅读返回的 `frozen/TASK.md`，修改 `work/candidate.py`；每次修改后提交假设：
 
-> 阅读 `src/inferrsi/benchmark/tasks/moe-forward-npu/TASK.md`，
-> 优化 `./implementation.py` 的完整双 NPU MoE forward。遵守输入只读、专家所有权、
-> 正确性和计时边界。每次候选使用新的输出目录，按已约定的配对数、超时和实验预算，
-> 通过 `inferrsi benchmarks run moe-forward-npu` 取得结果；保留失败，不以自报数字替代结果。
-> 最终交付最佳候选、逐轮证据和独立复测记录。
+```bash
+inferrsi benchmarks session round --session ./outputs/moe-session \
+  --candidate ./outputs/moe-session/work/candidate.py \
+  --hypothesis '<本轮优化策略与理由>'
 
-例如要做 8 轮再复测，由调用方为 R1…R8 和 final 分配不同目录并保存候选快照。
-轮数是该次实验的预算，不能把它当成通用默认值。优化曲线按每轮有效分数及历史最佳分数
-绘制；失败轮保留空分数并消耗预算。累计 tokens 需从对应 Agent/session 的原始 usage
-记录汇总；本入口的 `elapsed_seconds` 是评测墙钟，不是 Agent 搜索墙钟或模型费用。
+# 完成声明的轮次后，独立复测已留存的最佳源码
+inferrsi benchmarks session final --session ./outputs/moe-session
+```
+
+知识库开启时使用 `benchmarks session knowledge` 检索并留存实际交付内容；关闭时拒绝
+受管检索。外部来源和直接文件读取的隔离由对照实验的执行环境与 Agent 访问约定负责。
+Profiling 由 Agent 按瓶颈选择，不是每轮必经步骤。
+
+Harness 留存每轮源码、假设、实际评测、历史最佳选择和独立 final。迭代 assessor 核对
+候选、全部题目/协议文件、grader、launcher 与采样请求的哈希，重算两个 rank 的完整
+调用与计时样本，供标准结果交付和优化 trace 使用。正常结束的候选错误保留为失败轮；
+内部或外部执行中断、缺少 rank 证据、清理未确认以及基线失败均阻断后续搜索。
+恢复通过 `session recover` 回收原有尝试，不重新执行同一候选。
+
+启动新会话与回收使用通用 [Agent 交接](native-agent-sessions.md)；
+[共享迭代流程](optimization-benchmarks.md) 说明预算、用量导入和标准交付。
+单独的 `benchmarks run moe-forward-npu` 仍只评测一个候选。完整过程的 token 需从
+真实宿主 usage 导出；本题 `elapsed_seconds` 仅是评测墙钟，不是 Agent 搜索消耗。
 
 ## 验证范围与限制
 
 历史冻结题目、baseline、oracle、采样逻辑已有双 NPU 实验；本次发布保留了这些数学和
 计时语义，加入便携包装、源码冻结、双 rank 证据复核和独立 session 清理。
-**新增的便携入口尚未在 NPU 上重新跑通**，CPU 测试和 wheel 资源检查只验证接线、
+**新增的迭代协议尚未在 NPU 上重新跑通**，CPU 测试和 wheel 资源检查只验证接线、
 失败处理及证据完整性，不能当作新入口的 NPU 验收或性能结论。
 
 当前权重更新用例验证原位更新后的结果，但两次访问之间还运行其他参数用例；

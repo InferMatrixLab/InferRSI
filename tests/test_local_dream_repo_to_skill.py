@@ -16,8 +16,10 @@ from urllib.parse import unquote, urlsplit
 import pytest
 import yaml
 
+from inferrsi.knowledge.skill_catalog import skill_metadata
+
 PROJECT = Path(__file__).resolve().parents[1]
-ROOT = PROJECT / "src/inferrsi/data/skill_library/repositories/local-dream"
+ROOT = PROJECT / "src/inferrsi/knowledge/data/skill_library/systems/engines/local-dream"
 CASES = PROJECT / "tests/fixtures/repo_to_skill/local-dream/test-cases"
 SCRIPT = ROOT / "scripts/screen_declarations.py"
 MODULE = runpy.run_path(str(SCRIPT))
@@ -30,7 +32,7 @@ def test_owner_source_identity_rights_and_containment():
     assert front["disable-model-invocation"] is True
     assert front["metadata"]["disco-role"] == "operating"
     assert re.search(r'^description: ".+"$', header, re.MULTILINE)
-    meta = json.loads((ROOT / "metadata.json").read_text())
+    meta = skill_metadata(ROOT.parent, ROOT.name)
     assert meta["status"] == "candidate" and meta["empirical_validation"] == "not_run"
     assert "BLOCKED_REQUIRED_BACKEND" in " ".join(meta["limitations"])
     ledger = json.loads((ROOT / "references/source-identity.json").read_text())
@@ -174,11 +176,12 @@ def test_cli_duplicate_nonfinite_invalid_encoding_and_bounds(raw, tmp_path):
 
 
 def test_registration_and_catalog_preserve_candidate_boundary():
-    index = json.loads((ROOT.parents[1] / "skill-index.json").read_text())
+    library = PROJECT / "src/inferrsi/knowledge/data/skill_library"
+    index = json.loads((library / "skill-index.json").read_text())
     assert index["skills"]["local-dream"] == {
-        "path": "repositories/local-dream", "backend": "common",
+        "path": "systems/engines/local-dream", "backend": "common",
     }
-    from inferrsi.skill_catalog import skill_metadata, skill_resource
-    assert skill_metadata(ROOT.parents[1], "local-dream")["status"] == "candidate"
-    assert "desired" in skill_resource(ROOT.parents[1], "local-dream",
-                                       "references/android-lifecycle.md").read_text().lower()
+    from inferrsi.knowledge.skill_catalog import skill_metadata, skill_resource
+    assert skill_metadata(library, "local-dream")["status"] == "candidate"
+    lifecycle = skill_resource(library, "local-dream", "references/android-lifecycle.md")
+    assert "desired" in lifecycle.read_text().lower()

@@ -52,6 +52,7 @@ Where they differ, [p0a-contract-errata.md](p0a-contract-errata.md) (D023) wins 
 | [fixtures/d023-conformance-cases.json](fixtures/d023-conformance-cases.json) | T36–T40 specification vectors plus V32/SCHEMA spec-time cases |
 | [fixtures/execution-spec-d023.json](fixtures/execution-spec-d023.json) | Current `CommandStep.expected_code_sha256` example |
 | [fixtures/MANIFEST-d023.json](fixtures/MANIFEST-d023.json) | Current D023 example byte / `request_digest` documentation anchor |
+| [fixtures/pattern-boundary-cases.json](fixtures/pattern-boundary-cases.json) | Current paired vectors: each schema `pattern` accepts a valid value and rejects it with CR or LF inside |
 
 ## Former filenames
 

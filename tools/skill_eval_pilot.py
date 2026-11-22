@@ -7,15 +7,11 @@ import tempfile
 import time
 from pathlib import Path
 
-from inferrsi.harness.skill_evaluation import (
-    CodexClient,
-    export_bundle,
-    normalize_usage,
-    run_trial,
-    summarize,
-)
-from inferrsi.infra.artifacts import sha256, write_json
-from inferrsi.knowledge_operations import KnowledgeReader
+from inferrsi.apps.artifacts import sha256, write_json
+from inferrsi.apps.workflows.skill_evaluation import export_bundle, run_trial, summarize
+from inferrsi.harness.skill_evaluation import CodexClient
+from inferrsi.harness.usage import normalize_usage
+from inferrsi.knowledge.knowledge_operations import KnowledgeReader
 
 ROOT = Path(__file__).resolve().parents[1]
 SKILLS = ("inference-benchmark-design", "dense-performance-evidence")
@@ -205,10 +201,12 @@ def prepare(
     write_json(output / "plan/tasks.json", tasks)
     write_json(output / "plan/schema.json", SCHEMA)
     shutil.copyfile(ROOT / "tools/skill_eval_verifier.py", output / "validator/verify.py")
-    reader = KnowledgeReader(skill_root=ROOT / "src/inferrsi/data/skill_library")
+    reader = KnowledgeReader(skill_root=ROOT / "src/inferrsi/knowledge/data/skill_library")
     bundles = {name: reader.read("checkout:" + name).view() for name in SKILLS}
     schedule = build_schedule(tasks, final_only)
     source_files = [
+        ROOT / "src/inferrsi/apps/workflows/skill_evaluation.py",
+        ROOT / "src/inferrsi/benchmark/skill_evaluation.py",
         ROOT / "src/inferrsi/harness/skill_evaluation.py",
         Path(__file__),
         ROOT / "tools/skill_eval_verifier.py",
@@ -310,7 +308,7 @@ def execute(output: Path, max_new_trials: int | None = None):
         plan["timeout_seconds"],
     )
     tasks = {t["id"]: t for t in json.loads((output / "plan/tasks.json").read_text())}
-    reader = KnowledgeReader(skill_root=ROOT / "src/inferrsi/data/skill_library")
+    reader = KnowledgeReader(skill_root=ROOT / "src/inferrsi/knowledge/data/skill_library")
     for name, bundle in plan["skills"].items():
         assert reader.read("checkout:" + name).revision == bundle["revision"]
     trials = recover_attempts(output, plan["schedule"])

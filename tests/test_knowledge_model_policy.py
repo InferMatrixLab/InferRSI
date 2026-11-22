@@ -46,7 +46,7 @@ from tools.check_knowledge_model_policy import (
 ROOT = Path(__file__).resolve().parents[1]
 HEAD = "a" * 40
 BASE = "b" * 40
-KNOWLEDGE = "src/inferrsi/data/repo_packs/example/knowledge/cuda/case.json"
+KNOWLEDGE = "src/inferrsi/knowledge/data/repo_packs/example/knowledge/cuda/case.json"
 CONTROL = ".github/knowledge-model-policy.json"
 
 
@@ -62,7 +62,7 @@ def block(value, tag=DECLARATION):
     return f"```{tag}\n{json.dumps(value)}\n```"
 
 
-def attribution(model="gpt-6.1-sol", effort="xhigh"):
+def attribution(model="gpt-6.2-sol", effort="xhigh"):
     return {"tool": "Example agent", "model_id": model, "effort": effort, "role": "author"}
 
 
@@ -86,8 +86,14 @@ def approval(paths, kind="exception", reason="Bounded exception", login="policy-
     return {"id": identity, "user": {"login": login}, "body": block(value, APPROVAL)}
 
 
-@pytest.mark.parametrize("model", ["gpt-6-astra", "gpt-6.1-sol", "gpt-6.1-terra", "claude-opus-5-5",
-                                  "anthropic.claude-opus-5-5", "claude-fable-5-2"])
+def test_default_attribution_is_admitted(policy):
+    # Failure-asserting tests rely on the default author being the compliant one.
+    assert model_errors([attribution()], policy) == []
+    assert assess(pr(), {KNOWLEDGE}, policy)["state"] == "success"
+
+
+@pytest.mark.parametrize("model", ["claude-opus-5-5", "anthropic.claude-opus-5-5",
+                                   "claude-fable-5-2", "gpt-6.2-astra", "gpt-6.2-sol"])
 @pytest.mark.parametrize("effort", ["xhigh", "max"])
 def test_verified_models_and_explicit_aliases_qualify(policy, model, effort):
     result = assess(pr(declared([attribution(model, effort)])), {KNOWLEDGE}, policy)
@@ -95,9 +101,18 @@ def test_verified_models_and_explicit_aliases_qualify(policy, model, effort):
     assert result["description"] == "Declaration compliance only"
 
 
+@pytest.mark.parametrize("model", ["gpt-6-astra", "gpt-6.1-sol", "gpt-6.1-terra"])
+@pytest.mark.parametrize("effort", ["xhigh", "max"])
+def test_removed_models_are_rejected_at_every_effort(policy, model, effort):
+    authors = [attribution(model, effort)]
+    errors = model_errors(authors, policy)
+    assert errors == ["Material AI author 1: model is unapproved or suspended"]
+    assert assess(pr(declared(authors)), {KNOWLEDGE}, policy)["state"] == "failure"
+
+
 @pytest.mark.parametrize("effort", ["low", "medium", "high", "ultra", "maximum", "unknown",
-                                   "XHIGH", "xhigh "])
-@pytest.mark.parametrize("model", ["gpt-6.1-sol", "gpt-6.1-terra", "claude-fable-5-2"])
+                                   "XHIGH", "xhigh ", "none", "minimal", "MAX", " max"])
+@pytest.mark.parametrize("model", ["claude-fable-5-2", "gpt-6.2-astra", "gpt-6.2-sol"])
 def test_effort_is_exact_set_membership(policy, model, effort):
     assert model_errors([attribution(model=model, effort=effort)], policy)
 
@@ -105,20 +120,38 @@ def test_effort_is_exact_set_membership(policy, model, effort):
 @pytest.mark.parametrize("model", ["gpt-6-sol", "gpt-6-astra-latest", "GPT-6.1 Sol", "unknown",
                                    "claude-opus-5-5-extra", "gpt-6.1-terra-latest",
                                    "GPT-6.1 Terra", "fable", "claude-fable-5-2-latest",
-                                   "Claude Fable 5.2"])
+                                   "Claude Fable 5.2", "gpt-6.2", "astra", "sol",
+                                   "GPT-6.2 Astra", "GPT-6.2 Sol", "GPT-6.2-SOL", "gpt-6.2-Astra",
+                                   " gpt-6.2-astra", "gpt-6.2-sol ", "gpt-6.2-astra-latest",
+                                   "gpt-6.2-terra"])
 def test_unknown_models_and_inferred_aliases_fail(policy, model):
     assert assess(pr(declared([attribution(model)])), {KNOWLEDGE}, policy)["state"] == "failure"
 
 
 @pytest.mark.parametrize("canonical, identities", [
     ("claude-opus-5-5", ("claude-opus-5-5", "anthropic.claude-opus-5-5")),
-    ("gpt-6.1-terra", ("gpt-6.1-terra",)),
     ("claude-fable-5-2", ("claude-fable-5-2",)),
+    ("gpt-6.2-astra", ("gpt-6.2-astra",)),
+    ("gpt-6.2-sol", ("gpt-6.2-sol",)),
 ])
 def test_suspension_overrides_canonical_and_alias(policy, canonical, identities):
     policy["models"][canonical]["suspended"] = True
     for model in identities:
         assert model_errors([attribution(model)], policy)
+
+
+@pytest.mark.parametrize("bad", [attribution("unapproved-model"), attribution("gpt-6.1-sol"),
+                                 attribution("sol"), attribution("GPT-6.2-Sol"),
+                                 attribution("gpt-6.2-astra", "high")])
+def test_one_noncompliant_author_fails_a_mixed_declaration(policy, bad):
+    good = attribution("gpt-6.2-astra", "max")
+    assert model_errors([good], policy) == []
+    for authors in ([good, bad], [bad, good]):
+        assert assess(pr(declared(authors)), {KNOWLEDGE}, policy)["state"] == "failure"
+        # Only the noncompliant author is reported.
+        index = authors.index(bad) + 1
+        assert [error.split(":")[0] for error in model_errors(authors, policy)] == [
+            f"Material AI author {index}"]
 
 
 def test_every_material_author_must_qualify(policy):
@@ -169,12 +202,11 @@ def test_stale_head_and_unsupported_schema_fail():
 
 
 @pytest.mark.parametrize("path", [
-    "src/inferrsi/data/skill_library/methods/example/SKILL.md",
-    "src/inferrsi/data/skill_library/skill-index.json",
-    "src/inferrsi/data/knowledge_packs/peer/example/case.json", KNOWLEDGE,
+    "src/inferrsi/knowledge/data/skill_library/methods/example/SKILL.md",
+    "src/inferrsi/knowledge/data/skill_library/skill-index.json",
+    "src/inferrsi/knowledge/data/knowledge_packs/peer/example/case.json", KNOWLEDGE,
     "docs/reference-matrix.md", "docs/searchspace-matrix.md", "docs/knowledge-base.md",
-    "docs/knowledge-operations.md", "docs/knowledge-store.md", "src/inferrsi/catalog.py",
-    "src/inferrsi/skill_catalog.py", "src/inferrsi/knowledge_operations.py",
+    "docs/knowledge-operations.md", "docs/knowledge-store.md",
     "src/inferrsi/knowledge/catalog.py", "src/inferrsi/knowledge/skill_catalog.py",
     "src/inferrsi/knowledge/knowledge_operations.py",
 ])
@@ -184,8 +216,13 @@ def test_explicit_protected_paths_require_declarations(policy, path):
     assert assess(item, {path}, policy)["state"] == "failure"
 
 
-@pytest.mark.parametrize("path", ["README.md", "src/inferrsi/cli.py", "src/inferrsi/contracts.py",
-                                  "src/inferrsi/knowledge_store.py", "tests/test_claim.py"])
+# #412 R1 deleted the three root shells that were listed beside their implementations.
+# Their exact paths left the scope with the files; the implementations above stay in it.
+@pytest.mark.parametrize("path", ["README.md", "src/inferrsi/cli.py",
+                                  "src/inferrsi/contracts/__init__.py",
+                                  "src/inferrsi/knowledge_store.py", "tests/test_claim.py",
+                                  "src/inferrsi/catalog.py", "src/inferrsi/skill_catalog.py",
+                                  "src/inferrsi/knowledge_operations.py"])
 def test_no_blanket_source_scope_and_stable_not_applicable(policy, path):
     item = pr()
     item["body"] = None

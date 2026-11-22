@@ -17,6 +17,7 @@ contains exactly one plugin directory:
 ```text
 inferrsi/
   plugin.json
+  assets/infermatrix-icon.png
   skills/inferrsi/SKILL.md
   skills/inferrsi/scripts/inferrsi.py
   runtime/manifest.json
@@ -24,6 +25,10 @@ inferrsi/
   LICENSE
   README.md
 ```
+
+The plugin icon uses the symbol from the
+[official InferMatrix logo](https://github.com/InferMatrixLab/infermatrix.github.io/blob/b3903bdaffd4e9550263bf42791995b83f514480/assets/infermatrix-logo.png)
+on its original white background.
 
 The downloaded archive bundles the same-version InferRSI runtime and knowledge;
 installation requires no source checkout, package build or separate pip install.
@@ -65,8 +70,10 @@ Or:
 > Use InferRSI to inspect the existing run I provide and explain its verdict,
 > missing evidence and next action.
 
-The plugin checks its bundle/interpreter, reads relevant knowledge progressively,
-and uses the current CLI's help to prepare operations. Its optional onboarding
+The plugin checks its bundle and interpreter. For an inference engineering task,
+it selects one of the seven primary skills
+and reads the procedure returned by `skills enter <task-id>` before its first
+supporting evidence search. It uses the current CLI's help to prepare operations. Its optional onboarding
 action invokes the same entry skill. Setup does not start benchmarks.
 
 Use the script resolved from the installed skill for manual diagnosis:
@@ -76,9 +83,10 @@ python -X utf8 "<PLUGIN_ROOT>/skills/inferrsi/scripts/inferrsi.py" --plugin-info
 python -X utf8 "<PLUGIN_ROOT>/skills/inferrsi/scripts/inferrsi.py" --help
 ```
 
-Core `knowledge`, packaged `collect/read`, `doctor`, `plan/run` and
-`status/report` delegate to the bundled runtime. The optional `skills` commands
-and checkout-skill sources need PyYAML in the selected Python interpreter.
+The bundled runtime serves `skills enter <task-id>`, `knowledge`, packaged
+`collect/read`, `doctor`, `plan/run` and `status/report` with the base
+interpreter. Commands that parse skill frontmatter, including direct reads of
+checkout skills, require PyYAML in the selected interpreter.
 Image validators and target engines retain their own optional dependencies.
 
 ## MindIE knowledge
@@ -200,6 +208,14 @@ plugin manifest and pins the bundled README's video link to the release tag.
 The tracked source template remains unchanged.
 Unbuilt source previews use the runtime's explicit `0+unknown` fallback.
 
+A build without `--release-version` is a source build, not a release. Its
+`plugin.json` `version` and the `plugin_version` in `runtime/manifest.json` and
+`--plugin-info` are `0.0.0+source`; the `+source` suffix is SemVer build
+metadata that marks the package as not released. `runtime_version` still reports
+the bundled runtime (`0+unknown`, or the generated version), so in a source
+build the two fields differ on purpose. The marker does not identify the source:
+use `content_sha256` and the source commit to compare builds.
+
 Only the ZIP is attached to Releases. The raw `plugins/inferrsi/` source template
 does not contain the bundled runtime and is not an installation package.
 
@@ -237,7 +253,7 @@ registers no MCP server, hooks, daemon or scheduled task.
 | --- | --- |
 | Python cannot be found or is too old | Select/install Python 3.10+ and use its executable consistently |
 | Incomplete bundle or version mismatch | Rebuild/reinstall the distribution; do not substitute an unrelated installed runtime |
-| Optional skills dependency missing | Use packaged Collect/Read, or install PyYAML in the chosen interpreter |
+| PyYAML is missing | Load a primary procedure with `skills enter <task-id>` or use packaged Collect/Read. Install PyYAML in the chosen interpreter for checkout/frontmatter operations. |
 | No knowledge match | Inspect the query/source selection; no match does not establish lack of an optimization |
 | Target backend unavailable | Fix the target environment; knowledge research remains usable |
 | Interrupted experiment | Inspect its existing status/evidence before deciding on a new run |

@@ -3,12 +3,24 @@
 import json
 import shutil
 import subprocess
+import sys
 from pathlib import Path
 
 import pytest
 from test_optimization_story import campaign, log_document, write_log
+from test_profile_timeline import fixture as profile_fixture
 
-from inferrsi.observability.dashboard import dashboard_snapshot, render_dashboard, write_dashboard
+from inferrsi.apps.views.dashboard import dashboard_snapshot, render_dashboard, write_dashboard
+from inferrsi.harness.records.profile_timeline import attach_profile
+
+
+def test_published_profile_example_matches_fixture(tmp_path):
+    repo = Path(__file__).resolve().parents[1]
+    script = repo / "tests/fixtures/dashboard_profile_review.py"
+    subprocess.run([sys.executable, str(script), str(tmp_path)], check=True)
+    published = repo / "docs/examples/dashboard-profile-review.html"
+    assert (tmp_path / "dashboard.html").read_text(encoding="utf-8") == published.read_text(
+        encoding="utf-8")
 
 
 @pytest.mark.skipif(shutil.which("node") is None, reason="Node.js runs the exported dashboard")
@@ -64,3 +76,31 @@ def test_profile_review_renders_baseline_link_states_and_partial_timings(tmp_pat
     html = tmp_path / "test-dashboard.html"
     html.write_text(render_dashboard(snapshot), encoding="utf-8")
     _check_page(html, "timing")
+
+
+def test_profile_and_trace_shortcuts_open_recorded_evidence(tmp_path):
+    playwright = pytest.importorskip("playwright.sync_api")
+    source, review = profile_fixture(tmp_path)
+    review.write_text(json.dumps({**json.loads(review.read_bytes()),
+                                  "started_at": "2026-11-11T08:41:43Z"}))
+    attach_profile(tmp_path, capture_id="baseline", source=f"profiles/{source.name}", review=review)
+    url = write_dashboard(tmp_path).as_uri()
+    with playwright.sync_playwright() as driver:
+        browser = driver.chromium.launch()
+        page = browser.new_page()
+        page.goto(url + "#profiles")
+        profile = page.locator('[data-key="profile:baseline-timeline"]')
+        playwright.expect(profile.locator("canvas:visible").first).to_be_visible()
+        playwright.expect(profile.locator(":scope > summary")).to_be_focused()
+        page.locator('[data-key="profile:baseline"] > summary').click()
+        page.locator("#profiles-link").click()
+        playwright.expect(profile.locator("canvas:visible").first).to_be_visible()
+        page.locator("#trace-link").click()
+        trace = page.locator('[data-key="experiment-all"]')
+        playwright.expect(trace.locator("tbody")).to_contain_text("Warm worker")
+        playwright.expect(trace.locator(":scope > summary")).to_be_focused()
+        page.locator("#language").click()
+        playwright.expect(trace.locator("tbody")).to_be_visible()
+        page.reload()
+        playwright.expect(trace.locator("tbody")).to_be_visible()
+        browser.close()

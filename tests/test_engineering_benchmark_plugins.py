@@ -2,6 +2,7 @@
 
 import json
 
+from tests.diagnosis_support import diagnosis_args
 from tests.test_codex_plugin import distribution as distribution
 from tests.test_codex_plugin import invoke
 from tests.test_project_optimization import project as project
@@ -30,7 +31,8 @@ def test_isolated_tts_entry_prepares_its_bundled_workload(distribution, tmp_path
     )
     assert result.returncode == 0, result.stderr
     assert len((prepared / "workload.jsonl").read_text(encoding="utf-8").splitlines()) == 12
-    assert (prepared / "benchmark.py").is_file() and (prepared / "evaluation.py").is_file()
+    # #412 R3: the evaluation lives in benchmark.py; no sibling evaluation.py is frozen.
+    assert (prepared / "benchmark.py").is_file() and not (prepared / "evaluation.py").exists()
     assert json.loads((prepared / "policy.json").read_text())["quality_scorer_id"] == (
         "synthetic-software-control"
     )
@@ -45,9 +47,11 @@ def test_current_agent_session_uses_bundled_task_and_enforces_rounds(distributio
         "--evaluation-args", "--pairs 2 --samples 1 --warmups 1",
     )
     assert started.returncode == 0, started.stderr
-    assert json.loads(started.stdout)["next_action"] == "edit_candidate_and_submit_round"
+    assert json.loads(started.stdout)["next_action"] == "record_bottleneck_diagnosis"
     assert (session / "frozen/optimization.py").is_file()
     assert (session / "work/candidate.py").is_file()
+    diagnosed = invoke(distribution, tmp_path, *diagnosis_args(session, "benchmarks", "session"))
+    assert diagnosed.returncode == 0, diagnosed.stderr
     captured = invoke(
         distribution, tmp_path, "benchmarks", "session", "knowledge", "--session", str(session),
         "--query", "cgroupv2", "--context-bytes", "2048",
@@ -74,6 +78,8 @@ def test_isolated_plugin_runs_project_round_and_retained_final(distribution, tmp
         "--rounds", "1", "--max-minutes", "5", "--evaluation-timeout-seconds", "30",
     )
     assert started.returncode == 0, started.stderr
+    diagnosed = invoke(distribution, tmp_path, *diagnosis_args(root, "campaign"))
+    assert diagnosed.returncode == 0, diagnosed.stderr
     (repo / "config.json").write_text('{"metric":20}', encoding="utf-8")
     submitted = invoke(distribution, tmp_path, "campaign", "round", "--directory", str(root),
                        "--candidate", str(repo), "--hypothesis", "Synthetic fixture change")

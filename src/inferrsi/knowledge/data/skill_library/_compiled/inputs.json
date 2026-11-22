@@ -1,0 +1,1383 @@
+{
+  "ascend-aclgraph-capture-replay": {
+    "header": {
+      "name": "ascend-aclgraph-capture-replay",
+      "description": "Diagnose vLLM-Ascend ACLGraph capture/replay eligibility, stable-input and ordering contracts, and capture-resource failures at a pinned implementation. Use for evidence-gated graph-mode proposals, not allocator, compiler-fusion, or network tuning."
+    },
+    "files": {
+      "SKILL.md": "ca2a29e7577f6a3bdadea1741158dc60bd22fd2d0e8475638f54eb5307734543",
+      "references/source-notes.md": "6ffbfb68cc7e04923b4fbca2a73a7555b7c3b45a6f40819bb5f3213ef05cf88d"
+    }
+  },
+  "ascend-device-health": {
+    "header": {
+      "name": "ascend-device-health",
+      "description": "Pre-run health checks and recovery procedures for Ascend NPU devices on shared machines: card-group topology validation, Health status checks, SIGKILL residual-state detection, 4-step smoke verification, process occupancy check, and DVFS warmup discipline. Use before any experiment that requires a trusted performance baseline.\n"
+    },
+    "files": {
+      "SKILL.md": "526bc4c3a277e3d1773a2bed81db60ad99f077aa1569302351ff66a4a4c27f7d"
+    }
+  },
+  "ascend-distributed-parallel": {
+    "header": {
+      "name": "ascend-distributed-parallel",
+      "description": "Select and validate distributed parallelism strategy on Ascend NPU: topology-aware  card-group selection, USP/CP/TP/PP strategy choice, communication masking setup and  verification, attribution of parallelism gains, and diagnosis of strategies that appear  to activate but have no effect. Covers native HCCL multi-rank AllReduce dispatch, scratch and synchronization boundaries, AlltoAllV defect workaround, and source-scoped communication-test timing and correctness coverage.\n"
+    },
+    "files": {
+      "SKILL.md": "cd9a681bd117a38004a6374e9aacba773cbc6cdfea6f7a3eb465bda564175ddf",
+      "references/awesome-ascend-communication-tests.md": "0cb27a3d24409171bb414d7ebf0c49ad62be5f46482f29624695496ba9eb3e63",
+      "references/hccl-LICENSE.md": "05205a02acebd671c78d3b876c1f6097b84cce89780f5d9bdc204bfbea92d0c1",
+      "references/hccl-allreduce-readset.json": "4a3d403986dfceaa28605f2f30b79545e1efdc27f35c88755402b75b4d13d7e2",
+      "references/hccl-allreduce.md": "4770bba0090ed5ead3d2fd3b2cce2d21ba708acae3e0b4d859cc503499da5b93"
+    }
+  },
+  "ascend-graph-mode": {
+    "header": {
+      "name": "ascend-graph-mode",
+      "description": "Diagnose an Ascend TorchAir ACL graph path from versioned configuration through FX compilation, capture-key selection, eager fallback, input staging, replay and output lifetime. Use when repeated inference has host overhead, capture churn, stale outputs or an uncertain backend; require source-matched configuration and separate device validation."
+    },
+    "files": {
+      "SKILL.md": "f22e7b06c16b5a5427c3bab6b34b4ef6cd27e10af1d1705a1276c0f7440eeb41",
+      "references/legacy-source-notes.md": "a51c655aff59741cd7421277bd71dffeb9907560950459ae0a776207e496de4a",
+      "references/torchair-LICENSE.md": "bc07d81fa332b6543463588a120518c57b5ce8582d3747de75d2f6b09b068c01",
+      "references/torchair-graph-path.md": "272424571ff439278c8f2675406eae7da9a6482c581973e24319739fa0e58348",
+      "references/torchair-graph-readset.json": "eb84cbd5c355a88ee013dc7e428b274162e0e13e85845b58526113b0d6a2b46b"
+    }
+  },
+  "ascend-model-adaptation": {
+    "header": {
+      "name": "ascend-model-adaptation",
+      "description": "Patterns for porting LLM/VLM model adapters to Ascend NPU: FP8 checkpoint handling, KV replication with TP, multimodal feature validation order, graph mode startup, and feature-status reporting. Source-grounded from vllm-ascend production experience. Use when adapting a new model checkpoint to run on Ascend via vllm-ascend or a similar framework.\n"
+    },
+    "files": {
+      "SKILL.md": "bf1630e5f7f716dac4c8d59235dd2b088e126c80a544f01ff6daabb6ac0abdf0",
+      "references/source-notes.md": "500966fe5ddd3b52bb8405b406ba9c707b5e68c0ec8317f8b1ac8c109d38936b"
+    }
+  },
+  "ascend-operator-profiling": {
+    "header": {
+      "name": "ascend-operator-profiling",
+      "description": "Benchmark a single Ascend NPU operator using msprof op: build, collect with warmup, read the 8 CSV metrics files, derive a bottleneck verdict, and iterate. Use when validating operator performance in isolation before system-level profiling.\n"
+    },
+    "files": {
+      "SKILL.md": "927b19960629173945604ffae9dfe5982429c86c2b33c3d8b8ad7552a3e2f388"
+    }
+  },
+  "ascend-operator-tuning": {
+    "header": {
+      "name": "ascend-operator-tuning",
+      "description": "Run a staged, accuracy-gated tuning campaign on a single Ascend NPU operator: set a numeric target up front, block tuning until an on-device accuracy pass is logged, escalate code-level then scheduling then instruction-level tuning with per-stage stall counters and kill-switches, and route each change by the metric contract (core utilization, bubble rate, load balance). Use after ascend-operator-profiling has measured a baseline and the operator is confirmed as the bottleneck.\n"
+    },
+    "files": {
+      "SKILL.md": "b226f5597b964bf2616d7faa68f7fa047789695904ba6e44e9c8ca2b7741d2ef"
+    }
+  },
+  "ascend-optimization-casebook": {
+    "header": {
+      "name": "ascend-optimization-casebook",
+      "description": "Casebook of NPU optimization cases for Ascend inference systems: symptom → diagnosis → action → evidence records for memory-bound, compute-bound, communication-exposed, graph-compilation, and AI-CPU-fallback bottleneck classes. Use when a bottleneck has been classified and you need prior art for what to try next. Complement to inference-optimization-casebook (which covers the casebook *pattern*; this carries the actual NPU cases).\n"
+    },
+    "files": {
+      "SKILL.md": "b1ffddd0784743840606c151e7cf23f6eb5466e90f93f6d91214fded73c0be4a"
+    }
+  },
+  "ascend-performance-analysis": {
+    "header": {
+      "name": "ascend-performance-analysis",
+      "description": "Diagnose performance bottlenecks on Ascend NPU systems using CANN profiling data. Maps GPU profiling concepts (nsys, ncu, SOL%, roofline) to their NPU equivalents (msprof, torch_npu.profiler, CSV/JSON outputs, AI Core utilization, HCCL communication analysis). Covers measurement discipline on shared NPU machines and evidence acceptance for automated NPU optimization stages. Use when profiling data is available or a stage report needs its execution and validation evidence checked.\n"
+    },
+    "files": {
+      "SKILL.md": "8fdbb60d366a2e03f08d17a4604210833a54104fc0a22cd2be68c2cc2052deba",
+      "references/cannbot-CANN-2.0-LICENSE.md": "89b1c114df62cfd183004f38d18d07f186436c3b37203dd69c3e84becf9d2282",
+      "references/cannbot-stage-evidence.md": "f56e4125325c9c1b9235a1d64fd732861c7686444492422daff44ba8dd648be4"
+    }
+  },
+  "ascend-video-diffusion-optimization": {
+    "header": {
+      "name": "ascend-video-diffusion-optimization",
+      "description": "Run and verify goal-driven Ascend video diffusion optimization. Specializes the backend-agnostic video-diffusion-optimization skeleton with Ascend NPU operator, layout and profiler references. Use when the user asks for latency, RTF, throughput, or HBM targets across VLM, DiT, MoE, attention, or VAE on Ascend NPU. Not for text-only LLMs."
+    },
+    "files": {
+      "SKILL.md": "955e5b65c86cf6b39e9dd042c4f0d5d3e4869d708daba2a77bc4cac7b8dbff33",
+      "references/field-notes-video-diffusion.md": "dadac7b23462fdc325218c72ddf8a2ac553151761a5d3e45b854b53d2c8c6908"
+    }
+  },
+  "ascendc-tiling-design": {
+    "header": {
+      "name": "ascendc-tiling-design",
+      "description": "Design tiling for a custom AscendC operator: normalize the shape first (axis-collapse or flatten), answer the fullload-vs-split question for UB, apply the universal four-element template (multi-core split, UB split, buffer plan, branch matrix), and route per operator class (reduction, broadcast, elementwise, matmul, conversion) using algorithm-selection and chip-generation tables (DAV_2201 vs DAV_3510). Use when writing or restructuring an AscendC operator's tiling logic, before running any performance tuning campaign.\n"
+    },
+    "files": {
+      "SKILL.md": "5d7afc6e33b5224c53dfca2f97a2e56c44d51216ab59c3ec6bf984511983ce8a"
+    }
+  },
+  "assess-serving-preemption": {
+    "header": {
+      "name": "assess-serving-preemption",
+      "description": "Assess whether LLM serving queue delays justify token-boundary priority preemption, accounting for suspended KV, host swapping or recomputation, and long-request service guarantees. Use for admission-versus-service-order diagnosis, not current scheduler implementation or tenant-fairness certification."
+    },
+    "files": {
+      "SKILL.md": "7167ef93338f5acdf2eab867372748259bfd7cfc8480ea7ddefe166882e04570",
+      "references/source-notes.md": "f29fcecfba0490008a354c11b42403983fe165e56ff907ad61cc6040d2b6407f"
+    }
+  },
+  "assess-split-backward-schedule": {
+    "header": {
+      "name": "assess-split-backward-schedule",
+      "description": "Evaluate memory-capped split-backward and V-shaped pipeline scheduling proposals, preserving synchronous update, global-batch and optimizer-validation semantics."
+    },
+    "files": {
+      "SKILL.md": "f777607e0158371f4025efff3fa63e57e1622e2a86ec087cc580f076681e9ac5",
+      "references/source-notes.md": "61b1609f71c37b61d136b8c4d39f793de87cffb1cf31c8ec737a1c3fa6fb1b4e"
+    }
+  },
+  "audit-afd-p2p-exchanges": {
+    "header": {
+      "name": "audit-afd-p2p-exchanges",
+      "description": "Audit CUDA P2pNccl Attention/FFN rank namespaces and per-stage, per-peer hidden-state ownership when uneven worker counts or a mismatched return slice make an AFD exchange ambiguous."
+    },
+    "files": {
+      "SKILL.md": "2325744f75fcb60608da0715aee5a5fc6160cf8a672de18a379fa46ec394e022",
+      "references/afd-plugin-LICENSE.md": "0e8566ea362276878e1f38f97da49964dbea301c15d4aa9d727f97a4c39fd943",
+      "references/source-notes.md": "5073d87450cb60d1b245308dff8807e73749c07de976d50f2fa26694fad81a72"
+    }
+  },
+  "audit-fixed-workload-claim": {
+    "header": {
+      "name": "audit-fixed-workload-claim",
+      "description": "Audit a performance claim from supplied fixed-workload reports and an explicit measurement contract. Check aggregation, retained observations, comparability and quality evidence without launching new benchmarks."
+    },
+    "files": {
+      "SKILL.md": "30d5303418fd5748649fa38ffd525a885749ee8d93a02b41b7efc27ae74fb471"
+    }
+  },
+  "audit-flare-session-lifecycle": {
+    "header": {
+      "name": "audit-flare-session-lifecycle",
+      "description": "Audit Flare complete prefix/session restoration, inbound transfer tickets, publication/use/retirement fences and host-restore admission outcomes. Use when a lookup hit does not become reused tokens, a cancelled waiter leaves transfers in flight, or a restarted session must recover KV pages together with recurrent, convolution and partial-tail state."
+    },
+    "files": {
+      "LICENSE": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "SKILL.md": "bf226236185f3e1009f062e73b81cc517d64d5483734f4ee07fa1fd2ac4e9f6e",
+      "references/diagnostics.md": "86d10d9aa848c9539664b2220ae712f23273e8af4dcae5d1b6c8ed3befdfbfa7",
+      "references/lifecycle.md": "107ebe3c22e5dba8007c3b8ea61149f10bc55c51b557a4230f3e5de859bb0f7c",
+      "references/source-ledger.json": "61e51a97ffd7c1fa7866bdd440b024d0c5e0065635ac8d0ba53d2c69c7f9e470",
+      "references/source-notes.md": "f174a0c38303cc50b9b27a0ef57de91147d6c6a24d5205b9b0bd2ecfda339806"
+    }
+  },
+  "audit-h3-metal-fasth3-semantics": {
+    "header": {
+      "name": "audit-h3-metal-fasth3-semantics",
+      "description": "Audit h3-metal FastH3 effective configuration, checkpoint tensor and schedule semantics, partial VSA tiles, sparse eligibility and dense-plus-coarse fallback without treating source or header checks as native parity."
+    },
+    "files": {
+      "LICENSE": "663e51edcd9a3a8f858018ce6924ad2895a24c269c26c39ad75325bcd0f7e5bc",
+      "SKILL.md": "988eed832af47f41e574995d78bdb55117ed8ee14b6127f9b18209d0ec5d843e",
+      "references/THIRD_PARTY_NOTICES.md": "a0d77db7d2aca0eda811ab3c386cc32b3143f2c2609a042cf4642954f0f6fb09",
+      "references/preflight.md": "5cf745005914c74b18a09f127d1d02ce0cb64f6cd7899501ce3cb40938c42a4c",
+      "references/repo-provenance.md": "9c6010d8b0e8db1c4e611ff39a2ee052169db97f240f00d7412b7b8095dd087e",
+      "references/semantic-contracts.md": "3f518160e8a227272e698486e6c67acd364af0d74755103ffc868b2d66052c20",
+      "references/source-identity.json": "b0e63197725c6a1baa4888ca3c48ccd4926b6e6f0f8bf781ae76ac97ffd1ceb1",
+      "references/source-notes.md": "f9430103644eacd9c55ace6f84d8587fc0bc063bfcd9cb60e6045b139a9fee05",
+      "references/troubleshooting.md": "ed552d87f9fb9fb2c56de64df61f3fc6e2333cb049116cd0736f784c8a327612",
+      "scripts/audit_fasth3.py": "05bfb9348cf88a76f4fba8bc8a600fe54246d83a98c1685bc4847ace28e2fbac"
+    }
+  },
+  "audit-h3-runtime-residency": {
+    "header": {
+      "name": "audit-h3-runtime-residency",
+      "description": "Audit MiniMax-H3 generation in h3.c on Apple Silicon by tracing conditioning, AdaLN precompute, DiT residency, Metal precision paths, SSD streaming and audio/video decoding."
+    },
+    "files": {
+      "LICENSE": "663e51edcd9a3a8f858018ce6924ad2895a24c269c26c39ad75325bcd0f7e5bc",
+      "SKILL.md": "dd9539c5189582df0ffac7cf24461e377298507566cec44ca3bb9dec1def4b8d",
+      "references/THIRD_PARTY_NOTICES.md": "a0d77db7d2aca0eda811ab3c386cc32b3143f2c2609a042cf4642954f0f6fb09",
+      "references/minimax-h3-apple.md": "9e11b867fd7e3dede66e73de7410558bcb6b5015a0a218bed376b4b24bebad76",
+      "references/minimax-h3-weight-inventory.json": "fbaacaeec340d3ce893556ee864405a0746af4d13530a38cb3d5aa9d60929271",
+      "references/phase-residency.md": "2836a550eb2be7f5a862f51ec7b135ebd9715bf3c4faa84a7ecbc9d9c11f5d8d",
+      "references/precision-and-streaming.md": "7e166c89193f4c7aed852ec95346a2de2b5008dac002e2e1862be1b3e57f6093",
+      "references/source-identity.json": "730f8dd23648a3f8f47b9726cc613d893a79d1817d515eec609a9b06d8a9ff90",
+      "references/source-notes.md": "7304bf9369efc157dc7aa40686dd828cc14db45c49442e908b3d3cc4b329eb86",
+      "references/validation.md": "0754873a758e048480938314894e25b504ae0c269549312e7f8e6020d83fe294"
+    }
+  },
+  "audit-llama-runtime-state": {
+    "header": {
+      "name": "audit-llama-runtime-state",
+      "description": "Audit llama.cpp context memory, partial decode progress, graph reuse and server cancellation when a retry, stale prefix, unexpected rebuild or unreleased slot needs an ownership explanation; requires pinned source or a concrete runtime trace."
+    },
+    "files": {
+      "SKILL.md": "fb53c38204f3eb5fcadaa4870cc8b111bf2f3b92696a0a2dd2d9b41d4a905e88",
+      "references/source-notes.md": "3d12a401e9decb55a2f4f3b2bfa0d360ef5110f63a0469dfe285654e78054190"
+    }
+  },
+  "audit-recurrent-kv-finalization": {
+    "header": {
+      "name": "audit-recurrent-kv-finalization",
+      "description": "Audit vLLM-RLT synchronous early-exit KV propagation, later depth-specific attention reads, and request storage retirement. Use when shallow token exits leave deeper history or release order in question."
+    },
+    "files": {
+      "LICENSE": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "SKILL.md": "fb59f58e1c1ee9490f9c933b9c5ac7788bff367511e6f947c96f53939fc8f521",
+      "references/NOTICE.md": "cca794656897ecdc37f983f7f23c4cd12306dbe3c9cd2f54fece6340753ae4cf",
+      "references/source-identity.json": "5e52db0a0bda4673b9aac46a3fc035b824780def72921fee6796edb2ed9fca65",
+      "references/source-notes.md": "0956f59cd9a1fac27da53228dd60c51a07b87639a43c09bfab296c4aeeceaab9"
+    }
+  },
+  "audit-sd-cpp-residency": {
+    "header": {
+      "name": "audit-sd-cpp-residency",
+      "description": "Audit stable-diffusion.cpp image-generation memory pressure by separating catalog freshness and weight-byte delivery from model parameter storage, compute weight residency, retained runtime buffers and segment prefetch under the actual backend."
+    },
+    "files": {
+      "LICENSE": "b53fa08f515cb5a6fff7b9fd8fcd0961a4b80df29d74372d25e1f9171aa042ee",
+      "SKILL.md": "0a2ea4dcff90a283cbf1e835f6e8b93a160ffc9f0e6400aa00aae3ad0306b184",
+      "references/loader-storage-boundaries.md": "c1ec047aa37fca6b374f9bfd750e8f30d45af1d48fe728db23873c0b84ad94e8",
+      "references/phase-residency.md": "7b537cb972347dd68e303960f142892346d8b19b884e4d08016ea36a23bdaa7a",
+      "references/source-identity.json": "af4830370b6eddc2d176a9ae14da4ab56a90b0fe048a01a89ee051df4365d8e9",
+      "references/source-notes.md": "c493af8f6fd11ab7c9a37c9eec78cac31d57c04403a790035efbb4fff99f4669",
+      "references/validation-boundaries.md": "3aaf79b36192bf8ff3e8f95ac90f2e769aa065dfac1fe70368824f3591849b8d"
+    }
+  },
+  "audit-sglang-diffusion-lifetimes": {
+    "header": {
+      "name": "audit-sglang-diffusion-lifetimes",
+      "description": "Diagnose SGLang multimodal_gen stage state, component residency and request timeout/deletion when grouped outputs interfere, a module remains resident, or stopped waiting is mistaken for stopped execution; requires pinned source or a concrete trace."
+    },
+    "files": {
+      "LICENSE": "1495e1e757ef4d0925a2350563cf5754bb23c51701a8ec4fb3c5cdcbedae6747",
+      "SKILL.md": "c2f28dae816151a9fc03ee69dea415f2d1415612f33c1fefe960a0f55b30c9b2",
+      "references/source-notes.md": "d0fcfd1177ae2f351041c5b2abba7f5121cec133006d9e4dca8f74ddb567332d"
+    }
+  },
+  "audit-vllm-kv-lifetimes": {
+    "header": {
+      "name": "audit-vllm-kv-lifetimes",
+      "description": "Audit vLLM V1 asynchronous KV load/save completion, block retention, preemption, and receive-failure contracts when requests stall or blocks may be reused too early; requires a concrete connector trace."
+    },
+    "files": {
+      "SKILL.md": "10f7ad0b6c04089fa32e9d08b2e0b45b159659ac0e42de8fb91eb19bfe07bb06",
+      "references/source-notes.md": "3665b034594fc8cc767c408002f4e16f8803369242405027c7f37ce6c9ecebe9"
+    }
+  },
+  "bound-windowed-attention-replay": {
+    "header": {
+      "name": "bound-windowed-attention-replay",
+      "description": "Bound replay or prefill query rows across a producer/consumer boundary whose retained inputs and separately preserved historical state satisfy the full dependency closure. Use when a model has shared hidden state or preserved-compressed KV and the retained region must be derived rather than assumed. Derives the retain rule from window plus rollback depth, separates query-row compaction from dropping historical keys, and names what becomes unrecoverable."
+    },
+    "files": {
+      "SKILL.md": "06e007f578f19bda7e047bf860fbbe0c899791553fab99e92ef20e929caded54",
+      "references/source-notes.md": "fd917bd5ac80bee9c9f4525f8e0300f6d67dc144e2a16632af42a67f3d53d098",
+      "references/validation.md": "60e71e70c5519bcdf6c171eec2be2f342e8801bedd746d6005f11adc646dfaff"
+    }
+  },
+  "budget-speculative-verification": {
+    "header": {
+      "name": "budget-speculative-verification",
+      "description": "Decide how many draft tokens to verify per decode step when acceptance varies by request and position. Use when an engine already runs a draft head with multi-token speculation and verification cost grows with query rows. Separates draft cost from verify cost, builds a cumulative-acceptance rate vector, fits a cost model, and allocates a per-step row budget."
+    },
+    "files": {
+      "SKILL.md": "6e0dfacc7aa59b383761798656fd52e99b66fc7794c65dc3fc4f1c180b73072c",
+      "references/source-notes.md": "6fa955022f16cd598f44fd6521901d1cb868b06cec545cabe2b82769a641b5d6",
+      "references/validation.md": "673d93f6700052974b340fab25b3438e0e6344960569ac9abec7d7720f662288"
+    }
+  },
+  "calibrate-serving-simulation": {
+    "header": {
+      "name": "calibrate-serving-simulation",
+      "description": "Build an evidence-gated serving-configuration shortlist from a profiled simulator while separating empirical predictions from physical bounds and near-capacity queueing risk."
+    },
+    "files": {
+      "SKILL.md": "36c1a9f9723347e77e6076b4efb1e35c5967b21c0fd44eaf003ab176c5786bbb",
+      "references/infera-serving-search/README.md": "fe614b1c62f1d4a9db797a85d9b11931ae32169c40109c7b69ecd648fb6e9d1e",
+      "references/infera-serving-search/source-record.json": "61fafa5e92ae6312f8792e4630a35c78da4c1810fac4bf9cde385824c3894f36",
+      "references/source-notes.md": "9696d3c0ef96b6611787446bd6f96d4d6255ca8d107105de8c1d9af83edb9fa5"
+    }
+  },
+  "cann-attribution-overlap": {
+    "header": {
+      "name": "cann-attribution-overlap",
+      "description": "Attribute NPU trace kernels to model source and plan bounded multistream overlap: select a representative step, map kernels to source owners via code_ref, build the module/operator dependency DAG (data, state, event, collective-order edges), classify serial/candidate/pending groups, choose minimal-first overlap with an explicit execution-mode synchronization contract, and accept only through correctness-first checks. Keeps the !302 import lineage distinct from later revisions, carries known formula/threshold conflicts as unresolved, and qualifies memory evidence by domain (device HBM/UB counters are not host RAM). Planning procedure only — no formula automation for disputed definitions.\n"
+    },
+    "files": {
+      "SKILL.md": "3c0f31b2c7d6b4c121139d8aaa95f40aa2ae3f9eb23ce07dfea8b865e89731e1"
+    }
+  },
+  "cgroup-resource-controls": {
+    "header": {
+      "name": "cgroup-resource-controls",
+      "description": "Diagnose and configure cgroup v2 resource controls for serving/training workloads: distinguish quota stalls from sibling contention (cpu.max vs cpu.weight, cpu.stat vs cpu.stat.local), audit requested-versus-effective cpuset with migration-cost budgeting, triage memory pressure with PSI plus event deltas (high/max/low semantics), and gate io.max caps on confirmed block-backed traffic. Includes hierarchy/delegation/permission preflight and a rollback contract. Extra resource allocation is treated as a capacity spend, never as an efficiency improvement. Control-plane procedures only — applying settings requires separate authorization.\n"
+    },
+    "files": {
+      "SKILL.md": "3603cbef2516b00b6079f8b773b4a8aca28659475982c695d3eb36230ae6daef"
+    }
+  },
+  "checkpoint-recovery-consistency": {
+    "header": {
+      "name": "checkpoint-recovery-consistency",
+      "description": "Assess distributed checkpoint recovery using DLRover memory agreement, persistence completion and replica transport, and NVIDIA Resiliency Extension complete-iteration selection. Distinguish worker, host and replica loss; separate queued saves, publication, application-state validity and durable recovery.\n"
+    },
+    "files": {
+      "SKILL.md": "cc53f838da409daff0f85c3d4d3867307c00b4f7822cdc042274bd1aea8a95c1",
+      "references/dlrover-persistence-replicas.md": "055f4357f79026fcbcc766bbe77db610376ec353623f8898f5d14a30ee69e7bc",
+      "references/sources.md": "9425b1aab963a2c8d35f3db897bd15ee69699bf5b0d0c8425c3c8bba3e9a0233"
+    }
+  },
+  "choose-parallel-training-plan": {
+    "header": {
+      "name": "choose-parallel-training-plan",
+      "description": "Compare stage, device-mesh and operator-sharding candidates for static distributed training while accounting for memory, topology, resharding and planning cost."
+    },
+    "files": {
+      "SKILL.md": "0e56b44e712af224252fdd8061cc9c0dfc2b22c54f010664644ca61c93f4b27f",
+      "references/source-notes.md": "9f9184d46b19312138a6e805e439e43dc0594a0cc6b46675255a582dc946ca5b"
+    }
+  },
+  "cite-check-downstream-pr": {
+    "header": {
+      "name": "cite-check-downstream-pr",
+      "description": "Review a downstream PR description for correct acceptance issue links, SHA pins, and artifact citations."
+    },
+    "files": {
+      "SKILL.md": "68ff74b48de1607297aa35e2e8b2eaea12674d938f8c8167b93e55b1044ba858"
+    }
+  },
+  "claim-contract": {
+    "header": {
+      "name": "claim-contract",
+      "description": "Enforce ThinkFlowLab claim contract wording and verdict rules without embedding campaign-specific revision pins."
+    },
+    "files": {
+      "SKILL.md": "49cf787427e7842fc0b8cbc1e58091fc4b77a5a48c0cb8fb7aaecd91f8715670"
+    }
+  },
+  "comfy-ui": {
+    "header": {
+      "name": "comfy-ui",
+      "description": "Audit ComfyUI workflow-output cache validity, lazy dependencies and model-weight residency as separate state contracts using a pinned source revision and explicit runtime evidence."
+    },
+    "files": {
+      "LICENSE": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
+      "SKILL.md": "904de714cd5fad63552b3c62dfdbbaa31b4a02de13e20eba752427b0540f1778",
+      "references/graph-cache-invalidation.md": "614c9a4e6943d24d7d7be7d632682ce8b1dcc239124a37d9dc1d487113772eac",
+      "references/model-residency.md": "014c68386e7cdfdb7b4f566836e8b2ff61bd5a5a506e7b4723f83fe80c5d4de7",
+      "references/repo-provenance.md": "ca996ef515af42a3ce304747fa3f12a31c00533deaace5ba2ce21aefa0a62e2e",
+      "references/validation-boundaries.md": "1913dedbeb558d872d6a0e015cc11d822910c3cb259a236db29fb60ad8a64263"
+    }
+  },
+  "competitor-scan": {
+    "header": {
+      "name": "competitor-scan",
+      "description": "Structure a lightweight competitive scan without inventing benchmark numbers or campaign verdicts."
+    },
+    "files": {
+      "SKILL.md": "7f2613a1fc8e9fc58c3058c4946b85e8d7d49359143d650f711b88b448307ab6"
+    }
+  },
+  "dcp-async-save-performance": {
+    "header": {
+      "name": "dcp-async-save-performance",
+      "description": "Diagnose training-visible checkpoint pauses using PyTorch Distributed Checkpoint asynchronous saving and staging. Separate snapshot capture, staging completion, upload completion and backend durability; bound in-flight requests and cached CPU buffers before proposing overlap. Use for DCP save performance, not distributed recovery validation.\n"
+    },
+    "files": {
+      "SKILL.md": "ed761a1e7efcb7350e9436eab86e708053ba4ba28dd038c135d63f7540e46101",
+      "references/sources.md": "22afe4f4d77f441096cc657d55d763473bfcbea8fb531c8e493fe49ab84955f7"
+    }
+  },
+  "dense-performance-evidence": {
+    "header": {
+      "name": "dense-performance-evidence",
+      "description": "Taxonomy of performance evidence an optimization agent needs, ordered by collection cost and diagnostic power. Maps evidence types to the questions they answer and the claims they can support. Use to decide which evidence to collect next, avoid over-claiming from cheap evidence, and structure a measurement campaign.\n"
+    },
+    "files": {
+      "SKILL.md": "8fc261fce4be42ef66b3f98cf35bf3b5f8ee6f622494083ddb343f2645d6bf15"
+    }
+  },
+  "diagnose-attention-bottlenecks": {
+    "header": {
+      "name": "diagnose-attention-bottlenecks",
+      "description": "Diagnose the next attention-kernel bottleneck after IO reduction using evidence about HBM traffic, work ownership, parallelism, scalar work, asynchronous scheduling and precision. Produce a bounded optimization hypothesis and correctness-first verification plan; do not infer current library support or NPU portability from GPU papers."
+    },
+    "files": {
+      "SKILL.md": "dabb1e8f06875a72dfa78c4d684fb4bf380667d34151dbc1a6355b355a432df9",
+      "references/mechanisms.md": "fe08b2292fa587be3874774ddf41063b84c579a0085df422ec6710d8aa90b8b7",
+      "references/papers-20261015/INTEGRATION_NOTES.md": "371b01ee201ef51fecbfd6da892d517aaba295930b9395025f03f34e21c030a1",
+      "references/papers-20261015/NEXT_GATE_LEADS.md": "35b8b58ae5db02b2df51ccbe5cdf870a7383d17f345f9ee5eb7b0a4146dfc74b",
+      "references/papers-20261015/README.md": "e0b1ec1b39c10067f5ddce58320851ad089568c4b2296a24777389097cb5b388",
+      "references/papers-20261015/cases/io-reduction-can-plateau.md": "5cc35f514224ac6e6efd2da6db221bba468b2f4db66807295e67b240bcdfdba5",
+      "references/papers-20261015/cases/overlap-and-fp8-counter-signals.md": "80c8a60a6df55f3d84fab23e03567d8b38e23bcdbd63cc09881e46db1e2888ab",
+      "references/papers-20261015/cases/partitioning-after-fusion.md": "4d4cabe0991eab554dcfbd4fa9c8199e61fa4767709b0c4cd646e2588bb398a2",
+      "references/papers-20261015/knowledge/attention-cost-model-boundaries.md": "5ed8f888443e38ccb72545b6025447aab7b92936f78c151fed680e582126239b",
+      "references/sources.md": "53436e0de4e6dda2d29426591bf61f8526378cdc6f9ec7967b88b1bcd4c61e6f"
+    }
+  },
+  "diagnose-vllm-admission-pressure": {
+    "header": {
+      "name": "diagnose-vllm-admission-pressure",
+      "description": "Diagnose vLLM V1 admission stalls and KV-pressure preemption by separating token, input, active-request, cache-allocation, and connector-wait constraints at a pinned scheduler revision."
+    },
+    "files": {
+      "SKILL.md": "e0dc4374adaf70324bd21f7a5bde5d7cadd7fd84167bcec5ca5004191b1a5cc3",
+      "references/papers-20261015/INTEGRATION_NOTES.md": "de414b2394f59f896df5b32aeb02aad43021b5c5c984bec8c31ac11f13f903a3",
+      "references/papers-20261015/cases/migration-is-not-free-memory.md": "2ac168f2725cba7fc92dfcc67c01bf2258dff6a2dbe1ddb063bc60c175d82d0a",
+      "references/papers-20261015/cases/parallelism-change-with-state-cost.md": "5accc81086e4500d66f894ef6af9951e1cbb76941f6c631aab5c5561a786d8d8",
+      "references/papers-20261015/cases/preemption-under-kv-pressure.md": "462200a6d0b193ef01f32374a463e0f2838ca8edf33d9ab898def65ffd0b490a",
+      "references/papers-20261015/knowledge/scheduling-state-boundaries.md": "d4ef29869959b835a5dcb06ddb2fd8e6cff49bb176994dc1d46eb9a852f6228d",
+      "references/papers-20261015/notes/fastserve.md": "9b4e275843000ef453d508d9c3c9c3f8ea1de5545fbd01d7abe74baa8a4931a7",
+      "references/papers-20261015/notes/llumnix.md": "f252ce33ac2db017701ca1d49813c5ec1996c4c92900cf35bb6bda7fc59c0f18",
+      "references/papers-20261015/notes/loongserve.md": "7bc6d1e256d461b04acc8ed856cf99108faceda9cde729ab95bcca596fe019ca",
+      "references/papers-20261015/notes/orca.md": "f5a3b5870d64226408a8fcda5d69483769d823f8a5efd7f11698c8da483ab195",
+      "references/papers-20261015/references/fastserve-readset.md": "9866bd0c78b2b638998b3b632f6bae26aef032462c81abee336d309af5b07831",
+      "references/papers-20261015/references/llumnix-readset.md": "3a2819d65ad24087c08530492ef39d8ea046ed1f780d53512f1d23e2b3578487",
+      "references/papers-20261015/references/loongserve-readset.md": "f1a383e7bdbbd5a5a472d7f6e1292c8a17d4910ff736ca5a6aa422e1bee74f8c",
+      "references/papers-20261015/references/orca-readset.md": "a497ef23b7e60c0fbc15d95b7e07cd20547cfe56f37c24dfe6ed70d79ef7a3cf",
+      "references/source-notes.md": "84033fd514773f10c0bddd9914fabb980497ba2b308f226a922c3e1888413827"
+    }
+  },
+  "diffusers-invocation-state": {
+    "header": {
+      "name": "diffusers-invocation-state",
+      "description": "Trace Diffusers pipeline-wrapper and scheduler invocation state when repeated calls, from_pipe reuse or interruption produce unexpected schedules or retained request state; scoped to FluxPipeline and FlowMatchEulerDiscreteScheduler source evidence."
+    },
+    "files": {
+      "SKILL.md": "c7743a838e3f50627a998716b5caee99951ac15c14a4b2e848daf7d0bd240a3e",
+      "references/ownership.md": "40688cc44183027efbf2fca8d3548c299cdf2e33fef54f76ab3549353eb9bd1b",
+      "references/source-map.md": "10562a75683bd9bd07ec2e37a1cbd0f93f2534d6f85b55a566adb2d97485215f",
+      "references/validation.md": "5a0b854b87d091d7d505b0bdd5c03330052507a851ab6edf35b93a6675f2d4f7"
+    }
+  },
+  "draft-acceptance-issue": {
+    "header": {
+      "name": "draft-acceptance-issue",
+      "description": "Draft a campaign acceptance issue with checklist, RunSpec, evidence paths, and placeholders for baseline/candidate SHAs."
+    },
+    "files": {
+      "SKILL.md": "2c14533c067c51b9763f80a9df0bf5eb5acd398f4265790c57039fed96d4c497"
+    }
+  },
+  "dwarfstar": {
+    "header": {
+      "name": "dwarfstar",
+      "description": "Investigate DwarfStar model fit, expert SSD streaming, session and vision cache correctness, speculative sampling and distributed execution using pinned source contracts and explicit native verification boundaries.",
+      "license": "NO_LICENSE",
+      "disable-model-invocation": true,
+      "metadata": {
+        "disco-role": "operating"
+      }
+    },
+    "files": {
+      "LICENSE": "4a8a1358f5b048627d71e4988de0bafd386f4988991929629e6cb9e29b7b9b2f",
+      "SKILL.md": "1f0aa283e08ded546a7fa7505f8772c44be48715e61e9e6edb841af49c6d8da0",
+      "references/repo-provenance.md": "7d72f9c85ee60fe003f5f5a585b52e9989ebcedca625b584fa39a976d4433998",
+      "references/repo-routing-metadata.json": "8e195b420b67151932af5f435c284f49677cc7863e650c83cfa9e762fd00db0b",
+      "references/source-identity.json": "a38fe07d003accd83b7626d7e189f7b49b4b73e7a223e4d441b0e33add5d9c91",
+      "scripts/request_template.py": "62e4cde002f2aebeaddd63e6e1f04fc727c271d2cbdaa00856158baadee5340b",
+      "sub-skills/qualification/SKILL.md": "3b8eb25f6b8e4729b48cce5619daa24422bee251f119ea7f9cc1faf0097ec6bb",
+      "sub-skills/qualification/references/troubleshooting.md": "cd832ab2a420490524251a042c0c83c2f75bbfdc12e914b91da8f91edf6860e9",
+      "sub-skills/qualification/references/verification-contract.md": "2801f6683c2974d1cfa5b86c6268fd33f175f1cbcc9ed85c932e9b3504fac3e1",
+      "sub-skills/runtime-memory/SKILL.md": "ad1d34d429baaa41fb72c94ff4e554b26b2f5b701cc4deed03f1d066c7d3fc52",
+      "sub-skills/runtime-memory/references/memory-ledger.md": "765915ecd3a318cc7908658d5a79bbdff615fc24409501febcb7ff8af65a1050",
+      "sub-skills/runtime-memory/references/troubleshooting.md": "42e4785b7d3c1375efa324583897327f28ef76c0b7788092da92095bddeb1440",
+      "sub-skills/serving-state/SKILL.md": "71c27212847146376d72e6cc6d22abe2f7eed56402c5917cd7dfcda0b2aa5982",
+      "sub-skills/serving-state/references/state-contracts.md": "8f74a07c947021e3069468268f6b5aa2548a17db518c5c0505b84dde73a1f31c",
+      "sub-skills/serving-state/references/troubleshooting.md": "c9eebe4109d418c4dfb9bb2425c145ebc1a52da9b665e0556149bc31a442e2fc"
+    }
+  },
+  "evaluate-elastic-serving-placement": {
+    "header": {
+      "name": "evaluate-elastic-serving-placement",
+      "description": "Compare migrating an LLM request between model replicas with changing its sequence-parallel execution group, including state-copy, reservation, recomputation, interruption, and priority costs. Use for cross-instance memory imbalance or highly variable long-context serving, not connector wiring or live scaling."
+    },
+    "files": {
+      "SKILL.md": "8668e20cea75717fe536cd310b40b5cc1b94e0a25ad097675d3bdaae7c7d8886",
+      "references/source-notes.md": "ea416831fd7d0874e06d0a76fb0c7196df53072b717673a0cdf635db6bfd917b"
+    }
+  },
+  "generation-cache-lifecycle": {
+    "header": {
+      "name": "generation-cache-lifecycle",
+      "description": "Trace MLX-LM prefill, generation batching, prompt-cache reuse and cooperative stopping when request state, cache rows or retained prefixes become inconsistent."
+    },
+    "files": {
+      "SKILL.md": "d1a1c3c88e1a84d612aa04138de136e3495e62e91245d962bf0c9b6789359858",
+      "references/cache-stop.md": "bba6b5c73261065309cbcf11b1e591eef48916f0c79ceaaf74d98a9fa96b0992",
+      "references/generation-batch.md": "f16d3c57d45e63bcaffd3871aa41c76972ee11f7dbf1e12b45d9b170303cad9b",
+      "references/source-map.md": "91d26181f246307f2113f94b12ac9587d689b654dcd216e9f14b11cf5ebb650c",
+      "references/validation.md": "73b5dd347017baba519ecc85415aead9993c1751d116b9ba4f07689f58c5f783"
+    }
+  },
+  "host-memory-management": {
+    "header": {
+      "name": "host-memory-management",
+      "description": "Audit pinned host buffers and asynchronous CUDA transfers: distinguish copy ordering, host mutation/reuse and device allocator lifetime; use bounded PyTorch source evidence, a reusable staging-slot example and a hardware validation recipe. Also route Ascend native descriptor retention, Python preprocessing and NUMA placement to their scoped sources."
+    },
+    "files": {
+      "SKILL.md": "1406a94aaaed8a882a4fca2f78d3dc60e335bdb2e4ae8ce994ea952cf29a92e3",
+      "references/cpython-PSF-LICENSE.md": "33f1a470702f459c160751bf3188b3fa7462fc761a006e03e80ef3f0a7a01ed6",
+      "references/cpython-free-threading-readset.json": "46336623b3c573fad97d4c686d9836baab807adf10f4bea05352d7a46236e004",
+      "references/legacy-source-notes.md": "bb1c0fb7a4d1a0301ca9e699e733224f3dcf0ded3cfe13e612e5c04d48a8cab5",
+      "references/pytorch-LICENSE.md": "a8a2c6b67cf8a597ffaa5c82380a6bd1b82629c0417e00673d8013d662eb500a",
+      "references/pytorch-host-copy-readset.json": "881258c97edfee0a89f2392c2ff61cd7fe37ff8344f18620f281e841fb92cbc8",
+      "references/pytorch-host-copy.md": "fa9da5c39d37ebe44e5a336a7b88d7aece6a0f118ec47cb38271e29925e11117",
+      "references/vllm-ascend-LICENSE.md": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+      "references/vllm-ascend-native-offload-readset.json": "cc6c2011be746002ba3ff96ccefab1809863748ddd17eb102b75e7b0e134fe55",
+      "references/vllm-ascend-native-offload.md": "6c2a72b5ba3708a01d229e0576570837a617e6a42dbb0b5312a26a65a6c31542"
+    }
+  },
+  "host-overhead-optimization": {
+    "header": {
+      "name": "host-overhead-optimization",
+      "description": "Profile and reduce CPU/host overhead in inference serving using line_profiler. Iterative profile-analyze-optimize-validate loop targeting Python execution in request preparation, scheduling, and model execution coordination.\n"
+    },
+    "files": {
+      "SKILL.md": "8a004388fb04385f6da6f14b2b63b3925a2ae58657d03f41325319fc6db3d1da",
+      "references/deepinfer-zero-overhead-scheduling.md": "f452bf40132c9195d739f1c86b3aa18857138c7ed0f1861af5853d93b9955924"
+    }
+  },
+  "host-overhead-profiling": {
+    "header": {
+      "name": "host-overhead-profiling",
+      "description": "Detect and diagnose CPU/host overhead in inference serving from nsys traces. Answers: is host overhead the bottleneck? What specific work is causing it? Covers GPU idle ratio, host-prep exposed ratio, NVTX breakdown, inter-kernel gap analysis, and multi-rank straggler detection.\n"
+    },
+    "files": {
+      "SKILL.md": "c734c6be297e3069b20dfd8f10eea529be0ac77b750914411c1351b9137d24fc"
+    }
+  },
+  "husky": {
+    "header": {
+      "name": "husky",
+      "description": "Review Husky's official-document claims as research hypotheses, separating author reports, implementation evidence, negative results, future directions and the missing artifacts needed for independent qualification.",
+      "license": "NO_LICENSE",
+      "disable-model-invocation": true,
+      "metadata": {
+        "disco-role": "operating"
+      }
+    },
+    "files": {
+      "SKILL.md": "dcc95d498466d2591513cbe2845374fd415ea83286b59f2eb99e9d749e0113cd",
+      "references/author-report.md": "4c1351ca42b2535a7c03c4da87706040650ef10d86eadcdb496e881a147fc0f7",
+      "references/repo-provenance.md": "37de912e2e2a36b44233560e6a8368b994428bff587ed4f04b1cb5fbaba0a9e7",
+      "references/source-availability.json": "d3523e53c89d4aee5bfaa17db84501aa4c4eddd59bcee486df5d48d3aa48173d",
+      "references/troubleshooting.md": "3948711437d25822d389dd857c72dc7fcc15727c9048d2e3eae3317d97aca6dd",
+      "references/verification-protocol.md": "83c5a966ed3f721b412b8d8417af8336c5a8c1e46044a888720936bf2f1deeab",
+      "scripts/audit_evidence_card.py": "291e62701ef7a37a5bfab963ea4e20abb94245bc015584223a101f18b1490895"
+    }
+  },
+  "inference-benchmark-design": {
+    "header": {
+      "name": "inference-benchmark-design",
+      "description": "Select task quality gates, reference parity checks and performance workloads for text, agentic coding, work agents, cache-aware ASR, TTS, full-duplex audio/video, image, video and VLA inference. Covers AIPerf AgentX/Exgentic replay, vLLM/SGLang benchmark boundaries, VLA action-chunk timing and quality, SLO-aware metrics and InferRSI integration."
+    },
+    "files": {
+      "SKILL.md": "d2a78d46556eb49eb711e0ae842ddf248dd00966a3837489d7762f6a2abff641",
+      "references/autotunebench-source.json": "bc343ece2bf40c4e8aa4bd8d84f32465d00633255557feda5fe7799ce24e8688",
+      "references/autotunebench-trial-validity.md": "cb3a7a5d94d056f868af07f92a16a6fef31eafd3199ed07ae79e93798e320b1d",
+      "references/benchmark-commands.md": "0898424e0bff3a6246e1eeeda6abd6c5bd974c047fe32f3bbd5ab9d31ce17cd3",
+      "references/cache-aware-asr-stream-boundaries.md": "4e0ea9c1bf6b096a49a91ad5266e90b8a456f4f5aca15eba8ac270a53c2309b5",
+      "references/dependency-aware-tts-playout.md": "e94866e718adc3bd7e272a4856e9a90b6f27cbc0ff3a44101e68e6995ed79e2c",
+      "references/embodied-cpp-boundary-and-quality.md": "0bc3ca87159cce960c7b32f62b82c275f850b98077ae07da0481bd554a3cd71d",
+      "references/embodied-cpp-source.json": "056985be689554570a9f12b8e228ce71bdca5be940f9a2d7f6e1963e15a48130",
+      "references/faster-cosyvoice-source.json": "9efe8918208adddfb9a31d2abed080923a5ae0dfb6332438179af0de66f54e13",
+      "references/gpu-measurement-validity.md": "af8808e4ffab71eb285750630f76a54f910b98ae62367c03808d9f9716c071a1",
+      "references/justgoal-evaluation-contracts.md": "d25df795fd301e8a1bb436e5f8122d0bac2441c43104e59a3b310fd5a64f2f3e",
+      "references/justgoal-source.json": "60f2784384ea1a3b08a2ecafb60207d8e3707247dc7bc177b95b463d81f1cc16",
+      "references/ninfer-source.json": "ccda0fc6781e3c4dceb41521ab952445840b4afcc9f5a7d968857f76e8db6272",
+      "references/ninfer-state-and-completion-contracts.md": "3be946daf69d0b56f4fa56ccbc301dacb076473169f4921376a100dc64b57caf",
+      "references/task-benchmark-selection.md": "9866457c245ca9f351e8c0f3688dda688ebb1a08c25a1e9665ff1a3bbde12007",
+      "references/xeforge-source.json": "6c21791b9c8ecbc9645c6deb659bd897e17f70525536ea25e884a62fc5fb6b25",
+      "references/xeforge-trial-evidence.md": "802c4dfe83983cbd6740231d5d0e2b459792b685de8dfbefb6dc51a912e23604"
+    }
+  },
+  "inference-optimization-casebook": {
+    "header": {
+      "name": "inference-optimization-casebook",
+      "description": "How to structure and use a casebook of past optimization decisions as a decision-support tool. Extracts the casebook pattern from TensorRT-LLM's perf-optimization-casebook skill. Use when building a record of optimization experiments or when deciding which optimization to try next based on prior art.\n"
+    },
+    "files": {
+      "SKILL.md": "cec75f3a721dd13e6913b597d5373833a14c39d9048951a30c4864dd2c49aac8",
+      "cases/admission-drain-occupancy.json": "4f8544292b2cc3391f4d4d75994cb81fdd295eff99e55b7e60374c6c122de09e",
+      "cases/admission-drain-occupancy.md": "e88bbac5d253a8e7e3a3d5e21047f23f2970c11ac23887d4303ab94fca52dd27",
+      "cases/drama3-rejected-directions.json": "a2dc5db8aba62081c5743b12f854e74ae500c53bd57e2486260d0b5ae478638a",
+      "cases/drama3-rejected-directions.md": "6f143bc363a3290fc008c08e57cb075f1776d1c8cca8a6a59297d5b1fbbf61bf",
+      "cases/qwen-ascend-rejected-directions.json": "b2c1808919ae525efb82148a24b465459799422fefc6d420891d7dbeb36cd31a",
+      "cases/qwen-ascend-rejected-directions.md": "be396983812262515899a3e2ba4f01b23ff92e1b836881882c7580372b8ae552",
+      "cases/qwen-b300-rejected-directions.json": "90e3cdca085e2d122e648aae527bd6a61de6d4fddb66c393ca25ac4541cd9122",
+      "cases/qwen-b300-rejected-directions.md": "cce2930f544a0f78f21797fba4d8ded298e4a81f76c34d7977b0e31d361bc738"
+    }
+  },
+  "inference-task-router": {
+    "header": {
+      "name": "inference-task-router",
+      "description": "Select the starting route for day-0 model support, inference performance optimization, debugging, accuracy repair, version alignment, derived-engine development or independent runtime bring-up."
+    },
+    "files": {
+      "SKILL.md": "3dae791f61b26810332e05fbabe6fd7113abf9ed8609aef663535a267525849c",
+      "references/routes/accuracy.json": "5a672842ec26262d8827f7ce8d92de9bd956859ff5244189c0519b8f0dd188e3",
+      "references/routes/day0-model.json": "77b26d1300e5535d8b595cef95c6c803ea1322e92f38b68ae2905f69355a814f",
+      "references/routes/debug.json": "75241e43d12fb961d3f48d1b683e4df321c0f18e683959aedca9722e78a8b78f",
+      "references/routes/derived-engine.json": "3ab030bcd04db76781d20dccb27b62963b4fd996e05edfb0c38e2680018d8222",
+      "references/routes/independent-engine.json": "f2208c40871306fe4be21f84a099c551013eda26e55bff02d95ba60739b8fade",
+      "references/routes/performance.json": "4904e6b403f8390ddc6d11c962491ec42683ec7e29eb4a2be4075bb052bd31fa",
+      "references/routes/version-align.json": "4243e305578e50ddc88bf4465447e716bbe9d22e4a0122189ad58a50e2267bf1"
+    }
+  },
+  "kernel-writing-guide": {
+    "header": {
+      "name": "kernel-writing-guide",
+      "description": "Decision guide for writing custom inference kernels: when to write one, which framework to choose (Triton, CuTe DSL, CUDA C++, AscendC/TileIR), universal correctness rules that apply regardless of framework, and the verify-before-benchmark workflow. Use before starting any kernel implementation to avoid common correctness and performance pitfalls.\n"
+    },
+    "files": {
+      "SKILL.md": "c6a4ef16ca5b0daf3b69221788eceafac33709a063a0885cd2e3dff315c81643",
+      "cases/causal-conv1d-dispatch-state.md": "2eb67dd522021bb2234616d7f660e6ba99acb43676f48cb23141bc69bf3e0029",
+      "cases/hf-qwen35-gdn-binding.md": "b3a55af3f45f01c48e1cb18c8b029e5949a494c3e51dc444a5cccbad9acbba0a",
+      "cases/sglang-gdn-source-contract.json": "5237ac437eb76e910bb1d08bfcc364b87dea1b947de5e67eebce511ea1ef1d23",
+      "cases/sglang-gdn-source-contract.md": "8b093faf0ab775d5605ecdd9653fb3689c2b839cba2641c5d5cda17c721bb2ac",
+      "cases/vllm-gdn-causal-conv-contract.md": "2f3dcee66e2dfe7a98bee21a36b892538998de5de3caf1bc63257137f9984236",
+      "cases/vllm-gdn-source-contract.json": "31cfac1e780113c8233b451af7a7562af983aa2f4209938017cc67347ee5dd66",
+      "cases/vllm-gdn-source-contract.md": "7f9ebe8de7e55d3db2a119b6a56e15c37448fd7d4e022a47122a143206d31687",
+      "references/akg-affine-tail-guards.md": "113deb2db10b171db3425bb3f1792bee763706b794c8cc2e222b4cc0d0114118",
+      "references/causal-conv1d-contract.md": "b3a6245cf5e9deeba0dffd4a15ddcf97da6a4315f4d3131921779438832663ad",
+      "references/hf-qwen35-gdn-binding.md": "848d3c99b47ef711e8820bbc4f6bcbd1db7211197811c9d855201025448d806b",
+      "references/hf-qwen35-gdn-source.json": "df3f4650b5cf92d4fd3d5a4cc8aefb91dd4b0c2affaa0c873138d5651c50e6bd",
+      "references/licenses/sglang-LICENSE.md": "1495e1e757ef4d0925a2350563cf5754bb23c51701a8ec4fb3c5cdcbedae6747",
+      "references/pplx-gdn-caller-context.json": "0219fc9ad785da4e638c1680bc9eaf28672aa32313824f52bdcaed61d29bca87",
+      "references/sglang-gdn-causal-conv-contract.md": "c9f27b0231ddec3d14d6fa0831d1494ffd8e11bd8ad704e04be3bc4a4ffc0e58",
+      "references/sglang-gdn-source-files.json": "4c7ec2cfd2c29297e185ce09b4d9b2040fbe3635943c112f9ebb71dca8ab381b",
+      "references/vllm-gdn-causal-conv-contract.md": "eec09a6e95983c46b67d5f066d34419c17819899f5d8e3c65f2f163f2ada0fde"
+    }
+  },
+  "kv-tier-management": {
+    "header": {
+      "name": "kv-tier-management",
+      "description": "Manage runtime KV cache tiers (GPU → CPU RAM → local disk) for LLM serving: decide when KV is stored, retained, prefetched, or evicted; size the concurrency-versus-RAM-pressure trade-off with an explicit in-flight admission dial; order RAM-release levers; and measure with token-level L1/L2 hit rates and prefetch-pressure counters. Use when configuring KV offload for a serving stack. Covers runtime KV offload only — model startup/loading, checkpoint save/restore, and block-device profiling are separate concerns (see weight-loading-optimization).\n"
+    },
+    "files": {
+      "SKILL.md": "e6938f20791e374c016553e2ede729e65f56f8fd28b32894df6cb8248d708217"
+    }
+  },
+  "lazy-evaluation-stream-lifetimes": {
+    "header": {
+      "name": "lazy-evaluation-stream-lifetimes",
+      "description": "Diagnose MLX lazy evaluation, cross-stream ordering and array-buffer lifetimes when timing, memory use or asynchronous results disagree with expectations."
+    },
+    "files": {
+      "SKILL.md": "2545b8694a7b1a2ad30f1c95529b177b4117695e0b55fd748c3599975561f19a",
+      "references/execution-lifetime.md": "c4bc41e08aca68f661325f61e6f0db1760a079dc362f295c847bdc374fee3bf6",
+      "references/source-map.md": "798b9cb89ed6b885eb47464ca9f137d2802a54571b9327e631d7742d3e5abd5d",
+      "references/validation.md": "ebfc00bf7d6ab0a1dc415953ae84d56ccdc713d5614aff85e433c4a843793bff"
+    }
+  },
+  "lily": {
+    "header": {
+      "name": "lily",
+      "description": "Investigate Lily's exact Qwen3.6-35B-A3B MLX-affine-Q4 contract, Metal state and kernels, strict greedy text API, token-prefix session cache and source-qualified validation or benchmark plans.",
+      "license": "NO_LICENSE",
+      "disable-model-invocation": true,
+      "metadata": {
+        "disco-role": "operating"
+      }
+    },
+    "files": {
+      "LICENSE": "b9e2b50a48a09fb39dafa71ab1a11a6e87389addda17faa99d55f5f74a0001ac",
+      "NOTICE.md": "7a01e666044fb8aca1fd88c636bca43bcc95b8b1fecbe101dce4c7c80fbb5759",
+      "SKILL.md": "d24b7a1367949b8724179587b8cb94ba7d40511e998de14e4f8307f77dd2b2da",
+      "references/repo-provenance.md": "96182f6cb3666f89adf1aed6e216c0a84ce3a04a0685a4257e286100ba8ee367",
+      "references/repo-routing-metadata.json": "f2f3becb51056e03081c7c4140e19572a6318c3d63015884df56eb49d38a00fc",
+      "references/source-identity.json": "4595559c11611c855be150919fca3eeb89e7f96c7a8dd133b9f79a5cd8e05e62",
+      "sub-skills/model-runtime/SKILL.md": "dc800f07fa0e82213483c7b848dea95d609386296006bfec7a34cbb194a83de6",
+      "sub-skills/model-runtime/references/model-and-memory.md": "d5a862303d646ebbaf745818caed8f96c7323cd442cb6d6e2aae00b0361080a1",
+      "sub-skills/model-runtime/references/troubleshooting.md": "b32fab02b561c3ab4e683abdfa80cd4a8f929c514147709febaa6b6d1df65909",
+      "sub-skills/model-runtime/scripts/screen_config.py": "5961bb6f31ceca43473683127b37faee268234040a013ae49bbb4898eacb6f04",
+      "sub-skills/qualification/SKILL.md": "0231b50b9bebb68d0fc5f2ce19aa7c6e5ffd498d8eef4cc00d39e82908cbbe91",
+      "sub-skills/qualification/references/troubleshooting.md": "01607534ce1f09fb046255c78f8c1c436aac61874b93b65a9d62f3eb480496c2",
+      "sub-skills/qualification/references/verification-contract.md": "6934779f67b878bf7cdb5f2cbe461f6716c243c662a29272c6db37f64cb317c7",
+      "sub-skills/qualification/scripts/audit_benchmark_record.py": "59534f58d46ad438c7bf88886a9b05a8716c922d817f2d9c58ff1b71ae50ee85",
+      "sub-skills/serving-cache/SKILL.md": "7e062ff9af76125ef08c98b4465e0439c66e9e237f0c39ea0285005cc5496cfb",
+      "sub-skills/serving-cache/references/api-and-session.md": "7262bb077c24f2f7549d450473ec7944829940d09cca89db9c12f37ac90d5db0",
+      "sub-skills/serving-cache/references/troubleshooting.md": "6e2f36d2f7ab9eae665d87a676e34c0ebd2f46f3df6fa5f2e589a306749a87b5",
+      "sub-skills/serving-cache/scripts/request_template.py": "d6b00c9f0b38c7fb0a0e52e396993a832542ea0aa6e2456026fabc0c39a4d33a"
+    }
+  },
+  "lithos-metal": {
+    "header": {
+      "name": "lithos-metal",
+      "description": "Inspect Lithos Metal compilation and fusion, GPU-resident generation and DSpark state, or local serving and exact-prefix caches on Apple silicon; use when changing recipes, diagnosing stale state, or qualifying an inference claim."
+    },
+    "files": {
+      "LICENSE": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "SKILL.md": "ec4d44acecb314008872ba587d0c05ec98edaac11b75805f33b2ef3126c0b66f",
+      "references/mlx-license.md": "ccfab7ccb2ea306f71531c8ca77bb55507606cd90768b1e32b8b52ab5b48cf01",
+      "references/notices.md": "b2c9d2481ef2c9d16b3240c951ae65db417e5d309cd06b7917db9d84fe175886",
+      "references/package-api.md": "4f3ecfabafb2a15eddf21ccf964b8c37635bbb7862418a2c404e7049c0fa2898",
+      "references/repo-provenance.md": "c0c7c3dd45eab0d55bcf154760156db58e8e365f9cfb2c6bd246dd6a06f3ef3c",
+      "references/source-notes.md": "110dbc995c7fc727632017d4c26c71df7ecf12d4df5d89df0cd4afd75c5892f2",
+      "references/troubleshooting.md": "1894bbe1a18018f81318b11e2150201ee97f3819f84a7a81f3cf5fb01549c165",
+      "references/upstream-notice.md": "cd80bddd6b6204dbc61c6ac762ed206c73d9264755d9884383d0860de29d185d",
+      "scripts/inspect_contract.py": "f8365f87af2135fcf0a2c8baaefac563c30989282fe080a02d958a37a215515c",
+      "sub-skills/compile-fusion/SKILL.md": "ad07dc883a708bc3df29158c8a408ab60f2b89d783325cd67604f9342e40e975",
+      "sub-skills/compile-fusion/references/mechanisms.md": "6173a8b73ec5138cb12791f108f3d5d83278a117d443d48187c842e16bdc6eff",
+      "sub-skills/compile-fusion/references/troubleshooting.md": "f18ca9324d9a80f2ba327a1ad4ccf84a01049080366fe12410f2800d5f178232",
+      "sub-skills/generation-state/SKILL.md": "c244ebcc61f821c38ed3099bd49442705dccae0512be9471eefe1df5f1c2c2fb",
+      "sub-skills/generation-state/references/state-machine.md": "d812ad31d4e343539119cf82f8ce241fe14c691dd73398048893cc5de3ab8e22",
+      "sub-skills/generation-state/references/troubleshooting.md": "7ca629e66ef3b0a67077a7d2536befef683315ad01939728a9e6e7523cc8414c",
+      "sub-skills/serving-cache/SKILL.md": "26b78f2d30ee8393d025ceba39d39f9ffe9cf113711f23d52de83f3543a12174",
+      "sub-skills/serving-cache/references/troubleshooting.md": "52c6e27a76547475b5c66121f873f4d2c1662c811a69da64ce85614f1bd44749",
+      "sub-skills/serving-cache/references/workflows.md": "298d27d3c748fe22774b872ed0465b707e53812379a7a538c95f25d1727fc796"
+    }
+  },
+  "local-dream": {
+    "header": {
+      "name": "local-dream",
+      "description": "Audit Local Dream Android desired-versus-serving process state, remote exposure, native backend and DiT packaging/ABI selection, shared generation cancellation and prompt-cache identity without mistaking declarations or source tests for on-device diffusion qualification.",
+      "license": "NOASSERTION",
+      "disable-model-invocation": true,
+      "metadata": {
+        "disco-role": "operating"
+      }
+    },
+    "files": {
+      "SKILL.md": "0c8bfb62bd75363ef8e49391168657622bcda8fc3ac757c6b85b7ab26b36b720",
+      "references/android-lifecycle.md": "f85e5fce39f5de5f88548fd8c21978240c810f899e03ff05ed72eb3508ee5e36",
+      "references/native-contracts.md": "40206892f5e421f9d8edf303870f5c4aefa3e87123537178d45f438f3d04b7ce",
+      "references/packaging-and-abi.md": "9a19bca59e19c3bfbfc1a15f5fc756c13d954ace367812aeb000551f4484ad06",
+      "references/repo-provenance.md": "0b848082c0ce893d8ae26d779c5b663d914d1a208cb2293c4a84668cdde86293",
+      "references/source-identity.json": "b85f028bb96a37852e9d9780b5d5052fdd9c8f3a704ad391b6381adb58291347",
+      "references/upstream-license.md": "41003d4a74749c0220e33dd415042164b5a1093ed401f36277234f772d22d3d0",
+      "scripts/screen_declarations.py": "ccd7d0d55be9a47484ec3a74498d8edef8aba55287f92287775c8d82050c8932"
+    }
+  },
+  "mistral-rs": {
+    "header": {
+      "name": "mistral-rs",
+      "description": "Investigate mistral.rs Metal paged-attention decode layouts, prefill coordinates and workspace, actual-model prewarm and native test evidence without treating static metadata or prepared pipelines as executed GPU correctness or performance.",
+      "license": "NO_LICENSE",
+      "disable-model-invocation": true,
+      "metadata": {
+        "disco-role": "operating"
+      }
+    },
+    "files": {
+      "LICENSE": "b40bb09c7b3b6f697a8920cf9d2cb3ff8cfcf77a0fcb6d264a92842b43c4dcae",
+      "SKILL.md": "cab0196b8447db6ca5704cfeaa4563d1a7a30d46ca2d931f8e1903e5bff96bbd",
+      "references/apache-component-license.md": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+      "references/paged-component-notice.md": "a1718d8c5a25f15e61bea98a158880e96faa5b7174e82c4e1470fbacb23a3559",
+      "references/repo-provenance.md": "fab87dacbe0a7298e42137cab7409f443ece0dfefba60961040031e36d96adc8",
+      "references/repo-routing-metadata.json": "0debda77a8f6b1b1c06176e3c2447767c1953b9fe7e4c84ef01b3ac90735df70",
+      "references/scope-and-notices.md": "938203995f5e58cd6cefa278225b2d5a3ea7dc7f07cae86201f9fc71553ac020",
+      "references/source-identity.json": "6a8c0b0834228b3a298e7e548c9d8cb774c00f661135f51c12ee613efe1decf3",
+      "sub-skills/decode-contract/SKILL.md": "73620deb4efad4681da10a07bb982e180423bd69fec3572d16ab556c530b89ec",
+      "sub-skills/decode-contract/references/helper-contract.md": "802d8af65343eeb29b0950d3c305d0f24cb7a4298628ade5f7cdcf4358c9e228",
+      "sub-skills/decode-contract/references/layout-and-features.md": "6804a771ed0dd2d8d60613d52ef87d4297af2a6445b4fe61d08adeab4be331aa",
+      "sub-skills/decode-contract/references/troubleshooting.md": "a6de920f174d6918a72093921d344c700108b0c01e1f0d09f2b9051800b1fa7d",
+      "sub-skills/decode-contract/references/workspace-and-evidence.md": "7ac5028be6fd48f9c6cf067bf832efc8edd681195f2fece67ea119211bdac106",
+      "sub-skills/decode-contract/scripts/audit_decode_metadata.py": "de28f586f27278fee25f6c96f1e00ee63528cdf746f57c83bdf367c31c0f6e6b",
+      "sub-skills/prefill-contract/SKILL.md": "21015790789933e106f6ea929fd1778d862315520b55425213c679e9b7a44e95",
+      "sub-skills/prefill-contract/references/helper-contract.md": "607449105bf3bcbcfe785dc9448a7a587c7daeb528ca63e0cd959b074a9bc409",
+      "sub-skills/prefill-contract/references/prefill-and-metadata.md": "e8a738a668a23068b8ff1907d521a3a26f7090e7a791f3a715efdb6001338dc0",
+      "sub-skills/prefill-contract/references/troubleshooting.md": "f584a02528e2249f5d12f223d8933e9d40212e5aba8dbe545261164b00ed6f8b",
+      "sub-skills/prefill-contract/scripts/screen_prefill_metadata.py": "769366c19d621ec1b42c722ed224fa154a63c3410a0cffc9072a13abd9c71bbd",
+      "sub-skills/qualification/SKILL.md": "745d88dbf6c764f64f8b31763e57bef720788830ddf17b518456323000325fbb",
+      "sub-skills/qualification/references/prewarm-and-evidence.md": "6b72ae4b4599018ce2da5c54d0c28fadcafb7ce75b81ce4c18c06a440aab6056",
+      "sub-skills/qualification/references/troubleshooting.md": "d933bea6e9e493faa8cd0f4103ea33197ace7f7f901359f8cf0d6bab2edcdb4d",
+      "sub-skills/qualification/references/warmup-inventory.md": "1e7af7d63c6853ede4232b5a12cf68aba6597c4a305015366f1c2c917e3caf01",
+      "sub-skills/qualification/scripts/warmup_shape_inventory.py": "6aa920ca1cb534dec41f5dd2d833c3e760b234ab2c6439b6c4250b8a30b74055"
+    }
+  },
+  "mlc-llm": {
+    "header": {
+      "name": "mlc-llm",
+      "description": "Investigate MLC LLM compiled Metal artifact/schema, Apple target and pinned TVM module/storage/stream contracts, and compile/runtime KV limits without confusing canonical metadata, codegen or automatic estimates with runnable native model qualification.",
+      "license": "NO_LICENSE",
+      "disable-model-invocation": true,
+      "metadata": {
+        "disco-role": "operating"
+      }
+    },
+    "files": {
+      "LICENSE": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+      "SKILL.md": "c0a3f0a56d02615ac19627aa3e78c9587ca9194e38f4c16303bd9c54af4ee051",
+      "references/mlc-notice.md": "3a7dfb37bb96ce6f5a1cc0d6d4c8da3b8a35e6ec4692647ba0a37f6155c7e694",
+      "references/repo-provenance.md": "423f21e1de6d7ab2e11c0bdf540357efde025ae4535bdf76ed9770b1a59ba35a",
+      "references/repo-routing-metadata.json": "5309c27e7b60c4fe7aaef28bf6911e7e3c936b58b1a907aa8486bf0e40b4c0d0",
+      "references/scope-and-notices.md": "8c573c234f44a0808a731774921fb5228fc0844cd238496a2c4d61d0120bdc79",
+      "references/source-identity.json": "75e91b0f7fdac12466e62eedfb49baa6f1b3016111d7479aa2b04e5c799454b2",
+      "references/tvm-license.md": "e62264b483aca7a9f8c1ac69388b476971b43975ced90ac11dbd9e9c530edb46",
+      "references/tvm-notice.md": "967cd2fb97712c43271e2b1c4f636c4d8823898869f0f76f65bf8a3232584f0f",
+      "sub-skills/artifact-contract/SKILL.md": "933fdd05ca853f47e3ace024cf1e08df7511834c31676851c28803b6dcb1c681",
+      "sub-skills/artifact-contract/references/contract-mechanisms.md": "82187f4a1478352c68a5690101e9798973ef63f9b6d717e06188b03a1832bb8c",
+      "sub-skills/artifact-contract/references/helper-contract.md": "48492a36435ff1340a4db4e0959f052cd72683ced26bb8ab35baa84bd79ccd7b",
+      "sub-skills/artifact-contract/references/troubleshooting.md": "41b002a31b031a78ca372504de4c9cccc9353d6d80d989b8d62e56260c291e2e",
+      "sub-skills/artifact-contract/scripts/audit_artifact_declarations.py": "874a16cb16d75a14cb51b4fbe442f4fac46feb21ac242063f5f845a0fcbabaa4",
+      "sub-skills/metal-build-runtime/SKILL.md": "25dbd48f4fe84b7d759005d04a2aa9db33da987cafac7975a148e62cc9efae34",
+      "sub-skills/metal-build-runtime/references/helper-contract.md": "5428efd6dca0654a58e9e226805e15c9a9f1b3f1ef60db234139985d107acbfa",
+      "sub-skills/metal-build-runtime/references/modules-and-streams.md": "56faaf149f95ee821c242ccca8115a6f3b166d34392499798ae8532fcd10372d",
+      "sub-skills/metal-build-runtime/references/native-evidence.md": "133322e879fd9010a7513afd278d937838aa2ec97d593ed11d324cc59793374e",
+      "sub-skills/metal-build-runtime/references/targets-and-export.md": "547eb8e56af4f7b58415eb58c338ea1a33ff8edf8b58fa523700947dc7e04821",
+      "sub-skills/metal-build-runtime/references/troubleshooting.md": "e392b8329ed183bba5fd79fbd260c3fbfb389016ee71880a957741e71a0d59c0",
+      "sub-skills/metal-build-runtime/scripts/audit_apple_target_declarations.py": "d5bf16f7def4cfe28b143a700ca45a9636ddaeac12ead04cbaecdcc8b4b71aa5",
+      "sub-skills/runtime-kv-limits/SKILL.md": "6b4914cb60831c07d4c748162251c49fc16b229e0d62b4c5a5663719c45b16de",
+      "sub-skills/runtime-kv-limits/references/cache-lowering-and-evidence.md": "a118f5bc584ea885e8c573978eaf1e32d448910860b8135196c5c1acd42aee05",
+      "sub-skills/runtime-kv-limits/references/helper-contract.md": "da33306472cbda5a33605b80fe52d6cb1fa886b3b7eea13adbdf0ce8a6024c66",
+      "sub-skills/runtime-kv-limits/references/limits-and-workspace.md": "77105db95de2b8ea27ed6953b5441c8af061fb745ddb13d3904f8773fc21e879",
+      "sub-skills/runtime-kv-limits/references/troubleshooting.md": "b89255fc04507185bc8bcf74de779730b009b12d13bb38ad0193205dfed8e921",
+      "sub-skills/runtime-kv-limits/scripts/audit_kv_limit_declarations.py": "d82a6dda5f5931eb369003a5e1f419bfbdd82304766a18be8ea1e1849e26b77d"
+    }
+  },
+  "mlx-swift-lm": {
+    "header": {
+      "name": "mlx-swift-lm",
+      "description": "Investigate MLX Swift LM generation ownership, cancellation and settled task completion, and recurrent GatedDelta Metal versus ops contracts without confusing source predicates, final info or offline metadata with executed native correctness.",
+      "license": "NO_LICENSE",
+      "disable-model-invocation": true,
+      "metadata": {
+        "disco-role": "operating"
+      }
+    },
+    "files": {
+      "LICENSE": "7b1d86acac816ce8192209d7e01141c129b4d48d474c15cc5fb4af62f497c323",
+      "SKILL.md": "3c35893e685d020085fba738a43e3dc958fec36ed440db2f85355ce165364228",
+      "references/repo-provenance.md": "f1b15edf89c597db0c3fc0bff7db6b2451924ce9273c39623bc0cbdccb568d31",
+      "references/repo-routing-metadata.json": "8fc804347771cd768a7ed027f2041d96c9832fe5f8c5869e6593a3021b1bef8b",
+      "references/scope-and-notices.md": "18e56805a8f275d35af3d8e42f3aa1525871b43400921a5d2dca4897c2047214",
+      "references/source-identity.json": "518da7bb64f22ff8ee6beb0e0f0579e7cd0da2fd70fa69fd8288294b0c08ba24",
+      "sub-skills/gated-delta-contract/SKILL.md": "04b97959b4e207380a06d932e9a557954a9fb9aa880c243439da6d4a981854ed",
+      "sub-skills/gated-delta-contract/references/helper-contract.md": "1358531257e00c0f9fb2eb9fb7a40f9d749f5435c90168c8923b6646353dce6f",
+      "sub-skills/gated-delta-contract/references/recurrence-and-state.md": "ff0ebbeacb8219d93a890418d18bdf2856e6326d67f974a7050de3a0e5a3c5a3",
+      "sub-skills/gated-delta-contract/references/troubleshooting.md": "3bbecbf91b241e7b37b3e8c753bf3fbcbdbba0b0f4d0ddf2f65eb653007f6cff",
+      "sub-skills/gated-delta-contract/references/verification-boundaries.md": "21b6fceb692f29b410dc967f82e31d0d082904cea827443ffc05f6f940191dfe",
+      "sub-skills/gated-delta-contract/scripts/audit_gated_delta_declarations.py": "3a256c37c867866e49dfdc2893cbb3f32d061e389fe4395555eff899bc0415ff",
+      "sub-skills/generation-lifecycle/SKILL.md": "7effaa20ddaf32e3b4008c95888ccd09bc2bbc3bb5ff17c710f989b36be49535",
+      "sub-skills/generation-lifecycle/references/evidence-schema.md": "d40e44910d8fc43ee3c731735902b1c1ba506c2ae972bb53dbacfaf37e38509e",
+      "sub-skills/generation-lifecycle/references/native-evidence.md": "3e9a630a30932989faea5f52b347318cb94c73c7d4d6c81c0465ccaee2818671",
+      "sub-skills/generation-lifecycle/references/ownership-and-termination.md": "56fdec7ebc89b5c217c7e5c203886bef1d3c2eb5794852897bdb5941ab1db2a0",
+      "sub-skills/generation-lifecycle/references/troubleshooting.md": "de28b8ca9cf95be2a4e5762f938acfadb6d4b53459dbf86df4b2b2ec64ec347f",
+      "sub-skills/generation-lifecycle/scripts/audit_generation_evidence.py": "2aba6caf42ca1b3fc55299fd96419af8681c37750c21a7ba75205a43baa9c7b1"
+    }
+  },
+  "npu-skill-factory": {
+    "header": {
+      "name": "npu-skill-factory",
+      "description": "Design and operation of the InferRSI NPU skill factory: artifact lifecycle, skill evaluation contract, corpus selection, hide-and-re-distill procedure, and skill evolution cycle. Use when deciding where new skill artifacts belong, how to distill a candidate skill, or how to run the No-Skill vs Human-Skill vs Distilled-Skill comparison.\n"
+    },
+    "files": {
+      "SKILL.md": "0de28180da76b6cb9d2c9456733011d00d9801f7662afd32959c4c5d2c05a183",
+      "references/papers-20261015/COMPARISON.md": "38587678a96581f5c2dc697d982127343565504bffa191352811dffcc165aa23",
+      "references/papers-20261015/INTEGRATION_NOTES.md": "fbc4a96b6f6c477706eed83eaa4fcc29a14f881637629d6c004601ed049f2523",
+      "references/papers-20261015/QA.md": "3f3785ec39a6938a5d1f2e874e99153fe92c0e666dd3e78a499c8b47d891346a",
+      "references/papers-20261015/README.md": "221785e91c45588f82b3caab6d52f1ea1d102b16139c20a0802921e2789e6d28",
+      "references/papers-20261015/UNREAD_LEADS.md": "6c1d87ebe491d27666703149eb05ad582c7e5aff77f0ac5c11a7b89c946f96ee",
+      "references/papers-20261015/cases/methodology-counterexamples.md": "f9fc21753ea41eef77ca020d78d031e945e5dd835b5d09c5ff0e53749ceb2ca4",
+      "references/papers-20261015/knowledge/evidence-routing.md": "406d5d74c3fef4c1a23d495492e21a084c3c46495a1a84b385703ed104358874",
+      "references/papers-20261015/references/learning-to-commit.md": "9c2d1d738e896d05c00f53e6adf14c9df2501ecc3f0020e71b5a1c2192547086",
+      "references/papers-20261015/references/protocol-details.md": "41298c6bde3a28f0712fa06a18bbc4ac59aea6d17cc9eb1318744f4121e3bab6",
+      "references/papers-20261015/references/readset.md": "6f953d20d8958c68339c9ceeae348604d0fea3e9c6ccb9b64a63d3b210426a22",
+      "references/papers-20261015/references/repo-to-skill.md": "5ebdac2a2bbbe6614f9d4096bc9895bd685acdf76414e2c3c1fb7b50d57c738d",
+      "references/papers-20261015/references/skillopt.md": "148075daa67e19f4b4351710498438d17c279a9bce56b2d01cab26ff3be33e99",
+      "references/papers-20261015/references/source-manifest.json": "716cd49ed01824ee9f6b6fc55ebf2b24fdd5d5a3e677f6e28e34a472616bbe25",
+      "references/papers-20261015/references/trace2skill.md": "230d13b77ba819b5e3edee147523e8cad6bfce95afccc140fb4946d6c8747a2e",
+      "references/papers-20261015/updates/bounded-updates.md": "529c363e9c678f33f7c0be0420d26c64d056321f041726362dba69e53e1e375e",
+      "references/skill-factory-design-20261014.md": "0b2e05bb6a4a3b3f6df0b04abc40ec125be60714b87f609a390246ee2a292d2d"
+    }
+  },
+  "optimization-search-policy": {
+    "header": {
+      "name": "optimization-search-policy",
+      "description": "Policy for how an optimization agent should select, order, and stop optimization experiments. Covers candidate generation, exploration vs exploitation, diversity, negative experiment memory, budget allocation, and stopping criteria. Drawn from vllm-evolve (phase-locked optimization round), TRT-LLM casebook (prior-art matching), and SkillOpt (bounded edit + gate). Use when deciding what to try next and when to stop.\n"
+    },
+    "files": {
+      "SKILL.md": "1ad13f1f5dbef1a25810d1f77a3c79c6dbce85683af6796cc9ddd708bfb6c470",
+      "cases/sarathi-chunk-budget.json": "681871983ec4033ef9861ad270bc0d312f9134a76933b8f7ce740659ef1e4dd5",
+      "cases/sarathi-chunk-budget.md": "2c2a8147001d24d1abc8672f15cf0ca759ae461b734413c8dcb7497634bb6821",
+      "references/distserve-phase-placement/README.md": "56e16efce447dfd4990a024ff1d6f7cb428f8e3e1f7b32a7e4d05f57139b836a",
+      "references/distserve-phase-placement/source-record.json": "21cc9562f1c19d6b57957c01b53e0adf8700d05ffaaa7764afe07c4da1284de1",
+      "references/papers-20261015/INTEGRATION_NOTES.md": "157e74ba180426b279b548a729769f152bf18f9a78ffca4ebfcaf26b7d0c5292",
+      "references/papers-20261015/MECHANISMS.md": "18bb2f5d7e52773c516420a142edfb531d0b9c822a2934d60f3234ac1cb9d40e",
+      "references/papers-20261015/NEXT_GATE_LEADS.md": "16a264c7159f9c2c700ce8ba46e63f3e636b277c987da4970f6d2fa085fcb053",
+      "references/papers-20261015/knowledge/adaptation-interfaces.md": "5e761957cb5ecd93926e6ffc13deee7c830c6e8f0ee3c3846e9dd3b50dc74446",
+      "references/papers-20261015/references/source-notes.md": "54d83c3713045d59a48821bcf93598374ba4a630e3891ad39498f919317c4fb8",
+      "references/papers-20261015/updates/optimization-search-policy.md": "d3db44fa9a6831b86a02c638b323ed943e69fe256866213f10d68c72d762879e"
+    }
+  },
+  "os-process-placement": {
+    "header": {
+      "name": "os-process-placement",
+      "description": "Place and configure inference/training processes at the OS level before measuring or optimizing: check then pin CPU affinity to the accelerator-local NUMA node (taskset/numactl), keep affinity constant across measurement rounds, set thread-count environment variables (OMP_NUM_THREADS, OMP_PROC_BIND, CPU_AFFINITY_CONF) per scenario, run a device-busy preflight (npu-smi/nvidia-smi usages, graceful-then-force PID cleanup), and structure environment checks as ERROR vs WARNING with per-failure remediation. Use before any performance measurement on shared multi-socket or multi-tenant hosts. Does not cover cgroups, cpuset, isolcpus, or scheduler priorities — no source evidence for those.\n"
+    },
+    "files": {
+      "SKILL.md": "1978f4eb9117b8c97225eeec1809e3b693eec9c0186847929bc1a71f86b023b8",
+      "references/llama-numa-thread-readset.md": "748b254b3b043a5ddb0f480eb4a566854d27eedd7b111499863e9bf0a5a6951e"
+    }
+  },
+  "performance-ceiling-analysis": {
+    "header": {
+      "name": "performance-ceiling-analysis",
+      "description": "Estimate optimization headroom before modifying an inference system. Produces a three-level ceiling model (analytical, empirical component, end-to-end) and a prioritized measurement plan. Use to formulate acceptance targets when the user has not supplied them, assess a requested speedup, or identify the binding bottleneck.\n"
+    },
+    "files": {
+      "SKILL.md": "23ba1b652c26812001f9b9a72af63fa0f03588d983b53445a4bd5ff9e5f816c8",
+      "references/acceptance-criteria.md": "e96efc42005af591a87b57dd6f1e9bffa8e351bcd023bd093ac37239a0486638",
+      "references/flexgen-offload-feasibility.md": "5c72ae959c6cc72aa9e96a17a2934d6bfcfb055b25fda3221c99382dc09910d9",
+      "references/huggingarch-checkpoint-anchor.md": "ca03747be29a93b579849ee361b67632e541218a68310e0f3369868c6a45da7e",
+      "references/huggingarch-source-identity.json": "c4c000cf25e990d5fedbfaa206c9ee1e48429da50251c0553975ac2ff3efe0b5",
+      "references/mooncake-prefix-reuse-feasibility.md": "6df0843a5fbe7cc6b05e58835b65976db5ce9fff526e9c7ed9a9d70c021c71bc",
+      "references/papers-20261015/INTEGRATION_NOTES.md": "083e462e0a204dce599362d46712fcfb392d053c5cda56216e22e28d4b8fa0fa",
+      "references/papers-20261015/MECHANISMS.md": "742c249082ceca230326f4407a40130fe624553b796ae5a157a8a4c15a7e1398",
+      "references/papers-20261015/README.md": "17b2d1c7c14124d59ac8a0d5ad4200ad2803d991e784a1a98cd97188cc364999",
+      "references/papers-20261015/READSET.md": "66459ce393858b2b2160f1e2973373bfc4b9902a12644631934b4ebe3140296a",
+      "references/papers-20261015/STATIC_CHECKS.md": "cb0aa7d148352ebb7b1678fc42a557a099575054716a341dfa25b6a998029064",
+      "references/papers-20261015/cases/decision-cases.md": "781a675a6533e0a18c044aaaee0d010da7013b6504654b8b8292a35176db801e",
+      "references/papers-20261015/govern-optimization-experiments/procedure.md": "ce036a4d8a0908da204515c47e2ff9623548d09de264fa65bd58fedce52a78a0",
+      "references/papers-20261015/govern-optimization-experiments/references/source-notes.md": "f9a8254e45473ddb2b73e576957b6d3db83c62b99dff1922f4d1e606e569559e",
+      "references/papers-20261015/knowledge/bounds-predictions-and-decisions.md": "5780d6eb5257612ec45deb94f85f334a6ecabf7e466d1678706041f6549bda79",
+      "references/papers-20261015/redirect-cross-layer-optimization/procedure.md": "6593a63fce9c474b515663a560c94b7df048dc5f6e77a95b8e54e4a64cd10a09",
+      "references/papers-20261015/redirect-cross-layer-optimization/references/source-notes.md": "6ff3a7bc31f1172db92aedaf7df1f1aac688bf769227b583a4cd82bfad52da67",
+      "references/papers-20261015/references/agentic-kernel.md": "7190573b85f94a4391bb0d887ccbd37a31b3f08bb0531114ad7afd72fe1567a7",
+      "references/papers-20261015/references/flashvector.md": "3926369acd88ff3c370bee5718e74dd15f3219c3e4f6311095e30e917bffa4cf",
+      "references/papers-20261015/references/inferencebench.md": "21f47111197a0b7f8d6384ea918d139dc8318a62ca3313ce060048271f50b639",
+      "references/papers-20261015/references/prior-coverage.md": "35d47ac078591221fcb666219bcd824f9400fc17aafecdc0499d8336f7178238",
+      "references/papers-20261015/references/vidur.md": "d38602af5219f5feeb49e6cd6bf53d66098c77fad141dae676f1d8a6743cf25d",
+      "references/roofline-contract.md": "419ec4bcaec45ac579a133bce083d4f48779f26e664d7a86f720fa65f343b1d1",
+      "references/roofline-example.json": "597cd3205df043cff3ae9d15924c77934e8d8eb300c00c4840f6bb2921f90faf",
+      "scripts/roofline.py": "524de48a6764401695fe1444f1fa3d38f363069b0cd2fba4715a86ca4b28a5d4"
+    }
+  },
+  "plan-activation-residency": {
+    "header": {
+      "name": "plan-activation-residency",
+      "description": "Propose training activation and gradient memory reductions by distinguishing lifetime reordering, address packing and selective rematerialization from supplied evidence."
+    },
+    "files": {
+      "SKILL.md": "c1918b60480a34e7cf1a1a431b089f42288f860a7b50f7df1ba0bce2658d3fe0",
+      "references/source-notes.md": "5ff52655cfd06fcf970ed2a7d4d4fe1c31115b102af2d41497de0c74848ed2b3"
+    }
+  },
+  "project-maya": {
+    "header": {
+      "name": "project-maya",
+      "description": "Investigate Project Maya model-family dispatch, representation and memory tiers, API versus native state, speculative decoding and source-qualified verification without treating safe CPU checks as CUDA/HIP or model evidence.",
+      "license": "NO_LICENSE",
+      "disable-model-invocation": true,
+      "metadata": {
+        "disco-role": "operating"
+      }
+    },
+    "files": {
+      "LICENSE": "574cffb7c57769a9271043ac0c2b07c5e7e7621cfb81081b901d8981e791d121",
+      "SKILL.md": "0e043e437d1ccc917ad5c20f79bf07c55b16764a15c88537725b68cac2ed1200",
+      "references/license-boundaries.md": "090839df90d6e96f55794c2ad821d7154dc6a6aa4211cdbb08a1e5f6f2e52a92",
+      "references/repo-provenance.md": "7bb6b6c14d1a9b77e906804505c723569f952e5d47559e636d2e6621994216bf",
+      "references/repo-routing-metadata.json": "0acbb111e92316e74d537200cd033f3d7d0f69972bf0953c8cea9dfb2ecb4a34",
+      "references/source-identity.json": "fc2287d5bde587cf040bbf515161d25e84a7bb42989cf01343582af67e4b8eeb",
+      "references/troubleshooting.md": "735d4bf3a3b243c29e6371af37dc06c1fa43b39a85811ba9714b911bf520ff67",
+      "sub-skills/model-runtime/SKILL.md": "1b68800cc2dd9b7b03cee3343fb8619135dc3563550cc20386606c295358df6f",
+      "sub-skills/model-runtime/references/model-and-memory.md": "ea7b905fa72cbfda5513f4c6ae77c552044af71e9313e396bcd3628884183bfb",
+      "sub-skills/model-runtime/references/notices.md": "6f6d9a96e1e67da6fe25f54482da0b69bd256fb688cc0956668f7319308f310e",
+      "sub-skills/model-runtime/references/troubleshooting.md": "97c00435d57a5b9067fe8e5885219d5818208a25f225a14c240d7160dcd697f7",
+      "sub-skills/model-runtime/scripts/audit_runtime_plan.py": "b096ec10c4f0e4b057997fe7b946007ab4c06dd263ab09d803e29e498601da00",
+      "sub-skills/qualification/SKILL.md": "5e264000198a9bbdded9c35db2df682e8eee4408ab741f18bc002e9be103b401",
+      "sub-skills/qualification/references/troubleshooting.md": "0c42256af4869e5cd1eb88fdaacfe65adf51dd180bdc03a2b9fccf220a19ccd8",
+      "sub-skills/qualification/references/verification-contract.md": "eaeb9319df27b66840cdfcba5c4788a287775d1493308517d9124fd0608eefec",
+      "sub-skills/qualification/scripts/summarize_decode_records.py": "cc0ac3c403aba79a131f631290d68e1640283e9f0d564aeef431b577824e3036",
+      "sub-skills/serving-state/SKILL.md": "830d8bccf6b36e1ad6cef899d5147afb74c0514516c68d02060bdfb550b56920",
+      "sub-skills/serving-state/references/api-and-history.md": "a51fa298017f266decd801441eb411fd68f7906a90a4b0d18083d1af31fc7d52",
+      "sub-skills/serving-state/references/native-state.md": "e5a7ee5e777998db0fb5422cf5b1ab18dbd67b4cbbfcfd6628ed6e40d8709c61",
+      "sub-skills/serving-state/references/troubleshooting.md": "97dea7b2d26fe165d2f64a1a63c91d099dddb2d3b95c16b667f5173b3ffa9d2d",
+      "sub-skills/serving-state/scripts/request_template.py": "d91b03fbbd7003012a92bd7259d39604b9a91ee5707da2d3366e7c0fb47edd6a"
+    }
+  },
+  "pytorch": {
+    "header": {
+      "name": "pytorch",
+      "description": "Operate and diagnose PyTorch installation, tensors and autograd, training and data, compilation and export, accelerator lifetimes, distributed execution, checkpointing, profiling and custom operators from pinned repository evidence."
+    },
+    "files": {
+      "LICENSE": "bd018feef8825e88181c84eb7e3aa4eafb8f08a20d9fd6ef948569610c4a3e43",
+      "SKILL.md": "cd04f507c7e3ea6212d47c1a68cc517fcd98205de355f412bb0b64acba39084d",
+      "references/notices.md": "c7b57d1226e749a396db4598510bf60afe1fefa1a3517fc4d90a0143ac783f20",
+      "references/repo-provenance.md": "e443eb08718412b59f60b6c9702b6408826bc2cf946e71aa8d2da474916a62d4",
+      "references/repo-routing-metadata.json": "908bed12129dabd490b58d958a208e720f93379ada7e70a52b78a1393457a310",
+      "references/source-directory-coverage.md": "ecae69ea63b2b528dc2c2aa98df502be21c126b972e73ce6e7864b240ebc95b9",
+      "references/source-readset.json": "4fe665a587dfd9bb02db6dc8f701d7417946c46986c1f5b960701c67304d0529",
+      "references/source-script-map.md": "1d669129ae4e9e2d030763fcfa66aee683c5f457537ab76db9b711100d506dfa",
+      "references/troubleshooting.md": "55df7c1517e1cf9127548d789197659612858d39d7020341960128bcbc10cba8",
+      "references/upstream-NOTICE": "c2cc7bf0caec7652c2b460a8a470bea1677f241e4ab8e431df34cf17f5a9fec0",
+      "scripts/inspect_environment.py": "bfb0086d93b975086c87a9b84adc629c8f468c5c4b7ceeb686206415e5a3880f",
+      "sub-skills/compiler-and-export/SKILL.md": "ac156fb42254308c25dd96efeffd15ccd84a86912733c7b57f214c6a7ddaf40b",
+      "sub-skills/compiler-and-export/references/troubleshooting.md": "ff1b48d2acbc13f80a530a4bb3b94fc7fb7b2e553f040f778d3edfe0aee67989",
+      "sub-skills/compiler-and-export/references/workflows.md": "3a68c6a183426df13ccaac999abd3e94e05b0784851c8238f435c737578f0b96",
+      "sub-skills/compiler-and-export/scripts/export_contract.py": "24457ab73ca4cf7fb33de6e2a735d1de3ed2fec36f76cb57f1f1e05136c0c509",
+      "sub-skills/custom-operators-and-extension/SKILL.md": "51f524127d1a798f6c79c28dde71c7d02984fab607655ff2fbe388d80ab7e1d2",
+      "sub-skills/custom-operators-and-extension/references/troubleshooting.md": "8383d490b1ffaeba3b77f07cc8eec76bf65aeee145177d7e17560d17754e747b",
+      "sub-skills/custom-operators-and-extension/references/workflows.md": "74d77673576f7951b1872615cddaac4ff6cf2a14d9f35e61ad801747cc9f0b1b",
+      "sub-skills/custom-operators-and-extension/scripts/custom_operator.py": "959ccc9dd18003bda5013c7726ba33e9c391b45c96598e76a087b956a36d6919",
+      "sub-skills/distributed-and-checkpoint/SKILL.md": "116ec05dad073f37f5e223459f2fa0aebc88302ba3af5f9408b9156d41af4a47",
+      "sub-skills/distributed-and-checkpoint/references/troubleshooting.md": "8afe03529f4586d131f003a20d95c610ac9d21abe625332e7ba0018b52e42b89",
+      "sub-skills/distributed-and-checkpoint/references/workflows.md": "d55c5e1b6d479f8947c5a8be42629370c4b8789a0af017f184d20f0006d29f39",
+      "sub-skills/distributed-and-checkpoint/scripts/rank_contract.py": "19494458f3866c11c9db4d97a90aeba338d3d5d7cf89179c1e4cb6ffd6fdc5cc",
+      "sub-skills/distributed-and-checkpoint/scripts/state_roundtrip.py": "f99df15d1b0a28ba99ce2fc9878374653d22c2e5fbfb449e4db89ce886b548e6",
+      "sub-skills/installation-and-build/SKILL.md": "cf423ea34d30efe5062336cc804aef92068f0dba5bfa1a6a0c8cdc9b5af8c9b2",
+      "sub-skills/installation-and-build/references/troubleshooting.md": "96b1358821914d81c9eb3ec0d72cacd1e1ad0868d2e1790e68ea46281026f623",
+      "sub-skills/installation-and-build/references/workflows.md": "2ed61b4922760b5f7a366ec5a51a58cf33c37d3715cd5e094a769065fa57addf",
+      "sub-skills/memory-streams-and-graphs/SKILL.md": "845f019569cb5f425837df3c79d111b708aee0c638b600dbfda318a71021c4c5",
+      "sub-skills/memory-streams-and-graphs/references/troubleshooting.md": "3398de27efe1d01457d204df8b5edba3cf7faf4a2fdf6052c74ea0af28fb1cd8",
+      "sub-skills/memory-streams-and-graphs/references/workflows.md": "f385877df2d8c6a97c1482aa3cbfba710342649d92c6856f44c34cbeb64af325",
+      "sub-skills/memory-streams-and-graphs/scripts/cuda_lifetimes.py": "1d9d8bb5d038e35ebcd46e97062e33cbdc9f57dd04366b91edd95edee0fedd3e",
+      "sub-skills/profiling-and-debugging/SKILL.md": "54dce03592d7b84314ca5ca42cdd2d1dc6847b7602be25e4d233c1688cadd2b7",
+      "sub-skills/profiling-and-debugging/references/troubleshooting.md": "984c5116cd2ed0ecc93d0f6e6d324c8b6c34093c9c4dae33981e31ecc9c4ed9e",
+      "sub-skills/profiling-and-debugging/references/workflows.md": "79313a2fc9037132db87214be4df91e37ba2a9c90c861c18e7a0d6c72ee19585",
+      "sub-skills/profiling-and-debugging/scripts/profile_step.py": "4a475f0bb2d8a06fcdc87d8661b893338279ddf4a4a83609c64c1f9a73028d7c",
+      "sub-skills/tensor-dispatch-autograd/SKILL.md": "4890ededcfba72266878b58fb50b98c227d852f4caa4eb4eb3907b3a0b0fcb9a",
+      "sub-skills/tensor-dispatch-autograd/references/troubleshooting.md": "4cf95feeab8a5cb87ea943158fd1a90c441979e834615050c8d88be686a845f1",
+      "sub-skills/tensor-dispatch-autograd/references/workflows.md": "93b699c5623710f411bb371084924ab3a45057ea4d59fcad36ee52ab0f26aa26",
+      "sub-skills/tensor-dispatch-autograd/scripts/tensor_contracts.py": "e5d893e42e2b91e9dd376b4b870e603193c91b096957972e2a93fa49f484b0c1",
+      "sub-skills/training-and-data/SKILL.md": "8b760d2220c4ceae20d61c115e09c6906390b2f355692e18cf7feb6fde610b6a",
+      "sub-skills/training-and-data/references/troubleshooting.md": "4e5c687a20e8066a9673625fc780667f490f9558a343d4d7d47d7ad278180824",
+      "sub-skills/training-and-data/references/workflows.md": "791c86dc3c13c3c87da3c4144cafb082e84f9ba2978bb71dea99f0cf649fe727",
+      "sub-skills/training-and-data/scripts/tiny_training.py": "46af58f6ba0c7d69373efc416fcc2ae8dcada717ed29336ac84f84857b1240bb"
+    }
+  },
+  "reason-hopper-kernels": {
+    "header": {
+      "name": "reason-hopper-kernels",
+      "description": "Reason about Hopper SM90 CUDA GEMM kernels using TMA and mbarrier lifetimes, WGMMA warpgroup participation, register and pipeline budgets, layouts, software scheduling and FP8 scaling. Use for an H100/H200-family kernel diagnosis or a Blackwell-to-Hopper applicability check; source-derived candidate guidance with no local GPU validation."
+    },
+    "files": {
+      "SKILL.md": "1bbc5031877458f771482d5faf5e2bfa040a2c7f52c63ed43aa847325b7405eb",
+      "references/fp8.md": "31d9c211c11c2224007abbdcd4059913c4a54833fe2d2f926411c5238fcd3501",
+      "references/licenses/cutlass-bsd.md": "42fec630f410aa308f70a51a89fadcd19586fa620f9831a32bee528a9a10000e",
+      "references/licenses/deepgemm-mit.md": "6c73a30c14a2938abaa6afe98ebb19e6d81dac5bd4ace0cb05c61c20afa37b85",
+      "references/licenses/kernelwiki-kda-mit.md": "84aab57158a914f448b38d8be29dd842b634a08c192d844f416a256beed4ae94",
+      "references/notices.md": "876ec016644bf5331b3f257985e126c0e61980e3bfd82569b7b0c3f6b2c6c64c",
+      "references/resources-and-scheduling.md": "1ce25b426736072435a1ead9a2a8e1f56df5d0abb8198e8c4fdcb34321db4964",
+      "references/source-inventory.json": "1dc09c895c970a0c9708158bcc6dd65cdb736274fd2c35d44542c70407d3849d",
+      "references/sources.md": "6b74b9e774f2a80db0860510d9e6940d36284430f29c1e124f115a9eaf25833d",
+      "references/synchronization.md": "4322f6b3c0e4368bf8c192b4ec752529767f50d19c0c38dad8fdf9cd781e41d9"
+    }
+  },
+  "repository-evolution-analysis": {
+    "header": {
+      "name": "repository-evolution-analysis",
+      "description": "Analyze a repository's commit history to build a capability-evolution model: what the system can do, how it got there, and what patterns allow it to iterate quickly. Use to produce history-derived knowledge for agent skill conditioning, and to design temporal-split benchmarks for skill evaluation.\n"
+    },
+    "files": {
+      "SKILL.md": "0f48cc6a77b3ac861af698048be7c250c3ef5c225dc238b9a0e6d71208cbd93e",
+      "references/capability-presence-audit.md": "c21eb4a6aabe811a49a6540a34c54dbcfdcf7efae3052a79b54034c7838026a5",
+      "references/rtk-consumer-path-transition.md": "a70b1d128fb5e0ac12292a290d624f218a0831d7581fe8980b62661473e0f2b7"
+    }
+  },
+  "rsi-evidence": {
+    "header": {
+      "name": "rsi-evidence",
+      "description": "Guide agents to establish acceptance criteria, freeze and cite RSI evidence using plan/results/patch/validator paths and PASS/FAIL/INCONCLUSIVE verdicts."
+    },
+    "files": {
+      "SKILL.md": "5edd2bd544da050d2688f37c85ae6e7927eaee24af764e3c96b6cec04982990a",
+      "references/loopx-goal-governance/LICENSE": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "references/loopx-goal-governance/LICENSE-MIT.md": "1df1cf519b9e5d8acbbc72820299d7aa95afa1acbfc1f43a15109ad1d59975f3",
+      "references/loopx-goal-governance/NOTICE.md": "3c3c36a40e1d65f3a6b20ec3a97319cb753e857f1d120f302cd828e107120f6d",
+      "references/loopx-goal-governance/README.md": "c86eb179cea1b42f346f5c1dc076292ba086be907f20b0beee45c43cf0f8d6fe",
+      "references/loopx-goal-governance/decision-cases.md": "c2c1d3d75c4fcb515dd36ff84d8dc940c25d54c5757a29a80d1af88eb8b66115",
+      "references/loopx-goal-governance/mechanisms.md": "4fa09099d362a8088fdb0e6a767f72aae6218b92fe5fd75b6fb78c2bb2a318fb",
+      "references/loopx-goal-governance/source-ledger.json": "4a0f1f02134af5b7d54a1f13e104b8066372d3d4a1a4a9e717514632fff05893",
+      "references/omni-experiments.md": "8fafc1e05ef21ab60158fc626c73ca1b8c615ada59f90fd23199496daa46ac48"
+    }
+  },
+  "skill-evolution-playbook": {
+    "header": {
+      "name": "skill-evolution-playbook",
+      "description": "Practical design choices for evolving agent skills from execution traces: when one trajectory should update a skill, how conflicting lessons are handled, how negative evidence is preserved, how large an edit should be, and when skills should split or merge. Drawn from Trace2Skill and SkillOpt. Use when designing or operating a skill evolution pipeline.\n"
+    },
+    "files": {
+      "SKILL.md": "f988a0569be93fec550da52484d22d970b0a6c31394ea463ad6ee40e0877ede6"
+    }
+  },
+  "splash": {
+    "header": {
+      "name": "splash",
+      "description": "Investigate Splash model-format compatibility, automatic memory planning, Metal and ANE execution, DFlash2 verification, cache and request identity, and correctness-gated serving measurements.",
+      "license": "NO_LICENSE",
+      "disable-model-invocation": true,
+      "metadata": {
+        "disco-role": "operating"
+      }
+    },
+    "files": {
+      "LICENSE": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "SKILL.md": "17b7f9d978bb02ec9cc246824ad247ecf55930f11d015b1606dce73060329651",
+      "THIRD_PARTY_NOTICES": "2fedf1277bf732f8435c3e3be2798f52f25f7e2bd4155865cb366da55b88e50b",
+      "references/repo-provenance.md": "20e3462f1b6a8752eb0fa6f36e76867f142a49c1953f498f895e29c4fd4f0204",
+      "references/repo-routing-metadata.json": "287ae591f42949b8d33312659ec8303c47d5c73093c64c125edb1cf6ea8de8b9",
+      "references/source-identity.json": "2f778882ec440538a46f48332650412b446722246c8dc5690083f19da7dce61d",
+      "scripts/request_template.py": "086d773d42edf67c43cedae16974061b09ac66458ee47fe961fc01733f3b2a0e",
+      "sub-skills/qualification/SKILL.md": "4fddc39811c12ec4b3279ad68a8864b7f1ef80e838ea03788b54cb025a03ae16",
+      "sub-skills/qualification/references/troubleshooting.md": "dbd2179a48eb3fc0ecfd54c5df8a690d0cb2e1814acc19ac3b0aabf184092c92",
+      "sub-skills/qualification/references/verification-contract.md": "9efffa0ecfd3b6771dfce631137eccc6d939c3239f60b1fadcd0c6c1ed7700be",
+      "sub-skills/qualification/scripts/summarize_rounds.py": "107a844954e3909500c60eb1ca365ac9b5e7dc3d91122dbae46f402a5cef4e3b",
+      "sub-skills/runtime-planning/SKILL.md": "f0fe3d3f4053937767ae586559cc7fba89dacb6c896186a029fff220414e8d22",
+      "sub-skills/runtime-planning/references/memory-and-formats.md": "04edf10f4a965c512f6a262b1f8295f3c033d615849e49d21d3d94c78b549f2b",
+      "sub-skills/runtime-planning/references/troubleshooting.md": "5a1896f9fb01f6c8c9ef78d94f3c965d6d64e6b54223c6d7901eaed0548c5575",
+      "sub-skills/runtime-planning/scripts/parse_budget.py": "b3a3b0847280333c2bfbe5d03350dc866307d5290160ec64c7e3d462a34f6301",
+      "sub-skills/serving-cache/SKILL.md": "c16f911498e116ff9b31b5a6f0ddd3ae6517b51c0e9d079c337f36a5bcac1df8",
+      "sub-skills/serving-cache/references/state-and-api.md": "592603177473ac8e024b7dc19a3d3faedd7c1e0312137eab8bf9a62d2f567be6",
+      "sub-skills/serving-cache/references/troubleshooting.md": "4fda461042a3de43c109d7a3cec67542c7d61fe68412bf91606220f2e13e576e"
+    }
+  },
+  "storage-io-measurement": {
+    "header": {
+      "name": "storage-io-measurement",
+      "description": "Measure storage I/O for LLM/diffusion serving without conflating device metrics with application outcomes: match the fio workload to the observed loader signature, validate requested-versus-achieved I/O depth, keep a cache-state ledger (warm/cold/unknown with method), classify startup vs steady-state runs, read outputs with unit and latency-provenance awareness, attribute traffic per device (iostat) and per process (pidstat), and gate any \"storage bottleneck\" claim through a saturation-evidence check plus a separate application-outcome layer. Measurement methodology only — running benchmarks or manipulating caches requires separate authorization.\n"
+    },
+    "files": {
+      "SKILL.md": "7faf89f304d6fdad2d27978f9c4bb828400e57e7fbb294dbd43e045bcf94bcc3"
+    }
+  },
+  "task-accuracy": {
+    "header": {
+      "name": "task-accuracy",
+      "description": "Use when inference completes but tokens, audio, frames, tensors or a quality metric diverge from a reference. Trace the first divergence and verify end-to-end tolerance."
+    },
+    "files": {
+      "SKILL.md": "a441eb5565cd39674307f2cc870cb0d8d4c90314bb7df80245162df1dc3d1ae3"
+    }
+  },
+  "task-day-0": {
+    "header": {
+      "name": "task-day-0",
+      "description": "Use for Day-0 onboarding of a new checkpoint or architecture to a named inference engine. Produce a reproducible target run, stage parity evidence and a regression fixture."
+    },
+    "files": {
+      "SKILL.md": "ca187de2205b3aa86b4ca5123fb0107a8235aa84f9d942d3771a8a665df1a0a3"
+    }
+  },
+  "task-debug": {
+    "header": {
+      "name": "task-debug",
+      "description": "Use for inference crashes, hangs, out-of-memory failures or execution-path errors. Localize the first failing boundary and verify recovery with the original reproducer."
+    },
+    "files": {
+      "SKILL.md": "2e1e91cf429384c7cb3de68cb9a896a645853f819b23bbe2c10792b2813ae5f0"
+    }
+  },
+  "task-derived-engine": {
+    "header": {
+      "name": "task-derived-engine",
+      "description": "Use for a fork or extension that retains an upstream inference execution core, including a vLLM or vLLM-Omni derivative. Verify inherited behavior and the intended delta separately."
+    },
+    "files": {
+      "SKILL.md": "976a01cf23e626fb2112fa637bb76da3f59532d27ee93f22365ea2c752dd0942"
+    }
+  },
+  "task-independent-engine": {
+    "header": {
+      "name": "task-independent-engine",
+      "description": "Use when the deliverable owns its execution, memory and device integration on a target OS and hardware stack. Prove a native end-to-end path and measure its resource use."
+    },
+    "files": {
+      "SKILL.md": "37e122098f2df35edc466d5b70598039ae640c8f4bb683b694d9195b0a83089e"
+    }
+  },
+  "task-performance": {
+    "header": {
+      "name": "task-performance",
+      "description": "Use when a correct inference baseline misses a latency, throughput, memory or cost target. Compare compatible changes under the user's workload and quality gate."
+    },
+    "files": {
+      "SKILL.md": "bf5a137504566b6ee4eeaee18400d52aae99a1db3c8247dea7247d653103df0b"
+    }
+  },
+  "task-version-alignment": {
+    "header": {
+      "name": "task-version-alignment",
+      "description": "Use for upgrades spanning inference engines, plugins, drivers or operator libraries. Isolate the incompatible boundary and qualify the requested version combination on the same workload."
+    },
+    "files": {
+      "SKILL.md": "114a2f41ce5b45f61b7cbb55d1cf9fa99a7c9aaff5e5597e563d9a00a7727c8c"
+    }
+  },
+  "torch-npu": {
+    "header": {
+      "name": "torch-npu",
+      "description": "Operate and diagnose TorchNPU on Ascend across installation, PrivateUse1 dispatch, operator development, memory and streams, graphs and compilation, HCCL, precision and profiling, with pinned source evidence and explicit backend limits."
+    },
+    "files": {
+      "SKILL.md": "94b08de8f9666cf19c4f479da32cf6d40bd122a8689afcdac8cea55768e98a30",
+      "references/NOTICE.md": "a81fb8c00576c86fe6c839d9bf2d4acd32d854ae9fa168ec6c6d9cf6ea2170dd",
+      "references/capability-inventory.md": "e6bae7bbeecea8b16c9e911ac40aa385f181da855336e0ac1fe6d9ed1c3a52e9",
+      "references/licenses/op-plugin-LICENSE.txt": "325488df8d01b0601a46b395904b6ce72f4870cd608f49268904e994dab15f97",
+      "references/licenses/op-plugin-THIRD-PARTY.txt": "cb91e5fa816c6f6ff7a6a3cf32110c3402b1d4c76778de106130b227782013d0",
+      "references/licenses/source-identities.json": "f1ee46af6bfcea7e41959ceab981515cf902fe7f1d11998e69145cb86d897c37",
+      "references/licenses/torch-npu-LICENSE.txt": "99317d26c99c8037890c770fd67fa84cc78d210581ed563d3b1abe42976f47be",
+      "references/licenses/torch-npu-THIRD-PARTY.txt": "167f93c40acf8a26e4f6cc293df727c04ef869e54a10e7517ce2de60eaf2593f",
+      "references/licenses/torch-npu-docs-LICENSE.txt": "9e5f1b3c610b9c2da5c313bf81d577a7d1acec686bdb0384edefa6df0f90cd94",
+      "references/repo-provenance.md": "18cb87b57a1ffa25e0954f629ddc1fac3137a2ee2d5d362be30083e5bfc12dc9",
+      "references/repo-routing-metadata.json": "eeab2fedf7db673c0ce2d8f53641d4bcaa9b0fd84b0aa30cf746f894c548a268",
+      "references/source-manifest.json": "b1d4cbdad4cde3838d3bbc16ccede8c79825dd7280a3c3c081507d7f51e86726",
+      "references/source-map.md": "d64683d861c1cca6f61a5e90500f98c7f5dd9a7256035433c11e39cc44eaad15",
+      "references/source-script-inventory.md": "c43c83daa152856c4fab278f25d05504735e25c427231bcf177b72e01536819d",
+      "references/support-workflows.md": "002121bded102c51966754aff40c3f621cc2e69d35ff29fa187582d496bb8ce4",
+      "scripts/inspect_environment.py": "a157f5947217c5baadb2a4957a68c91fa1dbef343c97ac2f7f4d59bf1e4cb3b7",
+      "scripts/operator_contract.py": "45f076bb5353798d4b494f7b7e990796dfb1418d7ef44643521bd669bc348b32",
+      "scripts/runtime_smoke.py": "e5c7d587e54a6e4fd5dd8c45d5ef36990143ee40e24ff1680d49b7637894c248",
+      "sub-skills/distributed-and-hccl/SKILL.md": "0f7a272f9461456ea23872f0636d668654faa3448297778f2ef96cda956ea314",
+      "sub-skills/distributed-and-hccl/references/hccl.md": "bd6b67c243032785f60f100d75c450885bfb1e6585af9100482fca3dfbe86919",
+      "sub-skills/distributed-and-hccl/references/source-map.md": "06bebd8bcae81b253573a4096a905cd264da2a75a9b13548f646c2ab9b698fd5",
+      "sub-skills/distributed-and-hccl/references/troubleshooting.md": "946650a1fa1c3f805328e3071ed7a0ed907b71af6a4d746d3fb4bad869d5aaad",
+      "sub-skills/graph-and-compile/SKILL.md": "b15b5bafee882a00f57d8a4d3458e4c411b549a97a68be953d237e441b5bfe31",
+      "sub-skills/graph-and-compile/references/graphs.md": "ec9e13041eb2d5abf5e2055e667fcef79391dad0b32756b963efb69d2be7354c",
+      "sub-skills/graph-and-compile/references/source-map.md": "89aedad45ab2eb524053909060344e5b11d3b9923b7cff8d1e661a6a097b00f2",
+      "sub-skills/graph-and-compile/references/troubleshooting.md": "35be0f57c998a5a6ef24f46f67f3a37e17b0d519a2604a38ec0498b21f374437",
+      "sub-skills/installation-and-compatibility/SKILL.md": "af5f44615fe45cb245b3d6e3881ed4626546614c01782c36bfdb5a46d0843b71",
+      "sub-skills/installation-and-compatibility/references/source-map.md": "b5266c944b0abd8bbb35d50aa6eddb9452725ba2308523f0bc8414dbc87f8802",
+      "sub-skills/installation-and-compatibility/references/stack.md": "4e9a8abbf45eff3b3e79de9b0fa0907479b77f729544cd1c772d2334606fca94",
+      "sub-skills/installation-and-compatibility/references/troubleshooting.md": "799214c15da2ce43f2f9ab37347e174fff3346c3e27507022efd7a2aa30fcef6",
+      "sub-skills/memory-streams-and-events/SKILL.md": "13fb13dbfb1e1a684ad2c905cd50307b604abb025b93c8f317af79954a82cc46",
+      "sub-skills/memory-streams-and-events/references/lifetimes.md": "bc5551f922534d1db0cb6ade6ea1dbbd4f26419cd9aa0b27f9aec9415d691743",
+      "sub-skills/memory-streams-and-events/references/source-map.md": "05114bd16d7cf22c5604a3f1885f44b8be225fa2644302a8ef805193a46601c2",
+      "sub-skills/memory-streams-and-events/references/troubleshooting.md": "b9d5d4d61087f27b2761c9184c99f98da583948c393f6a3c6d189b87ef9f1466",
+      "sub-skills/operator-development/SKILL.md": "3f71ee3a85d5d8b79c51b5b01fbd3193df4b8817405a4c2a982823614f7332b0",
+      "sub-skills/operator-development/references/development.md": "70994e5deeb138ca3dce578a743515840a91ff6303f0328eaff6de8fc308313a",
+      "sub-skills/operator-development/references/source-map.md": "29863b23b49040728c4d928a149477aeb966da833cb4ce21a6bad5212ca30c9e",
+      "sub-skills/operator-development/references/troubleshooting.md": "0c9828b96ab7943ab0b7006ac8520e58072fe7f2544a78cb9111c1f224255c6d",
+      "sub-skills/privateuse1-and-dispatch/SKILL.md": "b983b6ff5f40217a8240956f4bc6d3d89427d7af72756632f1731bc803159a87",
+      "sub-skills/privateuse1-and-dispatch/references/dispatch.md": "19d4a9120bd1fcf4aea2dcacbf8e66c0e9f3fc3ca5e56fc6c468a3721daff973",
+      "sub-skills/privateuse1-and-dispatch/references/source-map.md": "432913d63c0e1a54ad75da6b7e51489dfd4589a208a51b0a0245ba679cd29c4f",
+      "sub-skills/privateuse1-and-dispatch/references/troubleshooting.md": "193c7499076e77ba82772ac5d939cc377d9301f7e6825353b98df09f737c85cf",
+      "sub-skills/profiling-and-debugging/SKILL.md": "1181c4eba1274a9eedf4dd0a430f7b13a0599d3b7b89dda772fec11411a60cf4",
+      "sub-skills/profiling-and-debugging/references/profiling.md": "f61c6f33cd9b63546c44ba14fed1ba48ce0f0318becf7a88fe9a1d658f5e83f9",
+      "sub-skills/profiling-and-debugging/references/source-map.md": "2550e9a28209a7df0a0d2f571af39985ca629c42a1be6f845e50fd265fc6ccb8",
+      "sub-skills/profiling-and-debugging/references/troubleshooting.md": "c60466ad74a0e36b6f74001a0ab756fd2dfc674d059e038fbcd63770038396c6",
+      "sub-skills/training-and-precision/SKILL.md": "e665e57af9569c9ae7ff063d8c57049013ed7babb56de82c4d93af108be2f725",
+      "sub-skills/training-and-precision/references/source-map.md": "3bfc78d9348f9a1072120f82d7a1a7f042b4fe2ce908a005e22716a797dc0c7b",
+      "sub-skills/training-and-precision/references/training.md": "0695532020c71d061ddf40ad16536621e004c23dd05d27aaa9f5b46101f6ef62",
+      "sub-skills/training-and-precision/references/troubleshooting.md": "0f7fb3879d51c793ca0fd6d14fd34352f94297f075295d01488ffab4c5fc0fa4"
+    }
+  },
+  "torchnpu-device-memory-lifecycle": {
+    "header": {
+      "name": "torchnpu-device-memory-lifecycle",
+      "description": "Diagnose TorchNPU device-HBM reuse, cross-stream lifetimes, cache retention and fragmentation, then propose version-gated allocator changes. Use for NPU allocator OOM or reuse investigations, not pinned-host RAM or network transport."
+    },
+    "files": {
+      "SKILL.md": "11cf02d6ef936b7ea8b1b1f941137f676f8b3a122db4f6d9e48b1be249c304f0",
+      "references/source-notes.md": "80cba4d3a884e7ee2618326cf74b9f9c3a34e4d9cf443707f6bbe673f2d5ba65"
+    }
+  },
+  "torchnpu-pinned-host-memory-lifecycle": {
+    "header": {
+      "name": "torchnpu-pinned-host-memory-lifecycle",
+      "description": "Diagnose TorchNPU pinned-host RAM allocation, asynchronous-copy lifetime, reuse and cache controls, then propose version-gated host-allocator changes. Use for pin_memory pressure or host allocation stalls, not device HBM or network transport."
+    },
+    "files": {
+      "SKILL.md": "5cf992ee8b6bf4a7a07d83fa2568e4238feb5b187e61d1bff82a054aa4c58863",
+      "references/source-notes.md": "435193590b4a2ba32e2e4c6fa9d7e8f889528d412cbbb48e35ec5433f7dab384"
+    }
+  },
+  "training-input-pipeline": {
+    "header": {
+      "name": "training-input-pipeline",
+      "description": "Diagnose training input stalls and choose bounded queue, shard-cache and cache-ownership changes from DALI, Mosaic Streaming and FFCV. Preserve execution-mode gates, sample ordering and per-host memory budgets; separate remote downloads, local storage reads and host/device transfers.\n"
+    },
+    "files": {
+      "SKILL.md": "779478e854aa1ffcc453609b1c8c67477154f478dc360f6541c182940f67fd0e",
+      "references/sources.md": "60e0f3e88655d8e1d5eb4797f39ca4370deda01614f265b8d2ea4559d8ac020f"
+    }
+  },
+  "training-resource-budget": {
+    "header": {
+      "name": "training-resource-budget",
+      "description": "Choose training offload and resource-budget changes using pinned DeepSpeed configuration, attributed expert diagnosis and a historical MindSpeed case. Balance accelerator capacity, CPU work, pinned RAM and local storage; keep host/device transfer exposure distinct from collective network bottlenecks.\n"
+    },
+    "files": {
+      "SKILL.md": "e8adf9d115975844d6c7a1b1809c1cbc2baeabc1318198a777050f159a0fe8e2",
+      "references/mindspeed-historical.md": "ad65c27f278c3d0ca3599a7630c02d3e529477a05b71b7703bd2d75f0d8fdd2c",
+      "references/mindspeed-source-readset.md": "4462d69ed6a941a03639c756968be3ce54f947e51f6ca618f4fb1cd43b643b35",
+      "references/papers-20261015/INTEGRATION_NOTES.md": "c55c6ad2131ef788866411dcc7056f221420ebff30c95c6bc919b09a4818cb73",
+      "references/papers-20261015/cases/paper-grounded-cases.md": "19bd25b1a944adb2351ebc6b1d795150ea033041a44f6cc261e881677812a101",
+      "references/papers-20261015/knowledge/offload-delta.md": "f8740fc5c8bbbe5ac13ff1cfec7ca499569d0b46e8cd56cf1f5a44c3a5e72242",
+      "references/papers-20261015/notes/training-memory-scheduling.md": "9aa6d3e01452dff95c8a8940ff62ead8c146ce215c9175b78c9f2ef508a7b2de",
+      "references/papers-20261015/references/source-readset.md": "2a5c166767f56fa47e7eba7386f1f36da8cb73702e5b5bbe14d6a456ca9ebfae",
+      "references/sources.md": "53d70671a183de4aaa3369f9caf2383a23b6f8a0a7b04464a8d8a639150afc6a",
+      "references/stas-decision-notes.md": "f1a993e6c4ca9a035a2effcaf5500081f227b0cc56cc885a6b22fda0041fc744"
+    }
+  },
+  "video-diffusion-optimization": {
+    "header": {
+      "name": "video-diffusion-optimization",
+      "description": "Run and verify goal-driven video diffusion optimization, backend-agnostic. Use when the user asks for latency, RTF, throughput, or memory targets across VLM, DiT, MoE, attention, or VAE, on any accelerator. Not for text-only LLMs."
+    },
+    "files": {
+      "SKILL.md": "6466f46b63f6149e9692fdc344fca5f3af9e1961b59fd48f25b778256089c203",
+      "assets/campaign.template.json": "1a37f1d136612143ddab8f0cbbf424c80433b4da5312edb18d07c0b9d87ef657",
+      "scripts/evaluate_target.py": "9e84df051e03d567746fd73ae7243efb2f3c5ec806fef824d3c4d42a8eb9704c"
+    }
+  },
+  "vllm-ascend": {
+    "header": {
+      "name": "vllm-ascend",
+      "description": "Analyze vLLM Ascend v0.27.1rc1 performance and commit evolution for DeepSeek-V4, Kimi K3, MiniMax-M3 and GLM5+, fused operators, DSA-CP, FlashComm1, Fused-MC2 and DSpark, with effective dispatch, rollback and test-oracle guidance."
+    },
+    "files": {
+      "SKILL.md": "c8d829d6c4536f269ce2c4c816fb475faba0bb6c33c2782ce4d90ae6f7156e74",
+      "references/communication-config.md": "66daf21685237429e45a64a9d100a10d1f16872a4785037013f0fa798069a319",
+      "references/deepseek-v4-evolution.md": "e970d58612aad3cc8244e0b78ae0ce24967f3931659796d2cc519e052f34c113",
+      "references/dspark-pd.md": "2f5112acfff4f114998c2737ef3ca4cb81a16c754541421f95fc08e30e13860b",
+      "references/fused-operators.md": "97bdae687fb0159612e61744696a256a99bab466726984bec672c1aad257a3ff",
+      "references/history-reviewed.json": "c75c3997ba8e5cd569d9252abd58d5f8ecc406696ae9fafc34a4da6a7732251f",
+      "references/history-scope.md": "7c57b79dcd2e920e241d50cfa2a40d31fbad62768c7b55254017e51b1d7b7945",
+      "references/minimax-cache.md": "6a6196eb2e69bf70796f8436630a5e524b67068c439d482727193b961cb6228e",
+      "references/model-performance.md": "6c9bda4499239fe7a206b578b8190ab36c5454d15b57eb4f591eb2ebe1e037e7",
+      "references/plugin-registration.md": "ab1b090f22bd0315d2a2e14324064a1c04653fd4eabeffa60de80b9e606de75c",
+      "references/sources.md": "9b588e6c4887ff7b5081a72f6fb63b5f53c2f716571b5855acbffc85dbbdc2ab",
+      "scripts/screen_history.py": "922aa44cc796503628edaff3779d69e5560cf73fa8175859e2fbd701e9ad69e6"
+    }
+  },
+  "vllm-metal": {
+    "header": {
+      "name": "vllm-metal",
+      "description": "Investigate vllm-metal Apple inference through platform and native-ABI selection, paged KV/offload ownership, speculative/deferred state and actual dispatch/serving evidence without upgrading source or CPU checks to backend qualification.",
+      "license": "NO_LICENSE",
+      "disable-model-invocation": true,
+      "metadata": {
+        "disco-role": "operating"
+      }
+    },
+    "files": {
+      "LICENSE": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+      "SKILL.md": "4829402b68f6707d74c8d3316575f78b5375a23428400e6a247c97bce8793f05",
+      "references/repo-provenance.md": "970bda4d1081704aa82c94d6544a98bbf479430c4fc2c82a1a82f206043aa72a",
+      "references/repo-routing-metadata.json": "230a2b383bcf2855af4de50374c41f11b0b0841268ae45e424c1c97f679b477a",
+      "references/scope-and-notices.md": "aaef98eaea4cff56f39852e1d131163ebc01334e79034b1890f67a2660727d3e",
+      "references/source-identity.json": "9da529574e81f9f91d86c01153eb09a8b1e728dc5327c40364fff74085598c1f",
+      "sub-skills/cache-lifecycle/SKILL.md": "dbfb06896615dc994f4a0a1e3789904acdf512ec316cbab6347165b764bc592f",
+      "sub-skills/cache-lifecycle/references/cache-and-offload.md": "9829c14cf20f22575c44c1a0fcf18f63578443710e1a592c9fea709a43a3b888",
+      "sub-skills/cache-lifecycle/references/helper-contract.md": "56a7494b58c47e07d1c85471ddc6075b15e34dc7a852b937002416dbd55b65ce",
+      "sub-skills/cache-lifecycle/references/troubleshooting.md": "a4600c6d17a980b6442fc4c36f1c9ae148a2710c644126a9a898675b01f95366",
+      "sub-skills/cache-lifecycle/scripts/screen_pool_budget.py": "dd615f7d3239f48510ce83416fb14fba8d5da2b9017627bdd312567be1bd7956",
+      "sub-skills/platform-config/SKILL.md": "e2f5c5207b5c7665d3388d94fdace35e25f073a7833cbddaf14514a05f5ca5b9",
+      "sub-skills/platform-config/references/configuration.md": "69949b93f4f319145e37d1b28487e37bd4ef21622f3169583d9cff46234a9c76",
+      "sub-skills/platform-config/references/platform-and-loading.md": "7f11dc9e4bb9ae7bac25fcd6a2909cbea0eb2ae329e28ec9a7a2f4085c56e5cc",
+      "sub-skills/platform-config/references/troubleshooting.md": "837cef82321fa050af3f01804fe337b0a0462255261fea5c21158ecfa3d0c325",
+      "sub-skills/platform-config/scripts/check_environment_plan.py": "2603200fef87e3afad7820b84994f7e43e6041b45c17d0ed613d0d6229535bf2",
+      "sub-skills/qualification/SKILL.md": "37d9ae55ab4d0afd4ff8053c1955445e5a090188841ecc7941a5e22c5dd5eb39",
+      "sub-skills/qualification/references/dispatch-and-measurement.md": "360719d4253ad7e5a36823171d432aa8ca0f74d1ae565c7803af1990d99f2af9",
+      "sub-skills/qualification/references/record-schema.md": "f3cefb8b131613535dcacf30d130ffc2dea991acfb495adb4e1c7050046903d7",
+      "sub-skills/qualification/references/speculation-and-pipeline.md": "64faced7f31d489e9b0c4b9523a803ff1a76dca0f9315bdc6d0b83935bd338a4",
+      "sub-skills/qualification/references/troubleshooting.md": "a2e85696120ffc2af4249ac9c1e1b96320e02287e5099577c0474c025ab4f5f6",
+      "sub-skills/qualification/scripts/summarize_serving_records.py": "78e660a13a6a6941d006cb11fc2f401a34f489e54273860ae6a208dca6a6a3c2"
+    }
+  },
+  "weight-loading-optimization": {
+    "header": {
+      "name": "weight-loading-optimization",
+      "description": "Optimize the serving-level weight load path from storage to device: judge the load path on four dimensions (source, format, placement, duplication), account startup fixed overhead separately from per-request cost with bytes-and-counts lines and hit-criteria warmup validation, verify sharded weight downloads against the safetensors index, apply device-side weight prefetch only on profiled memory-bound hot spots, and order CPU-tier offload candidates by change surface. Includes source-scoped disk-loading modes, pinned staging, synchronous checkpoint save semantics and fastsafetensors broadcast/scatter/coalesced delivery; also audit streamed expert-cache byte correctness and begin/end overlap contracts. Use when startup/loading latency dominates or a streamed expert-cache change needs correctness verification; route DCP asynchronous save performance and distributed recovery validity to their separate skills.\n"
+    },
+    "files": {
+      "SKILL.md": "53d9c9c594663d271365de4cec6f22e37077fcf178625aa5ca087fbffb5b86a1",
+      "references/deepseek-expert-cache-oracles.md": "5e42c4a01f9ac810663979dee0658c4cbe87060594c16622ae6ec0b854e44b29",
+      "references/deepseek-expert-cache-source.json": "65bf0623616b4f633d8f51b30134798cbf71176716c8a8613209e2fc48ff84bd",
+      "references/fastsafetensors-transfer-readset.md": "5a39f14b102b0cee304541e011aa31e44e6b13527d1bee9987c3f3b66c064d3d",
+      "references/flare-preparation-boundary.md": "c0d787522451f5b69a6d20b188d573183fa6d67de30f695ea668ca1ab7108929",
+      "references/llama-loading-readset.md": "6c640f28ee3f0253a17b81461c865cb9f947367002cb75bf72550c4572d02e97"
+    }
+  }
+}

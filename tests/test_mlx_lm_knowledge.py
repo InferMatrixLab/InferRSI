@@ -1,10 +1,10 @@
 from pathlib import Path
 
-from inferrsi.catalog import get_knowledge, search_knowledge
-from inferrsi.knowledge_operations import KnowledgeReader
-from inferrsi.skill_catalog import skill_metadata, skill_resource
+from inferrsi.knowledge.catalog import get_knowledge, search_knowledge
+from inferrsi.knowledge.knowledge_operations import KnowledgeReader
+from inferrsi.knowledge.skill_catalog import skill_metadata, skill_resource
 
-LIBRARY = Path(__file__).resolve().parents[1] / "src/inferrsi/data/skill_library"
+LIBRARY = Path(__file__).resolve().parents[1] / "src/inferrsi/knowledge/data/skill_library"
 SKILL = "generation-cache-lifecycle"
 IDENTITY = "inferrsi.common.skills.generation_cache_lifecycle"
 
@@ -17,7 +17,7 @@ def test_mlx_lm_candidate_preserves_source_and_application_owner():
         "ab7f7048dc341ced2d84b1887eeb17d60b0d1b02"
     )
     resource = skill_resource(LIBRARY, SKILL, "references/cache-stop.md")
-    assert resource.is_relative_to(LIBRARY / "repositories/mlx-lm" / SKILL)
+    assert resource.is_relative_to(LIBRARY / "systems/engines/mlx-lm" / SKILL)
     assert "LRUPromptCache" in resource.read_text(encoding="utf-8")
 
 

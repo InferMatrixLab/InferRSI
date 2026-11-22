@@ -10,7 +10,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from inferrsi.infra import processes
+from inferrsi.harness.serving import server as processes
 
 
 @pytest.mark.parametrize("platform", ["win32", "darwin"])
@@ -67,7 +67,7 @@ def test_cleanup_after_leader_exit_preserves_unrelated_process(tmp_path, supervi
     # The helper runs in its own group, as it would inside the trial executor.
     helper = """
 import json, os, sys
-from inferrsi.infra.processes import launch_server, stop_server
+from inferrsi.harness.serving.server import launch_server, stop_server
 with open(sys.argv[3], 'wb') as log:
     process, owner = launch_server([sys.executable, sys.argv[1], sys.argv[2]],
                                   '.', os.environ.copy(), log)

@@ -1,7 +1,7 @@
 {
   "mode": "update",
   "skill": "inference-benchmark-design",
-  "skill_root": "src/inferrsi/data/skill_library",
+  "skill_root": "src/inferrsi/knowledge/data/skill_library",
   "snapshots": {
     "baseline": {"git_revision": "<baseline_sha>"},
     "candidate": {"git_revision": "<candidate_sha>"}

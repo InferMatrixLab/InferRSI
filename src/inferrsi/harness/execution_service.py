@@ -11,12 +11,13 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 
-from inferrsi import _json_v1
-from inferrsi.harness import input_binding, local_process, run_store
+from inferrsi.contracts import json_v1
+from inferrsi.harness import input_binding, local_process, prepared_binding, run_store
 from inferrsi.harness.errors import PublicError
 
-# H02 single local-CPU execute in ordinary command mode (V05 null set). Evaluation mode,
-# entry-code digests (T37) and generation chaining are later slices and are refused here.
+# H02 single local-CPU execute in ordinary command mode (V05 null set). Evaluation-mode
+# specs are checked before registration (V05/V28/V32 and their fixed preparation) and then
+# refused: the T37 entry-code check and generation chaining are later slices.
 ATTEMPT_FIELDS = (
     "request_id", "run_id", "attempt_id", "owner", "target_request", "deadline_utc",
     "resources", "budget", "retry_of", "retry_reason",
@@ -42,6 +43,10 @@ _INPUT_FIELDS = frozenset(
 )
 _OUTPUT_FIELDS = frozenset({"role", "path", "required", "media_type", "format_schema"})
 _REF_FIELDS = frozenset({"location", "sha256", "size_bytes", "media_type"})
+_PREPARED_REF_FIELDS = frozenset({"prepared_id", "schema_version", "artifact"})
+_CANDIDATE_FIELDS = frozenset(
+    {"candidate_id", "kind", "input_role", "parent_id", "parent_digest", "context_refs"}
+)
 _DIMENSION_FIELDS = frozenset({"dimension", "unit", "limit", "reserve_estimate"})
 _DEFINITION_FIELDS = frozenset({"name", "revision"})
 _DECIMAL = re.compile(r"(?:0|-?[1-9][0-9]*|-?(?:0|[1-9][0-9]*)\.[0-9]*[1-9])", re.ASCII)
@@ -125,7 +130,7 @@ def _is_ids(value: object) -> bool:
 
 
 def _is_uint(value: object) -> bool:
-    return type(value) is int and 0 <= value <= _json_v1.MAX_SAFE_INTEGER
+    return type(value) is int and 0 <= value <= json_v1.MAX_SAFE_INTEGER
 
 
 def _is_definition(value: object) -> bool:
@@ -222,6 +227,9 @@ def _step_errors(steps: object, ordinary: bool) -> list[str]:
         elif ordinary and digest is not None:
             # V32-N1: ordinary command mode carries no expected entry digest.
             errors.append(f"{where}.expected_code_sha256: must be null in ordinary command mode")
+        elif not ordinary and digest is None:
+            # V32-N2: null never opts an evaluation step out of the frozen code digest.
+            errors.append(f"{where}.expected_code_sha256: must be set in evaluation mode (V32)")
         if not (isinstance(step["args"], list) and all(isinstance(a, str) for a in step["args"])):
             errors.append(f"{where}.args: not a list of Text")
         if step["cwd"] != "." and not _is_path(step["cwd"]):
@@ -265,6 +273,53 @@ def _output_errors(outputs: object, where: str) -> list[str]:
     return errors
 
 
+def _evaluation_errors(spec: Mapping) -> list[str]:
+    """Static shape of the evaluation fields; the fixed preparation is read separately."""
+    errors: list[str] = []
+    ref = spec["prepared_ref"]
+    if not run_store._has_fields(ref, _PREPARED_REF_FIELDS):
+        errors.append("prepared_ref: fields must be exactly the PreparedRef fields")
+    else:
+        if not prepared_binding._is_semantic_id(ref["prepared_id"]):
+            errors.append("prepared_ref.prepared_id: not a SemanticId")
+        if type(ref["schema_version"]) is not int or ref["schema_version"] != 1:
+            errors.append("prepared_ref.schema_version: must be the integer 1")
+        if not _is_artifact_ref(ref["artifact"]):
+            errors.append("prepared_ref.artifact: not an ArtifactRef")
+        elif ref["artifact"]["media_type"] != prepared_binding.PREPARED_MEDIA_TYPE:
+            errors.append("prepared_ref.artifact.media_type: must be application/json")
+    if not prepared_binding._is_semantic_id(spec["protocol_digest"]):
+        errors.append("protocol_digest: not a SemanticId")
+    for name in ("operation", "validation_scope"):
+        if not run_store._is_id(spec[name]):
+            errors.append(f"{name}: not an Id")
+    candidate = spec["candidate"]
+    if not run_store._has_fields(candidate, _CANDIDATE_FIELDS):
+        errors.append("candidate: fields must be exactly the CandidateSubmission fields")
+        return errors
+    for name in ("candidate_id", "kind", "input_role"):
+        if not run_store._is_id(candidate[name]):
+            errors.append(f"candidate.{name}: not an Id")
+    # V02: parent id and digest are both null or both set.
+    if (candidate["parent_id"] is None) != (candidate["parent_digest"] is None):
+        errors.append("candidate.parent_id: parent_id and parent_digest must be paired")
+    elif candidate["parent_id"] is not None and not (
+        run_store._is_id(candidate["parent_id"]) and prepared_binding._is_sha256(
+            candidate["parent_digest"]
+        )
+    ):
+        errors.append("candidate.parent_id: not an Id with a Sha256 parent_digest")
+    refs = candidate["context_refs"]
+    if not isinstance(refs, list) or not all(_is_artifact_ref(item) for item in refs):
+        errors.append("candidate.context_refs: not a list of ArtifactRef")
+    # V03: the candidate role names exactly one InputSpec.
+    inputs = spec["inputs"] if isinstance(spec["inputs"], list) else []
+    roles = [item["role"] for item in inputs if isinstance(item, Mapping) and "role" in item]
+    if roles.count(candidate["input_role"]) != 1:
+        errors.append("candidate.input_role: must name exactly one input role (V03)")
+    return errors
+
+
 def _request_errors(spec: Mapping) -> list[str]:
     """Shape and resource/budget field errors beyond the AttemptContext rules."""
     errors: list[str] = []
@@ -304,8 +359,12 @@ def _request_errors(spec: Mapping) -> list[str]:
     return errors
 
 
-def validate(spec: object, target: LocalCpuTarget) -> None:
-    """Refuse a request before registration (D021 priority: version, fields, support)."""
+def validate(spec: object, target: LocalCpuTarget, *, artifact_reader=None) -> None:
+    """Refuse a request before registration (D021 priority: version, fields, support).
+
+    An evaluation-mode spec is also checked against its fixed preparation, read through
+    ``artifact_reader`` (V05, V28, V32). Nothing here registers an attempt or writes a record.
+    """
     if isinstance(spec, Mapping):
         version = spec.get("schema_version")
         if type(version) is int and version != 1:
@@ -323,22 +382,31 @@ def validate(spec: object, target: LocalCpuTarget) -> None:
     errors += run_store._attempt_errors({name: spec[name] for name in ATTEMPT_FIELDS})
     errors += _request_errors(spec)
     evaluation = [name for name in _EVALUATION_FIELDS if spec[name] is not None]
-    if evaluation and len(evaluation) != len(_EVALUATION_FIELDS):
+    complete = len(evaluation) == len(_EVALUATION_FIELDS)
+    if evaluation and not complete:
         errors.append("prepared_ref: evaluation fields must be all null or all set (V05)")
+    elif complete:
+        errors += _evaluation_errors(spec)
     errors += _input_errors(spec["inputs"])
     errors += _step_errors(spec["steps"], ordinary=not evaluation)
     try:
-        _json_v1.encode(spec)
-    except _json_v1.CanonicalError as exc:
+        json_v1.encode(spec)
+    except json_v1.CanonicalError as exc:
         errors.append(f"spec: not canonical inferrsi-json-v1 ({exc.stage})")
     if errors:
         raise PublicError(
             "InvalidExecutionSpec", stage="validate", message="illegal ExecutionSpec",
             field_errors=errors,
         )
+    if evaluation:
+        # Malformed or inconsistent bindings are refused here, before the RunStore sees the
+        # request. The reader is the read-only port; H does not write or register anything.
+        prepared_binding.verify(spec, artifact_reader)
     unsupported = []
     if evaluation:
-        unsupported.append("evaluation mode is not implemented in this slice")
+        # The T37 pre-start entry-code check runs after registration and is a later slice.
+        # Until it exists, no evaluation-mode candidate may start.
+        unsupported.append("evaluation-mode entry verification is not implemented in this slice")
     if spec["generation_record_ref"] is not None:
         unsupported.append("generation chaining is not implemented in this slice")
     request = spec["target_request"]
@@ -621,23 +689,29 @@ def _run_steps(ctx: _Context, argvs: list[list[str]], deadline: float, cancellat
             continue
         timeout = step["timeout_seconds"]
         bound = deadline if timeout is None else min(deadline, time.monotonic() + float(timeout))
+        step_limited = bound < deadline
         # A missing cwd is a recorded launch failure, not a directory H invents.
         logs = (ctx.captures / f"step-{index}.stdout", ctx.captures / f"step-{index}.stderr")
         run = local_process._supervise(
             argv, ctx.workspace / step["cwd"], os.environ.copy(), logs[0], logs[1], bound,
-            cancellation=cancellation,
+            cancellation=cancellation, step_limited=step_limited,
         )
         runs.append((step, run))
-        if run["pid"] is None and run["status"] == "timeout":
-            records.append(_not_started_step(step, "deadline_exhausted"))
-            stop = "deadline_exhausted"
+        if run["pid"] is None and run["status"] in ("timeout", "cancelled"):
+            if run["status"] == "cancelled":
+                reason = stop = "cancelled"
+            elif step_limited:
+                reason, stop = "step_timeout", "previous_step_failed"
+            else:
+                reason = stop = "deadline_exhausted"
+            records.append(_not_started_step(step, reason))
             continue
         status = _STEP_STATUS[run["status"]]
         exited = status == "exited"
         if run["pid"] is None:
             reasons = ["launch_failed"]
         elif status == "timed_out":
-            reasons = ["deadline_exceeded" if bound >= deadline else "step_timeout"]
+            reasons = ["step_timeout" if step_limited else "deadline_exceeded"]
         elif status == "cancelled":
             reasons = [run["cancellation_source"]]
         elif status == "execution_error":
@@ -920,7 +994,7 @@ def execute(
     artifact_reader=None,
 ) -> dict:
     """H ``execute``: register, admit, bind, run and commit one ordinary command request."""
-    validate(spec, target)
+    validate(spec, target, artifact_reader=artifact_reader)
     digest = run_store.request_digest(spec)
     attempt = {name: copy.deepcopy(spec[name]) for name in ATTEMPT_FIELDS}
     # Re-entry is decided by the store before any binding or start (V14 / D021 section 3).

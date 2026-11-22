@@ -5,7 +5,7 @@ import zipfile
 
 import pytest
 
-from inferrsi.infra.artifacts import sha256, write_json
+from inferrsi.apps.artifacts import sha256, write_json
 from tests.fixtures.skill_eval_compare_support import FixedOutputClient
 from tests.fixtures.skill_eval_pr_support import SimulatedGitHub, approval, setup
 from tools import skill_eval_pr as integration

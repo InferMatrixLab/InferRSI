@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "authority": "This file owns archive URL, digest, size and retention metadata. tools/evidence_inventory.json references this file; it does not duplicate these fields.",
+  "source_revision": "2e850be2a2f9e4b38e1eec7741be1f406f69a532",
+  "archive": {
+    "file": "h3-image-ascend-2e850be2-v1.tar.gz",
+    "url": "https://github.com/InferMatrixLab/InferRSI/releases/download/evidence-h3-image-ascend-v1/h3-image-ascend-2e850be2-v1.tar.gz",
+    "sha256": "311103c65d5ceafeaa30feb4c94b422e1e26c9cbc6fc1d22e9b01b3be0b6e075",
+    "bytes": 73535605,
+    "format": "tar+gzip",
+    "retention_owner": "amy-why-3459",
+    "original_files": 156,
+    "original_bytes": 74543002,
+    "trial_ids": "Every id in results/trials.jsonl; id stem names an archived results JSON and suffix is its JSON Pointer. Repeated configurations retain distinct source offsets.",
+    "key_files": {
+      "file_identities": "snapshot.json",
+      "frozen_hashes": "h3-image-ascend/export-manifest.json",
+      "historical_narrative": "h3-image-ascend/README.md",
+      "configuration": "h3-image-ascend/plan/",
+      "validators": "h3-image-ascend/validator/"
+    }
+  },
+  "retained_files": "plan/retained-sha256.json",
+  "verification": {
+    "entry": "python evidence/h3-image-ascend/validator/archive.py --download",
+    "offline": "python tools/validate_evidence.py checks manifest digests and layout without downloading; absent archive content remains explicitly unavailable.",
+    "comparison": "Exact derived JSON values and counts; HTTP medians exactly recomputed from stored samples. Recorded image-score aggregates do not rerun image validators.",
+    "archive_safety": "Authenticate bytes and SHA-256 before bounded in-memory reading. No archived code execution or filesystem extraction. Reject links, devices, duplicate/unsafe paths; cap files, expanded bytes and elapsed time."
+  },
+  "availability_limits": [
+    "This archive preserves only the already public export; no private artifacts were added.",
+    "Most original images, activation tensors, historical candidate source snapshots and host/profiler logs were not published and remain unavailable for independent replay.",
+    "Six representative full-resolution round-two PNGs are archived; the other 24 images in that numerical screen are not included.",
+    "Source digests in historical source-manifest files identify external snapshots and are not verification of those unavailable source bytes.",
+    "Final ABBA, full visual acceptance and cross-hardware reference quality remain incomplete; all latency targets remain unmet."
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "patch/revision.json": "d8396389afd8c9c5565f9834e1a4ab092813e74c78285c921f7453b27a84235b",
+  "plan/environment.json": "9b404a74007446fbbd6343383ebf8d18be446068d2018eb330c964473f54c45e",
+  "plan/provenance.json": "a58206b9cb0f2dc1f0a51c71ce929630a3552a13bd7fdd5ced290a71945c28d6",
+  "plan/quality-exploration.json": "332c095aa72606623be2a853bc4801f14703d4738ef1d9108a46649b587646e5",
+  "plan/workload.json": "b3311996b012195f574d4c3a143c4ee26029d55d54bb84c0c6b243fbd07dce85",
+  "validator/benchmark.py": "c889b1a3749f9fac69f557f398a870fd8091dee3f86eb36bba55dddf90e738aa",
+  "validator/plan/quality-exploration.json": "332c095aa72606623be2a853bc4801f14703d4738ef1d9108a46649b587646e5",
+  "validator/validate_approximate_images.py": "cca717406aeeabecf96f3256bab542b9e3b1b326e22fff6f42a446f122934795",
+  "validator/validate_approximate_images_cached.py": "5a5abe6f2bc49b2563ba7c8bd4f53fc2d937b92605d3afebf0df8c20e43028e7",
+  "validator/validate_images.py": "49c20f3edb895e30afba925155363512154c78817bc954b5990b73e1b506bc94"
+}

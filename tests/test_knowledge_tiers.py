@@ -6,23 +6,22 @@ from pathlib import Path
 
 import pytest
 
-from inferrsi import catalog
-from inferrsi.arguments import parser
-from inferrsi.catalog import get_knowledge, repository_pack, search_knowledge
-from inferrsi.cli import main
+from inferrsi.apps.cli import main
+from inferrsi.apps.cli.arguments import parser
 from inferrsi.knowledge import catalog as knowledge_catalog
+from inferrsi.knowledge.catalog import get_knowledge, search_knowledge
+from inferrsi.resources.repository_packs import repository_pack
 
-ROOT = Path(__file__).resolve().parents[1] / "src/inferrsi/data/knowledge_packs"
+ROOT = Path(__file__).resolve().parents[1] / "src/inferrsi/knowledge/data/skill_library/records"
 
 
 def test_external_snapshot_has_complete_navigation_and_pinned_sources():
-    paths = set(ROOT.glob("*/*/*/*/*.json"))
-    navigation = (ROOT / "README.md").read_text(encoding="utf-8")
-    links = re.findall(r"\]\(([^)]+\.json)\)", navigation)
-    assert {ROOT / link for link in links} == paths
+    paths = {p.stem for p in ROOT.glob("*.json")}
+    authored = knowledge_catalog.knowledge_records(include_skill_views=False)
+    assert paths == {r["id"] for r in authored}
     for tier in ("dependency", "peer"):
         records = search_knowledge(tier=tier, limit=100)
-        assert {r["repo"] for r in records} == set(catalog.KNOWLEDGE_SCOPES[tier])
+        assert {r["repo"] for r in records} == set(knowledge_catalog.KNOWLEDGE_SCOPES[tier])
         for record in records:
             assert record["status"] == "imported"
             assert record["verification"]["locally_verified"] is False
@@ -83,7 +82,9 @@ def test_misclassified_external_card_is_rejected_before_retrieval(
     else:
         record["tier"] = bad_tier
     target = (
-        tmp_path / "data/knowledge_packs/dependency/flashinfer/cuda/llm/paged-decode-dispatch.json"
+        tmp_path
+        / "knowledge/data/skill_library/records"
+        / "flashinfer.cuda.llm.paged_decode_dispatch.json"
     )
     target.parent.mkdir(parents=True)
     target.write_text(json.dumps(record))
@@ -94,7 +95,7 @@ def test_misclassified_external_card_is_rejected_before_retrieval(
 
 
 def test_legacy_engine_library_and_peer_cards_coexist_without_duplicate_choices():
-    assert len(catalog.KNOWLEDGE_REPOS) == len(set(catalog.KNOWLEDGE_REPOS))
+    assert len(knowledge_catalog.KNOWLEDGE_REPOS) == len(set(knowledge_catalog.KNOWLEDGE_REPOS))
     contribution = search_knowledge(tier="contribution", repo="sglang", limit=100)
     peer = search_knowledge(tier="peer", repo="sglang", limit=100)
     assert len(contribution) == 3 and all("skill_documents" in r for r in contribution)

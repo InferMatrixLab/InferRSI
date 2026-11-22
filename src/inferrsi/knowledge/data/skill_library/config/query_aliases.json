@@ -1,0 +1,207 @@
+{
+  "schema_version": 1,
+  "_comment": [
+    "Query-side term aliases for `inferrsi find`.",
+    "",
+    "The packaged library is written in English by repository policy, but the",
+    "people searching it work in Chinese. The corpus holds only a few hundred",
+    "distinct Chinese characters, almost all incidental, so a Chinese query",
+    "scores on whichever characters happen to appear rather than on its subject.",
+    "Every concept below already exists in the corpus under its English name;",
+    "what is missing is the route from one to the other.",
+    "",
+    "Direction is one-way: a query term expands to corpus terms, never the",
+    "reverse. Expanding a narrow term into a broad one (Ascend -> every NPU)",
+    "would widen results rather than find them, so entries stay specific.",
+    "",
+    "Values are spellings verified to occur in this corpus. A term whose English",
+    "form is absent does not belong here; it belongs in the corpus first.",
+    "Keep the list short: a broad alias costs precision on every query that",
+    "touches it, and an unused one is upkeep with no return. Add a term when a",
+    "real query misses because of it.",
+    "",
+    "JSON rather than YAML because the base install is PyYAML-free by contract.",
+    "",
+    "synonyms: English terms the corpus and its readers spell differently. Same one-way, query-side rule as aliases; listed separately so the Chinese map stays a translation table rather than a thesaurus."
+  ],
+  "aliases": {
+    "显存": [
+      "device memory",
+      "hbm"
+    ],
+    "内存": [
+      "host memory",
+      "memory"
+    ],
+    "昇腾": [
+      "ascend"
+    ],
+    "分配器": [
+      "allocator"
+    ],
+    "碎片": [
+      "fragmentation"
+    ],
+    "驻留": [
+      "residency"
+    ],
+    "占用": [
+      "occupancy",
+      "utilization"
+    ],
+    "算子": [
+      "operator",
+      "kernel"
+    ],
+    "启动": [
+      "startup",
+      "initialization"
+    ],
+    "初始化": [
+      "initialization",
+      "startup"
+    ],
+    "融合": [
+      "fusion",
+      "fused"
+    ],
+    "图模式": [
+      "graph mode",
+      "aclgraph",
+      "cuda graph"
+    ],
+    "捕获": [
+      "capture"
+    ],
+    "重放": [
+      "replay"
+    ],
+    "预热": [
+      "warmup"
+    ],
+    "调度": [
+      "scheduling",
+      "scheduler"
+    ],
+    "并发": [
+      "concurrency",
+      "concurrent"
+    ],
+    "批量": [
+      "batch"
+    ],
+    "吞吐": [
+      "throughput"
+    ],
+    "时延": [
+      "latency"
+    ],
+    "延迟": [
+      "latency"
+    ],
+    "排空": [
+      "drain"
+    ],
+    "准入": [
+      "admission"
+    ],
+    "抢占": [
+      "preemption"
+    ],
+    "量化": [
+      "quantization"
+    ],
+    "精度": [
+      "precision"
+    ],
+    "权重": [
+      "weights",
+      "weight loading"
+    ],
+    "加载": [
+      "loading"
+    ],
+    "缓存": [
+      "cache",
+      "caching"
+    ],
+    "前缀缓存": [
+      "prefix cache"
+    ],
+    "推理": [
+      "inference"
+    ],
+    "服务": [
+      "serving",
+      "service"
+    ],
+    "请求": [
+      "request"
+    ],
+    "基线": [
+      "baseline"
+    ],
+    "候选": [
+      "candidate"
+    ],
+    "对照": [
+      "control",
+      "controlled"
+    ],
+    "复现": [
+      "reproduce",
+      "reproducibility"
+    ],
+    "回归": [
+      "regression"
+    ],
+    "验收": [
+      "acceptance",
+      "gate"
+    ],
+    "质量门": [
+      "quality gate"
+    ],
+    "语音识别": [
+      "asr",
+      "wer"
+    ],
+    "误码率": [
+      "wer"
+    ],
+    "指标": [
+      "metric",
+      "measurement"
+    ],
+    "证据": [
+      "evidence"
+    ],
+    "冻结": [
+      "frozen"
+    ],
+    "剖析": [
+      "profile",
+      "profiling"
+    ],
+    "瓶颈": [
+      "bottleneck"
+    ],
+    "上限": [
+      "ceiling",
+      "roofline",
+      "headroom"
+    ]
+  },
+  "synonyms": {
+    "startup": [
+      "initialization"
+    ],
+    "initialization": [
+      "startup"
+    ],
+    "vram": [
+      "device memory",
+      "hbm"
+    ]
+  }
+}

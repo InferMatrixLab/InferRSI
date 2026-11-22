@@ -23,13 +23,17 @@ Discovery reads packaged resources and works without device libraries.
 
 ```bash
 inferrsi benchmarks list
+inferrsi benchmarks list --iterative
 inferrsi benchmarks show moe-forward-npu
 inferrsi benchmarks show qwen21-denoise-npu
 inferrsi benchmarks show qwen3-tts-npu
 ```
 
 The library's `index.json` registers the packages. Common Python reads this
-registry without embedding case names. `show` returns the task manifest and
+registry without embedding case names. The `--iterative` filter lists tasks
+whose package root contains an `optimization.py` file. It checks only for the
+file, so listing works without importing task code or probing a device.
+`show` returns the task manifest and
 the package's files without interpreting workload-specific fields.
 `run <package> ...` executes that package's `benchmark.py` with the remaining
 arguments unchanged. Each package owns its entry, measurement and assessment code. Review the implementation and
@@ -47,19 +51,19 @@ inferrsi benchmarks run qwen21-denoise-npu --help
 inferrsi benchmarks run qwen3-tts-npu --help
 ```
 
-MoE owns `benchmark.py`, `grader.py` and its torchrun cleanup helper. The application
-adapter injects the generic Harness executor into its entry. Python callers
-provide the `execute_trial` argument explicitly. TTS owns `benchmark.py` and
-`evaluation.py`, alongside its inference and service implementation. The image
+MoE owns `benchmark.py` (which holds its torchrun cleanup helper) and `grader.py`. The
+application adapter injects the generic Harness executor into its entry. Python callers
+provide the `execute_trial` argument explicitly. TTS owns one `benchmark.py` with its
+CLI and evaluation, alongside its inference and service implementation. The image
 and TTS entries also run directly by file path.
 
 ## Directory ownership
 
 ```text
 src/inferrsi/
-  arguments.py                     Existing CLI argument assembly
-  cli.py                           Existing command dispatch
-  benchmark_operations.py          Application child launcher and executor injection
+  apps/
+    cli/                           CLI command dispatch and argument assembly
+    benchmark_operations.py        Application child launcher and executor injection
   harness/
     optimization.py                Current-Agent session budget, records and recovery
     usage.py                       Shared usage normalization and totals
@@ -84,7 +88,9 @@ therefore stay with their task definitions.
 The application child adapter executes the entry with `runpy`, providing the
 generic `execute_trial` callback as an initial global. MoE's script entry passes
 that callback explicitly to `main` and `evaluate`. The task package depends on
-the supplied execution function. The existing flat CLI and adapter are the
+the supplied execution function. The Harness executor holds no metric rule, so
+the MoE entry passes its own metric validation (`metric=read_metric`) with the
+metric key. The existing flat CLI and adapter are the
 application assembly seam until the Apps path migration.
 
 To add a task, create its package with the files shown above and register its

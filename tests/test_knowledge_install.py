@@ -1,5 +1,6 @@
 """Clean-install contracts: package-only commands without PyYAML and the real-CLI checkout chain."""
 
+import hashlib
 import json
 import os
 import subprocess
@@ -8,10 +9,10 @@ from pathlib import Path
 
 import pytest
 
-from inferrsi.knowledge_operations import KnowledgeReader
+from inferrsi.knowledge.knowledge_operations import KnowledgeReader
 
 REPO = Path(__file__).resolve().parents[1]
-SKILLS = REPO / "src" / "inferrsi" / "data" / "skill_library"
+SKILLS = REPO / "src" / "inferrsi" / "knowledge" / "data" / "skill_library"
 SOURCE = "calibrate-serving-simulation"
 
 
@@ -57,6 +58,101 @@ def test_package_only_commands_work_without_pyyaml(without_yaml):
     result = _run(["read", items[0]["id"]], env)
     assert result.returncode == 0, result.stderr
     assert json.loads(result.stdout)["id"] == items[0]["id"]
+
+    query = "ascend graph mode"
+    catalog = _run(["knowledge", "search", query, "--limit", "1", "--explain"], env)
+    assert catalog.returncode == 0, catalog.stderr
+    searched = json.loads(catalog.stdout)
+    target = "inferrsi.ascend.skills.ascend_graph_mode"
+    assert searched["items"][0]["id"] == target
+    assert searched["retrieval"]["selection"]["method"] == "find-lexical-v1"
+
+    research = _run(["knowledge", "research", query, "--limit", "1"], env)
+    assert research.returncode == 0, research.stderr
+    assert json.loads(research.stdout)["items"][0]["record"]["id"] == target
+
+
+def test_packaged_skill_search_and_resource_work_without_pyyaml(without_yaml, tmp_path):
+    env = _cli_env(without_yaml)
+    query = "ascend graph mode"
+    found = _run(["find", query, "--kinds", "skill", "--limit", "1", "--json"], env)
+    assert found.returncode == 0, found.stderr
+    hit, = json.loads(found.stdout)["items"]
+    assert hit["id"] == "ascend-graph-mode"
+    opened = _run(hit["read_args"], env)
+    assert opened.returncode == 0, opened.stderr
+    read = json.loads(opened.stdout)
+
+    collected = _run(["collect", "--relevance", query, "--limit", "1", "--material", "--json"], env)
+    assert collected.returncode == 0, collected.stderr
+    packaged, = json.loads(collected.stdout)["items"]
+    assert packaged["authority"] == "package"
+    original = packaged["skill_documents"]["original"]
+    expected = (SKILLS / Path(original).relative_to("data/skill_library")).read_bytes()
+    assert read["id"] == packaged["id"]
+    assert read["revision"] == packaged["revision"]
+    assert read["content_resource"] == original
+    assert read["content"].encode("utf-8") == expected
+    assert hit["next_read_content_bytes"] == len(expected)
+
+    output = tmp_path / "packaged-skill.md"
+    fetched = _run([
+        "resource", packaged["ref"], original, "--revision", packaged["revision"],
+        "--output", str(output),
+    ], env)
+    assert fetched.returncode == 0, fetched.stderr
+    assert output.read_bytes() == expected
+
+
+def test_capture_scope_skill_delivers_packaged_text_without_pyyaml(without_yaml, tmp_path):
+    campaign = tmp_path / "campaign"
+    env = _cli_env(without_yaml)
+    created = _run(["campaign", "init", "--directory", str(campaign), "--id", "lean"], env)
+    assert created.returncode == 0, created.stderr
+    result = _run([
+        "campaign", "capture-context", "--directory", str(campaign), "--id", "r1",
+        "--kind", "skill", "--limit", "1", "ascend graph mode",
+    ], env)
+    assert result.returncode == 0, result.stderr
+    capture = json.loads((campaign / json.loads(result.stdout)["context"]).read_bytes())
+    item, = capture["items"]
+    context, = capture["contexts"]
+    assert item["ref"] == "package:inferrsi.ascend.skills.ascend_graph_mode"
+    assert context["revision"] == item["revision"]
+    original = context["resources"][0]
+    assert original["path"] == item["skill_documents"]["original"]
+    source = (
+        SKILLS / Path(original["path"]).relative_to("data/skill_library")
+    ).read_bytes()
+    assert original["locator"] == "skill-procedure"
+    assert hashlib.sha256(source).hexdigest() == original["source_sha256"]
+    procedure = b"".join(source[start:end] for start, end in original["source_byte_ranges"])
+    assert original["content"].encode() == procedure
+    assert hashlib.sha256(procedure).hexdigest() == original["sha256"]
+    assert capture["omissions"] == []
+
+
+def test_custom_skill_does_not_open_the_installed_projection_without_pyyaml(without_yaml, tmp_path):
+    relative = "hardware/ascend/ascend-graph-mode"
+    directory = tmp_path / relative
+    directory.mkdir(parents=True)
+    (directory / "SKILL.md").write_text(
+        "---\nname: ascend-graph-mode\ndescription: Ascend graph mode experiment\n---\n"
+        "This is a private local observation.\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "skill-index.json").write_text(json.dumps({
+        "schema_version": 1,
+        "skills": {"ascend-graph-mode": {"path": relative, "backend": "ascend"}},
+    }), encoding="utf-8")
+    result = _run([
+        "find", "ascend graph mode", "--skill-root", str(tmp_path), "--kinds", "skill", "--json",
+    ], _cli_env(without_yaml))
+    assert result.returncode == 0, result.stderr
+    hit, = json.loads(result.stdout)["items"]
+    assert hit["source_location"] == "checkout"
+    assert "PyYAML" in hit["unreadable"]
+    assert "read_args" not in hit
 
 
 def test_skill_root_without_pyyaml_fails_with_install_hint(without_yaml):

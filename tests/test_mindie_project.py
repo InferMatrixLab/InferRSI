@@ -2,8 +2,9 @@ import hashlib
 import json
 from pathlib import Path
 
-from inferrsi import mindie_mcp, mindie_project
-from inferrsi.cli import main
+from inferrsi.apps.cli import main
+from inferrsi.apps.integrations.mindie import mcp as mindie_mcp
+from inferrsi.apps.integrations.mindie import project as mindie_project
 
 
 def test_project_enable_discover_read_and_revoke(tmp_path, monkeypatch, capsys):

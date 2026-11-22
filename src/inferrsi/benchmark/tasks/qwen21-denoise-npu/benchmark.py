@@ -24,6 +24,38 @@ class CandidateContractError(ValueError):
     """The candidate could not satisfy the Python entry contract before execution."""
 
 
+class CandidateDependencyError(RuntimeError):
+    """A known missing optional dependency; baseline recheck is still required."""
+
+    def __init__(self, module):
+        super().__init__(f"Candidate requires unavailable optional dependency: {module}")
+        self.module = module
+
+
+def invoke_compute(function, inputs, params, config, *, candidate, baseline_verified):
+    # Catch only the submitted function call, never setup, synchronization or
+    # reference checks. TBE is optional for this task's trusted baseline; older
+    # native candidate kernels can require it. Other missing modules stay unknown.
+    try:
+        return function(*inputs, params, config=config)
+    except ModuleNotFoundError as error:
+        if (candidate and baseline_verified and isinstance(error.name, str)
+                and error.name.split(".", 1)[0] == "tbe"):
+            raise CandidateDependencyError(error.name) from error
+        raise
+    except RuntimeError as error:
+        # CANN wraps the Python import failure in an ACL RuntimeError. Require
+        # its specific compiler/import diagnostic, not an ACL code or "tbe" alone.
+        message = str(error)
+        if candidate and baseline_verified and all(part in message for part in (
+            "AclSetCompileopt(aclCompileOpt::ACL_PRECISION_MODE",
+            "Environment_Error_Import_Python_Module_Failed(EC0010)",
+            "Failed to import Python module ModuleNotFoundError: No module named 'tbe'.",
+        )):
+            raise CandidateDependencyError("tbe") from error
+        raise
+
+
 def candidate_function(path):
     # Compile independently so only syntax errors in the submitted file are
     # attributed to the candidate, not failures importing its runtime dependencies.
@@ -36,6 +68,8 @@ def candidate_function(path):
         raise CandidateContractError("Candidate must define callable compute")
     try:
         inspect.signature(function).bind(*(None,) * 6, config={})
+    except ValueError as exc:
+        raise CandidateContractError("Candidate compute signature cannot be inspected") from exc
     except TypeError as exc:
         raise CandidateContractError("compute does not accept the task arguments") from exc
     return function
@@ -113,24 +147,41 @@ def run(args, output, record):
     record["phase"] = "candidate_import"
     record["round_consumed"] = True
     functions["candidate"] = candidate_function(source / "candidate.py")
+    verified_baselines = set()
 
-    def invoke(label, inputs, params, config, expected, phase, pair=None, sample=None):
+    def invoke(label, call_inputs, params, config, expected, phase, pair=None, sample=None):
         record["phase"] = label + "_" + phase
         original = [
             (value, value.detach().cpu().clone(), value.stride(), value.device)
-            for value in tensors((inputs, params))
+            for value in tensors((call_inputs, params))
         ]
         synchronize()
         started = time.perf_counter_ns()
-        result = functions[label](*inputs, params, config=config)
+        try:
+            result = invoke_compute(functions[label], call_inputs, params, config,
+                                    candidate=label == "candidate",
+                                    baseline_verified=config["id"] in verified_baselines)
+        except CandidateDependencyError as error:
+            failed_phase = record["phase"]
+            record["dependency_failure"] = {"case": config["id"], "phase": failed_phase,
+                                            "module": error.module, "error": str(error.__cause__)}
+            # Retry only the trusted baseline on pristine request inputs and its
+            # own parameter storage. Any sync, execution or quality failure here
+            # keeps the baseline phase and blocks the campaign. Never retry the
+            # failed candidate or reuse its potentially modified tensors.
+            invoke("baseline", workload.map_tensors(inputs, lambda t: t.clone()),
+                   separate_params["baseline"], config, expected, "recovery_check")
+            record["baseline_recheck"] = {"case": config["id"], "correctness": "PASS"}
+            record["phase"] = failed_phase
+            raise
         synchronize()
         elapsed = (time.perf_counter_ns() - started) / 1e6
-        shape = (inputs[3].numel() - 1, *inputs[0].shape)
+        shape = (call_inputs[3].numel() - 1, *call_inputs[0].shape)
         if (
             not isinstance(result, torch.Tensor)
             or tuple(result.shape) != shape
-            or result.dtype != inputs[0].dtype
-            or result.device != inputs[0].device
+            or result.dtype != call_inputs[0].dtype
+            or result.device != call_inputs[0].device
         ):
             raise OutputValidationError("Wrong trajectory shape, dtype or device")
         for value, previous, stride, device_before in original:
@@ -173,6 +224,8 @@ def run(args, output, record):
         if not valid:
             raise OutputValidationError(
                 f"Trajectory failed numerical checks, per-step NRMSE={nrmse}")
+        if label == "baseline":
+            verified_baselines.add(config["id"])
         return elapsed
 
     preparation = 0.0
@@ -324,7 +377,10 @@ def main():
         ):
             raise ValueError("Frozen source changed during evaluation")
     except Exception as error:
-        candidate_failure = (isinstance(error, (OutputValidationError, CandidateContractError))
+        explicit_rejection = isinstance(error, (OutputValidationError, CandidateContractError))
+        checked_dependency = (isinstance(error, CandidateDependencyError)
+                              and record.get("baseline_recheck", {}).get("correctness") == "PASS")
+        candidate_failure = ((explicit_rejection or checked_dependency)
                              and record["phase"].startswith("candidate_"))
         record.update(
             status="candidate_failure" if candidate_failure else "infrastructure_failure",
@@ -332,6 +388,9 @@ def main():
             error=str(error),
             speedup=None,
         )
+        if isinstance(error, CandidateDependencyError):
+            record["failure_kind"] = "unsupported_candidate_dependency"
+            record["missing_module"] = error.module
         (output / "error.log").write_text(traceback.format_exc(), encoding="utf-8")
     record["elapsed_seconds"] = time.perf_counter() - started
     (output / "result.json").write_text(json.dumps(record, indent=2), encoding="utf-8")

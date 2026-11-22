@@ -1,10 +1,10 @@
 from pathlib import Path
 
-from inferrsi.catalog import get_knowledge, search_knowledge
-from inferrsi.knowledge_operations import KnowledgeReader
-from inferrsi.skill_catalog import skill_metadata, skill_resource
+from inferrsi.knowledge.catalog import get_knowledge, search_knowledge
+from inferrsi.knowledge.knowledge_operations import KnowledgeReader
+from inferrsi.knowledge.skill_catalog import skill_metadata, skill_resource
 
-LIBRARY = Path(__file__).resolve().parents[1] / "src/inferrsi/data/skill_library"
+LIBRARY = Path(__file__).resolve().parents[1] / "src/inferrsi/knowledge/data/skill_library"
 SKILL = "lazy-evaluation-stream-lifetimes"
 IDENTITY = "inferrsi.common.skills.lazy_evaluation_stream_lifetimes"
 
@@ -17,7 +17,7 @@ def test_mlx_candidate_preserves_source_state_and_owner_resources():
         "bff10220c742907f0c68e55ff174aaea56f74e3d"
     )
     resource = skill_resource(LIBRARY, SKILL, "references/source-map.md")
-    assert resource.is_relative_to(LIBRARY / "frameworks/mlx" / SKILL)
+    assert resource.is_relative_to(LIBRARY / "systems/frameworks/mlx" / SKILL)
     assert "TEST-SOURCE" in resource.read_text(encoding="utf-8")
 
 

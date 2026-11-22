@@ -1,6 +1,7 @@
 """CLI contracts for the collect / read / resource knowledge commands."""
 
 import contextlib
+import hashlib
 import io
 import json
 import tempfile
@@ -8,12 +9,12 @@ from pathlib import Path
 
 import pytest
 
-from inferrsi.cli import main
-from inferrsi.knowledge_operations import Bundle, KnowledgeReader
-from inferrsi.knowledge_store import KnowledgeStore
+from inferrsi.apps.cli import main
+from inferrsi.knowledge.knowledge_operations import Bundle, KnowledgeReader
+from inferrsi.knowledge.knowledge_store import KnowledgeStore
 
 REPO = Path(__file__).resolve().parents[1]
-SKILLS = REPO / "src/inferrsi/data/skill_library"
+SKILLS = REPO / "src/inferrsi/knowledge/data/skill_library"
 SOURCE = "calibrate-serving-simulation"
 LOCAL = f"{SOURCE}-local"
 
@@ -34,6 +35,19 @@ def run_cli_error(*argv):
     return stderr.getvalue()
 
 
+def test_enter_rejects_a_primary_with_no_instructions(tmp_path):
+    owner = tmp_path / "task-accuracy"
+    owner.mkdir()
+    (owner / "metadata.json").write_text(
+        '{"discovery_role":"task-entry","tags":["primary-task"]}', encoding="utf-8"
+    )
+    (owner / "SKILL.md").write_text(
+        "---\nname: task-accuracy\ndescription: Missing body\n---\n", encoding="utf-8"
+    )
+    error = run_cli_error("skills", "--root", str(tmp_path), "enter", "task-accuracy")
+    assert "requires frontmatter and instructions" in error
+
+
 def local_candidate(source: Bundle) -> Bundle:
     return Bundle(
         {
@@ -47,12 +61,48 @@ def local_candidate(source: Bundle) -> Bundle:
     )
 
 
-def test_collect_defaults_to_package_with_query_and_limit():
-    code, stdout, _ = run_cli("collect", "Qwen", "--limit", "3", "--json")
-    assert code == 0
+def test_collect_inventory_defaults_to_package_with_limit():
+    code, stdout, stderr = run_cli("collect", "--limit", "3", "--json")
+    assert code == 0 and not stderr
     envelope = json.loads(stdout)
-    assert envelope["items"] and len(envelope["items"]) <= 3
+    assert len(envelope["items"]) == 3
     assert all(item["authority"] == "package" for item in envelope["items"])
+    assert not envelope["retrieval"]["selection"]["ranking_applied"]
+
+
+def test_catalog_and_collect_share_package_rank_with_the_same_filters():
+    query = "graph mode dynamic shapes"
+    filters = ("--repo-type", "inferrsi", "--backend", "ascend", "--limit", "4")
+    code, stdout, stderr = run_cli("knowledge", "search", query, *filters, "--explain")
+    assert code == 0 and "Find ranking" in stderr
+    catalog = json.loads(stdout)
+    code, stdout, stderr = run_cli("collect", "--kind", "knowledge", query, *filters, "--json")
+    assert code == 0 and "Find ranking" in stderr
+    collect = json.loads(stdout)
+    expected = [(item["ref"], item["score"]) for item in catalog["retrieval"]["items"]]
+    assert len(expected) == 4
+    assert [(item["ref"], item["score"]) for item in collect["retrieval"]["items"]] == expected
+    assert catalog["retrieval"]["calls"] == ["knowledge search", "find"]
+    assert collect["retrieval"]["calls"] == ["collect", "find"]
+
+
+def test_collect_accepts_find_as_an_explicit_ranking_method():
+    query = "cache per-step masks ran out of device memory"
+    method = ("--relevance-method", "find-lexical-v1")
+    code, stdout, _ = run_cli("collect", query, *method, "--kind", "case", "--json")
+    assert code == 0
+    result = json.loads(stdout)
+    assert result["selection"]["method"] == "find-lexical-v1"
+    assert result["items"][0]["ref"] == "checkout:case.qwen-ascend-rejected-directions"
+    code, stdout, stderr = run_cli("collect", "--relevance", query, "--kind", "case", "--json")
+    assert code == 0 and "Find ranking" in stderr
+    assert json.loads(stdout)["items"] == result["items"]
+    stderr = run_cli_error("collect", query, *method, "--id", f"package:{SOURCE}")
+    assert "explicit IDs" in stderr
+    stderr = run_cli_error("collect", query, *method, "--relevance", "cache")
+    assert "one" in stderr and "relevance" in stderr
+    stderr = run_cli_error("collect", query, "--relevance-method", "weighted-lexical-v1")
+    assert "find-lexical-v1" in stderr
 
 
 def test_collect_reports_explicit_no_match_with_omission_reason():
@@ -84,6 +134,56 @@ def test_read_returns_bundle_view_and_rejects_wrong_revision():
         "read", SOURCE, "--revision", f"sha256:{'0' * 64}", "--skill-root", str(SKILLS)
     )
     assert "unavailable" in stderr
+
+
+@pytest.mark.parametrize("authority", ["checkout", "store"])
+def test_material_delivers_procedure_and_exact_resource_preserves_raw_source(authority, tmp_path):
+    identity = f"checkout:{SOURCE}"
+    source_args = ["--skill-root", str(SKILLS)]
+    if authority == "store":
+        source = KnowledgeReader(skill_root=SKILLS).read(identity)
+        KnowledgeStore(tmp_path, skill_root=SKILLS).create(local_candidate(source))
+        identity = f"store:{LOCAL}"
+        source_args += ["--store", str(tmp_path)]
+    code, stdout, stderr = run_cli("read", identity, "--material", "--omit-resources", *source_args)
+    assert code == 0, stderr
+    view = json.loads(stdout)
+    code, stdout, stderr = run_cli(
+        "read", identity, "--revision", view["revision"], "--resource", view["entrypoint"],
+        "--omit-resources", *source_args,
+    )
+    assert code == 0, stderr
+    raw = json.loads(stdout)["content"].encode("utf-8")
+    delivered = view["content"].encode("utf-8")
+    assert b"  inferrsi: |" in raw and b"  inferrsi: |" not in delivered
+    assert raw.split(b"---", 2)[2] == delivered.split(b"---", 2)[2]
+    proof = view["content_view"]
+    assert proof["locator"] == "skill-procedure"
+    assert proof["source_sha256"] == hashlib.sha256(raw).hexdigest()
+    assert proof["sha256"] == hashlib.sha256(delivered).hexdigest()
+    assert delivered == b"".join(raw[start:end] for start, end in proof["source_byte_ranges"])
+
+
+@pytest.mark.parametrize("identity", [
+    "package:vllm_omni.common.diffusion.step_state_and_output_validation",
+    "package:inferrsi.common.skills.calibrate_serving_simulation",
+])
+def test_read_can_omit_inventory_without_changing_material_or_revision(identity):
+    args = ("read", identity, "--material")
+    code, stdout, stderr = run_cli(*args)
+    assert code == 0, stderr
+    full = json.loads(stdout)
+    assert "record.json" in full["resources"]
+    assert "content_view" not in full
+    assert full["resources"]["record.json"] == hashlib.sha256(full["content"].encode()).hexdigest()
+    assert full["required_resources"]
+
+    code, stdout, stderr = run_cli(*args, "--omit-resources", "--revision", full["revision"])
+    assert code == 0, stderr
+    assert json.loads(stdout) == {
+        key: value for key, value in full.items()
+        if key not in ("resources", "required_resources")
+    }
 
 
 def test_resource_writes_exact_bytes_of_requested_revision():
@@ -237,7 +337,7 @@ def test_collect_text_lines_match_the_json_envelope():
 
 
 def test_collect_reports_no_match_omissions_and_collisions_in_text_mode(tmp_path):
-    code, stdout, _ = run_cli("collect", "definitely-no-such-knowledge-anywhere")
+    code, stdout, _ = run_cli("collect", "zzcollectnomatchqvf")
     assert code == 0
     assert stdout.strip() == (
         "no_match\tnothing selected from the requested sources; "

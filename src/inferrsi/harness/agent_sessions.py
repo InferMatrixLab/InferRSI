@@ -10,7 +10,8 @@ import time
 import uuid
 from pathlib import Path
 
-from ..infra.artifacts import atomic_write_json, digest, file_lock, sha256
+from .artifact_primitives import digest, file_lock, sha256
+from .atomic_json import atomic_write_json
 from .usage import normalize_usage
 
 TERMINAL = {"completed", "failed", "cancelled"}
@@ -46,6 +47,18 @@ def _retain(root, raw):
     return {"path": name, "sha256": sha256(root / name)}
 
 
+def _verify_retained(root, records, label):
+    if not isinstance(records, list):
+        raise ValueError(f"Malformed retained {label} list")
+    for record in records:
+        if not (isinstance(record, dict) and all(
+            isinstance(record.get(key), str) and record[key] for key in ("path", "sha256")
+        )):
+            raise ValueError(f"Malformed retained {label} reference")
+        if sha256(root / record["path"]) != record["sha256"]:
+            raise ValueError(f"Retained {label} changed")
+
+
 def _load(root):
     request = json.loads((root / "request.json").read_text(encoding="utf-8"))
     state = json.loads((root / "state.json").read_text(encoding="utf-8"))
@@ -56,12 +69,16 @@ def _load(root):
     for source in request["frozen_inputs"]:
         if sha256(source["path"]) != source["sha256"]:
             raise ValueError("Frozen Agent input changed")
-    for record in state["receipts"]:
-        if sha256(root / record["path"]) != record["sha256"]:
-            raise ValueError("Retained host receipt changed")
-    for artifact in state["artifacts"]:
-        if sha256(root / artifact["path"]) != artifact["sha256"]:
-            raise ValueError("Retained Agent artifact changed")
+    receipts = state.get("receipts")
+    _verify_retained(root, receipts, "host receipt")
+    last_observation = None
+    for record in reversed(receipts):
+        if record.get("kind") == "caller_exported_native_observation":
+            last_observation = {"path": record["path"], "sha256": record["sha256"]}
+            break
+    if "last_observation" not in state or state["last_observation"] != last_observation:
+        raise ValueError("Malformed retained host observation reference")
+    _verify_retained(root, state.get("artifacts"), "Agent artifact")
     return request, state
 
 

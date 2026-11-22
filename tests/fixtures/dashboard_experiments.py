@@ -10,8 +10,8 @@ import json
 import sys
 from pathlib import Path
 
-from inferrsi.observability.dashboard import write_dashboard
-from inferrsi.observability.optimization_log import record_log
+from inferrsi.apps.views.dashboard import write_dashboard
+from inferrsi.harness.records.optimization_log import record_log
 
 
 def write(path: Path, data: dict) -> dict:
@@ -58,6 +58,28 @@ def external(root, name, round_number, metrics, *, candidate_id=None, quality="P
     })
 
 
+def native_inputs(run, workload, metric_key, metric_unit, direction):
+    write(run / "run.lock.json", {
+        "model": "synthetic-model", "model_revision": "fixture-v1", "backend": "cuda",
+        "workload_id": workload, "scenario": "http", "comparison_scope": "http_e2e",
+        "device_ids": ["0"], "baseline_command": ["python", "benchmark.py"],
+        "candidate_command": ["python", "benchmark.py"],
+        "validation_command": ["python", "validate.py"], "repetitions": 3,
+        "metric_key": metric_key, "metric_unit": metric_unit, "direction": direction,
+        "min_improvement_pct": 10,
+    })
+    write(run / "repositories.lock.json", {"baseline": {"snapshot_hash": "a" * 64}})
+    write(run / "environment.json", {
+        "host": {"platform": "synthetic-os"},
+        "target_python": {"environment": {"python": "synthetic-version",
+                                           "packages": {"torch": "fixture",
+                                                        "vllm": "fixture"}}},
+        "device": {"status": "available", "selection_verified": True,
+                   "devices": [{"index": "0", "uuid": "synthetic-device", "name": "fixture",
+                                "driver_version": "fixture"}]},
+    })
+
+
 def build(root: Path):
     root.mkdir(parents=True, exist_ok=True)
     write(root / "campaign.json", {"campaign_id": "synthetic-experiment-curves", "synthetic": True})
@@ -100,25 +122,7 @@ def build(root: Path):
         run = root / "runs" / name
         write(root / "candidates" / name / "candidate.json", {
             "candidate_id": "native-repeat", "title": name, "run_id": name, "round": 3})
-        write(run / "run.lock.json", {
-            "model": "synthetic-model", "model_revision": "fixture-v1", "backend": "cuda",
-            "workload_id": "W-throughput", "scenario": "http", "comparison_scope": "http_e2e",
-            "device_ids": ["0"], "baseline_command": ["python", "benchmark.py"],
-            "candidate_command": ["python", "benchmark.py"],
-            "validation_command": ["python", "validate.py"], "repetitions": 3,
-            "metric_key": "throughput", "metric_unit": "tokens/s", "direction": "maximize",
-            "min_improvement_pct": 10,
-        })
-        write(run / "repositories.lock.json", {"baseline": {"snapshot_hash": "a" * 64}})
-        write(run / "environment.json", {
-            "host": {"platform": "synthetic-os"},
-            "target_python": {"environment": {"python": "synthetic-version",
-                                               "packages": {"torch": "fixture",
-                                                            "vllm": "fixture"}}},
-            "device": {"status": "available", "selection_verified": True,
-                       "devices": [{"index": "0", "uuid": "synthetic-device", "name": "fixture",
-                                    "driver_version": "fixture"}]},
-        })
+        native_inputs(run, "W-throughput", "throughput", "tokens/s", "maximize")
         write(run / "evaluation.json", {
             "verdict": "FAIL", "metric_key": "throughput", "metric_unit": "tokens/s",
             "direction": "maximize", "improvement_pct": value - 100,

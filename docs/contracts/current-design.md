@@ -25,14 +25,16 @@ Historical candidate text, review dispositions, and the earlier Proposed drafts 
 
 ## D001 — One distribution, three cores plus Apps, document contracts rather than shared business DTOs
 
-Decision: keep Knowledge, Harness, and Benchmark as sibling independent cores; Apps is the only assembler. Each core owns its types. Cross-boundary traffic uses versioned JSON envelopes with explicit conversion; there is no shared business `contracts` package. `contracts.py` remains a single-file `RunSpec` re-export. The legacy `claim.py` enum stays for compatibility but is not a new shared business model.
+Decision: keep Knowledge, Harness, and Benchmark as sibling independent cores; Apps is the only assembler. Each core owns its types. Cross-boundary traffic uses versioned JSON envelopes with explicit conversion; there is no shared business `contracts` package. The technical-only `inferrsi.contracts` package re-exports only `RunSpec`, defined once in `contracts/runspec.py`; `contracts/claim.py` owns the same Verdict enum re-exported by Harness. These are not shared business DTOs. The old root `contracts.py`, `runspec.py`, `claim.py`, and `_json_v1.py` files are retired without forwarding shells, and so are the old root `_repo_pack_data.py` and `evidence_paths.py`. R1 (#412) retired eleven more root modules the same way: the seven Knowledge compatibility shells, the three old-run forwarders `evaluation.py`, `execution.py` and `reporting.py`, and root `inspection.py`, whose host binding is now `inferrsi.apps.inspection` over the facts API in `inferrsi.apps.host.inspection`. [`CHANGELOG.md`](../../CHANGELOG.md) maps every retired path to its replacement and states the import and pickle impact.
 
 Permitted shared technical leaves are only:
 
-- `inferrsi._json_v1` — the canonical encoder (D002);
-- `inferrsi._repo_pack_data` — the neutral raw pack-data reader and the existing static data enumeration (D020).
+- `inferrsi.contracts.json_v1` — the canonical encoder (D002);
+- `inferrsi.contracts.runspec` and `inferrsi.contracts.claim` — the existing RunSpec and Verdict technical types, with only RunSpec re-exported by the package initializer;
+- `inferrsi.contracts.evidence` — the existing evidence segment names and pure path rules; it reads and writes no filesystem state and is not re-exported by the package initializer;
+- `inferrsi.resources.repository_packs` — the neutral raw pack-data reader and the existing static data enumeration (D020), formerly root `inferrsi._repo_pack_data`. Its parent initializer `resources/__init__.py` imports nothing. Outside Knowledge it has one permanent importer, `inferrsi.apps.host.inspection`, which binds only `repository_pack`; that exact rule is not a compatibility pair. A1 (#408) removed the separate temporary entry for root `arguments.py`: the moved parser `inferrsi.apps.cli.arguments` reads the same `REPO_TYPES` object through `inferrsi.knowledge.catalog` and does not import the leaf.
 
-The neutral leaf carries no target selection, task, scoring, scheduling, or public business DTO, and imports none of K/H/B/Apps.
+The neutral leaf carries no target selection, task, scoring, scheduling, or public business DTO, and imports none of K/H/B/Apps. It still finds the Harness-owned `pack.json` through `files("inferrsi").joinpath("harness", "data", "repo_packs", ...)`, so reading it never imports Harness. Creating the evidence directories is host I/O and stays in Apps, in `inferrsi.apps.storage.evidence_layout`; that module is not a shared leaf. The list is exact: a `contracts.` or `resources.` prefix admits no other module.
 
 Why: this matches the accepted A–D direction and removes the reverse dependency that a shared DTO package creates. Rejected: a shared business DTO package; Apps owning scoring/sampling/budget algorithms; creating empty packages to declare migration done.
 
@@ -96,7 +98,7 @@ Acceptance: T01–T14, T22–T24, including the same-key conflict, finished repl
 
 ## D007 — target resource tree
 
-Decision: `knowledge/data/{repo_packs/<pack>/knowledge,skill_library,knowledge_packs,research_profiles}`; `pack.json` separately at `harness/data/repo_packs/<pack>/pack.json`; the dashboard template at `Apps/views/templates/dashboard.html`. K01 migrates seven code modules only and moves no resources; K02 performs the three precise migration classes (importlib, checkout `Path`, plugin physical layout) with old logical pins/hashes preserved and without assuming a single loader.
+Decision: `knowledge/data/skill_library (records, configuration, compiled provenance and skill owners)`; `pack.json` separately at `harness/data/repo_packs/<pack>/pack.json`; the dashboard template at `Apps/views/templates/dashboard.html`. K01 migrates seven code modules only and moves no resources; K02 performs the three precise migration classes (importlib, checkout `Path`, plugin physical layout) with old logical pins/hashes preserved and without assuming a single loader.
 
 ## D008 — function ownership
 
@@ -112,6 +114,8 @@ These are target names; `src` does not yet contain a production RunStore or work
 ## D009 — first-wave gate policy
 
 Decision: see [`gate-policy-runstore-and-first-prs.md`](gate-policy-runstore-and-first-prs.md) §B. Seven precise Knowledge root compatibility re-exports are the entire first wave; the current gate is unchanged until a formal architecture review accepts the exact policy first. No dynamic import escapes, no star imports, no `sys.modules` substitution, no blanket `harness/*` exception. `overall isolation_complete` stays false while any allowlist entry or registered residual legacy edge exists.
+
+That is the first-wave decision as it was taken, and the older contract documents keep it as written. Current status after R1 (#412): the seven root re-exports are deleted and the allowlist is empty. D018 below records what replaced the last pair and what still keeps isolation false.
 
 ## D010 — three budget facts and no scope reset
 
@@ -139,6 +143,8 @@ Decision: see [`gate-policy-runstore-and-first-prs.md`](gate-policy-runstore-and
 
 Decision: old entry points, arguments, `Path`, stdout, stderr, and old run 0/1/2 stay byte-for-byte compatible. New Apps naming/envelope/exit mapping is fixed by D022, but K01/H01 do not implement a CLI.
 
+Current reading: this covers the CLI commands and the `inferrsi` and `python -m inferrsi` entry points. It no longer covers old root Python module paths. The revised delivery decision in #412, #451 and #408 retires those paths without aliases, in the change that moves their last consumers. R1 (#412) removed the old-run root modules `evaluation`, `execution` and `reporting` together with root `inspection`; the old run is `inferrsi.apps.legacy` and the host inspection binding is `inferrsi.apps.inspection`. A1 (#408) then moved root `cli.py` and `arguments.py` to `inferrsi.apps.cli` and `inferrsi.apps.cli.arguments` and deleted both root files; the console script and `python -m inferrsi` call `inferrsi.apps.cli:main`.
+
 ## D014 — events remain local, not a new shared event schema
 
 Decision: #333 and #371 are both **Proposed**, not accepted event schemas. `ExecutionEventV1` is only an H-local fact read model; it is explicitly not a new format for #333 production events and does not cross-write legacy `events.jsonl`. Legacy STAGES/verdict capture/reconciliation belong to H; presentation belongs to Apps. A formal unified event implementation belongs to its own later slice and does not block K01/H01.
@@ -153,7 +159,17 @@ Decision: see [`schema-and-semantics.md`](schema-and-semantics.md). Draft 2020-1
 
 ## D018 — first-wave gate policy detail
 
-Decision: [`gate-policy-runstore-and-first-prs.md`](gate-policy-runstore-and-first-prs.md) §B: exact seven leaf→module allowances, shape checks, transitive-closure checks, the registered residual `harness/skill_evaluation.py → knowledge_operations → knowledge.*` edge, the staged isolation test, and the rule that a non-empty allowlist keeps `overall isolation_complete=false`.
+Decision: [`gate-policy-runstore-and-first-prs.md`](gate-policy-runstore-and-first-prs.md) §B: exact seven leaf→module allowances, shape checks, transitive-closure checks, the registered residual `harness/skill_evaluation.py → knowledge_operations → knowledge.*` edge, the staged isolation test, and the rule that a non-empty allowlist keeps `overall isolation_complete=false`. The skill-evaluation split (#410) later removed the registered residual edge and its exemption.
+
+Current status after R1 (#412):
+
+- The seven root leaves are deleted, so `compatibility_pairs` in [`../legacy-knowledge-manifest.json`](../legacy-knowledge-manifest.json) is empty. The nine pair records stay in its `revision_history`, unchanged, as the record of this decision.
+- The former ninth pair, `infra.inspection` → `inferrsi.resources.repository_packs`, is a live import that no root deletion removes. It is now a permanent exact rule outside the allowlist: that one module binds the one name `repository_pack` with one plain module-level import. The leaf's bytes, SHA-256, allowed imports, shape and import-free parent initializer stay locked, and no `resources.` or `contracts.` prefix is allowed.
+- Root `arguments.py` → the same leaf, for `REPO_TYPES`, was a separate temporary entry with its own blocker. A1 (#408) removed both with the root file, and no Apps importer of the leaf replaced them.
+- `overall isolation_complete` is true since R3 (#412). A1 (#408) cleared that temporary entry, R2 cleared the twelve `harness` → `inferrsi.infra` hits in six Harness modules and R3 cleared the five runtime resource loaders (a child-process protocol, two folded sibling modules and a permanent two-evaluator rule). The package root holds the two tracked files `__init__.py` and `__main__.py`.
+- The permanent rule and that manifest revision require formal architecture review. The implementer does not self-approve them, and passing tests are not that review.
+
+[`../module-layout.md`](../module-layout.md) has the exact rules and their negative controls.
 
 ## D019 — first PRs and numbering
 

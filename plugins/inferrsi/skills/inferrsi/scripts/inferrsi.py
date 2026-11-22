@@ -9,12 +9,13 @@ import sys
 from pathlib import Path
 
 
-def main() -> int:
+def main(*, launcher_path: Path | None = None) -> int:
     if sys.version_info < (3, 10):
         print("InferRSI requires Python 3.10 or newer; select a compatible interpreter.",
               file=sys.stderr)
         return 2
-    root = Path(__file__).resolve().parents[3]
+    script = Path(__file__).resolve()
+    root = script.parents[3]
     runtime = root / "runtime"
     if os.name == "nt" and not str(runtime).startswith("\\\\?\\"):
         runtime = Path("\\\\?\\UNC\\" + str(runtime)[2:]
@@ -53,18 +54,19 @@ def main() -> int:
             "optional_skills_dependency": has_yaml,
         }, indent=2))
         return 0
-    needs_yaml = args[:1] == ["skills"] or any(
-        arg == "--skill-root" or arg.startswith("--skill-root=") for arg in args
-    )
-    if needs_yaml and not has_yaml and not any(arg in ("--help", "-h") for arg in args):
-        print(
-            "This operation needs the optional skills dependency: install PyYAML in the "
-            "selected interpreter, or use packaged knowledge/collect/read without --skill-root.",
-            file=sys.stderr,
-        )
-        return 2
+    # No PyYAML precheck here. The runtime raises its own install hint, exit 2,
+    # from the one call that parses skill frontmatter; guessing from argument
+    # names refused operations that never parse any -- reading a case under
+    # --skill-root, which is exactly the reference `find` hands back.
 
-    from inferrsi.cli import main as cli_main
+    # Commands the CLI prints for a reader to run next must start the way this
+    # process was started. A plugin host has no `inferrsi` on PATH, so a
+    # printed `inferrsi read ...` fails where this launcher would succeed. The
+    # argv is passed as JSON so the CLI can quote it for the host's shell.
+    launcher = launcher_path.resolve() if launcher_path is not None else script
+    os.environ["INFERRSI_LAUNCHER"] = json.dumps([sys.executable, "-X", "utf8", str(launcher)])
+
+    from inferrsi.apps.cli import main as cli_main
 
     return cli_main(args)
 

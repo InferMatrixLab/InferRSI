@@ -12,11 +12,13 @@ from pathlib import Path
 
 import pytest
 
-from inferrsi.harness.scenarios.external import execute_trial
+from inferrsi.benchmark.metrics import read_metric
+from inferrsi.harness.trials.external import execute_trial
 from tests.engineering_task_support import load_task_module
 
 moe = load_task_module("moe-forward-npu", "benchmark")
-_moe_processes = moe._processes
+# #412 R3: worker cleanup moved from the sibling processes.py into benchmark.py.
+_moe_processes = moe
 
 
 def _write(path, value):
@@ -224,10 +226,10 @@ def test_evaluate_freezes_input_uses_executor_and_retains_failure(tmp_path, monk
     monkeypatch.setattr(moe, "cleanup", lambda token: {"verified": True})
     before = time.monotonic()
 
-    def execute(command, cwd, trial, deadline, metric):
+    def execute(command, cwd, trial, deadline, metric_key, *, metric):
         assert cwd == output and trial == output / "execution"
         assert before < deadline <= time.monotonic() + 10
-        assert metric == "metrics.suite_latency_ms"
+        assert metric_key == "metrics.suite_latency_ms" and metric is read_metric
         assert command[:2] == (sys.executable, "-B")
         identity = json.loads((output / "identity.json").read_text())
         assert moe._hashes(output, identity) == identity

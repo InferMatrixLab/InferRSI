@@ -7,11 +7,13 @@ import subprocess
 import sys
 import threading
 import time
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
-from inferrsi import _json_v1
+from inferrsi.contracts import json_v1
 from inferrsi.harness import execution_service, input_binding, local_process, run_store
 from inferrsi.harness.api import Harness, LocalCpuTarget
 from inferrsi.harness.errors import PublicError
@@ -27,13 +29,22 @@ FREE_BUDGET = {
 }
 SCHEMA = REPO / "docs" / "contracts" / "schemas" / "contract-v1.schema.json"
 # The new H closure: the H01/H02 modules, the canonical encoder, and the package init
-# residue (the mixed ``inferrsi.harness`` __init__ loads ``inferrsi.claim``).
+# residue (the mixed ``inferrsi.harness`` __init__ loads ``inferrsi.contracts.claim``).
+# execution_spec landed on main with the #397 squash 8150ee04, which also
+# added it to this H02 closure. Service ownership also uses the Harness-only
+# atomic JSON writer, whose dependencies are all in the standard library.
+# #451 C1: the encoder and the claim types live in the contracts package, so importing
+# either runs the ``inferrsi.contracts`` initializer, whose single import is the RunSpec
+# module. The last two names are that exact residue; a ``contracts`` prefix is never allowed.
 NEW_H_CLOSURE = {
     "inferrsi.harness.api", "inferrsi.harness.execution_service",
     "inferrsi.harness.input_binding", "inferrsi.harness.local_process",
+    "inferrsi.harness.prepared_binding",
+    "inferrsi.harness.atomic_json",
     "inferrsi.harness.run_store", "inferrsi.harness.errors", "inferrsi.harness.execution_spec",
-    "inferrsi._json_v1",
-    "inferrsi.harness", "inferrsi.claim",
+    "inferrsi.contracts.json_v1",
+    "inferrsi.harness", "inferrsi.contracts.claim",
+    "inferrsi.contracts", "inferrsi.contracts.runspec",
 }
 # Prints a grandchild's pid, then outlives any test deadline with it.
 TREE = (
@@ -209,6 +220,65 @@ def test_h02_2_timeout_cancel_and_cleanup_are_recorded_separately(h: Harness) ->
     assert (late["process_outcome"], late["started"]) == ("not_started", False)
     assert late["cleanup"]["status"] == "not_needed"
     assert late["steps"][0]["reasons"] == ["deadline_exhausted"]
+
+
+@pytest.mark.parametrize("reason", ["cancelled", "deadline_exhausted", "step_timeout"])
+def test_prelaunch_limits_are_rechecked_after_opening_logs(h, monkeypatch, reason):
+    cancelled = reason == "cancelled"
+    step_limited = reason == "step_timeout"
+    cancellation = threading.Event()
+    open_path = Path.open
+    supervise = local_process._supervise
+    runs = []
+    offset = 0
+
+    def open_log(path, *args, **kwargs):
+        nonlocal offset
+        stream = open_path(path, *args, **kwargs)
+        if path.name == "step-0.stderr":
+            if cancelled:
+                cancellation.set()
+            else:
+                offset = 7 if step_limited else 120
+        return stream
+
+    def observe_supervision(*args, **kwargs):
+        run = supervise(*args, **kwargs)
+        runs.append(run)
+        return run
+
+    def unexpected_launch(*args, **kwargs):
+        pytest.fail("A worker started after the launch limit")
+
+    monkeypatch.setattr(Path, "open", open_log)
+    monkeypatch.setattr(local_process, "time", SimpleNamespace(
+        monotonic=lambda: time.monotonic() + offset, sleep=time.sleep,
+    ))
+    monkeypatch.setattr(local_process, "_supervise", observe_supervision)
+    monkeypatch.setattr(local_process.subprocess, "Popen", unexpected_launch)
+    deadline = (datetime.now(timezone.utc) + timedelta(minutes=1)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    spec = make_spec(h, [step("print('first')", timeout="5" if step_limited else None),
+                         step("print('second')", step_id="second")], deadline=deadline)
+    record = h.execute(spec, cancellation=cancellation)
+
+    schema_check(record)
+    assert record["started"] is False
+    assert record["phase"] == "finished"
+    assert record["process_outcome"] == ("cancelled" if cancelled else "not_started")
+    assert record["target_binding"]["runtime_bindings_by_step"] == []
+    assert record["resource_leases"]["leases"] == []
+    assert record["cleanup"]["status"] == "not_needed"
+    assert record["cancellation"]["requested"] is cancelled
+    assert record["cancellation"]["source"] == ("caller" if cancelled else None)
+    later_reason = "previous_step_failed" if step_limited else reason
+    assert [(s["status"], s["reasons"]) for s in record["steps"]] == [
+        ("not_started", [reason]), ("not_started", [later_reason]),
+    ]
+    assert [run["error"] for run in runs] == [{
+        "cancelled": "cancellation requested",
+        "deadline_exhausted": "whole-run deadline exhausted before command start",
+        "step_timeout": "step timeout expired before command start",
+    }[reason]]
 
 
 def test_h02_3_actual_input_mismatch_commits_a_fixed_not_started(h: Harness, tmp_path) -> None:
@@ -428,7 +498,8 @@ def test_spec_time_refusals_register_nothing(h: Harness) -> None:
         candidate={"candidate_id": "cand", "context_refs": [], "input_role": "candidate",
                    "kind": "text", "parent_digest": None, "parent_id": None},
     )
-    assert error_of(h.execute, evaluation).code == "UnsupportedOperation"
+    # The malformed binding is rejected before support/entry checks (PR-1 / V32-N2).
+    assert error_of(h.execute, evaluation).code == "InvalidExecutionSpec"
     assert error_of(h.execute, dict(spec, schema_version=2)).code == "UnsupportedSchema"
     float_timeout = dict(spec, steps=[dict(spec["steps"][0], timeout_seconds=1.5)])
     assert error_of(h.execute, float_timeout).code == "InvalidExecutionSpec"
@@ -452,7 +523,8 @@ def test_steps_run_in_fixed_order_and_fail_fast(h: Harness, tmp_path) -> None:
 def _supervise_with_domain(domain_empty, calls: list[list[str]]):
     """Stub supervisor: first step uses the injected domain_empty fact; later steps are empty."""
 
-    def fake(argv, cwd, environment, stdout_path, stderr_path, deadline, *, cancellation=None):
+    def fake(argv, cwd, environment, stdout_path, stderr_path, deadline, *,
+             cancellation=None, step_limited=False):
         calls.append(list(argv))
         stdout_path.write_bytes(b"")
         stderr_path.write_bytes(b"")
@@ -531,7 +603,7 @@ def test_next_step_starts_only_after_process_domain_confirmed_empty(
 def test_record_bytes_are_canonical_and_store_fixed(h: Harness) -> None:
     record = h.execute(make_spec(h, [step("print('bytes')")]))
     committed = h._store.committed(record["attempt_id"])
-    assert _json_v1.encode(committed.payload) == committed.payload_bytes
+    assert json_v1.encode(committed.payload) == committed.payload_bytes
     assert committed.record_ref == record["record_ref"]
 
 

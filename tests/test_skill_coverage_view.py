@@ -27,38 +27,27 @@ def test_view_lists_every_registered_skill_exactly_once():
 
 
 def test_view_rows_copy_owner_state_without_promotion():
-    registry = _registry()
     rows, _, _, _, _ = coverage.collect(PROJECT)
     for row in rows:
         assert row["task"]
         assert coverage.layer_state(row) != "conflict", row["id"]
-        if not row["sidecar"]:
-            # No sidecar means no owner state to copy; it must stay unknown.
-            assert row["status"] == "unknown"
-            assert row["validation"] == "unknown"
-            continue
-        sidecar = json.loads(
-            (LIBRARY / registry[row["id"]]["path"] / "metadata.json").read_text(encoding="utf-8")
-        )
+        owner = coverage.skill_metadata(LIBRARY, row["id"])
         # The projection equals its owner, including a state other than not_run.
-        assert row["status"] == sidecar.get("status", "unknown")
-        assert row["validation"] == sidecar.get("empirical_validation", "unknown")
+        assert row["status"] == owner.get("status", "unknown")
+        assert row["validation"] == owner.get("empirical_validation", "unknown")
 
 
 def test_non_default_owner_state_is_projected_not_downgraded():
-    """A sidecar may record a validation state other than not_run."""
+    """A skill may record a validation state other than not_run."""
     registry = _registry()
     rows, _, _, _, _ = coverage.collect(PROJECT)
     by_id = {row["id"]: row for row in rows}
     non_default = {}
-    for name, entry in registry.items():
-        sidecar = LIBRARY / entry["path"] / "metadata.json"
-        if not sidecar.is_file():
-            continue
-        validation = json.loads(sidecar.read_text(encoding="utf-8")).get("empirical_validation")
+    for name in registry:
+        validation = coverage.skill_metadata(LIBRARY, name).get("empirical_validation")
         if validation not in (None, "not_run"):
             non_default[name] = validation
-    assert non_default, "expected at least one non-not_run sidecar at this revision"
+    assert non_default, "expected at least one non-not_run owner at this revision"
     for name, validation in non_default.items():
         assert by_id[name]["validation"] == validation
 
@@ -152,7 +141,7 @@ def test_absent_and_empty_applicability_are_both_unknown_but_distinct_from_na():
 
 
 def test_gaps_separate_unknown_applicability_from_a_declared_statement():
-    base = {"layers": {}, "layer_exclusion": None, "rm": [], "sidecar": True, "eval": [],
+    base = {"layers": {}, "layer_exclusion": None, "rm": [], "eval": [],
             "conditions": coverage.conditions({"applicability": {"scope": "x"}})}
     assert "no-applicability" not in coverage.gaps(base)
     # A not-applicable-only declaration is a statement, not a missing field.
@@ -167,7 +156,7 @@ def test_gaps_separate_unknown_applicability_from_a_declared_statement():
 
 
 def test_declared_workflow_conditions_reach_the_rows():
-    """The five workflow sidecars expose typed conditions, not only a scope."""
+    """The five workflow owners expose typed conditions, not only a scope."""
     rows, _, _, _, _ = coverage.collect(PROJECT)
     by_id = {row["id"]: row for row in rows}
     for name in (
@@ -190,7 +179,8 @@ def test_rendered_view_shows_the_collected_contract_and_advice_summary():
     rendered = coverage.render(rows, [], 0, [], "digest")
     workflow = next(row for row in rows if row["id"] == "claim-contract")
     line = next(
-        text for text in rendered.splitlines() if "workflows/claim-contract/SKILL.md" in text
+        text for text in rendered.splitlines()
+        if "workflows/governance/claim-contract/SKILL.md" in text
     )
     assert "failure_modes, input_contract, produced_artifact, refusal_point" in line
     assert f"{workflow['advice']} advice" in line
@@ -208,7 +198,7 @@ def test_na_only_declaration_keeps_its_marker_without_a_scope():
     rows = [{
         "id": "probe", "path": "methods/probe", "backend": "common",
         "category": "methods", "task": "probe", "status": "candidate",
-        "validation": "not_run", "readsets": 0, "sidecar": True,
+        "validation": "not_run", "readsets": 0,
         "conditions": coverage.conditions({"applicability": {"hardware": "not-applicable"}}),
         "typed_conditions": [], "advice": 0, "layers": {}, "layer_exclusion": None,
         "other_ss": [],
@@ -251,19 +241,19 @@ def test_list_valued_scope_is_rendered_not_treated_as_missing(tmp_path):
 
 def test_applicability_is_descriptive_and_never_promotes_validation():
     """Filling conditions must not raise locally_verified or change declared state."""
-    from inferrsi.skill_catalog import skill_metadata
+    from inferrsi.knowledge.skill_catalog import skill_metadata
 
     rows, _, _, _, _ = coverage.collect(PROJECT)
     described = [row for row in rows if row["typed_conditions"]]
-    assert described, "expected at least one workflow sidecar at this revision"
+    assert described, "expected at least one workflow owner at this revision"
     for row in described:
         metadata = skill_metadata(LIBRARY, row["id"])
         assert metadata.get("verification", {}).get("locally_verified", False) is False
         assert row["validation"] == metadata.get("empirical_validation", "unknown")
 
 
-def test_recommendations_default_only_when_the_sidecar_is_silent():
-    from tools import build_skill_index as index_builder
+def test_recommendations_default_only_when_the_owner_is_silent():
+    from inferrsi.knowledge import catalog as index_builder
 
     assert index_builder.recommendations({}) == index_builder.DEFAULT_RECOMMENDATIONS
     # An explicit empty list is a statement, so it must not fall back.
@@ -273,7 +263,7 @@ def test_recommendations_default_only_when_the_sidecar_is_silent():
 
 
 def test_resource_layer_decisions_preserve_unknown_na_and_conflicts(tmp_path):
-    from inferrsi.skill_catalog import skill_metadata
+    from inferrsi.knowledge.skill_catalog import skill_metadata
     from tools import build_skill_index as index_builder
 
     library = tmp_path / coverage.LIBRARY
@@ -323,13 +313,20 @@ def test_resource_layer_decisions_preserve_unknown_na_and_conflicts(tmp_path):
     assert "wording.\nSee" not in rendered
     assert "| **unknown** |" in rendered
     assert skill_metadata(library, "process")["searchspace_not_applicable"] == reason
+    # render_index names its inputs with the pinned prefix, which K02 kept while
+    # the physical corpus moved under the Knowledge module.
     hashes = {
-        f"{coverage.LIBRARY.as_posix()}/{path.relative_to(library).as_posix()}":
+        f"{index_builder.PINNED_LIBRARY.as_posix()}/{path.relative_to(library).as_posix()}":
         hashlib.sha256(path.read_bytes()).hexdigest()
         for path in library.rglob("*") if path.is_file()
     }
     outputs = index_builder.render_index(library, "0" * 40, hashes)
-    record = json.loads(outputs["common/skills/process.json"])
+    from inferrsi.knowledge.catalog import COMPILED, skill_views
+
+    (library / COMPILED).mkdir()
+    for name, content in outputs.items():
+        (library / COMPILED / name).write_text(content, encoding="utf-8")
+    record = next(r for r in skill_views(library) if r["title"] == "process")
     assert record["skill_metadata"]["searchspace_not_applicable"] == reason
     assert record["skill_metadata"]["status"] == "candidate"
     assert record["skill_metadata"]["empirical_validation"] == "not_run"

@@ -11,12 +11,17 @@ from pathlib import Path
 import pytest
 
 import inferrsi
-from inferrsi.knowledge_operations import Bundle, IdentityError, KnowledgeReader, RevisionConflict
-from inferrsi.knowledge_store import KnowledgeStore
+from inferrsi.knowledge.knowledge_operations import (
+    Bundle,
+    IdentityError,
+    KnowledgeReader,
+    RevisionConflict,
+)
+from inferrsi.knowledge.knowledge_store import KnowledgeStore
 
 REPO = Path(__file__).resolve().parents[1]
-ROOT = REPO / "src/inferrsi/data/skill_library"
-NOTES = "methods/calibrate-serving-simulation/references/source-notes.md"
+ROOT = REPO / "src/inferrsi/knowledge/data/skill_library"
+NOTES = "playbooks/measurement/calibrate-serving-simulation/references/source-notes.md"
 LOCAL = "calibrate-serving-simulation-local"
 
 
@@ -63,6 +68,66 @@ def test_duplicate_stale_update_and_immutable_resources(tmp_path):
     item = collected["items"][0]
     assert (item["revision"], item["authority"]) == (revision, "store")
     assert item["ref"] == f"store:{LOCAL}"
+
+
+def test_store_find_searches_the_delivered_revision(tmp_path):
+    store = KnowledgeStore(tmp_path, skill_root=None)
+    ref = "store:local-budget-notes"
+    metadata = {
+        "id": "local-budget-notes",
+        "kind": "knowledge",
+        "entrypoint": "note.md",
+        "state": "candidate",
+        "title": "Local capacity experiment",
+        "sources": [{"type": "unknown"}],
+        "applicability": {},
+        "limitations": [],
+        "attribution": [],
+    }
+    original = Bundle(metadata, {"note.md": b"borealcapacitymarker"}, {})
+    successor = Bundle(metadata, {"note.md": b"alpinecapacitymarker"}, {})
+    old_revision = store.create(original)
+    new_revision = store.update(successor, expected=old_revision, reason="amend", evidence=[])
+    options = {"kind": "knowledge", "material": True}
+
+    assert store.collect("borealcapacitymarker", **options)["no_match"]
+    current = store.collect("alpinecapacitymarker", **options)
+    item, = current["items"]
+    assert (item["ref"], item["revision"], item["content"]) == (
+        ref, new_revision, "alpinecapacitymarker",
+    )
+    assert current["retrieval"]["calls"] == ["collect", "find"]
+
+    retained = store.collect(
+        relevance="borealcapacitymarker", revisions={ref: old_revision}, **options,
+    )
+    item, = retained["items"]
+    assert (item["ref"], item["revision"], item["content"]) == (
+        ref, old_revision, "borealcapacitymarker",
+    )
+    assert not retained["omissions"]
+    assert store.collect("alpinecapacitymarker", revisions={ref: old_revision}, **options)[
+        "no_match"
+    ]
+
+
+def test_package_only_store_find_respects_its_reserved_sources(tmp_path):
+    query = "cache per-step masks ran out of device memory"
+    options = {"kind": "case", "limit": 1}
+    ordinary = KnowledgeReader().collect(query, **options)
+    assert ordinary["items"][0]["authority"] == "checkout"
+
+    store = KnowledgeStore(tmp_path, skill_root=None)
+    result = store.collect(query, **options)
+    assert result["no_match"]
+    assert result["retrieval"]["request"]["sources"] == ["package", "store"]
+    assert result["retrieval"]["counts"]["considered"] == 0
+
+    reader = store.reader()
+    result = reader.collect("cgroupv2", kind="skill", limit=1)
+    item, = result["items"]
+    assert item["ref"] == "package:inferrsi.common.skills.cgroup_resource_controls"
+    assert reader.read(item["ref"], revision=item["revision"]).revision == item["revision"]
 
 
 def test_store_cannot_shadow_read_only_identities(tmp_path):
@@ -233,7 +298,7 @@ def test_workspace_location_and_symlinks(tmp_path):
         with pytest.raises(ValueError, match="outside read-only"):
             KnowledgeStore(REPO / "evidence", skill_root=skill_root)
     with pytest.raises(ValueError, match="outside read-only"):
-        KnowledgeStore(Path(inferrsi.__file__).parent / "data", skill_root=None)
+        KnowledgeStore(Path(inferrsi.__file__).parent / "knowledge" / "data", skill_root=None)
     target = tmp_path / "target"
     target.mkdir()
     link = tmp_path / "link"
@@ -254,14 +319,14 @@ EXPORT_CHECK = """
 import sys
 from pathlib import Path
 
-from inferrsi.knowledge_operations import Bundle
-from inferrsi.knowledge_store import KnowledgeStore
+from inferrsi.knowledge.knowledge_operations import Bundle
+from inferrsi.knowledge.knowledge_store import KnowledgeStore
 
 export = Path(sys.argv[1])
 workspace = Path(sys.argv[2])
 assert not (export / ".git").exists()
 assert (export / "pyproject.toml").is_file()
-for skill_root in (export / "src/inferrsi/data/skill_library", None):
+for skill_root in (export / "src/inferrsi/knowledge/data/skill_library", None):
     try:
         KnowledgeStore(export / "evidence", skill_root=skill_root)
     except ValueError as exc:
@@ -302,7 +367,7 @@ def test_exported_tree_without_git_metadata_stays_protected(tmp_path):
     )
     export = tmp_path / "export"
     export.mkdir()
-    subprocess.run(["tar", "-x", "-C", str(export)], input=archive.stdout, check=True)
+    subprocess.run(["tar", "-xf", "-", "-C", str(export)], input=archive.stdout, check=True)
     workspace = tmp_path / "workspace"
     workspace.mkdir()
     env = {**os.environ, "PYTHONPATH": str(export / "src"), "PYTHONUTF8": "1"}
@@ -317,7 +382,9 @@ def test_real_shared_resource_bundle_keeps_old_dependency_bytes(tmp_path):
     original = adaptation("inference-benchmark-design", "inference-benchmark-design-local")
     store = store_at(tmp_path)
     revision = store.create(original)
-    shared = "methods/inference-optimization-casebook/cases/admission-drain-occupancy.md"
+    shared = (
+        "casebooks/inference/inference-optimization-casebook/cases/admission-drain-occupancy.md"
+    )
     identity = original.metadata["id"]
     assert store.resource(identity, shared, revision=revision) == original.content[shared]
     altered = dict(original.content)
@@ -344,7 +411,8 @@ def _digest(paths):
 def test_operations_leave_sources_evidence_and_matrices_unchanged(tmp_path):
     watched = [
         ROOT,
-        REPO / "src" / "inferrsi" / "data",
+        REPO / "src" / "inferrsi" / "knowledge" / "data",
+        REPO / "src" / "inferrsi" / "harness" / "data",
         REPO / "evidence",
         REPO / "docs" / "reference-matrix.md",
         REPO / "docs" / "searchspace-matrix.md",
@@ -363,13 +431,13 @@ def test_operations_leave_sources_evidence_and_matrices_unchanged(tmp_path):
 def test_package_only_collect_without_checkout_or_yaml(tmp_path):
     script = (
         "import sys; sys.modules['yaml'] = None\n"
-        "from inferrsi.knowledge_operations import KnowledgeReader\n"
+        "from inferrsi.knowledge.knowledge_operations import KnowledgeReader\n"
         "reader = KnowledgeReader()\n"
         "result = reader.collect(tier='dependency', material=True, limit=2)\n"
         "item = result['items'][0]\n"
         "assert item['authority'] == 'package', item\n"
         "assert reader.read(item['ref'], revision=item['revision']).revision == item['revision']\n"
-        "assert 'inferrsi.skill_catalog' not in sys.modules\n"
+        "assert 'inferrsi.knowledge.skill_catalog' not in sys.modules\n"
         "assert 'inferrsi.knowledge.skill_catalog' not in sys.modules\n"
     )
     env = {**os.environ, "PYTHONPATH": str(REPO / "src"), "PYTHONUTF8": "1"}

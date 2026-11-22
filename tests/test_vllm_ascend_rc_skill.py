@@ -7,11 +7,11 @@ from types import SimpleNamespace
 
 import pytest
 
-from inferrsi.catalog import search_knowledge
-from inferrsi.knowledge_operations import KnowledgeReader
-from inferrsi.skill_catalog import skill_instructions, skill_metadata, skill_resource
+from inferrsi.knowledge.catalog import search_knowledge
+from inferrsi.knowledge.knowledge_operations import KnowledgeReader
+from inferrsi.knowledge.skill_catalog import skill_instructions, skill_metadata, skill_resource
 
-LIBRARY = Path(__file__).resolve().parents[1] / "src/inferrsi/data/skill_library"
+LIBRARY = Path(__file__).resolve().parents[1] / "src/inferrsi/knowledge/data/skill_library"
 NAME = "vllm-ascend"
 
 
@@ -68,32 +68,26 @@ def test_history_screen_reads_git_objects_without_changing_checkout(tmp_path):
     source.write_text("def fused_operation(): pass\n")
     git("add", ".")
     git("commit", "-m", "Introduce an operator")
+    first = git("rev-parse", "HEAD").strip()
+    (tmp_path / "README.md").write_text("Synthetic project\n")
+    git("add", ".")
+    git("commit", "-m", "Document the project")
+    source.write_text("def fused_operation(): return 'DeepSeek V4'\n")
+    git("add", ".")
+    git("commit", "-m", "Support DeepSeek V4 fusion")
     pin = git("rev-parse", "HEAD").strip()
     source.write_text("uncommitted work\n")
     before = git("status", "--porcelain")
     result = history_module().inventory(tmp_path, pin)
-    assert result["reachable_commits"] == result["candidate_commits"] == 1
-    record, = result["commits"]
-    assert record["commit"] == pin
-    assert record["runtime_patch_match"] is True
-    assert record["topics"] == ["fusion"]
+    assert result["reachable_commits"] == 3
+    assert result["candidate_commits"] == 2
+    assert {row["commit"] for row in result["commits"]} == {first, pin}
+    for topic, count in result["topic_counts"].items():
+        assert count == sum(topic in row["topics"] for row in result["commits"])
+    assert result["topic_counts"]["fusion"] == 2
+    assert result["topic_counts"]["deepseek-v4-dspark"] == 1
+    assert all(row["runtime_patch_match"] for row in result["commits"])
     assert git("status", "--porcelain") == before
-
-
-def test_archived_history_preserves_separate_screening_and_semantic_levels():
-    archive = Path(__file__).resolve().parents[1] / (
-        "docs/reviews/vllm-ascend-0271rc1/history-inventory.json"
-    )
-    inventory = json.loads(archive.read_text())
-    commits = inventory["commits"]
-    assert len({row["commit"] for row in commits}) == inventory["candidate_commits"]
-    assert inventory["candidate_commits"] <= inventory["reachable_commits"]
-    for topic, count in inventory["topic_counts"].items():
-        assert count == sum(topic in row["topics"] for row in commits)
-    reviewed = skill_resource(LIBRARY, NAME, "references/history-reviewed.json").read_text()
-    inspected = set(re.findall(r'"commit": "([a-f0-9]{40})"', reviewed))
-    assert inspected <= {row["commit"] for row in commits}
-    assert inventory["commit"] == skill_metadata(LIBRARY, NAME)["sources"][0]["commit"]
 
 
 def test_history_screen_rejects_incomplete_history(monkeypatch, tmp_path):
@@ -108,7 +102,7 @@ def test_history_screen_rejects_incomplete_history(monkeypatch, tmp_path):
 def test_runtime_reader_keeps_full_history_outside_the_bundle():
     bundle = KnowledgeReader().read("inferrsi.ascend.skills.vllm_ascend")
     assert all("history-inventory.json" not in key for key in bundle.content)
-    prefix = "data/skill_library/repositories/vllm-ascend/"
+    prefix = "data/skill_library/systems/engines/vllm-ascend/"
     for relative in ("references/history-reviewed.json", "scripts/screen_history.py"):
         assert bundle.content[prefix + relative] == skill_resource(
             LIBRARY, NAME, relative

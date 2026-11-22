@@ -35,30 +35,18 @@ policy does not renormalize existing blobs or authorize edits to frozen files.
 Nightly checks cover Linux and Windows checkouts with `core.autocrlf` set to
 `false`, `true` and `input`.
 
-Use `harness/scenarios` and `model/protocols` / `model/validators` for new models,
-`infra/targets` with `data/repo_packs` for repositories, and `infra/platforms` for
-hardware. A backend is registered in `infra/platforms/__init__.py`; its probe
-command is defined in the implementing module under `infra/platforms/`. That
+Use `harness/serving` for a new model's server and request protocol and
+`benchmark/metrics.py` with `benchmark/validators` for its metric and quality checks.
+`harness/trials/external.py` runs any external command as one trial and is the
+same for every model. Use `apps/host/targets` with `harness/data/repo_packs` for
+repositories, and
+`apps/host/platforms` for hardware. A backend is registered in
+`apps/host/platforms/__init__.py`; its probe command is defined in the
+implementing module under `apps/host/platforms/`. That
 module owns the command name and the discovery boundary. Reuse the common AB/BA loop,
 cleanup and adjudication. See [extension contracts](architecture.md#where-to-extend).
 
-For knowledge, edit one named JSON record under
-`data/repo_packs/<repo>/knowledge/<backend>/<component>/` for contribution sources,
-or `data/knowledge_packs/<dependency|peer>/<repo>/<backend>/<component>/` for
-external sources, and add its navigation link to the owning README. See the
-[three learning tiers](../src/inferrsi/data/knowledge_packs/README.md).
-`data/repo_packs/inferrsi/knowledge/` is the exception: it is generated from
-`data/skill_library/` and must be refreshed, never edited. Change the skill body,
-sidecar or registry, commit, then run
-`python tools/build_skill_index.py --source-revision <committed-revision>`; a
-hand edit there is reverted by the next run and only `--check` reports it.
-A one-skill edit regenerates only that skill's record, the shared
-`_provenance.json` snapshot and the coverage view; see the
-[knowledge contribution workflow](knowledge-contribution-workflow.md).
-Do not maintain a second per-entry Markdown summary.
-Keep IDs stable, omit PR links, retain source attribution and negative results,
-and qualify new backends independently. See the
-[knowledge maintenance guide](../src/inferrsi/data/repo_packs/vllm_omni/knowledge/README.md#maintaining-the-pack).
+For a finding, edit one [record](../src/inferrsi/knowledge/data/skill_library/records/README.md). For a procedure, edit its registered owner. Commit changed skill sources, then regenerate the two build inputs with `python tools/build_skill_index.py --source-revision <source-commit>`. Verify with the same command plus `--check`. The catalog constructs schema-1 views when requested. See the [knowledge contribution workflow](knowledge-contribution-workflow.md).
 
 Protected changes also require a current-head
 [knowledge authorship declaration](knowledge-model-policy.md). Every material AI
@@ -68,20 +56,25 @@ is a required status on `main`, so a failing declaration blocks merging; the
 `protect-main` ruleset is the source of truth for that enforcement. A passing
 check establishes declaration compliance only, not execution settings or results.
 
-The [skill library](../src/inferrsi/data/skill_library/README.md) owns complete
-procedures, metadata, references and cases. Place platform-specific skills under
-`hardware/ascend`, `hardware/cuda` or `hardware/host`; use `frameworks/<name>`,
-`repositories/<name>`, `methods` or `workflows` for other primary owners. Maintain
+The [skill library](../src/inferrsi/knowledge/data/skill_library/README.md) owns complete
+procedures, metadata, references and cases. The seven primary inference skills live in
+`tasks/`. The main agent loads one before searching for evidence. The historical router
+supports explicit reads. Categorize supporting knowledge by its primary purpose as
+system-specific implementation, engineering playbook, cross-stage workflow or casebook. Follow the library navigation for its subcategory. Maintain
 the registered stable IDs and their categorized paths in `skill-index.json`, then refresh
-their generated abstracts with `tools/build_skill_index.py`. Keep all skill
+the compiled build inputs with `tools/build_skill_index.py`. Keep all skill
 content in the canonical library. Preserve source state and
 `UNKNOWN` license declarations; moving content does not resolve licensing.
 
 Keep all library content in English. Engine procedures belong under
-`repositories/<engine>/` and the collection router under
-`workflows/inference-engine-research/`, with their sub-skills and references.
-Keep supporting Markdown and JSON with their owner; the library
-root contains only `README.md` and `skill-index.json`.
+`systems/engines/<engine>/` and the collection router under
+`workflows/research/inference-engine-research/`, with their sub-skills and references.
+Keep a skill's supporting Markdown and JSON in its owner directory. At the
+library root, `README.md` describes the library and `skill-index.json` maps
+stable skill IDs to their owners. Place independent findings in `records/`
+and shared search configuration in `config/`. The index builder writes the
+two generated catalog inputs to `_compiled/`. See the
+[directory contract](knowledge-layout.md#directory-contract).
 Catalog abstracts link to packaged bodies via `skill_documents.original` for
 migrated skills or `skill_documents.en` for engine procedures. Update
 affected source content and catalog records together. Source snapshot revisions
@@ -92,7 +85,7 @@ licenses, local links and reads from a noneditable wheel installation.
 
 Use user-provided acceptance criteria, including those in a referenced accepted
 plan. When none are supplied, use
-[performance-ceiling-analysis](../src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/acceptance-criteria.md)
+[performance-ceiling-analysis](../src/inferrsi/knowledge/data/skill_library/playbooks/measurement/performance-ceiling-analysis/references/acceptance-criteria.md)
 to formulate evidence-backed targets. Retain partial requirements and label
 derived fields; record their source, calibration, uncertainty and freeze
 authority. Missing evidence stays unresolved, and estimates never lower an
@@ -127,10 +120,17 @@ research spikes.
 ```text
 evidence/<campaign-id>/
   plan/        Hypothesis, RunSpec, frozen gates and environment
-  results/     Raw measurements, outputs, profiler data and verdict rationale
+  results/     Metric summaries, complete trial index, archive references and rationale
   patch/       Candidate diff or exact revision pointer
   validator/   Frozen validation code, versions and inputs
 ```
+
+Follow the [archiving contract](evidence-archiving.md) and
+[bundle template](../evidence/_template/README.md). Keep large raw measurements,
+logs, profiler data and generated inventories in versioned external archives.
+The campaign's `results/artifacts.json` owns metadata; index every attempt and
+retain executable replay and comparison criteria. Existing frozen evidence is
+not rewritten to match the template.
 
 | Verdict | Meaning |
 | --- | --- |
@@ -240,6 +240,24 @@ helpers and CLI reads without installing any inference engine.
 The ready test and installed-package jobs cover the declared minimum Python
 3.10 alongside Python 3.11. This matrix does not certify later Python releases
 or accelerator runtime compatibility.
+
+The ready `host-compatibility` jobs on Windows and macOS are **advisory and
+non-blocking**. They continue to run the selected host tests and installed-wheel
+checks and retain available logs and artifacts, with job-level
+`continue-on-error: true`. Failure, cancellation, queued or not-run status does
+not block PR approval or merging; a successful rerun or equivalent host-validation
+artifact is not an approval prerequisite. Keep these jobs out of branch-protection
+and ruleset required checks, and do not make gating jobs depend on them. Reviewers
+and integrators assess required checks individually rather than treating the
+aggregate Ready workflow status as a merge gate. Preserve actual test outcomes:
+an advisory failure or missing run does not establish host compatibility.
+
+For non-draft PRs, the ready `dashboard-browser` job installs Playwright and
+Chromium on Python 3.11 and runs the dashboard navigation and experiment browser
+tests. Its verbose log identifies each executed case, and the
+`dashboard-browser-results` artifact retains the JUnit report for 30 days.
+These checks cover offline/live layouts, keyboard navigation and refresh/recovery;
+they do not certify other browsers or replace independent review.
 The `pr-references` job fails when GitHub closing syntax appears inside PR body
 text, including negated sentences (working rule 6 in the
 [collaboration guide](agent-collaboration.md#working-rules)). It reads the body at
@@ -261,7 +279,7 @@ lanes. Dependency drift and hardware qualification require their own evidence.
 When copying the repository, rename `src/inferrsi`, update package metadata,
 imports and tests, and keep the three module boundaries explicit. Copy the
 [evidence template](../evidence/_template/) for each campaign. Reuse portable
-[workflows](../src/inferrsi/data/skill_library/workflows/) as workflow guidance; keep campaign pins out of them.
+[workflows](../src/inferrsi/knowledge/data/skill_library/workflows/) as workflow guidance; keep campaign pins out of them.
 
 For a standalone engine delivery, start with the
 [engine delivery template](template/README.md) in `docs/template/` instead of
@@ -276,5 +294,5 @@ verification remains explicit. Workbench experiments use the
 the four CI lanes retain their current roles.
 
 For feedback-coupled models, stochastic audio and streaming/graph experiments,
-use the [Omni experiment contract](../src/inferrsi/data/skill_library/workflows/rsi-evidence/references/omni-experiments.md) to select
+use the [Omni experiment contract](../src/inferrsi/knowledge/data/skill_library/workflows/governance/rsi-evidence/references/omni-experiments.md) to select
 reference, preflight and executable per-trial qualification checks.

@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "plan_digest": "6133768d454c3ec6a3bc48bcd90627227f924b8d82f03aae062bbcd71a88c394",
+  "started_at": 1795261165.2188108,
+  "deadline": 1795261465.2188108,
+  "state": "active",
+  "rounds": [],
+  "contexts": [],
+  "pending": {
+    "kind": "round",
+    "path": "rounds/round-01/attempt-81f9c08f4dde440594a785ec960a5409",
+    "candidate_id": "candidate-001",
+    "hypothesis": "two-runtime check",
+    "strategy": null,
+    "knowledge_refs": null,
+    "observations": {
+      "usage": null,
+      "tool_calls": null,
+      "usage_source": null
+    },
+    "diagnosis_id": "diagnosis-99a955c2a6804a32b01b6251f18dc729",
+    "mechanism": null,
+    "mechanism_sha256": null,
+    "candidate_sha256": "fbeb82c034590c6bce50e163f9beee6a813443950b7b76e10d48bdac31890dc5",
+    "contexts": [],
+    "started_at": 1795261165.4760833
+  },
+  "final": null,
+  "best": {
+    "path": "frozen/baseline.py",
+    "sha256": "d9df1aa140b5050625fe8e130ec631cc25c4a11f732e369c5d018021cfc3e315",
+    "score": 1.0,
+    "kind": "baseline"
+  },
+  "diagnoses": [
+    {
+      "id": "diagnosis-99a955c2a6804a32b01b6251f18dc729",
+      "bottleneck": "Reference operation",
+      "measurement_summary": "Synthetic workload: reference operation took 4 ms.",
+      "reference_epoch": null,
+      "recorded_at": 1795261165.3483653
+    }
+  ]
+}

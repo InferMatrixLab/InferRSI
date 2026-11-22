@@ -36,7 +36,8 @@ def identity(root):
     groups = {}
     for name, paths in (
         ("python", sorted((root / "src").rglob("*.py"))),
-        ("corpus", sorted((root / "src/inferrsi/data").rglob("*"))),
+        ("corpus", sorted((root / "src/inferrsi/knowledge/data").rglob("*"))
+                    + sorted((root / "src/inferrsi/harness/data").rglob("*"))),
     ):
         members = {
             p.relative_to(root).as_posix(): digest(p.read_bytes())
@@ -57,6 +58,8 @@ def options(case, context=False):
     value = {"query": case.get("query", ""), "limit": case.get("limit", 5)}
     value.update(case.get("filters", {}))
     if case.get("relevance") is not None:
+        if value["query"].strip():
+            raise ValueError("Supply one Find question or use the pinned legacy runner.")
         value["relevance"] = case["relevance"]
     if context:
         value["context_bytes"] = case.get("context_bytes", 262144)
@@ -77,8 +80,16 @@ def cli(root, mode, case):
     if mode == "search":
         args += ["knowledge", "search", "cgroupv2", "--limit", "5", "--json"]
     else:
-        args += ["collect", case["query"], "--relevance", case["relevance"],
-                 "--limit", str(case["limit"]), "--json"]
+        selection = options(case)
+        args += ["collect", "--limit", str(selection["limit"]), "--json"]
+        if selection.get("relevance") is not None:
+            args += ["--relevance", selection["relevance"]]
+        elif selection["query"]:
+            args += [selection["query"]]
+        for field in ("repo", "tier", "backend", "scenario", "kind"):
+            if field in selection:
+                flag = "--repo-type" if field == "repo" else "--" + field
+                args += [flag, selection[field]]
     start = time.perf_counter_ns()
     run = subprocess.run(args, capture_output=True, check=True, timeout=180, env={
         "PATH": os.defpath, "PYTHONPATH": str(root / "src"), "PYTHONDONTWRITEBYTECODE": "1",
@@ -93,8 +104,8 @@ def cli(root, mode, case):
 
 def worker(root, action, payload):
     sys.path.insert(0, str(root / "src"))
-    from inferrsi.catalog import search_knowledge
-    from inferrsi.knowledge_operations import KnowledgeReader
+    from inferrsi.knowledge.catalog import search_knowledge
+    from inferrsi.knowledge.knowledge_operations import KnowledgeReader
 
     if action == "identity":
         return identity(root)
@@ -112,7 +123,9 @@ def worker(root, action, payload):
         case = payload["queries"][0]
         for mode in ("fresh_relevance", "default", "context", "search"):
             args = options(case, context=mode == "context")
-            if mode in ("default", "search"):
+            if mode == "search":
+                args = {"query": "cgroupv2", "limit": 5}
+            elif mode == "default":
                 args.pop("relevance", None)
                 args["query"] = "cgroupv2"
             reader = KnowledgeReader()
@@ -129,13 +142,13 @@ def worker(root, action, payload):
                           "output_sha256": digest(encode(value))}
         for mode in ("relevance", "search"):
             rows["cli_" + mode] = cli(root, mode, case)
-        for api, cli_name in (("hot_relevance/dev01", "cli_relevance"),
+        for api, cli_name in (("hot_relevance/" + case["id"], "cli_relevance"),
                               ("search", "cli_search")):
             if rows[api]["output_sha256"] != rows[cli_name]["output_sha256"]:
                 raise ValueError("API/CLI payload mismatch: " + api)
         return rows
     if action == "contracts":
-        from inferrsi._skill_selection import SkillIndexError, indexed_skill
+        from inferrsi.knowledge._skill_selection import SkillIndexError, indexed_skill
         reader = KnowledgeReader()
         cgroup = "inferrsi.common.skills.cgroup_resource_controls"
         afd = "inferrsi.cuda.skills.audit_afd_p2p_exchanges"

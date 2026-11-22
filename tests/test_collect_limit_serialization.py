@@ -2,7 +2,7 @@
 import pytest
 
 from inferrsi.knowledge import knowledge_operations as operations
-from inferrsi.knowledge_operations import Bundle, KnowledgeReader
+from inferrsi.knowledge.knowledge_operations import Bundle, KnowledgeReader
 
 
 class CustomBundle(Bundle):

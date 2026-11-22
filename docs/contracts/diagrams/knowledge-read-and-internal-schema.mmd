@@ -1,11 +1,13 @@
 flowchart TB
   subgraph Storage["storage layer: not the public read / collect delivery"]
-    S2["generated record schema 2<br/>own fields + source_files resource hashes<br/>no shared sources / registry hash"]
-    PROV["_provenance.json<br/>schema_version, repository<br/>source_revision, registry.path / sha256<br/>path: repo_packs/inferrsi/knowledge/_provenance.json"]
+    S2["skill_library/_compiled/inputs.json<br/>YAML headers + owner-local resource hashes"]
+    PROV["_provenance.json<br/>schema_version, repository<br/>source_revision, registry.path / sha256<br/>path: skill_library/_compiled/_provenance.json"]
   end
-  S2 -->|"stored record"| CAT["_source_snapshot.resolve<br/>called by inferrsi.catalog when reading the directory"]
+  S2 -->|"compiled inputs"| CAT["catalog.skill_views<br/>reads registry and canonical metadata"]
+  OWN["skill_library/skill-index.json + owner metadata"] --> CAT
   PROV -->|"snapshot"| CAT
   CAT -->|"public schema 1: schema_version=1<br/>sources[0].type / commit / blob URL<br/>source_files with registry hash"| S1["parsed logical catalog record"]
+  AUTH["skill_library/records/&lt;stable-id&gt;.json"] --> S1
   S1 -->|"KnowledgeReader.read / collect"| PUB["public delivery: KnowledgeBundle / Collection<br/>entry record.json; revision is the Bundle content revision"]
   subgraph Outside["outside the ports"]
     PR["repository change in package / checkout"]

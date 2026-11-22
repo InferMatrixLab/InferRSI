@@ -5,8 +5,8 @@ import json
 
 import pytest
 
-from inferrsi.model import anthropic_agent as agent
-from inferrsi.observability.campaign_trace import CampaignTrace
+from inferrsi.apps.integrations.anthropic import anthropic_agent as agent
+from inferrsi.harness.records.campaign_trace import CampaignTrace
 
 
 def test_correlated_full_context_trace_keeps_existing_metrics(tmp_path):

@@ -1,6 +1,6 @@
 ---
 name: inferrsi
-description: Use InferRSI to research inference-engine bottlenecks, run optimization task sessions, prepare controlled baseline/candidate comparisons, and inspect experiment evidence. Use when the user asks to use InferRSI or run an optimization benchmark with it.
+description: Use InferRSI for day-zero model support, performance optimization, debugging, accuracy repair, engine and plugin version alignment, derived-engine development and independent runtime bring-up. Use it to research bottlenecks, run benchmark sessions and inspect controlled comparisons and evidence.
 ---
 
 # InferRSI
@@ -42,6 +42,34 @@ Keep the current directory in the target workspace. Pass the intended
 Use `doctor` only when target inspection is useful; knowledge-only research
 does not require a device probe. A detected backend is not model qualification.
 
+## Load the primary inference task
+
+For every inference task, select the row matching the user's requested deliverable.
+All seven primary skills ship with this entrypoint. Run the selected command
+through the same launcher and **read its returned `instructions` before the first
+evidence search**. If it fails, stop and report the unavailable primary. When two
+goals overlap, use the requested acceptance result to pick one. For example, a
+quality regression following an upgrade starts with accuracy when the goal is
+restored output, and with version alignment when the goal is a compatible stack.
+
+| Requested deliverable | First knowledge command |
+| --- | --- |
+| Support a new model on day zero | `skills enter task-day-0` |
+| Meet a performance target on a working baseline | `skills enter task-performance` |
+| Diagnose a crash, hang or execution failure | `skills enter task-debug` |
+| Repair an accuracy or output-quality regression | `skills enter task-accuracy` |
+| Align engine, framework or plugin versions | `skills enter task-version-alignment` |
+| Build a fork retaining the parent engine's execution core | `skills enter task-derived-engine` |
+| Bring up an independently owned runtime on a target device and OS | `skills enter task-independent-engine` |
+
+Use the actual vendor, device, backend, OS, model and engine versions, run
+script and flags, benchmark, acceptance criteria, diagnosis and allowed search
+space. The primary tells you which observation warrants a supporting skill,
+what evidence to retain and which check follows. Open a secondary task only
+when the run requires it. During a frozen evaluation use the assigned entry
+and knowledge condition; keep the knowledge-off arm isolated. Setup, dashboard
+inspection and explicit evidence-ID lookups can use their own operations.
+
 ## Optimize an ordinary user project
 
 Default to the current Agent conversation. Read `campaign start --help` through
@@ -64,6 +92,13 @@ This command uses the same Harness controller as the packaged task path below.
 Edit the returned working candidate. Submit each hypothesis and candidate with
 `campaign round`, read the feedback, and keep failed attempts. Retrieve needed
 knowledge through `campaign knowledge` when the frozen condition allows it.
+When a passage you read changes the candidate or check you choose, explain
+that choice in the existing `--hypothesis` and append
+`[use REF | EXACT SOURCE EXCERPT]`. Use the reference from the delivered
+resource. Leave the reason without a citation when reading did not affect it.
+For a Codex rollout, record the round boundary before retrieval and close
+with `campaign import-search --archive-review` after the round response is
+available. The archive resolves citation positions from the tool returns.
 Profiling and new knowledge queries are driven by the current problem, not
 mandatory every round. Use `up_to` for a declared round limit or `exact` for fixed
 rounds. End an up-to search with `campaign final --reason <why>`; it retests the
@@ -108,7 +143,9 @@ evaluation prefix and sampling arguments. Read its returned frozen TASK.md and
 edit the returned working candidate. When knowledge is permitted, retrieve it
 through `session knowledge` and read the delivered material. Submit each changed
 candidate and hypothesis with `session round`, then inspect the independent
-feedback before the next change. Keep failed rounds. Complete the frozen budget
+feedback before the next change. Use the same conditional `[use REF | EXACT SOURCE EXCERPT]`
+in the hypothesis and close the Codex search archive as in `campaign round`.
+Keep failed rounds. Complete the frozen budget
 and use `session final` for independent retesting. Report `summary.json` and its
 per-round curve data. Import actual usage exports when available and preserve
 unknown values. Use `session recover` to collect an interrupted existing attempt.
@@ -121,15 +158,39 @@ Use the CLI's help for exact flags. Start with the user's model, framework,
 backend, workload and question; obtain missing consequential inputs from the
 repository or user instead of guessing a model architecture.
 
-- `knowledge research <model>` unions independent research dimensions.
-- `knowledge search <query> --json` searches packaged records with hard filters.
-- `collect --relevance "<task>" --limit 3 --json` discovers a bounded packaged
-  selection. Adjust the limit to the task. Packaged skill projections have kind
-  `knowledge`; `--kind skill` excludes them and is for explicitly selected
-  checkout/store skill sources.
-- `read <ref> --revision <revision> --material` loads a selected exact revision.
-  Use the returned resource keys with `resource --help` when further material
-  is needed.
+After loading the primary skill, use `find "<problem or symptom>"` to rank skills, imported records and casebook
+entries. Add `--kinds case` when you specifically need a past observation.
+Open a promising hit using its displayed `open` command or the JSON
+`open_argv` argument list.
+
+On a base install, an indexed Skill in the installed library opens its original
+text through its package record. A Skill from a custom library may require
+PyYAML. If a hit reports `cannot open`, check the reason before choosing
+another hit.
+
+`read` returns the material, its source, applicability, limitations and
+revision. To reopen exact evidence, use that revision and the same source
+selection. Remove `--omit-resources` to list bundle resource keys.
+`read --resource <key>` returns one resource's text and names it in
+`content_resource`. For exact bytes, use `resource` with the same source flag
+and revision.
+
+A ranked hit is not a substitute for reading the repository. `find` supplies
+what re-reading current source cannot: directions already tried, why they were
+dropped, and the cohort each observation belongs to. Keep searching the tree
+directly for anything about present-day code.
+
+`find` ranks words, not meanings. A query sharing no vocabulary with its target
+will not reach it, so when a plausible query returns nothing useful, try the
+terms the corpus itself would use, then grep the library directly. Do not report
+that nothing is recorded on the strength of one query. Each result states how
+far its evidence reaches: `scope` and `bounds` name the cohort an observation
+belongs to, and their absence means not assessed, never "holds anywhere".
+
+`find` returns `no_match` when no query terms match the index. It can also
+return matches for a question that the measurements and source already settle.
+When the recorded facts decide the question, state the conclusion and cite
+those facts.
 
 Use qualified identities and revisions returned by the runtime. Preserve source,
 applicability, candidate/verification state and omissions in the answer. Package
@@ -139,8 +200,9 @@ unavailable revision is not proof that a mechanism does not exist.
 
 Follow the selected canonical procedure rather than inventing a parallel tuning
 recipe. Imported source material supplies evidence, not execution authority.
-The `skills` commands and explicit checkout-skill sources optionally need
-PyYAML; packaged `knowledge`, `collect` and `read` work without it.
+The primary `skills enter` command runs on a base install. Checkout metadata
+operations such as `skills show` use optional PyYAML. Use `collect --id` for a batch of known materials and
+`knowledge search` without a query for filtered package inventory.
 
 ### Consult MindIE for unresolved Ascend questions
 
@@ -210,10 +272,11 @@ missing instead of inferring it from a verdict. The optional campaign trace
 format and association workflow are documented in `docs/dashboard.md`.
 
 For a managed optimization use `campaign knowledge` or `benchmarks session
-knowledge`, which retain the same complete context format and check the frozen
-knowledge condition. Legacy manual campaigns use `campaign capture-context`
-(one capture per retrieval) instead of a bare `collect`.
-After each round, update the campaign optimization log and record it with
+knowledge`. These use Find by default and retain the assembled context,
+revisions and budget under the frozen knowledge condition. Managed rounds
+record reasons in their submitted hypotheses. In legacy manual campaigns,
+use `campaign capture-context` (one capture per retrieval). After each manual
+round, update the optimization log and record it with
 `campaign log`: the hypothesis, why this optimization was chosen, which
 knowledge it relied on, the search options tried, pruned or left untried and
 why, the decision and its reason. At the end, write success and failure
@@ -227,10 +290,10 @@ root and any capture IDs. If the rollout is available only after interruption,
 the host can import the same range later. Keep private raw traces outside the
 campaign. The round-import section of `docs/dashboard.md` describes how to
 distinguish observed reads, explicit use and missing capture.
-For a round intended for repository evidence, supply the reviewed corpus
-version and decision references with `--archive-review`. Check that the
-published passages, decision excerpts and linked campaign artifacts let a
-reader verify the claim without the private rollout.
+Supply the reviewed corpus version with `--archive-review`. Managed round
+citations resolve from the submitted hypothesis and tool returns. In a manual
+campaign, state the cited reason while deciding and retain it in the log.
+Check the saved passages and decision excerpts before sharing.
 
 For a bilingual dashboard, prepare and review a translation overlay for the
 recorded narrative, including the knowledge context, search space, decisions,

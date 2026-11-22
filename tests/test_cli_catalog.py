@@ -3,8 +3,8 @@
 import contextlib
 import io
 import json
-import re
 import shlex
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -13,11 +13,11 @@ from pathlib import Path
 
 import pytest
 
-from inferrsi import catalog
-from inferrsi.arguments import make_spec, parser
-from inferrsi.catalog import get_knowledge, knowledge_records, repository_pack, search_knowledge
-from inferrsi.cli import main
+from inferrsi.apps.cli import main
+from inferrsi.apps.cli.arguments import make_spec, parser
 from inferrsi.knowledge import catalog as knowledge_catalog
+from inferrsi.knowledge.catalog import get_knowledge, knowledge_records, search_knowledge
+from inferrsi.resources.repository_packs import REPO_TYPES, repository_pack
 
 PROJECT = Path(__file__).resolve().parents[1]
 SOURCE_REPOSITORIES = {
@@ -66,7 +66,7 @@ class CatalogTests(unittest.TestCase):
             get_knowledge("not-a-record")
         with self.assertRaises(ValueError):
             search_knowledge(limit=0)
-        for name in catalog.REPO_TYPES:
+        for name in REPO_TYPES:
             pack = repository_pack(name)
             self.assertEqual(pack["execution_support"], "caller_supplied_external_commands")
             self.assertTrue(
@@ -141,19 +141,48 @@ class CatalogTests(unittest.TestCase):
         self.assertNotIn("Backend: `cuda`", text)
 
 
+def test_default_find_skips_incidental_system_files(tmp_path, monkeypatch, capsys):
+    from tools.plugin_bundle import _io_path
+
+    library = Path("knowledge/data/skill_library")
+    package = _io_path(tmp_path)
+    installed = package / library
+    shutil.copytree(PROJECT / "src/inferrsi" / library, installed)
+    monkeypatch.setattr(knowledge_catalog, "files", lambda _: package)
+    identity = "flashinfer.cuda.llm.paged_decode_dispatch"
+    query = ["find", identity, "--no-external", "--limit", "1", "--json"]
+    assert main(query) == 0
+    previous = json.loads(capsys.readouterr().out)["items"]
+    assert previous[0]["id"] == identity and previous[0]["open_argv"]
+    for name in (".DS_Store", "Thumbs.db", "Desktop.ini"):
+        (installed / "records" / name).write_bytes(b"incidental system data")
+    assert main(query) == 0
+    assert json.loads(capsys.readouterr().out)["items"] == previous
+
+
+@pytest.mark.parametrize(("filename", "error"), [
+    ("unexpected.txt", "Unexpected authored knowledge resource"),
+    (".hidden.json", "Invalid knowledge filename"),
+    ("flashinfer.cuda.llm.invalid.json", "Expecting value"),
+])
+def test_records_still_reject_unrecognized_or_invalid_data(tmp_path, monkeypatch, filename, error):
+    records = tmp_path / "knowledge/data/skill_library/records"
+    records.mkdir(parents=True)
+    (records / filename).write_text("unrecognized data", encoding="utf-8")
+    monkeypatch.setattr(knowledge_catalog, "files", lambda _: tmp_path)
+    with pytest.raises(ValueError, match=error):
+        knowledge_records(include_skill_views=False)
+
+
 def test_knowledge_has_one_canonical_record_and_complete_navigation():
-    packs = PROJECT / "src/inferrsi/data/repo_packs"
-    canonical_paths = list(packs.glob("*/knowledge/*/*/*.json"))
-    records = search_knowledge(tier="contribution", limit=len(canonical_paths))
-    assert len(records) == len(canonical_paths)
-    for repo in {record["repo"] for record in records}:
-        root = packs / repo / "knowledge"
-        paths = list(root.glob("*/*/*.json"))
-        assert len(paths) == len([record for record in records if record["repo"] == repo])
-        assert list(root.rglob("*.md")) == [root / "README.md"]
-        index = (root / "README.md").read_text(encoding="utf-8")
-        targets = set(re.findall(r"\]\(([^)]+\.json)\)", index))
-        assert targets == {path.relative_to(root).as_posix() for path in paths}
+    root = PROJECT / "src/inferrsi/knowledge/data/skill_library/records"
+    records = search_knowledge(tier="contribution", limit=200)
+    authored = [r for r in records if r.get("index_type") != "packaged-skill"]
+    assert {r["id"] for r in authored} == {
+        path.stem for path in root.glob("*.json")
+        if json.loads(path.read_bytes()).get("tier", "contribution") == "contribution"
+    }
+    assert sum(r.get("index_type") == "packaged-skill" for r in records) == 88
     for record in records:
         assert "/pull/" not in json.dumps(record)
         assert record["verification"]["evidence_level"] in ("guidance", "upstream_reported")
@@ -183,7 +212,8 @@ def test_misfiled_or_overstated_record_cannot_leak_into_context(
     record[field] = value
     destination = (
         tmp_path
-        / "data/repo_packs/vllm_omni/knowledge/ascend/diffusion/qwen-image-21-eager-t2i.json"
+        / "knowledge/data/skill_library/records"
+        / "vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i.json"
     )
     destination.parent.mkdir(parents=True)
     destination.write_text(json.dumps(record))
