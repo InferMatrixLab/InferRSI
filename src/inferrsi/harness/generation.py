@@ -99,8 +99,19 @@ def _bind_generation_plan(store, target, attempt, plan, delivery_ref):
     })
     validate(spec, target)
     # Commit the binding with the manifest, outside the manifest's own bytes.
+    digest = run_store.request_digest(spec)
+    bounds = {
+        "schema_version": 1,
+        **{key: deepcopy(spec[key]) for key in (
+            "attempt_id", "run_id", "owner", "deadline_utc", "budget",
+        )},
+        "generation_plan": ref, "request_digest": digest,
+    }
     store._seal_generation_input(
         attempt_id, "generation-plan", data,
-        descriptor={"request_digest": run_store.request_digest(spec)},
+        descriptor={
+            "request_digest": digest, "original_bounds": bounds,
+            "original_bounds_sha256": sha256(encode(bounds)).hexdigest(),
+        },
     )
     return spec

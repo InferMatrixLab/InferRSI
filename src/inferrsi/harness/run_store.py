@@ -69,6 +69,13 @@ _GENERATION_MEDIA = {
     "generation-plan": "application/json",
 }
 _DELIVERY_FIELDS = frozenset({"items", "selection", "omissions", "limitations"})
+_BOUNDS_DESCRIPTOR_FIELDS = frozenset({
+    "request_digest", "original_bounds", "original_bounds_sha256",
+})
+_BOUNDS_FIELDS = frozenset({
+    "schema_version", "attempt_id", "run_id", "owner", "deadline_utc", "budget",
+    "generation_plan", "request_digest",
+})
 # Errno values meaning "another handle holds the lock" for msvcrt.locking and flock.
 _CONTENDED = frozenset({errno.EACCES, errno.EAGAIN, errno.EWOULDBLOCK, errno.EDEADLK})
 _CHUNK = 1024 * 1024
@@ -838,6 +845,61 @@ class RunStoreReader:
             )
         return delivery
 
+    def _read_generation_bounds(self, attempt_id: str) -> dict | None:
+        """Read internal original bounds; historical plans are never backfilled."""
+        stage = "read_generation_bounds"
+        if not _is_id(attempt_id):
+            raise PublicError("InvalidRequest", stage=stage, message="invalid attempt ID")
+        try:
+            with self._connection() as conn:
+                row = conn.execute(
+                    "SELECT sha256, data, descriptor FROM generation_inputs "
+                    "WHERE attempt_hash = ? AND role = 'generation-plan'",
+                    (attempt_hash(attempt_id),),
+                ).fetchone()
+        except (sqlite3.Error, OSError) as exc:
+            raise PublicError(
+                "ArtifactUnavailable", stage=stage, message="generation bounds are not accessible",
+            ) from exc
+        if row is None:
+            return None
+        try:
+            digest, data, metadata = row
+            descriptor = json_v1.decode(metadata)
+            if (
+                not isinstance(descriptor, dict)
+                or not isinstance(descriptor.get("request_digest"), str)
+                or not _DIGEST.fullmatch(descriptor["request_digest"])
+                or hashlib.sha256(data).hexdigest() != digest
+            ):
+                raise ValueError("invalid generation plan binding")
+            if descriptor.keys() == {"request_digest"}:
+                return None
+            if not _has_fields(descriptor, _BOUNDS_DESCRIPTOR_FIELDS):
+                raise ValueError("incomplete original bounds metadata")
+            bounds = descriptor["original_bounds"]
+            if (
+                not _has_fields(bounds, _BOUNDS_FIELDS)
+                or type(bounds["schema_version"]) is not int or bounds["schema_version"] != 1
+                or hashlib.sha256(json_v1.encode(bounds)).hexdigest()
+                != descriptor["original_bounds_sha256"]
+                or bounds["request_digest"] != descriptor["request_digest"]
+                or bounds["attempt_id"] != attempt_id
+                or not all(_is_id(bounds[key]) for key in ("attempt_id", "run_id", "owner"))
+                or not _is_timestamp(bounds["deadline_utc"])
+                or not _has_fields(bounds["budget"], _BUDGET_FIELDS)
+                or bounds["generation_plan"] != _generation_ref(
+                    self.namespace, attempt_hash(attempt_id), "generation-plan", data,
+                )
+            ):
+                raise ValueError("original bounds differ from their sealed identity")
+        except (AttributeError, TypeError, ValueError) as exc:
+            raise PublicError(
+                "ArtifactIntegrityError", stage=stage,
+                message="invalid committed generation bounds",
+            ) from exc
+        return copy.deepcopy(bounds)
+
     def _find_delivery(
         self, attempt_id: str, *, preparation_digest: str | None = None,
     ) -> dict | None:
@@ -983,6 +1045,15 @@ class RunStore(RunStoreReader):
                     # Concurrent preparations compare request identity against the first commit.
                     return tuple(row)
                 elif tuple(row) != values:
+                    # Old plans bind the same spec without original-bounds metadata.
+                    # A replay may use those bytes but must never backfill the row.
+                    if role == "generation-plan" and _has_fields(
+                        descriptor, _BOUNDS_DESCRIPTOR_FIELDS,
+                    ) and tuple(row) == (
+                        values[0], values[1],
+                        json_v1.encode({"request_digest": descriptor["request_digest"]}),
+                    ):
+                        return tuple(row)
                     raise PublicError(
                         "RequestConflict", stage=stage, attempt_id=attempt_id,
                         message="the attempt already has a different committed generation input",
