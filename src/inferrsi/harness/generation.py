@@ -109,9 +109,6 @@ def _bind_generation_plan(store, target, attempt, plan, delivery_ref):
     }
     store._seal_generation_input(
         attempt_id, "generation-plan", data,
-        descriptor={
-            "request_digest": digest, "original_bounds": bounds,
-            "original_bounds_sha256": sha256(encode(bounds)).hexdigest(),
-        },
+        descriptor={"request_digest": digest}, original_bounds=encode(bounds),
     )
     return spec

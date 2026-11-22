@@ -102,7 +102,7 @@ def test_legacy_repreparation_and_replay_do_not_backfill_bounds(cpu_generation, 
     store, target, harness, _, inputs = cpu_generation
     original_seal = store._seal_generation_input
 
-    def legacy_seal(id_, role, data, *, descriptor=None):
+    def legacy_seal(id_, role, data, *, descriptor=None, **kwargs):
         if role == "generation-plan":
             descriptor = {"request_digest": descriptor["request_digest"]}
         return original_seal(id_, role, data, descriptor=descriptor)
@@ -131,7 +131,32 @@ def test_legacy_repreparation_and_replay_do_not_backfill_bounds(cpu_generation, 
         ).fetchone()) == old
 
 
-@pytest.mark.parametrize("fault", ["checksum", "attempt", "plan", "digest", "partial", "data"])
+def test_legacy_sealing_caller_can_reprepare_new_generation(cpu_generation, monkeypatch):
+    store, target, harness, _, inputs = cpu_generation
+    spec = prepare_generation(store, target, **inputs)
+    expected = store._read_generation_bounds(spec["attempt_id"])
+    original_seal = store._seal_generation_input
+
+    def legacy_seal(id_, role, data, *, descriptor=None, **kwargs):
+        if role == "generation-plan":
+            descriptor = {"request_digest": descriptor["request_digest"]}
+        return original_seal(id_, role, data, descriptor=descriptor)
+
+    with monkeypatch.context() as patch:
+        patch.setattr(store, "_seal_generation_input", legacy_seal)
+        assert prepare_generation(store, target, **inputs) == spec
+    with store._connection() as connection:
+        descriptor = connection.execute(
+            "SELECT descriptor FROM generation_inputs WHERE role = 'generation-plan'",
+        ).fetchone()[0]
+    assert descriptor == encode({"request_digest": run_store.request_digest(spec)})
+    assert store._read_generation_bounds(spec["attempt_id"]) == expected
+    assert harness.execute(spec)["exit_code"] == 0
+
+
+@pytest.mark.parametrize("fault", [
+    "checksum", "attempt", "plan", "digest", "partial", "data", "orphan",
+])
 def test_corrupt_bounds_fail_closed_without_mutating_the_original(
     cpu_generation, tmp_path, fault,
 ):
@@ -144,11 +169,13 @@ def test_corrupt_bounds_fail_closed_without_mutating_the_original(
     shutil.copyfile(store.root / run_store.INDEX_NAME, damaged / run_store.INDEX_NAME)
     with sqlite3.connect(damaged / run_store.INDEX_NAME) as connection:
         connection.execute("DROP TRIGGER generation_inputs_no_update")
-        data, metadata = connection.execute(
-            "SELECT data, descriptor FROM generation_inputs WHERE role = 'generation-plan'",
+        plan_data = connection.execute(
+            "SELECT data FROM generation_inputs WHERE role = 'generation-plan'",
+        ).fetchone()[0]
+        digest, data = connection.execute(
+            "SELECT sha256, data FROM generation_inputs WHERE role = 'original-bounds'",
         ).fetchone()
-        descriptor = decode(metadata)
-        bounds = descriptor["original_bounds"]
+        bounds = decode(data)
         if fault == "checksum":
             bounds["budget"]["scope_id"] = "damaged"
         elif fault == "attempt":
@@ -158,15 +185,22 @@ def test_corrupt_bounds_fail_closed_without_mutating_the_original(
         elif fault == "digest":
             bounds["request_digest"] = "sha256:" + "0" * 64
         elif fault == "partial":
-            descriptor.pop("original_bounds_sha256")
+            bounds.pop("deadline_utc")
         elif fault == "data":
-            data += b" "
-        if fault in {"attempt", "plan", "digest"}:
-            descriptor["original_bounds_sha256"] = sha256(encode(bounds)).hexdigest()
+            plan_data += b" "
+        data = encode(bounds)
+        if fault in {"attempt", "plan", "digest", "partial"}:
+            digest = sha256(data).hexdigest()
         connection.execute(
-            "UPDATE generation_inputs SET data = ?, descriptor = ? WHERE role = 'generation-plan'",
-            (data, encode(descriptor)),
+            "UPDATE generation_inputs SET data = ?, sha256 = ? WHERE role = 'original-bounds'",
+            (data, digest),
         )
+        connection.execute(
+            "UPDATE generation_inputs SET data = ? WHERE role = 'generation-plan'", (plan_data,),
+        )
+        if fault == "orphan":
+            connection.execute("DROP TRIGGER generation_inputs_no_delete")
+            connection.execute("DELETE FROM generation_inputs WHERE role = 'generation-plan'")
     reader = run_store.RunStoreReader(damaged, store.namespace)
     with pytest.raises(PublicError, match="ArtifactIntegrityError") as caught:
         reader._read_generation_bounds(attempt_id)
@@ -208,3 +242,18 @@ def test_bounds_storage_error_is_not_reported_as_a_missing_snapshot(cpu_generati
     with pytest.raises(PublicError, match="ArtifactUnavailable") as caught:
         reader._read_generation_bounds(inputs["attempt"]["attempt_id"])
     assert caught.value.stage == "read_generation_bounds"
+
+
+def test_internal_bounds_slot_is_not_a_new_public_artifact_location(cpu_generation):
+    store, target, _, _, inputs = cpu_generation
+    spec = prepare_generation(store, target, **inputs)
+    attempt_id = spec["attempt_id"]
+    data = encode(store._read_generation_bounds(attempt_id))
+    digest = sha256(data).hexdigest()
+    guess = {
+        "location": (f"stores/{store.namespace}/generation/{run_store.attempt_hash(attempt_id)}"
+                     f"/original-bounds/{digest}"),
+        "sha256": digest, "size_bytes": len(data), "media_type": "application/json",
+    }
+    with pytest.raises(PublicError, match="UnsafeArtifactPath"):
+        run_store.RunStoreReader(store.root, store.namespace).open(guess)
