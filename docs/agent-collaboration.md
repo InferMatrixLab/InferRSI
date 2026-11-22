@@ -11,13 +11,13 @@ Campaign acceptance, DCO, CI lanes and evidence rules stay in
 
 - Humans and agents may propose Issues. Proposal origin, assignment and labels do not grant authority.
 - A GitHub account may represent a human and their authorized agent team. Assignment identifies accountability, not necessarily the executor. Record the acting person/agent and role when relevant; retain unknown identity rather than guessing.
-- Work follows accepted scope and explicit or standing delegation. Record or link that authority. Material scope changes and exceptions are decided by the accountable agent and recorded with their reason on the Issue; a human may override any such decision.
+- Work follows accepted scope and explicit or standing delegation. Record or link that authority. Within that delegation and the Issue's direction, the accountable agent decides material scope changes and exceptions and records them with their reason on the Issue; a human may override any such decision. Expanding scope beyond the Issue's direction needs the Issue owner's approval first. No agent may waive independent review, the human approval for high-risk changes, `agent:stop` or repository permission boundaries.
 - Routine PR review and integration may be delegated without fresh human approval per PR. Existing repository permissions and acceptance policies still apply.
 - Completion is accepted by the named person or authorized agent. Acceptance/closure authority must be clear before those actions; it need not block already-authorized implementation.
-- Agents carry work end to end: they claim, delegate slices, set accepted scope and acceptance criteria within the Issue's direction, apply repository rules to a case, grant exceptions, review and merge. Each such decision is recorded on the Issue or PR with its reason.
-- Humans do three things: open Issues that set direction, approve high-risk changes, and stop work at any time. A human adds `agent:stop` to an Issue or PR to stop it; agents then make no further changes, reviews or merges there and resume only after a human removes the label.
+- Agents carry work end to end: they claim, delegate slices, set accepted scope and acceptance criteria within the Issue's direction, apply repository rules to a case, grant exceptions within the limits above, review and merge. Each such decision is recorded on the Issue or PR with its reason.
+- Humans do three things: open Issues that set direction, approve high-risk changes, and stop work at any time. A human adds `agent:stop` to an Issue or PR to stop it; agents then make no further changes, reviews or merges there and resume only after a human removes the label. A stop on an Issue also stops its linked PRs, their queued merges and any work delegated under it. Right before each push, review, merge or merge-queue entry, an agent checks the label on the PR and its governing Issue; if it cannot tell whether a stop is present, it does not act.
 - High-risk changes need an **Approve** from a human maintainer as one of the two approvals: CI workflows and required checks, releases (release workflow, version, tags, publishing), secrets and credentials, and permissions (workflow `permissions`, repository access, rulesets).
-- Each account carries at most one agent team, or the agent uses its own account. Every agent comment and every formal review (including **Approve** and **Request changes**) starts with one line naming the acting agent and the human it acts for, so humans, integrators and other agents can tell who acted.
+- Each account carries at most one agent team, or the agent uses its own account. Every agent comment and every formal review (including **Approve** and **Request changes**) carries one line naming the acting agent and the human it acts for, so humans, integrators and other agents can tell who acted. The line comes first, except in an **Approve**, where `LGTM` stays alone on the first non-empty line and the identity line comes next.
 
 ## Roles
 
@@ -83,8 +83,9 @@ are recorded by the accountable agent for any human to override.
 
 For a PR targeting `main`, each completed review gives an explicit **PASS** or
 **DO NOT PASS** verdict. For PASS, submit **Approve** with `LGTM` alone on the
-first non-empty line of the same review body. Only the exact, case-sensitive
-spelling `LGTM` qualifies. For DO NOT PASS, submit **Request changes** with
+first non-empty line of the same review body, followed by the agent's identity
+line. Only the exact, case-sensitive spelling `LGTM` qualifies. For DO NOT
+PASS, submit **Request changes** with
 the blockers and the expected corrections or evidence.
 
 An eligible approval comes from an independent reviewer using a GitHub account
@@ -95,9 +96,8 @@ The PR author, material contributors,
 and the accountable parent for the delivery slice cannot supply an independent
 approval, including through another agent acting under their account. Each
 eligible account counts once.
-For an agent submitting a review, record the direct delegation or link the
-maintainer's standing delegation in the governing Issue or PR. Identify the
-acting reviewer, account, scope and permitted review actions.
+An agent may submit a formal review without a separate human delegation; its
+identity line names the acting reviewer and the human it acts for.
 
 The [main ruleset](https://github.com/InferMatrixLab/InferRSI/rules/25528020)
 requires at least two approving reviews and dismisses stale approvals when
@@ -251,7 +251,7 @@ lists every repository label with its group and description, and every name has 
 | Status | `status:accepted` or `status:deferred`, replacing `status:proposed` | the acting agent | only after the decision owner records that decision in a comment |
 | Priority | at most one `priority:P0/P1/P2`, only with `status:proposed` or `status:accepted` | the acting agent; the decision owner may change it | with `status:proposed`, how soon the owner should decide; with `status:accepted`, how soon work should start; removed at `status:deferred` |
 | Help | `help:wanted` | the creator or a maintainer | an Issue needs an owner or contributor |
-| Stop switch | `agent:stop` | only a human adds or removes it | adding stops agent changes, reviews and merges on that Issue or PR; removing lets them resume |
+| Stop switch | `agent:stop` | only a human adds or removes it | adding stops agent changes, reviews and merges on that Issue or PR, and on an Issue also its linked PRs, queued merges and delegated work; removing lets them resume |
 | Protected switch | `skill-eval:execute` | only the owner adds it; the owner or an agent may remove it | adding authorizes paid Skill Eval for one PR; removing revokes it |
 
 An Issue carries at most one `status:*` label. When the owner rejects a proposal, or its

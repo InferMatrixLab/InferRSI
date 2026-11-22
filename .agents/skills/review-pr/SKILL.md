@@ -6,7 +6,10 @@ description: Independently review a pull request targeting InferMatrixLab/InferR
 # Review an InferRSI pull request
 
 Use the [review eligibility and merge rules](../../../docs/agent-collaboration.md#pr-review-and-merge)
-and the [contribution evidence rules](../../../docs/contributing.md). If you
+and the [contribution evidence rules](../../../docs/contributing.md). Start
+every comment and review with one line naming the acting agent and the human
+it acts for, for example `<agent name>, acting for @<human>.`; an **Approve**
+keeps `LGTM` on its first non-empty line and puts that line next. If you
 authored or materially contributed to the change or were its accountable
 parent, label your assessment as a self-check and hand the formal review to an
 independent reviewer.
@@ -45,21 +48,24 @@ case-sensitive token `LGTM`. For example:
 
 ```text
 LGTM
+<agent name>, acting for @<human>.
 
 PR review verdict — PASS
 Reviewed base <base_sha> and head <head_sha>.
 Verified <specific check or evidence>.
 ```
 
-For DO NOT PASS, select **Request changes**. Start the body with
-**PR review verdict — DO NOT PASS** and state what must change or be verified
+For DO NOT PASS, select **Request changes**. After the identity line, start
+with **PR review verdict — DO NOT PASS** and state what must change or be verified
 before re-review. Keep optional suggestions separate from the blockers.
 
 Use GitHub **Comment** (`COMMENTED`) for non-voting interim feedback. A completed
 formal review still requires **Approve** or **Request changes**.
 
-Submit a formal review only from an eligible independent account with recorded
-direct or standing delegation covering that PR and review action. Before
+Agents may submit formal reviews without a separate human delegation; see
+[identity and authority](../../../docs/agent-collaboration.md#identity-and-authority).
+Submit one only from an eligible independent account, never on your own PR,
+and not while the PR or its governing Issue carries `agent:stop`. Before
 submitting, confirm that the PR is open and the reviewed target, base and head
 are still current.
 If the revision changed, reassess the affected diff and evidence before submitting.
