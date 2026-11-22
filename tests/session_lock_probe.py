@@ -109,9 +109,8 @@ def main(work: Path) -> dict:
             assert holder.poll() is None, holder.communicate()
             assert time.monotonic() < deadline, "the Harness holder never took the lock"
             time.sleep(0.02)
-        # Windows reports contention as PermissionError (#494); POSIX raises BlockingIOError,
-        # which Apps maps to SnapshotBusy. Either way the export must not publish.
         busy = delivery.export_bundle(root, work / "busy", export_id="busy")
+        assert "writer is active" in busy.get("error", ""), busy
         busy_published = (work / "busy").exists()
     finally:
         release.write_text("done", encoding="utf-8")

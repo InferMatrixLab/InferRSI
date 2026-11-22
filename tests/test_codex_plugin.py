@@ -93,7 +93,7 @@ def test_bundle_contains_all_declared_package_data(distribution):
             "inferrsi/knowledge/data/", "inferrsi/harness/data/", "inferrsi/benchmark/tasks/",
         )) or (
             name.startswith("inferrsi/apps/views/") and name.endswith(".html")
-        )
+        ) or name.startswith("inferrsi/apps/cli/task-input/")
     }
     assert expected == installed
     manifest = json.loads((distribution / "runtime/manifest.json").read_text(encoding="utf-8"))

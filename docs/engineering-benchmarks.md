@@ -23,13 +23,17 @@ Discovery reads packaged resources and works without device libraries.
 
 ```bash
 inferrsi benchmarks list
+inferrsi benchmarks list --iterative
 inferrsi benchmarks show moe-forward-npu
 inferrsi benchmarks show qwen21-denoise-npu
 inferrsi benchmarks show qwen3-tts-npu
 ```
 
 The library's `index.json` registers the packages. Common Python reads this
-registry without embedding case names. `show` returns the task manifest and
+registry without embedding case names. The `--iterative` filter lists tasks
+whose package root contains an `optimization.py` file. It checks only for the
+file, so listing works without importing task code or probing a device.
+`show` returns the task manifest and
 the package's files without interpreting workload-specific fields.
 `run <package> ...` executes that package's `benchmark.py` with the remaining
 arguments unchanged. Each package owns its entry, measurement and assessment code. Review the implementation and

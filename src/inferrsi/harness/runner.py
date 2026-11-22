@@ -10,7 +10,7 @@ from pathlib import Path
 
 from ..contracts import RunSpec
 from .atomic_json import atomic_write_json as _write_json
-from .scenarios.external import collect_trial_checks
+from .trials.external import collect_trial_checks
 
 
 def run_experiment(
