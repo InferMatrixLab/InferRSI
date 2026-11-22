@@ -238,10 +238,14 @@ def attempt_accounting(attempts: list[dict]) -> dict:
     """Count one arm's retained attempts without changing its selected result.
 
     Attempts are ordered; the last one is the arm's selected result. Total wall
-    spans the first attempt's campaign start to the last attempt's campaign end,
-    so it includes failed attempts, retries and the gaps between them. A token
-    subtotal never becomes a complete arm total: tokens are known only when
-    every attempt has a complete session export.
+    spans the first attempt's start to the last attempt's end, so it includes
+    failed attempts, retries and the gaps between them. Each attempt's start and
+    end are its own evidenced ``attempt_window``; a campaign window never
+    substitutes, so a missing boundary leaves the total unknown with a reason.
+    A collected attempt whose current evidence no longer re-reads as completed
+    has no successful campaign wall. A token subtotal never becomes a complete
+    arm total: tokens are known only when every attempt has a complete session
+    export.
     """
     if not isinstance(attempts, list) or not attempts:
         raise ValueError("Attempt accounting requires at least one retained attempt")
@@ -253,18 +257,26 @@ def attempt_accounting(attempts: list[dict]) -> dict:
             raise ValueError("Attempt requires a known status and eligibility")
         numbers.append(index)
     first, last = attempts[0], attempts[-1]
-    success = (last["wall_seconds"] if last["status"] == "completed"
+    current = last.get("reverification")
+    reread = current is None or (isinstance(current, dict)
+                                 and current.get("status") == "completed")
+    success = (last["wall_seconds"] if last["status"] == "completed" and reread
                and _number(last.get("wall_seconds")) and last["wall_seconds"] >= 0 else None)
     if success is None:
         reasons["success_wall_seconds"] = ["selected_attempt_campaign_not_completed"
                                            if last["status"] != "completed"
+                                           else "selected_attempt_not_reverified_as_completed"
+                                           if not reread
                                            else "selected_attempt_wall_unavailable"]
-    start, end = first.get("started_at"), last.get("ended_at")
-    total = None
-    if not _number(start):
-        reasons["total_wall_seconds"] = ["first_attempt_start_unknown"]
-    elif not _number(end):
-        reasons["total_wall_seconds"] = ["last_attempt_end_unknown"]
+    start = (first.get("attempt_window") or {}).get("started_at")
+    end = (last.get("attempt_window") or {}).get("ended_at")
+    total, missing = None, []
+    for attempt, value in ((first, start), (last, end)):
+        if not _number(value):
+            reason = attempt.get("attempt_window_missing") or "attempt_window_unknown"
+            missing.append(f"attempt {attempt['attempt']}: {reason}")
+    if missing:
+        reasons["total_wall_seconds"] = list(dict.fromkeys(missing))
     elif end < start:
         reasons["total_wall_seconds"] = ["last_attempt_end_precedes_first_start"]
     else:
@@ -282,7 +294,10 @@ def attempt_accounting(attempts: list[dict]) -> dict:
                                or attempt["status"] == "completed" and not attempt["eligible"]
                                for attempt in attempts),
         "statuses": [{"attempt": number, "status": attempt["status"],
-                      "eligible": attempt["eligible"]}
+                      "eligible": attempt["eligible"],
+                      "reverified": (attempt["reverification"].get("verified") is True
+                                     if isinstance(attempt.get("reverification"), dict)
+                                     else None)}
                      for number, attempt in zip(numbers, attempts)],
         "success_wall_seconds": success,
         "total_wall_seconds": total,

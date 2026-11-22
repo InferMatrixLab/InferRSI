@@ -6,6 +6,7 @@ import re
 import shutil
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 import pytest
@@ -81,8 +82,9 @@ def operation(experiment, action, trial=None, *arguments):
 def finish(experiment, trial, *, factor=2, final=True, model="synthetic-model", usage=True,
            final_score=None, legacy_session_id=None, python=None, environment_digest="a" * 64,
            knowledge=False, token_coverage=False, usage_counts=None, collect=True,
-           session_id=None, host_state="completed"):
+           session_id=None, host_state="completed", window=True):
     root, _, capsys = experiment
+    opened = time.time()
     dispatch = operation(experiment, "dispatch", trial)
     assert dispatch["may_create"]
     prompt = dispatch["handoff"]["prompt"]
@@ -144,6 +146,10 @@ def finish(experiment, trial, *, factor=2, final=True, model="synthetic-model", 
             "includes": dict.fromkeys(
                 ("pre_start", "retrieval", "failures_retries", "final"), True),
         }
+    if window:
+        observation["native_session_window"] = {
+            "session_id": session_id, "started_at": opened, "ended_at": time.time(),
+            **(window if isinstance(window, dict) else {})}
     receipt.write_text(json.dumps(observation), encoding="utf-8")
     operation(experiment, "record", trial, "--observation", str(receipt))
     if not collect:
@@ -564,8 +570,16 @@ def test_failed_attempt_is_retained_and_counted_after_explicit_retry(experiment)
     assert accounting["attempts"] == 2 and accounting["failed_attempts"] == 1
     assert accounting["success_wall_seconds"] == arm["metrics"]["wall_seconds"]
     assert accounting["success_wall_seconds"] == attempts[1]["wall_seconds"]
-    total = attempts[1]["ended_at"] - attempts[0]["started_at"]
+    windows = [item["attempt_window"] for item in attempts]
+    campaigns = [item["campaign_window"] for item in attempts]
+    # Each native session encloses its campaign, so start-up and wrap-up are counted.
+    for window, campaign in zip(windows, campaigns):
+        assert window["started_at"] <= campaign["started_at"]
+        assert campaign["ended_at"] is None or campaign["ended_at"] <= window["ended_at"]
+    total = windows[1]["ended_at"] - windows[0]["started_at"]
     assert accounting["total_wall_seconds"] == total > accounting["success_wall_seconds"]
+    assert total >= campaigns[1]["ended_at"] - campaigns[0]["started_at"]
+    assert all(item["reverification"]["verified"] for item in attempts)
     assert accounting["tokens"] == 240 and accounting["token_coverage"] == "complete"
     assert first_campaign.is_dir() and (first_campaign / "state.json").is_file()
     from inferrsi.benchmark.comparison import summarize
@@ -587,13 +601,19 @@ def test_arm_without_retry_has_one_attempt_and_equal_walls(experiment):
     document = _document(operation(experiment, "report"))
     completed, pending = (trial["attempt_accounting"] for trial in document["trials"])
     assert completed["attempts"] == 1 and completed["failed_attempts"] == 0
-    assert completed["statuses"] == [{"attempt": 1, "status": "completed", "eligible": True}]
+    assert completed["statuses"] == [{"attempt": 1, "status": "completed", "eligible": True,
+                                      "reverified": True}]
     assert completed["success_wall_seconds"] == document["trials"][0]["metrics"]["wall_seconds"]
-    assert completed["total_wall_seconds"] == completed["success_wall_seconds"]
+    # The attempt's own native session window, not the campaign window.
+    window = document["trials"][0]["attempts"][0]["attempt_window"]
+    assert completed["total_wall_seconds"] == window["ended_at"] - window["started_at"]
+    assert completed["total_wall_seconds"] >= completed["success_wall_seconds"]
     assert completed["tokens"] == 120 and completed["token_coverage"] == "complete"
     # An arm that has not run yet is neither a failure nor a measured cost.
     assert pending["attempts"] == 1 and pending["failed_attempts"] == 0
     assert pending["success_wall_seconds"] is None and pending["total_wall_seconds"] is None
+    assert pending["missing_reasons"]["total_wall_seconds"] == [
+        "attempt 1: native_execution_not_terminated"]
     assert pending["tokens"] is None and pending["token_coverage"] == "unknown"
 
 
@@ -615,7 +635,8 @@ def test_missing_attempt_export_keeps_arm_tokens_unknown(experiment):
     assert arm["metrics"]["tokens"] == 120
     markdown = Path(report["reports"]["markdown"]).read_text(encoding="utf-8")
     row = next(line for line in markdown.splitlines() if "1: blocked; 2: completed" in line)
-    assert row.endswith("| unknown | partial |")
+    assert row.endswith("| unknown | partial | tokens: attempt 1: "
+                        "complete\\_session\\_usage\\_unavailable |")
 
 
 def test_retry_rejects_reused_sessions_concurrency_and_changed_archives(experiment, capsys):
@@ -639,3 +660,134 @@ def test_retry_rejects_reused_sessions_concurrency_and_changed_archives(experime
     archived.write_text("{}", encoding="utf-8")
     with pytest.raises(ValueError, match="Retained comparison collection changed"):
         compare.report(root)
+
+
+def fail_before_campaign(experiment, trial, *, session_id):
+    """A terminal native failure that never created a campaign, with its exported window."""
+    root, _, _ = experiment
+    opened = time.time()
+    operation(experiment, "dispatch", trial)
+    receipt = root / (trial + "-early-receipt.json")
+    receipt.write_text('{"synthetic_host_creation":true}', encoding="utf-8")
+    operation(experiment, "bind", trial, "--host", "synthetic", "--session-id", session_id,
+              "--receipt", str(receipt))
+    receipt.write_text(json.dumps({
+        "host": "synthetic", "host_id": None, "session_id": session_id, "state": "failed",
+        "native_receipt": {"synthetic_host_terminal": True},
+        "usage_scope": "session_total", "usage": {"input_tokens": 30, "output_tokens": 5},
+        "native_session_window": {"session_id": session_id, "started_at": opened,
+                                  "ended_at": time.time()}}), encoding="utf-8")
+    operation(experiment, "record", trial, "--observation", str(receipt))
+    return operation(experiment, "collect", trial)["trial"]
+
+
+@pytest.mark.parametrize("damage", ["missing-job", "changed-job"])
+def test_unreadable_retained_attempt_keeps_recorded_failure(experiment, damage):
+    root, initial, _ = experiment
+    on, off = [trial["id"] for trial in initial["trials"]]
+    early = fail_before_campaign(experiment, on, session_id=on)
+    # No campaign: the failure, its tokens and its own session interval are still recorded.
+    assert early["status"] == "failed" and early["campaign_window"] is None
+    assert early["attempt_tokens"] == 35 and early["attempt_window"] is not None
+    operation(experiment, "retry", on)
+    finish(experiment, on, session_id=on + "-attempt-2")
+    finish(experiment, off, factor=1.5)
+    before = operation(experiment, "report")
+    arm = _document(before)["trials"][0]
+    assert arm["attempt_accounting"]["failed_attempts"] == 1
+    first = arm["attempts"][0]
+    assert first["reverification"] == {"verified": True, "status": "failed", "added_gaps": []}
+    assert arm["attempt_accounting"]["total_wall_seconds"] == (
+        arm["attempts"][1]["attempt_window"]["ended_at"] - early["attempt_window"]["started_at"])
+    assert arm["attempt_accounting"]["tokens"] == 155
+
+    job = root / "jobs" / on
+    if damage == "missing-job":
+        shutil.rmtree(job)
+        error = "FileNotFoundError"
+    else:
+        request = json.loads((job / "request.json").read_text(encoding="utf-8"))
+        request["title"] = "changed"
+        (job / "request.json").write_text(json.dumps(request), encoding="utf-8")
+        error = "ValueError"
+    after = operation(experiment, "report")
+    arm = _document(after)["trials"][0]
+    first, accounting = arm["attempts"][0], arm["attempt_accounting"]
+    # The recorded failure and its classification survive; the re-read is shown separately.
+    assert (first["status"], first["eligible"], first["gaps"]) == (
+        "failed", False, early["gaps"])
+    assert first["reverification"] == {
+        "verified": False, "status": "blocked",
+        "added_gaps": [f"Native job evidence could not be verified ({error})"]}
+    assert accounting["failed_attempts"] == 1
+    assert accounting["statuses"][0] == {"attempt": 1, "status": "failed", "eligible": False,
+                                         "reverified": False}
+    # Unverifiable cost is unknown with a reason, never a stale value or zero.
+    assert first["tokens"] is None and first["attempt_window"] is None
+    assert accounting["total_wall_seconds"] is None
+    assert accounting["missing_reasons"]["total_wall_seconds"] == [
+        "attempt 1: native_job_evidence_not_verifiable"]
+    assert accounting["tokens"] is None and accounting["token_coverage"] == "partial"
+    assert accounting["success_wall_seconds"] == arm["metrics"]["wall_seconds"]
+    # History neither changes nor clears the selected attempt's verdict.
+    assert after["assessment"] == before["assessment"]
+    assert after["assessment"]["counts"]["eligible_pairs"] == 1
+    status = operation(experiment, "status")
+    assert status["trials"][0]["previous_attempts"][0]["status"] == "failed"
+    html = Path(after["reports"]["html"]).read_text(encoding="utf-8")
+    assert "1: failed (current evidence not re-verified); 2: completed" in html
+    assert "total wall: attempt 1: native_job_evidence_not_verifiable" in html
+    assert "re-read status: blocked" in html
+
+
+def test_collected_selected_attempt_cannot_pass_from_its_record(experiment):
+    root, initial, _ = experiment
+    on = initial["trials"][0]["id"]
+    _, collected = finish(experiment, on)
+    assert collected["eligible"]
+    shutil.rmtree(root / "jobs" / on)
+    arm = _document(operation(experiment, "report"))["trials"][0]
+    # A lost job is unverifiable, not "pending", and the record cannot keep it eligible.
+    assert arm["status"] == "blocked" and not arm["eligible"]
+    assert arm["gaps"] == ["Native job evidence could not be verified (FileNotFoundError)"]
+    row, accounting = arm["attempts"][0], arm["attempt_accounting"]
+    assert row["status"] == "completed" and not row["eligible"]
+    assert row["reverification"]["verified"] is False
+    assert accounting["failed_attempts"] == 1
+    assert accounting["success_wall_seconds"] is None
+    assert accounting["missing_reasons"]["success_wall_seconds"] == [
+        "selected_attempt_not_reverified_as_completed"]
+
+
+@pytest.mark.parametrize(("window", "reason"), [
+    (False, "native_session_window_not_exported"),
+    ({"session_id": "another-session"}, "native_session_window_invalid"),
+    ({"started_at": 2.0, "ended_at": 1.0}, "native_session_window_invalid"),
+    ({"started_at": 0.0, "ended_at": 1.0}, "native_session_window_excludes_campaign"),
+])
+def test_attempt_time_requires_a_bound_session_window(experiment, window, reason):
+    on = experiment[1]["trials"][0]["id"]
+    _, collected = finish(experiment, on, window=window)
+    assert collected["eligible"] and collected["campaign_window"]["started_at"] is not None
+    assert collected["attempt_window"] is None
+    assert collected["attempt_window_missing"] == reason
+    accounting = _document(operation(experiment, "report"))["trials"][0]["attempt_accounting"]
+    # The campaign window never substitutes; the campaign's own wall is still kept.
+    assert accounting["total_wall_seconds"] is None
+    assert accounting["missing_reasons"]["total_wall_seconds"] == [f"attempt 1: {reason}"]
+    assert accounting["success_wall_seconds"] is not None
+
+
+def test_uncreated_native_session_has_no_attempt_time(experiment):
+    root, initial, _ = experiment
+    on = initial["trials"][0]["id"]
+    operation(experiment, "dispatch", on)
+    receipt = root / "not-created.json"
+    receipt.write_text(json.dumps({
+        "host": "synthetic", "host_id": None, "session_id": None, "state": "failed",
+        "creation_outcome": "not_created", "native_receipt": {"synthetic": True}}),
+        encoding="utf-8")
+    operation(experiment, "record", on, "--observation", str(receipt))
+    collected = operation(experiment, "collect", on)["trial"]
+    assert collected["status"] == "failed"
+    assert collected["attempt_window_missing"] == "native_session_not_created"

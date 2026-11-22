@@ -10,10 +10,15 @@
   Retry is never automatic. It is refused while the current attempt is uncollected or not terminal,
   and when it is an eligible completed result. The report adds an **Attempts and wall time** table:
   attempts, failed attempts with their statuses, the successful campaign wall, and the total wall
-  from the first attempt's start to the last attempt's end. Tokens across attempts stay unknown
-  unless every attempt has a complete session export. The pure rule is
+  from the first attempt's start to the last attempt's end. An attempt's start and end come from
+  the optional `native_session_window` in its terminal host observation, never from campaign or
+  receipt times; without it the total wall is unknown with a reason. A collected attempt keeps its
+  recorded status and gaps when its job or campaign no longer re-reads; the report marks it as
+  not re-verified and treats its cost as unknown. Tokens across attempts stay unknown unless every
+  attempt has a complete session export. The pure rule is
   `benchmark.comparison.attempt_accounting`. The verdict still reads each arm's latest attempt,
   including its campaign `wall_seconds`, and is unchanged. So is Harness failure classification.
+  A collected trial whose job is gone now reports as unverifiable (`blocked`), not `pending`.
   Experiments prepared earlier load unchanged: attempt 1 keeps the existing job and workspace paths.
 - `inferrsi.harness.scenarios` is now `inferrsi.harness.trials` (Refs #558). Its one
   module, `external.py`, runs an external command as one trial and retains its record

@@ -132,6 +132,24 @@ and `usage` counters when available; cached input is a subset of input. Final
 host usage is never added to campaign round subtotals. Missing usage stays null.
 Do not replace missing final counters with an earlier partial observation.
 
+When the host reports when the native session started and ended, add that
+interval to the terminal observation. It is the attempt's start and end for
+attempt accounting:
+
+```json
+"native_session_window": {
+  "session_id": "<NATIVE_SESSION_ID>",
+  "started_at": 0,
+  "ended_at": 0
+}
+```
+
+Use Unix seconds from the host's own record of that session. The window must
+name the bound session, must not end before it starts, and must contain the
+campaign's start and end. Do not fill it from campaign timestamps or from the
+time you recorded the receipt. Omit it when the host does not report it; the
+attempt time then stays unknown, with a reason.
+
 ## Isolation and evidence
 
 Every trial has a separate workspace and frozen runtime. Shared code and task
@@ -170,15 +188,29 @@ summary preserves the existing comparison conclusion and old factor directions.
 **Attempts and wall time** lists every retained attempt of each arm: the
 attempt count, failed attempts with their statuses, the successful campaign wall
 (the selected attempt's campaign wall, when that campaign completed) and the
-total wall. Total wall runs from the first attempt's campaign start to the last
-attempt's campaign end, so it includes failed attempts, retries and the gaps
-between them. Failed attempts are terminal attempts without an eligible completed
-result; a pending or running attempt is not counted as failed. Tokens across
-attempts are summed only when every attempt has a complete `session_total`
-export. Otherwise they stay unknown, and the observed subtotal is shown with
-`partial` coverage. Trials with more than one attempt also get a per-attempt
-table. This accounting is descriptive. The frozen verdict still uses each arm's
-selected (latest) attempt, including its campaign `wall_seconds`, and is unchanged.
+total wall. Total wall runs from the first attempt's `native_session_window`
+start to the last attempt's `native_session_window` end. It therefore includes
+native start-up before a campaign exists, failed attempts, retries, wrap-up
+after the last campaign and the gaps between them. Campaign start/end and receipt
+arrival times are never used as attempt boundaries. When a needed boundary is
+missing, invalid or unverifiable, total wall stays unknown. The **Unknown
+reasons** column then names the attempt and the reason. Failed attempts are
+terminal attempts without an eligible completed result; a pending or running
+attempt is not counted as failed. Tokens across attempts are summed only when
+every attempt has a complete `session_total` export. Otherwise they stay
+unknown, and the observed subtotal is shown with `partial` coverage. Trials with
+more than one attempt also get a per-attempt table.
+
+A collected attempt keeps the status, eligibility and gaps it was collected
+with, so a lost or changed job cannot turn a recorded failure into "not run".
+Report still re-reads every attempt. Anything the re-read adds is shown
+separately, as *current evidence not re-verified*, with the re-read status and
+the new gaps. A re-read can only remove eligibility, never grant it. Costs
+(tokens, attempt window, campaign wall) come only from evidence that re-reads
+now. An attempt whose evidence cannot be re-read has unknown cost, not its
+recorded cost. This accounting is descriptive. The frozen verdict still uses
+each arm's selected (latest) attempt, re-verified live, including its campaign
+`wall_seconds`, and is unchanged.
 
 Apps writes a new JSON/Markdown/offline-HTML report snapshot under `reports/`.
 Start with the conclusion and per-task comparison, then inspect complete traces

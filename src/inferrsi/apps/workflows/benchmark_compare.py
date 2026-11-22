@@ -19,6 +19,7 @@ from tempfile import TemporaryDirectory
 from inferrsi.benchmark.comparison import (
     DEFAULT_POLICY,
     DEFAULT_TASKS,
+    STATUSES,
     attempt_accounting,
     summarize,
     validate_policy,
@@ -35,6 +36,7 @@ from inferrsi.harness.task_protocol import run as protocol_operation
 from ..delivery import project
 from ..delivery.benchmark_usage import terminal_token_usage, update_metrics
 from ..delivery.schema import decode
+from ..delivery.schema import number as _finite
 from ..storage.archive import _publish_directory
 from ..views.comparison_report import write_comparison_report
 
@@ -460,6 +462,9 @@ def _status(root, plan, state, *, host_views=None):
                           },
                           "usage": "optional actual cumulative input/output/cached_input tokens",
                           "usage_scope": "session_total when usage is present",
+                          "native_session_window": "optional in the terminal observation: "
+                          "{session_id, started_at, ended_at} in Unix seconds from the host's "
+                          "own record of this session; never campaign or receipt times",
                       }}
     return {"output": str(root), "focus": plan["focus"], "config": plan["config"],
             "parameter_sources": plan["parameter_sources"], "trials": rows,
@@ -495,24 +500,49 @@ def _host_payload(job, host):
     return _object(job / receipt["path"]) if receipt else None
 
 
+def _native_window(host, payload):
+    """The attempt's own start/end: the bound native session's exported interval.
+
+    Campaign start/end and the time a receipt was recorded are not attempt
+    boundaries, so they never substitute for a missing interval.
+    """
+    native = host.get("native_session")
+    if not native:
+        return None, "native_session_not_created"
+    window = payload.get("native_session_window") if payload is not None else None
+    if not isinstance(window, dict):
+        return None, "native_session_window_not_exported"
+    start, end = _finite(window.get("started_at")), _finite(window.get("ended_at"))
+    if (window.get("session_id") != native["session_id"] or start is None or end is None
+            or end < start):
+        return None, "native_session_window_invalid"
+    return {"started_at": start, "ended_at": end,
+            "source": "caller_exported_terminal_native_receipt"}, None
+
+
 def _trial_result(root, plan, trial, host, payload, *, workspace, host_error=None):
     result = {"id": trial["id"], "task": trial["task"], "repeat": trial["repeat"],
               "condition": trial["condition"], "status": "blocked", "eligible": False,
               "gaps": [], "metrics": {"speedup": None, "wall_seconds": None, "tokens": None},
               "trace": [], "final": None, "usage": {}, "knowledge_deliveries": [],
               "observed_settings": None, "metrics_comparable": False,
-              "benchmark_metrics": None, "campaign_window": None, "attempt_tokens": None}
+              "benchmark_metrics": None, "campaign_window": None, "attempt_tokens": None,
+              "attempt_window": None, "attempt_window_missing": None}
     if host_error is not None:
         result["gaps"].append(f"Native job evidence could not be verified ({host_error})")
+        result["attempt_window_missing"] = "native_job_evidence_not_verifiable"
         return result
     campaign = workspace / "campaign"
     if host is None or host["state"] not in agent_sessions.TERMINAL:
         result["status"] = "pending" if host is None else "running"
         result["gaps"].append("Native execution has not terminated")
+        result["attempt_window_missing"] = "native_execution_not_terminated"
         return result
     # A failed or blocked attempt still consumed its exported session total.
     if host["usage"] is not None:
         result["attempt_tokens"] = host["usage"]["input_tokens"] + host["usage"]["output_tokens"]
+    # A failure before campaign creation still has its native session interval.
+    result["attempt_window"], result["attempt_window_missing"] = _native_window(host, payload)
     result["status"] = "failed" if host["state"] != "completed" else "blocked"
     receipt = host["last_observation"]
     if payload is not None:
@@ -542,6 +572,13 @@ def _trial_result(root, plan, trial, host, payload, *, workspace, host_error=Non
         campaign_plan, control, _ = optimization.read_records(campaign)
         result["campaign_window"] = {"started_at": control.get("started_at"),
                                      "ended_at": control.get("settled_at")}
+        window = result["attempt_window"]
+        bounds = [_finite(control.get(key)) for key in ("started_at", "settled_at")]
+        if window is not None and any(
+                value is not None and not window["started_at"] <= value <= window["ended_at"]
+                for value in bounds):
+            result["attempt_window"] = None
+            result["attempt_window_missing"] = "native_session_window_excludes_campaign"
         settings = plan["task_settings"][trial["task"]]
         wanted = {"task": trial["task"], "condition": trial["id"],
                   "knowledge_allowed": trial["condition"] == "on",
@@ -689,11 +726,14 @@ def retry(root, trial_id, *, parallel=False):
     return status(root)
 
 
-def _reverify(root, plan, trial, number):
+def _reverify(root, plan, trial, number, *, collected=False):
     """Rebuild one attempt from its own job and campaign; never trust a stale collection."""
     job = _job(root, trial, number)
     workspace = _workspace(root, trial, number)
     try:
+        if collected and not job.is_dir():
+            # A collected attempt had a terminal job: losing it is unverifiable, not "not run".
+            raise FileNotFoundError("Collected native job is missing")
         host = agent_sessions.status(job) if job.exists() else None
         payload = _host_payload(job, host)
     except (OSError, ValueError) as error:
@@ -705,13 +745,33 @@ def _reverify(root, plan, trial, number):
     return host, result
 
 
-def _attempt_row(number, result, host):
-    window = result.get("campaign_window") or {}
-    return {"attempt": number, "status": result["status"], "eligible": result["eligible"],
-            "gaps": list(result["gaps"]), "wall_seconds": result["metrics"]["wall_seconds"],
-            "started_at": window.get("started_at"), "ended_at": window.get("ended_at"),
-            "tokens": result.get("attempt_tokens"),
-            "native_session": (host or {}).get("native_session")}
+def _attempt_row(number, result, host, recorded=None):
+    """One attempt for accounting; a collected attempt keeps its recorded classification.
+
+    Re-reading can only add gaps or remove eligibility, shown under
+    ``reverification``; it never turns a recorded failure into "not run". Costs
+    and attempt boundaries come only from evidence that re-reads now, so an
+    unreadable attempt has unknown cost rather than a stale one.
+    """
+    row = {"attempt": number, "status": result["status"], "eligible": result["eligible"],
+           "gaps": list(result["gaps"]), "wall_seconds": result["metrics"]["wall_seconds"],
+           "campaign_window": result.get("campaign_window"),
+           "attempt_window": result.get("attempt_window"),
+           "attempt_window_missing": result.get("attempt_window_missing"),
+           "tokens": result.get("attempt_tokens"),
+           "native_session": (host or {}).get("native_session"), "reverification": None}
+    if recorded is not None:
+        if (recorded.get("status") not in STATUSES or type(recorded.get("eligible")) is not bool
+                or not isinstance(recorded.get("gaps"), list)
+                or any(not isinstance(gap, str) for gap in recorded["gaps"])):
+            raise ValueError("Malformed retained comparison collection")
+        added = [gap for gap in result["gaps"] if gap not in recorded["gaps"]]
+        row.update(status=recorded["status"], gaps=list(recorded["gaps"]),
+                   eligible=recorded["eligible"] and result["eligible"])
+        row["reverification"] = {"verified": result["status"] == recorded["status"]
+                                 and not added, "status": result["status"],
+                                 "added_gaps": added}
+    return row
 
 
 def report(root):
@@ -719,22 +779,26 @@ def report(root):
     trials = []
     sessions = {}
     host_views = {}
-    archived = {}
+    attempts = {}
     for trial in plan["trials"]:
         reference = state["collections"].get(trial["id"])
-        if reference and sha256(root / reference["path"]) != reference["sha256"]:
-            raise ValueError("Retained comparison collection changed")
-        archived[trial["id"]] = []
+        collected = None
+        if reference:
+            if sha256(root / reference["path"]) != reference["sha256"]:
+                raise ValueError("Retained comparison collection changed")
+            collected = _object(root / reference["path"])
+        attempts[trial["id"]] = []
         for entry in _attempts(state, trial):
-            _archived_result(root, entry)
-            host, attempt = _reverify(root, plan, trial, entry["attempt"])
-            archived[trial["id"]].append((entry["attempt"], attempt, host))
+            recorded = _archived_result(root, entry)
+            host, attempt = _reverify(root, plan, trial, entry["attempt"], collected=True)
+            attempts[trial["id"]].append((entry["attempt"], attempt, host, recorded))
         # Reverify current evidence; a stale collection cannot hide later evidence loss.
         number = _attempt_number(state, trial)
-        host, result = _reverify(root, plan, trial, number)
+        host, result = _reverify(root, plan, trial, number, collected=collected is not None)
         host_views[trial["id"]] = host
         trials.append(result)
-        for _, attempt, attempt_host in [*archived[trial["id"]], (number, result, host)]:
+        attempts[trial["id"]].append((number, result, host, collected))
+        for _, attempt, attempt_host, _ in attempts[trial["id"]]:
             if attempt_host and attempt_host["native_session"]:
                 sessions.setdefault(_session_key(attempt_host["native_session"]), []).append(
                     (trial["id"], attempt))
@@ -753,6 +817,9 @@ def report(root):
             trial["metrics_comparable"] = False
             if "Native session is bound to multiple comparison trials" not in trial["gaps"]:
                 trial["gaps"].append("Native session is bound to multiple comparison trials")
+    # Rows describe each attempt's own evidence, before pair-level exclusions below.
+    rows = {trial_id: [_attempt_row(*item) for item in items]
+            for trial_id, items in attempts.items()}
     for task in plan["config"]["tasks"]:
         for repeat in range(1, plan["config"]["repeats"] + 1):
             pair = [t for t in trials if t["task"] == task and t["repeat"] == repeat]
@@ -768,12 +835,9 @@ def report(root):
                 for trial in pair:
                     trial["metrics_comparable"] = False
     # Accounting is descriptive; the verdict below still reads each arm's selected attempt.
-    for trial, result in zip(plan["trials"], trials):
-        rows = [_attempt_row(number, attempt, host)
-                for number, attempt, host in archived[trial["id"]]]
-        rows.append(_attempt_row(_attempt_number(state, trial), result, host_views[trial["id"]]))
-        result["attempts"] = rows
-        result["attempt_accounting"] = attempt_accounting(rows)
+    for result in trials:
+        result["attempts"] = rows[result["id"]]
+        result["attempt_accounting"] = attempt_accounting(rows[result["id"]])
     result = {"schema_version": 1, "focus": "knowledge", "tasks": plan["config"]["tasks"],
               "repeats": plan["config"]["repeats"], "policy": plan["config"]["policy"],
               "knowledge_boundary": plan["knowledge_boundary"], "plan_digest": digest(plan),
