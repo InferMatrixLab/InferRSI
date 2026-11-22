@@ -118,9 +118,14 @@ reports each field's source as `yaml`, `cli`, `default`, `missing` or `invalid`.
 - Paths given as CLI flags resolve against the caller's working directory.
 - Resolution is lexical (`os.path.normpath`). It does not check that a path exists,
   follow symlinks or expand `~`.
-- An `acceptance.reference` that starts with `http://` or `https://` and names a host
-  is kept verbatim. Another `scheme://` value is an error. Any other value is a local
-  plan path.
+- An `acceptance.reference` that starts with `http://` or `https://` is kept
+  verbatim when it names a host, any port is an integer from 1 to 65535, and it has
+  no whitespace or control characters. A URL such as `https://:443` or
+  `https://example.com:notaport` is an error at `acceptance.reference`. Another
+  `scheme://` value is an error. Any other value is a local plan path.
+- Paths, `environment.python`, a local `acceptance.reference` and every argv item
+  must not contain a NUL character. A YAML value or an explicit override with one is
+  rejected at its field before normalization.
 - Commands follow the existing argv contract. A string is split like a shell argv
   with `shlex`, and a list is taken as the argv. Paths inside commands are not
   rewritten; commands still run in the repository working directory under the

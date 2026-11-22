@@ -9,7 +9,7 @@ template under `src/inferrsi/apps/cli/task-input/v1/`). See
 | --- | --- |
 | `complete.yaml` | An execution-complete task with non-default backend, repetitions and threshold, relative paths and a local plan reference |
 | `partial.yaml` | The partial draft from the governing issue: valid, with field-level blockers |
-| `invalid-cases.json` | Rejected inputs: `yaml` text and the exact error `fields`; `schema_detects: false` marks cases that JSON Schema alone accepts or that never load as YAML: duplicate or merge keys, several documents, values the loader cannot build, NaN, integral floats such as `3.0`, numbers beyond float range, quoted-command parsing, malformed URLs and lone surrogates |
+| `invalid-cases.json` | Rejected inputs: `yaml` text and the exact error `fields`; `schema_detects: false` marks cases that JSON Schema alone accepts or that never load as YAML: duplicate or merge keys, several documents, values the loader cannot build, NaN, integral floats such as `3.0`, numbers beyond float range, quoted-command parsing, malformed URLs (unparsable, without a host, or with an invalid port, whitespace or control characters), NUL characters in paths, the Python selector and argv items, and lone surrogates |
 
 `tests/test_task_input.py` checks the Python contract and the packaged JSON Schema
 against these files, and `tests/check_installed.py` reuses `complete.yaml` from an

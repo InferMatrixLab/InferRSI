@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/InferMatrixLab/InferRSI/blob/main/src/inferrsi/apps/cli/task-input/v1/schema.json",
   "title": "InferRSI task file v1",
-  "description": "Shared YAML task input for the InferRSI CLI and Agents. Every section may be omitted in a draft and null fields count as missing. Duplicate keys, the 64 KiB size limit, quoted-command parsing and finite numbers are checked by inferrsi task validate.",
+  "description": "Shared YAML task input for the InferRSI CLI and Agents. Every section may be omitted in a draft and null fields count as missing. Duplicate keys, the 64 KiB size limit, quoted-command parsing, finite numbers, the host and port of an HTTP(S) acceptance reference, and NUL characters in paths, the Python selector and argv items are checked by inferrsi task validate.",
   "type": "object",
   "additionalProperties": false,
   "required": [

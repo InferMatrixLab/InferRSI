@@ -365,6 +365,104 @@
     "schema_detects": false
   },
   {
+    "name": "reference URL without a host",
+    "yaml": "schema_version: 1\nacceptance:\n  reference: 'https://:443'\n",
+    "fields": [
+      "acceptance.reference"
+    ],
+    "schema_detects": false
+  },
+  {
+    "name": "reference URL with only user information",
+    "yaml": "schema_version: 1\nacceptance:\n  reference: 'https://user@/issues/1'\n",
+    "fields": [
+      "acceptance.reference"
+    ],
+    "schema_detects": false
+  },
+  {
+    "name": "reference URL with a non-numeric port",
+    "yaml": "schema_version: 1\nacceptance:\n  reference: 'https://example.com:notaport'\n",
+    "fields": [
+      "acceptance.reference"
+    ],
+    "schema_detects": false
+  },
+  {
+    "name": "reference URL with an out-of-range port",
+    "yaml": "schema_version: 1\nacceptance:\n  reference: 'https://example.com:65536/issues/1'\n",
+    "fields": [
+      "acceptance.reference"
+    ],
+    "schema_detects": false
+  },
+  {
+    "name": "reference URL with a zero port",
+    "yaml": "schema_version: 1\nacceptance:\n  reference: 'https://example.com:0/issues/1'\n",
+    "fields": [
+      "acceptance.reference"
+    ],
+    "schema_detects": false
+  },
+  {
+    "name": "reference URL with a space in the host",
+    "yaml": "schema_version: 1\nacceptance:\n  reference: 'https://exa mple.com/issues/1'\n",
+    "fields": [
+      "acceptance.reference"
+    ],
+    "schema_detects": false
+  },
+  {
+    "name": "NUL in repository paths",
+    "yaml": "schema_version: 1\noptimization:\n  repository: \"repo\\0\"\n  candidate_repository: \"cand\\0idate\"\n",
+    "fields": [
+      "optimization.candidate_repository",
+      "optimization.repository"
+    ],
+    "schema_detects": false
+  },
+  {
+    "name": "NUL in a local plan reference",
+    "yaml": "schema_version: 1\nacceptance:\n  reference: \"plan/acceptance\\0.md\"\n",
+    "fields": [
+      "acceptance.reference"
+    ],
+    "schema_detects": false
+  },
+  {
+    "name": "NUL in a Python path",
+    "yaml": "schema_version: 1\nenvironment:\n  python: \".venv/bin/python\\0\"\n",
+    "fields": [
+      "environment.python"
+    ],
+    "schema_detects": false
+  },
+  {
+    "name": "NUL in a Python command name",
+    "yaml": "schema_version: 1\nenvironment:\n  python: \"python3\\0\"\n",
+    "fields": [
+      "environment.python"
+    ],
+    "schema_detects": false
+  },
+  {
+    "name": "NUL in a quoted argv command",
+    "yaml": "schema_version: 1\nenvironment:\n  baseline_command: \"python bench\\0.py --output {result}\"\n",
+    "fields": [
+      "environment.baseline_command"
+    ],
+    "schema_detects": false
+  },
+  {
+    "name": "NUL in argv list items",
+    "yaml": "schema_version: 1\nenvironment:\n  candidate_command: [python, \"bench\\0.py\"]\n  quality_command: [\"python\\0\", quality.py]\n",
+    "fields": [
+      "environment.candidate_command",
+      "environment.quality_command"
+    ],
+    "schema_detects": false
+  },
+  {
     "name": "lone surrogate value",
     "yaml": "schema_version: 1\noptimization:\n  model: \"\\ud800\"\n",
     "fields": [

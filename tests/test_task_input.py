@@ -443,12 +443,67 @@ def test_aliases_are_walked_once(tmp_path):
 
 
 def test_http_references_are_kept_verbatim_and_local_ones_resolve(tmp_path):
-    url = "https://github.com/<OWNER>/<REPO>/issues/<NUMBER>"
-    path = _write(tmp_path, f"schema_version: 1\nacceptance:\n  reference: {url}\n")
-    assert task_input.preview(path)["task"]["acceptance"]["reference"] == url
+    for url in ("https://github.com/<OWNER>/<REPO>/issues/<NUMBER>",
+                "https://example.com:8443/issues/1", "http://[::1]:8080/plan",
+                "HTTPS://Example.com:/issues/1", "https://user@example.com/issues/1"):
+        path = _write(tmp_path, f"schema_version: 1\nacceptance:\n  reference: '{url}'\n")
+        result = task_input.preview(path)
+        assert result["valid"] and result["errors"] == [], url
+        assert result["task"]["acceptance"]["reference"] == url
+        assert result["sources"]["acceptance.reference"] == "yaml"
     path = _write(tmp_path, "schema_version: 1\nacceptance:\n  reference: ../plan.md\n")
     assert task_input.preview(path)["task"]["acceptance"]["reference"] == str(
         tmp_path.parent / "plan.md")
+
+
+@pytest.mark.parametrize("url, message", [
+    ("https://:443", "must name a host in an HTTP(S) URL"),
+    ("https://user:pw@:443/issues/1", "must name a host in an HTTP(S) URL"),
+    ("https://example.com:notaport", "must use a port from 1 to 65535 in an HTTP(S) URL"),
+    ("https://example.com:+443/issues/1",
+     "must use a port from 1 to 65535 in an HTTP(S) URL"),
+    ("https://example.com:65536", "must use a port from 1 to 65535 in an HTTP(S) URL"),
+    ("https://exa mple.com/issues/1",
+     "must not contain whitespace or control characters in an HTTP(S) URL"),
+    ("ftp://example.invalid/plan", "must be an HTTP(S) issue URL or a local plan path"),
+])
+def test_malformed_reference_urls_name_the_problem(tmp_path, url, message):
+    path = _write(tmp_path, f"schema_version: 1\nacceptance:\n  reference: '{url}'\n")
+    result = task_input.preview(path)
+    assert result["errors"] == [
+        {"field": "acceptance.reference", "message": message, "source": "yaml"}]
+    assert result["task"]["acceptance"]["reference"] is None
+    assert result["sources"]["acceptance.reference"] == "invalid"
+    blocked = {item["field"]: item["message"] for item in result["blockers"]}
+    assert blocked["acceptance.reference"] == (
+        "invalid; fix the reported error; required for plan/run")
+
+
+@pytest.mark.parametrize("dest, field, value, message", [
+    ("repo", "optimization.repository", "checkout\0", "must not contain a NUL character"),
+    ("candidate_repo", "optimization.candidate_repository", "cand\0idate",
+     "must not contain a NUL character"),
+    ("python", "environment.python", "python3\0", "must not contain a NUL character"),
+    ("python", "environment.python", ".venv/bin/py\0thon", "must not contain a NUL character"),
+    ("baseline_command", "environment.baseline_command", "python b\0.py",
+     "argv items must not contain a NUL character"),
+    ("candidate_command", "environment.candidate_command", ["python", "c\0.py"],
+     "argv items must not contain a NUL character"),
+    ("validation_command", "environment.quality_command", "python\0 quality.py",
+     "argv items must not contain a NUL character"),
+])
+def test_nul_in_an_explicit_override_is_rejected_before_normalization(
+    tmp_path, dest, field, value, message,
+):
+    task_file = _copy(tmp_path)
+    flag = task_input.BY_PATH[field].flag
+    result = task_input.preview(task_file, {dest: value}, cwd=str(tmp_path))
+    assert not result["valid"] and not result["complete"]
+    assert result["errors"] == [
+        {"field": field, "message": f"{flag} {message}", "source": "cli"}]
+    section, name = field.split(".")
+    assert result["task"][section][name] == _expected_complete(task_file.parent)[section][name]
+    assert result["sources"][field] == "yaml"
 
 
 def test_missing_pyyaml_is_a_document_error_not_a_traceback(tmp_path):

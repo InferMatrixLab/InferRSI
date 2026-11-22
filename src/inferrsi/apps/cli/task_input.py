@@ -167,13 +167,44 @@ def _encodable(value: object) -> bool:
     return True
 
 
+def _path(value: object) -> str | None:
+    """Check a filesystem path or Python selector; the OS rejects an embedded NUL."""
+    problem = _text(value)
+    if problem is None and "\0" in value:
+        problem = "must not contain a NUL character"
+    return problem
+
+
+def _http_url(value: str) -> str | None:
+    """Check an ``http(s)://`` reference: a named host and, if given, a port 1-65535."""
+    try:
+        parts = urlsplit(value)
+    except ValueError:
+        parts = None
+    if parts is None or parts.scheme not in ("http", "https"):
+        return "must be an HTTP(S) issue URL or a local plan path"
+    if re.search(r"[\s\x00-\x1f\x7f]", value):
+        return "must not contain whitespace or control characters in an HTTP(S) URL"
+    if not parts.hostname:
+        return "must name a host in an HTTP(S) URL"
+    # The port text exactly as urlsplit's .port reads it, checked without int()'s leniency.
+    hostinfo = parts.netloc.rpartition("@")[2]
+    _, bracket, rest = hostinfo.partition("[")
+    port = (rest.partition("]")[2] if bracket else hostinfo).partition(":")[2]
+    if port and not (re.fullmatch(r"[0-9]+", port) and 0 < int(port) <= 65535):
+        return "must use a port from 1 to 65535 in an HTTP(S) URL"
+    return None
+
+
 def _check(field: Field, value: object) -> str | None:
     """Return why ``value`` (never None) is invalid for ``field``, or None."""
     if not _encodable(value):
         return "must be valid Unicode text"
     kind = field.kind
-    if kind in ("text", "path", "python"):
+    if kind == "text":
         return _text(value)
+    if kind in ("path", "python"):
+        return _path(value)
     if kind == "revision":
         if isinstance(value, (int, float)) and not isinstance(value, bool):
             return "must be a string; quote the revision so YAML does not read it as a number"
@@ -205,6 +236,8 @@ def _check(field: Field, value: object) -> str | None:
         if isinstance(value, str):
             if not re.search(r"\S", value):
                 return "must not be empty"
+            if "\0" in value:
+                return "argv items must not contain a NUL character"
             try:
                 parsed = shlex.split(value, posix=True)
             except ValueError as exc:
@@ -215,6 +248,8 @@ def _check(field: Field, value: object) -> str | None:
                 return "must be a nonempty argv list"
             if not all(isinstance(item, str) for item in value):
                 return "argv items must be strings"
+            if any("\0" in item for item in value):
+                return "argv items must not contain a NUL character"
             return None if value[0] else "argv executable cannot be empty"
         return f"must be a quoted argv string or a list of strings, not {_type_name(value)}"
     if kind == "count":
@@ -232,15 +267,9 @@ def _check(field: Field, value: object) -> str | None:
             problem = "must be nonnegative"
         return problem
     if kind == "reference":
-        problem = _text(value)
+        problem = _path(value)
         if problem is None and _URL_SCHEME.match(value):
-            try:
-                parts = urlsplit(value)
-                usable = parts.scheme in ("http", "https") and bool(parts.netloc)
-            except ValueError:
-                usable = False
-            if not usable:
-                problem = "must be an HTTP(S) issue URL or a local plan path"
+            problem = _http_url(value)
         return problem
     raise AssertionError(f"unknown field kind {kind}")
 
