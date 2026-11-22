@@ -11,6 +11,7 @@ from inferrsi.apps.views.capture_delivery import load_campaign_capture, managed_
 from inferrsi.apps.views.retrieval_projection import _valid_adoption
 from inferrsi.apps.views.search_attribution import _adoption, import_search
 from inferrsi.apps.workflows.campaign import capture_context, create_campaign
+from inferrsi.harness.records.optimization_log import record_log
 
 FIXTURE = runpy.run_path(str(Path(__file__).parent / "fixtures/knowledge_retrieval.py"))
 
@@ -121,15 +122,19 @@ def test_version_count_is_separate_from_per_ref_adoption():
 
 
 def _observed(action, revision, **extra):
-    return {"action": action, "materials": [{"ref": "a", "revision": revision}], **extra}
+    row = {"ref": "a"} if revision is None else {"ref": "a", "revision": revision}
+    return {"action": action, "materials": [row], **extra}
 
 
 HIT = _observed("search", "r1", id="file-2", trace_line=2)
 OTHER_REVISION = _observed("read", "r2", id="file-3", trace_line=3)
 HIT_REVISION = _observed("read", "r1", id="file-3", trace_line=3)
 PREPARED = _observed("read", "r2", context_id="explicit")
-DELIVERED = {**PREPARED, "delivery": {"state": "visible", "return_line": 3,
-                                      "visible_resources": [{"ref": "a", "path": "SKILL.md"}]}}
+RETURN = {"delivery": {"state": "visible", "return_line": 3,
+                       "visible_resources": [{"ref": "a", "path": "SKILL.md"}]}}
+DELIVERED = {**PREPARED, **RETURN}
+PREPARED_HIT = _observed("read", "r1", context_id="explicit")
+DELIVERED_HIT = {**PREPARED_HIT, **RETURN}
 REVIEWED = {"basis": "archive_reviewed", "decision_line": 4}
 LOGGED = {"context_id": "explicit", "stage": "knowledge"}
 
@@ -145,13 +150,21 @@ LOGGED = {"context_id": "explicit", "stage": "knowledge"}
     (OTHER_REVISION, {"basis": "caller_reviewed", "decision_line": 3}, "search", 1, 0),
     # Without a locator, use is matched to every observation of the ref.
     (OTHER_REVISION, None, "unknown", 1, 0),
+    # A locator that names no observation does not fall back to the ref's others.
+    (HIT_REVISION, {**REVIEWED, "event_id": "missing"}, "unknown", 0, 0),
+    (DELIVERED_HIT, {**LOGGED, "context_id": "missing"}, "unknown", 0, 0),
     # An explicit-ID capture is a read only when its return of the ref was observed.
     (PREPARED, LOGGED, "unverified_read", 0, 1),
     (DELIVERED, LOGGED, "direct", 1, 0),
     (PREPARED, None, "search", 0, 1),
+    # Delivery is checked before the revision match, so the hit keeps its
+    # denominator but an unreturned capture of the same revision is not its read.
+    (PREPARED_HIT, LOGGED, "unverified_read", 0, 1),
+    (DELIVERED_HIT, LOGGED, "search", 0, 0),
 ], ids=["read-other-revision", "hit-other-revision", "read-hit-revision", "ambiguous-decision",
-        "decision-after-hit", "no-locator", "prepared-capture", "delivered-capture",
-        "hit-outranks-prepared"])
+        "decision-after-hit", "no-locator", "unresolved-event", "unresolved-capture",
+        "prepared-capture", "delivered-capture", "hit-outranks-prepared",
+        "prepared-hit-revision", "delivered-hit-revision"])
 def test_use_is_credited_to_the_observation_its_evidence_cites(
         second, evidence, credited, read_only, unverified):
     material = {"use": "used"}
@@ -169,6 +182,22 @@ def test_use_is_credited_to_the_observation_its_evidence_cites(
     assert adoption["unverified_reads"]["refs"] == unverified
     states = {adoption[key]["state"] for key in ("search_hits", "direct_reads")}
     assert (states == {"unknown"}) == (credited == "unknown")
+    assert _valid_adoption(adoption, "complete", {"unique_hits": 1, "used": 1})
+
+
+@pytest.mark.parametrize(("hit", "read"), [(None, "r2"), ("r1", None), (None, None)])
+@pytest.mark.parametrize("returned", [True, False])
+def test_missing_revision_does_not_make_a_separate_direct_read(hit, read, returned):
+    capture = _observed("read", read, context_id="explicit", **(RETURN if returned else {}))
+    material = {"use": "used", "evidence": [{"use": "used", **LOGGED}]}
+    adoption = _adoption([_observed("search", hit), capture], {"a": material}, "complete")
+    # Without both revisions, a read cannot be shown to differ from the hit.
+    assert adoption["direct_reads"] == {"adopted": 0, "read_only": 0, "state": "not_applicable"}
+    assert adoption["search_hits"] == {"adopted": int(returned), "unique_hits": 1,
+                                       "state": "complete"}
+    assert adoption["unverified_reads"] == {"adopted": int(not returned),
+                                            "refs": int(not returned)}
+    assert adoption["unique_hit_revisions"] == (None if hit is None else 1)
     assert _valid_adoption(adoption, "complete", {"unique_hits": 1, "used": 1})
 
 
@@ -200,6 +229,46 @@ def test_explicit_id_capture_is_a_direct_read_only_after_an_observed_return(tmp_
         {"adopted": 0, "read_only": 1, "state": "complete"} if returned
         else {"adopted": 0, "read_only": 0, "state": "not_applicable"})
     assert doc["adoption"]["unverified_reads"] == {"adopted": 0, "refs": int(not returned)}
+
+
+def test_logged_use_of_an_unreturned_capture_of_a_hit_is_not_search_adoption(tmp_path):
+    create_campaign(tmp_path, "example")
+    digests = {}
+    with FIXTURE["reader"](tmp_path / "corpus") as source:
+        ref = "package:" + next(iter(source.records()))
+        for key, options in (("search", {"relevance": "launch"}), ("explicit", {"ids": [ref]})):
+            _, digests[key] = capture_context(tmp_path, context_id=key, reader=source,
+                                              context_bytes=4096, **options)
+    log = {"schema_version": 2, "reviewed_by_caller": True, "campaign_id": "example",
+           "goal": {"statement": "Example", "metric": "latency"},
+           "knowledge": [{"context_id": key, "sha256": digest, "stage": "knowledge",
+                          "purpose": "Example", "takeaways": [],
+                          "used_refs": [ref] if key == "explicit" else []}
+                         for key, digest in digests.items()],
+           "search_space": {"state": "partial", "missing_reason": "Example", "dimensions": []},
+           "iterations": [{"round": 1, "hypothesis": "Example", "rationale": "Example",
+                           "knowledge_refs": [], "context_ids": list(digests),
+                           "candidates": [{"candidate_id": "a", "option_ids": [],
+                                           "why": "Example"}],
+                           "decision": {"outcome": "pending", "reason": "Example"}}],
+           "summary": {"state": "partial", "missing_reason": "Example", "successes": [],
+                       "failures": [], "lessons": [], "limitations": []}}
+    (tmp_path / "log-input.json").write_text(json.dumps(log), encoding="utf-8")
+    record_log(tmp_path, tmp_path / "log-input.json")
+    doc = json.loads(import_search(tmp_path, number=1, context_ids=list(digests),
+                                   complete=True).read_bytes())
+    search, read = doc["events"]
+    hits = {row["ref"]: row["revision"] for row in search["materials"]}
+    # The log names the explicit-ID capture of the hit's own revision, which was never returned.
+    assert search["action"] == "search" and read["action"] == "read" and "delivery" not in read
+    assert [(row["ref"], row["revision"]) for row in read["materials"]] == [(ref, hits[ref])]
+    assert doc["materials"][ref]["evidence"][0]["context_id"] == "explicit"
+    adoption = doc["adoption"]
+    assert adoption["search_hits"] == {"adopted": 0, "unique_hits": len(hits),
+                                       "state": "complete"}
+    assert adoption["direct_reads"] == {"adopted": 0, "read_only": 0, "state": "not_applicable"}
+    assert adoption["unverified_reads"] == {"adopted": 1, "refs": 1}
+    assert _valid_adoption(adoption, "complete", doc["counts"])
 
 
 def test_partial_or_missing_capture_does_not_report_zero(tmp_path):

@@ -261,19 +261,22 @@ retrievals require separate evidence. Review query text and paths before sharing
   search_hits.unique_hits` counts distinct search-hit refs with supported use
   over distinct hit refs. `direct_reads.adopted / direct_reads.read_only`
   counts refs with an observed read at a revision that no search in the
-  round returned. A direct read is not search conversion. A read and a hit
-  of the same ref are separate only when both record a revision and the
-  revisions differ. Otherwise the read counts as a read of that hit. A
-  trace command records its own read. A capture's explicit-ID selection
-  counts as a read only when its return of that ref was observed.
-  Otherwise the ref is counted under
-  `unverified_reads.adopted / unverified_reads.refs`, which has no state or
-  rate. `other_adopted` counts adopted refs seen only through other
+  round returned. A direct read is not search conversion. A trace command
+  records its own read. A capture's explicit-ID selection counts as a read
+  only when its return of that ref was observed. Otherwise the ref is counted
+  under `unverified_reads.adopted / unverified_reads.refs`, which has no state
+  or rate. This applies even when a search returned the same revision; the
+  hit stays in the search-hit denominator. An observed read and a hit of the
+  same ref are separate only when both record a revision and the revisions
+  differ. Otherwise the read counts as a read of that hit. `other_adopted`
+  counts adopted refs seen only through other
   operations, such as an inventory, and has no denominator. Use evidence
   is bound to the event it names: an archive review's `event_id`, an
   optimization log's capture `context_id`, or the observations before a
   caller-reviewed decision line. Evidence without such a locator matches
-  every observation of the ref. An observed hit or direct read outranks an
+  every observation of the ref. Evidence whose locator names no
+  observation of the ref counts under `attribution_unknown`. An observed
+  hit or direct read outranks an
   unverified read, which outranks other operations. If the cited
   observations include both a search hit and a direct read, the ref
   counts under `attribution_unknown` and is credited to neither. All

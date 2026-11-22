@@ -324,34 +324,52 @@ def _observation_paths(events):
                 path = "search"
             elif event["action"] != "read":
                 path = "other"
+            elif not _delivered(event, ref):
+                # Delivery is checked first, so an unreturned capture of a hit's
+                # own revision cannot pass as that hit's read.
+                path = "unverified_read"
             elif seen and (revision is None or None in seen or revision in seen):
                 # A read is separate from the hits only when both sides record
                 # a revision and they differ; otherwise it counts as the hit's read.
                 path = "search"
             else:
-                path = "direct" if _delivered(event, ref) else "unverified_read"
+                path = "direct"
             rows.setdefault(ref, set()).add(path)
         paths.append(rows)
     return hits, paths
 
 
+def _cited_events(evidence, events):
+    """Return the indices of the events that evidence names, or None when it has no locator."""
+    if "event_id" in evidence:
+        key, name = "id", evidence["event_id"]
+    elif "context_id" in evidence:
+        key, name = "context_id", evidence["context_id"]
+    elif "decision_line" in evidence:
+        line = evidence["decision_line"]
+        return [i for i, e in enumerate(events) if type(line) is int
+                and type(e.get("trace_line")) is int and e["trace_line"] < line]
+    else:
+        return None
+    return [i for i, e in enumerate(events) if isinstance(name, str) and e.get(key) == name]
+
+
 def _supporting_paths(ref, material, events, paths):
-    """Return the paths of the observations that the ref's use evidence cites."""
+    """Return the paths of the observations that the ref's use evidence cites. An empty
+    result leaves the ref's attribution unknown."""
     found = set()
     for evidence in [e for e in material.get("evidence", []) if e.get("use") == "used"] or [{}]:
-        if isinstance(evidence.get("event_id"), str):
-            bound = [i for i, e in enumerate(events) if e.get("id") == evidence["event_id"]]
-        elif isinstance(evidence.get("context_id"), str):
-            bound = [i for i, e in enumerate(events)
-                     if e.get("context_id") == evidence["context_id"]]
-        elif type(evidence.get("decision_line")) is int:
-            bound = [i for i, e in enumerate(events) if type(e.get("trace_line")) is int
-                     and e["trace_line"] < evidence["decision_line"]]
-        else:
-            bound = []
+        bound = _cited_events(evidence, events)
+        if bound is None:
+            # Evidence without a locator can only be matched to the ref as a whole.
+            found |= set().union(*(rows.get(ref, set()) for rows in paths))
+            continue
         cited = set().union(*(paths[i].get(ref, set()) for i in bound))
-        # Evidence without a locator can only be matched to the ref as a whole.
-        found |= cited or set().union(*(rows.get(ref, set()) for rows in paths))
+        if not cited:
+            # A locator that names no observation of the ref does not fall back to
+            # the ref's other observations.
+            return set()
+        found |= cited
     for tier in _PATH_TIERS:
         if found & tier:
             return found & tier
@@ -365,12 +383,15 @@ def _adoption(events, materials, coverage):
     Search-hit adoption is over distinct refs returned by a search. Direct-read
     adoption is over distinct refs with an observed read at a revision that no
     search returned; a capture's read is observed only when its return of that
-    ref was. A read whose delivery was not observed counts separately, without
-    a rate. Other adopted refs (for example from an inventory) have no
-    denominator. Use is recorded per ref, so adoption is per ref: a ref whose
-    evidence cites both a search hit and a direct read stays unattributed and
-    makes both rates unknown. Versions are counted only for search hits and stay
-    unknown when a hit carries no revision. No rate is stored.
+    ref was. That check comes before the revision match, so an unreturned
+    capture of a hit's own revision is not the hit's read. A read whose
+    delivery was not observed counts separately, without a rate. Other adopted
+    refs (for example from an inventory) have no denominator. Use is recorded
+    per ref, so adoption is per ref: a ref whose evidence cites both a search
+    hit and a direct read stays unattributed and makes both rates unknown, as
+    does a ref whose evidence names an event that did not observe it. Versions
+    are counted only for search hits and stay unknown when a hit carries no
+    revision. No rate is stored.
     """
     hits, paths = _observation_paths(events)
     observed = {"search": set(), "direct": set(), "unverified_read": set(), "other": set()}
