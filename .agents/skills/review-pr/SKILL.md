@@ -60,10 +60,9 @@ with **PR review verdict — DO NOT PASS** and state what must change or be veri
 before re-review. Keep optional suggestions separate from the blockers.
 
 Use GitHub **Comment** (`COMMENTED`) for non-voting interim feedback. A completed
-formal review still requires **Approve** or **Request changes**, except on a
-high-risk PR (CI, releases, secrets, permissions): there an agent gives its
-verdict as a **Comment**, never selects **Approve**, and leaves the merge to a
-human maintainer.
+formal review still requires **Approve** or **Request changes**, also on a
+high-risk PR (CI, releases, secrets, permissions); there an **Approve** from a
+maintainer account, including its agent, counts as the maintainer approval.
 
 Agents may submit formal reviews without a separate human delegation; see
 [identity and authority](../../../docs/agent-collaboration.md#identity-and-authority).
