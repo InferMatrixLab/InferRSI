@@ -65,5 +65,7 @@ Prepare the squash message: subject plus a short summary, no Issue references,
 DCO sign-off and material `Agent-assisted-by` attribution kept. Squash-merge
 directly; the repository ruleset and merge controls apply unchanged. There is
 no merge queue yet; once one is enabled, the rules for queueing are added here.
-Record the merge on the PR with an identity line. If `main` turns red afterwards, use the
+Record the merge on the PR with an identity line; for a high-risk PR the same
+comment lists, in one line, the reviewed head, the two approving accounts with
+their review links, and the merge SHA and merging account. If `main` turns red afterwards, use the
 [red-main skill](../red-main/SKILL.md).
