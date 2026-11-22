@@ -288,9 +288,10 @@ def _ratio_state(coverage, denominator, ambiguous):
     return "not_applicable" if denominator == 0 else "complete"
 
 
-# An observed search hit or direct read outranks a read whose delivery was not
-# observed, which outranks an inventory or other listing.
-_PATH_TIERS = ({"search", "direct"}, {"unverified_read"}, {"other"})
+# An observed search hit or delivered read (direct, or of unknown relation to the
+# hits) outranks a read whose delivery was not observed, which outranks an
+# inventory or other listing.
+_PATH_TIERS = ({"search", "direct", "unknown"}, {"unverified_read"}, {"other"})
 
 
 def _revision(row):
@@ -308,7 +309,8 @@ def _delivered(event, ref):
 
 
 def _observation_paths(events):
-    """Classify each event's materials as a search hit, direct read, unverified read or other."""
+    """Classify each event's materials as a search hit, direct read, unverified read, other,
+    or a delivered read whose relation to the ref's hits is unknown."""
     hits = {}
     for event in events:
         if event["action"] == "search":
@@ -328,12 +330,21 @@ def _observation_paths(events):
                 # Delivery is checked first, so an unreturned capture of a hit's
                 # own revision cannot pass as that hit's read.
                 path = "unverified_read"
-            elif seen and (revision is None or None in seen or revision in seen):
-                # A read is separate from the hits only when both sides record
-                # a revision and they differ; otherwise it counts as the hit's read.
-                path = "search"
-            else:
+            elif not seen:
                 path = "direct"
+            elif (revision in seen) if revision is not None else seen == {None}:
+                # A read of a hit's own revision is that hit's read. Refs are
+                # matched as a whole only when neither the read nor any hit of
+                # the ref records a revision, as in a file trace.
+                path = "search"
+            elif revision is not None and None not in seen:
+                # Every hit records a revision and none is the read's.
+                path = "direct"
+            else:
+                # One side records a revision and the other does not, as when an
+                # unversioned Find precedes a versioned Read. The read cannot be
+                # shown to be, or to differ from, the revision a search returned.
+                path = "unknown"
             rows.setdefault(ref, set()).add(path)
         paths.append(rows)
     return hits, paths
@@ -385,21 +396,25 @@ def _adoption(events, materials, coverage):
     search returned; a capture's read is observed only when its return of that
     ref was. That check comes before the revision match, so an unreturned
     capture of a hit's own revision is not the hit's read. A read whose
-    delivery was not observed counts separately, without a rate. Other adopted
-    refs (for example from an inventory) have no denominator. Use is recorded
-    per ref, so adoption is per ref: a ref whose evidence cites both a search
-    hit and a direct read stays unattributed and makes both rates unknown, as
-    does a ref whose evidence names an event that did not observe it. Versions
-    are counted only for search hits and stay unknown when a hit carries no
-    revision. No rate is stored.
+    delivery was not observed counts separately, without a rate. A delivered
+    read of a hit ref where only one side records a revision (an unversioned
+    Find and a versioned Read) is neither the hit's read nor a direct read: the
+    hit keeps its denominator and the read joins none. Other adopted refs (for
+    example from an inventory) have no denominator. Use is recorded per ref, so
+    adoption is per ref: a ref whose evidence cites both a search hit and a
+    direct read stays unattributed and makes both rates unknown, as does a ref
+    whose evidence names an event that did not observe it or cites such a read
+    of unknown revision. Versions are counted only for search hits and stay
+    unknown when a hit carries no revision. No rate is stored.
     """
     hits, paths = _observation_paths(events)
-    observed = {"search": set(), "direct": set(), "unverified_read": set(), "other": set()}
+    observed = {kind: set() for kind in ("search", "direct", "unverified_read", "other",
+                                         "unknown")}
     for rows in paths:
         for ref, kinds in rows.items():
             for kind in kinds:
                 observed[kind].add(ref)
-    credited = {kind: set() for kind in (*observed, "unknown")}
+    credited = {kind: set() for kind in observed}
     for ref, material in materials.items():
         if material["use"] in _ADOPTED:
             found = _supporting_paths(ref, material, events, paths)

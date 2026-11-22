@@ -266,9 +266,14 @@ retrievals require separate evidence. Review query text and paths before sharing
   only when its return of that ref was observed. Otherwise the ref is counted
   under `unverified_reads.adopted / unverified_reads.refs`, which has no state
   or rate. This applies even when a search returned the same revision; the
-  hit stays in the search-hit denominator. An observed read and a hit of the
-  same ref are separate only when both record a revision and the revisions
-  differ. Otherwise the read counts as a read of that hit. `other_adopted`
+  hit stays in the search-hit denominator. An observed read is a read of a
+  hit of the same ref when it records that hit's revision, or when neither
+  the read nor any hit of the ref records a revision, as in a file trace.
+  It is a direct read when every hit of the ref records a revision and none
+  is the read's. Otherwise only one side records a revision, as when an
+  unversioned CLI Find is followed by a versioned Read. Such a read is
+  neither the hit's read nor a direct read. The hit stays in the search-hit
+  denominator and the read joins no denominator. `other_adopted`
   counts adopted refs seen only through other
   operations, such as an inventory, and has no denominator. Use evidence
   is bound to the event it names: an archive review's `event_id`, an
@@ -276,9 +281,10 @@ retrievals require separate evidence. Review query text and paths before sharing
   caller-reviewed decision line. Evidence without such a locator matches
   every observation of the ref. Evidence whose locator names no
   observation of the ref counts under `attribution_unknown`. An observed
-  hit or direct read outranks an
+  hit or delivered read outranks an
   unverified read, which outranks other operations. If the cited
-  observations include both a search hit and a direct read, the ref
+  observations include both a search hit and a direct read, or include a
+  read whose revision relation to the hits is unknown, the ref
   counts under `attribution_unknown` and is credited to neither. All
   counts are deduplicated by ref. One ref can appear in more than one
   denominator when the round observed different revisions of it. Use is

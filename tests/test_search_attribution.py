@@ -191,14 +191,54 @@ def test_missing_revision_does_not_make_a_separate_direct_read(hit, read, return
     capture = _observed("read", read, context_id="explicit", **(RETURN if returned else {}))
     material = {"use": "used", "evidence": [{"use": "used", **LOGGED}]}
     adoption = _adoption([_observed("search", hit), capture], {"a": material}, "complete")
-    # Without both revisions, a read cannot be shown to differ from the hit.
-    assert adoption["direct_reads"] == {"adopted": 0, "read_only": 0, "state": "not_applicable"}
-    assert adoption["search_hits"] == {"adopted": int(returned), "unique_hits": 1,
-                                       "state": "complete"}
+    # Only a wholly unversioned ref is matched as a whole. When one side records a
+    # revision, the read is neither shown to be the hit's nor shown to differ.
+    mixed = returned and (hit is None) != (read is None)
+    state = "unknown" if mixed else None
+    assert adoption["direct_reads"] == {"adopted": 0, "read_only": 0,
+                                        "state": state or "not_applicable"}
+    # The hit keeps its denominator either way.
+    assert adoption["search_hits"] == {"adopted": int(returned and not mixed), "unique_hits": 1,
+                                       "state": state or "complete"}
+    assert adoption["attribution_unknown"] == int(mixed)
     assert adoption["unverified_reads"] == {"adopted": int(not returned),
                                             "refs": int(not returned)}
     assert adoption["unique_hit_revisions"] == (None if hit is None else 1)
     assert _valid_adoption(adoption, "complete", {"unique_hits": 1, "used": 1})
+
+
+FIND = _observed("search", None, id="find", trace_line=2)
+VERSIONED_READ = _observed("read", "r2", id="read", trace_line=3)
+
+
+@pytest.mark.parametrize(("evidence", "credited"), [
+    # Use evidence that names only the versioned Read does not show which
+    # revision the unversioned Find returned.
+    ({**REVIEWED, "event_id": "read"}, "unknown"),
+    ({"basis": "caller_reviewed", "decision_line": 4}, "unknown"),
+    (None, "unknown"),
+    # Evidence that names the Find itself is the hit's adoption.
+    ({**REVIEWED, "event_id": "find"}, "search"),
+    ({"basis": "caller_reviewed", "decision_line": 3}, "search"),
+], ids=["read-event", "decision-after-both", "no-locator", "find-event", "decision-after-find"])
+def test_unversioned_find_then_versioned_read_is_not_search_adoption(evidence, credited):
+    material = {"use": "used"}
+    if evidence is not None:
+        material["evidence"] = [{"use": "used", **evidence}]
+    adoption = _adoption([FIND, VERSIONED_READ], {"a": material}, "complete")
+    unknown = credited == "unknown"
+    assert adoption["search_hits"] == {"adopted": int(not unknown), "unique_hits": 1,
+                                       "state": "unknown" if unknown else "complete"}
+    assert adoption["direct_reads"] == {"adopted": 0, "read_only": 0,
+                                        "state": "unknown" if unknown else "not_applicable"}
+    assert adoption["attribution_unknown"] == int(unknown)
+    assert adoption["unique_hit_revisions"] is None
+    assert _valid_adoption(adoption, "complete", {"unique_hits": 1, "used": 1})
+    # Without use, the hit still counts once and no direct read is invented.
+    unused = _adoption([FIND, VERSIONED_READ], {"a": {"use": "unknown"}}, "complete")
+    assert unused["search_hits"] == {"adopted": 0, "unique_hits": 1, "state": "complete"}
+    assert unused["direct_reads"] == {"adopted": 0, "read_only": 0, "state": "not_applicable"}
+    assert unused["attribution_unknown"] == 0
 
 
 def _explicit_capture(root):
