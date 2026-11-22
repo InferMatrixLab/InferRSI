@@ -581,8 +581,9 @@ def arguments_from(task: dict) -> dict[str, Any]:
     """Return {argparse dest: value} for every mapped field of a complete preview task.
 
     Device IDs are joined with ``,`` (a task ID cannot contain one); commands and trial
-    checks are copied as lists. A missing optional value stays None, including
-    ``environment.python``, which the caller replaces with its own interpreter.
+    checks are copied as lists. The frozen baseline is carried in RunSpec's existing
+    ``revision`` field, without adding a CLI override. A missing optional value stays
+    None, including ``environment.python``, which the caller replaces with its interpreter.
     """
     values: dict[str, Any] = {}
     for field in FIELDS:
@@ -594,6 +595,7 @@ def arguments_from(task: dict) -> dict[str, Any]:
         elif isinstance(value, list):
             value = list(value)
         values[field.dest] = value
+    values["revision"] = task["acceptance"]["baseline_revision"]
     return values
 
 

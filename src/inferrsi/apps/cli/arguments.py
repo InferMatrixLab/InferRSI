@@ -791,6 +791,7 @@ def make_spec(args: argparse.Namespace) -> RunSpec:
 
     spec = RunSpec(
         repo=str(Path(args.repo).resolve()),
+        revision=getattr(args, "revision", ""),
         candidate_repo=str(Path(args.candidate_repo).resolve()) if args.candidate_repo else None,
         repo_type=args.repo_type,
         backend=args.backend,

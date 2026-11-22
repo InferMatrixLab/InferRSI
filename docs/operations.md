@@ -431,6 +431,13 @@ compatibility.
 - **Output:** a run ID and evidence directory; recorded progress; an HTML report. With `--task`, the run directory also holds `task.json`, the task preview, and `frozen_gate.json`, the gate result with the record's SHA-256 for citation in the acceptance issue.
 - **Side effects:** `run` executes the supplied commands and owns child-process cleanup; `report` writes HTML into the run directory.
 - **Failure behavior:** exit codes 0 PASS, 1 FAIL, 2 INCONCLUSIVE/input errors; cancellation is recorded. With `--task`, task field errors and blockers exit 2 before any probe. A task whose acceptance fields differ from the frozen gate record (`mismatch`), or whose gate cannot be checked (`unverified`: an HTTP(S) reference, a missing file, or a record that is not a schema v1 `acceptance` section stating the gate), also exits 2 before any probe; see [frozen gate record](task-input.md#frozen-gate-record). A baseline checkout `HEAD` that differs from `acceptance.baseline_revision` exits 2 after inspection. In all three cases no command starts and nothing is written.
+
+Task-mode RunSpec validation, including local candidate-directory checks, runs before
+environment probes. The frozen baseline also binds the execution through the existing
+`RunSpec.revision` field: Harness compares the actual initial and pre-trial baseline
+snapshots, rather than relying only on the earlier environment observation. A later
+checkout mismatch starts no trial from that snapshot and leaves the failed diagnostic
+run as `INCONCLUSIVE` with its source/error facts retained.
 - **Example:** see [quickstart: real remote experiment](quickstart.md#real-remote-experiment)
 
 Operation success, recorded execution state and the experiment verdict are

@@ -8,6 +8,7 @@ import os
 import shutil
 import subprocess
 import sys
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
@@ -125,6 +126,7 @@ def _exit(capsys, *argv: str) -> str:
 def _expected_spec(directory: Path, caller: Path, **changes) -> dict:
     values = dict(
         repo=str((directory / "repo").resolve()),
+        revision="<baseline_sha>",
         candidate_repo=str((directory / "candidate").resolve()),
         repo_type="vllm",
         backend="cuda",
@@ -424,7 +426,7 @@ def test_run_with_an_agreeing_task_reaches_the_experiment_and_records_the_task(
     out = json.loads(capsys.readouterr().out)
     directory = Path(out["run_dir"])
     assert [json.loads(json.dumps(spec.to_dict())) for spec in specs] == [
-        _expected_spec(task_file.parent, caller, repetitions=7)
+        _expected_spec(task_file.parent, caller, repetitions=7, revision=revision)
     ]
     recorded = json.loads((directory / "task.json").read_text(encoding="utf-8"))
     assert recorded == task_input.preview(task_file, {"repetitions": 7}, cwd=str(caller))
@@ -519,6 +521,101 @@ def test_real_git_run_keeps_the_frozen_threshold_when_reference_and_head_match(
     assert frozen["status"] == "agrees" and frozen["reference"] == str(record)
 
 
+@pytest.mark.parametrize("command", [("plan",), ("run",), ("run", "--dry-run")])
+def test_missing_candidate_directory_refuses_before_any_probe(
+    tmp_path, caller, monkeypatch, capsys, command,
+):
+    task_file = _agreeing(tmp_path, replace=(
+        ("candidate_repository: candidate", "candidate_repository: missing-candidate"),
+    ))
+    before = _tree(tmp_path)
+    _forbid(monkeypatch, *_FORBIDDEN)
+    error = _exit(capsys, *command, "--task", str(task_file))
+    assert "candidate_repo must be an existing directory" in error
+    assert _tree(tmp_path) == before
+
+
+@pytest.mark.parametrize("switch_at", ["after_inspection", "before_trial"])
+@pytest.mark.parametrize("short_revision", [False, True])
+def test_task_revision_is_bound_to_real_execution_snapshots(
+    tmp_path, caller, monkeypatch, capsys, switch_at, short_revision,
+):
+    """Only the race is scheduled; Git, inspection, snapshots and runner are real."""
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    subprocess.run(["git", "init", "--quiet", str(repo)], check=True)
+    _git(repo, "config", "core.hooksPath", str(tmp_path / "no-hooks"))
+    (repo / "metric.txt").write_text("100\n", encoding="utf-8")
+    _git(repo, "add", "metric.txt")
+    _git(repo, "commit", "--quiet", "-m", "accepted baseline")
+    accepted = _git(repo, "rev-parse", "HEAD")
+    (repo / "metric.txt").write_text("200\n", encoding="utf-8")
+    _git(repo, "commit", "--quiet", "-am", "different baseline")
+    changed = _git(repo, "rev-parse", "HEAD")
+    _git(repo, "checkout", "--quiet", accepted)
+    revision = accepted[:8].upper() if short_revision else accepted
+    launches = tmp_path / "launches"
+    script = (
+        "import json,sys; from pathlib import Path; "
+        "Path(sys.argv[2]).open('a').write('.'); "
+        "value=float(Path('metric.txt').read_text()) if sys.argv[3]=='baseline' else 80; "
+        "Path(sys.argv[1]).write_text(json.dumps({'metrics':{'latency_ms':value}}))"
+    )
+    record = tmp_path / "gate.yaml"
+    gate = {"baseline_revision": revision, "metric_key": "metrics.latency_ms",
+            "direction": "minimize", "metric_unit": "ms", "min_improvement_pct": 30}
+    record.write_text(yaml.safe_dump({"schema_version": 1, "acceptance": gate}),
+                      encoding="utf-8")
+    task_file = tmp_path / "task.yaml"
+    task_file.write_text(yaml.safe_dump({
+        "schema_version": 1,
+        "optimization": {"repository": "repo", "model": "synthetic", "framework": "vllm",
+                         "workload": "snapshot-race", "objective": "Bind the accepted source",
+                         "plane": "harness"},
+        "environment": {"backend": "cpu", "python": sys.executable,
+                        "baseline_command": [sys.executable, "-c", script, "{result}",
+                                             str(launches), "baseline"],
+                        "candidate_command": [sys.executable, "-c", script, "{result}",
+                                              str(launches), "candidate"],
+                        "quality_command": [sys.executable, "-c", "pass"],
+                        "repetitions": 1, "max_minutes": 1},
+        "acceptance": {"reference": "gate.yaml", **gate},
+    }), encoding="utf-8")
+    if switch_at == "after_inspection":
+        inspect = cli.inspect_environment
+
+        def inspection(*args, **kwargs):
+            environment = inspect(*args, **kwargs)
+            assert environment["repository"]["head"] == accepted
+            _git(repo, "checkout", "--quiet", changed)
+            return environment
+
+        monkeypatch.setattr(cli, "inspect_environment", inspection)
+    else:
+        snapshot = legacy_run.repository_identity
+        calls = []
+
+        def capture(path, exclude=None):
+            identity = snapshot(path, exclude)
+            calls.append(identity)
+            if len(calls) == 2:  # Both initial identities were captured, before the first trial.
+                _git(repo, "checkout", "--quiet", changed)
+            return identity
+
+        monkeypatch.setattr(legacy_run, "repository_identity", capture)
+
+    assert cli.main(["run", "--task", str(task_file)]) == 2
+    output = json.loads(capsys.readouterr().out)
+    assert not launches.exists()
+    assert output["status"]["state"] == "failed"
+    assert output["status"]["verdict"] == "INCONCLUSIVE"
+    assert "RunSpec.revision" in output["status"]["error"]
+    directory = Path(output["run_dir"])
+    locked = json.loads((directory / "run.lock.json").read_text(encoding="utf-8"))
+    assert locked["revision"] == revision
+    assert not list(directory.glob("*/trial-*/execution.json"))
+
+
 def test_flag_only_plan_and_run_keep_their_contract(tmp_path, caller, inspected, monkeypatch,
                                                     capsys):
     for argv, missing in ((["plan"], REQUIRED),
@@ -581,4 +678,6 @@ def test_arguments_from_a_preview_feed_make_spec_like_the_equivalent_flags(tmp_p
         "--min-improvement-pct", "2.5", "--max-minutes", "90", "--workload-id",
         "fixed-prompts-v1", "--model", "<MODEL>", "--model-revision", "<MODEL_REVISION>",
     ])
-    assert arguments.make_spec(args) == arguments.make_spec(flags)
+    spec = arguments.make_spec(args)
+    assert spec.revision == "<baseline_sha>"
+    assert replace(spec, revision="") == arguments.make_spec(flags)

@@ -4,12 +4,12 @@ from __future__ import annotations
 
 import json
 import os
-import re
 import sqlite3
 import sys
 from importlib.resources import files
 from pathlib import Path
 
+from ...contracts.runspec import revision_matches as _revision_matches
 from ...knowledge.catalog import get_knowledge, search_knowledge
 from ...knowledge.knowledge_operations import KnowledgeReader
 from ...knowledge.research import research_knowledge
@@ -374,14 +374,6 @@ def _plan_run_task(command, args, supplied) -> dict | None:
         args.python = sys.executable
     args.task_file = result["task_file"]
     return result
-
-
-def _revision_matches(head: str, revision: str) -> bool:
-    if head == revision:
-        return True
-    return bool(head) and re.fullmatch(r"[0-9a-fA-F]{7,}", revision) is not None and (
-        head.lower().startswith(revision.lower())
-    )
 
 
 def _check_frozen_gate(gate: dict) -> None:
@@ -840,6 +832,8 @@ def main(argv: list[str] | None = None) -> int:
             _print({"record": str(path)})
             return 0
 
+        # Task-local errors must be rejected before running even read-only probes.
+        spec = make_spec(args) if task is not None else None
         gate = None
         if task is not None:
             from .task_input import frozen_gate
@@ -865,7 +859,8 @@ def main(argv: list[str] | None = None) -> int:
             ].get("environment")
             return 0 if available and known else 1
 
-        spec = make_spec(args)
+        if spec is None:
+            spec = make_spec(args)
         if args.command == "plan" or args.dry_run:
             preview = {
                 "run_spec": spec.to_dict(),

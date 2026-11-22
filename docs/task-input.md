@@ -163,6 +163,8 @@ inferrsi run --task task.yaml                    # explicit execution
   `error acceptance.metric_key (cli): ...` or
   `blocker environment.repetitions: missing; required for plan/run`. The command
   then exits with 2 before any environment probe, task command or file write.
+  The RunSpec's local directory/path checks also run before environment probes,
+  including the optional candidate checkout.
 - **Defaults for omitted optional fields.** An omitted `environment.python` uses the
   interpreter running InferRSI. An omitted `optimization.candidate_repository` uses
   the baseline checkout. An omitted `environment.quality_command` leaves the run
@@ -176,22 +178,28 @@ inferrsi run --task task.yaml                    # explicit execution
 - **`run`.** Execution checks that the task's content is consistent with the local
   record it names and with the baseline checkout. It does not authenticate where the
   record came from (see [frozen gate record](#frozen-gate-record)).
-  Each check fails with exit 2 before any benchmark command starts or any run
-  directory is written.
+  The input, gate and inspection checks fail with exit 2 before any benchmark
+  command starts or any run directory is written.
   - Before the environment probe, the task's acceptance fields must agree with the
     [frozen gate record](#frozen-gate-record) that `acceptance.reference` names.
     A `mismatch` or `unverified` gate prints each problem by field to stderr.
   - After inspection, the baseline checkout's `HEAD` must equal
     `acceptance.baseline_revision`. A hexadecimal prefix of at least 7 characters is
     also accepted.
+  - The declared baseline is also carried in the existing `RunSpec.revision` field.
+    Harness checks it against the initial execution snapshot and each fresh snapshot
+    of the baseline source before a trial. A checkout switched after inspection
+    cannot run from a mismatching snapshot. This later refusal retains a failed
+    diagnostic run with `INCONCLUSIVE`; it does not discard already recorded facts.
 
   The run directory then holds `task.json`, the task preview, and `frozen_gate.json`,
   the gate result with the record's SHA-256, next to `args.json`. `args.json` records
   the effective values and the absolute `task_file`.
 
-RunSpec carries the experiment fields. `optimization.objective`,
+RunSpec carries the experiment fields, including the frozen baseline revision.
+`optimization.objective`,
 `optimization.plane`, `environment.rounds`, `acceptance.reference`,
-`acceptance.baseline_revision` and `acceptance.constraints` have no RunSpec field.
+and `acceptance.constraints` have no RunSpec field.
 They are recorded in the `task` block and in `task.json`. Without `--task`,
 `--baseline-command` and `--candidate-command` remain required, with the same
 argparse error and exit 2.
