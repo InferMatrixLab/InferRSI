@@ -256,11 +256,13 @@ def _supervise(
     deadline: float,
     *,
     cancellation=None,
+    step_limited: bool = False,
 ) -> dict:
     """Run one command inside its own process domain and return the observed facts.
 
-    ``deadline`` is a ``time.monotonic()`` value. ``cancellation`` is an optional handle
-    with ``is_set()``. ``status`` keeps the legacy vocabulary: completed, failed, timeout,
+    ``deadline`` is a ``time.monotonic()`` value. ``step_limited`` identifies a
+    per-step bound for the pre-launch timeout diagnostic. ``cancellation`` is an optional
+    handle with ``is_set()``. ``status`` keeps the legacy vocabulary: completed, failed, timeout,
     cancelled or error. ``domain_empty`` is True only when the Job or process group was
     confirmed to hold no live member after cleanup.
     """
@@ -280,10 +282,12 @@ def _supervise(
         "elapsed_seconds": None,
     }
     started, process, windows_job, attached, launched = time.monotonic(), None, None, False, None
+    timeout_before_launch = ("step timeout expired before command start" if step_limited
+                             else "whole-run deadline exhausted before command start")
     try:
         remaining = deadline - started
         if remaining <= 0:
-            run.update(status="timeout", error="whole-run deadline exhausted before command start")
+            run.update(status="timeout", error=timeout_before_launch)
         else:
             options = (
                 {"creationflags": subprocess.CREATE_NEW_PROCESS_GROUP}
@@ -298,8 +302,7 @@ def _supervise(
                                cancellation_requested_at=_utc_now(), cancellation_source="caller")
                     return run
                 if time.monotonic() >= deadline:
-                    run.update(status="timeout",
-                               error="whole-run deadline exhausted before command start")
+                    run.update(status="timeout", error=timeout_before_launch)
                     return run
                 process = subprocess.Popen(
                     argv,
