@@ -514,7 +514,7 @@ packages its full English procedure, embedded metadata, references and cases. Th
 also owns authored findings in `records/`, search configuration in `config/`
 and generated build inputs in `_compiled/`. An explicit `--root` selects a
 custom flat or registry-based library. Readers that parse skill frontmatter use
-PyYAML from the `skills` extra. Core knowledge commands read catalog views and
+PyYAML, a core dependency; the `skills` extra is a compatibility alias. Core knowledge commands read catalog views and
 packaged documents with the base interpreter. The two matrices retain their
 authority. [Directory and search diagrams](knowledge-layout.md)
 

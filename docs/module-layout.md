@@ -203,7 +203,7 @@ Several flat modules remain shared seams until their slice starts.
 
 | Current path | Tentative reading | This slice |
 | --- | --- | --- |
-| `apps/cli/` (`__init__.py`, `arguments.py`), root `__main__.py` | Apps CLI entry and its parser | A1 (#408) moved root `cli.py` and `arguments.py` here; the entry is `inferrsi.apps.cli:main`, and `__main__.py` only delegates to it |
+| `apps/cli/` (`__init__.py`, `arguments.py`, `task_input.py`, `task-input/v1/`), root `__main__.py` | Apps CLI entry, its parser and the read-only YAML task contract with its packaged schema and template | A1 (#408) moved root `cli.py` and `arguments.py` here; the entry is `inferrsi.apps.cli:main`, and `__main__.py` only delegates to it |
 | `apps/workflows/benchmark_operations.py` | Single-task application launcher | A2 (#408) moved the root launcher into Apps; #490 groups its implementation under workflows. Resolves a task entry and invokes the Harness runner; ordinary projects do not use it |
 | `benchmark/registry.py`, `benchmark/tasks/` | Task discovery, definitions and specialized rules | Task-specific quality and measurement code stays with each task |
 | `harness/optimization_session.py`, `harness/project.py`, `harness/task_protocol.py` | Shared preparation, execution and retained-result assessment | CLI supplies task resources and knowledge access; ordinary project lifecycle does not import Benchmark |

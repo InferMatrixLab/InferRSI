@@ -1,0 +1,38 @@
+# Complete InferRSI task (schema v1). Non-default backend, repetitions and threshold.
+# Relative paths resolve against this file's directory, wherever the caller runs.
+schema_version: 1
+
+optimization:
+  repository: repo
+  candidate_repository: candidate
+  model: "<MODEL>"
+  model_revision: "<MODEL_REVISION>"
+  framework: vllm
+  workload: fixed-prompts-v1
+  scenario: llm.decode
+  mode: code
+  objective: "Reduce decode latency for the fixed workload"
+  plane: harness
+
+environment:
+  backend: cuda
+  device_ids: ["0", "1"]
+  device_model: "<DEVICE_MODEL>"
+  python: .venv/bin/python
+  baseline_command: "python bench.py --variant baseline --output {result}"
+  candidate_command: [python, bench.py, --variant, candidate, --output, "{result}"]
+  quality_command: "python quality.py --output {result}"
+  repetitions: 5
+  max_minutes: 90
+  rounds: 4
+
+acceptance:
+  reference: plan/acceptance.md
+  baseline_revision: "<baseline_sha>"
+  metric_key: metrics.latency_ms
+  direction: minimize
+  metric_unit: ms
+  min_improvement_pct: 2.5
+  comparison_scope: external_command
+  required_trial_checks: [checks.warm]
+  constraints: "Quality must not regress against the baseline"
