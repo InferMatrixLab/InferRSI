@@ -3,6 +3,7 @@
 # locks exclude each other on the same path; Harness does not import that module here.
 # tests/test_artifact_helper_copies.py keeps the copies equal.
 
+import errno
 import hashlib
 import json
 import os
@@ -21,7 +22,13 @@ def file_lock(path: Path):
         if os.name == "nt":
             import msvcrt
 
-            msvcrt.locking(stream.fileno(), msvcrt.LK_NBLCK, 1)
+            try:
+                msvcrt.locking(stream.fileno(), msvcrt.LK_NBLCK, 1)
+            except PermissionError as error:
+                if error.errno != errno.EACCES:
+                    raise
+                # LK_NBLCK reports a lock violation as EACCES.
+                raise BlockingIOError(errno.EAGAIN, "File lock is held", path) from error
         else:
             import fcntl
 

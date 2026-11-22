@@ -131,6 +131,7 @@
     ],
     "consumers": [
       "docs/apps-output.md",
+      "tests/test_harness_prepared_binding.py",
       "docs/architecture.md",
       "docs/module-layout.md",
       "docs/operations.md",

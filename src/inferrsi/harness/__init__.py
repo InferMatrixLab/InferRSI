@@ -1,4 +1,5 @@
-"""Harness plane: scenario composition, AB/BA orchestration, verdicts and reports."""
+"""Harness: command execution and RunStore records, the AB/BA runner, optimization
+sessions and their records. Verdict labels come from contracts; reports are injected."""
 
 from inferrsi.contracts.claim import Verdict, parse_verdict
 

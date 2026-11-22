@@ -836,8 +836,7 @@ def test_a_plan_from_before_the_serving_move_is_refused_and_left_unchanged(sessi
     assert path.read_bytes() == before
 
 
-PRE_INFRA_REMOVAL = (Path(__file__).resolve().parent / "fixtures" / "optimization-session"
-                     / "pre-infra-removal-session")
+PRE_CHANGE_SESSIONS = Path(__file__).resolve().parent / "fixtures" / "optimization-session"
 
 
 def _session_bytes(root):
@@ -845,24 +844,30 @@ def _session_bytes(root):
             for path in sorted(root.rglob("*")) if path.is_file()}
 
 
-def test_a_session_planned_before_the_infra_removal_is_refused_and_left_unchanged(
-    tmp_path, capsys,
+@pytest.mark.parametrize("fixture, removed_file", [
+    # #498 slice 5 removed infra/artifacts.py from the runtime identity.
+    ("pre-infra-removal-session", "infra/artifacts.py"),
+    # #558 renamed harness/scenarios to harness/trials.
+    ("pre-trials-rename-session", "harness/scenarios/external.py"),
+])
+def test_a_session_planned_before_a_runtime_change_is_refused_and_left_unchanged(
+    tmp_path, capsys, fixture, removed_file,
 ):
-    # #498 slice 5. The fixture is a session that main 6bdc86ee started with its own runtime,
-    # unedited (see optimization-session/README.md). Its coordinator was interrupted after
-    # the candidate's child finished, so it holds a completed execution receipt for a round
-    # that is not settled, and its plan.json still names infra/artifacts.py. The runtime
-    # without Infra refuses it before status or recover dispatches, and no file changes.
+    # Each fixture is a session that main, before that change, started with its own installed
+    # runtime, unedited (see optimization-session/README.md). Its coordinator was interrupted
+    # after the candidate's child finished, so it holds a completed execution receipt for a
+    # round that is not settled, and its plan.json still names the removed file. The current
+    # runtime refuses it before status or recover dispatches, and no file changes.
     session = tmp_path / "session"
-    shutil.copytree(PRE_INFRA_REMOVAL, session)
+    shutil.copytree(PRE_CHANGE_SESSIONS / fixture, session)
     before = _session_bytes(session)
     state = json.loads(before["state.json"])
     assert state["rounds"] == [] and state["pending"]["kind"] == "round"
     receipt = json.loads(before[state["pending"]["path"] + "/execution/execution.json"])
     assert receipt["status"] == "completed" and receipt["returncode"] == 0
     assert before["calls.log"] == b"2\n"
-    assert "infra/artifacts.py" in json.loads(before["plan.json"])["runtime_identity"]
-    assert not any(name.startswith("infra/") for name in optimization_session._runtime_identity())
+    assert removed_file in json.loads(before["plan.json"])["runtime_identity"]
+    assert removed_file not in optimization_session._runtime_identity()
     for action in ("status", "recover"):
         output = _refused(session, capsys, action)
         assert "Optimization runtime changed" in output.out + output.err, action

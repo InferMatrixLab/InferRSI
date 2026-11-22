@@ -27,9 +27,10 @@ only observes and collects its results. Benchmark supplies task resources and
 task-specific rules. Harness freezes those inputs, runs the checks, assesses
 retained outputs and manages the lifecycle; it does not invent project acceptance.
 
-The iterative tasks are `qwen21-denoise-npu` and `moe-forward-npu`; TTS
-currently exposes its single-candidate task entry. New session tasks provide
-their own `optimization.py` alongside the task definition and evaluator.
+Before starting a session, use `inferrsi benchmarks list --iterative` to list
+installed tasks with an `optimization.py` file at the task package root.
+The current list contains `moe-forward-npu` and `qwen21-denoise-npu`.
+TTS currently exposes its single-candidate task entry.
 
 For paired knowledge on/off experiments over both tasks, use the Apps
 [`benchmarks compare` workflow](benchmark-comparison.md). It reuses this session
