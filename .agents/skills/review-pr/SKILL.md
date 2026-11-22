@@ -62,7 +62,8 @@ before re-review. Keep optional suggestions separate from the blockers.
 Use GitHub **Comment** (`COMMENTED`) for non-voting interim feedback. A completed
 formal review still requires **Approve** or **Request changes**, except on a
 high-risk PR (CI, releases, secrets, permissions): there an agent gives its
-verdict as a **Comment** and never selects **Approve**.
+verdict as a **Comment**, never selects **Approve**, and leaves the merge to a
+human maintainer.
 
 Agents may submit formal reviews without a separate human delegation; see
 [identity and authority](../../../docs/agent-collaboration.md#identity-and-authority).
