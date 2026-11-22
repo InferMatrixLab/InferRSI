@@ -1,12 +1,18 @@
 """Round boundaries and adoption evidence must survive both public retrieval paths."""
 
 import json
+import runpy
+from pathlib import Path
 
 import pytest
 
 from inferrsi.apps.cli import main
+from inferrsi.apps.views.capture_delivery import load_campaign_capture, managed_envelopes
+from inferrsi.apps.views.retrieval_projection import _valid_adoption
 from inferrsi.apps.views.search_attribution import _adoption, import_search
-from inferrsi.apps.workflows.campaign import create_campaign
+from inferrsi.apps.workflows.campaign import capture_context, create_campaign
+
+FIXTURE = runpy.run_path(str(Path(__file__).parent / "fixtures/knowledge_retrieval.py"))
 
 
 def command(corpus, cmd, output, event_id, exit_code=0):
@@ -47,7 +53,8 @@ def test_cli_distinguishes_search_read_and_decision_in_two_rounds(tmp_path):
     assert doc["adoption"] == {
         "search_hits": {"adopted": 1, "unique_hits": 1, "state": "complete"},
         "direct_reads": {"adopted": 0, "read_only": 0, "state": "not_applicable"},
-        "other_adopted": 0, "unique_hit_revisions": None}
+        "unverified_reads": {"adopted": 0, "refs": 0},
+        "other_adopted": 0, "attribution_unknown": 0, "unique_hit_revisions": None}
     assert main(args + ["--round", "2", "--lines", "6", "6"]) == 0
     second = json.loads((campaign / "search/round-2.json").read_bytes())
     assert second["counts"]["searches"] == 0
@@ -80,7 +87,8 @@ def test_direct_read_adoption_is_not_search_conversion(tmp_path, complete):
         assert adoption == {
             "search_hits": {"adopted": 0, "unique_hits": 0, "state": "not_applicable"},
             "direct_reads": {"adopted": 1, "read_only": 1, "state": "complete"},
-            "other_adopted": 0, "unique_hit_revisions": 0}
+            "unverified_reads": {"adopted": 0, "refs": 0},
+            "other_adopted": 0, "attribution_unknown": 0, "unique_hit_revisions": 0}
     else:
         assert doc["coverage"] == "partial" and doc["counts"] is None
         assert {adoption[k]["state"] for k in ("search_hits", "direct_reads")} == {"unknown"}
@@ -102,13 +110,96 @@ def test_version_count_is_separate_from_per_ref_adoption():
     assert adoption == {
         "search_hits": {"adopted": 1, "unique_hits": 2, "state": "complete"},
         "direct_reads": {"adopted": 0, "read_only": 0, "state": "not_applicable"},
-        "other_adopted": 1, "unique_hit_revisions": 3}
+        "unverified_reads": {"adopted": 0, "refs": 0},
+        "other_adopted": 1, "attribution_unknown": 0, "unique_hit_revisions": 3}
     assert sum(adoption[k]["adopted"] for k in ("search_hits", "direct_reads")) + adoption[
         "other_adopted"] == 2
     unversioned = _adoption([*events, search("d")], {**materials, "d": {"use": "unknown"}},
                             "complete")
     assert unversioned["search_hits"]["unique_hits"] == 3
     assert unversioned["unique_hit_revisions"] is None
+
+
+def _observed(action, revision, **extra):
+    return {"action": action, "materials": [{"ref": "a", "revision": revision}], **extra}
+
+
+HIT = _observed("search", "r1", id="file-2", trace_line=2)
+OTHER_REVISION = _observed("read", "r2", id="file-3", trace_line=3)
+HIT_REVISION = _observed("read", "r1", id="file-3", trace_line=3)
+PREPARED = _observed("read", "r2", context_id="explicit")
+DELIVERED = {**PREPARED, "delivery": {"state": "visible", "return_line": 3,
+                                      "visible_resources": [{"ref": "a", "path": "SKILL.md"}]}}
+REVIEWED = {"basis": "archive_reviewed", "decision_line": 4}
+LOGGED = {"context_id": "explicit", "stage": "knowledge"}
+
+
+@pytest.mark.parametrize(("second", "evidence", "credited", "read_only", "unverified"), [
+    # Use cited from a read of another revision is not search conversion.
+    (OTHER_REVISION, {**REVIEWED, "event_id": "file-3"}, "direct", 1, 0),
+    (OTHER_REVISION, {**REVIEWED, "event_id": "file-2"}, "search", 1, 0),
+    # A read of the hit's own revision stays search-hit adoption.
+    (HIT_REVISION, {**REVIEWED, "event_id": "file-3"}, "search", 0, 0),
+    # A decision after both observations cannot be attributed to either one.
+    (OTHER_REVISION, {"basis": "caller_reviewed", "decision_line": 4}, "unknown", 1, 0),
+    (OTHER_REVISION, {"basis": "caller_reviewed", "decision_line": 3}, "search", 1, 0),
+    # Without a locator, use is matched to every observation of the ref.
+    (OTHER_REVISION, None, "unknown", 1, 0),
+    # An explicit-ID capture is a read only when its return of the ref was observed.
+    (PREPARED, LOGGED, "unverified_read", 0, 1),
+    (DELIVERED, LOGGED, "direct", 1, 0),
+    (PREPARED, None, "search", 0, 1),
+], ids=["read-other-revision", "hit-other-revision", "read-hit-revision", "ambiguous-decision",
+        "decision-after-hit", "no-locator", "prepared-capture", "delivered-capture",
+        "hit-outranks-prepared"])
+def test_use_is_credited_to_the_observation_its_evidence_cites(
+        second, evidence, credited, read_only, unverified):
+    material = {"use": "used"}
+    if evidence is not None:
+        material["evidence"] = [{"use": "used", **evidence}]
+    adoption = _adoption([HIT, second], {"a": material}, "complete")
+    adopted = {"search": adoption["search_hits"]["adopted"],
+               "direct": adoption["direct_reads"]["adopted"],
+               "unverified_read": adoption["unverified_reads"]["adopted"],
+               "other": adoption["other_adopted"], "unknown": adoption["attribution_unknown"]}
+    assert adopted == {kind: int(kind == credited) for kind in adopted}
+    # Ref-level totals do not change with the attribution.
+    assert adoption["search_hits"]["unique_hits"] == 1
+    assert adoption["direct_reads"]["read_only"] == read_only
+    assert adoption["unverified_reads"]["refs"] == unverified
+    states = {adoption[key]["state"] for key in ("search_hits", "direct_reads")}
+    assert (states == {"unknown"}) == (credited == "unknown")
+    assert _valid_adoption(adoption, "complete", {"unique_hits": 1, "used": 1})
+
+
+def _explicit_capture(root):
+    create_campaign(root, "example")
+    with FIXTURE["reader"](root / "corpus") as source:
+        ref = "package:" + next(iter(source.records()))
+        capture_context(root, context_id="explicit", reader=source, ids=[ref],
+                        context_bytes=4096)
+    return load_campaign_capture(root, "example", "explicit")
+
+
+@pytest.mark.parametrize("returned", [False, True])
+def test_explicit_id_capture_is_a_direct_read_only_after_an_observed_return(tmp_path, returned):
+    captured = _explicit_capture(tmp_path)
+    inputs = {"number": 1, "context_ids": ["explicit"], "complete": True}
+    if returned:
+        trace = tmp_path / "rollout.jsonl"
+        rollout(trace, {"type": "response_item", "payload": {
+            "type": "function_call_output", "call_id": "example",
+            "output": managed_envelopes({"explicit": captured})["explicit"]}})
+        inputs.update(trace=trace, lines=[2, 2], knowledge_root=tmp_path / "corpus")
+    doc = json.loads(import_search(tmp_path, **inputs).read_bytes())
+    event, = doc["events"]
+    assert doc["coverage"] == "complete" and event["action"] == "read"
+    assert ("delivery" in event) == returned
+    # A prepared selection with no observed return is not reported as 0 of 1 reads.
+    assert doc["adoption"]["direct_reads"] == (
+        {"adopted": 0, "read_only": 1, "state": "complete"} if returned
+        else {"adopted": 0, "read_only": 0, "state": "not_applicable"})
+    assert doc["adoption"]["unverified_reads"] == {"adopted": 0, "refs": int(not returned)}
 
 
 def test_partial_or_missing_capture_does_not_report_zero(tmp_path):

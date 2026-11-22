@@ -282,41 +282,120 @@ def _used_count(materials):
     return sum(m["use"] in _ADOPTED for m in materials.values())
 
 
-def _ratio_state(coverage, denominator):
-    if coverage != "complete":
+def _ratio_state(coverage, denominator, ambiguous):
+    if coverage != "complete" or ambiguous:
         return "unknown"
     return "not_applicable" if denominator == 0 else "complete"
 
 
-def _adoption(events, materials, coverage):
-    """Split adopted refs by how they were observed; each count keeps its own denominator.
+# An observed search hit or direct read outranks a read whose delivery was not
+# observed, which outranks an inventory or other listing.
+_PATH_TIERS = ({"search", "direct"}, {"unverified_read"}, {"other"})
 
-    Search-hit adoption is over distinct refs returned by a search. Direct-read
-    adoption is over distinct refs read but never returned by a search in this
-    round, so a read is never counted as search conversion. Other adopted refs
-    (for example from an inventory) have no denominator. Use is recorded per
-    ref, so adoption is per ref; versions are counted only for search hits and
-    stay unknown when a hit carries no revision. No rate is stored.
-    """
-    hits, reads, versions, unversioned = set(), set(), set(), False
+
+def _revision(row):
+    return row["revision"] if isinstance(row.get("revision"), str) else None
+
+
+def _delivered(event, ref):
+    """A trace command records its own output; a capture needs an observed return of the ref."""
+    if "context_id" not in event:
+        return True
+    delivery = event.get("delivery")
+    return isinstance(delivery, dict) and any(
+        isinstance(row, dict) and row.get("ref") == ref
+        for row in delivery.get("visible_resources", []))
+
+
+def _observation_paths(events):
+    """Classify each event's materials as a search hit, direct read, unverified read or other."""
+    hits = {}
     for event in events:
         if event["action"] == "search":
             for row in event["materials"]:
-                hits.add(row["ref"])
-                if isinstance(row.get("revision"), str):
-                    versions.add((row["ref"], row["revision"]))
-                else:
-                    unversioned = True
-        elif event["action"] == "read":
-            reads.update(row["ref"] for row in event["materials"])
-    reads -= hits
-    adopted = {ref for ref, material in materials.items() if material["use"] in _ADOPTED}
+                hits.setdefault(row["ref"], set()).add(_revision(row))
+    paths = []
+    for event in events:
+        rows = {}
+        for row in event["materials"]:
+            ref, revision = row["ref"], _revision(row)
+            seen = hits.get(ref, set())
+            if event["action"] == "search":
+                path = "search"
+            elif event["action"] != "read":
+                path = "other"
+            elif seen and (revision is None or None in seen or revision in seen):
+                # A read is separate from the hits only when both sides record
+                # a revision and they differ; otherwise it counts as the hit's read.
+                path = "search"
+            else:
+                path = "direct" if _delivered(event, ref) else "unverified_read"
+            rows.setdefault(ref, set()).add(path)
+        paths.append(rows)
+    return hits, paths
+
+
+def _supporting_paths(ref, material, events, paths):
+    """Return the paths of the observations that the ref's use evidence cites."""
+    found = set()
+    for evidence in [e for e in material.get("evidence", []) if e.get("use") == "used"] or [{}]:
+        if isinstance(evidence.get("event_id"), str):
+            bound = [i for i, e in enumerate(events) if e.get("id") == evidence["event_id"]]
+        elif isinstance(evidence.get("context_id"), str):
+            bound = [i for i, e in enumerate(events)
+                     if e.get("context_id") == evidence["context_id"]]
+        elif type(evidence.get("decision_line")) is int:
+            bound = [i for i, e in enumerate(events) if type(e.get("trace_line")) is int
+                     and e["trace_line"] < evidence["decision_line"]]
+        else:
+            bound = []
+        cited = set().union(*(paths[i].get(ref, set()) for i in bound))
+        # Evidence without a locator can only be matched to the ref as a whole.
+        found |= cited or set().union(*(rows.get(ref, set()) for rows in paths))
+    for tier in _PATH_TIERS:
+        if found & tier:
+            return found & tier
+    return found
+
+
+def _adoption(events, materials, coverage):
+    """Split adopted refs by the observation their use evidence cites; each part keeps its
+    own denominator.
+
+    Search-hit adoption is over distinct refs returned by a search. Direct-read
+    adoption is over distinct refs with an observed read at a revision that no
+    search returned; a capture's read is observed only when its return of that
+    ref was. A read whose delivery was not observed counts separately, without
+    a rate. Other adopted refs (for example from an inventory) have no
+    denominator. Use is recorded per ref, so adoption is per ref: a ref whose
+    evidence cites both a search hit and a direct read stays unattributed and
+    makes both rates unknown. Versions are counted only for search hits and stay
+    unknown when a hit carries no revision. No rate is stored.
+    """
+    hits, paths = _observation_paths(events)
+    observed = {"search": set(), "direct": set(), "unverified_read": set(), "other": set()}
+    for rows in paths:
+        for ref, kinds in rows.items():
+            for kind in kinds:
+                observed[kind].add(ref)
+    credited = {kind: set() for kind in (*observed, "unknown")}
+    for ref, material in materials.items():
+        if material["use"] in _ADOPTED:
+            found = _supporting_paths(ref, material, events, paths)
+            credited[next(iter(found)) if len(found) == 1 else "unknown"].add(ref)
+    ambiguous = len(credited["unknown"])
+    versions = {(ref, revision) for ref, revisions in hits.items() for revision in revisions}
+    unversioned = any(revision is None for _, revision in versions)
+    direct = observed["direct"]
     return {
-        "search_hits": {"adopted": len(adopted & hits), "unique_hits": len(hits),
-                        "state": _ratio_state(coverage, len(hits))},
-        "direct_reads": {"adopted": len(adopted & reads), "read_only": len(reads),
-                         "state": _ratio_state(coverage, len(reads))},
-        "other_adopted": len(adopted - hits - reads),
+        "search_hits": {"adopted": len(credited["search"]), "unique_hits": len(hits),
+                        "state": _ratio_state(coverage, len(hits), ambiguous)},
+        "direct_reads": {"adopted": len(credited["direct"]), "read_only": len(direct),
+                         "state": _ratio_state(coverage, len(direct), ambiguous)},
+        "unverified_reads": {"adopted": len(credited["unverified_read"]),
+                             "refs": len(observed["unverified_read"])},
+        "other_adopted": len(credited["other"]),
+        "attribution_unknown": ambiguous,
         "unique_hit_revisions": (len(versions) if coverage == "complete" and not unversioned
                                  else None),
     }

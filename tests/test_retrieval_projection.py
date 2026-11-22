@@ -263,6 +263,10 @@ def test_adoption_split_passes_through_and_old_records_stay_readable(campaign, v
     {"direct_reads": {"adopted": 0, "read_only": 0, "state": "complete"}},
     {"search_hits": {"adopted": 1, "unique_hits": 5, "state": "unknown"}},
     {"other_adopted": 1},
+    {"attribution_unknown": 1},
+    {"attribution_unknown": None},
+    {"unverified_reads": {"adopted": 1, "refs": 0}},
+    {"unverified_reads": {"adopted": 0, "refs": 0, "state": "not_applicable"}},
     {"unique_hit_revisions": 4},
     {"unique_hit_revisions": -1},
 ])
@@ -272,6 +276,20 @@ def test_adoption_outside_its_denominator_is_invalid(campaign, change):
     path.write_text(json.dumps({**doc, "adoption": {**doc["adoption"], **change}}))
     search = _round_one(campaign, 2)
     assert search["state"] == "invalid_counts" and "adoption" not in search
+
+
+@pytest.mark.parametrize("state", ["unknown", "complete"])
+def test_ambiguous_attribution_requires_unknown_rates(campaign, state):
+    path = campaign / "search/archive/round-1.json"
+    doc = json.loads(path.read_text())
+    adoption = doc["adoption"]
+    hits = adoption["search_hits"]
+    adoption.update(attribution_unknown=1,
+                    search_hits={**hits, "adopted": hits["adopted"] - 1, "state": state},
+                    direct_reads={**adoption["direct_reads"], "state": state})
+    path.write_text(json.dumps(doc))
+    search = _round_one(campaign, 2)
+    assert search["state"] == ("recorded" if state == "unknown" else "invalid_counts")
 
 
 def test_missing_capture_and_duplicate_json_keys_are_explicit(campaign):

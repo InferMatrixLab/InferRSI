@@ -98,19 +98,25 @@ def _count(value):
 
 
 def _valid_adoption(adoption, coverage, observed):
-    """Keep each numerator inside its own denominator; incomplete rounds stay unknown."""
-    if not isinstance(adoption, dict) or not _count(adoption.get("other_adopted")):
+    """Keep each numerator inside its own denominator; incomplete or ambiguous rounds stay
+    unknown."""
+    if not isinstance(adoption, dict) or not all(
+            _count(adoption.get(key)) for key in ("other_adopted", "attribution_unknown")):
         return False
     revisions = adoption.get("unique_hit_revisions")
     if revisions is not None and (coverage != "complete" or not _count(revisions)):
         return False
-    adopted = adoption["other_adopted"]
-    for key, denominator in (("search_hits", "unique_hits"), ("direct_reads", "read_only")):
+    ambiguous = adoption["attribution_unknown"]
+    adopted = adoption["other_adopted"] + ambiguous
+    for key, denominator in (("search_hits", "unique_hits"), ("direct_reads", "read_only"),
+                             ("unverified_reads", "refs")):
         part = adoption.get(key)
         if (not isinstance(part, dict) or not _count(part.get("adopted"))
                 or not _count(part.get(denominator)) or part["adopted"] > part[denominator]):
             return False
-        expected = ("unknown" if coverage != "complete" else
+        # A read without observed delivery has no rate and therefore no state.
+        expected = (None if key == "unverified_reads" else
+                    "unknown" if coverage != "complete" or ambiguous else
                     "not_applicable" if part[denominator] == 0 else "complete")
         if part.get("state") != expected:
             return False

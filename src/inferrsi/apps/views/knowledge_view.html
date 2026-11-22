@@ -115,6 +115,7 @@ window.InferRSIKnowledge={create({getData,getLanguage,openRun}){
     const gap=()=>!a?unknown():tr('Unknown (incomplete capture)','未知（采集不完整）');
     // A rate is derived only for a complete round with a nonzero denominator.
     const ratio=(part,den)=>{
+      if(a&&complete&&part?.state==='unknown'&&a.attribution_unknown>0)return tr('Unknown (attribution ambiguous)','未知（归属不明确）');
       if(!a||part?.state==='unknown')return gap();
       if(part.state==='not_applicable')return tr('Not applicable (zero denominator)','不适用（分母为零）');
       const n=part.adopted,d=part[den],pct=n===d?100:Math.min(99.9,Math.round(1000*n/d)/10);
@@ -123,11 +124,13 @@ window.InferRSIKnowledge={create({getData,getLanguage,openRun}){
     const versions=!a||!complete?gap():a.unique_hit_revisions==null?tr('Unknown (a hit has no recorded revision)','未知（存在未记录版本的命中）'):a.unique_hit_revisions;
     table(box,[tr('Adoption measure','采用口径'),tr('Value','数值'),tr('Definition','定义')],[
       [tr('Search-hit adoption','检索命中采用'),ratio(a?.search_hits,'unique_hits'),tr('Distinct search-hit refs with recorded use evidence / distinct refs returned by a search in this round.','有采用依据的去重检索命中条目 / 本轮检索返回的去重条目。')],
-      [tr('Direct-read adoption','直接读取采用'),ratio(a?.direct_reads,'read_only'),tr('Distinct refs read but never returned by a search in this round, with recorded use evidence / those read-only refs. Not search conversion.','本轮读取但未经检索命中的去重条目中有采用依据者 / 此类仅读取条目。不计为检索转化。')],
+      [tr('Direct-read adoption','直接读取采用'),ratio(a?.direct_reads,'read_only'),tr('Distinct refs with an observed read at a revision no search returned in this round, whose use evidence cites that read / those refs. A capture read counts only when its return of the ref was observed. Not search conversion.','本轮在检索未返回的版本上有已观测读取的去重条目中，采用依据指向该读取者 / 此类条目。捕获中的读取仅在观测到该条目返回时计入。不计为检索转化。')],
+      [tr('Reads without observed delivery (no rate)','未观测送达的读取（无比率）'),!a||!complete?gap():tr('Refs: ','条目：')+a.unverified_reads.refs+' · '+tr('with use evidence: ','有采用依据：')+a.unverified_reads.adopted,tr('Distinct refs selected by explicit ID in a capture whose return of the ref was not observed (prepared only or delivery unknown). Not counted as reads.','在捕获中按显式 ID 选取、但未观测到该条目返回的去重条目（仅准备或送达未知）。不计为读取。')],
       [tr('Other adopted (no denominator)','其他采用（无分母）'),!a||!complete?gap():a.other_adopted,tr('Adopted refs observed only by other operations, such as an inventory. No rate is shown.','仅由其他操作（如清单列举）观测到的采用条目。不计算比率。')],
+      [tr('Attribution unknown (no denominator)','归属未知（无分母）'),!a||!complete?gap():a.attribution_unknown,tr('Adopted refs whose use evidence cites both a search hit and a direct read, so neither is credited. While nonzero, both rates are unknown.','采用依据同时指向检索命中与直接读取的条目，两者均不计入。非零时两个比率均为未知。')],
       [tr('Unique hit versions (ref, revision)','去重命中版本（条目, 版本）'),versions,tr('Distinct (ref, revision) pairs among search hits. Unknown when any hit lacks a revision.','检索命中中去重的（条目, 版本）对。任一命中缺版本时为未知。')],
     ]);
-    p(box,tr('Counts are distinct refs; adoption is recorded per ref, not per revision, and each event keeps its own revision. A zero denominator is not applicable rather than 0%. These are associations only: they do not establish causal or performance credit and include no token or cost data.','计数均按去重条目；采用按条目记录而非按版本，各事件保留自身版本。分母为零时为不适用，而非 0%。以上仅为关联，不证明因果或性能收益，也不含 token 或费用数据。'),'kt-note');
+    p(box,tr('Counts are distinct refs; adoption is recorded per ref, not per revision, and is credited to the observation its use evidence cites. A zero denominator is not applicable rather than 0%. These are associations only: they do not establish causal or performance credit and include no token or cost data.','计数均按去重条目；采用按条目记录而非按版本，并归属于其采用依据所指向的观测。分母为零时为不适用，而非 0%。以上仅为关联，不证明因果或性能收益，也不含 token 或费用数据。'),'kt-note');
   }
   function search(box,s){
     fold(box,'R'+s.round+' · v'+s.schema_version+' · '+label(s.coverage||s.state),s.path,b=>{

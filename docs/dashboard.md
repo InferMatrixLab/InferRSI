@@ -256,18 +256,35 @@ retrievals require separate evidence. Review query text and paths before sharing
   distinct hit refs across searches, and distinct refs with supported use.
   Later reads are separate events. File paths, qualified CLI refs and
   versioned Indexer entries keep their recorded identities.
-- `adoption` splits `used` by how the material was observed. Each part has
-  its own denominator. `search_hits.adopted / search_hits.unique_hits`
-  counts distinct search-hit refs with supported use over distinct hit refs.
-  `direct_reads.adopted / direct_reads.read_only` counts refs that were read
-  but never returned by a search in the round. A direct read is not search
-  conversion. `other_adopted` counts adopted refs seen only through other
-  operations, such as an inventory, and has no denominator. All counts are
-  deduplicated by ref, and use is recorded per ref, not per revision.
+- `adoption` splits `used` by the observation that its use evidence cites.
+  Each part has its own denominator. `search_hits.adopted /
+  search_hits.unique_hits` counts distinct search-hit refs with supported use
+  over distinct hit refs. `direct_reads.adopted / direct_reads.read_only`
+  counts refs with an observed read at a revision that no search in the
+  round returned. A direct read is not search conversion. A read and a hit
+  of the same ref are separate only when both record a revision and the
+  revisions differ. Otherwise the read counts as a read of that hit. A
+  trace command records its own read. A capture's explicit-ID selection
+  counts as a read only when its return of that ref was observed.
+  Otherwise the ref is counted under
+  `unverified_reads.adopted / unverified_reads.refs`, which has no state or
+  rate. `other_adopted` counts adopted refs seen only through other
+  operations, such as an inventory, and has no denominator. Use evidence
+  is bound to the event it names: an archive review's `event_id`, an
+  optimization log's capture `context_id`, or the observations before a
+  caller-reviewed decision line. Evidence without such a locator matches
+  every observation of the ref. An observed hit or direct read outranks an
+  unverified read, which outranks other operations. If the cited
+  observations include both a search hit and a direct read, the ref
+  counts under `attribution_unknown` and is credited to neither. All
+  counts are deduplicated by ref. One ref can appear in more than one
+  denominator when the round observed different revisions of it. Use is
+  recorded per ref, not per revision.
   `unique_hit_revisions` counts distinct `(ref, revision)` pairs among
   search hits. It is null when coverage is not complete or any hit has no
-  recorded revision; `rg` hits carry none. A part's `state` is `unknown`
-  when coverage is not complete, `not_applicable` when its denominator is
+  recorded revision; `rg` hits carry none. The `state` of the search-hit
+  and direct-read parts is `unknown` when coverage is not complete or
+  `attribution_unknown` is nonzero, `not_applicable` when its denominator is
   zero, and otherwise `complete`. The record stores no rate. The
   dashboard derives a percentage only for a `complete` part, never shows 0%
   for a zero denominator, and shows "Not recorded" for earlier records without
