@@ -402,8 +402,12 @@ def test_changed_evidence_after_collection_invalidates_report(experiment):
     assert result["assessment"]["conclusion"]["kind"] == "insufficient_evidence"
 
 
-@pytest.mark.parametrize("damage", ["missing-receipt", "changed-receipt", "path", "sha256"])
-def test_bad_native_receipt_keeps_verified_arm_in_report(experiment, damage):
+@pytest.mark.parametrize(("damage", "field"), [
+    ("missing-receipt", None), ("changed-receipt", None),
+    ("last_observation", "path"), ("last_observation", "sha256"),
+    ("receipts", "path"), ("receipts", "sha256"),
+])
+def test_bad_native_receipt_keeps_verified_arm_in_report(experiment, damage, field):
     root, initial, _ = experiment
     first, second = [trial["id"] for trial in initial["trials"]]
     finish(experiment, first)
@@ -418,7 +422,8 @@ def test_bad_native_receipt_keeps_verified_arm_in_report(experiment, damage):
     elif damage == "changed-receipt":
         receipt.write_text("{}", encoding="utf-8")
     else:
-        del state["last_observation"][damage]
+        reference = state["receipts"][-1] if damage == "receipts" else state["last_observation"]
+        del reference[field]
         state_path.write_text(json.dumps(state), encoding="utf-8")
 
     report = operation(experiment, "report")
@@ -441,8 +446,11 @@ def test_bad_native_receipt_keeps_verified_arm_in_report(experiment, damage):
     else:
         assert next_action["operation"] == "inspect_retained_host_evidence"
         assert next_action["trial"] == second
-        expected_error = ("Retained host receipt changed" if damage == "changed-receipt"
-                          else "Malformed retained host observation")
+        expected_error = {
+            "changed-receipt": "Retained host receipt changed",
+            "last_observation": "Malformed retained host observation",
+            "receipts": "Malformed retained host receipt",
+        }[damage]
         with pytest.raises(ValueError, match=expected_error):
             compare.collect(root, second)
 
