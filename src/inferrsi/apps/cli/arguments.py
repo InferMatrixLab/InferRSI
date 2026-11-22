@@ -1,4 +1,9 @@
-"""The user configuration surface is argparse, not task files."""
+"""The user configuration surface: argparse flags, plus the read-only YAML task file.
+
+``task validate`` and ``task preview`` read a schema v1 task file (``task_input``).
+Preview accepts the mapped plan/run flags as explicit overrides; only flags the caller
+supplies reach its namespace, so a parser default never replaces a YAML value.
+"""
 
 from __future__ import annotations
 
@@ -10,13 +15,14 @@ from pathlib import Path
 from ... import __version__
 from ...contracts import RunSpec
 from ...knowledge.catalog import BACKENDS, KNOWLEDGE_REPOS, KNOWLEDGE_SCOPES, REPO_TYPES
+from .task_input import FIELDS as TASK_FIELDS
 
 
 def _read_sources(parser: argparse.ArgumentParser) -> None:
     library = parser.add_mutually_exclusive_group()
     library.add_argument(
         "--skill-root", type=Path,
-        help="Select a skills root; reading checkout skills requires the 'skills' extra",
+        help="Select a skills root; reading checkout skills requires PyYAML (a core dependency)",
     )
     library.add_argument(
         "--installed-library", action="store_true",
@@ -172,6 +178,25 @@ def _optimization_actions(stages, *, project=False):
             )
             stage.add_argument("--context-bytes", type=int, required=True)
             stage.add_argument("--limit", type=int, default=5)
+
+
+def _task_overrides(parser: argparse.ArgumentParser) -> None:
+    """Add the plan/run flags mapped to task fields, recording only explicit values."""
+    types = {"count": int, "minutes": float, "percent": float}
+    for field in TASK_FIELDS:
+        if field.flag is None:
+            continue
+        options = {"dest": field.dest, "default": argparse.SUPPRESS,
+                   "help": (field.help + "; " if field.help else "") + f"overrides {field.path}"}
+        if field.acceptance:
+            options["help"] = f"must equal {field.path} in the task file"
+        if field.choices:
+            options["choices"] = field.choices
+        if field.kind in types:
+            options["type"] = types[field.kind]
+        if field.kind == "keys":
+            options.update(action="append", metavar="DOTTED_KEY")
+        parser.add_argument(field.flag, **options)
 
 
 def parser(*, parser_class=argparse.ArgumentParser) -> argparse.ArgumentParser:
@@ -372,6 +397,22 @@ def parser(*, parser_class=argparse.ArgumentParser) -> argparse.ArgumentParser:
         child.add_argument("--model-revision")
         child.add_argument("--output-dir", default="runs")
         child.add_argument("--dry-run", action="store_true")
+
+    task = commands.add_parser(
+        "task", help="Read a YAML task file without starting or writing anything"
+    )
+    task_actions = task.add_subparsers(dest="task_action", required=True)
+    for name, text in (
+        ("validate", "Report format and value errors by field"),
+        ("preview", "Show effective normalized values, their sources and plan/run blockers"),
+    ):
+        child = task_actions.add_parser(name, help=text)
+        child.add_argument("task_file", type=Path, help="Task file (schema v1 YAML)")
+        child.add_argument("--json", action="store_true", help="Print machine-readable JSON")
+        if name == "preview":
+            _task_overrides(child)
+    task_actions.add_parser("schema", help="Print the packaged task JSON Schema")
+    task_actions.add_parser("template", help="Print the packaged task template")
 
     for name in ("status", "report"):
         child = commands.add_parser(

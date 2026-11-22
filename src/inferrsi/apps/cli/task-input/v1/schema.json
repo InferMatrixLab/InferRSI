@@ -1,0 +1,478 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/InferMatrixLab/InferRSI/blob/main/src/inferrsi/apps/cli/task-input/v1/schema.json",
+  "title": "InferRSI task file v1",
+  "description": "Shared YAML task input for the InferRSI CLI and Agents. Every section may be omitted in a draft and null fields count as missing. Duplicate keys, the 64 KiB size limit, quoted-command parsing and finite numbers are checked by inferrsi task validate.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version"
+  ],
+  "properties": {
+    "schema_version": {
+      "description": "Task contract version; the integer 1.",
+      "type": "integer",
+      "const": 1
+    },
+    "optimization": {
+      "title": "Optimization target",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "repository": {
+          "description": "Prepared target Git checkout; relative to this file (flag --repo).",
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "pattern": "\\S"
+            }
+          ]
+        },
+        "candidate_repository": {
+          "description": "Candidate checkout; defaults to the baseline checkout (flag --candidate-repo).",
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "pattern": "\\S"
+            }
+          ]
+        },
+        "model": {
+          "description": "Model identity or path recorded in the experiment (flag --model).",
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "pattern": "\\S"
+            }
+          ]
+        },
+        "model_revision": {
+          "description": "Model revision; quote it (flag --model-revision).",
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "pattern": "\\S"
+            }
+          ]
+        },
+        "framework": {
+          "description": "Repository/framework type (flag --repo-type).",
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "enum": [
+                "vllm",
+                "vllm_omni",
+                "afd_plugin",
+                "vllm_rlt",
+                "strata",
+                "sglang",
+                "sglang_omni"
+              ]
+            }
+          ]
+        },
+        "workload": {
+          "description": "Caller-declared fixed workload identity (flag --workload-id).",
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "pattern": "\\S"
+            }
+          ]
+        },
+        "scenario": {
+          "description": "Caller-declared scenario label; default external_benchmark (flag --scenario).",
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "pattern": "\\S"
+            }
+          ]
+        },
+        "mode": {
+          "description": "Change mode; default config (flag --mode).",
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "enum": [
+                "config",
+                "code",
+                "semantic"
+              ]
+            }
+          ]
+        },
+        "objective": {
+          "description": "Optimization goal in the user's words.",
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "pattern": "\\S"
+            }
+          ]
+        },
+        "plane": {
+          "description": "The one SIAS plane this campaign step changes.",
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "enum": [
+                "harness",
+                "model",
+                "infra"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "environment": {
+      "title": "Test environment",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "backend": {
+          "description": "Backend, as accepted by the CLI (flag --backend).",
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "enum": [
+                "cpu",
+                "cuda",
+                "rocm",
+                "ascend",
+                "mlx"
+              ]
+            }
+          ]
+        },
+        "device_ids": {
+          "description": "Caller-assigned device IDs as quoted strings; default none (flag --device-ids).",
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "pattern": "^[^,\\s]+(?!\\n)$"
+              }
+            }
+          ]
+        },
+        "device_model": {
+          "description": "Expected CUDA device model or Apple Silicon chip (flag --device-model).",
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "pattern": "\\S"
+            }
+          ]
+        },
+        "python": {
+          "description": "Prepared Python runtime; a value with a path separator is relative to this file (flag --python).",
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "pattern": "\\S"
+            }
+          ]
+        },
+        "baseline_command": {
+          "description": "Baseline benchmark command: quoted argv string or list; {result} is the output path (flag --baseline-command).",
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "oneOf": [
+                {
+                  "type": "string",
+                  "pattern": "\\S"
+                },
+                {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {
+                    "type": "string"
+                  },
+                  "prefixItems": [
+                    {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "candidate_command": {
+          "description": "Candidate benchmark command: quoted argv string or list (flag --candidate-command).",
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "oneOf": [
+                {
+                  "type": "string",
+                  "pattern": "\\S"
+                },
+                {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {
+                    "type": "string"
+                  },
+                  "prefixItems": [
+                    {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "quality_command": {
+          "description": "Quality/correctness command: quoted argv string or list (flag --validation-command).",
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "oneOf": [
+                {
+                  "type": "string",
+                  "pattern": "\\S"
+                },
+                {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {
+                    "type": "string"
+                  },
+                  "prefixItems": [
+                    {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "repetitions": {
+          "description": "Benchmark repetitions per arm, a positive integer (flag --repetitions).",
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "integer",
+              "minimum": 1
+            }
+          ]
+        },
+        "max_minutes": {
+          "description": "Experiment time budget in minutes, at most seven days (flag --max-minutes).",
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "maximum": 10080
+            }
+          ]
+        },
+        "rounds": {
+          "description": "Optimization search rounds, a separate positive-integer budget.",
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "integer",
+              "minimum": 1
+            }
+          ]
+        }
+      }
+    },
+    "acceptance": {
+      "title": "Acceptance criteria",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "reference": {
+          "description": "Acceptance issue HTTP(S) URL, or a local plan path relative to this file.",
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "pattern": "\\S",
+              "not": {
+                "pattern": "^[A-Za-z][A-Za-z0-9+.-]*://",
+                "not": {
+                  "pattern": "^[Hh][Tt][Tt][Pp][Ss]?://[^/?#]+"
+                }
+              }
+            }
+          ]
+        },
+        "baseline_revision": {
+          "description": "Pinned baseline revision; quote it.",
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "pattern": "\\S"
+            }
+          ]
+        },
+        "metric_key": {
+          "description": "Agreed metric: flat or dotted key in benchmark JSON (must match --metric-key).",
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "pattern": "^[^.\\s]([^.]*[^.\\s])?(\\.[^.\\s]([^.]*[^.\\s])?)*(?!\\n)$"
+            }
+          ]
+        },
+        "direction": {
+          "description": "Whether the metric should be minimized or maximized (must match --direction).",
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "enum": [
+                "minimize",
+                "maximize"
+              ]
+            }
+          ]
+        },
+        "metric_unit": {
+          "description": "Metric unit, such as ms (must match --metric-unit).",
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "pattern": "\\S"
+            }
+          ]
+        },
+        "min_improvement_pct": {
+          "description": "Agreed minimum improvement in percent, nonnegative (must match --min-improvement-pct).",
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "number",
+              "minimum": 0
+            }
+          ]
+        },
+        "comparison_scope": {
+          "description": "Comparison scope; default external_command (must match --comparison-scope).",
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "pattern": "\\S"
+            }
+          ]
+        },
+        "required_trial_checks": {
+          "description": "Dotted keys that must be literal true in every benchmark JSON; default none (must match --require-trial-check).",
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "pattern": "^[^.\\s]([^.]*[^.\\s])?(\\.[^.\\s]([^.]*[^.\\s])?)*(?!\\n)$"
+              }
+            }
+          ]
+        },
+        "constraints": {
+          "description": "Other agreed criteria and constraints, as text.",
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "pattern": "\\S"
+            }
+          ]
+        }
+      }
+    }
+  }
+}
