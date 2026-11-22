@@ -217,7 +217,7 @@ Several flat modules remain shared seams until their slice starts.
 | `apps/views/`, `apps/workflows/campaign.py` | Dashboard views, templates and the Knowledge-to-records connection | Apps composition under #371; campaign composition is grouped under workflows by #490 |
 | `apps/integrations/mindie/` (`project.py`, `context.py`, `mcp.py`, `read_worker.py`) | The local MindIE adapter: project grant, stdio MCP, context export and the read worker | M1 (#452) moved the four root MindIE files here; no Harness, Knowledge or Infra module names MindIE, and the initializer imports nothing |
 | `harness/` | Mixed legacy tree, not target isolation | Not redefined |
-| `harness/runner.py`, `harness/scenarios/external.py`, `harness/atomic_json.py` | Old run execution facts and Harness-owned JSON writes | Ports injected; no Model edge, and no Infra edge except the local process executor |
+| `harness/runner.py`, `harness/trials/external.py`, `harness/atomic_json.py` | Old run execution facts and Harness-owned JSON writes | Ports injected; no Model edge, and no Infra edge except the local process executor |
 | `benchmark/legacy_run_v0.py`, `benchmark/sampling.py` | Old run gates and metric validation; image/video sample collection | Imports only `benchmark/metrics.py`; owns its rule inputs and verdict labels |
 | `apps/legacy/` | Old run composition, old `evaluate` entry and HTML report | Supplies the Git source snapshot from `apps/host/targets`; remains in Apps |
 | `apps/inspection.py` | Prepared-environment inspection bound to this host | Binds the `apps/host/inspection.py` facts API to `apps.host.commands.probe_command` and `apps.host.targets.repository_identity`; replaces root `inspection.py`, which R1 deleted with the three old-run root forwarders |
@@ -357,7 +357,7 @@ cleared `harness reaches model/infra` (12 hits): `agent_sessions`, `candidates`,
 `inferrsi.infra` and `inferrsi.infra.artifacts`. They now take `digest`, `sha256`
 and `file_lock` from `harness/artifact_primitives.py` and `atomic_write_json` from
 `harness/atomic_json.py`, whose function bodies equal those in `infra/artifacts.py`.
-`infra/artifacts.py` stays for its other users. No Harness module reaches
+`infra/artifacts.py` stayed for its other users until #498 removed `infra/`. No Harness module reaches
 `inferrsi.infra` or `inferrsi.model`. R3 cleared `runtime resource loaders: 5`.
 
 `knowledge-model-policy` stays the only required status. Until a separate
@@ -438,9 +438,9 @@ The leaf's own import rule and `REPO_TYPES` object identity govern it.
   is not a Knowledge input. Benchmark modules and every `inferrsi.harness.*` module reach no
   other core, no Apps module, and no old root leaf. Apps reaches no old root
   leaf. Since R1 an old root leaf is any of the eleven retired root module
-  names, with or without a file behind it. `inferrsi.infra`
-  reaches no Knowledge, Harness, Benchmark, or Apps module, so `infra` → root
-  `catalog` → Knowledge fails while `infra` → the data leaf passes.
+  names, with or without a file behind it. Since #498 the names `inferrsi.infra`
+  and `inferrsi.model` are retired as a whole, so any import of either fails. Before
+  that, `inferrsi.infra` reached no Knowledge, Harness, Benchmark, or Apps module.
 - **New H entries.** The registered entry modules are
   `inferrsi.harness.api`, `inferrsi.harness.execution_service`,
   `inferrsi.harness.input_binding`, `inferrsi.harness.local_process`,
@@ -534,7 +534,7 @@ The rule covers that one importer, target, name and shape, and nothing wider:
 
 - Any other module outside Knowledge that imports the leaf fails as a second
   importer. That includes another `apps.host` module, `apps/host/__init__.py`,
-  another Apps module, a Harness, Benchmark or Infra module and any root file.
+  another Apps module, a Harness or Benchmark module and any root file.
 - In the declared importer, another leaf name, an alias, a star import, the
   leaf imported as a module object, an import below module level, a
   `sys.modules` use and a dynamic import each fail.

@@ -27,6 +27,15 @@ from inferrsi.knowledge.knowledge_operations import KnowledgeReader
 from inferrsi.resources import repository_packs
 from inferrsi.resources.repository_packs import REPO_TYPES, repository_pack
 
+# The new Harness binding port ships independently of Apps and Benchmark.
+subprocess.run([
+    sys.executable, "-I", "-B", "-c",
+    "import sys; from inferrsi.harness import prepared_binding as p; "
+    "assert all(callable(getattr(p, n)) for n in ('read', 'project', 'verify')); "
+    "assert not any(n == root or n.startswith(root + '.') for n in sys.modules "
+    "for root in ('inferrsi.apps', 'inferrsi.benchmark', 'inferrsi.knowledge'))",
+], check=True, capture_output=True, text=True)
+
 assert Path(inferrsi.__file__).resolve().parent.parent.name != "src", (
     "This check requires an installed package"
 )
@@ -791,6 +800,23 @@ facade = subprocess.run(
     [sys.executable, "-I", "-c", facade_probe], capture_output=True, text=True, check=False,
 )
 assert facade.returncode == 0, facade.stderr
+# The offline Benchmark port must ship in the wheel and remain independently importable.
+assessment_probe = (
+    "import sys\n"
+    "from inferrsi.benchmark.assessment import (\n"
+    "    AssessmentService, assess, decode, encode, validate_assessment,\n"
+    ")\n"
+    "assert all(callable(port) for port in\n"
+    "           (AssessmentService, assess, decode, encode, validate_assessment))\n"
+    "for prefix in ('inferrsi.apps', 'inferrsi.harness', 'inferrsi.knowledge'):\n"
+    "    assert not [name for name in sys.modules if name == prefix\n"
+    "                or name.startswith(prefix + '.')], prefix\n"
+)
+assessment_port = subprocess.run(
+    [sys.executable, "-I", "-B", "-c", assessment_probe],
+    capture_output=True, text=True, check=False,
+)
+assert assessment_port.returncode == 0, assessment_port.stderr
 # #452 M1: the MindIE adapter ships in the wheel. A fresh isolated interpreter imports the
 # package initializer with no core loaded and without a re-exported version, then imports
 # the stdio MCP module through its absolute package path.
@@ -918,10 +944,12 @@ for retired in ("inferrsi.infra", "inferrsi.infra.artifacts", "inferrsi.infra.pr
                 "inferrsi.infra.inspection", "inferrsi.infra.environment",
                 "inferrsi.infra.platforms", "inferrsi.infra.targets", "inferrsi.model",
                 "inferrsi.model.anthropic_agent", "inferrsi.model.anthropic_edit_agent",
-                "inferrsi.model.request_guard"):
+                "inferrsi.model.request_guard", "inferrsi.harness.scenarios",
+                "inferrsi.harness.scenarios.external"):
     assert_not_importable(retired)
 assert not {child.name for child in files("inferrsi").iterdir()} & {"infra", "model"}
-for canonical in ("inferrsi.harness.serving", "inferrsi.harness.serving.server",
+for canonical in ("inferrsi.harness.trials", "inferrsi.harness.trials.external",
+                  "inferrsi.harness.serving", "inferrsi.harness.serving.server",
                   "inferrsi.harness.serving.http", "inferrsi.harness.serving.image",
                   "inferrsi.apps.host.commands", "inferrsi.apps.host.inspection",
                   "inferrsi.apps.host.environment", "inferrsi.apps.host.platforms",
@@ -951,28 +979,36 @@ observed = json.loads(locked.stdout.strip().splitlines()[-1])
 assert observed["busy_status"] != "published" and observed["busy_published"] is False, observed
 assert observed["released_status"] == "published", observed
 assert observed["released_kind"] == "progress", observed
-# #498 slice 5: a real session that main planned before infra/artifacts.py left the runtime
-# identity. The installed wheel must refuse it before status or recover dispatches and leave
-# every file of the session as it was.
-with tempfile.TemporaryDirectory(prefix="inferrsi-pre-infra-") as pre_work:
-    pre_session = Path(pre_work) / "session"
-    shutil.copytree(os.environ["INFERRSI_PRE_INFRA_SESSION"], pre_session)
+# #498 slice 5 and #558: real sessions that main planned before a change to the runtime
+# identity, each with the identity file that change removed. The installed wheel must refuse
+# every one before status or recover dispatches and leave every file of it as it was.
+PRE_CHANGE_SESSIONS = {
+    "pre-infra-removal-session": "infra/artifacts.py",
+    "pre-trials-rename-session": "harness/scenarios/external.py",
+}
+sessions_root = Path(os.environ["INFERRSI_PRE_CHANGE_SESSIONS"])
+assert sorted(path.name for path in sessions_root.iterdir() if path.name.endswith("-session")) == (
+    sorted(PRE_CHANGE_SESSIONS))
+for fixture, removed_file in PRE_CHANGE_SESSIONS.items():
+    with tempfile.TemporaryDirectory(prefix="inferrsi-pre-change-") as pre_work:
+        pre_session = Path(pre_work) / "session"
+        shutil.copytree(sessions_root / fixture, pre_session)
 
-    def session_bytes():
-        return {path.relative_to(pre_session).as_posix(): path.read_bytes()
-                for path in sorted(pre_session.rglob("*")) if path.is_file()}
+        def session_bytes():
+            return {path.relative_to(pre_session).as_posix(): path.read_bytes()
+                    for path in sorted(pre_session.rglob("*")) if path.is_file()}
 
-    pre_before = session_bytes()
-    assert "infra/artifacts.py" in json.loads(pre_before["plan.json"])["runtime_identity"]
-    for action in ("status", "recover"):
-        refused = subprocess.run(
-            [sys.executable, "-I", "-m", "inferrsi", "benchmarks", "session", action,
-             "--session", str(pre_session)],
-            capture_output=True, text=True, check=False, cwd=pre_work,
-        )
-        assert refused.returncode == 2, (action, refused.returncode, refused.stderr)
-        assert "Optimization runtime changed" in refused.stderr, (action, refused.stderr)
-    assert session_bytes() == pre_before
+        pre_before = session_bytes()
+        assert removed_file in json.loads(pre_before["plan.json"])["runtime_identity"], fixture
+        for action in ("status", "recover"):
+            refused = subprocess.run(
+                [sys.executable, "-I", "-m", "inferrsi", "benchmarks", "session", action,
+                 "--session", str(pre_session)],
+                capture_output=True, text=True, check=False, cwd=pre_work,
+            )
+            assert refused.returncode == 2, (fixture, action, refused.returncode, refused.stderr)
+            assert "Optimization runtime changed" in refused.stderr, (fixture, action)
+        assert session_bytes() == pre_before, fixture
 # The Messages worker runs under ``python -I`` and loads its adjacent trusted guard by file
 # location, not through the package, so the guard must ship next to the agent. This offline
 # probe loads the agent from the wheel the way the worker does, with no provider call.

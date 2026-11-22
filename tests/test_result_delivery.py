@@ -922,6 +922,21 @@ def test_single_benchmark_missing_terminal_receipt_preserves_observed_subtotal(
     assert tokens["total_tokens"] is None and tokens["observed_tokens"] == 1200
 
 
+def test_single_benchmark_terminal_receipt_without_counters_preserves_campaign_usage(
+    standalone_native_usage,
+):
+    root, job, observation = standalone_native_usage
+    del observation["usage"]
+    record_native_usage(job, observation)
+    _, original, _ = delivery.project(root, export_id="campaign-usage")
+    _, result, _ = delivery.project(root, export_id="native-without-counters", agent_job=job)
+    tokens = result["benchmark_metrics"]["token_usage"]
+    assert tokens == original["benchmark_metrics"]["token_usage"]
+    assert tokens["observed_tokens"] == 1200 and tokens["total_tokens"] is None
+    assert result["usage"]["session_tokens"] == original["usage"]["session_tokens"]
+    assert any(source["type"] == "native_agent_usage" for source in result["sources"])
+
+
 @pytest.mark.parametrize(
     "standalone_native_usage", [{}, {"metrics_schema_version": 2}], indirect=True)
 def test_native_job_preserves_unsupported_policy_reason(standalone_native_usage):

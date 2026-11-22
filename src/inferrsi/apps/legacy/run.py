@@ -10,7 +10,7 @@ from inferrsi.benchmark.legacy_run_v0 import evaluate as _evaluate
 from inferrsi.benchmark.legacy_run_v0 import read_metric, trial_metric
 from inferrsi.contracts import RunSpec
 from inferrsi.harness.runner import run_experiment as _run_experiment
-from inferrsi.harness.scenarios.external import execute_trial as _execute_trial
+from inferrsi.harness.trials.external import execute_trial as _execute_trial
 
 from .evaluation import run_rules
 from .reporting import write_report

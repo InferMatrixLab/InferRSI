@@ -39,6 +39,7 @@ SCHEMA = REPO / "docs" / "contracts" / "schemas" / "contract-v1.schema.json"
 NEW_H_CLOSURE = {
     "inferrsi.harness.api", "inferrsi.harness.execution_service",
     "inferrsi.harness.input_binding", "inferrsi.harness.local_process",
+    "inferrsi.harness.prepared_binding",
     "inferrsi.harness.atomic_json",
     "inferrsi.harness.run_store", "inferrsi.harness.errors", "inferrsi.harness.execution_spec",
     "inferrsi.contracts.json_v1",
@@ -477,7 +478,8 @@ def test_spec_time_refusals_register_nothing(h: Harness) -> None:
         candidate={"candidate_id": "cand", "context_refs": [], "input_role": "candidate",
                    "kind": "text", "parent_digest": None, "parent_id": None},
     )
-    assert error_of(h.execute, evaluation).code == "UnsupportedOperation"
+    # The malformed binding is rejected before support/entry checks (PR-1 / V32-N2).
+    assert error_of(h.execute, evaluation).code == "InvalidExecutionSpec"
     assert error_of(h.execute, dict(spec, schema_version=2)).code == "UnsupportedSchema"
     float_timeout = dict(spec, steps=[dict(spec["steps"][0], timeout_seconds=1.5)])
     assert error_of(h.execute, float_timeout).code == "InvalidExecutionSpec"

@@ -1,0 +1,3 @@
+512 0 997.58 tok/s
+0 128 41.65 tok/s
+           459666632  peak memory footprint
