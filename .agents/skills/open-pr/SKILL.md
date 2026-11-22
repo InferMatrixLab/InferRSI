@@ -52,6 +52,9 @@ Start from the [PR template](../../../.github/PULL_REQUEST_TEMPLATE.md):
   #518 stalled because its declaration check stayed red on the final head.
 - Report checks actually run, and failed, skipped or not-run ones, separately.
   Report PR readiness and Issue completion separately.
+- If a revert cannot undo the change's external effect (credentials,
+  published assets, access), add one line
+  `recovery: owner=@<account>; containment=<steps>`.
 - Do not prefill an independent approval or claim an authorized merge.
 
 Open the PR with `gh pr create --base main` and show it on the Issue as the

@@ -42,7 +42,9 @@ that pair only.
    through its one formal reviewer agent.
 6. **Independence:** the author, material contributors and the accountable
    parent supplied none of them, including through another agent under their
-   account. At least one comes from a different agent or a human.
+   account. At least one comes from a different agent or a human. If the
+   author is not a maintainer (an account with write access), both come from
+   maintainer accounts; the author's own approval never counts.
 7. **No open blocker:** every **Request changes** review is re-reviewed to
    **Approve** or dismissed with a recorded reason.
 8. **Required checks green** on the head. Windows/macOS `host-compatibility`
@@ -65,7 +67,8 @@ Prepare the squash message: subject plus a short summary, no Issue references,
 DCO sign-off and material `Agent-assisted-by` attribution kept. Squash-merge
 directly; the repository ruleset and merge controls apply unchanged. There is
 no merge queue yet; once one is enabled, the rules for queueing are added here.
-Record the merge on the PR with an identity line; for a high-risk PR the same
-comment lists, in one line, the reviewed head, the two approving accounts with
-their review links, and the merge SHA and merging account. If `main` turns red afterwards, use the
+Record the merge on the PR yourself, right after merging, with an identity
+line; for a high-risk PR the same comment then has one line
+`merge-audit: head=<sha> approvals=@<account> <review URL>, @<account> <review URL> merge=<sha> by=@<account>`.
+If `main` turns red afterwards, use the
 [red-main skill](../red-main/SKILL.md).

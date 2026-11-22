@@ -61,6 +61,9 @@ Use GitHub **Comment** (`COMMENTED`) for non-voting interim feedback. A complete
 formal review still requires **Approve** or **Request changes**, also on a
 high-risk PR (CI, releases, secrets, permissions); there an **Approve** from a
 maintainer account, including its agent, counts as the maintainer approval.
+If a revert cannot undo the change's external effect (credentials, published
+assets, access) and the PR body lacks a
+`recovery: owner=@<account>; containment=<steps>` line, request it.
 Post a review or
 comment only for a new head, new evidence or a new question. Lead with the
 one-line conclusion and put details in a collapsible `<details>` section.
