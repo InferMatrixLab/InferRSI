@@ -26,7 +26,7 @@ that pair only.
 1. **Open and ready:** the PR is open and not a draft.
 2. **Authorized to integrate:** the governing Issue has an accountable owner
    (recorded on the Issue, or else its assignee) and carries `status:accepted`, and you are its deciding agent, were delegated
-   integration on the Issue, or are a human maintainer.
+   integration on the Issue, or you act for a maintainer account.
 3. **No stop:** neither the PR nor its governing Issue carries `bot:stop`
    or has a human's stop comment that has not been lifted there (see the
    [stop rule](../../../docs/agent-collaboration.md#identity-and-authority));
