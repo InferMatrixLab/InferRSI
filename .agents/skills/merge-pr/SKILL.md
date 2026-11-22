@@ -56,14 +56,20 @@ that pair only.
    credentials, or permissions (workflow `permissions`, repository access,
    rulesets, the high-risk approver list), or you cannot tell, at least one of
    the approvals in 5 comes from an account listed in
-   `.github/high-risk-approvers.json` on `main`; that account's agent may give
-   it. Other approvals count toward the two but not as this one. Read the list
-   right before merging (`gh api repos/InferMatrixLab/InferRSI/contents/.github/high-risk-approvers.json?ref=main --jq .content | base64 -d`),
-   confirm the approving login is on it, and confirm the account still has
+   `.github/high-risk-approvers.json`; that account's agent may give it. Other
+   approvals count toward the two but not as this one. Read the list from the
+   protected `main` commit you noted as `baseRefOid` (the base is `main` by
+   check 4), never from the PR head or a stacked branch, so a PR that changes
+   the list is judged by the list before it
+   (`gh api "repos/InferMatrixLab/InferRSI/contents/.github/high-risk-approvers.json?ref=<baseRefOid>" --jq .content | base64 -d`).
+   Confirm the approving login is on it, and confirm the account still has
    write access:
    `gh api repos/InferMatrixLab/InferRSI/collaborators/<login>/permission --jq .permission`
-   must print `admin` or `write`. If no approving account passes both, do not
-   merge.
+   must print `admin` or `write`. If you cannot read the list or the
+   permission, or no approving account passes both, do not merge. The PR that
+   creates the list is approved once as the
+   [high-risk rule](../../../docs/agent-collaboration.md#identity-and-authority)
+   says.
    Otherwise follow the normal flow.
 10. **Recovery for external effects:** if the merge itself causes an external
    effect that a revert cannot undo (publishing a release asset or package,
@@ -76,8 +82,10 @@ Right before merging, read the PR and the governing Issue again. Recheck the
 stop labels and stop comments; `headRefOid`, `baseRefName` and `baseRefOid` against the pair you
 noted; the Issue's `status:accepted` and your authorization; and, on the
 current head, the approvals, any open **Request changes** review and, on a
-high-risk PR, the listed approver and its write access from check 9. If
-anything changed or no longer holds, start over.
+high-risk PR, the listed approver and its write access from check 9, against
+the list at the same `baseRefOid`; and the PR body's `recovery:` line from
+check 10, since the body can change without a new head. If anything changed or
+no longer holds, start over.
 
 ## Merge
 
@@ -97,8 +105,8 @@ unchanged. There is
 no merge queue yet; once one is enabled, the rules for queueing are added here.
 Record the merge on the PR yourself, right after merging, with an identity
 line; for a high-risk PR the same comment then has one line
-`merge-audit: head=<sha> approvals=@<account> <review URL>, @<account> <review URL> approver=@<login> merge=<sha> by=@<account>`,
+`merge-audit: head=<sha> approvals=@<account> <review URL>, @<account> <review URL> approver=@<login> list=<sha> merge=<sha> by=@<account>`,
 where `approver=` names the approving account you found on the list and
-verified in check 9.
+verified in check 9, and `list=` is the `baseRefOid` you read the list from.
 If `main` turns red afterwards, use the
 [red-main skill](../red-main/SKILL.md).

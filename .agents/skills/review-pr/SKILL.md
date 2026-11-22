@@ -60,7 +60,9 @@ before re-review. Keep optional suggestions separate from the blockers.
 Use GitHub **Comment** (`COMMENTED`) for non-voting interim feedback. A completed
 formal review still requires **Approve** or **Request changes**, also on a
 high-risk PR (CI, releases, secrets, permissions); there an **Approve** from an
-account on the [high-risk approver list](../../../.github/high-risk-approvers.json),
+account on the [high-risk approver list](../../../.github/high-risk-approvers.json)
+as it stands on protected `main` (not the PR head or a stacked branch; see the
+[high-risk rule](../../../docs/agent-collaboration.md#identity-and-authority)),
 including its agent, counts as the required listed approval. Other approvals
 count toward the two but not as that one.
 If a revert cannot undo the change's external effect (credentials, published
