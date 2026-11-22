@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import shutil
@@ -10,6 +11,7 @@ import sys
 from pathlib import Path
 
 import pytest
+import yaml
 
 from inferrsi.apps import cli
 from inferrsi.apps.cli import arguments, task_input
@@ -24,14 +26,24 @@ HEAD = "abc1234" + "0" * 33
 REQUIRED = "the following arguments are required: --baseline-command, --candidate-command"
 
 
-def _task(tmp_path: Path, source: Path = COMPLETE, *, replace=(), plan_file=True) -> Path:
-    """Copy a fixture into tmp_path/task with its repo/ and candidate/ checkouts."""
+def _task(tmp_path: Path, source: Path = COMPLETE, *, replace=(), plan_file=True,
+          gate=None) -> Path:
+    """Copy a fixture into tmp_path/task with its repo/ and candidate/ checkouts.
+
+    ``plan_file`` writes the fixture's Markdown plan/acceptance.md. A ``gate`` document is
+    written to plan/gate.yaml, and the task's acceptance.reference then names it.
+    """
     directory = tmp_path / "task"
     for name in ("repo", "candidate"):
         (directory / name).mkdir(parents=True, exist_ok=True)
     if plan_file:
         (directory / "plan").mkdir(exist_ok=True)
         (directory / "plan" / "acceptance.md").write_text("frozen gates\n", encoding="utf-8")
+    if gate is not None:
+        (directory / "plan").mkdir(exist_ok=True)
+        (directory / "plan" / "gate.yaml").write_text(
+            yaml.safe_dump(gate, sort_keys=False), encoding="utf-8")
+        replace = (*replace, ("reference: plan/acceptance.md", "reference: plan/gate.yaml"))
     target = directory / source.name
     shutil.copyfile(source, target)
     text = target.read_text(encoding="utf-8")
@@ -40,6 +52,23 @@ def _task(tmp_path: Path, source: Path = COMPLETE, *, replace=(), plan_file=True
         text = text.replace(old, new)
     target.write_text(text, encoding="utf-8")
     return target
+
+
+def _gate(**changes) -> dict:
+    """A frozen gate record: the complete fixture's acceptance section, baseline HEAD[:7]."""
+    acceptance = yaml.safe_load(COMPLETE.read_text(encoding="utf-8"))["acceptance"]
+    acceptance.update(reference="https://example.com/issues/1", baseline_revision=HEAD[:7])
+    acceptance.update(changes)
+    return {"schema_version": 1, "acceptance": acceptance}
+
+
+def _agreeing(tmp_path: Path, revision: str = HEAD[:7], *, replace=(), **gate) -> Path:
+    """The complete fixture at ``revision``, referencing a frozen gate record that agrees.
+
+    ``replace`` edits only the task and ``gate`` changes only the record.
+    """
+    return _task(tmp_path, replace=(('"<baseline_sha>"', f'"{revision}"'), *replace),
+                 gate=_gate(**{"baseline_revision": revision, **gate}))
 
 
 @pytest.fixture
@@ -143,6 +172,11 @@ def test_plan_with_the_complete_fixture_gives_the_expected_run_spec(
         assert result["task"]["task"]["optimization"][name]
     assert result["task"]["task"]["environment"]["rounds"] == 4
     assert result["task"]["task"]["acceptance"]["baseline_revision"] == "<baseline_sha>"
+    # The fixture's Markdown plan states no machine-readable gate: plan says so, still 0.
+    gate = result["frozen_gate"]
+    assert gate["status"] == "unverified" and gate["sha256"] is None
+    assert gate["reference"] == str(directory / "plan" / "acceptance.md")
+    assert [item["field"] for item in gate["problems"]] == ["acceptance.reference"]
 
 
 def test_plan_task_block_equals_the_agent_preview_and_the_cli_preview(
@@ -276,7 +310,7 @@ def _fake_run(monkeypatch, caller: Path) -> list:
 def test_run_rejects_a_baseline_revision_that_is_not_the_checkout_head(
     tmp_path, caller, inspected, monkeypatch, capsys,
 ):
-    task_file = _task(tmp_path, replace=(('"<baseline_sha>"', '"def5678"'),))
+    task_file = _agreeing(tmp_path, "def5678")
     specs = _fake_run(monkeypatch, caller)
     err = _exit(capsys, "run", "--task", str(task_file))
     assert "acceptance.baseline_revision 'def5678' does not match" in err
@@ -284,28 +318,107 @@ def test_run_rejects_a_baseline_revision_that_is_not_the_checkout_head(
     assert list(caller.iterdir()) == []
 
 
-def test_run_rejects_a_missing_local_reference_before_inspection(
-    tmp_path, caller, monkeypatch, capsys,
+_FORBIDDEN = ("subprocess.Popen", "subprocess.run", "os.system", "os.posix_spawn",
+              "os.posix_spawnp", "os.execv", "os.execve", "os.fork", "os.mkdir", "os.makedirs",
+              "cli.inspect_environment", "cli.write_report", "legacy.run_experiment")
+
+
+@pytest.mark.parametrize("old, new, gate, field, shown", [
+    # The review case: reference and HEAD agree; only the agreed threshold changed.
+    ("min_improvement_pct: 2.5", "min_improvement_pct: 1.0", {},
+     "acceptance.min_improvement_pct", "is 1.0 in the task but 2.5"),
+    ("metric_key: metrics.latency_ms", "metric_key: metrics.ttft_ms", {},
+     "acceptance.metric_key", '"metrics.ttft_ms" in the task but "metrics.latency_ms"'),
+    ("direction: minimize", "direction: maximize", {},
+     "acceptance.direction", '"maximize" in the task but "minimize"'),
+    ("metric_unit: ms", "metric_unit: s", {}, "acceptance.metric_unit", '"s" in the task'),
+    ("comparison_scope: external_command", "comparison_scope: in_process", {},
+     "acceptance.comparison_scope", '"in_process" in the task but "external_command"'),
+    ("required_trial_checks: [checks.warm]", "required_trial_checks: []", {},
+     "acceptance.required_trial_checks", 'is [] in the task but ["checks.warm"]'),
+    ('  constraints: "Quality must not regress against the baseline"\n', "", {},
+     "acceptance.constraints", "is null in the task but"),
+    # HEAD matches the task's revision, but the frozen record pins another baseline.
+    (None, None, {"baseline_revision": "def5678"},
+     "acceptance.baseline_revision", f'is "{HEAD[:7]}" in the task but "def5678"'),
+])
+def test_run_rejects_a_task_whose_gate_differs_from_its_frozen_record(
+    tmp_path, caller, monkeypatch, capsys, old, new, gate, field, shown,
 ):
-    task_file = _task(tmp_path, replace=(('"<baseline_sha>"', f'"{HEAD[:7]}"'),),
-                      plan_file=False)
-    _forbid(monkeypatch, "cli.inspect_environment", "legacy.run_experiment")
+    task_file = _agreeing(tmp_path, replace=((old, new),) if old else (), **gate)
+    record = task_file.parent / "plan" / "gate.yaml"
+    before = _tree(tmp_path)
+    _forbid(monkeypatch, *_FORBIDDEN)
     err = _exit(capsys, "run", "--task", str(task_file))
-    assert "acceptance.reference must be an existing local plan file" in err
-    assert str(task_file.parent / "plan" / "acceptance.md") in err
+    assert "frozen gate mismatch: run --task needs" in err
+    assert f"\n{field}: " in err and shown in err
+    assert f"in the frozen gate record {record}" in err
+    assert err.count(" in the frozen gate record ") == 1
+    assert _tree(tmp_path) == before
     assert list(caller.iterdir()) == []
 
 
-@pytest.mark.parametrize("revision, reference", [
-    (HEAD[:7], None), (HEAD, None), (HEAD[:12].upper(), "https://example.com/issues/1"),
+@pytest.mark.parametrize("case, message", [
+    ("missing", "is not an existing local frozen gate record file: "),
+    ("url", "is an HTTP(S) URL, which InferRSI does not fetch, so the frozen gate cannot"),
+    ("markdown", "frozen gate record {plan}: $ the task file must be a mapping, not string"),
+    ("itself", "names the task file itself, not a separate frozen gate record"),
+    ("unstated", "frozen gate record {gate} does not state acceptance.min_improvement_pct"),
+    ("unknown", "frozen gate record {gate}: acceptance.threshold is not a v1 task field"),
+    ("no-section", "frozen gate record {gate} has no acceptance section"),
 ])
-def test_run_with_an_agreeing_task_reaches_the_experiment_and_records_the_task(
-    tmp_path, caller, inspected, monkeypatch, capsys, revision, reference,
+def test_run_rejects_a_frozen_gate_it_cannot_verify_before_inspection(
+    tmp_path, caller, monkeypatch, capsys, case, message,
 ):
-    replace = [('"<baseline_sha>"', f'"{revision}"')]
-    if reference:
-        replace.append(("reference: plan/acceptance.md", f"reference: {reference}"))
-    task_file = _task(tmp_path, replace=replace, plan_file=reference is None)
+    revision = ('"<baseline_sha>"', f'"{HEAD[:7]}"')
+    reference = "reference: plan/acceptance.md"
+    task_file = {
+        "missing": lambda: _task(tmp_path, replace=(revision,), plan_file=False),
+        "url": lambda: _task(tmp_path, replace=(
+            revision, (reference, "reference: https://example.com/issues/1"))),
+        "markdown": lambda: _task(tmp_path, replace=(revision,)),
+        "itself": lambda: _task(tmp_path, replace=(
+            revision, (reference, "reference: complete.yaml"))),
+        "unstated": lambda: _agreeing(tmp_path, min_improvement_pct=None),
+        "unknown": lambda: _agreeing(tmp_path, threshold=2.5),
+        "no-section": lambda: _task(tmp_path, replace=(revision,),
+                                    gate={"schema_version": 1}),
+    }[case]()
+    plan = task_file.parent / "plan"
+    before = _tree(tmp_path)
+    _forbid(monkeypatch, *_FORBIDDEN)
+    err = _exit(capsys, "run", "--task", str(task_file))
+    assert "frozen gate unverified: run --task needs" in err
+    assert "\nacceptance.reference: " in err
+    assert message.format(plan=plan / "acceptance.md", gate=plan / "gate.yaml") in err
+    assert _tree(tmp_path) == before
+    assert list(caller.iterdir()) == []
+
+
+@pytest.mark.parametrize("command", [("plan",), ("run", "--dry-run")])
+def test_plan_and_dry_run_report_a_mismatched_frozen_gate_without_running(
+    tmp_path, caller, inspected, monkeypatch, capsys, command,
+):
+    task_file = _agreeing(tmp_path, replace=(("min_improvement_pct: 2.5",
+                                               "min_improvement_pct: 1.0"),))
+    _forbid(monkeypatch, "legacy.run_experiment", "cli.write_report")
+    assert cli.main([*command, "--task", str(task_file)]) == 0
+    result = json.loads(capsys.readouterr().out)
+    assert result["execution"] == "not started"
+    assert result["run_spec"]["min_improvement_pct"] == 1.0
+    gate = result["frozen_gate"]
+    assert gate["status"] == "mismatch"
+    assert [item["field"] for item in gate["problems"]] == ["acceptance.min_improvement_pct"]
+    assert gate == task_input.frozen_gate(result["task"]["task"], task_file)
+    assert list(caller.iterdir()) == []
+
+
+@pytest.mark.parametrize("revision", [HEAD[:7], HEAD, HEAD[:12].upper()])
+def test_run_with_an_agreeing_task_reaches_the_experiment_and_records_the_task(
+    tmp_path, caller, inspected, monkeypatch, capsys, revision,
+):
+    task_file = _agreeing(tmp_path, revision)
+    record = task_file.parent / "plan" / "gate.yaml"
     specs = _fake_run(monkeypatch, caller)
     assert cli.main(["run", "--task", str(task_file), "--repetitions", "7"]) == 1
     out = json.loads(capsys.readouterr().out)
@@ -316,6 +429,11 @@ def test_run_with_an_agreeing_task_reaches_the_experiment_and_records_the_task(
     recorded = json.loads((directory / "task.json").read_text(encoding="utf-8"))
     assert recorded == task_input.preview(task_file, {"repetitions": 7}, cwd=str(caller))
     assert recorded["task"]["acceptance"]["baseline_revision"] == revision
+    gate = json.loads((directory / "frozen_gate.json").read_text(encoding="utf-8"))
+    assert gate == {"reference": str(record), "status": "agrees", "problems": [],
+                    "sha256": hashlib.sha256(record.read_bytes()).hexdigest()}
+    # An Agent gets the same result from the shared contract.
+    assert gate == task_input.frozen_gate(recorded["task"], recorded["task_file"])
     args = json.loads((directory / "args.json").read_text(encoding="utf-8"))
     assert args["task_file"] == str(task_file)
     assert args["backend"] == "cuda" and args["repetitions"] == 7
@@ -348,6 +466,7 @@ def test_flag_only_plan_and_run_keep_their_contract(tmp_path, caller, inspected,
     assert cli.main(["run", *flags]) == 1
     directory = Path(json.loads(capsys.readouterr().out)["run_dir"])
     assert not (directory / "task.json").exists()
+    assert not (directory / "frozen_gate.json").exists()
     args = json.loads((directory / "args.json").read_text(encoding="utf-8"))
     assert "task_file" not in args and arguments.SUPPLIED not in args
     assert args["baseline_command"] == "python b.py"

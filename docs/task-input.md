@@ -64,7 +64,7 @@ used when both the file and the flag omit an optional field.
 | `environment.repetitions` | positive integer | `--repetitions` | yes | — |
 | `environment.max_minutes` | positive finite number, at most 10080 (seven days) | `--max-minutes` | yes | — |
 | `environment.rounds` | positive integer (optimization search rounds) | — | — | — |
-| `acceptance.reference` | HTTP(S) issue URL or local plan path | — | yes | — |
+| `acceptance.reference` | HTTP(S) issue URL or local plan path; `run` needs a local [frozen gate record](#frozen-gate-record) | — | yes | — |
 | `acceptance.baseline_revision` | quoted string | — | yes | — |
 | `acceptance.metric_key` | flat or dotted JSON key | `--metric-key` (must match) | yes | — |
 | `acceptance.direction` | `minimize`, `maximize` | `--direction` (must match) | yes | — |
@@ -169,19 +169,23 @@ inferrsi run --task task.yaml                    # explicit execution
   without quality evidence, which gives the existing `INCONCLUSIVE` outcome.
 - **`plan` and `run --dry-run`.** They inspect the environment and print the RunSpec
   built from the task, as in flag-only use. Their output adds a `task` block, the
-  same object that `task preview --json` prints for the same file and flags. Without
-  `--task` the output is unchanged.
+  same object that `task preview --json` prints for the same file and flags, and a
+  `frozen_gate` block, the [frozen gate](#frozen-gate-record) result. They report a
+  `mismatch` or `unverified` gate without failing. Without `--task` the output is
+  unchanged.
 - **`run`.** Execution checks that the task agrees with its accepted inputs.
   Each check fails with exit 2 before any benchmark command starts or any run
   directory is written.
-  - A local `acceptance.reference` must be an existing file. InferRSI checks this
-    before the environment probe. An HTTP(S) issue URL is recorded as written.
+  - Before the environment probe, the task's acceptance fields must agree with the
+    [frozen gate record](#frozen-gate-record) that `acceptance.reference` names.
+    A `mismatch` or `unverified` gate prints each problem by field to stderr.
   - After inspection, the baseline checkout's `HEAD` must equal
     `acceptance.baseline_revision`. A hexadecimal prefix of at least 7 characters is
     also accepted.
 
-  The run directory then holds `task.json`, the task preview, next to `args.json`.
-  `args.json` records the effective values and the absolute `task_file`.
+  The run directory then holds `task.json`, the task preview, and `frozen_gate.json`,
+  the gate result with the record's SHA-256, next to `args.json`. `args.json` records
+  the effective values and the absolute `task_file`.
 
 RunSpec carries the experiment fields. `optimization.objective`,
 `optimization.plane`, `environment.rounds`, `acceptance.reference`,
@@ -189,6 +193,49 @@ RunSpec carries the experiment fields. `optimization.objective`,
 They are recorded in the `task` block and in `task.json`. Without `--task`,
 `--baseline-command` and `--candidate-command` remain required, with the same
 argparse error and exit 2.
+
+### Frozen gate record
+
+Freeze the agreed gate before candidate search as a local file, for example in the
+campaign's `plan/` segment, and point `acceptance.reference` at it. The record is a
+schema v1 document with `schema_version: 1` and an `acceptance` section. It is read
+and validated like a task file, and other sections are allowed, so a frozen copy of
+the reviewed task also works. Its own `acceptance.reference` may cite the acceptance
+issue URL; that field is not compared.
+
+```yaml
+schema_version: 1
+acceptance:
+  reference: "<acceptance-issue-url>"
+  baseline_revision: "<baseline_sha>"
+  metric_key: metrics.latency_ms
+  direction: minimize
+  metric_unit: ms
+  min_improvement_pct: 2.5
+  required_trial_checks: [checks.warm]
+  constraints: "<AGREED_CRITERIA>"
+```
+
+`frozen_gate` reports one of three statuses, with field-level `problems`:
+
+- **`agrees`.** The record states `baseline_revision`, `metric_key`, `direction`,
+  `metric_unit` and `min_improvement_pct`, and every acceptance field except
+  `reference` equals the task's effective value. Omitted `comparison_scope` and
+  `required_trial_checks` take their built-in defaults on both sides, and the order
+  of `required_trial_checks` does not matter. `baseline_revision` must be the same
+  text.
+- **`mismatch`.** The record is readable and complete, and at least one field
+  differs, for example `acceptance.min_improvement_pct: is 1.0 in the task but 2.5
+  in the frozen gate record <path>`.
+- **`unverified`.** The gate cannot be checked: the reference is an HTTP(S) URL
+  (InferRSI does not fetch it), the file is missing or is the task file itself, it
+  is not a valid schema v1 document (a Markdown plan, for example), it has no
+  `acceptance` section, or it omits a required gate field.
+
+The check compares the record with the task. It does not establish that the
+record itself is the accepted one; cite the record and its `sha256` from
+`frozen_gate.json` in the acceptance issue. A `run --task` that passes this
+check still follows the existing acceptance, frozen-gate and evidence rules.
 
 ## CLI workflow
 
@@ -247,7 +294,9 @@ The CLI and the Agent produce the same normalized task for the same file and fla
 `tests/test_task_input.py` checks this by comparing `inferrsi task preview --json`
 with the Python `task_input.preview` on the shared complete fixture.
 `tests/test_task_plan_run.py` checks that `plan --task` gives the same `task` block,
-and the expected RunSpec, for that fixture.
+and the expected RunSpec, for that fixture. An Agent checks a task against its frozen
+gate record with the Python `task_input.frozen_gate`, the same check `run --task`
+applies.
 
 ## Compatibility with other task formats
 

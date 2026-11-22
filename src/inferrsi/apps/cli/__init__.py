@@ -384,16 +384,13 @@ def _revision_matches(head: str, revision: str) -> bool:
     )
 
 
-def _check_task_reference(task: dict) -> None:
-    """Require a run's local acceptance plan to exist; an HTTP(S) URL is kept verbatim."""
-    from .task_input import is_url
-
-    reference = task["task"]["acceptance"]["reference"]
-    if not is_url(reference) and not os.path.isfile(reference):
-        raise ValueError(
-            "acceptance.reference must be an existing local plan file or an HTTP(S) "
-            f"issue URL: {reference}"
-        )
+def _check_frozen_gate(gate: dict) -> None:
+    """Require a run's task to agree with the frozen gate record it references."""
+    if gate["status"] != "agrees":
+        lines = [f"frozen gate {gate['status']}: run --task needs the task's acceptance "
+                 "fields to agree with the frozen gate record that acceptance.reference names:"]
+        lines += [f"{item['field']}: {item['message']}" for item in gate["problems"]]
+        raise ValueError("\n".join(lines))
 
 
 def _check_baseline_revision(task: dict, environment: dict) -> None:
@@ -843,8 +840,13 @@ def main(argv: list[str] | None = None) -> int:
             _print({"record": str(path)})
             return 0
 
-        if task is not None and args.command == "run" and not args.dry_run:
-            _check_task_reference(task)
+        gate = None
+        if task is not None:
+            from .task_input import frozen_gate
+
+            gate = frozen_gate(task["task"], task["task_file"])
+            if args.command == "run" and not args.dry_run:
+                _check_frozen_gate(gate)
         environment = inspect_environment(
             args.repo,
             args.repo_type,
@@ -873,6 +875,7 @@ def main(argv: list[str] | None = None) -> int:
             }
             if task is not None:
                 preview["task"] = task
+                preview["frozen_gate"] = gate
             _print(preview)
             return 0
         if not environment["repository"].get("available"):
@@ -895,9 +898,10 @@ def main(argv: list[str] | None = None) -> int:
             json.dumps(vars(args), ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
         )
         if task is not None:
-            (directory / "task.json").write_text(
-                json.dumps(task, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
-            )
+            for name, record in (("task.json", task), ("frozen_gate.json", gate)):
+                (directory / name).write_text(
+                    json.dumps(record, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+                )
         write_report(directory)
         status = json.loads((directory / "status.json").read_text(encoding="utf-8"))
         _print(
