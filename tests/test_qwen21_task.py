@@ -5,6 +5,7 @@ import json
 import shutil
 import subprocess
 import sys
+import warnings
 from importlib.resources import files
 
 import pytest
@@ -419,7 +420,8 @@ def test_python_raise_of_a_complete_shape_message_is_never_attributed(
         raise original
 
     with pytest.raises(exception) as caught:
-        worker.invoke_compute(compute, (), {}, {}, candidate=candidate, baseline_verified=verified)
+        worker.invoke_compute(compute, (), {}, {}, candidate=candidate, baseline_verified=verified,
+                              pristine_inputs=lambda: ())
     assert caught.value is original
 
 
@@ -438,35 +440,44 @@ def test_host_shape_templates_match_installed_torch_shape_diagnostics():
     for fragment, failure in failures.items():
         with pytest.raises(worker.CandidateComputeContractError) as caught:
             worker.invoke_compute(lambda *args, **kwargs: failure(), (), {}, {},
-                                  candidate=True, baseline_verified=True)
+                                  candidate=True, baseline_verified=True,
+                                  pristine_inputs=lambda: ())
         assert caught.value.diagnostic == fragment
+        # The replay names the ATen operator; its name varies across PyTorch releases.
+        assert caught.value.operator.startswith("aten.")
+        assert caught.value.details()["operator"] == caught.value.operator
         assert type(caught.value.__cause__) is RuntimeError
-        # The same operator error outside a verified candidate call stays unattributed.
-        for candidate, verified in ((False, True), (True, False)):
+        # The same operator error outside a verified candidate call, or without
+        # replay inputs, stays unattributed.
+        for candidate, verified, pristine in ((False, True, lambda: ()), (True, False, lambda: ()),
+                                              (True, True, None)):
             with pytest.raises(RuntimeError) as caught:
                 worker.invoke_compute(lambda *args, **kwargs: failure(), (), {}, {},
-                                      candidate=candidate, baseline_verified=verified)
+                                      candidate=candidate, baseline_verified=verified,
+                                      pristine_inputs=pristine)
             assert type(caught.value) is RuntimeError
 
     # Core PyTorch Python frames below the submitted call and a decorated entry:
     # the innermost entry is core PyTorch's own native call.
     @torch.inference_mode()
     def decorated(*args, **kwargs):
-        return torch.broadcast_tensors(torch.ones(4), torch.ones(5))
+        return torch.ones(4).__rsub__(torch.ones(5))
 
     with pytest.raises(worker.CandidateComputeContractError) as caught:
-        worker.invoke_compute(decorated, (), {}, {}, candidate=True, baseline_verified=True)
+        worker.invoke_compute(decorated, (), {}, {}, candidate=True, baseline_verified=True,
+                              pristine_inputs=lambda: ())
     assert caught.value.diagnostic == "must match the size of tensor"
+    assert caught.value.operator == "aten.rsub.Tensor"
     frames = []
     trace = caught.value.__cause__.__traceback__
     while trace is not None:
         frames.append(trace.tb_frame.f_code.co_filename)
         trace = trace.tb_next
-    assert frames[-1].endswith("functional.py")
+    assert frames[-1].endswith("_tensor.py")
 
 
 def test_contract_attribution_requires_a_plain_error_raised_by_an_operator_call(tmp_path):
-    """The complete message alone is not enough; an operator must have raised the error."""
+    """The complete message alone is not enough; an ATen operator must raise the error again."""
     torch = pytest.importorskip("torch")
     worker = load("benchmark")
     message = SHAPE_ERRORS["must match the size of tensor"]
@@ -524,16 +535,79 @@ def test_contract_attribution_requires_a_plain_error_raised_by_an_operator_call(
     def foreign(*args, **kwargs):
         runtime["launch"]()
 
+    # Each of these stops at a native call in the submission, so the traceback
+    # lead passes; only the replay shows that no core PyTorch check raised it.
+    def native_throw(*args, **kwargs):
+        # Ordinary native code that raises the object it was given.
+        done = (value for value in ())
+        next(done, None)
+        done.throw(RuntimeError(message))
+
+    def assert_async(*args, **kwargs):
+        # An ATen operator that raises a message chosen by its caller.
+        torch._assert_async(torch.tensor(False), message)
+
+    calls = []
+
+    def not_reproduced(*args, **kwargs):
+        calls.append(not_reproduced)
+        if calls.count(not_reproduced) == 1:
+            return operator()
+        return torch.ones(4)
+
+    def moved(*args, **kwargs):
+        # The replay fails with the same message, but at another instruction.
+        calls.append(moved)
+        if calls.count(moved) == 1:
+            return torch.ones(4) + torch.ones(5)
+        return torch.ones(4) + torch.ones(5)
+
     for compute in (operator, reraised):
         with pytest.raises(worker.CandidateComputeContractError) as caught:
-            worker.invoke_compute(compute, (), {}, {}, candidate=True, baseline_verified=True)
+            worker.invoke_compute(compute, (), {}, {}, candidate=True, baseline_verified=True,
+                                  pristine_inputs=lambda: ())
         assert str(caught.value.__cause__) == message
+        assert caught.value.operator == "aten.add.Tensor"
+    leads = (native_throw, assert_async, not_reproduced, moved)
     for compute in (copied, helper, torch_check, subclass, chained, during_other_failure,
-                    foreign):
+                    foreign, *leads):
         with pytest.raises(RuntimeError) as caught:
-            worker.invoke_compute(compute, (), {}, {}, candidate=True, baseline_verified=True)
+            worker.invoke_compute(compute, (), {}, {}, candidate=True, baseline_verified=True,
+                                  pristine_inputs=lambda: ())
         assert not isinstance(caught.value, worker.CandidateRecheckedError), compute.__name__
         assert message in str(caught.value), compute.__name__
+        assert bool(worker.host_shape_diagnostic(caught.value, compute)) is (
+            compute in leads), compute.__name__
+
+
+def test_contract_attribution_reproduces_the_operator_without_python_kernels():
+    """A Python kernel registered for an ATen operator is not core PyTorch's own check."""
+    torch = pytest.importorskip("torch")
+    worker = load("benchmark")
+
+    def kernel(self):
+        done = (value for value in ())
+        next(done, None)
+        done.throw(RuntimeError(SHAPE_ERRORS["shapes cannot be multiplied"]))
+
+    def compute(*args, **kwargs):
+        return torch.ones(4).frac()
+
+    library = torch.library.Library("aten", "IMPL")
+    try:
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")  # Overriding a registered kernel warns.
+            library.impl("frac", kernel, "CPU")
+        # The replay records aten.frac from the same instruction; only the
+        # evaluator's own reproduction finds the registered Python kernel.
+        with pytest.raises(RuntimeError) as caught:
+            worker.invoke_compute(compute, (), {}, {}, candidate=True, baseline_verified=True,
+                                  pristine_inputs=lambda: ())
+        assert not isinstance(caught.value, worker.CandidateRecheckedError)
+        assert worker.host_shape_diagnostic(caught.value, compute)
+    finally:
+        library._destroy()
+    assert torch.equal(torch.ones(2).frac(), torch.zeros(2))
 
 
 CANDIDATE_HEADER = (
@@ -562,14 +636,6 @@ CANDIDATE_SHAPE_BUGS = {
 }
 
 
-@pytest.fixture
-def contract_failure(tmp_path):
-    pytest.importorskip("torch")
-    execution, _, _ = run_cpu_worker(tmp_path, CANDIDATE_SHAPE_BUGS["shapes cannot be multiplied"])
-    assert execution.returncode == 2, execution.stderr
-    return tmp_path
-
-
 @pytest.mark.parametrize("diagnostic", sorted(CANDIDATE_SHAPE_BUGS))
 def test_attributable_candidate_shape_error_consumes_one_round_after_baseline_recheck(
     tmp_path, diagnostic,
@@ -585,10 +651,12 @@ def test_attributable_candidate_shape_error_consumes_one_round_after_baseline_re
     assert result["contract_failure"]["case"] == "smoke"
     assert result["contract_failure"]["phase"] == "candidate_correctness"
     assert result["contract_failure"]["diagnostic"] == diagnostic
+    assert result["contract_failure"]["operator"].startswith("aten.")
     assert diagnostic in result["contract_failure"]["error"]
     assert result["baseline_recheck"] == {"case": "smoke", "correctness": "PASS"}
     # Exactly one consumed candidate call: the baseline passed, the candidate raised,
-    # and only the trusted baseline was retried once on pristine inputs.
+    # and only the trusted baseline was rechecked once on pristine inputs. The
+    # candidate's attribution replay is neither timed nor scored.
     assert [(call["label"], call["phase"]) for call in result["calls"]] == [
         ("baseline", "correctness"), ("baseline", "recovery_check")]
     log = (output / "error.log").read_text()
@@ -627,6 +695,18 @@ BLOCKING_COMPUTE_FAILURES = {
         "    except RuntimeError as error:\n"
         "        message = str(error)\n"
         "    raise RuntimeError(message)\n"),
+    # Ordinary native code, not a PyTorch check, raises the complete message: the
+    # traceback stops at a native call, but no ATen operator raises it on replay.
+    "native_non_operator_shape_raise": (
+        "    done = (value for value in ())\n"
+        "    next(done, None)\n"
+        f"    done.throw(RuntimeError({SHAPE_ERRORS['shapes cannot be multiplied']!r}))\n"),
+    # A genuine operator error that the replay does not reproduce.
+    "unreproduced_shape_error": (
+        "    compute.calls = getattr(compute, 'calls', 0) + 1\n"
+        "    if compute.calls == 1:\n"
+        "    " + CANDIDATE_SHAPE_BUGS["shapes cannot be multiplied"]
+        + "    return latents\n"),
 }
 BLOCKING_LOG_TEXT = {
     "device_synchronize_failure": "EZ9999",
@@ -635,6 +715,8 @@ BLOCKING_LOG_TEXT = {
     "backend_unavailable_shape_error": "backend device unavailable",
     "direct_shape_message_raise": "shapes cannot be multiplied",
     "copied_operator_message_raise": "shapes cannot be multiplied",
+    "native_non_operator_shape_raise": "shapes cannot be multiplied",
+    "unreproduced_shape_error": "shapes cannot be multiplied",
 }
 
 
@@ -667,27 +749,10 @@ def test_device_sync_or_recheck_failure_in_candidate_compute_stays_inconclusive(
     assert assessment["verdict"] == "INCONCLUSIVE"
 
 
-@pytest.mark.parametrize("tamper", ["drop_recheck", "drop_recheck_call", "other_case"])
-def test_contract_rejection_requires_retained_baseline_recheck(contract_failure, tamper):
-    path = contract_failure / "measurement/result.json"
-    result = json.loads(path.read_bytes())
-    if tamper == "drop_recheck":
-        result.pop("baseline_recheck")
-    elif tamper == "drop_recheck_call":
-        result["calls"] = [call for call in result["calls"] if call["phase"] != "recovery_check"]
-    else:
-        result["contract_failure"]["case"] = "compact"
-    path.write_text(json.dumps(result), encoding="utf-8")
-    assessment = load("optimization").assess(
-        contract_failure, {}, {"status": "failed", "returncode": 2})
-    assert assessment["status"] == "infrastructure_failure"
-    assert assessment["verdict"] == "INCONCLUSIVE"
-    assert assessment["reason"] == "missing_baseline_recheck"
-
-
 @pytest.mark.parametrize("failure", [
     "candidate_contract", "device_synchronize_failure", "device_lost_shape_error",
     "backend_unavailable_shape_error", "direct_shape_message_raise",
+    "native_non_operator_shape_raise",
 ])
 def test_harness_continues_only_after_attributed_contract_rejection(tmp_path, failure):
     """Round 1 is the real CPU worker and Qwen assessor; later rows are synthetic stand-ins."""

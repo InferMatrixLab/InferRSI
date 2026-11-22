@@ -56,12 +56,13 @@ class CandidateComputeContractError(CandidateRecheckedError):
     failure_kind = "rejected_candidate_contract"
     record_key = "contract_failure"
 
-    def __init__(self, diagnostic):
+    def __init__(self, diagnostic, operator):
         super().__init__(f"Candidate compute violated a tensor shape contract: {diagnostic}")
         self.diagnostic = diagnostic
+        self.operator = operator
 
     def details(self):
-        return {"diagnostic": self.diagnostic, **super().details()}
+        return {"diagnostic": self.diagnostic, "operator": self.operator, **super().details()}
 
 
 def view_size_conflict(match):
@@ -122,46 +123,102 @@ def raised_by_native_call(trace):
     return False
 
 
-def raised_by_operator_call_in_submission(error, function):
+def native_call_site(error, function, skip=None):
     # Interpreter evidence, not message text or file names alone. The innermost
     # traceback entry must stop at a call or operator instruction, either in the
-    # submitted file (a C++ operator such as `a @ b` leaves no Torch Python frame)
-    # or in core PyTorch Python code that the submitted file called. A raise
-    # statement anywhere, including in the submission or torch._check, and any
-    # device runtime wrapper, other library or evaluator frame between them are
-    # no evidence. Without PyTorch loaded, no PyTorch operator raised it.
+    # file that defines `function` (a C++ operator such as `a @ b` leaves no Torch
+    # Python frame) or in core PyTorch Python code called from it. Return that
+    # file's last instruction as (code, offset). A raise statement anywhere,
+    # including torch._check, and any device runtime wrapper, other library or
+    # evaluator frame in between are no evidence; only the `skip` code is ignored.
+    # This shows that native code raised the error, not which native code did.
+    # Without PyTorch loaded, no PyTorch operator raised it.
     try:
         source = os.path.realpath(inspect.unwrap(function).__code__.co_filename)
     except (AttributeError, ValueError):
-        return False
+        return None
     torch_file = getattr(sys.modules.get("torch"), "__file__", None)
     if not torch_file:
-        return False
+        return None
     library = os.path.join(os.path.dirname(os.path.realpath(torch_file)), "")
-    trace, innermost, caller = error.__traceback__, None, None
+    trace, innermost, site = error.__traceback__, None, None
     while trace is not None:
-        filename = os.path.realpath(trace.tb_frame.f_code.co_filename)
-        if not filename.startswith(library):
-            caller = filename
+        code = trace.tb_frame.f_code
+        filename = os.path.realpath(code.co_filename)
+        if code is not skip and not filename.startswith(library):
+            site = (code, trace.tb_lasti) if filename == source else None
         innermost, trace = trace, trace.tb_next
-    return caller == source and raised_by_native_call(innermost)
+    return site if site and raised_by_native_call(innermost) else None
+
+
+def plain_runtime_error(error):
+    # No subclass such as a device or memory error, and no earlier failure.
+    return type(error) is RuntimeError and error.__cause__ is None and error.__context__ is None
 
 
 def host_shape_diagnostic(error, function):
-    """Name the host shape check this error proves, or None when evidence is missing."""
-    # Positive evidence only: a plain, unchained RuntimeError, so no subclass such
-    # as a device or memory error and no earlier failure; one complete host-check
-    # message whose sizes conflict; raised inside an operator the submission called.
-    if type(error) is not RuntimeError or error.__cause__ is not None or (
-            error.__context__ is not None):
+    """Name the host shape check this error may be, before any replay evidence."""
+    # A plain, unchained RuntimeError; one complete host-check message whose sizes
+    # conflict; native code under a call in the submitted file raised it.
+    if not plain_runtime_error(error):
         return None
     diagnostic = shape_check_diagnostic(str(error))
-    if diagnostic and raised_by_operator_call_in_submission(error, function):
+    if diagnostic and native_call_site(error, function):
         return diagnostic
     return None
 
 
-def invoke_compute(function, inputs, params, config, *, candidate, baseline_verified):
+def replayed_aten_operator(error, function, inputs, params, config):
+    """Name the ATen operator whose own check raises this error again, or None."""
+    # Collected only after the candidate failed, never on a timed or scored call:
+    # the submission runs once more, on pristine request inputs and its own
+    # parameters, while a dispatch mode keeps each error object that escapes an
+    # operator together with that operator and its arguments.
+    from torch.utils._python_dispatch import TorchDispatchMode
+
+    escaped = {}
+
+    def record(self, func, types, args=(), kwargs=None):
+        kwargs = kwargs or {}
+        try:
+            return func(*args, **kwargs)
+        except RuntimeError as raised:
+            escaped.setdefault(id(raised), (raised, func, args, kwargs))
+            raise
+
+    class OperatorErrors(TorchDispatchMode):
+        __torch_dispatch__ = record
+
+    try:
+        with OperatorErrors():
+            function(*inputs, params, config=config)
+    except Exception as again:
+        replayed = again
+    else:
+        return None
+    raised, func, args, kwargs = escaped.get(id(replayed), (None,) * 4)
+    # The same plain error object left an ATen operator that got no message
+    # argument (unlike `_assert_async`), reached from the same submitted
+    # instruction as the original error.
+    if (raised is not replayed or not plain_runtime_error(replayed)
+            or str(replayed) != str(error) or getattr(func, "namespace", None) != "aten"
+            or any(isinstance(leaf, str) for leaf in tensors((args, kwargs)))
+            or native_call_site(replayed, function, skip=record.__code__)
+            != native_call_site(error, function)):
+        return None
+    # Reproduce without the submission on the stack: the evaluator calls the
+    # operator on the recorded arguments, and only core PyTorch may raise it.
+    try:
+        func(*args, **kwargs)
+    except Exception as reproduced:
+        if (plain_runtime_error(reproduced) and str(reproduced) == str(error)
+                and native_call_site(reproduced, replayed_aten_operator)):
+            return str(func)
+    return None
+
+
+def invoke_compute(function, inputs, params, config, *, candidate, baseline_verified,
+                   pristine_inputs=None):
     # Catch only the submitted function call, never setup, synchronization or
     # reference checks. TBE is optional for this task's trusted baseline; older
     # native candidate kernels can require it. Other missing modules stay unknown.
@@ -182,14 +239,20 @@ def invoke_compute(function, inputs, params, config, *, candidate, baseline_veri
             "Failed to import Python module ModuleNotFoundError: No module named 'tbe'.",
         )):
             raise CandidateDependencyError("tbe") from error
-        # A proven host-side shape check, raised by the submitted call after this
-        # case's baseline passed, is still only a recheck request. Unproven source,
-        # including any device or backend wording, stays an infrastructure failure.
-        if candidate and baseline_verified:
-            diagnostic = host_shape_diagnostic(error, function)
-            if diagnostic:
-                raise CandidateComputeContractError(diagnostic) from error
-        raise
+        # A shape message from a native call in the submission, after this case's
+        # baseline passed, is only a lead. Unproven source, including any device
+        # or backend wording, stays an infrastructure failure.
+        diagnostic = (candidate and baseline_verified and pristine_inputs is not None
+                      and host_shape_diagnostic(error, function))
+        if not diagnostic:
+            raise
+        failure = error
+    # Outside the handler, so the replayed error has no implicit context. An
+    # attributed error is still only a recheck request.
+    operator = replayed_aten_operator(failure, function, pristine_inputs(), params, config)
+    if operator:
+        raise CandidateComputeContractError(diagnostic, operator) from failure
+    raise failure
 
 
 def candidate_function(path):
@@ -285,6 +348,10 @@ def run(args, output, record):
     functions["candidate"] = candidate_function(source / "candidate.py")
     verified_baselines = set()
 
+    def pristine_inputs():
+        # The current request's inputs, never a candidate's possibly modified copy.
+        return workload.map_tensors(inputs, lambda t: t.clone())
+
     def invoke(label, call_inputs, params, config, expected, phase, pair=None, sample=None):
         record["phase"] = label + "_" + phase
         original = [
@@ -296,17 +363,19 @@ def run(args, output, record):
         try:
             result = invoke_compute(functions[label], call_inputs, params, config,
                                     candidate=label == "candidate",
-                                    baseline_verified=config["id"] in verified_baselines)
+                                    baseline_verified=config["id"] in verified_baselines,
+                                    pristine_inputs=pristine_inputs)
         except CandidateRecheckedError as error:
             failed_phase = record["phase"]
             record[error.record_key] = {"case": config["id"], "phase": failed_phase,
                                         **error.details()}
-            # Retry only the trusted baseline on pristine request inputs and its
-            # own parameter storage. Any sync, execution or quality failure here
-            # keeps the baseline phase and blocks the campaign. Never retry the
-            # failed candidate or reuse its potentially modified tensors.
-            invoke("baseline", workload.map_tensors(inputs, lambda t: t.clone()),
-                   separate_params["baseline"], config, expected, "recovery_check")
+            # Recheck only the trusted baseline on pristine request inputs and its
+            # own parameter storage, after any attribution replay of the candidate.
+            # Any sync, execution or quality failure here keeps the baseline phase
+            # and blocks the campaign. The failed candidate is never scored again,
+            # and the baseline never reuses the candidate's possibly modified tensors.
+            invoke("baseline", pristine_inputs(), separate_params["baseline"], config,
+                   expected, "recovery_check")
             record["baseline_recheck"] = {"case": config["id"], "correctness": "PASS"}
             record["phase"] = failed_phase
             raise

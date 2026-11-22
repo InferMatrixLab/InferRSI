@@ -125,28 +125,10 @@ EC0010 import error) is rejected only after the same case's baseline has passed
 and passes again after the error, with pristine inputs and its own parameters.
 The recheck includes synchronization and reference quality; it produces no score.
 The missing module and traceback remain in the result and log. A failed baseline
-recheck remains an infrastructure failure.
-
-A proven host-side PyTorch shape check raised by the submitted compute call
-follows the same rule. Proof requires a plain, unchained `RuntimeError` whose
-complete message is one recognized PyTorch shape-check message with conflicting
-sizes. The interpreter traceback must also show that native code raised it, not
-a `raise` statement. Its innermost entry stops at a call or operator instruction,
-such as `a @ b` or `x.view(...)`, in the submitted file or in core PyTorch Python
-code called by it. No other library, runtime wrapper or evaluator frame may sit
-between them. A `raise` statement never proves the source, even in the submitted
-file or with an operator's exact message. This evidence does not identify which
-native function raised the error. The error is rejected and consumes the attempt
-only after the same case's baseline has passed and passes again on pristine
-inputs in the same worker; the diagnostic, original error and traceback stay
-retained. A shape message with any other wording, such as a device or backend
-report, an error without this traceback evidence, a failed recheck and any
-unproven runtime error remain infrastructure failures.
-
-A normally finished rejection preserves the earlier best implementation. Repair
-the candidate or complete independent final when the frozen budget permits.
-Setup, baseline and unknown runtime failures still block the session; a
-rejection result never overrides an interrupted execution.
+recheck remains an infrastructure failure. A normally finished rejection preserves the earlier
+best implementation. Repair the candidate or complete independent final when
+the frozen budget permits. Setup, baseline and unknown runtime failures still
+block the session; a rejection result never overrides an interrupted execution.
 
 ## Scope
 
