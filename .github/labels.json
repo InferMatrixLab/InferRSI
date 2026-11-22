@@ -2,7 +2,7 @@
   {
     "name": "bot:stop",
     "group": "bot",
-    "description": "Human stop switch: agents make no changes, reviews or merges here until a human removes it"
+    "description": "Human stop switch: agents make no changes, reviews or merges here until the stop is lifted"
   },
   {
     "name": "area:knowledge",
