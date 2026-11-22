@@ -17,7 +17,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 from inferrsi.benchmark.comparison import DEFAULT_POLICY, DEFAULT_TASKS, summarize, validate_policy
-from inferrsi.benchmark.registry import task_resources
+from inferrsi.benchmark.registry import has_iterative_protocol, task_resources
 from inferrsi.benchmark.summary import POLICY, supported_policy
 from inferrsi.benchmark.summary import comparison as metrics_comparison
 from inferrsi.harness import agent_sessions, optimization
@@ -123,8 +123,7 @@ def _validate_config(config):
             or len(set(tasks)) != len(tasks)):
         raise ValueError("tasks must be a nonempty list of unique registered task names")
     for task in tasks:
-        root = Path(str(task_resources(task)))
-        if not (root / "optimization.py").is_file():
+        if not has_iterative_protocol(task):
             raise ValueError(f"Task has no iterative protocol: {task}")
         if not isinstance(config["task_arguments"].get(task), str):
             raise ValueError(f"Missing task arguments: {task}")
@@ -331,11 +330,14 @@ def status(root):
     return _status(root, *_load(root))
 
 
-def _status(root, plan, state):
+def _status(root, plan, state, *, host_views=None):
     rows, active = [], None
     for trial in plan["trials"]:
         job = _job(root, trial)
-        view = agent_sessions.status(job) if job.exists() else None
+        if host_views is None:
+            view = agent_sessions.status(job) if job.exists() else None
+        else:
+            view = host_views[trial["id"]]
         collection = state["collections"].get(trial["id"])
         row = {**trial, "job": str(job), "campaign": str(root / trial["workspace"] / "campaign"),
                "state": view["state"] if view else "pending", "collection": collection,
@@ -356,6 +358,9 @@ def _status(root, plan, state):
             action = {"operation": "dispatch", "trial": active["id"],
                       "instructions": "Reserve one handoff; call the host's fresh-session tool "
                       "with its exact prompt and workspace. Bind the returned native ID."}
+        elif active["state"] == "blocked":
+            action = {"operation": "inspect_retained_host_evidence", "trial": active["id"],
+                      "instructions": "Verify the original native job receipts before collection."}
         elif active["state"] in agent_sessions.TERMINAL:
             action = {"operation": "collect", "trial": active["id"],
                       "instructions": "Retain actual host metadata and campaign tree; collect. "
@@ -404,13 +409,23 @@ def dispatch(root, trial_id, *, parallel=False):
     return agent_sessions.dispatch(job)
 
 
-def _trial_result(root, plan, trial, host):
+def _host_payload(job, host):
+    if host is None or host["state"] not in agent_sessions.TERMINAL:
+        return None
+    receipt = host["last_observation"]
+    return _object(job / receipt["path"]) if receipt else None
+
+
+def _trial_result(root, plan, trial, host, payload, *, host_error=None):
     result = {"id": trial["id"], "task": trial["task"], "repeat": trial["repeat"],
               "condition": trial["condition"], "status": "blocked", "eligible": False,
               "gaps": [], "metrics": {"speedup": None, "wall_seconds": None, "tokens": None},
               "trace": [], "final": None, "usage": {}, "knowledge_deliveries": [],
               "observed_settings": None, "metrics_comparable": False,
               "benchmark_metrics": None}
+    if host_error is not None:
+        result["gaps"].append(f"Native job evidence could not be verified ({host_error})")
+        return result
     campaign = root / trial["workspace"] / "campaign"
     if host is None or host["state"] not in agent_sessions.TERMINAL:
         result["status"] = "pending" if host is None else "running"
@@ -418,8 +433,7 @@ def _trial_result(root, plan, trial, host):
         return result
     result["status"] = "failed" if host["state"] != "completed" else "blocked"
     receipt = host["last_observation"]
-    if receipt:
-        payload = _object(_job(root, trial) / receipt["path"])
+    if payload is not None:
         observed = payload.get("benchmark_observation")
         if isinstance(observed, dict):
             result["observed_settings"] = observed
@@ -472,6 +486,7 @@ def _trial_result(root, plan, trial, host):
                                         and supported_policy(plan.get("metrics_policy"))
                                         and supported_policy(child_metrics_policy))
         if (result["benchmark_metrics"] is not None and host["usage"] is not None
+                and payload is not None
                 and supported_policy(plan.get("metrics_policy"))
                 and supported_policy(child_metrics_policy)):
             update_metrics(result["benchmark_metrics"], terminal_token_usage(
@@ -525,7 +540,7 @@ def collect(root, trial_id):
     host = agent_sessions.status(job) if job.exists() else None
     if host is None or host["state"] not in agent_sessions.TERMINAL:
         raise ValueError("Collect only after recording a terminal native host observation")
-    result = _trial_result(root, plan, trial, host)
+    result = _trial_result(root, plan, trial, host, _host_payload(job, host))
     directory = root / "collections"
     directory.mkdir(exist_ok=True)
     path = directory / (trial_id + "-" + uuid.uuid4().hex + ".json")
@@ -540,14 +555,23 @@ def report(root):
     plan, state = _load(root)
     trials = []
     sessions = {}
+    host_views = {}
     for trial in plan["trials"]:
         reference = state["collections"].get(trial["id"])
         if reference and sha256(root / reference["path"]) != reference["sha256"]:
             raise ValueError("Retained comparison collection changed")
         job = _job(root, trial)
-        host = agent_sessions.status(job) if job.exists() else None
         # Reverify current evidence; a stale collection cannot hide later evidence loss.
-        result = _trial_result(root, plan, trial, host)
+        try:
+            host = agent_sessions.status(job) if job.exists() else None
+            payload = _host_payload(job, host)
+        except (OSError, ValueError) as error:
+            host = {"state": "blocked", "native_session": None}
+            result = _trial_result(root, plan, trial, None, None,
+                                   host_error=type(error).__name__)
+        else:
+            result = _trial_result(root, plan, trial, host, payload)
+        host_views[trial["id"]] = host
         trials.append(result)
         if host and host["native_session"]:
             sessions.setdefault(_session_key(host["native_session"]), []).append(result)
@@ -584,7 +608,7 @@ def report(root):
     atomic_write_json(root / "state.json", state)
     return {"assessment": result["assessment"], "benchmark_metrics": result["benchmark_metrics"],
             "reports": paths,
-            "next_action": _status(root, plan, state)["next_action"]}
+            "next_action": _status(root, plan, state, host_views=host_views)["next_action"]}
 
 
 def compare_command(args):

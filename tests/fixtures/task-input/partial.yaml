@@ -1,0 +1,11 @@
+schema_version: 1
+optimization:
+  repository: .
+  model: "<MODEL>"
+  objective: "<OPTIMIZATION_GOAL>"
+  plane: harness
+environment:
+  backend: cuda
+acceptance:
+  reference: "<ACCEPTANCE_PLAN>"
+  constraints: "<AGREED_CRITERIA>"

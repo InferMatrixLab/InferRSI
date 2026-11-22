@@ -1,4 +1,8 @@
-"""Fresh-venv install smoke: base install package-only, skills extra unlocks the checkout chain.
+"""Fresh-venv install smoke: the base install reads checkout skills and task files.
+
+PyYAML is a core dependency, so the base install (no extras) reads checkout skills and
+validates and previews the shared task fixture outside the checkout. The ``skills``
+extra stays installable as a compatibility alias.
 
 Opt-in because it builds a real venv and installs from this source tree
 (minutes of I/O, network access for the build-isolation backend, and an
@@ -91,7 +95,7 @@ def _cli(venv_python: Path, *args: str) -> subprocess.CompletedProcess:
     )
 
 
-def test_base_install_package_only_then_skills_extra_chain():
+def test_base_install_reads_checkout_skills_and_task_files_and_keeps_skills_alias():
     workspace = _short_workspace()
     try:
         venv = workspace / "venv"
@@ -105,20 +109,38 @@ def test_base_install_package_only_then_skills_extra_chain():
         python = _venv_python(venv)
         build_input = _short_source_copy(workspace)
 
-        _pip(python, "install", str(build_input))  # base only: no PyYAML, no pytest/ruff
+        _pip(python, "install", str(build_input))  # base: core PyYAML, no extras or pytest/ruff
 
         package_only = _cli(python, "collect", "--limit", "2", "--json")
         assert package_only.returncode == 0, package_only.stderr
         assert json.loads(package_only.stdout)["items"]
 
-        blocked = _cli(
-            python, "collect", "--id", f"checkout:{SOURCE}", "--skill-root", str(SKILLS)
+        base_collect = _cli(
+            python, "collect", "--id", f"checkout:{SOURCE}", "--skill-root", str(SKILLS), "--json"
         )
-        assert blocked.returncode == 2
-        assert "PyYAML" in blocked.stderr and "<inferrsi-checkout>[skills]" in blocked.stderr
-        assert "Traceback" not in blocked.stderr
+        assert base_collect.returncode == 0, base_collect.stderr
+        assert json.loads(base_collect.stdout)["items"]
 
-        _pip(python, "install", f"{build_input}[skills]")
+        # The shared complete task fixture, read from the base install outside the checkout.
+        task_file = workspace / "task" / "complete.yaml"
+        task_file.parent.mkdir()
+        shutil.copyfile(REPO / "tests" / "fixtures" / "task-input" / "complete.yaml", task_file)
+        outside = workspace / "outside"
+        outside.mkdir()
+        for action in ("validate", "preview"):
+            checked = subprocess.run(
+                [str(python), "-I", "-m", "inferrsi", "task", action, str(task_file), "--json"],
+                capture_output=True, text=True, encoding="utf-8", cwd=outside,
+            )
+            assert checked.returncode == 0, checked.stderr
+            assert json.loads(checked.stdout)["valid"] is True
+        preview = json.loads(checked.stdout)
+        assert preview["complete"] and preview["task"]["environment"]["backend"] == "cuda"
+        assert preview["task"]["environment"]["repetitions"] == 5
+        assert preview["task"]["acceptance"]["min_improvement_pct"] == 2.5
+        assert list(outside.iterdir()) == []
+
+        _pip(python, "install", f"{build_input}[skills]")  # compatibility alias still installs
 
         collected = _cli(
             python, "collect", "--id", f"checkout:{SOURCE}", "--skill-root", str(SKILLS), "--json"

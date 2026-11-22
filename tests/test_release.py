@@ -2,6 +2,7 @@ import io
 import shlex
 import subprocess
 import tarfile
+from datetime import datetime, timezone
 from pathlib import Path
 
 import pytest
@@ -81,7 +82,7 @@ def test_bootstrap_without_existing_tags(release_repo):
     assert plan == {"release": "true", "tag": "v0.1.0",
                     "version": "0.1.0", "prerelease": "true",
                     "commit": release_repo("rev-parse", "HEAD"),
-                    "previous_tag": ""}
+                    "previous_tag": "", "notes_start_tag": ""}
 
 
 @pytest.mark.parametrize("empty_commit", [False, True])
@@ -211,3 +212,51 @@ def test_one_off_can_promote_unchanged_preview_tree(release_repo):
 def test_one_off_requires_notes_baseline(release_repo):
     with pytest.raises(subprocess.CalledProcessError):
         plan_release("main", [], "0.1.0", release_v020=True)
+
+
+def test_sunday_promotes_daily_preview_and_next_day_continues(release_repo):
+    git = release_repo
+    git("tag", "v0.2.0")
+    change_source(git)
+    releases = [
+        dict(published("v0.2.0"), published_at="2026-11-21T15:59:00Z"),
+        published("evidence-v1"),
+    ]
+    # Sunday 02:00 publishes the patch before Sunday's 08:00 promotion.
+    preview = plan_release("main", releases, "0.1.0")
+    assert (preview["tag"], preview["prerelease"]) == ("v0.2.1", "true")
+    git("tag", preview["tag"])
+    releases.append(published(preview["tag"], prerelease=True))
+    sunday = datetime(2026, 11, 22, 0, tzinfo=timezone.utc)
+    assert plan_release("main", releases, "0.1.0") == {"release": "false"}
+    weekly = plan_release("main", releases, "0.1.0", weekly=True, now=sunday)
+    assert (weekly["tag"], weekly["prerelease"]) == ("v0.3.0", "false")
+    assert (weekly["previous_tag"], weekly["notes_start_tag"]) == (preview["tag"], "v0.2.0")
+    git("tag", "v0.3.0")
+    releases.append(dict(published("v0.3.0"), published_at="2026-11-22T00:25:00Z"))
+    next_sunday = datetime(2026, 11, 29, 0, tzinfo=timezone.utc)
+    assert plan_release("main", releases, "0.1.0", weekly=True, now=next_sunday) == {
+        "release": "false"}
+    Path("next").write_text("new source")
+    git("add", "next")
+    git("commit", "-m", "further change")
+    git("update-ref", "refs/remotes/origin/main", "HEAD")
+    assert plan_release("main", releases, "0.1.0", weekly=True, now=sunday) == {
+        "release": "false"}
+    # Saturday 23:59 in Shanghai is still in the same release week.
+    end_of_week = datetime(2026, 11, 28, 15, 59, tzinfo=timezone.utc)
+    assert plan_release("main", releases, "0.1.0", weekly=True, now=end_of_week) == {
+        "release": "false"}
+    daily = plan_release("main", releases, "0.1.0")
+    assert (daily["tag"], daily["prerelease"], daily["notes_start_tag"]) == (
+        "v0.3.1", "true", "v0.3.0")
+    assert plan_release("main", releases, "0.1.0", weekly=True, now=next_sunday)["tag"] == (
+        "v0.4.0")
+
+
+def test_first_stable_respects_reservations_and_ignores_drafts_as_baselines(release_repo):
+    release_repo("tag", "v0.2.6")
+    releases = [published("v0.2.6", prerelease=True), published("v0.3.0", draft=True)]
+    plan = plan_release("main", releases, "0.1.0", weekly=True)
+    assert (plan["tag"], plan["previous_tag"], plan["notes_start_tag"]) == (
+        "v0.4.0", "v0.2.6", "")
