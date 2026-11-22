@@ -240,6 +240,40 @@ def test_v1_ignores_unsupported_top_level_declarations(campaign, declarations):
         assert "__DASHBOARD_" not in render_dashboard(snapshot)
 
 
+def _round_one(campaign, version):
+    return next(s for s in dashboard_snapshot(campaign)["data"]["knowledge_trace"]["searches"]
+                if s["round"] == 1 and s["schema_version"] == version)
+
+
+@pytest.mark.parametrize("version", [1, 2])
+def test_adoption_split_passes_through_and_old_records_stay_readable(campaign, version):
+    path = campaign / ("search/round-1.json" if version == 1 else "search/archive/round-1.json")
+    doc = json.loads(path.read_text())
+    search = _round_one(campaign, version)
+    assert search["state"] == "recorded" and search["adoption"] == doc["adoption"]
+    assert search["adoption"]["search_hits"]["adopted"] == doc["observed"]["used"]
+    path.write_text(json.dumps({k: v for k, v in doc.items() if k != "adoption"}))
+    search = _round_one(campaign, version)
+    assert search["state"] == "recorded" and search["adoption"] is None
+    assert search["counts"] == doc["counts"]
+
+
+@pytest.mark.parametrize("change", [
+    {"search_hits": {"adopted": 6, "unique_hits": 5, "state": "complete"}},
+    {"direct_reads": {"adopted": 0, "read_only": 0, "state": "complete"}},
+    {"search_hits": {"adopted": 1, "unique_hits": 5, "state": "unknown"}},
+    {"other_adopted": 1},
+    {"unique_hit_revisions": 4},
+    {"unique_hit_revisions": -1},
+])
+def test_adoption_outside_its_denominator_is_invalid(campaign, change):
+    path = campaign / "search/archive/round-1.json"
+    doc = json.loads(path.read_text())
+    path.write_text(json.dumps({**doc, "adoption": {**doc["adoption"], **change}}))
+    search = _round_one(campaign, 2)
+    assert search["state"] == "invalid_counts" and "adoption" not in search
+
+
 def test_missing_capture_and_duplicate_json_keys_are_explicit(campaign):
     (campaign / "knowledge/capture.json").unlink()
     (campaign / "search/round-3.json").write_text('{"round":3,"round":3}')

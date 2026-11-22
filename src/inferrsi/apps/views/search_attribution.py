@@ -176,6 +176,8 @@ def _prepare_record(root, record):
                         _caller_use(record["materials"], record["events"], ref,
                                     evidence["use"], evidence)
             record["observed"]["used"] = _used_count(record["materials"])
+            record["adoption"] = _adoption(record["events"], record["materials"],
+                                           record["coverage"])
             if old == record:
                 return target
             continue
@@ -273,8 +275,51 @@ def _observations(events):
     return materials, counts
 
 
+_ADOPTED = ("used", "used_and_rejected")
+
+
 def _used_count(materials):
-    return sum(m["use"] in ("used", "used_and_rejected") for m in materials.values())
+    return sum(m["use"] in _ADOPTED for m in materials.values())
+
+
+def _ratio_state(coverage, denominator):
+    if coverage != "complete":
+        return "unknown"
+    return "not_applicable" if denominator == 0 else "complete"
+
+
+def _adoption(events, materials, coverage):
+    """Split adopted refs by how they were observed; each count keeps its own denominator.
+
+    Search-hit adoption is over distinct refs returned by a search. Direct-read
+    adoption is over distinct refs read but never returned by a search in this
+    round, so a read is never counted as search conversion. Other adopted refs
+    (for example from an inventory) have no denominator. Use is recorded per
+    ref, so adoption is per ref; versions are counted only for search hits and
+    stay unknown when a hit carries no revision. No rate is stored.
+    """
+    hits, reads, versions, unversioned = set(), set(), set(), False
+    for event in events:
+        if event["action"] == "search":
+            for row in event["materials"]:
+                hits.add(row["ref"])
+                if isinstance(row.get("revision"), str):
+                    versions.add((row["ref"], row["revision"]))
+                else:
+                    unversioned = True
+        elif event["action"] == "read":
+            reads.update(row["ref"] for row in event["materials"])
+    reads -= hits
+    adopted = {ref for ref, material in materials.items() if material["use"] in _ADOPTED}
+    return {
+        "search_hits": {"adopted": len(adopted & hits), "unique_hits": len(hits),
+                        "state": _ratio_state(coverage, len(hits))},
+        "direct_reads": {"adopted": len(adopted & reads), "read_only": len(reads),
+                         "state": _ratio_state(coverage, len(reads))},
+        "other_adopted": len(adopted - hits - reads),
+        "unique_hit_revisions": (len(versions) if coverage == "complete" and not unversioned
+                                 else None),
+    }
 
 
 def import_search(root: Path, *, number: int, trace=None, lines=None, knowledge_root=None,
@@ -353,6 +398,7 @@ def import_search(root: Path, *, number: int, trace=None, lines=None, knowledge_
               "stage": stage, "trace": window, "context_ids": list(captures), "coverage": coverage,
               "unresolved_command_lines": uncertain, "events": events, "materials": materials,
               "observed": observed, "counts": observed if coverage == "complete" else None,
+              "adoption": _adoption(events, materials, coverage),
               "candidates": _round_candidates(root, number)}
     target = _prepare_record(root, record)
     if review is None:
@@ -422,6 +468,7 @@ def import_search(root: Path, *, number: int, trace=None, lines=None, knowledge_
         "events": archive_events, "materials": archive_materials,
         "declarations": declarations, "observed": archive_observed,
         "counts": archive_observed if archive_coverage == "complete" else None,
+        "adoption": _adoption(archive_events, archive_materials, archive_coverage),
         "candidates": record["candidates"],
     }
     if review["result_note"] is not None:

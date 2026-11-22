@@ -256,6 +256,23 @@ retrievals require separate evidence. Review query text and paths before sharing
   distinct hit refs across searches, and distinct refs with supported use.
   Later reads are separate events. File paths, qualified CLI refs and
   versioned Indexer entries keep their recorded identities.
+- `adoption` splits `used` by how the material was observed. Each part has
+  its own denominator. `search_hits.adopted / search_hits.unique_hits`
+  counts distinct search-hit refs with supported use over distinct hit refs.
+  `direct_reads.adopted / direct_reads.read_only` counts refs that were read
+  but never returned by a search in the round. A direct read is not search
+  conversion. `other_adopted` counts adopted refs seen only through other
+  operations, such as an inventory, and has no denominator. All counts are
+  deduplicated by ref, and use is recorded per ref, not per revision.
+  `unique_hit_revisions` counts distinct `(ref, revision)` pairs among
+  search hits. It is null when coverage is not complete or any hit has no
+  recorded revision; `rg` hits carry none. A part's `state` is `unknown`
+  when coverage is not complete, `not_applicable` when its denominator is
+  zero, and otherwise `complete`. The record stores no rate. The
+  dashboard derives a percentage only for a `complete` part, never shows 0%
+  for a zero denominator, and shows "Not recorded" for earlier records without
+  this block. These figures are associations; they do not establish causal or
+  performance credit, and they include no token or cost data.
 - Supply `--complete` only when the selected inputs cover every in-scope
   retrieval for the round. Otherwise only observed counts are known and
   `counts` is null. A complete round without a search has zero searches.

@@ -15,7 +15,7 @@ window.InferRSIKnowledge={create({getData,getLanguage,openRun}){
   const el=(tag,text)=>{const n=document.createElement(tag);if(text!=null)n.textContent=String(text);return n;};
   const tr=(en,zh)=>getLanguage()==='zh'?zh:en;
   const unknown=()=>tr('Not recorded','未记录');
-  const words={applied:['Ranking applied','已执行排序'],explicit_ids:['Explicit IDs · caller order','显式 ID · 调用者顺序'],not_requested:['Not requested','未请求'],performed:['Performed','已执行'],unknown:['Unknown','未知'],not_recorded:['Not recorded','未记录'],recorded:['Recorded','已记录'],linked:['Linked','已关联'],used:['Used','采用'],rejected:['Rejected','舍弃'],used_and_rejected:['Used and rejected','采用且舍弃'],local_v1:['Local v1 evidence','本地 v1 依据'],archive_reviewed:['Archive-reviewed association','存档 review 关联'],complete:['Complete','完整'],partial:['Partial','部分'],missing:['Missing','缺失'],context_limit:['Context budget','上下文预算'],output_limit:['Output limit','输出限制'],unsupported_context:['Unsupported assembly','不支持装配'],visible:['Visible return recorded','已记录可见返回'],ref_visible:['Reference visible','引用可见']};
+  const words={applied:['Ranking applied','已执行排序'],explicit_ids:['Explicit IDs · caller order','显式 ID · 调用者顺序'],not_requested:['Not requested','未请求'],performed:['Performed','已执行'],unknown:['Unknown','未知'],not_recorded:['Not recorded','未记录'],recorded:['Recorded','已记录'],linked:['Linked','已关联'],used:['Used','采用'],rejected:['Rejected','舍弃'],used_and_rejected:['Used and rejected','采用且舍弃'],local_v1:['Local v1 evidence','本地 v1 依据'],archive_reviewed:['Archive-reviewed association','存档 review 关联'],complete:['Complete','完整'],partial:['Partial','部分'],missing:['Missing','缺失'],context_limit:['Context budget','上下文预算'],output_limit:['Output limit','输出限制'],unsupported_context:['Unsupported assembly','不支持装配'],visible:['Visible return recorded','已记录可见返回'],ref_visible:['Reference visible','引用可见'],not_applicable:['Not applicable','不适用']};
   const label=x=>words[x]?tr(...words[x]):x??unknown();
   const json=x=>JSON.stringify(x,null,2);
   let selected=null,round='',initial=true;
@@ -110,6 +110,25 @@ window.InferRSIKnowledge={create({getData,getLanguage,openRun}){
       links(b,c.links,scope+':'+c.context_id);
     });
   }
+  function adoption(box,s){
+    const a=s.adoption,complete=s.coverage==='complete';
+    const gap=()=>!a?unknown():tr('Unknown (incomplete capture)','未知（采集不完整）');
+    // A rate is derived only for a complete round with a nonzero denominator.
+    const ratio=(part,den)=>{
+      if(!a||part?.state==='unknown')return gap();
+      if(part.state==='not_applicable')return tr('Not applicable (zero denominator)','不适用（分母为零）');
+      const n=part.adopted,d=part[den],pct=n===d?100:Math.min(99.9,Math.round(1000*n/d)/10);
+      return n+' / '+d+' ('+pct+'%)';
+    };
+    const versions=!a||!complete?gap():a.unique_hit_revisions==null?tr('Unknown (a hit has no recorded revision)','未知（存在未记录版本的命中）'):a.unique_hit_revisions;
+    table(box,[tr('Adoption measure','采用口径'),tr('Value','数值'),tr('Definition','定义')],[
+      [tr('Search-hit adoption','检索命中采用'),ratio(a?.search_hits,'unique_hits'),tr('Distinct search-hit refs with recorded use evidence / distinct refs returned by a search in this round.','有采用依据的去重检索命中条目 / 本轮检索返回的去重条目。')],
+      [tr('Direct-read adoption','直接读取采用'),ratio(a?.direct_reads,'read_only'),tr('Distinct refs read but never returned by a search in this round, with recorded use evidence / those read-only refs. Not search conversion.','本轮读取但未经检索命中的去重条目中有采用依据者 / 此类仅读取条目。不计为检索转化。')],
+      [tr('Other adopted (no denominator)','其他采用（无分母）'),!a||!complete?gap():a.other_adopted,tr('Adopted refs observed only by other operations, such as an inventory. No rate is shown.','仅由其他操作（如清单列举）观测到的采用条目。不计算比率。')],
+      [tr('Unique hit versions (ref, revision)','去重命中版本（条目, 版本）'),versions,tr('Distinct (ref, revision) pairs among search hits. Unknown when any hit lacks a revision.','检索命中中去重的（条目, 版本）对。任一命中缺版本时为未知。')],
+    ]);
+    p(box,tr('Counts are distinct refs; adoption is recorded per ref, not per revision, and each event keeps its own revision. A zero denominator is not applicable rather than 0%. These are associations only: they do not establish causal or performance credit and include no token or cost data.','计数均按去重条目；采用按条目记录而非按版本，各事件保留自身版本。分母为零时为不适用，而非 0%。以上仅为关联，不证明因果或性能收益，也不含 token 或费用数据。'),'kt-note');
+  }
   function search(box,s){
     fold(box,'R'+s.round+' · v'+s.schema_version+' · '+label(s.coverage||s.state),s.path,b=>{
       p(b,s.path+' · SHA-256 '+(s.sha256||unknown()));
@@ -117,6 +136,7 @@ window.InferRSIKnowledge={create({getData,getLanguage,openRun}){
       p(b,s.schema_version===1?tr('Local v1: retained legacy use semantics; not archive-reviewed evidence.','本地 v1：保留旧版使用口径，不属于存档 review 关联。'):tr('Portable v2: declarations and archive-reviewed associations are separate.','可移植 v2：声明与存档 review 关联分开展示。'),'kt-note');
       p(b,tr('v1 and v2 are alternative records of this round; counts are not added.','v1/v2 是同轮的不同记录，计数不相加。'),'kt-note');
       table(b,[tr('Coverage','覆盖'),tr('Counts','完整计数'),tr('Observed in supplied records','所提供记录中的观测')],[[label(s.coverage),s.counts==null?unknown():json(s.counts),json(s.observed)]]);
+      adoption(b,s);
       for(const issue of s.issues||[])p(b,label(issue),'kt-warning');
       for(const id of s.context_ids||[])button(b,tr('Open retrieval · ','打开检索 · ')+id,()=>showCapture(id));
       table(b,[tr('Material','条目'),tr('Recorded use','记录的采用状态'),tr('Evidence / declaration','依据 / 声明')],(s.materials||[]).map(m=>{

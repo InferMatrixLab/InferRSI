@@ -5,7 +5,7 @@ import json
 import pytest
 
 from inferrsi.apps.cli import main
-from inferrsi.apps.views.search_attribution import import_search
+from inferrsi.apps.views.search_attribution import _adoption, import_search
 from inferrsi.apps.workflows.campaign import create_campaign
 
 
@@ -43,13 +43,72 @@ def test_cli_distinguishes_search_read_and_decision_in_two_rounds(tmp_path):
     assert doc["events"][0]["materials"] == [{"ref": "case.md", "match_line": 3}]
     assert doc["materials"]["case.md"]["evidence"][0]["decision_line"] == 5
     assert b"private" not in original and str(tmp_path).encode() not in original
+    # The later read of a hit stays search-hit adoption, not a direct read.
+    assert doc["adoption"] == {
+        "search_hits": {"adopted": 1, "unique_hits": 1, "state": "complete"},
+        "direct_reads": {"adopted": 0, "read_only": 0, "state": "not_applicable"},
+        "other_adopted": 0, "unique_hit_revisions": None}
     assert main(args + ["--round", "2", "--lines", "6", "6"]) == 0
-    assert json.loads((campaign / "search/round-2.json").read_bytes())["counts"]["searches"] == 0
+    second = json.loads((campaign / "search/round-2.json").read_bytes())
+    assert second["counts"]["searches"] == 0
+    assert second["adoption"]["search_hits"] == {
+        "adopted": 0, "unique_hits": 0, "state": "not_applicable"}
+    assert second["adoption"]["unique_hit_revisions"] == 0
     with pytest.raises(ValueError, match="overlaps"):
         import_search(campaign, number=3, trace=trace, lines=[5, 6], knowledge_root=corpus)
     with pytest.raises(ValueError, match="assistant message"):
         import_search(campaign, number=1, trace=trace, lines=[2, 5], knowledge_root=corpus,
                       used=[("case.md", "2")])
+
+
+@pytest.mark.parametrize("complete", [True, False])
+def test_direct_read_adoption_is_not_search_conversion(tmp_path, complete):
+    create_campaign(tmp_path, "example")
+    trace, corpus = tmp_path / "rollout.jsonl", tmp_path / "knowledge"
+    rollout(trace, command(corpus, "rg -n absent .", "", "empty", exit_code=1),
+            command(corpus, "cat case.md", "body", "read"),
+            {"type": "response_item", "payload": {"type": "message", "role": "assistant",
+             "phase": "final_answer", "content": [{"text": "Apply case.md."}]}})
+    path = import_search(tmp_path, number=1, trace=trace, lines=[2, 4], knowledge_root=corpus,
+                         complete=complete, used=[("case.md", 4)])
+    doc = json.loads(path.read_bytes())
+    assert doc["observed"] == {"searches": 1, "hits": 0, "unique_hits": 0, "used": 1}
+    adoption = doc["adoption"]
+    if complete:
+        assert doc["counts"] == doc["observed"]
+        # A zero search denominator is not applicable, never 0% or above 100%.
+        assert adoption == {
+            "search_hits": {"adopted": 0, "unique_hits": 0, "state": "not_applicable"},
+            "direct_reads": {"adopted": 1, "read_only": 1, "state": "complete"},
+            "other_adopted": 0, "unique_hit_revisions": 0}
+    else:
+        assert doc["coverage"] == "partial" and doc["counts"] is None
+        assert {adoption[k]["state"] for k in ("search_hits", "direct_reads")} == {"unknown"}
+        assert adoption["unique_hit_revisions"] is None
+
+
+def test_version_count_is_separate_from_per_ref_adoption():
+    def search(ref, revision=None):
+        row = {"ref": ref} if revision is None else {"ref": ref, "revision": revision}
+        return {"action": "search", "materials": [row]}
+
+    events = [search("a", "r1"), search("a", "r2"), search("b", "r1"),
+              {"action": "inventory", "materials": [{"ref": "c", "revision": "r1"}]},
+              {"action": "read", "materials": [{"ref": "a", "revision": "r2"}]}]
+    materials = {"a": {"use": "used"}, "b": {"use": "unknown"},
+                 "c": {"use": "used_and_rejected"}}
+    adoption = _adoption(events, materials, "complete")
+    # Two revisions of one adopted ref are one adopted ref, not two.
+    assert adoption == {
+        "search_hits": {"adopted": 1, "unique_hits": 2, "state": "complete"},
+        "direct_reads": {"adopted": 0, "read_only": 0, "state": "not_applicable"},
+        "other_adopted": 1, "unique_hit_revisions": 3}
+    assert sum(adoption[k]["adopted"] for k in ("search_hits", "direct_reads")) + adoption[
+        "other_adopted"] == 2
+    unversioned = _adoption([*events, search("d")], {**materials, "d": {"use": "unknown"}},
+                            "complete")
+    assert unversioned["search_hits"]["unique_hits"] == 3
+    assert unversioned["unique_hit_revisions"] is None
 
 
 def test_partial_or_missing_capture_does_not_report_zero(tmp_path):
