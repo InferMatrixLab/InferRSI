@@ -375,6 +375,9 @@ def _run_entry(entry: str, arguments: list[str]) -> None:
     # resolve generic names such as project or candidates from Harness.
     runner = Path(__file__).resolve().parent
     sys.path[:] = [path for path in sys.path if Path(path).resolve() != runner]
+    # Extended-path launches on Windows may leave cwd before PYTHONPATH. Select
+    # this runner's package root explicitly before importing its executor.
+    sys.path.insert(0, str(runner.parent.parent))
     from inferrsi.harness.trials.external import execute_trial
 
     sys.argv = [entry, *arguments]
