@@ -443,6 +443,82 @@ def test_run_with_an_agreeing_task_reaches_the_experiment_and_records_the_task(
     assert arguments.SUPPLIED not in args
 
 
+def _git(repo: Path, *args: str) -> str:
+    return subprocess.run(
+        ["git", "-C", str(repo), "-c", "user.name=Synthetic Contributor",
+         "-c", "user.email=test@example.invalid", "-c", "commit.gpgsign=false", *args],
+        check=True, capture_output=True, text=True,
+    ).stdout.strip()
+
+
+def test_real_git_run_keeps_the_frozen_threshold_when_reference_and_head_match(
+    tmp_path, caller, capsys,
+):
+    """The review reproduction, unstubbed: a real Git checkout and real CPU commands.
+
+    Baseline 100 ms and candidate 80 ms are a 20% gain. The frozen record and the task
+    both state 21%, so the run is a FAIL. Keeping that reference and HEAD but lowering only
+    the task's threshold to 0 exits 2 before any benchmark command or run directory. So
+    does a baseline revision that is not HEAD, even when the record states it too.
+    """
+    directory = tmp_path / "task"
+    repo = directory / "repo"
+    repo.mkdir(parents=True)
+    subprocess.run(["git", "init", "--quiet", str(repo)], check=True)
+    _git(repo, "commit", "--allow-empty", "--quiet", "-m", "fixture")
+    head = _git(repo, "rev-parse", "HEAD")
+    launches = tmp_path / "launches"
+    script = ("import json, sys; open(sys.argv[3], 'a').write('.'); open(sys.argv[1], 'w')"
+              ".write(json.dumps({'metrics': {'latency_ms': float(sys.argv[2])}}))")
+    gate = {"baseline_revision": head, "metric_key": "metrics.latency_ms",
+            "direction": "minimize", "metric_unit": "ms", "min_improvement_pct": 21}
+    (directory / "plan").mkdir()
+    record = directory / "plan" / "gate.yaml"
+    task_file = directory / "task.yaml"
+
+    def write(frozen=(), **task):
+        record.write_text(yaml.safe_dump({"schema_version": 1, "acceptance": {
+            "reference": "https://example.com/issues/1", **gate, **dict(frozen)}}),
+            encoding="utf-8")
+        task_file.write_text(yaml.safe_dump({
+            "schema_version": 1,
+            "optimization": {"repository": "repo", "model": "synthetic", "framework": "vllm",
+                             "workload": "synthetic-v1", "objective": "Keep the frozen gate",
+                             "plane": "harness"},
+            "environment": {
+                "backend": "cpu", "repetitions": 1, "max_minutes": 5,
+                "baseline_command": [sys.executable, "-c", script, "{result}", "100",
+                                     str(launches)],
+                "candidate_command": [sys.executable, "-c", script, "{result}", "80",
+                                      str(launches)],
+                "quality_command": [sys.executable, "-c", "pass"],
+            },
+            "acceptance": {"reference": "plan/gate.yaml", **gate, **task},
+        }), encoding="utf-8")
+
+    write(min_improvement_pct=0)
+    err = _exit(capsys, "run", "--task", str(task_file))
+    assert "frozen gate mismatch: run --task needs" in err
+    assert (f"\nacceptance.min_improvement_pct: is 0.0 in the task but 21.0 in the frozen "
+            f"gate record {record}") in err
+    other = "0" * 40
+    write({"baseline_revision": other}, baseline_revision=other)
+    err = _exit(capsys, "run", "--task", str(task_file))
+    assert f"acceptance.baseline_revision {other!r} does not match the baseline" in err
+    assert f"checkout HEAD {head};" in err
+    assert not launches.exists() and list(caller.iterdir()) == []
+
+    write()
+    assert cli.main(["run", "--task", str(task_file)]) == 1
+    run = Path(json.loads(capsys.readouterr().out)["run_dir"])
+    assert launches.exists()
+    evaluation = json.loads((run / "evaluation.json").read_text(encoding="utf-8"))
+    assert evaluation["verdict"] == "FAIL" and evaluation["min_improvement_pct"] == 21.0
+    assert evaluation["improvement_pct"] == pytest.approx(20.0)
+    frozen = json.loads((run / "frozen_gate.json").read_text(encoding="utf-8"))
+    assert frozen["status"] == "agrees" and frozen["reference"] == str(record)
+
+
 def test_flag_only_plan_and_run_keep_their_contract(tmp_path, caller, inspected, monkeypatch,
                                                     capsys):
     for argv, missing in ((["plan"], REQUIRED),
