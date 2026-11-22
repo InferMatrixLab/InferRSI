@@ -339,3 +339,291 @@ def test_missing_tbe_outside_candidate_invocation_remains_infrastructure_failure
     result = json.loads((tmp_path / "measurement/result.json").read_text())
     assert result["status"] == "infrastructure_failure"
     assert result["correctness"] == "INCONCLUSIVE"
+
+
+SHAPE_ERRORS = {
+    "shapes cannot be multiplied": "mm: mat1 and mat2 shapes cannot be multiplied (4x8 and 16x16)",
+    "must match the size of tensor": (
+        "The size of tensor a (4) must match the size of tensor b (5) "
+        "at non-singleton dimension 0"),
+    "is invalid for input of size": "shape '[3, 5]' is invalid for input of size 16",
+    "Sizes of tensors must match": (
+        "Sizes of tensors must match except in dimension 1. "
+        "Expected size 4 but got size 5 for tensor number 1 in the list."),
+}
+DEVICE_SYNC_ERROR = (
+    "NPU function error: c10_npu::acl::AclrtSynchronizeDeviceWithTimeout(), "
+    "error code is 507035\n"
+    "EZ9999: Inner Error! The error from device(chipId:0, dieId:0), aicore exception occurred."
+)
+DEVICE_SHAPE_ERROR = (
+    "EZ9999: Inner Error! The size of tensor a (4) must match the size of tensor b (5) "
+    "at non-singleton dimension 0 [ERROR] NPU function error"
+)
+
+
+@pytest.mark.parametrize("exception,message,candidate,verified,diagnostic", [
+    *[(RuntimeError, message, True, True, fragment) for fragment, message in SHAPE_ERRORS.items()],
+    (RuntimeError, SHAPE_ERRORS["shapes cannot be multiplied"], False, True, None),
+    (RuntimeError, SHAPE_ERRORS["shapes cannot be multiplied"], True, False, None),
+    (RuntimeError, DEVICE_SHAPE_ERROR, True, True, None),
+    (RuntimeError, SHAPE_ERRORS["is invalid for input of size"] + " (ACL error 507015)", True,
+     True, None),
+    (RuntimeError, SHAPE_ERRORS["Sizes of tensors must match"] + " after synchronization", True,
+     True, None),
+    (RuntimeError, SHAPE_ERRORS["must match the size of tensor"] + " in torch_npu.npu_rotary_mul",
+     True, True, None),
+    (RuntimeError, "[ERROR] (Device:0) ERR01002 OPS " + SHAPE_ERRORS["shapes cannot be multiplied"],
+     True, True, None),
+    (RuntimeError, DEVICE_SYNC_ERROR, True, True, None),
+    (RuntimeError, "Synthetic driver error", True, True, None),
+    (RuntimeError, "Expected size for first two dimensions of batch2 tensor", True, True, None),
+    (ValueError, SHAPE_ERRORS["shapes cannot be multiplied"], True, True, None),
+])
+def test_candidate_contract_diagnostic_requires_recognized_message_and_verified_baseline(
+    exception, message, candidate, verified, diagnostic,
+):
+    worker = load("benchmark")
+    original = exception(message)
+
+    def compute(*args, **kwargs):
+        raise original
+
+    with pytest.raises(exception) as caught:
+        worker.invoke_compute(compute, (), {}, {}, candidate=candidate, baseline_verified=verified)
+    if diagnostic:
+        assert isinstance(caught.value, worker.CandidateComputeContractError)
+        assert caught.value.__cause__ is original
+        assert caught.value.diagnostic == diagnostic
+        assert caught.value.details() == {"diagnostic": diagnostic, "error": message}
+    else:
+        assert caught.value is original
+
+
+def test_contract_fragments_match_installed_torch_shape_diagnostics():
+    torch = pytest.importorskip("torch")
+    worker = load("benchmark")
+    failures = {
+        "shapes cannot be multiplied": lambda: torch.ones(4, 8) @ torch.ones(16, 16),
+        "must match the size of tensor": lambda: torch.ones(4) + torch.ones(5),
+        "is invalid for input of size": lambda: torch.ones(16).view(3, 5),
+        "Sizes of tensors must match": lambda: torch.cat([torch.ones(4, 2), torch.ones(5, 3)], 1),
+    }
+    assert set(failures) == set(worker.CANDIDATE_CONTRACT_DIAGNOSTICS)
+    for fragment, failure in failures.items():
+        with pytest.raises(worker.CandidateComputeContractError) as caught:
+            worker.invoke_compute(lambda *args, **kwargs: failure(), (), {}, {},
+                                  candidate=True, baseline_verified=True)
+        assert caught.value.diagnostic == fragment
+        assert type(caught.value.__cause__) is RuntimeError
+
+
+CANDIDATE_HEADER = (
+    "import torch\n"
+    "def compute(latents, text, text_mask, sigmas, positions, params, *, config):\n"
+)
+
+
+def run_cpu_worker(tmp_path, body):
+    """Run the real worker on the trusted CPU baseline math; no device is involved."""
+    candidate = tmp_path / "candidate.py"
+    candidate.write_text(CANDIDATE_HEADER + body, encoding="utf-8")
+    output = tmp_path / "measurement"
+    execution = subprocess.run([
+        sys.executable, str(TASK.joinpath("benchmark.py")), "--candidate", str(candidate),
+        "--output-dir", str(output), "--device", "cpu", "--check-only", "--case", "smoke",
+        "--pairs", "1", "--samples", "1", "--warmups", "0",
+    ], capture_output=True, text=True, timeout=60)
+    return execution, json.loads((output / "result.json").read_bytes()), output
+
+
+# Genuine candidate bugs, raised by PyTorch's host-side shape checks on real inputs.
+CANDIDATE_SHAPE_BUGS = {
+    "shapes cannot be multiplied": "    return latents.flatten(0, 1) @ latents.flatten(0, 1)\n",
+    "is invalid for input of size": "    return latents.view(-1, latents.shape[-1] + 1)\n",
+}
+
+
+@pytest.fixture
+def contract_failure(tmp_path):
+    pytest.importorskip("torch")
+    execution, _, _ = run_cpu_worker(tmp_path, CANDIDATE_SHAPE_BUGS["shapes cannot be multiplied"])
+    assert execution.returncode == 2, execution.stderr
+    return tmp_path
+
+
+@pytest.mark.parametrize("diagnostic", sorted(CANDIDATE_SHAPE_BUGS))
+def test_attributable_candidate_shape_error_consumes_one_round_after_baseline_recheck(
+    tmp_path, diagnostic,
+):
+    pytest.importorskip("torch")
+    execution, result, output = run_cpu_worker(tmp_path, CANDIDATE_SHAPE_BUGS[diagnostic])
+    assert execution.returncode == 2, execution.stderr
+    assert result["status"] == "candidate_failure" and result["correctness"] == "FAIL"
+    assert result["round_consumed"] and result["speedup"] is None
+    assert result["phase"] == "candidate_correctness"
+    assert result["failure_kind"] == "rejected_candidate_contract"
+    assert "missing_module" not in result and "dependency_failure" not in result
+    assert result["contract_failure"]["case"] == "smoke"
+    assert result["contract_failure"]["phase"] == "candidate_correctness"
+    assert result["contract_failure"]["diagnostic"] == diagnostic
+    assert diagnostic in result["contract_failure"]["error"]
+    assert result["baseline_recheck"] == {"case": "smoke", "correctness": "PASS"}
+    # Exactly one consumed candidate call: the baseline passed, the candidate raised,
+    # and only the trusted baseline was retried once on pristine inputs.
+    assert [(call["label"], call["phase"]) for call in result["calls"]] == [
+        ("baseline", "correctness"), ("baseline", "recovery_check")]
+    log = (output / "error.log").read_text()
+    assert "CandidateComputeContractError" in log and diagnostic in log
+    assessment = load("optimization").assess(
+        tmp_path, {}, {"status": "failed", "returncode": execution.returncode})
+    assert assessment["status"] == "candidate_failure" and assessment["verdict"] == "FAIL"
+    assert assessment["score"] is None and assessment["quality_passed"] is False
+    assert assessment["failure_kind"] == "rejected_candidate_contract"
+    assert assessment["missing_module"] is None
+    for name in ("measurement/snapshot/candidate.py", "measurement/snapshot/benchmark.py",
+                 "measurement/identity.json", "measurement/error.log"):
+        assert name in assessment["evidence_files"]
+
+
+BLOCKING_COMPUTE_FAILURES = {
+    # The candidate breaks the trusted baseline math before its own shape bug.
+    "baseline_recheck_failure": (
+        "    import torch.nn.functional as F\n"
+        "    def broken(*args, **kwargs):\n"
+        "        raise RuntimeError('Synthetic unhealthy baseline')\n"
+        "    F.linear = broken\n"
+        + CANDIDATE_SHAPE_BUGS["shapes cannot be multiplied"]),
+    "device_synchronize_failure": f"    raise RuntimeError({DEVICE_SYNC_ERROR!r})\n",
+    "device_reported_shape_error": f"    raise RuntimeError({DEVICE_SHAPE_ERROR!r})\n",
+}
+
+
+@pytest.mark.parametrize("failure", sorted(BLOCKING_COMPUTE_FAILURES))
+def test_device_sync_or_recheck_failure_in_candidate_compute_stays_inconclusive(
+    tmp_path, failure,
+):
+    pytest.importorskip("torch")
+    execution, result, output = run_cpu_worker(tmp_path, BLOCKING_COMPUTE_FAILURES[failure])
+    assert execution.returncode == 1, execution.stderr
+    assert result["status"] == "infrastructure_failure"
+    assert result["correctness"] == "INCONCLUSIVE" and result["speedup"] is None
+    assert "baseline_recheck" not in result and "failure_kind" not in result
+    if failure == "baseline_recheck_failure":
+        assert result["phase"] == "baseline_recovery_check"
+        assert result["contract_failure"]["diagnostic"] == "shapes cannot be multiplied"
+        assert "Synthetic unhealthy baseline" in (output / "error.log").read_text()
+        assert [call["phase"] for call in result["calls"]] == ["correctness"]
+    else:
+        assert result["phase"] == "candidate_correctness"
+        assert "contract_failure" not in result
+        assert "EZ9999" in (output / "error.log").read_text()
+        assert [call["phase"] for call in result["calls"]] == ["correctness"]
+    assessment = load("optimization").assess(
+        tmp_path, {}, {"status": "failed", "returncode": execution.returncode})
+    assert assessment["status"] == "infrastructure_failure"
+    assert assessment["verdict"] == "INCONCLUSIVE"
+
+
+@pytest.mark.parametrize("tamper", ["drop_recheck", "drop_recheck_call", "other_case"])
+def test_contract_rejection_requires_retained_baseline_recheck(contract_failure, tamper):
+    path = contract_failure / "measurement/result.json"
+    result = json.loads(path.read_bytes())
+    if tamper == "drop_recheck":
+        result.pop("baseline_recheck")
+    elif tamper == "drop_recheck_call":
+        result["calls"] = [call for call in result["calls"] if call["phase"] != "recovery_check"]
+    else:
+        result["contract_failure"]["case"] = "compact"
+    path.write_text(json.dumps(result), encoding="utf-8")
+    assessment = load("optimization").assess(
+        contract_failure, {}, {"status": "failed", "returncode": 2})
+    assert assessment["status"] == "infrastructure_failure"
+    assert assessment["verdict"] == "INCONCLUSIVE"
+    assert assessment["reason"] == "missing_baseline_recheck"
+
+
+@pytest.mark.parametrize("failure", ["candidate_contract", "device_synchronize"])
+def test_harness_continues_only_after_attributed_contract_rejection(tmp_path, failure):
+    """Round 1 is the real CPU worker and Qwen assessor; later rows are synthetic stand-ins."""
+    pytest.importorskip("torch")
+    from inferrsi.apps.artifacts import atomic_write_json, sha256
+    from inferrsi.harness import optimization
+    from tests.diagnosis_support import diagnosis_evidence
+
+    root = tmp_path / "campaign"
+    (root / "frozen").mkdir(parents=True)
+    shutil.copyfile(str(TASK.joinpath("baseline.py")), root / "frozen/baseline.py")
+    optimization.initialize(root, {
+        "schema_version": 2, "task": "qwen21-attribution-control", "task_source": "project",
+        "condition": "test", "candidate_kind": "file", "candidate_name": "candidate.py",
+        "baseline_path": "frozen/baseline.py", "working_candidate": "candidate.py",
+        "round_mode": "exact", "round_limit": 2, "max_seconds": 600,
+        "final_reserve_seconds": 60,
+        "selection": {"direction": "maximize", "metric": "speedup", "initial_score": 1.0},
+        "evaluation_settings": {"metric_key": "speedup", "direction": "maximize"},
+        "frozen_files": {"baseline.py": sha256(root / "frozen/baseline.py")},
+    })
+    optimization.record_diagnosis(root, "Synthetic attribution control",
+                                  diagnosis_evidence(root))
+    worker_body = (CANDIDATE_SHAPE_BUGS["shapes cannot be multiplied"]
+                   if failure == "candidate_contract"
+                   else BLOCKING_COMPUTE_FAILURES["device_synchronize_failure"])
+
+    def execute(root, directory, plan, deadline):
+        (directory / "execution").mkdir()
+        if directory.parent.name == "round-01":
+            process = subprocess.run([
+                sys.executable, str(TASK.joinpath("benchmark.py")),
+                "--candidate", str(directory / "candidate.py"),
+                "--output-dir", str(directory / "measurement"), "--device", "cpu",
+                "--check-only", "--case", "smoke", "--pairs", "1", "--samples", "1",
+                "--warmups", "0",
+            ], capture_output=True, text=True, timeout=60)
+            execution = {"status": "completed" if process.returncode == 0 else "failed",
+                         "returncode": process.returncode, "elapsed_seconds": 1}
+        else:
+            execution = {"status": "completed", "returncode": 0, "elapsed_seconds": 1}
+        atomic_write_json(directory / "execution/execution.json", execution)
+        return execution
+
+    def assess(root, directory, plan, execution):
+        if directory.parent.name == "round-01":
+            return load("optimization").assess(directory, {}, execution)
+        # A completed Qwen score needs an NPU; this row only exercises continuation.
+        return {"status": "completed", "score": 2.0, "baseline_score": 1.0, "verdict": "PASS",
+                "quality_passed": True, "reason": "Synthetic continuation stand-in"}
+
+    candidate = root / "candidate.py"
+    candidate.write_text(CANDIDATE_HEADER + worker_body, encoding="utf-8")
+    view = optimization.evaluate_round(root, candidate=candidate, hypothesis="Shape bug",
+                                       usage=None, execute=execute, assess=assess)
+    state = json.loads((root / "state.json").read_text())
+    first = state["rounds"][0]
+    assert len(state["rounds"]) == 1 and state["best"]["kind"] == "baseline"
+    assert first["assessment"]["score"] is None
+    if failure == "device_synchronize":
+        assert first["assessment"]["status"] == "infrastructure_failure"
+        assert first["assessment"]["verdict"] == "INCONCLUSIVE"
+        assert state["state"] == "blocked"
+        for final in (False, True):
+            with pytest.raises(ValueError, match="blocked"):
+                optimization.evaluate_round(
+                    root, candidate=candidate, hypothesis="Next", usage=None,
+                    execute=execute, assess=assess, final=final, reason="stop")
+        return
+    assert first["assessment"]["status"] == "candidate_failure"
+    assert first["assessment"]["failure_kind"] == "rejected_candidate_contract"
+    assert state["state"] == "active", view
+    candidate.write_text(TASK.joinpath("baseline.py").read_text(encoding="utf-8")
+                         + "# Repaired shape contract\n", encoding="utf-8")
+    optimization.evaluate_round(root, candidate=candidate, hypothesis="Repaired",
+                                usage=None, execute=execute, assess=assess)
+    optimization.evaluate_round(root, candidate=None, hypothesis="Independent final",
+                                usage=None, execute=execute, assess=assess, final=True)
+    state = json.loads((root / "state.json").read_text())
+    assert [row["assessment"]["status"] for row in state["rounds"]] == [
+        "candidate_failure", "completed"]
+    assert state["best"]["candidate_id"] == "candidate-002"
+    assert state["final"]["assessment"]["status"] == "completed"
+    assert state["state"] == "completed"

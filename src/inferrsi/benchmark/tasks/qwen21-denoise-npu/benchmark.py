@@ -24,12 +24,61 @@ class CandidateContractError(ValueError):
     """The candidate could not satisfy the Python entry contract before execution."""
 
 
-class CandidateDependencyError(RuntimeError):
+class CandidateRecheckedError(RuntimeError):
+    """A recognized candidate-call failure; it is rejected only after baseline recheck."""
+
+    failure_kind = None
+    record_key = None
+
+    def details(self):
+        return {"error": str(self.__cause__)}
+
+
+class CandidateDependencyError(CandidateRecheckedError):
     """A known missing optional dependency; baseline recheck is still required."""
+
+    failure_kind = "unsupported_candidate_dependency"
+    record_key = "dependency_failure"
 
     def __init__(self, module):
         super().__init__(f"Candidate requires unavailable optional dependency: {module}")
         self.module = module
+
+    def details(self):
+        return {"module": self.module, **super().details()}
+
+
+class CandidateComputeContractError(CandidateRecheckedError):
+    """A host-side shape/contract diagnostic from the candidate call; recheck is required."""
+
+    failure_kind = "rejected_candidate_contract"
+    record_key = "contract_failure"
+
+    def __init__(self, diagnostic):
+        super().__init__(f"Candidate compute violated a tensor shape contract: {diagnostic}")
+        self.diagnostic = diagnostic
+
+    def details(self):
+        return {"diagnostic": self.diagnostic, **super().details()}
+
+
+# Host-side PyTorch shape checks that an operator raises before launching its own
+# kernel. Only these fragments are attributed to the candidate. A shape message that also carries a
+# device, runtime or synchronization marker stays unattributed on purpose: the
+# device may have reported it, so it cannot be told apart from a device fault.
+CANDIDATE_CONTRACT_DIAGNOSTICS = (
+    "shapes cannot be multiplied",
+    "must match the size of tensor",
+    "is invalid for input of size",
+    "Sizes of tensors must match",
+)
+# Substring markers, chosen so none occurs in the PyTorch messages above: a bare
+# "npu" is part of "input" and a lowercase "cann" is part of "cannot".
+DEVICE_DIAGNOSTIC_MARKERS = (
+    "ACL", "Acl", "acl::", "aclrt", "aclnn", "NPU", "_npu", ".npu", "npu:", "npu_",
+    "CANN", "HCCL", "hccl", "Ascend", "AICore", "aicore", "synchroniz", "Synchroniz",
+    "EZ9999", "EI9999", "EE9999", "EC00", "ERR", "device-side",
+)
 
 
 def invoke_compute(function, inputs, params, config, *, candidate, baseline_verified):
@@ -53,6 +102,13 @@ def invoke_compute(function, inputs, params, config, *, candidate, baseline_veri
             "Failed to import Python module ModuleNotFoundError: No module named 'tbe'.",
         )):
             raise CandidateDependencyError("tbe") from error
+        # A recognized host-side shape/contract diagnostic, raised by the submitted
+        # call after this case's baseline passed, is still only a recheck request.
+        if candidate and baseline_verified and not any(
+                marker in message for marker in DEVICE_DIAGNOSTIC_MARKERS):
+            for diagnostic in CANDIDATE_CONTRACT_DIAGNOSTICS:
+                if diagnostic in message:
+                    raise CandidateComputeContractError(diagnostic) from error
         raise
 
 
@@ -161,10 +217,10 @@ def run(args, output, record):
             result = invoke_compute(functions[label], call_inputs, params, config,
                                     candidate=label == "candidate",
                                     baseline_verified=config["id"] in verified_baselines)
-        except CandidateDependencyError as error:
+        except CandidateRecheckedError as error:
             failed_phase = record["phase"]
-            record["dependency_failure"] = {"case": config["id"], "phase": failed_phase,
-                                            "module": error.module, "error": str(error.__cause__)}
+            record[error.record_key] = {"case": config["id"], "phase": failed_phase,
+                                        **error.details()}
             # Retry only the trusted baseline on pristine request inputs and its
             # own parameter storage. Any sync, execution or quality failure here
             # keeps the baseline phase and blocks the campaign. Never retry the
@@ -378,9 +434,9 @@ def main():
             raise ValueError("Frozen source changed during evaluation")
     except Exception as error:
         explicit_rejection = isinstance(error, (OutputValidationError, CandidateContractError))
-        checked_dependency = (isinstance(error, CandidateDependencyError)
-                              and record.get("baseline_recheck", {}).get("correctness") == "PASS")
-        candidate_failure = ((explicit_rejection or checked_dependency)
+        checked_rejection = (isinstance(error, CandidateRecheckedError)
+                             and record.get("baseline_recheck", {}).get("correctness") == "PASS")
+        candidate_failure = ((explicit_rejection or checked_rejection)
                              and record["phase"].startswith("candidate_"))
         record.update(
             status="candidate_failure" if candidate_failure else "infrastructure_failure",
@@ -388,8 +444,9 @@ def main():
             error=str(error),
             speedup=None,
         )
+        if isinstance(error, CandidateRecheckedError):
+            record["failure_kind"] = error.failure_kind
         if isinstance(error, CandidateDependencyError):
-            record["failure_kind"] = "unsupported_candidate_dependency"
             record["missing_module"] = error.module
         (output / "error.log").write_text(traceback.format_exc(), encoding="utf-8")
     record["elapsed_seconds"] = time.perf_counter() - started

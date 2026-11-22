@@ -8,6 +8,11 @@ import statistics
 from collections import Counter
 from pathlib import Path
 
+# Rejections that the worker may claim only after a passing baseline recheck,
+# mapped to the result key that names the failed case.
+RECHECK_REQUIRED = {"unsupported_candidate_dependency": "dependency_failure",
+                    "rejected_candidate_contract": "contract_failure"}
+
 
 def validate_arguments(arguments):
     parser = argparse.ArgumentParser(description=__doc__)
@@ -67,8 +72,8 @@ def assess(directory: Path, settings, execution):
     evidence["measurement/identity.json"] = hashlib.sha256(
         (output / "identity.json").read_bytes()).hexdigest()
     if rejected:
-        if result.get("failure_kind") == "unsupported_candidate_dependency":
-            case = result.get("dependency_failure", {}).get("case")
+        if result.get("failure_kind") in RECHECK_REQUIRED:
+            case = result.get(RECHECK_REQUIRED[result["failure_kind"]], {}).get("case")
             rechecks = [call for call in result.get("calls", [])
                         if call.get("label") == "baseline"
                         and call.get("phase") == "recovery_check" and call.get("case") == case]

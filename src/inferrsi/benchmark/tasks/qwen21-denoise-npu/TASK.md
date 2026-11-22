@@ -125,10 +125,19 @@ EC0010 import error) is rejected only after the same case's baseline has passed
 and passes again after the error, with pristine inputs and its own parameters.
 The recheck includes synchronization and reference quality; it produces no score.
 The missing module and traceback remain in the result and log. A failed baseline
-recheck remains an infrastructure failure. A normally finished rejection preserves the earlier
-best implementation. Repair the candidate or complete independent final when
-the frozen budget permits. Setup, baseline and unknown runtime failures still
-block the session; a rejection result never overrides an interrupted execution.
+recheck remains an infrastructure failure.
+
+A recognized host-side PyTorch shape/contract diagnostic raised by the submitted
+compute call follows the same rule. It is rejected and consumes the attempt only
+after the same case's baseline has passed and passes again on pristine inputs in
+the same worker; the diagnostic, original error and traceback stay retained. A
+shape message carrying a device, runtime or synchronization marker, a failed
+recheck, and any unrecognized runtime error remain infrastructure failures.
+
+A normally finished rejection preserves the earlier best implementation. Repair
+the candidate or complete independent final when the frozen budget permits.
+Setup, baseline and unknown runtime failures still block the session; a
+rejection result never overrides an interrupted execution.
 
 ## Scope
 
