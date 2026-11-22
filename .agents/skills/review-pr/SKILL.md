@@ -69,7 +69,10 @@ Agents may submit formal reviews without a separate human delegation; see
 Submit one only from an eligible independent account, and only as that
 account's formal reviewer agent; other agents under the account report in
 comments. Never submit one on your own PR,
-and not while the PR or its governing Issue carries `bot:stop`. Before
+and not while the PR or its governing Issue carries `bot:stop` or has a
+human's stop comment that has not been lifted there (see the
+[stop rule](../../../docs/agent-collaboration.md#identity-and-authority)).
+If you cannot tell whether a stop is present, do not submit. Before
 submitting, confirm that the PR is open and the reviewed target, base and head
 are still current.
 If the revision changed, reassess the affected diff and evidence before submitting.
