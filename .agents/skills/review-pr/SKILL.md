@@ -59,8 +59,10 @@ before re-review. Keep optional suggestions separate from the blockers.
 
 Use GitHub **Comment** (`COMMENTED`) for non-voting interim feedback. A completed
 formal review still requires **Approve** or **Request changes**, also on a
-high-risk PR (CI, releases, secrets, permissions); there an **Approve** from a
-maintainer account, including its agent, counts as the maintainer approval.
+high-risk PR (CI, releases, secrets, permissions); there an **Approve** from an
+account whose repository role is Admin, including its agent, counts as the
+required Admin approval. Write and Maintain approvals count toward the two but
+not as that one.
 If a revert cannot undo the change's external effect (credentials, published
 assets, access) and the PR body lacks a
 `recovery: owner=@<account>; containment=<steps>` line, request it.

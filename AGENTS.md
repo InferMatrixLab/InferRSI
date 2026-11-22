@@ -123,7 +123,7 @@ Rules: [agent collaboration](docs/agent-collaboration.md). Agents may carry work
 - Claim before starting: [claim-work](.agents/skills/claim-work/SKILL.md) — confirm the Issue has an accountable owner and `status:accepted` and that you are its deciding agent or work under its delegation, search for duplicates, claim on the Issue with the next artifact time, release if nothing appears.
 - Open a PR: [open-pr](.agents/skills/open-pr/SKILL.md) — a bounded slice with independent review, branched from current `main`, local checks run, AI declaration filled; report PR readiness and Issue completion separately.
 - Review: [review-pr](.agents/skills/review-pr/SKILL.md) — identify yourself on every comment and review (on an Approve, after the `LGTM` line), keep comments short, never approve your own PR; one formal reviewer agent per account.
-- Merge: [merge-pr](.agents/skills/merge-pr/SKILL.md) — open and ready, authorized, expected base and dependencies merged, two independent approvals, required checks green, no `bot:stop` or unlifted stop comment, and on a high-risk PR (CI, releases, secrets, permissions) at least one approval from a maintainer account.
+- Merge: [merge-pr](.agents/skills/merge-pr/SKILL.md) — open and ready, authorized, expected base and dependencies merged, two independent approvals, required checks green, no `bot:stop` or unlifted stop comment, and on a high-risk PR (CI, releases, secrets, permissions) at least one approval from an account with the Admin role, verified at merge time.
 - Red `main`: [red-main](.agents/skills/red-main/SKILL.md) — revert the merge that broke it, then fix forward in a new PR.
 
 ## Privacy and security

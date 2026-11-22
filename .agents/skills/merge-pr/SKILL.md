@@ -39,13 +39,14 @@ that pair only.
    depends on has merged; until then, do not merge or queue it.
 5. **Two approvals on the current head:** at least two **Approve** reviews
    with `LGTM` alone on the first non-empty line, each from a different
-   eligible account with write access, none stale. Each account counts once,
-   whether its human votes directly or its one formal reviewer agent does.
+   eligible account (repository role Write, Maintain or Admin), none stale.
+   Each account counts once, whether its human votes directly or its one
+   formal reviewer agent does.
 6. **Independence:** the author, material contributors and the accountable
    parent supplied none of them, including through another agent under their
-   account. At least one comes from a different agent or a human. If the
-   author is not a maintainer (an account with write access), both come from
-   maintainer accounts; the author's own approval never counts.
+   account. At least one comes from a different agent or a human. The
+   author's own approval never counts, nor does one from an account without
+   write access.
 7. **No open blocker:** every **Request changes** review is re-reviewed to
    **Approve** or dismissed with a recorded reason.
 8. **Required checks green** on the head. Windows/macOS `host-compatibility`
@@ -54,8 +55,12 @@ that pair only.
    releases (release workflow, version, tags, publishing), secrets and
    credentials, or permissions (workflow `permissions`, repository access,
    rulesets), or you cannot tell, at least one of the approvals in 5 comes from
-   a maintainer account; that account's agent may give it. Otherwise follow
-   the normal flow.
+   an account whose repository role is Admin; that account's agent may give
+   it. Maintain and Write approvals count toward the two but not as this one.
+   Verify the role right before merging:
+   `gh api repos/InferMatrixLab/InferRSI/collaborators/<login>/permission --jq .role_name`
+   must print `admin`. If no approving account is `admin`, do not merge.
+   Otherwise follow the normal flow.
 10. **Recovery for external effects:** if the merge itself causes an external
    effect that a revert cannot undo (publishing a release asset or package,
    changing access or credentials), the PR body has a
@@ -66,7 +71,8 @@ that pair only.
 Right before merging, read the PR and the governing Issue again. Recheck the
 stop labels and stop comments; `headRefOid`, `baseRefName` and `baseRefOid` against the pair you
 noted; the Issue's `status:accepted` and your authorization; and, on the
-current head, the approvals and any open **Request changes** review. If
+current head, the approvals, any open **Request changes** review and, on a
+high-risk PR, the Admin role from check 9. If
 anything changed or no longer holds, start over.
 
 ## Merge
@@ -87,6 +93,8 @@ unchanged. There is
 no merge queue yet; once one is enabled, the rules for queueing are added here.
 Record the merge on the PR yourself, right after merging, with an identity
 line; for a high-risk PR the same comment then has one line
-`merge-audit: head=<sha> approvals=@<account> <review URL>, @<account> <review URL> maintainer=@<account> merge=<sha> by=@<account>`.
+`merge-audit: head=<sha> approvals=@<account> <review URL>, @<account> <review URL> admin=@<login> merge=<sha> by=@<account>`,
+where `admin=` names the approving account whose `role_name` you verified as
+`admin` in check 9.
 If `main` turns red afterwards, use the
 [red-main skill](../red-main/SKILL.md).
