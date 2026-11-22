@@ -661,7 +661,7 @@ def execute(root, directory, plan, pending, deadline):
     """One retained attempt, one owned service, ordered client stages, no silent retry."""
     from .local_process import supervised_service
     from .optimization_session import runtime_environment
-    from .scenarios.external import execute_trial
+    from .trials.external import execute_trial
 
     settings = plan["evaluation_settings"]
     conditions = pending["conditions"]

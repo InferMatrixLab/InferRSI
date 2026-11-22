@@ -33,10 +33,10 @@ revision returned by `collect` or `read` and writes bytes to `--output`.
 inferrsi find 'Ascend OOM after caching per-step masks' --kinds case
 ```
 
-Direct reads of checkout Skill bodies require the `skills` extra
-(`python -m pip install '.[skills]'`). On a base install, `find` opens a matching
-indexed installed Skill through its package projection. Package-only operations
-and direct Case reads also work with the base install.
+Direct reads of checkout Skill bodies require PyYAML, a core dependency (the
+`skills` extra remains a compatibility alias). On an install without PyYAML, `find`
+opens a matching indexed installed Skill through its package projection.
+Package-only operations and direct Case reads also work without it.
 
 Every item has an owning `authority` (`package`, `checkout` or `store`) and a qualified
 `ref` of the form `<authority>:<id>`. Public IDs are unchanged and may be used
@@ -243,8 +243,8 @@ Other example queries are `B300 RMSNorm` and `Drama3 prefix reuse`. Include the
 mechanism and symptom to narrow the results. Read the Case's conditions and
 limitations before applying the observation.
 
-For explicit CLI resource-path resolution from the installed library (optional
-`skills` extra required), or a custom library selected with `--root`:
+For explicit CLI resource-path resolution from the installed library (PyYAML, a core
+dependency, required), or a custom library selected with `--root`:
 
 ```bash
 inferrsi skills resource inference-optimization-casebook cases/qwen-ascend-rejected-directions.md

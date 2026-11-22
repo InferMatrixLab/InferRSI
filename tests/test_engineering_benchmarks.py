@@ -25,6 +25,18 @@ def test_cli_lists_the_three_packaged_workloads(capsys):
     assert builtin_tasks() == sorted(EXPECTED)
 
 
+def test_cli_lists_packaged_iterative_workloads(capsys):
+    assert main(["benchmarks", "list", "--iterative"]) == 0
+    assert json.loads(capsys.readouterr().out) == ["moe-forward-npu", "qwen21-denoise-npu"]
+
+
+def test_benchmark_list_help_documents_iterative(capsys):
+    with pytest.raises(SystemExit) as result:
+        main(["benchmarks", "list", "--help"])
+    assert result.value.code == 0
+    assert "--iterative" in capsys.readouterr().out
+
+
 @pytest.mark.parametrize("name,task_id", EXPECTED.items())
 def test_cli_show_reads_the_relocated_manifest(name, task_id, capsys):
     assert main(["benchmarks", "show", name]) == 0
@@ -55,9 +67,11 @@ def test_unknown_packages_are_rejected(name):
 def test_discovery_does_not_import_device_libraries():
     script = """
 import sys
+from inferrsi.apps.cli import main
 from inferrsi.benchmark.registry import builtin_tasks, describe_task
 for name in builtin_tasks():
     describe_task(name)
+assert main(["benchmarks", "list", "--iterative"]) == 0
 assert not {'torch', 'torch_npu', 'qwen_tts', 'vllm', 'vllm_omni'} & sys.modules.keys()
 """
     subprocess.run([sys.executable, "-c", script], check=True, timeout=15)

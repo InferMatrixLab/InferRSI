@@ -80,7 +80,7 @@ def operation(experiment, action, trial=None, *arguments):
 
 def finish(experiment, trial, *, factor=2, final=True, model="synthetic-model", usage=True,
            final_score=None, legacy_session_id=None, python=None, environment_digest="a" * 64,
-           knowledge=False, token_coverage=False, usage_counts=None):
+           knowledge=False, token_coverage=False, usage_counts=None, collect=True):
     root, _, capsys = experiment
     dispatch = operation(experiment, "dispatch", trial)
     assert dispatch["may_create"]
@@ -145,6 +145,8 @@ def finish(experiment, trial, *, factor=2, final=True, model="synthetic-model", 
         }
     receipt.write_text(json.dumps(observation), encoding="utf-8")
     operation(experiment, "record", trial, "--observation", str(receipt))
+    if not collect:
+        return campaign, None
     trial_result = operation(experiment, "collect", trial)["trial"]
     assert trial_result["trace"][0]["diagnosis_id"] == diagnosis["id"]
     return campaign, trial_result
@@ -398,6 +400,59 @@ def test_changed_evidence_after_collection_invalidates_report(experiment):
     document = json.loads(Path(result["reports"]["json"]).read_text(encoding="utf-8"))
     assert not document["trials"][0]["eligible"]
     assert result["assessment"]["conclusion"]["kind"] == "insufficient_evidence"
+
+
+@pytest.mark.parametrize(("damage", "field"), [
+    ("missing-receipt", None), ("changed-receipt", None),
+    ("last_observation", "path"), ("last_observation", "sha256"),
+    ("receipts", "path"), ("receipts", "sha256"),
+])
+def test_bad_native_receipt_keeps_verified_arm_in_report(experiment, damage, field):
+    root, initial, _ = experiment
+    first, second = [trial["id"] for trial in initial["trials"]]
+    finish(experiment, first)
+    collected = damage == "missing-receipt"
+    finish(experiment, second, collect=collected)
+    job = root / "jobs" / second
+    state_path = job / "state.json"
+    state = json.loads(state_path.read_text(encoding="utf-8"))
+    receipt = job / state["last_observation"]["path"]
+    if collected:
+        receipt.unlink()
+    elif damage == "changed-receipt":
+        receipt.write_text("{}", encoding="utf-8")
+    else:
+        reference = state["receipts"][-1] if damage == "receipts" else state["last_observation"]
+        del reference[field]
+        state_path.write_text(json.dumps(state), encoding="utf-8")
+
+    report = operation(experiment, "report")
+    document = json.loads(Path(report["reports"]["json"]).read_text(encoding="utf-8"))
+    verified, blocked = document["trials"]
+    assert verified["eligible"] and verified["benchmark_metrics"]["final_speedup"] == 2
+    assert blocked["status"] == "blocked" and not blocked["eligible"]
+    assert blocked["benchmark_metrics"] is None
+    evidence_gap = "Native job evidence could not be verified"
+    error = "FileNotFoundError" if collected else "ValueError"
+    assert blocked["gaps"] == [f"{evidence_gap} ({error})"]
+    assert report["assessment"]["conclusion"]["kind"] == "insufficient_evidence"
+    assert report["assessment"]["counts"]["eligible_trials"] == 1
+    assert report["benchmark_metrics"]["performance_benefit_ratio"] is None
+    for name in ("markdown", "html"):
+        assert evidence_gap in Path(report["reports"][name]).read_text(encoding="utf-8")
+    next_action = report["next_action"]
+    if collected:
+        assert next_action["operation"] == "completed"
+    else:
+        assert next_action["operation"] == "inspect_retained_host_evidence"
+        assert next_action["trial"] == second
+        expected_error = {
+            "changed-receipt": "Retained host receipt changed",
+            "last_observation": "Malformed retained host observation",
+            "receipts": "Malformed retained host receipt",
+        }[damage]
+        with pytest.raises(ValueError, match=expected_error):
+            compare.collect(root, second)
 
 
 @pytest.mark.parametrize("damage", ["missing-summary", "blank-summary", "later-reference",
