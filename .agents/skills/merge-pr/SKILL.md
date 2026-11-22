@@ -69,6 +69,6 @@ directly; the repository ruleset and merge controls apply unchanged. There is
 no merge queue yet; once one is enabled, the rules for queueing are added here.
 Record the merge on the PR yourself, right after merging, with an identity
 line; for a high-risk PR the same comment then has one line
-`merge-audit: head=<sha> approvals=@<account> <review URL>, @<account> <review URL> merge=<sha> by=@<account>`.
+`merge-audit: head=<sha> approvals=@<account> <review URL>, @<account> <review URL> maintainer=@<account> merge=<sha> by=@<account>`.
 If `main` turns red afterwards, use the
 [red-main skill](../red-main/SKILL.md).
