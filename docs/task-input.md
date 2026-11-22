@@ -119,9 +119,10 @@ reports each field's source as `yaml`, `cli`, `default`, `missing` or `invalid`.
 - Resolution is lexical (`os.path.normpath`). It does not check that a path exists,
   follow symlinks or expand `~`.
 - An `acceptance.reference` that starts with `http://` or `https://` is kept
-  verbatim when it names a host, any port is an integer from 1 to 65535, and it has
-  no whitespace or control characters. A URL such as `https://:443` or
-  `https://example.com:notaport` is an error at `acceptance.reference`. Another
+  verbatim when it names a host, any port is decimal digits for a value from 1 to
+  65535 (leading zeroes allowed), and it has no whitespace or control characters. A
+  URL such as `https://:443`, `https://example.com:notaport` or one with an overlong
+  port is an error at `acceptance.reference`. Another
   `scheme://` value is an error. Any other value is a local plan path.
 - Paths, `environment.python`, a local `acceptance.reference` and every argv item
   must not contain a NUL character. A YAML value or an explicit override with one is

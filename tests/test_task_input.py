@@ -445,7 +445,8 @@ def test_aliases_are_walked_once(tmp_path):
 def test_http_references_are_kept_verbatim_and_local_ones_resolve(tmp_path):
     for url in ("https://github.com/<OWNER>/<REPO>/issues/<NUMBER>",
                 "https://example.com:8443/issues/1", "http://[::1]:8080/plan",
-                "HTTPS://Example.com:/issues/1", "https://user@example.com/issues/1"):
+                "HTTPS://Example.com:/issues/1", "https://user@example.com/issues/1",
+                "https://example.com:" + "0" * 5000 + "443/issues/1"):
         path = _write(tmp_path, f"schema_version: 1\nacceptance:\n  reference: '{url}'\n")
         result = task_input.preview(path)
         assert result["valid"] and result["errors"] == [], url
@@ -463,6 +464,11 @@ def test_http_references_are_kept_verbatim_and_local_ones_resolve(tmp_path):
     ("https://example.com:+443/issues/1",
      "must use a port from 1 to 65535 in an HTTP(S) URL"),
     ("https://example.com:65536", "must use a port from 1 to 65535 in an HTTP(S) URL"),
+    ("https://example.com:" + "0" * 5000, "must use a port from 1 to 65535 in an HTTP(S) URL"),
+    ("https://example.com:" + "9" * 5000 + "/issues/1",
+     "must use a port from 1 to 65535 in an HTTP(S) URL"),
+    ("https://example.com:" + "0" * 5000 + "65536",
+     "must use a port from 1 to 65535 in an HTTP(S) URL"),
     ("https://exa mple.com/issues/1",
      "must not contain whitespace or control characters in an HTTP(S) URL"),
     ("ftp://example.invalid/plan", "must be an HTTP(S) issue URL or a local plan path"),
@@ -477,6 +483,22 @@ def test_malformed_reference_urls_name_the_problem(tmp_path, url, message):
     blocked = {item["field"]: item["message"] for item in result["blockers"]}
     assert blocked["acceptance.reference"] == (
         "invalid; fix the reported error; required for plan/run")
+
+
+def test_overlong_reference_port_is_a_field_error_not_a_traceback(tmp_path):
+    # More digits than Python's integer string conversion limit, inside the file size limit.
+    url = "https://example.com:" + "9" * 50000 + "/issues/1"
+    path = _write(tmp_path, f"schema_version: 1\nacceptance:\n  reference: '{url}'\n")
+    completed = subprocess.run(
+        [sys.executable, "-m", "inferrsi", "task", "validate", str(path), "--json"],
+        capture_output=True, text=True, encoding="utf-8", cwd=tmp_path, check=False,
+        env=dict(os.environ, PYTHONPATH=str(REPO / "src")),
+    )
+    assert completed.returncode == 1, completed.stderr
+    assert "Traceback" not in completed.stderr
+    assert json.loads(completed.stdout)["errors"] == [{
+        "field": "acceptance.reference",
+        "message": "must use a port from 1 to 65535 in an HTTP(S) URL", "source": "yaml"}]
 
 
 @pytest.mark.parametrize("dest, field, value, message", [

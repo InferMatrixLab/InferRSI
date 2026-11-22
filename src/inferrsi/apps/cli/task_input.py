@@ -188,10 +188,14 @@ def _http_url(value: str) -> str | None:
     if not parts.hostname:
         return "must name a host in an HTTP(S) URL"
     # The port text exactly as urlsplit's .port reads it, checked without int()'s leniency.
+    # Leading zeroes are allowed; at most five significant digits reach int(), which keeps
+    # overlong text clear of Python's integer string conversion limit.
     hostinfo = parts.netloc.rpartition("@")[2]
     _, bracket, rest = hostinfo.partition("[")
     port = (rest.partition("]")[2] if bracket else hostinfo).partition(":")[2]
-    if port and not (re.fullmatch(r"[0-9]+", port) and 0 < int(port) <= 65535):
+    digits = port.lstrip("0")
+    if port and not (re.fullmatch(r"[0-9]+", port) and 0 < len(digits) <= 5
+                     and int(digits) <= 65535):
         return "must use a port from 1 to 65535 in an HTTP(S) URL"
     return None
 
