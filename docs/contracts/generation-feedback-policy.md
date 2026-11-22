@@ -71,6 +71,9 @@ with an existing delivery at `delivered-context-retention`; it cannot reuse
 that delivery. Repreparation reads the already-retained policy bytes, while
 the source records and required prepared/protocol/proof bytes remain subject
 to fixed-reference verification. There is no fallback to `current`.
+Retained-policy recovery requires a committed delivered-context row. If policy
+object retention succeeded but context collection or delivery sealing failed,
+repreparation still needs the original policy bytes through `artifact_reader`.
 
 The generation manifest has no new fields. Opt-in specs include the policy
 input in the normal request digest; existing specs and descriptors are not
