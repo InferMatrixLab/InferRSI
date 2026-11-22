@@ -256,7 +256,6 @@ lists every repository label with its group and description, and every name has 
 | Priority | at most one `priority:P0/P1/P2`, only with `status:proposed` or `status:accepted` | the acting agent; the decision owner may change it | with `status:proposed`, how soon the owner should decide; with `status:accepted`, how soon work should start; removed at `status:deferred` |
 | Help | `help:wanted` | the creator or a maintainer | an Issue needs an owner or contributor |
 | Stop switch | `bot:stop` | only a human adds or removes it | adding stops agent changes, reviews and merges on that Issue or PR, and on an Issue also its linked PRs, queued merges and delegated work; removing lets them resume; it applies at any status and overrides the rows above |
-| Agent review mark | `bot:reviewed` | the reviewing agent | an agent reviewed the Issue or PR; informational only, it is not an approval and carries no coordination meaning |
 | Protected switch | `skill-eval:execute` | only the owner adds it; the owner or an agent may remove it | adding authorizes paid Skill Eval for one PR; removing revokes it |
 
 Status labels carry the governance above. Work starts only on an assigned Issue at
@@ -290,6 +289,25 @@ Change labels by editing `labels.json` in a PR first, then applying that change 
 repository. The nightly `safety-net` job reports drift between the repository labels and
 `labels.json`, and any label that an Issue template or `tools/skill_eval_*_config.json`
 references but `labels.json` lacks. No workflow writes labels.
+
+[`external-labels.json`](../.github/external-labels.json) names the labels that an outside
+GitHub App owns and applies, with the app that owns each one. Those names are exempt from the
+`group:value` rule and from the drift report, because this repository neither creates them nor
+decides their wording: renaming or deleting one only makes the app recreate it. Label
+maintenance leaves them alone, and they carry no coordination meaning here, so the rules above
+do not apply to them. A name cannot be in both files. An Issue template or
+`tools/skill_eval_*_config.json` still may not reference one, since this repository must not
+depend on a label it does not own.
+
+Each `owner` is a required, informational attribution: the reviewer's record of which app
+applies that label, so a later reader can tell why the name is exempt rather than missing. No
+check verifies it, and none can — GitHub does not report which app created a label, and an
+app's configuration is outside this repository. Treat an entry as evidence of a past decision,
+not as a verified fact: before relying on one, confirm from the label's own event history that
+the named app still applies it. Adding an entry is a scope decision, so it goes through review
+like any other change to this file.
+
+Moving `bot-reviewed` to a managed `bot:reviewed` label is left to the label-reduction PR agreed on [#570](https://github.com/InferMatrixLab/InferRSI/issues/570); until then the exception above stands.
 
 ## Evidence refresh — hypothetical example
 

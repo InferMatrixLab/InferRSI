@@ -5,11 +5,6 @@
     "description": "Human stop switch: agents make no changes, reviews or merges here until a human removes it"
   },
   {
-    "name": "bot:reviewed",
-    "group": "bot",
-    "description": "An agent reviewed this; informational only, it grants no approval or authority"
-  },
-  {
     "name": "area:knowledge",
     "group": "area",
     "description": "Knowledge line: packs, skill library, knowledge admission"
