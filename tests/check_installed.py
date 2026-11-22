@@ -27,6 +27,15 @@ from inferrsi.knowledge.knowledge_operations import KnowledgeReader
 from inferrsi.resources import repository_packs
 from inferrsi.resources.repository_packs import REPO_TYPES, repository_pack
 
+# The new Harness binding port ships independently of Apps and Benchmark.
+subprocess.run([
+    sys.executable, "-I", "-B", "-c",
+    "import sys; from inferrsi.harness import prepared_binding as p; "
+    "assert all(callable(getattr(p, n)) for n in ('read', 'project', 'verify')); "
+    "assert not any(n == root or n.startswith(root + '.') for n in sys.modules "
+    "for root in ('inferrsi.apps', 'inferrsi.benchmark', 'inferrsi.knowledge'))",
+], check=True, capture_output=True, text=True)
+
 assert Path(inferrsi.__file__).resolve().parent.parent.name != "src", (
     "This check requires an installed package"
 )
