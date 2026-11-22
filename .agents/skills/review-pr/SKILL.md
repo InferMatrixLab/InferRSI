@@ -62,9 +62,9 @@ before re-review. Keep optional suggestions separate from the blockers.
 Use GitHub **Comment** (`COMMENTED`) for non-voting interim feedback. A completed
 formal review still requires **Approve** or **Request changes**, also on a
 high-risk PR (CI, releases, secrets, permissions); there an **Approve** from an
-account whose repository role is Admin, including its agent, counts as the
-required Admin approval. Write and Maintain approvals count toward the two but
-not as that one.
+account on the [high-risk approver list](../../../.github/high-risk-approvers.json),
+including its agent, counts as the required listed approval. Other approvals
+count toward the two but not as that one.
 
 Agents may submit formal reviews without a separate human delegation; see
 [identity and authority](../../../docs/agent-collaboration.md#identity-and-authority).
@@ -83,7 +83,7 @@ equivalent revision-bound operation. If that operation is unavailable, leave the
 review prepared. After submitting, verify the recorded state and commit and
 report the review URL.
 
-Each eligible GitHub account (Write, Maintain or Admin role) counts once. The
+Each eligible GitHub account with write access counts once. The
 [main ruleset](https://github.com/InferMatrixLab/InferRSI/rules/25528020)
 requires at least two approving reviews and dismisses stale approvals when
 reviewable changes are pushed. The integrator also verifies the `LGTM` bodies,
