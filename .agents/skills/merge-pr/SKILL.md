@@ -107,6 +107,8 @@ Record the merge on the PR yourself, right after merging, with an identity
 line; for a high-risk PR the same comment then has one line
 `merge-audit: head=<sha> approvals=@<account> <review URL>, @<account> <review URL> approver=@<login> list=<sha> merge=<sha> by=@<account>`,
 where `approver=` names the approving account you found on the list and
-verified in check 9, and `list=` is the `baseRefOid` you read the list from.
+verified in check 9, and `list=` is the `baseRefOid` you read the list from
+(`list=bootstrap-570` only for the one-time bootstrap merge in the
+[high-risk rule](../../../docs/agent-collaboration.md#identity-and-authority)).
 If `main` turns red afterwards, use the
 [red-main skill](../red-main/SKILL.md).
