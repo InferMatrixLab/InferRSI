@@ -14,7 +14,7 @@ head; otherwise report the first failing check.
 
 ```bash
 gh pr view <pr> --repo InferMatrixLab/InferRSI \
-  --json state,isDraft,headRefOid,baseRefName,labels,reviews,reviewDecision,statusCheckRollup,files
+  --json state,isDraft,headRefOid,baseRefName,body,labels,reviews,reviewDecision,statusCheckRollup,files
 ```
 
 Also read the governing Issue's labels.
@@ -43,6 +43,11 @@ Also read the governing Issue's labels.
    comment on these PRs and never approve them, so an approval that starts
    with or carries an agent identity line does not meet this check. If you
    cannot tell who submitted it, this check is not met.
+
+7. **Base and dependencies:** the PR's base is its intended target: `main`,
+   or for a stacked PR its lower PR's branch until that PR merges, after which
+   the base is changed back to `main` and the checks run again. Every PR it
+   depends on has merged; until then, do not merge or queue it.
 
 ## Merge
 

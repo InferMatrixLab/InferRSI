@@ -120,7 +120,7 @@ ruff check src tests
 
 Rules: [agent collaboration](docs/agent-collaboration.md). Agents may carry work end to end; humans set direction through Issues, approve high-risk changes (CI, releases, secrets, permissions) and stop work with `agent:stop`. One skill per step:
 
-- Claim before starting: [claim-work](.agents/skills/claim-work/SKILL.md) — confirm the Issue's accepted scope, search for duplicates, claim on the Issue with the next artifact time, release if nothing appears.
+- Claim before starting: [claim-work](.agents/skills/claim-work/SKILL.md) — confirm the Issue has an assignee and `status:accepted` and that you are its deciding agent or work under its delegation, search for duplicates, claim on the Issue with the next artifact time, release if nothing appears.
 - Open a PR: [open-pr](.agents/skills/open-pr/SKILL.md) — a bounded slice with independent review, branched from current `main`, local checks run, AI declaration filled; report PR readiness and Issue completion separately.
 - Review: [review-pr](.agents/skills/review-pr/SKILL.md) — identify yourself on every comment and review (on an Approve, after the `LGTM` line), keep comments short, never approve your own PR or a high-risk PR; one formal reviewer agent per account.
 - Merge: [merge-pr](.agents/skills/merge-pr/SKILL.md) — two independent approvals, required checks green, no `agent:stop`, a human maintainer's Approve for high-risk kinds.
