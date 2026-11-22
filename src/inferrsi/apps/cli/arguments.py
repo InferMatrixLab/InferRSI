@@ -292,11 +292,13 @@ def parser(*, parser_class=argparse.ArgumentParser) -> argparse.ArgumentParser:
                      "Python records handoffs; the initiating Agent calls native host tools "
                      "using returned next_action/handoff data. Complete all declared rounds "
                      "and independent finals, record actual host observations, collect every "
-                     "attempt, then report. No dedicated skill is required."),
+                     "attempt, then report. An explicit retry after collecting an "
+                     "unsuccessful attempt opens a fresh one and retains the earlier attempt; "
+                     "retries are never automatic. No dedicated skill is required."),
     )
     compare.add_argument("--focus", choices=("knowledge",), default="knowledge")
     compare.add_argument("--action", choices=("prepare", "status", "dispatch", "bind", "record",
-                                              "collect", "report"), default="prepare",
+                                              "collect", "retry", "report"), default="prepare",
                          help="Prepare a new experiment; use its --output for later operations")
     compare.add_argument("--config", type=Path, help="Non-secret project configuration JSON")
     compare.add_argument("--output", type=Path,

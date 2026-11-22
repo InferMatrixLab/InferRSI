@@ -76,8 +76,21 @@ The CLI neither starts a hidden Agent CLI nor invents a conversation identity.
    pass `--parallel` on dispatch for each trial you want to start while others
    are active. Keep each allocation separate and note concurrent execution
    when interpreting campaign wall time.
-6. Generate a progress or final comparison with `--action report`. Read
-   `--action status` to resume. Reporting never executes missing rounds/finals.
+6. To retry an arm, call `--action retry --trial <id>` after collecting its
+   terminal attempt. Retry is an explicit initiator decision. It is never
+   automatic, and `next_action` never suggests it. It is refused while the
+   current attempt is uncollected or not terminal, and when the collected
+   attempt is an eligible completed result, so a valid result cannot be re-rolled.
+   It is also refused while another trial is active, unless you pass `--parallel`.
+   The retry keeps the collected attempt as evidence. It opens a fresh attempt
+   with its own native job (`jobs/<id>-attempt-NNN`) and workspace
+   (`<workspace>-attempt-NNN`), the same frozen runtime and the same prompt.
+   Dispatch, bind, record and collect that attempt as in steps 2-5, with a new
+   native session ID. Never rename, move or edit an earlier campaign to retry.
+   Retry does not change how Harness classifies a failure.
+7. Generate a progress or final comparison with `--action report`. Read
+   `--action status` to resume. It shows each trial's current `attempt` and its
+   `previous_attempts`. Reporting never executes missing rounds/finals.
 
 New comparisons freeze the same diagnosis requirement for both arms. Before
 search, each session profiles the frozen baseline or uses measurements from the
@@ -153,6 +166,19 @@ The report leads with [Benchmark metrics](benchmark-metrics.md): each arm's
 independent final speedup, accepted/assessed steps and token coverage, followed
 by paired performance benefit and token consumption ratios. This versioned
 summary preserves the existing comparison conclusion and old factor directions.
+
+**Attempts and wall time** lists every retained attempt of each arm: the
+attempt count, failed attempts with their statuses, the successful campaign wall
+(the selected attempt's campaign wall, when that campaign completed) and the
+total wall. Total wall runs from the first attempt's campaign start to the last
+attempt's campaign end, so it includes failed attempts, retries and the gaps
+between them. Failed attempts are terminal attempts without an eligible completed
+result; a pending or running attempt is not counted as failed. Tokens across
+attempts are summed only when every attempt has a complete `session_total`
+export. Otherwise they stay unknown, and the observed subtotal is shown with
+`partial` coverage. Trials with more than one attempt also get a per-attempt
+table. This accounting is descriptive. The frozen verdict still uses each arm's
+selected (latest) attempt, including its campaign `wall_seconds`, and is unchanged.
 
 Apps writes a new JSON/Markdown/offline-HTML report snapshot under `reports/`.
 Start with the conclusion and per-task comparison, then inspect complete traces

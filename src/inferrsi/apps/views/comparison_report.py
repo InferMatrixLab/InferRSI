@@ -104,6 +104,30 @@ def benchmark_metric_rows(summary):
     ]
 
 
+def _attempt_rows(trials):
+    """One row per arm; older snapshots without accounting render as unknown."""
+    rows = []
+    for trial in trials:
+        accounting = trial.get("attempt_accounting") or {}
+        statuses = "; ".join(f"{_text(row.get('attempt'))}: {_text(row.get('status'))}"
+                             for row in accounting.get("statuses", [])) or None
+        rows.append((trial["task"], trial["condition"], trial["repeat"],
+                     accounting.get("attempts"), accounting.get("failed_attempts"), statuses,
+                     _metric_value("wall_seconds", accounting.get("success_wall_seconds")),
+                     _metric_value("wall_seconds", accounting.get("total_wall_seconds")),
+                     _metric_value("tokens", accounting.get("tokens")),
+                     accounting.get("token_coverage")))
+    return rows
+
+
+def _trial_attempt_rows(trial):
+    return [(row.get("attempt"), row.get("status"), row.get("eligible"),
+             _metric_value("wall_seconds", row.get("wall_seconds")),
+             _metric_value("tokens", row.get("tokens")),
+             "\n".join(row.get("gaps") or []) or "None")
+            for row in trial.get("attempts") or []]
+
+
 def _trace_rows(trial):
     rows = []
     for row in trial.get("trace", []):
@@ -299,6 +323,16 @@ def _documents(report, json_digest):
             counts["eligible_trials"], f"{counts['eligible_pairs']} / {counts['planned_pairs']}",
             *(counts["statuses"][state] for state in ("running", "pending", "failed", "blocked")),
             counts["missing_trials"])])
+    heading("Attempts and wall time", 3)
+    table(("Task", "Arm", "Repeat", "Attempts", "Failed attempts", "Attempt statuses",
+           "Successful campaign wall (s)", "Total wall from first attempt start (s)",
+           "Tokens across attempts", "Token coverage"), _attempt_rows(report["trials"]))
+    paragraph("Every attempt of an arm is retained. Total wall runs from the first attempt's "
+              "campaign start to the last attempt's campaign end, so it includes failed "
+              "attempts, retries and the gaps between them. The frozen verdict above still "
+              "uses the selected attempt's campaign wall and is unchanged. Tokens across "
+              "attempts are known only when every attempt has a complete session export; "
+              "unknown tokens stay unknown.")
 
     gaps = [(row["task"], gap) for row in assessment["tasks"] for gap in row["gaps"]]
     if gaps:
@@ -315,6 +349,10 @@ def _documents(report, json_digest):
         status = trial["status"]
         eligibility = "eligible for comparison" if trial["eligible"] else "excluded from comparison"
         paragraph(f"{status.capitalize()} · {eligibility}")
+        if len(trial.get("attempts") or []) > 1:
+            heading("Attempts", 4)
+            table(("Attempt", "Status", "Eligible", "Campaign wall (s)", "Session tokens",
+                   "Gaps"), _trial_attempt_rows(trial))
         rows = _trace_rows(trial)
         if rows:
             table(_TRACE_HEADERS, rows)

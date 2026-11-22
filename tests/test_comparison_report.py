@@ -6,7 +6,7 @@ import json
 import pytest
 
 from inferrsi.apps.views.comparison_report import write_comparison_report
-from inferrsi.benchmark.comparison import DEFAULT_POLICY, summarize
+from inferrsi.benchmark.comparison import DEFAULT_POLICY, attempt_accounting, summarize
 
 
 def report():
@@ -144,3 +144,63 @@ def test_nonfinite_snapshot_does_not_publish_partial_reports(tmp_path):
     with pytest.raises(ValueError):
         write_comparison_report(value, tmp_path / "new")
     assert not (tmp_path / "new").exists()
+
+
+def _attempt(number, status, **values):
+    return {"attempt": number, "status": status, "eligible": status == "completed",
+            "gaps": [] if status == "completed" else ["final missing"],
+            "wall_seconds": None, "started_at": None, "ended_at": None, "tokens": None,
+            "native_session": None, **values}
+
+
+def test_attempts_section_shows_failed_attempts_and_unknown_tokens(tmp_path):
+    from pathlib import Path
+
+    value = report()
+    attempts = [_attempt(1, "blocked", started_at=100.0, wall_seconds=30.0, tokens=None),
+                _attempt(2, "completed", started_at=200.0, ended_at=210.0, wall_seconds=10.0,
+                         tokens=50)]
+    value["trials"][0].update(attempts=attempts, attempt_accounting=attempt_accounting(attempts))
+    paths = write_comparison_report(value, tmp_path)
+    markdown = Path(paths["markdown"]).read_text(encoding="utf-8")
+    html = Path(paths["html"]).read_text(encoding="utf-8")
+    for document in (markdown, html):
+        assert "Attempts and wall time" in document
+        assert "1: blocked; 2: completed" in document
+        assert "final missing" in document
+        assert "unknown tokens stay unknown" in document
+    row = next(line for line in markdown.splitlines() if "1: blocked; 2: completed" in line)
+    assert row == ("| task | on | 1 | 2 | 1 | 1: blocked; 2: completed | 10.00 | 110.00 "
+                   "| unknown | partial |")
+    # Older snapshots without accounting still render, with unknown attempt fields.
+    legacy = next(line for line in markdown.splitlines() if line.startswith("| task | off | 1 |"))
+    assert legacy == ("| task | off | 1 | unknown | unknown | unknown | unknown | unknown "
+                      "| unknown | unknown |")
+
+
+def test_attempt_accounting_keeps_unknown_bounds_and_partial_tokens():
+    unknown_start = attempt_accounting([
+        _attempt(1, "failed", ended_at=50.0, tokens=10),
+        _attempt(2, "completed", started_at=60.0, ended_at=70.0, wall_seconds=10.0, tokens=5)])
+    assert unknown_start["total_wall_seconds"] is None
+    assert unknown_start["missing_reasons"]["total_wall_seconds"] == [
+        "first_attempt_start_unknown"]
+    assert unknown_start["success_wall_seconds"] == 10.0
+    assert unknown_start["tokens"] == 15 and unknown_start["token_coverage"] == "complete"
+    partial = attempt_accounting([
+        _attempt(1, "blocked", started_at=0.0, tokens=None),
+        _attempt(2, "completed", started_at=5.0, ended_at=9.0, wall_seconds=4.0, tokens=7)])
+    assert partial["tokens"] is None and partial["observed_tokens"] == 7
+    assert partial["token_coverage"] == "partial"
+    assert partial["total_wall_seconds"] == 9.0 and partial["failed_attempts"] == 1
+    failed_last = attempt_accounting([_attempt(1, "blocked", started_at=0.0, ended_at=3.0)])
+    assert failed_last["success_wall_seconds"] is None
+    assert failed_last["total_wall_seconds"] == 3.0
+    assert failed_last["token_coverage"] == "unknown"
+    reversed_window = attempt_accounting([_attempt(1, "completed", started_at=5.0,
+                                                   ended_at=4.0, wall_seconds=1.0)])
+    assert reversed_window["total_wall_seconds"] is None
+    with pytest.raises(ValueError):
+        attempt_accounting([_attempt(2, "completed")])
+    with pytest.raises(ValueError):
+        attempt_accounting([])

@@ -80,7 +80,8 @@ def operation(experiment, action, trial=None, *arguments):
 
 def finish(experiment, trial, *, factor=2, final=True, model="synthetic-model", usage=True,
            final_score=None, legacy_session_id=None, python=None, environment_digest="a" * 64,
-           knowledge=False, token_coverage=False, usage_counts=None, collect=True):
+           knowledge=False, token_coverage=False, usage_counts=None, collect=True,
+           session_id=None, host_state="completed"):
     root, _, capsys = experiment
     dispatch = operation(experiment, "dispatch", trial)
     assert dispatch["may_create"]
@@ -88,7 +89,7 @@ def finish(experiment, trial, *, factor=2, final=True, model="synthetic-model", 
     command = json.loads(re.search(r"Start argv .*?: (\[.*\])\n", prompt).group(1))
     receipt = root / (trial + "-receipt.json")
     receipt.write_text('{"synthetic_host_creation":true}', encoding="utf-8")
-    session_id = legacy_session_id or trial
+    session_id = session_id or legacy_session_id or trial
     if legacy_session_id:
         agent_sessions.bind(root / "jobs" / trial, host="synthetic", session_id=session_id,
                             receipt=receipt)
@@ -128,7 +129,7 @@ def finish(experiment, trial, *, factor=2, final=True, model="synthetic-model", 
         assert main(["benchmarks", "session", "final", "--session", str(campaign)]) == 0
         capsys.readouterr()
     observation = {"host": "synthetic", "host_id": None, "session_id": session_id,
-        "state": "completed", "native_receipt": {"synthetic_host_terminal": True},
+        "state": host_state, "native_receipt": {"synthetic_host_terminal": True},
         "benchmark_observation": {"model": model, "effort": "high",
             "environment_id": "test-environment", "environment_fingerprint": environment_digest,
             "knowledge_policy_violation": False}}
@@ -525,3 +526,116 @@ def test_round_cannot_cite_undelivered_knowledge(experiment):
     assert error.value.code == 2
     assert "delivered context" in capsys.readouterr().err
     assert json.loads((campaign / "state.json").read_text())["rounds"] == []
+
+
+def _document(report):
+    return json.loads(Path(report["reports"]["json"]).read_text(encoding="utf-8"))
+
+
+def test_failed_attempt_is_retained_and_counted_after_explicit_retry(experiment):
+    root, initial, _ = experiment
+    on, off = [trial["id"] for trial in initial["trials"]]
+    first_campaign, _ = finish(experiment, on, final=False, host_state="failed", collect=False)
+    with pytest.raises(ValueError, match="Retry only after collecting"):
+        compare.retry(root, on)
+    failed = operation(experiment, "collect", on)["trial"]
+    assert failed["status"] == "blocked" and not failed["eligible"]
+    resumed = operation(experiment, "retry", on)
+    row = resumed["trials"][0]
+    assert row["attempt"] == 2 and row["state"] == "pending" and row["collection"] is None
+    assert row["workspace"] == initial["trials"][0]["workspace"] + "-attempt-002"
+    assert [(item["attempt"], item["status"]) for item in row["previous_attempts"]] == [
+        (1, "blocked")]
+    assert (resumed["next_action"]["operation"], resumed["next_action"]["trial"]) == (
+        "dispatch", on)
+    assert (root / row["workspace"] / "runtime/inferrsi/knowledge/data").is_dir()
+    second_campaign, retried = finish(experiment, on, session_id=on + "-attempt-2")
+    assert retried["eligible"] and second_campaign != first_campaign
+    with pytest.raises(ValueError, match="eligible completed"):
+        compare.retry(root, on)
+    finish(experiment, off, factor=1.5)
+
+    report = operation(experiment, "report")
+    document = _document(report)
+    arm = document["trials"][0]
+    attempts, accounting = arm["attempts"], arm["attempt_accounting"]
+    assert [item["status"] for item in attempts] == ["blocked", "completed"]
+    assert [item["native_session"]["session_id"] for item in attempts] == [on, on + "-attempt-2"]
+    assert accounting["attempts"] == 2 and accounting["failed_attempts"] == 1
+    assert accounting["success_wall_seconds"] == arm["metrics"]["wall_seconds"]
+    assert accounting["success_wall_seconds"] == attempts[1]["wall_seconds"]
+    total = attempts[1]["ended_at"] - attempts[0]["started_at"]
+    assert accounting["total_wall_seconds"] == total > accounting["success_wall_seconds"]
+    assert accounting["tokens"] == 240 and accounting["token_coverage"] == "complete"
+    assert first_campaign.is_dir() and (first_campaign / "state.json").is_file()
+    from inferrsi.benchmark.comparison import summarize
+
+    assert report["assessment"] == summarize(document["trials"], document["tasks"],
+                                             document["repeats"], document["policy"])
+    assert report["assessment"]["counts"]["eligible_pairs"] == 1
+    assert report["next_action"]["operation"] == "completed"
+    for name in ("markdown", "html"):
+        text = Path(report["reports"][name]).read_text(encoding="utf-8")
+        assert "Attempts and wall time" in text
+        assert "1: blocked; 2: completed" in text
+        assert "Total wall from first attempt start" in text
+
+
+def test_arm_without_retry_has_one_attempt_and_equal_walls(experiment):
+    on, _ = [trial["id"] for trial in experiment[1]["trials"]]
+    finish(experiment, on)
+    document = _document(operation(experiment, "report"))
+    completed, pending = (trial["attempt_accounting"] for trial in document["trials"])
+    assert completed["attempts"] == 1 and completed["failed_attempts"] == 0
+    assert completed["statuses"] == [{"attempt": 1, "status": "completed", "eligible": True}]
+    assert completed["success_wall_seconds"] == document["trials"][0]["metrics"]["wall_seconds"]
+    assert completed["total_wall_seconds"] == completed["success_wall_seconds"]
+    assert completed["tokens"] == 120 and completed["token_coverage"] == "complete"
+    # An arm that has not run yet is neither a failure nor a measured cost.
+    assert pending["attempts"] == 1 and pending["failed_attempts"] == 0
+    assert pending["success_wall_seconds"] is None and pending["total_wall_seconds"] is None
+    assert pending["tokens"] is None and pending["token_coverage"] == "unknown"
+
+
+def test_missing_attempt_export_keeps_arm_tokens_unknown(experiment):
+    root, initial, _ = experiment
+    on = initial["trials"][0]["id"]
+    finish(experiment, on, final=False, usage=False, host_state="failed")
+    operation(experiment, "retry", on)
+    finish(experiment, on, session_id=on + "-attempt-2")
+    report = operation(experiment, "report")
+    arm = _document(report)["trials"][0]
+    accounting = arm["attempt_accounting"]
+    assert [item["tokens"] for item in arm["attempts"]] == [None, 120]
+    assert accounting["tokens"] is None and accounting["observed_tokens"] == 120
+    assert accounting["token_coverage"] == "partial"
+    assert accounting["missing_reasons"]["tokens"] == [
+        "attempt 1: complete_session_usage_unavailable"]
+    # The selected attempt's own export is unchanged by the earlier missing one.
+    assert arm["metrics"]["tokens"] == 120
+    markdown = Path(report["reports"]["markdown"]).read_text(encoding="utf-8")
+    row = next(line for line in markdown.splitlines() if "1: blocked; 2: completed" in line)
+    assert row.endswith("| unknown | partial |")
+
+
+def test_retry_rejects_reused_sessions_concurrency_and_changed_archives(experiment, capsys):
+    root, initial, _ = experiment
+    on, off = [trial["id"] for trial in initial["trials"]]
+    finish(experiment, on, final=False, host_state="failed")
+    operation(experiment, "dispatch", off)
+    with pytest.raises(ValueError, match=f"Collect active trial {off}"):
+        compare.retry(root, on)
+    operation(experiment, "retry", on, "--parallel")
+    assert operation(experiment, "dispatch", on)["may_create"]
+    receipt = root / "retry-receipt.json"
+    receipt.write_text('{"synthetic_host_creation":true}', encoding="utf-8")
+    with pytest.raises(SystemExit) as error:
+        operation(experiment, "bind", on, "--host", "synthetic", "--session-id", on,
+                  "--receipt", str(receipt))
+    assert error.value.code == 2
+    assert f"already bound to trial {on} attempt 1" in capsys.readouterr().err
+    state = json.loads((root / "state.json").read_text(encoding="utf-8"))
+    archived = root / state["attempts"][on][0]["collection"]["path"]
+    archived.write_text("{}", encoding="utf-8")
+    with pytest.raises(ValueError, match="Retained comparison collection changed"):
+        compare.report(root)

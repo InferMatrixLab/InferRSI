@@ -4,6 +4,17 @@
 
 ### Changed
 
+- `inferrsi benchmarks compare` keeps every attempt of an arm (Refs #509, P1.1). The new
+  `--action retry --trial <id>` opens a fresh attempt with its own job and workspace after a
+  collected, terminal attempt. The collected attempt stays as evidence, and no campaign is renamed.
+  Retry is never automatic. It is refused while the current attempt is uncollected or not terminal,
+  and when it is an eligible completed result. The report adds an **Attempts and wall time** table:
+  attempts, failed attempts with their statuses, the successful campaign wall, and the total wall
+  from the first attempt's start to the last attempt's end. Tokens across attempts stay unknown
+  unless every attempt has a complete session export. The pure rule is
+  `benchmark.comparison.attempt_accounting`. The verdict still reads each arm's latest attempt,
+  including its campaign `wall_seconds`, and is unchanged. So is Harness failure classification.
+  Experiments prepared earlier load unchanged: attempt 1 keeps the existing job and workspace paths.
 - `inferrsi.harness.scenarios` is now `inferrsi.harness.trials` (Refs #558). Its one
   module, `external.py`, runs an external command as one trial and retains its record
   (`execute_trial`, `collect_trial_checks`); it holds no scenario logic and is the same

@@ -229,3 +229,65 @@ def summarize(trials: list[dict], tasks, repeats: int, policy: dict) -> dict:
         },
         "pairs": pairs,
     }
+
+
+ATTEMPT_FAILURES = ("failed", "blocked")
+
+
+def attempt_accounting(attempts: list[dict]) -> dict:
+    """Count one arm's retained attempts without changing its selected result.
+
+    Attempts are ordered; the last one is the arm's selected result. Total wall
+    spans the first attempt's campaign start to the last attempt's campaign end,
+    so it includes failed attempts, retries and the gaps between them. A token
+    subtotal never becomes a complete arm total: tokens are known only when
+    every attempt has a complete session export.
+    """
+    if not isinstance(attempts, list) or not attempts:
+        raise ValueError("Attempt accounting requires at least one retained attempt")
+    numbers, reasons = [], {}
+    for index, attempt in enumerate(attempts, 1):
+        if not isinstance(attempt, dict) or attempt.get("attempt") != index:
+            raise ValueError("Attempts must be consecutive objects starting at 1")
+        if attempt.get("status") not in STATUSES or type(attempt.get("eligible")) is not bool:
+            raise ValueError("Attempt requires a known status and eligibility")
+        numbers.append(index)
+    first, last = attempts[0], attempts[-1]
+    success = (last["wall_seconds"] if last["status"] == "completed"
+               and _number(last.get("wall_seconds")) and last["wall_seconds"] >= 0 else None)
+    if success is None:
+        reasons["success_wall_seconds"] = ["selected_attempt_campaign_not_completed"
+                                           if last["status"] != "completed"
+                                           else "selected_attempt_wall_unavailable"]
+    start, end = first.get("started_at"), last.get("ended_at")
+    total = None
+    if not _number(start):
+        reasons["total_wall_seconds"] = ["first_attempt_start_unknown"]
+    elif not _number(end):
+        reasons["total_wall_seconds"] = ["last_attempt_end_unknown"]
+    elif end < start:
+        reasons["total_wall_seconds"] = ["last_attempt_end_precedes_first_start"]
+    else:
+        total = end - start
+    tokens = [attempt.get("tokens") if type(attempt.get("tokens")) is int
+              and attempt["tokens"] >= 0 else None for attempt in attempts]
+    known = [value for value in tokens if value is not None]
+    complete = len(known) == len(tokens)
+    if not complete:
+        reasons["tokens"] = [f"attempt {number}: complete_session_usage_unavailable"
+                             for number, value in zip(numbers, tokens) if value is None]
+    return {
+        "attempts": len(attempts),
+        "failed_attempts": sum(attempt["status"] in ATTEMPT_FAILURES
+                               or attempt["status"] == "completed" and not attempt["eligible"]
+                               for attempt in attempts),
+        "statuses": [{"attempt": number, "status": attempt["status"],
+                      "eligible": attempt["eligible"]}
+                     for number, attempt in zip(numbers, attempts)],
+        "success_wall_seconds": success,
+        "total_wall_seconds": total,
+        "tokens": sum(known) if complete else None,
+        "observed_tokens": sum(known) if known else None,
+        "token_coverage": "complete" if complete else "partial" if known else "unknown",
+        "missing_reasons": reasons,
+    }
