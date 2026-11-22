@@ -306,10 +306,45 @@ def _context(records: list[dict]) -> str:
     return "\n".join(lines) + "\n"
 
 
+def _task_command(args) -> int:
+    """Read one task file and print to stdout; no subprocess, probe or file write."""
+    from . import task_input
+
+    if args.task_action in ("schema", "template"):
+        text = (task_input.schema_text() if args.task_action == "schema"
+                else task_input.template_text())
+        sys.stdout.write(text)
+        return 0
+    if args.task_action == "validate":
+        result = task_input.check(args.task_file)
+    else:
+        result = task_input.preview(args.task_file, task_input.overrides_from(args))
+    if args.json:
+        _print(result)
+        return 0 if result["valid"] else 1
+    print(f"task file: {result['task_file']}")
+    print(f"valid: {'yes' if result['valid'] else 'no'}")
+    for error in result["errors"]:
+        print(f"error {error['field']} ({error['source']}): {error['message']}")
+    if args.task_action == "preview":
+        print(f"complete: {'yes' if result['complete'] else 'no'}")
+        for section, values in result["task"].items():
+            for name, value in values.items():
+                path = f"{section}.{name}"
+                shown = json.dumps(value, ensure_ascii=False)
+                print(f"  {path} = {shown} [{result['sources'][path]}]")
+        for blocker in result["blockers"]:
+            print(f"blocker {blocker['field']}: {blocker['message']}")
+        print(f"execution: {result['execution']}")
+    return 0 if result["valid"] else 1
+
+
 def main(argv: list[str] | None = None) -> int:
     argument_parser = parser()
     args = argument_parser.parse_args(argv)
     try:
+        if args.command == "task":
+            return _task_command(args)
         if args.command == "export":
             from ..delivery import export_bundle
 
@@ -395,10 +430,13 @@ def main(argv: list[str] | None = None) -> int:
                 from ..workflows.benchmark_operations import run_task
 
                 return run_task(args.task, args.arguments)
-            from ...benchmark.registry import builtin_tasks, describe_task
+            from ...benchmark.registry import builtin_tasks, describe_task, has_iterative_protocol
 
             if args.benchmark_action == "list":
-                _print(builtin_tasks())
+                tasks = builtin_tasks()
+                if args.iterative:
+                    tasks = [task for task in tasks if has_iterative_protocol(task)]
+                _print(tasks)
             else:
                 _print(describe_task(args.task))
             return 0

@@ -32,7 +32,7 @@ Effect classes used below:
 | Optimize an ordinary project in the current Agent | CLI `campaign start/knowledge/round/status/final/recover` | Experiment-executing / local records | Harness freezes explicit caller-provided checks, manages multi-file candidates, executes and assesses retained results. This path does not depend on Benchmark or infer acceptance from the goal. See [shared workflow](optimization-workflow-unification.md) |
 | Reuse one project service across multi-scenario checks | CLI `campaign start --evaluation-mode service_reuse`, then `baseline/round/profile/status/recover/final` | Experiment-executing / local records | Caller supplies protocol and service scripts. An optional profiler can run inline or on a settled round. `resume`, `refresh-references` and explicit retry retain recovery decisions. See [service reuse](service-reuse-campaigns.md) |
 | Prepare and record a fresh native Agent | CLI `agents prepare/dispatch/bind/record/status` | Local records / explicit host handoff | The initiating Agent calls native host tools. Records prevent repeated dispatch; exported host observations do not establish task acceptance. See [native sessions](native-agent-sessions.md) |
-| Discover packaged tasks | CLI `benchmarks list` / `benchmarks show`; Python `benchmark.registry.builtin_tasks` / `describe_task` | Read-only | Reads the task library's registry and opaque manifests from installed resources |
+| Discover packaged tasks | CLI `benchmarks list [--iterative]` / `benchmarks show`; Python `benchmark.registry.builtin_tasks` / `describe_task` | Read-only | Reads the installed registry and task manifests. The optional filter selects task packages with an `optimization.py` file at their root |
 | Execute one packaged task | CLI `benchmarks run`; Python `apps.workflows.benchmark_operations.run_task` | Experiment-executing | Application launches the task entry, supplies the execution callback and preserves arguments and exit status. The task owns its device, measurement and assessment protocol |
 | Find relevant cases, skills and records | CLI `find` | Read-only | Default discovery across the registered library and package records. Follow the emitted command to read a hit and its revision |
 | Inspect the package catalog | CLI `knowledge search` / `knowledge show`; catalog API | Read-only | Filtered inventory and existing catalog scripts. Uses the installed package's tier/repo/backend/scenario filters and IDs |
@@ -45,6 +45,7 @@ Effect classes used below:
 | Create/update a store candidate | Python `KnowledgeStore.create` / `KnowledgeStore.update` | Candidate-writing | One explicitly authorized local store; expected-revision updates with reason and evidence; retained history; no promotion and no edits to package/checkout content |
 | Inspect a store candidate's history | Python `open_knowledge_store(...).history` | Read-only | Opens an existing store and reads the revision lineage for one store ID |
 | Amend repository-owned knowledge | Scoped repository PR | — | Repository review and integration authority apply; this is not a runtime store Update |
+| Validate or preview a YAML task file | CLI `task validate` / `task preview [--json]` / `task schema` / `task template`; [task input](task-input.md) | Read-only | Reads one schema v1 task file and prints field errors, effective normalized values, their sources and plan/run blockers. Starts no process or probe and writes no workspace, plan, run or evidence file. A complete preview does not authorize execution |
 | Inspect/prepare experiments | CLI `doctor`; `plan` or `--dry-run` | Read-only inspection / preview | `doctor` may invoke bounded probes and does not certify target compatibility; `plan` previews a specification without persisting a campaign or authorizing execution |
 | Execute/inspect experiments | CLI `run`; `status`; `report` | Experiment-executing / read-only / report-generating | `run` executes caller-supplied commands and records evidence; `status` reads recorded progress; `report` generates HTML from recorded evidence |
 | Deliver retained results | CLI `export --input --output [--agent-job]`; Python `apps.delivery.export_bundle` / `read_bundle` | Report-generating | Publishes Markdown, offline HTML, versioned result JSON and artifact index from one snapshot without remeasurement. Optional native-job input verifies standalone Benchmark terminal token usage. Iterative CLI final returns separate delivery status. See [result delivery](result-delivery.md) and [Benchmark metrics](benchmark-metrics.md) |
@@ -55,6 +56,7 @@ Effect classes used below:
 | Verify a frozen preparation binding before registration | Python `inferrsi.harness.prepared_binding.verify` / `read` / `project` | Read-only / pure projection | Fixed ArtifactRef and read-only stream capability; no registration, entry resolution or execution; [binding contract](contracts/harness-prepared-binding.md) |
 | Verify and execute one frozen source evaluation entry | Python `inferrsi.harness.api.Harness.execute` with trusted `LocalCpuTarget(module_root=...)` | Experiment-executing / record-writing | Fixed preparation and expected code digest; actual source captured after registration; T37 refusals start no worker; [source-entry contract](contracts/harness-entry-verification.md) |
 | Freeze a configured P1 preparation | Python `benchmark.preparation.PreparationService.prepare`; [production prepare](contracts/production-prepare.md) | Read-only resource access / pure encoding | Verifies supplied frozen worker/resource bytes and returns a preparation, protocol and role-keyed closure; Apps separately archives them before publishing a Ref |
+| Assess one fixed P1 record offline | Python `benchmark.assessment.assess`; [production assess](contracts/production-assess.md) | Read-only retained evidence / pure encoding | Verifies the frozen protocol, actual capture and proof bytes; returns independent claims without launching a worker or writing an archive; Apps selects the primary key and archives the result |
 | Visualize a recorded run or campaign | CLI `dashboard`; [dashboard](dashboard.md) | Report-generating / local read-only serving | Writes an offline HTML snapshot or serves an optional live view on loopback; does not run an agent or validate a claim |
 | Capture a knowledge context | CLI `campaign capture-context`; [offline dashboard](dashboard.md#record-the-optimization-story-campaign-trace) | Local evidence-writing | Saves assembled context and resource hashes in a new `knowledge/<id>.json`. Supports ordinary questions and explicit IDs. The only accepted explicit `--relevance-method` value is `find-lexical-v1` |
 | Retain an executed retrieval | Python `apps.workflows.campaign.save_retrieval`; [capture contract](knowledge-retrieval-trace.md#retain-a-standalone-result) | Local evidence-writing | Saves an existing catalog/collect result under a fresh campaign capture ID; no new search or automatic publication |
@@ -159,7 +161,7 @@ those resources retain their repository owner and source attribution.
 
 ### Discover/read packaged or custom skills — `skills list` / `enter` / `show` / `resource` / `reference`
 
-- **Inputs:** The agent selects a primary skill by deliverable and runs `inferrsi skills enter task-accuracy`, for example. It returns the primary's complete procedure and host header before supporting evidence search. The base installation can omit the embedded search metadata from this delivery. A pinned `read --resource` exposes the complete source file, including its metadata. An unknown, unavailable or non-primary owner is an error. `list` reads skill frontmatter (and legacy sidecars in historical/custom checkouts); `show <skill>` selects one instruction body; `resource <skill> <relative-path>` and `reference <skill> <relative-path>` resolve one path. The default is the installed library's registered skills; an explicit `--root` selects a custom flat tree or a categorized library with `skill-index.json`. The optional `skills` extra supplies the YAML parser for frontmatter operations.
+- **Inputs:** The agent selects a primary skill by deliverable and runs `inferrsi skills enter task-accuracy`, for example. It returns the primary's complete procedure and host header before supporting evidence search. The base installation can omit the embedded search metadata from this delivery. A pinned `read --resource` exposes the complete source file, including its metadata. An unknown, unavailable or non-primary owner is an error. `list` reads skill frontmatter (and legacy sidecars in historical/custom checkouts); `show <skill>` selects one instruction body; `resource <skill> <relative-path>` and `reference <skill> <relative-path>` resolve one path. The default is the installed library's registered skills; an explicit `--root` selects a custom flat tree or a categorized library with `skill-index.json`. PyYAML, a core dependency, supplies the YAML parser for frontmatter operations; the `skills` extra remains a compatibility alias.
 - **Scope:** complete packaged skills under `data/skill_library/`, or the explicitly selected custom root. The 21 English engine and research-router skills remain accessible through catalog records and library navigation, separately from the registry.
 - **Output:** metadata listing, one instruction body, or a resolved path.
 - **Side effects:** none. `resource`/`reference` do not load or execute the target.
@@ -271,11 +273,11 @@ question calls for prior evidence.
   envelope and additional resources. Remove
   `--omit-resources` to list the bundle's resources. Hits that fail the reader's
   material check carry `unreadable` with the reason.
-- **Base installation.** When PyYAML is absent, an installed Skill with a
+- **Without PyYAML.** PyYAML is a core dependency. When an install lacks it (for
+  example, one made without dependencies), an installed Skill with a
   matching valid package record opens its original text through that record,
   using `read --resource` and its exact revision. The result names the selected
-  resource in `content_resource`. A Skill in a custom root may require the
-  `skills` extra.
+  resource in `content_resource`. A Skill in a custom root may require PyYAML.
 - **Side effects:** none. Retain the revision returned by `read` for evidence and resource followups.
 - **Example:** `inferrsi find "NPU OOM after caching per-step masks" --limit 3` returns the casebook entry recording that attempt first. A vaguer phrasing ranks the procedural skills above it, which is the first limit below rather than a defect.
 
@@ -395,6 +397,19 @@ for the retained old Apps imports and canonical storage paths.
 `handoff.candidate_provider` implement execution/evidence binding, context
 delivery and generation handoff. The API still exports the one canonical
 `CandidateProvider`; `EvaluationPort` remains defined in `apps.api`.
+
+### Validate/preview a task file — `task validate`, `task preview`
+
+- **Inputs:** one YAML task file (schema v1: `optimization`, `environment`, `acceptance`); `preview` also takes the mapped `plan`/`run` flags as explicit overrides. `task schema` and `task template` print the packaged schema and template.
+- **Scope:** format and value errors by field, the effective normalized task with each value's source (`yaml`, `cli`, `default`, `missing` or `invalid`), and the fields a full plan/run still needs.
+- **Output:** text, or JSON with `--json`. Exit 0 for a valid file, even an incomplete draft; 1 for an invalid file or a rejected override; 2 for a malformed flag.
+- **Side effects:** none. Reads the task file only: no subprocess, probe, install or file write.
+- **Failure behavior:** unknown or duplicate keys, unsupported versions and type or range errors are reported with field paths; an acceptance flag that disagrees with the file is a conflict.
+- **Example:** `inferrsi task preview task.yaml --json --repetitions 7`
+
+Explicit flags override YAML values, YAML values override built-in defaults, and an
+omitted flag never replaces a YAML value. Acceptance fields come from the file. See
+[task input](task-input.md). Using a task file with `plan` and `run` is not implemented yet.
 
 ### Inspect/prepare — `doctor`, `plan`, `--dry-run`
 

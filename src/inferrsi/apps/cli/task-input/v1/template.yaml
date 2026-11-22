@@ -1,0 +1,42 @@
+# InferRSI task file, schema v1. Fill the fields you know; leave the rest null.
+# Null counts as missing. A valid draft may be incomplete: run
+#   inferrsi task preview <task.yaml> --json
+# to see the effective values and the fields a full plan/run still needs.
+# Relative paths resolve against this file's directory. Put no credentials here;
+# use the existing runtime channels for secrets.
+schema_version: 1
+
+optimization:
+  repository: null            # prepared target Git checkout (flag --repo)
+  candidate_repository: null  # candidate checkout; default is repository (--candidate-repo)
+  model: null                 # model identity or path recorded in the experiment (--model)
+  model_revision: null        # quoted model revision (--model-revision)
+  framework: null             # vllm | vllm_omni | afd_plugin | vllm_rlt | strata | sglang | sglang_omni (--repo-type)
+  workload: null              # fixed workload identity (--workload-id)
+  scenario: null              # scenario label; default external_benchmark (--scenario)
+  mode: null                  # config | code | semantic; default config (--mode)
+  objective: null             # optimization goal in the user's words
+  plane: null                 # harness | model | infra: the one SIAS plane this step changes
+
+environment:
+  backend: null               # cpu | cuda | rocm | ascend | mlx (--backend)
+  device_ids: null            # list of quoted device IDs, e.g. ["0", "1"] (--device-ids)
+  device_model: null          # expected CUDA device model or Apple Silicon chip (--device-model)
+  python: null                # prepared Python runtime; a path is relative to this file (--python)
+  baseline_command: null      # quoted argv string or list; {result} is the output path (--baseline-command)
+  candidate_command: null     # quoted argv string or list (--candidate-command)
+  quality_command: null       # quality/correctness command (--validation-command)
+  repetitions: null           # positive integer benchmark repetitions (--repetitions)
+  max_minutes: null           # positive time budget in minutes, at most 10080 (--max-minutes)
+  rounds: null                # positive integer optimization rounds; a separate budget
+
+acceptance:
+  reference: null             # acceptance issue https:// URL, or a local plan path
+  baseline_revision: null     # quoted pinned baseline revision
+  metric_key: null            # agreed flat or dotted key in benchmark JSON
+  direction: null             # minimize | maximize
+  metric_unit: null           # metric unit, e.g. ms
+  min_improvement_pct: null   # agreed nonnegative threshold in percent
+  comparison_scope: null      # default external_command
+  required_trial_checks: null # list of dotted keys that must be literal true; default none
+  constraints: null           # other agreed criteria and constraints

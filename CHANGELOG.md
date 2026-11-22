@@ -4,6 +4,19 @@
 
 ### Changed
 
+- `inferrsi.harness.scenarios` is now `inferrsi.harness.trials` (Refs #558). Its one
+  module, `external.py`, runs an external command as one trial and retains its record
+  (`execute_trial`, `collect_trial_checks`); it holds no scenario logic and is the same
+  for every model. There is no forwarding module or alias, and the import gate fails any
+  import of the old package name, with or without a file behind it.
+  - The optimization session's runtime identity now hashes `harness/trials/external.py`
+    instead of `harness/scenarios/external.py`. A benchmark or AB/BA session planned before
+    this change, whose plan carries that identity, is refused before `status`, `recover` or
+    any other operation runs, and none of its files change. Resume such a session with the
+    runtime that planned it. Service-reuse campaigns are dispatched before this check, so
+    the rename does not change how they resume.
+    `tests/fixtures/optimization-session/pre-trials-rename-session/` is a real session of
+    that kind, and its README records the paired-wheel recovery.
 - The `inferrsi.infra` and `inferrsi.model` packages are removed (Refs #498, slices 3b, 4
   and 5). There is no forwarding module or alias, and the import gate fails any import of
   either package name, with or without a file behind it.

@@ -734,23 +734,29 @@ def _run_steps(ctx: _Context, argvs: list[list[str]], deadline: float, cancellat
             continue
         timeout = step["timeout_seconds"]
         bound = deadline if timeout is None else min(deadline, time.monotonic() + float(timeout))
+        step_limited = bound < deadline
         # A missing cwd is a recorded launch failure, not a directory H invents.
         logs = (ctx.captures / f"step-{index}.stdout", ctx.captures / f"step-{index}.stderr")
         run = local_process._supervise(
             argv, ctx.workspace / step["cwd"], os.environ.copy(), logs[0], logs[1], bound,
-            cancellation=cancellation,
+            cancellation=cancellation, step_limited=step_limited,
         )
         runs.append((step, run))
-        if run["pid"] is None and run["status"] == "timeout":
-            records.append(_not_started_step(step, "deadline_exhausted"))
-            stop = "deadline_exhausted"
+        if run["pid"] is None and run["status"] in ("timeout", "cancelled"):
+            if run["status"] == "cancelled":
+                reason = stop = "cancelled"
+            elif step_limited:
+                reason, stop = "step_timeout", "previous_step_failed"
+            else:
+                reason = stop = "deadline_exhausted"
+            records.append(_not_started_step(step, reason))
             continue
         status = _STEP_STATUS[run["status"]]
         exited = status == "exited"
         if run["pid"] is None:
             reasons = ["launch_failed"]
         elif status == "timed_out":
-            reasons = ["deadline_exceeded" if bound >= deadline else "step_timeout"]
+            reasons = ["step_timeout" if step_limited else "deadline_exceeded"]
         elif status == "cancelled":
             reasons = [run["cancellation_source"]]
         elif status == "execution_error":

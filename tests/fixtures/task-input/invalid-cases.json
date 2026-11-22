@@ -1,0 +1,480 @@
+[
+  {
+    "name": "unknown top-level key",
+    "yaml": "schema_version: 1\nextra: 1\n",
+    "fields": [
+      "extra"
+    ]
+  },
+  {
+    "name": "unknown nested key",
+    "yaml": "schema_version: 1\noptimization:\n  repo: .\n",
+    "fields": [
+      "optimization.repo"
+    ]
+  },
+  {
+    "name": "duplicate section",
+    "yaml": "schema_version: 1\noptimization:\n  plane: harness\noptimization:\n  plane: model\n",
+    "fields": [
+      "optimization"
+    ],
+    "schema_detects": false
+  },
+  {
+    "name": "duplicate field",
+    "yaml": "schema_version: 1\nenvironment:\n  backend: cuda\n  backend: cpu\n",
+    "fields": [
+      "environment.backend"
+    ],
+    "schema_detects": false
+  },
+  {
+    "name": "duplicate schema_version",
+    "yaml": "schema_version: 1\nschema_version: 1\n",
+    "fields": [
+      "schema_version"
+    ],
+    "schema_detects": false
+  },
+  {
+    "name": "merge key",
+    "yaml": "schema_version: 1\noptimization:\n  <<: {model: m}\n",
+    "fields": [
+      "optimization"
+    ],
+    "schema_detects": false
+  },
+  {
+    "name": "non-string key",
+    "yaml": "schema_version: 1\noptimization:\n  1: x\n",
+    "fields": [
+      "optimization"
+    ]
+  },
+  {
+    "name": "several documents",
+    "yaml": "schema_version: 1\n---\nschema_version: 1\n",
+    "fields": [
+      "$"
+    ],
+    "schema_detects": false
+  },
+  {
+    "name": "root is a list",
+    "yaml": "- 1\n",
+    "fields": [
+      "$"
+    ]
+  },
+  {
+    "name": "empty document",
+    "yaml": "# nothing here\n",
+    "fields": [
+      "$"
+    ]
+  },
+  {
+    "name": "unsupported version",
+    "yaml": "schema_version: 2\n",
+    "fields": [
+      "schema_version"
+    ]
+  },
+  {
+    "name": "version as string",
+    "yaml": "schema_version: '1'\n",
+    "fields": [
+      "schema_version"
+    ]
+  },
+  {
+    "name": "version as boolean",
+    "yaml": "schema_version: true\n",
+    "fields": [
+      "schema_version"
+    ]
+  },
+  {
+    "name": "missing version",
+    "yaml": "optimization:\n  plane: harness\n",
+    "fields": [
+      "schema_version"
+    ]
+  },
+  {
+    "name": "section is a list",
+    "yaml": "schema_version: 1\nenvironment: [cuda]\n",
+    "fields": [
+      "environment"
+    ]
+  },
+  {
+    "name": "section is null",
+    "yaml": "schema_version: 1\nacceptance:\n",
+    "fields": [
+      "acceptance"
+    ]
+  },
+  {
+    "name": "zero repetitions",
+    "yaml": "schema_version: 1\nenvironment:\n  repetitions: 0\n",
+    "fields": [
+      "environment.repetitions"
+    ]
+  },
+  {
+    "name": "boolean repetitions",
+    "yaml": "schema_version: 1\nenvironment:\n  repetitions: true\n",
+    "fields": [
+      "environment.repetitions"
+    ]
+  },
+  {
+    "name": "string repetitions",
+    "yaml": "schema_version: 1\nenvironment:\n  repetitions: '3'\n",
+    "fields": [
+      "environment.repetitions"
+    ]
+  },
+  {
+    "name": "zero rounds",
+    "yaml": "schema_version: 1\nenvironment:\n  rounds: 0\n",
+    "fields": [
+      "environment.rounds"
+    ]
+  },
+  {
+    "name": "zero max_minutes",
+    "yaml": "schema_version: 1\nenvironment:\n  max_minutes: 0\n",
+    "fields": [
+      "environment.max_minutes"
+    ]
+  },
+  {
+    "name": "nan max_minutes",
+    "yaml": "schema_version: 1\nenvironment:\n  max_minutes: .nan\n",
+    "fields": [
+      "environment.max_minutes"
+    ],
+    "schema_detects": false
+  },
+  {
+    "name": "infinite max_minutes",
+    "yaml": "schema_version: 1\nenvironment:\n  max_minutes: .inf\n",
+    "fields": [
+      "environment.max_minutes"
+    ]
+  },
+  {
+    "name": "max_minutes over seven days",
+    "yaml": "schema_version: 1\nenvironment:\n  max_minutes: 10081\n",
+    "fields": [
+      "environment.max_minutes"
+    ]
+  },
+  {
+    "name": "unknown backend",
+    "yaml": "schema_version: 1\nenvironment:\n  backend: gpu\n",
+    "fields": [
+      "environment.backend"
+    ]
+  },
+  {
+    "name": "unknown plane",
+    "yaml": "schema_version: 1\noptimization:\n  plane: kernel\n",
+    "fields": [
+      "optimization.plane"
+    ]
+  },
+  {
+    "name": "unknown framework",
+    "yaml": "schema_version: 1\noptimization:\n  framework: tensorrt\n",
+    "fields": [
+      "optimization.framework"
+    ]
+  },
+  {
+    "name": "numeric baseline revision",
+    "yaml": "schema_version: 1\nacceptance:\n  baseline_revision: 1234567\n",
+    "fields": [
+      "acceptance.baseline_revision"
+    ]
+  },
+  {
+    "name": "duplicate device IDs",
+    "yaml": "schema_version: 1\nenvironment:\n  device_ids: ['0', '0']\n",
+    "fields": [
+      "environment.device_ids"
+    ]
+  },
+  {
+    "name": "numeric device IDs",
+    "yaml": "schema_version: 1\nenvironment:\n  device_ids: [0, 1]\n",
+    "fields": [
+      "environment.device_ids"
+    ]
+  },
+  {
+    "name": "device IDs as a string",
+    "yaml": "schema_version: 1\nenvironment:\n  device_ids: '0,1'\n",
+    "fields": [
+      "environment.device_ids"
+    ]
+  },
+  {
+    "name": "empty command list",
+    "yaml": "schema_version: 1\nenvironment:\n  baseline_command: []\n",
+    "fields": [
+      "environment.baseline_command"
+    ]
+  },
+  {
+    "name": "unbalanced command quote",
+    "yaml": "schema_version: 1\nenvironment:\n  candidate_command: \"python 'bench.py\"\n",
+    "fields": [
+      "environment.candidate_command"
+    ],
+    "schema_detects": false
+  },
+  {
+    "name": "negative threshold",
+    "yaml": "schema_version: 1\nacceptance:\n  min_improvement_pct: -1\n",
+    "fields": [
+      "acceptance.min_improvement_pct"
+    ]
+  },
+  {
+    "name": "empty metric key part",
+    "yaml": "schema_version: 1\nacceptance:\n  metric_key: metrics..latency\n",
+    "fields": [
+      "acceptance.metric_key"
+    ]
+  },
+  {
+    "name": "unknown direction",
+    "yaml": "schema_version: 1\nacceptance:\n  direction: down\n",
+    "fields": [
+      "acceptance.direction"
+    ]
+  },
+  {
+    "name": "non-HTTP reference URL",
+    "yaml": "schema_version: 1\nacceptance:\n  reference: ftp://example.invalid/plan\n",
+    "fields": [
+      "acceptance.reference"
+    ]
+  },
+  {
+    "name": "numeric model",
+    "yaml": "schema_version: 1\noptimization:\n  model: 7\n",
+    "fields": [
+      "optimization.model"
+    ]
+  },
+  {
+    "name": "empty objective",
+    "yaml": "schema_version: 1\noptimization:\n  objective: ''\n",
+    "fields": [
+      "optimization.objective"
+    ]
+  },
+  {
+    "name": "several errors",
+    "yaml": "schema_version: 1\nenvironment:\n  backend: gpu\n  repetitions: 0\nacceptance:\n  extra: x\n",
+    "fields": [
+      "acceptance.extra",
+      "environment.backend",
+      "environment.repetitions"
+    ]
+  },
+  {
+    "name": "integral float repetitions",
+    "yaml": "schema_version: 1\nenvironment:\n  repetitions: 3.0\n",
+    "fields": [
+      "environment.repetitions"
+    ],
+    "schema_detects": false
+  },
+  {
+    "name": "integral float version",
+    "yaml": "schema_version: 1.0\n",
+    "fields": [
+      "schema_version"
+    ],
+    "schema_detects": false
+  },
+  {
+    "name": "metric key with trailing newline",
+    "yaml": "schema_version: 1\nacceptance:\n  metric_key: \"lat\\n\"\n",
+    "fields": [
+      "acceptance.metric_key"
+    ]
+  },
+  {
+    "name": "device ID with trailing newline",
+    "yaml": "schema_version: 1\nenvironment:\n  device_ids: [\"0\\n\"]\n",
+    "fields": [
+      "environment.device_ids"
+    ]
+  },
+  {
+    "name": "impossible date",
+    "yaml": "schema_version: 1\noptimization:\n  model_revision: 2024-02-30\n",
+    "fields": [
+      "$"
+    ],
+    "schema_detects": false
+  },
+  {
+    "name": "bad explicit tag",
+    "yaml": "schema_version: 1\noptimization:\n  model: !!bool maybe\n",
+    "fields": [
+      "$"
+    ],
+    "schema_detects": false
+  },
+  {
+    "name": "unquoted date revision",
+    "yaml": "schema_version: 1\nacceptance:\n  baseline_revision: 2024-02-01\n",
+    "fields": [
+      "acceptance.baseline_revision"
+    ]
+  },
+  {
+    "name": "huge max_minutes",
+    "yaml": "schema_version: 1\nenvironment:\n  max_minutes: 10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\n",
+    "fields": [
+      "environment.max_minutes"
+    ]
+  },
+  {
+    "name": "huge threshold",
+    "yaml": "schema_version: 1\nacceptance:\n  min_improvement_pct: 10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\n",
+    "fields": [
+      "acceptance.min_improvement_pct"
+    ],
+    "schema_detects": false
+  },
+  {
+    "name": "malformed reference URL",
+    "yaml": "schema_version: 1\nacceptance:\n  reference: 'http://[::1'\n",
+    "fields": [
+      "acceptance.reference"
+    ],
+    "schema_detects": false
+  },
+  {
+    "name": "reference URL without a host",
+    "yaml": "schema_version: 1\nacceptance:\n  reference: 'https://:443'\n",
+    "fields": [
+      "acceptance.reference"
+    ],
+    "schema_detects": false
+  },
+  {
+    "name": "reference URL with only user information",
+    "yaml": "schema_version: 1\nacceptance:\n  reference: 'https://user@/issues/1'\n",
+    "fields": [
+      "acceptance.reference"
+    ],
+    "schema_detects": false
+  },
+  {
+    "name": "reference URL with a non-numeric port",
+    "yaml": "schema_version: 1\nacceptance:\n  reference: 'https://example.com:notaport'\n",
+    "fields": [
+      "acceptance.reference"
+    ],
+    "schema_detects": false
+  },
+  {
+    "name": "reference URL with an out-of-range port",
+    "yaml": "schema_version: 1\nacceptance:\n  reference: 'https://example.com:65536/issues/1'\n",
+    "fields": [
+      "acceptance.reference"
+    ],
+    "schema_detects": false
+  },
+  {
+    "name": "reference URL with a zero port",
+    "yaml": "schema_version: 1\nacceptance:\n  reference: 'https://example.com:0/issues/1'\n",
+    "fields": [
+      "acceptance.reference"
+    ],
+    "schema_detects": false
+  },
+  {
+    "name": "reference URL with a space in the host",
+    "yaml": "schema_version: 1\nacceptance:\n  reference: 'https://exa mple.com/issues/1'\n",
+    "fields": [
+      "acceptance.reference"
+    ],
+    "schema_detects": false
+  },
+  {
+    "name": "NUL in repository paths",
+    "yaml": "schema_version: 1\noptimization:\n  repository: \"repo\\0\"\n  candidate_repository: \"cand\\0idate\"\n",
+    "fields": [
+      "optimization.candidate_repository",
+      "optimization.repository"
+    ],
+    "schema_detects": false
+  },
+  {
+    "name": "NUL in a local plan reference",
+    "yaml": "schema_version: 1\nacceptance:\n  reference: \"plan/acceptance\\0.md\"\n",
+    "fields": [
+      "acceptance.reference"
+    ],
+    "schema_detects": false
+  },
+  {
+    "name": "NUL in a Python path",
+    "yaml": "schema_version: 1\nenvironment:\n  python: \".venv/bin/python\\0\"\n",
+    "fields": [
+      "environment.python"
+    ],
+    "schema_detects": false
+  },
+  {
+    "name": "NUL in a Python command name",
+    "yaml": "schema_version: 1\nenvironment:\n  python: \"python3\\0\"\n",
+    "fields": [
+      "environment.python"
+    ],
+    "schema_detects": false
+  },
+  {
+    "name": "NUL in a quoted argv command",
+    "yaml": "schema_version: 1\nenvironment:\n  baseline_command: \"python bench\\0.py --output {result}\"\n",
+    "fields": [
+      "environment.baseline_command"
+    ],
+    "schema_detects": false
+  },
+  {
+    "name": "NUL in argv list items",
+    "yaml": "schema_version: 1\nenvironment:\n  candidate_command: [python, \"bench\\0.py\"]\n  quality_command: [\"python\\0\", quality.py]\n",
+    "fields": [
+      "environment.candidate_command",
+      "environment.quality_command"
+    ],
+    "schema_detects": false
+  },
+  {
+    "name": "lone surrogate value",
+    "yaml": "schema_version: 1\noptimization:\n  model: \"\\ud800\"\n",
+    "fields": [
+      "optimization.model"
+    ],
+    "schema_detects": false
+  },
+  {
+    "name": "lone surrogate key",
+    "yaml": "schema_version: 1\noptimization:\n  \"\\ud800\": 1\n",
+    "fields": [
+      "optimization.\\ud800"
+    ]
+  }
+]

@@ -15,9 +15,10 @@ inferrsi doctor --repo . --repo-type vllm_omni --backend cpu
 ```
 
 The base install supports `skills enter <task-id>`, `find`, Case reads and
-package-only knowledge operations. Install the `skills` extra with
-`python -m pip install '.[skills]'` for commands that parse skill frontmatter,
-including direct reads from a checkout or a custom skill root.
+package-only knowledge operations. PyYAML is a core dependency, so it also supports
+commands that parse skill frontmatter, including direct reads from a checkout or a
+custom skill root, and the read-only [YAML task file](task-input.md) commands
+`inferrsi task validate|preview`. The `skills` extra remains as a compatibility alias.
 
 For the maintained model examples, see [Qwen B300](qwen-image-2.1-turbo-b300.md)
 and [Qwen Ascend](qwen-image-2.1-turbo-ascend.md). Continue below for the generic
@@ -73,7 +74,7 @@ See the [operation guide](operations.md) for command boundaries.
 ```bash
 inferrsi knowledge search --repo-type vllm_omni --backend ascend --json
 inferrsi context --repo-type vllm_omni --backend cuda --output context.md
-inferrsi skills list --json   # requires python -m pip install '.[skills]'
+inferrsi skills list --json
 ```
 
 Normalized Collect, exact-revision reads and resource access are available as

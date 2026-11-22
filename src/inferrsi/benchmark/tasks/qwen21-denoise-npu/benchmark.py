@@ -68,6 +68,8 @@ def candidate_function(path):
         raise CandidateContractError("Candidate must define callable compute")
     try:
         inspect.signature(function).bind(*(None,) * 6, config={})
+    except ValueError as exc:
+        raise CandidateContractError("Candidate compute signature cannot be inspected") from exc
     except TypeError as exc:
         raise CandidateContractError("compute does not accept the task arguments") from exc
     return function
