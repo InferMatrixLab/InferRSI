@@ -13,17 +13,18 @@ rules and working rules 1, 7 and 8 in
 
 1. Confirm the governing Issue and its accepted scope before changing code. If
    the Issue or the PR you would touch carries `bot:stop`, do not claim it.
-2. Confirm the Issue has an assignee and carries `status:accepted`:
+2. Confirm the Issue has an accountable owner (recorded on the Issue, or else
+   its assignee) and carries `status:accepted`:
 
    ```bash
    gh issue view <issue> --repo InferMatrixLab/InferRSI --json assignees,labels
    ```
 
-   With no assignee, propose on the Issue and ask a maintainer to assign it;
+   With no accountable owner, propose on the Issue and ask a maintainer to assign it;
    at `status:proposed` or `status:deferred`, discuss only. Do not claim
    either.
 3. Confirm you are the deciding agent (the formal agent working for the
-   assignee's account) or that the deciding agent delegated this slice to you
+   accountable owner's account) or that the deciding agent delegated this slice to you
    on the Issue. Otherwise propose on the Issue instead of claiming.
 4. Search open Issues and PRs for the same work, for example:
 
