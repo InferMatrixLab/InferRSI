@@ -11,13 +11,13 @@ Campaign acceptance, DCO, CI lanes and evidence rules stay in
 
 - Humans and agents may propose Issues. Proposal origin, assignment and labels do not grant authority.
 - A GitHub account may represent a human and their authorized agent team. Assignment identifies accountability, not necessarily the executor. Record the acting person/agent and role when relevant; retain unknown identity rather than guessing.
-- Work follows accepted scope and explicit or standing delegation. Record or link that authority. Within the Issue's direction, the accountable agent decides scope, including material scope changes, and exceptions, and records each with its reason on the Issue; a human may override any such decision. Only a change of the Issue's direction goes back to the Issue owner. No agent may waive these controls: independent review with two approvals, a human maintainer's **Approve** for high-risk changes, `agent:stop`, and repository permission and ruleset controls.
+- Work follows accepted scope and explicit or standing delegation. Record or link that authority. Within the Issue's direction, the accountable agent decides scope, including material scope changes, and exceptions, and records each with its reason on the Issue; a human may override any such decision. Only a change of the Issue's direction goes back to the Issue owner. No agent may waive these controls: independent review with two approvals, a human maintainer's **Approve** for high-risk changes, `bot:stop`, and repository permission and ruleset controls.
 - The Issue's assignee is its accountable owner. Each Issue has one deciding agent: the formal agent working for the assignee's account. When one account carries several agents, only that account's one formal agent decides, as with review votes. Other agents propose on the Issue and do not decide.
 - An Issue without an assignee is not started. Agents may propose on it and ask a maintainer to assign it; they do not claim or implement it until it is assigned.
 - Routine PR review and integration may be delegated without fresh human approval per PR. Existing repository permissions and acceptance policies still apply.
 - Completion is accepted by the named person or authorized agent. Acceptance/closure authority must be clear before those actions; it need not block already-authorized implementation.
 - Agents carry work end to end: they claim, delegate slices, set accepted scope and acceptance criteria within the Issue's direction, apply repository rules to a case, grant exceptions within the limits above, review and merge. Each such decision is recorded on the Issue or PR with its reason.
-- Humans do three things: open Issues that set direction, approve high-risk changes, and stop work at any time. A human adds `agent:stop` to an Issue or PR to stop it; agents then make no further changes, reviews or merges there and resume only after a human removes the label. A stop on an Issue also stops its linked PRs, their queued merges and any work delegated under it. Right before each push, review, merge or merge-queue entry, an agent checks the label on the PR and its governing Issue; if it cannot tell whether a stop is present, it does not act.
+- Humans do three things: open Issues that set direction, approve high-risk changes, and stop work at any time. A human adds `bot:stop` to an Issue or PR to stop it; agents then make no further changes, reviews or merges there and resume only after a human removes the label. A stop on an Issue also stops its linked PRs, their queued merges and any work delegated under it. Right before each push, review, merge or merge-queue entry, an agent checks the label on the PR and its governing Issue; if it cannot tell whether a stop is present, it does not act.
 - High-risk changes need an **Approve** from a human maintainer as one of the two approvals: CI workflows and required checks, releases (release workflow, version, tags, publishing), secrets and credentials, and permissions (workflow `permissions`, repository access, rulesets). Agents only comment on high-risk PRs (**Comment**); they never **Approve** them.
 - Each account carries at most one agent team, or the agent uses its own account. Each account has one formal reviewer agent; other agents under that account, such as a patrol, report in comments and do not submit **Approve** or **Request changes**. Separate agent accounts are proposed, not yet a rule: the proposal on [#570](https://github.com/InferMatrixLab/InferRSI/issues/570) pilots one with Dong-bot first. Every agent comment and every formal review (including **Approve** and **Request changes**) carries one line naming the acting agent and the human it acts for, so humans, integrators and other agents can tell who acted. The line comes first, except in an **Approve**, where `LGTM` stays alone on the first non-empty line and the identity line comes next.
 
@@ -123,12 +123,14 @@ valid approvals are still required after dismissal.
 [GitHub review dismissal](https://docs.github.com/en/pull-requests/how-tos/review-pull-requests/dismissing-a-pull-request-review)
 
 Two PRs that each pass their checks can still break `main` together once both
-are merged. A GitHub merge queue, with the required checks, is the last gate:
-it runs the checks on the merged result without dismissing existing approvals,
-so a PR branch need not be up to date with `main` before merging. Enabling it
-is a repository setting for maintainers. If `main` still turns red after a
-merge, an agent first reverts the merge that broke it, then fixes forward in a
-new PR.
+are merged. Once a GitHub merge queue is enabled, it is the last gate: with the
+required checks, it runs them on the merged result without dismissing existing
+approvals, so a PR branch need not be up to date with `main` before merging.
+Until then, the current ruleset and merge controls apply unchanged. Enabling
+the queue is a repository setting for maintainers, and it cannot be enabled
+while the required `knowledge-model-policy` check does not run on
+`merge_group` events. If `main` still turns red after a merge, an agent first
+reverts the merge that broke it, then fixes forward in a new PR.
 
 ### Agent–Agent: isolated work and conditional handoff
 
@@ -253,7 +255,8 @@ lists every repository label with its group and description, and every name has 
 | Status | `status:accepted` or `status:deferred`, replacing `status:proposed` | the acting agent | only after the decision owner records that decision in a comment; at `status:accepted` the direction is settled and assigned work may start; at `status:deferred` no work starts |
 | Priority | at most one `priority:P0/P1/P2`, only with `status:proposed` or `status:accepted` | the acting agent; the decision owner may change it | with `status:proposed`, how soon the owner should decide; with `status:accepted`, how soon work should start; removed at `status:deferred` |
 | Help | `help:wanted` | the creator or a maintainer | an Issue needs an owner or contributor |
-| Stop switch | `agent:stop` | only a human adds or removes it | adding stops agent changes, reviews and merges on that Issue or PR, and on an Issue also its linked PRs, queued merges and delegated work; removing lets them resume; it applies at any status and overrides the rows above |
+| Stop switch | `bot:stop` | only a human adds or removes it | adding stops agent changes, reviews and merges on that Issue or PR, and on an Issue also its linked PRs, queued merges and delegated work; removing lets them resume; it applies at any status and overrides the rows above |
+| Agent review mark | `bot:reviewed` | the reviewing agent | an agent reviewed the Issue or PR; informational only, it is not an approval and carries no coordination meaning |
 | Protected switch | `skill-eval:execute` | only the owner adds it; the owner or an agent may remove it | adding authorizes paid Skill Eval for one PR; removing revokes it |
 
 Status labels carry the governance above. Work starts only on an assigned Issue at
@@ -287,23 +290,6 @@ Change labels by editing `labels.json` in a PR first, then applying that change 
 repository. The nightly `safety-net` job reports drift between the repository labels and
 `labels.json`, and any label that an Issue template or `tools/skill_eval_*_config.json`
 references but `labels.json` lacks. No workflow writes labels.
-
-[`external-labels.json`](../.github/external-labels.json) names the labels that an outside
-GitHub App owns and applies, with the app that owns each one. Those names are exempt from the
-`group:value` rule and from the drift report, because this repository neither creates them nor
-decides their wording: renaming or deleting one only makes the app recreate it. Label
-maintenance leaves them alone, and they carry no coordination meaning here, so the rules above
-do not apply to them. A name cannot be in both files. An Issue template or
-`tools/skill_eval_*_config.json` still may not reference one, since this repository must not
-depend on a label it does not own.
-
-Each `owner` is a required, informational attribution: the reviewer's record of which app
-applies that label, so a later reader can tell why the name is exempt rather than missing. No
-check verifies it, and none can — GitHub does not report which app created a label, and an
-app's configuration is outside this repository. Treat an entry as evidence of a past decision,
-not as a verified fact: before relying on one, confirm from the label's own event history that
-the named app still applies it. Adding an entry is a scope decision, so it goes through review
-like any other change to this file.
 
 ## Evidence refresh — hypothetical example
 
