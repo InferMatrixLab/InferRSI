@@ -45,8 +45,9 @@ and a null step timeout without rewriting historical fixtures. Its canonical
 bytes must agree between the Apps binder and Harness `request_digest`.
 The vector is documentary; its historical code pin is not an available worker.
 
-This slice keeps valid evaluation-mode execution explicitly unsupported.
-Actual entry resolution and code-byte verification after registration (T37),
-attempt deadlines/budget enforcement with a null step timeout, and evaluation
-replay (T40) are later delivery slices. It does not establish production CPU
-acceptance or completion of the governing Harness or Apps Issues.
+Targets without an explicit `module_root` keep valid evaluation-mode execution
+unsupported before registration. A configured source target performs the separate
+[post-registration entry check](harness-entry-verification.md) (T37). Attempt
+deadlines/budget acceptance with a null step timeout and evaluation replay (T40)
+remain separate delivery work. Declaration checks alone do not establish
+production CPU acceptance or completion of the governing Harness or Apps Issues.
