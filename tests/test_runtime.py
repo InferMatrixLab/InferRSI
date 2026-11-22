@@ -324,22 +324,36 @@ class RuntimeTests(unittest.TestCase):
         return superproject
 
     def test_submodule_local_edit_changes_snapshot_hash(self):
+        self._check_submodule_edit_restore("true")
+
+    def test_submodule_local_edit_with_lf_checkout_changes_snapshot_hash(self):
+        self._check_submodule_edit_restore("false")
+
+    def _check_submodule_edit_restore(self, autocrlf):
         # The parent diff records only "<commit>-dirty", so two distinct edits
         # inside a submodule must not share one snapshot hash.
-        superproject = self.make_superproject()
-        vendor = superproject / "sub" / "vendor.py"
-        original = vendor.read_bytes()  # Preserve Git's checkout line endings.
-        original_snapshot = repository_identity(superproject)["snapshot_hash"]
-        vendor.write_bytes(b"first edit\n")
-        first = repository_identity(superproject)["snapshot_hash"]
-        vendor.write_bytes(b"second edit\n")
-        second = repository_identity(superproject)["snapshot_hash"]
-        self.assertNotEqual(first, second)
-        self.assertTrue(repository_identity(superproject)["dirty"])
-        vendor.write_bytes(original)
-        restored = repository_identity(superproject)
-        self.assertFalse(restored["dirty"])
-        self.assertEqual(restored["snapshot_hash"], original_snapshot)
+        # Add one process-scoped option, preserving any caller-provided options.
+        position = int(os.environ.get("GIT_CONFIG_COUNT", "0"))
+        with patch.dict(os.environ, {
+            "GIT_CONFIG_COUNT": str(position + 1),
+            f"GIT_CONFIG_KEY_{position}": "core.autocrlf",
+            f"GIT_CONFIG_VALUE_{position}": autocrlf,
+        }):
+            superproject = self.make_superproject()
+            vendor = superproject / "sub" / "vendor.py"
+            original = vendor.read_bytes()  # Preserve Git's checkout line endings.
+            self.assertEqual(original, b"original\r\n" if autocrlf == "true" else b"original\n")
+            original_snapshot = repository_identity(superproject)["snapshot_hash"]
+            vendor.write_bytes(b"first edit\n")
+            first = repository_identity(superproject)["snapshot_hash"]
+            vendor.write_bytes(b"second edit\n")
+            second = repository_identity(superproject)["snapshot_hash"]
+            self.assertNotEqual(first, second)
+            self.assertTrue(repository_identity(superproject)["dirty"])
+            vendor.write_bytes(original)
+            restored = repository_identity(superproject)
+            self.assertFalse(restored["dirty"])
+            self.assertEqual(restored["snapshot_hash"], original_snapshot)
 
     def test_untracked_nested_repository_is_hashed_not_unavailable(self):
         # Git reports an untracked nested repository as one directory entry;
