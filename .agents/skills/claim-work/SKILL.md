@@ -13,7 +13,10 @@ rules and working rules 1, 7 and 8 in
 
 1. Confirm the governing Issue and its accepted scope before changing code. If
    the Issue or the PR you would touch carries `bot:stop` or has a human's
-   stop comment that has not been lifted there, do not claim it.
+   stop comment that has not been lifted there (see the
+   [stop rule](../../../docs/agent-collaboration.md#identity-and-authority)),
+   do not claim it. If you cannot tell whether a stop is present, do not
+   claim it either.
 2. Confirm the Issue has an accountable owner (recorded on the Issue, or else
    its assignee) and carries `status:accepted`:
 
