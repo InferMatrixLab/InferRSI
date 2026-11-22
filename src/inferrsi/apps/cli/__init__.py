@@ -395,10 +395,13 @@ def main(argv: list[str] | None = None) -> int:
                 from ..workflows.benchmark_operations import run_task
 
                 return run_task(args.task, args.arguments)
-            from ...benchmark.registry import builtin_tasks, describe_task
+            from ...benchmark.registry import builtin_tasks, describe_task, has_iterative_protocol
 
             if args.benchmark_action == "list":
-                _print(builtin_tasks())
+                tasks = builtin_tasks()
+                if args.iterative:
+                    tasks = [task for task in tasks if has_iterative_protocol(task)]
+                _print(tasks)
             else:
                 _print(describe_task(args.task))
             return 0

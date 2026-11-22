@@ -17,7 +17,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 from inferrsi.benchmark.comparison import DEFAULT_POLICY, DEFAULT_TASKS, summarize, validate_policy
-from inferrsi.benchmark.registry import task_resources
+from inferrsi.benchmark.registry import has_iterative_protocol, task_resources
 from inferrsi.benchmark.summary import POLICY, supported_policy
 from inferrsi.benchmark.summary import comparison as metrics_comparison
 from inferrsi.harness import agent_sessions, optimization
@@ -123,8 +123,7 @@ def _validate_config(config):
             or len(set(tasks)) != len(tasks)):
         raise ValueError("tasks must be a nonempty list of unique registered task names")
     for task in tasks:
-        root = Path(str(task_resources(task)))
-        if not (root / "optimization.py").is_file():
+        if not has_iterative_protocol(task):
             raise ValueError(f"Task has no iterative protocol: {task}")
         if not isinstance(config["task_arguments"].get(task), str):
             raise ValueError(f"Missing task arguments: {task}")
