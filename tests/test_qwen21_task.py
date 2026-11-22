@@ -366,54 +366,52 @@ DEVICE_LOST_SHAPE_ERROR = "device lost: " + SHAPE_ERRORS["must match the size of
 BACKEND_SHAPE_ERROR = "backend device unavailable: " + SHAPE_ERRORS["shapes cannot be multiplied"]
 
 
-@pytest.mark.parametrize("exception,message,candidate,verified,diagnostic", [
-    *[(RuntimeError, message, True, True, fragment) for fragment, message in SHAPE_ERRORS.items()],
+@pytest.mark.parametrize("message,diagnostic", [
+    *[(message, fragment) for fragment, message in SHAPE_ERRORS.items()],
     # Older PyTorch omits the operator prefix; inferred and empty view shapes.
-    (RuntimeError, "mat1 and mat2 shapes cannot be multiplied (4x8 and 16x16)", True, True,
-     "shapes cannot be multiplied"),
-    (RuntimeError, "shape '[-1, 5]' is invalid for input of size 16", True, True,
-     "is invalid for input of size"),
-    (RuntimeError, "shape '[0, -1]' is invalid for input of size 16", True, True,
-     "is invalid for input of size"),
-    (RuntimeError, "shape '[]' is invalid for input of size 2", True, True,
-     "is invalid for input of size"),
+    ("mat1 and mat2 shapes cannot be multiplied (4x8 and 16x16)", "shapes cannot be multiplied"),
+    ("shape '[-1, 5]' is invalid for input of size 16", "is invalid for input of size"),
+    ("shape '[0, -1]' is invalid for input of size 16", "is invalid for input of size"),
+    ("shape '[]' is invalid for input of size 2", "is invalid for input of size"),
     # A shape message inside other wording has no host-check provenance.
-    (RuntimeError, DEVICE_LOST_SHAPE_ERROR, True, True, None),
-    (RuntimeError, BACKEND_SHAPE_ERROR, True, True, None),
-    (RuntimeError, SHAPE_ERRORS["is invalid for input of size"] + " (device lost)", True, True,
-     None),
-    (RuntimeError, SHAPE_ERRORS["Sizes of tensors must match"] + "\nbackend unavailable", True,
-     True, None),
-    (RuntimeError, "aten: " + SHAPE_ERRORS["shapes cannot be multiplied"], True, True, None),
+    (DEVICE_LOST_SHAPE_ERROR, None),
+    (BACKEND_SHAPE_ERROR, None),
+    (SHAPE_ERRORS["is invalid for input of size"] + " (device lost)", None),
+    (SHAPE_ERRORS["Sizes of tensors must match"] + "\nbackend unavailable", None),
+    ("aten: " + SHAPE_ERRORS["shapes cannot be multiplied"], None),
     # Complete messages whose reported sizes do not actually conflict.
-    (RuntimeError, "mm: mat1 and mat2 shapes cannot be multiplied (4x8 and 8x16)", True, True,
-     None),
-    (RuntimeError, "The size of tensor a (1) must match the size of tensor b (5) "
-     "at non-singleton dimension 0", True, True, None),
-    (RuntimeError, "shape '[3, 5]' is invalid for input of size 15", True, True, None),
-    (RuntimeError, "shape '[-1, 5]' is invalid for input of size 15", True, True, None),
-    (RuntimeError, "shape '[-1, -1]' is invalid for input of size 16", True, True, None),
-    (RuntimeError, "Sizes of tensors must match except in dimension 1. Expected size 4 "
-     "but got size 4 for tensor number 1 in the list.", True, True, None),
-    (RuntimeError, SHAPE_ERRORS["shapes cannot be multiplied"], False, True, None),
-    (RuntimeError, SHAPE_ERRORS["shapes cannot be multiplied"], True, False, None),
-    (RuntimeError, DEVICE_SHAPE_ERROR, True, True, None),
-    (RuntimeError, SHAPE_ERRORS["is invalid for input of size"] + " (ACL error 507015)", True,
-     True, None),
-    (RuntimeError, SHAPE_ERRORS["Sizes of tensors must match"] + " after synchronization", True,
-     True, None),
-    (RuntimeError, SHAPE_ERRORS["must match the size of tensor"] + " in torch_npu.npu_rotary_mul",
-     True, True, None),
-    (RuntimeError, "[ERROR] (Device:0) ERR01002 OPS " + SHAPE_ERRORS["shapes cannot be multiplied"],
-     True, True, None),
-    (RuntimeError, DEVICE_SYNC_ERROR, True, True, None),
-    (RuntimeError, "Synthetic driver error", True, True, None),
-    (RuntimeError, "Expected size for first two dimensions of batch2 tensor", True, True, None),
-    (ValueError, SHAPE_ERRORS["shapes cannot be multiplied"], True, True, None),
+    ("mm: mat1 and mat2 shapes cannot be multiplied (4x8 and 8x16)", None),
+    ("The size of tensor a (1) must match the size of tensor b (5) "
+     "at non-singleton dimension 0", None),
+    ("shape '[3, 5]' is invalid for input of size 15", None),
+    ("shape '[-1, 5]' is invalid for input of size 15", None),
+    ("shape '[-1, -1]' is invalid for input of size 16", None),
+    ("Sizes of tensors must match except in dimension 1. Expected size 4 "
+     "but got size 4 for tensor number 1 in the list.", None),
+    (DEVICE_SHAPE_ERROR, None),
+    (SHAPE_ERRORS["is invalid for input of size"] + " (ACL error 507015)", None),
+    (SHAPE_ERRORS["Sizes of tensors must match"] + " after synchronization", None),
+    (SHAPE_ERRORS["must match the size of tensor"] + " in torch_npu.npu_rotary_mul", None),
+    ("[ERROR] (Device:0) ERR01002 OPS " + SHAPE_ERRORS["shapes cannot be multiplied"], None),
+    (DEVICE_SYNC_ERROR, None),
+    ("Synthetic driver error", None),
+    ("Expected size for first two dimensions of batch2 tensor", None),
 ])
-def test_candidate_contract_diagnostic_requires_recognized_message_and_verified_baseline(
-    exception, message, candidate, verified, diagnostic,
+def test_shape_message_requires_one_complete_template_with_conflicting_sizes(message, diagnostic):
+    # Message evidence only; attribution also needs an operator raise (tests below).
+    assert load("benchmark").shape_check_diagnostic(message) == diagnostic
+
+
+@pytest.mark.parametrize("candidate,verified", [(True, True), (False, True), (True, False)])
+@pytest.mark.parametrize("exception", [RuntimeError, ValueError])
+@pytest.mark.parametrize("message", sorted(SHAPE_ERRORS.values()))
+def test_python_raise_of_a_complete_shape_message_is_never_attributed(
+    message, exception, candidate, verified,
 ):
+    """A raise statement in the submission proves its message and call site, not an operator.
+
+    This holds with and without PyTorch loaded in the process.
+    """
     worker = load("benchmark")
     original = exception(message)
 
@@ -422,18 +420,14 @@ def test_candidate_contract_diagnostic_requires_recognized_message_and_verified_
 
     with pytest.raises(exception) as caught:
         worker.invoke_compute(compute, (), {}, {}, candidate=candidate, baseline_verified=verified)
-    if diagnostic:
-        assert isinstance(caught.value, worker.CandidateComputeContractError)
-        assert caught.value.__cause__ is original
-        assert caught.value.diagnostic == diagnostic
-        assert caught.value.details() == {"diagnostic": diagnostic, "error": message}
-    else:
-        assert caught.value is original
+    assert caught.value is original
 
 
 def test_host_shape_templates_match_installed_torch_shape_diagnostics():
     torch = pytest.importorskip("torch")
     worker = load("benchmark")
+    # Real C++ operators called directly from the submitted file: no Torch Python
+    # frame exists, the innermost entry is the submission's operator or call.
     failures = {
         "shapes cannot be multiplied": lambda: torch.ones(4, 8) @ torch.ones(16, 16),
         "must match the size of tensor": lambda: torch.ones(4) + torch.ones(5),
@@ -447,9 +441,15 @@ def test_host_shape_templates_match_installed_torch_shape_diagnostics():
                                   candidate=True, baseline_verified=True)
         assert caught.value.diagnostic == fragment
         assert type(caught.value.__cause__) is RuntimeError
+        # The same operator error outside a verified candidate call stays unattributed.
+        for candidate, verified in ((False, True), (True, False)):
+            with pytest.raises(RuntimeError) as caught:
+                worker.invoke_compute(lambda *args, **kwargs: failure(), (), {}, {},
+                                      candidate=candidate, baseline_verified=verified)
+            assert type(caught.value) is RuntimeError
 
-    # Core PyTorch Python frames below the submitted call and a decorated entry
-    # keep the submitted file as the nearest non-torch caller.
+    # Core PyTorch Python frames below the submitted call and a decorated entry:
+    # the innermost entry is core PyTorch's own native call.
     @torch.inference_mode()
     def decorated(*args, **kwargs):
         return torch.broadcast_tensors(torch.ones(4), torch.ones(5))
@@ -465,10 +465,38 @@ def test_host_shape_templates_match_installed_torch_shape_diagnostics():
     assert frames[-1].endswith("functional.py")
 
 
-def test_contract_attribution_requires_plain_error_raised_by_submitted_source(tmp_path):
-    """The complete message alone is not enough; the error itself must be attributable."""
+def test_contract_attribution_requires_a_plain_error_raised_by_an_operator_call(tmp_path):
+    """The complete message alone is not enough; an operator must have raised the error."""
+    torch = pytest.importorskip("torch")
     worker = load("benchmark")
     message = SHAPE_ERRORS["must match the size of tensor"]
+
+    def operator(*args, **kwargs):
+        return torch.ones(4) + torch.ones(5)
+
+    def reraised(*args, **kwargs):
+        # The operator's own error object keeps its operator traceback entry.
+        try:
+            operator()
+        except RuntimeError as error:
+            raise error
+
+    def copied(*args, **kwargs):
+        # The operator's exact message, raised again by a raise statement.
+        try:
+            operator()
+        except RuntimeError as error:
+            text = str(error)
+        raise RuntimeError(text)
+
+    def helper(*args, **kwargs):
+        def check():
+            raise RuntimeError(message)
+        check()
+
+    def torch_check(*args, **kwargs):
+        # A Python raise inside core PyTorch with a message chosen by the submission.
+        torch._check(False, lambda: message)
 
     class BackendError(RuntimeError):
         pass
@@ -477,31 +505,35 @@ def test_contract_attribution_requires_plain_error_raised_by_submitted_source(tm
         raise BackendError(message)
 
     def chained(*args, **kwargs):
-        raise RuntimeError(message) from OSError("device lost")
+        try:
+            operator()
+        except RuntimeError as error:
+            raise error from OSError("device lost")
 
     def during_other_failure(*args, **kwargs):
         try:
             raise OSError("backend device unavailable")
         except OSError:
-            raise RuntimeError(message)
+            operator()
 
-    # A runtime wrapper outside the submission and outside core PyTorch raises it.
+    # A runtime wrapper outside the submission and outside core PyTorch calls the operator.
     runtime = {}
-    exec(compile(f"def launch():\n    raise RuntimeError({message!r})\n",
+    exec(compile("import torch\ndef launch():\n    return torch.ones(4) + torch.ones(5)\n",
                  str(tmp_path / "torch_npu" / "runtime.py"), "exec"), runtime)
 
     def foreign(*args, **kwargs):
         runtime["launch"]()
 
-    def direct(*args, **kwargs):
-        raise RuntimeError(message)
-
-    for compute in (subclass, chained, during_other_failure, foreign):
+    for compute in (operator, reraised):
+        with pytest.raises(worker.CandidateComputeContractError) as caught:
+            worker.invoke_compute(compute, (), {}, {}, candidate=True, baseline_verified=True)
+        assert str(caught.value.__cause__) == message
+    for compute in (copied, helper, torch_check, subclass, chained, during_other_failure,
+                    foreign):
         with pytest.raises(RuntimeError) as caught:
             worker.invoke_compute(compute, (), {}, {}, candidate=True, baseline_verified=True)
         assert not isinstance(caught.value, worker.CandidateRecheckedError), compute.__name__
-    with pytest.raises(worker.CandidateComputeContractError):
-        worker.invoke_compute(direct, (), {}, {}, candidate=True, baseline_verified=True)
+        assert message in str(caught.value), compute.__name__
 
 
 CANDIDATE_HEADER = (
@@ -584,12 +616,25 @@ BLOCKING_COMPUTE_FAILURES = {
     "device_reported_shape_error": f"    raise RuntimeError({DEVICE_SHAPE_ERROR!r})\n",
     "device_lost_shape_error": f"    raise RuntimeError({DEVICE_LOST_SHAPE_ERROR!r})\n",
     "backend_unavailable_shape_error": f"    raise RuntimeError({BACKEND_SHAPE_ERROR!r})\n",
+    # A raise statement in the submission with a complete, conflicting shape message,
+    # and with the exact message of the candidate's own operator error: no operator
+    # raised either error object.
+    "direct_shape_message_raise": (
+        f"    raise RuntimeError({SHAPE_ERRORS['shapes cannot be multiplied']!r})\n"),
+    "copied_operator_message_raise": (
+        "    try:\n"
+        "        latents.flatten(0, 1) @ latents.flatten(0, 1)\n"
+        "    except RuntimeError as error:\n"
+        "        message = str(error)\n"
+        "    raise RuntimeError(message)\n"),
 }
 BLOCKING_LOG_TEXT = {
     "device_synchronize_failure": "EZ9999",
     "device_reported_shape_error": "EZ9999",
     "device_lost_shape_error": "device lost",
     "backend_unavailable_shape_error": "backend device unavailable",
+    "direct_shape_message_raise": "shapes cannot be multiplied",
+    "copied_operator_message_raise": "shapes cannot be multiplied",
 }
 
 
@@ -642,7 +687,7 @@ def test_contract_rejection_requires_retained_baseline_recheck(contract_failure,
 
 @pytest.mark.parametrize("failure", [
     "candidate_contract", "device_synchronize_failure", "device_lost_shape_error",
-    "backend_unavailable_shape_error",
+    "backend_unavailable_shape_error", "direct_shape_message_raise",
 ])
 def test_harness_continues_only_after_attributed_contract_rejection(tmp_path, failure):
     """Round 1 is the real CPU worker and Qwen assessor; later rows are synthetic stand-ins."""

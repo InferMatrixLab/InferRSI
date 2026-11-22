@@ -2,6 +2,7 @@
 """Check and pair-time a self-contained Qwen 2.1 denoising candidate."""
 
 import argparse
+import dis
 import hashlib
 import importlib.util
 import inspect
@@ -95,40 +96,68 @@ HOST_SHAPE_DIAGNOSTICS = {
 }
 
 
-def raised_by_submitted_source(error, function):
-    # The raising operator may sit below core PyTorch Python frames. The nearest
-    # frame outside the torch package must be the submitted source itself, not a
-    # device runtime wrapper, another library or the evaluator.
+def shape_check_diagnostic(message):
+    """Name the host shape check whose complete message, with conflicting sizes, this is."""
+    for diagnostic, (pattern, conflict) in HOST_SHAPE_DIAGNOSTICS.items():
+        match = pattern.fullmatch(message)
+        if match:
+            return diagnostic if conflict(match) else None
+    return None
+
+
+# Instructions that run a called object or an operator slot. A Python callee adds
+# its own traceback entry, so an error whose innermost entry stops at one of these
+# was raised in native code. A raise statement stops at a raise instruction.
+NATIVE_CALL_INSTRUCTIONS = frozenset({
+    "CALL", "CALL_KW", "CALL_FUNCTION", "CALL_FUNCTION_KW", "CALL_FUNCTION_EX", "CALL_METHOD",
+    "COMPARE_OP", "STORE_SUBSCR",
+})
+
+
+def raised_by_native_call(trace):
+    for instruction in dis.get_instructions(trace.tb_frame.f_code):
+        if instruction.offset == trace.tb_lasti:
+            name = instruction.opname
+            return name in NATIVE_CALL_INSTRUCTIONS or name.startswith(("BINARY_", "INPLACE_"))
+    return False
+
+
+def raised_by_operator_call_in_submission(error, function):
+    # Interpreter evidence, not message text or file names alone. The innermost
+    # traceback entry must stop at a call or operator instruction, either in the
+    # submitted file (a C++ operator such as `a @ b` leaves no Torch Python frame)
+    # or in core PyTorch Python code that the submitted file called. A raise
+    # statement anywhere, including in the submission or torch._check, and any
+    # device runtime wrapper, other library or evaluator frame between them are
+    # no evidence. Without PyTorch loaded, no PyTorch operator raised it.
     try:
         source = os.path.realpath(inspect.unwrap(function).__code__.co_filename)
     except (AttributeError, ValueError):
         return False
     torch_file = getattr(sys.modules.get("torch"), "__file__", None)
-    library = (os.path.join(os.path.dirname(os.path.realpath(torch_file)), "")
-               if torch_file else None)
-    frame, caller = error.__traceback__, None
-    while frame is not None:
-        filename = os.path.realpath(frame.tb_frame.f_code.co_filename)
-        if library is None or not filename.startswith(library):
+    if not torch_file:
+        return False
+    library = os.path.join(os.path.dirname(os.path.realpath(torch_file)), "")
+    trace, innermost, caller = error.__traceback__, None, None
+    while trace is not None:
+        filename = os.path.realpath(trace.tb_frame.f_code.co_filename)
+        if not filename.startswith(library):
             caller = filename
-        frame = frame.tb_next
-    return caller == source
+        innermost, trace = trace, trace.tb_next
+    return caller == source and raised_by_native_call(innermost)
 
 
 def host_shape_diagnostic(error, function):
     """Name the host shape check this error proves, or None when evidence is missing."""
     # Positive evidence only: a plain, unchained RuntimeError, so no subclass such
     # as a device or memory error and no earlier failure; one complete host-check
-    # message whose sizes conflict; raised through core PyTorch from the submission.
+    # message whose sizes conflict; raised inside an operator the submission called.
     if type(error) is not RuntimeError or error.__cause__ is not None or (
             error.__context__ is not None):
         return None
-    message = str(error)
-    for diagnostic, (pattern, conflict) in HOST_SHAPE_DIAGNOSTICS.items():
-        match = pattern.fullmatch(message)
-        if match:
-            return diagnostic if conflict(match) and raised_by_submitted_source(
-                error, function) else None
+    diagnostic = shape_check_diagnostic(str(error))
+    if diagnostic and raised_by_operator_call_in_submission(error, function):
+        return diagnostic
     return None
 
 
