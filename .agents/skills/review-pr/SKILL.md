@@ -58,10 +58,10 @@ with **PR review verdict — DO NOT PASS** and state what must change or be veri
 before re-review. Keep optional suggestions separate from the blockers.
 
 Use GitHub **Comment** (`COMMENTED`) for non-voting interim feedback. A completed
-formal review still requires **Approve** or **Request changes**, except on a
-high-risk PR (CI, releases, secrets, permissions): there an agent gives its
-verdict as a **Comment**, never selects **Approve**, and leaves the merge to a
-human maintainer. Post a review or
+formal review still requires **Approve** or **Request changes**, also on a
+high-risk PR (CI, releases, secrets, permissions); there an **Approve** from a
+maintainer account, including its agent, counts as the maintainer approval.
+Post a review or
 comment only for a new head, new evidence or a new question. Lead with the
 one-line conclusion and put details in a collapsible `<details>` section.
 

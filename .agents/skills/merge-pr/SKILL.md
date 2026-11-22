@@ -47,13 +47,12 @@ that pair only.
    **Approve** or dismissed with a recorded reason.
 8. **Required checks green** on the head. Windows/macOS `host-compatibility`
    results are advisory and never block.
-9. **Not high-risk:** the diff changes none of CI workflows or required
-   checks, releases (release workflow, version, tags, publishing), secrets and
+9. **High-risk:** if the diff changes CI workflows or required checks,
+   releases (release workflow, version, tags, publishing), secrets and
    credentials, or permissions (workflow `permissions`, repository access,
-   rulesets). If it changes any of them, or you cannot tell, report "needs a
-   human maintainer to merge" and stop: never report it merge-ready, merge it
-   or queue it. A human maintainer merges it personally, after two approvals
-   with at least one from a human maintainer.
+   rulesets), or you cannot tell, at least one of the approvals in 5 comes from
+   a maintainer account; that account's agent may give it. Otherwise follow
+   the normal flow.
 
 Right before merging, read the PR and the governing Issue again. Recheck the
 stop labels and stop comments; `headRefOid`, `baseRefName` and `baseRefOid` against the pair you
