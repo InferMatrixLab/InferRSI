@@ -58,13 +58,11 @@ with **PR review verdict — DO NOT PASS** and state what must change or be veri
 before re-review. Keep optional suggestions separate from the blockers.
 
 Use GitHub **Comment** (`COMMENTED`) for non-voting interim feedback. A completed
-formal review still requires **Approve** or **Request changes**, also on a
-high-risk PR (CI, releases, secrets, permissions); there an **Approve** from an
-account on the [high-risk approver list](../../../.github/high-risk-approvers.json)
-as it stands on protected `main` (not the PR head or a stacked branch; see the
-[high-risk rule](../../../docs/agent-collaboration.md#identity-and-authority)),
-including its agent, counts as the required listed approval. Other approvals
-count toward the two but not as that one.
+formal review still requires **Approve** or **Request changes**, except on a
+high-risk PR (CI, releases, secrets, permissions): there an agent gives its
+verdict as a **Comment** and never selects **Approve**. Post a review or
+comment only for a new head, new evidence or a new question. Lead with the
+one-line conclusion and put details in a collapsible `<details>` section.
 
 Agents may submit formal reviews without a separate human delegation; see
 [identity and authority](../../../docs/agent-collaboration.md#identity-and-authority).
