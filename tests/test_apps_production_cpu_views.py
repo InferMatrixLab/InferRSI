@@ -341,3 +341,85 @@ print(json.dumps(output.result))
     with sqlite3.connect(store.root / "index.sqlite3") as connection:
         assert connection.execute("SELECT count(*) FROM attempts").fetchone()[0] == 1
         assert connection.execute("SELECT count(*) FROM records").fetchone()[0] == 1
+
+
+@pytest.mark.parametrize("production_attempt", ["correct"], indirect=True)
+@pytest.mark.parametrize("fault", ["absent", "corrupt"])
+def test_offline_reassessment_requires_the_original_grader_proof(
+    production_attempt, tmp_path, fault,
+):
+    config, store, _, executed, assessed, _ = production_attempt
+    record_ref = executed.result["record_ref"]
+    before = store.committed(record_ref["attempt_id"])
+    check = next(item for item in before.payload["checks"] if item["check_id"] == "grader")
+    assert check["status"] == "passed" and len(check["evidence_refs"]) == 1
+    proof = check["evidence_refs"][0]
+    digest = proof["sha256"]
+    path = store.root / "objects" / digest[:2] / digest
+    assert path.resolve().is_relative_to(tmp_path.resolve())
+    assert sha256(path.read_bytes()).hexdigest() == digest
+    if fault == "absent":
+        path.unlink()
+    else:
+        path.write_bytes(b"corrupt retained proof\n")
+
+    def forbidden(*args, **kwargs):
+        raise AssertionError("offline reassessment attempted execution or a Harness write")
+
+    with (
+        patch.object(subprocess, "Popen", forbidden), patch.object(Harness, "execute", forbidden),
+        patch.object(RunStore, "claim", forbidden), patch.object(Claim, "commit", forbidden),
+    ):
+        output = api.assess(
+            {"schema_version": 1, "record_ref": record_ref, "primary_scope": "p1",
+             "primary_claim_id": "C"}, workspace=tmp_path, storage_config=config,
+            assess_benchmark=assessment.assess, encode_assessment=assessment.encode,
+            validate_assessment=assessment.validate_assessment, output_id="missing-proof",
+        )
+    assert output.result["exit_code"] == 9
+    assert output.result["record_ref"] == record_ref
+    claims = {item["claim_id"]: item for item in output.result["assessment"]["claims"]}
+    assert claims["C"]["verdict"] == "INCONCLUSIVE"
+    assert claims["C"]["missing_evidence"] == ["grader"]
+    assert ("ArtifactUnavailable" if fault == "absent" else "ArtifactIntegrityError") in (
+        claims["C"]["reasons"]
+    )
+    assert claims["F"]["verdict"] == claims["M"]["verdict"] == "PASS"
+    assert output.result["assessment_ref"] != assessed.result["assessment_ref"]
+    assert archive.read_assessment(config, assessed.result["assessment_ref"]) == (
+        assessed.result["assessment"]
+    )
+    after = store.committed(record_ref["attempt_id"])
+    assert after.record_ref == before.record_ref and after.payload_bytes == before.payload_bytes
+
+
+@pytest.mark.parametrize("production_attempt", ["correct"], indirect=True)
+@pytest.mark.parametrize("field,value", [("primary_claim_id", "unknown"),
+                                         ("primary_scope", "unknown")])
+def test_unknown_production_claim_refuses_before_assessor_or_assessment_archive(
+    production_attempt, tmp_path, field, value,
+):
+    config, store, _, executed, _, _ = production_attempt
+    record_ref = executed.result["record_ref"]
+    before = store.committed(record_ref["attempt_id"])
+    request = {"schema_version": 1, "record_ref": record_ref, "primary_scope": "p1",
+               "primary_claim_id": "C", field: value}
+
+    def forbidden(*args, **kwargs):
+        raise AssertionError("unknown claim reached the assessor, assessment archive or executor")
+
+    with (
+        patch.object(api, "archive_assessment", forbidden),
+        patch.object(subprocess, "Popen", forbidden),
+        patch.object(RunStore, "claim", forbidden), patch.object(Claim, "commit", forbidden),
+    ):
+        output = api.assess(
+            request, workspace=tmp_path, storage_config=config, assess_benchmark=forbidden,
+            encode_assessment=forbidden, validate_assessment=forbidden, output_id="unknown-claim",
+        )
+    assert output.result["exit_code"] == 2
+    assert output.result["error"]["code"] == "InvalidRequest"
+    assert output.result["error"]["stage"] == "primary_claim"
+    assert output.result["assessment"] is output.result["assessment_ref"] is None
+    after = store.committed(record_ref["attempt_id"])
+    assert after.record_ref == before.record_ref and after.payload_bytes == before.payload_bytes
