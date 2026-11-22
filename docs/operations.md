@@ -415,7 +415,7 @@ the same merge (see [use with plan and run](task-input.md#use-with-plan-and-run)
 
 - **Inputs:** repository/backend/device flags; `plan` takes the full experiment specification as flags, or a complete YAML task file with `--task <task.yaml>` plus explicit mapped overrides.
 - **Scope:** environment inspection and specification preview.
-- **Output:** environment facts, or a preview of the RunSpec. With `--task`, the preview adds a `task` block equal to `task preview --json` for the same file and flags, and a `frozen_gate` block that reports whether the task's acceptance fields agree with the local frozen gate record named by `acceptance.reference`.
+- **Output:** environment facts, or a preview of the RunSpec. With `--task`, the preview adds a `task` block equal to `task preview --json` for the same file and flags, and a `frozen_gate` block that reports whether the task's acceptance fields agree in content with the local frozen gate record named by `acceptance.reference`. `agrees` is content agreement only; it does not authenticate the record's provenance.
 - **Side effects:** `doctor` may invoke bounded read-only probes; `plan`/`--dry-run` persist nothing.
 - **Failure behavior:** unavailable devices or invalid flags are reported explicitly. With `--task`, task field errors, conflicting acceptance flags and blockers are printed by field to stderr, exit 2, before any probe. Without `--task`, `--baseline-command` and `--candidate-command` are required.
 - **Example:** `inferrsi doctor --repo . --repo-type vllm_omni --backend cpu`
@@ -426,9 +426,9 @@ compatibility.
 
 ### Execute/inspect — `run`, `status`, `report`
 
-- **Inputs:** the full experiment specification as flags or as a complete `--task <task.yaml>` (`run`); a run ID and output directory (`status`/`report`).
+- **Inputs:** the full experiment specification as flags or as a complete `--task <task.yaml>` (`run`); a run ID and output directory (`status`/`report`). With `--task`, the caller/host must first establish that `acceptance.reference` names the accepted frozen gate record. InferRSI checks that the task and that local record agree in content (`agrees`); it does not authenticate the record's provenance and takes no expected digest.
 - **Scope:** caller-supplied benchmark, candidate and validation commands under the experiment contract.
-- **Output:** a run ID and evidence directory; recorded progress; an HTML report. With `--task`, the run directory also holds `task.json`, the task preview, and `frozen_gate.json`, the gate result with the record's SHA-256.
+- **Output:** a run ID and evidence directory; recorded progress; an HTML report. With `--task`, the run directory also holds `task.json`, the task preview, and `frozen_gate.json`, the gate result with the record's SHA-256 for citation in the acceptance issue.
 - **Side effects:** `run` executes the supplied commands and owns child-process cleanup; `report` writes HTML into the run directory.
 - **Failure behavior:** exit codes 0 PASS, 1 FAIL, 2 INCONCLUSIVE/input errors; cancellation is recorded. With `--task`, task field errors and blockers exit 2 before any probe. A task whose acceptance fields differ from the frozen gate record (`mismatch`), or whose gate cannot be checked (`unverified`: an HTTP(S) reference, a missing file, or a record that is not a schema v1 `acceptance` section stating the gate), also exits 2 before any probe; see [frozen gate record](task-input.md#frozen-gate-record). A baseline checkout `HEAD` that differs from `acceptance.baseline_revision` exits 2 after inspection. In all three cases no command starts and nothing is written.
 - **Example:** see [quickstart: real remote experiment](quickstart.md#real-remote-experiment)

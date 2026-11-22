@@ -173,7 +173,9 @@ inferrsi run --task task.yaml                    # explicit execution
   `frozen_gate` block, the [frozen gate](#frozen-gate-record) result. They report a
   `mismatch` or `unverified` gate without failing. Without `--task` the output is
   unchanged.
-- **`run`.** Execution checks that the task agrees with its accepted inputs.
+- **`run`.** Execution checks that the task's content is consistent with the local
+  record it names and with the baseline checkout. It does not authenticate where the
+  record came from (see [frozen gate record](#frozen-gate-record)).
   Each check fails with exit 2 before any benchmark command starts or any run
   directory is written.
   - Before the environment probe, the task's acceptance fields must agree with the
@@ -232,10 +234,15 @@ acceptance:
   is not a valid schema v1 document (a Markdown plan, for example), it has no
   `acceptance` section, or it omits a required gate field.
 
-The check compares the record with the task. It does not establish that the
-record itself is the accepted one; cite the record and its `sha256` from
-`frozen_gate.json` in the acceptance issue. A `run --task` that passes this
-check still follows the existing acceptance, frozen-gate and evidence rules.
+`agrees` means content agreement only. The check compares the record the caller
+points at with the task. It does not establish that the record is the accepted one,
+and InferRSI takes no expected digest to compare it with. A task and record replaced
+together with matching values still give `agrees`. Authenticating the record's
+provenance, for example confirming that it is the frozen plan the acceptance issue
+cites, is a caller/host precondition before `run --task`. `frozen_gate.json` keeps the
+record's `sha256` so the acceptance issue can cite it and a reviewer can compare it
+with the accepted record. A `run --task` that passes this check still follows the
+existing acceptance, frozen-gate and evidence rules.
 
 ## CLI workflow
 
@@ -288,15 +295,17 @@ An Agent uses the same installed CLI and the same machine-readable preview:
 5. Use the reviewed task with the existing InferRSI operation the user authorizes,
    under the operation's own boundary in [operations](operations.md). For example,
    run `inferrsi plan --task <task.yaml>`, then `inferrsi run --task <task.yaml>`
-   only after explicit authorization.
+   only after explicit authorization. Before `run`, confirm with the user or the
+   acceptance issue that `acceptance.reference` names the accepted frozen gate
+   record. InferRSI checks only that the two agree in content.
 
 The CLI and the Agent produce the same normalized task for the same file and flags.
 `tests/test_task_input.py` checks this by comparing `inferrsi task preview --json`
 with the Python `task_input.preview` on the shared complete fixture.
 `tests/test_task_plan_run.py` checks that `plan --task` gives the same `task` block,
-and the expected RunSpec, for that fixture. An Agent checks a task against its frozen
-gate record with the Python `task_input.frozen_gate`, the same check `run --task`
-applies.
+and the expected RunSpec, for that fixture. An Agent checks a task's content against
+its frozen gate record with the Python `task_input.frozen_gate`, the same check
+`run --task` applies.
 
 ## Compatibility with other task formats
 

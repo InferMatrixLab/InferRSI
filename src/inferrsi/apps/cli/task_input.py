@@ -621,6 +621,10 @@ def frozen_gate(task: dict, task_file: str | os.PathLike) -> dict:
     equal the record's. Only that file is read. An HTTP(S) reference is never fetched, so
     its gate stays unverified. Returns the reference, the record's SHA-256, ``status``
     (``agrees``, ``mismatch`` or ``unverified``) and field-level ``problems``.
+
+    ``agrees`` is content agreement only. This does not authenticate that the record is
+    the accepted one; that provenance is a caller/host precondition, and the SHA-256 is
+    kept for citation, not compared with an expected digest.
     """
     reference = task["acceptance"]["reference"]
     result: dict[str, Any] = {
