@@ -12,7 +12,8 @@ Campaign acceptance, DCO, CI lanes and evidence rules stay in
 - Humans and agents may propose Issues. Proposal origin, assignment and labels do not grant authority.
 - A GitHub account may represent a human and their authorized agent team. Assignment identifies accountability, not necessarily the executor. Record the acting person/agent and role when relevant; retain unknown identity rather than guessing.
 - Work follows accepted scope and explicit or standing delegation. Record or link that authority. Within the Issue's direction, the accountable agent decides scope, including material scope changes, and exceptions, and records each with its reason on the Issue; a human may override any such decision. Only a change of the Issue's direction goes back to the Issue owner. No agent may waive these controls: independent review with two approvals, a human maintainer's **Approve** for high-risk changes, `agent:stop`, and repository permission and ruleset controls.
-- Each Issue has one deciding agent: the agent acting for the Issue's accountable owner. Other agents propose on the Issue and do not decide.
+- The Issue's assignee is its accountable owner. Each Issue has one deciding agent: the formal agent working for the assignee's account. When one account carries several agents, only that account's one formal agent decides, as with review votes. Other agents propose on the Issue and do not decide.
+- An Issue without an assignee is not started. Agents may propose on it and ask a maintainer to assign it; they do not claim or implement it until it is assigned.
 - Routine PR review and integration may be delegated without fresh human approval per PR. Existing repository permissions and acceptance policies still apply.
 - Completion is accepted by the named person or authorized agent. Acceptance/closure authority must be clear before those actions; it need not block already-authorized implementation.
 - Agents carry work end to end: they claim, delegate slices, set accepted scope and acceptance criteria within the Issue's direction, apply repository rules to a case, grant exceptions within the limits above, review and merge. Each such decision is recorded on the Issue or PR with its reason.
@@ -248,12 +249,17 @@ lists every repository label with its group and description, and every name has 
 | --- | --- | --- | --- |
 | Type | exactly one `kind:*` per Issue, including `kind:bug`; Issues only (Issues created before the label change may keep two) | the creator; templates | at creation |
 | Area | one or more `area:*` | the creator | at creation |
-| Status | `status:proposed` (waiting for a decision) | the acting agent | the status block names a concrete question and its decision owner, and no decision is recorded |
-| Status | `status:accepted` or `status:deferred`, replacing `status:proposed` | the acting agent | only after the decision owner records that decision in a comment |
+| Status | `status:proposed` (waiting for a decision) | the acting agent | the status block names a concrete question and its decision owner, and no decision is recorded; the Issue is discussed only and no work starts |
+| Status | `status:accepted` or `status:deferred`, replacing `status:proposed` | the acting agent | only after the decision owner records that decision in a comment; at `status:accepted` the direction is settled and assigned work may start; at `status:deferred` no work starts |
 | Priority | at most one `priority:P0/P1/P2`, only with `status:proposed` or `status:accepted` | the acting agent; the decision owner may change it | with `status:proposed`, how soon the owner should decide; with `status:accepted`, how soon work should start; removed at `status:deferred` |
 | Help | `help:wanted` | the creator or a maintainer | an Issue needs an owner or contributor |
-| Stop switch | `agent:stop` | only a human adds or removes it | adding stops agent changes, reviews and merges on that Issue or PR, and on an Issue also its linked PRs, queued merges and delegated work; removing lets them resume |
+| Stop switch | `agent:stop` | only a human adds or removes it | adding stops agent changes, reviews and merges on that Issue or PR, and on an Issue also its linked PRs, queued merges and delegated work; removing lets them resume; it applies at any status and overrides the rows above |
 | Protected switch | `skill-eval:execute` | only the owner adds it; the owner or an agent may remove it | adding authorizes paid Skill Eval for one PR; removing revokes it |
+
+Status labels carry the governance above. Work starts only on an assigned Issue at
+`status:accepted`. After that, discussion within the direction goes on: the deciding agent
+settles it and records the reason on the Issue. Changing the direction goes back to the Issue
+owner, who may return the Issue to `status:proposed` while the new question is open.
 
 An Issue carries at most one `status:*` label. When the owner rejects a proposal, or its
 author withdraws it, the acting agent removes `status:proposed` and the Issue is closed as
