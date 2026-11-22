@@ -57,9 +57,14 @@ def _load(root):
     for source in request["frozen_inputs"]:
         if sha256(source["path"]) != source["sha256"]:
             raise ValueError("Frozen Agent input changed")
+    last_observation = None
     for record in state["receipts"]:
         if sha256(root / record["path"]) != record["sha256"]:
             raise ValueError("Retained host receipt changed")
+        if record.get("kind") == "caller_exported_native_observation":
+            last_observation = {"path": record["path"], "sha256": record["sha256"]}
+    if "last_observation" not in state or state["last_observation"] != last_observation:
+        raise ValueError("Malformed retained host observation reference")
     for artifact in state["artifacts"]:
         if sha256(root / artifact["path"]) != artifact["sha256"]:
             raise ValueError("Retained Agent artifact changed")
