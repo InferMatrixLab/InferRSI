@@ -78,6 +78,7 @@
               "enum": [
                 "vllm",
                 "vllm_omni",
+                "vllm_musa",
                 "afd_plugin",
                 "vllm_rlt",
                 "strata",
@@ -175,6 +176,7 @@
                 "cuda",
                 "rocm",
                 "ascend",
+                "musa",
                 "mlx"
               ]
             }
