@@ -29,7 +29,7 @@ Conventions: docs/agent-collaboration.md -->
 
 - **In scope / out of scope:**
 - **Parent Issue (at most one; attach this Issue as its sub-issue; a standalone task may leave it blank):**
-- **Relevant dependencies, shared interfaces or limits (if any):**
+- **Relevant dependencies, shared interfaces or limits (if any; a source prerequisite orders the work but is not a closure condition):**
 
 ## Ownership and authorization
 
