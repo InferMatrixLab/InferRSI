@@ -18,11 +18,13 @@ A parenthesised locator names the file, section or symbol behind the marker.
 Documentation paths are under `docs/`, code paths under `backend/`. Where this
 document interprets rather than reports, the text says so.
 
-The checkpoint weight anchor from the same project is documented, at an earlier
-pin, under [performance-ceiling-analysis](../../performance-ceiling-analysis/references/huggingarch-checkpoint-anchor.md).
-It is not repeated here; the files it relied on are byte-identical at this pin
-except `docs/measured_calibration.md` and `docs/parallelism.md` (see the
-identity record).
+Use the earlier HuggingArch pin for the checkpoint join and per-rank weight
+ledger, and this document's pin for graph composition and calibration. Of the
+12 files in the anchor's readset, nine match byte for byte across the pins,
+including the join and weight-ledger implementations. The changed files are
+`docs/measured_calibration.md`, `docs/parallelism.md` and
+`backend/inference/op_calibration.py`. The code change replaces the memoization
+decorator on four identity helpers. [Checkpoint anchor](../../performance-ceiling-analysis/references/huggingarch-checkpoint-anchor.md) · [Upstream comparison](https://github.com/shenh10/HuggingArch/compare/facbbbc96856e558b9084a94a5070b2e2c86cf0b...e69d20a028e5b17524aa48b53bddf8b9aad5d15b)
 
 ## 1. What the source calls SOL
 

@@ -20,7 +20,16 @@
         "default_branch_head_at_observation": "e69d20a028e5b17524aa48b53bddf8b9aad5d15b",
         "commits_on_default_branch": 41,
         "root_commit": "facbbbc96856e558b9084a94a5070b2e2c86cf0b",
-        "note": "The root commit is the pin used by performance-ceiling-analysis's checkpoint anchor. At this pin, the files that anchor relied on are byte-identical except docs/measured_calibration.md and docs/parallelism.md."
+        "note": "The root commit supplies the checkpoint join and per-rank weight ledger used by performance-ceiling-analysis. The later commit supplies this playbook's model-walk and calibration claims.",
+        "anchor_readset_comparison": {
+          "checked_at": "2026-11-23",
+          "files_compared": 12,
+          "different_blobs": [
+            "backend/inference/op_calibration.py",
+            "docs/measured_calibration.md",
+            "docs/parallelism.md"
+          ]
+        }
       },
       "files": [
         {
