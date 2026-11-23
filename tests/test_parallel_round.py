@@ -25,6 +25,7 @@ from inferrsi.harness.parallel_round import (
     RoundPlanError,
     _read_nofollow,
     _ticket_metadata_path,
+    _tree_digest,
     hold_devices,
     materialize,
     prepare,
@@ -1368,6 +1369,104 @@ def test_unshare_failing_validation_is_a_measured_fail(tmp_path):
     assert closed["status"] == "closed"
     assert closed["retained"] is True
     assert (round_dir / "close.json").exists()
+
+
+def test_executable_bit_is_part_of_identity_and_the_entrypoint_runs(tmp_path):
+    incumbent = tmp_path / "incumbent"
+    _tree(incumbent, "10")
+    script = incumbent / "build.sh"
+    script.write_text("#!/bin/sh\necho built > build-stamp\n", encoding="utf-8")
+    script.chmod(0o644)
+    plain = _tree_digest(incumbent)
+    script.chmod(0o755)
+    assert _tree_digest(incumbent) != plain
+    script.chmod(0o644)
+    round_dir = tmp_path / "round"
+    prepare(
+        _spec(
+            lanes=[
+                {
+                    "id": "L1",
+                    "entry": "D-01",
+                    "plane": "infra",
+                    "globs": ["build.sh"],
+                    "cap": 2,
+                    "per_attempt_worst_case": 1,
+                    "deadline_utc": "2099-01-01T00:00:00+00:00",
+                }
+            ],
+            build=["./build.sh"],
+            validation=[sys.executable, "-c", "pass"],
+        ),
+        incumbent,
+        round_dir,
+    )
+    work = tmp_path / "work"
+    _tree(work, "10")
+    copied = work / "build.sh"
+    copied.write_text(script.read_text(encoding="utf-8"), encoding="utf-8")
+    copied.chmod(0o755)
+    ticket = submit(round_dir, "L1", incumbent, work, now=WHEN)["ticket"]
+    stored = round_dir / "outbox" / ticket / "build.sh"
+    assert stored.stat().st_mode & 0o111
+    measured = serve_ticket(round_dir, ticket, incumbent, backend=FixtureBackend(), now=WHEN)
+    assert measured["status"] == "measured", measured
+    candidate = round_dir / "candidates" / ticket
+    assert (candidate / "build.sh").stat().st_mode & 0o111
+    assert (candidate / "build-stamp").read_text(encoding="utf-8").strip() == "built"
+
+
+def test_joint_build_nonzero_exit_closes_with_the_returncode(tmp_path):
+    incumbent = tmp_path / "incumbent"
+    _sum_tree(incumbent, "10", "10")
+    round_dir = tmp_path / "round"
+    spec = _sum_spec()
+    spec["build"] = [sys.executable, "-c", "pass"]
+    prepare(spec, incumbent, round_dir)
+    work = tmp_path / "work"
+    _sum_tree(work, "8", "10")
+    ticket = submit(round_dir, "L1", incumbent, work, now=WHEN)["ticket"]
+    measured = serve_ticket(round_dir, ticket, incumbent, backend=FixtureBackend(), now=WHEN)
+    assert measured["verdict"] == "PASS"
+
+    class JointBuildFailed(FixtureBackend):
+        def run(self, argv, cwd, writable, readable, deadline, **kwargs):
+            if Path(cwd).name == "joint-close":
+                return {"status": "failed", "returncode": 2, "stdout": "", "stderr": "cc failed"}
+            return super().run(argv, cwd, writable, readable, deadline, **kwargs)
+
+    closed = close_round(round_dir, incumbent, backend=JointBuildFailed(), now=WHEN)
+    assert closed["status"] == "closed"
+    assert closed["retained"] is True
+    assert closed["accepted"] is False
+    assert closed["stage"] == "build"
+    assert closed["returncode"] == 2
+    assert not (round_dir / "successor").exists()
+    again = close_round(round_dir, incumbent, backend=FixtureBackend(), now=WHEN)
+    assert again == closed
+
+
+def test_successor_keeps_files_the_build_wrote_into_the_measured_tree(tmp_path):
+    incumbent = tmp_path / "incumbent"
+    _sum_tree(incumbent, "10", "10")
+    round_dir = tmp_path / "round"
+    spec = _sum_spec()
+    spec["build"] = [
+        sys.executable,
+        "-c",
+        "from pathlib import Path; Path('knobs/generated.txt').write_text('from-build')",
+    ]
+    prepare(spec, incumbent, round_dir)
+    work = tmp_path / "work"
+    _sum_tree(work, "8", "10")
+    ticket = submit(round_dir, "L1", incumbent, work, now=WHEN)["ticket"]
+    measured = serve_ticket(round_dir, ticket, incumbent, backend=FixtureBackend(), now=WHEN)
+    assert measured["verdict"] == "PASS"
+    closed = close_round(round_dir, incumbent, backend=FixtureBackend(), now=WHEN)
+    assert closed["accepted"] is True
+    successor = Path(closed["successor"])
+    assert (successor / "knobs" / "a.txt").read_text(encoding="utf-8") == "8"
+    assert (successor / "knobs" / "generated.txt").read_text(encoding="utf-8") == "from-build"
 
 
 def test_submit_refuses_while_close_runs_and_after_it_finishes(tmp_path):

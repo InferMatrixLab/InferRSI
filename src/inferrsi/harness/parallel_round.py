@@ -31,11 +31,14 @@ the device is refused until an operator removes that file.
 outbox ticket has a terminal receipt, each lane keeps one PASS winner (higher
 ``improvement_pct``, then lower ``ticket``). ``close`` copies that verified
 incumbent to ``candidates/frozen-incumbent`` and overlays the winners onto that
-snapshot. The joint measurement reads the snapshot, and a PASS run promotes the
-same snapshot. A PASS joint run writes ``successor/``. Any other completed
-verdict retains the incumbent and writes ``knowledge/joint-failure.json``. A
-joint confinement failure, or a measurement that does not finish, returns
-``refused`` and does not write ``close.json``. Other PASS tickets on the same
+snapshot. The joint build and trials run in that tree. A PASS run promotes
+that measured tree, including files the build wrote into it. Any other
+completed verdict retains the incumbent and writes
+``knowledge/joint-failure.json``. A build that started and exited non-zero
+closes the round as retained and keeps the exit code. A joint confinement
+failure, or a measurement that does not finish, returns ``refused`` and does
+not write ``close.json``. File identity includes the executable bits, and an
+overlay keeps them. Other PASS tickets on the same
 lane are listed in ``close.json`` as ``dropped`` and are not overlaid.
 ``prepare`` freezes ``incumbent_tree_digest``; ``submit``, ``serve`` and
 ``close`` refuse a different tree. ``submit`` also refuses while ``close``
@@ -79,7 +82,7 @@ from inferrsi.harness.round_budget import (
 )
 from inferrsi.harness.runner import run_experiment as run_experiment_loop
 
-_TERMINAL = frozenset({"measured", "rejected", "unsettled"})
+_TERMINAL = frozenset({"measured", "rejected", "unsettled", "failed"})
 
 
 def write_json(path, value) -> None:
@@ -111,6 +114,15 @@ class RoundPlanError(ValueError):
     """The frozen round plan is internally inconsistent."""
 
 
+class CommandFailed(Exception):
+    """A confined command started and exited non-zero."""
+
+    def __init__(self, stage: str, returncode: int | None):
+        self.stage = stage
+        self.returncode = returncode
+        super().__init__(f"{stage} exited {returncode}")
+
+
 def _segment(value) -> bool:
     return (
         isinstance(value, str)
@@ -134,7 +146,7 @@ def _match(path: str, patterns: list[str]) -> bool:
 
 
 def _snapshot(root: Path) -> tuple[dict[str, str], list[str]]:
-    """Hash regular files without following links. Symlinks are reported, not read."""
+    """Hash regular files and their executable bits. Symlinks are reported, not read."""
     hashes: dict[str, str] = {}
     blocked: list[str] = []
     root_fd = os.open(root, os.O_RDONLY | os.O_DIRECTORY)
@@ -190,6 +202,7 @@ def _scan(dirfd: int, prefix: str, hashes: dict[str, str], blocked: list[str]) -
             continue
         try:
             hasher = hashlib.sha256()
+            hasher.update(bytes([stat.S_IMODE(os.fstat(file_fd).st_mode) & 0o111]))
             while True:
                 block = os.read(file_fd, 1024 * 1024)
                 if not block:
@@ -236,8 +249,30 @@ def _refusal(reason: str, **fields) -> dict:
     return body
 
 
+def _executable_bits(root: Path, relative: str) -> int:
+    """Executable permission bits of one regular file, or 0 when it cannot be read."""
+    dirfd = os.open(root, os.O_RDONLY | os.O_DIRECTORY)
+    try:
+        parts = relative.split("/")
+        for part in parts[:-1]:
+            child = os.open(part, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=dirfd)
+            os.close(dirfd)
+            dirfd = child
+        file_fd = _open_regular(parts[-1], dirfd)
+        if file_fd is None:
+            return 0
+        try:
+            return stat.S_IMODE(os.fstat(file_fd).st_mode) & 0o111
+        finally:
+            os.close(file_fd)
+    except OSError:
+        return 0
+    finally:
+        os.close(dirfd)
+
+
 def _tree_digest(root: Path) -> str:
-    """Digest regular-file bytes. Symlinks and unreadable paths are refused."""
+    """Digest regular-file bytes and executable bits. Symlinks and unreadable paths are refused."""
     hashes, blocked = _snapshot(root)
     if blocked:
         raise RoundPlanError(f"incumbent has unreadable paths: {sorted(blocked)}")
@@ -498,6 +533,9 @@ def _submit_holding_lock(
                 target = destination / path
                 target.parent.mkdir(parents=True, exist_ok=True)
                 target.write_bytes(payload)
+                executable = _executable_bits(work, path)
+                if executable:
+                    os.chmod(target, stat.S_IMODE(target.stat().st_mode) | executable)
         except OSError:
             shutil.rmtree(destination)
             return _refusal("symlink", rejected=list(changed))
@@ -674,8 +712,11 @@ def _run_confined(
         )
     except subprocess.TimeoutExpired as exc:
         raise ConfinementUnavailable(f"{stage} timed out") from exc
-    if record.get("status") != "completed":
-        raise ConfinementUnavailable(f"{stage} {record.get('status')}")
+    status = record.get("status")
+    if status == "failed":
+        raise CommandFailed(stage, record.get("returncode"))
+    if status != "completed":
+        raise ConfinementUnavailable(f"{stage} {status}")
 
 
 def _confined_trial(
@@ -996,6 +1037,18 @@ def _measure(
             ),
             snapshot=_tree_identity,
             make_assess=make_assess,
+        )
+    except CommandFailed as exc:
+        finished = advance(ledger, binding, "finished", actual_cost=0)
+        _save_ledger(round_dir, finished)
+        return _record(
+            round_dir,
+            ticket,
+            status="failed",
+            reason=str(exc),
+            stage=exc.stage,
+            returncode=exc.returncode,
+            devices=devices,
         )
     except UnreapedCommand as exc:
         leases = DeviceLease(round_dir / "leases")
@@ -1323,6 +1376,14 @@ def _close_round_holding_lock(
                 composed=composed,
                 devices=devices,
             )
+        except CommandFailed as exc:
+            return finish(
+                reason=str(exc),
+                composed=composed,
+                devices=devices,
+                stage=exc.stage,
+                returncode=exc.returncode,
+            )
         except ConfinementUnavailable as exc:
             return {
                 "status": "refused",
@@ -1360,7 +1421,9 @@ def _close_round_holding_lock(
                 reasons=evaluation["reasons"],
             )
         successor = round_dir / "successor"
-        materialize(frozen, overlays, successor)
+        if successor.exists():
+            shutil.rmtree(successor)
+        shutil.copytree(joint, successor)
         return finish(
             accepted=True,
             retained=False,
