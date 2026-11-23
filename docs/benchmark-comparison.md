@@ -213,7 +213,12 @@ and new gaps, and is shown as *current evidence not re-verified*. Current
 evidence that does not re-verify withholds the successful campaign wall, and
 the selected attempt's verdict is still re-verified live. Costs (tokens, attempt
 window, campaign wall) come only from evidence that re-reads now. An attempt
-whose evidence cannot be re-read has unknown cost, not its recorded cost. This
+whose evidence cannot be re-read has unknown cost, not its recorded cost.
+Every operation strictly checks the frozen plan, the retained collection digests
+and each trial's current runtime copy. Report checks an earlier attempt's own
+runtime copy only for that attempt. A missing or changed copy is a re-read gap
+of that attempt, and its cost is unknown. Its recorded classification and the
+other results stay in the report. This
 accounting is descriptive. The frozen verdict still uses each arm's selected
 (latest) attempt, re-verified live, including its campaign `wall_seconds`, and
 is unchanged.

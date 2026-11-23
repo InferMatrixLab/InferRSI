@@ -752,6 +752,73 @@ def test_unreadable_retained_attempt_keeps_recorded_failure(experiment, damage):
     assert "re-read status: blocked" in html
 
 
+@pytest.mark.parametrize(("damage", "reason"), [("missing", "missing"),
+                                                ("changed", "changed")])
+def test_unverifiable_archived_runtime_is_that_attempts_gap(experiment, damage, reason):
+    root, initial, _ = experiment
+    on, off = [trial["id"] for trial in initial["trials"]]
+    finish(experiment, on, final=False, host_state="failed", collect=False)
+    failed = operation(experiment, "collect", on)["trial"]
+    assert failed["status"] == "blocked" and failed["attempt_tokens"] == 120
+    operation(experiment, "retry", on)
+    finish(experiment, on, session_id=on + "-attempt-2")
+    finish(experiment, off, factor=1.5)
+    before = operation(experiment, "report")
+
+    runtime = root / initial["trials"][0]["workspace"] / "runtime/inferrsi"
+    if damage == "missing":
+        shutil.rmtree(runtime)
+    else:
+        (runtime / "injected.py").write_text("CHANGED = True\n", encoding="utf-8")
+    # Only the old copy is affected: every operation still loads.
+    status = operation(experiment, "status")
+    assert status["trials"][0]["previous_attempts"][0]["status"] == "blocked"
+    after = operation(experiment, "report")
+    arm = _document(after)["trials"][0]
+    first, accounting = arm["attempts"][0], arm["attempt_accounting"]
+    # The digest-checked record stays the history; the runtime is a gap of the re-read.
+    assert (first["status"], first["eligible"], first["gaps"]) == (
+        "blocked", False, failed["gaps"])
+    assert first["reverification"] == {
+        "verified": False, "status": "blocked", "eligible": False,
+        "added_gaps": [f"Frozen runtime copy could not be verified ({reason})"]}
+    assert accounting["failed_attempts"] == 1
+    assert accounting["statuses"][0] == {"attempt": 1, "status": "blocked", "eligible": False,
+                                         "reverified": False}
+    # Its cost is unknown with a reason, never the recorded value.
+    assert first["tokens"] is None and first["wall_seconds"] is None
+    assert first["attempt_window"] is None and first["campaign_window"] is None
+    assert accounting["total_wall_seconds"] is None
+    assert accounting["missing_reasons"]["total_wall_seconds"] == [
+        "attempt 1: frozen_runtime_not_verifiable"]
+    assert accounting["tokens"] is None and accounting["observed_tokens"] == 120
+    # The selected attempt is still verified live and decides the unchanged verdict.
+    assert arm["attempts"][1]["reverification"]["verified"] is True
+    assert arm["eligible"] and accounting["success_wall_seconds"] == arm["metrics"]["wall_seconds"]
+    assert after["assessment"] == before["assessment"]
+    assert after["assessment"]["counts"]["eligible_pairs"] == 1
+    html = Path(after["reports"]["html"]).read_text(encoding="utf-8")
+    assert "1: blocked (current evidence not re-verified); 2: completed" in html
+    assert "total wall: attempt 1: frozen_runtime_not_verifiable" in html
+    # The current attempt's runtime is still checked strictly.
+    shutil.rmtree(root / (initial["trials"][0]["workspace"] + "-attempt-002") / "runtime")
+    with pytest.raises(ValueError, match="runtime changed"):
+        compare.report(root)
+
+
+def test_retry_copies_the_verified_current_runtime(experiment):
+    root, initial, _ = experiment
+    on = initial["trials"][0]["id"]
+    workspace = initial["trials"][0]["workspace"]
+    finish(experiment, on, final=False, host_state="failed")
+    operation(experiment, "retry", on)
+    finish(experiment, on, final=False, host_state="failed", session_id=on + "-attempt-2")
+    shutil.rmtree(root / workspace / "runtime")
+    row = operation(experiment, "retry", on)["trials"][0]
+    assert row["attempt"] == 3 and row["workspace"] == workspace + "-attempt-003"
+    assert (root / row["workspace"] / "runtime/inferrsi/knowledge/data").is_dir()
+
+
 def test_collected_selected_attempt_cannot_pass_from_its_record(experiment):
     root, initial, _ = experiment
     on = initial["trials"][0]["id"]

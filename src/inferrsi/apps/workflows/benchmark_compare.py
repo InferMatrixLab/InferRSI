@@ -305,17 +305,31 @@ def _validate_attempts(plan, state):
 
 
 def _load(root):
+    """Strictly check the plan, attempt records and each trial's current runtime.
+
+    Archived attempts' runtime copies are re-verified per attempt by report, so a
+    lost or changed old copy is that attempt's gap, not a failure of every operation.
+    """
     plan, state = _object(root / "experiment.json"), _object(root / "state.json")
     if plan.get("schema_version") != 1 or state.get("plan_digest") != digest(plan):
         raise ValueError("Frozen comparison plan changed")
     _validate_attempts(plan, state)
     for trial in plan["trials"]:
-        expected = _expected_runtime(plan, trial)
-        for number in range(1, _attempt_number(state, trial) + 1):
-            runtime = _workspace(root, trial, number) / "runtime/inferrsi"
-            if _manifest(runtime) != expected:
-                raise ValueError(f"Frozen comparison runtime changed: {trial['id']}")
+        runtime = _workspace(root, trial, _attempt_number(state, trial)) / "runtime/inferrsi"
+        if _manifest(runtime) != _expected_runtime(plan, trial):
+            raise ValueError(f"Frozen comparison runtime changed: {trial['id']}")
     return plan, state
+
+
+def _runtime_error(root, plan, trial, number):
+    """Why an attempt's runtime copy no longer matches the frozen manifest, or None."""
+    runtime = _io_path(_workspace(root, trial, number) / "runtime/inferrsi")
+    try:
+        if not runtime.is_dir():
+            return "missing"
+        return None if _manifest(runtime) == _expected_runtime(plan, trial) else "changed"
+    except (OSError, ValueError) as error:
+        return type(error).__name__
 
 
 def _collection_digest(state):
@@ -724,7 +738,8 @@ def retry(root, trial_id, *, parallel=False):
         with TemporaryDirectory(prefix=".retry-", dir=_io_path(root)) as temporary:
             staging = Path(temporary) / "workspace"
             (staging / "runtime").mkdir(parents=True)
-            shutil.copytree(_io_path(root / trial["workspace"] / "runtime/inferrsi"),
+            # Copy the current attempt's runtime: _load verified it; older copies may be gone.
+            shutil.copytree(_io_path(_workspace(root, trial, number) / "runtime/inferrsi"),
                             staging / "runtime/inferrsi",
                             ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
             if _manifest(staging / "runtime/inferrsi") != expected:
@@ -739,8 +754,13 @@ def retry(root, trial_id, *, parallel=False):
     return status(root)
 
 
-def _reverify(root, plan, trial, number, *, collected=False):
-    """Rebuild one attempt from its own job and campaign; never trust a stale collection."""
+def _reverify(root, plan, trial, number, *, collected=False, archived=False):
+    """Rebuild one attempt from its own job and campaign; never trust a stale collection.
+
+    An archived attempt also re-checks its own runtime copy (_load checks only the
+    current one). A missing or changed copy is a gap of this re-read: the attempt is
+    not re-verified and its cost is unknown; its recorded classification is untouched.
+    """
     job = _job(root, trial, number)
     workspace = _workspace(root, trial, number)
     try:
@@ -755,6 +775,14 @@ def _reverify(root, plan, trial, number, *, collected=False):
                                host_error=type(error).__name__)
     else:
         result = _trial_result(root, plan, trial, host, payload, workspace=workspace)
+    runtime_error = _runtime_error(root, plan, trial, number) if archived else None
+    if runtime_error is not None:
+        result["gaps"].append(f"Frozen runtime copy could not be verified ({runtime_error})")
+        if result["attempt_window"] is not None:
+            result["attempt_window_missing"] = "frozen_runtime_not_verifiable"
+        result.update(eligible=False, metrics_comparable=False, attempt_tokens=None,
+                      attempt_window=None, campaign_window=None,
+                      metrics=dict.fromkeys(result["metrics"]))
     return host, result
 
 
@@ -807,7 +835,8 @@ def report(root):
         attempts[trial["id"]] = []
         for entry in _attempts(state, trial):
             recorded = _archived_result(root, entry)
-            host, attempt = _reverify(root, plan, trial, entry["attempt"], collected=True)
+            host, attempt = _reverify(root, plan, trial, entry["attempt"], collected=True,
+                                      archived=True)
             attempts[trial["id"]].append((entry["attempt"], attempt, host, recorded))
         # Reverify current evidence; a stale collection cannot hide later evidence loss.
         number = _attempt_number(state, trial)

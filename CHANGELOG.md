@@ -24,6 +24,10 @@
   Each attempt is collected once: repeating `--action collect` for it returns the first record
   with `already_collected: true` and writes no new snapshot, so it cannot change the recorded
   classification or make a recorded eligible completion retryable.
+  Every operation strictly checks the plan, retained collection digests and each trial's current
+  runtime copy. An earlier attempt's runtime copy is checked only in report, for that attempt: a
+  missing or changed copy is that attempt's re-read gap with unknown cost, and the report is still
+  generated. Retry copies the current, verified runtime.
   Experiments prepared earlier load unchanged: attempt 1 keeps the existing job and workspace paths.
 - `inferrsi.harness.scenarios` is now `inferrsi.harness.trials` (Refs #558). Its one
   module, `external.py`, runs an external command as one trial and retains its record
