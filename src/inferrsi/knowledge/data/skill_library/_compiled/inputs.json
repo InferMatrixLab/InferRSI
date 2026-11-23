@@ -50,7 +50,7 @@
       "description": "Patterns for porting LLM/VLM model adapters to Ascend NPU: FP8 checkpoint handling, KV replication with TP, multimodal feature validation order, graph mode startup, and feature-status reporting. Source-grounded from vllm-ascend production experience. Use when adapting a new model checkpoint to run on Ascend via vllm-ascend or a similar framework.\n"
     },
     "files": {
-      "SKILL.md": "bf1630e5f7f716dac4c8d59235dd2b088e126c80a544f01ff6daabb6ac0abdf0",
+      "SKILL.md": "698c369920d9b9b6a28e695b3e19387215b259f497bb724213a61f5ae05fd3d3",
       "references/source-notes.md": "500966fe5ddd3b52bb8405b406ba9c707b5e68c0ec8317f8b1ac8c109d38936b"
     }
   },
