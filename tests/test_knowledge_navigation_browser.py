@@ -163,6 +163,11 @@ def test_navigation_keyboard_versions_and_refresh(browser, tmp_path, profile_fir
             record = tmp_path / "search/archive/round-1.json"
             doc = json.loads(record.read_text())
             doc["coverage"], doc["counts"] = "partial", None
+            # Partial coverage leaves versions and both rates unknown; observed counts stay.
+            adoption = doc["adoption"]
+            adoption["unique_hit_revisions"] = None
+            for part in ("search_hits", "direct_reads"):
+                adoption[part] = {**adoption[part], "state": "unknown"}
             declaration = dict(doc["declarations"][0])
             declarations = archive.locator(
                 'details[data-kt-key="search/archive/round-1.json:declarations"]')

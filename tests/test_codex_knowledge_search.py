@@ -119,6 +119,15 @@ def test_direct_find_and_read_import(tmp_path, json_output):
     _, reviewed = _import(tmp_path, rows, decisions=[review])
     assert reviewed["counts"]["used"] == 1
     assert reviewed["materials"][REF]["evidence"][0]["passage_text"] == PASSAGE
+    # The Find hit records no revision and the review names only the versioned
+    # Read, so the use is not credited to the hit; its denominator stays.
+    assert reviewed["materials"][REF]["evidence"][0]["event_id"] == read["id"]
+    assert "revision" not in reviewed["events"][0]["materials"][0]
+    assert reviewed["adoption"] == {
+        "search_hits": {"adopted": 0, "unique_hits": 1, "state": "unknown"},
+        "direct_reads": {"adopted": 0, "read_only": 0, "state": "unknown"},
+        "unverified_reads": {"adopted": 0, "refs": 0},
+        "other_adopted": 0, "attribution_unknown": 1, "unique_hit_revisions": None}
 
 
 @pytest.mark.parametrize("issue", ["missing_result", "truncated_result", "replaced_result"])
