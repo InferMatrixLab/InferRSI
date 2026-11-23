@@ -23,12 +23,11 @@ Conventions: docs/agent-collaboration.md -->
 <!-- What should change? What observable result would satisfy the goal? -->
 
 - **Problem / desired outcome:**
-- **Completion criteria (the PR(s) to merge or check to pass; not another Issue's closure):**
+- **Completion criteria:**
 
 ## Scope and constraints
 
 - **In scope / out of scope:**
-- **Parent Issue (one; attach this Issue as its sub-issue):**
 - **Relevant dependencies, shared interfaces or limits (if any):**
 
 ## Ownership and authorization
