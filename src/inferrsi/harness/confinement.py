@@ -499,7 +499,7 @@ class UnshareBackend:
             completed = subprocess.CompletedProcess(
                 process.args, process.returncode, stdout, stderr
             )
-            ran = marker.is_file() and marker.read_text(encoding="utf-8") == "ran\n"
+            ran = marker.is_file() and marker.read_text(encoding="utf-8") == "armed\n"
         finally:
             if config_path is not None:
                 config_path.unlink(missing_ok=True)
@@ -561,34 +561,16 @@ def enter_namespace(config_path: str) -> None:
     os.chroot(jail)
     os.chdir(config["cwd"])
     argv = config["argv"]
-    read_fd, write_fd = os.pipe()
-    os.set_inheritable(write_fd, False)
-    pid = os.fork()
-    if pid == 0:
-        os.close(read_fd)
-        try:
-            os.execvpe(argv[0], argv, config["env"])
-        except OSError as exc:
-            os.write(write_fd, f"exec failed: {exc}\n".encode())
-            os._exit(127)
-    os.close(write_fd)
-    note = b""
-    while True:
-        chunk = os.read(read_fd, 256)
-        if not chunk:
-            break
-        note += chunk
-    os.close(read_fd)
-    if note:
-        raise SystemExit(note.decode())
-    os.write(marker_fd, b"ran\n")
-    os.close(marker_fd)
-    _pid, status = os.waitpid(pid, 0)
-    if os.WIFEXITED(status):
-        code = os.WEXITSTATUS(status)
-    else:
-        code = 128 + os.WTERMSIG(status)
-    raise SystemExit(code)
+    # Replace this process. It is PID 1 of the new pid namespace; a fork would
+    # leave the command at the next pid after the mount helpers.
+    os.write(marker_fd, b"armed\n")
+    try:
+        os.execvpe(argv[0], argv, config["env"])
+    except OSError as exc:
+        os.lseek(marker_fd, 0, os.SEEK_SET)
+        os.ftruncate(marker_fd, 0)
+        os.write(marker_fd, f"exec failed: {exc}\n".encode())
+        raise SystemExit(f"exec failed: {exc}") from exc
 
 
 def select_backend():
