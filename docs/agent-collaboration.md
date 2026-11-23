@@ -115,7 +115,9 @@ and the accountable parent for the delivery slice cannot supply an independent
 approval, including through another agent acting under their account. Each
 eligible account counts once.
 An agent may submit a formal review without a separate human delegation; its
-identity line names the acting reviewer and the human it acts for.
+identity line names the acting reviewer and the human it acts for. The identity
+line is the first line of every agent comment and review; the one-line conclusion
+(working rule 8) is the first substantive line after it.
 
 The [main ruleset](https://github.com/InferMatrixLab/InferRSI/rules/25528020)
 requires at least two approving reviews and dismisses stale approvals when
@@ -176,7 +178,7 @@ sequenceDiagram
 5. **Handoff:** only for an actual transfer or accepted decision change, record the delta, recipient and next action. Keep acceptance status/link, communication status and application status separate. "Applied" needs artifact/evidence; otherwise retain pending or unknown. No full conversation traces or new ledger.
 6. **Completion:** merged PR ≠ accepted goal ≠ campaign `PASS` ≠ release. Use non-closing `Refs #N` until closure is authorized. GitHub treats a closing keyword followed by an Issue reference as closing syntax even inside a negated sentence, so never write one in PR text; for an authorized closure, put `Closes #N` alone on its own line. The ready lane's `pr-references` job reports any other use. Subtasks cannot implicitly close a parent goal. Knowledge proposals to [#17](https://github.com/InferMatrixLab/InferRSI/issues/17) are optional; no automatic promotion. Before an authorized closure, publish a closure summary card ([closure summaries](#closure-summaries)).
 7. **Claims:** before starting a fix or opening a PR, search open Issues and PRs for the same work and claim it with a comment on the governing Issue; if someone already holds a live claim, coordinate there instead of starting a parallel fix. An agent's claim states when it will next show an artifact (draft PR, branch or findings). A claim that states no time allows 24 hours. If nothing appears by then, the claim lapses: the agent posts one comment releasing it and leaves the work to others.
-8. **Comments:** agent comments start with a one-line conclusion; put details in a collapsible `<details>` section. Post in a thread only for a new head, new evidence or a new question; do not post status-only updates. Do not post, or else minimize, agent comments that only report the agent's own failure or exhausted quota.
+8. **Comments:** every agent comment starts with the acting-agent identity line, then a one-line conclusion as the first substantive line; put details in a collapsible `<details>` section. Post in a thread only for a new head, new evidence or a new question; do not post status-only updates. Do not post, or else minimize, agent comments that only report the agent's own failure or exhausted quota.
 
 ## Closure summaries
 
