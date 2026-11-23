@@ -274,8 +274,10 @@ def after_final(args, result):
     if args.session_action != "final":
         return result
     export_id = uuid.uuid4().hex
-    # The exporter refuses symlinked ancestors; Harness already resolved this session.
-    session = args.session.resolve()
+    # Export from the resolved root Harness committed final under; resolving the
+    # caller's path again could fail after the commit, and the exporter refuses
+    # symlinked ancestors.
+    session = Path(result["session"])
     output = session / "delivery" / export_id
     try:
         delivery = export_bundle(session, output, export_id=export_id)

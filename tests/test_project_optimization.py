@@ -4,6 +4,7 @@ import json
 import os
 import subprocess
 import sys
+from pathlib import Path
 
 import pytest
 
@@ -170,6 +171,27 @@ def test_final_delivery_publishes_through_a_symlinked_session_path(project, caps
     receipt = json.loads(capsys.readouterr().out)
     assert receipt["delivery"]["status"] == "published"
     assert (root / "delivery" / receipt["delivery"]["export_id"] / "report.md").is_file()
+
+
+def test_final_delivery_never_resolves_the_session_path_after_commit(project, capsys, monkeypatch):
+    start(project, capsys)
+    submit(project, capsys, 20)
+    root = project[3]
+    original = Path.resolve
+
+    def resolve(self, *args, **kwargs):
+        # The workspace becomes unavailable once final is committed.
+        state = json.loads((root / "state.json").read_text(encoding="utf-8"))
+        if self == root and state["final"] is not None:
+            raise OSError("Session path unavailable after commit")
+        return original(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "resolve", resolve)
+    assert main(["campaign", "final", "--directory", str(root),
+                 "--reason", "Caller ended the up-to-budget search"]) == 0
+    receipt = json.loads(capsys.readouterr().out)
+    assert receipt["state"] == "completed"
+    assert receipt["delivery"]["status"] == "published"
 
 
 def test_quality_failure_is_retained_and_cannot_win(project, capsys):

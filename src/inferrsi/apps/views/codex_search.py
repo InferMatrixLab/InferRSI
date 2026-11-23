@@ -198,9 +198,14 @@ def _rg_hits(output, cwd, corpus, scopes, mode, with_filename):
     return [{"ref": ref, "match_line": line} for ref, line in hits.items()], complete
 
 
+def _program(word):
+    """Program name of a recorded argv word from either OS, lower-cased, without .exe."""
+    return re.split(r"[\\/]", word)[-1].lower().removesuffix(".exe")
+
+
 def _without_env(argv):
     """Drop a leading `env` and its NAME=value words; None for env options it cannot read."""
-    if Path(argv[0]).name != "env":
+    if _program(argv[0]) != "env":
         return argv
     rest = argv[1:]
     while rest and "=" in rest[0] and not rest[0].startswith("-"):
@@ -212,6 +217,8 @@ def _shell_script(options):
     """Return a shell's inline `-c` script, or None when it runs no inline script."""
     words = iter(options)
     for word in words:
+        if word == "--":
+            return None  # What follows is a script file, even if it looks like -c.
         if word in ("-o", "+o"):
             next(words, None)
         elif word.startswith("-") and not word.startswith("--") and "c" in word[1:]:
@@ -230,7 +237,7 @@ def _recorded_argv(item):
     if not argv:
         return None, False
     multiline = False
-    shell = Path(argv[0]).name.lower().removesuffix(".exe")
+    shell = _program(argv[0])
     if shell in _OPAQUE_SHELLS:
         return None, False
     if shell in _SHELLS:
