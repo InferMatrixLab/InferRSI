@@ -280,8 +280,9 @@ not be judged counts as a failure.
   intra-node reduce-scatter, inter-node all-reduce on the shard, intra-node
   all-gather. This needs more than one rank per node and a world that divides
   evenly by it. State which schedule you assume.
-- A transfer needs an evidenced topology and a positive rate for every fabric
-  it uses. A missing fabric yields `INSUFFICIENT_EVIDENCE`. Omit the transfer
+- A transfer needs an evidenced topology and finite positive bandwidth for
+  each fabric that carries bytes. An unavailable rate on such a fabric yields
+  `INSUFFICIENT_EVIDENCE`. Omit the transfer
   only when the layout establishes no transfer, for example a one-rank world.
 - The latency term and any launch floor go into the serial estimate only,
   never into the bound. Label them as assumptions unless they were measured.

@@ -232,6 +232,46 @@ def test_transfer_requires_a_rate_for_each_fabric(example, missing_fabric):
     assert phase_floors(phase, hardware)["analysis_status"] == "COMPUTED"
 
 
+@pytest.mark.parametrize("fabric", ["link.tp", "link.inter"])
+@pytest.mark.parametrize("bandwidth,snapshot", [
+    (None, None), (0, 0), (-1, -1), (float("nan"), None), (float("inf"), None),
+    (-float("inf"), None),
+])
+def test_unavailable_bandwidth_depends_on_actual_transfer(example, fabric, bandwidth, snapshot):
+    phase, hardware = example["decode"], example["hardware"]
+    hardware["rates"]["link.inter"] = dict(hardware["rates"]["link.tp"])
+    fact = hardware["rates"][fabric]
+    fact["value"] = bandwidth
+    phase["ops"][2]["demand"]["link.inter"] = 5
+    phase["ops"][2]["bound_demand"]["link.inter"] = 5
+
+    result = phase_floors(phase, hardware)
+    assert result["analysis_status"] == "INSUFFICIENT_EVIDENCE"
+    assert result["actual_resource_totals"][fabric] == 10
+    assert result["conditional_bound_s"] is result["serial_estimate_s"] is None
+    assert result["tokens_per_s_at_bound"] is result["tokens_per_s_at_serial_estimate"] is None
+    assert any(f"hardware.rates.{fabric}.value" in reason for reason in result["unknowns"])
+    assert fact["value"] is bandwidth
+    assert result["inputs"]["hardware"]["rates"][fabric]["value"] == snapshot
+    json.dumps(result, allow_nan=False)
+
+    other_fabric = "link.inter" if fabric == "link.tp" else "link.tp"
+    phase["ops"][2]["demand"][fabric] = phase["ops"][2]["bound_demand"][fabric] = 0
+    one_fabric = phase_floors(phase, hardware)
+    assert one_fabric["analysis_status"] == "COMPUTED"
+    assert one_fabric["per_op"][2]["binding"] == [other_fabric]
+
+    # In a one-rank layout the same local copy has zero bytes on this fabric.
+    local = dict(phase, layout="single rank", ops=[{
+        "name": "local copy", "demand": {"memory.hbm": 10, fabric: 0},
+        "bound_demand": {"memory.hbm": 10}, "source": SYNTHETIC,
+    }])
+    no_transfer = phase_floors(local, hardware)
+    assert no_transfer["analysis_status"] == "COMPUTED"
+    assert no_transfer["actual_resource_totals"][fabric] == 0
+    assert no_transfer["serial_estimate_s"] == no_transfer["conditional_bound_s"] == 1
+
+
 def test_latency_and_launch_floors_enter_the_serial_estimate_only(example):
     phase = example["decode"]
     latency = {"value": 3.0, "source": {"kind": "assumed", "locator": "unmeasured link latency"}}

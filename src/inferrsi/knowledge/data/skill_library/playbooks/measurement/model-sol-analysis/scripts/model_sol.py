@@ -23,6 +23,10 @@ RATE_KINDS = ("peak", "synthetic", "datasheet")
 FLOOR_KINDS = ("measured", "assumed", "synthetic")
 
 
+def _json_object(value):
+    return type(value) is dict and all(type(key) is str for key in value)
+
+
 def _copy_json(value):
     """Accept only JSON data, without invoking caller-defined hooks."""
     if value is None or type(value) in (str, int, bool):
@@ -31,7 +35,7 @@ def _copy_json(value):
         return value
     if type(value) is list:
         return [_copy_json(item) for item in value]
-    if type(value) is dict and all(type(key) is str for key in value):
+    if _json_object(value):
         return {key: _copy_json(item) for key, item in value.items()}
     raise ValueError("Inputs must contain only finite JSON data")
 
@@ -356,6 +360,21 @@ def _floor(op, key, path, unknowns):
     return value
 
 
+def _copy_hardware(value):
+    """Record non-finite link readings as JSON null in the returned snapshot."""
+    if _json_object(value) and _json_object(value.get("rates")):
+        rates = value["rates"].copy()
+        for name, fact in rates.items():
+            if not _json_object(fact):
+                continue
+            resource, sample = fact.get("resource"), fact.get("value")
+            if (type(resource) is str and resource == "link"
+                    and type(sample) is float and not math.isfinite(sample)):
+                rates[name] = {**fact, "value": None}
+        value = {**value, "rates": rates}
+    return _mapping(_copy_json(value), "hardware")
+
+
 def _rates(hardware, unknowns):
     rates, kinds = {}, set()
     for name, fact in _mapping(hardware.get("rates"), "hardware.rates").items():
@@ -371,8 +390,14 @@ def _rates(hardware, unknowns):
         kinds.add(kind)
         if kind == "peak":
             _text(fact, "clock_basis", path, unknowns)
-        value = _positive(fact.get("value"), f"{path}.value")
-        if value is None:
+        try:
+            value = _positive(fact.get("value"), f"{path}.value")
+        except ValueError:
+            if resource != "link":
+                raise
+            value = None
+        # Link bandwidth is required only for a positive transfer.
+        if value is None and resource != "link":
             unknowns.append(f"{path}.value: {fact.get('missing_reason') or 'missing'}")
         rates[name] = (resource, value)
     if not rates:
@@ -406,9 +431,13 @@ def _bound_counts(declaration, demand, path, require_evidence, unknowns):
     return counts
 
 
+def _seconds(amount, rate):
+    # Zero bytes require no bandwidth. Positive transfers have passed the evidence check.
+    return 0.0 if amount == 0 else _finite(amount / rate, "resource time")
+
+
 def _resource_time(totals, rates):
-    times = {name: _finite(amount / rates[name][1], "resource time")
-             for name, amount in totals.items()}
+    times = {name: _seconds(amount, rates[name][1]) for name, amount in totals.items()}
     maximum = max(times.values())
     return maximum, sorted(name for name, value in times.items() if value == maximum)
 
@@ -429,7 +458,7 @@ def phase_floors(phase, hardware):
     reference time and leave the hardware-qualified bound unavailable.
     """
     phase = _mapping(_copy_json(phase), "phase")
-    hardware = _mapping(_copy_json(hardware), "hardware")
+    hardware = _copy_hardware(hardware)
     unknowns = []
     kind = phase.get("phase")
     if kind not in PHASES:
@@ -485,6 +514,10 @@ def phase_floors(phase, hardware):
                     "latency": latency, "launch": launch})
     if not ops:
         unknowns.append("phase.ops: empty")
+    for key, (resource, value) in rates.items():
+        if resource == "link" and value is None and actual[key] > 0:
+            reason = hardware["rates"][key].get("missing_reason") or "missing or invalid bandwidth"
+            unknowns.append(f"hardware.rates.{key}.value: {reason}")
 
     bound = binding = estimate = None
     datasheet_time = datasheet_binding = None
@@ -500,10 +533,11 @@ def phase_floors(phase, hardware):
             link_time = 0.0
             for key, value in op["amounts"].items():
                 if rates[key][0] == "link":
-                    links.append(key)
-                    link_time += value / rates[key][1]
+                    if value > 0:
+                        links.append(key)
+                        link_time += _seconds(value, rates[key][1])
                 else:
-                    terms[(key,)] = value / rates[key][1]
+                    terms[(key,)] = _seconds(value, rates[key][1])
             if links or op["latency"] is not None:
                 label = tuple(sorted(links)) or ("link_latency",)
                 terms[label] = link_time + (op["latency"] or 0.0)

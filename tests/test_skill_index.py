@@ -196,6 +196,13 @@ def test_index_checks_drift_and_rejects_changed_or_added_source_inputs(tmp_path,
     assert get_skill(library, "example")["resources"] == []
     assert index_builder.main(["--source-revision", "HEAD"]) == 0
     assert index_builder.main(["--source-revision", "HEAD", "--check"]) == 0
+    extra_source = cache / "notes.md"
+    extra_source.write_text("Untracked skill resource", encoding="utf-8")
+    assert get_skill(library, "example")["resources"] == ["scripts/__pycache__/notes.md"]
+    with pytest.raises(ValueError, match="input paths differ"):
+        build_index(tmp_path, "HEAD")
+    extra_source.unlink()
+    assert index_builder.main(["--source-revision", "HEAD", "--check"]) == 0
     generated = tmp_path / DESTINATION / "inputs.json"
     generated.write_text("changed projection", encoding="utf-8")
     assert index_builder.main(["--source-revision", "HEAD", "--check"]) == 1

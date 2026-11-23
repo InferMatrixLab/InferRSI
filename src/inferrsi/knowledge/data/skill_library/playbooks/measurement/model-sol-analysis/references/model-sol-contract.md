@@ -12,6 +12,12 @@ as non-JSON values, counts below their minimum, non-finite numbers or non-text
 keys, raises `ValueError`. Derived arithmetic outside the finite numeric range
 also raises `ValueError`. Neither status is a campaign verdict.
 
+A link bandwidth is an evidence input. A positive transfer with a missing or
+unusable bandwidth yields `INSUFFICIENT_EVIDENCE`. The helper accepts a Python
+NaN or infinity specifically in a link's numeric `value` and records it as
+JSON null in the returned hardware snapshot. Other inputs retain the finite
+JSON requirement.
+
 A `source` object is `{kind, locator}`. The allowed kinds depend on the field:
 
 | Field | Allowed `kind` |
@@ -115,8 +121,10 @@ Inputs:
   `{resource, unit, value, source, clock_basis}`, where `resource` is `compute`
   (`FLOP/s`), `memory` (`byte/s`) or `link` (`byte/s`). Units must match
     exactly. Provide a valid rate for every fabric used by the declared
-    layout and schedule. Missing rates for supplied transfer demands leave
-    the result `INSUFFICIENT_EVIDENCE`.
+    layout and schedule. A missing, non-finite or nonpositive link bandwidth
+    leaves timing and throughput unavailable for a positive transfer. A
+    single-rank schedule with zero bytes on that link needs no bandwidth
+    observation. The scheduled byte count is retained in both cases.
 
 Outputs:
 
