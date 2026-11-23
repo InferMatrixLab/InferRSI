@@ -8,11 +8,11 @@ from collections.abc import Callable
 from datetime import datetime
 from pathlib import Path
 
+from inferrsi.apps.host.platforms.cuda import qualify_devices
 from inferrsi.apps.legacy.evaluation import run_rules
 from inferrsi.benchmark.legacy_run_v0 import evaluate as _evaluate
 from inferrsi.contracts import RunSpec
 from inferrsi.harness import parallel_round as harness
-from inferrsi.infra.platforms.cuda import qualify_devices
 
 
 def make_assess(spec: RunSpec) -> Callable:
