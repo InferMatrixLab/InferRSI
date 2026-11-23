@@ -860,12 +860,16 @@
       "description": "Walk a whole model to per-phase (prefill, decode) speed-of-light figures under a declared parallel layout - anchored counts, the fused graph the framework runs, per-rank geometry, explicit communication and KV growth laws - and report a resource-total bound apart from a serial per-op estimate."
     },
     "files": {
-      "SKILL.md": "4c4acc03741ff28f9f2efc07c89753b4b3dea4881ddf445f26ef5488d78986a8",
+      "SKILL.md": "56d8ee91e6feeca352871b37faa960a8ad3f8c8c1fce8723954b3504d357ac65",
       "references/huggingarch-model-sol.md": "fa2139a7967861070dc37e5ea27807c00259b36a07dac8b049249e9fe433dd7e",
       "references/huggingarch-source-identity.json": "2ee77b8324e0c8afd1cbacf7ccce915976121586addc29ab49669e60a14b5e20",
-      "references/model-sol-contract.md": "5315357c78da9ea4e30eafeb1665ce893fed9fdb1d442ec20e17f0bb2dcf2805",
+      "references/model-sol-contract.md": "0503b27ec8470258af9e5f47df34bdcc5e880c07096113fda84af655d59fb307",
       "references/model-sol-example.json": "ab5579cff6579b047b57f6ae697801fccf345a4be0f8246b6e042ec5505b8cf2",
-      "scripts/model_sol.py": "2f0e01d550f6890a62b0c2fc42e2f6fbaa0a9ccee827019e807ad32db7abbf50"
+      "references/qwen38-h200-tp4.json": "e7a8648c2a9b2dde4dee3f360dd256508fe15ee9867d4a7be3b9f4e889259a6c",
+      "references/qwen38-h200-tp4.md": "5b310fc546522f71dc882eff4f44df490955735474bc3d165a36e89556059749",
+      "scripts/model_sol.py": "ecee47fed1226b9417c0f8ae7e0dedbc17259dd4e2be962cc1a0e52a814ff25f",
+      "scripts/qwen38_checkpoint.py": "bc022056cad77941987a4f79647c0890ada808f7f0129522d137f51bcc16b1b7",
+      "scripts/qwen38_h200_tp4.py": "a8a9d238a83081b821976aa5afddf123837de1deb7b3748f56b107aecb8c9c1a"
     }
   },
   "npu-skill-factory": {

@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "repository": "https://github.com/InferMatrixLab/InferRSI",
-  "source_revision": "f56848f30be6a2f7c1281bd0e4b2eed765b4d19d",
+  "source_revision": "6a9f771ffe4b489b5614fdcd3d15534406cd51bd",
   "registry": {
     "path": "src/inferrsi/knowledge/data/skill_library/skill-index.json",
     "sha256": "d243e2ae44c7badc8e68788153de35fe6ac31de618b7499fef6339eadf396871"
