@@ -65,6 +65,12 @@ as it stands on protected `main` (not the PR head or a stacked branch; see the
 [high-risk rule](../../../docs/agent-collaboration.md#identity-and-authority)),
 including its agent, counts as the required listed approval. Other approvals
 count toward the two but not as that one.
+If a revert cannot undo the change's external effect (credentials, published
+assets, access) and the PR body lacks a
+`recovery: owner=@<account>; containment=<steps>` line, request it.
+Post a review or
+comment only for a new head, new evidence or a new question. Lead with the
+one-line conclusion and put details in a collapsible `<details>` section.
 
 Agents may submit formal reviews without a separate human delegation; see
 [identity and authority](../../../docs/agent-collaboration.md#identity-and-authority).

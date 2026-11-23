@@ -73,34 +73,20 @@ Parameterized or manual acceptance runs are issue-scoped; they are not the defau
 - **Emit RunSpec snapshots** — record repo × revision × backend × device × model × scenario (`contracts/runspec.py`, campaign `plan/`).
 - **Evaluator + evidence win** — never treat agent narrative as `PASS`; verdicts follow frozen gates and `evidence/<campaign-id>/` artifacts.
 
-## Issues and claims (PM)
+## Issues, claims and evidence
 
-- Open or update an **acceptance issue before claiming `PASS`** (or publishing numbers).
-- Do **not** invent thresholds in the tree; pins and numeric gates stay **issue-scoped** only.
-- Public wording: [evidence and claim rules](docs/contributing.md#evidence-and-claims).
-
-## Research lock
-
-- Cite **acceptance issues + pinned SHAs** in downstream text; do not invent gain or quality bars.
-- **Public wording only after `PASS`** — follow [evidence and claim rules](docs/contributing.md#evidence-and-claims); until then, label unverified or `INCONCLUSIVE`.
+- Open or update an **acceptance issue before claiming `PASS`** (or publishing numbers). Cite **acceptance issues + pinned SHAs** in downstream text.
+- Do **not** invent thresholds, gain or quality bars in the tree; pins and numeric gates stay **issue-scoped** only.
+- **Public wording only after `PASS`** — follow [evidence and claim rules](docs/contributing.md#evidence-and-claims) (including external demo scope); until then, label unverified or `INCONCLUSIVE`.
 - Use [cite-check-downstream-pr](src/inferrsi/knowledge/data/skill_library/workflows/governance/cite-check-downstream-pr/SKILL.md) and [competitor-scan](src/inferrsi/knowledge/data/skill_library/workflows/research/competitor-scan/SKILL.md) as **operators**, not campaign scripts (no pins in skill bodies).
 
-## Evidence and clearing the bar
-
-Verdicts are **`PASS`**, **`FAIL`**, or **`INCONCLUSIVE`** only (`src/inferrsi/contracts/claim.py`).
-
-A public **`PASS`** requires:
+Verdicts are **`PASS`**, **`FAIL`**, or **`INCONCLUSIVE`** only (`src/inferrsi/contracts/claim.py`). A public **`PASS`** requires:
 
 1. Pinned baseline and candidate revisions (in the issue, cited in results)
 2. Validators **frozen** before candidate search (`validator/` + gate checklist in `plan/`)
-3. A complete evidence tree under `evidence/<campaign-id>/`: `plan/`, `results/`, `patch/`, `validator/`
+3. A complete evidence tree under `evidence/<campaign-id>/` ([layout](evidence/README.md)): `plan/`, `results/`, `patch/`, `validator/`
 
 Agents and human reviewers **clear** work only with artifacts—not vibes. Green draft/ready CI does not imply campaign `PASS`.
-
-| Topic | Doc |
-| --- | --- |
-| Claim wording and external demo scope | [evidence and claim rules](docs/contributing.md#evidence-and-claims) |
-| Evidence layout | [evidence/README.md](evidence/README.md) |
 
 ## Skills
 
@@ -110,40 +96,9 @@ Portable operator guidance and candidate procedures live in the [skill library](
 
 ## Optimization requests
 
-For requests to use benchmarks to verify RSI knowledge efficiency, start with
-`inferrsi benchmarks compare --help` and follow its returned `next_action`.
-The default knowledge comparison runs Qwen denoising and MoE forward, each
-on/off in independent sessions. Configuration, native handoff, trace and report
-details are in [benchmark comparison](docs/benchmark-comparison.md).
-
-Ordinary project optimization stays in the current Agent conversation. Follow
-the [shared optimization workflow](docs/optimization-workflow-unification.md):
-prepare explicit workload, quality/measurement scripts, metric, gates, declared
-project inputs and budget, then use `campaign start/diagnose/knowledge/round/status/final`.
-Record the measured bottleneck before optional knowledge retrieval or candidate search.
-Harness freezes those supplied conditions and assesses the retained results;
-it does not infer acceptance from the user's goal. Ordinary optimization does
-not depend on Benchmark. Use `up_to` with a recorded stop reason or declare exact rounds.
-This and the packaged task path below share one Harness controller. Managed
-campaigns generate dashboard views from that control record; do not use legacy
-`campaign record/decide` to create a second set of optimization state.
-
-For a request to run an optimization task through RSI, follow the
-[current-Agent benchmark workflow](docs/optimization-benchmarks.md).
-Use `benchmarks session` to freeze the budget, record the measured bottleneck,
-submit each changed candidate,
-read its feedback, and independently retest the selected candidate with `final`.
-Report the session summary after the declared rounds and final are complete.
-`benchmarks run` is the single-candidate measurement operation inside that workflow.
-Benchmark requests default to a fresh conversation on the current host; follow
-[native Agent sessions](docs/native-agent-sessions.md). The initiator resolves
-the task/configuration, records a prompt through `agents prepare`, then dispatches,
-creates and binds one native session. It does not start the optimization campaign.
-The execution Agent reads the RSI entry, runs start through independent final,
-and returns the summary and artifacts. It must not redelegate. The initiator
-observes the native session and records the delivered results without inferring
-acceptance from host completion. An explicit current-conversation request uses
-the same full optimization lifecycle directly.
+Benchmark comparisons, ordinary project optimization and packaged optimization
+tasks each have one entry workflow; see
+[optimization requests](docs/operations.md#optimization-requests).
 
 ## Dev smoke (local)
 
@@ -160,8 +115,16 @@ ruff check src tests
 1. Read the contribution guide and validation levels before large code or CI changes.
 2. Prefer minimal diffs; match existing layout and naming.
 3. Do not reopen closed campaign work or add pins to shared automation without explicit human direction.
-4. Work Issue-first: confirm the governing Issue's accepted scope before changing code, keep each change a bounded delegated slice with independent review, and report PR readiness and Issue completion separately — see [agent collaboration](docs/agent-collaboration.md).
-5. Agents may carry work end to end; humans set direction through Issues and stop work with `bot:stop`. Identify yourself first on every comment and review, never approve your own PR, merge a high-risk PR (CI, releases, secrets, permissions) only with at least one of its two approvals from an account on the high-risk approver list in `.github/high-risk-approvers.json` (its agent may give it), claim work only on an Issue with an accountable owner (recorded on the Issue, or else its only assignee) labeled `status:accepted` (the agent acting for its accountable owner decides there), keep comments short, and revert a merge that turns `main` red before fixing forward — see [identity and authority](docs/agent-collaboration.md#identity-and-authority) and working rules 8–9 in [agent collaboration](docs/agent-collaboration.md#working-rules).
+
+## Collaboration
+
+Rules: [agent collaboration](docs/agent-collaboration.md). Agents may carry work end to end; humans set direction through Issues and stop work with `bot:stop`. One skill per step:
+
+- Claim before starting: [claim-work](.agents/skills/claim-work/SKILL.md) — confirm the Issue has an accountable owner and `status:accepted` and that you are its deciding agent or work under its delegation, search for duplicates, claim on the Issue with the next artifact time, release if nothing appears.
+- Open a PR: [open-pr](.agents/skills/open-pr/SKILL.md) — a bounded slice with independent review, branched from current `main`, local checks run, AI declaration filled; report PR readiness and Issue completion separately.
+- Review: [review-pr](.agents/skills/review-pr/SKILL.md) — identify yourself first on every comment and review, keep comments short, never approve your own PR; one formal reviewer agent per account.
+- Merge: [merge-pr](.agents/skills/merge-pr/SKILL.md) — open and ready, authorized, expected base and dependencies merged, two independent approvals, required checks green, no `bot:stop` or unlifted stop comment, and on a high-risk PR (CI, releases, secrets, permissions) at least one approval from an account on the high-risk approver list in `.github/high-risk-approvers.json` that still has write access, verified at merge time.
+- Red `main`: [red-main](.agents/skills/red-main/SKILL.md) — revert the merge that broke it, then fix forward in a new PR.
 
 ## Privacy and security
 
