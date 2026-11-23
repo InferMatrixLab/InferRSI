@@ -292,6 +292,28 @@ def test_ambiguous_attribution_requires_unknown_rates(campaign, state):
     assert search["state"] == ("recorded" if state == "unknown" else "invalid_counts")
 
 
+@pytest.mark.parametrize("adoption", ["partial", "stale_complete"])
+def test_complete_to_partial_round_needs_partial_adoption(campaign, adoption):
+    """Mirrors the live-refresh browser fixture: dropping coverage drops versions and rates."""
+    path = campaign / "search/archive/round-1.json"
+    doc = json.loads(path.read_text())
+    doc["coverage"], doc["counts"] = "partial", None
+    if adoption == "partial":
+        doc["adoption"]["unique_hit_revisions"] = None
+        for part in ("search_hits", "direct_reads"):
+            doc["adoption"][part]["state"] = "unknown"
+    doc["declarations"][0]["source"] = None
+    path.write_text(json.dumps(doc))
+    search = _round_one(campaign, 2)
+    if adoption == "stale_complete":
+        assert search["state"] == "invalid_counts" and "adoption" not in search
+        return
+    assert search["state"] == "recorded" and search["counts"] is None
+    assert search["adoption"] == doc["adoption"]
+    assert search["declarations"][0]["source"] is None
+    assert search["declarations"][0]["state"] == "source_mismatch"
+
+
 def test_missing_capture_and_duplicate_json_keys_are_explicit(campaign):
     (campaign / "knowledge/capture.json").unlink()
     (campaign / "search/round-3.json").write_text('{"round":3,"round":3}')
