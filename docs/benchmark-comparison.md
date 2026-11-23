@@ -71,11 +71,14 @@ The CLI neither starts a hidden Agent CLI nor invents a conversation identity.
    `--action record --observation <observation.json>`. Uncertain creation stays
    `dispatching`; inspecting the original call takes precedence over relaunch.
 5. After termination and artifact return, call `--action collect --trial <id>`.
-   Keep failed/incomplete results. By default, trials run in declared order,
-   with on/off order alternating between repeats. With sufficient devices,
-   pass `--parallel` on dispatch for each trial you want to start while others
-   are active. Keep each allocation separate and note concurrent execution
-   when interpreting campaign wall time.
+   Keep failed/incomplete results. Each attempt is collected once. Repeating
+   collect for that attempt returns its first record with `already_collected:
+   true`; it writes no new snapshot and changes neither its classification nor
+   retry eligibility. Use `--action report` to re-verify current evidence.
+   By default, trials run in declared order, with on/off order alternating
+   between repeats. With sufficient devices, pass `--parallel` on dispatch for
+   each trial you want to start while others are active. Keep each allocation
+   separate and note concurrent execution when interpreting campaign wall time.
 6. To retry an arm, call `--action retry --trial <id>` after collecting its
    terminal attempt. Retry is an explicit initiator decision. It is never
    automatic, and `next_action` never suggests it. It is refused while the

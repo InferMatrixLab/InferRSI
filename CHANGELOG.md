@@ -21,6 +21,9 @@
   `benchmark.comparison.attempt_accounting`. The verdict still reads each arm's latest attempt,
   including its campaign `wall_seconds`, and is unchanged. So is Harness failure classification.
   A collected trial whose job is gone now reports as unverifiable (`blocked`), not `pending`.
+  Each attempt is collected once: repeating `--action collect` for it returns the first record
+  with `already_collected: true` and writes no new snapshot, so it cannot change the recorded
+  classification or make a recorded eligible completion retryable.
   Experiments prepared earlier load unchanged: attempt 1 keeps the existing job and workspace paths.
 - `inferrsi.harness.scenarios` is now `inferrsi.harness.trials` (Refs #558). Its one
   module, `external.py`, runs an external command as one trial and retains its record

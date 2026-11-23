@@ -655,8 +655,21 @@ def _trial_result(root, plan, trial, host, payload, *, workspace, host_error=Non
 
 
 def collect(root, trial_id):
+    """Record one terminal attempt once; repeating it returns that first record.
+
+    The first collection is the attempt's recorded classification, which report
+    accounting and retry eligibility read. A repeated collect of the same attempt
+    writes no new snapshot and keeps the pointer, so later evidence loss can
+    neither rewrite that history nor open a retry. Report re-verifies live evidence.
+    """
     plan, state = _load(root)
     trial = _select(plan, trial_id)
+    reference = state["collections"].get(trial_id)
+    if reference is not None:
+        if sha256(root / reference["path"]) != reference["sha256"]:
+            raise ValueError("Retained comparison collection changed")
+        return {"trial": _object(root / reference["path"]), "already_collected": True,
+                "collection": reference, "next": _status(root, plan, state)["next_action"]}
     number = _attempt_number(state, trial)
     job = _job(root, trial, number)
     host = agent_sessions.status(job) if job.exists() else None

@@ -783,6 +783,46 @@ def test_collected_selected_attempt_cannot_pass_from_its_record(experiment):
             in html)
 
 
+def test_repeated_collect_keeps_first_record_and_refuses_retry(experiment):
+    root, initial, _ = experiment
+    on = initial["trials"][0]["id"]
+    campaign, collected = finish(experiment, on)
+    assert collected["status"] == "completed" and collected["eligible"]
+    state = json.loads((root / "state.json").read_text(encoding="utf-8"))
+    pointer = state["collections"][on]
+    snapshots = sorted(path.name for path in (root / "collections").iterdir())
+    # Campaign evidence is lost while the native job still records a terminal session.
+    shutil.rmtree(campaign)
+    assert agent_sessions.status(root / "jobs" / on)["state"] in agent_sessions.TERMINAL
+    again = operation(experiment, "collect", on)
+    # The first record is returned; no snapshot is written and the pointer is unchanged.
+    assert again["already_collected"] is True and again["trial"] == collected
+    assert again["collection"] == pointer
+    assert sorted(path.name for path in (root / "collections").iterdir()) == snapshots
+    state = json.loads((root / "state.json").read_text(encoding="utf-8"))
+    assert state["collections"][on] == pointer
+    with pytest.raises(ValueError, match="eligible completed"):
+        compare.retry(root, on)
+    report = operation(experiment, "report")
+    arm = _document(report)["trials"][0]
+    # The verdict reads live evidence, which no longer verifies.
+    assert arm["status"] == "blocked" and not arm["eligible"]
+    assert "Campaign evidence was not returned" in arm["gaps"]
+    assert report["assessment"]["counts"]["eligible_trials"] == 0
+    row, accounting = arm["attempts"][0], arm["attempt_accounting"]
+    # History keeps the first record: a recorded success, never a failure.
+    assert (row["status"], row["eligible"], row["gaps"]) == ("completed", True, [])
+    assert row["reverification"]["verified"] is False
+    assert row["reverification"]["status"] == "blocked"
+    assert "Campaign evidence was not returned" in row["reverification"]["added_gaps"]
+    assert accounting["attempts"] == 1 and accounting["failed_attempts"] == 0
+    assert accounting["success_wall_seconds"] is None
+    # A tampered first record is refused rather than replaced by a new collection.
+    (root / pointer["path"]).write_text("{}", encoding="utf-8")
+    with pytest.raises(ValueError, match="Retained comparison collection changed"):
+        compare.collect(root, on)
+
+
 @pytest.mark.parametrize(("window", "reason"), [
     (False, "native_session_window_not_exported"),
     ({"session_id": "another-session"}, "native_session_window_invalid"),
