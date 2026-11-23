@@ -36,9 +36,10 @@ that pair only.
    or for a stacked PR its lower PR's branch until that PR merges, after which
    the base is changed back to `main` and the checks run again. Every PR it
    depends on has merged; until then, do not merge or queue it.
-5. **Two approvals on the current head:** at least two **Approve** reviews
-   with `LGTM` alone on the first non-empty line, each from a different
-   eligible account (repository write access or higher), none stale.
+5. **Two approvals on the current head:** at least two formal **Approve**
+   reviews, each from a different eligible account (repository write access
+   or higher), none stale. The review body's wording does not count;
+   comments and **Comment** reviews contribute no approval.
    Each account counts once, whether its human votes directly or its one
    formal reviewer agent does.
 6. **Independence:** the author, material contributors and the accountable
