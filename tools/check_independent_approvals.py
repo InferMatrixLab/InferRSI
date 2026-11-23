@@ -83,10 +83,15 @@ def evaluate(api, pr):
 
 def targets(prs, event_name, event):
     if event_name == "pull_request_target":
-        # Reconcile peers when a PR retargets, opens, or closes on a shared head.
-        head = event["pull_request"]["head"]["sha"]
+        # A synchronize can make the former shared head unique again.
+        heads = {event["pull_request"]["head"]["sha"]}
+        if event.get("action") == "synchronize":
+            before = event.get("before")
+            if not isinstance(before, str) or not SHA.fullmatch(before):
+                return prs  # The previous head is unknown; reconcile from live data.
+            heads.add(before)
         number = event["number"]
-        return [pr for pr in prs if pr["number"] == number or pr["head"]["sha"] == head]
+        return [pr for pr in prs if pr["number"] == number or pr["head"]["sha"] in heads]
     if event_name == "workflow_run":
         run = event["workflow_run"]
         if run["event"] != "pull_request_review":

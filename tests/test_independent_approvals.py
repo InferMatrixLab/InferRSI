@@ -79,6 +79,29 @@ def test_shared_head_is_never_approved():
     api.pages.assert_not_called()
 
 
+@pytest.mark.parametrize("before", [HEAD, None, "not-a-sha"])
+def test_synchronize_reconciles_a_peer_after_a_shared_head_splits(monkeypatch, before):
+    first, second = pr(), pr(number=11)
+    api, statuses = Mock(), {}
+    monkeypatch.setattr(gate, "evaluate", lambda *_: 2)
+    monkeypatch.setattr(gate, "publish",
+                        lambda _api, head, state, _description: statuses.update({head: state}))
+    assert gate.reconcile(api, [first, second], [first]) == 0
+    assert statuses[HEAD] == "failure"
+
+    # PR 11 advances; PR 10 is now the unique owner of the former shared SHA.
+    moved = pr(number=11, head=OLD)
+    current = [first, moved]
+    api.get.side_effect = lambda route: first if route == "pulls/10" else moved
+    api.pages.return_value = current
+    event = {"action": "synchronize", "number": 11, "pull_request": moved}
+    if before is not None:
+        event["before"] = before
+    selected = gate.targets(current, "pull_request_target", event)
+    assert gate.reconcile(api, current, selected) == 0
+    assert statuses == {HEAD: "success", OLD: "success"}
+
+
 def test_fork_review_without_run_association_reconciles_from_live_data():
     items = [pr()]
     event = {"workflow_run": {"event": "pull_request_review", "pull_requests": []}}
