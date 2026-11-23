@@ -162,6 +162,59 @@ def test_opt_in_retains_policy_and_allowed_proof_for_real_generation(authorized)
     assert result["attempt_id"] == inputs["attempt"]["attempt_id"]
 
 
+@pytest.mark.parametrize("fault", ["missing", "corrupt"])
+def test_registered_policy_generation_replays_before_fresh_authorization(
+    authorized, monkeypatch, tmp_path, fault,
+):
+    from inferrsi.harness import execution_service, generation_feedback
+    from inferrsi.harness.api import Harness, LocalCpuTarget
+
+    store, _, harness, _, _, _, _, _, _ = authorized
+    spec = prepare(authorized)
+    saved = encode(spec)
+    original = harness.execute(decode(saved))
+    assert original["exit_code"] == 0
+    before = store.committed(original["attempt_id"])
+    policy = next(item["source_ref"] for item in spec["inputs"]
+                  if item["role"] == "generation_feedback_policy")
+    path = store.root / "objects" / policy["sha256"][:2] / policy["sha256"]
+    assert path.resolve().is_relative_to(tmp_path.resolve())
+    data = path.read_bytes()
+    if fault == "missing":
+        path.unlink()
+    else:
+        path.write_bytes(bytes([data[0] ^ 1]) + data[1:])
+
+    def forbidden(*args, **kwargs):
+        pytest.fail("registered generation performed fresh authorization or execution")
+
+    class Never:
+        open = forbidden
+
+    monkeypatch.setattr(generation_feedback, "verify", forbidden)
+    monkeypatch.setattr(execution_service, "_budget", forbidden)
+    monkeypatch.setattr(execution_service, "_deadline_seconds", forbidden)
+    monkeypatch.setattr(execution_service.local_process, "_supervise", forbidden)
+    monkeypatch.setattr(store, "claim", forbidden)
+    monkeypatch.setattr(run_store.Claim, "commit", forbidden)
+    monkeypatch.setattr(run_store, "utc_now", lambda: "2100-01-01T00:00:00Z")
+    retired = Harness(store, LocalCpuTarget("retired", "2", tmp_path / "retired"),
+                      artifact_reader=Never())
+    replayed = retired.execute(decode(saved))
+    assert replayed["record_ref"] == original["record_ref"]
+    assert replayed["request_digest"] == original["request_digest"]
+    changed = decode(saved)
+    changed["deadline_utc"] = "2098-01-01T00:00:00Z"
+    with pytest.raises(PublicError) as caught:
+        retired.execute(changed)
+    assert (caught.value.code, caught.value.stage) == ("RequestConflict", "claim")
+    assert store.committed(original["attempt_id"]).payload_bytes == before.payload_bytes
+    assert encode(spec) == saved
+    with store._connection() as connection:
+        assert connection.execute("SELECT count(*) FROM attempts").fetchone()[0] == 2
+        assert connection.execute("SELECT count(*) FROM records").fetchone()[0] == 2
+
+
 @pytest.mark.parametrize("fault,code", [
     ("denied-scope", "InvalidRequest"), ("extra-ref", "InvalidRequest"),
     ("unknown-version", "UnsupportedSchema"), ("wrong-scope", "InvalidRequest"),

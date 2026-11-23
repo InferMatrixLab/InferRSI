@@ -78,7 +78,12 @@ repreparation still needs the original policy bytes through `artifact_reader`.
 The generation manifest has no new fields. Opt-in specs include the policy
 input in the normal request digest; existing specs and descriptors are not
 rewritten. This change adds no check or attempt allocation to `Harness.execute`.
-The separate #564 replay ordering must be verified after it actually lands.
+With the #564 replay path, executing the same registered specification returns
+the original fixed record before fresh policy/input reads, target admission or
+deadline checks. Missing or corrupt retained policy bytes do not authorize a
+rerun. A changed request digest still conflicts before those fresh operations.
+Repreparing a generation remains a separate operation with the fixed-reference
+verification described above.
 
 ## Errors and limits
 

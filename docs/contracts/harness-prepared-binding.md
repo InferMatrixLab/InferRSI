@@ -31,8 +31,10 @@ with the fixed preparation. Disagreement is `IdentityMismatch`. It also checks:
   and input/output paths must not overlap. Required frozen capabilities cannot
   be dropped; additional declared capabilities remain subject to admission.
 
-Malformed or conflicting declarations are `InvalidExecutionSpec`. All of these
-refusals precede `RunStore.claim`: neither attempt nor record is registered.
+Malformed or conflicting declarations are `InvalidExecutionSpec`. For a fresh
+request these refusals precede `RunStore.claim`: neither attempt nor record is
+registered. Existing request state is handled after static field checks and
+before preparation IO by the [replay contract](harness-evaluation-replay.md).
 The public projection does not interpret candidate formats, grading rules,
 evidence requirements or scores, and does not recompute Benchmark's semantic
 prepared ID. The fixed ArtifactRef authenticates the preparation bytes; Apps
@@ -47,7 +49,8 @@ The vector is documentary; its historical code pin is not an available worker.
 
 Targets without an explicit `module_root` keep valid evaluation-mode execution
 unsupported before registration. A configured source target performs the separate
-[post-registration entry check](harness-entry-verification.md) (T37). Attempt
-deadlines/budget acceptance with a null step timeout and evaluation replay (T40)
-remain separate delivery work. Declaration checks alone do not establish
+[post-registration entry check](harness-entry-verification.md) (T37). The
+[original-limit/replay path](harness-evaluation-replay.md) covers the next
+delivery unit, whose complete CPU acceptance retains its launch prerequisite.
+Declaration checks alone do not establish
 production CPU acceptance or completion of the governing Harness or Apps Issues.

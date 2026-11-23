@@ -5,6 +5,7 @@ import sqlite3
 import subprocess
 import sys
 from copy import deepcopy
+from datetime import datetime, timedelta, timezone
 from hashlib import sha256
 from pathlib import Path
 
@@ -26,10 +27,22 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 @pytest.fixture
-def evaluation(preparation, tmp_path):
-    service, request, sources, _, _, config, _ = preparation
+def evaluation(preparation, tmp_path, request):
+    service, prepare_request, sources, protocol, _, config, _ = preparation
+    settings = getattr(request, "param", {})
+    if "worker_code" in settings:
+        source = settings["worker_code"]
+        sources["worker-code"].write_bytes(source)
+        protocol = deepcopy(protocol)
+        digest = sha256(source).hexdigest()
+        protocol["worker_recipe"]["code_sha256"] = digest
+        resource = next(item for item in protocol["resources"] if item["role"] == "worker-code")
+        resource["artifact"].update(sha256=digest, size_bytes=len(source))
+        service = benchmark.PreparationService(
+            protocol, resources=lambda role: sources[role].open("rb"), worker_role="worker-code",
+        )
     output = api.prepare(
-        {"schema_version": 1, "request": request}, workspace=tmp_path,
+        {"schema_version": 1, "request": prepare_request}, workspace=tmp_path,
         storage_config=config, prepare_benchmark=service.prepare,
         encode_prepared=benchmark.encode, validate_prepared=benchmark.validate_prepared,
     )
@@ -38,6 +51,10 @@ def evaluation(preparation, tmp_path):
     prepared = read_prepared(config, ref)
     vector = decode((ROOT / "tests/fixtures/harness-prepared-binding/d023-null-timeout.json")
                     .read_bytes())
+    if "deadline_seconds" in settings:
+        vector["deadline_utc"] = (
+            datetime.now(timezone.utc) + timedelta(seconds=settings["deadline_seconds"])
+        ).isoformat().replace("+00:00", "Z")
     controller, modules = tmp_path / "controller", tmp_path / "modules"
     controller.mkdir()
     modules.mkdir()

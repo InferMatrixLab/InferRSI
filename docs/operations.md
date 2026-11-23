@@ -56,6 +56,7 @@ Effect classes used below:
 | Seal a generation request before execution | Python `inferrsi.harness.generation.prepare_generation`; [original bounds](contracts/generation-bounds.md) | Local record-writing | Seals approved context, plan and original deadline/budget metadata; allocates no attempt, starts no process and does not enable generation-lineage evaluation |
 | Verify a frozen preparation binding before registration | Python `inferrsi.harness.prepared_binding.verify` / `read` / `project` | Read-only / pure projection | Fixed ArtifactRef and read-only stream capability; no registration, entry resolution or execution; [binding contract](contracts/harness-prepared-binding.md) |
 | Verify and execute one frozen source evaluation entry | Python `inferrsi.harness.api.Harness.execute` with trusted `LocalCpuTarget(module_root=...)` | Experiment-executing / record-writing | Fixed preparation and expected code digest; actual source captured after registration; T37 refusals start no worker; [source-entry contract](contracts/harness-entry-verification.md) |
+| Replay the same saved execution request | Python `inferrsi.harness.api.Harness.execute` | Existing-state query / fixed record-reading | Same attempt and canonical digest; existing state short-circuits fresh binding/execution; [replay and original limits](contracts/harness-evaluation-replay.md) |
 | Freeze a configured P1 preparation | Python `benchmark.preparation.PreparationService.prepare`; [production prepare](contracts/production-prepare.md) | Read-only resource access / pure encoding | Verifies supplied frozen worker/resource bytes and returns a preparation, protocol and role-keyed closure; Apps separately archives them before publishing a Ref |
 | Assess one fixed P1 record offline | Python `benchmark.assessment.assess`; [production assess](contracts/production-assess.md) | Read-only retained evidence / pure encoding | Verifies the frozen protocol, actual capture and proof bytes; returns independent claims without launching a worker or writing an archive; Apps selects the primary key and archives the result |
 | Seal a generation with frozen feedback authorization | Python `harness.generation.prepare_generation`; [opt-in feedback profile](contracts/generation-feedback-policy.md) | Local context / policy / generation-plan retention | Optional fixed policy and source record Refs authorize original scope/check proofs before provider calls. Absent-policy calls remain a trusted-host path; no automatic execution or policy-approval authentication |
@@ -448,6 +449,16 @@ for the same record revision. The output shows committed execution facts,
 including phase, process outcome, cleanup and recording time. A successful
 read exits 0. Invalid references, archive integrity failures and mismatched
 revisions exit 2.
+
+The execution view preserves the committed `generation_record_ref` in full.
+Reports and Dashboards show its attempt ID, fixed record revision and SHA-256,
+without displaying its artifact location. A null reference is shown as
+"Not linked"; an older saved view without the field is shown as "Unknown".
+Reading the view does not open the referenced generation or resolve a current
+record, so it can still present a link whose source is unavailable. This is a
+recorded association, not a fresh lineage authorization or an assessment.
+A missing or malformed reference field in a v1 committed record is an archive
+integrity failure; it is not converted to an unlinked record.
 
 The same read-only view is available through
 `inferrsi.apps.api.read_attempt_view`. The legacy `status --run-id` form
