@@ -1390,6 +1390,43 @@ def test_submit_streams_a_file_larger_than_one_chunk(tmp_path):
     assert not (round_dir / "submit-staging").exists()
 
 
+def test_metadata_write_failure_retries_without_a_false_success(tmp_path, monkeypatch):
+    incumbent = tmp_path / "incumbent"
+    _tree(incumbent, "10")
+    round_dir = tmp_path / "round"
+    prepare(_spec(), incumbent, round_dir)
+    work = tmp_path / "work"
+    _tree(work, "8")
+    real = parallel_round.write_json
+    failed = {"once": False}
+
+    def write_json(path, value):
+        if not failed["once"] and Path(path).parent.name == "outbox":
+            failed["once"] = True
+            raise OSError("no space left on device")
+        real(path, value)
+
+    monkeypatch.setattr(parallel_round, "write_json", write_json)
+    refused = submit(round_dir, "L1", incumbent, work, now=WHEN)
+    assert refused["submitted"] is False
+    assert refused["ticket"] is None
+    outbox = round_dir / "outbox"
+    assert not outbox.exists() or list(outbox.iterdir()) == []
+    accepted = submit(round_dir, "L1", incumbent, work, now=WHEN)
+    assert accepted["submitted"] is True
+    ticket = accepted["ticket"]
+    metadata = _ticket_metadata_path(round_dir / "outbox" / ticket)
+    assert json.loads(metadata.read_text(encoding="utf-8"))["ticket"] == ticket
+    assert (round_dir / "outbox" / ticket / "knobs" / "a.txt").read_text(encoding="utf-8") == "8"
+    measured = serve_ticket(round_dir, ticket, incumbent, backend=FixtureBackend(), now=WHEN)
+    assert measured["status"] == "measured", measured
+    metadata.unlink()
+    repaired = submit(round_dir, "L1", incumbent, work, now=WHEN)
+    assert repaired["submitted"] is True
+    assert repaired["ticket"] == ticket
+    assert json.loads(metadata.read_text(encoding="utf-8"))["lane_id"] == "L1"
+
+
 def test_submit_refuses_a_file_that_changes_after_the_scan(tmp_path, monkeypatch):
     incumbent = tmp_path / "incumbent"
     _tree(incumbent, "10")
@@ -1554,6 +1591,55 @@ def test_successor_keeps_files_the_build_wrote_into_the_measured_tree(tmp_path):
     successor = Path(closed["successor"])
     assert (successor / "knobs" / "a.txt").read_text(encoding="utf-8") == "8"
     assert (successor / "knobs" / "generated.txt").read_text(encoding="utf-8") == "from-build"
+
+
+def test_promotion_does_not_publish_or_follow_repository_metadata(tmp_path):
+    incumbent = tmp_path / "incumbent"
+    _sum_tree(incumbent, "10", "10")
+    outside = tmp_path / "outside-secret.txt"
+    outside.write_text("SECRET-OUTSIDE", encoding="utf-8")
+    round_dir = tmp_path / "round"
+    spec = _sum_spec()
+    spec["build"] = [
+        sys.executable,
+        "-c",
+        "import os; from pathlib import Path; "
+        "git = Path('.git'); git.mkdir(); (git / 'config').write_text('planted-git'); "
+        f"os.symlink({str(outside)!r}, git / 'leak'); "
+        "Path('knobs/generated.txt').write_text('from-build')",
+    ]
+    prepare(spec, incumbent, round_dir)
+    work = tmp_path / "work"
+    _sum_tree(work, "8", "10")
+    ticket = submit(round_dir, "L1", incumbent, work, now=WHEN)["ticket"]
+    measured = serve_ticket(round_dir, ticket, incumbent, backend=FixtureBackend(), now=WHEN)
+    assert measured["verdict"] == "PASS"
+    closed = close_round(round_dir, incumbent, backend=FixtureBackend(), now=WHEN)
+    assert closed["accepted"] is True
+    successor = Path(closed["successor"])
+    assert (successor / "knobs" / "generated.txt").read_text(encoding="utf-8") == "from-build"
+    assert (successor / "knobs" / "a.txt").read_text(encoding="utf-8") == "8"
+    assert not (successor / ".git").exists()
+    published = [
+        path.read_text(encoding="utf-8")
+        for path in successor.rglob("*")
+        if path.is_file()
+    ]
+    assert all("SECRET-OUTSIDE" not in text for text in published)
+    assert outside.read_text(encoding="utf-8") == "SECRET-OUTSIDE"
+
+
+def test_promotion_refuses_a_symlink_without_following_it(tmp_path):
+    source = tmp_path / "source"
+    _tree(source, "8")
+    outside = tmp_path / "outside-secret.txt"
+    outside.write_text("SECRET-OUTSIDE", encoding="utf-8")
+    (source / "knobs" / "leak").symlink_to(outside)
+    destination = tmp_path / "successor"
+    with pytest.raises(ValueError, match="knobs/leak"):
+        parallel_round._promote_snapshot(source, destination)
+    assert not destination.exists()
+    assert outside.read_text(encoding="utf-8") == "SECRET-OUTSIDE"
 
 
 def test_submit_refuses_while_close_runs_and_after_it_finishes(tmp_path):

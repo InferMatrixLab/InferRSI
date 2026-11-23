@@ -32,7 +32,9 @@ outbox ticket has a terminal receipt, each lane keeps one PASS winner (higher
 ``improvement_pct``, then lower ``ticket``). ``close`` copies that verified
 incumbent to ``candidates/frozen-incumbent`` and overlays the winners onto that
 snapshot. The joint build and trials run in that tree. A PASS run promotes
-that measured tree, including files the build wrote into it. Any other
+that measured tree, including regular files the build wrote into it.
+Promotion copies only the files the snapshot verified: repository metadata is
+omitted, and a symlink is refused instead of followed. Any other
 completed verdict retains the incumbent and writes
 ``knowledge/joint-failure.json``. A build that started and exited non-zero
 closes the round as retained and keeps the exit code. A joint confinement
@@ -316,6 +318,25 @@ def _incumbent_mismatch(plan: dict, incumbent: Path) -> str | None:
     return None
 
 
+def _promote_snapshot(source: Path, destination: Path) -> None:
+    """Copy the regular files ``_snapshot`` verified. Do not follow links or copy ``.git``."""
+    hashes, blocked = _snapshot(source)
+    if blocked:
+        raise ValueError(f"unreadable paths: {sorted(blocked)}")
+    if destination.exists():
+        shutil.rmtree(destination)
+    destination.mkdir(parents=True)
+    try:
+        for relative, expected in hashes.items():
+            target = destination / relative
+            target.parent.mkdir(parents=True, exist_ok=True)
+            if _stream_copy(source, relative, target) != expected:
+                raise ValueError(f"snapshot changed during promotion: {relative}")
+    except (OSError, ValueError):
+        shutil.rmtree(destination)
+        raise
+
+
 def _freeze_incumbent(round_dir: Path, incumbent: Path) -> Path:
     """Copy the incumbent that just matched the digest. Close reads this tree."""
     frozen = round_dir / "candidates" / "frozen-incumbent"
@@ -487,7 +508,12 @@ def prepare(spec: dict, incumbent: Path, round_dir: Path) -> dict:
 def submit(
     round_dir: Path, lane_id: str, incumbent: Path, work: Path, *, now: datetime | None = None
 ) -> dict:
-    """Copy in-glob changes to the outbox. The same manifest always returns the same ticket."""
+    """Copy in-glob changes to the outbox. The same manifest always returns the same ticket.
+
+    The payload directory and the metadata file beside it are one publication.
+    A directory without matching metadata is not a ticket: it is removed and
+    written again. A metadata write that fails removes both and reports refusal.
+    """
     if (round_dir / "close.json").exists():
         return _refusal("round closed")
     lock = _acquire_close(round_dir)
@@ -560,13 +586,17 @@ def _submit_holding_lock(
             if copied != after[path]:
                 return _refusal("changed during submit", rejected=[path])
         destination = round_dir / "outbox" / ticket
-        if not destination.exists():
+        metadata = _ticket_metadata_path(destination)
+        record = {"ticket": ticket, "lane_id": lane_id, "files": manifest, "deleted": []}
+        if not _ticket_is_published(destination, metadata, record):
+            _discard_unpublished_ticket(destination, metadata)
             destination.parent.mkdir(parents=True, exist_ok=True)
             shutil.move(staging, destination)
-            write_json(
-                _ticket_metadata_path(destination),
-                {"ticket": ticket, "lane_id": lane_id, "files": manifest, "deleted": []},
-            )
+            try:
+                write_json(metadata, record)
+            except OSError:
+                _discard_unpublished_ticket(destination, metadata)
+                raise
     except OSError:
         return _refusal("symlink", rejected=list(changed))
     finally:
@@ -584,6 +614,27 @@ def _ticket_metadata_path(overlay: Path) -> Path:
     ``manifest.json`` (root or nested) is a legitimate payload.
     """
     return overlay.parent / f"{overlay.name}.json"
+
+
+def _ticket_is_published(destination: Path, metadata: Path, record: dict) -> bool:
+    """True only when the payload directory and its metadata file agree."""
+    if not destination.is_dir() or destination.is_symlink() or not metadata.is_file():
+        return False
+    try:
+        stored = json.loads(metadata.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError):
+        return False
+    return stored == record
+
+
+def _discard_unpublished_ticket(destination: Path, metadata: Path) -> None:
+    """Remove a payload directory and metadata file that are not a finished ticket."""
+    if destination.is_dir() and not destination.is_symlink():
+        shutil.rmtree(destination)
+    elif destination.exists() or destination.is_symlink():
+        destination.unlink()
+    if metadata.is_file() or metadata.is_symlink():
+        metadata.unlink()
 
 
 def _ledger_path(round_dir: Path, lane_id: str) -> Path:
@@ -1452,9 +1503,20 @@ def _close_round_holding_lock(
                 reasons=evaluation["reasons"],
             )
         successor = round_dir / "successor"
-        if successor.exists():
-            shutil.rmtree(successor)
-        shutil.copytree(joint, successor)
+        try:
+            _promote_snapshot(joint, successor)
+        except (OSError, ValueError) as exc:
+            return {
+                "status": "refused",
+                "composition": "joint-single-rerun",
+                "reason": str(exc),
+                "composed": composed,
+                "dropped": dropped,
+                "devices": devices,
+                "run_dir": str(run_dir),
+                "verdict": evaluation["verdict"],
+                "improvement_pct": evaluation["improvement_pct"],
+            }
         return finish(
             accepted=True,
             retained=False,
