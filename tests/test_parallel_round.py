@@ -1427,6 +1427,28 @@ def test_metadata_write_failure_retries_without_a_false_success(tmp_path, monkey
     assert json.loads(metadata.read_text(encoding="utf-8"))["lane_id"] == "L1"
 
 
+def test_retry_repairs_a_payload_that_does_not_match_the_manifest(tmp_path):
+    incumbent = tmp_path / "incumbent"
+    _tree(incumbent, "10")
+    round_dir = tmp_path / "round"
+    prepare(_spec(), incumbent, round_dir)
+    work = tmp_path / "work"
+    _tree(work, "8")
+    submitted = submit(round_dir, "L1", incumbent, work, now=WHEN)
+    ticket = submitted["ticket"]
+    stored = round_dir / "outbox" / ticket / "knobs" / "a.txt"
+    stored.write_text("truncated", encoding="utf-8")
+    repaired = submit(round_dir, "L1", incumbent, work, now=WHEN)
+    assert repaired["submitted"] is True
+    assert repaired["ticket"] == ticket
+    assert stored.read_text(encoding="utf-8") == "8"
+    stored.unlink()
+    replaced = submit(round_dir, "L1", incumbent, work, now=WHEN)
+    assert replaced["submitted"] is True
+    assert replaced["ticket"] == ticket
+    assert stored.read_text(encoding="utf-8") == "8"
+
+
 def test_submit_refuses_a_file_that_changes_after_the_scan(tmp_path, monkeypatch):
     incumbent = tmp_path / "incumbent"
     _tree(incumbent, "10")
@@ -1637,9 +1659,37 @@ def test_promotion_refuses_a_symlink_without_following_it(tmp_path):
     (source / "knobs" / "leak").symlink_to(outside)
     destination = tmp_path / "successor"
     with pytest.raises(ValueError, match="knobs/leak"):
-        parallel_round._promote_snapshot(source, destination)
+        parallel_round._promote_snapshot(source, destination, "unused")
     assert not destination.exists()
     assert outside.read_text(encoding="utf-8") == "SECRET-OUTSIDE"
+
+
+def test_promotion_refuses_a_file_changed_after_measurement(tmp_path, monkeypatch):
+    incumbent = tmp_path / "incumbent"
+    _sum_tree(incumbent, "10", "10")
+    round_dir = tmp_path / "round"
+    prepare(_sum_spec(), incumbent, round_dir)
+    work = tmp_path / "work"
+    _sum_tree(work, "8", "10")
+    ticket = submit(round_dir, "L1", incumbent, work, now=WHEN)["ticket"]
+    measured = serve_ticket(round_dir, ticket, incumbent, backend=FixtureBackend(), now=WHEN)
+    assert measured["verdict"] == "PASS"
+    real = parallel_round._run_experiment
+
+    def run_experiment(*args, **kwargs):
+        path = real(*args, **kwargs)
+        target = round_dir / "candidates" / "joint-close" / "knobs" / "a.txt"
+        target.write_text("changed-after-measure", encoding="utf-8")
+        return path
+
+    monkeypatch.setattr(parallel_round, "_run_experiment", run_experiment)
+    refused = close_round(round_dir, incumbent, backend=FixtureBackend(), now=WHEN)
+    assert refused["status"] == "refused"
+    assert refused["reason"] == "promoted tree does not match the measured snapshot"
+    assert not (round_dir / "successor").exists()
+    assert not (round_dir / "close.json").exists()
+    joint = round_dir / "candidates" / "joint-close" / "knobs" / "a.txt"
+    assert joint.read_text(encoding="utf-8") == "changed-after-measure"
 
 
 def test_submit_refuses_while_close_runs_and_after_it_finishes(tmp_path):

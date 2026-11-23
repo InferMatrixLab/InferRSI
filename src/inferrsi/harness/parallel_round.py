@@ -33,8 +33,10 @@ outbox ticket has a terminal receipt, each lane keeps one PASS winner (higher
 incumbent to ``candidates/frozen-incumbent`` and overlays the winners onto that
 snapshot. The joint build and trials run in that tree. A PASS run promotes
 that measured tree, including regular files the build wrote into it.
-Promotion copies only the files the snapshot verified: repository metadata is
-omitted, and a symlink is refused instead of followed. Any other
+Promotion copies only the files the snapshot verified, and only when that
+snapshot still matches the candidate fingerprint stored for the evaluation.
+Repository metadata is omitted, and a symlink is refused instead of followed.
+Any other
 completed verdict retains the incumbent and writes
 ``knowledge/joint-failure.json``. A build that started and exited non-zero
 closes the round as retained and keeps the exit code. A joint confinement
@@ -264,6 +266,29 @@ def _stream_copy(root: Path, relative: str, target: Path) -> str | None:
     return hasher.hexdigest()
 
 
+def _digest_at(root: Path, relative: str) -> str | None:
+    """Digest one regular file without following links, or return None."""
+    dirfd = os.open(root, os.O_RDONLY | os.O_DIRECTORY)
+    try:
+        parts = relative.split("/")
+        for part in parts[:-1]:
+            try:
+                child = os.open(part, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=dirfd)
+            except OSError:
+                return None
+            os.close(dirfd)
+            dirfd = child
+        file_fd = _open_regular(parts[-1], dirfd)
+        if file_fd is None:
+            return None
+    finally:
+        os.close(dirfd)
+    try:
+        return _digest_fd(file_fd)
+    finally:
+        os.close(file_fd)
+
+
 def _read_nofollow(root: Path, relative: str) -> bytes | None:
     """Read one regular file through no-follow parent components, or return None."""
     dirfd = os.open(root, os.O_RDONLY | os.O_DIRECTORY)
@@ -318,11 +343,15 @@ def _incumbent_mismatch(plan: dict, incumbent: Path) -> str | None:
     return None
 
 
-def _promote_snapshot(source: Path, destination: Path) -> None:
-    """Copy the regular files ``_snapshot`` verified. Do not follow links or copy ``.git``."""
+def _promote_snapshot(source: Path, destination: Path, expected_hash: str) -> None:
+    """Copy the verified files only when they still match the measured fingerprint."""
     hashes, blocked = _snapshot(source)
     if blocked:
         raise ValueError(f"unreadable paths: {sorted(blocked)}")
+    if digest({"files": hashes}) != expected_hash:
+        if destination.exists():
+            shutil.rmtree(destination)
+        raise ValueError("promoted tree does not match the measured snapshot")
     if destination.exists():
         shutil.rmtree(destination)
     destination.mkdir(parents=True)
@@ -617,14 +646,21 @@ def _ticket_metadata_path(overlay: Path) -> Path:
 
 
 def _ticket_is_published(destination: Path, metadata: Path, record: dict) -> bool:
-    """True only when the payload directory and its metadata file agree."""
+    """True only when the metadata and every payload file match this manifest."""
     if not destination.is_dir() or destination.is_symlink() or not metadata.is_file():
         return False
     try:
         stored = json.loads(metadata.read_text(encoding="utf-8"))
     except (OSError, UnicodeError, json.JSONDecodeError):
         return False
-    return stored == record
+    if stored != record:
+        return False
+    files = stored.get("files")
+    if not isinstance(files, dict):
+        return False
+    return all(
+        _digest_at(destination, relative) == expected for relative, expected in files.items()
+    )
 
 
 def _discard_unpublished_ticket(destination: Path, metadata: Path) -> None:
@@ -1504,8 +1540,14 @@ def _close_round_holding_lock(
             )
         successor = round_dir / "successor"
         try:
-            _promote_snapshot(joint, successor)
-        except (OSError, ValueError) as exc:
+            final = json.loads((run_dir / "repositories.final.json").read_text(encoding="utf-8"))
+            expected = final["candidate"]["snapshot_hash"]
+            if not isinstance(expected, str) or not expected:
+                raise ValueError("measured candidate snapshot is missing")
+            _promote_snapshot(joint, successor, expected)
+        except (OSError, ValueError, KeyError, TypeError) as exc:
+            if successor.exists():
+                shutil.rmtree(successor)
             return {
                 "status": "refused",
                 "composition": "joint-single-rerun",
