@@ -91,12 +91,13 @@ interfaces; existing CLI commands remain supported.
 
 ![Implemented modules and their dependencies](assets/modular-components-en.svg)
 
-| Layer | Owns | Does not own |
+| Module | Owns | Does not own |
 | --- | --- | --- |
-| Entry and knowledge | CLI arguments, immutable RunSpec, cited knowledge/context export | Model execution or automatic source editing |
-| Harness | AB/BA order, deadlines, source checks, scenario composition, evidence, performance adjudication and reporting | Device-specific conditions, request schemas or kernel dispatch |
-| Model | Anthropic provider adapters and their request authorization | Scheduling, worker lifetime, hardware selection, request payloads, metric contracts or quality checks |
-| Apps | CLI, host bindings (source identity, device discovery/qualification, environment facts), artifact digests and JSON writes, provider integrations | Model constants, campaign gates or performance verdicts |
+| Knowledge | The skill library and knowledge records, search, cited knowledge/context export and the collected-context projection | Execution, task grading or campaign composition |
+| Harness | Command execution and process domains, AB/BA order, deadlines, source checks, optimization sessions, retained records and evidence | Task grading and verdicts, report presentation, device-specific conditions, request schemas or kernel dispatch |
+| Benchmark | Task discovery and packages, graders, metric validation, assessments and the old-run gates | Process execution, knowledge search or presentation |
+| Apps | CLI and the assembly of the three cores, host bindings (source identity, device discovery/qualification, environment facts), artifact digests and JSON writes, provider integrations including the Anthropic adapters, views and reports | Model constants, task rules or performance verdicts |
+| `contracts/`, `resources/` | The immutable RunSpec, JSON, claim and evidence-path helpers, and the neutral repository-pack reader | Business DTOs or core initialization; neither package is a fourth core |
 
 Dependencies flow from entrypoints to Harness. #498 removed the Infra and Model
 packages, so Harness reaches neither. None
@@ -514,7 +515,7 @@ packages its full English procedure, embedded metadata, references and cases. Th
 also owns authored findings in `records/`, search configuration in `config/`
 and generated build inputs in `_compiled/`. An explicit `--root` selects a
 custom flat or registry-based library. Readers that parse skill frontmatter use
-PyYAML from the `skills` extra. Core knowledge commands read catalog views and
+PyYAML, a core dependency; the `skills` extra is a compatibility alias. Core knowledge commands read catalog views and
 packaged documents with the base interpreter. The two matrices retain their
 authority. [Directory and search diagrams](knowledge-layout.md)
 

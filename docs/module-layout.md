@@ -203,7 +203,7 @@ Several flat modules remain shared seams until their slice starts.
 
 | Current path | Tentative reading | This slice |
 | --- | --- | --- |
-| `apps/cli/` (`__init__.py`, `arguments.py`), root `__main__.py` | Apps CLI entry and its parser | A1 (#408) moved root `cli.py` and `arguments.py` here; the entry is `inferrsi.apps.cli:main`, and `__main__.py` only delegates to it |
+| `apps/cli/` (`__init__.py`, `arguments.py`, `task_input.py`, `task-input/v1/`), root `__main__.py` | Apps CLI entry, its parser and the read-only YAML task contract with its packaged schema and template | A1 (#408) moved root `cli.py` and `arguments.py` here; the entry is `inferrsi.apps.cli:main`, and `__main__.py` only delegates to it |
 | `apps/workflows/benchmark_operations.py` | Single-task application launcher | A2 (#408) moved the root launcher into Apps; #490 groups its implementation under workflows. Resolves a task entry and invokes the Harness runner; ordinary projects do not use it |
 | `benchmark/registry.py`, `benchmark/tasks/` | Task discovery, definitions and specialized rules | Task-specific quality and measurement code stays with each task |
 | `harness/optimization_session.py`, `harness/project.py`, `harness/task_protocol.py` | Shared preparation, execution and retained-result assessment | CLI supplies task resources and knowledge access; ordinary project lifecycle does not import Benchmark |
@@ -217,7 +217,7 @@ Several flat modules remain shared seams until their slice starts.
 | `apps/views/`, `apps/workflows/campaign.py` | Dashboard views, templates and the Knowledge-to-records connection | Apps composition under #371; campaign composition is grouped under workflows by #490 |
 | `apps/integrations/mindie/` (`project.py`, `context.py`, `mcp.py`, `read_worker.py`) | The local MindIE adapter: project grant, stdio MCP, context export and the read worker | M1 (#452) moved the four root MindIE files here; no Harness, Knowledge or Infra module names MindIE, and the initializer imports nothing |
 | `harness/` | Mixed legacy tree, not target isolation | Not redefined |
-| `harness/runner.py`, `harness/trials/external.py`, `harness/atomic_json.py` | Old run execution facts and Harness-owned JSON writes | Ports injected; no Model edge, and no Infra edge except the local process executor |
+| `harness/runner.py`, `harness/trials/external.py`, `harness/atomic_json.py` | Old run execution facts and Harness-owned JSON writes | Ports injected; the local process executor is `harness/local_process.py` |
 | `benchmark/legacy_run_v0.py`, `benchmark/sampling.py` | Old run gates and metric validation; image/video sample collection | Imports only `benchmark/metrics.py`; owns its rule inputs and verdict labels |
 | `apps/legacy/` | Old run composition, old `evaluate` entry and HTML report | Supplies the Git source snapshot from `apps/host/targets`; remains in Apps |
 | `apps/inspection.py` | Prepared-environment inspection bound to this host | Binds the `apps/host/inspection.py` facts API to `apps.host.commands.probe_command` and `apps.host.targets.repository_identity`; replaces root `inspection.py`, which R1 deleted with the three old-run root forwarders |

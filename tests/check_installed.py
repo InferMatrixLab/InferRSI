@@ -9,6 +9,7 @@ import subprocess
 import sys
 import tempfile
 from importlib import import_module
+from importlib.metadata import requires
 from importlib.resources import as_file, files
 from importlib.util import find_spec
 from pathlib import Path
@@ -31,6 +32,7 @@ from inferrsi.resources.repository_packs import REPO_TYPES, repository_pack
 subprocess.run([
     sys.executable, "-I", "-B", "-c",
     "import sys; from inferrsi.harness import prepared_binding as p; "
+    "from inferrsi.harness import entry_code; assert callable(entry_code.capture_module); "
     "assert all(callable(getattr(p, n)) for n in ('read', 'project', 'verify')); "
     "assert not any(n == root or n.startswith(root + '.') for n in sys.modules "
     "for root in ('inferrsi.apps', 'inferrsi.benchmark', 'inferrsi.knowledge'))",
@@ -769,6 +771,12 @@ for a1_retired in ("cli", "arguments", "summary_chart", "benchmark_operations",
     else:
         raise AssertionError(f"retired module inferrsi.{a1_retired} must not import")
 assert main.__module__ == "inferrsi.apps.cli"
+for evaluate_action in ("prepare", "execute", "assess"):
+    help_result = subprocess.run(
+        [sys.executable, "-I", "-m", "inferrsi", "evaluate", evaluate_action, "--help"],
+        capture_output=True, text=True, check=True,
+    )
+    assert "--request" in help_result.stdout and "--output-id" in help_result.stdout
 for canonical in ("inferrsi.apps.views.summary_chart",
                   "inferrsi.apps.workflows.benchmark_operations",
                   "inferrsi.apps.integrations.mindie.project",
@@ -1069,3 +1077,79 @@ with tempfile.TemporaryDirectory(prefix="inferrsi-cannbot-launch-") as launch_cw
         check=False, cwd=launch_cwd,
     )
 assert launch.returncode == 0, launch.stderr
+
+# The shared YAML task contract v1 ships in the ordinary wheel: PyYAML is a core
+# dependency, the schema and template are package data, and ``task validate|preview``
+# reads a task file outside the checkout without writing anything. The complete
+# fixture comes from INFERRSI_TASK_FIXTURES or the checkout next to the resources.
+assert any(
+    requirement.replace(" ", "").lower().startswith("pyyaml>=")
+    for requirement in requires("inferrsi") or ()
+    if "extra ==" not in requirement
+), requires("inferrsi")
+task_resources_root = files("inferrsi.apps.cli").joinpath("task-input", "v1")
+for name in ("schema.json", "template.yaml"):
+    assert task_resources_root.joinpath(name).is_file(), name
+task_schema = json.loads(task_resources_root.joinpath("schema.json").read_text(encoding="utf-8"))
+assert task_schema["properties"]["schema_version"]["const"] == 1
+task_fixtures = os.environ.get("INFERRSI_TASK_FIXTURES")
+if not task_fixtures and checkout:
+    task_fixtures = str(Path(checkout).resolve().parents[1] / "tests" / "fixtures" / "task-input")
+complete_fixture = Path(task_fixtures) / "complete.yaml" if task_fixtures else None
+if complete_fixture is None or not complete_fixture.is_file():
+    print("Task fixtures unavailable: checked the packaged template only")
+    complete_fixture = None
+
+
+def task_cli(cwd, *arguments):
+    return subprocess.run(
+        [sys.executable, "-I", "-m", "inferrsi", "task", *arguments],
+        capture_output=True, text=True, encoding="utf-8", check=False, cwd=cwd,
+    )
+
+
+with tempfile.TemporaryDirectory(prefix="inferrsi-task-cwd-") as task_cwd, \
+        tempfile.TemporaryDirectory(prefix="inferrsi-task-files-") as task_files:
+    template_file = Path(task_files) / "template.yaml"
+    template_file.write_text(
+        task_resources_root.joinpath("template.yaml").read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+    printed = task_cli(task_cwd, "template")
+    assert printed.returncode == 0, printed.stderr
+    assert printed.stdout == template_file.read_text(encoding="utf-8")
+    checked = task_cli(task_cwd, "validate", str(template_file), "--json")
+    assert checked.returncode == 0, checked.stderr
+    assert json.loads(checked.stdout)["valid"] is True
+    previewed = task_cli(task_cwd, "preview", str(template_file), "--json")
+    assert previewed.returncode == 0, previewed.stderr
+    template_preview = json.loads(previewed.stdout)
+    assert template_preview["valid"] and not template_preview["complete"]
+    assert template_preview["blockers"] and template_preview["execution"] == "not started"
+    if complete_fixture is not None:
+        task_file = Path(task_files) / "complete.yaml"
+        shutil.copyfile(complete_fixture, task_file)
+        checked = task_cli(task_cwd, "validate", str(task_file), "--json")
+        assert checked.returncode == 0, checked.stderr
+        previewed = task_cli(task_cwd, "preview", str(task_file), "--json",
+                             "--repetitions", "7")
+        assert previewed.returncode == 0, previewed.stderr
+        complete_preview = json.loads(previewed.stdout)
+        assert complete_preview["valid"] and complete_preview["complete"], complete_preview
+        effective = complete_preview["task"]
+        assert effective["environment"]["backend"] == "cuda"
+        assert effective["environment"]["repetitions"] == 7
+        assert complete_preview["sources"]["environment.repetitions"] == "cli"
+        assert effective["acceptance"]["min_improvement_pct"] == 2.5
+        assert effective["optimization"]["repository"] == os.path.join(
+            os.path.abspath(task_files), "repo")
+        conflict = task_cli(task_cwd, "preview", str(task_file), "--json",
+                            "--min-improvement-pct", "5")
+        assert conflict.returncode == 1, conflict.stderr
+        assert [error["field"] for error in json.loads(conflict.stdout)["errors"]] == [
+            "acceptance.min_improvement_pct"
+        ]
+        assert sorted(path.name for path in Path(task_files).iterdir()) == [
+            "complete.yaml", "template.yaml",
+        ]
+    assert list(Path(task_cwd).iterdir()) == []

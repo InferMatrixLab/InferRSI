@@ -6,7 +6,6 @@ from tools import knowledge_declaration_paths as helper
 POLICY = {
     "protected_paths": [
         "src/inferrsi/knowledge/data/skill_library/**",
-        "src/inferrsi/knowledge/data/repo_packs/**/knowledge/**",
         "docs/reference-matrix.md",
     ],
     "policy_paths": [".github/knowledge-model-policy.json"],
@@ -14,9 +13,7 @@ POLICY = {
 LIBRARY = "src/inferrsi/knowledge/data/skill_library"
 SKILL = f"{LIBRARY}/methods/a/SKILL.md"
 MOVED = f"{LIBRARY}/methods/b/old.md"
-RECORD = (
-    "src/inferrsi/knowledge/data/repo_packs/inferrsi/knowledge/common/skills/c.json"
-)
+RECORD = f"{LIBRARY}/_compiled/common/skills/c.json"
 
 
 def _git(root, *args):

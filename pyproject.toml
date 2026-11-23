@@ -9,7 +9,7 @@ description = "CLI-first reproducible inference experiments and source-grounded 
 readme = "README.md"
 license = "Apache-2.0"
 requires-python = ">=3.10"
-dependencies = []
+dependencies = ["PyYAML>=6.0"]
 
 [project.scripts]
 inferrsi = "inferrsi.apps.cli:main"
@@ -23,7 +23,11 @@ where = ["src"]
 namespaces = false
 
 [tool.setuptools.package-data]
-inferrsi = ["apps/views/*.html"]
+inferrsi = [
+    "apps/views/*.html",
+    "apps/cli/task-input/v1/*.json",
+    "apps/cli/task-input/v1/*.yaml",
+]
 "inferrsi.knowledge" = [
     "data/**/*.json",
     "data/**/*.md",
@@ -50,6 +54,7 @@ initial_version = "0.1.0"
 prerelease = true
 
 [project.optional-dependencies]
+# PyYAML is a core dependency; the skills extra stays as a compatibility alias.
 skills = ["PyYAML>=6.0"]
 dev = ["pytest>=7.4", "ruff>=0.6", "PyYAML>=6.0", "jsonschema>=4.18"]
 image = ["numpy>=1.24", "Pillow>=10", "scikit-image>=0.21"]

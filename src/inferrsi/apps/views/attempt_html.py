@@ -25,6 +25,20 @@ def _table(rows: list[dict], columns: tuple[tuple[str, str], ...]) -> str:
     )
 
 
+def _generation_facts(execution: dict) -> tuple:
+    source = execution.get("generation_record_ref")
+    if "generation_record_ref" not in execution or not isinstance(source, (dict, type(None))):
+        values = (None, None, None)
+    elif source is None:
+        values = ("Not linked", "—", "—")
+    else:
+        artifact = source.get("artifact")
+        values = (source.get("attempt_id"), source.get("record_version"),
+                  artifact.get("sha256") if isinstance(artifact, dict) else None)
+    return tuple(zip(("Generation attempt", "Generation record revision", "Generation SHA-256"),
+                     values, strict=True))
+
+
 def render_attempt(view: dict, *, title: str) -> str:
     """Present the shared read model without exposing raw log or artifact paths."""
     execution, assessment, trace = view["execution"], view["assessment"], view["trace"]
@@ -35,6 +49,7 @@ def render_attempt(view: dict, *, title: str) -> str:
         ("Record SHA-256", view["record_ref"]["artifact"]["sha256"]),
         ("Recorded at", execution["recorded_at"]),
         ("Candidate", execution["candidate_id"]),
+        *_generation_facts(execution),
         ("Phase", execution["phase"]),
         ("Process outcome", execution["process_outcome"]),
         ("Exit code", execution["exit_code"]),

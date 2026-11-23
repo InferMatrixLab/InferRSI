@@ -13,6 +13,7 @@ from ..storage.result import _check_ref
 _EXECUTION_FIELDS = (
     "run_id", "attempt_id", "record_version", "phase", "started", "side_effect_unknown",
     "process_outcome", "exit_code", "recorded_at", "prepared_ref",
+    "generation_record_ref",
 )
 _CLAIM_FIELDS = ("claim_id", "validation_scope", "verdict", "reasons", "missing_evidence")
 _TRACE_FIELDS = {
@@ -49,6 +50,11 @@ def read_attempt_view(
         ):
             raise ValueError("expected a v1 committed record")
         execution = {field: record[field] for field in _EXECUTION_FIELDS}
+        generation = execution["generation_record_ref"]
+        if generation is not None:
+            _check_ref(generation, "attempt_id", "record_version")
+            if generation["artifact"]["media_type"] != "application/json":
+                raise ValueError("expected a JSON generation record reference")
         execution["cleanup_status"] = record["cleanup"]["status"]
         candidate = record["candidate"]
         execution["candidate_id"] = candidate["candidate_id"] if candidate is not None else None
