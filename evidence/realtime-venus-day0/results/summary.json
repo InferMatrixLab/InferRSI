@@ -1,0 +1,67 @@
+{
+  "acceptance_issue": "https://github.com/InferMatrixLab/InferRSI/issues/593",
+  "overall_verdict": "INCONCLUSIVE",
+  "overall_scope": "Full model quality and duplex/service qualification remain incomplete; no public archive or independent final retest.",
+  "managed_round": {
+    "status": "completed",
+    "verdict": "PASS",
+    "reason": "fixed_checks_satisfied",
+    "score": 0.3132325876504183,
+    "baseline_score": 1.1881450861692429,
+    "improvement_pct": 73.63684020607897,
+    "speedup": 3.793172016620654,
+    "quality_passed": true
+  },
+  "source_integrity_checks_passed": true,
+  "round_count": 1,
+  "final_retest_performed": false,
+  "measurement_repetitions_per_variant": 1,
+  "metric": "sum of three sequential warm C1 non-streaming text/image HTTP request durations, seconds",
+  "metrics": {
+    "baseline": {
+      "latency_seconds": 1.1881450861692429,
+      "quality_passed": true,
+      "exact_text_parity": null,
+      "speech_audio": {
+        "sample_rate": 24000,
+        "frames": 50880
+      },
+      "profile": {
+        "enforce_eager": true
+      },
+      "measured_request_count": 3,
+      "completion_tokens": 48
+    },
+    "candidate": {
+      "latency_seconds": 0.3132325876504183,
+      "quality_passed": true,
+      "exact_text_parity": true,
+      "speech_audio": {
+        "sample_rate": 24000,
+        "frames": 50880
+      },
+      "profile": {
+        "enforce_eager": false
+      },
+      "measured_request_count": 3,
+      "completion_tokens": 48
+    }
+  },
+  "tokenizer_sample_parity": {
+    "current": "5.20.2",
+    "reference": "4.51.3",
+    "samples": 9,
+    "mismatch_count": 0
+  },
+  "tests": {
+    "related_regressions_passed": 169,
+    "affected_subset_rerun_passed": 72,
+    "local_precommit": "all applicable hooks passed"
+  },
+  "bringup": {
+    "reference": "Transformers 4.51.3 real-weight text/image answers matched expected Paris/red facts",
+    "initial_http": "Text/image/speech returned; first short thinking-enabled text request truncated. Initial profile was the inherited MiniCPM recipe, not the final Venus profile.",
+    "direct_hf5_tokenizer_probe": "Failed through released configuration API; registered-native path then passed sample parity."
+  },
+  "availability": "Raw controller/source snapshots, logs, media and per-request results are retained operator-locally; public originals/replay unverified."
+}

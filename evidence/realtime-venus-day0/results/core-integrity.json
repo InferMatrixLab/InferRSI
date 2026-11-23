@@ -1,0 +1,12 @@
+{
+  "README.md": "17b95e38e8f03e8a2d34252b420d16cb3c0af3d98689de1b439779164c8f4822",
+  "patch/README.md": "e275c1e848f8a8b81483c93e473e8b410bdb1aead7a6620252386c8e1481d767",
+  "plan/TASK.md": "2caefefa7caf18deb8c5ab99473b416b206f82d9adc9a4ab19c111755b72bec2",
+  "plan/runspec.json": "d5752786c8e0fd149e7c86d7aaca2d1d1332aacd90c406eb920bbbb948bdf915",
+  "results/summary.json": "39fa11ace8fa3596e48958910feb968a6642541e0a10f0c3195b924bcc655ad0",
+  "results/trials.jsonl": "21188b441611ebf96cfa4150981368f9e8ec4d396d541bef1aede9b4215f2808",
+  "validator/README.md": "765f90cfd63e711f3f14121c8e0ef9bb44320f5bef25c8cfac18b0aac22c890b",
+  "validator/check.py": "cdecd905885622b1eb02dc5c5b9f74eef0984f9b304639d2bd54282324509497",
+  "validator/measure.py": "cf1a7032cf5ffd3c834479817356addf9fc8e339a913101f7f908345d0f7d4ca",
+  "validator/tokenizer_probe.py": "81ed14231e4bc4890c6dca37defaf9fb76bb47745d6ba9ffe2d7f15589df7596"
+}

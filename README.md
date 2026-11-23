@@ -102,6 +102,7 @@ listed baseline. The evidence column gives the scope and validation status.
 | --- | --- | --- | --- |
 | **DeepSeek V4.1 Flash** | vLLM-Ascend · 8× Ascend 910C | The W8A8 service ran with 8K input tokens and 1K output tokens. At concurrency levels of 1, 4, and 16, the medians of the six run-level mean times per output token were 39.28, 44.07, and 56.86 ms/token, respectively. All three exceeded the 25 ms/token target. | [Historical six-run TPOT calibration table](https://github.com/InferMatrixLab/InferRSI/issues/353#issuecomment-6641425447) |
 | **Qwen3.8-27B** | Standalone nano-vLLM-derived engine · 1× H20 | FP8 service passed scoped HTTP/SSE lifecycle checks; quality and performance qualification incomplete. | [Service bring-up](https://github.com/InferMatrixLab/InferRSI/issues/57) · [Performance campaign](https://github.com/InferMatrixLab/InferRSI/issues/67) |
+| **Realtime-Venus Omni** | vLLM-Omni · 1× NVIDIA L20X | Text/image generation and speech-output smoke completed; full duplex and quality qualification remain inconclusive. | [Day-0 adaptation case](docs/realtime-venus-vllm-omni.md) · [Acceptance scope](https://github.com/InferMatrixLab/InferRSI/issues/593) |
 | **LFM3-Omni-2B** | vLLM-Omni · 1× Ascend 910B1 | ✅ Two real-weight serving tests passed; a functional eager adapter served as the offline audio baseline. | [Serving checks and A/B benchmark](https://github.com/vllm-project/vllm-omni/pull/9827) |
 
 <a id="text-serving"></a>
