@@ -114,20 +114,6 @@ is resolved. Record the reason and supporting evidence on the PR. The two
 valid approvals are still required after dismissal.
 [GitHub review dismissal](https://docs.github.com/en/pull-requests/how-tos/review-pull-requests/dismissing-a-pull-request-review)
 
-### Advisory approval status
-
-The native ruleset enforces the two-approval requirement. The
-`independent-approvals` status reports how many eligible accounts submitted a
-formal **Approve** on the current head. It reads review states and current write
-permissions. It excludes the PR author, linked commit authors and committers,
-Bot/App accounts and unresolved actor types. The integrator checks delegation,
-material contributions and parent roles separately.
-
-The status reports the approval count only. Two approvals and an outstanding
-blocking **Request changes** can coexist. Use GitHub's merge box to check the
-effective rules before merging. The observer's `--pull-request` mode can refresh
-its advisory count for one PR.
-
 ### Agent–Agent: isolated work and conditional handoff
 
 ```mermaid
