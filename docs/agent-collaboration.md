@@ -96,13 +96,10 @@ with repository write access or higher, judged by its permission when it
 acts; an agent's **Approve** is a formal approval and counts toward the two. The
 account's human or its agent may approve through it. When the author has no
 write access, as for an outside contributor, neither the author's own approval
-nor one from an account without write access counts. One exception: on a PR
-that is not high-risk, an **Approve** from `cursor[bot]` on the current head
-commit counts as one of the two approvals although it has no write access; the
-other approval still comes from an eligible account with write access, its human
-or its agent. A **Request changes** from `cursor[bot]` is still a blocker to
-resolve like any other ([#570](https://github.com/InferMatrixLab/InferRSI/issues/570)).
-High-risk PRs get no such exception: they follow the
+nor one from an account without write access counts. Reviews from
+`cursor[bot]` are advisory and do not count toward the two. The ruleset does
+not block on its **Request changes**, but under these rules it is still
+answered before merge. High-risk PRs follow the
 same rule, and at least one of their two approvals comes from an account on the
 [high-risk approver list](../.github/high-risk-approvers.json), as it stands
 on the verified protected `main` commit (see the high-risk rule above), that
