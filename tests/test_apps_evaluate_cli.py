@@ -167,14 +167,17 @@ def test_conflicting_options_fail_before_configuration_or_effects(retained, tmp_
 
 
 @pytest.mark.parametrize("bad", [b'{"schema_version":1,"schema_version":1}', b'[]', b'{"x":NaN}',
-                                 b'{"x":1.5}', b'{"x":9007199254740992}', b'\xff'])
-def test_malformed_saved_json_is_refused_before_ports(tmp_path, monkeypatch, bad):
+                                 b'{"x":1.5}', b'{"x":9007199254740992}', b'\xff',
+                                 pytest.param(b'{"x":' + b'[' * 2000 + b'0' + b']' * 2000 + b'}',
+                                              id="excessive-nesting")])
+def test_malformed_saved_json_is_refused_before_ports(tmp_path, monkeypatch, capsys, bad):
     command = arguments(tmp_path, "assess", {}, {})
     (tmp_path / "request.json").write_bytes(bad)
     monkeypatch.setattr(cli, "_assess_ports", lambda: pytest.fail("configured a port"))
     with pytest.raises(SystemExit) as error:
         main(command)
     assert error.value.code == 2
+    assert "Traceback" not in capsys.readouterr().err
 
 
 def test_publication_failure_keeps_committed_execution_reference(evaluation, tmp_path, capsys,

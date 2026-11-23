@@ -38,10 +38,13 @@ def _object_file(path: Path) -> dict:
             value[key] = item
         return value
 
-    value = json.loads(path.read_text(encoding="utf-8"), object_pairs_hook=unique)
-    if not isinstance(value, dict):
-        raise ValueError("Expected a JSON object")
-    encode(value)
+    try:
+        value = json.loads(path.read_text(encoding="utf-8"), object_pairs_hook=unique)
+        if not isinstance(value, dict):
+            raise ValueError("Expected a JSON object")
+        encode(value)
+    except RecursionError as error:
+        raise ValueError("JSON input nesting is too deep") from error
     return value
 
 
