@@ -41,12 +41,18 @@ that pair only.
    with `LGTM` alone on the first non-empty line, each from a different
    eligible account (repository write access or higher), none stale.
    Each account counts once, whether its human votes directly or its one
-   formal reviewer agent does.
+   formal reviewer agent does. Only if check 9 finds the PR is not high-risk,
+   a `cursor[bot]` **Approve** on the current head may be one of the two,
+   although it has no write access; the other still comes from an eligible
+   account with write access. A `cursor[bot]` **Request changes** is handled
+   under check 7. On a high-risk PR, or if you cannot tell, a `cursor[bot]`
+   approval does not count, and both come from accounts with write access as
+   check 9 requires.
 6. **Independence:** the author, material contributors and the accountable
    parent supplied none of them, including through another agent under their
    account. At least one comes from a different agent or a human. The
    author's own approval never counts, nor does one from an account without
-   write access.
+   write access, apart from the `cursor[bot]` case in check 5.
 7. **No open blocker:** every **Request changes** review is re-reviewed to
    **Approve** or dismissed with a recorded reason.
 8. **Required checks green** on the head. Windows/macOS `host-compatibility`
