@@ -966,3 +966,114 @@ def test_uncreated_native_session_has_no_attempt_time(experiment):
     collected = operation(experiment, "collect", on)["trial"]
     assert collected["status"] == "failed"
     assert collected["attempt_window_missing"] == "native_session_not_created"
+
+
+def _rewrite_state(root, change):
+    state = json.loads((root / "state.json").read_text(encoding="utf-8"))
+    change(state)
+    (root / "state.json").write_text(json.dumps(state), encoding="utf-8")
+    return (root / "state.json").read_bytes()
+
+
+def _refused_everywhere(root, on, off, match):
+    """Every entry point refuses at load: no job, report, retry workspace or state change."""
+    state_bytes = (root / "state.json").read_bytes()
+    tree = sorted(path.relative_to(root) for path in root.rglob("*"))
+    for call in (compare.status, compare.report, lambda path: compare.collect(path, on),
+                 lambda path: compare.retry(path, on, parallel=True),
+                 lambda path: compare.dispatch(path, off, parallel=True)):
+        with pytest.raises(ValueError, match=match):
+            call(root)
+    assert sorted(path.relative_to(root) for path in root.rglob("*")) == tree
+    assert (root / "state.json").read_bytes() == state_bytes
+
+
+@pytest.mark.parametrize("record", ["current", "archived"])
+@pytest.mark.parametrize("target", ["experiment-root", "parent", "nested-parent", "absolute"])
+def test_collection_reference_outside_collections_is_refused_before_reading(
+        experiment, monkeypatch, record, target):
+    root, initial, _ = experiment
+    on, off = [trial["id"] for trial in initial["trials"]]
+    finish(experiment, on, final=False, host_state="failed")
+    if record == "archived":
+        operation(experiment, "retry", on)
+    state = json.loads((root / "state.json").read_text(encoding="utf-8"))
+    reference = (state["attempts"][on][0]["collection"] if record == "archived"
+                 else state["collections"][on])
+    # An exact copy outside collections/: its digest and trial id both still match.
+    outside = (root.parent if target == "parent" else root) / "outside.json"
+    shutil.copyfile(root / reference["path"], outside)
+    path = {"experiment-root": "outside.json", "parent": "../outside.json",
+            "nested-parent": "collections/../outside.json", "absolute": str(outside)}[target]
+
+    def point(state):
+        (state["attempts"][on][0]["collection"] if record == "archived"
+         else state["collections"][on])["path"] = path
+
+    _rewrite_state(root, point)
+    touched = []
+    io_path, digest = compare._io_path, compare.sha256
+    monkeypatch.setattr(compare, "_io_path", lambda value: (
+        touched.append(os.path.normpath(Path(value).absolute())), io_path(value))[1])
+    monkeypatch.setattr(compare, "sha256", lambda value: (
+        touched.append(os.path.normpath(Path(value).absolute())), digest(value))[1])
+    _refused_everywhere(root, on, off, "Malformed comparison")
+    # The shape is refused first: the foreign file is never opened or hashed.
+    assert os.path.normpath(outside) not in touched
+
+
+def test_linked_collection_record_is_refused(experiment):
+    root, initial, _ = experiment
+    on, off = [trial["id"] for trial in initial["trials"]]
+    finish(experiment, on, final=False, host_state="failed")
+    reference = json.loads((root / "state.json").read_text(encoding="utf-8"))[
+        "collections"][on]
+    outside = root.parent / "outside.json"
+    shutil.copyfile(root / reference["path"], outside)
+    link = root / "collections" / "linked.json"
+    try:
+        link.symlink_to(outside)
+    except OSError:
+        pytest.skip("Symbolic links are unavailable on this host")
+    _rewrite_state(root, lambda state: state["collections"][on].update(
+        path="collections/linked.json"))
+    # Same bytes through a link are not this experiment's own regular record.
+    _refused_everywhere(root, on, off, "Retained comparison collection changed")
+
+
+@pytest.mark.parametrize("exchange", ["current", "archived", "shared"])
+def test_exchanged_valid_collection_references_are_refused(experiment, exchange):
+    root, initial, _ = experiment
+    on, off = [trial["id"] for trial in initial["trials"]]
+    finish(experiment, on, final=False, host_state="failed")
+    if exchange == "archived":
+        operation(experiment, "retry", on)
+        finish(experiment, on, session_id=on + "-attempt-2")
+    finish(experiment, off, factor=1.5)
+    original = (root / "state.json").read_bytes()
+
+    def swap(state):
+        theirs = state["collections"][off]
+        if exchange == "current":
+            state["collections"][on], state["collections"][off] = theirs, state["collections"][on]
+        elif exchange == "archived":
+            ours = state["attempts"][on][0]["collection"]
+            state["attempts"][on][0]["collection"] = {
+                "path": theirs["path"], "sha256": theirs["sha256"]}
+            state["collections"][off] = {**ours, "attempt": 1}
+        else:
+            state["collections"][off] = {**state["collections"][on], "attempt": 1}
+
+    _rewrite_state(root, swap)
+    # Every referenced file still matches its digest; only its owning trial differs.
+    state = json.loads((root / "state.json").read_text(encoding="utf-8"))
+    references = list(state["collections"].values()) + [
+        entry["collection"] for entry in state.get("attempts", {}).get(on, [])]
+    assert all(compare.sha256(root / item["path"]) == item["sha256"] for item in references)
+    match = ("Malformed comparison collections" if exchange == "shared"
+             else "Retained comparison collection belongs to another trial")
+    _refused_everywhere(root, on, off, match)
+    # Restoring the owners' own references loads again with the recorded history.
+    (root / "state.json").write_bytes(original)
+    rows = operation(experiment, "status")["trials"]
+    assert [row["host"]["state"] for row in rows][1] == "completed"

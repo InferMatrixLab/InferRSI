@@ -215,10 +215,14 @@ the selected attempt's verdict is still re-verified live. Costs (tokens, attempt
 window, campaign wall) come only from evidence that re-reads now. An attempt
 whose evidence cannot be re-read has unknown cost, not its recorded cost.
 Every operation strictly checks the frozen plan, the retained collection digests
-of every attempt and each trial's current runtime copy before it acts. A changed
-or lost collection record, current or archived, therefore stops retry, dispatch
-(also with `--parallel`) and every other operation before a workspace is
-published or state is written. Report checks an earlier attempt's own
+of every attempt and each trial's current runtime copy before it acts. Before
+any record is read, every collection reference, current or archived, must name
+its own regular file directly under this experiment's `collections/`. Each
+record's `id` must be the trial that holds the reference, so two valid
+references exchanged between trials are refused rather than misattributed. A
+changed, lost, linked, foreign or exchanged collection record therefore stops
+retry, dispatch (also with `--parallel`) and every other operation before a
+workspace is published or state is written. Report checks an earlier attempt's own
 runtime copy only for that attempt. A missing or changed copy is a re-read gap
 of that attempt, and its cost is unknown. Its recorded classification and the
 other results stay in the report. This

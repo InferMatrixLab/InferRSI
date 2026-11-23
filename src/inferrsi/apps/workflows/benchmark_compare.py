@@ -4,11 +4,13 @@ The Agent calls the host tools returned by this application. Python never
 creates a conversation, invents host observations, or edits a candidate.
 """
 
+import hashlib
 import json
 import math
 import os
 import shlex
 import shutil
+import stat
 import uuid
 from copy import deepcopy
 from datetime import datetime, timezone
@@ -278,50 +280,92 @@ def _workspace(root, trial, number):
     return root / _attempt_paths(trial, number)[1]
 
 
+def _reference_shape(reference, keys):
+    """A collection reference names one file directly under this experiment's collections/."""
+    path = reference.get("path") if isinstance(reference, dict) else None
+    parts = Path(path).parts if isinstance(path, str) else ()
+    return (isinstance(reference, dict) and set(reference) in keys and len(parts) == 2
+            and parts[0] == "collections" and parts[1] not in ("..", ".")
+            and path == "collections/" + parts[1]
+            and isinstance(reference["sha256"], str))
+
+
 def _validate_attempts(plan, state):
+    """Check every attempt and collection reference before any collection file is read."""
+    trial_ids = {t["id"] for t in plan["trials"]}
     attempts = state.get("attempts", {})
-    if not isinstance(attempts, dict) or attempts.keys() - {t["id"] for t in plan["trials"]}:
+    if not isinstance(attempts, dict) or attempts.keys() - trial_ids:
         raise ValueError("Malformed comparison attempts")
+    if state["collections"].keys() - trial_ids:
+        raise ValueError("Malformed comparison collections")
+    paths = []
     for trial in plan["trials"]:
         archived = attempts.get(trial["id"], [])
         if not isinstance(archived, list) or trial["id"] in attempts and not archived:
             raise ValueError("Malformed comparison attempts")
         for number, entry in enumerate(archived, 1):
             job, workspace = _attempt_paths(trial, number)
-            collection = entry.get("collection") if isinstance(entry, dict) else None
-            parts = (Path(collection["path"]).parts if isinstance(collection, dict)
-                     and isinstance(collection.get("path"), str) else ())
-            if (not isinstance(entry, dict) or not isinstance(collection, dict)
+            if (not isinstance(entry, dict)
                     or set(entry) != {"attempt", "job", "workspace", "collection"}
                     or entry["attempt"] != number or entry["job"] != job
                     or entry["workspace"] != workspace
-                    or set(collection) != {"path", "sha256"} or len(parts) != 2
-                    or parts[0] != "collections" or parts[1] in ("..", ".")
-                    or not isinstance(collection["sha256"], str)):
+                    or not _reference_shape(entry["collection"], ({"path", "sha256"},))):
                 raise ValueError("Malformed comparison attempts")
+            paths.append(entry["collection"]["path"])
         current = state["collections"].get(trial["id"])
-        if current is not None and current.get("attempt", 1) != len(archived) + 1:
+        if current is None:
+            continue
+        # References written before retries existed carry no attempt number.
+        if not _reference_shape(current, ({"path", "sha256"}, {"path", "sha256", "attempt"})):
+            raise ValueError("Malformed comparison collections")
+        attempt = current.get("attempt", 1)
+        if type(attempt) is not int or attempt != len(archived) + 1:
             raise ValueError("Malformed comparison attempts")
-
-
-def _check_retained(root, reference):
-    """Refuse a retained collection record whose bytes no longer match its digest."""
-    if (not isinstance(reference, dict) or not isinstance(reference.get("path"), str)
-            or not isinstance(reference.get("sha256"), str)):
+        paths.append(current["path"])
+    # Each attempt owns its own record; one file cannot stand for two attempts.
+    if len(set(paths)) != len(paths):
         raise ValueError("Malformed comparison collections")
+
+
+def _retained(root, reference, trial_id):
+    """Return one retained collection record, refused unless it is still trial_id's own.
+
+    The reference must name a regular file (not a link) directly under this experiment's
+    collections/ directory. Its bytes are read once, checked against the recorded
+    digest and decoded; the record's ``id`` must be the trial that holds the reference,
+    so two valid references exchanged between trials are refused, not misattributed.
+    """
+    if not _reference_shape(reference, ({"path", "sha256"}, {"path", "sha256", "attempt"})):
+        raise ValueError("Malformed comparison collections")
+    path = _io_path(root / reference["path"])
+    data = None
     try:
-        actual = sha256(root / reference["path"])
+        directory = os.lstat(_io_path(root / "collections"))
+        if stat.S_ISDIR(directory.st_mode) and stat.S_ISREG(os.lstat(path).st_mode):
+            descriptor = os.open(path, os.O_RDONLY | getattr(os, "O_BINARY", 0)
+                                 | getattr(os, "O_NOFOLLOW", 0))
+            with os.fdopen(descriptor, "rb") as stream:
+                info = os.fstat(stream.fileno())
+                if stat.S_ISREG(info.st_mode):
+                    if info.st_size > 2 * 1024 * 1024:
+                        raise ValueError("Comparison JSON document exceeds 2 MiB")
+                    data = stream.read()
     except OSError:
-        actual = None
-    if actual != reference["sha256"]:
+        data = None
+    if data is None or hashlib.sha256(data).hexdigest() != reference["sha256"]:
         raise ValueError("Retained comparison collection changed")
+    record = decode(data)
+    if not isinstance(record, dict) or record.get("id") != trial_id:
+        raise ValueError("Retained comparison collection belongs to another trial")
+    return record
 
 
 def _load(root):
     """Strictly check the plan, attempt records, every retained collection and current runtime.
 
-    Every operation loads first, so a changed or lost collection record (archived or
-    current) is refused before any workspace is published or state is written.
+    Every operation loads first. All collection references (archived and current) are
+    shape-checked before any file is read; then a changed, lost, foreign or exchanged
+    collection record is refused before any workspace is published or state is written.
     Archived attempts' runtime copies are re-verified per attempt by report, so a
     lost or changed old copy is that attempt's gap, not a failure of every operation.
     """
@@ -330,12 +374,13 @@ def _load(root):
         raise ValueError("Frozen comparison plan changed")
     if not isinstance(state.get("collections"), dict):
         raise ValueError("Malformed comparison collections")
-    for reference in state["collections"].values():
-        _check_retained(root, reference)
     _validate_attempts(plan, state)
     for trial in plan["trials"]:
         for entry in _attempts(state, trial):
-            _check_retained(root, entry["collection"])
+            _retained(root, entry["collection"], trial["id"])
+        if trial["id"] in state["collections"]:
+            _retained(root, state["collections"][trial["id"]], trial["id"])
+    for trial in plan["trials"]:
         runtime = _workspace(root, trial, _attempt_number(state, trial)) / "runtime/inferrsi"
         if _manifest(runtime) != _expected_runtime(plan, trial):
             raise ValueError(f"Frozen comparison runtime changed: {trial['id']}")
@@ -360,10 +405,8 @@ def _collection_digest(state):
     return digest({"collections": state["collections"], "attempts": state["attempts"]})
 
 
-def _archived_result(root, entry):
-    reference = entry["collection"]
-    _check_retained(root, reference)
-    return _object(root / reference["path"])
+def _archived_result(root, trial, entry):
+    return _retained(root, entry["collection"], trial["id"])
 
 
 def _session_key(native):
@@ -448,7 +491,7 @@ def _status(root, plan, state, *, host_views=None):
             view = host_views[trial["id"]]
         collection = state["collections"].get(trial["id"])
         previous = [{"attempt": entry["attempt"], "collection": entry["collection"]["path"],
-                     "status": _archived_result(root, entry).get("status")}
+                     "status": _archived_result(root, trial, entry).get("status")}
                     for entry in _attempts(state, trial)]
         row = {**trial, "workspace": _attempt_paths(trial, number)[1], "attempt": number,
                "previous_attempts": previous, "job": str(job),
@@ -700,8 +743,7 @@ def collect(root, trial_id):
     trial = _select(plan, trial_id)
     reference = state["collections"].get(trial_id)
     if reference is not None:
-        _check_retained(root, reference)
-        return {"trial": _object(root / reference["path"]), "already_collected": True,
+        return {"trial": _retained(root, reference, trial_id), "already_collected": True,
                 "collection": reference, "next": _status(root, plan, state)["next_action"]}
     number = _attempt_number(state, trial)
     job = _job(root, trial, number)
@@ -735,8 +777,7 @@ def retry(root, trial_id, *, parallel=False):
     host = agent_sessions.status(job) if job.exists() else None
     if reference is None or host is None or host["state"] not in agent_sessions.TERMINAL:
         raise ValueError("Retry only after collecting a terminal attempt of this trial")
-    _check_retained(root, reference)
-    retained = _object(root / reference["path"])
+    retained = _retained(root, reference, trial_id)
     if retained.get("status") == "completed" and retained.get("eligible") is True:
         raise ValueError("An eligible completed attempt is the arm's result; retry is refused")
     if not parallel:
@@ -847,11 +888,10 @@ def report(root):
         reference = state["collections"].get(trial["id"])
         collected = None
         if reference:
-            _check_retained(root, reference)
-            collected = _object(root / reference["path"])
+            collected = _retained(root, reference, trial["id"])
         attempts[trial["id"]] = []
         for entry in _attempts(state, trial):
-            recorded = _archived_result(root, entry)
+            recorded = _archived_result(root, trial, entry)
             host, attempt = _reverify(root, plan, trial, entry["attempt"], collected=True,
                                       archived=True)
             attempts[trial["id"]].append((entry["attempt"], attempt, host, recorded))
