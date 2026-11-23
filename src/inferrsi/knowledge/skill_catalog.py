@@ -306,6 +306,10 @@ def skill_records(root: Path) -> list[dict]:
     return [_metadata(directory) for directory in skill_directories(root).values()]
 
 
+def is_bytecode_cache(path: Path) -> bool:
+    return path.parent.name == "__pycache__" and path.suffix == ".pyc"
+
+
 def get_skill(root: Path, name: str) -> dict:
     """Read selected metadata and resource names, never resource contents."""
     directory = skill_directory(root, name)
@@ -313,7 +317,7 @@ def get_skill(root: Path, name: str) -> dict:
     record["resources"] = [
         path.relative_to(directory).as_posix()
         for path in sorted(directory.rglob("*"))
-        if path.is_file() and path.name != "SKILL.md"
+        if path.is_file() and path.name != "SKILL.md" and not is_bytecode_cache(path)
     ]
     return record
 

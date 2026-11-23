@@ -9,7 +9,7 @@ from inferrsi.apps.cli import main
 from inferrsi.apps.cli.arguments import parser
 from inferrsi.knowledge.catalog import search_knowledge
 from inferrsi.knowledge.knowledge_operations import KnowledgeReader
-from inferrsi.knowledge.skill_catalog import skill_metadata, skill_records
+from inferrsi.knowledge.skill_catalog import get_skill, skill_metadata, skill_records
 from inferrsi.resources.repository_packs import REPO_TYPES, repository_pack
 from tools import build_skill_index as index_builder
 from tools.build_skill_index import DESTINATION, LIBRARY, build_index, render_index, source_inputs
@@ -190,6 +190,10 @@ def test_index_checks_drift_and_rejects_changed_or_added_source_inputs(tmp_path,
     )
     monkeypatch.setattr(index_builder, "PROJECT", tmp_path)
     monkeypatch.setattr(index_builder, "LIBRARY", fixture_library)
+    cache = root / "scripts" / "__pycache__"
+    cache.mkdir(parents=True)
+    (cache / "helper.cpython-311.pyc").write_bytes(b"local interpreter cache")
+    assert get_skill(library, "example")["resources"] == []
     assert index_builder.main(["--source-revision", "HEAD"]) == 0
     assert index_builder.main(["--source-revision", "HEAD", "--check"]) == 0
     generated = tmp_path / DESTINATION / "inputs.json"
