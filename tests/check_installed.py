@@ -33,6 +33,7 @@ subprocess.run([
     sys.executable, "-I", "-B", "-c",
     "import sys; from inferrsi.harness import prepared_binding as p; "
     "from inferrsi.harness import entry_code; assert callable(entry_code.capture_module); "
+    "from inferrsi.harness import evidence_capture; assert callable(evidence_capture.observe); "
     "assert all(callable(getattr(p, n)) for n in ('read', 'project', 'verify')); "
     "assert not any(n == root or n.startswith(root + '.') for n in sys.modules "
     "for root in ('inferrsi.apps', 'inferrsi.benchmark', 'inferrsi.knowledge'))",
