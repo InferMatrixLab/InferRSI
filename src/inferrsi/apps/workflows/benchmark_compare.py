@@ -304,17 +304,38 @@ def _validate_attempts(plan, state):
             raise ValueError("Malformed comparison attempts")
 
 
-def _load(root):
-    """Strictly check the plan, attempt records and each trial's current runtime.
+def _check_retained(root, reference):
+    """Refuse a retained collection record whose bytes no longer match its digest."""
+    if (not isinstance(reference, dict) or not isinstance(reference.get("path"), str)
+            or not isinstance(reference.get("sha256"), str)):
+        raise ValueError("Malformed comparison collections")
+    try:
+        actual = sha256(root / reference["path"])
+    except OSError:
+        actual = None
+    if actual != reference["sha256"]:
+        raise ValueError("Retained comparison collection changed")
 
+
+def _load(root):
+    """Strictly check the plan, attempt records, every retained collection and current runtime.
+
+    Every operation loads first, so a changed or lost collection record (archived or
+    current) is refused before any workspace is published or state is written.
     Archived attempts' runtime copies are re-verified per attempt by report, so a
     lost or changed old copy is that attempt's gap, not a failure of every operation.
     """
     plan, state = _object(root / "experiment.json"), _object(root / "state.json")
     if plan.get("schema_version") != 1 or state.get("plan_digest") != digest(plan):
         raise ValueError("Frozen comparison plan changed")
+    if not isinstance(state.get("collections"), dict):
+        raise ValueError("Malformed comparison collections")
+    for reference in state["collections"].values():
+        _check_retained(root, reference)
     _validate_attempts(plan, state)
     for trial in plan["trials"]:
+        for entry in _attempts(state, trial):
+            _check_retained(root, entry["collection"])
         runtime = _workspace(root, trial, _attempt_number(state, trial)) / "runtime/inferrsi"
         if _manifest(runtime) != _expected_runtime(plan, trial):
             raise ValueError(f"Frozen comparison runtime changed: {trial['id']}")
@@ -341,8 +362,7 @@ def _collection_digest(state):
 
 def _archived_result(root, entry):
     reference = entry["collection"]
-    if sha256(root / reference["path"]) != reference["sha256"]:
-        raise ValueError("Retained comparison collection changed")
+    _check_retained(root, reference)
     return _object(root / reference["path"])
 
 
@@ -680,8 +700,7 @@ def collect(root, trial_id):
     trial = _select(plan, trial_id)
     reference = state["collections"].get(trial_id)
     if reference is not None:
-        if sha256(root / reference["path"]) != reference["sha256"]:
-            raise ValueError("Retained comparison collection changed")
+        _check_retained(root, reference)
         return {"trial": _object(root / reference["path"]), "already_collected": True,
                 "collection": reference, "next": _status(root, plan, state)["next_action"]}
     number = _attempt_number(state, trial)
@@ -716,8 +735,7 @@ def retry(root, trial_id, *, parallel=False):
     host = agent_sessions.status(job) if job.exists() else None
     if reference is None or host is None or host["state"] not in agent_sessions.TERMINAL:
         raise ValueError("Retry only after collecting a terminal attempt of this trial")
-    if sha256(root / reference["path"]) != reference["sha256"]:
-        raise ValueError("Retained comparison collection changed")
+    _check_retained(root, reference)
     retained = _object(root / reference["path"])
     if retained.get("status") == "completed" and retained.get("eligible") is True:
         raise ValueError("An eligible completed attempt is the arm's result; retry is refused")
@@ -829,8 +847,7 @@ def report(root):
         reference = state["collections"].get(trial["id"])
         collected = None
         if reference:
-            if sha256(root / reference["path"]) != reference["sha256"]:
-                raise ValueError("Retained comparison collection changed")
+            _check_retained(root, reference)
             collected = _object(root / reference["path"])
         attempts[trial["id"]] = []
         for entry in _attempts(state, trial):

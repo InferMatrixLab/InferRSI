@@ -819,6 +819,50 @@ def test_retry_copies_the_verified_current_runtime(experiment):
     assert (root / row["workspace"] / "runtime/inferrsi/knowledge/data").is_dir()
 
 
+@pytest.mark.parametrize("damage", ["changed", "missing"])
+def test_damaged_older_collection_stops_retry_before_any_side_effect(experiment, damage):
+    root, initial, _ = experiment
+    on = initial["trials"][0]["id"]
+    workspace = initial["trials"][0]["workspace"]
+    finish(experiment, on, final=False, host_state="failed")
+    operation(experiment, "retry", on)
+    finish(experiment, on, final=False, host_state="failed", session_id=on + "-attempt-2")
+    state_bytes = (root / "state.json").read_bytes()
+    state = json.loads(state_bytes)
+    archived = root / state["attempts"][on][0]["collection"]["path"]
+    if damage == "changed":
+        archived.write_text("{}", encoding="utf-8")
+    else:
+        archived.unlink()
+    # The current (attempt 2) collection still verifies; the older record does not.
+    with pytest.raises(ValueError, match="Retained comparison collection changed"):
+        compare.retry(root, on)
+    # No new workspace is published and the attempt state does not advance.
+    assert not (root / (workspace + "-attempt-003")).exists()
+    assert not any(path.name.startswith(".retry-") for path in root.iterdir())
+    assert (root / "state.json").read_bytes() == state_bytes
+    with pytest.raises(ValueError, match="Retained comparison collection changed"):
+        compare.status(root)
+
+
+@pytest.mark.parametrize("record", ["current", "archived"])
+def test_damaged_collection_stops_parallel_dispatch(experiment, record):
+    root, initial, _ = experiment
+    on, off = [trial["id"] for trial in initial["trials"]]
+    finish(experiment, on, final=False, host_state="failed")
+    if record == "archived":
+        operation(experiment, "retry", on)
+    state_bytes = (root / "state.json").read_bytes()
+    state = json.loads(state_bytes)
+    reference = (state["attempts"][on][0]["collection"] if record == "archived"
+                 else state["collections"][on])
+    (root / reference["path"]).write_text("{}", encoding="utf-8")
+    with pytest.raises(ValueError, match="Retained comparison collection changed"):
+        compare.dispatch(root, off, parallel=True)
+    assert not (root / "jobs" / off).exists()
+    assert (root / "state.json").read_bytes() == state_bytes
+
+
 def test_collected_selected_attempt_cannot_pass_from_its_record(experiment):
     root, initial, _ = experiment
     on = initial["trials"][0]["id"]
