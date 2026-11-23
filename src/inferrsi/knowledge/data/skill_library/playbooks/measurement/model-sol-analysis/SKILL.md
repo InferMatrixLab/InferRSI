@@ -303,10 +303,12 @@ Use `phase_floors` in the helper, or apply the same arithmetic by hand:
   ops. The phases of one collective run one after another, so their link times add. A
   stack that overlaps kernels or hides communication under compute can finish
   below it, so it can only flag a faster result. It can never reject one.
-- In the helper, `demand` carries the counts actually run, and an optional
-  `bound_demand` carries the irreducible counts for the bound (never more than
-  `demand`). One op per collective, with each of its link phases as a demand on
-  the link it crosses.
+- Record the counts the selected graph actually runs in `demand`. For a phase
+  bound, explicitly supply `bound_demand` for every positive demand and cite
+  why that amount is unavoidable for the layout. A missing proof leaves the
+  affected resource total and phase bound unknown. The scheduled counts still
+  support a serial estimate. Use one op per collective, with each link phase
+  assigned to the link it crosses.
 - **Pipeline parallelism:** one microbatch's latency is the stages plus the
   inter-stage hops, with no bubble modelled. Say so.
 - **Capacity first:** if weights plus one request's KV do not fit a rank,

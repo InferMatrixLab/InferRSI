@@ -261,7 +261,7 @@ def test_link_phases_add_and_bound_demand_stays_irreducible(example):
     # A hierarchical all-reduce: intra phases on link.tp, one inter phase on link.inter.
     phase["ops"][2] = {"name": "hierarchical all-reduce", "repeat": 2, "source": SYNTHETIC,
                        "demand": {"link.tp": 5, "link.inter": 2},
-                       "bound_demand": {"link.tp": 2.5},
+                       "bound_demand": {"link.tp": 2.5, "link.inter": 2},
                        "link_latency_s": {"value": 0.5, "source": SYNTHETIC}}
     result = phase_floors(phase, hardware)
     assert result["analysis_status"] == "COMPUTED"
@@ -273,8 +273,10 @@ def test_link_phases_add_and_bound_demand_stays_irreducible(example):
     assert result["serial_estimate_s"] == 2 + 4 + 2 * 3.5
     for bad, reason in (({"link.tp": 6}, "exceeds demand"), ({"memory.hbm": 1}, "not in demand")):
         phase["ops"][2]["bound_demand"] = bad
-        assert any(reason in unknown
-                   for unknown in phase_floors(phase, hardware)["unknowns"])
+        invalid = phase_floors(phase, hardware)
+        assert any(reason in unknown for unknown in invalid["unknowns"])
+        assert invalid["conditional_bound_s"] is None
+        assert invalid["serial_estimate_s"] == result["serial_estimate_s"]
 
 
 def test_peak_rates_state_their_clock_basis(example):
@@ -308,7 +310,7 @@ def test_phase_rejects_nonfinite_derived_throughput(example, overflow):
     phase["tokens_per_step"] = 1e308
     phase["ops"] = [{
         "name": "tiny demand", "demand": {"memory.hbm": 1e-308}, "source": SYNTHETIC,
-        "bound_demand": {"memory.hbm": 0} if overflow == "serial throughput" else {},
+        "bound_demand": {"memory.hbm": 0 if overflow == "serial throughput" else 1e-308},
     }]
     with pytest.raises(ValueError, match=overflow):
         phase_floors(phase, example["hardware"])
@@ -322,18 +324,63 @@ def test_phase_checks_resource_totals_even_with_incomplete_evidence(example):
         phase_floors(phase, example["hardware"])
 
 
+@pytest.mark.parametrize("basis", ["peak", "synthetic"])
+@pytest.mark.parametrize("declaration,expected_s", [
+    ({}, None),
+    ({"bound_demand": None}, None),
+    ({"bound_demand": {}}, None),
+    ({"bound_demand": {"memory.hbm": None}}, None),
+    ({"bound_demand": {"memory.hbm": 100}}, 1),
+    ({"bound_demand": {"memory.hbm": 0}}, 0),
+])
+def test_schedule_traffic_needs_explicit_bound_evidence(example, basis, declaration, expected_s):
+    phase, hardware = example["decode"], example["hardware"]
+    hardware["rates"] = {"memory.hbm": {
+        "resource": "memory", "unit": "byte/s", "value": 100,
+        "source": {"kind": basis, "locator": "fixture peak"}, "clock_basis": "fixture clock",
+    }}
+    phase["ops"] = [{"name": "unfused copy", "source": SYNTHETIC,
+                     "demand": {"memory.hbm": 400}, **declaration}]
+    result = phase_floors(phase, hardware)
+    assert result["serial_estimate_s"] == result["per_op"][0]["time_s"] == 4
+    assert result["tokens_per_s_at_serial_estimate"] == 0.25
+    assert result["actual_resource_totals"] == {"memory.hbm": 400}
+    assert result["conditional_bound_s"] == expected_s
+    if expected_s is None:
+        assert result["analysis_status"] == "INSUFFICIENT_EVIDENCE"
+        assert result["resource_totals"]["memory.hbm"] is None
+        assert result["binding_resources"] is result["tokens_per_s_at_bound"] is None
+        assert any("bound_demand.memory.hbm" in message for message in result["unknowns"])
+    else:
+        assert result["analysis_status"] == "COMPUTED"
+        assert result["resource_totals"]["memory.hbm"] == 100 * expected_s
+        assert result["binding_resources"] == ["memory.hbm"]
+        assert result["tokens_per_s_at_bound"] == (1 if expected_s else None)
+
+
+def test_incomplete_resource_across_ops_preserves_other_proven_totals(example):
+    phase, hardware = example["decode"], example["hardware"]
+    phase["ops"][0]["bound_demand"] = {"compute.bf16": 40}
+    result = phase_floors(phase, hardware)
+    assert result["resource_totals"] == {"compute.bf16": 120, "memory.hbm": None, "link.tp": 10}
+    assert result["conditional_bound_s"] is None
+    assert result["serial_estimate_s"] == 8
+
+
 def test_resource_total_bound_survives_serial_repartition(example):
     phase, hardware = example["decode"], example["hardware"]
     compute = 10 * hardware["rates"]["compute.bf16"]["value"]
     memory = 10 * hardware["rates"]["memory.hbm"]["value"]
     phase["ops"] = [
-        {"name": "compute", "demand": {"compute.bf16": compute}, "source": SYNTHETIC},
-        {"name": "memory", "demand": {"memory.hbm": memory}, "source": SYNTHETIC},
+        {"name": "compute", "demand": {"compute.bf16": compute},
+         "bound_demand": {"compute.bf16": compute}, "source": SYNTHETIC},
+        {"name": "memory", "demand": {"memory.hbm": memory},
+         "bound_demand": {"memory.hbm": memory}, "source": SYNTHETIC},
     ]
     separate = phase_floors(phase, hardware)
     phase["ops"] = [{
         "name": "combined", "demand": {"compute.bf16": compute, "memory.hbm": memory},
-        "source": SYNTHETIC,
+        "bound_demand": {"compute.bf16": compute, "memory.hbm": memory}, "source": SYNTHETIC,
     }]
     combined = phase_floors(phase, hardware)
     assert separate["conditional_bound_s"] == combined["conditional_bound_s"] == 10
@@ -356,8 +403,7 @@ def test_bound_never_exceeds_serial_estimate():
             ops.append({"name": f"op{index}", "repeat": generator.randint(1, 4),
                         "source": SYNTHETIC, "demand": demand,
                         "bound_demand": {key: value * generator.random()
-                                         for key, value in demand.items()
-                                         if generator.random() < 0.5}})
+                                         for key, value in demand.items()}})
         phase = {"phase": "prefill", "model_id": "m", "layout": "l", "hardware_id": "h",
                  "tokens_per_step": 8, "assumptions": ["synthetic"], "ops": ops}
         result = phase_floors(phase, hardware)
@@ -480,11 +526,17 @@ def test_owner_resources_are_readable_at_exact_checkout_revision():
 def test_datasheet_time_has_no_qualified_bound(example):
     for rate in example["hardware"]["rates"].values():
         rate["source"]["kind"] = "datasheet"
+    # An explicit lower count or missing proof must not change the nominal cost
+    # of the scheduled graph. H200's offline replay also supplies only demand.
+    example["decode"]["ops"][0]["bound_demand"]["memory.hbm"] = 0
+    del example["decode"]["ops"][1]["bound_demand"]
     result = phase_floors(example["decode"], example["hardware"])
     assert result["analysis_status"] == "COMPUTED"
     assert result["evidence_basis"] == "datasheet"
     assert result["datasheet_resource_time_s"] == 6
     assert result["datasheet_binding_resources"] == ["memory.hbm"]
+    assert result["resource_totals"]["memory.hbm"] is None
+    assert result["actual_resource_totals"]["memory.hbm"] == 60
     assert result["serial_estimate_s"] == 8
     assert result["conditional_bound_s"] is result["tokens_per_s_at_bound"] is None
     assert result["binding_resources"] is None

@@ -216,10 +216,10 @@ def phase_reference(facts, weights, phase, positions, distinct_experts):
     if result["analysis_status"] != "COMPUTED":
         raise ValueError(result["unknowns"])
     times = {key: value / hardware["rates"][key]["value"] for key, value in
-             result["resource_totals"].items()}
+             result["actual_resource_totals"].items()}
     time = result["datasheet_resource_time_s"]
     return {"visible_tokens": positions[-1], "distinct_experts_per_layer": distinct_experts,
-            "demand_per_rank": result["resource_totals"], "seconds_by_resource": times,
+            "demand_per_rank": result["actual_resource_totals"], "seconds_by_resource": times,
             "resource_max_s": time, "binding": result["datasheet_binding_resources"],
             "tokens_per_s_at_resource_max": tokens / time,
             "serial_group_s": result["serial_estimate_s"]}

@@ -49,13 +49,16 @@
     "layout": "tp2",
     "hardware_id": "synthetic-device",
     "tokens_per_step": 1,
-    "assumptions": ["Per rank, batch 1, counts taken from the fused graph"],
+    "assumptions": ["Per rank, batch 1. This synthetic fixture fixes the irreducible demands explicitly."],
     "ops": [
       {"name": "attention block", "repeat": 2, "demand": {"compute.bf16": 40, "memory.hbm": 10},
+       "bound_demand": {"compute.bf16": 40, "memory.hbm": 10},
        "source": {"kind": "synthetic", "locator": "hand-written fixture"}},
       {"name": "mlp block", "repeat": 2, "demand": {"compute.bf16": 20, "memory.hbm": 20},
+       "bound_demand": {"compute.bf16": 20, "memory.hbm": 20},
        "source": {"kind": "synthetic", "locator": "hand-written fixture"}},
       {"name": "tensor-parallel all-reduce", "repeat": 2, "demand": {"link.tp": 5},
+       "bound_demand": {"link.tp": 5},
        "source": {"kind": "synthetic", "locator": "hand-written fixture"}}
     ]
   }

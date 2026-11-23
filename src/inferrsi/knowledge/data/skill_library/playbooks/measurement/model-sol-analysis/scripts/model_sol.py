@@ -385,14 +385,43 @@ def _rates(hardware, unknowns):
     return rates, basis
 
 
+def _bound_counts(declaration, demand, path, require_evidence, unknowns):
+    """Return each resource's declared lower count, retaining gaps as null."""
+    declared = _mapping(declaration, path)
+    counts = {key: 0.0 if scheduled == 0 else None for key, scheduled in demand.items()}
+    for key, value in declared.items():
+        amount = _nonnegative(value, f"{path}.{key}") if value is not None else None
+        if key not in demand:
+            unknowns.append(f"{path}.{key}: not in demand")
+        elif amount is not None:
+            if amount > demand[key]:
+                unknowns.append(f"{path}.{key}: exceeds demand")
+                counts[key] = None
+            else:
+                counts[key] = amount
+    if require_evidence:
+        for key, scheduled in demand.items():
+            if scheduled > 0 and declared.get(key) is None:
+                unknowns.append(f"{path}.{key}: missing irreducible demand")
+    return counts
+
+
+def _resource_time(totals, rates):
+    times = {name: _finite(amount / rates[name][1], "resource time")
+             for name, amount in totals.items()}
+    maximum = max(times.values())
+    return maximum, sorted(name for name, value in times.items() if value == maximum)
+
+
 def phase_floors(phase, hardware):
     """Per-rank floors for one phase step from supplied per-op demands and peak rates.
 
     `phase.ops` lists {name, repeat, demand, bound_demand, link_latency_s,
     launch_floor_s, source}. `demand` maps a rate in `hardware.rates` to the
     amount the op actually moves or computes, in the unit that rate's resource
-    consumes; an optional `bound_demand` holds the irreducible amount for the
-    bound, never more than `demand`. Within an op, the maximum assumes full
+    consumes. A phase bound requires explicit `bound_demand` evidence for
+    each positive amount. Scheduled work alone supplies the estimate.
+    Within an op, the maximum assumes full
     compute/memory overlap. Sequential link phases add up with the link latency;
     a launch floor is one more alternative time. These floors enter only the serial
     estimate, never the bound. Returns the resource-total bound and the serial
@@ -416,6 +445,7 @@ def phase_floors(phase, hardware):
     assumptions = _assumptions(phase, "phase", unknowns)
     assumptions += _assumptions(hardware, "hardware", unknowns)
 
+    bound_unknowns = []
     totals = {name: 0.0 for name in rates}
     actual = {name: 0.0 for name in rates}
     ops = []
@@ -441,20 +471,16 @@ def phase_floors(phase, hardware):
                 actual[rate_name] + _scaled(amount, repeat, "actual resource demand"),
                 "actual resource total",
             )
-        floor = dict(amounts)
-        for rate_name, amount in _mapping(op.get("bound_demand"), f"{path}.bound_demand").items():
-            amount = _nonnegative(amount, f"{path}.bound_demand.{rate_name}")
-            if rate_name not in amounts:
-                unknowns.append(f"{path}.bound_demand.{rate_name}: not in demand")
-            elif amount > amounts[rate_name]:
-                unknowns.append(f"{path}.bound_demand.{rate_name}: exceeds demand")
-            else:
-                floor[rate_name] = amount
-        for rate_name, amount in floor.items():
-            totals[rate_name] = _finite(
-                totals[rate_name] + _scaled(amount, repeat, "bound resource demand"),
-                "bound resource total",
-            )
+        lower = _bound_counts(op.get("bound_demand"), amounts, f"{path}.bound_demand",
+                              basis in ("peak", "synthetic"), bound_unknowns)
+        for rate_name, amount in lower.items():
+            if amount is None:
+                totals[rate_name] = None
+            elif totals[rate_name] is not None:
+                totals[rate_name] = _finite(
+                    totals[rate_name] + _scaled(amount, repeat, "bound resource demand"),
+                    "bound resource total",
+                )
         ops.append({"name": name, "repeat": repeat, "amounts": amounts,
                     "latency": latency, "launch": launch})
     if not ops:
@@ -464,13 +490,10 @@ def phase_floors(phase, hardware):
     datasheet_time = datasheet_binding = None
     per_op = []
     if not unknowns:
-        times = {name: _finite(totals[name] / rates[name][1], "resource time") for name in rates}
-        resource_time = max(times.values())
-        limiting = sorted(name for name, value in times.items() if value == resource_time)
         if basis == "datasheet":
-            datasheet_time, datasheet_binding = resource_time, limiting
-        else:
-            bound, binding = resource_time, limiting
+            datasheet_time, datasheet_binding = _resource_time(actual, rates)
+        elif not bound_unknowns:
+            bound, binding = _resource_time(totals, rates)
         estimate = 0.0
         for op in ops:
             terms, links = {}, []
@@ -496,6 +519,7 @@ def phase_floors(phase, hardware):
                                   for key in label),
             })
         estimate = _finite(estimate, "serial estimate")
+    unknowns.extend(bound_unknowns)
     return {
         "analysis_status": "INSUFFICIENT_EVIDENCE" if unknowns else "COMPUTED",
         "evidence_basis": basis,

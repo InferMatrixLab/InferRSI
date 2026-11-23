@@ -94,10 +94,14 @@ Inputs:
   - `demand` maps a rate name to the per-rank amount the op actually moves or
     computes, in FLOP for a compute rate and in bytes for a memory or link rate.
     The helper cannot check that unit; the amount's source must state it.
-  - `bound_demand` optionally replaces some of those amounts in the bound with
-    the irreducible amount, for example the bytes of the cheapest collective
-    algorithm the framework and fabric admit. Each key must appear in `demand`,
-    and each amount must not exceed it; otherwise it is an unknown.
+  - `bound_demand` declares counts known to be irreducible across the permitted
+    variants of this layout. Cite that evidence in the op's source, for example
+    the minimum traffic across all admissible collective algorithms. Each key
+    must occur in `demand`, with a value between zero and its scheduled amount.
+    Supply an explicit zero when it is the evidenced minimum for positive work.
+    An absent, empty or null map, an omitted key and a null value all leave
+    irreducibility unknown for the corresponding positive demand. A scheduled
+    count of zero already establishes a lower count of zero.
   - Link amounts within one op add up: model one op per collective, with each
     of its phases as a demand on the link that phase crosses.
   - `link_latency_s` is `{value, source}` in seconds. It is the whole latency of
@@ -119,8 +123,8 @@ Outputs:
 - `evidence_basis`: `peak`, `synthetic` or `datasheet` when all rates share that kind, else
   null.
 - `phase` and `tokens_per_step`: echoed from the input.
-- `resource_totals`: per rate, the sum of the bound's amounts × `repeat`
-  (`bound_demand` where given, else `demand`).
+- `resource_totals` gives the sum of the evidenced lower counts × `repeat`
+  for each rate. A rate's total is null if any op using it lacks that evidence.
 - `actual_resource_totals`: per rate, the sum of `demand × repeat`.
 - `conditional_bound_s`: `max over rates (total / rate)`, with
   `binding_resources` naming the rates that reach it. Latencies and launch
@@ -128,9 +132,16 @@ Outputs:
   irreducible for the permitted variants of the declared layout and every rate
   is a peak at the clock the device actually runs that work at. Only a bound
   meeting those conditions may reject a result.
+- If only irreducibility evidence is missing with `peak` or `synthetic` rates,
+  the status is `INSUFFICIENT_EVIDENCE`. The phase bound, its binding resources
+  and its throughput are null. The helper still reports the serial estimate,
+  its throughput and per-op rows from the evidenced schedule. For example,
+  400 scheduled bytes at 100 B/s give a 4 s serial estimate. Explicit evidence
+  for 100 irreducible bytes adds a 1 s bound for that single-resource example.
 - `datasheet_resource_time_s` and `datasheet_binding_resources` carry the
-  resource-total calculation when the supplied rates come from vendor
-  specifications. In that mode `conditional_bound_s`, `binding_resources`
+  resource-total calculation using `actual_resource_totals` at the vendor
+  specifications. This calculation needs only the schedule. In that mode
+  `conditional_bound_s`, `binding_resources`
   and `tokens_per_s_at_bound` are null. The serial estimate uses the same
   nominal rates. These reference times cannot reject an observation.
 - `serial_estimate_s`:
