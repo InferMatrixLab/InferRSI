@@ -188,6 +188,8 @@ not establish an attainable target or a quality tolerance.
 Do not use it to benchmark or compare two already-built candidates — that is
 the job of InferRSI's AB/BA harness and `rsi-evidence` skill.
 
+For whole-model prefill and decode composition, use [model-sol-analysis](../model-sol-analysis/SKILL.md).
+
 ## Evidence to inspect first
 
 Before profiling, gather what you can analytically:
