@@ -112,6 +112,17 @@ Collection rules: `Resource` items are uniquely sorted by role; input collection
 
 JSON Schema alone cannot guarantee the cross-reference, authorization, trust-source, and lifecycle invariants above. “The schema passed” is not acceptance of this table; combined acceptance requires both.
 
+**V25 first-phase implementation boundary:** under
+[#371 decision 7084973960](https://github.com/InferMatrixLab/InferRSI/issues/371#issuecomment-7084973960),
+feedback visibility and exclusion of final-only acceptance information are trusted-host
+preconditions for generation sealing without an explicit feedback policy Ref.
+See the [generation feedback boundary](generation-feedback.md) for host responsibilities
+and acceptance wording. The restricted H opt-in profile is documented in the
+[feedback policy contract](generation-feedback-policy.md) and tracked in
+[#586](https://github.com/InferMatrixLab/InferRSI/issues/586); it verifies original
+scope/check proof Refs without authenticating policy approval or free-text
+content. V25's architectural target is unchanged.
+
 Harness commits generation inputs in append-only slots keyed by attempt and role. A retry after a generation manifest commit failure uses the same preparation request and provider configuration. Harness reuses the committed delivery, including its bytes and pins, before retrying the manifest commit. The manifest commit also binds the digest of the final execution spec in separate RunStore metadata. A changed preparation request or final spec requires a new attempt.
 
 ## 5. Fixed fixtures and current verification evidence

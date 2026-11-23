@@ -32,6 +32,7 @@ from inferrsi.resources.repository_packs import REPO_TYPES, repository_pack
 subprocess.run([
     sys.executable, "-I", "-B", "-c",
     "import sys; from inferrsi.harness import prepared_binding as p; "
+    "from inferrsi.harness import entry_code; assert callable(entry_code.capture_module); "
     "assert all(callable(getattr(p, n)) for n in ('read', 'project', 'verify')); "
     "assert not any(n == root or n.startswith(root + '.') for n in sys.modules "
     "for root in ('inferrsi.apps', 'inferrsi.benchmark', 'inferrsi.knowledge'))",

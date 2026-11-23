@@ -12,12 +12,12 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from inferrsi.contracts import json_v1
-from inferrsi.harness import input_binding, local_process, prepared_binding, run_store
+from inferrsi.harness import entry_code, input_binding, local_process, prepared_binding, run_store
 from inferrsi.harness.errors import PublicError
 
-# H02 single local-CPU execute in ordinary command mode (V05 null set). Evaluation-mode
-# specs are checked before registration (V05/V28/V32 and their fixed preparation) and then
-# refused: the T37 entry-code check and generation chaining are later slices.
+# The ordinary CPU path preserves V05 null mode. Evaluation requires an explicit trusted
+# module root, a fixed preparation binding and an actual source-entry snapshot before start.
+# Generation chaining and the remaining evaluation replay/limit acceptance are later slices.
 ATTEMPT_FIELDS = (
     "request_id", "run_id", "attempt_id", "owner", "target_request", "deadline_utc",
     "resources", "budget", "retry_of", "retry_reason",
@@ -57,6 +57,7 @@ _STREAM_SCHEMA = {"name": "process-stream", "revision": "1"}
 _STREAM_MEDIA_TYPE = "application/octet-stream"
 _INPUT_MEDIA_TYPE = "application/octet-stream"
 _INPUT_SCHEMA = {"name": "input-identity", "revision": "1"}
+_ENTRY_SCHEMA = {"name": "python-source", "revision": "1"}
 # The one snapshot format this slice captures: the bytes of one regular file.
 SNAPSHOT_FORMAT = "file-v1"
 # The only capability this target provides: one command tree in an OS-owned domain.
@@ -73,7 +74,10 @@ class LocalCpuTarget:
 
     ``work_root`` holds per-attempt workspaces (``workspaces/<output_root>``) and private
     capture snapshots. ``controller_root`` / ``target_root`` authorize input sources of
-    those namespaces; ``None`` leaves that namespace unauthorized.
+    those namespaces; ``None`` leaves that namespace unauthorized. ``module_root``
+    explicitly enables evaluation through standalone source entries under that trusted
+    root. The retained source is executed directly in an isolated Python interpreter;
+    package imports and ambient cwd/PYTHONPATH entry resolution are not used.
     """
 
     target_id: str
@@ -81,6 +85,7 @@ class LocalCpuTarget:
     work_root: Path
     controller_root: Path | None = None
     target_root: Path | None = None
+    module_root: Path | None = None
 
     def __post_init__(self) -> None:
         errors = [
@@ -88,7 +93,7 @@ class LocalCpuTarget:
             for name in ("target_id", "config_revision")
             if not run_store._is_id(getattr(self, name))
         ]
-        for name in ("work_root", "controller_root", "target_root"):
+        for name in ("work_root", "controller_root", "target_root", "module_root"):
             value = getattr(self, name)
             if value is None:
                 continue
@@ -403,10 +408,8 @@ def validate(spec: object, target: LocalCpuTarget, *, artifact_reader=None) -> N
         # request. The reader is the read-only port; H does not write or register anything.
         prepared_binding.verify(spec, artifact_reader)
     unsupported = []
-    if evaluation:
-        # The T37 pre-start entry-code check runs after registration and is a later slice.
-        # Until it exists, no evaluation-mode candidate may start.
-        unsupported.append("evaluation-mode entry verification is not implemented in this slice")
+    if evaluation and target.module_root is None:
+        unsupported.append("this target has no configured evaluation module root")
     if spec["generation_record_ref"] is not None:
         unsupported.append("generation chaining is not implemented in this slice")
     request = spec["target_request"]
@@ -578,8 +581,8 @@ def _capture_input(ctx: _Context, index: int, item: Mapping, target: LocalCpuTar
         "checker_revision": "1",
         "subject": item["role"],
         "phase": "preparing",
-        "operation": None,
-        "validation_scope": None,
+        "operation": ctx.spec["operation"],
+        "validation_scope": ctx.spec["validation_scope"],
         "attempt_id": ctx.attempt_id,
         "status": {"matched": "passed", "mismatched": "failed", "not_performed": "not_performed",
                    "error": "execution_error"}[status],
@@ -598,6 +601,48 @@ def _argv(step: Mapping) -> list[str] | None:
         return [sys.executable, "-m", step["entrypoint"], *step["args"]]
     executable = shutil.which(step["entrypoint"])
     return None if executable is None else [executable, *step["args"]]
+
+
+def _bind_entry(ctx: _Context, step: Mapping, target: LocalCpuTarget):
+    """Observe/capture the supported entry after registration, before workspace execution."""
+    actual, ref, argv = None, None, []
+    reason = "entry_kind_unsupported"
+    if step["entrypoint_kind"] == "python_module":
+        try:
+            captured = entry_code.capture_module(
+                target.module_root, step["entrypoint"], ctx.captures / "entry",
+            )
+        except entry_code.EntryUnavailable as error:
+            reason = error.reason
+        except entry_code.EntryCaptureError as error:
+            raise _RetentionFailure("entry capture failed") from error
+        else:
+            actual = captured.sha256
+            ref = ctx.object_ref(captured.path, actual, captured.size_bytes, "text/x-python")
+            # Execute exactly the retained source, with no cwd/PYTHONPATH module fallback.
+            # This first target supports standalone source modules, not Python packages.
+            argv = [sys.executable, "-I", "-B", str(captured.path), *step["args"]]
+            reason = ("entry_code_matched" if actual == step["expected_code_sha256"]
+                      else "entry_code_sha256_differs")
+    status = ("not_performed" if actual is None else
+              "passed" if actual == step["expected_code_sha256"] else "failed")
+    runtime = {
+        "step_id": step["step_id"], "runtime_role": step["runtime_role"],
+        "executable": sys.executable, "entrypoint": step["entrypoint"],
+        "entrypoint_revision": step["entrypoint_revision"], "code_sha256": actual,
+        "argv": argv, "environment_identity": None,
+    } if step["entrypoint_kind"] == "python_module" else None
+    check = {
+        "check_id": "entry_code_identity", "checker_revision": "1", "subject": step["step_id"],
+        "phase": "preparing", "operation": ctx.spec["operation"],
+        "validation_scope": ctx.spec["validation_scope"], "attempt_id": ctx.attempt_id,
+        "status": status, "producer": {
+            "kind": "harness_capture", "identity": _HARNESS, "revision": "1",
+            "control_domain": _CONTROL_DOMAIN, "capture_route": "entry-source-snapshot",
+        }, "evidence_refs": [] if ref is None else [ref], "artifact_schema": _ENTRY_SCHEMA,
+        "reasons": [reason],
+    }
+    return argv, runtime, check
 
 
 def _retain_stream(ctx: _Context, stream, name: str, media_type: str) -> dict | None:
@@ -854,12 +899,12 @@ def _payload(ctx: _Context, **facts) -> dict:
         "target_binding": facts["target_binding"],
         "retry_of": spec["retry_of"],
         "retry_reason": spec["retry_reason"],
-        "generation_record_ref": None,
-        "prepared_ref": None,
-        "protocol_digest": None,
-        "operation": None,
-        "validation_scope": None,
-        "candidate": None,
+        "generation_record_ref": copy.deepcopy(spec["generation_record_ref"]),
+        "prepared_ref": copy.deepcopy(spec["prepared_ref"]),
+        "protocol_digest": spec["protocol_digest"],
+        "operation": spec["operation"],
+        "validation_scope": spec["validation_scope"],
+        "candidate": copy.deepcopy(spec["candidate"]),
         "record_version": 1,
         "recorded_at": run_store.utc_now(),
         "bound_inputs": facts["bound_inputs"],
@@ -913,7 +958,22 @@ def _run_claimed(ctx, target, digest, reader, deadline, cancellation) -> dict:
     binding = _target_binding(target, capability_checks, [])
     if errors:
         return _refusal(ctx, digest, binding, admission, [], [], errors, "admission_rejected")
-    argvs = [_argv(step) for step in ctx.spec["steps"]]
+    evaluation = ctx.spec["prepared_ref"] is not None
+    entry_checks = []
+    if evaluation:
+        entries = [_bind_entry(ctx, step, target) for step in ctx.spec["steps"]]
+        argvs = [entry[0] for entry in entries]
+        binding["runtime_bindings_by_step"] = [
+            entry[1] for entry in entries if entry[1] is not None
+        ]
+        entry_checks = [entry[2] for entry in entries]
+        if any(check["status"] != "passed" for check in entry_checks):
+            code = ("entry_code_mismatch" if any(check["status"] == "failed"
+                    for check in entry_checks) else "entrypoint_unavailable")
+            return _refusal(ctx, digest, binding, admission, [], entry_checks,
+                            [_error(code, "binding", "evaluation entry binding refused")], code)
+    else:
+        argvs = [_argv(step) for step in ctx.spec["steps"]]
     if None in argvs:
         errors = [_error("entrypoint_unavailable", "binding", "an executable entry is not found")]
         return _refusal(ctx, digest, binding, admission, [], [], errors, "entrypoint_unavailable")
@@ -921,7 +981,9 @@ def _run_claimed(ctx, target, digest, reader, deadline, cancellation) -> dict:
         ctx.workspace.mkdir(parents=True)
     except FileExistsError:
         errors = [_error("workspace_exists", "binding", "the attempt workspace already exists")]
-        return _refusal(ctx, digest, binding, admission, [], [], errors, "workspace_exists")
+        return _refusal(
+            ctx, digest, binding, admission, [], entry_checks, errors, "workspace_exists",
+        )
     except OSError as exc:
         raise _RetentionFailure("workspace creation failed") from exc
     captured = [
@@ -929,7 +991,7 @@ def _run_claimed(ctx, target, digest, reader, deadline, cancellation) -> dict:
         for index, item in enumerate(ctx.spec["inputs"])
     ]
     bound = [item[0] for item in captured]
-    checks = [item[1] for item in captured]
+    checks = entry_checks + [item[1] for item in captured]
     failed = [b for b in bound if b["identity_status"] in ("mismatched", "error")]
     if failed:
         # H02-3: the actual binding is refused after registration and before any start.
@@ -952,7 +1014,7 @@ def _run_claimed(ctx, target, digest, reader, deadline, cancellation) -> dict:
     outcome, exit_code = _outcome(steps)
     cleanup, leases = _cleanup(runs)
     launched = {step["step_id"] for step, run in runs if run["pid"] is not None}
-    binding["runtime_bindings_by_step"] = [
+    ordinary_runtime = [
         {
             "step_id": step["step_id"],
             "runtime_role": step["runtime_role"],
@@ -967,6 +1029,8 @@ def _run_claimed(ctx, target, digest, reader, deadline, cancellation) -> dict:
         for step, argv in zip(ctx.spec["steps"], argvs)
         if step["step_id"] in launched
     ]
+    if not evaluation:
+        binding["runtime_bindings_by_step"] = ordinary_runtime
     codes = {"timed_out": "timeout", "cancelled": "cancelled",
              "execution_error": "execution_error", "not_started": "deadline_exhausted"}
     run_errors = (
