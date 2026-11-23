@@ -1,0 +1,14 @@
+name: CI — approval review event
+
+on:
+  pull_request_review:
+    types: [submitted, edited, dismissed]
+
+permissions: {}
+
+jobs:
+  signal:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - run: echo "Review changed. The trusted approval workflow reads live GitHub data."
