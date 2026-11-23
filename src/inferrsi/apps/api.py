@@ -17,6 +17,7 @@ from .handoff.bridge import (
     verify_protocol,
 )
 from .handoff.candidate_provider import CandidateProvider as CandidateProvider
+from .handoff.evidence_capture import EvidenceCapture as EvidenceCapture
 from .storage.archive import (
     ResourceReader,
     RunOutput,
