@@ -51,9 +51,12 @@ that pair only.
    account with write access or higher) is re-reviewed to **Approve** or
    dismissed with a recorded reason, by those the
    [guide](../../../docs/agent-collaboration.md) allows to dismiss it. An
-   advisory review, such as one from `cursor[bot]`, needs no state change:
-   it has a substantive answer on the PR and a recorded disposition (fixed in
-   a named commit, or declined with the reason). An unresolved code or safety
+   advisory review, such as one from `cursor[bot]`, does not count as a vote
+   but has a substantive answer on the PR and a recorded disposition (fixed in
+   a named commit, or declined with the reason). If GitHub's merge state still
+   shows the PR blocked by it on the current head, someone the guide allows to
+   dismiss reviews dismisses it, and the PR records who did and why, before
+   you merge. An unresolved code or safety
    blocker still stops the merge, whoever raised it.
 8. **Required checks green** on the head. Windows/macOS `host-compatibility`
    results are advisory and never block.
@@ -88,8 +91,8 @@ Right before merging, read the PR and the governing Issue again. Recheck the
 stop labels and stop comments; `headRefOid`, `baseRefName` and `baseRefOid` against the pair you
 noted; the Issue's `status:accepted` and your authorization; and, on the
 current head, the approvals, any open binding **Request changes** review, any advisory
-request without a recorded disposition and any unresolved code or safety
-blocker from check 7, and, on a
+request without a recorded disposition, GitHub's merge state, and any
+unresolved code or safety blocker from check 7, and, on a
 high-risk PR, the listed approver and its write access from check 9, against
 the list at the same `baseRefOid`; and the PR body's `recovery:` line from
 check 10, since the body can change without a new head. If anything changed or
