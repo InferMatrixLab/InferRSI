@@ -5,6 +5,20 @@
       "kind": "optimization-records",
       "manifests": []
     },
+    "deepseek-v41-flash-service-reuse-20261120": {
+      "kind": "archive",
+      "manifests": [
+        {
+          "path": "results/archive-manifest.json",
+          "schema": "archive-sha256",
+          "artifact": "results/deepseek-v41-flash-service-reuse-20261120-evidence-v1.tar.gz"
+        }
+      ],
+      "external": [
+        "The redacted review archive is verified from a local copy. A versioned download location is pending.",
+        "Weights, token banks, full device validators, raw GSM8K output and device traces require authorized access."
+      ]
+    },
     "minicpm-vllm-seedtts": {
       "kind": "campaign",
       "manifests": [

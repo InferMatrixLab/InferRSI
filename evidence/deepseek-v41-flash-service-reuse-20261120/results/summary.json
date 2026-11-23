@@ -1,0 +1,542 @@
+{
+  "campaign_id": "deepseek-v41-flash-service-reuse-20261120",
+  "evaluation_mode": "service_reuse",
+  "frozen_at": "2026-11-20T15:25:34.421033+08:00",
+  "runtime": {
+    "inferrsi_source_revision": "b5756cd561e8b12b68899d9dfa6411feab4669f5",
+    "inferrsi_plugin_version": "0.1.0",
+    "inferrsi_runtime_version": "0+unknown",
+    "inferrsi_runtime_content_sha256": "7effd785089e725ebcf8e885baeacebb016ca8d6c6f81baa2960f6c9f41f751f",
+    "python": "3.12.13",
+    "vllm_revision": "6e448d0ea9bf3d88d898b65449ca6dc2aec170ac",
+    "cann": "9.1.0",
+    "driver": "25.5.1.1",
+    "torch": "2.10.0+cpu",
+    "torch_npu": "2.10.0.post4"
+  },
+  "workload": {
+    "input_tokens": 8192,
+    "formal_output_tokens": 1024,
+    "concurrency": [
+      1,
+      4,
+      16
+    ],
+    "formal_waves_per_attempt": 2,
+    "warmup_requests": 252,
+    "successful_formal_requests": 504,
+    "aggregation": "Median of two wave means. Per-request TPOT is (HTTP EOF ns - first generated token SSE frame ns) / (output tokens - 1) / 1e6."
+  },
+  "gates": {
+    "parent_gain_pct_at_least_one": 2,
+    "max_regression_pct_against_parent": 1,
+    "max_regression_pct_against_initial_baseline": 1,
+    "ranking": [
+      "tpot_c16",
+      "tpot_c4",
+      "tpot_c1"
+    ],
+    "final_absolute_tpot_ms_per_token": 25,
+    "gsm8k_samples": 300,
+    "gsm8k_min_correct": 292,
+    "dataset": "GSM8K@3101c7d5072418e28b9008a6636bde82a006892c:fixed300",
+    "scorer": "AISBench@5a63d936e40dd04addfcffb2401f84cd0e53bb46:Gsm8kEvaluator"
+  },
+  "final": {
+    "selected_round": 8,
+    "selected_revision": "25fa46605bc546b44114480bce7c969b019d638a",
+    "acceptance_parent_revision": "03ec787b5a883c3f819272377fbb747b17eb6470",
+    "attempt_id": "f2e22cade29846ef846240f64e2ea53f",
+    "gsm8k_correct": 292,
+    "signed_change_vs_baseline_pct": {
+      "tpot_c1": -6.220950631015777,
+      "tpot_c4": -8.343434601655723,
+      "tpot_c16": -11.422876314887603
+    },
+    "signed_change_vs_parent_pct": {
+      "tpot_c1": -0.9122483669472712,
+      "tpot_c4": -2.4199309803622535,
+      "tpot_c16": -1.7544708869134782
+    },
+    "relative_verdict": "PASS",
+    "quality_verdict": "PASS",
+    "absolute_performance": {
+      "tpot_c1": "FAIL",
+      "tpot_c4": "FAIL",
+      "tpot_c16": "FAIL"
+    },
+    "case_verdict": "FAIL"
+  },
+  "attempts": [
+    {
+      "kind": "baseline",
+      "round": null,
+      "attempt_id": "b5e4e5cdbed0434980d0c0addf7b8b43",
+      "service_id": "a3f15507aaaa4a31933047f49a8a64cf",
+      "run_id": "1708ba2d899b4955b4f11634bd4a5042",
+      "revision": "9be3c22ab5dade39c0d33d49540ae021ff74bbd1",
+      "parent_revision": null,
+      "tpot_ms_per_token": {
+        "tpot_c1": 39.66455332013685,
+        "tpot_c4": 44.63161912170088,
+        "tpot_c16": 57.43026295069648
+      },
+      "wave_means_ms_per_token": {
+        "C1": [
+          39.68883652785924,
+          39.64027011241446
+        ],
+        "C4": [
+          44.524004096529815,
+          44.73923414687195
+        ],
+        "C16": [
+          57.71784566122923,
+          57.142680240163735
+        ]
+      },
+      "successful_formal_requests": 42,
+      "gsm8k_correct": 292,
+      "cleanup_verified": true,
+      "relative_verdict": "PASS",
+      "decision": "fixed_checks_satisfied",
+      "archive_samples": "results/samples/b5e4e5cdbed0434980d0c0addf7b8b43.json",
+      "archive_patch": null
+    },
+    {
+      "kind": "round",
+      "round": 1,
+      "attempt_id": "256c09877692427e8ba5c1624f77c26f",
+      "service_id": "c66f8e2b7d13464899ad0d157356954a",
+      "run_id": "54266411e94049369e9e0d1308b72c2b",
+      "revision": "f9958ee46633340d881669bfa75ba4f5a6af36de",
+      "parent_revision": "9be3c22ab5dade39c0d33d49540ae021ff74bbd1",
+      "tpot_ms_per_token": {
+        "tpot_c1": 39.781214126588466,
+        "tpot_c4": 44.077812679985335,
+        "tpot_c16": 55.87782523066349
+      },
+      "wave_means_ms_per_token": {
+        "C1": [
+          39.82980992766374,
+          39.7326183255132
+        ],
+        "C4": [
+          44.21732387512219,
+          43.93830148484848
+        ],
+        "C16": [
+          55.27705147012463,
+          56.47859899120235
+        ]
+      },
+      "successful_formal_requests": 42,
+      "gsm8k_correct": 293,
+      "cleanup_verified": true,
+      "relative_verdict": "PASS",
+      "decision": "Advanced as the next comparison and Git parent.",
+      "archive_samples": "results/samples/256c09877692427e8ba5c1624f77c26f.json",
+      "archive_patch": "patch/round-01.patch"
+    },
+    {
+      "kind": "round",
+      "round": 2,
+      "attempt_id": "ffef61e3dec1464aadbc40f1b9a2115f",
+      "service_id": "7ca693221ef5438d960c7206f10d43e5",
+      "run_id": "dd39c934934a457283387fcea48e5ce2",
+      "revision": "86650a7359a0b2006a5e3a8eb3417a2771542488",
+      "parent_revision": "f9958ee46633340d881669bfa75ba4f5a6af36de",
+      "tpot_ms_per_token": {
+        "tpot_c1": 38.98133413000977,
+        "tpot_c4": 43.190334849706744,
+        "tpot_c16": 55.9452062175281
+      },
+      "wave_means_ms_per_token": {
+        "C1": [
+          38.94718547800586,
+          39.015482782013684
+        ],
+        "C4": [
+          43.19279715469208,
+          43.18787254472141
+        ],
+        "C16": [
+          55.30400833296677,
+          56.58640410208944
+        ]
+      },
+      "successful_formal_requests": 42,
+      "gsm8k_correct": 293,
+      "cleanup_verified": true,
+      "relative_verdict": "PASS",
+      "decision": "Advanced as the next comparison and Git parent.",
+      "archive_samples": "results/samples/ffef61e3dec1464aadbc40f1b9a2115f.json",
+      "archive_patch": "patch/round-02.patch"
+    },
+    {
+      "kind": "round",
+      "round": 3,
+      "attempt_id": "efa031375add47278f3c5e0cbcf6cc2f",
+      "service_id": "9241d258bcd5418fb34694926adb5fe1",
+      "run_id": "68a7f0a2da2f4baebd1ec5e116bbfd3d",
+      "revision": "03ec787b5a883c3f819272377fbb747b17eb6470",
+      "parent_revision": "86650a7359a0b2006a5e3a8eb3417a2771542488",
+      "tpot_ms_per_token": {
+        "tpot_c1": 37.53949446529815,
+        "tpot_c4": 41.92229989137341,
+        "tpot_c16": 51.77851400033602
+      },
+      "wave_means_ms_per_token": {
+        "C1": [
+          37.484064756598244,
+          37.594924173998045
+        ],
+        "C4": [
+          42.30900603714565,
+          41.535593745601176
+        ],
+        "C16": [
+          52.25420207221408,
+          51.30282592845796
+        ]
+      },
+      "successful_formal_requests": 42,
+      "gsm8k_correct": 295,
+      "cleanup_verified": true,
+      "relative_verdict": "PASS",
+      "decision": "Advanced as the next comparison and Git parent.",
+      "archive_samples": "results/samples/efa031375add47278f3c5e0cbcf6cc2f.json",
+      "archive_patch": "patch/round-03.patch"
+    },
+    {
+      "kind": "round",
+      "round": 4,
+      "attempt_id": "a48eed364c274f499461afb3f6ec2b7c",
+      "service_id": "886808db2b1f4052b878088039f9f207",
+      "run_id": "4dd005c7be814162a87a1256931b15ab",
+      "revision": "86e223e7ae28d84ea375daf0bcfff617c58ca4ee",
+      "parent_revision": "03ec787b5a883c3f819272377fbb747b17eb6470",
+      "tpot_ms_per_token": {
+        "tpot_c1": 37.322713524926684,
+        "tpot_c4": 41.7536961661779,
+        "tpot_c16": 51.39978017876344
+      },
+      "wave_means_ms_per_token": {
+        "C1": [
+          37.423563812316715,
+          37.22186323753665
+        ],
+        "C4": [
+          41.64075475268817,
+          41.86663757966764
+        ],
+        "C16": [
+          51.25917672623412,
+          51.54038363129277
+        ]
+      },
+      "successful_formal_requests": 42,
+      "gsm8k_correct": null,
+      "cleanup_verified": true,
+      "relative_verdict": "FAIL",
+      "decision": "The largest TPOT reduction versus the parent was 0.73%, below 2%.",
+      "archive_samples": "results/samples/a48eed364c274f499461afb3f6ec2b7c.json",
+      "archive_patch": "patch/round-04.patch"
+    },
+    {
+      "kind": "round",
+      "round": 5,
+      "attempt_id": "2f6b080b2d154ce091ce65257e20ce39",
+      "service_id": "6dd0f64f92bd493a9f5a547d065a0446",
+      "run_id": "32dbbdd9ebb84ab88608058acfeb9377",
+      "revision": "111e06ddc96ef630a660f77ec0854e896e5940d5",
+      "parent_revision": "03ec787b5a883c3f819272377fbb747b17eb6470",
+      "tpot_ms_per_token": {
+        "tpot_c1": 37.06400555913979,
+        "tpot_c4": 40.96010287218964,
+        "tpot_c16": 52.77932943258187
+      },
+      "wave_means_ms_per_token": {
+        "C1": [
+          37.24701345552297,
+          36.8809976627566
+        ],
+        "C4": [
+          41.09035931109482,
+          40.82984643328446
+        ],
+        "C16": [
+          52.35796214968231,
+          53.20069671548143
+        ]
+      },
+      "successful_formal_requests": 42,
+      "gsm8k_correct": null,
+      "cleanup_verified": true,
+      "relative_verdict": "FAIL",
+      "decision": "C16 TPOT regressed 1.93% versus the parent, exceeding 1%.",
+      "archive_samples": "results/samples/2f6b080b2d154ce091ce65257e20ce39.json",
+      "archive_patch": "patch/round-05.patch"
+    },
+    {
+      "kind": "round",
+      "round": 6,
+      "attempt_id": "cf35a31e268e49c78cae7aa23090b232",
+      "service_id": "ddede953238642fc96b38cd89b730b8b",
+      "run_id": "06b9b8470eed4f61a22ca66755afa866",
+      "revision": "5d466b55d3b0abdf522b38e157da134a781f87f7",
+      "parent_revision": "03ec787b5a883c3f819272377fbb747b17eb6470",
+      "tpot_ms_per_token": {
+        "tpot_c1": 37.73171283968719,
+        "tpot_c4": 42.29883804044477,
+        "tpot_c16": 51.37601156350806
+      },
+      "wave_means_ms_per_token": {
+        "C1": [
+          38.020196877810356,
+          37.44322880156403
+        ],
+        "C4": [
+          42.238308221652005,
+          42.35936785923754
+        ],
+        "C16": [
+          51.248098375733136,
+          51.50392475128299
+        ]
+      },
+      "successful_formal_requests": 42,
+      "gsm8k_correct": null,
+      "cleanup_verified": true,
+      "relative_verdict": "FAIL",
+      "decision": "The largest TPOT reduction versus the parent was 0.78%, below 2%.",
+      "archive_samples": "results/samples/cf35a31e268e49c78cae7aa23090b232.json",
+      "archive_patch": "patch/round-06.patch"
+    },
+    {
+      "kind": "round",
+      "round": 7,
+      "attempt_id": "ea4f024c555445699c5c18d3212e21f6",
+      "service_id": "23f84f8e286d404d9505a2c69b83a86d",
+      "run_id": "1dcae8ebca5d45eba30a005ac6f52351",
+      "revision": "c42e663efe3c58976884cbb4cf212a6e0a9e62cb",
+      "parent_revision": "03ec787b5a883c3f819272377fbb747b17eb6470",
+      "tpot_ms_per_token": {
+        "tpot_c1": 37.61422485679375,
+        "tpot_c4": 41.4771934810606,
+        "tpot_c16": 54.39102257175586
+      },
+      "wave_means_ms_per_token": {
+        "C1": [
+          37.520121647116326,
+          37.70832806647117
+        ],
+        "C4": [
+          41.60341723044965,
+          41.350969731671555
+        ],
+        "C16": [
+          52.50055946859726,
+          56.281485674914464
+        ]
+      },
+      "successful_formal_requests": 42,
+      "gsm8k_correct": null,
+      "cleanup_verified": true,
+      "relative_verdict": "FAIL",
+      "decision": "C16 TPOT regressed 5.05% versus the parent, exceeding 1%.",
+      "archive_samples": "results/samples/ea4f024c555445699c5c18d3212e21f6.json",
+      "archive_patch": "patch/round-07.patch"
+    },
+    {
+      "kind": "round",
+      "round": 8,
+      "attempt_id": "39300b3ef7ee405ab893643913713e46",
+      "service_id": "29215dac8a1646b3bb1afa1b63fdfeab",
+      "run_id": "a84713a44c894d7ab9c321abb26084f2",
+      "revision": "25fa46605bc546b44114480bce7c969b019d638a",
+      "parent_revision": "03ec787b5a883c3f819272377fbb747b17eb6470",
+      "tpot_ms_per_token": {
+        "tpot_c1": 37.319698217986314,
+        "tpot_c4": 41.45005287634409,
+        "tpot_c16": 50.61565151328813
+      },
+      "wave_means_ms_per_token": {
+        "C1": [
+          37.52511142228739,
+          37.11428501368524
+        ],
+        "C4": [
+          41.358644785679374,
+          41.5414609670088
+        ],
+        "C16": [
+          50.89549619959678,
+          50.33580682697947
+        ]
+      },
+      "successful_formal_requests": 42,
+      "gsm8k_correct": 294,
+      "cleanup_verified": true,
+      "relative_verdict": "PASS",
+      "decision": "Advanced as the next comparison and Git parent.",
+      "archive_samples": "results/samples/39300b3ef7ee405ab893643913713e46.json",
+      "archive_patch": "patch/round-08.patch"
+    },
+    {
+      "kind": "round",
+      "round": 9,
+      "attempt_id": "5f54f21c3a6a41548677c95918d2bb33",
+      "service_id": "d6b9aeb0e72b496bb6e1460ef5e65814",
+      "run_id": "ca2332f9d5384416bc2b8f62d4c7ea7c",
+      "revision": "d20a49b552240a7ecda6fc03d222fb849122e254",
+      "parent_revision": "25fa46605bc546b44114480bce7c969b019d638a",
+      "tpot_ms_per_token": {
+        "tpot_c1": 36.663106369990224,
+        "tpot_c4": 40.73996083431085,
+        "tpot_c16": 51.03049774963343
+      },
+      "wave_means_ms_per_token": {
+        "C1": [
+          36.68073899902248,
+          36.64547374095797
+        ],
+        "C4": [
+          40.623881107526884,
+          40.856040561094815
+        ],
+        "C16": [
+          50.87873023973607,
+          51.182265259530794
+        ]
+      },
+      "successful_formal_requests": 42,
+      "gsm8k_correct": null,
+      "cleanup_verified": true,
+      "relative_verdict": "FAIL",
+      "decision": "The largest TPOT reduction versus the parent was 1.76%, below 2%.",
+      "archive_samples": "results/samples/5f54f21c3a6a41548677c95918d2bb33.json",
+      "archive_patch": "patch/round-09.patch"
+    },
+    {
+      "kind": "round",
+      "round": 10,
+      "attempt_id": "9bf3eeb1ef90439c899deed55dd866c9",
+      "service_id": "ac9ccdbae27e43d7a3bb1ba99ab454b3",
+      "run_id": "9e78169647454d97a9be6e69ec6277a9",
+      "revision": "7221866e51c964ed65bfedb1d59f450d572ceee0",
+      "parent_revision": "25fa46605bc546b44114480bce7c969b019d638a",
+      "tpot_ms_per_token": {
+        "tpot_c1": 43.06836537194526,
+        "tpot_c4": 39.568248774315734,
+        "tpot_c16": 48.53549964543622
+      },
+      "wave_means_ms_per_token": {
+        "C1": [
+          42.96651686021505,
+          43.170213883675466
+        ],
+        "C4": [
+          38.40660778934506,
+          40.729889759286415
+        ],
+        "C16": [
+          48.544816977272724,
+          48.526182313599705
+        ]
+      },
+      "successful_formal_requests": 42,
+      "gsm8k_correct": null,
+      "cleanup_verified": true,
+      "relative_verdict": "FAIL",
+      "decision": "C1 TPOT regressed 15.40% versus the parent, exceeding 1%.",
+      "archive_samples": "results/samples/9bf3eeb1ef90439c899deed55dd866c9.json",
+      "archive_patch": "patch/round-10.patch"
+    },
+    {
+      "kind": "final",
+      "round": null,
+      "attempt_id": "f2e22cade29846ef846240f64e2ea53f",
+      "service_id": "84ed4b61754f4fdba08540bbc6a72958",
+      "run_id": "16163c3ec6e24dbca8149ad50c9ccf67",
+      "revision": "25fa46605bc546b44114480bce7c969b019d638a",
+      "parent_revision": "03ec787b5a883c3f819272377fbb747b17eb6470",
+      "tpot_ms_per_token": {
+        "tpot_c1": 37.197041040078204,
+        "tpot_c4": 40.9078091686217,
+        "tpot_c16": 50.8700750465237
+      },
+      "wave_means_ms_per_token": {
+        "C1": [
+          37.27230100391007,
+          37.121781076246336
+        ],
+        "C4": [
+          41.01887716055718,
+          40.79674117668622
+        ],
+        "C16": [
+          51.36886440646383,
+          50.371285686583576
+        ]
+      },
+      "successful_formal_requests": 42,
+      "gsm8k_correct": 292,
+      "cleanup_verified": true,
+      "relative_verdict": "PASS",
+      "decision": "fixed_checks_satisfied",
+      "archive_samples": "results/samples/f2e22cade29846ef846240f64e2ea53f.json",
+      "archive_patch": null
+    }
+  ],
+  "archive_replay": {
+    "archive_content": "verified",
+    "browser": "Chromium 159.0.8154.6",
+    "opened_with": "file://",
+    "extracted_outside_repository": true,
+    "fresh_browser_profile": true,
+    "network_requests": 0,
+    "page_errors": 0,
+    "dashboard_sha256": "ebcd2f58b6d24703a71f61af606381959c3bdfe14f16b19970960e56a5ab28b9",
+    "browser_verdict": "PASS",
+    "timing_replay": "PASS",
+    "checked_formal_requests": 504,
+    "checks": [
+      {
+        "view": "Independent final",
+        "attempt_id": "f2e22cade29846ef846240f64e2ea53f",
+        "run_id": "16163c3ec6e24dbca8149ad50c9ccf67",
+        "round_number": null,
+        "objective": "tpot_c16",
+        "expected_ms_per_token": 50.8700750465237,
+        "recomputed_ms_per_token": 50.870075046523695,
+        "recomputed_wave_means": [
+          51.36886440646383,
+          50.37128568658357
+        ],
+        "decision": "fixed_checks_satisfied",
+        "evidence": "samples/f2e22cade29846ef846240f64e2ea53f.json"
+      },
+      {
+        "view": "Rejected round 10",
+        "attempt_id": "9bf3eeb1ef90439c899deed55dd866c9",
+        "run_id": "9e78169647454d97a9be6e69ec6277a9",
+        "round_number": 10,
+        "objective": "tpot_c1",
+        "expected_ms_per_token": 43.06836537194526,
+        "recomputed_ms_per_token": 43.06836537194526,
+        "recomputed_wave_means": [
+          42.96651686021505,
+          43.170213883675466
+        ],
+        "decision": "performance_gate_not_met",
+        "evidence": "samples/9bf3eeb1ef90439c899deed55dd866c9.json",
+        "comparison_parent": {
+          "attempt_id": "39300b3ef7ee405ab893643913713e46",
+          "tpot_ms_per_token": 37.319698217986314,
+          "regression_pct": 15.403841479051309
+        }
+      }
+    ]
+  }
+}
