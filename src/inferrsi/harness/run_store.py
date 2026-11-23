@@ -69,6 +69,10 @@ _GENERATION_MEDIA = {
     "generation-plan": "application/json",
 }
 _DELIVERY_FIELDS = frozenset({"items", "selection", "omissions", "limitations"})
+_BOUNDS_FIELDS = frozenset({
+    "schema_version", "attempt_id", "run_id", "owner", "deadline_utc", "budget",
+    "generation_plan", "request_digest",
+})
 # Errno values meaning "another handle holds the lock" for msvcrt.locking and flock.
 _CONTENDED = frozenset({errno.EACCES, errno.EAGAIN, errno.EWOULDBLOCK, errno.EDEADLK})
 _CHUNK = 1024 * 1024
@@ -838,6 +842,63 @@ class RunStoreReader:
             )
         return delivery
 
+    def _read_generation_bounds(self, attempt_id: str) -> dict | None:
+        """Read internal original bounds; historical plans are never backfilled."""
+        stage = "read_generation_bounds"
+        if not _is_id(attempt_id):
+            raise PublicError("InvalidRequest", stage=stage, message="invalid attempt ID")
+        try:
+            with self._connection() as conn:
+                rows = conn.execute(
+                    "SELECT role, sha256, data, descriptor FROM generation_inputs "
+                    "WHERE attempt_hash = ? AND role IN ('generation-plan', 'original-bounds')",
+                    (attempt_hash(attempt_id),),
+                ).fetchall()
+        except (sqlite3.Error, OSError) as exc:
+            raise PublicError(
+                "ArtifactUnavailable", stage=stage, message="generation bounds are not accessible",
+            ) from exc
+        if not rows:
+            return None
+        try:
+            parts = {row[0]: tuple(row)[1:] for row in rows}
+            if "generation-plan" not in parts:
+                raise ValueError("bounds have no committed generation plan")
+            digest, data, metadata = parts["generation-plan"]
+            descriptor = json_v1.decode(metadata)
+            if (
+                not _has_fields(descriptor, {"request_digest"})
+                or not isinstance(descriptor.get("request_digest"), str)
+                or not _DIGEST.fullmatch(descriptor["request_digest"])
+                or hashlib.sha256(data).hexdigest() != digest
+            ):
+                raise ValueError("invalid generation plan binding")
+            if "original-bounds" not in parts:
+                return None
+            bounds_digest, bounds_data, bounds_metadata = parts["original-bounds"]
+            bounds = json_v1.decode(bounds_data)
+            if (
+                not _has_fields(bounds, _BOUNDS_FIELDS)
+                or type(bounds["schema_version"]) is not int or bounds["schema_version"] != 1
+                or bounds_metadata is not None
+                or hashlib.sha256(bounds_data).hexdigest() != bounds_digest
+                or bounds["request_digest"] != descriptor["request_digest"]
+                or bounds["attempt_id"] != attempt_id
+                or not all(_is_id(bounds[key]) for key in ("attempt_id", "run_id", "owner"))
+                or not _is_timestamp(bounds["deadline_utc"])
+                or not _has_fields(bounds["budget"], _BUDGET_FIELDS)
+                or bounds["generation_plan"] != _generation_ref(
+                    self.namespace, attempt_hash(attempt_id), "generation-plan", data,
+                )
+            ):
+                raise ValueError("original bounds differ from their sealed identity")
+        except (AttributeError, TypeError, ValueError) as exc:
+            raise PublicError(
+                "ArtifactIntegrityError", stage=stage,
+                message="invalid committed generation bounds",
+            ) from exc
+        return copy.deepcopy(bounds)
+
     def _find_delivery(
         self, attempt_id: str, *, preparation_digest: str | None = None,
     ) -> dict | None:
@@ -953,8 +1014,13 @@ class RunStore(RunStoreReader):
 
     def _seal_generation_input(
         self, attempt_id: str, role: str, data: bytes, *, descriptor: dict | None = None,
+        original_bounds: bytes | None = None,
     ) -> tuple:
         """Append one attempt input before registration, or return its existing delivery row."""
+        if original_bounds is not None and (
+            role != "generation-plan" or not isinstance(original_bounds, bytes)
+        ):
+            raise ValueError("original bounds belong to a generation-plan commit")
         key = attempt_hash(attempt_id)
         descriptor_bytes = None if descriptor is None else json_v1.encode(descriptor)
         values = (hashlib.sha256(data).hexdigest(), data, descriptor_bytes)
@@ -979,6 +1045,13 @@ class RunStore(RunStoreReader):
                         "(attempt_hash, role, sha256, data, descriptor) "
                         "VALUES (?, ?, ?, ?, ?)", (key, role, *values),
                     )
+                    if original_bounds is not None:
+                        conn.execute(
+                            "INSERT INTO generation_inputs "
+                            "(attempt_hash, role, sha256, data, descriptor) "
+                            "VALUES (?, 'original-bounds', ?, ?, NULL)",
+                            (key, hashlib.sha256(original_bounds).hexdigest(), original_bounds),
+                        )
                 elif role == "delivered-context":
                     # Concurrent preparations compare request identity against the first commit.
                     return tuple(row)
