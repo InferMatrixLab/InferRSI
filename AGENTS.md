@@ -4,7 +4,7 @@ Coding agents (Cursor, Codex, Claude, etc.) should treat this file as the **entr
 
 ## What this repo is
 
-**InferRSI** is InferMatrixLab’s canonical home for a **portable RSI / evidence-driven scaffold**. Work is organized as **SIAS**: harness × model × infra seams under `src/inferrsi/` (rename on copy), with runnable examples and a first-class `evidence/` tree.
+**InferRSI** is InferMatrixLab’s canonical home for a **portable RSI / evidence-driven scaffold**. Work is organized as **SIAS**: harness × model × infra planes of the system being optimized, with runnable examples and a first-class `evidence/` tree. InferRSI's own code lives under `src/inferrsi/` (rename on copy) in four cores: Knowledge, Harness, Benchmark and Apps.
 
 This entry contract is portable for derived scaffolds. The repository itself is the maintained workbench: delivering an independent engine uses the [engine delivery template](docs/template/README.md) and does not copy or depend on this runtime. Route your task: modify InferRSI via [contributing](docs/contributing.md) and [agent collaboration](docs/agent-collaboration.md); run experiments via [quickstart](docs/quickstart.md); find any CLI/Python operation via the [operation guide](docs/operations.md).
 
@@ -69,7 +69,7 @@ Parameterized or manual acceptance runs are issue-scoped; they are not the defau
 
 - **Resolve acceptance criteria** — preserve user-supplied criteria; when absent, use [performance-ceiling-analysis](src/inferrsi/knowledge/data/skill_library/playbooks/measurement/performance-ceiling-analysis/references/acceptance-criteria.md) to derive evidence-backed campaign targets. Retain partial requirements and derive only missing fields; unresolved evidence stays explicit.
 - **Freeze gates before search** — checklist and `validator/` locked in `plan/` before Phase 3 candidate experiments ([validation levels](docs/contributing.md#validation-levels)).
-- **One plane per campaign step** — change only the declared SIAS plane per step: `harness` | `model` | `infra` (under `src/inferrsi/`).
+- **One plane per campaign step** — change only the declared SIAS plane of the target system per step: `harness` | `model` | `infra`. These planes are not InferRSI packages.
 - **Emit RunSpec snapshots** — record repo × revision × backend × device × model × scenario (`contracts/runspec.py`, campaign `plan/`).
 - **Evaluator + evidence win** — never treat agent narrative as `PASS`; verdicts follow frozen gates and `evidence/<campaign-id>/` artifacts.
 
