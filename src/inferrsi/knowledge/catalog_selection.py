@@ -145,6 +145,9 @@ class _CatalogReader(KnowledgeReader):
             self._checkout_ids = super()._checkout_identities()
         return self._checkout_ids
 
+    def _skill(self, identity):
+        return super()._skill(identity, complete_resources=True)
+
 
 def _tree_version(root):
     """Hash current bytes and membership, without following directory symlinks.
@@ -493,7 +496,7 @@ class CatalogSelection:
         }
 
     @staticmethod
-    def _reference_context(reader, ref, path, revision, available):
+    def _reference_context(reader, ref, path, revision, available, *, delivered_paths=()):
         bundle = reader.read(ref, revision=revision)
         if path not in bundle.content:
             return None, {"ref": ref, "path": path, "reason": "required_resource_unavailable"}
@@ -530,6 +533,9 @@ class CatalogSelection:
                         break
                     directory = posixpath.dirname(directory)
         view = {**bundle.view(), "ref": ref}
+        # All paths belong to this same ref/revision. Validate the full closure
+        # above, then charge and deliver only bytes not already in its context.
+        required = [resource for resource in required if resource not in delivered_paths]
         return context_view((path, required, []), view, bundle.content, None, available)
 
     def complete(self, snapshot_id, selections, **options):
@@ -595,7 +601,6 @@ class CatalogSelection:
             selected[ref] = selection
         queue = deque((ref, 0, None) for ref in selected)
         seen = set()
-        seen_resources = set()
         contexts, judgments, omissions, paths = [], [], [], []
         used = optional_used = optional_count = 0
         while queue:
@@ -671,17 +676,22 @@ class CatalogSelection:
                         queue.append((edge["ref"], depth + 1, trail))
                 elif edge["kind"] == "resource":
                     path = edge["path"]
-                    key = (ref, card["revision"], path)
                     delivered_paths = {r["path"] for r in context["resources"]}
-                    if path in delivered_paths or key in seen_resources:
+                    if path in delivered_paths:
                         paths.append({"via": trail, "stop": "reader_resource_delivered"})
                         continue
                     if depth >= expansion_depth or optional_count >= expansion_items:
                         paths.append({"via": trail, "stop": "depth_or_item_budget"})
                         continue
-                    extra, omission = self._reference_context(
-                        readers[ref], ref, path, card["revision"], expansion_bytes - optional_used
-                    )
+                    try:
+                        extra, omission = self._reference_context(
+                            readers[ref], ref, path, card["revision"],
+                            expansion_bytes - optional_used, delivered_paths=delivered_paths,
+                        )
+                    except RevisionConflict:
+                        raise
+                    except (ValueError, KeyError, TypeError, OSError) as exc:
+                        omission = {"ref": ref, "reason": "invalid_resource", "detail": str(exc)}
                     if omission:
                         paths.append({"via": trail, "stop": omission["reason"]})
                         omissions.append({"path": path, **omission, "scope": "resource",
@@ -690,7 +700,6 @@ class CatalogSelection:
                     amount = extra["content_bytes"]
                     optional_used += amount
                     optional_count += 1
-                    seen_resources.add(key)
                     context["resources"].extend(extra["resources"])
                     context["content_bytes"] += amount
                     judgment["evidence_resources"].extend(r["path"] for r in extra["resources"])
