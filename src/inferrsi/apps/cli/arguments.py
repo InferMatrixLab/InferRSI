@@ -240,6 +240,9 @@ def parser(*, parser_class=argparse.ArgumentParser) -> argparse.ArgumentParser:
     )
     root.add_argument("--version", action="version", version=__version__)
     commands = root.add_subparsers(dest="command", required=True)
+    from .evaluate import add_parser as add_evaluate_parser
+
+    add_evaluate_parser(commands)
     mindie = commands.add_parser("mindie", help="Use project-approved, local MindIE knowledge")
     mindie_actions = mindie.add_subparsers(dest="mindie_action", required=True)
     enable = mindie_actions.add_parser("enable", help="Approve a MindIE domain for this checkout")

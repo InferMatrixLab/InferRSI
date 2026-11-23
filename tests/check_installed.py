@@ -771,6 +771,12 @@ for a1_retired in ("cli", "arguments", "summary_chart", "benchmark_operations",
     else:
         raise AssertionError(f"retired module inferrsi.{a1_retired} must not import")
 assert main.__module__ == "inferrsi.apps.cli"
+for evaluate_action in ("prepare", "execute", "assess"):
+    help_result = subprocess.run(
+        [sys.executable, "-I", "-m", "inferrsi", "evaluate", evaluate_action, "--help"],
+        capture_output=True, text=True, check=True,
+    )
+    assert "--request" in help_result.stdout and "--output-id" in help_result.stdout
 for canonical in ("inferrsi.apps.views.summary_chart",
                   "inferrsi.apps.workflows.benchmark_operations",
                   "inferrsi.apps.integrations.mindie.project",

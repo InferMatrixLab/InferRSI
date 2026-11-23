@@ -405,6 +405,10 @@ def main(argv: list[str] | None = None) -> int:
         supplied = vars(args).pop(SUPPLIED, ())
         task = _plan_run_task(command_parser(argument_parser, args.command), args, supplied)
     try:
+        if args.command == "evaluate":
+            from .evaluate import dispatch
+
+            return dispatch(args)
         if args.command == "task":
             return _task_command(args)
         if args.command == "export":
