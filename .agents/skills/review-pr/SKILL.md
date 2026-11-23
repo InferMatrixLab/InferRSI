@@ -85,7 +85,11 @@ equivalent revision-bound operation. If that operation is unavailable, leave the
 review prepared. After submitting, verify the recorded state and commit and
 report the review URL.
 
-Each eligible GitHub account with write access counts once. The
+Each eligible GitHub account with write access counts once. On a PR that is
+not high-risk, a `cursor[bot]` **Approve** on the current head also counts as one
+of the two, and the other comes from an account with write access; its
+**Request changes** is still a blocker. High-risk PRs get no such exception; see
+[eligible approvals](../../../docs/agent-collaboration.md#pr-review-and-merge). The
 [main ruleset](https://github.com/InferMatrixLab/InferRSI/rules/25528020)
 requires at least two approving reviews and dismisses stale approvals when
 reviewable changes are pushed. The integrator also verifies the `LGTM` bodies,
