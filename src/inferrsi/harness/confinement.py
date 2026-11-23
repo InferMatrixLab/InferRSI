@@ -421,7 +421,12 @@ class FixtureBackend:
 
 
 class UnshareBackend:
-    """Run argv in a fresh root. Fail closed if the namespace cannot be built."""
+    """Run argv in a fresh root.
+
+    A command that starts and exits non-zero is ``status="failed"``.
+    ``ConfinementUnavailable`` means the jail never reached exec, or the command
+    timed out.
+    """
 
     name = "unshare"
 
@@ -444,15 +449,25 @@ class UnshareBackend:
         if remaining <= 0:
             raise ConfinementUnavailable("execution deadline exhausted before start")
         config_path = None
+        marker = None
         completed = None
+        ran = False
         try:
             handle = tempfile.NamedTemporaryFile(
                 prefix="inferrsi-confine-", suffix=".json", delete=False
             )
             config_path = Path(handle.name)
             handle.close()
+            marker = config_path.with_name(config_path.name + ".ran")
             config_path.write_text(
-                json.dumps({"argv": list(argv), "cwd": str(cwd), **plan}),
+                json.dumps(
+                    {
+                        "argv": list(argv),
+                        "cwd": str(cwd),
+                        "result_marker": str(marker),
+                        **plan,
+                    }
+                ),
                 encoding="utf-8",
             )
             process = subprocess.Popen(
@@ -484,17 +499,21 @@ class UnshareBackend:
             completed = subprocess.CompletedProcess(
                 process.args, process.returncode, stdout, stderr
             )
+            ran = marker.is_file() and marker.read_text(encoding="utf-8") == "ran\n"
         finally:
             if config_path is not None:
                 config_path.unlink(missing_ok=True)
-        if completed is None or completed.returncode != 0:
+            if marker is not None:
+                marker.unlink(missing_ok=True)
+        if not ran:
             detail = "unshare confinement failed"
             if completed is not None and completed.stderr.strip():
                 detail = completed.stderr.strip()
             raise ConfinementUnavailable(detail)
+        status = "completed" if completed.returncode == 0 else "failed"
         return {
-            "status": "completed",
-            "returncode": 0,
+            "status": status,
+            "returncode": completed.returncode,
             "stdout": completed.stdout,
             "stderr": completed.stderr,
         }
@@ -535,10 +554,41 @@ def enter_namespace(config_path: str) -> None:
     if config.get("proc"):
         (jail / "proc").mkdir(exist_ok=True)
         mount(["-t", "proc", "proc", str(jail / "proc")])
+    marker_fd = os.open(
+        config["result_marker"], os.O_CREAT | os.O_WRONLY | os.O_TRUNC, 0o644
+    )
+    os.set_inheritable(marker_fd, False)
     os.chroot(jail)
     os.chdir(config["cwd"])
     argv = config["argv"]
-    os.execvpe(argv[0], argv, config["env"])
+    read_fd, write_fd = os.pipe()
+    os.set_inheritable(write_fd, False)
+    pid = os.fork()
+    if pid == 0:
+        os.close(read_fd)
+        try:
+            os.execvpe(argv[0], argv, config["env"])
+        except OSError as exc:
+            os.write(write_fd, f"exec failed: {exc}\n".encode())
+            os._exit(127)
+    os.close(write_fd)
+    note = b""
+    while True:
+        chunk = os.read(read_fd, 256)
+        if not chunk:
+            break
+        note += chunk
+    os.close(read_fd)
+    if note:
+        raise SystemExit(note.decode())
+    os.write(marker_fd, b"ran\n")
+    os.close(marker_fd)
+    _pid, status = os.waitpid(pid, 0)
+    if os.WIFEXITED(status):
+        code = os.WEXITSTATUS(status)
+    else:
+        code = 128 + os.WTERMSIG(status)
+    raise SystemExit(code)
 
 
 def select_backend():

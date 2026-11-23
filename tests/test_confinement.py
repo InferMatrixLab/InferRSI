@@ -321,6 +321,35 @@ def test_unshare_from_venv_can_import_encodings(tmp_path):
 
 
 @pytest.mark.skipif(not namespaces_available(), reason="user namespaces are unavailable")
+def test_unshare_command_exit_is_a_failed_record(tmp_path):
+    work = tmp_path / "work"
+    work.mkdir()
+    record = UnshareBackend().run(
+        (sys.executable, "-c", "raise SystemExit(1)"),
+        work,
+        (work,),
+        (),
+        time.monotonic() + 30,
+    )
+    assert record["status"] == "failed"
+    assert record["returncode"] == 1
+
+
+@pytest.mark.skipif(not namespaces_available(), reason="user namespaces are unavailable")
+def test_unshare_missing_executable_stays_unavailable(tmp_path):
+    work = tmp_path / "work"
+    work.mkdir()
+    with pytest.raises(ConfinementUnavailable, match="exec failed"):
+        UnshareBackend().run(
+            ("/no/such/inferrsi-command",),
+            work,
+            (work,),
+            (),
+            time.monotonic() + 30,
+        )
+
+
+@pytest.mark.skipif(not namespaces_available(), reason="user namespaces are unavailable")
 def test_unshare_starts_python_and_hides_a_private_canary(tmp_path, monkeypatch):
     monkeypatch.setenv("SECRET_CANARY", "CANARY-ENV")
     private = tmp_path / "private"

@@ -17,6 +17,7 @@ from inferrsi.harness.confinement import (
     ConfinementUnavailable,
     FixtureBackend,
     UnreapedCommand,
+    UnshareBackend,
     namespaces_available,
 )
 from inferrsi.harness.device_lease import DeviceLease, LeaseError
@@ -1216,35 +1217,157 @@ def _combo_lane():
     ]
 
 
-def test_same_lane_pass_tickets_fail_jointly_and_record_knowledge(tmp_path):
+def test_one_winner_per_lane_is_promoted_when_the_joint_passes(tmp_path):
+    incumbent = tmp_path / "incumbent"
+    _sum_tree(incumbent, "10", "10")
+    round_dir = tmp_path / "round"
+    prepare(_sum_spec(lanes=_combo_lane()), incumbent, round_dir)
+    works = (("a", "a.txt", "8"), ("b", "b.txt", "6"))
+    measured_by_knob = {}
+    for name, knob, value in works:
+        work = tmp_path / f"work-{name}"
+        _sum_tree(work, "10", "10")
+        (work / "knobs" / knob).write_text(value, encoding="utf-8")
+        ticket = submit(round_dir, "L1", incumbent, work, now=WHEN)["ticket"]
+        measured = serve_ticket(round_dir, ticket, incumbent, backend=FixtureBackend(), now=WHEN)
+        assert measured["verdict"] == "PASS"
+        measured_by_knob[knob] = measured
+    winner = measured_by_knob["b.txt"]
+    loser = measured_by_knob["a.txt"]
+    assert winner["improvement_pct"] > loser["improvement_pct"]
+    closed = close_round(round_dir, incumbent, backend=FixtureBackend(), now=WHEN)
+    assert closed["accepted"] is True
+    assert [item["ticket"] for item in closed["composed"]] == [winner["ticket"]]
+    assert [item["ticket"] for item in closed["dropped"]] == [loser["ticket"]]
+    successor = Path(closed["successor"])
+    assert (successor / "knobs" / "a.txt").read_text(encoding="utf-8") == "10"
+    assert (successor / "knobs" / "b.txt").read_text(encoding="utf-8") == "6"
+    assert not (round_dir / "knowledge" / "joint-failure.json").exists()
+
+
+def test_joint_failure_of_lane_winners_writes_the_summary(tmp_path):
     incumbent = tmp_path / "incumbent"
     _sum_tree(incumbent, "10", "10")
     (incumbent / "bench.py").write_text(COMBO_BENCH, encoding="utf-8")
     round_dir = tmp_path / "round"
-    prepare(_sum_spec(lanes=_combo_lane()), incumbent, round_dir)
+    prepare(_sum_spec(), incumbent, round_dir)
     tickets = []
-    for name, knob in (("a", "a.txt"), ("b", "b.txt")):
-        work = tmp_path / f"work-{name}"
+    for lane_id, knob in (("L1", "a.txt"), ("L2", "b.txt")):
+        work = tmp_path / f"work-{lane_id}"
         _sum_tree(work, "10", "10")
         (work / "bench.py").write_text(COMBO_BENCH, encoding="utf-8")
         (work / "knobs" / knob).write_text("8", encoding="utf-8")
-        ticket = submit(round_dir, "L1", incumbent, work, now=WHEN)["ticket"]
+        ticket = submit(round_dir, lane_id, incumbent, work, now=WHEN)["ticket"]
         measured = serve_ticket(round_dir, ticket, incumbent, backend=FixtureBackend(), now=WHEN)
-        assert measured["status"] == "measured"
         assert measured["verdict"] == "PASS"
         tickets.append(ticket)
     closed = close_round(round_dir, incumbent, backend=FixtureBackend(), now=WHEN)
     assert closed["accepted"] is False
     assert closed["retained"] is True
-    assert closed["successor"] is None
+    assert closed["dropped"] == []
     assert not (round_dir / "successor").exists()
     note = json.loads((round_dir / "knowledge" / "joint-failure.json").read_text(encoding="utf-8"))
     assert note["kind"] == "inferrsi.parallel_round.joint_failure"
-    assert note["outcome"] == "retained"
-    assert note["cause_stage"] == "validation"
     assert note["verdict"] == "FAIL"
     assert {item["ticket"] for item in note["tickets"]} == set(tickets)
-    assert {item["lane_id"] for item in note["tickets"]} == {"L1"}
+    assert {item["lane_id"] for item in note["tickets"]} == {"L1", "L2"}
+
+
+def test_successor_keeps_the_frozen_incumbent_bytes(tmp_path):
+    incumbent = tmp_path / "incumbent"
+    _sum_tree(incumbent, "10", "10")
+    original = (incumbent / "bench.py").read_text(encoding="utf-8")
+    round_dir = tmp_path / "round"
+    prepare(_sum_spec(), incumbent, round_dir)
+    work = tmp_path / "work"
+    _sum_tree(work, "8", "10")
+    ticket = submit(round_dir, "L1", incumbent, work, now=WHEN)["ticket"]
+    measured = serve_ticket(round_dir, ticket, incumbent, backend=FixtureBackend(), now=WHEN)
+    assert measured["verdict"] == "PASS"
+
+    class EditDuringClose(FixtureBackend):
+        def run(self, *args, **kwargs):
+            (incumbent / "knobs" / "b.txt").write_text("99", encoding="utf-8")
+            (incumbent / "bench.py").write_text("mutated\n", encoding="utf-8")
+            return super().run(*args, **kwargs)
+
+    closed = close_round(round_dir, incumbent, backend=EditDuringClose(), now=WHEN)
+    assert closed["accepted"] is True
+    successor = Path(closed["successor"])
+    assert (successor / "knobs" / "a.txt").read_text(encoding="utf-8") == "8"
+    assert (successor / "knobs" / "b.txt").read_text(encoding="utf-8") == "10"
+    assert (successor / "bench.py").read_text(encoding="utf-8") == original
+    assert (incumbent / "knobs" / "b.txt").read_text(encoding="utf-8") == "99"
+
+
+def test_joint_confinement_failure_does_not_seal_the_round(tmp_path):
+    incumbent = tmp_path / "incumbent"
+    _sum_tree(incumbent, "10", "10")
+    round_dir = tmp_path / "round"
+    prepare(_sum_spec(), incumbent, round_dir)
+    work = tmp_path / "work"
+    _sum_tree(work, "8", "10")
+    ticket = submit(round_dir, "L1", incumbent, work, now=WHEN)["ticket"]
+    measured = serve_ticket(round_dir, ticket, incumbent, backend=FixtureBackend(), now=WHEN)
+    assert measured["verdict"] == "PASS"
+
+    class Boom(FixtureBackend):
+        def run(self, *args, **kwargs):
+            del args, kwargs
+            raise ConfinementUnavailable("namespace command failed")
+
+    refused = close_round(round_dir, incumbent, backend=Boom(), now=WHEN)
+    assert refused["status"] == "refused"
+    assert "namespace command failed" in refused["reason"]
+    assert not (round_dir / "close.json").exists()
+    closed = close_round(round_dir, incumbent, backend=FixtureBackend(), now=WHEN)
+    assert closed["accepted"] is True
+    assert (round_dir / "close.json").exists()
+
+
+def test_joint_build_confinement_failure_does_not_seal_the_round(tmp_path):
+    incumbent = tmp_path / "incumbent"
+    _sum_tree(incumbent, "10", "10")
+    round_dir = tmp_path / "round"
+    spec = _sum_spec()
+    spec["build"] = [sys.executable, "-c", "pass"]
+    prepare(spec, incumbent, round_dir)
+    work = tmp_path / "work"
+    _sum_tree(work, "8", "10")
+    ticket = submit(round_dir, "L1", incumbent, work, now=WHEN)["ticket"]
+    measured = serve_ticket(round_dir, ticket, incumbent, backend=FixtureBackend(), now=WHEN)
+    assert measured["verdict"] == "PASS"
+
+    class Boom(FixtureBackend):
+        def run(self, *args, **kwargs):
+            del args, kwargs
+            raise ConfinementUnavailable("mount failed")
+
+    refused = close_round(round_dir, incumbent, backend=Boom(), now=WHEN)
+    assert refused["status"] == "refused"
+    assert "mount failed" in refused["reason"]
+    assert not (round_dir / "close.json").exists()
+
+
+@pytest.mark.skipif(not namespaces_available(), reason="user namespaces are unavailable")
+def test_unshare_failing_validation_is_a_measured_fail(tmp_path):
+    incumbent = tmp_path / "incumbent"
+    _git_tree(incumbent, "10")
+    round_dir = tmp_path / "round"
+    failing = [sys.executable, "-c", "raise SystemExit(1)"]
+    prepare(_spec(validation=failing), incumbent, round_dir)
+    work = tmp_path / "work"
+    _tree(work, "8")
+    ticket = submit(round_dir, "L1", incumbent, work, now=WHEN)["ticket"]
+    measured = serve_ticket(round_dir, ticket, incumbent, backend=UnshareBackend(), now=WHEN)
+    assert measured["status"] == "measured", measured
+    assert measured["verdict"] == "FAIL"
+    ledger = json.loads((round_dir / "ledgers" / "L1.json").read_text(encoding="utf-8"))
+    assert [entry["phase"] for entry in ledger["entries"]] == ["finished"]
+    closed = close_round(round_dir, incumbent, backend=UnshareBackend(), now=WHEN)
+    assert closed["status"] == "closed"
+    assert closed["retained"] is True
+    assert (round_dir / "close.json").exists()
 
 
 def test_submit_refuses_while_close_runs_and_after_it_finishes(tmp_path):

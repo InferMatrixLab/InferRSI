@@ -28,14 +28,19 @@ If a timed-out command cannot be confirmed dead, its devices are quarantined:
 the device is refused until an operator removes that file.
 
 ``close`` is a joint single-rerun MVP (not #249 stepwise composition): after every
-outbox ticket has a terminal receipt, every PASS ticket is overlaid in
-``(lane_id, ticket)`` order onto one candidate and measured once against the
-incumbent. A PASS joint run writes ``successor/``. Any other completed verdict
-retains the incumbent and writes ``knowledge/joint-failure.json``. ``prepare``
-freezes ``incumbent_tree_digest``; ``submit``, ``serve`` and ``close`` refuse a
-different tree. ``submit`` also refuses while ``close`` holds the round lock or
-after ``close.json`` exists. This is not Claude/Codex drivers, SwarmFlow, or
-campaign incumbent advancement.
+outbox ticket has a terminal receipt, each lane keeps one PASS winner (higher
+``improvement_pct``, then lower ``ticket``). ``close`` copies that verified
+incumbent to ``candidates/frozen-incumbent`` and overlays the winners onto that
+snapshot. The joint measurement reads the snapshot, and a PASS run promotes the
+same snapshot. A PASS joint run writes ``successor/``. Any other completed
+verdict retains the incumbent and writes ``knowledge/joint-failure.json``. A
+joint confinement failure, or a measurement that does not finish, returns
+``refused`` and does not write ``close.json``. Other PASS tickets on the same
+lane are listed in ``close.json`` as ``dropped`` and are not overlaid.
+``prepare`` freezes ``incumbent_tree_digest``; ``submit``, ``serve`` and
+``close`` refuse a different tree. ``submit`` also refuses while ``close``
+holds the round lock or after ``close.json`` exists. This is not Claude/Codex
+drivers, SwarmFlow, or campaign incumbent advancement.
 """
 
 import hashlib
@@ -247,6 +252,16 @@ def _incumbent_mismatch(plan: dict, incumbent: Path) -> str | None:
     if actual != plan.get("incumbent_tree_digest"):
         return "incumbent tree does not match the frozen digest"
     return None
+
+
+def _freeze_incumbent(round_dir: Path, incumbent: Path) -> Path:
+    """Copy the incumbent that just matched the digest. Close reads this tree."""
+    frozen = round_dir / "candidates" / "frozen-incumbent"
+    if frozen.exists():
+        shutil.rmtree(frozen)
+    frozen.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copytree(incumbent, frozen, ignore=shutil.ignore_patterns(".git"))
+    return frozen
 
 
 def _acquire_close(round_dir: Path):
@@ -1031,6 +1046,41 @@ def ticket_status(round_dir: Path, ticket: str) -> dict:
     return {"ticket": ticket, "status": "queued"}
 
 
+def _improvement_pct(body: dict) -> float:
+    value = body.get("improvement_pct")
+    if type(value) in (int, float) and math.isfinite(value):
+        return float(value)
+    return float("-inf")
+
+
+def _one_winner_per_lane(passing: list[dict]) -> tuple[list[dict], list[dict]]:
+    """Keep the best PASS ticket on each lane. Ties break toward the lower ticket id."""
+    grouped: dict[str, list[dict]] = {}
+    for body in passing:
+        grouped.setdefault(body["lane_id"], []).append(body)
+    selected: list[dict] = []
+    dropped: list[dict] = []
+    for lane_id in sorted(grouped):
+        ranked = sorted(
+            grouped[lane_id],
+            key=lambda body: (-_improvement_pct(body), body["ticket"]),
+        )
+        selected.append(ranked[0])
+        dropped.extend(ranked[1:])
+    return selected, dropped
+
+
+def _dropped_records(dropped: list[dict]) -> list[dict]:
+    return [
+        {
+            "ticket": body["ticket"],
+            "lane_id": body["lane_id"],
+            "improvement_pct": body.get("improvement_pct"),
+        }
+        for body in dropped
+    ]
+
+
 def _write_joint_failure(
     round_dir: Path, plan: dict, selected: list[dict], evaluation: dict, run_dir: Path
 ) -> None:
@@ -1132,6 +1182,14 @@ def _close_round_holding_lock(
             "composition": "joint-single-rerun",
             "reason": mismatch,
         }
+    frozen = _freeze_incumbent(round_dir, incumbent)
+    frozen_mismatch = _incumbent_mismatch(plan, frozen)
+    if frozen_mismatch:
+        return {
+            "status": "refused",
+            "composition": "joint-single-rerun",
+            "reason": frozen_mismatch,
+        }
     outbox = round_dir / "outbox"
     tickets = (
         sorted(path.name for path in outbox.iterdir() if path.is_dir()) if outbox.exists() else []
@@ -1159,15 +1217,14 @@ def _close_round_holding_lock(
             "reason": f"non-terminal receipts: {', '.join(bad)}",
         }
 
-    selected = sorted(
-        (
-            receipts[ticket]
-            for ticket in tickets
-            if receipts[ticket].get("status") == "measured"
-            and receipts[ticket].get("verdict") == "PASS"
-        ),
-        key=lambda body: (body["lane_id"], body["ticket"]),
-    )
+    passing = [
+        receipts[ticket]
+        for ticket in tickets
+        if receipts[ticket].get("status") == "measured"
+        and receipts[ticket].get("verdict") == "PASS"
+    ]
+    selected, dropped_bodies = _one_winner_per_lane(passing)
+    dropped = _dropped_records(dropped_bodies)
 
     def finish(**fields) -> dict:
         body = {
@@ -1176,6 +1233,7 @@ def _close_round_holding_lock(
             "accepted": False,
             "retained": True,
             "composed": [],
+            "dropped": dropped,
             "successor": None,
             **fields,
         }
@@ -1216,7 +1274,7 @@ def _close_round_holding_lock(
                 }
         overlays = [outbox / body["ticket"] for body in selected]
         joint = round_dir / "candidates" / "joint-close"
-        materialize(incumbent, overlays, joint)
+        materialize(frozen, overlays, joint)
         failures: list[str] = []
         try:
             if plan["build"]:
@@ -1237,7 +1295,7 @@ def _close_round_holding_lock(
             spec = _run_spec(
                 plan,
                 joint,
-                incumbent,
+                frozen,
                 devices,
                 round_dir / "runs" / "joint-close",
                 seconds_remaining(deadline_utc, current()),
@@ -1265,19 +1323,31 @@ def _close_round_holding_lock(
                 composed=composed,
                 devices=devices,
             )
-        except (ConfinementUnavailable, BudgetError, ValueError) as exc:
+        except ConfinementUnavailable as exc:
+            return {
+                "status": "refused",
+                "composition": "joint-single-rerun",
+                "reason": str(exc),
+                "composed": composed,
+                "dropped": dropped,
+                "devices": devices,
+            }
+        except (BudgetError, ValueError) as exc:
             return finish(reason=str(exc), composed=composed, devices=devices)
         evaluation = json.loads((run_dir / "evaluation.json").read_text(encoding="utf-8"))
         if evaluation["improvement_pct"] is None or failures:
-            return finish(
-                reason=failures[-1] if failures else "; ".join(evaluation["reasons"]),
-                composed=composed,
-                devices=devices,
-                run_dir=str(run_dir),
-                verdict=evaluation.get("verdict"),
-                improvement_pct=evaluation.get("improvement_pct"),
-                reasons=evaluation.get("reasons"),
-            )
+            return {
+                "status": "refused",
+                "composition": "joint-single-rerun",
+                "reason": failures[-1] if failures else "; ".join(evaluation["reasons"]),
+                "composed": composed,
+                "dropped": dropped,
+                "devices": devices,
+                "run_dir": str(run_dir),
+                "verdict": evaluation.get("verdict"),
+                "improvement_pct": evaluation.get("improvement_pct"),
+                "reasons": evaluation.get("reasons"),
+            }
         if evaluation["verdict"] != "PASS":
             _write_joint_failure(round_dir, plan, selected, evaluation, run_dir)
             return finish(
@@ -1290,7 +1360,7 @@ def _close_round_holding_lock(
                 reasons=evaluation["reasons"],
             )
         successor = round_dir / "successor"
-        materialize(incumbent, overlays, successor)
+        materialize(frozen, overlays, successor)
         return finish(
             accepted=True,
             retained=False,
