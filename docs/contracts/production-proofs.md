@@ -67,7 +67,11 @@ failure. This projector does not decide whether to start a worker.
 The finalizing phase projects completed grader/sample families into the existing
 grader-proof@1 and samples-proof@1. Attempt/candidate/hash fields come from H
 facts, never report declarations. A missing or invalid family is not_performed
-without a proof. A valid grader result survives invalid sample semantics, and
+without a proof. An explicit null family remains valid report syntax but emits
+an `InvalidRequest` draft error with `report_family_incomplete` and its check ID;
+H persists that diagnostic as a finalizing execution error after the worker ran.
+Each incomplete family gets its own diagnostic. A valid grader result survives
+invalid sample semantics, and
 vice versa; invalid raw JSON or a foreign report envelope invalidates the report
 itself. The cleanup proof comes only from observed cleanup and acquired-lease
 release facts. Unknown or failed cleanup never becomes confirmed.

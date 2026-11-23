@@ -197,6 +197,28 @@ def test_bad_or_incomplete_grader_keeps_valid_samples_and_cleanup(case, grader):
     assert by_id(draft)["samples"]["status"] == "passed"
 
 
+@pytest.mark.parametrize("missing", [("grader",), ("samples",), ("grader", "samples")])
+def test_explicit_null_families_emit_diagnostics_without_losing_valid_siblings(case, missing):
+    value = report()
+    for field in missing:
+        value[field] = None
+    raw = proofs.encode_report(value)
+    assert proofs.decode_report(raw) == value
+
+    _, complete_blobs = project(case)
+    draft, blobs = project(case, report_bytes=raw)
+    assert set(blobs) == {"grader", "samples", "cleanup"} - set(missing)
+    for field in missing:
+        check = by_id(draft)[field]
+        assert check["status"] == "not_performed" and check["proof_key"] is None
+        assert check["reasons"] == ["report_family_incomplete"]
+    assert {tuple(error["check_ids"]): (error["code"], error["reason"])
+            for error in draft["errors"]} == {
+                (field,): ("InvalidRequest", "report_family_incomplete") for field in missing
+            }
+    assert all(raw == complete_blobs[field] for field, raw in blobs.items())
+
+
 def test_independent_failed_grade_is_not_rewritten_or_overlaid(case):
     value = report()
     value.update(grader={"status": "failed", "reasons": ["actual_grader_rejection"]}, samples=None)
@@ -204,6 +226,8 @@ def test_independent_failed_grade_is_not_rewritten_or_overlaid(case):
     assert by_id(draft)["grader"]["status"] == "failed"
     assert decode(blobs["grader"])["reasons"] == ["actual_grader_rejection"]
     assert by_id(draft)["samples"]["status"] == "not_performed"
+    assert draft["errors"] == [{"code": "InvalidRequest", "check_ids": ["samples"],
+                                "reason": "report_family_incomplete"}]
 
 
 @pytest.mark.parametrize("change", ["not-started", "entry-digest", "entry-name", "input-step",

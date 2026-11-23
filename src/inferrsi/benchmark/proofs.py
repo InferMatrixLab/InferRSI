@@ -269,7 +269,8 @@ class ProofProjector:
                 continue
             family = report[field]
             if family is None:
-                emit(key, "worker_report", "not_performed", reasons=["report_family_incomplete"])
+                emit(key, "worker_report", "not_performed", reasons=["report_family_incomplete"],
+                     error="InvalidRequest")
                 continue
             try:
                 validate(family)
