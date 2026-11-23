@@ -4,6 +4,8 @@ import builtins
 import copy
 import json
 import random
+import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -473,3 +475,60 @@ def test_owner_resources_are_readable_at_exact_checkout_revision():
     assert reader.resource(reference, helper, revision=bundle.revision) == (
         OWNER / "scripts/model_sol.py"
     ).read_bytes()
+
+
+def test_datasheet_time_has_no_qualified_bound(example):
+    for rate in example["hardware"]["rates"].values():
+        rate["source"]["kind"] = "datasheet"
+    result = phase_floors(example["decode"], example["hardware"])
+    assert result["analysis_status"] == "COMPUTED"
+    assert result["evidence_basis"] == "datasheet"
+    assert result["datasheet_resource_time_s"] == 6
+    assert result["datasheet_binding_resources"] == ["memory.hbm"]
+    assert result["serial_estimate_s"] == 8
+    assert result["conditional_bound_s"] is result["tokens_per_s_at_bound"] is None
+    assert result["binding_resources"] is None
+    del example["hardware"]["rates"]["link.tp"]
+    partial = phase_floors(example["decode"], example["hardware"])
+    assert partial["analysis_status"] == "INSUFFICIENT_EVIDENCE"
+    assert partial["datasheet_resource_time_s"] is partial["serial_estimate_s"] is None
+
+
+@pytest.mark.parametrize("length,complete,rounded", [(3, 0, 1), (4, 1, 1), (5, 1, 2)])
+def test_complete_index_groups_and_separate_tail(length, complete, rounded):
+    common = {"layers": 1, "ratio": 4, "bytes_per_position": 8, "source": SYNTHETIC}
+    groups = [dict(common, name="complete", law="complete_groups"),
+              dict(common, name="rounded", law="compressed")]
+    result = kv_cache_bytes(groups, length)
+    assert [row["positions"] for row in result["groups"]] == [complete, rounded]
+
+
+def test_h200_tp4_pinned_analysis_from_cli():
+    driver = OWNER / "scripts/qwen38_h200_tp4.py"
+    result = json.loads(subprocess.check_output([sys.executable, str(driver)]))
+    assert result["text_tensor_count"] == 1294
+    weights = result["rank_weight_bytes_by_family"]
+    assert weights["routed"] == 48 * 512 * 3 * 2560 * 640 * 2 // 4
+    assert weights["ngram"] == 32 * 2_500_012 * 160 * 2
+    cache = result["rank_cache_payload_bytes_after_prefill"]
+    assert cache["QSA main K/V"] == 96 * 2**20
+    assert cache["QSA raw index ring"] == 12 * 4 * 128 * 2
+    assert cache["GDN recurrent matrix"] == 36 * (48 // 4) * 128**2 * 4
+    narrow, wide = result["prefill"]
+    assert narrow["demand_per_rank"]["compute.bf16"] == wide["demand_per_rank"]["compute.bf16"]
+    assert (wide["demand_per_rank"]["memory.hbm"] - narrow["demand_per_rank"]["memory.hbm"]
+            == weights["routed"] * (512 - 10) // 512)
+    assert narrow["binding"] == wide["binding"] == ["compute.bf16"]
+    assert result["decode_steps"] == 255
+    first, last = result["first_decode"], result["last_decode"]
+    assert (first["visible_tokens"], last["visible_tokens"]) == (8193, 8447)
+    assert first["demand_per_rank"]["link.nvlink_tx"] == 96 * 2560 * 2 * 3 // 2
+    assert first["binding"] == last["binding"] == ["memory.hbm"]
+    assert result["mean_decode_resource_ms"] * result["decode_tokens_per_s_at_resource_max"] \
+        == pytest.approx(1000)
+    assert result["whole_model"]["qualified_bound_s"] is None
+    single = json.loads(subprocess.check_output(
+        [sys.executable, str(driver), "--prompt-tokens", "1", "--output-tokens", "1"],
+    ))
+    assert len(single["prefill"]) == 1
+    assert single["decode_steps"] == 0 and single["first_decode"] is single["last_decode"] is None

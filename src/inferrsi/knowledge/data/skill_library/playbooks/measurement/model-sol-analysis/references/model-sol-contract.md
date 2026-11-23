@@ -18,7 +18,7 @@ A `source` object is `{kind, locator}`. The allowed kinds depend on the field:
 |---|---|
 | checkpoint header | `measured` (read from the file) or `synthetic` |
 | inventory, op demand, KV layer group | `derived`, `measured` or `synthetic` |
-| hardware rate | `peak` or `synthetic`; all rates in one call must share one kind |
+| hardware rate | `peak`, `synthetic` or `datasheet`. All rates in one call must share one kind. |
 | link latency, launch floor | `measured`, `assumed` or `synthetic` |
 
 A `peak` rate also needs `clock_basis`: the clock the device actually runs that
@@ -73,6 +73,7 @@ of groups, or a missing required field for a group's law, is an unknown.
 | `global` | `s` | `bytes_per_position` | no |
 | `window` | `min(window, s)` | `bytes_per_position`, `window` | yes |
 | `compressed` | `ceil(s / ratio)` | `bytes_per_position`, `ratio` | no |
+| `complete_groups` | `floor(s / ratio)` | `bytes_per_position`, `ratio`. Account for any open-group buffer separately. | no |
 | `constant` | fixed state | `state_bytes` | yes |
 
 Outputs: per-group positions and bytes, `total_bytes` per sequence, and
@@ -115,7 +116,7 @@ Inputs:
 
 Outputs:
 
-- `evidence_basis`: `peak` or `synthetic` when all rates share that kind, else
+- `evidence_basis`: `peak`, `synthetic` or `datasheet` when all rates share that kind, else
   null.
 - `phase` and `tokens_per_step`: echoed from the input.
 - `resource_totals`: per rate, the sum of the bound's amounts × `repeat`
@@ -127,6 +128,11 @@ Outputs:
   irreducible for the permitted variants of the declared layout and every rate
   is a peak at the clock the device actually runs that work at. Only a bound
   meeting those conditions may reject a result.
+- `datasheet_resource_time_s` and `datasheet_binding_resources` carry the
+  resource-total calculation when the supplied rates come from vendor
+  specifications. In that mode `conditional_bound_s`, `binding_resources`
+  and `tokens_per_s_at_bound` are null. The serial estimate uses the same
+  nominal rates. These reference times cannot reject an observation.
 - `serial_estimate_s`:
   `Σ_op repeat × max(compute and memory times, summed link time + latency, launch floor)`,
   from `demand`.

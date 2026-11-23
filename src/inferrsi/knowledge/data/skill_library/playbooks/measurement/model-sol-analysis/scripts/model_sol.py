@@ -16,10 +16,10 @@ DTYPE_BYTES = {
     "F8_E4M3": 1, "F8_E5M2": 1, "F8_E8M0": 1, "I8": 1, "U8": 1, "BOOL": 1,
 }
 PHASES = ("prefill", "decode")
-KV_LAWS = ("global", "window", "compressed", "constant")
+KV_LAWS = ("global", "window", "compressed", "complete_groups", "constant")
 RATE_UNITS = {"compute": "FLOP/s", "memory": "byte/s", "link": "byte/s"}
 SOURCE_KINDS = ("derived", "measured", "synthetic")
-RATE_KINDS = ("peak", "synthetic")
+RATE_KINDS = ("peak", "synthetic", "datasheet")
 FLOOR_KINDS = ("measured", "assumed", "synthetic")
 
 
@@ -275,7 +275,8 @@ def kv_cache_bytes(layers, context_tokens):
 
     Each group is {name, layers, bytes_per_position, law, window|ratio|state_bytes}:
     `global` stores every position, `window` stores min(window, s), `compressed`
-    stores ceil(s / ratio) and `constant` stores a fixed recurrent state. The
+    stores ceil(s / ratio), `complete_groups` stores floor(s / ratio)
+    and `constant` stores a fixed recurrent state. The
     result also reports which groups stay bounded as the context grows.
     """
     layers = _list(_copy_json(layers), "layers")
@@ -315,7 +316,8 @@ def kv_cache_bytes(layers, context_tokens):
                 ratio = _required_count(group, "ratio", path, unknowns)
                 if ratio is None:
                     continue
-                positions, bounded = -(-context // ratio), False
+                positions = context // ratio if law == "complete_groups" else -(-context // ratio)
+                bounded = False
             per_layer = _scaled(width, positions, "KV bytes")
         if count is None:
             continue
@@ -378,8 +380,8 @@ def _rates(hardware, unknowns):
     basis = kinds.pop() if len(kinds) == 1 else None
     basis = basis if basis in RATE_KINDS else None
     if basis not in RATE_KINDS:
-        unknowns.append("hardware.rates: requires all peak or all synthetic sources; "
-                        "measured envelopes are conditional estimates, not bound inputs")
+        unknowns.append("hardware.rates: requires all peak or all synthetic or all datasheet "
+                        "sources; observed envelopes require separate calibration")
     return rates, basis
 
 
@@ -394,7 +396,8 @@ def phase_floors(phase, hardware):
     compute/memory overlap. Sequential link phases add up with the link latency;
     a launch floor is one more alternative time. These floors enter only the serial
     estimate, never the bound. Returns the resource-total bound and the serial
-    per-op estimate separately.
+    per-op estimate separately. Datasheet rates populate a specification
+    reference time and leave the hardware-qualified bound unavailable.
     """
     phase = _mapping(_copy_json(phase), "phase")
     hardware = _mapping(_copy_json(hardware), "hardware")
@@ -458,11 +461,16 @@ def phase_floors(phase, hardware):
         unknowns.append("phase.ops: empty")
 
     bound = binding = estimate = None
+    datasheet_time = datasheet_binding = None
     per_op = []
     if not unknowns:
         times = {name: _finite(totals[name] / rates[name][1], "resource time") for name in rates}
-        bound = max(times.values())
-        binding = sorted(name for name, value in times.items() if value == bound)
+        resource_time = max(times.values())
+        limiting = sorted(name for name, value in times.items() if value == resource_time)
+        if basis == "datasheet":
+            datasheet_time, datasheet_binding = resource_time, limiting
+        else:
+            bound, binding = resource_time, limiting
         estimate = 0.0
         for op in ops:
             terms, links = {}, []
@@ -497,6 +505,8 @@ def phase_floors(phase, hardware):
         "actual_resource_totals": actual,
         "conditional_bound_s": bound,
         "binding_resources": binding,
+        "datasheet_resource_time_s": datasheet_time,
+        "datasheet_binding_resources": datasheet_binding,
         "serial_estimate_s": estimate,
         "per_op": per_op,
         "tokens_per_s_at_bound": _finite(tokens / bound, "bound throughput") if bound else None,

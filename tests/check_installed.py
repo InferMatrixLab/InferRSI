@@ -383,6 +383,9 @@ assert (model_sol_decode["conditional_bound_s"], model_sol_decode["serial_estima
 assert model_sol_namespace["join_checkpoint"](
     model_sol_example["header"], model_sol_example["inventory"]
 )["join_clean"]
+with as_file(model_sol.joinpath("scripts", "qwen38_h200_tp4.py")) as case_driver:
+    case = json.loads(subprocess.check_output([sys.executable, str(case_driver)]))
+    assert case["text_tensor_count"] == 1294 and case["decode_steps"] == 255
 for name in ("model-sol-contract.md", "huggingarch-model-sol.md",
              "huggingarch-source-identity.json"):
     assert model_sol.joinpath("references", name).is_file()
@@ -605,7 +608,7 @@ inventory = {
     **_inventory(files("inferrsi").joinpath("knowledge", "data"), "knowledge/data"),
     **_inventory(files("inferrsi").joinpath("harness", "data"), "harness/data"),
 }
-assert len(inventory) == 767, f"installed resource count is {len(inventory)}, expected 767"
+assert len(inventory) == 771, f"installed resource count is {len(inventory)}, expected 771"
 for name in inventory:
     if "/skill_library/" in name and name.endswith("/SKILL.md"):
         assert name.removesuffix("SKILL.md") + "metadata.json" not in inventory, name

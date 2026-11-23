@@ -75,7 +75,7 @@ metadata:
         "scope": "Model-level prefill and decode speed-of-light analysis for decoder-only (optionally multimodal) inference under a declared parallel layout; extends performance-ceiling-analysis L1 from one operation to a whole model without replacing its evidence rules",
         "hardware": "any; per-dtype peaks, memory bandwidth and link bandwidths must be supplied with sources",
         "prerequisites": "Model config and forward source at a pinned revision, the checkpoint's tensor headers where a checkpoint exists, the serving framework release that will run, and the layout and workload; reading the skill does not authorize execution",
-        "input_contract": "Model config, forward source and checkpoint headers; serving framework and release with source anchors for every fusion; per-world parallel degrees, ranks per node and node count; batch, input, output, prefix and verify tokens, and the measured expert load skew for MoE; per-dtype compute peaks at the sustained clock, memory and link bandwidths with sources; any launch floor or link latency labelled as an assumption",
+        "input_contract": "Model config, forward source and checkpoint headers; serving framework and release with source anchors for every fusion; per-world parallel degrees, ranks per node and node count; batch, input, output, prefix and verify tokens, and the measured expert load skew when expert placement makes per-rank work depend on routing; per-dtype compute peaks at the sustained clock, memory and link bandwidths with sources; any launch floor or link latency labelled as an assumption",
         "produced_artifact": "A per-phase table with per-op counts and binding resource, per-resource totals, the conditional bound and its binding resources, the serial per-op estimate, headline TTFT, TPOT and throughput figures each labelled bound or estimate, every anchor and gate result, assumptions and unknowns; analytical only, not a measured result",
         "failure_modes": [
           "The serial per-op sum is reported as a bound, or used to reject a faster measurement",
@@ -87,7 +87,7 @@ metadata:
           "An unmeasured launch floor or link latency, or a spec-sheet peak below the sustained clock, enters the bound",
           "A measured envelope replaces the analytical figure instead of sitting beside it"
         ],
-        "refusal_point": "Stops when an anchor gate fails or cannot be judged, when a required peak, used fabric rate or MoE skew is missing, or when weights plus one request's KV do not fit a rank. Unanchored fusion permits only a labelled unfused estimate when its counts are available."
+        "refusal_point": "Stops when an anchor gate fails or cannot be judged, when a required peak, used fabric rate or required expert-parallel load skew is missing, or when weights plus one request's KV do not fit a rank. Unanchored fusion permits only a labelled unfused estimate when its counts are available."
       },
       "recommendations": [
         "Anchor weights, shapes and KV growth before pricing any count, and treat an unjudged gate as a failure.",
@@ -111,7 +111,9 @@ metadata:
         "references/huggingarch-model-sol.md",
         "references/huggingarch-source-identity.json",
         "references/model-sol-contract.md",
-        "references/model-sol-example.json"
+        "references/model-sol-example.json",
+        "references/qwen38-h200-tp4.md",
+        "references/qwen38-h200-tp4.json"
       ],
       "consumption_mode": "packaged"
     }
@@ -159,7 +161,9 @@ default from a paper or another card.
 - **Layout:** per-world degrees (tensor, context, expert, pipeline, data), plus
   ranks per node and node count.
 - **Workload:** batch; input, output and prefix tokens; speculative verify
-  tokens; for MoE, the measured expert load skew `ρ`.
+  tokens. For expert parallelism, supply measured load skew `ρ` to price the
+  busiest rank. For pure TP with identically routed expert shards, price the
+  same selected tokens on every rank and state the distinct-expert assumption.
 - **Hardware:** per-dtype dense compute peak, memory bandwidth, and intra- and
   inter-node link bandwidth, each with its source and the clock it assumes. Use
   the clock the device actually runs that work at: a spec sheet computed at a
@@ -195,7 +199,8 @@ not be judged counts as a failure.
    entry per position. Use the stored KV head widths for MHA/GQA/MQA and the
    stored latent plus any retained positional-key bytes for MLA. Use `window`
    for a proven fixed sliding window, `compressed` for a proven
-   `ceil(context / ratio)` stored-position law and `constant` for proven
+   `ceil(context / ratio)` stored-position law, `complete_groups` for a full
+   row only after each group closes (account for the tail separately), and `constant` for proven
    fixed-size recurrent state. Split hybrid layers by state component. Other
    layouts and cache growth laws require separate evidence.
 
@@ -355,8 +360,8 @@ Keep the bound and the estimate in separate columns. Never print an unlabelled
 - A fusion lacks a source anchor: report an unfused serial estimate if its
   counts are known. Withhold the bound if the unresolved fusion could reduce
   its demand.
-- A per-dtype peak, a link bandwidth or (for MoE) `ρ` is missing: the result is
-  `INSUFFICIENT_EVIDENCE`, not a default.
+- A per-dtype peak, a used link bandwidth or a required expert-parallel skew `ρ` is missing:
+  the result is `INSUFFICIENT_EVIDENCE`, not a default.
 - The serial estimate is called a bound, or used to reject a measurement:
   correct the label before reporting.
 - Capacity fails for the layout: publish no time.
@@ -392,6 +397,12 @@ no I/O, network or device access. Its inputs, outputs and limits are in the
 Each function reports missing evidence as unknowns and returns
 `INSUFFICIENT_EVIDENCE` rather than guessing. Malformed data raises
 `ValueError`.
+
+For rates taken from a hardware datasheet, use `source.kind = "datasheet"`.
+The reference time prices the specified workload at those nominal rates.
+The qualified bound stays unavailable until the actual clock basis is known.
+The [Qwen3.8-Flash-Next H200 TP4 worked example](references/qwen38-h200-tp4.md)
+includes an offline replay and an optional public checkpoint-header audit.
 
 ## Resource contract
 
