@@ -82,6 +82,22 @@ def test_cache_is_persistent_and_concurrent_first_use_is_atomic(cached_runtime):
     assert not list(root.parent.glob(".staging-*"))
 
 
+def test_cache_supports_long_absolute_base(cached_runtime, tmp_path, monkeypatch):
+    base = tmp_path / "cache with spaces" / "\u4e2d\u6587"
+    while len(str(base)) < 310:
+        base /= "controlled-profile-segment"
+    monkeypatch.setenv("LOCALAPPDATA", str(base))
+
+    first = cached_runtime()
+    assert first == cached_runtime()
+    root = first.parents[3]
+    assert (root / "runtime/inferrsi/data/reference.md").read_bytes() == b"persistent resource"
+    assert not list(root.parent.glob(".staging-*"))
+    (root / "runtime/inferrsi/__init__.py").write_bytes(b"must not execute")
+    with pytest.raises(ValueError, match="cache verification failed"):
+        cached_runtime()
+
+
 @pytest.mark.parametrize("tamper", ["changed", "missing", "extra"])
 def test_cache_rejects_modified_missing_or_extra_files(cached_runtime, tamper):
     root = cached_runtime().parents[3]
@@ -96,11 +112,14 @@ def test_cache_rejects_modified_missing_or_extra_files(cached_runtime, tamper):
         cached_runtime()
 
 
-def test_cache_rejects_linked_parent_before_writing(cached_runtime, tmp_path):
+@pytest.mark.parametrize("linked", ["InferRSI", "InferRSI/workswarm-runtime"])
+def test_cache_rejects_linked_parent_before_writing(cached_runtime, tmp_path, linked):
     outside = tmp_path / "outside"
     outside.mkdir()
+    link = tmp_path / linked
+    link.parent.mkdir(parents=True, exist_ok=True)
     try:
-        (tmp_path / "InferRSI").symlink_to(outside, target_is_directory=True)
+        link.symlink_to(outside, target_is_directory=True)
     except OSError:
         pytest.skip("Creating directory symlinks is unavailable")
     with pytest.raises(ValueError, match="links or reparse points"):
