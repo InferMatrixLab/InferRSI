@@ -1189,3 +1189,134 @@ def test_validation_confinement_failure_stays_unsettled(tmp_path):
     assert "device node missing" in result["reason"]
     ledger = json.loads((round_dir / "ledgers" / "L1.json").read_text(encoding="utf-8"))
     assert [entry["phase"] for entry in ledger["entries"]] == ["claimed"]
+
+
+COMBO_BENCH = (
+    "import json, sys\n"
+    "from pathlib import Path\n"
+    "a = float(Path('knobs/a.txt').read_text())\n"
+    "b = float(Path('knobs/b.txt').read_text())\n"
+    "value = 30.0 if a != 10 and b != 10 else a + b\n"
+    "body = {'metrics': {'latency_ms': value}, 'synthetic': True}\n"
+    "Path(sys.argv[1]).write_text(json.dumps(body))\n"
+)
+
+
+def _combo_lane():
+    return [
+        {
+            "id": "L1",
+            "entry": "D-01",
+            "plane": "infra",
+            "globs": ["knobs/*.txt"],
+            "cap": 2,
+            "per_attempt_worst_case": 1,
+            "deadline_utc": "2099-01-01T00:00:00+00:00",
+        }
+    ]
+
+
+def test_same_lane_pass_tickets_fail_jointly_and_record_knowledge(tmp_path):
+    incumbent = tmp_path / "incumbent"
+    _sum_tree(incumbent, "10", "10")
+    (incumbent / "bench.py").write_text(COMBO_BENCH, encoding="utf-8")
+    round_dir = tmp_path / "round"
+    prepare(_sum_spec(lanes=_combo_lane()), incumbent, round_dir)
+    tickets = []
+    for name, knob in (("a", "a.txt"), ("b", "b.txt")):
+        work = tmp_path / f"work-{name}"
+        _sum_tree(work, "10", "10")
+        (work / "bench.py").write_text(COMBO_BENCH, encoding="utf-8")
+        (work / "knobs" / knob).write_text("8", encoding="utf-8")
+        ticket = submit(round_dir, "L1", incumbent, work, now=WHEN)["ticket"]
+        measured = serve_ticket(round_dir, ticket, incumbent, backend=FixtureBackend(), now=WHEN)
+        assert measured["status"] == "measured"
+        assert measured["verdict"] == "PASS"
+        tickets.append(ticket)
+    closed = close_round(round_dir, incumbent, backend=FixtureBackend(), now=WHEN)
+    assert closed["accepted"] is False
+    assert closed["retained"] is True
+    assert closed["successor"] is None
+    assert not (round_dir / "successor").exists()
+    note = json.loads((round_dir / "knowledge" / "joint-failure.json").read_text(encoding="utf-8"))
+    assert note["kind"] == "inferrsi.parallel_round.joint_failure"
+    assert note["outcome"] == "retained"
+    assert note["cause_stage"] == "validation"
+    assert note["verdict"] == "FAIL"
+    assert {item["ticket"] for item in note["tickets"]} == set(tickets)
+    assert {item["lane_id"] for item in note["tickets"]} == {"L1"}
+
+
+def test_submit_refuses_while_close_runs_and_after_it_finishes(tmp_path):
+    incumbent = tmp_path / "incumbent"
+    _sum_tree(incumbent, "10", "10")
+    round_dir = tmp_path / "round"
+    prepare(_sum_spec(), incumbent, round_dir)
+    work = tmp_path / "work"
+    _sum_tree(work, "8", "10")
+    ticket = submit(round_dir, "L1", incumbent, work, now=WHEN)["ticket"]
+    measured = serve_ticket(round_dir, ticket, incumbent, backend=FixtureBackend(), now=WHEN)
+    assert measured["verdict"] == "PASS"
+    started = threading.Event()
+    release = threading.Event()
+
+    class Blocking(FixtureBackend):
+        def run(self, argv, cwd, writable, readable, deadline, **kwargs):
+            started.set()
+            assert release.wait(10)
+            return super().run(argv, cwd, writable, readable, deadline, **kwargs)
+
+    holder: dict = {}
+
+    def go() -> None:
+        holder["result"] = close_round(round_dir, incumbent, backend=Blocking(), now=WHEN)
+
+    thread = threading.Thread(target=go)
+    thread.start()
+    assert started.wait(10)
+    later = tmp_path / "later"
+    _sum_tree(later, "7", "10")
+    refused = submit(round_dir, "L1", incumbent, later, now=WHEN)
+    assert refused["submitted"] is False
+    assert refused["reason"] == "round closing"
+    release.set()
+    thread.join(10)
+    assert holder["result"]["status"] == "closed"
+    after = submit(round_dir, "L1", incumbent, later, now=WHEN)
+    assert after["submitted"] is False
+    assert after["reason"] == "round closed"
+
+
+def test_changed_incumbent_bytes_are_refused(tmp_path):
+    incumbent = tmp_path / "incumbent"
+    _tree(incumbent, "10")
+    linked = tmp_path / "linked"
+    _tree(linked, "10")
+    (linked / "knobs" / "a.txt").unlink()
+    (linked / "knobs" / "a.txt").symlink_to(incumbent / "knobs" / "a.txt")
+    with pytest.raises(RoundPlanError, match="unreadable"):
+        prepare(_spec(), linked, tmp_path / "round-link")
+    round_dir = tmp_path / "round"
+    prepare(_spec(), incumbent, round_dir)
+    (incumbent / "knobs" / "a.txt").write_text("11", encoding="utf-8")
+    work = tmp_path / "work"
+    _tree(work, "8")
+    refused = submit(round_dir, "L1", incumbent, work, now=WHEN)
+    assert refused["submitted"] is False
+    assert refused["reason"] == "incumbent tree does not match the frozen digest"
+    assert not (round_dir / "outbox").exists()
+    (incumbent / "knobs" / "a.txt").write_text("10", encoding="utf-8")
+    ticket = submit(round_dir, "L1", incumbent, work, now=WHEN)["ticket"]
+    (incumbent / "knobs" / "a.txt").write_text("11", encoding="utf-8")
+    served = serve_ticket(round_dir, ticket, incumbent, backend=FixtureBackend(), now=WHEN)
+    assert served["status"] == "rejected"
+    assert served["reason"] == "incumbent tree does not match the frozen digest"
+    assert not (round_dir / "results" / f"{ticket}.json").exists()
+    (incumbent / "knobs" / "a.txt").write_text("10", encoding="utf-8")
+    measured = serve_ticket(round_dir, ticket, incumbent, backend=FixtureBackend(), now=WHEN)
+    assert measured["status"] == "measured"
+    (incumbent / "knobs" / "b.txt").write_text("11", encoding="utf-8")
+    closed = close_round(round_dir, incumbent, backend=FixtureBackend(), now=WHEN)
+    assert closed["status"] == "refused"
+    assert closed["reason"] == "incumbent tree does not match the frozen digest"
+    assert not (round_dir / "close.json").exists()

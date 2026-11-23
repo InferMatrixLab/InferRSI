@@ -28,10 +28,14 @@ If a timed-out command cannot be confirmed dead, its devices are quarantined:
 the device is refused until an operator removes that file.
 
 ``close`` is a joint single-rerun MVP (not #249 stepwise composition): after every
-outbox ticket has a terminal receipt, PASS lanes are overlaid in ``lane_id``
-order onto one candidate and measured once against the incumbent. A PASS joint
-run writes ``successor/``; otherwise the incumbent is retained. This is not
-Claude/Codex drivers, SwarmFlow, or campaign incumbent advancement.
+outbox ticket has a terminal receipt, every PASS ticket is overlaid in
+``(lane_id, ticket)`` order onto one candidate and measured once against the
+incumbent. A PASS joint run writes ``successor/``. Any other completed verdict
+retains the incumbent and writes ``knowledge/joint-failure.json``. ``prepare``
+freezes ``incumbent_tree_digest``; ``submit``, ``serve`` and ``close`` refuse a
+different tree. ``submit`` also refuses while ``close`` holds the round lock or
+after ``close.json`` exists. This is not Claude/Codex drivers, SwarmFlow, or
+campaign incumbent advancement.
 """
 
 import hashlib
@@ -122,11 +126,6 @@ def _host_paths(value) -> bool:
 
 def _match(path: str, patterns: list[str]) -> bool:
     return any(fnmatch(path, pattern) for pattern in patterns)
-
-
-def _files(root: Path) -> list[str]:
-    hashes, _blocked = _snapshot(root)
-    return sorted(hashes)
 
 
 def _snapshot(root: Path) -> tuple[dict[str, str], list[str]]:
@@ -232,6 +231,31 @@ def _refusal(reason: str, **fields) -> dict:
     return body
 
 
+def _tree_digest(root: Path) -> str:
+    """Digest regular-file bytes. Symlinks and unreadable paths are refused."""
+    hashes, blocked = _snapshot(root)
+    if blocked:
+        raise RoundPlanError(f"incumbent has unreadable paths: {sorted(blocked)}")
+    return digest({"files": hashes})
+
+
+def _incumbent_mismatch(plan: dict, incumbent: Path) -> str | None:
+    try:
+        actual = _tree_digest(incumbent)
+    except RoundPlanError as exc:
+        return str(exc)
+    if actual != plan.get("incumbent_tree_digest"):
+        return "incumbent tree does not match the frozen digest"
+    return None
+
+
+def _acquire_close(round_dir: Path):
+    try:
+        return DeviceLease(round_dir / "round-locks").acquire("close")
+    except LeaseError:
+        return None
+
+
 def _lane(plan: dict, lane_id: str) -> dict:
     matches = [lane for lane in plan["lanes"] if lane["id"] == lane_id]
     if len(matches) != 1:
@@ -306,7 +330,11 @@ def prepare(spec: dict, incumbent: Path, round_dir: Path) -> dict:
         raise RoundPlanError("env must map names to strings")
     seen_entries: set[str] = set()
     seen_ids: set[str] = set()
-    files = _files(incumbent)
+    hashes, blocked = _snapshot(incumbent)
+    if blocked:
+        raise RoundPlanError(f"incumbent has unreadable paths: {sorted(blocked)}")
+    incumbent_tree_digest = digest({"files": hashes})
+    files = sorted(hashes)
     normalized = []
     for lane in lanes:
         lane_id = lane.get("id")
@@ -365,6 +393,7 @@ def prepare(spec: dict, incumbent: Path, round_dir: Path) -> dict:
         "runtime_paths": list(runtime_paths),
         "env": dict(env),
         "incumbent_id": spec["incumbent_id"],
+        "incumbent_tree_digest": incumbent_tree_digest,
         "protected": protected,
         "build": list(spec.get("build", [])),
         "trial": list(spec.get("trial", [])),
@@ -382,8 +411,27 @@ def submit(
     round_dir: Path, lane_id: str, incumbent: Path, work: Path, *, now: datetime | None = None
 ) -> dict:
     """Copy in-glob changes to the outbox. The same manifest always returns the same ticket."""
+    if (round_dir / "close.json").exists():
+        return _refusal("round closed")
+    lock = _acquire_close(round_dir)
+    if lock is None:
+        return _refusal("round closing")
+    try:
+        if (round_dir / "close.json").exists():
+            return _refusal("round closed")
+        return _submit_holding_lock(round_dir, lane_id, incumbent, work, now=now)
+    finally:
+        lock.release()
+
+
+def _submit_holding_lock(
+    round_dir: Path, lane_id: str, incumbent: Path, work: Path, *, now: datetime | None = None
+) -> dict:
     moment = now or datetime.now(timezone.utc)
     plan = json.loads((round_dir / "round-plan.json").read_text(encoding="utf-8"))
+    mismatch = _incumbent_mismatch(plan, incumbent)
+    if mismatch:
+        return _refusal(mismatch)
     lane = _lane(plan, lane_id)
     try:
         ensure_open(lane["deadline_utc"], moment)
@@ -793,6 +841,9 @@ def serve_ticket(
     result_path = round_dir / "results" / f"{ticket}.json"
     if result_path.exists():
         return json.loads(result_path.read_text(encoding="utf-8"))
+    mismatch = _incumbent_mismatch(plan, incumbent)
+    if mismatch:
+        return {"ticket": ticket, "status": "rejected", "reason": mismatch}
     overlay = round_dir / "outbox" / ticket
     manifest = json.loads(_ticket_metadata_path(overlay).read_text(encoding="utf-8"))
     if manifest.get("deleted"):
@@ -980,6 +1031,33 @@ def ticket_status(round_dir: Path, ticket: str) -> dict:
     return {"ticket": ticket, "status": "queued"}
 
 
+def _write_joint_failure(
+    round_dir: Path, plan: dict, selected: list[dict], evaluation: dict, run_dir: Path
+) -> None:
+    """Record a completed joint non-PASS. Harness does not import the knowledge package."""
+    write_json(
+        round_dir / "knowledge" / "joint-failure.json",
+        {
+            "kind": "inferrsi.parallel_round.joint_failure",
+            "round_digest": plan["round_digest"],
+            "incumbent_tree_digest": plan["incumbent_tree_digest"],
+            "tickets": [
+                {
+                    "lane_id": item["lane_id"],
+                    "ticket": item["ticket"],
+                    "improvement_pct": item.get("improvement_pct"),
+                }
+                for item in selected
+            ],
+            "verdict": evaluation.get("verdict"),
+            "reasons": evaluation.get("reasons"),
+            "run_dir": str(run_dir),
+            "outcome": "retained",
+            "cause_stage": "validation",
+        },
+    )
+
+
 def _receipts(round_dir: Path) -> dict[str, dict]:
     root = round_dir / "results"
     if not root.exists():
@@ -988,6 +1066,38 @@ def _receipts(round_dir: Path) -> dict[str, dict]:
 
 
 def close_round(
+    round_dir: Path,
+    incumbent: Path,
+    *,
+    backend,
+    make_assess: Callable[[RunSpec], Callable],
+    qualify_devices,
+    now: datetime | None = None,
+    clock=None,
+) -> dict:
+    """Joint single-rerun close. See the module docstring for the composition contract."""
+    lock = _acquire_close(round_dir)
+    if lock is None:
+        return {
+            "status": "queued",
+            "composition": "joint-single-rerun",
+            "reason": "round closing",
+        }
+    try:
+        return _close_round_holding_lock(
+            round_dir,
+            incumbent,
+            backend=backend,
+            make_assess=make_assess,
+            qualify_devices=qualify_devices,
+            now=now,
+            clock=clock,
+        )
+    finally:
+        lock.release()
+
+
+def _close_round_holding_lock(
     round_dir: Path,
     incumbent: Path,
     *,
@@ -1015,6 +1125,13 @@ def close_round(
         return json.loads(close_path.read_text(encoding="utf-8"))
 
     plan = json.loads((round_dir / "round-plan.json").read_text(encoding="utf-8"))
+    mismatch = _incumbent_mismatch(plan, incumbent)
+    if mismatch:
+        return {
+            "status": "refused",
+            "composition": "joint-single-rerun",
+            "reason": mismatch,
+        }
     outbox = round_dir / "outbox"
     tickets = (
         sorted(path.name for path in outbox.iterdir() if path.is_dir()) if outbox.exists() else []
@@ -1049,7 +1166,7 @@ def close_round(
             if receipts[ticket].get("status") == "measured"
             and receipts[ticket].get("verdict") == "PASS"
         ),
-        key=lambda body: body["lane_id"],
+        key=lambda body: (body["lane_id"], body["ticket"]),
     )
 
     def finish(**fields) -> dict:
@@ -1162,6 +1279,7 @@ def close_round(
                 reasons=evaluation.get("reasons"),
             )
         if evaluation["verdict"] != "PASS":
+            _write_joint_failure(round_dir, plan, selected, evaluation, run_dir)
             return finish(
                 reason="joint measurement did not PASS",
                 composed=composed,
