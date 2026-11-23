@@ -97,6 +97,10 @@ def test_cuda_qualification_accepts_campaign_supplied_count_and_sku(monkeypatch)
     with patch("inferrsi.apps.host.platforms.cuda.subprocess.run", side_effect=[device, busy]):
         with pytest.raises(ValueError, match="already has a compute process"):
             qualify_devices(count=1, device_model="H100")
+    # Inspection and qualification share one rule: H10 is not a token of H100.
+    with patch("inferrsi.apps.host.platforms.cuda.subprocess.run", side_effect=[device]):
+        with pytest.raises(ValueError, match="must all be H10"):
+            qualify_devices(count=1, device_model="H10")
 
 
 def test_shared_layers_do_not_import_campaigns_or_reverse_dependencies():

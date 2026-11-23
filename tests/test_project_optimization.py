@@ -156,6 +156,22 @@ def test_project_runs_shared_rounds_and_final_from_retained_multifile_candidate(
     assert not (root / "rounds.jsonl").exists()  # No second mutable control log.
 
 
+def test_final_delivery_publishes_through_a_symlinked_session_path(project, capsys, tmp_path):
+    start(project, capsys)
+    submit(project, capsys, 20)
+    root = project[3]
+    alias = tmp_path / "alias"
+    try:
+        alias.symlink_to(root, target_is_directory=True)
+    except OSError:
+        pytest.skip("Host does not permit fixture symlinks")
+    assert main(["campaign", "final", "--directory", str(alias),
+                 "--reason", "Caller ended the up-to-budget search"]) == 0
+    receipt = json.loads(capsys.readouterr().out)
+    assert receipt["delivery"]["status"] == "published"
+    assert (root / "delivery" / receipt["delivery"]["export_id"] / "report.md").is_file()
+
+
 def test_quality_failure_is_retained_and_cannot_win(project, capsys):
     start(project, capsys)
     (project[0] / "engine.py").write_text("def compute(x):\n    return 0\n", encoding="utf-8")

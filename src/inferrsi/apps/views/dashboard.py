@@ -347,7 +347,8 @@ def render_dashboard(snapshot: dict, *, live: bool = False) -> str:
         return render_attempt(snapshot["data"]["fixed_attempt"], title="fixed attempt Dashboard")
     if snapshot["data"].get("evaluation_mode") == "service_reuse":
         refresh = '<meta http-equiv="refresh" content="3">' if live else ""
-        return ('<!doctype html><html lang="en"><meta charset="utf-8">' + refresh
+        return ('<!doctype html><html lang="en"><meta charset="utf-8">'
+                + '<meta name="generator" content="InferRSI dashboard">' + refresh
                 + '<title>Service-reuse optimization</title><main>' + snapshot["chart"]
                 + '</main></html>')
     view = {**snapshot["data"], "live": live}

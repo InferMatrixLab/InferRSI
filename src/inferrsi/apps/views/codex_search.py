@@ -22,6 +22,8 @@ from .codex_knowledge import invocation as knowledge_invocation
 from .codex_tool_returns import _output_lines, _path, correlate_window
 
 _SHELLS = ("sh", "bash", "zsh", "dash")
+# Interpreters whose inline code this reader does not tokenize.
+_OPAQUE_SHELLS = ("pwsh", "powershell", "cmd", "fish")
 _TOOLS = ("rg", "cat", "sed", "nl")
 _SHELL_OPERATORS = {"|", "||", "&&", ";", ">", ">>", "<"}
 _MAX_PASSAGES = 12
@@ -196,17 +198,48 @@ def _rg_hits(output, cwd, corpus, scopes, mode, with_filename):
     return [{"ref": ref, "match_line": line} for ref, line in hits.items()], complete
 
 
+def _without_env(argv):
+    """Drop a leading `env` and its NAME=value words; None for env options it cannot read."""
+    if Path(argv[0]).name != "env":
+        return argv
+    rest = argv[1:]
+    while rest and "=" in rest[0] and not rest[0].startswith("-"):
+        rest = rest[1:]
+    return rest if rest and not rest[0].startswith("-") else None
+
+
+def _shell_script(options):
+    """Return a shell's inline `-c` script, or None when it runs no inline script."""
+    words = iter(options)
+    for word in words:
+        if word in ("-o", "+o"):
+            next(words, None)
+        elif word.startswith("-") and not word.startswith("--") and "c" in word[1:]:
+            return next(words, None)
+        elif not word.startswith(("-", "+")):
+            return None  # A script file or another operand.
+    return None
+
+
 def _recorded_argv(item):
     original_argv = item.get("command")
     if (not isinstance(original_argv, list) or not original_argv
             or not all(isinstance(arg, str) for arg in original_argv)):
         return None, False
-    argv = original_argv
+    argv = _without_env(original_argv)
+    if not argv:
+        return None, False
     multiline = False
-    if (Path(argv[0]).name in _SHELLS and len(argv) == 3
-            and argv[1] in ("-c", "-lc", "-ic", "-ilc")):
+    shell = Path(argv[0]).name.lower().removesuffix(".exe")
+    if shell in _OPAQUE_SHELLS:
+        return None, False
+    if shell in _SHELLS:
+        script = _shell_script(argv[1:])
+        if script is None:
+            # Code this reader cannot see may still have searched.
+            return None, False
         try:
-            argv, multiline = _shell_argv(argv[2])
+            argv, multiline = _shell_argv(script)
         except ValueError:
             return None, False
     compound = multiline or any(word in _SHELL_OPERATORS for word in argv)

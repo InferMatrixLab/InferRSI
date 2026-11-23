@@ -84,6 +84,13 @@ class InspectionTests(unittest.TestCase):
         mismatch = self.inspect_cuda(rows, ids=("0",), model="H200")
         self.assertEqual(mismatch["device"]["status"], "device_model_mismatch")
 
+    def test_cuda_model_must_be_a_whole_token_of_the_reported_name(self):
+        rows = "0, GPU-A, NVIDIA L40S, 999.0\n"
+        shorter = self.inspect_cuda(rows, model="L4")
+        self.assertEqual(shorter["device"]["status"], "device_model_mismatch")
+        exact = self.inspect_cuda(rows, model="l40s")
+        self.assertEqual(exact["device"]["status"], "available")
+
     def test_successful_tool_without_requested_gpu_is_not_available(self):
         empty = self.inspect_cuda("")
         self.assertEqual(empty["device"]["status"], "unavailable")
