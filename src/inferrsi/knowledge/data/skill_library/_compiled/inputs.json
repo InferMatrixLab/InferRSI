@@ -861,8 +861,8 @@
     },
     "files": {
       "SKILL.md": "56d8ee91e6feeca352871b37faa960a8ad3f8c8c1fce8723954b3504d357ac65",
-      "references/huggingarch-model-sol.md": "fa2139a7967861070dc37e5ea27807c00259b36a07dac8b049249e9fe433dd7e",
-      "references/huggingarch-source-identity.json": "2ee77b8324e0c8afd1cbacf7ccce915976121586addc29ab49669e60a14b5e20",
+      "references/huggingarch-model-sol.md": "79d5f350964a578fea199c1d77b0c767bb73e85e0fefbb4cebb3f8e0e6264504",
+      "references/huggingarch-source-identity.json": "40ef6bd6d0d11e48aea4f2b30fcad11d226c32e869ea7e97fe8431b55c8dc65f",
       "references/model-sol-contract.md": "0503b27ec8470258af9e5f47df34bdcc5e880c07096113fda84af655d59fb307",
       "references/model-sol-example.json": "ab5579cff6579b047b57f6ae697801fccf345a4be0f8246b6e042ec5505b8cf2",
       "references/qwen38-h200-tp4.json": "e7a8648c2a9b2dde4dee3f360dd256508fe15ee9867d4a7be3b9f4e889259a6c",
