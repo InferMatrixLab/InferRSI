@@ -63,5 +63,14 @@
     "initial_http": "Text/image/speech returned; first short thinking-enabled text request truncated. Initial profile was the inherited MiniCPM recipe, not the final Venus profile.",
     "direct_hf5_tokenizer_probe": "Failed through released configuration API; registered-native path then passed sample parity."
   },
-  "availability": "Raw controller/source snapshots, logs, media and per-request results are retained operator-locally; public originals/replay unverified."
+  "availability": "Raw controller/source snapshots, logs, media and per-request results are retained operator-locally; public originals/replay unverified.",
+  "final_head_functional_smoke": {
+    "automatic_deployment_selection": "Three-stage Venus turn profile selected without explicit --deploy-config",
+    "chinese": "Correct Beijing answer",
+    "video": "Correctly identified the fixed red/blue clip colors",
+    "final_profile_audio_roundtrip": "Hello, welcome. in vLLM-Omni and isolated Transformers 4.51.3, with and without reference TTS template",
+    "initial_audio_negative": "Initial inherited-profile audio produced unrelated marker-like text in both implementations; valid WAV structure did not establish speech quality.",
+    "causal_limit": "Initial/final generation settings also differed in the thinking template; this check does not isolate Flow precision or step count.",
+    "performance_remeasurement": false
+  }
 }
