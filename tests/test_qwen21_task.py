@@ -268,6 +268,8 @@ def test_real_math_baseline_recheck_controls_dependency_rejection(tmp_path, brea
         "def broken(*args, **kwargs):\n    raise RuntimeError('Synthetic unhealthy baseline')\n"
         "def compute(latents, text, text_mask, sigmas, positions, params, *, config):\n"
         "    latents.zero_()\n    params['image_in'].zero_()\n"
+        # The recheck and its records use the frozen case, not this changed copy.
+        "    config['id'] = 'compact'\n    config['heads'] = 1\n"
         + ("    F.linear = broken\n" if break_baseline else "")
         + f"    raise RuntimeError({CANN_IMPORT_ERROR!r})\n", encoding="utf-8",
     )
@@ -280,6 +282,8 @@ def test_real_math_baseline_recheck_controls_dependency_rejection(tmp_path, brea
     assert execution.returncode == (1 if break_baseline else 2), execution.stderr
     result = json.loads((output / "result.json").read_bytes())
     assert result["dependency_failure"]["module"] == "tbe"
+    assert result["dependency_failure"]["case"] == "smoke"
+    assert {call["case"] for call in result["calls"]} == {"smoke"}
     assert result["speedup"] is None
     assert result["status"] == ("infrastructure_failure" if break_baseline else "candidate_failure")
     if break_baseline:
@@ -419,10 +423,21 @@ def test_python_raise_of_a_complete_shape_message_is_never_attributed(
     def compute(*args, **kwargs):
         raise original
 
+    def replay():
+        raise AssertionError("A raise statement is no lead; no replay may start")
+
     with pytest.raises(exception) as caught:
         worker.invoke_compute(compute, (), {}, {}, candidate=candidate, baseline_verified=verified,
-                              pristine_inputs=lambda: ())
+                              replay=replay)
     assert caught.value is original
+
+
+def in_process_replay(worker, compute):
+    """A replay report from one more in-process call, for the classifier tests only.
+
+    It proves neither equivalence nor isolation; the worker tests cover those.
+    """
+    return lambda: worker.recorded_operator_error(compute, (), {}, {})
 
 
 def test_host_shape_templates_match_installed_torch_shape_diagnostics():
@@ -438,23 +453,25 @@ def test_host_shape_templates_match_installed_torch_shape_diagnostics():
     }
     assert set(failures) == set(worker.HOST_SHAPE_DIAGNOSTICS)
     for fragment, failure in failures.items():
+        def compute(*args, failure=failure, **kwargs):
+            return failure()
+
         with pytest.raises(worker.CandidateComputeContractError) as caught:
-            worker.invoke_compute(lambda *args, **kwargs: failure(), (), {}, {},
-                                  candidate=True, baseline_verified=True,
-                                  pristine_inputs=lambda: ())
+            worker.invoke_compute(compute, (), {}, {}, candidate=True, baseline_verified=True,
+                                  replay=in_process_replay(worker, compute))
         assert caught.value.diagnostic == fragment
         # The replay names the ATen operator; its name varies across PyTorch releases.
         assert caught.value.operator.startswith("aten.")
         assert caught.value.details()["operator"] == caught.value.operator
         assert type(caught.value.__cause__) is RuntimeError
-        # The same operator error outside a verified candidate call, or without
-        # replay inputs, stays unattributed.
-        for candidate, verified, pristine in ((False, True, lambda: ()), (True, False, lambda: ()),
-                                              (True, True, None)):
+        # The same operator error outside a verified candidate call, without a
+        # replay, or with a replay that reports no failure, stays unattributed.
+        replay = in_process_replay(worker, compute)
+        for candidate, verified, report in ((False, True, replay), (True, False, replay),
+                                            (True, True, None), (True, True, lambda: None)):
             with pytest.raises(RuntimeError) as caught:
-                worker.invoke_compute(lambda *args, **kwargs: failure(), (), {}, {},
-                                      candidate=candidate, baseline_verified=verified,
-                                      pristine_inputs=pristine)
+                worker.invoke_compute(compute, (), {}, {}, candidate=candidate,
+                                      baseline_verified=verified, replay=report)
             assert type(caught.value) is RuntimeError
 
     # Core PyTorch Python frames below the submitted call and a decorated entry:
@@ -465,7 +482,7 @@ def test_host_shape_templates_match_installed_torch_shape_diagnostics():
 
     with pytest.raises(worker.CandidateComputeContractError) as caught:
         worker.invoke_compute(decorated, (), {}, {}, candidate=True, baseline_verified=True,
-                              pristine_inputs=lambda: ())
+                              replay=in_process_replay(worker, decorated))
     assert caught.value.diagnostic == "must match the size of tensor"
     assert caught.value.operator == "aten.rsub.Tensor"
     frames = []
@@ -565,7 +582,7 @@ def test_contract_attribution_requires_a_plain_error_raised_by_an_operator_call(
     for compute in (operator, reraised):
         with pytest.raises(worker.CandidateComputeContractError) as caught:
             worker.invoke_compute(compute, (), {}, {}, candidate=True, baseline_verified=True,
-                                  pristine_inputs=lambda: ())
+                                  replay=in_process_replay(worker, compute))
         assert str(caught.value.__cause__) == message
         assert caught.value.operator == "aten.add.Tensor"
     leads = (native_throw, assert_async, not_reproduced, moved)
@@ -573,7 +590,7 @@ def test_contract_attribution_requires_a_plain_error_raised_by_an_operator_call(
                     foreign, *leads):
         with pytest.raises(RuntimeError) as caught:
             worker.invoke_compute(compute, (), {}, {}, candidate=True, baseline_verified=True,
-                                  pristine_inputs=lambda: ())
+                                  replay=in_process_replay(worker, compute))
         assert not isinstance(caught.value, worker.CandidateRecheckedError), compute.__name__
         assert message in str(caught.value), compute.__name__
         assert bool(worker.host_shape_diagnostic(caught.value, compute)) is (
@@ -602,12 +619,32 @@ def test_contract_attribution_reproduces_the_operator_without_python_kernels():
         # evaluator's own reproduction finds the registered Python kernel.
         with pytest.raises(RuntimeError) as caught:
             worker.invoke_compute(compute, (), {}, {}, candidate=True, baseline_verified=True,
-                                  pristine_inputs=lambda: ())
+                                  replay=in_process_replay(worker, compute))
         assert not isinstance(caught.value, worker.CandidateRecheckedError)
         assert worker.host_shape_diagnostic(caught.value, compute)
     finally:
         library._destroy()
     assert torch.equal(torch.ones(2).frac(), torch.zeros(2))
+
+
+def test_attribution_needs_the_replay_report_to_match_the_original_call():
+    """The report must name an operator, with the original message and instruction."""
+    torch = pytest.importorskip("torch")
+    worker = load("benchmark")
+
+    def compute(*args, **kwargs):
+        return torch.ones(4) + torch.ones(5)
+
+    with pytest.raises(RuntimeError) as caught:
+        compute()
+    report = worker.recorded_operator_error(compute, (), {}, {})
+    assert worker.attributed_operator(caught.value, compute, report) == "aten.add.Tensor"
+    site = report["site"]
+    for changed in ({"operator": None}, {"message": report["message"] + " "},
+                    {"site": None}, {"site": {**site, "offset": site["offset"] + 2}},
+                    {"site": {**site, "bytecode": "0" * 64}}):
+        assert worker.attributed_operator(caught.value, compute, {**report, **changed}) is None
+    assert worker.attributed_operator(caught.value, compute, None) is None
 
 
 CANDIDATE_HEADER = (
@@ -616,10 +653,10 @@ CANDIDATE_HEADER = (
 )
 
 
-def run_cpu_worker(tmp_path, body):
+def run_cpu_worker(tmp_path, body, source=None):
     """Run the real worker on the trusted CPU baseline math; no device is involved."""
     candidate = tmp_path / "candidate.py"
-    candidate.write_text(CANDIDATE_HEADER + body, encoding="utf-8")
+    candidate.write_text(source or CANDIDATE_HEADER + body, encoding="utf-8")
     output = tmp_path / "measurement"
     execution = subprocess.run([
         sys.executable, str(TASK.joinpath("benchmark.py")), "--candidate", str(candidate),
@@ -636,12 +673,33 @@ CANDIDATE_SHAPE_BUGS = {
 }
 
 
-@pytest.mark.parametrize("diagnostic", sorted(CANDIDATE_SHAPE_BUGS))
+ATTRIBUTABLE_CANDIDATES = {
+    **{diagnostic: (diagnostic, body) for diagnostic, body in CANDIDATE_SHAPE_BUGS.items()},
+    # The failed call leaves state that would let a second in-process call return.
+    # The isolated replay starts from the state the failed call started from.
+    "state_left_by_failed_call": ("shapes cannot be multiplied", (
+        "    compute.calls = getattr(compute, 'calls', 0) + 1\n"
+        "    if compute.calls == 1:\n"
+        "    " + CANDIDATE_SHAPE_BUGS["shapes cannot be multiplied"]
+        + "    return latents\n")),
+    # The same through the process environment, which the replay takes from the
+    # worker's start, before any candidate code ran.
+    "environment_left_by_failed_call": ("shapes cannot be multiplied", (
+        "    import os\n"
+        "    if os.environ.get('QWEN21_FAILED_CALL_MARK'):\n"
+        "        return latents\n"
+        "    os.environ['QWEN21_FAILED_CALL_MARK'] = '1'\n"
+        + CANDIDATE_SHAPE_BUGS["shapes cannot be multiplied"])),
+}
+
+
+@pytest.mark.parametrize("name", sorted(ATTRIBUTABLE_CANDIDATES))
 def test_attributable_candidate_shape_error_consumes_one_round_after_baseline_recheck(
-    tmp_path, diagnostic,
+    tmp_path, name,
 ):
     pytest.importorskip("torch")
-    execution, result, output = run_cpu_worker(tmp_path, CANDIDATE_SHAPE_BUGS[diagnostic])
+    diagnostic, body = ATTRIBUTABLE_CANDIDATES[name]
+    execution, result, output = run_cpu_worker(tmp_path, body)
     assert execution.returncode == 2, execution.stderr
     assert result["status"] == "candidate_failure" and result["correctness"] == "FAIL"
     assert result["round_consumed"] and result["speedup"] is None
@@ -661,6 +719,21 @@ def test_attributable_candidate_shape_error_consumes_one_round_after_baseline_re
         ("baseline", "correctness"), ("baseline", "recovery_check")]
     log = (output / "error.log").read_text()
     assert "CandidateComputeContractError" in log and diagnostic in log
+    # The operator comes from an isolated worker over the same frozen snapshot,
+    # at its own first candidate call, with the original message and instruction.
+    attribution = result["attribution"]
+    assert attribution["case"] == "smoke" and attribution["result"] == "replayed"
+    assert attribution["replay"]["operator"] == result["contract_failure"]["operator"]
+    assert attribution["replay"]["message"] == result["contract_failure"]["error"]
+    replay = output / "attribution-replay"
+    assert json.loads((replay / "identity.json").read_text()) == json.loads(
+        (output / "identity.json").read_text())
+    replayed = json.loads((replay / "result.json").read_text())
+    assert replayed["status"] == "attribution_replayed"
+    assert replayed["attribution_replay"]["case"] == "smoke"
+    assert replayed["attribution_replay"]["phase"] == "correctness"
+    assert [(call["label"], call["phase"]) for call in replayed["calls"]] == [
+        ("baseline", "correctness")]
     assessment = load("optimization").assess(
         tmp_path, {}, {"status": "failed", "returncode": execution.returncode})
     assert assessment["status"] == "candidate_failure" and assessment["verdict"] == "FAIL"
@@ -701,12 +774,6 @@ BLOCKING_COMPUTE_FAILURES = {
         "    done = (value for value in ())\n"
         "    next(done, None)\n"
         f"    done.throw(RuntimeError({SHAPE_ERRORS['shapes cannot be multiplied']!r}))\n"),
-    # A genuine operator error that the replay does not reproduce.
-    "unreproduced_shape_error": (
-        "    compute.calls = getattr(compute, 'calls', 0) + 1\n"
-        "    if compute.calls == 1:\n"
-        "    " + CANDIDATE_SHAPE_BUGS["shapes cannot be multiplied"]
-        + "    return latents\n"),
 }
 BLOCKING_LOG_TEXT = {
     "device_synchronize_failure": "EZ9999",
@@ -716,7 +783,6 @@ BLOCKING_LOG_TEXT = {
     "direct_shape_message_raise": "shapes cannot be multiplied",
     "copied_operator_message_raise": "shapes cannot be multiplied",
     "native_non_operator_shape_raise": "shapes cannot be multiplied",
-    "unreproduced_shape_error": "shapes cannot be multiplied",
 }
 
 
@@ -749,10 +815,86 @@ def test_device_sync_or_recheck_failure_in_candidate_compute_stays_inconclusive(
     assert assessment["verdict"] == "INCONCLUSIVE"
 
 
+# The failed call changes what it received, then hits a genuine operator shape
+# check. A replay on the frozen case would no longer replay this call.
+ARGUMENT_CHANGES = {
+    "input_values": "    latents.mul_(2)\n",
+    "parameter_values": "    params['image_out'].mul_(2)\n",
+    "parameter_entry": "    params['image_out'] = params['image_out'].clone()\n",
+    "configuration": "    config['sigmas'].append(0.5)\n",
+    "case_id": "    config['id'] = 'compact'\n",
+}
+
+
+@pytest.mark.parametrize("change", sorted(ARGUMENT_CHANGES))
+def test_shape_error_after_the_call_changed_its_arguments_stays_inconclusive(tmp_path, change):
+    pytest.importorskip("torch")
+    execution, result, output = run_cpu_worker(
+        tmp_path, ARGUMENT_CHANGES[change] + CANDIDATE_SHAPE_BUGS["shapes cannot be multiplied"])
+    assert execution.returncode == 1, execution.stderr
+    assert result["status"] == "infrastructure_failure"
+    assert result["correctness"] == "INCONCLUSIVE" and result["speedup"] is None
+    assert result["phase"] == "candidate_correctness"
+    # Recorded case IDs come from the frozen case, never from the candidate's copy.
+    assert result["attribution"] == {"case": "smoke", "phase": "candidate_correctness",
+                                     "result": "arguments_changed"}
+    for key in ("contract_failure", "baseline_recheck", "failure_kind"):
+        assert key not in result
+    assert not (output / "attribution-replay").exists()
+    assert [(call["case"], call["label"], call["phase"], call["correctness"])
+            for call in result["calls"]] == [("smoke", "baseline", "correctness", "PASS")]
+    assert "shapes cannot be multiplied" in (output / "error.log").read_text()
+    assessment = load("optimization").assess(
+        tmp_path, {}, {"status": "failed", "returncode": execution.returncode})
+    assert assessment["status"] == "infrastructure_failure"
+    assert assessment["verdict"] == "INCONCLUSIVE"
+
+
+def baseline_candidate(body):
+    """The trusted baseline math under a candidate entry that runs `body` first."""
+    return (TASK.joinpath("baseline.py").read_text(encoding="utf-8")
+            + "\n_baseline_compute = compute\n\n\n"
+            + CANDIDATE_HEADER.split("\n", 1)[1] + body
+            + "    return _baseline_compute(latents, text, text_mask, sigmas, positions, params,\n"
+            + "                             config=config)\n")
+
+
+def test_shape_error_after_an_earlier_candidate_call_stays_inconclusive(tmp_path):
+    """No replay can start from the state of a later call; it is not attributed."""
+    pytest.importorskip("torch")
+    execution, result, output = run_cpu_worker(tmp_path, None, baseline_candidate(
+        "    compute.calls = getattr(compute, 'calls', 0) + 1\n"
+        "    if compute.calls > 1:\n"
+        "    " + CANDIDATE_SHAPE_BUGS["shapes cannot be multiplied"]))
+    assert execution.returncode == 1, execution.stderr
+    assert result["status"] == "infrastructure_failure"
+    assert result["correctness"] == "INCONCLUSIVE"
+    assert result["phase"] == "candidate_weight_update"
+    assert result["attribution"] == {"case": "smoke", "phase": "candidate_weight_update",
+                                     "result": "not_first_candidate_call"}
+    for key in ("contract_failure", "baseline_recheck", "failure_kind"):
+        assert key not in result
+    assert not (output / "attribution-replay").exists()
+    assert [(call["label"], call["phase"]) for call in result["calls"]] == [
+        ("baseline", "correctness"), ("candidate", "correctness"),
+        ("baseline", "weight_update")]
+
+
+def test_candidate_cannot_change_the_recorded_case_configuration(tmp_path):
+    pytest.importorskip("torch")
+    execution, result, _ = run_cpu_worker(tmp_path, None, baseline_candidate(
+        "    config['id'] = 'compact'\n"))
+    assert execution.returncode == 0, execution.stderr
+    assert result["status"] == "completed" and result["correctness"] == "PASS"
+    assert [(call["case"], call["label"], call["phase"]) for call in result["calls"]] == [
+        ("smoke", "baseline", "correctness"), ("smoke", "candidate", "correctness"),
+        ("smoke", "baseline", "weight_update"), ("smoke", "candidate", "weight_update")]
+
+
 @pytest.mark.parametrize("failure", [
     "candidate_contract", "device_synchronize_failure", "device_lost_shape_error",
     "backend_unavailable_shape_error", "direct_shape_message_raise",
-    "native_non_operator_shape_raise",
+    "native_non_operator_shape_raise", "changed_arguments_shape_error",
 ])
 def test_harness_continues_only_after_attributed_contract_rejection(tmp_path, failure):
     """Round 1 is the real CPU worker and Qwen assessor; later rows are synthetic stand-ins."""
@@ -776,8 +918,11 @@ def test_harness_continues_only_after_attributed_contract_rejection(tmp_path, fa
     })
     optimization.record_diagnosis(root, "Synthetic attribution control",
                                   diagnosis_evidence(root))
-    worker_body = (CANDIDATE_SHAPE_BUGS["shapes cannot be multiplied"]
-                   if failure == "candidate_contract" else BLOCKING_COMPUTE_FAILURES[failure])
+    worker_body = {
+        "candidate_contract": CANDIDATE_SHAPE_BUGS["shapes cannot be multiplied"],
+        "changed_arguments_shape_error": (ARGUMENT_CHANGES["parameter_values"]
+                                          + CANDIDATE_SHAPE_BUGS["shapes cannot be multiplied"]),
+    }.get(failure) or BLOCKING_COMPUTE_FAILURES[failure]
 
     def execute(root, directory, plan, deadline):
         (directory / "execution").mkdir()

@@ -2,6 +2,7 @@
 """Check and pair-time a self-contained Qwen 2.1 denoising candidate."""
 
 import argparse
+import copy
 import dis
 import hashlib
 import importlib.util
@@ -12,6 +13,7 @@ import os
 import re
 import shutil
 import statistics
+import subprocess
 import sys
 import time
 import traceback
@@ -168,12 +170,25 @@ def host_shape_diagnostic(error, function):
     return None
 
 
-def replayed_aten_operator(error, function, inputs, params, config):
-    """Name the ATen operator whose own check raises this error again, or None."""
-    # Collected only after the candidate failed, never on a timed or scored call:
-    # the submission runs once more, on pristine request inputs and its own
-    # parameters, while a dispatch mode keeps each error object that escapes an
-    # operator together with that operator and its arguments.
+class AttributionReplayComplete(Exception):
+    """The isolated attribution replay ran its one candidate call; evaluation stops."""
+
+
+def call_site_identity(site):
+    # Comparable across processes: the frozen candidate file is the same by SHA256,
+    # so a code object is identified by its name, first line and bytecode.
+    if site is None:
+        return None
+    code, offset = site
+    return {"name": getattr(code, "co_qualname", code.co_name), "line": code.co_firstlineno,
+            "bytecode": hashlib.sha256(code.co_code).hexdigest(), "offset": offset}
+
+
+def recorded_operator_error(function, inputs, params, config):
+    """Run one submitted call under an operator error recorder and report its failure."""
+    # Only the isolated replay process calls this, never a timed or scored call.
+    # A dispatch mode keeps each error object that escapes an operator together
+    # with that operator and its arguments. Returns None when the call succeeds.
     from torch.utils._python_dispatch import TorchDispatchMode
 
     escaped = {}
@@ -197,28 +212,38 @@ def replayed_aten_operator(error, function, inputs, params, config):
     else:
         return None
     raised, func, args, kwargs = escaped.get(id(replayed), (None,) * 4)
+    operator = None
     # The same plain error object left an ATen operator that got no message
-    # argument (unlike `_assert_async`), reached from the same submitted
-    # instruction as the original error.
-    if (raised is not replayed or not plain_runtime_error(replayed)
-            or str(replayed) != str(error) or getattr(func, "namespace", None) != "aten"
-            or any(isinstance(leaf, str) for leaf in tensors((args, kwargs)))
-            or native_call_site(replayed, function, skip=record.__code__)
-            != native_call_site(error, function)):
+    # argument (unlike `_assert_async`). The evaluator then calls that operator on
+    # the recorded arguments without the submission on the stack; only core
+    # PyTorch may raise the identical message.
+    if (raised is replayed and plain_runtime_error(replayed)
+            and getattr(func, "namespace", None) == "aten"
+            and not any(isinstance(leaf, str) for leaf in tensors((args, kwargs)))):
+        try:
+            func(*args, **kwargs)
+        except Exception as reproduced:
+            if (plain_runtime_error(reproduced) and str(reproduced) == str(replayed)
+                    and native_call_site(reproduced, recorded_operator_error)):
+                operator = str(func)
+    return {"message": str(replayed), "operator": operator,
+            "site": call_site_identity(native_call_site(replayed, function, skip=record.__code__))}
+
+
+def attributed_operator(error, function, replayed):
+    """Name the operator only if an equivalent replay raised this error from it."""
+    # The replay report must name a reproduced ATen operator, with the original
+    # message and the original submitted instruction. Whether the replay is
+    # equivalent and isolated is the caller's proof; without it there is no report.
+    site = call_site_identity(native_call_site(error, function))
+    if (not isinstance(replayed, dict) or not replayed.get("operator") or site is None
+            or replayed.get("message") != str(error) or replayed.get("site") != site):
         return None
-    # Reproduce without the submission on the stack: the evaluator calls the
-    # operator on the recorded arguments, and only core PyTorch may raise it.
-    try:
-        func(*args, **kwargs)
-    except Exception as reproduced:
-        if (plain_runtime_error(reproduced) and str(reproduced) == str(error)
-                and native_call_site(reproduced, replayed_aten_operator)):
-            return str(func)
-    return None
+    return replayed["operator"]
 
 
 def invoke_compute(function, inputs, params, config, *, candidate, baseline_verified,
-                   pristine_inputs=None):
+                   replay=None):
     # Catch only the submitted function call, never setup, synchronization or
     # reference checks. TBE is optional for this task's trusted baseline; older
     # native candidate kernels can require it. Other missing modules stay unknown.
@@ -242,14 +267,15 @@ def invoke_compute(function, inputs, params, config, *, candidate, baseline_veri
         # A shape message from a native call in the submission, after this case's
         # baseline passed, is only a lead. Unproven source, including any device
         # or backend wording, stays an infrastructure failure.
-        diagnostic = (candidate and baseline_verified and pristine_inputs is not None
+        diagnostic = (candidate and baseline_verified and replay is not None
                       and host_shape_diagnostic(error, function))
         if not diagnostic:
             raise
         failure = error
-    # Outside the handler, so the replayed error has no implicit context. An
-    # attributed error is still only a recheck request.
-    operator = replayed_aten_operator(failure, function, pristine_inputs(), params, config)
+    # Outside the handler, so a replay error has no implicit context. `replay`
+    # reports an equivalent, isolated replay of this call, or None. An attributed
+    # error is still only a recheck request.
+    operator = attributed_operator(failure, function, replay())
     if operator:
         raise CandidateComputeContractError(diagnostic, operator) from failure
     raise failure
@@ -300,6 +326,8 @@ def tensors(value):
 
 
 def run(args, output, record):
+    # The process environment before any candidate code runs, for an isolated replay.
+    startup = {"env": dict(os.environ), "cwd": os.getcwd()}
     # This guard is also active while importing PyTorch and torch_npu.
     sys.meta_path.insert(0, EngineImportGuard())
     import torch
@@ -347,27 +375,129 @@ def run(args, output, record):
     record["round_consumed"] = True
     functions["candidate"] = candidate_function(source / "candidate.py")
     verified_baselines = set()
+    candidate_calls = 0
 
     def pristine_inputs():
         # The current request's inputs, never a candidate's possibly modified copy.
         return workload.map_tensors(inputs, lambda t: t.clone())
 
+    def argument_layout(original):
+        return [[str(previous.dtype), list(previous.shape), list(stride), device_before.type]
+                for _, previous, stride, device_before in original]
+
+    def isolated_replay(case, phase, config, original):
+        # A new worker process evaluates the same frozen snapshot with the same
+        # arguments up to its own first candidate call, which is this call: the
+        # same trusted baseline call first, then the candidate on arguments it
+        # rebuilds from the frozen case and seeds. No object of this process,
+        # and no state the failed call left in it, reaches the replay: it gets the
+        # interpreter flags, environment and working directory from before any
+        # candidate code ran here.
+        directory = output / "attribution-replay"
+        command = [sys.executable, *subprocess._args_from_interpreter_flags(),
+                   str(source / "benchmark.py"),
+                   "--candidate", str(source / "candidate.py"), "--output-dir", str(directory),
+                   "--device", args.device, "--pairs", str(args.pairs),
+                   "--samples", str(args.samples), "--warmups", str(args.warmups),
+                   "--cpu-threads", str(args.cpu_threads), "--attribution-replay",
+                   *(f"--case={selection}" for selection in args.case or ()),
+                   *(["--check-only"] if args.check_only else [])]
+        with open(output / "attribution-replay.log", "wb") as log:
+            subprocess.run(command, stdout=log, stderr=subprocess.STDOUT, check=False,
+                           env=startup["env"], cwd=startup["cwd"])
+        result = json.loads((directory / "result.json").read_text(encoding="utf-8"))
+        replayed = result.get("attribution_replay") or {}
+        # Equivalence: identical frozen sources, the same case and phase, the
+        # frozen configuration and bitwise-equal tensor arguments.
+        if (result.get("status") != "attribution_replayed"
+                or json.loads((directory / "identity.json").read_text(encoding="utf-8"))
+                != json.loads((output / "identity.json").read_text(encoding="utf-8"))
+                or replayed.get("case") != case or replayed.get("phase") != phase
+                or replayed.get("config") != config
+                or replayed.get("arguments") != argument_layout(original)):
+            return None
+        arguments = torch.load(directory / "arguments.pt", weights_only=True)
+        if len(arguments) != len(original) or not all(
+                torch.equal(argument, previous)
+                for argument, (_, previous, *_) in zip(arguments, original)):
+            return None
+        return {"error": replayed.get("error")}
+
     def invoke(label, call_inputs, params, config, expected, phase, pair=None, sample=None):
+        nonlocal candidate_calls
         record["phase"] = label + "_" + phase
+        # `config` is the evaluator's frozen case. Each call gets its own copy, so
+        # recorded case IDs, the reference and any recheck never read an object
+        # that a submission could change.
+        case, call_config = config["id"], copy.deepcopy(config)
+        leaves = list(tensors((call_inputs, params)))
         original = [
             (value, value.detach().cpu().clone(), value.stride(), value.device)
-            for value in tensors((call_inputs, params))
+            for value in leaves
         ]
+        replay = None
+        if label == "candidate":
+            candidate_calls += 1
+            first_call = candidate_calls == 1
+            if args.attribution_replay:
+                # Replay process: keep this first candidate call's arguments as
+                # they were before it ran, record its failure and stop.
+                torch.save([previous for _, previous, *_ in original], output / "arguments.pt")
+                replayed = record["attribution_replay"] = {
+                    "case": case, "phase": phase, "config": copy.deepcopy(call_config),
+                    "arguments": argument_layout(original)}
+                replayed["error"] = recorded_operator_error(functions[label], call_inputs,
+                                                            params, call_config)
+                raise AttributionReplayComplete()
+
+            def preserved():
+                # Nothing the failed call received may differ from before it ran:
+                # configuration, container entries, or tensor values and layout.
+                try:
+                    return (call_config == config
+                            and [id(value) for value in tensors((call_inputs, params))]
+                            == [id(value) for value in leaves]
+                            and all(value.dtype == previous.dtype
+                                    and value.device == device_before
+                                    and value.stride() == stride
+                                    and torch.equal(value.cpu(), previous)
+                                    for value, previous, stride, device_before in original))
+                except Exception:
+                    return False
+
+            def replay():
+                # Only an equivalent, isolated replay may attribute the error. The
+                # replay starts from the state this call started from only if no
+                # candidate code ran before it in this worker, and gets equal
+                # arguments only if this call did not change its own.
+                attempt = record["attribution"] = {"case": case, "phase": record["phase"]}
+                if not first_call:
+                    attempt["result"] = "not_first_candidate_call"
+                    return None
+                if not preserved():
+                    attempt["result"] = "arguments_changed"
+                    return None
+                try:
+                    replayed = isolated_replay(case, phase, config, original)
+                except Exception as error:
+                    attempt.update(result="replay_unavailable", error=str(error))
+                    return None
+                if replayed is None:
+                    attempt["result"] = "replay_not_equivalent"
+                    return None
+                attempt.update(result="replayed", replay=replayed["error"])
+                return replayed["error"]
+
         synchronize()
         started = time.perf_counter_ns()
         try:
-            result = invoke_compute(functions[label], call_inputs, params, config,
+            result = invoke_compute(functions[label], call_inputs, params, call_config,
                                     candidate=label == "candidate",
-                                    baseline_verified=config["id"] in verified_baselines,
-                                    pristine_inputs=pristine_inputs)
+                                    baseline_verified=case in verified_baselines,
+                                    replay=replay)
         except CandidateRecheckedError as error:
             failed_phase = record["phase"]
-            record[error.record_key] = {"case": config["id"], "phase": failed_phase,
+            record[error.record_key] = {"case": case, "phase": failed_phase,
                                         **error.details()}
             # Recheck only the trusted baseline on pristine request inputs and its
             # own parameter storage, after any attribution replay of the candidate.
@@ -376,7 +506,7 @@ def run(args, output, record):
             # and the baseline never reuses the candidate's possibly modified tensors.
             invoke("baseline", pristine_inputs(), separate_params["baseline"], config,
                    expected, "recovery_check")
-            record["baseline_recheck"] = {"case": config["id"], "correctness": "PASS"}
+            record["baseline_recheck"] = {"case": case, "correctness": "PASS"}
             record["phase"] = failed_phase
             raise
         synchronize()
@@ -414,7 +544,7 @@ def run(args, output, record):
         )
         record["calls"].append(
             {
-                "case": config["id"],
+                "case": case,
                 "label": label,
                 "phase": phase,
                 "pair": pair,
@@ -430,7 +560,7 @@ def run(args, output, record):
             raise OutputValidationError(
                 f"Trajectory failed numerical checks, per-step NRMSE={nrmse}")
         if label == "baseline":
-            verified_baselines.add(config["id"])
+            verified_baselines.add(case)
         return elapsed
 
     preparation = 0.0
@@ -533,6 +663,8 @@ def main():
     parser.add_argument("--cpu-threads", type=int, default=8)
     parser.add_argument("--case", action="append")
     parser.add_argument("--check-only", action="store_true")
+    # Internal: the isolated replay of a failed first candidate call; never scored.
+    parser.add_argument("--attribution-replay", action="store_true", help=argparse.SUPPRESS)
     args = parser.parse_args()
     if args.pairs < 1 or args.samples < 1 or args.warmups < 0 or args.cpu_threads < 1:
         parser.error("pairs, samples and threads must be positive; warmups must be nonnegative")
@@ -575,7 +707,10 @@ def main():
     }
     started = time.perf_counter()
     try:
-        run(args, output, record)
+        try:
+            run(args, output, record)
+        except AttributionReplayComplete:
+            record["status"] = "attribution_replayed"
         if any(
             hashlib.sha256((source / name).read_bytes()).hexdigest() != digest
             for name, digest in identity.items()
