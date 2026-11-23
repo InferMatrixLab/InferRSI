@@ -364,12 +364,8 @@ def _request_errors(spec: Mapping) -> list[str]:
     return errors
 
 
-def validate(spec: object, target: LocalCpuTarget, *, artifact_reader=None) -> None:
-    """Refuse a request before registration (D021 priority: version, fields, support).
-
-    An evaluation-mode spec is also checked against its fixed preparation, read through
-    ``artifact_reader`` (V05, V28, V32). Nothing here registers an attempt or writes a record.
-    """
+def _validate_fields(spec: object) -> bool:
+    """Check static fields before querying existing request state or opening artifacts."""
     if isinstance(spec, Mapping):
         version = spec.get("schema_version")
         if type(version) is int and version != 1:
@@ -403,6 +399,11 @@ def validate(spec: object, target: LocalCpuTarget, *, artifact_reader=None) -> N
             "InvalidExecutionSpec", stage="validate", message="illegal ExecutionSpec",
             field_errors=errors,
         )
+    return bool(evaluation)
+
+
+def _validate_fresh(spec, target, artifact_reader, evaluation):
+    """Validate fixed bytes and target support only for a request not yet registered."""
     if evaluation:
         # Malformed or inconsistent bindings are refused here, before the RunStore sees the
         # request. The reader is the read-only port; H does not write or register anything.
@@ -421,6 +422,12 @@ def validate(spec: object, target: LocalCpuTarget, *, artifact_reader=None) -> N
         raise PublicError(
             "UnsupportedOperation", stage="validate", message="; ".join(unsupported)
         )
+
+
+def validate(spec: object, target: LocalCpuTarget, *, artifact_reader=None) -> None:
+    """Validate a fresh request before registration; this port has no RunStore state."""
+    evaluation = _validate_fields(spec)
+    _validate_fresh(spec, target, artifact_reader, evaluation)
 
 
 def _error(code: str, stage: str, message: str) -> dict:
@@ -945,7 +952,7 @@ def _refusal(ctx, digest, binding, admission, bound, checks, errors, reason) -> 
         ctx, request_digest=digest, target_binding=binding, bound_inputs=bound,
         phase="finished", started=False, process_outcome="not_started", exit_code=None,
         steps=[_not_started_step(step, reason) for step in ctx.spec["steps"]],
-        cancellation={"requested": False, "requested_at": None, "source": None},
+        cancellation=_cancellation(ctx, []),
         cleanup=cleanup, checks=checks, budget_admission=admission, usage=_usage([]),
         resource_leases=leases, errors=errors,
     )
@@ -959,6 +966,16 @@ def _run_claimed(ctx, target, digest, reader, deadline, cancellation) -> dict:
     if errors:
         return _refusal(ctx, digest, binding, admission, [], [], errors, "admission_rejected")
     evaluation = ctx.spec["prepared_ref"] is not None
+    if evaluation:
+        if cancellation is not None and cancellation.is_set():
+            ctx.cancel_seen_at = run_store.utc_now()
+            return _refusal(ctx, digest, binding, admission, [], [], [], "cancelled")
+        if time.monotonic() >= deadline:
+            return _refusal(
+                ctx, digest, binding, admission, [], [],
+                [_error("deadline_exhausted", "binding", "original attempt deadline exhausted")],
+                "deadline_exhausted",
+            )
     entry_checks = []
     if evaluation:
         entries = [_bind_entry(ctx, step, target) for step in ctx.spec["steps"]]
@@ -1057,11 +1074,16 @@ def execute(
     cancellation=None,
     artifact_reader=None,
 ) -> dict:
-    """H ``execute``: register, admit, bind, run and commit one ordinary command request."""
-    validate(spec, target, artifact_reader=artifact_reader)
+    """Execute one request or return its existing state before any new binding or start."""
+    evaluation = _validate_fields(spec)
+    spec = copy.deepcopy(dict(spec))
     digest = run_store.request_digest(spec)
     attempt = {name: copy.deepcopy(spec[name]) for name in ATTEMPT_FIELDS}
-    # Re-entry is decided by the store before any binding or start (V14 / D021 section 3).
+    existing = store._reenter_if_registered(spec["attempt_id"], digest)
+    if existing is not None:
+        return run_store.flatten(existing, run_store.utc_now())
+    _validate_fresh(spec, target, artifact_reader, evaluation)
+    # Another caller may have registered while the fixed preparation was read.
     claimed = store.claim(attempt, digest)
     if isinstance(claimed, run_store.CommittedRecord):
         return run_store.flatten(claimed, run_store.utc_now())

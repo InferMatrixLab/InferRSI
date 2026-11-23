@@ -1067,6 +1067,34 @@ class RunStore(RunStoreReader):
             ) from exc
         return values
 
+    def _reenter_if_registered(
+        self, attempt_id: str, request_digest: str,
+    ) -> CommittedRecord | None:
+        """Apply existing request state without registering or refreshing an attempt.
+
+        Harness has checked the request's static shape and computed this digest.
+        A missing row permits fresh binding validation; ``claim`` still arbitrates
+        a concurrent registration after that validation finishes.
+        """
+        lock_path = self.root / "locks" / f"{attempt_hash(attempt_id)}.lock"
+        try:
+            with self._connection() as conn, _transaction(conn):
+                row = conn.execute(
+                    "SELECT * FROM attempts WHERE request_id = ?", (attempt_id,),
+                ).fetchone()
+                return None if row is None else self._reenter(
+                    conn, row, request_digest, lock_path,
+                )
+        except _IntegrityFault as error:
+            raise PublicError(
+                "RecordIntegrityError", stage="claim", attempt_id=attempt_id, message=str(error),
+            ) from error
+        except (sqlite3.Error, OSError, _StorageFault) as error:
+            raise PublicError(
+                "ExecutionPersistenceError", stage="claim", attempt_id=attempt_id,
+                started=None, message=f"request-state lookup failed: {_describe(error)}",
+            ) from error
+
     def claim(self, attempt: Mapping, request_digest: str) -> Claim | CommittedRecord:
         """Register an attempt atomically, or apply the D021 re-entry table to its registration.
 

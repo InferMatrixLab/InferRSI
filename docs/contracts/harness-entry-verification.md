@@ -60,6 +60,6 @@ control. CPU execution facts and exit zero are not a Benchmark verdict.
 The production preparation/Apps archive cross-tests use the accepted D023 /
 `t108-v4` family and actual source bytes. Their small software worker does not
 claim complete F/C/M evidence, a service gain, or whole-Issue production
-acceptance. Existing ordinary CPU supervision is reused; evaluation deadline,
-budget and T40 acceptance remain the later Harness unit, including its separate
-launch-boundary prerequisite.
+acceptance. Existing ordinary CPU supervision is reused. The
+[original-limit/T40 contract](harness-evaluation-replay.md) describes the next
+unit; complete CPU acceptance retains its separate launch-boundary prerequisite.
