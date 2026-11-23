@@ -201,28 +201,29 @@ def _scan(dirfd: int, prefix: str, hashes: dict[str, str], blocked: list[str]) -
             blocked.append(relative)
             continue
         try:
-            hashes[relative] = _digest_file(file_fd)[0]
+            hashes[relative] = _digest_fd(file_fd)
         finally:
             os.close(file_fd)
 
 
-def _digest_file(file_fd: int) -> tuple[str, bytes, int]:
-    """Hash one open file the same way ``_snapshot`` does, and return those bytes."""
+_CHUNK = 1024 * 1024
+
+
+def _digest_fd(file_fd: int) -> str:
+    """Stream one open file. Only the digest is kept."""
     executable = stat.S_IMODE(os.fstat(file_fd).st_mode) & 0o111
     hasher = hashlib.sha256()
     hasher.update(bytes([executable]))
-    chunks: list[bytes] = []
     while True:
-        block = os.read(file_fd, 1024 * 1024)
+        block = os.read(file_fd, _CHUNK)
         if not block:
             break
         hasher.update(block)
-        chunks.append(block)
-    return hasher.hexdigest(), b"".join(chunks), executable
+    return hasher.hexdigest()
 
 
-def _read_identity(root: Path, relative: str) -> tuple[str, bytes, int] | None:
-    """Read one regular file once. The digest matches ``_snapshot`` for these bytes."""
+def _stream_copy(root: Path, relative: str, target: Path) -> str | None:
+    """Copy one regular file in chunks. The digest matches ``_snapshot``."""
     dirfd = os.open(root, os.O_RDONLY | os.O_DIRECTORY)
     try:
         parts = relative.split("/")
@@ -239,9 +240,26 @@ def _read_identity(root: Path, relative: str) -> tuple[str, bytes, int] | None:
     finally:
         os.close(dirfd)
     try:
-        return _digest_file(file_fd)
+        out = os.open(target, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o644)
+        try:
+            executable = stat.S_IMODE(os.fstat(file_fd).st_mode) & 0o111
+            hasher = hashlib.sha256()
+            hasher.update(bytes([executable]))
+            while True:
+                block = os.read(file_fd, _CHUNK)
+                if not block:
+                    break
+                hasher.update(block)
+                view = memoryview(block)
+                while view:
+                    view = view[os.write(out, view) :]
+        finally:
+            os.close(out)
     finally:
         os.close(file_fd)
+    if executable:
+        os.chmod(target, stat.S_IMODE(target.stat().st_mode) | executable)
+    return hasher.hexdigest()
 
 
 def _read_nofollow(root: Path, relative: str) -> bytes | None:
@@ -531,29 +549,31 @@ def _submit_holding_lock(
     ticket = digest(
         {"round_digest": plan["round_digest"], "lane_id": lane_id, "manifest": manifest}
     )[:16]
-    staged: list[tuple[str, bytes, int]] = []
-    for path in changed:
-        loaded = _read_identity(work, path)
-        if loaded is None or loaded[0] != after[path]:
-            return _refusal("changed during submit", rejected=[path])
-        staged.append((path, loaded[1], loaded[2]))
-    destination = round_dir / "outbox" / ticket
-    if not destination.exists():
-        destination.mkdir(parents=True)
-        try:
-            for path, payload, executable in staged:
-                target = destination / path
-                target.parent.mkdir(parents=True, exist_ok=True)
-                target.write_bytes(payload)
-                if executable:
-                    os.chmod(target, stat.S_IMODE(target.stat().st_mode) | executable)
-        except OSError:
-            shutil.rmtree(destination)
-            return _refusal("symlink", rejected=list(changed))
-        write_json(
-            _ticket_metadata_path(destination),
-            {"ticket": ticket, "lane_id": lane_id, "files": manifest, "deleted": []},
-        )
+    staging = round_dir / "submit-staging" / ticket
+    if staging.exists():
+        shutil.rmtree(staging)
+    try:
+        for path in changed:
+            target = staging / path
+            target.parent.mkdir(parents=True, exist_ok=True)
+            copied = _stream_copy(work, path, target)
+            if copied != after[path]:
+                return _refusal("changed during submit", rejected=[path])
+        destination = round_dir / "outbox" / ticket
+        if not destination.exists():
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            shutil.move(staging, destination)
+            write_json(
+                _ticket_metadata_path(destination),
+                {"ticket": ticket, "lane_id": lane_id, "files": manifest, "deleted": []},
+            )
+    except OSError:
+        return _refusal("symlink", rejected=list(changed))
+    finally:
+        if staging.exists():
+            shutil.rmtree(staging)
+        if staging.parent.exists() and not any(staging.parent.iterdir()):
+            staging.parent.rmdir()
     return {"submitted": True, "outside": [], "deleted": [], "rejected": [], "ticket": ticket}
 
 
@@ -1307,12 +1327,13 @@ def _close_round_holding_lock(
     if not selected:
         return finish(reason="no PASS lanes")
 
+    composed = [{"ticket": body["ticket"], "lane_id": body["lane_id"]} for body in selected]
     lanes = [_lane(plan, body["lane_id"]) for body in selected]
     deadline_utc = min(lane["deadline_utc"] for lane in lanes)
     try:
         ensure_open(deadline_utc, current())
     except BudgetError as exc:
-        return finish(reason=str(exc), composed=[body["ticket"] for body in selected])
+        return finish(reason=str(exc), composed=composed)
 
     count = max(lane["device_count"] for lane in lanes)
     held = hold_devices(round_dir, plan, count)
@@ -1321,10 +1342,9 @@ def _close_round_holding_lock(
             "status": "queued",
             "composition": "joint-single-rerun",
             "reason": "devices unavailable",
-            "composed": [body["ticket"] for body in selected],
+            "composed": composed,
         }
     devices = [device for device, _lease in held]
-    composed = [{"ticket": body["ticket"], "lane_id": body["lane_id"]} for body in selected]
     try:
         if plan.get("device_model"):
             try:
@@ -1334,7 +1354,7 @@ def _close_round_holding_lock(
                     "status": "queued",
                     "composition": "joint-single-rerun",
                     "reason": str(exc),
-                    "composed": [item["ticket"] for item in composed],
+                    "composed": composed,
                 }
         overlays = [outbox / body["ticket"] for body in selected]
         joint = round_dir / "candidates" / "joint-close"

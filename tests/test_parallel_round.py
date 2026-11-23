@@ -1371,6 +1371,25 @@ def test_unshare_failing_validation_is_a_measured_fail(tmp_path):
     assert (round_dir / "close.json").exists()
 
 
+def test_submit_streams_a_file_larger_than_one_chunk(tmp_path):
+    incumbent = tmp_path / "incumbent"
+    _tree(incumbent, "10")
+    round_dir = tmp_path / "round"
+    prepare(_spec(), incumbent, round_dir)
+    work = tmp_path / "work"
+    _tree(work, "10")
+    payload = b"x" * (1024 * 1024) + b"TAIL"
+    big = work / "knobs" / "a.txt"
+    big.write_bytes(payload)
+    big.chmod(0o755)
+    submitted = submit(round_dir, "L1", incumbent, work, now=WHEN)
+    assert submitted["submitted"] is True
+    stored = round_dir / "outbox" / submitted["ticket"] / "knobs" / "a.txt"
+    assert stored.read_bytes() == payload
+    assert stored.stat().st_mode & 0o111
+    assert not (round_dir / "submit-staging").exists()
+
+
 def test_submit_refuses_a_file_that_changes_after_the_scan(tmp_path, monkeypatch):
     incumbent = tmp_path / "incumbent"
     _tree(incumbent, "10")

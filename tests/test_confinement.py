@@ -264,6 +264,18 @@ def test_runtime_roots_under_system_python_exclude_usr():
     system = Path("/usr/bin/python3")
     if not system.is_file():
         pytest.skip("no /usr/bin/python3")
+    probe = subprocess.run(
+        [
+            str(system),
+            "-c",
+            "import sys; raise SystemExit(0 if sys.version_info >= (3, 10) else 1)",
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if probe.returncode != 0:
+        pytest.skip("/usr/bin/python3 is older than Python 3.10")
     if Path(sys.executable).resolve() == system.resolve() and Path(sys.prefix).resolve() == Path(
         "/usr"
     ):
