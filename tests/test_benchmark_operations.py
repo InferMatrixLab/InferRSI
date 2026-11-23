@@ -1,6 +1,9 @@
 """Common discovery/launch behavior works with a task added only as resources."""
 
 import json
+import subprocess
+import sys
+from pathlib import Path
 
 import pytest
 
@@ -106,3 +109,42 @@ def test_application_injects_executor_and_preserves_script_imports(library):
         encoding="utf-8",
     )
     assert main(["benchmarks", "run", package.name]) == 0
+
+
+@pytest.mark.parametrize("startup_shadow", ["cwd", "other-runtime"])
+def test_direct_task_child_uses_the_selected_runtime_before_host_imports(tmp_path, startup_shadow):
+    runner = Path(benchmark_operations.optimization_session.__file__).resolve()
+    shadow = tmp_path / "other-runtime"
+    shadow.mkdir()
+    (shadow / "inferrsi.py").write_text("raise RuntimeError('wrong inherited runtime')\n")
+    (tmp_path / "inferrsi.py").write_text("raise RuntimeError('wrong cwd runtime')\n")
+    task = tmp_path / "task"
+    task.mkdir()
+    (task / "helper.py").write_text("VALUE = 42\n")
+    entry = task / "benchmark.py"
+    entry.write_text(
+        "import importlib.util, sys\nfrom pathlib import Path\nfrom helper import VALUE\n"
+        "assert VALUE == 42\n"
+        "assert Path(execute_trial.__code__.co_filename).resolve() == "
+        "Path(sys.argv[1]).resolve()\n"
+        "assert importlib.util.find_spec('project') is None\n"
+        "assert importlib.util.find_spec('candidates') is None\n"
+        "print('selected runtime and task helper')\n",
+        encoding="utf-8",
+    )
+    # Windows can start an extended-path script with an empty sys.path[0].
+    # Recreate that startup without relying on host path-length limits. The
+    # isolated child also starts without any installed/editable InferRSI.
+    bootstrap = (
+        "import runpy,sys; entry=runpy.run_path(sys.argv[1]); "
+        "sys.path.insert(0,sys.argv[3]); "
+        "entry['_run_entry'](sys.argv[2],[sys.argv[4]])"
+    )
+    result = subprocess.run(
+        [sys.executable, "-I", "-S", "-c", bootstrap, str(runner), str(entry),
+         "" if startup_shadow == "cwd" else str(shadow),
+         str(runner.parent / "trials/external.py")],
+        cwd=tmp_path, capture_output=True, text=True, encoding="utf-8", timeout=30,
+    )
+    assert result.returncode == 0, result.stderr
+    assert result.stdout.strip() == "selected runtime and task helper"

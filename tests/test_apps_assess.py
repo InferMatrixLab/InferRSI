@@ -335,6 +335,7 @@ def test_fixed_attempt_view_keeps_process_facts_and_claim_outcomes_separate(offl
         **{key: record[key] for key in (
             "run_id", "attempt_id", "record_version", "phase", "started", "side_effect_unknown",
             "process_outcome", "exit_code", "recorded_at", "prepared_ref",
+            "generation_record_ref",
         )},
         "candidate_id": record["candidate"]["candidate_id"],
         "cleanup_status": record["cleanup"]["status"],
