@@ -27,12 +27,15 @@ that pair only.
 2. **Authorized to integrate:** the governing Issue has an accountable owner
    (recorded on the Issue, or else its only assignee when exactly one is set) and carries `status:accepted`, and you are its deciding agent, were delegated
    integration on the Issue, or you act for a maintainer account.
-3. **No stop:** neither the PR nor its governing Issue carries `bot:stop`
-   or has a human's stop comment that has not been lifted there (see the
-   [stop rule](../../../docs/agent-collaboration.md#identity-and-authority));
-   a stop comment holds even after the label exists. A stop on the Issue also
-   covers its linked PRs. If you cannot tell whether a stop is present, do not
-   merge.
+3. **No stop:** neither the PR, nor any Issue it links, nor any ancestor of
+   those Issues (follow each Issue's sub-issue parent up to the top) carries
+   `bot:stop` or has a human's stop comment that has not been lifted there (see
+   the [stop rule](../../../docs/agent-collaboration.md#identity-and-authority));
+   a stop comment holds even after the label exists. A stop on any Issue in
+   that chain covers this PR. If any Issue in the chain cannot be read (for
+   example a permission or API failure) or you cannot tell whether a stop is
+   present, treat the PR as stopped: do not merge, and record on the PR which
+   Issue you could not check.
 4. **Base and dependencies:** the PR's base is its intended target: `main`,
    or for a stacked PR its lower PR's branch until that PR merges, after which
    the base is changed back to `main` and the checks run again. Every PR it
@@ -88,7 +91,7 @@ that pair only.
    author to add it. This adds no approval requirement.
 
 Right before merging, read the PR and the governing Issue again. Recheck the
-stop labels and stop comments; `headRefOid`, `baseRefName` and `baseRefOid` against the pair you
+stop labels and stop comments on the PR and the whole Issue chain from check 3; `headRefOid`, `baseRefName` and `baseRefOid` against the pair you
 noted; the Issue's `status:accepted` and your authorization; and, on the
 current head, the approvals, any open binding **Request changes** review, any advisory
 request without a recorded disposition, GitHub's merge state, and any

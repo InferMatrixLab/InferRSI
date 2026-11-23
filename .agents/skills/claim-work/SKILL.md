@@ -12,11 +12,12 @@ rules and working rules 1, 7 and 8 in
 ## Check before claiming
 
 1. Confirm the governing Issue and its accepted scope before changing code. If
-   the Issue or the PR you would touch carries `bot:stop` or has a human's
-   stop comment that has not been lifted there (see the
+   the Issue, any of its ancestors (follow the sub-issue parent up to the top)
+   or the PR you would touch carries `bot:stop` or has a human's stop comment
+   that has not been lifted there (see the
    [stop rule](../../../docs/agent-collaboration.md#identity-and-authority)),
-   do not claim it. If you cannot tell whether a stop is present, do not
-   claim it either.
+   do not claim it. If any Issue in that chain cannot be read or you cannot
+   tell whether a stop is present, treat it as stopped and do not claim it.
 2. Confirm the Issue has an accountable owner (recorded on the Issue, or else
    its only assignee when exactly one is set) and carries `status:accepted`:
 

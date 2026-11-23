@@ -77,10 +77,13 @@ Agents may submit formal reviews without a separate human delegation; see
 Submit one only from an eligible independent account, and only as that
 account's formal reviewer agent; other agents under the account report in
 comments. Never submit one on your own PR,
-and not while the guide's
-[stop check](../../../docs/agent-collaboration.md#identity-and-authority) finds a stop on the PR's stop
-chain or cannot rule one out; in that case do not submit, and record on the PR
-which Issue you could not check. Before
+and not while the PR, any Issue it links or any ancestor of those Issues
+(follow each Issue's sub-issue parent up to the top) carries `bot:stop` or has
+a human's stop comment that has not been lifted there (see the
+[stop rule](../../../docs/agent-collaboration.md#identity-and-authority)).
+If any Issue in that chain cannot be read or you cannot tell whether a stop is
+present, treat the PR as stopped, do not submit, and record on the PR which
+Issue you could not check. Before
 submitting, confirm that the PR is open and the reviewed target, base and head
 are still current.
 If the revision changed, reassess the affected diff and evidence before submitting.
