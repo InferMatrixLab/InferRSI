@@ -445,6 +445,16 @@ including phase, process outcome, cleanup and recording time. A successful
 read exits 0. Invalid references, archive integrity failures and mismatched
 revisions exit 2.
 
+The execution view preserves the committed `generation_record_ref` in full.
+Reports and Dashboards show its attempt ID, fixed record revision and SHA-256,
+without displaying its artifact location. A null reference is shown as
+"Not linked"; an older saved view without the field is shown as "Unknown".
+Reading the view does not open the referenced generation or resolve a current
+record, so it can still present a link whose source is unavailable. This is a
+recorded association, not a fresh lineage authorization or an assessment.
+A missing or malformed reference field in a v1 committed record is an archive
+integrity failure; it is not converted to an unlinked record.
+
 The same read-only view is available through
 `inferrsi.apps.api.read_attempt_view`. The legacy `status --run-id` form
 reads the legacy experiment directory.
