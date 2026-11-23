@@ -201,16 +201,47 @@ def _scan(dirfd: int, prefix: str, hashes: dict[str, str], blocked: list[str]) -
             blocked.append(relative)
             continue
         try:
-            hasher = hashlib.sha256()
-            hasher.update(bytes([stat.S_IMODE(os.fstat(file_fd).st_mode) & 0o111]))
-            while True:
-                block = os.read(file_fd, 1024 * 1024)
-                if not block:
-                    break
-                hasher.update(block)
-            hashes[relative] = hasher.hexdigest()
+            hashes[relative] = _digest_file(file_fd)[0]
         finally:
             os.close(file_fd)
+
+
+def _digest_file(file_fd: int) -> tuple[str, bytes, int]:
+    """Hash one open file the same way ``_snapshot`` does, and return those bytes."""
+    executable = stat.S_IMODE(os.fstat(file_fd).st_mode) & 0o111
+    hasher = hashlib.sha256()
+    hasher.update(bytes([executable]))
+    chunks: list[bytes] = []
+    while True:
+        block = os.read(file_fd, 1024 * 1024)
+        if not block:
+            break
+        hasher.update(block)
+        chunks.append(block)
+    return hasher.hexdigest(), b"".join(chunks), executable
+
+
+def _read_identity(root: Path, relative: str) -> tuple[str, bytes, int] | None:
+    """Read one regular file once. The digest matches ``_snapshot`` for these bytes."""
+    dirfd = os.open(root, os.O_RDONLY | os.O_DIRECTORY)
+    try:
+        parts = relative.split("/")
+        for part in parts[:-1]:
+            try:
+                child = os.open(part, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=dirfd)
+            except OSError:
+                return None
+            os.close(dirfd)
+            dirfd = child
+        file_fd = _open_regular(parts[-1], dirfd)
+        if file_fd is None:
+            return None
+    finally:
+        os.close(dirfd)
+    try:
+        return _digest_file(file_fd)
+    finally:
+        os.close(file_fd)
 
 
 def _read_nofollow(root: Path, relative: str) -> bytes | None:
@@ -247,28 +278,6 @@ def _refusal(reason: str, **fields) -> dict:
     body.update(fields)
     body["reason"] = reason
     return body
-
-
-def _executable_bits(root: Path, relative: str) -> int:
-    """Executable permission bits of one regular file, or 0 when it cannot be read."""
-    dirfd = os.open(root, os.O_RDONLY | os.O_DIRECTORY)
-    try:
-        parts = relative.split("/")
-        for part in parts[:-1]:
-            child = os.open(part, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=dirfd)
-            os.close(dirfd)
-            dirfd = child
-        file_fd = _open_regular(parts[-1], dirfd)
-        if file_fd is None:
-            return 0
-        try:
-            return stat.S_IMODE(os.fstat(file_fd).st_mode) & 0o111
-        finally:
-            os.close(file_fd)
-    except OSError:
-        return 0
-    finally:
-        os.close(dirfd)
 
 
 def _tree_digest(root: Path) -> str:
@@ -522,18 +531,20 @@ def _submit_holding_lock(
     ticket = digest(
         {"round_digest": plan["round_digest"], "lane_id": lane_id, "manifest": manifest}
     )[:16]
+    staged: list[tuple[str, bytes, int]] = []
+    for path in changed:
+        loaded = _read_identity(work, path)
+        if loaded is None or loaded[0] != after[path]:
+            return _refusal("changed during submit", rejected=[path])
+        staged.append((path, loaded[1], loaded[2]))
     destination = round_dir / "outbox" / ticket
     if not destination.exists():
         destination.mkdir(parents=True)
         try:
-            for path in changed:
-                payload = _read_nofollow(work, path)
-                if payload is None:
-                    raise OSError(path)
+            for path, payload, executable in staged:
                 target = destination / path
                 target.parent.mkdir(parents=True, exist_ok=True)
                 target.write_bytes(payload)
-                executable = _executable_bits(work, path)
                 if executable:
                     os.chmod(target, stat.S_IMODE(target.stat().st_mode) | executable)
         except OSError:

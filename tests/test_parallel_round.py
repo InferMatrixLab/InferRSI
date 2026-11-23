@@ -1371,6 +1371,74 @@ def test_unshare_failing_validation_is_a_measured_fail(tmp_path):
     assert (round_dir / "close.json").exists()
 
 
+def test_submit_refuses_a_file_that_changes_after_the_scan(tmp_path, monkeypatch):
+    incumbent = tmp_path / "incumbent"
+    _tree(incumbent, "10")
+    round_dir = tmp_path / "round"
+    prepare(_spec(), incumbent, round_dir)
+    work = tmp_path / "work"
+    _tree(work, "8")
+    real = parallel_round._snapshot
+
+    def snapshot(root):
+        hashes, blocked = real(root)
+        if root == work:
+            (work / "knobs" / "a.txt").write_text("mutated", encoding="utf-8")
+        return hashes, blocked
+
+    monkeypatch.setattr(parallel_round, "_snapshot", snapshot)
+    refused = submit(round_dir, "L1", incumbent, work, now=WHEN)
+    assert refused["submitted"] is False
+    assert refused["reason"] == "changed during submit"
+    assert refused["rejected"] == ["knobs/a.txt"]
+    assert not (round_dir / "outbox").exists()
+
+
+def test_submit_refuses_an_executable_bit_that_changes_after_the_scan(tmp_path, monkeypatch):
+    incumbent = tmp_path / "incumbent"
+    _tree(incumbent, "10")
+    script = incumbent / "build.sh"
+    script.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+    script.chmod(0o644)
+    round_dir = tmp_path / "round"
+    prepare(
+        _spec(
+            lanes=[
+                {
+                    "id": "L1",
+                    "entry": "D-01",
+                    "plane": "infra",
+                    "globs": ["build.sh"],
+                    "cap": 2,
+                    "per_attempt_worst_case": 1,
+                    "deadline_utc": "2099-01-01T00:00:00+00:00",
+                }
+            ]
+        ),
+        incumbent,
+        round_dir,
+    )
+    work = tmp_path / "work"
+    _tree(work, "10")
+    copied = work / "build.sh"
+    copied.write_text(script.read_text(encoding="utf-8") + "echo x\n", encoding="utf-8")
+    copied.chmod(0o644)
+    real = parallel_round._snapshot
+
+    def snapshot(root):
+        hashes, blocked = real(root)
+        if root == work:
+            copied.chmod(0o755)
+        return hashes, blocked
+
+    monkeypatch.setattr(parallel_round, "_snapshot", snapshot)
+    refused = submit(round_dir, "L1", incumbent, work, now=WHEN)
+    assert refused["submitted"] is False
+    assert refused["reason"] == "changed during submit"
+    assert refused["rejected"] == ["build.sh"]
+    assert not (round_dir / "outbox").exists()
+
+
 def test_executable_bit_is_part_of_identity_and_the_entrypoint_runs(tmp_path):
     incumbent = tmp_path / "incumbent"
     _tree(incumbent, "10")
