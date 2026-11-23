@@ -16,17 +16,27 @@ def pr(number=10, head=HEAD, branch="main"):
             "user": {"login": "author"}, "commits": 1}
 
 
-def vote(login, state="APPROVED", body="LGTM", head=HEAD, can_push=True, actor_type="User"):
+def vote(login, state="APPROVED", body="", head=HEAD, can_push=True, actor_type="User"):
     return {"author": {"login": login, "__typename": actor_type}, "state": state, "body": body,
             "commit": {"oid": head}, "authorCanPushToRepository": can_push}
 
 
 def test_only_current_eligible_approvals_count():
-    reviews = [vote("A", body="\n LGTM \n\nVerified"), vote("a"), vote("B"),
+    reviews = [vote("A"), vote("a"), vote("B", body="PASS"),
                vote("dissent", state="CHANGES_REQUESTED"), vote("revoked", state="DISMISSED"),
                vote("old", head=OLD), vote("reader", can_push=False), vote("author"),
-               vote("commit-author"), vote("case", body="lgtm"), vote("late", body="PASS\nLGTM")]
+               vote("commit-author")]
     assert gate.review_candidates(reviews, HEAD, {"author", "commit-author"}) == {"a", "b"}
+
+
+@pytest.mark.parametrize(("states", "bodies", "expected"), [
+    (("APPROVED", "APPROVED"), ("", "Reviewed the tests."), 2),
+    (("APPROVED", "COMMENTED"), ("PASS", "LGTM"), 1),
+    (("COMMENTED", "COMMENTED"), ("LGTM", "PASS"), 0),
+])
+def test_only_formal_approvals_count_regardless_of_body(states, bodies, expected):
+    reviews = [vote("first", states[0], bodies[0]), vote("second", states[1], bodies[1])]
+    assert len(gate.review_candidates(reviews, HEAD, set())) == expected
 
 
 @pytest.mark.parametrize(("login", "actor_type"), [

@@ -1,4 +1,4 @@
-"""Evaluate current-head approvals; advisory until the status-source cutover is accepted."""
+"""Report eligible current-head Approve reviews. The native ruleset enforces approvals."""
 
 import argparse
 import json
@@ -20,7 +20,7 @@ query($owner: String!, $repo: String!, $number: Int!, $endCursor: String) {
       headRefOid
       latestOpinionatedReviews(first: 100, after: $endCursor) {
         pageInfo { hasNextPage endCursor }
-        nodes { author { __typename login } authorCanPushToRepository state commit { oid } body }
+        nodes { author { __typename login } authorCanPushToRepository state commit { oid } }
       }
     }
   }
@@ -41,9 +41,7 @@ def review_candidates(reviews, head, contributors):
         login = review["author"]["login"].casefold()
         if review["author"].get("__typename") != "User" or login.endswith("[bot]"):
             continue
-        lines = review["body"].strip().splitlines()
-        first_line = lines[0].strip() if lines else ""
-        if login not in contributors and first_line == "LGTM":
+        if login not in contributors:
             candidates.add(login)
     return candidates
 
@@ -109,9 +107,8 @@ def targets(prs, event_name, event):
 
 def publish(api, head, state, description):
     # Reconcile missed events without consuming one status per unchanged sweep.
-    # Matching github-actions[bot] is only deduplication, not authentication: another
-    # workflow can use that identity. This status must stay advisory until the cutover
-    # verifies an exclusive source and rejects an independently published forged success.
+    # Other workflows share the Actions identity. The creator check only deduplicates
+    # this advisory status.
     statuses = api.get(f"commits/{head}/statuses?per_page=100")
     for status in statuses:
         if status["context"].casefold() == CONTEXT:
@@ -150,7 +147,7 @@ def reconcile(api, prs, selected, dry_run=False):
                 if not is_target(current) or current["head"]["sha"] != head:
                     continue
                 count = 0 if current["draft"] else evaluate(api, current)
-                description = f"{count}/{REQUIRED} eligible current-head approvals"
+                description = f"Advisory: {count}/{REQUIRED} eligible current-head approvals"
                 state = "success" if count >= REQUIRED else "failure"
 
             # A success calculated for one PR must not be reused by another PR on the same SHA.
