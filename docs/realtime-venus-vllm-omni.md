@@ -78,6 +78,20 @@ Flow. Switching the serving mode is necessary but does not prove the model's
 session behavior: exercise speech and dialogue boundaries independently, then
 verify the actual public text/audio events.
 
+A subsequent configuration-only change makes `realtime_venus_omni.yaml` default
+to full duplex, including automatic deployment selection. The `_duplex.yaml`
+profile remains an equivalent alias; `_turn.yaml` explicitly selects ordinary
+HTTP serving. Resolving all inherited fields confirms that the new default
+matches the previously tested duplex configuration and the explicit turn profile
+matches the previous default. The historical measurements below keep their
+original source pins and serving modes; changing a default is not a new benchmark.
+
+The model's delegation capability also differs from serving-side tool execution:
+the official [Harness](https://github.com/inclusionAI/Realtime-Venus/tree/main/harness)
+executes `<delegate>` requests and returns `<backend>` feedback. The current
+adapter preserves delegate text without speaking it, but does not integrate that
+executor or translate delegates into OpenAI `tool_calls`.
+
 The first paced audio/video probe used a short “Hello, welcome” waveform. The
 model chose to listen for all twenty units; there was no protocol error, but
 also no generated audio. That establishes input acceptance only. A separate
