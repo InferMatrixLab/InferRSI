@@ -71,13 +71,29 @@ The CLI neither starts a hidden Agent CLI nor invents a conversation identity.
    `--action record --observation <observation.json>`. Uncertain creation stays
    `dispatching`; inspecting the original call takes precedence over relaunch.
 5. After termination and artifact return, call `--action collect --trial <id>`.
-   Keep failed/incomplete results. By default, trials run in declared order,
-   with on/off order alternating between repeats. With sufficient devices,
-   pass `--parallel` on dispatch for each trial you want to start while others
-   are active. Keep each allocation separate and note concurrent execution
-   when interpreting campaign wall time.
-6. Generate a progress or final comparison with `--action report`. Read
-   `--action status` to resume. Reporting never executes missing rounds/finals.
+   Keep failed/incomplete results. Each attempt is collected once. Repeating
+   collect for that attempt returns its first record with `already_collected:
+   true`; it writes no new snapshot and changes neither its classification nor
+   retry eligibility. Use `--action report` to re-verify current evidence.
+   By default, trials run in declared order, with on/off order alternating
+   between repeats. With sufficient devices, pass `--parallel` on dispatch for
+   each trial you want to start while others are active. Keep each allocation
+   separate and note concurrent execution when interpreting campaign wall time.
+6. To retry an arm, call `--action retry --trial <id>` after collecting its
+   terminal attempt. Retry is an explicit initiator decision. It is never
+   automatic, and `next_action` never suggests it. It is refused while the
+   current attempt is uncollected or not terminal, and when the collected
+   attempt is an eligible completed result, so a valid result cannot be re-rolled.
+   It is also refused while another trial is active, unless you pass `--parallel`.
+   The retry keeps the collected attempt as evidence. It opens a fresh attempt
+   with its own native job (`jobs/<id>-attempt-NNN`) and workspace
+   (`<workspace>-attempt-NNN`), the same frozen runtime and the same prompt.
+   Dispatch, bind, record and collect that attempt as in steps 2-5, with a new
+   native session ID. Never rename, move or edit an earlier campaign to retry.
+   Retry does not change how Harness classifies a failure.
+7. Generate a progress or final comparison with `--action report`. Read
+   `--action status` to resume. It shows each trial's current `attempt` and its
+   `previous_attempts`. Reporting never executes missing rounds/finals.
 
 New comparisons freeze the same diagnosis requirement for both arms. Before
 search, each session profiles the frozen baseline or uses measurements from the
@@ -119,6 +135,24 @@ and `usage` counters when available; cached input is a subset of input. Final
 host usage is never added to campaign round subtotals. Missing usage stays null.
 Do not replace missing final counters with an earlier partial observation.
 
+When the host reports when the native session started and ended, add that
+interval to the terminal observation. It is the attempt's start and end for
+attempt accounting:
+
+```json
+"native_session_window": {
+  "session_id": "<NATIVE_SESSION_ID>",
+  "started_at": 0,
+  "ended_at": 0
+}
+```
+
+Use Unix seconds from the host's own record of that session. The window must
+name the bound session, must not end before it starts, and must contain the
+campaign's start and end. Do not fill it from campaign timestamps or from the
+time you recorded the receipt. Omit it when the host does not report it; the
+attempt time then stays unknown, with a reason.
+
 ## Isolation and evidence
 
 Every trial has a separate workspace and frozen runtime. Shared code and task
@@ -153,6 +187,51 @@ The report leads with [Benchmark metrics](benchmark-metrics.md): each arm's
 independent final speedup, accepted/assessed steps and token coverage, followed
 by paired performance benefit and token consumption ratios. This versioned
 summary preserves the existing comparison conclusion and old factor directions.
+
+**Attempts and wall time** lists every retained attempt of each arm: the
+attempt count, failed attempts with their statuses, the successful campaign wall
+(the selected attempt's campaign wall, when that campaign completed) and the
+total wall. Total wall runs from the first attempt's `native_session_window`
+start to the last attempt's `native_session_window` end. It therefore includes
+native start-up before a campaign exists, failed attempts, retries, wrap-up
+after the last campaign and the gaps between them. Campaign start/end and receipt
+arrival times are never used as attempt boundaries. When a needed boundary is
+missing, invalid or unverifiable, total wall stays unknown. The **Unknown
+reasons** column then names the attempt and the reason. Failed attempts are
+terminal attempts without an eligible completed result; a pending or running
+attempt is not counted as failed. Tokens across attempts are summed only when
+every attempt has a complete `session_total` export. Otherwise they stay
+unknown, and the observed subtotal is shown with `partial` coverage. Trials with
+more than one attempt also get a per-attempt table.
+
+A collected attempt keeps the status, eligibility and gaps it was collected
+with. Failed attempts count only this recorded classification. A lost or changed
+job therefore cannot turn a recorded failure into "not run", or a recorded
+eligible completion into a failure. Report still re-reads every attempt. The
+re-read is kept apart under `reverification`, with its own status, eligibility
+and new gaps, and is shown as *current evidence not re-verified*. Current
+evidence that does not re-verify withholds the successful campaign wall, and
+the selected attempt's verdict is still re-verified live. Costs (tokens, attempt
+window, campaign wall) come only from evidence that re-reads now. An attempt
+whose evidence cannot be re-read has unknown cost, not its recorded cost.
+Every operation strictly checks the frozen plan, the retained collection digests
+of every attempt and each trial's current runtime copy before it acts. Before
+any record is read, every collection reference, current or archived, must name
+its own regular file directly under this experiment's `collections/`. Each
+record's `id` must be the trial that holds the reference and its `attempt`
+the attempt the reference stands for, so two valid references exchanged between
+trials, or between attempts of one trial, are refused rather than misattributed.
+A record written before retries existed carries no `attempt` and is attempt 1. At
+most 2 MiB are read from a record. A
+changed, lost, linked, foreign or exchanged collection record therefore stops
+retry, dispatch (also with `--parallel`) and every other operation before a
+workspace is published or state is written. Report checks an earlier attempt's own
+runtime copy only for that attempt. A missing or changed copy is a re-read gap
+of that attempt, and its cost is unknown. Its recorded classification and the
+other results stay in the report. This
+accounting is descriptive. The frozen verdict still uses each arm's selected
+(latest) attempt, re-verified live, including its campaign `wall_seconds`, and
+is unchanged.
 
 Apps writes a new JSON/Markdown/offline-HTML report snapshot under `reports/`.
 Start with the conclusion and per-task comparison, then inspect complete traces
