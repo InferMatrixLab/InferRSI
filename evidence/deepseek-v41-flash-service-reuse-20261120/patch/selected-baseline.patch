@@ -1,0 +1,143 @@
+diff --git a/tests/ut/models/deepseek_v41/test_eager_index_tiles.py b/tests/ut/models/deepseek_v41/test_eager_index_tiles.py
+index 7e9cdfe7749b0fe2849a604a818dc8d25a44a6f4..dc08fe41852b93c7e347627b1f9efccbd5c6cca4 100644
+--- a/tests/ut/models/deepseek_v41/test_eager_index_tiles.py
++++ b/tests/ut/models/deepseek_v41/test_eager_index_tiles.py
+@@ -68,9 +68,16 @@ def test_tiled_index_exactly_matches_dense(ratio, dsa_cp, stage, monkeypatch):
+         rope_dim=dim,
+     )
+     layer.rotate = lambda tensor, pos: attention.DeepseekV41Attention.rotate(layer, tensor, pos)
+-    mask = (torch.arange(rows)[:, None] + torch.arange(count)) % 3 != 0 if stage == "after_source" else None
++    block_mask = None
++    mask = None
++    block_size = layer.config.candidate_block_size
++    if stage == "after_source":
++        block_mask = (torch.arange(rows)[:, None] + torch.arange((count + block_size - 1) // block_size)) % 3 != 0
++        mask = block_mask.repeat_interleave(block_size, -1)[..., :count]
+     full = attention.SharedRequestAttention(compressed=keys, index_keys=keys, candidates=mask)
+-    tiled = attention.SharedRequestAttention(compressed=keys, index_keys=keys, candidates=mask)
++    tiled = attention.SharedRequestAttention(
++        compressed=keys, index_keys=keys, candidates=block_mask, candidate_width=count
++    )
+     reduce = Mock(side_effect=lambda scores: scores * 2)
+     monkeypatch.setattr(attention, "tensor_model_parallel_all_reduce", reduce)
+     expected = dense_index(layer, x, qr, positions, full)
+@@ -85,7 +92,9 @@ def test_tiled_index_exactly_matches_dense(ratio, dsa_cp, stage, monkeypatch):
+     if full.candidates is None:
+         assert tiled.candidates is None
+     else:
+-        torch.testing.assert_close(tiled.candidates, full.candidates, rtol=0, atol=0)
++        assert tiled.candidate_width == count
++        expanded = tiled.candidates.repeat_interleave(block_size, -1)[..., :count]
++        torch.testing.assert_close(expanded, full.candidates, rtol=0, atol=0)
+     layer.owns_index = False
+     assert attention.DeepseekV41Attention._index(layer, x, qr, positions, tiled) is actual
+ 
+diff --git a/vllm_ascend/models/deepseek_v41/attention.py b/vllm_ascend/models/deepseek_v41/attention.py
+index 881f4d997ab57e75d8c9788d156fda5538f02465..b5c74f6ad62a8f2e384e7043c8607a61fccb8efe 100644
+--- a/vllm_ascend/models/deepseek_v41/attention.py
++++ b/vllm_ascend/models/deepseek_v41/attention.py
+@@ -521,12 +521,23 @@ def topk_columns(scores, k):
+     # topk may choose different equal items at different padded widths.
+     # Retain all strictly higher scores; fill only the tied part by column.
+     tied = torch.where(scores == cutoff, columns, scores.shape[-1])
++    if tied.device.type == "npu" and scores.shape[-1] <= (1 << 24):
++        # FP32 exactly represents both the column IDs and the sentinel width.
++        tied = tied.float()
+     first = tied.topk(k, dim=-1, largest=False).values
+     at_cutoff = top.values == cutoff
+     ordinal = at_cutoff.long().cumsum(-1) - 1
+     return torch.where(at_cutoff, first.gather(-1, ordinal.clamp_min(0)).long(), top.indices)
+ 
+ 
++def sorted_topk_columns(scores, k):
++    indices = topk_columns(scores, k)
++    if indices.device.type == "npu" and k > 1 and scores.shape[-1] <= (1 << 24):
++        # FP32 represents every column index in this range exactly.
++        return indices.float().sort(-1).values.long()
++    return indices.sort(-1).values
++
++
+ def select_candidate_blocks(logits, compress_lens, topk_blocks, block_size, *, per_token=True):
+     width = logits.shape[-1]
+     if width == 0:
+@@ -563,6 +574,7 @@ class SharedRequestAttention:
+     index_keys: torch.Tensor | None = None
+     topk: torch.Tensor | None = None
+     candidates: torch.Tensor | None = None
++    candidate_width: int = 0
+ 
+ 
+ @dataclass
+@@ -861,8 +873,11 @@ class DeepseekV41Attention(nn.Module):
+         k = min(self.config.index_topk, count)
+         topk = torch.empty((x.shape[0], k), device=x.device, dtype=torch.long)
+         candidate_layer = self.config.candidate_source_layer_id
++        block_size = self.config.candidate_block_size
+         if self.layer_id == candidate_layer:
+-            shared.candidates = torch.empty((x.shape[0], count), device=x.device, dtype=torch.bool)
++            blocks = (count + block_size - 1) // block_size
++            shared.candidate_width = count
++            shared.candidates = torch.empty((x.shape[0], blocks), device=x.device, dtype=torch.bool)
+         elif 0 <= candidate_layer < self.layer_id and shared.candidates is None:
+             raise RuntimeError("Candidate source did not execute")
+         columns = torch.arange(count, device=x.device)
+@@ -882,11 +897,11 @@ class DeepseekV41Attention(nn.Module):
+             scores.masked_fill_(columns >= lengths, -torch.inf)
+             if self.layer_id == candidate_layer:
+                 shared.candidates[rows] = select_candidate_blocks(
+-                    scores, lengths, self.config.candidate_topk_blocks, self.config.candidate_block_size
++                    scores, lengths, self.config.candidate_topk_blocks, block_size, per_token=False
+                 )
+             elif 0 <= candidate_layer < self.layer_id:
+-                scores.masked_fill_(~shared.candidates[rows], -torch.inf)
+-            indices = topk_columns(scores, k).sort(-1).values
++                mask_candidate_columns_(scores, shared.candidates[rows], block_size, shared.candidate_width)
++            indices = sorted_topk_columns(scores, k)
+             topk[rows] = torch.where(indices < lengths, indices, -1)
+         shared.topk = topk
+         return shared.topk
+@@ -996,7 +1011,7 @@ class DeepseekV41Attention(nn.Module):
+                 self.config.candidate_block_size,
+                 runtime.decode_candidate_width,
+             )
+-        indices = topk_columns(scores, min(self.config.index_topk, capacity)).sort(-1).values
++        indices = sorted_topk_columns(scores, min(self.config.index_topk, capacity))
+         runtime.decode_topk = torch.where(indices < lengths, indices, -1)
+         if (arena := getattr(runtime, "slot_arena", None)) is not None:
+             # Ascending nonnegative indices followed by -1. Generic external IDs get no witness.
+diff --git a/vllm_ascend/models/deepseek_v41/core.py b/vllm_ascend/models/deepseek_v41/core.py
+index e04f404f2119d3504709474f2ba7bc9dda7dda1a..0584d5f770e1ef6bb601085f2f1320d09156f4eb 100644
+--- a/vllm_ascend/models/deepseek_v41/core.py
++++ b/vllm_ascend/models/deepseek_v41/core.py
+@@ -102,6 +102,31 @@ def hc_post(
+     post: torch.Tensor,
+     comb: torch.Tensor,
+ ) -> torch.Tensor:
++    if (
++        sublayer_output.device.type == "npu"
++        and sublayer_output.ndim == 2
++        and sublayer_output.shape[0] > 0
++        and sublayer_output.shape[1] == 5120
++        and residual.shape == (sublayer_output.shape[0], _FUSED_HC_WIDTH, 5120)
++        and post.shape == residual.shape[:-1]
++        and comb.shape == (*post.shape, _FUSED_HC_WIDTH)
++        and sublayer_output.dtype == residual.dtype == torch.bfloat16
++        and post.dtype == comb.dtype == torch.float32
++        and torch.is_inference_mode_enabled()
++    ):
++        from vllm import envs
++
++        from vllm_ascend.utils import AscendDeviceType, enable_custom_op, get_ascend_device_type
++
++        tensors = (sublayer_output, residual, post, comb)
++        if (
++            not envs.VLLM_BATCH_INVARIANT
++            and get_ascend_device_type() == AscendDeviceType.A3
++            and all(t.device == sublayer_output.device and t.is_contiguous() for t in tensors)
++            and enable_custom_op()
++        ):
++            return torch.ops._C_ascend.npu_hc_post(*(t.unsqueeze(0) for t in tensors)).squeeze(0)
++
+     mixed = (comb.unsqueeze(-1) * residual.unsqueeze(-2)).sum(-3)
+     output = post.unsqueeze(-1) * sublayer_output.unsqueeze(-2) + mixed
+     return output.to(sublayer_output.dtype)
