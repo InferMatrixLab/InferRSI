@@ -1,0 +1,676 @@
+{
+  "scope": "Functional checks; no duplex performance claim or broad semantic/perceptual acceptance.",
+  "source_revision": "59b193b992ce3d6b5c80a583bac7d82f8a43474e",
+  "model_revision": "a1d95d3ac61416c8db34736b152241396850a6ed",
+  "deployment": "vllm_omni/deploy/realtime_venus_omni_duplex.yaml",
+  "environment": {
+    "gpu": "NVIDIA L20X",
+    "torch": "2.14.0+cu130",
+    "vllm": "0.34.0",
+    "transformers": "5.20.2",
+    "flow_steps": 10,
+    "flow_dtype": "float32"
+  },
+  "regressions": {
+    "passed": 681,
+    "skipped": 6,
+    "skips": "CUDA embedding cases in CPU run",
+    "precommit": "all applicable hooks passed"
+  },
+  "greeting_only_probe": {
+    "input_units": 20,
+    "listen_decisions": 20,
+    "audio_bytes": 0,
+    "qualification": "input acceptance only"
+  },
+  "seeded_greeting_probe": {
+    "audio_chunks": 5,
+    "audio_bytes": 249600,
+    "sample_rate_hz": 24000,
+    "transcript": "Hello! I'm an AI here to help you with anything you need. How can I assist you today?"
+  },
+  "paced_av": {
+    "validation_scope": "transport_and_lifecycle_only",
+    "ok": true,
+    "realtime_pacing": true,
+    "video_frames_sent": 30,
+    "tail_video_frames_sent": 8,
+    "audio_bytes": 334080,
+    "audio_chunk_count": 9,
+    "output_sample_rate_hz": 24000,
+    "transcript": "是蓝色。它正在向右移动。是蓝色。数字是2。",
+    "errors": [],
+    "completed_responses": 4
+  },
+  "natural_input_lifecycle": {
+    "scope": "functional lifecycle only",
+    "events": [
+      {
+        "type": "session.created",
+        "response_id": null,
+        "epoch": null,
+        "server_event_seq": null
+      },
+      {
+        "type": "session.resumed",
+        "response_id": null,
+        "epoch": null,
+        "server_event_seq": null
+      },
+      {
+        "type": "session.updated",
+        "response_id": null,
+        "epoch": null,
+        "server_event_seq": 1
+      },
+      {
+        "type": "input_audio_buffer.speech_started",
+        "response_id": null,
+        "epoch": null,
+        "server_event_seq": 2
+      },
+      {
+        "type": "response.listen",
+        "response_id": null,
+        "epoch": 0,
+        "server_event_seq": 3
+      },
+      {
+        "type": "response.listen",
+        "response_id": null,
+        "epoch": 0,
+        "server_event_seq": 4
+      },
+      {
+        "type": "response.listen",
+        "response_id": null,
+        "epoch": 0,
+        "server_event_seq": 5
+      },
+      {
+        "type": "response.listen",
+        "response_id": null,
+        "epoch": 0,
+        "server_event_seq": 6
+      },
+      {
+        "type": "response.created",
+        "response_id": "response-1",
+        "epoch": null,
+        "server_event_seq": 7
+      },
+      {
+        "type": "conversation.item.added",
+        "response_id": null,
+        "epoch": null,
+        "server_event_seq": 8
+      },
+      {
+        "type": "conversation.item.created",
+        "response_id": null,
+        "epoch": null,
+        "server_event_seq": 9
+      },
+      {
+        "type": "response.output_item.added",
+        "response_id": "response-1",
+        "epoch": null,
+        "server_event_seq": 10
+      },
+      {
+        "type": "response.content_part.added",
+        "response_id": "response-1",
+        "epoch": null,
+        "server_event_seq": 11
+      },
+      {
+        "type": "response.speak",
+        "response_id": "response-1",
+        "epoch": null,
+        "server_event_seq": 12
+      },
+      {
+        "type": "response.output_audio.delta",
+        "response_id": "response-1",
+        "epoch": null,
+        "server_event_seq": 13,
+        "audio_bytes": 5760
+      },
+      {
+        "type": "response.output_audio_transcript.delta",
+        "response_id": "response-1",
+        "epoch": null,
+        "server_event_seq": 14,
+        "text": "红色。"
+      },
+      {
+        "type": "response.output_audio.done",
+        "response_id": "response-1",
+        "epoch": null,
+        "server_event_seq": 15
+      },
+      {
+        "type": "response.output_audio_transcript.done",
+        "response_id": "response-1",
+        "epoch": null,
+        "server_event_seq": 16
+      },
+      {
+        "type": "response.content_part.done",
+        "response_id": "response-1",
+        "epoch": null,
+        "server_event_seq": 17
+      },
+      {
+        "type": "response.output_item.done",
+        "response_id": "response-1",
+        "epoch": null,
+        "server_event_seq": 18
+      },
+      {
+        "type": "conversation.item.done",
+        "response_id": null,
+        "epoch": null,
+        "server_event_seq": 19
+      },
+      {
+        "type": "response.done",
+        "response_id": "response-1",
+        "epoch": null,
+        "server_event_seq": 20,
+        "status": "cancelled"
+      },
+      {
+        "type": "rate_limits.updated",
+        "response_id": null,
+        "epoch": null,
+        "server_event_seq": 21
+      },
+      {
+        "type": "input_audio_buffer.cleared",
+        "response_id": null,
+        "epoch": null,
+        "server_event_seq": 22
+      },
+      {
+        "type": "input_audio_buffer.speech_started",
+        "response_id": null,
+        "epoch": null,
+        "server_event_seq": 23
+      },
+      {
+        "type": "response.listen",
+        "response_id": null,
+        "epoch": 1,
+        "server_event_seq": 24
+      },
+      {
+        "type": "response.listen",
+        "response_id": null,
+        "epoch": 1,
+        "server_event_seq": 25
+      },
+      {
+        "type": "response.listen",
+        "response_id": null,
+        "epoch": 1,
+        "server_event_seq": 26
+      },
+      {
+        "type": "response.listen",
+        "response_id": null,
+        "epoch": 1,
+        "server_event_seq": 27
+      },
+      {
+        "type": "response.created",
+        "response_id": "response-2",
+        "epoch": null,
+        "server_event_seq": 28
+      },
+      {
+        "type": "conversation.item.added",
+        "response_id": null,
+        "epoch": null,
+        "server_event_seq": 29
+      },
+      {
+        "type": "conversation.item.created",
+        "response_id": null,
+        "epoch": null,
+        "server_event_seq": 30
+      },
+      {
+        "type": "response.output_item.added",
+        "response_id": "response-2",
+        "epoch": null,
+        "server_event_seq": 31
+      },
+      {
+        "type": "response.content_part.added",
+        "response_id": "response-2",
+        "epoch": null,
+        "server_event_seq": 32
+      },
+      {
+        "type": "response.speak",
+        "response_id": "response-2",
+        "epoch": null,
+        "server_event_seq": 33
+      },
+      {
+        "type": "response.output_audio.delta",
+        "response_id": "response-2",
+        "epoch": null,
+        "server_event_seq": 34,
+        "audio_bytes": 3840
+      },
+      {
+        "type": "response.output_audio_transcript.delta",
+        "response_id": "response-2",
+        "epoch": null,
+        "server_event_seq": 35,
+        "text": "蓝色。"
+      },
+      {
+        "type": "response.output_audio.delta",
+        "response_id": "response-2",
+        "epoch": null,
+        "server_event_seq": 36,
+        "audio_bytes": 40320
+      },
+      {
+        "type": "response.output_audio_transcript.delta",
+        "response_id": "response-2",
+        "epoch": null,
+        "server_event_seq": 37,
+        "text": ""
+      },
+      {
+        "type": "response.output_audio.done",
+        "response_id": "response-2",
+        "epoch": null,
+        "server_event_seq": 38
+      },
+      {
+        "type": "response.output_audio_transcript.done",
+        "response_id": "response-2",
+        "epoch": null,
+        "server_event_seq": 39
+      },
+      {
+        "type": "response.content_part.done",
+        "response_id": "response-2",
+        "epoch": null,
+        "server_event_seq": 40
+      },
+      {
+        "type": "response.output_item.done",
+        "response_id": "response-2",
+        "epoch": null,
+        "server_event_seq": 41
+      },
+      {
+        "type": "conversation.item.done",
+        "response_id": null,
+        "epoch": null,
+        "server_event_seq": 42
+      },
+      {
+        "type": "response.done",
+        "response_id": "response-2",
+        "epoch": null,
+        "server_event_seq": 43,
+        "status": "completed"
+      },
+      {
+        "type": "rate_limits.updated",
+        "response_id": null,
+        "epoch": null,
+        "server_event_seq": 44
+      },
+      {
+        "type": "response.listen",
+        "response_id": null,
+        "epoch": 1,
+        "server_event_seq": 45
+      },
+      {
+        "type": "response.listen",
+        "response_id": null,
+        "epoch": 1,
+        "server_event_seq": 46
+      },
+      {
+        "type": "response.listen",
+        "response_id": null,
+        "epoch": 1,
+        "server_event_seq": 47
+      },
+      {
+        "type": "response.listen",
+        "response_id": null,
+        "epoch": 1,
+        "server_event_seq": 48
+      },
+      {
+        "type": "response.listen",
+        "response_id": null,
+        "epoch": 1,
+        "server_event_seq": 49
+      },
+      {
+        "type": "response.listen",
+        "response_id": null,
+        "epoch": 1,
+        "server_event_seq": 50
+      },
+      {
+        "type": "response.listen",
+        "response_id": null,
+        "epoch": 1,
+        "server_event_seq": 51
+      },
+      {
+        "type": "response.listen",
+        "response_id": null,
+        "epoch": 1,
+        "server_event_seq": 52
+      },
+      {
+        "type": "response.listen",
+        "response_id": null,
+        "epoch": 1,
+        "server_event_seq": 53
+      },
+      {
+        "type": "session.closed",
+        "response_id": null,
+        "epoch": null,
+        "server_event_seq": 54
+      }
+    ],
+    "audio_bytes_by_response": {
+      "response-1": 5760,
+      "response-2": 44160
+    },
+    "cancel_confirmed": true,
+    "stale_audio_after_cancel": 0,
+    "errors": []
+  },
+  "reference_greedy_text_only": [
+    {
+      "unit": 0,
+      "prefill_success": true,
+      "listen": true,
+      "text": "",
+      "end_of_turn": false
+    },
+    {
+      "unit": 1,
+      "prefill_success": true,
+      "listen": true,
+      "text": "",
+      "end_of_turn": false
+    },
+    {
+      "unit": 2,
+      "prefill_success": true,
+      "listen": true,
+      "text": "",
+      "end_of_turn": false
+    },
+    {
+      "unit": 3,
+      "prefill_success": true,
+      "listen": true,
+      "text": "",
+      "end_of_turn": false
+    },
+    {
+      "unit": 4,
+      "prefill_success": true,
+      "listen": true,
+      "text": "",
+      "end_of_turn": false
+    },
+    {
+      "unit": 5,
+      "prefill_success": true,
+      "listen": true,
+      "text": "",
+      "end_of_turn": false
+    },
+    {
+      "unit": 6,
+      "prefill_success": true,
+      "listen": false,
+      "text": "主线上方的",
+      "end_of_turn": false
+    },
+    {
+      "unit": 7,
+      "prefill_success": true,
+      "listen": false,
+      "text": "数字是白色。",
+      "end_of_turn": false
+    },
+    {
+      "unit": 8,
+      "prefill_success": true,
+      "listen": false,
+      "text": "",
+      "end_of_turn": true
+    },
+    {
+      "unit": 9,
+      "prefill_success": true,
+      "listen": true,
+      "text": "",
+      "end_of_turn": false
+    },
+    {
+      "unit": 10,
+      "prefill_success": true,
+      "listen": true,
+      "text": "",
+      "end_of_turn": false
+    },
+    {
+      "unit": 11,
+      "prefill_success": true,
+      "listen": true,
+      "text": "",
+      "end_of_turn": false
+    },
+    {
+      "unit": 12,
+      "prefill_success": true,
+      "listen": false,
+      "text": "主线正在向",
+      "end_of_turn": false
+    },
+    {
+      "unit": 13,
+      "prefill_success": true,
+      "listen": false,
+      "text": "右移动。",
+      "end_of_turn": false
+    },
+    {
+      "unit": 14,
+      "prefill_success": true,
+      "listen": false,
+      "text": "",
+      "end_of_turn": true
+    },
+    {
+      "unit": 15,
+      "prefill_success": true,
+      "listen": true,
+      "text": "",
+      "end_of_turn": false
+    },
+    {
+      "unit": 16,
+      "prefill_success": true,
+      "listen": true,
+      "text": "",
+      "end_of_turn": false
+    },
+    {
+      "unit": 17,
+      "prefill_success": true,
+      "listen": true,
+      "text": "",
+      "end_of_turn": false
+    },
+    {
+      "unit": 18,
+      "prefill_success": true,
+      "listen": true,
+      "text": "",
+      "end_of_turn": false
+    },
+    {
+      "unit": 19,
+      "prefill_success": true,
+      "listen": true,
+      "text": "",
+      "end_of_turn": false
+    },
+    {
+      "unit": 20,
+      "prefill_success": true,
+      "listen": false,
+      "text": "主线上方的",
+      "end_of_turn": false
+    },
+    {
+      "unit": 21,
+      "prefill_success": true,
+      "listen": false,
+      "text": "数字是白色。",
+      "end_of_turn": false
+    },
+    {
+      "unit": 22,
+      "prefill_success": true,
+      "listen": false,
+      "text": "",
+      "end_of_turn": true
+    },
+    {
+      "unit": 23,
+      "prefill_success": true,
+      "listen": true,
+      "text": "",
+      "end_of_turn": false
+    },
+    {
+      "unit": 24,
+      "prefill_success": true,
+      "listen": true,
+      "text": "",
+      "end_of_turn": false
+    },
+    {
+      "unit": 25,
+      "prefill_success": true,
+      "listen": true,
+      "text": "",
+      "end_of_turn": false
+    },
+    {
+      "unit": 26,
+      "prefill_success": true,
+      "listen": true,
+      "text": "",
+      "end_of_turn": false
+    },
+    {
+      "unit": 27,
+      "prefill_success": true,
+      "listen": true,
+      "text": "",
+      "end_of_turn": false
+    },
+    {
+      "unit": 28,
+      "prefill_success": true,
+      "listen": true,
+      "text": "",
+      "end_of_turn": false
+    },
+    {
+      "unit": 29,
+      "prefill_success": true,
+      "listen": true,
+      "text": "",
+      "end_of_turn": false
+    },
+    {
+      "unit": 30,
+      "prefill_success": true,
+      "listen": true,
+      "text": "",
+      "end_of_turn": false
+    },
+    {
+      "unit": 31,
+      "prefill_success": true,
+      "listen": true,
+      "text": "",
+      "end_of_turn": false
+    },
+    {
+      "unit": 32,
+      "prefill_success": true,
+      "listen": true,
+      "text": "",
+      "end_of_turn": false
+    },
+    {
+      "unit": 33,
+      "prefill_success": true,
+      "listen": true,
+      "text": "",
+      "end_of_turn": false
+    },
+    {
+      "unit": 34,
+      "prefill_success": true,
+      "listen": true,
+      "text": "",
+      "end_of_turn": false
+    },
+    {
+      "unit": 35,
+      "prefill_success": true,
+      "listen": true,
+      "text": "",
+      "end_of_turn": false
+    },
+    {
+      "unit": 36,
+      "prefill_success": true,
+      "listen": true,
+      "text": "",
+      "end_of_turn": false
+    },
+    {
+      "unit": 37,
+      "prefill_success": true,
+      "listen": true,
+      "text": "",
+      "end_of_turn": false
+    }
+  ],
+  "limitations": [
+    "The complex 30-second audiovisual fixture produced a wrong first color answer in vLLM-Omni. Four responses and nine audio chunks establish transport, not answer quality.",
+    "The released Transformers 4.51.3 duplex reference also produced wrong descriptions. It used greedy decoding with synthesis disabled; the adapted service used default sampling. This does not prove parity or isolate a cause.",
+    "The seeded-story cancellation probe completed transport recovery but restarted its initial story context instead of answering the new question. The natural-input red/blue probe separately verifies a changed scene after cancellation.",
+    "Delegation flush/restart/silent-text branches are covered by CPU regressions; real-model generation did not exercise every delegated sequence.",
+    "No sustained service, broad speech quality, external delegation executor, external memory, Audio-only or non-CUDA qualification."
+  ]
+}

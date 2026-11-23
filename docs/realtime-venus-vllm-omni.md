@@ -51,10 +51,74 @@ execution optimization from an unvalidated sampling or precision change.
 Venus also introduces `<delegate>…</delegate>` spans. The native duplex handoff
 must remove the same rows from token IDs and hidden states, retain the text
 stream, carry masking state across units, and reset it at a turn boundary.
-CPU handoff tests cover those properties. This is not full upstream duplex
-parity: in particular, upstream's early speech-tail flushing for a fully muted
-mid-turn unit and the external asynchronous delegation runtime need additional
-end-to-end validation.
+The follow-up adds an explicit full-duplex deployment and completes the speech
+boundary handling. A fully muted unit flushes preceding speech using only the
+Talker's audio-begin embedding, a 26-token ceiling and no minimum. The codec
+bridge drains its pending frames and resets the vocoder without closing the
+dialogue turn. Later silent units do not synthesize again; newly spoken content
+replaces the Talker prompt and KV. The real turn terminator still closes the
+dialogue, including when its speech row was masked by an unclosed delegation.
+
+Filtering alone also missed an output-contract problem: the shared data plane
+normally waits for waveform frames before publishing text. An intentionally
+silent delegation needs its text delivered immediately. Model-owned metadata
+now carries that distinction through Talker and Code2Wav; the bridge consumes
+the queued text at the silent unit boundary and the data plane deduplicates it
+by cache epoch and chunk sequence. It cannot be lost or replayed with later
+speech. Regression tests cover the full producer-to-consumer metadata path.
+
+These changes reuse the existing session engine, model-native listen/speak
+policy, input append and interruption mechanisms. The external asynchronous
+delegation executor and long-video memory runtime remain outside this adapter.
+
+## Full-duplex follow-up lessons
+
+The turn profile and `realtime_venus_omni_duplex.yaml` both retain ten-step FP32
+Flow. Switching the serving mode is necessary but does not prove the model's
+session behavior: exercise speech and dialogue boundaries independently, then
+verify the actual public text/audio events.
+
+The first paced audio/video probe used a short “Hello, welcome” waveform. The
+model chose to listen for all twenty units; there was no protocol error, but
+also no generated audio. That establishes input acceptance only. A separate
+text-seeded duplex probe produced a spoken introduction and returned to
+listening. Neither result alone establishes multi-turn audio conversation or
+interruption recovery.
+
+Widening the CPU check to the vocoder's isolated import test caught a new circular
+import: placing transport constants under the duplex package caused Code2Wav
+to import the plugin, which imports Code2Wav. Moving the constants to the shared
+handoff module fixed the ownership boundary without duplicating their strings.
+This illustrates why a passing in-process suite can miss an import-order defect.
+
+Follow-up functional results are retained separately from the earlier HTTP
+measurement. They are not extra repetitions of that experiment, and its latency
+ratio is not a full-duplex speedup claim.
+
+At downstream commit `59b193b992ce3d6b5c80a583bac7d82f8a43474e`, the related
+CPU regression run completed with 681 passed and six CUDA-embedding cases
+skipped. Applicable pre-commit hooks passed. A paced 30-second synthetic video
+plus eight seconds of tail input produced four completed responses and nine
+audio chunks at 24 kHz, with no protocol errors. Its first color answer was
+wrong; this is transport/lifecycle evidence, not semantic acceptance.
+
+The natural-input lifecycle probe resumed the same WebSocket session, asked
+about a red circle, cancelled the first spoken response, then asked about a
+blue circle in the same session. Transcripts were “红色。” then “蓝色。”; the
+first response terminated as cancelled and the second completed. No audio
+from the cancelled response arrived after cancellation acknowledgement, and
+session close completed without protocol errors. A separate seeded-story
+probe also recovered transport after cancellation, but resumed its initial
+story context rather than answering the new scene question; it is not evidence
+of semantic interruption recovery.
+
+An untimed Transformers 4.51.3 reference check used the released duplex class
+on the same 38 audio/video units with speech synthesis disabled and greedy
+decoding. It also produced incorrect descriptions on the complex fixture.
+The adapted service used its default sampling, so these runs do not establish
+token parity or identify the cause of either model's wrong answers. The
+[functional summary](../evidence/realtime-venus-day0/results/duplex-functional.json)
+retains the outputs and separates them from the prior managed performance round.
 
 ## Validation and experiment boundaries
 

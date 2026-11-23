@@ -1,7 +1,7 @@
 {
   "acceptance_issue": "https://github.com/InferMatrixLab/InferRSI/issues/593",
   "overall_verdict": "INCONCLUSIVE",
-  "overall_scope": "Full model quality and duplex/service qualification remain incomplete; no public archive or independent final retest.",
+  "overall_scope": "Full model quality and sustained-service qualification remain incomplete; no public archive or independent final performance retest.",
   "managed_round": {
     "status": "completed",
     "verdict": "PASS",
@@ -72,5 +72,10 @@
     "initial_audio_negative": "Initial inherited-profile audio produced unrelated marker-like text in both implementations; valid WAV structure did not establish speech quality.",
     "causal_limit": "Initial/final generation settings also differed in the thinking template; this check does not isolate Flow precision or step count.",
     "performance_remeasurement": false
+  },
+  "duplex_followup": {
+    "source_revision": "59b193b992ce3d6b5c80a583bac7d82f8a43474e",
+    "functional_results": "duplex-functional.json",
+    "independent_performance_measurement": false
   }
 }

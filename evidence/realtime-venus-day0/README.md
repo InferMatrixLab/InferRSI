@@ -3,8 +3,12 @@
 - Governing [acceptance issue](https://github.com/InferMatrixLab/InferRSI/issues/593).
 - [Experience and limitations](../../docs/realtime-venus-vllm-omni.md).
 - [Frozen task](plan/TASK.md), [validator](validator/README.md),
-  [source pointer](patch/README.md), [results](results/summary.json) and the complete managed-round
-  [step index](results/trials.jsonl).
+  [source pointer](patch/README.md), [results](results/summary.json) and the
+  complete managed-round [step index](results/trials.jsonl).
+- The [full-duplex follow-up](plan/duplex-followup.md) has separate
+  [functional results](results/duplex-functional.json) and a public
+  [lifecycle probe](validator/duplex_lifecycle.py). These checks do not change
+  the frozen HTTP performance experiment or establish a duplex speedup.
 - Overall verdict: **INCONCLUSIVE**. This compact bundle does not establish
   full model parity, perceptual speech quality or a general performance claim.
 - The operator retains original logs, media and managed snapshots locally.

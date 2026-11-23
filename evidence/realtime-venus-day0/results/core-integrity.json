@@ -1,12 +1,15 @@
 {
-  "README.md": "17b95e38e8f03e8a2d34252b420d16cb3c0af3d98689de1b439779164c8f4822",
+  "README.md": "6db7402429a7c882ef7233223069775dad05ef212ed7388f36e0fd8425cb39d5",
   "patch/README.md": "e275c1e848f8a8b81483c93e473e8b410bdb1aead7a6620252386c8e1481d767",
   "plan/TASK.md": "2caefefa7caf18deb8c5ab99473b416b206f82d9adc9a4ab19c111755b72bec2",
+  "plan/duplex-followup.md": "d7d878f63734f5a3ee5b732c8ead9a94be93ffe2e3d6440bb4f6e5834ada2966",
   "plan/runspec.json": "d5752786c8e0fd149e7c86d7aaca2d1d1332aacd90c406eb920bbbb948bdf915",
-  "results/summary.json": "19fde29876d576b927ca62b5213feba5f85428089437c6786a76843a78abfc29",
+  "results/duplex-functional.json": "cffb61fe5ee3b673b4d2112ea261354470b1d960e03d21bb02b9de075fa531d3",
+  "results/summary.json": "e2729deff6c700a0ab3d998a0670bc3858bfe5daa4781280bbe1af9033f3f9b4",
   "results/trials.jsonl": "21188b441611ebf96cfa4150981368f9e8ec4d396d541bef1aede9b4215f2808",
   "validator/README.md": "765f90cfd63e711f3f14121c8e0ef9bb44320f5bef25c8cfac18b0aac22c890b",
   "validator/check.py": "cdecd905885622b1eb02dc5c5b9f74eef0984f9b304639d2bd54282324509497",
+  "validator/duplex_lifecycle.py": "3088de9da4462ae742ec003db44bfce4381005645c08c9d97d124ed75c1faff9",
   "validator/measure.py": "cf1a7032cf5ffd3c834479817356addf9fc8e339a913101f7f908345d0f7d4ca",
   "validator/tokenizer_probe.py": "81ed14231e4bc4890c6dca37defaf9fb76bb47745d6ba9ffe2d7f15589df7596"
 }
