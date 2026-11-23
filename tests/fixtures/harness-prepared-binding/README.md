@@ -9,6 +9,8 @@ with request digest
 
 This is immutable contract-conformance input, not observed execution evidence or
 an available worker implementation. Tests compare the canonical Apps binder,
-Harness digest and read-only prepared projection. No process is started. T37
-entry verification and production T40 replay remain separate PR-2/PR-3 work.
+Harness digest and read-only prepared projection. No process is started by these
+binding tests. Post-registration T37 is covered separately in
+`tests/test_harness_entry_verification.py`; deadline/budget and production T40
+replay remain PR-3 work.
 The original documentary fixtures are not rewritten.

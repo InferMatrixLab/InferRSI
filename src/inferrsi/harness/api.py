@@ -43,7 +43,7 @@ class Harness:
         )
 
     def execute(self, spec: Mapping, *, cancellation=None) -> dict:
-        """The flat ExecutionRecord of one ordinary command request, or a PublicError.
+        """The flat ExecutionRecord of one supported local CPU request, or a PublicError.
 
         ``cancellation`` is a host handle with ``is_set()``, such as ``threading.Event``.
         """
