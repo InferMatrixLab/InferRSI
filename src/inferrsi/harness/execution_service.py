@@ -12,12 +12,21 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from inferrsi.contracts import json_v1
-from inferrsi.harness import entry_code, input_binding, local_process, prepared_binding, run_store
+from inferrsi.harness import (
+    entry_code,
+    input_binding,
+    local_process,
+    prepared_binding,
+    run_store,
+)
+from inferrsi.harness import (
+    evidence_capture as capture_service,
+)
 from inferrsi.harness.errors import PublicError
 
 # The ordinary CPU path preserves V05 null mode. Evaluation requires an explicit trusted
 # module root, a fixed preparation binding and an actual source-entry snapshot before start.
-# Generation chaining and the remaining evaluation replay/limit acceptance are later slices.
+# Registered requests replay the original facts and limits. Generation chaining is a later slice.
 ATTEMPT_FIELDS = (
     "request_id", "run_id", "attempt_id", "owner", "target_request", "deadline_utc",
     "resources", "budget", "retry_of", "retry_reason",
@@ -958,7 +967,30 @@ def _refusal(ctx, digest, binding, admission, bound, checks, errors, reason) -> 
     )
 
 
-def _run_claimed(ctx, target, digest, reader, deadline, cancellation) -> dict:
+def _capture_evidence(ctx, capability, phase, digest, binding, bound, payload=None):
+    if payload is None:
+        facts = {
+            "schema_version": 1,
+            **{key: ctx.spec[key] for key in
+               ("request_id", "run_id", "attempt_id", "prepared_ref", "protocol_digest",
+                "operation", "validation_scope", "candidate")},
+            "request_digest": digest, "target_binding": binding, "bound_inputs": bound,
+            "steps": [], "started": False, "process_outcome": None, "exit_code": None,
+            "cleanup": None, "resource_leases": None,
+        }
+    else:
+        facts = {key: payload[key] for key in capture_service.CONTEXT_FIELDS}
+    checks, errors, sources, refused = capture_service.observe(
+        capability, phase, facts, spec=ctx.spec, root=ctx.captures,
+        namespace=ctx.namespace, retained=ctx.retained,
+    )
+    # Claim.commit already accepts byte sources and retains them before its one append.
+    # A retention/append failure therefore keeps the actual started/partial facts.
+    ctx.retained.extend(sources)
+    return checks, errors, refused
+
+
+def _run_claimed(ctx, target, digest, reader, deadline, cancellation, evidence_capture) -> dict:
     capability_checks, errors = _capabilities(ctx.spec)
     admission, budget_errors = _budget(ctx.spec["budget"])
     errors += budget_errors
@@ -1027,6 +1059,15 @@ def _run_claimed(ctx, target, digest, reader, deadline, cancellation) -> dict:
         except (OSError, input_binding.BindingError) as exc:
             raise _RetentionFailure("input materialization failed") from exc
         record["materialized_path"] = item["materialized_path"]
+    capture_errors = []
+    if evaluation and evidence_capture is not None:
+        extra, capture_errors, refused = _capture_evidence(
+            ctx, evidence_capture, "preparing", digest, binding, bound,
+        )
+        checks += extra
+        if refused:
+            return _refusal(ctx, digest, binding, admission, bound, checks, capture_errors,
+                            "capture_refused")
     steps, runs = _run_steps(ctx, argvs, deadline, cancellation)
     outcome, exit_code = _outcome(steps)
     cleanup, leases = _cleanup(runs)
@@ -1054,7 +1095,7 @@ def _run_claimed(ctx, target, digest, reader, deadline, cancellation) -> dict:
         [_error(codes[outcome], "running", f"process outcome {outcome}")]
         if outcome in codes else []
     )
-    return _payload(
+    payload = _payload(
         ctx, request_digest=digest, target_binding=binding, bound_inputs=bound,
         # V18: finished only once every started process domain is confirmed closed.
         phase="finished" if cleanup["status"] in ("not_needed", "confirmed")
@@ -1062,8 +1103,15 @@ def _run_claimed(ctx, target, digest, reader, deadline, cancellation) -> dict:
         started=bool(launched), process_outcome=outcome, exit_code=exit_code, steps=steps,
         cancellation=_cancellation(ctx, runs), cleanup=cleanup, checks=checks,
         budget_admission=admission, usage=_usage(runs), resource_leases=leases,
-        errors=run_errors,
+        errors=capture_errors + run_errors,
     )
+    if evaluation and evidence_capture is not None:
+        extra, errors, _ = _capture_evidence(
+            ctx, evidence_capture, "finalizing", digest, binding, bound, payload,
+        )
+        payload["checks"] += extra
+        payload["errors"] += errors
+    return payload
 
 
 def execute(
@@ -1073,6 +1121,7 @@ def execute(
     *,
     cancellation=None,
     artifact_reader=None,
+    evidence_capture=None,
 ) -> dict:
     """Execute one request or return its existing state before any new binding or start."""
     evaluation = _validate_fields(spec)
@@ -1105,7 +1154,8 @@ def execute(
                 ctx.captures.mkdir(parents=True)
             except OSError as exc:
                 raise _RetentionFailure("capture directory creation failed") from exc
-            payload = _run_claimed(ctx, target, digest, artifact_reader, deadline, cancellation)
+            payload = _run_claimed(ctx, target, digest, artifact_reader, deadline, cancellation,
+                                   evidence_capture)
         except _RetentionFailure as exc:
             # Raised only before any start: no start and no record (figure 6).
             shutil.rmtree(ctx.captures, ignore_errors=True)

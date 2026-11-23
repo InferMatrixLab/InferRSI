@@ -16,12 +16,14 @@ class Harness:
     """
 
     def __init__(
-        self, store: run_store.RunStore, target: LocalCpuTarget, *, artifact_reader=None
+        self, store: run_store.RunStore, target: LocalCpuTarget, *, artifact_reader=None,
+        evidence_capture=None,
     ):
         self._store = store
         self._target = target
         # Optional reader with ``open(ArtifactRef)`` for artifact-namespace input sources.
         self._artifact_reader = artifact_reader
+        self._evidence_capture = evidence_capture
 
     def allocate(
         self,
@@ -50,6 +52,7 @@ class Harness:
         return execution_service.execute(
             self._store, self._target, spec,
             cancellation=cancellation, artifact_reader=self._artifact_reader,
+            evidence_capture=self._evidence_capture,
         )
 
     def read(self, attempt_id: str, record_version: int | None = None) -> dict:
