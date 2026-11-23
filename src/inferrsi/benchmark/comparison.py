@@ -293,8 +293,10 @@ def attempt_accounting(attempts: list[dict]) -> dict:
     known = [value for value in tokens if value is not None]
     complete = len(known) == len(tokens)
     if not complete:
-        reasons["tokens"] = [f"attempt {number}: complete_session_usage_unavailable"
-                             for number, value in zip(numbers, tokens) if value is None]
+        reasons["tokens"] = [
+            f"attempt {number}: "
+            f"{attempt.get('tokens_missing') or 'complete_session_usage_unavailable'}"
+            for number, value, attempt in zip(numbers, tokens, attempts) if value is None]
     return {
         "attempts": len(attempts),
         "failed_attempts": sum(attempt["status"] in ATTEMPT_FAILURES

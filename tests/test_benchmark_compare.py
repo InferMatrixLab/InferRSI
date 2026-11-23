@@ -82,7 +82,7 @@ def operation(experiment, action, trial=None, *arguments):
 def finish(experiment, trial, *, factor=2, final=True, model="synthetic-model", usage=True,
            final_score=None, legacy_session_id=None, python=None, environment_digest="a" * 64,
            knowledge=False, token_coverage=False, usage_counts=None, collect=True,
-           session_id=None, host_state="completed", window=True):
+           session_id=None, host_state="completed", window=True, legacy_attempt=1):
     root, _, capsys = experiment
     opened = time.time()
     dispatch = operation(experiment, "dispatch", trial)
@@ -93,8 +93,9 @@ def finish(experiment, trial, *, factor=2, final=True, model="synthetic-model", 
     receipt.write_text('{"synthetic_host_creation":true}', encoding="utf-8")
     session_id = session_id or legacy_session_id or trial
     if legacy_session_id:
-        agent_sessions.bind(root / "jobs" / trial, host="synthetic", session_id=session_id,
-                            receipt=receipt)
+        suffix = "" if legacy_attempt == 1 else f"-attempt-{legacy_attempt:03d}"
+        agent_sessions.bind(root / "jobs" / (trial + suffix), host="synthetic",
+                            session_id=session_id, receipt=receipt)
     else:
         operation(experiment, "bind", trial, "--host", "synthetic", "--session-id", session_id,
                   "--receipt", str(receipt))
@@ -372,6 +373,41 @@ def test_report_excludes_legacy_duplicate_bindings(experiment):
         assert accounting["success_wall_seconds"] is None
         assert accounting["missing_reasons"]["success_wall_seconds"] == [
             "selected_attempt_current_evidence_not_verified"]
+        # Both arms exported valid usage and windows for the one shared session; neither
+        # arm may claim that usage or interval as its own.
+        assert row["tokens"] is None and row["attempt_window"] is None
+        assert row["tokens_missing"] == row["attempt_window_missing"] == (
+            "native_session_bound_to_multiple_attempts")
+        assert accounting["tokens"] is None and accounting["observed_tokens"] is None
+        assert accounting["token_coverage"] == "unknown"
+        assert accounting["total_wall_seconds"] is None
+        assert accounting["missing_reasons"]["tokens"] == [
+            "attempt 1: native_session_bound_to_multiple_attempts"]
+        assert accounting["missing_reasons"]["total_wall_seconds"] == [
+            "attempt 1: native_session_bound_to_multiple_attempts"]
+
+
+def test_report_does_not_double_count_a_session_shared_by_one_arms_attempts(experiment):
+    root, initial, _ = experiment
+    on, off = [trial["id"] for trial in initial["trials"]]
+    finish(experiment, on, final=False, host_state="failed")
+    operation(experiment, "retry", on)
+    finish(experiment, on, legacy_session_id=on, legacy_attempt=2)
+    finish(experiment, off, factor=1.5)
+    document = _document(operation(experiment, "report"))
+    arm = document["trials"][0]
+    attempts, accounting = arm["attempts"], arm["attempt_accounting"]
+    # Historical classification is kept; only the shared session's costs become unknown.
+    assert [(item["status"], item["eligible"]) for item in attempts] == [
+        ("blocked", False), ("completed", True)]
+    assert all(item["tokens"] is None and item["attempt_window"] is None for item in attempts)
+    assert accounting["failed_attempts"] == 1
+    assert accounting["tokens"] is None and accounting["token_coverage"] == "unknown"
+    assert accounting["total_wall_seconds"] is None
+    assert accounting["missing_reasons"]["tokens"] == [
+        f"attempt {number}: native_session_bound_to_multiple_attempts" for number in (1, 2)]
+    off_accounting = document["trials"][1]["attempt_accounting"]
+    assert off_accounting["tokens"] == 120 and off_accounting["total_wall_seconds"] is not None
 
 
 def test_report_excludes_different_observed_environments(experiment):

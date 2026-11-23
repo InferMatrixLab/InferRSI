@@ -55,6 +55,7 @@ DEFAULT_CONFIG = {
 }
 CONFIG_NAME = Path(".inferrsi/benchmarks.json")
 OBSERVED_FIELDS = ("model", "effort", "environment_id", "environment_fingerprint")
+SHARED_SESSION = "native_session_bound_to_multiple_attempts"
 
 
 def _io_path(path):
@@ -872,6 +873,7 @@ def _attempt_row(number, result, host, recorded=None):
            "attempt_window": result.get("attempt_window"),
            "attempt_window_missing": result.get("attempt_window_missing"),
            "tokens": result.get("attempt_tokens"),
+           "tokens_missing": result.get("attempt_tokens_missing"),
            "native_session": (host or {}).get("native_session"), "reverification": None}
     if recorded is not None:
         if (recorded.get("status") not in STATUSES or type(recorded.get("eligible")) is not bool
@@ -922,6 +924,9 @@ def report(root):
                 duplicated.add(trial_id)
                 attempt["eligible"] = False
                 attempt["metrics_comparable"] = False
+                # A shared session's usage and interval belong to no single attempt.
+                attempt.update(attempt_tokens=None, attempt_tokens_missing=SHARED_SESSION,
+                               attempt_window=None, attempt_window_missing=SHARED_SESSION)
                 if "Native session is bound to multiple comparison trials" not in attempt["gaps"]:
                     attempt["gaps"].append("Native session is bound to multiple comparison trials")
     for trial in trials:
