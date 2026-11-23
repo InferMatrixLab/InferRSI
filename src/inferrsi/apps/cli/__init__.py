@@ -343,6 +343,10 @@ def main(argv: list[str] | None = None) -> int:
     argument_parser = parser()
     args = argument_parser.parse_args(argv)
     try:
+        if args.command == "evaluate":
+            from .evaluate import dispatch
+
+            return dispatch(args)
         if args.command == "task":
             return _task_command(args)
         if args.command == "export":
