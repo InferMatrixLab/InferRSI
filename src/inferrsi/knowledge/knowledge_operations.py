@@ -675,7 +675,7 @@ class KnowledgeReader:
             _resource_hashes=self._resource_hashes,
         )
 
-    def _skill(self, identity: str) -> Bundle:
+    def _skill(self, identity: str, *, complete_resources: bool = False) -> Bundle:
         from .skill_catalog import _effective, _reference_path, skill_directory
 
         root = self.skill_root
@@ -684,7 +684,9 @@ class KnowledgeReader:
         prefix = directory.relative_to(root).as_posix()
         content = _tree(directory, prefix, root=root)
         dependencies = {}
-        for reference in declared_skill_resources(metadata):
+        references = (declared_skill_resources(metadata) if complete_resources
+                      else metadata.get("references", []))
+        for reference in references:
             path = _reference_path(root, directory, reference)
             key = path.relative_to(root).as_posix()
             external = key not in content
@@ -694,15 +696,16 @@ class KnowledgeReader:
             # Preserve the store's editable owner files and existing reference pins.
             if external or reference in metadata.get("references", []):
                 dependencies[key] = "sha256:" + _hash(content[key])
-        # The owner's own licenses are already in the tree. Also include notices
-        # alongside cross-owner dependencies and in ancestors through the library root.
-        ancestors = {parent for key in content for parent in PurePosixPath(key).parents}
-        for parent in ancestors:
-            for notice in (root / parent).iterdir():
-                if is_license_or_notice(notice.name) and notice.is_file():
-                    key = notice.relative_to(root).as_posix()
-                    if key not in content:
-                        content[key] = _reference_path(root, root, key).read_bytes()
+        if complete_resources:
+            # Catalog selection opts into a larger closure. Default read/resource
+            # must preserve existing pins for unchanged checkout sources.
+            ancestors = {parent for key in content for parent in PurePosixPath(key).parents}
+            for parent in ancestors:
+                for notice in (root / parent).iterdir():
+                    if is_license_or_notice(notice.name) and notice.is_file():
+                        key = notice.relative_to(root).as_posix()
+                        if key not in content:
+                            content[key] = _reference_path(root, root, key).read_bytes()
         return Bundle(
             {
                 "id": identity,
@@ -717,7 +720,8 @@ class KnowledgeReader:
                         "note": "Legacy provenance remains in procedure/readsets",
                     }
                 ],
-                **({"backend": metadata["backend"]} if "backend" in metadata else {}),
+                **({"backend": metadata["backend"]}
+                   if complete_resources and "backend" in metadata else {}),
                 "applicability": metadata.get("applicability", {}),
                 "state": metadata.get("status", "unspecified"),
                 "limitations": metadata.get("limitations", [])

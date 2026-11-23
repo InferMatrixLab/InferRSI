@@ -124,10 +124,17 @@ The selected material has its own byte budget. Required skill procedures/resourc
 source attribution and license closure are atomic: insufficient space produces an
 omission, never a partial procedure marked complete. No imported code is executed.
 
-Checkout skill revisions include declared references, provenance readsets,
+Catalog checkout skill revisions include declared references, provenance readsets,
 third-party notices and applicable ancestor license/notice files up to the
-declared root. A change to any required byte changes its revision. Malformed
-optional URLs produce an unresolved edge and allow other entries to be read.
+declared root. This larger closure applies only to catalog selection; ordinary
+`read`/`resource` retain their existing revisions for unchanged checkout sources.
+A change to any required byte changes the catalog revision. Malformed optional
+URLs produce an unresolved edge and allow other entries to be read. Invalid or
+non-UTF-8 optional resource closures produce a resource-level omission without
+discarding other selections; revision conflicts still reject the snapshot.
+Within one ref/revision, shared required resources are delivered and charged once.
+Each expansion checks its complete closure before budgeting the remaining unique
+resources, so deduplication does not permit partial required deliveries.
 
 `context_bytes` and `expansion_bytes` count the UTF-8 bytes in delivered
 resource `content`. For a typed `SKILL.md`, the reader delivers the procedure

@@ -1,5 +1,6 @@
 import json
 import os
+import shutil
 
 import pytest
 
@@ -591,7 +592,7 @@ def test_missing_optional_parser_keeps_visible_unreadable_cards(catalog, monkeyp
     from inferrsi.knowledge._knowledge_errors import MissingSkillsExtra
     from inferrsi.knowledge.knowledge_operations import KnowledgeReader
 
-    def unavailable(*args):
+    def unavailable(*args, **kwargs):
         raise MissingSkillsExtra("Install skills extra")
 
     monkeypatch.setattr(KnowledgeReader, "_skill", unavailable)
@@ -603,3 +604,91 @@ def test_missing_optional_parser_keeps_visible_unreadable_cards(catalog, monkeyp
     )
     assert not result["contexts"]
     assert result["omissions"][0]["reason"] == "unreadable"
+
+
+@pytest.fixture
+def package_library(tmp_path, monkeypatch):
+    from inferrsi.knowledge import catalog as records
+    from inferrsi.knowledge import knowledge_find, knowledge_operations
+
+    package = tmp_path / "package"
+    library = package / "knowledge/data/skill_library"
+    shutil.copytree(knowledge_find.installed_skill_root(), library)
+    for module in (records, knowledge_find, knowledge_operations):
+        monkeypatch.setattr(module, "files", lambda _: package)
+    return library
+
+
+@pytest.mark.parametrize("invalid", ["binary", "metadata"])
+def test_optional_resource_failure_preserves_other_selections(package_library, invalid):
+    owner = package_library / "systems/engines/vllm/sub-skills/operation-performance"
+    if invalid == "binary":
+        (owner / "diagram.png").write_bytes(b"\x89PNG\r\n\x1a\n")
+    else:
+        (owner / "metadata.json").write_text("{", encoding="utf-8")
+    catalog = CatalogSelection()
+    snapshot = catalog.snapshot(kinds=("record",))
+    refs = ["package:vllm.common.llm.bounded_serving_measurement",
+            "package:vllm.common.llm.runtime_and_kv_ownership"]
+    result = catalog.complete(snapshot["snapshot_id"], [selection(ref) for ref in refs],
+                              kinds=("record",), expansion_bytes=1000000)
+    assert [c["ref"] for c in result["contexts"]] == refs
+    omission, = result["omissions"]
+    assert omission["scope"] == "resource" and omission["ref"] == refs[0]
+    assert omission["reason"] == "invalid_resource"
+    assert omission["path"].endswith("operation-performance/SKILL.md")
+    # No partial closure or byte charge survives the failed expansion.
+    assert [r["path"] for r in result["contexts"][0]["resources"]] == ["record.json"]
+    delivered = [p for p in result["retrieval"]["assembly"]["paths"]
+                 if p.get("status") == "delivered" and p.get("via")]
+    assert len(delivered) == 1 and delivered[0]["via"]["from"] == refs[1]
+    assert result["retrieval"]["assembly"]["expansion_bytes"] == delivered[0]["bytes"]
+
+
+def test_optional_resource_revision_conflict_rejects_entire_snapshot(monkeypatch):
+    from inferrsi.knowledge.knowledge_operations import RevisionConflict
+
+    catalog = CatalogSelection()
+    snapshot = catalog.snapshot(kinds=("record",))
+
+    def changed(*args, **kwargs):
+        raise RevisionConflict("Changed during optional read")
+
+    monkeypatch.setattr(catalog, "_reference_context", changed)
+    ref = "package:vllm.common.llm.bounded_serving_measurement"
+    with pytest.raises(SelectionError) as error:
+        catalog.complete(snapshot["snapshot_id"], [selection(ref)], kinds=("record",))
+    assert error.value.code == "stale_snapshot"
+
+
+def test_expansion_deduplicates_required_closure_before_budgeting(package_library):
+    path = package_library / "records/vllm.common.llm.bounded_serving_measurement.json"
+    record = json.loads(path.read_text(encoding="utf-8"))
+    extra = "data/skill_library/systems/engines/vllm/sub-skills/extend-validate/SKILL.md"
+    record["skill_documents"]["other"] = extra
+    path.write_text(json.dumps(record), encoding="utf-8")
+    catalog = CatalogSelection()
+    snapshot = catalog.snapshot(kinds=("record",))
+    ref = "package:vllm.common.llm.bounded_serving_measurement"
+
+    def complete(budget):
+        return catalog.complete(snapshot["snapshot_id"], [selection(ref)],
+                                kinds=("record",), expansion_bytes=budget)
+
+    result = complete(1000000)
+    context, = result["contexts"]
+    resources = {r["path"]: r for r in context["resources"]}
+    assert len(resources) == len(context["resources"])
+    assert extra in resources
+    assert "data/skill_library/systems/engines/vllm/LICENSE" in resources
+    size = sum(len(r["content"].encode()) for p, r in resources.items() if p != "record.json")
+    assert result["retrieval"]["assembly"]["expansion_bytes"] == size
+    exact = complete(size)
+    assert not exact["omissions"]
+    assert exact["contexts"] == result["contexts"]
+    limited = complete(size - 1)
+    omission, = limited["omissions"]
+    assert omission["scope"] == "resource" and omission["path"] == extra
+    assert omission["reason"] == "context_limit"
+    assert not any(r["path"] == extra for r in limited["contexts"][0]["resources"])
+    assert omission["required_bytes"] == omission["available_bytes"] + 1
