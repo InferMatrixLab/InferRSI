@@ -18,13 +18,14 @@ rules and working rules 1, 7 and 8 in
    do not claim it. If you cannot tell whether a stop is present, do not
    claim it either.
 2. Confirm the Issue has an accountable owner (recorded on the Issue, or else
-   its assignee) and carries `status:accepted`:
+   its only assignee when exactly one is set) and carries `status:accepted`:
 
    ```bash
    gh issue view <issue> --repo InferMatrixLab/InferRSI --json assignees,labels
    ```
 
-   With no accountable owner, propose on the Issue and ask a maintainer to assign it;
+   With several assignees and no recorded owner, there is no accountable
+   owner yet. With no accountable owner, propose on the Issue and ask a maintainer to assign it;
    at `status:proposed` or `status:deferred`, discuss only. Do not claim
    either.
 3. Confirm you are the deciding agent (the formal agent working for the

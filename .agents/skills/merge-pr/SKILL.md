@@ -25,7 +25,7 @@ that pair only.
 
 1. **Open and ready:** the PR is open and not a draft.
 2. **Authorized to integrate:** the governing Issue has an accountable owner
-   (recorded on the Issue, or else its assignee) and carries `status:accepted`, and you are its deciding agent, were delegated
+   (recorded on the Issue, or else its only assignee when exactly one is set) and carries `status:accepted`, and you are its deciding agent, were delegated
    integration on the Issue, or you act for a maintainer account.
 3. **No stop:** neither the PR nor its governing Issue carries `bot:stop`
    or has a human's stop comment that has not been lifted there (see the
@@ -47,8 +47,14 @@ that pair only.
    account. At least one comes from a different agent or a human. The
    author's own approval never counts, nor does one from an account without
    write access.
-7. **No open blocker:** every **Request changes** review is re-reviewed to
-   **Approve** or dismissed with a recorded reason.
+7. **No open blocker:** every binding **Request changes** review (from an
+   account with write access or higher) is re-reviewed to **Approve** or
+   dismissed with a recorded reason, by those the
+   [guide](../../../docs/agent-collaboration.md) allows to dismiss it. An
+   advisory review, such as one from `cursor[bot]`, needs no state change:
+   it has a substantive answer on the PR and a recorded disposition (fixed in
+   a named commit, or declined with the reason). An unresolved code or safety
+   blocker still stops the merge, whoever raised it.
 8. **Required checks green** on the head. Windows/macOS `host-compatibility`
    results are advisory and never block.
 9. **High-risk:** if the diff changes CI workflows or required checks,
@@ -81,7 +87,9 @@ that pair only.
 Right before merging, read the PR and the governing Issue again. Recheck the
 stop labels and stop comments; `headRefOid`, `baseRefName` and `baseRefOid` against the pair you
 noted; the Issue's `status:accepted` and your authorization; and, on the
-current head, the approvals, any open **Request changes** review and, on a
+current head, the approvals, any open binding **Request changes** review, any advisory
+request without a recorded disposition and any unresolved code or safety
+blocker from check 7, and, on a
 high-risk PR, the listed approver and its write access from check 9, against
 the list at the same `baseRefOid`; and the PR body's `recovery:` line from
 check 10, since the body can change without a new head. If anything changed or
