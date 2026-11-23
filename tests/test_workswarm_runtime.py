@@ -117,7 +117,7 @@ def test_cache_rejects_linked_parent_before_writing(cached_runtime, tmp_path, li
     outside = tmp_path / "outside"
     outside.mkdir()
     link = tmp_path / linked
-    link.parent.mkdir(parents=True, exist_ok=True)
+    link.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
     try:
         link.symlink_to(outside, target_is_directory=True)
     except OSError:
