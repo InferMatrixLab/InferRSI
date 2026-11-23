@@ -9,8 +9,13 @@ from ...contracts.json_v1 import encode
 def add_parser(commands) -> None:
     evaluate = commands.add_parser("evaluate", help="Prepare, execute or assess a saved request")
     actions = evaluate.add_subparsers(dest="evaluate_action", required=True)
-    for action in ("prepare", "execute", "assess"):
-        command = actions.add_parser(action)
+    descriptions = {
+        "prepare": "Freeze and archive the configured evaluation task",
+        "execute": "Execute or replay the original saved attempt",
+        "assess": "Assess a fixed record using retained evidence only",
+    }
+    for action, description in descriptions.items():
+        command = actions.add_parser(action, help=description, description=description)
         command.add_argument("--request", required=True, help="@<saved request JSON file>")
         command.add_argument("--output-id", required=True)
         command.add_argument("--workspace", type=Path, required=True,

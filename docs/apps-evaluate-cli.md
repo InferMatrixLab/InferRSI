@@ -24,11 +24,15 @@ must agree with its operation/scope and selected claim. They never override
 saved fields. The `@file` convention belongs to these new commands; existing
 fixed-view `status`, `report`, `dashboard` and `trace` plain-path options retain
 their original convention.
+Checking `execute --scope` reads its fixed prepared archive before execution;
+an unavailable or invalid archive fails that read-only agreement check.
 
 Input files may be formatted JSON. Duplicate keys, non-object input, non-UTF-8,
 unsafe integers, non-finite values and floating-point tokens are refused.
 Decimal fields follow the existing string contract. Stored outputs and stdout
 use the existing canonical result encoder.
+Stdout appends a line ending after that JSON value; manifest hashes and byte
+comparisons apply to the canonical `result.json` bytes without that line ending.
 
 ## Trusted local runtime configuration
 

@@ -320,3 +320,31 @@ def test_recorded_worker_failure_returns_exit_seven(evaluation, tmp_path, capsys
     assert result["execution"]["started"] is True
     assert result["execution"]["exit_code"] == 3
     assert result["record_ref"] is not None
+
+
+@pytest.mark.parametrize("fault", ["missing", "null-mounts", "missing-namespace",
+                                   "list-namespace", "directory-store"])
+def test_malformed_storage_is_exit_two_before_store_open(evaluation, tmp_path, monkeypatch,
+                                                       fault, capsys):
+    case = evaluation
+    config = storage_config(case)
+    if fault == "missing":
+        config = {}
+    elif fault == "null-mounts":
+        config["mounts"] = None
+    elif fault == "missing-namespace":
+        del config["mounts"][1]["namespace"]
+    elif fault == "list-namespace":
+        config["harness_namespace"] = []
+    else:
+        config["mounts"][1]["kind"] = "directory"
+
+    def forbidden(*args, **kwargs):
+        pytest.fail("malformed storage reached a writable Store")
+
+    monkeypatch.setattr(run_store.RunStore, "from_mount", forbidden)
+    command = arguments(tmp_path, "execute", execute_request(case), config, target_config(case))
+    with pytest.raises(SystemExit) as error:
+        main(command)
+    assert error.value.code == 2
+    assert "Traceback" not in capsys.readouterr().err
