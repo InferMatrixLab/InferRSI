@@ -327,17 +327,21 @@ def _validate_attempts(plan, state):
         raise ValueError("Malformed comparison collections")
 
 
-def _retained(root, reference, trial_id):
-    """Return one retained collection record, refused unless it is still trial_id's own.
+def _retained(root, reference, trial_id, attempt):
+    """Return one retained collection record, refused unless it is still that attempt's own.
 
     The reference must name a regular file (not a link) directly under this experiment's
-    collections/ directory. Its bytes are read once, checked against the recorded
-    digest and decoded; the record's ``id`` must be the trial that holds the reference,
-    so two valid references exchanged between trials are refused, not misattributed.
+    collections/ directory. At most 2 MiB are read, once, checked against the recorded
+    digest and decoded. The record's ``id`` must be the trial that holds the reference
+    and its ``attempt`` the attempt the reference stands for, so two valid references
+    exchanged between trials or between attempts of one trial are refused, not
+    misattributed. Records collected before retries existed carry no ``attempt``; they
+    can only be attempt 1.
     """
     if not _reference_shape(reference, ({"path", "sha256"}, {"path", "sha256", "attempt"})):
         raise ValueError("Malformed comparison collections")
     path = _io_path(root / reference["path"])
+    limit = 2 * 1024 * 1024
     data = None
     try:
         directory = os.lstat(_io_path(root / "collections"))
@@ -345,11 +349,11 @@ def _retained(root, reference, trial_id):
             descriptor = os.open(path, os.O_RDONLY | getattr(os, "O_BINARY", 0)
                                  | getattr(os, "O_NOFOLLOW", 0))
             with os.fdopen(descriptor, "rb") as stream:
-                info = os.fstat(stream.fileno())
-                if stat.S_ISREG(info.st_mode):
-                    if info.st_size > 2 * 1024 * 1024:
+                if stat.S_ISREG(os.fstat(stream.fileno()).st_mode):
+                    # Bound the bytes actually read: the file may grow after it was opened.
+                    data = stream.read(limit + 1)
+                    if len(data) > limit:
                         raise ValueError("Comparison JSON document exceeds 2 MiB")
-                    data = stream.read()
     except OSError:
         data = None
     if data is None or hashlib.sha256(data).hexdigest() != reference["sha256"]:
@@ -357,6 +361,9 @@ def _retained(root, reference, trial_id):
     record = decode(data)
     if not isinstance(record, dict) or record.get("id") != trial_id:
         raise ValueError("Retained comparison collection belongs to another trial")
+    recorded = record.get("attempt", 1)
+    if type(recorded) is not int or recorded != attempt:
+        raise ValueError("Retained comparison collection belongs to another attempt")
     return record
 
 
@@ -377,9 +384,10 @@ def _load(root):
     _validate_attempts(plan, state)
     for trial in plan["trials"]:
         for entry in _attempts(state, trial):
-            _retained(root, entry["collection"], trial["id"])
+            _retained(root, entry["collection"], trial["id"], entry["attempt"])
         if trial["id"] in state["collections"]:
-            _retained(root, state["collections"][trial["id"]], trial["id"])
+            _retained(root, state["collections"][trial["id"]], trial["id"],
+                      _attempt_number(state, trial))
     for trial in plan["trials"]:
         runtime = _workspace(root, trial, _attempt_number(state, trial)) / "runtime/inferrsi"
         if _manifest(runtime) != _expected_runtime(plan, trial):
@@ -406,7 +414,7 @@ def _collection_digest(state):
 
 
 def _archived_result(root, trial, entry):
-    return _retained(root, entry["collection"], trial["id"])
+    return _retained(root, entry["collection"], trial["id"], entry["attempt"])
 
 
 def _session_key(native):
@@ -742,16 +750,18 @@ def collect(root, trial_id):
     plan, state = _load(root)
     trial = _select(plan, trial_id)
     reference = state["collections"].get(trial_id)
-    if reference is not None:
-        return {"trial": _retained(root, reference, trial_id), "already_collected": True,
-                "collection": reference, "next": _status(root, plan, state)["next_action"]}
     number = _attempt_number(state, trial)
+    if reference is not None:
+        return {"trial": _retained(root, reference, trial_id, number), "already_collected": True,
+                "collection": reference, "next": _status(root, plan, state)["next_action"]}
     job = _job(root, trial, number)
     host = agent_sessions.status(job) if job.exists() else None
     if host is None or host["state"] not in agent_sessions.TERMINAL:
         raise ValueError("Collect only after recording a terminal native host observation")
     result = _trial_result(root, plan, trial, host, _host_payload(job, host),
                            workspace=_workspace(root, trial, number))
+    # The digest-checked record names its own attempt, so it cannot stand for another one.
+    result["attempt"] = number
     directory = root / "collections"
     directory.mkdir(exist_ok=True)
     path = directory / (trial_id + "-" + uuid.uuid4().hex + ".json")
@@ -777,7 +787,7 @@ def retry(root, trial_id, *, parallel=False):
     host = agent_sessions.status(job) if job.exists() else None
     if reference is None or host is None or host["state"] not in agent_sessions.TERMINAL:
         raise ValueError("Retry only after collecting a terminal attempt of this trial")
-    retained = _retained(root, reference, trial_id)
+    retained = _retained(root, reference, trial_id, number)
     if retained.get("status") == "completed" and retained.get("eligible") is True:
         raise ValueError("An eligible completed attempt is the arm's result; retry is refused")
     if not parallel:
@@ -888,7 +898,7 @@ def report(root):
         reference = state["collections"].get(trial["id"])
         collected = None
         if reference:
-            collected = _retained(root, reference, trial["id"])
+            collected = _retained(root, reference, trial["id"], _attempt_number(state, trial))
         attempts[trial["id"]] = []
         for entry in _attempts(state, trial):
             recorded = _archived_result(root, trial, entry)

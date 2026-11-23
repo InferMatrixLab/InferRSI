@@ -218,8 +218,11 @@ Every operation strictly checks the frozen plan, the retained collection digests
 of every attempt and each trial's current runtime copy before it acts. Before
 any record is read, every collection reference, current or archived, must name
 its own regular file directly under this experiment's `collections/`. Each
-record's `id` must be the trial that holds the reference, so two valid
-references exchanged between trials are refused rather than misattributed. A
+record's `id` must be the trial that holds the reference and its `attempt`
+the attempt the reference stands for, so two valid references exchanged between
+trials, or between attempts of one trial, are refused rather than misattributed.
+A record written before retries existed carries no `attempt` and is attempt 1. At
+most 2 MiB are read from a record. A
 changed, lost, linked, foreign or exchanged collection record therefore stops
 retry, dispatch (also with `--parallel`) and every other operation before a
 workspace is published or state is written. Report checks an earlier attempt's own

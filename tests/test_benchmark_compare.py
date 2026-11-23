@@ -1077,3 +1077,105 @@ def test_exchanged_valid_collection_references_are_refused(experiment, exchange)
     (root / "state.json").write_bytes(original)
     rows = operation(experiment, "status")["trials"]
     assert [row["host"]["state"] for row in rows][1] == "completed"
+
+
+def _rewrite_record(root, reference, change):
+    """Edit a retained record and re-seal its digest in the reference."""
+    path = root / reference["path"]
+    record = json.loads(path.read_text(encoding="utf-8"))
+    change(record)
+    path.write_text(json.dumps(record), encoding="utf-8")
+    reference["sha256"] = compare.sha256(path)
+
+
+def test_exchanged_attempt_records_within_one_trial_are_refused(experiment):
+    root, initial, _ = experiment
+    on, off = [trial["id"] for trial in initial["trials"]]
+    finish(experiment, on, final=False, host_state="failed")
+    operation(experiment, "retry", on)
+    finish(experiment, on, session_id=on + "-attempt-2")
+    finish(experiment, off, factor=1.5)
+    original = (root / "state.json").read_bytes()
+    state = json.loads(original)
+    # Each attempt's own record names its attempt and its trial.
+    assert [json.loads((root / item["path"]).read_text(encoding="utf-8"))["attempt"]
+            for item in (state["attempts"][on][0]["collection"], state["collections"][on])
+            ] == [1, 2]
+
+    def swap(state):
+        old, new = state["attempts"][on][0]["collection"], state["collections"][on]
+        state["attempts"][on][0]["collection"] = {"path": new["path"], "sha256": new["sha256"]}
+        state["collections"][on] = {**old, "attempt": new["attempt"]}
+
+    _rewrite_state(root, swap)
+    # Both records are intact and belong to this trial; only their attempts are exchanged.
+    state = json.loads((root / "state.json").read_text(encoding="utf-8"))
+    references = [state["attempts"][on][0]["collection"], state["collections"][on]]
+    assert all(compare.sha256(root / item["path"]) == item["sha256"] for item in references)
+    _refused_everywhere(root, on, off, "Retained comparison collection belongs to another attempt")
+    # Restoring each attempt's own reference loads again and keeps both outcomes apart.
+    (root / "state.json").write_bytes(original)
+    rows = operation(experiment, "status")["trials"]
+    assert [item["status"] for item in rows[0]["previous_attempts"]] == ["blocked"]
+
+
+def test_retained_record_must_name_the_attempt_it_stands_for(experiment):
+    root, initial, _ = experiment
+    on, off = [trial["id"] for trial in initial["trials"]]
+    finish(experiment, on, final=False, host_state="failed")
+    state = json.loads((root / "state.json").read_text(encoding="utf-8"))
+    reference = state["collections"][on]
+    # A record that claims another attempt than the one its reference stands for is refused.
+    _rewrite_record(root, reference, lambda record: record.update(attempt=2))
+    _rewrite_state(root, lambda saved: saved["collections"].update({on: reference}))
+    _refused_everywhere(root, on, off, "Retained comparison collection belongs to another attempt")
+    _rewrite_record(root, reference, lambda record: record.update(attempt="1"))
+    _rewrite_state(root, lambda saved: saved["collections"].update({on: reference}))
+    _refused_everywhere(root, on, off, "Retained comparison collection belongs to another attempt")
+
+
+def test_record_collected_before_retries_existed_is_attempt_one_only(experiment):
+    root, initial, _ = experiment
+    on, off = [trial["id"] for trial in initial["trials"]]
+    finish(experiment, on, final=False, host_state="failed")
+    state = json.loads((root / "state.json").read_text(encoding="utf-8"))
+    reference = state["collections"][on]
+    # Records and references written before retries carry no attempt number.
+    _rewrite_record(root, reference, lambda record: record.pop("attempt"))
+    reference.pop("attempt")
+    _rewrite_state(root, lambda saved: saved["collections"].update({on: reference}))
+    operation(experiment, "status")
+    operation(experiment, "retry", on)
+    finish(experiment, on, session_id=on + "-attempt-2")
+    state = json.loads((root / "state.json").read_text(encoding="utf-8"))
+    assert state["attempts"][on][0]["collection"]["path"] == reference["path"]
+    document = _document(operation(experiment, "report"))
+    assert [item["status"] for item in document["trials"][0]["attempts"]] == [
+        "blocked", "completed"]
+    # The same unnumbered record cannot stand for the later attempt.
+    current = state["collections"][on]
+    assert current["attempt"] == 2
+    _rewrite_record(root, current, lambda record: record.pop("attempt"))
+    _rewrite_state(root, lambda saved: saved["collections"].update({on: current}))
+    _refused_everywhere(root, on, off, "Retained comparison collection belongs to another attempt")
+
+
+def test_retained_record_limit_applies_to_bytes_read(experiment, monkeypatch):
+    root, initial, _ = experiment
+    on = initial["trials"][0]["id"]
+    (root / "collections").mkdir(exist_ok=True)
+    big = root / "collections" / "big.json"
+    big.write_bytes(b" " * (2 * 1024 * 1024 + 1))
+    reference = {"path": "collections/big.json", "sha256": compare.sha256(big)}
+    with pytest.raises(ValueError, match="exceeds 2 MiB"):
+        compare._retained(root, reference, on, 1)
+    # A file that grew after it was inspected is still bounded by what is read.
+    real = os.fstat
+
+    def understated(descriptor):
+        info = real(descriptor)
+        return os.stat_result((*tuple(info)[:6], 0, *tuple(info)[7:]))
+
+    monkeypatch.setattr(os, "fstat", understated)
+    with pytest.raises(ValueError, match="exceeds 2 MiB"):
+        compare._retained(root, reference, on, 1)

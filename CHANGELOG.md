@@ -27,7 +27,11 @@
   Every operation strictly checks the plan, retained collection digests and each trial's current
   runtime copy. Each collection reference, current or archived, must name its own regular file
   under the experiment's `collections/` before it is read, and the record's `id` must be its
-  owning trial, so exchanged references are refused. An earlier attempt's runtime copy is checked only in report, for that attempt: a
+  owning trial and its `attempt` the attempt the reference stands for, so references exchanged
+  between trials or between attempts of one trial are refused. Each collection record now names
+  its attempt; a record or reference written before retries existed carries none and is
+  attempt 1. At most 2 MiB are read from a record, whatever its size when opened. An earlier
+  attempt's runtime copy is checked only in report, for that attempt: a
   missing or changed copy is that attempt's re-read gap with unknown cost, and the report is still
   generated. Retry copies the current, verified runtime.
   Experiments prepared earlier load unchanged: attempt 1 keeps the existing job and workspace paths.
