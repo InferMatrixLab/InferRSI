@@ -33,9 +33,14 @@ _MAX_UNRESOLVED_PATH_EXCERPTS = 4
 _WINDOWS_RG_PATH = r"(?:[A-Za-z]:[/\\])?[^:]+"
 
 
-def _shell_argv(source):
-    """Tokenize a shell command after removing comments and line continuations."""
+def _shell_argv(source, *, separate_lines=False):
+    """Tokenize a shell command after removing comments and line continuations.
+
+    With ``separate_lines``, an unquoted newline between commands becomes a ``;``
+    token, so the first word of every line stays a visible command position.
+    """
     chars = []
+    boundaries = []
     quote = None
     escaped = comment = False
     word_start = True
@@ -62,12 +67,22 @@ def _shell_argv(source):
             continue
         else:
             word_start = char in " \t\r\n;&|<>()"
+        if char == "\n" and not quote:
+            boundaries.append(len(chars))
         chars.append(char)
     command = "".join(chars)
+    multiline = "\n" in command.strip()
+    if separate_lines:
+        first, end = len(command) - len(command.lstrip()), len(command.rstrip())
+        for index in boundaries:
+            if first <= index < end:
+                # Spaces keep the token apart from a neighbouring operator such as &&.
+                chars[index] = " ; "
+        command = "".join(chars)
     lexer = shlex.shlex(command, posix=True, punctuation_chars=";&|<>")
     lexer.whitespace_split = True
     lexer.commenters = ""
-    return list(lexer), "\n" in command.strip()
+    return list(lexer), multiline
 
 
 def _material(cwd: Path, name: str, corpus: Path) -> str | None:
@@ -246,7 +261,7 @@ def _recorded_argv(item):
             # Code this reader cannot see may still have searched.
             return None, False
         try:
-            argv, multiline = _shell_argv(script)
+            argv, multiline = _shell_argv(script, separate_lines=True)
         except ValueError:
             return None, False
     # A shell or env in command position after one unwrap runs code this reader did

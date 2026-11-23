@@ -14,6 +14,8 @@ PLAIN = ["bash", "-lc", "rg -n needle docs"]
     # Recorded on Windows, read on any OS.
     ["C:\\Program Files\\Git\\bin\\bash.exe", "-lc", "rg -n needle docs"],
     ["C:\\Program Files\\Git\\usr\\bin\\env.exe", "bash", "-lc", "rg -n needle docs"],
+    # A trailing newline ends the only line; it is not a second command.
+    ["bash", "-lc", "rg -n needle docs\n"],
 ])
 def test_wrapped_shell_forms_decode_like_the_plain_form(wrapped):
     assert _recorded_argv({"command": PLAIN}) == (["rg", "-n", "needle", "docs"], False)
@@ -34,6 +36,10 @@ def test_wrapped_shell_forms_decode_like_the_plain_form(wrapped):
     ["bash", "-lc", "bash search.sh"],
     ["bash", "-lc", "bash -- -c 'rg -n needle docs'"],
     ["bash", "-lc", "pwsh -Command 'rg -n needle docs'"],
+    # A later line of a multi-line script is a command position too.
+    ["bash", "-lc", "cd docs\nbash search.sh"],
+    ["bash", "-lc", "cd docs\n\n  pwsh -Command 'rg -n needle .'"],
+    ["bash", "-lc", "cd docs &&\nbash search.sh"],
     # A Windows-recorded tool outside the supported set is not proof of no retrieval.
     ["C:/tools/rg.exe", "--json", "needle", "docs"],
 ])
@@ -62,6 +68,25 @@ def test_a_windows_recorded_tool_is_read_as_that_tool(tmp_path, tool):
     corpus.mkdir()
     item = {"command": [tool, "-n", "needle", "."], "cwd": corpus.as_uri(),
             "exit_code": 1, "aggregated_output": ""}
+    event, complete, _ = _command(item, corpus)
+    assert event is not None and event["tool"] == "rg" and complete
+
+
+def test_a_multi_line_script_keeps_its_line_boundaries():
+    assert _recorded_argv({"command": ["bash", "-lc", "cd docs\nrg -n needle ."]}) == (
+        ["cd", "docs", ";", "rg", "-n", "needle", "."], True)
+
+
+def test_a_quoted_newline_is_not_a_line_boundary():
+    assert _recorded_argv({"command": ["bash", "-lc", "rg -n 'a\nbash' docs"]}) == (
+        ["rg", "-n", "a\nbash", "docs"], True)
+
+
+def test_a_windows_recorded_shell_wrapper_decodes_end_to_end(tmp_path):
+    corpus = tmp_path / "corpus"
+    corpus.mkdir()
+    item = {"command": ["C:\\Program Files\\Git\\bin\\bash.exe", "-lc", "rg -n needle ."],
+            "cwd": corpus.as_uri(), "exit_code": 1, "aggregated_output": ""}
     event, complete, _ = _command(item, corpus)
     assert event is not None and event["tool"] == "rg" and complete
 
