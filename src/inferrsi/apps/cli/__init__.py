@@ -3,11 +3,14 @@
 from __future__ import annotations
 
 import json
+import os
 import sqlite3
 import sys
+from dataclasses import replace
 from importlib.resources import files
 from pathlib import Path
 
+from ...contracts.runspec import revision_matches as _revision_matches
 from ...knowledge.catalog import get_knowledge, search_knowledge
 from ...knowledge.knowledge_operations import KnowledgeReader
 from ...knowledge.research import research_knowledge
@@ -16,7 +19,7 @@ from ..knowledge import knowledge_reader
 from ..knowledge import read as read_knowledge
 from ..legacy.reporting import write_report
 from ..workflows.campaign import capture_context, create_campaign
-from .arguments import device_ids, make_spec, parser
+from .arguments import SUPPLIED, command_parser, device_ids, make_spec, parser
 
 
 def _print(value: object) -> None:
@@ -339,9 +342,68 @@ def _task_command(args) -> int:
     return 0 if result["valid"] else 1
 
 
+_REQUIRED_COMMANDS = (("--baseline-command", "baseline_command"),
+                      ("--candidate-command", "candidate_command"))
+
+
+def _plan_run_task(command, args, supplied) -> dict | None:
+    """Apply ``--task`` to plan/run args before any probe; return its preview or None.
+
+    Without ``--task`` the two commands stay required, with argparse's own message. With
+    it, field errors and blockers exit 2 here, before inspection, commands or writes.
+    """
+    task_file = getattr(args, "task_file", None)
+    if task_file is None:
+        missing = [flag for flag, dest in _REQUIRED_COMMANDS if getattr(args, dest) is None]
+        if missing:
+            command.error("the following arguments are required: " + ", ".join(missing))
+        return None
+    from . import task_input
+
+    result = task_input.preview(
+        task_file, task_input.supplied_overrides(args, supplied), cwd=os.getcwd()
+    )
+    if result["errors"] or result["blockers"]:
+        lines = [f"task file {result['task_file']} is not ready for {args.command}:"]
+        lines += [f"error {item['field']} ({item['source']}): {item['message']}"
+                  for item in result["errors"]]
+        lines += [f"blocker {item['field']}: {item['message']}" for item in result["blockers"]]
+        command.error("\n".join(lines))
+    for dest, value in task_input.arguments_from(result["task"]).items():
+        setattr(args, dest, value)
+    if args.python is None:
+        args.python = sys.executable
+    args.task_file = result["task_file"]
+    return result
+
+
+def _check_frozen_gate(gate: dict) -> None:
+    """Require a run's task to agree with the frozen gate record it references."""
+    if gate["status"] != "agrees":
+        lines = [f"frozen gate {gate['status']}: run --task needs the task's acceptance "
+                 "fields to agree with the frozen gate record that acceptance.reference names:"]
+        lines += [f"{item['field']}: {item['message']}" for item in gate["problems"]]
+        raise ValueError("\n".join(lines))
+
+
+def _check_baseline_revision(task: dict, environment: dict) -> None:
+    """Require the inspected baseline checkout to be the accepted baseline revision."""
+    revision = task["task"]["acceptance"]["baseline_revision"]
+    head = environment["repository"].get("head", "")
+    if not _revision_matches(head, revision):
+        raise ValueError(
+            f"acceptance.baseline_revision {revision!r} does not match the baseline "
+            f"checkout HEAD {head}; check out the accepted baseline or fix the task file"
+        )
+
+
 def main(argv: list[str] | None = None) -> int:
     argument_parser = parser()
     args = argument_parser.parse_args(argv)
+    task = None
+    if args.command in ("plan", "run"):
+        supplied = vars(args).pop(SUPPLIED, ())
+        task = _plan_run_task(command_parser(argument_parser, args.command), args, supplied)
     try:
         if args.command == "task":
             return _task_command(args)
@@ -771,6 +833,15 @@ def main(argv: list[str] | None = None) -> int:
             _print({"record": str(path)})
             return 0
 
+        # Task-local errors must be rejected before running even read-only probes.
+        spec = make_spec(args) if task is not None else None
+        gate = None
+        if task is not None:
+            from .task_input import frozen_gate
+
+            gate = frozen_gate(task["task"], task["task_file"])
+            if args.command == "run" and not args.dry_run:
+                _check_frozen_gate(gate)
         environment = inspect_environment(
             args.repo,
             args.repo_type,
@@ -789,16 +860,19 @@ def main(argv: list[str] | None = None) -> int:
             ].get("environment")
             return 0 if available and known else 1
 
-        spec = make_spec(args)
+        if spec is None:
+            spec = make_spec(args)
         if args.command == "plan" or args.dry_run:
-            _print(
-                {
-                    "run_spec": spec.to_dict(),
-                    "environment": environment,
-                    "execution": "not started",
-                    "validation": "unverified",
-                }
-            )
+            preview = {
+                "run_spec": spec.to_dict(),
+                "environment": environment,
+                "execution": "not started",
+                "validation": "unverified",
+            }
+            if task is not None:
+                preview["task"] = task
+                preview["frozen_gate"] = gate
+            _print(preview)
             return 0
         if not environment["repository"].get("available"):
             raise ValueError("The baseline must be a readable Git checkout for source provenance")
@@ -808,6 +882,12 @@ def main(argv: list[str] | None = None) -> int:
             raise ValueError("Requested device selection is not verified by platform discovery")
         if not environment["target_python"].get("environment"):
             raise ValueError("Target Python inspection failed")
+        if task is not None:
+            _check_baseline_revision(task, environment)
+            snapshot_id = environment["repository"].get("snapshot_hash")
+            if not isinstance(snapshot_id, str) or not snapshot_id:
+                raise ValueError("Baseline inspection did not yield a source snapshot identity")
+            spec = replace(spec, snapshot_id=snapshot_id)
 
         # The old run loads its Benchmark gates. Import it here so that the
         # other commands, including ordinary optimization, never load Benchmark.
@@ -817,6 +897,11 @@ def main(argv: list[str] | None = None) -> int:
         (directory / "args.json").write_text(
             json.dumps(vars(args), ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
         )
+        if task is not None:
+            for name, record in (("task.json", task), ("frozen_gate.json", gate)):
+                (directory / name).write_text(
+                    json.dumps(record, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+                )
         write_report(directory)
         status = json.loads((directory / "status.json").read_text(encoding="utf-8"))
         _print(
