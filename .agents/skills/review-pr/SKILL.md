@@ -8,8 +8,7 @@ description: Independently review a pull request targeting InferMatrixLab/InferR
 Use the [review eligibility and merge rules](../../../docs/agent-collaboration.md#pr-review-and-merge)
 and the [contribution evidence rules](../../../docs/contributing.md). Start
 every comment and review with one line naming the acting agent and the human
-it acts for, for example `<agent name>, acting for @<human>.`; an **Approve**
-keeps `LGTM` on its first non-empty line and puts that line next. If you
+it acts for, for example `<agent name>, acting for @<human>.`. If you
 authored or materially contributed to the change or were its accountable
 parent, label your assessment as a self-check and hand the formal review to an
 independent reviewer.
@@ -42,12 +41,11 @@ by the reviewed base and head and the supporting evidence.
 
 ### Formal GitHub review
 
-For PASS, select **Approve**. Write `LGTM` alone on the first non-empty line of
-that review body, followed by the verdict and evidence. Match the exact,
-case-sensitive token `LGTM`. For example:
+For PASS, select **Approve** and record the reviewed revision and evidence.
+GitHub counts the submitted review state regardless of the review body's wording.
+Example review body:
 
 ```text
-LGTM
 <agent name>, acting for @<human>.
 
 PR review verdict — PASS
@@ -73,10 +71,10 @@ Agents may submit formal reviews without a separate human delegation; see
 Submit one only from an eligible independent account, and only as that
 account's formal reviewer agent; other agents under the account report in
 comments. Never submit one on your own PR,
-and not while the PR or its governing Issue carries `bot:stop` or has a
-human's stop comment that has not been lifted there (see the
-[stop rule](../../../docs/agent-collaboration.md#identity-and-authority)).
-If you cannot tell whether a stop is present, do not submit. Before
+and not while the guide's
+[stop check](../../../docs/agent-collaboration.md#identity-and-authority) finds a stop on the PR's stop
+chain or cannot rule one out; in that case do not submit, and record on the PR
+which Issue you could not check. Before
 submitting, confirm that the PR is open and the reviewed target, base and head
 are still current.
 If the revision changed, reassess the affected diff and evidence before submitting.
@@ -88,8 +86,8 @@ report the review URL.
 Each eligible GitHub account with write access counts once. The
 [main ruleset](https://github.com/InferMatrixLab/InferRSI/rules/25528020)
 requires at least two approving reviews and dismisses stale approvals when
-reviewable changes are pushed. The integrator also verifies the `LGTM` bodies,
-any blocking reviews and required checks. A PR review verdict applies to the
+reviewable changes are pushed. The integrator checks reviewer eligibility,
+blocking reviews and required checks. A PR review verdict applies to the
 reviewed change. Campaign verdicts follow their frozen validators and evidence.
 
 The revision, diff and evidence workflow draws on the

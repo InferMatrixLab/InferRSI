@@ -20,7 +20,7 @@ Campaign acceptance, DCO, CI lanes and evidence rules stay in
 - Humans do two things: open Issues that set direction and stop work at any time. A human adds `bot:stop` to an Issue or PR to stop it, or a maintainer account's agent adds it for a human with a comment there linking that human's stop request; agents then make no further changes, reviews or merges there and resume only after the stop is lifted as below. A stop on an Issue also stops the PRs it governs and any work delegated under it, including its sub-issues at any depth and their PRs. An Issue owner's or another human's comment on an Issue or PR asking agents to stop has the same effect, and creating the label does not end it. Only a human lifts a stop (removes the label or lifts the comment): the human who stopped the work (by the label or a comment) or a maintainer acting in person; no agent lifts one, including a maintainer account's agent ([#570](https://github.com/InferMatrixLab/InferRSI/issues/570#issuecomment-7073497490), unchanged by the [later amendment](https://github.com/InferMatrixLab/InferRSI/issues/570#issuecomment-7077630550)). Adding the label for a human or migrating a recorded human stop comment to `bot:stop` keeps the stop in force and is not lifting it, so a maintainer account's agent may do either. Each lift or migration is recorded by a comment on that same Issue or PR (for a migration, with the label added there). If it is unclear whether a stop was posted, lifted or migrated, or by whom, the stop stays in effect. Right before each push, review or merge, an agent runs the stop check: it checks the work's stop chain for the label and for any stop comment not yet lifted this way. The stop chain is the PR, the Issues that govern or delegated the work, and every real ancestor of those Issues (following each Issue's sub-issue parent up to the top). A governing Issue is one the PR body references with `Refs #N` or `Closes #N` as the source of this work's scope, and a delegating Issue is one on which the work was delegated to the acting agent; an Issue linked only as background or related reading is not in the chain. If any Issue in the chain cannot be read (for example a permission or API failure), or the agent cannot tell whether a stop is present, it treats the work as stopped, does not act, and records on the PR which Issue it could not check; an Issue outside the chain neither stops the work nor needs to be readable. For example, a PR that refs sub-issue B waits while B's parent A carries `bot:stop`; a PR that refs B and also links an older Issue C as background, which the agent cannot read, is not stopped because of C. A maintainer creates `bot:stop` with the Dong1017 account as soon as this guide merges.
 - There is no merge queue yet, so a stop needs only that recheck right before the merge. Before a merge queue is enabled, whoever enables it records who removes a stopped PR's queued entry and verifies that path, and a final stop check right before each PR is queued is part of enabling it.
 - High-risk changes are CI workflows and required checks, releases (release workflow, version, tags, publishing), secrets and credentials, and permissions (workflow `permissions`, repository access, rulesets, the high-risk approver list). They still need two independent approvals, at least one from an account on the high-risk approver list in [`.github/high-risk-approvers.json`](../.github/high-risk-approvers.json) that still has repository write access at merge time; that account's agent may give it. Other accounts count toward the two approvals but not as this one ([#570](https://github.com/InferMatrixLab/InferRSI/issues/570#issuecomment-7078872219)). Changing that file is itself a high-risk change. Which copy of the list counts: the PR that creates the file is approved once against the five accounts recorded in [#570](https://github.com/InferMatrixLab/InferRSI/issues/570#issuecomment-7078872219), under the existing repository controls. After that, only the copy in the protected `main` commit that the merging agent verifies right before the merge counts, never the copy on the PR head or a stacked branch, so a PR that changes the list is judged by the list in effect before it. If the merging agent cannot read that list or the approver's current write access, it does not merge. This repository is run by bot maintainers: an account and the agent working for it count as that account, and the account holder answers for everything the account does. High-risk changes are tracked after the fact rather than gated on proof of human origin ([#570](https://github.com/InferMatrixLab/InferRSI/issues/570#issuecomment-7077630550)): the approval and the merge each carry an identity line naming the acting agent or human (for the merge, in a PR comment posted with it), so both can be audited later. The merging agent writes that comment itself at merge time: the identity line, then one line `merge-audit: head=<sha> approvals=@<account> <review URL>, @<account> <review URL> approver=@<login> list=<sha> merge=<sha> by=@<account>`. `approver=` names the approving account the merging agent found on the high-risk approver list and verified still had write access at merge time, from the collaborator permission GitHub reports for that account; `list=` is the protected `main` commit that list was read from, or `list=bootstrap-570` for the one-time bootstrap merge, whose comment links the [#570 record](https://github.com/InferMatrixLab/InferRSI/issues/570#issuecomment-7078872219); an identity line declares who acted without proving it. When a revert cannot undo a change's external effect (exposed credentials, a published asset, changed access), the author or the author's agent puts one line `recovery: owner=@<account>; containment=<steps>` in the PR body before the change takes effect; a reviewer agent that finds it missing requests it, and it adds no approval gate. Misuse is handled after the fact by the account holder and the maintainers: revert, record it on the Issue, and tighten the rule if it recurs. Every step here uses only labels, identity lines and fixed lines like these, so an agent can do it and a bot pipeline can check it; no step waits on a human.
-- Each account carries at most one agent team, or the agent uses its own account. Each account has one formal reviewer agent; other agents under that account, such as a patrol, report in comments and do not submit **Approve** or **Request changes**. Every agent comment and every formal review (including **Approve** and **Request changes**) carries one line naming the acting agent and the human it acts for, so humans, integrators and other agents can tell who acted. The line comes first, except in an **Approve**, where `LGTM` stays alone on the first non-empty line and the identity line comes next.
+- Each account carries at most one agent team, or the agent uses its own account. Each account has one formal reviewer agent; other agents under that account, such as a patrol, report in comments and do not submit **Approve** or **Request changes**. Every agent comment and every formal review (including **Approve** and **Request changes**) carries one line naming the acting agent and the human it acts for, so humans, integrators and other agents can tell who acted. The line comes first.
 
 ## Roles
 
@@ -85,11 +85,11 @@ are recorded by the accountable agent for any human to override.
 ### PR review and merge
 
 For a PR targeting `main`, each completed review gives an explicit **PASS** or
-**DO NOT PASS** verdict. For PASS, submit **Approve** with `LGTM` alone on the
-first non-empty line of the same review body, followed by the agent's identity
-line. Only the exact, case-sensitive spelling `LGTM` qualifies. For DO NOT
-PASS, submit **Request changes** with
-the blockers and the expected corrections or evidence.
+**DO NOT PASS** verdict. For PASS, submit **Approve**. GitHub counts the formal
+review even when its body is empty. Conversation comments and **Comment**
+reviews contribute zero approvals, including comments that say `LGTM` or `PASS`.
+For DO NOT PASS, submit **Request changes** with the blockers and the expected
+corrections or evidence.
 
 An eligible approval comes from an independent reviewer using a GitHub account
 with repository write access or higher, judged by its permission when it
@@ -120,7 +120,7 @@ identity line names the acting reviewer and the human it acts for.
 The [main ruleset](https://github.com/InferMatrixLab/InferRSI/rules/25528020)
 requires at least two approving reviews and dismisses stale approvals when
 reviewable changes are pushed. Before merging, the integrator verifies two
-current approvals that meet the eligibility and body rules above, resolution
+current approvals from distinct eligible reviewers as described above, resolution
 of all blocking reviews, and passing required checks.
 
 Windows/macOS `host-compatibility` checks are advisory under the
@@ -148,43 +148,12 @@ while the required `knowledge-model-policy` check does not run on
 `merge_group` events. If `main` still turns red after a merge, an agent first
 reverts the merge that broke it, then fixes forward in a new PR.
 
-### Independent-approval check rollout (not active)
+### Independent-approval check (advisory, to be removed)
 
-The proposed `independent-approvals` observer in #440/#441 does not replace the
-live native review rule above. Until the separately accepted ruleset cutover,
-two native approvals and resolution or authorized dismissal of blocking
-Request changes are still required. The review skill continues to describe that
-live rule.
-
-The observer counts GitHub User accounts with current write access, the exact
-first non-empty line `LGTM`, and a formal approval on the current head. GitHub
-Bot/App actors and unresolved actor types do not count. It excludes the PR author
-and linked commit authors/committers; the integrator still checks parent,
-material-contributor and delegation independence separately. A later opinionated
-vote replaces that account's approval; another reviewer's dissent stays visible.
-
-Before each merge, re-read current-head reviews and permissions instead of using
-an earlier successful status as proof of current eligibility. The observer's
-read-only `--pull-request` mode performs fresh reads; inspect its reported count
-and state, since exit zero alone only means reconciliation had no API error.
-
-**Status-source cutover remains blocked.** The current observer uses the shared
-GitHub Actions status identity. Another workflow with `statuses: write` can use
-that identity too; checking `github-actions[bot]` or the context name does not
-authenticate the originating workflow. GitHub documents both [workflow token
-permissions](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#permissions)
-and [binding a required check to an expected App](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches#require-status-checks-before-merging).
-
-Before replacing the native review gate, the owner must record an exclusive
-trusted status source, such as a separately permissioned App, and bind the
-required check to its identity. Verify on a disposable head that a status written
-by a different actor and by another Actions workflow cannot satisfy the gate.
-Both negative probes must actually run and fail to satisfy it. Unit tests or a
-code-reading claim cannot substitute for that live verification. Keep the native
-gate in place if either probe is missing or succeeds. Record the current-head
-permission-revocation check, the two-approval/dissent matrix, the merge-box result
-and before/after ruleset JSON in #440 before the final cutover. At no point may
-both gates be disabled.
+The `independent-approvals` commit status from #441 is advisory and is not an
+approval count; [#607](https://github.com/InferMatrixLab/InferRSI/pull/607)
+removes it. Only the formal **Approve** reviews counted under the rules above
+and the native ruleset count.
 
 ### Agent–Agent: isolated work and conditional handoff
 
