@@ -191,7 +191,7 @@ def test_task_skills_are_explicitly_readable_but_never_ranked_into_campaign(tmp_
                               relevance=cue, **options)
     ranked, state = verify_capture(path.read_bytes())
     assert state == "verified" and ranked["items"]
-    assert ranked["retrieval"]["counts"]["considered"] == 128
+    assert ranked["retrieval"]["counts"]["considered"] == 129
     for group in ("items", "contexts", "context_omissions"):
         assert task_refs.isdisjoint(item.get("ref") for item in ranked[group])
     refs = sorted(task_refs)

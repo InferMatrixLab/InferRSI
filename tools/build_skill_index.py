@@ -15,7 +15,7 @@ from pathlib import Path
 
 from inferrsi.knowledge import _source_snapshot
 from inferrsi.knowledge.catalog import COMPILED, INPUTS
-from inferrsi.knowledge.skill_catalog import _frontmatter_parts, skill_records
+from inferrsi.knowledge.skill_catalog import _frontmatter_parts, is_bytecode_cache, skill_records
 
 if __package__:
     from .git_read import GIT_READ, GitVersionError, check_git_version
@@ -100,7 +100,8 @@ def source_inputs(root: Path) -> set[str]:
     return {f"{PINNED_LIBRARY.as_posix()}/skill-index.json"} | {
         f"{PINNED_LIBRARY.as_posix()}/{path.relative_to(root).as_posix()}"
         for item in _registry(root).values()
-        for path in (root / item["path"]).rglob("*") if path.is_file()
+        for path in (root / item["path"]).rglob("*")
+        if path.is_file() and not is_bytecode_cache(path)
     }
 
 

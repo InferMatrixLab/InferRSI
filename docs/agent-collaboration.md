@@ -148,13 +148,6 @@ while the required `knowledge-model-policy` check does not run on
 `merge_group` events. If `main` still turns red after a merge, an agent first
 reverts the merge that broke it, then fixes forward in a new PR.
 
-### Independent-approval check (advisory, to be removed)
-
-The `independent-approvals` commit status from #441 is advisory and is not an
-approval count; [#607](https://github.com/InferMatrixLab/InferRSI/pull/607)
-removes it. Only the formal **Approve** reviews counted under the rules above
-and the native ruleset count.
-
 ### Agent–Agent: isolated work and conditional handoff
 
 ```mermaid

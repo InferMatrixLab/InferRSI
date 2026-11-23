@@ -282,7 +282,7 @@ Complete procedures, references and cases are packaged together. Browse by
 system, engineering task, workflow or prior outcome. Backend is recorded independently. The 21 engine and research-router skills
 use the same ownership layout under `systems/engines/<engine>/` and
 `workflows/research/inference-engine-research/`, including their sub-skills and references.
-The library contains 151 `SKILL.md` files, all in English. The registered
+The library contains 152 `SKILL.md` files, all in English. The registered
 [Lithos Metal candidate](../src/inferrsi/knowledge/data/skill_library/systems/engines/lithos-metal/SKILL.md)
 adds three owner-local subskills for compiler/fusion, generation state and
 serving/cache contracts; it adds no executable repository target.
@@ -290,12 +290,12 @@ The collection overview, import notes and source manifest belong to the research
 workflow's references; Strata design-space analysis belongs to Strata. The library root holds the registry, configuration, compiled inputs, authored findings and skill directories.
 
 The [runtime catalog](../src/inferrsi/knowledge/data/skill_library/README.md)
-projects the 88 registered skills into the contribution catalog. Its records
+projects the 89 registered skills into the contribution catalog. Its records
 use `inferrsi.<backend>.skills.<name_with_underscores>` IDs, with `ascend` and
 `cuda` for scopes that depend on those backends and `common` for the remaining skills.
 Each `skill_documents.original` points to the full packaged procedure. The
 `skills` CLI retains the original hyphenated skill IDs and defaults to this
-88-ID registry; engine procedures remain available through library navigation
+89-ID registry; engine procedures remain available through library navigation
 and catalog document pointers.
 
 The registered [PyTorch](../src/inferrsi/knowledge/data/skill_library/systems/frameworks/pytorch/pytorch/SKILL.md)
