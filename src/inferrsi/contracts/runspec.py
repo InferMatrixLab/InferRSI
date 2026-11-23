@@ -1,8 +1,19 @@
 """Immutable CLI contracts; no accelerator or Agent runtime dependencies."""
 
 import math
+import re
 from dataclasses import asdict, dataclass
 from pathlib import Path
+
+
+def revision_matches(head: object, revision: object) -> bool:
+    """Match an observed Git HEAD to a fixed revision or a hexadecimal prefix."""
+    if not isinstance(head, str) or not isinstance(revision, str) or not head:
+        return False
+    return head == revision or (
+        re.fullmatch(r"[0-9a-fA-F]{7,}", revision) is not None
+        and head.lower().startswith(revision.lower())
+    )
 
 
 @dataclass(frozen=True)
