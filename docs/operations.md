@@ -60,7 +60,8 @@ Effect classes used below:
 | Freeze a configured P1 preparation | Python `benchmark.preparation.PreparationService.prepare`; [production prepare](contracts/production-prepare.md) | Read-only resource access / pure encoding | Verifies supplied frozen worker/resource bytes and returns a preparation, protocol and role-keyed closure; Apps separately archives them before publishing a Ref |
 | Evaluate saved requests | CLI `evaluate prepare/execute/assess`; [saved-request CLI](apps-evaluate-cli.md) | Local archive/output writing; execute additionally runs the configured H target | Explicit saved request, output ID, storage and trusted runtime configuration; reuses Apps ports and results without allocating attempts, selecting feedback or retrying |
 | Assess one fixed P1 record offline | Python `benchmark.assessment.assess`; [production assess](contracts/production-assess.md) | Read-only retained evidence / pure encoding | Verifies the frozen protocol, actual capture and proof bytes; returns independent claims without launching a worker or writing an archive; Apps selects the primary key and archives the result |
-| Seal host-approved generation context | Python `harness.generation.prepare_generation`; [feedback boundary](contracts/generation-feedback.md) | Local context / generation-plan retention | The trusted host authorizes feedback and excludes final-only results before handoff. H seals the supplied material; this port does not execute a worker or prove feedback-policy enforcement |
+| Seal a generation with frozen feedback authorization | Python `harness.generation.prepare_generation`; [opt-in feedback profile](contracts/generation-feedback-policy.md) | Local context / policy / generation-plan retention | Optional fixed policy and source record Refs authorize original scope/check proofs before provider calls. Absent-policy calls remain a trusted-host path; no automatic execution or policy-approval authentication |
+| Seal host-approved generation context without a policy Ref | Python `harness.generation.prepare_generation`; [feedback boundary](contracts/generation-feedback.md) | Local context / generation-plan retention | The trusted host authorizes feedback and excludes final-only results before handoff. Without the opt-in policy Ref, H seals supplied material and does not prove feedback-policy enforcement or execute a worker |
 | Visualize a recorded run or campaign | CLI `dashboard`; [dashboard](dashboard.md) | Report-generating / local read-only serving | Writes an offline HTML snapshot or serves an optional live view on loopback; does not run an agent or validate a claim |
 | Capture a knowledge context | CLI `campaign capture-context`; [offline dashboard](dashboard.md#record-the-optimization-story-campaign-trace) | Local evidence-writing | Saves assembled context and resource hashes in a new `knowledge/<id>.json`. Supports ordinary questions and explicit IDs. The only accepted explicit `--relevance-method` value is `find-lexical-v1` |
 | Retain an executed retrieval | Python `apps.workflows.campaign.save_retrieval`; [capture contract](knowledge-retrieval-trace.md#retain-a-standalone-result) | Local evidence-writing | Saves an existing catalog/collect result under a fresh campaign capture ID; no new search or automatic publication |
@@ -413,15 +414,16 @@ delivery and generation handoff. The API still exports the one canonical
 
 Explicit flags override YAML values, YAML values override built-in defaults, and an
 omitted flag never replaces a YAML value. Acceptance fields come from the file. See
-[task input](task-input.md). Using a task file with `plan` and `run` is not implemented yet.
+[task input](task-input.md). `plan --task` and `run --task` use a complete file with
+the same merge (see [use with plan and run](task-input.md#use-with-plan-and-run)).
 
 ### Inspect/prepare — `doctor`, `plan`, `--dry-run`
 
-- **Inputs:** repository/backend/device flags; `plan` takes the full experiment specification.
+- **Inputs:** repository/backend/device flags; `plan` takes the full experiment specification as flags, or a complete YAML task file with `--task <task.yaml>` plus explicit mapped overrides.
 - **Scope:** environment inspection and specification preview.
-- **Output:** environment facts, or a preview of the RunSpec.
+- **Output:** environment facts, or a preview of the RunSpec. With `--task`, the preview adds a `task` block equal to `task preview --json` for the same file and flags, and a `frozen_gate` block that reports whether the task's acceptance fields agree in content with the local frozen gate record named by `acceptance.reference`. `agrees` is content agreement only; it does not authenticate the record's provenance.
 - **Side effects:** `doctor` may invoke bounded read-only probes; `plan`/`--dry-run` persist nothing.
-- **Failure behavior:** unavailable devices or invalid flags are reported explicitly.
+- **Failure behavior:** unavailable devices or invalid flags are reported explicitly. With `--task`, task field errors, conflicting acceptance flags and blockers are printed by field to stderr, exit 2, before any probe. Without `--task`, `--baseline-command` and `--candidate-command` are required.
 - **Example:** `inferrsi doctor --repo . --repo-type vllm_omni --backend cpu`
 
 `plan` previews a specification. That preview alone does not persist a frozen
@@ -430,11 +432,19 @@ compatibility.
 
 ### Execute/inspect — `run`, `status`, `report`
 
-- **Inputs:** the full experiment specification (`run`); a run ID and output directory (`status`/`report`).
+- **Inputs:** the full experiment specification as flags or as a complete `--task <task.yaml>` (`run`); a run ID and output directory (`status`/`report`). With `--task`, the caller/host must first establish that `acceptance.reference` names the accepted frozen gate record. InferRSI checks that the task and that local record agree in content (`agrees`); it does not authenticate the record's provenance and takes no expected digest.
 - **Scope:** caller-supplied benchmark, candidate and validation commands under the experiment contract.
-- **Output:** a run ID and evidence directory; recorded progress; an HTML report.
+- **Output:** a run ID and evidence directory; recorded progress; an HTML report. With `--task`, the run directory also holds `task.json`, the task preview, and `frozen_gate.json`, the gate result with the record's SHA-256 for citation in the acceptance issue.
 - **Side effects:** `run` executes the supplied commands and owns child-process cleanup; `report` writes HTML into the run directory.
-- **Failure behavior:** exit codes 0 PASS, 1 FAIL, 2 INCONCLUSIVE/input errors; cancellation is recorded.
+- **Failure behavior:** exit codes 0 PASS, 1 FAIL, 2 INCONCLUSIVE/input errors; cancellation is recorded. With `--task`, task field errors and blockers exit 2 before any probe. A task whose acceptance fields differ from the frozen gate record (`mismatch`), or whose gate cannot be checked (`unverified`: an HTTP(S) reference, a missing file, or a record that is not a schema v1 `acceptance` section stating the gate), also exits 2 before any probe; see [frozen gate record](task-input.md#frozen-gate-record). A baseline checkout `HEAD` that differs from `acceptance.baseline_revision` exits 2 after inspection. In all three cases no command starts and nothing is written.
+
+Task-mode RunSpec validation, including local candidate-directory checks, runs before
+environment probes. The frozen baseline also binds the execution through the existing
+`RunSpec.revision` field, while the observed source identity binds the existing
+`RunSpec.snapshot_id`: Harness compares the actual initial and pre-trial baseline
+snapshots, including working-tree changes, with those pins. A later
+checkout mismatch starts no trial from that snapshot and leaves the failed diagnostic
+run as `INCONCLUSIVE` with its source/error facts retained.
 - **Example:** see [quickstart: real remote experiment](quickstart.md#real-remote-experiment)
 
 Operation success, recorded execution state and the experiment verdict are

@@ -5,7 +5,7 @@ from hashlib import sha256
 from pathlib import PurePosixPath
 
 from inferrsi.contracts.json_v1 import encode
-from inferrsi.harness import run_store
+from inferrsi.harness import generation_feedback, run_store
 from inferrsi.harness.errors import PublicError
 from inferrsi.harness.execution_service import LocalCpuTarget, validate
 
@@ -16,6 +16,7 @@ _MANIFEST_PATH = PurePosixPath("inputs/generation-plan.json")
 def prepare_generation(
     store: run_store.RunStore, target: LocalCpuTarget, *, context_provider, candidate_provider,
     context_request: dict, candidate_context: dict, attempt: dict,
+    feedback_policy_ref=None, feedback_record_refs=(), artifact_reader=None,
 ) -> dict:
     """Collect and seal the approved context, then return the final ordinary ExecutionSpec.
 
@@ -23,6 +24,9 @@ def prepare_generation(
     provider configuration. A changed request requires a new attempt.
     The caller saves and replays this spec through Harness.execute. Preparation does not
     register an execution or allocate a new attempt.
+    With feedback_policy_ref, H verifies fixed scope/check grants before either provider
+    runs and retains the policy in the final spec. Without it, feedback authorization
+    remains a trusted-host precondition. See contracts/generation-feedback-policy.md.
     """
     errors = run_store._attempt_errors(attempt)
     if errors:
@@ -36,8 +40,19 @@ def prepare_generation(
         context.pop("delivered_context", None)
         preparation = {"attempt": attempt, "context_request": context_request,
                        "candidate_context": context}
+        authorization = generation_feedback.request_fields(
+            feedback_policy_ref, feedback_record_refs, artifact_reader,
+        )
+        preparation.update(authorization)
         digest = "sha256:" + sha256(encode(preparation)).hexdigest()
         delivery = store._find_delivery(attempt_id, preparation_digest=digest)
+        policy = None
+        if authorization:
+            data = generation_feedback.verify(
+                store, attempt, context, feedback_policy_ref, feedback_record_refs,
+                artifact_reader, retained=delivery is not None,
+            )
+            policy = generation_feedback.retain(store, data, attempt_id)
         if delivery is None:
             delivery = _collect_delivery(
                 store, context_provider, attempt_id, context_request, digest,
@@ -45,7 +60,7 @@ def prepare_generation(
         context["delivered_context"] = delivery
         ref = deepcopy(delivery["artifact"])
         plan = candidate_provider.plan_generation(context, deepcopy(attempt))
-        spec = _bind_generation_plan(store, target, attempt, plan, ref)
+        spec = _bind_generation_plan(store, target, attempt, plan, ref, feedback_policy=policy)
     except (AttributeError, KeyError, TypeError, ValueError) as exc:
         raise PublicError(
             "InvalidRequest", stage="generation-seal", attempt_id=attempt_id, started=False,
@@ -68,7 +83,7 @@ def _collect_delivery(store, context_provider, attempt_id, context_request, prep
     return store._seal_delivered_context(attempt_id, preparation_digest, content, descriptor)
 
 
-def _bind_generation_plan(store, target, attempt, plan, delivery_ref):
+def _bind_generation_plan(store, target, attempt, plan, delivery_ref, *, feedback_policy=None):
     attempt_id = attempt["attempt_id"]
     manifest = plan["manifest"]
     spec = deepcopy(plan["spec"])
@@ -83,6 +98,20 @@ def _bind_generation_plan(store, target, attempt, plan, delivery_ref):
         raise ValueError("generation plan does not match its sealed context and attempt")
     paths = [item["materialized_path"] for item in spec["inputs"]]
     paths.extend(output["path"] for step in spec["steps"] for output in step["outputs"])
+    if feedback_policy is not None:
+        policy_path = PurePosixPath(generation_feedback.PATH)
+        if (any(item["role"] == generation_feedback.ROLE for item in spec["inputs"])
+            or any(PurePosixPath(path.casefold()).is_relative_to(policy_path)
+                   or policy_path.is_relative_to(PurePosixPath(path.casefold()))
+                   for path in paths)):
+            raise PublicError("InvalidRequest", stage="validate", attempt_id=attempt_id,
+                              started=False, message="generation feedback policy path is reserved")
+        spec["inputs"].append({
+            "role": generation_feedback.ROLE, "source": feedback_policy["location"],
+            "source_namespace": "artifact", "source_ref": deepcopy(feedback_policy),
+            "snapshot_format": "file-v1", "expected_sha256": feedback_policy["sha256"],
+            "materialized_path": generation_feedback.PATH,
+        })
     for source in paths:
         path = PurePosixPath(source.casefold())
         if path.is_relative_to(_MANIFEST_PATH) or _MANIFEST_PATH.is_relative_to(path):

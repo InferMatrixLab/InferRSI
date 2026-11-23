@@ -183,7 +183,9 @@ skill covers the once-per-process side), `ascend-device-health` (card state
 before launch), `os-process-placement` (process placement before measuring),
 `kv-tier-management` (runtime KV offload — a different lifecycle concern),
 `storage-io-measurement` (device/process-level I/O attribution and fio
-methodology — the measurement layer beneath §7's phase timers).
+methodology — the measurement layer beneath §7's phase timers),
+`performance-ceiling-analysis` (checkpoint anchoring of L1 weight demand —
+its gates live there; see §3).
 
 ---
 
@@ -236,6 +238,14 @@ Sharded downloads (modelscope/HF-style) — operational rules:
 - Verify completeness structurally: shard numbering has no gaps **and** the
   set matches `*.safetensors.index.json` `weight_map` keys. On mismatch,
   cross-check weight_map and fetch only the missing shards.
+- Completeness is not identity: a full shard set, a matching `weight_map` and
+  a readable header show that the files arrived, not that their tensors match
+  the model an analysis counts. For the per-tensor checkpoint join and the
+  per-rank weight ledger, use
+  [performance-ceiling-analysis](../../measurement/performance-ceiling-analysis/SKILL.md)
+  ([checkpoint anchoring](../../measurement/performance-ceiling-analysis/references/huggingarch-checkpoint-anchor.md)).
+  This skill keeps only the loading mechanics. Neither header acquisition nor
+  a completed load establishes the placement a framework uses at run time.
 - Measure aggregate rate by `du -sh` differencing on a stable segment (not
   ramp-up); expect single-digit MB/s on slow networks — hours for ~134 GiB is
   normal, not a defect. Triage downloader logs as WARNING (transient) vs

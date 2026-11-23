@@ -5,10 +5,10 @@ file from the CLI or hand it to an Agent. Both entry points read it through one
 shared contract, `inferrsi.apps.cli.task_input`, so the same file gives the same
 normalized task fields either way.
 
-`inferrsi task validate` and `inferrsi task preview` are available now. They are
-read-only. Using a complete task file directly with `inferrsi plan --task` and
-`inferrsi run --task` is not implemented yet. Until it is, pass the previewed values
-to `plan` and `run` as their existing flags (see the [field table](#fields)).
+`inferrsi task validate` and `inferrsi task preview` check a draft or complete file
+without side effects. `inferrsi plan --task` and `inferrsi run --task` use a complete
+file with the existing plan and run operations (see
+[use with plan and run](#use-with-plan-and-run)).
 
 | Resource | Location | Print from an installed CLI |
 | --- | --- | --- |
@@ -64,7 +64,7 @@ used when both the file and the flag omit an optional field.
 | `environment.repetitions` | positive integer | `--repetitions` | yes | — |
 | `environment.max_minutes` | positive finite number, at most 10080 (seven days) | `--max-minutes` | yes | — |
 | `environment.rounds` | positive integer (optimization search rounds) | — | — | — |
-| `acceptance.reference` | HTTP(S) issue URL or local plan path | — | yes | — |
+| `acceptance.reference` | HTTP(S) issue URL or local plan path; `run` needs a local [frozen gate record](#frozen-gate-record) | — | yes | — |
 | `acceptance.baseline_revision` | quoted string | — | yes | — |
 | `acceptance.metric_key` | flat or dotted JSON key | `--metric-key` (must match) | yes | — |
 | `acceptance.direction` | `minimize`, `maximize` | `--direction` (must match) | yes | — |
@@ -88,8 +88,8 @@ not invent them.
 
 ## Merge order
 
-`task preview` accepts the mapped flags from the table as overrides. The effective
-value of each field is:
+`task preview`, `plan --task` and `run --task` accept the mapped flags from the table
+as overrides. The effective value of each field is:
 
 1. an explicit CLI flag, then
 2. the YAML value, then
@@ -142,6 +142,118 @@ is present. It does not authorize execution. Running an experiment still require
 explicit `run` under the existing acceptance, frozen-gate and evidence rules
 (see [operations](operations.md#validatepreview-a-task-file--task-validate-task-preview)).
 
+## Use with plan and run
+
+`plan` and `run` take a complete task file with `--task`:
+
+```bash
+inferrsi plan --task task.yaml                   # preview the RunSpec and the task
+inferrsi plan --task task.yaml --repetitions 7   # explicit override
+inferrsi run --task task.yaml                    # explicit execution
+```
+
+- **Merge order.** `--task` uses the [merge order](#merge-order) of `task preview`.
+  `plan` and `run` keep their parser defaults, such as `--backend cpu` and
+  `--repetitions 3`, for flag-only use. In task mode only the mapped flags you supply
+  are overrides, and a supplied flag wins even when its value equals the parser
+  default. An acceptance flag must equal the file's value. Flags with no task field,
+  such as `--agent`, `--output-dir` and `--dry-run`, keep their existing meaning.
+- **Field errors first.** `plan` and `run` need a valid, complete task. Errors and
+  blockers print to stderr, one line per field, for example
+  `error acceptance.metric_key (cli): ...` or
+  `blocker environment.repetitions: missing; required for plan/run`. The command
+  then exits with 2 before any environment probe, task command or file write.
+  The RunSpec's local directory/path checks also run before environment probes,
+  including the optional candidate checkout.
+- **Defaults for omitted optional fields.** An omitted `environment.python` uses the
+  interpreter running InferRSI. An omitted `optimization.candidate_repository` uses
+  the baseline checkout. An omitted `environment.quality_command` leaves the run
+  without quality evidence, which gives the existing `INCONCLUSIVE` outcome.
+- **`plan` and `run --dry-run`.** They inspect the environment and print the RunSpec
+  built from the task, as in flag-only use. Their output adds a `task` block, the
+  same object that `task preview --json` prints for the same file and flags, and a
+  `frozen_gate` block, the [frozen gate](#frozen-gate-record) result. They report a
+  `mismatch` or `unverified` gate without failing. Without `--task` the output is
+  unchanged.
+- **`run`.** Execution checks that the task's content is consistent with the local
+  record it names and with the baseline checkout. It does not authenticate where the
+  record came from (see [frozen gate record](#frozen-gate-record)).
+  The input, gate and inspection checks fail with exit 2 before any benchmark
+  command starts or any run directory is written.
+  - Before the environment probe, the task's acceptance fields must agree with the
+    [frozen gate record](#frozen-gate-record) that `acceptance.reference` names.
+    A `mismatch` or `unverified` gate prints each problem by field to stderr.
+  - After inspection, the baseline checkout's `HEAD` must equal
+    `acceptance.baseline_revision`. A hexadecimal prefix of at least 7 characters is
+    also accepted.
+  - The declared baseline is also carried in the existing `RunSpec.revision` field.
+    The source identity observed during inspection binds `RunSpec.snapshot_id`,
+    including tracked/untracked changes and submodules. Harness checks both pins
+    against the initial execution snapshot and each fresh snapshot of the baseline
+    source before a trial. A checkout or working tree changed after inspection
+    cannot run from a mismatching snapshot. This later refusal retains a failed
+    diagnostic run with `INCONCLUSIVE`; it does not discard already recorded facts.
+
+  The run directory then holds `task.json`, the task preview, and `frozen_gate.json`,
+  the gate result with the record's SHA-256, next to `args.json`. `args.json` records
+  the effective values and the absolute `task_file`.
+
+RunSpec carries the experiment fields, including the frozen baseline revision.
+`optimization.objective`,
+`optimization.plane`, `environment.rounds`, `acceptance.reference`,
+and `acceptance.constraints` have no RunSpec field.
+They are recorded in the `task` block and in `task.json`. Without `--task`,
+`--baseline-command` and `--candidate-command` remain required, with the same
+argparse error and exit 2.
+
+### Frozen gate record
+
+Freeze the agreed gate before candidate search as a local file, for example in the
+campaign's `plan/` segment, and point `acceptance.reference` at it. The record is a
+schema v1 document with `schema_version: 1` and an `acceptance` section. It is read
+and validated like a task file, and other sections are allowed, so a frozen copy of
+the reviewed task also works. Its own `acceptance.reference` may cite the acceptance
+issue URL; that field is not compared.
+
+```yaml
+schema_version: 1
+acceptance:
+  reference: "<acceptance-issue-url>"
+  baseline_revision: "<baseline_sha>"
+  metric_key: metrics.latency_ms
+  direction: minimize
+  metric_unit: ms
+  min_improvement_pct: 2.5
+  required_trial_checks: [checks.warm]
+  constraints: "<AGREED_CRITERIA>"
+```
+
+`frozen_gate` reports one of three statuses, with field-level `problems`:
+
+- **`agrees`.** The record states `baseline_revision`, `metric_key`, `direction`,
+  `metric_unit` and `min_improvement_pct`, and every acceptance field except
+  `reference` equals the task's effective value. Omitted `comparison_scope` and
+  `required_trial_checks` take their built-in defaults on both sides, and the order
+  of `required_trial_checks` does not matter. `baseline_revision` must be the same
+  text.
+- **`mismatch`.** The record is readable and complete, and at least one field
+  differs, for example `acceptance.min_improvement_pct: is 1.0 in the task but 2.5
+  in the frozen gate record <path>`.
+- **`unverified`.** The gate cannot be checked: the reference is an HTTP(S) URL
+  (InferRSI does not fetch it), the file is missing or is the task file itself, it
+  is not a valid schema v1 document (a Markdown plan, for example), it has no
+  `acceptance` section, or it omits a required gate field.
+
+`agrees` means content agreement only. The check compares the record the caller
+points at with the task. It does not establish that the record is the accepted one,
+and InferRSI takes no expected digest to compare it with. A task and record replaced
+together with matching values still give `agrees`. Authenticating the record's
+provenance, for example confirming that it is the frozen plan the acceptance issue
+cites, is a caller/host precondition before `run --task`. `frozen_gate.json` keeps the
+record's `sha256` so the acceptance issue can cite it and a reviewer can compare it
+with the accepted record. A `run --task` that passes this check still follows the
+existing acceptance, frozen-gate and evidence rules.
+
 ## CLI workflow
 
 ```bash
@@ -191,11 +303,19 @@ An Agent uses the same installed CLI and the same machine-readable preview:
 4. Review the effective values, their sources and the remaining blockers with the
    user. Ask for the blocking fields instead of guessing them.
 5. Use the reviewed task with the existing InferRSI operation the user authorizes,
-   under the operation's own boundary in [operations](operations.md).
+   under the operation's own boundary in [operations](operations.md). For example,
+   run `inferrsi plan --task <task.yaml>`, then `inferrsi run --task <task.yaml>`
+   only after explicit authorization. Before `run`, confirm with the user or the
+   acceptance issue that `acceptance.reference` names the accepted frozen gate
+   record. InferRSI checks only that the two agree in content.
 
 The CLI and the Agent produce the same normalized task for the same file and flags.
 `tests/test_task_input.py` checks this by comparing `inferrsi task preview --json`
 with the Python `task_input.preview` on the shared complete fixture.
+`tests/test_task_plan_run.py` checks that `plan --task` gives the same `task` block,
+and the expected RunSpec, for that fixture. An Agent checks a task's content against
+its frozen gate record with the Python `task_input.frozen_gate`, the same check
+`run --task` applies.
 
 ## Compatibility with other task formats
 

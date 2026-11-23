@@ -13,7 +13,11 @@ template under `src/inferrsi/apps/cli/task-input/v1/`). See
 
 `tests/test_task_input.py` checks the Python contract and the packaged JSON Schema
 against these files, and `tests/check_installed.py` reuses `complete.yaml` from an
-installed wheel outside the checkout.
+installed wheel outside the checkout. `tests/test_task_plan_run.py` uses `complete.yaml`
+and `partial.yaml` with `inferrsi plan --task` and `inferrsi run --task`. It checks the
+expected RunSpec, the `task` block against `task preview --json`, overrides, conflicting
+acceptance flags, field errors before any probe or write, and the run's frozen gate and
+baseline revision checks.
 
 Another entry point that reads InferRSI task files, such as the DSH plugin (#152), must
 consume this contract and match these fixtures (complete and partial tasks, relative
