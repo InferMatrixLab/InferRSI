@@ -5,7 +5,7 @@ by the requested outcome, runs `inferrsi skills enter <task-id>` and reads
 the returned procedure before the first supporting evidence search. Use the actual model, device, engine version, script, gates
 and diagnosis to decide which supporting skill to load next. The
 [compatibility router](tasks/inference-task-router/SKILL.md) retains older route
-resource paths. The library has 88 registered bundles and 151 English
+resource paths. The library has 89 registered bundles and 152 English
 `SKILL.md` documents, including nested and unregistered entries.
 
 | Question | Directory | Choose a second-level category |
@@ -27,7 +27,7 @@ existing resource directory.
 
 ## Read registered skills
 
-[`skill-index.json`](skill-index.json) maps 88 stable skill IDs to their canonical
+[`skill-index.json`](skill-index.json) maps 89 stable skill IDs to their canonical
 paths and backend scopes. Install the optional `skills` extra for these commands:
 
 ```bash
@@ -162,7 +162,7 @@ scheduling/placement proposals remain separate from both implementation pins.
 
 Five repository entry skills, 15 focused sub-skills and one research router
 provide source-grounded procedures. These 21 documents are available through
-the links and catalog records below, separately from the 88-ID registry.
+the links and catalog records below, separately from the 89-ID registry.
 The registered ComfyUI and stable-diffusion.cpp audits are listed alongside
 these imports and use generated abstracts rather than runtime repository packs.
 

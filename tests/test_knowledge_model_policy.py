@@ -46,7 +46,7 @@ from tools.check_knowledge_model_policy import (
 ROOT = Path(__file__).resolve().parents[1]
 HEAD = "a" * 40
 BASE = "b" * 40
-KNOWLEDGE = "src/inferrsi/knowledge/data/repo_packs/example/knowledge/cuda/case.json"
+KNOWLEDGE = "src/inferrsi/knowledge/data/skill_library/records/cuda/case.json"
 CONTROL = ".github/knowledge-model-policy.json"
 
 
@@ -204,7 +204,7 @@ def test_stale_head_and_unsupported_schema_fail():
 @pytest.mark.parametrize("path", [
     "src/inferrsi/knowledge/data/skill_library/methods/example/SKILL.md",
     "src/inferrsi/knowledge/data/skill_library/skill-index.json",
-    "src/inferrsi/knowledge/data/knowledge_packs/peer/example/case.json", KNOWLEDGE,
+    KNOWLEDGE,
     "docs/reference-matrix.md", "docs/searchspace-matrix.md", "docs/knowledge-base.md",
     "docs/knowledge-operations.md", "docs/knowledge-store.md",
     "src/inferrsi/knowledge/catalog.py", "src/inferrsi/knowledge/skill_catalog.py",

@@ -78,10 +78,11 @@ return to the authorized owner.
 ### PR review and merge
 
 For a PR targeting `main`, each completed review gives an explicit **PASS** or
-**DO NOT PASS** verdict. For PASS, submit **Approve** with `LGTM` alone on the
-first non-empty line of the same review body. Only the exact, case-sensitive
-spelling `LGTM` qualifies. For DO NOT PASS, submit **Request changes** with
-the blockers and the expected corrections or evidence.
+**DO NOT PASS** verdict. For PASS, submit **Approve**. GitHub counts the formal
+review even when its body is empty. Conversation comments and **Comment**
+reviews contribute zero approvals, including comments that say `LGTM` or `PASS`.
+For DO NOT PASS, submit **Request changes** with the blockers and the expected
+corrections or evidence.
 
 An eligible approval comes from an independent reviewer using a GitHub account
 with repository write access or higher. The PR author, material contributors,
@@ -95,7 +96,7 @@ acting reviewer, account, scope and permitted review actions.
 The [main ruleset](https://github.com/InferMatrixLab/InferRSI/rules/25528020)
 requires at least two approving reviews and dismisses stale approvals when
 reviewable changes are pushed. Before merging, the integrator verifies two
-current approvals that meet the eligibility and body rules above, resolution
+current approvals from distinct eligible reviewers as described above, resolution
 of all blocking reviews, and passing required checks.
 
 Windows/macOS `host-compatibility` checks are advisory under the
@@ -112,44 +113,6 @@ permission to dismiss reviews may dismiss it after verifying that each blocker
 is resolved. Record the reason and supporting evidence on the PR. The two
 valid approvals are still required after dismissal.
 [GitHub review dismissal](https://docs.github.com/en/pull-requests/how-tos/review-pull-requests/dismissing-a-pull-request-review)
-
-### Independent-approval check rollout (not active)
-
-The proposed `independent-approvals` observer in #440/#441 does not replace the
-live native review rule above. Until the separately accepted ruleset cutover,
-two native approvals and resolution or authorized dismissal of blocking
-Request changes are still required. The review skill continues to describe that
-live rule.
-
-The observer counts GitHub User accounts with current write access, the exact
-first non-empty line `LGTM`, and a formal approval on the current head. GitHub
-Bot/App actors and unresolved actor types do not count. It excludes the PR author
-and linked commit authors/committers; the integrator still checks parent,
-material-contributor and delegation independence separately. A later opinionated
-vote replaces that account's approval; another reviewer's dissent stays visible.
-
-Before each merge, re-read current-head reviews and permissions instead of using
-an earlier successful status as proof of current eligibility. The observer's
-read-only `--pull-request` mode performs fresh reads; inspect its reported count
-and state, since exit zero alone only means reconciliation had no API error.
-
-**Status-source cutover remains blocked.** The current observer uses the shared
-GitHub Actions status identity. Another workflow with `statuses: write` can use
-that identity too; checking `github-actions[bot]` or the context name does not
-authenticate the originating workflow. GitHub documents both [workflow token
-permissions](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#permissions)
-and [binding a required check to an expected App](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches#require-status-checks-before-merging).
-
-Before replacing the native review gate, the owner must record an exclusive
-trusted status source, such as a separately permissioned App, and bind the
-required check to its identity. Verify on a disposable head that a status written
-by a different actor and by another Actions workflow cannot satisfy the gate.
-Both negative probes must actually run and fail to satisfy it. Unit tests or a
-code-reading claim cannot substitute for that live verification. Keep the native
-gate in place if either probe is missing or succeeds. Record the current-head
-permission-revocation check, the two-approval/dissent matrix, the merge-box result
-and before/after ruleset JSON in #440 before the final cutover. At no point may
-both gates be disabled.
 
 ### Agent–Agent: isolated work and conditional handoff
 

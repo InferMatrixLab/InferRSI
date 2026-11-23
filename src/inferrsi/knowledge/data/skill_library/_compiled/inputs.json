@@ -854,6 +854,24 @@
       "sub-skills/generation-lifecycle/scripts/audit_generation_evidence.py": "2aba6caf42ca1b3fc55299fd96419af8681c37750c21a7ba75205a43baa9c7b1"
     }
   },
+  "model-sol-analysis": {
+    "header": {
+      "name": "model-sol-analysis",
+      "description": "Walk a whole model to per-phase (prefill, decode) speed-of-light figures under a declared parallel layout - anchored counts, the fused graph the framework runs, per-rank geometry, explicit communication and KV growth laws - and report a resource-total bound apart from a serial per-op estimate."
+    },
+    "files": {
+      "SKILL.md": "b7a2dc5cc051427b12e195652c20f7ee337326a6954a44f811f8b06d21b63e8a",
+      "references/huggingarch-model-sol.md": "79d5f350964a578fea199c1d77b0c767bb73e85e0fefbb4cebb3f8e0e6264504",
+      "references/huggingarch-source-identity.json": "40ef6bd6d0d11e48aea4f2b30fcad11d226c32e869ea7e97fe8431b55c8dc65f",
+      "references/model-sol-contract.md": "2a5babea1f744f124d3f234c741dae2fb6e5b48b7fd04285e6b3a476c065b34d",
+      "references/model-sol-example.json": "557ac952af65c907e5c08f55c3b15f5fd24317308b0b4ed317d4eb9217a02ac8",
+      "references/qwen38-h200-tp4.json": "e7a8648c2a9b2dde4dee3f360dd256508fe15ee9867d4a7be3b9f4e889259a6c",
+      "references/qwen38-h200-tp4.md": "5b310fc546522f71dc882eff4f44df490955735474bc3d165a36e89556059749",
+      "scripts/model_sol.py": "e3810ff5afafeded34a59ee3fb64093f5e39448e76bde8afa68c5f8238eba63e",
+      "scripts/qwen38_checkpoint.py": "bc022056cad77941987a4f79647c0890ada808f7f0129522d137f51bcc16b1b7",
+      "scripts/qwen38_h200_tp4.py": "0265ee13d9ca354745af261b35682b674b8c3f68538a3bf8ceead34b70724f84"
+    }
+  },
   "npu-skill-factory": {
     "header": {
       "name": "npu-skill-factory",
@@ -914,7 +932,7 @@
       "description": "Estimate optimization headroom before modifying an inference system. Produces a three-level ceiling model (analytical, empirical component, end-to-end) and a prioritized measurement plan. Use to formulate acceptance targets when the user has not supplied them, assess a requested speedup, or identify the binding bottleneck.\n"
     },
     "files": {
-      "SKILL.md": "02aced272537cb47bd45739c4944371834cfcbbb275b3807875b200c426c609c",
+      "SKILL.md": "9827a346ee26c500e886f9c051e914b97b8ffd25ac5533ef26b377b1817f5aa5",
       "references/acceptance-criteria.md": "e96efc42005af591a87b57dd6f1e9bffa8e351bcd023bd093ac37239a0486638",
       "references/flexgen-offload-feasibility.md": "5c72ae959c6cc72aa9e96a17a2934d6bfcfb055b25fda3221c99382dc09910d9",
       "references/huggingarch-checkpoint-anchor.md": "ca03747be29a93b579849ee361b67632e541218a68310e0f3369868c6a45da7e",
