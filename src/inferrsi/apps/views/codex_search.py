@@ -249,6 +249,12 @@ def _recorded_argv(item):
             argv, multiline = _shell_argv(script)
         except ValueError:
             return None, False
+    # A shell or env in command position after one unwrap runs code this reader did
+    # not decode, exactly as the same shell run directly would.
+    starts = [0, *(index + 1 for index, word in enumerate(argv) if word in _SHELL_OPERATORS)]
+    if any(index < len(argv) and _program(argv[index]) in (*_SHELLS, *_OPAQUE_SHELLS, "env")
+           for index in starts):
+        return None, False
     compound = multiline or any(word in _SHELL_OPERATORS for word in argv)
     return argv, compound
 
@@ -260,16 +266,16 @@ def _command(item, corpus):
         return None, False, None
     if not argv:
         return None, True, None
-    tool = Path(argv[0]).name
+    tool = _program(argv[0])
     if compound:
-        in_scope = any(Path(word).name in _TOOLS or knowledge_invocation(argv[index:])
+        in_scope = any(_program(word) in _TOOLS or knowledge_invocation(argv[index:])
                        for index, word in enumerate(argv))
         return None, not in_scope, None
     code, output = item.get("exit_code"), item.get("aggregated_output")
     if call := knowledge_invocation(argv):
         return decode_knowledge(call, code, output)
     if tool not in _TOOLS:
-        return None, not any(Path(word).name in _TOOLS for word in argv), None
+        return None, not any(_program(word) in _TOOLS for word in argv), None
     cwd = _path(item.get("cwd"))
     if cwd is None:
         return None, False, None
