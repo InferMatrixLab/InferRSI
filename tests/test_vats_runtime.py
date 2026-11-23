@@ -5,6 +5,7 @@ from dataclasses import asdict, replace
 
 import pytest
 
+from inferrsi.apps.workflows.search_roles import Snapshot
 from inferrsi.harness import search_tree as tree
 from inferrsi.harness.artifact_primitives import digest
 from inferrsi.harness.gvo import examples, train_group
@@ -14,7 +15,6 @@ from inferrsi.harness.search_campaign import collect_group, finalize, qualify_ro
 from inferrsi.harness.search_records import decode
 from inferrsi.harness.vats import Search, Settings
 from inferrsi.harness.work_control import WorkControl
-from inferrsi.model.search_roles import Snapshot
 from tests.fixtures.speculative_search import contract
 
 
@@ -181,7 +181,10 @@ def test_durable_accept_recovers_without_another_policy_decision(runtime, monkey
 
 
 @pytest.mark.parametrize("kind", ["draft", "verify"])
-def test_expired_launch_recovers_unstarted_block_and_finishes_with_root(runtime, monkeypatch, kind):
+@pytest.mark.parametrize("expire_campaign", [False, True])
+def test_expired_launch_recovers_unstarted_block_and_resumes(
+    runtime, monkeypatch, kind, expire_campaign
+):
     control, adapter, snapshot, settings, root = runtime
     search = Search(control, "campaign", root.contract.search_id, snapshot, settings, adapter)
     search.start(root, seed=2, collect=False)
@@ -190,10 +193,13 @@ def test_expired_launch_recovers_unstarted_block_and_finishes_with_root(runtime,
 
     def expire(campaign, operation):
         doc = control.read(campaign)
-        if doc["operations"][operation]["category"] == kind:
+        if not interrupted and doc["operations"][operation]["category"] == kind:
             interrupted.update(operation=operation, spent_ms=doc["spent_ms"])
+            deadline = (
+                doc["deadline"] if expire_campaign else doc["operations"][operation]["deadline"]
+            )
             monkeypatch.setattr(
-                "inferrsi.harness.work_control.time.time", lambda: doc["deadline"] + 1
+                "inferrsi.harness.work_control.time.time", lambda: deadline + 0.001
             )
         return launch(campaign, operation)
 
@@ -216,20 +222,92 @@ def test_expired_launch_recovers_unstarted_block_and_finishes_with_root(runtime,
     after = reopened.read("campaign")
     resumed.recover()
     assert reopened.read("campaign") == after
-    record = resumed.run()
-    assert record["status"] == "complete" and record["stop_reason"] == "limit"
-    assert record["selected"] == root.root_id
-    assert record["pending"] is None and record["active_action"] is None
-    assert record["block_stop_reason"] == "launch_deadline"
-    assert reopened.read("campaign")["spent_ms"] == interrupted["spent_ms"]
     if kind == "verify":
-        state = decode(record["tree"])
+        state = decode(after["state"]["searches"][root.contract.search_id]["tree"])
         receipt = next(r for r in state.receipts if r.attempt.attempt_id == operation)
         assert receipt.verdict.value == "INCONCLUSIVE" and receipt.objective is None
         assert receipt.attempt.check_id in tree.missing_checks(state, receipt.attempt.candidate_id)
+    record = resumed.run()
+    assert record["status"] == "complete"
+    if expire_campaign:
+        assert record["stop_reason"] == "limit" and record["selected"] == root.root_id
+        assert reopened.read("campaign")["spent_ms"] == interrupted["spent_ms"]
+    else:
+        assert len(reopened.read("campaign")["operations"]) > len(after["operations"])
+        assert reopened.read("campaign")["spent_ms"] > interrupted["spent_ms"]
+    assert record["pending"] is None and record["active_action"] is None
+    assert record["block_stop_reason"] == "launch_deadline"
     with reopened.store._connection() as db:
         lease = db.execute("SELECT 1 FROM work_domains WHERE operation=?", (operation,)).fetchone()
         assert lease is None
+
+
+@pytest.mark.parametrize("kind", ["draft", "verify"])
+@pytest.mark.parametrize("cleanup_before_reopen", [False, True])
+def test_overrun_cleanup_recovery_archives_work_without_adopting_output(
+    runtime, monkeypatch, kind, cleanup_before_reopen
+):
+    control, adapter, snapshot, settings, root = runtime
+    search = Search(control, "campaign", root.contract.search_id, snapshot, settings, adapter)
+    search.start(root, seed=2, collect=False)
+    settle = control.settle
+    interrupted = {}
+
+    def overrun(campaign, operation, receipt, **kwargs):
+        doc = control.read(campaign)
+        op = doc["operations"][operation]
+        if op["category"] == kind:
+            receipt = {**receipt, "elapsed_ms": op["cap_ms"] + 1, "cleanup_verified": False}
+            interrupted.update(operation=operation, receipt=receipt)
+            kwargs.update(actual_ms=receipt["elapsed_ms"], cleanup_verified=False)
+        return settle(campaign, operation, receipt, **kwargs)
+
+    monkeypatch.setattr(control, "settle", overrun)
+    with pytest.raises(ValueError, match="cleanup remains unknown"):
+        search.run()
+    before, record, current = search.read()
+    operation = interrupted["operation"]
+    receipt = {**interrupted["receipt"], "cleanup_verified": True}
+    assert before["blocked"] and before["operations"][operation]["status"] == "unknown"
+    assert record["pending"]["operation"] == operation
+    recoveries = []
+
+    def recover(*args):
+        recoveries.append(args)
+        assert not cleanup_before_reopen
+        return receipt
+
+    monkeypatch.setattr(adapter, "recover", recover)
+    if cleanup_before_reopen:
+        settle("campaign", operation, receipt, actual_ms=receipt["elapsed_ms"],
+               cleanup_verified=True,
+               transition=lambda state: pytest.fail("Blocked work must not adopt output"))
+    reopened = WorkControl(RunStore(control.store.root, control.store.namespace))
+    resumed = Search(reopened, "campaign", root.contract.search_id, snapshot, settings, adapter)
+    resumed.recover()
+    after, archived, recovered = resumed.read()
+    assert after["blocked"] and after["operations"][operation]["status"] == "settled"
+    assert after["spent_ms"] == before["spent_ms"] + receipt["elapsed_ms"]
+    assert archived["spent_ms"] == record["spent_ms"] + receipt["elapsed_ms"]
+    assert archived["pending"] is None and archived["active_action"] is None
+    assert archived["discarded_operations"] == [operation]
+    assert archived["selected"] == record["selected"]
+    assert recovered.candidates == current.candidates
+    assert tree.accept(recovered) == tree.accept(current)
+    if kind == "verify":
+        rejected = next(r for r in recovered.receipts if r.attempt.attempt_id == operation)
+        assert rejected.verdict.value == "INCONCLUSIVE" and rejected.objective is None
+    assert len(recoveries) == (0 if cleanup_before_reopen else 1)
+    with reopened.store._connection() as db:
+        lease = db.execute("SELECT 1 FROM work_domains WHERE operation=?", (operation,)).fetchone()
+        assert lease is None
+    resumed.recover()
+    with pytest.raises(ValueError, match="Campaign blocked"):
+        resumed.run()
+    assert reopened.read("campaign") == after
+    with pytest.raises(ValueError, match="blocked"):
+        reopened.claim("campaign", after["revision"], "another", category="verify", cap_ms=1,
+                       domains=("other-device",), binding={})
 
 
 @pytest.mark.parametrize("kind", ["draft", "verify"])

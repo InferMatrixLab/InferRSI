@@ -382,11 +382,12 @@ class Search:
         if pending is None:
             return
         operation = doc["operations"][pending["operation"]]
-        if operation["status"] == "settled" and operation["receipt"] == {"not_started": "deadline"}:
-            # launch() conclusively refused dispatch. There can be no adapter
-            # receipt: settle the Attempt as control-only INCONCLUSIVE, and
-            # abandon the remaining block without inventing check evidence.
-            def not_started(state):
+        not_started = operation["receipt"] == {"not_started": "deadline"}
+        if operation["status"] == "settled" and (not_started or doc["blocked"]):
+            # The durable control record is conclusive. Unstarted work has no
+            # adapter receipt, and blocked work cannot contribute its output.
+            # Close the Attempt with control-only INCONCLUSIVE evidence.
+            def archive(state):
                 from inferrsi.contracts.claim import Verdict
 
                 record = state["searches"][self.search_id]
@@ -404,15 +405,26 @@ class Search:
                     tree=encode(current),
                     pending=None,
                     active_action=None,
-                    block_stop_reason="launch_deadline",
+                    block_stop_reason="campaign_blocked" if doc["blocked"] else "launch_deadline",
                 )
+                if doc["blocked"]:
+                    record["spent_ms"] += operation["actual_ms"]
+                    record.setdefault("discarded_operations", []).append(pending["operation"])
+                    record["status"] = "blocked"
+                    if pending["kind"] == "draft" and not not_started:
+                        record["draft_attempts"] += 1
                 try:
                     record["selected"] = tree.accept(current).candidate_id
                 except ValueError:
                     record.update(status="blocked", selected=None)
                 return state
 
-            self.control.update(self.campaign, doc["revision"], not_started)
+            if doc["blocked"]:
+                self.control.reconcile_blocked(
+                    self.campaign, doc["revision"], pending["operation"], archive
+                )
+            else:
+                self.control.update(self.campaign, doc["revision"], archive)
             return
         # All uncertain launches still require an adapter receipt. Never call
         # draft/verify from recovery, including after launch-intent crashes.
@@ -427,6 +439,10 @@ class Search:
             cleanup_verified=result.get("cleanup_verified"),
             transition=lambda state: self._change(state, pending["operation"], result),
         )
+        settled = self.control.read(self.campaign)
+        if (settled["blocked"]
+                and settled["operations"][pending["operation"]]["status"] == "settled"):
+            self.recover()
 
     def _execute(self, kind, node, check=None):
         doc, search, current = self.read()
@@ -506,10 +522,10 @@ class Search:
             doc, search, current = self.read()
             if search["status"] == "complete":
                 return search
-            if search["status"] == "blocked":
-                raise ValueError("Search root evidence is invalid; search remains blocked")
             if doc["blocked"] or doc["final_claim"] is not None:
                 raise ValueError("Campaign blocked or final selection frozen")
+            if search["status"] == "blocked":
+                raise ValueError("Search root evidence is invalid; search remains blocked")
             if any(
                 op["status"] != "settled" and op["binding"].get("search") == self.search_id
                 for op in doc["operations"].values()

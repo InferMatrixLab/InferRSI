@@ -500,7 +500,7 @@ def main(argv: list[str] | None = None) -> int:
             _print(result)
             return 0
         if args.command == "search":
-            from ..speculative_search import command as search_command
+            from ..workflows.speculative_search import command as search_command
 
             _print(search_command(args))
             return 0

@@ -62,7 +62,7 @@ class Snapshot:
         }
 
     def choose(self, *args, **kwargs):
-        """Injected role operation; Harness does not import this Model module."""
+        """Injected role operation; Harness does not import this Apps module."""
         return choose(self, *args, **kwargs)
 
     def predict(self, features):

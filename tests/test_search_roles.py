@@ -4,7 +4,13 @@ from dataclasses import asdict
 
 import pytest
 
-from inferrsi.model.search_roles import Snapshot, actor_gradient, choose, distribution, update
+from inferrsi.apps.workflows.search_roles import (
+    Snapshot,
+    actor_gradient,
+    choose,
+    distribution,
+    update,
+)
 
 
 def test_actor_gradient_matches_finite_difference_with_exploration_and_kl():

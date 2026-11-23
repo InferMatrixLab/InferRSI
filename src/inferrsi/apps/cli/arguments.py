@@ -243,7 +243,7 @@ def parser(*, parser_class=argparse.ArgumentParser) -> argparse.ArgumentParser:
     from .evaluate import add_parser as add_evaluate_parser
 
     add_evaluate_parser(commands)
-    from ..speculative_search import add_arguments as search_arguments
+    from ..workflows.speculative_search import add_arguments as search_arguments
 
     search_arguments(commands)
     mindie = commands.add_parser("mindie", help="Use project-approved, local MindIE knowledge")

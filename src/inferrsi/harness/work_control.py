@@ -166,6 +166,18 @@ class WorkControl:
                 body["state"] = transition(body["state"])
         return self.read(campaign)
 
+    def reconcile_blocked(self, campaign, revision, operation, transition):
+        """Archive settled work in consumer state without reopening the campaign.
+
+        The transition must not adopt the operation's output as usable evidence.
+        Accounting, receipts and the dispatch block remain unchanged.
+        """
+        with self._transaction(campaign, revision) as (_, body):
+            if not body["blocked"] or body["operations"][operation]["status"] != "settled":
+                raise ValueError("Blocked recovery requires conclusively settled work")
+            body["state"] = transition(body["state"])
+        return self.read(campaign)
+
     def launch(self, campaign, operation):
         """Persist intent before external launch. A crash here must never relaunch."""
         expired = False

@@ -6,6 +6,7 @@ import time
 from dataclasses import asdict, replace
 from pathlib import Path
 
+from inferrsi.apps.workflows.search_roles import Snapshot
 from inferrsi.harness import candidates, search_tree
 from inferrsi.harness.artifact_primitives import digest
 from inferrsi.harness.atomic_json import atomic_write_json
@@ -15,7 +16,6 @@ from inferrsi.harness.search_campaign import collect_group, finalize, learn, qua
 from inferrsi.harness.search_records import decode
 from inferrsi.harness.vats import Settings
 from inferrsi.harness.work_control import WorkControl
-from inferrsi.model.search_roles import Snapshot
 
 
 def add_arguments(commands):

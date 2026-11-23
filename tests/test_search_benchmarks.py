@@ -6,14 +6,14 @@ from types import SimpleNamespace
 import pytest
 
 from inferrsi.apps.cli.arguments import parser
-from inferrsi.apps.search_benchmarks import EngineEvaluator, SkillEvaluator
-from inferrsi.apps.speculative_search import command
+from inferrsi.apps.workflows.search_benchmarks import EngineEvaluator, SkillEvaluator
+from inferrsi.apps.workflows.speculative_search import command
 from inferrsi.benchmark.improvement import SelectionPolicy
 from inferrsi.harness.run_store import RunStore
-from inferrsi.harness.scenarios.external import execute_trial
 from inferrsi.harness.search_adapter import ArtifactAdapter, Edit
 from inferrsi.harness.search_campaign import finalize, qualify_root
 from inferrsi.harness.task_protocol import TaskProtocolError
+from inferrsi.harness.trials.external import execute_trial
 from inferrsi.harness.work_control import WorkControl
 from tests.fixtures.speculative_search import contract
 
@@ -100,7 +100,9 @@ def test_engine_rejects_frozen_resource_mutation_during_evaluation(tmp_path, mon
         (evaluator.frozen / "reference.py").write_text("changed reference")
         return {"status": "completed", "returncode": 0, "cleanup_verified": True}
 
-    monkeypatch.setattr("inferrsi.apps.search_benchmarks.execute_trial", mutated_execution)
+    monkeypatch.setattr(
+        "inferrsi.apps.workflows.search_benchmarks.execute_trial", mutated_execution
+    )
     with pytest.raises(ValueError, match="resources changed during"):
         evaluator.evaluate(source, "evaluation", tmp_path / "output", time.time() + 1)
 
@@ -115,8 +117,10 @@ def test_engine_protocol_stages_share_the_original_deadline(tmp_path, monkeypatc
     (source / "candidate.py").write_text("candidate")
     clock = [100.0]
     observed = []
-    monkeypatch.setattr("inferrsi.apps.search_benchmarks.time.time", lambda: clock[0])
-    monkeypatch.setattr("inferrsi.apps.search_benchmarks.time.monotonic", lambda: clock[0] + 1000)
+    monkeypatch.setattr("inferrsi.apps.workflows.search_benchmarks.time.time", lambda: clock[0])
+    monkeypatch.setattr(
+        "inferrsi.apps.workflows.search_benchmarks.time.monotonic", lambda: clock[0] + 1000
+    )
 
     def protocol(root, digest, operation, *, deadline, **kwargs):
         observed.append((operation, deadline, deadline - (clock[0] + 1000)))
@@ -133,8 +137,8 @@ def test_engine_protocol_stages_share_the_original_deadline(tmp_path, monkeypatc
         clock[0] += 3
         return {"status": "completed", "returncode": 0, "cleanup_verified": True}
 
-    monkeypatch.setattr("inferrsi.apps.search_benchmarks.task_protocol.run", protocol)
-    monkeypatch.setattr("inferrsi.apps.search_benchmarks.execute_trial", execute)
+    monkeypatch.setattr("inferrsi.apps.workflows.search_benchmarks.task_protocol.run", protocol)
+    monkeypatch.setattr("inferrsi.apps.workflows.search_benchmarks.execute_trial", execute)
     evaluator.evaluate(source, "evaluation", tmp_path / "output", 110.0)
     assert observed == [("arguments", 1110.0, 10.0), ("execution", 1110.0, 8.0),
                         ("assess", 1110.0, 5.0)]
@@ -154,7 +158,7 @@ def test_engine_known_timeout_settles_usage_and_releases_domain(tmp_path, monkey
         executions.append(result)
         return result
 
-    monkeypatch.setattr("inferrsi.apps.search_benchmarks.execute_trial", timeout)
+    monkeypatch.setattr("inferrsi.apps.workflows.search_benchmarks.execute_trial", timeout)
     source = tmp_path / "source"
     source.mkdir()
     (source / "candidate.py").write_text("value = 1\n")
@@ -185,8 +189,9 @@ def test_engine_known_timeout_settles_usage_and_releases_domain(tmp_path, monkey
 
 @pytest.mark.parametrize("stage", ["arguments", "assess"])
 @pytest.mark.parametrize("protocol_cleanup", [True, False, None])
+@pytest.mark.parametrize("task_cleanup", [True, False, None])
 def test_engine_protocol_timeout_preserves_cleanup_facts(
-    tmp_path, monkeypatch, stage, protocol_cleanup
+    tmp_path, monkeypatch, stage, protocol_cleanup, task_cleanup
 ):
     evaluator = EngineEvaluator(
         "qwen21-denoise-npu", tmp_path / "frozen",
@@ -205,13 +210,15 @@ def test_engine_protocol_timeout_preserves_cleanup_facts(
     def execute(command, cwd, output, *args, **kwargs):
         output.mkdir(parents=True)
         (output / "execution.json").write_text("{}")
-        return {"status": "completed", "returncode": 0, "cleanup_verified": True}
+        return {"status": "completed", "returncode": 0, "cleanup_verified": task_cleanup}
 
-    monkeypatch.setattr("inferrsi.apps.search_benchmarks.task_protocol.run", protocol)
-    monkeypatch.setattr("inferrsi.apps.search_benchmarks.execute_trial", execute)
+    monkeypatch.setattr("inferrsi.apps.workflows.search_benchmarks.task_protocol.run", protocol)
+    monkeypatch.setattr("inferrsi.apps.workflows.search_benchmarks.execute_trial", execute)
     result = evaluator.evaluate(source, "evaluation", tmp_path / "output", time.time() + 10)
     assert result["verdict"] == "INCONCLUSIVE" and result["objective"] is None
-    assert result["cleanup_verified"] is (protocol_cleanup is True)
+    assert result["cleanup_verified"] is (
+        protocol_cleanup is True and (stage == "arguments" or task_cleanup is True)
+    )
     assert (result["execution_sha256"] is None) == (stage == "arguments")
 
 
@@ -256,11 +263,37 @@ def test_skill_final_requires_holdout_before_claim_or_access(
         assert control.read("campaign") == before and not accesses
 
 
-def test_skill_comparator_preparation_does_not_access_holdout(tmp_path):
+@pytest.mark.parametrize("indexed", [False, True])
+def test_skill_comparator_preparation_does_not_access_holdout(tmp_path, indexed):
     from tests.fixtures.harness_improvement_demo import configuration
+    from tests.fixtures.skill_eval_compare_support import git
     from tools.speculative_skill import Comparator
 
     config, repo = configuration(tmp_path)
+    prefix = "selected"
+    if indexed:
+        # Match the categorized, single-file metadata catalog introduced in #516.
+        prefix = "playbooks/testing/selected"
+        library = repo / "library"
+        target = library / prefix
+        target.parent.mkdir(parents=True)
+        (library / "selected").rename(target)
+        (target / "metadata.json").unlink()
+        metadata = {"references": ["../../../shared/notes.md"]}
+        skill = target / "SKILL.md"
+        skill.write_text(
+            "---\nname: selected\ndescription: indexed snapshot fixture\n"
+            "metadata:\n  inferrsi: |\n    " + json.dumps(metadata) + "\n---\nOld body\n",
+            encoding="utf-8",
+        )
+        (library / "skill-index.json").write_text(json.dumps({
+            "schema_version": 1,
+            "skills": {"selected": {"path": prefix, "backend": "common"}},
+        }), encoding="utf-8")
+        git(repo, "add", "library")
+        git(repo, "commit", "--quiet", "-m", "Fixture indexed catalog")
+        config["baseline"] = git(repo, "rev-parse", "HEAD")
+        config["allowed_paths"] = [f"{prefix}/SKILL.md", f"{prefix}/resource.txt"]
     comparison = {k: config[k] for k in ("skill", "skill_root", "model", "limits")}
     comparison.update(
         mode="update",
@@ -286,10 +319,19 @@ def test_skill_comparator_preparation_does_not_access_holdout(tmp_path):
         tmp_path / "baseline-snapshot",
     )
     exported = bound.export_root(tmp_path / "candidate")
-    assert (exported / "selected/SKILL.md").is_file()
+    assert (exported / prefix / "SKILL.md").read_bytes() == bound.original[f"{prefix}/SKILL.md"]
+    assert (exported / "shared/notes.md").is_file()
+    assert "skill-index.json" not in bound.original
     assert not (tmp_path / "holdout.json").exists()
     assert not (tmp_path / "development.json").exists()
     # The prepared adapter still fails before provider access if its split is missing.
+    # Materializing an edit before that failure also exercises the indexed reader.
+    (exported / prefix / "SKILL.md").write_bytes(
+        bound.original[f"{prefix}/SKILL.md"].replace(b"Old body", b"Edited body")
+    )
+    head_before = git(repo, "rev-parse", "HEAD")
     with pytest.raises(FileNotFoundError):
         bound.run(exported, tmp_path / "run", time.time() + 1, split="development")
+    assert git(repo, "rev-parse", "HEAD") == head_before
+    assert git(repo, "status", "--porcelain") == ""
     json.dumps(bound.config)

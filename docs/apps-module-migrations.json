@@ -268,6 +268,7 @@
       "docs/contracts/function-owners.md",
       "docs/harness-improvement.md",
       "docs/module-layout.md",
+      "src/inferrsi/apps/workflows/search_benchmarks.py",
       "tests/check_installed.py",
       "tests/apps/test_apps_module_migrations.py",
       "tests/harness/test_harness_improvement.py",

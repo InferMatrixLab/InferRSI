@@ -114,6 +114,35 @@ def test_receipt_settlement_and_incumbent_are_atomic_and_idempotent(control):
     claim(control, "next")
 
 
+def test_blocked_reconciliation_requires_settlement_and_preserves_accounting(control):
+    claim(control)
+    control.launch("campaign", "work")
+    control.settle("campaign", "work", {}, actual_ms=950, cleanup_verified=False)
+    before = control.read("campaign")
+    with pytest.raises(ValueError, match="conclusively settled"):
+        control.reconcile_blocked("campaign", before["revision"], "work", lambda state: {})
+    assert control.read("campaign") == before
+    control.settle("campaign", "work", {}, actual_ms=950, cleanup_verified=True)
+    settled = control.read("campaign")
+    with pytest.raises(ValueError, match="Stale"):
+        control.reconcile_blocked("campaign", before["revision"], "work", lambda state: {})
+
+    def fail(state):
+        state["incumbent"] = "changed"
+        raise ValueError("invalid recovery")
+
+    with pytest.raises(ValueError, match="invalid recovery"):
+        control.reconcile_blocked("campaign", settled["revision"], "work", fail)
+    assert control.read("campaign") == settled
+    after = control.reconcile_blocked(
+        "campaign", settled["revision"], "work", lambda state: state | {"archived": "work"}
+    )
+    assert after == settled | {
+        "revision": settled["revision"] + 1,
+        "state": settled["state"] | {"archived": "work"},
+    }
+
+
 def test_expired_claim_cannot_start_and_does_not_charge_unstarted_work(control, monkeypatch):
     claim(control)
     monkeypatch.setattr("inferrsi.harness.work_control.time.time", lambda: 1e12)

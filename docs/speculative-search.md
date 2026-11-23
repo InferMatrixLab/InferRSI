@@ -13,13 +13,13 @@ paper's language-model training or establish its reported gains. Existing
 | --- | --- | --- |
 | Candidate/evidence model | `harness.search_tree`, `search_records` | Immutable artifacts, actual dependency epochs and complete-candidate selection |
 | Solver | `harness.verification_plans`, `vats.menu` | Bounded exhaustive completion plans; conservative integer millisecond caps |
-| Drafter | `model.search_roles`, `harness.search_adapter` | Trainable softmax over supplied exact text edits; actual retained changes, not free-form LLM generation |
-| Policy | `model.search_roles` | Independent eight-feature linear softmax, recorded behavior probabilities, deterministic deployment actions |
-| Scorer | `model.search_roles` | Separate linear model; actual suffix MSE and optional paid continuation differences |
+| Drafter | `apps.workflows.search_roles`, `harness.search_adapter` | Trainable softmax over supplied exact text edits; actual retained changes, not free-form LLM generation |
+| Policy | `apps.workflows.search_roles` | Independent eight-feature linear softmax, recorded behavior probabilities, deterministic deployment actions |
+| Scorer | `apps.workflows.search_roles` | Separate linear model; actual suffix MSE and optional paid continuation differences |
 | Work/state authority | `harness.work_control` | Transactions in the shared `RunStore` SQLite database |
-| Execution | Existing `scenarios.external` and `local_process` | Absolute deadline and process-domain cleanup; no new subprocess runner |
-| Engine | `apps.search_benchmarks.EngineEvaluator` | Existing packaged `optimization.py` as one whole check; currently the Qwen denoiser NPU task |
-| Skill | `apps.search_benchmarks.SkillEvaluator`, checkout `tools.speculative_skill.Comparator` | Explicit provider configuration, original baseline, independent grader, separate development/holdout descriptors |
+| Execution | Existing `trials.external` and `local_process` | Absolute deadline and process-domain cleanup; no new subprocess runner |
+| Engine | `apps.workflows.search_benchmarks.EngineEvaluator` | Existing packaged `optimization.py` as one whole check; currently the Qwen denoiser NPU task |
+| Skill | `apps.workflows.search_benchmarks.SkillEvaluator`, checkout `tools.speculative_skill.Comparator` | Explicit provider configuration, original baseline, independent grader, separate development/holdout descriptors |
 | Final | `harness.search_campaign.finalize` | One-time scope claim before access; receipt-only recovery/export; task promotion only |
 
 This is a trusted local host controller. Resource domains exclude **cooperating
@@ -137,7 +137,7 @@ These are real updates to a constrained CPU operator model. They are not LLM
 finetuning, prompt summarization or evidence of pretrained-model improvement.
 Apps injects the role snapshot's `choose`, `predict`, `train`, `restore` and
 `document` operations. Harness retains traces and controls when they may run;
-it has no import dependency on Model.
+it has no import dependency on the Apps role implementation.
 
 ## Accounting, recovery and final
 
@@ -158,6 +158,11 @@ Engine protocol timeouts retain an INCONCLUSIVE adapter receipt with measured
 elapsed time. Confirmed cleanup of both task and protocol permits settlement
 and domain release; uncertain protocol cleanup keeps the reservation. A known
 overrun still blocks the campaign, even after its domain has been released.
+If cleanup settles blocked search work before its pending pointer is cleared,
+recovery archives that pointer from the durable operation without reading the
+adapter again. It charges the search's observed cost once, abandons the active
+block and records verification as control-only `INCONCLUSIVE`. The output is
+not adopted, and the campaign remains blocked against further dispatch.
 In-process bounded planning, editing and training are checked after return;
 they are not forcibly preempted like subprocesses. Preflight freezing and initial
 setup are outside this campaign meter, a remaining lifecycle-cost limitation.
@@ -173,7 +178,8 @@ that dispatch never occurred. Search recovery clears its pending work and ends
 the current block; a registered verification attempt gets a control-only
 `INCONCLUSIVE` receipt, with no objective or evaluator PASS. No execution is
 charged. A search whose limit has expired can then return its qualified incumbent.
-This exception does not apply to ambiguous launch-intent crashes.
+If only the operation deadline expired, the remaining campaign may continue with
+fresh claims. This exception does not apply to ambiguous launch-intent crashes.
 
 `finalize` consumes a unique scope in the shared store before final data access,
 freezes selection and closes search/training. Engine compares again with the

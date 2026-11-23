@@ -18,7 +18,7 @@ from . import search_tree as tree
 from .artifact_primitives import digest, sha256
 from .atomic_json import atomic_write_json
 from .optimization_session import runtime_environment
-from .scenarios.external import execute_trial
+from .trials.external import execute_trial
 from .verification_plans import Job
 
 
