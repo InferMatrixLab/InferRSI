@@ -176,6 +176,8 @@ def _prepare_record(root, record):
                         _caller_use(record["materials"], record["events"], ref,
                                     evidence["use"], evidence)
             record["observed"]["used"] = _used_count(record["materials"])
+            record["adoption"] = _adoption(record["events"], record["materials"],
+                                           record["coverage"])
             if old == record:
                 return target
             continue
@@ -273,8 +275,166 @@ def _observations(events):
     return materials, counts
 
 
+_ADOPTED = ("used", "used_and_rejected")
+
+
 def _used_count(materials):
-    return sum(m["use"] in ("used", "used_and_rejected") for m in materials.values())
+    return sum(m["use"] in _ADOPTED for m in materials.values())
+
+
+def _ratio_state(coverage, denominator, ambiguous):
+    if coverage != "complete" or ambiguous:
+        return "unknown"
+    return "not_applicable" if denominator == 0 else "complete"
+
+
+# An observed search hit or delivered read (direct, or of unknown relation to the
+# hits) outranks a read whose delivery was not observed, which outranks an
+# inventory or other listing.
+_PATH_TIERS = ({"search", "direct", "unknown"}, {"unverified_read"}, {"other"})
+
+
+def _revision(row):
+    return row["revision"] if isinstance(row.get("revision"), str) else None
+
+
+def _delivered(event, ref):
+    """A trace command records its own output; a capture needs an observed return of the ref."""
+    if "context_id" not in event:
+        return True
+    delivery = event.get("delivery")
+    return isinstance(delivery, dict) and any(
+        isinstance(row, dict) and row.get("ref") == ref
+        for row in delivery.get("visible_resources", []))
+
+
+def _observation_paths(events):
+    """Classify each event's materials as a search hit, direct read, unverified read, other,
+    or a delivered read whose relation to the ref's hits is unknown."""
+    hits = {}
+    for event in events:
+        if event["action"] == "search":
+            for row in event["materials"]:
+                hits.setdefault(row["ref"], set()).add(_revision(row))
+    paths = []
+    for event in events:
+        rows = {}
+        for row in event["materials"]:
+            ref, revision = row["ref"], _revision(row)
+            seen = hits.get(ref, set())
+            if event["action"] == "search":
+                path = "search"
+            elif event["action"] != "read":
+                path = "other"
+            elif not _delivered(event, ref):
+                # Delivery is checked first, so an unreturned capture of a hit's
+                # own revision cannot pass as that hit's read.
+                path = "unverified_read"
+            elif not seen:
+                path = "direct"
+            elif (revision in seen) if revision is not None else seen == {None}:
+                # A read of a hit's own revision is that hit's read. Refs are
+                # matched as a whole only when neither the read nor any hit of
+                # the ref records a revision, as in a file trace.
+                path = "search"
+            elif revision is not None and None not in seen:
+                # Every hit records a revision and none is the read's.
+                path = "direct"
+            else:
+                # One side records a revision and the other does not, as when an
+                # unversioned Find precedes a versioned Read. The read cannot be
+                # shown to be, or to differ from, the revision a search returned.
+                path = "unknown"
+            rows.setdefault(ref, set()).add(path)
+        paths.append(rows)
+    return hits, paths
+
+
+def _cited_events(evidence, events):
+    """Return the indices of the events that evidence names, or None when it has no locator."""
+    if "event_id" in evidence:
+        key, name = "id", evidence["event_id"]
+    elif "context_id" in evidence:
+        key, name = "context_id", evidence["context_id"]
+    elif "decision_line" in evidence:
+        line = evidence["decision_line"]
+        return [i for i, e in enumerate(events) if type(line) is int
+                and type(e.get("trace_line")) is int and e["trace_line"] < line]
+    else:
+        return None
+    return [i for i, e in enumerate(events) if isinstance(name, str) and e.get(key) == name]
+
+
+def _supporting_paths(ref, material, events, paths):
+    """Return the paths of the observations that the ref's use evidence cites. An empty
+    result leaves the ref's attribution unknown."""
+    found = set()
+    for evidence in [e for e in material.get("evidence", []) if e.get("use") == "used"] or [{}]:
+        bound = _cited_events(evidence, events)
+        if bound is None:
+            # Evidence without a locator can only be matched to the ref as a whole.
+            found |= set().union(*(rows.get(ref, set()) for rows in paths))
+            continue
+        cited = set().union(*(paths[i].get(ref, set()) for i in bound))
+        if not cited:
+            # A locator that names no observation of the ref does not fall back to
+            # the ref's other observations.
+            return set()
+        found |= cited
+    for tier in _PATH_TIERS:
+        if found & tier:
+            return found & tier
+    return found
+
+
+def _adoption(events, materials, coverage):
+    """Split adopted refs by the observation their use evidence cites; each part keeps its
+    own denominator.
+
+    Search-hit adoption is over distinct refs returned by a search. Direct-read
+    adoption is over distinct refs with an observed read at a revision that no
+    search returned; a capture's read is observed only when its return of that
+    ref was. That check comes before the revision match, so an unreturned
+    capture of a hit's own revision is not the hit's read. A read whose
+    delivery was not observed counts separately, without a rate. A delivered
+    read of a hit ref where only one side records a revision (an unversioned
+    Find and a versioned Read) is neither the hit's read nor a direct read: the
+    hit keeps its denominator and the read joins none. Other adopted refs (for
+    example from an inventory) have no denominator. Use is recorded per ref, so
+    adoption is per ref: a ref whose evidence cites both a search hit and a
+    direct read stays unattributed and makes both rates unknown, as does a ref
+    whose evidence names an event that did not observe it or cites such a read
+    of unknown revision. Versions are counted only for search hits and stay
+    unknown when a hit carries no revision. No rate is stored.
+    """
+    hits, paths = _observation_paths(events)
+    observed = {kind: set() for kind in ("search", "direct", "unverified_read", "other",
+                                         "unknown")}
+    for rows in paths:
+        for ref, kinds in rows.items():
+            for kind in kinds:
+                observed[kind].add(ref)
+    credited = {kind: set() for kind in observed}
+    for ref, material in materials.items():
+        if material["use"] in _ADOPTED:
+            found = _supporting_paths(ref, material, events, paths)
+            credited[next(iter(found)) if len(found) == 1 else "unknown"].add(ref)
+    ambiguous = len(credited["unknown"])
+    versions = {(ref, revision) for ref, revisions in hits.items() for revision in revisions}
+    unversioned = any(revision is None for _, revision in versions)
+    direct = observed["direct"]
+    return {
+        "search_hits": {"adopted": len(credited["search"]), "unique_hits": len(hits),
+                        "state": _ratio_state(coverage, len(hits), ambiguous)},
+        "direct_reads": {"adopted": len(credited["direct"]), "read_only": len(direct),
+                         "state": _ratio_state(coverage, len(direct), ambiguous)},
+        "unverified_reads": {"adopted": len(credited["unverified_read"]),
+                             "refs": len(observed["unverified_read"])},
+        "other_adopted": len(credited["other"]),
+        "attribution_unknown": ambiguous,
+        "unique_hit_revisions": (len(versions) if coverage == "complete" and not unversioned
+                                 else None),
+    }
 
 
 def import_search(root: Path, *, number: int, trace=None, lines=None, knowledge_root=None,
@@ -353,6 +513,7 @@ def import_search(root: Path, *, number: int, trace=None, lines=None, knowledge_
               "stage": stage, "trace": window, "context_ids": list(captures), "coverage": coverage,
               "unresolved_command_lines": uncertain, "events": events, "materials": materials,
               "observed": observed, "counts": observed if coverage == "complete" else None,
+              "adoption": _adoption(events, materials, coverage),
               "candidates": _round_candidates(root, number)}
     target = _prepare_record(root, record)
     if review is None:
@@ -422,6 +583,7 @@ def import_search(root: Path, *, number: int, trace=None, lines=None, knowledge_
         "events": archive_events, "materials": archive_materials,
         "declarations": declarations, "observed": archive_observed,
         "counts": archive_observed if archive_coverage == "complete" else None,
+        "adoption": _adoption(archive_events, archive_materials, archive_coverage),
         "candidates": record["candidates"],
     }
     if review["result_note"] is not None:

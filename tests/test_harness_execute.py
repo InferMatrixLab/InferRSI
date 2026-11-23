@@ -40,6 +40,7 @@ NEW_H_CLOSURE = {
     "inferrsi.harness.api", "inferrsi.harness.execution_service",
     "inferrsi.harness.input_binding", "inferrsi.harness.local_process",
     "inferrsi.harness.prepared_binding",
+    "inferrsi.harness.entry_code",
     "inferrsi.harness.atomic_json",
     "inferrsi.harness.run_store", "inferrsi.harness.errors", "inferrsi.harness.execution_spec",
     "inferrsi.contracts.json_v1",

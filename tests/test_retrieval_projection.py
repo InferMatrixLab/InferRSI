@@ -240,6 +240,80 @@ def test_v1_ignores_unsupported_top_level_declarations(campaign, declarations):
         assert "__DASHBOARD_" not in render_dashboard(snapshot)
 
 
+def _round_one(campaign, version):
+    return next(s for s in dashboard_snapshot(campaign)["data"]["knowledge_trace"]["searches"]
+                if s["round"] == 1 and s["schema_version"] == version)
+
+
+@pytest.mark.parametrize("version", [1, 2])
+def test_adoption_split_passes_through_and_old_records_stay_readable(campaign, version):
+    path = campaign / ("search/round-1.json" if version == 1 else "search/archive/round-1.json")
+    doc = json.loads(path.read_text())
+    search = _round_one(campaign, version)
+    assert search["state"] == "recorded" and search["adoption"] == doc["adoption"]
+    assert search["adoption"]["search_hits"]["adopted"] == doc["observed"]["used"]
+    path.write_text(json.dumps({k: v for k, v in doc.items() if k != "adoption"}))
+    search = _round_one(campaign, version)
+    assert search["state"] == "recorded" and search["adoption"] is None
+    assert search["counts"] == doc["counts"]
+
+
+@pytest.mark.parametrize("change", [
+    {"search_hits": {"adopted": 6, "unique_hits": 5, "state": "complete"}},
+    {"direct_reads": {"adopted": 0, "read_only": 0, "state": "complete"}},
+    {"search_hits": {"adopted": 1, "unique_hits": 5, "state": "unknown"}},
+    {"other_adopted": 1},
+    {"attribution_unknown": 1},
+    {"attribution_unknown": None},
+    {"unverified_reads": {"adopted": 1, "refs": 0}},
+    {"unverified_reads": {"adopted": 0, "refs": 0, "state": "not_applicable"}},
+    {"unique_hit_revisions": 4},
+    {"unique_hit_revisions": -1},
+])
+def test_adoption_outside_its_denominator_is_invalid(campaign, change):
+    path = campaign / "search/archive/round-1.json"
+    doc = json.loads(path.read_text())
+    path.write_text(json.dumps({**doc, "adoption": {**doc["adoption"], **change}}))
+    search = _round_one(campaign, 2)
+    assert search["state"] == "invalid_counts" and "adoption" not in search
+
+
+@pytest.mark.parametrize("state", ["unknown", "complete"])
+def test_ambiguous_attribution_requires_unknown_rates(campaign, state):
+    path = campaign / "search/archive/round-1.json"
+    doc = json.loads(path.read_text())
+    adoption = doc["adoption"]
+    hits = adoption["search_hits"]
+    adoption.update(attribution_unknown=1,
+                    search_hits={**hits, "adopted": hits["adopted"] - 1, "state": state},
+                    direct_reads={**adoption["direct_reads"], "state": state})
+    path.write_text(json.dumps(doc))
+    search = _round_one(campaign, 2)
+    assert search["state"] == ("recorded" if state == "unknown" else "invalid_counts")
+
+
+@pytest.mark.parametrize("adoption", ["partial", "stale_complete"])
+def test_complete_to_partial_round_needs_partial_adoption(campaign, adoption):
+    """Mirrors the live-refresh browser fixture: dropping coverage drops versions and rates."""
+    path = campaign / "search/archive/round-1.json"
+    doc = json.loads(path.read_text())
+    doc["coverage"], doc["counts"] = "partial", None
+    if adoption == "partial":
+        doc["adoption"]["unique_hit_revisions"] = None
+        for part in ("search_hits", "direct_reads"):
+            doc["adoption"][part]["state"] = "unknown"
+    doc["declarations"][0]["source"] = None
+    path.write_text(json.dumps(doc))
+    search = _round_one(campaign, 2)
+    if adoption == "stale_complete":
+        assert search["state"] == "invalid_counts" and "adoption" not in search
+        return
+    assert search["state"] == "recorded" and search["counts"] is None
+    assert search["adoption"] == doc["adoption"]
+    assert search["declarations"][0]["source"] is None
+    assert search["declarations"][0]["state"] == "source_mismatch"
+
+
 def test_missing_capture_and_duplicate_json_keys_are_explicit(campaign):
     (campaign / "knowledge/capture.json").unlink()
     (campaign / "search/round-3.json").write_text('{"round":3,"round":3}')

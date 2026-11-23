@@ -6,10 +6,18 @@ directory, merges explicit CLI values over YAML values and built-in defaults, an
 the fields a full plan or run still needs. It reads one file and writes nothing: no
 subprocess, probe, install or workspace file. PyYAML is a core dependency and is imported
 only when a task file is parsed, so importing the CLI never loads it.
+
+``plan --task`` and ``run --task`` call ``preview`` with ``supplied_overrides`` before any
+probe, then copy a complete task onto their arguments with ``arguments_from``. Both
+helpers are pure. ``frozen_gate`` also reads the local frozen gate record named by
+``acceptance.reference`` and compares its acceptance fields with the task; it writes
+nothing either.
 """
 
 from __future__ import annotations
 
+import hashlib
+import json
 import math
 import os
 import re
@@ -362,6 +370,11 @@ def load(path: str | os.PathLike) -> tuple[object, list[dict[str, str]]]:
             raw = handle.read(MAX_BYTES + 1)
     except OSError as exc:
         return None, [_error(DOCUMENT, f"cannot read the task file: {exc.strerror or exc}")]
+    return _parse(raw)
+
+
+def _parse(raw: bytes) -> tuple[object, list[dict[str, str]]]:
+    """Parse the bytes of one YAML task document; return (data, document errors)."""
     if len(raw) > MAX_BYTES:
         return None, [_error(DOCUMENT, "the task file exceeds 64 KiB")]
     try:
@@ -550,6 +563,123 @@ def overrides_from(namespace: object) -> dict[str, Any]:
     values = vars(namespace)
     return {field.dest: values[field.dest] for field in FIELDS
             if field.dest is not None and field.dest in values}
+
+
+def supplied_overrides(namespace: object, supplied: object) -> dict[str, Any]:
+    """Return the mapped flags whose dest is in ``supplied``, the dests the caller gave.
+
+    ``plan``/``run`` keep parser defaults on their namespace, so a dest missing from
+    ``supplied`` holds a default and never becomes an override.
+    """
+    values = vars(namespace)
+    names = set(supplied)
+    return {field.dest: values[field.dest] for field in FIELDS
+            if field.dest is not None and field.dest in names and field.dest in values}
+
+
+def arguments_from(task: dict) -> dict[str, Any]:
+    """Return {argparse dest: value} for every mapped field of a complete preview task.
+
+    Device IDs are joined with ``,`` (a task ID cannot contain one); commands and trial
+    checks are copied as lists. The frozen baseline is carried in RunSpec's existing
+    ``revision`` field, without adding a CLI override. A missing optional value stays
+    None, including ``environment.python``, which the caller replaces with its interpreter.
+    """
+    values: dict[str, Any] = {}
+    for field in FIELDS:
+        if field.dest is None:
+            continue
+        value = task[field.section][field.name]
+        if field.kind == "ids":
+            value = ",".join(value or ())
+        elif isinstance(value, list):
+            value = list(value)
+        values[field.dest] = value
+    values["revision"] = task["acceptance"]["baseline_revision"]
+    return values
+
+
+def is_url(reference: str) -> bool:
+    """Whether a valid ``acceptance.reference`` is an HTTP(S) URL, not a local plan path."""
+    return bool(_URL_SCHEME.match(reference))
+
+
+# The acceptance fields compared with a frozen gate record. ``reference`` names the
+# record itself, so it is not compared; the required ones must be stated by the record.
+GATE_FIELDS = tuple(field for field in FIELDS
+                    if field.section == "acceptance" and field.name != "reference")
+
+
+def _shown(value: object) -> str:
+    return json.dumps(value, ensure_ascii=False)
+
+
+def frozen_gate(task: dict, task_file: str | os.PathLike) -> dict:
+    """Compare a task's acceptance fields with the frozen gate record it references.
+
+    The local ``acceptance.reference`` must name a regular file, other than the task file,
+    holding a valid schema v1 document whose ``acceptance`` section states the agreed gate.
+    After the same built-in defaults, each acceptance field except the reference must
+    equal the record's. Only that file is read. An HTTP(S) reference is never fetched, so
+    its gate stays unverified. Returns the reference, the record's SHA-256, ``status``
+    (``agrees``, ``mismatch`` or ``unverified``) and field-level ``problems``.
+
+    ``agrees`` is content agreement only. This does not authenticate that the record is
+    the accepted one; that provenance is a caller/host precondition, and the SHA-256 is
+    kept for citation, not compared with an expected digest.
+    """
+    reference = task["acceptance"]["reference"]
+    result: dict[str, Any] = {
+        "reference": reference, "sha256": None, "status": "unverified", "problems": [],
+    }
+
+    def unverified(message: str) -> dict:
+        result["problems"].append(
+            {"field": "acceptance.reference", "message": _printable(message)})
+        return result
+
+    if reference is None:
+        return unverified("is missing, so no frozen gate record can be read")
+    if is_url(reference):
+        return unverified(
+            "is an HTTP(S) URL, which InferRSI does not fetch, so the frozen gate cannot be "
+            "verified; point it at the local frozen gate record the acceptance issue cites")
+    if not os.path.isfile(reference):
+        return unverified(f"is not an existing local frozen gate record file: {reference}")
+    if os.path.realpath(reference) == os.path.realpath(task_file):
+        return unverified("names the task file itself, not a separate frozen gate record")
+    try:
+        with open(reference, "rb") as handle:
+            raw = handle.read(MAX_BYTES + 1)
+    except OSError as exc:
+        return unverified(f"cannot read the frozen gate record: {exc.strerror or exc}")
+    data, errors = _parse(raw)
+    if not errors:
+        errors = validate(data)
+    for error in errors:
+        unverified(f"frozen gate record {reference}: {error['field']} {error['message']}")
+    if errors:
+        return result
+    if not isinstance(data.get("acceptance"), dict):
+        return unverified(f"frozen gate record {reference} has no acceptance section")
+    result["sha256"] = hashlib.sha256(raw).hexdigest()
+    base = os.path.dirname(reference)
+    gate = merge(data, base=base, cwd=base)[0]["acceptance"]
+    for field in GATE_FIELDS:
+        if field.required and gate[field.name] is None:
+            unverified(f"frozen gate record {reference} does not state {field.path}")
+    if result["problems"]:
+        return result
+    for field in GATE_FIELDS:
+        mine, frozen = task["acceptance"][field.name], gate[field.name]
+        if (mine is None) != (frozen is None) or (
+            mine is not None and not _same(field, mine, frozen)
+        ):
+            result["problems"].append({"field": field.path, "message": _printable(
+                f"is {_shown(mine)} in the task but {_shown(frozen)} in the frozen gate "
+                f"record {reference}")})
+    result["status"] = "mismatch" if result["problems"] else "agrees"
+    return result
 
 
 def _resource(name: str) -> str:
