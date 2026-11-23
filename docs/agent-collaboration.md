@@ -97,9 +97,13 @@ acts; an agent's **Approve** is a formal approval and counts toward the two. The
 account's human or its agent may approve through it. When the author has no
 write access, as for an outside contributor, neither the author's own approval
 nor one from an account without write access counts. Reviews from
-`cursor[bot]` are advisory and do not count toward the two. The ruleset does
-not block on its **Request changes**, but under these rules it is still
-answered before merge. High-risk PRs follow the
+`cursor[bot]` are advisory under these rules and do not count toward the
+two; its **Request changes** is still answered before merge. GitHub may
+nonetheless report the PR as blocked by that review, so recheck GitHub's
+merge state on the current head before merging. If the advisory review still
+blocks, it is cleared as described below for a blocking **Request changes**
+review, and the PR records who dismissed it and the disposition of each point
+(fixed in a named commit, or declined with the reason). High-risk PRs follow the
 same rule, and at least one of their two approvals comes from an account on the
 [high-risk approver list](../.github/high-risk-approvers.json), as it stands
 on the verified protected `main` commit (see the high-risk rule above), that
