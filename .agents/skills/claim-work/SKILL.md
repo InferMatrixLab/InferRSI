@@ -12,8 +12,8 @@ rules and working rules 1, 7 and 8 in
 ## Check before claiming
 
 1. Confirm the governing Issue and its accepted scope before changing code. If
-   the guide's [stop check](../../../docs/agent-collaboration.md#identity-and-authority) finds a stop on
-   this work's stop chain, or cannot rule one out, do not claim it.
+   the [stop check](../../../docs/agent-collaboration.md#human-stop) finds a stop
+   on the chain or cannot rule one out, do not claim the work.
 2. Confirm the Issue has an accountable owner (recorded on the Issue, or else
    its only assignee when exactly one is set) and carries `status:accepted`:
 

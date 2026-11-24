@@ -39,6 +39,9 @@ If the skill library changed, also run
 Check every new or changed artifact against the
 [privacy and security rules](../../../docs/privacy-security.md).
 
+Run the [stop check](../../../docs/agent-collaboration.md#human-stop)
+immediately before each push.
+
 ## Write the PR body
 
 Start from the [PR template](../../../.github/PULL_REQUEST_TEMPLATE.md):
