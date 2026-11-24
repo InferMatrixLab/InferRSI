@@ -118,8 +118,7 @@ def validate_assessment(result: dict) -> None:
     _object(result, _RESULT)
     _require(type(result["schema_version"]) is int and result["schema_version"] == 1,
              code="UnsupportedSchema")
-    _require(result["task"] == {"name": "p1-fixture", "revision": "1"}
-             and result["grader"] == {"name": "p1-rules", "revision": "1"}
+    _require(preparation._supported_task(result["task"], result["grader"])
              and result["assessor"] == {"name": "fixture-assessor", "revision": "1"},
              code="UnsupportedRuleVersion")
     _timestamp(result["assessed_at"])
