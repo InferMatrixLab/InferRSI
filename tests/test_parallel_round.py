@@ -1449,6 +1449,29 @@ def test_retry_repairs_a_payload_that_does_not_match_the_manifest(tmp_path):
     assert stored.read_text(encoding="utf-8") == "8"
 
 
+def test_serve_and_close_apply_an_executable_bit_downgrade(tmp_path):
+    incumbent = tmp_path / "incumbent"
+    _sum_tree(incumbent, "10", "10")
+    (incumbent / "knobs" / "a.txt").chmod(0o755)
+    round_dir = tmp_path / "round"
+    prepare(_sum_spec(), incumbent, round_dir)
+    work = tmp_path / "work"
+    _sum_tree(work, "8", "10")
+    downgraded = work / "knobs" / "a.txt"
+    downgraded.chmod(0o644)
+    ticket = submit(round_dir, "L1", incumbent, work, now=WHEN)["ticket"]
+    measured = serve_ticket(round_dir, ticket, incumbent, backend=FixtureBackend(), now=WHEN)
+    assert measured["status"] == "measured", measured
+    staged = round_dir / "candidates" / ticket / "knobs" / "a.txt"
+    assert staged.read_text(encoding="utf-8") == "8"
+    assert staged.stat().st_mode & 0o111 == 0
+    closed = close_round(round_dir, incumbent, backend=FixtureBackend(), now=WHEN)
+    assert closed["accepted"] is True
+    successor = Path(closed["successor"]) / "knobs" / "a.txt"
+    assert successor.read_text(encoding="utf-8") == "8"
+    assert successor.stat().st_mode & 0o111 == 0
+
+
 def test_serve_rejects_a_truncated_payload_without_retrying_submit(tmp_path):
     incumbent = tmp_path / "incumbent"
     _tree(incumbent, "10")

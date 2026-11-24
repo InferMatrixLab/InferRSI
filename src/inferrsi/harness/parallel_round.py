@@ -257,13 +257,23 @@ def _stream_copy(root: Path, relative: str, target: Path) -> str | None:
                 view = memoryview(block)
                 while view:
                     view = view[os.write(out, view) :]
+            source_digest = hasher.hexdigest()
         finally:
             os.close(out)
     finally:
         os.close(file_fd)
-    if executable:
-        os.chmod(target, stat.S_IMODE(target.stat().st_mode) | executable)
-    return hasher.hexdigest()
+    current = stat.S_IMODE(os.lstat(target).st_mode)
+    os.chmod(target, (current & ~0o111) | executable)
+    if stat.S_IMODE(os.lstat(target).st_mode) & 0o111 != executable:
+        return None
+    landed_fd = os.open(target, os.O_RDONLY | os.O_NOFOLLOW)
+    try:
+        landed = _digest_fd(landed_fd)
+    finally:
+        os.close(landed_fd)
+    if landed != source_digest:
+        return None
+    return source_digest
 
 
 def _digest_at(root: Path, relative: str) -> str | None:
