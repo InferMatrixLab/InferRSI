@@ -6,6 +6,7 @@ import re
 import shutil
 import sys
 import time
+import unicodedata
 from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -415,11 +416,16 @@ def _has_windows_path_alias(path: PurePosixPath) -> bool:
     return any(part.endswith((" ", ".")) for part in path.parts)
 
 
+def _ordinary_path_key(value: str) -> PurePosixPath:
+    # Compare paths using canonical caseless matching.
+    decomposed = unicodedata.normalize("NFD", value)
+    return PurePosixPath(unicodedata.normalize("NFD", decomposed.casefold()))
+
+
 def _ordinary_path_errors(spec: Mapping) -> list[str]:
     """Keep materialized inputs distinct from other inputs and from declared outputs."""
-    # The workspace may use Windows name normalization or case-insensitive comparisons.
     alias_error = "path components cannot end in a space or period"
-    inputs = [PurePosixPath(item["materialized_path"].casefold()) for item in spec["inputs"]]
+    inputs = [_ordinary_path_key(item["materialized_path"]) for item in spec["inputs"]]
     input_paths = set(inputs)
     input_parents = {parent for path in inputs for parent in path.parents}
     errors = [
@@ -431,7 +437,7 @@ def _ordinary_path_errors(spec: Mapping) -> list[str]:
         errors.append("inputs: materialized paths must not overlap")
     for step_index, step in enumerate(spec["steps"]):
         for output_index, output in enumerate(step["outputs"]):
-            path = PurePosixPath(output["path"].casefold())
+            path = _ordinary_path_key(output["path"])
             field = f"steps[{step_index}].outputs[{output_index}].path"
             if _has_windows_path_alias(path):
                 errors.append(f"{field}: {alias_error}")

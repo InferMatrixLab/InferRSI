@@ -512,9 +512,12 @@ def test_spec_time_refusals_register_nothing(h: Harness) -> None:
 @pytest.mark.parametrize(("input_paths", "output_path", "field"), [
     (["data.txt"], "data.txt", "steps[1].outputs[0].path"),
     (["data.txt"], "DATA.txt", "steps[1].outputs[0].path"),
+    (["caf\u00e9.txt"], "CAFE\u0301.txt", "steps[1].outputs[0].path"),
+    (["caf\u00e9"], "cafe\u0301/result.txt", "steps[1].outputs[0].path"),
     (["x/y"], "x", "steps[1].outputs[0].path"),
     (["x"], "x/y", "steps[1].outputs[0].path"),
     (["data.txt", "DATA.txt"], None, "inputs"),
+    (["caf\u00e9.txt", "cafe\u0301.txt"], None, "inputs"),
     (["x/y", "x"], None, "inputs"),
     (["data.txt"], "data.txt.", "steps[1].outputs[0].path"),
     (["data.txt "], "data.txt", "inputs[0].materialized_path"),
