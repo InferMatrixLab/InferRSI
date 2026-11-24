@@ -20,6 +20,9 @@ inferrsi/
   assets/infermatrix-icon.png
   skills/inferrsi/SKILL.md
   skills/inferrsi/scripts/inferrsi.py
+  skills/inferrsi-jiusi/SKILL.md
+  skills/inferrsi-jiusi/agents/openai.yaml
+  skills/inferrsi-jiusi/references/
   runtime/manifest.json
   runtime/inferrsi/
   LICENSE
@@ -88,6 +91,37 @@ The bundled runtime serves `skills enter <task-id>`, `knowledge`, packaged
 interpreter. Commands that parse skill frontmatter, including direct reads of
 checkout skills, require PyYAML in the selected interpreter.
 Image validators and target engines retain their own optional dependencies.
+
+## Optional Jiusi interview
+
+Explicitly invoke `$inferrsi-jiusi` to clarify an optimization task before
+starting experiments. Its display name is **InferRSI-Jiusi**. For example:
+
+> $inferrsi-jiusi Optimize this engine's throughput. First clarify my workload,
+> quality requirements, implementation preferences, prior attempts and budget.
+
+The entry uses a bundled grilling-style interview: the Agent inspects accessible
+facts, asks independent decisions together, waits for your answers, then follows
+the decisions those answers unlock. It reuses information you already supplied.
+Before execution, it presents a task brief distinguishing constraints,
+user-reported experience, hypotheses and unknown measurements, and asks you to
+confirm it. Confirmed decisions feed the existing InferRSI task and experiment
+protocol. You can correct the brief, delegate a choice, cancel or explicitly
+switch to ordinary InferRSI.
+
+This skill sets `policy.allow_implicit_invocation: false` in its
+`agents/openai.yaml`: ordinary InferRSI requests and setup keep the original
+entry. Use the explicit skill selector/mention rather than relying on a plain
+text name to activate Jiusi. See the
+[Codex invocation policy](https://learn.chatgpt.com/docs/build-skills#optional-metadata).
+The ZIP carries the interview guide, its source attribution and MIT license;
+no separate grilling installation is needed. This optional entry is specific to
+the Codex bundle and reuses its existing runtime and launcher.
+
+Packaging checks establish resource inclusion, invocation metadata and isolated
+launcher operation. Client discovery, interview behavior and any improvement in
+optimization efficiency need their own host-level validation; a passing package
+check does not establish faster convergence.
 
 ## MindIE knowledge
 

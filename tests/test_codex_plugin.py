@@ -15,6 +15,7 @@ from pathlib import Path
 from urllib.parse import unquote, urlsplit
 
 import pytest
+import yaml
 
 from inferrsi.knowledge.catalog import _split_skill_metadata
 from tools.build_codex_plugin import build_plugin
@@ -338,6 +339,9 @@ def test_archive_contains_only_one_standalone_plugin(tmp_path):
         assert not any("marketplace" in name or ".agents" in name for name in names)
         metadata = json.loads(archive.read("inferrsi/plugin.json"))
         assert metadata["$schema"] == "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json"
+        assert metadata["extensions"]["com.openai"]["onboardingSkill"] == (
+            "./skills/inferrsi/SKILL.md"
+        )
         interface = metadata["extensions"]["com.openai"]["interface"]
         assert len(interface["shortDescription"]) <= 30
         assert metadata["author"]["name"] == interface["developerName"] == "InferMatrixLab"
@@ -352,6 +356,50 @@ def test_archive_contains_only_one_standalone_plugin(tmp_path):
     assert info.returncode == 0, info.stderr
     manifest = json.loads((output / "runtime/manifest.json").read_text(encoding="utf-8"))
     assert json.loads(info.stdout)["content_sha256"] == manifest["content_sha256"]
+
+
+def test_codex_jiusi_bundle_has_explicit_entry_and_resolvable_handoff(distribution, tmp_path):
+    jiusi = distribution / "skills/inferrsi-jiusi"
+    if not (distribution / "plugin.json").is_file():
+        # WorkSwarm has its own template and retains its existing entrypoints.
+        assert not jiusi.exists()
+        return
+
+    source = PROJECT / "plugins/inferrsi/skills/inferrsi-jiusi"
+    required = {
+        "SKILL.md", "agents/openai.yaml", "references/grilling.md",
+        "references/brief-template.md", "references/grilling-LICENSE",
+    }
+    bundled = {path.relative_to(jiusi).as_posix() for path in jiusi.rglob("*") if path.is_file()}
+    assert required <= bundled
+    for name in bundled:
+        assert (jiusi / name).read_bytes() == (source / name).read_bytes()
+
+    header = (jiusi / "SKILL.md").read_text(encoding="utf-8").split("---", 2)[1]
+    assert yaml.safe_load(header)["name"] == "inferrsi-jiusi"
+    configuration = yaml.safe_load((jiusi / "agents/openai.yaml").read_text(encoding="utf-8"))
+    assert configuration["interface"]["display_name"] == "InferRSI-Jiusi"
+    assert configuration["policy"]["allow_implicit_invocation"] is False
+
+    # Resolve every local resource from its owning document after ZIP extraction.
+    # This catches references that only work inside the source checkout.
+    for document in jiusi.rglob("*.md"):
+        for target in re.findall(r"\[[^\]]*\]\(([^\s)]+)\)", document.read_text(encoding="utf-8")):
+            link = urlsplit(target)
+            if not link.scheme and not link.netloc and link.path:
+                resolved = (document.parent / unquote(link.path)).resolve()
+                assert resolved.is_relative_to(distribution.resolve())
+                assert resolved.is_file(), f"Broken Jiusi resource: {document.name}: {target}"
+
+    launcher = (jiusi / "../inferrsi/scripts/inferrsi.py").resolve()
+    assert launcher == (distribution / "skills/inferrsi/scripts/inferrsi.py").resolve()
+    (tmp_path / "inferrsi.py").write_text("raise RuntimeError('wrong import')", encoding="utf-8")
+    result = subprocess.run(
+        [sys.executable, "-I", "-S", "-X", "utf8", str(launcher), "--plugin-info"],
+        cwd=tmp_path, capture_output=True, text=True, encoding="utf-8", timeout=45,
+    )
+    assert result.returncode == 0, result.stderr
+    assert json.loads(result.stdout)["runtime"] == "bundled"
 
 
 @pytest.fixture(scope="module", params=["codex", "workswarm"])
