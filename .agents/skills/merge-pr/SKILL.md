@@ -14,12 +14,12 @@ head; otherwise report the first failing check.
 
 ```bash
 gh pr view <pr> --repo InferMatrixLab/InferRSI \
-  --json state,isDraft,headRefOid,baseRefName,baseRefOid,body,labels,reviews,reviewDecision,statusCheckRollup,files
+  --json state,isDraft,autoMergeRequest,headRefOid,baseRefName,baseRefOid,body,labels,reviews,reviewDecision,mergeStateStatus,statusCheckRollup,files
 ```
 
 Also read the governing Issue's labels, accountable owner and recorded
-authorization. Note `headRefOid` and `baseRefOid`: the checks below hold for
-that pair only.
+authorization. Note `headRefOid`, `baseRefName` and `baseRefOid` for the checks
+below.
 
 ## Check every condition
 
@@ -27,11 +27,18 @@ that pair only.
 2. **Authorized to integrate:** the governing Issue has an accountable owner
    (recorded on the Issue, or else its only assignee when exactly one is set) and carries `status:accepted`, and you are its deciding agent, were delegated
    integration on the Issue, or you act for a maintainer account.
-3. **No stop:** the guide's
-   [stop check](../../../docs/agent-collaboration.md#identity-and-authority) finds no stop on the PR's
-   stop chain; a stop comment holds even after the label exists. If it finds a
-   stop or cannot rule one out, do not merge, and record on the PR which Issue
-   you could not check.
+3. **No stop and auto-merge off.** If `autoMergeRequest` is set, the authorized
+   integrator, or a maintainer if the integrator cannot act, cancels it with
+   `gh pr merge <pr> --repo InferMatrixLab/InferRSI --disable-auto` and
+   re-reads the PR to confirm `autoMergeRequest` is `null`, even when a stop
+   is active. On an Issue-level stop, apply this to every affected PR. If the
+   cancellation cannot be confirmed, hold the work and report that the PR may
+   still merge automatically. If the PR already merged, report it to the Issue
+   owner for authorized recovery.
+   Run the guide's [stop check](../../../docs/agent-collaboration.md#identity-and-authority)
+   on the whole stop chain. A stop comment holds even after the label exists.
+   If the check finds a stop or cannot rule one out, do not merge. Record on
+   the PR any Issue you could not check.
 4. **Base and dependencies:** the PR's base is its intended target: `main`,
    or for a stacked PR its lower PR's branch until that PR merges, after which
    the base is changed back to `main` and the checks run again. Every PR it
@@ -64,22 +71,24 @@ that pair only.
    releases (release workflow, version, tags, publishing), secrets and
    credentials, or permissions (workflow `permissions`, repository access,
    rulesets, the high-risk approver list), or you cannot tell, at least one of
-   the approvals in 5 comes from an account listed in
-   `.github/high-risk-approvers.json`; that account's agent may give it. Other
-   approvals count toward the two but not as this one. Read the list from the
-   protected `main` commit you noted as `baseRefOid` (the base is `main` by
-   check 4), never from the PR head or a stacked branch, so a PR that changes
-   the list is judged by the list before it
-   (`gh api "repos/InferMatrixLab/InferRSI/contents/.github/high-risk-approvers.json?ref=<baseRefOid>" --jq .content | base64 -d`).
-   Confirm the approving login is on it, and confirm the account still has
-   write access:
-   `gh api repos/InferMatrixLab/InferRSI/collaborators/<login>/permission --jq .permission`
-   must print `admin` or `write`. If you cannot read the list or the
-   permission, or no approving account passes both, do not merge. The PR that
-   creates the list is approved once as the
-   [high-risk rule](../../../docs/agent-collaboration.md#identity-and-authority)
-   says.
-   Otherwise follow the normal flow.
+   the approvals in check 5 must come from an account on the applicable list.
+   That account's agent may give it. Record the current protected `main` tip as
+   `<mainSha>` using
+   `gh api repos/InferMatrixLab/InferRSI/git/ref/heads/main --jq .object.sha`.
+   The PR's `baseRefOid` can lag behind the live ref. For the one-time bootstrap
+   PR, confirm the list is absent at `<mainSha>` and use the original approvers in the
+   [bootstrap decision](https://github.com/InferMatrixLab/InferRSI/issues/570#issuecomment-7078872219).
+   For every later high-risk PR, including changes to the list, read the list
+   at `<mainSha>`
+   (`gh api "repos/InferMatrixLab/InferRSI/contents/.github/high-risk-approvers.json?ref=<mainSha>" --jq .content | base64 -d`).
+   In both cases, confirm an approving login is in the applicable list and
+   that the permission check prints `admin` or `write` for that account
+   (`gh api repos/InferMatrixLab/InferRSI/collaborators/<login>/permission --jq .permission`).
+   Hold the merge if either check cannot be verified.
+   On later high-risk PRs, verify a merge path that rejects a change to the
+   checked base, or verify exclusive serialization covering every high-risk
+   merge and every way to update the list. If neither is available, hold the
+   merge.
 10. **Recovery for external effects:** if the merge itself causes an external
    effect that a revert cannot undo (publishing a release asset or package,
    changing access or credentials), the PR body has a
@@ -87,38 +96,43 @@ that pair only.
    owner and the containment steps. If it is missing, do not merge and ask the
    author to add it. This adds no approval requirement.
 
-Right before merging, read the PR and the governing Issue again. Recheck the
-stop check from check 3 on the whole stop chain; `headRefOid`, `baseRefName` and `baseRefOid` against the pair you
-noted; the Issue's `status:accepted` and your authorization; and, on the
-current head, the approvals, any open binding **Request changes** review, any advisory
-request without a recorded disposition, GitHub's merge state, and any
-unresolved code or safety blocker from check 7, and, on a
-high-risk PR, the listed approver and its write access from check 9, against
-the list at the same `baseRefOid`; and the PR body's `recovery:` line from
-check 10, since the body can change without a new head. If anything changed or
-no longer holds, start over.
+For a serialized high-risk merge, acquire the exclusive slot before the final
+checks and keep it until GitHub confirms or definitively rejects the merge. If
+the result is unknown, confirm the PR's state before releasing the slot.
+
+Right before merging, read the PR and the governing Issue again. Repeat check 3
+on the whole stop chain and confirm `autoMergeRequest` is `null`. Confirm
+`headRefOid`, `baseRefName`, `baseRefOid`, `status:accepted` and your authorization.
+Recheck the current head's approvals, any open binding **Request changes**,
+any advisory request without a recorded disposition, GitHub's merge state and
+any unresolved code or safety blocker. Recheck any required `recovery:` line.
+For a high-risk PR, confirm the live protected `main` tip still equals
+`<mainSha>` and repeat the listed approval and permission checks. For the
+one-time bootstrap, reconfirm the absence of the file and the approval from
+the recorded bootstrap list. If anything changed or no longer holds, start over.
 
 ## Merge
 
 Prepare the squash message: subject plus a short summary, no Issue references,
 DCO sign-off and material `Agent-assisted-by` attribution kept. Squash-merge
-only the head you checked, so GitHub refuses the merge if the head has moved:
+only the head you checked. Use the direct command below for ordinary PRs, the
+one-time bootstrap, or while holding the verified serialization slot. With a
+base-enforcing path, require both the checked head and `<mainSha>` at merge time.
 
 ```bash
 gh pr merge <pr> --repo InferMatrixLab/InferRSI --squash \
   --match-head-commit <headRefOid> --subject "<subject>" --body "<summary>"
 ```
 
-With the REST merge endpoint, pass the same head as `sha`. If the merge is
-refused because the head changed, start over from the checks above; never retry
-without the expected head. The repository ruleset and merge controls apply
-unchanged. There is
-no merge queue yet; once one is enabled, the rules for queueing are added here.
+The CLI flag and the REST merge endpoint's `sha` parameter bind only the PR
+head. If the checked revision has changed, start over from the checks above.
+Keep native auto-merge off and use a synchronous merge. The repository ruleset
+and merge controls apply. Add queueing instructions once the queue is enabled.
 Record the merge on the PR yourself, right after merging, with an identity
 line; for a high-risk PR the same comment then has one line
 `merge-audit: head=<sha> approvals=@<account> <review URL>, @<account> <review URL> approver=@<login> list=<sha> merge=<sha> by=@<account>`,
 where `approver=` names the approving account you found on the list and
-verified in check 9, and `list=` is the `baseRefOid` you read the list from
+verified in check 9, and `list=` is the `<mainSha>` you read the list from
 (`list=bootstrap-570` only for the one-time bootstrap merge in the
 [high-risk rule](../../../docs/agent-collaboration.md#identity-and-authority)).
 If `main` turns red afterwards, use the
