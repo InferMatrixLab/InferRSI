@@ -35,7 +35,7 @@ below.
    cancellation cannot be confirmed, hold the work and report that the PR may
    still merge automatically. If the PR already merged, report it to the Issue
    owner for authorized recovery.
-   Run the guide's [stop check](../../../docs/agent-collaboration.md#identity-and-authority)
+   Run the guide's [stop check](../../../docs/agent-collaboration.md#human-stop)
    on the whole stop chain. A stop comment holds even after the label exists.
    If the check finds a stop or cannot rule one out, do not merge. Record on
    the PR any Issue you could not check.
@@ -65,9 +65,10 @@ below.
 7. **No open blocker:** every binding **Request changes** review (from an
    account with write access or higher) is re-reviewed to **Approve** or
    dismissed with a recorded reason, by those the
-   [guide](../../../docs/agent-collaboration.md) allows to dismiss it. An
-   advisory review, such as one from `cursor[bot]`, does not count as a vote
-   but has a substantive answer on the PR and a recorded disposition (fixed in
+   [review rules](../../../docs/agent-collaboration.md#pr-review-and-merge)
+   allow to dismiss it. An advisory review, such as one from `cursor[bot]`,
+   has zero votes. Give it a substantive answer on the PR and record each
+   disposition (fixed in
    a named commit, or declined with the reason). If GitHub's merge state still
    shows the PR blocked by it on the current head, someone the guide allows to
    dismiss reviews dismisses it, and the PR records who did and why, before
@@ -143,6 +144,6 @@ line; for a high-risk PR the same comment then has one line
 where `approver=` names the approving account you found on the list and
 verified in check 9, and `list=` is the `<mainSha>` you read the list from
 (`list=bootstrap-570` only for the one-time bootstrap merge in the
-[high-risk rule](../../../docs/agent-collaboration.md#identity-and-authority)).
+[high-risk rule](../../../docs/agent-collaboration.md#high-risk-changes)).
 If `main` turns red afterwards, use the
 [red-main skill](../red-main/SKILL.md).

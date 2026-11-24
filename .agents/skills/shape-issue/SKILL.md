@@ -11,9 +11,10 @@ and the [working rules](../../../docs/agent-collaboration.md#working-rules).
 
 ## Check authority
 
-1. Run the guide's stop check on the Issue, the governing and delegating Issues,
-   and their real ancestors. On a stop or an unverifiable chain, report the
-   state to the invoking operator and exit with zero GitHub writes.
+1. Run the [stop check](../../../docs/agent-collaboration.md#human-stop) on the
+   Issue, governing and delegating Issues, and their real ancestors. On a
+   stop or an unverifiable chain, report the state to the invoking operator
+   and exit with zero GitHub writes.
 2. Identify the accountable owner using the guide. If no owner is recorded or
    inferable, stay in discussion and ask a maintainer to record one when you
    have authority to reply. Apply the tracker and RFC boundaries in the guide.

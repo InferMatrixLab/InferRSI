@@ -118,7 +118,7 @@ ruff check src tests
 
 ## Collaboration
 
-Humans set direction through Issues and can [stop work](docs/agent-collaboration.md#identity-and-authority)
+Humans set direction through Issues and can [stop work](docs/agent-collaboration.md#human-stop)
 with `bot:stop` or a stop comment. Agents may carry accepted work end to end.
 Claim work before implementation.
 Choose one [collaboration skill](.agents/skills/README.md) for the current
