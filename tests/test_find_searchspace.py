@@ -156,7 +156,8 @@ def test_cli_rejects_an_exclusion_written_after_index_load(checkout, monkeypatch
 
 
 @pytest.mark.parametrize("path", (MATRIX, CATALOG))
-def test_find_rechecks_matrix_and_registry_after_ranking(checkout, monkeypatch, path):
+@pytest.mark.parametrize("display", (False, True))
+def test_find_rechecks_matrix_and_registry_after_ranking(checkout, monkeypatch, path, display):
     root, _ = checkout
     coordinate = load_searchspace_coordinate(root / LIBRARY, "SSD", "Diagnose")
     corpus = load_corpus(kinds=("skill",), searchspace_index=coordinate.index)
@@ -170,7 +171,8 @@ def test_find_rechecks_matrix_and_registry_after_ranking(checkout, monkeypatch, 
 
     monkeypatch.setattr(knowledge_find, "rank", rank_then_edit)
     with pytest.raises(StaleSearchspaceIndex, match="changed during Find"):
-        find(QUERY, corpus, searchspace_coordinate=coordinate)
+        find(QUERY, corpus, searchspace_coordinate=None if display else coordinate,
+             show_searchspace_coordinates=display)
 
 
 def test_find_uses_bound_corpus_and_ignores_unrelated_file_change(checkout):
@@ -214,7 +216,11 @@ def test_cli_shows_coordinate_and_source_with_or_without_matches(capsys):
     ("foreign", "Foreign SearchSpace index"),
     ("stale", "Stale SearchSpace index"),
 ])
-def test_cli_reports_actionable_index_failures(tmp_path, capsys, case, diagnostic):
+@pytest.mark.parametrize("options", [
+    ["--searchspace-coordinate", "SSD", "Configure"],
+    ["--show-searchspace-coordinates"],
+])
+def test_cli_reports_actionable_index_failures(tmp_path, capsys, case, diagnostic, options):
     index_path = tmp_path / INDEX
     index_path.parent.mkdir()
     if case != "missing":
@@ -224,7 +230,7 @@ def test_cli_reports_actionable_index_failures(tmp_path, capsys, case, diagnosti
         index_path.write_text("{" if case == "invalid" else json.dumps(artifact), encoding="utf-8")
     with pytest.raises(SystemExit) as exc:
         main(["find", QUERY, "--skill-root", str(tmp_path / LIBRARY),
-              "--searchspace-coordinate", "SSD", "Configure", "--no-external"])
+              "--no-external", *options])
     assert exc.value.code == 2
     text = capsys.readouterr().err
     assert diagnostic in text

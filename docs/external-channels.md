@@ -142,11 +142,13 @@ it (1–200). These are returned hits, not the total number of upstream matches.
 `--external-timeout` covers discovery and search together. Channels run
 concurrently under that deadline. On timeout the caller cancels owned worker
 processes and discards late results; subprocess teardown adds a short cleanup
-interval. The cannbot adapter terminates its process group on POSIX; Windows
-uses `taskkill /T /F` while the worker is alive. The new process-tree regression
-runs on POSIX; Windows cleanup has not been qualified by that test. Generic
-Python channel adapters must cooperate with the request deadline and register
-owned resources; Python cannot forcibly stop arbitrary in-process threads.
+interval. The CANNBot adapter terminates its process group on POSIX and uses
+`taskkill /T /F` while the Windows worker is alive. Its process-tree regression
+runs on POSIX. MindIE Find starts its Windows worker inside a Job Object, so
+cleanup covers descendants after the launcher exits. Find reports `rejected` if
+cleanup cannot confirm that the job is empty.
+Generic Python channel adapters must cooperate with the request deadline and
+register owned resources. Python cannot forcibly stop arbitrary in-process threads.
 
 ### The backend gate
 
@@ -223,14 +225,14 @@ Whether CANN OSL v2.0 permits even a local read-only copy is an open question fo
 the organisation; see #476 Q1. This page documents the mechanism, not a legal
 conclusion.
 
-## What is not implemented
+## Capability status
 
 | Capability | State |
 | --- | --- |
 | `cannbot enable / disable / describe / search / read` | implemented |
 | `find` integration with gating, budgets, per-channel states | implemented |
-| Managed benchmark and AB/BA round query, read and Dashboard attribution | implemented |
-| MindIE as a second channel | not yet; `apps/integrations/mindie/` has the reader, not the adapter |
+| Managed CANNBot benchmark and AB/BA round query, read and Dashboard attribution | implemented |
+| MindIE native navigation | Explicit opt-in for [standalone Find](codex-plugin.md#find-navigation) under an approved Ascend project. Returns navigation references. |
 | `cannbot serve` (stdio MCP proxying `discover` / `search` / `read_card`) | not yet |
 | `campaign import-cannbot` (receipts into evidence) | not yet |
 | Automatic clone, index build or deployment | deliberately absent |

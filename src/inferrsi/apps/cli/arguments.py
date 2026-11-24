@@ -684,6 +684,10 @@ def parser(*, parser_class=argparse.ArgumentParser) -> argparse.ArgumentParser:
         help="Filter ranked local Skills by a matrix pair using an explicit checkout --skill-root",
     )
     find.add_argument(
+        "--show-searchspace-coordinates", action="store_true",
+        help="Show matrix pairs and coverage on local Skill hits from an explicit checkout",
+    )
+    find.add_argument(
         "--explain", action="store_true", help="Report each query term's contribution"
     )
     find.add_argument(
@@ -692,6 +696,10 @@ def parser(*, parser_class=argparse.ArgumentParser) -> argparse.ArgumentParser:
         "for a declared backend and are never inferred from the query",
     )
     find.add_argument("--platform", help="Override the grant’s upstream platform, e.g. a2")
+    find.add_argument(
+        "--external-source", choices=("mindie-agent",),
+        help="Explicitly select MindIE navigation for this Find; requires --backend ascend",
+    )
     find.add_argument(
         "--no-external", action="store_true",
         help="Skip every external channel; use in CI and offline runs",
