@@ -10,7 +10,13 @@ from inferrsi.harness.artifact_primitives import digest
 from inferrsi.harness.atomic_json import atomic_write_json
 from inferrsi.harness.run_store import RunStore, RunStoreReader
 from inferrsi.harness.search_adapter import ArtifactAdapter, Edit
-from inferrsi.harness.search_campaign import collect_group, finalize, learn, qualify_root
+from inferrsi.harness.search_campaign import (
+    FinalAcceptance,
+    collect_group,
+    finalize,
+    learn,
+    qualify_root,
+)
 from inferrsi.harness.search_records import decode
 from inferrsi.harness.vats import Settings
 from inferrsi.harness.work_control import WorkControl
@@ -27,6 +33,7 @@ def command(args):
         return result
     from .search_benchmarks import EngineEvaluator
 
+    acceptance = FinalAcceptance(minimum_objective=args.minimum_final_score)
     if root.exists():
         raise ValueError("Use a new session directory; status/export never restart work")
     if args.groups < 2 or args.rounds < 1:
@@ -90,7 +97,7 @@ def command(args):
         "rounds": args.rounds,
         "mode": args.mode,
         "learning_rate": args.learning_rate,
-        "minimum_final_score": args.minimum_final_score,
+        "minimum_final_score": acceptance.minimum_objective,
         "initial_snapshot": snapshot.document(),
     }
     contract = search_tree.Contract(
@@ -159,8 +166,6 @@ def command(args):
         selected,
         deployment_search=selected_state.contract.search_id,
         holdout_scope=args.final_scope,
-        accept_result=lambda values: all(
-            v["objective"] >= args.minimum_final_score for v in values
-        ),
+        acceptance=acceptance,
     )
     return control.read(campaign)

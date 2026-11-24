@@ -64,7 +64,9 @@ def test_protocol_identity_checked_before_loading(tmp_path, monkeypatch):
         checker.main(tmp_path / "trial", tmp_path / "failed")
 
 
-@pytest.mark.parametrize("fault", ["verdict", "promotion", "selection", "receipt", "source"])
+@pytest.mark.parametrize(
+    "fault", ["verdict", "promotion", "selection", "receipt", "source", "rule", "operation-rule"]
+)
 def test_offline_checker_requires_bound_durable_promotion(tmp_path, fault):
     from inferrsi.harness import candidates
 
@@ -76,20 +78,29 @@ def test_offline_checker_requires_bound_durable_promotion(tmp_path, fault):
     node = {"candidate_id": "winner", "artifact_digest": candidates.identity(candidate_dir)}
     receipt = {"verdict": "PASS", "cleanup_verified": True, "objective": 1.2}
     final = {"candidate": "winner", "verdict": "PASS", "promoted": True, "results": [receipt]}
+    binding = {
+        "candidate": node,
+        "deployment_search": "frozen-101",
+        "acceptance": {"version": 1, "minimum_objective": None},
+    }
     op = {
         "category": "final",
         "status": "settled",
-        "binding": {"candidate": node},
+        "binding": binding | {"check": "evaluation"},
         "receipt": receipt,
     }
     state = {"stable": node, "searches": {"frozen-101": {"selected": "winner"}}}
     doc = {
         "final_result": final,
-        "final_claim": {"scope": "frozen-101", "binding": {"candidate": node}},
+        "final_claim": {"scope": "frozen-101", "binding": binding},
         "state": state,
         "operations": {"final-1": op},
     }
-    assert checker.promoted_final(doc, "frozen-101", tmp_path) == (receipt, checker.sha(source))
+
+    def replay():
+        return checker.promoted_final(doc, "frozen-101", tmp_path, require_acceptance=True)
+
+    assert replay() == (receipt, checker.sha(source))
     if fault == "verdict":
         final["verdict"] = "INCONCLUSIVE"
     elif fault == "promotion":
@@ -98,7 +109,11 @@ def test_offline_checker_requires_bound_durable_promotion(tmp_path, fault):
         state["searches"]["frozen-101"]["selected"] = "root"
     elif fault == "receipt":
         op["receipt"] = {**receipt, "objective": 1.3}
+    elif fault == "rule":
+        binding.pop("acceptance")
+    elif fault == "operation-rule":
+        op["binding"]["acceptance"] = {"version": 1, "minimum_objective": 0}
     else:
         source.write_bytes(b"other candidate")
     with pytest.raises(ValueError, match="frozen-101"):
-        checker.promoted_final(doc, "frozen-101", tmp_path)
+        replay()

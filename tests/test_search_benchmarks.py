@@ -16,7 +16,13 @@ from inferrsi.benchmark.improvement import SelectionPolicy
 from inferrsi.harness.artifact_primitives import digest
 from inferrsi.harness.run_store import RunStore
 from inferrsi.harness.search_adapter import ArtifactAdapter, Edit
-from inferrsi.harness.search_campaign import finalize, import_qualified_root, learn, qualify_root
+from inferrsi.harness.search_campaign import (
+    FinalAcceptance,
+    finalize,
+    import_qualified_root,
+    learn,
+    qualify_root,
+)
 from inferrsi.harness.task_protocol import TaskProtocolError
 from inferrsi.harness.trials.external import execute_trial
 from inferrsi.harness.vats import Search, Settings
@@ -90,6 +96,44 @@ def test_cli_requires_explicit_shared_store_and_read_commands_do_not_create_one(
     assert not (tmp_path / "absent").exists()
     with pytest.raises(SystemExit):
         parser().parse_args(["search", "engine", "--session", str(tmp_path / "run")])
+
+
+@pytest.mark.parametrize(
+    ("floor", "expected", "promoted"),
+    [("9007199254740992", 2**53, True), ("9.007199254740993e15", 2**53 + 1, False)],
+)
+def test_engine_cli_freezes_exact_final_score(tmp_path, monkeypatch, floor, expected, promoted):
+    class Evaluator:
+        identity = "cpu-score-fixture"
+
+        def __init__(self, task, frozen, **kwargs):
+            frozen.mkdir()
+            (frozen / "baseline.py").write_text("value = 1")
+
+        def evaluate(self, candidate, check, output, deadline):
+            output.mkdir(parents=True)
+            return {"verdict": "PASS", "objective": 2**53, "cleanup_verified": True}
+
+    monkeypatch.setattr("inferrsi.apps.workflows.search_benchmarks.EngineEvaluator", Evaluator)
+    checkpoint = tmp_path / "initial.json"
+    checkpoint.write_text(json.dumps(Snapshot((0,), (0,) * 8, (0,) * 8, "fixture").document()))
+    session = str(tmp_path / "session")
+    args = parser().parse_args([
+        "search", "engine", "--session", session, "--store", str(tmp_path / "store"),
+        "--campaign", "cpu", "--task", "cpu", "--domain", "local", "--checkpoint", str(checkpoint),
+        "--edit", "increase", "candidate.py", "value = 1", "value = 2", "--max-seconds", "120",
+        "--evaluation-seconds", "2", "--final-reserve-seconds", "3", "--search-seconds", "15",
+        "--preparation-seconds", "1", "--draft-seconds", "1", "--training-seconds", "2",
+        "--candidates", "2", "--depth", "1", "--attempts", "2", "--steps", "2", "--plans", "2",
+        "--targets", "1", "--groups", "2", "--rounds", "1", "--learning-rate", "0.01",
+        "--final-scope", "held", "--minimum-final-score", floor,
+    ])
+    command(args)
+    saved = command(parser().parse_args(["search", "status", "--session", session]))
+    binding = saved["final_claim"]["binding"]
+    assert binding["acceptance"] == {"version": 1, "minimum_objective": expected}
+    assert binding["objective_check"] == "evaluation"
+    assert saved["final_result"]["promoted"] is promoted
 
 
 def test_engine_rejects_frozen_resource_mutation_during_evaluation(tmp_path, monkeypatch):
@@ -254,7 +298,7 @@ def test_skill_final_requires_holdout_before_claim_or_access(
     control = WorkControl(RunStore(tmp_path / "store", "skill-test"))
     before = control.create("campaign", {}, {"searches": {}}, cap_ms=10000, final_reserve_ms=3000,
                             deadline=time.time() + 10)
-    kwargs = dict(holdout_scope=supplied_scope, accept_result=lambda results: True)
+    kwargs = dict(holdout_scope=supplied_scope, acceptance=FinalAcceptance())
     if valid:
         development = _skill_adapter(directory, comparator, "development", task_count=1)
         _select_skill_root(control, "campaign", development, root)
@@ -430,7 +474,7 @@ def test_skill_final_rejects_unbound_candidate_before_holdout(tmp_path, fault):
     reopened = WorkControl(RunStore(control.store.root, control.store.namespace))
     with pytest.raises(ValueError):
         finalize(reopened, "campaign", final, supplied,
-                 holdout_scope=comparator.holdout_scope, accept_result=bool)
+                 holdout_scope=comparator.holdout_scope, acceptance=FinalAcceptance())
     record = reopened.read("campaign")
     assert record["final_claim"] is None and record["final_result"] is None
     assert "stable" not in record["state"] and "holdout" not in accesses
@@ -453,7 +497,7 @@ def _skill_final(tmp_path, comparator, name):
 
     def run():
         return finalize(control, name, adapter, root, holdout_scope=comparator.holdout_scope,
-                        accept_result=lambda results: True)
+                        acceptance=FinalAcceptance())
 
     return control, run
 
@@ -617,7 +661,7 @@ def test_skill_search_and_final_bind_the_actual_development_comparator(
     reopened = WorkControl(RunStore(store.root, store.namespace))
     with pytest.raises(ValueError, match="frozen development experiment"):
         finalize(reopened, "campaign", substituted, root, holdout_scope=swapped.holdout_scope,
-                 accept_result=lambda _: True)
+                 acceptance=FinalAcceptance())
     assert reopened.read("campaign")["final_claim"] is None
 
     # A second campaign can import the verified root, retaining its original physical
@@ -633,12 +677,12 @@ def test_skill_search_and_final_bind_the_actual_development_comparator(
     search.run()
     with pytest.raises(ValueError, match="frozen development experiment"):
         finalize(reopened, "import", substituted, root, holdout_scope=swapped.holdout_scope,
-                 accept_result=lambda _: True)
+                 acceptance=FinalAcceptance())
     assert reopened.read("import")["final_claim"] is None
     # The original registered comparator reaches the missing input after consuming its claim.
     with pytest.raises(FileNotFoundError):
         finalize(reopened, "import", final, root, holdout_scope=first.holdout_scope,
-                 accept_result=lambda _: True)
+                 acceptance=FinalAcceptance())
     assert reopened.read("import")["final_claim"]["scope"] == first.holdout_scope
 
 

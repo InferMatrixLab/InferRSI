@@ -1,7 +1,8 @@
 """Campaign assembly: real root acquisition, independent searches, GVO and final gating."""
 
+import math
 import time
-from dataclasses import asdict, replace
+from dataclasses import asdict, dataclass, replace
 
 from inferrsi.contracts.claim import Verdict
 
@@ -254,6 +255,52 @@ def learn(
     return snapshot
 
 
+class _FutureAcceptanceVersion(ValueError):
+    pass
+
+
+@dataclass(frozen=True)
+class FinalAcceptance:
+    """Require all checks to pass and optionally a minimum score on the deployment objective."""
+
+    minimum_objective: int | float | None = None
+
+    def __post_init__(self):
+        value = self.minimum_objective
+        if value is not None and not self._finite_number(value):
+            raise ValueError("Final acceptance minimum_objective must be a finite number")
+        if type(value) is float and value.is_integer():
+            object.__setattr__(self, "minimum_objective", int(value))
+
+    @staticmethod
+    def _finite_number(value):
+        # Integers are exact. Converting a large integer to float can change the gate.
+        return type(value) is int or (type(value) is float and math.isfinite(value))
+
+    def document(self):
+        return {"version": 1, "minimum_objective": self.minimum_objective}
+
+    @classmethod
+    def from_document(cls, raw):
+        if type(raw) is dict and type(raw.get("version")) is int and raw["version"] > 1:
+            raise _FutureAcceptanceVersion("Future final acceptance version is unsupported")
+        if (
+            type(raw) is not dict or set(raw) != {"version", "minimum_objective"}
+            or type(raw["version"]) is not int or raw["version"] != 1
+        ):
+            raise ValueError("Missing or unsupported frozen final acceptance rule")
+        return cls(raw["minimum_objective"])
+
+    def accepts(self, results, objective_check):
+        if not results or not all(r["verdict"] == "PASS" and r["cleanup_verified"] is True
+                   for r in results.values()):
+            return False
+        if self.minimum_objective is None:
+            return True
+        value = results[objective_check].get("objective")
+        return self._finite_number(value) and value >= self.minimum_objective
+
+
 class _AmbiguousDeployment(ValueError):
     pass
 
@@ -296,77 +343,135 @@ def _deployment_winner(doc, adapter, selected, search_id):
         raise ValueError("Recorded deployment winner disagrees with the verified search result")
     if selected != winner and selected != replace(winner, parent_id=None):
         raise ValueError("Final candidate must be the winner of the selected deployment search")
-    return search_id
+    return state.contract
 
 
 def finalize(
-    control, campaign, adapter, selected, *, holdout_scope, accept_result, deployment_search=None
+    control, campaign, adapter, selected, *, holdout_scope, acceptance=None, deployment_search=None,
+    accept_result=None,
 ):
     """Freeze once; a failed/unknown holdout never reopens search or changes selection.
 
     deployment_search names the completed natural deployment that selected the candidate.
-    A campaign with exactly one eligible deployment can omit the name. accept_result is
-    the fixed independent final gate.
+    A campaign with exactly one eligible deployment can omit the name. New claims require
+    an explicit FinalAcceptance. Receipt recovery uses the rule in the original claim.
     """
-    doc = control.recover_unstarted(campaign)
+    doc = control.read(campaign)
     if doc["final_result"] is not None:
         return doc["final_result"]
+    if accept_result is not None:
+        raise ValueError("Final acceptance callbacks cannot be frozen; supply FinalAcceptance")
+    if acceptance is not None and type(acceptance) is not FinalAcceptance:
+        raise ValueError("Final acceptance must be a FinalAcceptance rule")
     frozen = doc["final_claim"]
     recovering = frozen is not None
+    checks = dict(adapter.checks)
+    if not recovering and not checks:
+        raise ValueError("Final acceptance requires a nonempty set of checks")
     binding = {
         "candidate": asdict(selected),
         "adapter": adapter.identity,
-        "checks": adapter.checks,
+        "checks": checks,
         "scope": holdout_scope,
     }
     previous_search = None
+    acceptance_error = None
     if recovering:
+        # Reuse the original rule bytes in the binding, even when this version cannot
+        # interpret them. That binding identifies the already launched physical checks.
+        stored = frozen["binding"]
+        for name in ("acceptance", "objective_check"):
+            if name in stored:
+                binding[name] = stored[name]
+        try:
+            rule = FinalAcceptance.from_document(binding.get("acceptance"))
+            if rule.minimum_objective is not None:
+                name = binding.get("objective_check")
+                if type(name) is not str or name not in checks:
+                    raise ValueError("Missing or unknown frozen final objective check")
+            elif "objective_check" in binding:
+                raise ValueError("Unexpected objective check for a score-free acceptance rule")
+        except _FutureAcceptanceVersion:
+            raise
+        except ValueError as error:
+            if acceptance is not None:
+                raise ValueError("Cannot replace an unproven final acceptance rule") from error
+            acceptance_error = str(error)
+        else:
+            if acceptance is not None and acceptance != rule:
+                raise ValueError("Cannot change the frozen final acceptance rule")
         previous_search = frozen["binding"].get("deployment_search")
         if previous_search is not None:
             if deployment_search not in (None, previous_search):
                 raise ValueError("Cannot change the frozen deployment search")
             binding["deployment_search"] = previous_search
         # Match the exact original inputs before inspecting receipts, including legacy keys.
-        if digest(frozen["binding"]) != digest(binding):
+        if digest(stored) != digest(binding):
             raise ValueError("Cannot change the final candidate or validation scope")
+        # Binding equality authenticates membership. Keep the adapter's report order and
+        # take each cap from the persisted claim (RunStore sorts JSON object keys).
+        checks = {name: stored["checks"][name] for name in checks}
+    else:
+        if acceptance is None:
+            raise ValueError("New final claims require an explicit FinalAcceptance rule")
+        binding["acceptance"] = acceptance.document()
+        rule = FinalAcceptance.from_document(binding["acceptance"])
+
+    # An incompatible retry must not even release an expired reservation. Once the
+    # binding matches, recover reservations and use the resulting revision for the CAS.
+    doc = control.recover_unstarted(campaign)
+    if doc["final_result"] is not None:
+        return doc["final_result"]
+    if doc["final_claim"] != frozen:
+        raise ValueError("Final claim changed; recover using its frozen binding")
 
     selection_error = None
-    try:
-        validate_final = getattr(adapter.evaluator, "validate_final", None)
-        if validate_final is not None:
-            validate_final(holdout_scope)
-        required_scope = getattr(adapter.evaluator, "holdout_scope", None)
-        if required_scope is not None and holdout_scope != required_scope:
-            raise ValueError("Final scope must match the evaluator's frozen holdout data identity")
-        search_id = _deployment_winner(doc, adapter, selected, previous_search or deployment_search)
-    except _AmbiguousDeployment:
-        raise
-    except ValueError as error:
-        if not recovering or (previous_search is None and deployment_search is not None):
-            raise
-        selection_error = str(error)
-    if selection_error is None:
+    if acceptance_error is None:
         try:
-            # Authenticate the entire retained bundle before committing a fresh holdout claim.
-            adapter.path(selected)
-        except (ValueError, OSError) as error:
-            if not recovering:
+            validate_final = getattr(adapter.evaluator, "validate_final", None)
+            if validate_final is not None:
+                validate_final(holdout_scope)
+            required_scope = getattr(adapter.evaluator, "holdout_scope", None)
+            if required_scope is not None and holdout_scope != required_scope:
+                raise ValueError("Final scope must match the evaluator's frozen holdout identity")
+            contract = _deployment_winner(
+                doc, adapter, selected, previous_search or deployment_search
+            )
+            if not set(contract.checks).issubset(checks):
+                raise ValueError("Final checks must include every required deployment check")
+            if rule.minimum_objective is not None:
+                if recovering and binding["objective_check"] != contract.objective_check:
+                    raise ValueError("Frozen final objective check differs from deployment")
+                binding["objective_check"] = contract.objective_check
+        except _AmbiguousDeployment:
+            raise
+        except ValueError as error:
+            if not recovering or (previous_search is None and deployment_search is not None):
                 raise
             selection_error = str(error)
+        if selection_error is None:
+            try:
+                # Authenticate the entire retained bundle before committing a fresh holdout claim.
+                adapter.path(selected)
+            except (ValueError, OSError) as error:
+                if not recovering:
+                    raise
+                selection_error = str(error)
+    accounting_only = acceptance_error is not None or selection_error is not None
     if not recovering:
-        binding["deployment_search"] = search_id
+        binding["deployment_search"] = contract.search_id
         control.claim_final(
             campaign, doc["revision"], holdout_scope, binding,
             previous_scope_prefix=getattr(adapter.evaluator, "previous_holdout_scope_prefix", None),
         )
-    results = []
-    for check, cap in adapter.checks.items():
+    results = {}
+    for check, cap in checks.items():
         doc = control.read(campaign)
         operation = "final-" + digest({"campaign": campaign, "binding": binding, "check": check})
         if recovering:
             op = doc["operations"].get(operation)
             if op is None:
-                if selection_error is not None:
+                if accounting_only:
                     continue  # No reservation or launch to reconcile; never dispatch it.
                 raise ValueError("Interrupted holdout may be consumed; no new execution")
             if op["status"] == "claimed":
@@ -382,7 +487,7 @@ def finalize(
                         "cleanup_verified": True,
                     }
             else:
-                recover = adapter.recover if selection_error is None else adapter.recover_accounting
+                recover = adapter.recover_accounting if accounting_only else adapter.recover
                 result = recover(
                     operation,
                     {"kind": "verify", "final": True,
@@ -417,28 +522,29 @@ def finalize(
                 actual_ms=result.get("elapsed_ms"),
                 cleanup_verified=result.get("cleanup_verified"),
             )
-        results.append(result)
+        results[check] = result
     doc = control.read(campaign)
     unsettled = any(op["status"] != "settled" for op in doc["operations"].values())
-    if selection_error is not None and unsettled:
+    if accounting_only and unsettled:
         raise ValueError("Unknown final usage or cleanup; recover its receipt without rerun")
     unresolved = doc["blocked"] or unsettled
-    passed = (
-        selection_error is None
-        and not unresolved
-        and all(r["verdict"] == "PASS" and r["cleanup_verified"] is True for r in results)
-        and accept_result(results)
+    complete = bool(checks) and results.keys() == checks.keys()
+    passed = complete and not accounting_only and not unresolved and rule.accepts(
+        results, binding.get("objective_check")
     )
     result = {
         "candidate": selected.candidate_id,
         "verdict": "PASS" if passed else "FAIL",
-        "results": results,
+        "results": list(results.values()),
         "promoted": passed,
     }
     if selection_error is not None:
         result["selection_error"] = selection_error
-    if selection_error is not None or unresolved or any(
-        r["verdict"] == "INCONCLUSIVE" or r["cleanup_verified"] is not True for r in results
+    if acceptance_error is not None:
+        result["acceptance_error"] = acceptance_error
+    if not complete or accounting_only or unresolved or any(
+        r["verdict"] == "INCONCLUSIVE" or r["cleanup_verified"] is not True
+        for r in results.values()
     ):
         result.update(verdict="INCONCLUSIVE", promoted=False)
     control.finish_final(

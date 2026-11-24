@@ -32,3 +32,9 @@ the unpacked original archive, preserve its `config/run.py` next to the
 `--historical-driver /path/to/config/run.py`. The current driver retains its
 own bytes in each new trial directory. Its summary also records incomplete
 and unrun arms, which prevent publication of paired results.
+
+For trials made with the current driver, each VATS claim and its settled final
+operation must carry the same rule. It requires every check to pass with verified cleanup
+and applies no additional score threshold. The checker also recognizes the pinned driver
+from [the previous revision](https://github.com/InferMatrixLab/InferRSI/blob/b974554199cb10759da03a75f333e608c91d7395/evidence/qwen-vats-gvo-910b1-20261124/plan/run.py).
+The recorded promotions from older drivers remain historical results.

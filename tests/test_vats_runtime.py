@@ -12,6 +12,7 @@ from inferrsi.harness.gvo import examples, train_group
 from inferrsi.harness.run_store import RunStore
 from inferrsi.harness.search_adapter import ArtifactAdapter, CommandEvaluator, Edit
 from inferrsi.harness.search_campaign import (
+    FinalAcceptance,
     collect_group,
     finalize,
     import_qualified_root,
@@ -125,7 +126,7 @@ def test_final_access_is_frozen_and_export_retry_does_not_execute(runtime, detac
         adapter,
         selected,
         holdout_scope="test-final",
-        accept_result=lambda results: all(r["verdict"] == "PASS" for r in results),
+        acceptance=FinalAcceptance(),
     )
     before = len(list((adapter.root / "executions").iterdir()))
     (adapter.path(selected) / "candidate.txt").unlink()
@@ -136,12 +137,117 @@ def test_final_access_is_frozen_and_export_retry_does_not_execute(runtime, detac
             adapter,
             selected,
             holdout_scope="test-final",
-            accept_result=lambda results: False,
+            acceptance=FinalAcceptance(minimum_objective=100),
         )
         == result
     )
     assert len(list((adapter.root / "executions").iterdir())) == before
     assert control.read("campaign")["state"]["stable"]["candidate_id"] == selected.candidate_id
+
+
+@pytest.mark.parametrize(
+    ("timing", "remaining"),
+    [("before", ("objective",)), ("after", ()), ("after", ("objective",))],
+    ids=["missing-at-claim", "empty-after-claim", "partial-after-claim"],
+)
+def test_final_requires_every_deployment_check_across_holdout_claim(
+    runtime, monkeypatch, timing, remaining
+):
+    control, adapter, _, _, root = runtime
+    start_search_for_final(runtime, root_only=True).run()
+    original_checks = dict(adapter.checks)
+    replacement = {name: original_checks[name] for name in remaining}
+    selected = tree.accept(root)
+    kwargs = dict(holdout_scope="held", acceptance=FinalAcceptance())
+    if timing == "before":
+        before = control.read("campaign")
+        monkeypatch.setattr(adapter, "checks", replacement)
+        with pytest.raises(ValueError):
+            finalize(control, "campaign", adapter, selected, **kwargs)
+        assert control.read("campaign") == before
+        return
+
+    claim_final = control.claim_final
+
+    def replace_checks_after_commit(*args, **kwargs):
+        doc = claim_final(*args, **kwargs)
+        assert doc["final_claim"]["binding"]["checks"] == original_checks
+        monkeypatch.setattr(adapter, "checks", replacement)
+        return doc
+
+    monkeypatch.setattr(control, "claim_final", replace_checks_after_commit)
+    result = finalize(control, "campaign", adapter, selected, **kwargs)
+    doc = control.read("campaign")
+    physical = {
+        op["binding"]["check"]: (operation, op) for operation, op in doc["operations"].items()
+        if op["category"] == "final"
+    }
+    assert set(physical) == {"quality", "objective"}
+    for operation, op in physical.values():
+        assert (adapter.root / "executions" / operation / "execution.json").is_file()
+        assert op["status"] == "settled" and op["receipt"]["verdict"] == "PASS"
+    assert len(result["results"]) == 2 and result["promoted"]
+
+
+@pytest.mark.parametrize(("minimum", "verdict"), [(2, "FAIL"), (1, "PASS"), (2**53 + 1, "FAIL")])
+def test_final_recovery_uses_frozen_minimum_after_all_receipts_settle(
+    runtime, monkeypatch, minimum, verdict
+):
+    control, adapter, _, _, root = runtime
+    selected = tree.accept(root)
+    start_search_for_final(runtime, root_only=True).run()
+    scope = "threshold-held"
+
+    def crash_before_commit(campaign, binding, result, **kwargs):
+        assert result["verdict"] == verdict
+        assert [receipt["objective"] for receipt in result["results"]] == [None, 1]
+        assert all(r["verdict"] == "PASS" and r["cleanup_verified"] for r in result["results"])
+        raise RuntimeError("stopped before committing final result")
+
+    monkeypatch.setattr(control, "finish_final", crash_before_commit)
+    with pytest.raises(RuntimeError, match="before committing"):
+        finalize(control, "campaign", adapter, selected, holdout_scope=scope,
+                 acceptance=FinalAcceptance(minimum_objective=minimum))
+    reopened = WorkControl(RunStore(control.store.root, control.store.namespace))
+    before = reopened.read("campaign")
+    assert before["final_claim"]["binding"]["acceptance"] == {
+        "version": 1, "minimum_objective": minimum,
+    }
+    assert before["final_claim"]["binding"]["objective_check"] == root.contract.objective_check
+    assert before["final_result"] is None and "stable" not in before["state"]
+    assert all(op["status"] == "settled" for op in before["operations"].values())
+
+    def no_new_execution(*args):
+        pytest.fail("All final receipts are already settled")
+
+    monkeypatch.setattr(adapter, "verify", no_new_execution)
+    monkeypatch.setattr(adapter, "recover", no_new_execution)
+    monkeypatch.setattr(adapter, "recover_accounting", no_new_execution)
+    for substitute in (FinalAcceptance(), FinalAcceptance(minimum_objective=minimum - 1)):
+        with pytest.raises(ValueError):
+            finalize(reopened, "campaign", adapter, selected, holdout_scope=scope,
+                     acceptance=substitute)
+        assert reopened.read("campaign") == before
+    # Equivalent adapters can enumerate their checks in a different order after a restart.
+    monkeypatch.setattr(adapter, "checks", dict(reversed(adapter.checks.items())))
+    result = finalize(reopened, "campaign", adapter, selected, holdout_scope=scope)
+    assert result["verdict"] == verdict and result["promoted"] == (verdict == "PASS")
+    after = reopened.read("campaign")
+    assert ("stable" in after["state"]) == (verdict == "PASS")
+    assert after["operations"] == before["operations"] and after["spent_ms"] == before["spent_ms"]
+    exported = finalize(reopened, "campaign", adapter, selected, holdout_scope=scope,
+                        acceptance=FinalAcceptance(minimum_objective=0))
+    assert exported == result and reopened.read("campaign") == after
+
+
+@pytest.mark.parametrize("supplied", [{}, {"accept_result": bool}, {"acceptance": bool}])
+def test_final_requires_a_durable_acceptance_rule_before_any_claim(runtime, supplied):
+    control, adapter, _, _, root = runtime
+    start_search_for_final(runtime, root_only=True).run()
+    before = control.read("campaign")
+    with pytest.raises((TypeError, ValueError)):
+        finalize(control, "campaign", adapter, tree.accept(root), holdout_scope="held", **supplied)
+    assert control.read("campaign") == before
 
 
 @pytest.mark.parametrize("stage", ["root-only", "active", "collecting", "forced"])
@@ -157,7 +263,7 @@ def test_final_requires_completed_unforced_deployment_before_claim(runtime, monk
     monkeypatch.setattr(adapter, "verify", lambda *args: pytest.fail("Unexpected final dispatch"))
     with pytest.raises(ValueError):
         finalize(control, "campaign", adapter, tree.accept(root), holdout_scope="held",
-                 accept_result=bool)
+                 acceptance=FinalAcceptance())
     assert control.read("campaign") == before
 
 
@@ -176,7 +282,8 @@ def test_final_authenticates_winner_before_claim(runtime, monkeypatch, substitut
     before = control.read("campaign")
     monkeypatch.setattr(adapter, "verify", lambda *args: pytest.fail("Unexpected final dispatch"))
     with pytest.raises(ValueError):
-        finalize(control, "campaign", adapter, selected, holdout_scope="held", accept_result=bool)
+        finalize(control, "campaign", adapter, selected, holdout_scope="held",
+                 acceptance=FinalAcceptance())
     assert control.read("campaign") == before
 
 
@@ -200,7 +307,7 @@ def test_final_recovery_uses_receipt_and_frozen_deployment_with_identical_winner
     for name in ("deploy-a", "deploy-b"):
         record = start_search_for_final(runtime, name, root_only=True).run()
         assert record["selected"] == selected.candidate_id
-    kwargs = dict(holdout_scope="held", accept_result=bool)
+    kwargs = dict(holdout_scope="held", acceptance=FinalAcceptance())
     before = control.read("campaign")
     with pytest.raises(ValueError):
         finalize(control, "campaign", adapter, selected, **kwargs)
@@ -231,6 +338,9 @@ def test_final_recovery_uses_receipt_and_frozen_deployment_with_identical_winner
     different = replace(selected, producer=replace(selected.producer, revision="changed"))
     with pytest.raises(ValueError):
         finalize(reopened, "campaign", adapter, different, **kwargs)
+    with pytest.raises(ValueError):
+        finalize(reopened, "campaign", adapter, selected,
+                 **(kwargs | {"acceptance": FinalAcceptance(minimum_objective=1)}))
     assert reopened.read("campaign") == before and not recoveries
     result = finalize(reopened, "campaign", adapter, selected, **kwargs)
     assert result["promoted"] and result["verdict"] == "PASS"
@@ -238,14 +348,21 @@ def test_final_recovery_uses_receipt_and_frozen_deployment_with_identical_winner
     assert recoveries == waiting
 
 
-@pytest.mark.parametrize("has_deployment", [False, True])
-def test_legacy_final_receipts_require_development_selection(runtime, monkeypatch, has_deployment):
+@pytest.mark.parametrize(
+    ("has_deployment", "archived_rule"),
+    [(False, None), (True, None), (True, {"version": 2, "minimum_objective": 0}),
+     (True, {"version": 1, "minimum_objective": "0"})],
+    ids=["no-selection", "verified-winner", "unknown-rule-version", "invalid-threshold"],
+)
+def test_historical_final_handles_missing_malformed_and_future_acceptance(
+    runtime, monkeypatch, has_deployment, archived_rule
+):
     control, adapter, _, _, root = runtime
     selected = tree.accept(root)
     if has_deployment:
         record = start_search_for_final(runtime, root_only=True).run()
         assert record["selected"] == selected.candidate_id
-    # The old binding had no deployment-search ID. Simulate a crash after the last receipt.
+    # The last final receipt exists on disk but its transaction never settled.
     scope = "legacy-held"
     binding = {
         "candidate": asdict(selected),
@@ -253,6 +370,10 @@ def test_legacy_final_receipts_require_development_selection(runtime, monkeypatc
         "checks": adapter.checks,
         "scope": scope,
     }
+    if has_deployment:
+        binding["deployment_search"] = "deploy"
+    if archived_rule is not None:
+        binding["acceptance"] = archived_rule
     doc = control.claim_final("campaign", control.read("campaign")["revision"], scope, binding)
     for check, cap in adapter.checks.items():
         operation = "final-" + digest({"campaign": "campaign", "binding": binding, "check": check})
@@ -282,7 +403,21 @@ def test_legacy_final_receipts_require_development_selection(runtime, monkeypatc
             assert lease is not None
 
     monkeypatch.setattr(adapter, "verify", lambda *args: pytest.fail("Legacy final must not rerun"))
-    kwargs = dict(holdout_scope=scope, accept_result=bool)
+    kwargs = dict(holdout_scope=scope)
+    if archived_rule is not None and archived_rule["version"] > 1:
+        def no_receipt_read(*args):
+            pytest.fail("An older reader must preserve the pending claim for a compatible version")
+
+        monkeypatch.setattr(adapter, "recover", no_receipt_read)
+        monkeypatch.setattr(adapter, "recover_accounting", no_receipt_read)
+        for retry in ({}, {"acceptance": FinalAcceptance()}):
+            with pytest.raises(ValueError, match="(?i)(future|newer|unsupported)"):
+                finalize(reopened, "campaign", adapter, selected, **kwargs, **retry)
+            assert_reservation_held()
+        return
+    with pytest.raises(ValueError):
+        finalize(reopened, "campaign", adapter, selected, acceptance=FinalAcceptance(), **kwargs)
+    assert_reservation_held()
     path = adapter.root / "receipts" / (operation + ".json")
     delayed = path.rename(path.with_suffix(".delayed"))
     with pytest.raises(ValueError, match="Unknown final"):
@@ -330,10 +465,10 @@ def test_legacy_final_receipts_require_development_selection(runtime, monkeypatc
     assert_reservation_held()
     saved_execution.rename(execution)
     result = finalize(reopened, "campaign", adapter, selected, **kwargs)
-    assert result["promoted"] is has_deployment
-    assert result["verdict"] == ("PASS" if has_deployment else "INCONCLUSIVE")
+    assert result["verdict"] == "INCONCLUSIVE" and not result["promoted"]
+    assert result["acceptance_error"]
     after = reopened.read("campaign")
-    assert ("stable" in after["state"]) == has_deployment
+    assert "stable" not in after["state"]
     assert after["operations"][operation]["status"] == "settled"
     assert after["operations"][operation]["actual_ms"] == receipt["elapsed_ms"]
     assert after["spent_ms"] == before["spent_ms"] + receipt["elapsed_ms"]
@@ -359,7 +494,7 @@ def test_final_reconciles_without_promoting_changed_winner_bytes(
         monkeypatch.setattr(control, "finish_final", interrupt)
     else:
         interrupt_after_last_final_receipt(control, adapter, monkeypatch)
-    kwargs = dict(holdout_scope="held", accept_result=bool)
+    kwargs = dict(holdout_scope="held", acceptance=FinalAcceptance())
     with pytest.raises(RuntimeError, match="crash"):
         finalize(control, "campaign", adapter, selected, **kwargs)
     before = control.read("campaign")
@@ -409,7 +544,7 @@ def test_qualification_recovers_expired_claim_without_adapter_access(runtime, mo
         if stage == "root":
             return qualify_root(authority, campaign, adapter, selected, root.contract)
         return finalize(authority, campaign, adapter, selected, holdout_scope="held",
-                        accept_result=bool)
+                        acceptance=FinalAcceptance())
 
     launch = control.launch
     interrupted = {}
@@ -441,6 +576,16 @@ def test_qualification_recovers_expired_claim_without_adapter_access(runtime, mo
         with pytest.raises(ValueError, match="did not start"):
             qualify(reopened)
     else:
+        before = reopened.read(campaign)
+        with pytest.raises(ValueError):
+            finalize(reopened, campaign, adapter, selected, holdout_scope="held",
+                     acceptance=FinalAcceptance(minimum_objective=1))
+        assert reopened.read(campaign) == before
+        with reopened.store._connection() as db:
+            held = db.execute(
+                "SELECT 1 FROM work_domains WHERE operation=?", (interrupted["operation"],)
+            ).fetchone()
+        assert held is not None
         final = qualify(reopened)
         assert final["verdict"] == "INCONCLUSIVE" and not final["promoted"]
         assert final["results"][-1]["not_started"] == "deadline"

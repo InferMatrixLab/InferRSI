@@ -222,10 +222,18 @@ and verifies the retained candidate files against the selected artifact digest.
 A root can enter final when a completed deployment selected it. Root qualification
 alone, a training collection, and a forced continuation cannot supply that selection.
 If several deployments completed, pass `deployment_search` to name the one used
-for selection. The claim freezes this search and its winner at the same campaign
-revision and closes search/training before final data access. Engine compares
-again with the original baseline. For Skill, supply a **holdout-bound adapter** and
-`Comparator.holdout_scope`, derived from frozen task membership. The raw SHA-256
+for selection. The first claim freezes the deployment, winner and acceptance
+rule at the same campaign revision, then closes search/training before final
+data access.
+
+For a new Python final, pass `acceptance=FinalAcceptance()` to require all
+checks to pass with verified cleanup. With
+`acceptance=FinalAcceptance(minimum_objective=1.2)`, the same checks apply and
+the deployment’s designated objective must also reach 1.2. The claim records
+the rule version, required checks, threshold and, for a numeric threshold, the
+objective check. The Engine CLI uses its explicit `--minimum-final-score` when
+comparing against the original baseline. For Skill, supply a **holdout-bound
+adapter** and `Comparator.holdout_scope`, derived from frozen task membership. The raw SHA-256
 separately pins each file's exact bytes. Root qualification and VATS search use
 the development evaluator. Finalization checks that its comparator matches the
 one bound to the recorded development evidence. After the final claim and before
@@ -235,11 +243,14 @@ identical case inputs across splits. Changing JSON formatting, case order, IDs
 or provenance gives the same set of inputs a single final allowance in the
 shared store. Exact bounded radix utility keeps quality ahead of token use.
 
-After interruption, recovery reads existing receipts without launching another
-check. If an already-consumed claim lacks a verifiable selection or its candidate
-files have changed, recovery uses bound receipts only to reconcile usage and
-cleanup. Once reconciled, the final is INCONCLUSIVE and the incumbent is
-preserved. Each new receipt binds the physical operation ID. An older final
+After interruption, omit `acceptance` to apply the rule saved with the claim to
+the existing receipts. Supplying a different rule is rejected. Earlier Python
+callers that passed an `accept_result` callback must select a declarative rule
+for new finals. A historical claim without a verifiable rule can only settle
+usage and cleanup. The same applies when its selection cannot be verified or
+its candidate files have changed. Once reconciled, the final is INCONCLUSIVE
+and the incumbent is preserved. A claim with a newer rule version stays pending
+for a runtime that understands it. Each new receipt binds the physical operation ID. An older final
 receipt without that ID needs its matching executor record from the claimed
 operation, including the output path recorded at execution. Missing proof,
 unknown usage or unknown cleanup keeps the reservation. Existing final results

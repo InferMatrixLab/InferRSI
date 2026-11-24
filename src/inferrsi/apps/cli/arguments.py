@@ -24,6 +24,23 @@ from ...knowledge.catalog import BACKENDS, KNOWLEDGE_REPOS, KNOWLEDGE_SCOPES, RE
 from .task_input import FIELDS as TASK_FIELDS
 
 
+def _final_score(value: str) -> int | float:
+    try:
+        return int(value)
+    except ValueError:
+        score = float(value)
+    if score.is_integer() and abs(score) >= 2**53:
+        from decimal import Decimal
+
+        # The finite float bounds the expanded integer to at most 309 digits.
+        # Recover integral decimal/exponent spellings before they round to a weaker gate.
+        exact = Decimal(value)
+        if exact != exact.to_integral_value():
+            raise argparse.ArgumentTypeError("Fractional final score exceeds float precision")
+        return int(exact)
+    return score
+
+
 def _read_sources(parser: argparse.ArgumentParser) -> None:
     library = parser.add_mutually_exclusive_group()
     library.add_argument(
@@ -148,7 +165,7 @@ def _search_arguments(commands) -> None:
     run.add_argument("--seed", type=int, default=0)
     run.add_argument("--mode", choices=("reset", "carry"), default="reset")
     run.add_argument("--final-scope", required=True)
-    run.add_argument("--minimum-final-score", type=float, required=True)
+    run.add_argument("--minimum-final-score", type=_final_score, required=True)
     run.add_argument("--python", default=sys.executable)
     run.add_argument("arguments", nargs="*", help="Task protocol arguments after --")
     for action in ("status", "export"):

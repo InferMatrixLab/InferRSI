@@ -14,6 +14,8 @@ from inferrsi.harness.run_store import RunStoreReader
 from inferrsi.harness.work_control import WorkControl
 
 PLAN = Path(__file__).resolve().parents[1] / "plan"
+# The published driver at b974554 saved its own bytes before rules were stored in claims.
+PREVIOUS_DRIVER_SHA256 = "548c67815bafa10ab2ff05fe4a09596e2ab99dbae28fc526c01bfa50f8f471ff"
 
 
 def read(path):
@@ -33,7 +35,7 @@ def close(left, right):
     return math.isclose(left, right, rel_tol=1e-12, abs_tol=1e-12)
 
 
-def promoted_final(doc, campaign, candidate_root):
+def promoted_final(doc, campaign, candidate_root, *, require_acceptance=False):
     final = doc["final_result"]
     claim = doc["final_claim"]
     require(
@@ -56,6 +58,17 @@ def promoted_final(doc, campaign, candidate_root):
         and final["results"] == [ops[0]["receipt"]],
         f"{campaign}: final receipt mismatch",
     )
+    if require_acceptance:
+        binding = claim["binding"]
+        rule = binding.get("acceptance")
+        require(
+            isinstance(rule, dict)
+            and type(rule.get("version")) is int
+            and rule == {"version": 1, "minimum_objective": None}
+            and binding.get("deployment_search") == campaign
+            and ops[0]["binding"] == binding | {"check": "evaluation"},
+            f"{campaign}: final acceptance differs from the diagnostic plan",
+        )
     candidate_id = candidate["candidate_id"]
     require(
         Path(candidate_id).name == candidate_id and candidate_id not in ("", ".", ".."),
@@ -76,13 +89,17 @@ def main(completed, failed, historical_driver=None):
     for name, expected_hash in spec["packaged_task_sha256"].items():
         require(sha(task / name) == expected_hash, name)
     summary = read(completed / "summary.json")
+    current_driver = sha(PLAN / "run.py")
     for name, expected_hash in spec["input_sha256"].items():
         path = PLAN.parent / name
         if name == "plan/run.py":
             if "driver_sha256" in summary:
                 path = completed / "driver.py"
-                expected_hash = sha(PLAN / "run.py")
-                require(summary["driver_sha256"] == expected_hash, "Replay driver identity")
+                expected_hash = summary["driver_sha256"]
+                require(
+                    expected_hash in (current_driver, PREVIOUS_DRIVER_SHA256),
+                    "Replay driver identity",
+                )
             else:
                 # The original archive includes the driver used for the published measurements.
                 path = historical_driver or completed.parent.parent / "config/run.py"
@@ -113,7 +130,10 @@ def main(completed, failed, historical_driver=None):
         require(not doc["blocked"], campaign)
         if campaign != "training":
             final_receipts[campaign] = promoted_final(
-                doc, campaign, completed / "artifacts/candidates"
+                doc,
+                campaign,
+                completed / "artifacts/candidates",
+                require_acceptance=summary.get("driver_sha256") == current_driver,
             )
         for operation, op in doc["operations"].items():
             require(op["status"] == "settled", operation)
