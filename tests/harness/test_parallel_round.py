@@ -203,6 +203,37 @@ except LeaseError as error:
             assert hold_devices(tmp_path, {"device_ids": ["cpu-0", "cpu-1"]}, 2) is None
             lease.acquire("cpu-0").release()
 
+    def test_hold_devices_rolls_back_on_acquire_error(self, tmp_path, monkeypatch):
+        devices = ["cpu-0", "cpu-1", "cpu-2"]
+        acquire = DeviceLease.acquire
+        failure = PermissionError("cannot open the third device lock")
+        held = []  # Keep the original handles alive until after the reacquire check.
+        released = []
+
+        def fail_on_third(leases, device):
+            if device == devices[2]:
+                raise failure
+            lock = acquire(leases, device)
+            held.append(lock)
+            release = lock.release
+
+            def record_release():
+                released.append(device)
+                release()
+
+            monkeypatch.setattr(lock, "release", record_release)
+            return lock
+
+        monkeypatch.setattr(DeviceLease, "acquire", fail_on_third)
+        with pytest.raises(PermissionError) as raised:
+            hold_devices(tmp_path, {"device_ids": devices}, 3)
+
+        assert raised.value is failure
+        assert released == ["cpu-1", "cpu-0"]
+        leases = DeviceLease(tmp_path / "leases")
+        with acquire(leases, "cpu-0"), acquire(leases, "cpu-1"):
+            pass
+
     def test_leases_reject_invalid_path_segments(self, tmp_path):
         lease = DeviceLease(tmp_path)
         for invalid in ("", ".", "..", "a/b", "a\\b", "a\0b"):
